@@ -1,0 +1,1951 @@
+21-MAY-2012: 1.10.0.5
+
+- Adds mxText.getTableSize hook for measuring HTML markup [JavaScript]
+- Fixes handling of data URIs in mxUrlConverter [JavaScript]
+- Adds mxPrintPreview.getDoctype hook [JavaScript]
+- Fixes SVG shadow stroke for non-stroked shapes [JavaScript]
+- Fixes translated pageSize in mxGraph.sizeDidChange [JavaScript]
+- Adds separate dashStyle style for dashpattern in VML [JavaScript]
+- Adds useAsDefaultEdge action in grapheditor.html example [JavaScript]
+
+14-MAY-2012: 1.10.0.4
+
+- Fixes possible offset between connect preview and result [JavaScript]
+- Fixes dashed shadows, connector shadow in image export [JavaScript]
+- Fixes linebreaks for HTML labels with backgrounds in IE9 standards mode [JavaScript]
+- Fixes dashed connector shadows [JavaScript]
+- Adds mxCellEditor.getMinimumSize hook [JavaScript]
+- Fixes ignored strokeWidth for graphBounds in mxGraphView.validatePoints [JavaScript]
+- Fixes possible NPE in mxOutline.update [JavaScript]
+- Removes graph model listener in mxGraph.destroy [JavaScript]
+- Fixes handling of negative coordinates in mxGraph.moveCells [Java,JavaScript]
+- Adds optional head argument in mxUtils.createHtmlDocument [Java]
+- Adds mxHtmlTextShape.createHtmlDocument hook [Java]
+- Adds word wrapping for HTML labels [Java]
+- Adds mxConstants.PX_PER_PIXEL [Java]
+- Corrects case when compact tree is moved within parent [Java,JavaScript]
+
+03-MAY-2012: 1.10.0.3
+
+- Adds status messages in grapheditor example, moves saveFile to ui [JavaScript]
+- Adds mxShape.roundedCrispSvg switch [JavaScript]
+- Adds caching for fields in mxObjectCodec [Java]
+- Adds mxShape.updateSvgBounds, -Path and -Scale hooks [JavaScript]
+- Fixes use of DOMParser in mxUtils.parseXml for IE7 [JavaScript]
+- Adds mxPath.addPath for merging multiple paths [JavaScript]
+- Adds custom message shape in markers.html example [JavaScript]
+
+27-APR-2012: 1.10.0.2
+
+- Adds missing var in mxDictionary.getKeys, getValues, visit [JavaScript]
+- Fixes mxEdgeHandler.marker.isValidState, uses getTerminalPort [JavaScript]
+- Adds link type custom bpmn edge shape in markers.html example [JavaScript]
+- Adds addPipe, enableFill switches, redrawPath method in mxArrow [JavaScript]
+- Enables shadow for non-filled shapes in mxShape [JavaScript]
+- Adds filled option in mxICanvas2D.shadow and implementations [Java,JavaScript,Dotnet]
+- Fixes mxConnectionHandler.createTargetVertex for relative sources [JavaScript]
+- Adds mxShape.createVmlShadow, fixes shadow, fill in mxConnector [JavaScript]
+- Adds mxPanningHandler.border, handleMouseOut switch [JavaScript]
+
+23-APR-2012: 1.10.0.1
+
+- Disables folding icons in mxOutline [JavaScript]
+- Adds experimental support for IE10 standards mode in mxClient [JavaScript]
+- Fixes in-place changes of geometry in mxGraph.getVertexBounds [Java,JavaScript]
+- Fixes handling of swimlanes in mxGraphLayout.arrangeGroups [Java,JavaScript]
+- Fixes shadow of mxArrow shape in SVG [JavaScript]
+
+18-APR-2012: 1.10.0.0
+
+- Adds cross-group support for the compact tree layout [Java,JavaScript]
+- mxCellRenderer.redrawCellOverlays no longer recreates shapes for existing overlays [JavaScript]
+- Adds saveAs, editFile actions, Editor.getOrCreateFileName in grapheditor example [JavaScript]
+- Fixes submenu image alignment in mxPopupMenu for quirks mode [JavaScript]
+- Fixes possible NaN in mxUtils.getScrollOrigin return value [JavaScript]
+- Fixes mxGraph.getEdges, mxGraphModel.getEdges for loops [Java,JavaScript,Dotnet]
+- Adds mxOutline.destroy method, suspended, updateOnPan switches [JavaScript]
+- Adds mxRubberband.repaint, PAN listener in mxGraphHandler, mxOutline, mxRubberband
+- Adds panDx/panDy in mxMouseEvent, mxOutline, mxGuide, mxRubberband, mxVertex-/Edge-/Connection-/GraphHandler [JavaScript]
+- Adds mxGraph.allowAutoPanning for panning manager in mxGraph.scrollPointToVisible [JavaScript]
+- Refactors mxGraph.panGraph, fires mxEvent.PAN, adds mxGraph.panDx, panDy [JavaScript]
+- Adds mxGraph.createPanningManager hook [JavaScript]
+- Adds new class mxPanningManager for automatic panning in mxGraph [JavaScript]
+- Adds support for toggle attribute in mxDefaultToolbarCodec config items [JavaScript]
+- Adds toggle argument in mxToolbar.addMode, mxDefaultToolbar.addPrototype [JavaScript]
+- Adds mxUtils.extend for subclassing [JavaScript]
+- Adds mxGraphHandler.updatePreviewShape hook [JavaScript]
+- Fixes occasional wrong scale in mxOutline [JavaScript]
+
+05-APR-2012: 1.9.2.5
+
+- Adds mxGraph.ignoreScrollbars switch [JavaScript]
+- Fixes parsing of default shape width and height in mxStencil [Java]
+- Fixes dashed line style for SVG in all built-in shapes [JavaScript]
+- Fixes tape shape, multiple modal dialogs in grapheditor example [JavaScript]
+- Fixes scaled HTML labels with no FO in mxText, height in IE9 standards mode [JavaScript]
+- Adds HTML labels with no foreign objects in mxPrintPreview for SVG [JavaScript]
+- Adds transparent markers support in mxGraphics2DCanvas [Java]
+- Adds mxConstants.STYLE_STARTFILL/_ENDFILL for transparent markers [Java]
+- Adds boolean source argument in mxIMarker.paintMarker [Java]
+
+30-MAR-2012: 1.9.2.4
+
+- Adds thin diamond marker [JavaScript]
+- Adds mxPanningHandling.getCellForPopupEvent hook [JavaScript]
+- Adds mxKeyHandler.isControlDown hook [JavaScript]
+- Fixes alignment of submenu icon in mxPopupMenu [JavaScript]
+- Adds mxShape.getRotation hook [JavaScript]
+- Adds support for dashed line style in mxLine for SVG [JavaScript]
+- Fixes image export for rotated line shapes [JavaScript]
+- Fixes mxUtils.findNodeByAttribute for IE9 standards mode [JavaScript]
+- Adds UML library, UML shapes in grapheditor example [JavaScript]
+- Removes nudge in hierarchical crossing reduction [JavaScript, Java]
+- Fixes word wrapping ignoring multiple newlines, http://bit.ly/GWL8fs [Java]
+
+28-MAR-2012: 1.9.2.3
+
+- Fixes calls to mxEdgeHandler.validateConnection in createMarker [Java,JavaScript]
+- Fixes error in mxParallelEdgeLayout.getEdgeId [JavaScript]
+- Adds multiple background pages in grapheditor example [JavaScript]
+- Renames xml parameter in grapheditor image export to plain [Java,JavaScript]
+- Adds support for short hex color notation in mxUtils.parseColor [Java]
+- Adds UI state to XML file, restores on load in grapheditor example [JavaScript]
+- Renames pageLayout action, resource to pageView in grapheditor example [JavaScript]
+- Adds mxStencil.createCanvas, handles relative images in Stencils.java example [Java,Dotnet]
+- Changes Sidebar.createThumb to take parent node in grapheditor [JavaScript]
+- Fixes printing for negative coordinates in grapheditor example [JavaScript]
+- Makes background color persistent, makes ColorDialog more generic [JavaScript]
+- Removes pageBreaks, add pageBackgroundColor action in grapheditor.html example [JavaScript]
+- Adds diagram background color in grapheditor.html example [JavaScript]
+- Adds Editor.updateGraphComponents, changes signature of get-/setGraphXml [JavaScript]
+- Moves Editor.openFile to EditorUi.open in grapheditor.html example [JavaScript]
+- Adds mxGraphView.getBackgroundPageBounds hook [JavaScript]
+- Fixes check for recursive drop target uses moving cells instead of this.cell [JavaScript]
+- Adds mxGraphHandler.getInitialCellForEvent, isDelayedSelection, selectDelayed hooks [JavaScript]
+- Fixes width instead of height used in print preview pages [JavaScript]
+- Fixes scaled HTML labels, dash patterns in mxSvgCanvas2D [JavaScript]
+- Adds experimental support for dashPattern in mxImageExport [JavaScript]
+- Fixes scaled HTML rendering in mxGraphicsCanvas2D [Java]
+- Makes all dash patterns proportional to strokewidths in image export [Java,Dotnet]
+- Fixes scaled text rendering in mxGraphicsCanvas2D, mxGdiCanvas [Java,Dotnet]
+- Adds support for XML custom stencils in mxGdiCanvas [Dotnet]
+- Fixes handling of miterlimits in mxStencil [Java,JavaScript]
+
+23-MAR-2012: 1.9.2.2
+
+- Fixes handling of newlines, improves word wrapping in mxGdiCanvas [Dotnet]
+- Adds support for XML custom stencils in mxGraphics2DCanvas [Java]
+- Fixes print preview in Firefox 11 [JavaScript]
+- Fixes group translate for foreignObject position on iOS [JavaScript]
+
+20-MAR-2012: 1.9.2.1
+
+- Adds mxCellRenderer.prototype.getTextScale hook [JavaScript]
+- Improves arrow marker display for line strokewidth > 1 [JavaScript]
+- Improves marker display for image export [JavaScript]
+- Adds experimental support for dashPattern style in mxConnector for SVG [JavaScript]
+- Dashed style for SVG takes strokewidth into account in mxShape [JavaScript]
+- Adds caching for accessors in mxObjectCodec [Java]
+- Adds group to first child parent only if group has not parent in mxGraph.groupCells [Java,JavaScript]
+- Adds mxShape.setCursor, uses in mxCellState.setCursor, fixes cursor in mxCellHighlight [JavaScript]
+- Handles shapes with width/height 0 in mxShape.updateHtmlShape [JavaScript]
+- mxSelectionCellsHandler does no longer refresh if graph disabled [Java,JavaScript]
+- Adds PDF and GIF export formats to grapheditor example [Java,JavaScript]
+- Avoids unnecessary calls to Image.getScaledInstance in mxGraphics(2D)Canvas(2D) [Java]
+- Replaces group translate with x- and y-attributes in foreignObjects [JavaScript]
+- Fixes possible NPE in mxSaxOutputHandler for missing wrap attribute in text node [JavaScript]
+- Adds mxText.replaceLinefeeds switch for HTML labels, used in mxImageExport [JavaScript]
+- mxDragSource.mouseDown prevents default but not propagation for event [JavaScript]
+- Add optional stopPropagation argument in mxEvent.consume [JavaScript]
+
+15-MAR-2012: 1.9.2.0
+
+- Adds mxCellEditor.focusLost hook for handling lost focus while in-place editing [JavaScript]
+- Fixes order of reconfigure and redraw for shapes in mxCellRenderer.redraw [JavaScript]
+- Fixes CSS rules for td.mxWindowPane select, textarea and radio in common.css [JavaScript]
+- Fixes inverse coordinates for moveCircle switch in mxCircleLayout [Java,JavaScript]
+- Adds limited support for HTML format in mxGraphicsCanvas2D, wrapping in mxGdiCanvas2D [Java,Dotnet]
+- Uses foreignObject in mxSvgCanvas2D for rendering HTML markup [JavaScript]
+- Adds wrap, format arguments in mxICanvas2D.text, image-, xml- and svg export [Java,Dotnet,JavaScript]
+- Adds old actor shape, other HTML shapes in grapheditor sidebar [JavaScript]
+- Adds mxGraphHandler.getMovePreview [Java]
+- Fixes missing HTML boundingBox with foreignObjects and overflow=fill [JavaScript]
+- Adds mxText.prototype.forceIgnoreStringSize for performance tuning in IE [JavaScript]
+- Removes EditorUi.checkBackend in grapheditor, moves check to index.html [JavaScript]
+- Caches visible terminal in mxCellState, adds set/getVisibleTerminal(State) [Java,JavaScript]
+- Changes type of terminal argument in mxEdgeHandler.updatePreviewState [JavaScript]
+- Fixes mxEdgeSegmentHandler.refresh to only update the bends [JavaScript]
+- Sets crisp rendering attribute to false in mxImageShape [JavaScript]
+- Fixes cropped HTML connector image in mxConnectionHandler [JavaScript]
+- Uses custom graph for tooltips and thumbnails in grapheditor sidebar [JavaScript]
+- Removes uml parameter in grapheditor example, adds shapes with HTML labels [JavaScript]
+- Fixes scaled HTML label bounds for overflow=fill in IE9 standards [JavaScript]
+- Adds mxKeyHandler.bindShiftKey, bindControlShiftKey [JavaScript]
+- Adds new mxText.prototype.redrawSvgTextNodes hook [JavaScript]
+- Fixes event handling in mxGraph.fit for unchanged scales [JavaScript]
+- Fixes mxEdgeHandler.isHandleVisible for indices != 1 [Java]
+- Adds checkFoldable argument in mxGraph.foldCells/cellsFolded [Java,JavaScript]
+- Deprecates old grapheditor example in examples/editors [JavaScript]
+- Fixes possible NPE in mxObjectCodec.set/getFieldValue [Java]
+- Fixes normal flow no longer uses exceptions in mxObjectCodec [Java]
+- Adds mxObjectCodec.get/setFieldValueWithAccessor methods [Java]
+- Fixes possible NPE in mxVertexHandler when entering groups [Java]
+- Fixes offset for invisible page shadow in mxGraphComponent.zoom [Java]
+- Fixes rotation of bounds, image export of rotated mxTriangle [JavaScript]
+- Fixes possible array index exception in mxGraph.cellsAdded [Java,JavaScript]
+- Fixes handling of dangling edges in mxGraph.getEdgeValidationError [Java,JavaScript]
+
+02-MAR-2012: 1.9.1.3
+
+- Moves outline to editor in grapheditor example [JavaScript]
+- Adds mxOutline.init for delayed setting of outline container [JavaScript]
+- Removes Google image picker API from grapheditor example [JavaScript]
+- Fixes mxEvent.isLeftMouseButton in IE9 standards mode [JavaScript]
+- Fixes repaint of selection marker after mxGraph.scrollRectToVisible [JavaScript]
+- Moves label menu to menubar, adds gradient submenu in grapheditor [JavaScript]
+- Adds MyDataCodec example to demonstrate adding support for enums [Java]
+- Fixes ignored scalePreview argument in mxUtils.makeDraggable [JavaScript]
+
+22-FEB-2012: 1.9.1.2
+
+- Fixes name of mxConstants.CURSOR_LABEL_HANDLE variable [JavaScript]
+- Fixes gradient fill after state restore in mxStencil [JavaScript]
+- Fixes inconsistencies and clipping bugs for Chrome in mxText [JavaScript]
+- Fixes performance for certain labels in quirks-/IE 8 standards mode [JavaScript]
+- Restores word wrapping in IE for overflow=fill mode [JavaScript]
+- Adds mxGraph.minFitScale, maxFitScale to control mxGraph.fit [JavaScript]
+- Adds selected state for actions in GraphEditor, checked menu items [JavaScript]
+- Fixes mxGraph.panGraph for label panning in IE9 standards mode [JavaScript]
+- Fixes possible NPE in mxUtils.getOuterHtml [JavaScript]
+- mxGraphComponent.createCanvas no longer passes image observer [Java]
+- Sets default edges via sidebar in GraphEditor example [JavaScript]
+
+15-FEB-2012: 1.9.1.1
+
+- Fixes possible NPE in mxVertexHandler.reset [JavaScript]
+- Fixes incorrect disabling of edge styling in tree layout [JavaScript, Java]
+- Restores mxConnectionHandler behaviour, adds active state flag [Java]
+- Adds EditorUi.checkBackend, changes Sidebar.addStencilPalette [JavaScript]
+- Removes rounding in mxShape for rounded SVG shapes except in IE [JavaScript]
+- Uses Math.ceil for size of container in mxGraph.sizeDidChange [JavaScript]
+- Moves CSS images to styles folder, adds path constants in grapheditor [JavaScript]
+- Sets initial image bounds in mxImageShape for delayed aspect in IE [JavaScript]
+- Adds rendered previews in sidebar for grapheditor example [JavaScript]
+- Removes transparency in sidebar for grapheditor example [JavaScript]
+- mxDragSource.mouseDown no longer consumes mouse event [JavaScript]
+
+08-FEB-2012: 1.9.1.0
+
+- Fixes handling of default aspect variable in mxStencil [JavaScript]
+- Adds new grapheditor example with Java backend [JavaScript,Java]
+- Adds disabled CSS style for mxPopupMenu items [JavaScript]
+- mxResources loads default bundle if language not supported [JavaScript]
+- Fixes assignment of default language in mxClient [JavaScript]
+- Adds shadow to graph bounds in mxGraphView.validatePoints [JavaScript]
+- Adds new mxConstants.STYLE_IMAGE_ASPECT style [JavaScript]
+- Fixes rounding errors in stencils for SVG [JavaScript]
+- Removes unused mxConstants.SVG_SHADOWTRANSFORM [JavaScript,Dotnet,Php]
+- Fixes scaled shadow offset for all shapes [JavaScript]
+- Adds tolerance check in mxConnectionHandler, initial event [Java]
+- Fixes HTML label border width for Opera/IE9 in mxText [JavaScript]
+- Fixes mxUtils.setOpacity for IE9 standards mode [JavaScript]
+- Adds mxPopupMenu.smartSeparators switch [JavaScript]
+- Adds enabled parameter in mxPopupMenu.addItem [JavaScript]
+- Adds mxGraphView.createBackgroundPageShape hook [JavaScript]
+- Uses CSS3 shadow for mxPopupMenu in IE9 standards mode [JavaScript]
+- Adds mxGraph.getOffsetSize, used in mxGraph.sizeDidChange [JavaScript]
+- Adds mxPopupMenu.labels switch to disable menu items with labels [JavaScript]
+- Adds handling for string border widths in mxGraph.sizeDidChange [JavaScript]
+- Fixes hit-detection for image mouse events in VML [JavaScript]
+- Fixes event transparency for mxGuide in SVG [JavaScript]
+- Calls init in mxPopupMenu if factoryMethod given [JavaScript]
+- Sets cursor for div.mxPopupMenu to pointer in common.css [JavaScript]
+
+18-JAN-2012: 1.9.0.2
+
+- Fixes tolerance for vertical/horizontal path detection in SVG [JavaScript]
+- Moves various awt dependent constants and utility methods to improve
+    GAE compatibility [http://bit.ly/AESxjR] [Java]
+- Adds mxUtils.rectangleIntersectsSegment utility function [JavaScript]
+- Fixes label moving in mxVertexHandler to use preview position [JavaScript]
+- Adds optional bounds argument in mxCellState.getPerimeterBounds [JavaScript]
+- Uses CSS padding and border in mxGraph.sizeDidChange [JavaScript]
+- Adds new menustyle.html, perimeter.html, grid.html examples [JavaScript]
+- Adds mxPopupMenu.autoExpand switch [JavaScript]
+- Fixes scaled label backgrounds in quirks and IE8 standards mode [JavaScript]
+- Fixes minor problem in mxPerimeter.EllipsePerimeter [JavaScript]
+- Fixes appearance of scrollbars in mxGuide [JavaScript]
+
+09-JAN-2012: 1.9.0.1
+
+- Fixes straightening algorithm for long edges in hierarchical layout [Java,JavaScript]
+- Adds new mxConstants.STYLE_LABEL_PADDING in mxText, mxImageExport [JavaScript]
+- Adds labelPadding argument in mxText constructor [JavaScript]
+- Fixes black artifacts and linewidth for edges in Opera 11.60 [JavaScript]
+- Adds optional relative argument in mxGraph.insert-/createVertex [JavaScript,Java,Dotnet,Php]
+- Supports null for mxGraphComponent.pageShadow-, pageBorder-, and pageBackgroundColor [Java]
+
+06-JAN-2012: 1.9.0.0
+
+- Moves update of mouse event from fireMouseEvent to mxGraph.updateMouseEvent [JavaScript] 
+- Adds optional tolerance in mxEdgeHandler, mxVertexHandler [JavaScript]
+- Adds mxOutline.sizerImage option for image-based sizer [JavaScript]
+- Fixes sizerSize in mxOutline, changes default value to 8 [JavaScript]
+- Uses mxEdgeHandler.createHandleShape in mxElbowEdgeHandler.createVirtualShape [JavaScript]
+- Adds mxVertex-, mxEdgeHandler.handleImage option for image-based handles [JavaScript]
+- Adds support for custom handle sizes in mxVertex-, mx(Elbow)EdgeHandler [JavaScript]
+- Adds support for iconCls attribute in mxDefaultPopupMenu XML format [JavaScript]
+- Adds iconCls argument in mxPopupMenu.addItem for CSS sprites [JavaScript]
+- Adds mxClient.languages, mxLanguages, mxResources.isLanguageSupported [JavaScript]
+- Adds mxCylinder.strokedBackground for backgrounds with no strokes [JavaScript]
+- Replaces constructor with instanceof in all type checks [JavaScript]
+- Adds mxConstants.STYLE_ARCSIZE for rounded rectangles [JavaScript]
+- Makes VML images visible inside DIV in mxImageShape [JavaScript] 
+- Fixes return value in mxGraph.getCellBounds [JavaScript]
+- Fixes mxGraph.fit to not require scrollbars [JavaScript]
+- Uses container.scrollWidth/Height for extend in mxGraph.scrollPointToVisible [JavaScript]
+- Removes unneeded scrollbars for graph container in mxGraph.sizeDidChange [JavaScript]
+- Uses mxUrlConverter in mxXml/SvgCanvas2D for absolute image URLs [JavaScript]
+- Adds mxUrlConverter for converting relative to absolute URLs [JavaScript]
+- Fixes edge drawing offset when marker is used in mxConnector for IE [JavaScript]
+- Fixes marker opacity in mxConnector, adds updateVmlMarkerOpacity [JavaScript]
+- Fixes handling of null cursor in mxCellState.setCursor [JavaScript]
+- Fixes crisp rendering for edges in IE9 with SVG [JavaScript]
+
+22-DEC-2011: 1.8.0.6
+
+- Fixes logic of optional parameters in mxGraph.getCellAt [JavaScript]
+- Improves compact tree layout edge routing [JavaScript,Java]
+- Fixes bug in mxGraph.getEdgesBetween [JavaScript,Java]
+- Fixes edge preview bug in IE 6-8 [JavaScript]
+
+05-DEC-2011: 1.8.0.5
+
+- Adds support for underlined text in mxGraphicsCanvas2D.text [JavaScript]
+- Adds crisp rendering for edges in IE9 standards mode with SVG [JavaScript]
+- Fixes mxConnectionHandler to finish active gesture when disabled [JavaScript]
+- Adds mxConnectionHandler.selectCells hook [JavaScript]
+- Adds absolute image URLs and switch in mxXmlCanvas2D [JavaScript]
+
+02-DEC-2011: 1.8.0.4
+
+- Fixes rotated stencils and shapes for mxPrintPreview in IE quirks mode [JavaScript]
+- Adds mxStackLayout.resizeLast option [JavaScript]
+- Fixes possible drop of parent into child cell in mxGraphHandler [Java]
+- Fixes export of large rounded rectangles, swimlanes in mxImageExport [JavaScript]
+- Removes temporary nodes after mxPrintPreview in IE [JavaScript]
+- Fixes HTML label background for mxPrintPreview in FF [JavaScript]
+- Fixes HTML label wrapping for mxPrintPreview in IE [JavaScript]
+- Adds caching of cell path in mxUtils.sortCells [JavaScript]
+- Adds mxLabel.opaqueVmlImages switch [JavaScript]
+- Fixes handling of empty segments in mxGraphView.getPoint [JavaScript,Java,Dotnet,Php]
+- Fixes missing scrollbars for mxUtils.show in Firefox 7.0 [JavaScript]
+- Fixes VML border bug for transparent label images in IE7/8 [JavaScript]
+- Fixes ignored opacity for indicator images in mxLabel [JavaScript]
+- Adds support for dashed rectangles in mxGdCanvas [Php]
+- Uses workaround in mxXmlRequest.getXml only for IE9 [JavaScript]
+- Fixes mxGraphHandler for moving unselected cells [JavaScript]
+
+08-NOV-2011: 1.8.0.3
+
+- Fixes scaled and/or translated resizing in mxVertexHandler [JavaScript]
+- Adds mxUtils.findNodeByAttribute for finding nodes in DOM hierarchies [JavaScript]
+- Removes mxUtils.selectSingleNode due to missing XPath support in IE9 [JavaScript]
+- Fixes vertical HTML labels in IE9 standards mode [JavaScript]
+- Adds experimental support for IE8 standards mode [JavaScript]
+- Uses mxGraphComponent.isAutoScroll in mxGraphHandler.mouseDragged [Java]
+- Changes mxCellRenderer.defaultEdgeShape to mxConnector [JavaScript]
+- Adds mxCellState.invalidOrder switch to avoid initial reconfigure [JavaScript]
+
+31-OCT-2011: 1.8.0.2
+
+- Fixes organic layout in Java [Java]
+- Fixes URL of client library in HTML resources for Java examples [Java]
+- Removes HTTP requests for default language resource bundles [JavaScript]
+- Adds mxClient.defaultLanguage for default resource language [JavaScript]
+- Creates graph instance with stylesheet argument in mxOutline [JavaScript]
+- Adds optional stylsheet argument in mxGraph constructor [JavaScript]
+- Fixes choice in InstructionListType and PathType for stencils.xsd [JavaScript]
+- Adds mxConnectionHandler.isMoveIconToFrontForState for connect image zIndex [JavaScript]
+- Fixes hovericons.html example for IE9 standards mode [JavaScript]
+- Fixes support for underlined font styles in IE9 standards mode [JavaScript]
+- Uses transforms in Opera and Webkit for HTML scaling in mxText [JavaScript]
+- Fixes scaled text rendering in mxText for IE9 standards mode [JavaScript]
+- Fixes image artifacts in mxImageShape for IE7 standards mode [JavaScript] 
+- Fixes inherited whitespace CSS for HTML labels in mxText for IE9 standards mode [JavaScript] 
+- Fixes autoscroll in mxGraph for IE9 in IE9 standards mode with SVG [JavaScript]
+- Creates only one DIV and reuses it in each mxRubberband instance [JavaScript]
+- Adds workaround for crisp shape rendering in SVG for IE9 [JavaScript]
+- Fixes type error when using nodes from XHR in IE9 standards mode [JavaScript]
+
+24-OCT-2011: 1.8.0.1
+
+- Improves edge terminations in hierarchical layout [JavaScript, Java]
+- Fixes use of undefined variable n in mxGdCanvas.drawPolygon [Php]
+- Fixes minor zoom and word wrapping issues in mxText for IE [JavaScript]
+- Fixes mxPanningHandler to show popupmenu after mouseUp in Safari for Mac [JavaScript]
+- Fixes horizontal image alignment for label export in mxGdiCanvas [Dotnet] 
+- Fixes target terminal points in mxGraphView.updateFixedTerminalPoint [Php]
+- Fixes label container fill color in mxLine shape for VML [JavaScript]
+- Fixes scaled font rendering in mxGraphicsCanvas2D, mxGdiCanvas2D [Java,Dotnet]
+- Adds new image export in diagrameditor.html for Dotnet and Java [JavaScript,Java,Dotnet]
+- Fixes default font color in mxImageExport.drawLabel [JavaScript]
+- Fixes wrong array access for multiple clips in mxText.getSvgClip [JavaScript]
+- Adds crisp switch in mxGuide, mxVertex-, mxGraph- and mxEdgeHandler [JavaScript]
+- Uses crisp rendering in SVG for handles and vertex selection border [JavaScript]
+
+07-OCT-2011: 1.8.0.0
+
+- Adds accessors for mxCellOverlay.align and verticalAlign [Java]
+- Uses rounding for SVG strokewidths, rendering coordinates [JavaScript]
+- Fixes text position in mxText for SVG to match HTML, VML output [JavaScript]
+- Fixes crisp rendering in SVG, strokeweight in VML for mxLine [JavaScript]
+- Fixes miterlimit, linejoin in VML to match SVG output [JavaScript]
+- Fixes font scaling for overflow = fill in IE [JavaScript]
+- Fixes background box rendering precision for overflow=fill [JavaScript]
+- Uses Math.round instead of Math.floor for rendering shapes [JavaScript]
+- Fixes handling of absolute URLs in mxBasicCanvas.getImageForStyle [Java]
+- Makes style section in output for mxSvgCanvas2D optional [JavaScript]
+- Adds wires.html example for digital and electrical circuits [JavaScript]
+- Fixes move cursor on unselected swimlane border in IE [JavaScript]
+- Adds hooks to change vertical text orientation in mxText [JavaScript]
+
+30-SEP-2011: 1.7.1.11
+
+- Adds mxSvgCanvas2D for client-side SVG export in all browsers [JavaScript]
+- Improves drawing of quadratic curves as beziers in stencils for VML [JavaScript]
+- Fixes oval marker display and export [JavaScript]
+- Adds mxCellMarker.highlight for forcing highlight of cells [Java]
+- Fixes ignored mxGraphOutline.zoomHandleVisible switch [Java]
+- Converts arcs in mxStencil to curves in image export, VML [JavaScript]
+- Removes arc in XML for image export, arcTo in mxICanvas2D [JavaScript,Java]
+- Adds mxWindow.getMinimumSize hook [JavaScript]
+- Adds mxSaxOutputHandler, mxICanvas2D, mxGdiCanvas2D [Dotnet]
+- Fixes rounded corner size for roundrect in mxImageExport [JavaScript]
+- Adds mxImageExport.includeOverlays switch for exporting overlays [JavaScript]
+- Adds mxUtils.arcToCurves for converting arcs to bezier curves [JavaScript]
+- Changes return type of mxGraphicsCanvas2D.getImageBounds to Rectangle [Java]
+- mxInteractiveCanvas adds observer in drawImageImpl, getImageSize [Java]
+- Adds mxInteractiveCanvas.imageObserver property [Java]
+- Adds mxGraphics2DCanvas.drawImageImpl, getImageSize hooks [Java]
+- Adds gradient fill for foreground shapes in mxStencil [JavaScript]
+- Fixes ignored flip arguments for image export in mxStencil [JavaScript]
+- Fixes appended image transform in mxStencil for SVG [JavaScript] 
+
+21-SEP-2011: 1.7.1.10
+
+- Removes end tag in internal image export XML format [JavaScript,Java]
+- Removes end method in mxICanvas2D, mxXmlCanvas2D [JavaScript,Java]
+- Adds automatic antialias switch in mxGraphicsCanvas2D [Java]
+- Fixes shadow for empty fillColor in mxImageExport [JavaScript]
+- Fixes offset for oval marker, connector endpoints in mxImageExport [JavaScript]
+- Adds additional save/restore for export of labels in mxImageExport [JavaScript]
+- Fixes default text alignment for image export and stencils [JavaScript,Java]
+- Fixes clipping in mxText for IE9 in IE9 standards mode [JavaScript]
+- Fixes mxImageShape HTML rendering for IE9 in SVG mode, size for non-preserved image aspect [JavaScript]
+- Renames com.mxgraph.io.gml to com.mxgraph.io.graphml, mxGml prefix to mxGraphMl [Java]
+- Fixes font color in in-place editor, allows white font colors [JavaScript]
+
+11-SEP-2011: 1.7.1.9
+
+- Fixes substring for return value of mxGraph.validateCell [JavaScript]
+- Fixes numeric typecast of fontfamily attribute in stencils [JavaScript]
+- Fixes mxGraph.translateCell for relative cells with offsets [JavaScript]
+- Does no longer use ExtJs tooltips in GraphEditor.js example [JavaScript]
+
+08-SEP-2011: 1.7.1.8
+
+- Adds support for port constraints in entity relation edge style [Java,JavaScript]
+- Disables foreignObject for Webkit in labels.html to fix clipping [JavaScript]
+- Adds new control.html example for adding controls to shapes [JavaScript]
+- Adds mxCellRenderer.initControl for initializing controls [JavaScript]
+- Adds SELECT element to Process cell in ports.html example [JavaScript]
+- Adds workaround for SELECT elements in mxGraphHandler, mxEdgeHandler for Webkit [JavaScript]
+- Fixes handling of ports for validation in mxEdgeHandler [Java]
+- Removes pageSelector anchors in mxPrintPreview for Firefox [JavaScript]
+- Fixes SVG multipage output in mxPrintPreview for IE9 [JavaScript]
+- Replaces mxPrintPreview.addPageClickListener with anchor [JavaScript]
+- Fixes event handling for page selector in mxPrintPreview [JavaScript]
+- Updates listeners in mxSelectionCellsHandler, mxConnectionHandler [Java]
+- Adds mxSelectionCellsHandler, mxConnectionHandler.add/removeGraphListeners [Java] 
+- Fixes possible NPE in orgchart.html example [JavaScript]
+- Fixes stroke and gradient fill colors in mxPrintPreview for IE [JavaScript]
+- Fixes tooltips in stylesheet.html example [JavaScript]
+- Fixes possible NPE in mxCellState.getPerimeterBounds [JavaScript]
+- Removes dojostorage.html, gears.html and grapheditor-gears.html examples [JavaScript]
+- Fixes duplicate rotation for mxTriangle and mxHexagon shape [JavaScript]
+- Adds mxGraphHandler.snap, scaleGrid, fixes grid alignment [JavaScript]
+- Adds accessors for marker in mxGraphHandler [Java]
+- Fixes clear selection logic in mxPanningHandler [JavaScript]
+- Fixes moving of vertex labels for unresizable vertices [JavaScript]
+- Fixes scaling of mxCellOverlay.offset [JavaScript]
+- Adds optional arcsize attribute for roundrect in stencils [JavaScript]
+- Fixes preserved image aspect for collapse and connect icon [JavaScript]
+- Fixes duplicate cell overlays after mxUtils.getViewXml [JavaScript]
+- Fixes removing of first listener in mxEventSource.removeListener [Java]
+
+24-AUG-2011: 1.7.1.7
+
+- Fixes bug in mxGraphModel.getNearestCommonAncestor [JavaScript]
+- Updates style of table cells in schema.html example [JavaScript]
+- Fixes border of image in mxSwimlane for VML [JavaScript]
+- Uses mxConstants.SHADOW_OFFSET_X/Y for VML shadows in mxShape [JavaScript]
+- Uses mxConstants.SHADOW_OPACITY in mxShape [JavaScript]
+- Fixes use of DOCTYPE in standardsmode.html example for non-IE browsers [JavaScript]
+- Adds mxResources.get/loadDefault/SpecialBundle switches and hooks [JavaScript]
+
+04-AUG-2011: 1.7.1.6
+
+- Adds rotation for custom shapes in mxImageExport [JavaScript]
+- Fixes ignored linecap in mxStencil for VML [JavaScript]
+- Bypasses style to directly assign rotation attribute to VML nodes [JavaScript]
+- Fixes rotation in mxStencilShape for mixed and preferHtml modes [JavaScript]
+- Adds support for rotation and direction in custom shapes [JavaScript]
+- Fixes use of undeclared graph variable in mxImageExport [JavaScript]
+- Changes element to include shapes to include-shape in stencil XSD [JavaScript]
+- Changes flat path structure to hierarchy in stencil XSD [JavaScript]
+- Adds support for Android devices in mxClient.IS_TOUCH [JavaScript]
+- Fixes shadow in image export for programmatic custom shapes [JavaScript]
+- Fixes translation of rotation center in translated image exports [Java]
+- Fixes collapse icon image distortion in VML [JavaScript]
+
+01-AUG-2011: 1.7.1.5
+
+- Add direction argument for mxStencil.computeAspect [JavaScript]
+- Fixes mxEdgeHandle.snapToTerminals for fixed points [JavaScript]
+- Adds mxStencil.parseDescription, parseConstraints hooks [JavaScript]
+- Adds font scaling in mxStencil and stencil image export [JavaScript]
+- Fixes syntax error in mxStencil.parseConstraint [JavaScript]
+- Fixes ignored stencil font family in stencil image export [JavaScript]
+- Fixes name of fontstyle attribute to style in the stencil XSD [JavaScript]
+
+29-JUL-2011: 1.7.1.4
+
+- Replaces mxLog.consoleResource with static mxLog.consoleName [JavaScript]
+- Adds mxStencil.parseConstraint hook [JavaScript]
+- Fixes possible root parent in mxConnectionHandler.connect [JavaScript]
+- Fixes occasional offset for VML images in mxImageShape [JavaScript]
+- Adds mxLoadResources, mxLoadStylesheets config options [JavaScript]
+- Removes automatic loading of contentAreaUtils.js for Mozilla in mxClient [JavaScript]
+- Adds new portrefs.html example for referencing connection points [JavaScript]
+
+26-JUL-2011: 1.7.1.3
+
+- Allows rotation and direction in mxStencil, mxImageExport [JavaScript]
+- Uses rotation/direction in mxGraph.getConnectionPoint [JavaScript]
+- Fixes possible missing image aspect in mxPrintPreview for VML [JavaScript]
+- Adds mxGraph.portsEnabled switch with accessors [JavaScript]
+- Uses stencil aspects in perimeters and connection points [JavaScript]
+- Uses mxGraphView.getPerimeterBounds in mxGraph.getConnectionPoint [JavaScript]
+- Makes signature of mxUtils.getPortConstraints more generic [JavaScript,Java]
+- Adds mxImageShape.scheduleUpdateAspect, updateAspect hooks [JavaScript]
+- Fixes font styles for image export in mxStencil [JavaScript]
+
+23-JUL-2011: 1.7.1.2
+
+- Fixes images for IE in mxImageShape, mxPrintPreview [JavaScript]
+- Handles removal of view.currentRoot in mxGraph.processChange [JavaScript]
+- Fixes flipH/V, adds 90-degree rotation in stencils.html example [JavaScript]
+
+22-JUL-2011: 1.7.1.1
+
+- mxImageShape uses IMG for all non-embedded images in IE [JavaScript]
+- Fixes long edge straightening in hierarchical layout [Java]
+- Fixes vertical VML label backgrounds in image export [JavaScript]
+- Fixes conversion of HTML entities in IE for mxImageExport [JavaScript]
+- Fixes HTML entities in labels for IE9 in SVG mode [JavaScript]
+- Removes default image caching in mxGraphicsCanvas2D [Java]
+- Fixes mxGraphicsCanvas2D for scaled image export [Java]
+- Fixes mxPrintPreview for VML output [JavaScript]
+- Changes mxConstants.EMPTY_IMAGE to BufferedImage, checked initialization [Java]
+- Adds example for cross-document DnD in dragsource.html [JavaScript]
+- Fixes possible NPE in mxDragSource.mouseMove [JavaScript]
+- Adds hexagonPerimeter in mxStyleRegistry [Java]
+- Adds mxCellMarker.markCell [JavaScript]
+- Adds support for old custom shapes in mxImageExport [JavaScript]
+
+13-JUL-2011: 1.7.1.0
+
+- Fixes black background when using imageBorder style in mxImageShape [JavaScript]
+- Adds mxConstants.STYLE_END-/STARTFILL for mxMarker and mxImageExport [JavaScript]
+- Adds source, style argument in mxMarkers.paintMarker [JavaScript]
+- Renames mxConstants.STYLE_FLIPH/V to STYLE_STENCIL_FLIPV/H [JavaScript]
+- Adds new mxImageExport, mxXmlExportCanvas classes [JavaScript]
+- Adds new com.mxgraph.reader.mxDomOutputParser, SaxOutputHandler classes [Java]
+- Adds new com.mxgraph.canvas.mxICanvas2D, mxGraphicsCanvas2D classes [Java]
+- Fixes dashed background border rendering in mxStencil [JavaScript]
+- Fixes use of wrong variable in mxUtils.getRotatedPoint [JavaScript]
+- Uses capability checks in mxUtils.getXml [JavaScript]
+- Fixes handling of aliases in mxCellCodec.beforeDecode [JavaScript]
+- Fixes handling of native XML nodes as fields in mxCodec.encode [JavaScript]
+- Fixes possible NPE in mxGdiCanvas.DrawLabel [Dotnet]
+- Fixes handling of no line color in mxLine, mxPolyline and mxConnector [JavaScript]
+- Fixes linejoin for custom shapes (mxActor and subclasses) in SVG [JavaScript]
+- Fixes stencil shape rendering in IE without shadow and gradient [JavaScript]
+- Fixes possible NPE mxGraph.getAllConnectionConstraints [JavaScript]
+
+23-JUN-2011: 1.7.0.7
+
+- Fixes aspect attribute for shapes, adds strokewidth attribute [JavaScript]
+- Fixes ignored label bounds in mxGdiCanvas [JavaScript]
+- Adds new hovericons.html example for showing icons on mouseover [JavaScript]
+
+14-JUN-2011: 1.7.0.6
+
+- Adds dashed, dashpattern nodes in stencil XML format [JavaScript]
+- Uses mxMouseEvent for hiding popup menu in mxGraphView.installListeners [JavaScript]
+- Adds mxStylesheetCodec.getStringValue hook [JavaScript,Java,Dotnet,Php]
+- mxPanningHandler fires new mxEvent.PAN_START, PAN, PAN_END [JavaScript]
+- mxPopupMenu inherits from mxEventSource, fires mxEvent.SHOW [JavaScript]
+- Fixes HTML label background with word wrap in mxText [JavaScript]
+- Registers mxStylesheetCodec and fixes minor parsing bug [Dotnet]
+- Fixes possible item exists exception in mxStylesheet.GetCellStyle [Dotnet]
+- Fixes possible file not found exception in mxUtils.LoadImage [Dotnet]
+- Adds support for additional text labels in stencils [JavaScript]
+- Fixes ignored scale in mxUtils.getSizeForHtml [Java]
+
+07-JUN-2011: 1.7.0.5
+
+- Adds includeEdges argument in mxGraph.getBoundingBoxFromGeometry [JavaScript]
+- Fixes event handling for touch devices in mxEdgeHandler [JavaScript]
+- Changes mxConnectionHandler.tapAndHoldDelay default to 500 ms [JavaScript]
+- Adds mxOutline.createSizer, fixes sizer for touch events [JavaScript]
+
+02-JUN-2011: 1.7.0.4
+
+- Adds support for SVG in IE9, handling of DOCTYPES in IE [JavaScript]
+- Updates known-issues.html for DOCTYPES and SVG in IE [JavaScript]
+- Fixes scroll origin for drag preview in mxDragSource [JavaScript]
+- Fixes mxUtils.createImage to use VML images only in IE6 quirks mode [JavaScript]
+- Adds workaround for ignored tolerance for double clicks in IE9 standards mode [JavaScript]
+- Adds new ie9svg.html example for enabling SVG in IE9 [JavaScript]
+- Moves declaration of VML namespaces and CSS for VML into mxClient.js [JavaScript]
+- Fixes for standards mode in mxEvent, mxLog, mxWindow, mxUtils, mxShape, CSS files [JavaScript]
+- Fixes handling of double clicks in edgetolerance.html example [JavaScript]
+- mxEdge/VertexHandler.getHandleForEvent ignores hidden handles [JavaScript]
+
+27-MAY-2011: 1.7.0.3
+
+- Adds docs/stencils.xsd XML schema for stencils format [JavaScript]
+- Adds mxConstants.STYLE_FLIPH/V for mxStencilShape [JavaScript]
+- Adds new stencils.html example [JavaScript]
+- Adds mxConstants.SHADOW_OFFSET_X/Y, SHADOW_OPACITY [JavaScript]
+- mxGraph.getAllConnectionConstraints uses stencil shapes [JavaScript]
+- mxCellRenderer.createShape creates stencil shape instances [JavaScript]
+- Adds new mxStencil, mxStencilShape, mxStencilRegistry classes [JavaScript]
+
+24-MAY-2011: 1.7.0.2
+
+- Moves creation of mxGuide to mxGraphHandler.start [JavaScript]
+- Fixes snap to grid in mxVertexHandler single sizer mode [JavaScript]
+- Fixes zIndex for submenus in mxPopupMenu [JavaScript]
+- Fixes possible NPE in mxPopupMenu.addSeparator [JavaScript]
+- Fixes tapAndHold timer for iPad in mxConnectionHandler [JavaScript] 
+- Adds mxConnectionHandler.tapAndHold hook [JavaScript]
+- Adds new edgetolerance.html example [JavaScript]
+- No longer removes cells from selection when moving between groups [JavaScript]
+- Caller of mxConnectPreview.update no longer snaps arguments to grid [Java]
+- mxConnectPreview.update uses scale when snapping to grid [Java]
+- Returns true in mxGraph.isTerminalPointMovable [Java]
+- Stops checking non-connected terminals on orthogonal edge style
+	for boundary positioning. [JavaScript]
+- Defers implementation of edge style from orthogonal edge style to
+	segment style if either terminal is edge. [JavaScript]
+- Adds mxShape.updateVmlFill hook [JavaScript]
+- Fixes initial fill color rendering in mxImageShape for SVG [JavaScript]
+- Fixes curve label glyph width calculation for right-to-left languages [Java]
+
+16-MAY-2011: 1.7.0.1
+
+- Fixes possible NPE in mxEdgeHandler.isHandleVisible [JavaScript]
+- mxEdgeSegmentHandler no longer ignores mxGraph.isCellBendable [JavaScript]
+- mxElbowEdgeHandler, mxEdgeSegmentHandler use createHandleShape for terminal handles [JavaScript]
+- mxDragSource uses mxGraph.isGridEnabledEvent, mxGuide.isEnabledForEvent [JavaScript]
+- Changes mxGraphHandler.useGuidesForEvent to use mxGuide.isEnabledForEvent [JavaScript]
+- Adds mxGuide.isEnabledForEvent, mxGuide.hide [JavaScript]
+- Fixes rendering of multi-character single glyphs on curve labels [Java]
+- Removes conflicting fix for highlight offset in IE [JavaScript]
+
+11-MAY-2011: 1.7.0.0
+
+- Fixes 1px rendering offset for HTML rectangles in IE [JavaScript]
+- Adds mxUtils.getNumber for numeric values, getColor for colors [JavaScript]
+- Adds dragsource.html, orthogonal.html examples [JavaScript]
+- Adds x, y arguments to function parameter in makeDraggable [JavaScript]
+- Adds new mxDragSource used in mxUtils.makeDraggable [JavaScript]
+- Fixes clearSelection for toggle events in mxGraphHandler [Java]
+- Adds optional addOffset argument in mxGraph.getPointForEvent [Java,JavaScript]
+- Fixes minor offset for mxCellHighlight in IE [JavaScript]
+- Moves mxGraphHandler.createGuideShape, getGuideTolerance to mxGuide [JavaScript]
+- Factors-out guides from mxGraphHandler into new mxGuide class [JavaScript]
+- Improves drawing of oval marker for >1 size and stroke width [Java,JavaScript]
+- Fixes repaint of hidden VML connectors after panning into viewport [JavaScript]
+- Fixes handling of none for fill, stroke and gradient in mxShape [JavaScript] 
+
+29-APR-2011: 1.6.1.3
+
+- Fixes use of preview style for overridden mxConnectionHandler.createEdge [JavaScript]
+- Adds style argument in mxConnectionHandler.createEdge and factoryMethod [JavaScript]
+- Rounds result in mx(Elbow)EdgeHandler.convertPoint [JavaScript]
+- Adds maximum repulsion distance to organic layout [Java, JavaScript]
+- Fixes syntax error in mxCellRenderer for foreground edges [JavaScript]
+- Adds SegmentConnector for new EDGESTYLE_SEGMENT constant in mxStyleRegistry [JavaScript]
+- Adds new mxEdgeSegmentHandler, mxEdgeStyle.SegmentConnector [JavaScript]
+- Fixes translate of waypoints in mxConnectionHandler [JavaScript]
+- Fixes preview for connection constraints in mxConnectionHandler [JavaScript]
+- Fixes update of absolute terminal point in mxEdgeHandler.updatePreviewState [JavaScript]
+- Adds mxConnectionHandler.addWaypointForEvent hook [JavaScript]
+
+21-APR-2011: 1.6.1.2
+
+- Fixes various bugs in orthogonal edge style [JavaScript, Java]
+- mxConnectionHandler uses style of preview edge for new edge [JavaScript]
+- Adds style argument in mxConnectionHandler.insertEdge [JavaScript]
+- Changes signature of mxEdgeHandler.clonePreviewState [JavaScript]
+- Adds mxEdgeHandler.getPointForEvent, getPreviewTerminal, getPreviewPoints, updatePreviewState [JavaScript]
+- Fixes possible division by zero in ellipse perimeter [JavaScript,Java,Dotnet,Php]
+- Fixes possible NPE in mxImageShape [JavaScript]
+- Fixes HTML rendering of mxImageShape in SVG browsers [JavaScript]
+
+08-APR-2011: 1.6.1.1
+
+- Adds new markers.html example for custom markers [JavaScript]
+- Fixes minor hit detection issues in mxConnectionHandler for IE [JavaScript]
+- mxGraph(Component).getFoldingImage/Icon returns null for edges [JavaScript,Java]
+- mxGraph.isConstrainChild returns false for edge children [JavaScript,Java]
+- Fixes issues with connection handler in IE [JavaScript]
+
+05-Apr-2011: 1.6.1.0
+
+- Adds new orthogonal routing option [JavaScript,Java]
+
+01-Apr-2011: 1.6.0.0 beta
+
+- Uses CSS3 shadows for mxWindow, mxPopupMenum, tooltips in common.css [JavaScript]
+- Replaces mxTooltipShadow in common.css with CSS3 shadows [JavaScript]
+- Removes mxClient.TOOLTIP_SHADOWS, mxTooltipHandler.shadow [JavaScript]
+- Removes mxClient.MENU_SHADOWS, mxPopupMenu.showShadow [JavaScript]
+- Replaces mxPopupMenuShadow in common.css with CSS3 shadows [JavaScript]
+- Removes mxClient.WINDOW_SHADOWS, mxWindow.updateShadow, mxWindow.shadow [JavaScript] 
+- Uses explicit mxPopupMenuItemHover style in mxPopupMenu for highlight [JavaScript]
+- Replaces mxPopupMenuItem:hover with mxPopupMenuItemHover in common.css [JavaScript]
+- Fixes permissions.html example for unconnected terminal points [JavaScript]
+- Adds mxGraph.isTerminalPointMovable hook [JavaScript,Java]
+- Disables in-place editing if graph component is disabled [Java]
+- Adds new fixedicon.html example for icon positions in mxLabel [JavaScript]
+- Removes duplicate call to updateSvgGlassPane in mxLabel.redraw [JavaScript]
+- Uses crisp SVG rendering for controls in mxOutline [JavaScript]
+- Fixes use of child cells in mxConstraintHandler.update [JavaScript]
+- Checks connectable state in mxConstraintHandler.update [JavaScript]
+- Fixes scrollbars in mxGraphComponet.extendComponent [Java]
+- Adds handling for none fill colors in mxGdCanvas [Php]
+- Changes wrapping.html example to use whiteSpace style [JavaScript]
+- Uses cached label in mxDefaultTextShape [Java]
+- Removes mxGraphControl.getDisplayLabelForCell [Java]
+- Changes signature of mxGraph.drawState [Java]
+- Adds mxGraphView.getWordWrapWidth hook for word wrapping [Java]
+- Adds mxGraphView.updateLabel for word wrapping and update of the cached label [Java]
+- Adds mxCellState.label with accessors for caching the label [Java]
+- Moves word wrapping into mxGraphView, caches label in mxCellState [Java]
+- Uses unscaled font, removes word wrap in mxUtils.getSizeForString [Java]
+- Adds mxClient.IS_IE9 [JavaScript]
+- Adds mxConstants.STYLE_FOLDABLE to control folding icons [Java,JavaScript]
+- Adds mxConstants.STYLE_AUTOSIZE to control automatic sizing [Java,JavaScript]
+- Fixes mxGraphModel.updateEdgeParent for edge-to-edge connections [JavaScript,Java,Dotnet,Php]
+- Adds missing mxConstants.OUTLINE_COLOR constant [JavaScript]
+- mxCellRenderer.installListeners removes workaround for DOM events in IE [JavaScript]
+- mxImageShape uses VML for all non-embedded images in IE [JavaScript]
+- Fixes contexticons.html example for IE6, connecting in IE [JavaScript]
+- Changes mxUtils.createImage to return VML image for IE [JavaScript]
+- mxImageShape improves support for flipped images in IE [JavaScript]
+
+17-Mar-2011: 1.5.1.11
+
+- Fixes possible NPE in mxMovePreview.repaint [Java]
+- Uses px units for strokeweights in VML [JavaScript]
+- Fixes font measuring in mxUtils, adds scale parameters [Java]
+- Adds mxCellHighlight.spacing [JavaScript]
+- Fixes strict standards message for mxHtmlCanvas.drawImage [Php]
+- Adds handling for none stroke colors in mxGdCanvas [Php]
+- Fixes first waypoint in mxConnectionHandler for single click triggers [JavaScript]
+- Adds mxConnectionHandler.mouseDownCounter [JavaScript]
+- Fixes scaled waypoints in mxConnectionHandler, adds convertWaypoint [JavaScript]
+- Adds mxConstants.GUIDE_COLOR, GUIDE_STROKEWIDTH [JavaScript]
+
+14-Mar-2011: 1.5.1.10
+
+- Fixes mxPath.quadTo for VML [JavaScript]
+- Adds mxEdgeHandler.getSnapToTerminalTolerance, snapToTerminals [JavaScript]
+- Adds mxGraphHandler.getGuideTolerance for snapping to guides [JavaScript]
+- Adds new guides.html example for new mxGraphHandler switch [JavaScript]
+- Adds new mxGraphHandler.guidesEnabled, useGuidesForEvent, createGuideShape (RFC) [JavaScript]
+- Adds mxGraphHandler.currentDx, currentDy [JavaScript]
+- Adds deprecated mxOutline.refresh to invoke update [JavaScript]
+- Removes mxgraph cookie, isFirstTime argument in mxEditor.onInit hook [JavaScript]
+- Adds image export in deployment.php example [Php]
+- Fixes encoding of XML for image export in mxEditor, decoding in backends [JavaScript,Dotnet,Java]
+- Fixes mxGraphModel.updateEdgeParent for relative terminals [JavaScript,Java,Dotnet,Php]
+- Fixes edge adoption in mxConnectionHandler for relative sources and targets [JavaScript]
+- Adds support for terminal-less connections in mxConnectionHandler [JavaScript]
+- Adds mxConnectionHandler.isStart/StopEvent hooks [JavaScript]
+- Adds preview for connections in grapheditor.html example [JavaScript]
+- mxGraphComponent.setGraph fires property change event [Java]
+- Uses STYLE_DASH_PATTERN in mxSvgCanvas [Java]
+- Adds gridEnabled argument in mxVertexHandler.union, resizeCell [JavaScript]
+- Fixes mxVertexHandler for off-grid bounds [JavaScript]
+- Adds crisp SVG-rendering in diagrameditor.html example [JavaScript]
+
+07-MAR-2011: 1.5.1.9
+
+- Fixes connect highlight if mouse over vertex or edge handle [JavaScript]
+- Uses crisp rendering for mxGraphHandler shape in SVG [JavaScript]
+- mxGraph(Component) returns null if foldingEnabled is false [JavaScript,Java]
+- Adds support for serialization in mxGraphModel [Java]
+- Fixes black background for flipped images with transparency [Php]
+- Adds mxMouseEvent.getGraphX()/getGraphY() graph mouse coordinates [JavaScript]
+- Fixes spacing offset in mxText for VML [JavaScript]
+- Uses crisp rendering in shape.html example [JavaScript]
+- Adds crisp option for mx(Double)Ellipse, mxCylinder, mxActor and subclasses [JavaScript]
+
+28-FEB-2011: 1.5.1.8
+
+- Fixes rubberband handling in windows.html example for IE [JavaScript]
+- Adds mxEdgeHandler/mxVertexHandler.allowHandleBoundsCheck switch [JavaScript]
+- Fixes connect preview, collapsed title for IE in scrollbars.html example [JavaScript]
+- Adds mxConnector.allowCrispMarkers switch [JavaScript]
+- Adds crisp rounded rendering in mxRectangleShape, mxLabel and mxSwimlane [JavaScript] 
+- Fixes connect preview with active constraint handler [JavaScript]
+- Uses bounds in mxVertexHandler.getHandleForEvent for IE [JavaScript]
+- Uses bounds in mxEdgeHandler.getHandleForEvent for IE [JavaScript]
+- Adds mxEdgeHandler.isConnectableCell hook [JavaScript]
+- Adds mxConnectionHandler.isConnectableCell hook [JavaScript]
+- Adds mxConnectionHandler.updateCurrentState hook [JavaScript]
+- Adds event argument for state in mxEvent.redirectMouseEvents [JavaScript]
+- Adds mxConnectionHandler.movePreviewAway, true only in IE [JavaScript]
+- Adds event redirection on connection preview in IE [JavaScript]
+- Fixes mouseUp on states if waypoints enabled in mxConnectionHandler [JavaScript]
+- Adds new mxEdgeHandler.clonePreviewState hook [JavaScript]
+- Fixes passing result by value in mxEdgeStyle.apply [Php]
+- Fixes use of local font in examples for PHP 5.3 [Php]
+- Fixes use of direction constants in mxGdCanvas [Php]
+
+22-FEB-2011: 1.5.1.7
+
+- Changes default value for mxGdCanvas.antiAlias to false [Php]
+- Fixes update of relations when scrolling in scrollbars.html example [JavaScript]
+- Uses fixed terminal points, geometry of preview in mxConnectionHandler [JavaScript]
+- Fixes repaint after mxGraph.zoomActual if scale is 100% [JavaScript]
+- Adds mxConstants.STYLE_EDITABLE to control in-place editing [Java,JavaScript]
+- Adds mxConstants.STYLE_BENDABLE to control changing bends of edges [Java,JavaScript]
+- Adds mxConstants.STYLE_MOVABLE to control moving of cells [Java,JavaScript]
+- Adds mxConstants.STYLE_RESIZABLE to control resizing of cells [Java,JavaScript]
+- Adds mxConstants.STYLE_CLONEABLE to control cloning of cells [Java,JavaScript]
+- Adds mxConstants.STYLE_DELETABLE to control deleting of cells [Java,JavaScript]
+- Uses crisp switch in mxShape.createPoints for crisper edges [JavaScript]
+- Adds mxCellHighlight.drawHighlight which uses createShape [JavaScript]
+- Uses opaque viewport background color for background painting [Java]
+- Updates origin after scale and translate events in mxGraph [Java]
+- Fixes cloned shapes while panning in IE [JavaScript]
+
+11-FEB-2011: 1.5.1.6 beta
+
+- Removes mxOutline.refresh, calls update from ctor [JavaScript]
+- Removes redraw-call in mxShape.init for performance [JavaScript]
+- Fixes grid alignment for useGrid in mxPanningHandler [JavaScript]
+- Fixes toggle selection trigger for right-clicks on Macs [Java]
+- Fixes combined image rotation and flipping in mxImageShape [JavaScript]
+
+02-FEB-2011: 1.5.1.5
+
+- Fixes container resize for IE/Chrome in diagrameditor.html example [JavaScript]
+- Fixes image ID counter starts at 2 in mxSvgCanvas [Java]
+- Fires mxEvent.CONNECT in mxConnectionHandler.connect/mouseReleased [JavaScript,Java]
+- Adds cell argument for STOP event in mxConnectPreview [Java]
+- Adds optional document argument in mxUtils.button [JavaScript]
+- Fixes mxUtils.write, writeln, br to use owner document of parent [JavaScript]
+- Updates initialImportCount in mxGraphTransferHandler.exportDone [Java]
+- Updates importCount, lastImported in mxGraphTransferHandler.importData [Java]
+- Refactors mxGraphTransferable for subclassing and custom data [Java]
+- Clones cells in last mxGraphTransferHandler.createGraphTransferable [Java]
+- Adds mxSvgCanvas.isImageResource [Java]
+- Renames mxSvgCanvas.getResourceAsStream to getResource [Java]
+
+24-JAN-2011: 1.5.1.4
+
+- Fixes mxCellRenderer.redrawLabel for DOM node label values [JavaScript]
+- Fixes editing.html example for multiple labels with editing [JavaScript]
+- Fixes gradient painting for swimlane titles in mSwimlaneShape [Java]
+- Adds mxBasicShape.getGradientBounds, overrides in mxSwimlaneShape [Java]
+- Fixes parsing of PNG text chunks in mxPngTextDecoder [Java]
+- Adds label borders, transparent swimlanes, font styles in mxSvgCanvas [Java]
+- Uses embedded images in exported SVG files in GraphEditor example [Java]
+- Adds label images, rounded edges, gradients, glass effects in mxSvgCanvas [Java]
+- Uses edgeState for routing in mxConnectionHandler preview [JavaScript] 
+- Improves performance in mxGraphics2DCanvas.drawImage [Java]
+- Fixes mxGraph.cellsResized for relative children [Java]
+- Fixes mxCellStatePreview for relative edge children [JavaScript,Java]
+- Fixes possible NPE in mxImageBundle.getImage [JavaScript,Java,Dotnet,Php]
+- Uses command key in mxGraphComponent.isToggleEvent on Mac [Java]
+- Adds mxUtils.IS_MAC constant [Java]
+- Changes getSelectionColor/Stroke to public in all handlers [Java]
+- Adds public getSelectionColor/Stroke in mxCellHandler [Java]
+- Checks valid image width and height in mxGraphics2DCanvas [Java] 
+- Fixes selection border artifacts in mxSelectionCellsHandler [Java] 
+
+14-JAN-2011: 1.5.1.3
+
+- Refactors mxSwimlaneManager and adds recursion [JavaScript,Java]  
+- Improves alignment for zoomed glass effects [JavaScript,Java,Dotnet]
+- Aligns border of HTML shapes with borders in VML, SVG [JavaScript]
+- Fixes recursive reordering of cell states after change [JavaScript] 
+- Fixes update of font style in mxLeightweightLabel [Java]
+- Fixes reuse of mouseListeners in subclasses of mxGraph [JavaScript]
+
+12-JAN-2011: 1.5.1.2
+
+- Fixes possible NPE in mxSvgCanvas [Java]
+- Fixes offset for transparent foreignObject labels in Chrome [JavaScript]
+- Adds mxConnectionHandler.waypointsEnabled switch [JavaScript]
+- Adds target argument in mxUtils.submit [JavaScript]
+- Fixes possible NPE in mxConnectPreview [Java]
+
+05-JAN-2011: 1.5.1.1
+
+- Adds mxUtils.flipImage helper method for flipping images [Php]
+- Moves loadImage, imageCache, PRESERVE_IMAGE_ASPECT to mxBasicCanvas [Java]
+- Adds embedded images output option using DataURLs in mxSvgCanvas [Java] 
+- Fixes opacity in SVG output of mxImageShape, images in mxLabel [JavaScript]
+- Supports image flipping in all image shapes and canvases [JavaScript,Java,Dotnet,Php]
+- Adds mxConstants.STYLE_IMAGE_FLIPH/FLIPV for image [JavaScript,Java,Dotnet,Php]
+- Fixes preserved image aspects in mxImageShape for HTML [JavaScript]
+- Adds mxConstants.PAGE_FORMAT_LETTER_PORTRAIT/LANDSCAPE [JavaScript]
+- Fixes selection reset for context menu in grapheditor.html for Safari on Mac [JavaScript]
+- Fixes parsePoints in mxGraphViewImageReader.php [Php]
+- Adds pluggable markers in mxMarker, used in mxConnector [JavaScript]
+- Fixes minor bug in VML gradient fill for cylinder shape [JavaScript]
+- Hides VML/HTML shapes during repaint for improved performance [JavaScript]
+- Cleanup VML shape redrawing and configuration for all shapes [JavaScript]
+- Moves reference to fillNode from vml shape to mxShape instance [JavaScript]
+- Replaces built-in VML markers with custom code in mxConnector [JavaScript]
+
+20-DEC-2010: 1.5.1.0
+
+- Fixes possible NPE in mxGraph.getCell-/EdgeValidationError [JavaScript,Java]
+- Fixes moving of vertices after mxGraphComponent.setTransferHandler [Java]
+- Uses smooth image scaling by default in mxGraphics2DCanvas.drawImage [Java]
+- Adds mxGraphics2DCanvas.IMAGE_SCALING switch [Java]
+- Adds support for non-uniform image scaling in SVG [JavaScript]
+- Preserves image aspects, adds mxImageShape.preserveImageAspect [JavaScript]
+- Limits use of vml images in mxImageShape to DIALECT_VML [JavaScript]
+- Adds mxGd-, mxGdi-, mxGraphics2DCanvas.PRESERVE_IMAGE_ASPECT switch [Java,Dotnet,Php]
+- Fixes mxGd-, mxGdi-, mxGraphics2DCanvas.drawImage to preserve image aspects [Java,Dotnet,Php]
+- Removes mxEditor for swimlane layout in swimlanes.html example [JavaScript]
+- Fixes mxSwimlaneManager to use parent swimlane orientation [JavaScript,Java]
+- Adds mxSwimlaneManager.isCellHorizontal, hasSiblings [JavaScript,Java]
+- Fixes minor offset edge label bounding boxes [JavaScript]
+
+08-DEC-2010: 1.5.0.2
+
+- Adds mxRectangle.setRect [JavaScript,Java,Dotnet,Php]
+- Adds mxPanningHandler.isActive [Java]
+- Fixes ignored initial angle in mxRotationHandler [Java]
+- Adds mxXmlRequest.binary switch with accessors for binary requests [JavaScript]
+- Removes cells with no cell states from output of mxGraphViewCodec [JavaScript]
+- Uses fill-opacity in SVG shapes for opacity in shared gradients [JavaScript]
+- Removes opacity argument in mxShape.getGradientId, createSvgGradient [JavaScript]
+- Removes illegal characters, leading dashes in dynamic SVG gradient IDs [JavaScript]
+- Fixes drop location offset mxUtils.makeDraggable for scrolled windows in IE [JavaScript]
+- Changes mxGraph.findTreeRoots to return List<Object> instead of Object[] [Java]
+- Adds data:-prefix for embedded image short format [Javascript,Java,Dotnet,Php]
+- Adds mxObjectCodec.getFieldTemplate, addObjectValue [Javascript,Java,Dotnet,Php]
+- Moves mxModelCodec.encode to mxModelCodec.encodeObject [JavaScript,Java,Dotnet,Php]
+- Fixes gradients in mxLabelShape [Java]
+
+22-NOV-2010: 1.5.0.0
+
+- Adds workaround for HTML image event routing in IE [JavaScript]
+- Fixes invalidation of edges connected to edges in mxGraphView [JavaScript]
+- Adds styling, alternative solutions in secondlabel.html example [JavaScript]
+- Adds mxGraph.postProcessCellStyle for resolving image keys [JavaScript,Java,Dotnet,Php]
+- Adds mxGraph.add/removeImageBundle, getImageFromBundles [JavaScript,Java,Dotnet,Php]
+- Adds mxGraph.imageBundles with accessors [JavaScript,Java,Dotnet,Php]
+- Adds mxImageBundle class for embedded images [JavaScript,Java,Dotnet,Php]
+- Adds support for data URIs in mxUtils.loadImage [Java,Dotnet,Php]
+- Renames mxUtils.is to isNode [Php]
+- Adds mxUtils.loadImage, uses in mxGdCanvas.loadImage [Php]
+- Adds mxUtils.LoadImage, uses in mxGdiCanvas.LoadImage [Dotnet]
+- Removes unused constants in com.mxgraph.util.svg.CSSConstants [Java]
+- Renames mxPngTextDecoder.decodezTXt to decodeCompressedText [Java]
+- Renames mxPNGzTXtDecoder to mxPngTextDecoder [Java]
+- Fixes beforeUnload handlers in HTML pages for Webkit [JavaScript]
+- Changes return type of mxGraphics2DCanvas.loadImage to BufferedImage [Java]
+- Changes return type of mxUtils.loadImage to BufferedImage [Java]
+- Fixes font sizes in printed output via mxGraphComponent.print [Java]
+- Fixes mxGraphControl.extendComponent for negative coordinates [Java]
+
+03-NOV-2010: 1.4.2.3
+
+- Fixes scrolling and connect preview in scrollbars.html example [JavaScript]
+- Adds mxConnectionHandler.getSource/TargetPerimeterPoint [JavaScript]
+- Adds mxConnectionHandler.connectIconOffset field [JavaScript]
+
+02-NOV-2010: 1.4.2.2
+
+- Fixes HTML rendering inside foreignobjects in Chrome [JavaScript]
+- Reduces number of gradients in SVG DOM [JavaScript]
+- Fixes handling of linefeeds in HTML labels with long text [Java]
+- mxCellEditor replaces installKeyHandler with configureActionMaps [Java]
+- mxCellEditor replaces key handler with input maps for key handling [Java]
+- Adds mxCellEditor.extractHtmlBody, replaceLinefeeds, shiftEnterSubmitsText [Java]
+- Moves mxGraphics2DCanvas.replaceHtmlLinefeeds to mxHtmlTextShape [Java]
+- Fixes background rendering in image shapes [Java,JavaScript]
+- Fixes rendering of gradients, adds glass effect [Dotnet]
+- Reduces unnecessary mxCurve re-calculations [Java]
+- Fixes curve label character bounds [Java]
+- Changes default colors, adds shapes in GraphEditor example [Java]
+- Fixes default alignment for images in label shape [Java,Dotnet]
+- Fixes size of images in mxLabelShape [Java]
+- Removes mxConstants.STYLE_GLASS_SIZE [JavaScript]
+
+22-OCT-2010: 1.4.2.1
+
+- Adds mxConnectionHandler.isImmediateConnectSource hook [JavaScript]
+- Removes implicit style extensions in stylesheet configurations [JavaScript]
+- Fixes clicks on touch devices for overlays and toolbar items [JavaScript]
+- Adds mxCellOverlay.offset and cursor for custom overlays [JavaScript]
+- Fixes timer in mxTooltipHandler, adds hideTooltip function [JavaScript]
+- Changes default colors, adds shapes in grapheditor.html example [JavaScript]
+- Adds support for glass effect in mxShape, uses effect in mxLabel [JavaScript]
+- Adds mxConstants.STYLE_GLASS for glass effect in mxLabel [JavaScript]
+- Uses improved styles, shapes and overlays in orgchart.html example [JavaScript]
+- Fixes possible number format exception in mxGraph.getPreferredSizeForCell [JavaScript]
+
+19-OCT-2010: 1.4.2.0
+
+- Improves edge routing in hierarchical layout [Java,JavaScript]
+- Fixes double click handling in ports.html example [JavaScript]
+- Adds mxWindow.setTitle for updating the window title [JavaScript]
+- mxShape.updateHtmlShape allows negative X and Y values [JavaScript]
+- Fixes in-place change of translate in mxBasicCanvas.setTranslate [Java]
+- Temporarily disables SVG in IE9 beta CSS1Compat mode [JavaScript]
+- Adds mxMultiplicity.checkTerminal, checkNeighbors hooks [Java,JavaScript]
+- mxWindow.setSize calls updateShadow [JavaScript]
+- Resets current timer in mxTooltipHandler.hide [JavaScript]
+- Adds mxTooltipHandler.resetTimer helper function [JavaScript]
+
+12-OCT-2010: 1.4.1.4
+
+- Fixes style of text in diagrameditor.html example [JavaScript]
+- Fixes SVG use for IE6-8 in CSS1Compat mode [JavaScript]
+
+08-OCT-2010: 1.4.1.3
+
+- Moves creation of textarea to mxCellEditor.init [JavaScript]
+- Removes mxClient.unload, adds mxClient.dispose [JavaScript]
+- Adds mxEvent.objects to hold all objects with listeners [JavaScript]
+- Uses SVG for IE9 beta in CSS1Compat mode [JavaScript]
+- Fixes possible memory leak in mxXmlRequest.send for IE [JavaScript]
+- Changes signature of mxConnectorShape.paintMarker [Java]
+- Adds mxMarkerRegistry and pluggable markers [Java]
+- Fixes continued drag event source for iPad [JavaScript]
+
+01-OCT-2010: 1.4.1.2
+
+- Fixes contexticons.html example for iPad [JavaScript]
+- Fixes clearSelection after popup menu is shown in Safari on Mac [JavaScript]
+
+30-SEP-2010: 1.4.1.1
+
+- Removes transitions for shared diagrams in mxEditor [JavaScript]
+- Adds optional ID for mxDefaultToolbar config items [JavaScript]
+- Adds mxConnectionHandler.getAlignmentTolerance hook [JavaScript]
+- Adds mxConnectionHandler.start for starting connections [JavaScript]
+- Replaces mxConnectionHandler.start with first [JavaScript]
+- mxDefaultToolbarCodec allows entries with function only [JavaScript]
+- Reconfigures unordered edges in mxCellRenderer [JavaScript]
+- Adds contexticons.html example [JavaScript]
+- Adds mxCodec.setDocument [Java,Dotnet,Php]
+- Removes mxChildChange.isAdded [JavaScript]
+- Changes various methods in the sharing package [Java]
+- Deprecates changes parameter for change and notify events in mxGraphModel [Java,JavaScript]
+- Adds edit parameter for change and notify event in mxGraphModel [Java,JavaScript]
+- Changes parameter of fired event to edit in mxSession [JavaScript]
+- Fixes in-place modification of nodes in change codecs [JavaScript]
+- Changes conditions for history reset in mxEditor [JavaScript]
+- Moves initial state processing to mxSession.processState [JavaScript]
+- Renames mxTerminalChange.isSource to source [JavaScript]
+- Wraps sequence of changes in <delta> node in mxSession [Java,JavaScript]
+- Adds accessors for fields in atomic changes for mxGraphModel [Java]
+- Fixes handling of references to removed cells in mxSession [JavaScript]
+- Fixes references in mxGenericChangeCodec, mxChildChangeCodec [JavaScript]
+- Adds mxCodec.insertIntoGraph hook [Java,Dotnet,Php,JavaScript]
+- Ensures correct ordering of cells decoded in mxCodec [Java,Dotnet,Php,JavaScript]
+- Fixes possible NPE in valueForCellChanged for examples [JavaScript]
+- mxUtils.getXml omits XML declaration [Java]
+
+08-SEP-2010: mxGraph 1.4.1.0
+
+- Significant improvement in Visio .vdx format importer [Java]
+- Adds basic GraphML codec for encoding and decoding GraphML format [Java]
+- Adds stencil shape for adding SVG defined shapes [Java]
+- Adds serverview.html example [JavaScript]
+- Fixes possible empty rubberband selection in IE [JavaScript]
+- Fixes possible index out of bounds in mxCell.insert [Java,Dotnet,Php,JavaScript]
+- Uses wrapper caching for type conversion in mxObjectCodec.convertValueFromXml [Java]
+- Passes start cell to createEdge in mxConnectPreview.createCell [Java]
+- Allows function argument for graph in mxUtils.makeDraggable [JavaScript]
+- Adds mxConnectionHandler.setConnectPreview [Java]
+- Adds parser for Graph Drawing contest simple text format:
+   http://www.graphdrawing.de/contest2010/gdcategories2010.html#Format [Java]
+- Creates new mxRectangle from state in mxGraphComponent.mxGraphControl.hitClip 
+   to avoid problems cloning unused null variable [Java]
+
+23-JUL-2010: mxGraph 1.4.0.9
+
+- mxGraphViewReader ignores cells without coordinates/points [Java,Dotnet,Php]
+- Fixes handling of primitive type wrappes in mxObjectCodec [Java] 
+- Adds setter/getter for mxCellMarker.currentColor [Java]
+- Makes mxCellmarker.mark, unmark public, adds setMarkedState [Java]
+- Adds mxGraph.autoOrigin switch, updateOrigin method [Java]
+- Fixes bounding box for vertical HTML labels in IE [JavaScript]
+- mxGraphControl adds scrollRectToVisible, extendComponent [Java]
+
+20-JUL-2010: mxGraph 1.4.0.8
+
+- Fixes opaque drop target handling in mxGraphHandler [JavaScript]
+- Adds tap and hold in mxConnectionHandler (experimental) [JavaScript]
+- Adds mxGraph.doubleTapEnabled switch [JavaScript]
+- Fixes state in mxMouseEvents for touch-based devices [JavaScript]
+
+19-JUL-2010: mxGraph 1.4.0.7
+
+- Corrects passing layoutFromSinks parameter onto hierarchical layout model {JavaScript]
+- Change mxITextShape.paintShape to take cell state rather than bounds [Java]
+- Adds mxGraphTransferHandler.createGraphTransferable, importCells hooks [Java]
+- mxGraphComponent.doubleClickHandler stops editing only if event not consumed [Java]
+- Adds double tap detection for touch-based devices [JavaScript]
+- Replaces evt.clientX/Y with mxEvent.getClientX/Y [JavaScript]
+- Adds mxGraph.gestureEnabled, handleGesture (experimental) [JavaScript]
+- Adds touch event support for IPhones and IPods [JavaScript]
+- Fixes touch event handling in mxWindow [JavaScript]
+- Uses configureTransparentBackground in mxShape.configureHtmlShape [JavaScript]
+- Renames mxShape.configureTransparentVmlBackground to configureTransparentBackground [JavaScript]
+- Uses spacing and inset in mxUtils.getLabelPaintBounds [Java]
+- Disables drag start events on HTML images in IE [JavaScript]
+- Fixes event property access in mxLayoutManager.moveHandler [Java]
+- Fixes rubberband events outside container in Firefox [JavaScript]
+
+09-JUL-2010: mxGraph 1.4.0.6
+
+- Fixes gradients in Safari 5/Chrome 6-dev [JavaScript]
+- Fixes escape handling in mxCellEditor [Java]
+- Fixes dragging cells into graph on iPad [JavaScript]
+- Adds mxEvent.getMainEvent, getClientX, getClientY [JavaScript]
+- Changes createStroke signature to (Map<String, Object> style) [Java]
+- Adds mxGraphComponent.drawFromRootCell hook [Java]
+
+06-JUL-2010: mxGraph 1.4.0.5
+
+- Adds mxMovePreview.repaint hook [Java]
+- Adds BasicGraphEditor.createUndoManager hook [Java]
+- Renames mxLighweightLabel to mxLightweightLabel [Java]
+- Fixes alignment issues with HTML labels [Java]
+- Removes unused image variables in mxGraph [Java]
+- Adds mxGraphComponent.mxGraphControl.hitClip [Java]
+- Adds callback argument in mxEffects.animateChanges [JavaScript]
+- Fixes index for existing children in mxCell.insert [Java,Dotnet,Php,JavaScript]
+- Removes explicit call and return by reference [Php]
+- Fixes various strict standards warnings [Php]
+- Adds new mxUtils.clearSelection [JavaScript]
+- Removes unused mxUtils.createXmlElement [JavaScript]
+- Fixes possible NPE in mxCellHandler.refresh [Java]
+
+22-JUN-2010: mxGraph 1.4.0.4
+
+- Fixes zoomed marker (arrow) size [Java]
+- Adds mxGraphComponent.installDragGestureHandler, installDropTargetHandler [Java]
+- Fixes reading of attribute names in mxGraphViewReader [Java]
+- Fixes possible null pointer exception in mxCellState [JavaScript]
+- Adds mxGraphView.installListeners hook [JavaScript]
+- Fixes vertical text alignment when wrapping [Java]
+- Adds mxPanningHandler.previewEnabled switch [JavaScript]
+- Adds simple example for graph layout and image creation [Java]
+- Adds menu items to save/open PNG+XML files in grapheditor [Java]
+- Adds com.mxgraph.util.png for PNG+XML combined file format [Java]
+- mxUtils.makeDraggable checks graph.isDropEnabled [JavaScript]
+- mxUtils.getBoundingBox no longer returns null for 0 rotation [Java]
+- Replaces mxLighweightTextPane, mxWrapTextShape with mxUtils.wordWrap [Java]
+- Fixes possible index out of bounds in mxCell [Java,Dotnet,Php,JavaScript]
+- Adds simple diagram editing roundtrip example [Java]
+- Renames mxUtils.parse to parseXml [Java]
+- Adds mxInsertHandler, mxRotationHandler [Java]
+- Loop style uses STYLE_SEGMENT and STYLE_DIRECTION [Java,Dotnet,Php,JavaScript]
+- Adds mxConstants.STYLE_SEGMENT for entity relations [Java,Dotnet,Php,JavaScript]
+- mxRubberband.mouseDown allows default mouse event [JavaScript]
+- Removes workaround for focus tracking in mxGraph [JavaScript]
+- Adds cloning of labelBounds in mxCellState.clone [Java,Dotnet,Php]
+- Adds experimental support for touch events [JavaScript]
+- Adds experimental support for iPad (mxClient.IS_TOUCH) [JavaScript]
+- Fixes painting of gradients if shadow is used [Java]
+- Adds mxGraphHandler.livePreview switch [Java]
+- Adds mxGraphHandler.markerEnabled/highlightEnabled switch [Java,JavaScript]
+- Adds mxMovePreview for live preview with updated edges [Java]
+- Changes default of mxGraphComponent.previewAlpha to 0.5f [Java]
+- Adds mxShape.configureTransparentVmlBackground [JavaScript]
+- Fixes scaled and translated morphing [JavaScript]
+- Adds mxCellStatePreview, mxAnimation, mxMorphing [Java]
+- Adds mxConnectPreview.paintPreview hook [Java]
+
+01-JUN-2010: mxGraph 1.4.0.3
+
+- Refactors mxConnectionHander, removes connect, insertEdge [Java]
+- Uses AFTER_PAINT event for painting mxConnectionHandler [Java]
+- Adds mxConnectPreview for mxConnectionHandler [Java]
+- Removes mxMouseControl, adds mxMouseAdapter [Java]
+- Adds mxVdxCodec for parsing VDX XML drawing files [Java]
+- Adds mxConstraintHandler.getImageForConstraint [JavaScript]
+- Moves mxGraphComponent.drawGraph to mxGraphControl [Java]
+- Renames mxGraph(Component).draw to drawGraph [Java,Dotnet,Php]
+- Renames mxGraph.drawStateWithLabel to drawState [Java,Dotnet,Php]
+- Uses AFTER_PAINT event for painting mxGraphHandler [Java]
+- Adds mxRectangle.intersectLine [Java]
+- Refreshes handlers if keepSelectionVisibleOnZoom is true [JavaScript]
+- Adds source argument in mxGraph.getAllConnectionConstraints [Java,JavaScript]
+- Adds mxOutline.setZoomEnabled [JavaScript]
+- Fixes unsupported operation in mxGraphComponent.removeCellOverlay [Java]
+- Replaces mxICanvas.drawVertex/Edge with drawCell [Java,Dotnet,Php]
+- Replaces mxIVertex/EdgeShape with mxIShape [Java]
+- Refactors main canvas class, mxGraphViewReader [Java,Dotnet,Php]
+- Adds mxConstants.STYLE_IMAGE_BACKGROUND and BORDER for image shapes [Java,Dotnet,Php,JavaScript]
+- Fixes possible division by zero in EditorPalette [Java]
+- Fixes class cast exception in mxUtils.getStylenames [Java]
+- Fixes rounding errors in mxGraphics2DCanvas.paintPolyline [Java]
+- Renames mxGraph(Component).subHandler to selectionCellsHandler [Java,JavaScript]
+- Renames mxSubHandler to mxSelectionCellsHandler [Java,JavaScript]
+- Uses mxEvent.PAINT event for painting mxSubHandler [Java]
+- Fires mxEvent.PAINT in mxGraphComponent.paintComponent [Java]
+- Corrects colour of ARROW_OPEN to edge stroke colour [Java]
+- Fixes possible negative width/height in mxOutline [JavaScript]
+- Fixes possible invalid argument in mxShape.updateVmlShape [JavaScript]
+
+10-MAY-2010: mxGraph 1.4.0.2
+
+- Fixes use of STYLE_TEXT_OPACITY in mxGraphics2DCanvas [Java]
+- Fixes setting spacing in mxStackLayout constructor [Java]
+- Uses lazy instantiation for JTextArea in mxUtils [Java]
+- Fixes upate of zoom after new/open in GraphEditor [Java]
+- Adds various hooks for mxGraphComponent constructor [Java]
+- Fixes use of graph bounds in mxGraphComponent [Java]
+- Adds support for STYLE_DASHED in mxVmlCanvas and mxSvgCanvas [Java]
+- Changes mxConstraintHandler for edges with no constraints [JavaScript]
+- Fixes possible NPE in mxGraphView.validatePoints [Java,Dotnet,Php,JavaScript]
+- Fixes possible NPE in mxCodecRegistry.getInstanceForName [Java]
+- Adds mxConstraintHandler.getTolerance hook [JavaScript]
+- Changes type of mxConstraintHandler.pointImage to mxImage [JavaScript]
+
+03-MAY-2010: mxGraph 1.4.0.1
+
+- Fixes scaling in mxOutline for scaled scollable container [JavaScript]
+- Fixes use of undefined variable in mxCellStatePreview [JavaScript]
+- Fixes replacing values in mxUtils.setStyle [Java,Dotnet,Php,JavaScript]
+- Adds mxConstraintHandler.pointImage, highlightColor fields [JavaScript]
+- Fixes moving of large selections in SVG-based browsers [JavaScript]
+- Changes mxGraph.click to take mxMouseEvent as argument [JavaScript]
+- mxMouseEvent.consume enables native event propagation [JavaScript]
+- Uses mxMouseEvent.consumed state instead of native event [JavaScript]
+- Fixes access to vertical center in mxRectanglePerimeter [Dotnet] 
+- Supports connection constraints in mxGraph, mxGraphView [Php]
+- Adds mxObjectCodec.getName, mxCodecRegistry.addAlias [Java,Dotnet,Php,JavaScript]
+- Removes mxIShape, mxBasicShape and shared shapes [Java]
+
+29-APR-2010: mxGraph 1.4.0.0
+
+- Adds mxConnectionHandler.moveIconFront switch [JavaScript]
+- Replaces custom perimeter with constraint in scrollbars.html example [JavaScript]
+- Changes mxConstants.SVG_SHADOWCOLOR to SHADOWCOLOR and uses in VML [JavaScript]
+- Adds support for connection constraints in mxGraph, mxGraphView [Java,Dotnet,JavaScript]
+- Adds new STYLE_ORTHOGONAL for mxGraph.isOrthogonal result [Java,Dotnet,Php,JavaScript]
+- Removes edge, adds orthogonal argument in mxPerimeter [Java,Dotnet,Php,JavaScript]
+- Fixes cycle remover sync problem in hierarchical layout [JavaScript]
+- Adds mxConnectionConstraint for fixed connection points [Java,Dotnet,Php,JavaScript]
+- Adds keys for fixed points, orthogonal edges in mxConstants [Java,Dotnet,Php,JavaScript]
+- Removes ; after removal of entry in mxUtils.setStyle [Java,Dotnet,Php,JavaScript]
+- Fixes duplicate context menu items in graph editor [JavaScript]
+- Fixes ignored label bounds in mxUtils.getViewXml [JavaScript]
+- Fixes mxUtils.intersects [JavaScript]
+- Handles missing resource exceptions in mxGraph, BasicGraphEditor [Java]
+- Fixes unknown variable in mxGraphModel.getNearestCommonAncestor [Php]
+- Fixes handling of forward references in mxObjectCodec [Php]
+- Changes canvas draw methods to take cell state parameter [Java]
+- Fixes undeclared namespace in SVG document [Java]
+- Fixes possible NPE in mxCellCodec.beforeDecode [Php]
+- Fixes defintion of mxEdgeHandler.preferHtml [JavaScript]
+- Adds mxCellHandler.getIndex [Java]
+- Fixes mxPrintPreview for non-automatic origin [JavaScript]
+- Fixes mxEdgeHandler.reset, mxGraphComponent.reset [Java]
+- Adds mxCellHandler.getGraphComponent [Java]
+
+07-APR-2010: mxGraph 1.3.1.6
+
+- Fixes colors for cylinders as indicators [JavaScript]
+- Uses fill color as stroke for indicators [JavaScript]
+- Fixes mxShape.configureSvgShape for color none [JavaScript]
+- Adds pagebreaks.html example [JavaScript]
+- Adds mxGraph.pageBreakColor, pageBreakDashed, preferPageSize [JavaScript]
+- Adds mxGraph.updatePageBreaks, pageBreaksVisible [JavaScript]
+- Fixes mxOutline for scrolled source graph [JavaScript]
+- Fixes mxGraphView.isContainerEvent for nodes in backgroundPane [JavaScript]
+- Adds mxUtils.mod to find the remainder of a division [JavaScript]
+- Fixes panning preview for poyline, swimlane, line in VML [JavaScript]
+- Uses v:shape in mxPolyline, mxSwimlane, mxLine [JavaScript]
+- Fixes possible NPE in mxUtils.getValue [JavaScript]
+- Adds mxPrintPreview.printOverlays switch [JavaScript]
+- Adds mxCellRenderer.initializeOverlay hook [JavaScript]
+- Fixes mxGraph.scrollRectToVisible for oversized rectangles [JavaScript]
+- Adds mxShape.crisp switch for mxRectangleShape, mxLabel, mxSwimlane [JavaScript]
+- Changes default scale in mxPrintPreview to 1 / graph.pageScale [JavaScript]
+- Adds mxPrintPreview.autoOrigin switch [JavaScript]
+- Renames mxGraphComponent.pageBreakVisible to pageBreaksVisible [Java]
+- Removes mxChildChange.added field and getter [Java]
+- Hides label in mxText if font smaller than 0.5px [JavaScript]
+
+29-MAR-2010: mxGraph 1.3.1.5
+
+- Corrects label/vertex union calculation in mxGraphLayout.getVertexBounds [JavaScript]
+- Adds support for o-transform CSS style in Opera (Presto/2.5) [JavaScript]
+- Ignores previous selection state for removing cell from parent [Java]
+- Adds mxGraphComponent.previewAlpha and accessors [Java]
+- mxToolbar.addMode returns button if no icon specified [JavaScript]
+- Fixes handling of leading semicolon in cell styles [Java,Dotnet,Php,JavaScript]
+- Adds fallback for text to center, middle alignment [JavaScript]
+- Adds shape package, pluggable shapes in mxGraphics2DCanvas [Java]
+- Fixes paste keystroke in mxKeyboardHandler [Java]
+- Invokes mxGraphView.reload in mxGraph.refresh [Java]
+- Invokes mxGraphView.validate in mxGraphView.reload [Java]
+- Removes one child limitation in mxGraph.groupCells, getCellsForGroup [Java,JavaScript]
+- Fixes non-internationalized font selection in mxConstants [Java]
+
+22-MAR-2010: mxGraph 1.3.1.4
+
+- Uses mxMorphing in grapheditor.html, graphlayout.html examples [JavaScript]
+- Adds mxCellStatePreview, mxAnimation, mxMorphing [JavaScript]
+- Adds mxGraphHandler.DEFAULT_CURSOR, FOLD_CURSOR [Java]
+- Fixes underline for SVG text in Webkit [JavaScript]
+- Unifies mxClient.include for all browsers [JavaScript]
+- Adds accessors for mxCellMarker.(in)validColor [Java]
+- Adds mxConnectionHandler.createPreview hook [Java]
+
+15-MAR-2010: mxGraph 1.3.1.3
+
+- Uses height not width for word-wrap in vertical labels [Java,Dotnet]
+- Fixes missing update in mxLog.textarea for Opera 10.5 [JavaScript]
+- Fixes possible hang in mxWindow.setScrollable for Opera 10.5 [JavaScript]
+- Uses visibility style in mxWindow to avoid hang in Opera 10.5 [JavaScript]
+- Fixes mxObjectCodec for Enums [Java]
+- Fixes problems with foreignObjects in Chrome 5.0 [JavaScript]
+
+08-MAR-2010: mxGraph 1.3.1.2
+
+- Renames mxCellHighlight.KEEP_ON_TOP to keepOnTop [JavaScript]
+- Adds mxOutline.border, mxConnectionHandler.moveIconBack [JavaScript]
+- Fixes cursor in mxSwimlane in IE [JavaScript]
+- Adds mxGraphHandler.updateCursor switch [JavaScript]
+- Fixes event handling in mxCellHighlight [JavaScript]
+- Fixes typo in mxGraph.prototype.orderCells [JavaScript]
+- Adds mxOutline.sizerSize default value [JavaScript]
+- Fixes viewport in mxOutline for zoom out [JavaScript]
+- Fixes mouse events in mxOutline for IE [JavaScript]
+- Fixes mouse events on transparent VML vertices [JavaScript]
+
+02-MAR-2010: mxGraph 1.3.1.1
+
+- Adds fallback to mxCellCodec in mxCodec.decodeCell [Java,Dotnet,Php,JavaScript]
+- Ignores pointer events on selection border for vertices in SVG [JavaScript]
+- Adds word-wrap in HTML and VML export [Java]
+
+26-FEB-2010: mxGraph 1.3.1.0
+
+- Word wrapping for vertex labels has been added in the Java codebase
+- Changes signature of mxUtils.getSizeForString, getLabelSize. A parameter has
+	been added to specify the width, beyond which text wraps [Java]
+- Adds word-wrapping support using mxConstants.STYLE_WHITE_SPACE. Setting it 
+	to "wrap" caused vertex labels to wrap [Java]
+- Add mxLightweightTextPane for word-wrapped text rendering [Java]
+- Renames mxLightweightTextPane to mxLightweightLabel [Java]
+- Fixes possible NPE for triangle, hexagon indicators
+	http://www.jgraphsupport.co.uk/bugzilla/show_bug.cgi?id=23 [JavaScript]
+- Passes indicatorDirection to indicator in mxLabel. Labels may have an inner 
+	shape and the styles generally are applied to the label. Some styles need 
+	to be passed onto the shape (called the indicator). The indicatorDirection 
+	is the direction of that inner shape[JavaScript]
+- Uses this.direction in shapes for access to STYLE_DIRECTION [JavaScript]
+- Sets direction in mxShape.apply from STYLE_DIRECTION [JavaScript]
+- Adds mxConstants.STYLE_INDICATOR_DIRECTION [JavaScript]
+- Fixes mxClient.include for local file:// URI in Chrome 5.x
+	See http://blog.chromium.org/2008/12/security-in-depth-local-web-pages.html [JavaScript]
+- The XML codec has been extended to make it easier to de/encode new cell types. 
+	Details at http://www.jgraph.com/forum/viewtopic.php?f=12&t=4738, including 
+	how to revert the change if you don't want it in a production version
+- Removes hardcoded class name for cells in mxCodec [Java,Dotnet,Php,JavaScript]
+- Adds mxCellCodec.isCellCodec for cell codec checks [JavaScript]
+- Removes mxMouseEvent.setState, handle and tooltip. Removal of the 
+	functionality was the 1.3 API change, this change simply removes the 
+	functions. [JavaScript]
+- Adds optional event argument in mxEditor.execute to support functionality 
+	such as popup menus [JavaScript]
+- Adds argument in funct for mxDefaultPopupMenu.addAction, see above [JavaScript]
+- Uses first constant as default for enums in mxCodecRegistry
+	http://www.jgraphsupport.co.uk/bugzilla/show_bug.cgi?id=22 [Java]
+
+22-FEB-2010: mxGraph 1.3.0.4
+
+- Fixes textAlign value for edges in mxCellEditor for IE [JavaScript]
+
+22-FEB-2010: mxGraph 1.3.0.3
+
+- Fixes target position alignment inside groups for mxConnectionHandler [JavaScript]
+- Fixes print for mxArrow in IE by replacing VML polyline with shape [JavaScript]
+- Fixes possible NPE in mxVertexHandler.getHandleForEvent [JavaScript]
+- Removes DIV container border for HTML-based edges in IE [JavaScript]
+
+19-FEB-2010: mxGraph 1.3.0.2
+
+- Changes arguments in mxUtils.GetSizeForString, GetLabelSize [Dotnet]
+- Fixes horizontal image alignment for labels in image export [Java,Dotnet,Php]
+- Adds support for "fill" in mxConstants.STYLE_OVERFLOW [Java,Dotnet,Php]
+- Adds word-wrapping support using mxConstants.STYLE_WHITE_SPACE [Dotnet]
+- Removes mxGraph.IsLabelClipped and accessors for LabelsClipped,
+	use "hidden" in mxConstants.STYLE_OVERFLOW instead [Dotnet]
+
+18-FEB-2010: mxGraph 1.3.0.1 beta 2
+
+- ForeignObjects are being used to render HTML labels in SVG browsers. The 
+	reason for is to have a consistent rendering order. Previously, HTML labels 
+	were always drawn above the SVG, now the ordering is correct. IE (VML) 
+	already worked correctly in this regrard. [JavaScript]
+- Uses style from mxCellState in mxCellEditor. Previously, the style from the 
+	DOM node of the label was used. [JavaScript]
+- Fixes inverted vertical labels in IE print. Only filters are now used for 
+	rotating labels, before an IE specific CSS style was used and produced 
+	incorrect output. [JavaScript]
+- Removes mxConstants.SVG_CRISP_EDGES, this flag was never implemented. [JavaScript]
+- Updates scrollbars.html example to allow for Webkit bug, 
+	http://code.google.com/p/chromium/issues/detail?id=35545, caused by change 
+	to using Foreign objects in SVG. [JavaScript]
+- Adds mxGraphHandler.htmlPreview switch. This draws the preview rectangles 
+	using html. When using HTML labels this should be switched to true, since 
+	otherwise the preview is drawn in VML/SVG and this would appear behind the 
+	HTML label [JavaScript]
+- Fixes call to resetMode in mxDefaultToolbar. Previously, anything that used 
+	the toolbar to click and insert a cell caused an exception. [JavaScript]
+- Adds overflow argument to mxText constructor. If this flag is hidden then 
+	clipped is applied, if it is fill then no clipping is applied. [JavaScript]
+- Adds mxGraphics2DCanvas.replaceHtmlLinefeeds and accessors,
+	http://www.jgraphsupport.co.uk/bugzilla/show_bug.cgi?id=19 [Java]
+- Adds clipping for SVG labels, and add label clipping support in .NET [JavaScript,Dotnet]
+- Uses optimize-speed shape-rendering for all rectangles in SVG, if not 
+	rounded and if their stroke width is not 1 [JavaScript]
+- Focus graph container before calling drop function in mxUtils.makeDraggable [JavaScript]
+- Adds mxConstants.STYLE_OVERFLOW, STYLE_WHITE_SPACE to enable label wrapping 
+	without the need to override isWrapping [Java,JavaScript,Dotnet,Php]
+- mxLog.debug, warn, write and writeln take multiple, comma seperated, arguments [JavaScript]
+- The ability to specify a "port" that edges incoming to a vertex terminate 
+	on has been added. Previously, child "ports" were added to vertices and 
+	edges connected to those ports to obtain the correct appearance. The meant 
+	that the graph structure was then incorrect and this could adversely affect 
+	functionality that relies on that structure, like layouts.
+- Adds mxGraphView.getTerminalPort for port-handling. The port returned is the 
+	visual terminal of that vertex, assuming the vertex is visible. This shouldn't
+	be confused with the terminal of an edge in the graph structure. The purpose 
+	of this is to calculate the perimeter point where edges meet vertices. [Java,JavaScript,Dotnet,Php]
+- Uses cached style in mxGraph.getLabel, mxGraph.getStartSize, instead of 
+	always processing style on the fly. [Java,JavaScript,Dotnet,Php]
+- Adds helloport.html example, updates Ports.java example. Both make use of the 
+	terminal port concept explained above. [Java,JavaScript]
+- Adds mxConstants.STYLE_SOURCE_PORT/-TARGET_PORT. These styles apply to edges, 
+	the values of which are the cell IDs of the source/target ports. [Java,JavaScript,Dotnet,Php]
+- Adds mxGraph.isPort, getTerminalForPort hooks (experimental) [Java,JavaScript]
+- Adds mxGraph.changesRepaintThreshold for quicker repaints. This is the number 
+	of changes that are to be processed after an endUpdate, above which, no 
+	attempt to calculate the dirty region is made and the full area is repainted. [Java]
+- mxGraph.cellsAdded uses cellConnected for setting terminals, previously
+	this was not called. cellConnected will generate an additional event [Java,JavaScript]
+- mxEdgeHandler uses mxGraph.connectCell for terminal changes [Java,JavaScript]
+- Adds previous terminal to CONNECT_CELL and CELL_CONNECTED [Java,JavaScript]
+- Adds mxMouseEvent argument in mxEdgeHandler.connect [JavaScript]
+- Renames mxText.isClipping to clipped, isWrapping to wrap [JavaScript]
+- Changes mxText.isRotate to mxText.horizontal [JavaScript]
+- Removes mxText.isAbsolute, useTableBounds [JavaScript]
+- mxGraphComponent.createCellEditor returns mxICellEditor [Java]
+- Adds mxClient.IS_MT for moz-transform CSS styles [JavaScript]
+- Adds support for Seamonkey and Iceape [JavaScript]
+- Refactors HTML rendering in mxText [JavaScript]
+- mxText.create no longer changes overflow of container. Previously it would 
+	change the overflow of the parent node. [JavaScript]
+- Changes mxEditor.escapePostData to true. This is so HTML markup in labels
+	is handled correctly. [JavaScript]
+- Changes mxSession.linefeed to '&amp;#xa;' [JavaScript]
+- Fixes update of handlers after mxGraphView.scale [JavaScript]
+- Adds mxClient.NO_FO to disable foreignObject in SVG [JavaScript]
+- Adds mxGraph.allowNegativeCoordinates switch. This true by default, switching 
+	it to false causes any changed vertices positions to be forced to be a 
+	minimum of 0 in each dimension. [Java,JavaScript]
+- Adds page number argument in mxPrintPreview.renderPage [JavaScript]
+- Fixes possible NPE in mxEdgeStyle.Loop [JavaScript,Java,Dotnet,Php]
+
+03-FEB-2010: mxGraph 1.3.0.0 beta
+
+- Fixes mxCell.removeEdge for loops [Java,Dotnet]
+- Fixes mxGraph.getEdgesBetween, getEdges [JavaScript,Java,Dotnet]
+- mxUtils.makeDraggable updates mxGraph.isMouseDown [JavaScript]
+- Removes mxConnectionHandler.iconZIndex [JavaScript]
+- Adds mxCellState.setCursor [JavaScript]
+- Adds constants for cursors in mxConstants [JavaScript]
+- Updates cursors in mxGraph-, mxVertex- and mxEdgeHandler [JavaScript]
+- Adds cell argument in mxGraphHandler.start [JavaScript]
+- mxGraphHandler.mouseMove checks isMouseDown [JavaScript]
+- Fixes mxGraph.isMouseDown state for double clicks [JavaScript]
+- Renames mxRubberband.redraw to update [JavaScript]
+- Adds lazy shape creation mxGraphHandler, mxRubberband [JavaScript]
+- Removes mxKeyHandler.enter hook [JavaScript]
+- Fixes mxGraph.isEnterStopsCellEditing getter [JavaScript]
+- Moves handling of enter/F2/escape keystroke to mxCellEditor [JavaScript]
+- Fixes in-place editor location for label with only spaces [JavaScript]
+- Adds support for label background and border in Opera [JavaScript]
+- Fixes possible negative rx, ry in mxDoubleEllipse [JavaScript]
+- Removes mxRhombus.redrawCanvas [JavaScript]
+- Removes mxClient.IS_FADE_RUBBERBAND [JavaScript]
+- Removes version checks in mxClient except for IE 6 [JavaScript]
+- Simplifies mxClient.include, removes onload, addOnloadCallback [JavaScript]
+- Unifies order of panning-, sub-, connection- and graphhandler [Java,JavaScript]
+- Fixes border for images in mxLabel for IE [JavaScript]
+- Removes mxClient.IS_IE7, IS_FF2, IS_FF, IS_CANVAS, adds IS_IE6 [JavaScript]
+- Unifies cursors in all handlers and mxCellRenderer [JavaScript]
+- Creates DOM nodes for empty labels in mxCellRenderer.redrawLabel [JavaScript]
+- Adds value argument in mxCellRenderer.createLabel [JavaScript]
+- Uses mxElbowEdgeHandler.getTooltipForNode in mxGraph.getTooltip [JavaScript]
+- Aligns target with source in mxConnectionHandler.createTargetVertex [JavaScript]
+- Adds accessors for gridSize, tolerance, edge- & vertexLabelsMovable in mxGraph [JavaScript]
+- Renames mxGraph.getTooltipForEvent to getTooltip, changes args [JavaScript]
+- Moves collapseExpandResource from mxCellRenderer to mxGraph [JavaScript]
+- Fixes icon stays visible after escape in mxConnectionHandler [JavaScript]
+- Adds lazy shape creation in mxConnectionHandler.createShape [JavaScript]
+- mxGraph ctor no longer calls mxPanning-, mxConnectionHandler.init [JavaScript]
+- mxConnectionHandler.init no longer depends on graph container [JavaScript]
+- Adds lazy shape creation in mxCellHighlight.createShape [JavaScript]
+- Removes mxMouseEvent.handle, tooltip and accessors [JavaScript]
+- Replaces array with object for storage in mxDictionary [JavaScript]
+- Renames mxMouseEvent.getTarget to getSource [JavaScript]
+- Simplifies mxEvent.redirectMouseEvents [JavaScript]
+- Does no longer store cell handler in mxCellState.handler [JavaScript]
+- Removes mxGraph.redrawHandler, hasHandler, destroyHandler [JavaScript]
+- Adds mxDictionary.visit for visitor pattern [JavaScript]
+- Uses mxSubHandler for mouse events in all cell handlers [JavaScript]
+- Adds new mxSubHandler class for managing cell handlers [JavaScript]
+- mxConnectionHandler adds preview to DOM only when used [JavaScript]
+- mxCellHighlight adds highlight to DOM only when used [JavaScript]
+- Adds call to mxCellHighlight.destroy in mxCellMarker.destroy [JavaScript]
+- Adds mxShape.WEBKIT_CRISP_EDGES switch for crisper edges [JavaScript]
+- Uses setStroke hook in mxGraphics2DCanvas.drawConnector [Java]
+
+29-JAN-2010: mxGraph 1.2.0.10
+
+- Fixes offsets for rounded edge corners in mxGdiCanvas [Dotnet]
+- Fixes possible key not found in mxStyleRegistry [Dotnet]
+- Adds mxConstants.HANDLE_SIZE, LABEL_HANDLE_SIZE [Java,JavaScript]
+- mxTooltipHandler automatically calls init when used [JavaScript]
+- Uses SVG and VML for handles, highlights and previews [JavaScript]
+- Removes workarounds in mxCellHighlight, mxVertexHandler [JavaScript]
+- Adds mxCellHighlight.KEEP_ON_TOP switch [JavaScript]
+- Adds mxCellMarker.KEEP_ON_TOP global switch [Java]
+- Fixes alignment for vertical labels [Dotnet]
+
+26-JAN-2010: mxGraph 1.2.0.9
+
+- Shows no drag icon if no cells can be imported [Java]
+- Adds xlink prefix to href attribute in mxSvgCanvas [Java]
+- Adds mxPath.quadTo for quadratic curves [JavaScript]
+- Moves animation code to new mxEffects class [JavaScript]
+- Removes unused mxUtils.morph, mxUtils.fadeIn [JavaScript]
+- Immediate selection toggle for unselected cells in mxGraphHandler [Java]
+- Adds mxGraph2DCanvas.setStroke hook [Java]
+- Fixes use of previous dragImage in mxGraphHandler [Java]
+- Removes workaround for artifacts in mxGraphHandler [JavaScript]
+
+19-JAN-2010: mxGraph 1.2.0.8
+
+- Fixes rotation in mxGdiCanvas for non-horizontal labels [Dotnet]
+- Fixes possible NPE in mxResources.parse [JavaScript]
+- Checks optional attribute value in mxMultiplicity.checkType [Java]
+- Adds mxGraphComponent.createTransferHandler hook [Java]
+- Adds accessors for mxGraph.defaultOverlap, collapseToPreferredSize [Java]
+- Removes exportScreen action in mxEditor [JavaScript]
+
+14-JAN-2010: mxGraph 1.2.0.7
+
+- Disables resize of textarea in Google Chrome [JavaScript]
+- Escapes user values in label markup in schema.html example [JavaScript]
+- mxGraphView.getEdgeStyle/PerimeterFunction no longer require a dot for eval [JavaScript]
+- mxGraphView.getPerimeterFunction uses eval only if allowEval is true [JavaScript]
+- mxGraphView.getEdgeStyle uses eval only if allowEval is true [JavaScript]
+- Adds mxGraphView.allowEval switch with default value false [JavaScript]  
+- mxGraph.fit returns current scale [JavaScript]
+- Replaces Hashtable with Map in type declarations [Java]
+- Fixes zoom for HTML labels in Webkit-based browsers [JavaScript]
+- Fixes URL in mxConstants.NS_SVG and NS_XLINK [Java,Dotnet,Php]
+- Fixes use of xlink-namespace for images in mxSvgCanvas [Java]
+- Adds OSGi headers (Bundle-SymbolicName, -Version) in manifest [Java]
+- Fixes sharing of added/removed cells in mxChildChangeCodec [JavaScript]
+- Fixes dynamic loading of JavaScript in Firefox 3 with IIS [JavaScript]
+
+06-JAN-2010: mxGraph 1.2.0.6
+
+- mxGraph.getDropTarget no longer returns cell in cells [Java,JavaScript]
+- Adds mxUtils.indexOf, mxUtils.contains [Java]
+- Adds mxGraphHandler.createMarker hook [Java]
+- Honors mxGraph.isCellBendable in mxEdgeHandler [Java]
+- Adds getGroupBorder hook in UpdateGroupBoundsAction and GroupAction [Java]
+- Fixes mxPerimeter.EllipsePerimeter [Java]
+
+28-DEC-2009: mxGraph 1.2.0.5
+
+- Disables selection of ports in ports.html example [JavaScript]
+- Adds error handling for closed windows in mxPrintPreview [JavaScript]
+- Removes debug output in mxGraph.getBoundsForGroup [JavaScript]
+
+22-DEC-2009: mxGraph 1.2.0.4
+
+- Fixes minor syntax errors, removes linefeeds, extra blocks [JavaScript]
+- Adds border, keepOrigin arguments in mxGraph.fit [JavaScript]
+- Uses background image size, fixes possible NPE in mxGraph.fit [JavaScript]
+- Fixes mxEdgeHandler.convertPoint for parent groups [JavaScript]
+- Adds mxEdgeHandler.isAdd/RemovePointEvent hooks [JavaScript]
+- Uses pointer cursor in IE for connect icons in mxConnectionHandler [JavaScript]
+
+17-DEC-2009: mxGraph 1.2.0.3
+
+- Implements mxGraph.isSwimlane [Dotnet]
+- Uses STYLE_SHAPE to identify swimlanes
+- Adds mxConstants.DEFAULT_STARTSIZE for swimlanes
+- Removes mxSwimlane.prototype.defaultStartSize [JavaScript]
+- Adds update group bounds action in shape menu for graph editor examples [Java,JavaScript]
+- Adds mxGraphActions.UpdateGroupBoundsAction [Java]
+- Adds mxEdgeHandler.addEnabled, removeEnabled switches (experimental) [JavaScript]
+- Adds resizeParent, parentBorder, moveParent flags in mxHierarchicalLayout [Java,JavaScript]
+- Fixes default start size in mxCellRenderer.getLabelBounds [JavaScript]
+- Fixes access to event property in grapheditor.html example [JavaScript]
+- Corrects horizontal parameter usage in mxCompactTreeLayout c'tor [Java]
+- Adds mxGraph.updateGroupBounds [Java, JavaScript]
+
+14-DEC-2009: mxGraph 1.2.0.2
+
+- Removes STYLE_FONTSIZE from all default styles
+- mxUtils.loadImage silently ignores all exceptions and returns null [Java]
+- Uses local mxBasePath for resources, images and CSS files in evaluation
+- Removes trailing slash in mxImageBasePath, mxClient.imageBasePath [JavaScript]
+- Changes default value for mxClient.basePath to '.' [JavaScript]
+- Removes trailing slash in mxBasePath, mxClient.basePath [JavaScript]
+- Moves javascript/src/js/resources to javascript/src [JavaScript]
+- Checks for virtual directory in Default.htm for ASP.NET [Dotnet]
+- Adds border property and argument in mxStackLayout [Java,JavaScript]
+- Changes defaults for mxStackLayout.x0, y0, spacing [Java,JavaScript]
+- Fixes scrollbars in mxGraph.sizeDidChange for Webkit [JavaScript]
+- Fixes container size in mxStack-, mxPartitionLayout [JavaScript]
+- Fixes property name in mxLayoutManager.undoHandler [Java]
+- Adds mxGraphViewImageReader.createGraphicsCanvas [Java]
+- Moves title argument in mxPrintPreview ctor [JavaScript]
+- Disables cell moving in orgchart.html example [JavaScript]
+- Uses mxGraph.getStartSize for swimlanes only [JavaScript]
+- Fixes array index in mxCellOverlay.getBounds [JavaScript]
+- Fixes deleteSubtree in orgchart.html example [JavaScript]
+
+08-DEC-2009: mxGraph 1.2.0.1
+
+- Fixes NPE in EditorActions.SaveAction [Java]
+- Creates group before getting bounds in mxGraph.groupCells [Java,JavaScript]
+- Fixes mxGraph.getStartSize to return default start size [JavaScript]
+- Uses getBoundingBoxFromGeometry in mxGraph.getBoundsForGroup [Java,JavaScript]
+- Adds mxGraph.getBoundingBoxFromGeometry [Java,JavaScript]
+- Changes class arg to object in mxCodecRegistry.getName [Java,Dotnet]
+
+03-DEC-2009: mxGraph 1.2.0.0
+
+- Displays error messages in EditorActions [Java]
+- mxUtils.createBufferedImage throws out of memory error [Java]
+- Changes argument order in mxPrintPreview c'tor [JavaScript]
+- Renames mxEvent.RESET to mxEvent.CLEAR [Java,JavaScript]
+- Renames mxUndoManager.reset to clear [Java,JavaScript]
+- Renames source to sender argument in mxEventListener [Java]
+- Fixes old scale value in mxGraphView.scaleAndTranslate event [Java]
+- mxDefaultKeyHandler fires escape mxEventObject via editor [JavaScript]
+- Sets significant flag on undoable selection changes to false [Java]
+- Removes mxEventObject.getArgCount [Java,Php,JavaScript]
+- Replaces mxEventObject.getArgAt with getProperty [Java,Php,JavaScript]
+- Replaces mxEventObject.getArgs with getProperties [Java,Php,JavaScript]
+- Changes ctor of mxEventObject to use varargs [Java,Php,JavaScript]
+- Replaces argument sequence with properties in mxEventObject [Java,Php,JavaScript]
+- Adds event name with getter in mxEventObject [Java,Php,JavaScript]
+- Uses mxEventObject for mxEvent::$GRAPH_MODEL_CHANGED [Php]
+- Fixes possible NPE in mxPrintPreview, mxUtils.getScaleForPageCount [JavaScript]
+- Removes BEFORE_/AFTER_EXECUTE events in mxGraphModel [Java]
+
+26-NOV-2009: mxGraph 1.1.0.2
+
+- Fixes repaint, orientation of shadow in swimlanes for SVG [JavaScript]
+- Fixes handling of consumed events in mxGraph.dblDlick [JavaScript]
+- Focus graph container after drop in mxUtils.makeDraggable [JavaScript]
+- Fixes mxGraph.useScrollbarsForPanning in mxPanningHandler, mxOutline [JavaScript]
+- Fixes rendering of swimlanes in preferred HTML mode [JavaScript]
+- Fixes wrong scale in outline window for IE [JavaScript]
+- Adds x0, y0 args in mxUtils.show, fixes for IE [JavaScript]
+- Corrects print preview border [JavaScript]
+- Uses generics, adds serialVersionUIDs [Java]
+
+24-NOV-2009: mxGraph 1.1.0.1
+
+- Adds Port.java example [Java]
+- Fixes mxPrintPreview, mxUtils.getScaleForPageCount [JavaScript]
+- Fixes drawing of rounded edges in mxGdiCanvas [Dotnet]
+- Fixes handling of text content in mxCellCodec [Java,Dotnet,Php]
+- Adds mxUtils.ltrim, rtrim, trim for strings [JavaScript]
+- Fixes handling of antiAliasing in mxImageCanvas [Dotnet]
+- Checks isCellLocked in mxGraph.isCellResizeable, -Editable [Java]
+- Fixes divide by zero in ellipse perimeter calculation
+- Adds mxUtils.findNode helper method
+- Adds DEFAULT_TIMEOUT in mxSession [Java,Dotnet]
+- Changes mxGraphAlgebra class to mxGraphAnalysis [Java]
+- Fixes shortest path with parallel edges [Java]
+- Fixes handling of string literals in mxCellPath [Java]
+
+17-NOV-2009: mxGraph 1.1.0.0
+
+- Renames mxOutline.graph to mxOutline.outline [JavaScript]
+- Replaces explicit execution scopes with mxUtils.bind [JavaScript]
+- Adds mxUtils.bind for locking execution scope in functions [JavaScript]
+- Removes event object for mxEvent.RESET in mxSession [JavaScript]
+- Fixes mxEventObject argument in mxGraphModel.execute [JavaScript]
+- Uses event listener in mxEditor.installDblClickHandler [JavaScript]
+- Automatically adds missing trailing slashes in mxBasePath [JavaScript]
+- Adds trailing slash for mxBasePath in aspx files for evaluation [Dotnet]
+- Removes unused code for gradient handling in mxShape [JavaScript]
+- Fixes update of gradient colors for indicators in mxLabel [JavaScript]
+- Disables removing cells from parents in processeditor.html example [JavaScript]
+- Fixes withdrawal example diagram in processeditor.html example [JavaScript]
+- Fixes possible NPE in mxShape for gradients in indicator shapes [JavaScript]
+- Adds mxPrintPreview.writeHead hook [JavaScript]
+- Adds mxGraph.createHandlers hook [JavaScript]
+- mxGeometry.translate no longer returns clone, changes in-place
+
+11-NOV-2009: mxGraph 1.0.2.8
+
+- Adds mxConstants.STYLE_SMOOTH for edges in VML [JavaScript]
+- Adds tree.html example [JavaScript]
+- Fixes possible invalid values for "d" in mxActor, mxCylinder [JavaScript]
+- Resolves forward references in mxGenericChangeCodec [JavaScript]
+- Fixes ctor arguments in mxPrintPreview [JavaScript]
+- Refactors examples for servers [Java,Dotnet]
+- Adds mxGraph.useScrollbarsForPanning switch [JavaScript]
+- Removes initial X offset in hierarchical layout
+- Fixes STYLE_GRADIENT_DIRECTION constant [Dotnet]
+- Moves swing examples to com.mxgraph.examples.swing [Java]
+- Ships with solution and project files [Dotnet]
+- Rethrows exception in error handling code [Php]
+- Fixes various bugs for mxGraphModel, mxGeometry [Php]
+
+20-OCT-2009: mxGraph 1.0.2.7
+
+- Fixes ignored orientation for hierarchical layout in Java
+- mxGraphView.getVisibleTerminal does no longer return layers
+- Renames com.mxgraph.algebra to com.mxgraph.analysis in Java
+- Fixes error for mxUtils.eval in Chrome 4.0.222.12
+- Fixes number of pages for mxGraphComponent.print in Java
+- Adds mxLog.info
+
+13-OCT-2009: mxGraph 1.0.2.6
+
+- Fixes NPE in mxCellEditor constructor
+
+13-OCT-2009: mxGraph 1.0.2.5
+
+- Adds mxGraphLayout.getConstraint in JavaScript and Java
+- Adds mxCellPath.compare in JavaScript and Java
+- Adds mxCellEditor.installKeyHandler hook in Java
+- Adds css argument to mxPrintPreview.open
+- Ignores possible member not found error in mxShape for IE
+- Fixes numeric comparison in mxEllipsePerimeter
+- Fixes local fields in mxGraphViewImageReader ctor for Dotnet
+- Fixes boolean conversion in mxUtils.isTrue for Java and Dotnet
+
+25-SEP-2009: mxGraph 1.0.2.4
+
+- Adds new grapheditor-gears.html example in JavaScript
+- Fixes HTML entities in mxUtils.getPrettyXml for Java
+
+18-SEP-2009: mxGraph 1.0.2.3
+
+- Fixes toFront/toBack and display order in JavaScript
+- Fixes rendering of images in HTML labels for Java
+
+17-SEP-2009: mxGraph 1.0.2.2
+
+- Maintenance release
+
+16-SEP-2009: mxGraph 1.0.2.1
+
+- Fixes mxGraph.groupCells
+- Adds reset of absolute offset in mxGraphView.validateBounds
+
+15-SEP-2009: mxGraph 1.0.2.0
+
+- mxGraphModel does no longer update parents for edges passed to add function
+- Checks if source and target in model in mxGraphModel.updateEdgeParent
+- Adds root argument in mxGraphModel.updateEdgeParent
+- mxGraph.ungroupCells only filters cells with no children for empty argument
+- Fixes sorting order for cell paths in mxUtils.sortCells
+- Fixes mxGraph.cloneCells to return empty array for non-null argument
+- Adds mxCellHandler.isActive method in Java
+
+25-AUG-2009: mxGraph 1.0.1.3
+
+- Makes mxCellHandler.getIndexAt public in Java
+- Adds mxEdgeHandler.getSelectionColor, getSelectionStrokeWidth, isSelectionDashed
+- Adds mxVertexHandler.getSelectionColor, getSelectionStrokeWidth, isSelectionDashed
+- Replaces mxConstants.SELECTION_DASHED with VERTEX_/EDGE_SELECTION_DASHED
+- Replaces mxConstants.SELECTION_STROKEWIDTH with VERTEX_/EDGE_SELECTION_STROKEWIDTH
+- Adds mxConstants.LINE_ARCSIZE for rounded edges in Java, Dotnet and JavaScript
+- Adds support for rounded rectangles in mxVmlCanvas and mxSvgCanvas
+- Adds mxConstants.RECTANGLE_ROUNDING_FACTOR for rounded rectangles in Java and JavaScript
+- Removes mxVertexHandler.selectionColor, mxEdgeHandler.selectionColor
+- Replaces mxConstants.SELECTION_STROKE with VERTEX_/EDGE_SELECTION_STROKE in Java
+- Replaces mxConstants.SELECTION_COLOR with VERTEX_/EDGE_SELECTION_COLOR
+- Fixes tolerance menu item in graph editor example for Java
+
+18-AUG-2009: mxGraph 1.0.1.2
+
+- Fires mxEvent.RESET in mxUndoManager.reset
+- Adds mxGraphComponent.isEditing
+- Fixes mxGraphComponent.scrollCellToVisible in Java
+- Adds optional center flag in mxGraph.scrollCellToVisible
+- Fixes possible key not found exception in mxStylesheet for Dotnet
+- Removes target argument in mxConnectionHandler.updateIcons
+- Adds mxMouseEvent.getTarget helper method
+- Fixes text offset in mxSvgCanvas for Java
+
+03-AUG-2009: mxGraph 1.0.1.1
+
+- Adds scrollbars.html example to demonstrate scrollable labels
+- Fixes handling of non-empty arrays in mxObjectCodec
+- Fixes handling of typed arrays in mxObjectCodec for Java and Dotnet
+- Makes mxGeometry.TRANSLATE_CONTROL_POINTS transient in Java
+- Changes signature of mxConnectionHandler.createEdge in JavaScript
+- Adds mxConnectionHandler.createEdgeState hook in JavaScript
+- Adds mxConnectionHandler.updateIcons hook in JavaScript
+- Hides inner bends in mxEdgeHandler for entity relations
+- Fixes possible NPE in mxGeometry.translate
+- Adds mxConnectionHandler.ignoreMouseDown switch
+- mxConnectionHandler only highlight source if no button pressed
+- Fixes copy of absolute points to shape in mxCellRenderer
+- Adds mxCellRenderer.isShapeEvent, isLabelEvent hooks
+- Adds useLabelBounds hook in mxCellEditor for Java
+- Adds childMoved hook in mxGraphView
+- Adds support for vertical HTML labels in Firefox and Webkit
+- Fixes bug in mxGdCanvas.getImageForStyle
+- Adds mxUndoManager.isEmpty
+
+22-JUL-2009: mxGraph 1.0.1.0
+
+- Moves mxCellRenderer.checkStyleChanged to mxGraphView.updateStyle
+- Fixes mxCodecRegistry.GetTypeForName for Dotnet
+- Adds mxGraphModel.clear for clearing the model
+- Adds support for unlimited history size in mxUndoManager
+- Adds mxGraph.pageVisible, pageScale, pageFormat (experimental)
+- Renames mxGraphView.redrawBackground to redrawBackgroundImage
+- Adds mxCellRenderer.getControlBounds hook in JavaScript
+- Fixes page order in mxGraphComponent.print for Java
+- Fixes return in mxGraphComponent.getVerticalPageCount for Java
+- Adds mxDefaultPopupMenu.imageBasePath parameter for JavaScript
+- Adds support for custom cell I/O in mxCellCodec and mxCodec
+- Fixes mxEvent.MOVE_CELLS to fire during the transaction
+- Fixes client URL in php/examples/template.html evaluation
+- Replaces default with auto for shape-rendering in SVG
+
+13-JUL-2009: mxGraph 1.0.0.6
+
+- Fixes handling of collapsed heavyweight children in Java
+- Fixes client reference in php/examples/template.html
+- Adds resetViewOnRootChange switch in mxGraph for Java
+- Adds root event in mxGraph for Java
+- Uses better fix for image problem in Firefox 3.5
+- Removes global mxClient.IS_FFIS constant
+
+07-JUL-2009: mxGraph 1.0.0.5
+
+- Fixes mouse events in label HTML markup for Webkit
+- Fixes mxImageShape for Firefox 3.5 in JavaScript
+- Adds mxClient.IS_FFIS browser constant
+
+29-JUN-2009: mxGraph 1.0.0.4
+
+- Fixes minor bugs in dbeditor.html, permissions.html examples
+- Fixes mxMultiplicity.checkType for string user objects 
+- Fixes flip of elbow-shape edges in mxEdgeHandler for Java
+- mxCellHandler.reset does no longer reset index in Java
+- Fixes possible NPE in mxGraphHandler.moveCells for Java
+
+16-JUN-2009: mxGraph 1.0.0.3
+
+- Removes activeHandler, invokes all handlers in mxSubHandler for Java
+- Fixes autoextend for mxGraph.scrollPointToVisible in IE
+- Fixes mxGraph.minimumGraphSize ignored in IE
+- Fixes cross-VM datatransfer in Java
+
+10-JUN-2009: mxGraph 1.0.0.2
+
+- Adds checkType hook in mxMultiplicity
+- Fixes position for children of relative edge children
+- Fixes origin for relative edge children in mxGraphView.validatePoints
+- Replaces double with single quotation marks in mxUtils for JavaScript
+- Uses javaSerializedObjectMimeType in mxGraphTransferable for Java
+- Checks editor size in mxCellEditor.getEditorBounds for Java
+- Adds scale argument in mxCellEditor.getEditorBounds for Java
+- Fixes preview if drag disabled in mxGraphComponent for Java
+- Adds mxGraph.zoom in JavaScript, mxGraphComponent.zoom in Java
+- Fixes minor bug in mxGraphView.setScale for PHP
+- Resets index in mxCellHandler.reset for Java
+
+27-MAY-2009: mxGraph 1.0.0.1
+
+- Fixes mxGraph.cellSizeUpdated for non-groups in Java
+- mxUtils.getSizeForString takes font argument in Java
+- Fixes drag and drop for unmovable cells in Java
+- Adds getDropTarget argument in mxUtils.makeDraggable
+- Adds mxUtils.findNearestSegment in JavaScript and Java
+- Adds mxCellRenderer.getShapeConstructor in JavaScript
+- Fixes possible NPE in mxUtils.makeDraggable
+- Fixes possible NPE in mxShape.insertGradient for mxArrow
+
+22-MAY-2009: mxGraph 1.0.0.0
+
+- Uses new mxGraph.translateCell hook in mxGraph.cellsMoved
+- Fixes default font size in mxGraph.getPreferredSizeForCell
+- Adds accessors for mxGraph.htmlLabels in JavaScript
+- Adds global switch mxGeometry.TRANSLATE_CONTROL_POINTS
+- Adds control points argument in mxGraphView.getEdgeStyle
+- Uses mxGraphView.transformControlPoint in edge styles
+- Adds accessors for mxGraphModel.createIds in JavaScript
+- Adds moveEnabled, selectEnabled switches in mxGraphHandler
+- Moves mxGraphHandler.MouseRedirector to mxGraphComponent.mxMouseRedirector
+- Adds mxGraphHandler.getCells hook in Java
+- Adds cell argument in mxGraphHandler.getCells for JavaScript
+- Removes call to dispatchMousePressed in mxConnectionHandler in Java
+- Removes call to getHandleTooltipText in mxGraphComponent for Java
+- Removes mxGraphHandler.getHandleTooltipText, getTooltipText
+- Removes mxGraphHandler.dispatchMousePressed
+- Adds mxSubHandler for event handling in mxGraphComponent for Java
+- Moves handling of mxCellHandlers into mxSubHandler for Java
+- Adds mxCellHandle.isHandleEnabled hook in Java
+- Adds mxEdgeHandler.isHandleEnabled hook in JavaScript
+- Enables antiAlias in FreeGraphEditor by default
+- Fixes bounds in mxCellEditor for non-relative cells with offsets in Java
+- Fixes possible undefined function in mxUtils.getSizeForString for PHP
+- Adds dirty rectangle argument in mxGraph.repaint for Java

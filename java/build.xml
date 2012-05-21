@@ -1,0 +1,134 @@
+<!--
+ $Id: build.xml,v 1.25 2010-08-23 15:19:57 gaudenz Exp $
+ Copyright (c) 2008-2010 Gaudenz Alder, David Benson
+-->
+
+<!-- ===================== Project Properties =========================== -->
+
+<project name="mxgraph" default="all" basedir=".">
+
+	<property name="product.name"    value="mxGraph"/>
+	<property name="product.version" value="1.10.0.5"/>
+	<property name="all.jar"         value="mxgraph-all.jar"/>
+	<property name="core.jar"        value="mxgraph-core.jar"/>
+	<property name="swing.jar"       value="mxgraph-swing.jar"/>
+
+<!-- ===================== Project Environment =========================== -->
+
+	<property name="source.home"    value="${basedir}/src"/>
+	<property name="example.home"   value="${basedir}/examples"/>
+	<property name="test.home"      value="${basedir}/test"/>
+
+<!-- ==================== Compilation Options ==================== -->
+
+	<property name="compile.debug"       value="false"/>
+	<property name="compile.deprecation" value="false"/>
+	<property name="compile.optimize"    value="true"/>
+
+<!-- ==================== All ==================== -->
+
+	<target name="all" depends="build"
+		description="Clean up and build the project"/>
+
+<!-- ==================== Clean ==================== -->
+
+	<target name="clean" description="Deletes all generated files and directories">
+		<delete dir="${basedir}/classes"/>
+		<delete dir="${basedir}/docs"/>
+		<delete dir="${basedir}/lib"/>
+	</target>
+
+<!-- ==================== Init ==================== -->
+
+	<target name="init" description="Initializes the build">
+		<tstamp/>
+		<mkdir dir="${basedir}/classes"/>
+		<mkdir dir="${basedir}/docs"/>
+		<mkdir dir="${basedir}/lib"/>
+	</target>
+
+<!-- ==================== Compile ==================== -->
+
+	<target name="compile" depends="init" description="Compiles the source tree">
+		<javac srcdir="${source.home}"
+			debug="${compile.debug}"
+			deprecation="${compile.deprecation}"
+			optimize="${compile.optimize}"
+			destdir="${basedir}/classes">
+			<classpath>
+				<pathelement path="${basedir}/classes"/>
+			</classpath>
+		</javac>
+	</target>
+
+<!-- ==================== Doc ==================== -->
+
+	<target name="doc" depends="compile" description="Generates the API specification (javadoc)">
+		<javadoc packagenames="com.mxgraph.*"
+				 sourcepath="${source.home}"
+				 classpath="${basedir}/classes" 
+				 destdir="${basedir}/docs"
+				 use="true"
+				 author="false"
+				 version="false"
+				 windowtitle="${product.name} ${product.version} API Specification"
+				 doctitle="${product.name} ${product.version} API Specification">
+			<header><![CDATA[<p><b>${product.name} ${product.version}</b></p>]]></header>
+			<bottom><![CDATA[<font size=1>Copyright (c) 2010 <a href="http://www.mxgraph.com/"
+				target="_blank">Gaudenz Alder, David Benson</a>. All rights reserved.</font>]]></bottom>
+			<link href="http://download.oracle.com/javase/1.5.0/docs/api/"/>
+		</javadoc>
+	</target>
+
+<!-- ==================== Build ==================== -->
+
+	<target name="build" depends="doc" description="Builds all Java archives (JARs)">
+		<jar jarfile="${basedir}/lib/${all.jar}">
+			<manifest>
+				<attribute name="Vendor" value="JGraph Ltd"/>
+				<attribute name="Bundle-Version" value="${product.version}"/>
+				<attribute name="Bundle-SymbolicName" value="com.mxgraph"/>
+				<attribute name="Main-Class" value="com.mxgraph.view.mxGraph"/>
+			</manifest>
+			<fileset dir="${source.home}">
+				<exclude name="**/*.java"/>
+			</fileset>
+			<fileset dir="${basedir}/classes">
+				<include name="com/mxgraph/**"/>
+			</fileset>
+		</jar>
+		<jar jarfile="${basedir}/lib/${core.jar}">
+			<manifest>
+				<attribute name="Vendor" value="JGraph Ltd"/>
+				<attribute name="Bundle-Version" value="${product.version}"/>
+				<attribute name="Bundle-SymbolicName" value="com.mxgraph"/>
+				<attribute name="Main-Class" value="com.mxgraph.view.mxGraph"/>
+			</manifest>
+			<fileset dir="${source.home}">
+				<exclude name="com/mxgraph/swing/**"/>
+				<exclude name="**/*.java"/>
+				<include name="com/mxgraph/**"/>
+			</fileset>
+			<fileset dir="${basedir}/classes">
+				<exclude name="com/mxgraph/swing/**"/>
+				<include name="com/mxgraph/**"/>
+			</fileset>
+		</jar>
+		<jar jarfile="${basedir}/lib/${swing.jar}">
+			<manifest>
+				<attribute name="Vendor" value="JGraph Ltd"/>
+				<attribute name="Bundle-Version" value="${product.version}"/>
+				<attribute name="Bundle-SymbolicName" value="com.mxgraph"/>
+			</manifest>
+			<fileset dir="${source.home}">
+				<include name="com/mxgraph/swing/**"/>
+				<exclude name="**/*.java"/>
+			</fileset>
+			<fileset dir="${basedir}/classes">
+				<include name="com/mxgraph/swing/**"/>
+			</fileset>
+		</jar>
+		<delete dir="${basedir}/classes"/>
+	</target>
+
+</project>

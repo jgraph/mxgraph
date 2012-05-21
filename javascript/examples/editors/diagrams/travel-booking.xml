@@ -1,0 +1,230 @@
+<mxGraphModel>
+	<root>
+		<Workflow label="Travel Booking" description="" href="" id="0">
+			<mxCell />
+		</Workflow>
+		<Layer label="Default Layer" description="" href="" id="1">
+			<mxCell parent="0" />
+		</Layer>
+		<Swimlane label="Travel Booking" customAttribute="text value"
+			id="2">
+			<mxCell style="swimlane;fillColor=#83027F" parent="1"
+				vertex="1" connectable="0">
+				<mxGeometry x="10" y="30" width="770" height="370"
+					as="geometry" />
+			</mxCell>
+		</Swimlane>
+		<Edge label="Check Again" description="" href="" id="3">
+			<mxCell style="verticalEdge" parent="2" source="14"
+				target="11" edge="1">
+				<mxGeometry x="0" y="0" as="geometry" relative="1">
+					<Object x="-30" y="2" as="offset"/>
+					<Array as="points">
+						<Object x="440" y="30" />
+					</Array>
+				</mxGeometry>
+			</mxCell>
+		</Edge>
+		<Symbol label="Symbol" description="" href="" id="4">
+			<mxCell
+				style="symbol;image=images/symbols/message.png" parent="2"
+				vertex="1">
+				<mxGeometry x="40" y="150" width="32" height="32"
+					as="geometry" />
+			</mxCell>
+		</Symbol>
+		<Subprocess label="Check Credit&#xa;Card" description="" href="" id="5">
+			<mxCell style="rounded" parent="2" vertex="1">
+				<mxGeometry x="92" y="140" width="72" height="50"
+					as="geometry" />
+			</mxCell>
+		</Subprocess>
+		<Symbol label="Symbol" description="" href="" id="6">
+			<mxCell
+				style="symbol;image=images/symbols/error.png" parent="5"
+				vertex="1">
+				<mxGeometry x="8" y="34" width="32" height="32"
+					as="geometry" />
+			</mxCell>
+		</Symbol>
+		<Subprocess label="Handle&#xa;Fault" description="" href="" id="7">
+			<mxCell style="rounded" parent="2" vertex="1">
+				<mxGeometry x="162" y="280" width="72" height="50"
+					as="geometry" />
+			</mxCell>
+		</Subprocess>
+		<Subprocess label="Check Hotel&#xa;Reservation" description="" href="" id="8">
+			<mxCell style="rounded" parent="2" vertex="1">
+				<mxGeometry x="202" y="140" width="72" height="50"
+					as="geometry" />
+			</mxCell>
+		</Subprocess>
+		<Subprocess label="Check Flight&#xa;Reservation" description="" href="" id="9">
+			<mxCell style="rounded" parent="2" vertex="1">
+				<mxGeometry x="202" y="210" width="72" height="50"
+					as="geometry" />
+			</mxCell>
+		</Subprocess>
+		<Subprocess label="Data Map" description="" href="" id="10">
+			<mxCell style="rounded" parent="2" vertex="1">
+				<mxGeometry x="202" y="70" width="72" height="50"
+					as="geometry" />
+			</mxCell>
+		</Subprocess>
+		<Subprocess label="Check Car&#xa;Reservation" description="" href="" id="11">
+			<mxCell style="rounded" parent="2" vertex="1">
+				<mxGeometry x="302" y="70" width="72" height="50"
+					as="geometry" />
+			</mxCell>
+		</Subprocess>
+		<Symbol label="Symbol" description="" href="" id="12">
+			<mxCell
+				style="symbol;image=images/symbols/fork.png" parent="2"
+				vertex="1">
+				<mxGeometry x="550" y="140" width="52" height="50"
+					as="geometry" />
+			</mxCell>
+		</Symbol>
+		<Subprocess label="Evaluate&#xa;Reservation&#xa;Result" description="" href="" id="13">
+			<mxCell style="rounded" parent="2" vertex="1">
+				<mxGeometry x="402" y="70" width="72" height="50"
+					as="geometry" />
+			</mxCell>
+		</Subprocess>
+		<Shape label="" description="" href="" id="14">
+			<mxCell style="rhombus" parent="2" vertex="1">
+				<mxGeometry x="504" y="69" width="52" height="51"
+					as="geometry" />
+			</mxCell>
+		</Shape>
+		<Subprocess label="Confirmation" description="" href="" id="15">
+			<mxCell style="rounded" parent="2" vertex="1">
+				<mxGeometry x="622" y="140" width="72" height="50"
+					as="geometry" />
+			</mxCell>
+		</Subprocess>
+		<Symbol label="Reply" description="" href="" id="16">
+			<mxCell
+				style="symbol;image=images/symbols/message_end.png"
+				parent="2" vertex="1">
+				<mxGeometry x="260" y="290" width="32" height="32"
+					as="geometry" />
+			</mxCell>
+		</Symbol>
+		<Symbol label="Reply" description="" href="" id="17">
+			<mxCell
+				style="symbol;image=images/symbols/message_end.png"
+				parent="2" vertex="1">
+				<mxGeometry x="720" y="150" width="32" height="32"
+					as="geometry" />
+			</mxCell>
+		</Symbol>
+		<Edge description="" href="" id="18">
+			<mxCell parent="2" source="4" target="5" edge="1">
+				<mxGeometry x="-60300" y="-300-10" as="geometry">
+					<Object x="52" y="166" as="sourcePoint" />
+					<Array as="points" />
+				</mxGeometry>
+			</mxCell>
+		</Edge>
+		<Edge description="" href="" id="19">
+			<mxCell parent="2" source="6" target="7" edge="1">
+				<mxGeometry x="-60300" y="-300-10" as="geometry">
+					<Array as="points">
+						<Object x="120" y="250" />
+					</Array>
+				</mxGeometry>
+			</mxCell>
+		</Edge>
+		<Edge description="" href="" id="20">
+			<mxCell parent="2" source="7" target="16" edge="1">
+				<mxGeometry x="-60300" y="-300-10" as="geometry">
+					<Array as="points" />
+				</mxGeometry>
+			</mxCell>
+		</Edge>
+		<Edge description="" href="" id="21">
+			<mxCell parent="2" source="5" target="8" edge="1">
+				<mxGeometry x="-60300" y="-300-10" as="geometry">
+					<Array as="points" />
+				</mxGeometry>
+			</mxCell>
+		</Edge>
+		<Edge description="" href="" id="22">
+			<mxCell parent="2" source="5" target="9" edge="1">
+				<mxGeometry x="-90300" y="-500-10" as="geometry">
+					<Object x="244" y="205" as="sourcePoint" />
+					<Array as="points" />
+				</mxGeometry>
+			</mxCell>
+		</Edge>
+		<Edge description="" href="" id="23">
+			<mxCell parent="2" source="5" target="10" edge="1">
+				<mxGeometry x="-130300" y="-2200-10" as="geometry">
+					<Object x="234" y="55" as="sourcePoint" />
+					<Array as="points" />
+				</mxGeometry>
+			</mxCell>
+		</Edge>
+		<Edge description="" href="" id="24">
+			<mxCell parent="2" source="10" target="11" edge="1">
+				<mxGeometry x="-20300" y="-10" as="geometry">
+					<Array as="points" />
+				</mxGeometry>
+			</mxCell>
+		</Edge>
+		<Edge description="" href="" id="25">
+			<mxCell parent="2" source="12" target="15" edge="1">
+				<mxGeometry x="40" y="-10" as="geometry">
+					<Array as="points" />
+				</mxGeometry>
+			</mxCell>
+		</Edge>
+		<Edge description="" href="" id="26">
+			<mxCell parent="2" source="8" target="12" edge="1">
+				<mxGeometry x="-20300" y="-10" as="geometry">
+					<Array as="points" />
+				</mxGeometry>
+			</mxCell>
+		</Edge>
+		<Edge description="" href="" id="27">
+			<mxCell parent="2" source="11" target="13" edge="1">
+				<mxGeometry x="-20300" y="-10" as="geometry">
+					<Array as="points" />
+				</mxGeometry>
+			</mxCell>
+		</Edge>
+		<Edge description="" href="" id="28">
+			<mxCell parent="2" source="13" target="14" edge="1">
+				<mxGeometry x="-20300" y="-10" as="geometry">
+					<Array as="points" />
+				</mxGeometry>
+			</mxCell>
+		</Edge>
+		<Edge description="" href="" id="29">
+			<mxCell parent="2" source="9" target="12" edge="1">
+				<mxGeometry x="-20300" y="-10" as="geometry">
+					<Array as="points">
+						<Object x="570" y="200" />
+					</Array>
+				</mxGeometry>
+			</mxCell>
+		</Edge>
+		<Edge description="" href="" id="30">
+			<mxCell parent="2" source="14" target="12" edge="1">
+				<mxGeometry x="-20300" y="-10" as="geometry">
+					<Array as="points">
+						<Object x="570" y="130" />
+					</Array>
+				</mxGeometry>
+			</mxCell>
+		</Edge>
+		<Edge description="" href="" id="31">
+			<mxCell parent="2" source="15" target="17" edge="1">
+				<mxGeometry x="-30300" y="-10" as="geometry">
+					<Array as="points" />
+				</mxGeometry>
+			</mxCell>
+		</Edge>
+	</root>
+</mxGraphModel>

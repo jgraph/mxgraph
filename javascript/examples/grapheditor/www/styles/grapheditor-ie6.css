@@ -1,0 +1,23 @@
+.toolbar .button {
+	border-color:pink;
+	filter: chroma(color=pink)alpha(opacity=50);
+}
+.toolbar .label {
+	border-color:pink;
+	filter:chroma(color=pink)alpha(opacity=50);
+}
+.toolbar .disabled {
+	filter:chroma(color=pink) alpha(opacity=20) !important;
+}
+.toolbar .disabled:hover {
+	border-color:pink !important;
+	filter:chroma(color=pink) alpha(opacity=20) !important;
+}
+.sidebar .item {
+	border-color:pink !important;
+	filter:chroma(color=pink) !important;
+}
+td.mxPopupMenuIcon .icon {
+	border-color:pink !important;
+	filter:chroma(color=pink) !important;
+}

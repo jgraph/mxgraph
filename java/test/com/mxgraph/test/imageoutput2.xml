@@ -1,0 +1,764 @@
+<output>
+  <save/>
+  <translate dx="4" dy="4"/>
+  <rect x="10" y="10" w="520" h="28"/>
+  <shadow value="#E3E3E3"/>
+  <translate dx="-4" dy="-4"/>
+  <strokecolor color="#6482B9"/>
+  <gradient c1="#adc5ff" c2="#7d85df" x="10" y="10" w="520" h="28"/>
+  <rect x="10" y="10" w="520" h="28"/>
+  <fillstroke/>
+  <rect x="10" y="10" w="520" h="640"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="3"/>
+  <fontsize size="14"/>
+  <text x="233.5" y="13.35" w="73" h="19" str="Container" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <translate dx="4" dy="4"/>
+  <roundrect x="30" y="50" w="120" h="40" dx="6" dy="6"/>
+  <shadow value="#E3E3E3"/>
+  <translate dx="-4" dy="-4"/>
+  <strokecolor color="#6482B9"/>
+  <gradient c1="#adc5ff" c2="#7d85df" x="30" y="50" w="120" h="40"/>
+  <roundrect x="30" y="50" w="120" h="40" dx="6" dy="6"/>
+  <fillstroke/>
+  <roundrect x="29.5" y="49.5" w="121" h="41" dx="6.05" dy="6.05"/>
+  <save/>
+  <clip/>
+  <glass x="29.5" y="49.5" w="121" h="41"/>
+  <begin/>
+  <move x="29.5" y="49.5"/>
+  <line x="29.5" y="65.9"/>
+  <quad x1="90" y1="78.2" x2="150.5" y2="65.9"/>
+  <line x="150.5" y="49.5"/>
+  <close/>
+  <fill/>
+  <restore/>
+  <image x="36" y="59" w="22" h="22" src="logo.png" aspect="1" flipH="0" flipV="0"/>
+  <restore/>
+  <save/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="1"/>
+  <text x="62" y="62.28" w="73" h="17" str="Bold + Glass" vertical="0"/>
+  <restore/>
+  <save/>
+  <translate dx="4" dy="4"/>
+  <roundrect x="80" y="70" w="120" h="40" dx="6" dy="6"/>
+  <shadow value="#E3E3E3"/>
+  <translate dx="-4" dy="-4"/>
+  <strokecolor color="#6482B9"/>
+  <gradient c1="#adc5ff" c2="#7d85df" x="80" y="70" w="120" h="40"/>
+  <roundrect x="80" y="70" w="120" h="40" dx="6" dy="6"/>
+  <fillstroke/>
+  <roundrect x="79.5" y="69.5" w="121" h="41" dx="6.05" dy="6.05"/>
+  <save/>
+  <clip/>
+  <glass x="79.5" y="69.5" w="121" h="41"/>
+  <begin/>
+  <move x="79.5" y="69.5"/>
+  <line x="79.5" y="85.9"/>
+  <quad x1="140" y1="98.2" x2="200.5" y2="85.9"/>
+  <line x="200.5" y="69.5"/>
+  <close/>
+  <fill/>
+  <restore/>
+  <image x="86" y="79" w="22" h="22" src="logo.png" aspect="1" flipH="0" flipV="0"/>
+  <restore/>
+  <save/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="1"/>
+  <text x="112" y="82.28" w="73" h="17" str="Bold + Glass" vertical="0"/>
+  <restore/>
+  <save/>
+  <translate dx="4" dy="4"/>
+  <roundrect x="130" y="60" w="120" h="40" dx="6" dy="6"/>
+  <shadow value="#E3E3E3"/>
+  <translate dx="-4" dy="-4"/>
+  <strokecolor color="#6482B9"/>
+  <gradient c1="#adc5ff" c2="#7d85df" x="130" y="60" w="120" h="40"/>
+  <roundrect x="130" y="60" w="120" h="40" dx="6" dy="6"/>
+  <fillstroke/>
+  <roundrect x="129.5" y="59.5" w="121" h="41" dx="6.05" dy="6.05"/>
+  <save/>
+  <clip/>
+  <glass x="129.5" y="59.5" w="121" h="41"/>
+  <begin/>
+  <move x="129.5" y="59.5"/>
+  <line x="129.5" y="75.9"/>
+  <quad x1="190" y1="88.2" x2="250.5" y2="75.9"/>
+  <line x="250.5" y="59.5"/>
+  <close/>
+  <fill/>
+  <restore/>
+  <image x="136" y="69" w="22" h="22" src="logo.png" aspect="1" flipH="0" flipV="0"/>
+  <restore/>
+  <save/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="1"/>
+  <fontsize size="14"/>
+  <text x="162" y="69.35" w="72" h="19" str="Bold 14pt" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokecolor color="#6482B9"/>
+  <gradient c1="#adc5ff" c2="#7d85df" x="270" y="60" w="120" h="40"/>
+  <roundrect x="270" y="60" w="120" h="40" dx="6" dy="6"/>
+  <fillstroke/>
+  <restore/>
+  <save/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="0"/>
+  <text x="294.5" y="72.28" w="71" h="17" str="Blue Gradient" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <alpha alpha="0.75"/>
+  <strokecolor color="#6482B9"/>
+  <gradient c1="#adc5ff" c2="#7d85df" x="330" y="60" w="120" h="40"/>
+  <roundrect x="330" y="60" w="120" h="40" dx="6" dy="6"/>
+  <fillstroke/>
+  <restore/>
+  <save/>
+  <alpha alpha="0.75"/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="0"/>
+  <text x="356" y="72.28" w="68" h="17" str="75% Opacity" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <alpha alpha="0.25"/>
+  <strokecolor color="#6482B9"/>
+  <gradient c1="#adc5ff" c2="#7d85df" x="390" y="60" w="120" h="40"/>
+  <roundrect x="390" y="60" w="120" h="40" dx="6" dy="6"/>
+  <fillstroke/>
+  <restore/>
+  <save/>
+  <alpha alpha="0.25"/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="0"/>
+  <text x="416" y="72.28" w="68" h="17" str="25% Opacity" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <alpha alpha="0.5"/>
+  <image x="30" y="120" w="80" h="40" src="mxlogo.jpg" aspect="1" flipH="0" flipV="1"/>
+  <restore/>
+  <save/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="0"/>
+  <text x="42" y="162" w="56" h="31" str="JPG Image&#xa;(flipped)" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <image x="130" y="120" w="80" h="40" src="logo.png" aspect="1" flipH="0" flipV="0"/>
+  <restore/>
+  <save/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="0"/>
+  <text x="130" y="162" w="62" h="31" str="PNG Image&#xa;(non-alpha)" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokecolor color="#FF00FF"/>
+  <fillcolor color="#FFFF00"/>
+  <rect x="230" y="120" w="80" h="40"/>
+  <fillstroke/>
+  <image x="230" y="120" w="80" h="40" src="logo.png" aspect="1" flipH="1" flipV="0"/>
+  <restore/>
+  <save/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="0"/>
+  <text x="231.5" y="162" w="77" h="31" str="PNG Image&#xa;(flipped w/ bg)" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <image x="330" y="120" w="80" h="40" src="bell.png" aspect="1" flipH="0" flipV="0"/>
+  <restore/>
+  <save/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="0"/>
+  <text x="352" y="162" w="58" h="31" str="PNG Image&#xa;(alpha)" align="right" vertical="0"/>
+  <restore/>
+  <save/>
+  <image x="430" y="120" w="80" h="40" src="image.gif" aspect="1" flipH="0" flipV="0"/>
+  <restore/>
+  <save/>
+  <fillcolor color="#ff0000"/>
+  <strokecolor color="#0000ff"/>
+  <rect x="439" y="162" w="62" h="33"/>
+  <fillstroke/>
+  <fontcolor color="#ffffff"/>
+  <fontstyle style="1"/>
+  <text x="439" y="162" w="62" h="33" str="GIF Image&#xa;(GIF89a)" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <translate dx="4" dy="4"/>
+  <begin/>
+  <move x="30" y="210"/>
+  <arc rx="80" ry="40" theta="0" arc="1" sweep="1" x="30" y="290"/>
+  <close/>
+  <shadow value="#E3E3E3"/>
+  <translate dx="-4" dy="-4"/>
+  <strokecolor color="#6482B9"/>
+  <gradient c1="#adc5ff" c2="#7d85df" x="30" y="210" w="80" h="80"/>
+  <begin/>
+  <move x="30" y="210"/>
+  <arc rx="80" ry="40" theta="0" arc="1" sweep="1" x="30" y="290"/>
+  <close/>
+  <fillstroke/>
+  <text x="30" y="210" w="0" h="0" str="Label1" vertical="0"/>
+  <text x="70" y="250" w="0" h="0" str="X" align="center" valign="middle" vertical="0"/>
+  <text x="110" y="250" w="0" h="0" str="Right" align="right" valign="middle" vertical="0"/>
+  <fontcolor color="#ff0000"/>
+  <fontfamily family="Times"/>
+  <text x="110" y="290" w="0" h="0" str="OR" align="right" vertical="0"/>
+  <restore/>
+  <save/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="0"/>
+  <text x="59.5" y="242.27" w="21" h="17" str="OR" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <rotate theta="90" flipH="0" flipV="0" cx="190" cy="250"/>
+  <translate dx="4" dy="-4"/>
+  <strokewidth width="0.8"/>
+  <linejoin join="round"/>
+  <begin/>
+  <move x="170" y="210"/>
+  <line x="210" y="250"/>
+  <line x="170" y="290"/>
+  <close/>
+  <shadow value="#E3E3E3"/>
+  <translate dx="-4" dy="4"/>
+  <strokecolor color="#0000ff"/>
+  <gradient c1="#adc5ff" c2="#7d85df" x="150" y="210" w="80" h="80" direction="south"/>
+  <linejoin join="round"/>
+  <begin/>
+  <move x="170" y="210"/>
+  <line x="210" y="250"/>
+  <line x="170" y="290"/>
+  <close/>
+  <fillstroke/>
+  <restore/>
+  <save/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="0"/>
+  <text x="176" y="212" w="28" h="17" str="AND" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <translate dx="4" dy="4"/>
+  <begin/>
+  <move x="270" y="210"/>
+  <quad x1="350" y1="210" x2="350" y2="250"/>
+  <quad x1="350" y1="290" x2="270" y2="290"/>
+  <quad x1="310" y1="250" x2="270" y2="210"/>
+  <close/>
+  <alpha alpha="0.5"/>
+  <shadow value="#E3E3E3"/>
+  <translate dx="-4" dy="-4"/>
+  <strokecolor color="#6482B9"/>
+  <gradient c1="#adc5ff" c2="#7d85df" x="270" y="210" w="80" h="80"/>
+  <begin/>
+  <move x="270" y="210"/>
+  <quad x1="350" y1="210" x2="350" y2="250"/>
+  <quad x1="350" y1="290" x2="270" y2="290"/>
+  <quad x1="310" y1="250" x2="270" y2="210"/>
+  <close/>
+  <fillstroke/>
+  <image x="294" y="234" w="32" h="32" src="bell.png" aspect="0" flipH="1" flipV="0"/>
+  <fontcolor color="#ffffff"/>
+  <fontstyle style="1"/>
+  <text x="281.2" y="214.8" w="0" h="0" str="Oben" align="left" valign="top" vertical="0"/>
+  <text x="281.2" y="285.2" w="0" h="0" str="Unten" align="left" valign="bottom" vertical="0"/>
+  <restore/>
+  <save/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="0"/>
+  <text x="270" y="242.27" w="28" h="17" str="XOR" vertical="0"/>
+  <restore/>
+  <save/>
+  <translate dx="4" dy="4"/>
+  <translate dx="-4" dy="-4"/>
+  <strokecolor color="#6482B9"/>
+  <gradient c1="#adc5ff" c2="#7d85df" x="430" y="210" w="80" h="80"/>
+  <strokewidth width="0.8"/>
+  <strokecolor color="#000000"/>
+  <strokewidth width="6.4"/>
+  <save/>
+  <ellipse x="430" y="210" w="80" h="80"/>
+  <stroke/>
+  <restore/>
+  <strokewidth width="0.72"/>
+  <strokecolor color="#000000"/>
+  <strokewidth width="4.32"/>
+  <linecap cap="round"/>
+  <begin/>
+  <move x="452" y="232"/>
+  <line x="488" y="268"/>
+  <stroke/>
+  <begin/>
+  <move x="488" y="232"/>
+  <line x="452" y="268"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fillcolor color="#ffff00"/>
+  <strokecolor color="#000000"/>
+  <rect x="462.28" y="227.5" w="19" h="45"/>
+  <fillstroke/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="0"/>
+  <text x="449.28" y="240.5" w="45" h="19" str="Vertical" align="center" vertical="1"/>
+  <restore/>
+  <save/>
+  <rotate theta="270" flipH="0" flipV="0" cx="70" cy="350"/>
+  <translate dx="-4" dy="4"/>
+  <begin/>
+  <move x="30" y="310"/>
+  <arc rx="80" ry="40" theta="0" arc="1" sweep="1" x="30" y="390"/>
+  <close/>
+  <shadow value="#E3E3E3"/>
+  <translate dx="4" dy="-4"/>
+  <strokecolor color="#6482B9"/>
+  <gradient c1="#adc5ff" c2="#7d85df" x="30" y="310" w="80" h="80" direction="north"/>
+  <begin/>
+  <move x="30" y="310"/>
+  <arc rx="80" ry="40" theta="0" arc="1" sweep="1" x="30" y="390"/>
+  <close/>
+  <fillstroke/>
+  <text x="30" y="310" w="0" h="0" str="Label1" vertical="0"/>
+  <text x="70" y="350" w="0" h="0" str="X" align="center" valign="middle" vertical="0"/>
+  <text x="110" y="350" w="0" h="0" str="Right" align="right" valign="middle" vertical="0"/>
+  <fontcolor color="#ff0000"/>
+  <fontfamily family="Times"/>
+  <text x="110" y="390" w="0" h="0" str="OR" align="right" vertical="0"/>
+  <restore/>
+  <save/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="0"/>
+  <text x="59.5" y="342.28" w="21" h="17" str="OR" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokewidth width="8"/>
+  <translate dx="4" dy="4"/>
+  <begin/>
+  <move x="150" y="310"/>
+  <arc rx="80" ry="40" theta="0" arc="1" sweep="1" x="150" y="390"/>
+  <close/>
+  <shadow value="#E3E3E3"/>
+  <translate dx="-4" dy="-4"/>
+  <strokecolor color="#0000ff"/>
+  <gradient c1="#adc5ff" c2="#7d85df" x="150" y="310" w="80" h="80" direction="east"/>
+  <begin/>
+  <move x="150" y="310"/>
+  <arc rx="80" ry="40" theta="0" arc="1" sweep="1" x="150" y="390"/>
+  <close/>
+  <fillstroke/>
+  <text x="150" y="310" w="0" h="0" str="Label1" vertical="0"/>
+  <text x="190" y="350" w="0" h="0" str="X" align="center" valign="middle" vertical="0"/>
+  <text x="230" y="350" w="0" h="0" str="Right" align="right" valign="middle" vertical="0"/>
+  <fontcolor color="#ff0000"/>
+  <fontfamily family="Times"/>
+  <text x="230" y="390" w="0" h="0" str="OR" align="right" vertical="0"/>
+  <restore/>
+  <save/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="0"/>
+  <text x="179.5" y="342.28" w="21" h="17" str="OR" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <rotate theta="90" flipH="0" flipV="0" cx="310" cy="350"/>
+  <translate dx="4" dy="-4"/>
+  <begin/>
+  <move x="270" y="310"/>
+  <arc rx="80" ry="40" theta="0" arc="1" sweep="1" x="270" y="390"/>
+  <close/>
+  <shadow value="#E3E3E3"/>
+  <translate dx="-4" dy="4"/>
+  <strokecolor color="#6482B9"/>
+  <gradient c1="#adc5ff" c2="#7d85df" x="270" y="310" w="80" h="80" direction="south"/>
+  <begin/>
+  <move x="270" y="310"/>
+  <arc rx="80" ry="40" theta="0" arc="1" sweep="1" x="270" y="390"/>
+  <close/>
+  <fillstroke/>
+  <text x="270" y="310" w="0" h="0" str="Label1" vertical="0"/>
+  <text x="310" y="350" w="0" h="0" str="X" align="center" valign="middle" vertical="0"/>
+  <text x="350" y="350" w="0" h="0" str="Right" align="right" valign="middle" vertical="0"/>
+  <fontcolor color="#ff0000"/>
+  <fontfamily family="Times"/>
+  <text x="350" y="390" w="0" h="0" str="OR" align="right" vertical="0"/>
+  <restore/>
+  <save/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="0"/>
+  <text x="299.5" y="342.28" w="21" h="17" str="OR" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <rotate theta="180" flipH="0" flipV="0" cx="470" cy="350"/>
+  <translate dx="-4" dy="-4"/>
+  <begin/>
+  <move x="430" y="310"/>
+  <arc rx="80" ry="40" theta="0" arc="1" sweep="1" x="430" y="390"/>
+  <close/>
+  <shadow value="#E3E3E3"/>
+  <translate dx="4" dy="4"/>
+  <strokecolor color="#6482B9"/>
+  <gradient c1="#adc5ff" c2="#7d85df" x="430" y="310" w="80" h="80" direction="west"/>
+  <begin/>
+  <move x="430" y="310"/>
+  <arc rx="80" ry="40" theta="0" arc="1" sweep="1" x="430" y="390"/>
+  <close/>
+  <fillstroke/>
+  <text x="430" y="310" w="0" h="0" str="Label1" vertical="0"/>
+  <text x="470" y="350" w="0" h="0" str="X" align="center" valign="middle" vertical="0"/>
+  <text x="510" y="350" w="0" h="0" str="Right" align="right" valign="middle" vertical="0"/>
+  <fontcolor color="#ff0000"/>
+  <fontfamily family="Times"/>
+  <text x="510" y="390" w="0" h="0" str="OR" align="right" vertical="0"/>
+  <restore/>
+  <save/>
+  <fillcolor color="#ffff00"/>
+  <strokecolor color="#000000"/>
+  <rect x="462.28" y="338.5" w="19" h="23"/>
+  <fillstroke/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="0"/>
+  <text x="460.28" y="340.5" w="23" h="19" str="OR" align="center" vertical="1"/>
+  <restore/>
+  <save/>
+  <rotate theta="270" flipH="0" flipV="0" cx="70" cy="450"/>
+  <strokewidth width="8"/>
+  <translate dx="-4" dy="4"/>
+  <begin/>
+  <move x="30" y="410"/>
+  <quad x1="110" y1="410" x2="110" y2="450"/>
+  <quad x1="110" y1="490" x2="30" y2="490"/>
+  <quad x1="70" y1="450" x2="30" y2="410"/>
+  <close/>
+  <shadow value="#E3E3E3"/>
+  <translate dx="4" dy="-4"/>
+  <strokecolor color="#6482B9"/>
+  <gradient c1="#adc5ff" c2="#7d85df" x="30" y="410" w="80" h="80" direction="north"/>
+  <begin/>
+  <move x="30" y="410"/>
+  <quad x1="110" y1="410" x2="110" y2="450"/>
+  <quad x1="110" y1="490" x2="30" y2="490"/>
+  <quad x1="70" y1="450" x2="30" y2="410"/>
+  <close/>
+  <fillstroke/>
+  <image x="54" y="434" w="32" h="32" src="bell.png" aspect="0" flipH="1" flipV="0"/>
+  <fontcolor color="#ffffff"/>
+  <fontstyle style="1"/>
+  <text x="41.2" y="414.8" w="0" h="0" str="Oben" align="left" valign="top" vertical="0"/>
+  <text x="41.2" y="485.2" w="0" h="0" str="Unten" align="left" valign="bottom" vertical="0"/>
+  <restore/>
+  <save/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="0"/>
+  <text x="56" y="442.28" w="28" h="17" str="XOR" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokewidth width="6"/>
+  <translate dx="4" dy="4"/>
+  <begin/>
+  <move x="150" y="410"/>
+  <quad x1="230" y1="410" x2="230" y2="450"/>
+  <quad x1="230" y1="490" x2="150" y2="490"/>
+  <quad x1="190" y1="450" x2="150" y2="410"/>
+  <close/>
+  <shadow value="#E3E3E3"/>
+  <translate dx="-4" dy="-4"/>
+  <strokecolor color="#0000ff"/>
+  <gradient c1="#adc5ff" c2="#7d85df" x="150" y="410" w="80" h="80" direction="east"/>
+  <begin/>
+  <move x="150" y="410"/>
+  <quad x1="230" y1="410" x2="230" y2="450"/>
+  <quad x1="230" y1="490" x2="150" y2="490"/>
+  <quad x1="190" y1="450" x2="150" y2="410"/>
+  <close/>
+  <fillstroke/>
+  <image x="174" y="434" w="32" h="32" src="bell.png" aspect="0" flipH="1" flipV="0"/>
+  <fontcolor color="#ffffff"/>
+  <fontstyle style="1"/>
+  <text x="161.2" y="414.8" w="0" h="0" str="Oben" align="left" valign="top" vertical="0"/>
+  <text x="161.2" y="485.2" w="0" h="0" str="Unten" align="left" valign="bottom" vertical="0"/>
+  <restore/>
+  <save/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="0"/>
+  <text x="176" y="442.28" w="28" h="17" str="XOR" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <rotate theta="90" flipH="0" flipV="0" cx="310" cy="450"/>
+  <strokewidth width="4"/>
+  <translate dx="4" dy="-4"/>
+  <begin/>
+  <move x="270" y="410"/>
+  <quad x1="350" y1="410" x2="350" y2="450"/>
+  <quad x1="350" y1="490" x2="270" y2="490"/>
+  <quad x1="310" y1="450" x2="270" y2="410"/>
+  <close/>
+  <shadow value="#E3E3E3"/>
+  <translate dx="-4" dy="4"/>
+  <strokecolor color="#6482B9"/>
+  <gradient c1="#adc5ff" c2="#7d85df" x="270" y="410" w="80" h="80" direction="south"/>
+  <begin/>
+  <move x="270" y="410"/>
+  <quad x1="350" y1="410" x2="350" y2="450"/>
+  <quad x1="350" y1="490" x2="270" y2="490"/>
+  <quad x1="310" y1="450" x2="270" y2="410"/>
+  <close/>
+  <fillstroke/>
+  <image x="294" y="434" w="32" h="32" src="bell.png" aspect="0" flipH="1" flipV="0"/>
+  <fontcolor color="#ffffff"/>
+  <fontstyle style="1"/>
+  <text x="281.2" y="414.8" w="0" h="0" str="Oben" align="left" valign="top" vertical="0"/>
+  <text x="281.2" y="485.2" w="0" h="0" str="Unten" align="left" valign="bottom" vertical="0"/>
+  <restore/>
+  <save/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="0"/>
+  <text x="296" y="442.28" w="28" h="17" str="XOR" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <rotate theta="180" flipH="0" flipV="0" cx="470" cy="450"/>
+  <strokewidth width="2"/>
+  <translate dx="-4" dy="-4"/>
+  <begin/>
+  <move x="430" y="410"/>
+  <quad x1="510" y1="410" x2="510" y2="450"/>
+  <quad x1="510" y1="490" x2="430" y2="490"/>
+  <quad x1="470" y1="450" x2="430" y2="410"/>
+  <close/>
+  <shadow value="#E3E3E3"/>
+  <translate dx="4" dy="4"/>
+  <strokecolor color="#6482B9"/>
+  <gradient c1="#adc5ff" c2="#7d85df" x="430" y="410" w="80" h="80" direction="west"/>
+  <begin/>
+  <move x="430" y="410"/>
+  <quad x1="510" y1="410" x2="510" y2="450"/>
+  <quad x1="510" y1="490" x2="430" y2="490"/>
+  <quad x1="470" y1="450" x2="430" y2="410"/>
+  <close/>
+  <fillstroke/>
+  <image x="454" y="434" w="32" h="32" src="bell.png" aspect="0" flipH="1" flipV="0"/>
+  <fontcolor color="#ffffff"/>
+  <fontstyle style="1"/>
+  <text x="441.2" y="414.8" w="0" h="0" str="Oben" align="left" valign="top" vertical="0"/>
+  <text x="441.2" y="485.2" w="0" h="0" str="Unten" align="left" valign="bottom" vertical="0"/>
+  <restore/>
+  <save/>
+  <fillcolor color="#ffff00"/>
+  <strokecolor color="#000000"/>
+  <rect x="462.28" y="435" w="19" h="30"/>
+  <fillstroke/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="0"/>
+  <text x="456.78" y="440.5" w="30" h="19" str="XOR" align="center" vertical="1"/>
+  <restore/>
+  <save/>
+  <translate dx="4" dy="4"/>
+  <translate dx="-4" dy="-4"/>
+  <strokecolor color="#6482B9"/>
+  <gradient c1="#adc5ff" c2="#7d85df" x="30" y="510" w="80" h="80"/>
+  <strokewidth width="0.8"/>
+  <rect x="30" y="510" w="16" h="16"/>
+  <fillstroke/>
+  <rect x="30" y="574" w="16" h="16"/>
+  <fillstroke/>
+  <fillcolor color="#ff0000"/>
+  <rect x="94" y="542" w="16" h="16"/>
+  <fillstroke/>
+  <fillcolor color="#00ff00"/>
+  <roundrect x="94" y="558" w="16" h="16" dx="0" dy="0"/>
+  <fillstroke/>
+  <begin/>
+  <move x="46" y="518"/>
+  <line x="102" y="518"/>
+  <line x="102" y="542"/>
+  <move x="46" y="582"/>
+  <line x="70" y="582"/>
+  <line x="70" y="566"/>
+  <line x="94" y="566"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="0"/>
+  <text x="56" y="542.28" w="28" h="17" str="AND" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <translate dx="4" dy="4"/>
+  <translate dx="-4" dy="-4"/>
+  <strokecolor color="#6482B9"/>
+  <gradient c1="#adc5ff" c2="#7d85df" x="150" y="510" w="80" h="80"/>
+  <strokewidth width="0.8"/>
+  <rect x="150" y="510" w="16" h="16"/>
+  <fillstroke/>
+  <rect x="150" y="574" w="16" h="16"/>
+  <fillstroke/>
+  <fillcolor color="#ff0000"/>
+  <rect x="214" y="542" w="16" h="16"/>
+  <fillstroke/>
+  <fillcolor color="#00ff00"/>
+  <roundrect x="214" y="558" w="16" h="16" dx="0" dy="0"/>
+  <fillstroke/>
+  <begin/>
+  <move x="166" y="518"/>
+  <line x="222" y="518"/>
+  <line x="222" y="542"/>
+  <move x="166" y="582"/>
+  <line x="190" y="582"/>
+  <line x="190" y="566"/>
+  <line x="214" y="566"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="0"/>
+  <text x="176" y="542.28" w="28" h="17" str="AND" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <translate dx="4" dy="4"/>
+  <translate dx="-4" dy="-4"/>
+  <strokecolor color="#6482B9"/>
+  <gradient c1="#adc5ff" c2="#7d85df" x="270" y="510" w="80" h="80"/>
+  <strokewidth width="0.8"/>
+  <rect x="270" y="510" w="16" h="16"/>
+  <fillstroke/>
+  <rect x="270" y="574" w="16" h="16"/>
+  <fillstroke/>
+  <fillcolor color="#ff0000"/>
+  <rect x="334" y="542" w="16" h="16"/>
+  <fillstroke/>
+  <fillcolor color="#00ff00"/>
+  <roundrect x="334" y="558" w="16" h="16" dx="0" dy="0"/>
+  <fillstroke/>
+  <begin/>
+  <move x="286" y="518"/>
+  <line x="342" y="518"/>
+  <line x="342" y="542"/>
+  <move x="286" y="582"/>
+  <line x="310" y="582"/>
+  <line x="310" y="566"/>
+  <line x="334" y="566"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="0"/>
+  <text x="296" y="542.28" w="28" h="17" str="AND" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <translate dx="4" dy="4"/>
+  <translate dx="-4" dy="-4"/>
+  <strokecolor color="#6482B9"/>
+  <gradient c1="#adc5ff" c2="#7d85df" x="430" y="510" w="80" h="80"/>
+  <strokewidth width="0.8"/>
+  <rect x="430" y="510" w="16" h="16"/>
+  <fillstroke/>
+  <rect x="430" y="574" w="16" h="16"/>
+  <fillstroke/>
+  <fillcolor color="#ff0000"/>
+  <rect x="494" y="542" w="16" h="16"/>
+  <fillstroke/>
+  <fillcolor color="#00ff00"/>
+  <roundrect x="494" y="558" w="16" h="16" dx="0" dy="0"/>
+  <fillstroke/>
+  <begin/>
+  <move x="446" y="518"/>
+  <line x="502" y="518"/>
+  <line x="502" y="542"/>
+  <move x="446" y="582"/>
+  <line x="470" y="582"/>
+  <line x="470" y="566"/>
+  <line x="494" y="566"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fillcolor color="#ffff00"/>
+  <strokecolor color="#000000"/>
+  <rect x="462.28" y="535" w="19" h="30"/>
+  <fillstroke/>
+  <fontcolor color="#774400"/>
+  <fontstyle style="0"/>
+  <text x="456.78" y="540.5" w="30" h="19" str="AND" align="center" vertical="1"/>
+  <restore/>
+  <save/>
+  <strokecolor color="#6482B9"/>
+  <fillcolor color="#6482B9"/>
+  <ellipse x="107.4" y="246.4" w="7.2" h="7.2"/>
+  <fillstroke/>
+  <begin/>
+  <move x="169" y="250"/>
+  <line x="163" y="253"/>
+  <line x="164.5" y="250"/>
+  <line x="163" y="247"/>
+  <close/>
+  <fillstroke/>
+  <begin/>
+  <move x="110.5" y="250"/>
+  <line x="163.5" y="250"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fillcolor color="#ffffff"/>
+  <rect x="131" y="242.27" w="18" h="17"/>
+  <fill/>
+  <fontcolor color="#446299"/>
+  <fontstyle style="0"/>
+  <text x="131" y="242.27" w="18" h="17" str="e1" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokecolor color="#6482B9"/>
+  <fillcolor color="#6482B9"/>
+  <begin/>
+  <move x="211" y="250"/>
+  <line x="214.6" y="246.4"/>
+  <line x="218.2" y="250"/>
+  <line x="214.6" y="253.6"/>
+  <close/>
+  <fillstroke/>
+  <begin/>
+  <move x="261.8" y="253.6"/>
+  <line x="267.8" y="250"/>
+  <line x="261.8" y="246.4"/>
+  <stroke/>
+  <begin/>
+  <move x="214.1" y="250"/>
+  <line x="265.9" y="250"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fillcolor color="#ffffff"/>
+  <rect x="231" y="242.27" w="18" h="17"/>
+  <fill/>
+  <fontcolor color="#446299"/>
+  <fontstyle style="0"/>
+  <text x="231" y="242.27" w="18" h="17" str="e2" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <dashed dashed="1"/>
+  <strokecolor color="#6482B9"/>
+  <fillcolor color="#6482B9"/>
+  <dashed dashed="0"/>
+  <begin/>
+  <move x="429" y="250"/>
+  <line x="423" y="253"/>
+  <line x="423" y="247"/>
+  <close/>
+  <fillstroke/>
+  <dashed dashed="1"/>
+  <begin/>
+  <move x="350" y="250"/>
+  <line x="423.5" y="250"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fillcolor color="#ffff00"/>
+  <strokecolor color="#000000"/>
+  <rect x="380" y="242.27" w="20" h="19"/>
+  <fillstroke/>
+  <fontcolor color="#446299"/>
+  <fontstyle style="0"/>
+  <text x="380" y="242.27" w="20" h="19" str="e3" align="center" vertical="0"/>
+  <restore/>
+</output>

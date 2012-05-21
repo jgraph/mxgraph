@@ -1,0 +1,58 @@
+<html>
+<head>
+	<title>mxGraph .NET</title>
+	<link rel="stylesheet" HREF="../docs/css/html.css" CHARSET="ISO-8859-1" TYPE="text/css">
+</head>
+<body>
+<h1>mxGraph .NET</h1>
+<h2>Installation</h2>
+<p>
+	The following assumes that <a href="http://www.microsoft.com/express/vwd/">Microsoft Visual Web Developer 2008</a>
+	(Express Edition) is used for development. To start development, open the
+	solution file <code>mxgraph-dotnet.sln</code> in Visual Web Developer by
+	choosing File, Open File.
+</p>
+<p>
+	To run the ASP.NET examples in IIS, a virtual directory must be created
+	that maps /mxgraph to the top-level directory of this distribution.
+</p>
+<p>
+	Note that web.config defines a text/plain MIME type for the
+	<code>.properties</code> extension. This extension should always be
+	registered for use with mxGraph resource files.
+</p>
+<h2>Examples</h2>
+<h3>Clients</h3>
+<p>
+	The <i>examples</i> project demonstrates various aspects of the API, such
+	as creating images, using input/output or placing a graph image in a form.
+	Go to Debug, Start without Debugging (Ctrl-F5) to run the examples in this
+	project.
+</p>
+<h3>Servers</h3>
+<p>
+	The <i>aspnet</i> project demonstrates various scenarios using mxGraph,
+	ASP.NET and IIS. Go to Build, Publish to deploy these examples and point
+	your browser to <a href="http://localhost/">http://localhost/</a> for all
+	examples in this project. (You may have to use the application name you
+	specified in the Deploy dialog in the URL.)
+</p>
+<p>
+	Note that the Server examples require a virtual directory to be created in
+	IIS. The directory should map /mxgraph to the top-level directory of the
+	distribution and needs to define a mime type of text/plain for .properties
+	files.
+</p>
+<p>
+	In order to publish the example to IIS, you must run Visual Studio in the
+	context of an administrator account.
+</p>
+<p>
+	This example requires a managed runtime version of 4.0 in Visual Web
+	Developer 2010. See <a href="http://technet.microsoft.com/en-us/library/cc754523(WS.10).aspx">here</a>
+	on how to change the managed runtime version in IIS.
+</p>
+<hr size="1">
+&copy; 2006-2010 by JGraph Ltd.
+</body>
+</html>

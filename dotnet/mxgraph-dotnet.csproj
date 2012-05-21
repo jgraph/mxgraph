@@ -1,0 +1,142 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{741CF907-C7CF-4965-94C9-59BAEC072101}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>mxgraph</RootNamespace>
+    <AssemblyName>mxgraph</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <StartupObject>
+    </StartupObject>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <ItemGroup>
+    <Compile Include="src\canvas\mxGdiCanvas2D.cs" />
+    <Compile Include="src\canvas\mxICanvas2D.cs" />
+    <Compile Include="src\canvas\mxBasicCanvas.cs" />
+    <Compile Include="src\canvas\mxGdiCanvas.cs" />
+    <Compile Include="src\canvas\mxICanvas.cs" />
+    <Compile Include="src\canvas\mxImageCanvas.cs" />
+    <Compile Include="src\canvas\mxStencil.cs" />
+    <Compile Include="src\canvas\mxStencilRegistry.cs" />
+    <Compile Include="src\io\mxCellCodec.cs" />
+    <Compile Include="src\io\mxCodec.cs" />
+    <Compile Include="src\io\mxCodecRegistry.cs" />
+    <Compile Include="src\io\mxModelCodec.cs" />
+    <Compile Include="src\io\mxObjectCodec.cs" />
+    <Compile Include="src\io\mxStylesheetCodec.cs" />
+    <Compile Include="src\layout\mxFastOrganicLayout.cs" />
+    <Compile Include="src\layout\mxIGraphLayout.cs" />
+    <Compile Include="src\model\mxCell.cs" />
+    <Compile Include="src\model\mxCellPath.cs" />
+    <Compile Include="src\model\mxGeometry.cs" />
+    <Compile Include="src\model\mxGraphModel.cs" />
+    <Compile Include="src\model\mxICell.cs" />
+    <Compile Include="src\model\mxIGraphModel.cs" />
+    <Compile Include="src\reader\mxGraphViewImageReader.cs" />
+    <Compile Include="src\reader\mxGraphViewReader.cs" />
+    <Compile Include="src\reader\mxSaxOutputHandler.cs" />
+    <Compile Include="src\sharing\mxSession.cs" />
+    <Compile Include="src\sharing\mxSharedState.cs" />
+    <Compile Include="src\utils\mxImageBundle.cs" />
+    <Compile Include="src\utils\mxCellRenderer.cs" />
+    <Compile Include="src\utils\mxConstants.cs" />
+    <Compile Include="src\utils\mxPoint.cs" />
+    <Compile Include="src\utils\mxRectangle.cs" />
+    <Compile Include="src\utils\mxUtils.cs" />
+    <Compile Include="src\view\mxConnectionConstraint.cs" />
+    <Compile Include="src\view\mxCellState.cs" />
+    <Compile Include="src\view\mxStyleRegistry.cs" />
+    <Compile Include="src\view\mxEdgeStyle.cs" />
+    <Compile Include="src\view\mxGraph.cs" />
+    <Compile Include="src\view\mxGraphView.cs" />
+    <Compile Include="src\view\mxPerimeter.cs" />
+    <Compile Include="src\view\mxStylesheet.cs" />
+    <Compile Include="test\mxCodecTest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.XML" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 2.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+</Project>

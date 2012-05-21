@@ -1,0 +1,48 @@
+<mxGraphModel>
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="2" customId="2" value="&lt;img src=&quot;editors/images/overlays/user3.png&quot;&gt;&lt;br&gt;&lt;b&gt;Last, First&lt;/b&gt;&lt;br&gt;Status&lt;br&gt;Info" vertex="1" parent="1">
+      <mxGeometry x="0" y="0" width="80" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="3" customId="3" value="&lt;img src=&quot;editors/images/overlays/error.png&quot;&gt;&lt;br&gt;&lt;b&gt;Errorcode&lt;/b&gt;&lt;br&gt;Status&lt;br&gt;Info" vertex="1" parent="1">
+      <mxGeometry x="0" y="0" width="80" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="4" customId="4" value="&lt;img src=&quot;editors/images/overlays/flash.png&quot;&gt;&lt;br&gt;&lt;b&gt;Warning&lt;/b&gt;&lt;br&gt;Status&lt;br&gt;Info" vertex="1" parent="1">
+      <mxGeometry x="0" y="0" width="120" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="5" customId="5" value="&lt;img src=&quot;editors/images/overlays/users3.png&quot;&gt;&lt;br&gt;&lt;b&gt;Groupname&lt;/b&gt;&lt;br&gt;Status&lt;br&gt;Info" vertex="1" parent="1">
+      <mxGeometry x="0" y="0" width="80" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="6" customId="6" value="&lt;img src=&quot;editors/images/overlays/workplace.png&quot;&gt;&lt;br&gt;&lt;b&gt;Workplace&lt;/b&gt;&lt;br&gt;Status&lt;br&gt;Info" vertex="1" parent="1">
+      <mxGeometry x="0" y="0" width="80" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="7" customId="6" value="&lt;img src=&quot;editors/images/overlays/information.png&quot;&gt;&lt;br&gt;&lt;b&gt;Information&lt;/b&gt;&lt;br&gt;Status&lt;br&gt;Info" vertex="1" parent="1">
+      <mxGeometry x="0" y="0" width="80" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="8" customId="7" value="&lt;img src=&quot;editors/images/overlays/printer.png&quot;&gt;&lt;br&gt;&lt;b&gt;Printername&lt;/b&gt;&lt;br&gt;Status&lt;br&gt;Info" vertex="1" parent="1">
+      <mxGeometry x="0" y="0" width="120" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge-1" customId="edge-1" value="&lt;img src=&quot;editors/images/overlays/lightbulb_on.png&quot;&gt; Hint" edge="1" parent="1" source="2" target="3">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge-2" customId="edge-2" value="&lt;img src=&quot;editors/images/overlays/help.png&quot;&gt; News" edge="1" parent="1" source="2" target="4">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge-3" customId="edge-3" value="&lt;img src=&quot;editors/images/overlays/information.png&quot;&gt; Member" edge="1" parent="1" source="2" target="5">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge-4" customId="edge-4" value="&lt;img src=&quot;editors/images/overlays/pencil.png&quot;&gt; Details" edge="1" parent="1" source="6" target="7">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge-5" customId="edge-5" value="&lt;img src=&quot;editors/images/overlays/check.png&quot;&gt; Access" edge="1" parent="1" source="6" target="8">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge-6" customId="edge-6" value="&lt;img src=&quot;editors/images/overlays/forbidden.png&quot;&gt; Access" edge="1" parent="1" source="5" target="6">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge-7" customId="edge-7" value="&lt;img src=&quot;editors/images/overlays/lightbulb_on.png&quot;&gt; 2-Way" style="2way" edge="1" parent="1" source="2" target="6">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

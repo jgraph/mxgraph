@@ -1,0 +1,66 @@
+<html>
+<head>
+	<title>mxGraph Process Example</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<style type="text/css" media="screen">
+		div.base {
+			position: absolute;
+			overflow: hidden;
+			white-space: nowrap;
+			font-family: Arial;
+			font-size: 8pt;
+		}
+		div.base#toolbar {
+			padding-left: 8px;
+			padding-top: 1px;
+			background: url('images/toolbar.gif');
+		}
+		div.base#status {
+			color: gray;
+			border-style: none;
+			border-top-style: solid;
+			border-color: silver;
+			border-width: 1px;
+			padding-top: 6px;
+			_padding-top: 4px;
+			padding-right: 8px;
+			background: url('images/toolbar.gif');
+		}
+	</style>
+	<script type="text/javascript">
+		mxBasePath = '../../src';
+	</script>
+	<script type="text/javascript" src="../../src/js/mxClient.js"></script>
+	<script type="text/javascript" src="js/mxApplication.js"></script>
+	<script type="text/javascript">
+		mxConstants.DEFAULT_HOTSPOT = 1;
+		window.onbeforeunload = function() { return mxResources.get('changesLost'); };
+		
+		// Enables guides
+		mxGraphHandler.prototype.guidesEnabled = true;
+		
+	    // Alt disables guides
+	    mxGuide.prototype.isEnabledForEvent = function(evt)
+	    {
+	    	return !mxEvent.isAltDown(evt);
+	    };
+		
+		// Enables snapping waypoints to terminals
+		mxEdgeHandler.prototype.snapToTerminals = true;
+		
+		window.onbeforeunload = function() { return mxResources.get('changesLost'); };
+	</script>
+</head>
+<body onload="new mxApplication('config/processeditor.xml');">
+	<div id="toolbar" class="base" style="top:0px;height:36px;left:0px;right:0px;">
+		<!-- Toolbar Here -->
+	</div>
+	<div id="graph" class="base" style="left:0px;right:0px;top:36px;bottom:20px;background:white;">
+		<!-- Graph Here -->
+	</div>
+	<div id="status" class="base" align="right"
+		style="height:20px;bottom:0px;left:0px;right:0px;">
+		<!-- Status Here -->Done
+	</div>
+</body>
+</html>

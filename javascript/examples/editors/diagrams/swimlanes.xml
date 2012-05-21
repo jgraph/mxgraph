@@ -1,0 +1,119 @@
+<mxGraphModel>
+	<root>
+		<Workflow label="Swimlanes" description="" href="" id="0">
+			<mxCell />
+		</Workflow>
+		<Layer label="Default Layer" description="" href="" id="1">
+			<mxCell parent="0" />
+		</Layer>
+		<Swimlane label="Customer Service&#xa;Representative"
+			customAttribute="text value" description="" href="" id="2">
+			<mxCell style="swimlane;fillColor=#83027F;startSize=38"
+				vertex="1" connectable="0" parent="1">
+				<mxGeometry x="20" y="20" width="620" height="160"
+					as="geometry" />
+			</mxCell>
+		</Swimlane>
+		<Subprocess label="Enter Order" description="" href="" id="5">
+			<mxCell style="rounded" vertex="1" parent="2">
+				<mxGeometry x="80" y="50" width="102" height="50"
+					as="geometry" />
+			</mxCell>
+		</Subprocess>
+		<Subprocess label="Communicate&#xa;Delay&#xa;To Customer" description="" href="" id="13">
+			<mxCell style="rounded" vertex="1" parent="2">
+				<mxGeometry x="230" y="50" width="102" height="50"
+					as="geometry" />
+			</mxCell>
+		</Subprocess>
+		<Swimlane label="Warehouse&#xa;Engineer"
+			customAttribute="text value" description="" href="" id="3">
+			<mxCell style="swimlane;fillColor=#66B922;startSize=38"
+				vertex="1" connectable="0" parent="1">
+				<mxGeometry x="20" y="180" width="620" height="160"
+					as="geometry" />
+			</mxCell>
+		</Swimlane>
+		<Subprocess label="Receive Order" description="" href="" id="9">
+			<mxCell style="rounded" vertex="1" parent="3">
+				<mxGeometry x="80" y="50" width="102" height="50"
+					as="geometry" />
+			</mxCell>
+		</Subprocess>
+		<Shape label="Check Inventory" description="" href="" id="11">
+			<mxCell style="rhombus" vertex="1" parent="3">
+				<mxGeometry x="240" y="50" width="92" height="50"
+					as="geometry" />
+			</mxCell>
+		</Shape>
+		<Edge description="" href="" id="12">
+			<mxCell edge="1" parent="3" source="9" target="11">
+				<mxGeometry as="geometry" />
+			</mxCell>
+		</Edge>
+		<Subprocess label="Ship Product&#xa;To Customer" description="" href="" id="15">
+			<mxCell style="rounded" vertex="1" parent="3">
+				<mxGeometry x="400" y="50" width="102" height="50"
+					as="geometry" />
+			</mxCell>
+		</Subprocess>
+		<Edge description="" href="" id="16">
+			<mxCell edge="1" parent="3" source="11" target="15">
+				<mxGeometry as="geometry">
+					<Array as="points" />
+				</mxGeometry>
+			</mxCell>
+		</Edge>
+		<Swimlane label="Supplier&#xa;" customAttribute="text value"
+			id="4">
+			<mxCell style="swimlane;fillColor=#808913;startSize=38"
+				vertex="1" connectable="0" parent="1">
+				<mxGeometry x="20" y="340" width="620" height="160"
+					as="geometry" />
+			</mxCell>
+		</Swimlane>
+		<Subprocess label="Manufacture Product" description="" href="" id="19">
+			<mxCell style="rounded" vertex="1" parent="4">
+				<mxGeometry x="230" y="50" width="102" height="50"
+					as="geometry" />
+			</mxCell>
+		</Subprocess>
+		<Subprocess label="Ship Product&#xa;To Partner" description="" href="" id="23">
+			<mxCell style="rounded" vertex="1" parent="4">
+				<mxGeometry x="400" y="50" width="102" height="50"
+					as="geometry" />
+			</mxCell>
+		</Subprocess>
+		<Edge description="" href="" id="24">
+			<mxCell edge="1" target="23" parent="4" source="19">
+				<mxGeometry x="-20" y="-180" as="geometry">
+					<Object x="332" y="75" as="sourcePoint" />
+					<Array as="points" />
+				</mxGeometry>
+			</mxCell>
+		</Edge>
+		<Edge description="" href="" id="10">
+			<mxCell edge="1" parent="1" source="5" target="9">
+				<mxGeometry as="geometry" />
+			</mxCell>
+		</Edge>
+		<Edge label="no" description="" href="" id="14">
+			<mxCell edge="1" parent="1" source="11" target="13">
+				<mxGeometry as="geometry" />
+			</mxCell>
+		</Edge>
+		<Edge label="no" description="" href="" id="20">
+			<mxCell edge="1" target="19" parent="1" source="11">
+				<mxGeometry x="-20" y="-30" as="geometry">
+					<Object x="286" y="200" as="sourcePoint" />
+					<Array as="points" />
+				</mxGeometry>
+			</mxCell>
+		</Edge>
+		<Edge description="" href="" id="25">
+			<mxCell edge="1" parent="1" source="23" target="15">
+				<mxGeometry as="geometry" />
+			</mxCell>
+		</Edge>
+	</root>
+</mxGraphModel>

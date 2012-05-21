@@ -1,0 +1,179 @@
+<html>
+<head>
+	<title>mxGraph JavaScript</title>
+	<link rel="stylesheet" HREF="../docs/css/html.css" CHARSET="ISO-8859-1" TYPE="text/css">
+</head>
+<body>
+<h1>mxGraph JavaScript</h1>
+<h2>Installation</h2>
+<p>
+	The examples can be edited with any texteditor. To run the examples point
+	your browser directly to the local files (use links below) or use a
+	webserver to deliver the files. Note that the files should always be
+	delivered via a webserver in production. Local usage of files is only
+	recommended for development and testing. (Please read <a href="../docs/known-issues.html#AccessDenied">this</a>
+	for running examples from the local filesystem in Internet Explorer 7.)
+</p>
+<h2>Examples</h2>
+<p>
+	javascript/examples contains the following examples:
+</p>
+<ul>
+  <li><a href="examples/codec.html">Codec</a> - Dynamically
+  creating a graph from XML and encoding the model into XML, as well
+  as changing the default style for edges in-place.</li>
+  <li><a href="examples/dbeditor.html">dbEditor</a> - Uses Google
+  for database content editing. The database contains Persons,
+  Locations and connections between persons and locations.</li>
+  <li><a href="examples/dynamicloading.html">Dynamicloading</a> -
+  Loading graph model data dynamically to limit the number of cells in the model.</li>
+  <li><a href="examples/dynamicstyle.html">Dynamic Style</a> -
+  Changing the style of a cell by overriding mxGraphModel.</li>
+  <li><a href="examples/dynamictoolbar.html">Dynamic Toolbar</a> -
+  Changing the state of the toolbar at runtime.</li>
+  <li><a href="examples/editing.html">Editing</a> -
+  Using the in-place editor trigger to specify the editing value and write the
+  new value into a specific field of the user object. Wrapping and DOM nodes as
+  labels are also demonstrated here.</li>
+  <li><a href="examples/events.html">Events</a> - Creating
+  a graph container and using the mxDivResizer to update the size,
+  interaction on the graph, including marquee selection, custom 
+  tooltips, context menu handling and changing the default menu
+  opacity. It also demonstrates how to use an edgestyle in the 
+  default stylesheet, and handle the doubleclick on the adjustment
+  point. See also: overlays.html for click event handling.</li>
+  <li><a href="examples/extjs.html">ExtJs</a> -
+  Using mxGraph together with the Ext JavaScript framework.</li>
+  <li><a href="examples/fileio.html">File I/O</a> -
+  Reading an XML file, writing a custom parser, applying an automatic layout
+  and defining a 2-way edge.</li>
+  <li><a href="examples/graphlayout.html">Graphlayout</a> -
+  Using automatic graph layouts and listening to changes of the graph size
+  to keep the container size in sync.</li>
+  <li><a href="examples/helloworld.html">Hello, World!</a> - Using
+  a DOM node to create a graph and adding vertices and edges.</li>
+  <li><a href="examples/hierarchicallayout.html">Hierarchical Layout</a> -
+  Using the hierarchical and organic layout algorithms.</li>
+  <li><a href="examples/images.html">Images</a> -
+  Using background images and images for for the label- and image-shape.</li>
+  <li><a href="examples/indicators.html">Indicators</a> -
+  Using small subshapes (indicators) inside a parent shape, typically an mxLabel.</li>
+  <li><a href="examples/labelposition.html">Label Position</a> -
+  Using the label position styles to set the position of vertex labels.</li>
+  <li><a href="examples/labels.html">Labels</a> -
+  Wrapping and clipping for HTML labels of vertices, truncating labels to fit the
+  size of a vertex, and manually placing vertex labels and relative children
+  that act as "sublabels".</li>
+  <li><a href="examples/layers.html">Layers</a> - Using
+  multiple layers to contain cells.</li>
+  <li><a href="examples/merge.html">Merge</a> -
+  Using the mergeChildren function to merge two graphs.</li>
+  <li><a href="examples/monitor.html">Monitor</a> -
+  Using mxGraph to display the current state of a workflow.</li>
+  <li><a href="examples/offpage.html">Offpage Connectors</a> -
+  Creating offpage connectors in a graph and loading a new diagram on a
+  single click.</li>
+  <li><a href="examples/orgchart.html">Orgchart</a> -
+  Using automatic layouts, fit to page zoom and poster print (across
+  multiple pages).</li>
+  <li><a href="examples/overlays.html">Overlays</a> - Cell
+  highlighting, overlays and handling click and double click
+  events. See also: events.html for more event handling.</li>
+  <li><a href="examples/permissions.html">Permissions</a> -
+  Creating permissions to define the available operations on a graph.</li>
+  <li><a href="examples/ports.html">Ports</a> -
+  Implementing ports as child vertices with relative positions,
+  drag and drop and using images and HTML in cells.</li>
+  <li><a href="examples/schema.html">Schema</a> -
+  Implementing a database schema editor.</li>
+  <li><a href="examples/scrollbars.html">Scrollbars</a> -
+  Using a scrollable table with different sections in a cell label.</li>
+  <li><a href="examples/secondlabel.html">Secondlabel</a> -
+  Adding another string label to vertices.</li>
+  <li><a href="examples/shape.html">Shape</a> - How to
+  implement and use a custom shape.</li>
+  <li><a href="examples/stylesheet.html">Stylesheet</a> - Using
+  a custom stylesheet and control points in edges, as well as
+  overriding the getLabel and getTooltip function to return
+  dynamic information, and making a supercall in JavaScript.</li>
+  <li><a href="examples/swimlanes.html">Swimlanes</a> -
+  Using swimlanes for pools and lanes and using the stack layout as an
+  automatic layout.</li>
+  <li><a href="examples/thread.html">Thread</a> - Setting
+  overlays in mxGraph from within a timed function.</li>
+  <li><a href="examples/toolbar.html">Toolbar</a> -
+  Using existing cells as templates for creating new cells.</li>
+  <li><a href="examples/tree.html">Tree</a> -
+  Folding for subtrees in acyclic graphs (trees).</li>  
+  <li><a href="examples/uiconfig.html">UIConfig</a> -
+  Using a config file to configure the toolbar and popup menu in mxEditor.</li>
+  <li><a href="examples/userobject.html">Userobject</a> -
+  Using XML objects as values for cells.</li>
+  <li><a href="examples/validation.html">Validation</a> -
+  Using multiplicities for automatically validating a graph.</li>
+  <li><a href="examples/windows.html">Windows</a> -
+  Using the mxWindow class for displaying windows.</li>
+  <li><a href="examples/wrapping.html">Wrapping</a> -
+  Using HTML markup and word-wrapping in vertex and edge labels.</li>
+  <li><a href="examples/helloport.html">HelloPort</a> -
+  Using the isPort hook for visually connecting to another cell.</li>
+  <li><a href="examples/pagebreaks.html">Pagebreaks</a> -
+  Using the pageBreaksVisible and preferPageSize switches.</li>
+  <li><a href="examples/fixedpoints.html">FixedPoints</a> -
+  Using fixed connection points for connecting edges to vertices.</li>
+  <li><a href="examples/serverview.html">ServerView</a> -
+  Using a server-side image of the graph as the diagram in the client.</li>
+  <li><a href="examples/contexticons.html">ContextIcons</a> -
+  Adding icons to selected vertices to carry out special operations.</li>
+  <li><a href="examples/guides.html">Guides</a> - Using the guidesEnabled
+  and snapToTerminals switches, creating a grid using a canvas and
+  handling cursor keys.</li>
+  <li><a href="examples/fixedicon.html">FixedIcon</a> - Customizing the icon
+  position in the mxLabel shape.</li>
+  <li><a href="examples/markers.html">Markers</a> - Creating custom marker.</li>
+  <li><a href="examples/dragsource.html">Dragsource</a> - Using
+  one drag source for multiple graphs and changing the drag icon.</li>
+  <li><a href="examples/orthogonal.html">Orthogonal</a> - Demonstrates the
+  use of port constraints and orthogonal edge styles and handlers.</li>
+  <li><a href="examples/standardsmode.html">Standardsmode</a> - How to use
+  mxGraphs VML rendering with a Doctype in IE.</li>
+  <li><a href="examples/edgetolerance.html">EdgeTolerance</a> - Increasing
+  the tolerance for hit detection on edges.</li>
+  <li><a href="examples/stencils.html">Stencils</a> - Using an XML file to
+  define new stencils to be used as shapes.</li>
+  <li><a href="examples/ie9svg.html">IE9SVG</a> - Using SVG for rendering
+  a diagram in IE9 (and the HTML5 doctype).</li>
+  <li><a href="examples/hovericons.html">HoverIcons</a> - Showing
+  icons on vertices as mouse hovers over them.</li>
+  <li><a href="examples/portrefs.html">Portrefs</a> - Referencing
+  connection points by ID.</li>
+  <li><a href="examples/control.html">Control</a> - Adding controls
+  to specific cells in a graph.</li>
+  <li><a href="examples/wires.html">Wires</a> - Drawing electrical and
+  digital circuits with devices and wires.</li>
+  <li><a href="examples/menustyle.html">Menustyle</a> - Styling the built-in
+  popupmenu using CSS.</li>
+  <li><a href="examples/perimeter.html">Perimeter</a> - How to avoid edge and
+  label intersections.</li>
+  <li><a href="examples/grid.html">Grid</a> - Drawing a grid dynamically
+  using HTML 5 canvas.</li>
+</ul>
+<p>
+	javascript/examples/editors contains the following examples:
+</p>
+<ul>
+  <li><a href="examples/editors/grapheditor.html">Graph Editor</a> -
+  Graph Editor that integrates mxGraph with ExtJs.</li>
+  <li><a href="examples/editors/diagrameditor.html">mxDraw</a> -
+  Web 2.0-style diagram editor and drawing application.</li>
+  <li><a href="examples/editors/processeditor.html">mxProcess</a> -
+  Process editor with a fancy stylesheet and user interface.</li>
+  <li><a href="examples/editors/workfloweditor.html">mxWorkflow</a> -
+  BPMN workflow editor with various example diagrams.</li>
+  <li><a href="examples/editors/layouteditor.html">mxWorkflow/Layout</a> -
+  BPMN workflow editor with automatic layout. <i>(Experimental)</i></li>
+</ul>
+<hr size="1">
+&copy; 2006-2010 by JGraph Ltd.
+</body>
+</html>

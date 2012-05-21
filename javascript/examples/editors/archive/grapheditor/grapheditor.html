@@ -1,0 +1,86 @@
+<!--
+  $Id: grapheditor.html,v 1.4 2012-05-11 07:55:25 gaudenz Exp $
+  Copyright (c) 2006-2010, JGraph Ltd
+
+  Graph Editor example for mxGraph. This example demonstrates using
+  mxGraph inside an ExtJs panel, and integrating tooltips, popupmenus,
+  toolbars and dialogs into mxGraph.
+-->
+<html>
+<head>
+    <title>Graph Editor</title>
+
+ 	<link rel="stylesheet" type="text/css" href="http://dev.sencha.com/deploy/ext-3.3.1/resources/css/ext-all.css" />
+	<script type="text/javascript" src="http://dev.sencha.com/deploy/ext-3.3.1/adapter/ext/ext-base.js"></script>
+	<script type="text/javascript" src="http://dev.sencha.com/deploy/ext-3.3.1/ext-all.js"></script>
+
+	<!-- Sets the basepath for the library if not in same directory -->
+	<script type="text/javascript">
+		mxBasePath = '../../../../src';
+	</script>
+
+	<!-- Loads and initializes the library -->
+	<script type="text/javascript" src="../../../../src/js/mxClient.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="css/grapheditor.css" />
+
+    <script type="text/javascript" src="js/GraphEditor.js"></script>
+    <script type="text/javascript" src="js/MainPanel.js"></script>
+    <script type="text/javascript" src="js/LibraryPanel.js"></script>
+    <script type="text/javascript" src="js/DiagramStore.js"></script>
+    <script type="text/javascript" src="js/DiagramPanel.js"></script>
+
+	<script type="text/javascript">
+		// Enables guides
+		mxGraphHandler.prototype.guidesEnabled = true;
+
+	    // Alt disables guides
+	    mxGuide.prototype.isEnabledForEvent = function(evt)
+	    {
+	    	return !mxEvent.isAltDown(evt);
+	    };
+
+		// Enables snapping waypoints to terminals
+		mxEdgeHandler.prototype.snapToTerminals = true;
+
+		// Replaces the built-in alert dialog with ExtJs message dialog (can't
+		// replace confirm and prompt as they are callback-based and we require
+		// a synchronous call with a return value).
+		// Ext.MessageBox.prompt('Prompt', message, null, null, null, defaultValue);
+		// Ext.MessageBox.confirm('Confirm', message);
+		mxUtils.alert = function(message)
+		{
+			Ext.example.msg(message, '', '');
+		};
+		
+		/*  To add a new accordion in the LibraryPanel.js, use the following
+			code:
+		
+			this.myAccordion = this.root.appendChild(
+			  new Ext.tree.TreeNode({
+			    text:'Title',
+			    cls:'feeds-node',
+			    expanded:false
+			  }) 
+			);
+		
+			To add new vertices to this new accordion, you can create a new
+			method as follows (or use the panel parameter of
+			insertVertexTemplate) in GraphEditor.js:
+			
+			function insertAccordionTemplate(panel, graph, label, icon, style, width, height) 
+			{ 
+			  var myAccordionNode = panel.myAccordion; 
+			  return insertVertexTemplate(panel, graph, label, icon, style, width, height, '', myAccordionNode); 
+			};
+
+			This can then be used to add new vertices as follows:
+
+			insertAccordionTemplate(library, graph, 'Title', '../../images/cloud.gif', 'ellipse;shape=cloud', 90, 70);
+		*/
+	</script>
+</head>
+<body onload="main(); /* see js/GraphEditor.js */ ">
+<div id="header"><div style="float:right;margin:5px;" class="x-small-editor"></div></div>
+</body>
+</html>
