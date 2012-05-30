@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.43 2012-05-15 12:48:52 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.44 2012-05-23 19:11:21 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -14,10 +14,13 @@ EditorUi = function(editor)
 	document.body.style.overflow = 'hidden';
 	
 	// Disables text selection while not editing and no dialog visible 
-	var textEditing =  mxUtils.bind(this, function() { return graph.isEditing() || this.dialog != null; });
+	var textEditing =  mxUtils.bind(this, function(evt)
+	{
+		return graph.isEditing() || this.dialog != null;
+	});
 	document.onselectstart = textEditing;
     document.onmousedown = textEditing;
-
+	
 	// And uses built-in context menu while not editing
 	if (mxClient.IS_IE && document.documentMode != 9)
 	{

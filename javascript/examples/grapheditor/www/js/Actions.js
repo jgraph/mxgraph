@@ -1,5 +1,5 @@
 /**
- * $Id: Actions.js,v 1.25 2012-05-16 13:12:03 gaudenz Exp $
+ * $Id: Actions.js,v 1.28 2012-05-24 14:21:51 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -23,7 +23,48 @@ Actions.prototype.init = function()
 
 	// File actions
 	this.addAction('new', function() { window.open(ui.getUrl()); });
-	this.addAction('open', function() { ui.openFile(); });
+	this.addAction('open', function()
+	{
+		window.openNew = true;
+		window.openKey = 'open';
+		
+		ui.openFile();
+	});
+	this.addAction('import', function()
+	{
+		window.openNew = false;
+		window.openKey = 'import';
+		
+		// Closes dialog after open
+		window.openFile = new OpenFile(mxUtils.bind(this, function()
+		{
+			ui.hideDialog();
+		}));
+		
+		window.openFile.setConsumer(mxUtils.bind(this, function(xml, filename)
+		{
+			try
+			{
+				var doc = mxUtils.parseXml(xml);
+				var model = new mxGraphModel();
+				var codec = new mxCodec(doc);
+				codec.decode(doc.documentElement, model);
+				
+				var children = model.getChildren(model.getChildAt(model.getRoot(), 0));
+				editor.graph.setSelectionCells(editor.graph.importCells(children));
+			}
+			catch (e)
+			{
+				mxUtils.alert(mxResources.get('invalidOrMissingFile') + ': ' + e.message);
+			}
+		}));
+
+		// Removes openFile if dialog is closed
+		ui.showDialog(new OpenDialog(this).container, 300, 180, true, true, function()
+		{
+			window.openFile = null;
+		});
+	});
 	this.addAction('save', function() { ui.saveFile(false); }, null, null, 'Ctrl+S');
 	this.addAction('saveAs', function() { ui.saveFile(true); }, null, null, 'Ctrl+Shift-S');
 	this.addAction('export', function() { ui.showDialog(new ExportDialog(ui).container, 300, 200, true, true); }, null, null, 'Ctrl+E');
@@ -176,7 +217,7 @@ Actions.prototype.init = function()
 		editor.updateGraphComponents();
 	}, null, null, 'Ctrl+Shift+G');
 	action.setToggleAction(true);
-	action.setSelectedCallback(function() { return graph.container.style.backgroundImage != 'none'; });
+	action.setSelectedCallback(function() { return graph.isGridEnabled(); });
 	action = this.addAction('guides', function() { graph.graphHandler.guidesEnabled = !graph.graphHandler.guidesEnabled; });
 	action.setToggleAction(true);
 	action.setSelectedCallback(function() { return graph.graphHandler.guidesEnabled; });
@@ -200,6 +241,7 @@ Actions.prototype.init = function()
 
 		if (!graph.scrollbars)
 		{
+			graph.view.setTranslate(-graph.container.scrollLeft, -graph.container.scrollTop);
 			graph.container.scrollLeft = 0;
 			graph.container.scrollTop = 0;
 		}
@@ -220,13 +262,6 @@ Actions.prototype.init = function()
 		graph.pageVisible = !graph.pageVisible;
 		graph.pageBreaksVisible = graph.pageVisible; 
 		graph.preferPageSize = graph.pageBreaksVisible;
-		
-		// Resets translate only if page is visible
-		if (graph.pageVisible)
-		{
-			graph.view.setTranslate(0, 0);
-		}
-		
 		graph.view.validate();
 		graph.sizeDidChange();
 		editor.updateGraphComponents();

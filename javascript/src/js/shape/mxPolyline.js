@@ -1,5 +1,5 @@
 /**
- * $Id: mxPolyline.js,v 1.30 2012-01-18 14:22:59 gaudenz Exp $
+ * $Id: mxPolyline.js,v 1.31 2012-05-24 12:00:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -34,6 +34,14 @@ function mxPolyline(points, stroke, strokewidth)
  */
 mxPolyline.prototype = new mxShape();
 mxPolyline.prototype.constructor = mxPolyline;
+
+/**
+ * Variable: addPipe
+ *
+ * Specifies if a SVG path should be created around any path to increase the
+ * tolerance for mouse events. Default is false since this shape is filled.
+ */
+mxPolyline.prototype.addPipe = true;
 
 /**
  * Function: create
@@ -108,10 +116,13 @@ mxPolyline.prototype.createSvg = function()
 	
 	// Creates an invisible shape around the path for easier
 	// selection with the mouse. Note: Firefox does not ignore
-	// the value of the stroke attribute for pointer-events: stroke.
-	// It does, however, ignore the visibility attribute.
-	this.pipe = this.createSvgPipe();
-	g.appendChild(this.pipe);
+	// the value of the stroke attribute for pointer-events: stroke,
+	// it does, however, ignore the visibility attribute.
+	if (this.addPipe)
+	{
+		this.pipe = this.createSvgPipe();
+		g.appendChild(this.pipe);
+	}
 	
 	return g;
 };
@@ -126,7 +137,7 @@ mxPolyline.prototype.redrawSvg = function()
 	this.updateSvgShape(this.innerNode);
 	var d = this.innerNode.getAttribute('d');
 	
-	if (d != null)
+	if (d != null && this.pipe != null)
 	{
 		this.pipe.setAttribute('d', d);
 		var strokeWidth = Math.round(Math.max(1, this.strokewidth * this.scale));

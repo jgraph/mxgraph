@@ -1,5 +1,5 @@
 /**
- * $Id: mxConstants.java,v 1.79 2012-05-10 08:19:03 gaudenz Exp $
+ * $Id: mxConstants.java,v 1.80 2012-05-24 06:39:54 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.util;
@@ -685,7 +685,12 @@ public class mxConstants
 	/**
 	 * Defines the key for the dashed pattern style. The type of this value
 	 * is <code>float[]</code> and the value specifies the dashed pattern 
-	 * to apply to edges drawn with this style.
+	 * to apply to edges drawn with this style. This style allows the user
+	 * to specify a custom-defined dash pattern. This is done using a series
+	 * of numbers. Dash styles are defined in terms of the length of the dash
+	 * (the drawn part of the stroke) and the length of the space between the
+	 * dashes. The lengths are relative to the line width: a length of "1" is
+	 * equal to the line width.
 	 */
 	public static String STYLE_DASH_PATTERN = "dashPattern";
 

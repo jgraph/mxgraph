@@ -1,5 +1,5 @@
 /**
- * $Id: mxCylinder.js,v 1.34 2012-04-04 07:34:50 gaudenz Exp $
+ * $Id: mxCylinder.js,v 1.36 2012-05-22 16:10:12 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -62,6 +62,14 @@ mxCylinder.prototype.mixedModeHtml = false;
 mxCylinder.prototype.preferModeHtml = false;
 
 /**
+ * Variable: addPipe
+ *
+ * Specifies if a SVG path should be created around the background for better
+ * hit detection. Default is false.
+ */
+mxCylinder.prototype.addPipe = false;
+
+/**
  * Variable: strokedBackground
  *
  * Specifies if the background should be stroked. Default is true.
@@ -75,6 +83,13 @@ mxCylinder.prototype.strokedBackground = true;
  * of the cylinder shape.
  */
 mxCylinder.prototype.maxHeight = 40;
+
+/**
+ * Variable: vmlScale
+ *
+ * Renders VML with a scale of 2.
+ */
+mxCylinder.prototype.vmlScale = 2;
 
 /**
  * Function: create
@@ -187,6 +202,12 @@ mxCylinder.prototype.createSvg = function()
 	this.foreground.setAttribute('fill', 'none');
 	g.appendChild(this.foreground);
 	
+	if (this.addPipe)
+	{
+		this.pipe = this.createSvgPipe();
+		g.appendChild(this.pipe);
+	}
+	
 	return g;
 };
 
@@ -217,10 +238,23 @@ mxCylinder.prototype.redrawSvg = function()
 	if (d.length > 0)
 	{
 		this.innerNode.setAttribute('d', d);
+		
+		// Updates event handling element
+		if (this.pipe != null)
+		{
+			this.pipe.setAttribute('d', d);
+			this.pipe.setAttribute('stroke-width', strokeWidth + mxShape.prototype.SVG_STROKE_TOLERANCE);
+		}
 	}
 	else
 	{
 		this.innerNode.removeAttribute('d');
+		
+		// Updates event handling element
+		if (this.pipe != null)
+		{
+			this.pipe.removeAttribute('d');
+		}
 	}
 	
 	// Stroked background
@@ -228,7 +262,7 @@ mxCylinder.prototype.redrawSvg = function()
 	{
 		this.innerNode.setAttribute('stroke', 'none');
 	}
-	
+
 	// Paints shadow
 	if (this.shadowNode != null)
 	{
@@ -250,13 +284,13 @@ mxCylinder.prototype.redrawSvg = function()
 		this.foreground.removeAttribute('d');
 	}
 	
-
 	if (this.isDashed)
 	{
 		var phase = Math.max(1, Math.round(3 * this.scale * this.strokewidth));
 		this.innerNode.setAttribute('stroke-dasharray', phase + ' ' + phase);
 		this.foreground.setAttribute('stroke-dasharray', phase + ' ' + phase);
 	}
+	
 };
 
 /**

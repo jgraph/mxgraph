@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.java,v 1.336 2012-05-10 13:36:12 gaudenz Exp $
+ * $Id: mxGraph.java,v 1.337 2012-05-21 10:31:34 gaudenz Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.view;
@@ -195,9 +195,9 @@ public class mxGraph extends mxEventSource
 
 	/**
 	 * Holds the version number of this release. Current version
-	 * is 1.10.0.5.
+	 * is 1.10.0.6.
 	 */
-	public static final String VERSION = "1.10.0.5";
+	public static final String VERSION = "1.10.0.6";
 
 	/**
 	 * 
@@ -1891,7 +1891,7 @@ public class mxGraph extends mxEventSource
 				// Adds the group into the parent and resizes
 				index = model.getChildCount(parent);
 				cellsAdded(new Object[] { group }, parent, index, null, null,
-						false);
+						false, false);
 				cellsResized(new Object[] { group },
 						new mxRectangle[] { bounds });
 
@@ -2647,7 +2647,7 @@ public class mxGraph extends mxEventSource
 		model.beginUpdate();
 		try
 		{
-			cellsAdded(cells, parent, index, source, target, false);
+			cellsAdded(cells, parent, index, source, target, false, true);
 			fireEvent(new mxEventObject(mxEvent.ADD_CELLS, "cells", cells,
 					"parent", parent, "index", index, "source", source,
 					"target", target));
@@ -2659,13 +2659,22 @@ public class mxGraph extends mxEventSource
 
 		return cells;
 	}
-
 	/**
 	 * Adds the specified cells to the given parent. This method fires
 	 * mxEvent.CELLS_ADDED while the transaction is in progress.
 	 */
 	public void cellsAdded(Object[] cells, Object parent, Integer index,
 			Object source, Object target, boolean absolute)
+	{
+		cellsAdded(cells, parent, index, source, target, absolute, true);
+	}
+	
+	/**
+	 * Adds the specified cells to the given parent. This method fires
+	 * mxEvent.CELLS_ADDED while the transaction is in progress.
+	 */
+	public void cellsAdded(Object[] cells, Object parent, Integer index,
+			Object source, Object target, boolean absolute, boolean constrain)
 	{
 		if (cells != null && parent != null && index != null)
 		{
@@ -2733,7 +2742,10 @@ public class mxGraph extends mxEventSource
 						}
 
 						// Constrains the child
-						constrainChild(cells[i]);
+						if (constrain)
+						{
+							constrainChild(cells[i]);
+						}
 
 						// Sets the source terminal
 						if (source != null)

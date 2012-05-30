@@ -1,5 +1,5 @@
 /**
- * $Id: Sidebar.js,v 1.56 2012-05-15 16:31:55 gaudenz Exp $
+ * $Id: Sidebar.js,v 1.57 2012-05-23 19:09:50 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -168,6 +168,23 @@ Sidebar.prototype.showTooltip = function(elt, cells)
 			
 			var show = mxUtils.bind(this, function()
 			{
+				// Workaround for off-screen text rendering in IE
+				var old = mxText.prototype.getTableSize;
+				
+				if (this.graph.dialect != mxConstants.DIALECT_SVG)
+				{
+					mxText.prototype.getTableSize = function(table)
+					{
+						var oldParent = table.parentNode;
+						
+						document.body.appendChild(table);
+						var size = new mxRectangle(0, 0, table.offsetWidth, table.offsetHeight);
+						oldParent.appendChild(table);
+						
+						return size;
+					};
+				}
+				
 				// Lazy creation of the DOM nodes and graph instance
 				if (this.tooltip == null)
 				{
@@ -218,6 +235,8 @@ Sidebar.prototype.showTooltip = function(elt, cells)
 				this.tooltip.style.top = top + 'px';
 				this.tooltipImage.style.left = (left - 13) + 'px';
 				this.tooltipImage.style.top = (top + height / 2 - 13) + 'px';
+				
+				mxText.prototype.getTableSize = old;
 			});
 
 			if (this.tooltip != null && this.tooltip.style.display != 'none')
@@ -715,6 +734,23 @@ Sidebar.prototype.createTitle = function(label)
  */
 Sidebar.prototype.createThumb = function(cells, width, height, parent)
 {
+	// Workaround for off-screen text rendering in IE
+	var old = mxText.prototype.getTableSize;
+	
+	if (this.graph.dialect != mxConstants.DIALECT_SVG)
+	{
+		mxText.prototype.getTableSize = function(table)
+		{
+			var oldParent = table.parentNode;
+			
+			document.body.appendChild(table);
+			var size = new mxRectangle(0, 0, table.offsetWidth, table.offsetHeight);
+			oldParent.appendChild(table);
+			
+			return size;
+		};
+	}
+	
 	var prev = mxImageShape.prototype.preserveImageAspect;
 	mxImageShape.prototype.preserveImageAspect = false;
 	
@@ -759,6 +795,8 @@ Sidebar.prototype.createThumb = function(cells, width, height, parent)
 	node.style.height = height + 'px';
 	
 	parent.appendChild(node);
+	
+	 mxText.prototype.getTableSize = old;
 };
 
 /**

@@ -1,5 +1,5 @@
 /**
- * $Id: mxOutline.js,v 1.76 2012-05-10 15:27:43 gaudenz Exp $
+ * $Id: mxOutline.js,v 1.77 2012-05-22 16:06:42 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -412,14 +412,24 @@ mxOutline.prototype.update = function(revalidate)
 			this.bounds.x += this.source.container.scrollLeft * navView.scale / scale;
 			this.bounds.y += this.source.container.scrollTop * navView.scale / scale;
 			
-			this.selectionBorder.bounds = this.bounds;
-			this.selectionBorder.redraw();
+			var b = this.selectionBorder.bounds;
+			
+			if (b.x != this.bounds.x || b.y != this.bounds.y || b.width != this.bounds.width || b.height != this.bounds.height)
+			{
+				this.selectionBorder.bounds = this.bounds;
+				this.selectionBorder.redraw();
+			}
 		
 			// Updates the bounds of the zoom handle at the bottom right
 			var b = this.sizer.bounds;
-			this.sizer.bounds = new mxRectangle(this.bounds.x + this.bounds.width - b.width / 2,
-				this.bounds.y + this.bounds.height - b.height / 2, b.width, b.height);
-			this.sizer.redraw();
+			var b2 = new mxRectangle(this.bounds.x + this.bounds.width - b.width / 2,
+					this.bounds.y + this.bounds.height - b.height / 2, b.width, b.height);
+
+			if (b.x != b2.x || b.y != b2.y || b.width != b2.width || b.height != b2.height)
+			{
+				this.sizer.bounds = b2;
+				this.sizer.redraw();
+			}
 			
 			if (revalidate)
 			{

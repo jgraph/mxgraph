@@ -1,5 +1,5 @@
 /**
- * $Id: mxConstants.js,v 1.123 2012-03-30 12:33:43 david Exp $
+ * $Id: mxConstants.js,v 1.124 2012-05-24 06:39:54 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
  var mxConstants =
@@ -1198,6 +1198,18 @@
 	 * and the value represents the size of the end marker in pixels.
 	 */
 	STYLE_DASHED: 'dashed',
+
+	/**
+	 * Defines the key for the dashed pattern style in SVG and image exports.
+	 * The type of this value is a space separated list of numbers that specify
+	 * a custom-defined dash pattern. Dash styles are defined in terms of the
+	 * length of the dash (the drawn part of the stroke) and the length of the
+	 * space between the dashes. The lengths are relative to the line width: a
+	 * length of "1" is equal to the line width. VML ignores this style and
+	 * uses dashStyle instead as defined in the VML specification. This style
+	 * is only used in the <mxConnector> shape.
+	 */
+	STYLE_DASH_PATTERN: 'dashPattern',
 
 	/**
 	 * Variable: STYLE_ROUNDED

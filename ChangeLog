@@ -1,3 +1,26 @@
+25-MAY-2012: 1.10.0.6
+
+- Snaps to bends if mxEdgeHandler.snapToTerminals is enabled [JavaScript]
+- Adds addPipe switch in mxPolyline, mxConnector shapes [JavaScript]
+- Adds mxGraph.zoomTo for setting absolute scale [JavaScript]
+- Fixes handling of hex color values and exceptions in mxUtils.parseColor [Java]
+- Adds caching for color parsing in mxGraphicsCanvas2D.parseColor [Java]
+- Scales dashPatterns with strokeWidth in mxGraphics2DCanvas.createStroke [Java]
+- Fixes parsing of dash patterns in mxGraphics2DCanvas.createStroke [Java]
+- Adds optional separator argument in mxUtils.getFloatArray [Java]
+- mxGraphView.validatePoints uses mxShape.boundingBox to compute graph bounds [JavaScript]
+- mxGraphView.createState initializes state regardless of rendering switch [JavaScript]
+- Adds optional rendering argument in mxCellRenderer.initialize [JavaScript]
+- Adds mxCylinder.addPipe switch for hit detection on path shapes [JavaScript]
+- Adds mxShape.boundingBox, update-/create-/augmentBoundingBox [JavaScript]
+- Fixes scrollbar size for scaled graphs in mxGraph.sizeDidChange [JavaScript]
+- Adds mxPath.scale, mxShape.vmlScale, fixes VML rendering precision [JavaScript]
+- Fixes shadow for non-filled stencils in mxStencilShape [JavaScript]
+- Fixes shadow stroke-width in mxConnector for SVG [JavaScript]
+- Adds optional force, rendering arguments in mxCellRenderer.redraw [JavaScript]
+- Fixes grouping of cells in negative coordinate space [Java,JavaScript]
+- Adds optional constrain argument in mxGraph.cellsAdded [Java,JavaScript]
+
 21-MAY-2012: 1.10.0.5
 
 - Adds mxText.getTableSize hook for measuring HTML markup [JavaScript]

@@ -1,5 +1,5 @@
 /**
- * $Id: mxImageExport.js,v 1.43 2012-05-14 08:01:54 gaudenz Exp $
+ * $Id: mxImageExport.js,v 1.44 2012-05-21 10:17:17 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -27,6 +27,23 @@
  * 		'&h=' + h + '&bg=#F9F7ED&xml=' + encodeURIComponent(xml))
  * 		.simulate(document, '_blank');
  * (end)
+ * 
+ * In order to export images for a graph whose container is not visible or not
+ * part of the DOM, the following workaround can be used to compute the size of
+ * the labels.
+ * 
+ * (code)
+ * mxText.prototype.getTableSize = function(table)
+ * {
+ *   var oldParent = table.parentNode;
+ *   
+ *   document.body.appendChild(table);
+ *   var size = new mxRectangle(0, 0, table.offsetWidth, table.offsetHeight);
+ *   oldParent.appendChild(table);
+ *   
+ *   return size;
+ * };
+ * (end) 
  * 
  * Constructor: mxImageExport
  * 

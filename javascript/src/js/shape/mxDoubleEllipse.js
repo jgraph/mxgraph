@@ -1,5 +1,5 @@
 /**
- * $Id: mxDoubleEllipse.js,v 1.18 2012-04-04 07:34:50 gaudenz Exp $
+ * $Id: mxDoubleEllipse.js,v 1.19 2012-05-21 18:27:17 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -60,6 +60,13 @@ mxDoubleEllipse.prototype.mixedModeHtml = false;
 mxDoubleEllipse.prototype.preferModeHtml = false;
 
 /**
+ * Variable: vmlScale
+ *
+ * Renders VML with a scale of 2.
+ */
+mxDoubleEllipse.prototype.vmlScale = 2;
+
+/**
  * Function: createVml
  *
  * Creates and returns the VML node to represent this shape.
@@ -104,10 +111,9 @@ mxDoubleEllipse.prototype.redrawVml = function()
 	this.updateVmlShape(this.background);
 	this.updateVmlShape(this.foreground);
 
-	var s = this.strokewidth * this.scale;
-	var inset = 3 + s;
-	var w = Math.round(this.bounds.width);
-	var h = Math.round(this.bounds.height);
+	var inset = Math.round((this.strokewidth + 3) * this.scale) * this.vmlScale;
+	var w = Math.round(this.bounds.width * this.vmlScale);
+	var h = Math.round(this.bounds.height * this.vmlScale);
 	
 	this.foreground.style.top = inset + 'px'; // relative
 	this.foreground.style.left = inset + 'px'; // relative
@@ -147,8 +153,6 @@ mxDoubleEllipse.prototype.createSvg = function()
  */
 mxDoubleEllipse.prototype.redrawSvg = function()
 {
-	var s = this.strokewidth * this.scale;
-	
 	if (this.crisp)
 	{
 		this.innerNode.setAttribute('shape-rendering', 'crispEdges');
@@ -162,7 +166,7 @@ mxDoubleEllipse.prototype.redrawSvg = function()
 	
 	this.updateSvgNode(this.innerNode);
 	this.updateSvgNode(this.shadowNode);
-	this.updateSvgNode(this.foreground, 3 * this.scale + s);
+	this.updateSvgNode(this.foreground, (this.strokewidth + 3) * this.scale);
 	
 	if (this.isDashed)
 	{

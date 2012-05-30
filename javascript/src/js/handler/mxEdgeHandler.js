@@ -1,5 +1,5 @@
 /**
- * $Id: mxEdgeHandler.js,v 1.173 2012-05-14 10:41:47 gaudenz Exp $
+ * $Id: mxEdgeHandler.js,v 1.174 2012-05-25 06:42:25 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -726,14 +726,11 @@ mxEdgeHandler.prototype.getPointForEvent = function(me)
 	
 	if (this.snapToTerminals && tt > 0)
 	{
-		// Temporary function
-		function snap(terminal, source)
+		function snapToPoint(pt)
 		{
-			if (terminal != null)
+			if (pt != null)
 			{
-				var pts = this.state.absolutePoints;
-				var abs = (source) ? pts[0] : pts[pts.length - 1];
-				var x = view.getRoutingCenterX(terminal);
+				var x = pt.x;
 
 				if (Math.abs(point.x - x) < tt)
 				{
@@ -741,41 +738,40 @@ mxEdgeHandler.prototype.getPointForEvent = function(me)
 					overrideX = true;
 				}
 				
-				if (abs != null && abs.x != x)
-				{
-					x = abs.x;
-	
-					if (Math.abs(point.x - x) < tt)
-					{
-						point.x = x;
-						overrideX = true;
-					}
-				}
-				
-				var y = view.getRoutingCenterY(terminal);
+				var y = pt.y;
 
 				if (Math.abs(point.y - y) < tt)
 				{
 					point.y = y;
 					overrideY = true;
 				}
-				
-				if (abs != null && abs.y != y)
-				{
-					y = abs.y;
-	
-					if (Math.abs(point.y - y) < tt)
-					{
-						point.y = y;
-						overrideY = true;
-					}
-				}
-				
+			}
+		}
+		
+		// Temporary function
+		function snapToTerminal(terminal)
+		{
+			if (terminal != null)
+			{
+				snapToPoint.call(this, new mxPoint(view.getRoutingCenterX(terminal),
+						view.getRoutingCenterY(terminal)));
 			}
 		};
 
-		snap.call(this, this.state.getVisibleTerminalState(true));
-		snap.call(this, this.state.getVisibleTerminalState(false));
+		snapToTerminal.call(this, this.state.getVisibleTerminalState(true));
+		snapToTerminal.call(this, this.state.getVisibleTerminalState(false));
+		
+		if (this.bends != null)
+		{
+			for (var i = 0; i < this.bends.length; i++)
+			{
+				if (i != this.index)
+				{
+					var pt = new mxPoint(this.bends[i].bounds.getCenterX(), this.bends[i].bounds.getCenterY());
+					snapToPoint.call(this, pt);
+				}
+			}
+		}
 	}
 	
 	if (this.graph.isGridEnabledEvent(me.getEvent()))

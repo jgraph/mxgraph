@@ -1,5 +1,5 @@
 /**
- * $Id: mxVertexHandler.js,v 1.101 2012-04-13 12:53:30 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.102 2012-05-21 19:25:38 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -282,7 +282,7 @@ mxVertexHandler.prototype.isSizerVisible = function(index)
  */
 mxVertexHandler.prototype.createSizerShape = function(bounds, index, fillColor)
 {
-	if (true && this.handleImage != null)
+	if (this.handleImage != null)
 	{
 		bounds.width = this.handleImage.width;
 		bounds.height = this.handleImage.height;

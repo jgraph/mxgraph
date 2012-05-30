@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.682 2012-05-18 09:36:56 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.686 2012-05-24 12:37:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -2712,8 +2712,8 @@ mxGraph.prototype.sizeDidChange = function()
 		}
 		else
 		{
-			width = Math.ceil(width);
-			height = Math.ceil(height);
+			width = Math.ceil(width / this.view.scale);
+			height = Math.ceil(height / this.view.scale);
 			var drawPane = this.view.getDrawPane();
 			var canvas = this.view.getCanvas();
 
@@ -2788,7 +2788,7 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 			
 			if (this.horizontalPageBreaks[i] != null)
 			{
-				this.horizontalPageBreaks[i].scale = scale;
+				this.horizontalPageBreaks[i].scale = 1; //scale;
 				this.horizontalPageBreaks[i].points = pts;
 				this.horizontalPageBreaks[i].redraw();
 			}
@@ -2828,7 +2828,7 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 			
 			if (this.verticalPageBreaks[i] != null)
 			{
-				this.verticalPageBreaks[i].scale = scale;
+				this.verticalPageBreaks[i].scale = 1; //scale;
 				this.verticalPageBreaks[i].points = pts;
 				this.verticalPageBreaks[i].redraw();
 			}
@@ -3514,7 +3514,7 @@ mxGraph.prototype.groupCells = function(group, border, cells)
 
 			// Adds the children into the group and moves
 			var index = this.model.getChildCount(group);
-			this.cellsAdded(cells, group, index, null, null, false);
+			this.cellsAdded(cells, group, index, null, null, false, false);
 			this.cellsMoved(cells, -bounds.x, -bounds.y, false, true);
 
 			// Adds the group into the parent and resizes
@@ -4114,7 +4114,7 @@ mxGraph.prototype.addCells = function(cells, parent, index, source, target)
 	this.model.beginUpdate();
 	try
 	{
-		this.cellsAdded(cells, parent, index, source, target, false);
+		this.cellsAdded(cells, parent, index, source, target, false, true);
 		this.fireEvent(new mxEventObject(mxEvent.ADD_CELLS, 'cells', cells,
 				'parent', parent, 'index', index, 'source', source, 'target', target));
 	}
@@ -4132,7 +4132,7 @@ mxGraph.prototype.addCells = function(cells, parent, index, source, target)
  * Adds the specified cells to the given parent. This method fires
  * <mxEvent.CELLS_ADDED> while the transaction is in progress.
  */
-mxGraph.prototype.cellsAdded = function(cells, parent, index, source, target, absolute)
+mxGraph.prototype.cellsAdded = function(cells, parent, index, source, target, absolute, constrain)
 {
 	if (cells != null && parent != null && index != null)
 	{
@@ -4197,7 +4197,10 @@ mxGraph.prototype.cellsAdded = function(cells, parent, index, source, target, ab
 					}
 	
 					// Constrains the child
-					this.constrainChild(cells[i]);
+					if (constrain == null || constrain)
+					{
+						this.constrainChild(cells[i]);
+					}
 					
 					// Sets the source terminal
 					if (source != null)
@@ -6486,6 +6489,16 @@ mxGraph.prototype.zoomActual = function()
 };
 
 /**
+ * Function: zoomTo
+ * 
+ * Zooms the graph to the given scale.
+ */
+mxGraph.prototype.zoomTo = function(scale)
+{
+	this.zoom(scale / this.view.scale);
+};
+
+/**
  * Function: zoom
  * 
  * Zooms the graph using the given factor.
@@ -6547,7 +6560,15 @@ mxGraph.prototype.zoom = function(factor)
  * Function: fit
  *
  * Scales the graph such that the complete diagram fits into <container> and
- * returns the current scale in the view.
+ * returns the current scale in the view. To fit an initial graph prior to
+ * rendering, set <mxGraphView.rendering> to false prior to changing the model
+ * and execute the following after changing the model.
+ * 
+ * (code)
+ * graph.fit();
+ * graph.view.rendering = true;
+ * graph.refresh();
+ * (end)
  * 
  * Parameters:
  * 

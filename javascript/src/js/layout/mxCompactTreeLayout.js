@@ -1,5 +1,5 @@
 /**
- * $Id: mxCompactTreeLayout.js,v 1.56 2012-05-07 21:23:07 david Exp $
+ * $Id: mxCompactTreeLayout.js,v 1.57 2012-05-24 13:09:34 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -757,6 +757,10 @@ mxCompactTreeLayout.prototype.createLine = function(dx, dy, next)
 
 /**
  * Function: adjustParents
+ * 
+ * Adjust parent cells whose child geometries have changed. The default 
+ * implementation adjusts the group to just fit around the children with 
+ * a padding.
  */
 mxCompactTreeLayout.prototype.adjustParents = function()
 {

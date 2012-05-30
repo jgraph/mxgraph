@@ -1,5 +1,5 @@
 /**
- * $Id: mxPath.js,v 1.20 2012-04-28 12:55:14 gaudenz Exp $
+ * $Id: mxPath.js,v 1.21 2012-05-21 18:27:17 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -38,6 +38,13 @@ mxPath.prototype.format = null;
  * <mxPoint> that specifies the translation of the complete path.
  */
 mxPath.prototype.translate = null;
+
+/**
+ * Variable: scale
+ *
+ * Number that specifies the translation of the path.
+ */
+mxPath.prototype.scale = 1;
 
 /**
  * Variable: path
@@ -94,15 +101,19 @@ mxPath.prototype.setTranslate = function(x, y)
  */
 mxPath.prototype.moveTo = function(x, y)
 {
+	x += this.translate.x;
+	y += this.translate.y;
+	
+	x *= this.scale;
+	y *= this.scale;
+	
 	if (this.isVml())
 	{
-		this.path.push('m ', Math.round(this.translate.x + x),
-			' ', Math.round(this.translate.y + y), ' ');
+		this.path.push('m ', Math.round(x), ' ', Math.round(y), ' ');
 	}
 	else
 	{
-		this.path.push('M ', Math.round(this.translate.x + x),
-			' ', Math.round(this.translate.y + y), ' ');
+		this.path.push('M ', x, ' ', y, ' ');
 	}
 };
 	
@@ -118,15 +129,19 @@ mxPath.prototype.moveTo = function(x, y)
  */
 mxPath.prototype.lineTo = function(x, y)
 {
+	x += this.translate.x;
+	y += this.translate.y;
+	
+	x *= this.scale;
+	y *= this.scale;
+	
 	if (this.isVml())
 	{
-		this.path.push('l ', Math.round(this.translate.x + x),
-			' ', Math.round(this.translate.y + y), ' ');
+		this.path.push('l ', Math.round(x), ' ', Math.round(y), ' ');
 	}
 	else
 	{
-		this.path.push('L ', Math.round(this.translate.x + x),
-			' ', Math.round(this.translate.y + y), ' ');
+		this.path.push('L ', x, ' ', y, ' ');
 	}
 };
 
@@ -145,23 +160,26 @@ mxPath.prototype.lineTo = function(x, y)
  */
 mxPath.prototype.quadTo = function(x1, y1, x, y)
 {
+	x1 += this.translate.x;
+	y1 += this.translate.y;
+	
+	x1 *= this.scale;
+	y1 *= this.scale;
+	
+	x += this.translate.x;
+	y += this.translate.y;
+	
+	x *= this.scale;
+	y *= this.scale;
+	
 	if (this.isVml())
 	{
-		this.path.push('c ', Math.round(this.translate.x + x1),
-				' ', Math.round(this.translate.y + y1),
-				' ', Math.round(this.translate.x + x),
-				' ', Math.round(this.translate.y + y),
-				' ', Math.round(this.translate.x + x),
-				' ', Math.round(this.translate.y + y),
-				' ');
+		this.path.push('c ', Math.round(x1), ' ', Math.round(y1), ' ', Math.round(x), ' ',
+			Math.round(y), ' ', Math.round(x), ' ', Math.round(y), ' ');
 	}
 	else
 	{
-		this.path.push('Q ', Math.round(this.translate.x + x1),
-			' ', Math.round(this.translate.y + y1),
-			' ', Math.round(this.translate.x + x),
-			' ', Math.round(this.translate.y + y),
-			' ');
+		this.path.push('Q ', x1, ' ', y1, ' ', x, ' ', y, ' ');
 	}
 };
 
@@ -183,25 +201,33 @@ mxPath.prototype.quadTo = function(x1, y1, x, y)
  */
 mxPath.prototype.curveTo = function(x1, y1, x2, y2, x, y)
 {
+	x1 += this.translate.x;
+	y1 += this.translate.y;
+	
+	x1 *= this.scale;
+	y1 *= this.scale;
+	
+	x2 += this.translate.x;
+	y2 += this.translate.y;
+	
+	x2 *= this.scale;
+	y2 *= this.scale;
+	
+	x += this.translate.x;
+	y += this.translate.y;
+	
+	x *= this.scale;
+	y *= this.scale;
+	
 	if (this.isVml())
 	{
-		this.path.push('c ', Math.round(this.translate.x + x1),
-			' ', Math.round(this.translate.y + y1),
-			' ', Math.round(this.translate.x + x2),
-			' ', Math.round(this.translate.y + y2),
-			' ', Math.round(this.translate.x + x),
-			' ', Math.round(this.translate.y + y),
-			' ');
+		this.path.push('c ', Math.round(x1), ' ', Math.round(y1), ' ', Math.round(x2),
+			' ', Math.round(y2), ' ', Math.round(x), ' ', Math.round(y), ' ');
 	}
 	else
 	{
-		this.path.push('C ', Math.round(this.translate.x + x1),
-			' ', Math.round(this.translate.y + y1),
-			' ', Math.round(this.translate.x + x2),
-			' ', Math.round(this.translate.y + y2),
-			' ', Math.round(this.translate.x + x),
-			' ', Math.round(this.translate.y + y),
-			' ');
+		this.path.push('C ', x1, ' ', y1, ' ', x2,
+			' ', y2, ' ', x, ' ', y, ' ');
 	}
 };
 

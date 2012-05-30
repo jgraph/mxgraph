@@ -1,5 +1,5 @@
 /**
- * $Id: mxStencilShape.js,v 1.7 2011-11-04 13:54:50 gaudenz Exp $
+ * $Id: mxStencilShape.js,v 1.9 2012-05-22 16:10:12 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -49,6 +49,13 @@ mxStencilShape.prototype.stencil = null;
  * Holds the <mxCellState> associated with this shape.
  */
 mxStencilShape.prototype.state = null;
+
+/**
+ * Variable: vmlScale
+ *
+ * Renders VML with a scale of 4.
+ */
+mxStencilShape.prototype.vmlScale = 4;
 
 /**
  * Function: apply
@@ -130,6 +137,8 @@ mxStencilShape.prototype.configureVmlShape = function(node)
  */
 mxStencilShape.prototype.redraw = function()
 {
+	this.updateBoundingBox();
+	
 	if (this.dialect == mxConstants.DIALECT_SVG)
 	{
 		this.redrawShape();
@@ -162,7 +171,7 @@ mxStencilShape.prototype.redrawShape = function()
 		
 		if (mxUtils.isVml(this.node))
 		{
-			this.node.coordsize = w + ',' + h;
+			this.node.coordsize = (w * this.vmlScale) + ',' + (h * this.vmlScale);
 		}
 	}
 	else

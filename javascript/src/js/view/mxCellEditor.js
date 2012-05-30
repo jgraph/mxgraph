@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellEditor.js,v 1.59 2012-05-11 13:11:45 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.60 2012-05-22 16:11:30 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -256,7 +256,7 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 		var bold = (mxUtils.getValue(state.style, mxConstants.STYLE_FONTSTYLE, 0) &
 				mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD;
 
-		this.textarea.style.fontSize = size;
+		this.textarea.style.fontSize = size + 'px';
 		this.textarea.style.fontFamily = family;
 		this.textarea.style.textAlign = align;
 		this.textarea.style.color = color;

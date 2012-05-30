@@ -1,5 +1,5 @@
 /**
- * $Id: mxConnector.js,v 1.78 2012-05-15 13:53:52 gaudenz Exp $
+ * $Id: mxConnector.js,v 1.80 2012-05-24 12:00:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -67,6 +67,14 @@ mxConnector.prototype.preferModeHtml = false;
  * Specifies if <mxShape.crisp> should be allowed for markers. Default is false.
  */
 mxConnector.prototype.allowCrispMarkers = false;
+
+/**
+ * Variable: addPipe
+ *
+ * Specifies if a SVG path should be created around any path to increase the
+ * tolerance for mouse events. Default is false since this shape is filled.
+ */
+mxConnector.prototype.addPipe = true;
 
 /**
  * Function: configureHtmlShape
@@ -283,8 +291,11 @@ mxConnector.prototype.createSvg = function()
 	// selection with the mouse. Note: Firefox does not ignore
 	// the value of the stroke attribute for pointer-events: stroke,
 	// it does, however, ignore the visibility attribute.
-	this.pipe = this.createSvgPipe();
-	g.appendChild(this.pipe);
+	if (this.addPipe)
+	{
+		this.pipe = this.createSvgPipe();
+		g.appendChild(this.pipe);
+	}
 	
 	return g;
 };
@@ -353,16 +364,21 @@ mxConnector.prototype.redrawSvg = function()
 	
 	if (d != null)
 	{
-		// Updates the tolerance of the invisible shape for event handling
-		this.pipe.setAttribute('d', this.innerNode.getAttribute('d'));
 		var strokeWidth = Math.round(this.strokewidth * this.scale);
-		this.pipe.setAttribute('stroke-width', strokeWidth + mxShape.prototype.SVG_STROKE_TOLERANCE);
+		
+		// Updates the tolerance of the invisible shape for event handling
+		if (this.pipe != null)
+		{
+			this.pipe.setAttribute('d', this.innerNode.getAttribute('d'));
+			this.pipe.setAttribute('stroke-width', strokeWidth + mxShape.prototype.SVG_STROKE_TOLERANCE);
+		}
 		
 		// Updates the shadow
 		if (this.shadowNode != null)
 		{
 			this.shadowNode.setAttribute('transform',  this.getSvgShadowTransform());
 			this.shadowNode.setAttribute('d',  d);
+			this.shadowNode.setAttribute('stroke-width', strokeWidth);
 		}
 	}
 

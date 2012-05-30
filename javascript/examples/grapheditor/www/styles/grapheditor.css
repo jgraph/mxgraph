@@ -4,6 +4,12 @@
 	border:none;
 	margin:0px;
 }
+.backgroundPage {
+	z-index: -1;
+}
+.diagramContainer {
+	z-index: -2;
+}
 .sidebarContainer a, .menubar a, .toolbar a {
 	color:black;
 	text-decoration:none;

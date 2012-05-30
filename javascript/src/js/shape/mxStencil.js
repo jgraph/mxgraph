@@ -1,5 +1,5 @@
 /**
- * $Id: mxStencil.js,v 1.79 2012-05-15 13:52:58 gaudenz Exp $
+ * $Id: mxStencil.js,v 1.85 2012-05-25 09:14:34 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -331,7 +331,7 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 		var y0 = (vml && state == null) ? 0 : bounds.y;
 		var sx = bounds.width / this.w0;
 		var sy = bounds.height / this.h0;
-		
+
 		// Stores current location inside path
 		this.lastMoveX = 0;
 		this.lastMoveY = 0;
@@ -342,9 +342,10 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 			sx = bounds.height / this.w0;
 			
 			var delta = (bounds.width - bounds.height) / 2;
-
-			x0 += delta;
-			y0 -= delta;
+			var f = (vml) ? shape.vmlScale : 1;
+			
+			x0 += delta * f;
+			y0 -= delta * f;
 		}
 
 		if (this.aspect == 'fixed')
@@ -365,6 +366,12 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 			}
 		}
 		
+		if (vml)
+		{
+			sx *= shape.vmlScale;
+			sy *= shape.vmlScale;
+		}
+		
 		var minScale = Math.min(sx, sy);
 
 		// Stack of states for save/restore ops
@@ -372,20 +379,20 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 		
 		var currentState = (state != null) ? state :
 		{
-				fillColorAssigned: false,
-				fill: shape.fill,
-				stroke: shape.stroke,
-				strokeWidth: (this.strokewidth == 'inherit') ?
-					Number(shape.strokewidth) * shape.scale :
-					Number(this.strokewidth) * minScale,
-				dashed: shape.isDashed,
-				dashpattern: [3, 3],
-				alpha: shape.opacity,
-				linejoin: 'miter',
-				fontColor: '#000000',
-				fontSize: mxConstants.DEFAULT_FONTSIZE,
-				fontFamily: mxConstants.DEFAULT_FONTFAMILY,
-				fontStyle: 0
+			fillColorAssigned: false,
+			fill: shape.fill,
+			stroke: shape.stroke,
+			strokeWidth: (this.strokewidth == 'inherit') ?
+				Number(shape.strokewidth) * shape.scale :
+				Number(this.strokewidth) * minScale / ((vml) ? shape.vmlScale : 1),
+			dashed: shape.isDashed,
+			dashpattern: [3, 3],
+			alpha: shape.opacity,
+			linejoin: 'miter',
+			fontColor: '#000000',
+			fontSize: mxConstants.DEFAULT_FONTSIZE,
+			fontFamily: mxConstants.DEFAULT_FONTFAMILY,
+			fontStyle: 0
 		};
 		
 		var currentPath = null;
@@ -466,7 +473,7 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 		{
 			return (vml) ? Math.round(value) : value;
 		};
-		
+
 		// Will be moved to a hook later for example to set text values
 		var renderNode = function(node)
 		{
@@ -493,8 +500,8 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 				{
 					currentPath = document.createElement('v:shape');
 					configurePath.call(this, currentPath, currentState);
-					var w = Math.round(bounds.width);
-					var h = Math.round(bounds.height);
+					var w = Math.round(bounds.width) * shape.vmlScale;
+					var h = Math.round(bounds.height) * shape.vmlScale;
 					currentPath.style.width = w + 'px';
 					currentPath.style.height = h + 'px';
 					currentPath.coordsize = w + ',' + h;
@@ -865,7 +872,7 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 						
 						var tp = document.createElement('v:textpath');
 						tp.style.cssText = 'v-text-align:' + align;
-						tp.style.fontSize = currentState.fontSize + 'px';
+						tp.style.fontSize = (currentState.fontSize / shape.vmlScale) + 'px';
 						// FIXME: Font-family seems to be ignored for textpath
 						tp.style.fontFamily = currentState.fontFamily;
 						tp.string = str;
@@ -1041,7 +1048,7 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 					}
 					
 					// Adds the shadow
-					if (background && shape.isShadow && currentState.fill != null && (fillOp || fillStrokeOp))
+					if (background && shape.isShadow)
 					{
 						var dx = mxConstants.SHADOW_OFFSET_X * shape.scale;
 						var dy = mxConstants.SHADOW_OFFSET_Y * shape.scale;
@@ -1072,7 +1079,16 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 						{
 							var shadow = currentPath.cloneNode(true);
 							shadow.setAttribute('stroke', mxConstants.SHADOWCOLOR);
-							shadow.setAttribute('fill', mxConstants.SHADOWCOLOR);
+							
+							if (currentState.fill != null && (fillOp || fillStrokeOp))
+							{
+								shadow.setAttribute('fill', mxConstants.SHADOWCOLOR);
+							}
+							else
+							{
+								shadow.setAttribute('fill', 'none');
+							}
+							
 							shadow.setAttribute('transform', 'translate(' + dx + ' ' + dy + ') ' +
 									(shadow.getAttribute('transform') || ''));
 							shadow.setAttribute('opacity', mxConstants.SHADOW_OPACITY);
@@ -1140,6 +1156,11 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 			else if (name == 'strokewidth')
 			{
 				currentState.strokeWidth = node.getAttribute('width') * minScale;
+				
+				if (vml)
+				{
+					currentState.strokeWidth /= shape.vmlScale;
+				}
 			}
 			else if (name == 'strokecolor')
 			{

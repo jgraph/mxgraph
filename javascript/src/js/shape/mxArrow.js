@@ -1,5 +1,5 @@
 /**
- * $Id: mxArrow.js,v 1.29 2012-04-24 13:59:45 gaudenz Exp $
+ * $Id: mxArrow.js,v 1.31 2012-05-23 19:09:22 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -71,6 +71,19 @@ mxArrow.prototype.enableFill = true;
 mxArrow.prototype.configureTransparentBackground = function(node)
 {
 	// do nothing
+};
+
+/**
+ * Function: updateBoundingBox
+ *
+ * Updates the <boundingBox> for this shape.
+ */
+mxArrow.prototype.augmentBoundingBox = function(bbox)
+{
+	// FIXME: Fix precision, share math and cache results with painting code
+	bbox.grow(Math.max(this.arrowWidth / 2, this.endSize / 2) * this.scale);
+	
+	mxShape.prototype.augmentBoundingBox.apply(this, arguments);
 };
 
 /**

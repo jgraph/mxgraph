@@ -13,7 +13,11 @@
 		{
 			(function(file)
 			{
-				window.parent.open(window.parent.location.href);
+				// Small hack to support import
+				if (window.parent.openNew)
+				{
+					window.parent.open(window.parent.location.href);
+				}
 				
 				var reader = new FileReader();
 				reader.onload = function(e)
@@ -47,7 +51,11 @@
 			if (/(\.xml)$/i.test(form.upfile.value) || /(\.txt)$/i.test(form.upfile.value) ||
 				/(\.mxe)$/i.test(form.upfile.value))
 			{
-				window.parent.open(window.parent.location.href);
+				// Small hack to support import
+				if (window.parent.openNew)
+				{
+					window.parent.open(window.parent.location.href);
+				}
 				
 				// NOTE: File is loaded via JS injection into the iframe, which in turn sets the
 				// file contents in the parent window. The new window asks its opener if any file
@@ -172,7 +180,7 @@
 		{
 			var editLink = document.getElementById('editLink');
 			var openButton = document.getElementById('openButton');
-			openButton.value = window.parent.mxResources.get('open');
+			openButton.value = window.parent.mxResources.get(window.parent.openKey || 'open');
 			var cancelButton = document.getElementById('cancelButton');
 			cancelButton.value = window.parent.mxResources.get('cancel');
 			var supportedText = document.getElementById('openSupported');

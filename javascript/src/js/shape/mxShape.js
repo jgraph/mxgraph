@@ -1,5 +1,5 @@
 /**
- * $Id: mxShape.js,v 1.168 2012-05-18 10:05:10 gaudenz Exp $
+ * $Id: mxShape.js,v 1.171 2012-05-23 08:22:29 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -189,11 +189,26 @@ mxShape.prototype.startOffset = null;
 mxShape.prototype.endOffset = null;
 
 /**
+ * Variable: boundingBox
+ *
+ * Contains the bounding box of the shape, that is, the smallest rectangle
+ * that includes all pixels of the shape.
+ */
+mxShape.prototype.boundingBox = null;
+
+/**
  * Variable: vmlNodes
  *
  * Array if VML node names to fix in IE8 standards mode.
  */
 mxShape.prototype.vmlNodes = ['node', 'strokeNode', 'fillNode', 'shadowNode'];
+
+/**
+ * Variable: vmlScale
+ *
+ * Internal scaling for VML using coordsize for better precision.
+ */
+mxShape.prototype.vmlScale = 1;
 
 /**
  * Function: setCursor
@@ -1323,11 +1338,27 @@ mxShape.prototype.updateVmlShape = function(node)
 	if (this.bounds != null && !isNaN(this.bounds.x) && !isNaN(this.bounds.y) &&
 		!isNaN(this.bounds.width) && !isNaN(this.bounds.height))
 	{
+		var f = 1;
+
+		var w = Math.max(0, Math.round(this.bounds.width));
+		var h = Math.max(0, Math.round(this.bounds.height));
+		
+		// Groups and shapes need a coordsize
+		if (this.points != null || node.nodeName == 'shape' || node.nodeName == 'group')
+		{
+			var tmp = (node.parentNode.nodeName == 'group') ? 1 : this.vmlScale;
+			node.coordsize = (w * tmp) + ',' + (h * tmp);
+		}
+		else if (node.parentNode.nodeName == 'group')
+		{
+			f = this.vmlScale;
+		}
+		
 		// Only top-level nodes are non-relative and rotated
 		if (node.parentNode != this.node)
 		{
-			node.style.left = Math.round(this.bounds.x) + 'px';
-			node.style.top = Math.round(this.bounds.y) + 'px';
+			node.style.left = Math.round(this.bounds.x * f) + 'px';
+			node.style.top = Math.round(this.bounds.y * f) + 'px';
 			
 			if (this.points == null)
 			{
@@ -1342,16 +1373,8 @@ mxShape.prototype.updateVmlShape = function(node)
 			}
 		}
 		
-		var w = Math.max(0, Math.round(this.bounds.width));
-		var h = Math.max(0, Math.round(this.bounds.height));
-		node.style.width = w + 'px';
-		node.style.height = h + 'px';
-
-		// Groups and shapes need a coordsize
-		if (this.points != null || node.nodeName == 'shape' || node.nodeName == 'group')
-		{
-			node.coordsize = w + ',' + h;
-		}
+		node.style.width = (w * f) + 'px';
+		node.style.height = (h * f) + 'px';
 	}
 	
 	if (this.points != null && node.nodeName != 'group')
@@ -1625,6 +1648,8 @@ mxShape.prototype.reconfigure = function()
  */
 mxShape.prototype.redraw = function()
 {
+	this.updateBoundingBox();
+	
 	if (this.dialect == mxConstants.DIALECT_SVG)
 	{
 		this.redrawSvg();
@@ -1639,6 +1664,58 @@ mxShape.prototype.redraw = function()
 	{
 		this.redrawHtml();
 	}
+};
+
+/**
+ * Function: updateBoundingBox
+ *
+ * Updates the <boundingBox> for this shape using <createBoundingBox> and
+ * <augmentBoundingBox> and stores the result in <boundingBox>.
+ */
+mxShape.prototype.updateBoundingBox = function()
+{
+	if (this.bounds != null)
+	{
+		var bbox = this.createBoundingBox();
+		this.augmentBoundingBox(bbox);
+		
+		bbox.x = Math.floor(bbox.x);
+		bbox.y = Math.floor(bbox.y);
+		// TODO: Fix rounding errors
+		bbox.width = Math.ceil(bbox.width);
+		bbox.height = Math.ceil(bbox.height);
+
+		this.boundingBox = bbox;
+	}
+};
+
+/**
+ * Function: createBoundingBox
+ *
+ * Returns a new rectangle that represents the bounding box of the bare shape
+ * with no shadows or strokewidths.
+ */
+mxShape.prototype.createBoundingBox = function()
+{
+	return this.bounds.clone();
+};
+
+/**
+ * Function: augmentBoundingBox
+ *
+ * Augments the bounding box with the strokewidth and shadow offsets.
+ */
+mxShape.prototype.augmentBoundingBox = function(bbox)
+{
+	if (this.isShadow)
+	{
+		bbox.width += Math.ceil(mxConstants.SHADOW_OFFSET_X * this.scale);
+		bbox.height += Math.ceil(mxConstants.SHADOW_OFFSET_Y * this.scale);
+	}
+	
+	// Adds strokeWidth
+	var sw = Math.ceil(this.strokewidth * this.scale);
+	bbox.grow(Math.floor(sw / 2));
 };
 
 /**
@@ -1921,6 +1998,7 @@ mxShape.prototype.createPath = function(arg)
 	{
 		path = new mxPath('vml');
 		path.setTranslate(dx, -dx);
+		path.scale = this.vmlScale;
 		
 		if (rotation != 0)
 		{

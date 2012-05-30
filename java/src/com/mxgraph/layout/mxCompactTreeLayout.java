@@ -923,6 +923,11 @@ public class mxCompactTreeLayout extends mxGraphLayout
 		return new Polyline(dx, dy, next);
 	}
 
+	/**
+	 * Adjust parent cells whose child geometries have changed. The default 
+	 * implementation adjusts the group to just fit around the children with 
+	 * a padding.
+	 */
 	protected void adjustParents()
 	{
 		arrangeGroups(mxUtils.sortCells(this.parentsChanged, true).toArray(), groupPadding);

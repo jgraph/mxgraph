@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphView.js,v 1.188 2012-05-10 17:28:47 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.191 2012-05-24 12:37:04 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -899,33 +899,34 @@ mxGraphView.prototype.validatePoints = function(parentState, cell)
 			
 			state.invalid = false;
 			
-			if (this.isRendering() && cell != this.currentRoot)
+			if (cell != this.currentRoot)
 			{
-				this.graph.cellRenderer.redraw(state);
+				// NOTE: Label bounds currently ignored if rendering is false
+				this.graph.cellRenderer.redraw(state, false, this.isRendering());
 			}
 		}
 		
 		if (model.isEdge(cell) || model.isVertex(cell))
 		{
-			bbox = new mxRectangle(state.x, state.y, state.width, state.height);
-			
-			// Adds shadow
-			if (mxUtils.getValue(state.style, mxConstants.STYLE_SHADOW, 0) == 1)
+			if (state.shape != null && state.shape.boundingBox != null)
 			{
-				bbox.width += Math.ceil(mxConstants.SHADOW_OFFSET_X * this.scale);
-				bbox.height += Math.ceil(mxConstants.SHADOW_OFFSET_Y * this.scale);
+				bbox = state.shape.boundingBox.clone();
 			}
 			
-			// Adds strokeWidth
-			var sw = Math.ceil(mxUtils.getNumber(state.style, mxConstants.STYLE_STROKEWIDTH, 1) * this.scale);
-			bbox.grow(Math.floor(sw / 2));
-
-			var box = (state.text != null && !this.graph.isLabelClipped(state.cell)) ? state.text.boundingBox : null;
-
-			// Adds label bounding box to graph bounds
-			if (box != null)
+			if (state.text != null && !this.graph.isLabelClipped(state.cell))
 			{
-				bbox.add(box);
+				// Adds label bounding box to graph bounds
+				if (state.text.boundingBox != null)
+				{
+					if (bbox != null)
+					{
+						bbox.add(state.text.boundingBox);
+					}
+					else
+					{
+						bbox = state.text.boundingBox.clone();
+					}
+				}
 			}
 		}
 	}
@@ -1969,11 +1970,7 @@ mxGraphView.prototype.createState = function(cell)
 {
 	var style = this.graph.getCellStyle(cell);
 	var state = new mxCellState(this, cell, style);
-	
-	if (this.isRendering())
-	{
-		this.graph.cellRenderer.initialize(state);
-	}
+	this.graph.cellRenderer.initialize(state, this.isRendering());
 
 	return state;
 };

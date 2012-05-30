@@ -20,6 +20,8 @@ import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.text.AttributedString;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Stack;
 
 import javax.swing.CellRendererPane;
@@ -53,6 +55,11 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	 * See {@link #scaleImage(Image, int, int)}
 	 */
 	public static int IMAGE_SCALING = Image.SCALE_SMOOTH;
+
+	/**
+	 * Specifies the size of the cache used to store parsed colors
+	 */
+	public static int COLOR_CACHE_SIZE = 100;
 
 	/**
 	 * Reference to the graphics instance for painting.
@@ -119,6 +126,17 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	 * Optional renderer pane to be used for HTML label rendering.
 	 */
 	protected CellRendererPane rendererPane;
+
+	/**
+	 * Caches parsed colors.
+	 */
+	@SuppressWarnings("serial")
+	protected transient LinkedHashMap<String, Color> colorCache = new LinkedHashMap<String, Color>() {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, Color> eldest) {
+                return size() > COLOR_CACHE_SIZE;
+        }
+	};
 
 	/**
 	 * Constructs a new graphics export canvas.
@@ -310,20 +328,20 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	{
 		if (!state.dashPattern.equals(value))
 		{
-			float[] dashpattern = null;
+			float[] pat = null;
 
 			if (state.dashed && state.dashPattern != null)
 			{
 				String[] tokens = value.split(" ");
-				dashpattern = new float[tokens.length];
+				pat = new float[tokens.length];
 
 				for (int i = 0; i < tokens.length; i++)
 				{
-					dashpattern[i] = (float) (Float.parseFloat(tokens[i]));
+					pat[i] = (float) (Float.parseFloat(tokens[i]));
 				}
 			}
 
-			state.dashPattern = dashpattern;
+			state.dashPattern = pat;
 			currentStroke = null;
 		}
 	}
@@ -477,12 +495,19 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	}
 
 	/**
-	 * Helper method that uses {@link mxUtils#parseColor(String)}. Subclassers
-	 * can override this to implement caching for frequently used colors.
+	 * Helper method that uses {@link mxUtils#parseColor(String)}.
 	 */
 	protected Color parseColor(String hex)
 	{
-		return mxUtils.parseColor(hex);
+		Color result = colorCache.get(hex);
+		
+		if (result == null)
+		{
+			result = mxUtils.parseColor(hex);
+			colorCache.put(hex, result);
+		}
+		
+		return result;
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.java,v 1.123 2012-05-10 11:13:58 gaudenz Exp $
+ * $Id: mxUtils.java,v 1.125 2012-05-24 06:55:16 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.util;
@@ -1457,6 +1457,24 @@ public class mxUtils
 	public static float[] getFloatArray(Map<String, Object> dict, String key,
 			float[] defaultValue)
 	{
+		return getFloatArray(dict, key, defaultValue, ",");
+	}
+
+	/**
+	 * Returns the value for key in dictionary as a float array or the given default
+	 * value if no value is defined for the key.
+	 * 
+	 * @param dict
+	 *            Dictionary that contains the key, value pairs.
+	 * @param key
+	 *            Key whose value should be returned.
+	 * @param defaultValue
+	 *            Default value to return if the key is undefined.
+	 * @return Returns the float array value for key in dict.
+	 */
+	public static float[] getFloatArray(Map<String, Object> dict, String key,
+			float[] defaultValue, String separator)
+	{
 		Object value = dict.get(key);
 
 		if (value == null)
@@ -1465,7 +1483,7 @@ public class mxUtils
 		}
 		else
 		{
-			String[] floatChars = value.toString().split(",");
+			String[] floatChars = value.toString().split(separator);
 			float[] result = new float[floatChars.length];
 
 			for (int i = 0; i < floatChars.length; i++)
@@ -1712,14 +1730,28 @@ public class mxUtils
 					colorString.charAt(3) });
 		}
 
-		int value;
+		int value = 0;
 		try
 		{
-			value = (int) Long.parseLong(colorString, 16);
+			String tmp = colorString;
+			
+			if (tmp.startsWith("#"))
+			{
+				tmp = tmp.substring(1);
+			}
+			
+			value = (int) Long.parseLong(tmp, 16);
 		}
 		catch (NumberFormatException nfe)
 		{
-			value = Long.decode(colorString).intValue();
+			try
+			{
+				value = Long.decode(colorString).intValue();
+			}
+			catch (NumberFormatException e)
+			{
+				// ignores exception and returns black
+			}
 		}
 
 		return new Color(value);

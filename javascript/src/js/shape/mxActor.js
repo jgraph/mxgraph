@@ -1,5 +1,5 @@
 /**
- * $Id: mxActor.js,v 1.32 2012-04-04 07:34:50 gaudenz Exp $
+ * $Id: mxActor.js,v 1.33 2012-05-21 18:27:17 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -71,6 +71,13 @@ mxActor.prototype.mixedModeHtml = false;
  * draw as VML in prefer Html mode.
  */
 mxActor.prototype.preferModeHtml = false;
+
+/**
+ * Variable: vmlScale
+ *
+ * Renders VML with a scale of 2.
+ */
+mxActor.prototype.vmlScale = 2;
 
 /**
  * Function: createVml

@@ -1,5 +1,5 @@
 /**
- * $Id: mxText.js,v 1.166 2012-05-21 06:53:20 gaudenz Exp $
+ * $Id: mxText.js,v 1.167 2012-05-22 16:10:12 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -177,6 +177,16 @@ mxText.prototype.create = function(container)
 	}
 	
 	return node;
+};
+
+/**
+ * Function: updateBoundingBox
+ * 
+ * Overrides method to do nothing.
+ */
+mxText.prototype.updateBoundingBox = function()
+{
+	// do nothing
 };
 
 /**

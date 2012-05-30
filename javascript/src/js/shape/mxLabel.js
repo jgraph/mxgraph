@@ -1,5 +1,5 @@
 /**
- * $Id: mxLabel.js,v 1.39 2011-11-23 17:21:27 gaudenz Exp $
+ * $Id: mxLabel.js,v 1.40 2012-05-22 16:10:12 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -284,6 +284,7 @@ mxLabel.prototype.createSvg = function()
  */
 mxLabel.prototype.redraw = function()
 {
+	this.updateBoundingBox();
 	var isSvg = (this.dialect == mxConstants.DIALECT_SVG);
 	var isVml = mxUtils.isVml(this.node);
 	

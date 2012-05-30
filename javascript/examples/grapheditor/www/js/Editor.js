@@ -1,5 +1,5 @@
 /**
- * $Id: Editor.js,v 1.37 2012-05-15 12:49:55 gaudenz Exp $
+ * $Id: Editor.js,v 1.38 2012-05-24 14:21:51 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 // Specifies if local storage should be used (eg. on the iPad which has no filesystem)
@@ -126,7 +126,19 @@ Editor.prototype.setGraphXml = function(node)
 		this.graph.pageVisible = node.getAttribute('page') == '1';
 		this.graph.pageBreaksVisible = this.graph.pageVisible; 
 		this.graph.preferPageSize = this.graph.pageBreaksVisible;
-
+		
+		// Loads the persistent state settings
+		var ps = node.getAttribute('pageScale');
+		
+		if (ps != null)
+		{
+			this.graph.pageScale = ps;
+		}
+		else
+		{
+			this.graph.pageScale = 1.5;
+		}
+		
 		dec.decode(node, this.graph.getModel());
 		
 		// Loads the persistent state settings
@@ -167,6 +179,7 @@ Editor.prototype.getGraphXml = function()
 	node.setAttribute('connect', (this.graph.connectionHandler.isEnabled()) ? '1' : '0');	
 	node.setAttribute('fold', (this.graph.foldingEnabled) ? '1' : '0');
 	node.setAttribute('page', (this.graph.pageVisible) ? '1' : '0');
+	node.setAttribute('pageScale', this.graph.pageScale);
 	
 	if (!this.graph.scrollbars)
 	{
@@ -234,7 +247,12 @@ Editor.prototype.updateGraphComponents = function()
 			graph.container.style.overflow = 'hidden';
 		}
 		
-		graph.container.style.backgroundImage = (graph.isGridEnabled()) ? 'url(images/grid.gif)' : 'none';
+		graph.container.style.backgroundImage = (!graph.pageVisible && graph.isGridEnabled()) ? 'url(images/grid.gif)' : 'none';
+
+		if (graph.view.backgroundPageShape != null)
+		{
+			graph.view.backgroundPageShape.node.style.backgroundImage = (this.graph.isGridEnabled()) ? 'url(images/grid.gif)' : 'none';
+		}
 	}
 };
 
@@ -297,6 +315,10 @@ Editor.prototype.init = function()
 	mxConstants.DEFAULT_VALID_COLOR = '#00a8ff';
 	mxConstants.LABEL_HANDLE_FILLCOLOR = '#cee7ff';
 	mxConstants.GUIDE_COLOR = '#0088cf';
+
+	// TODO: Add option for setting pageScale
+	mxGraph.prototype.pageBreakColor = '#c0c0c0';
+	mxGraph.prototype.pageScale = 1;
 	
 	// Increases default rubberband opacity (default is 20)
 	mxRubberband.prototype.defaultOpacity = 30;
@@ -304,7 +326,7 @@ Editor.prototype.init = function()
 	// Changes border color of background page shape
 	mxGraphView.prototype.createBackgroundPageShape = function(bounds)
 	{
-		return new mxRectangleShape(bounds, this.graph.background || 'white', 'gray');
+		return new mxRectangleShape(bounds, this.graph.background || 'white', '#c0c0c0');
 	};
 
 	// Fits the number of background pages to the graph
@@ -336,6 +358,233 @@ Editor.prototype.init = function()
 				(this.translate.y + y0 * ph), this.scale * rows * pw, this.scale * cols * ph);
 		
 		return bounds;
+	};
+	
+	// Add panning for background page in VML
+	var graphPanGraph = mxGraph.prototype.panGraph;
+	mxGraph.prototype.panGraph = function(dx, dy)
+	{
+		graphPanGraph.apply(this, arguments);
+		
+		if ((this.dialect != mxConstants.DIALECT_SVG && this.view.backgroundPageShape != null) &&
+			(!this.useScrollbarsForPanning || !mxUtils.hasScrollbars(this.container)))
+		{
+			this.view.backgroundPageShape.node.style.marginLeft = dx + 'px';
+			this.view.backgroundPageShape.node.style.marginTop = dy + 'px';
+		}
+	};
+	
+	// Uses HTML for background pages (to support grid background image)
+	mxGraphView.prototype.validateBackground = function()
+	{
+		var bg = this.graph.getBackgroundImage();
+		
+		if (bg != null)
+		{
+			if (this.backgroundImage == null || this.backgroundImage.image != bg.src)
+			{
+				if (this.backgroundImage != null)
+				{
+					this.backgroundImage.destroy();
+				}
+				
+				var bounds = new mxRectangle(0, 0, 1, 1);
+				
+				this.backgroundImage = new mxImageShape(bounds, bg.src);
+				this.backgroundImage.dialect = this.graph.dialect;
+				this.backgroundImage.init(this.backgroundPane);
+				this.backgroundImage.redraw();
+			}
+			
+			this.redrawBackgroundImage(this.backgroundImage, bg);
+		}
+		else if (this.backgroundImage != null)
+		{
+			this.backgroundImage.destroy();
+			this.backgroundImage = null;
+		}
+		
+		if (this.graph.pageVisible)
+		{
+			var bounds = this.getBackgroundPageBounds();
+			
+			if (this.backgroundPageShape == null)
+			{
+				this.backgroundPageShape = this.createBackgroundPageShape(bounds);
+				this.backgroundPageShape.scale = 1;
+				this.backgroundPageShape.isShadow = true;
+				this.backgroundPageShape.dialect = mxConstants.DIALECT_STRICTHTML;
+				this.backgroundPageShape.init(this.graph.container);
+				this.backgroundPageShape.redraw();
+				
+				this.backgroundPageShape.node.className = 'backgroundPage';
+				
+				// Adds listener for double click handling on background
+				mxEvent.addListener(this.backgroundPageShape.node, 'dblclick',
+					mxUtils.bind(this, function(evt)
+					{
+						this.graph.dblClick(evt);
+					})
+				);
+				
+				var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
+				var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
+				var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
+
+				// Adds basic listeners for graph event dispatching outside of the
+				// container and finishing the handling of a single gesture
+				mxEvent.addListener(this.backgroundPageShape.node, md,
+					mxUtils.bind(this, function(evt)
+					{
+						this.graph.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt));
+					})
+				);
+				mxEvent.addListener(this.backgroundPageShape.node, mm,
+					mxUtils.bind(this, function(evt)
+					{
+						// Hides the tooltip if mouse is outside container
+						if (this.graph.tooltipHandler != null &&
+								this.graph.tooltipHandler.isHideOnHover())
+						{
+							this.graph.tooltipHandler.hide();
+						}
+						
+						if (this.graph.isMouseDown &&
+							!mxEvent.isConsumed(evt))
+						{
+							this.graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
+								new mxMouseEvent(evt));
+						}
+					})
+				);
+				mxEvent.addListener(this.backgroundPageShape.node, mu,
+					mxUtils.bind(this, function(evt)
+					{
+						this.graph.fireMouseEvent(mxEvent.MOUSE_UP,
+								new mxMouseEvent(evt));
+					})
+				);
+			}
+			else
+			{
+				this.backgroundPageShape.scale = 1;
+				this.backgroundPageShape.bounds = bounds;
+				this.backgroundPageShape.redraw();
+			}
+			
+			this.backgroundPageShape.node.style.backgroundImage = (this.graph.isGridEnabled()) ? 'url(images/grid.gif)' : 'none';
+		}
+		else if (this.backgroundPageShape != null)
+		{
+			this.backgroundPageShape.destroy();
+			this.backgroundPageShape = null;
+		}
+	};
+	
+	// Draws page breaks only within the page
+	mxGraph.prototype.updatePageBreaks = function(visible, width, height)
+	{
+		var scale = this.view.scale;
+		var tr = this.view.translate;
+		var fmt = this.pageFormat;
+		var ps = scale * this.pageScale;
+
+		var bounds2 = this.view.getBackgroundPageBounds();
+
+		width = bounds2.width;
+		height = bounds2.height;
+		var bounds = new mxRectangle(scale * tr.x, scale * tr.y,
+				fmt.width * ps, fmt.height * ps);
+
+		// Does not show page breaks if the scale is too small
+		visible = visible && Math.min(bounds.width, bounds.height) > this.minPageBreakDist;
+
+		var horizontalCount = (visible) ? Math.ceil(width / bounds.width) - 1 : 0;
+		var verticalCount = (visible) ? Math.ceil(height / bounds.height) - 1 : 0;
+		var right = bounds2.x + width;
+		var bottom = bounds2.y + height;
+
+		if (this.horizontalPageBreaks == null && horizontalCount > 0)
+		{
+			this.horizontalPageBreaks = [];
+		}
+
+		if (this.horizontalPageBreaks != null)
+		{
+			for (var i = 0; i <= horizontalCount; i++)
+			{
+				var pts = [new mxPoint(bounds2.x + (i + 1) * bounds.width, bounds2.y),
+				           new mxPoint(bounds2.x + (i + 1) * bounds.width, bottom)];
+				
+				if (this.horizontalPageBreaks[i] != null)
+				{
+					this.horizontalPageBreaks[i].scale = 1;
+					this.horizontalPageBreaks[i].points = pts;
+					this.horizontalPageBreaks[i].redraw();
+				}
+				else
+				{
+					var pageBreak = new mxPolyline(pts, this.pageBreakColor, this.scale);
+					pageBreak.dialect = this.dialect;
+					pageBreak.isDashed = this.pageBreakDashed;
+					pageBreak.addPipe = false;
+					pageBreak.scale = scale;
+					pageBreak.crisp = true;
+					pageBreak.init(this.view.backgroundPane);
+					pageBreak.redraw();
+					
+					this.horizontalPageBreaks[i] = pageBreak;
+				}
+			}
+			
+			for (var i = horizontalCount; i < this.horizontalPageBreaks.length; i++)
+			{
+				this.horizontalPageBreaks[i].destroy();
+			}
+			
+			this.horizontalPageBreaks.splice(horizontalCount, this.horizontalPageBreaks.length - horizontalCount);
+		}
+		
+		if (this.verticalPageBreaks == null && verticalCount > 0)
+		{
+			this.verticalPageBreaks = [];
+		}
+		
+		if (this.verticalPageBreaks != null)
+		{
+			for (var i = 0; i <= verticalCount; i++)
+			{
+				var pts = [new mxPoint(bounds2.x, bounds2.y + (i + 1) * bounds.height),
+				           new mxPoint(right, bounds2.y + (i + 1) * bounds.height)];
+				
+				if (this.verticalPageBreaks[i] != null)
+				{
+					this.verticalPageBreaks[i].scale = 1; //scale;
+					this.verticalPageBreaks[i].points = pts;
+					this.verticalPageBreaks[i].redraw();
+				}
+				else
+				{
+					var pageBreak = new mxPolyline(pts, this.pageBreakColor, scale);
+					pageBreak.dialect = this.dialect;
+					pageBreak.isDashed = this.pageBreakDashed;
+					pageBreak.addPipe = false;
+					pageBreak.scale = scale;
+					pageBreak.crisp = true;
+					pageBreak.init(this.view.backgroundPane);
+					pageBreak.redraw();
+		
+					this.verticalPageBreaks[i] = pageBreak;
+				}
+			}
+			
+			for (var i = verticalCount; i < this.verticalPageBreaks.length; i++)
+			{
+				this.verticalPageBreaks[i].destroy();
+			}
+			
+			this.verticalPageBreaks.splice(verticalCount, this.verticalPageBreaks.length - verticalCount);
+		}
 	};
 	
 	// Enables snapping to off-grid terminals for edge waypoints

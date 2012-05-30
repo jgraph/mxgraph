@@ -1,5 +1,5 @@
 /**
- * $Id: Graph.js,v 1.29 2012-05-02 22:28:01 gaudenz Exp $
+ * $Id: Graph.js,v 1.32 2012-05-23 21:23:25 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -489,27 +489,25 @@ Graph.prototype.initTouch = function()
 	CubeShape.prototype.size = 20;
 	CubeShape.prototype.redrawPath = function(path, x, y, w, h, isForeground)
 	{
-		var s = mxUtils.getValue(this.style, 'size', this.size);
-		var dy = s * this.scale;
-		var dx = s * this.scale;
+		var s = Math.min(w, Math.min(h, mxUtils.getValue(this.style, 'size', this.size) * this.scale));
 
 		if (isForeground)
 		{
-			path.moveTo(dx, h);
-			path.lineTo(dx, dy);
+			path.moveTo(s, h);
+			path.lineTo(s, s);
 			path.lineTo(0, 0);
-			path.moveTo(dx, dy);
-			path.lineTo(w, dy);
+			path.moveTo(s, s);
+			path.lineTo(w, s);
 			path.end();
 		}
 		else
 		{
 			path.moveTo(0, 0);
-			path.lineTo(w - dx, 0);
-			path.lineTo(w, dy);
+			path.lineTo(w - s, 0);
+			path.lineTo(w, s);
 			path.lineTo(w, h);
-			path.lineTo(dx, h);
-			path.lineTo(0, h - dy);
+			path.lineTo(s, h);
+			path.lineTo(0, h - s);
 			path.lineTo(0, 0);
 			path.close();
 			path.end();
@@ -525,22 +523,20 @@ Graph.prototype.initTouch = function()
 	NoteShape.prototype.size = 30;
 	NoteShape.prototype.redrawPath = function(path, x, y, w, h, isForeground)
 	{
-		var s = mxUtils.getValue(this.style, 'size', this.size);
-		var dx = s * this.scale;
-		var dy = s * this.scale;
+		var s = Math.min(w, Math.min(h, mxUtils.getValue(this.style, 'size', this.size) * this.scale));
 
 		if (isForeground)
 		{
-			path.moveTo(w - dx, 0);
-			path.lineTo(w - dx, dy);
-			path.lineTo(w, dy);
+			path.moveTo(w - s, 0);
+			path.lineTo(w - s, s);
+			path.lineTo(w, s);
 			path.end();
 		}
 		else
 		{
 			path.moveTo(0, 0);
-			path.lineTo(w - dx, 0);
-			path.lineTo(w, dy);
+			path.lineTo(w - s, 0);
+			path.lineTo(w, s);
 			path.lineTo(w, h);
 			path.lineTo(0, h);
 			path.lineTo(0, 0);
@@ -563,8 +559,8 @@ Graph.prototype.initTouch = function()
 		var tw = mxUtils.getValue(this.style, 'tabWidth', this.tabWidth);
 		var th = mxUtils.getValue(this.style, 'tabHeight', this.tabHeight);
 		var tp = mxUtils.getValue(this.style, 'tabPosition', this.tabPosition);
-		var dx = tw * this.scale;
-		var dy = th * this.scale;
+		var dx = Math.min(w, tw * this.scale);
+		var dy = Math.min(h, th * this.scale);
 
 		if (isForeground)
 		{
@@ -617,18 +613,16 @@ Graph.prototype.initTouch = function()
 	CardShape.prototype.size = 30;
 	CardShape.prototype.redrawPath = function(path, x, y, w, h, isForeground)
 	{
-		var s = mxUtils.getValue(this.style, 'size', this.size);
-		var dx = s * this.scale;
-		var dy = s * this.scale;
+		var s = Math.min(w, Math.min(h, mxUtils.getValue(this.style, 'size', this.size) * this.scale));
 
 		if (!isForeground)
 		{
-			path.moveTo(dx, 0);
+			path.moveTo(s, 0);
 			path.lineTo(w, 0);
 			path.lineTo(w, h);
 			path.lineTo(0, h);
-			path.lineTo(0, dy);
-			path.lineTo(dx, 0);
+			path.lineTo(0, s);
+			path.lineTo(s, 0);
 			path.close();
 			path.end();
 		}
@@ -662,6 +656,30 @@ Graph.prototype.initTouch = function()
 	};
 
 	mxCellRenderer.prototype.defaultShapes['tape'] = TapeShape;
+
+	// Tape Shape, supports size style
+	function StepShape() { };
+	StepShape.prototype = new mxCylinder();
+	StepShape.prototype.constructor = StepShape;
+	StepShape.prototype.size = 0.2;
+	StepShape.prototype.redrawPath = function(path, x, y, w, h, isForeground)
+	{
+		var s =  w * mxUtils.getValue(this.style, 'size', this.size);
+
+		if (!isForeground)
+		{
+			path.moveTo(0, 0);
+			path.lineTo(w - s, 0);
+			path.lineTo(w, h / 2);
+			path.lineTo(w - s, h);
+			path.lineTo(0, h);
+			path.lineTo(s, h / 2);
+			path.close();
+			path.end();
+		}
+	};
+
+	mxCellRenderer.prototype.defaultShapes['step'] = StepShape;
 
 	// Tape Shape, supports size style
 	function PlusShape() { };
@@ -720,6 +738,7 @@ Graph.prototype.initTouch = function()
 	function UmlActorShape() { };
 	UmlActorShape.prototype = new mxCylinder();
 	UmlActorShape.prototype.constructor = UmlActorShape;
+	UmlActorShape.prototype.addPipe = true;
 	UmlActorShape.prototype.redrawPath = function(path, x, y, w, h, isForeground)
 	{
 		var width = w / 3;
@@ -731,9 +750,7 @@ Graph.prototype.initTouch = function()
 			path.curveTo(w / 2 - width, height, w / 2 - width, 0, w / 2, 0);
 			path.curveTo(w / 2 + width, 0, w / 2 + width, height, w / 2, height);
 			path.close();
-		}
-		else
-		{
+
 			path.moveTo(w / 2, height);
 			path.lineTo(w / 2, 2 * h / 3);
 			
@@ -772,9 +789,7 @@ Graph.prototype.initTouch = function()
 			path.curveTo(w / 2 - width, height, w / 2 - width, 0, w / 2, 0);
 			path.curveTo(w / 2 + width, 0, w / 2 + width, height, w / 2, height);
 			path.close();
-		}
-		else
-		{
+
 			path.moveTo(w / 2, height);
 			path.lineTo(w / 2, h);
 			path.end();
@@ -949,7 +964,14 @@ Graph.prototype.initTouch = function()
 	LinkShape.prototype.constructor = LinkShape;
 	LinkShape.prototype.enableFill = false;
 	LinkShape.prototype.addPipe = true;
-	
+
+	LinkShape.prototype.augmentBoundingBox = function(bbox)
+	{
+		bbox.grow(10 * this.scale);
+		
+		mxShape.prototype.augmentBoundingBox.apply(this, arguments);
+	};
+
 	LinkShape.prototype.redrawPath = function(path, x, y, w, h)
 	{
 		// All points are offset
@@ -1054,5 +1076,457 @@ Graph.prototype.initTouch = function()
 	mxConnector.prototype.crisp = false;
 	FolderShape.prototype.crisp = true;
 	ComponentShape.prototype.crisp = true;
+	
+	// Implements custom handlers
+	var handlers = {'swimlane': mxSwimlaneHandler, 'folder': mxFolderHandler, 'cube': mxCubeHandler,
+			'card': mxCardHandler, 'note': mxNoteHandler, 'step': mxStepHandler, 'tape': mxTapeHandler};
+
+	// Swimlane handler
+	Graph.prototype.createHandler = function(state)
+	{
+		if (state != null)
+		{
+			var ctor = handlers[state.style['shape']];
+
+			if (ctor != null)
+			{
+				return new ctor(state);
+			}
+		}
+		
+		return mxGraph.prototype.createHandler.apply(this, arguments);
+	};
+	
+	function mxSwimlaneHandler(state)
+	{
+		mxVertexHandler.call(this, state);
+	};
+
+	// Graph inherits from mxGraph
+	mxUtils.extend(mxSwimlaneHandler, mxVertexHandler);
+
+	mxSwimlaneHandler.prototype.useGridForSpecialHandle = false;
+	
+	mxSwimlaneHandler.prototype.init = function()
+	{
+		this.horizontal = mxUtils.getValue(this.state.style, mxConstants.STYLE_HORIZONTAL, true);
+		var graph = this.state.view.graph;
+		var size = 10;
+		var bounds = new mxRectangle(0, 0, size, size);
+		//this.specialHandle = this.createSizerShape(bounds, -2, 'orange');
+		this.specialHandle = new mxRhombus(bounds, mxConstants.HANDLE_FILLCOLOR, mxConstants.HANDLE_STROKECOLOR);
+		this.specialHandle.crisp = this.crisp;
+		this.specialHandle.dialect = (graph.dialect != mxConstants.DIALECT_SVG) ?
+				mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
+		this.specialHandle.init(graph.getView().getOverlayPane());
+		this.specialHandle.node.style.cursor = this.getSpecialHandleCursor();
+
+		mxEvent.redirectMouseEvents(this.specialHandle.node, graph, this.state);
+		mxVertexHandler.prototype.init.apply(this, arguments);
+	};
+	
+	mxSwimlaneHandler.prototype.getSpecialHandleCursor = function()
+	{
+		return (this.horizontal) ? 'n-resize' : 'w-resize';
+	};
+	
+	mxSwimlaneHandler.prototype.redraw = function()
+	{
+		mxVertexHandler.prototype.redraw.apply(this, arguments);
+
+		var size = this.specialHandle.bounds.width;
+		this.specialHandle.bounds = this.getSpecialHandleBounds(size);
+		this.specialHandle.redraw();
+	};
+	
+	mxSwimlaneHandler.prototype.getSpecialHandleBounds = function(size)
+	{
+		var scale = this.graph.getView().scale;
+		var start = this.state.view.graph.getStartSize(this.state.cell);
+		
+		if (this.horizontal)
+		{
+			return new mxRectangle(this.state.x + (this.state.width - size) / 2,
+				this.state.y + start.height * scale - size / 2, size, size);
+		}
+		else
+		{
+			return new mxRectangle(this.state.x + start.width * scale - size / 2,
+					this.state.y + (this.state.height - size) / 2, size, size);
+		}
+	};
+	
+	mxSwimlaneHandler.prototype.destroy = function()
+	{
+		mxVertexHandler.prototype.destroy.apply(this, arguments);
+		
+		if (this.specialHandle != null)
+		{
+			this.specialHandle.destroy();
+			this.specialHandle = null;
+		}
+	};
+	
+	mxSwimlaneHandler.prototype.getHandleForEvent = function(me)
+	{
+		if (me.isSource(this.specialHandle))
+		{
+			return -2;
+		}
+		
+		return mxVertexHandler.prototype.getHandleForEvent.apply(this, arguments);
+	};
+	
+	mxSwimlaneHandler.prototype.constrainPoint = function(point)
+	{
+		point.x = Math.max(this.state.x, Math.min(this.state.x + this.state.width, point.x));
+		point.y = Math.max(this.state.y, Math.min(this.state.y + this.state.height, point.y));
+	};
+	
+	mxSwimlaneHandler.prototype.mouseMove = function(sender, me)
+	{
+		if (!me.isConsumed() && this.index == -2)
+		{
+			var point = new mxPoint(me.getGraphX(), me.getGraphY());
+			this.constrainPoint(point);
+			var gridEnabled = this.graph.isGridEnabledEvent(me.getEvent());
+			var scale = this.graph.getView().scale;
+			
+			if (gridEnabled && this.useGridForSpecialHandle)
+			{
+				point.x = this.graph.snap(point.x / scale) * scale;
+				point.y = this.graph.snap(point.y / scale) * scale;
+			}
+			
+			this.updateStyle(point);			
+			this.moveSizerTo(this.specialHandle, point.x, point.y);
+			this.state.view.graph.cellRenderer.redraw(this.state, true);
+			me.consume();
+		}
+		else
+		{
+			mxVertexHandler.prototype.mouseMove.apply(this, arguments);
+		}
+	};
+	
+	mxSwimlaneHandler.prototype.updateStyle = function(point)
+	{
+		var startSize = 0;
+
+		if (this.horizontal)
+		{
+			point.x = this.state.x + this.state.width / 2;
+			startSize = point.y - this.state.y;
+		}
+		else
+		{
+			point.y = this.state.y + this.state.height / 2;
+			startSize = point.x - this.state.x;
+		}
+
+		var scale = this.graph.getView().scale;
+		this.state.style['startSize'] = Math.round(Math.max(1, startSize) / scale);
+	};
+	
+	mxSwimlaneHandler.prototype.mouseUp = function(sender, me)
+	{
+		if (!me.isConsumed() && this.index == -2)
+		{
+			this.applyStyle();
+			this.reset();
+			me.consume();
+		}
+		else
+		{
+			mxVertexHandler.prototype.mouseUp.apply(this, arguments);
+		}
+	};
+	
+	mxSwimlaneHandler.prototype.applyStyle = function()
+	{
+		this.state.view.graph.setCellStyles('startSize', this.state.style['startSize'], [this.state.cell]);
+	};
+	
+	// Folder Handler
+	function mxFolderHandler(state)
+	{
+		mxSwimlaneHandler.call(this, state);
+	};
+
+	mxUtils.extend(mxFolderHandler, mxSwimlaneHandler);
+	
+	mxFolderHandler.prototype.getSpecialHandleCursor = function()
+	{
+		return 'default';
+	};
+
+	mxFolderHandler.prototype.getSpecialHandleBounds = function(size)
+	{
+		var direction = mxUtils.getValue(this.state.style, 'direction', 'east');
+		var bounds = new mxRectangle(this.state.x, this.state.y, this.state.width, this.state.height);
+		
+		if (direction == 'south' || direction == 'north')
+		{
+			bounds.x += (bounds.width - bounds.height) / 2;
+			bounds.y += (bounds.height - bounds.width) / 2;
+			var tmp = bounds.width;
+			bounds.width = bounds.height;
+			bounds.height = tmp;
+		}
+		
+		var pt = this.getSpecialHandlePoint(bounds);
+		var cos = 1;
+		var sin = 0;
+		
+		if (direction == 'south')
+		{
+			cos = 0;
+			sin = 1;
+		}
+		else if (direction == 'west')
+		{
+			cos = -1;
+		}
+		else if (direction == 'north')
+		{
+			cos = 0;
+			sin = -1;
+		}
+
+		pt = mxUtils.getRotatedPoint(pt, cos, sin,
+			new mxPoint(this.state.getCenterX(), this.state.getCenterY()));
+
+		return new mxRectangle(pt.x - size / 2, pt.y - size / 2, size, size);
+	};
+
+	mxFolderHandler.prototype.getSpecialHandlePoint = function(bounds)
+	{
+		var scale = this.graph.getView().scale;
+		var tw = Math.min(bounds.width, mxUtils.getValue(this.state.style, 'tabWidth', 60) * scale);
+		var th = Math.min(bounds.height, mxUtils.getValue(this.state.style, 'tabHeight', 20) * scale);
+		
+		var tp = mxUtils.getValue(this.state.style, 'tabPosition', 'right');
+		var x = (tp == 'left') ? bounds.x + tw : bounds.x + bounds.width - tw;
+
+		return new mxPoint(x, bounds.y + th);
+	};
+	
+	mxFolderHandler.prototype.updateStyle = function(point)
+	{
+		var pt = new mxPoint(point.x, point.y);
+		var direction = mxUtils.getValue(this.state.style, 'direction', 'east');
+		var bounds = new mxRectangle(this.state.x, this.state.y, this.state.width, this.state.height);
+		
+		if (direction == 'south' || direction == 'north')
+		{
+			bounds.x += (bounds.width - bounds.height) / 2;
+			bounds.y += (bounds.height - bounds.width) / 2;
+			var tmp = bounds.width;
+			bounds.width = bounds.height;
+			bounds.height = tmp;
+		}
+		
+		var cos = 1;
+		var sin = 0;
+		
+		if (direction == 'south')
+		{
+			cos = 0;
+			sin = -1;
+		}
+		else if (direction == 'west')
+		{
+			cos = -1;
+		}
+		else if (direction == 'north')
+		{
+			cos = 0;
+			sin = 1;
+		}
+		
+		// TODO: Rotate bounds
+		//var bounds = new mxRectangle(this.state.x, this.state.y, this.state.width, this.state.height);
+		pt = mxUtils.getRotatedPoint(pt, cos, sin,
+			new mxPoint(this.state.getCenterX(), this.state.getCenterY()));
+		
+		var result = this.updateStyleUnrotated(pt, bounds);
+		
+		// Modifies point to use rotated coordinates of return value
+		if (result != null)
+		{
+			if (direction == 'south' || direction == 'north')
+			{
+				cos *= -1;
+				sin *= -1;
+			}
+			
+			result = mxUtils.getRotatedPoint(result, cos, sin,
+					new mxPoint(this.state.getCenterX(), this.state.getCenterY()));
+			point.x = result.x;
+			point.y = result.y;
+		}
+	};
+	
+	mxFolderHandler.prototype.updateStyleUnrotated = function(pt, bounds)
+	{
+		var tp = mxUtils.getValue(this.state.style, 'tabPosition', 'right');
+		var tw = (tp == 'left') ? pt.x - bounds.x : bounds.x + bounds.width - pt.x;
+		var th = pt.y - bounds.y;
+		
+		var scale = this.graph.getView().scale;
+		this.state.style['tabWidth'] = Math.round(Math.max(1, tw) / scale);
+		this.state.style['tabHeight'] =  Math.round(Math.max(1, th) / scale);
+	};
+	
+	mxFolderHandler.prototype.applyStyle = function()
+	{
+		var model = this.graph.getModel();
+		model.beginUpdate();
+		try
+		{
+			this.state.view.graph.setCellStyles('tabWidth', this.state.style['tabWidth'], [this.state.cell]);
+			this.state.view.graph.setCellStyles('tabHeight', this.state.style['tabHeight'], [this.state.cell]);
+		}
+		finally
+		{
+			model.endUpdate();
+		}
+	};
+	
+	// Cube Handler
+	function mxCubeHandler(state)
+	{
+		mxFolderHandler.call(this, state);
+	};
+
+	mxUtils.extend(mxCubeHandler, mxFolderHandler);
+	
+	mxCubeHandler.prototype.defaultValue = 20;
+
+	mxCubeHandler.prototype.scaleFactor = 1;
+	
+	mxCubeHandler.prototype.getSpecialHandlePoint = function(bounds)
+	{
+		var scale = this.graph.getView().scale;
+		var sz = Math.min(bounds.width, Math.min(bounds.height,
+			mxUtils.getValue(this.state.style, 'size', this.defaultValue) * scale / this.scaleFactor));
+		
+		return new mxPoint(bounds.x + sz, bounds.y + sz);
+	};
+
+	mxCubeHandler.prototype.updateStyleUnrotated = function(pt, bounds)
+	{
+		var size = Math.min(Math.min(bounds.width / this.scaleFactor, pt.x - bounds.x),
+				Math.min(bounds.height / this.scaleFactor, pt.y - bounds.y));
+		var scale = this.graph.getView().scale;
+		this.state.style['size'] = Math.round(Math.max(1, size) / scale) * this.scaleFactor;
+		
+		// Stays on the diagonal
+		return new mxPoint(bounds.x + size, bounds.y + size);
+	};
+	
+	mxCubeHandler.prototype.applyStyle = function()
+	{
+		this.state.view.graph.setCellStyles('size', this.state.style['size'], [this.state.cell]);
+	};
+	
+	// Card Handler
+	function mxCardHandler(state)
+	{
+		mxCubeHandler.call(this, state);
+	};
+
+	mxUtils.extend(mxCardHandler, mxCubeHandler);
+	
+	mxCardHandler.prototype.defaultValue = 30;
+
+	mxCardHandler.prototype.scaleFactor = 2;
+	
+	// Note Handler
+	function mxNoteHandler(state)
+	{
+		mxCubeHandler.call(this, state);
+	};
+
+	mxUtils.extend(mxNoteHandler, mxCubeHandler);
+	
+	mxNoteHandler.prototype.defaultValue = 30;
+
+	mxNoteHandler.prototype.scaleFactor = 1;
+	
+	mxNoteHandler.prototype.getSpecialHandlePoint = function(bounds)
+	{
+		var scale = this.graph.getView().scale;
+		var sz = Math.min(bounds.width, Math.min(bounds.height,
+				mxUtils.getValue(this.state.style, 'size', this.defaultValue) * scale / this.scaleFactor));
+		
+		return new mxPoint(bounds.x + bounds.width - sz, bounds.y + sz);
+	};
+	
+	mxNoteHandler.prototype.updateStyleUnrotated = function(pt, bounds)
+	{
+		var size = Math.min(Math.min(bounds.width / this.scaleFactor, pt.x - bounds.x + bounds.width),
+				Math.min(bounds.height / this.scaleFactor, pt.y - bounds.y));
+		var scale = this.graph.getView().scale;
+		this.state.style['size'] = Math.round(Math.max(1, size) / scale) * this.scaleFactor;
+		
+		// Stays on the diagonal
+		return new mxPoint(bounds.x + bounds.width - size, bounds.y + size);
+	};
+	
+	// Step Handler
+	function mxStepHandler(state)
+	{
+		mxCubeHandler.call(this, state);
+	};
+
+	mxUtils.extend(mxStepHandler, mxCubeHandler);
+	
+	mxStepHandler.prototype.defaultValue = 0.2;
+
+	mxStepHandler.prototype.scaleFactor = 1;
+	
+	mxStepHandler.prototype.getSpecialHandlePoint = function(bounds)
+	{
+		var sz = mxUtils.getValue(this.state.style, 'size', this.defaultValue);
+		
+		return new mxPoint(bounds.x + bounds.width * sz, bounds.y + bounds.height / 2);
+	};
+
+	mxStepHandler.prototype.updateStyleUnrotated = function(pt, bounds)
+	{
+		var size = Math.min(1, (pt.x - bounds.x) / bounds.width);
+		this.state.style['size'] = size;
+		
+		return new mxPoint(bounds.x + size * bounds.width, bounds.y + bounds.height / 2);
+	};
+	
+	// Step Handler
+	function mxTapeHandler(state)
+	{
+		mxCubeHandler.call(this, state);
+	};
+
+	mxUtils.extend(mxTapeHandler, mxCubeHandler);
+	
+	mxTapeHandler.prototype.defaultValue = 0.4;
+
+	mxTapeHandler.prototype.scaleFactor = 1;
+	
+	mxTapeHandler.prototype.getSpecialHandlePoint = function(bounds)
+	{
+		var sz = mxUtils.getValue(this.state.style, 'size', this.defaultValue);
+
+		return new mxPoint(bounds.x + bounds.width / 2, bounds.y + sz * bounds.height / 2);
+	};
+
+	mxTapeHandler.prototype.updateStyleUnrotated = function(pt, bounds)
+	{
+		var size = Math.min(1, ((pt.y - bounds.y) / bounds.height) * 2);
+		this.state.style['size'] = size;
+		
+		return new mxPoint(bounds.x + bounds.width / 2, bounds.y + size * bounds.height / 2);
+	};
+
 })();
 

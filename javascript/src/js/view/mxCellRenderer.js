@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellRenderer.js,v 1.181 2012-04-23 20:15:46 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.184 2012-05-23 11:18:13 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -125,8 +125,11 @@ mxCellRenderer.prototype.registerShape = function(key, shape)
  * Parameters:
  * 
  * state - <mxCellState> for which the display should be initialized.
+ * rendering - Optional boolean that specifies if the cell should actually
+ * be initialized for any given DOM node. If this is false then init
+ * will not be called on the shape.
  */
-mxCellRenderer.prototype.initialize = function(state)
+mxCellRenderer.prototype.initialize = function(state, rendering)
 {
 	var model = state.view.graph.getModel();
 	
@@ -136,10 +139,10 @@ mxCellRenderer.prototype.initialize = function(state)
 	{
 		this.createShape(state);
 		
-		if (state.shape != null)
+		if (state.shape != null && (rendering == null || rendering))
 		{
 			this.initializeShape(state);
-			
+
 			// Maintains the model order in the DOM
 			if (state.view.graph.ordered || model.isEdge(state.cell))
 			{
@@ -1366,14 +1369,19 @@ mxCellRenderer.prototype.getControlBounds = function(state)
  * Parameters:
  * 
  * state - <mxCellState> for which the shapes should be updated.
+ * force - Optional boolean that specifies if the cell should be reconfiured
+ * and redrawn without any additional checks.
+ * rendering - Optional boolean that specifies if the cell should actually
+ * be drawn into the DOM. If this is false then redraw and/or reconfigure
+ * will not be called on the shape.
  */
-mxCellRenderer.prototype.redraw = function(state)
+mxCellRenderer.prototype.redraw = function(state, force, rendering)
 {
 	if (state.shape != null)
 	{
 		var model = state.view.graph.getModel();
 		var isEdge = model.isEdge(state.cell);
-		var reconfigure = false;
+		reconfigure = (force != null) ? force : false;
 		
 		// Handles changes of the collapse icon
 		this.createControl(state);
@@ -1413,7 +1421,7 @@ mxCellRenderer.prototype.redraw = function(state)
 		}
 		
 		// Redraws the cell if required
-		if (state.shape.bounds == null || state.shape.scale != state.view.scale ||
+		if (force || state.shape.bounds == null || state.shape.scale != state.view.scale ||
 			!state.shape.bounds.equals(state) ||
 			!mxUtils.equalPoints(state.shape.points, state.absolutePoints))
 		{
@@ -1436,13 +1444,24 @@ mxCellRenderer.prototype.redraw = function(state)
 			state.shape.bounds = new mxRectangle(
 				state.x, state.y, state.width, state.height);
 			state.shape.scale = state.view.scale;
-			state.shape.redraw();
+			
+			if (rendering == null || rendering)
+			{
+				state.shape.redraw();
+			}
+			else
+			{
+				state.shape.updateBoundingBox();
+			}
 		}
 		
 		// Updates the text label, overlays and control
-		this.redrawLabel(state);
-		this.redrawCellOverlays(state);
-		this.redrawControl(state);
+		if (rendering == null || rendering)
+		{
+			this.redrawLabel(state);
+			this.redrawCellOverlays(state);
+			this.redrawControl(state);
+		}
 	}
 };
 

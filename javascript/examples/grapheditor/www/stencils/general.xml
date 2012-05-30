@@ -1,20 +1,4 @@
 <shapes>
-<shape name="step" strokewidth="inherit">
-	<background>
-		<path>
-			<move x="0" y="0"/>
-			<line x="80" y="0"/>
-			<line x="100" y="50"/>
-			<line x="80" y="100"/>
-			<line x="0" y="100"/>
-			<line x="20" y="50"/>
-			<close/>
-		</path>
-	</background>
-	<foreground>
-		<fillstroke/>
-	</foreground>
-</shape>
 <shape name="and" w="50" strokewidth="inherit">
 	<background>
 		<path>

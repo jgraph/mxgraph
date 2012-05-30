@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphics2DCanvas.java,v 1.198 2012-03-22 18:40:55 gaudenz Exp $
+ * $Id: mxGraphics2DCanvas.java,v 1.200 2012-05-24 06:55:16 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.canvas;
@@ -508,12 +508,12 @@ public class mxGraphics2DCanvas extends mxBasicCanvas
 		{
 			float[] dashPattern = mxUtils.getFloatArray(style,
 					mxConstants.STYLE_DASH_PATTERN,
-					mxConstants.DEFAULT_DASHED_PATTERN);
+					mxConstants.DEFAULT_DASHED_PATTERN, " ");
 			float[] scaledDashPattern = new float[dashPattern.length];
 
 			for (int i = 0; i < dashPattern.length; i++)
 			{
-				scaledDashPattern[i] = (float) (dashPattern[i] * scale);
+				scaledDashPattern[i] = (float) (dashPattern[i] * scale * width);
 			}
 
 			return new BasicStroke((float) width, BasicStroke.CAP_BUTT,

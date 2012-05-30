@@ -1,5 +1,5 @@
 /**
- * $Id: Dialogs.js,v 1.38 2012-05-15 12:49:55 gaudenz Exp $
+ * $Id: Dialogs.js,v 1.40 2012-05-25 07:37:55 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -255,7 +255,7 @@ ColorDialog.prototype.createApplyFunction = function()
 {
 	return mxUtils.bind(this, function(color)
 	{
-		editorUi.editor.graph.setCellStyles(this.currentColorKey, (color == 'none') ? 'none' : color);
+		this.editorUi.editor.graph.setCellStyles(this.currentColorKey, (color == 'none') ? 'none' : color);
 	});
 };
 
@@ -579,24 +579,58 @@ function EditFileDialog(editorUi)
 		textarea.addEventListener('dragover', handleDragOver, false);
 		textarea.addEventListener('drop', handleDrop, false);
 	}
+	
+	var select = document.createElement('select');
+	select.style.width = '180px';
 
-	div.appendChild(mxUtils.button(mxResources.get('apply'), function()
-	{
-		var doc = mxUtils.parseXml(textarea.value); 
-		editorUi.editor.setGraphXml(doc.documentElement);
-		editorUi.hideDialog();
-	}));
+	var newOption = document.createElement('option');
+	newOption.setAttribute('value', 'new');
+	mxUtils.write(newOption, mxResources.get('openInNewWindow'));
+	select.appendChild(newOption);
 
-	div.appendChild(mxUtils.button(mxResources.get('open'), function()
+	var replaceOption = document.createElement('option');
+	replaceOption.setAttribute('value', 'replace');
+	mxUtils.write(replaceOption, mxResources.get('replaceExistingDrawing'));
+	select.appendChild(replaceOption);
+	
+	var importOption = document.createElement('option');
+	importOption.setAttribute('value', 'import');
+	mxUtils.write(importOption, mxResources.get('addToExistingDrawing'));
+	select.appendChild(importOption);
+	
+	div.appendChild(select);
+
+	div.appendChild(mxUtils.button(mxResources.get('ok'), function()
 	{
-		window.openFile = new OpenFile(function()
+		if (select.value == 'new')
 		{
+			window.openFile = new OpenFile(function()
+			{
+				editorUi.hideDialog();
+				window.openFile = null;
+			});
+			
+			window.openFile.setData(textarea.value, null);
+			window.open(editorUi.getUrl());
+		}
+		else if (select.value == 'replace')
+		{
+			var doc = mxUtils.parseXml(textarea.value); 
+			editorUi.editor.setGraphXml(doc.documentElement);
 			editorUi.hideDialog();
-			window.openFile = null;
-		});
-		
-		window.openFile.setData(textarea.value, null);
-		window.open(editorUi.getUrl());
+		}
+		else if (select.value == 'import')
+		{
+			var doc = mxUtils.parseXml(textarea.value);
+			var model = new mxGraphModel();
+			var codec = new mxCodec(doc);
+			codec.decode(doc.documentElement, model);
+			
+			var children = model.getChildren(model.getChildAt(model.getRoot(), 0));
+			editorUi.editor.graph.setSelectionCells(editorUi.editor.graph.importCells(children));
+			
+			editorUi.hideDialog();
+		}
 	}));
 	
 	div.appendChild(mxUtils.button(mxResources.get('cancel'), function()
@@ -730,7 +764,7 @@ function ExportDialog(editorUi)
 
 	td = document.createElement('td');
 	td.style.fontSize = '10pt';
-	mxUtils.write(td, mxResources.get('border') + ':');
+	mxUtils.write(td, mxResources.get('borderWidth') + ':');
 	
 	row.appendChild(td);
 	
