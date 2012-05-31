@@ -1,5 +1,5 @@
 /**
- * $Id: Graph.js,v 1.32 2012-05-23 21:23:25 gaudenz Exp $
+ * $Id: Graph.js,v 1.33 2012-05-28 15:38:45 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -777,6 +777,7 @@ Graph.prototype.initTouch = function()
 	LollipopShape.prototype = new mxCylinder();
 	LollipopShape.prototype.constructor = LollipopShape;
 	LollipopShape.prototype.size = 10;
+	LollipopShape.prototype.addPipe = true;
 	LollipopShape.prototype.redrawPath = function(path, x, y, w, h, isForeground)
 	{
 		var ss = this.scale * mxUtils.getValue(this.style, 'size', this.size);
@@ -1527,6 +1528,153 @@ Graph.prototype.initTouch = function()
 		
 		return new mxPoint(bounds.x + bounds.width / 2, bounds.y + size * bounds.height / 2);
 	};
+	
+	mxGraph.prototype.getAllConnectionConstraints = function(terminal, source)
+	{
+		if (terminal != null && terminal.shape != null &&
+			terminal.shape instanceof mxStencilShape)
+		{
+			if (terminal.shape.stencil != null)
+			{
+				return terminal.shape.stencil.constraints;
+			}
+		}
+		else if (terminal.shape.constraints != null)
+		{
+			return terminal.shape.constraints;
+		}
 
+		return null;
+	};
+
+	
+	mxRectangleShape.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0.25, 0), true),
+	                                          new mxConnectionConstraint(new mxPoint(0.5, 0), true),
+	                                          new mxConnectionConstraint(new mxPoint(0.75, 0), true),
+	        	              		 new mxConnectionConstraint(new mxPoint(0, 0.25), true),
+	        	              		 new mxConnectionConstraint(new mxPoint(0, 0.5), true),
+	        	              		 new mxConnectionConstraint(new mxPoint(0, 0.75), true),
+	        	            		 new mxConnectionConstraint(new mxPoint(1, 0.25), true),
+	        	            		 new mxConnectionConstraint(new mxPoint(1, 0.5), true),
+	        	            		 new mxConnectionConstraint(new mxPoint(1, 0.75), true),
+	        	            		 new mxConnectionConstraint(new mxPoint(0.25, 1), true),
+	        	            		 new mxConnectionConstraint(new mxPoint(0.5, 1), true),
+	        	            		 new mxConnectionConstraint(new mxPoint(0.75, 1), true)];
+	mxLabel.prototype.constraints = mxRectangleShape.prototype.constraints;
+	mxImageShape.prototype.constraints = mxRectangleShape.prototype.constraints;
+	mxSwimlane.prototype.constraints = mxRectangleShape.prototype.constraints;
+	PlusShape.prototype.constraints = mxRectangleShape.prototype.constraints;
+	NoteShape.prototype.constraints = mxRectangleShape.prototype.constraints;
+	CardShape.prototype.constraints = mxRectangleShape.prototype.constraints;
+	CubeShape.prototype.constraints = mxRectangleShape.prototype.constraints;
+	FolderShape.prototype.constraints = mxRectangleShape.prototype.constraints;
+	mxCylinder.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0.15, 0.05), false),
+                                        new mxConnectionConstraint(new mxPoint(0.5, 0), true),
+                                        new mxConnectionConstraint(new mxPoint(0.85, 0.05), false),
+      	              		 new mxConnectionConstraint(new mxPoint(0, 0.3), true),
+      	              		 new mxConnectionConstraint(new mxPoint(0, 0.5), true),
+      	              		 new mxConnectionConstraint(new mxPoint(0, 0.7), true),
+      	            		 new mxConnectionConstraint(new mxPoint(1, 0.3), true),
+      	            		 new mxConnectionConstraint(new mxPoint(1, 0.5), true),
+      	            		 new mxConnectionConstraint(new mxPoint(1, 0.7), true),
+      	            		 new mxConnectionConstraint(new mxPoint(0.15, 0.95), false),
+      	            		 new mxConnectionConstraint(new mxPoint(0.5, 1), true),
+      	            		 new mxConnectionConstraint(new mxPoint(0.85, 0.95), false)];
+	UmlActorShape.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0.25, 0), true),
+	                                          new mxConnectionConstraint(new mxPoint(0.5, 0), true),
+	                                          new mxConnectionConstraint(new mxPoint(0.75, 0), true),
+	        	              		 new mxConnectionConstraint(new mxPoint(0, 0.25), true),
+	        	              		 new mxConnectionConstraint(new mxPoint(0, 0.5), true),
+	        	              		 new mxConnectionConstraint(new mxPoint(0, 0.75), true),
+	        	            		 new mxConnectionConstraint(new mxPoint(1, 0.25), true),
+	        	            		 new mxConnectionConstraint(new mxPoint(1, 0.5), true),
+	        	            		 new mxConnectionConstraint(new mxPoint(1, 0.75), true),
+	        	            		 new mxConnectionConstraint(new mxPoint(0.25, 1), true),
+	        	            		 new mxConnectionConstraint(new mxPoint(0.5, 1), true),
+	        	            		 new mxConnectionConstraint(new mxPoint(0.75, 1), true)];
+	ComponentShape.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0.25, 0), true),
+	                                          new mxConnectionConstraint(new mxPoint(0.5, 0), true),
+	                                          new mxConnectionConstraint(new mxPoint(0.75, 0), true),
+	        	              		 new mxConnectionConstraint(new mxPoint(0, 0.3), true),
+	        	              		 new mxConnectionConstraint(new mxPoint(0, 0.7), true),
+	        	            		 new mxConnectionConstraint(new mxPoint(1, 0.25), true),
+	        	            		 new mxConnectionConstraint(new mxPoint(1, 0.5), true),
+	        	            		 new mxConnectionConstraint(new mxPoint(1, 0.75), true),
+	        	            		 new mxConnectionConstraint(new mxPoint(0.25, 1), true),
+	        	            		 new mxConnectionConstraint(new mxPoint(0.5, 1), true),
+	        	            		 new mxConnectionConstraint(new mxPoint(0.75, 1), true)];
+	mxActor.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0.5, 0), true),
+   	              		 new mxConnectionConstraint(new mxPoint(0.25, 0.2), false),
+   	              		 new mxConnectionConstraint(new mxPoint(0.1, 0.5), false),
+   	              		 new mxConnectionConstraint(new mxPoint(0, 0.75), true),
+   	            		 new mxConnectionConstraint(new mxPoint(0.75, 0.25), false),
+   	            		 new mxConnectionConstraint(new mxPoint(0.9, 0.5), false),
+   	            		 new mxConnectionConstraint(new mxPoint(1, 0.75), true),
+   	            		 new mxConnectionConstraint(new mxPoint(0.25, 1), true),
+   	            		 new mxConnectionConstraint(new mxPoint(0.5, 1), true),
+   	            		 new mxConnectionConstraint(new mxPoint(0.75, 1), true)];
+	TapeShape.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0, 0.35), false),
+	                                   new mxConnectionConstraint(new mxPoint(0, 0.5), false),
+	                                   new mxConnectionConstraint(new mxPoint(0, 0.65), false),
+	                                   new mxConnectionConstraint(new mxPoint(1, 0.35), false),
+		                                new mxConnectionConstraint(new mxPoint(1, 0.5), false),
+		                                new mxConnectionConstraint(new mxPoint(1, 0.65), false),
+										new mxConnectionConstraint(new mxPoint(0.25, 1), false),
+										new mxConnectionConstraint(new mxPoint(0.75, 0), false)];
+	// TODO: Relative ports
+	StepShape.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0.25, 0), true),
+                                       new mxConnectionConstraint(new mxPoint(0.5, 0), true),
+                                       new mxConnectionConstraint(new mxPoint(0.75, 0), true),
+                                       new mxConnectionConstraint(new mxPoint(0.25, 1), true),
+  	        	            		 	new mxConnectionConstraint(new mxPoint(0.5, 1), true),
+  	        	            		 	new mxConnectionConstraint(new mxPoint(0.75, 1), true),
+	                                   new mxConnectionConstraint(new mxPoint(0.1, 0.25), false),
+	                                   new mxConnectionConstraint(new mxPoint(0.2, 0.5), false),
+	                                   new mxConnectionConstraint(new mxPoint(0.1, 0.75), false),
+	                                   new mxConnectionConstraint(new mxPoint(0.9, 0.25), false),
+		                                new mxConnectionConstraint(new mxPoint(1, 0.5), false),
+		                                new mxConnectionConstraint(new mxPoint(0.9, 0.75), false)];
+	mxLine.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0, 0.5), false),
+	                                new mxConnectionConstraint(new mxPoint(0.25, 0.5), false),
+	                                new mxConnectionConstraint(new mxPoint(0.75, 0.5), false),
+									new mxConnectionConstraint(new mxPoint(1, 0.5), false)];
+	LollipopShape.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0.5, 0), false),
+										new mxConnectionConstraint(new mxPoint(0.5, 1), false)];
+	mxEllipse.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0, 0), true), new mxConnectionConstraint(new mxPoint(1, 0), true),
+	                                   new mxConnectionConstraint(new mxPoint(0, 1), true), new mxConnectionConstraint(new mxPoint(1, 1), true),
+	                                   new mxConnectionConstraint(new mxPoint(0.5, 0), true), new mxConnectionConstraint(new mxPoint(0.5, 1), true),
+	          	              		   new mxConnectionConstraint(new mxPoint(0, 0.5), true), new mxConnectionConstraint(new mxPoint(1, 0.5))];
+	mxDoubleEllipse.prototype.constraints = mxEllipse.prototype.constraints;
+	mxRhombus.prototype.constraints = mxEllipse.prototype.constraints;
+	mxTriangle.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0, 0.25), true),
+	                                    new mxConnectionConstraint(new mxPoint(0, 0.5), true),
+	                                   new mxConnectionConstraint(new mxPoint(0, 0.75), true),
+	                                   new mxConnectionConstraint(new mxPoint(0.5, 0), true),
+	                                   new mxConnectionConstraint(new mxPoint(0.5, 1), true),
+	                                   new mxConnectionConstraint(new mxPoint(1, 0.5), true)];
+	mxHexagon.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0.375, 0), true),
+	                                    new mxConnectionConstraint(new mxPoint(0.5, 0), true),
+	                                   new mxConnectionConstraint(new mxPoint(0.625, 0), true),
+	                                   new mxConnectionConstraint(new mxPoint(0.125, 0.25), false),
+	                                   new mxConnectionConstraint(new mxPoint(0, 0.5), true),
+	                                   new mxConnectionConstraint(new mxPoint(0.125, 0.75), false),
+	                                   new mxConnectionConstraint(new mxPoint(0.875, 0.25), false),
+	                                   new mxConnectionConstraint(new mxPoint(0, 0.5), true),
+	                                   new mxConnectionConstraint(new mxPoint(1, 0.5), true),
+	                                   new mxConnectionConstraint(new mxPoint(0.875, 0.75), false),
+	                                   new mxConnectionConstraint(new mxPoint(0.375, 1), true),
+	                                    new mxConnectionConstraint(new mxPoint(0.5, 1), true),
+	                                   new mxConnectionConstraint(new mxPoint(0.625, 1), true)];
+	mxCloud.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0.25, 0.25), false),
+	                                 new mxConnectionConstraint(new mxPoint(0.4, 0.1), false),
+	                                 new mxConnectionConstraint(new mxPoint(0.16, 0.55), false),
+	                                 new mxConnectionConstraint(new mxPoint(0.07, 0.4), false),
+	                                 new mxConnectionConstraint(new mxPoint(0.31, 0.8), false),
+	                                 new mxConnectionConstraint(new mxPoint(0.13, 0.77), false),
+	                                 new mxConnectionConstraint(new mxPoint(0.8, 0.8), false),
+	                                 new mxConnectionConstraint(new mxPoint(0.55, 0.95), false),
+	                                 new mxConnectionConstraint(new mxPoint(0.875, 0.5), false),
+	                                 new mxConnectionConstraint(new mxPoint(0.96, 0.7), false),
+	                                 new mxConnectionConstraint(new mxPoint(0.625, 0.2), false),
+	                                 new mxConnectionConstraint(new mxPoint(0.88, 0.25), false)];
 })();
-

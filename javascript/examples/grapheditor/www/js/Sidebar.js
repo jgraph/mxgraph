@@ -1,5 +1,5 @@
 /**
- * $Id: Sidebar.js,v 1.57 2012-05-23 19:09:50 gaudenz Exp $
+ * $Id: Sidebar.js,v 1.58 2012-05-28 15:37:43 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -294,8 +294,8 @@ Sidebar.prototype.addGeneralPalette = function(expand)
 	    content.appendChild(this.createVertexTemplate('shape=actor;verticalLabelPosition=bottom;verticalAlign=top', 40, 60));
 	    content.appendChild(this.createVertexTemplate('ellipse;shape=cloud', 120, 80));
 	    content.appendChild(this.createVertexTemplate('shape=cylinder', 60, 80));
-	    content.appendChild(this.createVertexTemplate('line', 120, 10));
-	    content.appendChild(this.createVertexTemplate('line;direction=south', 10, 120));
+	    content.appendChild(this.createVertexTemplate('line', 160, 10));
+	    content.appendChild(this.createVertexTemplate('line;direction=south', 10, 160));
 	    content.appendChild(this.createVertexTemplate('shape=xor', 60, 80));
 	    content.appendChild(this.createVertexTemplate('shape=or', 60, 80));
 	    content.appendChild(this.createVertexTemplate('shape=step', 120, 80));
@@ -788,6 +788,7 @@ Sidebar.prototype.createThumb = function(cells, width, height, parent)
 	// Outer dimension is (32, 32)
 	var dd = (this.shiftThumbs) ? 2 : 3;
 	node.style.position = 'relative';
+	node.style.overflow = 'hidden';
 	node.style.cursor = 'pointer';
 	node.style.left = (dx + dd) + 'px';
 	node.style.top = (dy + dd) + 'px';
@@ -795,8 +796,7 @@ Sidebar.prototype.createThumb = function(cells, width, height, parent)
 	node.style.height = height + 'px';
 	
 	parent.appendChild(node);
-	
-	 mxText.prototype.getTableSize = old;
+	mxText.prototype.getTableSize = old;
 };
 
 /**

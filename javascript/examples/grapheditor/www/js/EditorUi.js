@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.44 2012-05-23 19:11:21 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.45 2012-05-28 15:39:29 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -404,29 +404,21 @@ EditorUi.prototype.addSelectionListener = function()
 		// Updates action states
 		var actions = ['cut', 'copy', 'delete', 'duplicate', 'bold', 'italic', 'style', 'fillColor',
 		               'gradientColor', 'underline', 'fontColor', 'strokeColor', 'backgroundColor',
-		               'borderColor', 'toFront', 'toBack', 'dashed', 'rounded', 'shadow'];
+		               'borderColor', 'toFront', 'toBack', 'dashed', 'rounded', 'shadow', 'rotate',
+		               'autosize'];
     	
     	for (var i = 0; i < actions.length; i++)
     	{
     		this.actions.get(actions[i]).setEnabled(selected);
     	}
     	
-		actions = ['rotation', 'rotate'];
-		       	
-       	for (var i = 0; i < actions.length; i++)
-       	{
-       		this.actions.get(actions[i]).setEnabled(vertexSelected);
-       	}
-       	
+    	this.actions.get('rotation').setEnabled(vertexSelected);
        	this.actions.get('group').setEnabled(graph.getSelectionCount() > 1);
        	this.actions.get('ungroup').setEnabled(graph.getSelectionCount() == 1 &&
        			graph.getModel().getChildCount(graph.getSelectionCell()) > 0);
        	var oneVertexSelected = vertexSelected && graph.getSelectionCount() == 1;
-       	this.actions.get('autosize').setEnabled(oneVertexSelected);
        	this.actions.get('removeFromGroup').setEnabled(oneVertexSelected &&
        			graph.getModel().isVertex(graph.getModel().getParent(graph.getSelectionCell())));
-       	this.actions.get('rotate').setEnabled(oneVertexSelected &&
-       			graph.getModel().getChildCount(graph.getSelectionCell()) == 0);
 
     	// Updates menu states
     	var menus = ['fontFamily', 'fontSize', 'alignment', 'position', 'text', 'format',
@@ -443,6 +435,8 @@ EditorUi.prototype.addSelectionListener = function()
      	{
      		this.menus.get(menus[i]).setEnabled(edgeSelected);
      	}
+     	
+       	this.actions.get('useAsDefaultEdge').setEnabled(edgeSelected);
         	
         this.menus.get('align').setEnabled(graph.getSelectionCount() > 1);
         this.menus.get('direction').setEnabled(vertexSelected || (edgeSelected &&
@@ -919,6 +913,7 @@ EditorUi.prototype.createKeyHandler = function(editor)
     bindAction(89, true, 'redo'); // Ctrl+Y
     bindAction(88, true, 'cut'); // Ctrl+X
     bindAction(67, true, 'copy'); // Ctrl+C
+    bindAction(81, true, 'connect'); // Ctrl+Q
     bindAction(86, true, 'paste'); // Ctrl+V
     bindAction(71, true, 'group'); // Ctrl+G
     bindAction(71, true, 'grid', true); // Ctrl+Shift+G

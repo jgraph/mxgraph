@@ -1,5 +1,5 @@
 /**
- * $Id: Actions.js,v 1.28 2012-05-24 14:21:51 gaudenz Exp $
+ * $Id: Actions.js,v 1.29 2012-05-28 15:40:25 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -106,13 +106,31 @@ Actions.prototype.init = function()
 	this.addAction('removeFromGroup', function() { graph.removeCellsFromParent(); });
 	this.addAction('autosize', function()
 	{
-		if (graph.getModel().getChildCount(graph.getSelectionCell()))
+		var cells = graph.getSelectionCells();
+		
+		if (cells != null)
 		{
-			graph.updateGroupBounds([graph.getSelectionCell()], 20);
-		}
-		else
-		{
-			graph.updateCellSize(graph.getSelectionCell());
+			graph.getModel().beginUpdate();
+			try
+			{
+				for (var i = 0; i < cells.length; i++)
+				{
+					var cell = cells[i];
+					
+					if (graph.getModel().getChildCount(cell))
+					{
+						graph.updateGroupBounds([cell], 20);
+					}
+					else
+					{
+						graph.updateCellSize(cell);
+					}
+				}
+			}
+			finally
+			{
+				graph.getModel().endUpdate();
+			}
 		}
 	});
 	this.addAction('rotation', function()
@@ -135,57 +153,65 @@ Actions.prototype.init = function()
 	});
 	this.addAction('rotate', function()
 	{
-		var cell = graph.getSelectionCell();
+		var cells = graph.getSelectionCells();
 		
-		if (cell != null)
+		if (cells != null)
 		{
-			var geo = graph.getCellGeometry(cell);
-
-			if (geo != null)
+			graph.getModel().beginUpdate();
+			try
 			{
-				graph.getModel().beginUpdate();
-				try
+				for (var i = 0; i < cells.length; i++)
 				{
-					// Rotates the size and position in the geometry
-					geo = geo.clone();
-					geo.x += geo.width / 2 - geo.height / 2;
-					geo.y += geo.height / 2 - geo.width / 2;
-					var tmp = geo.width;
-					geo.width = geo.height;
-					geo.height = tmp;
-					graph.getModel().setGeometry(cell, geo);
+					var cell = cells[i];
 					
-					// Reads the current direction and advances by 90 degrees
-					var state = graph.view.getState(cell);
-					
-					if (state != null)
+					if (graph.getModel().isVertex(cell) && graph.getModel().getChildCount(cell) == 0)
 					{
-						var dir = state.style[mxConstants.STYLE_DIRECTION] || 'east'/*default*/;
-						
-						if (dir == 'east')
+						var geo = graph.getCellGeometry(cell);
+			
+						if (geo != null)
 						{
-							dir = 'south';
+							// Rotates the size and position in the geometry
+							geo = geo.clone();
+							geo.x += geo.width / 2 - geo.height / 2;
+							geo.y += geo.height / 2 - geo.width / 2;
+							var tmp = geo.width;
+							geo.width = geo.height;
+							geo.height = tmp;
+							graph.getModel().setGeometry(cell, geo);
+							
+							// Reads the current direction and advances by 90 degrees
+							var state = graph.view.getState(cell);
+							
+							if (state != null)
+							{
+								var dir = state.style[mxConstants.STYLE_DIRECTION] || 'east'/*default*/;
+								
+								if (dir == 'east')
+								{
+									dir = 'south';
+								}
+								else if (dir == 'south')
+								{
+									dir = 'west';
+								}
+								else if (dir == 'west')
+								{
+									dir = 'north';
+								}
+								else if (dir == 'north')
+								{
+									dir = 'east';
+								}
+								
+								graph.setCellStyles(mxConstants.STYLE_DIRECTION, dir, [cell]);
+							}
 						}
-						else if (dir == 'south')
-						{
-							dir = 'west';
-						}
-						else if (dir == 'west')
-						{
-							dir = 'north';
-						}
-						else if (dir == 'north')
-						{
-							dir = 'east';
-						}
-						
-						graph.setCellStyles(mxConstants.STYLE_DIRECTION, dir, [cell]);
 					}
 				}
-				finally
-				{
-					graph.getModel().endUpdate();
-				}
+			}
+			finally
+			{
+				graph.getModel().endUpdate();
 			}
 		}
 	}, null, null, 'Ctrl+R');
@@ -193,19 +219,54 @@ Actions.prototype.init = function()
 	// View actions
 	this.addAction('actualSize', function()
 	{
-		var tr = graph.view.translate;
-		graph.view.scaleAndTranslate(1, tr.x, tr.y);
+		graph.zoomTo(1);
 	});
 	this.addAction('zoomIn', function() { graph.zoomIn(); }, null, null, 'Add');
 	this.addAction('zoomOut', function() { graph.zoomOut(); }, null, null, 'Subtract');
 	this.addAction('fitWindow', function() { graph.fit(); });
+
+	this.addAction('fitPage', mxUtils.bind(this, function()
+	{
+		if (!graph.pageVisible)
+		{
+			this.get('pageView').funct();
+		}
+		
+		var fmt = graph.pageFormat;
+		var ps = graph.pageScale;
+		var cw = graph.container.clientWidth - 20;
+		var ch = graph.container.clientHeight - 20;
+		
+		var scale = Math.floor(100 * Math.min(cw / fmt.width * ps, ch / fmt.height * ps)) / 100;
+		graph.zoomTo(scale);
+		
+		graph.container.scrollLeft = Math.round(graph.view.translate.x * scale - Math.max(10, (graph.container.clientWidth - fmt.width * ps * scale) / 2));
+		graph.container.scrollTop = Math.round(graph.view.translate.y * scale - Math.max(10, (graph.container.clientHeight - fmt.height * ps * scale) / 2));
+	}));
+	this.addAction('fitPageWidth', mxUtils.bind(this, function()
+	{
+		if (!graph.pageVisible)
+		{
+			this.get('pageView').funct();
+		}
+		
+		var fmt = graph.pageFormat;
+		var ps = graph.pageScale;
+		var cw = graph.container.clientWidth - 20;
+		
+		var scale = Math.floor(100 * cw / fmt.width * ps) / 100;
+		graph.zoomTo(scale);
+		
+		graph.container.scrollLeft = Math.round(graph.view.translate.x * scale - Math.max(10, (graph.container.clientWidth - fmt.width * ps * scale) / 2));
+		graph.container.scrollTop = Math.round(graph.view.translate.y * scale - Math.max(10, (graph.container.clientHeight - fmt.height * ps * scale) / 2));
+	}));
 	this.put('customZoom', new Action(mxResources.get('custom'), function()
 	{
     	var value = mxUtils.prompt(mxResources.get('enterValue') + ' (%)', parseInt(graph.getView().getScale() * 100));
     	
     	if (value != null && value.length > 0 && !isNaN(parseInt(value)))
     	{
-        	graph.getView().setScale(parseInt(value) / 100);
+    		graph.zoomTo(parseInt(value) / 100);
         }
 	}));
 	
@@ -241,31 +302,52 @@ Actions.prototype.init = function()
 
 		if (!graph.scrollbars)
 		{
-			graph.view.setTranslate(-graph.container.scrollLeft, -graph.container.scrollTop);
+			var t = graph.view.translate;
+			graph.view.setTranslate(t.x - graph.container.scrollLeft / graph.view.scale, t.y - graph.container.scrollTop / graph.view.scale);
 			graph.container.scrollLeft = 0;
 			graph.container.scrollTop = 0;
+			graph.sizeDidChange();
 		}
 		else
 		{
 			var dx = graph.view.translate.x;
 			var dy = graph.view.translate.y;
 
-			graph.view.setTranslate(0, 0);
-			graph.container.scrollLeft = Math.max(0, -dx);
-			graph.container.scrollTop = Math.max(0, -dy);
+			graph.view.translate.x = 0;
+			graph.view.translate.y = 0;
+			graph.sizeDidChange();
+			graph.container.scrollLeft -= Math.round(dx * graph.view.scale);
+			graph.container.scrollTop -= Math.round(dy * graph.view.scale);
 		}
 	}, !mxClient.IS_TOUCH);
 	action.setToggleAction(true);
 	action.setSelectedCallback(function() { return graph.container.style.overflow == 'auto'; });
-	action = this.addAction('pageView', function()
+	action = this.addAction('pageView', mxUtils.bind(this, function()
 	{
 		graph.pageVisible = !graph.pageVisible;
 		graph.pageBreaksVisible = graph.pageVisible; 
 		graph.preferPageSize = graph.pageBreaksVisible;
 		graph.view.validate();
 		graph.sizeDidChange();
+		editor.outline.outline.pageVisible = graph.pageVisible;
+		editor.outline.outline.view.validate();
+		
 		editor.updateGraphComponents();
-	});
+		
+		if (mxUtils.hasScrollbars(graph.container))
+		{
+			if (graph.pageVisible)
+			{
+				graph.container.scrollLeft -= 20;
+				graph.container.scrollTop -= 20;
+			}
+			else
+			{
+				graph.container.scrollLeft += 20;
+				graph.container.scrollTop += 20;
+			}
+		}
+	}));
 	action.setToggleAction(true);
 	action.setSelectedCallback(function() { return graph.pageVisible; });
 	this.put('pageBackgroundColor', new Action(mxResources.get('backgroundColor'), function()
@@ -287,7 +369,7 @@ Actions.prototype.init = function()
 	action = this.addAction('connect', function()
 	{
 		graph.setConnectable(!graph.connectionHandler.isEnabled());
-	});
+	}, null, null, 'Ctrl+Q');
 	action.setToggleAction(true);
 	action.setSelectedCallback(function() { return graph.connectionHandler.isEnabled(); });
 	

@@ -1,3 +1,10 @@
+- Uses Google Closure Compiler for JavaScript minification [JavaScript]
+- Uses language identifiers with dashes if supported in mxResources.getSpecialBundle [JavaScript]
+- Allows language identifiers with dashes in mxClient.languages [JavaScript]
+- Fixes shadow, pipe SVG rotation in mxActor, mxCylinder [JavaScript]
+- Fixes scaled VML offset for fixed aspect in mxStencil [JavaScript]
+- Adds cross-group support in hierarchical layout [Java, JavaScript]
+
 25-MAY-2012: 1.10.0.6
 
 - Snaps to bends if mxEdgeHandler.snapToTerminals is enabled [JavaScript]

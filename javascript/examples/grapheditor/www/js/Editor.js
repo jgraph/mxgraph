@@ -1,5 +1,5 @@
 /**
- * $Id: Editor.js,v 1.38 2012-05-24 14:21:51 gaudenz Exp $
+ * $Id: Editor.js,v 1.39 2012-05-28 15:40:03 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 // Specifies if local storage should be used (eg. on the iPad which has no filesystem)
@@ -138,9 +138,7 @@ Editor.prototype.setGraphXml = function(node)
 		{
 			this.graph.pageScale = 1.5;
 		}
-		
-		dec.decode(node, this.graph.getModel());
-		
+
 		// Loads the persistent state settings
 		var bg = node.getAttribute('background');
 		
@@ -149,7 +147,17 @@ Editor.prototype.setGraphXml = function(node)
 			this.graph.background = bg;
 		}
 		
+		dec.decode(node, this.graph.getModel());
 		this.updateGraphComponents();
+		
+		// Initial scrollbar positions
+		if (this.graph.pageVisible && this.graph.scrollbars)
+		{
+			var t = this.graph.view.translate;
+			var fmt = this.graph.pageFormat;
+			this.graph.container.scrollLeft = t.x - Math.max(10, (this.graph.container.clientWidth - fmt.width) / 2);
+			this.graph.container.scrollTop = t.y - Math.max(10, (this.graph.container.clientHeight - fmt.height) / 2);
+		}
 	}
 };
 
@@ -225,18 +233,23 @@ Editor.prototype.updateGraphComponents = function()
 		{
 			graph.container.style.backgroundColor = '';
 		}
-		
-		outline.outline.container.style.backgroundColor = graph.container.style.backgroundColor;
-		
+
 		if (graph.pageVisible)
 		{
-			graph.container.style.backgroundColor = 'whiteSmoke';
-			graph.container.style.border = '1px solid #e5e5e5';
+			graph.container.style.backgroundColor = '#ebebeb';
+			graph.container.style.borderStyle = 'solid';
+			graph.container.style.borderColor = '#e5e5e5';
+			graph.container.style.borderTopWidth = '1px';
+			graph.container.style.borderLeftWidth = '1px';
+			graph.container.style.borderRightWidth = '0px';
+			graph.container.style.borderBottomWidth = '0px';
 		}
 		else
 		{
 			graph.container.style.border = '';
 		}
+		
+		outline.outline.container.style.backgroundColor = graph.container.style.backgroundColor;
 		
 		if (graph.scrollbars && graph.container.style.overflow == 'hidden' && !touchStyle)
 		{
@@ -326,7 +339,7 @@ Editor.prototype.init = function()
 	// Changes border color of background page shape
 	mxGraphView.prototype.createBackgroundPageShape = function(bounds)
 	{
-		return new mxRectangleShape(bounds, this.graph.background || 'white', '#c0c0c0');
+		return new mxRectangleShape(bounds, this.graph.background || 'white', '#cacaca');
 	};
 
 	// Fits the number of background pages to the graph
@@ -471,8 +484,6 @@ Editor.prototype.init = function()
 				this.backgroundPageShape.bounds = bounds;
 				this.backgroundPageShape.redraw();
 			}
-			
-			this.backgroundPageShape.node.style.backgroundImage = (this.graph.isGridEnabled()) ? 'url(images/grid.gif)' : 'none';
 		}
 		else if (this.backgroundPageShape != null)
 		{
@@ -653,7 +664,7 @@ Editor.prototype.init = function()
 		if (psel == null || (psel != cell && psel != parent))
 		{
 			while (!this.graph.isCellSelected(cell) && !this.graph.isCellSelected(parent) &&
-					(model.isVertex(parent) || model.isEdge(parent)) && !this.graph.isValidRoot(parent))
+					model.isVertex(parent) && !this.graph.isValidRoot(parent))
 			{
 				cell = parent;
 				parent = this.graph.getModel().getParent(cell);
@@ -674,7 +685,7 @@ Editor.prototype.init = function()
 		
 		if (psel == null || (psel != cell && psel != parent))
 		{
-			if (!this.graph.isCellSelected(cell) && (model.isVertex(parent) || model.isEdge(parent)) && !this.graph.isValidRoot(parent))
+			if (!this.graph.isCellSelected(cell) && model.isVertex(parent) && !this.graph.isValidRoot(parent))
 			{
 				result = true;
 			}
@@ -696,7 +707,7 @@ Editor.prototype.init = function()
 		var model = this.graph.getModel();
 		var parent = model.getParent(cell);
 		
-		while (this.graph.isCellSelected(cell) && (model.isVertex(parent) || model.isEdge(parent)) && !this.graph.isValidRoot(parent))
+		while (this.graph.isCellSelected(cell) && model.isVertex(parent) && !this.graph.isValidRoot(parent))
 		{
 			cell = parent;
 			parent = model.getParent(cell);
@@ -712,7 +723,7 @@ Editor.prototype.init = function()
 		var model = this.graph.getModel();
 		var parent = model.getParent(cell);
 		
-		while ((model.isVertex(parent) || model.isEdge(parent)) && !this.graph.isValidRoot(parent))
+		while (model.isVertex(parent) && !this.graph.isValidRoot(parent))
 		{
 			if (this.graph.isCellSelected(parent))
 			{

@@ -1,5 +1,5 @@
 /**
- * $Id: Menus.js,v 1.43 2012-05-25 07:37:55 gaudenz Exp $
+ * $Id: Menus.js,v 1.46 2012-05-29 09:40:42 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -196,8 +196,32 @@ Menus.prototype.init = function()
 		this.styleChange(menu, mxResources.get('south'), [mxConstants.STYLE_DIRECTION], [mxConstants.DIRECTION_SOUTH], null, parent);
 		this.styleChange(menu, mxResources.get('west'), [mxConstants.STYLE_DIRECTION], [mxConstants.DIRECTION_WEST], null, parent);
 		menu.addSeparator(parent);
-		menu.addItem(mxResources.get('flipH'), null, function() { graph.toggleCellStyles(mxConstants.STYLE_STENCIL_FLIPH, false); }, parent);
-		menu.addItem(mxResources.get('flipV'), null, function() { graph.toggleCellStyles(mxConstants.STYLE_STENCIL_FLIPV, false); }, parent);
+		menu.addItem(mxResources.get('flipH'), null, function()
+		{
+			graph.getModel().beginUpdate();
+			try
+			{
+				graph.toggleCellStyles(mxConstants.STYLE_STENCIL_FLIPH, false);
+				graph.toggleCellStyles(mxConstants.STYLE_IMAGE_FLIPH, false);
+			}
+			finally
+			{
+				graph.getModel().endUpdate();
+			}
+		}, parent);
+		menu.addItem(mxResources.get('flipV'), null, function()
+		{
+			graph.getModel().beginUpdate();
+			try
+			{
+				graph.toggleCellStyles(mxConstants.STYLE_STENCIL_FLIPV, false);
+				graph.toggleCellStyles(mxConstants.STYLE_IMAGE_FLIPV, false);
+			}
+			finally
+			{
+				graph.getModel().endUpdate();
+			}
+		}, parent);
 		this.addMenuItem(menu, 'rotation', parent);
 	})));
 	this.put('align', new Menu(mxUtils.bind(this, function(menu, parent)
@@ -251,11 +275,14 @@ Menus.prototype.init = function()
 		{
 			(function(scale)
 			{
-				menu.addItem((scale * 100) + '%', null, function() { graph.getView().setScale(scale); }, parent);
+				menu.addItem((scale * 100) + '%', null, function()
+				{
+					graph.zoomTo(scale);
+				}, parent);
 			})(scales[i]);
 		}
 		
-		this.addMenuItems(menu, ['zoomIn', 'zoomOut', '-', 'fitWindow', 'customZoom'], parent);
+		this.addMenuItems(menu, ['-', 'zoomIn', 'zoomOut', '-', 'fitWindow', 'customZoom', '-', 'fitPage', 'fitPageWidth'], parent);
 	})));
 	this.put('file', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -263,8 +290,8 @@ Menus.prototype.init = function()
 	})));
 	this.put('edit', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
-		this.addMenuItems(menu, ['undo', 'redo', '-', 'cut', 'copy', 'paste', 'delete', '-',
-		                         'duplicate', '-', 'selectVertices', 'selectEdges', 'selectAll']);
+		this.addMenuItems(menu, ['undo', 'redo', '-', 'cut', 'copy', 'paste', 'delete', '-', 'duplicate', '-',
+		                         'selectVertices', 'selectEdges', 'selectAll', '-', 'useAsDefaultEdge']);
 	})));
 	this.put('options', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -486,16 +513,26 @@ Menus.prototype.createPopupMenu = function(menu, cell, evt)
 	var graph = this.editorUi.editor.graph;
 	menu.smartSeparators = true;
 	
-	this.addMenuItems(menu, ['undo', 'redo', '-', 'delete', '-', 'cut', 'copy', 'paste', '-', 'duplicate', '-']);
+	if (graph.isSelectionEmpty())
+	{
+		this.addMenuItems(menu, ['undo', 'redo', '-', 'paste', '-']);	
+	}
+	else
+	{
+		this.addMenuItems(menu, ['delete', '-', 'cut', 'copy', '-', 'duplicate', '-']);	
+	}
 	
 	if (graph.getSelectionCount() > 0)
-	{
+	{		
 		this.addMenuItems(menu, ['toFront', 'toBack', '-']);
 		this.addSubmenu('linewidth', menu);
 
 		if (graph.getSelectionCount() > 0 && graph.getModel().isEdge(graph.getSelectionCell()))
 		{
 			this.addSubmenu('line', menu);
+			menu.addSeparator();
+			this.addSubmenu('linestart', menu);
+			this.addSubmenu('lineend', menu);
 			menu.addSeparator();
 			this.addMenuItems(menu, ['useAsDefaultEdge']);
 		}
@@ -506,12 +543,19 @@ Menus.prototype.createPopupMenu = function(menu, cell, evt)
 		}
 		else
 		{
+			if (graph.getSelectionCount() == 1 && graph.getModel().isVertex(graph.getSelectionCell()))
+			{
+				menu.addSeparator();
+				this.addMenuItems(menu, ['rotate']);
+			}
+			
+			menu.addSeparator();
 			this.addSubmenu('layout', menu);
 		}
 	}
 	else
 	{
-		this.addMenuItems(menu, ['selectVertices', 'selectEdges', '-', 'selectAll']);
+		this.addMenuItems(menu, ['-', 'selectVertices', 'selectEdges', '-', 'selectAll']);
 	}
 };
 

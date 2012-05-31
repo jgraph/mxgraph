@@ -1,6 +1,6 @@
 /*
- * $Id: mxHierarchicalLayout.java,v 1.12 2010-12-01 18:08:40 david Exp $
- * Copyright (c) 2005-2010, David Benson, Gaudenz Alder
+ * $Id: mxHierarchicalLayout.java,v 1.13 2012-05-27 22:11:14 david Exp $
+ * Copyright (c) 2005-2012, JGraph Ltd
  */
 package com.mxgraph.layout.hierarchical;
 
@@ -23,7 +23,9 @@ import com.mxgraph.layout.hierarchical.stage.mxCoordinateAssignment;
 import com.mxgraph.layout.hierarchical.stage.mxHierarchicalLayoutStage;
 import com.mxgraph.layout.hierarchical.stage.mxMedianHybridCrossingReduction;
 import com.mxgraph.layout.hierarchical.stage.mxMinimumCycleRemover;
+import com.mxgraph.model.mxGraphModel;
 import com.mxgraph.model.mxIGraphModel;
+import com.mxgraph.view.mxCellState;
 import com.mxgraph.view.mxGraph;
 
 /**
@@ -40,7 +42,7 @@ JGraphLayout.Stoppable*/
 	 * Specifies if the parent should be resized after the layout so that it
 	 * contains all the child cells. Default is false. @See parentBorder.
 	 */
-	protected boolean resizeParent = false;
+	protected boolean resizeParent = true;
 
 	/**
 	 * Specifies if the parnent should be moved if resizeParent is enabled.
@@ -121,6 +123,19 @@ JGraphLayout.Stoppable*/
 	protected boolean layoutFromSinks = true;
 
 	/**
+	 * Whether or not to promote edges that terminate on vertices with
+	 * different but common ancestry to appear connected to the highest
+	 * siblings in the ancestry chains
+	 */
+	protected boolean promoteEdges = true;
+
+	/**
+	 * Whether or not to navigate edges whose terminal vertices 
+	 * have different parents but are in the same ancestry chain
+	 */
+	protected boolean traverseAncestors = true;
+
+	/**
 	 * The internal model formed of the layout
 	 */
 	protected mxGraphHierarchyModel model = null;
@@ -181,13 +196,42 @@ JGraphLayout.Stoppable*/
 	 */
 	public void execute(Object parent, List<Object> roots)
 	{
-		if (roots == null)
+		super.execute(parent);
+		mxIGraphModel model = graph.getModel();
+
+		// If the roots are set and the parent is set, only
+		// use the roots that are some dependent of the that
+		// parent.
+		// If just the root are set, use them as-is
+		// If just the parent is set use it's immediate
+		// children as the initial set
+
+		if (roots == null && parent == null)
 		{
-			roots = graph.findTreeRoots(parent);
+			// TODO indicate the problem
+			return;
 		}
 
-		this.roots = roots;
-		mxIGraphModel model = graph.getModel();
+		if (roots != null && parent != null)
+		{
+			for (Object root : roots)
+			{
+				if (!model.isAncestor(parent, root))
+				{
+					roots.remove(root);
+				}
+			}
+
+			this.roots = roots;
+		}
+		else if (roots == null)
+		{
+			this.roots = graph.findTreeRoots(parent);
+		}
+		else
+		{
+			this.roots = roots;
+		}
 
 		model.beginUpdate();
 		try
@@ -204,6 +248,118 @@ JGraphLayout.Stoppable*/
 		{
 			model.endUpdate();
 		}
+	}
+
+	/**
+	 * Returns all visible children in the given parent which do not have
+	 * incoming edges. If the result is empty then the children with the
+	 * maximum difference between incoming and outgoing edges are returned.
+	 * This takes into account edges that are being promoted to the given
+	 * root due to invisible children or collapsed cells.
+	 * 
+	 * @param parent Cell whose children should be checked.
+	 * @param isolate Specifies if edges should be ignored if the opposite
+	 * end is not a child of the given parent cell.
+	 * @param invert Specifies if outgoing or incoming edges should be counted
+	 * for a tree root. If false then outgoing edges will be counted.
+	 * @return List of tree roots in parent.
+	 */
+	public List<Object> findTreeRoots(Object[] cells, boolean isolate,
+			boolean invert)
+	{
+		List<Object> roots = new ArrayList<Object>();
+
+		Object best = null;
+		int maxDiff = 0;
+		mxIGraphModel model = graph.getModel();
+
+		for (int i = 0; i < cells.length; i++)
+		{
+			if (model.isVertex(cells[i]) && graph.isCellVisible(cells[i]))
+			{
+				Object[] conns = this.getEdges(cells[i]);
+				int fanOut = 0;
+				int fanIn = 0;
+
+				for (int j = 0; j < conns.length; j++)
+				{
+					Object src = graph.getView().getVisibleTerminal(conns[j], true);
+
+					if (src == cells[i])
+					{
+						fanOut++;
+					}
+					else
+					{
+						fanIn++;
+					}
+				}
+
+				if ((invert && fanOut == 0 && fanIn > 0)
+						|| (!invert && fanIn == 0 && fanOut > 0))
+				{
+					roots.add(cells[i]);
+				}
+
+				int diff = (invert) ? fanIn - fanOut : fanOut - fanIn;
+
+				if (diff > maxDiff)
+				{
+					maxDiff = diff;
+					best = cells[i];
+				}
+			}
+		}
+
+		if (roots.isEmpty() && best != null)
+		{
+			roots.add(best);
+		}
+
+		return roots;
+	}
+
+	public Object[] getEdges(Object cell)
+	{
+		mxIGraphModel model = graph.getModel();
+		boolean isCollapsed = graph.isCellCollapsed(cell);
+		List<Object> edges = new ArrayList<Object>();
+		int childCount = model.getChildCount(cell);
+
+		for (int i = 0; i < childCount; i++)
+		{
+			Object child = model.getChildAt(cell, i);
+
+			if (isCollapsed || !graph.isCellVisible(child))
+			{
+				edges.addAll(Arrays.asList(mxGraphModel.getEdges(model, child,
+						true, true, false)));
+			}
+		}
+
+		edges.addAll(Arrays.asList(mxGraphModel.getEdges(model, cell, true,
+				true, false)));
+		List<Object> result = new ArrayList<Object>(edges.size());
+		Iterator<Object> it = edges.iterator();
+
+		while (it.hasNext())
+		{
+			Object edge = it.next();
+			mxCellState state = graph.getView().getState(edge);
+			Object source = (state != null) ? state.getVisibleTerminal(true)
+					: graph.getView().getVisibleTerminal(edge, true);
+			Object target = (state != null) ? state.getVisibleTerminal(false)
+					: graph.getView().getVisibleTerminal(edge, false);
+
+			if (((source != target) && ((target == cell && (parent == null || graph.isValidAncestor(
+							source, parent, traverseAncestors))) || (source == cell && (parent == null || graph.isValidAncestor(
+							target, parent, traverseAncestors))))))
+			{
+				result.add(edge);
+			}
+		}
+
+		return result.toArray();
 	}
 
 	/**
@@ -274,7 +430,7 @@ JGraphLayout.Stoppable*/
 									.getIncomingEdges(cell, parent)));
 						}
 
-						Object[] conns = graph.getConnections(cell, parent);
+						Object[] conns = getEdges(cell);
 						Object[] cells = graph.getOpposites(conns, cell);
 
 						for (int j = 0; j < cells.length; j++)
@@ -306,8 +462,8 @@ JGraphLayout.Stoppable*/
 		{
 			Set<Object> vertexSet = iter.next();
 
-			model = new mxGraphHierarchyModel(this, vertexSet.toArray(), roots,
-					parent, false, deterministic, layoutFromSinks);
+			this.model = new mxGraphHierarchyModel(this, vertexSet.toArray(), roots,
+					parent, deterministic, layoutFromSinks);
 
 			cycleStage(parent);
 			layeringStage();

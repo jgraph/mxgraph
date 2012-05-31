@@ -1,6 +1,6 @@
 /**
- * $Id: mxCoordinateAssignment.java,v 1.13 2012-01-09 15:02:51 david Exp $
- * Copyright (c) 2005-2010, David Benson, Gaudenz Alder
+ * $Id: mxCoordinateAssignment.java,v 1.14 2012-05-27 22:11:14 david Exp $
+ * Copyright (c) 2005-2012, JGraph Ltd
  */
 
 package com.mxgraph.layout.hierarchical.stage;
@@ -30,6 +30,7 @@ import com.mxgraph.layout.hierarchical.model.mxGraphHierarchyNode;
 import com.mxgraph.layout.hierarchical.model.mxGraphHierarchyRank;
 import com.mxgraph.util.mxPoint;
 import com.mxgraph.util.mxRectangle;
+import com.mxgraph.util.mxUtils;
 import com.mxgraph.view.mxGraph;
 
 /**
@@ -179,6 +180,11 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 	 * A store of connections to the layer above for speed
 	 */
 	protected mxGraphAbstractHierarchyCell[][] nextLayerConnectedCache;
+
+	/**
+	 * Padding added to resized parents
+	 */
+	protected int groupPadding = 10;
 
 	/**
 	 * A store of connections to the layer below for speed
@@ -1246,6 +1252,13 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 			rankBottomY[i] = 0.0;
 		}
 
+		Set<Object> parentsChanged = null;
+		
+		if (layout.isResizeParent())
+		{
+			parentsChanged = new HashSet<Object>();
+		}
+		
 		Map<Object, mxGraphHierarchyEdge> edges = model.getEdgeMapper();
 		Map<Object, mxGraphHierarchyNode> vertices = model.getVertexMapper();
 
@@ -1253,9 +1266,19 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 		// limits of each rank. Between these limits lie the channels
 		// where the edges can be routed across the graph
 
-		for (mxGraphAbstractHierarchyCell cell : vertices.values())
+		for (mxGraphHierarchyNode cell : vertices.values())
 		{
 			setVertexLocation(cell);
+			
+			if (layout.isResizeParent())
+			{
+				parentsChanged.add(graph.getModel().getParent(cell.cell));
+			}
+		}
+		
+		if (layout.isResizeParent())
+		{
+			adjustParents(parentsChanged);
 		}
 
 		// Post process edge styles. Needs the vertex locations set for initial
@@ -1270,6 +1293,16 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 		{
 			setEdgePosition(cell);
 		}
+	}
+
+	/**
+	 * Adjust parent cells whose child geometries have changed. The default 
+	 * implementation adjusts the group to just fit around the children with 
+	 * a padding.
+	 */
+	protected void adjustParents(Set<Object> parentsChanged)
+	{
+		layout.arrangeGroups(mxUtils.sortCells(parentsChanged, true).toArray(), groupPadding);
 	}
 
 	/**
