@@ -1,5 +1,5 @@
 /**
- * $Id: Editor.js,v 1.39 2012-05-28 15:40:03 gaudenz Exp $
+ * $Id: Editor.js,v 1.40 2012-05-31 08:05:30 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 // Specifies if local storage should be used (eg. on the iPad which has no filesystem)
@@ -138,6 +138,14 @@ Editor.prototype.setGraphXml = function(node)
 		{
 			this.graph.pageScale = 1.5;
 		}
+		
+		var pw = node.getAttribute('pageWidth');
+		var ph = node.getAttribute('pageHeight');
+		
+		if (pw != null && ph != null)
+		{
+			this.graph.pageFormat = new mxRectangle(0, 0, parseFloat(pw), parseFloat(ph));
+		}
 
 		// Loads the persistent state settings
 		var bg = node.getAttribute('background');
@@ -188,6 +196,8 @@ Editor.prototype.getGraphXml = function()
 	node.setAttribute('fold', (this.graph.foldingEnabled) ? '1' : '0');
 	node.setAttribute('page', (this.graph.pageVisible) ? '1' : '0');
 	node.setAttribute('pageScale', this.graph.pageScale);
+	node.setAttribute('pageWidth', this.graph.pageFormat.width);
+	node.setAttribute('pageHeight', this.graph.pageFormat.height);
 	
 	if (!this.graph.scrollbars)
 	{

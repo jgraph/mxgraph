@@ -1,3 +1,13 @@
+01-JUN-2012: 1.10.1.0 beta
+
+- Adds mxGraph.getPreferredPageSize hook [JavaScript]
+- Fixes centerZoom option in mxGraph.zoom for graphs with scrollbars [JavaScript] 
+- Fixes mxGraph.scrollRectToVisible for translated graphs with scrollbars [JavaScript]
+- Adds mxOutline.getSourceContainerSize, getgetOutlineOffset [JavaScript]
+- Fixes mxOutline.setZoomEnabled for VML [JavaScript]
+- Adds mxGraph.timerAutoScroll switch [JavaScript]
+- Adds handling for scrollbars in mxPanningManager [JavaScript]
+- Adds all stencils from Diagramly in grapheditor/www/stencils [JavaScript]
 - Uses Google Closure Compiler for JavaScript minification [JavaScript]
 - Uses language identifiers with dashes if supported in mxResources.getSpecialBundle [JavaScript]
 - Allows language identifiers with dashes in mxClient.languages [JavaScript]

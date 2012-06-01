@@ -48,7 +48,7 @@
 <fillstroke/>
 <ellipse x="3.5" y="3.5" w="92" h="92"/>
 <fillstroke/>
-
+<strokewidth width="3"/>
 <path>
 <move x="24.5" y="24.5"/>
 <line x="74.5" y="74.5"/>

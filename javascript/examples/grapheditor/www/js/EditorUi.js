@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.45 2012-05-28 15:39:29 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.46 2012-05-29 15:50:07 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -31,6 +31,15 @@ EditorUi = function(editor)
 		document.body.oncontextmenu = textEditing;
 	}
 
+	// Pre-fetches submenu image
+	new Image().src = mxPopupMenu.prototype.submenuImage;
+
+	// Pre-fetches connect image
+	if (mxConnectionHandler.prototype.connectImage != null)
+	{
+		new Image().src = mxConnectionHandler.prototype.connectImage.src;
+	}
+	
     // Creates the user interface
 	this.actions = new Actions(this);
 	this.menus = new Menus(this);

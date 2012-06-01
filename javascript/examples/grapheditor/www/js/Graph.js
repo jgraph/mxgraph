@@ -1,5 +1,5 @@
 /**
- * $Id: Graph.js,v 1.33 2012-05-28 15:38:45 gaudenz Exp $
+ * $Id: Graph.js,v 1.36 2012-05-31 12:41:15 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -23,7 +23,11 @@ Graph = function(container, model, renderHint, stylesheet)
 
 	// Sets the style to be used when an elbow edge is double clicked
 	this.alternateEdgeStyle = 'vertical';
-	this.loadStylesheet();
+
+	if (stylesheet == null)
+	{
+		this.loadStylesheet();
+	}
 	
 	// Creates rubberband selection
     var rubberband = new mxRubberband(this);
@@ -365,11 +369,7 @@ Graph.prototype.initTouch = function()
 
 			graphDblClick.call(this, evt, cell);
 		};
-		
-		
-		// Sets the submenu icon
-		mxPopupMenu.prototype.submenuImage = IMAGE_PATH + '/touch-submenu.png';
-		
+
 		// Rounded edge and vertex handles
 		var touchHandle = new mxImage(IMAGE_PATH + '/touch-handle.png', 16, 16);
 		mxVertexHandler.prototype.handleImage = touchHandle;
@@ -473,15 +473,6 @@ Graph.prototype.initTouch = function()
 		mxConnectionHandler.prototype.connectImage = new mxImage(IMAGE_PATH + '/connector.png', 15, 15);
 	}
 
-	// Pre-fetches submenu image
-	new Image().src = mxPopupMenu.prototype.submenuImage;
-
-	// Pre-fetches connect image
-	if (mxConnectionHandler.prototype.connectImage != null)
-	{
-		new Image().src = mxConnectionHandler.prototype.connectImage.src;
-	}
-	
 	// Cube Shape, supports size style
 	function CubeShape() { };
 	CubeShape.prototype = new mxCylinder();
@@ -1082,7 +1073,6 @@ Graph.prototype.initTouch = function()
 	var handlers = {'swimlane': mxSwimlaneHandler, 'folder': mxFolderHandler, 'cube': mxCubeHandler,
 			'card': mxCardHandler, 'note': mxNoteHandler, 'step': mxStepHandler, 'tape': mxTapeHandler};
 
-	// Swimlane handler
 	Graph.prototype.createHandler = function(state)
 	{
 		if (state != null)
@@ -1097,13 +1087,13 @@ Graph.prototype.initTouch = function()
 		
 		return mxGraph.prototype.createHandler.apply(this, arguments);
 	};
-	
+
+	// Swimlane handler	
 	function mxSwimlaneHandler(state)
 	{
 		mxVertexHandler.call(this, state);
 	};
 
-	// Graph inherits from mxGraph
 	mxUtils.extend(mxSwimlaneHandler, mxVertexHandler);
 
 	mxSwimlaneHandler.prototype.useGridForSpecialHandle = false;
@@ -1114,7 +1104,6 @@ Graph.prototype.initTouch = function()
 		var graph = this.state.view.graph;
 		var size = 10;
 		var bounds = new mxRectangle(0, 0, size, size);
-		//this.specialHandle = this.createSizerShape(bounds, -2, 'orange');
 		this.specialHandle = new mxRhombus(bounds, mxConstants.HANDLE_FILLCOLOR, mxConstants.HANDLE_STROKECOLOR);
 		this.specialHandle.crisp = this.crisp;
 		this.specialHandle.dialect = (graph.dialect != mxConstants.DIALECT_SVG) ?
@@ -1502,7 +1491,7 @@ Graph.prototype.initTouch = function()
 		return new mxPoint(bounds.x + size * bounds.width, bounds.y + bounds.height / 2);
 	};
 	
-	// Step Handler
+	// Tape Handler
 	function mxTapeHandler(state)
 	{
 		mxCubeHandler.call(this, state);
@@ -1529,6 +1518,7 @@ Graph.prototype.initTouch = function()
 		return new mxPoint(bounds.x + bounds.width / 2, bounds.y + size * bounds.height / 2);
 	};
 	
+	// Constraints
 	mxGraph.prototype.getAllConnectionConstraints = function(terminal, source)
 	{
 		if (terminal != null && terminal.shape != null &&
@@ -1547,7 +1537,6 @@ Graph.prototype.initTouch = function()
 		return null;
 	};
 
-	
 	mxRectangleShape.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0.25, 0), true),
 	                                          new mxConnectionConstraint(new mxPoint(0.5, 0), true),
 	                                          new mxConnectionConstraint(new mxPoint(0.75, 0), true),
@@ -1677,4 +1666,5 @@ Graph.prototype.initTouch = function()
 	                                 new mxConnectionConstraint(new mxPoint(0.96, 0.7), false),
 	                                 new mxConnectionConstraint(new mxPoint(0.625, 0.2), false),
 	                                 new mxConnectionConstraint(new mxPoint(0.88, 0.25), false)];
+	mxArrow.prototype.constraints = null;
 })();

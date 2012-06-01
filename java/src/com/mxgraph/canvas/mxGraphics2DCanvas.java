@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphics2DCanvas.java,v 1.200 2012-05-24 06:55:16 gaudenz Exp $
+ * $Id: mxGraphics2DCanvas.java,v 1.201 2012-05-30 15:39:34 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.canvas;
@@ -158,7 +158,7 @@ public class mxGraphics2DCanvas extends mxBasicCanvas
 		String name = mxUtils.getString(style, mxConstants.STYLE_SHAPE, null);
 		mxIShape shape = shapes.get(name);
 
-		if (shape == null)
+		if (shape == null && name != null)
 		{
 			shape = mxStencilRegistry.getStencil(name);
 		}

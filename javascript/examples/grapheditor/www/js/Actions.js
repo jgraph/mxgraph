@@ -1,5 +1,5 @@
 /**
- * $Id: Actions.js,v 1.29 2012-05-28 15:40:25 gaudenz Exp $
+ * $Id: Actions.js,v 1.31 2012-05-31 07:08:21 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -72,6 +72,7 @@ Actions.prototype.init = function()
 	{
 		this.editorUi.showDialog(new EditFileDialog(ui).container, 620, 420, true, true);
 	})));
+	this.addAction('pageSetup', function() { ui.showDialog(new PageSetupDialog(ui).container, 300, 200, true, true); });
 	this.addAction('print', function() { ui.showDialog(new PrintDialog(ui).container, 300, 200, true, true); }, null, 'sprite-print', 'Ctrl+P');
 	this.addAction('preview', function() { mxUtils.show(graph, null, 10, 10); });
 	
@@ -237,7 +238,7 @@ Actions.prototype.init = function()
 		var cw = graph.container.clientWidth - 20;
 		var ch = graph.container.clientHeight - 20;
 		
-		var scale = Math.floor(100 * Math.min(cw / fmt.width * ps, ch / fmt.height * ps)) / 100;
+		var scale = Math.floor(100 * Math.min(cw / fmt.width / ps, ch / fmt.height / ps)) / 100;
 		graph.zoomTo(scale);
 		
 		graph.container.scrollLeft = Math.round(graph.view.translate.x * scale - Math.max(10, (graph.container.clientWidth - fmt.width * ps * scale) / 2));
@@ -254,7 +255,7 @@ Actions.prototype.init = function()
 		var ps = graph.pageScale;
 		var cw = graph.container.clientWidth - 20;
 		
-		var scale = Math.floor(100 * cw / fmt.width * ps) / 100;
+		var scale = Math.floor(100 * cw / fmt.width / ps) / 100;
 		graph.zoomTo(scale);
 		
 		graph.container.scrollLeft = Math.round(graph.view.translate.x * scale - Math.max(10, (graph.container.clientWidth - fmt.width * ps * scale) / 2));
@@ -517,7 +518,6 @@ Actions.prototype.init = function()
     	{
     		if (value.length > 0)
     		{
-    			value == null;
 	    		var img = new Image();
 	    		
 	    		img.onload = function()

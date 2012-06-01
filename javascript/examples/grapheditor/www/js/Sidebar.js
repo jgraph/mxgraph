@@ -1,5 +1,5 @@
 /**
- * $Id: Sidebar.js,v 1.58 2012-05-28 15:37:43 gaudenz Exp $
+ * $Id: Sidebar.js,v 1.59 2012-05-31 07:08:03 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -221,6 +221,7 @@ Sidebar.prototype.showTooltip = function(elt, cells)
 				}
 				
 				this.tooltip.style.display = 'block';
+				this.tooltip.style.overflow = 'visible';
 				this.tooltipImage.style.visibility = 'visible';
 				this.tooltip.style.width = width + 'px';
 				this.tooltip.style.height = height + 'px';

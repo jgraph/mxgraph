@@ -594,12 +594,14 @@ for storing references to ports.)
 		mxEdgeSegmentHandler.prototype.clonePreviewState = function(point, terminal)
 		{
 			var clone = mxEdgeHandler.prototype.clonePreviewState.apply(this, arguments);
+			clone.cell = clone.cell.clone();
 			
-			// TODO: Should not modify geometry in-place here (change of state)
 			if (this.isSource || this.isTarget)
 			{
+				clone.cell.geometry = clone.cell.geometry.clone();
+				
 				// Sets the terminal point of an edge if we're moving one of the endpoints
-				if (this.graph.getModel().isEdge(clone.cell) && this.graph.getModel().isEdge(terminal))
+				if (this.graph.getModel().isEdge(clone.cell))// && this.graph.getModel().isEdge(terminal))
 				{
 					// TODO: Only set this if the target or source terminal is an edge
 					clone.cell.geometry.setTerminalPoint(point, this.isSource);

@@ -1,6 +1,6 @@
 package com.mxgraph.shape;
 
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Map;
 
 public class mxStencilRegistry
@@ -8,7 +8,7 @@ public class mxStencilRegistry
 	/**
 	 * 
 	 */
-	protected static Map<String, mxStencil> stencils = new Hashtable<String, mxStencil>();
+	protected static Map<String, mxStencil> stencils = new HashMap<String, mxStencil>();
 
 	/**
 	 * Adds the given stencil.
