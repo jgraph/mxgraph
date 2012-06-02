@@ -1,0 +1,483 @@
+<shapes name="mxGraph.electrical.thermionic_devices">
+<shape name="Diode" h="70" w="50" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.25" y="0.96" perimeter="0" name="S"/>
+</connections>
+<background>
+<roundrect x="0" y="0" w="50" h="70" arcsize="42.85714285714286"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="25" y="0"/>
+<line x="25" y="10"/>
+</path>
+<stroke/>
+<save/>
+<path>
+<move x="15" y="10"/>
+<line x="35" y="10"/>
+</path>
+<stroke/>
+<strokewidth width="3"/>
+<path>
+<move x="12" y="55"/>
+<line x="38" y="55"/>
+</path>
+<stroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="12.5" y="55"/>
+<line x="12.5" y="66.5"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="69.5"/>
+<line x="20" y="65"/>
+<arc rx="5" ry="5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="30" y="65"/>
+<arc rx="45" ry="50" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="30" y="69.5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Double Diode" h="70" w="70" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.285" y="0" perimeter="0" name="NW"/>
+<constraint x="0.715" y="0" perimeter="0" name="NE"/>
+<constraint x="0.15" y="0.99" perimeter="0" name="S"/>
+</connections>
+<background>
+<roundrect x="0" y="0" w="70" h="70" arcsize="21.428571428571427"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="20" y="0"/>
+<line x="20" y="10"/>
+</path>
+<stroke/>
+<save/>
+<path>
+<move x="10" y="10"/>
+<line x="30" y="10"/>
+</path>
+<stroke/>
+<strokewidth width="3"/>
+<path>
+<move x="10" y="55"/>
+<line x="60" y="55"/>
+</path>
+<stroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="10.5" y="55"/>
+<line x="10.5" y="69"/>
+</path>
+<stroke/>
+<path>
+<move x="30" y="69.5"/>
+<line x="30" y="65"/>
+<arc rx="5" ry="5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="40" y="65"/>
+<arc rx="45" ry="50" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="40" y="69.5"/>
+</path>
+<stroke/>
+<path>
+<move x="50" y="0"/>
+<line x="50" y="10"/>
+</path>
+<stroke/>
+
+<path>
+<move x="40" y="10"/>
+<line x="60" y="10"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Double Triode" h="70" w="70" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.285" y="0" perimeter="0" name="NW"/>
+<constraint x="0.715" y="0" perimeter="0" name="NE"/>
+<constraint x="0.15" y="0.99" perimeter="0" name="S"/>
+</connections>
+<background>
+<roundrect x="0" y="0" w="70" h="70" arcsize="21.428571428571427"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="20" y="0"/>
+<line x="20" y="10"/>
+</path>
+<stroke/>
+<save/>
+<path>
+<move x="10" y="10"/>
+<line x="30" y="10"/>
+</path>
+<stroke/>
+<strokewidth width="3"/>
+<path>
+<move x="10" y="55"/>
+<line x="60" y="55"/>
+</path>
+<stroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="10.5" y="55"/>
+<line x="10.5" y="69"/>
+</path>
+<stroke/>
+<path>
+<move x="30" y="69.5"/>
+<line x="30" y="65"/>
+<arc rx="5" ry="5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="40" y="65"/>
+<arc rx="45" ry="50" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="40" y="69.5"/>
+</path>
+<stroke/>
+<path>
+<move x="50" y="0"/>
+<line x="50" y="10"/>
+</path>
+<stroke/>
+<save/>
+<path>
+<move x="40" y="10"/>
+<line x="60" y="10"/>
+</path>
+<stroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="0" y="35"/>
+<line x="10" y="35"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="35"/>
+<line x="30" y="35"/>
+</path>
+<stroke/>
+<path>
+<move x="40" y="35"/>
+<line x="50" y="35"/>
+</path>
+<stroke/>
+<path>
+<move x="60" y="35"/>
+<line x="70" y="35"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Pentode" h="70" w="50" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.25" y="0.96" perimeter="0" name="S"/>
+</connections>
+<background>
+<roundrect x="0" y="0" w="50" h="70" arcsize="42.85714285714286"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="25" y="0"/>
+<line x="25" y="10"/>
+</path>
+<stroke/>
+<save/>
+<path>
+<move x="15" y="10"/>
+<line x="35" y="10"/>
+</path>
+<stroke/>
+<strokewidth width="3"/>
+<path>
+<move x="12" y="55"/>
+<line x="38" y="55"/>
+</path>
+<stroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="12.5" y="55"/>
+<line x="12.5" y="66.5"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="69.5"/>
+<line x="20" y="65"/>
+<arc rx="5" ry="5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="30" y="65"/>
+<arc rx="45" ry="50" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="30" y="69.5"/>
+</path>
+<stroke/>
+<save/>
+<restore/>
+<strokewidth width="2"/>
+<path>
+<move x="0" y="35"/>
+<line x="10" y="35"/>
+</path>
+<stroke/>
+
+<strokewidth width="2"/>
+<path>
+<move x="20" y="35"/>
+<line x="30" y="35"/>
+</path>
+<stroke/>
+<strokewidth width="2"/>
+<path>
+<move x="40" y="35"/>
+<line x="50" y="35"/>
+</path>
+<stroke/>
+<strokewidth width="2"/>
+<path>
+<move x="0" y="25"/>
+<line x="10" y="25"/>
+</path>
+<stroke/>
+<strokewidth width="2"/>
+<path>
+<move x="20" y="25"/>
+<line x="30" y="25"/>
+</path>
+<stroke/>
+<strokewidth width="2"/>
+<path>
+<move x="40" y="25"/>
+<line x="50" y="25"/>
+</path>
+<stroke/>
+<strokewidth width="2"/>
+<path>
+<move x="0" y="45"/>
+<line x="10" y="45"/>
+</path>
+<stroke/>
+<strokewidth width="2"/>
+<path>
+<move x="20" y="45"/>
+<line x="30" y="45"/>
+</path>
+<stroke/>
+<strokewidth width="2"/>
+<path>
+<move x="40" y="45"/>
+<line x="50" y="45"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Photocell" h="80" w="60" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.415" y="0.125" perimeter="0" name="N"/>
+<constraint x="0.21" y="0.97" perimeter="0" name="S"/>
+</connections>
+<background>
+<roundrect x="0" y="10" w="50" h="70" arcsize="42.85714285714286"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="25" y="10"/>
+<line x="25" y="20"/>
+</path>
+<stroke/>
+<save/>
+<path>
+<move x="15" y="20"/>
+<line x="35" y="20"/>
+</path>
+<stroke/>
+<strokewidth width="3"/>
+<path>
+<move x="12" y="65"/>
+<line x="38" y="65"/>
+</path>
+<stroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="12.5" y="65"/>
+<line x="12.5" y="76.5"/>
+</path>
+<stroke/>
+<path>
+<move x="50" y="0"/>
+<line x="40" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="60" y="8"/>
+<line x="50" y="18"/>
+</path>
+<stroke/>
+<path>
+<move x="40" y="7"/>
+<line x="40" y="10"/>
+<line x="43" y="10"/>
+<close/>
+</path>
+<fillstroke/>
+<path>
+<move x="50" y="15"/>
+<line x="50" y="18"/>
+<line x="53" y="18"/>
+<close/>
+</path>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="Tetrode" h="70" w="50" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.25" y="0.96" perimeter="0" name="S"/>
+</connections>
+<background>
+<roundrect x="0" y="0" w="50" h="70" arcsize="42.85714285714286"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="25" y="0"/>
+<line x="25" y="10"/>
+</path>
+<stroke/>
+<save/>
+<path>
+<move x="15" y="10"/>
+<line x="35" y="10"/>
+</path>
+<stroke/>
+<strokewidth width="3"/>
+<path>
+<move x="12" y="55"/>
+<line x="38" y="55"/>
+</path>
+<stroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="12.5" y="55"/>
+<line x="12.5" y="66.5"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="69.5"/>
+<line x="20" y="65"/>
+<arc rx="5" ry="5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="30" y="65"/>
+<arc rx="45" ry="50" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="30" y="69.5"/>
+</path>
+<stroke/>
+<save/>
+<restore/>
+<strokewidth width="2"/>
+<path>
+<move x="0" y="40"/>
+<line x="10" y="40"/>
+</path>
+<stroke/>
+
+<strokewidth width="2"/>
+<path>
+<move x="20" y="40"/>
+<line x="30" y="40"/>
+</path>
+<stroke/>
+<strokewidth width="2"/>
+<path>
+<move x="40" y="40"/>
+<line x="50" y="40"/>
+</path>
+<stroke/>
+<strokewidth width="2"/>
+<path>
+<move x="0" y="30"/>
+<line x="10" y="30"/>
+</path>
+<stroke/>
+<strokewidth width="2"/>
+<path>
+<move x="20" y="30"/>
+<line x="30" y="30"/>
+</path>
+<stroke/>
+<strokewidth width="2"/>
+<path>
+<move x="40" y="30"/>
+<line x="50" y="30"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Triode" h="70" w="50" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.25" y="0.96" perimeter="0" name="S"/>
+</connections>
+<background>
+<roundrect x="0" y="0" w="50" h="70" arcsize="42.85714285714286"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="25" y="0"/>
+<line x="25" y="10"/>
+</path>
+<stroke/>
+<save/>
+<path>
+<move x="15" y="10"/>
+<line x="35" y="10"/>
+</path>
+<stroke/>
+<strokewidth width="3"/>
+<path>
+<move x="12" y="55"/>
+<line x="38" y="55"/>
+</path>
+<stroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="12.5" y="55"/>
+<line x="12.5" y="66.5"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="69.5"/>
+<line x="20" y="65"/>
+<arc rx="5" ry="5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="30" y="65"/>
+<arc rx="45" ry="50" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="30" y="69.5"/>
+</path>
+<stroke/>
+<save/>
+<restore/>
+<strokewidth width="2"/>
+<path>
+<move x="0" y="35"/>
+<line x="10" y="35"/>
+</path>
+<stroke/>
+
+<strokewidth width="2"/>
+<path>
+<move x="20" y="35"/>
+<line x="30" y="35"/>
+</path>
+<stroke/>
+<strokewidth width="2"/>
+<path>
+<move x="40" y="35"/>
+<line x="50" y="35"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+</shapes>

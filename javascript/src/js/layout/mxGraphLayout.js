@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphLayout.js,v 1.46 2012-04-21 06:13:02 gaudenz Exp $
+ * $Id: mxGraphLayout.js,v 1.47 2012-05-27 22:07:28 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -112,6 +112,73 @@ mxGraphLayout.prototype.getConstraint = function(key, cell, edge, source)
 	var style = (state != null) ? state.style : this.graph.getCellStyle(cell);
 	
 	return (style != null) ? style[key] : null;
+};
+
+/**
+ * Function: traverse
+ * 
+ * Traverses the (directed) graph invoking the given function for each
+ * visited vertex and edge. The function is invoked with the current vertex
+ * and the incoming edge as a parameter. This implementation makes sure
+ * each vertex is only visited once. The function may return false if the
+ * traversal should stop at the given vertex.
+ * 
+ * Example:
+ * 
+ * (code)
+ * mxLog.show();
+ * var cell = graph.getSelectionCell();
+ * graph.traverse(cell, false, function(vertex, edge)
+ * {
+ *   mxLog.debug(graph.getLabel(vertex));
+ * });
+ * (end)
+ * 
+ * Parameters:
+ * 
+ * vertex - <mxCell> that represents the vertex where the traversal starts.
+ * directed - Optional boolean indicating if edges should only be traversed
+ * from source to target. Default is true.
+ * func - Visitor function that takes the current vertex and the incoming
+ * edge as arguments. The traversal stops if the function returns false.
+ * edge - Optional <mxCell> that represents the incoming edge. This is
+ * null for the first step of the traversal.
+ * visited - Optional array of cell paths for the visited cells.
+ */
+mxGraphLayout.traverse = function(vertex, directed, func, edge, visited)
+{
+	if (func != null && vertex != null)
+	{
+		directed = (directed != null) ? directed : true;
+		visited = visited || [];
+		var id = mxCellPath.create(vertex);
+		
+		if (visited[id] == null)
+		{
+			visited[id] = vertex;
+			var result = func(vertex, edge);
+			
+			if (result == null || result)
+			{
+				var edgeCount = this.graph.model.getEdgeCount(vertex);
+				
+				if (edgeCount > 0)
+				{
+					for (var i = 0; i < edgeCount; i++)
+					{
+						var e = this.graph.model.getEdgeAt(vertex, i);
+						var isSource = this.graph.model.getTerminal(e, true) == vertex;
+												
+						if (!directed || isSource)
+						{
+							var next = this.graph.view.getVisibleTerminal(e, !isSource);
+							this.traverse(next, directed, func, e, visited);
+						}
+					}
+				}
+			}
+		}
+	}
 };
 
 /**

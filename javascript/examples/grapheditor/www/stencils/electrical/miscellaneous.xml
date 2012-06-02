@@ -1,0 +1,471 @@
+<shapes name="mxGraph.electrical.miscellaneous">
+<shape name="Co-ax" h="60" w="50" aspect="variable" strokewidth="inherit">
+<foreground>
+<path>
+<move x="0" y="0"/>
+<line x="50" y="0"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="30"/>
+<line x="50" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="30"/>
+<line x="25" y="50"/>
+</path>
+<stroke/>
+<ellipse x="10" y="0" w="30" h="30"/>
+<fillstroke/>
+<path>
+<move x="20" y="50"/>
+<line x="25" y="60"/>
+<line x="30" y="50"/>
+<close/>
+</path>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="Crystal 1" h="30" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="45" y="3" w="10" h="24"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="15"/>
+<line x="45" y="15"/>
+</path>
+<stroke/>
+<path>
+<move x="55" y="15"/>
+<line x="100" y="15"/>
+</path>
+<stroke/>
+<path>
+<move x="45" y="0"/>
+<line x="45" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="55" y="0"/>
+<line x="55" y="30"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Crystal 2" h="36" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="48" y="0" w="4" h="36"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="18"/>
+<line x="45" y="18"/>
+</path>
+<stroke/>
+<path>
+<move x="55" y="18"/>
+<line x="100" y="18"/>
+</path>
+<stroke/>
+<path>
+<move x="45" y="3"/>
+<line x="45" y="33"/>
+</path>
+<stroke/>
+<path>
+<move x="55" y="3"/>
+<line x="55" y="33"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Fusable Resistor" h="22" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="18" y="0" w="64" h="22"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="11"/>
+<line x="18" y="11"/>
+<line x="22" y="1"/>
+<line x="30" y="21"/>
+<line x="38" y="1"/>
+<line x="46" y="21"/>
+<line x="54" y="1"/>
+<line x="62" y="21"/>
+<line x="70" y="1"/>
+<line x="78" y="21"/>
+<line x="82" y="11"/>
+<line x="100" y="11"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Fuse 1" h="13.54" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<foreground>
+<path>
+<move x="0" y="6.77"/>
+<line x="16" y="6.77"/>
+</path>
+<stroke/>
+<path>
+<move x="84" y="6.77"/>
+<line x="100" y="6.77"/>
+</path>
+<stroke/>
+<ellipse x="80" y="4.77" w="4" h="4"/>
+<fillstroke/>
+<ellipse x="16" y="4.77" w="4" h="4"/>
+<fillstroke/>
+<path>
+<move x="20" y="6.77"/>
+<arc rx="20" ry="20" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="50" y="6.77"/>
+<arc rx="20" ry="20" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="80" y="6.77"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Fuse 2" h="20" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="18" y="0" w="64" h="20"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="10"/>
+<line x="100" y="10"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Fuse 3" h="12" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<foreground>
+<path>
+<move x="0" y="6"/>
+<line x="16" y="6"/>
+</path>
+<stroke/>
+<path>
+<move x="84" y="6"/>
+<line x="100" y="6"/>
+</path>
+<stroke/>
+<ellipse x="72" y="0" w="12" h="12"/>
+<fillstroke/>
+<ellipse x="16" y="0" w="12" h="12"/>
+<fillstroke/>
+<path>
+<move x="22.5" y="0"/>
+<line x="77.5" y="12"/>
+</path>
+<stroke/>
+<path>
+<move x="77.5" y="0"/>
+<line x="22.5" y="12"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Fuse 4" h="32" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<foreground>
+<path>
+<move x="0" y="16"/>
+<line x="18" y="16"/>
+<arc rx="12.5" ry="12.5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="50" y="16"/>
+<arc rx="12.5" ry="12.5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="82" y="16"/>
+<line x="100" y="16"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Lamp 1" h="50" w="50" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="50" h="50"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="25"/>
+<arc rx="25" ry="25" x-axis-rotation="0" large-arc-flag="1" sweep-flag="1" x="50" y="25"/>
+<line x="35" y="25"/>
+<arc rx="10" ry="10" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="15" y="25"/>
+<close/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Lamp 2" h="50" w="50" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="50" h="50"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="7.2" y="7.2"/>
+<line x="42.8" y="42.8"/>
+</path>
+<stroke/>
+<path>
+<move x="42.8" y="7.2"/>
+<line x="7.2" y="42.8"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Monocell Battery" h="60" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<foreground>
+<path>
+<move x="0" y="30"/>
+<line x="45" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="55" y="0"/>
+<line x="55" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="55" y="30"/>
+<line x="100" y="30"/>
+</path>
+<stroke/>
+<rect x="41" y="15" w="4" h="30"/>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="Multicell Battery" h="60" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<foreground>
+<path>
+<move x="0" y="30"/>
+<line x="20" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="34" y="0"/>
+<line x="34" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="80" y="30"/>
+<line x="100" y="30"/>
+</path>
+<stroke/>
+<rect x="20" y="15" w="4" h="30"/>
+<fillstroke/>
+<path>
+<move x="80" y="0"/>
+<line x="80" y="60"/>
+</path>
+<stroke/>
+<rect x="66" y="15" w="4" h="30"/>
+<fillstroke/>
+<path>
+<move x="34" y="30"/>
+<line x="39" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="44" y="30"/>
+<line x="49" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="54" y="30"/>
+<line x="59" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="64" y="30"/>
+<line x="66" y="30"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Neon Lamp" h="50" w="50" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="50" h="50"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="25"/>
+<line x="20" y="25"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="15"/>
+<line x="20" y="35"/>
+</path>
+<stroke/>
+<path>
+<move x="30" y="15"/>
+<line x="30" y="35"/>
+</path>
+<stroke/>
+<path>
+<move x="30" y="25"/>
+<line x="50" y="25"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Thermistor 1" h="60" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="18" y="20" w="64" h="20"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="30"/>
+<line x="18" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="82" y="30"/>
+<line x="100" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="30" y="60"/>
+<line x="70" y="0"/>
+<line x="82" y="0"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Thermistor 2" h="70" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<ellipse x="15" y="0" w="70" h="70"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="35"/>
+<line x="18" y="35"/>
+<line x="22" y="25"/>
+<line x="30" y="45"/>
+<line x="38" y="25"/>
+<line x="46" y="45"/>
+<line x="54" y="25"/>
+<line x="62" y="45"/>
+<line x="70" y="25"/>
+<line x="78" y="45"/>
+<line x="82" y="35"/>
+<line x="100" y="35"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Thermocouple" h="81" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.125" y="0" perimeter="0" name="+"/>
+<constraint x="0.875" y="0" perimeter="0" name="-"/>
+</connections>
+<foreground>
+<path>
+<move x="10" y="0"/>
+<line x="10" y="50"/>
+<line x="40" y="80"/>
+<line x="70" y="50"/>
+<line x="70" y="0"/>
+</path>
+<stroke/>
+<ellipse x="39" y="79" w="2" h="2"/>
+<fillstroke/>
+<path>
+<move x="3" y="2"/>
+<line x="3" y="8"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="5"/>
+<line x="6" y="5"/>
+</path>
+<stroke/>
+<path>
+<move x="74" y="5"/>
+<line x="80" y="5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+</shapes>

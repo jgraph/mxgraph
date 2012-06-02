@@ -1,0 +1,937 @@
+<shapes name="mxGraph.electrical.mosfets2">
+<shape name="Dual Gate MOSFET" h="60" w="85" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.165" perimeter="0" name="G1"/>
+<constraint x="0" y="0.835" perimeter="0" name="G2"/>
+<constraint x="1" y="0.165" perimeter="0" name="D"/>
+<constraint x="1" y="0.5" perimeter="0" name="S2"/>
+<constraint x="1" y="0.835" perimeter="0" name="S1"/>
+</connections>
+<foreground>
+<path>
+<move x="15" y="0"/>
+<line x="15" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="10"/>
+<line x="85" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="50"/>
+<line x="85" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="5"/>
+<line x="20" y="15"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="25"/>
+<line x="20" y="35"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="45"/>
+<line x="20" y="55"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="30"/>
+<line x="85" y="30"/>
+</path>
+<stroke/>
+<save/>
+<miterlimit limit="2"/>
+<path>
+<move x="25.5" y="27"/>
+<line x="20" y="30"/>
+<line x="25.5" y="33"/>
+<close/>
+</path>
+<fillstroke/>
+<restore/>
+<miterlimit limit="4"/>
+<path>
+<move x="0" y="50"/>
+<line x="10" y="50"/>
+<line x="10" y="45"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="10"/>
+<line x="10" y="10"/>
+<line x="10" y="15"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="N-channel MOSFET 1" h="60" w="85" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.835" perimeter="0" name="G"/>
+<constraint x="1" y="0.165" perimeter="0" name="D"/>
+<constraint x="1" y="0.835" perimeter="0" name="S"/>
+</connections>
+<background>
+<path>
+<move x="15" y="0"/>
+<line x="15" y="60"/>
+</path>
+</background>
+<foreground>
+<stroke/>
+<path>
+<move x="20" y="10"/>
+<line x="85" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="50"/>
+<line x="85" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="50"/>
+<line x="15" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="5"/>
+<line x="20" y="15"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="25"/>
+<line x="20" y="35"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="45"/>
+<line x="20" y="55"/>
+</path>
+<stroke/>
+<save/>
+<miterlimit limit="2"/>
+<path>
+<move x="25.5" y="27"/>
+<line x="20" y="30"/>
+<line x="25.5" y="33"/>
+<close/>
+</path>
+<fillstroke/>
+<restore/>
+<miterlimit limit="4"/>
+<path>
+<move x="25.5" y="30"/>
+<line x="35" y="30"/>
+<line x="35" y="50"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="N-channel MOSFET 2" h="60" w="90" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="G"/>
+<constraint x="1" y="0.165" perimeter="0" name="D"/>
+<constraint x="1" y="0.835" perimeter="0" name="S"/>
+</connections>
+<foreground>
+<path>
+<move x="20" y="0"/>
+<line x="20" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="10"/>
+<line x="90" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="50"/>
+<line x="90" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="30"/>
+<line x="20" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="5"/>
+<line x="25" y="15"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="25"/>
+<line x="25" y="35"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="45"/>
+<line x="25" y="55"/>
+</path>
+<stroke/>
+<save/>
+<miterlimit limit="2"/>
+<path>
+<move x="30.5" y="27"/>
+<line x="25" y="30"/>
+<line x="30.5" y="33"/>
+<close/>
+</path>
+<fillstroke/>
+<restore/>
+<miterlimit limit="4"/>
+<path>
+<move x="30.5" y="30"/>
+<line x="40" y="30"/>
+<line x="40" y="50"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="N-channel MOSFET 3" h="60" w="85" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.835" perimeter="0" name="G"/>
+<constraint x="1" y="0.165" perimeter="0" name="S1"/>
+<constraint x="1" y="0.5" perimeter="0" name="S2"/>
+<constraint x="1" y="0.835" perimeter="0" name="D"/>
+</connections>
+<foreground>
+<path>
+<move x="15" y="0"/>
+<line x="15" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="10"/>
+<line x="85" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="50"/>
+<line x="85" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="50"/>
+<line x="15" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="5"/>
+<line x="20" y="15"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="25"/>
+<line x="20" y="35"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="45"/>
+<line x="20" y="55"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="30"/>
+<line x="85" y="30"/>
+</path>
+<stroke/>
+
+<miterlimit limit="2"/>
+<path>
+<move x="25.5" y="27"/>
+<line x="20" y="30"/>
+<line x="25.5" y="33"/>
+<close/>
+</path>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="N-channel MOSFET 4" h="60" w="90" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="G"/>
+<constraint x="1" y="0.165" perimeter="0" name="S1"/>
+<constraint x="1" y="0.5" perimeter="0" name="S2"/>
+<constraint x="1" y="0.835" perimeter="0" name="D"/>
+</connections>
+<foreground>
+<path>
+<move x="20" y="0"/>
+<line x="20" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="10"/>
+<line x="90" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="50"/>
+<line x="90" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="30"/>
+<line x="20" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="5"/>
+<line x="25" y="15"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="25"/>
+<line x="25" y="35"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="45"/>
+<line x="25" y="55"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="30"/>
+<line x="90" y="30"/>
+</path>
+<stroke/>
+
+<miterlimit limit="2"/>
+<path>
+<move x="30.5" y="27"/>
+<line x="25" y="30"/>
+<line x="30.5" y="33"/>
+<close/>
+</path>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="N-channel MOSFET 5" h="60" w="85" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.835" perimeter="0" name="G"/>
+<constraint x="1" y="0.165" perimeter="0" name="S"/>
+<constraint x="1" y="0.835" perimeter="0" name="D"/>
+</connections>
+<foreground>
+<path>
+<move x="15" y="0"/>
+<line x="15" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="10"/>
+<line x="85" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="50"/>
+<line x="85" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="50"/>
+<line x="15" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="5"/>
+<line x="20" y="15"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="25"/>
+<line x="20" y="35"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="45"/>
+<line x="20" y="55"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="30"/>
+<line x="35" y="30"/>
+<line x="35" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="60" y="10"/>
+<line x="60" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="55" y="25"/>
+<line x="65" y="25"/>
+</path>
+<stroke/>
+<path>
+<move x="57" y="30"/>
+<line x="60" y="25"/>
+<line x="63" y="30"/>
+<close/>
+</path>
+<fillstroke/>
+
+<miterlimit limit="2"/>
+<path>
+<move x="25.5" y="27"/>
+<line x="20" y="30"/>
+<line x="25.5" y="33"/>
+<close/>
+</path>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="N-channel MOSFET 6" h="60" w="90" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="G"/>
+<constraint x="1" y="0.165" perimeter="0" name="S"/>
+<constraint x="1" y="0.835" perimeter="0" name="D"/>
+</connections>
+<foreground>
+<path>
+<move x="20" y="0"/>
+<line x="20" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="10"/>
+<line x="90" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="50"/>
+<line x="90" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="30"/>
+<line x="20" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="5"/>
+<line x="25" y="15"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="25"/>
+<line x="25" y="35"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="45"/>
+<line x="25" y="55"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="30"/>
+<line x="40" y="30"/>
+<line x="40" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="65" y="10"/>
+<line x="65" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="60" y="25"/>
+<line x="70" y="25"/>
+</path>
+<stroke/>
+<path>
+<move x="62" y="30"/>
+<line x="65" y="25"/>
+<line x="68" y="30"/>
+<close/>
+</path>
+<fillstroke/>
+
+<miterlimit limit="2"/>
+<path>
+<move x="30.5" y="27"/>
+<line x="25" y="30"/>
+<line x="30.5" y="33"/>
+<close/>
+</path>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="NMOS FET" h="60" w="85" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="G"/>
+<constraint x="1" y="0.165" perimeter="0" name="D"/>
+<constraint x="1" y="0.835" perimeter="0" name="S1"/>
+</connections>
+<foreground>
+<path>
+<move x="15" y="0"/>
+<line x="15" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="15" y="10"/>
+<line x="85" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="15" y="50"/>
+<line x="85" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="30"/>
+<line x="10" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="10" y="5"/>
+<line x="10" y="55"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="P-channel MOSFET 1" h="60" w="85" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.835" perimeter="0" name="G"/>
+<constraint x="1" y="0.165" perimeter="0" name="D"/>
+<constraint x="1" y="0.835" perimeter="0" name="S"/>
+</connections>
+<foreground>
+<path>
+<move x="15" y="0"/>
+<line x="15" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="10"/>
+<line x="85" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="50"/>
+<line x="85" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="50"/>
+<line x="15" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="5"/>
+<line x="20" y="15"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="25"/>
+<line x="20" y="35"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="45"/>
+<line x="20" y="55"/>
+</path>
+<stroke/>
+<save/>
+<miterlimit limit="2"/>
+<path>
+<move x="25.5" y="27"/>
+<line x="31" y="30"/>
+<line x="25.5" y="33"/>
+<close/>
+</path>
+<fillstroke/>
+<restore/>
+<miterlimit limit="4"/>
+<path>
+<move x="31" y="30"/>
+<line x="35" y="30"/>
+<line x="35" y="50"/>
+</path>
+<stroke/>
+
+<strokecolor color="#000000"/>
+<path>
+<move x="20" y="30"/>
+<line x="25.5" y="30"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="P-channel MOSFET 2" h="60" w="90" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="G"/>
+<constraint x="1" y="0.165" perimeter="0" name="D"/>
+<constraint x="1" y="0.835" perimeter="0" name="S"/>
+</connections>
+<foreground>
+<path>
+<move x="20" y="0"/>
+<line x="20" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="10"/>
+<line x="90" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="50"/>
+<line x="90" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="30"/>
+<line x="20" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="5"/>
+<line x="25" y="15"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="25"/>
+<line x="25" y="35"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="45"/>
+<line x="25" y="55"/>
+</path>
+<stroke/>
+<save/>
+<miterlimit limit="2"/>
+<path>
+<move x="30.5" y="27"/>
+<line x="36" y="30"/>
+<line x="30.5" y="33"/>
+<close/>
+</path>
+<fillstroke/>
+<restore/>
+<miterlimit limit="4"/>
+<path>
+<move x="36" y="30"/>
+<line x="40" y="30"/>
+<line x="40" y="50"/>
+</path>
+<stroke/>
+
+<strokecolor color="#000000"/>
+<path>
+<move x="25" y="30"/>
+<line x="30.5" y="30"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="P-channel MOSFET 3" h="60" w="85" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.835" perimeter="0" name="G"/>
+<constraint x="1" y="0.165" perimeter="0" name="D"/>
+<constraint x="1" y="0.5" perimeter="0" name="S1"/>
+<constraint x="1" y="0.835" perimeter="0" name="S2"/>
+</connections>
+<foreground>
+<path>
+<move x="15" y="0"/>
+<line x="15" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="10"/>
+<line x="85" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="50"/>
+<line x="85" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="50"/>
+<line x="15" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="5"/>
+<line x="20" y="15"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="25"/>
+<line x="20" y="35"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="45"/>
+<line x="20" y="55"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="30"/>
+<line x="85" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="79.5" y="27"/>
+<line x="85" y="30"/>
+<line x="79.5" y="33"/>
+<close/>
+</path>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="P-channel MOSFET 4" h="60" w="90" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="G"/>
+<constraint x="1" y="0.165" perimeter="0" name="D"/>
+<constraint x="1" y="0.5" perimeter="0" name="S1"/>
+<constraint x="1" y="0.835" perimeter="0" name="S2"/>
+</connections>
+<foreground>
+<path>
+<move x="20" y="0"/>
+<line x="20" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="10"/>
+<line x="90" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="50"/>
+<line x="90" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="30"/>
+<line x="20" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="5"/>
+<line x="25" y="15"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="25"/>
+<line x="25" y="35"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="45"/>
+<line x="25" y="55"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="30"/>
+<line x="90" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="84.5" y="27"/>
+<line x="90" y="30"/>
+<line x="84.5" y="33"/>
+<close/>
+</path>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="P-channel MOSFET 5" h="60" w="85" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.835" perimeter="0" name="G"/>
+<constraint x="1" y="0.165" perimeter="0" name="D"/>
+<constraint x="1" y="0.835" perimeter="0" name="S"/>
+</connections>
+<foreground>
+<path>
+<move x="15" y="0"/>
+<line x="15" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="10"/>
+<line x="85" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="50"/>
+<line x="85" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="50"/>
+<line x="15" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="5"/>
+<line x="20" y="15"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="25"/>
+<line x="20" y="35"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="45"/>
+<line x="20" y="55"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="30"/>
+<line x="35" y="30"/>
+<line x="35" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="60" y="10"/>
+<line x="60" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="55" y="25"/>
+<line x="65" y="25"/>
+</path>
+<stroke/>
+<path>
+<move x="57" y="30"/>
+<line x="60" y="25"/>
+<line x="63" y="30"/>
+<close/>
+</path>
+<fillstroke/>
+
+<miterlimit limit="2"/>
+<path>
+<move x="25.5" y="27"/>
+<line x="31" y="30"/>
+<line x="25.5" y="33"/>
+<close/>
+</path>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="P-channel MOSFET 6" h="60" w="90" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="G"/>
+<constraint x="1" y="0.165" perimeter="0" name="D"/>
+<constraint x="1" y="0.835" perimeter="0" name="S"/>
+</connections>
+<foreground>
+<path>
+<move x="20" y="0"/>
+<line x="20" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="10"/>
+<line x="90" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="50"/>
+<line x="90" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="30"/>
+<line x="20" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="5"/>
+<line x="25" y="15"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="25"/>
+<line x="25" y="35"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="45"/>
+<line x="25" y="55"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="30"/>
+<line x="40" y="30"/>
+<line x="40" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="65" y="10"/>
+<line x="65" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="60" y="25"/>
+<line x="70" y="25"/>
+</path>
+<stroke/>
+<path>
+<move x="62" y="30"/>
+<line x="65" y="25"/>
+<line x="68" y="30"/>
+<close/>
+</path>
+<fillstroke/>
+
+<miterlimit limit="2"/>
+<path>
+<move x="30.5" y="27"/>
+<line x="36" y="30"/>
+<line x="30.5" y="33"/>
+<close/>
+</path>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="PMOS FET" h="60" w="85" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="G1"/>
+<constraint x="1" y="0.165" perimeter="0" name="D"/>
+<constraint x="1" y="0.835" perimeter="0" name="S"/>
+</connections>
+<foreground>
+<path>
+<move x="15" y="0"/>
+<line x="15" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="15" y="10"/>
+<line x="85" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="15" y="50"/>
+<line x="85" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="30"/>
+<line x="4" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="10" y="5"/>
+<line x="10" y="55"/>
+</path>
+<stroke/>
+<ellipse x="4" y="27" w="6" h="6"/>
+<fillstroke/>
+</foreground>
+</shape>
+</shapes>

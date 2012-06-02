@@ -1,5 +1,5 @@
 /**
- * $Id: mxOutline.js,v 1.77 2012-05-22 16:06:42 gaudenz Exp $
+ * $Id: mxOutline.js,v 1.78 2012-05-31 19:39:16 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -328,6 +328,26 @@ mxOutline.prototype.createSizer = function()
 };
 
 /**
+ * Function: getSourceContainerSize
+ * 
+ * Returns the size of the source container.
+ */
+mxOutline.prototype.getSourceContainerSize = function()
+{
+	return new mxRectangle(0, 0, this.source.container.scrollWidth, this.source.container.scrollHeight);
+};
+
+/**
+ * Function: getOutlineOffset
+ * 
+ * Returns the offset for drawing the outline graph.
+ */
+mxOutline.prototype.getOutlineOffset = function()
+{
+	return null;
+};
+
+/**
  * Function: update
  * 
  * Updates the outline.
@@ -341,7 +361,7 @@ mxOutline.prototype.update = function(revalidate)
 		var unscaledGraphBounds = new mxRectangle(scaledGraphBounds.x / sourceScale + this.source.panDx,
 				scaledGraphBounds.y / sourceScale + this.source.panDy, scaledGraphBounds.width / sourceScale,
 				scaledGraphBounds.height / sourceScale);
-	
+
 		var unscaledFinderBounds = new mxRectangle(0, 0,
 			this.source.container.clientWidth / sourceScale,
 			this.source.container.clientHeight / sourceScale);
@@ -350,8 +370,9 @@ mxOutline.prototype.update = function(revalidate)
 		union.add(unscaledFinderBounds);
 	
 		// Zooms to the scrollable area if that is bigger than the graph
-		var completeWidth = Math.max(this.source.container.scrollWidth / sourceScale, union.width);
-		var completeHeight = Math.max(this.source.container.scrollHeight/ sourceScale, union.height);
+		var size = this.getSourceContainerSize();
+		var completeWidth = Math.max(size.width / sourceScale, union.width);
+		var completeHeight = Math.max(size.height / sourceScale, union.height);
 	
 		var availableWidth = Math.max(0, this.outline.container.clientWidth - this.border);
 		var availableHeight = Math.max(0, this.outline.container.clientHeight - this.border);
@@ -373,10 +394,18 @@ mxOutline.prototype.update = function(revalidate)
 			{
 				navView.setCurrentRoot(this.source.getView().currentRoot);
 			}
-			
+
 			var t = this.source.view.translate;
 			var tx = t.x + this.source.panDx;
 			var ty = t.y + this.source.panDy;
+			
+			var off = this.getOutlineOffset();
+			
+			if (off != null)
+			{
+				tx += off.x;
+				ty += off.y;
+			}
 			
 			if (unscaledGraphBounds.x < 0)
 			{
@@ -428,9 +457,14 @@ mxOutline.prototype.update = function(revalidate)
 			if (b.x != b2.x || b.y != b2.y || b.width != b2.width || b.height != b2.height)
 			{
 				this.sizer.bounds = b2;
-				this.sizer.redraw();
+				
+				// Avoids update of visibility in redraw for VML
+				if (this.sizer.node.style.visibility != 'hidden')
+				{
+					this.sizer.redraw();
+				}
 			}
-			
+
 			if (revalidate)
 			{
 				this.outline.view.revalidate();
@@ -520,7 +554,13 @@ mxOutline.prototype.mouseMove = function(sender, me)
 			bounds.x + bounds.width - b.width / 2,
 			bounds.y + bounds.height - b.height / 2,
 			b.width, b.height);
-		this.sizer.redraw();
+		
+		// Avoids update of visibility in redraw for VML
+		if (this.sizer.node.style.visibility != 'hidden')
+		{
+			this.sizer.redraw();
+		}
+		
 		me.consume();
 	}
 };

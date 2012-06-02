@@ -1,5 +1,5 @@
 /**
- * $Id: mxActor.js,v 1.33 2012-05-21 18:27:17 gaudenz Exp $
+ * $Id: mxActor.js,v 1.34 2012-05-28 09:40:59 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -142,7 +142,8 @@ mxActor.prototype.redrawSvg = function()
 
 		if (this.shadowNode != null)
 		{
-			this.shadowNode.setAttribute('transform',  this.getSvgShadowTransform());
+			this.shadowNode.setAttribute('transform', this.getSvgShadowTransform() + 
+				(this.innerNode.getAttribute('transform') || ''));
 			this.shadowNode.setAttribute('stroke-width', strokeWidth);
 			this.shadowNode.setAttribute('d', d);
 		}

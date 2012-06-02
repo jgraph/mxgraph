@@ -1,5 +1,5 @@
 /**
- * $Id: mxCylinder.js,v 1.36 2012-05-22 16:10:12 gaudenz Exp $
+ * $Id: mxCylinder.js,v 1.37 2012-05-28 09:40:59 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -244,6 +244,7 @@ mxCylinder.prototype.redrawSvg = function()
 		{
 			this.pipe.setAttribute('d', d);
 			this.pipe.setAttribute('stroke-width', strokeWidth + mxShape.prototype.SVG_STROKE_TOLERANCE);
+			this.pipe.setAttribute('transform', (this.innerNode.getAttribute('transform') || ''));
 		}
 	}
 	else
@@ -290,7 +291,6 @@ mxCylinder.prototype.redrawSvg = function()
 		this.innerNode.setAttribute('stroke-dasharray', phase + ' ' + phase);
 		this.foreground.setAttribute('stroke-dasharray', phase + ' ' + phase);
 	}
-	
 };
 
 /**

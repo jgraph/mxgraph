@@ -1,5 +1,5 @@
 /**
- * $Id: mxStencil.js,v 1.85 2012-05-25 09:14:34 gaudenz Exp $
+ * $Id: mxStencil.js,v 1.86 2012-05-28 09:39:07 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -366,10 +366,14 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 			}
 		}
 		
+		// Workaround to improve VML rendering precision.
+		// Default vmlScale is 4.
 		if (vml)
 		{
 			sx *= shape.vmlScale;
 			sy *= shape.vmlScale;
+			x0 *= shape.vmlScale;
+			y0 *= shape.vmlScale;
 		}
 		
 		var minScale = Math.min(sx, sy);

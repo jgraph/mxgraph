@@ -1,6 +1,6 @@
 /**
- * $Id: mxCoordinateAssignment.js,v 1.25 2012-01-09 15:05:36 david Exp $
- * Copyright (c) 2006-2011, David Benson, Gaudenz Alder
+ * $Id: mxCoordinateAssignment.js,v 1.26 2012-05-27 22:11:14 david Exp $
+ * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
  * Class: mxCoordinateAssignment
@@ -221,6 +221,13 @@ mxCoordinateAssignment.prototype.nextLayerConnectedCache = null;
  * A store of connections to the layer below for speed
  */
 mxCoordinateAssignment.prototype.previousLayerConnectedCache = null;
+
+/**
+ * Variable: groupPadding
+ * 
+ * Padding added to resized parents
+ */
+mxCoordinateAssignment.prototype.groupPadding = 10;
 
 /**
  * Function: execute
@@ -1247,6 +1254,13 @@ mxCoordinateAssignment.prototype.setCellLocations = function(graph, model)
 		this.rankTopY[i] = Number.MAX_VALUE;
 		this.rankBottomY[i] = 0.0;
 	}
+	
+	var parentsChanged = null;
+
+	if (this.layout.resizeParent)
+	{
+		parentsChanged = new Object();
+	}
 
 	var edges = model.edgeMapper;
 	var vertices = model.vertexMapper;
@@ -1257,7 +1271,25 @@ mxCoordinateAssignment.prototype.setCellLocations = function(graph, model)
 
 	for (var key in vertices)
 	{
-		this.setVertexLocation(vertices[key]);
+		var vertex = vertices[key];
+		this.setVertexLocation(vertex);
+		
+		if (this.layout.resizeParent)
+		{
+			var parent = graph.model.getParent(vertex.cell);
+			var id = mxCellPath.create(parent);
+			
+			// Implements set semantic
+			if (parentsChanged[id] == null)
+			{
+				parentsChanged[id] = parent;					
+			}
+		}
+	}
+	
+	if (this.layout.resizeParent && parentsChanged != null)
+	{
+		this.adjustParents(parentsChanged);
 	}
 	
 	// Post process edge styles. Needs the vertex locations set for initial
@@ -1272,6 +1304,25 @@ mxCoordinateAssignment.prototype.setCellLocations = function(graph, model)
 	{
 		this.setEdgePosition(edges[key]);
 	}
+};
+
+/**
+ * Function: adjustParents
+ * 
+ * Adjust parent cells whose child geometries have changed. The default 
+ * implementation adjusts the group to just fit around the children with 
+ * a padding.
+ */
+mxCoordinateAssignment.prototype.adjustParents = function(parentsChanged)
+{
+	var tmp = [];
+	
+	for (var id in parentsChanged)
+	{
+		tmp.push(parentsChanged[id]);
+	}
+	
+	this.layout.arrangeGroups(mxUtils.sortCells(tmp, true), this.groupPadding);
 };
 
 /**

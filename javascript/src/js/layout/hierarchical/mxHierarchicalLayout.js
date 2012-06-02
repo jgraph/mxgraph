@@ -1,6 +1,6 @@
 /**
- * $Id: mxHierarchicalLayout.js,v 1.26 2011-07-04 08:31:56 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxHierarchicalLayout.js,v 1.27 2012-05-27 22:11:14 david Exp $
+ * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
  * Class: mxHierarchicalLayout
@@ -161,6 +161,23 @@ mxHierarchicalLayout.prototype.tightenToSource = true;
 mxHierarchicalLayout.prototype.disableEdgeStyle = true;
 
 /**
+ * Variable: promoteEdges
+ * 
+ * Whether or not to promote edges that terminate on vertices with
+ * different but common ancestry to appear connected to the highest
+ * siblings in the ancestry chains
+ */
+mxHierarchicalLayout.prototype.promoteEdges = true;
+
+/**
+ * Variable: traverseAncestors
+ * 
+ * Whether or not to navigate edges whose terminal vertices 
+ * have different parents but are in the same ancestry chain
+ */
+mxHierarchicalLayout.prototype.traverseAncestors = true;
+
+/**
  * Variable: model
  * 
  * The internal <mxGraphHierarchyModel> formed of the layout.
@@ -189,16 +206,49 @@ mxHierarchicalLayout.prototype.getModel = function()
  */
 mxHierarchicalLayout.prototype.execute = function(parent, roots)
 {
-	if (roots == null)
+	this.parent = parent;
+	var model = this.graph.model;
+
+	// If the roots are set and the parent is set, only
+	// use the roots that are some dependent of the that
+	// parent.
+	// If just the root are set, use them as-is
+	// If just the parent is set use it's immediate
+	// children as the initial set
+
+	if (roots == null && parent == null)
 	{
-		roots = this.graph.findTreeRoots(parent);
+		// TODO indicate the problem
+		return;
 	}
-	
-	this.roots = roots;
+
+	if (roots != null && parent != null)
+	{
+		var rootsCopy = [];
+
+		for (var i = 0; i < roots.length; i++)
+		{
+
+			if (model.isAncestor(parent, roots[i]))
+			{
+				rootsCopy.push(roots[i]);
+			}
+		}
+
+		this.roots = rootsCopy;
+	}
+	else if (roots == null)
+	{
+		this.roots = this.findTreeRoots(parent);
+	}
+	else
+	{
+		this.roots = roots;
+	}
 	
 	if (this.roots != null)
 	{
-		var model = this.graph.getModel();
+		model = this.graph.getModel();
 
 		model.beginUpdate();
 		try
@@ -217,6 +267,132 @@ mxHierarchicalLayout.prototype.execute = function(parent, roots)
 			model.endUpdate();
 		}
 	}
+};
+
+/**
+ * Function: findTreeRoots
+ * 
+ * Returns all children in the given parent which do not have incoming
+ * edges. If the result is empty then the with the greatest difference
+ * between incoming and outgoing edges is returned.
+ * 
+ * Parameters:
+ * 
+ * parent - <mxCell> whose children should be checked.
+ * isolate - Optional boolean that specifies if edges should be ignored if
+ * the opposite end is not a child of the given parent cell. Default is
+ * false.
+ * invert - Optional boolean that specifies if outgoing or incoming edges
+ * should be counted for a tree root. If false then outgoing edges will be
+ * counted. Default is false.
+ */
+mxHierarchicalLayout.prototype.findTreeRoots = function(isolate, invert)
+{
+	isolate = (isolate != null) ? isolate : false;
+	invert = (invert != null) ? invert : false;
+	var roots = [];
+	
+	if (this.parent != null)
+	{
+		var model = this.graph.model;
+		var childCount = model.getChildCount(this.parent);
+		var best = null;
+		var maxDiff = 0;
+		
+		for (var i = 0; i < childCount; i++)
+		{
+			var cell = model.getChildAt(this.parent, i);
+			
+			if (model.isVertex(cell) && this.graph.isCellVisible(cell))
+			{
+				var conns = this.getEdges(cell);
+				var fanOut = 0;
+				var fanIn = 0;
+				
+				for (var j = 0; j < conns.length; j++)
+				{
+					var src = this.graph.view.getVisibleTerminal(conns[j], true);
+	
+	                if (src == cell)
+	                {
+	                    fanOut++;
+	                }
+	                else
+	                {
+	                    fanIn++;
+	                }
+				}
+				
+				if ((invert && fanOut == 0 && fanIn > 0) ||
+					(!invert && fanIn == 0 && fanOut > 0))
+				{
+					roots.push(cell);
+				}
+				
+				var diff = (invert) ? fanIn - fanOut : fanOut - fanIn;
+				
+				if (diff > maxDiff)
+				{
+					maxDiff = diff;
+					best = cell;
+				}
+			}
+		}
+		
+		if (roots.length == 0 && best != null)
+		{
+			roots.push(best);
+		}
+	}
+	
+	return roots;
+};
+
+/**
+ * Function: getEdges
+ * 
+ * Returns the connected edges for the given cell.
+ * 
+ * Parameters:
+ * 
+ * cell - <mxCell> whose edges should be returned.
+ */
+mxHierarchicalLayout.prototype.getEdges = function(cell)
+{
+	var model = this.graph.model;
+	var edges = [];
+	var isCollapsed = this.graph.isCellCollapsed(cell);
+	var childCount = model.getChildCount(cell);
+
+	for (var i = 0; i < childCount; i++)
+	{
+		var child = model.getChildAt(cell, i);
+
+		if (isCollapsed || !this.graph.isCellVisible(child))
+		{
+			edges = edges.concat(model.getEdges(child, true, true));
+		}
+	}
+
+	edges = edges.concat(model.getEdges(cell, true, true));
+	var result = [];
+	
+	for (var i = 0; i < edges.length; i++)
+	{
+		var state = this.graph.view.getState(edges[i]);
+		
+		var source = (state != null) ? state.getVisibleTerminal(true) : this.graph.view.getVisibleTerminal(edges[i], true);
+		var target = (state != null) ? state.getVisibleTerminal(false) : this.graph.view.getVisibleTerminal(edges[i], false);
+
+		if ((source == target) || ((source != target) && ((target == cell && (this.parent == null || this.graph.isValidAncestor(source, this.parent, this.traverseAncestors))) ||
+			(source == cell && (this.parent == null ||
+					this.graph.isValidAncestor(target, this.parent, this.traverseAncestors))))))
+		{
+			result.push(edges[i]);
+		}
+	}
+
+	return result;
 };
 
 /**
@@ -296,7 +472,7 @@ mxHierarchicalLayout.prototype.run = function(parent)
 						}
 					}
 
-					var conns = this.graph.getConnections(cell, parent);
+					var conns = this.getEdges(cell);
 					var cells = this.graph.getOpposites(conns, cell);
 
 					for (var k = 0; k < cells.length; k++)
@@ -335,7 +511,7 @@ mxHierarchicalLayout.prototype.run = function(parent)
 		}
 		
 		this.model = new mxGraphHierarchyModel(this, tmp, this.roots,
-			parent, false, this.deterministic , this.tightenToSource, this.layoutFromSinks);
+			parent, this.deterministic , this.tightenToSource, this.layoutFromSinks);
 
 		this.cycleStage(parent);
 		this.layeringStage();

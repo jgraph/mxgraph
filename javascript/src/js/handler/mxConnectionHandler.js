@@ -1,5 +1,5 @@
 /**
- * $Id: mxConnectionHandler.js,v 1.207 2012-05-14 10:41:47 gaudenz Exp $
+ * $Id: mxConnectionHandler.js,v 1.208 2012-05-29 14:05:32 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1060,6 +1060,13 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 	
 	if (!me.isConsumed() && (this.ignoreMouseDown || this.first != null || !this.graph.isMouseDown))
 	{
+		// Handles special case when handler is disabled during highlight
+		if (!this.isEnabled() && this.currentState != null)
+		{
+			this.destroyIcons(this.icons);
+			this.currentState = null;
+		}
+		
 		if (this.first != null || (this.isEnabled() && this.graph.isEnabled()))
 		{
 			this.updateCurrentState(me);

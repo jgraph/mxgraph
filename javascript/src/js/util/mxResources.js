@@ -1,5 +1,5 @@
 /**
- * $Id: mxResources.js,v 1.26 2012-02-06 08:45:48 gaudenz Exp $
+ * $Id: mxResources.js,v 1.27 2012-05-28 17:09:03 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxResources =
@@ -120,6 +120,14 @@ var mxResources =
 	 * implementation returns basename + '_' + lan + '.properties' or null if
 	 * <loadSpecialBundle> is false or lan equals <mxClient.defaultLanguage>.
 	 * 
+	 * If <mxResources.languages> is not null and <mxClient.language> contains
+	 * a dash, then this method checks if <isLanguageSupported> returns true
+	 * for the full language (including the dash). If that returns false the
+	 * first part of the language (up to the dash) will be tried as an extension.
+	 * 
+	 * If <mxResources.language> is null then the first part of the language is
+	 * used to maintain backwards compatibility.
+	 * 
 	 * Parameters:
 	 * 
 	 * basename - The basename for which the file should be loaded.
@@ -127,7 +135,17 @@ var mxResources =
 	 */
 	getSpecialBundle: function(basename, lan)
 	{
-		if (mxResources.loadSpecialBundle && lan != mxClient.defaultLanguage)
+		if (mxClient.languages == null || !this.isLanguageSupported(lan))
+		{
+			var dash = lan.indexOf('-');
+			
+			if (dash > 0)
+			{
+				lan = lan.substring(0, dash);
+			}
+		}
+
+		if (mxResources.loadSpecialBundle && mxResources.isLanguageSupported(lan) && lan != mxClient.defaultLanguage)
 		{
 			return basename + '_' + lan + '.properties';
 		}
@@ -155,7 +173,7 @@ var mxResources =
 	 */
 	add: function(basename, lan)
 	{
-		lan = (lan != null) ? lan : mxClient.language;
+		lan = (lan != null) ? lan : mxClient.language.toLowerCase();
 		
 		if (lan != mxConstants.NONE)
 		{
@@ -180,26 +198,23 @@ var mxResources =
 			}
 	
 			// Overlays the language specific file (_lan-extension)
-			if (mxResources.isLanguageSupported(lan))
+			var specialBundle = mxResources.getSpecialBundle(basename, lan);
+			
+			if (specialBundle != null)
 			{
-				var specialBundle = mxResources.getSpecialBundle(basename, lan);
-				
-				if (specialBundle != null)
+				try
 				{
-					try
-					{
-				   		var req = mxUtils.load(specialBundle);
-				   		
-				   		if (req.isReady())
-				   		{
-				 	   		mxResources.parse(req.getText());
-				   		}
-			   		}
-			   		catch (e)
+			   		var req = mxUtils.load(specialBundle);
+			   		
+			   		if (req.isReady())
 			   		{
-			   			// ignore
-				   	}
-				}
+			 	   		mxResources.parse(req.getText());
+			   		}
+		   		}
+		   		catch (e)
+		   		{
+		   			// ignore
+			   	}
 			}
 		}
 	},

@@ -1,0 +1,430 @@
+<shapes name="mxGraph.pid.vessels">
+<shape name="Drum or Condenser" h="30" w="91.54" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.06" y="0" perimeter="0" name="NW"/>
+<constraint x="0.06" y="1" perimeter="0" name="SW"/>
+<constraint x="0.94" y="0" perimeter="0" name="NE"/>
+<constraint x="0.94" y="1" perimeter="0" name="SE"/>
+</connections>
+<background>
+<path>
+<move x="5.77" y="30"/>
+<line x="85.77" y="30"/>
+<arc rx="5" ry="13" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="85.77" y="0"/>
+<line x="5.77" y="0"/>
+<arc rx="5" ry="13" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="5.77" y="30"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="5.77" y="0"/>
+<line x="5.77" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="85.77" y="0"/>
+<line x="85.77" y="30"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Forced-Draft Cooling Tower" h="99" w="99" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0.195" y="0.5" perimeter="0" name="W"/>
+<constraint x="0.805" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.195" y="0" perimeter="0" name="NW"/>
+<constraint x="0" y="1" perimeter="0" name="SW"/>
+<constraint x="0.805" y="0" perimeter="0" name="NE"/>
+<constraint x="1" y="1" perimeter="0" name="SE"/>
+</connections>
+<background>
+<path>
+<move x="0" y="99"/>
+<line x="0" y="89.5"/>
+<line x="19.5" y="89.5"/>
+<line x="19.5" y="0"/>
+<line x="79.5" y="0"/>
+<line x="79.5" y="89.5"/>
+<line x="99" y="89.5"/>
+<line x="99" y="99"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="9.5" y="89.5"/>
+<line x="9.5" y="64.5"/>
+<line x="19.5" y="64.5"/>
+</path>
+<stroke/>
+<path>
+<move x="89.5" y="89.5"/>
+<line x="89.5" y="64.5"/>
+<line x="79.5" y="64.5"/>
+</path>
+<stroke/>
+<path>
+<move x="19.5" y="89.5"/>
+<line x="79.5" y="89.5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Furnace" h="99" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="0.905" perimeter="0" name="S"/>
+<constraint x="0.12" y="0.5" perimeter="0" name="W"/>
+<constraint x="0.88" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.31" y="0" perimeter="0" name="NW"/>
+<constraint x="0.12" y="1" perimeter="0" name="SW"/>
+<constraint x="0.69" y="0" perimeter="0" name="NE"/>
+<constraint x="0.88" y="1" perimeter="0" name="SE"/>
+</connections>
+<background>
+<path>
+<move x="25" y="0"/>
+<line x="55" y="0"/>
+<line x="55" y="34.5"/>
+<line x="70" y="44.5"/>
+<line x="70" y="99"/>
+<line x="60" y="99"/>
+<line x="60" y="89.5"/>
+<line x="20" y="89.5"/>
+<line x="20" y="99"/>
+<line x="10" y="99"/>
+<line x="10" y="44.5"/>
+<line x="25" y="34.5"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="25" y="34.5"/>
+<line x="55" y="34.5"/>
+</path>
+<stroke/>
+<path>
+<move x="10" y="44.5"/>
+<line x="70" y="44.5"/>
+</path>
+<stroke/>
+<path>
+<move x="10" y="89.5"/>
+<line x="70" y="89.5"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="54.5"/>
+<line x="55" y="54.5"/>
+<line x="25" y="79.5"/>
+<line x="80" y="79.5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Induced-Draft Cooling Tower" h="70" w="98" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0.12" y="0.5" perimeter="0" name="W"/>
+<constraint x="0.88" y="0.5" perimeter="0" name="E"/>
+<constraint x="0" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.245" y="1" perimeter="0" name="SW"/>
+<constraint x="1" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.755" y="1" perimeter="0" name="SE"/>
+</connections>
+<background>
+<path>
+<move x="24" y="70"/>
+<line x="19" y="60"/>
+<line x="24" y="60"/>
+<line x="0" y="10"/>
+<line x="34" y="10"/>
+<line x="34" y="0"/>
+<line x="64" y="0"/>
+<line x="64" y="10"/>
+<line x="98" y="10"/>
+<line x="74" y="60"/>
+<line x="79" y="60"/>
+<line x="74" y="70"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="34" y="10"/>
+<line x="64" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="24" y="60"/>
+<line x="74" y="60"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Mixer" h="88.4" w="20" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="0.99" perimeter="0" name="S"/>
+<constraint x="0.2" y="0.17" perimeter="0" name="W"/>
+<constraint x="0.8" y="0.17" perimeter="0" name="E"/>
+<constraint x="0" y="0.99" perimeter="0" name="SW"/>
+<constraint x="1" y="0.99" perimeter="0" name="SE"/>
+</connections>
+<background>
+<path>
+<move x="16" y="2.4"/>
+<line x="16" y="27.4"/>
+<arc rx="5" ry="2" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="4" y="27.4"/>
+<line x="4" y="2.4"/>
+<arc rx="5" ry="2" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="16" y="2.4"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="4" y="2.4"/>
+<line x="16" y="2.4"/>
+</path>
+<stroke/>
+<path>
+<move x="4" y="27.4"/>
+<line x="16" y="27.4"/>
+</path>
+<stroke/>
+<ellipse x="10" y="86.4" w="10" h="2"/>
+<fillstroke/>
+<ellipse x="0" y="86.4" w="10" h="2"/>
+<fillstroke/>
+<path>
+<move x="9" y="29.4"/>
+<line x="9" y="86.9"/>
+</path>
+<stroke/>
+<path>
+<move x="11" y="29.4"/>
+<line x="11" y="86.9"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Mixing Reactor" h="96.4" w="50" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+</connections>
+<background>
+<path>
+<move x="31" y="2.4"/>
+<line x="31" y="27.4"/>
+<arc rx="5" ry="2" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="19" y="27.4"/>
+<line x="19" y="2.4"/>
+<arc rx="5" ry="2" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="31" y="2.4"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="26" y="32.4"/>
+<line x="50" y="32.4"/>
+<line x="50" y="77.4"/>
+<line x="25" y="96.4"/>
+<line x="0" y="77.4"/>
+<line x="0" y="32.4"/>
+<line x="24" y="32.4"/>
+</path>
+<fillstroke/>
+<path>
+<move x="19" y="2.4"/>
+<line x="31" y="2.4"/>
+</path>
+<stroke/>
+<path>
+<move x="19" y="27.4"/>
+<line x="31" y="27.4"/>
+</path>
+<stroke/>
+<ellipse x="25" y="56.4" w="10" h="2"/>
+<fillstroke/>
+<ellipse x="15" y="56.4" w="10" h="2"/>
+<fillstroke/>
+<path>
+<move x="24" y="29.4"/>
+<line x="24" y="56.9"/>
+</path>
+<stroke/>
+<path>
+<move x="26" y="29.4"/>
+<line x="26" y="56.9"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="77.4"/>
+<line x="50" y="77.4"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Tank" h="95.38" w="40" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0" y="0.08" perimeter="0" name="NW"/>
+<constraint x="0" y="0.92" perimeter="0" name="SW"/>
+<constraint x="1" y="0.08" perimeter="0" name="NE"/>
+<constraint x="1" y="0.92" perimeter="0" name="SE"/>
+</connections>
+<background>
+<path>
+<move x="40" y="7.69"/>
+<line x="40" y="87.69"/>
+<arc rx="13" ry="5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="0" y="87.69"/>
+<line x="0" y="7.69"/>
+<arc rx="13" ry="5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="40" y="7.69"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="7.69"/>
+<line x="40" y="7.69"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="87.69"/>
+<line x="40" y="87.69"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Tower" h="97" w="14" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0" y="0.035" perimeter="0" name="NW"/>
+<constraint x="0" y="0.965" perimeter="0" name="SW"/>
+<constraint x="1" y="0.035" perimeter="0" name="NE"/>
+<constraint x="1" y="0.965" perimeter="0" name="SE"/>
+</connections>
+<background>
+<path>
+<move x="14" y="3.5"/>
+<line x="14" y="93.5"/>
+<arc rx="5" ry="2.5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="0" y="93.5"/>
+<line x="0" y="3.5"/>
+<arc rx="5" ry="2.5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="14" y="3.5"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="3.5"/>
+<line x="14" y="3.5"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="93.5"/>
+<line x="14" y="93.5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Tower With Packing" h="97" w="14" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0" y="0.035" perimeter="0" name="NW"/>
+<constraint x="0" y="0.965" perimeter="0" name="SW"/>
+<constraint x="1" y="0.035" perimeter="0" name="NE"/>
+<constraint x="1" y="0.965" perimeter="0" name="SE"/>
+</connections>
+<background>
+<path>
+<move x="14" y="3.5"/>
+<line x="14" y="93.5"/>
+<arc rx="5" ry="2.5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="0" y="93.5"/>
+<line x="0" y="3.5"/>
+<arc rx="5" ry="2.5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="14" y="3.5"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="3.5"/>
+<line x="14" y="3.5"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="93.5"/>
+<line x="14" y="93.5"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="43.5"/>
+<line x="14" y="43.5"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="53.5"/>
+<line x="14" y="53.5"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="18.5"/>
+<line x="14" y="18.5"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="78.5"/>
+<line x="14" y="78.5"/>
+</path>
+<stroke/>
+<path>
+<move x="14" y="18.5"/>
+<line x="0" y="43.5"/>
+</path>
+<stroke/>
+<path>
+<move x="14" y="43.5"/>
+<line x="0" y="18.5"/>
+</path>
+<stroke/>
+<path>
+<move x="14" y="53.5"/>
+<line x="0" y="78.5"/>
+</path>
+<stroke/>
+<path>
+<move x="14" y="78.5"/>
+<line x="0" y="53.5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+</shapes>

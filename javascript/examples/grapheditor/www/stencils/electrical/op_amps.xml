@@ -1,0 +1,613 @@
+<shapes name="mxGraph.electrical.op_amps">
+<shape name="Comparator" h="62" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.032" perimeter="0" name="V+1"/>
+<constraint x="0" y="0.355" perimeter="0" name="V+2"/>
+<constraint x="0.35" y="1" perimeter="0" name="V-"/>
+<constraint x="1" y="0.355" perimeter="0" name="Vout"/>
+</connections>
+<background>
+<path>
+<move x="40" y="2"/>
+<line x="80" y="22"/>
+<line x="40" y="42"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="35" y="62"/>
+<line x="35" y="32"/>
+<line x="40" y="32"/>
+</path>
+<stroke/>
+<path>
+<move x="30" y="12"/>
+<line x="40" y="12"/>
+</path>
+<stroke/>
+<path>
+<move x="80" y="22"/>
+<line x="100" y="22"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="2"/>
+<line x="30" y="2"/>
+<line x="30" y="22"/>
+<line x="25" y="22"/>
+</path>
+<stroke/>
+<rect x="5" y="0" w="20" h="4"/>
+<fillstroke/>
+<rect x="5" y="20" w="20" h="4"/>
+<fillstroke/>
+<path>
+<move x="0" y="2"/>
+<line x="5" y="2"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="22"/>
+<line x="5" y="22"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Differentiator" h="72" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.305" perimeter="0" name="V+"/>
+<constraint x="0.35" y="1" perimeter="0" name="V-"/>
+<constraint x="1" y="0.445" perimeter="0" name="Vout"/>
+</connections>
+<background>
+<path>
+<move x="40" y="12"/>
+<line x="80" y="32"/>
+<line x="40" y="52"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="35" y="72"/>
+<line x="35" y="42"/>
+<line x="40" y="42"/>
+</path>
+<stroke/>
+<path>
+<move x="35" y="22"/>
+<line x="35" y="2"/>
+<line x="50" y="2"/>
+</path>
+<stroke/>
+<path>
+<move x="70" y="2"/>
+<line x="85" y="2"/>
+<line x="85" y="32"/>
+</path>
+<stroke/>
+<rect x="50" y="0" w="20" h="4"/>
+<fillstroke/>
+<path>
+<move x="0" y="22"/>
+<line x="20" y="22"/>
+</path>
+<stroke/>
+<path>
+<move x="80" y="32"/>
+<line x="100" y="32"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="22"/>
+<line x="40" y="22"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="15"/>
+<line x="25" y="29"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="15"/>
+<line x="20" y="29"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Integrator" h="77" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.35" perimeter="0" name="V+"/>
+<constraint x="0.35" y="1" perimeter="0" name="V-"/>
+<constraint x="1" y="0.48" perimeter="0" name="Vout"/>
+</connections>
+<background>
+<path>
+<move x="40" y="17"/>
+<line x="80" y="37"/>
+<line x="40" y="57"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="35" y="77"/>
+<line x="35" y="47"/>
+<line x="40" y="47"/>
+</path>
+<stroke/>
+<path>
+<move x="35" y="27"/>
+<line x="35" y="7"/>
+<line x="60" y="7"/>
+</path>
+<stroke/>
+<path>
+<move x="63" y="7"/>
+<line x="85" y="7"/>
+<line x="85" y="37"/>
+</path>
+<stroke/>
+<rect x="10" y="25" w="20" h="4"/>
+<fillstroke/>
+<path>
+<move x="0" y="27"/>
+<line x="10" y="27"/>
+</path>
+<stroke/>
+<path>
+<move x="80" y="37"/>
+<line x="100" y="37"/>
+</path>
+<stroke/>
+<path>
+<move x="30" y="27"/>
+<line x="40" y="27"/>
+</path>
+<stroke/>
+<path>
+<move x="63" y="0"/>
+<line x="63" y="14"/>
+</path>
+<stroke/>
+<path>
+<move x="60" y="0"/>
+<line x="60" y="14"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Inverting Amplifier" h="72" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.305" perimeter="0" name="V+"/>
+<constraint x="0.35" y="1" perimeter="0" name="V-"/>
+<constraint x="1" y="0.445" perimeter="0" name="Vout"/>
+</connections>
+<background>
+<path>
+<move x="40" y="12"/>
+<line x="80" y="32"/>
+<line x="40" y="52"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="35" y="72"/>
+<line x="35" y="42"/>
+<line x="40" y="42"/>
+</path>
+<stroke/>
+<path>
+<move x="35" y="22"/>
+<line x="35" y="2"/>
+<line x="50" y="2"/>
+</path>
+<stroke/>
+<path>
+<move x="70" y="2"/>
+<line x="85" y="2"/>
+<line x="85" y="32"/>
+</path>
+<stroke/>
+<rect x="50" y="0" w="20" h="4"/>
+<fillstroke/>
+<rect x="10" y="20" w="20" h="4"/>
+<fillstroke/>
+<path>
+<move x="0" y="22"/>
+<line x="10" y="22"/>
+</path>
+<stroke/>
+<path>
+<move x="30" y="22"/>
+<line x="40" y="22"/>
+</path>
+<stroke/>
+<path>
+<move x="80" y="32"/>
+<line x="100" y="32"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Multivibrator" h="92" w="95" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="1" y="0.345" perimeter="0" name="Vout+"/>
+<constraint x="1" y="1" perimeter="0" name="Vout-"/>
+</connections>
+<background>
+<path>
+<move x="30" y="12"/>
+<line x="70" y="32"/>
+<line x="30" y="52"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="25" y="22"/>
+<line x="25" y="2"/>
+<line x="40" y="2"/>
+</path>
+<stroke/>
+<rect x="40" y="0" w="20" h="4"/>
+<fillstroke/>
+<rect x="78" y="37" w="4" h="20"/>
+<fillstroke/>
+<rect x="78" y="67" w="4" h="20"/>
+<fillstroke/>
+<path>
+<move x="20" y="15"/>
+<line x="20" y="29"/>
+</path>
+<stroke/>
+<path>
+<move x="15" y="15"/>
+<line x="15" y="29"/>
+</path>
+<stroke/>
+<path>
+<move x="70" y="32"/>
+<line x="95" y="32"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="22"/>
+<line x="30" y="22"/>
+</path>
+<stroke/>
+<path>
+<move x="80" y="57"/>
+<line x="80" y="67"/>
+</path>
+<stroke/>
+<path>
+<move x="80" y="87"/>
+<line x="80" y="92"/>
+</path>
+<stroke/>
+<path>
+<move x="30" y="42"/>
+<line x="25" y="42"/>
+<line x="25" y="62"/>
+<line x="80" y="62"/>
+</path>
+<stroke/>
+<path>
+<move x="15" y="22"/>
+<line x="0" y="22"/>
+<line x="0" y="92"/>
+<line x="95" y="92"/>
+</path>
+<stroke/>
+<path>
+<move x="60" y="2"/>
+<line x="80" y="2"/>
+<line x="80" y="37"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Non-inverting Amplifier" h="72" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.585" perimeter="0" name="V-"/>
+<constraint x="0.35" y="1" perimeter="0" name="V+"/>
+<constraint x="1" y="0.445" perimeter="0" name="Vout"/>
+</connections>
+<background>
+<path>
+<move x="40" y="12"/>
+<line x="80" y="32"/>
+<line x="40" y="52"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="35" y="47"/>
+<line x="35" y="2"/>
+<line x="50" y="2"/>
+</path>
+<stroke/>
+<path>
+<move x="70" y="2"/>
+<line x="85" y="2"/>
+<line x="85" y="32"/>
+</path>
+<stroke/>
+<rect x="50" y="0" w="20" h="4"/>
+<fillstroke/>
+<rect x="33" y="47" w="4" h="20"/>
+<fillstroke/>
+<path>
+<move x="0" y="42"/>
+<line x="40" y="42"/>
+</path>
+<stroke/>
+<path>
+<move x="35" y="22"/>
+<line x="40" y="22"/>
+</path>
+<stroke/>
+<path>
+<move x="80" y="32"/>
+<line x="100" y="32"/>
+</path>
+<stroke/>
+<path>
+<move x="35" y="67"/>
+<line x="35" y="72"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Regen Comparator" h="47" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.212" perimeter="0" name="V+"/>
+<constraint x="0" y="0.64" perimeter="0" name="V-"/>
+<constraint x="1" y="0.425" perimeter="0" name="Vout"/>
+</connections>
+<background>
+<path>
+<move x="40" y="0"/>
+<line x="80" y="20"/>
+<line x="40" y="40"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="70" y="45"/>
+<line x="85" y="45"/>
+<line x="85" y="20"/>
+</path>
+<stroke/>
+<rect x="50" y="43" w="20" h="4"/>
+<fillstroke/>
+<path>
+<move x="0" y="30"/>
+<line x="5" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="80" y="20"/>
+<line x="100" y="20"/>
+</path>
+<stroke/>
+<rect x="5" y="28" w="20" h="4"/>
+<fillstroke/>
+<path>
+<move x="0" y="10"/>
+<line x="40" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="30"/>
+<line x="40" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="35" y="30"/>
+<line x="35" y="45"/>
+<line x="50" y="45"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Subtractor" h="72" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.025" perimeter="0" name="V+"/>
+<constraint x="0" y="0.585" perimeter="0" name="V-1"/>
+<constraint x="0.35" y="1" perimeter="0" name="V-2"/>
+<constraint x="1" y="0.443" perimeter="0" name="Vout"/>
+</connections>
+<background>
+<path>
+<move x="40" y="12"/>
+<line x="80" y="32"/>
+<line x="40" y="52"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="70" y="2"/>
+<line x="85" y="2"/>
+<line x="85" y="32"/>
+</path>
+<stroke/>
+<rect x="50" y="0" w="20" h="4"/>
+<fillstroke/>
+<rect x="33" y="47" w="4" h="20"/>
+<fillstroke/>
+<path>
+<move x="0" y="42"/>
+<line x="5" y="42"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="2"/>
+<line x="5" y="2"/>
+</path>
+<stroke/>
+<path>
+<move x="80" y="32"/>
+<line x="100" y="32"/>
+</path>
+<stroke/>
+<path>
+<move x="35" y="67"/>
+<line x="35" y="72"/>
+</path>
+<stroke/>
+<rect x="5" y="0" w="20" h="4"/>
+<fillstroke/>
+<rect x="5" y="40" w="20" h="4"/>
+<fillstroke/>
+<path>
+<move x="25" y="2"/>
+<line x="50" y="2"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="42"/>
+<line x="40" y="42"/>
+</path>
+<stroke/>
+<path>
+<move x="35" y="42"/>
+<line x="35" y="47"/>
+</path>
+<stroke/>
+<path>
+<move x="35" y="2"/>
+<line x="35" y="22"/>
+<line x="40" y="22"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Summing Amplifier" h="72" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.165" perimeter="0" name="V+1"/>
+<constraint x="0" y="0.305" perimeter="0" name="V+2"/>
+<constraint x="0" y="0.445" perimeter="0" name="V+3"/>
+<constraint x="0.35" y="1" perimeter="0" name="V-"/>
+<constraint x="1" y="0.443" perimeter="0" name="Vout"/>
+</connections>
+<background>
+<path>
+<move x="40" y="12"/>
+<line x="80" y="32"/>
+<line x="40" y="52"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="35" y="72"/>
+<line x="35" y="42"/>
+<line x="40" y="42"/>
+</path>
+<stroke/>
+<path>
+<move x="35" y="22"/>
+<line x="35" y="2"/>
+<line x="50" y="2"/>
+</path>
+<stroke/>
+<path>
+<move x="70" y="2"/>
+<line x="85" y="2"/>
+<line x="85" y="32"/>
+</path>
+<stroke/>
+<rect x="50" y="0" w="20" h="4"/>
+<fillstroke/>
+<rect x="5" y="20" w="20" h="4"/>
+<fillstroke/>
+<path>
+<move x="0" y="22"/>
+<line x="5" y="22"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="22"/>
+<line x="40" y="22"/>
+</path>
+<stroke/>
+<path>
+<move x="80" y="32"/>
+<line x="100" y="32"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="12"/>
+<line x="30" y="12"/>
+<line x="30" y="32"/>
+<line x="25" y="32"/>
+</path>
+<stroke/>
+<rect x="5" y="10" w="20" h="4"/>
+<fillstroke/>
+<rect x="5" y="30" w="20" h="4"/>
+<fillstroke/>
+<path>
+<move x="0" y="12"/>
+<line x="5" y="12"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="32"/>
+<line x="5" y="32"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Unity Gain Follower" h="50" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.8" perimeter="0" name="Vin"/>
+<constraint x="1" y="0.6" perimeter="0" name="Vout"/>
+</connections>
+<background>
+<path>
+<move x="40" y="10"/>
+<line x="80" y="30"/>
+<line x="40" y="50"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="80" y="30"/>
+<line x="100" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="85" y="30"/>
+<line x="85" y="0"/>
+<line x="35" y="0"/>
+<line x="35" y="20"/>
+<line x="40" y="20"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="40"/>
+<line x="40" y="40"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+</shapes>

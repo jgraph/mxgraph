@@ -1,5 +1,5 @@
 /**
- * $Id: mxPanningManager.js,v 1.4 2012-04-23 18:59:36 gaudenz Exp $
+ * $Id: mxPanningManager.js,v 1.6 2012-06-01 10:30:07 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -17,6 +17,9 @@ function mxPanningManager(graph)
 	this.t0y = 0;
 	this.dx = 0;
 	this.dy = 0;
+	this.scrollbars = false;
+	this.scrollLeft = 0;
+	this.scrollTop = 0;
 	
 	this.mouseListener =
 	{
@@ -35,11 +38,29 @@ function mxPanningManager(graph)
 	
 	var createThread = mxUtils.bind(this, function()
 	{
-		return window.setInterval(mxUtils.bind(this, function()
+    	this.scrollbars = mxUtils.hasScrollbars(graph.container);
+    	this.scrollLeft = graph.container.scrollLeft;
+    	this.scrollTop = graph.container.scrollTop;
+
+    	return window.setInterval(mxUtils.bind(this, function()
 		{
 			this.tdx -= this.dx;
 			this.tdy -= this.dy;
-			graph.panGraph(this.getDx(), this.getDy());
+
+			if (this.scrollbars)
+			{
+				var left = -graph.container.scrollLeft - Math.ceil(this.dx);
+				var top = -graph.container.scrollTop - Math.ceil(this.dy);
+				graph.panGraph(left, top);
+				graph.panDx = this.scrollLeft - graph.container.scrollLeft;
+				graph.panDy = this.scrollTop - graph.container.scrollTop;
+				graph.fireEvent(new mxEventObject(mxEvent.PAN));
+				// TODO: Implement graph.autoExtend
+			}
+			else
+			{
+				graph.panGraph(this.getDx(), this.getDy());
+			}
 		}), this.delay);
 	});
 	
@@ -71,6 +92,9 @@ function mxPanningManager(graph)
 		{
 			this.start();
 		}
+		
+    	this.scrollLeft = graph.container.scrollLeft;
+    	this.scrollTop = graph.container.scrollTop;
 		
 		w = (w != null) ? w : 0;
 		h = (h != null) ? h : 0;
@@ -164,22 +188,33 @@ function mxPanningManager(graph)
 		if (this.active)
 		{
 			this.active = false;
-			var px = graph.panDx;
-			var py = graph.panDy;
-	    	
-	    	if (this.thread != null)
+		
+			if (this.thread != null)
 	    	{
 				window.clearInterval(this.thread);
 				this.thread = null;
 	    	}
-	    	
-	    	if (px != 0 || py != 0)
-	    	{
-	    		graph.panGraph(0, 0);
-		    	graph.view.setTranslate(this.t0x + px / graph.view.scale, this.t0y + py / graph.view.scale);
-				this.tdx = 0;
-				this.tdy = 0;
-	    	}
+			
+			this.tdx = 0;
+			this.tdy = 0;
+			
+			if (!this.scrollbars)
+			{
+				var px = graph.panDx;
+				var py = graph.panDy;
+		    	
+		    	if (px != 0 || py != 0)
+		    	{
+		    		graph.panGraph(0, 0);
+			    	graph.view.setTranslate(this.t0x + px / graph.view.scale, this.t0y + py / graph.view.scale);
+		    	}
+			}
+			else
+			{
+				graph.panDx = 0;
+				graph.panDy = 0;
+				graph.fireEvent(new mxEventObject(mxEvent.PAN));
+			}
 		}
 	};
 	

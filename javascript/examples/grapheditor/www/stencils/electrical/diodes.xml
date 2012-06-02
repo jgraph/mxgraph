@@ -1,0 +1,338 @@
+<shapes name="mxGraph.electrical.diodes">
+<shape name="Diode" h="60" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<path>
+<move x="30" y="0"/>
+<line x="70" y="30"/>
+<line x="30" y="60"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="30"/>
+<line x="30" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="70" y="0"/>
+<line x="70" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="70" y="30"/>
+<line x="100" y="30"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Gunn Diode" h="60" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<path>
+<move x="10" y="0"/>
+<line x="90" y="60"/>
+<line x="90" y="0"/>
+<line x="10" y="60"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="30"/>
+<line x="10" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="90" y="30"/>
+<line x="100" y="30"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Schottky Diode" h="60" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<path>
+<move x="30" y="0"/>
+<line x="70" y="30"/>
+<line x="30" y="60"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="30"/>
+<line x="30" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="60" y="5"/>
+<line x="60" y="0"/>
+<line x="70" y="0"/>
+<line x="70" y="60"/>
+<line x="80" y="60"/>
+<line x="80" y="55"/>
+</path>
+<stroke/>
+<path>
+<move x="70" y="30"/>
+<line x="100" y="30"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Transorb 1" h="60" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<path>
+<move x="10" y="0"/>
+<line x="90" y="60"/>
+<line x="90" y="0"/>
+<line x="10" y="60"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="50" y="0"/>
+<line x="50" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="30"/>
+<line x="10" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="90" y="30"/>
+<line x="100" y="30"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Transorb 2" h="60" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<path>
+<move x="10" y="0"/>
+<line x="90" y="60"/>
+<line x="90" y="0"/>
+<line x="10" y="60"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="40" y="0"/>
+<line x="50" y="10"/>
+<line x="50" y="50"/>
+<line x="60" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="30"/>
+<line x="10" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="90" y="30"/>
+<line x="100" y="30"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Tunnel Diode" h="60" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<path>
+<move x="30" y="0"/>
+<line x="70" y="30"/>
+<line x="30" y="60"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="60" y="0"/>
+<line x="70" y="0"/>
+<line x="70" y="60"/>
+<line x="60" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="70" y="30"/>
+<line x="100" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="30"/>
+<line x="30" y="30"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Varactor - Varicap" h="60" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<path>
+<move x="30" y="0"/>
+<line x="70" y="30"/>
+<line x="30" y="60"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="75" y="0"/>
+<line x="75" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="70" y="60"/>
+<line x="70" y="0"/>
+</path>
+<stroke/>
+<path>
+<move x="70" y="30"/>
+<line x="100" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="30"/>
+<line x="30" y="30"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Zener Diode 1" h="50" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<path>
+<move x="25" y="0"/>
+<line x="75" y="25"/>
+<line x="25" y="50"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="65" y="0"/>
+<line x="75" y="0"/>
+<line x="75" y="50"/>
+<line x="85" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="25"/>
+<line x="25" y="25"/>
+</path>
+<stroke/>
+<path>
+<move x="75" y="25"/>
+<line x="100" y="25"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Zener Diode 2" h="50" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<path>
+<move x="25" y="0"/>
+<line x="75" y="25"/>
+<line x="25" y="50"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="65" y="0"/>
+<line x="75" y="0"/>
+<line x="75" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="25"/>
+<line x="25" y="25"/>
+</path>
+<stroke/>
+<path>
+<move x="75" y="25"/>
+<line x="100" y="25"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Zener Diode 3" h="50" w="100" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<path>
+<move x="25" y="0"/>
+<line x="75" y="25"/>
+<line x="25" y="50"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="65" y="0"/>
+<line x="75" y="10"/>
+<line x="75" y="40"/>
+<line x="85" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="25"/>
+<line x="25" y="25"/>
+</path>
+<stroke/>
+<path>
+<move x="75" y="25"/>
+<line x="100" y="25"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+</shapes>

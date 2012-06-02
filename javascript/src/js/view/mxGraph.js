@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.686 2012-05-24 12:37:37 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.687 2012-06-01 10:33:51 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1167,6 +1167,17 @@ mxGraph.prototype.autoSizeCells = false;
  * true. 
  */
 mxGraph.prototype.autoScroll = true;
+
+/**
+ * Variable: timerAutoScroll
+ * 
+ * Specifies if timer-based autoscrolling should be used via mxPanningManager.
+ * Note that this disables the code in <scrollPointToVisible> and uses code in
+ * mxPanningManager instead. Note that <autoExtend> is disabled if this is
+ * true and that this should only be used with a scroll buffer or when
+ * scollbars are visible and scrollable in all directions. Default is false.
+ */
+mxGraph.prototype.timerAutoScroll = false;
 
 /**
  * Variable: allowAutoPanning
@@ -2463,7 +2474,7 @@ mxGraph.prototype.dblClick = function(evt, cell)
  */
 mxGraph.prototype.scrollPointToVisible = function(x, y, extend, border)
 {
-	if (this.ignoreScrollbars || mxUtils.hasScrollbars(this.container))
+	if (!this.timerAutoScroll && (this.ignoreScrollbars || mxUtils.hasScrollbars(this.container)))
 	{
 		var c = this.container;
 		border = (border != null) ? border : 20;
@@ -2624,6 +2635,26 @@ mxGraph.prototype.getOffsetSize = function()
 	return new mxRectangle(0, 0, width, height);
 };
 
+
+/**
+ * Function: getPreferredPageSize
+ * 
+ * Returns the preferred size of the background page if <preferPageSize> is true.
+ */
+mxGraph.prototype.getPreferredPageSize = function(bounds, width, height)
+{
+	var scale = this.view.scale;
+	var tr = this.view.translate;
+	var fmt = this.pageFormat;
+	var ps = scale * this.pageScale;
+	var page = new mxRectangle(0, 0, fmt.width * ps, fmt.height * ps);
+	
+	var hCount = (this.pageBreaksVisible) ? Math.ceil(width / page.width) : 1;
+	var vCount = (this.pageBreaksVisible) ? Math.ceil(height / page.height) : 1;
+	
+	return new mxRectangle(0, 0, hCount * page.width + 2 + tr.x / scale, vCount * page.height + 2 + tr.y / scale);
+};
+
 /**
  * Function: sizeDidChange
  * 
@@ -2665,17 +2696,13 @@ mxGraph.prototype.sizeDidChange = function()
 		
 		if (this.preferPageSize || (!mxClient.IS_IE && this.pageVisible))
 		{
-			var scale = this.view.scale;
-			var tr = this.view.translate;
-			var fmt = this.pageFormat;
-			var ps = scale * this.pageScale;
-			var page = new mxRectangle(0, 0, fmt.width * ps, fmt.height * ps);
+			var size = this.getPreferredPageSize(bounds, width, height);
 			
-			var hCount = (this.pageBreaksVisible) ? Math.ceil(width / page.width) : 1;
-			var vCount = (this.pageBreaksVisible) ? Math.ceil(height / page.height) : 1;
-			
-			width = hCount * page.width + 2 + tr.x / scale;
-			height = vCount * page.height + 2 + tr.y / scale;
+			if (size != null)
+			{
+				width = size.width;
+				height = size.height;
+			}
 		}
 
 		var size = this.getOffsetSize();
@@ -5957,8 +5984,8 @@ mxGraph.prototype.disconnectGraph = function(cells)
  * 
  * Example:
  * 
- * To keep the children at their absolute position while drilling, this function
- * can be overridden as follows.
+ * To keep the children at their absolute position while stepping into groups,
+ * this function can be overridden as follows.
  * 
  * (code)
  * var offset = new mxPoint(0, 0);
@@ -6553,6 +6580,21 @@ mxGraph.prototype.zoom = function(factor)
 	else
 	{
 		this.view.setScale(scale);
+		
+		if (mxUtils.hasScrollbars(this.container))
+		{
+			var dx = 0;
+			var dy = 0;
+			
+			if (this.centerZoom)
+			{
+				dx = this.container.offsetWidth * (factor - 1) / 2;
+				dy = this.container.offsetHeight * (factor - 1) / 2;
+			}
+			
+			this.container.scrollLeft = Math.round(this.container.scrollLeft * factor + dx);
+			this.container.scrollTop = Math.round(this.container.scrollTop * factor + dy);
+		}
 	}
 };
 
@@ -6709,6 +6751,8 @@ mxGraph.prototype.scrollRectToVisible = function(rect)
 		if (mxUtils.hasScrollbars(this.container))
 		{
 			var c = this.container;
+			rect.x += this.view.translate.x;
+			rect.y += this.view.translate.y;
 			var dx = c.scrollLeft - rect.x;
 			var ddx = Math.max(dx - c.scrollLeft, 0);
 

@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.js,v 1.290 2012-05-03 13:28:03 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.291 2012-05-29 14:30:24 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxUtils =
@@ -1227,7 +1227,6 @@ var mxUtils =
 			
 			return text;
 		}
-		return null;
 	},
 	
 	/**
