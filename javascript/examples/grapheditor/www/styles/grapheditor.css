@@ -5,7 +5,6 @@
 	margin:0px;
 }
 .backgroundPage {
-	z-index: -1;
   	-webkit-box-shadow:0px 0px 3px 0px #d9d9d9;
 	-moz-box-shadow:0px 0px 3px 0px #d9d9d9;
   	box-shadow:0px 0px 3px 0px #d9d9d9;
@@ -19,7 +18,6 @@
 	position:absolute;
 }
 .diagramContainer, .outlineContainer {
-	z-index: -2;
 	background-color:#ffffff;
 }
 .menubar .item, .toolbar .button, .toolbar .label, div.sidebar, .sidebarContainer .title, .sidebar .item, .mxPopupMenuItem {

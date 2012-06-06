@@ -1,5 +1,5 @@
 /**
- * $Id: Editor.js,v 1.40 2012-05-31 08:05:30 gaudenz Exp $
+ * $Id: Editor.js,v 1.43 2012-06-06 11:37:57 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 // Specifies if local storage should be used (eg. on the iPad which has no filesystem)
@@ -113,8 +113,6 @@ Editor.prototype.setGraphXml = function(node)
 	
 	if (node.nodeName == 'mxGraphModel')
 	{
-		this.graph.view.translate.x = Number(node.getAttribute('dx') || 0);
-		this.graph.view.translate.y = Number(node.getAttribute('dy') || 0);
 		this.graph.view.scale = Number(node.getAttribute('scale') || 1);
 		this.graph.gridEnabled = node.getAttribute('grid') != '0';
 		this.graph.graphHandler.guidesEnabled = node.getAttribute('guides') != '0';
@@ -122,6 +120,14 @@ Editor.prototype.setGraphXml = function(node)
 		this.graph.setConnectable(node.getAttribute('connect') != '0');
 		this.graph.foldingEnabled = node.getAttribute('fold') != '0';
 		this.graph.scrollbars = node.getAttribute('scrollbars') != '0';
+		
+		if (!this.graph.scrollbars)
+		{
+			this.graph.container.scrollLeft = 0;
+			this.graph.container.scrollTop = 0;
+			this.graph.view.translate.x = Number(node.getAttribute('dx') || 0);
+			this.graph.view.translate.y = Number(node.getAttribute('dy') || 0);
+		}
 
 		this.graph.pageVisible = node.getAttribute('page') == '1';
 		this.graph.pageBreaksVisible = this.graph.pageVisible; 
@@ -157,15 +163,6 @@ Editor.prototype.setGraphXml = function(node)
 		
 		dec.decode(node, this.graph.getModel());
 		this.updateGraphComponents();
-		
-		// Initial scrollbar positions
-		if (this.graph.pageVisible && this.graph.scrollbars)
-		{
-			var t = this.graph.view.translate;
-			var fmt = this.graph.pageFormat;
-			this.graph.container.scrollLeft = t.x - Math.max(10, (this.graph.container.clientWidth - fmt.width) / 2);
-			this.graph.container.scrollTop = t.y - Math.max(10, (this.graph.container.clientHeight - fmt.height) / 2);
-		}
 	}
 };
 
@@ -260,6 +257,14 @@ Editor.prototype.updateGraphComponents = function()
 		}
 		
 		outline.outline.container.style.backgroundColor = graph.container.style.backgroundColor;
+
+		if (outline.outline.pageVisible != graph.pageVisible ||
+			outline.outline.pageScale != graph.pageScale)
+		{
+			outline.outline.pageScale = graph.pageScale;
+			outline.outline.pageVisible = graph.pageVisible;
+			outline.outline.view.validate();
+		}
 		
 		if (graph.scrollbars && graph.container.style.overflow == 'hidden' && !touchStyle)
 		{
@@ -270,7 +275,9 @@ Editor.prototype.updateGraphComponents = function()
 			graph.container.style.overflow = 'hidden';
 		}
 		
-		graph.container.style.backgroundImage = (!graph.pageVisible && graph.isGridEnabled()) ? 'url(images/grid.gif)' : 'none';
+		// Transparent.gif is a workaround for focus repaint problems in IE
+		var noBackground = (mxClient.IS_IE && document.documentMode >= 9) ? 'url(images/transparent.gif)' : 'none';
+		graph.container.style.backgroundImage = (!graph.pageVisible && graph.isGridEnabled()) ? 'url(images/grid.gif)' : noBackground;
 
 		if (graph.view.backgroundPageShape != null)
 		{
@@ -438,6 +445,9 @@ Editor.prototype.init = function()
 				this.backgroundPageShape.isShadow = true;
 				this.backgroundPageShape.dialect = mxConstants.DIALECT_STRICTHTML;
 				this.backgroundPageShape.init(this.graph.container);
+				// Required for the browser to render the background page in correct order
+				this.graph.container.firstChild.style.position = 'absolute';
+				this.graph.container.insertBefore(this.backgroundPageShape.node, this.graph.container.firstChild);
 				this.backgroundPageShape.redraw();
 				
 				this.backgroundPageShape.node.className = 'backgroundPage';

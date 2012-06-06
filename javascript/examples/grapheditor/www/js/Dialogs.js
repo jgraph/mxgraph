@@ -1,5 +1,5 @@
 /**
- * $Id: Dialogs.js,v 1.43 2012-05-31 08:05:30 gaudenz Exp $
+ * $Id: Dialogs.js,v 1.44 2012-06-06 10:04:13 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -399,7 +399,6 @@ function PageSetupDialog(editorUi)
 			((ls) ? mxConstants.PAGE_FORMAT_A4_LANDSCAPE : mxConstants.PAGE_FORMAT_A4_PORTRAIT);
 		editorUi.editor.outline.outline.pageFormat = graph.pageFormat;
 		graph.pageScale = parseInt(pageScaleInput.value) / 100;
-		editorUi.editor.outline.outline.pageScale = graph.pageScale;
 			
 		if (!graph.pageVisible)
 		{
@@ -407,9 +406,10 @@ function PageSetupDialog(editorUi)
 		}
 		else
 		{
+			editorUi.editor.updateGraphComponents();
 			graph.view.validateBackground();
-			editorUi.editor.outline.outline.view.validateBackground();
-			editorUi.editor.outline.outline.sizeDidChange();
+			graph.sizeDidChange();
+			editorUi.editor.outline.update();
 		}
 	}));
 

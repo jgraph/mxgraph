@@ -1,5 +1,5 @@
 /**
- * $Id: mxOutline.js,v 1.78 2012-05-31 19:39:16 gaudenz Exp $
+ * $Id: mxOutline.js,v 1.80 2012-06-06 12:15:34 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -342,7 +342,7 @@ mxOutline.prototype.getSourceContainerSize = function()
  * 
  * Returns the offset for drawing the outline graph.
  */
-mxOutline.prototype.getOutlineOffset = function()
+mxOutline.prototype.getOutlineOffset = function(scale)
 {
 	return null;
 };
@@ -399,7 +399,7 @@ mxOutline.prototype.update = function(revalidate)
 			var tx = t.x + this.source.panDx;
 			var ty = t.y + this.source.panDy;
 			
-			var off = this.getOutlineOffset();
+			var off = this.getOutlineOffset(scale);
 			
 			if (off != null)
 			{
@@ -425,7 +425,7 @@ mxOutline.prototype.update = function(revalidate)
 		
 			// Prepares local variables for computations
 			var t2 = navView.translate;
-			var scale = this.source.getView().scale;
+			scale = this.source.getView().scale;
 			var scale2 = scale / navView.scale;
 			var scale3 = 1.0 / navView.scale;
 			var container = this.source.container;

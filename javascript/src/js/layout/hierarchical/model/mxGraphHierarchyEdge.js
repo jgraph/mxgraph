@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphHierarchyEdge.js,v 1.13 2010-01-04 11:18:26 gaudenz Exp $
+ * $Id: mxGraphHierarchyEdge.js,v 1.14 2012-06-06 12:41:56 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -85,7 +85,7 @@ mxGraphHierarchyEdge.prototype.getNextLayerConnectedCells = function(layer)
 		{
 			this.nextLayerConnectedCells[i] = [];
 			
-			if (i == this.nextLayerConnectedCells.length - 1)
+			if (i == this.temp.length - 1)
 			{
 				this.nextLayerConnectedCells[i].push(this.source);
 			}

@@ -1,5 +1,5 @@
 /**
- * $Id: mxEdgeHandler.js,v 1.174 2012-05-25 06:42:25 gaudenz Exp $
+ * $Id: mxEdgeHandler.js,v 1.176 2012-06-06 07:57:00 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -528,7 +528,7 @@ mxEdgeHandler.prototype.isHandleEnabled = function(index)
  */
 mxEdgeHandler.prototype.isHandleVisible = function(index)
 {
-	return (this.abspoints[index] != null) ? !this.abspoints[index].isRouted : true;
+	return true;
 };
 
 /**
@@ -832,7 +832,7 @@ mxEdgeHandler.prototype.getPreviewTerminalState = function(me)
 mxEdgeHandler.prototype.getPreviewPoints = function(point)
 {
 	var geometry = this.graph.getCellGeometry(this.state.cell);
-	var points = geometry.points;
+	var points = (geometry.points != null) ? geometry.points.slice() : null;
 
 	if (!this.isSource && !this.isTarget)
 	{
@@ -844,7 +844,6 @@ mxEdgeHandler.prototype.getPreviewPoints = function(point)
 		}
 		else
 		{
-			points = points.slice();
 			points[this.index - 1] = point;
 		}
 	}

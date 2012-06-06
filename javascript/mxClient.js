@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.10.1.0.
+	 * Current version is 1.10.1.1.
 	 */
-	VERSION: '1.10.1.0',
+	VERSION: '1.10.1.1',
 
 	/**
 	 * Variable: IS_IE
@@ -24389,7 +24389,7 @@ mxArrow.prototype.redrawPath = function(path, x, y, w, h)
 	path.close();
 };
 /**
- * $Id: mxText.js,v 1.167 2012-05-22 16:10:12 gaudenz Exp $
+ * $Id: mxText.js,v 1.171 2012-06-06 12:32:28 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -25908,9 +25908,9 @@ mxText.prototype.redrawSvg = function()
 		((this.horizontal) ? this.bounds.width : this.bounds.height)-
 		this.spacingRight * this.scale :
 		(this.align == mxConstants.ALIGN_CENTER) ?
-			this.spacingLeft +
+			this.spacingLeft * this.scale +
 			(((this.horizontal) ? this.bounds.width : this.bounds.height) -
-			this.spacingLeft - this.spacingRight) / 2 :
+			this.spacingLeft * this.scale - this.spacingRight * this.scale) / 2 :
 			this.spacingLeft * this.scale + 1;
 
 	// Makes sure the alignment is like in VML and HTML
@@ -26181,6 +26181,13 @@ mxText.prototype.createSvgSpan = function(text)
 	// in Webkit. This can be changed to tspan if the enclosing node is
 	// a text but this leads to an hidden background in Webkit.
 	var node = document.createElementNS(mxConstants.NS_SVG, 'text');
+	// Needed to preserve multiple white spaces, but ignored in IE9 plus white-space:pre
+	// is ignored in HTML output for VML, so better to not use this for SVG labels
+	// node.setAttributeNS('http://www.w3.org/XML/1998/namespace', 'xml:space', 'preserve')
+	// Alternative idea is to replace all spaces with &nbsp; to fix HTML in IE, but
+	// IE9/10 with SVG will still ignore the xml:space preserve tag as discussed here:
+	// http://stackoverflow.com/questions/8086292/significant-whitespace-in-svg-embedded-in-html
+	// Could replace spaces with &nbsp; in text but HTML tags must be scaped first.
 	mxUtils.write(node, text);
 	
 	return node;
@@ -32392,7 +32399,7 @@ mxGraphHierarchyNode.prototype.isAncestor = function(otherNode)
 	return false;
 };
 /**
- * $Id: mxGraphHierarchyEdge.js,v 1.13 2010-01-04 11:18:26 gaudenz Exp $
+ * $Id: mxGraphHierarchyEdge.js,v 1.14 2012-06-06 12:41:56 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -32478,7 +32485,7 @@ mxGraphHierarchyEdge.prototype.getNextLayerConnectedCells = function(layer)
 		{
 			this.nextLayerConnectedCells[i] = [];
 			
-			if (i == this.nextLayerConnectedCells.length - 1)
+			if (i == this.temp.length - 1)
 			{
 				this.nextLayerConnectedCells[i].push(this.source);
 			}
@@ -35954,7 +35961,7 @@ WeightedCellSorter.prototype.compare = function(a, b)
 	}
 };
 /**
- * $Id: mxHierarchicalLayout.js,v 1.27 2012-05-27 22:11:14 david Exp $
+ * $Id: mxHierarchicalLayout.js,v 1.28 2012-06-03 14:57:05 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -36234,64 +36241,70 @@ mxHierarchicalLayout.prototype.execute = function(parent, roots)
  * Parameters:
  * 
  * parent - <mxCell> whose children should be checked.
- * isolate - Optional boolean that specifies if edges should be ignored if
- * the opposite end is not a child of the given parent cell. Default is
- * false.
- * invert - Optional boolean that specifies if outgoing or incoming edges
- * should be counted for a tree root. If false then outgoing edges will be
- * counted. Default is false.
  */
-mxHierarchicalLayout.prototype.findTreeRoots = function(isolate, invert)
+mxHierarchicalLayout.prototype.findTreeRoots = function(parent)
 {
-	isolate = (isolate != null) ? isolate : false;
-	invert = (invert != null) ? invert : false;
 	var roots = [];
 	
-	if (this.parent != null)
+	if (parent != null)
 	{
 		var model = this.graph.model;
-		var childCount = model.getChildCount(this.parent);
+		var childCount = model.getChildCount(parent);
 		var best = null;
 		var maxDiff = 0;
 		
 		for (var i = 0; i < childCount; i++)
 		{
-			var cell = model.getChildAt(this.parent, i);
-			
-			if (model.isVertex(cell) && this.graph.isCellVisible(cell))
-			{
-				var conns = this.getEdges(cell);
-				var fanOut = 0;
-				var fanIn = 0;
-				
-				for (var j = 0; j < conns.length; j++)
-				{
-					var src = this.graph.view.getVisibleTerminal(conns[j], true);
-	
-	                if (src == cell)
-	                {
-	                    fanOut++;
-	                }
-	                else
-	                {
-	                    fanIn++;
-	                }
-				}
-				
-				if ((invert && fanOut == 0 && fanIn > 0) ||
-					(!invert && fanIn == 0 && fanOut > 0))
-				{
-					roots.push(cell);
-				}
-				
-				var diff = (invert) ? fanIn - fanOut : fanOut - fanIn;
-				
-				if (diff > maxDiff)
-				{
-					maxDiff = diff;
-					best = cell;
-				}
-			}
+			var cell = model.getChildAt(parent, i);
+            var cells = [];
+
+            if (this.traverseAncestors)
+            {
+                cells = model.getDescendants(cell);
+            }
+            else
+            {
+                cells.push(cell);
+            }
+
+            for (var j = 0; j < cells.length; j++)
+            {
+                cell = cells[j];
+
+                if (model.isVertex(cell) && this.graph.isCellVisible(cell))
+                {
+                    var conns = this.getEdges(cell);
+                    var fanOut = 0;
+                    var fanIn = 0;
+
+                    for (var k = 0; k < conns.length; k++)
+                    {
+                        var src = this.graph.view.getVisibleTerminal(conns[k], true);
+
+                        if (src == cell)
+                        {
+                            fanOut++;
+                        }
+                        else
+                        {
+                            fanIn++;
+                        }
+                    }
+
+                    if (fanIn == 0 && fanOut > 0)
+                    {
+                        roots.push(cell);
+                    }
+
+                    var diff = fanIn - fanOut;
+
+                    if (diff > maxDiff)
+                    {
+                        maxDiff = diff;
+                        best = cell;
+                    }
+                }
+            }
 		}
 		
 		if (roots.length == 0 && best != null)
@@ -48662,7 +48675,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.687 2012-06-01 10:33:51 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.689 2012-06-04 16:31:12 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -55078,9 +55091,9 @@ mxGraph.prototype.panGraph = function(dx, dy)
 					canvas.removeAttribute('transform');
 				}
 				
-				if (this.shiftPreview != null)
+				if (this.shiftPreview1 != null)
 				{
-					var child = this.shiftPreview.firstChild;
+					var child = this.shiftPreview1.firstChild;
 					
 					while (child != null)
 					{
@@ -55088,21 +55101,41 @@ mxGraph.prototype.panGraph = function(dx, dy)
 						this.container.appendChild(child);
 						child = next;
 					}
+
+					this.shiftPreview1.parentNode.removeChild(this.shiftPreview1);
+					this.shiftPreview1 = null;
 					
-					this.shiftPreview.parentNode.removeChild(this.shiftPreview);
-					this.shiftPreview = null;
+					this.container.appendChild(canvas.parentNode);
+					
+					child = this.shiftPreview2.firstChild;
+					
+					while (child != null)
+					{
+						var next = child.nextSibling;
+						this.container.appendChild(child);
+						child = next;
+					}
+
+					this.shiftPreview2.parentNode.removeChild(this.shiftPreview2);
+					this.shiftPreview2 = null;
 				}
 			}
 			else
 			{
 				canvas.setAttribute('transform', 'translate('+ dx + ',' + dy + ')');
 				
-				if (this.shiftPreview == null)
+				if (this.shiftPreview1 == null)
 				{
-					this.shiftPreview = document.createElement('div');
-					this.shiftPreview.style.position = 'absolute';
-					this.shiftPreview.style.overflow = 'visible';
+					// Needs two divs for stuff before and after the SVG element
+					this.shiftPreview1 = document.createElement('div');
+					this.shiftPreview1.style.position = 'absolute';
+					this.shiftPreview1.style.overflow = 'visible';
+					
+					this.shiftPreview2 = document.createElement('div');
+					this.shiftPreview2.style.position = 'absolute';
+					this.shiftPreview2.style.overflow = 'visible';
 
+					var current = this.shiftPreview1;
 					var child = this.container.firstChild;
 					
 					while (child != null)
@@ -55112,17 +55145,24 @@ mxGraph.prototype.panGraph = function(dx, dy)
 						// SVG element is moved via transform attribute
 						if (child != canvas.parentNode)
 						{
-							this.shiftPreview.appendChild(child);
+							current.appendChild(child);
+						}
+						else
+						{
+							current = this.shiftPreview2;
 						}
 						
 						child = next;
 					}
 
-					this.container.appendChild(this.shiftPreview);
+					this.container.insertBefore(this.shiftPreview1, canvas.parentNode);
+					this.container.appendChild(this.shiftPreview2);
 				}
 				
-				this.shiftPreview.style.left = dx + 'px';
-				this.shiftPreview.style.top = dy + 'px';
+				this.shiftPreview1.style.left = dx + 'px';
+				this.shiftPreview1.style.top = dy + 'px';
+				this.shiftPreview2.style.left = dx + 'px';
+				this.shiftPreview2.style.top = dy + 'px';
 			}
 		}
 		else
@@ -59873,7 +59913,7 @@ mxCellOverlay.prototype.toString = function()
 	return this.tooltip;
 };
 /**
- * $Id: mxOutline.js,v 1.78 2012-05-31 19:39:16 gaudenz Exp $
+ * $Id: mxOutline.js,v 1.80 2012-06-06 12:15:34 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -60216,7 +60256,7 @@ mxOutline.prototype.getSourceContainerSize = function()
  * 
  * Returns the offset for drawing the outline graph.
  */
-mxOutline.prototype.getOutlineOffset = function()
+mxOutline.prototype.getOutlineOffset = function(scale)
 {
 	return null;
 };
@@ -60273,7 +60313,7 @@ mxOutline.prototype.update = function(revalidate)
 			var tx = t.x + this.source.panDx;
 			var ty = t.y + this.source.panDy;
 			
-			var off = this.getOutlineOffset();
+			var off = this.getOutlineOffset(scale);
 			
 			if (off != null)
 			{
@@ -60299,7 +60339,7 @@ mxOutline.prototype.update = function(revalidate)
 		
 			// Prepares local variables for computations
 			var t2 = navView.translate;
-			var scale = this.source.getView().scale;
+			scale = this.source.getView().scale;
 			var scale2 = scale / navView.scale;
 			var scale3 = 1.0 / navView.scale;
 			var container = this.source.container;
@@ -67644,7 +67684,7 @@ mxVertexHandler.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxEdgeHandler.js,v 1.174 2012-05-25 06:42:25 gaudenz Exp $
+ * $Id: mxEdgeHandler.js,v 1.176 2012-06-06 07:57:00 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -68173,7 +68213,7 @@ mxEdgeHandler.prototype.isHandleEnabled = function(index)
  */
 mxEdgeHandler.prototype.isHandleVisible = function(index)
 {
-	return (this.abspoints[index] != null) ? !this.abspoints[index].isRouted : true;
+	return true;
 };
 
 /**
@@ -68477,7 +68517,7 @@ mxEdgeHandler.prototype.getPreviewTerminalState = function(me)
 mxEdgeHandler.prototype.getPreviewPoints = function(point)
 {
 	var geometry = this.graph.getCellGeometry(this.state.cell);
-	var points = geometry.points;
+	var points = (geometry.points != null) ? geometry.points.slice() : null;
 
 	if (!this.isSource && !this.isTarget)
 	{
@@ -68489,7 +68529,6 @@ mxEdgeHandler.prototype.getPreviewPoints = function(point)
 		}
 		else
 		{
-			points = points.slice();
 			points[this.index - 1] = point;
 		}
 	}

@@ -1,5 +1,5 @@
 /**
- * $Id: mxText.js,v 1.167 2012-05-22 16:10:12 gaudenz Exp $
+ * $Id: mxText.js,v 1.171 2012-06-06 12:32:28 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1518,9 +1518,9 @@ mxText.prototype.redrawSvg = function()
 		((this.horizontal) ? this.bounds.width : this.bounds.height)-
 		this.spacingRight * this.scale :
 		(this.align == mxConstants.ALIGN_CENTER) ?
-			this.spacingLeft +
+			this.spacingLeft * this.scale +
 			(((this.horizontal) ? this.bounds.width : this.bounds.height) -
-			this.spacingLeft - this.spacingRight) / 2 :
+			this.spacingLeft * this.scale - this.spacingRight * this.scale) / 2 :
 			this.spacingLeft * this.scale + 1;
 
 	// Makes sure the alignment is like in VML and HTML
@@ -1791,6 +1791,13 @@ mxText.prototype.createSvgSpan = function(text)
 	// in Webkit. This can be changed to tspan if the enclosing node is
 	// a text but this leads to an hidden background in Webkit.
 	var node = document.createElementNS(mxConstants.NS_SVG, 'text');
+	// Needed to preserve multiple white spaces, but ignored in IE9 plus white-space:pre
+	// is ignored in HTML output for VML, so better to not use this for SVG labels
+	// node.setAttributeNS('http://www.w3.org/XML/1998/namespace', 'xml:space', 'preserve')
+	// Alternative idea is to replace all spaces with &nbsp; to fix HTML in IE, but
+	// IE9/10 with SVG will still ignore the xml:space preserve tag as discussed here:
+	// http://stackoverflow.com/questions/8086292/significant-whitespace-in-svg-embedded-in-html
+	// Could replace spaces with &nbsp; in text but HTML tags must be scaped first.
 	mxUtils.write(node, text);
 	
 	return node;

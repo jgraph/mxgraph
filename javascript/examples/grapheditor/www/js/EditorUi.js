@@ -1,34 +1,39 @@
 /**
- * $Id: EditorUi.js,v 1.46 2012-05-29 15:50:07 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.47 2012-06-04 14:31:50 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
  * Constructs a new graph editor
  */
-EditorUi = function(editor)
+EditorUi = function(editor, container)
 {
-	this.editor = editor;
+	this.editor = editor || new Editor();
+	this.container = container || document.body;
 	var graph = editor.graph;
 
-	// Disables page scrollbars
-	document.body.style.overflow = 'hidden';
-	
-	// Disables text selection while not editing and no dialog visible 
+	// Disables scrollbars
+	this.container.style.overflow = 'hidden';
+
 	var textEditing =  mxUtils.bind(this, function(evt)
 	{
 		return graph.isEditing() || this.dialog != null;
 	});
-	document.onselectstart = textEditing;
-    document.onmousedown = textEditing;
+
+	// Disables text selection while not editing and no dialog visible
+	if (this.container == document.body)
+	{
+		document.onselectstart = textEditing;
+	    document.onmousedown = textEditing;
+	}
 	
 	// And uses built-in context menu while not editing
 	if (mxClient.IS_IE && document.documentMode != 9)
 	{
-		mxEvent.addListener(document.body, 'contextmenu', textEditing);
+		mxEvent.addListener(this.container, 'contextmenu', textEditing);
 	}
 	else
 	{
-		document.body.oncontextmenu = textEditing;
+		this.container.oncontextmenu = textEditing;
 	}
 
 	// Pre-fetches submenu image
@@ -129,7 +134,7 @@ EditorUi = function(editor)
 		}
 	};
 
-	// Contains the outline (aka. birds-eye) view.
+	// Updates the editor UI after the window has been resized
    	mxEvent.addListener(window, 'resize', mxUtils.bind(this, function()
    	{
    		this.refresh();
@@ -319,36 +324,6 @@ EditorUi.prototype.getUrl = function(pathname)
 };
 
 /**
- * Returns the URL for a copy of this editor with no state.
- */
-EditorUi.prototype.getUrl = function()
-{
-	var href = window.location.pathname;
-	var parms = 0;
-	
-	// Removes template URL parameter for new blank diagram
-	for (var key in urlParams)
-	{
-		if (key != 'tmp' && key != 'libs')
-		{
-			if (parms == 0)
-			{
-				href += '?';
-			}
-			else
-			{
-				href += '&';
-			}
-		
-			href += key + '=' + urlParams[key];
-			parms++;
-		}
-	}
-	
-	return href;
-};
-
-/**
  * Updates the states of the given undo/redo items.
  */
 EditorUi.prototype.addUndoListener = function()
@@ -472,9 +447,15 @@ EditorUi.prototype.addSelectionListener = function()
  */
 EditorUi.prototype.refresh = function()
 {
-	var w = document.body.clientWidth || document.documentElement.clientWidth;
 	var quirks = mxClient.IS_IE && (document.documentMode == null || document.documentMode == 5);
-	var h = (quirks) ? document.body.clientHeight || document.documentElement.clientHeight : document.documentElement.clientHeight;
+	var w = this.container.clientWidth;
+	var h = this.container.clientHeight;
+
+	if (this.container == document.body)
+	{
+		w = document.body.clientWidth || document.documentElement.clientWidth;
+		h = (quirks) ? document.body.clientHeight || document.documentElement.clientHeight : document.documentElement.clientHeight;
+	}
 	
 	var effHsplitPosition = Math.max(0, Math.min(this.hsplitPosition, w - this.splitSize - 20));
 	var effVsplitPosition = Math.max(0, Math.min(this.vsplitPosition, h - this.menubarHeight - this.toolbarHeight - this.footerHeight - this.splitSize - 1));
@@ -578,14 +559,14 @@ EditorUi.prototype.createUi = function()
 	this.menubar.container.appendChild(this.statusContainer);
 	
 	// Inserts into DOM
-	document.body.appendChild(this.menubarContainer);
-	document.body.appendChild(this.toolbarContainer);
-	document.body.appendChild(this.sidebarContainer);
-	document.body.appendChild(this.outlineContainer);
-	document.body.appendChild(this.diagramContainer);
-	document.body.appendChild(this.footerContainer);
-	document.body.appendChild(this.hsplit);
-	document.body.appendChild(this.vsplit);
+	this.container.appendChild(this.menubarContainer);
+	this.container.appendChild(this.toolbarContainer);
+	this.container.appendChild(this.sidebarContainer);
+	this.container.appendChild(this.outlineContainer);
+	this.container.appendChild(this.diagramContainer);
+	this.container.appendChild(this.footerContainer);
+	this.container.appendChild(this.hsplit);
+	this.container.appendChild(this.vsplit);
 	
 	// HSplit
 	this.addSplitHandler(this.hsplit, true, 0, mxUtils.bind(this, function(value)

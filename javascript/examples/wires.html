@@ -601,7 +601,7 @@ for storing references to ports.)
 				clone.cell.geometry = clone.cell.geometry.clone();
 				
 				// Sets the terminal point of an edge if we're moving one of the endpoints
-				if (this.graph.getModel().isEdge(clone.cell))// && this.graph.getModel().isEdge(terminal))
+				if (this.graph.getModel().isEdge(clone.cell))
 				{
 					// TODO: Only set this if the target or source terminal is an edge
 					clone.cell.geometry.setTerminalPoint(point, this.isSource);

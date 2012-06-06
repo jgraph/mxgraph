@@ -1,5 +1,5 @@
 <!--
-  $Id: tree.html,v 1.8 2011-04-28 15:31:10 gaudenz Exp $
+  $Id: tree.html,v 1.9 2012-06-04 06:13:48 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Tree example for mxGraph. This example demonstrates folding
@@ -146,6 +146,7 @@
 				// being changed, added or removed.
 				var layout = new mxCompactTreeLayout(graph, false);
 				layout.useBoundingBox = false;
+				layout.edgeRouting = false;
 				layout.levelDistance = 30;
 				layout.nodeDistance = 10;
 

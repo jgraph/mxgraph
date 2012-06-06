@@ -1,3 +1,13 @@
+06-JUN-2012: 1.10.1.1
+
+- Fixes scaled spacing for centered SVG labels in mxText [JavaScript]
+- Adds scale argument in mxOutline.getOutlineOffset [JavaScript]
+- Clones return value of mxEdgeHandler.getPreviewPoints [JavaScript]
+- Fixes mxGraph.panGraph for DOM nodes before SVG element [JavaScript]
+- Adds container argument in EditorUi constructor [JavaScript]
+- Removes isRouted check in mxEdgeHandler.isHandleVisible [JavaScript]
+- Fixes edge routing in tree.html example [JavaScript]
+
 01-JUN-2012: 1.10.1.0 beta
 
 - Adds mxGraph.getPreferredPageSize hook [JavaScript]

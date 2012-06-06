@@ -1,5 +1,5 @@
 /**
- * $Id: mxHierarchicalLayout.js,v 1.27 2012-05-27 22:11:14 david Exp $
+ * $Id: mxHierarchicalLayout.js,v 1.28 2012-06-03 14:57:05 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -279,64 +279,70 @@ mxHierarchicalLayout.prototype.execute = function(parent, roots)
  * Parameters:
  * 
  * parent - <mxCell> whose children should be checked.
- * isolate - Optional boolean that specifies if edges should be ignored if
- * the opposite end is not a child of the given parent cell. Default is
- * false.
- * invert - Optional boolean that specifies if outgoing or incoming edges
- * should be counted for a tree root. If false then outgoing edges will be
- * counted. Default is false.
  */
-mxHierarchicalLayout.prototype.findTreeRoots = function(isolate, invert)
+mxHierarchicalLayout.prototype.findTreeRoots = function(parent)
 {
-	isolate = (isolate != null) ? isolate : false;
-	invert = (invert != null) ? invert : false;
 	var roots = [];
 	
-	if (this.parent != null)
+	if (parent != null)
 	{
 		var model = this.graph.model;
-		var childCount = model.getChildCount(this.parent);
+		var childCount = model.getChildCount(parent);
 		var best = null;
 		var maxDiff = 0;
 		
 		for (var i = 0; i < childCount; i++)
 		{
-			var cell = model.getChildAt(this.parent, i);
-			
-			if (model.isVertex(cell) && this.graph.isCellVisible(cell))
-			{
-				var conns = this.getEdges(cell);
-				var fanOut = 0;
-				var fanIn = 0;
-				
-				for (var j = 0; j < conns.length; j++)
-				{
-					var src = this.graph.view.getVisibleTerminal(conns[j], true);
-	
-	                if (src == cell)
-	                {
-	                    fanOut++;
-	                }
-	                else
-	                {
-	                    fanIn++;
-	                }
-				}
-				
-				if ((invert && fanOut == 0 && fanIn > 0) ||
-					(!invert && fanIn == 0 && fanOut > 0))
-				{
-					roots.push(cell);
-				}
-				
-				var diff = (invert) ? fanIn - fanOut : fanOut - fanIn;
-				
-				if (diff > maxDiff)
-				{
-					maxDiff = diff;
-					best = cell;
-				}
-			}
+			var cell = model.getChildAt(parent, i);
+            var cells = [];
+
+            if (this.traverseAncestors)
+            {
+                cells = model.getDescendants(cell);
+            }
+            else
+            {
+                cells.push(cell);
+            }
+
+            for (var j = 0; j < cells.length; j++)
+            {
+                cell = cells[j];
+
+                if (model.isVertex(cell) && this.graph.isCellVisible(cell))
+                {
+                    var conns = this.getEdges(cell);
+                    var fanOut = 0;
+                    var fanIn = 0;
+
+                    for (var k = 0; k < conns.length; k++)
+                    {
+                        var src = this.graph.view.getVisibleTerminal(conns[k], true);
+
+                        if (src == cell)
+                        {
+                            fanOut++;
+                        }
+                        else
+                        {
+                            fanIn++;
+                        }
+                    }
+
+                    if (fanIn == 0 && fanOut > 0)
+                    {
+                        roots.push(cell);
+                    }
+
+                    var diff = fanIn - fanOut;
+
+                    if (diff > maxDiff)
+                    {
+                        maxDiff = diff;
+                        best = cell;
+                    }
+                }
+            }
 		}
 		
 		if (roots.length == 0 && best != null)

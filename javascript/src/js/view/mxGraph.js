@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.687 2012-06-01 10:33:51 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.689 2012-06-04 16:31:12 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -6415,9 +6415,9 @@ mxGraph.prototype.panGraph = function(dx, dy)
 					canvas.removeAttribute('transform');
 				}
 				
-				if (this.shiftPreview != null)
+				if (this.shiftPreview1 != null)
 				{
-					var child = this.shiftPreview.firstChild;
+					var child = this.shiftPreview1.firstChild;
 					
 					while (child != null)
 					{
@@ -6425,21 +6425,41 @@ mxGraph.prototype.panGraph = function(dx, dy)
 						this.container.appendChild(child);
 						child = next;
 					}
+
+					this.shiftPreview1.parentNode.removeChild(this.shiftPreview1);
+					this.shiftPreview1 = null;
 					
-					this.shiftPreview.parentNode.removeChild(this.shiftPreview);
-					this.shiftPreview = null;
+					this.container.appendChild(canvas.parentNode);
+					
+					child = this.shiftPreview2.firstChild;
+					
+					while (child != null)
+					{
+						var next = child.nextSibling;
+						this.container.appendChild(child);
+						child = next;
+					}
+
+					this.shiftPreview2.parentNode.removeChild(this.shiftPreview2);
+					this.shiftPreview2 = null;
 				}
 			}
 			else
 			{
 				canvas.setAttribute('transform', 'translate('+ dx + ',' + dy + ')');
 				
-				if (this.shiftPreview == null)
+				if (this.shiftPreview1 == null)
 				{
-					this.shiftPreview = document.createElement('div');
-					this.shiftPreview.style.position = 'absolute';
-					this.shiftPreview.style.overflow = 'visible';
+					// Needs two divs for stuff before and after the SVG element
+					this.shiftPreview1 = document.createElement('div');
+					this.shiftPreview1.style.position = 'absolute';
+					this.shiftPreview1.style.overflow = 'visible';
+					
+					this.shiftPreview2 = document.createElement('div');
+					this.shiftPreview2.style.position = 'absolute';
+					this.shiftPreview2.style.overflow = 'visible';
 
+					var current = this.shiftPreview1;
 					var child = this.container.firstChild;
 					
 					while (child != null)
@@ -6449,17 +6469,24 @@ mxGraph.prototype.panGraph = function(dx, dy)
 						// SVG element is moved via transform attribute
 						if (child != canvas.parentNode)
 						{
-							this.shiftPreview.appendChild(child);
+							current.appendChild(child);
+						}
+						else
+						{
+							current = this.shiftPreview2;
 						}
 						
 						child = next;
 					}
 
-					this.container.appendChild(this.shiftPreview);
+					this.container.insertBefore(this.shiftPreview1, canvas.parentNode);
+					this.container.appendChild(this.shiftPreview2);
 				}
 				
-				this.shiftPreview.style.left = dx + 'px';
-				this.shiftPreview.style.top = dy + 'px';
+				this.shiftPreview1.style.left = dx + 'px';
+				this.shiftPreview1.style.top = dy + 'px';
+				this.shiftPreview2.style.left = dx + 'px';
+				this.shiftPreview2.style.top = dy + 'px';
 			}
 		}
 		else

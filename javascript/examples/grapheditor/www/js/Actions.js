@@ -1,5 +1,5 @@
 /**
- * $Id: Actions.js,v 1.31 2012-05-31 07:08:21 gaudenz Exp $
+ * $Id: Actions.js,v 1.32 2012-06-04 14:31:50 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -330,10 +330,9 @@ Actions.prototype.init = function()
 		graph.preferPageSize = graph.pageBreaksVisible;
 		graph.view.validate();
 		graph.sizeDidChange();
-		editor.outline.outline.pageVisible = graph.pageVisible;
-		editor.outline.outline.view.validate();
 		
 		editor.updateGraphComponents();
+		editor.outline.update();
 		
 		if (mxUtils.hasScrollbars(graph.container))
 		{
