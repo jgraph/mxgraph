@@ -1,5 +1,5 @@
 /**
- * $Id: Graph.js,v 1.36 2012-05-31 12:41:15 gaudenz Exp $
+ * $Id: Graph.js,v 1.37 2012-06-14 05:49:57 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -890,6 +890,19 @@ Graph.prototype.initTouch = function()
 		}
 		
 		return result;
+	};
+	StateShape.prototype.reconfigure = function()
+	{
+		mxShape.prototype.reconfigure.apply(this, arguments);
+		
+		if (this.dialect == mxConstants.DIALECT_SVG)
+		{
+			this.innerNode.setAttribute('fill', 'none');
+		}
+		else if (mxUtils.isVml(this.node))
+		{
+			this.background.filled = 'false';
+		}
 	};
 
 	mxCellRenderer.prototype.defaultShapes['endState'] = StateShape;

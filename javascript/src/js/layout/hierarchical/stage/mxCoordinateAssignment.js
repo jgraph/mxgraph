@@ -1,5 +1,5 @@
 /**
- * $Id: mxCoordinateAssignment.js,v 1.26 2012-05-27 22:11:14 david Exp $
+ * $Id: mxCoordinateAssignment.js,v 1.28 2012-06-12 20:55:04 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -230,6 +230,33 @@ mxCoordinateAssignment.prototype.previousLayerConnectedCache = null;
 mxCoordinateAssignment.prototype.groupPadding = 10;
 
 /**
+ * Utility method to display current positions
+ */
+mxCoordinateAssignment.prototype.printStatus = function()
+{
+	var model = this.layout.getModel();
+	mxLog.show();
+
+	mxLog.writeln('======Coord assignment debug=======');
+
+	for (var j = 0; j < model.ranks.length; j++)
+	{
+		mxLog.write('Rank ', j, ' : ' );
+		var rank = model.ranks[j];
+		
+		for (var k = 0; k < rank.length; k++)
+		{
+			var cell = rank[k];
+			
+			mxLog.write(cell.getGeneralPurposeVariable(j), '  ');
+		}
+		mxLog.writeln();
+	}
+	
+	mxLog.writeln('====================================');
+};
+
+/**
  * Function: execute
  * 
  * A basic horizontal coordinate assignment algorithm
@@ -242,6 +269,8 @@ mxCoordinateAssignment.prototype.execute = function(parent)
 
 	this.initialCoords(this.layout.getGraph(), model);
 	
+//	this.printStatus();
+	
 	if (this.fineTuning)
 	{
 		this.minNode(model);
@@ -253,6 +282,8 @@ mxCoordinateAssignment.prototype.execute = function(parent)
 	{
 		for (var i = 0; i < this.maxIterations; i++)
 		{
+//			this.printStatus();
+		
 			// Median Heuristic
 			if (i != 0)
 			{
@@ -330,7 +361,7 @@ mxCoordinateAssignment.prototype.minNode = function(model)
 			nodeWrapper.visited = true;
 			nodeList.push(nodeWrapper);
 			
-			var cellId = mxCellPath.create(node.cell);
+			var cellId = mxCellPath.create(node.getCoreCell());
 			map[cellId] = nodeWrapper;
 		}
 	}
@@ -444,7 +475,7 @@ mxCoordinateAssignment.prototype.minNode = function(model)
 			for (var i = 0; i < nextLayerConnectedCells.length; i++)
 			{
 				var connectedCell = nextLayerConnectedCells[i];
-				var connectedCellId = mxCellPath.create(connectedCell.cell);
+				var connectedCellId = mxCellPath.create(connectedCell.getCoreCell());
 				var connectedCellWrapper = map[connectedCellId];
 				
 				if (connectedCellWrapper != null)
@@ -461,7 +492,7 @@ mxCoordinateAssignment.prototype.minNode = function(model)
 			for (var i = 0; i < previousLayerConnectedCells.length; i++)
 			{
 				var connectedCell = previousLayerConnectedCells[i];
-				var connectedCellId = mxCellPath.create(connectedCell.cell);
+				var connectedCellId = mxCellPath.create(connectedCell.getCoreCell());
 				var connectedCellWrapper = map[connectedCellId];
 				
 				if (connectedCellWrapper != null)
@@ -539,7 +570,7 @@ mxCoordinateAssignment.prototype.rankMedianPosition = function(rankValue, model,
 		weightedValues[i] = new WeightedCellSorter();
 		weightedValues[i].cell = currentCell;
 		weightedValues[i].rankIndex = i;
-		var currentCellId = mxCellPath.create(currentCell.cell);
+		var currentCellId = mxCellPath.create(currentCell.getCoreCell());
 		cellMap[currentCellId] = weightedValues[i];
 		var nextLayerConnectedCells = null;
 		
@@ -606,7 +637,7 @@ mxCoordinateAssignment.prototype.rankMedianPosition = function(rankValue, model,
 		
 		for (var j = weightedValues[i].rankIndex - 1; j >= 0;)
 		{
-			var rankId = mxCellPath.create(rank[j].cell);
+			var rankId = mxCellPath.create(rank[j].getCoreCell());
 			var weightedValue = cellMap[rankId];
 			
 			if (weightedValue != null)
@@ -639,7 +670,7 @@ mxCoordinateAssignment.prototype.rankMedianPosition = function(rankValue, model,
 		
 		for (var j = weightedValues[i].rankIndex + 1; j < weightedValues.length;)
 		{
-			var rankId = mxCellPath.create(rank[j].cell);
+			var rankId = mxCellPath.create(rank[j].getCoreCell());
 			var weightedValue = cellMap[rankId];
 			
 			if (weightedValue != null)
@@ -751,12 +782,12 @@ mxCoordinateAssignment.prototype.medianXValue = function(connectedCells, rankVal
 		medianValues[i] = connectedCells[i].getGeneralPurposeVariable(rankValue);
 	}
 
-	medianValues.sort(MedianCellSorter.prototype.compare);
+	medianValues.sort(function(a,b){return a - b;});
 	
 	if (connectedCells.length % 2 == 1)
 	{
 		// For odd numbers of adjacent vertices return the median
-		return medianValues[connectedCells.length / 2];
+		return medianValues[Math.floor(connectedCells.length / 2)];
 	}
 	else
 	{
@@ -1037,7 +1068,11 @@ mxCoordinateAssignment.prototype.minPath = function(graph, model)
 	{
 		var cell = edges[key];
 		
-		var numEdgeLayers = cell.maxRank - cell.minRank - 1;
+		if (cell.maxRank - cell.minRank - 1 < 1)
+		{
+			continue;
+		}
+
 		// At least two virtual nodes in the edge
 		// Check first whether the edge is already straight
 		var referenceX = cell
@@ -1088,7 +1123,7 @@ mxCoordinateAssignment.prototype.minPath = function(graph, model)
 				}
 				else
 				{
-					upXPositions[i - cell.minRank - 1] = cell.getX(i);
+					upXPositions[i - cell.minRank - 1] = nextX;
 					currentX = nextX;
 				}				
 			}
@@ -1114,14 +1149,14 @@ mxCoordinateAssignment.prototype.minPath = function(graph, model)
 				}
 				else
 				{
-					downXPositions[i - cell.minRank - 2] = cell.getX(i);
+					downXPositions[i - cell.minRank - 2] = cell.getX(i-1);
 					currentX = nextX;
 				}
 			}
 
 			if (downSegCount > refSegCount || upSegCount > refSegCount)
 			{
-				if (downSegCount > upSegCount)
+				if (downSegCount >= upSegCount)
 				{
 					// Apply down calculation values
 					for (var i = cell.maxRank - 2; i > cell.minRank; i--)
@@ -1511,20 +1546,38 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 		var edgeId = mxCellPath.create(cell.edges[0]);
 		var jettys = this.jettyPositions[edgeId];
 
+		var source = cell.source.cell;
+
 		for (var i = 0; i < cell.edges.length; i++)
 		{
 			var realEdge = cell.edges[i];
+			var realSource = this.layout.graph.view.getVisibleTerminal(realEdge, true);
 
 			//List oldPoints = graph.getPoints(realEdge);
 			var newPoints = [];
 
+			// Single length reversed edges end up with the jettys in the wrong
+			// places. Since single length edges only have jettys, not segment
+			// control points, we just say the edge isn't reversed in this section
+			var reversed = cell.isReversed;
+			
+			if (realSource != source)
+			{
+				// The real edges include all core model edges and these can go
+				// in both directions. If the source of the hierarchical model edge
+				// isn't the source of the specific real edge in this iteration
+				// treat if as reversed
+				reversed = !reversed;
+			}
+			
+			// First jetty of edge
 			if (jettys != null)
 			{
-				var arrayOffset = cell.isReversed ? 2 : 0;
-				var y = cell.isReversed ? this.rankTopY[minRank] : this.rankBottomY[maxRank];
+				var arrayOffset = reversed ? 2 : 0;
+				var y = reversed ? this.rankTopY[minRank] : this.rankBottomY[maxRank];
 				var jetty = jettys[parallelEdgeCount * 4 + 1 + arrayOffset];
 				
-				if (cell.isReversed)
+				if (reversed)
 				{
 					jetty = -jetty;
 				}
@@ -1551,7 +1604,7 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 			var loopDelta = -1;
 			var currentRank = cell.maxRank - 1;
 
-			if (cell.isReversed)
+			if (reversed)
 			{
 				loopStart = 0;
 				loopLimit = cell.x.length;
@@ -1570,7 +1623,7 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 				var topChannelY = (this.rankTopY[currentRank] + this.rankBottomY[currentRank + 1]) / 2.0;
 				var bottomChannelY = (this.rankTopY[currentRank - 1] + this.rankBottomY[currentRank]) / 2.0;
 
-				if (cell.isReversed)
+				if (reversed)
 				{
 					var tmp = topChannelY;
 					topChannelY = bottomChannelY;
@@ -1593,13 +1646,14 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 				currentRank += loopDelta;
 			}
 
+			// Second jetty of edge
 			if (jettys != null)
 			{
-				var arrayOffset = cell.isReversed ? 2 : 0;
-				var rankY = cell.isReversed ? this.rankBottomY[maxRank] : this.rankTopY[minRank];
+				var arrayOffset = reversed ? 2 : 0;
+				var rankY = reversed ? this.rankBottomY[maxRank] : this.rankTopY[minRank];
 				var jetty = jettys[parallelEdgeCount * 4 + 3 - arrayOffset];
 				
-				if (cell.isReversed)
+				if (reversed)
 				{
 					jetty = -jetty;
 				}

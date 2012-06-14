@@ -1,5 +1,5 @@
 /*
- * $Id: mxHierarchicalLayout.java,v 1.13 2012-05-27 22:11:14 david Exp $
+ * $Id: mxHierarchicalLayout.java,v 1.14 2012-06-11 15:07:37 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 package com.mxgraph.layout.hierarchical;
@@ -226,7 +226,7 @@ JGraphLayout.Stoppable*/
 		}
 		else if (roots == null)
 		{
-			this.roots = graph.findTreeRoots(parent);
+			this.roots = findTreeRoots(parent);
 		}
 		else
 		{
@@ -258,55 +258,62 @@ JGraphLayout.Stoppable*/
 	 * root due to invisible children or collapsed cells.
 	 * 
 	 * @param parent Cell whose children should be checked.
-	 * @param isolate Specifies if edges should be ignored if the opposite
-	 * end is not a child of the given parent cell.
-	 * @param invert Specifies if outgoing or incoming edges should be counted
-	 * for a tree root. If false then outgoing edges will be counted.
 	 * @return List of tree roots in parent.
 	 */
-	public List<Object> findTreeRoots(Object[] cells, boolean isolate,
-			boolean invert)
+	public List<Object> findTreeRoots(Object parent)
 	{
 		List<Object> roots = new ArrayList<Object>();
 
 		Object best = null;
 		int maxDiff = 0;
 		mxIGraphModel model = graph.getModel();
+		int childCount = model.getChildCount(parent);
 
-		for (int i = 0; i < cells.length; i++)
+		for (int i = 0; i < childCount; i++)
 		{
-			if (model.isVertex(cells[i]) && graph.isCellVisible(cells[i]))
+			Object cell = model.getChildAt(parent, i);
+			Object[] cells = { cell };
+
+			if (this.traverseAncestors)
 			{
-				Object[] conns = this.getEdges(cells[i]);
-				int fanOut = 0;
-				int fanIn = 0;
+				cells = mxGraphModel.getDescendants(model, cell).toArray();
+			}
 
-				for (int j = 0; j < conns.length; j++)
+			for (int j = 0; j < cells.length; j++)
+			{
+				if (model.isVertex(cells[j]) && graph.isCellVisible(cells[j]))
 				{
-					Object src = graph.getView().getVisibleTerminal(conns[j], true);
+					Object[] conns = this.getEdges(cells[j]);
+					int fanOut = 0;
+					int fanIn = 0;
 
-					if (src == cells[i])
+					for (int k = 0; k < conns.length; k++)
 					{
-						fanOut++;
+						Object src = graph.getView().getVisibleTerminal(
+								conns[k], true);
+
+						if (src == cells[j])
+						{
+							fanOut++;
+						}
+						else
+						{
+							fanIn++;
+						}
 					}
-					else
+
+					if (fanIn == 0 && fanOut > 0)
 					{
-						fanIn++;
+						roots.add(cells[j]);
 					}
-				}
 
-				if ((invert && fanOut == 0 && fanIn > 0)
-						|| (!invert && fanIn == 0 && fanOut > 0))
-				{
-					roots.add(cells[i]);
-				}
+					int diff = fanOut - fanIn;
 
-				int diff = (invert) ? fanIn - fanOut : fanOut - fanIn;
-
-				if (diff > maxDiff)
-				{
-					maxDiff = diff;
-					best = cells[i];
+					if (diff > maxDiff)
+					{
+						maxDiff = diff;
+						best = cells[j];
+					}
 				}
 			}
 		}
@@ -351,9 +358,9 @@ JGraphLayout.Stoppable*/
 			Object target = (state != null) ? state.getVisibleTerminal(false)
 					: graph.getView().getVisibleTerminal(edge, false);
 
-			if (((source != target) && ((target == cell && (parent == null || graph.isValidAncestor(
-							source, parent, traverseAncestors))) || (source == cell && (parent == null || graph.isValidAncestor(
-							target, parent, traverseAncestors))))))
+			if (((source != target) && ((target == cell && (parent == null || graph
+					.isValidAncestor(source, parent, traverseAncestors))) || (source == cell && (parent == null || graph
+					.isValidAncestor(target, parent, traverseAncestors))))))
 			{
 				result.add(edge);
 			}
@@ -462,8 +469,8 @@ JGraphLayout.Stoppable*/
 		{
 			Set<Object> vertexSet = iter.next();
 
-			this.model = new mxGraphHierarchyModel(this, vertexSet.toArray(), roots,
-					parent, deterministic, layoutFromSinks);
+			this.model = new mxGraphHierarchyModel(this, vertexSet.toArray(),
+					roots, parent, deterministic, layoutFromSinks);
 
 			cycleStage(parent);
 			layeringStage();

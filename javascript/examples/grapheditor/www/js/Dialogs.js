@@ -1,5 +1,5 @@
 /**
- * $Id: Dialogs.js,v 1.44 2012-06-06 10:04:13 gaudenz Exp $
+ * $Id: Dialogs.js,v 1.45 2012-06-08 15:07:04 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -20,7 +20,7 @@ function Dialog(editorUi, elt, w, h, modal, closable, onClose)
 	var left = Math.max(0, Math.round((document.body.scrollWidth - w) / 2));
 	var top = Math.max(0, Math.round((Math.max(document.body.scrollHeight, document.documentElement.scrollHeight) - h) / 3));
 	
-	var div = editorUi.createDiv('dialog');
+	var div = editorUi.createDiv('geDialog');
 	div.style.width = w + 'px';
 	div.style.height = h + 'px';
 	div.style.left = left + 'px';
@@ -57,7 +57,7 @@ function Dialog(editorUi, elt, w, h, modal, closable, onClose)
 
 		img.setAttribute('src', IMAGE_PATH + '/close.png');
 		img.setAttribute('title', mxResources.get('close'));
-		img.className = 'dialogClose';
+		img.className = 'geDialogClose';
 		img.style.top = (top + 14) + 'px';
 		img.style.left = (left + w + 38 - dx) + 'px';
 		

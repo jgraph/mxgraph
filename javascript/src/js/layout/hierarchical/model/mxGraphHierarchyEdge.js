@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphHierarchyEdge.js,v 1.14 2012-06-06 12:41:56 david Exp $
+ * $Id: mxGraphHierarchyEdge.js,v 1.15 2012-06-12 20:23:14 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -156,4 +156,19 @@ mxGraphHierarchyEdge.prototype.getGeneralPurposeVariable = function(layer)
 mxGraphHierarchyEdge.prototype.setGeneralPurposeVariable = function(layer, value)
 {
 	this.temp[layer - this.minRank - 1] = value;
+};
+
+/**
+ * Function: getCoreCell
+ * 
+ * Gets the first core edge associated with this wrapper
+ */
+mxGraphHierarchyEdge.prototype.getCoreCell = function()
+{
+	if (this.edges != null && this.edges.length > 0)
+	{
+		return this.edges[0];
+	}
+	
+	return null;
 };

@@ -1,5 +1,5 @@
 /**
- * $Id: Editor.js,v 1.43 2012-06-06 11:37:57 gaudenz Exp $
+ * $Id: Editor.js,v 1.44 2012-06-08 15:07:04 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 // Specifies if local storage should be used (eg. on the iPad which has no filesystem)
@@ -297,12 +297,6 @@ Editor.prototype.init = function()
 		mxClient.link('stylesheet', CSS_PATH + '/grapheditor-ie6.css');
 	}
 
-	// Adds stylesheet for touch devices
-	if (touchStyle)
-	{
-		mxClient.link('stylesheet', CSS_PATH + '/grapheditor-touch.css');
-	}
-
 	// Adds required resources (disables loading of fallback properties, this can only
 	// be used if we know that all keys are defined in the language specific file)
 	mxResources.loadDefaultBundle = false;
@@ -450,7 +444,7 @@ Editor.prototype.init = function()
 				this.graph.container.insertBefore(this.backgroundPageShape.node, this.graph.container.firstChild);
 				this.backgroundPageShape.redraw();
 				
-				this.backgroundPageShape.node.className = 'backgroundPage';
+				this.backgroundPageShape.node.className = 'geBackgroundPage';
 				
 				// Adds listener for double click handling on background
 				mxEvent.addListener(this.backgroundPageShape.node, 'dblclick',

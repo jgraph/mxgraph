@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.47 2012-06-04 14:31:50 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.48 2012-06-08 15:07:04 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -501,14 +501,14 @@ EditorUi.prototype.refresh = function()
  */
 EditorUi.prototype.createDivs = function()
 {
-	this.menubarContainer = this.createDiv('menubarContainer');
-	this.toolbarContainer = this.createDiv('toolbarContainer');
-	this.sidebarContainer = this.createDiv('sidebarContainer');
-	this.outlineContainer = this.createDiv('outlineContainer');
-	this.diagramContainer = this.createDiv('diagramContainer');
-	this.footerContainer = this.createDiv('footerContainer');
-	this.hsplit = this.createDiv('hsplit');
-	this.vsplit = this.createDiv('vsplit');
+	this.menubarContainer = this.createDiv('geMenubarContainer');
+	this.toolbarContainer = this.createDiv('geToolbarContainer');
+	this.sidebarContainer = this.createDiv('geSidebarContainer');
+	this.outlineContainer = this.createDiv('geOutlineContainer');
+	this.diagramContainer = this.createDiv('geDiagramContainer');
+	this.footerContainer = this.createDiv('geFooterContainer');
+	this.hsplit = this.createDiv('geHsplit');
+	this.vsplit = this.createDiv('geVsplit');
 
 	// Sets static style for containers
 	this.menubarContainer.style.top = '0px';
@@ -533,11 +533,11 @@ EditorUi.prototype.createDivs = function()
 EditorUi.prototype.createUi = function()
 {
 	// Creates menubar
-	this.menubar = this.menus.createMenubar(this.createDiv('menubar'));
+	this.menubar = this.menus.createMenubar(this.createDiv('geMenubar'));
 	this.menubarContainer.appendChild(this.menubar.container);
 	
 	// Creates toolbar
-	this.toolbar = this.createToolbar(this.createDiv('toolbar'));
+	this.toolbar = this.createToolbar(this.createDiv('geToolbar'));
 	this.toolbarContainer.appendChild(this.toolbar.container);
 	
 	// Creates the sidebar
@@ -594,7 +594,7 @@ EditorUi.prototype.createUi = function()
 EditorUi.prototype.createStatusContainer = function()
 {
 	var container = document.createElement('a');
-	container.className = 'item status';
+	container.className = 'geItem geStatus';
 	
 	return container;
 };
@@ -628,7 +628,7 @@ EditorUi.prototype.createSidebar = function(container)
  */
 EditorUi.prototype.createFooter = function()
 {
-	return this.createDiv('footer');
+	return this.createDiv('geFooter');
 };
 
 /**

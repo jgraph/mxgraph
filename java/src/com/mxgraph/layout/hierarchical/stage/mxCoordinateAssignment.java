@@ -1,5 +1,5 @@
 /**
- * $Id: mxCoordinateAssignment.java,v 1.14 2012-05-27 22:11:14 david Exp $
+ * $Id: mxCoordinateAssignment.java,v 1.16 2012-06-12 20:55:34 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 
@@ -220,6 +220,34 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 		setLoggerLevel(Level.OFF);
 	}
 
+	/**
+	 * Utility method to display the x co-ords
+	 */
+	public void printStatus()
+	{
+		mxGraphHierarchyModel model = layout.getModel();
+
+		System.out.println("======Coord assignment debug=======");
+
+		for (int j = 0; j < model.ranks.size(); j++)
+		{
+			System.out.print("Rank " + j + " : " );
+			mxGraphHierarchyRank rank = model.ranks
+					.get(new Integer(j));
+			Iterator<mxGraphAbstractHierarchyCell> iter = rank
+					.iterator();
+
+			while (iter.hasNext())
+			{
+				mxGraphAbstractHierarchyCell cell = iter.next();
+				System.out.print(cell.getX(j) + "  ");
+			}
+			System.out.println();
+		}
+		
+		System.out.println("====================================");
+	}
+	
 	/**
 	 * A basic horizontal coordinate assignment algorithm
 	 */
@@ -1084,7 +1112,7 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 					}
 					else
 					{
-						upXPositions[i - cell.minRank - 1] = cell.getX(i);
+						upXPositions[i - cell.minRank - 1] = nextX;
 						currentX = nextX;
 					}
 				}
@@ -1110,7 +1138,7 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 					}
 					else
 					{
-						downXPositions[i - cell.minRank - 2] = cell.getX(i);
+						downXPositions[i - cell.minRank - 2] = cell.getX(i-1);
 						currentX = nextX;
 					}
 				}
@@ -1121,7 +1149,7 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 					continue;
 				}
 
-				if (downSegCount > upSegCount)
+				if (downSegCount >= upSegCount)
 				{
 					// Apply down calculation values
 					for (int i = cell.maxRank - 2; i > cell.minRank; i--)
@@ -1508,22 +1536,44 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 			Iterator<Object> parallelEdges = edge.edges.iterator();
 			int parallelEdgeCount = 0;
 			double[] jettys = jettyPositions.get(edge);
+			
+			Object source = edge.source.cell;
 
 			while (parallelEdges.hasNext())
 			{
 				Object realEdge = parallelEdges.next();
+				Object realSource = layout.getGraph().getView().getVisibleTerminal(realEdge, true);
+				
 				List<mxPoint> newPoints = new ArrayList<mxPoint>(edge.x.length);
 
+				// Single length reversed edges end up with the jettys in the wrong
+				// places. Since single length edges only have jettys, not segment
+				// control points, we just say the edge isn't reversed in this section
+				boolean reversed = edge.isReversed();
+				
+				if (realSource != source)
+				{
+					// The real edges include all core model edges and these can go
+					// in both directions. If the source of the hierarchical model edge
+					// isn't the source of the specific real edge in this iteration
+					// treat if as reversed
+					reversed = !reversed;
+				}
+				
+				// First jetty of edge
 				if (jettys != null)
 				{
-					int arrayOffset = edge.isReversed() ? 2 : 0;
-					double y = edge.isReversed() ? rankTopY[minRank] : rankBottomY[maxRank];
+					int arrayOffset = reversed ? 2 : 0;
+					double y = reversed ? rankTopY[minRank] : rankBottomY[maxRank];
 					double jetty = jettys[parallelEdgeCount * 4 + 1 + arrayOffset];
 					
-					if (edge.isReversed())
+					// If the edge is reversed invert the y position within the channel,
+					// unless it is a single length edge
+					if (reversed)
 					{
 						jetty = -jetty;
 					}
+					
 					y += jetty;
 					double x = jettys[parallelEdgeCount * 4 + arrayOffset];
 
@@ -1546,7 +1596,7 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 				int loopDelta = -1;
 				int currentRank = edge.maxRank - 1;
 
-				if (edge.isReversed())
+				if (reversed)
 				{
 					loopStart = 0;
 					loopLimit = edge.x.length;
@@ -1566,7 +1616,7 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 					double topChannelY = (rankTopY[currentRank] + rankBottomY[currentRank + 1]) / 2.0;
 					double bottomChannelY = (rankTopY[currentRank - 1] + rankBottomY[currentRank]) / 2.0;
 
-					if (edge.isReversed())
+					if (reversed)
 					{
 						double tmp = topChannelY;
 						topChannelY = bottomChannelY;
@@ -1593,13 +1643,14 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 					currentRank += loopDelta;
 				}
 
+				// Second jetty of edge
 				if (jettys != null)
 				{
-					int arrayOffset = edge.isReversed() ? 2 : 0;
-					double rankY = edge.isReversed() ? rankBottomY[maxRank] : rankTopY[minRank];
+					int arrayOffset = reversed ? 2 : 0;
+					double rankY = reversed ? rankBottomY[maxRank] : rankTopY[minRank];
 					double jetty = jettys[parallelEdgeCount * 4 + 3 - arrayOffset];
 					
-					if (edge.isReversed())
+					if (reversed)
 					{
 						jetty = -jetty;
 					}

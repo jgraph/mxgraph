@@ -1,5 +1,5 @@
 /**
- * $Id: Sidebar.js,v 1.59 2012-05-31 07:08:03 gaudenz Exp $
+ * $Id: Sidebar.js,v 1.62 2012-06-08 15:07:04 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -139,7 +139,7 @@ Sidebar.prototype.installEdges = true;
 /**
  * Specifies the URL of the gear image.
  */
-Sidebar.prototype.gearImage = 'stencils/clipart/Gear_128x128.png';
+Sidebar.prototype.gearImage = STENCIL_PATH + '/clipart/Gear_128x128.png';
 
 /**
  * Specifies the width of the thumbnails.
@@ -189,7 +189,7 @@ Sidebar.prototype.showTooltip = function(elt, cells)
 				if (this.tooltip == null)
 				{
 					this.tooltip = document.createElement('div');
-					this.tooltip.className = 'sidebarTooltip';
+					this.tooltip.className = 'geSidebarTooltip';
 					this.graph2 = new Graph(this.tooltip, null, null, this.editorUi.editor.graph.getStylesheet());
 					this.graph2.view.setTranslate(this.tooltipBorder, this.tooltipBorder);
 					this.graph2.resetViewOnRootChange = false;
@@ -724,7 +724,7 @@ Sidebar.prototype.createTitle = function(label)
 {
 	var elt = document.createElement('a');
 	elt.setAttribute('href', 'javascript:void(0);');
-	elt.className = 'title';
+	elt.className = 'geTitle';
 	mxUtils.write(elt, label);
 
 	return elt;
@@ -807,7 +807,7 @@ Sidebar.prototype.createItem = function(cells)
 {
 	var elt = document.createElement('a');
 	elt.setAttribute('href', 'javascript:void(0);');
-	elt.className = 'item';
+	elt.className = 'geItem';
 	
 	// Blocks default click action
 	mxEvent.addListener(elt, 'click', function(evt)
@@ -1041,7 +1041,7 @@ Sidebar.prototype.addPalette = function(id, title, expanded, onInit)
 	this.container.appendChild(elt);
 	
 	var div = document.createElement('div');
-	div.className = 'sidebar';
+	div.className = 'geSidebar';
 	
 	if (expanded)
 	{

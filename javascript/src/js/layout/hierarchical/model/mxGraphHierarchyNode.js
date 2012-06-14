@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphHierarchyNode.js,v 1.11 2010-01-04 11:18:26 gaudenz Exp $
+ * $Id: mxGraphHierarchyNode.js,v 1.13 2012-06-12 20:24:58 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -197,4 +197,14 @@ mxGraphHierarchyNode.prototype.isAncestor = function(otherNode)
 	}
 
 	return false;
+};
+
+/**
+ * Function: getCoreCell
+ * 
+ * Gets the core vertex associated with this wrapper
+ */
+mxGraphHierarchyNode.prototype.getCoreCell = function()
+{
+	return this.cell;
 };

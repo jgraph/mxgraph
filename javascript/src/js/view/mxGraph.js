@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.689 2012-06-04 16:31:12 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.690 2012-06-13 07:50:12 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -6743,13 +6743,11 @@ mxGraph.prototype.scrollCellToVisible = function(cell, center)
 		if (this.scrollRectToVisible(bounds))
 		{
 			// Triggers an update via the view's event source
-			this.view.setTranslate(this.view.translate.x,
-				this.view.translate.y);
+			this.view.setTranslate(this.view.translate.x, this.view.translate.y);
 		}
 	}
 };
 
-//TODO arguments in the docs do not exist in function signature
 /**
  * Function: scrollRectToVisible
  * 
@@ -6758,10 +6756,6 @@ mxGraph.prototype.scrollCellToVisible = function(cell, center)
  * Parameters:
  * 
  * rect - <mxRectangle> to be made visible.
- * scrollX - Optional boolean that specifies if horizontal scrolling is
- * allowed. Default is true.
- * scrollY - Optional boolean that specifies if vertical scrolling is
- * allowed. Default is true.
  */
 mxGraph.prototype.scrollRectToVisible = function(rect)
 {

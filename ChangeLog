@@ -1,3 +1,15 @@
+14-JUN-2012: 1.10.1.2 beta
+
+- Handles mouseUp outside of graph in mxPanningManager [JavaScript]
+- Fixes hierarchical layout bi-directional parallel edge routing [Java,JavaScript]
+- Improves hierarchical layout edge straightening alogrithm [Java,JavaScript]
+- Fixes hierarchical layout unique cell IDs for path creations [JavaScript]
+- Fixes hierarchical layout findTreeRoots across groups [Java]
+- Adds mxPath.ellipse for drawing ellipses in paths [JavaScript]
+- Add ge-prefix for all CSS classes, node IDs in grapheditor [JavaScript]
+- Fixes handling of &nbsp; in mxSvgCanvas2D [JavaScript]
+- Adds linestyle toolbar buttons in grapheditor example [JavaScript]
+
 06-JUN-2012: 1.10.1.1
 
 - Fixes scaled spacing for centered SVG labels in mxText [JavaScript]

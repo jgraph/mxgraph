@@ -1,5 +1,5 @@
 /**
- * $Id: mxSvgCanvas2D.js,v 1.14 2012-04-24 13:56:56 gaudenz Exp $
+ * $Id: mxSvgCanvas2D.js,v 1.15 2012-06-08 12:45:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -230,6 +230,9 @@ var mxSvgCanvas2D = function(root, styleEnabled)
 		// LATER: Add vertical align support via table
 		var body = create('body', 'http://www.w3.org/1999/xhtml');
 		body.setAttribute('style', style);
+		
+		// Convert HTML entities to XML entities
+		str = str.replace(/&nbsp;/g, '&#160;');
 		
 		// Adds surrounding DIV to guarantee one root element, adds xmlns to workaround empty NS in IE9 standards
 		var node = mxUtils.parseXml('<div xmlns="http://www.w3.org/1999/xhtml">' + str + '</div>').documentElement; 

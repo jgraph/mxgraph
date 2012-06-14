@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.10.1.1.
+	 * Current version is 1.10.1.2.
 	 */
-	VERSION: '1.10.1.1',
+	VERSION: '1.10.1.2',
 
 	/**
 	 * Variable: IS_IE
@@ -13623,7 +13623,7 @@ var mxUrlConverter = function(root)
 	};
 
 };/**
- * $Id: mxPanningManager.js,v 1.6 2012-06-01 10:30:07 gaudenz Exp $
+ * $Id: mxPanningManager.js,v 1.7 2012-06-13 06:46:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -13659,6 +13659,15 @@ function mxPanningManager(graph)
 	};
 	
 	graph.addMouseListener(this.mouseListener);
+	
+	// Stops scrolling on every mouseup anywhere in the document
+	mxEvent.addListener(document, 'mouseup', mxUtils.bind(this, function()
+	{
+    	if (this.active)
+    	{
+    		this.stop();
+    	}
+	}));
 	
 	var createThread = mxUtils.bind(this, function()
 	{
@@ -13876,7 +13885,7 @@ mxPanningManager.prototype.handleMouseOut = true;
  */
 mxPanningManager.prototype.border = 0;
 /**
- * $Id: mxPath.js,v 1.21 2012-05-21 18:27:17 gaudenz Exp $
+ * $Id: mxPath.js,v 1.24 2012-06-13 17:31:32 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -14105,6 +14114,38 @@ mxPath.prototype.curveTo = function(x1, y1, x2, y2, x, y)
 	{
 		this.path.push('C ', x1, ' ', y1, ' ', x2,
 			' ', y2, ' ', x, ' ', y, ' ');
+	}
+};
+
+/**
+ * Function: ellipse
+ *
+ * Adds the given ellipse. Some implementations may require the path to be
+ * closed after this operation.
+ */
+mxPath.prototype.ellipse = function(x, y, w, h)
+{
+	x += this.translate.x;
+	y += this.translate.y;
+	x *= this.scale;
+	y *= this.scale;
+
+	if (this.isVml())
+	{
+		this.path.push('at ', Math.round(x), ' ', Math.round(y), ' ', Math.round(x + w), ' ', Math.round(y +  h), ' ',
+				Math.round(x), ' ', Math.round(y + h / 2), ' ', Math.round(x), ' ', Math.round(y + h / 2));
+	}
+	else
+	{
+		var startX = x;
+		var startY = y + h/2;
+		var endX = x + w;
+		var endY = y + h/2;
+		var r1 = w/2;
+		var r2 = h/2;
+		this.path.push('M ', startX, ' ', startY, ' ');
+		this.path.push('A ', r1, ' ', r2, ' 0 1 0 ', endX, ' ', endY, ' ');
+		this.path.push('A ', r1, ' ', r2, ' 0 1 0 ', startX, ' ', startY);
 	}
 };
 
@@ -17476,7 +17517,7 @@ var mxXmlCanvas2D = function(root)
 	};
 
 };/**
- * $Id: mxSvgCanvas2D.js,v 1.14 2012-04-24 13:56:56 gaudenz Exp $
+ * $Id: mxSvgCanvas2D.js,v 1.15 2012-06-08 12:45:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -17707,6 +17748,9 @@ var mxSvgCanvas2D = function(root, styleEnabled)
 		// LATER: Add vertical align support via table
 		var body = create('body', 'http://www.w3.org/1999/xhtml');
 		body.setAttribute('style', style);
+		
+		// Convert HTML entities to XML entities
+		str = str.replace(/&nbsp;/g, '&#160;');
 		
 		// Adds surrounding DIV to guarantee one root element, adds xmlns to workaround empty NS in IE9 standards
 		var node = mxUtils.parseXml('<div xmlns="http://www.w3.org/1999/xhtml">' + str + '</div>').documentElement; 
@@ -32199,7 +32243,7 @@ mxGraphAbstractHierarchyCell.prototype.setY = function(layer, value)
 	}
 };
 /**
- * $Id: mxGraphHierarchyNode.js,v 1.11 2010-01-04 11:18:26 gaudenz Exp $
+ * $Id: mxGraphHierarchyNode.js,v 1.13 2012-06-12 20:24:58 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -32398,8 +32442,17 @@ mxGraphHierarchyNode.prototype.isAncestor = function(otherNode)
 
 	return false;
 };
+
 /**
- * $Id: mxGraphHierarchyEdge.js,v 1.14 2012-06-06 12:41:56 david Exp $
+ * Function: getCoreCell
+ * 
+ * Gets the core vertex associated with this wrapper
+ */
+mxGraphHierarchyNode.prototype.getCoreCell = function()
+{
+	return this.cell;
+};/**
+ * $Id: mxGraphHierarchyEdge.js,v 1.15 2012-06-12 20:23:14 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -32557,7 +32610,21 @@ mxGraphHierarchyEdge.prototype.setGeneralPurposeVariable = function(layer, value
 {
 	this.temp[layer - this.minRank - 1] = value;
 };
+
 /**
+ * Function: getCoreCell
+ * 
+ * Gets the first core edge associated with this wrapper
+ */
+mxGraphHierarchyEdge.prototype.getCoreCell = function()
+{
+	if (this.edges != null && this.edges.length > 0)
+	{
+		return this.edges[0];
+	}
+	
+	return null;
+};/**
  * $Id: mxGraphHierarchyModel.js,v 1.30 2012-05-27 22:11:14 david Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
@@ -33380,7 +33447,7 @@ function mxHierarchicalLayoutStage() { };
  */
 mxHierarchicalLayoutStage.prototype.execute = function(parent) { };
 /**
- * $Id: mxMedianHybridCrossingReduction.js,v 1.24 2012-03-29 13:03:13 david Exp $
+ * $Id: mxMedianHybridCrossingReduction.js,v 1.25 2012-06-07 11:16:41 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -33731,12 +33798,12 @@ mxMedianHybridCrossingReduction.prototype.transpose = function(mainLoopIteration
 					leftAbovePositions = [];
 					leftBelowPositions = [];
 					
-					for (var k = 0; k < leftAbovePositions.length; k++)
+					for (var k = 0; k < leftCellAboveConnections.length; k++)
 					{
 						leftAbovePositions[k] = leftCellAboveConnections[k].getGeneralPurposeVariable(i + 1);
 					}
 					
-					for (var k = 0; k < leftBelowPositions.length; k++)
+					for (var k = 0; k < leftCellBelowConnections.length; k++)
 					{
 						leftBelowPositions[k] = leftCellBelowConnections[k].getGeneralPurposeVariable(i - 1);
 					}
@@ -33759,12 +33826,12 @@ mxMedianHybridCrossingReduction.prototype.transpose = function(mainLoopIteration
 				rightAbovePositions = [];
 				rightBelowPositions = [];
 
-				for (var k = 0; k < rightAbovePositions.length; k++)
+				for (var k = 0; k < rightCellAboveConnections.length; k++)
 				{
 					rightAbovePositions[k] = rightCellAboveConnections[k].getGeneralPurposeVariable(i + 1);
 				}
 				
-				for (var k = 0; k < rightBelowPositions.length; k++)
+				for (var k = 0; k < rightCellBelowConnections.length; k++)
 				{
 					rightBelowPositions[k] = rightCellBelowConnections[k].getGeneralPurposeVariable(i - 1);
 				}
@@ -33882,12 +33949,13 @@ mxMedianHybridCrossingReduction.prototype.medianRank = function(rankValue, downw
 {
 	var numCellsForRank = this.nestedBestRanks[rankValue].length;
 	var medianValues = [];
+	var reservedPositions = [];
 
 	for (var i = 0; i < numCellsForRank; i++)
 	{
 		var cell = this.nestedBestRanks[rankValue][i];
-		medianValues[i] = new MedianCellSorter();
-		medianValues[i].cell = cell;
+		var sorterEntry = new MedianCellSorter();
+		sorterEntry.cell = cell;
 
 		// Flip whether or not equal medians are flipped on up and down
 		// sweeps
@@ -33920,16 +33988,15 @@ mxMedianHybridCrossingReduction.prototype.medianRank = function(rankValue, downw
 		if (nextLevelConnectedCells != null
 				&& nextLevelConnectedCells.length != 0)
 		{
-			medianValues[i].medianValue = this.medianValue(
+			sorterEntry.medianValue = this.medianValue(
 					nextLevelConnectedCells, nextRankValue);
+			medianValues.push(sorterEntry);
 		}
 		else
 		{
-			// Nodes with no adjacent vertices are given a median value of
-			// -1 to indicate to the median function that they should be
-			// left of their current position if possible.
-			medianValues[i].medianValue = -1.0; // TODO needs to account for
-			// both layers
+			// Nodes with no adjacent vertices are flagged in the reserved array
+			// to indicate they should be left in their current position.
+			reservedPositions[cell.getGeneralPurposeVariable(rankValue)] = true;
 		}
 	}
 	
@@ -33939,7 +34006,11 @@ mxMedianHybridCrossingReduction.prototype.medianRank = function(rankValue, downw
 	// its temp variable
 	for (var i = 0; i < numCellsForRank; i++)
 	{
-		medianValues[i].cell.setGeneralPurposeVariable(rankValue, i);
+		if (reservedPositions[i] == null)
+		{
+			var cell = medianValues.shift().cell;
+			cell.setGeneralPurposeVariable(rankValue, i);
+		}
 	}
 };
 
@@ -33967,12 +34038,14 @@ mxMedianHybridCrossingReduction.prototype.medianValue = function(connectedCells,
 		medianValues[arrayCount++] = cell.getGeneralPurposeVariable(rankValue);
 	}
 
-	medianValues.sort(MedianCellSorter.prototype.compare);
+	// Sort() sorts lexicographically by default (i.e. 11 before 9) so force
+	// numerical order sort
+	medianValues.sort(function(a,b){return a - b;});
 	
 	if (arrayCount % 2 == 1)
 	{
 		// For odd numbers of adjacent vertices return the median
-		return medianValues[arrayCount / 2];
+		return medianValues[Math.floor(arrayCount / 2)];
 	}
 	else if (arrayCount == 2)
 	{
@@ -34179,7 +34252,7 @@ mxMinimumCycleRemover.prototype.execute = function(parent)
 	}
 };
 /**
- * $Id: mxCoordinateAssignment.js,v 1.26 2012-05-27 22:11:14 david Exp $
+ * $Id: mxCoordinateAssignment.js,v 1.28 2012-06-12 20:55:04 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -34410,6 +34483,33 @@ mxCoordinateAssignment.prototype.previousLayerConnectedCache = null;
 mxCoordinateAssignment.prototype.groupPadding = 10;
 
 /**
+ * Utility method to display current positions
+ */
+mxCoordinateAssignment.prototype.printStatus = function()
+{
+	var model = this.layout.getModel();
+	mxLog.show();
+
+	mxLog.writeln('======Coord assignment debug=======');
+
+	for (var j = 0; j < model.ranks.length; j++)
+	{
+		mxLog.write('Rank ', j, ' : ' );
+		var rank = model.ranks[j];
+		
+		for (var k = 0; k < rank.length; k++)
+		{
+			var cell = rank[k];
+			
+			mxLog.write(cell.getGeneralPurposeVariable(j), '  ');
+		}
+		mxLog.writeln();
+	}
+	
+	mxLog.writeln('====================================');
+};
+
+/**
  * Function: execute
  * 
  * A basic horizontal coordinate assignment algorithm
@@ -34422,6 +34522,8 @@ mxCoordinateAssignment.prototype.execute = function(parent)
 
 	this.initialCoords(this.layout.getGraph(), model);
 	
+//	this.printStatus();
+	
 	if (this.fineTuning)
 	{
 		this.minNode(model);
@@ -34433,6 +34535,8 @@ mxCoordinateAssignment.prototype.execute = function(parent)
 	{
 		for (var i = 0; i < this.maxIterations; i++)
 		{
+//			this.printStatus();
+		
 			// Median Heuristic
 			if (i != 0)
 			{
@@ -34510,7 +34614,7 @@ mxCoordinateAssignment.prototype.minNode = function(model)
 			nodeWrapper.visited = true;
 			nodeList.push(nodeWrapper);
 			
-			var cellId = mxCellPath.create(node.cell);
+			var cellId = mxCellPath.create(node.getCoreCell());
 			map[cellId] = nodeWrapper;
 		}
 	}
@@ -34624,7 +34728,7 @@ mxCoordinateAssignment.prototype.minNode = function(model)
 			for (var i = 0; i < nextLayerConnectedCells.length; i++)
 			{
 				var connectedCell = nextLayerConnectedCells[i];
-				var connectedCellId = mxCellPath.create(connectedCell.cell);
+				var connectedCellId = mxCellPath.create(connectedCell.getCoreCell());
 				var connectedCellWrapper = map[connectedCellId];
 				
 				if (connectedCellWrapper != null)
@@ -34641,7 +34745,7 @@ mxCoordinateAssignment.prototype.minNode = function(model)
 			for (var i = 0; i < previousLayerConnectedCells.length; i++)
 			{
 				var connectedCell = previousLayerConnectedCells[i];
-				var connectedCellId = mxCellPath.create(connectedCell.cell);
+				var connectedCellId = mxCellPath.create(connectedCell.getCoreCell());
 				var connectedCellWrapper = map[connectedCellId];
 				
 				if (connectedCellWrapper != null)
@@ -34719,7 +34823,7 @@ mxCoordinateAssignment.prototype.rankMedianPosition = function(rankValue, model,
 		weightedValues[i] = new WeightedCellSorter();
 		weightedValues[i].cell = currentCell;
 		weightedValues[i].rankIndex = i;
-		var currentCellId = mxCellPath.create(currentCell.cell);
+		var currentCellId = mxCellPath.create(currentCell.getCoreCell());
 		cellMap[currentCellId] = weightedValues[i];
 		var nextLayerConnectedCells = null;
 		
@@ -34786,7 +34890,7 @@ mxCoordinateAssignment.prototype.rankMedianPosition = function(rankValue, model,
 		
 		for (var j = weightedValues[i].rankIndex - 1; j >= 0;)
 		{
-			var rankId = mxCellPath.create(rank[j].cell);
+			var rankId = mxCellPath.create(rank[j].getCoreCell());
 			var weightedValue = cellMap[rankId];
 			
 			if (weightedValue != null)
@@ -34819,7 +34923,7 @@ mxCoordinateAssignment.prototype.rankMedianPosition = function(rankValue, model,
 		
 		for (var j = weightedValues[i].rankIndex + 1; j < weightedValues.length;)
 		{
-			var rankId = mxCellPath.create(rank[j].cell);
+			var rankId = mxCellPath.create(rank[j].getCoreCell());
 			var weightedValue = cellMap[rankId];
 			
 			if (weightedValue != null)
@@ -34931,12 +35035,12 @@ mxCoordinateAssignment.prototype.medianXValue = function(connectedCells, rankVal
 		medianValues[i] = connectedCells[i].getGeneralPurposeVariable(rankValue);
 	}
 
-	medianValues.sort(MedianCellSorter.prototype.compare);
+	medianValues.sort(function(a,b){return a - b;});
 	
 	if (connectedCells.length % 2 == 1)
 	{
 		// For odd numbers of adjacent vertices return the median
-		return medianValues[connectedCells.length / 2];
+		return medianValues[Math.floor(connectedCells.length / 2)];
 	}
 	else
 	{
@@ -35217,7 +35321,11 @@ mxCoordinateAssignment.prototype.minPath = function(graph, model)
 	{
 		var cell = edges[key];
 		
-		var numEdgeLayers = cell.maxRank - cell.minRank - 1;
+		if (cell.maxRank - cell.minRank - 1 < 1)
+		{
+			continue;
+		}
+
 		// At least two virtual nodes in the edge
 		// Check first whether the edge is already straight
 		var referenceX = cell
@@ -35268,7 +35376,7 @@ mxCoordinateAssignment.prototype.minPath = function(graph, model)
 				}
 				else
 				{
-					upXPositions[i - cell.minRank - 1] = cell.getX(i);
+					upXPositions[i - cell.minRank - 1] = nextX;
 					currentX = nextX;
 				}				
 			}
@@ -35294,14 +35402,14 @@ mxCoordinateAssignment.prototype.minPath = function(graph, model)
 				}
 				else
 				{
-					downXPositions[i - cell.minRank - 2] = cell.getX(i);
+					downXPositions[i - cell.minRank - 2] = cell.getX(i-1);
 					currentX = nextX;
 				}
 			}
 
 			if (downSegCount > refSegCount || upSegCount > refSegCount)
 			{
-				if (downSegCount > upSegCount)
+				if (downSegCount >= upSegCount)
 				{
 					// Apply down calculation values
 					for (var i = cell.maxRank - 2; i > cell.minRank; i--)
@@ -35691,20 +35799,38 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 		var edgeId = mxCellPath.create(cell.edges[0]);
 		var jettys = this.jettyPositions[edgeId];
 
+		var source = cell.source.cell;
+
 		for (var i = 0; i < cell.edges.length; i++)
 		{
 			var realEdge = cell.edges[i];
+			var realSource = this.layout.graph.view.getVisibleTerminal(realEdge, true);
 
 			//List oldPoints = graph.getPoints(realEdge);
 			var newPoints = [];
 
+			// Single length reversed edges end up with the jettys in the wrong
+			// places. Since single length edges only have jettys, not segment
+			// control points, we just say the edge isn't reversed in this section
+			var reversed = cell.isReversed;
+			
+			if (realSource != source)
+			{
+				// The real edges include all core model edges and these can go
+				// in both directions. If the source of the hierarchical model edge
+				// isn't the source of the specific real edge in this iteration
+				// treat if as reversed
+				reversed = !reversed;
+			}
+			
+			// First jetty of edge
 			if (jettys != null)
 			{
-				var arrayOffset = cell.isReversed ? 2 : 0;
-				var y = cell.isReversed ? this.rankTopY[minRank] : this.rankBottomY[maxRank];
+				var arrayOffset = reversed ? 2 : 0;
+				var y = reversed ? this.rankTopY[minRank] : this.rankBottomY[maxRank];
 				var jetty = jettys[parallelEdgeCount * 4 + 1 + arrayOffset];
 				
-				if (cell.isReversed)
+				if (reversed)
 				{
 					jetty = -jetty;
 				}
@@ -35731,7 +35857,7 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 			var loopDelta = -1;
 			var currentRank = cell.maxRank - 1;
 
-			if (cell.isReversed)
+			if (reversed)
 			{
 				loopStart = 0;
 				loopLimit = cell.x.length;
@@ -35750,7 +35876,7 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 				var topChannelY = (this.rankTopY[currentRank] + this.rankBottomY[currentRank + 1]) / 2.0;
 				var bottomChannelY = (this.rankTopY[currentRank - 1] + this.rankBottomY[currentRank]) / 2.0;
 
-				if (cell.isReversed)
+				if (reversed)
 				{
 					var tmp = topChannelY;
 					topChannelY = bottomChannelY;
@@ -35773,13 +35899,14 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 				currentRank += loopDelta;
 			}
 
+			// Second jetty of edge
 			if (jettys != null)
 			{
-				var arrayOffset = cell.isReversed ? 2 : 0;
-				var rankY = cell.isReversed ? this.rankBottomY[maxRank] : this.rankTopY[minRank];
+				var arrayOffset = reversed ? 2 : 0;
+				var rankY = reversed ? this.rankBottomY[maxRank] : this.rankTopY[minRank];
 				var jetty = jettys[parallelEdgeCount * 4 + 3 - arrayOffset];
 				
-				if (cell.isReversed)
+				if (reversed)
 				{
 					jetty = -jetty;
 				}
@@ -35961,7 +36088,7 @@ WeightedCellSorter.prototype.compare = function(a, b)
 	}
 };
 /**
- * $Id: mxHierarchicalLayout.js,v 1.28 2012-06-03 14:57:05 david Exp $
+ * $Id: mxHierarchicalLayout.js,v 1.29 2012-06-12 20:22:18 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -36256,55 +36383,55 @@ mxHierarchicalLayout.prototype.findTreeRoots = function(parent)
 		for (var i = 0; i < childCount; i++)
 		{
 			var cell = model.getChildAt(parent, i);
-            var cells = [];
+			var cells = [];
 
-            if (this.traverseAncestors)
-            {
-                cells = model.getDescendants(cell);
-            }
-            else
-            {
-                cells.push(cell);
-            }
+			if (this.traverseAncestors)
+			{
+				cells = model.getDescendants(cell);
+			}
+			else
+			{
+				cells.push(cell);
+			}
 
-            for (var j = 0; j < cells.length; j++)
-            {
-                cell = cells[j];
+			for (var j = 0; j < cells.length; j++)
+			{
+				cell = cells[j];
 
-                if (model.isVertex(cell) && this.graph.isCellVisible(cell))
-                {
-                    var conns = this.getEdges(cell);
-                    var fanOut = 0;
-                    var fanIn = 0;
+				if (model.isVertex(cell) && this.graph.isCellVisible(cell))
+				{
+					var conns = this.getEdges(cell);
+					var fanOut = 0;
+					var fanIn = 0;
 
-                    for (var k = 0; k < conns.length; k++)
-                    {
-                        var src = this.graph.view.getVisibleTerminal(conns[k], true);
+					for (var k = 0; k < conns.length; k++)
+					{
+						var src = this.graph.view.getVisibleTerminal(conns[k], true);
 
-                        if (src == cell)
-                        {
-                            fanOut++;
-                        }
-                        else
-                        {
-                            fanIn++;
-                        }
-                    }
+						if (src == cell)
+						{
+							fanOut++;
+						}
+						else
+						{
+							fanIn++;
+						}
+					}
 
-                    if (fanIn == 0 && fanOut > 0)
-                    {
-                        roots.push(cell);
-                    }
+					if (fanIn == 0 && fanOut > 0)
+					{
+						roots.push(cell);
+					}
 
-                    var diff = fanIn - fanOut;
+					var diff = fanIn - fanOut;
 
-                    if (diff > maxDiff)
-                    {
-                        maxDiff = diff;
-                        best = cell;
-                    }
-                }
-            }
+					if (diff > maxDiff)
+					{
+						maxDiff = diff;
+						best = cell;
+					}
+				}
+			}
 		}
 		
 		if (roots.length == 0 && best != null)
@@ -48675,7 +48802,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.689 2012-06-04 16:31:12 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.690 2012-06-13 07:50:12 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -55419,13 +55546,11 @@ mxGraph.prototype.scrollCellToVisible = function(cell, center)
 		if (this.scrollRectToVisible(bounds))
 		{
 			// Triggers an update via the view's event source
-			this.view.setTranslate(this.view.translate.x,
-				this.view.translate.y);
+			this.view.setTranslate(this.view.translate.x, this.view.translate.y);
 		}
 	}
 };
 
-//TODO arguments in the docs do not exist in function signature
 /**
  * Function: scrollRectToVisible
  * 
@@ -55434,10 +55559,6 @@ mxGraph.prototype.scrollCellToVisible = function(cell, center)
  * Parameters:
  * 
  * rect - <mxRectangle> to be made visible.
- * scrollX - Optional boolean that specifies if horizontal scrolling is
- * allowed. Default is true.
- * scrollY - Optional boolean that specifies if vertical scrolling is
- * allowed. Default is true.
  */
 mxGraph.prototype.scrollRectToVisible = function(rect)
 {

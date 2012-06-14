@@ -1,5 +1,5 @@
 /**
- * $Id: mxMedianHybridCrossingReduction.js,v 1.24 2012-03-29 13:03:13 david Exp $
+ * $Id: mxMedianHybridCrossingReduction.js,v 1.25 2012-06-07 11:16:41 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -350,12 +350,12 @@ mxMedianHybridCrossingReduction.prototype.transpose = function(mainLoopIteration
 					leftAbovePositions = [];
 					leftBelowPositions = [];
 					
-					for (var k = 0; k < leftAbovePositions.length; k++)
+					for (var k = 0; k < leftCellAboveConnections.length; k++)
 					{
 						leftAbovePositions[k] = leftCellAboveConnections[k].getGeneralPurposeVariable(i + 1);
 					}
 					
-					for (var k = 0; k < leftBelowPositions.length; k++)
+					for (var k = 0; k < leftCellBelowConnections.length; k++)
 					{
 						leftBelowPositions[k] = leftCellBelowConnections[k].getGeneralPurposeVariable(i - 1);
 					}
@@ -378,12 +378,12 @@ mxMedianHybridCrossingReduction.prototype.transpose = function(mainLoopIteration
 				rightAbovePositions = [];
 				rightBelowPositions = [];
 
-				for (var k = 0; k < rightAbovePositions.length; k++)
+				for (var k = 0; k < rightCellAboveConnections.length; k++)
 				{
 					rightAbovePositions[k] = rightCellAboveConnections[k].getGeneralPurposeVariable(i + 1);
 				}
 				
-				for (var k = 0; k < rightBelowPositions.length; k++)
+				for (var k = 0; k < rightCellBelowConnections.length; k++)
 				{
 					rightBelowPositions[k] = rightCellBelowConnections[k].getGeneralPurposeVariable(i - 1);
 				}
@@ -501,12 +501,13 @@ mxMedianHybridCrossingReduction.prototype.medianRank = function(rankValue, downw
 {
 	var numCellsForRank = this.nestedBestRanks[rankValue].length;
 	var medianValues = [];
+	var reservedPositions = [];
 
 	for (var i = 0; i < numCellsForRank; i++)
 	{
 		var cell = this.nestedBestRanks[rankValue][i];
-		medianValues[i] = new MedianCellSorter();
-		medianValues[i].cell = cell;
+		var sorterEntry = new MedianCellSorter();
+		sorterEntry.cell = cell;
 
 		// Flip whether or not equal medians are flipped on up and down
 		// sweeps
@@ -539,16 +540,15 @@ mxMedianHybridCrossingReduction.prototype.medianRank = function(rankValue, downw
 		if (nextLevelConnectedCells != null
 				&& nextLevelConnectedCells.length != 0)
 		{
-			medianValues[i].medianValue = this.medianValue(
+			sorterEntry.medianValue = this.medianValue(
 					nextLevelConnectedCells, nextRankValue);
+			medianValues.push(sorterEntry);
 		}
 		else
 		{
-			// Nodes with no adjacent vertices are given a median value of
-			// -1 to indicate to the median function that they should be
-			// left of their current position if possible.
-			medianValues[i].medianValue = -1.0; // TODO needs to account for
-			// both layers
+			// Nodes with no adjacent vertices are flagged in the reserved array
+			// to indicate they should be left in their current position.
+			reservedPositions[cell.getGeneralPurposeVariable(rankValue)] = true;
 		}
 	}
 	
@@ -558,7 +558,11 @@ mxMedianHybridCrossingReduction.prototype.medianRank = function(rankValue, downw
 	// its temp variable
 	for (var i = 0; i < numCellsForRank; i++)
 	{
-		medianValues[i].cell.setGeneralPurposeVariable(rankValue, i);
+		if (reservedPositions[i] == null)
+		{
+			var cell = medianValues.shift().cell;
+			cell.setGeneralPurposeVariable(rankValue, i);
+		}
 	}
 };
 
@@ -586,12 +590,14 @@ mxMedianHybridCrossingReduction.prototype.medianValue = function(connectedCells,
 		medianValues[arrayCount++] = cell.getGeneralPurposeVariable(rankValue);
 	}
 
-	medianValues.sort(MedianCellSorter.prototype.compare);
+	// Sort() sorts lexicographically by default (i.e. 11 before 9) so force
+	// numerical order sort
+	medianValues.sort(function(a,b){return a - b;});
 	
 	if (arrayCount % 2 == 1)
 	{
 		// For odd numbers of adjacent vertices return the median
-		return medianValues[arrayCount / 2];
+		return medianValues[Math.floor(arrayCount / 2)];
 	}
 	else if (arrayCount == 2)
 	{

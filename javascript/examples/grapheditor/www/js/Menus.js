@@ -1,5 +1,5 @@
 /**
- * $Id: Menus.js,v 1.47 2012-05-31 07:08:21 gaudenz Exp $
+ * $Id: Menus.js,v 1.49 2012-06-08 15:58:08 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -241,14 +241,14 @@ Menus.prototype.init = function()
 			var layout = new mxCompactTreeLayout(graph, true);
 			layout.edgeRouting = false;
 			layout.levelDistance = 30;
-    		this.editorUi.executeLayout(layout, graph.getDefaultParent(), graph.getSelectionCell(), true);
+    		this.editorUi.executeLayout(layout, true, true);
 		}), parent);
 		menu.addItem(mxResources.get('verticalTree'), null, mxUtils.bind(this, function()
 		{
 			var layout = new mxCompactTreeLayout(graph, false);
 			layout.edgeRouting = false;
 			layout.levelDistance = 30;
-    		this.editorUi.executeLayout(layout, graph.getDefaultParent(), graph.getSelectionCell(), true);
+    		this.editorUi.executeLayout(layout, true, true);
 		}), parent);
 	})));
 	this.put('navigation', new Menu(mxUtils.bind(this, function(menu, parent)
@@ -609,7 +609,7 @@ Menubar.prototype.addMenu = function(label, funct)
 {
 	var elt = document.createElement('a');
 	elt.setAttribute('href', 'javascript:void(0);');
-	elt.className = 'item';
+	elt.className = 'geItem';
 	mxUtils.write(elt, label);
 
 	this.addMenuHandler(elt, funct);
@@ -633,7 +633,7 @@ Menubar.prototype.addMenuHandler = function(elt, funct)
 			{
 				this.editorUi.editor.graph.panningHandler.hideMenu();
 				var menu = new mxPopupMenu(funct);
-				menu.div.className += ' menubarMenu';
+				menu.div.className += ' geMenubarMenu';
 				menu.smartSeparators = true;
 				menu.showDisabled = true;
 				menu.autoExpand = true;

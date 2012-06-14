@@ -1,5 +1,5 @@
 /**
- * $Id: mxPanningManager.js,v 1.6 2012-06-01 10:30:07 gaudenz Exp $
+ * $Id: mxPanningManager.js,v 1.7 2012-06-13 06:46:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -35,6 +35,15 @@ function mxPanningManager(graph)
 	};
 	
 	graph.addMouseListener(this.mouseListener);
+	
+	// Stops scrolling on every mouseup anywhere in the document
+	mxEvent.addListener(document, 'mouseup', mxUtils.bind(this, function()
+	{
+    	if (this.active)
+    	{
+    		this.stop();
+    	}
+	}));
 	
 	var createThread = mxUtils.bind(this, function()
 	{

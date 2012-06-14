@@ -1,5 +1,5 @@
 /**
- * $Id: mxPath.js,v 1.21 2012-05-21 18:27:17 gaudenz Exp $
+ * $Id: mxPath.js,v 1.24 2012-06-13 17:31:32 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -228,6 +228,38 @@ mxPath.prototype.curveTo = function(x1, y1, x2, y2, x, y)
 	{
 		this.path.push('C ', x1, ' ', y1, ' ', x2,
 			' ', y2, ' ', x, ' ', y, ' ');
+	}
+};
+
+/**
+ * Function: ellipse
+ *
+ * Adds the given ellipse. Some implementations may require the path to be
+ * closed after this operation.
+ */
+mxPath.prototype.ellipse = function(x, y, w, h)
+{
+	x += this.translate.x;
+	y += this.translate.y;
+	x *= this.scale;
+	y *= this.scale;
+
+	if (this.isVml())
+	{
+		this.path.push('at ', Math.round(x), ' ', Math.round(y), ' ', Math.round(x + w), ' ', Math.round(y +  h), ' ',
+				Math.round(x), ' ', Math.round(y + h / 2), ' ', Math.round(x), ' ', Math.round(y + h / 2));
+	}
+	else
+	{
+		var startX = x;
+		var startY = y + h/2;
+		var endX = x + w;
+		var endY = y + h/2;
+		var r1 = w/2;
+		var r2 = h/2;
+		this.path.push('M ', startX, ' ', startY, ' ');
+		this.path.push('A ', r1, ' ', r2, ' 0 1 0 ', endX, ' ', endY, ' ');
+		this.path.push('A ', r1, ' ', r2, ' 0 1 0 ', startX, ' ', startY);
 	}
 };
 

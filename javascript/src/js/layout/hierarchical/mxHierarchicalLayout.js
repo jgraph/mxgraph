@@ -1,5 +1,5 @@
 /**
- * $Id: mxHierarchicalLayout.js,v 1.28 2012-06-03 14:57:05 david Exp $
+ * $Id: mxHierarchicalLayout.js,v 1.29 2012-06-12 20:22:18 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -294,55 +294,55 @@ mxHierarchicalLayout.prototype.findTreeRoots = function(parent)
 		for (var i = 0; i < childCount; i++)
 		{
 			var cell = model.getChildAt(parent, i);
-            var cells = [];
+			var cells = [];
 
-            if (this.traverseAncestors)
-            {
-                cells = model.getDescendants(cell);
-            }
-            else
-            {
-                cells.push(cell);
-            }
+			if (this.traverseAncestors)
+			{
+				cells = model.getDescendants(cell);
+			}
+			else
+			{
+				cells.push(cell);
+			}
 
-            for (var j = 0; j < cells.length; j++)
-            {
-                cell = cells[j];
+			for (var j = 0; j < cells.length; j++)
+			{
+				cell = cells[j];
 
-                if (model.isVertex(cell) && this.graph.isCellVisible(cell))
-                {
-                    var conns = this.getEdges(cell);
-                    var fanOut = 0;
-                    var fanIn = 0;
+				if (model.isVertex(cell) && this.graph.isCellVisible(cell))
+				{
+					var conns = this.getEdges(cell);
+					var fanOut = 0;
+					var fanIn = 0;
 
-                    for (var k = 0; k < conns.length; k++)
-                    {
-                        var src = this.graph.view.getVisibleTerminal(conns[k], true);
+					for (var k = 0; k < conns.length; k++)
+					{
+						var src = this.graph.view.getVisibleTerminal(conns[k], true);
 
-                        if (src == cell)
-                        {
-                            fanOut++;
-                        }
-                        else
-                        {
-                            fanIn++;
-                        }
-                    }
+						if (src == cell)
+						{
+							fanOut++;
+						}
+						else
+						{
+							fanIn++;
+						}
+					}
 
-                    if (fanIn == 0 && fanOut > 0)
-                    {
-                        roots.push(cell);
-                    }
+					if (fanIn == 0 && fanOut > 0)
+					{
+						roots.push(cell);
+					}
 
-                    var diff = fanIn - fanOut;
+					var diff = fanIn - fanOut;
 
-                    if (diff > maxDiff)
-                    {
-                        maxDiff = diff;
-                        best = cell;
-                    }
-                }
-            }
+					if (diff > maxDiff)
+					{
+						maxDiff = diff;
+						best = cell;
+					}
+				}
+			}
 		}
 		
 		if (roots.length == 0 && best != null)
