@@ -40,6 +40,7 @@
             <xs:attribute name="perimeter" use="required" type="xs:integer"/>
             <xs:attribute name="x" use="required" type="xs:decimal"/>
             <xs:attribute name="y" use="required" type="xs:decimal"/>
+            <xs:attribute name="name" use="optional" type="xs:string"/>
         </xs:complexType>
     </xs:element>
     <xs:complexType name="InstructionListType">

@@ -1,5 +1,5 @@
 /**
- * $Id: mxCoordinateAssignment.js,v 1.28 2012-06-12 20:55:04 david Exp $
+ * $Id: mxCoordinateAssignment.js,v 1.29 2012-06-21 14:28:09 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -1546,7 +1546,7 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 		var edgeId = mxCellPath.create(cell.edges[0]);
 		var jettys = this.jettyPositions[edgeId];
 
-		var source = cell.source.cell;
+		var source = cell.isReversed ? cell.target.cell : cell.source.cell;
 
 		for (var i = 0; i < cell.edges.length; i++)
 		{

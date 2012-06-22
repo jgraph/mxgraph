@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.48 2012-06-08 15:07:04 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.49 2012-06-15 11:40:19 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -16,6 +16,16 @@ EditorUi = function(editor, container)
 
 	var textEditing =  mxUtils.bind(this, function(evt)
 	{
+		if (evt == null)
+		{
+			evt = window.event;
+		}
+		
+		if (this.isSelectionAllowed(evt))
+		{
+			return true;
+		}
+		
 		return graph.isEditing() || this.dialog != null;
 	});
 
@@ -208,6 +218,14 @@ EditorUi.prototype.init = function()
 		mxClipboardCopy.apply(this, arguments);
 		updatePaste();
 	};
+};
+
+/**
+ * Hook for allowing selection and context menu for certain events.
+ */
+EditorUi.prototype.isSelectionAllowed = function(evt)
+{
+	return false;
 };
 
 /**

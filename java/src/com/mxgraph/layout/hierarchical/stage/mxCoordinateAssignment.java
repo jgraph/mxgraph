@@ -1,5 +1,5 @@
 /**
- * $Id: mxCoordinateAssignment.java,v 1.16 2012-06-12 20:55:34 david Exp $
+ * $Id: mxCoordinateAssignment.java,v 1.17 2012-06-21 14:20:00 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 
@@ -1537,7 +1537,7 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 			int parallelEdgeCount = 0;
 			double[] jettys = jettyPositions.get(edge);
 			
-			Object source = edge.source.cell;
+			Object source = edge.isReversed() ? edge.target.cell : edge.source.cell;
 
 			while (parallelEdges.hasNext())
 			{
@@ -1707,6 +1707,11 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 		Object realCell = node.cell;
 		double positionX = node.x[0] - node.width / 2;
 		double positionY = node.y[0] - node.height / 2;
+
+//		if (cell.minRank == -1)
+//		{
+//			System.out.println("invalid rank, never set");
+//		}
 
 		rankTopY[cell.minRank] = Math.min(rankTopY[cell.minRank], positionY);
 		rankBottomY[cell.minRank] = Math.max(rankBottomY[cell.minRank],

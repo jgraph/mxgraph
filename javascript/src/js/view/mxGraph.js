@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.690 2012-06-13 07:50:12 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.692 2012-06-20 14:13:36 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -2739,15 +2739,14 @@ mxGraph.prototype.sizeDidChange = function()
 		}
 		else
 		{
-			width = Math.ceil(width / this.view.scale);
-			height = Math.ceil(height / this.view.scale);
+			width = Math.ceil(width);
+			height = Math.ceil(height);
+			
 			var drawPane = this.view.getDrawPane();
 			var canvas = this.view.getCanvas();
 
 			drawPane.style.width = width + 'px';
 			drawPane.style.height = height + 'px';
-			canvas.style.width = width + 'px';
-			canvas.style.height = height + 'px';
 			
 			// Must resize canvas for scrollbars to appear in IE since the
 			// canvas is hiding the overflow of the drawPane child
@@ -2756,6 +2755,11 @@ mxGraph.prototype.sizeDidChange = function()
 				width = Math.max(width, Math.ceil(this.minimumGraphSize.width * this.view.scale));
 				height = Math.max(height, Math.ceil(this.minimumGraphSize.height * this.view.scale));
 				
+				canvas.style.width = width + 'px';
+				canvas.style.height = height + 'px';
+			}
+			else
+			{
 				canvas.style.width = width + 'px';
 				canvas.style.height = height + 'px';
 			}
@@ -2815,7 +2819,7 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 			
 			if (this.horizontalPageBreaks[i] != null)
 			{
-				this.horizontalPageBreaks[i].scale = 1; //scale;
+				this.horizontalPageBreaks[i].scale = 1;
 				this.horizontalPageBreaks[i].points = pts;
 				this.horizontalPageBreaks[i].redraw();
 			}
@@ -2855,7 +2859,7 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 			
 			if (this.verticalPageBreaks[i] != null)
 			{
-				this.verticalPageBreaks[i].scale = 1; //scale;
+				this.verticalPageBreaks[i].scale = 1;
 				this.verticalPageBreaks[i].points = pts;
 				this.verticalPageBreaks[i].redraw();
 			}
@@ -6545,20 +6549,24 @@ mxGraph.prototype.zoomActual = function()
 /**
  * Function: zoomTo
  * 
- * Zooms the graph to the given scale.
+ * Zooms the graph to the given scale with an optional boolean center
+ * argument, which is passd to <zoom>.
  */
-mxGraph.prototype.zoomTo = function(scale)
+mxGraph.prototype.zoomTo = function(scale, center)
 {
-	this.zoom(scale / this.view.scale);
+	this.zoom(scale / this.view.scale, center);
 };
 
 /**
  * Function: zoom
  * 
- * Zooms the graph using the given factor.
+ * Zooms the graph using the given factor. Center is an optional boolean
+ * argument that keeps the graph scrolled to the center. If the center argument
+ * is omitted, then <centerZoom> will be used as its value.
  */
-mxGraph.prototype.zoom = function(factor)
+mxGraph.prototype.zoom = function(factor, center)
 {
+	center = (center != null) ? center : this.centerZoom;
 	var scale = this.view.scale * factor;
 	var state = this.view.getState(this.getSelectionCell());
 	
@@ -6582,7 +6590,7 @@ mxGraph.prototype.zoom = function(factor)
 			this.view.setScale(scale);
 		}
 	}
-	else if (this.centerZoom && !mxUtils.hasScrollbars(this.container))
+	else if (center && !mxUtils.hasScrollbars(this.container))
 	{
 		var dx = this.container.offsetWidth;
 		var dy = this.container.offsetHeight;
@@ -6613,7 +6621,7 @@ mxGraph.prototype.zoom = function(factor)
 			var dx = 0;
 			var dy = 0;
 			
-			if (this.centerZoom)
+			if (center)
 			{
 				dx = this.container.offsetWidth * (factor - 1) / 2;
 				dy = this.container.offsetHeight * (factor - 1) / 2;

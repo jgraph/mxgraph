@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellEditor.js,v 1.60 2012-05-22 16:11:30 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.61 2012-06-20 16:54:30 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -368,7 +368,7 @@ mxCellEditor.prototype.getMinimumSize = function(state)
 {
 	var scale = this.graph.getView().scale;
 	
-	return new mxRectangle((state.text == null) ? 30 :  state.text.size * scale + 20,
+	return new mxRectangle(0, 0, (state.text == null) ? 30 :  state.text.size * scale + 20,
 			(this.textarea.style.textAlign == 'left') ? 120 : 40);
 };
 
@@ -384,7 +384,7 @@ mxCellEditor.prototype.getEditorBounds = function(state)
 	var minSize = this.getMinimumSize(state);
 	var minWidth = minSize.width;
  	var minHeight = minSize.height;
-	
+
 	var spacing = parseInt(state.style[mxConstants.STYLE_SPACING] || 2) * scale;
 	var spacingTop = (parseInt(state.style[mxConstants.STYLE_SPACING_TOP] || 0)) * scale + spacing;
 	var spacingRight = (parseInt(state.style[mxConstants.STYLE_SPACING_RIGHT] || 0)) * scale + spacing;

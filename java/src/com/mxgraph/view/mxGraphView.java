@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphView.java,v 1.157 2012-05-10 08:57:36 gaudenz Exp $
+ * $Id: mxGraphView.java,v 1.158 2012-06-20 13:20:09 gaudenz Exp $
  * Copyright (c) 2007-2010, Gaudenz Alder, David Benson
  */
 package com.mxgraph.view;
@@ -1388,7 +1388,10 @@ public class mxGraphView extends mxEventSource
 				// if a connected edge has a null-terminal, ie.
 				// source is null and/or target is null and no
 				// additional control points are defined
-				removeState(state.getCell());
+				if (state.getCell() != getCurrentRoot())
+				{
+					removeState(state.getCell());
+				}
 			}
 			else
 			{

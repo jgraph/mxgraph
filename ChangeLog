@@ -1,3 +1,14 @@
+22-JUN-2012: 1.10.1.3
+
+- mxToolbar fires select for default mode, restores function in resetMode [JavaScript]
+- Fixes return value in mxCellEditor.getMinimumSize [JavaScript]
+- Uses mxGraph.zoomTo with zoom handle in mxOutline [JavaScript] 
+- Adds optional center argument in mxGraph.zoom(To) [JavaScript]
+- Fixes possible remove of currentRoot in mxGraphView.updateEdgeBounds [Java,JavaScript]
+- Fixes scaling of graph bounds in mxGraph.sizeDidChange for VML [JavaScript]
+- Fixes offset for rotated VML stencils [JavaScript]
+- Adds EditorUi.isSelectionAllowed hook in grapheditor example [JavaScript]
+
 14-JUN-2012: 1.10.1.2 beta
 
 - Handles mouseUp outside of graph in mxPanningManager [JavaScript]

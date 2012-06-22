@@ -1,5 +1,5 @@
 /**
- * $Id: mxStencil.js,v 1.86 2012-05-28 09:39:07 gaudenz Exp $
+ * $Id: mxStencil.js,v 1.87 2012-06-19 09:23:05 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -342,10 +342,9 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 			sx = bounds.height / this.w0;
 			
 			var delta = (bounds.width - bounds.height) / 2;
-			var f = (vml) ? shape.vmlScale : 1;
 			
-			x0 += delta * f;
-			y0 -= delta * f;
+			x0 += delta;
+			y0 -= delta;
 		}
 
 		if (this.aspect == 'fixed')

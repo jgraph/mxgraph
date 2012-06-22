@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphView.js,v 1.191 2012-05-24 12:37:04 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.192 2012-06-20 13:20:09 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -898,7 +898,7 @@ mxGraphView.prototype.validatePoints = function(parentState, cell)
 			}
 			
 			state.invalid = false;
-			
+
 			if (cell != this.currentRoot)
 			{
 				// NOTE: Label bounds currently ignored if rendering is false
@@ -930,7 +930,7 @@ mxGraphView.prototype.validatePoints = function(parentState, cell)
 			}
 		}
 	}
-	
+
 	if (state != null && (!this.graph.isCellCollapsed(cell) ||
 		cell == this.currentRoot))
 	{
@@ -1479,18 +1479,19 @@ mxGraphView.prototype.updateEdgeBounds = function(state)
 		
 		if (p0 == null || pe == null)
 		{
-			// Drops the edge state
-
-			// Note: This condition normally occurs if a connected edge has a
-			// null-terminal, ie. edge.source == null or edge.target == null,
-			// and no corresponding terminal point defined, which happens for
-			// example if the terminal-id was not resolved at cell decoding time.
-			this.clear(state.cell, true);
+			// Drops the edge state if the edge is not the root
+			if (state.cell != this.currentRoot)
+			{
+				// Note: This condition normally occurs if a connected edge has a
+				// null-terminal, ie. edge.source == null or edge.target == null,
+				// and no corresponding terminal point defined, which happens for
+				// example if the terminal-id was not resolved at cell decoding time.
+				this.clear(state.cell, true);
+			}
 		}
 		else
 		{
-			if (p0.x != pe.x ||
-				p0.y != pe.y)
+			if (p0.x != pe.x || p0.y != pe.y)
 			{
 				var dx = pe.x - p0.x;
 				var dy = pe.y - p0.y;

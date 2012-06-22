@@ -1,5 +1,5 @@
 /**
- * $Id: mxVertexHandler.js,v 1.102 2012-05-21 19:25:38 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.103 2012-06-20 14:35:55 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -530,6 +530,28 @@ mxVertexHandler.prototype.resizeCell = function(cell, dx, dy, index, gridEnabled
  * 
  * Returns the union of the given bounds and location for the specified
  * handle index.
+ * 
+ * To override this to limit the size of vertex via a minWidth/-Height style,
+ * the following code can be used.
+ * 
+ * (code)
+ * var vertexHandlerUnion = mxVertexHandler.prototype.union;
+ * mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, scale, tr)
+ * {
+ *   var result = vertexHandlerUnion.apply(this, arguments);
+ *   
+ *   result.width = Math.max(result.width, mxUtils.getNumber(this.state.style, 'minWidth', 0));
+ *   result.height = Math.max(result.height, mxUtils.getNumber(this.state.style, 'minHeight', 0));
+ *   
+ *   return result;
+ * };
+ * (end)
+ * 
+ * The minWidth/-Height style can then be used as follows:
+ * 
+ * (code)
+ * graph.insertVertex(parent, null, 'Hello,', 20, 20, 80, 30, 'minWidth=100;minHeight=100;');
+ * (end)
  */
 mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, scale, tr)
 {

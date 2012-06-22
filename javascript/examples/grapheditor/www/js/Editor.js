@@ -1,5 +1,5 @@
 /**
- * $Id: Editor.js,v 1.44 2012-06-08 15:07:04 gaudenz Exp $
+ * $Id: Editor.js,v 1.46 2012-06-15 14:51:14 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 // Specifies if local storage should be used (eg. on the iPad which has no filesystem)
@@ -103,6 +103,16 @@ Editor = function()
 
 // Editor inherits from mxEventSource
 mxUtils.extend(Editor, mxEventSource);
+
+/**
+ * Specifies the image URL to be used for the grid.
+ */
+Editor.prototype.gridImage = IMAGE_PATH + '/grid.gif';
+
+/**
+ * Specifies the image URL to be used for the transparent background.
+ */
+Editor.prototype.transparentImage = IMAGE_PATH + '/transparent.gif';
 
 /**
  * Sets the XML node for the current diagram.
@@ -276,12 +286,12 @@ Editor.prototype.updateGraphComponents = function()
 		}
 		
 		// Transparent.gif is a workaround for focus repaint problems in IE
-		var noBackground = (mxClient.IS_IE && document.documentMode >= 9) ? 'url(images/transparent.gif)' : 'none';
-		graph.container.style.backgroundImage = (!graph.pageVisible && graph.isGridEnabled()) ? 'url(images/grid.gif)' : noBackground;
+		var noBackground = (mxClient.IS_IE && document.documentMode >= 9) ? 'url(' + this.transparentImage + ')' : 'none';
+		graph.container.style.backgroundImage = (!graph.pageVisible && graph.isGridEnabled()) ? 'url(' + this.gridImage + ')' : noBackground;
 
 		if (graph.view.backgroundPageShape != null)
 		{
-			graph.view.backgroundPageShape.node.style.backgroundImage = (this.graph.isGridEnabled()) ? 'url(images/grid.gif)' : 'none';
+			graph.view.backgroundPageShape.node.style.backgroundImage = (this.graph.isGridEnabled()) ? 'url(' + this.gridImage + ')' : 'none';
 		}
 	}
 };

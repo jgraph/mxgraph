@@ -1,5 +1,5 @@
 /**
- * $Id: mxToolbar.js,v 1.35 2012-04-11 07:00:52 gaudenz Exp $
+ * $Id: mxToolbar.js,v 1.36 2012-06-22 11:17:13 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -345,20 +345,10 @@ mxToolbar.prototype.addSwitchMode = function(title, icon, funct, pressedIcon, st
 	if (this.defaultMode == null)
 	{
 		this.defaultMode = img;
-		this.selectedMode = img;
 		
-		var tmp = img.altIcon;
-		
-		if (tmp != null)
-		{
-			img.altIcon = img.getAttribute('src');
-			img.setAttribute('src', tmp);
-		}
-		else
-		{
-			img.className = img.initialClassName+'Selected';
-		}
-		
+		// Function should fire only once so
+		// do not pass it with the select event
+		this.selectMode(img);
 		funct();
 	}
 	
@@ -408,19 +398,8 @@ mxToolbar.prototype.addMode = function(title, icon, funct, pressedIcon, style, t
 		if (this.defaultMode == null)
 		{
 			this.defaultMode = img;
-			this.selectedMode = img;
-			
-			var tmp = img.altIcon;
-			
-			if (tmp != null)
-			{
-				img.altIcon = img.getAttribute('src');
-				img.setAttribute('src', tmp);
-			}
-			else
-			{
-				img.className = img.initialClassName+'Selected';
-			}
+			this.defaultFunction = funct;
+			this.selectMode(img, funct);
 		}
 	}
 
@@ -440,16 +419,19 @@ mxToolbar.prototype.selectMode = function(domNode, funct)
 {
 	if (this.selectedMode != domNode)
 	{
-		var tmp = this.selectedMode.altIcon;
-		
-		if (tmp != null)
+		if (this.selectedMode != null)
 		{
-			this.selectedMode.altIcon = this.selectedMode.getAttribute('src');
-			this.selectedMode.setAttribute('src', tmp);
-		}
-		else
-		{
-			this.selectedMode.className = this.selectedMode.initialClassName;
+			var tmp = this.selectedMode.altIcon;
+			
+			if (tmp != null)
+			{
+				this.selectedMode.altIcon = this.selectedMode.getAttribute('src');
+				this.selectedMode.setAttribute('src', tmp);
+			}
+			else
+			{
+				this.selectedMode.className = this.selectedMode.initialClassName;
+			}
 		}
 		
 		this.selectedMode = domNode;
@@ -483,7 +465,7 @@ mxToolbar.prototype.resetMode = function(forced)
 		// The last selected switch mode will be activated
 		// so the function was already executed and is
 		// no longer required here
-		this.selectMode(this.defaultMode, null);
+		this.selectMode(this.defaultMode, this.defaultFunction);
 	}
 };
 
@@ -536,6 +518,7 @@ mxToolbar.prototype.destroy = function ()
 	mxEvent.release(this.container);
 	this.container = null;
 	this.defaultMode = null;
+	this.defaultFunction = null;
 	this.selectedMode = null;
 	
 	if (this.menu != null)

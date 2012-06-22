@@ -1,5 +1,5 @@
 /**
- * $Id: mxOutline.js,v 1.80 2012-06-06 12:15:34 gaudenz Exp $
+ * $Id: mxOutline.js,v 1.81 2012-06-20 14:13:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -598,7 +598,7 @@ mxOutline.prototype.mouseUp = function(sender, me)
 				// Applies the new zoom
 				var w = this.selectionBorder.bounds.width;
 				var scale = this.source.getView().scale;
-				this.source.getView().setScale(scale - (dx * scale) / w);
+				this.source.zoomTo(scale - (dx * scale) / w, false);
 			}
 
 			this.update();

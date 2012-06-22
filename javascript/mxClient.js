@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.10.1.2.
+	 * Current version is 1.10.1.3.
 	 */
-	VERSION: '1.10.1.2',
+	VERSION: '1.10.1.3',
 
 	/**
 	 * Variable: IS_IE
@@ -11902,7 +11902,7 @@ mxDragSource.prototype.drop = function(graph, evt, dropTarget, x, y)
 	graph.container.focus();
 };
 /**
- * $Id: mxToolbar.js,v 1.35 2012-04-11 07:00:52 gaudenz Exp $
+ * $Id: mxToolbar.js,v 1.36 2012-06-22 11:17:13 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -12248,20 +12248,10 @@ mxToolbar.prototype.addSwitchMode = function(title, icon, funct, pressedIcon, st
 	if (this.defaultMode == null)
 	{
 		this.defaultMode = img;
-		this.selectedMode = img;
 		
-		var tmp = img.altIcon;
-		
-		if (tmp != null)
-		{
-			img.altIcon = img.getAttribute('src');
-			img.setAttribute('src', tmp);
-		}
-		else
-		{
-			img.className = img.initialClassName+'Selected';
-		}
-		
+		// Function should fire only once so
+		// do not pass it with the select event
+		this.selectMode(img);
 		funct();
 	}
 	
@@ -12311,19 +12301,8 @@ mxToolbar.prototype.addMode = function(title, icon, funct, pressedIcon, style, t
 		if (this.defaultMode == null)
 		{
 			this.defaultMode = img;
-			this.selectedMode = img;
-			
-			var tmp = img.altIcon;
-			
-			if (tmp != null)
-			{
-				img.altIcon = img.getAttribute('src');
-				img.setAttribute('src', tmp);
-			}
-			else
-			{
-				img.className = img.initialClassName+'Selected';
-			}
+			this.defaultFunction = funct;
+			this.selectMode(img, funct);
 		}
 	}
 
@@ -12343,16 +12322,19 @@ mxToolbar.prototype.selectMode = function(domNode, funct)
 {
 	if (this.selectedMode != domNode)
 	{
-		var tmp = this.selectedMode.altIcon;
-		
-		if (tmp != null)
+		if (this.selectedMode != null)
 		{
-			this.selectedMode.altIcon = this.selectedMode.getAttribute('src');
-			this.selectedMode.setAttribute('src', tmp);
-		}
-		else
-		{
-			this.selectedMode.className = this.selectedMode.initialClassName;
+			var tmp = this.selectedMode.altIcon;
+			
+			if (tmp != null)
+			{
+				this.selectedMode.altIcon = this.selectedMode.getAttribute('src');
+				this.selectedMode.setAttribute('src', tmp);
+			}
+			else
+			{
+				this.selectedMode.className = this.selectedMode.initialClassName;
+			}
 		}
 		
 		this.selectedMode = domNode;
@@ -12386,7 +12368,7 @@ mxToolbar.prototype.resetMode = function(forced)
 		// The last selected switch mode will be activated
 		// so the function was already executed and is
 		// no longer required here
-		this.selectMode(this.defaultMode, null);
+		this.selectMode(this.defaultMode, this.defaultFunction);
 	}
 };
 
@@ -12439,6 +12421,7 @@ mxToolbar.prototype.destroy = function ()
 	mxEvent.release(this.container);
 	this.container = null;
 	this.defaultMode = null;
+	this.defaultFunction = null;
 	this.selectedMode = null;
 	
 	if (this.menu != null)
@@ -21143,7 +21126,7 @@ mxShape.prototype.redrawPath = function(path, x, y, w, h)
 	// do nothing
 };
 /**
- * $Id: mxStencil.js,v 1.86 2012-05-28 09:39:07 gaudenz Exp $
+ * $Id: mxStencil.js,v 1.87 2012-06-19 09:23:05 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -21486,10 +21469,9 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 			sx = bounds.height / this.w0;
 			
 			var delta = (bounds.width - bounds.height) / 2;
-			var f = (vml) ? shape.vmlScale : 1;
 			
-			x0 += delta * f;
-			y0 -= delta * f;
+			x0 += delta;
+			y0 -= delta;
 		}
 
 		if (this.aspect == 'fixed')
@@ -34252,7 +34234,7 @@ mxMinimumCycleRemover.prototype.execute = function(parent)
 	}
 };
 /**
- * $Id: mxCoordinateAssignment.js,v 1.28 2012-06-12 20:55:04 david Exp $
+ * $Id: mxCoordinateAssignment.js,v 1.29 2012-06-21 14:28:09 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -35799,7 +35781,7 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 		var edgeId = mxCellPath.create(cell.edges[0]);
 		var jettys = this.jettyPositions[edgeId];
 
-		var source = cell.source.cell;
+		var source = cell.isReversed ? cell.target.cell : cell.source.cell;
 
 		for (var i = 0; i < cell.edges.length; i++)
 		{
@@ -42911,7 +42893,7 @@ mxSelectionChange.prototype.execute = function()
 			'added', this.added, 'removed', this.removed));
 };
 /**
- * $Id: mxCellEditor.js,v 1.60 2012-05-22 16:11:30 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.61 2012-06-20 16:54:30 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -43280,7 +43262,7 @@ mxCellEditor.prototype.getMinimumSize = function(state)
 {
 	var scale = this.graph.getView().scale;
 	
-	return new mxRectangle((state.text == null) ? 30 :  state.text.size * scale + 20,
+	return new mxRectangle(0, 0, (state.text == null) ? 30 :  state.text.size * scale + 20,
 			(this.textarea.style.textAlign == 'left') ? 120 : 40);
 };
 
@@ -43296,7 +43278,7 @@ mxCellEditor.prototype.getEditorBounds = function(state)
 	var minSize = this.getMinimumSize(state);
 	var minWidth = minSize.width;
  	var minHeight = minSize.height;
-	
+
 	var spacing = parseInt(state.style[mxConstants.STYLE_SPACING] || 2) * scale;
 	var spacingTop = (parseInt(state.style[mxConstants.STYLE_SPACING_TOP] || 0)) * scale + spacing;
 	var spacingRight = (parseInt(state.style[mxConstants.STYLE_SPACING_RIGHT] || 0)) * scale + spacing;
@@ -46308,7 +46290,7 @@ mxStyleRegistry.putValue(mxConstants.PERIMETER_RECTANGLE, mxPerimeter.RectangleP
 mxStyleRegistry.putValue(mxConstants.PERIMETER_RHOMBUS, mxPerimeter.RhombusPerimeter);
 mxStyleRegistry.putValue(mxConstants.PERIMETER_TRIANGLE, mxPerimeter.TrianglePerimeter);
 /**
- * $Id: mxGraphView.js,v 1.191 2012-05-24 12:37:04 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.192 2012-06-20 13:20:09 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -47207,7 +47189,7 @@ mxGraphView.prototype.validatePoints = function(parentState, cell)
 			}
 			
 			state.invalid = false;
-			
+
 			if (cell != this.currentRoot)
 			{
 				// NOTE: Label bounds currently ignored if rendering is false
@@ -47239,7 +47221,7 @@ mxGraphView.prototype.validatePoints = function(parentState, cell)
 			}
 		}
 	}
-	
+
 	if (state != null && (!this.graph.isCellCollapsed(cell) ||
 		cell == this.currentRoot))
 	{
@@ -47788,18 +47770,19 @@ mxGraphView.prototype.updateEdgeBounds = function(state)
 		
 		if (p0 == null || pe == null)
 		{
-			// Drops the edge state
-
-			// Note: This condition normally occurs if a connected edge has a
-			// null-terminal, ie. edge.source == null or edge.target == null,
-			// and no corresponding terminal point defined, which happens for
-			// example if the terminal-id was not resolved at cell decoding time.
-			this.clear(state.cell, true);
+			// Drops the edge state if the edge is not the root
+			if (state.cell != this.currentRoot)
+			{
+				// Note: This condition normally occurs if a connected edge has a
+				// null-terminal, ie. edge.source == null or edge.target == null,
+				// and no corresponding terminal point defined, which happens for
+				// example if the terminal-id was not resolved at cell decoding time.
+				this.clear(state.cell, true);
+			}
 		}
 		else
 		{
-			if (p0.x != pe.x ||
-				p0.y != pe.y)
+			if (p0.x != pe.x || p0.y != pe.y)
 			{
 				var dx = pe.x - p0.x;
 				var dy = pe.y - p0.y;
@@ -48802,7 +48785,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.690 2012-06-13 07:50:12 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.692 2012-06-20 14:13:36 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -51542,15 +51525,14 @@ mxGraph.prototype.sizeDidChange = function()
 		}
 		else
 		{
-			width = Math.ceil(width / this.view.scale);
-			height = Math.ceil(height / this.view.scale);
+			width = Math.ceil(width);
+			height = Math.ceil(height);
+			
 			var drawPane = this.view.getDrawPane();
 			var canvas = this.view.getCanvas();
 
 			drawPane.style.width = width + 'px';
 			drawPane.style.height = height + 'px';
-			canvas.style.width = width + 'px';
-			canvas.style.height = height + 'px';
 			
 			// Must resize canvas for scrollbars to appear in IE since the
 			// canvas is hiding the overflow of the drawPane child
@@ -51559,6 +51541,11 @@ mxGraph.prototype.sizeDidChange = function()
 				width = Math.max(width, Math.ceil(this.minimumGraphSize.width * this.view.scale));
 				height = Math.max(height, Math.ceil(this.minimumGraphSize.height * this.view.scale));
 				
+				canvas.style.width = width + 'px';
+				canvas.style.height = height + 'px';
+			}
+			else
+			{
 				canvas.style.width = width + 'px';
 				canvas.style.height = height + 'px';
 			}
@@ -51618,7 +51605,7 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 			
 			if (this.horizontalPageBreaks[i] != null)
 			{
-				this.horizontalPageBreaks[i].scale = 1; //scale;
+				this.horizontalPageBreaks[i].scale = 1;
 				this.horizontalPageBreaks[i].points = pts;
 				this.horizontalPageBreaks[i].redraw();
 			}
@@ -51658,7 +51645,7 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 			
 			if (this.verticalPageBreaks[i] != null)
 			{
-				this.verticalPageBreaks[i].scale = 1; //scale;
+				this.verticalPageBreaks[i].scale = 1;
 				this.verticalPageBreaks[i].points = pts;
 				this.verticalPageBreaks[i].redraw();
 			}
@@ -55348,20 +55335,24 @@ mxGraph.prototype.zoomActual = function()
 /**
  * Function: zoomTo
  * 
- * Zooms the graph to the given scale.
+ * Zooms the graph to the given scale with an optional boolean center
+ * argument, which is passd to <zoom>.
  */
-mxGraph.prototype.zoomTo = function(scale)
+mxGraph.prototype.zoomTo = function(scale, center)
 {
-	this.zoom(scale / this.view.scale);
+	this.zoom(scale / this.view.scale, center);
 };
 
 /**
  * Function: zoom
  * 
- * Zooms the graph using the given factor.
+ * Zooms the graph using the given factor. Center is an optional boolean
+ * argument that keeps the graph scrolled to the center. If the center argument
+ * is omitted, then <centerZoom> will be used as its value.
  */
-mxGraph.prototype.zoom = function(factor)
+mxGraph.prototype.zoom = function(factor, center)
 {
+	center = (center != null) ? center : this.centerZoom;
 	var scale = this.view.scale * factor;
 	var state = this.view.getState(this.getSelectionCell());
 	
@@ -55385,7 +55376,7 @@ mxGraph.prototype.zoom = function(factor)
 			this.view.setScale(scale);
 		}
 	}
-	else if (this.centerZoom && !mxUtils.hasScrollbars(this.container))
+	else if (center && !mxUtils.hasScrollbars(this.container))
 	{
 		var dx = this.container.offsetWidth;
 		var dy = this.container.offsetHeight;
@@ -55416,7 +55407,7 @@ mxGraph.prototype.zoom = function(factor)
 			var dx = 0;
 			var dy = 0;
 			
-			if (this.centerZoom)
+			if (center)
 			{
 				dx = this.container.offsetWidth * (factor - 1) / 2;
 				dy = this.container.offsetHeight * (factor - 1) / 2;
@@ -60034,7 +60025,7 @@ mxCellOverlay.prototype.toString = function()
 	return this.tooltip;
 };
 /**
- * $Id: mxOutline.js,v 1.80 2012-06-06 12:15:34 gaudenz Exp $
+ * $Id: mxOutline.js,v 1.81 2012-06-20 14:13:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -60633,7 +60624,7 @@ mxOutline.prototype.mouseUp = function(sender, me)
 				// Applies the new zoom
 				var w = this.selectionBorder.bounds.width;
 				var scale = this.source.getView().scale;
-				this.source.getView().setScale(scale - (dx * scale) / w);
+				this.source.zoomTo(scale - (dx * scale) / w, false);
 			}
 
 			this.update();
@@ -64527,7 +64518,7 @@ mxSelectionCellsHandler.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxConnectionHandler.js,v 1.208 2012-05-29 14:05:32 gaudenz Exp $
+ * $Id: mxConnectionHandler.js,v 1.209 2012-06-17 10:46:52 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -64812,11 +64803,11 @@ mxConnectionHandler.prototype.tapAndHoldValid = false;
 mxConnectionHandler.prototype.tapAndHoldTolerance = 4;
 
 /**
- * Variable: initialTouchY
+ * Variable: initialTouchX
  * 
  * Holds the x-coordinate of the intial touch event for tap and hold.
  */
-mxConnectionHandler.prototype.initialTouchY = 0;
+mxConnectionHandler.prototype.initialTouchX = 0;
 
 /**
  * Variable: initialTouchY
@@ -67082,7 +67073,7 @@ mxRubberband.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxVertexHandler.js,v 1.102 2012-05-21 19:25:38 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.103 2012-06-20 14:35:55 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -67613,6 +67604,28 @@ mxVertexHandler.prototype.resizeCell = function(cell, dx, dy, index, gridEnabled
  * 
  * Returns the union of the given bounds and location for the specified
  * handle index.
+ * 
+ * To override this to limit the size of vertex via a minWidth/-Height style,
+ * the following code can be used.
+ * 
+ * (code)
+ * var vertexHandlerUnion = mxVertexHandler.prototype.union;
+ * mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, scale, tr)
+ * {
+ *   var result = vertexHandlerUnion.apply(this, arguments);
+ *   
+ *   result.width = Math.max(result.width, mxUtils.getNumber(this.state.style, 'minWidth', 0));
+ *   result.height = Math.max(result.height, mxUtils.getNumber(this.state.style, 'minHeight', 0));
+ *   
+ *   return result;
+ * };
+ * (end)
+ * 
+ * The minWidth/-Height style can then be used as follows:
+ * 
+ * (code)
+ * graph.insertVertex(parent, null, 'Hello,', 20, 20, 80, 30, 'minWidth=100;minHeight=100;');
+ * (end)
  */
 mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, scale, tr)
 {

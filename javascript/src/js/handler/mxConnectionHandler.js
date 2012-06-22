@@ -1,5 +1,5 @@
 /**
- * $Id: mxConnectionHandler.js,v 1.208 2012-05-29 14:05:32 gaudenz Exp $
+ * $Id: mxConnectionHandler.js,v 1.209 2012-06-17 10:46:52 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -284,11 +284,11 @@ mxConnectionHandler.prototype.tapAndHoldValid = false;
 mxConnectionHandler.prototype.tapAndHoldTolerance = 4;
 
 /**
- * Variable: initialTouchY
+ * Variable: initialTouchX
  * 
  * Holds the x-coordinate of the intial touch event for tap and hold.
  */
-mxConnectionHandler.prototype.initialTouchY = 0;
+mxConnectionHandler.prototype.initialTouchX = 0;
 
 /**
  * Variable: initialTouchY
