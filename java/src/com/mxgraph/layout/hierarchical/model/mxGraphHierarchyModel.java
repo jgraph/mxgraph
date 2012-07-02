@@ -1,5 +1,5 @@
 /*
- * $Id: mxGraphHierarchyModel.java,v 1.13 2012-05-27 22:11:14 david Exp $
+ * $Id: mxGraphHierarchyModel.java,v 1.14 2012-06-26 10:59:34 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 package com.mxgraph.layout.hierarchical.model;
@@ -29,12 +29,6 @@ import com.mxgraph.view.mxGraph;
  */
 public class mxGraphHierarchyModel
 {
-
-	/**
-	 * Whether the rank assignment is done from the sinks or sources.
-	 */
-	protected boolean scanRanksFromSinks = true;
-
 	/**
 	 * Stores the largest rank number allocated
 	 */
@@ -71,15 +65,6 @@ public class mxGraphHierarchyModel
 	 */
 	protected int dfsCount = 0;
 
-	/**
-	 * Whether or not cells are ordered according to the order in the graph
-	 * model. Defaults to false since sorting usually produces quadratic
-	 * performance. Note that since JGraph 6 returns edges in a deterministic
-	 * order, it might be that this layout is always deterministic using that
-	 * JGraph regardless of this flag setting (i.e. leave it false in that case)
-	 */
-	protected boolean deterministic = false;
-
 	/** High value to start source layering scan rank value from */
 	private final int SOURCESCANSTARTRANK = 100000000;
 
@@ -91,19 +76,11 @@ public class mxGraphHierarchyModel
 	 *            the enclosing layout object
 	 * @param vertices
 	 *            the vertices for this hierarchy
-	 * @param deterministic
-	 *            whether or not this layout should be deterministic on each
-	 * @param scanRanksFromSinks
-	 *            Whether the rank assignment is done from the sinks or sources.
-	 *            usage
 	 */
 	public mxGraphHierarchyModel(mxHierarchicalLayout layout,
-			Object[] vertices, List<Object> roots, Object parent,
-			boolean deterministic, boolean scanRanksFromSinks)
+			Object[] vertices, List<Object> roots, Object parent)
 	{
 		mxGraph graph = layout.getGraph();
-		this.deterministic = deterministic;
-		this.scanRanksFromSinks = scanRanksFromSinks;
 		this.roots = roots;
 		this.parent = parent;
 
@@ -119,14 +96,9 @@ public class mxGraphHierarchyModel
 				vertices.length);
 		edgeMapper = new Hashtable<Object, mxGraphHierarchyEdge>(
 				vertices.length);
-		if (scanRanksFromSinks)
-		{
-			maxRank = 0;
-		}
-		else
-		{
-			maxRank = SOURCESCANSTARTRANK;
-		}
+
+		maxRank = SOURCESCANSTARTRANK;
+
 		mxGraphHierarchyNode[] internalVertices = new mxGraphHierarchyNode[vertices.length];
 		createInternalCells(layout, vertices, internalVertices);
 
@@ -299,7 +271,7 @@ public class mxGraphHierarchyModel
 		Collection<mxGraphHierarchyNode> internalNodes = vertexMapper.values();
 		LinkedList<mxGraphHierarchyNode> startNodes = new LinkedList<mxGraphHierarchyNode>();
 
-		if (!scanRanksFromSinks && roots != null)
+		if (roots != null)
 		{
 			Iterator<Object> iter = roots.iterator();
 
@@ -309,38 +281,6 @@ public class mxGraphHierarchyModel
 						.next());
 
 				if (internalNode != null)
-				{
-					startNodes.add(internalNode);
-				}
-			}
-		}
-
-		if (scanRanksFromSinks)
-		{
-			Iterator<mxGraphHierarchyNode> iter = internalNodes.iterator();
-
-			while (iter.hasNext())
-			{
-				mxGraphHierarchyNode internalNode = iter.next();
-
-				if (internalNode.connectsAsSource == null
-						|| internalNode.connectsAsSource.isEmpty())
-				{
-					startNodes.add(internalNode);
-				}
-			}
-		}
-
-		if (startNodes.isEmpty())
-		{
-			// Start list from sources
-			Iterator<mxGraphHierarchyNode> iter = internalNodes.iterator();
-
-			while (iter.hasNext())
-			{
-				mxGraphHierarchyNode internalNode = iter.next();
-				if (internalNode.connectsAsTarget == null
-						|| internalNode.connectsAsTarget.isEmpty())
 				{
 					startNodes.add(internalNode);
 				}
@@ -365,16 +305,8 @@ public class mxGraphHierarchyModel
 			Collection<mxGraphHierarchyEdge> layerDeterminingEdges;
 			Collection<mxGraphHierarchyEdge> edgesToBeMarked;
 
-			if (scanRanksFromSinks)
-			{
-				layerDeterminingEdges = internalNode.connectsAsSource;
-				edgesToBeMarked = internalNode.connectsAsTarget;
-			}
-			else
-			{
-				layerDeterminingEdges = internalNode.connectsAsTarget;
-				edgesToBeMarked = internalNode.connectsAsSource;
-			}
+			layerDeterminingEdges = internalNode.connectsAsTarget;
+			edgesToBeMarked = internalNode.connectsAsSource;
 
 			// flag to keep track of whether or not all layer determining
 			// edges have been scanned
@@ -389,11 +321,7 @@ public class mxGraphHierarchyModel
 			// the layer determining edges variable. If we are starting
 			// from sources, need to start at some huge value and
 			// normalise down afterwards
-			int minimumLayer = 0;
-			if (!scanRanksFromSinks)
-			{
-				minimumLayer = SOURCESCANSTARTRANK;
-			}
+			int minimumLayer = SOURCESCANSTARTRANK;
 
 			while (allEdgesScanned && iter2.hasNext())
 			{
@@ -403,27 +331,9 @@ public class mxGraphHierarchyModel
 				{
 					// This edge has been scanned, get the layer of the
 					// node on the other end
-					mxGraphHierarchyNode otherNode;
-
-					if (scanRanksFromSinks)
-					{
-						otherNode = internalEdge.target;
-					}
-					else
-					{
-						otherNode = internalEdge.source;
-					}
-
-					if (scanRanksFromSinks)
-					{
-						minimumLayer = Math.max(minimumLayer,
-								otherNode.temp[0] + 1);
-					}
-					else
-					{
-						minimumLayer = Math.min(minimumLayer,
+					mxGraphHierarchyNode otherNode = internalEdge.source;
+					minimumLayer = Math.min(minimumLayer,
 								otherNode.temp[0] - 1);
-					}
 				}
 				else
 				{
@@ -436,14 +346,7 @@ public class mxGraphHierarchyModel
 			if (allEdgesScanned)
 			{
 				internalNode.temp[0] = minimumLayer;
-				if (scanRanksFromSinks)
-				{
-					maxRank = Math.max(maxRank, minimumLayer);
-				}
-				else
-				{
-					maxRank = Math.min(maxRank, minimumLayer);
-				}
+				maxRank = Math.min(maxRank, minimumLayer);
 
 				if (edgesToBeMarked != null)
 				{
@@ -458,16 +361,7 @@ public class mxGraphHierarchyModel
 
 						// Add node on other end of edge to LinkedList of
 						// nodes to be analysed
-						mxGraphHierarchyNode otherNode;
-
-						if (scanRanksFromSinks)
-						{
-							otherNode = internalEdge.source;
-						}
-						else
-						{
-							otherNode = internalEdge.target;
-						}
+						mxGraphHierarchyNode otherNode = internalEdge.target;
 
 						// Only add node if it hasn't been assigned a layer
 						if (otherNode.temp[0] == -1)
@@ -503,41 +397,37 @@ public class mxGraphHierarchyModel
 			}
 		}
 
-		if (scanRanksFromSinks)
+		// Normalize the ranks down from their large starting value to place
+		// at least 1 sink on layer 0
+		iter = internalNodes.iterator();
+		while (iter.hasNext())
 		{
-			// Tighten the rank 0 nodes as far as possible
-			for (int i = 0; i < startNodesCopy.size(); i++)
-			{
-				mxGraphHierarchyNode internalNode = startNodesCopy.get(i);
-				int currentMinLayer = 1000000;
-				Iterator<mxGraphHierarchyEdge> iter2 = internalNode.connectsAsTarget
-						.iterator();
+			mxGraphHierarchyNode internalNode = iter.next();
+			// Mark the node as not having had a layer assigned
+			internalNode.temp[0] -= maxRank;
+		}
+		
+		// Tighten the roots as far as possible
+		for (int i = 0; i < startNodesCopy.size(); i++)
+		{
+			mxGraphHierarchyNode internalNode = startNodesCopy.get(i);
+			int currentMaxLayer = 0;
+			Iterator<mxGraphHierarchyEdge> iter2 = internalNode.connectsAsSource
+					.iterator();
 
-				while (iter2.hasNext())
-				{
-					mxGraphHierarchyEdge internalEdge = iter2.next();
-					mxGraphHierarchyNode otherNode = internalEdge.source;
-					internalNode.temp[0] = Math.min(currentMinLayer,
-							otherNode.temp[0] - 1);
-					currentMinLayer = internalNode.temp[0];
-				}
-			}
-		}
-		else
-		{
-			// Normalize the ranks down from their large starting value to place
-			// at least 1 sink on layer 0
-			iter = internalNodes.iterator();
-			while (iter.hasNext())
+			while (iter2.hasNext())
 			{
-				mxGraphHierarchyNode internalNode = iter.next();
-				// Mark the node as not having had a layer assigned
-				internalNode.temp[0] -= maxRank;
+				mxGraphHierarchyEdge internalEdge = iter2.next();
+				mxGraphHierarchyNode otherNode = internalEdge.target;
+				internalNode.temp[0] = Math.max(currentMaxLayer,
+						otherNode.temp[0] + 1);
+				currentMaxLayer = internalNode.temp[0];
 			}
-			// Reset the maxRank to that which would be expected for a from-sink
-			// scan
-			maxRank = SOURCESCANSTARTRANK - maxRank;
 		}
+
+		// Reset the maxRank to that which would be expected for a from-sink
+		// scan
+		maxRank = SOURCESCANSTARTRANK - maxRank;
 	}
 
 	/**
@@ -894,22 +784,5 @@ public class mxGraphHierarchyModel
 	public void setDfsCount(int dfsCount)
 	{
 		this.dfsCount = dfsCount;
-	}
-
-	/**
-	 * @return Returns the deterministic.
-	 */
-	public boolean isDeterministic()
-	{
-		return deterministic;
-	}
-
-	/**
-	 * @param deterministic
-	 *            The deterministic to set.
-	 */
-	public void setDeterministic(boolean deterministic)
-	{
-		this.deterministic = deterministic;
 	}
 }

@@ -1,4 +1,4 @@
-// $Id: mxGdiCanvas2D.cs,v 1.13 2012-04-24 13:56:56 gaudenz Exp $
+// $Id: mxGdiCanvas2D.cs,v 1.14 2012-06-28 10:34:02 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Drawing;
@@ -591,7 +591,6 @@ namespace com.mxgraph
                 if (format != null && format.Equals("html"))
                 {
                     str = str.Replace("<br/>", "\n");
-                    str = str.Replace("<br/>", "\n");
                     str = str.Replace("<br>", "\n");
                 }
 
@@ -623,13 +622,22 @@ namespace com.mxgraph
                 RectangleF bounds = new RectangleF((float)x, (float)y, (float)w, (float)h);
                 StringFormat fmt = CreateStringFormat(align, valign, wrap);
 
-                // Needed for custom linespacing
-                string[] lines = str.Split('\n');
-
-                for (int i = 0; i < lines.Length; i++)
+                // Uses built-in rendering if wrapping is enabled because we do not know what
+                // additional linefeeds have been added so we can't compute the y increment
+                if (wrap)
                 {
-                    graphics.DrawString(lines[i], state.font, state.fontBrush, bounds, fmt);
-                    bounds.Y += state.font.Height + mxConstants.LINESPACING;
+                    graphics.DrawString(str, state.font, state.fontBrush, bounds, fmt);
+                }
+                else
+                {
+                    // Needed for custom linespacing
+                    string[] lines = str.Split('\n');
+
+                    for (int i = 0; i < lines.Length; i++)
+                    {
+                        graphics.DrawString(lines[i], state.font, state.fontBrush, bounds, fmt);
+                        bounds.Y += state.font.Height + mxConstants.LINESPACING;
+                    }
                 }
 
                 graphics.Restore(previous);

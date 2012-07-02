@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphLayout.java,v 1.27 2012-05-10 16:20:58 david Exp $
+ * $Id: mxGraphLayout.java,v 1.28 2012-06-26 10:59:04 david Exp $
  * Copyright (c) 2008-2009, JGraph Ltd
  */
 package com.mxgraph.layout;
@@ -105,62 +105,6 @@ public abstract class mxGraphLayout implements mxIGraphLayout
 				.getCellStyle(cell);
 
 		return (style != null) ? style.get(key) : null;
-	}
-
-	/**
-	 * Traverses the (directed) graph invoking the given function for each
-	 * visited vertex and edge. The function is invoked with the current vertex
-	 * and the incoming edge as a parameter. This implementation makes sure
-	 * each vertex is only visited once. The function may return false if the
-	 * traversal should stop at the given vertex.
-	 * 
-	 * @param vertex <mxCell> that represents the vertex where the traversal starts.
-	 * @param directed Optional boolean indicating if edges should only be traversed
-	 * from source to target. Default is true.
-	 * @param visitor Visitor that takes the current vertex and the incoming edge.
-	 * The traversal stops if the function returns false.
-	 * @param edge Optional <mxCell> that represents the incoming edge. This is
-	 * null for the first step of the traversal.
-	 * @param visited Optional array of cell paths for the visited cells.
-	 */
-	public void traverse(Object vertex, boolean directed,
-			mxICellVisitor visitor, Object edge, Set<Object> visited)
-	{
-		mxGraphView view = graph.getView();
-		mxIGraphModel model = graph.getModel();
-		
-		if (vertex != null && visitor != null)
-		{
-			if (visited == null)
-			{
-				visited = new HashSet<Object>();
-			}
-
-			if (!visited.contains(vertex))
-			{
-				visited.add(vertex);
-
-				if (visitor.visit(vertex, edge))
-				{
-					int edgeCount = model.getEdgeCount(vertex);
-
-					if (edgeCount > 0)
-					{
-						for (int i = 0; i < edgeCount; i++)
-						{
-							Object e = model.getEdgeAt(vertex, i);
-							boolean isSource = model.getTerminal(e, true) == vertex;
-
-							if (!directed || isSource)
-							{
-								Object next = view.getVisibleTerminal(e, !isSource);
-								traverse(next, directed, visitor, e, visited);
-							}
-						}
-					}
-				}
-			}
-		}
 	}
 
 	/**

@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.10.1.3.
+	 * Current version is 1.10.1.4.
 	 */
-	VERSION: '1.10.1.3',
+	VERSION: '1.10.1.4',
 
 	/**
 	 * Variable: IS_IE
@@ -21126,7 +21126,7 @@ mxShape.prototype.redrawPath = function(path, x, y, w, h)
 	// do nothing
 };
 /**
- * $Id: mxStencil.js,v 1.87 2012-06-19 09:23:05 gaudenz Exp $
+ * $Id: mxStencil.js,v 1.88 2012-06-29 23:00:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -21524,17 +21524,17 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 			fontFamily: mxConstants.DEFAULT_FONTFAMILY,
 			fontStyle: 0
 		};
-		
+
 		var currentPath = null;
 		var currentPoints = null;
 		
 		var configurePath = function(path, state)
 		{
-			var sw = Math.round(Math.max(1, state.strokeWidth));
+			var sw = Math.max(1, state.strokeWidth);
 			
 			if (vml)
 			{
-				path.strokeweight = sw + 'px';
+				path.strokeweight = Math.round(sw) + 'px';
 				
 				if (state.fill != null)
 				{

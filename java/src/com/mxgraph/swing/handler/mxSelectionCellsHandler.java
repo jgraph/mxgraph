@@ -1,5 +1,5 @@
 /**
- * $Id: mxSelectionCellsHandler.java,v 1.11 2012-03-18 19:07:35 gaudenz Exp $
+ * $Id: mxSelectionCellsHandler.java,v 1.12 2012-07-01 12:19:21 gaudenz Exp $
  * Copyright (c) 2008, Gaudenz Alder
  * 
  * Known issue: Drag image size depends on the initial position and may sometimes
@@ -73,7 +73,7 @@ public class mxSelectionCellsHandler implements MouseListener,
 	/**
 	 * Maps from cells to handlers in the order of the selection cells.
 	 */
-	protected transient Map<Object, mxCellHandler> handlers = new LinkedHashMap<Object, mxCellHandler>();
+	protected transient LinkedHashMap<Object, mxCellHandler> handlers = new LinkedHashMap<Object, mxCellHandler>();
 
 	/**
 	 * 
@@ -368,7 +368,7 @@ public class mxSelectionCellsHandler implements MouseListener,
 
 		// Creates a new map for the handlers and tries to
 		// to reuse existing handlers from the old map
-		Map<Object, mxCellHandler> oldHandlers = handlers;
+		LinkedHashMap<Object, mxCellHandler> oldHandlers = handlers;
 		handlers = new LinkedHashMap<Object, mxCellHandler>();
 
 		// Creates handles for all selection cells
@@ -382,7 +382,7 @@ public class mxSelectionCellsHandler implements MouseListener,
 
 			if (state != null && state.getCell() != graph.getView().getCurrentRoot())
 			{
-				mxCellHandler handler = oldHandlers.get(tmp[i]);
+				mxCellHandler handler = oldHandlers.remove(tmp[i]);
 
 				if (handler != null)
 				{
@@ -415,6 +415,11 @@ public class mxSelectionCellsHandler implements MouseListener,
 					}
 				}
 			}
+		}
+		
+		for (mxCellHandler handler: oldHandlers.values())
+		{
+			handler.destroy();
 		}
 
 		Rectangle dirty = bounds;

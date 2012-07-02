@@ -23,7 +23,12 @@ import com.mxgraph.util.mxUtils;
 import com.mxgraph.view.mxCellState;
 
 /**
- * Placeholder for rotation handler
+ * Basic example of implementing a handler for rotation. This can be used as follows:
+ * 
+ * new mxRotationHandler(graphComponent)
+ * 
+ * Note that the Java core does actually not support rotation for the selection handles,
+ * perimeter points etc. Feel free to contribute a fix!
  */
 public class mxRotationHandler extends mxMouseAdapter
 {
@@ -189,7 +194,7 @@ public class mxRotationHandler extends mxMouseAdapter
 	 */
 	public void mouseMoved(MouseEvent e)
 	{
-		if (graphComponent.isEnabled() && isEnabled() && !e.isConsumed())
+		if (graphComponent.isEnabled() && isEnabled())
 		{
 			if (handle.getParent() != null && e.getSource() == handle /* mouse hits handle */)
 			{
@@ -206,6 +211,7 @@ public class mxRotationHandler extends mxMouseAdapter
 						.getState(
 								graphComponent.getCellAt(e.getX(), e.getY(),
 										false));
+
 				mxCellState state = null;
 
 				if (eventState != null && isStateHandled(eventState))
@@ -317,6 +323,8 @@ public class mxRotationHandler extends mxMouseAdapter
 				e.consume();
 			}
 		}
+
+		currentState = null;
 	}
 
 	/**

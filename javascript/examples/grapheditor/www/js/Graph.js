@@ -1,5 +1,5 @@
 /**
- * $Id: Graph.js,v 1.37 2012-06-14 05:49:57 gaudenz Exp $
+ * $Id: Graph.js,v 1.38 2012-06-28 12:02:04 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -88,6 +88,16 @@ Graph = function(container, model, renderHint, stylesheet)
 
 // Graph inherits from mxGraph
 mxUtils.extend(Graph, mxGraph);
+
+/**
+ * Allows to all values in fit.
+ */
+Graph.prototype.minFitScale = null;
+
+/**
+ * Allows to all values in fit.
+ */
+Graph.prototype.maxFitScale = null;
 
 /**
  * Loads the stylesheet for this graph.

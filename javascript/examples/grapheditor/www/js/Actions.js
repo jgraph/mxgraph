@@ -1,5 +1,5 @@
 /**
- * $Id: Actions.js,v 1.32 2012-06-04 14:31:50 gaudenz Exp $
+ * $Id: Actions.js,v 1.33 2012-06-30 05:47:52 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -431,7 +431,7 @@ Actions.prototype.init = function()
 			}
 		}
 	});
-	this.addAction('useAsDefaultEdge', function()
+	this.addAction('setAsDefaultEdge', function()
 	{
 		var cell = graph.getSelectionCell();
 		

@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellHandler.java,v 1.26 2012-01-13 13:14:21 david Exp $
+ * $Id: mxCellHandler.java,v 1.27 2012-07-01 12:19:21 gaudenz Exp $
  * Copyright (c) 2008-2012, JGraph Ltd
  */
 package com.mxgraph.swing.handler;
@@ -425,6 +425,15 @@ public class mxCellHandler
 	protected Color getHandleBorderColor(int index)
 	{
 		return mxSwingConstants.HANDLE_BORDERCOLOR;
+	}
+	
+	/**
+	 * Invoked when the handler is no longer used. This is an empty
+	 * hook for subclassers.
+	 */
+	protected void destroy()
+	{
+		// nop
 	}
 
 }

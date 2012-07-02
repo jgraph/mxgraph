@@ -1,17 +1,15 @@
 /*
- * $Id: mxHierarchicalLayout.java,v 1.14 2012-06-11 15:07:37 david Exp $
+ * $Id: mxHierarchicalLayout.java,v 1.15 2012-06-26 11:00:40 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 package com.mxgraph.layout.hierarchical;
 
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,6 +25,7 @@ import com.mxgraph.model.mxGraphModel;
 import com.mxgraph.model.mxIGraphModel;
 import com.mxgraph.view.mxCellState;
 import com.mxgraph.view.mxGraph;
+import com.mxgraph.view.mxGraphView;
 
 /**
  * The top level compound layout of the hierarchical layout. The individual
@@ -93,34 +92,6 @@ JGraphLayout.Stoppable*/
 	 * through the algorithm
 	 */
 	protected boolean fineTuning = true;
-
-	/**
-	 * Whether or not cells are ordered according to the order in the graph
-	 * model. Defaults to false since sorting usually produces quadratic
-	 * performance. Note that since mxGraph returns edges in a deterministic
-	 * order, it might be that this layout is always deterministic using that
-	 * JGraph regardless of this flag setting (i.e. leave it false in that
-	 * case). Default is true.
-	 */
-	protected boolean deterministic;
-
-	/**
-	 * Whether or not to fix the position of the root cells. Keep in mind to
-	 * turn off features such as move to origin when fixing the roots, move
-	 * to origin usually overrides this flag (in JGraph it does).
-	 */
-	protected boolean fixRoots = false;
-
-	/**
-	 * Whether or not the initial scan of the graph to determine the layer
-	 * assigned to each vertex starts from the sinks or source (the sinks
-	 * being vertices with the fewest, preferable zero, outgoing edges and
-	 * sources same with incoming edges). Starting from either direction
-	 * can tight the layout up and also produce better results for certain
-	 * types of graphs. If the result for the default is not good enough
-	 * try a few sample layouts with the value false to see if they improve
-	 */
-	protected boolean layoutFromSinks = true;
 
 	/**
 	 * Whether or not to promote edges that terminate on vertices with
@@ -221,17 +192,9 @@ JGraphLayout.Stoppable*/
 					roots.remove(root);
 				}
 			}
+		}
 
-			this.roots = roots;
-		}
-		else if (roots == null)
-		{
-			this.roots = findTreeRoots(parent);
-		}
-		else
-		{
-			this.roots = roots;
-		}
+		this.roots = roots;
 
 		model.beginUpdate();
 		try
@@ -260,60 +223,48 @@ JGraphLayout.Stoppable*/
 	 * @param parent Cell whose children should be checked.
 	 * @return List of tree roots in parent.
 	 */
-	public List<Object> findTreeRoots(Object parent)
+	public List<Object> findRoots(Object parent, Set<Object> vertices)
 	{
 		List<Object> roots = new ArrayList<Object>();
 
 		Object best = null;
-		int maxDiff = 0;
+		int maxDiff = -100000;
 		mxIGraphModel model = graph.getModel();
-		int childCount = model.getChildCount(parent);
 
-		for (int i = 0; i < childCount; i++)
+		for (Object vertex : vertices)
 		{
-			Object cell = model.getChildAt(parent, i);
-			Object[] cells = { cell };
-
-			if (this.traverseAncestors)
+			if (model.isVertex(vertex) && graph.isCellVisible(vertex))
 			{
-				cells = mxGraphModel.getDescendants(model, cell).toArray();
-			}
+				Object[] conns = this.getEdges(vertex);
+				int fanOut = 0;
+				int fanIn = 0;
 
-			for (int j = 0; j < cells.length; j++)
-			{
-				if (model.isVertex(cells[j]) && graph.isCellVisible(cells[j]))
+				for (int k = 0; k < conns.length; k++)
 				{
-					Object[] conns = this.getEdges(cells[j]);
-					int fanOut = 0;
-					int fanIn = 0;
+					Object src = graph.getView().getVisibleTerminal(conns[k],
+							true);
 
-					for (int k = 0; k < conns.length; k++)
+					if (src == vertex)
 					{
-						Object src = graph.getView().getVisibleTerminal(
-								conns[k], true);
-
-						if (src == cells[j])
-						{
-							fanOut++;
-						}
-						else
-						{
-							fanIn++;
-						}
+						fanOut++;
 					}
-
-					if (fanIn == 0 && fanOut > 0)
+					else
 					{
-						roots.add(cells[j]);
+						fanIn++;
 					}
+				}
 
-					int diff = fanOut - fanIn;
+				if (fanIn == 0 && fanOut > 0)
+				{
+					roots.add(vertex);
+				}
 
-					if (diff > maxDiff)
-					{
-						maxDiff = diff;
-						best = cells[j];
-					}
+				int diff = fanOut - fanIn;
+
+				if (diff > maxDiff)
+				{
+					maxDiff = diff;
+					best = vertex;
 				}
 			}
 		}
@@ -326,6 +277,11 @@ JGraphLayout.Stoppable*/
 		return roots;
 	}
 
+	/**
+	 * 
+	 * @param cell
+	 * @return
+	 */
 	public Object[] getEdges(Object cell)
 	{
 		mxIGraphModel model = graph.getModel();
@@ -378,121 +334,171 @@ JGraphLayout.Stoppable*/
 	{
 		// Separate out unconnected hierarchies
 		List<Set<Object>> hierarchyVertices = new ArrayList<Set<Object>>();
+		Set<Object> allVertexSet = new LinkedHashSet<Object>();
 
-		// Keep track of one root in each hierarchy in case it's fixed position
-		List<Object> fixedRoots = null;
-		List<Point2D> rootLocations = null;
-		List<Set<Object>> affectedEdges = null;
-
-		if (fixRoots)
+		if (this.roots == null && parent != null)
 		{
-			fixedRoots = new ArrayList<Object>();
-			rootLocations = new ArrayList<Point2D>();
-			affectedEdges = new ArrayList<Set<Object>>();
-		}
+			Set<Object> filledVertexSet = filterDescendants(parent);
 
-		for (int i = 0; i < roots.size(); i++)
-		{
-			// First check if this root appears in any of the previous vertex
-			// sets
-			boolean newHierarchy = true;
-			Iterator<Set<Object>> iter = hierarchyVertices.iterator();
+			this.roots = new ArrayList<Object>();
 
-			while (newHierarchy && iter.hasNext())
+			while (!filledVertexSet.isEmpty())
 			{
-				if (iter.next().contains(roots.get(i)))
-				{
-					newHierarchy = false;
-				}
-			}
-
-			if (newHierarchy)
-			{
-				// Obtains set of vertices connected to this root
-				Stack<Object> cellsStack = new Stack<Object>();
-				cellsStack.push(roots.get(i));
-				Set<Object> edgeSet = null;
-
-				if (fixRoots)
-				{
-					fixedRoots.add(roots.get(i));
-					Point2D location = getVertexBounds(roots.get(i)).getPoint();
-					rootLocations.add(location);
-					edgeSet = new HashSet<Object>();
-				}
-
-				Set<Object> vertexSet = new HashSet<Object>();
-
-				while (!cellsStack.isEmpty())
-				{
-					Object cell = cellsStack.pop();
-
-					if (!vertexSet.contains(cell))
-					{
-						vertexSet.add(cell);
-
-						if (fixRoots)
-						{
-							edgeSet.addAll(Arrays.asList(graph
-									.getIncomingEdges(cell, parent)));
-						}
-
-						Object[] conns = getEdges(cell);
-						Object[] cells = graph.getOpposites(conns, cell);
-
-						for (int j = 0; j < cells.length; j++)
-						{
-							if (!vertexSet.contains(cells[j]))
-							{
-								cellsStack.push(cells[j]);
-							}
-						}
-					}
-				}
-
+				Set<Object> vertexSet = new LinkedHashSet<Object>();
 				hierarchyVertices.add(vertexSet);
 
-				if (fixRoots)
+				List<Object> candidateRoots = findRoots(parent, filledVertexSet);
+
+				for (Object root : candidateRoots)
 				{
-					affectedEdges.add(edgeSet);
+					traverse(root, true, null, allVertexSet, vertexSet,
+							hierarchyVertices, filledVertexSet);
 				}
+
+				this.roots.addAll(candidateRoots);
+			}
+		}
+		else
+		{
+			// Find vertex set as directed traversal from roots
+
+			for (int i = 0; i < roots.size(); i++)
+			{
+				Set<Object> vertexSet = new LinkedHashSet<Object>();
+				hierarchyVertices.add(vertexSet);
+
+				traverse(roots.get(i), true, null, allVertexSet, vertexSet,
+						hierarchyVertices, null);
 			}
 		}
 
-		// Perform a layout for each seperate hierarchy
+		// Perform a layout for each separate hierarchy
 		// Track initial coordinate x-positioning
 		double initialX = 0;
 		Iterator<Set<Object>> iter = hierarchyVertices.iterator();
-		int i = 0;
 
 		while (iter.hasNext())
 		{
 			Set<Object> vertexSet = iter.next();
 
 			this.model = new mxGraphHierarchyModel(this, vertexSet.toArray(),
-					roots, parent, deterministic, layoutFromSinks);
+					roots, parent);
 
 			cycleStage(parent);
 			layeringStage();
 			crossingStage(parent);
 			initialX = placementStage(initialX, parent);
+		}
+	}
 
-			if (fixRoots)
+	/**
+	 * Creates a set of descendant cells
+	 */
+	public Set<Object> filterDescendants(Object cell)
+	{
+		mxIGraphModel model = graph.getModel();
+		Set<Object> result = new LinkedHashSet<Object>();
+
+		if (model.isVertex(cell) && cell != this.parent && model.isVisible(cell))
+		{
+			result.add(cell);
+		}
+
+		if (this.traverseAncestors || cell == this.parent
+				&& model.isVisible(cell))
+		{
+			int childCount = model.getChildCount(cell);
+
+			for (int i = 0; i < childCount; i++)
 			{
-				// Reposition roots and their hierarchies using their bounds
-				// stored earlier
-				Object root = fixedRoots.get(i);
-				Point2D oldLocation = rootLocations.get(i);
-				Point2D newLocation = graph.getModel().getGeometry(root)
-						.getPoint();
+				Object child = model.getChildAt(cell, i);
+				result.addAll(filterDescendants(child));
+			}
+		}
 
-				double diffX = oldLocation.getX() - newLocation.getX();
-				double diffY = oldLocation.getY() - newLocation.getY();
-				graph.moveCells(vertexSet.toArray(), diffX, diffY);
+		return result;
+	}
 
-				// Also translate connected edges
-				Set<Object> connectedEdges = affectedEdges.get(i++);
-				graph.moveCells(connectedEdges.toArray(), diffX, diffY);
+	/**
+	 * Traverses the (directed) graph invoking the given function for each
+	 * visited vertex and edge. The function is invoked with the current vertex
+	 * and the incoming edge as a parameter. This implementation makes sure
+	 * each vertex is only visited once. The function may return false if the
+	 * traversal should stop at the given vertex.
+	 * 
+	 * @param vertex <mxCell> that represents the vertex where the traversal starts.
+	 * @param directed Optional boolean indicating if edges should only be traversed
+	 * from source to target. Default is true.
+	 * @param edge Optional <mxCell> that represents the incoming edge. This is
+	 * null for the first step of the traversal.
+	 * @param allVertices Array of cell paths for the visited cells.
+	 */
+	protected void traverse(Object vertex, boolean directed, Object edge,
+			Set<Object> allVertices, Set<Object> currentComp,
+			List<Set<Object>> hierarchyVertices, Set<Object> filledVertexSet)
+	{
+		mxGraphView view = graph.getView();
+		mxIGraphModel model = graph.getModel();
+
+		if (vertex != null && allVertices != null)
+		{
+			// Has this vertex been seen before in any traversal
+			// And if the filled vertex set is populated, only 
+			// process vertices in that it contains
+			if (!allVertices.contains(vertex)
+					&& (filledVertexSet == null ? true : filledVertexSet
+							.contains(vertex)))
+			{
+				currentComp.add(vertex);
+				allVertices.add(vertex);
+
+				if (filledVertexSet != null)
+				{
+					filledVertexSet.remove(vertex);
+				}
+
+				int edgeCount = model.getEdgeCount(vertex);
+
+				if (edgeCount > 0)
+				{
+					for (int i = 0; i < edgeCount; i++)
+					{
+						Object e = model.getEdgeAt(vertex, i);
+						boolean isSource = view.getVisibleTerminal(e, true) == vertex;
+
+						if (!directed || isSource)
+						{
+							Object next = view.getVisibleTerminal(e, !isSource);
+							traverse(next, directed, e, allVertices,
+									currentComp, hierarchyVertices,
+									filledVertexSet);
+						}
+					}
+				}
+			}
+			else
+			{
+				if (!currentComp.contains(vertex))
+				{
+					// We've seen this vertex before, but not in the current component
+					// This component and the one it's in need to be merged
+					Set<Object> matchComp = null;
+
+					for (Set<Object> comp : hierarchyVertices)
+					{
+						if (comp.contains(vertex))
+						{
+							currentComp.addAll(comp);
+							matchComp = comp;
+							break;
+						}
+					}
+
+					if (matchComp != null)
+					{
+						hierarchyVertices.remove(matchComp);
+					}
+				}
 			}
 		}
 	}
@@ -698,48 +704,6 @@ JGraphLayout.Stoppable*/
 	public void setDisableEdgeStyle(boolean disableEdgeStyle)
 	{
 		this.disableEdgeStyle = disableEdgeStyle;
-	}
-
-	/**
-	 * @return Returns the deterministic.
-	 */
-	public boolean isDeterministic()
-	{
-		return deterministic;
-	}
-
-	/**
-	 * @param deterministic The deterministic to set.
-	 */
-	public void setDeterministic(boolean deterministic)
-	{
-		this.deterministic = deterministic;
-	}
-
-	/**
-	 * @return Returns the fixRoots.
-	 */
-	public boolean isFixRoots()
-	{
-		return fixRoots;
-	}
-
-	/**
-	 * @param fixRoots The fixRoots to set.
-	 */
-	public void setFixRoots(boolean fixRoots)
-	{
-		this.fixRoots = fixRoots;
-	}
-
-	public boolean isLayoutFromSinks()
-	{
-		return layoutFromSinks;
-	}
-
-	public void setLayoutFromSinks(boolean layoutFromSinks)
-	{
-		this.layoutFromSinks = layoutFromSinks;
 	}
 
 	/**

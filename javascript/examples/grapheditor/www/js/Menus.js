@@ -1,5 +1,5 @@
 /**
- * $Id: Menus.js,v 1.49 2012-06-08 15:58:08 gaudenz Exp $
+ * $Id: Menus.js,v 1.51 2012-06-30 05:51:20 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -291,7 +291,7 @@ Menus.prototype.init = function()
 	this.put('edit', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
 		this.addMenuItems(menu, ['undo', 'redo', '-', 'cut', 'copy', 'paste', 'delete', '-', 'duplicate', '-',
-		                         'selectVertices', 'selectEdges', 'selectAll', '-', 'useAsDefaultEdge']);
+		                         'selectVertices', 'selectEdges', 'selectAll', '-', 'setAsDefaultEdge']);
 	})));
 	this.put('options', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -534,7 +534,7 @@ Menus.prototype.createPopupMenu = function(menu, cell, evt)
 			this.addSubmenu('linestart', menu);
 			this.addSubmenu('lineend', menu);
 			menu.addSeparator();
-			this.addMenuItems(menu, ['useAsDefaultEdge']);
+			this.addMenuItems(menu, ['setAsDefaultEdge']);
 		}
 		else if (graph.getSelectionCount() > 1)	
 		{

@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.49 2012-06-15 11:40:19 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.50 2012-06-30 05:49:38 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -438,7 +438,7 @@ EditorUi.prototype.addSelectionListener = function()
      		this.menus.get(menus[i]).setEnabled(edgeSelected);
      	}
      	
-       	this.actions.get('useAsDefaultEdge').setEnabled(edgeSelected);
+       	this.actions.get('setAsDefaultEdge').setEnabled(edgeSelected);
         	
         this.menus.get('align').setEnabled(graph.getSelectionCount() > 1);
         this.menus.get('direction').setEnabled(vertexSelected || (edgeSelected &&
