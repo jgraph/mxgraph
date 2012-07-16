@@ -1,5 +1,5 @@
 /**
- * $Id: mxDragSource.js,v 1.11 2012-05-09 12:19:25 gaudenz Exp $
+ * $Id: mxDragSource.js,v 1.12 2012-07-09 11:12:03 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -244,7 +244,7 @@ mxDragSource.prototype.createPreviewElement = function(graph)
  */
 mxDragSource.prototype.mouseDown = function(evt)
 {
-	if (this.enabled && !mxEvent.isConsumed(evt))
+	if (this.enabled && !mxEvent.isConsumed(evt) && this.mouseMoveHandler == null)
 	{
 		this.startDrag(evt);
 		

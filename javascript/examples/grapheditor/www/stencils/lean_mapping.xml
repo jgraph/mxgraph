@@ -95,10 +95,10 @@
 <stroke/>
 <fontcolor color="#000000"/>
 <fontsize size="12"/>
-<text str="C/T=25sec" x="30" y="17" align="middle" valign="bottom"/>
-<text str="C/O=40" x="30" y="37" align="middle" valign="bottom"/>
-<text str="2 Shifts" x="30" y="57" align="middle" valign="bottom"/>
-<text str="Takt=1s" x="30" y="77" align="middle" valign="bottom"/>
+<text str="C/T=25sec" x="30" y="17" align="center" valign="bottom"/>
+<text str="C/O=40" x="30" y="37" align="center" valign="bottom"/>
+<text str="2 Shifts" x="30" y="57" align="center" valign="bottom"/>
+<text str="Takt=1s" x="30" y="77" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="Electronic Info Flow" h="14" w="99" aspect="variable" strokewidth="inherit">
@@ -157,7 +157,7 @@
 <stroke/>
 <fontcolor color="#000000"/>
 <fontsize size="14"/>
-<text str="FIFO" x="50" y="21" align="middle" valign="bottom"/>
+<text str="FIFO" x="50" y="21" align="center" valign="bottom"/>
 <path>
 <move x="88" y="11"/>
 <line x="98" y="15"/>
@@ -485,7 +485,7 @@
 <stroke/>
 <fontcolor color="#000000"/>
 <fontsize size="12"/>
-<text str="Heat Treat" x="40" y="34.5" align="middle" valign="bottom"/>
+<text str="Heat Treat" x="40" y="34.5" align="center" valign="bottom"/>
 <rect x="3" y="3" w="74" h="93"/>
 <stroke/>
 </foreground>
@@ -609,8 +609,8 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="12"/>
-<text str="XYZ" x="30" y="67" align="middle" valign="bottom"/>
-<text str="Corp." x="30" y="87" align="middle" valign="bottom"/>
+<text str="XYZ" x="30" y="67" align="center" valign="bottom"/>
+<text str="Corp." x="30" y="87" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="Physical Pull" h="84.44" w="85.9" aspect="variable" strokewidth="inherit">
@@ -662,7 +662,7 @@
 <fillstroke/>
 <save/>
 <dashed dashed="1"/>
-<dashpattern pattern="5,5"/>
+<dashpattern pattern="5 5"/>
 <path>
 <move x="69" y="25"/>
 <line x="94" y="25"/>
@@ -676,7 +676,6 @@
 <stroke/>
 <restore/>
 <dashed dashed="0"/>
-<dashpattern pattern=""/>
 <path>
 <move x="0" y="62.5"/>
 <line x="4" y="72"/>
@@ -753,7 +752,7 @@
 <fontcolor color="#000000"/>
 <fontstyle style="1"/>
 <fontsize size="35"/>
-<text str="Q" x="40" y="74" align="middle" valign="bottom"/>
+<text str="Q" x="40" y="74" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="Schedule" h="40" w="99" aspect="variable" strokewidth="inherit">
@@ -774,7 +773,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="12"/>
-<text str="Weekly Schedule" x="49.5" y="25" align="middle" valign="bottom"/>
+<text str="Weekly Schedule" x="49.5" y="25" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="Sequenced Pull Ball" h="98" w="98" aspect="variable" strokewidth="inherit">
@@ -882,8 +881,8 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="12"/>
-<text str="2X per" x="28" y="39" align="middle" valign="bottom"/>
-<text str="Week" x="28" y="59" align="middle" valign="bottom"/>
+<text str="2X per" x="28" y="39" align="center" valign="bottom"/>
+<text str="Week" x="28" y="59" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="Verbal" h="99" w="50" aspect="variable" strokewidth="inherit">
@@ -987,7 +986,7 @@
 <stroke/>
 <save/>
 <dashed dashed="1"/>
-<dashpattern pattern="5,5"/>
+<dashpattern pattern="5 5"/>
 <path>
 <move x="69" y="25"/>
 <line x="94" y="25"/>
@@ -1001,7 +1000,6 @@
 <stroke/>
 <restore/>
 <dashed dashed="0"/>
-<dashpattern pattern=""/>
 <path>
 <move x="0" y="62.5"/>
 <line x="4" y="72"/>

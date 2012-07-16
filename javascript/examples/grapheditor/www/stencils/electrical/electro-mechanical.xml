@@ -126,7 +126,7 @@
 <stroke/>
 <fontcolor color="#000000"/>
 <fontsize size="30"/>
-<text str="M" x="50" y="45" align="middle" valign="bottom"/>
+<text str="M" x="50" y="45" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="Motor 2" h="60.09" w="100" aspect="variable" strokewidth="inherit">

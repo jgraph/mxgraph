@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphView.js,v 1.192 2012-06-20 13:20:09 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.193 2012-07-16 15:30:58 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1192,11 +1192,30 @@ mxGraphView.prototype.updateFloatingTerminalPoint = function(edge, start, end, s
 {
 	start = this.getTerminalPort(edge, start, source);
 	var next = this.getNextPoint(edge, end, source);
+	
+	var alpha = mxUtils.toRadians(Number(start.style[mxConstants.STYLE_ROTATION] || '0'));
+	var center = new mxPoint(start.getCenterX(), start.getCenterY());
+	
+	if (alpha != 0)
+	{
+		var cos = Math.cos(-alpha);
+		var sin = Math.sin(-alpha);
+		next = mxUtils.getRotatedPoint(next, cos, sin, center);
+	}
+	
 	var border = parseFloat(edge.style[mxConstants.STYLE_PERIMETER_SPACING] || 0);
 	border += parseFloat(edge.style[(source) ?
 		mxConstants.STYLE_SOURCE_PERIMETER_SPACING :
 		mxConstants.STYLE_TARGET_PERIMETER_SPACING] || 0);
 	var pt = this.getPerimeterPoint(start, next, this.graph.isOrthogonal(edge), border);
+
+	if (alpha != 0)
+	{
+		var cos = Math.cos(alpha);
+		var sin = Math.sin(alpha);
+		pt = mxUtils.getRotatedPoint(pt, cos, sin, center);
+	}
+	
 	edge.setAbsoluteTerminalPoint(pt, source);
 };
 

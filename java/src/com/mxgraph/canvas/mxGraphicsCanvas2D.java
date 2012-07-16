@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Stack;
 
 import javax.swing.CellRendererPane;
+import javax.swing.JLabel;
 
 import com.mxgraph.util.mxConstants;
 import com.mxgraph.util.mxLightweightLabel;
@@ -326,22 +327,17 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	 */
 	public void setDashPattern(String value)
 	{
-		if (!state.dashPattern.equals(value))
+		if (value != null && !state.dashPattern.equals(value) && value.length() > 0)
 		{
-			float[] pat = null;
+			String[] tokens = value.split(" ");
+			float[] dashpattern = new float[tokens.length];
 
-			if (state.dashed && state.dashPattern != null)
+			for (int i = 0; i < tokens.length; i++)
 			{
-				String[] tokens = value.split(" ");
-				pat = new float[tokens.length];
-
-				for (int i = 0; i < tokens.length; i++)
-				{
-					pat[i] = (float) (Float.parseFloat(tokens[i]));
-				}
+				dashpattern[i] = (float) (Float.parseFloat(tokens[i]));
 			}
 
-			state.dashPattern = pat;
+			state.dashPattern = dashpattern;
 			currentStroke = null;
 		}
 	}
@@ -741,6 +737,15 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 		return "<html><div style=\"width:" + w + "px;height:" + h + "px;"
 				+ css.toString() + "\">" + text + "</div></html>";
 	}
+	
+	/**
+	 * Hook to return the renderer for HTML formatted text. This implementation returns
+	 * the shared instance of mxLighweightLabel.
+	 */
+	protected JLabel getTextRenderer()
+	{
+		return mxLightweightLabel.getSharedInstance();
+	}
 
 	/**
 	 * Draws the given text.
@@ -756,8 +761,7 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 				x += state.dx / state.scale;
 				y += state.dy / state.scale;
 				
-				mxLightweightLabel textRenderer = mxLightweightLabel
-						.getSharedInstance();
+				JLabel textRenderer = getTextRenderer();
 
 				if (textRenderer != null && rendererPane != null)
 				{

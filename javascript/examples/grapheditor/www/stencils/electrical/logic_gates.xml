@@ -114,14 +114,14 @@
 <stroke/>
 <fontcolor color="#000000"/>
 <fontsize size="12"/>
-<text str="D" x="25" y="25" align="middle" valign="bottom"/>
-<text str="Q" x="75" y="25" align="middle" valign="bottom"/>
+<text str="D" x="25" y="25" align="center" valign="bottom"/>
+<text str="Q" x="75" y="25" align="center" valign="bottom"/>
 <path>
 <move x="80" y="60"/>
 <line x="100" y="60"/>
 </path>
 <stroke/>
-<text str="Q" x="75" y="65" align="middle" valign="bottom"/>
+<text str="Q" x="75" y="65" align="center" valign="bottom"/>
 <path>
 <move x="71" y="55"/>
 <line x="79" y="55"/>
@@ -165,14 +165,14 @@
 <stroke/>
 <fontcolor color="#000000"/>
 <fontsize size="12"/>
-<text str="D" x="25" y="35" align="middle" valign="bottom"/>
-<text str="Q" x="75" y="35" align="middle" valign="bottom"/>
+<text str="D" x="25" y="35" align="center" valign="bottom"/>
+<text str="Q" x="75" y="35" align="center" valign="bottom"/>
 <path>
 <move x="80" y="70"/>
 <line x="100" y="70"/>
 </path>
 <stroke/>
-<text str="Q" x="75" y="75" align="middle" valign="bottom"/>
+<text str="Q" x="75" y="75" align="center" valign="bottom"/>
 <path>
 <move x="71" y="65"/>
 <line x="79" y="65"/>
@@ -224,14 +224,14 @@
 <stroke/>
 <fontcolor color="#000000"/>
 <fontsize size="12"/>
-<text str="D" x="25" y="35" align="middle" valign="bottom"/>
-<text str="Q" x="75" y="35" align="middle" valign="bottom"/>
+<text str="D" x="25" y="35" align="center" valign="bottom"/>
+<text str="Q" x="75" y="35" align="center" valign="bottom"/>
 <path>
 <move x="80" y="70"/>
 <line x="100" y="70"/>
 </path>
 <stroke/>
-<text str="Q" x="75" y="75" align="middle" valign="bottom"/>
+<text str="Q" x="75" y="75" align="center" valign="bottom"/>
 <path>
 <move x="71" y="65"/>
 <line x="79" y="65"/>
@@ -248,13 +248,13 @@
 <line x="50" y="10"/>
 </path>
 <stroke/>
-<text str="S" x="50" y="20" align="middle" valign="bottom"/>
+<text str="S" x="50" y="20" align="center" valign="bottom"/>
 <path>
 <move x="50" y="90"/>
 <line x="50" y="100"/>
 </path>
 <stroke/>
-<text str="R" x="50" y="89" align="middle" valign="bottom"/>
+<text str="R" x="50" y="89" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="Highpass Filter" h="46" w="52" aspect="variable" strokewidth="inherit">
@@ -356,15 +356,15 @@
 <stroke/>
 <fontcolor color="#000000"/>
 <fontsize size="12"/>
-<text str="J" x="25" y="25" align="middle" valign="bottom"/>
-<text str="K" x="25" y="65" align="middle" valign="bottom"/>
-<text str="Q" x="75" y="25" align="middle" valign="bottom"/>
+<text str="J" x="25" y="25" align="center" valign="bottom"/>
+<text str="K" x="25" y="65" align="center" valign="bottom"/>
+<text str="Q" x="75" y="25" align="center" valign="bottom"/>
 <path>
 <move x="80" y="60"/>
 <line x="100" y="60"/>
 </path>
 <stroke/>
-<text str="Q" x="75" y="65" align="middle" valign="bottom"/>
+<text str="Q" x="75" y="65" align="center" valign="bottom"/>
 <path>
 <move x="71" y="55"/>
 <line x="79" y="55"/>
@@ -414,15 +414,15 @@
 <stroke/>
 <fontcolor color="#000000"/>
 <fontsize size="12"/>
-<text str="J" x="25" y="35" align="middle" valign="bottom"/>
-<text str="K" x="25" y="75" align="middle" valign="bottom"/>
-<text str="Q" x="75" y="35" align="middle" valign="bottom"/>
+<text str="J" x="25" y="35" align="center" valign="bottom"/>
+<text str="K" x="25" y="75" align="center" valign="bottom"/>
+<text str="Q" x="75" y="35" align="center" valign="bottom"/>
 <path>
 <move x="80" y="70"/>
 <line x="100" y="70"/>
 </path>
 <stroke/>
-<text str="Q" x="75" y="75" align="middle" valign="bottom"/>
+<text str="Q" x="75" y="75" align="center" valign="bottom"/>
 <path>
 <move x="71" y="65"/>
 <line x="79" y="65"/>
@@ -446,7 +446,7 @@
 <stroke/>
 <ellipse x="48" y="6" w="4" h="4"/>
 <fillstroke/>
-<text str="C" x="50" y="20" align="middle" valign="bottom"/>
+<text str="C" x="50" y="20" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="JK Flip-Flop With SR" h="100" w="100" aspect="variable" strokewidth="inherit">
@@ -481,15 +481,15 @@
 <stroke/>
 <fontcolor color="#000000"/>
 <fontsize size="12"/>
-<text str="J" x="25" y="35" align="middle" valign="bottom"/>
-<text str="K" x="25" y="75" align="middle" valign="bottom"/>
-<text str="Q" x="75" y="35" align="middle" valign="bottom"/>
+<text str="J" x="25" y="35" align="center" valign="bottom"/>
+<text str="K" x="25" y="75" align="center" valign="bottom"/>
+<text str="Q" x="75" y="35" align="center" valign="bottom"/>
 <path>
 <move x="80" y="70"/>
 <line x="100" y="70"/>
 </path>
 <stroke/>
-<text str="Q" x="75" y="75" align="middle" valign="bottom"/>
+<text str="Q" x="75" y="75" align="center" valign="bottom"/>
 <path>
 <move x="71" y="65"/>
 <line x="79" y="65"/>
@@ -511,13 +511,13 @@
 <line x="50" y="10"/>
 </path>
 <stroke/>
-<text str="S" x="50" y="20" align="middle" valign="bottom"/>
+<text str="S" x="50" y="20" align="center" valign="bottom"/>
 <path>
 <move x="50" y="90"/>
 <line x="50" y="100"/>
 </path>
 <stroke/>
-<text str="R" x="50" y="89" align="middle" valign="bottom"/>
+<text str="R" x="50" y="89" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="Lowpass Filter" h="46" w="52" aspect="variable" strokewidth="inherit">
@@ -677,15 +677,15 @@
 <stroke/>
 <fontcolor color="#000000"/>
 <fontsize size="12"/>
-<text str="S" x="25" y="25" align="middle" valign="bottom"/>
-<text str="R" x="25" y="65" align="middle" valign="bottom"/>
-<text str="Q" x="75" y="25" align="middle" valign="bottom"/>
+<text str="S" x="25" y="25" align="center" valign="bottom"/>
+<text str="R" x="25" y="65" align="center" valign="bottom"/>
+<text str="Q" x="75" y="25" align="center" valign="bottom"/>
 <path>
 <move x="80" y="60"/>
 <line x="100" y="60"/>
 </path>
 <stroke/>
-<text str="Q" x="75" y="65" align="middle" valign="bottom"/>
+<text str="Q" x="75" y="65" align="center" valign="bottom"/>
 <path>
 <move x="71" y="55"/>
 <line x="79" y="55"/>
@@ -770,15 +770,15 @@
 <stroke/>
 <fontcolor color="#000000"/>
 <fontsize size="12"/>
-<text str="S" x="25" y="25" align="middle" valign="bottom"/>
-<text str="R" x="25" y="65" align="middle" valign="bottom"/>
-<text str="Q" x="75" y="25" align="middle" valign="bottom"/>
+<text str="S" x="25" y="25" align="center" valign="bottom"/>
+<text str="R" x="25" y="65" align="center" valign="bottom"/>
+<text str="Q" x="75" y="25" align="center" valign="bottom"/>
 <path>
 <move x="80" y="60"/>
 <line x="100" y="60"/>
 </path>
 <stroke/>
-<text str="Q" x="75" y="65" align="middle" valign="bottom"/>
+<text str="Q" x="75" y="65" align="center" valign="bottom"/>
 <path>
 <move x="71" y="55"/>
 <line x="79" y="55"/>
@@ -826,14 +826,14 @@
 <stroke/>
 <fontcolor color="#000000"/>
 <fontsize size="12"/>
-<text str="T" x="25" y="25" align="middle" valign="bottom"/>
-<text str="Q" x="75" y="25" align="middle" valign="bottom"/>
+<text str="T" x="25" y="25" align="center" valign="bottom"/>
+<text str="Q" x="75" y="25" align="center" valign="bottom"/>
 <path>
 <move x="80" y="60"/>
 <line x="100" y="60"/>
 </path>
 <stroke/>
-<text str="Q" x="75" y="65" align="middle" valign="bottom"/>
+<text str="Q" x="75" y="65" align="center" valign="bottom"/>
 <path>
 <move x="71" y="55"/>
 <line x="79" y="55"/>

@@ -1,5 +1,5 @@
 /**
- * $Id: mxConnectionHandler.js,v 1.209 2012-06-17 10:46:52 gaudenz Exp $
+ * $Id: mxConnectionHandler.js,v 1.210 2012-07-11 17:18:56 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1204,6 +1204,9 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 				if (dx > this.graph.tolerance || dy > this.graph.tolerance)
 				{
 					this.shape = this.createShape();
+					
+					// Revalidates current connection
+					this.updateCurrentState(me);
 				}
 			}
 

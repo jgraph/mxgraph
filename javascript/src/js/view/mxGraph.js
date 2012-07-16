@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.692 2012-06-20 14:13:36 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.693 2012-07-16 13:02:19 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1200,8 +1200,7 @@ mxGraph.prototype.ignoreScrollbars = false;
  * 
  * Specifies if the size of the graph should be automatically extended if the
  * mouse goes near the container edge while dragging. This is only taken into
- * account if the container has scrollbars. Default is true. See <autoScroll>
- * for a trick to enable this without using scrollbars in the container.
+ * account if the container has scrollbars. Default is true. See <autoScroll>.
  */
 mxGraph.prototype.autoExtend = true;
 
@@ -1479,14 +1478,16 @@ mxGraph.prototype.imageBundles = null;
 /**
  * Variable: minFitScale
  * 
- * Specifies the minimum scale to be applied in <fit>. Default is 0.1.
+ * Specifies the minimum scale to be applied in <fit>. Default is 0.1. Set this
+ * to null to allow any value.
  */
 mxGraph.prototype.minFitScale = 0.1;
 
 /**
  * Variable: maxFitScale
  * 
- * Specifies the maximum scale to be applied in <fit>. Default is 8.
+ * Specifies the maximum scale to be applied in <fit>. Default is 8. Set this
+ * to null to allow any value.
  */
 mxGraph.prototype.maxFitScale = 8;
 
@@ -1908,6 +1909,7 @@ mxGraph.prototype.processChange = function(change)
 	// Requires a new mxShape in JavaScript
 	else if (change instanceof mxStyleChange)
 	{
+		this.view.invalidate(change.cell, true, true, false);
 		this.view.removeState(change.cell);
 	}
 	
@@ -5675,7 +5677,6 @@ mxGraph.prototype.getConnectionPoint = function(vertex, constraint)
 		var bounds = this.view.getPerimeterBounds(vertex);
         var cx = new mxPoint(bounds.getCenterX(), bounds.getCenterY());
 
-		// FIXME: Implement STENCIL_FLIP_V/H for stencil shapes
 		var direction = vertex.style[mxConstants.STYLE_DIRECTION];
 		var r1 = 0;
 		
@@ -5705,11 +5706,42 @@ mxGraph.prototype.getConnectionPoint = function(vertex, constraint)
 				bounds.height = tmp;
 			}
 		}
-		
+
 		if (constraint.point != null)
 		{
-			point = new mxPoint(bounds.x + constraint.point.x * bounds.width,
-					bounds.y + constraint.point.y * bounds.height);
+			var sx = 1;
+			var sy = 1;
+			var dx = 0;
+			var dy = 0;
+			
+			// LATER: Add flipping support for image shapes
+			if (vertex.shape instanceof mxStencilShape)
+			{
+				var flipH = vertex.style[mxConstants.STYLE_STENCIL_FLIPH];
+				var flipV = vertex.style[mxConstants.STYLE_STENCIL_FLIPV];
+				
+				if (direction == 'north' || direction == 'south')
+				{
+					var tmp = flipH;
+					flipH = flipV;
+					flipV = tmp;
+				}
+				
+				if (flipH)
+				{
+					sx = -1;
+					dx = -bounds.width;
+				}
+				
+				if (flipV)
+				{
+					sy = -1;
+					dy = -bounds.height ;
+				}
+			}
+			
+			point = new mxPoint(bounds.x + constraint.point.x * bounds.width * sx - dx,
+					bounds.y + constraint.point.y * bounds.height * sy - dy);
 		}
 		
 		// Rotation for direction before projection on perimeter
@@ -6660,8 +6692,8 @@ mxGraph.prototype.fit = function(border, keepOrigin)
 		border = (border != null) ? border : 0;
 		keepOrigin = (keepOrigin != null) ? keepOrigin : false;
 		
-		var w1 = this.container.offsetWidth - 3;
-		var h1 = this.container.offsetHeight - 3;
+		var w1 = this.container.clientWidth;
+		var h1 = this.container.clientHeight;
 
 		var bounds = this.view.getGraphBounds();
 
@@ -6686,15 +6718,34 @@ mxGraph.prototype.fit = function(border, keepOrigin)
 		
 		var b = (keepOrigin) ? border : 2 * border;
 		var s2 = Math.floor(Math.min(w1 / (w2 + b), h1 / (h2 + b)) * 100) / 100;
-		
-		if (s2 > this.minFitScale && s2 < this.maxFitScale)
+
+		if ((this.minFitScale == null || s2 > this.minFitScale) && (this.maxFitScale == null || s2 < this.maxFitScale))
 		{
 			if (!keepOrigin)
 			{
-				var x0 = (bounds.x != null) ? Math.floor(this.view.translate.x - bounds.x / s + border + 1) : border;
-				var y0 = (bounds.y != null) ? Math.floor(this.view.translate.y - bounds.y / s + border + 1) : border;
+				if (!mxUtils.hasScrollbars(this.container))
+				{
+					var x0 = (bounds.x != null) ? Math.floor(this.view.translate.x - bounds.x / s + border + 1) : border;
+					var y0 = (bounds.y != null) ? Math.floor(this.view.translate.y - bounds.y / s + border + 1) : border;
 
-				this.view.scaleAndTranslate(s2, x0, y0);
+					this.view.scaleAndTranslate(s2, x0, y0);
+				}
+				else
+				{
+					this.view.setScale(s2);
+					
+					if (bounds.x != null)
+					{
+						this.container.scrollLeft = Math.round(bounds.x / s) * s2 - border -
+							Math.max(0, (this.container.clientWidth - w2 * s2) / 2);
+					}
+					
+					if (bounds.y != null)
+					{
+						this.container.scrollTop = Math.round(bounds.y / s) * s2 - border -
+							Math.max(0, (this.container.clientHeight - h2 * s2) / 2);
+					}
+				}
 			}
 			else
 			{
@@ -7081,9 +7132,9 @@ mxGraph.prototype.isEdgeValid = function(edge, source, target)
  * is valid, a return value of '' means it's not valid, but do not display
  * an error message. Any other (non-empty) string returned from this method
  * is displayed as an error message when trying to connect an edge to a
- * source and target. This implementation uses the <multiplicities>, as
- * well as <multigraph> and <allowDanglingEdges> to generate validation
- * errors.
+ * source and target. This implementation uses the <multiplicities>, and
+ * checks <multigraph>, <allowDanglingEdges> and <allowLoops> to generate
+ * validation errors.
  * 
  * For extending this method with specific checks for source/target cells,
  * the method can be extended as follows. Returning an empty string means

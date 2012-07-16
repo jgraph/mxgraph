@@ -1,5 +1,5 @@
 /**
- * $Id: Editor.js,v 1.46 2012-06-15 14:51:14 gaudenz Exp $
+ * $Id: Editor.js,v 1.47 2012-07-15 08:46:38 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 // Specifies if local storage should be used (eg. on the iPad which has no filesystem)
@@ -87,13 +87,13 @@ Editor = function()
 	
 	// Installs dialog if browser window is closed without saving
 	// This must be disabled during save and image export
-	window.onbeforeunload = function()
+	window.onbeforeunload = mxUtils.bind(this, function()
 	{
-		if (modified)
+		if (this.modified)
 		{
 			return mxResources.get('allChangesLost');
 		}
-	};
+	});
 	
 	// Sets persistent graph state defaults
 	this.graph.resetViewOnRootChange = false;

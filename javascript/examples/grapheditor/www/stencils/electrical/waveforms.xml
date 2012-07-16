@@ -299,14 +299,14 @@
 <stroke/>
 <fontcolor color="#000000"/>
 <fontsize size="12"/>
-<text str="10s" x="49" y="3" align="middle" valign="bottom"/>
+<text str="10s" x="49" y="3" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="Timing Mark 1" h="100" w="5" aspect="variable" strokewidth="inherit">
 <foreground>
 
 <dashed dashed="1"/>
-<dashpattern pattern="5,5"/>
+<dashpattern pattern="5 5"/>
 <path>
 <move x="2.5" y="0"/>
 <line x="2.5" y="100"/>
@@ -318,7 +318,7 @@
 <foreground>
 
 <dashed dashed="1"/>
-<dashpattern pattern="5,5"/>
+<dashpattern pattern="5 5"/>
 <path>
 <move x="50" y="0"/>
 <line x="50" y="100"/>
@@ -335,7 +335,7 @@
 <foreground>
 
 <dashed dashed="1"/>
-<dashpattern pattern="5,5"/>
+<dashpattern pattern="5 5"/>
 <path>
 <move x="0" y="2.5"/>
 <line x="100" y="2.5"/>

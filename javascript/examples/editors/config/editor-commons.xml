@@ -2,7 +2,7 @@
 	<ui>
 		<resource basename="resources/mxApplication"/>
 	</ui>
-	<mxDefaultPopupMenu as="popupHandler">		
+	<mxDefaultPopupMenu as="popupHandler">
 		<add as="cut" action="cut" icon="images/cut.gif"/>
 		<add as="copy" action="copy" icon="images/copy.gif"/>
 		<add as="paste" action="paste" icon="images/paste.gif"/>

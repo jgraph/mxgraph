@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.js,v 1.291 2012-05-29 14:30:24 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.293 2012-07-15 15:20:00 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxUtils =
@@ -1990,7 +1990,7 @@ var mxUtils =
             result = new mxRectangle(p1.x, p1.y, 0, 0);
             result.add(new mxRectangle(p2.x, p2.y, 0, 0));
             result.add(new mxRectangle(p3.x, p3.y, 0, 0));
-            result.add(new mxRectangle(p4.x, p4.Y, 0, 0));
+            result.add(new mxRectangle(p4.x, p4.y, 0, 0));
         }
 
         return result;
@@ -3163,7 +3163,7 @@ var mxUtils =
 		var div = document.createElement('div');
 		
 		// Sets the font size and family if non-default
-		div.style.fontSize = fontSize || mxConstants.DEFAULT_FONTSIZE;
+		div.style.fontSize = (fontSize || mxConstants.DEFAULT_FONTSIZE) + 'px';
 		div.style.fontFamily = fontFamily || mxConstants.DEFAULT_FONTFAMILY;
 		
 		// Disables block layout and outside wrapping and hides the div

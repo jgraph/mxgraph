@@ -1,5 +1,5 @@
 /**
- * $Id: Sidebar.js,v 1.62 2012-06-08 15:07:04 gaudenz Exp $
+ * $Id: Sidebar.js,v 1.66 2012-07-16 07:50:17 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -11,9 +11,6 @@ function Sidebar(editorUi, container)
 	this.container = container;
 	this.palettes = new Object();
 	this.showTooltips = true;
-
-	// Note: For this to work in IE8 standards mode all containers must be in the DOM at this point
-	// including the actual graph container so that VML references can be restored in mxShape.init.
 	this.graph = new Graph(document.createElement('div'), null, null, this.editorUi.editor.graph.getStylesheet());
 	this.graph.foldingEnabled = false;
 	this.graph.autoScroll = false;
@@ -22,6 +19,13 @@ function Sidebar(editorUi, container)
 	this.graph.resetViewOnRootChange = false;
 	this.graph.view.setTranslate(this.thumbBorder, this.thumbBorder);
 	this.graph.setEnabled(false);
+
+	// Workaround for VML rendering in IE8 standards mode where the container must be in the DOM
+	// so that VML references can be restored via document.getElementById in mxShape.init.
+	if (document.documentMode == 8)
+	{
+		document.body.appendChild(this.graph.container);
+	}
 	
 	// Workaround for no rendering in 0 coordinate in FF 10
 	if (this.shiftThumbs)
@@ -77,7 +81,6 @@ function Sidebar(editorUi, container)
 	
 	this.init();
 	
-	
 	// Pre-fetches tooltip image
 	new Image().src = IMAGE_PATH + '/tooltip.png';
 };
@@ -114,7 +117,7 @@ Sidebar.prototype.enableTooltips = !mxClient.IS_TOUCH;
 /**
  * Shifts the thumbnail by 1 px.
  */
-Sidebar.prototype.shiftThumbs = mxClient.IS_SVG;
+Sidebar.prototype.shiftThumbs = mxClient.IS_SVG || document.documentMode == 8;
 
 /**
  * Specifies the delay for the tooltip. Default is 16 px.
@@ -190,6 +193,8 @@ Sidebar.prototype.showTooltip = function(elt, cells)
 				{
 					this.tooltip = document.createElement('div');
 					this.tooltip.className = 'geSidebarTooltip';
+					document.body.appendChild(this.tooltip);
+					
 					this.graph2 = new Graph(this.tooltip, null, null, this.editorUi.editor.graph.getStylesheet());
 					this.graph2.view.setTranslate(this.tooltipBorder, this.tooltipBorder);
 					this.graph2.resetViewOnRootChange = false;
@@ -203,8 +208,8 @@ Sidebar.prototype.showTooltip = function(elt, cells)
 					this.tooltipImage.style.position = 'absolute';
 					this.tooltipImage.style.width = '14px';
 					this.tooltipImage.style.height = '27px';
-					document.body.appendChild(this.tooltip);
-					document.body.appendChild(this.tooltipImage);
+					
+					document.body.appendChild(this.tooltipImage);				
 				}
 				
 				this.graph2.model.clear();
@@ -779,6 +784,12 @@ Sidebar.prototype.createThumb = function(cells, width, height, parent)
 	{
 		node = this.graph.view.getCanvas().ownerSVGElement.cloneNode(true);
 	}
+	// Workaround for VML rendering in IE8 standards mode
+	else if (document.documentMode == 8)
+	{
+		node = this.graph.container.cloneNode(false);
+		node.innerHTML = this.graph.container.innerHTML;
+	}
 	else
 	{
 		node = this.graph.container.cloneNode(true);
@@ -789,7 +800,7 @@ Sidebar.prototype.createThumb = function(cells, width, height, parent)
 	// Outer dimension is (32, 32)
 	var dd = (this.shiftThumbs) ? 2 : 3;
 	node.style.position = 'relative';
-	node.style.overflow = 'hidden';
+	node.style.overflow = 'visible';
 	node.style.cursor = 'pointer';
 	node.style.left = (dx + dd) + 'px';
 	node.style.top = (dy + dd) + 'px';

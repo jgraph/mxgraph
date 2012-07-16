@@ -148,6 +148,7 @@
 	padding-top:6px;
 	padding-bottom:6px;
 	padding-left:2px;
+	overflow:hidden;
 }
 .geSidebarContainer .geTitle {
 	display:block;
@@ -168,7 +169,6 @@
 }
 .geSidebar .geItem {
 	display:inline-block;
-	overflow:hidden;
 	background-repeat: no-repeat;
 	background-position: 50% 50%;
 	border:1px solid transparent;

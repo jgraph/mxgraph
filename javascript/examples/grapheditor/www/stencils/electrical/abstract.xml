@@ -166,7 +166,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="24"/>
-<text str="fn" x="25" y="35" align="middle" valign="bottom"/>
+<text str="fn" x="25" y="35" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="Integrator" h="50" w="50" aspect="variable" strokewidth="inherit">
@@ -725,7 +725,7 @@
 <stroke/>
 <fontcolor color="#000000"/>
 <fontsize size="12"/>
-<text str="\temp\" x="54.25" y="19.5" align="middle" valign="bottom"/>
+<text str="\temp\" x="54.25" y="19.5" align="center" valign="bottom"/>
 <path>
 <move x="87" y="0"/>
 <line x="75.3" y="14"/>

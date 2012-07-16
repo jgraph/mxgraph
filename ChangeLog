@@ -1,3 +1,23 @@
+16-JUL-2012: 1.10.1.5
+
+- Adds handling for rotation in mxGraphView.updateFloatingTerminalPoint [JavaScript]
+- Adds mxShape.strokewidth, reparseVml, uses rotation in updateBoundingBox [JavaScript]
+- Fixes HTML label bounds for overflow:fill in IE8 standards mode [JavaScript]
+- Adds handling for stencilFlipH/-V in mxGraph.getConnectionPoint [JavaScript]
+- Invalidates connected edges after style changes in mxGraph.processChange [JavaScript]
+- Allows null for mxGraph.minFitScale, maxFitScale to ignore values [JavaScript]
+- Fixes wrong y coordinate in result of mxUtils.getBoundingBox [JavaScript]
+- Fixes grapheditor example sidebar for IE8 standards mode [JavaScript]
+- Fixes VML rendering in stencils for IE8 standards mode [JavaScript]
+- Fixes validation in mxConnectionHandler after activation [JavaScript]
+- Adds mxGraphicsCanvas2D.getTextRenderer hook [Java]
+- Adds missing unit in mxUtils.getSizeForString [JavaScript]
+- Ignores empty dash patterns in mxGraphics/GdiCanvas2D [Dotnet,Java]
+- Adds support for rotated vertex highlights in mxCellHighlight [JavaScript]
+- Fixes use of setAttribute for strokecolors in mxEdgeHandle, mxCellHighlight [JavaScript]
+- Fixes event handling for right click during drag in mxDragSource for IE [JavaScript] 
+- Enables override of mxCellOverlay.(vertical)Align via prototype [JavaScript]
+
 02-JUL-2012: 1.10.1.4
 
 - Adds mxCellHandler.destroy, call in mxSelectionCellsHandler [Java]

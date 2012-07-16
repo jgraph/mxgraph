@@ -787,13 +787,13 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="24"/>
-<text str="Nf" x="25" y="30" align="middle" valign="bottom"/>
+<text str="Nf" x="25" y="30" align="center" valign="bottom"/>
 <path>
 <move x="0" y="80"/>
 <line x="80" y="0"/>
 </path>
 <stroke/>
-<text str="f" x="55" y="70" align="middle" valign="bottom"/>
+<text str="f" x="55" y="70" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="Down Converter" h="80" w="80" aspect="variable" strokewidth="inherit">

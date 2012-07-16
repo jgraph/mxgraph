@@ -11,7 +11,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="12"/>
-<text str="AND" x="30" y="46" align="middle" valign="bottom"/>
+<text str="AND" x="30" y="46" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="NAND" h="80" w="66" aspect="variable" strokewidth="inherit">
@@ -26,7 +26,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="12"/>
-<text str="NAND" x="30" y="46" align="middle" valign="bottom"/>
+<text str="NAND" x="30" y="46" align="center" valign="bottom"/>
 <ellipse x="60" y="37" w="6" h="6"/>
 <fillstroke/>
 </foreground>
@@ -45,7 +45,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="12"/>
-<text str="1" x="35" y="46" align="middle" valign="bottom"/>
+<text str="1" x="35" y="46" align="center" valign="bottom"/>
 <save/>
 <strokecolor color="#000000"/>
 <strokewidth width="1"/>
@@ -78,7 +78,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="12"/>
-<text str="=1" x="30" y="46" align="middle" valign="bottom"/>
+<text str="=1" x="30" y="46" align="center" valign="bottom"/>
 <ellipse x="60" y="37" w="6" h="6"/>
 <fillstroke/>
 </foreground>
@@ -95,7 +95,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="12"/>
-<text str="1" x="35" y="46" align="middle" valign="bottom"/>
+<text str="1" x="35" y="46" align="center" valign="bottom"/>
 <save/>
 <strokecolor color="#000000"/>
 <strokewidth width="1"/>
@@ -128,7 +128,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="12"/>
-<text str="=1" x="30" y="46" align="middle" valign="bottom"/>
+<text str="=1" x="30" y="46" align="center" valign="bottom"/>
 </foreground>
 </shape>
 </shapes>

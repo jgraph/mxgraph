@@ -33,6 +33,8 @@ public class Export : IHttpHandler
         {
             context.Response.ContentType = "image/png";
 
+            // NOTE: To create the XML in JavaScript, use the following code:
+            // var xml = mxUtils.getXml(mxUtils.getViewXml(graph, 1), '\n');
             XmlTextReader xmlReader = new XmlTextReader(new StringReader(xml));
             mxGraphViewImageReader viewReader = new mxGraphViewImageReader(
                 xmlReader, Color.White, 4, true, true);

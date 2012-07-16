@@ -1,5 +1,5 @@
 /**
- * $Id: mxImageExport.js,v 1.44 2012-05-21 10:17:17 gaudenz Exp $
+ * $Id: mxImageExport.js,v 1.45 2012-07-16 11:54:20 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -223,6 +223,15 @@ mxImageExport.prototype.drawShape = function(state, canvas, shape)
 	var rotation = mxUtils.getNumber(state.style, mxConstants.STYLE_ROTATION, 0);
 	var direction = mxUtils.getValue(state.style, mxConstants.STYLE_DIRECTION, null);
 
+	// New styles for shape flipping the stencil
+	var flipH = state.style[mxConstants.STYLE_STENCIL_FLIPH];
+	var flipV = state.style[mxConstants.STYLE_STENCIL_FLIPV];
+	
+	if (flipH ? !flipV : flipV)
+	{
+		rotation *= -1;
+	}
+	
 	// Default direction is east (ignored if rotation exists)
 	if (direction != null)
 	{
@@ -240,10 +249,6 @@ mxImageExport.prototype.drawShape = function(state, canvas, shape)
 		}
 	}
 
-	// New styles for shape flipping the stencil
-	var flipH = state.style[mxConstants.STYLE_STENCIL_FLIPH];
-	var flipV = state.style[mxConstants.STYLE_STENCIL_FLIPV];
-	
 	if (flipH && flipV)
 	{
 		rotation += 180;

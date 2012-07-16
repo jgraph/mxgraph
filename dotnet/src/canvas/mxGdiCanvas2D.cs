@@ -1,4 +1,4 @@
-// $Id: mxGdiCanvas2D.cs,v 1.14 2012-06-28 10:34:02 gaudenz Exp $
+// $Id: mxGdiCanvas2D.cs,v 1.16 2012-07-10 11:45:58 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Drawing;
@@ -217,19 +217,14 @@ namespace com.mxgraph
         {
             set
             {
-		        if (!state.dashPattern.Equals(value))
+		        if (value != null && !state.dashPattern.Equals(value) && value.Length > 0)
 		        {
-			        float[] dashpattern = null;
+			        String[] tokens = value.Split(' ');
+                    float[] dashpattern = new float[tokens.Length];
 
-			        if (state.dashed && state.dashPattern != null)
+			        for (int i = 0; i < tokens.Length; i++)
 			        {
-				        String[] tokens = value.Split(' ');
-				        dashpattern = new float[tokens.Length];
-
-				        for (int i = 0; i < tokens.Length; i++)
-				        {
-					        dashpattern[i] = (float) (float.Parse(tokens[i]));
-				        }
+				        dashpattern[i] = (float) (float.Parse(tokens[i]));
 			        }
 
 			        state.dashPattern = dashpattern;

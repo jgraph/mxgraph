@@ -1,5 +1,5 @@
 /**
- * $Id: mxDefaultPopupMenu.js,v 1.28 2012-01-09 09:44:22 gaudenz Exp $
+ * $Id: mxDefaultPopupMenu.js,v 1.29 2012-07-03 06:30:25 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -103,7 +103,7 @@ mxDefaultPopupMenu.prototype.config = null;
  * (code)
  * <mxDefaultPopupMenu as="popupHandler">
  *   <add as="action1"><![CDATA[
- *		function (editor, cell)
+ *		function (editor, cell, evt)
  *		{
  *			editor.execute('action1', cell, 'myArg');
  *		}
@@ -116,7 +116,9 @@ mxDefaultPopupMenu.prototype.config = null;
  * defines action1. If the add-node has no action-attribute, then only the
  * function defined in the text content is executed, otherwise first the
  * function and then the action defined in the action-attribute is
- * executed.
+ * executed. The function in the text content has 3 arguments, namely the
+ * <mxEditor> instance, the <mxCell> instance under the mouse, and the
+ * native mouse event.
  *
  * Custom Conditions:
  *

@@ -1,5 +1,5 @@
 /**
- * $Id: mxStencil.js,v 1.88 2012-06-29 23:00:45 gaudenz Exp $
+ * $Id: mxStencil.js,v 1.91 2012-07-16 10:22:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -235,8 +235,18 @@ mxStencil.prototype.evaluateAttribute = function(node, attribute, state)
 mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 {
 	var vml = shape.dialect != mxConstants.DIALECT_SVG;
+	var vmlScale = (document.documentMode == 8) ? 1 : shape.vmlScale;
 	var rotation = shape.rotation || 0;
 	var inverse = false;
+	
+	// New styles for shape flipping the stencil
+	var flipH = shape.style[mxConstants.STYLE_STENCIL_FLIPH];
+	var flipV = shape.style[mxConstants.STYLE_STENCIL_FLIPV];
+	
+	if (flipH ? !flipV : flipV)
+	{
+		rotation *= -1;
+	}
 	
 	// Default direction is east (ignored if rotation exists)
 	if (shape.direction != null)
@@ -256,11 +266,7 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 
 		inverse = (shape.direction == 'north' || shape.direction == 'south');
 	}
-	
-	// New styles for shape flipping the stencil
-	var flipH = shape.style[mxConstants.STYLE_STENCIL_FLIPH];
-	var flipV = shape.style[mxConstants.STYLE_STENCIL_FLIPV];
-	
+
 	if (flipH && flipV)
 	{
 		rotation += 180;
@@ -272,8 +278,7 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 	var svgTransform = '';
 
 	// Implements direction style and vertical/horizontal flip
-	// via container transformation. Note that the transformation
-	// is not applied to labels in VML so this needs fixing.
+	// via container transformation.
 	if (vml)
 	{
 		if (flipH)
@@ -366,13 +371,12 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 		}
 		
 		// Workaround to improve VML rendering precision.
-		// Default vmlScale is 4.
 		if (vml)
 		{
-			sx *= shape.vmlScale;
-			sy *= shape.vmlScale;
-			x0 *= shape.vmlScale;
-			y0 *= shape.vmlScale;
+			sx *= vmlScale;
+			sy *= vmlScale;
+			x0 *= vmlScale;
+			y0 *= vmlScale;
 		}
 		
 		var minScale = Math.min(sx, sy);
@@ -387,7 +391,7 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 			stroke: shape.stroke,
 			strokeWidth: (this.strokewidth == 'inherit') ?
 				Number(shape.strokewidth) * shape.scale :
-				Number(this.strokewidth) * minScale / ((vml) ? shape.vmlScale : 1),
+				Number(this.strokewidth) * minScale / ((vml) ? vmlScale : 1),
 			dashed: shape.isDashed,
 			dashpattern: [3, 3],
 			alpha: shape.opacity,
@@ -451,19 +455,6 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 			}
 		};
 		
-		var addToParent = function(node)
-		{
-			if (document.documentMode == 8)
-			{
-				// Must be added as text in IE8 standards mode
-				parentNode.insertAdjacentHTML('beforeEnd', node.outerHTML);
-			}
-			else
-			{
-				parentNode.appendChild(node);
-			}
-		};
-		
 		var addToPath = function(s)
 		{
 			if (currentPath != null && currentPoints != null)
@@ -503,8 +494,8 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 				{
 					currentPath = document.createElement('v:shape');
 					configurePath.call(this, currentPath, currentState);
-					var w = Math.round(bounds.width) * shape.vmlScale;
-					var h = Math.round(bounds.height) * shape.vmlScale;
+					var w = Math.round(bounds.width) * vmlScale;
+					var h = Math.round(bounds.height) * vmlScale;
 					currentPath.style.width = w + 'px';
 					currentPath.style.height = h + 'px';
 					currentPath.coordsize = w + ',' + h;
@@ -820,7 +811,7 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 						}
 					}
 					
-					addToParent(currentPath);
+					parentNode.appendChild(currentPath);
 				}
 			}
 			else if (name == 'include-shape')
@@ -853,13 +844,13 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 					if (vml)
 					{
 						// Renders a single line of text with full rotation support
-						currentPath = document.createElement('v:line');
+						currentPath = document.createElement('v:shape');
 						currentPath.style.position = 'absolute';
 						currentPath.style.width = '1px';
 						currentPath.style.height = '1px';
-						currentPath.to = (x + 1) + ' ' + y;
-						currentPath.from = x + ' ' + y;
-
+						currentPath.style.left = x + 'px';
+						currentPath.style.top = y + 'px';
+						
 						var fill = document.createElement('v:fill');
 						fill.color = currentState.fontColor;
 						fill.on = 'true';
@@ -871,11 +862,14 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 						
 						var path = document.createElement('v:path');
 						path.textpathok = 'true';
+						path.v = 'm ' + x + ' ' + y + ' l ' + (x + 1) + ' ' + y;
+						
 						currentPath.appendChild(path);
 						
 						var tp = document.createElement('v:textpath');
 						tp.style.cssText = 'v-text-align:' + align;
-						tp.style.fontSize = (currentState.fontSize / shape.vmlScale) + 'px';
+						tp.style.fontSize = Math.round(currentState.fontSize / vmlScale) + 'px';
+						
 						// FIXME: Font-family seems to be ignored for textpath
 						tp.style.fontFamily = currentState.fontFamily;
 						tp.string = str;
@@ -902,11 +896,11 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 						// LATER: Find vertical center for div via CSS if possible
 						if (valign == 'top')
 						{
-							currentPath.style.top = (currentState.fontSize / 2) + 'px';
+							currentPath.style.top = (y + currentState.fontSize / 2) + 'px';
 						}
 						else if (valign == 'bottom')
 						{
-							currentPath.style.top = -(currentState.fontSize / 3) + 'px';
+							currentPath.style.top = (y - currentState.fontSize / 3) + 'px';
 						}
 						
 						currentPath.appendChild(tp);
@@ -978,7 +972,7 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 						}
 					}
 
-					addToParent(currentPath);
+					parentNode.appendChild(currentPath);
 				}
 			}
 			else if (fillOp || strokeOp || fillStrokeOp)
@@ -1122,7 +1116,7 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 						}
 					}
 					
-					addToParent(currentPath);
+					parentNode.appendChild(currentPath);
 				}
 				
 				// Background was painted
@@ -1151,7 +1145,7 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 			{
 				var value = node.getAttribute('pattern');
 				
-				if (value != null)
+				if (value != null && value.length > 0)
 				{
 					currentState.dashpattern = value.split(' ');
 				}
@@ -1162,7 +1156,7 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 				
 				if (vml)
 				{
-					currentState.strokeWidth /= shape.vmlScale;
+					currentState.strokeWidth /= vmlScale;
 				}
 			}
 			else if (name == 'strokecolor')

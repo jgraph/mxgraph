@@ -1,5 +1,5 @@
 /**
- * $Id: mxClient.js,v 1.201 2012-05-28 17:09:03 gaudenz Exp $
+ * $Id: mxClient.js,v 1.202 2012-07-16 15:08:56 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClient =
@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.10.1.4.
+	 * Current version is 1.10.1.5.
 	 */
-	VERSION: '1.10.1.4',
+	VERSION: '1.10.1.5',
 
 	/**
 	 * Variable: IS_IE
@@ -275,7 +275,7 @@ var mxClient =
  *
  * (code)
  * <script type="text/javascript">
- * 		mxLoadResources = false;
+ * 		var mxLoadResources = false;
  * </script>
  * <script type="text/javascript" src="/path/to/core/directory/js/mxClient.js"></script>
  * (end)
@@ -294,7 +294,7 @@ if (typeof(mxLoadResources) == 'undefined')
  *
  * (code)
  * <script type="text/javascript">
- * 		mxLoadStylesheets = false;
+ * 		var mxLoadStylesheets = false;
  * </script>
  * <script type="text/javascript" src="/path/to/core/directory/js/mxClient.js"></script>
  * (end)

@@ -150,7 +150,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="50"/>
-<text str="V" x="45" y="70" align="middle" valign="bottom"/>
+<text str="V" x="45" y="70" align="center" valign="bottom"/>
 </foreground>
 </shape>
 </shapes>

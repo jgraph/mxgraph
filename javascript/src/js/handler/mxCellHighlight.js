@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellHighlight.js,v 1.21 2012-03-19 10:47:08 gaudenz Exp $
+ * $Id: mxCellHighlight.js,v 1.22 2012-07-09 16:59:25 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -98,7 +98,7 @@ mxCellHighlight.prototype.setHighlightColor = function(color)
 		}
 		else if (this.shape.dialect == mxConstants.DIALECT_VML)
 		{
-			this.shape.node.setAttribute('strokecolor', color);
+			this.shape.node.strokecolor = color;
 		}
 	}
 };
@@ -159,15 +159,31 @@ mxCellHighlight.prototype.createShape = function(state)
 	{
 		shape.setCursor(state.shape.getCursor());
 	}
+
+	var alpha = (!this.graph.model.isEdge(state.cell)) ? Number(state.style[mxConstants.STYLE_ROTATION] || '0') : 0;
 	
 	// Event-transparency
 	if (shape.dialect == mxConstants.DIALECT_SVG)
 	{
 		shape.node.setAttribute('style', 'pointer-events:none;');
+
+		if (alpha != 0)
+		{
+			var cx = state.getCenterX();
+			var cy = state.getCenterY();
+			var transform = 'rotate(' + alpha + ' ' + cx + ' ' + cy + ')';
+			
+			shape.node.setAttribute('transform', transform);
+		}
 	}
 	else
 	{
 		shape.node.style.background = '';
+		
+		if (alpha != 0)
+		{
+			shape.node.rotation = alpha;
+		}
 	}
 	
 	return shape;

@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellOverlay.js,v 1.16 2012-02-13 22:19:43 boris Exp $
+ * $Id: mxCellOverlay.js,v 1.17 2012-07-02 16:53:51 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -60,8 +60,8 @@ function mxCellOverlay(image, tooltip, align, verticalAlign, offset, cursor)
 {
 	this.image = image;
 	this.tooltip = tooltip;
-	this.align = align;
-	this.verticalAlign = verticalAlign;
+	this.align = (align != null) ? align : this.align;
+	this.verticalAlign = (verticalAlign != null) ? verticalAlign : this.verticalAlign;
 	this.offset = (offset != null) ? offset : new mxPoint();
 	this.cursor = (cursor != null) ? cursor : 'help';
 };
@@ -93,7 +93,7 @@ mxCellOverlay.prototype.tooltip = null;
  * <mxConstants.ALIGN_RIGHT>. For edges, the overlay always appears in the
  * center of the edge.
  */
-mxCellOverlay.prototype.align = null;
+mxCellOverlay.prototype.align = mxConstants.ALIGN_RIGHT;
 
 /**
  * Variable: verticalAlign
@@ -102,7 +102,7 @@ mxCellOverlay.prototype.align = null;
  * <mxConstants.ALIGN_BOTTOM>. For edges, the overlay always appears in the
  * center of the edge.
  */
-mxCellOverlay.prototype.verticalAlign = null;
+mxCellOverlay.prototype.verticalAlign = mxConstants.ALIGN_BOTTOM;
 
 /**
  * Variable: offset

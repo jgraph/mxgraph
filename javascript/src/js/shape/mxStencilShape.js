@@ -1,5 +1,5 @@
 /**
- * $Id: mxStencilShape.js,v 1.9 2012-05-22 16:10:12 gaudenz Exp $
+ * $Id: mxStencilShape.js,v 1.10 2012-07-16 10:22:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -101,16 +101,12 @@ mxStencilShape.prototype.configureHtmlShape = function(node)
 };
 
 /**
- * Function: createSvg
+ * Function: createVml
  *
- * Creates and returns the SVG node(s) to represent this shape.
+ * Creates and returns the VML node to represent this shape.
  */
 mxStencilShape.prototype.createVml = function()
 {
-	// TODO: VML group is required for rotation to work in mxStencil.
-	// DIV is used as a workaround for IE8 standards mode because VML
-	// groups don't seem to render with the outerHTML solution used in
-	// mxShape.init (same if delayed after renderDom in redrawShape).
 	var name = (document.documentMode == 8) ? 'div' : 'v:group';
 	var node = document.createElement(name);
 	this.configureTransparentBackground(node);
@@ -161,7 +157,6 @@ mxStencilShape.prototype.redrawShape = function()
 	// LATER: Update existing DOM nodes to improve repaint performance
 	if (this.dialect != mxConstants.DIALECT_SVG)
 	{
-		this.node.innerHTML = '';
 		this.node.style.left = Math.round(this.bounds.x) + 'px';
 		this.node.style.top = Math.round(this.bounds.y) + 'px';
 		var w = Math.round(this.bounds.width);
@@ -169,9 +164,37 @@ mxStencilShape.prototype.redrawShape = function()
 		this.node.style.width = w + 'px';
 		this.node.style.height = h + 'px';
 		
-		if (mxUtils.isVml(this.node))
+		var node = this.node;
+		
+		// Workaround for VML rendering bug in IE8 standards mode where all VML must be
+		// parsed via assigning the innerHTML of the parent HTML node to keep all event
+		// handlers referencing node and support rotation via v:group parent element. 
+		if (this.node.nodeName == 'DIV')
 		{
-			this.node.coordsize = (w * this.vmlScale) + ',' + (h * this.vmlScale);
+			node = document.createElement('v:group');
+			node.style.position = 'absolute';
+			node.style.left = '0px';
+			node.style.top = '0px';
+			node.style.width = w + 'px';
+			node.style.height = h + 'px';
+		}
+		else
+		{
+			node.innerHTML = '';
+		}
+
+		if (mxUtils.isVml(node))
+		{
+			var s = (document.documentMode != 8) ? this.vmlScale : 1;
+			node.coordsize = (w * s) + ',' + (h * s);
+		}
+		
+		this.stencil.renderDom(this, this.bounds, node);
+		
+		if(this.node != node)
+		{
+			// Forces parsing in IE8 standards mode
+			this.node.innerHTML = node.outerHTML;
 		}
 	}
 	else
@@ -180,7 +203,7 @@ mxStencilShape.prototype.redrawShape = function()
 		{
 			this.node.removeChild(this.node.firstChild);
 		}
+		
+		this.stencil.renderDom(this, this.bounds, this.node);
 	}
-	
-	this.stencil.renderDom(this, this.bounds, this.node);
 };

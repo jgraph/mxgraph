@@ -1,5 +1,5 @@
 /**
- * $Id: mxText.js,v 1.171 2012-06-06 12:32:28 gaudenz Exp $
+ * $Id: mxText.js,v 1.172 2012-07-16 14:42:11 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1026,10 +1026,11 @@ mxText.prototype.redrawHtmlTable = function()
 		}
 		else
 		{
+			s = (document.documentMode == 8) ? this.scale : 1;
 			table.style.left = Math.round(this.bounds.x + this.scale / 2) + 'px';
 			table.style.top = Math.round(this.bounds.y + this.scale / 2) + 'px';
-			table.style.width = Math.round(this.bounds.width - this.scale) + 'px';
-			table.style.height = Math.round(this.bounds.height - this.scale) + 'px';
+			table.style.width = Math.round((this.bounds.width - this.scale) / s) + 'px';
+			table.style.height = Math.round((this.bounds.height - this.scale) / s) + 'px';
 		}
 	}
 };

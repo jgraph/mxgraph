@@ -168,7 +168,7 @@
 <stroke/>
 <fontcolor color="#000000"/>
 <fontsize size="8"/>
-<text str="T" x="11.5" y="46" align="middle" valign="bottom"/>
+<text str="T" x="11.5" y="46" align="center" valign="bottom"/>
 <path>
 <move x="0" y="2"/>
 <line x="39.5" y="2"/>

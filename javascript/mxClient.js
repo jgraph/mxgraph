@@ -1,5 +1,5 @@
 /**
- * $Id: mxClient.js,v 1.201 2012-05-28 17:09:03 gaudenz Exp $
+ * $Id: mxClient.js,v 1.202 2012-07-16 15:08:56 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClient =
@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.10.1.4.
+	 * Current version is 1.10.1.5.
 	 */
-	VERSION: '1.10.1.4',
+	VERSION: '1.10.1.5',
 
 	/**
 	 * Variable: IS_IE
@@ -275,7 +275,7 @@ var mxClient =
  *
  * (code)
  * <script type="text/javascript">
- * 		mxLoadResources = false;
+ * 		var mxLoadResources = false;
  * </script>
  * <script type="text/javascript" src="/path/to/core/directory/js/mxClient.js"></script>
  * (end)
@@ -294,7 +294,7 @@ if (typeof(mxLoadResources) == 'undefined')
  *
  * (code)
  * <script type="text/javascript">
- * 		mxLoadStylesheets = false;
+ * 		var mxLoadStylesheets = false;
  * </script>
  * <script type="text/javascript" src="/path/to/core/directory/js/mxClient.js"></script>
  * (end)
@@ -1825,7 +1825,7 @@ var mxEffects =
 
 };
 /**
- * $Id: mxUtils.js,v 1.291 2012-05-29 14:30:24 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.293 2012-07-15 15:20:00 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxUtils =
@@ -3816,7 +3816,7 @@ var mxUtils =
             result = new mxRectangle(p1.x, p1.y, 0, 0);
             result.add(new mxRectangle(p2.x, p2.y, 0, 0));
             result.add(new mxRectangle(p3.x, p3.y, 0, 0));
-            result.add(new mxRectangle(p4.x, p4.Y, 0, 0));
+            result.add(new mxRectangle(p4.x, p4.y, 0, 0));
         }
 
         return result;
@@ -4989,7 +4989,7 @@ var mxUtils =
 		var div = document.createElement('div');
 		
 		// Sets the font size and family if non-default
-		div.style.fontSize = fontSize || mxConstants.DEFAULT_FONTSIZE;
+		div.style.fontSize = (fontSize || mxConstants.DEFAULT_FONTSIZE) + 'px';
 		div.style.fontFamily = fontFamily || mxConstants.DEFAULT_FONTFAMILY;
 		
 		// Disables block layout and outside wrapping and hides the div
@@ -11322,7 +11322,7 @@ mxDivResizer.prototype.getDocumentHeight = function()
 	return document.body.clientHeight;
 };
 /**
- * $Id: mxDragSource.js,v 1.11 2012-05-09 12:19:25 gaudenz Exp $
+ * $Id: mxDragSource.js,v 1.12 2012-07-09 11:12:03 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -11567,7 +11567,7 @@ mxDragSource.prototype.createPreviewElement = function(graph)
  */
 mxDragSource.prototype.mouseDown = function(evt)
 {
-	if (this.enabled && !mxEvent.isConsumed(evt))
+	if (this.enabled && !mxEvent.isConsumed(evt) && this.mouseMoveHandler == null)
 	{
 		this.startDrag(evt);
 		
@@ -15388,7 +15388,7 @@ mxImageBundle.prototype.getImage = function(key)
 	return result;
 };
 /**
- * $Id: mxImageExport.js,v 1.44 2012-05-21 10:17:17 gaudenz Exp $
+ * $Id: mxImageExport.js,v 1.45 2012-07-16 11:54:20 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -15612,6 +15612,15 @@ mxImageExport.prototype.drawShape = function(state, canvas, shape)
 	var rotation = mxUtils.getNumber(state.style, mxConstants.STYLE_ROTATION, 0);
 	var direction = mxUtils.getValue(state.style, mxConstants.STYLE_DIRECTION, null);
 
+	// New styles for shape flipping the stencil
+	var flipH = state.style[mxConstants.STYLE_STENCIL_FLIPH];
+	var flipV = state.style[mxConstants.STYLE_STENCIL_FLIPV];
+	
+	if (flipH ? !flipV : flipV)
+	{
+		rotation *= -1;
+	}
+	
 	// Default direction is east (ignored if rotation exists)
 	if (direction != null)
 	{
@@ -15629,10 +15638,6 @@ mxImageExport.prototype.drawShape = function(state, canvas, shape)
 		}
 	}
 
-	// New styles for shape flipping the stencil
-	var flipH = state.style[mxConstants.STYLE_STENCIL_FLIPH];
-	var flipV = state.style[mxConstants.STYLE_STENCIL_FLIPV];
-	
 	if (flipH && flipV)
 	{
 		rotation += 180;
@@ -19103,7 +19108,7 @@ mxGuide.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxShape.js,v 1.171 2012-05-23 08:22:29 gaudenz Exp $
+ * $Id: mxShape.js,v 1.172 2012-07-16 15:28:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -19315,6 +19320,13 @@ mxShape.prototype.vmlNodes = ['node', 'strokeNode', 'fillNode', 'shadowNode'];
 mxShape.prototype.vmlScale = 1;
 
 /**
+ * Variable: strokewidth
+ *
+ * Holds the current strokewidth. Default is 1.
+ */
+mxShape.prototype.strokewidth = 1;
+
+/**
  * Function: setCursor
  * 
  * Sets the cursor on the given shape.
@@ -19376,40 +19388,15 @@ mxShape.prototype.init = function(container)
 		
 		if (container != null)
 		{
+			container.appendChild(this.node);
+			
 			// Workaround for broken VML in IE8 standards mode. This gives an ID to
 			// each element that is referenced from this instance. After adding the
 			// DOM to the document, the outerHTML is overwritten to fix the VML
 			// rendering and the references are restored.
-			var vmlFix = document.documentMode == 8 && mxUtils.isVml(this.node);
-			
-			if (vmlFix)
+			if (document.documentMode == 8 && mxUtils.isVml(this.node))
 			{
-				// Assigns temporary IDs to VML nodes so that references can be restored when
-				// inserted into the DOM as a string
-				for (var i = 0; i < this.vmlNodes.length; i++)
-				{
-					if (this[this.vmlNodes[i]] != null)
-					{
-						this[this.vmlNodes[i]].setAttribute('id', 'mxTemporaryReference-' + this.vmlNodes[i]);
-					}
-				}
-				
-				// Inserts the node as a string
-				container.insertAdjacentHTML('beforeEnd', this.node.outerHTML);
-				
-				// Restores references to the actual DOM nodes
-				for (var i = 0; i < this.vmlNodes.length; i++)
-				{
-					if (this[this.vmlNodes[i]] != null)
-					{
-						this[this.vmlNodes[i]] = container.ownerDocument.getElementById('mxTemporaryReference-' + this.vmlNodes[i]);
-						this[this.vmlNodes[i]].removeAttribute('id');
-					}
-				}
-			}
-			else
-			{
-				container.appendChild(this.node);	
+				this.reparseVml();
 			}
 		}
 	}
@@ -19419,6 +19406,37 @@ mxShape.prototype.init = function(container)
 	{
 		this.insertGradient(this.insertGradientNode);
 		this.insertGradientNode = null;
+	}
+};
+
+/**
+ * Function: reparseVml
+ * 
+ * Forces a parsing of the outerHTML of this node and restores all references specified in <vmlNodes>.
+ * This is a workaround for the VML rendering bug in IE8 standards mode.
+ */
+mxShape.prototype.reparseVml = function()
+{
+	// Assigns temporary IDs to VML nodes so that references can be restored when
+	// inserted into the DOM as a string
+	for (var i = 0; i < this.vmlNodes.length; i++)
+	{
+		if (this[this.vmlNodes[i]] != null)
+		{
+			this[this.vmlNodes[i]].setAttribute('id', 'mxTemporaryReference-' + this.vmlNodes[i]);
+		}
+	}
+
+	this.node.outerHTML = this.node.outerHTML;
+	
+	// Restores references to the actual DOM nodes
+	for (var i = 0; i < this.vmlNodes.length; i++)
+	{
+		if (this[this.vmlNodes[i]] != null)
+		{
+			this[this.vmlNodes[i]] = this.node.ownerDocument.getElementById('mxTemporaryReference-' + this.vmlNodes[i]);
+			this[this.vmlNodes[i]].removeAttribute('id');
+		}
 	}
 };
 
@@ -19477,9 +19495,9 @@ mxShape.prototype.insertGradient = function(node)
  * 
  * Used to determine if a shape can be rendered using <createHtml> in mixed
  * mode Html without compromising the display accuracy. The default 
- * implementation will check if the shape is not rounded and has no 
- * gradient, and will use a DIV if that is the case. It will also check if 
- * <mxShape.mixedModeHtml> is true, which is the default settings.
+ * implementation will check if the shape is not rounded or rotated and has
+ * no gradient, and will use a DIV if that is the case. It will also check
+ * if <mxShape.mixedModeHtml> is true, which is the default settings.
  * Subclassers can either override <mixedModeHtml> or this function if the 
  * result depends on dynamic values. The graph's dialect is available via
  * <dialect>.
@@ -19487,7 +19505,8 @@ mxShape.prototype.insertGradient = function(node)
 mxShape.prototype.isMixedModeHtml = function()
 {
 	return this.mixedModeHtml && !this.isRounded && !this.isShadow && this.gradient == null &&
-		mxUtils.getValue(this.style, mxConstants.STYLE_GLASS, 0) == 0;
+		mxUtils.getValue(this.style, mxConstants.STYLE_GLASS, 0) == 0 &&
+		mxUtils.getValue(this.style, mxConstants.STYLE_ROTATION, 0) == 0;
 };
 
 /**
@@ -20783,6 +20802,13 @@ mxShape.prototype.updateBoundingBox = function()
 		var bbox = this.createBoundingBox();
 		this.augmentBoundingBox(bbox);
 		
+		var rot = Number(mxUtils.getValue(this.style, mxConstants.STYLE_ROTATION, 0));
+		
+		if (rot != 0)
+		{
+			bbox = mxUtils.getBoundingBox(bbox, rot);
+		}
+		
 		bbox.x = Math.floor(bbox.x);
 		bbox.y = Math.floor(bbox.y);
 		// TODO: Fix rounding errors
@@ -20819,7 +20845,7 @@ mxShape.prototype.augmentBoundingBox = function(bbox)
 	
 	// Adds strokeWidth
 	var sw = Math.ceil(this.strokewidth * this.scale);
-	bbox.grow(Math.floor(sw / 2));
+	bbox.grow(Math.ceil(sw / 2));
 };
 
 /**
@@ -21126,7 +21152,7 @@ mxShape.prototype.redrawPath = function(path, x, y, w, h)
 	// do nothing
 };
 /**
- * $Id: mxStencil.js,v 1.88 2012-06-29 23:00:45 gaudenz Exp $
+ * $Id: mxStencil.js,v 1.91 2012-07-16 10:22:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -21362,8 +21388,18 @@ mxStencil.prototype.evaluateAttribute = function(node, attribute, state)
 mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 {
 	var vml = shape.dialect != mxConstants.DIALECT_SVG;
+	var vmlScale = (document.documentMode == 8) ? 1 : shape.vmlScale;
 	var rotation = shape.rotation || 0;
 	var inverse = false;
+	
+	// New styles for shape flipping the stencil
+	var flipH = shape.style[mxConstants.STYLE_STENCIL_FLIPH];
+	var flipV = shape.style[mxConstants.STYLE_STENCIL_FLIPV];
+	
+	if (flipH ? !flipV : flipV)
+	{
+		rotation *= -1;
+	}
 	
 	// Default direction is east (ignored if rotation exists)
 	if (shape.direction != null)
@@ -21383,11 +21419,7 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 
 		inverse = (shape.direction == 'north' || shape.direction == 'south');
 	}
-	
-	// New styles for shape flipping the stencil
-	var flipH = shape.style[mxConstants.STYLE_STENCIL_FLIPH];
-	var flipV = shape.style[mxConstants.STYLE_STENCIL_FLIPV];
-	
+
 	if (flipH && flipV)
 	{
 		rotation += 180;
@@ -21399,8 +21431,7 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 	var svgTransform = '';
 
 	// Implements direction style and vertical/horizontal flip
-	// via container transformation. Note that the transformation
-	// is not applied to labels in VML so this needs fixing.
+	// via container transformation.
 	if (vml)
 	{
 		if (flipH)
@@ -21493,13 +21524,12 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 		}
 		
 		// Workaround to improve VML rendering precision.
-		// Default vmlScale is 4.
 		if (vml)
 		{
-			sx *= shape.vmlScale;
-			sy *= shape.vmlScale;
-			x0 *= shape.vmlScale;
-			y0 *= shape.vmlScale;
+			sx *= vmlScale;
+			sy *= vmlScale;
+			x0 *= vmlScale;
+			y0 *= vmlScale;
 		}
 		
 		var minScale = Math.min(sx, sy);
@@ -21514,7 +21544,7 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 			stroke: shape.stroke,
 			strokeWidth: (this.strokewidth == 'inherit') ?
 				Number(shape.strokewidth) * shape.scale :
-				Number(this.strokewidth) * minScale / ((vml) ? shape.vmlScale : 1),
+				Number(this.strokewidth) * minScale / ((vml) ? vmlScale : 1),
 			dashed: shape.isDashed,
 			dashpattern: [3, 3],
 			alpha: shape.opacity,
@@ -21578,19 +21608,6 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 			}
 		};
 		
-		var addToParent = function(node)
-		{
-			if (document.documentMode == 8)
-			{
-				// Must be added as text in IE8 standards mode
-				parentNode.insertAdjacentHTML('beforeEnd', node.outerHTML);
-			}
-			else
-			{
-				parentNode.appendChild(node);
-			}
-		};
-		
 		var addToPath = function(s)
 		{
 			if (currentPath != null && currentPoints != null)
@@ -21630,8 +21647,8 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 				{
 					currentPath = document.createElement('v:shape');
 					configurePath.call(this, currentPath, currentState);
-					var w = Math.round(bounds.width) * shape.vmlScale;
-					var h = Math.round(bounds.height) * shape.vmlScale;
+					var w = Math.round(bounds.width) * vmlScale;
+					var h = Math.round(bounds.height) * vmlScale;
 					currentPath.style.width = w + 'px';
 					currentPath.style.height = h + 'px';
 					currentPath.coordsize = w + ',' + h;
@@ -21947,7 +21964,7 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 						}
 					}
 					
-					addToParent(currentPath);
+					parentNode.appendChild(currentPath);
 				}
 			}
 			else if (name == 'include-shape')
@@ -21980,13 +21997,13 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 					if (vml)
 					{
 						// Renders a single line of text with full rotation support
-						currentPath = document.createElement('v:line');
+						currentPath = document.createElement('v:shape');
 						currentPath.style.position = 'absolute';
 						currentPath.style.width = '1px';
 						currentPath.style.height = '1px';
-						currentPath.to = (x + 1) + ' ' + y;
-						currentPath.from = x + ' ' + y;
-
+						currentPath.style.left = x + 'px';
+						currentPath.style.top = y + 'px';
+						
 						var fill = document.createElement('v:fill');
 						fill.color = currentState.fontColor;
 						fill.on = 'true';
@@ -21998,11 +22015,14 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 						
 						var path = document.createElement('v:path');
 						path.textpathok = 'true';
+						path.v = 'm ' + x + ' ' + y + ' l ' + (x + 1) + ' ' + y;
+						
 						currentPath.appendChild(path);
 						
 						var tp = document.createElement('v:textpath');
 						tp.style.cssText = 'v-text-align:' + align;
-						tp.style.fontSize = (currentState.fontSize / shape.vmlScale) + 'px';
+						tp.style.fontSize = Math.round(currentState.fontSize / vmlScale) + 'px';
+						
 						// FIXME: Font-family seems to be ignored for textpath
 						tp.style.fontFamily = currentState.fontFamily;
 						tp.string = str;
@@ -22029,11 +22049,11 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 						// LATER: Find vertical center for div via CSS if possible
 						if (valign == 'top')
 						{
-							currentPath.style.top = (currentState.fontSize / 2) + 'px';
+							currentPath.style.top = (y + currentState.fontSize / 2) + 'px';
 						}
 						else if (valign == 'bottom')
 						{
-							currentPath.style.top = -(currentState.fontSize / 3) + 'px';
+							currentPath.style.top = (y - currentState.fontSize / 3) + 'px';
 						}
 						
 						currentPath.appendChild(tp);
@@ -22105,7 +22125,7 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 						}
 					}
 
-					addToParent(currentPath);
+					parentNode.appendChild(currentPath);
 				}
 			}
 			else if (fillOp || strokeOp || fillStrokeOp)
@@ -22249,7 +22269,7 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 						}
 					}
 					
-					addToParent(currentPath);
+					parentNode.appendChild(currentPath);
 				}
 				
 				// Background was painted
@@ -22278,7 +22298,7 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 			{
 				var value = node.getAttribute('pattern');
 				
-				if (value != null)
+				if (value != null && value.length > 0)
 				{
 					currentState.dashpattern = value.split(' ');
 				}
@@ -22289,7 +22309,7 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 				
 				if (vml)
 				{
-					currentState.strokeWidth /= shape.vmlScale;
+					currentState.strokeWidth /= vmlScale;
 				}
 			}
 			else if (name == 'strokecolor')
@@ -22770,7 +22790,7 @@ var mxStencilRegistry =
 
 };
 /**
- * $Id: mxStencilShape.js,v 1.9 2012-05-22 16:10:12 gaudenz Exp $
+ * $Id: mxStencilShape.js,v 1.10 2012-07-16 10:22:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -22872,16 +22892,12 @@ mxStencilShape.prototype.configureHtmlShape = function(node)
 };
 
 /**
- * Function: createSvg
+ * Function: createVml
  *
- * Creates and returns the SVG node(s) to represent this shape.
+ * Creates and returns the VML node to represent this shape.
  */
 mxStencilShape.prototype.createVml = function()
 {
-	// TODO: VML group is required for rotation to work in mxStencil.
-	// DIV is used as a workaround for IE8 standards mode because VML
-	// groups don't seem to render with the outerHTML solution used in
-	// mxShape.init (same if delayed after renderDom in redrawShape).
 	var name = (document.documentMode == 8) ? 'div' : 'v:group';
 	var node = document.createElement(name);
 	this.configureTransparentBackground(node);
@@ -22932,7 +22948,6 @@ mxStencilShape.prototype.redrawShape = function()
 	// LATER: Update existing DOM nodes to improve repaint performance
 	if (this.dialect != mxConstants.DIALECT_SVG)
 	{
-		this.node.innerHTML = '';
 		this.node.style.left = Math.round(this.bounds.x) + 'px';
 		this.node.style.top = Math.round(this.bounds.y) + 'px';
 		var w = Math.round(this.bounds.width);
@@ -22940,9 +22955,37 @@ mxStencilShape.prototype.redrawShape = function()
 		this.node.style.width = w + 'px';
 		this.node.style.height = h + 'px';
 		
-		if (mxUtils.isVml(this.node))
+		var node = this.node;
+		
+		// Workaround for VML rendering bug in IE8 standards mode where all VML must be
+		// parsed via assigning the innerHTML of the parent HTML node to keep all event
+		// handlers referencing node and support rotation via v:group parent element. 
+		if (this.node.nodeName == 'DIV')
 		{
-			this.node.coordsize = (w * this.vmlScale) + ',' + (h * this.vmlScale);
+			node = document.createElement('v:group');
+			node.style.position = 'absolute';
+			node.style.left = '0px';
+			node.style.top = '0px';
+			node.style.width = w + 'px';
+			node.style.height = h + 'px';
+		}
+		else
+		{
+			node.innerHTML = '';
+		}
+
+		if (mxUtils.isVml(node))
+		{
+			var s = (document.documentMode != 8) ? this.vmlScale : 1;
+			node.coordsize = (w * s) + ',' + (h * s);
+		}
+		
+		this.stencil.renderDom(this, this.bounds, node);
+		
+		if(this.node != node)
+		{
+			// Forces parsing in IE8 standards mode
+			this.node.innerHTML = node.outerHTML;
 		}
 	}
 	else
@@ -22951,9 +22994,9 @@ mxStencilShape.prototype.redrawShape = function()
 		{
 			this.node.removeChild(this.node.firstChild);
 		}
+		
+		this.stencil.renderDom(this, this.bounds, this.node);
 	}
-	
-	this.stencil.renderDom(this, this.bounds, this.node);
 };
 /**
  * $Id: mxMarker.js,v 1.19 2012-03-30 12:51:58 david Exp $
@@ -24415,7 +24458,7 @@ mxArrow.prototype.redrawPath = function(path, x, y, w, h)
 	path.close();
 };
 /**
- * $Id: mxText.js,v 1.171 2012-06-06 12:32:28 gaudenz Exp $
+ * $Id: mxText.js,v 1.172 2012-07-16 14:42:11 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -25442,10 +25485,11 @@ mxText.prototype.redrawHtmlTable = function()
 		}
 		else
 		{
+			s = (document.documentMode == 8) ? this.scale : 1;
 			table.style.left = Math.round(this.bounds.x + this.scale / 2) + 'px';
 			table.style.top = Math.round(this.bounds.y + this.scale / 2) + 'px';
-			table.style.width = Math.round(this.bounds.width - this.scale) + 'px';
-			table.style.height = Math.round(this.bounds.height - this.scale) + 'px';
+			table.style.width = Math.round((this.bounds.width - this.scale) / s) + 'px';
+			table.style.height = Math.round((this.bounds.height - this.scale) / s) + 'px';
 		}
 	}
 };
@@ -46290,7 +46334,7 @@ mxStyleRegistry.putValue(mxConstants.PERIMETER_RECTANGLE, mxPerimeter.RectangleP
 mxStyleRegistry.putValue(mxConstants.PERIMETER_RHOMBUS, mxPerimeter.RhombusPerimeter);
 mxStyleRegistry.putValue(mxConstants.PERIMETER_TRIANGLE, mxPerimeter.TrianglePerimeter);
 /**
- * $Id: mxGraphView.js,v 1.192 2012-06-20 13:20:09 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.193 2012-07-16 15:30:58 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -47483,11 +47527,30 @@ mxGraphView.prototype.updateFloatingTerminalPoint = function(edge, start, end, s
 {
 	start = this.getTerminalPort(edge, start, source);
 	var next = this.getNextPoint(edge, end, source);
+	
+	var alpha = mxUtils.toRadians(Number(start.style[mxConstants.STYLE_ROTATION] || '0'));
+	var center = new mxPoint(start.getCenterX(), start.getCenterY());
+	
+	if (alpha != 0)
+	{
+		var cos = Math.cos(-alpha);
+		var sin = Math.sin(-alpha);
+		next = mxUtils.getRotatedPoint(next, cos, sin, center);
+	}
+	
 	var border = parseFloat(edge.style[mxConstants.STYLE_PERIMETER_SPACING] || 0);
 	border += parseFloat(edge.style[(source) ?
 		mxConstants.STYLE_SOURCE_PERIMETER_SPACING :
 		mxConstants.STYLE_TARGET_PERIMETER_SPACING] || 0);
 	var pt = this.getPerimeterPoint(start, next, this.graph.isOrthogonal(edge), border);
+
+	if (alpha != 0)
+	{
+		var cos = Math.cos(alpha);
+		var sin = Math.sin(alpha);
+		pt = mxUtils.getRotatedPoint(pt, cos, sin, center);
+	}
+	
 	edge.setAbsoluteTerminalPoint(pt, source);
 };
 
@@ -48785,7 +48848,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.692 2012-06-20 14:13:36 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.693 2012-07-16 13:02:19 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -49986,8 +50049,7 @@ mxGraph.prototype.ignoreScrollbars = false;
  * 
  * Specifies if the size of the graph should be automatically extended if the
  * mouse goes near the container edge while dragging. This is only taken into
- * account if the container has scrollbars. Default is true. See <autoScroll>
- * for a trick to enable this without using scrollbars in the container.
+ * account if the container has scrollbars. Default is true. See <autoScroll>.
  */
 mxGraph.prototype.autoExtend = true;
 
@@ -50265,14 +50327,16 @@ mxGraph.prototype.imageBundles = null;
 /**
  * Variable: minFitScale
  * 
- * Specifies the minimum scale to be applied in <fit>. Default is 0.1.
+ * Specifies the minimum scale to be applied in <fit>. Default is 0.1. Set this
+ * to null to allow any value.
  */
 mxGraph.prototype.minFitScale = 0.1;
 
 /**
  * Variable: maxFitScale
  * 
- * Specifies the maximum scale to be applied in <fit>. Default is 8.
+ * Specifies the maximum scale to be applied in <fit>. Default is 8. Set this
+ * to null to allow any value.
  */
 mxGraph.prototype.maxFitScale = 8;
 
@@ -50694,6 +50758,7 @@ mxGraph.prototype.processChange = function(change)
 	// Requires a new mxShape in JavaScript
 	else if (change instanceof mxStyleChange)
 	{
+		this.view.invalidate(change.cell, true, true, false);
 		this.view.removeState(change.cell);
 	}
 	
@@ -54461,7 +54526,6 @@ mxGraph.prototype.getConnectionPoint = function(vertex, constraint)
 		var bounds = this.view.getPerimeterBounds(vertex);
         var cx = new mxPoint(bounds.getCenterX(), bounds.getCenterY());
 
-		// FIXME: Implement STENCIL_FLIP_V/H for stencil shapes
 		var direction = vertex.style[mxConstants.STYLE_DIRECTION];
 		var r1 = 0;
 		
@@ -54491,11 +54555,42 @@ mxGraph.prototype.getConnectionPoint = function(vertex, constraint)
 				bounds.height = tmp;
 			}
 		}
-		
+
 		if (constraint.point != null)
 		{
-			point = new mxPoint(bounds.x + constraint.point.x * bounds.width,
-					bounds.y + constraint.point.y * bounds.height);
+			var sx = 1;
+			var sy = 1;
+			var dx = 0;
+			var dy = 0;
+			
+			// LATER: Add flipping support for image shapes
+			if (vertex.shape instanceof mxStencilShape)
+			{
+				var flipH = vertex.style[mxConstants.STYLE_STENCIL_FLIPH];
+				var flipV = vertex.style[mxConstants.STYLE_STENCIL_FLIPV];
+				
+				if (direction == 'north' || direction == 'south')
+				{
+					var tmp = flipH;
+					flipH = flipV;
+					flipV = tmp;
+				}
+				
+				if (flipH)
+				{
+					sx = -1;
+					dx = -bounds.width;
+				}
+				
+				if (flipV)
+				{
+					sy = -1;
+					dy = -bounds.height ;
+				}
+			}
+			
+			point = new mxPoint(bounds.x + constraint.point.x * bounds.width * sx - dx,
+					bounds.y + constraint.point.y * bounds.height * sy - dy);
 		}
 		
 		// Rotation for direction before projection on perimeter
@@ -55446,8 +55541,8 @@ mxGraph.prototype.fit = function(border, keepOrigin)
 		border = (border != null) ? border : 0;
 		keepOrigin = (keepOrigin != null) ? keepOrigin : false;
 		
-		var w1 = this.container.offsetWidth - 3;
-		var h1 = this.container.offsetHeight - 3;
+		var w1 = this.container.clientWidth;
+		var h1 = this.container.clientHeight;
 
 		var bounds = this.view.getGraphBounds();
 
@@ -55472,15 +55567,34 @@ mxGraph.prototype.fit = function(border, keepOrigin)
 		
 		var b = (keepOrigin) ? border : 2 * border;
 		var s2 = Math.floor(Math.min(w1 / (w2 + b), h1 / (h2 + b)) * 100) / 100;
-		
-		if (s2 > this.minFitScale && s2 < this.maxFitScale)
+
+		if ((this.minFitScale == null || s2 > this.minFitScale) && (this.maxFitScale == null || s2 < this.maxFitScale))
 		{
 			if (!keepOrigin)
 			{
-				var x0 = (bounds.x != null) ? Math.floor(this.view.translate.x - bounds.x / s + border + 1) : border;
-				var y0 = (bounds.y != null) ? Math.floor(this.view.translate.y - bounds.y / s + border + 1) : border;
+				if (!mxUtils.hasScrollbars(this.container))
+				{
+					var x0 = (bounds.x != null) ? Math.floor(this.view.translate.x - bounds.x / s + border + 1) : border;
+					var y0 = (bounds.y != null) ? Math.floor(this.view.translate.y - bounds.y / s + border + 1) : border;
 
-				this.view.scaleAndTranslate(s2, x0, y0);
+					this.view.scaleAndTranslate(s2, x0, y0);
+				}
+				else
+				{
+					this.view.setScale(s2);
+					
+					if (bounds.x != null)
+					{
+						this.container.scrollLeft = Math.round(bounds.x / s) * s2 - border -
+							Math.max(0, (this.container.clientWidth - w2 * s2) / 2);
+					}
+					
+					if (bounds.y != null)
+					{
+						this.container.scrollTop = Math.round(bounds.y / s) * s2 - border -
+							Math.max(0, (this.container.clientHeight - h2 * s2) / 2);
+					}
+				}
 			}
 			else
 			{
@@ -55867,9 +55981,9 @@ mxGraph.prototype.isEdgeValid = function(edge, source, target)
  * is valid, a return value of '' means it's not valid, but do not display
  * an error message. Any other (non-empty) string returned from this method
  * is displayed as an error message when trying to connect an edge to a
- * source and target. This implementation uses the <multiplicities>, as
- * well as <multigraph> and <allowDanglingEdges> to generate validation
- * errors.
+ * source and target. This implementation uses the <multiplicities>, and
+ * checks <multigraph>, <allowDanglingEdges> and <allowLoops> to generate
+ * validation errors.
  * 
  * For extending this method with specific checks for source/target cells,
  * the method can be extended as follows. Returning an empty string means
@@ -59813,7 +59927,7 @@ mxGraph.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxCellOverlay.js,v 1.16 2012-02-13 22:19:43 boris Exp $
+ * $Id: mxCellOverlay.js,v 1.17 2012-07-02 16:53:51 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -59874,8 +59988,8 @@ function mxCellOverlay(image, tooltip, align, verticalAlign, offset, cursor)
 {
 	this.image = image;
 	this.tooltip = tooltip;
-	this.align = align;
-	this.verticalAlign = verticalAlign;
+	this.align = (align != null) ? align : this.align;
+	this.verticalAlign = (verticalAlign != null) ? verticalAlign : this.verticalAlign;
 	this.offset = (offset != null) ? offset : new mxPoint();
 	this.cursor = (cursor != null) ? cursor : 'help';
 };
@@ -59907,7 +60021,7 @@ mxCellOverlay.prototype.tooltip = null;
  * <mxConstants.ALIGN_RIGHT>. For edges, the overlay always appears in the
  * center of the edge.
  */
-mxCellOverlay.prototype.align = null;
+mxCellOverlay.prototype.align = mxConstants.ALIGN_RIGHT;
 
 /**
  * Variable: verticalAlign
@@ -59916,7 +60030,7 @@ mxCellOverlay.prototype.align = null;
  * <mxConstants.ALIGN_BOTTOM>. For edges, the overlay always appears in the
  * center of the edge.
  */
-mxCellOverlay.prototype.verticalAlign = null;
+mxCellOverlay.prototype.verticalAlign = mxConstants.ALIGN_BOTTOM;
 
 /**
  * Variable: offset
@@ -64518,7 +64632,7 @@ mxSelectionCellsHandler.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxConnectionHandler.js,v 1.209 2012-06-17 10:46:52 gaudenz Exp $
+ * $Id: mxConnectionHandler.js,v 1.210 2012-07-11 17:18:56 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -65723,6 +65837,9 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 				if (dx > this.graph.tolerance || dy > this.graph.tolerance)
 				{
 					this.shape = this.createShape();
+					
+					// Revalidates current connection
+					this.updateCurrentState(me);
 				}
 			}
 
@@ -67818,7 +67935,7 @@ mxVertexHandler.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxEdgeHandler.js,v 1.176 2012-06-06 07:57:00 gaudenz Exp $
+ * $Id: mxEdgeHandler.js,v 1.177 2012-07-09 16:59:25 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -68903,7 +69020,7 @@ mxEdgeHandler.prototype.setPreviewColor = function(color)
 		}
 		else
 		{
-			this.shape.node.setAttribute('strokecolor', color);
+			this.shape.node.strokecolor = color;
 		}
 	}
 };
@@ -70741,7 +70858,7 @@ mxCellTracker.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxCellHighlight.js,v 1.21 2012-03-19 10:47:08 gaudenz Exp $
+ * $Id: mxCellHighlight.js,v 1.22 2012-07-09 16:59:25 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -70840,7 +70957,7 @@ mxCellHighlight.prototype.setHighlightColor = function(color)
 		}
 		else if (this.shape.dialect == mxConstants.DIALECT_VML)
 		{
-			this.shape.node.setAttribute('strokecolor', color);
+			this.shape.node.strokecolor = color;
 		}
 	}
 };
@@ -70901,15 +71018,31 @@ mxCellHighlight.prototype.createShape = function(state)
 	{
 		shape.setCursor(state.shape.getCursor());
 	}
+
+	var alpha = (!this.graph.model.isEdge(state.cell)) ? Number(state.style[mxConstants.STYLE_ROTATION] || '0') : 0;
 	
 	// Event-transparency
 	if (shape.dialect == mxConstants.DIALECT_SVG)
 	{
 		shape.node.setAttribute('style', 'pointer-events:none;');
+
+		if (alpha != 0)
+		{
+			var cx = state.getCenterX();
+			var cy = state.getCenterY();
+			var transform = 'rotate(' + alpha + ' ' + cx + ' ' + cy + ')';
+			
+			shape.node.setAttribute('transform', transform);
+		}
 	}
 	else
 	{
 		shape.node.style.background = '';
+		
+		if (alpha != 0)
+		{
+			shape.node.rotation = alpha;
+		}
 	}
 	
 	return shape;
@@ -71092,7 +71225,7 @@ mxDefaultKeyHandler.prototype.destroy = function ()
 	this.handler = null;
 };
 /**
- * $Id: mxDefaultPopupMenu.js,v 1.28 2012-01-09 09:44:22 gaudenz Exp $
+ * $Id: mxDefaultPopupMenu.js,v 1.29 2012-07-03 06:30:25 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -71196,7 +71329,7 @@ mxDefaultPopupMenu.prototype.config = null;
  * (code)
  * <mxDefaultPopupMenu as="popupHandler">
  *   <add as="action1"><![CDATA[
- *		function (editor, cell)
+ *		function (editor, cell, evt)
  *		{
  *			editor.execute('action1', cell, 'myArg');
  *		}
@@ -71209,7 +71342,9 @@ mxDefaultPopupMenu.prototype.config = null;
  * defines action1. If the add-node has no action-attribute, then only the
  * function defined in the text content is executed, otherwise first the
  * function and then the action defined in the action-attribute is
- * executed.
+ * executed. The function in the text content has 3 arguments, namely the
+ * <mxEditor> instance, the <mxCell> instance under the mouse, and the
+ * native mouse event.
  *
  * Custom Conditions:
  *

@@ -31,7 +31,7 @@
 <foreground>
 <fontcolor color="#000000"/>
 <fontsize size="10"/>
-<text str="5mA" x="35" y="2" align="middle" valign="bottom"/>
+<text str="5mA" x="35" y="2" align="center" valign="bottom"/>
 <path>
 <move x="0" y="5"/>
 <line x="70" y="5"/>
@@ -371,7 +371,7 @@
 <foreground>
 <fontcolor color="#000000"/>
 <fontsize size="24"/>
-<text str="V" x="25" y="68" align="middle" valign="bottom"/>
+<text str="V" x="25" y="68" align="center" valign="bottom"/>
 <path>
 <move x="0" y="40"/>
 <line x="60" y="40"/>
@@ -383,7 +383,7 @@
 </path>
 <stroke/>
 <fontsize size="15"/>
-<text str="dd" x="42" y="73" align="middle" valign="bottom"/>
+<text str="dd" x="42" y="73" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="Voltage" h="70" w="10" aspect="variable" strokewidth="inherit">
@@ -411,7 +411,7 @@
 <stroke/>
 <fontcolor color="#000000"/>
 <fontsize size="10"/>
-<text str="1.2V" x="25" y="38" align="middle" valign="bottom"/>
+<text str="1.2V" x="25" y="38" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="Vss" h="40" w="60" aspect="variable" strokewidth="inherit">
@@ -421,7 +421,7 @@
 <foreground>
 <fontcolor color="#000000"/>
 <fontsize size="24"/>
-<text str="V" x="25" y="-7" align="middle" valign="bottom"/>
+<text str="V" x="25" y="-7" align="center" valign="bottom"/>
 <path>
 <move x="0" y="0"/>
 <line x="60" y="0"/>
@@ -433,7 +433,7 @@
 </path>
 <stroke/>
 <fontsize size="15"/>
-<text str="ss" x="42" y="-3" align="middle" valign="bottom"/>
+<text str="ss" x="42" y="-3" align="center" valign="bottom"/>
 </foreground>
 </shape>
 </shapes>

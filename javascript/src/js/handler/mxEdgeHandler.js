@@ -1,5 +1,5 @@
 /**
- * $Id: mxEdgeHandler.js,v 1.176 2012-06-06 07:57:00 gaudenz Exp $
+ * $Id: mxEdgeHandler.js,v 1.177 2012-07-09 16:59:25 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1084,7 +1084,7 @@ mxEdgeHandler.prototype.setPreviewColor = function(color)
 		}
 		else
 		{
-			this.shape.node.setAttribute('strokecolor', color);
+			this.shape.node.strokecolor = color;
 		}
 	}
 };

@@ -1,5 +1,5 @@
 /**
- * $Id: mxShape.js,v 1.171 2012-05-23 08:22:29 gaudenz Exp $
+ * $Id: mxShape.js,v 1.172 2012-07-16 15:28:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -211,6 +211,13 @@ mxShape.prototype.vmlNodes = ['node', 'strokeNode', 'fillNode', 'shadowNode'];
 mxShape.prototype.vmlScale = 1;
 
 /**
+ * Variable: strokewidth
+ *
+ * Holds the current strokewidth. Default is 1.
+ */
+mxShape.prototype.strokewidth = 1;
+
+/**
  * Function: setCursor
  * 
  * Sets the cursor on the given shape.
@@ -272,40 +279,15 @@ mxShape.prototype.init = function(container)
 		
 		if (container != null)
 		{
+			container.appendChild(this.node);
+			
 			// Workaround for broken VML in IE8 standards mode. This gives an ID to
 			// each element that is referenced from this instance. After adding the
 			// DOM to the document, the outerHTML is overwritten to fix the VML
 			// rendering and the references are restored.
-			var vmlFix = document.documentMode == 8 && mxUtils.isVml(this.node);
-			
-			if (vmlFix)
+			if (document.documentMode == 8 && mxUtils.isVml(this.node))
 			{
-				// Assigns temporary IDs to VML nodes so that references can be restored when
-				// inserted into the DOM as a string
-				for (var i = 0; i < this.vmlNodes.length; i++)
-				{
-					if (this[this.vmlNodes[i]] != null)
-					{
-						this[this.vmlNodes[i]].setAttribute('id', 'mxTemporaryReference-' + this.vmlNodes[i]);
-					}
-				}
-				
-				// Inserts the node as a string
-				container.insertAdjacentHTML('beforeEnd', this.node.outerHTML);
-				
-				// Restores references to the actual DOM nodes
-				for (var i = 0; i < this.vmlNodes.length; i++)
-				{
-					if (this[this.vmlNodes[i]] != null)
-					{
-						this[this.vmlNodes[i]] = container.ownerDocument.getElementById('mxTemporaryReference-' + this.vmlNodes[i]);
-						this[this.vmlNodes[i]].removeAttribute('id');
-					}
-				}
-			}
-			else
-			{
-				container.appendChild(this.node);	
+				this.reparseVml();
 			}
 		}
 	}
@@ -315,6 +297,37 @@ mxShape.prototype.init = function(container)
 	{
 		this.insertGradient(this.insertGradientNode);
 		this.insertGradientNode = null;
+	}
+};
+
+/**
+ * Function: reparseVml
+ * 
+ * Forces a parsing of the outerHTML of this node and restores all references specified in <vmlNodes>.
+ * This is a workaround for the VML rendering bug in IE8 standards mode.
+ */
+mxShape.prototype.reparseVml = function()
+{
+	// Assigns temporary IDs to VML nodes so that references can be restored when
+	// inserted into the DOM as a string
+	for (var i = 0; i < this.vmlNodes.length; i++)
+	{
+		if (this[this.vmlNodes[i]] != null)
+		{
+			this[this.vmlNodes[i]].setAttribute('id', 'mxTemporaryReference-' + this.vmlNodes[i]);
+		}
+	}
+
+	this.node.outerHTML = this.node.outerHTML;
+	
+	// Restores references to the actual DOM nodes
+	for (var i = 0; i < this.vmlNodes.length; i++)
+	{
+		if (this[this.vmlNodes[i]] != null)
+		{
+			this[this.vmlNodes[i]] = this.node.ownerDocument.getElementById('mxTemporaryReference-' + this.vmlNodes[i]);
+			this[this.vmlNodes[i]].removeAttribute('id');
+		}
 	}
 };
 
@@ -373,9 +386,9 @@ mxShape.prototype.insertGradient = function(node)
  * 
  * Used to determine if a shape can be rendered using <createHtml> in mixed
  * mode Html without compromising the display accuracy. The default 
- * implementation will check if the shape is not rounded and has no 
- * gradient, and will use a DIV if that is the case. It will also check if 
- * <mxShape.mixedModeHtml> is true, which is the default settings.
+ * implementation will check if the shape is not rounded or rotated and has
+ * no gradient, and will use a DIV if that is the case. It will also check
+ * if <mxShape.mixedModeHtml> is true, which is the default settings.
  * Subclassers can either override <mixedModeHtml> or this function if the 
  * result depends on dynamic values. The graph's dialect is available via
  * <dialect>.
@@ -383,7 +396,8 @@ mxShape.prototype.insertGradient = function(node)
 mxShape.prototype.isMixedModeHtml = function()
 {
 	return this.mixedModeHtml && !this.isRounded && !this.isShadow && this.gradient == null &&
-		mxUtils.getValue(this.style, mxConstants.STYLE_GLASS, 0) == 0;
+		mxUtils.getValue(this.style, mxConstants.STYLE_GLASS, 0) == 0 &&
+		mxUtils.getValue(this.style, mxConstants.STYLE_ROTATION, 0) == 0;
 };
 
 /**
@@ -1679,6 +1693,13 @@ mxShape.prototype.updateBoundingBox = function()
 		var bbox = this.createBoundingBox();
 		this.augmentBoundingBox(bbox);
 		
+		var rot = Number(mxUtils.getValue(this.style, mxConstants.STYLE_ROTATION, 0));
+		
+		if (rot != 0)
+		{
+			bbox = mxUtils.getBoundingBox(bbox, rot);
+		}
+		
 		bbox.x = Math.floor(bbox.x);
 		bbox.y = Math.floor(bbox.y);
 		// TODO: Fix rounding errors
@@ -1715,7 +1736,7 @@ mxShape.prototype.augmentBoundingBox = function(bbox)
 	
 	// Adds strokeWidth
 	var sw = Math.ceil(this.strokewidth * this.scale);
-	bbox.grow(Math.floor(sw / 2));
+	bbox.grow(Math.ceil(sw / 2));
 };
 
 /**

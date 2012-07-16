@@ -1,5 +1,5 @@
 /**
- * $Id: Graph.js,v 1.38 2012-06-28 12:02:04 gaudenz Exp $
+ * $Id: Graph.js,v 1.40 2012-07-16 12:14:15 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -1093,6 +1093,8 @@ Graph.prototype.initTouch = function()
 	ComponentShape.prototype.crisp = true;
 	
 	// Implements custom handlers
+	var SPECIAL_HANDLE_INDEX = -99;
+	
 	var handlers = {'swimlane': mxSwimlaneHandler, 'folder': mxFolderHandler, 'cube': mxCubeHandler,
 			'card': mxCardHandler, 'note': mxNoteHandler, 'step': mxStepHandler, 'tape': mxTapeHandler};
 
@@ -1184,7 +1186,7 @@ Graph.prototype.initTouch = function()
 	{
 		if (me.isSource(this.specialHandle))
 		{
-			return -2;
+			return SPECIAL_HANDLE_INDEX;
 		}
 		
 		return mxVertexHandler.prototype.getHandleForEvent.apply(this, arguments);
@@ -1198,7 +1200,7 @@ Graph.prototype.initTouch = function()
 	
 	mxSwimlaneHandler.prototype.mouseMove = function(sender, me)
 	{
-		if (!me.isConsumed() && this.index == -2)
+		if (!me.isConsumed() && this.index == SPECIAL_HANDLE_INDEX)
 		{
 			var point = new mxPoint(me.getGraphX(), me.getGraphY());
 			this.constrainPoint(point);
@@ -1243,7 +1245,7 @@ Graph.prototype.initTouch = function()
 	
 	mxSwimlaneHandler.prototype.mouseUp = function(sender, me)
 	{
-		if (!me.isConsumed() && this.index == -2)
+		if (!me.isConsumed() && this.index == SPECIAL_HANDLE_INDEX)
 		{
 			this.applyStyle();
 			this.reset();
@@ -1275,7 +1277,29 @@ Graph.prototype.initTouch = function()
 
 	mxFolderHandler.prototype.getSpecialHandleBounds = function(size)
 	{
+		var rotation = Number(this.state.style[mxConstants.STYLE_ROTATION] || '0');
 		var direction = mxUtils.getValue(this.state.style, 'direction', 'east');
+		
+		if (direction != null)
+		{
+			if (direction == 'north')
+			{
+				rotation += 270;
+			}
+			else if (direction == 'west')
+			{
+				rotation += 180;
+			}
+			else if (direction == 'south')
+			{
+				rotation += 90;
+			}
+		}
+		
+		var alpha = mxUtils.toRadians(rotation);
+		var cos = Math.cos(alpha);
+		var sin = Math.sin(alpha);
+		
 		var bounds = new mxRectangle(this.state.x, this.state.y, this.state.width, this.state.height);
 		
 		if (direction == 'south' || direction == 'north')
@@ -1286,26 +1310,8 @@ Graph.prototype.initTouch = function()
 			bounds.width = bounds.height;
 			bounds.height = tmp;
 		}
-		
-		var pt = this.getSpecialHandlePoint(bounds);
-		var cos = 1;
-		var sin = 0;
-		
-		if (direction == 'south')
-		{
-			cos = 0;
-			sin = 1;
-		}
-		else if (direction == 'west')
-		{
-			cos = -1;
-		}
-		else if (direction == 'north')
-		{
-			cos = 0;
-			sin = -1;
-		}
 
+		var pt = this.getSpecialHandlePoint(bounds);
 		pt = mxUtils.getRotatedPoint(pt, cos, sin,
 			new mxPoint(this.state.getCenterX(), this.state.getCenterY()));
 
@@ -1326,8 +1332,29 @@ Graph.prototype.initTouch = function()
 	
 	mxFolderHandler.prototype.updateStyle = function(point)
 	{
-		var pt = new mxPoint(point.x, point.y);
 		var direction = mxUtils.getValue(this.state.style, 'direction', 'east');
+		var rotation = Number(this.state.style[mxConstants.STYLE_ROTATION] || '0');
+		
+		if (direction != null)
+		{
+			if (direction == 'north')
+			{
+				rotation += 270;
+			}
+			else if (direction == 'west')
+			{
+				rotation += 180;
+			}
+			else if (direction == 'south')
+			{
+				rotation += 90;
+			}
+		}
+		
+		var alpha = mxUtils.toRadians(rotation);
+		var cos = Math.cos(-alpha);
+		var sin = Math.sin(-alpha);
+		
 		var bounds = new mxRectangle(this.state.x, this.state.y, this.state.width, this.state.height);
 		
 		if (direction == 'south' || direction == 'north')
@@ -1338,27 +1365,8 @@ Graph.prototype.initTouch = function()
 			bounds.width = bounds.height;
 			bounds.height = tmp;
 		}
-		
-		var cos = 1;
-		var sin = 0;
-		
-		if (direction == 'south')
-		{
-			cos = 0;
-			sin = -1;
-		}
-		else if (direction == 'west')
-		{
-			cos = -1;
-		}
-		else if (direction == 'north')
-		{
-			cos = 0;
-			sin = 1;
-		}
-		
-		// TODO: Rotate bounds
-		//var bounds = new mxRectangle(this.state.x, this.state.y, this.state.width, this.state.height);
+
+		var pt = new mxPoint(point.x, point.y);
 		pt = mxUtils.getRotatedPoint(pt, cos, sin,
 			new mxPoint(this.state.getCenterX(), this.state.getCenterY()));
 		
@@ -1367,12 +1375,8 @@ Graph.prototype.initTouch = function()
 		// Modifies point to use rotated coordinates of return value
 		if (result != null)
 		{
-			if (direction == 'south' || direction == 'north')
-			{
-				cos *= -1;
-				sin *= -1;
-			}
-			
+			cos = Math.cos(alpha);
+			sin = Math.sin(alpha);
 			result = mxUtils.getRotatedPoint(result, cos, sin,
 					new mxPoint(this.state.getCenterX(), this.state.getCenterY()));
 			point.x = result.x;
@@ -1544,17 +1548,19 @@ Graph.prototype.initTouch = function()
 	// Constraints
 	mxGraph.prototype.getAllConnectionConstraints = function(terminal, source)
 	{
-		if (terminal != null && terminal.shape != null &&
-			terminal.shape instanceof mxStencilShape)
+		if (terminal != null && terminal.shape != null)
 		{
-			if (terminal.shape.stencil != null)
+			if (terminal.shape instanceof mxStencilShape)
 			{
-				return terminal.shape.stencil.constraints;
+				if (terminal.shape.stencil != null)
+				{
+					return terminal.shape.stencil.constraints;
+				}
 			}
-		}
-		else if (terminal.shape.constraints != null)
-		{
-			return terminal.shape.constraints;
+			else if (terminal.shape.constraints != null)
+			{
+				return terminal.shape.constraints;
+			}
 		}
 
 		return null;

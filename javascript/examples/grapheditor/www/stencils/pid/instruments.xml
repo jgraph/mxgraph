@@ -17,7 +17,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="20"/>
-<text str="AT" x="48" y="43" align="middle" valign="bottom"/>
+<text str="AT" x="48" y="43" align="center" valign="bottom"/>
 <path>
 <move x="0" y="48"/>
 <line x="96" y="48"/>
@@ -43,7 +43,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="20"/>
-<text str="FE" x="48" y="43" align="middle" valign="bottom"/>
+<text str="FE" x="48" y="43" align="center" valign="bottom"/>
 <path>
 <move x="0" y="48"/>
 <line x="96" y="48"/>
@@ -69,7 +69,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="40"/>
-<text str="FI" x="48" y="68" align="middle" valign="bottom"/>
+<text str="FI" x="48" y="68" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="Flow Recorder" h="96" w="96" aspect="fixed" strokewidth="inherit">
@@ -90,7 +90,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="40"/>
-<text str="FR" x="48" y="68" align="middle" valign="bottom"/>
+<text str="FR" x="48" y="68" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="Flow Transmitter" h="96" w="96" aspect="fixed" strokewidth="inherit">
@@ -111,7 +111,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="40"/>
-<text str="FT" x="48" y="68" align="middle" valign="bottom"/>
+<text str="FT" x="48" y="68" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="Level Alarm" h="96" w="96" aspect="fixed" strokewidth="inherit">
@@ -132,7 +132,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="20"/>
-<text str="LA" x="48" y="43" align="middle" valign="bottom"/>
+<text str="LA" x="48" y="43" align="center" valign="bottom"/>
 <path>
 <move x="0" y="48"/>
 <line x="96" y="48"/>
@@ -158,7 +158,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="40"/>
-<text str="LC" x="48" y="68" align="middle" valign="bottom"/>
+<text str="LC" x="48" y="68" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="Level Controller 2" h="96" w="96" aspect="fixed" strokewidth="inherit">
@@ -179,7 +179,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="20"/>
-<text str="LC" x="48" y="43" align="middle" valign="bottom"/>
+<text str="LC" x="48" y="43" align="center" valign="bottom"/>
 <path>
 <move x="0" y="48"/>
 <line x="96" y="48"/>
@@ -205,7 +205,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="20"/>
-<text str="LG" x="48" y="43" align="middle" valign="bottom"/>
+<text str="LG" x="48" y="43" align="center" valign="bottom"/>
 <path>
 <move x="0" y="48"/>
 <line x="96" y="48"/>
@@ -231,7 +231,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="40"/>
-<text str="LI" x="48" y="68" align="middle" valign="bottom"/>
+<text str="LI" x="48" y="68" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="Level Recorder" h="96" w="96" aspect="fixed" strokewidth="inherit">
@@ -252,7 +252,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="20"/>
-<text str="LR" x="48" y="43" align="middle" valign="bottom"/>
+<text str="LR" x="48" y="43" align="center" valign="bottom"/>
 <path>
 <move x="0" y="48"/>
 <line x="96" y="48"/>
@@ -278,7 +278,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="40"/>
-<text str="LT" x="48" y="68" align="middle" valign="bottom"/>
+<text str="LT" x="48" y="68" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="Level Transmitter 2" h="96" w="96" aspect="fixed" strokewidth="inherit">
@@ -299,7 +299,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="20"/>
-<text str="LT" x="48" y="43" align="middle" valign="bottom"/>
+<text str="LT" x="48" y="43" align="center" valign="bottom"/>
 <path>
 <move x="0" y="48"/>
 <line x="96" y="48"/>
@@ -325,7 +325,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="20"/>
-<text str="PC" x="48" y="43" align="middle" valign="bottom"/>
+<text str="PC" x="48" y="43" align="center" valign="bottom"/>
 <path>
 <move x="0" y="48"/>
 <line x="96" y="48"/>
@@ -351,7 +351,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="20"/>
-<text str="PIC" x="48" y="43" align="middle" valign="bottom"/>
+<text str="PIC" x="48" y="43" align="center" valign="bottom"/>
 <path>
 <move x="0" y="48"/>
 <line x="96" y="48"/>
@@ -377,7 +377,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="40"/>
-<text str="PI" x="48" y="68" align="middle" valign="bottom"/>
+<text str="PI" x="48" y="68" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="Pressure Recorder" h="96" w="96" aspect="fixed" strokewidth="inherit">
@@ -398,7 +398,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="20"/>
-<text str="PR" x="48" y="43" align="middle" valign="bottom"/>
+<text str="PR" x="48" y="43" align="center" valign="bottom"/>
 <path>
 <move x="0" y="48"/>
 <line x="96" y="48"/>
@@ -424,7 +424,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="20"/>
-<text str="PRC" x="48" y="43" align="middle" valign="bottom"/>
+<text str="PRC" x="48" y="43" align="center" valign="bottom"/>
 <path>
 <move x="0" y="48"/>
 <line x="96" y="48"/>
@@ -450,7 +450,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="40"/>
-<text str="PT" x="48" y="68" align="middle" valign="bottom"/>
+<text str="PT" x="48" y="68" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="Pressure Transmitter 2" h="96" w="96" aspect="fixed" strokewidth="inherit">
@@ -471,7 +471,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="20"/>
-<text str="PT" x="48" y="43" align="middle" valign="bottom"/>
+<text str="PT" x="48" y="43" align="center" valign="bottom"/>
 <path>
 <move x="0" y="48"/>
 <line x="96" y="48"/>
@@ -497,7 +497,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="20"/>
-<text str="TE" x="48" y="43" align="middle" valign="bottom"/>
+<text str="TE" x="48" y="43" align="center" valign="bottom"/>
 <path>
 <move x="0" y="48"/>
 <line x="96" y="48"/>
@@ -523,7 +523,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="40"/>
-<text str="TI" x="48" y="68" align="middle" valign="bottom"/>
+<text str="TI" x="48" y="68" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="Temperature Recorder" h="96" w="96" aspect="fixed" strokewidth="inherit">
@@ -544,7 +544,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="40"/>
-<text str="TR" x="48" y="68" align="middle" valign="bottom"/>
+<text str="TR" x="48" y="68" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="Temperature Transmitter" h="96" w="96" aspect="fixed" strokewidth="inherit">
@@ -565,7 +565,7 @@
 <fillstroke/>
 <fontcolor color="#000000"/>
 <fontsize size="40"/>
-<text str="TT" x="48" y="68" align="middle" valign="bottom"/>
+<text str="TT" x="48" y="68" align="center" valign="bottom"/>
 </foreground>
 </shape>
 </shapes>

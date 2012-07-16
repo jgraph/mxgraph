@@ -496,7 +496,7 @@
 <stroke/>
 <fontcolor color="#000000"/>
 <fontsize size="18"/>
-<text str="H" x="49" y="25" align="middle" valign="bottom"/>
+<text str="H" x="49" y="25" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="Knife Valve" h="85" w="100" aspect="variable" strokewidth="inherit">
@@ -601,7 +601,7 @@
 <stroke/>
 <fontcolor color="#000000"/>
 <fontsize size="18"/>
-<text str="M" x="49" y="25" align="middle" valign="bottom"/>
+<text str="M" x="49" y="25" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="Needle" h="60" w="98" aspect="variable" strokewidth="inherit">
@@ -947,7 +947,7 @@
 <stroke/>
 <fontcolor color="#000000"/>
 <fontsize size="18"/>
-<text str="S" x="49" y="25" align="middle" valign="bottom"/>
+<text str="S" x="49" y="25" align="center" valign="bottom"/>
 </foreground>
 </shape>
 <shape name="Three-Way Valve" h="79" w="98" aspect="variable" strokewidth="inherit">
