@@ -1,3 +1,16 @@
+20-JUL-2012: 1.10.2.0
+
+- Adds mxUtils.readInputStream [Java]
+- Adds mxGraph.doResizeContainer hook for mxGraph.resizeContainer switch [JavaScript]
+- Removes window resize event handling for SVG canvas in mxGraphView.createSvg [JavaScript]
+- Adds mxClient.IS_QUIRKS for IE quirks mode detection in all browsers [JavaScript]
+- Replaces mxGraph.getOffsetSize with getBorderSizes [JavaScript]
+- Uses relative size, minWidth/-Height for graph canvas sizing in mxGraph.sizeDidChange [JavaScript]
+- Adds mxGraphView.updateHtmlCanvasSize for minWidth/-Height in quirks mode [JavaScript]
+- Adds new mxPanningHandler.consumePanningTrigger hook [JavaScript]
+- Removes meta key check in mxGraph.isForceMarqueeEvent (checks alt key only) [JavaScript]
+- Uses meta key (cmd) instead of control key in mxGraph.isToggleEvent on Mac [JavaScript]
+
 16-JUL-2012: 1.10.1.5
 
 - Adds handling for rotation in mxGraphView.updateFloatingTerminalPoint [JavaScript]

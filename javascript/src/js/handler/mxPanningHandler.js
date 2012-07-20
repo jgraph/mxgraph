@@ -1,5 +1,5 @@
 /**
- * $Id: mxPanningHandler.js,v 1.78 2012-03-30 12:16:14 gaudenz Exp $
+ * $Id: mxPanningHandler.js,v 1.79 2012-07-17 14:37:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -204,9 +204,42 @@ mxPanningHandler.prototype.mouseDown = function(sender, me)
 		// Displays popup menu on Mac after the mouse was released
 		if (this.panningTrigger)
 		{
-			me.consume();
+			this.consumePanningTrigger(me);
 		}
 	}
+};
+
+/**
+ * Function: consumePanningTrigger
+ * 
+ * Consumes the given <mxMouseEvent> if it was a panning trigger in
+ * <mouseDown>. The default is to invoke <mxMouseEvent.consume>. Note that this
+ * will block any further event processing. If you haven't disabled built-in
+ * context menus and require immediate selection of the cell on mouseDown in
+ * Safari and/or on the Mac, then use the following code:
+ * 
+ * (code)
+ * mxPanningHandler.prototype.consumePanningTrigger = function(me)
+ * {
+ *   if (me.evt.preventDefault)
+ *   {
+ *     me.evt.preventDefault();
+ *   }
+ *   
+ *   // Stops event processing in IE
+ *   me.evt.returnValue = false;
+ *   
+ *   // Sets local consumed state
+ *   if (!mxClient.IS_SF && !mxClient.IS_MAC)
+ *   {
+ *     me.consumed = true;
+ *   }
+ * };
+ * (end)
+ */
+mxPanningHandler.prototype.consumePanningTrigger = function(me)
+{
+	me.consume();
 };
 
 /**

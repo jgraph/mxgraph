@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphView.js,v 1.193 2012-07-16 15:30:58 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.194 2012-07-19 15:18:35 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -2260,21 +2260,67 @@ mxGraphView.prototype.createHtml = function()
 	
 	if (container != null)
 	{
-		this.canvas = this.createHtmlPane();
+		this.canvas = this.createHtmlPane('100%', '100%');
 	
-		// Uses minimal size for stacked DIVs on Canvas. This is required
+		// Uses minimal size for inner DIVs on Canvas. This is required
 		// for correct event processing in IE. If we have an overlapping
-		// DIV then the events on the cells are only fired when over a
-		// text region.
-		this.backgroundPane = this.createHtmlPane(1, 1);
-		this.drawPane = this.createHtmlPane(1, 1);
-		this.overlayPane = this.createHtmlPane(1, 1);
+		// DIV then the events on the cells are only fired for labels.
+		this.backgroundPane = this.createHtmlPane('1px', '1px');
+		this.drawPane = this.createHtmlPane('1px', '1px');
+		this.overlayPane = this.createHtmlPane('1px', '1px');
 		
 		this.canvas.appendChild(this.backgroundPane);
 		this.canvas.appendChild(this.drawPane);
 		this.canvas.appendChild(this.overlayPane);
 
 		container.appendChild(this.canvas);
+		
+		// Implements minWidth/minHeight in quirks mode
+		if (mxClient.IS_QUIRKS)
+		{
+			var onResize = mxUtils.bind(this, function(evt)
+			{
+				var bounds = this.getGraphBounds();
+				var width = bounds.x + bounds.width + this.graph.border;
+				var height = bounds.y + bounds.height + this.graph.border;
+				
+				this.updateHtmlCanvasSize(width, height);
+			});
+			
+			mxEvent.addListener(window, 'resize', onResize);
+		}
+	}
+};
+
+/**
+ * Function: updateHtmlCanvasSize
+ * 
+ * Updates the size of the HTML canvas.
+ */
+mxGraphView.prototype.updateHtmlCanvasSize = function(width, height)
+{
+	if (this.graph.container != null)
+	{
+		var ow = this.graph.container.offsetWidth;
+		var oh = this.graph.container.offsetHeight;
+
+		if (ow < width)
+		{
+			this.canvas.style.width = width + 'px';
+		}
+		else
+		{
+			this.canvas.style.width = '100%';
+		}
+
+		if (oh < height)
+		{
+			this.canvas.style.height = height + 'px';
+		}
+		else
+		{
+			this.canvas.style.height = '100%';
+		}
 	}
 };
 
@@ -2293,8 +2339,8 @@ mxGraphView.prototype.createHtmlPane = function(width, height)
 		pane.style.left = '0px';
 		pane.style.top = '0px';
 
-		pane.style.width = width+'px';
-		pane.style.height = height+'px';
+		pane.style.width = width;
+		pane.style.height = height;
 	}
 	else
 	{
@@ -2377,29 +2423,14 @@ mxGraphView.prototype.createSvg = function()
 	this.canvas.appendChild(this.overlayPane);
 	
 	var root = document.createElementNS(mxConstants.NS_SVG, 'svg');
-
-	// Updates the clipping region of the svg element after
-	// a resize. This is required in Firefox.
-	var onResize = mxUtils.bind(this, function(evt)
-	{
-		if (this.graph.container != null)
-		{
-			var width = this.graph.container.offsetWidth;
-			var height = this.graph.container.offsetHeight;
-			var bounds = this.getGraphBounds();
-
-			root.setAttribute('width', Math.max(width, bounds.width));
-			root.setAttribute('height', Math.max(height, bounds.height));
-		}
-	});
+	root.style.width = '100%';
+	root.style.height = '100%';
 	
-	mxEvent.addListener(window, 'resize', onResize);
-	
-	if (mxClient.IS_OP)
+	if (mxClient.IS_IE)
 	{
-		onResize();
+		root.style.marginBottom = '-4px';
 	}
-	
+
 	root.appendChild(this.canvas);
 	
 	if (container != null)

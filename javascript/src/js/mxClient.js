@@ -1,5 +1,5 @@
 /**
- * $Id: mxClient.js,v 1.202 2012-07-16 15:08:56 gaudenz Exp $
+ * $Id: mxClient.js,v 1.203 2012-07-19 15:19:07 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClient =
@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.10.1.5.
+	 * Current version is 1.10.2.0.
 	 */
-	VERSION: '1.10.1.5',
+	VERSION: '1.10.2.0',
 
 	/**
 	 * Variable: IS_IE
@@ -38,6 +38,13 @@ var mxClient =
 	 * True if the current browser is Internet Explorer 6.x.
 	 */
 	IS_IE6: navigator.userAgent.indexOf('MSIE 6') >= 0,
+
+	/**
+	 * Variable: IS_QUIRKS
+	 *
+	 * True if the current browser is Internet Explorer and it is in quirks mode.
+	 */
+	IS_QUIRKS: navigator.userAgent.indexOf('MSIE') >= 0 && (document.documentMode == null || document.documentMode == 5),
 
 	/**
 	 * Variable: IS_NS

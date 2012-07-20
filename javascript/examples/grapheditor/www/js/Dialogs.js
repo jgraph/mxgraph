@@ -1,5 +1,5 @@
 /**
- * $Id: Dialogs.js,v 1.45 2012-06-08 15:07:04 gaudenz Exp $
+ * $Id: Dialogs.js,v 1.46 2012-07-19 19:09:23 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -37,7 +37,7 @@ function Dialog(editorUi, elt, w, h, modal, closable, onClose)
 		this.bg.style.right = '0px';
 		mxUtils.setOpacity(this.bg, 80);
 		
-		if (mxClient.IS_IE && (document.documentMode == null || document.documentMode == 5))
+		if (mxClient.IS_QUIRKS)
 		{
 			new mxDivResizer(this.bg);
 		}

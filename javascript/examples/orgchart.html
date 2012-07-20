@@ -1,5 +1,5 @@
 <!--
-  $Id: orgchart.html,v 1.64 2011-09-04 10:00:38 gaudenz Exp $
+  $Id: orgchart.html,v 1.65 2012-07-17 20:30:36 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
 
   Orgchart example for mxGraph. This example demonstrates using
@@ -107,11 +107,20 @@
 				style[mxConstants.STYLE_IMAGE] = 'editors/images/dude3.png';
 				style[mxConstants.STYLE_IMAGE_WIDTH] = '48';
 				style[mxConstants.STYLE_IMAGE_HEIGHT] = '48';
+				style[mxConstants.STYLE_SPACING] = 8;
 
 				// Sets the default style for edges
 				style = graph.getStylesheet().getDefaultEdgeStyle();
 				style[mxConstants.STYLE_ROUNDED] = true;
 				style[mxConstants.STYLE_STROKEWIDTH] = 3;
+				style[mxConstants.STYLE_EXIT_X] = 0.5; // center
+				style[mxConstants.STYLE_EXIT_Y] = 1.0; // bottom
+				style[mxConstants.STYLE_EXIT_PERIMETER] = 0; // disabled
+				style[mxConstants.STYLE_ENTRY_X] = 0.5; // center
+				style[mxConstants.STYLE_ENTRY_Y] = 0; // top
+				style[mxConstants.STYLE_ENTRY_PERIMETER] = 0; // disabled
+				
+				// Disable the following for straight lines
 				style[mxConstants.STYLE_EDGE] = mxEdgeStyle.TopToBottom;
 				
 				// Enables automatic sizing for vertices after editing and
@@ -130,19 +139,13 @@
 				// Stops editing on enter or escape keypress
 				var keyHandler = new mxKeyHandler(graph);
 
-				// Changes the default style for edges and vertices "in-place"
-				var style = graph.getStylesheet().getDefaultEdgeStyle();
-				style[mxConstants.STYLE_EDGE] = mxEdgeStyle.TopToBottom;
-
-				var style = graph.getStylesheet().getDefaultVertexStyle();
-				style[mxConstants.STYLE_SPACING] = 8;
-
 				// Enables automatic layout on the graph and installs
 				// a tree layout for all groups who's children are
 				// being changed, added or removed.
 				var layout = new mxCompactTreeLayout(graph, false);
 				layout.useBoundingBox = false;
-				layout.levelDistance = 40;
+				layout.edgeRouting = false;
+				layout.levelDistance = 60;
 				layout.nodeDistance = 16;
 
 				// Allows the layout to move cells even though cells

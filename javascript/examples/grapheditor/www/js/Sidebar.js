@@ -1,5 +1,5 @@
 /**
- * $Id: Sidebar.js,v 1.66 2012-07-16 07:50:17 gaudenz Exp $
+ * $Id: Sidebar.js,v 1.67 2012-07-19 19:09:23 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -219,7 +219,7 @@ Sidebar.prototype.showTooltip = function(elt, cells)
 				var width = bounds.x + bounds.width + this.tooltipBorder;
 				var height = bounds.y + bounds.height + this.tooltipBorder;
 				
-				if (mxClient.IS_IE && (document.documentMode == null || document.documentMode == 5))
+				if (mxClient.IS_QUIRKS)
 				{
 					width += 4;
 					height += 4;

@@ -1,5 +1,5 @@
 /**
- * $Id: mxEvent.js,v 1.72 2012-05-03 13:28:03 gaudenz Exp $
+ * $Id: mxEvent.js,v 1.73 2012-07-18 11:34:20 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEvent =
@@ -60,7 +60,7 @@ var mxEvent =
 		{
 			return function(element, eventName, funct)
 			{
-				element.attachEvent("on" + eventName, funct);
+				element.attachEvent('on' + eventName, funct);
 				updateListenerList(element, eventName, funct);				
 			};
 		}
@@ -109,7 +109,7 @@ var mxEvent =
 		{
 			return function(element, eventName, funct)
 			{
-				element.detachEvent("on" + eventName, funct);
+				element.detachEvent('on' + eventName, funct);
 				updateListener(element, eventName, funct);
 			};
 		}
@@ -529,6 +529,15 @@ var mxEvent =
 	 * is -1.
 	 */
 	LABEL_HANDLE: -1,
+	
+	/**
+	 * Variable: ROTATION_HANDLE
+	 * 
+	 * Index for the rotation handle in an mxMouseEvent. This should be a
+	 * negative value that does not interfere with any possible handle indices.
+	 * Default is -2.
+	 */
+	ROTATION_HANDLE: -2,
 	
 	//
 	// Event names

@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.java,v 1.125 2012-05-24 06:55:16 gaudenz Exp $
+ * $Id: mxUtils.java,v 1.126 2012-07-19 19:18:42 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.util;
@@ -23,6 +23,7 @@ import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.security.MessageDigest;
@@ -1734,12 +1735,12 @@ public class mxUtils
 		try
 		{
 			String tmp = colorString;
-			
+
 			if (tmp.startsWith("#"))
 			{
 				tmp = tmp.substring(1);
 			}
-			
+
 			value = (int) Long.parseLong(tmp, 16);
 		}
 		catch (NumberFormatException nfe)
@@ -1780,8 +1781,21 @@ public class mxUtils
 	 */
 	public static String readFile(String filename) throws IOException
 	{
-		BufferedReader reader = new BufferedReader(new InputStreamReader(
-				new FileInputStream(filename)));
+		return readInputStream(new FileInputStream(filename));
+	}
+
+	/**
+	 * Reads the given filename into a string.
+	 * 
+	 * @param filename
+	 *            Name of the file to be read.
+	 * @return Returns a string representing the file contents.
+	 * @throws IOException
+	 */
+	public static String readInputStream(InputStream stream) throws IOException
+	{
+		BufferedReader reader = new BufferedReader(
+				new InputStreamReader(stream));
 		StringBuffer result = new StringBuffer();
 		String tmp = reader.readLine();
 

@@ -1,5 +1,5 @@
 /**
- * $Id: mxClient.js,v 1.202 2012-07-16 15:08:56 gaudenz Exp $
+ * $Id: mxClient.js,v 1.203 2012-07-19 15:19:07 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClient =
@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.10.1.5.
+	 * Current version is 1.10.2.0.
 	 */
-	VERSION: '1.10.1.5',
+	VERSION: '1.10.2.0',
 
 	/**
 	 * Variable: IS_IE
@@ -38,6 +38,13 @@ var mxClient =
 	 * True if the current browser is Internet Explorer 6.x.
 	 */
 	IS_IE6: navigator.userAgent.indexOf('MSIE 6') >= 0,
+
+	/**
+	 * Variable: IS_QUIRKS
+	 *
+	 * True if the current browser is Internet Explorer and it is in quirks mode.
+	 */
+	IS_QUIRKS: navigator.userAgent.indexOf('MSIE') >= 0 && (document.documentMode == null || document.documentMode == 5),
 
 	/**
 	 * Variable: IS_NS
@@ -8170,7 +8177,7 @@ mxEventSource.prototype.fireEvent = function(evt, sender)
 	}
 };
 /**
- * $Id: mxEvent.js,v 1.72 2012-05-03 13:28:03 gaudenz Exp $
+ * $Id: mxEvent.js,v 1.73 2012-07-18 11:34:20 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEvent =
@@ -8231,7 +8238,7 @@ var mxEvent =
 		{
 			return function(element, eventName, funct)
 			{
-				element.attachEvent("on" + eventName, funct);
+				element.attachEvent('on' + eventName, funct);
 				updateListenerList(element, eventName, funct);				
 			};
 		}
@@ -8280,7 +8287,7 @@ var mxEvent =
 		{
 			return function(element, eventName, funct)
 			{
-				element.detachEvent("on" + eventName, funct);
+				element.detachEvent('on' + eventName, funct);
 				updateListener(element, eventName, funct);
 			};
 		}
@@ -8700,6 +8707,15 @@ var mxEvent =
 	 * is -1.
 	 */
 	LABEL_HANDLE: -1,
+	
+	/**
+	 * Variable: ROTATION_HANDLE
+	 * 
+	 * Index for the rotation handle in an mxMouseEvent. This should be a
+	 * negative value that does not interfere with any possible handle indices.
+	 * Default is -2.
+	 */
+	ROTATION_HANDLE: -2,
 	
 	//
 	// Event names
@@ -46334,7 +46350,7 @@ mxStyleRegistry.putValue(mxConstants.PERIMETER_RECTANGLE, mxPerimeter.RectangleP
 mxStyleRegistry.putValue(mxConstants.PERIMETER_RHOMBUS, mxPerimeter.RhombusPerimeter);
 mxStyleRegistry.putValue(mxConstants.PERIMETER_TRIANGLE, mxPerimeter.TrianglePerimeter);
 /**
- * $Id: mxGraphView.js,v 1.193 2012-07-16 15:30:58 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.194 2012-07-19 15:18:35 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -48595,21 +48611,67 @@ mxGraphView.prototype.createHtml = function()
 	
 	if (container != null)
 	{
-		this.canvas = this.createHtmlPane();
+		this.canvas = this.createHtmlPane('100%', '100%');
 	
-		// Uses minimal size for stacked DIVs on Canvas. This is required
+		// Uses minimal size for inner DIVs on Canvas. This is required
 		// for correct event processing in IE. If we have an overlapping
-		// DIV then the events on the cells are only fired when over a
-		// text region.
-		this.backgroundPane = this.createHtmlPane(1, 1);
-		this.drawPane = this.createHtmlPane(1, 1);
-		this.overlayPane = this.createHtmlPane(1, 1);
+		// DIV then the events on the cells are only fired for labels.
+		this.backgroundPane = this.createHtmlPane('1px', '1px');
+		this.drawPane = this.createHtmlPane('1px', '1px');
+		this.overlayPane = this.createHtmlPane('1px', '1px');
 		
 		this.canvas.appendChild(this.backgroundPane);
 		this.canvas.appendChild(this.drawPane);
 		this.canvas.appendChild(this.overlayPane);
 
 		container.appendChild(this.canvas);
+		
+		// Implements minWidth/minHeight in quirks mode
+		if (mxClient.IS_QUIRKS)
+		{
+			var onResize = mxUtils.bind(this, function(evt)
+			{
+				var bounds = this.getGraphBounds();
+				var width = bounds.x + bounds.width + this.graph.border;
+				var height = bounds.y + bounds.height + this.graph.border;
+				
+				this.updateHtmlCanvasSize(width, height);
+			});
+			
+			mxEvent.addListener(window, 'resize', onResize);
+		}
+	}
+};
+
+/**
+ * Function: updateHtmlCanvasSize
+ * 
+ * Updates the size of the HTML canvas.
+ */
+mxGraphView.prototype.updateHtmlCanvasSize = function(width, height)
+{
+	if (this.graph.container != null)
+	{
+		var ow = this.graph.container.offsetWidth;
+		var oh = this.graph.container.offsetHeight;
+
+		if (ow < width)
+		{
+			this.canvas.style.width = width + 'px';
+		}
+		else
+		{
+			this.canvas.style.width = '100%';
+		}
+
+		if (oh < height)
+		{
+			this.canvas.style.height = height + 'px';
+		}
+		else
+		{
+			this.canvas.style.height = '100%';
+		}
 	}
 };
 
@@ -48628,8 +48690,8 @@ mxGraphView.prototype.createHtmlPane = function(width, height)
 		pane.style.left = '0px';
 		pane.style.top = '0px';
 
-		pane.style.width = width+'px';
-		pane.style.height = height+'px';
+		pane.style.width = width;
+		pane.style.height = height;
 	}
 	else
 	{
@@ -48712,29 +48774,14 @@ mxGraphView.prototype.createSvg = function()
 	this.canvas.appendChild(this.overlayPane);
 	
 	var root = document.createElementNS(mxConstants.NS_SVG, 'svg');
-
-	// Updates the clipping region of the svg element after
-	// a resize. This is required in Firefox.
-	var onResize = mxUtils.bind(this, function(evt)
-	{
-		if (this.graph.container != null)
-		{
-			var width = this.graph.container.offsetWidth;
-			var height = this.graph.container.offsetHeight;
-			var bounds = this.getGraphBounds();
-
-			root.setAttribute('width', Math.max(width, bounds.width));
-			root.setAttribute('height', Math.max(height, bounds.height));
-		}
-	});
+	root.style.width = '100%';
+	root.style.height = '100%';
 	
-	mxEvent.addListener(window, 'resize', onResize);
-	
-	if (mxClient.IS_OP)
+	if (mxClient.IS_IE)
 	{
-		onResize();
+		root.style.marginBottom = '-4px';
 	}
-	
+
 	root.appendChild(this.canvas);
 	
 	if (container != null)
@@ -48848,7 +48895,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.693 2012-07-16 13:02:19 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.697 2012-07-19 17:15:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -51436,12 +51483,13 @@ mxGraph.prototype.createPanningManager = function()
 };
 
 /**
- * Function: getOffsetSize
+ * Function: getBorderSizes
  * 
- * Returns the actual size of the the viewport minus padding and border sizes.
- * The value is returned in the width and height of an <mxRectangle>.
+ * Returns the size of the border and padding on all four sides of the
+ * container. The left, top, right and bottom borders are stored in the x, y,
+ * width and height of the returned <mxRectangle>, respectively.
  */
-mxGraph.prototype.getOffsetSize = function()
+mxGraph.prototype.getBorderSizes = function()
 {
 	// Helper function to handle string values for border widths (approx)
 	function parseBorder(value)
@@ -51474,16 +51522,13 @@ mxGraph.prototype.getOffsetSize = function()
 	}
 	
 	var style = mxUtils.getCurrentStyle(this.container);
-	var dx = parseBorder(style.borderLeftWidth) + parseBorder(style.borderRightWidth) +
-		parseInt(style.paddingLeft || 0) + parseInt(style.paddingRight || 0);
-	var width = this.container.offsetWidth - dx;
+	var result = new mxRectangle();
+	result.x = parseBorder(style.borderLeftWidth) + parseInt(style.paddingLeft || 0);
+	result.y = parseBorder(style.borderTopWidth) + parseInt(style.paddingTop || 0);
+	result.width = parseBorder(style.borderRightWidth) + parseInt(style.paddingRight || 0);
+	result.height = parseBorder(style.borderBottomWidth) + parseInt(style.paddingBottom || 0);
 
-	// Correction factor for height is 4 pixels
-	var dy = parseBorder(style.borderTopWidth) + parseBorder(style.borderBottomWidth) +
-		parseInt(style.paddingTop || 0) + parseInt(style.paddingBottom || 0);
-	var height = this.container.offsetHeight - 4 - dy;
-	
-	return new mxRectangle(0, 0, width, height);
+	return result;
 };
 
 
@@ -51532,19 +51577,9 @@ mxGraph.prototype.sizeDidChange = function()
 
 		if (this.resizeContainer)
 		{
-			var w = width;
-			var h = height;
-			
-			if (this.maximumContainerSize != null)
-			{
-				w = Math.min(this.maximumContainerSize.width, w);
-				h = Math.min(this.maximumContainerSize.height, h);
-			}
-
-			this.container.style.width = w + 'px';
-			this.container.style.height = h + 'px';
+			this.doResizeContainer(width, height);
 		}
-		
+
 		if (this.preferPageSize || (!mxClient.IS_IE && this.pageVisible))
 		{
 			var size = this.getPreferredPageSize(bounds, width, height);
@@ -51555,64 +51590,34 @@ mxGraph.prototype.sizeDidChange = function()
 				height = size.height;
 			}
 		}
+		
+		if (this.minimumGraphSize != null)
+		{
+			width = Math.max(width, this.minimumGraphSize.width * this.view.scale);
+			height = Math.max(height, this.minimumGraphSize.height * this.view.scale);
+		}
 
-		var size = this.getOffsetSize();
-		width = Math.max(width, size.width);
-		height = Math.max(height, size.height);
+		width = Math.ceil(width - 1);
+		height = Math.ceil(height - 1);
 
 		if (this.dialect == mxConstants.DIALECT_SVG)
 		{
 			var root = this.view.getDrawPane().ownerSVGElement;
-			
-			if (this.minimumGraphSize != null)
-			{
-				width = Math.max(width, this.minimumGraphSize.width * this.view.scale);
-				height = Math.max(height, this.minimumGraphSize.height * this.view.scale);
-			}
-			
-			width = Math.ceil(width);
-			height = Math.ceil(height);
 
-			// Updates the clipping region. This is an expensive
-			// operation that should not be executed too often.
-			root.setAttribute('width', width);
-			root.setAttribute('height', height);
-			
-			// Workaround to trigger update (removal) of scrollbars
-			if (width <= this.container.offsetWidth &&
-				this.container.clientWidth < this.container.offsetWidth)
-			{
-				var prevValue = this.container.style.overflow;
-				this.container.style.overflow = 'hidden';
-				this.container.scrollLeft = 1;
-				this.container.style.overflow = prevValue;
-			}
+			root.style.minWidth = Math.max(1, width) + 'px';
+			root.style.minHeight = Math.max(1, height) + 'px';
 		}
 		else
 		{
-			width = Math.ceil(width);
-			height = Math.ceil(height);
-			
-			var drawPane = this.view.getDrawPane();
-			var canvas = this.view.getCanvas();
-
-			drawPane.style.width = width + 'px';
-			drawPane.style.height = height + 'px';
-			
-			// Must resize canvas for scrollbars to appear in IE since the
-			// canvas is hiding the overflow of the drawPane child
-			if (this.minimumGraphSize != null)
+			if (mxClient.IS_QUIRKS)
 			{
-				width = Math.max(width, Math.ceil(this.minimumGraphSize.width * this.view.scale));
-				height = Math.max(height, Math.ceil(this.minimumGraphSize.height * this.view.scale));
-				
-				canvas.style.width = width + 'px';
-				canvas.style.height = height + 'px';
+				// Quirks mode has no minWidth/minHeight support
+				this.view.updateHtmlCanvasSize(Math.max(1, width), Math.max(1, height));
 			}
 			else
 			{
-				canvas.style.width = width + 'px';
-				canvas.style.height = height + 'px';
+				this.view.canvas.style.minWidth = Math.max(1, width) + 'px';
+				this.view.canvas.style.minHeight = Math.max(1, height) + 'px';
 			}
 		}
 		
@@ -51620,6 +51625,50 @@ mxGraph.prototype.sizeDidChange = function()
 	}
 
 	this.fireEvent(new mxEventObject(mxEvent.SIZE, 'bounds', bounds));
+};
+
+/**
+ * Function: doResizeContainer
+ * 
+ * Resizes the container for the given graph width and height.
+ */
+mxGraph.prototype.doResizeContainer = function(width, height)
+{
+	// Fixes container size for different box models
+	if (mxClient.IS_IE)
+	{
+		if (mxClient.IS_QUIRKS)
+		{
+			var borders = this.getBorderSizes();
+			
+			// max(2, ...) required for native IE8 in quirks mode
+			width += Math.max(2, borders.x + borders.width + 1);
+			height += Math.max(2, borders.y + borders.height + 1);
+		}
+		else if (document.documentMode >= 9)
+		{
+			width += 3;
+			height += 5;
+		}
+		else
+		{
+			width += 1;
+			height += 1;
+		}
+	}
+	else
+	{
+		height += 1;
+	}
+	
+	if (this.maximumContainerSize != null)
+	{
+		width = Math.min(this.maximumContainerSize.width, width);
+		height = Math.min(this.maximumContainerSize.height, height);
+	}
+
+	this.container.style.width = Math.ceil(width) + 'px';
+	this.container.style.height = Math.ceil(height) + 'px';
 };
 
 /**
@@ -55903,11 +55952,12 @@ mxGraph.prototype.isCloneEvent = function(evt)
  * Function: isToggleEvent
  * 
  * Returns true if the given event is a toggle event. This implementation
- * returns true if control is pressed.
+ * returns true if the meta key (Cmd) is pressed on Macs or if control is
+ * pressed on any other platform.
  */
 mxGraph.prototype.isToggleEvent = function(evt)
 {
-	return mxEvent.isControlDown(evt);
+	return (mxClient.IS_MAC) ? mxEvent.isMetaDown(evt) : mxEvent.isControlDown(evt);
 };
 
 /**
@@ -55934,11 +55984,11 @@ mxGraph.prototype.isConstrainedEvent = function(evt)
  * Function: isForceMarqueeEvent
  * 
  * Returns true if the given event forces marquee selection. This implementation
- * returns true if alt or meta is pressed.
+ * returns true if alt is pressed.
  */
 mxGraph.prototype.isForceMarqueeEvent = function(evt)
 {
-	return mxEvent.isAltDown(evt) || mxEvent.isMetaDown(evt);
+	return mxEvent.isAltDown(evt);
 };
 
 /**
@@ -63616,7 +63666,7 @@ mxGraphHandler.prototype.destroy = function()
 	this.destroyShapes();
 };
 /**
- * $Id: mxPanningHandler.js,v 1.78 2012-03-30 12:16:14 gaudenz Exp $
+ * $Id: mxPanningHandler.js,v 1.79 2012-07-17 14:37:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -63821,9 +63871,42 @@ mxPanningHandler.prototype.mouseDown = function(sender, me)
 		// Displays popup menu on Mac after the mouse was released
 		if (this.panningTrigger)
 		{
-			me.consume();
+			this.consumePanningTrigger(me);
 		}
 	}
+};
+
+/**
+ * Function: consumePanningTrigger
+ * 
+ * Consumes the given <mxMouseEvent> if it was a panning trigger in
+ * <mouseDown>. The default is to invoke <mxMouseEvent.consume>. Note that this
+ * will block any further event processing. If you haven't disabled built-in
+ * context menus and require immediate selection of the cell on mouseDown in
+ * Safari and/or on the Mac, then use the following code:
+ * 
+ * (code)
+ * mxPanningHandler.prototype.consumePanningTrigger = function(me)
+ * {
+ *   if (me.evt.preventDefault)
+ *   {
+ *     me.evt.preventDefault();
+ *   }
+ *   
+ *   // Stops event processing in IE
+ *   me.evt.returnValue = false;
+ *   
+ *   // Sets local consumed state
+ *   if (!mxClient.IS_SF && !mxClient.IS_MAC)
+ *   {
+ *     me.consumed = true;
+ *   }
+ * };
+ * (end)
+ */
+mxPanningHandler.prototype.consumePanningTrigger = function(me)
+{
+	me.consume();
 };
 
 /**
