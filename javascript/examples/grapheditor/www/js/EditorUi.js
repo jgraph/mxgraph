@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.50 2012-06-30 05:49:38 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.51 2012-07-31 13:15:57 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -454,6 +454,9 @@ EditorUi.prototype.addSelectionListener = function()
         this.actions.get('enterGroup').setEnabled(groupEnabled);
         this.actions.get('expand').setEnabled(groupEnabled);
         this.actions.get('collapse').setEnabled(groupEnabled);
+        this.actions.get('editLink').setEnabled(graph.getSelectionCount() == 1);
+        this.actions.get('openLink').setEnabled(graph.getSelectionCount() == 1 &&
+        		graph.getLinkForCell(graph.getSelectionCell()) != null);
     });
 	    
     this.editor.graph.getSelectionModel().addListener(mxEvent.CHANGE, selectionListener);

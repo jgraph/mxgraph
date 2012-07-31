@@ -1,5 +1,5 @@
 /**
- * $Id: mxVertexHandler.js,v 1.103 2012-06-20 14:35:55 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.104 2012-07-25 08:26:23 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -252,8 +252,12 @@ mxVertexHandler.prototype.createSizer = function(cursor, index, size, fillColor)
 		sizer.init(this.graph.getView().getOverlayPane());
 	}
 	
-	sizer.node.style.cursor = cursor;
 	mxEvent.redirectMouseEvents(sizer.node, this.graph, this.state);
+	
+	if (this.graph.isEnabled())
+	{
+		sizer.node.style.cursor = cursor;
+	}
 	
 	if (!this.isSizerVisible(index))
 	{

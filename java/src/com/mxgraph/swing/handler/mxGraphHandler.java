@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphHandler.java,v 1.80 2012-03-10 08:05:31 gaudenz Exp $
+ * $Id: mxGraphHandler.java,v 1.81 2012-07-30 11:22:37 gaudenz Exp $
  * Copyright (c) 2008-2012, JGraph Ltd
  * 
  * Known issue: Drag image size depends on the initial position and may sometimes
@@ -212,7 +212,7 @@ public class mxGraphHandler extends mxMouseAdapter implements
 	 * Workaround for alt-key-state not correct in mouseReleased. Note: State
 	 * of the alt-key is not available during drag-and-drop.
 	 */
-	private transient boolean gridEnabledEvent = false;
+	protected transient boolean gridEnabledEvent = false;
 
 	/**
 	 * Workaround for shift-key-state not correct in mouseReleased.

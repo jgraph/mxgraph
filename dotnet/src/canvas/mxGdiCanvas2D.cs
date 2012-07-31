@@ -1,4 +1,4 @@
-// $Id: mxGdiCanvas2D.cs,v 1.16 2012-07-10 11:45:58 gaudenz Exp $
+// $Id: mxGdiCanvas2D.cs,v 1.17 2012-07-24 20:18:31 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Drawing;
@@ -131,11 +131,13 @@ namespace com.mxgraph
 	    public void Rotate(double theta, bool flipH, bool flipV, double cx,
 			    double cy)
 	    {
-		    cx += state.dx;
-		    cy += state.dy;
+            cx *= state.scale;
+            cy *= state.scale;
 
-		    cx *= state.scale;
-		    cy *= state.scale;
+            // This is a special case where the rotation center is scaled so dx/dy,
+            // which are also scaled, must be applied after scaling the center.
+            cx += state.dx;
+            cy += state.dy;
 
 		    // This implementation uses custom scale/translate and built-in rotation
 		    // Rotation state is part of the AffineTransform in state.transform

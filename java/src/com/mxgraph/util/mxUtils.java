@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.java,v 1.126 2012-07-19 19:18:42 gaudenz Exp $
+ * $Id: mxUtils.java,v 1.127 2012-07-26 07:20:50 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.util;
@@ -357,19 +357,30 @@ public class mxUtils
 
 		Rectangle2D boundingBox = null;
 
-		for (int i = 0; i < lines.length; i++)
+		if (lines.length == 0)
 		{
-			Rectangle2D bounds = font.getStringBounds(lines[i], frc);
+			boundingBox = font.getStringBounds("", frc);
+		}
+		else
+		{
+			for (int i = 0; i < lines.length; i++)
+			{
+				Rectangle2D bounds = font.getStringBounds(lines[i], frc);
 
-			if (boundingBox == null)
-			{
-				boundingBox = bounds;
-			}
-			else
-			{
-				boundingBox.setFrame(0, 0,
-						Math.max(boundingBox.getWidth(), bounds.getWidth()),
-						boundingBox.getHeight() + lineHeight);
+				if (boundingBox == null)
+				{
+					boundingBox = bounds;
+				}
+				else
+				{
+					boundingBox
+							.setFrame(
+									0,
+									0,
+									Math.max(boundingBox.getWidth(),
+											bounds.getWidth()),
+									boundingBox.getHeight() + lineHeight);
+				}
 			}
 		}
 

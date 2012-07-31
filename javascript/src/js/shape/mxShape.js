@@ -1,5 +1,5 @@
 /**
- * $Id: mxShape.js,v 1.172 2012-07-16 15:28:41 gaudenz Exp $
+ * $Id: mxShape.js,v 1.173 2012-07-31 11:46:53 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1544,7 +1544,8 @@ mxShape.prototype.updateSvgScale = function(node)
 		node.setAttribute('stroke-dasharray', phase + ' ' + phase);
 	}
 
-	if (this.crisp && (this.roundedCrispSvg || this.isRounded != true))
+	if (this.crisp && (this.roundedCrispSvg || this.isRounded != true) &&
+		(this.rotation == null || this.rotation == 0))
 	{
 		node.setAttribute('shape-rendering', 'crispEdges');
 	}

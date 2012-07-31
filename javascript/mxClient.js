@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.10.2.0.
+	 * Current version is 1.10.2.1.
 	 */
-	VERSION: '1.10.2.0',
+	VERSION: '1.10.2.1',
 
 	/**
 	 * Variable: IS_IE
@@ -19124,7 +19124,7 @@ mxGuide.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxShape.js,v 1.172 2012-07-16 15:28:41 gaudenz Exp $
+ * $Id: mxShape.js,v 1.173 2012-07-31 11:46:53 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -20669,7 +20669,8 @@ mxShape.prototype.updateSvgScale = function(node)
 		node.setAttribute('stroke-dasharray', phase + ' ' + phase);
 	}
 
-	if (this.crisp && (this.roundedCrispSvg || this.isRounded != true))
+	if (this.crisp && (this.roundedCrispSvg || this.isRounded != true) &&
+		(this.rotation == null || this.rotation == 0))
 	{
 		node.setAttribute('shape-rendering', 'crispEdges');
 	}
@@ -23282,7 +23283,7 @@ mxMarker.markers[mxConstants.ARROW_OVAL] = function(node, type, pe, nx, ny, stro
 			mxMarker.markers[mxConstants.ARROW_DIAMOND_THIN] = tmp_diamond;
 		}());
 /**
- * $Id: mxActor.js,v 1.34 2012-05-28 09:40:59 gaudenz Exp $
+ * $Id: mxActor.js,v 1.35 2012-07-31 11:46:53 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -23408,7 +23409,7 @@ mxActor.prototype.redrawSvg = function()
 	this.innerNode.setAttribute('stroke-width', strokeWidth);
 	this.innerNode.setAttribute('stroke-linejoin', 'round');
 
-	if (this.crisp)
+	if (this.crisp && (this.rotation == null || this.rotation == 0))
 	{
 		this.innerNode.setAttribute('shape-rendering', 'crispEdges');
 	}
@@ -27410,7 +27411,7 @@ mxLabel.prototype.redraw = function()
 	}
 };
 /**
- * $Id: mxCylinder.js,v 1.37 2012-05-28 09:40:59 gaudenz Exp $
+ * $Id: mxCylinder.js,v 1.38 2012-07-31 11:46:53 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -27632,7 +27633,7 @@ mxCylinder.prototype.redrawSvg = function()
 	var strokeWidth = Math.round(Math.max(1, this.strokewidth * this.scale));
 	this.innerNode.setAttribute('stroke-width', strokeWidth);
 	
-	if (this.crisp)
+	if (this.crisp && (this.rotation == null || this.rotation == 0))
 	{
 		this.innerNode.setAttribute('shape-rendering', 'crispEdges');
 		this.foreground.setAttribute('shape-rendering', 'crispEdges');
@@ -64475,7 +64476,7 @@ mxCellMarker.prototype.destroy = function()
 	this.highlight.destroy();
 };
 /**
- * $Id: mxSelectionCellsHandler.js,v 1.3 2012-03-18 19:07:35 gaudenz Exp $
+ * $Id: mxSelectionCellsHandler.js,v 1.4 2012-07-25 08:23:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -64496,7 +64497,7 @@ function mxSelectionCellsHandler(graph)
 	
 	this.refreshHandler = mxUtils.bind(this, function(sender, evt)
 	{
-		if (this.graph.isEnabled())
+		if (this.isEnabled())
 		{
 			this.refresh();
 		}
@@ -67273,7 +67274,7 @@ mxRubberband.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxVertexHandler.js,v 1.103 2012-06-20 14:35:55 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.104 2012-07-25 08:26:23 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -67526,8 +67527,12 @@ mxVertexHandler.prototype.createSizer = function(cursor, index, size, fillColor)
 		sizer.init(this.graph.getView().getOverlayPane());
 	}
 	
-	sizer.node.style.cursor = cursor;
 	mxEvent.redirectMouseEvents(sizer.node, this.graph, this.state);
+	
+	if (this.graph.isEnabled())
+	{
+		sizer.node.style.cursor = cursor;
+	}
 	
 	if (!this.isSizerVisible(index))
 	{
@@ -70941,7 +70946,7 @@ mxCellTracker.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxCellHighlight.js,v 1.22 2012-07-09 16:59:25 gaudenz Exp $
+ * $Id: mxCellHighlight.js,v 1.24 2012-07-28 19:17:40 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -70966,18 +70971,25 @@ function mxCellHighlight(graph, highlightColor, strokeWidth)
 		this.highlightColor = (highlightColor != null) ? highlightColor : mxConstants.DEFAULT_VALID_COLOR;
 		this.strokeWidth = (strokeWidth != null) ? strokeWidth : mxConstants.HIGHLIGHT_STROKEWIDTH;
 
-		// Hides the marker if the graph changes
-		this.resetHandler = mxUtils.bind(this, function(sender)
+		// Updates the marker if the graph changes
+		this.repaintHandler = mxUtils.bind(this, function()
+		{
+			this.repaint();
+		});
+
+		this.graph.getView().addListener(mxEvent.SCALE, this.repaintHandler);
+		this.graph.getView().addListener(mxEvent.TRANSLATE, this.repaintHandler);
+		this.graph.getView().addListener(mxEvent.SCALE_AND_TRANSLATE, this.repaintHandler);
+		this.graph.getModel().addListener(mxEvent.CHANGE, this.repaintHandler);
+		
+		// Hides the marker if the current root changes
+		this.resetHandler = mxUtils.bind(this, function()
 		{
 			this.hide();
 		});
 
-		this.graph.getView().addListener(mxEvent.SCALE, this.resetHandler);
-		this.graph.getView().addListener(mxEvent.TRANSLATE, this.resetHandler);
-		this.graph.getView().addListener(mxEvent.SCALE_AND_TRANSLATE, this.resetHandler);
 		this.graph.getView().addListener(mxEvent.DOWN, this.resetHandler);
 		this.graph.getView().addListener(mxEvent.UP, this.resetHandler);
-		this.graph.getModel().addListener(mxEvent.CHANGE, this.resetHandler);
 	}
 };
 
@@ -71050,23 +71062,21 @@ mxCellHighlight.prototype.setHighlightColor = function(color)
  * 
  * Creates and returns the highlight shape for the given state.
  */
-mxCellHighlight.prototype.drawHighlight = function(state)
+mxCellHighlight.prototype.drawHighlight = function()
 {
-	var shape = this.createShape(state);
-	shape.redraw();
+	this.shape = this.createShape();
+	this.repaint();
 
-	if (!this.keepOnTop && shape.node.parentNode.firstChild != shape.node)
+	if (!this.keepOnTop && this.shape.node.parentNode.firstChild != this.shape.node)
 	{
-		shape.node.parentNode.insertBefore(shape.node, shape.node.parentNode.firstChild);
+		this.shape.node.parentNode.insertBefore(this.shape.node, this.shape.node.parentNode.firstChild);
 	}
 
 	// Workaround to force a repaint in AppleWebKit
-	if (this.graph.model.isEdge(state.cell))
+	if (this.graph.model.isEdge(this.state.cell))
 	{
-		mxUtils.repaintGraph(this.graph, shape.points[0]);
+		mxUtils.repaintGraph(this.graph, this.shape.points[0]);
 	}
-	
-	return shape;
 };
 
 /**
@@ -71074,61 +71084,83 @@ mxCellHighlight.prototype.drawHighlight = function(state)
  * 
  * Creates and returns the highlight shape for the given state.
  */
-mxCellHighlight.prototype.createShape = function(state)
+mxCellHighlight.prototype.createShape = function()
 {
 	var shape = null;
 	
-	if (this.graph.model.isEdge(state.cell))
+	if (this.graph.model.isEdge(this.state.cell))
 	{
-		shape = new mxPolyline(state.absolutePoints,
+		shape = new mxPolyline(this.state.absolutePoints,
 			this.highlightColor, this.strokeWidth);
 	}
 	else
 	{
-		shape = new mxRectangleShape(
-			new mxRectangle(state.x - this.spacing, state.y - this.spacing,
-				state.width + 2 * this.spacing, state.height + 2 * this.spacing),
+		shape = new mxRectangleShape( new mxRectangle(),
 			null, this.highlightColor, this.strokeWidth);
 	}
 	
 	shape.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
 			mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
 	shape.init(this.graph.getView().getOverlayPane());
-	mxEvent.redirectMouseEvents(shape.node, this.graph, state);
-	
-	// Uses cursor from shape in highlight
-	if (state.shape != null)
-	{
-		shape.setCursor(state.shape.getCursor());
-	}
-
-	var alpha = (!this.graph.model.isEdge(state.cell)) ? Number(state.style[mxConstants.STYLE_ROTATION] || '0') : 0;
-	
-	// Event-transparency
-	if (shape.dialect == mxConstants.DIALECT_SVG)
-	{
-		shape.node.setAttribute('style', 'pointer-events:none;');
-
-		if (alpha != 0)
-		{
-			var cx = state.getCenterX();
-			var cy = state.getCenterY();
-			var transform = 'rotate(' + alpha + ' ' + cx + ' ' + cy + ')';
-			
-			shape.node.setAttribute('transform', transform);
-		}
-	}
-	else
-	{
-		shape.node.style.background = '';
-		
-		if (alpha != 0)
-		{
-			shape.node.rotation = alpha;
-		}
-	}
+	mxEvent.redirectMouseEvents(shape.node, this.graph, this.state);
 	
 	return shape;
+};
+
+
+/**
+ * Function: repaint
+ * 
+ * Updates the highlight after a change of the model or view.
+ */
+mxCellHighlight.prototype.repaint = function()
+{
+	if (this.state != null && this.shape != null)
+	{
+		if (this.graph.model.isEdge(this.state.cell))
+		{
+			this.shape.points = this.state.absolutePoints;
+		}
+		else
+		{
+			this.shape.bounds = new mxRectangle(this.state.x - this.spacing, this.state.y - this.spacing,
+					this.state.width + 2 * this.spacing, this.state.height + 2 * this.spacing);
+		}
+		
+		this.shape.redraw();
+
+		// Uses cursor from shape in highlight
+		if (this.state.shape != null)
+		{
+			this.shape.setCursor(this.state.shape.getCursor());
+		}
+	
+		var alpha = (!this.graph.model.isEdge(this.state.cell)) ? Number(this.state.style[mxConstants.STYLE_ROTATION] || '0') : 0;
+		
+		// Event-transparency
+		if (this.shape.dialect == mxConstants.DIALECT_SVG)
+		{
+			this.shape.node.setAttribute('style', 'pointer-events:none;');
+	
+			if (alpha != 0)
+			{
+				var cx = state.getCenterX();
+				var cy = state.getCenterY();
+				var transform = 'rotate(' + alpha + ' ' + cx + ' ' + cy + ')';
+				
+				this.shape.node.setAttribute('transform', transform);
+			}
+		}
+		else
+		{
+			this.shape.node.style.background = '';
+			
+			if (alpha != 0)
+			{
+				this.shape.node.rotation = alpha;
+			}
+		}
+	}
 };
 
 /**
@@ -71156,12 +71188,12 @@ mxCellHighlight.prototype.highlight = function(state)
 			this.shape = null;
 		}
 
-		if (state != null)
-		{
-			this.shape = this.drawHighlight(state);
-		}
-
 		this.state = state;
+		
+		if (this.state != null)
+		{
+			this.drawHighlight();
+		}
 	}
 };
 
@@ -71172,6 +71204,9 @@ mxCellHighlight.prototype.highlight = function(state)
  */
 mxCellHighlight.prototype.destroy = function()
 {
+	this.graph.getView().removeListener(this.repaintHandler);
+	this.graph.getModel().removeListener(this.repaintHandler);
+	
 	this.graph.getView().removeListener(this.resetHandler);
 	this.graph.getModel().removeListener(this.resetHandler);
 	

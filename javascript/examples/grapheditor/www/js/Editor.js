@@ -1,5 +1,5 @@
 /**
- * $Id: Editor.js,v 1.47 2012-07-15 08:46:38 gaudenz Exp $
+ * $Id: Editor.js,v 1.49 2012-07-24 07:49:48 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 // Specifies if local storage should be used (eg. on the iPad which has no filesystem)
@@ -806,31 +806,53 @@ Editor.prototype.createUndoManager = function()
  */
 Editor.prototype.initStencilRegistry = function()
 {
-	mxStencilRegistry.packages = [];
+	// Loads default stencils
+	mxStencilRegistry.loadStencilSet(STENCIL_PATH + '/general.xml');
+};
 
+// Overrides stencil registry for dynamic loading
+(function()
+{
+	mxStencilRegistry.packages = [];
+	
 	// Extends the default stencil registry to add dynamic loading
 	mxStencilRegistry.getStencil = function(name)
 	{
 		var result = mxStencilRegistry.stencils[name];
 		
+		if (result == null)
+		{
+			var basename = mxStencilRegistry.getBasenameForStencil(name);
+			
+			// Loads stencil files and tries again
+			if (basename != null)
+			{
+				mxStencilRegistry.loadStencilSet(STENCIL_PATH + '/' + basename + '.xml', null);
+				result = mxStencilRegistry.stencils[name];
+			}
+		}
+		
+		return result;
+	};
+	
+	// Returns the basename for the given stencil or null if no file must be
+	// loaded to render the given stencil.
+	mxStencilRegistry.getBasenameForStencil = function(name)
+	{
 		var parts = name.split('.');
+		var tmp = null;
 		
 		if (parts.length > 0 && parts[0] == 'mxgraph')
 		{
-			var tmp = parts[1];
+			tmp = parts[1];
 			
 			for (var i = 2; i < parts.length - 1; i++)
 			{
 				tmp += '/' + parts[i];
 			}
-
-			mxStencilRegistry.loadStencilSet(STENCIL_PATH + '/' + tmp + '.xml', null);
-
-			// Tries again after all shapes for file have been registered
-			result = mxStencilRegistry.stencils[name];
 		}
-		
-		return result;
+
+		return tmp;
 	};
 
 	// Loads the given stencil set
@@ -845,53 +867,57 @@ Editor.prototype.initStencilRegistry = function()
 		{
 			mxStencilRegistry.packages[stencilFile] = 1;
 			var req = mxUtils.load(stencilFile);
-			var root = req.getDocumentElement();
-			var shape = root.firstChild;
-			var packageName = '';
-			var name = root.getAttribute('name');
-			
-			if (name != null)
-			{
-				packageName = name + '.';
-			}
-			
-			while (shape != null)
-			{
-				if (shape.nodeType == mxConstants.NODETYPE_ELEMENT)
-				{
-					name = shape.getAttribute('name');
-					
-					if (name != null)
-					{
-						var w = shape.getAttribute('w');
-						var h = shape.getAttribute('h');
-						
-						w = (w == null) ? 80 : parseInt(w, 10);
-						h = (h == null) ? 80 : parseInt(h, 10);
-						
-						packageName = packageName.toLowerCase();
-						var stencilName = name.replace(/ /g,"_");
-							
-						if (!installed)
-						{
-							mxStencilRegistry.addStencil(packageName + stencilName.toLowerCase(), new mxStencil(shape));
-						}
-		
-						if (postStencilLoad != null)
-						{
-							postStencilLoad(packageName, stencilName, name, w, h);
-						}
-					}
-				}
-				
-				shape = shape.nextSibling;
-			}
+			mxStencilRegistry.parseStencilSet(req.getXml(), postStencilLoad, !installed);
 		}
 	};
-
-	// Loads default stencils
-	mxStencilRegistry.loadStencilSet(STENCIL_PATH + '/general.xml');
-};
+	
+	// Parses the given stencil set
+	mxStencilRegistry.parseStencilSet = function(xmlDocument, postStencilLoad, install)
+	{
+		install = (install != null) ? install : true;
+		var root = xmlDocument.documentElement;
+		var shape = root.firstChild;
+		var packageName = '';
+		var name = root.getAttribute('name');
+		
+		if (name != null)
+		{
+			packageName = name + '.';
+		}
+		
+		while (shape != null)
+		{
+			if (shape.nodeType == mxConstants.NODETYPE_ELEMENT)
+			{
+				name = shape.getAttribute('name');
+				
+				if (name != null)
+				{
+					var w = shape.getAttribute('w');
+					var h = shape.getAttribute('h');
+					
+					w = (w == null) ? 80 : parseInt(w, 10);
+					h = (h == null) ? 80 : parseInt(h, 10);
+					
+					packageName = packageName.toLowerCase();
+					var stencilName = name.replace(/ /g,"_");
+						
+					if (install)
+					{
+						mxStencilRegistry.addStencil(packageName + stencilName.toLowerCase(), new mxStencil(shape));
+					}
+	
+					if (postStencilLoad != null)
+					{
+						postStencilLoad(packageName, stencilName, name, w, h);
+					}
+				}
+			}
+			
+			shape = shape.nextSibling;
+		}
+	};
+})();
 
 /**
  * Class for asynchronously opening a new window and loading a file at the same

@@ -1,5 +1,5 @@
 /*
- * $Id: JTableRenderer.java,v 1.5 2012-01-13 11:04:36 david Exp $
+ * $Id: JTableRenderer.java,v 1.6 2012-07-29 09:30:47 gaudenz Exp $
  * Copyright (c) 2001-2005, Gaudenz Alder
  * 
  * All rights reserved.
@@ -141,7 +141,7 @@ public class JTableRenderer extends JComponent
 
 			public void actionPerformed(ActionEvent e)
 			{
-				graph.foldCells(graph.isCellCollapsed(cell), false,
+				graph.foldCells(!graph.isCellCollapsed(cell), false,
 						new Object[] { cell });
 				((JButton) e.getSource())
 						.setIcon(new ImageIcon(

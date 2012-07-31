@@ -1,3 +1,15 @@
+31-JUL-2012: 1.10.2.1
+
+- Disables crisp SVG rendering for rotated shapes in mShape, mxActos, mxCylinder [JavaScript]
+- Uses SHORT_DESCRIPTION from passed-in action in BasicGraphEditor.bind [Java]
+- Makes mxGraphHandler.gridEnabledEvent protected [Java]
+- Fixes repaint of mxCellHighlight after panning, zoom and model changes [JavaScript]
+- Adds links for cells in grapheditor example [JavaScript]
+- Fixes possible NPE in mxUtils.getSizeForString [Java]
+- mxVertexHandler.createSizer does no longer set handle cursors in disabled graphs [JavaScript]
+- mxSelectionCellsHandler.refreshHandler checks handler enabled instead of graph enabled [Java,JavaScript]
+- Fixes position of rotated shapes in scaled image export [Dotnet,Java]
+
 20-JUL-2012: 1.10.2.0
 
 - Adds mxUtils.readInputStream [Java]

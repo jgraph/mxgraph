@@ -1,5 +1,5 @@
 /**
- * $Id: mxSelectionCellsHandler.js,v 1.3 2012-03-18 19:07:35 gaudenz Exp $
+ * $Id: mxSelectionCellsHandler.js,v 1.4 2012-07-25 08:23:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -20,7 +20,7 @@ function mxSelectionCellsHandler(graph)
 	
 	this.refreshHandler = mxUtils.bind(this, function(sender, evt)
 	{
-		if (this.graph.isEnabled())
+		if (this.isEnabled())
 		{
 			this.refresh();
 		}

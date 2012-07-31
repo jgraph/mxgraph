@@ -1,5 +1,5 @@
 /**
- * $Id: mxSelectionCellsHandler.java,v 1.12 2012-07-01 12:19:21 gaudenz Exp $
+ * $Id: mxSelectionCellsHandler.java,v 1.13 2012-07-25 08:23:43 gaudenz Exp $
  * Copyright (c) 2008, Gaudenz Alder
  * 
  * Known issue: Drag image size depends on the initial position and may sometimes
@@ -82,7 +82,7 @@ public class mxSelectionCellsHandler implements MouseListener,
 	{
 		public void invoke(Object source, mxEventObject evt)
 		{
-			if (graphComponent.isEnabled())
+			if (isEnabled())
 			{
 				refresh();
 			}

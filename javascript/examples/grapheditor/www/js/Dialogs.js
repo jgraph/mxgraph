@@ -1,5 +1,5 @@
 /**
- * $Id: Dialogs.js,v 1.46 2012-07-19 19:09:23 gaudenz Exp $
+ * $Id: Dialogs.js,v 1.48 2012-07-29 08:21:56 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -1003,7 +1003,7 @@ function ExportDialog(editorUi)
 		checkValues();
 	});
 
-	// Resuable image export instance
+	// Reusable image export instance
 	var imgExport = new mxImageExport();
 
 	row = document.createElement('tr');
@@ -1037,6 +1037,8 @@ function ExportDialog(editorUi)
 			    var svgDoc = mxUtils.createXmlDocument();
 			    var root = (svgDoc.createElementNS != null) ?
 			    	svgDoc.createElementNS(mxConstants.NS_SVG, 'svg') : svgDoc.createElement('svg');
+			    	
+				root.style.backgroundColor = graph.background;
 			    
 			    if (svgDoc.createElementNS == null)
 			    {

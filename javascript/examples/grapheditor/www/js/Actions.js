@@ -1,5 +1,5 @@
 /**
- * $Id: Actions.js,v 1.33 2012-06-30 05:47:52 gaudenz Exp $
+ * $Id: Actions.js,v 1.36 2012-07-26 19:11:58 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -105,6 +105,33 @@ Actions.prototype.init = function()
 	this.addAction('group', function() { graph.setSelectionCell(graph.groupCells(null, 0)); }, null, null, 'Ctrl+G');
 	this.addAction('ungroup', function() { graph.setSelectionCells(graph.ungroupCells()); }, null, null, 'Ctrl+U');
 	this.addAction('removeFromGroup', function() { graph.removeCellsFromParent(); });
+	this.addAction('editLink', function()
+	{
+		var cell = graph.getSelectionCell();
+		var link = graph.getLinkForCell(cell);
+		
+		if (link == null)
+		{
+			link = '';
+		}
+		
+		link = mxUtils.prompt(mxResources.get('enterValue'), link);
+		
+		if (link != null)
+		{
+			graph.setLinkForCell(cell, link);
+		}
+	});
+	this.addAction('openLink', function()
+	{
+		var cell = graph.getSelectionCell();
+		var link = graph.getLinkForCell(cell);
+		
+		if (link != null)
+		{
+			window.open(link);
+		}
+	});
 	this.addAction('autosize', function()
 	{
 		var cells = graph.getSelectionCells();
@@ -439,6 +466,14 @@ Actions.prototype.init = function()
 		{
 			// Take a snapshot of the cell at the moment of calling
 			var proto = graph.getModel().cloneCells([cell])[0];
+			
+			// Delete entry-/exitXY styles
+			var style = proto.getStyle();
+			style = mxUtils.setStyle(style, mxConstants.STYLE_ENTRY_X, '');
+			style = mxUtils.setStyle(style, mxConstants.STYLE_ENTRY_Y, '');
+			style = mxUtils.setStyle(style, mxConstants.STYLE_EXIT_X, '');
+			style = mxUtils.setStyle(style, mxConstants.STYLE_EXIT_Y, '');
+			proto.setStyle(style);
 			
 			// Uses edge template for connect preview
 			graph.connectionHandler.createEdgeState = function(me)

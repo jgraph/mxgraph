@@ -1,5 +1,5 @@
 /**
- * $Id: mxActor.js,v 1.34 2012-05-28 09:40:59 gaudenz Exp $
+ * $Id: mxActor.js,v 1.35 2012-07-31 11:46:53 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -125,7 +125,7 @@ mxActor.prototype.redrawSvg = function()
 	this.innerNode.setAttribute('stroke-width', strokeWidth);
 	this.innerNode.setAttribute('stroke-linejoin', 'round');
 
-	if (this.crisp)
+	if (this.crisp && (this.rotation == null || this.rotation == 0))
 	{
 		this.innerNode.setAttribute('shape-rendering', 'crispEdges');
 	}

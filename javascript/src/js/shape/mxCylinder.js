@@ -1,5 +1,5 @@
 /**
- * $Id: mxCylinder.js,v 1.37 2012-05-28 09:40:59 gaudenz Exp $
+ * $Id: mxCylinder.js,v 1.38 2012-07-31 11:46:53 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -221,7 +221,7 @@ mxCylinder.prototype.redrawSvg = function()
 	var strokeWidth = Math.round(Math.max(1, this.strokewidth * this.scale));
 	this.innerNode.setAttribute('stroke-width', strokeWidth);
 	
-	if (this.crisp)
+	if (this.crisp && (this.rotation == null || this.rotation == 0))
 	{
 		this.innerNode.setAttribute('shape-rendering', 'crispEdges');
 		this.foreground.setAttribute('shape-rendering', 'crispEdges');

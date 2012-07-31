@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellHighlight.js,v 1.22 2012-07-09 16:59:25 gaudenz Exp $
+ * $Id: mxCellHighlight.js,v 1.24 2012-07-28 19:17:40 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -24,18 +24,25 @@ function mxCellHighlight(graph, highlightColor, strokeWidth)
 		this.highlightColor = (highlightColor != null) ? highlightColor : mxConstants.DEFAULT_VALID_COLOR;
 		this.strokeWidth = (strokeWidth != null) ? strokeWidth : mxConstants.HIGHLIGHT_STROKEWIDTH;
 
-		// Hides the marker if the graph changes
-		this.resetHandler = mxUtils.bind(this, function(sender)
+		// Updates the marker if the graph changes
+		this.repaintHandler = mxUtils.bind(this, function()
+		{
+			this.repaint();
+		});
+
+		this.graph.getView().addListener(mxEvent.SCALE, this.repaintHandler);
+		this.graph.getView().addListener(mxEvent.TRANSLATE, this.repaintHandler);
+		this.graph.getView().addListener(mxEvent.SCALE_AND_TRANSLATE, this.repaintHandler);
+		this.graph.getModel().addListener(mxEvent.CHANGE, this.repaintHandler);
+		
+		// Hides the marker if the current root changes
+		this.resetHandler = mxUtils.bind(this, function()
 		{
 			this.hide();
 		});
 
-		this.graph.getView().addListener(mxEvent.SCALE, this.resetHandler);
-		this.graph.getView().addListener(mxEvent.TRANSLATE, this.resetHandler);
-		this.graph.getView().addListener(mxEvent.SCALE_AND_TRANSLATE, this.resetHandler);
 		this.graph.getView().addListener(mxEvent.DOWN, this.resetHandler);
 		this.graph.getView().addListener(mxEvent.UP, this.resetHandler);
-		this.graph.getModel().addListener(mxEvent.CHANGE, this.resetHandler);
 	}
 };
 
@@ -108,23 +115,21 @@ mxCellHighlight.prototype.setHighlightColor = function(color)
  * 
  * Creates and returns the highlight shape for the given state.
  */
-mxCellHighlight.prototype.drawHighlight = function(state)
+mxCellHighlight.prototype.drawHighlight = function()
 {
-	var shape = this.createShape(state);
-	shape.redraw();
+	this.shape = this.createShape();
+	this.repaint();
 
-	if (!this.keepOnTop && shape.node.parentNode.firstChild != shape.node)
+	if (!this.keepOnTop && this.shape.node.parentNode.firstChild != this.shape.node)
 	{
-		shape.node.parentNode.insertBefore(shape.node, shape.node.parentNode.firstChild);
+		this.shape.node.parentNode.insertBefore(this.shape.node, this.shape.node.parentNode.firstChild);
 	}
 
 	// Workaround to force a repaint in AppleWebKit
-	if (this.graph.model.isEdge(state.cell))
+	if (this.graph.model.isEdge(this.state.cell))
 	{
-		mxUtils.repaintGraph(this.graph, shape.points[0]);
+		mxUtils.repaintGraph(this.graph, this.shape.points[0]);
 	}
-	
-	return shape;
 };
 
 /**
@@ -132,61 +137,83 @@ mxCellHighlight.prototype.drawHighlight = function(state)
  * 
  * Creates and returns the highlight shape for the given state.
  */
-mxCellHighlight.prototype.createShape = function(state)
+mxCellHighlight.prototype.createShape = function()
 {
 	var shape = null;
 	
-	if (this.graph.model.isEdge(state.cell))
+	if (this.graph.model.isEdge(this.state.cell))
 	{
-		shape = new mxPolyline(state.absolutePoints,
+		shape = new mxPolyline(this.state.absolutePoints,
 			this.highlightColor, this.strokeWidth);
 	}
 	else
 	{
-		shape = new mxRectangleShape(
-			new mxRectangle(state.x - this.spacing, state.y - this.spacing,
-				state.width + 2 * this.spacing, state.height + 2 * this.spacing),
+		shape = new mxRectangleShape( new mxRectangle(),
 			null, this.highlightColor, this.strokeWidth);
 	}
 	
 	shape.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
 			mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
 	shape.init(this.graph.getView().getOverlayPane());
-	mxEvent.redirectMouseEvents(shape.node, this.graph, state);
-	
-	// Uses cursor from shape in highlight
-	if (state.shape != null)
-	{
-		shape.setCursor(state.shape.getCursor());
-	}
-
-	var alpha = (!this.graph.model.isEdge(state.cell)) ? Number(state.style[mxConstants.STYLE_ROTATION] || '0') : 0;
-	
-	// Event-transparency
-	if (shape.dialect == mxConstants.DIALECT_SVG)
-	{
-		shape.node.setAttribute('style', 'pointer-events:none;');
-
-		if (alpha != 0)
-		{
-			var cx = state.getCenterX();
-			var cy = state.getCenterY();
-			var transform = 'rotate(' + alpha + ' ' + cx + ' ' + cy + ')';
-			
-			shape.node.setAttribute('transform', transform);
-		}
-	}
-	else
-	{
-		shape.node.style.background = '';
-		
-		if (alpha != 0)
-		{
-			shape.node.rotation = alpha;
-		}
-	}
+	mxEvent.redirectMouseEvents(shape.node, this.graph, this.state);
 	
 	return shape;
+};
+
+
+/**
+ * Function: repaint
+ * 
+ * Updates the highlight after a change of the model or view.
+ */
+mxCellHighlight.prototype.repaint = function()
+{
+	if (this.state != null && this.shape != null)
+	{
+		if (this.graph.model.isEdge(this.state.cell))
+		{
+			this.shape.points = this.state.absolutePoints;
+		}
+		else
+		{
+			this.shape.bounds = new mxRectangle(this.state.x - this.spacing, this.state.y - this.spacing,
+					this.state.width + 2 * this.spacing, this.state.height + 2 * this.spacing);
+		}
+		
+		this.shape.redraw();
+
+		// Uses cursor from shape in highlight
+		if (this.state.shape != null)
+		{
+			this.shape.setCursor(this.state.shape.getCursor());
+		}
+	
+		var alpha = (!this.graph.model.isEdge(this.state.cell)) ? Number(this.state.style[mxConstants.STYLE_ROTATION] || '0') : 0;
+		
+		// Event-transparency
+		if (this.shape.dialect == mxConstants.DIALECT_SVG)
+		{
+			this.shape.node.setAttribute('style', 'pointer-events:none;');
+	
+			if (alpha != 0)
+			{
+				var cx = state.getCenterX();
+				var cy = state.getCenterY();
+				var transform = 'rotate(' + alpha + ' ' + cx + ' ' + cy + ')';
+				
+				this.shape.node.setAttribute('transform', transform);
+			}
+		}
+		else
+		{
+			this.shape.node.style.background = '';
+			
+			if (alpha != 0)
+			{
+				this.shape.node.rotation = alpha;
+			}
+		}
+	}
 };
 
 /**
@@ -214,12 +241,12 @@ mxCellHighlight.prototype.highlight = function(state)
 			this.shape = null;
 		}
 
-		if (state != null)
-		{
-			this.shape = this.drawHighlight(state);
-		}
-
 		this.state = state;
+		
+		if (this.state != null)
+		{
+			this.drawHighlight();
+		}
 	}
 };
 
@@ -230,6 +257,9 @@ mxCellHighlight.prototype.highlight = function(state)
  */
 mxCellHighlight.prototype.destroy = function()
 {
+	this.graph.getView().removeListener(this.repaintHandler);
+	this.graph.getModel().removeListener(this.repaintHandler);
+	
 	this.graph.getView().removeListener(this.resetHandler);
 	this.graph.getModel().removeListener(this.resetHandler);
 	

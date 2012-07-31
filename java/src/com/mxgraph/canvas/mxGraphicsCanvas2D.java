@@ -255,12 +255,14 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	public void rotate(double theta, boolean flipH, boolean flipV, double cx,
 			double cy)
 	{
-		cx += state.dx;
-		cy += state.dy;
-
 		cx *= state.scale;
 		cy *= state.scale;
 
+		// This is a special case where the rotation center is scaled so dx/dy,
+		// which are also scaled, must be applied after scaling the center.
+		cx += state.dx;
+		cy += state.dy;
+		
 		// This implementation uses custom scale/translate and built-in rotation
 		// Rotation state is part of the AffineTransform in state.transform
 		if (flipH ^ flipV)

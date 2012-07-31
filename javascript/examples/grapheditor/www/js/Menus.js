@@ -1,5 +1,5 @@
 /**
- * $Id: Menus.js,v 1.51 2012-06-30 05:51:20 gaudenz Exp $
+ * $Id: Menus.js,v 1.54 2012-07-31 13:15:57 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -291,6 +291,7 @@ Menus.prototype.init = function()
 	this.put('edit', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
 		this.addMenuItems(menu, ['undo', 'redo', '-', 'cut', 'copy', 'paste', 'delete', '-', 'duplicate', '-',
+		                         'editLink', 'openLink', '-',
 		                         'selectVertices', 'selectEdges', 'selectAll', '-', 'setAsDefaultEdge']);
 	})));
 	this.put('options', new Menu(mxUtils.bind(this, function(menu, parent)
@@ -527,7 +528,7 @@ Menus.prototype.createPopupMenu = function(menu, cell, evt)
 		this.addMenuItems(menu, ['toFront', 'toBack', '-']);
 		this.addSubmenu('linewidth', menu);
 
-		if (graph.getSelectionCount() > 0 && graph.getModel().isEdge(graph.getSelectionCell()))
+		if (graph.getModel().isEdge(graph.getSelectionCell()))
 		{
 			this.addSubmenu('line', menu);
 			menu.addSeparator();
@@ -543,14 +544,23 @@ Menus.prototype.createPopupMenu = function(menu, cell, evt)
 		}
 		else
 		{
-			if (graph.getSelectionCount() == 1 && graph.getModel().isVertex(graph.getSelectionCell()))
-			{
-				menu.addSeparator();
-				this.addMenuItems(menu, ['rotate']);
-			}
 			
 			menu.addSeparator();
 			this.addSubmenu('layout', menu);
+		}
+		
+		menu.addSeparator();
+		
+		if (graph.getSelectionCount() == 1)
+		{
+			this.addMenuItems(menu, ['editLink']);
+			
+			var link = graph.getLinkForCell(graph.getSelectionCell());
+			
+			if (link != null)
+			{
+				this.addMenuItems(menu, ['openLink']);
+			}
 		}
 	}
 	else

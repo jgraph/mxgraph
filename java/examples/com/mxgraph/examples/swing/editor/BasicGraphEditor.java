@@ -640,7 +640,7 @@ public class BasicGraphEditor extends JPanel
 	@SuppressWarnings("serial")
 	public Action bind(String name, final Action action, String iconUrl)
 	{
-		return new AbstractAction(name, (iconUrl != null) ? new ImageIcon(
+		AbstractAction newAction = new AbstractAction(name, (iconUrl != null) ? new ImageIcon(
 				BasicGraphEditor.class.getResource(iconUrl)) : null)
 		{
 			public void actionPerformed(ActionEvent e)
@@ -649,6 +649,10 @@ public class BasicGraphEditor extends JPanel
 						.getID(), e.getActionCommand()));
 			}
 		};
+		
+		newAction.putValue(Action.SHORT_DESCRIPTION, action.getValue(Action.SHORT_DESCRIPTION));
+		
+		return newAction;
 	}
 
 	/**
