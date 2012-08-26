@@ -1,5 +1,5 @@
 /**
- * $Id: mxEditor.js,v 1.229 2012-05-15 15:25:51 gaudenz Exp $
+ * $Id: mxEditor.js,v 1.230 2012-08-22 12:35:03 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -383,7 +383,7 @@ function mxEditor(config)
 		// member field of this editor is set.
 		if (!mxClient.IS_LOCAL && this.urlInit != null)
 		{
-			this.createSession();
+			this.session = this.createSession();
 		}
 
 		// Checks ifthe <onInit> hook has been set		
@@ -518,6 +518,13 @@ mxEditor.prototype.graphRenderHint = null;
  * toolbar is created in <setToolbarContainer>.
  */
 mxEditor.prototype.toolbar = null;
+
+/**
+ * Variable: session
+ *
+ * Holds a <mxSession> instance associated with this editor.
+ */
+mxEditor.prototype.session = null;
 
 /**
  * Variable: status
@@ -1508,12 +1515,10 @@ mxEditor.prototype.addActions = function ()
 /**
  * Function: createSession
  *
- * Creates the built-in session using <urlInit>, <urlPoll> and <urlNotify>.
+ * Creates and returns and <mxSession> using <urlInit>, <urlPoll> and <urlNotify>.
  */
 mxEditor.prototype.createSession = function ()
 {
-	var session = null;
-	
 	// Routes any change events from the session
 	// through the editor and dispatches them as
 	// a session event.
@@ -1522,7 +1527,7 @@ mxEditor.prototype.createSession = function ()
 		this.fireEvent(new mxEventObject(mxEvent.SESSION, 'session', session));
 	});
 	
-	session = this.connect(this.urlInit, this.urlPoll,
+	return this.connect(this.urlInit, this.urlPoll,
 		this.urlNotify, sessionChanged);
 };
 
@@ -2444,7 +2449,7 @@ mxEditor.prototype.connect = function (urlInit, urlPoll, urlNotify, onChange)
 	
 	if (!mxClient.IS_LOCAL)
 	{
-		var session = new mxSession(this.graph.getModel(),
+		session = new mxSession(this.graph.getModel(),
 			urlInit, urlPoll, urlNotify);
 
 		// Resets the undo history if the session was initialized which is the

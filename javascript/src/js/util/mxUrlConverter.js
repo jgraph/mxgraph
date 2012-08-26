@@ -1,12 +1,12 @@
 /**
- * $Id: mxUrlConverter.js,v 1.2 2012-05-18 14:27:52 gaudenz Exp $
+ * $Id: mxUrlConverter.js,v 1.3 2012-08-24 17:10:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
  *
  * Class: mxUrlConverter
  * 
- * Converts relative to absolute URLs.
+ * Converts relative and absolute URLs to absolute URLs with protocol and domain.
  */
 var mxUrlConverter = function(root)
 {
@@ -23,13 +23,22 @@ var mxUrlConverter = function(root)
 	 * Specifies the base URL to be used as a prefix for relative URLs.
 	 */
 	var baseUrl = null;
+
+	/**
+	 * Variable: baseDomain
+	 * 
+	 * Specifies the base domain to be used as a prefix for absolute URLs.
+	 */
+	var baseDomain = null;
 	
 	// Private helper function to update the base URL
 	var updateBaseUrl = function()
 	{
-		baseUrl = document.URL;
+		baseDomain = location.protocol + '//' + location.host;
+		baseUrl = baseDomain + location.pathname;
 		var tmp = baseUrl.lastIndexOf('/');
 		
+		// Strips filename etc
 		if (tmp > 0)
 		{
 			baseUrl = baseUrl.substring(0, tmp + 1);
@@ -80,9 +89,30 @@ var mxUrlConverter = function(root)
 		},
 
 		/**
+		 * Function: getBaseDomain
+		 * 
+		 * Returns <baseDomain>.
+		 */
+		getBaseDomain: function()
+		{
+			return baseUrl;
+		},
+
+		/**
+		 * Function: setBaseDomain
+		 * 
+		 * Sets <baseDomain>.
+		 */
+		setBaseDomain: function(value)
+		{
+			baseUrl = value;
+		},
+
+		/**
 		 * Function: convert
 		 * 
-		 * Converts the given URL to an absolute URL.
+		 * Converts the given URL to an absolute URL with protol and domain.
+		 * Relative URLs are first converted to absolute URLs.
 		 */
 		convert: function(url)
 		{
@@ -93,7 +123,14 @@ var mxUrlConverter = function(root)
 					updateBaseUrl();
 				}
 				
-				url = baseUrl + url;
+				if (url.charAt(0) == '/')
+				{
+					url = baseDomain + url;
+				}
+				else
+				{
+					url = baseUrl + url;
+				}
 			}
 			
 			return url;

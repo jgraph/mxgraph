@@ -1,5 +1,5 @@
 /**
- * $Id: mxCircleLayout.js,v 1.24 2012-03-13 07:01:53 gaudenz Exp $
+ * $Id: mxCircleLayout.js,v 1.25 2012-08-22 17:26:12 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -151,8 +151,7 @@ mxCircleLayout.prototype.execute = function(parent)
 			}
 		}
 		
-		var vertexCount = vertices.length;
-		var r = Math.max(vertexCount * max / Math.PI, this.radius);
+		var r = this.getRadius(vertices.length, max);
 
 		// Moves the circle to the specified origin
 		if (this.moveCircle)
@@ -167,6 +166,17 @@ mxCircleLayout.prototype.execute = function(parent)
 	{
 		model.endUpdate();
 	}
+};
+
+/**
+ * Function: getRadius
+ * 
+ * Returns the radius to be used for the given vertex count. Max is the maximum
+ * width or height of all vertices in the layout.
+ */
+mxCircleLayout.prototype.getRadius = function(count, max)
+{
+	return Math.max(count * max / Math.PI, this.radius);
 };
 
 /**

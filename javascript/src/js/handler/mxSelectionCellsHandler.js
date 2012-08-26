@@ -1,5 +1,5 @@
 /**
- * $Id: mxSelectionCellsHandler.js,v 1.4 2012-07-25 08:23:43 gaudenz Exp $
+ * $Id: mxSelectionCellsHandler.js,v 1.5 2012-08-10 11:35:06 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -7,6 +7,18 @@
  * 
  * An event handler that manages cell handlers and invokes their mouse event
  * processing functions.
+ * 
+ * Group: Events
+ * 
+ * Event: mxEvent.ADD
+ * 
+ * Fires if a cell has been added to the selection. The <code>state</code>
+ * property contains the <mxCellState> that has been added.
+ * 
+ * Event: mxEvent.REMOVE
+ * 
+ * Fires if a cell has been remove from the selection. The <code>state</code>
+ * property contains the <mxCellState> that has been removed.
  * 
  * Parameters:
  * 
@@ -34,6 +46,12 @@ function mxSelectionCellsHandler(graph)
 	this.graph.getView().addListener(mxEvent.DOWN, this.refreshHandler);
 	this.graph.getView().addListener(mxEvent.UP, this.refreshHandler);
 };
+
+/**
+ * Extends mxEventSource.
+ */
+mxSelectionCellsHandler.prototype = new mxEventSource();
+mxSelectionCellsHandler.prototype.constructor = mxSelectionCellsHandler;
 
 /**
  * Variable: graph
@@ -151,6 +169,7 @@ mxSelectionCellsHandler.prototype.refresh = function()
 			if (handler == null)
 			{
 				handler = this.graph.createHandler(state);
+				this.fireEvent(new mxEventObject(mxEvent.ADD, 'state', state));
 			}
 			
 			if (handler != null)
@@ -161,10 +180,11 @@ mxSelectionCellsHandler.prototype.refresh = function()
 	}
 	
 	// Destroys all unused handlers
-	oldHandlers.visit(function (key, handler)
+	oldHandlers.visit(mxUtils.bind(this, function(key, handler)
 	{
+		this.fireEvent(new mxEventObject(mxEvent.REMOVE, 'state', handler.state));
 		handler.destroy();
-	});
+	}));
 };
 
 /**

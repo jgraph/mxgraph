@@ -1,5 +1,5 @@
 /**
- * $Id: Graph.js,v 1.43 2012-07-30 08:55:40 gaudenz Exp $
+ * $Id: Graph.js,v 1.45 2012-08-02 13:56:37 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -211,7 +211,7 @@ Graph.prototype.getTooltipForCell = function(cell)
  */
 Graph.prototype.convertValueToString = function(cell)
 {
-	if (typeof(cell.value) == 'object')
+	if (cell.value != null && typeof(cell.value) == 'object')
 	{
 		return cell.value.getAttribute('label');
 	}
@@ -224,7 +224,7 @@ Graph.prototype.convertValueToString = function(cell)
  */
 Graph.prototype.cellLabelChanged = function(cell, value, autoSize)
 {
-	if (typeof(cell.value) == 'object')
+	if (cell.value != null && typeof(cell.value) == 'object')
 	{
 		var tmp = cell.value.cloneNode(true);
 		tmp.setAttribute('label', value);
@@ -241,7 +241,7 @@ Graph.prototype.setLinkForCell = function(cell, link)
 {
 	var value = null;
 	
-	if (typeof(cell.value) == 'object')
+	if (cell.value != null && typeof(cell.value) == 'object')
 	{
 		value = cell.value.cloneNode(true);
 	}
@@ -270,7 +270,7 @@ Graph.prototype.setLinkForCell = function(cell, link)
  */
 Graph.prototype.getLinkForCell = function(cell)
 {
-	if (typeof(cell.value) == 'object')
+	if (cell.value != null && typeof(cell.value) == 'object')
 	{
 		return cell.value.getAttribute('link');
 	}

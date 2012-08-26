@@ -1,5 +1,5 @@
 /**
- * $Id: mxEvent.js,v 1.73 2012-07-18 11:34:20 gaudenz Exp $
+ * $Id: mxEvent.js,v 1.74 2012-08-10 11:35:06 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEvent =
@@ -935,6 +935,13 @@ var mxEvent =
 	 */
 	ADD: 'add',
 
+	/**
+	 * Variable: REMOVE
+	 *
+	 * Specifies the event name for remove.
+	 */
+	REMOVE: 'remove',
+	
 	/**
 	 * Variable: CLEAR
 	 *

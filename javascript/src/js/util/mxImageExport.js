@@ -1,5 +1,5 @@
 /**
- * $Id: mxImageExport.js,v 1.45 2012-07-16 11:54:20 gaudenz Exp $
+ * $Id: mxImageExport.js,v 1.46 2012-08-10 11:55:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -196,20 +196,22 @@ mxImageExport.prototype.createShape = function(state, canvas)
 /**
  * Function: drawOverlays
  * 
- * Draws the overlays for the given state.
+ * Draws the overlays for the given state. This is called if <includeOverlays>
+ * is true.
  */
 mxImageExport.prototype.drawOverlays = function(state, canvas)
 {
 	if (state.overlays != null)
 	{
-		for (var i = 0; i < state.overlays.length; i++)
+		state.overlays.visit(function(id, shape)
 		{
-			if (state.overlays[i].bounds != null)
+			var bounds = shape.bounds;
+			
+			if (bounds != null)
 			{
-				var bounds = state.overlays[i].bounds;
-				canvas.image(bounds.x, bounds.y, bounds.width, bounds.height, state.overlays[i].image);
+				canvas.image(bounds.x, bounds.y, bounds.width, bounds.height, shape.image);
 			}
-		}
+		});
 	}
 };
 

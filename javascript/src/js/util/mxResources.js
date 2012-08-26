@@ -1,5 +1,5 @@
 /**
- * $Id: mxResources.js,v 1.27 2012-05-28 17:09:03 gaudenz Exp $
+ * $Id: mxResources.js,v 1.28 2012-08-20 07:49:50 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxResources =
@@ -53,6 +53,13 @@ var mxResources =
 	resources: [],
 
 	/**
+	 * Variable: extension
+	 * 
+	 * Specifies the extension used for language files. Default is '.properties'.
+	 */
+	extension: '.properties',
+
+	/**
 	 * Variable: loadDefaultBundle
 	 * 
 	 * Specifies if the default file for a given basename should be loaded.
@@ -93,7 +100,7 @@ var mxResources =
 	 * Function: getDefaultBundle
 	 * 
 	 * Hook for subclassers to return the URL for the special bundle. This
-	 * implementation returns basename + '.properties' or null if
+	 * implementation returns basename + <extension> or null if
 	 * <loadDefaultBundle> is false.
 	 * 
 	 * Parameters:
@@ -105,7 +112,7 @@ var mxResources =
 	{
 		if (mxResources.loadDefaultBundle || !mxResources.isLanguageSupported(lan))
 		{
-			return basename + '.properties';
+			return basename + mxResources.extension;
 		}
 		else
 		{
@@ -117,7 +124,7 @@ var mxResources =
 	 * Function: getSpecialBundle
 	 * 
 	 * Hook for subclassers to return the URL for the special bundle. This
-	 * implementation returns basename + '_' + lan + '.properties' or null if
+	 * implementation returns basename + '_' + lan + <extension> or null if
 	 * <loadSpecialBundle> is false or lan equals <mxClient.defaultLanguage>.
 	 * 
 	 * If <mxResources.languages> is not null and <mxClient.language> contains
@@ -147,7 +154,7 @@ var mxResources =
 
 		if (mxResources.loadSpecialBundle && mxResources.isLanguageSupported(lan) && lan != mxClient.defaultLanguage)
 		{
-			return basename + '_' + lan + '.properties';
+			return basename + '_' + lan + mxResources.extension;
 		}
 		else
 		{

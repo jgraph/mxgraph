@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellRenderer.js,v 1.184 2012-05-23 11:18:13 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.187 2012-08-09 10:56:11 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -742,17 +742,17 @@ mxCellRenderer.prototype.createCellOverlays = function(state)
 {
 	var graph = state.view.graph;
 	var overlays = graph.getCellOverlays(state.cell);
+	var dict = null;
 	
 	if (overlays != null)
 	{
-		if (state.overlays == null)
-		{
-			state.overlays = [];
-		}
+		dict = new mxDictionary();
 		
 		for (var i = 0; i < overlays.length; i++)
 		{
-			if (state.overlays[i] == null)
+			var shape = (state.overlays != null) ? state.overlays.remove(overlays[i]) : null;
+			
+			if (shape == null)
 			{
 				var tmp = new mxImageShape(new mxRectangle(),
 					overlays[i].image.src);
@@ -766,10 +766,25 @@ mxCellRenderer.prototype.createCellOverlays = function(state)
 					tmp.node.style.cursor = overlays[i].cursor;
 				}
 				
-				state.overlays[i] = tmp;
+				dict.put(overlays[i], tmp);
+			}
+			else
+			{
+				dict.put(overlays[i], shape);
 			}
 		}
 	}
+	
+	// Removes unused
+	if (state.overlays != null)
+	{
+		state.overlays.visit(function(id, shape)
+		{
+			shape.destroy();
+		});
+	}
+	
+	state.overlays = dict;
 };
 
 /**
@@ -1248,60 +1263,23 @@ mxCellRenderer.prototype.getLabelBounds = function(state)
  */
 mxCellRenderer.prototype.redrawCellOverlays = function(state)
 {
-	var overlays = state.view.graph.getCellOverlays(state.cell);
-	var oldCount = (state.overlays != null) ? state.overlays.length : 0;
-	var newCount = (overlays != null) ? overlays.length : 0;
-	
-	// Checks if the overlays need an update - this assumes a
-	// maximum of one change to cell.overlays between each call
-	if (oldCount != newCount)
-	{
-		if (oldCount > 0)
-		{
-			var newOverlayShapes = [];
-			
-			for (var i = 0; i < state.overlays.length; i++)
-			{
-				var index = mxUtils.indexOf(overlays, state.overlays[i].overlay);
-				
-				if (index >= 0)
-				{
-					newOverlayShapes[index] = state.overlays[i];
-				}
-				else
-				{
-					state.overlays[i].destroy();
-				}
-			}
-			
-			state.overlays = newOverlayShapes;
-		}
-		
-		if (newCount > 0)
-		{
-			this.createCellOverlays(state);
-		}
-		else
-		{
-			state.overlays = null;
-		}
-	}
+	this.createCellOverlays(state);
 	
 	if (state.overlays != null)
 	{
-		for (var i = 0; i < overlays.length; i++)
+		state.overlays.visit(function(id, shape)
 		{
-			var bounds = overlays[i].getBounds(state);
+			var bounds = shape.overlay.getBounds(state);
 
-			if (state.overlays[i].bounds == null ||
-				state.overlays[i].scale != state.view.scale ||
-				!state.overlays[i].bounds.equals(bounds))
+			if (shape.bounds == null ||
+				shape.scale != state.view.scale ||
+				!shape.bounds.equals(bounds))
 			{
-				state.overlays[i].bounds = bounds;
-				state.overlays[i].scale = state.view.scale;
-				state.overlays[i].redraw();
+				shape.bounds = bounds;
+				shape.scale = state.view.scale;
+				shape.redraw();
 			}
-		}
+		});
 	}
 };
 
@@ -1486,14 +1464,14 @@ mxCellRenderer.prototype.destroy = function(state)
 		
 		if (state.overlays != null)
 		{
-			for (var i=0; i<state.overlays.length; i++)
+			state.overlays.visit(function(id, shape)
 			{
-				state.overlays[i].destroy();
-			}
+				shape.destroy();
+			});
 			
 			state.overlays = null;
 		}
-		
+
 		if (state.control != null)
 		{
 			state.control.destroy();

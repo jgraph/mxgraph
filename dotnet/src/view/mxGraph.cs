@@ -15,9 +15,9 @@ namespace com.mxgraph
     {
         /// <summary>
         /// Holds the version number of this release. Current version
-        /// is 1.10.2.1.
+        /// is 1.10.3.0.
         /// </summary>
-        public const String VERSION = "1.10.2.1";
+        public const String VERSION = "1.10.3.0";
 
         /// <summary>
         /// Holds the model that contains the cells to be displayed.

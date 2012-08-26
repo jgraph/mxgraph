@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.java,v 1.127 2012-07-26 07:20:50 gaudenz Exp $
+ * $Id: mxUtils.java,v 1.129 2012-08-02 10:58:37 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.util;
@@ -1986,7 +1986,7 @@ public class mxUtils
 				int type = (background != null) ? BufferedImage.TYPE_INT_RGB
 						: BufferedImage.TYPE_INT_ARGB;
 				result = new BufferedImage(w, h, type);
-
+				
 				// Clears background
 				if (background != null)
 				{

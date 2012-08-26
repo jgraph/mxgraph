@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphLayout.js,v 1.47 2012-05-27 22:07:28 david Exp $
+ * $Id: mxGraphLayout.js,v 1.48 2012-08-21 17:22:21 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -405,7 +405,7 @@ mxGraphLayout.prototype.setVertexLocation = function(cell, x, y)
 };
 
 /**
- * Function: getCellBounds
+ * Function: getVertexBounds
  * 
  * Returns an <mxRectangle> that defines the bounds of the given cell or
  * the bounding box if <useBoundingBox> is true.
@@ -453,7 +453,7 @@ mxGraphLayout.prototype.getVertexBounds = function(cell)
 };
 
 /**
- * Function: getCellBounds
+ * Function: arrangeGroups
  * 
  * Updates the bounds of the given groups to include all children. Call
  * this with the groups in parent to child order, top-most group first, eg.

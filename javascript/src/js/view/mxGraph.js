@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.697 2012-07-19 17:15:37 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.698 2012-08-10 13:43:26 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -7713,18 +7713,17 @@ mxGraph.prototype.getTooltip = function(state, node, x, y)
 			tip = this.collapseExpandResource;
 			tip = mxResources.get(tip) || tip;
 		}
-		
+
 		if (tip == null && state.overlays != null)
 		{
-			for (var i = 0; i < state.overlays.length; i++)
+			state.overlays.visit(function(id, shape)
 			{
-				if (node == state.overlays[i].node ||
-					node.parentNode == state.overlays[i].node)
+				// LATER: Exit loop if tip is not null
+				if (tip == null && (node == shape.node || node.parentNode == shape.node))
 				{
-					tip = this.getCellOverlays(state.cell)[i].toString();
-					break;
+					tip = shape.overlay.toString();
 				}
-			}
+			});
 		}
 		
 		if (tip == null)

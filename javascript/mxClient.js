@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.10.2.1.
+	 * Current version is 1.10.3.0.
 	 */
-	VERSION: '1.10.2.1',
+	VERSION: '1.10.3.0',
 
 	/**
 	 * Variable: IS_IE
@@ -1095,7 +1095,7 @@ mxDictionary.prototype.visit = function(visitor)
 	}
 };
 /**
- * $Id: mxResources.js,v 1.27 2012-05-28 17:09:03 gaudenz Exp $
+ * $Id: mxResources.js,v 1.28 2012-08-20 07:49:50 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxResources =
@@ -1149,6 +1149,13 @@ var mxResources =
 	resources: [],
 
 	/**
+	 * Variable: extension
+	 * 
+	 * Specifies the extension used for language files. Default is '.properties'.
+	 */
+	extension: '.properties',
+
+	/**
 	 * Variable: loadDefaultBundle
 	 * 
 	 * Specifies if the default file for a given basename should be loaded.
@@ -1189,7 +1196,7 @@ var mxResources =
 	 * Function: getDefaultBundle
 	 * 
 	 * Hook for subclassers to return the URL for the special bundle. This
-	 * implementation returns basename + '.properties' or null if
+	 * implementation returns basename + <extension> or null if
 	 * <loadDefaultBundle> is false.
 	 * 
 	 * Parameters:
@@ -1201,7 +1208,7 @@ var mxResources =
 	{
 		if (mxResources.loadDefaultBundle || !mxResources.isLanguageSupported(lan))
 		{
-			return basename + '.properties';
+			return basename + mxResources.extension;
 		}
 		else
 		{
@@ -1213,7 +1220,7 @@ var mxResources =
 	 * Function: getSpecialBundle
 	 * 
 	 * Hook for subclassers to return the URL for the special bundle. This
-	 * implementation returns basename + '_' + lan + '.properties' or null if
+	 * implementation returns basename + '_' + lan + <extension> or null if
 	 * <loadSpecialBundle> is false or lan equals <mxClient.defaultLanguage>.
 	 * 
 	 * If <mxResources.languages> is not null and <mxClient.language> contains
@@ -1243,7 +1250,7 @@ var mxResources =
 
 		if (mxResources.loadSpecialBundle && mxResources.isLanguageSupported(lan) && lan != mxClient.defaultLanguage)
 		{
-			return basename + '_' + lan + '.properties';
+			return basename + '_' + lan + mxResources.extension;
 		}
 		else
 		{
@@ -8177,7 +8184,7 @@ mxEventSource.prototype.fireEvent = function(evt, sender)
 	}
 };
 /**
- * $Id: mxEvent.js,v 1.73 2012-07-18 11:34:20 gaudenz Exp $
+ * $Id: mxEvent.js,v 1.74 2012-08-10 11:35:06 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEvent =
@@ -9113,6 +9120,13 @@ var mxEvent =
 	 */
 	ADD: 'add',
 
+	/**
+	 * Variable: REMOVE
+	 *
+	 * Specifies the event name for remove.
+	 */
+	REMOVE: 'remove',
+	
 	/**
 	 * Variable: CLEAR
 	 *
@@ -12446,7 +12460,7 @@ mxToolbar.prototype.destroy = function ()
 	}
 };
 /**
- * $Id: mxSession.js,v 1.45 2010-09-16 11:11:59 gaudenz Exp $
+ * $Id: mxSession.js,v 1.46 2012-08-22 15:30:49 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -12547,18 +12561,15 @@ function mxSession(model, urlInit, urlPoll, urlNotify)
 	
 	// Adds the listener for notifying the backend of any
 	// changes in the model
-	model.addListener(mxEvent.NOTIFY,
-		mxUtils.bind(this, function(sender, evt)
+	model.addListener(mxEvent.NOTIFY, mxUtils.bind(this, function(sender, evt)
+	{
+		var edit = evt.getProperty('edit');
+		
+		if (edit != null && this.debug || (this.connected && !this.suspended))
 		{
-			var edit = evt.getProperty('edit');
-			
-			if (edit != null && this.debug ||
-				(this.connected && !this.suspended))
-			{
-				this.notify('<edit>'+this.encodeChanges(edit.changes, edit.undone)+'</edit>');
-			}
-		})
-	);
+			this.notify('<edit>'+this.encodeChanges(edit.changes, edit.undone)+'</edit>');
+		}
+	}));
 };
 
 /**
@@ -12824,62 +12835,49 @@ mxSession.prototype.get = function(url, onLoad, onError)
 
 		// Handles a successful response for
 		// the above request.
-		var req = mxUtils.get(url,
-			mxUtils.bind(this, function(req)
+		mxUtils.get(url, mxUtils.bind(this, function(req)
+		{
+			if (typeof(mxUtils) != 'undefined')
 			{
-				if (typeof(mxUtils) != 'undefined')
-				{
-					//try
-					{
-		    			if (req.isReady() &&
-		    				req.getStatus() != 404)
-		    			{
-		    				this.received += req.getText().length;
-							this.fireEvent(new mxEventObject(mxEvent.GET,
-									'url', url, 'request', req));
+    			if (req.isReady() && req.getStatus() != 404)
+    			{
+    				this.received += req.getText().length;
+					this.fireEvent(new mxEventObject(mxEvent.GET, 'url', url, 'request', req));
 
-							if (this.isValidResponse(req))
+					if (this.isValidResponse(req))
+					{
+		    			if (req.getText().length > 0)
+		    			{
+							var node = req.getDocumentElement();
+							
+							if (node == null)
 							{
-				    			if (req.getText().length > 0)
-				    			{
-									var node = req.getDocumentElement();
-									
-									if (node == null)
-									{
-										onErrorWrapper('Invalid response: '+req.getText());
-									}
-									else
-									{
-										this.receive(node);
-									}
-								}
-				    			
-				    			if (onLoad != null)
-				    			{
-									onLoad(req);
-								}
+								onErrorWrapper('Invalid response: '+req.getText());
+							}
+							else
+							{
+								this.receive(node);
 							}
 						}
-						else
-						{
-							onErrorWrapper('Response not ready');
+		    			
+		    			if (onLoad != null)
+		    			{
+							onLoad(req);
 						}
 					}
-					/*catch (ex)
-					{
-						onErrorWrapper(ex);
-						throw ex; // debugging
-					}*/
 				}
-			}),
-			
-			// Handles a transmission error for the
-			// above request
-			function(req)
-			{
-				onErrorWrapper('Transmission error');
+				else
+				{
+					onErrorWrapper('Response not ready');
+				}
 			}
-		);
+		}),
+		// Handles a transmission error for the
+		// above request
+		function(req)
+		{
+			onErrorWrapper('Transmission error');
+		});
 	}
 };
 
@@ -12932,8 +12930,7 @@ mxSession.prototype.encodeChanges = function(changes, invert)
  */
 mxSession.prototype.receive = function(node)
 {
-	if (node != null &&
-		node.nodeType == mxConstants.NODETYPE_ELEMENT)
+	if (node != null && node.nodeType == mxConstants.NODETYPE_ELEMENT)
 	{
 		// Uses the namespace in the model
 		var ns = node.getAttribute('namespace');
@@ -13062,46 +13059,61 @@ mxSession.prototype.decodeChanges = function(node)
 	
 	while (node != null)
 	{
-		if (node.nodeType == mxConstants.NODETYPE_ELEMENT)
+		var change = this.decodeChange(node);
+		
+		if (change != null)
 		{
-			var change = null;
-			
-			if (node.nodeName == 'mxRootChange')
-			{
-				// Handles the special case were no ids should be
-				// resolved in the existing model. This change will
-				// replace all registered ids and cells from the
-				// model and insert a new cell hierarchy instead.
-				var tmp = new mxCodec(node.ownerDocument);
-				change = tmp.decode(node);
-			}
-			else
-			{
-				change = this.codec.decode(node);
-			}
-			
-			if (change != null)
-			{
-				change.model = this.model;
-				change.execute();
-				
-				// Workaround for references not being resolved if cells have
-				// been removed from the model prior to being referenced. This
-				// adds removed cells in the codec object lookup table.
-				if (node.nodeName == 'mxChildChange' &&
-					change.parent == null)
-				{
-					this.cellRemoved(change.child);
-				}
-				
-				changes.push(change);
-			}
+			changes.push(change);
 		}
 		
 		node = node.nextSibling;
 	}
 	
 	return changes;
+};
+
+/**
+ * Function: decodeChange
+ * 
+ * Decodes, executes and returns the change object represented by the given
+ * XML node.
+ */
+mxSession.prototype.decodeChange = function(node)
+{
+	var change = null;
+
+	if (node.nodeType == mxConstants.NODETYPE_ELEMENT)
+	{
+		if (node.nodeName == 'mxRootChange')
+		{
+			// Handles the special case were no ids should be
+			// resolved in the existing model. This change will
+			// replace all registered ids and cells from the
+			// model and insert a new cell hierarchy instead.
+			var tmp = new mxCodec(node.ownerDocument);
+			change = tmp.decode(node);
+		}
+		else
+		{
+			change = this.codec.decode(node);
+		}
+		
+		if (change != null)
+		{
+			change.model = this.model;
+			change.execute();
+			
+			// Workaround for references not being resolved if cells have
+			// been removed from the model prior to being referenced. This
+			// adds removed cells in the codec object lookup table.
+			if (node.nodeName == 'mxChildChange' && change.parent == null)
+			{
+				this.cellRemoved(change.child);
+			}
+		}
+	}
+	
+	return change;
 };
 
 /**
@@ -13519,14 +13531,14 @@ mxUndoManager.prototype.trim = function()
 	}
 };
 /**
- * $Id: mxUrlConverter.js,v 1.2 2012-05-18 14:27:52 gaudenz Exp $
+ * $Id: mxUrlConverter.js,v 1.3 2012-08-24 17:10:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
  *
  * Class: mxUrlConverter
  * 
- * Converts relative to absolute URLs.
+ * Converts relative and absolute URLs to absolute URLs with protocol and domain.
  */
 var mxUrlConverter = function(root)
 {
@@ -13543,13 +13555,22 @@ var mxUrlConverter = function(root)
 	 * Specifies the base URL to be used as a prefix for relative URLs.
 	 */
 	var baseUrl = null;
+
+	/**
+	 * Variable: baseDomain
+	 * 
+	 * Specifies the base domain to be used as a prefix for absolute URLs.
+	 */
+	var baseDomain = null;
 	
 	// Private helper function to update the base URL
 	var updateBaseUrl = function()
 	{
-		baseUrl = document.URL;
+		baseDomain = location.protocol + '//' + location.host;
+		baseUrl = baseDomain + location.pathname;
 		var tmp = baseUrl.lastIndexOf('/');
 		
+		// Strips filename etc
 		if (tmp > 0)
 		{
 			baseUrl = baseUrl.substring(0, tmp + 1);
@@ -13600,9 +13621,30 @@ var mxUrlConverter = function(root)
 		},
 
 		/**
+		 * Function: getBaseDomain
+		 * 
+		 * Returns <baseDomain>.
+		 */
+		getBaseDomain: function()
+		{
+			return baseUrl;
+		},
+
+		/**
+		 * Function: setBaseDomain
+		 * 
+		 * Sets <baseDomain>.
+		 */
+		setBaseDomain: function(value)
+		{
+			baseUrl = value;
+		},
+
+		/**
 		 * Function: convert
 		 * 
-		 * Converts the given URL to an absolute URL.
+		 * Converts the given URL to an absolute URL with protol and domain.
+		 * Relative URLs are first converted to absolute URLs.
 		 */
 		convert: function(url)
 		{
@@ -13613,7 +13655,14 @@ var mxUrlConverter = function(root)
 					updateBaseUrl();
 				}
 				
-				url = baseUrl + url;
+				if (url.charAt(0) == '/')
+				{
+					url = baseDomain + url;
+				}
+				else
+				{
+					url = baseUrl + url;
+				}
 			}
 			
 			return url;
@@ -15404,7 +15453,7 @@ mxImageBundle.prototype.getImage = function(key)
 	return result;
 };
 /**
- * $Id: mxImageExport.js,v 1.45 2012-07-16 11:54:20 gaudenz Exp $
+ * $Id: mxImageExport.js,v 1.46 2012-08-10 11:55:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -15601,20 +15650,22 @@ mxImageExport.prototype.createShape = function(state, canvas)
 /**
  * Function: drawOverlays
  * 
- * Draws the overlays for the given state.
+ * Draws the overlays for the given state. This is called if <includeOverlays>
+ * is true.
  */
 mxImageExport.prototype.drawOverlays = function(state, canvas)
 {
 	if (state.overlays != null)
 	{
-		for (var i = 0; i < state.overlays.length; i++)
+		state.overlays.visit(function(id, shape)
 		{
-			if (state.overlays[i].bounds != null)
+			var bounds = shape.bounds;
+			
+			if (bounds != null)
 			{
-				var bounds = state.overlays[i].bounds;
-				canvas.image(bounds.x, bounds.y, bounds.width, bounds.height, state.overlays[i].image);
+				canvas.image(bounds.x, bounds.y, bounds.width, bounds.height, shape.image);
 			}
-		}
+		});
 	}
 };
 
@@ -28729,7 +28780,7 @@ mxSwimlane.prototype.redrawSvg = function()
 	}
 };
 /**
- * $Id: mxGraphLayout.js,v 1.47 2012-05-27 22:07:28 david Exp $
+ * $Id: mxGraphLayout.js,v 1.48 2012-08-21 17:22:21 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -29135,7 +29186,7 @@ mxGraphLayout.prototype.setVertexLocation = function(cell, x, y)
 };
 
 /**
- * Function: getCellBounds
+ * Function: getVertexBounds
  * 
  * Returns an <mxRectangle> that defines the bounds of the given cell or
  * the bounding box if <useBoundingBox> is true.
@@ -29183,7 +29234,7 @@ mxGraphLayout.prototype.getVertexBounds = function(cell)
 };
 
 /**
- * Function: getCellBounds
+ * Function: arrangeGroups
  * 
  * Updates the bounds of the given groups to include all children. Call
  * this with the groups in parent to child order, top-most group first, eg.
@@ -31423,7 +31474,7 @@ mxFastOrganicLayout.prototype.reduceTemperature = function()
 	this.temperature = this.initialTemp * (1.0 - this.iteration / this.maxIterations);
 };
 /**
- * $Id: mxCircleLayout.js,v 1.24 2012-03-13 07:01:53 gaudenz Exp $
+ * $Id: mxCircleLayout.js,v 1.25 2012-08-22 17:26:12 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -31575,8 +31626,7 @@ mxCircleLayout.prototype.execute = function(parent)
 			}
 		}
 		
-		var vertexCount = vertices.length;
-		var r = Math.max(vertexCount * max / Math.PI, this.radius);
+		var r = this.getRadius(vertices.length, max);
 
 		// Moves the circle to the specified origin
 		if (this.moveCircle)
@@ -31591,6 +31641,17 @@ mxCircleLayout.prototype.execute = function(parent)
 	{
 		model.endUpdate();
 	}
+};
+
+/**
+ * Function: getRadius
+ * 
+ * Returns the radius to be used for the given vertex count. Max is the maximum
+ * width or height of all vertices in the layout.
+ */
+mxCircleLayout.prototype.getRadius = function(count, max)
+{
+	return Math.max(count * max / Math.PI, this.radius);
 };
 
 /**
@@ -43470,7 +43531,7 @@ mxCellEditor.prototype.destroy = function ()
 	}
 };
 /**
- * $Id: mxCellRenderer.js,v 1.184 2012-05-23 11:18:13 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.187 2012-08-09 10:56:11 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -44213,17 +44274,17 @@ mxCellRenderer.prototype.createCellOverlays = function(state)
 {
 	var graph = state.view.graph;
 	var overlays = graph.getCellOverlays(state.cell);
+	var dict = null;
 	
 	if (overlays != null)
 	{
-		if (state.overlays == null)
-		{
-			state.overlays = [];
-		}
+		dict = new mxDictionary();
 		
 		for (var i = 0; i < overlays.length; i++)
 		{
-			if (state.overlays[i] == null)
+			var shape = (state.overlays != null) ? state.overlays.remove(overlays[i]) : null;
+			
+			if (shape == null)
 			{
 				var tmp = new mxImageShape(new mxRectangle(),
 					overlays[i].image.src);
@@ -44237,10 +44298,25 @@ mxCellRenderer.prototype.createCellOverlays = function(state)
 					tmp.node.style.cursor = overlays[i].cursor;
 				}
 				
-				state.overlays[i] = tmp;
+				dict.put(overlays[i], tmp);
+			}
+			else
+			{
+				dict.put(overlays[i], shape);
 			}
 		}
 	}
+	
+	// Removes unused
+	if (state.overlays != null)
+	{
+		state.overlays.visit(function(id, shape)
+		{
+			shape.destroy();
+		});
+	}
+	
+	state.overlays = dict;
 };
 
 /**
@@ -44719,60 +44795,23 @@ mxCellRenderer.prototype.getLabelBounds = function(state)
  */
 mxCellRenderer.prototype.redrawCellOverlays = function(state)
 {
-	var overlays = state.view.graph.getCellOverlays(state.cell);
-	var oldCount = (state.overlays != null) ? state.overlays.length : 0;
-	var newCount = (overlays != null) ? overlays.length : 0;
-	
-	// Checks if the overlays need an update - this assumes a
-	// maximum of one change to cell.overlays between each call
-	if (oldCount != newCount)
-	{
-		if (oldCount > 0)
-		{
-			var newOverlayShapes = [];
-			
-			for (var i = 0; i < state.overlays.length; i++)
-			{
-				var index = mxUtils.indexOf(overlays, state.overlays[i].overlay);
-				
-				if (index >= 0)
-				{
-					newOverlayShapes[index] = state.overlays[i];
-				}
-				else
-				{
-					state.overlays[i].destroy();
-				}
-			}
-			
-			state.overlays = newOverlayShapes;
-		}
-		
-		if (newCount > 0)
-		{
-			this.createCellOverlays(state);
-		}
-		else
-		{
-			state.overlays = null;
-		}
-	}
+	this.createCellOverlays(state);
 	
 	if (state.overlays != null)
 	{
-		for (var i = 0; i < overlays.length; i++)
+		state.overlays.visit(function(id, shape)
 		{
-			var bounds = overlays[i].getBounds(state);
+			var bounds = shape.overlay.getBounds(state);
 
-			if (state.overlays[i].bounds == null ||
-				state.overlays[i].scale != state.view.scale ||
-				!state.overlays[i].bounds.equals(bounds))
+			if (shape.bounds == null ||
+				shape.scale != state.view.scale ||
+				!shape.bounds.equals(bounds))
 			{
-				state.overlays[i].bounds = bounds;
-				state.overlays[i].scale = state.view.scale;
-				state.overlays[i].redraw();
+				shape.bounds = bounds;
+				shape.scale = state.view.scale;
+				shape.redraw();
 			}
-		}
+		});
 	}
 };
 
@@ -44957,14 +44996,14 @@ mxCellRenderer.prototype.destroy = function(state)
 		
 		if (state.overlays != null)
 		{
-			for (var i=0; i<state.overlays.length; i++)
+			state.overlays.visit(function(id, shape)
 			{
-				state.overlays[i].destroy();
-			}
+				shape.destroy();
+			});
 			
 			state.overlays = null;
 		}
-		
+
 		if (state.control != null)
 		{
 			state.control.destroy();
@@ -48896,7 +48935,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.697 2012-07-19 17:15:37 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.698 2012-08-10 13:43:26 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -56610,18 +56649,17 @@ mxGraph.prototype.getTooltip = function(state, node, x, y)
 			tip = this.collapseExpandResource;
 			tip = mxResources.get(tip) || tip;
 		}
-		
+
 		if (tip == null && state.overlays != null)
 		{
-			for (var i = 0; i < state.overlays.length; i++)
+			state.overlays.visit(function(id, shape)
 			{
-				if (node == state.overlays[i].node ||
-					node.parentNode == state.overlays[i].node)
+				// LATER: Exit loop if tip is not null
+				if (tip == null && (node == shape.node || node.parentNode == shape.node))
 				{
-					tip = this.getCellOverlays(state.cell)[i].toString();
-					break;
+					tip = shape.overlay.toString();
 				}
-			}
+			});
 		}
 		
 		if (tip == null)
@@ -64476,7 +64514,7 @@ mxCellMarker.prototype.destroy = function()
 	this.highlight.destroy();
 };
 /**
- * $Id: mxSelectionCellsHandler.js,v 1.4 2012-07-25 08:23:43 gaudenz Exp $
+ * $Id: mxSelectionCellsHandler.js,v 1.5 2012-08-10 11:35:06 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -64484,6 +64522,18 @@ mxCellMarker.prototype.destroy = function()
  * 
  * An event handler that manages cell handlers and invokes their mouse event
  * processing functions.
+ * 
+ * Group: Events
+ * 
+ * Event: mxEvent.ADD
+ * 
+ * Fires if a cell has been added to the selection. The <code>state</code>
+ * property contains the <mxCellState> that has been added.
+ * 
+ * Event: mxEvent.REMOVE
+ * 
+ * Fires if a cell has been remove from the selection. The <code>state</code>
+ * property contains the <mxCellState> that has been removed.
  * 
  * Parameters:
  * 
@@ -64511,6 +64561,12 @@ function mxSelectionCellsHandler(graph)
 	this.graph.getView().addListener(mxEvent.DOWN, this.refreshHandler);
 	this.graph.getView().addListener(mxEvent.UP, this.refreshHandler);
 };
+
+/**
+ * Extends mxEventSource.
+ */
+mxSelectionCellsHandler.prototype = new mxEventSource();
+mxSelectionCellsHandler.prototype.constructor = mxSelectionCellsHandler;
 
 /**
  * Variable: graph
@@ -64628,6 +64684,7 @@ mxSelectionCellsHandler.prototype.refresh = function()
 			if (handler == null)
 			{
 				handler = this.graph.createHandler(state);
+				this.fireEvent(new mxEventObject(mxEvent.ADD, 'state', state));
 			}
 			
 			if (handler != null)
@@ -64638,10 +64695,11 @@ mxSelectionCellsHandler.prototype.refresh = function()
 	}
 	
 	// Destroys all unused handlers
-	oldHandlers.visit(function (key, handler)
+	oldHandlers.visit(mxUtils.bind(this, function(key, handler)
 	{
+		this.fireEvent(new mxEventObject(mxEvent.REMOVE, 'state', handler.state));
 		handler.destroy();
-	});
+	}));
 };
 
 /**
@@ -72210,7 +72268,7 @@ mxDefaultToolbar.prototype.destroy = function ()
 	}
 };
 /**
- * $Id: mxEditor.js,v 1.229 2012-05-15 15:25:51 gaudenz Exp $
+ * $Id: mxEditor.js,v 1.230 2012-08-22 12:35:03 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -72594,7 +72652,7 @@ function mxEditor(config)
 		// member field of this editor is set.
 		if (!mxClient.IS_LOCAL && this.urlInit != null)
 		{
-			this.createSession();
+			this.session = this.createSession();
 		}
 
 		// Checks ifthe <onInit> hook has been set		
@@ -72729,6 +72787,13 @@ mxEditor.prototype.graphRenderHint = null;
  * toolbar is created in <setToolbarContainer>.
  */
 mxEditor.prototype.toolbar = null;
+
+/**
+ * Variable: session
+ *
+ * Holds a <mxSession> instance associated with this editor.
+ */
+mxEditor.prototype.session = null;
 
 /**
  * Variable: status
@@ -73719,12 +73784,10 @@ mxEditor.prototype.addActions = function ()
 /**
  * Function: createSession
  *
- * Creates the built-in session using <urlInit>, <urlPoll> and <urlNotify>.
+ * Creates and returns and <mxSession> using <urlInit>, <urlPoll> and <urlNotify>.
  */
 mxEditor.prototype.createSession = function ()
 {
-	var session = null;
-	
 	// Routes any change events from the session
 	// through the editor and dispatches them as
 	// a session event.
@@ -73733,7 +73796,7 @@ mxEditor.prototype.createSession = function ()
 		this.fireEvent(new mxEventObject(mxEvent.SESSION, 'session', session));
 	});
 	
-	session = this.connect(this.urlInit, this.urlPoll,
+	return this.connect(this.urlInit, this.urlPoll,
 		this.urlNotify, sessionChanged);
 };
 
@@ -74655,7 +74718,7 @@ mxEditor.prototype.connect = function (urlInit, urlPoll, urlNotify, onChange)
 	
 	if (!mxClient.IS_LOCAL)
 	{
-		var session = new mxSession(this.graph.getModel(),
+		session = new mxSession(this.graph.getModel(),
 			urlInit, urlPoll, urlNotify);
 
 		// Resets the undo history if the session was initialized which is the

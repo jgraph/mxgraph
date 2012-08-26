@@ -1,5 +1,5 @@
 /**
- * $Id: mxSession.js,v 1.45 2010-09-16 11:11:59 gaudenz Exp $
+ * $Id: mxSession.js,v 1.46 2012-08-22 15:30:49 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -100,18 +100,15 @@ function mxSession(model, urlInit, urlPoll, urlNotify)
 	
 	// Adds the listener for notifying the backend of any
 	// changes in the model
-	model.addListener(mxEvent.NOTIFY,
-		mxUtils.bind(this, function(sender, evt)
+	model.addListener(mxEvent.NOTIFY, mxUtils.bind(this, function(sender, evt)
+	{
+		var edit = evt.getProperty('edit');
+		
+		if (edit != null && this.debug || (this.connected && !this.suspended))
 		{
-			var edit = evt.getProperty('edit');
-			
-			if (edit != null && this.debug ||
-				(this.connected && !this.suspended))
-			{
-				this.notify('<edit>'+this.encodeChanges(edit.changes, edit.undone)+'</edit>');
-			}
-		})
-	);
+			this.notify('<edit>'+this.encodeChanges(edit.changes, edit.undone)+'</edit>');
+		}
+	}));
 };
 
 /**
@@ -377,62 +374,49 @@ mxSession.prototype.get = function(url, onLoad, onError)
 
 		// Handles a successful response for
 		// the above request.
-		var req = mxUtils.get(url,
-			mxUtils.bind(this, function(req)
+		mxUtils.get(url, mxUtils.bind(this, function(req)
+		{
+			if (typeof(mxUtils) != 'undefined')
 			{
-				if (typeof(mxUtils) != 'undefined')
-				{
-					//try
-					{
-		    			if (req.isReady() &&
-		    				req.getStatus() != 404)
-		    			{
-		    				this.received += req.getText().length;
-							this.fireEvent(new mxEventObject(mxEvent.GET,
-									'url', url, 'request', req));
+    			if (req.isReady() && req.getStatus() != 404)
+    			{
+    				this.received += req.getText().length;
+					this.fireEvent(new mxEventObject(mxEvent.GET, 'url', url, 'request', req));
 
-							if (this.isValidResponse(req))
+					if (this.isValidResponse(req))
+					{
+		    			if (req.getText().length > 0)
+		    			{
+							var node = req.getDocumentElement();
+							
+							if (node == null)
 							{
-				    			if (req.getText().length > 0)
-				    			{
-									var node = req.getDocumentElement();
-									
-									if (node == null)
-									{
-										onErrorWrapper('Invalid response: '+req.getText());
-									}
-									else
-									{
-										this.receive(node);
-									}
-								}
-				    			
-				    			if (onLoad != null)
-				    			{
-									onLoad(req);
-								}
+								onErrorWrapper('Invalid response: '+req.getText());
+							}
+							else
+							{
+								this.receive(node);
 							}
 						}
-						else
-						{
-							onErrorWrapper('Response not ready');
+		    			
+		    			if (onLoad != null)
+		    			{
+							onLoad(req);
 						}
 					}
-					/*catch (ex)
-					{
-						onErrorWrapper(ex);
-						throw ex; // debugging
-					}*/
 				}
-			}),
-			
-			// Handles a transmission error for the
-			// above request
-			function(req)
-			{
-				onErrorWrapper('Transmission error');
+				else
+				{
+					onErrorWrapper('Response not ready');
+				}
 			}
-		);
+		}),
+		// Handles a transmission error for the
+		// above request
+		function(req)
+		{
+			onErrorWrapper('Transmission error');
+		});
 	}
 };
 
@@ -485,8 +469,7 @@ mxSession.prototype.encodeChanges = function(changes, invert)
  */
 mxSession.prototype.receive = function(node)
 {
-	if (node != null &&
-		node.nodeType == mxConstants.NODETYPE_ELEMENT)
+	if (node != null && node.nodeType == mxConstants.NODETYPE_ELEMENT)
 	{
 		// Uses the namespace in the model
 		var ns = node.getAttribute('namespace');
@@ -615,46 +598,61 @@ mxSession.prototype.decodeChanges = function(node)
 	
 	while (node != null)
 	{
-		if (node.nodeType == mxConstants.NODETYPE_ELEMENT)
+		var change = this.decodeChange(node);
+		
+		if (change != null)
 		{
-			var change = null;
-			
-			if (node.nodeName == 'mxRootChange')
-			{
-				// Handles the special case were no ids should be
-				// resolved in the existing model. This change will
-				// replace all registered ids and cells from the
-				// model and insert a new cell hierarchy instead.
-				var tmp = new mxCodec(node.ownerDocument);
-				change = tmp.decode(node);
-			}
-			else
-			{
-				change = this.codec.decode(node);
-			}
-			
-			if (change != null)
-			{
-				change.model = this.model;
-				change.execute();
-				
-				// Workaround for references not being resolved if cells have
-				// been removed from the model prior to being referenced. This
-				// adds removed cells in the codec object lookup table.
-				if (node.nodeName == 'mxChildChange' &&
-					change.parent == null)
-				{
-					this.cellRemoved(change.child);
-				}
-				
-				changes.push(change);
-			}
+			changes.push(change);
 		}
 		
 		node = node.nextSibling;
 	}
 	
 	return changes;
+};
+
+/**
+ * Function: decodeChange
+ * 
+ * Decodes, executes and returns the change object represented by the given
+ * XML node.
+ */
+mxSession.prototype.decodeChange = function(node)
+{
+	var change = null;
+
+	if (node.nodeType == mxConstants.NODETYPE_ELEMENT)
+	{
+		if (node.nodeName == 'mxRootChange')
+		{
+			// Handles the special case were no ids should be
+			// resolved in the existing model. This change will
+			// replace all registered ids and cells from the
+			// model and insert a new cell hierarchy instead.
+			var tmp = new mxCodec(node.ownerDocument);
+			change = tmp.decode(node);
+		}
+		else
+		{
+			change = this.codec.decode(node);
+		}
+		
+		if (change != null)
+		{
+			change.model = this.model;
+			change.execute();
+			
+			// Workaround for references not being resolved if cells have
+			// been removed from the model prior to being referenced. This
+			// adds removed cells in the codec object lookup table.
+			if (node.nodeName == 'mxChildChange' && change.parent == null)
+			{
+				this.cellRemoved(change.child);
+			}
+		}
+	}
+	
+	return change;
 };
 
 /**

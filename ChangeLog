@@ -1,6 +1,16 @@
+26-AUG-2012: 1.10.3.0
+
+- Fixes handling of slashes in URL parameters, relative URLs [JavaScript]
+- Adds mxCircleLayout.getRadius, mxSession.decodeChange, mxEditor.session [JavaScript]
+- Fixes handling of text nodes in mxObjectCodec.cloneTemplate [Java]
+- Adds mxResources.extension to specifiy extension for resource files [JavaScript]
+- Adds mxEvent.REMOVE, ADD/REMOVE events in mxSelectionCellsHandler [JavaScript]
+- Uses dictionary for storing overlays in mxCellState [JavaScript]
+- Fixes nullpointer exception when creation edges in grapheditor example [JavaScript]
+
 31-JUL-2012: 1.10.2.1
 
-- Disables crisp SVG rendering for rotated shapes in mShape, mxActos, mxCylinder [JavaScript]
+- Disables crisp SVG rendering for rotated shapes in mShape, mxActor, mxCylinder [JavaScript]
 - Uses SHORT_DESCRIPTION from passed-in action in BasicGraphEditor.bind [Java]
 - Makes mxGraphHandler.gridEnabledEvent protected [Java]
 - Fixes repaint of mxCellHighlight after panning, zoom and model changes [JavaScript]

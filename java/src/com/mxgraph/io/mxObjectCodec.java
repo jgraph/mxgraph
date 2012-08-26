@@ -1,5 +1,5 @@
 /**
- * $Id: mxObjectCodec.java,v 1.39 2012-05-02 17:58:13 gaudenz Exp $
+ * $Id: mxObjectCodec.java,v 1.41 2012-08-21 10:55:11 gaudenz Exp $
  * Copyright (c) 2006, Gaudenz Alder
  */
 package com.mxgraph.io;
@@ -209,6 +209,12 @@ public class mxObjectCodec
 			if (obj instanceof Collection)
 			{
 				node = node.getFirstChild();
+
+				// Skips text nodes
+				while (node != null && !(node instanceof Element))
+				{
+					node = node.getNextSibling();
+				}
 
 				if (node != null && node instanceof Element
 						&& ((Element) node).hasAttribute("as"))
@@ -664,7 +670,7 @@ public class mxObjectCodec
 
 		// Tries to get cached field
 		Field field = map.get(fieldname);
-		
+
 		if (field != null)
 		{
 			return field;
@@ -680,7 +686,7 @@ public class mxObjectCodec
 				{
 					// Adds field to fields cache
 					map.put(fieldname, field);
-					
+
 					return field;
 				}
 			}
