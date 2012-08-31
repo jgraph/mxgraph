@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.js,v 1.293 2012-07-15 15:20:00 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.295 2012-08-30 08:18:04 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxUtils =
@@ -918,7 +918,7 @@ var mxUtils =
 	 */
 	write: function(parent, text)
 	{
-		doc = parent.ownerDocument;
+		var doc = parent.ownerDocument;
 		var node = doc.createTextNode(text);
 		
 		if (parent != null)
@@ -942,7 +942,7 @@ var mxUtils =
 	 */
 	writeln: function(parent, text)
 	{
-		doc = parent.ownerDocument;
+		var doc = parent.ownerDocument;
 		var node = doc.createTextNode(text);
 		
 		if (parent != null)
@@ -2318,12 +2318,21 @@ var mxUtils =
 	 * Parameters:
 	 * 
 	 * container - DOM node to return the offset for.
+	 * scollOffset - Optional boolean to add the scroll offset of the document.
+	 * Default is false.
 	 */
-	getOffset: function(container)
+	getOffset: function(container, scrollOffset)
 	{
-		// TODO: Take scrollbar into account
 		var offsetLeft = 0;
 		var offsetTop = 0;
+		
+		if (scrollOffset != null && scrollOffset)
+		{
+			var b = document.body;
+			var d = document.documentElement;
+			offsetLeft += (b.scrollLeft || d.scrollLeft);
+			offsetTop += (b.scrollTop || d.scrollTop);
+		}
 
 		while (container.offsetParent)
 		{

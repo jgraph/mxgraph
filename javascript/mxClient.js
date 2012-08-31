@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.10.3.0.
+	 * Current version is 1.10.3.1.
 	 */
-	VERSION: '1.10.3.0',
+	VERSION: '1.10.3.1',
 
 	/**
 	 * Variable: IS_IE
@@ -1839,7 +1839,7 @@ var mxEffects =
 
 };
 /**
- * $Id: mxUtils.js,v 1.293 2012-07-15 15:20:00 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.295 2012-08-30 08:18:04 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxUtils =
@@ -2758,7 +2758,7 @@ var mxUtils =
 	 */
 	write: function(parent, text)
 	{
-		doc = parent.ownerDocument;
+		var doc = parent.ownerDocument;
 		var node = doc.createTextNode(text);
 		
 		if (parent != null)
@@ -2782,7 +2782,7 @@ var mxUtils =
 	 */
 	writeln: function(parent, text)
 	{
-		doc = parent.ownerDocument;
+		var doc = parent.ownerDocument;
 		var node = doc.createTextNode(text);
 		
 		if (parent != null)
@@ -4158,12 +4158,21 @@ var mxUtils =
 	 * Parameters:
 	 * 
 	 * container - DOM node to return the offset for.
+	 * scollOffset - Optional boolean to add the scroll offset of the document.
+	 * Default is false.
 	 */
-	getOffset: function(container)
+	getOffset: function(container, scrollOffset)
 	{
-		// TODO: Take scrollbar into account
 		var offsetLeft = 0;
 		var offsetTop = 0;
+		
+		if (scrollOffset != null && scrollOffset)
+		{
+			var b = document.body;
+			var d = document.documentElement;
+			offsetLeft += (b.scrollLeft || d.scrollLeft);
+			offsetTop += (b.scrollTop || d.scrollTop);
+		}
 
 		while (container.offsetParent)
 		{
@@ -17572,7 +17581,7 @@ var mxXmlCanvas2D = function(root)
 	};
 
 };/**
- * $Id: mxSvgCanvas2D.js,v 1.15 2012-06-08 12:45:41 gaudenz Exp $
+ * $Id: mxSvgCanvas2D.js,v 1.16 2012-08-31 09:19:28 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -17800,24 +17809,14 @@ var mxSvgCanvas2D = function(root, styleEnabled)
 			style += 'text-align:right;';
 		}
 
-		// LATER: Add vertical align support via table
-		var body = create('body', 'http://www.w3.org/1999/xhtml');
-		body.setAttribute('style', style);
-		
 		// Convert HTML entities to XML entities
 		str = str.replace(/&nbsp;/g, '&#160;');
 		
-		// Adds surrounding DIV to guarantee one root element, adds xmlns to workaround empty NS in IE9 standards
-		var node = mxUtils.parseXml('<div xmlns="http://www.w3.org/1999/xhtml">' + str + '</div>').documentElement; 
-		
-		if (body.ownerDocument.importNode != null)
-		{
-			node = body.ownerDocument.importNode(node, true);
-		}
-			
-		body.appendChild(node);
-		
-		return body;
+		// LATER: Add vertical align support via table, adds xmlns to workaround empty NS in IE9 standards
+		var node = mxUtils.parseXml('<div xmlns="http://www.w3.org/1999/xhtml" style="' +
+				style + '">' + str + '</div>').documentElement; 
+
+		return node;
 	};
 
 	var getSvgGradient = function(start, end, direction)
@@ -24526,7 +24525,7 @@ mxArrow.prototype.redrawPath = function(path, x, y, w, h)
 	path.close();
 };
 /**
- * $Id: mxText.js,v 1.172 2012-07-16 14:42:11 gaudenz Exp $
+ * $Id: mxText.js,v 1.173 2012-08-31 09:19:28 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -24739,8 +24738,7 @@ mxText.prototype.createForeignObject = function()
 		fo.style.overflow = 'visible';
 	}
 	
-	var body = document.createElementNS(mxConstants.NS_XHTML, 'body');
-	body.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml'); // FF
+	var body = document.createElement('div');
 	body.style.margin = '0px';
 	body.style.height = '100%';
 	

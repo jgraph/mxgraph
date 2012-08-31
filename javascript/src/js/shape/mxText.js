@@ -1,5 +1,5 @@
 /**
- * $Id: mxText.js,v 1.172 2012-07-16 14:42:11 gaudenz Exp $
+ * $Id: mxText.js,v 1.173 2012-08-31 09:19:28 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -212,8 +212,7 @@ mxText.prototype.createForeignObject = function()
 		fo.style.overflow = 'visible';
 	}
 	
-	var body = document.createElementNS(mxConstants.NS_XHTML, 'body');
-	body.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml'); // FF
+	var body = document.createElement('div');
 	body.style.margin = '0px';
 	body.style.height = '100%';
 	

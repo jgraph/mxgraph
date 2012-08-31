@@ -1,5 +1,5 @@
 /**
- * $Id: Dialogs.js,v 1.48 2012-07-29 08:21:56 gaudenz Exp $
+ * $Id: Dialogs.js,v 1.50 2012-08-31 08:58:32 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -1037,8 +1037,18 @@ function ExportDialog(editorUi)
 			    var svgDoc = mxUtils.createXmlDocument();
 			    var root = (svgDoc.createElementNS != null) ?
 			    	svgDoc.createElementNS(mxConstants.NS_SVG, 'svg') : svgDoc.createElement('svg');
-			    	
-				root.style.backgroundColor = graph.background;
+			    
+			    if (graph.background != null)
+			    {
+					if (root.style != null)
+					{
+						root.style.backgroundColor = graph.background;
+					}
+					else
+					{
+						root.setAttribute('style', 'background-color:' + graph.background);
+					}
+			    }
 			    
 			    if (svgDoc.createElementNS == null)
 			    {

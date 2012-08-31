@@ -1,3 +1,11 @@
+31-AUG-2012: 1.10.3.1
+
+- Replaces body with div in foreignObjects for HTML labels [JavaScript]
+- Fixes background color for SVG export in grapheditor example quirks mode [JavaScript]
+- Add optional scrollOffset parameter in mxUtils.getOffset [JavaScript]
+- Adds groups.html example [JavaScript]
+- Fixes global declaration of doc variable in mxUtils.write and writeln [JavaScript]
+
 26-AUG-2012: 1.10.3.0
 
 - Fixes handling of slashes in URL parameters, relative URLs [JavaScript]
