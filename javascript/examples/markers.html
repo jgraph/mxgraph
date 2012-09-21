@@ -1,0 +1,204 @@
+<!--
+  $Id: markers.html,v 1.9 2012-04-27 16:52:31 gaudenz Exp $
+  Copyright (c) 2006-2010, JGraph Ltd
+  
+  Markers example for mxGraph. This example demonstrates creating
+  custom markers and customizing the built-in markers.
+-->
+<html>
+<head>
+	<title>Markers example for mxGraph</title>
+
+	<!-- Sets the basepath for the library if not in same directory -->
+	<script type="text/javascript">
+		mxBasePath = '../src';
+	</script>
+
+	<!-- Loads and initializes the library -->
+	<script type="text/javascript" src="../src/js/mxClient.js"></script>
+
+	<!-- Example code -->
+	<script type="text/javascript">
+		// Program starts here. Creates a sample graph in the
+		// DOM node with the specified ID. This function is invoked
+		// from the onLoad event handler of the document (see below).
+		function main(container)
+		{
+			// Checks if the browser is supported
+			if (!mxClient.isBrowserSupported())
+			{
+				// Displays an error message if the browser is not supported.
+				mxUtils.error('Browser is not supported!', 200, false);
+			}
+			else
+			{
+				// Enables crisp rendering in SVG
+				mxShape.prototype.crisp = true;
+				mxEllipse.prototype.crisp = false;
+				mxDoubleEllipse.prototype.crisp = false;
+				mxArrow.prototype.crisp = false;
+				mxConnector.prototype.allowCrispMarkers = true;
+				
+				// Enables guides
+				mxGraphHandler.prototype.guidesEnabled = true;
+				mxEdgeHandler.prototype.snapToTerminals = true;
+				
+				// Defines custom marker
+				mxMarker.markers['dash'] = function(node, type, pe, nx, ny, strokewidth, size, scale, isVml)
+				{
+					nx = nx * (size + strokewidth);
+					ny = ny * (size + strokewidth);
+					
+					if (isVml)
+					{
+						node.setAttribute('path', 'm' + Math.floor(pe.x - nx / 2- ny / 2) + ' ' + Math.floor(pe.y - ny / 2 + nx / 2) +
+							' l ' + Math.floor(pe.x + ny / 2 - 3 * nx / 2) + ' ' + Math.floor(pe.y - 3 * ny / 2 - nx / 2) +
+							' e');
+					}
+					else
+					{
+						node.setAttribute('d', 'M ' + (pe.x - nx / 2 - ny / 2) + ' ' + (pe.y - ny / 2 + nx / 2) +
+								' L ' + (pe.x + ny / 2 - 3 * nx / 2) + ' ' + (pe.y - 3 * ny / 2 - nx / 2) +
+								' z');
+					}
+					
+					// Returns the offset for the edge
+					return new mxPoint(0, 0);
+				};
+
+				// Tape Shape, supports size style
+				function MessageShape() { };
+				MessageShape.prototype = new mxCylinder();
+				MessageShape.prototype.constructor = MessageShape;
+				MessageShape.prototype.redrawPath = function(path, x, y, w, h, isForeground)
+				{
+					if (isForeground)
+					{
+						path.moveTo(0, 0);
+						path.lineTo(w / 2, h / 2);
+						path.lineTo(w, 0);
+						path.end();
+					}
+					else
+					{
+						path.moveTo(0, 0);
+						path.lineTo(w, 0);
+						path.lineTo(w, h);
+						path.lineTo(0, h);
+						path.close();
+					}
+				};
+
+				mxCellRenderer.prototype.defaultShapes['message'] = MessageShape;
+				
+				// Custom edge shape
+				function LinkShape() { };
+				LinkShape.prototype = new mxArrow();
+				LinkShape.prototype.constructor = LinkShape;
+				LinkShape.prototype.enableFill = false;
+				LinkShape.prototype.addPipe = true;
+				
+				LinkShape.prototype.redrawPath = function(path, x, y, w, h)
+				{
+					// All points are offset
+					path.translate.x -= x;
+					path.translate.y -= y;
+
+					// Geometry of arrow
+					var width = 10 * this.scale;
+
+					// Base vector (between end points)
+					var p0 = this.points[0];
+					var pe = this.points[this.points.length - 1];
+					
+					var dx = pe.x - p0.x;
+					var dy = pe.y - p0.y;
+					var dist = Math.sqrt(dx * dx + dy * dy);
+					var length = dist;
+					
+					// Computes the norm and the inverse norm
+					var nx = dx / dist;
+					var ny = dy / dist;
+					var basex = length * nx;
+					var basey = length * ny;
+					var floorx = width * ny/3;
+					var floory = -width * nx/3;
+					
+					// Computes points
+					var p0x = p0.x - floorx / 2;
+					var p0y = p0.y - floory / 2;
+					var p1x = p0x + floorx;
+					var p1y = p0y + floory;
+					var p2x = p1x + basex;
+					var p2y = p1y + basey;
+					var p3x = p2x + floorx;
+					var p3y = p2y + floory;
+					// p4 not necessary
+					var p5x = p3x - 3 * floorx;
+					var p5y = p3y - 3 * floory;
+					
+					//path.moveTo(p0x, p0y);
+					path.moveTo(p1x, p1y);
+					path.lineTo(p2x, p2y);
+					path.moveTo(p5x + floorx, p5y + floory);
+					path.lineTo(p0x, p0y);
+					path.end();
+				};
+
+				mxCellRenderer.prototype.defaultShapes['link'] = LinkShape;
+
+				// Creates the graph
+				var graph = new mxGraph(container);
+				
+				// Sets default styles
+				graph.getStylesheet().getDefaultVertexStyle()['fillColor'] = '#FFFFFF';
+				graph.getStylesheet().getDefaultVertexStyle()['strokeColor'] = '#000000';
+				graph.getStylesheet().getDefaultVertexStyle()['fontColor'] = '#000000';
+				graph.getStylesheet().getDefaultVertexStyle()['fontStyle'] = '1';
+				graph.getStylesheet().getDefaultEdgeStyle()['strokeColor'] = '#000000';
+				graph.getStylesheet().getDefaultEdgeStyle()['fontColor'] = '#000000';
+				graph.getStylesheet().getDefaultEdgeStyle()['fontStyle'] = '0';
+				graph.getStylesheet().getDefaultEdgeStyle()['fontStyle'] = '0';
+				graph.getStylesheet().getDefaultEdgeStyle()['startSize'] = '8';
+				graph.getStylesheet().getDefaultEdgeStyle()['endSize'] = '8';
+
+				// Populates the graph
+				var parent = graph.getDefaultParent();
+								
+				graph.getModel().beginUpdate();
+				try
+				{
+					var v1 = graph.insertVertex(parent, null, 'v1', 20, 20, 80, 30);
+					var v2 = graph.insertVertex(parent, null, 'v2', 440, 20, 80, 30);
+					var e1 = graph.insertEdge(parent, null, '', v1, v2, 'dashed=1;'+
+						'startArrow=oval;endArrow=block;sourcePerimeterSpacing=4;startFill=0;endFill=0;');
+					var e11 = graph.insertVertex(e1, null, 'Label', 0, 0, 20, 14,
+						'shape=message;labelBackgroundColor=#ffffff;labelPosition=left;align=right;fontStyle=0;');
+					e11.geometry.offset = new mxPoint(-10, -7);
+					e11.geometry.relative = true;
+					e11.connectable = false;
+					
+					var v3 = graph.insertVertex(parent, null, 'v3', 20, 120, 80, 30);
+					var v4 = graph.insertVertex(parent, null, 'v4', 440, 120, 80, 30);
+					var e2 = graph.insertEdge(parent, null, 'Label', v3, v4,
+						'startArrow=dash;startSize=12;endArrow=block;labelBackgroundColor=#FFFFFF;');
+
+					var v5 = graph.insertVertex(parent, null, 'v5', 40, 220, 40, 40, 'shape=ellipse;perimeter=ellipsePerimeter;');
+					var v6 = graph.insertVertex(parent, null, 'v6', 460, 220, 40, 40, 'shape=doubleEllipse;perimeter=ellipsePerimeter;');
+					var e3 = graph.insertEdge(parent, null, 'Link', v5, v6,
+						'shape=link;labelBackgroundColor=#FFFFFF;');
+				}
+				finally
+				{
+					graph.getModel().endUpdate();
+				}
+			}
+		};
+	</script>
+</head>
+<body onload="main(document.getElementById('graphContainer'))">
+	<div id="graphContainer"
+		style="overflow:hidden;width:641px;height:381px;border:1px solid gray;cursor:default;">
+	</div>
+</body>
+</html>

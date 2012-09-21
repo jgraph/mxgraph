@@ -1,0 +1,197 @@
+<!--
+  $Id: graphlayout.html,v 1.32 2012-07-17 08:22:19 gaudenz Exp $
+  Copyright (c) 2006-2010, JGraph Ltd
+  
+  Graphlayout example for mxGraph. This example demonstrates using
+  automatic graph layouts and listening to changes of the graph size
+  to keep the container size in sync.
+-->
+<html>
+<head>
+	<title>Graphlayout example for mxGraph</title>
+
+	<!-- Sets the basepath for the library if not in same directory -->
+	<script type="text/javascript">
+		mxBasePath = '../src';
+	</script>
+
+	<!-- Loads and initializes the library -->
+	<script type="text/javascript" src="../src/js/mxClient.js"></script>
+
+	<!-- Example code -->
+	<script type="text/javascript">
+
+		// Program starts here. Creates a sample graph in the
+		// DOM node with the specified ID. This function is invoked
+		// from the onLoad event handler of the document (see below).
+		function main(container)
+		{
+			// Checks if browser is supported
+			if (!mxClient.isBrowserSupported())
+			{
+				// Displays an error message if the browser is
+				// not supported.
+				mxUtils.error('Browser is not supported!', 200, false);
+			}
+			else
+			{
+				// Creates the graph inside the given container
+				var graph = new mxGraph(container);
+				
+				// Disables basic selection and cell handling
+				graph.setEnabled(false);
+				
+				// Changes the default vertex style in-place
+				var style = graph.getStylesheet().getDefaultVertexStyle();
+				style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_ELLIPSE;
+				style[mxConstants.STYLE_PERIMETER] = mxPerimeter.EllipsePerimeter;
+				style[mxConstants.STYLE_GRADIENTCOLOR] = 'white';
+				style[mxConstants.STYLE_FONTSIZE] = '10';
+								
+				// Updates the size of the container to match
+				// the size of the graph when it changes. If
+				// this is commented-out, and the DIV style's
+				// overflow is set to "auto", then scrollbars
+				// will appear for the diagram. If overflow is
+				// set to "visible", then the diagram will be
+				// visible even when outside the parent DIV.
+				// With the code below, the parent DIV will be
+				// resized to contain the complete graph.
+				//graph.setResizeContainer(true);
+				
+				// Larger grid size yields cleaner layout result
+				graph.gridSize = 40;
+				
+				// Gets the default parent for inserting new cells. This
+				// is normally the first child of the root (ie. layer 0).
+				var parent = graph.getDefaultParent();
+
+				// Creates a layout algorithm to be used
+				// with the graph
+				var layout = new mxFastOrganicLayout(graph);
+
+				// Moves stuff wider apart than usual
+				layout.forceConstant = 80;
+
+				// Reference to the transition checkbox
+				var animate = document.getElementById('animate');
+				
+				// Adds a button to execute the layout
+				document.body.insertBefore(mxUtils.button('Circle Layout',
+					function(evt)
+					{
+						graph.getModel().beginUpdate();
+						try
+						{
+							// Creates a layout algorithm to be used
+							// with the graph
+							var circleLayout = new mxCircleLayout(graph);
+							circleLayout.execute(parent);
+						}
+						catch (e)
+						{
+							throw e;
+						}
+						finally
+						{
+							if (animate.checked)
+							{
+								var morph = new mxMorphing(graph);
+								morph.addListener(mxEvent.DONE, function()
+								{
+									graph.getModel().endUpdate();
+								});
+								
+								morph.startAnimation();
+							}
+							else
+							{
+								graph.getModel().endUpdate();
+							}
+						}
+					}
+				), document.body.firstChild);
+												
+				// Adds a button to execute the layout
+				document.body.insertBefore(mxUtils.button('Organic Layout',
+					function(evt)
+					{
+						graph.getModel().beginUpdate();
+						try
+						{
+							layout.execute(parent);
+						}
+						catch (e)
+						{
+							throw e;
+						}
+						finally
+						{
+							if (animate.checked)
+							{
+								// Default values are 6, 1.5, 20
+								var morph = new mxMorphing(graph, 10, 1.7, 20);
+								morph.addListener(mxEvent.DONE, function()
+								{
+									graph.getModel().endUpdate();
+								});
+								morph.startAnimation();
+							}
+							else
+							{
+								graph.getModel().endUpdate();
+							}
+						}
+					}
+				), document.body.firstChild);
+
+				// Adds cells to the model in a single step
+				graph.getModel().beginUpdate();
+				var w = 30;
+				var h = 30;
+				try
+				{
+					var v1 = graph.insertVertex(parent, null, 'A', 0, 0, w, h);
+					var v2 = graph.insertVertex(parent, null, 'B', 0, 0, w, h);
+					var v3 = graph.insertVertex(parent, null, 'C', 0, 0, w, h);
+					var v4 = graph.insertVertex(parent, null, 'D', 0, 0, w, h);
+					var v5 = graph.insertVertex(parent, null, 'E', 0, 0, w, h);
+					var v6 = graph.insertVertex(parent, null, 'F', 0, 0, w, h);
+					var v7 = graph.insertVertex(parent, null, 'G', 0, 0, w, h);
+					var v8 = graph.insertVertex(parent, null, 'H', 0, 0, w, h);
+					var e1 = graph.insertEdge(parent, null, 'ab', v1, v2);
+					var e2 = graph.insertEdge(parent, null, 'ac', v1, v3);
+					var e3 = graph.insertEdge(parent, null, 'cd', v3, v4);
+					var e4 = graph.insertEdge(parent, null, 'be', v2, v5);
+					var e5 = graph.insertEdge(parent, null, 'cf', v3, v6);
+					var e6 = graph.insertEdge(parent, null, 'ag', v1, v7);
+					var e7 = graph.insertEdge(parent, null, 'gh', v7, v8);
+					var e8 = graph.insertEdge(parent, null, 'gc', v7, v3);
+					var e9 = graph.insertEdge(parent, null, 'gd', v7, v4);
+					var e10 = graph.insertEdge(parent, null, 'eh', v5, v8);
+					
+					// Executes the layout
+					layout.execute(parent);
+				}
+				finally
+				{
+					// Updates the display
+					graph.getModel().endUpdate();
+				}
+			}
+		};
+	</script>
+</head>
+
+<!-- Page passes the container for the graph to the program -->
+<body onload="main(document.getElementById('graphContainer'))">
+
+	<!-- Creates a container for the graph with a grid wallpaper. Make sure to define the position
+		and overflow attributes! See comments on the adding of the size-listener on line 54 ff!  -->
+	<div id="graphContainer"
+		style="overflow:visible;width:821px;height:641px;background:url('editors/images/grid.gif');">
+	</div>
+	<br>
+	<input type="checkbox" id="animate" checked="checked"/> Transitions
+</body>
+</html>

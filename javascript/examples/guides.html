@@ -1,0 +1,167 @@
+<!--
+  $Id: guides.html,v 1.7 2012-07-17 08:22:19 gaudenz Exp $
+  Copyright (c) 2006-2010, JGraph Ltd
+  
+  Guides example for mxGraph. This example demonstrates the guides
+  feature which aligns the current selection to the existing vertices
+  in the graph. This feature is in RFC state. Creating a grid using
+  a canvas and installing a key handler for cursor keys is also
+  demonstrated here, as well as snapping waypoints to terminals.
+-->
+<html>
+<head>
+	<title>Guides example for mxGraph</title>
+
+	<!-- Sets the basepath for the library if not in same directory -->
+	<script type="text/javascript">
+		mxBasePath = '../src';
+	</script>
+
+	<!-- Loads and initializes the library -->
+	<script type="text/javascript" src="../src/js/mxClient.js"></script>
+
+	<!-- Example code -->
+	<script type="text/javascript">
+		// Program starts here. Creates a sample graph in the
+		// DOM node with the specified ID. This function is invoked
+		// from the onLoad event handler of the document (see below).
+		function main(container)
+		{
+			// Checks if the browser is supported
+			if (!mxClient.isBrowserSupported())
+			{
+				// Displays an error message if the browser is not supported.
+				mxUtils.error('Browser is not supported!', 200, false);
+			}
+			else
+			{
+				// Enables guides
+				mxGraphHandler.prototype.guidesEnabled = true;
+				
+			    // Alt disables guides
+			    mxGraphHandler.prototype.useGuidesForEvent = function(me)
+			    {
+			    	return !mxEvent.isAltDown(me.getEvent());
+			    };
+			    
+			    // Defines the guides to be red (default)
+				mxConstants.GUIDE_COLOR = '#FF0000';
+			    
+			    // Defines the guides to be 1 pixel (default)
+				mxConstants.GUIDE_STROKEWIDTH = 1;
+				
+				// Enables snapping waypoints to terminals
+				mxEdgeHandler.prototype.snapToTerminals = true;
+				
+				// Enables crisp rendering of rectangles in SVG
+				mxRectangleShape.prototype.crisp = true;
+				
+				// Creates the graph inside the given container
+				var graph = new mxGraph(container);
+				graph.setConnectable(true);
+				graph.gridSize = 30;
+				
+				// Changes the default style for edges "in-place" and assigns
+				// an alternate edge style which is applied in mxGraph.flip
+				// when the user double clicks on the adjustment control point
+				// of the edge. The ElbowConnector edge style switches to TopToBottom
+				// if the horizontal style is true.
+				var style = graph.getStylesheet().getDefaultEdgeStyle();
+				style[mxConstants.STYLE_ROUNDED] = true;
+				style[mxConstants.STYLE_EDGE] = mxEdgeStyle.ElbowConnector;
+				graph.alternateEdgeStyle = 'elbow=vertical';
+
+				// Enables rubberband selection
+				new mxRubberband(graph);
+				
+				// Gets the default parent for inserting new cells. This
+				// is normally the first child of the root (ie. layer 0).
+				var parent = graph.getDefaultParent();
+								
+				// Adds cells to the model in a single step
+				graph.getModel().beginUpdate();
+				var v1;
+				try
+				{
+					v1 = graph.insertVertex(parent, null, 'Hello,', 20, 40, 80, 70);
+					var v2 = graph.insertVertex(parent, null, 'World!', 200, 140, 80, 40);
+					var e1 = graph.insertEdge(parent, null, '', v1, v2);
+				}
+				finally
+				{
+					// Updates the display
+					graph.getModel().endUpdate();
+				}
+
+			    // Handles cursor keys
+			    var nudge = function(keyCode)
+			    {
+			    	if (!graph.isSelectionEmpty())
+					{
+			    		var dx = 0;
+			    		var dy = 0;
+			    		
+			    		if (keyCode == 37)
+						{
+			    			dx = -1;
+						}
+			    		else if (keyCode == 38)
+			    		{
+			    			dy = -1;
+			    		}
+			    		else if (keyCode == 39)
+			    		{
+			    			dx = 1;
+			    		}
+			    		else if (keyCode == 40)
+			    		{
+			    			dy = 1;
+			    		}
+			    		
+			    		graph.moveCells(graph.getSelectionCells(), dx, dy);
+					}
+			    };
+
+				// Transfer initial focus to graph container for keystroke handling
+				graph.container.focus();
+				    
+			    // Handles keystroke events
+			    var keyHandler = new mxKeyHandler(graph);
+			    
+			    // Ignores enter keystroke. Remove this line if you want the
+			    // enter keystroke to stop editing
+			    keyHandler.enter = function() {};
+			    
+			    keyHandler.bindKey(37, function()
+				{
+					nudge(37);
+				});
+			    
+			    keyHandler.bindKey(38, function()
+			    {
+			    	nudge(38);
+			    });
+			    
+			    keyHandler.bindKey(39, function()
+			    {
+			    	nudge(39);
+			    });
+			    
+			    keyHandler.bindKey(40, function()
+			    {
+			    	nudge(40);
+			    });
+			}
+		};
+	</script>
+</head>
+
+<!-- Page passes the container for the graph to the program -->
+<body onload="main(document.getElementById('graphContainer'))">
+
+	<!-- Creates a container for the graph with a grid wallpaper -->
+	<div id="graphContainer"
+		style="overflow:hidden;width:821px;height:641px;background:url('editors/images/grid.gif');cursor:default;">
+	</div>
+</body>
+</html>

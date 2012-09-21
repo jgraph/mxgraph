@@ -1,0 +1,378 @@
+<shapes name="mxGraph.pid.heat_exchangers">
+<shape name="Condenser" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0.124" perimeter="0" name="N"/>
+<constraint x="0.5" y="0.876" perimeter="0" name="S"/>
+<constraint x="0.124" y="0.5" perimeter="0" name="W"/>
+<constraint x="0.876" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.235" y="0.235" perimeter="0" name="NW"/>
+<constraint x="0.235" y="0.765" perimeter="0" name="SW"/>
+<constraint x="0.765" y="0.235" perimeter="0" name="NE"/>
+<constraint x="0.765" y="0.765" perimeter="0" name="SE"/>
+</connections>
+<background>
+<ellipse x="10" y="10" w="60" h="60"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="10" y="40"/>
+<line x="20" y="40"/>
+<line x="30" y="25"/>
+<line x="50" y="55"/>
+<line x="60" y="40"/>
+<line x="70" y="40"/>
+</path>
+<stroke/>
+<path>
+<move x="80" y="0"/>
+<line x="0" y="80"/>
+</path>
+<stroke/>
+<path>
+<move x="70" y="4.5"/>
+<line x="80" y="0"/>
+<line x="75.5" y="10"/>
+<line x="75" y="5"/>
+<close/>
+</path>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="Hairpin Exchanger" h="30" w="91.75" aspect="variable" strokewidth="inherit">
+<background>
+<path>
+<move x="5" y="6"/>
+<line x="15" y="6"/>
+<line x="15" y="0"/>
+<line x="20" y="0"/>
+<line x="20" y="6"/>
+<line x="70" y="6"/>
+<line x="70" y="0"/>
+<line x="75" y="0"/>
+<line x="75" y="6"/>
+<line x="85" y="6"/>
+<arc rx="6" ry="8" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="85" y="24"/>
+<line x="75" y="24"/>
+<line x="75" y="30"/>
+<line x="70" y="30"/>
+<line x="70" y="24"/>
+<line x="20" y="24"/>
+<line x="20" y="30"/>
+<line x="15" y="30"/>
+<line x="15" y="24"/>
+<line x="5" y="24"/>
+<line x="0" y="23"/>
+<line x="0" y="20"/>
+<line x="5" y="19"/>
+<line x="83" y="19"/>
+<arc rx="3.5" ry="4" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="83" y="11"/>
+<line x="5" y="11"/>
+<line x="0" y="10"/>
+<line x="0" y="7"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="5" y="3"/>
+<line x="5" y="14"/>
+</path>
+<stroke/>
+<path>
+<move x="5" y="16"/>
+<line x="5" y="27"/>
+</path>
+<stroke/>
+<path>
+<move x="15" y="6"/>
+<line x="20" y="6"/>
+</path>
+<stroke/>
+<path>
+<move x="70" y="6"/>
+<line x="75" y="6"/>
+</path>
+<stroke/>
+<path>
+<move x="75" y="24"/>
+<line x="70" y="24"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="24"/>
+<line x="15" y="24"/>
+</path>
+<stroke/>
+
+<path>
+<move x="2" y="8"/>
+<line x="2" y="9.5"/>
+</path>
+<stroke/>
+<strokewidth width="0.5"/>
+<path>
+<move x="3" y="7"/>
+<line x="3" y="9"/>
+</path>
+<stroke/>
+<strokewidth width="0.5"/>
+<path>
+<move x="2" y="21"/>
+<line x="2" y="22.5"/>
+</path>
+<stroke/>
+<strokewidth width="0.5"/>
+<path>
+<move x="3" y="20"/>
+<line x="3" y="22"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Heater" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0.124" perimeter="0" name="N"/>
+<constraint x="0.5" y="0.876" perimeter="0" name="S"/>
+<constraint x="0.124" y="0.5" perimeter="0" name="W"/>
+<constraint x="0.876" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.235" y="0.235" perimeter="0" name="NW"/>
+<constraint x="0.235" y="0.765" perimeter="0" name="SW"/>
+<constraint x="0.765" y="0.235" perimeter="0" name="NE"/>
+<constraint x="0.765" y="0.765" perimeter="0" name="SE"/>
+</connections>
+<background>
+<ellipse x="10" y="10" w="60" h="60"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="10" y="40"/>
+<line x="20" y="40"/>
+<line x="30" y="25"/>
+<line x="50" y="55"/>
+<line x="60" y="40"/>
+<line x="70" y="40"/>
+</path>
+<stroke/>
+<path>
+<move x="80" y="0"/>
+<line x="0" y="80"/>
+</path>
+<stroke/>
+<path>
+<move x="4.5" y="70"/>
+<line x="0" y="80"/>
+<line x="10" y="75.5"/>
+<line x="5" y="75"/>
+<close/>
+</path>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="Reboiler" h="33" w="91.5" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.45" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="0.91" perimeter="0" name="S"/>
+<constraint x="0" y="0.682" perimeter="0" name="W"/>
+<constraint x="1" y="0.455" perimeter="0" name="E"/>
+<constraint x="0.05" y="0.455" perimeter="0" name="NW"/>
+<constraint x="0.05" y="0.91" perimeter="0" name="SW"/>
+<constraint x="0.945" y="0" perimeter="0" name="NE"/>
+<constraint x="0.945" y="0.91" perimeter="0" name="SE"/>
+</connections>
+<background>
+<path>
+<move x="4.5" y="15"/>
+<line x="16.5" y="15"/>
+<line x="16.5" y="30"/>
+<line x="4.5" y="30"/>
+<arc rx="3" ry="5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="4.5" y="15"/>
+<move x="19.5" y="15"/>
+<line x="26.5" y="15"/>
+<line x="41.5" y="0"/>
+<line x="86.5" y="0"/>
+<arc rx="5" ry="15" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="86.5" y="30"/>
+<line x="19.5" y="30"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="4.5" y="15"/>
+<line x="4.5" y="30"/>
+</path>
+<stroke/>
+<rect x="16.5" y="12" w="3" h="21"/>
+<fillstroke/>
+<path>
+<move x="41.5" y="0"/>
+<line x="41.5" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="86.5" y="0"/>
+<line x="86.5" y="30"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Shell and Tube Heat Exchanger 1" h="60" w="60" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="60" h="60"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="30"/>
+<line x="10" y="30"/>
+<line x="20" y="15"/>
+<line x="40" y="45"/>
+<line x="50" y="30"/>
+<line x="60" y="30"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Shell and Tube Heat Exchanger 2" h="60" w="60" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="60" h="60"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="7.5" y="10"/>
+<line x="45" y="10"/>
+<line x="15" y="30"/>
+<line x="45" y="50"/>
+<line x="7.5" y="50"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Shell and Tube Heat Exchanger 3" h="60" w="60" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="60" h="60"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="30" y="60"/>
+<line x="30" y="45"/>
+<line x="20" y="45"/>
+<line x="40" y="15"/>
+<line x="30" y="15"/>
+<line x="30" y="0"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Single Pass Heat Exchanger" h="30" w="90" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0.2" perimeter="0" name="N"/>
+<constraint x="0.5" y="0.8" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0" y="0" perimeter="0" name="NW"/>
+<constraint x="0" y="1" perimeter="0" name="SW"/>
+<constraint x="1" y="0" perimeter="0" name="NE"/>
+<constraint x="1" y="1" perimeter="0" name="SE"/>
+</connections>
+<background>
+<path>
+<move x="0" y="30"/>
+<line x="15" y="30"/>
+<line x="15" y="24"/>
+<line x="75" y="24"/>
+<line x="75" y="30"/>
+<line x="90" y="30"/>
+<line x="90" y="0"/>
+<line x="75" y="0"/>
+<line x="75" y="6"/>
+<line x="15" y="6"/>
+<line x="15" y="0"/>
+<line x="0" y="0"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="15" y="6"/>
+<line x="15" y="24"/>
+</path>
+<stroke/>
+<path>
+<move x="75" y="6"/>
+<line x="75" y="24"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="U-Tube Heat Exchanger" h="30" w="91.75" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0.2" perimeter="0" name="N"/>
+<constraint x="0.5" y="0.8" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0" y="0" perimeter="0" name="NW"/>
+<constraint x="0" y="1" perimeter="0" name="SW"/>
+<constraint x="0.93" y="0.2" perimeter="0" name="NE"/>
+<constraint x="0.93" y="0.8" perimeter="0" name="SE"/>
+</connections>
+<background>
+<path>
+<move x="15" y="24"/>
+<line x="15" y="30"/>
+<line x="0" y="30"/>
+<line x="0" y="0"/>
+<line x="15" y="0"/>
+<line x="15" y="6"/>
+<line x="85" y="6"/>
+<arc rx="6" ry="8" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="85" y="24"/>
+<line x="15" y="24"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="15" y="6"/>
+<line x="15" y="24"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+</shapes>

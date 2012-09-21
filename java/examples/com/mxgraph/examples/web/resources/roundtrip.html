@@ -1,0 +1,112 @@
+<!--
+  $Id: roundtrip.html,v 1.4 2012-07-17 08:21:21 gaudenz Exp $
+  Copyright (c) 2006-2010, JGraph Ltd
+
+  *** THIS FILE MUST BE DEPLOYED BY THE JAVA BACKEND! ***
+-->
+<html>
+<head>
+	<title>Hello, World!</title>
+
+	<!-- Sets the basepath for the library if not in same directory -->
+	<script type="text/javascript">
+		mxBasePath = '/mxgraph/javascript/src';
+	</script>
+
+	<!-- Loads and initializes the library -->
+	<script type="text/javascript" src="/mxgraph/javascript/src/js/mxClient.js"></script>
+
+	<!-- Example code -->
+	<script type="text/javascript">
+		// Program starts here. Creates a sample graph in the
+		// DOM node with the specified ID. This function is invoked
+		// from the onLoad event handler of the document (see below).
+		function main(container, xml)
+		{
+			// Checks if the browser is supported
+			if (!mxClient.isBrowserSupported())
+			{
+				// Displays an error message if the browser is not supported.
+				mxUtils.error('Browser is not supported!', 200, false);
+			}
+			else
+			{
+				// Creates the graph inside the given container
+				var graph = new mxGraph(container);
+
+				// Enables connections and rubberband selection in the graph
+				graph.setConnectable(true);
+				new mxRubberband(graph);
+
+				// Takes the TCN and ID out of the XML and stores in local variables
+				// for updating during the roundtrips
+				var doc = mxUtils.parseXml(xml);
+				var tcn = doc.documentElement.getAttribute('tcn') || '';
+				var id = doc.documentElement.getAttribute('id') || '';
+
+				// Decodes and displays the mxGraphModel node inside the diagram node
+				var codec = new mxCodec(doc);
+				codec.decode(doc.documentElement.firstChild, graph.getModel());
+
+				document.body.appendChild(mxUtils.button('Save', function(evt)
+				{
+					// Saves the graph asynchronously so we have to make sure the
+					// user doesn't edit the graph while the save is in progress
+					// or if that is possible we have to properly deal with the
+					// modified state.
+					graph.setEnabled(false);
+					
+					var okHandler = function(req)
+					{
+						// Updates the local ID and transaction counter for the next save
+						if (req.getStatus() == 200)
+						{
+							var doc = req.getXml();
+							tcn = doc.documentElement.getAttribute('tcn') || '';
+							id = doc.documentElement.getAttribute('id') || '';
+
+							alert("Diagram saved.");
+						}
+						else
+						{
+							alert("Not saved: "+req.getText());
+						}
+
+						graph.setEnabled(true);
+					};
+
+					var errorHandler = function(req)
+					{
+						alert("Communication failure.");
+						graph.setEnabled(true);
+					};
+
+					// Replaces the original diagram node with a new diagram node that
+					// carries the ID, TCN and the graph model to the server using an
+					// asynchronous POST requst. The response needs to be parsed and
+					// is used to update the TCN and ID (for new diagrams).
+					var xml = '<diagram id="'+id+'" tcn="'+tcn+'">' +
+						mxUtils.getXml(new mxCodec().encode(graph.getModel())) +
+						'</diagram>';
+					mxUtils.post('/Roundtrip', 'xml='+encodeURIComponent(xml),
+						okHandler, errorHandler);
+				}));
+
+				document.body.appendChild(mxUtils.button('Close', function(evt)
+				{
+					// TODO: Check for unsaved changes and display warning
+					document.location.href = "/Roundtrip";
+				}));
+			}
+		};
+	</script>
+</head>
+
+<!-- Page passes the container for the graph to the program -->
+<body onload="main(document.getElementById('graphContainer'), '%graph%');">
+
+	<!-- Creates a container for the graph with a grid wallpaper -->
+	<div id="graphContainer" style="overflow:hidden;width:100%;height:90%;background:url('/mxgraph/javascript/examples/editors/images/grid.gif')">
+	</div>
+</body>
+</html>

@@ -1,0 +1,1031 @@
+<!--
+  $Id: dbeditor.html,v 1.25 2012-01-09 06:35:02 gaudenz Exp $
+  Copyright (c) 2006-2010, JGraph Ltd
+  
+  dbEditor example for mxGraph. Uses Google Gears database for database
+  content editor. The database contains Persons, Locations and connections
+  between persons and locations. The database is updated as the diagram
+  is being changed using the callbacks provided by the model.
+-->
+<html>
+<head>
+	<title>dbEditor Example</title>
+	<script type="text/javascript">
+		mxBasePath = '../src';
+	</script>
+	<script type="text/javascript" src="../src/js/mxClient.js"></script>
+	<script type="text/javascript" src="http://code.google.com/apis/gears/gears_init.js"></script>
+	<script type="text/javascript">
+	
+		// Program starts here. The document.onLoad executes the
+		// mxApplication constructor with a given configuration.
+		// In the config file, the mxEditor.onInit method is
+		// overridden to invoke this global function as the
+		// last step in the editor constructor.
+		function main(graphContainer, toolbarContainer, sidebarContainer)
+		{
+			// Checks if the browser is supported
+			if (!mxClient.isBrowserSupported())
+			{
+				// Displays an error message if the browser is not supported
+				mxUtils.error('Browser is not supported!', 200, false);
+			}
+			else
+			{
+				// Checks if Google Gears is installed and redirects
+				if (!window.google || !google.gears)
+				{
+					location.href = 'http://gears.google.com/?action=install';
+				}
+				else
+				{
+					// Creates a wrapper editor with a graph inside the given container
+					var editor = new mxEditor();
+					editor.setGraphContainer(graphContainer);
+					
+					var graph = editor.graph;
+					var model = graph.model;
+					var parent = graph.getDefaultParent();
+					
+					// Allows new connections to be created
+					graph.setConnectable(true);
+					
+					// Uses a different perimeter style
+					var style = graph.getStylesheet().getDefaultVertexStyle();
+					style[mxConstants.STYLE_PERIMETER] = mxPerimeter.RectanglePerimeter;
+					style[mxConstants.STYLE_SPACING] = 8;
+					
+					createSidebar(sidebarContainer, editor);
+					createToolbar(toolbarContainer, editor);
+	
+					// Returns a label for the cell
+					graph.getLabel = function(cell)
+					{
+						if (cell.value != null)
+						{
+							if (cell.value instanceof Person)
+							{
+								return cell.value.lastName + ', '+ cell.value.firstName;
+							}
+							else if (cell.value instanceof Location)
+							{
+								return cell.value.building + ' ' + cell.value.office;
+							}
+							else if (cell.value instanceof LocatedAt)
+							{
+								return cell.value.remark;
+							}
+						}
+						
+						return mxGraph.prototype.getLabel.apply(this, arguments); // "supercall"
+					};
+	
+					// Returns the type as the tooltip for column cells
+					graph.getTooltip = function(cell)
+					{
+						return cell.getId();
+					};
+					
+					// Disallows drag and drop into edges
+					graph.isSplitDropTarget = function()
+					{
+						return false;
+					};
+					
+					// Only allow connections from person to location
+					graph.getEdgeValidationError = function(edge, source, target)
+					{
+						if (source != null && source.value instanceof Person &&
+							target != null && target.value instanceof Location)
+						{
+							// Allows connections from person to location
+							return null;
+						}
+						else if (source == target || target == null)
+						{
+							// Loops and connections to nothing are not allowed
+							// but no error message is displayed in these cases
+							// for easier double clicks
+							return '';
+						}
+						
+						return 'Can only connect person to location';
+					}
+					
+					// Shows property window for cell editing
+					graph.startEditingAtCell = function(cell)
+					{
+						showProperties(this, cell);
+					}
+					
+					// Creates user object for new edges
+					graph.connectionHandler.factoryMethod = function(source, target)
+					{
+						if (source.value instanceof Person &&
+							target.value instanceof Location)
+						{
+							var locatedAt = new LocatedAt();
+							locatedAt.remark = 'works in';
+						
+							edge = new mxCell(locatedAt);
+							edge.setEdge(true);
+							
+							return edge;
+						}
+					}
+					
+					// Create a model for the database
+					model.db = google.gears.factory.create('beta.database', '1.0');
+					
+					var dbname = 'test'; //mxUtils.prompt('Please enter database name', 'test');
+					
+					// Shows the database name in the window
+					var div = document.createElement('div');
+	
+					div.style.position = 'absolute';
+					
+					div.style.top = 0;
+					div.style.right = 0;
+					div.style.padding = 4;
+					
+					mxUtils.write(div, 'DB: '+dbname);
+					
+					document.body.appendChild(div);
+					
+					model.db.open(dbname);
+					model.transactionInProgress = false;
+					
+					// Global function to execute SQL
+					model.exec = function(sql, args)
+					{
+						mxLog.show();
+	
+						if (!this.transactionInProgress)
+						{
+							this.transactionInProgress = true;
+							this.db.execute('BEGIN TRANSACTION');
+							mxLog.debug('BEGIN TRANSACTION');
+						}
+	
+						mxLog.debug(sql);
+					
+						return this.db.execute(sql, args);
+					}
+					
+					// FIXME: Cannot override mxEventSource.fireEvent
+					model.addListener(mxEvent.CHANGE, function()
+					{
+						if (model.transactionInProgress)
+						{
+							model.db.execute('COMMIT TRANSACTION');
+							mxLog.debug('COMMIT TRANSACTION');
+							this.transactionInProgress = false;
+						}
+					});
+	
+					// Create the tables
+					model.db.execute('CREATE TABLE IF NOT EXISTS PERSON (PERSON_ID INTEGER PRIMARY KEY AUTOINCREMENT, FIRST_NAME TEXT, LAST_NAME TEXT)');
+					model.db.execute('CREATE TABLE IF NOT EXISTS LOCATION (LOCATION_ID INTEGER PRIMARY KEY AUTOINCREMENT, OFFICE TEXT, BUILDING TEXT)');
+					model.db.execute('CREATE TABLE IF NOT EXISTS LOCATED_AT (LOCATED_AT_ID INTEGER PRIMARY KEY AUTOINCREMENT, PERSON_ID INTEGER, LOCATION_ID INTEGER, REMARK TEXT)');
+	
+					// Returns some specific style based on user object
+					model.getStyle = function(cell)
+					{
+						if (cell.value != null)
+						{
+							if (cell.value instanceof Person)
+							{
+								return 'shape=label;image=editors/images/overlays/user3.png;imageWidth=16;imageHeight=16;spacing=6;spacingLeft=16;fillColor=white;shadow=1';
+							}
+							else if (cell.value instanceof Location)
+							{
+								return 'shape=label;image=editors/images/overlays/house.png;imageWidth=16;imageHeight=16;spacing=6;spacingLeft=16;fillColor=white;shadow=1;rounded=1';
+							}
+							else if (cell.value instanceof LocatedAt)
+							{
+								return 'strokeColor=black;strokeWidth=1';
+							}
+						}
+						
+						return mxGraphModel.prototype.getStyle.apply(this, arguments); // "supercall"
+					}
+	
+					model.cellAdded = function(cell)
+					{
+						try
+						{
+							if (cell.value != null &&
+								cell.value.id == null)
+							{
+								if (cell.value instanceof Person)
+								{
+									this.exec('INSERT INTO PERSON (FIRST_NAME, LAST_NAME) VALUES (?, ?)',
+										[cell.value.firstName, cell.value.lastName]);
+									var sequence = getSequence(editor.graph.model.db, 'PERSON');
+									cell.value.id = sequence;
+									cell.setId('PERSON_'+sequence);
+								}
+								else if (cell.value instanceof Location)
+								{
+									this.exec('INSERT INTO LOCATION (OFFICE, BUILDING) VALUES (?, ?)',
+										[cell.value.office, cell.value.building]);
+									var sequence = getSequence(editor.graph.model.db, 'LOCATION');
+									cell.value.id = sequence;
+									cell.setId('LOCATION_'+sequence);
+								}
+								else if (cell.value instanceof LocatedAt)
+								{
+									this.exec('INSERT INTO LOCATED_AT (REMARK) VALUES (?)',
+										[cell.value.remark]);
+									var sequence = getSequence(editor.graph.model.db, 'LOCATED_AT');
+									cell.value.id = sequence;
+									cell.setId('LOCATEDAT_'+sequence);
+								}
+							}
+						}
+						catch (e)
+						{
+							mxUtils.alert(e.message);
+						}
+						
+						mxGraphModel.prototype.cellAdded.apply(this, arguments); // "supercall"
+					}
+		
+					model.cellRemoved = function(cell)
+					{
+						try
+						{
+							if (cell.value != null && cell.value.id != null)
+							{
+								if (cell.value instanceof Person)
+								{
+									this.exec('DELETE FROM PERSON WHERE PERSON_ID = ?', [cell.value.id]);
+									cell.value.id = null;
+								}
+								else if (cell.value instanceof Location)
+								{
+									this.exec('DELETE FROM LOCATION WHERE LOCATION_ID = ?', [cell.value.id]);
+									cell.value.id = null;
+								}
+								else if (cell.value instanceof LocatedAt)
+								{
+									this.exec('DELETE FROM LOCATED_AT WHERE LOCATED_AT_ID = ?', [cell.value.id]);
+									cell.value.id = null;
+								}
+							}
+						}
+						catch (e)
+						{
+							mxUtils.alert(e.message);
+						}
+						
+						mxGraphModel.prototype.cellRemoved.apply(this, arguments); // "supercall"					
+					}
+									
+					model.valueForCellChanged = function(cell, value)
+					{
+						try
+						{
+							if (value != null &&
+								value.id != null)
+							{
+								if (value instanceof Person)
+								{
+									this.exec('UPDATE PERSON SET FIRST_NAME=?, LAST_NAME=? WHERE PERSON_ID=?',
+										[value.firstName, value.lastName, value.id]);
+								}
+								else if (value instanceof Location)
+								{
+									this.exec('UPDATE LOCATION SET OFFICE=?, BUILDING=? WHERE LOCATION_ID=?',
+										[value.office, value.building, value.id]);
+								}
+								else if (value instanceof LocatedAt)
+								{
+									this.exec('UPDATE LOCATED_AT SET REMARK=? WHERE LOCATED_AT_ID=?',
+										[value.remark, value.id]);
+								}
+							}
+						}
+						catch (e)
+						{
+							mxUtils.alert(e.message);
+						}
+	
+						return mxGraphModel.prototype.valueForCellChanged.apply(this, arguments); // "supercall"						
+					}
+		
+					model.terminalForCellChanged = function(edge, terminal, isSource)
+					{
+						try
+						{
+							if (edge.value != null && edge.value instanceof LocatedAt)
+							{
+								if (isSource && terminal != null &&
+									terminal.value instanceof Person &&
+									edge.value.person != terminal.value)
+								{
+									this.exec('UPDATE LOCATED_AT SET PERSON_ID=? WHERE LOCATED_AT_ID=?',
+										[terminal.value.id, edge.value.id]);
+									edge.value.person = terminal.value;
+								}
+								else if (isSource && terminal == null)
+								{
+									this.exec('UPDATE LOCATED_AT SET PERSON_ID=NULL WHERE LOCATED_AT_ID=?',
+										[edge.value.id]);
+									edge.value.person = null;
+								}
+								else if (!isSource && terminal != null &&
+									terminal.value instanceof Location &&
+									edge.value.location != terminal.value)
+								{
+									this.exec('UPDATE LOCATED_AT SET LOCATION_ID=? WHERE LOCATED_AT_ID=?',
+										[terminal.value.id, edge.value.id]);
+									edge.value.location = terminal.value;
+								}
+								else if (!isSource && terminal == null)
+								{
+									this.exec('UPDATE LOCATED_AT SET LOCATION_ID=NULL WHERE LOCATED_AT_ID=?',
+										[edge.value.id]);
+									edge.value.location = null;
+								}
+							}
+						}
+						catch (e)
+						{
+							mxUtils.alert(e.message);
+						}
+							
+						return mxGraphModel.prototype.terminalForCellChanged.apply(this, arguments); // "supercall"
+					}
+				}
+			}
+		};
+		
+		// Creates the sidebar
+		function createSidebar(container, editor)
+		{
+			mxUtils.writeln(container, 'Search:');
+		
+			var input = document.createElement('input');
+			input.setAttribute('type', 'text');
+			input.setAttribute('size', '16');
+			
+			container.appendChild(input);
+			
+			mxUtils.br(container);
+			
+			var button = document.createElement('button');
+			mxUtils.write(button, 'Search');
+
+			container.appendChild(button);
+			
+			mxUtils.br(container);
+			mxUtils.br(container);
+			
+			mxUtils.writeln(container, 'Results:');
+			
+			var div = document.createElement('div');
+			div.style.cssText = 'border-style:none;border-width:1px;border-color:black;'+
+				'width:120px;max-height:260px;padding:2px;overflow:auto;'+
+				'font-size:10pt;font-family:Arial,Helvetica;';
+
+			container.appendChild(div);
+			
+			mxUtils.write(div, 'No results');
+			
+			var onClick = function()
+			{
+				removeChildren(div);
+				
+				var results = false;
+				
+				var rs = editor.graph.model.db.execute('SELECT * FROM PERSON WHERE '+
+					'FIRST_NAME || " " || LAST_NAME LIKE ? '+
+					'OR LAST_NAME || ", " || FIRST_NAME LIKE ? '+
+					'ORDER BY LAST_NAME || ", " || FIRST_NAME',
+					['%'+input.value+'%', '%'+input.value+'%']);
+				
+				results = rs.isValidRow();
+				
+				while (rs.isValidRow())
+				{
+					var id = rs.fieldByName('PERSON_ID');
+					var lastName = rs.fieldByName('LAST_NAME');
+					var firstName = rs.fieldByName('FIRST_NAME');
+					
+					// Note: When using a DIV the DnD does only work in FF if
+					// it is started from over the area which contains the text
+					var result = document.createElement('span');
+					result.style.cssText = 'cursor:default;white-space:nowrap;font-size:10pt;font-family:Arial,Helvetica;';
+						
+					var img = document.createElement('img');
+					img.setAttribute('src', 'editors/images/overlays/user3.png');
+					img.style.marginTop = 8;
+					img.style.marginRight = 4;
+					result.appendChild(img);
+					
+					mxUtils.writeln(result, lastName+', '+firstName);
+
+					div.appendChild(result);
+					
+					var funct = createPersonInsertFunction(editor, id, lastName, firstName);				
+					mxUtils.makeDraggable(result, editor.graph, funct);
+					
+					rs.next();
+				}
+				
+				rs.close();
+				
+				rs = editor.graph.model.db.execute('SELECT * FROM LOCATION WHERE '+
+					'BUILDING || " " || OFFICE LIKE ? '+
+					'ORDER BY BUILDING || " " || OFFICE',
+					['%'+input.value+'%']);
+				
+				results = results || rs.isValidRow();
+				
+				while (rs.isValidRow())
+				{
+					var id = rs.fieldByName('LOCATION_ID');
+					var building = rs.fieldByName('BUILDING');
+					var office = rs.fieldByName('OFFICE');
+										
+					// Note: When using a DIV the DnD does only work in FF if
+					// it is started from over the area which contains the text
+					var result = document.createElement('span');
+					result.style.cssText = 'cursor:default;white-space:nowrap;font-size:10pt;font-family:Arial,Helvetica;';
+					
+					var img = document.createElement('img');
+					img.setAttribute('src', 'editors/images/overlays/house.png');
+					img.style.marginTop = 8;
+					img.style.marginRight = 4;
+					result.appendChild(img);
+						
+					mxUtils.writeln(result, building+' '+office);
+
+					div.appendChild(result);
+					
+					var funct = createLocationInsertFunction(editor, id, office, building);				
+					mxUtils.makeDraggable(result, editor.graph, funct);
+					
+					rs.next();
+				}
+				
+				rs.close();
+				
+				if (!results)
+				{
+					mxUtils.write(div, 'No results');
+				}
+			}
+			
+			mxEvent.addListener(button, 'click', onClick);
+			
+			// Executes onClick if return is pressed
+			mxEvent.addListener(input, 'keydown', function(evt)
+			{
+				if (evt.keyCode == 13)
+				{
+					onClick();
+				}
+			});
+		};
+		
+		function createPersonInsertFunction(editor, id, lastName, firstName)
+		{
+			return function(graph, evt)
+			{
+				var pt = editor.graph.getPointForEvent(evt);
+
+				var cellId = 'PERSON_'+id;
+				var cell = editor.graph.model.getCell(cellId);
+				
+				if (cell == null)
+				{
+					var person = new Person(id);
+					person.firstName = firstName;
+					person.lastName = lastName;
+
+					cell = new mxCell(person, new mxGeometry(0, 0, 0, 0));
+					cell.setId(cellId);
+					cell.setConnectable(true);
+					cell.setVertex(true);
+					
+					editor.graph.model.beginUpdate();
+					try
+					{
+						editor.addVertex(null, cell, pt.x, pt.y);
+						editor.graph.updateCellSize(cell);
+						
+						var rs = editor.graph.model.db.execute(
+							'SELECT * FROM LOCATED_AT WHERE PERSON_ID=?', [id]);
+
+						while (rs.isValidRow())
+						{
+							var locationId = rs.fieldByName('LOCATION_ID');
+							var target = editor.graph.model.getCell('LOCATION_'+locationId);
+							
+							if (target != null)
+							{
+								var locatedAtId = rs.fieldByName('LOCATED_AT_ID');
+								
+								if (editor.graph.model.getCell('LOCATEDAT_'+locatedAtId) == null)
+								{
+									var locatedAt = new LocatedAt(locatedAtId);
+									locatedAt.remark = rs.fieldByName('REMARK');
+									locatedAt.person = cell.value;
+									locatedAt.location = target.value;
+									
+									var edge = new mxCell(locatedAt);
+									edge.setId('LOCATEDAT_'+locatedAtId);
+									edge.setEdge(true);
+									edge.setGeometry(new mxGeometry());
+									edge.getGeometry().relative = true;
+									
+									editor.graph.addEdge(edge, null, cell, target);
+								}
+							}
+							
+							rs.next();
+						}
+						
+						rs.close();
+					}
+					finally
+					{
+						editor.graph.model.endUpdate();
+					}
+				}
+				else
+				{
+					var geo = editor.graph.model.getGeometry(cell);
+					
+					if (geo != null)
+					{
+						geo = geo.clone();
+						
+						geo.x = pt.x;
+						geo.y = pt.y;
+						
+						editor.graph.model.setGeometry(cell, geo);
+					}
+				}
+				
+				editor.graph.scrollCellToVisible(cell);
+				editor.graph.setSelectionCell(cell);
+				
+				mxEvent.consume(evt);
+			}
+		};
+		
+		function createLocationInsertFunction(editor, id, office, building)
+		{
+			return function(graph, evt)
+			{
+				var pt = editor.graph.getPointForEvent(evt);
+
+				var cellId = 'LOCATION_'+id;
+				var cell = editor.graph.model.getCell(cellId);
+				
+				if (cell == null)
+				{
+					var location = new Location(id);
+					location.office = office;
+					location.building = building;
+
+					cell = new mxCell(location, new mxGeometry(0, 0, 0, 0));
+					cell.setId(cellId);
+					cell.setConnectable(true);
+					cell.setVertex(true);
+					
+					editor.graph.model.beginUpdate();
+					try
+					{
+						editor.addVertex(null, cell, pt.x, pt.y);
+						editor.graph.updateCellSize(cell);
+						
+						var rs = editor.graph.model.db.execute(
+							'SELECT * FROM LOCATED_AT WHERE LOCATION_ID=?', [id]);
+
+						while (rs.isValidRow())
+						{
+							var personId = rs.fieldByName('PERSON_ID');
+							var source = editor.graph.model.getCell('PERSON_'+personId);
+							
+							if (source != null)
+							{
+								var locatedAtId = rs.fieldByName('LOCATED_AT_ID');
+								
+								if (editor.graph.model.getCell('LOCATEDAT_'+locatedAtId) == null)
+								{
+									var locatedAt = new LocatedAt(locatedAtId);
+									locatedAt.remark = rs.fieldByName('REMARK');
+									locatedAt.person = source.value;
+									locatedAt.location = cell.value;
+									
+									var edge = new mxCell(locatedAt);
+									edge.setId('LOCATEDAT_'+locatedAtId);
+									edge.setEdge(true);
+									edge.setGeometry(new mxGeometry());
+									edge.getGeometry().relative = true;
+																		
+									editor.graph.addEdge(edge, null, source, cell);
+								}
+							}
+							
+							rs.next();
+						}
+						
+						rs.close();
+					}
+					finally
+					{
+						editor.graph.model.endUpdate();
+					}
+				}
+				else
+				{
+					var geo = editor.graph.model.getGeometry(cell);
+					
+					if (geo != null)
+					{
+						geo = geo.clone();
+						
+						geo.x = pt.x;
+						geo.y = pt.y;
+						
+						editor.graph.model.setGeometry(cell, geo);
+					}
+				}
+				
+				editor.graph.scrollCellToVisible(cell);
+				editor.graph.setSelectionCell(cell);
+				
+				mxEvent.consume(evt);
+			}
+		};
+		
+		// Creates the toolbar
+		function createToolbar(container, editor)
+		{
+			var model = editor.graph.model;
+			var button = null;
+			
+			button = document.createElement('button');
+			mxUtils.write(button, 'Clear');
+			
+			mxEvent.addListener(button, 'click', function(evt)
+			{
+				model.exec('DELETE FROM PERSON');
+				model.exec('DELETE FROM LOCATION');
+				model.exec('DELETE FROM LOCATED_AT');
+				
+				var root = new mxCell();
+				root.insert(new mxCell());
+				
+				model.setRoot(root);
+				
+				editor.resetHistory();
+				
+				mxUtils.alert('Database has been cleared');
+			});
+			
+			container.appendChild(button);
+			
+			button = document.createElement('button');
+			mxUtils.write(button, 'Dump');
+			
+			mxEvent.addListener(button, 'click', function(evt)
+			{
+				var s = 'Person table:\n';
+				s += dump(model.db.execute('SELECT * FROM PERSON'));
+
+				s += '\nLocation table:\n';
+				s += dump(model.db.execute('SELECT * FROM LOCATION'));
+
+				s += '\nLocated_at table:\n';
+				s += dump(model.db.execute('SELECT * FROM LOCATED_AT'));
+				
+				mxUtils.popup(s);
+			});
+			
+			container.appendChild(button);			
+		
+			button = document.createElement('button');
+			mxUtils.write(button, 'Create Person');
+			
+			mxEvent.addListener(button, 'click', function(evt)
+			{
+				var person = new Person();
+				person.firstName = 'First';
+				person.lastName = 'Name';
+			
+				var cell = new mxCell(person, new mxGeometry(0, 0, 0, 0));
+				cell.setConnectable(true);
+				cell.setVertex(true);
+				
+				model.beginUpdate();
+				try
+				{
+					editor.addVertex(null, cell, 10, 10);
+					editor.graph.updateCellSize(cell);
+					
+					showProperties(editor.graph, cell);
+				}
+				finally
+				{
+					model.endUpdate();
+				}
+				
+				editor.graph.setSelectionCell(cell);
+			});
+			
+			container.appendChild(button);
+			
+			button = document.createElement('button');
+			mxUtils.write(button, 'Create Location');
+			
+			mxEvent.addListener(button, 'click', function(evt)
+			{
+				var location = new Location();
+				location.office = 'Office';
+				location.building = 'Bldg';
+			
+				var cell = new mxCell(location, new mxGeometry(0, 0, 0, 0));
+				cell.setConnectable(true);
+				cell.setVertex(true);
+				
+				model.beginUpdate();
+				try
+				{
+					editor.addVertex(null, cell, 10, 10);
+					editor.graph.updateCellSize(cell);
+					
+					showProperties(editor.graph, cell);
+				}
+				finally
+				{
+					model.endUpdate();
+				}
+				
+				editor.graph.setSelectionCell(cell);
+			});
+			
+			container.appendChild(button);
+			
+			button = document.createElement('button');
+			mxUtils.write(button, 'Delete');
+			
+			mxEvent.addListener(button, 'click', function(evt)
+			{
+				editor.graph.removeCells();
+			});
+			
+			container.appendChild(button);
+			
+			button = document.createElement('button');
+			mxUtils.write(button, 'Undo');
+			
+			mxEvent.addListener(button, 'click', function(evt)
+			{
+				editor.execute('undo');
+			});
+			
+			container.appendChild(button);
+			
+			button = document.createElement('button');
+			mxUtils.write(button, 'Redo');
+			
+			mxEvent.addListener(button, 'click', function(evt)
+			{
+				editor.execute('redo');
+			});
+			
+			container.appendChild(button);
+			
+			button = document.createElement('button');
+			mxUtils.write(button, 'Arrange');
+			
+			mxEvent.addListener(button, 'click', function(evt)
+			{
+				// Creates a layout algorithm to be used
+				// with the graph
+				var layout = new mxFastOrganicLayout(editor.graph);
+
+				// Moves stuff wider apart than usual
+				layout.forceConstant = 120;
+				
+				layout.execute(editor.graph.getDefaultParent());
+			});
+			
+			container.appendChild(button);
+		};
+		
+		// Dumps the given table to the console
+		function dump(rs)
+		{
+			var result = [];
+			var fieldCount = rs.fieldCount();
+			
+			while (rs.isValidRow())
+			{
+
+				result.push('{');
+				
+				for (var i=0; i<fieldCount; i++)
+				{
+					result.push('  '+rs.fieldName(i)+': '+rs.field(i));
+				}
+				
+				result.push('}');
+								
+				rs.next();
+			}
+			
+			rs.close();
+			
+			return result.join('\n');
+		};
+		
+		// Removes all child nodes from the given container
+		function removeChildren(container)
+		{
+			while (container.firstChild != null)
+			{
+				container.removeChild(container.firstChild);
+			}
+		};
+		
+		// Gets the current sequence number for the given table
+		function getSequence(db, tablename)
+		{
+			var rs = db.execute('SELECT seq FROM sqlite_sequence WHERE name=?', [tablename])
+			var seq = null;
+			
+			if (rs.isValidRow())
+			{
+				seq = parseInt(rs.fieldByName('seq'));
+			}
+			
+			rs.close();
+			
+			return seq;
+		};
+		
+		function showProperties(graph, cell)
+		{
+			// Creates a form for the user object inside
+			// the cell
+			var form = new mxForm('properties');
+
+			// Adds a field for the columnname
+			var fields = [];
+			var firstField = null;
+			
+		    for (var i in cell.value)
+		    {
+		    	if (i != 'id' &&
+		    		typeof(cell.value[i]) != 'function' &&
+		    		typeof(cell.value[i]) != 'object')
+		    	{
+		    		fields[i] = form.addText(i, cell.value[i]);
+		    		
+		    		if (firstField == null)
+		    		{
+		    			firstField = fields[i];
+		    		}
+				}
+		    }
+
+			var wnd = null;
+
+			// Defines the function to be executed when the
+			// OK button is pressed in the dialog
+			var okFunction = function()
+			{
+				var clone = cell.value.clone();
+				
+				for (var i in fields)
+			    {
+			    	clone[i] = fields[i].value;
+			    }
+
+				graph.model.beginUpdate();
+				try
+				{
+					graph.model.setValue(cell, clone);
+					graph.updateCellSize(cell);
+				}
+				finally
+				{
+					graph.model.endUpdate();
+				}
+			
+				wnd.destroy();
+			}
+			
+			// Defines the function to be executed when the
+			// Cancel button is pressed in the dialog
+			var cancelFunction = function()
+			{
+				wnd.destroy();
+			}
+
+			form.addButtons(okFunction, cancelFunction);
+
+			wnd = showModalWindow(cell.getId(), form.table, 240, 240);
+			
+			firstField.focus();
+			firstField.select();
+		};
+		
+		function showModalWindow(title, content, width, height)
+		{
+			var background = document.createElement('div');
+			background.style.position = 'absolute';
+			background.style.left = '0px';
+			background.style.top = '0px';
+			background.style.right = '0px';
+			background.style.bottom = '0px';
+			background.style.background = 'black';
+			mxUtils.setOpacity(background, 50);
+			document.body.appendChild(background);
+			
+			if (mxClient.IS_IE)
+			{
+				new mxDivResizer(background);
+			}
+			
+			var x = Math.max(0, document.body.scrollWidth/2-width/2);
+			var y = Math.max(10, (document.body.scrollHeight ||
+						document.documentElement.scrollHeight)/2-height*2/3);
+			var wnd = new mxWindow(title, content, x, y, width, height, false, true);
+			wnd.setClosable(true);
+			
+			// Fades the background out after after the window has been closed
+			wnd.addListener(mxEvent.DESTROY, function(sender, evt)
+			{
+				mxEffects.fadeOut(background, 50, true, 
+					10, 30, true);
+			});
+
+			wnd.setVisible(true);
+			
+			return wnd;
+		};
+		
+		// Person
+		function Person(id)
+		{
+			this.id = id;
+		};
+
+		Person.prototype.clone = function()
+		{
+			return mxUtils.clone(this);
+		};
+		
+		// Location
+		function Location(id)
+		{
+			this.id = id;
+		}
+		
+		Location.prototype.clone = function()
+		{
+			return mxUtils.clone(this);
+		};
+		
+		// LocatedAt
+		function LocatedAt(id)
+		{
+			this.id = id;
+		};
+		
+		LocatedAt.prototype.clone = function()
+		{
+			return mxUtils.clone(this, ["person", "terminal"]);
+		};
+	</script>
+</head>
+<body onload="main(document.getElementById('graph'),
+				   document.getElementById('toolbar'),
+				   document.getElementById('sidebar'));">
+	<table border="0" width="100%" height="100%">
+		<tr>
+			<td id="toolbar" valign="top" colspan="2" style="height:10px;">
+				<!-- Toolbar Here -->
+			</td>
+		</tr>
+		<tr>
+			<td id="sidebar" style="width:10px;" valign="top">
+				<!-- Sidebar Here -->
+			</td>
+			<td style="border-width:1px;border-style:solid;border-color:black;width:100%;">
+				<div id="graph" style="width:100%;height:100%;cursor:default;overflow:hidden;">
+					<!-- Graph Here -->
+				</div>
+			</td>
+		</tr>
+	</table>
+</body>
+</html>

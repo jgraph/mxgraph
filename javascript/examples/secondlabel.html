@@ -1,0 +1,190 @@
+<!--
+  $Id: secondlabel.html,v 1.9 2012-07-17 08:22:19 gaudenz Exp $
+  Copyright (c) 2006-2010, JGraph Ltd
+  
+  Second label example for mxGraph. This example demonstrates how to
+  add another string label to vertices.
+-->
+<html>
+<head>
+	<title>Hello, World! example for mxGraph</title>
+
+	<!-- Sets the basepath for the library if not in same directory -->
+	<script type="text/javascript">
+		mxBasePath = '../src';
+	</script>
+
+	<!-- Loads and initializes the library -->
+	<script type="text/javascript" src="../src/js/mxClient.js"></script>
+
+	<!-- Example code -->
+	<script type="text/javascript">
+		// Program starts here. Creates a sample graph in the
+		// DOM node with the specified ID. This function is invoked
+		// from the onLoad event handler of the document (see below).
+		function main(container)
+		{
+			// Checks if the browser is supported
+			if (!mxClient.isBrowserSupported())
+			{
+				// Displays an error message if the browser is not supported.
+				mxUtils.error('Browser is not supported!', 200, false);
+			}
+			else
+			{
+				// Creates the graph inside the given container
+				var graph = new mxGraph(container);
+
+				// Disables the folding icon
+				graph.isCellFoldable = function(cell)
+				{
+					return false;
+				}
+
+				var secondLabelVisible = true;
+
+				// Hook for returning shape number for a given cell
+				graph.getSecondLabel = function(cell)
+				{
+					if (!this.model.isEdge(cell))
+					{
+						// Possible to return any string here
+						return "ID="+cell.id;
+					}
+
+					return null;
+				};
+
+				var relativeChildVerticesVisible = true;
+
+				// Overrides method to hide relative child vertices
+				graph.isCellVisible = function(cell)
+				{
+					return !this.model.isVertex(cell) || cell.geometry == null ||
+						!cell.geometry.relative ||
+						cell.geometry.relative == relativeChildVerticesVisible;
+				};
+
+				// Creates the shape for the shape number and puts it into the draw pane
+				var createShape = graph.cellRenderer.createShape;
+				graph.cellRenderer.createShape = function(state)
+				{
+					createShape.apply(this, arguments);
+
+					if (secondLabelVisible &&
+						!state.cell.geometry.relative)
+					{
+						var secondLabel = graph.getSecondLabel(state.cell);
+	
+						if (secondLabel != null &&
+							state.shape != null &&
+							state.secondLabel == null)
+						{
+							state.secondLabel = new mxText(secondLabel, new mxRectangle(),
+									mxConstants.ALIGN_LEFT, mxConstants.ALIGN_BOTTOM);
+
+							// Styles the label
+							state.secondLabel.color = 'black';
+							state.secondLabel.family = 'Verdana';
+							state.secondLabel.size = 8;
+							state.secondLabel.fontStyle = mxConstants.FONT_ITALIC;
+							state.secondLabel.background = 'yellow';
+							state.secondLabel.border = 'black';
+
+							state.secondLabel.dialect = state.shape.dialect;
+							state.secondLabel.init(state.view.getDrawPane());
+						}
+					}
+				};
+
+				// Redraws the shape number after the cell has been moved/resized
+				var redraw = graph.cellRenderer.redraw;
+				graph.cellRenderer.redraw = function(state)
+				{
+					redraw.apply(this, arguments);
+					
+					if (state.shape != null &&
+						state.secondLabel != null)
+					{
+						var scale = graph.getView().getScale();
+						var bounds = new mxRectangle(state.x + state.width - 8 * scale, state.y + 8 * scale, 0, 0);
+						state.secondLabel.value = graph.getSecondLabel(state.cell);
+						state.secondLabel.scale = scale;
+						state.secondLabel.bounds = bounds;
+						state.secondLabel.redraw();
+					}
+				};
+
+				// Destroys the shape number
+				var destroy = graph.cellRenderer.destroy;
+				graph.cellRenderer.destroy = function(state)
+				{
+					destroy.apply(this, arguments);
+					
+					if (state.secondLabel != null)
+					{
+						state.secondLabel.destroy();
+						state.secondLabel = null;
+					}
+				};
+				
+				// Gets the default parent for inserting new cells. This
+				// is normally the first child of the root (ie. layer 0).
+				var parent = graph.getDefaultParent();
+								
+				// Adds cells to the model in a single step
+				graph.getModel().beginUpdate();
+				try
+				{
+					var v1 = graph.insertVertex(parent, null, 'Hello,', 30, 20, 80, 30);
+					// Alternative solution of creating a second label by creating a realtive child vertex
+					// with size (0, 0). This will not be selectable and only the label colors can be used
+					// for coloring as the actual shape will have zero size.
+					var v11 = graph.insertVertex(v1, null, 'World', 1, 1, 0, 0, 'align=left;verticalAlign=top;labelBackgroundColor=red;labelBorderColor=black', true);
+					v11.geometry.offset = new mxPoint(-8, -8);
+					var v2 = graph.insertVertex(parent, null, 'World!', 200, 150, 80, 30);
+					// Another alternative solution of creating a second label as a relative child vertex
+					// but this time with an automatic size so that the cell is actually selectable and
+					// the background is painted as a shape.
+					var v21 = graph.insertVertex(v2, null, 'World', 1, 1, 0, 0, 'align=left;verticalAlign=top;fillColor=red;rounded=1;spacingLeft=4;spacingRight=4', true);
+					v21.geometry.offset = new mxPoint(-8, -8);
+					graph.updateCellSize(v21);
+					var e1 = graph.insertEdge(parent, null, '', v1, v2);
+				}
+				finally
+				{
+					// Updates the display
+					graph.getModel().endUpdate();
+				}
+
+				// Adds a button to execute the layout
+				document.body.insertBefore(mxUtils.button('Toggle Child Vertices',
+					function(evt)
+					{
+						relativeChildVerticesVisible = !relativeChildVerticesVisible;
+						graph.refresh();
+					}
+				), document.body.firstChild);
+				
+				// Adds a button to execute the layout
+				document.body.insertBefore(mxUtils.button('Toggle IDs',
+					function(evt)
+					{
+						secondLabelVisible = !secondLabelVisible;
+						graph.refresh();
+					}
+				), document.body.firstChild);
+			}
+		};
+	</script>
+</head>
+
+<!-- Page passes the container for the graph to the program -->
+<body onload="main(document.getElementById('graphContainer'))">
+
+	<!-- Creates a container for the graph with a grid wallpaper -->
+	<div id="graphContainer"
+		style="overflow:hidden;width:321px;height:241px;background:url('editors/images/grid.gif')">
+	</div>
+</body>
+</html>

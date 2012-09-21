@@ -1,0 +1,87 @@
+<!--
+  $Id: uiconfig.html,v 1.8 2012-07-17 08:22:19 gaudenz Exp $
+  Copyright (c) 2006-2010, JGraph Ltd
+  
+  UIConfig example for mxGraph. This example demonstrates using a config
+  file to configure the toolbar and popup menu in mxEditor.
+-->
+<html>
+<head>
+	<title>UIConfig example</title>
+
+	<!-- Sets the basepath for the library if not in same directory -->
+	<script type="text/javascript">
+		mxBasePath = '../src';
+	</script>
+
+	<!-- Loads and initializes the library -->
+	<script type="text/javascript" src="../src/js/mxClient.js"></script>
+
+	<!-- Example code -->
+	<script type="text/javascript">
+
+		// Program starts here. Creates a sample graph in the
+		// DOM node with the specified ID. This function is invoked
+		// from the onLoad event handler of the document (see below).
+		function main()
+		{
+			// Checks if the browser is supported
+			if (!mxClient.isBrowserSupported())
+			{
+				// Displays an error message if the browser is not supported.
+				mxUtils.error('Browser is not supported!', 200, false);
+			}
+			else
+			{
+				// Creates the graph inside the given container. The
+				// editor is used to create certain functionality for the
+				// graph, such as the rubberband selection, but most parts
+				// of the UI are custom in this example.
+				var editor = new mxEditor();
+
+				// Configures the editor's UI, the toolbar and the popupmenu.
+				// Note that the element with the id toolbox is used in the
+				// config file, the toolbar element (top element) is used below
+				// to create a second toolbar programmatically.
+				// The cells to be created via drag and drop are added
+				// in the templates array in mxEditor, and a custom action is
+				// added to the built-in actions in the editor, as well.
+				// The ui section maps the existing DOM elements to the graph
+				// and toolbar objects, respectively.
+				// Keep in mind that the as-attributes of the add-items in the
+				// toolbar and popupmenu sections refer to keys in mxResources.
+				var config = mxUtils.load('uiconfig.xml').getDocumentElement();
+				editor.configure(config);
+
+				// Enables new connections in the graph
+				editor.graph.setConnectable(true);
+
+				// Creates the second toolbar programmatically
+				var container = document.getElementById('toolbar');
+				var toolbar = new mxDefaultToolbar(container, editor);
+				//Use eg. mxResources.get("delete") to translate tooltip
+				toolbar.addItem("Show XML", "images/icons48/gear.png", "myFirstAction");
+				toolbar.addItem("Delete", "images/icons48/keys.png", "delete");
+			}
+		}
+	</script>
+</head>
+
+<!-- Page passes the container for the graph to the program -->
+<body onload="main();" style="margin:0px;">
+	<table width="100%" height="100%" border="0" cellspacing="0" cellpadding="0">
+	<tr>
+		<td id="toolbar" colspan="2" height="80px" style="background:#7F7F7F;padding:10px;">
+		</td>
+	</tr>
+	<tr>
+		<td id="toolbox" valign="top" width="70px" style="min-width:70px;background:#7F7F7F;padding:12px;">
+		</td>
+		<td width="100%" style="background:url('editors/images/grid.gif');border: solid gray 1px;">
+			<div id="graph" style="overflow:auto;width:100%;height:100%;">
+			</div>
+		</td>
+	</tr>
+	</table>
+</body>
+</html>

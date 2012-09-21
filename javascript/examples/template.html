@@ -1,0 +1,59 @@
+<!--
+  $Id: template.html,v 1.12 2012-07-17 08:22:19 gaudenz Exp $
+  Copyright (c) 2006-2010, JGraph Ltd
+  
+  Template example for mxGraph. This is used as a template HTML file by the
+  backends to demonstrate the deployment of the client with a graph embedded
+  in the page as XML data (see graph variable in the onload-handler).
+  
+  *** THIS FILE MUST BE DEPLOYED BY ONE OF THE BACKENDS! ***
+-->
+<html>
+<head>
+	<title>Hello, World!</title>
+
+	<!-- Sets the basepath for the library if not in same directory -->
+	<script type="text/javascript">
+		mxBasePath = '/mxgraph/javascript/src';
+	</script>
+
+	<!-- Loads and initializes the library -->
+	<script type="text/javascript" src="/mxgraph/javascript/src/js/mxClient.js"></script>
+
+	<!-- Example code -->
+	<script type="text/javascript">
+		// Program starts here. Creates a sample graph in the
+		// DOM node with the specified ID. This function is invoked
+		// from the onLoad event handler of the document (see below).
+		function main(container, xml)
+		{
+			// Checks if the browser is supported
+			if (!mxClient.isBrowserSupported())
+			{
+				// Displays an error message if the browser is not supported.
+				mxUtils.error('Browser is not supported!', 200, false);
+			}
+			else
+			{
+				// Creates the graph inside the given container
+				var graph = new mxGraph(container);
+				
+				// Adds rubberband selection to the graph
+				new mxRubberband(graph);
+				
+				var doc = mxUtils.parseXml(xml);
+				var codec = new mxCodec(doc);
+				codec.decode(doc.documentElement, graph.getModel());
+			}
+		};
+	</script>
+</head>
+
+<!-- Page passes the container for the graph to the program -->
+<body onload="main(document.getElementById('graphContainer'), '%graph%');">
+
+	<!-- Creates a container for the graph with a grid wallpaper -->
+	<div id="graphContainer" style="overflow:hidden;width:321px;height:241px;background:url('/mxgraph/javascript/examples/editors/images/grid.gif')">
+	</div>
+</body>
+</html>

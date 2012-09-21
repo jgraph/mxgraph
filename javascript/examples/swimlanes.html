@@ -1,0 +1,375 @@
+<!--
+  $Id: swimlanes.html,v 1.49 2011-10-17 14:37:19 gaudenz Exp $
+  Copyright (c) 2006-2010, JGraph Ltd
+  
+  Swimlanes example for mxGraph. This example demonstrates using
+  swimlanes for pools and lanes and adding cells and edges between
+  them. This also demonstrates using the stack layout as an
+  automatic layout.
+-->
+<html>
+<head>
+	<title>Swimlanes example for mxGraph</title>
+
+	<!-- Sets the basepath for the library if not in same directory -->
+	<script type="text/javascript">
+		mxBasePath = '../src';
+	</script>
+
+	<!-- Loads and initializes the library -->
+	<script type="text/javascript" src="../src/js/mxClient.js"></script>
+
+	<!-- Example code -->
+	<script type="text/javascript">
+		// Defines an icon for creating new connections in the connection handler.
+		// This will automatically disable the highlighting of the source vertex.
+		mxConnectionHandler.prototype.connectImage = new mxImage('images/connector.gif', 16, 16);
+		
+		// Program starts here. Creates a sample graph in the
+		// DOM node with the specified ID. This function is invoked
+		// from the onLoad event handler of the document (see below).
+		function main(container)
+		{
+			// Checks if browser is supported
+			if (!mxClient.isBrowserSupported())
+			{
+				// Displays an error message if the browser is
+				// not supported.
+				mxUtils.error('Browser is not supported!', 200, false);
+			}
+			else
+			{
+				// Enables crisp rendering of swimlanes in SVG
+				mxSwimlane.prototype.crisp = true;
+				
+				// Creates a wrapper editor around a new graph inside
+				// the given container using an XML config for the
+				// keyboard bindings
+				var config = mxUtils.load(
+					'editors/config/keyhandler-commons.xml').
+						getDocumentElement();
+				var editor = new mxEditor(config);
+				editor.setGraphContainer(container);
+				var graph = editor.graph;
+				var model = graph.getModel();
+
+				// Auto-resizes the container
+				graph.border = 80;
+				graph.getView().translate = new mxPoint(graph.border/2, graph.border/2);
+				graph.setResizeContainer(true);
+				graph.graphHandler.setRemoveCellsFromParent(false);
+
+				// Changes the default vertex style in-place
+				var style = graph.getStylesheet().getDefaultVertexStyle();
+				style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_SWIMLANE;
+				style[mxConstants.STYLE_VERTICAL_ALIGN] = 'top';
+				style[mxConstants.STYLE_FONTSIZE] = 11;
+				style[mxConstants.STYLE_STARTSIZE] = 22;
+				style[mxConstants.STYLE_HORIZONTAL] = false;
+				style[mxConstants.STYLE_FONTCOLOR] = 'black';
+				style[mxConstants.STYLE_STROKECOLOR] = 'black';
+				delete style[mxConstants.STYLE_FILLCOLOR];
+
+				style = mxUtils.clone(style);
+				style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
+				style[mxConstants.STYLE_FONTSIZE] = 10;
+				style[mxConstants.STYLE_ROUNDED] = true;
+				style[mxConstants.STYLE_HORIZONTAL] = true;
+				style[mxConstants.STYLE_VERTICAL_ALIGN] = 'middle';
+				delete style[mxConstants.STYLE_STARTSIZE];
+				graph.getStylesheet().putCellStyle('process', style);
+				
+				style = mxUtils.clone(style);
+				style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_ELLIPSE;
+				style[mxConstants.STYLE_PERIMETER] = mxPerimeter.EllipsePerimeter;
+				delete style[mxConstants.STYLE_ROUNDED];
+				graph.getStylesheet().putCellStyle('state', style);
+												
+				style = mxUtils.clone(style);
+				style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RHOMBUS;
+				style[mxConstants.STYLE_PERIMETER] = mxPerimeter.RhombusPerimeter;
+				style[mxConstants.STYLE_VERTICAL_ALIGN] = 'top';
+				style[mxConstants.STYLE_SPACING_TOP] = 40;
+				style[mxConstants.STYLE_SPACING_RIGHT] = 64;
+				graph.getStylesheet().putCellStyle('condition', style);
+								
+				style = mxUtils.clone(style);
+				style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_DOUBLE_ELLIPSE;
+				style[mxConstants.STYLE_PERIMETER] = mxPerimeter.EllipsePerimeter;
+				style[mxConstants.STYLE_SPACING_TOP] = 28;
+				style[mxConstants.STYLE_FONTSIZE] = 14;
+				style[mxConstants.STYLE_FONTSTYLE] = 1;
+				delete style[mxConstants.STYLE_SPACING_RIGHT];
+				graph.getStylesheet().putCellStyle('end', style);
+				
+				style = graph.getStylesheet().getDefaultEdgeStyle();
+				style[mxConstants.STYLE_EDGE] = mxEdgeStyle.ElbowConnector;
+				style[mxConstants.STYLE_ENDARROW] = mxConstants.ARROW_BLOCK;
+				style[mxConstants.STYLE_ROUNDED] = true;
+				style[mxConstants.STYLE_FONTCOLOR] = 'black';
+				style[mxConstants.STYLE_STROKECOLOR] = 'black';
+				
+				style = mxUtils.clone(style);
+				style[mxConstants.STYLE_DASHED] = true;
+				style[mxConstants.STYLE_ENDARROW] = mxConstants.ARROW_OPEN;
+				style[mxConstants.STYLE_STARTARROW] = mxConstants.ARROW_OVAL;
+				graph.getStylesheet().putCellStyle('crossover', style);
+						
+				// Installs double click on middle control point and
+				// changes style of edges between empty and this value
+				graph.alternateEdgeStyle = 'elbow=vertical';
+
+				// Adds automatic layout and various switches if the
+				// graph is enabled
+				if (graph.isEnabled())
+				{
+					// Allows new connections but no dangling edges
+					graph.setConnectable(true);
+					graph.setAllowDanglingEdges(false);
+					
+					// End-states are no valid sources
+					var previousIsValidSource = graph.isValidSource;
+					
+					graph.isValidSource = function(cell)
+					{
+						if (previousIsValidSource.apply(this, arguments))
+						{
+							var style = this.getModel().getStyle(cell);
+							
+							return style == null ||
+								!(style == 'end' ||
+								style.indexOf('end') == 0);
+						}
+
+						return false;
+					};
+					
+					// Start-states are no valid targets, we do not
+					// perform a call to the superclass function because
+					// this would call isValidSource
+					// Note: All states are start states in
+					// the example below, so we use the state
+					// style below
+					graph.isValidTarget = function(cell)
+					{
+						var style = this.getModel().getStyle(cell);
+						
+						return !this.getModel().isEdge(cell) &&
+							!this.isSwimlane(cell) &&
+							(style == null ||
+							!(style == 'state' ||
+							style.indexOf('state') == 0));
+					};
+					
+					// Allows dropping cells into new lanes and
+					// lanes into new pools, but disallows dropping
+					// cells on edges to split edges
+					graph.setDropEnabled(true);
+					graph.setSplitEnabled(false);
+					
+					// Returns true for valid drop operations
+					graph.isValidDropTarget = function(target, cells, evt)
+					{
+						if (this.isSplitEnabled() &&
+							this.isSplitTarget(target, cells, evt))
+						{
+							return true;
+						}
+						
+						var model = this.getModel();
+						var lane = false;
+						var pool = false;
+						var cell = false;
+						
+						// Checks if any lanes or pools are selected
+						for (var i = 0; i < cells.length; i++)
+						{
+							var tmp = model.getParent(cells[i]);
+							lane = lane || this.isPool(tmp);
+							pool = pool || this.isPool(cells[i]);
+							
+							cell = cell || !(lane || pool);
+						}
+						
+						return !pool &&
+							cell != lane &&
+							((lane && this.isPool(target)) ||
+							(cell && this.isPool(model.getParent(target))));
+					};
+					
+					// Adds new method for identifying a pool
+					graph.isPool = function(cell)
+					{
+						var model = this.getModel();
+						var parent = model.getParent(cell);
+					
+						return parent != null &&
+							model.getParent(parent) == model.getRoot();
+					};
+					
+					// Changes swimlane orientation while collapsed
+					graph.model.getStyle = function(cell)
+					{
+						var style = mxGraphModel.prototype.getStyle.apply(this, arguments);
+					
+						if (graph.isCellCollapsed(cell))
+						{
+							if (style != null)
+							{
+								style += ';';
+							}
+							else
+							{
+								style = '';
+							}
+							
+							style += 'horizontal=1;align=left;spacingLeft=14;';
+						}
+						
+						return style;
+					};
+
+					// Keeps widths on collapse/expand					
+					var foldingHandler = function(sender, evt)
+					{
+						var cells = evt.getProperty('cells');
+						
+						for (var i = 0; i < cells.length; i++)
+						{
+							var geo = graph.model.getGeometry(cells[i]);
+
+							if (geo.alternateBounds != null)
+							{
+								geo.width = geo.alternateBounds.width;
+							}
+						}
+					};
+
+					graph.addListener(mxEvent.FOLD_CELLS, foldingHandler);
+				}
+				
+				// Applies size changes to siblings and parents
+				new mxSwimlaneManager(graph);
+
+				// Creates a stack depending on the orientation of the swimlane
+				var layout = new mxStackLayout(graph, false);
+				
+				// Makes sure all children fit into the parent swimlane
+				layout.resizeParent = true;
+							
+				// Applies the size to children if parent size changes
+				layout.fill = true;
+
+				// Only update the size of swimlanes
+				layout.isVertexIgnored = function(vertex)
+				{
+					return !graph.isSwimlane(vertex);
+				}
+				
+				// Keeps the lanes and pools stacked
+				var layoutMgr = new mxLayoutManager(graph);
+
+				layoutMgr.getLayout = function(cell)
+				{
+					if (!model.isEdge(cell) && graph.getModel().getChildCount(cell) > 0 &&
+						(model.getParent(cell) == model.getRoot() || graph.isPool(cell)))
+					{
+						layout.fill = graph.isPool(cell);
+						
+						return layout;
+					}
+					
+					return null;
+				};
+				
+				// Gets the default parent for inserting new cells. This
+				// is normally the first child of the root (ie. layer 0).
+				var parent = graph.getDefaultParent();
+
+				// Adds cells to the model in a single step
+				model.beginUpdate();
+				try
+				{
+					var pool1 = graph.insertVertex(parent, null, 'Pool 1', 0, 0, 640, 0);
+					pool1.setConnectable(false);
+
+					var lane1a = graph.insertVertex(pool1, null, 'Lane A', 0, 0, 640, 110);
+					lane1a.setConnectable(false);
+
+					var lane1b = graph.insertVertex(pool1, null, 'Lane B', 0, 0, 640, 110);
+					lane1b.setConnectable(false);
+
+					var pool2 = graph.insertVertex(parent, null, 'Pool 2', 0, 0, 640, 0);
+					pool2.setConnectable(false);
+
+					var lane2a = graph.insertVertex(pool2, null, 'Lane A', 0, 0, 640, 140);
+					lane2a.setConnectable(false);
+
+					var lane2b = graph.insertVertex(pool2, null, 'Lane B', 0, 0, 640, 110);
+					lane2b.setConnectable(false);
+					
+					var start1 = graph.insertVertex(lane1a, null, null, 40, 40, 30, 30, 'state');
+					var end1 = graph.insertVertex(lane1a, null, 'A', 560, 40, 30, 30, 'end');
+					
+					var step1 = graph.insertVertex(lane1a, null, 'Contact\nProvider', 90, 30, 80, 50, 'process');
+					var step11 = graph.insertVertex(lane1a, null, 'Complete\nAppropriate\nRequest', 190, 30, 80, 50, 'process');
+					var step111 = graph.insertVertex(lane1a, null, 'Receive and\nAcknowledge', 385, 30, 80, 50, 'process');
+					
+					var start2 = graph.insertVertex(lane2b, null, null, 40, 40, 30, 30, 'state');
+					
+					var step2 = graph.insertVertex(lane2b, null, 'Receive\nRequest', 90, 30, 80, 50, 'process');
+					var step22 = graph.insertVertex(lane2b, null, 'Refer to Tap\nSystems\nCoordinator', 190, 30, 80, 50, 'process');
+					
+					var step3 = graph.insertVertex(lane1b, null, 'Request 1st-\nGate\nInformation', 190, 30, 80, 50, 'process');
+					var step33 = graph.insertVertex(lane1b, null, 'Receive 1st-\nGate\nInformation', 290, 30, 80, 50, 'process');
+					
+					var step4 = graph.insertVertex(lane2a, null, 'Receive and\nAcknowledge', 290, 20, 80, 50, 'process');
+					var step44 = graph.insertVertex(lane2a, null, 'Contract\nConstraints?', 400, 20, 50, 50, 'condition');
+					var step444 = graph.insertVertex(lane2a, null, 'Tap for gas\ndelivery?', 480, 20, 50, 50, 'condition');
+					
+					var end2 = graph.insertVertex(lane2a, null, 'B', 560, 30, 30, 30, 'end');
+					var end3 = graph.insertVertex(lane2a, null, 'C', 560, 84, 30, 30, 'end');
+					
+					var e = null;
+					
+					graph.insertEdge(lane1a, null, null, start1, step1);
+					graph.insertEdge(lane1a, null, null, step1, step11);
+					graph.insertEdge(lane1a, null, null, step11, step111);
+					
+					graph.insertEdge(lane2b, null, null, start2, step2);
+					graph.insertEdge(lane2b, null, null, step2, step22);
+					graph.insertEdge(parent, null, null, step22, step3);
+					
+					graph.insertEdge(lane1b, null, null, step3, step33);
+					graph.insertEdge(lane2a, null, null, step4, step44);
+					graph.insertEdge(lane2a, null, 'No', step44, step444, 'verticalAlign=bottom');
+					graph.insertEdge(parent, null, 'Yes', step44, step111, 'verticalAlign=bottom;horizontal=0');
+					
+					graph.insertEdge(lane2a, null, 'Yes', step444, end2, 'verticalAlign=bottom');
+					e = graph.insertEdge(lane2a, null, 'No', step444, end3, 'verticalAlign=top');
+					e.geometry.points = [new mxPoint(step444.geometry.x + step444.geometry.width / 2,
+						end3.geometry.y + end3.geometry.height / 2)];
+					
+					graph.insertEdge(parent, null, null, step1, step2, 'crossover');
+					graph.insertEdge(parent, null, null, step3, step11, 'crossover');
+					e = graph.insertEdge(lane1a, null, null, step11, step33, 'crossover');
+					e.geometry.points = [new mxPoint(step33.geometry.x + step33.geometry.width / 2 + 20,
+								step11.geometry.y + step11.geometry.height * 4 / 5)];
+					graph.insertEdge(parent, null, null, step33, step4);
+					graph.insertEdge(lane1a, null, null, step111, end1);
+				}
+				finally
+				{
+					// Updates the display
+					model.endUpdate();
+				}
+			}
+		};
+	</script>
+</head>
+<body onload="main(document.getElementById('graphContainer'))">
+	<div id="graphContainer"
+		style="position:absolute;overflow:hidden;top:40px;left:40px;width:600px;height:400px;border: gray dotted 1px;cursor:default;">
+	</div>
+</body>
+</html>

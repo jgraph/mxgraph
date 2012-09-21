@@ -1,0 +1,1478 @@
+<shapes name="mxGraph.electrical.iec417">
+<shape name="AC-AC Converter" h="85" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="5" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="85"/>
+<line x="80" y="5"/>
+</path>
+<stroke/>
+<path>
+<move x="35" y="0"/>
+<line x="40" y="5"/>
+<line x="35" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="10" y="20"/>
+<arc rx="3" ry="3" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="15" y="20"/>
+<arc rx="3" ry="3" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="20" y="20"/>
+</path>
+<stroke/>
+<path>
+<move x="60" y="70"/>
+<arc rx="3" ry="3" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="65" y="70"/>
+<arc rx="3" ry="3" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="70" y="70"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="AC-DC Converter" h="85" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="5" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="85"/>
+<line x="80" y="5"/>
+</path>
+<stroke/>
+<path>
+<move x="35" y="0"/>
+<line x="40" y="5"/>
+<line x="35" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="10" y="20"/>
+<arc rx="3" ry="3" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="15" y="20"/>
+<arc rx="3" ry="3" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="20" y="20"/>
+</path>
+<stroke/>
+<path>
+<move x="60" y="70"/>
+<line x="70" y="70"/>
+</path>
+<stroke/>
+<path>
+<move x="60" y="73"/>
+<line x="62" y="73"/>
+</path>
+<stroke/>
+<path>
+<move x="64" y="73"/>
+<line x="66" y="73"/>
+</path>
+<stroke/>
+<path>
+<move x="68" y="73"/>
+<line x="70" y="73"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="AD Converter" h="85" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="5" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="85"/>
+<line x="80" y="5"/>
+</path>
+<stroke/>
+<path>
+<move x="35" y="0"/>
+<line x="40" y="5"/>
+<line x="35" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="5" y="20"/>
+<arc rx="5.5" ry="5.5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="15" y="20"/>
+<arc rx="5.5" ry="5.5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="25" y="20"/>
+</path>
+<stroke/>
+<path>
+<move x="35" y="75"/>
+<line x="40" y="75"/>
+<line x="40" y="68"/>
+<line x="47" y="68"/>
+<line x="47" y="75"/>
+<line x="52" y="75"/>
+<line x="52" y="68"/>
+<line x="59" y="68"/>
+<line x="59" y="75"/>
+<line x="66" y="75"/>
+<line x="66" y="68"/>
+<line x="73" y="68"/>
+<line x="73" y="75"/>
+<line x="76" y="75"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Amp" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="5" y="5"/>
+<line x="75" y="40"/>
+<line x="5" y="75"/>
+<close/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Amp Bidirectional" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="31.5" y="15"/>
+<line x="48.5" y="23.5"/>
+<line x="31.5" y="32"/>
+<close/>
+</path>
+<stroke/>
+<path>
+<move x="31.5" y="23.5"/>
+<line x="20" y="23.5"/>
+<line x="20" y="56.5"/>
+<line x="31.5" y="56.5"/>
+</path>
+<stroke/>
+<path>
+<move x="48.5" y="23.5"/>
+<line x="60" y="23.5"/>
+<line x="60" y="56.5"/>
+<line x="48.5" y="56.5"/>
+</path>
+<stroke/>
+<path>
+<move x="10" y="40"/>
+<line x="20" y="40"/>
+</path>
+<stroke/>
+<path>
+<move x="60" y="40"/>
+<line x="70" y="40"/>
+</path>
+<stroke/>
+<path>
+<move x="48.5" y="48"/>
+<line x="31.5" y="56.5"/>
+<line x="48.5" y="65"/>
+<close/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Att" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="35" y="65"/>
+<line x="45" y="55"/>
+<line x="35" y="45"/>
+<line x="45" y="35"/>
+<line x="35" y="25"/>
+<line x="45" y="15"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Bandpass" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="15" y="40"/>
+<arc rx="17" ry="17" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="40" y="40"/>
+<arc rx="17" ry="17" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="65" y="40"/>
+</path>
+<stroke/>
+<path>
+<move x="15" y="25"/>
+<arc rx="17" ry="17" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="40" y="25"/>
+<arc rx="17" ry="17" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="65" y="25"/>
+</path>
+<stroke/>
+<path>
+<move x="15" y="55"/>
+<arc rx="17" ry="17" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="40" y="55"/>
+<arc rx="17" ry="17" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="65" y="55"/>
+</path>
+<stroke/>
+<path>
+<move x="36" y="57"/>
+<line x="42" y="51"/>
+</path>
+<stroke/>
+<path>
+<move x="36" y="27"/>
+<line x="42" y="21"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Bandstop" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="15" y="40"/>
+<arc rx="17" ry="17" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="40" y="40"/>
+<arc rx="17" ry="17" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="65" y="40"/>
+</path>
+<stroke/>
+<path>
+<move x="15" y="25"/>
+<arc rx="17" ry="17" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="40" y="25"/>
+<arc rx="17" ry="17" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="65" y="25"/>
+</path>
+<stroke/>
+<path>
+<move x="15" y="55"/>
+<arc rx="17" ry="17" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="40" y="55"/>
+<arc rx="17" ry="17" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="65" y="55"/>
+</path>
+<stroke/>
+<path>
+<move x="36" y="43"/>
+<line x="42" y="37"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Block" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="Block Convert" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="80"/>
+<line x="80" y="0"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Circulator" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="40" y="70"/>
+<arc rx="30" ry="30" x-axis-rotation="0" large-arc-flag="1" sweep-flag="1" x="70" y="40"/>
+</path>
+<stroke/>
+<path>
+<move x="64" y="31"/>
+<line x="70" y="40"/>
+<line x="74" y="29"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Combine" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="25" y="10"/>
+<line x="40" y="10"/>
+<line x="40" y="70"/>
+<line x="25" y="70"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="30"/>
+<line x="40" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="50"/>
+<line x="40" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="40" y="40"/>
+<line x="55" y="40"/>
+</path>
+<stroke/>
+<path>
+<move x="50" y="35"/>
+<line x="55" y="40"/>
+<line x="50" y="45"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Corrector" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="15" y="55"/>
+<line x="20" y="55"/>
+<arc rx="4" ry="4" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="23" y="52"/>
+<line x="32" y="27"/>
+<arc rx="4" ry="4" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="35" y="25"/>
+<line x="40" y="25"/>
+</path>
+<stroke/>
+<path>
+<move x="40" y="55"/>
+<line x="50" y="55"/>
+<line x="50" y="25"/>
+<line x="60" y="25"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="DA Converter" h="85" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="5" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="85"/>
+<line x="80" y="5"/>
+</path>
+<stroke/>
+<path>
+<move x="35" y="0"/>
+<line x="40" y="5"/>
+<line x="35" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="5" y="23"/>
+<line x="10" y="23"/>
+<line x="10" y="16"/>
+<line x="17" y="16"/>
+<line x="17" y="23"/>
+<line x="22" y="23"/>
+<line x="22" y="16"/>
+<line x="29" y="16"/>
+<line x="29" y="23"/>
+<line x="36" y="23"/>
+<line x="36" y="16"/>
+<line x="43" y="16"/>
+<line x="43" y="23"/>
+<line x="46" y="23"/>
+</path>
+<stroke/>
+<path>
+<move x="55" y="70"/>
+<arc rx="5.5" ry="5.5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="65" y="70"/>
+<arc rx="5.5" ry="5.5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="75" y="70"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="DC-AC Converter" h="85" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="5" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="85"/>
+<line x="80" y="5"/>
+</path>
+<stroke/>
+<path>
+<move x="35" y="0"/>
+<line x="40" y="5"/>
+<line x="35" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="60" y="70"/>
+<arc rx="3" ry="3" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="65" y="70"/>
+<arc rx="3" ry="3" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="70" y="70"/>
+</path>
+<stroke/>
+<path>
+<move x="10" y="18.5"/>
+<line x="20" y="18.5"/>
+</path>
+<stroke/>
+<path>
+<move x="10" y="21.5"/>
+<line x="12" y="21.5"/>
+</path>
+<stroke/>
+<path>
+<move x="14" y="21.5"/>
+<line x="16" y="21.5"/>
+</path>
+<stroke/>
+<path>
+<move x="18" y="21.5"/>
+<line x="20" y="21.5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="DC-DC Converter" h="85" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="5" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="85"/>
+<line x="80" y="5"/>
+</path>
+<stroke/>
+<path>
+<move x="35" y="0"/>
+<line x="40" y="5"/>
+<line x="35" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="10" y="18.5"/>
+<line x="20" y="18.5"/>
+</path>
+<stroke/>
+<path>
+<move x="10" y="21.5"/>
+<line x="12" y="21.5"/>
+</path>
+<stroke/>
+<path>
+<move x="14" y="21.5"/>
+<line x="16" y="21.5"/>
+</path>
+<stroke/>
+<path>
+<move x="18" y="21.5"/>
+<line x="20" y="21.5"/>
+</path>
+<stroke/>
+<path>
+<move x="60" y="70"/>
+<line x="70" y="70"/>
+</path>
+<stroke/>
+<path>
+<move x="60" y="73"/>
+<line x="62" y="73"/>
+</path>
+<stroke/>
+<path>
+<move x="64" y="73"/>
+<line x="66" y="73"/>
+</path>
+<stroke/>
+<path>
+<move x="68" y="73"/>
+<line x="70" y="73"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Decrypt" h="85" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<path>
+<move x="20" y="80"/>
+<line x="0" y="80"/>
+<line x="0" y="0"/>
+<line x="80" y="0"/>
+<line x="80" y="80"/>
+<line x="30" y="80"/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="80"/>
+<line x="80" y="0"/>
+</path>
+<stroke/>
+<path>
+<move x="55" y="75"/>
+<line x="60" y="80"/>
+<line x="55" y="85"/>
+</path>
+<stroke/>
+<ellipse x="20" y="75" w="10" h="10"/>
+<fillstroke/>
+<path>
+<move x="18.7" y="18.7"/>
+<line x="40" y="40"/>
+</path>
+<stroke/>
+<ellipse x="10" y="10" w="60" h="60"/>
+<stroke/>
+<path>
+<move x="12.7" y="52.6"/>
+<line x="20" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="10" y="40"/>
+<line x="25" y="55"/>
+</path>
+<stroke/>
+<path>
+<move x="11.2" y="31.2"/>
+<line x="30" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="14.3" y="24.4"/>
+<line x="35" y="45"/>
+</path>
+<stroke/>
+<path>
+<move x="24.5" y="14.5"/>
+<line x="45" y="35"/>
+</path>
+<stroke/>
+<path>
+<move x="40" y="10"/>
+<line x="55" y="25"/>
+</path>
+<stroke/>
+<path>
+<move x="52.9" y="13"/>
+<line x="60" y="20"/>
+</path>
+<stroke/>
+<path>
+<move x="31.4" y="11.6"/>
+<line x="50" y="30"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Delay" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<roundrect x="20" y="35" w="40" h="10" arcsize="31.25"/>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Demodulator" h="85" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<path>
+<move x="25" y="80"/>
+<line x="0" y="80"/>
+<line x="0" y="0"/>
+<line x="80" y="0"/>
+<line x="80" y="80"/>
+<line x="35" y="80"/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="50" y="75"/>
+<line x="45" y="80"/>
+<line x="50" y="85"/>
+</path>
+<stroke/>
+<ellipse x="25" y="75" w="10" h="10"/>
+<fillstroke/>
+<path>
+<move x="0" y="80"/>
+<line x="40" y="1"/>
+<line x="80" y="80"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Detector" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="10" y="40"/>
+<line x="70" y="40"/>
+</path>
+<stroke/>
+<path>
+<move x="50" y="25"/>
+<line x="50" y="55"/>
+</path>
+<stroke/>
+<path>
+<move x="30" y="25"/>
+<line x="50" y="40"/>
+<line x="30" y="55"/>
+<close/>
+</path>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="Differential Amp" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="10" y="10"/>
+<line x="70" y="40"/>
+<line x="10" y="70"/>
+<close/>
+</path>
+<stroke/>
+<path>
+<move x="5" y="20"/>
+<line x="10" y="20"/>
+</path>
+<stroke/>
+<path>
+<move x="5" y="60"/>
+<line x="10" y="60"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Diplexer" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.2" perimeter="0" name="in1"/>
+<constraint x="0" y="0.8" perimeter="0" name="in2"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="0"/>
+<line x="79" y="40"/>
+<line x="0" y="80"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Divide by n" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<fontcolor color="#000000"/>
+<fontsize size="24"/>
+<text str="Nf" x="25" y="30" align="center" valign="bottom"/>
+<path>
+<move x="0" y="80"/>
+<line x="80" y="0"/>
+</path>
+<stroke/>
+<text str="f" x="55" y="70" align="center" valign="bottom"/>
+</foreground>
+</shape>
+<shape name="Down Converter" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="30" y="25"/>
+<line x="50" y="40"/>
+<line x="30" y="40"/>
+<close/>
+</path>
+<stroke/>
+<path>
+<move x="10" y="40"/>
+<line x="70" y="40"/>
+</path>
+<stroke/>
+<path>
+<move x="50" y="25"/>
+<line x="50" y="55"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Encrypt" h="85" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<path>
+<move x="20" y="80"/>
+<line x="0" y="80"/>
+<line x="0" y="0"/>
+<line x="80" y="0"/>
+<line x="80" y="80"/>
+<line x="30" y="80"/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="80"/>
+<line x="80" y="0"/>
+</path>
+<stroke/>
+<path>
+<move x="55" y="75"/>
+<line x="60" y="80"/>
+<line x="55" y="85"/>
+</path>
+<stroke/>
+<ellipse x="20" y="75" w="10" h="10"/>
+<fillstroke/>
+<path>
+<move x="61.3" y="61.3"/>
+<line x="40" y="40"/>
+</path>
+<stroke/>
+<ellipse x="10" y="10" w="60" h="60"/>
+<stroke/>
+<path>
+<move x="27.3" y="67.3"/>
+<line x="20" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="40" y="70"/>
+<line x="25" y="55"/>
+</path>
+<stroke/>
+<path>
+<move x="48.8" y="68.8"/>
+<line x="30" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="55.7" y="65.6"/>
+<line x="35" y="45"/>
+</path>
+<stroke/>
+<path>
+<move x="65.5" y="55.5"/>
+<line x="45" y="35"/>
+</path>
+<stroke/>
+<path>
+<move x="70" y="40"/>
+<line x="55" y="25"/>
+</path>
+<stroke/>
+<path>
+<move x="67.1" y="27"/>
+<line x="60" y="20"/>
+</path>
+<stroke/>
+<path>
+<move x="68.6" y="48.6"/>
+<line x="50" y="30"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Hipass" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="15" y="50"/>
+<arc rx="17" ry="17" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="40" y="50"/>
+<arc rx="17" ry="17" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="65" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="15" y="30"/>
+<arc rx="17" ry="17" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="40" y="30"/>
+<arc rx="17" ry="17" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="65" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="36" y="52"/>
+<line x="42" y="46"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Hybrid" h="80" w="90" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.375" perimeter="0" name="in1"/>
+<constraint x="0" y="0.625" perimeter="0" name="in2"/>
+<constraint x="1" y="0.375" perimeter="0" name="out1"/>
+<constraint x="1" y="0.625" perimeter="0" name="out2"/>
+</connections>
+<background>
+<rect x="5" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="50"/>
+<line x="35" y="50"/>
+<line x="55" y="30"/>
+<line x="90" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="30"/>
+<line x="35" y="30"/>
+<line x="55" y="50"/>
+<line x="90" y="50"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Limiter" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="15" y="48.5"/>
+<line x="23.5" y="31.5"/>
+<line x="32" y="48.5"/>
+<close/>
+</path>
+<stroke/>
+<path>
+<move x="23.5" y="31.5"/>
+<line x="23.5" y="20"/>
+<line x="56.5" y="20"/>
+<line x="56.5" y="31.5"/>
+</path>
+<stroke/>
+<path>
+<move x="23.5" y="48.5"/>
+<line x="23.5" y="60"/>
+<line x="56.5" y="60"/>
+<line x="56.5" y="48.5"/>
+</path>
+<stroke/>
+<path>
+<move x="40" y="10"/>
+<line x="40" y="20"/>
+</path>
+<stroke/>
+<path>
+<move x="40" y="60"/>
+<line x="40" y="70"/>
+</path>
+<stroke/>
+<path>
+<move x="48" y="31.5"/>
+<line x="56.5" y="48.5"/>
+<line x="65" y="31.5"/>
+<close/>
+</path>
+<stroke/>
+<path>
+<move x="15" y="31.2"/>
+<line x="32" y="31.5"/>
+</path>
+<stroke/>
+<path>
+<move x="48" y="48.5"/>
+<line x="65" y="48.5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Lopass" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="15" y="50"/>
+<arc rx="17" ry="17" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="40" y="50"/>
+<arc rx="17" ry="17" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="65" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="15" y="30"/>
+<arc rx="17" ry="17" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="40" y="30"/>
+<arc rx="17" ry="17" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="65" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="36" y="32"/>
+<line x="42" y="26"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Mixer 1" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="80"/>
+<line x="80" y="0"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="0"/>
+<line x="80" y="80"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Mixer 2" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="80"/>
+<line x="40" y="1"/>
+<line x="80" y="80"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Modem" h="85" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="50" y="75"/>
+<line x="45" y="80"/>
+<line x="50" y="85"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="80"/>
+<line x="40" y="1"/>
+<line x="80" y="80"/>
+</path>
+<stroke/>
+<path>
+<move x="30" y="75"/>
+<line x="35" y="80"/>
+<line x="30" y="85"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Modulator" h="85" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<path>
+<move x="25" y="80"/>
+<line x="0" y="80"/>
+<line x="0" y="0"/>
+<line x="80" y="0"/>
+<line x="80" y="80"/>
+<line x="35" y="80"/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<ellipse x="25" y="75" w="10" h="10"/>
+<fillstroke/>
+<path>
+<move x="45" y="75"/>
+<line x="50" y="80"/>
+<line x="45" y="85"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="80"/>
+<line x="40" y="1"/>
+<line x="80" y="80"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Oscilloscope" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="20" y="40"/>
+<arc rx="12" ry="12" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="40" y="40"/>
+<arc rx="12" ry="12" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="60" y="40"/>
+</path>
+<stroke/>
+<ellipse x="10" y="10" w="60" h="60"/>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Phase Detector" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="40" y="50"/>
+<line x="40" y="30"/>
+<arc rx="4" ry="8" x-axis-rotation="0" large-arc-flag="1" sweep-flag="1" x="45" y="38"/>
+<arc rx="8" ry="8" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="36" y="38"/>
+<arc rx="20" ry="8" x-axis-rotation="15" large-arc-flag="0" sweep-flag="1" x="37" y="27"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Process" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="20" y="20"/>
+<arc rx="40" ry="40" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="20" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="40"/>
+<line x="15" y="40"/>
+</path>
+<stroke/>
+<path>
+<move x="80" y="40"/>
+<line x="65" y="40"/>
+</path>
+<stroke/>
+<path>
+<move x="60" y="20"/>
+<arc rx="40" ry="40" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="60" y="60"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Pulse" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="25" y="50"/>
+<line x="35" y="50"/>
+<line x="35" y="25"/>
+<line x="45" y="25"/>
+<line x="45" y="50"/>
+<line x="55" y="50"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Sampler" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="10" y="20"/>
+<arc rx="15" ry="50" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="30" y="20"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="80"/>
+<line x="80" y="0"/>
+</path>
+<stroke/>
+<path>
+<move x="50" y="70"/>
+<line x="70" y="70"/>
+</path>
+<stroke/>
+<path>
+<move x="60" y="70"/>
+<line x="60" y="57.4"/>
+</path>
+<stroke/>
+<path>
+<move x="57" y="70"/>
+<line x="57" y="58.3"/>
+</path>
+<stroke/>
+<path>
+<move x="54" y="70"/>
+<line x="54" y="61.5"/>
+</path>
+<stroke/>
+<path>
+<move x="63" y="70"/>
+<line x="63" y="58.3"/>
+</path>
+<stroke/>
+<path>
+<move x="66" y="70"/>
+<line x="66" y="61.5"/>
+</path>
+<stroke/>
+<path>
+<move x="51" y="70"/>
+<line x="51" y="67.5"/>
+</path>
+<stroke/>
+<path>
+<move x="69" y="70"/>
+<line x="69" y="67.5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Splitter" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="55" y="10"/>
+<line x="40" y="10"/>
+<line x="40" y="70"/>
+<line x="55" y="70"/>
+</path>
+<stroke/>
+<path>
+<move x="55" y="30"/>
+<line x="40" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="55" y="50"/>
+<line x="40" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="40"/>
+<line x="39" y="40"/>
+</path>
+<stroke/>
+<path>
+<move x="35" y="35"/>
+<line x="39" y="40"/>
+<line x="35" y="45"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Square-up" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="30" y="55"/>
+<line x="40" y="55"/>
+<line x="40" y="25"/>
+<line x="50" y="25"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Step" h="60" w="55" aspect="variable" strokewidth="inherit">
+<background>
+<path>
+<move x="0" y="60"/>
+<line x="40" y="0"/>
+<line x="55" y="0"/>
+</path>
+</background>
+<foreground>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Transformer" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+
+<linejoin join="round"/>
+<path>
+<move x="15" y="10"/>
+<line x="30" y="10"/>
+<arc rx="5" ry="5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="30" y="25"/>
+<arc rx="5" ry="5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="30" y="40"/>
+<arc rx="5" ry="5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="30" y="55"/>
+<arc rx="5" ry="5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="30" y="70"/>
+<line x="15" y="70"/>
+</path>
+<stroke/>
+<path>
+<move x="65" y="10"/>
+<line x="50" y="10"/>
+<arc rx="5" ry="5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="50" y="25"/>
+<arc rx="5" ry="5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="50" y="40"/>
+<arc rx="5" ry="5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="50" y="55"/>
+<arc rx="5" ry="5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="50" y="70"/>
+<line x="65" y="70"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Trim" h="65.5" w="48.2" aspect="variable" strokewidth="inherit">
+<background>
+<path>
+<move x="0" y="65.5"/>
+<line x="40" y="5.5"/>
+</path>
+</background>
+<foreground>
+<stroke/>
+<path>
+<move x="32.2" y="0"/>
+<line x="48.2" y="10.5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Up converter" h="80" w="80" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="80" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="50" y="25"/>
+<line x="50" y="40"/>
+<line x="30" y="40"/>
+<close/>
+</path>
+<fillstroke/>
+<path>
+<move x="10" y="40"/>
+<line x="70" y="40"/>
+</path>
+<stroke/>
+<path>
+<move x="30" y="25"/>
+<line x="30" y="55"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Var" h="60" w="40" aspect="variable" strokewidth="inherit">
+<background>
+<path>
+<move x="0" y="60"/>
+<line x="40" y="0"/>
+</path>
+</background>
+<foreground>
+<stroke/>
+<path>
+<move x="27" y="10"/>
+<line x="40" y="0"/>
+<line x="36.5" y="15.5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+</shapes>

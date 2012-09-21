@@ -1,0 +1,43 @@
+<shapes>
+<shape name="or" aspect="variable">
+	<background>
+		<path>
+			<move x="0" y="0"/>
+			<quad x1="100" y1="0" x2="100" y2="50"/>
+			<quad x1="100" y1="100" x2="0" y2="100"/>
+			<close/>
+		</path>
+	</background>
+	<foreground>
+		<fillstroke/>
+	</foreground>
+</shape>
+<shape name="xor" aspect="fixed">
+	<background>
+		<path>
+			<move x="0" y="0"/>
+			<quad x1="100" y1="0" x2="100" y2="50"/>
+			<quad x1="100" y1="100" x2="0" y2="100"/>
+			<quad x1="50" y1="50" x2="0" y2="0"/>
+			<close/>
+		</path>
+	</background>
+	<foreground>
+		<fillstroke/>
+	</foreground>
+</shape>
+<shape name="and" aspect="fixed" w="50">
+	<background>
+		<linejoin join="round"/>
+		<path>
+			<move x="0" y="0"/>
+			<line x="50" y="50"/>
+			<line x="0" y="100"/>
+			<close/>
+		</path>
+	</background>
+	<foreground>
+		<fillstroke/>
+	</foreground>
+</shape>
+</shapes>

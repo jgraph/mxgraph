@@ -1,0 +1,128 @@
+<!--
+  $Id: layers.html,v 1.12 2012-07-17 08:22:19 gaudenz Exp $
+  Copyright (c) 2006-2010, JGraph Ltd
+  
+  Layers example for mxGraph. This example demonstrates using
+  multiple layers to contain cells.
+-->
+<html>
+<head>
+	<title>Layers example for mxGraph</title>
+
+	<!-- Sets the basepath for the library if not in same directory -->
+	<script type="text/javascript">
+		mxBasePath = '../src';
+	</script>
+
+	<!-- Loads and initializes the library -->
+	<script type="text/javascript" src="../src/js/mxClient.js"></script>
+
+	<!-- Example code -->
+	<script type="text/javascript">
+
+		// Program starts here. Creates a sample graph in the
+		// DOM node with the specified ID. This function is invoked
+		// from the onLoad event handler of the document (see below).
+		function main(container)
+		{
+			// Checks if the browser is supported
+			if (!mxClient.isBrowserSupported())
+			{
+				// Displays an error message if the browser is not supported.
+				mxUtils.error('Browser is not supported!', 200, false);
+			}
+			else
+			{
+				// Enables crisp rendering of all shapes in SVG
+				mxShape.prototype.crisp = true;
+				
+				// Creates the graph inside the given container using a model
+				// with a custom root and two layers. Layers can also be added
+				// dynamically using var layer = model.add(root, new mxCell()).
+				var root = new mxCell();
+				var layer0 = root.insert(new mxCell());
+				var layer1 = root.insert(new mxCell()); 
+				var model = new mxGraphModel(root);
+
+				var graph = new mxGraph(container, model);
+				
+				// Disables basic selection and cell handling
+				graph.setEnabled(false);
+				
+				// Gets the default parent for inserting new cells. This
+				// is normally the first child of the root (ie. layer 0).
+				var parent = graph.getDefaultParent();
+								
+				// Adds cells to the model in a single step
+				model.beginUpdate();
+				try
+				{
+					var v1 = graph.insertVertex(layer1, null, 'Hello,', 20, 20, 80, 30, 'fillColor=#C0C0C0');
+					var v2 = graph.insertVertex(layer1, null, 'Hello,', 200, 20, 80, 30, 'fillColor=#C0C0C0');
+					var v3 = graph.insertVertex(layer0, null, 'World!', 110, 150, 80, 30);
+					var e1 = graph.insertEdge(layer1, null, '', v1, v3, 'strokeColor=#0C0C0C');
+					e1.geometry.points = [new mxPoint(60, 165)];
+					var e2 = graph.insertEdge(layer0, null, '', v2, v3);
+					e2.geometry.points = [new mxPoint(240, 165)];
+					var e3 = graph.insertEdge(layer0, null, '', v1, v2,
+							'edgeStyle=topToBottomEdgeStyle');
+					e3.geometry.points = [new mxPoint(150, 30)];
+					var e4 = graph.insertEdge(layer1, null, '', v2, v1,
+							'strokeColor=#0C0C0C;edgeStyle=topToBottomEdgeStyle');
+					e4.geometry.points = [new mxPoint(150, 40)];
+				}
+				finally
+				{
+					// Updates the display
+					model.endUpdate();
+				}
+
+				document.body.appendChild(mxUtils.button('Layer 0', function()
+				{
+					model.beginUpdate();
+					try
+					{
+						var visible = model.isVisible(layer0);
+						model.setVisible(layer0, !visible);
+	
+						// Forces a complete refresh to hide the edges in other
+						// layers which are connected to children of this layer
+						graph.view.invalidate();
+					}
+					finally
+					{
+						model.endUpdate();
+					}
+				}));
+				
+				document.body.appendChild(mxUtils.button('Layer 1', function()
+				{
+					model.beginUpdate();
+					try
+					{
+						var visible = model.isVisible(layer1);
+						model.setVisible(layer1, !visible);
+						
+						// Forces a complete refresh to hide the edges in other
+						// layers which are connected to children of this layer
+						graph.view.invalidate();
+					}
+					finally
+					{
+						model.endUpdate();
+					}
+				}));
+			}
+		};
+	</script>
+</head>
+
+<!-- Page passes the container for the graph to the program -->
+<body onload="main(document.getElementById('graphContainer'))">
+
+	<!-- Creates a container for the graph with a grid wallpaper -->
+	<div id="graphContainer"
+		style="overflow:hidden;width:321px;height:241px;background:url('editors/images/grid.gif')">
+	</div>
+</body>
+</html>

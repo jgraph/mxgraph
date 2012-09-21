@@ -1,0 +1,993 @@
+<shapes name="mxGraph.BPMN">
+<shape name="Cancel End" h="97" w="97" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+
+<ellipse x="0" y="0" w="97" h="97"/>
+</background>
+<foreground>
+<fillstroke/>
+<strokewidth width="3"/>
+<path>
+<move x="23.5" y="23.5"/>
+<line x="73.5" y="73.5"/>
+</path>
+<stroke/>
+<strokewidth width="3"/>
+<path>
+<move x="73.5" y="23.5"/>
+<line x="23.5" y="73.5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Cancel Intermediate" h="99" w="99" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="99" h="99"/>
+</background>
+<foreground>
+<fillstroke/>
+<ellipse x="3.5" y="3.5" w="92" h="92"/>
+<fillstroke/>
+<strokewidth width="3"/>
+<path>
+<move x="24.5" y="24.5"/>
+<line x="74.5" y="74.5"/>
+</path>
+<stroke/>
+<strokewidth width="3"/>
+<path>
+<move x="74.5" y="24.5"/>
+<line x="24.5" y="74.5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Compensation End" h="97" w="97" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<save/>
+<ellipse x="0" y="0" w="97" h="97"/>
+</background>
+<foreground>
+<fillstroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="26.5" y="48.5"/>
+<line x="48.5" y="33.5"/>
+<line x="48.5" y="63.5"/>
+<close/>
+</path>
+<fillstroke/>
+<path>
+<move x="48.5" y="48.5"/>
+<line x="70.5" y="33.5"/>
+<line x="70.5" y="63.5"/>
+<close/>
+</path>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="Compensation Intermediate" h="99" w="99" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="99" h="99"/>
+</background>
+<foreground>
+<fillstroke/>
+<ellipse x="3.5" y="3.5" w="92" h="92"/>
+<fillstroke/>
+<path>
+<move x="27.5" y="49.5"/>
+<line x="49.5" y="34.5"/>
+<line x="49.5" y="64.5"/>
+<close/>
+</path>
+<fillstroke/>
+<path>
+<move x="49.5" y="49.5"/>
+<line x="71.5" y="34.5"/>
+<line x="71.5" y="64.5"/>
+<close/>
+</path>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="Error End" h="97" w="97" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<save/>
+<ellipse x="0" y="0" w="97" h="97"/>
+</background>
+<foreground>
+<fillstroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="26.5" y="79.5"/>
+<line x="39.5" y="24.5"/>
+<line x="58.5" y="61.5"/>
+<line x="69.5" y="18.5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Error Intermediate" h="99" w="99" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="99" h="99"/>
+</background>
+<foreground>
+<fillstroke/>
+<ellipse x="3.5" y="3.5" w="92" h="92"/>
+<fillstroke/>
+<path>
+<move x="27.5" y="80.5"/>
+<line x="40.5" y="25.5"/>
+<line x="59.5" y="62.5"/>
+<line x="70.5" y="19.5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Gateway" h="99" w="99" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+</connections>
+<background>
+<path>
+<move x="49.5" y="0"/>
+<line x="99" y="49.5"/>
+<line x="49.5" y="99"/>
+<line x="0" y="49.5"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="Gateway AND" h="99" w="99" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+</connections>
+<background>
+<path>
+<move x="49.5" y="0"/>
+<line x="99" y="49.5"/>
+<line x="49.5" y="99"/>
+<line x="0" y="49.5"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="49.5" y="19.5"/>
+<line x="49.5" y="79.5"/>
+</path>
+<stroke/>
+<path>
+<move x="79.5" y="49.5"/>
+<line x="19.5" y="49.5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Gateway COMPLEX" h="99" w="99" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+</connections>
+<background>
+<path>
+<move x="49.5" y="0"/>
+<line x="99" y="49.5"/>
+<line x="49.5" y="99"/>
+<line x="0" y="49.5"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+
+<path>
+<move x="79.5" y="49.5"/>
+<line x="19.5" y="49.5"/>
+</path>
+<stroke/>
+<strokewidth width="3"/>
+<path>
+<move x="49.5" y="19.5"/>
+<line x="49.5" y="79.5"/>
+</path>
+<stroke/>
+<strokewidth width="3"/>
+<path>
+<move x="28.5" y="28.5"/>
+<line x="70.5" y="70.5"/>
+</path>
+<stroke/>
+<strokewidth width="3"/>
+<path>
+<move x="70.5" y="28.5"/>
+<line x="28.5" y="70.5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Gateway OR" h="99" w="99" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+</connections>
+<background>
+<path>
+<move x="49.5" y="0"/>
+<line x="99" y="49.5"/>
+<line x="49.5" y="99"/>
+<line x="0" y="49.5"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+
+<ellipse x="24.5" y="24.5" w="50" h="50"/>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Gateway XOR (data)" h="99" w="99" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+</connections>
+<background>
+<path>
+<move x="49.5" y="0"/>
+<line x="99" y="49.5"/>
+<line x="49.5" y="99"/>
+<line x="0" y="49.5"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="37.5" y="23.5"/>
+<line x="61.5" y="75.5"/>
+</path>
+<stroke/>
+<path>
+<move x="61.5" y="23.5"/>
+<line x="37.5" y="75.5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Gateway XOR (event)" h="99" w="99" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+</connections>
+<background>
+<path>
+<move x="49.5" y="0"/>
+<line x="99" y="49.5"/>
+<line x="49.5" y="99"/>
+<line x="0" y="49.5"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<ellipse x="24.6" y="24.6" w="49.8" h="49.8"/>
+<fillstroke/>
+<ellipse x="26.4" y="26.4" w="46.2" h="46.2"/>
+<fillstroke/>
+<path>
+<move x="49.5" y="37.1"/>
+<line x="60.2" y="55.7"/>
+<line x="38.8" y="55.7"/>
+<close/>
+</path>
+<stroke/>
+<path>
+<move x="49.5" y="61.9"/>
+<line x="59.5" y="43.3"/>
+<line x="38.5" y="43.3"/>
+<close/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="General End" h="97" w="97" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+
+<ellipse x="0" y="0" w="97" h="97"/>
+</background>
+<foreground>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="General Intermediate" h="99" w="99" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="99" h="99"/>
+</background>
+<foreground>
+<fillstroke/>
+<ellipse x="3.5" y="3.5" w="92" h="92"/>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="General Start" h="99" w="99" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="99" h="99"/>
+</background>
+<foreground>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="Link End" h="97" w="97" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<save/>
+<ellipse x="0" y="0" w="97" h="97"/>
+</background>
+<foreground>
+<fillstroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="25.5" y="57.5"/>
+<line x="25.5" y="39.5"/>
+<line x="54.5" y="39.5"/>
+<line x="54.5" y="31.5"/>
+<line x="71.5" y="48.5"/>
+<line x="54.5" y="65.5"/>
+<line x="54.5" y="57.5"/>
+<close/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Link Intermediate" h="99" w="99" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="99" h="99"/>
+</background>
+<foreground>
+<fillstroke/>
+<ellipse x="3.5" y="3.5" w="92" h="92"/>
+<fillstroke/>
+<path>
+<move x="26.5" y="58.5"/>
+<line x="26.5" y="40.5"/>
+<line x="55.5" y="40.5"/>
+<line x="55.5" y="32.5"/>
+<line x="72.5" y="49.5"/>
+<line x="55.5" y="66.5"/>
+<line x="55.5" y="58.5"/>
+<close/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Link Start" h="99" w="99" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="99" h="99"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="26.5" y="58.5"/>
+<line x="26.5" y="40.5"/>
+<line x="55.5" y="40.5"/>
+<line x="55.5" y="32.5"/>
+<line x="72.5" y="49.5"/>
+<line x="55.5" y="66.5"/>
+<line x="55.5" y="58.5"/>
+<close/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Message End" h="97" w="97" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<save/>
+<ellipse x="0" y="0" w="97" h="97"/>
+</background>
+<foreground>
+<fillstroke/>
+<restore/>
+<strokewidth width="1"/>
+<rect x="13.5" y="28.5" w="70" h="40"/>
+<stroke/>
+<path>
+<move x="13.5" y="28.5"/>
+<line x="48.5" y="48.5"/>
+<line x="83.5" y="28.5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Message Intermediate" h="99" w="99" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="99" h="99"/>
+</background>
+<foreground>
+<fillstroke/>
+<ellipse x="3.5" y="3.5" w="92" h="92"/>
+<fillstroke/>
+<rect x="14.5" y="29.5" w="70" h="40"/>
+<stroke/>
+<path>
+<move x="14.5" y="29.5"/>
+<line x="49.5" y="49.5"/>
+<line x="84.5" y="29.5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Message Start" h="99" w="99" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="99" h="99"/>
+</background>
+<foreground>
+<fillstroke/>
+<rect x="14.5" y="29.5" w="70" h="40"/>
+<stroke/>
+<path>
+<move x="14.5" y="29.5"/>
+<line x="49.5" y="49.5"/>
+<line x="84.5" y="29.5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Multiple End" h="97" w="97" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<save/>
+<ellipse x="0" y="0" w="97" h="97"/>
+</background>
+<foreground>
+<fillstroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="48.5" y="23.5"/>
+<line x="70.5" y="60.5"/>
+<line x="26.5" y="60.5"/>
+<close/>
+</path>
+<stroke/>
+<path>
+<move x="48.5" y="73.5"/>
+<line x="70.5" y="36.5"/>
+<line x="26.5" y="36.5"/>
+<close/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Multiple Intermediate" h="99" w="99" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="99" h="99"/>
+</background>
+<foreground>
+<fillstroke/>
+<ellipse x="3.5" y="3.5" w="92" h="92"/>
+<fillstroke/>
+<path>
+<move x="49.5" y="24.5"/>
+<line x="71.5" y="61.5"/>
+<line x="27.5" y="61.5"/>
+<close/>
+</path>
+<stroke/>
+<path>
+<move x="49.5" y="74.5"/>
+<line x="71.5" y="37.5"/>
+<line x="27.5" y="37.5"/>
+<close/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Multiple Start" h="99" w="99" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="99" h="99"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="49.5" y="24.5"/>
+<line x="71.5" y="61.5"/>
+<line x="27.5" y="61.5"/>
+<close/>
+</path>
+<stroke/>
+<path>
+<move x="49.5" y="74.5"/>
+<line x="71.5" y="37.5"/>
+<line x="27.5" y="37.5"/>
+<close/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Rule Intermediate" h="99" w="99" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="99" h="99"/>
+</background>
+<foreground>
+<fillstroke/>
+<ellipse x="3.5" y="3.5" w="92" h="92"/>
+<fillstroke/>
+<rect x="29.5" y="15.5" w="40" h="68"/>
+<fillstroke/>
+<path>
+<move x="29.5" y="22.5"/>
+<line x="61.5" y="22.5"/>
+</path>
+<stroke/>
+<path>
+<move x="29.5" y="40.5"/>
+<line x="61.5" y="40.5"/>
+</path>
+<stroke/>
+<path>
+<move x="29.5" y="58.5"/>
+<line x="61.5" y="58.5"/>
+</path>
+<stroke/>
+<path>
+<move x="29.5" y="76.5"/>
+<line x="61.5" y="76.5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Rule Start" h="99" w="99" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="99" h="99"/>
+</background>
+<foreground>
+<fillstroke/>
+<rect x="29.5" y="15.5" w="40" h="68"/>
+<fillstroke/>
+<path>
+<move x="29.5" y="22.5"/>
+<line x="61.5" y="22.5"/>
+</path>
+<stroke/>
+<path>
+<move x="29.5" y="40.5"/>
+<line x="61.5" y="40.5"/>
+</path>
+<stroke/>
+<path>
+<move x="29.5" y="58.5"/>
+<line x="61.5" y="58.5"/>
+</path>
+<stroke/>
+<path>
+<move x="29.5" y="76.5"/>
+<line x="61.5" y="76.5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Terminate" h="97" w="97" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+
+<ellipse x="0" y="0" w="97" h="97"/>
+</background>
+<foreground>
+<fillstroke/>
+<strokewidth width="42"/>
+<ellipse x="27.5" y="27.5" w="42" h="42"/>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="Timer Intermediate" h="99" w="99" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="99" h="99"/>
+</background>
+<foreground>
+<fillstroke/>
+<ellipse x="3.5" y="3.5" w="92" h="92"/>
+<fillstroke/>
+<ellipse x="10.5" y="10.5" w="78" h="78"/>
+<fillstroke/>
+<path>
+<move x="49.5" y="49.5"/>
+<line x="51.5" y="16"/>
+</path>
+<stroke/>
+<path>
+<move x="49.5" y="49.5"/>
+<line x="71.5" y="49.5"/>
+</path>
+<stroke/>
+<path>
+<move x="49.5" y="10.5"/>
+<line x="49.5" y="15.5"/>
+</path>
+<stroke/>
+<path>
+<move x="69" y="15.6"/>
+<line x="66.2" y="20.5"/>
+</path>
+<stroke/>
+<path>
+<move x="83.2" y="29.8"/>
+<line x="78.3" y="32.8"/>
+</path>
+<stroke/>
+<path>
+<move x="88.5" y="49.5"/>
+<line x="83.5" y="49.5"/>
+</path>
+<stroke/>
+<path>
+<move x="83.2" y="69.2"/>
+<line x="78.3" y="66.2"/>
+</path>
+<stroke/>
+<path>
+<move x="30" y="15.6"/>
+<line x="32.8" y="20.5"/>
+</path>
+<stroke/>
+<path>
+<move x="69" y="83.4"/>
+<line x="66.2" y="78.5"/>
+</path>
+<stroke/>
+<path>
+<move x="49.5" y="83.5"/>
+<line x="49.5" y="88.5"/>
+</path>
+<stroke/>
+<path>
+<move x="30" y="83.4"/>
+<line x="32.8" y="78.5"/>
+</path>
+<stroke/>
+<path>
+<move x="15.8" y="69.2"/>
+<line x="20.7" y="66.2"/>
+</path>
+<stroke/>
+<path>
+<move x="10.5" y="49.5"/>
+<line x="15.5" y="49.5"/>
+</path>
+<stroke/>
+<path>
+<move x="15.8" y="29.8"/>
+<line x="20.7" y="32.8"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Timer Start" h="99" w="99" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="99" h="99"/>
+</background>
+<foreground>
+<fillstroke/>
+<ellipse x="10.5" y="10.5" w="78" h="78"/>
+<fillstroke/>
+<path>
+<move x="49.5" y="49.5"/>
+<line x="51.5" y="16"/>
+</path>
+<stroke/>
+<path>
+<move x="49.5" y="49.5"/>
+<line x="71.5" y="49.5"/>
+</path>
+<stroke/>
+<path>
+<move x="49.5" y="10.5"/>
+<line x="49.5" y="15.5"/>
+</path>
+<stroke/>
+<path>
+<move x="69" y="15.6"/>
+<line x="66.2" y="20.5"/>
+</path>
+<stroke/>
+<path>
+<move x="83.2" y="29.8"/>
+<line x="78.3" y="32.8"/>
+</path>
+<stroke/>
+<path>
+<move x="88.5" y="49.5"/>
+<line x="83.5" y="49.5"/>
+</path>
+<stroke/>
+<path>
+<move x="83.2" y="69.2"/>
+<line x="78.3" y="66.2"/>
+</path>
+<stroke/>
+<path>
+<move x="30" y="15.6"/>
+<line x="32.8" y="20.5"/>
+</path>
+<stroke/>
+<path>
+<move x="69" y="83.4"/>
+<line x="66.2" y="78.5"/>
+</path>
+<stroke/>
+<path>
+<move x="49.5" y="83.5"/>
+<line x="49.5" y="88.5"/>
+</path>
+<stroke/>
+<path>
+<move x="30" y="83.4"/>
+<line x="32.8" y="78.5"/>
+</path>
+<stroke/>
+<path>
+<move x="15.8" y="69.2"/>
+<line x="20.7" y="66.2"/>
+</path>
+<stroke/>
+<path>
+<move x="10.5" y="49.5"/>
+<line x="15.5" y="49.5"/>
+</path>
+<stroke/>
+<path>
+<move x="15.8" y="29.8"/>
+<line x="20.7" y="32.8"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+</shapes>

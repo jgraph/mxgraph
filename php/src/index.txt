@@ -1,0 +1,19 @@
+Document: API Specification
+
+Overview:
+
+  This PHP library is divided into 4 packages. The top-level <mxServer>
+  class dynamically includes everything else.
+  
+  The *view* and *model* packages implement the graph component, represented
+  by <mxGraph>. It refers to a <mxGraphModel> which contains <mxCell>s and
+  caches the state of the cells in a <mxGraphView>. The cells are painted
+  using a <mxCanvas> based on the appearance defined in <mxStylesheet>.
+
+  The *io* package implements a generic <mxObjectCodec> for turning
+  PHP objects into XML. The main class is <mxCodec>. <mxCodecRegistry>
+  is the global registry for custom codecs.
+
+Requirements:
+
+  The I/O module requires libxml support. The <mxGdCanvas> requires GD support.

@@ -1,0 +1,109 @@
+<!--
+  $Id: perimeter.html,v 1.3 2012-07-17 08:22:19 gaudenz Exp $
+  Copyright (c) 2006-2010, JGraph Ltd
+  
+  Perimeter example for mxGraph. This example demonstrates how to
+  avoid edge and label intersections.
+-->
+<html>
+<head>
+	<title>Hello, World! example for mxGraph</title>
+
+	<!-- Sets the basepath for the library if not in same directory -->
+	<script type="text/javascript">
+		mxBasePath = '../src';
+	</script>
+
+	<!-- Loads and initializes the library -->
+	<script type="text/javascript" src="../src/js/mxClient.js"></script>
+
+	<!-- Example code -->
+	<script type="text/javascript">
+		// Program starts here. Creates a sample graph in the
+		// DOM node with the specified ID. This function is invoked
+		// from the onLoad event handler of the document (see below).
+		function main(container)
+		{
+			// Checks if the browser is supported
+			if (!mxClient.isBrowserSupported())
+			{
+				// Displays an error message if the browser is not supported.
+				mxUtils.error('Browser is not supported!', 200, false);
+			}
+			else
+			{
+				// Enables crisp rendering of rectangles in SVG
+				mxRectangleShape.prototype.crisp = true;
+				
+				// Redirects the perimeter to the label bounds if intersection
+				// between edge and label is found
+				mxGraphViewGetPerimeterPoint = mxGraphView.prototype.getPerimeterPoint;
+				mxGraphView.prototype.getPerimeterPoint = function(terminal, next, orthogonal, border)
+				{
+					var point = mxGraphViewGetPerimeterPoint.apply(this, arguments);
+					
+					if (point != null)
+					{
+						var perimeter = this.getPerimeterFunction(terminal);
+
+						if (terminal.text != null && terminal.text.boundingBox != null)
+						{
+							// Adds a small border to the label bounds
+							var b = terminal.text.boundingBox.clone();
+							b.grow(3)
+
+							if (mxUtils.rectangleIntersectsSegment(b, point, next))
+							{
+								point = perimeter(b, terminal, next, orthogonal);
+							}
+						}
+					}
+					
+					return point;
+				};
+				
+				// Creates the graph inside the given container
+				var graph = new mxGraph(container);
+				graph.setVertexLabelsMovable(true);
+				graph.setConnectable(true);
+
+				// Uncomment the following if you want the container
+				// to fit the size of the graph
+				//graph.setResizeContainer(true);
+				
+				// Enables rubberband selection
+				new mxRubberband(graph);
+				
+				// Gets the default parent for inserting new cells. This
+				// is normally the first child of the root (ie. layer 0).
+				var parent = graph.getDefaultParent();
+								
+				// Adds cells to the model in a single step
+				graph.getModel().beginUpdate();
+				try
+				{
+					var v1 = graph.insertVertex(parent, null, 'Label', 20, 20, 80, 30, 'verticalLabelPosition=bottom');
+					var v2 = graph.insertVertex(parent, null, 'Label', 200, 20, 80, 30, 'verticalLabelPosition=bottom');
+					var v3 = graph.insertVertex(parent, null, 'Label', 20, 150, 80, 30, 'verticalLabelPosition=bottom');
+					var e1 = graph.insertEdge(parent, null, '', v1, v2);
+					var e1 = graph.insertEdge(parent, null, '', v1, v3);
+				}
+				finally
+				{
+					// Updates the display
+					graph.getModel().endUpdate();
+				}
+			}
+		};
+	</script>
+</head>
+
+<!-- Page passes the container for the graph to the program -->
+<body onload="main(document.getElementById('graphContainer'))">
+
+	<!-- Creates a container for the graph with a grid wallpaper -->
+	<div id="graphContainer"
+		style="overflow:hidden;width:321px;height:241px;background:url('editors/images/grid.gif');cursor:default;">
+	</div>
+</body>
+</html>

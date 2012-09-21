@@ -1,0 +1,439 @@
+<shapes name="mxGraph.electrical.signal_sources">
+<shape name="AC Source" h="60" w="60" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="60" h="60"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="15" y="30"/>
+<arc rx="8" ry="8" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="30" y="30"/>
+<arc rx="8" ry="8" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="45" y="30"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Current Flow" h="10" w="70" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<foreground>
+<fontcolor color="#000000"/>
+<fontsize size="10"/>
+<text str="5mA" x="35" y="2" align="center" valign="bottom"/>
+<path>
+<move x="0" y="5"/>
+<line x="70" y="5"/>
+</path>
+<stroke/>
+<path>
+<move x="60" y="0"/>
+<line x="70" y="5"/>
+<line x="60" y="10"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Current Source" h="60" w="40" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+</connections>
+<background>
+<ellipse x="0" y="20" w="40" h="40"/>
+</background>
+<foreground>
+<fillstroke/>
+<ellipse x="0" y="0" w="40" h="40"/>
+<fillstroke/>
+<ellipse x="0" y="20" w="40" h="40"/>
+<stroke/>
+</foreground>
+</shape>
+<shape name="DC Source 1" h="75" w="70" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.58" y="0.135" perimeter="0" name="N"/>
+<constraint x="0.58" y="0.935" perimeter="0" name="S"/>
+</connections>
+<background>
+<ellipse x="10" y="10" w="60" h="60"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="0" y="75"/>
+<line x="10" y="75"/>
+</path>
+<stroke/>
+<path>
+<move x="5" y="0"/>
+<line x="5" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="5"/>
+<line x="10" y="5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="DC Source 2" h="60" w="60" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="60" h="60"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="10" y="30"/>
+<line x="50" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="40" y="25"/>
+<line x="50" y="30"/>
+<line x="40" y="35"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="DC Source 3" h="60" w="60" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="60" h="60"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="27" y="55"/>
+<line x="33" y="55"/>
+</path>
+<stroke/>
+<path>
+<move x="30" y="2"/>
+<line x="30" y="8"/>
+</path>
+<stroke/>
+<path>
+<move x="27" y="5"/>
+<line x="33" y="5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Dependent Source 1" h="60" w="60" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+</connections>
+<background>
+<path>
+<move x="30" y="0"/>
+<line x="60" y="30"/>
+<line x="30" y="60"/>
+<line x="0" y="30"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="Dependent Source 2" h="60" w="60" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+</connections>
+<background>
+<path>
+<move x="30" y="0"/>
+<line x="60" y="30"/>
+<line x="30" y="60"/>
+<line x="0" y="30"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="30" y="10"/>
+<line x="30" y="50"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="40"/>
+<line x="30" y="50"/>
+<line x="35" y="40"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Dependent Source 3" h="60" w="60" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+</connections>
+<background>
+<path>
+<move x="30" y="0"/>
+<line x="60" y="30"/>
+<line x="30" y="60"/>
+<line x="0" y="30"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="27" y="10"/>
+<line x="33" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="30" y="7"/>
+<line x="30" y="13"/>
+</path>
+<stroke/>
+<path>
+<move x="27" y="50"/>
+<line x="33" y="50"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Equipotential" h="90" w="90" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+</connections>
+<background>
+<path>
+<move x="0" y="15"/>
+<line x="45" y="90"/>
+<line x="90" y="15"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="45" y="0"/>
+<line x="45" y="15"/>
+</path>
+<stroke/>
+<ellipse x="20" y="15.5" w="50" h="50"/>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Noise Source" h="60" w="60" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="60" h="60"/>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="30" y="10"/>
+<line x="30" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="11" y="25"/>
+<line x="30" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="19" y="47"/>
+<line x="30" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="41" y="47"/>
+<line x="30" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="49" y="25"/>
+<line x="30" y="30"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Protective Earth" h="40" w="50" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+</connections>
+<foreground>
+<path>
+<move x="0" y="10"/>
+<line x="50" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="4" y="15"/>
+<line x="46" y="15"/>
+</path>
+<stroke/>
+<path>
+<move x="8" y="20"/>
+<line x="42" y="20"/>
+</path>
+<stroke/>
+<path>
+<move x="16.5" y="30"/>
+<line x="33.5" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="20.5" y="35"/>
+<line x="29.5" y="35"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="0"/>
+<line x="25" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="12.5" y="25"/>
+<line x="37.5" y="25"/>
+</path>
+<stroke/>
+<path>
+<move x="24.5" y="40"/>
+<line x="25.5" y="40"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Signal Ground" h="60" w="90" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+</connections>
+<background>
+<path>
+<move x="0" y="20"/>
+<line x="45" y="60"/>
+<line x="90" y="20"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="45" y="0"/>
+<line x="45" y="20"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Vdd" h="40" w="60" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+</connections>
+<foreground>
+<fontcolor color="#000000"/>
+<fontsize size="24"/>
+<text str="V" x="25" y="68" align="center" valign="bottom"/>
+<path>
+<move x="0" y="40"/>
+<line x="60" y="40"/>
+</path>
+<stroke/>
+<path>
+<move x="30" y="40"/>
+<line x="30" y="0"/>
+</path>
+<stroke/>
+<fontsize size="15"/>
+<text str="dd" x="42" y="73" align="center" valign="bottom"/>
+</foreground>
+</shape>
+<shape name="Voltage" h="70" w="10" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+</connections>
+<foreground>
+<path>
+<move x="5" y="0"/>
+<line x="5" y="70"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="60"/>
+<line x="5" y="70"/>
+<line x="10" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="10"/>
+<line x="5" y="0"/>
+<line x="10" y="10"/>
+</path>
+<stroke/>
+<fontcolor color="#000000"/>
+<fontsize size="10"/>
+<text str="1.2V" x="25" y="38" align="center" valign="bottom"/>
+</foreground>
+</shape>
+<shape name="Vss" h="40" w="60" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+</connections>
+<foreground>
+<fontcolor color="#000000"/>
+<fontsize size="24"/>
+<text str="V" x="25" y="-7" align="center" valign="bottom"/>
+<path>
+<move x="0" y="0"/>
+<line x="60" y="0"/>
+</path>
+<stroke/>
+<path>
+<move x="30" y="0"/>
+<line x="30" y="40"/>
+</path>
+<stroke/>
+<fontsize size="15"/>
+<text str="ss" x="42" y="-3" align="center" valign="bottom"/>
+</foreground>
+</shape>
+</shapes>

@@ -1,0 +1,674 @@
+<shapes name="mxGraph.electrical.transistors">
+<shape name="Complementary Unijunction" h="90" w="90" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.97" y="0.333" perimeter="0" name="NE"/>
+<constraint x="0.97" y="0.665" perimeter="0" name="SE"/>
+<constraint x="0.025" y="0.67" perimeter="0" name="W"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="90" h="90"/>
+</background>
+<foreground>
+<fillstroke/>
+<save/>
+<path>
+<move x="20" y="15"/>
+<line x="20" y="75"/>
+</path>
+<stroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="20" y="30"/>
+<line x="87.5" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="60"/>
+<line x="87.5" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="2.5" y="60"/>
+<line x="20" y="45"/>
+</path>
+<stroke/>
+
+<miterlimit limit="2.1"/>
+<path>
+<move x="5" y="54.5"/>
+<line x="2.5" y="60"/>
+<line x="8" y="59"/>
+<close/>
+</path>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="Darlington Pair" h="90" w="90" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.965" y="0.315" perimeter="0" name="NE"/>
+<constraint x="0.79" y="0.91" perimeter="0" name="SE"/>
+<constraint x="0" y="0.51" perimeter="0" name="W"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="90" h="90"/>
+</background>
+<foreground>
+<fillstroke/>
+<save/>
+<path>
+<move x="43.75" y="48.75"/>
+<line x="43.75" y="78.75"/>
+</path>
+<stroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="43.75" y="63.75"/>
+<line x="70.25" y="81.25"/>
+</path>
+<stroke/>
+<path>
+<move x="68.37" y="78.25"/>
+<line x="70.35" y="81.35"/>
+<line x="66.87" y="81"/>
+<close/>
+</path>
+<fillstroke/>
+<save/>
+<path>
+<move x="16.37" y="30.87"/>
+<line x="16.37" y="60.87"/>
+</path>
+<stroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="16.37" y="45.87"/>
+<line x="42.87" y="63.37"/>
+</path>
+<stroke/>
+<path>
+<move x="41" y="60.37"/>
+<line x="42.87" y="63.47"/>
+<line x="39.5" y="63.12"/>
+<close/>
+</path>
+<fillstroke/>
+<path>
+<move x="0" y="45.87"/>
+<line x="16.37" y="45.87"/>
+</path>
+<stroke/>
+<path>
+<move x="16.3" y="45.8"/>
+<line x="42.5" y="28.4"/>
+<line x="87" y="28.4"/>
+</path>
+<stroke/>
+<path>
+<move x="43.8" y="63.8"/>
+<line x="70.3" y="46.3"/>
+<line x="70.3" y="28.4"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="N-channel JFET 1" h="90" w="90" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.97" y="0.333" perimeter="0" name="NE"/>
+<constraint x="0.97" y="0.665" perimeter="0" name="SE"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="90" h="90"/>
+</background>
+<foreground>
+<fillstroke/>
+<save/>
+<path>
+<move x="20" y="15"/>
+<line x="20" y="75"/>
+</path>
+<stroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="20" y="30"/>
+<line x="87.5" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="60"/>
+<line x="87.5" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="45"/>
+<line x="20" y="45"/>
+</path>
+<stroke/>
+
+<miterlimit limit="2"/>
+<path>
+<move x="14.5" y="42"/>
+<line x="20" y="45"/>
+<line x="14.5" y="48"/>
+<close/>
+</path>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="N-channel JFET 2" h="90" w="90" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.97" y="0.333" perimeter="0" name="NE"/>
+<constraint x="0.97" y="0.665" perimeter="0" name="SE"/>
+<constraint x="0.025" y="0.67" perimeter="0" name="W"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="90" h="90"/>
+</background>
+<foreground>
+<fillstroke/>
+<save/>
+<path>
+<move x="20" y="15"/>
+<line x="20" y="75"/>
+</path>
+<stroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="20" y="30"/>
+<line x="87.5" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="60"/>
+<line x="87.5" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="2.5" y="60"/>
+<line x="20" y="60"/>
+</path>
+<stroke/>
+
+<miterlimit limit="2"/>
+<path>
+<move x="14.5" y="57"/>
+<line x="20" y="60"/>
+<line x="14.5" y="63"/>
+<close/>
+</path>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="NPN Transistor 1" h="90" w="90" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.81" y="0.11" perimeter="0" name="NE"/>
+<constraint x="0.81" y="0.89" perimeter="0" name="SE"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="90" h="90"/>
+</background>
+<foreground>
+<fillstroke/>
+<save/>
+<path>
+<move x="20" y="15"/>
+<line x="20" y="75"/>
+</path>
+<stroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="20" y="30"/>
+<line x="73" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="60"/>
+<line x="73" y="80"/>
+</path>
+<stroke/>
+<path>
+<move x="68.75" y="75.5"/>
+<line x="72.75" y="80"/>
+<line x="66.75" y="81"/>
+<close/>
+</path>
+<fillstroke/>
+<path>
+<move x="0" y="45"/>
+<line x="20" y="45"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="NPN Transistor 2" h="71" w="73" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="1" y="0" perimeter="0" name="NE"/>
+<constraint x="1" y="0.99" perimeter="0" name="SE"/>
+<constraint x="0" y="0.492" perimeter="0" name="W"/>
+</connections>
+<foreground>
+<save/>
+<path>
+<move x="20" y="5"/>
+<line x="20" y="65"/>
+</path>
+<stroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="20" y="20"/>
+<line x="73" y="0"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="50"/>
+<line x="73" y="70"/>
+</path>
+<stroke/>
+<path>
+<move x="68.75" y="65.5"/>
+<line x="72.75" y="70"/>
+<line x="66.75" y="71"/>
+<close/>
+</path>
+<fillstroke/>
+<path>
+<move x="0" y="35"/>
+<line x="20" y="35"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="NPN Transistor 3" h="70.2" w="73.2" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="1" y="0" perimeter="0" name="NE"/>
+<constraint x="1" y="1" perimeter="0" name="SE"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+</connections>
+<foreground>
+<save/>
+<path>
+<move x="20" y="5"/>
+<line x="20" y="65"/>
+</path>
+<stroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="20" y="35"/>
+<line x="73" y="0"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="35"/>
+<line x="73" y="70"/>
+</path>
+<stroke/>
+<path>
+<move x="69.25" y="64"/>
+<line x="73.2" y="70.2"/>
+<line x="66.25" y="69.5"/>
+<close/>
+</path>
+<fillstroke/>
+<path>
+<move x="0" y="35"/>
+<line x="20" y="35"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="NPN Transistor 4" h="90" w="90" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.81" y="0.11" perimeter="0" name="NE"/>
+<constraint x="0.81" y="0.89" perimeter="0" name="SE"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="90" h="90"/>
+</background>
+<foreground>
+<fillstroke/>
+<save/>
+<path>
+<move x="20" y="15"/>
+<line x="20" y="75"/>
+</path>
+<stroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="20" y="45"/>
+<line x="73" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="45"/>
+<line x="73" y="80"/>
+</path>
+<stroke/>
+<save/>
+<miterlimit limit="2"/>
+<path>
+<move x="69.25" y="74"/>
+<line x="73.2" y="80.2"/>
+<line x="66.25" y="79.5"/>
+<close/>
+</path>
+<fillstroke/>
+<restore/>
+<miterlimit limit="4"/>
+<path>
+<move x="0" y="45"/>
+<line x="20" y="45"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="P-channel JFET 1" h="90" w="90" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.97" y="0.333" perimeter="0" name="NE"/>
+<constraint x="0.97" y="0.665" perimeter="0" name="SE"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="90" h="90"/>
+</background>
+<foreground>
+<fillstroke/>
+<save/>
+<path>
+<move x="20" y="15"/>
+<line x="20" y="75"/>
+</path>
+<stroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="20" y="30"/>
+<line x="87.5" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="60"/>
+<line x="87.5" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="45"/>
+<line x="20" y="45"/>
+</path>
+<stroke/>
+
+<miterlimit limit="2"/>
+<path>
+<move x="5.5" y="42"/>
+<line x="0" y="45"/>
+<line x="5.5" y="48"/>
+<close/>
+</path>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="P-channel JFET 2" h="90" w="90" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.97" y="0.333" perimeter="0" name="NE"/>
+<constraint x="0.97" y="0.665" perimeter="0" name="SE"/>
+<constraint x="0.025" y="0.67" perimeter="0" name="W"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="90" h="90"/>
+</background>
+<foreground>
+<fillstroke/>
+<save/>
+<path>
+<move x="20" y="15"/>
+<line x="20" y="75"/>
+</path>
+<stroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="20" y="30"/>
+<line x="87.5" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="60"/>
+<line x="87.5" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="2.5" y="60"/>
+<line x="20" y="60"/>
+</path>
+<stroke/>
+
+<miterlimit limit="2"/>
+<path>
+<move x="8" y="57"/>
+<line x="2.5" y="60"/>
+<line x="8" y="63"/>
+<close/>
+</path>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="PNP Transistor 1" h="90" w="90" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.81" y="0.11" perimeter="0" name="NE"/>
+<constraint x="0.81" y="0.89" perimeter="0" name="SE"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="90" h="90"/>
+</background>
+<foreground>
+<fillstroke/>
+<save/>
+<path>
+<move x="20" y="15"/>
+<line x="20" y="75"/>
+</path>
+<stroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="20" y="30"/>
+<line x="73" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="60"/>
+<line x="73" y="80"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="65"/>
+<line x="21" y="60.5"/>
+<line x="27" y="59.5"/>
+<close/>
+</path>
+<fillstroke/>
+<path>
+<move x="0" y="45"/>
+<line x="20" y="45"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="PNP Transistor 2" h="70" w="73" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="1" y="0" perimeter="0" name="NE"/>
+<constraint x="1" y="1" perimeter="0" name="SE"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+</connections>
+<foreground>
+<save/>
+<path>
+<move x="20" y="5"/>
+<line x="20" y="65"/>
+</path>
+<stroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="20" y="20"/>
+<line x="73" y="0"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="50"/>
+<line x="73" y="70"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="35"/>
+<line x="20" y="35"/>
+</path>
+<stroke/>
+<path>
+<move x="25" y="55"/>
+<line x="21" y="50.5"/>
+<line x="27" y="49.5"/>
+<close/>
+</path>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="PNP Transistor 3" h="70" w="73" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="1" y="0" perimeter="0" name="NE"/>
+<constraint x="1" y="1" perimeter="0" name="SE"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+</connections>
+<foreground>
+<save/>
+<path>
+<move x="20" y="5"/>
+<line x="20" y="65"/>
+</path>
+<stroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="20" y="35"/>
+<line x="73" y="0"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="35"/>
+<line x="73" y="70"/>
+</path>
+<stroke/>
+<path>
+<move x="24.5" y="41"/>
+<line x="21" y="35"/>
+<line x="27.5" y="36.5"/>
+<close/>
+</path>
+<fillstroke/>
+<path>
+<move x="0" y="35"/>
+<line x="20" y="35"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="PNP Transistor 4" h="90" w="90" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.81" y="0.11" perimeter="0" name="NE"/>
+<constraint x="0.81" y="0.89" perimeter="0" name="SE"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="90" h="90"/>
+</background>
+<foreground>
+<fillstroke/>
+<save/>
+<path>
+<move x="20" y="15"/>
+<line x="20" y="75"/>
+</path>
+<stroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="20" y="45"/>
+<line x="73" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="45"/>
+<line x="73" y="80"/>
+</path>
+<stroke/>
+<path>
+<move x="24.5" y="51"/>
+<line x="21" y="45"/>
+<line x="27.5" y="46.5"/>
+<close/>
+</path>
+<fillstroke/>
+<path>
+<move x="0" y="45"/>
+<line x="20" y="45"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Unijunction" h="90" w="90" aspect="fixed" strokewidth="inherit">
+<connections>
+<constraint x="0.97" y="0.333" perimeter="0" name="NE"/>
+<constraint x="0.97" y="0.665" perimeter="0" name="SE"/>
+<constraint x="0.025" y="0.67" perimeter="0" name="W"/>
+</connections>
+<background>
+<ellipse x="0" y="0" w="90" h="90"/>
+</background>
+<foreground>
+<fillstroke/>
+<save/>
+<path>
+<move x="20" y="15"/>
+<line x="20" y="75"/>
+</path>
+<stroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="20" y="30"/>
+<line x="87.5" y="30"/>
+</path>
+<stroke/>
+<path>
+<move x="20" y="60"/>
+<line x="87.5" y="60"/>
+</path>
+<stroke/>
+<path>
+<move x="2.5" y="60"/>
+<line x="20" y="45"/>
+</path>
+<stroke/>
+
+<miterlimit limit="2"/>
+<path>
+<move x="13" y="47"/>
+<line x="20" y="45"/>
+<line x="16.5" y="52"/>
+<close/>
+</path>
+<fillstroke/>
+</foreground>
+</shape>
+</shapes>

@@ -1,0 +1,122 @@
+<!--
+  $Id: overlays.html,v 1.21 2012-07-17 08:22:19 gaudenz Exp $
+  Copyright (c) 2006-2010, JGraph Ltd
+  
+  Overlays example for mxGraph. This example demonstrates cell
+  highlighting, overlays and handling click and double click
+  events. See also: events.html for more event handling.
+-->
+<html>
+<head>
+	<title>Overlays example for mxGraph</title>
+
+	<!-- Sets the basepath for the library if not in same directory -->
+	<script type="text/javascript">
+		mxBasePath = '../src';
+	</script>
+
+	<!-- Loads and initializes the library -->
+	<script type="text/javascript" src="../src/js/mxClient.js"></script>
+
+	<!-- Example code -->
+	<script type="text/javascript">
+
+		// Program starts here. Creates a sample graph in the
+		// DOM node with the specified ID. This function is invoked
+		// from the onLoad event handler of the document (see below).
+		function main(container)
+		{
+			// Checks if browser is supported
+			if (!mxClient.isBrowserSupported())
+			{
+				// Displays an error message if the browser is
+				// not supported.
+				mxUtils.error('Browser is not supported!', 200, false);
+			}
+			else
+			{
+				// Creates the graph inside the given container
+				var graph = new mxGraph(container);
+				
+				// Disables basic selection and cell handling
+				graph.setEnabled(false);
+								
+				// Highlights the vertices when the mouse enters
+				var highlight = new mxCellTracker(graph, '#00FF00');
+				
+				// Enables tooltips for the overlays
+				graph.setTooltips(true);
+
+				// Installs a handler for click events in the graph
+				// that toggles the overlay for the respective cell
+				graph.addListener(mxEvent.CLICK, function(sender, evt)
+				{
+					var cell = evt.getProperty('cell');
+					
+					if (cell != null)
+					{
+						var overlays = graph.getCellOverlays(cell);
+						
+						if (overlays == null)
+						{
+							// Creates a new overlay with an image and a tooltip
+							var overlay = new mxCellOverlay(
+								new mxImage('editors/images/overlays/check.png', 16, 16),
+								'Overlay tooltip');
+
+							// Installs a handler for clicks on the overlay							
+							overlay.addListener(mxEvent.CLICK, function(sender, evt2)
+							{
+								mxUtils.alert('Overlay clicked');
+							});
+							
+							// Sets the overlay for the cell in the graph
+							graph.addCellOverlay(cell, overlay);
+						}
+						else
+						{
+							graph.removeCellOverlays(cell);
+						}
+					}
+				});
+				
+				// Installs a handler for double click events in the graph
+				// that shows an alert box
+				graph.addListener(mxEvent.DOUBLE_CLICK, function(sender, evt)
+				{
+					var cell = evt.getProperty('cell');
+					mxUtils.alert('Doubleclick: '+((cell != null) ? 'Cell' : 'Graph'));
+					evt.consume();
+				});
+				
+				// Gets the default parent for inserting new cells. This
+				// is normally the first child of the root (ie. layer 0).
+				var parent = graph.getDefaultParent();
+								
+				// Adds cells to the model in a single step
+				graph.getModel().beginUpdate();
+				try
+				{
+					var v1 = graph.insertVertex(parent, null, 'Click,', 20, 20, 60, 40);
+					var v2 = graph.insertVertex(parent, null, 'Doubleclick', 200, 150, 100, 40);
+					var e1 = graph.insertEdge(parent, null, '', v1, v2);
+				}
+				finally
+				{
+					// Updates the display
+					graph.getModel().endUpdate();
+				}
+			}
+		};
+	</script>
+</head>
+
+<!-- Page passes the container for the graph to the program -->
+<body onload="main(document.getElementById('graphContainer'))">
+
+	<!-- Creates a container for the graph with a grid wallpaper -->
+	<div id="graphContainer"
+		style="overflow:hidden;width:321px;height:241px;background:url('editors/images/grid.gif')">
+	</div>
+</body>
+</html>

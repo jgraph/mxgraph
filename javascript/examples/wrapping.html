@@ -1,0 +1,81 @@
+<!--
+  $Id: wrapping.html,v 1.12 2012-07-17 08:22:19 gaudenz Exp $
+  Copyright (c) 2006-2010, JGraph Ltd
+  
+  Wrapping example for mxGraph. This example demonstrates using HTML markup and
+  word-wrapping in vertex and edge labels.
+-->
+<html>
+<head>
+	<title>Wrapping example for mxGraph</title>
+
+	<!-- Sets the basepath for the library if not in same directory -->
+	<script type="text/javascript">
+		mxBasePath = '../src';
+	</script>
+
+	<!-- Loads and initializes the library -->
+	<script type="text/javascript" src="../src/js/mxClient.js"></script>
+
+	<!-- Example code -->
+	<script type="text/javascript">
+
+		// Program starts here. Creates a sample graph in the
+		// DOM node with the specified ID. This function is invoked
+		// from the onLoad event handler of the document (see below).
+		function main(container)
+		{
+			// Checks if the browser is supported
+			if (!mxClient.isBrowserSupported())
+			{
+				// Displays an error message if the browser is not supported.
+				mxUtils.error('Browser is not supported!', 200, false);
+			}
+			else
+			{
+				// Creates the graph inside the given container
+				var graph = new mxGraph(container);
+				
+				// Enables HTML labels as wrapping is only available for those
+				graph.htmlLabels = true;
+
+				// Disables in-place editing for edges
+				graph.isCellEditable = function(cell)
+				{
+					return !this.model.isEdge(cell);
+				};
+				
+				// Gets the default parent for inserting new cells. This
+				// is normally the first child of the root (ie. layer 0).
+				var parent = graph.getDefaultParent();
+
+				// Adds cells to the model in a single step
+				graph.getModel().beginUpdate();
+				try
+				{
+					var v1 = graph.insertVertex(parent, null, 'Cum Caesar vidisset, portum plenum esse, iuxta navigavit.',
+							20, 20, 100, 70, 'whiteSpace=wrap;');
+					var v2 = graph.insertVertex(parent, null, 'Cum Caesar vidisset, portum plenum esse, iuxta navigavit.',
+							220, 150, 80, 70, 'whiteSpace=wrap;');
+					var e1 = graph.insertEdge(parent, null, '<table style="width:100px;font-size:11px;color:#774400;"><tr><td align="center">Cum Caesar vidisset, portum plenum esse, iuxta navigavit.</td></tr></table>',
+							v1, v2);
+				}
+				finally
+				{
+					// Updates the display
+					graph.getModel().endUpdate();
+				}
+			}
+		};
+	</script>
+</head>
+
+<!-- Page passes the container for the graph to the program -->
+<body onload="main(document.getElementById('graphContainer'))">
+
+	<!-- Creates a container for the graph with a grid wallpaper -->
+	<div id="graphContainer"
+		style="position:relative;overflow:hidden;width:341px;height:241px;background:url('editors/images/grid.gif')">
+	</div>
+</body>
+</html>

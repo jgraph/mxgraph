@@ -1,0 +1,147 @@
+<!--
+  $Id: fixedicon.html,v 1.3 2012-07-17 08:22:19 gaudenz Exp $
+  Copyright (c) 2006-2010, JGraph Ltd
+  
+  FixedIcon example for mxGraph. This example demonstrates
+  customizing the icon position in the mxLabel shape.
+-->
+<html>
+<head>
+	<title>Fixed icon example for mxGraph</title>
+
+	<!-- Sets the basepath for the library if not in same directory -->
+	<script type="text/javascript">
+		mxBasePath = '../src';
+	</script>
+
+	<!-- Loads and initializes the library -->
+	<script type="text/javascript" src="../src/js/mxClient.js"></script>
+
+	<!-- Example code -->
+	<script type="text/javascript">
+		// Overrides the label redraw code to place the icon
+		mxLabel.prototype.redraw = function()
+		{
+			var isSvg = (this.dialect == mxConstants.DIALECT_SVG);
+			var isVml = mxUtils.isVml(this.node);
+			
+			// Updates the bounds of the outermost shape
+			if (isSvg)
+			{
+				this.updateSvgShape(this.innerNode);
+				
+				if (this.shadowNode != null)
+				{
+					this.updateSvgShape(this.shadowNode);
+				}
+	
+				this.updateSvgGlassPane();
+			}
+			else if (isVml)
+			{
+				this.updateVmlShape(this.node);
+				this.updateVmlShape(this.rectNode);
+				this.label.style.width = this.node.style.width;
+				this.label.style.height = this.node.style.height;
+				
+				this.updateVmlGlassPane();
+			}
+			else
+			{
+				this.updateHtmlShape(this.node);
+			}
+	
+			// Updates the imagewidth and imageheight		
+			var imageWidth = 0;
+			var imageHeight = 0;
+			
+			if (this.imageNode != null)
+			{
+				imageWidth = (this.style[mxConstants.STYLE_IMAGE_WIDTH] ||
+					this.imageSize) * this.scale;
+				imageHeight = (this.style[mxConstants.STYLE_IMAGE_HEIGHT] ||
+					this.imageSize) * this.scale;
+	
+				// Places the icon
+				var x = (this.bounds.width - imageWidth) / 2;
+				var y = this.bounds.height - imageHeight;
+
+				if (isSvg)
+				{
+					this.imageNode.setAttribute('x', (this.bounds.x + x) + 'px');
+					this.imageNode.setAttribute('y', (this.bounds.y + y) + 'px');
+					this.imageNode.setAttribute('width', imageWidth + 'px');
+					this.imageNode.setAttribute('height', imageHeight + 'px');
+				}
+				else
+				{
+					this.imageNode.style.position = 'relative';
+					this.imageNode.style.left = x + 'px';
+					this.imageNode.style.top = y + 'px';
+					this.imageNode.style.width = imageWidth + 'px';
+					this.imageNode.style.height = imageHeight + 'px';
+					this.imageNode.setAttribute('stroked', 'false');
+				}
+			}
+		};
+
+		// Program starts here. Creates a sample graph in the
+		// DOM node with the specified ID. This function is invoked
+		// from the onLoad event handler of the document (see below).
+		function main(container)
+		{
+			// Checks if the browser is supported
+			if (!mxClient.isBrowserSupported())
+			{
+				// Displays an error message if the browser is not supported.
+				mxUtils.error('Browser is not supported!', 200, false);
+			}
+			else
+			{
+				// Enables crisp rendering of rectangles in SVG
+				mxLabel.prototype.crisp = true;
+				
+				// Makes the shadow brighter
+				mxConstants.SHADOWCOLOR = '#C0C0C0';
+				
+				// Creates the graph inside the given container
+				var graph = new mxGraph(container);
+
+				// Uncomment the following if you want the container
+				// to fit the size of the graph
+				//graph.setResizeContainer(true);
+				
+				// Enables rubberband selection
+				new mxRubberband(graph);
+				
+				// Gets the default parent for inserting new cells. This
+				// is normally the first child of the root (ie. layer 0).
+				var parent = graph.getDefaultParent();
+								
+				// Adds cells to the model in a single step
+				graph.getModel().beginUpdate();
+				try
+				{
+					var v1 = graph.insertVertex(parent, null, 'Fixed icon', 20, 20, 80, 50,
+						'shape=label;image=images/plus.png;imageWidth=16;imageHeight=16;spacingBottom=10;' +
+						'fillColor=#adc5ff;gradientColor=#7d85df;glass=1;rounded=1;shadow=1;');
+				}
+				finally
+				{
+					// Updates the display
+					graph.getModel().endUpdate();
+				}
+			}
+		};
+	</script>
+</head>
+
+<!-- Page passes the container for the graph to the program -->
+<body onload="main(document.getElementById('graphContainer'))">
+
+	<!-- Creates a container for the graph with a grid wallpaper -->
+	<div id="graphContainer"
+		style="overflow:hidden;width:321px;height:241px;background:url('editors/images/grid.gif');cursor:default;">
+	</div>
+</body>
+</html>

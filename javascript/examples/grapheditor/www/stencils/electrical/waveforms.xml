@@ -1,0 +1,355 @@
+<shapes name="mxGraph.electrical.waveforms">
+<shape name="Data Changing" h="90" w="90" aspect="variable" strokewidth="inherit">
+<foreground>
+<path>
+<move x="0" y="90"/>
+<line x="90" y="0"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="0"/>
+<line x="90" y="90"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Data Ending" h="90" w="95" aspect="variable" strokewidth="inherit">
+<foreground>
+<path>
+<move x="55" y="45"/>
+<line x="70" y="45"/>
+</path>
+<stroke/>
+<path>
+<move x="85" y="45"/>
+<line x="95" y="45"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="0"/>
+<line x="45" y="45"/>
+<line x="0" y="90"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Data Invalid 1" h="40" w="100" aspect="variable" strokewidth="inherit">
+<foreground>
+<path>
+<move x="0" y="0"/>
+<line x="15" y="0"/>
+</path>
+<stroke/>
+<path>
+<move x="30" y="0"/>
+<line x="45" y="0"/>
+</path>
+<stroke/>
+<path>
+<move x="60" y="0"/>
+<line x="75" y="0"/>
+</path>
+<stroke/>
+<path>
+<move x="90" y="0"/>
+<line x="100" y="0"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="40"/>
+<line x="15" y="40"/>
+</path>
+<stroke/>
+<path>
+<move x="30" y="40"/>
+<line x="45" y="40"/>
+</path>
+<stroke/>
+<path>
+<move x="60" y="40"/>
+<line x="75" y="40"/>
+</path>
+<stroke/>
+<path>
+<move x="90" y="40"/>
+<line x="100" y="40"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Data Invalid 2" h="5" w="100" aspect="variable" strokewidth="inherit">
+<foreground>
+<path>
+<move x="0" y="2.5"/>
+<line x="15" y="2.5"/>
+</path>
+<stroke/>
+<path>
+<move x="30" y="2.5"/>
+<line x="45" y="2.5"/>
+</path>
+<stroke/>
+<path>
+<move x="60" y="2.5"/>
+<line x="75" y="2.5"/>
+</path>
+<stroke/>
+<path>
+<move x="90" y="2.5"/>
+<line x="100" y="2.5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Data Starting" h="90" w="95" aspect="variable" strokewidth="inherit">
+<foreground>
+<path>
+<move x="0" y="45"/>
+<line x="15" y="45"/>
+</path>
+<stroke/>
+<path>
+<move x="30" y="45"/>
+<line x="45" y="45"/>
+</path>
+<stroke/>
+<path>
+<move x="95" y="0"/>
+<line x="50" y="45"/>
+<line x="95" y="90"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Data Valid" h="40" w="100" aspect="variable" strokewidth="inherit">
+<foreground>
+<path>
+<move x="0" y="0"/>
+<line x="100" y="0"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="40"/>
+<line x="100" y="40"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Down Ramp" h="90" w="90" aspect="variable" strokewidth="inherit">
+<foreground>
+<path>
+<move x="0" y="0"/>
+<line x="90" y="90"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Edge" h="90" w="5" aspect="variable" strokewidth="inherit">
+<foreground>
+<path>
+<move x="2.5" y="0"/>
+<line x="2.5" y="90"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Event" h="55.22" w="25.56" aspect="variable" strokewidth="inherit">
+<foreground>
+<ellipse x="0" y="45.22" w="10" h="10"/>
+<fillstroke/>
+<path>
+<move x="25" y="0.22"/>
+<arc rx="60" ry="60" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="5" y="50.22"/>
+</path>
+<stroke/>
+<save/>
+<restore/>
+<miterlimit limit="10"/>
+<miterlimit limit="10"/>
+<path>
+<move x="21.67" y="6"/>
+<line x="25.56" y="0"/>
+<line x="19" y="3.67"/>
+<close/>
+</path>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="Level" h="5" w="90" aspect="variable" strokewidth="inherit">
+<foreground>
+<path>
+<move x="0" y="2.5"/>
+<line x="90" y="2.5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Pulse 1" h="90" w="90" aspect="variable" strokewidth="inherit">
+<foreground>
+<path>
+<move x="0" y="90"/>
+<line x="25" y="90"/>
+<line x="25" y="0"/>
+<line x="65" y="0"/>
+<line x="65" y="90"/>
+<line x="90" y="90"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Pulse 2" h="90" w="90" aspect="variable" strokewidth="inherit">
+<foreground>
+<path>
+<move x="0" y="0"/>
+<line x="25" y="0"/>
+<line x="25" y="90"/>
+<line x="65" y="90"/>
+<line x="65" y="0"/>
+<line x="90" y="0"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Sawtooth" h="60" w="90" aspect="variable" strokewidth="inherit">
+<foreground>
+<path>
+<move x="0" y="60"/>
+<line x="45" y="0"/>
+<line x="90" y="60"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Sine Wave" h="66.18" w="90" aspect="variable" strokewidth="inherit">
+<foreground>
+<path>
+<move x="0" y="33.09"/>
+<arc rx="17" ry="25" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="45" y="33.09"/>
+<arc rx="17" ry="25" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="90" y="33.09"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Slow Square Wave" h="80" w="90" aspect="variable" strokewidth="inherit">
+<foreground>
+<path>
+<move x="0" y="40"/>
+<line x="10" y="0"/>
+<line x="35" y="0"/>
+<line x="55" y="80"/>
+<line x="80" y="80"/>
+<line x="90" y="40"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Square Wave" h="80" w="90" aspect="variable" strokewidth="inherit">
+<foreground>
+<path>
+<move x="0" y="40"/>
+<line x="0" y="0"/>
+<line x="45" y="0"/>
+<line x="45" y="80"/>
+<line x="90" y="80"/>
+<line x="90" y="40"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Step 1" h="90" w="90" aspect="variable" strokewidth="inherit">
+<foreground>
+<path>
+<move x="0" y="90"/>
+<line x="45" y="90"/>
+<line x="45" y="0"/>
+<line x="90" y="0"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Step 2" h="90" w="90" aspect="variable" strokewidth="inherit">
+<foreground>
+<path>
+<move x="0" y="0"/>
+<line x="45" y="0"/>
+<line x="45" y="90"/>
+<line x="90" y="90"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Timing Line" h="10" w="98" aspect="variable" strokewidth="inherit">
+<foreground>
+<path>
+<move x="1" y="5"/>
+<line x="97" y="5"/>
+</path>
+<stroke/>
+<path>
+<move x="89" y="0"/>
+<line x="98" y="5"/>
+<line x="89" y="10"/>
+</path>
+<stroke/>
+<path>
+<move x="9" y="0"/>
+<line x="0" y="5"/>
+<line x="9" y="10"/>
+</path>
+<stroke/>
+<fontcolor color="#000000"/>
+<fontsize size="12"/>
+<text str="10s" x="49" y="3" align="center" valign="bottom"/>
+</foreground>
+</shape>
+<shape name="Timing Mark 1" h="100" w="5" aspect="variable" strokewidth="inherit">
+<foreground>
+
+<dashed dashed="1"/>
+<dashpattern pattern="5 5"/>
+<path>
+<move x="2.5" y="0"/>
+<line x="2.5" y="100"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Timing Mark 2" h="100" w="100" aspect="variable" strokewidth="inherit">
+<foreground>
+
+<dashed dashed="1"/>
+<dashpattern pattern="5 5"/>
+<path>
+<move x="50" y="0"/>
+<line x="50" y="100"/>
+</path>
+<stroke/>
+<path>
+<move x="0" y="50"/>
+<line x="100" y="50"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Timing Mark 3" h="5" w="100" aspect="variable" strokewidth="inherit">
+<foreground>
+
+<dashed dashed="1"/>
+<dashpattern pattern="5 5"/>
+<path>
+<move x="0" y="2.5"/>
+<line x="100" y="2.5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Up Ramp" h="90" w="90" aspect="variable" strokewidth="inherit">
+<foreground>
+<path>
+<move x="0" y="90"/>
+<line x="90" y="0"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+</shapes>

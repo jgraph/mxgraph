@@ -1,0 +1,6 @@
+/**
+ * This file is licensed under the agreement you accepted during installation 
+ * of this software package. If you did not agree to any license, you cannot 
+ * use, copy or re-distribute this software and source file unless you have 
+ * written permission from JGraph Ltd stating otherwise.
+ */

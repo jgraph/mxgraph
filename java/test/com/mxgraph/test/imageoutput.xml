@@ -1,0 +1,436 @@
+<output>
+  <save/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <roundrect x="80" y="40" w="40" h="80" dx="8" dy="8"/>
+  <fillstroke/>
+  <restore/>
+  <save/>
+  <fontstyle style="1"/>
+  <fontsize size="12"/>
+  <text x="90" y="21.4" w="20" h="18" str="J1" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <begin/>
+  <move x="71" y="50.5"/>
+  <line x="87" y="50.5"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fontcolor color="#4c4c4c"/>
+  <fontstyle style="1"/>
+  <fontsize size="8"/>
+  <text x="72" y="40.2" w="10" h="13" str="1" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <begin/>
+  <move x="71" y="70.5"/>
+  <line x="87" y="70.5"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fontcolor color="#4c4c4c"/>
+  <fontstyle style="1"/>
+  <fontsize size="8"/>
+  <text x="72" y="60.2" w="10" h="13" str="2" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <begin/>
+  <move x="71" y="90.5"/>
+  <line x="87" y="90.5"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fontcolor color="#4c4c4c"/>
+  <fontstyle style="1"/>
+  <fontsize size="8"/>
+  <text x="72" y="80.2" w="10" h="13" str="3" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <begin/>
+  <move x="71" y="110.5"/>
+  <line x="87" y="110.5"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fontcolor color="#4c4c4c"/>
+  <fontstyle style="1"/>
+  <fontsize size="8"/>
+  <text x="72" y="100.2" w="10" h="13" str="4" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <begin/>
+  <move x="115" y="50.5"/>
+  <line x="131" y="50.5"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fontcolor color="#4c4c4c"/>
+  <fontstyle style="1"/>
+  <fontsize size="8"/>
+  <text x="120" y="40.2" w="10" h="13" str="5" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <begin/>
+  <move x="115" y="70.5"/>
+  <line x="131" y="70.5"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fontcolor color="#4c4c4c"/>
+  <fontstyle style="1"/>
+  <fontsize size="8"/>
+  <text x="120" y="60.2" w="10" h="13" str="6" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <begin/>
+  <move x="115" y="90.5"/>
+  <line x="131" y="90.5"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fontcolor color="#4c4c4c"/>
+  <fontstyle style="1"/>
+  <fontsize size="8"/>
+  <text x="120" y="80.2" w="10" h="13" str="7" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <begin/>
+  <move x="115" y="110.5"/>
+  <line x="131" y="110.5"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fontcolor color="#4c4c4c"/>
+  <fontstyle style="1"/>
+  <fontsize size="8"/>
+  <text x="120" y="100.2" w="10" h="13" str="8" vertical="0"/>
+  <restore/>
+  <save/>
+  <rotate theta="270" flipH="0" flipV="0" cx="102" cy="118"/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <fillcolor color="#909090"/>
+  <begin/>
+  <move x="97" y="120"/>
+  <line x="102" y="116"/>
+  <line x="107" y="120"/>
+  <close/>
+  <fillstroke/>
+  <restore/>
+  <save/>
+  <fontstyle style="1"/>
+  <fontsize size="9"/>
+  <text x="92.5" y="106.23" w="19" h="14" str="clk" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokewidth width="3"/>
+  <strokecolor color="#000000"/>
+  <begin/>
+  <end/>
+  <fillstroke/>
+  <begin/>
+  <move x="220" y="230"/>
+  <line x="230" y="230"/>
+  <line x="235" y="220"/>
+  <line x="245" y="240"/>
+  <line x="255" y="220"/>
+  <line x="265" y="240"/>
+  <line x="275" y="220"/>
+  <line x="285" y="240"/>
+  <line x="290" y="230"/>
+  <line x="300" y="230"/>
+  <end/>
+  <fillstroke/>
+  <restore/>
+  <save/>
+  <fontstyle style="1"/>
+  <fontsize size="12"/>
+  <text x="249.5" y="201.4" w="21" h="18" str="R1" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <roundrect x="420" y="340" w="40" h="80" dx="8" dy="8"/>
+  <fillstroke/>
+  <restore/>
+  <save/>
+  <fontstyle style="1"/>
+  <fontsize size="12"/>
+  <text x="430" y="321.4" w="20" h="18" str="J3" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <begin/>
+  <move x="411" y="350.5"/>
+  <line x="427" y="350.5"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fontcolor color="#4c4c4c"/>
+  <fontstyle style="1"/>
+  <fontsize size="8"/>
+  <text x="412" y="340.2" w="10" h="13" str="1" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <begin/>
+  <move x="411" y="370.5"/>
+  <line x="427" y="370.5"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fontcolor color="#4c4c4c"/>
+  <fontstyle style="1"/>
+  <fontsize size="8"/>
+  <text x="412" y="360.2" w="10" h="13" str="2" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <begin/>
+  <move x="411" y="390.5"/>
+  <line x="427" y="390.5"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fontcolor color="#4c4c4c"/>
+  <fontstyle style="1"/>
+  <fontsize size="8"/>
+  <text x="412" y="380.2" w="10" h="13" str="3" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <begin/>
+  <move x="411" y="410.5"/>
+  <line x="427" y="410.5"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fontcolor color="#4c4c4c"/>
+  <fontstyle style="1"/>
+  <fontsize size="8"/>
+  <text x="412" y="400.2" w="10" h="13" str="4" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <begin/>
+  <move x="455" y="350.5"/>
+  <line x="471" y="350.5"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fontcolor color="#4c4c4c"/>
+  <fontstyle style="1"/>
+  <fontsize size="8"/>
+  <text x="460" y="340.2" w="10" h="13" str="5" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <begin/>
+  <move x="455" y="370.5"/>
+  <line x="471" y="370.5"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fontcolor color="#4c4c4c"/>
+  <fontstyle style="1"/>
+  <fontsize size="8"/>
+  <text x="460" y="360.2" w="10" h="13" str="6" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <begin/>
+  <move x="455" y="390.5"/>
+  <line x="471" y="390.5"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fontcolor color="#4c4c4c"/>
+  <fontstyle style="1"/>
+  <fontsize size="8"/>
+  <text x="460" y="380.2" w="10" h="13" str="7" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <begin/>
+  <move x="455" y="410.5"/>
+  <line x="471" y="410.5"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fontcolor color="#4c4c4c"/>
+  <fontstyle style="1"/>
+  <fontsize size="8"/>
+  <text x="460" y="400.2" w="10" h="13" str="8" vertical="0"/>
+  <restore/>
+  <save/>
+  <rotate theta="270" flipH="0" flipV="0" cx="442" cy="418"/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <fillcolor color="#909090"/>
+  <begin/>
+  <move x="437" y="420"/>
+  <line x="442" y="416"/>
+  <line x="447" y="420"/>
+  <close/>
+  <fillstroke/>
+  <restore/>
+  <save/>
+  <fontstyle style="1"/>
+  <fontsize size="9"/>
+  <text x="432.5" y="406.23" w="19" h="14" str="clk" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <fillcolor color="#000000"/>
+  <begin/>
+  <move x="131" y="110.5"/>
+  <line x="180" y="110.5"/>
+  <line x="180" y="230"/>
+  <line x="220" y="230"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fillcolor color="#FFFFFF"/>
+  <rect x="172" y="159.98" w="16" h="15"/>
+  <fill/>
+  <fontstyle style="0"/>
+  <fontsize size="9"/>
+  <text x="172" y="159.98" w="16" h="15" str="e1" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <fillcolor color="#000000"/>
+  <begin/>
+  <move x="131" y="50.5"/>
+  <line x="320" y="50.5"/>
+  <line x="320" y="200"/>
+  <line x="300" y="200"/>
+  <line x="300" y="230"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fillcolor color="#FFFFFF"/>
+  <rect x="312" y="49.97" w="16" h="15"/>
+  <fill/>
+  <fontstyle style="0"/>
+  <fontsize size="9"/>
+  <text x="312" y="49.97" w="16" h="15" str="e2" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <fillcolor color="#000000"/>
+  <ellipse x="179.6" y="157.6" w="4.8" h="4.8"/>
+  <fillstroke/>
+  <ellipse x="315.6" y="157.6" w="4.8" h="4.8"/>
+  <fillstroke/>
+  <begin/>
+  <move x="181" y="160"/>
+  <line x="319" y="160"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fillcolor color="#FFFFFF"/>
+  <rect x="226" y="154.23" w="48" h="15"/>
+  <fill/>
+  <fontstyle style="0"/>
+  <fontsize size="9"/>
+  <fontstyle style="5"/>
+  <text x="226" y="154.23" w="48" h="15" str="crossover" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <fillcolor color="#000000"/>
+  <begin/>
+  <move x="300" y="230"/>
+  <line x="411" y="230"/>
+  <line x="411" y="350.5"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fillcolor color="#FFFFFF"/>
+  <rect x="403" y="228.98" w="16" h="15"/>
+  <fill/>
+  <fontstyle style="0"/>
+  <fontsize size="9"/>
+  <text x="403" y="228.98" w="16" h="15" str="e4" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <fillcolor color="#000000"/>
+  <begin/>
+  <move x="471" y="370.5"/>
+  <line x="500" y="370.5"/>
+  <line x="500" y="20"/>
+  <line x="20" y="20"/>
+  <line x="20" y="50.5"/>
+  <line x="71" y="50.5"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fillcolor color="#FFFFFF"/>
+  <rect x="401" y="14.23" w="16" h="15"/>
+  <fill/>
+  <fontstyle style="0"/>
+  <fontsize size="9"/>
+  <text x="401" y="14.23" w="16" h="15" str="e5" align="center" vertical="0"/>
+  <restore/>
+  <save/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <fillcolor color="#000000"/>
+  <begin/>
+  <move x="100" y="500"/>
+  <line x="600" y="500"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <strokewidth width="2"/>
+  <strokecolor color="#000000"/>
+  <fillcolor color="#000000"/>
+  <ellipse x="497.6" y="495.6" w="4.8" h="4.8"/>
+  <fillstroke/>
+  <begin/>
+  <move x="471" y="410.5"/>
+  <line x="500" y="410.5"/>
+  <line x="500" y="499"/>
+  <stroke/>
+  <restore/>
+  <save/>
+  <fillcolor color="#FFFFFF"/>
+  <rect x="492" y="434.98" w="16" h="15"/>
+  <fill/>
+  <fontstyle style="0"/>
+  <fontsize size="9"/>
+  <text x="492" y="434.98" w="16" h="15" str="e7" align="center" vertical="0"/>
+  <restore/>
+</output>

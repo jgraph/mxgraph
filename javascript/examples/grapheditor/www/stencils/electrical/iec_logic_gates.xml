@@ -1,0 +1,134 @@
+<shapes name="mxGraph.electrical.iec_logic_gates">
+<shape name="AND" h="80" w="60" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="60" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<fontcolor color="#000000"/>
+<fontsize size="12"/>
+<text str="AND" x="30" y="46" align="center" valign="bottom"/>
+</foreground>
+</shape>
+<shape name="NAND" h="80" w="66" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="60" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<fontcolor color="#000000"/>
+<fontsize size="12"/>
+<text str="NAND" x="30" y="46" align="center" valign="bottom"/>
+<ellipse x="60" y="37" w="6" h="6"/>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="NOR" h="80" w="66" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="60" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<ellipse x="60" y="37" w="6" h="6"/>
+<fillstroke/>
+<fontcolor color="#000000"/>
+<fontsize size="12"/>
+<text str="1" x="35" y="46" align="center" valign="bottom"/>
+<save/>
+<strokecolor color="#000000"/>
+<strokewidth width="1"/>
+<path>
+<move x="24.25" y="36"/>
+<line x="28.75" y="40"/>
+<line x="24.25" y="44"/>
+</path>
+<stroke/>
+<restore/>
+<strokecolor color="#000000"/>
+<strokewidth width="1"/>
+<strokewidth width="1"/>
+<path>
+<move x="30" y="40.75"/>
+<line x="25.12" y="45"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="NOT" h="80" w="66" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="60" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<fontcolor color="#000000"/>
+<fontsize size="12"/>
+<text str="=1" x="30" y="46" align="center" valign="bottom"/>
+<ellipse x="60" y="37" w="6" h="6"/>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="OR" h="80" w="60" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="60" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<fontcolor color="#000000"/>
+<fontsize size="12"/>
+<text str="1" x="35" y="46" align="center" valign="bottom"/>
+<save/>
+<strokecolor color="#000000"/>
+<strokewidth width="1"/>
+<path>
+<move x="24.25" y="36"/>
+<line x="28.75" y="40"/>
+<line x="24.25" y="44"/>
+</path>
+<stroke/>
+<restore/>
+<strokecolor color="#000000"/>
+<strokewidth width="1"/>
+<strokewidth width="1"/>
+<path>
+<move x="30" y="40.75"/>
+<line x="25.12" y="45"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="XOR" h="80" w="60" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.5" perimeter="0" name="in"/>
+<constraint x="1" y="0.5" perimeter="0" name="out"/>
+</connections>
+<background>
+<rect x="0" y="0" w="60" h="80"/>
+</background>
+<foreground>
+<fillstroke/>
+<fontcolor color="#000000"/>
+<fontsize size="12"/>
+<text str="=1" x="30" y="46" align="center" valign="bottom"/>
+</foreground>
+</shape>
+</shapes>

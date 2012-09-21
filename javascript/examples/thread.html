@@ -1,0 +1,93 @@
+<!--
+  $Id: thread.html,v 1.15 2012-07-17 08:22:19 gaudenz Exp $
+  Copyright (c) 2006-2010, JGraph Ltd
+  
+  Thread example for mxGraph. This example demonstrates setting
+  overlays in mxGraph from within a timed function.
+-->
+<html>
+<head>
+	<title>Thread example for mxGraph</title>
+
+	<!-- Sets the basepath for the library if not in same directory -->
+	<script type="text/javascript">
+		mxBasePath = '../src';
+	</script>
+
+	<!-- Loads and initializes the library -->
+	<script type="text/javascript" src="../src/js/mxClient.js"></script>
+	<!-- Example code -->
+	<script type="text/javascript">
+
+		// Program starts here. Creates a sample graph in the
+		// DOM node with the specified ID. This function is invoked
+		// from the onLoad event handler of the document (see below).
+		function main(container)
+		{
+			// Checks if browser is supported
+			if (!mxClient.isBrowserSupported())
+			{
+				// Displays an error message if the browser is
+				// not supported.
+				mxUtils.error('Browser is not supported!', 200, false);
+			}
+			else
+			{
+				// Creates the graph inside the given container
+				var graph = new mxGraph(container);
+				
+				// Disables basic selection and cell handling
+				graph.setEnabled(false);
+
+				// Gets the default parent for inserting new cells. This
+				// is normally the first child of the root (ie. layer 0).
+				var parent = graph.getDefaultParent();
+				var v1, v2, e1;
+												
+				// Adds cells to the model in a single step
+				graph.getModel().beginUpdate();
+				try
+				{
+					v1 = graph.insertVertex(parent, null, 'Hello,', 20, 20, 80, 30);
+					v2 = graph.insertVertex(parent, null, 'World!', 200, 150, 80, 30);
+					e1 = graph.insertEdge(parent, null, '', v1, v2);
+				}
+				finally
+				{
+					// Updates the display
+					graph.getModel().endUpdate();
+				}
+					
+				// Function to switch the overlay every 5 secs
+				var f = function()
+				{
+					var overlays = graph.getCellOverlays(v1);
+					
+					if (overlays == null)
+					{
+						graph.removeCellOverlays(v2);
+						graph.setCellWarning(v1, 'Tooltip');
+					}
+					else
+					{
+						graph.removeCellOverlays(v1);
+						graph.setCellWarning(v2, 'Tooltip');
+					}
+				};
+				
+				window.setInterval(f, 1000);
+				f();
+			}
+		};
+	</script>
+</head>
+
+<!-- Page passes the container for the graph to the program -->
+<body onload="main(document.getElementById('graphContainer'))">
+
+	<!-- Creates a container for the graph with a grid wallpaper -->
+	<div id="graphContainer"
+		style="overflow:hidden;width:321px;height:241px;background:url('editors/images/grid.gif')">
+	</div>
+</body>
+</html>

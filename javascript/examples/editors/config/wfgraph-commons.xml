@@ -1,0 +1,152 @@
+<mxGraph alternateEdgeStyle="verticalEdge" dropEnabled="1">
+	<add as="isAutoSizeCell"><![CDATA[
+		function(cell)
+		{
+			return this.isSwimlane(cell);
+		}
+	]]></add>
+	<add as="isSwimlane"><![CDATA[
+		function (cell)
+		{
+			return mxUtils.isNode(this.model.getValue(cell), 'swimlane');
+		}
+	]]></add>
+	<add as="isAllowOverlapParent"><![CDATA[
+		function(cell)
+		{
+			return !this.isSwimlane(cell.parent);
+		}
+	]]></add>
+	<add as="getTooltipForCell"><![CDATA[
+		function(cell)
+		{
+			var href = cell.getAttribute('href');
+			href = (href != null && href.length > 0) ?
+				'<br>'+href : '';
+			var maxlen = 30;
+			var desc = cell.getAttribute('description');
+			if (desc == null || desc.length == 0)
+			{
+				desc = '';
+			}
+			else if (desc.length < maxlen)
+			{
+				desc = '<br>'+desc;
+			}
+			else
+			{
+				desc = '<br>'+desc.substring(0, maxlen)+'...';
+			}
+			return '<b>'+cell.getAttribute('label')+
+					'</b> ('+cell.getId()+')'+href+desc+
+					'<br>Edges: '+cell.getEdgeCount()+
+					'<br>Children: '+cell.getChildCount();
+		}
+	]]></add>
+	<add as="convertValueToString">
+		function(cell)
+		{
+			return cell.getAttribute('label');
+		}
+	</add>
+	<mxGraphModel as="model">
+		<add as="valueForCellChanged"><![CDATA[
+			function(cell, value)
+			{
+				var previous = null;
+				
+				if (isNaN(value.nodeType))
+				{
+					previous = cell.getAttribute('label');
+					cell.setAttribute('label', value);
+				}
+				else
+				{
+					previous = cell.value;
+					cell.value = value;
+				}
+				
+				return previous;
+			}
+		]]></add>
+		<root>
+			<Workflow label="MyWorkflow" description="" href="" id="0"/>
+			<Layer label="Default Layer">
+				<mxCell parent="0"/>
+			</Layer>
+		</root>
+	</mxGraphModel>
+	<mxStylesheet as="stylesheet">
+		<add as="defaultVertex">
+			<add as="shape" value="label"/>
+			<add as="perimeter" value="rectanglePerimeter"/>
+			<add as="labelBackgroundColor" value="white"/>
+			<add as="fontSize" value="10"/>
+			<add as="align" value="center"/>
+			<add as="verticalAlign" value="middle"/>
+			<add as="strokeColor" value="black"/>
+		</add>
+		<add as="defaultEdge">
+			<add as="shape" value="connector"/>
+			<add as="labelBackgroundColor" value="white"/>
+			<add as="rounded" value="1"/>
+			<add as="edgeStyle" value="elbowEdgeStyle"/>
+			<add as="endArrow" value="classic"/>
+			<add as="fontSize" value="10"/>
+			<add as="align" value="center"/>
+			<add as="verticalAlign" value="middle"/>
+			<add as="strokeColor" value="black"/>
+		</add>
+		<add as="verticalEdge">
+			<add as="elbow" value="vertical"/>
+		</add>
+		<add as="straightEdge">
+			<add as="shape" value="connector"/>
+			<add as="endArrow" value="classic"/>
+		</add>
+		<add as="arrowEdge">
+			<add as="shape" value="arrow"/>
+			<add as="fillColor" value="red"/>
+		</add>
+		<add as="swimlane">
+			<add as="shape" value="swimlane"/>
+			<add as="fontSize" value="12"/>
+			<add as="startSize" value="23"/>
+			<add as="horizontal" value="0"/>
+			<add as="verticalAlign" value="top"/>
+			<add as="fontColor" value="white"/>
+			<add as="labelBackgroundColor" value="none"/>
+		</add>
+		<add as="group">
+			<add as="shape" value="rectangle"/>
+			<add as="rounded" value="1"/>
+			<add as="verticalAlign" value="top"/>
+			<add as="strokeColor" value="black"/>
+			<add as="dashed" value="1"/>
+			<add as="opacity" value="50"/>
+		</add>
+		<add as="rounded">
+			<add as="rounded" value="1"/>
+		</add>
+		<add as="ellipse">
+			<add as="shape" value="ellipse"/>
+			<add as="perimeter" value="ellipsePerimeter"/>
+		</add>
+		<add as="rhombus">
+			<add as="shape" value="rhombus"/>
+			<add as="perimeter" value="rhombusPerimeter"/>
+		</add>
+		<add as="actor">
+			<add as="shape" value="actor"/>
+		</add>
+		<add as="symbol">
+			<add as="shape" value="image"/>
+			<add as="perimeter" value="rectanglePerimeter"/>
+			<add as="labelBackgroundColor" value="white"/>
+			<add as="fontSize" value="10"/>
+			<add as="align" value="center"/>
+			<add as="verticalAlign" value="top"/>
+			<add as="verticalLabelPosition" value="bottom"/>
+		</add>
+	</mxStylesheet>
+</mxGraph>

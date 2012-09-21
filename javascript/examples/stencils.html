@@ -1,0 +1,243 @@
+<!--
+  $Id: stencils.html,v 1.11 2012-07-17 08:22:19 gaudenz Exp $
+  Copyright (c) 2006-2010, JGraph Ltd
+  
+  Stencils example for mxGraph. This example demonstrates using
+  an XML file to define new stencils to be used as shapes. See
+  docs/stencils.xsd for the XML schema file.
+-->
+<html>
+<head>
+	<title>Stencils example for mxGraph</title>
+
+	<!-- Sets the basepath for the library if not in same directory -->
+	<script type="text/javascript">
+		mxBasePath = '../src';
+	</script>
+
+	<!-- Loads and initializes the library -->
+	<script type="text/javascript" src="../src/js/mxClient.js"></script>
+
+	<!-- Example code -->
+	<script type="text/javascript">
+		// Program starts here. Creates a sample graph in the
+		// DOM node with the specified ID. This function is invoked
+		// from the onLoad event handler of the document (see below).
+		function main(container)
+		{
+			// Checks if the browser is supported
+			if (!mxClient.isBrowserSupported())
+			{
+				// Displays an error message if the browser is not supported.
+				mxUtils.error('Browser is not supported!', 200, false);
+			}
+			else
+			{
+				// Enables crisp rendering of rectangles in SVG
+				mxRectangleShape.prototype.crisp = true;
+				
+				// Sets the global shadow color
+				mxConstants.SHADOWCOLOR = '#C0C0C0';
+				mxConstants.SHADOW_OPACITY = 0.5;
+				mxConstants.SHADOW_OFFSET_X = 4;
+				mxConstants.SHADOW_OFFSET_Y = 4;
+				
+				// Uses the shape for resize previews
+				mxVertexHandler.prototype.createSelectionShape = function(bounds)
+				{
+					var key = this.state.style[mxConstants.STYLE_SHAPE];
+					var stencil = mxStencilRegistry.getStencil(key);
+					var shape = null;
+					
+					if (stencil != null)
+					{
+						shape = new mxStencilShape(stencil);
+						shape.apply(this.state);
+					}
+					else
+					{
+						shape = new this.state.shape.constructor();
+					}
+					
+					shape.fill = null;
+					shape.bounds = bounds;
+					shape.stroke = this.getSelectionColor();
+					shape.strokewidth = this.getSelectionStrokeWidth();
+					shape.isDashed = this.isSelectionDashed();
+					shape.crisp = this.state.shape.crisp;
+				    
+					return shape;
+				};
+				
+				// Loads the stencils into the registry
+				var req = mxUtils.load('stencils.xml');
+				var root = req.getDocumentElement();
+				var shape = root.firstChild;
+				
+				while (shape != null)
+				{
+					if (shape.nodeType == mxConstants.NODETYPE_ELEMENT)
+					{
+						mxStencilRegistry.addStencil(shape.getAttribute('name'), new mxStencil(shape));
+					}
+					
+					shape = shape.nextSibling;
+				}
+				
+				// Creates the graph inside the given container
+				var graph = new mxGraph(container);
+				graph.setConnectable(true);
+				
+				// Changes default styles
+				var style = graph.getStylesheet().getDefaultEdgeStyle();
+				style[mxConstants.STYLE_EDGE] = 'orthogonalEdgeStyle';
+				style = graph.getStylesheet().getDefaultVertexStyle();
+				style[mxConstants.STYLE_FILLCOLOR] = '#adc5ff';
+				style[mxConstants.STYLE_GRADIENTCOLOR] = '#7d85df';
+				style[mxConstants.STYLE_SHADOW] = '1';
+				
+				// Enables rubberband selection
+				new mxRubberband(graph);
+				
+				// Gets the default parent for inserting new cells. This
+				// is normally the first child of the root (ie. layer 0).
+				var parent = graph.getDefaultParent();
+								
+				// Adds cells to the model in a single step
+				graph.getModel().beginUpdate();
+				try
+				{
+					var v1 = graph.insertVertex(parent, null, 'A1', 20, 20, 40, 80, 'shape=and');
+					var v2 = graph.insertVertex(parent, null, 'A2', 20, 220, 40, 80, 'shape=and');
+					var v3 = graph.insertVertex(parent, null, 'X1', 160, 110, 80, 80, 'shape=xor');
+					var e1 = graph.insertEdge(parent, null, '', v1, v3);
+					e1.geometry.points = [new mxPoint(90, 60), new mxPoint(90, 130)];
+					var e2 = graph.insertEdge(parent, null, '', v2, v3);
+					e2.geometry.points = [new mxPoint(90, 260), new mxPoint(90, 170)];
+					
+					var v4 = graph.insertVertex(parent, null, 'A3', 520, 20, 40, 80, 'shape=and;flipH=1');
+					var v5 = graph.insertVertex(parent, null, 'A4', 520, 220, 40, 80, 'shape=and;flipH=1');
+					var v6 = graph.insertVertex(parent, null, 'X2', 340, 110, 80, 80, 'shape=xor;flipH=1');
+					var e3 = graph.insertEdge(parent, null, '', v4, v6);
+					e3.geometry.points = [new mxPoint(490, 60), new mxPoint(130, 130)];
+					var e4 = graph.insertEdge(parent, null, '', v5, v6);
+					e4.geometry.points = [new mxPoint(490, 260), new mxPoint(130, 170)];
+					
+					var v7 = graph.insertVertex(parent, null, 'O1', 250, 260, 80, 60, 'shape=or;direction=south');
+					var e5 = graph.insertEdge(parent, null, '', v6, v7);
+					e5.geometry.points = [new mxPoint(310, 150)];
+					var e6 = graph.insertEdge(parent, null, '', v3, v7);
+					e6.geometry.points = [new mxPoint(270, 150)];
+					
+					var e7 = graph.insertEdge(parent, null, '', v7, v5);
+					e7.geometry.points = [new mxPoint(290, 370)];
+				}
+				finally
+				{
+					// Updates the display
+					graph.getModel().endUpdate();
+				}
+				
+				document.body.appendChild(mxUtils.button('FlipH', function()
+				{
+					graph.toggleCellStyles(mxConstants.STYLE_STENCIL_FLIPH);
+				}));
+				
+				document.body.appendChild(mxUtils.button('FlipV', function()
+				{
+					graph.toggleCellStyles(mxConstants.STYLE_STENCIL_FLIPV);
+				}));
+
+				document.body.appendChild(document.createTextNode('\u00a0'));
+				document.body.appendChild(document.createTextNode('\u00a0'));
+				document.body.appendChild(document.createTextNode('\u00a0'));
+				document.body.appendChild(document.createTextNode('\u00a0'));
+
+				document.body.appendChild(mxUtils.button('Rotate', function()
+				{
+					var cell = graph.getSelectionCell();
+					
+					if (cell != null)
+					{
+						var geo = graph.getCellGeometry(cell);
+	
+						if (geo != null)
+						{
+							graph.getModel().beginUpdate();
+							try
+							{
+								// Rotates the size and position in the geometry
+								geo = geo.clone();
+								geo.x += geo.width / 2 - geo.height / 2;
+								geo.y += geo.height / 2 - geo.width / 2;
+								var tmp = geo.width;
+								geo.width = geo.height;
+								geo.height = tmp;
+								graph.getModel().setGeometry(cell, geo);
+								
+								// Reads the current direction and advances by 90 degrees
+								var state = graph.view.getState(cell);
+								
+								if (state != null)
+								{
+									var dir = state.style[mxConstants.STYLE_DIRECTION] || 'east'/*default*/;
+									
+									if (dir == 'east')
+									{
+										dir = 'south';
+									}
+									else if (dir == 'south')
+									{
+										dir = 'west';
+									}
+									else if (dir == 'west')
+									{
+										dir = 'north';
+									}
+									else if (dir == 'north')
+									{
+										dir = 'east';
+									}
+									
+									graph.setCellStyles(mxConstants.STYLE_DIRECTION, dir, [cell]);
+								}
+							}
+							finally
+							{
+								graph.getModel().endUpdate();
+							}
+						}
+					}
+				}));
+
+				document.body.appendChild(document.createTextNode('\u00a0'));
+				document.body.appendChild(document.createTextNode('\u00a0'));
+				document.body.appendChild(document.createTextNode('\u00a0'));
+				document.body.appendChild(document.createTextNode('\u00a0'));
+				
+				document.body.appendChild(mxUtils.button('And', function()
+				{
+					graph.setCellStyles(mxConstants.STYLE_SHAPE, 'and');
+				}));
+				document.body.appendChild(mxUtils.button('Or', function()
+				{
+					graph.setCellStyles(mxConstants.STYLE_SHAPE, 'or');
+				}));
+				document.body.appendChild(mxUtils.button('Xor', function()
+				{
+					graph.setCellStyles(mxConstants.STYLE_SHAPE, 'xor');
+				}));
+			}
+		};
+	</script>
+</head>
+
+<!-- Page passes the container for the graph to the program -->
+<body onload="main(document.getElementById('graphContainer'))">
+
+	<!-- Creates a container for the graph with a grid wallpaper -->
+	<div id="graphContainer"
+		style="overflow:hidden;width:601px;height:401px;background:url('editors/images/grid.gif');cursor:default;">
+	</div>
+</body>
+</html>

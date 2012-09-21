@@ -1,0 +1,351 @@
+<html>
+<head>
+	<title>mxGraph - Known Issues</title>
+	<link rel="stylesheet" HREF="css/html.css" CHARSET="ISO-8859-1" TYPE="text/css">
+  	<script type="text/javascript" src="js/toc.js"></script>
+</head>
+<body onload="maketoc(document.getElementById('toc'), false);">
+<h1>mxGraph Known Issues</h1>
+<h2>Table Of Contents</h2>
+<div id="toc"></div>
+<br/>
+<h2><a name="Doctypes"></a>Doctypes</h2>
+<p>
+	VML in IE should only be used in quirks mode. You can use any DOCTYPE in the page
+	and force IE into quirks mode by using the following first two lines in HTML:
+</p>
+<pre>
+&lt;!--[if IE]&gt;&lt;meta http-equiv="X-UA-Compatible" content="IE=5" &gt;&lt;![endif]--&gt;
+&lt;!DOCTYPE html&gt;
+</pre>
+<p>
+	This will use the specified DOCTYPE in all browsers but IE.
+</p>
+<p>
+	In IE8 and IE9, which support the X-UA-Compatible directive, this will force quirks mode.
+	In IE 6 and 7, which do no support the X-UA-Compatible directive, the DOCTYPE will be ignored
+	because it is preceeded by non-space characters (in this case a comment which is interpreted
+	only by IE 8 and IE 9).
+</p>
+<p>
+	The conditional comment is required for all other browsers to pick up the DOCTYPE correctly.
+</p>
+<p>
+	To use IE7 standards mode in IE 7, 8 and 9, replace IE=5 with IE=7 in the content attribute.
+</p>
+<p>
+	See <a href="http://msdn.microsoft.com/en-us/library/cc288325(VS.85).aspx">this</a>
+	and <a href="http://stackoverflow.com/questions/941100/can-html-comments-appear-before-the-doctype-declaration">this</a>
+	for details.
+</p>
+<h2><a name="IE8"></a>Support for IE8 standards mode</h2>
+<p>
+	Experimental support for IE8 standards mode is available. The use of quirks mode or
+	IE7 standards mode is recommended for performance reasons.
+</p>
+<h2><a name="IE9"></a>Support for SVG in Microsoft Internet Explorer 9</h2>
+<p>
+	Please use the following meta tag to enable SVG in IE9:
+</p>
+<pre>
+&lt;meta http-equiv='X-UA-Compatible' content='IE=5,IE=9'/&gt;
+</pre>
+<p>
+	Note that <code>IE=5</code> is required for IE versions prior to 9 to render VML. To use
+	IE7 standards mode <code>IE=5</code> can be replaced with <code>IE=7</code>.
+</p>
+<h2><a name="FirefoxFocus"></a>Focus in Firefox</h2>
+<p>
+	Firefox does not allow to programmatically focus DIVs by default. Since
+	this affects handling of key events, here is a workaround to allow the
+	focus to be transferred to a DIV that acts as a graph container even if
+	a shape is clicked (click on the background works normally). The workaround
+	is based on the fact that programmatically setting the focus on a DIV in
+	Firefox is possible if the tabindex attribute of the DIV is set as described
+	<a href="http://www.barryvan.com.au/2009/01/onfocus-and-onblur-for-divs-in-fx/">here</a>.
+</p>
+<pre>
+if (navigator.userAgent.indexOf('Firefox/') &gt; 0)
+{
+  mxEvent.addListener(graph.container, 'mousedown', function()
+  {
+  	if (!graph.isEditing())
+  	{
+    	graph.container.setAttribute('tabindex', '-1');
+    	graph.container.focus();
+    }
+  });
+}
+</pre>
+<p>
+	Note that as a side-effect of this the DIV will have a focus border which you may
+	or may not find useful. Also note that the focus is transferred normally if the
+	DIV receives a double click, the above solution is just for single-clicks.
+</p>
+<h2><a name="TransparentHtmlLabels"></a>Opacity style in HTML labels</h2>
+<p>
+	There is a problem in Webkit (Chrome, Safari) where HTML labels with
+	opacities other than 1 don't scale correctly. Try using
+	<code>mxClient.NO_FO = true</code> before rendering the graph as a
+	workaround for this problem.
+</p>
+<h2><a name="Chrome5LocalFiles"></a>Local file:// URI in Chrome 5.x</h2>
+<p>
+	Chrome 5.x no longer loads files from the local filesystem via XHR. This
+	affects the loading of resources if examples are viewed via the file://
+	protocol. To enable the loading of such files you should use the new flag
+	--allow-file-access-from-files.
+</p>
+<p>
+ 	See security section for 5.0.335.0 release
+	<a href="http://googlechromereleases.blogspot.com/">here</a>.
+</p>
+<h2><a name="ClippedLabels"></a>Clipped labels</h2>
+<p>
+	For clipped labels (overflow:hidden or mxGraph.isLabelClipped returns true)
+	it is possible that event handling remains as if the label was unclipped.
+	There are several browsers and versions that show this behaviour.
+</p>
+<h2><a name="LocalFiles"></a>Scrollable labels in Webkit</h2>
+<p>
+	For labels that contain HTML markup with scrollbars in Webkit (Safari and
+	Chrome) you should disable the use of foreignObject to make sure the HTML
+	is not embedded in the SVG node hierarchy. This is because Webkit has a bug
+	where mouse events are ignored in any scrollbars in a foreignObject. To
+	disable foreignObjects, the following code can be used:
+</p>
+<pre>mxClient.NO_FO = mxClient.NO_FO || mxClient.IS_SF || mxClient.IS_GC;</pre>
+<p>
+	<a href="http://code.google.com/p/chromium/issues/detail?id=35545">Bug Report</a>
+</p>
+<h2><a name="LocalFiles"></a>Local Files</h2>
+<p>
+	For enabling the functionality in mxUtils.save and mxUtils.open for reading
+	and writing local files, the security settings for the page need to be
+	changed to enabled or prompt for <i>Initialize and script ActiveX controls
+	not marked as save for scripting</i> in IE 7.
+</p>
+<p>
+	To enable local file access in Firefox, the page must be loaded using the
+	file:// protocol.
+	<a href="http://www.mozilla.org/projects/security/components/signed-scripts.html">This</a>
+	article also states the the access works for signed scripts, however, this
+	has not been tested.
+</p>
+<p>	
+	For mxUtils.saveAs in Firefox, the same restrictions apply. However, the
+	function may be used in IE7 without any client-side settings.
+</p>
+<p>
+	For local file access in Firefox 3, you need do to an about:config and
+	change security.fileuri.strict_origin_policy to false. (If some language
+	properties are missing in Firefox 3, this is most likely the cause for the
+	problem.) This is only required for local file access and not for
+	production software deployed on a webserver.
+</p>
+<h2><a name="Rotation"></a>Rotation</h2>
+<p>
+	Support for rotation is limited to the shape display. Text labels, handles,
+	selection bounds and perimeter points are currently not rotated. Support
+	for rotation is limited to SVG/VML dialects in the client, as well as the
+	mxGraphics2DCanvas in Java and the mxGdiCanvas in C#. PHP does not
+	currently support rotation in GD.
+</p>
+<h2><a name="EventOrder"></a>Order of Events in IE</h2>
+<p>
+	When adding listeners for DOM events using mxEvent in IE, which in turn
+	uses attachEvent, then the order in which listeners are invoked for a
+	specific event is not as listeners have been added. This is a known bug.
+	There is no workaround for this problem.
+</p>
+<h2><a name="Printing"></a>Printing</h2>
+<p>
+	Printing does not work in Firefox 1.5 (bug 314707). However, it works in
+	Firefox 2.0 and later. In Internet Explorer 6 on Windows XP (no
+	service pack) and Internet Explorer 7 on Windows Server 2003 SP1
+	enterprise, SP2 beta build 2825 enterprise and SP2 beta build 2805
+	data center there is a
+	<a href="http://www.eggheadcafe.com/software/aspnet/29075807/vml-content-created-by-sc.aspx">known issue</a>
+	with printing VML content created by script.
+</p>
+<p>
+	In Firefox and Internet Explorer, all content that is wider than one page
+	is cropped when printed. Please use mxPrintPreview for printing across
+	multiple pages.
+</p>
+<h2><a name="Statusbar"></a>Statusbar</h2>
+<p>
+	The status bar is used to display information while the DOM is being
+	updated. Therefore, it is not possible to display this information in the
+	DOM (as it is being updated). Unfortunately, Firefox and IE do not allow
+	scripts to change the status bar. (IE 6 allows it.)
+</p>
+<p>
+	To enable updates of the status bar in IE 7, you can change the security
+	setting of the respective zone in Internet Options, Security, Custom Level,
+	Scripting, Allow status bar updates via script.
+</p>
+<p>
+	To enable updates of the status bar in Firefox, you can set the
+	configuration setting via about:config, dom.disable_window_status_change to
+	false.
+</p>
+<h2><a name="AccessDenied"></a>Access Denied in IE</h2>
+<p>
+	The latest version of IE does no longer allow to read files from the local
+	filesystem. This means that all files must be loaded from a webserver, or
+	the native XMLHTTP support must be disabled.
+</p>
+<p>
+	To allow loading files from the local filesystem in IE, you must disable
+	native XMLHTTP support in Internet Options, Advanced, Security. Keep in
+	mind that loading the client from the local filesystem should only be
+	used for development. In production, the page containing the client and
+	all files should be loaded from a webserver via HTTP.
+</p>
+<h2><a name="FontRendering"></a>Font Rendering</h2>
+<p>
+	In Firefox (including 2.0), the fonts are sometimes cropped at the end of a
+	line (some pixels missing). On the Mac, the text sometimes completely
+	disappears. The problem seems to be fixed in Firefox 3.0 for Windows. A
+	possible workaround is to change the width of the window by at least 1
+	pixel.
+</p>
+<p>
+	<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=368879">Bug Report</a>
+</p>
+<h3><a name="LabelBoundingBox"></a>Label Bounding Box</h3>
+<p>
+	In Firefox, the SVG-function getBBox for vertex- and edgelabels is one step
+	behind zoom. This means, the bounding box for overlapping labels and the
+	label background and border might appear smaller or larger than the text
+	after zooming. The display can be updated by panning the graph at least 1
+	pixel.
+</p>
+<h2><a name="Linefeeds"></a>Linefeeds</h2>
+<p>
+	Linefeeds are converted into &amp;#xa; at encoding time. However, in shared
+	diagram sessions the linefeeds (\n) are kept. When sending such XML back to
+	the client all linefeeds must be replaced with &amp;#xa;. If you need a
+	different encoding you can change the mxEditor.prototype.linefeed and
+	mxSession.prototype.linefeed variables. In general, the encoding of
+	linefeeds is specified when a DOM node is serialized using the
+	mxUtils.getXml(node, linefeed) method. The optional linefeed argument is
+	the string to be used for encoding linefeeds and defaults to &amp;#xa;.
+</p>
+<h2><a name="RunSlowly"></a>Scripts Run Slowly Error in IE</h2>
+<p>
+	This error (<i>A script on this page is causing internet explorer to run
+	slowly</i>) in IE (all supported versions including IE 7) is triggered by
+	the script engine executing more than 5 million operations (see
+	<a href="http://support.microsoft.com/kb/175500">http://support.microsoft.com/kb/175500</a>).
+	A workaround for this problem is using the threads provided with
+	<a href="http://gears.google.com/" target="_blank">Google Gears</a>
+	or using worker threads in HTML 5.
+</p>
+<p>
+	Another workaround is to set the
+	<code>HKEY_CURRENT_USER\Software\Microsoft\Internet Explorer\Styles</code>
+	DWORD value of <code>MaxScriptStatements</code> to hex <code>7fffffff</code>
+	and reboot. Warning: According to the Knowledge Base article, "serious
+	problems might occur if you modify the registry".
+</p>
+<h2><a name="BodyBorder"></a>Body, HTML Borders</h2>
+<p>
+	When using a style definition for the body or HTML element that makes the
+	border invisible, such as none or 0px for the border-width, then there is a
+	strange behaviour in IE after dragging cells into the graph. Another click
+	is required to stop the respective tool from being inserted again into the
+	graph. Currently, the only known workaround is not to use the style
+	definition for invisible borders. Invisible borders for body and HTML
+	elements are the default setting and the bug does not occur if the border
+	is set to something visible, such as 1px solid black.
+</p>
+<h2><a name="HtmlLabels"></a>HTML Labels</h2>
+<p>
+	HTML labels are supported in SVG browsers via the mxGraph.htmlLabels
+	switch. mxGraph.isHtmlLabel(mxCell) may be overridden to return individual
+	values for cells. The following are known limitations for HTML labels:
+</p>
+<ul>
+<li>Oversize labels consume events on transparent regions. This limitation
+exists in all browsers.</li>
+<li>Zoom does only work for text content. This limitation exists in all non-IE
+browsers, eg. Firefox.</li>
+<li>Drag and drop (eg. connections) starting at inner img has same cell in
+dispatch loop.</li>
+<li>Vertical/rotated HTML labels are not supported in Opera.</li>
+<li>In SVG-based browsers, the labels appear on top of all SVG in a separate
+layer.</li>
+</ul>
+<h2><a name="SvgContainer"></a>SVG Container</h2>
+<p>
+	In Firefox, the size of the SVG element is updated to be the size of the
+	graph whenever the graph changes. However, since there is no resize event
+	fired by the parent container of the SVG element, the SVG element may have
+	to be manually resized if the parent element is larger than the graph. The
+	effect of this is that if the container of the SVG element is made larger
+	without updating the SVG element's size, then the SVG element (and hence
+	the drawing area) will appear smaller than the container of the graph.
+</p>
+<h2><a name="Opera"></a>Opera</h2>
+<p>
+	Support for Opera 9 is currently experimental. There are several known
+	issues, such as no context menu, cropping in SVG canvas, ignored
+	beforeunload handler and drag and drop from toolbar not working. For
+	displaying the context menu in Opera (and on Mac), hold down the shift key
+	while clicking the (left) mouse button.
+</p>
+<h2><a name="Safari"></a>Safari</h2>
+<p>
+	For the context menu to appear in Safari on the Mac, hold down the shift
+	key while clicking the (left) mouse button. Safari does not provide the
+	beforeunload event. Also, vertical labels are not working in Safari on the
+	Mac.
+</p>
+<h2><a name="Webkit"></a>Webkit (Safari and Google Chrome)</h2>
+<p>
+    For some container positions there are artifacts in Safari and Google
+    Chrome when repainting dynamic SVG elements (eg. highlights and previews).
+    This is due to a bug in the Webkit repaint code. Also, the value for text
+    opacity is currently ignored in Webkit.
+</p>
+<h2><a name="PHPStroke"></a>PHP and strokewidths</h2>
+<p>
+    The strokewidth is currently ignored in some GD implementations, as the
+    imagesetthickness function is not working properly.
+</p>
+<h2><a name="XDomXHR"></a>Cross-domain AJAX</h2>
+<p>
+	Cross-domain AJAX requests are generally not allowed, so make sure all
+	requests are kept within the same domain of the page that contains the
+	client. By default, XHR is used for loading the JS files (development
+	only), the properties files (i18n) and the XML files (config). In
+	production, there is only a single JS file which is not loaded using XHR,
+	however, the files for i18n and configuration are still loaded using XHR
+	and should therefore be placed in the same domain.
+</p>
+<p>
+	For example, if the translations are missing in the UI you should make sure
+	the respective properties files are stored in the same domain as the page
+	that contains the client. In this specific case, if you are using IIS, you
+	should also check if the MIME type for properties files has been registered
+	correctly. If no MIME type has been registered for the .properties
+	extension then please do so in the IIS console under IIS, MIME types.
+</p>
+<p>
+	Note that the evaluation distribution uses a hosted version of mxClient. If
+	you are experiencing cross-domain security problems using the evaluation
+	version then you should upgrade to the commercial version as it includes
+	all required files.
+</p>
+<p>
+	There is a known issue where Firefox does not load properties files from
+	the local filesystem (file:// protocol) if the mxClient.js files is loaded
+	from a different domain (evaluation). This problem goes away when using
+	HTTP.
+</p>
+<hr size="1">
+&copy; 2006-2011 by JGraph Ltd.
+</body>
+</html>

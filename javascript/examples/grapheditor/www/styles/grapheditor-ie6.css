@@ -1,0 +1,23 @@
+.geToolbar .geButton {
+	border-color:pink;
+	filter: chroma(color=pink)alpha(opacity=50);
+}
+.geToolbar .geLabel {
+	border-color:pink;
+	filter:chroma(color=pink)alpha(opacity=50);
+}
+.geToolbar .geDisabled {
+	filter:chroma(color=pink) alpha(opacity=20) !important;
+}
+.geToolbar .disabled:hover {
+	border-color:pink !important;
+	filter:chroma(color=pink) alpha(opacity=20) !important;
+}
+.geSidebar .geItem {
+	border-color:pink !important;
+	filter:chroma(color=pink) !important;
+}
+td.mxPopupMenuIcon .geIcon {
+	border-color:pink !important;
+	filter:chroma(color=pink) !important;
+}

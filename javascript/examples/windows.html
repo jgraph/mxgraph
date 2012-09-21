@@ -1,0 +1,134 @@
+<!--
+  $Id: windows.html,v 1.15 2012-07-17 08:22:19 gaudenz Exp $
+  Copyright (c) 2006-2010, JGraph Ltd
+  
+  Windows example for mxGraph. This example demonstrates using
+  the mxWindow class for displaying windows.
+-->
+<html>
+<head>
+	<title>Windows example for mxGraph</title>
+
+	<!-- Sets the basepath for the library if not in same directory -->
+	<script type="text/javascript">
+		mxBasePath = '../src';
+	</script>
+
+	<!-- Loads and initializes the library -->
+	<script type="text/javascript" src="../src/js/mxClient.js"></script>
+
+	<!-- Example code -->
+	<script type="text/javascript">
+
+		// Program starts here. Creates a sample graph in the
+		// DOM node with the specified ID. This function is invoked
+		// from the onLoad event handler of the document (see below).
+		function main(container)
+		{
+			// Checks if the browser is supported
+			if (!mxClient.isBrowserSupported())
+			{
+				// Displays an error message if the browser is not supported.
+				mxUtils.error('Browser is not supported!', 200, false);
+			}
+			else
+			{
+				// Note that we're using the container scrollbars for the graph so that the
+				// container extends to the parent div inside the window
+				var wnd = new mxWindow('Scrollable, resizable, given height', container, 50, 50, 220, 224, true, true);
+				
+				// Creates the graph inside the given container
+				var graph = new mxGraph(container);
+				
+				// Adds rubberband selection and keystrokes
+				graph.setTooltips(true);
+				graph.setPanning(true);
+				var rubberband = new mxRubberband(graph);
+				new mxKeyHandler(graph);
+				
+				mxEvent.disableContextMenu(container);
+				
+				// Workaround for rubberband rendering in IE (IE9 does not need this)
+				if (mxClient.IS_IE)
+				{
+					mxRubberbandMouseMove = mxRubberband.prototype.mouseMove;
+					mxRubberband.prototype.mouseMove = function(sender, me)
+					{
+						mxRubberbandMouseMove.apply(this, arguments);
+						
+						if (this.div != null && this.div.style.background != 'transparent')
+						{
+							container.style.cursor = 'default';
+							this.div.style.background = 'transparent';
+							this.div.style.borderStyle = 'dashed';
+							mxUtils.setOpacity(this.div, 100);
+						}
+					}
+				}
+				
+				// Workaround for no resize event of container parent in
+				// Firefox, canvas needs update of limited drawing area
+				else
+				{
+					wnd.addListener(mxEvent.RESIZE_END, function(evt)
+					{
+						graph.sizeDidChange();
+					});
+				}
+				
+				// Gets the default parent for inserting new cells. This
+				// is normally the first child of the root (ie. layer 0).
+				var parent = graph.getDefaultParent();
+								
+				// Adds cells to the model in a single step
+				graph.getModel().beginUpdate();
+				try
+				{
+					var v1 = graph.insertVertex(parent, null, 'Hello,', 20, 20, 80, 30);
+					var v2 = graph.insertVertex(parent, null, 'World!', 200, 150, 80, 30);
+					var e1 = graph.insertEdge(parent, null, '', v1, v2);
+				}
+				finally
+				{
+					// Updates the display
+					graph.getModel().endUpdate();
+				}
+
+				wnd.setMaximizable(true);
+				wnd.setResizable(true);
+				wnd.setVisible(true);
+				
+				var lorem = 'Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi consequat. Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. ';
+				var content = document.createElement('div');
+				mxUtils.write(content, lorem + lorem + lorem);
+				
+				wnd = new mxWindow('Scrollable, resizable, auto height', content, 300, 50, 200, null, true, true);
+				wnd.setMaximizable(true);
+				wnd.setScrollable(true);
+				wnd.setResizable(true);
+				wnd.setVisible(true);
+				
+				content = content.cloneNode(true)
+				content.style.width = '400px';
+				
+				wnd = new mxWindow('Scrollable, resizable, fixed content', content, 520, 50, 220, 200, true, true);
+				wnd.setMaximizable(true);
+				wnd.setScrollable(true);
+				wnd.setResizable(true);
+				wnd.setVisible(true);
+				
+				mxLog.show();
+			}
+		};
+	</script>
+</head>
+
+<!-- Page passes the container for the graph to the program -->
+<body onload="main(document.getElementById('graphContainer'))">
+
+	<!-- Creates a container for the graph with a grid wallpaper -->
+	<div id="graphContainer"
+		style="overflow:auto;width:100%;height:100%;background:lightyellow;">
+	</div>
+</body>
+</html>

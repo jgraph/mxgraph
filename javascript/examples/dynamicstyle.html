@@ -1,0 +1,124 @@
+<!--
+  $Id: dynamicstyle.html,v 1.12 2012-07-17 08:22:19 gaudenz Exp $
+  Copyright (c) 2006-2010, JGraph Ltd
+  
+  Dynamic Style example for mxGraph. This example demonstrates changing
+  the style of a cell dynamically by overriding mxGraphModel.getStyle.
+-->
+<html>
+<head>
+	<title>Dynamic Style example for mxGraph</title>
+
+	<!-- Sets the basepath for the library if not in same directory -->
+	<script type="text/javascript">
+		mxBasePath = '../src';
+	</script>
+
+	<!-- Loads and initializes the library -->
+	<script type="text/javascript" src="../src/js/mxClient.js"></script>
+
+	<!-- Example code -->
+	<script type="text/javascript">
+		// Program starts here. Creates a sample graph in the
+		// DOM node with the specified ID. This function is invoked
+		// from the onLoad event handler of the document (see below).
+		function main(container)
+		{
+			// Checks if the browser is supported
+			if (!mxClient.isBrowserSupported())
+			{
+				// Displays an error message if the browser is not supported.
+				mxUtils.error('Browser is not supported!', 200, false);
+			}
+			else
+			{
+				// Creates the graph inside the given container
+				var graph = new mxGraph(container);
+
+				// Disables moving of edge labels in this examples
+				graph.edgeLabelsMovable = false;
+				
+				// Enables rubberband selection
+				new mxRubberband(graph);
+
+				// Needs to set a flag to check for dynamic style changes,
+				// that is, changes to styles on cells where the style was
+				// not explicitely changed using mxStyleChange
+				graph.getView().updateStyle = true;
+				
+				// Overrides mxGraphModel.getStyle to return a specific style
+				// for edges that reflects their target terminal (in this case
+				// the strokeColor will be equal to the target's fillColor).
+				var previous = graph.model.getStyle;
+				
+				graph.model.getStyle = function(cell)
+				{
+					if (cell != null)
+					{
+						var style = previous.apply(this, arguments);
+						
+						if (this.isEdge(cell))
+						{
+							var target = this.getTerminal(cell, false);
+
+							if (target != null)
+							{
+								var state = graph.getView().getState(target);
+								var targetStyle = (state != null) ? state.style : graph.getCellStyle(target);
+								var fill = mxUtils.getValue(targetStyle, mxConstants.STYLE_FILLCOLOR);
+								
+								if (fill != null)
+								{
+									style += ';strokeColor='+fill;
+								}
+							}
+						}
+						else if (this.isVertex(cell))
+						{
+							var geometry = this.getGeometry(cell);
+							
+							if (geometry != null &&
+								geometry.width > 80)
+							{
+								style += ';fillColor=green';
+							}
+						}
+						
+						return style;
+					}
+					
+					return null;
+				};
+				
+				// Gets the default parent for inserting new cells. This
+				// is normally the first child of the root (ie. layer 0).
+				var parent = graph.getDefaultParent();
+								
+				// Adds cells to the model in a single step
+				graph.getModel().beginUpdate();
+				try
+				{
+					var v1 = graph.insertVertex(parent, null, 'Hello,', 20, 20, 80, 30, 'fillColor=green');
+					var v2 = graph.insertVertex(parent, null, 'World!', 200, 150, 80, 30, 'fillColor=blue');
+					var v3 = graph.insertVertex(parent, null, 'World!', 20, 150, 80, 30, 'fillColor=red');
+					var e1 = graph.insertEdge(parent, null, 'Connect', v1, v2, 'perimeterSpacing=4;strokeWidth=4;labelBackgroundColor=white;fontStyle=1');
+				}
+				finally
+				{
+					// Updates the display
+					graph.getModel().endUpdate();
+				}
+			}
+		};
+	</script>
+</head>
+
+<!-- Page passes the container for the graph to the program -->
+<body onload="main(document.getElementById('graphContainer'))">
+
+	<!-- Creates a container for the graph with a grid wallpaper -->
+	<div id="graphContainer"
+		style="overflow:hidden;width:321px;height:241px;background:url('editors/images/grid.gif')">
+	</div>
+</body>
+</html>

@@ -1,0 +1,380 @@
+<shapes name="mxGraph.pid.compressors">
+<shape name="AC Air Compressor" h="68" w="101.88" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0.17" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0.015" y="0.69" perimeter="0" name="W"/>
+<constraint x="0.985" y="0.69" perimeter="0" name="E"/>
+<constraint x="0.08" y="0.38" perimeter="0" name="NW"/>
+<constraint x="0.08" y="1" perimeter="0" name="SW"/>
+<constraint x="0.92" y="0.38" perimeter="0" name="NE"/>
+<constraint x="0.92" y="1" perimeter="0" name="SE"/>
+</connections>
+<background>
+<path>
+<move x="7.94" y="26"/>
+<line x="93.94" y="26"/>
+<arc rx="40" ry="40" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="93.94" y="68"/>
+<line x="7.94" y="68"/>
+<arc rx="40" ry="40" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="7.94" y="26"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<rect x="8.14" y="26" w="85.4" h="42"/>
+<fillstroke/>
+<ellipse x="32.94" y="15" w="8" h="8"/>
+<fillstroke/>
+<ellipse x="59.44" y="8" w="16" h="16"/>
+<fillstroke/>
+<path>
+<move x="36.06" y="15.1"/>
+<line x="65.29" y="8.42"/>
+</path>
+<stroke/>
+<path>
+<move x="36.97" y="23.14"/>
+<line x="67.29" y="24.07"/>
+</path>
+<stroke/>
+<path>
+<move x="17.44" y="26"/>
+<line x="17.44" y="21.5"/>
+</path>
+<stroke/>
+<path>
+<move x="12.94" y="21.5"/>
+<line x="17.44" y="16.5"/>
+</path>
+<stroke/>
+<path>
+<move x="17.44" y="0"/>
+<line x="17.44" y="16.5"/>
+</path>
+<stroke/>
+<path>
+<move x="13.94" y="8.4"/>
+<line x="21.14" y="14.7"/>
+</path>
+<stroke/>
+<path>
+<move x="14.94" y="5.7"/>
+<line x="20.64" y="10.5"/>
+</path>
+<stroke/>
+<path>
+<move x="15.54" y="3"/>
+<line x="19.94" y="7"/>
+</path>
+<stroke/>
+<path>
+<move x="12.94" y="12"/>
+<line x="22.44" y="21.5"/>
+<line x="12.94" y="21.5"/>
+<close/>
+</path>
+<fillstroke/>
+<path>
+<move x="85.44" y="12"/>
+<line x="91.44" y="12"/>
+<line x="85.44" y="22.5"/>
+<line x="91.44" y="22.5"/>
+<close/>
+</path>
+<fillstroke/>
+<path>
+<move x="88.44" y="26"/>
+<line x="88.44" y="22.5"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Centrifugal Compressor" h="67" w="70" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.43" y="0" perimeter="0" name="N"/>
+<constraint x="0.43" y="1" perimeter="0" name="S"/>
+<constraint x="0.01" y="0.5" perimeter="0" name="W"/>
+<constraint x="0.86" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.125" y="0.125" perimeter="0" name="NW"/>
+<constraint x="0" y="1" perimeter="0" name="SW"/>
+<constraint x="1" y="0" perimeter="0" name="NE"/>
+<constraint x="0.855" y="1" perimeter="0" name="SE"/>
+</connections>
+<foreground>
+<path>
+<move x="12" y="54"/>
+<line x="0" y="67"/>
+<line x="60" y="67"/>
+<line x="48" y="54"/>
+</path>
+<fillstroke/>
+<path>
+<move x="0.6" y="25"/>
+<arc rx="30" ry="30" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="30" y="0"/>
+<line x="70" y="0"/>
+<line x="70" y="20"/>
+<line x="58.45" y="20"/>
+<arc rx="30" ry="30" x-axis-rotation="0" large-arc-flag="1" sweep-flag="1" x="0.6" y="35"/>
+</path>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="Centrifugal Compressor - Turbine Driven" h="67" w="98" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0" y="0.067" perimeter="0" name="in"/>
+<constraint x="1" y="0.067" perimeter="0" name="out"/>
+<constraint x="0" y="0.63" perimeter="0" name="turbine"/>
+</connections>
+<foreground>
+<path>
+<move x="64.5" y="2"/>
+<line x="87.5" y="2"/>
+<line x="87.5" y="0"/>
+<line x="98" y="4.5"/>
+<line x="87.5" y="9"/>
+<line x="87.5" y="7"/>
+<line x="69.5" y="7"/>
+<line x="69.5" y="26"/>
+<line x="64.5" y="25"/>
+<close/>
+</path>
+<fillstroke/>
+<path>
+<move x="24.5" y="17"/>
+<line x="74.5" y="27"/>
+<line x="74.5" y="57"/>
+<line x="24.5" y="67"/>
+<close/>
+</path>
+<fillstroke/>
+<path>
+<move x="19.5" y="32"/>
+<line x="19.5" y="52"/>
+<line x="0.5" y="47"/>
+<line x="0.5" y="37"/>
+<close/>
+</path>
+<fillstroke/>
+<path>
+<move x="19.5" y="39"/>
+<line x="24.5" y="39"/>
+</path>
+<stroke/>
+<path>
+<move x="19.5" y="45"/>
+<line x="24.5" y="45"/>
+</path>
+<stroke/>
+<fontcolor color="#000000"/>
+<fontsize size="8"/>
+<text str="T" x="11.5" y="46" align="center" valign="bottom"/>
+<path>
+<move x="0" y="2"/>
+<line x="39.5" y="2"/>
+<line x="39.5" y="20"/>
+<line x="34.5" y="19"/>
+<line x="34.5" y="7"/>
+<line x="0" y="7"/>
+<close/>
+</path>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="Compressor and Silencers" h="80.56" w="90" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0.37" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.11" y="0" perimeter="0" name="NW"/>
+<constraint x="0.11" y="0.945" perimeter="0" name="SW"/>
+<constraint x="0.89" y="0" perimeter="0" name="NE"/>
+<constraint x="0.89" y="0.945" perimeter="0" name="SE"/>
+</connections>
+<foreground>
+<path>
+<move x="39" y="74.56"/>
+<line x="35" y="80.56"/>
+<line x="55" y="80.56"/>
+<line x="51" y="74.56"/>
+</path>
+<fillstroke/>
+<path>
+<move x="20" y="5.56"/>
+<line x="20" y="70.56"/>
+<arc rx="9" ry="5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="0" y="70.56"/>
+<line x="0" y="5.56"/>
+<arc rx="9" ry="5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="20" y="5.56"/>
+<close/>
+</path>
+<fillstroke/>
+<path>
+<move x="70" y="5.56"/>
+<line x="70" y="70.56"/>
+<arc rx="9" ry="5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="90" y="70.56"/>
+<line x="90" y="5.56"/>
+<arc rx="9" ry="5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="70" y="5.56"/>
+<close/>
+</path>
+<fillstroke/>
+<path>
+<move x="55" y="35.56"/>
+<line x="55" y="70.56"/>
+<arc rx="9" ry="5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="35" y="70.56"/>
+<line x="35" y="35.56"/>
+<arc rx="9" ry="5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="55" y="35.56"/>
+<close/>
+</path>
+<fillstroke/>
+<ellipse x="37" y="35.56" w="16" h="16"/>
+<stroke/>
+<ellipse x="37" y="55.56" w="16" h="16"/>
+<stroke/>
+<path>
+<move x="20" y="53.56"/>
+<line x="35" y="53.56"/>
+</path>
+<stroke/>
+<path>
+<move x="55" y="53.56"/>
+<line x="70" y="53.56"/>
+</path>
+<stroke/>
+
+<path>
+<move x="27.5" y="45.56"/>
+<line x="27.5" y="61.56"/>
+</path>
+<stroke/>
+<strokewidth width="2"/>
+<path>
+<move x="62.5" y="45.56"/>
+<line x="62.5" y="61.56"/>
+</path>
+<stroke/>
+</foreground>
+</shape>
+<shape name="Liquid Ring Compressor" h="90" w="90" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.5" perimeter="0" name="W"/>
+<constraint x="1" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.145" y="0.145" perimeter="0" name="NW"/>
+<constraint x="0.145" y="0.855" perimeter="0" name="SW"/>
+<constraint x="0.855" y="0.145" perimeter="0" name="NE"/>
+<constraint x="0.855" y="0.855" perimeter="0" name="SE"/>
+</connections>
+<background>
+<save/>
+<ellipse x="0" y="0" w="90" h="90"/>
+</background>
+<foreground>
+<fillstroke/>
+<restore/>
+<strokewidth width="1"/>
+<path>
+<move x="45" y="5"/>
+<arc rx="30" ry="30" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="45" y="45"/>
+<arc rx="30" ry="30" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="45" y="85"/>
+</path>
+<stroke/>
+<path>
+<move x="73.3" y="16.7"/>
+<arc rx="30" ry="30" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="45" y="45"/>
+<arc rx="30" ry="30" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="16.7" y="73.3"/>
+</path>
+<stroke/>
+<path>
+<move x="85" y="45"/>
+<arc rx="30" ry="30" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="45" y="45"/>
+<arc rx="30" ry="30" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="5" y="45"/>
+</path>
+<stroke/>
+<path>
+<move x="73.3" y="73.3"/>
+<arc rx="30" ry="30" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="45" y="45"/>
+<arc rx="30" ry="30" x-axis-rotation="0" large-arc-flag="0" sweep-flag="0" x="16.5" y="16.5"/>
+</path>
+<stroke/>
+<ellipse x="42" y="42" w="6" h="6"/>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="Reciprocating Compressor" h="40" w="98" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0.32" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0" y="0.625" perimeter="0" name="W"/>
+<constraint x="1" y="0.625" perimeter="0" name="E"/>
+<constraint x="0.145" y="0" perimeter="0" name="NW"/>
+<constraint x="0.145" y="1" perimeter="0" name="SW"/>
+<constraint x="0.76" y="0.32" perimeter="0" name="NE"/>
+<constraint x="0.76" y="1" perimeter="0" name="SE"/>
+</connections>
+<background>
+<path>
+<move x="14.5" y="40"/>
+<line x="14.5" y="0"/>
+<line x="34.5" y="0"/>
+<line x="34.5" y="13"/>
+<line x="74.5" y="13"/>
+<line x="74.5" y="40"/>
+<close/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<rect x="0" y="23" w="14" h="4"/>
+<fillstroke/>
+<path>
+<move x="74.5" y="23"/>
+<line x="87.5" y="23"/>
+<line x="87.5" y="21.5"/>
+<line x="98" y="25"/>
+<line x="87.5" y="28.5"/>
+<line x="87.5" y="27"/>
+<line x="74.5" y="27"/>
+<close/>
+</path>
+<fillstroke/>
+</foreground>
+</shape>
+<shape name="Rotary Compressor" h="91" w="42" aspect="variable" strokewidth="inherit">
+<connections>
+<constraint x="0.5" y="0" perimeter="0" name="N"/>
+<constraint x="0.5" y="1" perimeter="0" name="S"/>
+<constraint x="0.02" y="0.5" perimeter="0" name="W"/>
+<constraint x="0.98" y="0.5" perimeter="0" name="E"/>
+<constraint x="0.02" y="0.1" perimeter="0" name="NW"/>
+<constraint x="0" y="1" perimeter="0" name="SW"/>
+<constraint x="0.98" y="0.1" perimeter="0" name="NE"/>
+<constraint x="1" y="1" perimeter="0" name="SE"/>
+</connections>
+<background>
+<path>
+<move x="7.5" y="82"/>
+<line x="0" y="91"/>
+<line x="42" y="91"/>
+<line x="34.4" y="82"/>
+</path>
+</background>
+<foreground>
+<fillstroke/>
+<path>
+<move x="41" y="10"/>
+<line x="41" y="75"/>
+<arc rx="20" ry="10" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="1" y="75"/>
+<line x="1" y="10"/>
+<arc rx="20" ry="10" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="41" y="10"/>
+<close/>
+</path>
+<fillstroke/>
+<ellipse x="5" y="7" w="32" h="32"/>
+<stroke/>
+<ellipse x="5" y="44" w="32" h="32"/>
+<stroke/>
+</foreground>
+</shape>
+</shapes>
