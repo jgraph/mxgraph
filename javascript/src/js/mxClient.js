@@ -21,9 +21,15 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
+<<<<<<< HEAD
 	 * Current version is @MXGRAPH-VERSION@.
 	 */
 	VERSION: '@MXGRAPH-VERSION@',
+=======
+	 * Current version is 1.10.3.1.
+	 */
+	VERSION: '1.10.3.1',
+>>>>>>> master
 
 	/**
 	 * Variable: IS_IE

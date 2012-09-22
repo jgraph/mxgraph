@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+- Fixes overriden mxVertexHandler.getSelectionBounds [JavaScript]
+>>>>>>> master
 - Adds layout options in grapheditor example [JavaScript]
 - Fixes custom handles for compiled grapheditor example [JavaScript]
 - Fixes minor issues for mxEdgeHandler.snapToTerminal [JavaScript]
