@@ -8193,7 +8193,7 @@ mxEventSource.prototype.fireEvent = function(evt, sender)
 	}
 };
 /**
- * $Id: mxEvent.js,v 1.74 2012-08-10 11:35:06 gaudenz Exp $
+ * $Id: mxEvent.js,v 1.75 2012-09-04 11:57:59 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEvent =
@@ -9351,7 +9351,21 @@ var mxEvent =
 	 *
 	 * Specifies the event name for doubleClick.
 	 */
-	DOUBLE_CLICK: 'doubleClick'
+	DOUBLE_CLICK: 'doubleClick',
+
+	/**
+	 * Variable: START
+	 *
+	 * Specifies the event name for start.
+	 */
+	START: 'start',
+
+	/**
+	 * Variable: RESET
+	 *
+	 * Specifies the event name for reset.
+	 */
+	RESET: 'reset'
 
 };
 /**
@@ -64772,7 +64786,7 @@ mxSelectionCellsHandler.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxConnectionHandler.js,v 1.210 2012-07-11 17:18:56 gaudenz Exp $
+ * $Id: mxConnectionHandler.js,v 1.212 2012-09-05 08:06:27 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -64874,11 +64888,20 @@ mxSelectionCellsHandler.prototype.destroy = function()
  *
  * Group: Events
  * 
+ * Event: mxEvent.START
+ * 
+ * Fires when a new connection is being created by the user. The <code>state</code>
+ * property contains the state of the source cell.
+ * 
  * Event: mxEvent.CONNECT
  * 
  * Fires between begin- and endUpdate in <connect>. The <code>cell</code>
  * property contains the inserted edge, the <code>event</code> and <code>target</code> 
  * properties contain the respective arguments that were passed to <connect>.
+ *
+ * Event: mxEvent.RESET
+ * 
+ * Fires when the <reset> method is invoked.
  *
  * Constructor: mxConnectionHandler
  *
@@ -65391,6 +65414,8 @@ mxConnectionHandler.prototype.start = function(state, x, y, edgeState)
 	this.marker.currentColor = this.marker.validColor;
 	this.marker.markedState = state;
 	this.marker.mark();
+	
+	this.fireEvent(new mxEventObject(mxEvent.START, 'state', this.previous));
 };
 
 /**
@@ -65695,6 +65720,8 @@ mxConnectionHandler.prototype.mouseDown = function(sender, me)
 			var pt = this.graph.getPointForEvent(me.getEvent());
 			this.edgeState.cell.geometry.setTerminalPoint(pt, true);
 		}
+		
+		this.fireEvent(new mxEventObject(mxEvent.START, 'state', this.previous));
 
 		me.consume();
 	}
@@ -65752,6 +65779,7 @@ mxConnectionHandler.prototype.tapAndHold = function(me, state)
 		this.first = new mxPoint(me.getGraphX(), me.getGraphY());
 		this.edgeState = this.createEdgeState(me);
 		this.previous = state;
+		this.fireEvent(new mxEventObject(mxEvent.START, 'state', this.previous));
 	}
 };
 
@@ -66288,6 +66316,8 @@ mxConnectionHandler.prototype.reset = function()
 	this.mouseDownCounter = 0;
 	this.first = null;
 	this.icon = null;
+
+	this.fireEvent(new mxEventObject(mxEvent.RESET));
 };
 
 /**
@@ -67330,7 +67360,7 @@ mxRubberband.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxVertexHandler.js,v 1.104 2012-07-25 08:26:23 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.105 2012-09-21 07:41:47 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -67424,7 +67454,9 @@ mxVertexHandler.prototype.tolerance = 0;
 mxVertexHandler.prototype.init = function()
 {
 	this.graph = this.state.view.graph;
-	this.bounds = this.getSelectionBounds(this.state);
+	this.selectionBounds = this.getSelectionBounds(this.state);
+	this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y,
+		this.selectionBounds.width, this.selectionBounds.height);
 	this.selectionBorder = this.createSelectionShape(this.bounds);
 	this.selectionBorder.dialect =
 		(this.graph.dialect != mxConstants.DIALECT_SVG) ?
@@ -67765,7 +67797,7 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 			var dx = point.x - this.startX;
 			var dy = point.y - this.startY;
 			var tr = this.graph.view.translate;
-			this.bounds = this.union(this.state, dx, dy, this.index, gridEnabled, scale, tr);
+			this.bounds = this.union(this.selectionBounds, dx, dy, this.index, gridEnabled, scale, tr);
 			this.drawPreview();
 			me.consume();
 		}
@@ -67818,7 +67850,9 @@ mxVertexHandler.prototype.reset = function()
 	if (this.selectionBorder != null)
 	{
 		this.selectionBorder.node.style.visibility = 'visible';
-		this.bounds = new mxRectangle(this.state.x, this.state.y, this.state.width, this.state.height);
+		this.selectionBounds = this.getSelectionBounds(this.state);
+		this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y,
+			this.selectionBounds.width, this.selectionBounds.height);
 		this.drawPreview();
 	}
 };
@@ -67979,9 +68013,8 @@ mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, s
  */
 mxVertexHandler.prototype.redraw = function()
 {
-	this.bounds = new mxRectangle(
-		this.state.x, this.state.y,
-		this.state.width, this.state.height);
+	this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y,
+		this.selectionBounds.width, this.selectionBounds.height);
 
 	if (this.sizers != null)
 	{
@@ -68079,7 +68112,7 @@ mxVertexHandler.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxEdgeHandler.js,v 1.177 2012-07-09 16:59:25 gaudenz Exp $
+ * $Id: mxEdgeHandler.js,v 1.178 2012-09-12 09:16:23 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -68799,6 +68832,7 @@ mxEdgeHandler.prototype.getSnapToTerminalTolerance = function()
 mxEdgeHandler.prototype.getPointForEvent = function(me)
 {
 	var point = new mxPoint(me.getGraphX(), me.getGraphY());
+	
 	var tt = this.getSnapToTerminalTolerance();
 	var view = this.graph.getView();
 	var overrideX = false;
@@ -68840,20 +68874,19 @@ mxEdgeHandler.prototype.getPointForEvent = function(me)
 
 		snapToTerminal.call(this, this.state.getVisibleTerminalState(true));
 		snapToTerminal.call(this, this.state.getVisibleTerminalState(false));
-		
-		if (this.bends != null)
+
+		if (this.abspoints != null)
 		{
-			for (var i = 0; i < this.bends.length; i++)
+			for (var i = 0; i < this.abspoints; i++)
 			{
 				if (i != this.index)
 				{
-					var pt = new mxPoint(this.bends[i].bounds.getCenterX(), this.bends[i].bounds.getCenterY());
-					snapToPoint.call(this, pt);
+					snapToPoint.call(this, this.abspoints[i]);
 				}
 			}
 		}
 	}
-	
+
 	if (this.graph.isGridEnabledEvent(me.getEvent()))
 	{
 		var scale = view.scale;
@@ -69083,7 +69116,10 @@ mxEdgeHandler.prototype.mouseUp = function(sender, me)
 				}
 				else if (this.graph.isAllowDanglingEdges())
 				{
-					var pt = this.graph.getPointForEvent(me.getEvent(), false);
+					var pt = this.abspoints[(this.isSource) ? 0 : this.abspoints.length - 1];
+					pt.x = pt.x / this.graph.view.scale - this.graph.view.translate.x;
+					pt.y = pt.y / this.graph.view.scale - this.graph.view.translate.y;
+
 					var pstate = this.graph.getView().getState(
 							this.graph.getModel().getParent(edge));
 							
@@ -69095,7 +69131,7 @@ mxEdgeHandler.prototype.mouseUp = function(sender, me)
 					
 					pt.x -= this.graph.panDx / this.graph.view.scale;
 					pt.y -= this.graph.panDy / this.graph.view.scale;
-					
+										
 					// Destroys and rectreates this handler
 					this.changeTerminalPoint(edge, pt, this.isSource);
 				}

@@ -1,5 +1,5 @@
 /*
- * $Id: mxHierarchicalLayout.java,v 1.15 2012-06-26 11:00:40 david Exp $
+ * $Id: mxHierarchicalLayout.java,v 1.16 2012-09-10 09:19:56 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 package com.mxgraph.layout.hierarchical;
@@ -372,6 +372,9 @@ JGraphLayout.Stoppable*/
 			}
 		}
 
+		// Iterate through the result removing parents who have children in this layout
+		
+		
 		// Perform a layout for each separate hierarchy
 		// Track initial coordinate x-positioning
 		double initialX = 0;
@@ -393,6 +396,8 @@ JGraphLayout.Stoppable*/
 
 	/**
 	 * Creates a set of descendant cells
+	 * @param cell The cell whose descendants are to be calculated
+	 * @return the descendants of the cell (not the cell)
 	 */
 	public Set<Object> filterDescendants(Object cell)
 	{

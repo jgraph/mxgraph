@@ -1,3 +1,9 @@
+- Fixes overriden mxVertexHandler.getSelectionBounds [JavaScript]
+- Adds layout options in grapheditor example [JavaScript]
+- Fixes custom handles for compiled grapheditor example [JavaScript]
+- Fixes minor issues for mxEdgeHandler.snapToTerminal [JavaScript]
+- Adds mxEvent.START, RESET in mxConnectionHandler [JavaScript]
+
 31-AUG-2012: 1.10.3.1
 
 - Replaces body with div in foreignObjects for HTML labels [JavaScript]

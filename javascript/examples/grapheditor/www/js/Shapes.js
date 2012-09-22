@@ -1,5 +1,5 @@
 /**
- * $Id: Shapes.js,v 1.2 2012-07-29 10:40:38 gaudenz Exp $
+ * $Id: Shapes.js,v 1.3 2012-09-12 14:37:44 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 
@@ -619,25 +619,6 @@
 	
 	// Implements custom handlers
 	var SPECIAL_HANDLE_INDEX = -99;
-	
-	var handlers = {'swimlane': mxSwimlaneHandler, 'folder': mxFolderHandler, 'cube': mxCubeHandler,
-			'card': mxCardHandler, 'note': mxNoteHandler, 'step': mxStepHandler, 'tape': mxTapeHandler};
-
-	var mxGraphCreateHandler = mxGraph.prototype.createHandler;
-	mxGraph.prototype.createHandler = function(state)
-	{
-		if (state != null)
-		{
-			var ctor = handlers[state.style['shape']];
-
-			if (ctor != null)
-			{
-				return new ctor(state);
-			}
-		}
-		
-		return mxGraphCreateHandler.apply(this, arguments);
-	};
 
 	// Handlers are only added if mxVertexHandler is defined (ie. not in embedded graph)
 	if (typeof(mxVertexHandler) != 'undefined')
@@ -1082,6 +1063,25 @@
 			this.state.style['size'] = size;
 			
 			return new mxPoint(bounds.x + bounds.width / 2, bounds.y + size * bounds.height / 2);
+		};
+		
+		var handlers = {'swimlane': mxSwimlaneHandler, 'folder': mxFolderHandler, 'cube': mxCubeHandler,
+				'card': mxCardHandler, 'note': mxNoteHandler, 'step': mxStepHandler, 'tape': mxTapeHandler};
+
+		var mxGraphCreateHandler = mxGraph.prototype.createHandler;
+		mxGraph.prototype.createHandler = function(state)
+		{
+			if (state != null)
+			{
+				var ctor = handlers[state.style['shape']];
+
+				if (ctor != null)
+				{
+					return new ctor(state);
+				}
+			}
+			
+			return mxGraphCreateHandler.apply(this, arguments);
 		};
 	}
 	

@@ -1,7 +1,6 @@
 com.mxgraph.analysis
 com.mxgraph.canvas
 com.mxgraph.io
-com.mxgraph.io.gd
 com.mxgraph.io.graphml
 com.mxgraph.layout
 com.mxgraph.layout.hierarchical

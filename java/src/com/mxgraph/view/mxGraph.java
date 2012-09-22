@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.java,v 1.337 2012-05-21 10:31:34 gaudenz Exp $
+ * $Id: mxGraph.java,v 1.338 2012-09-14 10:59:05 david Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.view;
@@ -7094,9 +7094,9 @@ public class mxGraph extends mxEventSource
 	 * returned.
 	 * @param sources Specifies if source terminals should be included in the
 	 * result.
-	 * @param targets Specifies if targer terminals should be included in the
+	 * @param targets Specifies if target terminals should be included in the
 	 * result.
-	 * @return Returns the cells at the oppsite ends of the given edges.
+	 * @return Returns the cells at the opposite ends of the given edges.
 	 */
 	public Object[] getOpposites(Object[] edges, Object terminal,
 			boolean sources, boolean targets)

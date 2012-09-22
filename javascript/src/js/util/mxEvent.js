@@ -1,5 +1,5 @@
 /**
- * $Id: mxEvent.js,v 1.74 2012-08-10 11:35:06 gaudenz Exp $
+ * $Id: mxEvent.js,v 1.75 2012-09-04 11:57:59 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEvent =
@@ -1157,6 +1157,20 @@ var mxEvent =
 	 *
 	 * Specifies the event name for doubleClick.
 	 */
-	DOUBLE_CLICK: 'doubleClick'
+	DOUBLE_CLICK: 'doubleClick',
+
+	/**
+	 * Variable: START
+	 *
+	 * Specifies the event name for start.
+	 */
+	START: 'start',
+
+	/**
+	 * Variable: RESET
+	 *
+	 * Specifies the event name for reset.
+	 */
+	RESET: 'reset'
 
 };

@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.51 2012-07-31 13:15:57 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.54 2012-09-14 08:16:18 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -33,10 +33,10 @@ EditorUi = function(editor, container)
 	if (this.container == document.body)
 	{
 		document.onselectstart = textEditing;
-	    document.onmousedown = textEditing;
+		document.onmousedown = textEditing;
 	}
 	
-	// And uses built-in context menu while not editing
+	// And uses built-in context menu while editing
 	if (mxClient.IS_IE && document.documentMode != 9)
 	{
 		mxEvent.addListener(this.container, 'contextmenu', textEditing);
@@ -443,9 +443,6 @@ EditorUi.prototype.addSelectionListener = function()
         this.menus.get('align').setEnabled(graph.getSelectionCount() > 1);
         this.menus.get('direction').setEnabled(vertexSelected || (edgeSelected &&
         		graph.isLoop(graph.view.getState(graph.getSelectionCell()))));
-        var layoutEnabled = vertexSelected && graph.getSelectionCount() == 1 &&
-        	graph.getOutgoingEdges(graph.getSelectionCell()).length > 0;
-        this.menus.get('layout').setEnabled(layoutEnabled);
         this.menus.get('navigation').setEnabled(graph.foldingEnabled && ((graph.view.currentRoot != null) ||
 				(graph.getSelectionCount() == 1 && graph.isValidRoot(graph.getSelectionCell()))));
         this.actions.get('home').setEnabled(graph.view.currentRoot != null);

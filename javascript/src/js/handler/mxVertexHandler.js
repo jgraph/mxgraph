@@ -1,5 +1,5 @@
 /**
- * $Id: mxVertexHandler.js,v 1.104 2012-07-25 08:26:23 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.105 2012-09-21 07:41:47 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -93,7 +93,9 @@ mxVertexHandler.prototype.tolerance = 0;
 mxVertexHandler.prototype.init = function()
 {
 	this.graph = this.state.view.graph;
-	this.bounds = this.getSelectionBounds(this.state);
+	this.selectionBounds = this.getSelectionBounds(this.state);
+	this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y,
+		this.selectionBounds.width, this.selectionBounds.height);
 	this.selectionBorder = this.createSelectionShape(this.bounds);
 	this.selectionBorder.dialect =
 		(this.graph.dialect != mxConstants.DIALECT_SVG) ?
@@ -434,7 +436,7 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 			var dx = point.x - this.startX;
 			var dy = point.y - this.startY;
 			var tr = this.graph.view.translate;
-			this.bounds = this.union(this.state, dx, dy, this.index, gridEnabled, scale, tr);
+			this.bounds = this.union(this.selectionBounds, dx, dy, this.index, gridEnabled, scale, tr);
 			this.drawPreview();
 			me.consume();
 		}
@@ -487,7 +489,9 @@ mxVertexHandler.prototype.reset = function()
 	if (this.selectionBorder != null)
 	{
 		this.selectionBorder.node.style.visibility = 'visible';
-		this.bounds = new mxRectangle(this.state.x, this.state.y, this.state.width, this.state.height);
+		this.selectionBounds = this.getSelectionBounds(this.state);
+		this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y,
+			this.selectionBounds.width, this.selectionBounds.height);
 		this.drawPreview();
 	}
 };
@@ -648,9 +652,8 @@ mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, s
  */
 mxVertexHandler.prototype.redraw = function()
 {
-	this.bounds = new mxRectangle(
-		this.state.x, this.state.y,
-		this.state.width, this.state.height);
+	this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y,
+		this.selectionBounds.width, this.selectionBounds.height);
 
 	if (this.sizers != null)
 	{

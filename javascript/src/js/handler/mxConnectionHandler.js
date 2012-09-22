@@ -1,5 +1,5 @@
 /**
- * $Id: mxConnectionHandler.js,v 1.210 2012-07-11 17:18:56 gaudenz Exp $
+ * $Id: mxConnectionHandler.js,v 1.212 2012-09-05 08:06:27 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -101,11 +101,20 @@
  *
  * Group: Events
  * 
+ * Event: mxEvent.START
+ * 
+ * Fires when a new connection is being created by the user. The <code>state</code>
+ * property contains the state of the source cell.
+ * 
  * Event: mxEvent.CONNECT
  * 
  * Fires between begin- and endUpdate in <connect>. The <code>cell</code>
  * property contains the inserted edge, the <code>event</code> and <code>target</code> 
  * properties contain the respective arguments that were passed to <connect>.
+ *
+ * Event: mxEvent.RESET
+ * 
+ * Fires when the <reset> method is invoked.
  *
  * Constructor: mxConnectionHandler
  *
@@ -618,6 +627,8 @@ mxConnectionHandler.prototype.start = function(state, x, y, edgeState)
 	this.marker.currentColor = this.marker.validColor;
 	this.marker.markedState = state;
 	this.marker.mark();
+	
+	this.fireEvent(new mxEventObject(mxEvent.START, 'state', this.previous));
 };
 
 /**
@@ -922,6 +933,8 @@ mxConnectionHandler.prototype.mouseDown = function(sender, me)
 			var pt = this.graph.getPointForEvent(me.getEvent());
 			this.edgeState.cell.geometry.setTerminalPoint(pt, true);
 		}
+		
+		this.fireEvent(new mxEventObject(mxEvent.START, 'state', this.previous));
 
 		me.consume();
 	}
@@ -979,6 +992,7 @@ mxConnectionHandler.prototype.tapAndHold = function(me, state)
 		this.first = new mxPoint(me.getGraphX(), me.getGraphY());
 		this.edgeState = this.createEdgeState(me);
 		this.previous = state;
+		this.fireEvent(new mxEventObject(mxEvent.START, 'state', this.previous));
 	}
 };
 
@@ -1515,6 +1529,8 @@ mxConnectionHandler.prototype.reset = function()
 	this.mouseDownCounter = 0;
 	this.first = null;
 	this.icon = null;
+
+	this.fireEvent(new mxEventObject(mxEvent.RESET));
 };
 
 /**

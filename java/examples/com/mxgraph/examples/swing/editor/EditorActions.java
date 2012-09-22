@@ -1,5 +1,5 @@
 /*
- * $Id: EditorActions.java,v 1.37 2012-01-13 11:36:35 david Exp $
+ * $Id: EditorActions.java,v 1.38 2012-09-20 14:59:30 david Exp $
  * Copyright (c) 2001-2012, JGraph Ltd
  */
 package com.mxgraph.examples.swing.editor;
@@ -52,7 +52,6 @@ import com.mxgraph.canvas.mxICanvas;
 import com.mxgraph.canvas.mxSvgCanvas;
 import com.mxgraph.io.mxCodec;
 import com.mxgraph.io.mxGdCodec;
-import com.mxgraph.io.gd.mxGdDocument;
 import com.mxgraph.model.mxCell;
 import com.mxgraph.model.mxGraphModel;
 import com.mxgraph.model.mxIGraphModel;
@@ -759,8 +758,7 @@ public class EditorActions
 					}
 					else if (ext.equalsIgnoreCase("txt"))
 					{
-						String content = mxGdCodec.encode(graph)
-								.getDocumentString();
+						String content = mxGdCodec.encode(graph);
 
 						mxUtils.writeFile(content, filename);
 					}
@@ -1635,7 +1633,7 @@ public class EditorActions
 		 *
 		 */
 		protected void openGD(BasicGraphEditor editor, File file,
-				mxGdDocument document)
+				String gdText)
 		{
 			mxGraph graph = editor.getGraphComponent().getGraph();
 
@@ -1651,7 +1649,7 @@ public class EditorActions
 			}
 
 			((mxGraphModel) graph.getModel()).clear();
-			mxGdCodec.decode(document, graph);
+			mxGdCodec.decode(gdText, graph);
 			editor.getGraphComponent().zoomAndCenter();
 			editor.setCurrentFile(new File(lastDir + "/" + filename));
 		}
@@ -1731,12 +1729,10 @@ public class EditorActions
 								else if (fc.getSelectedFile().getAbsolutePath()
 										.toLowerCase().endsWith(".txt"))
 								{
-									mxGdDocument document = new mxGdDocument();
-									document.parse(mxUtils.readFile(fc
-											.getSelectedFile()
-											.getAbsolutePath()));
 									openGD(editor, fc.getSelectedFile(),
-											document);
+											mxUtils.readFile(fc
+													.getSelectedFile()
+													.getAbsolutePath()));
 								}
 								else
 								{

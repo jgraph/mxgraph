@@ -1,5 +1,5 @@
 /**
- * $Id: Menus.js,v 1.54 2012-07-31 13:15:57 gaudenz Exp $
+ * $Id: Menus.js,v 1.55 2012-09-14 08:16:18 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -238,17 +238,45 @@ Menus.prototype.init = function()
 	{
 		menu.addItem(mxResources.get('horizontalTree'), null, mxUtils.bind(this, function()
 		{
-			var layout = new mxCompactTreeLayout(graph, true);
-			layout.edgeRouting = false;
-			layout.levelDistance = 30;
-    		this.editorUi.executeLayout(layout, true, true);
+			if (!graph.isSelectionEmpty())
+			{
+				var layout = new mxCompactTreeLayout(graph, true);
+				layout.edgeRouting = false;
+				layout.levelDistance = 30;
+	    		this.editorUi.executeLayout(layout, true, true);
+			}
 		}), parent);
 		menu.addItem(mxResources.get('verticalTree'), null, mxUtils.bind(this, function()
 		{
-			var layout = new mxCompactTreeLayout(graph, false);
-			layout.edgeRouting = false;
-			layout.levelDistance = 30;
+			if (!graph.isSelectionEmpty())
+			{
+				var layout = new mxCompactTreeLayout(graph, false);
+				layout.edgeRouting = false;
+				layout.levelDistance = 30;
+	    		this.editorUi.executeLayout(layout, true, true);
+			}
+		}), parent);
+		menu.addSeparator(parent);
+		menu.addItem(mxResources.get('horizontalFlow'), null, mxUtils.bind(this, function()
+		{
+			var layout = new mxHierarchicalLayout(graph, mxConstants.DIRECTION_WEST);
+			this.editorUi.executeLayout(layout, true, true);
+		}), parent);
+		menu.addItem(mxResources.get('verticalFlow'), null, mxUtils.bind(this, function()
+		{
+			var layout = new mxHierarchicalLayout(graph, mxConstants.DIRECTION_NORTH);
+			this.editorUi.executeLayout(layout, true, true);
+		}), parent);
+		menu.addSeparator(parent);
+		menu.addItem(mxResources.get('organic'), null, mxUtils.bind(this, function()
+		{
+			var layout = new mxFastOrganicLayout(graph);
     		this.editorUi.executeLayout(layout, true, true);
+		}), parent);
+		menu.addItem(mxResources.get('circle'), null, mxUtils.bind(this, function()
+		{
+			var layout = new mxCircleLayout(graph);
+    		this.editorUi.executeLayout(layout, true, true, graph.getSelectionCells());
 		}), parent);
 	})));
 	this.put('navigation', new Menu(mxUtils.bind(this, function(menu, parent)

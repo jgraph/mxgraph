@@ -1,5 +1,5 @@
 /**
- * $Id: mxEdgeHandler.js,v 1.177 2012-07-09 16:59:25 gaudenz Exp $
+ * $Id: mxEdgeHandler.js,v 1.178 2012-09-12 09:16:23 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -719,6 +719,7 @@ mxEdgeHandler.prototype.getSnapToTerminalTolerance = function()
 mxEdgeHandler.prototype.getPointForEvent = function(me)
 {
 	var point = new mxPoint(me.getGraphX(), me.getGraphY());
+	
 	var tt = this.getSnapToTerminalTolerance();
 	var view = this.graph.getView();
 	var overrideX = false;
@@ -760,20 +761,19 @@ mxEdgeHandler.prototype.getPointForEvent = function(me)
 
 		snapToTerminal.call(this, this.state.getVisibleTerminalState(true));
 		snapToTerminal.call(this, this.state.getVisibleTerminalState(false));
-		
-		if (this.bends != null)
+
+		if (this.abspoints != null)
 		{
-			for (var i = 0; i < this.bends.length; i++)
+			for (var i = 0; i < this.abspoints; i++)
 			{
 				if (i != this.index)
 				{
-					var pt = new mxPoint(this.bends[i].bounds.getCenterX(), this.bends[i].bounds.getCenterY());
-					snapToPoint.call(this, pt);
+					snapToPoint.call(this, this.abspoints[i]);
 				}
 			}
 		}
 	}
-	
+
 	if (this.graph.isGridEnabledEvent(me.getEvent()))
 	{
 		var scale = view.scale;
@@ -1003,7 +1003,10 @@ mxEdgeHandler.prototype.mouseUp = function(sender, me)
 				}
 				else if (this.graph.isAllowDanglingEdges())
 				{
-					var pt = this.graph.getPointForEvent(me.getEvent(), false);
+					var pt = this.abspoints[(this.isSource) ? 0 : this.abspoints.length - 1];
+					pt.x = pt.x / this.graph.view.scale - this.graph.view.translate.x;
+					pt.y = pt.y / this.graph.view.scale - this.graph.view.translate.y;
+
 					var pstate = this.graph.getView().getState(
 							this.graph.getModel().getParent(edge));
 							
@@ -1015,7 +1018,7 @@ mxEdgeHandler.prototype.mouseUp = function(sender, me)
 					
 					pt.x -= this.graph.panDx / this.graph.view.scale;
 					pt.y -= this.graph.panDy / this.graph.view.scale;
-					
+										
 					// Destroys and rectreates this handler
 					this.changeTerminalPoint(edge, pt, this.isSource);
 				}
