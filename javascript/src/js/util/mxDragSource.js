@@ -1,0 +1,580 @@
+/**
+ * $Id: mxDragSource.js,v 1.12 2012-07-09 11:12:03 gaudenz Exp $
+ * Copyright (c) 2006-2010, JGraph Ltd
+ */
+/**
+ * Class: mxDragSource
+ * 
+ * Wrapper to create a drag source from a DOM element so that the element can
+ * be dragged over a graph and dropped into the graph as a new cell.
+ * 
+ * TODO: Problem is that in the dropHandler the current preview location is
+ * not available, so the preview and the dropHandler must match.
+ * 
+ * Constructor: mxDragSource
+ * 
+ * Constructs a new drag source for the given element.
+ */
+function mxDragSource(element, dropHandler)
+{
+	this.element = element;
+	this.dropHandler = dropHandler;
+	
+	// Handles a drag gesture on the element
+	var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
+	mxEvent.addListener(element, md, mxUtils.bind(this, this.mouseDown));
+};
+
+/**
+ * Variable: element
+ *
+ * Reference to the DOM node which was made draggable.
+ */
+mxDragSource.prototype.element = null;
+
+/**
+ * Variable: dropHandler
+ *
+ * Holds the DOM node that is used to represent the drag preview. If this is
+ * null then the source element will be cloned and used for the drag preview.
+ */
+mxDragSource.prototype.dropHandler = null;
+
+/**
+ * Variable: dragOffset
+ *
+ * <mxPoint> that specifies the offset of the <dragElement>. Default is null.
+ */
+mxDragSource.prototype.dragOffset = null;
+
+/**
+ * Variable: dragElement
+ *
+ * Holds the DOM node that is used to represent the drag preview. If this is
+ * null then the source element will be cloned and used for the drag preview.
+ */
+mxDragSource.prototype.dragElement = null;
+
+/**
+ * Variable: previewElement
+ *
+ * Optional <mxRectangle> that specifies the unscaled size of the preview.
+ */
+mxDragSource.prototype.previewElement = null;
+
+/**
+ * Variable: enabled
+ *
+ * Specifies if this drag source is enabled. Default is true.
+ */
+mxDragSource.prototype.enabled = true;
+
+/**
+ * Variable: currentGraph
+ *
+ * Reference to the <mxGraph> that is the current drop target.
+ */
+mxDragSource.prototype.currentGraph = null;
+
+/**
+ * Variable: currentDropTarget
+ *
+ * Holds the current drop target under the mouse.
+ */
+mxDragSource.prototype.currentDropTarget = null;
+
+/**
+ * Variable: currentPoint
+ *
+ * Holds the current drop location.
+ */
+mxDragSource.prototype.currentPoint = null;
+
+/**
+ * Variable: currentGuide
+ *
+ * Holds an <mxGuide> for the <currentGraph> if <dragPreview> is not null.
+ */
+mxDragSource.prototype.currentGuide = null;
+
+/**
+ * Variable: currentGuide
+ *
+ * Holds an <mxGuide> for the <currentGraph> if <dragPreview> is not null.
+ */
+mxDragSource.prototype.currentHighlight = null;
+
+/**
+ * Variable: autoscroll
+ *
+ * Specifies if the graph should scroll automatically. Default is true.
+ */
+mxDragSource.prototype.autoscroll = true;
+
+/**
+ * Variable: guidesEnabled
+ *
+ * Specifies if <mxGuide> should be enabled. Default is true.
+ */
+mxDragSource.prototype.guidesEnabled = true;
+
+/**
+ * Variable: gridEnabled
+ *
+ * Specifies if the grid should be allowed. Default is true.
+ */
+mxDragSource.prototype.gridEnabled = true;
+
+/**
+ * Variable: highlightDropTargets
+ *
+ * Specifies if drop targets should be highlighted. Default is true.
+ */
+mxDragSource.prototype.highlightDropTargets = true;
+
+/**
+ * Function: isEnabled
+ * 
+ * Returns <enabled>.
+ */
+mxDragSource.prototype.isEnabled = function()
+{
+	return this.enabled;
+};
+
+/**
+ * Function: setEnabled
+ * 
+ * Sets <enabled>.
+ */
+mxDragSource.prototype.setEnabled = function(value)
+{
+	this.enabled = value;
+};
+
+/**
+ * Function: isGuidesEnabled
+ * 
+ * Returns <guidesEnabled>.
+ */
+mxDragSource.prototype.isGuidesEnabled = function()
+{
+	return this.guidesEnabled;
+};
+
+/**
+ * Function: setGuidesEnabled
+ * 
+ * Sets <guidesEnabled>.
+ */
+mxDragSource.prototype.setGuidesEnabled = function(value)
+{
+	this.guidesEnabled = value;
+};
+
+/**
+ * Function: isGridEnabled
+ * 
+ * Returns <gridEnabled>.
+ */
+mxDragSource.prototype.isGridEnabled = function()
+{
+	return this.gridEnabled;
+};
+
+/**
+ * Function: setGridEnabled
+ * 
+ * Sets <gridEnabled>.
+ */
+mxDragSource.prototype.setGridEnabled = function(value)
+{
+	this.gridEnabled = value;
+};
+
+/**
+ * Function: getGraphForEvent
+ * 
+ * Returns the graph for the given mouse event. This implementation returns
+ * null.
+ */
+mxDragSource.prototype.getGraphForEvent = function(evt)
+{
+	return null;
+};
+
+/**
+ * Function: getDropTarget
+ * 
+ * Returns the drop target for the given graph and coordinates. This
+ * implementation uses <mxGraph.getCellAt>.
+ */
+mxDragSource.prototype.getDropTarget = function(graph, x, y)
+{
+	return graph.getCellAt(x, y);
+};
+
+/**
+ * Function: createDragElement
+ * 
+ * Creates and returns a clone of the <dragElementPrototype> or the <element>
+ * if the former is not defined.
+ */
+mxDragSource.prototype.createDragElement = function(evt)
+{
+	return this.element.cloneNode(true);
+};
+
+/**
+ * Function: createPreviewElement
+ * 
+ * Creates and returns an element which can be used as a preview in the given
+ * graph.
+ */
+mxDragSource.prototype.createPreviewElement = function(graph)
+{
+	return null;
+};
+
+/**
+ * Function: mouseDown
+ * 
+ * Returns the drop target for the given graph and coordinates. This
+ * implementation uses <mxGraph.getCellAt>.
+ */
+mxDragSource.prototype.mouseDown = function(evt)
+{
+	if (this.enabled && !mxEvent.isConsumed(evt) && this.mouseMoveHandler == null)
+	{
+		this.startDrag(evt);
+		
+		var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
+		var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
+		
+		this.mouseMoveHandler = mxUtils.bind(this, this.mouseMove);
+		mxEvent.addListener(document, mm, this.mouseMoveHandler);
+		this.mouseUpHandler = mxUtils.bind(this, this.mouseUp);
+		mxEvent.addListener(document, mu, this.mouseUpHandler);
+		
+		// Prevents default action (native DnD for images in FF 10)
+		// but does not stop event propagation
+		mxEvent.consume(evt, true, false);
+	}
+};
+
+/**
+ * Function: startDrag
+ * 
+ * Creates the <dragElement> using <createDragElement>.
+ */
+mxDragSource.prototype.startDrag = function(evt)
+{
+	this.dragElement = this.createDragElement(evt);
+	this.dragElement.style.position = 'absolute';
+	this.dragElement.style.zIndex = '3';
+	mxUtils.setOpacity(this.dragElement, 70);
+};
+
+
+/**
+ * Function: stopDrag
+ * 
+ * Removes and destroys the <dragElement>.
+ */
+mxDragSource.prototype.stopDrag = function(evt)
+{
+	if (this.dragElement != null)
+	{
+		if (this.dragElement.parentNode != null)
+		{
+			this.dragElement.parentNode.removeChild(this.dragElement);
+		}
+		
+		this.dragElement = null;
+	}
+};
+
+/**
+ * Function: graphContainsEvent
+ * 
+ * Returns true if the given graph contains the given event.
+ */
+mxDragSource.prototype.graphContainsEvent = function(graph, evt)
+{
+	var x = mxEvent.getClientX(evt);
+	var y = mxEvent.getClientY(evt);
+	var offset = mxUtils.getOffset(graph.container);
+	var origin = mxUtils.getScrollOrigin();
+
+	// Checks if event is inside the bounds of the graph container
+	return x >= offset.x - origin.x && y >= offset.y - origin.y &&
+		x <= offset.x - origin.x + graph.container.offsetWidth &&
+		y <= offset.y - origin.y + graph.container.offsetHeight;
+};
+
+/**
+ * Function: mouseMove
+ * 
+ * Gets the graph for the given event using <getGraphForEvent>, updates the
+ * <currentGraph>, calling <dragEnter> and <dragExit> on the new and old graph,
+ * respectively, and invokes <dragOver> if <currentGraph> is not null.
+ */
+mxDragSource.prototype.mouseMove = function(evt)
+{
+	var graph = this.getGraphForEvent(evt);
+	
+	// Checks if event is inside the bounds of the graph container
+	if (graph != null && !this.graphContainsEvent(graph, evt))
+	{
+		graph = null;
+	}
+
+	if (graph != this.currentGraph)
+	{
+		if (this.currentGraph != null)
+		{
+			this.dragExit(this.currentGraph);
+		}
+		
+		this.currentGraph = graph;
+		
+		if (this.currentGraph != null)
+		{
+			this.dragEnter(this.currentGraph);
+		}
+	}
+	
+	if (this.currentGraph != null)
+	{
+		this.dragOver(this.currentGraph, evt);
+	}
+
+	if (this.dragElement != null && (this.previewElement == null || this.previewElement.style.visibility != 'visible'))
+	{
+		var x = mxEvent.getClientX(evt);
+		var y = mxEvent.getClientY(evt);
+		
+		if (this.dragElement.parentNode == null)
+		{
+			document.body.appendChild(this.dragElement);
+		}
+
+		this.dragElement.style.visibility = 'visible';
+		
+		if (this.dragOffset != null)
+		{
+			x += this.dragOffset.x;
+			y += this.dragOffset.y;
+		}
+		
+		x += document.body.scrollLeft || document.documentElement.scrollLeft;
+		y += document.body.scrollTop || document.documentElement.scrollTop;
+		this.dragElement.style.left = x + 'px';
+		this.dragElement.style.top = y + 'px';
+	}
+	else if (this.dragElement != null)
+	{
+		this.dragElement.style.visibility = 'hidden';
+	}
+	
+	mxEvent.consume(evt);
+};
+
+/**
+ * Function: mouseUp
+ * 
+ * Processes the mouse up event and invokes <drop>, <dragExit> and <stopDrag>
+ * as required.
+ */
+mxDragSource.prototype.mouseUp = function(evt)
+{
+	if (this.currentGraph != null)
+	{
+		if (this.currentPoint != null && (this.previewElement == null ||
+			this.previewElement.style.visibility != 'hidden'))
+		{
+			var scale = this.currentGraph.view.scale;
+			var tr = this.currentGraph.view.translate;
+			var x = this.currentPoint.x / scale - tr.x;
+			var y = this.currentPoint.y / scale - tr.y;
+			
+			this.drop(this.currentGraph, evt, this.currentDropTarget, x, y);
+		}
+		
+		this.dragExit(this.currentGraph);
+	}
+
+	this.stopDrag(evt);
+	
+	this.currentGraph = null;
+
+	if (this.mouseMoveHandler != null)
+	{
+		var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
+		mxEvent.removeListener(document, mm, this.mouseMoveHandler);
+		this.mouseMoveHandler = null;
+	}
+	
+	if (this.mouseUpHandler != null)
+	{
+		var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
+		mxEvent.removeListener(document, mu, this.mouseUpHandler);
+		this.mouseUpHandler = null;
+	}
+		
+	mxEvent.consume(evt);
+};
+
+/**
+ * Function: dragEnter
+ * 
+ * Actives the given graph as a drop target.
+ */
+mxDragSource.prototype.dragEnter = function(graph)
+{
+	graph.isMouseDown = true;
+	this.previewElement = this.createPreviewElement(graph);
+	
+	// Guide is only needed if preview element is used
+	if (this.isGuidesEnabled() && this.previewElement != null)
+	{
+		this.currentGuide = new mxGuide(graph, graph.graphHandler.getGuideStates());
+	}
+	
+	if (this.highlightDropTargets)
+	{
+		this.currentHighlight = new mxCellHighlight(graph, mxConstants.DROP_TARGET_COLOR);
+	}
+};
+
+/**
+ * Function: dragExit
+ * 
+ * Deactivates the given graph as a drop target.
+ */
+mxDragSource.prototype.dragExit = function(graph)
+{
+	this.currentDropTarget = null;
+	this.currentPoint = null;
+	graph.isMouseDown = false;
+	
+	if (this.previewElement != null)
+	{
+		if (this.previewElement.parentNode != null)
+		{
+			this.previewElement.parentNode.removeChild(this.previewElement);
+		}
+		
+		this.previewElement = null;
+	}
+	
+	if (this.currentGuide != null)
+	{
+		this.currentGuide.destroy();
+		this.currentGuide = null;
+	}
+	
+	if (this.currentHighlight != null)
+	{
+		this.currentHighlight.destroy();
+		this.currentHighlight = null;
+	}
+};
+
+/**
+ * Function: dragOver
+ * 
+ * Implements autoscroll, updates the <currentPoint>, highlights any drop
+ * targets and updates the preview.
+ */
+mxDragSource.prototype.dragOver = function(graph, evt)
+{
+	var offset = mxUtils.getOffset(graph.container);
+	var origin = mxUtils.getScrollOrigin(graph.container);
+	var x = mxEvent.getClientX(evt) - offset.x + origin.x;
+	var y = mxEvent.getClientY(evt) - offset.y + origin.y;
+
+	if (graph.autoScroll && (this.autoscroll == null || this.autoscroll))
+	{
+		graph.scrollPointToVisible(x, y, graph.autoExtend);
+	}
+
+	// Highlights the drop target under the mouse
+	if (this.currentHighlight != null && graph.isDropEnabled())
+	{
+		this.currentDropTarget = this.getDropTarget(graph, x, y);
+		var state = graph.getView().getState(this.currentDropTarget);
+		this.currentHighlight.highlight(state);
+	}
+
+	// Updates the location of the preview
+	if (this.previewElement != null)
+	{
+		if (this.previewElement.parentNode == null)
+		{
+			graph.container.appendChild(this.previewElement);
+			
+			this.previewElement.style.zIndex = '3';
+			this.previewElement.style.position = 'absolute';
+		}
+		
+		var gridEnabled = this.isGridEnabled() && graph.isGridEnabledEvent(evt);
+		var hideGuide = true;
+
+		// Grid and guides
+		if (this.currentGuide != null && this.currentGuide.isEnabledForEvent(evt))
+		{
+			// LATER: HTML preview appears smaller than SVG preview
+			var w = parseInt(this.previewElement.style.width);
+			var h = parseInt(this.previewElement.style.height);
+			var bounds = new mxRectangle(0, 0, w, h);
+			var delta = new mxPoint(x, y);
+			delta = this.currentGuide.move(bounds, delta, gridEnabled);
+			hideGuide = false;
+			x = delta.x;
+			y = delta.y;
+		}
+		else if (gridEnabled)
+		{
+			var scale = graph.view.scale;
+			var tr = graph.view.translate;
+			var off = graph.gridSize / 2;
+			x = (graph.snap(x / scale - tr.x - off) + tr.x) * scale;
+			y = (graph.snap(y / scale - tr.y - off) + tr.y) * scale;
+		}
+		
+		if (this.currentGuide != null && hideGuide)
+		{
+			this.currentGuide.hide();
+		}
+		
+		if (this.previewOffset != null)
+		{
+			x += this.previewOffset.x;
+			y += this.previewOffset.y;
+		}
+
+		this.previewElement.style.left = Math.round(x) + 'px';
+		this.previewElement.style.top = Math.round(y) + 'px';
+		this.previewElement.style.visibility = 'visible';
+	}
+	
+	this.currentPoint = new mxPoint(x, y);
+};
+
+/**
+ * Function: drop
+ * 
+ * Returns the drop target for the given graph and coordinates. This
+ * implementation uses <mxGraph.getCellAt>.
+ */
+mxDragSource.prototype.drop = function(graph, evt, dropTarget, x, y)
+{
+	this.dropHandler(graph, evt, dropTarget, x, y);
+	
+	// Had to move this to after the insert because it will
+	// affect the scrollbars of the window in IE to try and
+	// make the complete container visible.
+	// LATER: Should be made optional.
+	graph.container.focus();
+};
