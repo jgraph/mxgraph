@@ -1,5 +1,5 @@
 /*
- * $Id: mxHierarchicalLayout.java,v 1.16 2012-09-10 09:19:56 david Exp $
+ * $Id: mxHierarchicalLayout.java,v 1.17 2012-09-27 23:18:27 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 package com.mxgraph.layout.hierarchical;
@@ -344,13 +344,13 @@ JGraphLayout.Stoppable*/
 
 			while (!filledVertexSet.isEmpty())
 			{
-				Set<Object> vertexSet = new LinkedHashSet<Object>();
-				hierarchyVertices.add(vertexSet);
-
 				List<Object> candidateRoots = findRoots(parent, filledVertexSet);
 
 				for (Object root : candidateRoots)
 				{
+					Set<Object> vertexSet = new LinkedHashSet<Object>();
+					hierarchyVertices.add(vertexSet);
+
 					traverse(root, true, null, allVertexSet, vertexSet,
 							hierarchyVertices, filledVertexSet);
 				}

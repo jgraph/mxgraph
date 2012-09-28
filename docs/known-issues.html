@@ -1,7 +1,8 @@
 <html>
 <head>
 	<title>mxGraph - Known Issues</title>
-	<link rel="stylesheet" HREF="css/html.css" CHARSET="ISO-8859-1" TYPE="text/css">
+    <link rel="stylesheet" href="css/manual-styles.css">
+    <link rel="stylesheet" href="css/manual-colors.css">
   	<script type="text/javascript" src="js/toc.js"></script>
 </head>
 <body onload="maketoc(document.getElementById('toc'), false);">
@@ -69,10 +70,10 @@ if (navigator.userAgent.indexOf('Firefox/') &gt; 0)
 {
   mxEvent.addListener(graph.container, 'mousedown', function()
   {
-  	if (!graph.isEditing())
-  	{
-    	graph.container.setAttribute('tabindex', '-1');
-    	graph.container.focus();
+    if (!graph.isEditing())
+    {
+      graph.container.setAttribute('tabindex', '-1');
+      graph.container.focus();
     }
   });
 }
@@ -89,12 +90,12 @@ if (navigator.userAgent.indexOf('Firefox/') &gt; 0)
 	<code>mxClient.NO_FO = true</code> before rendering the graph as a
 	workaround for this problem.
 </p>
-<h2><a name="Chrome5LocalFiles"></a>Local file:// URI in Chrome 5.x</h2>
+<h2><a name="Chrome5LocalFiles"></a>Local XHR in Chrome</h2>
 <p>
-	Chrome 5.x no longer loads files from the local filesystem via XHR. This
-	affects the loading of resources if examples are viewed via the file://
+	Chrome does not load files from the local filesystem via XHR by default.
+	This affects the loading of resources if examples are viewed via the file://
 	protocol. To enable the loading of such files you should use the new flag
-	--allow-file-access-from-files.
+	<code>--allow-file-access-from-files</code>.
 </p>
 <p>
  	See security section for 5.0.335.0 release
@@ -137,9 +138,9 @@ if (navigator.userAgent.indexOf('Firefox/') &gt; 0)
 	function may be used in IE7 without any client-side settings.
 </p>
 <p>
-	For local file access in Firefox 3, you need do to an about:config and
+	For local file access in Firefox, you may have to go to about:config and
 	change security.fileuri.strict_origin_policy to false. (If some language
-	properties are missing in Firefox 3, this is most likely the cause for the
+	properties are missing in Firefox, this is most likely the cause for the
 	problem.) This is only required for local file access and not for
 	production software deployed on a webserver.
 </p>
@@ -346,6 +347,6 @@ layer.</li>
 	HTTP.
 </p>
 <hr size="1">
-&copy; 2006-2011 by JGraph Ltd.
+&copy; 2006-2012 by JGraph Ltd.
 </body>
 </html>

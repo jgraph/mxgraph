@@ -1,3 +1,8 @@
+28-SEP-2012: 1.10.3.2
+
+- Reenables clipping for plain text labels in Chrome [JavaScript]
+- Fixes graph component determination in hierarchical layout [Java]
+- Fixes export for horizontal swimlanes in mxImageExport [JavaScript]
 - Fixes overriden mxVertexHandler.getSelectionBounds [JavaScript]
 - Adds layout options in grapheditor example [JavaScript]
 - Fixes custom handles for compiled grapheditor example [JavaScript]
