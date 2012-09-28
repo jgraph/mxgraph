@@ -1,5 +1,5 @@
 /**
- * $Id: mxVertexHandler.js,v 1.105 2012-09-21 07:41:47 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.106 2012-09-24 14:11:51 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -488,8 +488,8 @@ mxVertexHandler.prototype.reset = function()
 	// Checks if handler has been destroyed
 	if (this.selectionBorder != null)
 	{
-		this.selectionBorder.node.style.visibility = 'visible';
 		this.selectionBounds = this.getSelectionBounds(this.state);
+		this.selectionBorder.node.style.visibility = 'visible';
 		this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y,
 			this.selectionBounds.width, this.selectionBounds.height);
 		this.drawPreview();
@@ -652,6 +652,7 @@ mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, s
  */
 mxVertexHandler.prototype.redraw = function()
 {
+	this.selectionBounds = this.getSelectionBounds(this.state);
 	this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y,
 		this.selectionBounds.width, this.selectionBounds.height);
 

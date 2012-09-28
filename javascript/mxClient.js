@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.10.3.1.
+	 * Current version is 1.10.3.2.
 	 */
-	VERSION: '1.10.3.1',
+	VERSION: '1.10.3.2',
 
 	/**
 	 * Variable: IS_IE
@@ -15476,7 +15476,7 @@ mxImageBundle.prototype.getImage = function(key)
 	return result;
 };
 /**
- * $Id: mxImageExport.js,v 1.46 2012-08-10 11:55:43 gaudenz Exp $
+ * $Id: mxImageExport.js,v 1.47 2012-09-24 14:54:32 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -16299,6 +16299,8 @@ mxImageExport.prototype.initShapes = function()
 			else
 			{
 				canvas.fillAndStroke();
+				canvas.begin();
+				
 				var x = state.x;
 				var y = state.y;
 				var w = state.width;
@@ -16308,18 +16310,23 @@ mxImageExport.prototype.initShapes = function()
 				{
 					x += bounds.width;
 					w -= bounds.width;
+
+					canvas.moveTo(x, y);
+					canvas.lineTo(x + w, y);
+					canvas.lineTo(x + w, y + h);
+					canvas.lineTo(x, y + h);
 				}
 				else
 				{
 					y += bounds.height;
 					h -= bounds.height;
+
+					canvas.moveTo(x, y);
+					canvas.lineTo(x, y + h);
+					canvas.lineTo(x + w, y + h);
+					canvas.lineTo(x + w, y);
 				}
-				
-				canvas.begin();
-				canvas.moveTo(x, y);
-				canvas.lineTo(x, y + h);
-				canvas.lineTo(x + w, y + h);
-				canvas.lineTo(x + w, y);
+
 				canvas.stroke();
 			}
 		}
@@ -23586,7 +23593,7 @@ mxCloud.prototype.redrawPath = function(path, x, y, w, h)
 	path.close();
 };
 /**
- * $Id: mxRectangleShape.js,v 1.16 2011-06-24 11:27:31 gaudenz Exp $
+ * $Id: mxRectangleShape.js,v 1.17 2012-09-26 07:51:29 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -23622,19 +23629,6 @@ function mxRectangleShape(bounds, fill, stroke, strokewidth)
  */
 mxRectangleShape.prototype = new mxShape();
 mxRectangleShape.prototype.constructor = mxRectangleShape;
-
-/**
- * Function: createHtml
- *
- * Creates and returns the HTML node to represent this shape.
- */
-mxRectangleShape.prototype.createHtml = function()
-{
-	var node = document.createElement('DIV');
-	this.configureHtmlShape(node);
-	
-	return node;
-};
 
 /**
  * Function: createVml
@@ -24539,7 +24533,7 @@ mxArrow.prototype.redrawPath = function(path, x, y, w, h)
 	path.close();
 };
 /**
- * $Id: mxText.js,v 1.173 2012-08-31 09:19:28 gaudenz Exp $
+ * $Id: mxText.js,v 1.174 2012-09-27 10:20:30 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -26148,49 +26142,45 @@ mxText.prototype.redrawSvg = function()
 	}
 	
 	// Adds clipping and updates the bounding box
-	// NOTE: Clipping is broken in latest Chrome - no longer possible to move stuff if used
-	if (!mxClient.IS_GC)
+	if (this.clipped && this.bounds.width > 0 && this.bounds.height > 0)
 	{
-		if (this.clipped && this.bounds.width > 0 && this.bounds.height > 0)
+		this.boundingBox = this.bounds.clone();
+
+		if (!this.horizontal)
 		{
-			this.boundingBox = this.bounds.clone();
-	
-			if (!this.horizontal)
-			{
-				this.boundingBox.width = this.bounds.height;
-				this.boundingBox.height = this.bounds.width;
-			}
-			
-			x = this.bounds.x;
-			y = this.bounds.y;
-			
-			if (this.horizontal)
-			{
-				w = this.bounds.width;
-				h = this.bounds.height;
-			}
-			else
-			{
-				w = this.bounds.height;
-				h = this.bounds.width;	
-			}
-			
-			var clip = this.getSvgClip(this.node.ownerSVGElement, x, y, w, h);
-			
-			if (clip != this.clip)
-			{
-				this.releaseSvgClip();
-				this.clip = clip;
-				clip.refCount++;
-			}
-				
-			this.node.setAttribute('clip-path', 'url(#' + clip.getAttribute('id') + ')');
+			this.boundingBox.width = this.bounds.height;
+			this.boundingBox.height = this.bounds.width;
+		}
+		
+		x = this.bounds.x;
+		y = this.bounds.y;
+		
+		if (this.horizontal)
+		{
+			w = this.bounds.width;
+			h = this.bounds.height;
 		}
 		else
 		{
-			this.releaseSvgClip();
-			this.node.removeAttribute('clip-path');
+			w = this.bounds.height;
+			h = this.bounds.width;	
 		}
+		
+		var clip = this.getSvgClip(this.node.ownerSVGElement, x, y, w, h);
+		
+		if (clip != this.clip)
+		{
+			this.releaseSvgClip();
+			this.clip = clip;
+			clip.refCount++;
+		}
+			
+		this.node.setAttribute('clip-path', 'url(#' + clip.getAttribute('id') + ')');
+	}
+	else
+	{
+		this.releaseSvgClip();
+		this.node.removeAttribute('clip-path');
 	}
 };
 
@@ -48947,7 +48937,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.698 2012-08-10 13:43:26 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.699 2012-09-25 08:15:51 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -51080,7 +51070,7 @@ mxGraph.prototype.clearCellOverlays = function(cell)
  * cell - <mxCell> whose warning should be set.
  * warning - String that represents the warning to be displayed.
  * img - Optional <mxImage> to be used for the overlay. Default is
- * <warningImageBasename>.
+ * <warningImage>.
  * isSelect - Optional boolean indicating if a click on the overlay
  * should select the corresponding cell. Default is false.
  */
@@ -67360,7 +67350,7 @@ mxRubberband.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxVertexHandler.js,v 1.105 2012-09-21 07:41:47 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.106 2012-09-24 14:11:51 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -67849,8 +67839,8 @@ mxVertexHandler.prototype.reset = function()
 	// Checks if handler has been destroyed
 	if (this.selectionBorder != null)
 	{
-		this.selectionBorder.node.style.visibility = 'visible';
 		this.selectionBounds = this.getSelectionBounds(this.state);
+		this.selectionBorder.node.style.visibility = 'visible';
 		this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y,
 			this.selectionBounds.width, this.selectionBounds.height);
 		this.drawPreview();
@@ -68013,6 +68003,7 @@ mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, s
  */
 mxVertexHandler.prototype.redraw = function()
 {
+	this.selectionBounds = this.getSelectionBounds(this.state);
 	this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y,
 		this.selectionBounds.width, this.selectionBounds.height);
 
@@ -71038,7 +71029,7 @@ mxCellTracker.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxCellHighlight.js,v 1.24 2012-07-28 19:17:40 gaudenz Exp $
+ * $Id: mxCellHighlight.js,v 1.25 2012-09-27 14:43:40 boris Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -71218,8 +71209,6 @@ mxCellHighlight.prototype.repaint = function()
 			this.shape.bounds = new mxRectangle(this.state.x - this.spacing, this.state.y - this.spacing,
 					this.state.width + 2 * this.spacing, this.state.height + 2 * this.spacing);
 		}
-		
-		this.shape.redraw();
 
 		// Uses cursor from shape in highlight
 		if (this.state.shape != null)
@@ -71236,8 +71225,8 @@ mxCellHighlight.prototype.repaint = function()
 	
 			if (alpha != 0)
 			{
-				var cx = state.getCenterX();
-				var cy = state.getCenterY();
+				var cx = this.state.getCenterX();
+				var cy = this.state.getCenterY();
 				var transform = 'rotate(' + alpha + ' ' + cx + ' ' + cy + ')';
 				
 				this.shape.node.setAttribute('transform', transform);
@@ -71252,6 +71241,8 @@ mxCellHighlight.prototype.repaint = function()
 				this.shape.node.rotation = alpha;
 			}
 		}
+		
+		this.shape.redraw();
 	}
 };
 

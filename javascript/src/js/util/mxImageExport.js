@@ -1,5 +1,5 @@
 /**
- * $Id: mxImageExport.js,v 1.46 2012-08-10 11:55:43 gaudenz Exp $
+ * $Id: mxImageExport.js,v 1.47 2012-09-24 14:54:32 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -822,6 +822,8 @@ mxImageExport.prototype.initShapes = function()
 			else
 			{
 				canvas.fillAndStroke();
+				canvas.begin();
+				
 				var x = state.x;
 				var y = state.y;
 				var w = state.width;
@@ -831,18 +833,23 @@ mxImageExport.prototype.initShapes = function()
 				{
 					x += bounds.width;
 					w -= bounds.width;
+
+					canvas.moveTo(x, y);
+					canvas.lineTo(x + w, y);
+					canvas.lineTo(x + w, y + h);
+					canvas.lineTo(x, y + h);
 				}
 				else
 				{
 					y += bounds.height;
 					h -= bounds.height;
+
+					canvas.moveTo(x, y);
+					canvas.lineTo(x, y + h);
+					canvas.lineTo(x + w, y + h);
+					canvas.lineTo(x + w, y);
 				}
-				
-				canvas.begin();
-				canvas.moveTo(x, y);
-				canvas.lineTo(x, y + h);
-				canvas.lineTo(x + w, y + h);
-				canvas.lineTo(x + w, y);
+
 				canvas.stroke();
 			}
 		}

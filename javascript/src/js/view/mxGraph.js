@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.698 2012-08-10 13:43:26 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.699 2012-09-25 08:15:51 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -2132,7 +2132,7 @@ mxGraph.prototype.clearCellOverlays = function(cell)
  * cell - <mxCell> whose warning should be set.
  * warning - String that represents the warning to be displayed.
  * img - Optional <mxImage> to be used for the overlay. Default is
- * <warningImageBasename>.
+ * <warningImage>.
  * isSelect - Optional boolean indicating if a click on the overlay
  * should select the corresponding cell. Default is false.
  */

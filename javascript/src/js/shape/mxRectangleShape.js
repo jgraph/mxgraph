@@ -1,5 +1,5 @@
 /**
- * $Id: mxRectangleShape.js,v 1.16 2011-06-24 11:27:31 gaudenz Exp $
+ * $Id: mxRectangleShape.js,v 1.17 2012-09-26 07:51:29 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -35,19 +35,6 @@ function mxRectangleShape(bounds, fill, stroke, strokewidth)
  */
 mxRectangleShape.prototype = new mxShape();
 mxRectangleShape.prototype.constructor = mxRectangleShape;
-
-/**
- * Function: createHtml
- *
- * Creates and returns the HTML node to represent this shape.
- */
-mxRectangleShape.prototype.createHtml = function()
-{
-	var node = document.createElement('DIV');
-	this.configureHtmlShape(node);
-	
-	return node;
-};
 
 /**
  * Function: createVml

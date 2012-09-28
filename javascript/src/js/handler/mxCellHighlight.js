@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellHighlight.js,v 1.24 2012-07-28 19:17:40 gaudenz Exp $
+ * $Id: mxCellHighlight.js,v 1.25 2012-09-27 14:43:40 boris Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -179,8 +179,6 @@ mxCellHighlight.prototype.repaint = function()
 			this.shape.bounds = new mxRectangle(this.state.x - this.spacing, this.state.y - this.spacing,
 					this.state.width + 2 * this.spacing, this.state.height + 2 * this.spacing);
 		}
-		
-		this.shape.redraw();
 
 		// Uses cursor from shape in highlight
 		if (this.state.shape != null)
@@ -197,8 +195,8 @@ mxCellHighlight.prototype.repaint = function()
 	
 			if (alpha != 0)
 			{
-				var cx = state.getCenterX();
-				var cy = state.getCenterY();
+				var cx = this.state.getCenterX();
+				var cy = this.state.getCenterY();
 				var transform = 'rotate(' + alpha + ' ' + cx + ' ' + cy + ')';
 				
 				this.shape.node.setAttribute('transform', transform);
@@ -213,6 +211,8 @@ mxCellHighlight.prototype.repaint = function()
 				this.shape.node.rotation = alpha;
 			}
 		}
+		
+		this.shape.redraw();
 	}
 };
 

@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.10.3.1.
+	 * Current version is 1.10.3.2.
 	 */
-	VERSION: '1.10.3.1',
+	VERSION: '1.10.3.2',
 
 	/**
 	 * Variable: IS_IE

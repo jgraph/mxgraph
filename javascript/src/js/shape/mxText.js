@@ -1,5 +1,5 @@
 /**
- * $Id: mxText.js,v 1.173 2012-08-31 09:19:28 gaudenz Exp $
+ * $Id: mxText.js,v 1.174 2012-09-27 10:20:30 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1608,49 +1608,45 @@ mxText.prototype.redrawSvg = function()
 	}
 	
 	// Adds clipping and updates the bounding box
-	// NOTE: Clipping is broken in latest Chrome - no longer possible to move stuff if used
-	if (!mxClient.IS_GC)
+	if (this.clipped && this.bounds.width > 0 && this.bounds.height > 0)
 	{
-		if (this.clipped && this.bounds.width > 0 && this.bounds.height > 0)
+		this.boundingBox = this.bounds.clone();
+
+		if (!this.horizontal)
 		{
-			this.boundingBox = this.bounds.clone();
-	
-			if (!this.horizontal)
-			{
-				this.boundingBox.width = this.bounds.height;
-				this.boundingBox.height = this.bounds.width;
-			}
-			
-			x = this.bounds.x;
-			y = this.bounds.y;
-			
-			if (this.horizontal)
-			{
-				w = this.bounds.width;
-				h = this.bounds.height;
-			}
-			else
-			{
-				w = this.bounds.height;
-				h = this.bounds.width;	
-			}
-			
-			var clip = this.getSvgClip(this.node.ownerSVGElement, x, y, w, h);
-			
-			if (clip != this.clip)
-			{
-				this.releaseSvgClip();
-				this.clip = clip;
-				clip.refCount++;
-			}
-				
-			this.node.setAttribute('clip-path', 'url(#' + clip.getAttribute('id') + ')');
+			this.boundingBox.width = this.bounds.height;
+			this.boundingBox.height = this.bounds.width;
+		}
+		
+		x = this.bounds.x;
+		y = this.bounds.y;
+		
+		if (this.horizontal)
+		{
+			w = this.bounds.width;
+			h = this.bounds.height;
 		}
 		else
 		{
-			this.releaseSvgClip();
-			this.node.removeAttribute('clip-path');
+			w = this.bounds.height;
+			h = this.bounds.width;	
 		}
+		
+		var clip = this.getSvgClip(this.node.ownerSVGElement, x, y, w, h);
+		
+		if (clip != this.clip)
+		{
+			this.releaseSvgClip();
+			this.clip = clip;
+			clip.refCount++;
+		}
+			
+		this.node.setAttribute('clip-path', 'url(#' + clip.getAttribute('id') + ')');
+	}
+	else
+	{
+		this.releaseSvgClip();
+		this.node.removeAttribute('clip-path');
 	}
 };
 
