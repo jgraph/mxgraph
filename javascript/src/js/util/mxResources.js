@@ -252,7 +252,7 @@ var mxResources =
 						idx--;
 					}
 					
-					var value = lines[i].substring(index + 1, idx);
+					var value = lines[i].substring(index + 1, idx).replace(/\\(?=u[a-fA-F\d]{4})/g,"%");
 					mxResources.resources[key] = unescape(value);
 				}
 			}
