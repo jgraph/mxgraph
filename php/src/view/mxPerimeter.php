@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxPerimeter.php,v 1.20 2012-01-11 09:06:56 gaudenz Exp $
+ * $Id: mxPerimeter.php,v 1.21 2012-10-25 20:47:53 david Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 interface mxPerimeterFunction
@@ -218,8 +218,8 @@ class mxEllipsePerimeter implements mxPerimeterFunction
 		$yout = 0;
 		if ($dist1 < $dist2)
 		{
-			$xout = xout1;
-			$yout = yout1;
+			$xout = $xout1;
+			$yout = $yout1;
 		}
 		else
 		{
