@@ -1,5 +1,5 @@
 /**
- * $Id: mxWindow.js,v 1.65 2011-09-29 08:17:38 gaudenz Exp $
+ * $Id: mxWindow.js,v 1.67 2012-10-11 17:18:51 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -30,7 +30,28 @@
  * var h = (document.body.clientHeight || document.documentElement.clientHeight);
  * var wnd = new mxWindow('Title', frame, (w-200)/2, (h-200)/3, 200, 200);
  * wnd.setVisible(true);
- * (end);
+ * (end)
+ * 
+ * To limit the movement of a window, eg. to keep it from being moved beyond
+ * the top, left corner the following method can be overridden (recommended):
+ * 
+ * (code)
+ * wnd.setLocation = function(x, y)
+ * {
+ *   x = Math.max(0, x);
+ *   y = Math.max(0, y);
+ *   mxWindow.prototype.setLocation.apply(this, arguments);
+ * };
+ * (end)
+ * 
+ * Or the following event handler can be used:
+ * 
+ * (code)
+ * wnd.addListener(mxEvent.MOVE, function(e)
+ * {
+ *   wnd.setLocation(Math.max(0, wnd.getX()), Math.max(0, wnd.getY()));
+ * });
+ * (end)
  *
  * Event: mxEvent.MOVE_START
  *

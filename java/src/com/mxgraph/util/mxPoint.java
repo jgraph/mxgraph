@@ -1,5 +1,5 @@
 /**
- * $Id: mxPoint.java,v 1.8 2010-10-26 11:05:09 david Exp $
+ * $Id: mxPoint.java,v 1.9 2012-10-15 06:08:38 mate Exp $
  * Copyright (c) 2007-2010, Gaudenz Alder, David Benson
  */
 package com.mxgraph.util;
@@ -95,7 +95,7 @@ public class mxPoint implements Serializable, Cloneable
 	}
 
 	/**
-	 * Sets the x-coordinate of the point.
+	 * Sets the y-coordinate of the point.
 	 * 
 	 * @param value Double that specifies the new x-coordinate.
 	 */

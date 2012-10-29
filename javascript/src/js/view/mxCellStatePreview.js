@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellStatePreview.js,v 1.5 2011-01-20 11:01:26 gaudenz Exp $
+ * $Id: mxCellStatePreview.js,v 1.6 2012-10-26 07:19:11 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -184,7 +184,6 @@ mxCellStatePreview.prototype.revalidateState = function(parentState, state, dx, 
 			state.x += dx;
 			state.y += dy;
 	
-			this.graph.view.updateLabelBounds(state);
 			this.graph.cellRenderer.redraw(state);
 		}
 	

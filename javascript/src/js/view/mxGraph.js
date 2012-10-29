@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.699 2012-09-25 08:15:51 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.700 2012-10-29 12:35:53 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -6664,6 +6664,84 @@ mxGraph.prototype.zoom = function(factor, center)
 			this.container.scrollLeft = Math.round(this.container.scrollLeft * factor + dx);
 			this.container.scrollTop = Math.round(this.container.scrollTop * factor + dy);
 		}
+	}
+};
+
+/**
+ * Function: zoomToRect
+ * 
+ * Zooms the graph to the specified rectangle. If the rectangle does not have same aspect
+ * ratio as the display container, it is increased in the smaller relative dimension only
+ * until the aspect match. The original rectangle is centralised within this expanded one.
+ * 
+ * Note that the input rectangular must be un-scaled and un-translated.
+ * 
+ * Parameters:
+ * 
+ * rect - The un-scaled and un-translated rectangluar region that should be just visible 
+ * after the operation
+ */
+mxGraph.prototype.zoomToRect = function(rect)
+{
+	var scaleX = this.container.clientWidth / rect.width;
+	var scaleY = this.container.clientHeight / rect.height;
+	var aspectFactor = scaleX / scaleY;
+
+	// Remove any overlap of the rect outside the client area
+	rect.x = Math.max(0, rect.x);
+	rect.y = Math.max(0, rect.y);
+	var rectRight = Math.min(this.container.scrollWidth, rect.x + rect.width);
+	var rectBottom = Math.min(this.container.scrollHeight, rect.y + rect.height);
+	rect.width = rectRight - rect.x;
+	rect.height = rectBottom - rect.y;
+
+	// The selection area has to be increased to the same aspect
+	// ratio as the container, centred around the centre point of the 
+	// original rect passed in.
+	if (aspectFactor < 1.0)
+	{
+		// Height needs increasing
+		var newHeight = rect.height / aspectFactor;
+		var deltaHeightBuffer = (newHeight - rect.height) / 2.0;
+		rect.height = newHeight;
+		
+		// Assign up to half the buffer to the upper part of the rect, not crossing 0
+		// put the rest on the bottom
+		var upperBuffer = Math.min(rect.y , deltaHeightBuffer);
+		rect.y = rect.y - upperBuffer;
+		
+		// Check if the bottom has extended too far
+		rectBottom = Math.min(this.container.scrollHeight, rect.y + rect.height);
+		rect.height = rectBottom - rect.y;
+	}
+	else
+	{
+		// Width needs increasing
+		var newWidth = rect.width * aspectFactor;
+		var deltaWidthBuffer = (newWidth - rect.width) / 2.0;
+		rect.width = newWidth;
+		
+		// Assign up to half the buffer to the upper part of the rect, not crossing 0
+		// put the rest on the bottom
+		var leftBuffer = Math.min(rect.x , deltaWidthBuffer);
+		rect.x = rect.x - leftBuffer;
+		
+		// Check if the right hand side has extended too far
+		rectRight = Math.min(this.container.scrollWidth, rect.x + rect.width);
+		rect.width = rectRight - rect.x;
+	}
+
+	var scale = this.container.clientWidth / rect.width;
+
+	if (!mxUtils.hasScrollbars(this.container))
+	{
+		this.view.scaleAndTranslate(scale, -rect.x, -rect.y);
+	}
+	else
+	{
+		this.view.setScale(scale);
+		this.container.scrollLeft = Math.round(rect.x * scale);
+		this.container.scrollTop = Math.round(rect.y * scale);
 	}
 };
 

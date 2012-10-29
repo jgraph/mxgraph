@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.10.3.2.
+	 * Current version is 1.10.4.0.
 	 */
-	VERSION: '1.10.3.2',
+	VERSION: '1.10.4.0',
 
 	/**
 	 * Variable: IS_IE
@@ -1095,7 +1095,7 @@ mxDictionary.prototype.visit = function(visitor)
 	}
 };
 /**
- * $Id: mxResources.js,v 1.28 2012-08-20 07:49:50 gaudenz Exp $
+ * $Id: mxResources.js,v 1.32 2012-10-26 13:36:50 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxResources =
@@ -1136,11 +1136,16 @@ var mxResources =
 	 * See <mxClient.language> for more information on specifying the default
 	 * language or disabling all loading of resources.
 	 * 
+	 * Lines that start with a # sign will be ignored.
+	 * 
 	 * Special characters
 	 * 
-	 * To use unicode characters use %u as a prefix, eg. %u20AC will display a
-	 * Euro sign. For normal hex encoded strings, use % as a prefix, eg. %F6 will
-	 * display a ö (&ouml;).
+	 * To use unicode characters, use the standard notation (eg. \u8fd1) or %u as a
+	 * prefix (eg. %u20AC will display a Euro sign). For normal hex encoded strings,
+	 * use % as a prefix, eg. %F6 will display a ï¿½ (&ouml;).
+	 * 
+	 * See <resourcesEncoded> to disable this. If you disable this, make sure that
+	 * your files are UTF-8 encoded.
 	 * 
 	 * Variable: resources
 	 * 
@@ -1154,6 +1159,14 @@ var mxResources =
 	 * Specifies the extension used for language files. Default is '.properties'.
 	 */
 	extension: '.properties',
+
+	/**
+	 * Variable: resourcesEncoded
+	 * 
+	 * Specifies whether or not values in resource files are encoded with \u or
+	 * percentage. Default is true.
+	 */
+	resourcesEncoded: true,
 
 	/**
 	 * Variable: loadDefaultBundle
@@ -1336,20 +1349,32 @@ var mxResources =
 			
 			for (var i = 0; i < lines.length; i++)
 			{
-				var index = lines[i].indexOf('=');
-				
-				if (index > 0)
+				if (lines[i].charAt(0) != '#')
 				{
-					var key = lines[i].substring(0, index);
-					var idx = lines[i].length;
+					var index = lines[i].indexOf('=');
 					
-					if (lines[i].charCodeAt(idx - 1) == 13)
+					if (index > 0)
 					{
-						idx--;
+						var key = lines[i].substring(0, index);
+						var idx = lines[i].length;
+						
+						if (lines[i].charCodeAt(idx - 1) == 13)
+						{
+							idx--;
+						}
+						
+						var value = lines[i].substring(index + 1, idx);
+						
+						if (this.resourcesEncoded)
+						{
+							value = value.replace(/\\(?=u[a-fA-F\d]{4})/g,"%");
+							mxResources.resources[key] = unescape(value);
+						}
+						else
+						{
+							mxResources.resources[key] = value;	
+						}
 					}
-					
-					var value = lines[i].substring(index + 1, idx);
-					mxResources.resources[key] = unescape(value);
 				}
 			}
 		}
@@ -5743,7 +5768,7 @@ var mxUtils =
 
 };
 /**
- * $Id: mxConstants.js,v 1.124 2012-05-24 06:39:54 gaudenz Exp $
+ * $Id: mxConstants.js,v 1.126 2012-10-17 14:25:53 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
  var mxConstants =
@@ -6672,7 +6697,10 @@ var mxUtils =
 	 * 
 	 * Defines the key for the image style. Possible values are any image URL,
 	 * the type of the value is String. This is the path to the image to image
-	 * that is to be displayed within the label of a vertex.
+	 * that is to be displayed within the label of a vertex. Data URLs should
+	 * use the following format: data:image/png,xyz where xyz is the base64
+	 * encoded data (without the "base64"-prefix). Note that Data URLs are only
+	 * supported in modern browsers.
 	 */
 	STYLE_IMAGE: 'image',
 
@@ -6938,8 +6966,8 @@ var mxUtils =
 	/**
 	 * Variable: STYLE_DASHED
 	 * 
-	 * Defines the key for the endSize style. The type of this value is numeric
-	 * and the value represents the size of the end marker in pixels.
+	 * Defines the key for the dashed style. Use 0 (default) for non-dashed or 1
+	 * for dashed.
 	 */
 	STYLE_DASHED: 'dashed',
 
@@ -9938,7 +9966,7 @@ var mxClipboard =
 
 };
 /**
- * $Id: mxWindow.js,v 1.65 2011-09-29 08:17:38 gaudenz Exp $
+ * $Id: mxWindow.js,v 1.67 2012-10-11 17:18:51 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -9969,7 +9997,28 @@ var mxClipboard =
  * var h = (document.body.clientHeight || document.documentElement.clientHeight);
  * var wnd = new mxWindow('Title', frame, (w-200)/2, (h-200)/3, 200, 200);
  * wnd.setVisible(true);
- * (end);
+ * (end)
+ * 
+ * To limit the movement of a window, eg. to keep it from being moved beyond
+ * the top, left corner the following method can be overridden (recommended):
+ * 
+ * (code)
+ * wnd.setLocation = function(x, y)
+ * {
+ *   x = Math.max(0, x);
+ *   y = Math.max(0, y);
+ *   mxWindow.prototype.setLocation.apply(this, arguments);
+ * };
+ * (end)
+ * 
+ * Or the following event handler can be used:
+ * 
+ * (code)
+ * wnd.addListener(mxEvent.MOVE, function(e)
+ * {
+ *   wnd.setLocation(Math.max(0, wnd.getX()), Math.max(0, wnd.getY()));
+ * });
+ * (end)
  *
  * Event: mxEvent.MOVE_START
  *
@@ -17602,7 +17651,7 @@ var mxXmlCanvas2D = function(root)
 	};
 
 };/**
- * $Id: mxSvgCanvas2D.js,v 1.16 2012-08-31 09:19:28 gaudenz Exp $
+ * $Id: mxSvgCanvas2D.js,v 1.17 2012-10-26 07:16:06 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -17679,13 +17728,15 @@ var mxSvgCanvas2D = function(root, styleEnabled)
 	// Private helper function to create SVG elements
 	var create = function(tagName, namespace)
 	{
-		if (root.ownerDocument.createElementNS != null)
+		var doc = root.ownerDocument || document;
+		
+		if (doc.createElementNS != null)
 		{
-			return root.ownerDocument.createElementNS(namespace || mxConstants.NS_SVG, tagName);
+			return doc.createElementNS(namespace || mxConstants.NS_SVG, tagName);
 		}
 		else
 		{
-			var elt = root.ownerDocument.createElement(tagName);
+			var elt = doc.createElement(tagName);
 			
 			if (namespace != null)
 			{
@@ -45017,7 +45068,7 @@ mxCellRenderer.prototype.destroy = function(state)
 	}
 };
 /**
- * $Id: mxEdgeStyle.js,v 1.66 2011-09-06 19:43:50 gaudenz Exp $
+ * $Id: mxEdgeStyle.js,v 1.67 2012-10-29 10:19:20 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEdgeStyle =
@@ -45429,15 +45480,13 @@ var mxEdgeStyle =
 	
 			if (pt != null)
 			{
-				if (p0 != null &&
-					pt.y >= source.y &&
+				if (pt.y >= source.y &&
 					pt.y <= source.y + source.height)
 				{
 					y1 = pt.y;
 				}
 				
-				if (pe != null &&
-					pt.y >= target.y &&
+				if (pt.y >= target.y &&
 					pt.y <= target.y + target.height)
 				{
 					y2 = pt.y;
@@ -48937,7 +48986,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.699 2012-09-25 08:15:51 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.700 2012-10-29 12:35:53 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -55602,6 +55651,84 @@ mxGraph.prototype.zoom = function(factor, center)
 			this.container.scrollLeft = Math.round(this.container.scrollLeft * factor + dx);
 			this.container.scrollTop = Math.round(this.container.scrollTop * factor + dy);
 		}
+	}
+};
+
+/**
+ * Function: zoomToRect
+ * 
+ * Zooms the graph to the specified rectangle. If the rectangle does not have same aspect
+ * ratio as the display container, it is increased in the smaller relative dimension only
+ * until the aspect match. The original rectangle is centralised within this expanded one.
+ * 
+ * Note that the input rectangular must be un-scaled and un-translated.
+ * 
+ * Parameters:
+ * 
+ * rect - The un-scaled and un-translated rectangluar region that should be just visible 
+ * after the operation
+ */
+mxGraph.prototype.zoomToRect = function(rect)
+{
+	var scaleX = this.container.clientWidth / rect.width;
+	var scaleY = this.container.clientHeight / rect.height;
+	var aspectFactor = scaleX / scaleY;
+
+	// Remove any overlap of the rect outside the client area
+	rect.x = Math.max(0, rect.x);
+	rect.y = Math.max(0, rect.y);
+	var rectRight = Math.min(this.container.scrollWidth, rect.x + rect.width);
+	var rectBottom = Math.min(this.container.scrollHeight, rect.y + rect.height);
+	rect.width = rectRight - rect.x;
+	rect.height = rectBottom - rect.y;
+
+	// The selection area has to be increased to the same aspect
+	// ratio as the container, centred around the centre point of the 
+	// original rect passed in.
+	if (aspectFactor < 1.0)
+	{
+		// Height needs increasing
+		var newHeight = rect.height / aspectFactor;
+		var deltaHeightBuffer = (newHeight - rect.height) / 2.0;
+		rect.height = newHeight;
+		
+		// Assign up to half the buffer to the upper part of the rect, not crossing 0
+		// put the rest on the bottom
+		var upperBuffer = Math.min(rect.y , deltaHeightBuffer);
+		rect.y = rect.y - upperBuffer;
+		
+		// Check if the bottom has extended too far
+		rectBottom = Math.min(this.container.scrollHeight, rect.y + rect.height);
+		rect.height = rectBottom - rect.y;
+	}
+	else
+	{
+		// Width needs increasing
+		var newWidth = rect.width * aspectFactor;
+		var deltaWidthBuffer = (newWidth - rect.width) / 2.0;
+		rect.width = newWidth;
+		
+		// Assign up to half the buffer to the upper part of the rect, not crossing 0
+		// put the rest on the bottom
+		var leftBuffer = Math.min(rect.x , deltaWidthBuffer);
+		rect.x = rect.x - leftBuffer;
+		
+		// Check if the right hand side has extended too far
+		rectRight = Math.min(this.container.scrollWidth, rect.x + rect.width);
+		rect.width = rectRight - rect.x;
+	}
+
+	var scale = this.container.clientWidth / rect.width;
+
+	if (!mxUtils.hasScrollbars(this.container))
+	{
+		this.view.scaleAndTranslate(scale, -rect.x, -rect.y);
+	}
+	else
+	{
+		this.view.setScale(scale);
+		this.container.scrollLeft = Math.round(rect.x * scale);
+		this.container.scrollTop = Math.round(rect.y * scale);
 	}
 };
 
@@ -62525,7 +62652,7 @@ mxTemporaryCellStates.prototype.destroy = function()
 	this.view.setGraphBounds(this.oldBounds);
 };
 /**
- * $Id: mxCellStatePreview.js,v 1.5 2011-01-20 11:01:26 gaudenz Exp $
+ * $Id: mxCellStatePreview.js,v 1.6 2012-10-26 07:19:11 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -62710,7 +62837,6 @@ mxCellStatePreview.prototype.revalidateState = function(parentState, state, dx, 
 			state.x += dx;
 			state.y += dy;
 	
-			this.graph.view.updateLabelBounds(state);
 			this.graph.cellRenderer.redraw(state);
 		}
 	

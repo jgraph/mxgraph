@@ -1,3 +1,15 @@
+29-OCT-2012: 1.10.4.0
+
+- Adds mxGraph.zoomToRect for zoom and scroll to an area [JavaScript]
+- Fixes consistent point handling for routing in mxEdgeStyle.SideToSide [JavaScript]
+- Adds mxResources.resourcesEncoded to disable unescaping of values [JavaScript]
+- Adds Chinese translations for graph and editor core resource files [JavaScript]
+- Fixes mxCellStatePreview.revalidateState for relative child cells [JavaScript]
+- Uses UTF8 characters in built-in properties files [JavaScript]
+- Corrects missing $ signs in mxPerimeter.php [Php]
+- mxResources.parse ignores lines starting with # sign (comments) [JavaScript]
+- Adds support for normal unicode (like \u8fd1) in mxResources.parse [JavaScript] 
+
 28-SEP-2012: 1.10.3.2
 
 - Reenables clipping for plain text labels in Chrome [JavaScript]

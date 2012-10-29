@@ -1,5 +1,5 @@
 /**
- * $Id: mxConstants.js,v 1.124 2012-05-24 06:39:54 gaudenz Exp $
+ * $Id: mxConstants.js,v 1.126 2012-10-17 14:25:53 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
  var mxConstants =
@@ -928,7 +928,10 @@
 	 * 
 	 * Defines the key for the image style. Possible values are any image URL,
 	 * the type of the value is String. This is the path to the image to image
-	 * that is to be displayed within the label of a vertex.
+	 * that is to be displayed within the label of a vertex. Data URLs should
+	 * use the following format: data:image/png,xyz where xyz is the base64
+	 * encoded data (without the "base64"-prefix). Note that Data URLs are only
+	 * supported in modern browsers.
 	 */
 	STYLE_IMAGE: 'image',
 
@@ -1194,8 +1197,8 @@
 	/**
 	 * Variable: STYLE_DASHED
 	 * 
-	 * Defines the key for the endSize style. The type of this value is numeric
-	 * and the value represents the size of the end marker in pixels.
+	 * Defines the key for the dashed style. Use 0 (default) for non-dashed or 1
+	 * for dashed.
 	 */
 	STYLE_DASHED: 'dashed',
 

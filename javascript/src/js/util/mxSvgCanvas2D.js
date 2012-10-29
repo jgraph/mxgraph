@@ -1,5 +1,5 @@
 /**
- * $Id: mxSvgCanvas2D.js,v 1.16 2012-08-31 09:19:28 gaudenz Exp $
+ * $Id: mxSvgCanvas2D.js,v 1.17 2012-10-26 07:16:06 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -76,13 +76,15 @@ var mxSvgCanvas2D = function(root, styleEnabled)
 	// Private helper function to create SVG elements
 	var create = function(tagName, namespace)
 	{
-		if (root.ownerDocument.createElementNS != null)
+		var doc = root.ownerDocument || document;
+		
+		if (doc.createElementNS != null)
 		{
-			return root.ownerDocument.createElementNS(namespace || mxConstants.NS_SVG, tagName);
+			return doc.createElementNS(namespace || mxConstants.NS_SVG, tagName);
 		}
 		else
 		{
-			var elt = root.ownerDocument.createElement(tagName);
+			var elt = doc.createElement(tagName);
 			
 			if (namespace != null)
 			{

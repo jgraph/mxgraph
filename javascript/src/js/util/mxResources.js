@@ -1,5 +1,5 @@
 /**
- * $Id: mxResources.js,v 1.28 2012-08-20 07:49:50 gaudenz Exp $
+ * $Id: mxResources.js,v 1.32 2012-10-26 13:36:50 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxResources =
@@ -40,11 +40,16 @@ var mxResources =
 	 * See <mxClient.language> for more information on specifying the default
 	 * language or disabling all loading of resources.
 	 * 
+	 * Lines that start with a # sign will be ignored.
+	 * 
 	 * Special characters
 	 * 
-	 * To use unicode characters use %u as a prefix, eg. %u20AC will display a
-	 * Euro sign. For normal hex encoded strings, use % as a prefix, eg. %F6 will
-	 * display a ö (&ouml;).
+	 * To use unicode characters, use the standard notation (eg. \u8fd1) or %u as a
+	 * prefix (eg. %u20AC will display a Euro sign). For normal hex encoded strings,
+	 * use % as a prefix, eg. %F6 will display a ï¿½ (&ouml;).
+	 * 
+	 * See <resourcesEncoded> to disable this. If you disable this, make sure that
+	 * your files are UTF-8 encoded.
 	 * 
 	 * Variable: resources
 	 * 
@@ -58,6 +63,14 @@ var mxResources =
 	 * Specifies the extension used for language files. Default is '.properties'.
 	 */
 	extension: '.properties',
+
+	/**
+	 * Variable: resourcesEncoded
+	 * 
+	 * Specifies whether or not values in resource files are encoded with \u or
+	 * percentage. Default is true.
+	 */
+	resourcesEncoded: true,
 
 	/**
 	 * Variable: loadDefaultBundle
@@ -240,20 +253,32 @@ var mxResources =
 			
 			for (var i = 0; i < lines.length; i++)
 			{
-				var index = lines[i].indexOf('=');
-				
-				if (index > 0)
+				if (lines[i].charAt(0) != '#')
 				{
-					var key = lines[i].substring(0, index);
-					var idx = lines[i].length;
+					var index = lines[i].indexOf('=');
 					
-					if (lines[i].charCodeAt(idx - 1) == 13)
+					if (index > 0)
 					{
-						idx--;
+						var key = lines[i].substring(0, index);
+						var idx = lines[i].length;
+						
+						if (lines[i].charCodeAt(idx - 1) == 13)
+						{
+							idx--;
+						}
+						
+						var value = lines[i].substring(index + 1, idx);
+						
+						if (this.resourcesEncoded)
+						{
+							value = value.replace(/\\(?=u[a-fA-F\d]{4})/g,"%");
+							mxResources.resources[key] = unescape(value);
+						}
+						else
+						{
+							mxResources.resources[key] = value;	
+						}
 					}
-					
-					var value = lines[i].substring(index + 1, idx).replace(/\\(?=u[a-fA-F\d]{4})/g,"%");
-					mxResources.resources[key] = unescape(value);
 				}
 			}
 		}
