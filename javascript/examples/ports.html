@@ -1,5 +1,5 @@
 <!--
-  $Id: ports.html,v 1.79 2012-07-17 08:22:19 gaudenz Exp $
+  $Id: ports.html,v 1.80 2012-11-20 09:06:07 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Ports example for mxGraph. This example demonstrates implementing
@@ -65,8 +65,9 @@
 				mxEdgeHandler.prototype.snapToTerminals = true;
 
 				// Workaround for Internet Explorer ignoring certain CSS directives
-				if (mxClient.IS_IE)
+				if (mxClient.IS_QUIRKS)
 				{
+					document.body.style.overflow = 'hidden';
 					new mxDivResizer(container);
 					new mxDivResizer(outline);
 					new mxDivResizer(toolbar);
@@ -592,7 +593,7 @@
 			document.getElementById('outlineContainer'),
 		 	document.getElementById('toolbarContainer'),
 			document.getElementById('sidebarContainer'),
-			document.getElementById('statusContainer'));">
+			document.getElementById('statusContainer'));" style="margin:0px;">
 	
 	<!-- Creates a container for the splash screen -->
 	<div id="splash"

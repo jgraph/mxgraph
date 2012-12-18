@@ -1,5 +1,5 @@
 /**
- * $Id: Menus.js,v 1.55 2012-09-14 08:16:18 gaudenz Exp $
+ * $Id: Menus.js,v 1.58 2012-12-17 14:10:07 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -314,7 +314,7 @@ Menus.prototype.init = function()
 	})));
 	this.put('file', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
-		this.addMenuItems(menu, ['new', 'open', '-', 'save', 'saveAs', '-', 'export', '-', 'import', 'editFile', '-', 'pageSetup', 'print'], parent);
+		this.addMenuItems(menu, ['new', 'open', '-', 'save', 'saveAs', '-', 'import', 'export', '-', 'editFile', 'pageSetup', '-', 'print'], parent);
 	})));
 	this.put('edit', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -324,7 +324,7 @@ Menus.prototype.init = function()
 	})));
 	this.put('options', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
-		this.addMenuItems(menu, ['grid', 'guides', 'tooltips', '-', 'connect', 'navigation',
+		this.addMenuItems(menu, ['grid', 'guides', 'tooltips', '-', 'connect', 'copyConnect', 'navigation',
 		                         'scrollbars', '-', 'pageView', '-', 'pageBackgroundColor']);
 	})));
 	this.put('help', new Menu(mxUtils.bind(this, function(menu, parent)
@@ -456,7 +456,7 @@ Menus.prototype.pickColor = function(key)
 		this.colorDialog.picker.fromString(color);
 	}
 
-	this.editorUi.showDialog(this.colorDialog.container, 220, 360, true, false);
+	this.editorUi.showDialog(this.colorDialog.container, 220, 400, true, false);
 	
 	if (!mxClient.IS_TOUCH)
 	{

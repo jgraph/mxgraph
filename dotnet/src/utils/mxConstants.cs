@@ -1,4 +1,4 @@
-// $Id: mxConstants.cs,v 1.59 2012-03-24 11:58:09 gaudenz Exp $
+// $Id: mxConstants.cs,v 1.60 2012-11-19 16:56:51 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Drawing;
@@ -40,6 +40,13 @@ namespace com.mxgraph
         /// Defines the XLink namespace.
         /// </summary>
 	    public static string NS_XLINK = "http://www.w3.org/1999/xlink";
+
+        /// <summary>
+        /// Comma separated list of default fonts for CSS properties.
+        /// And the default font family value for new image export.
+        /// Default is Arial, Helvetica.
+        /// </summary>
+        public static String DEFAULT_FONTFAMILIES = "Arial,Helvetica";
 
         /// <summary>
         /// Default family for fonts. Default is Arial.

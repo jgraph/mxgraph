@@ -1,5 +1,7 @@
 com.mxgraph.analysis
 com.mxgraph.canvas
+com.mxgraph.costfunction
+com.mxgraph.generatorfunction
 com.mxgraph.io
 com.mxgraph.io.graphml
 com.mxgraph.layout

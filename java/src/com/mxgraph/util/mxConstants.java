@@ -1,5 +1,5 @@
 /**
- * $Id: mxConstants.java,v 1.80 2012-05-24 06:39:54 gaudenz Exp $
+ * $Id: mxConstants.java,v 1.81 2012-11-19 16:51:24 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.util;
@@ -66,6 +66,7 @@ public class mxConstants
 
 	/**
 	 * Comma separated list of default fonts for CSS properties.
+	 * And the default font family value for new image export.
 	 * Default is Arial, Helvetica.
 	 */
 	public static String DEFAULT_FONTFAMILIES = "Arial,Helvetica";

@@ -1,5 +1,5 @@
 /**
- * $Id: Actions.js,v 1.36 2012-07-26 19:11:58 gaudenz Exp $
+ * $Id: Actions.js,v 1.37 2012-12-11 09:42:03 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -386,7 +386,7 @@ Actions.prototype.init = function()
 		};
 
 		var cd = new ColorDialog(ui, graph.background || 'none', apply);
-		ui.showDialog(cd.container, 220, 360, true, false);
+		ui.showDialog(cd.container, 220, 400, true, false);
 		
 		if (!mxClient.IS_TOUCH)
 		{
@@ -399,6 +399,12 @@ Actions.prototype.init = function()
 	}, null, null, 'Ctrl+Q');
 	action.setToggleAction(true);
 	action.setSelectedCallback(function() { return graph.connectionHandler.isEnabled(); });
+	action = this.addAction('copyConnect', function()
+	{
+		graph.connectionHandler.setCreateTarget(!graph.connectionHandler.isCreateTarget());
+	});
+	action.setToggleAction(true);
+	action.setSelectedCallback(function() { return graph.connectionHandler.isCreateTarget(); });
 	
 	// Help actions
 	this.addAction('help', function()

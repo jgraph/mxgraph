@@ -1,5 +1,5 @@
 <!--
-  $Id: swimlanes.html,v 1.49 2011-10-17 14:37:19 gaudenz Exp $
+  $Id: swimlanes.html,v 1.50 2012-11-23 21:07:10 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Swimlanes example for mxGraph. This example demonstrates using
@@ -62,7 +62,8 @@
 				// Changes the default vertex style in-place
 				var style = graph.getStylesheet().getDefaultVertexStyle();
 				style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_SWIMLANE;
-				style[mxConstants.STYLE_VERTICAL_ALIGN] = 'top';
+				style[mxConstants.STYLE_VERTICAL_ALIGN] = 'middle';
+				style[mxConstants.STYLE_LABEL_BACKGROUNDCOLOR] = 'white';
 				style[mxConstants.STYLE_FONTSIZE] = 11;
 				style[mxConstants.STYLE_STARTSIZE] = 22;
 				style[mxConstants.STYLE_HORIZONTAL] = false;
@@ -77,6 +78,7 @@
 				style[mxConstants.STYLE_HORIZONTAL] = true;
 				style[mxConstants.STYLE_VERTICAL_ALIGN] = 'middle';
 				delete style[mxConstants.STYLE_STARTSIZE];
+				style[mxConstants.STYLE_LABEL_BACKGROUNDCOLOR] = 'none';
 				graph.getStylesheet().putCellStyle('process', style);
 				
 				style = mxUtils.clone(style);

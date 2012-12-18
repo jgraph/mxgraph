@@ -1,5 +1,5 @@
 <!--
-  $Id: events.html,v 1.42 2011-04-28 15:31:10 gaudenz Exp $
+  $Id: events.html,v 1.43 2012-11-20 09:06:07 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Events example for mxGraph. This example demonstrates creating
@@ -53,8 +53,9 @@
 				mxEvent.disableContextMenu(container);
 
 				// Workaround for Internet Explorer ignoring certain styles
-				if (mxClient.IS_IE)
+				if (mxClient.IS_QUIRKS)
 				{
+					document.body.style.overflow = 'hidden';
 					new mxDivResizer(container);
 				}
 

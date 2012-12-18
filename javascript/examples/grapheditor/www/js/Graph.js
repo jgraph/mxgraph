@@ -1,5 +1,5 @@
 /**
- * $Id: Graph.js,v 1.45 2012-08-02 13:56:37 gaudenz Exp $
+ * $Id: Graph.js,v 1.47 2012-12-11 15:51:11 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -19,7 +19,14 @@ Graph = function(container, model, renderHint, stylesheet)
 	this.setAllowLoops(true);
 	this.allowAutoPanning = true;
 	
+	// Enables cloning of connection sources
 	this.connectionHandler.setCreateTarget(true);
+	
+	// Disables built-in connection starts
+	this.connectionHandler.isValidSource = function()
+	{
+		return mxConnectionHandler.prototype.isValidSource.apply(this, arguments) && urlParams['connect'] != '2';
+	};
 
 	// Sets the style to be used when an elbow edge is double clicked
 	this.alternateEdgeStyle = 'vertical';
@@ -561,8 +568,96 @@ Graph.prototype.initTouch = function()
 		// Pre-fetches touch connector
 		new Image().src = connectorSrc;
 	}
-	else // not touchStyle
+	else
 	{
-		mxConnectionHandler.prototype.connectImage = new mxImage(IMAGE_PATH + '/connector.png', 15, 15);
+		var img = new mxImage(IMAGE_PATH + '/connector.png', 15, 15);
+		mxConnectionHandler.prototype.connectImage = img;
+
+		// Pre-fetches img
+		new Image().src = img.src;
+		
+		if (urlParams['connect'] == '2') // not touchStyle
+		{
+			var img = new mxImage(IMAGE_PATH + '/connector.png', 15, 15);
+					
+			var vertexHandlerInit = mxVertexHandler.prototype.init;
+			mxVertexHandler.prototype.init = function()
+			{
+				vertexHandlerInit.apply(this, arguments);
+	
+				// Only show connector image on one cell and do not show on containers
+				if (showConnectorImg && this.graph.connectionHandler.isEnabled() &&
+					this.graph.isCellConnectable(this.state.cell) &&
+					!this.graph.isValidRoot(this.state.cell) &&
+					this.graph.getSelectionCount() == 1)
+				{
+					this.connectorImg = mxUtils.createImage(img.src);
+					this.connectorImg.style.cursor = 'pointer';
+					this.connectorImg.style.width = img.width + 'px';
+					this.connectorImg.style.height = img.height + 'px';
+					this.connectorImg.style.position = 'absolute';
+					
+					this.connectorImg.setAttribute('title', mxResources.get('connect'));
+					mxEvent.redirectMouseEvents(this.connectorImg, this.graph, this.state);
+	
+					// Adds 2px tolerance
+					this.connectorImg.style.padding = '2px';
+					
+					// Starts connecting on touch/mouse down
+					mxEvent.addListener(this.connectorImg, 'mousedown',
+						mxUtils.bind(this, function(evt)
+						{
+							this.graph.panningHandler.hideMenu();
+							var pt = mxUtils.convertPoint(this.graph.container,
+									mxEvent.getClientX(evt), mxEvent.getClientY(evt));
+							this.graph.connectionHandler.start(this.state, pt.x, pt.y);
+							this.graph.isMouseDown = true;
+							mxEvent.consume(evt);
+						})
+					);
+	
+					this.graph.container.appendChild(this.connectorImg);
+				}
+	
+				this.redrawTools();
+			};
+			
+			var vertexHandlerRedraw = mxVertexHandler.prototype.redraw;
+			mxVertexHandler.prototype.redraw = function()
+			{
+				vertexHandlerRedraw.apply(this);
+				this.redrawTools();
+			};
+			
+			mxVertexHandler.prototype.redrawTools = function()
+			{
+				if (this.state != null && this.connectorImg != null)
+				{
+					// Top right for single-sizer
+					if (mxVertexHandler.prototype.singleSizer)
+					{
+						this.connectorImg.style.left = (this.state.x + this.state.width - this.connectorImg.offsetWidth / 2) + 'px';
+						this.connectorImg.style.top = (this.state.y - this.connectorImg.offsetHeight / 2) + 'px';
+					}
+					else
+					{
+						this.connectorImg.style.left = (this.state.x + this.state.width + mxConstants.HANDLE_SIZE / 2 + 2/* - 2 padding*/) + 'px';
+						this.connectorImg.style.top = (this.state.y + (this.state.height - this.connectorImg.offsetHeight) / 2) + 'px';
+					}
+				}
+			};
+			
+			var vertexHandlerDestroy = mxVertexHandler.prototype.destroy;
+			mxVertexHandler.prototype.destroy = function(sender, me)
+			{
+				vertexHandlerDestroy.apply(this, arguments);
+	
+				if (this.connectorImg != null)
+				{
+					this.connectorImg.parentNode.removeChild(this.connectorImg);
+					this.connectorImg = null;
+				}
+			};
+		}
 	}
 })();

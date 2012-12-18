@@ -1,5 +1,5 @@
 /**
- * $Id: mxFastOrganicLayout.java,v 1.28 2011-04-28 13:10:32 david Exp $
+ * $Id: mxFastOrganicLayout.java,v 1.29 2012-10-31 23:23:21 david Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.layout;
@@ -78,12 +78,12 @@ public class mxFastOrganicLayout extends mxGraphLayout
 	/**
 	 * Total number of iterations to run the layout though.
 	 */
-	protected int maxIterations = 0;
+	protected double maxIterations = 0;
 
 	/**
 	 * Current iteration count.
 	 */
-	protected int iteration = 0;
+	protected double iteration = 0;
 
 	/**
 	 * An array of all vertices to be laid out.
@@ -211,7 +211,7 @@ public class mxFastOrganicLayout extends mxGraphLayout
 	/**
 	 * 
 	 */
-	public int getMaxIterations()
+	public double getMaxIterations()
 	{
 		return maxIterations;
 	}
@@ -220,7 +220,7 @@ public class mxFastOrganicLayout extends mxGraphLayout
 	 * 
 	 * @param value
 	 */
-	public void setMaxIterations(int value)
+	public void setMaxIterations(double value)
 	{
 		maxIterations = value;
 	}
@@ -439,7 +439,7 @@ public class mxFastOrganicLayout extends mxGraphLayout
 			// If max number of iterations has not been set, guess it
 			if (maxIterations == 0)
 			{
-				maxIterations = (int) (20 * Math.sqrt(n));
+				maxIterations = 20.0 * Math.sqrt(n);
 			}
 
 			// Main iteration loop

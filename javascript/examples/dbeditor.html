@@ -1,5 +1,5 @@
 <!--
-  $Id: dbeditor.html,v 1.25 2012-01-09 06:35:02 gaudenz Exp $
+  $Id: dbeditor.html,v 1.26 2012-11-20 09:06:07 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   dbEditor example for mxGraph. Uses Google Gears database for database
@@ -950,7 +950,7 @@
 			mxUtils.setOpacity(background, 50);
 			document.body.appendChild(background);
 			
-			if (mxClient.IS_IE)
+			if (mxClient.IS_QUIRKS)
 			{
 				new mxDivResizer(background);
 			}

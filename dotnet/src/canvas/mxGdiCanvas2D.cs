@@ -1,4 +1,4 @@
-// $Id: mxGdiCanvas2D.cs,v 1.17 2012-07-24 20:18:31 gaudenz Exp $
+// $Id: mxGdiCanvas2D.cs,v 1.18 2012-11-19 16:56:51 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Drawing;
@@ -941,8 +941,26 @@ namespace com.mxgraph
 	    /// </summary>
         protected Font CreateFont(String family, FontStyle style, int size)
 	    {
-            return new Font(family, size, style);
+            return new Font(GetFontName(family), size, style);
 	    }
+
+        /// <summary>
+        /// Returns a font name for the given font family.
+        /// </summary>
+        protected String GetFontName(String family)
+        {
+            if (family != null)
+            {
+                int comma = family.IndexOf(',');
+
+                if (comma >= 0)
+                {
+                    family = family.Substring(0, comma);
+                }
+            }
+
+            return family;
+        }
 
 	    /// <summary>
 	    /// 
@@ -1038,7 +1056,7 @@ namespace com.mxgraph
             /// <summary>
             /// 
             /// </summary>
-		    internal string fontFamily = mxConstants.DEFAULT_FONTFAMILY;
+		    internal string fontFamily = mxConstants.DEFAULT_FONTFAMILIES;
 
             /// <summary>
             /// 

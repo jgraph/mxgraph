@@ -45,7 +45,20 @@ overlay.addListener(mxEvent.CLICK, function(sender, evt)
 
 <div class="CGroup"><div class=CTopic><h3 class=CTitle><a name="mxCellOverlay.Functions"></a>Functions</h3></div></div>
 
-<div class="CFunction"><div class=CTopic><h3 class=CTitle><a name="mxCellOverlay.getBounds"></a>getBounds</h3><div class=CBody><blockquote><table border=0 cellspacing=0 cellpadding=0 class="Prototype prettyprint"><tr><td><table border=0 cellspacing=0 cellpadding=0><tr><td class=PBeforeParameters nowrap>mxCellOverlay.prototype.getBounds = function(</td><td class=PParameter nowrap>state</td><td class=PAfterParameters nowrap>)</td></tr></table></td></tr></table></blockquote><p>Returns the bounds of the overlay for the given <a href="mxCellState-js.html#mxCellState" class=LClass id=link28 onMouseOver="ShowTip(event, 'tt13', 'link28')" onMouseOut="HideTip('tt13')">mxCellState</a> as an <a href="../util/mxRectangle-js.html#mxRectangle" class=LClass id=link29 onMouseOver="ShowTip(event, 'tt14', 'link29')" onMouseOut="HideTip('tt14')">mxRectangle</a>.&nbsp; This should be overridden when using multiple overlays per cell so that the overlays do not overlap.</p><h4 class=CHeading>Parameters</h4><table border=0 cellspacing=0 cellpadding=0 class=CDescriptionList><tr><td class=CDLEntry>state</td><td class=CDLDescription><a href="mxCellState-js.html#mxCellState" class=LClass id=link30 onMouseOver="ShowTip(event, 'tt13', 'link30')" onMouseOut="HideTip('tt13')">mxCellState</a> that represents the current state of the associated cell.</td></tr></table></div></div></div>
+<div class="CFunction"><div class=CTopic><h3 class=CTitle><a name="mxCellOverlay.getBounds"></a>getBounds</h3><div class=CBody><blockquote><table border=0 cellspacing=0 cellpadding=0 class="Prototype prettyprint"><tr><td><table border=0 cellspacing=0 cellpadding=0><tr><td class=PBeforeParameters nowrap>mxCellOverlay.prototype.getBounds = function(</td><td class=PParameter nowrap>state</td><td class=PAfterParameters nowrap>)</td></tr></table></td></tr></table></blockquote><p>Returns the bounds of the overlay for the given <a href="mxCellState-js.html#mxCellState" class=LClass id=link28 onMouseOver="ShowTip(event, 'tt13', 'link28')" onMouseOut="HideTip('tt13')">mxCellState</a> as an <a href="../util/mxRectangle-js.html#mxRectangle" class=LClass id=link29 onMouseOver="ShowTip(event, 'tt14', 'link29')" onMouseOut="HideTip('tt14')">mxRectangle</a>.&nbsp; This should be overridden when using multiple overlays per cell so that the overlays do not overlap.</p><p>The following example will place the overlay along an edge (where x=[-1..1] from the start to the end of the edge and y is the orthogonal offset in px).</p><blockquote><pre class="prettyprint">overlay.getBounds = function(state)
+{
+  var bounds = mxCellOverlay.prototype.getBounds.apply(this, arguments);
+
+  if (state.view.graph.getModel().isEdge(state.cell))
+  {
+    var pt = state.view.getPoint(state, {x: 0, y: 0, relative: true});
+
+    bounds.x = pt.x - bounds.width / 2;
+    bounds.y = pt.y - bounds.height / 2;
+  }
+
+  return bounds;
+};</pre></blockquote><h4 class=CHeading>Parameters</h4><table border=0 cellspacing=0 cellpadding=0 class=CDescriptionList><tr><td class=CDLEntry>state</td><td class=CDLDescription><a href="mxCellState-js.html#mxCellState" class=LClass id=link30 onMouseOver="ShowTip(event, 'tt13', 'link30')" onMouseOut="HideTip('tt13')">mxCellState</a> that represents the current state of the associated cell.</td></tr></table></div></div></div>
 
 <div class="CFunction"><div class=CTopic><h3 class=CTitle><a name="mxCellOverlay.toString"></a>toString</h3><div class=CBody><blockquote><table border=0 cellspacing=0 cellpadding=0 class="Prototype prettyprint"><tr><td>mxCellOverlay.prototype.toString = function()</td></tr></table></blockquote><p>Returns the textual representation of the overlay to be used as the tooltip.&nbsp; This implementation returns <a href="#mxCellOverlay.tooltip" class=LVariable id=link31 onMouseOver="ShowTip(event, 'tt5', 'link31')" onMouseOut="HideTip('tt5')">tooltip</a>.</p></div></div></div>
 

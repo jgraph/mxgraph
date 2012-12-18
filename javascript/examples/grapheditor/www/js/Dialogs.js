@@ -1,5 +1,5 @@
 /**
- * $Id: Dialogs.js,v 1.50 2012-08-31 08:58:32 gaudenz Exp $
+ * $Id: Dialogs.js,v 1.51 2012-12-11 09:42:03 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -142,9 +142,12 @@ function ColorDialog(editorUi, color, apply)
 	jscolor.picker.box.style.height = '100px';
 	jscolor.picker.box.style.paddingBottom = '10px';
 	div.appendChild(jscolor.picker.box);
+
+	var center = document.createElement('center');
 	
-	function addPresets(presets)
+	function addPresets(presets, rowLength)
 	{
+		rowLength = (rowLength != null) ? rowLength : 12;
 		var table = document.createElement('table');
 		table.style.borderCollapse = 'collapse';
 		table.setAttribute('cellspacing', '0');
@@ -152,14 +155,14 @@ function ColorDialog(editorUi, color, apply)
 		table.style.cellSpacing = '0px';
 		var tbody = document.createElement('tbody');
 		table.appendChild(tbody);
-		
-		var rows = presets.length / 12;
+
+		var rows = presets.length / rowLength;
 		
 		for (var row = 0; row < rows; row++)
 		{
 			var tr = document.createElement('tr');
 			
-			for (var i = 0; i < 12; i++)
+			for (var i = 0; i < rowLength; i++)
 			{
 				(function(clr)
 				{
@@ -192,24 +195,30 @@ function ColorDialog(editorUi, color, apply)
 							picker.fromString(clr);
 						}
 					});
-				})(presets[row * 12 + i]);
+				})(presets[row * rowLength + i]);
 			}
 			
 			tbody.appendChild(tr);
 		}
 		
-		var center = document.createElement('center');
 		center.appendChild(table);
-		div.appendChild(center);
+		
+		return table;
 	};
 
 	div.appendChild(input);
 	mxUtils.br(div);
 	
 	// Adds presets
-	addPresets(['none', 'FFFFFF', 'E6E6E6', 'CCCCCC', 'B3B3B3', '999999', '808080', '666666', '4D4D4D', '333333', '1A1A1A', '000000', 'FFCCCC', 'FFE6CC', 'FFFFCC', 'E6FFCC', 'CCFFCC', 'CCFFE6', 'CCFFFF', 'CCE5FF', 'CCCCFF', 'E5CCFF', 'FFCCFF', 'FFCCE6', 'FF9999', 'FFCC99', 'FFFF99', 'CCFF99', '99FF99', '99FFCC', '99FFFF', '99CCFF', '9999FF', 'CC99FF', 'FF99FF', 'FF99CC', 'FF6666', 'FFB366', 'FFFF66', 'B3FF66', '66FF66', '66FFB3', '66FFFF', '66B2FF', '6666FF', 'B266FF', 'FF66FF', 'FF66B3', 'FF3333', 'FF9933', 'FFFF33', '99FF33', '33FF33', '33FF99', '33FFFF', '3399FF', '3333FF', '9933FF', 'FF33FF', 'FF3399', 'FF0000', 'FF8000', 'FFFF00', '80FF00', '00FF00', '00FF80', '00FFFF', '007FFF', '0000FF', '7F00FF', 'FF00FF', 'FF0080', 'CC0000', 'CC6600', 'CCCC00', '66CC00', '00CC00', '00CC66', '00CCCC', '0066CC', '0000CC', '6600CC', 'CC00CC', 'CC0066', '990000', '994C00', '999900', '4D9900', '009900', '00994D', '009999', '004C99', '000099', '4C0099', '990099', '99004D', '660000', '663300', '666600', '336600', '006600', '006633', '006666', '003366', '000066', '330066', '660066', '660033', '330000', '331A00', '333300', '1A3300', '003300', '00331A', '003333', '001933', '000033', '190033', '330033', '33001A']);
+	var table = addPresets(['E6D0DE', 'CDA2BE', 'B5739D', 'E1D5E7', 'C3ABD0', 'A680B8', 'D4E1F5', 'A9C4EB', '7EA6E0', 'D5E8D4', '9AC7BF', '67AB9F', 'D5E8D4', 'B9E0A5', '97D077', 'FFF2CC', 'FFE599', 'FFD966', 'FFF4C3', 'FFCE9F', 'FFB570', 'F8CECC', 'F19C99', 'EA6B66'], 12);
+	table.style.marginBottom = '8px';
+	table = addPresets(['none', 'FFFFFF', 'E6E6E6', 'CCCCCC', 'B3B3B3', '999999', '808080', '666666', '4D4D4D', '333333', '1A1A1A', '000000', 'FFCCCC', 'FFE6CC', 'FFFFCC', 'E6FFCC', 'CCFFCC', 'CCFFE6', 'CCFFFF', 'CCE5FF', 'CCCCFF', 'E5CCFF', 'FFCCFF', 'FFCCE6', 'FF9999', 'FFCC99', 'FFFF99', 'CCFF99', '99FF99', '99FFCC', '99FFFF', '99CCFF', '9999FF', 'CC99FF', 'FF99FF', 'FF99CC', 'FF6666', 'FFB366', 'FFFF66', 'B3FF66', '66FF66', '66FFB3', '66FFFF', '66B2FF', '6666FF', 'B266FF', 'FF66FF', 'FF66B3', 'FF3333', 'FF9933', 'FFFF33', '99FF33', '33FF33', '33FF99', '33FFFF', '3399FF', '3333FF', '9933FF', 'FF33FF', 'FF3399', 'FF0000', 'FF8000', 'FFFF00', '80FF00', '00FF00', '00FF80', '00FFFF', '007FFF', '0000FF', '7F00FF', 'FF00FF', 'FF0080', 'CC0000', 'CC6600', 'CCCC00', '66CC00', '00CC00', '00CC66', '00CCCC', '0066CC', '0000CC', '6600CC', 'CC00CC', 'CC0066', '990000', '994C00', '999900', '4D9900', '009900', '00994D', '009999', '004C99', '000099', '4C0099', '990099', '99004D', '660000', '663300', '666600', '336600', '006600', '006633', '006666', '003366', '000066', '330066', '660066', '660033', '330000', '331A00', '333300', '1A3300', '003300', '00331A', '003333', '001933', '000033', '190033', '330033', '33001A']);
+	table.style.marginBottom = '16px';
+
+	div.appendChild(center);
 
 	var buttons = document.createElement('div');
+	buttons.style.textAlign = 'right';
 	buttons.style.whiteSpace = 'nowrap';
 	
 	var applyFunction = (apply != null) ? apply : this.createApplyFunction();

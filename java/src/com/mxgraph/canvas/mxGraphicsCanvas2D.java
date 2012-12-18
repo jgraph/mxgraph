@@ -1139,7 +1139,25 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	 */
 	protected Font createFont(String family, int style, int size)
 	{
-		return new Font(family, style, size);
+		return new Font(getFontName(family), style, size);
+	}
+
+	/**
+	 * Returns a font name for the given font family.
+	 */
+	protected String getFontName(String family)
+	{
+		if (family != null)
+		{
+			int comma = family.indexOf(',');
+			
+			if (comma >= 0)
+			{
+				family = family.substring(0, comma);
+			}
+		}
+		
+		return family;
 	}
 
 	/**
@@ -1233,7 +1251,7 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 		/**
 		 * 
 		 */
-		protected String fontFamily = mxConstants.DEFAULT_FONTFAMILY;
+		protected String fontFamily = mxConstants.DEFAULT_FONTFAMILIES;
 
 		/**
 		 * 

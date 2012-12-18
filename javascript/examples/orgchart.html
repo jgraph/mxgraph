@@ -1,5 +1,5 @@
 <!--
-  $Id: orgchart.html,v 1.65 2012-07-17 20:30:36 gaudenz Exp $
+  $Id: orgchart.html,v 1.66 2012-11-20 09:06:07 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
 
   Orgchart example for mxGraph. This example demonstrates using
@@ -50,8 +50,9 @@
 
 				mxEvent.disableContextMenu(container);
 
-				if (mxClient.IS_IE)
+				if (mxClient.IS_QUIRKS)
 				{
+					document.body.style.overflow = 'hidden';
 					new mxDivResizer(container);
 					new mxDivResizer(outline);
 				}
@@ -59,7 +60,7 @@
 				// Sets a gradient background
 			    if (mxClient.IS_GC || mxClient.IS_SF)
 			    {
-			    	container.style.background = '-webkit-gradient(linear, 0 0%, 0% 100%, from(#FFFFFF), to(#E7E7E7))';
+			    	container.style.background = '-webkit-gradient(linear, 0% 0%, 0% 100%, from(#FFFFFF), to(#E7E7E7))';
 			    }
 			    else if (mxClient.IS_NS)
 			    {
@@ -197,7 +198,6 @@
 					var v1 = graph.insertVertex(parent, 'treeRoot',
 						'Organization', w/2 - 30, 20, 140, 60, 'image=editors/images/house.png');
 					graph.updateCellSize(v1);
-
 					addOverlays(graph, v1, false);
 				}
 				finally
@@ -347,11 +347,12 @@ function addChild(graph, cell)
 {
 	var model = graph.getModel();
 	var parent = graph.getDefaultParent();
+	var vertex;
 
 	model.beginUpdate();
 	try
 	{
-		var vertex = graph.insertVertex(parent, null, 'Double click to set name');
+		vertex = graph.insertVertex(parent, null, 'Double click to set name');
 		var geometry = model.getGeometry(vertex);
 
 		// Updates the geometry of the vertex with the
@@ -378,6 +379,8 @@ function addChild(graph, cell)
 	{
 		model.endUpdate();
 	}
+	
+	return vertex;
 };
 
 function deleteSubtree(graph, cell)
