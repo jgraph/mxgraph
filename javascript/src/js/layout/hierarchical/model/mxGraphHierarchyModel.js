@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphHierarchyModel.js,v 1.31 2012-12-18 12:39:56 david Exp $
+ * $Id: mxGraphHierarchyModel.js,v 1.33 2012-12-18 13:16:43 david Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -55,11 +55,6 @@ function mxGraphHierarchyModel(layout, vertices, roots, parent, tightenToSource)
 	// ordering if and invert edges if necessary
 	for (var i = 0; i < vertices.length; i++)
 	{
-		if (vertices[i].value == '7')
-		{
-			mxLog.show();
-		}
-
 		var edges = internalVertices[i].connectsAsSource;
 
 		for (var j = 0; j < edges.length; j++)
@@ -366,11 +361,6 @@ mxGraphHierarchyModel.prototype.initialRank = function()
 					var otherNode = internalEdge.target;
 
 					// Only add node if it hasn't been assigned a layer
-					if (otherNode == null)
-					{
-						mxLog.show();
-						mxLog.debug('null');
-					}
 					if (otherNode.temp[0] == -1)
 					{
 						startNodes.push(otherNode);
