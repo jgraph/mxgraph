@@ -1,5 +1,5 @@
 /**
- * $Id: mxEditor.js,v 1.230 2012-08-22 12:35:03 gaudenz Exp $
+ * $Id: mxEditor.js,v 1.231 2012-12-03 18:02:25 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1835,7 +1835,7 @@ mxEditor.prototype.setGraphContainer = function (container)
 		}
 
 		// Workaround for stylesheet directives in IE
-		if (mxClient.IS_IE)
+		if (mxClient.IS_QUIRKS)
 		{
 			new mxDivResizer(container);
 		}
@@ -2054,7 +2054,7 @@ mxEditor.prototype.setToolbarContainer = function (container)
 	this.toolbar.init(container);
 	
 	// Workaround for stylesheet directives in IE
-	if (mxClient.IS_IE)
+	if (mxClient.IS_QUIRKS)
 	{
 		new mxDivResizer(container);
 	}
@@ -2097,7 +2097,7 @@ mxEditor.prototype.setStatusContainer = function (container)
 		}));
 		
 		// Workaround for stylesheet directives in IE
-		if (mxClient.IS_IE)
+		if (mxClient.IS_QUIRKS)
 		{
 			new mxDivResizer(container);
 		}
@@ -2140,7 +2140,7 @@ mxEditor.prototype.setTitleContainer = function (container)
 	}));
 
 	// Workaround for stylesheet directives in IE
-	if (mxClient.IS_IE)
+	if (mxClient.IS_QUIRKS)
 	{
 		new mxDivResizer(container);
 	}

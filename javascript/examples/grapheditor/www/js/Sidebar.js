@@ -1,5 +1,5 @@
 /**
- * $Id: Sidebar.js,v 1.67 2012-07-19 19:09:23 gaudenz Exp $
+ * $Id: Sidebar.js,v 1.69 2012-12-12 00:04:45 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -93,14 +93,14 @@ Sidebar.prototype.init = function()
 	var dir = STENCIL_PATH;
 	
 	this.addGeneralPalette(true);
-	this.addUmlPalette(false);
-	this.addBpmnPalette(dir, false);
-	this.addStencilPalette('flowchart', 'Flowchart', dir + '/flowchart.xml',
-		';fillColor=#ffffff;strokeColor=#000000;strokeWidth=2');
 	this.addStencilPalette('basic', mxResources.get('basic'), dir + '/basic.xml',
 		';fillColor=#ffffff;strokeColor=#000000;strokeWidth=2');
 	this.addStencilPalette('arrows', mxResources.get('arrows'), dir + '/arrows.xml',
 		';fillColor=#ffffff;strokeColor=#000000;strokeWidth=2');
+	this.addUmlPalette(false);
+	this.addBpmnPalette(dir, false);
+	this.addStencilPalette('flowchart', 'Flowchart', dir + '/flowchart.xml',
+	';fillColor=#ffffff;strokeColor=#000000;strokeWidth=2');
 	this.addImagePalette('clipart', mxResources.get('clipart'), dir + '/clipart/', '_128x128.png',
 		['Earth_globe', 'Empty_Folder', 'Full_Folder', 'Gear', 'Lock', 'Software', 'Virus', 'Email',
 		 'Database', 'Router_Icon', 'iPad', 'iMac', 'Laptop', 'MacBook', 'Monitor_Tower', 'Printer',
@@ -209,9 +209,10 @@ Sidebar.prototype.showTooltip = function(elt, cells)
 					this.tooltipImage.style.width = '14px';
 					this.tooltipImage.style.height = '27px';
 					
-					document.body.appendChild(this.tooltipImage);				
+					document.body.appendChild(this.tooltipImage);
 				}
 				
+				this.tooltip.style.display = 'block';
 				this.graph2.model.clear();
 				this.graph2.addCells(cells);
 				
@@ -225,7 +226,6 @@ Sidebar.prototype.showTooltip = function(elt, cells)
 					height += 4;
 				}
 				
-				this.tooltip.style.display = 'block';
 				this.tooltip.style.overflow = 'visible';
 				this.tooltipImage.style.visibility = 'visible';
 				this.tooltip.style.width = width + 'px';

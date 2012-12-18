@@ -1,5 +1,5 @@
 <!--
-  $Id: dynamictoolbar.html,v 1.14 2011-11-11 13:54:45 gaudenz Exp $
+  $Id: dynamictoolbar.html,v 1.15 2012-11-20 09:06:07 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Dynamic toolbar example for mxGraph. This example demonstrates changing the
@@ -48,13 +48,7 @@
 				tbContainer.style.bottom = '0px';
 				
 				document.body.appendChild(tbContainer);
-				
-				// Workaround for Internet Explorer ignoring certain styles
-				if (mxClient.IS_IE)
-				{
-					new mxDivResizer(tbContainer);
-				}
-								
+			
 				// Creates new toolbar without event processing
 				var toolbar = new mxToolbar(tbContainer);
 				toolbar.enabled = false
@@ -72,8 +66,10 @@
 				document.body.appendChild(container);
 				
 				// Workaround for Internet Explorer ignoring certain styles
-				if (mxClient.IS_IE)
+				if (mxClient.IS_QUIRKS)
 				{
+					document.body.style.overflow = 'hidden';
+					new mxDivResizer(tbContainer);
 					new mxDivResizer(container);
 				}
 	

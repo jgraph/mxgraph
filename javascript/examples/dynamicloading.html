@@ -1,5 +1,5 @@
 <!--
-  $Id: dynamicloading.html,v 1.12 2012-07-17 08:22:19 gaudenz Exp $
+  $Id: dynamicloading.html,v 1.14 2012-11-22 08:37:41 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Dynamic loading example for mxGraph. This example demonstrates loading
@@ -235,12 +235,12 @@
 </head>
 
 <!-- Page passes the container for the graph to the program -->
-<body onload="main(document.getElementById('graphContainer'))">
+<body onload="main(document.getElementById('graphContainer'))" style="overflow:hidden;">
 
 	<!-- Creates a container for the graph with a grid wallpaper. Make sure to define the position
 		and overflow attributes! See comments on the adding of the size-listener on line 54 ff!  -->
 	<div id="graphContainer"
-		style="overflow:visible;width:100%;height:100%;background:url('editors/images/grid.gif');">
+		style="overflow:visible;position:absolute;width:100%;height:100%;background:url('editors/images/grid.gif');cursor:default;">
 	</div>
 </body>
 </html>

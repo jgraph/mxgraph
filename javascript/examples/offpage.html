@@ -1,5 +1,5 @@
 <!--
-  $Id: offpage.html,v 1.15 2011-04-28 15:31:10 gaudenz Exp $
+  $Id: offpage.html,v 1.16 2012-11-20 09:06:07 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Offpage example for mxGraph. This example demonstrates creating
@@ -46,8 +46,9 @@
 				container.style.background = 'url("editors/images/grid.gif")';
 
 				// Workaround for Internet Explorer ignoring certain styles
-				if (mxClient.IS_IE)
+				if (mxClient.IS_QUIRKS)
 				{
+					document.body.style.overflow = 'hidden';
 					new mxDivResizer(container);
 				}
 

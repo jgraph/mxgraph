@@ -11,5 +11,5 @@ div.mxWindow {
         Color='#C0C0C0', Positive='true')
 }
 td.mxWindowTitle {
-	height: 23px;
+	_height: 23px;
 }

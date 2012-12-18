@@ -1,5 +1,5 @@
 /**
- * $Id: mxHierarchicalLayout.js,v 1.29 2012-06-12 20:22:18 david Exp $
+ * $Id: mxHierarchicalLayout.js,v 1.30 2012-12-18 12:41:06 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -108,42 +108,6 @@ mxHierarchicalLayout.prototype.orientation = mxConstants.DIRECTION_NORTH;
 mxHierarchicalLayout.prototype.fineTuning = true;
 
 /**
- * Variable: deterministic
- * 
- * Whether or not cells are ordered according to the order in the graph
- * model. Defaults to false since sorting usually produces quadratic
- * performance. Note that since mxGraph returns edges in a deterministic
- * order, it might be that this layout is always deterministic using that
- * JGraph regardless of this flag setting (i.e. leave it false in that
- * case). Default is true.
- */
-mxHierarchicalLayout.prototype.deterministic;
-
-/**
- * Variable: fixRoots
- * 
- * Whether or not to fix the position of the root cells. Keep in mind to
- * turn off features such as move to origin when fixing the roots, move
- * to origin usually overrides this flag (in JGraph it does). Default is
- * false.
- */
-mxHierarchicalLayout.prototype.fixRoots = false;
-
-/**
- * 
- * Variable: layoutFromSinks
- * 
- * Whether or not the initial scan of the graph to determine the layer
- * assigned to each vertex starts from the sinks or source (the sinks
- * being vertices with the fewest, preferable zero, outgoing edges and
- * sources same with incoming edges). Starting from either direction
- * can tight the layout up and also produce better results for certain
- * types of graphs. If the result for the default is not good enough
- * try a few sample layouts with the value false to see if they improve
- */
-mxHierarchicalLayout.prototype.layoutFromSinks = true;
-
-/**
  * 
  * Variable: tightenToSource
  * 
@@ -237,110 +201,88 @@ mxHierarchicalLayout.prototype.execute = function(parent, roots)
 
 		this.roots = rootsCopy;
 	}
-	else if (roots == null)
-	{
-		this.roots = this.findTreeRoots(parent);
-	}
 	else
 	{
 		this.roots = roots;
 	}
 	
-	if (this.roots != null)
+	model.beginUpdate();
+	try
 	{
-		model = this.graph.getModel();
-
-		model.beginUpdate();
-		try
+		this.run(parent);
+		
+		if (this.resizeParent &&
+			!this.graph.isCellCollapsed(parent))
 		{
-			this.run(parent);
-			
-			if (this.resizeParent &&
-				!this.graph.isCellCollapsed(parent))
-			{
-				this.graph.updateGroupBounds([parent],
-					this.parentBorder, this.moveParent);
-			}
+			this.graph.updateGroupBounds([parent],
+				this.parentBorder, this.moveParent);
 		}
-		finally
-		{
-			model.endUpdate();
-		}
+	}
+	finally
+	{
+		model.endUpdate();
 	}
 };
 
 /**
- * Function: findTreeRoots
+ * Function: findRoots
  * 
- * Returns all children in the given parent which do not have incoming
- * edges. If the result is empty then the with the greatest difference
- * between incoming and outgoing edges is returned.
+ * Returns all visible children in the given parent which do not have
+ * incoming edges. If the result is empty then the children with the
+ * maximum difference between incoming and outgoing edges are returned.
+ * This takes into account edges that are being promoted to the given
+ * root due to invisible children or collapsed cells.
  * 
  * Parameters:
  * 
  * parent - <mxCell> whose children should be checked.
+ * vertices - array of vertices to limit search to
  */
-mxHierarchicalLayout.prototype.findTreeRoots = function(parent)
+mxHierarchicalLayout.prototype.findRoots = function(parent, vertices)
 {
 	var roots = [];
 	
-	if (parent != null)
+	if (parent != null && vertices != null)
 	{
 		var model = this.graph.model;
-		var childCount = model.getChildCount(parent);
 		var best = null;
-		var maxDiff = 0;
+		var maxDiff = -100000;
 		
-		for (var i = 0; i < childCount; i++)
+		for (var i in vertices)
 		{
-			var cell = model.getChildAt(parent, i);
-			var cells = [];
+			var cell = vertices[i];
 
-			if (this.traverseAncestors)
+			if (model.isVertex(cell) && this.graph.isCellVisible(cell))
 			{
-				cells = model.getDescendants(cell);
-			}
-			else
-			{
-				cells.push(cell);
-			}
+				var conns = this.getEdges(cell);
+				var fanOut = 0;
+				var fanIn = 0;
 
-			for (var j = 0; j < cells.length; j++)
-			{
-				cell = cells[j];
-
-				if (model.isVertex(cell) && this.graph.isCellVisible(cell))
+				for (var k = 0; k < conns.length; k++)
 				{
-					var conns = this.getEdges(cell);
-					var fanOut = 0;
-					var fanIn = 0;
+					var src = this.graph.view.getVisibleTerminal(conns[k], true);
 
-					for (var k = 0; k < conns.length; k++)
+					if (src == cell)
 					{
-						var src = this.graph.view.getVisibleTerminal(conns[k], true);
-
-						if (src == cell)
-						{
-							fanOut++;
-						}
-						else
-						{
-							fanIn++;
-						}
+						fanOut++;
 					}
-
-					if (fanIn == 0 && fanOut > 0)
+					else
 					{
-						roots.push(cell);
+						fanIn++;
 					}
+				}
 
-					var diff = fanIn - fanOut;
+				if (fanIn == 0 && fanOut > 0)
+				{
+					roots.push(cell);
+				}
 
-					if (diff > maxDiff)
-					{
-						maxDiff = diff;
-						best = cell;
-					}
+				var diff = fanOut - fanIn;
+
+				if (diff > maxDiff)
+				{
+					maxDiff = diff;
+					best = cell;
 				}
 			}
 		}
@@ -413,95 +355,72 @@ mxHierarchicalLayout.prototype.run = function(parent)
 {
 	// Separate out unconnected hierarchies
 	var hierarchyVertices = [];
-	
-	// Keep track of one root in each hierarchy in case it's fixed position
-	var fixedRoots = null;
-	var rootLocations = null;
-	var affectedEdges = null;
+	var allVertexSet = [];
 
-	if (this.fixRoots)
+	if (this.roots == null && parent != null)
 	{
-		fixedRoots = [];
-		rootLocations = [];
-		affectedEdges = [];
-	}
+		var filledVertexSet = this.filterDescendants(parent);
 
-	for (var i = 0; i < this.roots.length; i++)
-	{
-		// First check if this root appears in any of the previous vertex
-		// sets
-		var newHierarchy = true;
-		
-		for (var j = 0; newHierarchy && j < hierarchyVertices.length; j++)
+		this.roots = [];
+		var filledVertexSetEmpty = true;
+
+		// Poor man's isSetEmpty
+		for (var key in filledVertexSet)
 		{
-			var rootId = mxCellPath.create(this.roots[i]);
-			
-			if (hierarchyVertices[j][rootId] != null)
+			if (filledVertexSet[key] != null)
 			{
-				newHierarchy = false;
+				filledVertexSetEmpty = false;
+				break;
 			}
 		}
 
-		if (newHierarchy)
+		while (!filledVertexSetEmpty)
 		{
-			// Obtains set of vertices connected to this root
-			var cellsStack = [];
-			cellsStack.push(this.roots[i]);
-			var edgeSet = null;
+			var candidateRoots = this.findRoots(parent, filledVertexSet);
 
-			if (this.fixRoots)
+			for (var i = 0; i < candidateRoots.length; i++)
 			{
-				fixedRoots.push(this.roots[i]);
-				var location = this.getVertexBounds(this.roots[i]).getPoint();
-				rootLocations.push(location);
-				edgeSet = [];
+				var vertexSet = [];
+				hierarchyVertices.push(vertexSet);
+
+				this.traverse(candidateRoots[i], true, null, allVertexSet, vertexSet,
+						hierarchyVertices, filledVertexSet);
 			}
 
-			var vertexSet = new Object();
-
-			while (cellsStack.length > 0)
+			for (var i = 0; i < candidateRoots.length; i++)
 			{
-				var cell = cellsStack.shift();
-				var cellId = mxCellPath.create(cell);
-
-				if (vertexSet[cellId] == null)
+				this.roots.push(candidateRoots[i]);
+			}
+			
+			filledVertexSetEmpty = true;
+			
+			// Poor man's isSetEmpty
+			for (var key in filledVertexSet)
+			{
+				if (filledVertexSet[key] != null)
 				{
-					vertexSet[cellId] = cell;
-
-					if (this.fixRoots)
-					{
-						var tmp = this.graph.getIncomingEdges(cell, parent);
-						
-						for (var k = 0; k < tmp.length; k++)
-						{
-							edgeSet.push(tmp[k]);
-						}
-					}
-
-					var conns = this.getEdges(cell);
-					var cells = this.graph.getOpposites(conns, cell);
-
-					for (var k = 0; k < cells.length; k++)
-					{
-						var tmpId = mxCellPath.create(cells[k]);
-						
-						if (vertexSet[tmpId] == null)
-						{
-							cellsStack.push(cells[k]);
-						}
-					}
+					filledVertexSetEmpty = false;
+					break;
 				}
 			}
+		}
+	}
+	else
+	{
+		// Find vertex set as directed traversal from roots
 
+		for (var i = 0; i < roots.length; i++)
+		{
+			var vertexSet = [];
 			hierarchyVertices.push(vertexSet);
 
-			if (this.fixRoots)
-			{
-				affectedEdges.push(edgeSet);
-			}
+			traverse(roots.get(i), true, null, allVertexSet, vertexSet,
+					hierarchyVertices, null);
 		}
 	}
 
+	// Iterate through the result removing parents who have children in this layout
+	
 	// Perform a layout for each seperate hierarchy
 	// Track initial coordinate x-positioning
 	var initialX = 0;
@@ -517,31 +436,141 @@ mxHierarchicalLayout.prototype.run = function(parent)
 		}
 		
 		this.model = new mxGraphHierarchyModel(this, tmp, this.roots,
-			parent, this.deterministic , this.tightenToSource, this.layoutFromSinks);
+			parent, this.tightenToSource);
 
 		this.cycleStage(parent);
 		this.layeringStage();
 		
 		this.crossingStage(parent);
 		initialX = this.placementStage(initialX, parent);
-		
-		if (this.fixRoots)
+	}
+};
+
+/**
+ * Function: filterDescendants
+ * 
+ * Creates an array of descendant cells
+ */
+mxHierarchicalLayout.prototype.filterDescendants = function(cell)
+{
+	var model = this.graph.model;
+	var result = [];
+
+	if (model.isVertex(cell) && cell != this.parent && this.graph.isCellVisible(cell))
+	{
+		result.push(cell);
+	}
+
+	if (this.traverseAncestors || cell == this.parent
+			&& this.graph.isCellVisible(cell))
+	{
+		var childCount = model.getChildCount(cell);
+
+		for (var i = 0; i < childCount; i++)
 		{
-			// Reposition roots and their hierarchies using their bounds
-			// stored earlier
-			var root = fixedRoots[i];
-			var oldLocation = rootLocations[i];
-			var newLocation = this.getVertexBounds(root).getPoint();
-
-			var diffX = oldLocation.x - newLocation.x;
-			var diffY = oldLocation.y - newLocation.y;
-			this.graph.moveCells(vertexSet, diffX, diffY);
-
-			// Also translate connected edges
-			var connectedEdges = affectedEdges[i+1];
-			this.graph.moveCells(connectedEdges, diffX, diffY);
+			var child = model.getChildAt(cell, i);
+			var children = this.filterDescendants(child);
+			
+			for (var j = 0; j < children.length; j++)
+			{
+				result[mxCellPath.create(children[j])] = children[j];
+			}
 		}
 	}
+
+	return result;
+};
+
+/**
+ * Traverses the (directed) graph invoking the given function for each
+ * visited vertex and edge. The function is invoked with the current vertex
+ * and the incoming edge as a parameter. This implementation makes sure
+ * each vertex is only visited once. The function may return false if the
+ * traversal should stop at the given vertex.
+ * 
+ * Parameters:
+ * 
+ * vertex - <mxCell> that represents the vertex where the traversal starts.
+ * directed - boolean indicating if edges should only be traversed
+ * from source to target. Default is true.
+ * edge - Optional <mxCell> that represents the incoming edge. This is
+ * null for the first step of the traversal.
+ * allVertices - Array of cell paths for the visited cells.
+ */
+mxHierarchicalLayout.prototype.traverse = function(vertex, directed, edge, allVertices, currentComp,
+											hierarchyVertices, filledVertexSet)
+{
+	var view = this.graph.view;
+	var model = this.graph.model;
+
+	if (vertex != null && allVertices != null)
+	{
+		// Has this vertex been seen before in any traversal
+		// And if the filled vertex set is populated, only 
+		// process vertices in that it contains
+		var vertexID = mxCellPath.create(vertex);
+		
+		if ((allVertices[vertexID] == null)
+				&& (filledVertexSet == null ? true : filledVertexSet[vertexID] != null))
+		{
+			if (currentComp[vertexID] == null)
+			{
+				currentComp[vertexID] = vertex;
+			}
+			if (allVertices[vertexID] == null)
+			{
+				allVertices[vertexID] = vertex;
+			}
+
+			delete filledVertexSet[vertexID];
+
+			var edgeCount = model.getEdgeCount(vertex);
+
+			if (edgeCount > 0)
+			{
+				for (var i = 0; i < edgeCount; i++)
+				{
+					var e = model.getEdgeAt(vertex, i);
+					var isSource = view.getVisibleTerminal(e, true) == vertex;
+
+					if (!directed || isSource)
+					{
+						var next = view.getVisibleTerminal(e, !isSource);
+						currentComp = this.traverse(next, directed, e, allVertices,
+								currentComp, hierarchyVertices,
+								filledVertexSet);
+					}
+				}
+			}
+		}
+		else
+		{
+			if (currentComp[vertexID] == null)
+			{
+				// We've seen this vertex before, but not in the current component
+				// This component and the one it's in need to be merged
+
+				for (var i = 0; i < hierarchyVertices.length; i++)
+				{
+					var comp = hierarchyVertices[i];
+
+					if (comp[vertexID] != null)
+					{
+						for (var key in currentComp)
+						{
+							comp[key] = currentComp[key];
+						}
+						
+						// Remove the current component from the hierarchy set
+						hierarchyVertices.pop();
+						return comp;
+					}
+				}
+			}
+		}
+	}
+	
+	return currentComp;
 };
 
 /**

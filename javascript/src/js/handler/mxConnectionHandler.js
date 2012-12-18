@@ -1,5 +1,5 @@
 /**
- * $Id: mxConnectionHandler.js,v 1.212 2012-09-05 08:06:27 gaudenz Exp $
+ * $Id: mxConnectionHandler.js,v 1.216 2012-12-07 15:17:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -110,7 +110,31 @@
  * 
  * Fires between begin- and endUpdate in <connect>. The <code>cell</code>
  * property contains the inserted edge, the <code>event</code> and <code>target</code> 
- * properties contain the respective arguments that were passed to <connect>.
+ * properties contain the respective arguments that were passed to <connect> (where
+ * target corresponds to the dropTarget argument).
+ * 
+ * Note that the target is the cell under the mouse where the mouse button was released.
+ * Depending on the logic in the handler, this doesn't necessarily have to be the target
+ * of the inserted edge. To print the source, target or any optional ports IDs that the
+ * edge is connected to, the following code can be used. To get more details about the
+ * actual connection point, <mxGraph.getConnectionConstraint> can be used. To resolve
+ * the port IDs, use <mxGraphModel.getCell>.
+ * 
+ * (code)
+ * graph.connectionHandler.addListener(mxEvent.CONNECT, function(sender, evt)
+ * {
+ *   var edge = evt.getProperty('cell');
+ *   var source = graph.getModel().getTerminal(edge, true);
+ *   var target = graph.getModel().getTerminal(edge, false);
+ *   
+ *   var style = graph.getCellStyle(edge);
+ *   var sourcePortId = style[mxConstants.STYLE_SOURCE_PORT];
+ *   var targetPortId = style[mxConstants.STYLE_TARGET_PORT];
+ *   
+ *   mxLog.show();
+ *   mxLog.debug('connect', edge, source.id, target.id, sourcePortId, targetPortId);
+ * });
+ * (end)
  *
  * Event: mxEvent.RESET
  * 
@@ -368,9 +392,9 @@ mxConnectionHandler.prototype.mouseDownCounter = 0;
  * 
  * Switch to enable moving the preview away from the mousepointer. This is required in browsers
  * where the preview cannot be made transparent to events and if the built-in hit detection on
- * the HTML elements in the page should be used. Default is the value of <mxClient.IS_IE>.
+ * the HTML elements in the page should be used. Default is the value of <mxClient.IS_VML>.
  */
-mxConnectionHandler.prototype.movePreviewAway = mxClient.IS_IE;
+mxConnectionHandler.prototype.movePreviewAway = mxClient.IS_VML;
 
 /**
  * Function: isEnabled
@@ -764,7 +788,7 @@ mxConnectionHandler.prototype.createIcons = function(state)
 		else
 		{
 			icon.dialect = (this.graph.dialect == mxConstants.DIALECT_SVG) ?
-				mxConstants.DIALECT_SVG :
+				mxConstants.DIALECT_SVG : 
 				mxConstants.DIALECT_VML;
 			icon.init(this.graph.getView().getOverlayPane());
 
@@ -1199,12 +1223,29 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 			// makes sure the preview shape does not prevent the detection
 			// of the cell under the mousepointer even for slow gestures.
 			if (this.currentState == null && this.movePreviewAway)
-			{	
-				var dx = current.x - pt2.x;
-				var dy = current.y - pt2.y;
+			{
+				var tmp = pt2; 
+				
+				if (this.edgeState != null && this.edgeState.absolutePoints.length > 2)
+				{
+					var tmp2 = this.edgeState.absolutePoints[this.edgeState.absolutePoints.length - 2];
+					
+					if (tmp2 != null)
+					{
+						tmp = tmp2;
+					}
+				}
+				
+				var dx = current.x - tmp.x;
+				var dy = current.y - tmp.y;
 				
 				var len = Math.sqrt(dx * dx + dy * dy);
-								
+				
+				if (len == 0)
+				{
+					return;
+				}
+												
 				current.x -= dx * 4 / len;
 				current.y -= dy * 4 / len;
 			}

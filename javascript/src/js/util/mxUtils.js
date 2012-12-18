@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.js,v 1.295 2012-08-30 08:18:04 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.297 2012-12-07 19:47:29 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxUtils =
@@ -264,18 +264,21 @@ var mxUtils =
 			{
 				var result = null;
 
-				if (node.nodeType == mxConstants.NODETYPE_ELEMENT && node.getAttribute(attr) == value)
+				if (node != null)
 				{
-					result = node;
-				}
-				else
-				{
-					var child = node.firstChild;
-					
-					while (child != null && result == null)
+					if (node.nodeType == mxConstants.NODETYPE_ELEMENT && node.getAttribute(attr) == value)
 					{
-						result = mxUtils.findNodeByAttribute(child, attr, value);
-						child = child.nextSibling;
+						result = node;
+					}
+					else
+					{
+						var child = node.firstChild;
+						
+						while (child != null && result == null)
+						{
+							result = mxUtils.findNodeByAttribute(child, attr, value);
+							child = child.nextSibling;
+						}
 					}
 				}
 		
@@ -286,21 +289,35 @@ var mxUtils =
 		{
 			return function(node, attr, value)
 			{
-				var expr = '//*[@' + attr + '=\'' + value + '\']';
-				
-				return node.ownerDocument.selectSingleNode(expr);
+				if (node == null)
+				{
+					return null;
+				}
+				else
+				{
+					var expr = '//*[@' + attr + '=\'' + value + '\']';
+					
+					return node.ownerDocument.selectSingleNode(expr);
+				}
 			};
 		}
 		else
 		{
 			return function(node, attr, value)
 			{
-				var result = node.ownerDocument.evaluate(
-						'//*[@' + attr + '=\'' + value + '\']',
-						node.ownerDocument, null,
-						XPathResult.ANY_TYPE, null);
-
-				return result.iterateNext();
+				if (node == null)
+				{
+					return null;
+				}
+				else
+				{
+					var result = node.ownerDocument.evaluate(
+							'//*[@' + attr + '=\'' + value + '\']',
+							node.ownerDocument, null,
+							XPathResult.ANY_TYPE, null);
+	
+					return result.iterateNext();
+				}
 			};
 		}
 	}(),
@@ -2273,8 +2290,7 @@ var mxUtils =
 			var w = state.width;
 			var h = state.height;
 			
-			var start = mxUtils.getValue(state.style,
-					mxConstants.STYLE_STARTSIZE);
+			var start = mxUtils.getValue(state.style, mxConstants.STYLE_STARTSIZE) * state.view.scale;
 
 			if (start > 0)
 			{

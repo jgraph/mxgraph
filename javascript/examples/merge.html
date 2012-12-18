@@ -1,5 +1,5 @@
 <!--
-  $Id: merge.html,v 1.9 2012-07-17 08:22:19 gaudenz Exp $
+  $Id: merge.html,v 1.10 2012-11-17 18:18:12 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Merge example for mxGraph. This example demonstrates using
@@ -117,11 +117,11 @@
 </head>
 
 <!-- Page passes the container for the graph to the program -->
-<body onload="main(document.getElementById('graphContainer'))">
+<body onload="main(document.getElementById('graphContainer'))" style="overflow:hidden;">
 
 	<!-- Creates a container for the graph with a grid wallpaper -->
 	<div id="graphContainer"
-		style="overflow:hidden;width:100%;height:100%;">
+		style="position:absolute;overflow:hidden;width:100%;height:100%;">
 	</div>
 </body>
 </html>

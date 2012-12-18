@@ -1,5 +1,5 @@
 <!--
-  $Id: schema.html,v 1.63 2012-07-17 08:22:19 gaudenz Exp $
+  $Id: schema.html,v 1.65 2012-11-20 19:50:01 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Schema example for mxGraph. This example demonstrates implementing
@@ -162,8 +162,9 @@
 				checkImage.src = "images/check.png";
 				
 				// Workaround for Internet Explorer ignoring certain CSS directives
-				if (mxClient.IS_IE)
+				if (mxClient.IS_QUIRKS)
 				{
+					document.body.style.overflow = 'hidden';
 					new mxDivResizer(container);
 					new mxDivResizer(outline);
 					new mxDivResizer(toolbar);
@@ -651,7 +652,7 @@
 			mxUtils.setOpacity(background, 50);
 			document.body.appendChild(background);
 			
-			if (mxClient.IS_IE)
+			if (mxClient.IS_QUIRKS)
 			{
 				new mxDivResizer(background);
 			}

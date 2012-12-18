@@ -1,5 +1,5 @@
 /**
- * $Id: mxConstants.js,v 1.126 2012-10-17 14:25:53 david Exp $
+ * $Id: mxConstants.js,v 1.127 2012-11-20 09:06:07 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
  var mxConstants =
@@ -1049,7 +1049,7 @@
 	 * 
 	 * Defines the key for the indicator shape used within an <mxLabel>.
 	 * Possible values are all SHAPE_* constants or the names of any new
-	 * shapes.
+	 * shapes. The indicatorShape has precedence over the indicatorImage.
 	 */
 	STYLE_INDICATOR_SHAPE: 'indicatorShape',
 
@@ -1057,7 +1057,8 @@
 	 * Variable: STYLE_INDICATOR_IMAGE
 	 * 
 	 * Defines the key for the indicator image used within an <mxLabel>.
-	 * Possible values are all image URLs.
+	 * Possible values are all image URLs. The indicatorShape has
+	 * precedence over the indicatorImage.
 	 */
 	STYLE_INDICATOR_IMAGE: 'indicatorImage',
 

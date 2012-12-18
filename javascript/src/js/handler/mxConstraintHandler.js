@@ -1,5 +1,5 @@
 /**
- * $Id: mxConstraintHandler.js,v 1.14 2011-04-01 09:37:51 gaudenz Exp $
+ * $Id: mxConstraintHandler.js,v 1.15 2012-11-01 16:13:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -130,21 +130,32 @@ mxConstraintHandler.prototype.getImageForConstraint = function(state, constraint
 };
 
 /**
+ * Function: isEventIgnored
+ * 
+ * Returns true if the given <mxMouseEvent> should be ignored in <update>. This
+ * implementation always returns false.
+ */
+mxConstraintHandler.prototype.isEventIgnored = function(me, source)
+{
+	return false;
+};
+
+/**
  * Function: update
  * 
  * Updates the state of this handler based on the given <mxMouseEvent>.
+ * Source is a boolean indicating if the cell is a source or target.
  */
 mxConstraintHandler.prototype.update = function(me, source)
 {
-	if (this.isEnabled())
+	if (this.isEnabled() && !this.isEventIgnored(me))
 	{
 		var tol = this.getTolerance();
 		var mouse = new mxRectangle(me.getGraphX() - tol, me.getGraphY() - tol, 2 * tol, 2 * tol);
 		var connectable = (me.getCell() != null) ? this.graph.isCellConnectable(me.getCell()) : false;
 
 		if ((this.currentFocusArea == null || (!mxUtils.intersects(this.currentFocusArea, mouse) ||
-			(me.getState() != null && this.currentFocus != null && connectable &&
-			this.graph.getModel().getParent(me.getCell()) == this.currentFocus.cell))))
+			(me.getState() != null && this.currentFocus != null && connectable))))
 		{
 			this.currentFocusArea = null;
 	
@@ -231,10 +242,8 @@ mxConstraintHandler.prototype.update = function(me, source)
 		this.currentConstraint = null;
 		this.currentPoint = null;
 		
-		if (this.focusIcons != null &&
-			this.constraints != null &&
-			(me.getState() == null ||
-			this.currentFocus == me.getState()))
+		if (this.focusIcons != null && this.constraints != null &&
+			(me.getState() == null || this.currentFocus == me.getState()))
 		{
 			for (var i = 0; i < this.focusIcons.length; i++)
 			{

@@ -1,5 +1,5 @@
 /**
- * $Id: GraphEditor.java,v 1.16 2012-10-29 10:49:06 david Exp $
+ * $Id: GraphEditor.java,v 1.18 2012-11-05 14:51:57 mate Exp $
  * Copyright (c) 2006-2012, JGraph Ltd */
 package com.mxgraph.examples.swing;
 
@@ -9,7 +9,6 @@ import java.net.URL;
 import java.text.NumberFormat;
 import java.util.Iterator;
 import java.util.List;
-
 import javax.swing.ImageIcon;
 import javax.swing.UIManager;
 

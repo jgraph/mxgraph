@@ -1,5 +1,5 @@
 /**
- * $Id: mxStackLayout.js,v 1.46 2011-12-01 15:21:17 gaudenz Exp $
+ * $Id: mxStackLayout.js,v 1.47 2012-12-14 08:54:34 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -226,14 +226,31 @@ mxStackLayout.prototype.execute = function(parent)
 		}
 		
 		fillValue -= 2 * this.spacing + 2 * this.border;
-
+		var x0 = this.x0 + this.border;
+		var y0 = this.y0 + this.border;
+		
 		// Handles swimlane start size
-		var size = (this.graph.isSwimlane(parent)) ?
-				this.graph.getStartSize(parent) :
-				new mxRectangle();
-		fillValue -= (horizontal) ? size.height : size.width;
-		var x0 = this.x0 + size.width + this.border;
-		var y0 = this.y0 + size.height + this.border;
+		if (this.graph.isSwimlane(parent))
+		{
+			// Uses computed style to get latest 
+			var style = this.graph.getCellStyle(parent);
+			var start = mxUtils.getValue(style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE);
+			var horz = mxUtils.getValue(style, mxConstants.STYLE_HORIZONTAL, true);
+			
+			if (horizontal == horz)
+			{
+				fillValue -= start;
+			}
+			
+			if (horizontal)
+			{
+				y0 += start;
+			}
+			else
+			{
+				x0 += start;
+			}
+		}
 
 		model.beginUpdate();
 		try
@@ -246,8 +263,7 @@ mxStackLayout.prototype.execute = function(parent)
 			{
 				var child = model.getChildAt(parent, i);
 				
-				if (!this.isVertexIgnored(child) &&
-					this.isVertexMovable(child))
+				if (!this.isVertexIgnored(child) && this.isVertexMovable(child))
 				{
 					var geo = model.getGeometry(child);
 					
@@ -255,8 +271,7 @@ mxStackLayout.prototype.execute = function(parent)
 					{
 						geo = geo.clone();
 						
-						if (this.wrap != null &&
-							last != null)
+						if (this.wrap != null && last != null)
 						{
 							if ((horizontal && last.x + last.width +
 								geo.width + 2 * this.spacing > this.wrap) ||

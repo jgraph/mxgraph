@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.54 2012-09-14 08:16:18 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.57 2012-12-17 15:58:46 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -14,6 +14,23 @@ EditorUi = function(editor, container)
 	// Disables scrollbars
 	this.container.style.overflow = 'hidden';
 
+	// Pre-fetches submenu image
+	new Image().src = mxPopupMenu.prototype.submenuImage;
+
+	// Pre-fetches connect image
+	if (mxConnectionHandler.prototype.connectImage != null)
+	{
+		new Image().src = mxConnectionHandler.prototype.connectImage.src;
+	}
+	
+    // Creates the user interface
+	this.actions = new Actions(this);
+	this.menus = new Menus(this);
+	this.createDivs();
+	this.refresh();
+	this.createUi();
+
+	// Disables HTML and text selection
 	var textEditing =  mxUtils.bind(this, function(evt)
 	{
 		if (evt == null)
@@ -39,28 +56,15 @@ EditorUi = function(editor, container)
 	// And uses built-in context menu while editing
 	if (mxClient.IS_IE && document.documentMode != 9)
 	{
-		mxEvent.addListener(this.container, 'contextmenu', textEditing);
+		mxEvent.addListener(this.diagramContainer, 'contextmenu', textEditing);
+		mxEvent.addListener(this.sidebarContainer, 'contextmenu', textEditing);
 	}
 	else
 	{
-		this.container.oncontextmenu = textEditing;
+		// Allows browser context menu outside of diagram and sidebar
+		this.diagramContainer.oncontextmenu = textEditing;
+		this.sidebarContainer.oncontextmenu = textEditing;
 	}
-
-	// Pre-fetches submenu image
-	new Image().src = mxPopupMenu.prototype.submenuImage;
-
-	// Pre-fetches connect image
-	if (mxConnectionHandler.prototype.connectImage != null)
-	{
-		new Image().src = mxConnectionHandler.prototype.connectImage.src;
-	}
-	
-    // Creates the user interface
-	this.actions = new Actions(this);
-	this.menus = new Menus(this);
-	this.createDivs();
-	this.refresh();
-	this.createUi();
 
 	// Contains the main graph instance inside the given panel
 	graph.init(this.diagramContainer);
@@ -166,12 +170,12 @@ EditorUi.prototype.splitSize = (mxClient.IS_TOUCH) ? 16 : 8;
 /**
  * Specifies the height of the menubar. Default is 34.
  */
-EditorUi.prototype.menubarHeight = 34;
+EditorUi.prototype.menubarHeight = 33;
 
 /**
  * Specifies the height of the toolbar. Default is 46.
  */
-EditorUi.prototype.toolbarHeight = 46;
+EditorUi.prototype.toolbarHeight = 37;
 
 /**
  * Specifies the height of the footer. Default is 28.
@@ -320,7 +324,7 @@ EditorUi.prototype.save = function(name)
 EditorUi.prototype.getUrl = function(pathname)
 {
 	var href = (pathname != null) ? pathname : window.location.pathname;
-	var parms = (pathname.indexOf('?') > 0) ? 1 : 0;
+	var parms = (href.indexOf('?') > 0) ? 1 : 0;
 	
 	// Removes template URL parameter for new blank diagram
 	for (var key in urlParams)
@@ -481,7 +485,15 @@ EditorUi.prototype.refresh = function()
 	this.menubarContainer.style.height = this.menubarHeight + 'px';
 	this.toolbarContainer.style.top = this.menubarHeight + 'px';
 	this.toolbarContainer.style.height = this.toolbarHeight + 'px';
-	this.sidebarContainer.style.top = (this.menubarHeight + this.toolbarHeight) + 'px';
+	
+	var tmp = this.menubarHeight + this.toolbarHeight;
+	
+	if (!mxClient.IS_QUIRKS)
+	{
+		tmp += 1;
+	}
+	
+	this.sidebarContainer.style.top = tmp + 'px';
 	this.sidebarContainer.style.width = effHsplitPosition + 'px';
 	this.outlineContainer.style.width = effHsplitPosition + 'px';
 	this.outlineContainer.style.height = effVsplitPosition + 'px';

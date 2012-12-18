@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellRenderer.js,v 1.187 2012-08-09 10:56:11 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.189 2012-11-20 09:06:07 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -757,6 +757,7 @@ mxCellRenderer.prototype.createCellOverlays = function(state)
 				var tmp = new mxImageShape(new mxRectangle(),
 					overlays[i].image.src);
 				tmp.dialect = state.view.graph.dialect;
+				tmp.preserveImageAspect = false;
 				tmp.overlay = overlays[i];
 				this.initializeOverlay(state, tmp);
 				this.installCellOverlayListeners(state, overlays[i], tmp);
@@ -1271,8 +1272,7 @@ mxCellRenderer.prototype.redrawCellOverlays = function(state)
 		{
 			var bounds = shape.overlay.getBounds(state);
 
-			if (shape.bounds == null ||
-				shape.scale != state.view.scale ||
+			if (shape.bounds == null || shape.scale != state.view.scale ||
 				!shape.bounds.equals(bounds))
 			{
 				shape.bounds = bounds;
@@ -1324,14 +1324,10 @@ mxCellRenderer.prototype.getControlBounds = function(state)
 		var s = state.view.scale;			
 
 		return (state.view.graph.getModel().isEdge(state.cell)) ? 
-			new mxRectangle(
-				state.x + state.width / 2 - w / 2 * s,
-				state.y + state.height / 2 - h / 2 * s,
-				w * s, h * s)
-			: new mxRectangle(
-				state.x + w / 2 * s,
-				state.y + h / 2 * s,
-				w * s, h * s);
+			new mxRectangle(state.x + state.width / 2 - w / 2 * s,
+				state.y + state.height / 2 - h / 2 * s, w * s, h * s)
+			: new mxRectangle(state.x + w / 2 * s,
+				state.y + h / 2 * s, w * s, h * s);
 	}
 	
 	return null;

@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.10.4.0.
+	 * Current version is 1.10.4.1.
 	 */
-	VERSION: '1.10.4.0',
+	VERSION: '1.10.4.1',
 
 	/**
 	 * Variable: IS_IE
@@ -507,7 +507,7 @@ if (mxClient.IS_IE)
 }
 
 /**
- * $Id: mxLog.js,v 1.31 2011-07-29 08:15:50 gaudenz Exp $
+ * $Id: mxLog.js,v 1.32 2012-11-12 09:40:59 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxLog =
@@ -663,10 +663,21 @@ var mxLog =
 				mxLog.textarea.value = '';
 			});
 
-			// Workaround for clientHeight in body = 0 if doctype in FF
-			var h = (document.body.clientHeight || document.documentElement.clientHeight);
-			var w = document.body.clientWidth;
+			// Cross-browser code to get window size
+			var h = 0;
+			var w = 0;
 			
+			if (typeof(window.innerWidth) === 'number')
+			{
+				h = window.innerHeight;
+				w = window.innerWidth;
+			}
+			else
+			{
+				h = (document.documentElement.clientHeight || document.body.clientHeight);
+				w = document.body.clientWidth;
+			}
+
 			mxLog.window = new mxWindow(title, table, Math.max(0, w-320), Math.max(0, h-210), 300, 160);
 			mxLog.window.setMaximizable(true);
 			mxLog.window.setScrollable(false);
@@ -1864,7 +1875,7 @@ var mxEffects =
 
 };
 /**
- * $Id: mxUtils.js,v 1.295 2012-08-30 08:18:04 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.297 2012-12-07 19:47:29 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxUtils =
@@ -2129,18 +2140,21 @@ var mxUtils =
 			{
 				var result = null;
 
-				if (node.nodeType == mxConstants.NODETYPE_ELEMENT && node.getAttribute(attr) == value)
+				if (node != null)
 				{
-					result = node;
-				}
-				else
-				{
-					var child = node.firstChild;
-					
-					while (child != null && result == null)
+					if (node.nodeType == mxConstants.NODETYPE_ELEMENT && node.getAttribute(attr) == value)
 					{
-						result = mxUtils.findNodeByAttribute(child, attr, value);
-						child = child.nextSibling;
+						result = node;
+					}
+					else
+					{
+						var child = node.firstChild;
+						
+						while (child != null && result == null)
+						{
+							result = mxUtils.findNodeByAttribute(child, attr, value);
+							child = child.nextSibling;
+						}
 					}
 				}
 		
@@ -2151,21 +2165,35 @@ var mxUtils =
 		{
 			return function(node, attr, value)
 			{
-				var expr = '//*[@' + attr + '=\'' + value + '\']';
-				
-				return node.ownerDocument.selectSingleNode(expr);
+				if (node == null)
+				{
+					return null;
+				}
+				else
+				{
+					var expr = '//*[@' + attr + '=\'' + value + '\']';
+					
+					return node.ownerDocument.selectSingleNode(expr);
+				}
 			};
 		}
 		else
 		{
 			return function(node, attr, value)
 			{
-				var result = node.ownerDocument.evaluate(
-						'//*[@' + attr + '=\'' + value + '\']',
-						node.ownerDocument, null,
-						XPathResult.ANY_TYPE, null);
-
-				return result.iterateNext();
+				if (node == null)
+				{
+					return null;
+				}
+				else
+				{
+					var result = node.ownerDocument.evaluate(
+							'//*[@' + attr + '=\'' + value + '\']',
+							node.ownerDocument, null,
+							XPathResult.ANY_TYPE, null);
+	
+					return result.iterateNext();
+				}
 			};
 		}
 	}(),
@@ -4138,8 +4166,7 @@ var mxUtils =
 			var w = state.width;
 			var h = state.height;
 			
-			var start = mxUtils.getValue(state.style,
-					mxConstants.STYLE_STARTSIZE);
+			var start = mxUtils.getValue(state.style, mxConstants.STYLE_STARTSIZE) * state.view.scale;
 
 			if (start > 0)
 			{
@@ -5768,7 +5795,7 @@ var mxUtils =
 
 };
 /**
- * $Id: mxConstants.js,v 1.126 2012-10-17 14:25:53 david Exp $
+ * $Id: mxConstants.js,v 1.127 2012-11-20 09:06:07 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
  var mxConstants =
@@ -6818,7 +6845,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the indicator shape used within an <mxLabel>.
 	 * Possible values are all SHAPE_* constants or the names of any new
-	 * shapes.
+	 * shapes. The indicatorShape has precedence over the indicatorImage.
 	 */
 	STYLE_INDICATOR_SHAPE: 'indicatorShape',
 
@@ -6826,7 +6853,8 @@ var mxUtils =
 	 * Variable: STYLE_INDICATOR_IMAGE
 	 * 
 	 * Defines the key for the indicator image used within an <mxLabel>.
-	 * Possible values are all image URLs.
+	 * Possible values are all image URLs. The indicatorShape has
+	 * precedence over the indicatorImage.
 	 */
 	STYLE_INDICATOR_IMAGE: 'indicatorImage',
 
@@ -8221,7 +8249,7 @@ mxEventSource.prototype.fireEvent = function(evt, sender)
 	}
 };
 /**
- * $Id: mxEvent.js,v 1.75 2012-09-04 11:57:59 gaudenz Exp $
+ * $Id: mxEvent.js,v 1.76 2012-12-07 07:39:03 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEvent =
@@ -8575,8 +8603,7 @@ var mxEvent =
 	 */
 	isConsumed: function(evt)
 	{
-		return evt.isConsumed != null &&
-			evt.isConsumed; // Opera
+		return evt.isConsumed != null && evt.isConsumed;
 	},
 
 	/**
@@ -11424,7 +11451,7 @@ mxDivResizer.prototype.getDocumentHeight = function()
 	return document.body.clientHeight;
 };
 /**
- * $Id: mxDragSource.js,v 1.12 2012-07-09 11:12:03 gaudenz Exp $
+ * $Id: mxDragSource.js,v 1.14 2012-12-05 21:43:16 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -11556,6 +11583,20 @@ mxDragSource.prototype.gridEnabled = true;
  * Specifies if drop targets should be highlighted. Default is true.
  */
 mxDragSource.prototype.highlightDropTargets = true;
+
+/**
+ * Variable: dragElementZIndex
+ * 
+ * ZIndex for the drag element. Default is 100.
+ */
+mxDragSource.prototype.dragElementZIndex = 100;
+
+/**
+ * Variable: dragElementOpacity
+ * 
+ * Opacity of the drag element in %. Default is 70.
+ */
+mxDragSource.prototype.dragElementOpacity = 70;
 
 /**
  * Function: isEnabled
@@ -11696,8 +11737,8 @@ mxDragSource.prototype.startDrag = function(evt)
 {
 	this.dragElement = this.createDragElement(evt);
 	this.dragElement.style.position = 'absolute';
-	this.dragElement.style.zIndex = '3';
-	mxUtils.setOpacity(this.dragElement, 70);
+	this.dragElement.style.zIndex = this.dragElementZIndex;
+	mxUtils.setOpacity(this.dragElement, this.dragElementOpacity);
 };
 
 
@@ -17651,7 +17692,7 @@ var mxXmlCanvas2D = function(root)
 	};
 
 };/**
- * $Id: mxSvgCanvas2D.js,v 1.17 2012-10-26 07:16:06 gaudenz Exp $
+ * $Id: mxSvgCanvas2D.js,v 1.18 2012-11-23 15:13:19 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -17881,8 +17922,10 @@ var mxSvgCanvas2D = function(root, styleEnabled)
 			style += 'text-align:right;';
 		}
 
-		// Convert HTML entities to XML entities
-		str = str.replace(/&nbsp;/g, '&#160;');
+		// Converts HTML entities to unicode
+		var t = document.createElement('div');
+		t.innerHTML = str;
+		str = t.innerHTML.replace(/&nbsp;/g, '&#160;');
 		
 		// LATER: Add vertical align support via table, adds xmlns to workaround empty NS in IE9 standards
 		var node = mxUtils.parseXml('<div xmlns="http://www.w3.org/1999/xhtml" style="' +
@@ -29336,7 +29379,7 @@ mxGraphLayout.prototype.arrangeGroups = function(groups, border)
 	}
 };
 /**
- * $Id: mxStackLayout.js,v 1.46 2011-12-01 15:21:17 gaudenz Exp $
+ * $Id: mxStackLayout.js,v 1.47 2012-12-14 08:54:34 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -29563,14 +29606,31 @@ mxStackLayout.prototype.execute = function(parent)
 		}
 		
 		fillValue -= 2 * this.spacing + 2 * this.border;
-
+		var x0 = this.x0 + this.border;
+		var y0 = this.y0 + this.border;
+		
 		// Handles swimlane start size
-		var size = (this.graph.isSwimlane(parent)) ?
-				this.graph.getStartSize(parent) :
-				new mxRectangle();
-		fillValue -= (horizontal) ? size.height : size.width;
-		var x0 = this.x0 + size.width + this.border;
-		var y0 = this.y0 + size.height + this.border;
+		if (this.graph.isSwimlane(parent))
+		{
+			// Uses computed style to get latest 
+			var style = this.graph.getCellStyle(parent);
+			var start = mxUtils.getValue(style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE);
+			var horz = mxUtils.getValue(style, mxConstants.STYLE_HORIZONTAL, true);
+			
+			if (horizontal == horz)
+			{
+				fillValue -= start;
+			}
+			
+			if (horizontal)
+			{
+				y0 += start;
+			}
+			else
+			{
+				x0 += start;
+			}
+		}
 
 		model.beginUpdate();
 		try
@@ -29583,8 +29643,7 @@ mxStackLayout.prototype.execute = function(parent)
 			{
 				var child = model.getChildAt(parent, i);
 				
-				if (!this.isVertexIgnored(child) &&
-					this.isVertexMovable(child))
+				if (!this.isVertexIgnored(child) && this.isVertexMovable(child))
 				{
 					var geo = model.getGeometry(child);
 					
@@ -29592,8 +29651,7 @@ mxStackLayout.prototype.execute = function(parent)
 					{
 						geo = geo.clone();
 						
-						if (this.wrap != null &&
-							last != null)
+						if (this.wrap != null && last != null)
 						{
 							if ((horizontal && last.x + last.width +
 								geo.width + 2 * this.spacing > this.wrap) ||
@@ -32782,7 +32840,7 @@ mxGraphHierarchyEdge.prototype.getCoreCell = function()
 	
 	return null;
 };/**
- * $Id: mxGraphHierarchyModel.js,v 1.30 2012-05-27 22:11:14 david Exp $
+ * $Id: mxGraphHierarchyModel.js,v 1.31 2012-12-18 12:39:56 david Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -32809,13 +32867,10 @@ mxGraphHierarchyEdge.prototype.getCoreCell = function()
  * scanRanksFromSinks - Whether rank assignment is from the sinks or sources.
  * usage
  */
-function mxGraphHierarchyModel(layout, vertices, roots, parent,
-		deterministic, tightenToSource, scanRanksFromSinks)
+function mxGraphHierarchyModel(layout, vertices, roots, parent, tightenToSource)
 {
 	var graph = layout.getGraph();
-	this.deterministic = deterministic;
 	this.tightenToSource = tightenToSource;
-	this.scanRanksFromSinks = scanRanksFromSinks;
 	this.roots = roots;
 	this.parent = parent;
 
@@ -32831,14 +32886,7 @@ function mxGraphHierarchyModel(layout, vertices, roots, parent,
 		vertices = this.graph.getChildVertices(parent);
 	}
 
-	if (this.scanRanksFromSinks)
-	{
-		this.maxRank = 0;
-	}
-	else
-	{
-		this.maxRank = this.SOURCESCANSTARTRANK;
-	}
+	this.maxRank = this.SOURCESCANSTARTRANK;
 	// map of cells to internal cell needed for second run through
 	// to setup the sink of edges correctly. Guess size by number
 	// of edges is roughly same as number of vertices.
@@ -32848,6 +32896,11 @@ function mxGraphHierarchyModel(layout, vertices, roots, parent,
 	// ordering if and invert edges if necessary
 	for (var i = 0; i < vertices.length; i++)
 	{
+		if (vertices[i].value == '7')
+		{
+			mxLog.show();
+		}
+
 		var edges = internalVertices[i].connectsAsSource;
 
 		for (var j = 0; j < edges.length; j++)
@@ -32897,13 +32950,6 @@ function mxGraphHierarchyModel(layout, vertices, roots, parent,
 		internalVertices[i].temp[0] = 1;
 	}
 };
-
-/**
- * Variable: scanRanksFromSinks
- *
- * Whether the rank assignment is done from the sinks or sources.
- */
-mxGraphHierarchyModel.prototype.scanRanksFromSinks = true;
 
 /**
  * Variable: maxRank
@@ -32961,18 +33007,6 @@ mxGraphHierarchyModel.prototype.dfsCount = 0;
  * High value to start source layering scan rank value from.
  */
 mxGraphHierarchyModel.prototype.SOURCESCANSTARTRANK = 100000000;
-
-/**
- * Variable: deterministic
- *
- * Whether or not cells are ordered according to the order in the graph
- * model. Defaults to false since sorting usually produces quadratic
- * performance. Note that since mxGraph returns edges in a deterministic
- * order, it might be that this layout is always deterministic using that
- * JGraph regardless of this flag setting (i.e. leave it false in that
- * case). Default is true.
- */
-mxGraphHierarchyModel.prototype.deterministic;
 
 /**
  * Variable: tightenToSource
@@ -33091,7 +33125,7 @@ mxGraphHierarchyModel.prototype.initialRank = function()
 {
 	var startNodes = [];
 
-	if (!this.scanRanksFromSinks && this.roots != null)
+	if (this.roots != null)
 	{
 		for (var i = 0; i < this.roots.length; i++)
 		{
@@ -33101,36 +33135,6 @@ mxGraphHierarchyModel.prototype.initialRank = function()
 			if (internalNode != null)
 			{
 				startNodes.push(internalNode);
-			}
-		}
-	}
-
-	if (this.scanRanksFromSinks)
-	{
-		for (var key in this.vertexMapper)
-		{
-			var internalNode = this.vertexMapper[key];
-
-			if (internalNode.connectsAsSource == null ||
-				internalNode.connectsAsSource.length == 0)
-			{
-				startNodes.push(internalNode);
-			}
-		}
-	}
-
-	if (startNodes.length == 0)
-	{
-		for (var key in this.vertexMapper)
-		{
-			var internalNode = this.vertexMapper[key];
-
-			if (internalNode.connectsAsTarget == null ||
-				internalNode.connectsAsTarget.length == 0)
-			{
-				startNodes.push(internalNode);
-				this.scanRanksFromSinks = false;
-				this.maxRank = this.SOURCESCANSTARTRANK;
 			}
 		}
 	}
@@ -33151,16 +33155,8 @@ mxGraphHierarchyModel.prototype.initialRank = function()
 		var layerDeterminingEdges;
 		var edgesToBeMarked;
 
-		if (this.scanRanksFromSinks)
-		{
-			layerDeterminingEdges = internalNode.connectsAsSource;
-			edgesToBeMarked = internalNode.connectsAsTarget;
-		}
-		else
-		{
-			layerDeterminingEdges = internalNode.connectsAsTarget;
-			edgesToBeMarked = internalNode.connectsAsSource;
-		}
+		layerDeterminingEdges = internalNode.connectsAsTarget;
+		edgesToBeMarked = internalNode.connectsAsSource;
 
 		// flag to keep track of whether or not all layer determining
 		// edges have been scanned
@@ -33169,10 +33165,7 @@ mxGraphHierarchyModel.prototype.initialRank = function()
 		// Work out the layer of this node from the layer determining
 		// edges. The minimum layer number of any node connected by one of
 		// the layer determining edges variable
-		var minimumLayer = 0;
-		if (!this.scanRanksFromSinks) {
-			minimumLayer = this.SOURCESCANSTARTRANK;
-		}
+		var minimumLayer = this.SOURCESCANSTARTRANK;
 
 		for (var i = 0; i < layerDeterminingEdges.length; i++)
 		{
@@ -33182,27 +33175,8 @@ mxGraphHierarchyModel.prototype.initialRank = function()
 			{
 				// This edge has been scanned, get the layer of the
 				// node on the other end
-				var otherNode;
-
-				if (this.scanRanksFromSinks)
-				{
-					otherNode = internalEdge.target;
-				}
-				else
-				{
-					otherNode = internalEdge.source;
-				}
-
-				if (this.scanRanksFromSinks)
-				{
-					minimumLayer = Math.max(minimumLayer,
-							otherNode.temp[0] + 1);
-				}
-				else
-				{
-					minimumLayer = Math.min(minimumLayer,
-							otherNode.temp[0] - 1);
-				}
+				var otherNode = internalEdge.source;
+				minimumLayer = Math.min(minimumLayer, otherNode.temp[0] - 1);
 			}
 			else
 			{
@@ -33217,14 +33191,7 @@ mxGraphHierarchyModel.prototype.initialRank = function()
 		if (allEdgesScanned)
 		{
 			internalNode.temp[0] = minimumLayer;
-			if (this.scanRanksFromSinks)
-			{
-				this.maxRank = Math.max(this.maxRank, minimumLayer);
-			}
-			else
-			{
-				this.maxRank = Math.min(this.maxRank, minimumLayer);
-			}
+			this.maxRank = Math.min(this.maxRank, minimumLayer);
 
 			if (edgesToBeMarked != null)
 			{
@@ -33237,18 +33204,14 @@ mxGraphHierarchyModel.prototype.initialRank = function()
 
 					// Add node on other end of edge to LinkedList of
 					// nodes to be analysed
-					var otherNode;
-
-					if (this.scanRanksFromSinks)
-					{
-						otherNode = internalEdge.source;
-					}
-					else
-					{
-						otherNode = internalEdge.target;
-					}
+					var otherNode = internalEdge.target;
 
 					// Only add node if it hasn't been assigned a layer
+					if (otherNode == null)
+					{
+						mxLog.show();
+						mxLog.debug('null');
+					}
 					if (otherNode.temp[0] == -1)
 					{
 						startNodes.push(otherNode);
@@ -33282,42 +33245,35 @@ mxGraphHierarchyModel.prototype.initialRank = function()
 		}
 	}
 
-	if (this.scanRanksFromSinks)
+	// Normalize the ranks down from their large starting value to place
+	// at least 1 sink on layer 0
+	for (var key in this.vertexMapper)
 	{
-		if (this.tightenToSource)
-		{
-			// Tighten the rank 0 nodes as far as possible
-			for ( var i = 0; i < startNodesCopy.length; i++)
-			{
-				var internalNode = startNodesCopy[i];
-				var currentMinLayer = 1000000;
-				var layerDeterminingEdges = internalNode.connectsAsTarget;
+		var internalNode = this.vertexMapper[key];
+		// Mark the node as not having had a layer assigned
+		internalNode.temp[0] -= this.maxRank;
+	}
+	
+	// Tighten the rank 0 nodes as far as possible
+	for ( var i = 0; i < startNodesCopy.length; i++)
+	{
+		var internalNode = startNodesCopy[i];
+		var currentMaxLayer = 0;
+		var layerDeterminingEdges = internalNode.connectsAsSource;
 
-				for ( var j = 0; j < internalNode.connectsAsTarget.length; j++)
-				{
-					var internalEdge = internalNode.connectsAsTarget[j];
-					var otherNode = internalEdge.source;
-					internalNode.temp[0] = Math.min(currentMinLayer,
-							otherNode.temp[0] - 1);
-					currentMinLayer = internalNode.temp[0];
-				}
-			}
-		}
-	}
-	else
-	{
-		// Normalize the ranks down from their large starting value to place
-		// at least 1 sink on layer 0
-		for (var key in this.vertexMapper)
+		for ( var j = 0; j < layerDeterminingEdges.length; j++)
 		{
-			var internalNode = this.vertexMapper[key];
-			// Mark the node as not having had a layer assigned
-			internalNode.temp[0] -= this.maxRank;
+			var internalEdge = layerDeterminingEdges[j];
+			var otherNode = internalEdge.target;
+			internalNode.temp[0] = Math.max(currentMaxLayer,
+					otherNode.temp[0] + 1);
+			currentMaxLayer = internalNode.temp[0];
 		}
-		// Reset the maxRank to that which would be expected for a from-sink
-		// scan
-		this.maxRank = this.SOURCESCANSTARTRANK - this.maxRank;
 	}
+	
+	// Reset the maxRank to that which would be expected for a from-sink
+	// scan
+	this.maxRank = this.SOURCESCANSTARTRANK - this.maxRank;
 };
 
 /**
@@ -36245,7 +36201,7 @@ WeightedCellSorter.prototype.compare = function(a, b)
 	}
 };
 /**
- * $Id: mxHierarchicalLayout.js,v 1.29 2012-06-12 20:22:18 david Exp $
+ * $Id: mxHierarchicalLayout.js,v 1.30 2012-12-18 12:41:06 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -36354,42 +36310,6 @@ mxHierarchicalLayout.prototype.orientation = mxConstants.DIRECTION_NORTH;
 mxHierarchicalLayout.prototype.fineTuning = true;
 
 /**
- * Variable: deterministic
- * 
- * Whether or not cells are ordered according to the order in the graph
- * model. Defaults to false since sorting usually produces quadratic
- * performance. Note that since mxGraph returns edges in a deterministic
- * order, it might be that this layout is always deterministic using that
- * JGraph regardless of this flag setting (i.e. leave it false in that
- * case). Default is true.
- */
-mxHierarchicalLayout.prototype.deterministic;
-
-/**
- * Variable: fixRoots
- * 
- * Whether or not to fix the position of the root cells. Keep in mind to
- * turn off features such as move to origin when fixing the roots, move
- * to origin usually overrides this flag (in JGraph it does). Default is
- * false.
- */
-mxHierarchicalLayout.prototype.fixRoots = false;
-
-/**
- * 
- * Variable: layoutFromSinks
- * 
- * Whether or not the initial scan of the graph to determine the layer
- * assigned to each vertex starts from the sinks or source (the sinks
- * being vertices with the fewest, preferable zero, outgoing edges and
- * sources same with incoming edges). Starting from either direction
- * can tight the layout up and also produce better results for certain
- * types of graphs. If the result for the default is not good enough
- * try a few sample layouts with the value false to see if they improve
- */
-mxHierarchicalLayout.prototype.layoutFromSinks = true;
-
-/**
  * 
  * Variable: tightenToSource
  * 
@@ -36483,110 +36403,88 @@ mxHierarchicalLayout.prototype.execute = function(parent, roots)
 
 		this.roots = rootsCopy;
 	}
-	else if (roots == null)
-	{
-		this.roots = this.findTreeRoots(parent);
-	}
 	else
 	{
 		this.roots = roots;
 	}
 	
-	if (this.roots != null)
+	model.beginUpdate();
+	try
 	{
-		model = this.graph.getModel();
-
-		model.beginUpdate();
-		try
+		this.run(parent);
+		
+		if (this.resizeParent &&
+			!this.graph.isCellCollapsed(parent))
 		{
-			this.run(parent);
-			
-			if (this.resizeParent &&
-				!this.graph.isCellCollapsed(parent))
-			{
-				this.graph.updateGroupBounds([parent],
-					this.parentBorder, this.moveParent);
-			}
+			this.graph.updateGroupBounds([parent],
+				this.parentBorder, this.moveParent);
 		}
-		finally
-		{
-			model.endUpdate();
-		}
+	}
+	finally
+	{
+		model.endUpdate();
 	}
 };
 
 /**
- * Function: findTreeRoots
+ * Function: findRoots
  * 
- * Returns all children in the given parent which do not have incoming
- * edges. If the result is empty then the with the greatest difference
- * between incoming and outgoing edges is returned.
+ * Returns all visible children in the given parent which do not have
+ * incoming edges. If the result is empty then the children with the
+ * maximum difference between incoming and outgoing edges are returned.
+ * This takes into account edges that are being promoted to the given
+ * root due to invisible children or collapsed cells.
  * 
  * Parameters:
  * 
  * parent - <mxCell> whose children should be checked.
+ * vertices - array of vertices to limit search to
  */
-mxHierarchicalLayout.prototype.findTreeRoots = function(parent)
+mxHierarchicalLayout.prototype.findRoots = function(parent, vertices)
 {
 	var roots = [];
 	
-	if (parent != null)
+	if (parent != null && vertices != null)
 	{
 		var model = this.graph.model;
-		var childCount = model.getChildCount(parent);
 		var best = null;
-		var maxDiff = 0;
+		var maxDiff = -100000;
 		
-		for (var i = 0; i < childCount; i++)
+		for (var i in vertices)
 		{
-			var cell = model.getChildAt(parent, i);
-			var cells = [];
+			var cell = vertices[i];
 
-			if (this.traverseAncestors)
+			if (model.isVertex(cell) && this.graph.isCellVisible(cell))
 			{
-				cells = model.getDescendants(cell);
-			}
-			else
-			{
-				cells.push(cell);
-			}
+				var conns = this.getEdges(cell);
+				var fanOut = 0;
+				var fanIn = 0;
 
-			for (var j = 0; j < cells.length; j++)
-			{
-				cell = cells[j];
-
-				if (model.isVertex(cell) && this.graph.isCellVisible(cell))
+				for (var k = 0; k < conns.length; k++)
 				{
-					var conns = this.getEdges(cell);
-					var fanOut = 0;
-					var fanIn = 0;
+					var src = this.graph.view.getVisibleTerminal(conns[k], true);
 
-					for (var k = 0; k < conns.length; k++)
+					if (src == cell)
 					{
-						var src = this.graph.view.getVisibleTerminal(conns[k], true);
-
-						if (src == cell)
-						{
-							fanOut++;
-						}
-						else
-						{
-							fanIn++;
-						}
+						fanOut++;
 					}
-
-					if (fanIn == 0 && fanOut > 0)
+					else
 					{
-						roots.push(cell);
+						fanIn++;
 					}
+				}
 
-					var diff = fanIn - fanOut;
+				if (fanIn == 0 && fanOut > 0)
+				{
+					roots.push(cell);
+				}
 
-					if (diff > maxDiff)
-					{
-						maxDiff = diff;
-						best = cell;
-					}
+				var diff = fanOut - fanIn;
+
+				if (diff > maxDiff)
+				{
+					maxDiff = diff;
+					best = cell;
 				}
 			}
 		}
@@ -36659,95 +36557,72 @@ mxHierarchicalLayout.prototype.run = function(parent)
 {
 	// Separate out unconnected hierarchies
 	var hierarchyVertices = [];
-	
-	// Keep track of one root in each hierarchy in case it's fixed position
-	var fixedRoots = null;
-	var rootLocations = null;
-	var affectedEdges = null;
+	var allVertexSet = [];
 
-	if (this.fixRoots)
+	if (this.roots == null && parent != null)
 	{
-		fixedRoots = [];
-		rootLocations = [];
-		affectedEdges = [];
-	}
+		var filledVertexSet = this.filterDescendants(parent);
 
-	for (var i = 0; i < this.roots.length; i++)
-	{
-		// First check if this root appears in any of the previous vertex
-		// sets
-		var newHierarchy = true;
-		
-		for (var j = 0; newHierarchy && j < hierarchyVertices.length; j++)
+		this.roots = [];
+		var filledVertexSetEmpty = true;
+
+		// Poor man's isSetEmpty
+		for (var key in filledVertexSet)
 		{
-			var rootId = mxCellPath.create(this.roots[i]);
-			
-			if (hierarchyVertices[j][rootId] != null)
+			if (filledVertexSet[key] != null)
 			{
-				newHierarchy = false;
+				filledVertexSetEmpty = false;
+				break;
 			}
 		}
 
-		if (newHierarchy)
+		while (!filledVertexSetEmpty)
 		{
-			// Obtains set of vertices connected to this root
-			var cellsStack = [];
-			cellsStack.push(this.roots[i]);
-			var edgeSet = null;
+			var candidateRoots = this.findRoots(parent, filledVertexSet);
 
-			if (this.fixRoots)
+			for (var i = 0; i < candidateRoots.length; i++)
 			{
-				fixedRoots.push(this.roots[i]);
-				var location = this.getVertexBounds(this.roots[i]).getPoint();
-				rootLocations.push(location);
-				edgeSet = [];
+				var vertexSet = [];
+				hierarchyVertices.push(vertexSet);
+
+				this.traverse(candidateRoots[i], true, null, allVertexSet, vertexSet,
+						hierarchyVertices, filledVertexSet);
 			}
 
-			var vertexSet = new Object();
-
-			while (cellsStack.length > 0)
+			for (var i = 0; i < candidateRoots.length; i++)
 			{
-				var cell = cellsStack.shift();
-				var cellId = mxCellPath.create(cell);
-
-				if (vertexSet[cellId] == null)
+				this.roots.push(candidateRoots[i]);
+			}
+			
+			filledVertexSetEmpty = true;
+			
+			// Poor man's isSetEmpty
+			for (var key in filledVertexSet)
+			{
+				if (filledVertexSet[key] != null)
 				{
-					vertexSet[cellId] = cell;
-
-					if (this.fixRoots)
-					{
-						var tmp = this.graph.getIncomingEdges(cell, parent);
-						
-						for (var k = 0; k < tmp.length; k++)
-						{
-							edgeSet.push(tmp[k]);
-						}
-					}
-
-					var conns = this.getEdges(cell);
-					var cells = this.graph.getOpposites(conns, cell);
-
-					for (var k = 0; k < cells.length; k++)
-					{
-						var tmpId = mxCellPath.create(cells[k]);
-						
-						if (vertexSet[tmpId] == null)
-						{
-							cellsStack.push(cells[k]);
-						}
-					}
+					filledVertexSetEmpty = false;
+					break;
 				}
 			}
+		}
+	}
+	else
+	{
+		// Find vertex set as directed traversal from roots
 
+		for (var i = 0; i < roots.length; i++)
+		{
+			var vertexSet = [];
 			hierarchyVertices.push(vertexSet);
 
-			if (this.fixRoots)
-			{
-				affectedEdges.push(edgeSet);
-			}
+			traverse(roots.get(i), true, null, allVertexSet, vertexSet,
+					hierarchyVertices, null);
 		}
 	}
 
+	// Iterate through the result removing parents who have children in this layout
+	
 	// Perform a layout for each seperate hierarchy
 	// Track initial coordinate x-positioning
 	var initialX = 0;
@@ -36763,31 +36638,141 @@ mxHierarchicalLayout.prototype.run = function(parent)
 		}
 		
 		this.model = new mxGraphHierarchyModel(this, tmp, this.roots,
-			parent, this.deterministic , this.tightenToSource, this.layoutFromSinks);
+			parent, this.tightenToSource);
 
 		this.cycleStage(parent);
 		this.layeringStage();
 		
 		this.crossingStage(parent);
 		initialX = this.placementStage(initialX, parent);
-		
-		if (this.fixRoots)
+	}
+};
+
+/**
+ * Function: filterDescendants
+ * 
+ * Creates an array of descendant cells
+ */
+mxHierarchicalLayout.prototype.filterDescendants = function(cell)
+{
+	var model = this.graph.model;
+	var result = [];
+
+	if (model.isVertex(cell) && cell != this.parent && this.graph.isCellVisible(cell))
+	{
+		result.push(cell);
+	}
+
+	if (this.traverseAncestors || cell == this.parent
+			&& this.graph.isCellVisible(cell))
+	{
+		var childCount = model.getChildCount(cell);
+
+		for (var i = 0; i < childCount; i++)
 		{
-			// Reposition roots and their hierarchies using their bounds
-			// stored earlier
-			var root = fixedRoots[i];
-			var oldLocation = rootLocations[i];
-			var newLocation = this.getVertexBounds(root).getPoint();
-
-			var diffX = oldLocation.x - newLocation.x;
-			var diffY = oldLocation.y - newLocation.y;
-			this.graph.moveCells(vertexSet, diffX, diffY);
-
-			// Also translate connected edges
-			var connectedEdges = affectedEdges[i+1];
-			this.graph.moveCells(connectedEdges, diffX, diffY);
+			var child = model.getChildAt(cell, i);
+			var children = this.filterDescendants(child);
+			
+			for (var j = 0; j < children.length; j++)
+			{
+				result[mxCellPath.create(children[j])] = children[j];
+			}
 		}
 	}
+
+	return result;
+};
+
+/**
+ * Traverses the (directed) graph invoking the given function for each
+ * visited vertex and edge. The function is invoked with the current vertex
+ * and the incoming edge as a parameter. This implementation makes sure
+ * each vertex is only visited once. The function may return false if the
+ * traversal should stop at the given vertex.
+ * 
+ * Parameters:
+ * 
+ * vertex - <mxCell> that represents the vertex where the traversal starts.
+ * directed - boolean indicating if edges should only be traversed
+ * from source to target. Default is true.
+ * edge - Optional <mxCell> that represents the incoming edge. This is
+ * null for the first step of the traversal.
+ * allVertices - Array of cell paths for the visited cells.
+ */
+mxHierarchicalLayout.prototype.traverse = function(vertex, directed, edge, allVertices, currentComp,
+											hierarchyVertices, filledVertexSet)
+{
+	var view = this.graph.view;
+	var model = this.graph.model;
+
+	if (vertex != null && allVertices != null)
+	{
+		// Has this vertex been seen before in any traversal
+		// And if the filled vertex set is populated, only 
+		// process vertices in that it contains
+		var vertexID = mxCellPath.create(vertex);
+		
+		if ((allVertices[vertexID] == null)
+				&& (filledVertexSet == null ? true : filledVertexSet[vertexID] != null))
+		{
+			if (currentComp[vertexID] == null)
+			{
+				currentComp[vertexID] = vertex;
+			}
+			if (allVertices[vertexID] == null)
+			{
+				allVertices[vertexID] = vertex;
+			}
+
+			delete filledVertexSet[vertexID];
+
+			var edgeCount = model.getEdgeCount(vertex);
+
+			if (edgeCount > 0)
+			{
+				for (var i = 0; i < edgeCount; i++)
+				{
+					var e = model.getEdgeAt(vertex, i);
+					var isSource = view.getVisibleTerminal(e, true) == vertex;
+
+					if (!directed || isSource)
+					{
+						var next = view.getVisibleTerminal(e, !isSource);
+						currentComp = this.traverse(next, directed, e, allVertices,
+								currentComp, hierarchyVertices,
+								filledVertexSet);
+					}
+				}
+			}
+		}
+		else
+		{
+			if (currentComp[vertexID] == null)
+			{
+				// We've seen this vertex before, but not in the current component
+				// This component and the one it's in need to be merged
+
+				for (var i = 0; i < hierarchyVertices.length; i++)
+				{
+					var comp = hierarchyVertices[i];
+
+					if (comp[vertexID] != null)
+					{
+						for (var key in currentComp)
+						{
+							comp[key] = currentComp[key];
+						}
+						
+						// Remove the current component from the hierarchy set
+						hierarchyVertices.pop();
+						return comp;
+					}
+				}
+			}
+		}
+	}
+	
+	return currentComp;
 };
 
 /**
@@ -43068,7 +43053,7 @@ mxSelectionChange.prototype.execute = function()
 			'added', this.added, 'removed', this.removed));
 };
 /**
- * $Id: mxCellEditor.js,v 1.61 2012-06-20 16:54:30 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.62 2012-12-11 16:59:31 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -43324,12 +43309,18 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 			mxUtils.getValue(state.style, mxConstants.STYLE_ALIGN, mxConstants.ALIGN_LEFT);
 		var bold = (mxUtils.getValue(state.style, mxConstants.STYLE_FONTSTYLE, 0) &
 				mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD;
+		var italic = (mxUtils.getValue(state.style, mxConstants.STYLE_FONTSTYLE, 0) &
+				mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC;
+		var uline = (mxUtils.getValue(state.style, mxConstants.STYLE_FONTSTYLE, 0) &
+				mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE;
 
 		this.textarea.style.fontSize = size + 'px';
 		this.textarea.style.fontFamily = family;
 		this.textarea.style.textAlign = align;
 		this.textarea.style.color = color;
 		this.textarea.style.fontWeight = (bold) ? 'bold' : 'normal';
+		this.textarea.style.fontStyle = (italic) ? 'italic' : '';
+		this.textarea.style.textDecoration = (uline) ? 'underline' : '';
 
 		// Specifies the bounds of the editor box
 		var bounds = this.getEditorBounds(state);
@@ -43584,7 +43575,7 @@ mxCellEditor.prototype.destroy = function ()
 	}
 };
 /**
- * $Id: mxCellRenderer.js,v 1.187 2012-08-09 10:56:11 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.189 2012-11-20 09:06:07 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -44342,6 +44333,7 @@ mxCellRenderer.prototype.createCellOverlays = function(state)
 				var tmp = new mxImageShape(new mxRectangle(),
 					overlays[i].image.src);
 				tmp.dialect = state.view.graph.dialect;
+				tmp.preserveImageAspect = false;
 				tmp.overlay = overlays[i];
 				this.initializeOverlay(state, tmp);
 				this.installCellOverlayListeners(state, overlays[i], tmp);
@@ -44856,8 +44848,7 @@ mxCellRenderer.prototype.redrawCellOverlays = function(state)
 		{
 			var bounds = shape.overlay.getBounds(state);
 
-			if (shape.bounds == null ||
-				shape.scale != state.view.scale ||
+			if (shape.bounds == null || shape.scale != state.view.scale ||
 				!shape.bounds.equals(bounds))
 			{
 				shape.bounds = bounds;
@@ -44909,14 +44900,10 @@ mxCellRenderer.prototype.getControlBounds = function(state)
 		var s = state.view.scale;			
 
 		return (state.view.graph.getModel().isEdge(state.cell)) ? 
-			new mxRectangle(
-				state.x + state.width / 2 - w / 2 * s,
-				state.y + state.height / 2 - h / 2 * s,
-				w * s, h * s)
-			: new mxRectangle(
-				state.x + w / 2 * s,
-				state.y + h / 2 * s,
-				w * s, h * s);
+			new mxRectangle(state.x + state.width / 2 - w / 2 * s,
+				state.y + state.height / 2 - h / 2 * s, w * s, h * s)
+			: new mxRectangle(state.x + w / 2 * s,
+				state.y + h / 2 * s, w * s, h * s);
 	}
 	
 	return null;
@@ -45068,7 +45055,7 @@ mxCellRenderer.prototype.destroy = function(state)
 	}
 };
 /**
- * $Id: mxEdgeStyle.js,v 1.67 2012-10-29 10:19:20 gaudenz Exp $
+ * $Id: mxEdgeStyle.js,v 1.68 2012-11-20 09:06:07 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEdgeStyle =
@@ -45480,14 +45467,12 @@ var mxEdgeStyle =
 	
 			if (pt != null)
 			{
-				if (pt.y >= source.y &&
-					pt.y <= source.y + source.height)
+				if (pt.y >= source.y && pt.y <= source.y + source.height)
 				{
 					y1 = pt.y;
 				}
 				
-				if (pt.y >= target.y &&
-					pt.y <= target.y + target.height)
+				if (pt.y >= target.y && pt.y <= target.y + target.height)
 				{
 					y2 = pt.y;
 				}
@@ -46441,7 +46426,7 @@ mxStyleRegistry.putValue(mxConstants.PERIMETER_RECTANGLE, mxPerimeter.RectangleP
 mxStyleRegistry.putValue(mxConstants.PERIMETER_RHOMBUS, mxPerimeter.RhombusPerimeter);
 mxStyleRegistry.putValue(mxConstants.PERIMETER_TRIANGLE, mxPerimeter.TrianglePerimeter);
 /**
- * $Id: mxGraphView.js,v 1.194 2012-07-19 15:18:35 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.195 2012-11-20 09:06:07 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -46597,9 +46582,9 @@ mxGraphView.prototype.translate = null;
 /**
  * Variable: updateStyle
  * 
- * Specifies if the style should be updated in each validation step. If
- * this is false then the style is only updated if the state is created.
- * Default is false.
+ * Specifies if the style should be updated in each validation step. If this
+ * is false then the style is only updated if the state is created or if the
+ * style of the cell was changed. Default is false.
  */
 mxGraphView.prototype.updateStyle = false;
 
@@ -48986,7 +48971,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.700 2012-10-29 12:35:53 david Exp $
+ * $Id: mxGraph.js,v 1.702 2012-12-13 15:07:34 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -51421,7 +51406,7 @@ mxGraph.prototype.click = function(me)
  * event has not been consumed, then <edit> is called with the given
  * cell. The event is ignored if no cell was specified.
  *
- * Example:
+ * Example for overriding this method.
  *
  * (code)
  * graph.dblClick = function(evt, cell)
@@ -51436,6 +51421,16 @@ mxGraph.prototype.click = function(me)
  *   }
  * }
  * (end)
+ * 
+ * Example listener for this event.
+ * 
+ * (code)
+ * graph.addListener(mxEvent.DOUBLE_CLICK, function(sender, evt)
+ * {
+ *   var cell = evt.getProperty('cell');
+ *   // do something with the cell...
+ * });
+ * (end) 
  * 
  * Parameters:
  * 
@@ -55785,39 +55780,46 @@ mxGraph.prototype.fit = function(border, keepOrigin)
 		
 		var b = (keepOrigin) ? border : 2 * border;
 		var s2 = Math.floor(Math.min(w1 / (w2 + b), h1 / (h2 + b)) * 100) / 100;
-
-		if ((this.minFitScale == null || s2 > this.minFitScale) && (this.maxFitScale == null || s2 < this.maxFitScale))
+		
+		if (this.minFitScale != null)
 		{
-			if (!keepOrigin)
-			{
-				if (!mxUtils.hasScrollbars(this.container))
-				{
-					var x0 = (bounds.x != null) ? Math.floor(this.view.translate.x - bounds.x / s + border + 1) : border;
-					var y0 = (bounds.y != null) ? Math.floor(this.view.translate.y - bounds.y / s + border + 1) : border;
+			s2 = Math.max(s2, this.minFitScale);
+		}
+		
+		if (this.maxFitScale != null)
+		{
+			s2 = Math.min(s2, this.maxFitScale);
+		}
 
-					this.view.scaleAndTranslate(s2, x0, y0);
-				}
-				else
-				{
-					this.view.setScale(s2);
-					
-					if (bounds.x != null)
-					{
-						this.container.scrollLeft = Math.round(bounds.x / s) * s2 - border -
-							Math.max(0, (this.container.clientWidth - w2 * s2) / 2);
-					}
-					
-					if (bounds.y != null)
-					{
-						this.container.scrollTop = Math.round(bounds.y / s) * s2 - border -
-							Math.max(0, (this.container.clientHeight - h2 * s2) / 2);
-					}
-				}
+		if (!keepOrigin)
+		{
+			if (!mxUtils.hasScrollbars(this.container))
+			{
+				var x0 = (bounds.x != null) ? Math.floor(this.view.translate.x - bounds.x / s + border + 1) : border;
+				var y0 = (bounds.y != null) ? Math.floor(this.view.translate.y - bounds.y / s + border + 1) : border;
+
+				this.view.scaleAndTranslate(s2, x0, y0);
 			}
 			else
 			{
 				this.view.setScale(s2);
+				
+				if (bounds.x != null)
+				{
+					this.container.scrollLeft = Math.round(bounds.x / s) * s2 - border -
+						Math.max(0, (this.container.clientWidth - w2 * s2) / 2);
+				}
+				
+				if (bounds.y != null)
+				{
+					this.container.scrollTop = Math.round(bounds.y / s) * s2 - border -
+						Math.max(0, (this.container.clientHeight - h2 * s2) / 2);
+				}
 			}
+		}
+		else if (this.view.scale != s2)
+		{
+			this.view.setScale(s2);
 		}
 	}
 	
@@ -60145,7 +60147,7 @@ mxGraph.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxCellOverlay.js,v 1.17 2012-07-02 16:53:51 gaudenz Exp $
+ * $Id: mxCellOverlay.js,v 1.18 2012-12-06 15:58:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -60279,6 +60281,27 @@ mxCellOverlay.prototype.defaultOverlap = 0.5;
  * Returns the bounds of the overlay for the given <mxCellState> as an
  * <mxRectangle>. This should be overridden when using multiple overlays
  * per cell so that the overlays do not overlap.
+ * 
+ * The following example will place the overlay along an edge (where
+ * x=[-1..1] from the start to the end of the edge and y is the
+ * orthogonal offset in px).
+ * 
+ * (code)
+ * overlay.getBounds = function(state)
+ * {
+ *   var bounds = mxCellOverlay.prototype.getBounds.apply(this, arguments);
+ *   
+ *   if (state.view.graph.getModel().isEdge(state.cell))
+ *   {
+ *     var pt = state.view.getPoint(state, {x: 0, y: 0, relative: true});
+ *     
+ *     bounds.x = pt.x - bounds.width / 2;
+ *     bounds.y = pt.y - bounds.height / 2;
+ *   }
+ *   
+ *   return bounds;
+ * };
+ * (end)
  * 
  * Parameters:
  * 
@@ -64902,7 +64925,7 @@ mxSelectionCellsHandler.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxConnectionHandler.js,v 1.212 2012-09-05 08:06:27 gaudenz Exp $
+ * $Id: mxConnectionHandler.js,v 1.216 2012-12-07 15:17:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -65013,7 +65036,31 @@ mxSelectionCellsHandler.prototype.destroy = function()
  * 
  * Fires between begin- and endUpdate in <connect>. The <code>cell</code>
  * property contains the inserted edge, the <code>event</code> and <code>target</code> 
- * properties contain the respective arguments that were passed to <connect>.
+ * properties contain the respective arguments that were passed to <connect> (where
+ * target corresponds to the dropTarget argument).
+ * 
+ * Note that the target is the cell under the mouse where the mouse button was released.
+ * Depending on the logic in the handler, this doesn't necessarily have to be the target
+ * of the inserted edge. To print the source, target or any optional ports IDs that the
+ * edge is connected to, the following code can be used. To get more details about the
+ * actual connection point, <mxGraph.getConnectionConstraint> can be used. To resolve
+ * the port IDs, use <mxGraphModel.getCell>.
+ * 
+ * (code)
+ * graph.connectionHandler.addListener(mxEvent.CONNECT, function(sender, evt)
+ * {
+ *   var edge = evt.getProperty('cell');
+ *   var source = graph.getModel().getTerminal(edge, true);
+ *   var target = graph.getModel().getTerminal(edge, false);
+ *   
+ *   var style = graph.getCellStyle(edge);
+ *   var sourcePortId = style[mxConstants.STYLE_SOURCE_PORT];
+ *   var targetPortId = style[mxConstants.STYLE_TARGET_PORT];
+ *   
+ *   mxLog.show();
+ *   mxLog.debug('connect', edge, source.id, target.id, sourcePortId, targetPortId);
+ * });
+ * (end)
  *
  * Event: mxEvent.RESET
  * 
@@ -65271,9 +65318,9 @@ mxConnectionHandler.prototype.mouseDownCounter = 0;
  * 
  * Switch to enable moving the preview away from the mousepointer. This is required in browsers
  * where the preview cannot be made transparent to events and if the built-in hit detection on
- * the HTML elements in the page should be used. Default is the value of <mxClient.IS_IE>.
+ * the HTML elements in the page should be used. Default is the value of <mxClient.IS_VML>.
  */
-mxConnectionHandler.prototype.movePreviewAway = mxClient.IS_IE;
+mxConnectionHandler.prototype.movePreviewAway = mxClient.IS_VML;
 
 /**
  * Function: isEnabled
@@ -65667,7 +65714,7 @@ mxConnectionHandler.prototype.createIcons = function(state)
 		else
 		{
 			icon.dialect = (this.graph.dialect == mxConstants.DIALECT_SVG) ?
-				mxConstants.DIALECT_SVG :
+				mxConstants.DIALECT_SVG : 
 				mxConstants.DIALECT_VML;
 			icon.init(this.graph.getView().getOverlayPane());
 
@@ -66102,12 +66149,29 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 			// makes sure the preview shape does not prevent the detection
 			// of the cell under the mousepointer even for slow gestures.
 			if (this.currentState == null && this.movePreviewAway)
-			{	
-				var dx = current.x - pt2.x;
-				var dy = current.y - pt2.y;
+			{
+				var tmp = pt2; 
+				
+				if (this.edgeState != null && this.edgeState.absolutePoints.length > 2)
+				{
+					var tmp2 = this.edgeState.absolutePoints[this.edgeState.absolutePoints.length - 2];
+					
+					if (tmp2 != null)
+					{
+						tmp = tmp2;
+					}
+				}
+				
+				var dx = current.x - tmp.x;
+				var dy = current.y - tmp.y;
 				
 				var len = Math.sqrt(dx * dx + dy * dy);
-								
+				
+				if (len == 0)
+				{
+					return;
+				}
+												
 				current.x -= dx * 4 / len;
 				current.y -= dy * 4 / len;
 			}
@@ -66830,7 +66894,7 @@ mxConnectionHandler.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxConstraintHandler.js,v 1.14 2011-04-01 09:37:51 gaudenz Exp $
+ * $Id: mxConstraintHandler.js,v 1.15 2012-11-01 16:13:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -66961,21 +67025,32 @@ mxConstraintHandler.prototype.getImageForConstraint = function(state, constraint
 };
 
 /**
+ * Function: isEventIgnored
+ * 
+ * Returns true if the given <mxMouseEvent> should be ignored in <update>. This
+ * implementation always returns false.
+ */
+mxConstraintHandler.prototype.isEventIgnored = function(me, source)
+{
+	return false;
+};
+
+/**
  * Function: update
  * 
  * Updates the state of this handler based on the given <mxMouseEvent>.
+ * Source is a boolean indicating if the cell is a source or target.
  */
 mxConstraintHandler.prototype.update = function(me, source)
 {
-	if (this.isEnabled())
+	if (this.isEnabled() && !this.isEventIgnored(me))
 	{
 		var tol = this.getTolerance();
 		var mouse = new mxRectangle(me.getGraphX() - tol, me.getGraphY() - tol, 2 * tol, 2 * tol);
 		var connectable = (me.getCell() != null) ? this.graph.isCellConnectable(me.getCell()) : false;
 
 		if ((this.currentFocusArea == null || (!mxUtils.intersects(this.currentFocusArea, mouse) ||
-			(me.getState() != null && this.currentFocus != null && connectable &&
-			this.graph.getModel().getParent(me.getCell()) == this.currentFocus.cell))))
+			(me.getState() != null && this.currentFocus != null && connectable))))
 		{
 			this.currentFocusArea = null;
 	
@@ -67062,10 +67137,8 @@ mxConstraintHandler.prototype.update = function(me, source)
 		this.currentConstraint = null;
 		this.currentPoint = null;
 		
-		if (this.focusIcons != null &&
-			this.constraints != null &&
-			(me.getState() == null ||
-			this.currentFocus == me.getState()))
+		if (this.focusIcons != null && this.constraints != null &&
+			(me.getState() == null || this.currentFocus == me.getState()))
 		{
 			for (var i = 0; i < this.focusIcons.length; i++)
 			{
@@ -67476,7 +67549,7 @@ mxRubberband.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxVertexHandler.js,v 1.106 2012-09-24 14:11:51 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.107 2012-11-20 09:06:07 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -67668,7 +67741,7 @@ mxVertexHandler.prototype.createSelectionShape = function(bounds)
 {
 	var shape = new mxRectangleShape(bounds, null, this.getSelectionColor());
 	shape.strokewidth = this.getSelectionStrokeWidth();
-	shape.isDashed =  this.isSelectionDashed();
+	shape.isDashed = this.isSelectionDashed();
 	shape.crisp = this.crisp;
 	
 	return shape;
@@ -70006,7 +70079,7 @@ mxElbowEdgeHandler.prototype.redrawInnerBends = function(p0, pe)
 	this.bends[1].redraw();
 };
 /**
- * $Id: mxEdgeSegmentHandler.js,v 1.13 2012-03-09 07:42:54 gaudenz Exp $
+ * $Id: mxEdgeSegmentHandler.js,v 1.14 2012-12-17 13:22:49 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 function mxEdgeSegmentHandler(state)
@@ -70058,7 +70131,7 @@ mxEdgeSegmentHandler.prototype.getPreviewPoints = function(point)
 		 		else
 		 		{
 		 			last.y = point.y;
-					pt.y = point.y;
+		 			pt.y = point.y;
 		 		}
 			}
 			
@@ -70078,26 +70151,29 @@ mxEdgeSegmentHandler.prototype.getPreviewPoints = function(point)
 			
 			if (target != null & source != null)
 			{
-				if (mxUtils.contains(target, result[0].x, result[0].y))
+				var dx = this.state.origin.x;
+				var dy = this.state.origin.y;
+
+				if (mxUtils.contains(target, result[0].x + dx, result[0].y + dy))
 				{
 					if (pts[1].y == pts[2].y)
 					{
-						result[0].y = view.getRoutingCenterY(source);
+						result[0].y = view.getRoutingCenterY(source) - dy;
 					}
 					else
 					{
-						result[0].x = view.getRoutingCenterX(source);
+						result[0].x = view.getRoutingCenterX(source) - dx;
 					}
 				}
-				else if (mxUtils.contains(source, result[0].x, result[0].y))
+				else if (mxUtils.contains(source, result[0].x + dx, result[0].y + dy))
 				{
 					if (pts[1].y == pts[0].y)
 					{
-						result[0].y = view.getRoutingCenterY(target);
+						result[0].y = view.getRoutingCenterY(target) - dy;
 					}
 					else
 					{
-						result[0].x = view.getRoutingCenterX(target);
+						result[0].x = view.getRoutingCenterX(target) - dx;
 					}
 				}
 			}
@@ -72419,7 +72495,7 @@ mxDefaultToolbar.prototype.destroy = function ()
 	}
 };
 /**
- * $Id: mxEditor.js,v 1.230 2012-08-22 12:35:03 gaudenz Exp $
+ * $Id: mxEditor.js,v 1.231 2012-12-03 18:02:25 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -74255,7 +74331,7 @@ mxEditor.prototype.setGraphContainer = function (container)
 		}
 
 		// Workaround for stylesheet directives in IE
-		if (mxClient.IS_IE)
+		if (mxClient.IS_QUIRKS)
 		{
 			new mxDivResizer(container);
 		}
@@ -74474,7 +74550,7 @@ mxEditor.prototype.setToolbarContainer = function (container)
 	this.toolbar.init(container);
 	
 	// Workaround for stylesheet directives in IE
-	if (mxClient.IS_IE)
+	if (mxClient.IS_QUIRKS)
 	{
 		new mxDivResizer(container);
 	}
@@ -74517,7 +74593,7 @@ mxEditor.prototype.setStatusContainer = function (container)
 		}));
 		
 		// Workaround for stylesheet directives in IE
-		if (mxClient.IS_IE)
+		if (mxClient.IS_QUIRKS)
 		{
 			new mxDivResizer(container);
 		}
@@ -74560,7 +74636,7 @@ mxEditor.prototype.setTitleContainer = function (container)
 	}));
 
 	// Workaround for stylesheet directives in IE
-	if (mxClient.IS_IE)
+	if (mxClient.IS_QUIRKS)
 	{
 		new mxDivResizer(container);
 	}

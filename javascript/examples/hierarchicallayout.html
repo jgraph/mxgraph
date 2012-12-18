@@ -1,5 +1,5 @@
 <!--
-  $Id: hierarchicallayout.html,v 1.13 2012-07-17 08:22:19 gaudenz Exp $
+  $Id: hierarchicallayout.html,v 1.14 2012-11-20 09:06:07 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Hierarchical Layout example for mxGraph. This example demonstrates the
@@ -117,8 +117,9 @@
 					graph.getModel().endUpdate();
 				}
 
-				if (mxClient.IS_IE)
+				if (mxClient.IS_QUIRKS)
 				{
+					document.body.style.overflow = 'hidden';
 					new mxDivResizer(container);
 				}
 			}
@@ -127,12 +128,12 @@
 </head>
 
 <!-- Page passes the container for the graph to the program -->
-<body onload="main(document.getElementById('graphContainer'))">
+<body onload="main(document.getElementById('graphContainer'))" style="margin:4px;">
 
 	<!-- Creates a container for the graph with a grid wallpaper. Make sure to define the position
 		and overflow attributes! See comments on the adding of the size-listener on line 54 ff!  -->
 	<div id="graphContainer"
-		style="position:absolute;overflow:auto;top:44px;bottom:20px;left:20px;right:20px;">
+		style="position:absolute;overflow:auto;top:36px;bottom:0px;left:0px;right:0px;border-top:gray 1px solid;">
 	</div>
 </body>
 </html>

@@ -1,5 +1,5 @@
 /**
- * $Id: mxDragSource.js,v 1.12 2012-07-09 11:12:03 gaudenz Exp $
+ * $Id: mxDragSource.js,v 1.14 2012-12-05 21:43:16 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -131,6 +131,20 @@ mxDragSource.prototype.gridEnabled = true;
  * Specifies if drop targets should be highlighted. Default is true.
  */
 mxDragSource.prototype.highlightDropTargets = true;
+
+/**
+ * Variable: dragElementZIndex
+ * 
+ * ZIndex for the drag element. Default is 100.
+ */
+mxDragSource.prototype.dragElementZIndex = 100;
+
+/**
+ * Variable: dragElementOpacity
+ * 
+ * Opacity of the drag element in %. Default is 70.
+ */
+mxDragSource.prototype.dragElementOpacity = 70;
 
 /**
  * Function: isEnabled
@@ -271,8 +285,8 @@ mxDragSource.prototype.startDrag = function(evt)
 {
 	this.dragElement = this.createDragElement(evt);
 	this.dragElement.style.position = 'absolute';
-	this.dragElement.style.zIndex = '3';
-	mxUtils.setOpacity(this.dragElement, 70);
+	this.dragElement.style.zIndex = this.dragElementZIndex;
+	mxUtils.setOpacity(this.dragElement, this.dragElementOpacity);
 };
 
 

@@ -1,5 +1,5 @@
 /**
- * $Id: mxVertexHandler.js,v 1.106 2012-09-24 14:11:51 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.107 2012-11-20 09:06:07 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -191,7 +191,7 @@ mxVertexHandler.prototype.createSelectionShape = function(bounds)
 {
 	var shape = new mxRectangleShape(bounds, null, this.getSelectionColor());
 	shape.strokewidth = this.getSelectionStrokeWidth();
-	shape.isDashed =  this.isSelectionDashed();
+	shape.isDashed = this.isSelectionDashed();
 	shape.crisp = this.crisp;
 	
 	return shape;

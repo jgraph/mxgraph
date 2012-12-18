@@ -1,5 +1,5 @@
 /**
- * $Id: mxEdgeSegmentHandler.js,v 1.13 2012-03-09 07:42:54 gaudenz Exp $
+ * $Id: mxEdgeSegmentHandler.js,v 1.14 2012-12-17 13:22:49 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 function mxEdgeSegmentHandler(state)
@@ -51,7 +51,7 @@ mxEdgeSegmentHandler.prototype.getPreviewPoints = function(point)
 		 		else
 		 		{
 		 			last.y = point.y;
-					pt.y = point.y;
+		 			pt.y = point.y;
 		 		}
 			}
 			
@@ -71,26 +71,29 @@ mxEdgeSegmentHandler.prototype.getPreviewPoints = function(point)
 			
 			if (target != null & source != null)
 			{
-				if (mxUtils.contains(target, result[0].x, result[0].y))
+				var dx = this.state.origin.x;
+				var dy = this.state.origin.y;
+
+				if (mxUtils.contains(target, result[0].x + dx, result[0].y + dy))
 				{
 					if (pts[1].y == pts[2].y)
 					{
-						result[0].y = view.getRoutingCenterY(source);
+						result[0].y = view.getRoutingCenterY(source) - dy;
 					}
 					else
 					{
-						result[0].x = view.getRoutingCenterX(source);
+						result[0].x = view.getRoutingCenterX(source) - dx;
 					}
 				}
-				else if (mxUtils.contains(source, result[0].x, result[0].y))
+				else if (mxUtils.contains(source, result[0].x + dx, result[0].y + dy))
 				{
 					if (pts[1].y == pts[0].y)
 					{
-						result[0].y = view.getRoutingCenterY(target);
+						result[0].y = view.getRoutingCenterY(target) - dy;
 					}
 					else
 					{
-						result[0].x = view.getRoutingCenterX(target);
+						result[0].x = view.getRoutingCenterX(target) - dx;
 					}
 				}
 			}

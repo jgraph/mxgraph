@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphView.js,v 1.194 2012-07-19 15:18:35 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.195 2012-11-20 09:06:07 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -155,9 +155,9 @@ mxGraphView.prototype.translate = null;
 /**
  * Variable: updateStyle
  * 
- * Specifies if the style should be updated in each validation step. If
- * this is false then the style is only updated if the state is created.
- * Default is false.
+ * Specifies if the style should be updated in each validation step. If this
+ * is false then the style is only updated if the state is created or if the
+ * style of the cell was changed. Default is false.
  */
 mxGraphView.prototype.updateStyle = false;
 

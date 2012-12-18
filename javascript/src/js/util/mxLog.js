@@ -1,5 +1,5 @@
 /**
- * $Id: mxLog.js,v 1.31 2011-07-29 08:15:50 gaudenz Exp $
+ * $Id: mxLog.js,v 1.32 2012-11-12 09:40:59 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxLog =
@@ -155,10 +155,21 @@ var mxLog =
 				mxLog.textarea.value = '';
 			});
 
-			// Workaround for clientHeight in body = 0 if doctype in FF
-			var h = (document.body.clientHeight || document.documentElement.clientHeight);
-			var w = document.body.clientWidth;
+			// Cross-browser code to get window size
+			var h = 0;
+			var w = 0;
 			
+			if (typeof(window.innerWidth) === 'number')
+			{
+				h = window.innerHeight;
+				w = window.innerWidth;
+			}
+			else
+			{
+				h = (document.documentElement.clientHeight || document.body.clientHeight);
+				w = document.body.clientWidth;
+			}
+
 			mxLog.window = new mxWindow(title, table, Math.max(0, w-320), Math.max(0, h-210), 300, 160);
 			mxLog.window.setMaximizable(true);
 			mxLog.window.setScrollable(false);

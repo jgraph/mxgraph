@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellOverlay.js,v 1.17 2012-07-02 16:53:51 gaudenz Exp $
+ * $Id: mxCellOverlay.js,v 1.18 2012-12-06 15:58:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -133,6 +133,27 @@ mxCellOverlay.prototype.defaultOverlap = 0.5;
  * Returns the bounds of the overlay for the given <mxCellState> as an
  * <mxRectangle>. This should be overridden when using multiple overlays
  * per cell so that the overlays do not overlap.
+ * 
+ * The following example will place the overlay along an edge (where
+ * x=[-1..1] from the start to the end of the edge and y is the
+ * orthogonal offset in px).
+ * 
+ * (code)
+ * overlay.getBounds = function(state)
+ * {
+ *   var bounds = mxCellOverlay.prototype.getBounds.apply(this, arguments);
+ *   
+ *   if (state.view.graph.getModel().isEdge(state.cell))
+ *   {
+ *     var pt = state.view.getPoint(state, {x: 0, y: 0, relative: true});
+ *     
+ *     bounds.x = pt.x - bounds.width / 2;
+ *     bounds.y = pt.y - bounds.height / 2;
+ *   }
+ *   
+ *   return bounds;
+ * };
+ * (end)
  * 
  * Parameters:
  * 

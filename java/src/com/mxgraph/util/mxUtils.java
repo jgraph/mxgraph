@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.java,v 1.129 2012-08-02 10:58:37 gaudenz Exp $
+ * $Id: mxUtils.java,v 1.136 2012-12-14 17:49:06 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.util;
@@ -71,6 +71,12 @@ public class mxUtils
 	 */
 	public static boolean IS_MAC = System.getProperty("os.name").toLowerCase()
 			.indexOf("mac") >= 0;
+			
+	/**
+	 * True if the machine is running a linux kernel.
+	 */
+	public static boolean IS_LINUX = System.getProperty("os.name").toLowerCase()
+			.indexOf("linux") >= 0;
 
 	/**
 	 * Static Graphics used for Font Metrics.
@@ -1665,11 +1671,7 @@ public class mxUtils
 	 */
 	public static String hexString(Color color)
 	{
-		int r = color.getRed();
-		int g = color.getGreen();
-		int b = color.getBlue();
-
-		return String.format("#%02X%02X%02X", r, g, b);
+		return mxHtmlColor.hexString(color);
 	}
 
 	/**
@@ -1689,84 +1691,7 @@ public class mxUtils
 	public static Color parseColor(String colorString)
 			throws NumberFormatException
 	{
-		if (colorString.equalsIgnoreCase("white"))
-		{
-			return Color.white;
-		}
-		else if (colorString.equalsIgnoreCase("black"))
-		{
-			return Color.black;
-		}
-		else if (colorString.equalsIgnoreCase("red"))
-		{
-			return Color.red;
-		}
-		else if (colorString.equalsIgnoreCase("green"))
-		{
-			return Color.green;
-		}
-		else if (colorString.equalsIgnoreCase("blue"))
-		{
-			return Color.blue;
-		}
-		else if (colorString.equalsIgnoreCase("orange"))
-		{
-			return Color.orange;
-		}
-		else if (colorString.equalsIgnoreCase("yellow"))
-		{
-			return Color.yellow;
-		}
-		else if (colorString.equalsIgnoreCase("pink"))
-		{
-			return Color.pink;
-		}
-		else if (colorString.equalsIgnoreCase("turqoise"))
-		{
-			return new Color(0, 255, 255);
-		}
-		else if (colorString.equalsIgnoreCase("gray"))
-		{
-			return Color.gray;
-		}
-		else if (colorString.equalsIgnoreCase("none"))
-		{
-			return null;
-		}
-		else if (colorString.startsWith("#") && colorString.length() == 4)
-		{
-			// Adds support for special short notation of hex colors, eg. #abc=#aabbcc
-			colorString = new String(new char[] { '#', colorString.charAt(1),
-					colorString.charAt(1), colorString.charAt(2),
-					colorString.charAt(2), colorString.charAt(3),
-					colorString.charAt(3) });
-		}
-
-		int value = 0;
-		try
-		{
-			String tmp = colorString;
-
-			if (tmp.startsWith("#"))
-			{
-				tmp = tmp.substring(1);
-			}
-
-			value = (int) Long.parseLong(tmp, 16);
-		}
-		catch (NumberFormatException nfe)
-		{
-			try
-			{
-				value = Long.decode(colorString).intValue();
-			}
-			catch (NumberFormatException e)
-			{
-				// ignores exception and returns black
-			}
-		}
-
-		return new Color(value);
+		return mxHtmlColor.parseColor(colorString);
 	}
 
 	/**
@@ -1778,8 +1703,7 @@ public class mxUtils
 	 */
 	public static String getHexColorString(Color color)
 	{
-		return Integer.toHexString((color.getRGB() & 0x00FFFFFF)
-				| (color.getAlpha() << 24));
+		return mxHtmlColor.getHexColorString(color);
 	}
 
 	/**
@@ -1965,40 +1889,22 @@ public class mxUtils
 	 * memory to create the image then a OutOfMemoryError is thrown.
 	 */
 	public static BufferedImage createBufferedImage(int w, int h,
-			Color background) throws OutOfMemoryError
+			Color background)
 	{
 		BufferedImage result = null;
 
 		if (w > 0 && h > 0)
 		{
-			// Checks if there is enough memory for allocating the buffer
-			Runtime runtime = Runtime.getRuntime();
-			long maxMemory = runtime.maxMemory();
-			long allocatedMemory = runtime.totalMemory();
-			long freeMemory = runtime.freeMemory();
-			long totalFreeMemory = (freeMemory + (maxMemory - allocatedMemory)) / 1024;
-
-			int bytes = 4; // 1 if indexed
-			long memoryRequired = w * h * bytes / 1024;
-
-			if (memoryRequired <= totalFreeMemory)
+			int type = (background != null) ? BufferedImage.TYPE_INT_RGB
+					: BufferedImage.TYPE_INT_ARGB;
+			result = new BufferedImage(w, h, type);
+			
+			// Clears background
+			if (background != null)
 			{
-				int type = (background != null) ? BufferedImage.TYPE_INT_RGB
-						: BufferedImage.TYPE_INT_ARGB;
-				result = new BufferedImage(w, h, type);
-				
-				// Clears background
-				if (background != null)
-				{
-					Graphics2D g2 = result.createGraphics();
-					clearRect(g2, new Rectangle(w, h), background);
-					g2.dispose();
-				}
-			}
-			else
-			{
-				throw new OutOfMemoryError("Not enough memory for image (" + w
-						+ " x " + h + ")");
+				Graphics2D g2 = result.createGraphics();
+				clearRect(g2, new Rectangle(w, h), background);
+				g2.dispose();
 			}
 		}
 
@@ -2050,7 +1956,7 @@ public class mxUtils
 					}
 					catch (Exception e1)
 					{
-						// ignore
+						e1.printStackTrace();
 					}
 				}
 			}

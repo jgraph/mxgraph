@@ -1,5 +1,5 @@
 <!--
-  $Id: permissions.html,v 1.18 2012-07-17 08:22:19 gaudenz Exp $
+  $Id: permissions.html,v 1.19 2012-11-20 09:06:07 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Hello, World! example for mxGraph. This example demonstrates creating
@@ -52,8 +52,9 @@
 				document.body.appendChild(container);
 				
 				// Workaround for Internet Explorer ignoring certain styles
-				if (mxClient.IS_IE)
+				if (mxClient.IS_QUIRKS)
 				{
+					document.body.style.overflow = 'hidden';
 					new mxDivResizer(container);
 				}
 				

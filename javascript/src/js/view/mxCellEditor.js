@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellEditor.js,v 1.61 2012-06-20 16:54:30 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.62 2012-12-11 16:59:31 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -255,12 +255,18 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 			mxUtils.getValue(state.style, mxConstants.STYLE_ALIGN, mxConstants.ALIGN_LEFT);
 		var bold = (mxUtils.getValue(state.style, mxConstants.STYLE_FONTSTYLE, 0) &
 				mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD;
+		var italic = (mxUtils.getValue(state.style, mxConstants.STYLE_FONTSTYLE, 0) &
+				mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC;
+		var uline = (mxUtils.getValue(state.style, mxConstants.STYLE_FONTSTYLE, 0) &
+				mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE;
 
 		this.textarea.style.fontSize = size + 'px';
 		this.textarea.style.fontFamily = family;
 		this.textarea.style.textAlign = align;
 		this.textarea.style.color = color;
 		this.textarea.style.fontWeight = (bold) ? 'bold' : 'normal';
+		this.textarea.style.fontStyle = (italic) ? 'italic' : '';
+		this.textarea.style.textDecoration = (uline) ? 'underline' : '';
 
 		// Specifies the bounds of the editor box
 		var bounds = this.getEditorBounds(state);

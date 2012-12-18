@@ -1,5 +1,5 @@
 /**
- * $Id: mxEdgeStyle.js,v 1.67 2012-10-29 10:19:20 gaudenz Exp $
+ * $Id: mxEdgeStyle.js,v 1.68 2012-11-20 09:06:07 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEdgeStyle =
@@ -411,14 +411,12 @@ var mxEdgeStyle =
 	
 			if (pt != null)
 			{
-				if (pt.y >= source.y &&
-					pt.y <= source.y + source.height)
+				if (pt.y >= source.y && pt.y <= source.y + source.height)
 				{
 					y1 = pt.y;
 				}
 				
-				if (pt.y >= target.y &&
-					pt.y <= target.y + target.height)
+				if (pt.y >= target.y && pt.y <= target.y + target.height)
 				{
 					y2 = pt.y;
 				}

@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.700 2012-10-29 12:35:53 david Exp $
+ * $Id: mxGraph.js,v 1.702 2012-12-13 15:07:34 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -2434,7 +2434,7 @@ mxGraph.prototype.click = function(me)
  * event has not been consumed, then <edit> is called with the given
  * cell. The event is ignored if no cell was specified.
  *
- * Example:
+ * Example for overriding this method.
  *
  * (code)
  * graph.dblClick = function(evt, cell)
@@ -2449,6 +2449,16 @@ mxGraph.prototype.click = function(me)
  *   }
  * }
  * (end)
+ * 
+ * Example listener for this event.
+ * 
+ * (code)
+ * graph.addListener(mxEvent.DOUBLE_CLICK, function(sender, evt)
+ * {
+ *   var cell = evt.getProperty('cell');
+ *   // do something with the cell...
+ * });
+ * (end) 
  * 
  * Parameters:
  * 
@@ -6798,39 +6808,46 @@ mxGraph.prototype.fit = function(border, keepOrigin)
 		
 		var b = (keepOrigin) ? border : 2 * border;
 		var s2 = Math.floor(Math.min(w1 / (w2 + b), h1 / (h2 + b)) * 100) / 100;
-
-		if ((this.minFitScale == null || s2 > this.minFitScale) && (this.maxFitScale == null || s2 < this.maxFitScale))
+		
+		if (this.minFitScale != null)
 		{
-			if (!keepOrigin)
-			{
-				if (!mxUtils.hasScrollbars(this.container))
-				{
-					var x0 = (bounds.x != null) ? Math.floor(this.view.translate.x - bounds.x / s + border + 1) : border;
-					var y0 = (bounds.y != null) ? Math.floor(this.view.translate.y - bounds.y / s + border + 1) : border;
+			s2 = Math.max(s2, this.minFitScale);
+		}
+		
+		if (this.maxFitScale != null)
+		{
+			s2 = Math.min(s2, this.maxFitScale);
+		}
 
-					this.view.scaleAndTranslate(s2, x0, y0);
-				}
-				else
-				{
-					this.view.setScale(s2);
-					
-					if (bounds.x != null)
-					{
-						this.container.scrollLeft = Math.round(bounds.x / s) * s2 - border -
-							Math.max(0, (this.container.clientWidth - w2 * s2) / 2);
-					}
-					
-					if (bounds.y != null)
-					{
-						this.container.scrollTop = Math.round(bounds.y / s) * s2 - border -
-							Math.max(0, (this.container.clientHeight - h2 * s2) / 2);
-					}
-				}
+		if (!keepOrigin)
+		{
+			if (!mxUtils.hasScrollbars(this.container))
+			{
+				var x0 = (bounds.x != null) ? Math.floor(this.view.translate.x - bounds.x / s + border + 1) : border;
+				var y0 = (bounds.y != null) ? Math.floor(this.view.translate.y - bounds.y / s + border + 1) : border;
+
+				this.view.scaleAndTranslate(s2, x0, y0);
 			}
 			else
 			{
 				this.view.setScale(s2);
+				
+				if (bounds.x != null)
+				{
+					this.container.scrollLeft = Math.round(bounds.x / s) * s2 - border -
+						Math.max(0, (this.container.clientWidth - w2 * s2) / 2);
+				}
+				
+				if (bounds.y != null)
+				{
+					this.container.scrollTop = Math.round(bounds.y / s) * s2 - border -
+						Math.max(0, (this.container.clientHeight - h2 * s2) / 2);
+				}
 			}
+		}
+		else if (this.view.scale != s2)
+		{
+			this.view.setScale(s2);
 		}
 	}
 	

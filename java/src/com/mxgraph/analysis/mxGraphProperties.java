@@ -9,6 +9,45 @@ import com.mxgraph.util.mxUtils;
  */
 public class mxGraphProperties
 {
+	public enum GraphType
+	{
+		FULLY_CONNECTED,
+		RANDOM_CONNECTED,
+		TREE,
+		FLOW,
+		NULL,
+		COMPLETE,
+		NREGULAR,
+		GRID,
+		BIPARTITE,
+		COMPLETE_BIPARTITE,
+		BASIC_TREE,
+		SIMPLE_RANDOM,
+		BFS_DIR,
+		BFS_UNDIR,
+		DFS_DIR,
+		DFS_UNDIR,
+		DIJKSTRA,
+		MAKE_TREE_DIRECTED, 
+		SIMPLE_RANDOM_TREE, 
+		KNIGHT_TOUR, 
+		KNIGHT, 
+		GET_ADJ_MATRIX, 
+		FROM_ADJ_MATRIX, 
+		PETERSEN, 
+		WHEEL, 
+		STAR, 
+		PATH, 
+		FRIENDSHIP_WINDMILL, 
+		FULL_WINDMILL, 
+		INDEGREE, 
+		OUTDEGREE, 
+		IS_CUT_VERTEX, 
+		IS_CUT_EDGE, 
+		RESET_STYLE, 
+		KING, 
+		BELLMAN_FORD
+	}
 
 	/**
 	 * Whether or not to navigate the graph raw graph structure or 
@@ -30,8 +69,8 @@ public class mxGraphProperties
 	public static boolean DEFAULT_DIRECTED = false;
 
 	/**
-	 * 
 	 * @param properties
+	 * @param defaultValue
 	 * @return
 	 */
 	public static boolean isTraverseVisible(Map<String, Object> properties, boolean defaultValue)

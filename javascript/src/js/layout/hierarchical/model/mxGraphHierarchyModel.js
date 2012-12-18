@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphHierarchyModel.js,v 1.30 2012-05-27 22:11:14 david Exp $
+ * $Id: mxGraphHierarchyModel.js,v 1.31 2012-12-18 12:39:56 david Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -26,13 +26,10 @@
  * scanRanksFromSinks - Whether rank assignment is from the sinks or sources.
  * usage
  */
-function mxGraphHierarchyModel(layout, vertices, roots, parent,
-		deterministic, tightenToSource, scanRanksFromSinks)
+function mxGraphHierarchyModel(layout, vertices, roots, parent, tightenToSource)
 {
 	var graph = layout.getGraph();
-	this.deterministic = deterministic;
 	this.tightenToSource = tightenToSource;
-	this.scanRanksFromSinks = scanRanksFromSinks;
 	this.roots = roots;
 	this.parent = parent;
 
@@ -48,14 +45,7 @@ function mxGraphHierarchyModel(layout, vertices, roots, parent,
 		vertices = this.graph.getChildVertices(parent);
 	}
 
-	if (this.scanRanksFromSinks)
-	{
-		this.maxRank = 0;
-	}
-	else
-	{
-		this.maxRank = this.SOURCESCANSTARTRANK;
-	}
+	this.maxRank = this.SOURCESCANSTARTRANK;
 	// map of cells to internal cell needed for second run through
 	// to setup the sink of edges correctly. Guess size by number
 	// of edges is roughly same as number of vertices.
@@ -65,6 +55,11 @@ function mxGraphHierarchyModel(layout, vertices, roots, parent,
 	// ordering if and invert edges if necessary
 	for (var i = 0; i < vertices.length; i++)
 	{
+		if (vertices[i].value == '7')
+		{
+			mxLog.show();
+		}
+
 		var edges = internalVertices[i].connectsAsSource;
 
 		for (var j = 0; j < edges.length; j++)
@@ -114,13 +109,6 @@ function mxGraphHierarchyModel(layout, vertices, roots, parent,
 		internalVertices[i].temp[0] = 1;
 	}
 };
-
-/**
- * Variable: scanRanksFromSinks
- *
- * Whether the rank assignment is done from the sinks or sources.
- */
-mxGraphHierarchyModel.prototype.scanRanksFromSinks = true;
 
 /**
  * Variable: maxRank
@@ -178,18 +166,6 @@ mxGraphHierarchyModel.prototype.dfsCount = 0;
  * High value to start source layering scan rank value from.
  */
 mxGraphHierarchyModel.prototype.SOURCESCANSTARTRANK = 100000000;
-
-/**
- * Variable: deterministic
- *
- * Whether or not cells are ordered according to the order in the graph
- * model. Defaults to false since sorting usually produces quadratic
- * performance. Note that since mxGraph returns edges in a deterministic
- * order, it might be that this layout is always deterministic using that
- * JGraph regardless of this flag setting (i.e. leave it false in that
- * case). Default is true.
- */
-mxGraphHierarchyModel.prototype.deterministic;
 
 /**
  * Variable: tightenToSource
@@ -308,7 +284,7 @@ mxGraphHierarchyModel.prototype.initialRank = function()
 {
 	var startNodes = [];
 
-	if (!this.scanRanksFromSinks && this.roots != null)
+	if (this.roots != null)
 	{
 		for (var i = 0; i < this.roots.length; i++)
 		{
@@ -318,36 +294,6 @@ mxGraphHierarchyModel.prototype.initialRank = function()
 			if (internalNode != null)
 			{
 				startNodes.push(internalNode);
-			}
-		}
-	}
-
-	if (this.scanRanksFromSinks)
-	{
-		for (var key in this.vertexMapper)
-		{
-			var internalNode = this.vertexMapper[key];
-
-			if (internalNode.connectsAsSource == null ||
-				internalNode.connectsAsSource.length == 0)
-			{
-				startNodes.push(internalNode);
-			}
-		}
-	}
-
-	if (startNodes.length == 0)
-	{
-		for (var key in this.vertexMapper)
-		{
-			var internalNode = this.vertexMapper[key];
-
-			if (internalNode.connectsAsTarget == null ||
-				internalNode.connectsAsTarget.length == 0)
-			{
-				startNodes.push(internalNode);
-				this.scanRanksFromSinks = false;
-				this.maxRank = this.SOURCESCANSTARTRANK;
 			}
 		}
 	}
@@ -368,16 +314,8 @@ mxGraphHierarchyModel.prototype.initialRank = function()
 		var layerDeterminingEdges;
 		var edgesToBeMarked;
 
-		if (this.scanRanksFromSinks)
-		{
-			layerDeterminingEdges = internalNode.connectsAsSource;
-			edgesToBeMarked = internalNode.connectsAsTarget;
-		}
-		else
-		{
-			layerDeterminingEdges = internalNode.connectsAsTarget;
-			edgesToBeMarked = internalNode.connectsAsSource;
-		}
+		layerDeterminingEdges = internalNode.connectsAsTarget;
+		edgesToBeMarked = internalNode.connectsAsSource;
 
 		// flag to keep track of whether or not all layer determining
 		// edges have been scanned
@@ -386,10 +324,7 @@ mxGraphHierarchyModel.prototype.initialRank = function()
 		// Work out the layer of this node from the layer determining
 		// edges. The minimum layer number of any node connected by one of
 		// the layer determining edges variable
-		var minimumLayer = 0;
-		if (!this.scanRanksFromSinks) {
-			minimumLayer = this.SOURCESCANSTARTRANK;
-		}
+		var minimumLayer = this.SOURCESCANSTARTRANK;
 
 		for (var i = 0; i < layerDeterminingEdges.length; i++)
 		{
@@ -399,27 +334,8 @@ mxGraphHierarchyModel.prototype.initialRank = function()
 			{
 				// This edge has been scanned, get the layer of the
 				// node on the other end
-				var otherNode;
-
-				if (this.scanRanksFromSinks)
-				{
-					otherNode = internalEdge.target;
-				}
-				else
-				{
-					otherNode = internalEdge.source;
-				}
-
-				if (this.scanRanksFromSinks)
-				{
-					minimumLayer = Math.max(minimumLayer,
-							otherNode.temp[0] + 1);
-				}
-				else
-				{
-					minimumLayer = Math.min(minimumLayer,
-							otherNode.temp[0] - 1);
-				}
+				var otherNode = internalEdge.source;
+				minimumLayer = Math.min(minimumLayer, otherNode.temp[0] - 1);
 			}
 			else
 			{
@@ -434,14 +350,7 @@ mxGraphHierarchyModel.prototype.initialRank = function()
 		if (allEdgesScanned)
 		{
 			internalNode.temp[0] = minimumLayer;
-			if (this.scanRanksFromSinks)
-			{
-				this.maxRank = Math.max(this.maxRank, minimumLayer);
-			}
-			else
-			{
-				this.maxRank = Math.min(this.maxRank, minimumLayer);
-			}
+			this.maxRank = Math.min(this.maxRank, minimumLayer);
 
 			if (edgesToBeMarked != null)
 			{
@@ -454,18 +363,14 @@ mxGraphHierarchyModel.prototype.initialRank = function()
 
 					// Add node on other end of edge to LinkedList of
 					// nodes to be analysed
-					var otherNode;
-
-					if (this.scanRanksFromSinks)
-					{
-						otherNode = internalEdge.source;
-					}
-					else
-					{
-						otherNode = internalEdge.target;
-					}
+					var otherNode = internalEdge.target;
 
 					// Only add node if it hasn't been assigned a layer
+					if (otherNode == null)
+					{
+						mxLog.show();
+						mxLog.debug('null');
+					}
 					if (otherNode.temp[0] == -1)
 					{
 						startNodes.push(otherNode);
@@ -499,42 +404,35 @@ mxGraphHierarchyModel.prototype.initialRank = function()
 		}
 	}
 
-	if (this.scanRanksFromSinks)
+	// Normalize the ranks down from their large starting value to place
+	// at least 1 sink on layer 0
+	for (var key in this.vertexMapper)
 	{
-		if (this.tightenToSource)
-		{
-			// Tighten the rank 0 nodes as far as possible
-			for ( var i = 0; i < startNodesCopy.length; i++)
-			{
-				var internalNode = startNodesCopy[i];
-				var currentMinLayer = 1000000;
-				var layerDeterminingEdges = internalNode.connectsAsTarget;
+		var internalNode = this.vertexMapper[key];
+		// Mark the node as not having had a layer assigned
+		internalNode.temp[0] -= this.maxRank;
+	}
+	
+	// Tighten the rank 0 nodes as far as possible
+	for ( var i = 0; i < startNodesCopy.length; i++)
+	{
+		var internalNode = startNodesCopy[i];
+		var currentMaxLayer = 0;
+		var layerDeterminingEdges = internalNode.connectsAsSource;
 
-				for ( var j = 0; j < internalNode.connectsAsTarget.length; j++)
-				{
-					var internalEdge = internalNode.connectsAsTarget[j];
-					var otherNode = internalEdge.source;
-					internalNode.temp[0] = Math.min(currentMinLayer,
-							otherNode.temp[0] - 1);
-					currentMinLayer = internalNode.temp[0];
-				}
-			}
-		}
-	}
-	else
-	{
-		// Normalize the ranks down from their large starting value to place
-		// at least 1 sink on layer 0
-		for (var key in this.vertexMapper)
+		for ( var j = 0; j < layerDeterminingEdges.length; j++)
 		{
-			var internalNode = this.vertexMapper[key];
-			// Mark the node as not having had a layer assigned
-			internalNode.temp[0] -= this.maxRank;
+			var internalEdge = layerDeterminingEdges[j];
+			var otherNode = internalEdge.target;
+			internalNode.temp[0] = Math.max(currentMaxLayer,
+					otherNode.temp[0] + 1);
+			currentMaxLayer = internalNode.temp[0];
 		}
-		// Reset the maxRank to that which would be expected for a from-sink
-		// scan
-		this.maxRank = this.SOURCESCANSTARTRANK - this.maxRank;
 	}
+	
+	// Reset the maxRank to that which would be expected for a from-sink
+	// scan
+	this.maxRank = this.SOURCESCANSTARTRANK - this.maxRank;
 };
 
 /**

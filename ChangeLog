@@ -1,3 +1,24 @@
+18-DEC-2012: 1.10.4.1
+
+- Fixes error in hierarchical layout with single rank cycles [JavaScript]
+- Removes deterministic, fixRoots and layoutFromSinks flags from hierarchical layout [JavaScript]
+- Fixes abs/rel coordinates in mxEdgeSegmentHandler.getPreviewPoints [JavaScript]
+- Prints errors for loading images in mxUtils.loadImage [Java]
+- Fixes handling of swimlane direction in mxStackLayout [JavaScript]
+- Fixes use of min-/maxFitScale in mxGraph.fit [JavaScript]
+- Fixes hotspot for scaled swimlanes in mxUtils.intersectsHotspot [JavaScript]
+- Fixes connection previews in VML [JavaScript]
+- Adds mxDragSource.dragElementZIndex, dragElementOpacity [JavaScript]
+- Fixes possible null pointer exception in mxUtils.findNodeByAttribute [JavaScript]
+- Adds mxHtmlColor with CSS compliant HTML color name support [Java]
+- Converts HTML entities to unicode mxSvgCanvas2D XHTML output [JavaScript]
+- Handles comma-separated font families in mxGdiCanvas2D, mxGraphicsCanvas2D [Dotnet,Java]
+- Removes memory check in mxUtils.createBufferedImage [Java]
+- No longer preserves image aspects in mxCellRenderer.createCellOverlays [JavaScript]  
+- Adds mxConstraintHandler.isEventIgnored hook [JavaScript]
+- Fixes event handling logic in mxConstraintHandler.update [JavaScript]
+- Fixes fast organic temperature calculation so cooling occurs [Java]
+
 29-OCT-2012: 1.10.4.0
 
 - Adds mxGraph.zoomToRect for zoom and scroll to an area [JavaScript]
