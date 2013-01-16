@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.57 2012-12-17 15:58:46 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.58 2012-12-19 08:01:29 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -173,9 +173,9 @@ EditorUi.prototype.splitSize = (mxClient.IS_TOUCH) ? 16 : 8;
 EditorUi.prototype.menubarHeight = 33;
 
 /**
- * Specifies the height of the toolbar. Default is 46.
+ * Specifies the height of the toolbar. Default is 36.
  */
-EditorUi.prototype.toolbarHeight = 37;
+EditorUi.prototype.toolbarHeight = 36;
 
 /**
  * Specifies the height of the footer. Default is 28.

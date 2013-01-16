@@ -1,5 +1,5 @@
 /**
- * $Id: mxOrganicLayout.java,v 1.11 2011-12-02 15:19:01 mate Exp $
+ * $Id: mxOrganicLayout.java,v 1.12 2012-12-22 22:37:52 david Exp $
  * Copyright (c) 2007-2009, JGraph Ltd
  */
 
@@ -9,13 +9,17 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 
+import com.mxgraph.model.mxGraphModel;
 import com.mxgraph.model.mxIGraphModel;
 import com.mxgraph.util.mxRectangle;
 import com.mxgraph.view.mxGraph;
+import com.mxgraph.view.mxGraphView;
 
 /**
  * An implementation of a simulated annealing layout, based on "Drawing Graphs
@@ -380,8 +384,32 @@ public class mxOrganicLayout extends mxGraphLayout
 	 */
 	public void execute(Object parent)
 	{
+		mxIGraphModel model = graph.getModel();
+		mxGraphView view = graph.getView();
 		Object[] vertices = graph.getChildVertices(parent);
-		Object[] edges = graph.getChildEdges(parent);
+		HashSet<Object> vertexSet = new HashSet<Object>(Arrays.asList(vertices));
+
+		HashSet<Object> validEdges = new HashSet<Object>();
+
+		// Remove edges that do not have both source and target terminals visible
+		for (int i = 0; i < vertices.length; i++)
+		{
+			Object[] edges = mxGraphModel.getEdges(model, vertices[i], false, true, false);
+
+			for (int j = 0; j < edges.length; j++)
+			{
+				// Only deal with sources. To be valid in the layout, each edge must be attached
+				// at both source and target to a vertex in the layout. Doing this avoids processing
+				// each edge twice.
+				if (view.getVisibleTerminal(edges[j], true) == vertices[i] && vertexSet.contains(view.getVisibleTerminal(edges[j], false)))
+				{
+					validEdges.add(edges[j]);
+				}
+			}
+
+		}
+
+		Object[] edges = validEdges.toArray();
 
 		// If the bounds dimensions have not been set see if the average area
 		// per node has been
@@ -482,7 +510,7 @@ public class mxOrganicLayout extends mxGraphLayout
 
 		// Form internal model of edges
 		e = new CellWrapper[edges.length];
-		mxIGraphModel model = graph.getModel();
+		
 		for (int i = 0; i < e.length; i++)
 		{
 			e[i] = new CellWrapper(edges[i]);

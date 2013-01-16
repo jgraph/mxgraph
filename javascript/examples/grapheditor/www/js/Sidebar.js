@@ -1,5 +1,5 @@
 /**
- * $Id: Sidebar.js,v 1.69 2012-12-12 00:04:45 gaudenz Exp $
+ * $Id: Sidebar.js,v 1.70 2012-12-19 17:14:03 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -780,7 +780,7 @@ Sidebar.prototype.createThumb = function(cells, width, height, parent)
 	var node = null;
 	
 	// For supporting HTML labels in IE9 standards mode the container is cloned instead
-	if (this.graph.dialect == mxConstants.DIALECT_SVG && !mxClient.IS_IE)
+	if (this.graph.dialect == mxConstants.DIALECT_SVG)
 	{
 		node = this.graph.view.getCanvas().ownerSVGElement.cloneNode(true);
 	}
@@ -806,6 +806,8 @@ Sidebar.prototype.createThumb = function(cells, width, height, parent)
 	node.style.top = (dy + dd) + 'px';
 	node.style.width = width + 'px';
 	node.style.height = height + 'px';
+	node.style.minWidth = '';
+	node.style.minHeight = '';
 	
 	parent.appendChild(node);
 	mxText.prototype.getTableSize = old;
@@ -819,6 +821,7 @@ Sidebar.prototype.createItem = function(cells)
 	var elt = document.createElement('a');
 	elt.setAttribute('href', 'javascript:void(0);');
 	elt.className = 'geItem';
+	elt.style.overflow = 'hidden';
 	
 	// Blocks default click action
 	mxEvent.addListener(elt, 'click', function(evt)
