@@ -6742,14 +6742,15 @@ mxGraph.prototype.zoomToRect = function(rect)
 	}
 
 	var scale = this.container.clientWidth / rect.width;
+	var newScale = this.view.scale * scale;
 
 	if (!mxUtils.hasScrollbars(this.container))
 	{
-		this.view.scaleAndTranslate(scale, -rect.x, -rect.y);
+		this.view.scaleAndTranslate(newScale, (this.view.translate.x - rect.x / this.view.scale), (this.view.translate.y - rect.y / this.view.scale));
 	}
 	else
 	{
-		this.view.setScale(scale);
+		this.view.setScale(newScale);
 		this.container.scrollLeft = Math.round(rect.x * scale);
 		this.container.scrollTop = Math.round(rect.y * scale);
 	}
