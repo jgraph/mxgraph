@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxUtils.php,v 1.52 2011-11-17 08:22:15 gaudenz Exp $
+ * $Id: mxUtils.php,v 1.53 2012-12-21 10:47:50 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 class mxUtils
@@ -1030,6 +1030,23 @@ class mxUtils
 		$doc->loadXML($xml);
 		
 		return $doc;
+	}
+
+	/**
+	 * Function getXml
+	 *
+	 * Returns the XML of the given node as a string.
+	 *
+	 * Parameters:
+	 *
+	 * node - DOM node to return the XML for.
+	 * linefeed - Optional string that linefeeds are converted into. Default is
+	 * &#xa;
+	 */
+	static function getXml($node, $linefeed = "&#xa;")
+	{
+		// SaveXML converts linefeeds to &#10; internally
+		return str_replace("&#10;", "&#xa;", $node->ownerDocument->saveXML($node));
 	}
 	
 	/**

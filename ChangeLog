@@ -1,3 +1,16 @@
+16-JAN-2013: 1.10.4.2
+
+- Adds curved connector shapes, mxConstants.STYLE_CURVED [JavaScript]
+- Fixes no scrollbar translation issue in mxgraph.zoomToRect [JavaScript]
+- Improves graph structure interpretation for hierarchical layout [JavaScript]
+- Fixes refresh of bends after undo in mxEdgeSegmentHandler [JavaScript]
+- Improves determination of edge set in organic layout [Java]
+- Fixes rotation in mxConnectionHandler.getSourcePerimeterPoint [JavaScript]
+- Adds mxUtils.getXml [Php]
+- Adds workaround for ellipse fill bug in FF [JavaScript]
+- Fixes sidebar for FF, SVG elements for IE in grapheditor example [JavaScript]
+- Fixes removing listeners from document in mxGraphView.destroy [JavaScript]
+
 18-DEC-2012: 1.10.4.1
 
 - Fixes error in hierarchical layout with single rank cycles [JavaScript]

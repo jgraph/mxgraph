@@ -1,5 +1,5 @@
 /**
- * $Id: Actions.js,v 1.37 2012-12-11 09:42:03 gaudenz Exp $
+ * $Id: Actions.js,v 1.39 2013-01-16 08:40:17 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -448,6 +448,7 @@ Actions.prototype.init = function()
 	this.addAction('shadow', function() { graph.toggleCellStyles(mxConstants.STYLE_SHADOW); });
 	this.addAction('dashed', function() { graph.toggleCellStyles(mxConstants.STYLE_DASHED); });
 	this.addAction('rounded', function() { graph.toggleCellStyles(mxConstants.STYLE_ROUNDED); });
+	this.addAction('curved', function() { graph.toggleCellStyles(mxConstants.STYLE_CURVED); });
 	this.addAction('style', function()
 	{
 		var cells = graph.getSelectionCells();
@@ -472,6 +473,12 @@ Actions.prototype.init = function()
 		{
 			// Take a snapshot of the cell at the moment of calling
 			var proto = graph.getModel().cloneCells([cell])[0];
+			
+			// Delete existing points
+			if (proto.geometry != null)
+			{
+				proto.geometry.points = null;
+			}
 			
 			// Delete entry-/exitXY styles
 			var style = proto.getStyle();

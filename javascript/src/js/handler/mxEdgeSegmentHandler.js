@@ -1,5 +1,5 @@
 /**
- * $Id: mxEdgeSegmentHandler.js,v 1.14 2012-12-17 13:22:49 gaudenz Exp $
+ * $Id: mxEdgeSegmentHandler.js,v 1.15 2013-01-08 15:26:51 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 function mxEdgeSegmentHandler(state)
@@ -170,6 +170,38 @@ mxEdgeSegmentHandler.prototype.createBends = function()
 	return bends;
 };
 
+/**
+ * Function: redraw
+ * 
+ * Overridden to invoke <refresh> before the redraw.
+ */
+mxEdgeSegmentHandler.prototype.redraw = function()
+{
+	this.refresh();
+	mxEdgeHandler.prototype.redraw.apply(this, arguments);
+};
+
+/**
+ * Function: refresh
+ * 
+ * Refreshes the bends of this handler.
+ */
+mxEdgeSegmentHandler.prototype.refresh = function()
+{
+	if (this.bends != null)
+	{
+		for (var i = 0; i < this.bends.length; i++)
+		{
+			if (this.bends[i] != null)
+			{
+				this.bends[i].destroy();
+				this.bends[i] = null;
+			}
+		}
+		
+		this.bends = this.createBends();
+	}
+};
 
 /**
  * Function: redrawInnerBends
@@ -199,28 +231,6 @@ mxEdgeSegmentHandler.prototype.redrawInnerBends = function(p0, pe)
 			}
 		}
 	}
-};
-
-/**
- * Function: connect
- * 
- * Calls <refresh> after <mxEdgeHandler.connect>.
- */
-mxEdgeSegmentHandler.prototype.connect = function(edge, terminal, isSource, isClone, me)
-{
-	mxEdgeHandler.prototype.connect.apply(this, arguments);
-	this.refresh();
-};
-
-/**
- * Function: changeTerminalPoint
- * 
- * Calls <refresh> after <mxEdgeHandler.changeTerminalPoint>.
- */
-mxEdgeSegmentHandler.prototype.changeTerminalPoint = function(edge, point, isSource)
-{
-	mxEdgeHandler.prototype.changeTerminalPoint.apply(this, arguments);
-	this.refresh();
 };
 
 /**
@@ -258,27 +268,4 @@ mxEdgeSegmentHandler.prototype.changePoints = function(edge, points)
 	}
 	
 	mxElbowEdgeHandler.prototype.changePoints.apply(this, arguments);
-	this.refresh();
-};
-
-/**
- * Function: refresh
- * 
- * Refreshes the bends of this handler.
- */
-mxEdgeSegmentHandler.prototype.refresh = function()
-{
-	if (this.bends != null)
-	{
-		for (var i = 0; i < this.bends.length; i++)
-		{
-			if (this.bends[i] != null)
-			{
-				this.bends[i].destroy();
-				this.bends[i] = null;
-			}
-		}
-		
-		this.bends = this.createBends();
-	}
 };

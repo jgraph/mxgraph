@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.702 2012-12-13 15:07:34 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.703 2013-01-15 15:06:28 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

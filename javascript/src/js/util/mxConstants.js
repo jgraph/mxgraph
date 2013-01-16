@@ -1,5 +1,5 @@
 /**
- * $Id: mxConstants.js,v 1.127 2012-11-20 09:06:07 gaudenz Exp $
+ * $Id: mxConstants.js,v 1.128 2013-01-16 08:40:17 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
  var mxConstants =
@@ -1225,6 +1225,15 @@
 	 * rounded.
 	 */
 	STYLE_ROUNDED: 'rounded',
+
+	/**
+	 * Variable: STYLE_CURVED
+	 * 
+	 * Defines the key for the curved style. The type of this value is
+	 * Boolean. It is only applicable for connector shapes. Use 0 (default)
+	 * for non-curved or 1 for curved.
+	 */
+	STYLE_CURVED: 'curved',
 
 	/**
 	 * Variable: STYLE_ARCSIZE

@@ -1,5 +1,5 @@
 /**
- * $Id: mxConnectionHandler.js,v 1.216 2012-12-07 15:17:37 gaudenz Exp $
+ * $Id: mxConnectionHandler.js,v 1.218 2012-12-21 13:07:21 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1402,19 +1402,33 @@ mxConnectionHandler.prototype.getSourcePerimeterPoint = function(state, next, me
 	var result = null;
 	var view = state.view;
 	var sourcePerimeter = view.getPerimeterFunction(state);
-
+	var c = new mxPoint(state.getCenterX(), state.getCenterY());
+	
 	if (sourcePerimeter != null)
 	{
+		var theta = mxUtils.getValue(state.style, mxConstants.STYLE_ROTATION, 0);
+		var rad = -theta * (Math.PI / 180);
+		
+		if (theta != 0)
+		{
+			next = mxUtils.getRotatedPoint(new mxPoint(next.x, next.y), Math.cos(rad), Math.sin(rad), c);
+		}
+		
 		var tmp = sourcePerimeter(view.getPerimeterBounds(state), state, next, false);
 			
 		if (tmp != null)
 		{
+			if (theta != 0)
+			{
+				tmp = mxUtils.getRotatedPoint(new mxPoint(tmp.x, tmp.y), Math.cos(-rad), Math.sin(-rad), c);
+			}
+			
 			result = tmp;
 		}
 	}
 	else
 	{
-		result = new mxPoint(state.getCenterX(), state.getCenterY());
+		result = c;
 	}
 	
 	return result;

@@ -1,5 +1,5 @@
 /**
- * $Id: mxImageExport.js,v 1.47 2012-09-24 14:54:32 gaudenz Exp $
+ * $Id: mxImageExport.js,v 1.48 2013-01-16 08:40:17 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -877,9 +877,6 @@ mxImageExport.prototype.initShapes = function()
 		{
 			if (background)
 			{
-				var rounded = mxUtils.getValue(state.style, mxConstants.STYLE_ROUNDED, false);
-				var arcSize = mxConstants.LINE_ARCSIZE / 2;
-				
 				// Does not draw the markers in the shadow to match the display
 				canvas.setFillColor((shadow) ? mxConstants.NONE : mxUtils.getValue(state.style, mxConstants.STYLE_STROKECOLOR, "#000000"));
 				canvas.setDashed(false);
@@ -887,60 +884,87 @@ mxImageExport.prototype.initShapes = function()
 				this.translatePoint(pts, 0, imageExport.drawMarker(canvas, state, true));
 				this.translatePoint(pts, pts.length - 1, imageExport.drawMarker(canvas, state, false));
 				canvas.setDashed(mxUtils.getValue(state.style, mxConstants.STYLE_DASHED, '0') == '1');
-				
-				var pt = pts[0];
-				var pe = pts[pts.length - 1];
 				canvas.begin();
+				var pt = pts[0];
 				canvas.moveTo(pt.x, pt.y);
 				
-				// Draws the line segments
-				for (var i = 1; i < pts.length - 1; i++)
+				if (mxUtils.getValue(state.style, mxConstants.STYLE_CURVED, false))
 				{
-					var tmp = pts[i];
-					var dx = pt.x - tmp.x;
-					var dy = pt.y - tmp.y;
-		
-					if ((rounded && i < pts.length - 1) && (dx != 0 || dy != 0))
+					var n = pts.length;
+
+					for (var i = 1; i < n - 2; i++)
 					{
-						// Draws a line from the last point to the current
-						// point with a spacing of size off the current point
-						// into direction of the last point
-						var dist = Math.sqrt(dx * dx + dy * dy);
-						var nx1 = dx * Math.min(arcSize, dist / 2) / dist;
-						var ny1 = dy * Math.min(arcSize, dist / 2) / dist;
-		
-						var x1 = tmp.x + nx1;
-						var y1 = tmp.y + ny1;
-						canvas.lineTo(x1, y1);
-		
-						// Draws a curve from the last point to the current
-						// point with a spacing of size off the current point
-						// into direction of the next point
-						var next = pts[i + 1];
-						dx = next.x - tmp.x;
-						dy = next.y - tmp.y;
-		
-						dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
-						var nx2 = dx * Math.min(arcSize, dist / 2) / dist;
-						var ny2 = dy * Math.min(arcSize, dist / 2) / dist;
-		
-						var x2 = tmp.x + nx2;
-						var y2 = tmp.y + ny2;
-		
-						canvas.curveTo(tmp.x, tmp.y, tmp.x, tmp.y, x2, y2);
-						tmp = new mxPoint(x2, y2);
+						var p0 = pts[i];
+						var p1 = pts[i + 1];
+						var ix = (p0.x + p1.x) / 2;
+						var iy = (p0.y + p1.y) / 2;
+						
+						canvas.quadTo(p0.x, p0.y, ix, iy);
 					}
-					else
-					{
-						canvas.lineTo(tmp.x, tmp.y);
-					}
-		
-					pt = tmp;
+					
+					var p0 = pts[n - 2];
+					var p1 = pts[n - 1];
+					
+					canvas.quadTo(p0.x, p0.y, p1.x, p1.y);
 				}
-		
-				canvas.lineTo(pe.x, pe.y);
-				canvas.stroke();
+				else
+				{
+					var rounded = mxUtils.getValue(state.style, mxConstants.STYLE_ROUNDED, false);
+					var arcSize = mxConstants.LINE_ARCSIZE / 2;
+
+					var pe = pts[pts.length - 1];
+					canvas.moveTo(pt.x, pt.y);
+					
+					// Draws the line segments
+					for (var i = 1; i < pts.length - 1; i++)
+					{
+						var tmp = pts[i];
+						var dx = pt.x - tmp.x;
+						var dy = pt.y - tmp.y;
+			
+						if ((rounded && i < pts.length - 1) && (dx != 0 || dy != 0))
+						{
+							// Draws a line from the last point to the current
+							// point with a spacing of size off the current point
+							// into direction of the last point
+							var dist = Math.sqrt(dx * dx + dy * dy);
+							var nx1 = dx * Math.min(arcSize, dist / 2) / dist;
+							var ny1 = dy * Math.min(arcSize, dist / 2) / dist;
+			
+							var x1 = tmp.x + nx1;
+							var y1 = tmp.y + ny1;
+							canvas.lineTo(x1, y1);
+			
+							// Draws a curve from the last point to the current
+							// point with a spacing of size off the current point
+							// into direction of the next point
+							var next = pts[i + 1];
+							dx = next.x - tmp.x;
+							dy = next.y - tmp.y;
+			
+							dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+							var nx2 = dx * Math.min(arcSize, dist / 2) / dist;
+							var ny2 = dy * Math.min(arcSize, dist / 2) / dist;
+			
+							var x2 = tmp.x + nx2;
+							var y2 = tmp.y + ny2;
+			
+							canvas.curveTo(tmp.x, tmp.y, tmp.x, tmp.y, x2, y2);
+							tmp = new mxPoint(x2, y2);
+						}
+						else
+						{
+							canvas.lineTo(tmp.x, tmp.y);
+						}
+			
+						pt = tmp;
+					}
+			
+					canvas.lineTo(pe.x, pe.y);
+				}
 				
+				canvas.stroke();
+
 				return true;
 			}
 			else

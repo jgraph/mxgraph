@@ -1,5 +1,5 @@
 /**
- * $Id: mxCoordinateAssignment.js,v 1.29 2012-06-21 14:28:09 david Exp $
+ * $Id: mxCoordinateAssignment.js,v 1.30 2013-01-09 16:34:29 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -63,7 +63,7 @@ mxCoordinateAssignment.prototype.intraCellSpacing = 30;
  * 
  * The minimum distance between cells on adjacent ranks. Default is 10.
  */
-mxCoordinateAssignment.prototype.interRankCellSpacing = 10;
+mxCoordinateAssignment.prototype.interRankCellSpacing = 50;
 
 /**
  * Variable: parallelEdgeSpacing
@@ -1547,11 +1547,13 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 		var jettys = this.jettyPositions[edgeId];
 
 		var source = cell.isReversed ? cell.target.cell : cell.source.cell;
+		var graph = this.layout.graph;
 
 		for (var i = 0; i < cell.edges.length; i++)
 		{
 			var realEdge = cell.edges[i];
-			var realSource = this.layout.graph.view.getVisibleTerminal(realEdge, true);
+			var realSource = this.layout.getVisibleTerminal(realEdge, true);
+			var modelSource = graph.model.getTerminal(realEdge, true);
 
 			//List oldPoints = graph.getPoints(realEdge);
 			var newPoints = [];
@@ -1584,6 +1586,22 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 				
 				y += jetty;
 				var x = jettys[parallelEdgeCount * 4 + arrayOffset];
+				
+				var modelSource = graph.model.getTerminal(realEdge, true);
+
+				if (this.layout.isPort(modelSource) && graph.model.getParent(modelSource) == realSource)
+				{
+					var state = graph.view.getState(modelSource);
+					
+					if (state != null)
+					{
+						x = state.x;
+					}
+					else
+					{
+						x = realSource.geometry.x + cell.source.width * modelSource.geometry.x;
+					}
+				}
 
 				if (this.orientation == mxConstants.DIRECTION_NORTH
 						|| this.orientation == mxConstants.DIRECTION_SOUTH)
@@ -1660,6 +1678,23 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 				var y = rankY - jetty;
 				var x = jettys[parallelEdgeCount * 4 + 2 - arrayOffset];
 				
+				var modelTarget = graph.model.getTerminal(realEdge, false);
+				var realTarget = this.layout.getVisibleTerminal(realEdge, false);
+
+				if (this.layout.isPort(modelTarget) && graph.model.getParent(modelTarget) == realTarget)
+				{
+					var state = graph.view.getState(modelTarget);
+					
+					if (state != null)
+					{
+						x = state.x;
+					}
+					else
+					{
+						x = realTarget.geometry.x + cell.target.width * modelTarget.geometry.x;
+					}
+				}
+
 				if (this.orientation == mxConstants.DIRECTION_NORTH ||
 						this.orientation == mxConstants.DIRECTION_SOUTH)
 				{

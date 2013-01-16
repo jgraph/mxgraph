@@ -1,5 +1,5 @@
 /**
- * $Id: mxHierarchicalLayout.js,v 1.30 2012-12-18 12:41:06 david Exp $
+ * $Id: mxHierarchicalLayout.js,v 1.31 2013-01-09 16:34:29 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -125,19 +125,12 @@ mxHierarchicalLayout.prototype.tightenToSource = true;
 mxHierarchicalLayout.prototype.disableEdgeStyle = true;
 
 /**
- * Variable: promoteEdges
- * 
- * Whether or not to promote edges that terminate on vertices with
- * different but common ancestry to appear connected to the highest
- * siblings in the ancestry chains
- */
-mxHierarchicalLayout.prototype.promoteEdges = true;
-
-/**
  * Variable: traverseAncestors
  * 
- * Whether or not to navigate edges whose terminal vertices 
- * have different parents but are in the same ancestry chain
+ * Whether or not to drill into child cells and layout in reverse
+ * group order. This also cause the layout to navigate edges whose 
+ * terminal vertices  * have different parents but are in the same 
+ * ancestry chain
  */
 mxHierarchicalLayout.prototype.traverseAncestors = true;
 
@@ -147,6 +140,13 @@ mxHierarchicalLayout.prototype.traverseAncestors = true;
  * The internal <mxGraphHierarchyModel> formed of the layout.
  */
 mxHierarchicalLayout.prototype.model = null;
+
+/**
+ * Variable: edgesSet
+ * 
+ * A cache of edges whose source terminal is the key
+ */
+mxHierarchicalLayout.prototype.edgesCache = null;
 
 /**
  * Function: getModel
@@ -172,6 +172,7 @@ mxHierarchicalLayout.prototype.execute = function(parent, roots)
 {
 	this.parent = parent;
 	var model = this.graph.model;
+	this.edgesCache = new Object();
 
 	// If the roots are set and the parent is set, only
 	// use the roots that are some dependent of the that
@@ -260,7 +261,7 @@ mxHierarchicalLayout.prototype.findRoots = function(parent, vertices)
 
 				for (var k = 0; k < conns.length; k++)
 				{
-					var src = this.graph.view.getVisibleTerminal(conns[k], true);
+					var src = this.getVisibleTerminal(conns[k], true);
 
 					if (src == cell)
 					{
@@ -307,6 +308,13 @@ mxHierarchicalLayout.prototype.findRoots = function(parent, vertices)
  */
 mxHierarchicalLayout.prototype.getEdges = function(cell)
 {
+	var cellID = mxCellPath.create(cell);
+	
+	if (this.edgesCache[cellID] != null)
+	{
+		return this.edgesCache[cellID];
+	}
+
 	var model = this.graph.model;
 	var edges = [];
 	var isCollapsed = this.graph.isCellCollapsed(cell);
@@ -316,7 +324,11 @@ mxHierarchicalLayout.prototype.getEdges = function(cell)
 	{
 		var child = model.getChildAt(cell, i);
 
-		if (isCollapsed || !this.graph.isCellVisible(child))
+		if (this.isPort(child))
+		{
+			edges = edges.concat(model.getEdges(child, true, true));
+		}
+		else if (isCollapsed || !this.graph.isCellVisible(child))
 		{
 			edges = edges.concat(model.getEdges(child, true, true));
 		}
@@ -327,11 +339,9 @@ mxHierarchicalLayout.prototype.getEdges = function(cell)
 	
 	for (var i = 0; i < edges.length; i++)
 	{
-		var state = this.graph.view.getState(edges[i]);
+		var source = this.getVisibleTerminal(edges[i], true);
+		var target = this.getVisibleTerminal(edges[i], false);
 		
-		var source = (state != null) ? state.getVisibleTerminal(true) : this.graph.view.getVisibleTerminal(edges[i], true);
-		var target = (state != null) ? state.getVisibleTerminal(false) : this.graph.view.getVisibleTerminal(edges[i], false);
-
 		if ((source == target) || ((source != target) && ((target == cell && (this.parent == null || this.graph.isValidAncestor(source, this.parent, this.traverseAncestors))) ||
 			(source == cell && (this.parent == null ||
 					this.graph.isValidAncestor(target, this.parent, this.traverseAncestors))))))
@@ -340,7 +350,33 @@ mxHierarchicalLayout.prototype.getEdges = function(cell)
 		}
 	}
 
+	this.edgesCache[cellID] = result;
+
 	return result;
+};
+
+/**
+ * Function: getVisibleTerminal
+ * 
+ * Helper function to return visible terminal for edge allowing for ports
+ * 
+ * Parameters:
+ * 
+ * edge - <mxCell> whose edges should be returned.
+ * source - Boolean that specifies whether the source or target terminal is to be returned
+ */
+mxHierarchicalLayout.prototype.getVisibleTerminal = function(edge, source)
+{
+	var state = this.graph.view.getState(edge);
+	
+	var terminal = (state != null) ? state.getVisibleTerminal(source) : this.graph.view.getVisibleTerminal(edge, source);
+	
+	if (this.isPort(terminal))
+	{
+		terminal = this.graph.model.getParent(terminal);
+	}
+	
+	return terminal;
 };
 
 /**
@@ -359,7 +395,8 @@ mxHierarchicalLayout.prototype.run = function(parent)
 
 	if (this.roots == null && parent != null)
 	{
-		var filledVertexSet = this.filterDescendants(parent);
+		var filledVertexSet = Object();
+		this.filterDescendants(parent, filledVertexSet);
 
 		this.roots = [];
 		var filledVertexSetEmpty = true;
@@ -377,6 +414,11 @@ mxHierarchicalLayout.prototype.run = function(parent)
 		while (!filledVertexSetEmpty)
 		{
 			var candidateRoots = this.findRoots(parent, filledVertexSet);
+			
+			// If the candidate root is an unconnected group cell, remove it from
+			// the layout. We may need a custom set that holds such groups and forces
+			// them to be processed for resizing and/or moving.
+			
 
 			for (var i = 0; i < candidateRoots.length; i++)
 			{
@@ -451,14 +493,13 @@ mxHierarchicalLayout.prototype.run = function(parent)
  * 
  * Creates an array of descendant cells
  */
-mxHierarchicalLayout.prototype.filterDescendants = function(cell)
+mxHierarchicalLayout.prototype.filterDescendants = function(cell, result)
 {
 	var model = this.graph.model;
-	var result = [];
 
 	if (model.isVertex(cell) && cell != this.parent && this.graph.isCellVisible(cell))
 	{
-		result.push(cell);
+		result[mxCellPath.create(cell)] = cell;
 	}
 
 	if (this.traverseAncestors || cell == this.parent
@@ -469,12 +510,65 @@ mxHierarchicalLayout.prototype.filterDescendants = function(cell)
 		for (var i = 0; i < childCount; i++)
 		{
 			var child = model.getChildAt(cell, i);
-			var children = this.filterDescendants(child);
 			
-			for (var j = 0; j < children.length; j++)
+			// Ignore ports in the layout vertex list, they are dealt with
+			// in the traversal mechanisms
+			if (!this.isPort(child))
 			{
-				result[mxCellPath.create(children[j])] = children[j];
+				this.filterDescendants(child, result);
 			}
+		}
+	}
+};
+
+/**
+ * Function: isPort
+ * 
+ * Returns true if the given cell is a "port", that is, when connecting to
+ * it, its parent is the connecting vertex in terms of graph traversal
+ * 
+ * Parameters:
+ * 
+ * cell - <mxCell> that represents the port.
+ */
+mxHierarchicalLayout.prototype.isPort = function(cell)
+{
+	if (cell.geometry.relative)
+	{
+		return true;
+	}
+	
+	return false;
+};
+
+/**
+ * Function: getEdgesBetween
+ * 
+ * Returns the edges between the given source and target. This takes into
+ * account collapsed and invisible cells and ports.
+ * 
+ * Parameters:
+ * 
+ * source -
+ * target -
+ * directed -
+ */
+mxHierarchicalLayout.prototype.getEdgesBetween = function(source, target, directed)
+{
+	directed = (directed != null) ? directed : false;
+	var edges = this.getEdges(source);
+	var result = [];
+
+	// Checks if the edge is connected to the correct
+	// cell and returns the first match
+	for (var i = 0; i < edges.length; i++)
+	{
+		var src = this.getVisibleTerminal(edges[i], true);
+		var trg = this.getVisibleTerminal(edges[i], false);
+
+		if ((src == source && trg == target) || (!directed && src == target && trg == source))
+		{
+			result.push(edges[i]);
 		}
 	}
 
@@ -500,9 +594,6 @@ mxHierarchicalLayout.prototype.filterDescendants = function(cell)
 mxHierarchicalLayout.prototype.traverse = function(vertex, directed, edge, allVertices, currentComp,
 											hierarchyVertices, filledVertexSet)
 {
-	var view = this.graph.view;
-	var model = this.graph.model;
-
 	if (vertex != null && allVertices != null)
 	{
 		// Has this vertex been seen before in any traversal
@@ -524,22 +615,18 @@ mxHierarchicalLayout.prototype.traverse = function(vertex, directed, edge, allVe
 
 			delete filledVertexSet[vertexID];
 
-			var edgeCount = model.getEdgeCount(vertex);
+			var edges = this.getEdges(vertex);
 
-			if (edgeCount > 0)
+			for (var i = 0; i < edges.length; i++)
 			{
-				for (var i = 0; i < edgeCount; i++)
-				{
-					var e = model.getEdgeAt(vertex, i);
-					var isSource = view.getVisibleTerminal(e, true) == vertex;
+				var isSource = this.getVisibleTerminal(edges[i], true) == vertex;
 
-					if (!directed || isSource)
-					{
-						var next = view.getVisibleTerminal(e, !isSource);
-						currentComp = this.traverse(next, directed, e, allVertices,
-								currentComp, hierarchyVertices,
-								filledVertexSet);
-					}
+				if (!directed || isSource)
+				{
+					var next = this.getVisibleTerminal(edges[i], !isSource);
+					currentComp = this.traverse(next, directed, edges[i], allVertices,
+							currentComp, hierarchyVertices,
+							filledVertexSet);
 				}
 			}
 		}

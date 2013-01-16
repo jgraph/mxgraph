@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphView.js,v 1.195 2012-11-20 09:06:07 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.196 2012-12-18 17:06:10 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -2218,34 +2218,36 @@ mxGraphView.prototype.installListeners = function()
 			mouseMove: function() { },
 			mouseUp: function() { }
 		});
-		mxEvent.addListener(document, mm,
-			mxUtils.bind(this, function(evt)
+		
+		this.moveHandler = mxUtils.bind(this, function(evt)
+				{
+			// Hides the tooltip if mouse is outside container
+			if (graph.tooltipHandler != null &&
+				graph.tooltipHandler.isHideOnHover())
 			{
-				// Hides the tooltip if mouse is outside container
-				if (graph.tooltipHandler != null &&
-					graph.tooltipHandler.isHideOnHover())
-				{
-					graph.tooltipHandler.hide();
-				}
-				
-				if (this.captureDocumentGesture && graph.isMouseDown &&
-					!mxEvent.isConsumed(evt))
-				{
-					graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
-						new mxMouseEvent(evt, getState(evt)));
-				}
-			})
-		);
-		mxEvent.addListener(document, mu,
-			mxUtils.bind(this, function(evt)
+				graph.tooltipHandler.hide();
+			}
+			
+			if (this.captureDocumentGesture && graph.isMouseDown &&
+				!mxEvent.isConsumed(evt))
 			{
-				if (this.captureDocumentGesture)
-				{
-					graph.fireMouseEvent(mxEvent.MOUSE_UP,
-						new mxMouseEvent(evt));
-				}
-			})
-		);
+				graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
+					new mxMouseEvent(evt, getState(evt)));
+			}
+		});
+		
+		mxEvent.addListener(document, mm, this.moveHandler);
+		
+		this.endHandler = mxUtils.bind(this, function(evt)
+		{
+			if (this.captureDocumentGesture)
+			{
+				graph.fireMouseEvent(mxEvent.MOUSE_UP,
+					new mxMouseEvent(evt));
+			}
+		});
+		
+		mxEvent.addListener(document, mu, this.endHandler);
 	}
 };
 
@@ -2464,7 +2466,21 @@ mxGraphView.prototype.destroy = function()
 	if (root != null && root.parentNode != null)
 	{
 		this.clear(this.currentRoot, true);
-		mxEvent.removeAllListeners(document);
+
+		if (this.moveHandler != null)
+		{
+			var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
+			mxEvent.removeListener(document, mm, this.moveHandler);
+			this.moveHandler = null;
+		}
+
+		if (this.endHandler != null)
+		{
+			var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
+			mxEvent.removeListener(document, mu, this.endHandler);
+			this.endHandler = null;
+		}
+		
 		mxEvent.release(this.graph.container);
 		root.parentNode.removeChild(root);
 		

@@ -1,5 +1,5 @@
 /**
- * $Id: mxShape.js,v 1.173 2012-07-31 11:46:53 gaudenz Exp $
+ * $Id: mxShape.js,v 1.175 2013-01-16 08:40:17 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -908,7 +908,15 @@ mxShape.prototype.configureSvgShape = function(node)
 	}
 	else
 	{
-		node.setAttribute('fill', 'none');
+		// Workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=814952
+		if (node.nodeName == 'ellipse' && mxClient.IS_NS && !mxClient.IS_GC && !mxClient.IS_SF)
+		{
+			node.setAttribute('fill', 'transparent');
+		}
+		else
+		{
+			node.setAttribute('fill', 'none');
+		}
 	}
 
 	if (this.opacity != null)
@@ -1136,6 +1144,80 @@ mxShape.prototype.createPoints = function(moveCmd, lineCmd, curveCmd, isRelative
 	}
 	
 	return points;
+};
+
+/**
+ * Function: createCurvedPoints
+ *
+ * Creates a path expression using the specified commands for this.points.
+ */
+mxShape.prototype.createCurvedPoints = function(isVml)
+{
+	// Workaround for crisp shape-rendering in IE9
+	var crisp = (this.crisp && this.dialect == mxConstants.DIALECT_SVG && mxClient.IS_IE) ? 0.5 : 0;
+	var offsetX = (isVml) ? this.bounds.x : 0;
+	var offsetY = (isVml) ? this.bounds.y : 0;
+	
+	var p0 = this.points[0];
+	var n = this.points.length;
+	var points = ((isVml) ? 'm' : 'M') + ' ' + (Math.round(p0.x - offsetX) + crisp) + ' ' +
+		(Math.round(p0.y - offsetY) + crisp) + ' ';
+	var lastX = 0;
+	var lastY = 0;
+	
+	for (var i = 1; i < n - 2; i++)
+	{
+		p0 = this.points[i];
+		var p1 = this.points[i + 1];
+		lastX = (p0.x + p1.x) / 2;
+		lastY = (p0.y + p1.y) / 2;
+		
+		if (isVml)
+		{
+			var tmp = this.points[i - 1];
+			points += this.createVmlQuad(tmp.x - offsetX, tmp.y - offsetY,
+				p0.x - offsetX, p0.y - offsetY, lastX - offsetX, lastY - offsetY);
+		}
+		else
+		{
+			points += 'Q ' + Math.round(p0.x - offsetX) + ' '+ Math.round(p0.y - offsetY) + ' ' +
+				(Math.round(lastX - offsetX) + crisp) + ' ' + (Math.round(lastY - offsetY) + crisp) + ' ';
+		}
+	}
+	
+	p0 = this.points[n - 2];
+	var p1 = this.points[n - 1];
+	
+	if (isVml)
+	{
+		points += this.createVmlQuad(lastX - offsetX, lastY - offsetY,
+			p0.x - offsetX, p0.y - offsetY, p1.x - offsetX, p1.y - offsetY);
+	}
+	else
+	{
+		points += 'Q ' + Math.round(p0.x - offsetX) + ' ' + Math.round(p0.y - offsetY) + ' ' +
+			(Math.round(p1.x - offsetX) + crisp) + ' ' + (Math.round(p1.y - offsetY) + crisp) + ' ';
+	}
+	
+	return points;
+};
+
+/**
+ * Function: createVmlQuad
+ * 
+ * Creates a quadratic curve via a bezier curve in VML.
+ */
+mxShape.prototype.createVmlQuad = function(lastX, lastY, x1, y1, x2, y2)
+{
+	var cpx1 = lastX + 2/3 * (x1 - lastX);
+	var cpy1 = lastY + 2/3 * (y1 - lastY);
+	
+	var cpx2 = x2 + 2/3 * (x1 - x2);
+	var cpy2 = y2 + 2/3 * (y1 - y2);
+	
+	return 'C ' + Math.round(cpx1) + ' ' + Math.round(cpy1) +
+			' ' + Math.round(cpx2) + ' ' + Math.round(cpy2) +
+			' ' + Math.round(x2) + ' ' + Math.round(y2);
 };
 
 /**
@@ -1411,29 +1493,8 @@ mxShape.prototype.updateVmlShape = function(node)
 		}
 		else if (this.bounds != null)
 		{
-			var points = this.createPoints('m', 'l', 'c', true);
-			
-			// Smooth style for VML (experimental)
-			if (this.style != null && this.style[mxConstants.STYLE_SMOOTH])
-			{
-				var pts = this.points;
-				var n = pts.length;
-				
-				if (n > 3)
-				{
-					var x0 = this.bounds.x;
-					var y0 = this.bounds.y;
-					points = 'm ' + Math.round(pts[0].x - x0) + ' ' + Math.round(pts[0].y - y0) + ' qb';
-					
-					for (var i = 1; i < n - 1; i++)
-					{
-						points += ' ' + Math.round(pts[i].x - x0) + ' ' + Math.round(pts[i].y - y0);
-					}
-
-					points += ' nf l ' + Math.round(pts[n - 1].x - x0) + ' ' + Math.round(pts[n - 1].y - y0);
-				}
-			}
-
+			var points = (this.style == null || this.style[mxConstants.STYLE_CURVED] != 1) ?
+					this.createPoints('m', 'l', 'c', true) : this.createCurvedPoints(true);
 			node.path = points + ' e';
 		}
 	}
@@ -1494,33 +1555,12 @@ mxShape.prototype.updateSvgBounds = function(node)
  */
 mxShape.prototype.updateSvgPath = function(node)
 {
-	var d = this.createPoints('M', 'L', 'C', false);
+	var d = (this.style == null || this.style[mxConstants.STYLE_CURVED] != 1) ?
+		this.createPoints('M', 'L', 'C', false) : this.createCurvedPoints(false);
 	
 	if (d != null)
 	{
 		node.setAttribute('d', d);
-		
-		// Smooth style for SVG (experimental)
-		if (this.style != null && this.style[mxConstants.STYLE_SMOOTH])
-		{
-			var pts = this.points;
-			var n = pts.length;
-			
-			if (n > 3)
-			{
-				var points = 'M '+pts[0].x+' '+pts[0].y+' ';
-				points += ' Q '+pts[1].x + ' ' + pts[1].y + ' ' +
-					' '+pts[2].x + ' ' + pts[2].y;
-				
-				for (var i = 3; i < n; i++)
-				{
-					points += ' T ' + pts[i].x + ' ' + pts[i].y;
-				}
-
-				node.setAttribute('d', points);
-			}
-		}
-
 		node.removeAttribute('x');
 		node.removeAttribute('y');
 		node.removeAttribute('width');

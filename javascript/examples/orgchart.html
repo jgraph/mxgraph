@@ -1,5 +1,5 @@
 <!--
-  $Id: orgchart.html,v 1.66 2012-11-20 09:06:07 gaudenz Exp $
+  $Id: orgchart.html,v 1.67 2013-01-15 17:49:53 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
 
   Orgchart example for mxGraph. This example demonstrates using
@@ -76,6 +76,19 @@
 
 				// Creates the graph inside the given container
 				var graph = new mxGraph(container);
+				
+				// Enables automatic sizing for vertices after editing and
+				// panning by using the left mouse button.
+				graph.setCellsMovable(false);
+				graph.setAutoSizeCells(true);
+				graph.setPanning(true);
+				graph.panningHandler.useLeftButtonForPanning = true;
+
+				// Displays a popupmenu when the user clicks
+				// on a cell (using the left mouse button) but
+				// do not select the cell when the popup menu
+				// is displayed
+				graph.panningHandler.selectOnPopup = false;
 
 				// Creates the outline (navigator, overview) for moving
 				// around the graph in the top, right corner of the window.
@@ -123,19 +136,6 @@
 				
 				// Disable the following for straight lines
 				style[mxConstants.STYLE_EDGE] = mxEdgeStyle.TopToBottom;
-				
-				// Enables automatic sizing for vertices after editing and
-				// panning by using the left mouse button.
-				graph.setCellsMovable(false);
-				graph.setAutoSizeCells(true);
-				graph.setPanning(true);
-				graph.panningHandler.useLeftButtonForPanning = true;
-
-				// Displays a popupmenu when the user clicks
-				// on a cell (using the left mouse button) but
-				// do not select the cell when the popup menu
-				// is displayed
-				graph.panningHandler.selectOnPopup = false;
 
 				// Stops editing on enter or escape keypress
 				var keyHandler = new mxKeyHandler(graph);

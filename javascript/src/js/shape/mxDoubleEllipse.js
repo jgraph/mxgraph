@@ -1,5 +1,5 @@
 /**
- * $Id: mxDoubleEllipse.js,v 1.19 2012-05-21 18:27:17 gaudenz Exp $
+ * $Id: mxDoubleEllipse.js,v 1.20 2012-12-19 17:45:24 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -140,7 +140,16 @@ mxDoubleEllipse.prototype.createSvg = function()
 		this.foreground.setAttribute('stroke', 'none');
 	}
 	
-	this.foreground.setAttribute('fill', 'none');
+	// Workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=814952
+	if (mxClient.IS_NS && !mxClient.IS_GC && !mxClient.IS_SF)
+	{
+		this.foreground.setAttribute('fill', 'transparent');
+	}
+	else
+	{
+		this.foreground.setAttribute('fill', 'none');
+	}
+	
 	g.appendChild(this.foreground);
 	
 	return g;

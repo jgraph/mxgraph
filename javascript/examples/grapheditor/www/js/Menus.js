@@ -1,5 +1,5 @@
 /**
- * $Id: Menus.js,v 1.58 2012-12-17 14:10:07 gaudenz Exp $
+ * $Id: Menus.js,v 1.59 2013-01-16 08:40:17 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -134,7 +134,7 @@ Menus.prototype.init = function()
 		this.addSubmenu('gradient', menu, parent);
 		this.addMenuItems(menu, ['-', 'shadow'], parent);
 		this.promptChange(menu, mxResources.get('opacity'), '(%)', '100', mxConstants.STYLE_OPACITY, parent, this.get('format').enabled);
-		this.addMenuItems(menu, ['-', 'rounded', 'dashed', '-', 'strokeColor'], parent);
+		this.addMenuItems(menu, ['-', 'curved', 'rounded', 'dashed', '-', 'strokeColor'], parent);
 		this.addSubmenu('linewidth', menu, parent);
 		this.addMenuItems(menu, ['-'], parent);
 		this.addSubmenu('line', menu, parent);

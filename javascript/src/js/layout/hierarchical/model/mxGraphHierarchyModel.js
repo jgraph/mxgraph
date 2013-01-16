@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphHierarchyModel.js,v 1.33 2012-12-18 13:16:43 david Exp $
+ * $Id: mxGraphHierarchyModel.js,v 1.34 2013-01-09 16:34:29 david Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -67,7 +67,7 @@ function mxGraphHierarchyModel(layout, vertices, roots, parent, tightenToSource)
 			if (realEdges != null && realEdges.length > 0)
 			{
 				var realEdge = realEdges[0];
-				var targetCell = graph.getView().getVisibleTerminal(
+				var targetCell = layout.getVisibleTerminal(
 						realEdge, false);
 				var targetCellId = mxCellPath.create(targetCell);
 				var internalTargetCell = this.vertexMapper[targetCellId];
@@ -75,7 +75,7 @@ function mxGraphHierarchyModel(layout, vertices, roots, parent, tightenToSource)
 				if (internalVertices[i] == internalTargetCell)
 				{
 					// The real edge is reversed relative to the internal edge
-					targetCell = graph.getView().getVisibleTerminal(
+					targetCell = layout.getVisibleTerminal(
 							realEdge, true);
 					targetCellId = mxCellPath.create(targetCell);
 					internalTargetCell = this.vertexMapper[targetCellId];
@@ -197,67 +197,70 @@ mxGraphHierarchyModel.prototype.createInternalCells = function(layout, vertices,
 		// If the layout is deterministic, order the cells
 		//List outgoingCells = graph.getNeighbours(vertices[i], deterministic);
 		var conns = layout.getEdges(vertices[i]);
-		var outgoingCells = graph.getOpposites(conns, vertices[i]);
 		internalVertices[i].connectsAsSource = [];
 
 		// Create internal edges, but don't do any rank assignment yet
 		// First use the information from the greedy cycle remover to
 		// invert the leftward edges internally
-		for (var j = 0; j < outgoingCells.length; j++)
+		for (var j = 0; j < conns.length; j++)
 		{
-			var cell = outgoingCells[j];
+			var cell = layout.getVisibleTerminal(conns[j], false);
 
-			if (cell != vertices[i] && layout.graph.model.isVertex(cell) &&
-					!layout.isVertexIgnored(cell))
+			// Looking for outgoing edges only
+			if (cell != vertices[i])
 			{
-				// We process all edge between this source and its targets
-				// If there are edges going both ways, we need to collect
-				// them all into one internal edges to avoid looping problems
-				// later. We assume this direction (source -> target) is the 
-				// natural direction if at least half the edges are going in
-				// that direction.
-
-				// The check below for edges[0] being in the vertex mapper is
-				// in case we've processed this the other way around
-				// (target -> source) and the number of edges in each direction
-				// are the same. All the graph edges will have been assigned to
-				// an internal edge going the other way, so we don't want to 
-				// process them again
-				var undirectedEdges = graph.getEdgesBetween(vertices[i],
-						cell, false);
-				var directedEdges = graph.getEdgesBetween(vertices[i],
-						cell, true);
-				var edgeId = mxCellPath.create(undirectedEdges[0]);
-				
-				if (undirectedEdges != null &&
-						undirectedEdges.length > 0 &&
-						this.edgeMapper[edgeId] == null &&
-						directedEdges.length * 2 >= undirectedEdges.length)
+				if (cell != vertices[i] && layout.graph.model.isVertex(cell) &&
+						!layout.isVertexIgnored(cell))
 				{
-					var internalEdge = new mxGraphHierarchyEdge(undirectedEdges);
-
-					for (var k = 0; k < undirectedEdges.length; k++)
+					// We process all edge between this source and its targets
+					// If there are edges going both ways, we need to collect
+					// them all into one internal edges to avoid looping problems
+					// later. We assume this direction (source -> target) is the 
+					// natural direction if at least half the edges are going in
+					// that direction.
+	
+					// The check below for edges[0] being in the vertex mapper is
+					// in case we've processed this the other way around
+					// (target -> source) and the number of edges in each direction
+					// are the same. All the graph edges will have been assigned to
+					// an internal edge going the other way, so we don't want to 
+					// process them again
+					var undirectedEdges = layout.getEdgesBetween(vertices[i],
+							cell, false);
+					var directedEdges = layout.getEdgesBetween(vertices[i],
+							cell, true);
+					var edgeId = mxCellPath.create(undirectedEdges[0]);
+					
+					if (undirectedEdges != null &&
+							undirectedEdges.length > 0 &&
+							this.edgeMapper[edgeId] == null &&
+							directedEdges.length * 2 >= undirectedEdges.length)
 					{
-						var edge = undirectedEdges[k];
-						edgeId = mxCellPath.create(edge);
-						this.edgeMapper[edgeId] = internalEdge;
-
-						// Resets all point on the edge and disables the edge style
-						// without deleting it from the cell style
-						graph.resetEdge(edge);
-
-					    if (layout.disableEdgeStyle)
-					    {
-					    	layout.setEdgeStyleEnabled(edge, false);
-					    	layout.setOrthogonalEdge(edge,true);
-					    }
-					}
-
-					internalEdge.source = internalVertices[i];
-
-					if (mxUtils.indexOf(internalVertices[i].connectsAsSource, internalEdge) < 0)
-					{
-						internalVertices[i].connectsAsSource.push(internalEdge);
+						var internalEdge = new mxGraphHierarchyEdge(undirectedEdges);
+	
+						for (var k = 0; k < undirectedEdges.length; k++)
+						{
+							var edge = undirectedEdges[k];
+							edgeId = mxCellPath.create(edge);
+							this.edgeMapper[edgeId] = internalEdge;
+	
+							// Resets all point on the edge and disables the edge style
+							// without deleting it from the cell style
+							graph.resetEdge(edge);
+	
+						    if (layout.disableEdgeStyle)
+						    {
+						    	layout.setEdgeStyleEnabled(edge, false);
+						    	layout.setOrthogonalEdge(edge,true);
+						    }
+						}
+	
+						internalEdge.source = internalVertices[i];
+	
+						if (mxUtils.indexOf(internalVertices[i].connectsAsSource, internalEdge) < 0)
+						{
+							internalVertices[i].connectsAsSource.push(internalEdge);
+						}
 					}
 				}
 			}
