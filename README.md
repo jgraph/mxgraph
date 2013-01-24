@@ -28,3 +28,7 @@ If your question is not programming related, or what you have to say is not a qu
 If your interest is commercial and you prefer to talk privately, contact us via the jgraph.com site, http://www.jgraph.com/contact.html.
 
 If you have bug reports or feature requests, use the Github issue tracker, https://github.com/jgraph/mxgraph/issues.
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/jgraph/mxgraph/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
