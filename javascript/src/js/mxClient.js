@@ -1,5 +1,5 @@
 /**
- * $Id: mxClient.js,v 1.203 2012-07-19 15:19:07 gaudenz Exp $
+ * $Id: mxClient.js,v 1.204 2013-01-24 12:14:27 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClient =
@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.10.4.2.
+	 * Current version is 1.10.4.3.
 	 */
-	VERSION: '1.10.4.2',
+	VERSION: '1.10.4.3',
 
 	/**
 	 * Variable: IS_IE
@@ -256,8 +256,7 @@ var mxClient =
 	 * Function: dispose
 	 * 
 	 * Frees up memory in IE by resolving cyclic dependencies between the DOM
-	 * and the JavaScript objects. This is always invoked in IE when the page
-	 * unloads.
+	 * and the JavaScript objects.
 	 */
 	dispose: function()
 	{

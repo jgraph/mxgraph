@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphView.js,v 1.196 2012-12-18 17:06:10 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.198 2013-02-12 10:19:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -2131,55 +2131,44 @@ mxGraphView.prototype.installListeners = function()
 		var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
 		
 		// Adds basic listeners for graph event dispatching
-		mxEvent.addListener(container, md,
-			mxUtils.bind(this, function(evt)
+		mxEvent.addListener(container, md, mxUtils.bind(this, function(evt)
+		{
+			// Workaround for touch-based device not transferring
+			// the focus while editing with virtual keyboard
+			if (mxClient.IS_TOUCH && graph.isEditing())
 			{
-				// Workaround for touch-based device not transferring
-				// the focus while editing with virtual keyboard
-				if (mxClient.IS_TOUCH && graph.isEditing())
-				{
-					graph.stopEditing(!graph.isInvokesStopCellEditing());
-				}
-				
-				// Condition to avoid scrollbar events starting a rubberband
-				// selection
-				if (this.isContainerEvent(evt) && ((!mxClient.IS_IE && 
-					!mxClient.IS_GC && !mxClient.IS_OP && !mxClient.IS_SF) ||
-					!this.isScrollEvent(evt)))
-				{
-					graph.fireMouseEvent(mxEvent.MOUSE_DOWN,
-						new mxMouseEvent(evt));
-				}
-			})
-		);
-		mxEvent.addListener(container, mm,
-			mxUtils.bind(this, function(evt)
+				graph.stopEditing(!graph.isInvokesStopCellEditing());
+			}
+			
+			// Condition to avoid scrollbar events starting a rubberband
+			// selection
+			if (this.isContainerEvent(evt) && ((!mxClient.IS_IE && 
+				!mxClient.IS_GC && !mxClient.IS_OP && !mxClient.IS_SF) ||
+				!this.isScrollEvent(evt)))
 			{
-				if (this.isContainerEvent(evt))
-				{
-					graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
-						new mxMouseEvent(evt));
-				}
-			})
-		);
-		mxEvent.addListener(container, mu,
-			mxUtils.bind(this, function(evt)
+				graph.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt));
+			}
+		}));
+		mxEvent.addListener(container, mm, mxUtils.bind(this, function(evt)
+		{
+			if (this.isContainerEvent(evt))
 			{
-				if (this.isContainerEvent(evt))
-				{
-					graph.fireMouseEvent(mxEvent.MOUSE_UP,
-						new mxMouseEvent(evt));
-				}
-			})
-		);
+				graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt));
+			}
+		}));
+		mxEvent.addListener(container, mu, mxUtils.bind(this, function(evt)
+		{
+			if (this.isContainerEvent(evt))
+			{
+				graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt));
+			}
+		}));
 		
 		// Adds listener for double click handling on background
-		mxEvent.addListener(container, 'dblclick',
-			mxUtils.bind(this, function(evt)
-			{
-				graph.dblClick(evt);
-			})
-		);
+		mxEvent.addListener(container, 'dblclick', mxUtils.bind(this, function(evt)
+		{
+			graph.dblClick(evt);
+		}));
 
 		// Workaround for touch events which started on some DOM node
 		// on top of the container, in which case the cells under the
@@ -2220,19 +2209,16 @@ mxGraphView.prototype.installListeners = function()
 		});
 		
 		this.moveHandler = mxUtils.bind(this, function(evt)
-				{
+		{
 			// Hides the tooltip if mouse is outside container
-			if (graph.tooltipHandler != null &&
-				graph.tooltipHandler.isHideOnHover())
+			if (graph.tooltipHandler != null && graph.tooltipHandler.isHideOnHover())
 			{
 				graph.tooltipHandler.hide();
 			}
 			
-			if (this.captureDocumentGesture && graph.isMouseDown &&
-				!mxEvent.isConsumed(evt))
+			if (this.captureDocumentGesture && graph.isMouseDown && !mxEvent.isConsumed(evt))
 			{
-				graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
-					new mxMouseEvent(evt, getState(evt)));
+				graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt, getState(evt)));
 			}
 		});
 		
@@ -2242,8 +2228,7 @@ mxGraphView.prototype.installListeners = function()
 		{
 			if (this.captureDocumentGesture)
 			{
-				graph.fireMouseEvent(mxEvent.MOUSE_UP,
-					new mxMouseEvent(evt));
+				graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt));
 			}
 		});
 		
@@ -2428,10 +2413,9 @@ mxGraphView.prototype.createSvg = function()
 	root.style.width = '100%';
 	root.style.height = '100%';
 	
-	if (mxClient.IS_IE)
-	{
-		root.style.marginBottom = '-4px';
-	}
+	// NOTE: In standards mode, the SVG must have block layout
+	// in order for the container DIV to not show scrollbars.
+	root.style.display = 'block';
 
 	root.appendChild(this.canvas);
 	

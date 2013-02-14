@@ -1,5 +1,5 @@
 /**
- * $Id: mxPrintPreview.js,v 1.61 2012-05-15 14:12:40 gaudenz Exp $
+ * $Id: mxPrintPreview.js,v 1.62 2013-02-05 11:38:55 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -287,7 +287,7 @@ mxPrintPreview.prototype.open = function(css)
 			// Adds all required stylesheets and namespaces
 			mxClient.link('stylesheet', mxClient.basePath + '/css/common.css', doc);
 	
-			if (mxClient.IS_IE && document.documentMode != 9)
+			if (mxClient.IS_VML)
 			{
 				doc.namespaces.add('v', 'urn:schemas-microsoft-com:vml');
 				doc.namespaces.add('o', 'urn:schemas-microsoft-com:office:office');

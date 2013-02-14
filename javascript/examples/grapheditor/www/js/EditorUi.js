@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.58 2012-12-19 08:01:29 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.60 2013-01-24 12:13:05 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -137,15 +137,6 @@ EditorUi = function(editor, container)
 	this.getKeyHandler = function()
 	{
 		return keyHandler;
-	};
-
-	// Shows dialog if changes are lost
-	window.onbeforeunload = function()
-	{
-		if (editor.modified)
-		{
-			return mxResources.get('allChangesLost');
-		}
 	};
 
 	// Updates the editor UI after the window has been resized
@@ -418,6 +409,7 @@ EditorUi.prototype.addSelectionListener = function()
     		this.actions.get(actions[i]).setEnabled(selected);
     	}
     	
+    	this.actions.get('curved').setEnabled(edgeSelected);
     	this.actions.get('rotation').setEnabled(vertexSelected);
        	this.actions.get('group').setEnabled(graph.getSelectionCount() > 1);
        	this.actions.get('ungroup').setEnabled(graph.getSelectionCount() == 1 &&

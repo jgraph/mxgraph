@@ -1,5 +1,5 @@
 /**
- * $Id: Editor.js,v 1.49 2012-07-24 07:49:48 gaudenz Exp $
+ * $Id: Editor.js,v 1.51 2013-01-24 14:41:14 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 // Specifies if local storage should be used (eg. on the iPad which has no filesystem)
@@ -161,6 +161,7 @@ Editor.prototype.setGraphXml = function(node)
 		if (pw != null && ph != null)
 		{
 			this.graph.pageFormat = new mxRectangle(0, 0, parseFloat(pw), parseFloat(ph));
+			this.outline.outline.pageFormat = this.graph.pageFormat;
 		}
 
 		// Loads the persistent state settings
@@ -350,7 +351,6 @@ Editor.prototype.init = function()
 	mxConstants.LABEL_HANDLE_FILLCOLOR = '#cee7ff';
 	mxConstants.GUIDE_COLOR = '#0088cf';
 
-	// TODO: Add option for setting pageScale
 	mxGraph.prototype.pageBreakColor = '#c0c0c0';
 	mxGraph.prototype.pageScale = 1;
 	

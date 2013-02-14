@@ -1,5 +1,5 @@
 /**
- * $Id: mxClient.js,v 1.203 2012-07-19 15:19:07 gaudenz Exp $
+ * $Id: mxClient.js,v 1.204 2013-01-24 12:14:27 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClient =
@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.10.4.2.
+	 * Current version is 1.10.4.3.
 	 */
-	VERSION: '1.10.4.2',
+	VERSION: '1.10.4.3',
 
 	/**
 	 * Variable: IS_IE
@@ -256,8 +256,7 @@ var mxClient =
 	 * Function: dispose
 	 * 
 	 * Frees up memory in IE by resolving cyclic dependencies between the DOM
-	 * and the JavaScript objects. This is always invoked in IE when the page
-	 * unloads.
+	 * and the JavaScript objects.
 	 */
 	dispose: function()
 	{
@@ -41373,7 +41372,7 @@ var mxPerimeter =
 	}
 };
 /**
- * $Id: mxPrintPreview.js,v 1.61 2012-05-15 14:12:40 gaudenz Exp $
+ * $Id: mxPrintPreview.js,v 1.62 2013-02-05 11:38:55 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -41661,7 +41660,7 @@ mxPrintPreview.prototype.open = function(css)
 			// Adds all required stylesheets and namespaces
 			mxClient.link('stylesheet', mxClient.basePath + '/css/common.css', doc);
 	
-			if (mxClient.IS_IE && document.documentMode != 9)
+			if (mxClient.IS_VML)
 			{
 				doc.namespaces.add('v', 'urn:schemas-microsoft-com:vml');
 				doc.namespaces.add('o', 'urn:schemas-microsoft-com:office:office');
@@ -46623,7 +46622,7 @@ mxStyleRegistry.putValue(mxConstants.PERIMETER_RECTANGLE, mxPerimeter.RectangleP
 mxStyleRegistry.putValue(mxConstants.PERIMETER_RHOMBUS, mxPerimeter.RhombusPerimeter);
 mxStyleRegistry.putValue(mxConstants.PERIMETER_TRIANGLE, mxPerimeter.TrianglePerimeter);
 /**
- * $Id: mxGraphView.js,v 1.196 2012-12-18 17:06:10 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.198 2013-02-12 10:19:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -48755,55 +48754,44 @@ mxGraphView.prototype.installListeners = function()
 		var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
 		
 		// Adds basic listeners for graph event dispatching
-		mxEvent.addListener(container, md,
-			mxUtils.bind(this, function(evt)
+		mxEvent.addListener(container, md, mxUtils.bind(this, function(evt)
+		{
+			// Workaround for touch-based device not transferring
+			// the focus while editing with virtual keyboard
+			if (mxClient.IS_TOUCH && graph.isEditing())
 			{
-				// Workaround for touch-based device not transferring
-				// the focus while editing with virtual keyboard
-				if (mxClient.IS_TOUCH && graph.isEditing())
-				{
-					graph.stopEditing(!graph.isInvokesStopCellEditing());
-				}
-				
-				// Condition to avoid scrollbar events starting a rubberband
-				// selection
-				if (this.isContainerEvent(evt) && ((!mxClient.IS_IE && 
-					!mxClient.IS_GC && !mxClient.IS_OP && !mxClient.IS_SF) ||
-					!this.isScrollEvent(evt)))
-				{
-					graph.fireMouseEvent(mxEvent.MOUSE_DOWN,
-						new mxMouseEvent(evt));
-				}
-			})
-		);
-		mxEvent.addListener(container, mm,
-			mxUtils.bind(this, function(evt)
+				graph.stopEditing(!graph.isInvokesStopCellEditing());
+			}
+			
+			// Condition to avoid scrollbar events starting a rubberband
+			// selection
+			if (this.isContainerEvent(evt) && ((!mxClient.IS_IE && 
+				!mxClient.IS_GC && !mxClient.IS_OP && !mxClient.IS_SF) ||
+				!this.isScrollEvent(evt)))
 			{
-				if (this.isContainerEvent(evt))
-				{
-					graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
-						new mxMouseEvent(evt));
-				}
-			})
-		);
-		mxEvent.addListener(container, mu,
-			mxUtils.bind(this, function(evt)
+				graph.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt));
+			}
+		}));
+		mxEvent.addListener(container, mm, mxUtils.bind(this, function(evt)
+		{
+			if (this.isContainerEvent(evt))
 			{
-				if (this.isContainerEvent(evt))
-				{
-					graph.fireMouseEvent(mxEvent.MOUSE_UP,
-						new mxMouseEvent(evt));
-				}
-			})
-		);
+				graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt));
+			}
+		}));
+		mxEvent.addListener(container, mu, mxUtils.bind(this, function(evt)
+		{
+			if (this.isContainerEvent(evt))
+			{
+				graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt));
+			}
+		}));
 		
 		// Adds listener for double click handling on background
-		mxEvent.addListener(container, 'dblclick',
-			mxUtils.bind(this, function(evt)
-			{
-				graph.dblClick(evt);
-			})
-		);
+		mxEvent.addListener(container, 'dblclick', mxUtils.bind(this, function(evt)
+		{
+			graph.dblClick(evt);
+		}));
 
 		// Workaround for touch events which started on some DOM node
 		// on top of the container, in which case the cells under the
@@ -48844,19 +48832,16 @@ mxGraphView.prototype.installListeners = function()
 		});
 		
 		this.moveHandler = mxUtils.bind(this, function(evt)
-				{
+		{
 			// Hides the tooltip if mouse is outside container
-			if (graph.tooltipHandler != null &&
-				graph.tooltipHandler.isHideOnHover())
+			if (graph.tooltipHandler != null && graph.tooltipHandler.isHideOnHover())
 			{
 				graph.tooltipHandler.hide();
 			}
 			
-			if (this.captureDocumentGesture && graph.isMouseDown &&
-				!mxEvent.isConsumed(evt))
+			if (this.captureDocumentGesture && graph.isMouseDown && !mxEvent.isConsumed(evt))
 			{
-				graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
-					new mxMouseEvent(evt, getState(evt)));
+				graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt, getState(evt)));
 			}
 		});
 		
@@ -48866,8 +48851,7 @@ mxGraphView.prototype.installListeners = function()
 		{
 			if (this.captureDocumentGesture)
 			{
-				graph.fireMouseEvent(mxEvent.MOUSE_UP,
-					new mxMouseEvent(evt));
+				graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt));
 			}
 		});
 		
@@ -49052,10 +49036,9 @@ mxGraphView.prototype.createSvg = function()
 	root.style.width = '100%';
 	root.style.height = '100%';
 	
-	if (mxClient.IS_IE)
-	{
-		root.style.marginBottom = '-4px';
-	}
+	// NOTE: In standards mode, the SVG must have block layout
+	// in order for the container DIV to not show scrollbars.
+	root.style.display = 'block';
 
 	root.appendChild(this.canvas);
 	
@@ -49184,7 +49167,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.703 2013-01-15 15:06:28 david Exp $
+ * $Id: mxGraph.js,v 1.705 2013-02-12 10:57:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -51698,7 +51681,7 @@ mxGraph.prototype.scrollPointToVisible = function(x, y, extend, border)
 						
 						// Updates the clipping region. This is an expensive
 						// operation that should not be executed too often.
-						root.setAttribute('width', width);
+						root.style.width = width + 'px';
 					}
 					else
 					{
@@ -51736,7 +51719,7 @@ mxGraph.prototype.scrollPointToVisible = function(x, y, extend, border)
 						
 						// Updates the clipping region. This is an expensive
 						// operation that should not be executed too often.
-						root.setAttribute('height', height);
+						root.style.height = height + 'px';
 					}
 					else
 					{
@@ -51905,6 +51888,8 @@ mxGraph.prototype.sizeDidChange = function()
 
 			root.style.minWidth = Math.max(1, width) + 'px';
 			root.style.minHeight = Math.max(1, height) + 'px';
+			root.style.width = '100%';
+			root.style.height = '100%';
 		}
 		else
 		{

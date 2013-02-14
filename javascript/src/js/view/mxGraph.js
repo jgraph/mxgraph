@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.703 2013-01-15 15:06:28 david Exp $
+ * $Id: mxGraph.js,v 1.705 2013-02-12 10:57:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -2513,7 +2513,7 @@ mxGraph.prototype.scrollPointToVisible = function(x, y, extend, border)
 						
 						// Updates the clipping region. This is an expensive
 						// operation that should not be executed too often.
-						root.setAttribute('width', width);
+						root.style.width = width + 'px';
 					}
 					else
 					{
@@ -2551,7 +2551,7 @@ mxGraph.prototype.scrollPointToVisible = function(x, y, extend, border)
 						
 						// Updates the clipping region. This is an expensive
 						// operation that should not be executed too often.
-						root.setAttribute('height', height);
+						root.style.height = height + 'px';
 					}
 					else
 					{
@@ -2720,6 +2720,8 @@ mxGraph.prototype.sizeDidChange = function()
 
 			root.style.minWidth = Math.max(1, width) + 'px';
 			root.style.minHeight = Math.max(1, height) + 'px';
+			root.style.width = '100%';
+			root.style.height = '100%';
 		}
 		else
 		{
