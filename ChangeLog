@@ -1,3 +1,10 @@
+14-FEB-2013: 1.10.4.3
+
+- Fixes autoExtend in mxGraph.scrollPointToVisible for SVG [JavaScript]
+- Fixes vertical scrollbars for SVG element in standards mode [JavaScript]
+- Fixes print preview, missing sidebar cell labels in grapheditor for IE10 [JavaScript]
+- Fixes enabled state of curved action in grapheditor example [JavaScript]
+
 16-JAN-2013: 1.10.4.2
 
 - Adds curved connector shapes, mxConstants.STYLE_CURVED [JavaScript]
