@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.60 2013-01-24 12:13:05 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.61 2013-02-18 07:38:11 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -842,7 +842,7 @@ EditorUi.prototype.createKeyHandler = function(editor)
     		}
     		
     		graph.moveCells(graph.getSelectionCells(), dx, dy);
-    		graph.scrollCellVisible(graph.getSelectionCell());
+    		graph.scrollCellToVisible(graph.getSelectionCell());
 		}
     };
 

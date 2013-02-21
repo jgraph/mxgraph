@@ -161,6 +161,7 @@
 	        <xs:attribute name="y" use="required" type="xs:decimal"/>
 	        <xs:attribute name="align" use="optional" type="xs:string" default="left"/>
 	       	<xs:attribute name="valign" use="optional" type="xs:string" default="top"/>
+	       	<xs:attribute name="localized" use="optional" type="xs:integer"/>
 	    </xs:complexType>
 	</xs:element>
 	<xs:element name="image">

@@ -1,5 +1,5 @@
 /**
- * $Id: mxStyleRegistry.java,v 1.6 2011-07-15 12:07:35 gaudenz Exp $
+ * $Id: mxStyleRegistry.java,v 1.7 2013-02-20 11:41:04 gaudenz Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.view;
@@ -31,7 +31,8 @@ public class mxStyleRegistry
 		putValue(mxConstants.EDGESTYLE_LOOP, mxEdgeStyle.Loop);
 		putValue(mxConstants.EDGESTYLE_SIDETOSIDE, mxEdgeStyle.SideToSide);
 		putValue(mxConstants.EDGESTYLE_TOPTOBOTTOM, mxEdgeStyle.TopToBottom);
-		putValue(mxConstants.EDGESTYLE_ORTHOGONAL, mxEdgeStyle.orthConnector);
+		putValue(mxConstants.EDGESTYLE_ORTHOGONAL, mxEdgeStyle.OrthConnector);
+		putValue(mxConstants.EDGESTYLE_SEGMENT, mxEdgeStyle.SegmentConnector);
 
 		putValue(mxConstants.PERIMETER_ELLIPSE, mxPerimeter.EllipsePerimeter);
 		putValue(mxConstants.PERIMETER_RECTANGLE,

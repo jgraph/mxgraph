@@ -1,5 +1,5 @@
 /**
- * $Id: mxConstants.java,v 1.81 2012-11-19 16:51:24 gaudenz Exp $
+ * $Id: mxConstants.java,v 1.82 2013-02-20 11:41:04 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.util;
@@ -1164,6 +1164,12 @@ public class mxConstants
 	 */
 	public static final String EDGESTYLE_ORTHOGONAL = "orthogonalEdgeStyle";
 
+	/**
+	 * Name of the generic segment edge style. Can be used as a string value
+	 * for the STYLE_EDGE style.
+	 */
+	public static final String EDGESTYLE_SEGMENT = "segmentEdgeStyle";
+ 
 	/**
 	 * Name of the ellipse perimeter. Can be used as a string value
 	 * for the STYLE_PERIMETER style.
