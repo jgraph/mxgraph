@@ -1,5 +1,5 @@
 /**
- * $Id: mxHierarchicalLayout.js,v 1.31 2013-01-09 16:34:29 david Exp $
+ * $Id: mxHierarchicalLayout.js,v 1.32 2013-02-21 15:18:09 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -75,7 +75,7 @@ mxHierarchicalLayout.prototype.intraCellSpacing = 30;
  * 
  * The spacing buffer added between cell on adjacent layers. Default is 50.
  */
-mxHierarchicalLayout.prototype.interRankCellSpacing = 50;
+mxHierarchicalLayout.prototype.interRankCellSpacing = 100;
 
 /**
  * Variable: interHierarchySpacing

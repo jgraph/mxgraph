@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.10.4.3.
+	 * Current version is 1.11.0.0.
 	 */
-	VERSION: '1.10.4.3',
+	VERSION: '1.11.0.0',
 
 	/**
 	 * Variable: IS_IE
@@ -21406,7 +21406,7 @@ mxShape.prototype.redrawPath = function(path, x, y, w, h)
 	// do nothing
 };
 /**
- * $Id: mxStencil.js,v 1.91 2012-07-16 10:22:44 gaudenz Exp $
+ * $Id: mxStencil.js,v 1.93 2013-02-21 14:18:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -21465,6 +21465,10 @@ mxShape.prototype.redrawPath = function(path, x, y, w, h)
  * scale. If numeric values are used, those are multiplied with the minimum
  * scale used to render the stencil inside the shape's bounds.
  * 
+ * To support i18n in the text element, use the localized attribute of 1 to use
+ * the str as a key in <mxResources.get>. To handle all str attributes of all
+ * text nodes like this, set the <mxStencil.defaultLocalized> value to true.
+ * 
  * Constructor: mxStencilShape
  * 
  * Constructs a new generic shape by setting <desc> to the given XML node and
@@ -21480,6 +21484,14 @@ function mxStencil(desc)
 	this.parseDescription();
 	this.parseConstraints();
 };
+
+/**
+ * Variable: defaultLocalized
+ * 
+ * Static global variable that specifies the default value for the localized
+ * attribute of the text element. Default is false.
+ */
+mxStencil.defaultLocalized = false;
 
 /**
  * Variable: desc
@@ -21602,6 +21614,26 @@ mxStencil.prototype.parseConstraint = function(node)
 	var perimeter = node.getAttribute('perimeter') == '1';
 	
 	return new mxConnectionConstraint(new mxPoint(x, y), perimeter);
+};
+
+/**
+ * Function: evaluateTextAttribute
+ * 
+ * Gets the given attribute as a text. The return value from <evaluateAttribute>
+ * is used as a key to <mxResources.get> if the localized attribute in the text
+ * node is 1 or if <defaultLocalized> is true.
+ */
+mxStencil.prototype.evaluateTextAttribute = function(node, attribute, state)
+{
+	var result = this.evaluateAttribute(node, attribute, state);
+	var loc = node.getAttribute('localized');
+	
+	if ((mxStencil.defaultLocalized && loc == null) || loc == '1')
+	{
+		result = mxResources.get(result);
+	}
+
+	return result;
 };
 
 /**
@@ -21801,7 +21833,7 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 				Number(this.strokewidth) * minScale / ((vml) ? vmlScale : 1),
 			dashed: shape.isDashed,
 			dashpattern: [3, 3],
-			alpha: shape.opacity,
+			alpha: shape.opacity || 1,
 			linejoin: 'miter',
 			fontColor: '#000000',
 			fontSize: mxConstants.DEFAULT_FONTSIZE,
@@ -21826,7 +21858,7 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 					// with bounds must be created for each element in graphics-canvases
 					var gradient = (!state.fillColorAssigned) ? shape.gradient : null;
 					var fill = document.createElement('v:fill');
-					shape.updateVmlFill(fill, state.fill, gradient, shape.gradientDirection, state.alpha);
+					shape.updateVmlFill(fill, state.fill, gradient, shape.gradientDirection, state.alpha * 100);
 					path.appendChild(fill);
 				}
 				else
@@ -21849,7 +21881,12 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 			else
 			{
 				path.setAttribute('stroke-width', sw);
-	
+				
+				if (state.alpha != 1)
+				{
+					path.setAttribute('opacity', state.alpha);
+				}
+				
 				if (state.fill != null && state.fillColorAssigned)
 				{
 					path.setAttribute('fill', state.fill);
@@ -22239,7 +22276,7 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 			// text positon, SVG text rotation and ignored baseline in FF
 			else if (name == 'text')
 			{
-				var str = this.evaluateAttribute(node, 'str', shape.state);
+				var str = this.evaluateTextAttribute(node, 'str', shape.state);
 
 				if (str != null)
 				{
@@ -22888,7 +22925,7 @@ mxStencil.prototype.drawNode = function(canvas, state, node, aspect)
 	}
 	else if (name == 'text')
 	{
-		var str = this.evaluateAttribute(node, 'str', state);
+		var str = this.evaluateTextAttribute(node, 'str', state);
 		
 		canvas.text(x0 + Number(node.getAttribute('x')) * sx,
 				y0 + Number(node.getAttribute('y')) * sy,
@@ -22972,6 +23009,10 @@ mxStencil.prototype.drawNode = function(canvas, state, node, aspect)
 	else if (name == 'fillcolor')
 	{
 		canvas.setFillColor(node.getAttribute('color'));
+	}
+	else if (name == 'alpha')
+	{
+		canvas.setAlpha(node.getAttribute('alpha'));
 	}
 	else if (name == 'fontcolor')
 	{
@@ -34439,7 +34480,7 @@ mxMinimumCycleRemover.prototype.execute = function(parent)
 	}
 };
 /**
- * $Id: mxCoordinateAssignment.js,v 1.30 2013-01-09 16:34:29 david Exp $
+ * $Id: mxCoordinateAssignment.js,v 1.31 2013-02-21 15:10:59 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -34475,7 +34516,8 @@ var mxHierarchicalEdgeStyle =
 {
 	ORTHOGONAL: 1,
 	POLYLINE: 2,
-	STRAIGHT: 3
+	STRAIGHT: 3,
+	CURVE: 4
 };
 
 /**
@@ -34503,7 +34545,7 @@ mxCoordinateAssignment.prototype.intraCellSpacing = 30;
  * 
  * The minimum distance between cells on adjacent ranks. Default is 10.
  */
-mxCoordinateAssignment.prototype.interRankCellSpacing = 50;
+mxCoordinateAssignment.prototype.interRankCellSpacing = 100;
 
 /**
  * Variable: parallelEdgeSpacing
@@ -35770,7 +35812,8 @@ mxCoordinateAssignment.prototype.setCellLocations = function(graph, model)
 	// Post process edge styles. Needs the vertex locations set for initial
 	// values of the top and bottoms of each rank
 	if (this.edgeStyle == mxHierarchicalEdgeStyle.ORTHOGONAL
-			|| this.edgeStyle == mxHierarchicalEdgeStyle.POLYLINE)
+			|| this.edgeStyle == mxHierarchicalEdgeStyle.POLYLINE
+			|| this.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
 	{
 		this.localEdgeProcessing(model);
 	}
@@ -35811,8 +35854,6 @@ mxCoordinateAssignment.prototype.adjustParents = function(parentsChanged)
  */
 mxCoordinateAssignment.prototype.localEdgeProcessing = function(model)
 {
-	var edgeMapping = model.edgeMapper;
-
 	// Iterate through each vertex, look at the edges connected in
 	// both directions.
 	for (var rankIndex = 0; rankIndex < model.ranks.length; rankIndex++)
@@ -36047,10 +36088,20 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 						|| this.orientation == mxConstants.DIRECTION_SOUTH)
 				{
 					newPoints.push(new mxPoint(x, y));
+					
+					if (this.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
+					{
+						newPoints.push(new mxPoint(x, y + jetty));
+					}
 				}
 				else
 				{
 					newPoints.push(new mxPoint(y, x));
+					
+					if (this.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
+					{
+						newPoints.push(new mxPoint(y + jetty, x));
+					}
 				}
 			}
 
@@ -36138,10 +36189,20 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 				if (this.orientation == mxConstants.DIRECTION_NORTH ||
 						this.orientation == mxConstants.DIRECTION_SOUTH)
 				{
+					if (this.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
+					{
+						newPoints.push(new mxPoint(x, y - jetty));
+					}
+
 					newPoints.push(new mxPoint(x, y));
 				}
 				else
 				{
+					if (this.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
+					{
+						newPoints.push(new mxPoint(y - jetty, x));
+					}
+
 					newPoints.push(new mxPoint(y, x));
 				}
 			}
@@ -36310,7 +36371,7 @@ WeightedCellSorter.prototype.compare = function(a, b)
 	}
 };
 /**
- * $Id: mxHierarchicalLayout.js,v 1.31 2013-01-09 16:34:29 david Exp $
+ * $Id: mxHierarchicalLayout.js,v 1.32 2013-02-21 15:18:09 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -36386,7 +36447,7 @@ mxHierarchicalLayout.prototype.intraCellSpacing = 30;
  * 
  * The spacing buffer added between cell on adjacent layers. Default is 50.
  */
-mxHierarchicalLayout.prototype.interRankCellSpacing = 50;
+mxHierarchicalLayout.prototype.interRankCellSpacing = 100;
 
 /**
  * Variable: interHierarchySpacing

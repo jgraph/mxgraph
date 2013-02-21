@@ -1,5 +1,5 @@
 /**
- * $Id: mxCoordinateAssignment.js,v 1.30 2013-01-09 16:34:29 david Exp $
+ * $Id: mxCoordinateAssignment.js,v 1.31 2013-02-21 15:10:59 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -35,7 +35,8 @@ var mxHierarchicalEdgeStyle =
 {
 	ORTHOGONAL: 1,
 	POLYLINE: 2,
-	STRAIGHT: 3
+	STRAIGHT: 3,
+	CURVE: 4
 };
 
 /**
@@ -63,7 +64,7 @@ mxCoordinateAssignment.prototype.intraCellSpacing = 30;
  * 
  * The minimum distance between cells on adjacent ranks. Default is 10.
  */
-mxCoordinateAssignment.prototype.interRankCellSpacing = 50;
+mxCoordinateAssignment.prototype.interRankCellSpacing = 100;
 
 /**
  * Variable: parallelEdgeSpacing
@@ -1330,7 +1331,8 @@ mxCoordinateAssignment.prototype.setCellLocations = function(graph, model)
 	// Post process edge styles. Needs the vertex locations set for initial
 	// values of the top and bottoms of each rank
 	if (this.edgeStyle == mxHierarchicalEdgeStyle.ORTHOGONAL
-			|| this.edgeStyle == mxHierarchicalEdgeStyle.POLYLINE)
+			|| this.edgeStyle == mxHierarchicalEdgeStyle.POLYLINE
+			|| this.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
 	{
 		this.localEdgeProcessing(model);
 	}
@@ -1371,8 +1373,6 @@ mxCoordinateAssignment.prototype.adjustParents = function(parentsChanged)
  */
 mxCoordinateAssignment.prototype.localEdgeProcessing = function(model)
 {
-	var edgeMapping = model.edgeMapper;
-
 	// Iterate through each vertex, look at the edges connected in
 	// both directions.
 	for (var rankIndex = 0; rankIndex < model.ranks.length; rankIndex++)
@@ -1607,10 +1607,20 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 						|| this.orientation == mxConstants.DIRECTION_SOUTH)
 				{
 					newPoints.push(new mxPoint(x, y));
+					
+					if (this.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
+					{
+						newPoints.push(new mxPoint(x, y + jetty));
+					}
 				}
 				else
 				{
 					newPoints.push(new mxPoint(y, x));
+					
+					if (this.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
+					{
+						newPoints.push(new mxPoint(y + jetty, x));
+					}
 				}
 			}
 
@@ -1698,10 +1708,20 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 				if (this.orientation == mxConstants.DIRECTION_NORTH ||
 						this.orientation == mxConstants.DIRECTION_SOUTH)
 				{
+					if (this.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
+					{
+						newPoints.push(new mxPoint(x, y - jetty));
+					}
+
 					newPoints.push(new mxPoint(x, y));
 				}
 				else
 				{
+					if (this.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
+					{
+						newPoints.push(new mxPoint(y - jetty, x));
+					}
+
 					newPoints.push(new mxPoint(y, x));
 				}
 			}

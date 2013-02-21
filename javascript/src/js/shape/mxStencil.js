@@ -1,5 +1,5 @@
 /**
- * $Id: mxStencil.js,v 1.91 2012-07-16 10:22:44 gaudenz Exp $
+ * $Id: mxStencil.js,v 1.93 2013-02-21 14:18:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -58,6 +58,10 @@
  * scale. If numeric values are used, those are multiplied with the minimum
  * scale used to render the stencil inside the shape's bounds.
  * 
+ * To support i18n in the text element, use the localized attribute of 1 to use
+ * the str as a key in <mxResources.get>. To handle all str attributes of all
+ * text nodes like this, set the <mxStencil.defaultLocalized> value to true.
+ * 
  * Constructor: mxStencilShape
  * 
  * Constructs a new generic shape by setting <desc> to the given XML node and
@@ -73,6 +77,14 @@ function mxStencil(desc)
 	this.parseDescription();
 	this.parseConstraints();
 };
+
+/**
+ * Variable: defaultLocalized
+ * 
+ * Static global variable that specifies the default value for the localized
+ * attribute of the text element. Default is false.
+ */
+mxStencil.defaultLocalized = false;
 
 /**
  * Variable: desc
@@ -195,6 +207,26 @@ mxStencil.prototype.parseConstraint = function(node)
 	var perimeter = node.getAttribute('perimeter') == '1';
 	
 	return new mxConnectionConstraint(new mxPoint(x, y), perimeter);
+};
+
+/**
+ * Function: evaluateTextAttribute
+ * 
+ * Gets the given attribute as a text. The return value from <evaluateAttribute>
+ * is used as a key to <mxResources.get> if the localized attribute in the text
+ * node is 1 or if <defaultLocalized> is true.
+ */
+mxStencil.prototype.evaluateTextAttribute = function(node, attribute, state)
+{
+	var result = this.evaluateAttribute(node, attribute, state);
+	var loc = node.getAttribute('localized');
+	
+	if ((mxStencil.defaultLocalized && loc == null) || loc == '1')
+	{
+		result = mxResources.get(result);
+	}
+
+	return result;
 };
 
 /**
@@ -394,7 +426,7 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 				Number(this.strokewidth) * minScale / ((vml) ? vmlScale : 1),
 			dashed: shape.isDashed,
 			dashpattern: [3, 3],
-			alpha: shape.opacity,
+			alpha: shape.opacity || 1,
 			linejoin: 'miter',
 			fontColor: '#000000',
 			fontSize: mxConstants.DEFAULT_FONTSIZE,
@@ -419,7 +451,7 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 					// with bounds must be created for each element in graphics-canvases
 					var gradient = (!state.fillColorAssigned) ? shape.gradient : null;
 					var fill = document.createElement('v:fill');
-					shape.updateVmlFill(fill, state.fill, gradient, shape.gradientDirection, state.alpha);
+					shape.updateVmlFill(fill, state.fill, gradient, shape.gradientDirection, state.alpha * 100);
 					path.appendChild(fill);
 				}
 				else
@@ -442,7 +474,12 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 			else
 			{
 				path.setAttribute('stroke-width', sw);
-	
+				
+				if (state.alpha != 1)
+				{
+					path.setAttribute('opacity', state.alpha);
+				}
+				
 				if (state.fill != null && state.fillColorAssigned)
 				{
 					path.setAttribute('fill', state.fill);
@@ -832,7 +869,7 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 			// text positon, SVG text rotation and ignored baseline in FF
 			else if (name == 'text')
 			{
-				var str = this.evaluateAttribute(node, 'str', shape.state);
+				var str = this.evaluateTextAttribute(node, 'str', shape.state);
 
 				if (str != null)
 				{
@@ -1481,7 +1518,7 @@ mxStencil.prototype.drawNode = function(canvas, state, node, aspect)
 	}
 	else if (name == 'text')
 	{
-		var str = this.evaluateAttribute(node, 'str', state);
+		var str = this.evaluateTextAttribute(node, 'str', state);
 		
 		canvas.text(x0 + Number(node.getAttribute('x')) * sx,
 				y0 + Number(node.getAttribute('y')) * sy,
@@ -1565,6 +1602,10 @@ mxStencil.prototype.drawNode = function(canvas, state, node, aspect)
 	else if (name == 'fillcolor')
 	{
 		canvas.setFillColor(node.getAttribute('color'));
+	}
+	else if (name == 'alpha')
+	{
+		canvas.setAlpha(node.getAttribute('alpha'));
 	}
 	else if (name == 'fontcolor')
 	{

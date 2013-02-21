@@ -1,3 +1,11 @@
+21-FEB-2013: 1.11.0.0
+
+- Improves jetty segment positioning for hierarchical layout with curved edges [JavaScript]
+- Fixes handling of alpha values in stencils [JavaScript]
+- Adds mxConstants.EDGESTYLE_SEGMENT, segment connector in mxStyleRegistry [Java]
+- Adds mxEdgeStyle.SegmentConnector, renames orthConnector to OrthConnector [Java]
+- Adds support for i18n in text elements for stencils [JavaScript]
+
 14-FEB-2013: 1.10.4.3
 
 - Fixes autoExtend in mxGraph.scrollPointToVisible for SVG [JavaScript]
