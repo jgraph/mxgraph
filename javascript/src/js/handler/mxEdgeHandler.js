@@ -1,5 +1,5 @@
 /**
- * $Id: mxEdgeHandler.js,v 1.178 2012-09-12 09:16:23 gaudenz Exp $
+ * $Id: mxEdgeHandler.js,v 1.178 2012/09/12 09:16:23 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

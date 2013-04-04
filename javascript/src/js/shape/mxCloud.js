@@ -1,5 +1,5 @@
 /**
- * $Id: mxCloud.js,v 1.12 2011-06-24 11:27:30 gaudenz Exp $
+ * $Id: mxCloud.js,v 1.12 2011/06/24 11:27:30 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

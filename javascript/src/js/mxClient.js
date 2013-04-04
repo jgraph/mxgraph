@@ -1,5 +1,5 @@
 /**
- * $Id: mxClient.js,v 1.204 2013-01-24 12:14:27 gaudenz Exp $
+ * $Id: mxClient.js,v 1.204 2013/01/24 12:14:27 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClient =
@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.11.0.0.
+	 * Current version is 1.12.0.0.
 	 */
-	VERSION: '1.11.0.0',
+	VERSION: '1.12.0.0',
 
 	/**
 	 * Variable: IS_IE

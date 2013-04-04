@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellHighlight.js,v 1.25 2012-09-27 14:43:40 boris Exp $
+ * $Id: mxCellHighlight.js,v 1.25 2012/09/27 14:43:40 boris Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

@@ -1,5 +1,5 @@
 /**
- * $Id: mxEvent.js,v 1.76 2012-12-07 07:39:03 gaudenz Exp $
+ * $Id: mxEvent.js,v 1.76 2012/12/07 07:39:03 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEvent =

@@ -1,5 +1,5 @@
 /**
- * $Id: mxCell.js,v 1.36 2011-06-17 13:45:08 gaudenz Exp $
+ * $Id: mxCell.js,v 1.36 2011/06/17 13:45:08 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

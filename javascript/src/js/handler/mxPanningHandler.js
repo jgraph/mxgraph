@@ -1,5 +1,5 @@
 /**
- * $Id: mxPanningHandler.js,v 1.79 2012-07-17 14:37:41 gaudenz Exp $
+ * $Id: mxPanningHandler.js,v 1.79 2012/07/17 14:37:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

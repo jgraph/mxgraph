@@ -1,5 +1,5 @@
 /**
- * $Id: mxStylesheet.js,v 1.35 2010-03-26 10:24:58 gaudenz Exp $
+ * $Id: mxStylesheet.js,v 1.35 2010/03/26 10:24:58 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

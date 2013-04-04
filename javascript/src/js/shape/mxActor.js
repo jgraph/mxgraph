@@ -1,5 +1,5 @@
 /**
- * $Id: mxActor.js,v 1.35 2012-07-31 11:46:53 gaudenz Exp $
+ * $Id: mxActor.js,v 1.35 2012/07/31 11:46:53 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

@@ -1,4 +1,4 @@
-// $Id: mxICanvas2D.cs,v 1.4 2012-04-24 13:56:56 gaudenz Exp $
+// $Id: mxICanvas2D.cs,v 1.4 2012/04/24 13:56:56 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Drawing;

@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxPerimeter.php,v 1.21 2012-10-25 20:47:53 david Exp $
+ * $Id: mxPerimeter.php,v 1.21 2012/10/25 20:47:53 david Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 interface mxPerimeterFunction

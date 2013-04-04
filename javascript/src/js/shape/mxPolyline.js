@@ -1,5 +1,5 @@
 /**
- * $Id: mxPolyline.js,v 1.31 2012-05-24 12:00:45 gaudenz Exp $
+ * $Id: mxPolyline.js,v 1.31 2012/05/24 12:00:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxHtmlCanvas.php,v 1.19 2011-03-16 11:11:26 gaudenz Exp $
+ * $Id: mxHtmlCanvas.php,v 1.19 2011/03/16 11:11:26 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 class mxHtmlCanvas extends mxGdCanvas

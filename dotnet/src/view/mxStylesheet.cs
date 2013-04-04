@@ -1,4 +1,4 @@
-// $Id: mxStylesheet.cs,v 1.21 2011-06-09 12:07:55 gaudenz Exp $
+// $Id: mxStylesheet.cs,v 1.21 2011/06/09 12:07:55 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Collections;

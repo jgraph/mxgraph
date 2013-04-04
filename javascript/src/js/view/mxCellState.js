@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellState.js,v 1.42 2012-03-19 10:47:08 gaudenz Exp $
+ * $Id: mxCellState.js,v 1.42 2012/03/19 10:47:08 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

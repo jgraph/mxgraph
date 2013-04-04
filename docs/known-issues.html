@@ -55,18 +55,18 @@
 	Note that <code>IE=5</code> is required for IE versions prior to 9 to render VML. To use
 	IE7 standards mode <code>IE=5</code> can be replaced with <code>IE=7</code>.
 </p>
-<h2><a name="FirefoxFocus"></a>Focus in Firefox</h2>
+<h2><a name="Focus"></a>Focus</h2>
 <p>
-	Firefox does not allow to programmatically focus DIVs by default. Since
+	Firefox and Webkit do not allow to programmatically focus DIVs by default. Since
 	this affects handling of key events, here is a workaround to allow the
 	focus to be transferred to a DIV that acts as a graph container even if
 	a shape is clicked (click on the background works normally). The workaround
-	is based on the fact that programmatically setting the focus on a DIV in
-	Firefox is possible if the tabindex attribute of the DIV is set as described
+	is based on the fact that programmatically setting the focus on a DIV
+	is possible if the tabindex attribute of the DIV is set as described
 	<a href="http://www.barryvan.com.au/2009/01/onfocus-and-onblur-for-divs-in-fx/">here</a>.
 </p>
 <pre>
-if (navigator.userAgent.indexOf('Firefox/') &gt; 0)
+if (mxClient.IS_NS)
 {
   mxEvent.addListener(graph.container, 'mousedown', function()
   {
@@ -79,9 +79,9 @@ if (navigator.userAgent.indexOf('Firefox/') &gt; 0)
 }
 </pre>
 <p>
-	Note that as a side-effect of this the DIV will have a focus border which you may
-	or may not find useful. Also note that the focus is transferred normally if the
-	DIV receives a double click, the above solution is just for single-clicks.
+	Note that the DIV will have a focus border as a side-effect which can be disabled
+	using outline:none CSS property. Also note that the focus is transferred normally
+	if the DIV receives a double click, the above solution is just for single-clicks.
 </p>
 <h2><a name="TransparentHtmlLabels"></a>Opacity style in HTML labels</h2>
 <p>

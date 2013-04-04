@@ -1,5 +1,5 @@
 /**
- * $Id: mxStencilShape.js,v 1.10 2012-07-16 10:22:44 gaudenz Exp $
+ * $Id: mxStencilShape.js,v 1.10 2012/07/16 10:22:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

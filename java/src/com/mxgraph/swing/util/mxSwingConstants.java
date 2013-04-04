@@ -1,5 +1,5 @@
 /**
- * $Id: mxSwingConstants.java,v 1.3 2012-01-13 11:31:01 david Exp $
+ * $Id: mxSwingConstants.java,v 1.3 2012/01/13 11:31:01 david Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.swing.util;

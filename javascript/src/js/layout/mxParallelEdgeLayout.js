@@ -1,5 +1,5 @@
 /**
- * $Id: mxParallelEdgeLayout.js,v 1.24 2012-03-27 15:03:34 david Exp $
+ * $Id: mxParallelEdgeLayout.js,v 1.24 2012/03/27 15:03:34 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

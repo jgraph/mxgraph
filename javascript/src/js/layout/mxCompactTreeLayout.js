@@ -1,5 +1,5 @@
 /**
- * $Id: mxCompactTreeLayout.js,v 1.57 2012-05-24 13:09:34 david Exp $
+ * $Id: mxCompactTreeLayout.js,v 1.57 2012/05/24 13:09:34 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

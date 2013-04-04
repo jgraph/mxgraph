@@ -1,5 +1,5 @@
 /**
- * $Id: mxArrow.js,v 1.31 2012-05-23 19:09:22 gaudenz Exp $
+ * $Id: mxArrow.js,v 1.31 2012/05/23 19:09:22 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

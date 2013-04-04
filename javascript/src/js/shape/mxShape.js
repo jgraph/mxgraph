@@ -1,5 +1,5 @@
 /**
- * $Id: mxShape.js,v 1.175 2013-01-16 08:40:17 gaudenz Exp $
+ * $Id: mxShape.js,v 1.175 2013/01/16 08:40:17 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

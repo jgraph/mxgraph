@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.61 2013-02-18 07:38:11 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.61 2013/02/18 07:38:11 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**

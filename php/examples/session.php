@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: session.php,v 1.10 2010-09-20 10:29:31 gaudenz Exp $
+ * $Id: session.php,v 1.10 2010/09/20 10:29:31 gaudenz Exp $
  * Copyright (c) 2006, Gaudenz Alder
  */
 include_once("../src/mxServer.php");

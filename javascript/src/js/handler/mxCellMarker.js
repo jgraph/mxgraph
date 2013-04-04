@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellMarker.js,v 1.30 2011-07-15 12:57:50 gaudenz Exp $
+ * $Id: mxCellMarker.js,v 1.30 2011/07/15 12:57:50 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

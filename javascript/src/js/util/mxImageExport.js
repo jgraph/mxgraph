@@ -1,5 +1,5 @@
 /**
- * $Id: mxImageExport.js,v 1.48 2013-01-16 08:40:17 gaudenz Exp $
+ * $Id: mxImageExport.js,v 1.48 2013/01/16 08:40:17 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

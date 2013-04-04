@@ -1,4 +1,4 @@
-// $Id: mxCodecTest.cs,v 1.8 2008-03-11 15:46:13 gaudenz Exp $
+// $Id: mxCodecTest.cs,v 1.8 2008/03/11 15:46:13 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Collections.Generic;

@@ -1,5 +1,5 @@
 /**
- * $Id: mxImage.java,v 1.2 2009-11-24 12:00:28 gaudenz Exp $
+ * $Id: mxImage.java,v 1.2 2009/11/24 12:00:28 gaudenz Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.util;

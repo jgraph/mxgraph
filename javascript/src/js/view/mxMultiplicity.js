@@ -1,5 +1,5 @@
 /**
- * $Id: mxMultiplicity.js,v 1.24 2010-11-03 14:52:40 gaudenz Exp $
+ * $Id: mxMultiplicity.js,v 1.24 2010/11/03 14:52:40 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

@@ -1,11 +1,26 @@
 /**
- * $Id: mxUndoableEdit.js,v 1.14 2010-09-15 16:58:51 gaudenz Exp $
+ * $Id: mxUndoableEdit.js,v 1.15 2013/03/27 16:06:33 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
  * Class: mxUndoableEdit
  * 
  * Implements a composite undoable edit.
+ * 
+ * Event: mxEvent.EXECUTED
+ * 
+ * Fires between START_EDIT and END_EDIT after an atomic change was executed.
+ * The <code>change</code> property contains the change that was executed.
+ * 
+ * Event: mxEvent.START_EDIT
+ * 
+ * Fires before a set of changes will be executed in <undo> or <redo>.
+ * This event contains no properties.
+ * 
+ * Event: mxEvent.END_EDIT
+ *
+ * Fires after a set of changeswas executed in <undo> or <redo>.
+ * This event contains no properties.
  * 
  * Constructor: mxUndoableEdit
  * 
@@ -112,6 +127,7 @@ mxUndoableEdit.prototype.undo = function()
 {
 	if (!this.undone)
 	{
+		this.source.fireEvent(new mxEventObject(mxEvent.START_EDIT));
 		var count = this.changes.length;
 		
 		for (var i = count - 1; i >= 0; i--)
@@ -126,10 +142,14 @@ mxUndoableEdit.prototype.undo = function()
 			{
 				change.undo();
 			}
+			
+			// New global executed event
+			this.source.fireEvent(new mxEventObject(mxEvent.EXECUTED, 'change', change));
 		}
 		
 		this.undone = true;
 		this.redone = false;
+		this.source.fireEvent(new mxEventObject(mxEvent.END_EDIT));
 	}
 	
 	this.notify();
@@ -144,6 +164,7 @@ mxUndoableEdit.prototype.redo = function()
 {
 	if (!this.redone)
 	{
+		this.source.fireEvent(new mxEventObject(mxEvent.START_EDIT));
 		var count = this.changes.length;
 		
 		for (var i = 0; i < count; i++)
@@ -158,10 +179,14 @@ mxUndoableEdit.prototype.redo = function()
 			{
 				change.redo();
 			}
+			
+			// New global executed event
+			this.source.fireEvent(new mxEventObject(mxEvent.EXECUTED, 'change', change));
 		}
 		
 		this.undone = false;
 		this.redone = true;
+		this.source.fireEvent(new mxEventObject(mxEvent.END_EDIT));
 	}
 	
 	this.notify();

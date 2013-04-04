@@ -1,5 +1,5 @@
 /**
- * $Id: mxStencil.js,v 1.93 2013-02-21 14:18:45 gaudenz Exp $
+ * $Id: mxStencil.js,v 1.93 2013/02/21 14:18:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

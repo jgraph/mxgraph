@@ -1,5 +1,5 @@
 /**
- * $Id: mxDefaultKeyHandlerCodec.js,v 1.5 2010-01-02 09:45:15 gaudenz Exp $
+ * $Id: mxDefaultKeyHandlerCodec.js,v 1.5 2010/01/02 09:45:15 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()

@@ -1,5 +1,5 @@
 /**
- * $Id: mxDoubleEllipse.js,v 1.20 2012-12-19 17:45:24 gaudenz Exp $
+ * $Id: mxDoubleEllipse.js,v 1.20 2012/12/19 17:45:24 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

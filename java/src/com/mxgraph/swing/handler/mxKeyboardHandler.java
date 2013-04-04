@@ -1,5 +1,5 @@
 /**
- * $Id: mxKeyboardHandler.java,v 1.4 2010-03-24 15:05:10 gaudenz Exp $
+ * $Id: mxKeyboardHandler.java,v 1.4 2010/03/24 15:05:10 gaudenz Exp $
  * Copyright (c) 2008, Gaudenz Alder
  */
 package com.mxgraph.swing.handler;

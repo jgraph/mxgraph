@@ -1,4 +1,4 @@
-// $Id: mxPerimeter.cs,v 1.17 2012-01-11 09:06:56 gaudenz Exp $
+// $Id: mxPerimeter.cs,v 1.17 2012/01/11 09:06:56 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Collections;

@@ -1,5 +1,5 @@
 /**
- * $Id: mxDragSource.js,v 1.14 2012-12-05 21:43:16 gaudenz Exp $
+ * $Id: mxDragSource.js,v 1.14 2012/12/05 21:43:16 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

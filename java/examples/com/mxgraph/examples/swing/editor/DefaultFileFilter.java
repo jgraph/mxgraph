@@ -1,5 +1,5 @@
 /* 
- * $Id: DefaultFileFilter.java,v 1.1 2009-10-23 11:32:08 gaudenz Exp $
+ * $Id: DefaultFileFilter.java,v 1.1 2009/10/23 11:32:08 gaudenz Exp $
  * Copyright (c) 2001-2005, Gaudenz Alder
  * 
  * All rights reserved.

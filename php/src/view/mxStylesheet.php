@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxStylesheet.php,v 1.25 2010-06-30 11:03:50 gaudenz Exp $
+ * $Id: mxStylesheet.php,v 1.25 2010/06/30 11:03:50 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 class mxStylesheet

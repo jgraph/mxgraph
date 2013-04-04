@@ -1,5 +1,5 @@
 /**
- * $Id: mxConstants.js,v 1.128 2013-01-16 08:40:17 gaudenz Exp $
+ * $Id: mxConstants.js,v 1.128 2013/01/16 08:40:17 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
  var mxConstants =

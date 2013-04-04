@@ -1,5 +1,5 @@
 /**
- * $Id: mxPoint.java,v 1.9 2012-10-15 06:08:38 mate Exp $
+ * $Id: mxPoint.java,v 1.9 2012/10/15 06:08:38 mate Exp $
  * Copyright (c) 2007-2010, Gaudenz Alder, David Benson
  */
 package com.mxgraph.util;

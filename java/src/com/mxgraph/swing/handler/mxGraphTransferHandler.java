@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphTransferHandler.java,v 1.20 2011-01-25 15:56:18 gaudenz Exp $
+ * $Id: mxGraphTransferHandler.java,v 1.20 2011/01/25 15:56:18 gaudenz Exp $
  * Copyright (c) 2008, Gaudenz Alder
  */
 package com.mxgraph.swing.handler;

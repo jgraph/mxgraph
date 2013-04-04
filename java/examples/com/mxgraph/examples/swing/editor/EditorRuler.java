@@ -1,5 +1,5 @@
 /* 
- * $Id: EditorRuler.java,v 1.2 2009-11-24 12:00:28 gaudenz Exp $
+ * $Id: EditorRuler.java,v 1.2 2009/11/24 12:00:28 gaudenz Exp $
  * Copyright (c) 2001-2005, Gaudenz Alder
  * 
  * All rights reserved.

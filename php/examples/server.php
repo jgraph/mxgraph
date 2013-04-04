@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: server.php,v 1.10 2011-11-30 10:12:08 gaudenz Exp $
+ * $Id: server.php,v 1.10 2011/11/30 10:12:08 gaudenz Exp $
  * Copyright (c) 2006, Gaudenz Alder
  *
  * This server handles two types of POST requests:

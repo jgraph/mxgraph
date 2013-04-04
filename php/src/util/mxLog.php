@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxLog.php,v 1.6 2010-07-11 10:02:32 gaudenz Exp $
+ * $Id: mxLog.php,v 1.6 2010/07/11 10:02:32 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 class mxLog

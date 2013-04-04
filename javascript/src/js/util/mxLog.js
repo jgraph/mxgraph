@@ -1,5 +1,5 @@
 /**
- * $Id: mxLog.js,v 1.32 2012-11-12 09:40:59 gaudenz Exp $
+ * $Id: mxLog.js,v 1.32 2012/11/12 09:40:59 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxLog =

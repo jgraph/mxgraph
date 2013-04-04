@@ -1,5 +1,5 @@
 /**
- * $Id: mxConstraintHandler.js,v 1.15 2012-11-01 16:13:41 gaudenz Exp $
+ * $Id: mxConstraintHandler.js,v 1.15 2012/11/01 16:13:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

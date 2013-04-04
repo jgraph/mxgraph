@@ -1,5 +1,5 @@
 /**
- * $Id: mxMarker.js,v 1.19 2012-03-30 12:51:58 david Exp $
+ * $Id: mxMarker.js,v 1.19 2012/03/30 12:51:58 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxMarker =

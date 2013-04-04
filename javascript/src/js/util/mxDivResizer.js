@@ -1,5 +1,5 @@
 /**
- * $Id: mxDivResizer.js,v 1.22 2010-01-02 09:45:14 gaudenz Exp $
+ * $Id: mxDivResizer.js,v 1.22 2010/01/02 09:45:14 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

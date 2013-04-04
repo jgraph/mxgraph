@@ -1,5 +1,5 @@
 /**
- * $Id: mxGuide.js,v 1.7 2012-04-13 12:53:30 gaudenz Exp $
+ * $Id: mxGuide.js,v 1.7 2012/04/13 12:53:30 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

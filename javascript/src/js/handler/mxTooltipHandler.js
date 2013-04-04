@@ -1,5 +1,5 @@
 /**
- * $Id: mxTooltipHandler.js,v 1.51 2011-03-31 10:11:17 gaudenz Exp $
+ * $Id: mxTooltipHandler.js,v 1.52 2013/03/27 16:39:04 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -126,7 +126,6 @@ mxTooltipHandler.prototype.init = function()
 		this.div = document.createElement('div');
 		this.div.className = 'mxTooltip';
 		this.div.style.visibility = 'hidden';
-		this.div.style.zIndex = this.zIndex;
 
 		document.body.appendChild(this.div);
 
@@ -278,7 +277,8 @@ mxTooltipHandler.prototype.show = function(tip, x, y)
 		}
 		
 		var origin = mxUtils.getScrollOrigin();
-		
+
+		this.div.style.zIndex = this.zIndex;
 		this.div.style.left = (x + origin.x) + 'px';
 		this.div.style.top = (y + mxConstants.TOOLTIP_VERTICAL_OFFSET +
 			origin.y) + 'px';

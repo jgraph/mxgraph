@@ -1,5 +1,5 @@
 /**
- * $Id: mxAnimation.js,v 1.2 2010-03-19 12:53:29 gaudenz Exp $
+ * $Id: mxAnimation.js,v 1.2 2010/03/19 12:53:29 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

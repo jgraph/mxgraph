@@ -1,5 +1,5 @@
 /**
- * $Id: mxCoordinateAssignment.java,v 1.17 2012-06-21 14:20:00 david Exp $
+ * $Id: mxCoordinateAssignment.java,v 1.17 2012/06/21 14:20:00 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 

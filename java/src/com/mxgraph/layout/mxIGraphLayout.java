@@ -1,5 +1,5 @@
 /**
- * $Id: mxIGraphLayout.java,v 1.6 2009-02-21 13:39:16 gaudenz Exp $
+ * $Id: mxIGraphLayout.java,v 1.6 2009/02/21 13:39:16 gaudenz Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.layout;

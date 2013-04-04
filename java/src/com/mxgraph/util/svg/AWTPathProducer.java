@@ -26,7 +26,7 @@ import java.awt.geom.Point2D;
  * a Shape from the value of a path's 'd' attribute.
  *
  * @author <a href="mailto:stephane@hillion.org">Stephane Hillion</a>
- * @version $Id: AWTPathProducer.java,v 1.1 2010-09-03 19:14:06 david Exp $
+ * @version $Id: AWTPathProducer.java,v 1.1 2010/09/03 19:14:06 david Exp $
  */
 public class AWTPathProducer implements PathHandler, ShapeProducer
 {

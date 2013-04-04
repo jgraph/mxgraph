@@ -1,5 +1,5 @@
 /**
- * $Id: mxText.js,v 1.174 2012-09-27 10:20:30 gaudenz Exp $
+ * $Id: mxText.js,v 1.174 2012/09/27 10:20:30 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

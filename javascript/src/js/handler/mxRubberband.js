@@ -1,5 +1,5 @@
 /**
- * $Id: mxRubberband.js,v 1.48 2012-04-13 12:53:30 gaudenz Exp $
+ * $Id: mxRubberband.js,v 1.48 2012/04/13 12:53:30 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

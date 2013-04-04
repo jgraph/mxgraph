@@ -1,5 +1,5 @@
 /**
- * $Id: mxResources.js,v 1.32 2012-10-26 13:36:50 gaudenz Exp $
+ * $Id: mxResources.js,v 1.32 2012/10/26 13:36:50 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxResources =

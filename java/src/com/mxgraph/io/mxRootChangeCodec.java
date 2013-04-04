@@ -1,5 +1,5 @@
 /**
- * $Id: mxRootChangeCodec.java,v 1.2 2010-11-04 23:11:40 david Exp $
+ * $Id: mxRootChangeCodec.java,v 1.2 2010/11/04 23:11:40 david Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder, David Benson
  */
 package com.mxgraph.io;

@@ -1,5 +1,5 @@
 /**
- * $Id: mxHexagon.js,v 1.8 2011-09-02 10:01:00 gaudenz Exp $
+ * $Id: mxHexagon.js,v 1.8 2011/09/02 10:01:00 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

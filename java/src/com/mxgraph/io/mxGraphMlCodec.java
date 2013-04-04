@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphMlCodec.java,v 1.2 2012-01-13 13:07:08 david Exp $
+ * $Id: mxGraphMlCodec.java,v 1.2 2012/01/13 13:07:08 david Exp $
  * Copyright (c) 2010-2012, JGraph Ltd
  */
 package com.mxgraph.io;

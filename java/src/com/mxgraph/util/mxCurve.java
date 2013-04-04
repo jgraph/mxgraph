@@ -1,5 +1,5 @@
 /**
- * $Id: mxCurve.java,v 1.53 2012-01-13 11:17:38 david Exp $
+ * $Id: mxCurve.java,v 1.53 2012/01/13 11:17:38 david Exp $
  * Copyright (c) 2009-2012, JGraph Ltd
  */
 package com.mxgraph.util;

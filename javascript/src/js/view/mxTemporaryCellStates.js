@@ -1,5 +1,5 @@
 /**
- * $Id: mxTemporaryCellStates.js,v 1.10 2010-04-20 14:43:12 gaudenz Exp $
+ * $Id: mxTemporaryCellStates.js,v 1.10 2010/04/20 14:43:12 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

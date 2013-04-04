@@ -1,5 +1,5 @@
 /**
- * $Id: EditorPalette.java,v 1.9 2012-01-13 12:52:28 david Exp $
+ * $Id: EditorPalette.java,v 1.9 2012/01/13 12:52:28 david Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.examples.swing.editor;

@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphView.js,v 1.198 2013-02-12 10:19:41 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.198 2013/02/12 10:19:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

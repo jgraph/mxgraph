@@ -1,5 +1,5 @@
 /**
- * $Id: mxFastOrganicLayout.java,v 1.29 2012-10-31 23:23:21 david Exp $
+ * $Id: mxFastOrganicLayout.java,v 1.29 2012/10/31 23:23:21 david Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.layout;

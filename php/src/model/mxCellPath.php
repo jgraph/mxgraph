@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxCellPath.php,v 1.8 2010-01-02 09:45:15 gaudenz Exp $
+ * $Id: mxCellPath.php,v 1.8 2010/01/02 09:45:15 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 class mxCellPath

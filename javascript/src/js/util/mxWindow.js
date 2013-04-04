@@ -1,5 +1,5 @@
 /**
- * $Id: mxWindow.js,v 1.67 2012-10-11 17:18:51 gaudenz Exp $
+ * $Id: mxWindow.js,v 1.67 2012/10/11 17:18:51 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

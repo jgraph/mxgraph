@@ -1,5 +1,5 @@
 /**
- * $Id: mxTerminalChangeCodec.js,v 1.7 2010-09-13 15:58:36 gaudenz Exp $
+ * $Id: mxTerminalChangeCodec.js,v 1.7 2010/09/13 15:58:36 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()

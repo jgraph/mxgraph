@@ -1,5 +1,5 @@
 /**
- * $Id: mxEdgeSegmentHandler.js,v 1.15 2013-01-08 15:26:51 gaudenz Exp $
+ * $Id: mxEdgeSegmentHandler.js,v 1.15 2013/01/08 15:26:51 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 function mxEdgeSegmentHandler(state)

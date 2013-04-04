@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphLayout.js,v 1.48 2012-08-21 17:22:21 gaudenz Exp $
+ * $Id: mxGraphLayout.js,v 1.48 2012/08/21 17:22:21 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

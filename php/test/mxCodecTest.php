@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxCodecTest.php,v 1.11 2010-09-13 15:45:28 gaudenz Exp $
+ * $Id: mxCodecTest.php,v 1.11 2010/09/13 15:45:28 gaudenz Exp $
  * Copyright (c) 2006, Gaudenz Alder
  */
 include_once("../src/mxServer.php");

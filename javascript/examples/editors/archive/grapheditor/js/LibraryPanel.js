@@ -1,5 +1,5 @@
 /*
- * $Id: LibraryPanel.js,v 1.3 2012-03-22 09:22:39 gaudenz Exp $
+ * $Id: LibraryPanel.js,v 1.3 2012/03/22 09:22:39 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 LibraryPanel = function()

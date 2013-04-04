@@ -1,5 +1,5 @@
 /**
- * $Id: mxDictionary.js,v 1.12 2012-04-26 08:08:54 gaudenz Exp $
+ * $Id: mxDictionary.js,v 1.12 2012/04/26 08:08:54 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

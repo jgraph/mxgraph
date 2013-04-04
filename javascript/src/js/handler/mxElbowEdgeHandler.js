@@ -1,5 +1,5 @@
 /**
- * $Id: mxElbowEdgeHandler.js,v 1.43 2012-01-06 13:06:01 gaudenz Exp $
+ * $Id: mxElbowEdgeHandler.js,v 1.43 2012/01/06 13:06:01 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

@@ -1,5 +1,5 @@
 /**
- * $Id: mxChildChangeCodec.java,v 1.2 2010-09-15 11:57:07 gaudenz Exp $
+ * $Id: mxChildChangeCodec.java,v 1.2 2010/09/15 11:57:07 gaudenz Exp $
  * Copyright (c) 2006, Gaudenz Alder
  */
 package com.mxgraph.io;

@@ -1,5 +1,5 @@
 /**
- * $Id: mxPath.js,v 1.24 2012-06-13 17:31:32 gaudenz Exp $
+ * $Id: mxPath.js,v 1.24 2012/06/13 17:31:32 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

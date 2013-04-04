@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphSelectionModel.js,v 1.14 2011-11-25 10:16:08 gaudenz Exp $
+ * $Id: mxGraphSelectionModel.js,v 1.14 2011/11/25 10:16:08 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

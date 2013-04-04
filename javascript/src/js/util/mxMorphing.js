@@ -1,5 +1,5 @@
 /**
- * $Id: mxMorphing.js,v 1.4 2010-06-03 13:37:07 gaudenz Exp $
+ * $Id: mxMorphing.js,v 1.4 2010/06/03 13:37:07 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

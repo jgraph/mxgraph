@@ -1,5 +1,5 @@
 /**
- * $Id: Shapes.js,v 1.3 2012-09-12 14:37:44 gaudenz Exp $
+ * $Id: Shapes.js,v 1.3 2012/09/12 14:37:44 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 

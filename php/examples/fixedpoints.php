@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: fixedpoints.php,v 1.4 2011-02-23 10:28:19 gaudenz Exp $
+ * $Id: fixedpoints.php,v 1.4 2011/02/23 10:28:19 gaudenz Exp $
  * Copyright (c) 2006, Gaudenz Alder
  */
 include_once("../src/mxServer.php");

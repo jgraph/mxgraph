@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.js,v 1.297 2012-12-07 19:47:29 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.298 2013/04/04 09:37:40 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxUtils =
@@ -751,14 +751,14 @@ var mxUtils =
 			
 			if (xml == null)
 			{
-				if (node.innerHTML)
-				{
-					xml = node.innerHTML;
-				}
-				else
+				if (typeof(XMLSerializer) == 'function')
 				{
 					var xmlSerializer = new XMLSerializer();
-					xml = xmlSerializer.serializeToString(node);
+					xml = xmlSerializer.serializeToString(node);					
+				}
+				else if (node.outerHTML)
+				{
+					xml = node.outerHTML;
 				}
 			}
 			else
@@ -2716,7 +2716,7 @@ var mxUtils =
 	 * Function: createImage
 	 * 
 	 * Creates and returns an image (IMG node) or VML image (v:image) in IE6 in
-	 * quirs mode.
+	 * quirks mode.
 	 * 
 	 * Parameters:
 	 * 

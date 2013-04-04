@@ -1,5 +1,5 @@
 /**
- * $Id: UserObject.java,v 1.4 2012-01-18 08:32:10 gaudenz Exp $
+ * $Id: UserObject.java,v 1.4 2012/01/18 08:32:10 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.examples.swing;

@@ -1,4 +1,4 @@
-// $Id: mxRectangle.cs,v 1.19 2010-12-08 12:46:03 gaudenz Exp $
+// $Id: mxRectangle.cs,v 1.19 2010/12/08 12:46:03 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Collections;

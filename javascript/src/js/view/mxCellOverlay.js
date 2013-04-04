@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellOverlay.js,v 1.18 2012-12-06 15:58:44 gaudenz Exp $
+ * $Id: mxCellOverlay.js,v 1.18 2012/12/06 15:58:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

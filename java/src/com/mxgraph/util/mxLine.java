@@ -1,5 +1,5 @@
 /**
- * $Id: mxLine.java,v 1.8 2011-01-25 13:13:34 david Exp $
+ * $Id: mxLine.java,v 1.8 2011/01/25 13:13:34 david Exp $
  * Copyright (c) 2007-2010, Gaudenz Alder, David Benson
  */
 package com.mxgraph.util;

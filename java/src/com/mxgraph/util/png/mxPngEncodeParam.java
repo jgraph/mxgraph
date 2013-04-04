@@ -1,4 +1,4 @@
-/* $Id: mxPngEncodeParam.java,v 1.5 2010-08-09 16:41:04 david Exp $
+/* $Id: mxPngEncodeParam.java,v 1.5 2010/08/09 16:41:04 david Exp $
    
    Licensed to the Apache Software Foundation (ASF) under one or more
    contributor license agreements.  See the NOTICE file distributed with
@@ -65,7 +65,7 @@ import java.util.List;
  * <p><b> This class is not a committed part of the JAI API.  It may
  * be removed or changed in future releases of JAI.</b>
  *
- * @version $Id: mxPngEncodeParam.java,v 1.5 2010-08-09 16:41:04 david Exp $
+ * @version $Id: mxPngEncodeParam.java,v 1.5 2010/08/09 16:41:04 david Exp $
  */
 public abstract class mxPngEncodeParam
 {

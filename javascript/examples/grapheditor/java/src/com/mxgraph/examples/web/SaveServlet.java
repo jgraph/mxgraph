@@ -1,5 +1,5 @@
 /**
- * $Id: SaveServlet.java,v 1.2 2012-03-22 09:16:11 gaudenz Exp $
+ * $Id: SaveServlet.java,v 1.2 2012/03/22 09:16:11 gaudenz Exp $
  * Copyright (c) 2011-2012, JGraph Ltd
  */
 package com.mxgraph.examples.web;

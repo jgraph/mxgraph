@@ -1,5 +1,5 @@
 /*
- * $Id: JTableRenderer.java,v 1.6 2012-07-29 09:30:47 gaudenz Exp $
+ * $Id: JTableRenderer.java,v 1.6 2012/07/29 09:30:47 gaudenz Exp $
  * Copyright (c) 2001-2005, Gaudenz Alder
  * 
  * All rights reserved.

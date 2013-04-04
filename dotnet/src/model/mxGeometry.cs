@@ -1,4 +1,4 @@
-// $Id: mxGeometry.cs,v 1.20 2010-04-30 12:58:23 gaudenz Exp $
+// $Id: mxGeometry.cs,v 1.20 2010/04/30 12:58:23 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Collections;

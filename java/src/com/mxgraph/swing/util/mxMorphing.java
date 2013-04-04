@@ -1,5 +1,5 @@
 /**
- * $Id: mxMorphing.java,v 1.1 2010-06-08 09:49:59 gaudenz Exp $
+ * $Id: mxMorphing.java,v 1.1 2010/06/08 09:49:59 gaudenz Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.swing.util;

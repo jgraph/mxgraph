@@ -1,5 +1,5 @@
 /**
- * $Id: mxConnectionHandler.js,v 1.218 2012-12-21 13:07:21 gaudenz Exp $
+ * $Id: mxConnectionHandler.js,v 1.218 2012/12/21 13:07:21 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

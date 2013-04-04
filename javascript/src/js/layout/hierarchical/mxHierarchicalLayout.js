@@ -1,5 +1,5 @@
 /**
- * $Id: mxHierarchicalLayout.js,v 1.32 2013-02-21 15:18:09 david Exp $
+ * $Id: mxHierarchicalLayout.js,v 1.33 2013/03/25 16:24:57 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -174,6 +174,11 @@ mxHierarchicalLayout.prototype.execute = function(parent, roots)
 	var model = this.graph.model;
 	this.edgesCache = new Object();
 
+	if (typeof roots !== 'array')
+	{
+		roots = [roots];
+	}
+	
 	// If the roots are set and the parent is set, only
 	// use the roots that are some dependent of the that
 	// parent.
@@ -451,12 +456,12 @@ mxHierarchicalLayout.prototype.run = function(parent)
 	{
 		// Find vertex set as directed traversal from roots
 
-		for (var i = 0; i < roots.length; i++)
+		for (var i = 0; i < this.roots.length; i++)
 		{
 			var vertexSet = [];
 			hierarchyVertices.push(vertexSet);
 
-			traverse(roots.get(i), true, null, allVertexSet, vertexSet,
+			this.traverse(this.roots[i], true, null, allVertexSet, vertexSet,
 					hierarchyVertices, null);
 		}
 	}
@@ -613,7 +618,10 @@ mxHierarchicalLayout.prototype.traverse = function(vertex, directed, edge, allVe
 				allVertices[vertexID] = vertex;
 			}
 
-			delete filledVertexSet[vertexID];
+			if (filledVertexSet !== null)
+			{
+				delete filledVertexSet[vertexID];
+			}
 
 			var edges = this.getEdges(vertex);
 

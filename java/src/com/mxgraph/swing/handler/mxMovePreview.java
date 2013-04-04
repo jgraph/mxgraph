@@ -1,5 +1,5 @@
 /**
- * $Id: mxMovePreview.java,v 1.9 2012-01-13 13:19:25 david Exp $
+ * $Id: mxMovePreview.java,v 1.9 2012/01/13 13:19:25 david Exp $
  * Copyright (c) 2008-2012, JGraph Ltd
  */
 package com.mxgraph.swing.handler;

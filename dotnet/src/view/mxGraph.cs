@@ -1,4 +1,4 @@
-// $Id: mxGraph.cs,v 1.105 2012-04-18 09:05:49 gaudenz Exp $
+// $Id: mxGraph.cs,v 1.105 2012/04/18 09:05:49 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Collections.Generic;
@@ -15,9 +15,9 @@ namespace com.mxgraph
     {
         /// <summary>
         /// Holds the version number of this release. Current version
-        /// is 1.11.0.0.
+        /// is 1.12.0.0.
         /// </summary>
-        public const String VERSION = "1.11.0.0";
+        public const String VERSION = "1.12.0.0";
 
         /// <summary>
         /// Holds the model that contains the cells to be displayed.

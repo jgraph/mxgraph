@@ -1,5 +1,5 @@
 /**
- * $Id: mxEdgeStyle.java,v 1.48 2013-02-20 11:41:04 gaudenz Exp $
+ * $Id: mxEdgeStyle.java,v 1.48 2013/02/20 11:41:04 gaudenz Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.view;

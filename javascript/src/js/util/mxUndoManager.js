@@ -1,5 +1,5 @@
 /**
- * $Id: mxUndoManager.js,v 1.30 2011-10-05 06:39:19 gaudenz Exp $
+ * $Id: mxUndoManager.js,v 1.30 2011/10/05 06:39:19 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

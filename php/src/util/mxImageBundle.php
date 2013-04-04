@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxImageBundle.php,v 1.3 2010-12-01 11:48:46 gaudenz Exp $
+ * $Id: mxImageBundle.php,v 1.3 2010/12/01 11:48:46 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 class mxImageBundle

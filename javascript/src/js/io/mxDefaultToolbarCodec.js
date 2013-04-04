@@ -1,5 +1,5 @@
 /**
- * $Id: mxDefaultToolbarCodec.js,v 1.22 2012-04-11 07:00:52 gaudenz Exp $
+ * $Id: mxDefaultToolbarCodec.js,v 1.22 2012/04/11 07:00:52 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()

@@ -1,5 +1,5 @@
 /**
- * $Id: mxSwimlaneManager.java,v 1.8 2011-01-14 15:21:10 gaudenz Exp $
+ * $Id: mxSwimlaneManager.java,v 1.8 2011/01/14 15:21:10 gaudenz Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.view;

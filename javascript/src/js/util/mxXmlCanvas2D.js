@@ -1,5 +1,5 @@
 /**
- * $Id: mxXmlCanvas2D.js,v 1.9 2012-04-24 13:56:56 gaudenz Exp $
+ * $Id: mxXmlCanvas2D.js,v 1.9 2012/04/24 13:56:56 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

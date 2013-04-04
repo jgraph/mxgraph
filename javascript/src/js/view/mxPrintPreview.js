@@ -1,5 +1,5 @@
 /**
- * $Id: mxPrintPreview.js,v 1.62 2013-02-05 11:38:55 gaudenz Exp $
+ * $Id: mxPrintPreview.js,v 1.62 2013/02/05 11:38:55 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

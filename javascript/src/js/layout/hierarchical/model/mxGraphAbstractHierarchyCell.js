@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphAbstractHierarchyCell.js,v 1.12 2010-01-04 11:18:26 gaudenz Exp $
+ * $Id: mxGraphAbstractHierarchyCell.js,v 1.12 2010/01/04 11:18:26 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

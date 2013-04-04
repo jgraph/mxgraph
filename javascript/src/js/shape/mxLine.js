@@ -1,5 +1,5 @@
 /**
- * $Id: mxLine.js,v 1.36 2012-03-30 04:44:59 gaudenz Exp $
+ * $Id: mxLine.js,v 1.36 2012/03/30 04:44:59 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

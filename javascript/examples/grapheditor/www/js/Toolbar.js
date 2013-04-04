@@ -1,5 +1,5 @@
 /**
- * $Id: Toolbar.js,v 1.12 2012-06-08 15:07:04 gaudenz Exp $
+ * $Id: Toolbar.js,v 1.12 2012/06/08 15:07:04 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**

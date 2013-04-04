@@ -1,5 +1,5 @@
 /**
- * $Id: mxClipboard.js,v 1.29 2010-01-02 09:45:14 gaudenz Exp $
+ * $Id: mxClipboard.js,v 1.30 2013/04/03 08:32:48 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClipboard =
@@ -16,16 +16,68 @@ var mxClipboard =
 	 * mxClipboard.paste(graph2);
 	 * (end)
 	 *
-	 * This copies the selection cells from the graph to the
-	 * clipboard and pastes them into graph2.
+	 * This copies the selection cells from the graph to the clipboard and
+	 * pastes them into graph2.
 	 * 
 	 * For fine-grained control of the clipboard data the <mxGraph.canExportCell>
 	 * and <mxGraph.canImportCell> functions can be overridden.
 	 * 
+	 * To restore previous parents for pasted cells, the implementation for
+	 * <copy> and <paste> can be changed as follows.
+	 * 
+	 * (code)
+	 * mxClipboard.copy = function(graph, cells)
+	 * {
+	 *   cells = cells || graph.getSelectionCells();
+	 *   var result = graph.getExportableCells(cells);
+	 *   
+	 *   mxClipboard.parents = new Object();
+	 *   
+	 *   for (var i = 0; i < result.length; i++)
+	 *   {
+	 *     mxClipboard.parents[i] = graph.model.getParent(cells[i]);
+	 *   }
+	 *   
+	 *   mxClipboard.insertCount = 1;
+	 *   mxClipboard.cells = graph.cloneCells(result);
+	 *   
+	 *   return result;
+	 * };
+	 * 
+	 * mxClipboard.paste = function(graph)
+	 * {
+	 *   if (mxClipboard.cells != null)
+	 *   {
+	 *     var cells = graph.getImportableCells(mxClipboard.cells);
+	 *     var delta = mxClipboard.insertCount * mxClipboard.STEPSIZE;
+	 *     var parent = graph.getDefaultParent();
+	 *     
+	 *     graph.model.beginUpdate();
+	 *     try
+	 *     {
+	 *       for (var i = 0; i < cells.length; i++)
+	 *       {
+	 *         var tmp = (mxClipboard.parents != null && graph.model.contains(mxClipboard.parents[i])) ?
+	 *              mxClipboard.parents[i] : parent;
+	 *         cells[i] = graph.importCells([cells[i]], delta, delta, tmp)[0];
+	 *       }
+	 *     }
+	 *     finally
+	 *     {
+	 *       graph.model.endUpdate();
+	 *     }
+	 *     
+	 *     // Increments the counter and selects the inserted cells
+	 *     mxClipboard.insertCount++;
+	 *     graph.setSelectionCells(cells);
+	 *   }
+	 * };
+	 * (end)
+	 * 
 	 * Variable: STEPSIZE
 	 * 
-	 * Defines the step size to offset the cells
-	 * after each paste operation. Default is 10.
+	 * Defines the step size to offset the cells after each paste operation.
+	 * Default is 10.
 	 */
 	STEPSIZE: 10,
 

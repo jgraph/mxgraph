@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxCellState.php,v 1.20 2010-06-30 11:03:50 gaudenz Exp $
+ * $Id: mxCellState.php,v 1.20 2010/06/30 11:03:50 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 class mxCellState extends mxRectangle

@@ -1,5 +1,5 @@
 /**
- * $Id: mxEdgeLabelLayout.js,v 1.8 2010-01-04 11:18:25 gaudenz Exp $
+ * $Id: mxEdgeLabelLayout.js,v 1.8 2010/01/04 11:18:25 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

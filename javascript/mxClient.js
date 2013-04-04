@@ -1,5 +1,5 @@
 /**
- * $Id: mxClient.js,v 1.204 2013-01-24 12:14:27 gaudenz Exp $
+ * $Id: mxClient.js,v 1.204 2013/01/24 12:14:27 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClient =
@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.11.0.0.
+	 * Current version is 1.12.0.0.
 	 */
-	VERSION: '1.11.0.0',
+	VERSION: '1.12.0.0',
 
 	/**
 	 * Variable: IS_IE
@@ -506,7 +506,7 @@ if (mxClient.IS_IE)
 }
 
 /**
- * $Id: mxLog.js,v 1.32 2012-11-12 09:40:59 gaudenz Exp $
+ * $Id: mxLog.js,v 1.32 2012/11/12 09:40:59 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxLog =
@@ -916,7 +916,7 @@ var mxLog =
 	
 };
 /**
- * $Id: mxObjectIdentity.js,v 1.8 2010-01-02 09:45:14 gaudenz Exp $
+ * $Id: mxObjectIdentity.js,v 1.8 2010/01/02 09:45:14 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxObjectIdentity =
@@ -975,7 +975,7 @@ var mxObjectIdentity =
 
 };
 /**
- * $Id: mxDictionary.js,v 1.12 2012-04-26 08:08:54 gaudenz Exp $
+ * $Id: mxDictionary.js,v 1.12 2012/04/26 08:08:54 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1105,7 +1105,7 @@ mxDictionary.prototype.visit = function(visitor)
 	}
 };
 /**
- * $Id: mxResources.js,v 1.32 2012-10-26 13:36:50 gaudenz Exp $
+ * $Id: mxResources.js,v 1.32 2012/10/26 13:36:50 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxResources =
@@ -1471,7 +1471,7 @@ var mxResources =
 
 };
 /**
- * $Id: mxPoint.js,v 1.12 2010-01-02 09:45:14 gaudenz Exp $
+ * $Id: mxPoint.js,v 1.12 2010/01/02 09:45:14 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1526,7 +1526,7 @@ mxPoint.prototype.clone = function()
 	return mxUtils.clone(this);
 };
 /**
- * $Id: mxRectangle.js,v 1.17 2010-12-08 12:46:03 gaudenz Exp $
+ * $Id: mxRectangle.js,v 1.17 2010/12/08 12:46:03 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1660,7 +1660,7 @@ mxRectangle.prototype.equals = function(obj)
 		obj.height == this.height;
 };
 /**
- * $Id: mxEffects.js,v 1.6 2012-01-04 10:01:16 gaudenz Exp $
+ * $Id: mxEffects.js,v 1.6 2012/01/04 10:01:16 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEffects =
@@ -1874,7 +1874,7 @@ var mxEffects =
 
 };
 /**
- * $Id: mxUtils.js,v 1.297 2012-12-07 19:47:29 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.298 2013/04/04 09:37:40 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxUtils =
@@ -2626,14 +2626,14 @@ var mxUtils =
 			
 			if (xml == null)
 			{
-				if (node.innerHTML)
-				{
-					xml = node.innerHTML;
-				}
-				else
+				if (typeof(XMLSerializer) == 'function')
 				{
 					var xmlSerializer = new XMLSerializer();
-					xml = xmlSerializer.serializeToString(node);
+					xml = xmlSerializer.serializeToString(node);					
+				}
+				else if (node.outerHTML)
+				{
+					xml = node.outerHTML;
 				}
 			}
 			else
@@ -4591,7 +4591,7 @@ var mxUtils =
 	 * Function: createImage
 	 * 
 	 * Creates and returns an image (IMG node) or VML image (v:image) in IE6 in
-	 * quirs mode.
+	 * quirks mode.
 	 * 
 	 * Parameters:
 	 * 
@@ -5794,7 +5794,7 @@ var mxUtils =
 
 };
 /**
- * $Id: mxConstants.js,v 1.128 2013-01-16 08:40:17 gaudenz Exp $
+ * $Id: mxConstants.js,v 1.128 2013/01/16 08:40:17 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
  var mxConstants =
@@ -7714,7 +7714,7 @@ var mxUtils =
 
 };
 /**
- * $Id: mxEventObject.js,v 1.11 2011-09-09 10:29:05 gaudenz Exp $
+ * $Id: mxEventObject.js,v 1.11 2011/09/09 10:29:05 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -7825,7 +7825,7 @@ mxEventObject.prototype.consume = function()
 	this.consumed = true;
 };
 /**
- * $Id: mxMouseEvent.js,v 1.20 2011-03-02 17:24:39 gaudenz Exp $
+ * $Id: mxMouseEvent.js,v 1.20 2011/03/02 17:24:39 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -8066,7 +8066,7 @@ mxMouseEvent.prototype.consume = function(preventDefault)
 	this.consumed = true;
 };
 /**
- * $Id: mxEventSource.js,v 1.25 2012-04-16 10:54:20 gaudenz Exp $
+ * $Id: mxEventSource.js,v 1.25 2012/04/16 10:54:20 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -8257,7 +8257,7 @@ mxEventSource.prototype.fireEvent = function(evt, sender)
 	}
 };
 /**
- * $Id: mxEvent.js,v 1.76 2012-12-07 07:39:03 gaudenz Exp $
+ * $Id: mxEvent.js,v 1.76 2012/12/07 07:39:03 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEvent =
@@ -9432,7 +9432,7 @@ var mxEvent =
 
 };
 /**
- * $Id: mxXmlRequest.js,v 1.38 2012-04-22 10:16:23 gaudenz Exp $
+ * $Id: mxXmlRequest.js,v 1.38 2012/04/22 10:16:23 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -9857,7 +9857,7 @@ mxXmlRequest.prototype.simulate = function(doc, target)
 	}
 };
 /**
- * $Id: mxClipboard.js,v 1.29 2010-01-02 09:45:14 gaudenz Exp $
+ * $Id: mxClipboard.js,v 1.30 2013/04/03 08:32:48 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClipboard =
@@ -9874,16 +9874,68 @@ var mxClipboard =
 	 * mxClipboard.paste(graph2);
 	 * (end)
 	 *
-	 * This copies the selection cells from the graph to the
-	 * clipboard and pastes them into graph2.
+	 * This copies the selection cells from the graph to the clipboard and
+	 * pastes them into graph2.
 	 * 
 	 * For fine-grained control of the clipboard data the <mxGraph.canExportCell>
 	 * and <mxGraph.canImportCell> functions can be overridden.
 	 * 
+	 * To restore previous parents for pasted cells, the implementation for
+	 * <copy> and <paste> can be changed as follows.
+	 * 
+	 * (code)
+	 * mxClipboard.copy = function(graph, cells)
+	 * {
+	 *   cells = cells || graph.getSelectionCells();
+	 *   var result = graph.getExportableCells(cells);
+	 *   
+	 *   mxClipboard.parents = new Object();
+	 *   
+	 *   for (var i = 0; i < result.length; i++)
+	 *   {
+	 *     mxClipboard.parents[i] = graph.model.getParent(cells[i]);
+	 *   }
+	 *   
+	 *   mxClipboard.insertCount = 1;
+	 *   mxClipboard.cells = graph.cloneCells(result);
+	 *   
+	 *   return result;
+	 * };
+	 * 
+	 * mxClipboard.paste = function(graph)
+	 * {
+	 *   if (mxClipboard.cells != null)
+	 *   {
+	 *     var cells = graph.getImportableCells(mxClipboard.cells);
+	 *     var delta = mxClipboard.insertCount * mxClipboard.STEPSIZE;
+	 *     var parent = graph.getDefaultParent();
+	 *     
+	 *     graph.model.beginUpdate();
+	 *     try
+	 *     {
+	 *       for (var i = 0; i < cells.length; i++)
+	 *       {
+	 *         var tmp = (mxClipboard.parents != null && graph.model.contains(mxClipboard.parents[i])) ?
+	 *              mxClipboard.parents[i] : parent;
+	 *         cells[i] = graph.importCells([cells[i]], delta, delta, tmp)[0];
+	 *       }
+	 *     }
+	 *     finally
+	 *     {
+	 *       graph.model.endUpdate();
+	 *     }
+	 *     
+	 *     // Increments the counter and selects the inserted cells
+	 *     mxClipboard.insertCount++;
+	 *     graph.setSelectionCells(cells);
+	 *   }
+	 * };
+	 * (end)
+	 * 
 	 * Variable: STEPSIZE
 	 * 
-	 * Defines the step size to offset the cells
-	 * after each paste operation. Default is 10.
+	 * Defines the step size to offset the cells after each paste operation.
+	 * Default is 10.
 	 */
 	STEPSIZE: 10,
 
@@ -10001,7 +10053,7 @@ var mxClipboard =
 
 };
 /**
- * $Id: mxWindow.js,v 1.67 2012-10-11 17:18:51 gaudenz Exp $
+ * $Id: mxWindow.js,v 1.67 2012/10/11 17:18:51 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -11066,7 +11118,7 @@ mxWindow.prototype.destroy = function()
 	this.contentWrapper = null;
 };
 /**
- * $Id: mxForm.js,v 1.16 2010-10-08 04:21:45 david Exp $
+ * $Id: mxForm.js,v 1.16 2010/10/08 04:21:45 david Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder, David Benson
  */
 /**
@@ -11268,7 +11320,7 @@ mxForm.prototype.addField = function(name, input)
 	return input;
 };
 /**
- * $Id: mxImage.js,v 1.7 2010-01-02 09:45:14 gaudenz Exp $
+ * $Id: mxImage.js,v 1.7 2010/01/02 09:45:14 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -11308,7 +11360,7 @@ mxImage.prototype.width = null;
  */
 mxImage.prototype.height = null;
 /**
- * $Id: mxDivResizer.js,v 1.22 2010-01-02 09:45:14 gaudenz Exp $
+ * $Id: mxDivResizer.js,v 1.22 2010/01/02 09:45:14 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -11459,7 +11511,7 @@ mxDivResizer.prototype.getDocumentHeight = function()
 	return document.body.clientHeight;
 };
 /**
- * $Id: mxDragSource.js,v 1.14 2012-12-05 21:43:16 gaudenz Exp $
+ * $Id: mxDragSource.js,v 1.14 2012/12/05 21:43:16 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -12053,7 +12105,7 @@ mxDragSource.prototype.drop = function(graph, evt, dropTarget, x, y)
 	graph.container.focus();
 };
 /**
- * $Id: mxToolbar.js,v 1.36 2012-06-22 11:17:13 gaudenz Exp $
+ * $Id: mxToolbar.js,v 1.36 2012/06/22 11:17:13 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -12581,7 +12633,7 @@ mxToolbar.prototype.destroy = function ()
 	}
 };
 /**
- * $Id: mxSession.js,v 1.46 2012-08-22 15:30:49 gaudenz Exp $
+ * $Id: mxSession.js,v 1.46 2012/08/22 15:30:49 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -13255,13 +13307,28 @@ mxSession.prototype.cellRemoved = function(cell, codec)
 	}
 };
 /**
- * $Id: mxUndoableEdit.js,v 1.14 2010-09-15 16:58:51 gaudenz Exp $
+ * $Id: mxUndoableEdit.js,v 1.15 2013/03/27 16:06:33 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
  * Class: mxUndoableEdit
  * 
  * Implements a composite undoable edit.
+ * 
+ * Event: mxEvent.EXECUTED
+ * 
+ * Fires between START_EDIT and END_EDIT after an atomic change was executed.
+ * The <code>change</code> property contains the change that was executed.
+ * 
+ * Event: mxEvent.START_EDIT
+ * 
+ * Fires before a set of changes will be executed in <undo> or <redo>.
+ * This event contains no properties.
+ * 
+ * Event: mxEvent.END_EDIT
+ *
+ * Fires after a set of changeswas executed in <undo> or <redo>.
+ * This event contains no properties.
  * 
  * Constructor: mxUndoableEdit
  * 
@@ -13368,6 +13435,7 @@ mxUndoableEdit.prototype.undo = function()
 {
 	if (!this.undone)
 	{
+		this.source.fireEvent(new mxEventObject(mxEvent.START_EDIT));
 		var count = this.changes.length;
 		
 		for (var i = count - 1; i >= 0; i--)
@@ -13382,10 +13450,14 @@ mxUndoableEdit.prototype.undo = function()
 			{
 				change.undo();
 			}
+			
+			// New global executed event
+			this.source.fireEvent(new mxEventObject(mxEvent.EXECUTED, 'change', change));
 		}
 		
 		this.undone = true;
 		this.redone = false;
+		this.source.fireEvent(new mxEventObject(mxEvent.END_EDIT));
 	}
 	
 	this.notify();
@@ -13400,6 +13472,7 @@ mxUndoableEdit.prototype.redo = function()
 {
 	if (!this.redone)
 	{
+		this.source.fireEvent(new mxEventObject(mxEvent.START_EDIT));
 		var count = this.changes.length;
 		
 		for (var i = 0; i < count; i++)
@@ -13414,16 +13487,20 @@ mxUndoableEdit.prototype.redo = function()
 			{
 				change.redo();
 			}
+			
+			// New global executed event
+			this.source.fireEvent(new mxEventObject(mxEvent.EXECUTED, 'change', change));
 		}
 		
 		this.undone = false;
 		this.redone = true;
+		this.source.fireEvent(new mxEventObject(mxEvent.END_EDIT));
 	}
 	
 	this.notify();
 };
 /**
- * $Id: mxUndoManager.js,v 1.30 2011-10-05 06:39:19 gaudenz Exp $
+ * $Id: mxUndoManager.js,v 1.30 2011/10/05 06:39:19 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -13652,7 +13729,7 @@ mxUndoManager.prototype.trim = function()
 	}
 };
 /**
- * $Id: mxUrlConverter.js,v 1.3 2012-08-24 17:10:41 gaudenz Exp $
+ * $Id: mxUrlConverter.js,v 1.3 2012/08/24 17:10:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -13792,7 +13869,7 @@ var mxUrlConverter = function(root)
 	};
 
 };/**
- * $Id: mxPanningManager.js,v 1.7 2012-06-13 06:46:37 gaudenz Exp $
+ * $Id: mxPanningManager.js,v 1.7 2012/06/13 06:46:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -14054,7 +14131,7 @@ mxPanningManager.prototype.handleMouseOut = true;
  */
 mxPanningManager.prototype.border = 0;
 /**
- * $Id: mxPath.js,v 1.24 2012-06-13 17:31:32 gaudenz Exp $
+ * $Id: mxPath.js,v 1.24 2012/06/13 17:31:32 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -14368,7 +14445,7 @@ mxPath.prototype.close = function()
 	}
 };
 /**
- * $Id: mxPopupMenu.js,v 1.37 2012-04-22 10:16:23 gaudenz Exp $
+ * $Id: mxPopupMenu.js,v 1.37 2012/04/22 10:16:23 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -14942,7 +15019,7 @@ mxPopupMenu.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxAutoSaveManager.js,v 1.9 2010-09-16 09:10:21 gaudenz Exp $
+ * $Id: mxAutoSaveManager.js,v 1.9 2010/09/16 09:10:21 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -15155,7 +15232,7 @@ mxAutoSaveManager.prototype.destroy = function()
 	this.setGraph(null);
 };
 /**
- * $Id: mxAnimation.js,v 1.2 2010-03-19 12:53:29 gaudenz Exp $
+ * $Id: mxAnimation.js,v 1.2 2010/03/19 12:53:29 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -15237,7 +15314,7 @@ mxAnimation.prototype.stopAnimation = function()
 	}
 };
 /**
- * $Id: mxMorphing.js,v 1.4 2010-06-03 13:37:07 gaudenz Exp $
+ * $Id: mxMorphing.js,v 1.4 2010/06/03 13:37:07 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -15476,7 +15553,7 @@ mxMorphing.prototype.getOriginForCell = function(cell)
 	return result;
 };
 /**
- * $Id: mxImageBundle.js,v 1.3 2011-01-20 19:08:11 gaudenz Exp $
+ * $Id: mxImageBundle.js,v 1.3 2011/01/20 19:08:11 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -15574,7 +15651,7 @@ mxImageBundle.prototype.getImage = function(key)
 	return result;
 };
 /**
- * $Id: mxImageExport.js,v 1.48 2013-01-16 08:40:17 gaudenz Exp $
+ * $Id: mxImageExport.js,v 1.48 2013/01/16 08:40:17 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -17010,7 +17087,7 @@ mxImageExport.prototype.initMarkers = function()
 	this.markers['diamondThin'] = tmp_diamond;
 };
 /**
- * $Id: mxXmlCanvas2D.js,v 1.9 2012-04-24 13:56:56 gaudenz Exp $
+ * $Id: mxXmlCanvas2D.js,v 1.9 2012/04/24 13:56:56 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -17724,7 +17801,7 @@ var mxXmlCanvas2D = function(root)
 	};
 
 };/**
- * $Id: mxSvgCanvas2D.js,v 1.18 2012-11-23 15:13:19 gaudenz Exp $
+ * $Id: mxSvgCanvas2D.js,v 1.18 2012/11/23 15:13:19 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -18957,7 +19034,7 @@ var mxSvgCanvas2D = function(root, styleEnabled)
 	};
 
 };/**
- * $Id: mxGuide.js,v 1.7 2012-04-13 12:53:30 gaudenz Exp $
+ * $Id: mxGuide.js,v 1.7 2012/04/13 12:53:30 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -19321,7 +19398,7 @@ mxGuide.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxShape.js,v 1.175 2013-01-16 08:40:17 gaudenz Exp $
+ * $Id: mxShape.js,v 1.175 2013/01/16 08:40:17 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -21406,7 +21483,7 @@ mxShape.prototype.redrawPath = function(path, x, y, w, h)
 	// do nothing
 };
 /**
- * $Id: mxStencil.js,v 1.93 2013-02-21 14:18:45 gaudenz Exp $
+ * $Id: mxStencil.js,v 1.93 2013/02/21 14:18:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -23032,7 +23109,7 @@ mxStencil.prototype.drawNode = function(canvas, state, node, aspect)
 	}
 };
 /**
- * $Id: mxStencilRegistry.js,v 1.2 2011-07-15 12:57:50 gaudenz Exp $
+ * $Id: mxStencilRegistry.js,v 1.2 2011/07/15 12:57:50 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  * 
  * Code to add stencils.
@@ -23085,7 +23162,7 @@ var mxStencilRegistry =
 
 };
 /**
- * $Id: mxStencilShape.js,v 1.10 2012-07-16 10:22:44 gaudenz Exp $
+ * $Id: mxStencilShape.js,v 1.10 2012/07/16 10:22:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -23294,7 +23371,7 @@ mxStencilShape.prototype.redrawShape = function()
 	}
 };
 /**
- * $Id: mxMarker.js,v 1.19 2012-03-30 12:51:58 david Exp $
+ * $Id: mxMarker.js,v 1.19 2012/03/30 12:51:58 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxMarker =
@@ -23561,7 +23638,7 @@ mxMarker.markers[mxConstants.ARROW_OVAL] = function(node, type, pe, nx, ny, stro
 			mxMarker.markers[mxConstants.ARROW_DIAMOND_THIN] = tmp_diamond;
 		}());
 /**
- * $Id: mxActor.js,v 1.35 2012-07-31 11:46:53 gaudenz Exp $
+ * $Id: mxActor.js,v 1.35 2012/07/31 11:46:53 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -23744,7 +23821,7 @@ mxActor.prototype.redrawPath = function(path, x, y, w, h)
 	path.close();
 };
 /**
- * $Id: mxCloud.js,v 1.12 2011-06-24 11:27:30 gaudenz Exp $
+ * $Id: mxCloud.js,v 1.12 2011/06/24 11:27:30 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -23800,7 +23877,7 @@ mxCloud.prototype.redrawPath = function(path, x, y, w, h)
 	path.close();
 };
 /**
- * $Id: mxRectangleShape.js,v 1.17 2012-09-26 07:51:29 gaudenz Exp $
+ * $Id: mxRectangleShape.js,v 1.17 2012/09/26 07:51:29 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -23861,7 +23938,7 @@ mxRectangleShape.prototype.createSvg = function()
 	return this.createSvgGroup('rect');
 };
 /**
- * $Id: mxEllipse.js,v 1.20 2012-04-04 07:34:50 gaudenz Exp $
+ * $Id: mxEllipse.js,v 1.20 2012/04/04 07:34:50 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -23993,7 +24070,7 @@ mxEllipse.prototype.updateSvgNode = function(node)
 	}
 };
 /**
- * $Id: mxDoubleEllipse.js,v 1.20 2012-12-19 17:45:24 gaudenz Exp $
+ * $Id: mxDoubleEllipse.js,v 1.20 2012/12/19 17:45:24 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -24205,7 +24282,7 @@ mxDoubleEllipse.prototype.updateSvgNode = function(node, inset)
 	}
 };
 /**
- * $Id: mxRhombus.js,v 1.25 2012-04-04 07:34:50 gaudenz Exp $
+ * $Id: mxRhombus.js,v 1.25 2012/04/04 07:34:50 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -24377,7 +24454,7 @@ mxRhombus.prototype.updateSvgNode = function(node)
 	}
 };
 /**
- * $Id: mxPolyline.js,v 1.31 2012-05-24 12:00:45 gaudenz Exp $
+ * $Id: mxPolyline.js,v 1.31 2012/05/24 12:00:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -24523,7 +24600,7 @@ mxPolyline.prototype.redrawSvg = function()
 	}
 };
 /**
- * $Id: mxArrow.js,v 1.31 2012-05-23 19:09:22 gaudenz Exp $
+ * $Id: mxArrow.js,v 1.31 2012/05/23 19:09:22 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -24749,7 +24826,7 @@ mxArrow.prototype.redrawPath = function(path, x, y, w, h)
 	path.close();
 };
 /**
- * $Id: mxText.js,v 1.174 2012-09-27 10:20:30 gaudenz Exp $
+ * $Id: mxText.js,v 1.174 2012/09/27 10:20:30 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -26560,7 +26637,7 @@ mxText.prototype.destroy = function()
 	mxShape.prototype.destroy.apply(this, arguments);
 };
 /**
- * $Id: mxTriangle.js,v 1.10 2011-09-02 10:01:00 gaudenz Exp $
+ * $Id: mxTriangle.js,v 1.10 2011/09/02 10:01:00 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -26594,7 +26671,7 @@ mxTriangle.prototype.redrawPath = function(path, x, y, w, h)
 	path.close();
 };
 /**
- * $Id: mxHexagon.js,v 1.8 2011-09-02 10:01:00 gaudenz Exp $
+ * $Id: mxHexagon.js,v 1.8 2011/09/02 10:01:00 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -26631,7 +26708,7 @@ mxHexagon.prototype.redrawPath = function(path, x, y, w, h)
 	path.close();
 };
 /**
- * $Id: mxLine.js,v 1.36 2012-03-30 04:44:59 gaudenz Exp $
+ * $Id: mxLine.js,v 1.36 2012/03/30 04:44:59 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -26848,7 +26925,7 @@ mxLine.prototype.redrawSvg = function()
 	}
 };
 /**
- * $Id: mxImageShape.js,v 1.67 2012-04-22 10:16:23 gaudenz Exp $
+ * $Id: mxImageShape.js,v 1.67 2012/04/22 10:16:23 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -27253,7 +27330,7 @@ mxImageShape.prototype.configureSvgShape = function(node)
 	}
 };
 /**
- * $Id: mxLabel.js,v 1.40 2012-05-22 16:10:12 gaudenz Exp $
+ * $Id: mxLabel.js,v 1.40 2012/05/22 16:10:12 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -27680,7 +27757,7 @@ mxLabel.prototype.redraw = function()
 	}
 };
 /**
- * $Id: mxCylinder.js,v 1.38 2012-07-31 11:46:53 gaudenz Exp $
+ * $Id: mxCylinder.js,v 1.38 2012/07/31 11:46:53 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -27999,7 +28076,7 @@ mxCylinder.prototype.redrawPath = function(path, x, y, w, h, isForeground)
 	}
 };
 /**
- * $Id: mxConnector.js,v 1.80 2012-05-24 12:00:45 gaudenz Exp $
+ * $Id: mxConnector.js,v 1.80 2012/05/24 12:00:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -28445,7 +28522,7 @@ mxConnector.prototype.redrawMarker = function(node, type, p0, pe, color, size)
 			this.style);
 };
 /**
- * $Id: mxSwimlane.js,v 1.43 2011-11-04 13:54:50 gaudenz Exp $
+ * $Id: mxSwimlane.js,v 1.43 2011/11/04 13:54:50 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -28998,7 +29075,7 @@ mxSwimlane.prototype.redrawSvg = function()
 	}
 };
 /**
- * $Id: mxGraphLayout.js,v 1.48 2012-08-21 17:22:21 gaudenz Exp $
+ * $Id: mxGraphLayout.js,v 1.48 2012/08/21 17:22:21 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -29501,7 +29578,7 @@ mxGraphLayout.prototype.arrangeGroups = function(groups, border)
 	}
 };
 /**
- * $Id: mxStackLayout.js,v 1.47 2012-12-14 08:54:34 gaudenz Exp $
+ * $Id: mxStackLayout.js,v 1.48 2013/04/01 12:00:35 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -29736,7 +29813,7 @@ mxStackLayout.prototype.execute = function(parent)
 		{
 			// Uses computed style to get latest 
 			var style = this.graph.getCellStyle(parent);
-			var start = mxUtils.getValue(style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE);
+			var start = mxUtils.getNumber(style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE);
 			var horz = mxUtils.getValue(style, mxConstants.STYLE_HORIZONTAL, true);
 			
 			if (horizontal == horz)
@@ -29744,7 +29821,7 @@ mxStackLayout.prototype.execute = function(parent)
 				fillValue -= start;
 			}
 			
-			if (horizontal)
+			if (horz)
 			{
 				y0 += start;
 			}
@@ -29882,7 +29959,7 @@ mxStackLayout.prototype.execute = function(parent)
 	}
 };
 /**
- * $Id: mxPartitionLayout.js,v 1.25 2010-01-04 11:18:25 gaudenz Exp $
+ * $Id: mxPartitionLayout.js,v 1.25 2010/01/04 11:18:25 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -30122,7 +30199,7 @@ mxPartitionLayout.prototype.execute = function(parent)
 	}
 };
 /**
- * $Id: mxCompactTreeLayout.js,v 1.57 2012-05-24 13:09:34 david Exp $
+ * $Id: mxCompactTreeLayout.js,v 1.57 2012/05/24 13:09:34 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -31116,7 +31193,7 @@ WeightedCellSorter.prototype.compare = function(a, b)
 		return 0;
 	}
 };/**
- * $Id: mxFastOrganicLayout.js,v 1.37 2011-04-28 13:14:55 david Exp $
+ * $Id: mxFastOrganicLayout.js,v 1.37 2011/04/28 13:14:55 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -31707,7 +31784,7 @@ mxFastOrganicLayout.prototype.reduceTemperature = function()
 	this.temperature = this.initialTemp * (1.0 - this.iteration / this.maxIterations);
 };
 /**
- * $Id: mxCircleLayout.js,v 1.25 2012-08-22 17:26:12 gaudenz Exp $
+ * $Id: mxCircleLayout.js,v 1.25 2012/08/22 17:26:12 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -31910,7 +31987,7 @@ mxCircleLayout.prototype.circle = function(vertices, r, left, top)
 	}
 };
 /**
- * $Id: mxParallelEdgeLayout.js,v 1.24 2012-03-27 15:03:34 david Exp $
+ * $Id: mxParallelEdgeLayout.js,v 1.24 2012/03/27 15:03:34 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -32108,7 +32185,7 @@ mxParallelEdgeLayout.prototype.route = function(edge, x, y)
 	}
 };
 /**
- * $Id: mxCompositeLayout.js,v 1.11 2010-01-02 09:45:15 gaudenz Exp $
+ * $Id: mxCompositeLayout.js,v 1.11 2010/01/02 09:45:15 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -32209,7 +32286,7 @@ mxCompositeLayout.prototype.execute = function(parent)
 	}
 };
 /**
- * $Id: mxEdgeLabelLayout.js,v 1.8 2010-01-04 11:18:25 gaudenz Exp $
+ * $Id: mxEdgeLabelLayout.js,v 1.8 2010/01/04 11:18:25 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -32374,7 +32451,7 @@ mxEdgeLabelLayout.prototype.avoid = function(edge, vertex)
 	}
 };
 /**
- * $Id: mxGraphAbstractHierarchyCell.js,v 1.12 2010-01-04 11:18:26 gaudenz Exp $
+ * $Id: mxGraphAbstractHierarchyCell.js,v 1.12 2010/01/04 11:18:26 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -32580,7 +32657,7 @@ mxGraphAbstractHierarchyCell.prototype.setY = function(layer, value)
 	}
 };
 /**
- * $Id: mxGraphHierarchyNode.js,v 1.13 2012-06-12 20:24:58 david Exp $
+ * $Id: mxGraphHierarchyNode.js,v 1.13 2012/06/12 20:24:58 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -32789,7 +32866,7 @@ mxGraphHierarchyNode.prototype.getCoreCell = function()
 {
 	return this.cell;
 };/**
- * $Id: mxGraphHierarchyEdge.js,v 1.15 2012-06-12 20:23:14 david Exp $
+ * $Id: mxGraphHierarchyEdge.js,v 1.15 2012/06/12 20:23:14 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -32962,7 +33039,7 @@ mxGraphHierarchyEdge.prototype.getCoreCell = function()
 	
 	return null;
 };/**
- * $Id: mxGraphHierarchyModel.js,v 1.34 2013-01-09 16:34:29 david Exp $
+ * $Id: mxGraphHierarchyModel.js,v 1.34 2013/01/09 16:34:29 david Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -33650,7 +33727,7 @@ mxGraphHierarchyModel.prototype.extendedDfs = function(parent, root, connectingE
 	}
 };
 /**
- * $Id: mxHierarchicalLayoutStage.js,v 1.8 2010-01-02 09:45:15 gaudenz Exp $
+ * $Id: mxHierarchicalLayoutStage.js,v 1.8 2010/01/02 09:45:15 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -33675,7 +33752,7 @@ function mxHierarchicalLayoutStage() { };
  */
 mxHierarchicalLayoutStage.prototype.execute = function(parent) { };
 /**
- * $Id: mxMedianHybridCrossingReduction.js,v 1.25 2012-06-07 11:16:41 david Exp $
+ * $Id: mxMedianHybridCrossingReduction.js,v 1.25 2012/06/07 11:16:41 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -34349,7 +34426,7 @@ MedianCellSorter.prototype.compare = function(a, b)
 	}
 };
 /**
- * $Id: mxMinimumCycleRemover.js,v 1.14 2010-01-04 11:18:26 gaudenz Exp $
+ * $Id: mxMinimumCycleRemover.js,v 1.14 2010/01/04 11:18:26 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -34480,7 +34557,7 @@ mxMinimumCycleRemover.prototype.execute = function(parent)
 	}
 };
 /**
- * $Id: mxCoordinateAssignment.js,v 1.31 2013-02-21 15:10:59 david Exp $
+ * $Id: mxCoordinateAssignment.js,v 1.31 2013/02/21 15:10:59 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -36371,7 +36448,7 @@ WeightedCellSorter.prototype.compare = function(a, b)
 	}
 };
 /**
- * $Id: mxHierarchicalLayout.js,v 1.32 2013-02-21 15:18:09 david Exp $
+ * $Id: mxHierarchicalLayout.js,v 1.33 2013/03/25 16:24:57 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -36546,6 +36623,11 @@ mxHierarchicalLayout.prototype.execute = function(parent, roots)
 	var model = this.graph.model;
 	this.edgesCache = new Object();
 
+	if (typeof roots !== 'array')
+	{
+		roots = [roots];
+	}
+	
 	// If the roots are set and the parent is set, only
 	// use the roots that are some dependent of the that
 	// parent.
@@ -36823,12 +36905,12 @@ mxHierarchicalLayout.prototype.run = function(parent)
 	{
 		// Find vertex set as directed traversal from roots
 
-		for (var i = 0; i < roots.length; i++)
+		for (var i = 0; i < this.roots.length; i++)
 		{
 			var vertexSet = [];
 			hierarchyVertices.push(vertexSet);
 
-			traverse(roots.get(i), true, null, allVertexSet, vertexSet,
+			this.traverse(this.roots[i], true, null, allVertexSet, vertexSet,
 					hierarchyVertices, null);
 		}
 	}
@@ -36985,7 +37067,10 @@ mxHierarchicalLayout.prototype.traverse = function(vertex, directed, edge, allVe
 				allVertices[vertexID] = vertex;
 			}
 
-			delete filledVertexSet[vertexID];
+			if (filledVertexSet !== null)
+			{
+				delete filledVertexSet[vertexID];
+			}
 
 			var edges = this.getEdges(vertex);
 
@@ -37081,7 +37166,7 @@ mxHierarchicalLayout.prototype.placementStage = function(initialX, parent)
 	return placementStage.limitX + this.interHierarchySpacing;
 };
 /**
- * $Id: mxGraphModel.js,v 1.125 2012-04-16 10:48:43 david Exp $
+ * $Id: mxGraphModel.js,v 1.126 2013/03/27 16:06:33 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -37105,6 +37190,14 @@ mxHierarchicalLayout.prototype.placementStage = function(initialX, parent)
  * groups of cells on top of other cells in the display. To identify a layer,
  * the <isLayer> function is used. It returns true if the parent of the given
  * cell is the root of the model.
+ * 
+ * Events:
+ * 
+ * See events section for more details. There is a new set of events for
+ * tracking transactional changes as they happen. The events are called
+ * startEdit for the initial beginUpdate, executed for each executed change
+ * and endEdit for the terminal endUpdate. The executed event contains a
+ * property called change which represents the change after execution.
  * 
  * Encoding the model:
  * 
@@ -37221,10 +37314,20 @@ mxHierarchicalLayout.prototype.placementStage = function(initialX, parent)
  * Fires between begin- and endUpdate and after an atomic change was executed
  * in the model. The <code>change</code> property contains the atomic change
  * that was executed.
+ * 
+ * Event: mxEvent.EXECUTED
+ * 
+ * Fires between START_EDIT and END_EDIT after an atomic change was executed.
+ * The <code>change</code> property contains the change that was executed.
  *
  * Event: mxEvent.BEGIN_UPDATE
  *
  * Fires after the <updateLevel> was incremented in <beginUpdate>. This event
+ * contains no properties.
+ * 
+ * Event: mxEvent.START_EDIT
+ *
+ * Fires after the <updateLevel> was changed from 0 to 1. This event
  * contains no properties.
  * 
  * Event: mxEvent.END_UPDATE
@@ -37232,6 +37335,11 @@ mxHierarchicalLayout.prototype.placementStage = function(initialX, parent)
  * Fires after the <updateLevel> was decreased in <endUpdate> but before any
  * notification or change dispatching. The <code>edit</code> property contains
  * the <currentEdit>.
+ * 
+ * Event: mxEvent.END_EDIT
+ *
+ * Fires after the <updateLevel> was changed from 1 to 0. This event
+ * contains no properties.
  * 
  * Event: mxEvent.BEFORE_UNDO
  * 
@@ -38916,6 +39024,8 @@ mxGraphModel.prototype.execute = function(change)
 	this.beginUpdate();
 	this.currentEdit.add(change);
 	this.fireEvent(new mxEventObject(mxEvent.EXECUTE, 'change', change));
+	// New global executed event
+	this.fireEvent(new mxEventObject(mxEvent.EXECUTED, 'change', change));
 	this.endUpdate();
 };
 
@@ -38962,6 +39072,11 @@ mxGraphModel.prototype.beginUpdate = function()
 {
 	this.updateLevel++;
 	this.fireEvent(new mxEventObject(mxEvent.BEGIN_UPDATE));
+	
+	if (this.updateLevel == 1)
+	{
+		this.fireEvent(new mxEventObject(mxEvent.START_EDIT));
+	}
 };
 
 /**
@@ -38981,6 +39096,11 @@ mxGraphModel.prototype.beginUpdate = function()
 mxGraphModel.prototype.endUpdate = function()
 {
 	this.updateLevel--;
+	
+	if (this.updateLevel == 0)
+	{
+		this.fireEvent(new mxEventObject(mxEvent.END_EDIT));
+	}
 	
 	if (!this.endingUpdate)
 	{
@@ -39703,7 +39823,7 @@ mxCellAttributeChange.prototype.execute = function()
 	this.previous = tmp;
 };
 /**
- * $Id: mxCell.js,v 1.36 2011-06-17 13:45:08 gaudenz Exp $
+ * $Id: mxCell.js,v 1.36 2011/06/17 13:45:08 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -40509,7 +40629,7 @@ mxCell.prototype.cloneValue = function()
 	return value;
 };
 /**
- * $Id: mxGeometry.js,v 1.26 2010-01-02 09:45:15 gaudenz Exp $
+ * $Id: mxGeometry.js,v 1.26 2010/01/02 09:45:15 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -40786,7 +40906,7 @@ mxGeometry.prototype.translate = function(dx, dy)
 	}
 };
 /**
- * $Id: mxCellPath.js,v 1.12 2010-01-02 09:45:15 gaudenz Exp $
+ * $Id: mxCellPath.js,v 1.12 2010/01/02 09:45:15 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxCellPath =
@@ -40949,7 +41069,7 @@ var mxCellPath =
 
 };
 /**
- * $Id: mxPerimeter.js,v 1.28 2012-01-11 09:06:56 gaudenz Exp $
+ * $Id: mxPerimeter.js,v 1.28 2012/01/11 09:06:56 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxPerimeter =
@@ -41433,7 +41553,7 @@ var mxPerimeter =
 	}
 };
 /**
- * $Id: mxPrintPreview.js,v 1.62 2013-02-05 11:38:55 gaudenz Exp $
+ * $Id: mxPrintPreview.js,v 1.62 2013/02/05 11:38:55 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -42234,7 +42354,7 @@ mxPrintPreview.prototype.close = function()
 	}
 };
 /**
- * $Id: mxStylesheet.js,v 1.35 2010-03-26 10:24:58 gaudenz Exp $
+ * $Id: mxStylesheet.js,v 1.35 2010/03/26 10:24:58 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -42500,7 +42620,7 @@ mxStylesheet.prototype.getCellStyle = function(name, defaultStyle)
 	return style;
 };
 /**
- * $Id: mxCellState.js,v 1.42 2012-03-19 10:47:08 gaudenz Exp $
+ * $Id: mxCellState.js,v 1.42 2012/03/19 10:47:08 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -42875,7 +42995,7 @@ mxCellState.prototype.clone = function()
 	return clone;
 };
 /**
- * $Id: mxGraphSelectionModel.js,v 1.14 2011-11-25 10:16:08 gaudenz Exp $
+ * $Id: mxGraphSelectionModel.js,v 1.14 2011/11/25 10:16:08 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -43310,7 +43430,7 @@ mxSelectionChange.prototype.execute = function()
 			'added', this.added, 'removed', this.removed));
 };
 /**
- * $Id: mxCellEditor.js,v 1.62 2012-12-11 16:59:31 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.62 2012/12/11 16:59:31 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -43832,7 +43952,7 @@ mxCellEditor.prototype.destroy = function ()
 	}
 };
 /**
- * $Id: mxCellRenderer.js,v 1.189 2012-11-20 09:06:07 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.189 2012/11/20 09:06:07 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -45312,7 +45432,7 @@ mxCellRenderer.prototype.destroy = function(state)
 	}
 };
 /**
- * $Id: mxEdgeStyle.js,v 1.68 2012-11-20 09:06:07 gaudenz Exp $
+ * $Id: mxEdgeStyle.js,v 1.68 2012/11/20 09:06:07 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEdgeStyle =
@@ -46613,7 +46733,7 @@ var mxEdgeStyle =
 		return result;
 	}
 };/**
- * $Id: mxStyleRegistry.js,v 1.10 2011-04-27 10:15:39 gaudenz Exp $
+ * $Id: mxStyleRegistry.js,v 1.10 2011/04/27 10:15:39 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxStyleRegistry =
@@ -46683,7 +46803,7 @@ mxStyleRegistry.putValue(mxConstants.PERIMETER_RECTANGLE, mxPerimeter.RectangleP
 mxStyleRegistry.putValue(mxConstants.PERIMETER_RHOMBUS, mxPerimeter.RhombusPerimeter);
 mxStyleRegistry.putValue(mxConstants.PERIMETER_TRIANGLE, mxPerimeter.TrianglePerimeter);
 /**
- * $Id: mxGraphView.js,v 1.198 2013-02-12 10:19:41 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.198 2013/02/12 10:19:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -49228,7 +49348,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.705 2013-02-12 10:57:37 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.705 2013/02/12 10:57:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -60407,7 +60527,7 @@ mxGraph.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxCellOverlay.js,v 1.18 2012-12-06 15:58:44 gaudenz Exp $
+ * $Id: mxCellOverlay.js,v 1.18 2012/12/06 15:58:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -60640,7 +60760,7 @@ mxCellOverlay.prototype.toString = function()
 	return this.tooltip;
 };
 /**
- * $Id: mxOutline.js,v 1.81 2012-06-20 14:13:37 gaudenz Exp $
+ * $Id: mxOutline.js,v 1.81 2012/06/20 14:13:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -61289,7 +61409,7 @@ mxOutline.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxMultiplicity.js,v 1.24 2010-11-03 14:52:40 gaudenz Exp $
+ * $Id: mxMultiplicity.js,v 1.24 2010/11/03 14:52:40 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -61546,7 +61666,7 @@ mxMultiplicity.prototype.checkType = function(graph, value, type, attr, attrValu
 	return false;
 };
 /**
- * $Id: mxLayoutManager.js,v 1.21 2012-01-04 10:01:16 gaudenz Exp $
+ * $Id: mxLayoutManager.js,v 1.21 2012/01/04 10:01:16 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -61921,7 +62041,7 @@ mxLayoutManager.prototype.destroy = function()
 	this.setGraph(null);
 };
 /**
- * $Id: mxSpaceManager.js,v 1.9 2010-01-02 09:45:15 gaudenz Exp $
+ * $Id: mxSpaceManager.js,v 1.9 2010/01/02 09:45:15 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -62381,7 +62501,7 @@ mxSpaceManager.prototype.destroy = function()
 	this.setGraph(null);
 };
 /**
- * $Id: mxSwimlaneManager.js,v 1.17 2011-01-14 15:21:10 gaudenz Exp $
+ * $Id: mxSwimlaneManager.js,v 1.17 2011/01/14 15:21:10 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -62830,7 +62950,7 @@ mxSwimlaneManager.prototype.destroy = function()
 	this.setGraph(null);
 };
 /**
- * $Id: mxTemporaryCellStates.js,v 1.10 2010-04-20 14:43:12 gaudenz Exp $
+ * $Id: mxTemporaryCellStates.js,v 1.10 2010/04/20 14:43:12 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -62935,7 +63055,7 @@ mxTemporaryCellStates.prototype.destroy = function()
 	this.view.setGraphBounds(this.oldBounds);
 };
 /**
- * $Id: mxCellStatePreview.js,v 1.6 2012-10-26 07:19:11 gaudenz Exp $
+ * $Id: mxCellStatePreview.js,v 1.6 2012/10/26 07:19:11 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -63158,7 +63278,7 @@ mxCellStatePreview.prototype.addEdges = function(state)
 	}
 };
 /**
- * $Id: mxConnectionConstraint.js,v 1.2 2010-04-29 09:33:52 gaudenz Exp $
+ * $Id: mxConnectionConstraint.js,v 1.2 2010/04/29 09:33:52 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -63200,7 +63320,7 @@ mxConnectionConstraint.prototype.point = null;
  */
 mxConnectionConstraint.prototype.perimeter = null;
 /**
- * $Id: mxGraphHandler.js,v 1.129 2012-04-13 12:53:30 gaudenz Exp $
+ * $Id: mxGraphHandler.js,v 1.129 2012/04/13 12:53:30 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -64116,7 +64236,7 @@ mxGraphHandler.prototype.destroy = function()
 	this.destroyShapes();
 };
 /**
- * $Id: mxPanningHandler.js,v 1.79 2012-07-17 14:37:41 gaudenz Exp $
+ * $Id: mxPanningHandler.js,v 1.79 2012/07/17 14:37:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -64506,7 +64626,7 @@ mxPanningHandler.prototype.destroy = function()
 	mxPopupMenu.prototype.destroy.apply(this);
 };
 /**
- * $Id: mxCellMarker.js,v 1.30 2011-07-15 12:57:50 gaudenz Exp $
+ * $Id: mxCellMarker.js,v 1.30 2011/07/15 12:57:50 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -64925,7 +65045,7 @@ mxCellMarker.prototype.destroy = function()
 	this.highlight.destroy();
 };
 /**
- * $Id: mxSelectionCellsHandler.js,v 1.5 2012-08-10 11:35:06 gaudenz Exp $
+ * $Id: mxSelectionCellsHandler.js,v 1.5 2012/08/10 11:35:06 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -65185,7 +65305,7 @@ mxSelectionCellsHandler.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxConnectionHandler.js,v 1.218 2012-12-21 13:07:21 gaudenz Exp $
+ * $Id: mxConnectionHandler.js,v 1.218 2012/12/21 13:07:21 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -67168,7 +67288,7 @@ mxConnectionHandler.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxConstraintHandler.js,v 1.15 2012-11-01 16:13:41 gaudenz Exp $
+ * $Id: mxConstraintHandler.js,v 1.15 2012/11/01 16:13:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -67475,7 +67595,7 @@ mxConstraintHandler.prototype.destroy = function()
 {
 	this.reset();
 };/**
- * $Id: mxRubberband.js,v 1.48 2012-04-13 12:53:30 gaudenz Exp $
+ * $Id: mxRubberband.js,v 1.48 2012/04/13 12:53:30 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -67823,7 +67943,7 @@ mxRubberband.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxVertexHandler.js,v 1.107 2012-11-20 09:06:07 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.107 2012/11/20 09:06:07 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -68576,7 +68696,7 @@ mxVertexHandler.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxEdgeHandler.js,v 1.178 2012-09-12 09:16:23 gaudenz Exp $
+ * $Id: mxEdgeHandler.js,v 1.178 2012/09/12 09:16:23 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -70105,7 +70225,7 @@ mxEdgeHandler.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxElbowEdgeHandler.js,v 1.43 2012-01-06 13:06:01 gaudenz Exp $
+ * $Id: mxElbowEdgeHandler.js,v 1.43 2012/01/06 13:06:01 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -70353,7 +70473,7 @@ mxElbowEdgeHandler.prototype.redrawInnerBends = function(p0, pe)
 	this.bends[1].redraw();
 };
 /**
- * $Id: mxEdgeSegmentHandler.js,v 1.15 2013-01-08 15:26:51 gaudenz Exp $
+ * $Id: mxEdgeSegmentHandler.js,v 1.15 2013/01/08 15:26:51 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 function mxEdgeSegmentHandler(state)
@@ -70624,7 +70744,7 @@ mxEdgeSegmentHandler.prototype.changePoints = function(edge, points)
 	mxElbowEdgeHandler.prototype.changePoints.apply(this, arguments);
 };
 /**
- * $Id: mxKeyHandler.js,v 1.48 2012-03-30 08:30:41 gaudenz Exp $
+ * $Id: mxKeyHandler.js,v 1.48 2012/03/30 08:30:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -71026,7 +71146,7 @@ mxKeyHandler.prototype.destroy = function()
 	this.target = null;
 };
 /**
- * $Id: mxTooltipHandler.js,v 1.51 2011-03-31 10:11:17 gaudenz Exp $
+ * $Id: mxTooltipHandler.js,v 1.52 2013/03/27 16:39:04 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -71153,7 +71273,6 @@ mxTooltipHandler.prototype.init = function()
 		this.div = document.createElement('div');
 		this.div.className = 'mxTooltip';
 		this.div.style.visibility = 'hidden';
-		this.div.style.zIndex = this.zIndex;
 
 		document.body.appendChild(this.div);
 
@@ -71305,7 +71424,8 @@ mxTooltipHandler.prototype.show = function(tip, x, y)
 		}
 		
 		var origin = mxUtils.getScrollOrigin();
-		
+
+		this.div.style.zIndex = this.zIndex;
 		this.div.style.left = (x + origin.x) + 'px';
 		this.div.style.top = (y + mxConstants.TOOLTIP_VERTICAL_OFFSET +
 			origin.y) + 'px';
@@ -71343,7 +71463,7 @@ mxTooltipHandler.prototype.destroy = function()
 	this.div = null;
 };
 /**
- * $Id: mxCellTracker.js,v 1.9 2011-08-28 09:49:46 gaudenz Exp $
+ * $Id: mxCellTracker.js,v 1.9 2011/08/28 09:49:46 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -71492,7 +71612,7 @@ mxCellTracker.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxCellHighlight.js,v 1.25 2012-09-27 14:43:40 boris Exp $
+ * $Id: mxCellHighlight.js,v 1.25 2012/09/27 14:43:40 boris Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -71763,7 +71883,7 @@ mxCellHighlight.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxDefaultKeyHandler.js,v 1.26 2010-01-02 09:45:15 gaudenz Exp $
+ * $Id: mxDefaultKeyHandler.js,v 1.26 2010/01/02 09:45:15 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -71889,7 +72009,7 @@ mxDefaultKeyHandler.prototype.destroy = function ()
 	this.handler = null;
 };
 /**
- * $Id: mxDefaultPopupMenu.js,v 1.29 2012-07-03 06:30:25 gaudenz Exp $
+ * $Id: mxDefaultPopupMenu.js,v 1.29 2012/07/03 06:30:25 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -72189,7 +72309,7 @@ mxDefaultPopupMenu.prototype.createConditions = function(editor, cell, evt)
 	return conditions;
 };
 /**
- * $Id: mxDefaultToolbar.js,v 1.67 2012-04-11 07:00:52 gaudenz Exp $
+ * $Id: mxDefaultToolbar.js,v 1.67 2012/04/11 07:00:52 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -72756,7 +72876,7 @@ mxDefaultToolbar.prototype.destroy = function ()
 	}
 };
 /**
- * $Id: mxEditor.js,v 1.231 2012-12-03 18:02:25 gaudenz Exp $
+ * $Id: mxEditor.js,v 1.231 2012/12/03 18:02:25 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -75976,7 +76096,7 @@ mxEditor.prototype.destroy = function ()
 	}
 };
 /**
- * $Id: mxCodecRegistry.js,v 1.12 2010-04-30 13:18:21 gaudenz Exp $
+ * $Id: mxCodecRegistry.js,v 1.12 2010/04/30 13:18:21 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxCodecRegistry =
@@ -76113,7 +76233,7 @@ var mxCodecRegistry =
 
 };
 /**
- * $Id: mxCodec.js,v 1.48 2012-01-04 10:01:16 gaudenz Exp $
+ * $Id: mxCodec.js,v 1.48 2012/01/04 10:01:16 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -76644,7 +76764,7 @@ mxCodec.prototype.setAttribute = function(node, attribute, value)
 	}
 };
 /**
- * $Id: mxObjectCodec.js,v 1.49 2010-12-01 09:19:58 gaudenz Exp $
+ * $Id: mxObjectCodec.js,v 1.49 2010/12/01 09:19:58 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -77627,7 +77747,7 @@ mxObjectCodec.prototype.afterDecode = function(dec, node, obj)
 	return obj;
 };
 /**
- * $Id: mxCellCodec.js,v 1.22 2010-10-21 07:12:31 gaudenz Exp $
+ * $Id: mxCellCodec.js,v 1.22 2010/10/21 07:12:31 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -77797,7 +77917,7 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * $Id: mxModelCodec.js,v 1.11 2010-11-23 08:46:41 gaudenz Exp $
+ * $Id: mxModelCodec.js,v 1.11 2010/11/23 08:46:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -77877,7 +77997,7 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * $Id: mxRootChangeCodec.js,v 1.6 2010-09-15 14:38:51 gaudenz Exp $
+ * $Id: mxRootChangeCodec.js,v 1.6 2010/09/15 14:38:51 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -77960,7 +78080,7 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * $Id: mxChildChangeCodec.js,v 1.12 2010-09-15 14:38:52 gaudenz Exp $
+ * $Id: mxChildChangeCodec.js,v 1.12 2010/09/15 14:38:52 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -78109,7 +78229,7 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * $Id: mxTerminalChangeCodec.js,v 1.7 2010-09-13 15:58:36 gaudenz Exp $
+ * $Id: mxTerminalChangeCodec.js,v 1.7 2010/09/13 15:58:36 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -78151,7 +78271,7 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * $Id: mxGenericChangeCodec.js,v 1.11 2010-09-13 15:50:36 gaudenz Exp $
+ * $Id: mxGenericChangeCodec.js,v 1.11 2010/09/13 15:50:36 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -78215,7 +78335,7 @@ mxCodecRegistry.register(mxGenericChangeCodec(new mxCollapseChange(), 'collapsed
 mxCodecRegistry.register(mxGenericChangeCodec(new mxVisibleChange(), 'visible'));
 mxCodecRegistry.register(mxGenericChangeCodec(new mxCellAttributeChange(), 'value'));
 /**
- * $Id: mxGraphCodec.js,v 1.8 2010-06-10 06:54:18 gaudenz Exp $
+ * $Id: mxGraphCodec.js,v 1.8 2010/06/10 06:54:18 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -78243,7 +78363,7 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * $Id: mxGraphViewCodec.js,v 1.18 2010-12-03 11:05:52 gaudenz Exp $
+ * $Id: mxGraphViewCodec.js,v 1.18 2010/12/03 11:05:52 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -78440,7 +78560,7 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * $Id: mxStylesheetCodec.js,v 1.19 2011-06-13 08:18:42 gaudenz Exp $
+ * $Id: mxStylesheetCodec.js,v 1.19 2011/06/13 08:18:42 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -78650,7 +78770,7 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * $Id: mxDefaultKeyHandlerCodec.js,v 1.5 2010-01-02 09:45:15 gaudenz Exp $
+ * $Id: mxDefaultKeyHandlerCodec.js,v 1.5 2010/01/02 09:45:15 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -78738,7 +78858,7 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * $Id: mxDefaultToolbarCodec.js,v 1.22 2012-04-11 07:00:52 gaudenz Exp $
+ * $Id: mxDefaultToolbarCodec.js,v 1.22 2012/04/11 07:00:52 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -79039,7 +79159,7 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * $Id: mxDefaultPopupMenuCodec.js,v 1.6 2010-01-02 09:45:15 gaudenz Exp $
+ * $Id: mxDefaultPopupMenuCodec.js,v 1.6 2010/01/02 09:45:15 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -79093,7 +79213,7 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * $Id: mxEditorCodec.js,v 1.11 2010-01-04 11:18:26 gaudenz Exp $
+ * $Id: mxEditorCodec.js,v 1.11 2010/01/04 11:18:26 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()

@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxConstants.php,v 1.53 2012-02-05 12:09:54 gaudenz Exp $
+ * $Id: mxConstants.php,v 1.53 2012/02/05 12:09:54 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 class mxConstants

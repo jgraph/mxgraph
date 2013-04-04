@@ -1,4 +1,4 @@
-// $Id: mxConnectionConstraint.cs,v 1.2 2010-04-29 09:33:53 gaudenz Exp $
+// $Id: mxConnectionConstraint.cs,v 1.2 2010/04/29 09:33:53 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 namespace com.mxgraph
 {

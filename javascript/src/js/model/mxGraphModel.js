@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphModel.js,v 1.125 2012-04-16 10:48:43 david Exp $
+ * $Id: mxGraphModel.js,v 1.126 2013/03/27 16:06:33 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -23,6 +23,14 @@
  * groups of cells on top of other cells in the display. To identify a layer,
  * the <isLayer> function is used. It returns true if the parent of the given
  * cell is the root of the model.
+ * 
+ * Events:
+ * 
+ * See events section for more details. There is a new set of events for
+ * tracking transactional changes as they happen. The events are called
+ * startEdit for the initial beginUpdate, executed for each executed change
+ * and endEdit for the terminal endUpdate. The executed event contains a
+ * property called change which represents the change after execution.
  * 
  * Encoding the model:
  * 
@@ -139,10 +147,20 @@
  * Fires between begin- and endUpdate and after an atomic change was executed
  * in the model. The <code>change</code> property contains the atomic change
  * that was executed.
+ * 
+ * Event: mxEvent.EXECUTED
+ * 
+ * Fires between START_EDIT and END_EDIT after an atomic change was executed.
+ * The <code>change</code> property contains the change that was executed.
  *
  * Event: mxEvent.BEGIN_UPDATE
  *
  * Fires after the <updateLevel> was incremented in <beginUpdate>. This event
+ * contains no properties.
+ * 
+ * Event: mxEvent.START_EDIT
+ *
+ * Fires after the <updateLevel> was changed from 0 to 1. This event
  * contains no properties.
  * 
  * Event: mxEvent.END_UPDATE
@@ -150,6 +168,11 @@
  * Fires after the <updateLevel> was decreased in <endUpdate> but before any
  * notification or change dispatching. The <code>edit</code> property contains
  * the <currentEdit>.
+ * 
+ * Event: mxEvent.END_EDIT
+ *
+ * Fires after the <updateLevel> was changed from 1 to 0. This event
+ * contains no properties.
  * 
  * Event: mxEvent.BEFORE_UNDO
  * 
@@ -1834,6 +1857,8 @@ mxGraphModel.prototype.execute = function(change)
 	this.beginUpdate();
 	this.currentEdit.add(change);
 	this.fireEvent(new mxEventObject(mxEvent.EXECUTE, 'change', change));
+	// New global executed event
+	this.fireEvent(new mxEventObject(mxEvent.EXECUTED, 'change', change));
 	this.endUpdate();
 };
 
@@ -1880,6 +1905,11 @@ mxGraphModel.prototype.beginUpdate = function()
 {
 	this.updateLevel++;
 	this.fireEvent(new mxEventObject(mxEvent.BEGIN_UPDATE));
+	
+	if (this.updateLevel == 1)
+	{
+		this.fireEvent(new mxEventObject(mxEvent.START_EDIT));
+	}
 };
 
 /**
@@ -1899,6 +1929,11 @@ mxGraphModel.prototype.beginUpdate = function()
 mxGraphModel.prototype.endUpdate = function()
 {
 	this.updateLevel--;
+	
+	if (this.updateLevel == 0)
+	{
+		this.fireEvent(new mxEventObject(mxEvent.END_EDIT));
+	}
 	
 	if (!this.endingUpdate)
 	{

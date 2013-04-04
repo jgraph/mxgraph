@@ -24,7 +24,7 @@ package com.mxgraph.util.svg;
  * notified of parsing events.
  *
  * @author <a href="mailto:stephane@hillion.org">Stephane Hillion</a>
- * @version $Id: PathHandler.java,v 1.1 2010-09-03 19:14:05 david Exp $
+ * @version $Id: PathHandler.java,v 1.1 2010/09/03 19:14:05 david Exp $
  */
 public interface PathHandler
 {

@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxStylesheetCodec.php,v 1.10 2011-06-13 08:18:42 gaudenz Exp $
+ * $Id: mxStylesheetCodec.php,v 1.10 2011/06/13 08:18:42 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 class mxStylesheetCodec extends mxObjectCodec

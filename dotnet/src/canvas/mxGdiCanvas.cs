@@ -1,4 +1,4 @@
-// $Id: mxGdiCanvas.cs,v 1.88 2012-03-24 11:58:09 gaudenz Exp $
+// $Id: mxGdiCanvas.cs,v 1.88 2012/03/24 11:58:09 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Drawing;

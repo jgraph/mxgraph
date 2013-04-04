@@ -1,5 +1,5 @@
 /**
- * $Id: mxDistanceCostFunction.java,v 1.1 2009-10-16 14:35:58 david Exp $
+ * $Id: mxDistanceCostFunction.java,v 1.1 2009/10/16 14:35:58 david Exp $
  * Copyright (c) 2007-2009, JGraph Ltd
  */
 package com.mxgraph.analysis;

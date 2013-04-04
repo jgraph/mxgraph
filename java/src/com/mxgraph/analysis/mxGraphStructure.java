@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphStructure.java,v 1.18 2012-11-21 13:59:52 mate Exp $
+ * $Id: mxGraphStructure.java,v 1.18 2012/11/21 13:59:52 mate Exp $
  * Copyright (c) 2012, JGraph Ltd
  */
 package com.mxgraph.analysis;

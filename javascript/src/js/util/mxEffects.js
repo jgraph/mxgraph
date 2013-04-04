@@ -1,5 +1,5 @@
 /**
- * $Id: mxEffects.js,v 1.6 2012-01-04 10:01:16 gaudenz Exp $
+ * $Id: mxEffects.js,v 1.6 2012/01/04 10:01:16 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEffects =
