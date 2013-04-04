@@ -1,5 +1,5 @@
 /**
- * $Id: mxSelectionCellsHandler.java,v 1.13 2012-07-25 08:23:43 gaudenz Exp $
+ * $Id: mxSelectionCellsHandler.java,v 1.13 2012/07/25 08:23:43 gaudenz Exp $
  * Copyright (c) 2008, Gaudenz Alder
  * 
  * Known issue: Drag image size depends on the initial position and may sometimes

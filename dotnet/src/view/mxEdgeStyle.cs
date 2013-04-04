@@ -1,4 +1,4 @@
-// $Id: mxEdgeStyle.cs,v 1.28 2010-06-10 08:57:30 gaudenz Exp $
+// $Id: mxEdgeStyle.cs,v 1.28 2010/06/10 08:57:30 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Collections;

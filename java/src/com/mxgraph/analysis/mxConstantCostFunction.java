@@ -1,5 +1,5 @@
 /**
- * $Id: mxConstantCostFunction.java,v 1.1 2009-10-16 14:35:58 david Exp $
+ * $Id: mxConstantCostFunction.java,v 1.1 2009/10/16 14:35:58 david Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.analysis;

@@ -1,5 +1,5 @@
 /**
- * $Id: NewExport.java,v 1.5 2012-01-13 11:09:08 david Exp $
+ * $Id: NewExport.java,v 1.5 2012/01/13 11:09:08 david Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.examples.web;

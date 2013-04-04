@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxConnectionConstraint.php,v 1.2 2010-04-30 12:58:23 gaudenz Exp $
+ * $Id: mxConnectionConstraint.php,v 1.2 2010/04/30 12:58:23 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 class mxConnectionConstraint

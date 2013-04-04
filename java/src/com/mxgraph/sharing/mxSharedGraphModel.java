@@ -1,5 +1,5 @@
 /**
- * $Id: mxSharedGraphModel.java,v 1.3 2012-01-13 12:35:04 david Exp $
+ * $Id: mxSharedGraphModel.java,v 1.3 2012/01/13 12:35:04 david Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.sharing;

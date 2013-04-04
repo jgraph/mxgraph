@@ -24,7 +24,7 @@ import java.awt.Shape;
  * This interface represents objects which creates Shape objects.
  *
  * @author <a href="mailto:stephane@hillion.org">Stephane Hillion</a>
- * @version $Id: ShapeProducer.java,v 1.1 2010-09-03 19:14:06 david Exp $
+ * @version $Id: ShapeProducer.java,v 1.1 2010/09/03 19:14:06 david Exp $
  */
 public interface ShapeProducer
 {

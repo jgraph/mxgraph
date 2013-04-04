@@ -1,5 +1,5 @@
 /**
- * $Id: DiagramStore.js,v 1.1 2012-03-06 12:36:45 gaudenz Exp $
+ * $Id: DiagramStore.js,v 1.1 2012/03/06 12:36:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  *
  * Class: DiagramStore

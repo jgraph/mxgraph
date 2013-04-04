@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: graph.php,v 1.15 2011-02-23 10:28:19 gaudenz Exp $
+ * $Id: graph.php,v 1.15 2011/02/23 10:28:19 gaudenz Exp $
  * Copyright (c) 2006, Gaudenz Alder
  */
 include_once("../src/mxServer.php");

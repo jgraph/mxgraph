@@ -1,5 +1,5 @@
 /**
- * $Id: SvgExport.java,v 1.3 2012-01-13 11:37:33 david Exp $
+ * $Id: SvgExport.java,v 1.3 2012/01/13 11:37:33 david Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.examples.web;

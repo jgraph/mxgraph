@@ -1,5 +1,5 @@
 /**
- * $Id: mxLightweightLabel.java,v 1.2 2011-01-12 13:43:54 gaudenz Exp $
+ * $Id: mxLightweightLabel.java,v 1.2 2011/01/12 13:43:54 gaudenz Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.util;

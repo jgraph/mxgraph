@@ -1,5 +1,5 @@
 /**
- * $Id: mxConstants.java,v 1.82 2013-02-20 11:41:04 gaudenz Exp $
+ * $Id: mxConstants.java,v 1.82 2013/02/20 11:41:04 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.util;

@@ -1,5 +1,5 @@
 /**
- * $Id: mxGeometry.java,v 1.31 2010-08-02 13:48:25 david Exp $
+ * $Id: mxGeometry.java,v 1.31 2010/08/02 13:48:25 david Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.model;

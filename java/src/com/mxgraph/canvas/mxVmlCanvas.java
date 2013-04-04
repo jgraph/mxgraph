@@ -1,5 +1,5 @@
 /**
- * $Id: mxVmlCanvas.java,v 1.53 2011-03-17 10:40:57 gaudenz Exp $
+ * $Id: mxVmlCanvas.java,v 1.53 2011/03/17 10:40:57 gaudenz Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.canvas;

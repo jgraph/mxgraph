@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxGraphViewHtmlReader.php,v 1.11 2010-06-29 12:05:42 gaudenz Exp $
+ * $Id: mxGraphViewHtmlReader.php,v 1.11 2010/06/29 12:05:42 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 

@@ -1,5 +1,5 @@
 /**
- * $Id: mxOrthogonalModel.java,v 1.1 2009-11-25 12:36:37 david Exp $
+ * $Id: mxOrthogonalModel.java,v 1.1 2009/11/25 12:36:37 david Exp $
  * Copyright (c) 2008-2009, JGraph Ltd
  */
 package com.mxgraph.layout.orthogonal.model;

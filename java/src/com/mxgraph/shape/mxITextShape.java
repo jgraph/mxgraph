@@ -1,5 +1,5 @@
 /**
- * $Id: mxITextShape.java,v 1.3 2010-07-18 19:47:20 david Exp $
+ * $Id: mxITextShape.java,v 1.3 2010/07/18 19:47:20 david Exp $
  * Copyright (c) 2010, Gaudenz Alder, David Benson
  */
 package com.mxgraph.shape;

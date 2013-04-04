@@ -1,4 +1,4 @@
-// $Id: mxStyleRegistry.cs,v 1.3 2010-01-29 09:56:50 gaudenz Exp $
+// $Id: mxStyleRegistry.cs,v 1.3 2010/01/29 09:56:50 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Diagnostics;

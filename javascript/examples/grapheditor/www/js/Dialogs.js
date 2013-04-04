@@ -1,5 +1,5 @@
 /**
- * $Id: Dialogs.js,v 1.51 2012-12-11 09:42:03 gaudenz Exp $
+ * $Id: Dialogs.js,v 1.51 2012/12/11 09:42:03 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**

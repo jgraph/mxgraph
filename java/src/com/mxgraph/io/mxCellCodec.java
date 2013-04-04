@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellCodec.java,v 1.14 2011-07-07 10:12:24 gaudenz Exp $
+ * $Id: mxCellCodec.java,v 1.14 2011/07/07 10:12:24 gaudenz Exp $
  * Copyright (c) 2006, Gaudenz Alder
  */
 package com.mxgraph.io;

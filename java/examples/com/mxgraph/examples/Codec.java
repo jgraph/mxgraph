@@ -1,5 +1,5 @@
 /**
- * $Id: Codec.java,v 1.4 2012-01-13 12:30:33 david Exp $
+ * $Id: Codec.java,v 1.4 2012/01/13 12:30:33 david Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.examples;

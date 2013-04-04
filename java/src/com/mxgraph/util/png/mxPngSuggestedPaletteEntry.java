@@ -1,5 +1,5 @@
 /*
- * $Id: mxPngSuggestedPaletteEntry.java,v 1.4 2010-08-09 16:41:04 david Exp $
+ * $Id: mxPngSuggestedPaletteEntry.java,v 1.4 2010/08/09 16:41:04 david Exp $
  * Copyright (c) 2001 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without 
@@ -41,7 +41,7 @@ import java.io.Serializable;
  * <p><b> This class is not a committed part of the JAI API.  It may
  * be removed or changed in future releases of JAI.</b>
  *
- * @version $Id: mxPngSuggestedPaletteEntry.java,v 1.4 2010-08-09 16:41:04 david Exp $
+ * @version $Id: mxPngSuggestedPaletteEntry.java,v 1.4 2010/08/09 16:41:04 david Exp $
  */
 public class mxPngSuggestedPaletteEntry implements Serializable
 {

@@ -1,5 +1,5 @@
 /**
- * $Id: Actions.js,v 1.39 2013-01-16 08:40:17 gaudenz Exp $
+ * $Id: Actions.js,v 1.39 2013/01/16 08:40:17 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**

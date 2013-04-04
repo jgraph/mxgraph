@@ -1,4 +1,4 @@
-// $Id: mxSharedState.cs,v 1.1 2010-09-20 06:21:37 gaudenz Exp $
+// $Id: mxSharedState.cs,v 1.1 2010/09/20 06:21:37 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Collections.Generic;

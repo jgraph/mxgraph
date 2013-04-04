@@ -1,5 +1,5 @@
 /**
- * $Id: mxStyleUtils.java,v 1.1 2012-01-13 12:26:15 david Exp $
+ * $Id: mxStyleUtils.java,v 1.1 2012/01/13 12:26:15 david Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.util;

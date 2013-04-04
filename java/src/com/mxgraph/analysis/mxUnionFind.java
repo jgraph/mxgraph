@@ -1,5 +1,5 @@
 /**
- * $Id: mxUnionFind.java,v 1.2 2009-11-24 12:00:28 gaudenz Exp $
+ * $Id: mxUnionFind.java,v 1.2 2009/11/24 12:00:28 gaudenz Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.analysis;

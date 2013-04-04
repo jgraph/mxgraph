@@ -1,5 +1,5 @@
 /*
- * $Id: mxGraphAnalysis.java,v 1.4 2012-03-09 07:42:54 gaudenz Exp $
+ * $Id: mxGraphAnalysis.java,v 1.4 2012/03/09 07:42:54 gaudenz Exp $
  * Copyright (c) 2001-2005, Gaudenz Alder
  * 
  * All rights reserved. 

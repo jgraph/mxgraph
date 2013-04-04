@@ -1,5 +1,5 @@
 /**
- * $Id: mxImageBundle.java,v 1.5 2011-01-19 20:06:16 gaudenz Exp $
+ * $Id: mxImageBundle.java,v 1.5 2011/01/19 20:06:16 gaudenz Exp $
  * Copyright (c) 2010, Gaudenz Alder
  */
 package com.mxgraph.util;

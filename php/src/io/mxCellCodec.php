@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxCellCodec.php,v 1.13 2010-06-30 11:03:50 gaudenz Exp $
+ * $Id: mxCellCodec.php,v 1.13 2010/06/30 11:03:50 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 class mxCellCodec extends mxObjectCodec

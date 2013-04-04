@@ -1,5 +1,5 @@
 /**
- * $Id: mxImageCanvas.java,v 1.14 2010-12-03 10:08:46 gaudenz Exp $
+ * $Id: mxImageCanvas.java,v 1.14 2010/12/03 10:08:46 gaudenz Exp $
  * Copyright (c) 2007-2010, Gaudenz Alder, David Benson
  */
 package com.mxgraph.canvas;

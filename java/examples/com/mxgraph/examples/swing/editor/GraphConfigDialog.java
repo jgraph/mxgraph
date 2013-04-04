@@ -1,5 +1,5 @@
 /**
- * $Id: GraphConfigDialog.java,v 1.14 2012-11-21 13:59:45 mate Exp $
+ * $Id: GraphConfigDialog.java,v 1.14 2012/11/21 13:59:45 mate Exp $
  * Copyright (c) 2012, JGraph Ltd
  */
 

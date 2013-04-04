@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxUtils.php,v 1.53 2012-12-21 10:47:50 gaudenz Exp $
+ * $Id: mxUtils.php,v 1.53 2012/12/21 10:47:50 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 class mxUtils

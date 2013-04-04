@@ -1,5 +1,5 @@
 /*
- * $Id: mxGraphSelectionModel.java,v 1.10 2011-01-06 08:14:09 gaudenz Exp $
+ * $Id: mxGraphSelectionModel.java,v 1.10 2011/01/06 08:14:09 gaudenz Exp $
  * Copyright (c) 2001-2005, Gaudenz Alder
  * 
  * All rights reserved.

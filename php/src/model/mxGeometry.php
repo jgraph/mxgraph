@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxGeometry.php,v 1.18 2010-06-29 12:05:42 gaudenz Exp $
+ * $Id: mxGeometry.php,v 1.18 2010/06/29 12:05:42 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 class mxGeometry extends mxRectangle

@@ -1,5 +1,5 @@
 /**
- * $Id: mxMouseAdapter.java,v 1.1 2010-06-01 10:18:45 gaudenz Exp $
+ * $Id: mxMouseAdapter.java,v 1.1 2010/06/01 10:18:45 gaudenz Exp $
  * Copyright (c) 2008, Gaudenz Alder
  */
 package com.mxgraph.swing.util;

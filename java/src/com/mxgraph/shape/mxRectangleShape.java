@@ -1,5 +1,5 @@
 /**
- * $Id: mxRectangleShape.java,v 1.5 2012-01-13 13:12:37 david Exp $
+ * $Id: mxRectangleShape.java,v 1.5 2012/01/13 13:12:37 david Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.shape;

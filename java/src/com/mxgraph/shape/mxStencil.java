@@ -1,5 +1,5 @@
 /**
- * $Id: mxStencil.java,v 1.8 2012-04-24 13:56:56 gaudenz Exp $
+ * $Id: mxStencil.java,v 1.8 2012/04/24 13:56:56 gaudenz Exp $
  * Copyright (c) 2010-2012, JGraph Ltd
  */
 package com.mxgraph.shape;

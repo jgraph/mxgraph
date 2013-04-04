@@ -1,5 +1,5 @@
 /**
- * $Id: mxImageExportTest.java,v 1.7 2012-03-16 15:51:14 gaudenz Exp $
+ * $Id: mxImageExportTest.java,v 1.7 2012/03/16 15:51:14 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 package com.mxgraph.test;

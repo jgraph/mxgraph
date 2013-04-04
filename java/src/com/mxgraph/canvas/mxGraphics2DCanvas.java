@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphics2DCanvas.java,v 1.201 2012-05-30 15:39:34 gaudenz Exp $
+ * $Id: mxGraphics2DCanvas.java,v 1.201 2012/05/30 15:39:34 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.canvas;

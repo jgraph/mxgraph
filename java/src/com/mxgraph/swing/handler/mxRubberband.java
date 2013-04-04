@@ -1,5 +1,5 @@
 /**
- * $Id: mxRubberband.java,v 1.14 2012-01-13 13:19:45 david Exp $
+ * $Id: mxRubberband.java,v 1.14 2012/01/13 13:19:45 david Exp $
  * Copyright (c) 2008-2012, JGraph Ltd
  */
 package com.mxgraph.swing.handler;

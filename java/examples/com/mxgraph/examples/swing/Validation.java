@@ -1,5 +1,5 @@
 /**
- * $Id: Validation.java,v 1.4 2012-01-13 11:20:55 david Exp $
+ * $Id: Validation.java,v 1.4 2012/01/13 11:20:55 david Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.examples.swing;

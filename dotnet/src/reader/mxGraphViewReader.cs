@@ -1,4 +1,4 @@
-// $Id: mxGraphViewReader.cs,v 1.19 2010-07-22 08:49:28 gaudenz Exp $
+// $Id: mxGraphViewReader.cs,v 1.19 2010/07/22 08:49:28 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Drawing;

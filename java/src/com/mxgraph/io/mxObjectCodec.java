@@ -1,5 +1,5 @@
 /**
- * $Id: mxObjectCodec.java,v 1.41 2012-08-21 10:55:11 gaudenz Exp $
+ * $Id: mxObjectCodec.java,v 1.41 2012/08/21 10:55:11 gaudenz Exp $
  * Copyright (c) 2006, Gaudenz Alder
  */
 package com.mxgraph.io;

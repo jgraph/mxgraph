@@ -1,5 +1,5 @@
 /**
- * $Id: mxConnectorShape.java,v 1.23 2012-04-02 10:20:54 gaudenz Exp $
+ * $Id: mxConnectorShape.java,v 1.23 2012/04/02 10:20:54 gaudenz Exp $
  * Copyright (c) 2010, Gaudenz Alder, David Benson
  */
 package com.mxgraph.shape;

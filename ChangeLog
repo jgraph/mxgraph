@@ -1,3 +1,11 @@
+04-APR-2013: 1.12.0.0
+
+- Fixes output of mxUtils.getXml for Firefox 20 [JavaScript]
+- Fixes child offset for swimlanes in mxStackLayout [JavaScript]
+- Moves setting zIndex for tooltips in mxTooltipHandler from init to show [JavaScript]
+- Adds startEdit, endEdit and executed events in mxGraphModel, mxUndoableEdit [JavaScript]
+- Fixes undefined roots variable usage in hierarchical layout [JavaScript]
+
 21-FEB-2013: 1.11.0.0
 
 - Improves jetty segment positioning for hierarchical layout with curved edges [JavaScript]
