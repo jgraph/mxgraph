@@ -1,5 +1,11 @@
 04-APR-2013: 1.12.0.0
 
+- Fixes mxStackLayout for special swimlane sizes [JavaScript]
+- Fixes output of mxUtils.getXml for Safari [JavaScript]
+- Fixes mxEdgeStyle.TopToBottom/SideToSide to match JavaScript output [Java]
+
+04-APR-2013: 1.12.0.0
+
 - Fixes output of mxUtils.getXml for Firefox 20 [JavaScript]
 - Fixes child offset for swimlanes in mxStackLayout [JavaScript]
 - Moves setting zIndex for tooltips in mxTooltipHandler from init to show [JavaScript]
