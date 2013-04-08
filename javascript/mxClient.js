@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.12.0.0.
+	 * Current version is 1.12.0.1.
 	 */
-	VERSION: '1.12.0.0',
+	VERSION: '1.12.0.1',
 
 	/**
 	 * Variable: IS_IE
@@ -1874,7 +1874,7 @@ var mxEffects =
 
 };
 /**
- * $Id: mxUtils.js,v 1.298 2013/04/04 09:37:40 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.299 2013/04/07 19:41:05 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxUtils =
@@ -2601,7 +2601,7 @@ var mxUtils =
 	{
 		return node != null && node.tagUrn == 'urn:schemas-microsoft-com:vml';
 	},
-	
+
 	/**
 	 * Function: getXml
 	 * 
@@ -2619,35 +2619,23 @@ var mxUtils =
 	getXml: function(node, linefeed)
 	{
 		var xml = '';
-		
-		if (node != null)
+		  
+		if (window.XMLSerializer != null)
 		{
-			xml = node.xml;
-			
-			if (xml == null)
-			{
-				if (typeof(XMLSerializer) == 'function')
-				{
-					var xmlSerializer = new XMLSerializer();
-					xml = xmlSerializer.serializeToString(node);					
-				}
-				else if (node.outerHTML)
-				{
-					xml = node.outerHTML;
-				}
-			}
-			else
-			{
-				xml = xml.replace(/\r\n\t[\t]*/g, '').
-					replace(/>\r\n/g, '>').
-					replace(/\r\n/g, '\n');
-			}
+			var xmlSerializer = new XMLSerializer();
+			xml = xmlSerializer.serializeToString(node);     
+		}
+		else if (node.xml != null)
+		{
+			xml = node.xml.replace(/\r\n\t[\t]*/g, '').
+				replace(/>\r\n/g, '>').
+				replace(/\r\n/g, '\n');
 		}
 
 		// Replaces linefeeds with HTML Entities.
 		linefeed = linefeed || '&#xa;';
 		xml = xml.replace(/\n/g, linefeed);
-		
+		  
 		return xml;
 	},
 
@@ -21483,7 +21471,7 @@ mxShape.prototype.redrawPath = function(path, x, y, w, h)
 	// do nothing
 };
 /**
- * $Id: mxStencil.js,v 1.93 2013/02/21 14:18:45 gaudenz Exp $
+ * $Id: mxStencil.js,v 1.94 2013/04/06 09:29:09 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -21536,11 +21524,12 @@ mxShape.prototype.redrawPath = function(path, x, y, w, h)
  * The dashpattern should be used together with the dashed directive to
  * enabled/disable the dashpattern. The default dashpattern is 3 3.
  * 
- * The strokewidth attribute defines a fixed strokewidth for the shape. It
+ * The strokewidth attribute defines a strokewidth behaviour for the shape. It
  * can contain a numeric value or the keyword "inherit", which means that the
- * strokeWidth from the cell's style will be used and muliplied with the shape's
- * scale. If numeric values are used, those are multiplied with the minimum
- * scale used to render the stencil inside the shape's bounds.
+ * strokeWidth of the cell is only changed on scaling, not on resizing.
+ * If numeric values are used, the strokeWidth of the cell is changed on both
+ * scaling and resizing and the value defines the multiple that is applied to
+ * the width.
  * 
  * To support i18n in the text element, use the localized attribute of 1 to use
  * the str as a key in <mxResources.get>. To handle all str attributes of all
@@ -29578,7 +29567,7 @@ mxGraphLayout.prototype.arrangeGroups = function(groups, border)
 	}
 };
 /**
- * $Id: mxStackLayout.js,v 1.48 2013/04/01 12:00:35 gaudenz Exp $
+ * $Id: mxStackLayout.js,v 1.49 2013/04/08 11:10:53 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -29797,7 +29786,7 @@ mxStackLayout.prototype.execute = function(parent)
 		var model = this.graph.getModel();	
 		var pgeo = this.getParentSize(parent);
 					
-		var fillValue = 0;
+		var fillValue = null;
 		
 		if (pgeo != null)
 		{
@@ -29814,13 +29803,25 @@ mxStackLayout.prototype.execute = function(parent)
 			// Uses computed style to get latest 
 			var style = this.graph.getCellStyle(parent);
 			var start = mxUtils.getNumber(style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE);
-			var horz = mxUtils.getValue(style, mxConstants.STYLE_HORIZONTAL, true);
+			var horz = mxUtils.getValue(style, mxConstants.STYLE_HORIZONTAL, true) == 1;
+
+			if (pgeo != null)
+			{
+				if (horz)
+				{
+					start = Math.min(start, pgeo.height);
+				}
+				else
+				{
+					start = Math.min(start, pgeo.width);
+				}
+			}
 			
 			if (horizontal == horz)
 			{
 				fillValue -= start;
 			}
-			
+
 			if (horz)
 			{
 				y0 += start;
@@ -29906,7 +29907,7 @@ mxStackLayout.prototype.execute = function(parent)
 							geo.x = x0;
 						}
 						
-						if (this.fill && fillValue > 0)
+						if (this.fill && fillValue != null)
 						{
 							if (horizontal)
 							{

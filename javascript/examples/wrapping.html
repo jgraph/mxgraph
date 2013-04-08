@@ -1,5 +1,5 @@
 <!--
-  $Id: wrapping.html,v 1.13 2012/11/22 08:37:41 gaudenz Exp $
+  $Id: wrapping.html,v 1.14 2013/04/05 07:29:15 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Wrapping example for mxGraph. This example demonstrates using HTML markup and
@@ -57,7 +57,7 @@
 							20, 20, 100, 70, 'whiteSpace=wrap;');
 					var v2 = graph.insertVertex(parent, null, 'Cum Caesar vidisset, portum plenum esse, iuxta navigavit.',
 							220, 150, 80, 70, 'whiteSpace=wrap;');
-					var e1 = graph.insertEdge(parent, null, '<table style="width:100px;font-size:11px;color:#774400;"><tr><td align="center">Cum Caesar vidisset, portum plenum esse, iuxta navigavit.</td></tr></table>',
+					var e1 = graph.insertEdge(parent, null, '<table style="width:100px;font-size:11px;color:#774400;"><tr><td align="center" style="white-space:normal;">Cum Caesar vidisset, portum plenum esse, iuxta navigavit.</td></tr></table>',
 							v1, v2);
 				}
 				finally

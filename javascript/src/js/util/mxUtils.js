@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.js,v 1.298 2013/04/04 09:37:40 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.299 2013/04/07 19:41:05 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxUtils =
@@ -726,7 +726,7 @@ var mxUtils =
 	{
 		return node != null && node.tagUrn == 'urn:schemas-microsoft-com:vml';
 	},
-	
+
 	/**
 	 * Function: getXml
 	 * 
@@ -744,35 +744,23 @@ var mxUtils =
 	getXml: function(node, linefeed)
 	{
 		var xml = '';
-		
-		if (node != null)
+		  
+		if (window.XMLSerializer != null)
 		{
-			xml = node.xml;
-			
-			if (xml == null)
-			{
-				if (typeof(XMLSerializer) == 'function')
-				{
-					var xmlSerializer = new XMLSerializer();
-					xml = xmlSerializer.serializeToString(node);					
-				}
-				else if (node.outerHTML)
-				{
-					xml = node.outerHTML;
-				}
-			}
-			else
-			{
-				xml = xml.replace(/\r\n\t[\t]*/g, '').
-					replace(/>\r\n/g, '>').
-					replace(/\r\n/g, '\n');
-			}
+			var xmlSerializer = new XMLSerializer();
+			xml = xmlSerializer.serializeToString(node);     
+		}
+		else if (node.xml != null)
+		{
+			xml = node.xml.replace(/\r\n\t[\t]*/g, '').
+				replace(/>\r\n/g, '>').
+				replace(/\r\n/g, '\n');
 		}
 
 		// Replaces linefeeds with HTML Entities.
 		linefeed = linefeed || '&#xa;';
 		xml = xml.replace(/\n/g, linefeed);
-		
+		  
 		return xml;
 	},
 

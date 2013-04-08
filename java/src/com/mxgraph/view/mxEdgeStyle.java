@@ -1,5 +1,5 @@
 /**
- * $Id: mxEdgeStyle.java,v 1.48 2013/02/20 11:41:04 gaudenz Exp $
+ * $Id: mxEdgeStyle.java,v 1.49 2013/04/05 12:43:17 gaudenz Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.view;
@@ -388,7 +388,10 @@ public class mxEdgeStyle
 				{
 					if (pt != null)
 					{
-						result.add(new mxPoint(x, pt.getY()));
+						if (!target.contains(x, pt.getY()) && !source.contains(x, pt.getY()))
+						{
+							result.add(new mxPoint(x, pt.getY()));
+						}
 					}
 					else
 					{
@@ -474,7 +477,10 @@ public class mxEdgeStyle
 				{
 					if (pt != null)
 					{
-						result.add(new mxPoint(pt.getX(), y));
+						if (!target.contains(pt.getX(), y) && !source.contains(pt.getX(), y))
+						{
+							result.add(new mxPoint(pt.getX(), y));
+						}
 					}
 					else
 					{

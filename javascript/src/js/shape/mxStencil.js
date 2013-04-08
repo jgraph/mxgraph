@@ -1,5 +1,5 @@
 /**
- * $Id: mxStencil.js,v 1.93 2013/02/21 14:18:45 gaudenz Exp $
+ * $Id: mxStencil.js,v 1.94 2013/04/06 09:29:09 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -52,11 +52,12 @@
  * The dashpattern should be used together with the dashed directive to
  * enabled/disable the dashpattern. The default dashpattern is 3 3.
  * 
- * The strokewidth attribute defines a fixed strokewidth for the shape. It
+ * The strokewidth attribute defines a strokewidth behaviour for the shape. It
  * can contain a numeric value or the keyword "inherit", which means that the
- * strokeWidth from the cell's style will be used and muliplied with the shape's
- * scale. If numeric values are used, those are multiplied with the minimum
- * scale used to render the stencil inside the shape's bounds.
+ * strokeWidth of the cell is only changed on scaling, not on resizing.
+ * If numeric values are used, the strokeWidth of the cell is changed on both
+ * scaling and resizing and the value defines the multiple that is applied to
+ * the width.
  * 
  * To support i18n in the text element, use the localized attribute of 1 to use
  * the str as a key in <mxResources.get>. To handle all str attributes of all

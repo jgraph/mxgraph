@@ -1,5 +1,5 @@
 /**
- * $Id: mxStackLayout.js,v 1.48 2013/04/01 12:00:35 gaudenz Exp $
+ * $Id: mxStackLayout.js,v 1.49 2013/04/08 11:10:53 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -218,7 +218,7 @@ mxStackLayout.prototype.execute = function(parent)
 		var model = this.graph.getModel();	
 		var pgeo = this.getParentSize(parent);
 					
-		var fillValue = 0;
+		var fillValue = null;
 		
 		if (pgeo != null)
 		{
@@ -235,13 +235,25 @@ mxStackLayout.prototype.execute = function(parent)
 			// Uses computed style to get latest 
 			var style = this.graph.getCellStyle(parent);
 			var start = mxUtils.getNumber(style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE);
-			var horz = mxUtils.getValue(style, mxConstants.STYLE_HORIZONTAL, true);
+			var horz = mxUtils.getValue(style, mxConstants.STYLE_HORIZONTAL, true) == 1;
+
+			if (pgeo != null)
+			{
+				if (horz)
+				{
+					start = Math.min(start, pgeo.height);
+				}
+				else
+				{
+					start = Math.min(start, pgeo.width);
+				}
+			}
 			
 			if (horizontal == horz)
 			{
 				fillValue -= start;
 			}
-			
+
 			if (horz)
 			{
 				y0 += start;
@@ -327,7 +339,7 @@ mxStackLayout.prototype.execute = function(parent)
 							geo.x = x0;
 						}
 						
-						if (this.fill && fillValue > 0)
+						if (this.fill && fillValue != null)
 						{
 							if (horizontal)
 							{
