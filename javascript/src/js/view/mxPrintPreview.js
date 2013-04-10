@@ -1,5 +1,5 @@
 /**
- * $Id: mxPrintPreview.js,v 1.62 2013/02/05 11:38:55 gaudenz Exp $
+ * $Id: mxPrintPreview.js,v 1.63 2013/04/09 14:10:28 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -626,6 +626,23 @@ mxPrintPreview.prototype.createPageSelector = function(vpages, hpages)
 };
 
 /**
+ * Function: getRoot
+ * 
+ * Returns the root cell for painting the graph.
+ */
+mxPrintPreview.prototype.getRoot = function()
+{
+	var root = this.graph.view.currentRoot;
+	
+	if (root == null)
+	{
+		root = this.graph.getModel().getRoot();
+	}
+	
+	return root;
+};
+
+/**
  * Function: renderPage
  * 
  * Creates a DIV that prints a single page of the given
@@ -707,8 +724,7 @@ mxPrintPreview.prototype.renderPage = function(w, h, dx, dy, scale, pageNumber)
 		{
 			// Creates the temporary cell states in the view and
 			// draws them onto the temporary DOM nodes in the view
-			var model = this.graph.getModel();
-			var cells = [model.getRoot()];
+			var cells = [this.getRoot()];
 			temp = new mxTemporaryCellStates(view, scale, cells);
 		}
 		finally

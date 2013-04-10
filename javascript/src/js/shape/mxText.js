@@ -1,5 +1,5 @@
 /**
- * $Id: mxText.js,v 1.174 2012/09/27 10:20:30 gaudenz Exp $
+ * $Id: mxText.js,v 1.175 2013/04/09 14:15:50 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -545,7 +545,7 @@ mxText.prototype.updateTableWidth = function(table)
 		table.style.width = '';
 	}
 
-	if (!this.wrap)
+	if (!this.wrap || this.bounds.width == 0)
 	{
 		td.style.whiteSpace = 'nowrap';
 	}

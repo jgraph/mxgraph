@@ -1,5 +1,5 @@
 /**
- * $Id: mxConnectionHandler.js,v 1.218 2012/12/21 13:07:21 gaudenz Exp $
+ * $Id: mxConnectionHandler.js,v 1.219 2013/04/10 11:25:12 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -506,14 +506,12 @@ mxConnectionHandler.prototype.init = function()
 		if (this.iconState != null)
 		{
 			this.redrawIcons(this.icons, this.iconState);
+			this.constraintHandler.reset();
 		}
 		else
 		{
-			this.destroyIcons(this.icons);
-			this.previous = null;
+			this.reset();
 		}
-		
-		this.constraintHandler.reset();
 	});
 	
 	this.graph.getModel().addListener(mxEvent.CHANGE, this.changeHandler);

@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.12.0.1.
+	 * Current version is 1.12.0.2.
 	 */
-	VERSION: '1.12.0.1',
+	VERSION: '1.12.0.2',
 
 	/**
 	 * Variable: IS_IE
@@ -24815,7 +24815,7 @@ mxArrow.prototype.redrawPath = function(path, x, y, w, h)
 	path.close();
 };
 /**
- * $Id: mxText.js,v 1.174 2012/09/27 10:20:30 gaudenz Exp $
+ * $Id: mxText.js,v 1.175 2013/04/09 14:15:50 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -25361,7 +25361,7 @@ mxText.prototype.updateTableWidth = function(table)
 		table.style.width = '';
 	}
 
-	if (!this.wrap)
+	if (!this.wrap || this.bounds.width == 0)
 	{
 		td.style.whiteSpace = 'nowrap';
 	}
@@ -36449,7 +36449,7 @@ WeightedCellSorter.prototype.compare = function(a, b)
 	}
 };
 /**
- * $Id: mxHierarchicalLayout.js,v 1.33 2013/03/25 16:24:57 david Exp $
+ * $Id: mxHierarchicalLayout.js,v 1.34 2013/04/09 14:30:02 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -36624,7 +36624,7 @@ mxHierarchicalLayout.prototype.execute = function(parent, roots)
 	var model = this.graph.model;
 	this.edgesCache = new Object();
 
-	if (typeof roots !== 'array')
+	if (roots != null && typeof roots !== 'array')
 	{
 		roots = [roots];
 	}
@@ -41554,7 +41554,7 @@ var mxPerimeter =
 	}
 };
 /**
- * $Id: mxPrintPreview.js,v 1.62 2013/02/05 11:38:55 gaudenz Exp $
+ * $Id: mxPrintPreview.js,v 1.63 2013/04/09 14:10:28 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -42181,6 +42181,23 @@ mxPrintPreview.prototype.createPageSelector = function(vpages, hpages)
 };
 
 /**
+ * Function: getRoot
+ * 
+ * Returns the root cell for painting the graph.
+ */
+mxPrintPreview.prototype.getRoot = function()
+{
+	var root = this.graph.view.currentRoot;
+	
+	if (root == null)
+	{
+		root = this.graph.getModel().getRoot();
+	}
+	
+	return root;
+};
+
+/**
  * Function: renderPage
  * 
  * Creates a DIV that prints a single page of the given
@@ -42262,8 +42279,7 @@ mxPrintPreview.prototype.renderPage = function(w, h, dx, dy, scale, pageNumber)
 		{
 			// Creates the temporary cell states in the view and
 			// draws them onto the temporary DOM nodes in the view
-			var model = this.graph.getModel();
-			var cells = [model.getRoot()];
+			var cells = [this.getRoot()];
 			temp = new mxTemporaryCellStates(view, scale, cells);
 		}
 		finally
@@ -65306,7 +65322,7 @@ mxSelectionCellsHandler.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxConnectionHandler.js,v 1.218 2012/12/21 13:07:21 gaudenz Exp $
+ * $Id: mxConnectionHandler.js,v 1.219 2013/04/10 11:25:12 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -65813,14 +65829,12 @@ mxConnectionHandler.prototype.init = function()
 		if (this.iconState != null)
 		{
 			this.redrawIcons(this.icons, this.iconState);
+			this.constraintHandler.reset();
 		}
 		else
 		{
-			this.destroyIcons(this.icons);
-			this.previous = null;
+			this.reset();
 		}
-		
-		this.constraintHandler.reset();
 	});
 	
 	this.graph.getModel().addListener(mxEvent.CHANGE, this.changeHandler);
