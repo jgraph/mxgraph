@@ -1,3 +1,10 @@
+10-APR-2013: 1.12.0.2
+
+- Handles deleted source while connecting in mxConnectionHandler [JavaScript]
+- Fixes null roots hierarchical layout input [JavaScript]
+- Fixes mxText edge label word wrapping for IE8 quirks mode [JavaScript]
+- Fixes print only visible cells in mxPrintPreview for drill down [JavaScript]
+
 08-APR-2013: 1.12.0.1
 
 - Fixes mxStackLayout for special swimlane sizes [JavaScript]
