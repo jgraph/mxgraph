@@ -1,5 +1,5 @@
 <!--
-  $Id: merge.html,v 1.10 2012/11/17 18:18:12 gaudenz Exp $
+  $Id: merge.html,v 1.3 2012/11/17 18:21:42 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Merge example for mxGraph. This example demonstrates using
@@ -32,6 +32,8 @@
 			}
 			else
 			{
+				mxConstants.SHADOWCOLOR = '#c0c0c0';
+				
 				// Creates the graph inside the given container
 				var graph = new mxGraph(container);
 
@@ -40,17 +42,20 @@
 
 				// Makes all cells round with a white, bold label
 				var style = graph.stylesheet.getDefaultVertexStyle();
-
 				style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_ELLIPSE;
 				style[mxConstants.STYLE_PERIMETER] = mxPerimeter.EllipsePerimeter;
-				style[mxConstants.STYLE_FONTCOLOR] = '#FFFFFF';
+				style[mxConstants.STYLE_FONTCOLOR] = 'white';
+				style[mxConstants.STYLE_GRADIENTCOLOR] = 'white';
 				style[mxConstants.STYLE_FONTSTYLE] = mxConstants.FONT_BOLD;
+				style[mxConstants.STYLE_FONTSIZE] = 14;
+				style[mxConstants.STYLE_SHADOW] = true;
 
 				// Makes all edge labels gray with a white background
 				style = graph.stylesheet.getDefaultEdgeStyle();
-
-				style[mxConstants.STYLE_LABEL_BACKGROUNDCOLOR] = '#FFFFFF';
 				style[mxConstants.STYLE_FONTCOLOR] = 'gray';
+				style[mxConstants.STYLE_FONTSTYLE] = mxConstants.FONT_BOLD;
+				style[mxConstants.STYLE_FONTCOLOR] = 'black';
+				style[mxConstants.STYLE_STROKEWIDTH] = 2;
 				
 				// Enables rubberband selection
 				new mxRubberband(graph);
@@ -61,16 +66,19 @@
 								
 				// Adds cells to the target model in a single step
 				// using custom ids for the vertices and edges
+				var w = 40;
+				var h = 40;
+				
 				graph.getModel().beginUpdate();
 				try
 				{
-					var a = graph.insertVertex(parent, 'a', 'A', 20, 20, 20, 20, 'fillColor=blue');
-					var b = graph.insertVertex(parent, 'b', 'B', 20, 200, 20, 20, 'fillColor=blue');
-					var c = graph.insertVertex(parent, 'c', 'C', 200, 20, 20, 20, 'fillColor=red');
-					var d = graph.insertVertex(parent, 'd', 'D', 200, 200, 20, 20, 'fillColor=red');
-					var ac = graph.insertEdge(parent, 'ac', 'ac', a, c, 'strokeColor=blue');
-					var ad = graph.insertEdge(parent, 'ad', 'ad', a, d, 'strokeColor=blue');
-					var bd = graph.insertEdge(parent, 'bd', 'bd', b, d, 'strokeColor=blue');
+					var a = graph.insertVertex(parent, 'a', 'A', 20, 20, w, h, 'fillColor=blue');
+					var b = graph.insertVertex(parent, 'b', 'B', 20, 200, w, h, 'fillColor=blue');
+					var c = graph.insertVertex(parent, 'c', 'C', 200, 20, w, h, 'fillColor=red');
+					var d = graph.insertVertex(parent, 'd', 'D', 200, 200, w, h, 'fillColor=red');
+					var ac = graph.insertEdge(parent, 'ac', 'ac', a, c, 'strokeColor=blue;verticalAlign=bottom');
+					var ad = graph.insertEdge(parent, 'ad', 'ad', a, d, 'strokeColor=blue;align=left;verticalAlign=bottom');
+					var bd = graph.insertEdge(parent, 'bd', 'bd', b, d, 'strokeColor=blue;verticalAlign=bottom');
 				}
 				finally
 				{
@@ -90,13 +98,13 @@
 				graph2.getModel().beginUpdate();
 				try
 				{
-					var c = graph2.insertVertex(parent2, 'c', 'C', 200, 20, 20, 20, 'fillColor=green');
-					var d = graph2.insertVertex(parent2, 'd', 'D', 200, 200, 20, 20, 'fillColor=green');
-					var e = graph2.insertVertex(parent2, 'e', 'E', 400, 20, 20, 20, 'fillColor=green');
-					var f = graph2.insertVertex(parent2, 'f', 'F', 400, 200, 20, 20, 'fillColor=green');
-					var ce = graph2.insertEdge(parent2, 'ce', 'ce', c, e, 'strokeColor=green');
-					var ed = graph2.insertEdge(parent2, 'ed', 'ed', e, d, 'strokeColor=green');
-					var fd = graph2.insertEdge(parent2, 'bd', 'fd', f, d, 'strokeColor=green');
+					var c = graph2.insertVertex(parent2, 'c', 'C', 200, 20, w, h, 'fillColor=green');
+					var d = graph2.insertVertex(parent2, 'd', 'D', 200, 200, w, h, 'fillColor=green');
+					var e = graph2.insertVertex(parent2, 'e', 'E', 400, 20, w, h, 'fillColor=green');
+					var f = graph2.insertVertex(parent2, 'f', 'F', 400, 200, w, h, 'fillColor=green');
+					var ce = graph2.insertEdge(parent2, 'ce', 'ce', c, e, 'strokeColor=green;verticalAlign=bottom');
+					var ed = graph2.insertEdge(parent2, 'ed', 'ed', e, d, 'strokeColor=green;align=right;verticalAlign=bottom');
+					var fd = graph2.insertEdge(parent2, 'bd', 'fd', f, d, 'strokeColor=green;verticalAlign=bottom');
 				}
 				finally
 				{

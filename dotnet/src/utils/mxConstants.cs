@@ -1,4 +1,4 @@
-// $Id: mxConstants.cs,v 1.60 2012/11/19 16:56:51 gaudenz Exp $
+// $Id: mxConstants.cs,v 1.2 2012/11/19 16:59:18 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Drawing;

@@ -1,5 +1,5 @@
 /**
- * $Id: mxConnectionHandler.js,v 1.219 2013/04/10 11:25:12 gaudenz Exp $
+ * $Id: mxConnectionHandler.js,v 1.13 2013/04/12 15:16:03 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -158,6 +158,8 @@
  */
 function mxConnectionHandler(graph, factoryMethod)
 {
+	mxEventSource.call(this);
+	
 	if (graph != null)
 	{
 		this.graph = graph;
@@ -169,8 +171,7 @@ function mxConnectionHandler(graph, factoryMethod)
 /**
  * Extends mxEventSource.
  */
-mxConnectionHandler.prototype = new mxEventSource();
-mxConnectionHandler.prototype.constructor = mxConnectionHandler;
+mxUtils.extend(mxConnectionHandler, mxEventSource);
 
 /**
  * Variable: graph
@@ -451,18 +452,19 @@ mxConnectionHandler.prototype.createShape = function()
 {
 	// Creates the edge preview
 	var shape = new mxPolyline([], mxConstants.INVALID_COLOR);
-	shape.isDashed = true;
 	shape.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
 		mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
 	shape.init(this.graph.getView().getOverlayPane());
+	shape.svgStrokeTolerance = 0;
+	shape.pointerEvents = false;
+	shape.isDashed = true;
 	
 	// Event-transparency
 	if (this.graph.dialect == mxConstants.DIALECT_SVG)
 	{
 		// Sets event transparency on the internal shapes that represent
 		// the actual dashed line on the screen
-		shape.pipe.setAttribute('style', 'pointer-events:none;');
-		shape.innerNode.setAttribute('style', 'pointer-events:none;');
+		shape.node.setAttribute('pointer-events', 'none');
 	}
 	else
 	{
@@ -522,7 +524,7 @@ mxConnectionHandler.prototype.init = function()
 	// Removes the icon if we step into/up or start editing
 	this.drillHandler = mxUtils.bind(this, function(sender)
 	{
-		this.destroyIcons(this.icons);
+		this.reset();
 	});
 	
 	this.graph.addListener(mxEvent.START_EDITING, this.drillHandler);
@@ -786,8 +788,7 @@ mxConnectionHandler.prototype.createIcons = function(state)
 		else
 		{
 			icon.dialect = (this.graph.dialect == mxConstants.DIALECT_SVG) ?
-				mxConstants.DIALECT_SVG : 
-				mxConstants.DIALECT_VML;
+				mxConstants.DIALECT_SVG : mxConstants.DIALECT_VML;
 			icon.init(this.graph.getView().getOverlayPane());
 
 			// Move the icon back in the overlay pane
@@ -868,8 +869,20 @@ mxConnectionHandler.prototype.getIconPosition = function(icon, state)
 		
 		cx = (size.width != 0) ? state.x + size.width * scale / 2 : cx;
 		cy = (size.height != 0) ? state.y + size.height * scale / 2 : cy;
+		
+		var alpha = mxUtils.toRadians(mxUtils.getValue(state.style, mxConstants.STYLE_ROTATION) || 0);
+		
+		if (alpha != 0)
+		{
+			var cos = Math.cos(alpha);
+			var sin = Math.sin(alpha);
+			var ct = new mxPoint(state.getCenterX(), state.getCenterY());
+			var pt = mxUtils.getRotatedPoint(new mxPoint(cx, cy), cos, sin, ct);
+			cx = pt.x;
+			cy = pt.y;
+		}
 	}
-	
+
 	return new mxPoint(cx - icon.bounds.width / 2,
 			cy - icon.bounds.height / 2);
 };
@@ -877,22 +890,21 @@ mxConnectionHandler.prototype.getIconPosition = function(icon, state)
 /**
  * Function: destroyIcons
  * 
- * Destroys the given array of <mxImageShapes>.
- * 
- * Parameters:
- * 
- * icons - Optional array of <mxImageShapes> to be destroyed.
+ * Destroys the connect icons and resets the respective state.
  */
-mxConnectionHandler.prototype.destroyIcons = function(icons)
+mxConnectionHandler.prototype.destroyIcons = function()
 {
-	if (icons != null)
+	if (this.icons != null)
 	{
-		this.iconState = null;
-		
-		for (var i = 0; i < icons.length; i++)
+		for (var i = 0; i < this.icons.length; i++)
 		{
-			icons[i].destroy();
+			this.icons[i].destroy();
 		}
+		
+		this.icons = null;
+		this.icon = null;
+		this.selectedIcon = null;
+		this.iconState = null;
 	}
 };
 
@@ -1099,7 +1111,7 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 		// Handles special case when handler is disabled during highlight
 		if (!this.isEnabled() && this.currentState != null)
 		{
-			this.destroyIcons(this.icons);
+			this.destroyIcons();
 			this.currentState = null;
 		}
 		
@@ -1243,7 +1255,7 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 				{
 					return;
 				}
-												
+						
 				current.x -= dx * 4 / len;
 				current.y -= dy * 4 / len;
 			}
@@ -1278,7 +1290,7 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 					{
 						pts = pts.concat(this.waypoints);
 					}
-					
+
 					pts.push(current);
 					this.shape.points = pts;
 				}
@@ -1295,8 +1307,7 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 		}
 		else if (this.previous != this.currentState && this.edgeState == null)
 		{
-			this.destroyIcons(this.icons);
-			this.icons = null;
+			this.destroyIcons();
 			
 			// Sets the cursor on the current shape				
 			if (this.currentState != null && this.error == null)
@@ -1544,7 +1555,7 @@ mxConnectionHandler.prototype.mouseUp = function(sender, me)
 		}
 		
 		// Redraws the connect icons and resets the handler state
-		this.destroyIcons(this.icons);
+		this.destroyIcons();
 		me.consume();
 	}
 
@@ -1570,18 +1581,15 @@ mxConnectionHandler.prototype.reset = function()
 		this.shape = null;
 	}
 	
-	this.destroyIcons(this.icons);
-	this.icons = null;
+	this.destroyIcons();
 	this.marker.reset();
 	this.constraintHandler.reset();
-	this.selectedIcon = null;
 	this.edgeState = null;
 	this.previous = null;
 	this.error = null;
 	this.sourceConstraint = null;
 	this.mouseDownCounter = 0;
 	this.first = null;
-	this.icon = null;
 
 	this.fireEvent(new mxEventObject(mxEvent.RESET));
 };
@@ -1595,22 +1603,10 @@ mxConnectionHandler.prototype.reset = function()
 mxConnectionHandler.prototype.drawPreview = function()
 {
 	var valid = this.error == null;
-	var color = this.getEdgeColor(valid);
-	
-	if (this.shape.dialect == mxConstants.DIALECT_SVG)
-	{
-		this.shape.innerNode.setAttribute('stroke', color);
-	}
-	else
-	{
-		this.shape.node.strokecolor = color;
-	}
-
 	this.shape.strokewidth = this.getEdgeWidth(valid);
+	var color = this.getEdgeColor(valid);
+	this.shape.stroke = color;
 	this.shape.redraw();
-
-	// Workaround to force a repaint in AppleWebKit
-	mxUtils.repaintGraph(this.graph, this.shape.points[1]);
 };
 
 /**

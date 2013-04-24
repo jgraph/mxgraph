@@ -1,5 +1,5 @@
 <!--
-  $Id: perimeter.html,v 1.4 2012/11/20 09:06:07 gaudenz Exp $
+  $Id: perimeter.html,v 1.1 2012/11/15 13:26:40 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Perimeter example for mxGraph. This example demonstrates how to
@@ -32,9 +32,6 @@
 			}
 			else
 			{
-				// Enables crisp rendering of rectangles in SVG
-				mxRectangleShape.prototype.crisp = true;
-				
 				// Redirects the perimeter to the label bounds if intersection
 				// between edge and label is found
 				mxGraphViewGetPerimeterPoint = mxGraphView.prototype.getPerimeterPoint;

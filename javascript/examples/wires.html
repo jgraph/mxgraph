@@ -48,8 +48,6 @@ for storing references to ports.)
 		mxConnectionHandler.prototype.waypointsEnabled = true;
 		mxGraph.prototype.resetEdgesOnConnect = false;
 		mxConstants.SHADOWCOLOR = '#C0C0C0';
-		mxConnector.prototype.crisp = true;
-		mxLine.prototype.crisp = true;
 		var joinNodeSize = 7;
 		var strokeWidth = 2;
 		
@@ -647,7 +645,6 @@ for storing references to ports.)
 						if (this.state.shape != null)
 						{
 							this.state.view.graph.cellRenderer.configureShape(this.state);
-							this.state.shape.reconfigure();
 							this.state.shape.redraw();
 						}
 					}
@@ -662,7 +659,6 @@ for storing references to ports.)
 						if (state.shape != null)
 						{
 							state.view.graph.cellRenderer.configureShape(state);
-							state.shape.reconfigure();
 							state.shape.redraw();
 						}
 					}
@@ -719,7 +715,6 @@ for storing references to ports.)
 		function ResistorShape() { };
 		ResistorShape.prototype = new mxCylinder();
 		ResistorShape.prototype.constructor = ResistorShape;
-		ResistorShape.prototype.crisp = false;
 
 		ResistorShape.prototype.redrawPath = function(path, x, y, w, h, isForeground)
 		{

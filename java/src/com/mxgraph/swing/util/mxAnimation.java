@@ -1,5 +1,5 @@
 /**
- * $Id: mxAnimation.java,v 1.1 2010/06/08 09:49:59 gaudenz Exp $
+ * $Id: mxAnimation.java,v 1.1 2012/11/15 13:26:46 gaudenz Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.swing.util;

@@ -1,5 +1,5 @@
 /*
- * $Id: mxHierarchicalLayout.java,v 1.17 2012/09/27 23:18:27 david Exp $
+ * $Id: mxHierarchicalLayout.java,v 1.1 2012/11/15 13:26:50 gaudenz Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 package com.mxgraph.layout.hierarchical;

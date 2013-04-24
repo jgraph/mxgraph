@@ -1,15 +1,16 @@
 /**
- * $Id: mxEdgeSegmentHandler.js,v 1.15 2013/01/08 15:26:51 gaudenz Exp $
+ * $Id: mxEdgeSegmentHandler.js,v 1.4 2013/01/08 15:28:24 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 function mxEdgeSegmentHandler(state)
 {
-	if (state != null)
-	{
-		this.state = state;
-		this.init();
-	}
+	mxEdgeHandler.call(this, state);
 };
+
+/**
+ * Extends mxEdgeHandler.
+ */
+mxUtils.extend(mxEdgeSegmentHandler, mxEdgeHandler);
 
 /**
  * Extends mxEdgeHandler.
@@ -224,8 +225,8 @@ mxEdgeSegmentHandler.prototype.redrawInnerBends = function(p0, pe)
 		 			var p0 = pts[i];
 	 				var pe = pts[i + 1];
 			 		var pt = new mxPoint(p0.x + (pe.x - p0.x) / 2, p0.y + (pe.y - p0.y) / 2);
-			 		this.bends[i+1].bounds = new mxRectangle(pt.x - s / 2, pt.y - s / 2, s, s);
-				 	this.bends[i+1].reconfigure();
+			 		this.bends[i+1].bounds = new mxRectangle(Math.round(pt.x - s / 2),
+			 				Math.round(pt.y - s / 2), s, s);
 				 	this.bends[i+1].redraw();
 				}
 			}

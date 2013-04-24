@@ -1,5 +1,5 @@
 /**
- * $Id: mxSession.js,v 1.46 2012/08/22 15:30:49 gaudenz Exp $
+ * $Id: mxSession.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

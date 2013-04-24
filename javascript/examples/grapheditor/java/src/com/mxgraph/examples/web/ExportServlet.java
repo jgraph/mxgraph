@@ -1,5 +1,5 @@
 /**
- * $Id: ExportServlet.java,v 1.4 2012/03/27 13:08:48 gaudenz Exp $
+ * $Id: ExportServlet.java,v 1.4 2013/02/02 06:43:52 gaudenz Exp $
  * Copyright (c) 2011-2012, JGraph Ltd
  */
 package com.mxgraph.examples.web;
@@ -40,6 +40,7 @@ import com.mxgraph.util.mxUtils;
  */
 public class ExportServlet extends HttpServlet
 {
+
 	/**
 	 * 
 	 */
@@ -55,6 +56,14 @@ public class ExportServlet extends HttpServlet
 	 * Cache for all images.
 	 */
 	private transient Hashtable<String, Image> imageCache = new Hashtable<String, Image>();
+
+	/**
+	 * @see HttpServlet#HttpServlet()
+	 */
+	public ExportServlet()
+	{
+		super();
+	}
 
 	/**
 	 * Handles exceptions and the output stream buffer.
@@ -74,10 +83,8 @@ public class ExportServlet extends HttpServlet
 						- Runtime.getRuntime().freeMemory();
 				long dt = System.currentTimeMillis() - t0;
 
-				System.out.println("Export: ip=" + request.getRemoteAddr()
-						+ " ref=\"" + request.getHeader("Referer")
-						+ "\" length=" + request.getContentLength() + " mem="
-						+ mem + " dt=" + dt);
+				System.out.println("export: ip=" + request.getRemoteAddr() + " ref=\"" + request.getHeader("Referer") + "\" length="
+						+ request.getContentLength() + " mem=" + mem + " dt=" + dt);
 			}
 			else
 			{
@@ -88,12 +95,9 @@ public class ExportServlet extends HttpServlet
 		{
 			e.printStackTrace();
 			final Runtime r = Runtime.getRuntime();
-			System.out.println("r.freeMemory() = " + r.freeMemory() / 1024.0
-					/ 1024);
-			System.out.println("r.totalMemory() = " + r.totalMemory() / 1024.0
-					/ 1024);
-			System.out.println("r.maxMemory() = " + r.maxMemory() / 1024.0
-					/ 1024);
+			System.out.println("r.freeMemory() = " + r.freeMemory() / 1024.0 / 1024);
+			System.out.println("r.totalMemory() = " + r.totalMemory() / 1024.0 / 1024);
+			System.out.println("r.maxMemory() = " + r.maxMemory() / 1024.0 / 1024);
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
 		catch (Exception e)
@@ -126,13 +130,19 @@ public class ExportServlet extends HttpServlet
 		String tmp = request.getParameter("bg");
 		String xml = getRequestXml(request);
 
-		Color bg = (tmp != null) ? mxUtils.parseColor(tmp) : Color.WHITE;
+		Color bg = (tmp != null) ? mxUtils.parseColor(tmp) : null;
 
 		// Checks parameters
 		if (w > 0 && w <= Constants.MAX_WIDTH && h > 0
 				&& h <= Constants.MAX_HEIGHT && format != null && xml != null
 				&& xml.length() > 0)
 		{
+			// Allows transparent backgrounds only for PNG
+			if (bg == null && !format.equals("png"))
+			{
+				bg = Color.WHITE;
+			}
+
 			if (fname != null && fname.toLowerCase().endsWith(".xml"))
 			{
 				fname = fname.substring(0, fname.length() - 4) + format;
@@ -196,16 +206,7 @@ public class ExportServlet extends HttpServlet
 				response.setContentType("image/" + format.toLowerCase());
 			}
 
-			// Optional: For faster PNG encoding
-			//			if (format.equalsIgnoreCase("png"))
-			//			{
-			//				PngEncoder encoder = new PngEncoder();
-			//				encoder.encode(image, response.getOutputStream());
-			//			}
-			//			else
-			//			{
 			ImageIO.write(image, format, response.getOutputStream());
-			//			}
 		}
 	}
 
@@ -304,8 +305,6 @@ public class ExportServlet extends HttpServlet
 				return image;
 			}
 		};
-
-		g2c.setAutoAntiAlias(true);
 
 		return g2c;
 	}

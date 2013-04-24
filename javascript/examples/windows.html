@@ -1,5 +1,5 @@
 <!--
-  $Id: windows.html,v 1.16 2012/11/22 08:50:53 gaudenz Exp $
+  $Id: windows.html,v 1.2 2012/11/22 08:58:29 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Windows example for mxGraph. This example demonstrates using
@@ -47,35 +47,7 @@
 				new mxKeyHandler(graph);
 				
 				mxEvent.disableContextMenu(container);
-				
-				// Workaround for rubberband rendering in IE (IE9 does not need this)
-				if (mxClient.IS_IE)
-				{
-					mxRubberbandMouseMove = mxRubberband.prototype.mouseMove;
-					mxRubberband.prototype.mouseMove = function(sender, me)
-					{
-						mxRubberbandMouseMove.apply(this, arguments);
-						
-						if (this.div != null && this.div.style.background != 'transparent')
-						{
-							container.style.cursor = 'default';
-							this.div.style.background = 'transparent';
-							this.div.style.borderStyle = 'dashed';
-							mxUtils.setOpacity(this.div, 100);
-						}
-					}
-				}
-				
-				// Workaround for no resize event of container parent in
-				// Firefox, canvas needs update of limited drawing area
-				else
-				{
-					wnd.addListener(mxEvent.RESIZE_END, function(evt)
-					{
-						graph.sizeDidChange();
-					});
-				}
-				
+
 				// Gets the default parent for inserting new cells. This
 				// is normally the first child of the root (ie. layer 0).
 				var parent = graph.getDefaultParent();

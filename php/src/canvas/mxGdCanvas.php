@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxGdCanvas.php,v 1.110 2011/11/14 13:42:14 gaudenz Exp $
+ * $Id: mxGdCanvas.php,v 1.1 2012/11/15 13:26:49 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 class mxGdCanvas

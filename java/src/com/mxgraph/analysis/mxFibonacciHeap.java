@@ -1,5 +1,5 @@
 /**
- * $Id: mxFibonacciHeap.java,v 1.2 2009/11/24 12:00:28 gaudenz Exp $
+ * $Id: mxFibonacciHeap.java,v 1.2 2012/11/21 14:16:01 mate Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.analysis;

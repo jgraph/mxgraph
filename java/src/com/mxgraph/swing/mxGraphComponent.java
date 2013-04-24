@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphComponent.java,v 1.144 2012/03/05 08:57:38 gaudenz Exp $
+ * $Id: mxGraphComponent.java,v 1.1 2012/11/15 13:26:50 gaudenz Exp $
  * Copyright (c) 2009-2010, Gaudenz Alder, David Benson
  */
 package com.mxgraph.swing;

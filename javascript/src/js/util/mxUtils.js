@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.js,v 1.299 2013/04/07 19:41:05 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.15 2013/04/23 07:10:47 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxUtils =
@@ -72,38 +72,6 @@ var mxUtils =
 	            mxUtils.removeCursors(children[i]);
 	        }
 	    }
-	},
-	
-	/**
-	 * Function: repaintGraph
-	 * 
-	 * Normally not required, this contains the code to workaround a repaint
-	 * issue and force a repaint of the graph container in AppleWebKit.
-	 * 
-	 * Parameters:
-	 * 
-	 * graph - <mxGraph> to be repainted.
-	 * pt - <mxPoint> where the dummy element should be placed.
-	 */
-	repaintGraph: function(graph, pt)
-	{
-		if (mxClient.IS_GC || mxClient.IS_SF || mxClient.IS_OP)
-		{
-			var c = graph.container;
-			
-			if (c != null && pt != null && (c.scrollLeft > 0 || c.scrollTop > 0))
-			{
-				var dummy = document.createElement('div');
-				dummy.style.position = 'absolute';
-				dummy.style.left = pt.x + 'px';
-				dummy.style.top = pt.y + 'px';
-				dummy.style.width = '1px';
-				dummy.style.height = '1px';
-			
-				c.appendChild(dummy);
-				c.removeChild(dummy);
-			}
-		}
 	},
 
 	/**
@@ -763,7 +731,7 @@ var mxUtils =
 		  
 		return xml;
 	},
-
+	
 	/**
 	 * Function: getTextContent
 	 * 
@@ -1042,6 +1010,19 @@ var mxUtils =
 		}
 		
 		return p;
+	},
+
+	/**
+	 * Function: addTransparentBackgroundFilter
+	 * 
+	 * Adds a transparent background to the filter of the given node. This
+	 * background can be used in IE8 standards mode (native IE8 only) to pass
+	 * events through the node.
+	 */
+	addTransparentBackgroundFilter: function(node)
+	{
+		node.style.filter += 'progid:DXImageTransform.Microsoft.AlphaImageLoader(src=\'' +
+			mxClient.imageBasePath + '/transparent.gif\', sizingMethod=\'scale\')';
 	},
 
 	/**
@@ -2282,8 +2263,7 @@ var mxUtils =
 
 			if (start > 0)
 			{
-				if (mxUtils.getValue(state.style,
-					mxConstants.STYLE_HORIZONTAL, true))
+				if (mxUtils.getValue(state.style, mxConstants.STYLE_HORIZONTAL, true))
 				{
 					cy = state.y + start / 2;
 					h = start;
@@ -2305,6 +2285,17 @@ var mxUtils =
 			}
 			
 			var rect = new mxRectangle(cx - w / 2, cy - h / 2, w, h);
+			var alpha = mxUtils.toRadians(mxUtils.getValue(state.style, mxConstants.STYLE_ROTATION) || 0);
+			
+			if (alpha != 0)
+			{
+				var cos = Math.cos(-alpha);
+				var sin = Math.sin(-alpha);
+				var cx = new mxPoint(state.getCenterX(), state.getCenterY());
+				var pt = mxUtils.getRotatedPoint(new mxPoint(x, y), cos, sin, cx);
+				x = pt.x;
+				y = pt.y;
+			}
 			
 			return mxUtils.contains(rect, x, y);			
 		}
@@ -2382,6 +2373,11 @@ var mxUtils =
 	 * 
 	 * Converts the specified point (x, y) using the offset of the specified
 	 * container and returns a new <mxPoint> with the result.
+	 * 
+	 * (code)
+	 * var pt = mxUtils.convertPoint(graph.container,
+	 *   mxEvent.getClientX(evt), mxEvent.getClientY(evt));
+	 * (end)
 	 * 
 	 * Parameters:
 	 * 
@@ -2716,7 +2712,7 @@ var mxUtils =
         
 		if (mxClient.IS_IE6 && document.compatMode != 'CSS1Compat')
 		{
-        	imageNode = document.createElement('v:image');
+        	imageNode = document.createElement(mxClient.VML_PREFIX + ':image');
         	imageNode.setAttribute('src', src);
         	imageNode.style.borderStyle = 'none';
         }
@@ -3150,6 +3146,42 @@ var mxUtils =
 	},
 	
 	/**
+	 * Function: getAlignmentAsPoint
+	 * 
+	 * Returns an <mxPoint> that represents the horizontal and vertical alignment
+	 * for numeric computations. X is -0.5 for center, -1 for right and 0 for
+	 * left alignment. Y is -0.5 for middle, -1 for bottom and 0 for top
+	 * alignment. Default values for missing arguments is top, left.
+	 */
+	getAlignmentAsPoint: function(align, valign)
+	{
+		var dx = 0;
+		var dy = 0;
+		
+		// Horizontal alignment
+		if (align == mxConstants.ALIGN_CENTER)
+		{
+			dx = -0.5;
+		}
+		else if (align == mxConstants.ALIGN_RIGHT)
+		{
+			dx = -1;
+		}
+
+		// Vertical alignment
+		if (valign == mxConstants.ALIGN_MIDDLE)
+		{
+			dy = -0.5;
+		}
+		else if (valign == mxConstants.ALIGN_BOTTOM)
+		{
+			dy = -1;
+		}
+		
+		return new mxPoint(dx, dy);
+	},
+	
+	/**
 	 * Function: getSizeForString
 	 * 
 	 * Returns an <mxRectangle> with the size (width and height in pixels) of
@@ -3170,20 +3202,35 @@ var mxUtils =
 	 * <mxConstants.DEFAULT_FONTSIZE>.
 	 * fontFamily - String that specifies the name of the font family. Default
 	 * is <mxConstants.DEFAULT_FONTFAMILY>.
+	 * textWidth - Optional width for text wrapping.
 	 */
-	getSizeForString: function(text, fontSize, fontFamily)
+	getSizeForString: function(text, fontSize, fontFamily, textWidth)
 	{
+		fontSize = (fontSize != null) ? fontSize : mxConstants.DEFAULT_FONTSIZE;
+		fontFamily = (fontFamily != null) ? fontFamily : mxConstants.DEFAULT_FONTFAMILY;
 		var div = document.createElement('div');
 		
-		// Sets the font size and family if non-default
-		div.style.fontSize = (fontSize || mxConstants.DEFAULT_FONTSIZE) + 'px';
-		div.style.fontFamily = fontFamily || mxConstants.DEFAULT_FONTFAMILY;
+		// Sets the font size and family
+		div.style.fontFamily = fontFamily;
+		div.style.fontSize = Math.round(fontSize) + 'px';
+		div.style.lineHeight = Math.round(fontSize * mxConstants.LINE_HEIGHT) + 'px';
 		
 		// Disables block layout and outside wrapping and hides the div
 		div.style.position = 'absolute';
-		div.style.display = 'inline';
 		div.style.visibility = 'hidden';
-
+		div.style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
+		div.style.zoom = '1';
+		
+		if (textWidth != null)
+		{
+			div.style.width = textWidth + 'px';
+			div.style.whiteSpace = 'normal';
+		}
+		else
+		{
+			div.style.whiteSpace = 'nowrap';
+		}
+		
 		// Adds the text and inserts into DOM for updating of size
 		div.innerHTML = text;
 		document.body.appendChild(div);

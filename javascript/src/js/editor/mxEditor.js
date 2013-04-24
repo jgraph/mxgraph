@@ -1,5 +1,5 @@
 /**
- * $Id: mxEditor.js,v 1.231 2012/12/03 18:02:25 gaudenz Exp $
+ * $Id: mxEditor.js,v 1.2 2012/12/03 18:02:39 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

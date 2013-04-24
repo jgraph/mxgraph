@@ -1,5 +1,5 @@
 /*
- * $Id: MainPanel.js,v 1.1 2012/03/06 12:36:45 gaudenz Exp $
+ * $Id: MainPanel.js,v 1.1 2012/11/15 13:26:47 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 MainPanel = function(graph, history)

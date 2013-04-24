@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxStyleRegistry.php,v 1.4 2010/01/02 09:45:15 gaudenz Exp $
+ * $Id: mxStyleRegistry.php,v 1.1 2012/11/15 13:26:46 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 class mxStyleRegistry

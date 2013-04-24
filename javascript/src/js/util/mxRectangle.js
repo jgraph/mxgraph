@@ -1,5 +1,5 @@
 /**
- * $Id: mxRectangle.js,v 1.17 2010/12/08 12:46:03 gaudenz Exp $
+ * $Id: mxRectangle.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

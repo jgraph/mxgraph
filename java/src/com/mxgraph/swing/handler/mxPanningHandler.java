@@ -1,5 +1,5 @@
 /**
- * $Id: mxPanningHandler.java,v 1.8 2010/12/08 12:31:50 gaudenz Exp $
+ * $Id: mxPanningHandler.java,v 1.1 2012/11/15 13:26:44 gaudenz Exp $
  * Copyright (c) 2008, Gaudenz Alder
  */
 package com.mxgraph.swing.handler;

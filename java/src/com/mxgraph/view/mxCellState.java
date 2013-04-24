@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellState.java,v 1.34 2012/03/09 07:42:53 gaudenz Exp $
+ * $Id: mxCellState.java,v 1.1 2012/11/15 13:26:46 gaudenz Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.view;

@@ -1,5 +1,5 @@
 /**
- * $Id: mxImageExportTest.java,v 1.7 2012/03/16 15:51:14 gaudenz Exp $
+ * $Id: mxImageExportTest.java,v 1.2 2012/11/26 16:08:43 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 package com.mxgraph.test;
@@ -68,7 +68,6 @@ public class mxImageExportTest extends TestCase
 
 		// Parses request into graphics canvas
 		mxGraphicsCanvas2D gc2 = new mxGraphicsCanvas2D(g2);
-		gc2.setAutoAntiAlias(true);
 		parseXmlSax(xml, gc2);
 		long t2 = System.currentTimeMillis();
 
@@ -81,7 +80,6 @@ public class mxImageExportTest extends TestCase
 				new FileOutputStream("example.pdf"));
 		document.open();
 		gc2 = new mxGraphicsCanvas2D(writer.getDirectContent().createGraphics(w, h));
-		gc2.setAutoAntiAlias(true);
 		parseXmlSax(xml, gc2);
 
 		gc2.getGraphics().dispose();

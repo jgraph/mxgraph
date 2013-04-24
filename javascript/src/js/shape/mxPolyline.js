@@ -1,5 +1,5 @@
 /**
- * $Id: mxPolyline.js,v 1.31 2012/05/24 12:00:45 gaudenz Exp $
+ * $Id: mxPolyline.js,v 1.4 2013/02/04 09:27:33 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -24,6 +24,7 @@
  */
 function mxPolyline(points, stroke, strokewidth)
 {
+	mxShape.call(this);
 	this.points = points;
 	this.stroke = stroke;
 	this.strokewidth = (strokewidth != null) ? strokewidth : 1;
@@ -32,115 +33,87 @@ function mxPolyline(points, stroke, strokewidth)
 /**
  * Extends mxShape.
  */
-mxPolyline.prototype = new mxShape();
-mxPolyline.prototype.constructor = mxPolyline;
+mxUtils.extend(mxPolyline, mxShape);
 
 /**
- * Variable: addPipe
- *
- * Specifies if a SVG path should be created around any path to increase the
- * tolerance for mouse events. Default is false since this shape is filled.
+ * Function: getRotation
+ * 
+ * Overrides to return 0.
  */
-mxPolyline.prototype.addPipe = true;
-
-/**
- * Function: create
- *
- * Override to create HTML regardless of gradient and
- * rounded property.
- */
-mxPolyline.prototype.create = function()
+mxPolyline.prototype.getRotation = function()
 {
-	var node = null;
+	return 0;
+};
+
+/**
+ * Function: paintEdgeShape
+ * 
+ * Paints the line shape.
+ */
+mxPolyline.prototype.paintEdgeShape = function(c, pts)
+{
+	this.paintLine(c, pts, this.isRounded);
+};
+
+/**
+ * Function: paintLine
+ * 
+ * Paints the line shape.
+ */
+mxPolyline.prototype.paintLine = function(c, pts, rounded)
+{
+	var arcSize = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, mxConstants.LINE_ARCSIZE) / 2;
+	var pt = pts[0];
+	var pe = pts[pts.length - 1];
+
+	c.begin();
+	c.moveTo(pt.x, pt.y);
 	
-	if (this.dialect == mxConstants.DIALECT_SVG)
+	// Draws the line segments
+	for (var i = 1; i < pts.length - 1; i++)
 	{
-		node = this.createSvg();
-	}
-	else if (this.dialect == mxConstants.DIALECT_STRICTHTML ||
-			(this.dialect == mxConstants.DIALECT_PREFERHTML &&
-			this.points != null && this.points.length > 0))
-	{
-		node = document.createElement('DIV');
-		this.configureHtmlShape(node);
-		node.style.borderStyle = '';
-		node.style.background = '';
-	}
-	else
-	{
-		node = document.createElement('v:shape');
-		this.configureVmlShape(node);
-		var strokeNode = document.createElement('v:stroke');
-	
-		if (this.opacity != null)
+		var tmp = pts[i];
+		var dx = pt.x - tmp.x;
+		var dy = pt.y - tmp.y;
+
+		if ((rounded && i < pts.length - 1) && (dx != 0 || dy != 0))
 		{
-			strokeNode.opacity = this.opacity + '%';
-		}
-		
-		node.appendChild(strokeNode);
-	}
-	
-	return node;
-};
+			// Draws a line from the last point to the current
+			// point with a spacing of size off the current point
+			// into direction of the last point
+			var dist = Math.sqrt(dx * dx + dy * dy);
+			var nx1 = dx * Math.min(arcSize, dist / 2) / dist;
+			var ny1 = dy * Math.min(arcSize, dist / 2) / dist;
 
-/**
- * Function: redrawVml
- *
- * Overrides the method to update the bounds if they have not been
- * assigned.
- */
-mxPolyline.prototype.redrawVml = function()
-{
-	// Updates the bounds based on the points
-	if (this.points != null && this.points.length > 0 && this.points[0] != null)
-	{
-		this.bounds = new mxRectangle(this.points[0].x,this.points[0].y, 0, 0);
-		
-		for (var i = 1; i < this.points.length; i++)
+			var x1 = tmp.x + nx1;
+			var y1 = tmp.y + ny1;
+			c.lineTo(x1, y1);
+
+			// Draws a curve from the last point to the current
+			// point with a spacing of size off the current point
+			// into direction of the next point
+			var next = pts[i + 1];
+			dx = next.x - tmp.x;
+			dy = next.y - tmp.y;
+
+			dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+			var nx2 = dx * Math.min(arcSize, dist / 2) / dist;
+			var ny2 = dy * Math.min(arcSize, dist / 2) / dist;
+
+			var x2 = tmp.x + nx2;
+			var y2 = tmp.y + ny2;
+
+			c.quadTo(tmp.x, tmp.y, x2, y2);
+			tmp = new mxPoint(x2, y2);
+		}
+		else
 		{
-			this.bounds.add(new mxRectangle(this.points[i].x,this.points[i].y, 0, 0));
+			c.lineTo(tmp.x, tmp.y);
 		}
+
+		pt = tmp;
 	}
 
-	mxShape.prototype.redrawVml.apply(this, arguments);
-};
-
-/**
- * Function: createSvg
- *
- * Creates and returns the SVG node(s) to represent this shape.
- */
-mxPolyline.prototype.createSvg = function()
-{
-	var g = this.createSvgGroup('path');
-	
-	// Creates an invisible shape around the path for easier
-	// selection with the mouse. Note: Firefox does not ignore
-	// the value of the stroke attribute for pointer-events: stroke,
-	// it does, however, ignore the visibility attribute.
-	if (this.addPipe)
-	{
-		this.pipe = this.createSvgPipe();
-		g.appendChild(this.pipe);
-	}
-	
-	return g;
-};
-
-/**
- * Function: redrawSvg
- *
- * Updates the SVG node(s) to reflect the latest bounds and scale.
- */
-mxPolyline.prototype.redrawSvg = function()
-{
-	this.updateSvgShape(this.innerNode);
-	var d = this.innerNode.getAttribute('d');
-	
-	if (d != null && this.pipe != null)
-	{
-		this.pipe.setAttribute('d', d);
-		var strokeWidth = Math.round(Math.max(1, this.strokewidth * this.scale));
-		this.pipe.setAttribute('stroke-width', strokeWidth + mxShape.prototype.SVG_STROKE_TOLERANCE);
-	}
+	c.lineTo(pe.x, pe.y);
+	c.stroke();
 };

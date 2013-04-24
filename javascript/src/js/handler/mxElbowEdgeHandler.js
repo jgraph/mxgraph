@@ -1,5 +1,5 @@
 /**
- * $Id: mxElbowEdgeHandler.js,v 1.43 2012/01/06 13:06:01 gaudenz Exp $
+ * $Id: mxElbowEdgeHandler.js,v 1.4 2013/02/14 07:44:38 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -20,12 +20,13 @@
  */
 function mxElbowEdgeHandler(state)
 {
-	if (state != null)
-	{
-		this.state = state;
-		this.init();
-	}
+	mxEdgeHandler.call(this, state);
 };
+
+/**
+ * Extends mxEdgeHandler.
+ */
+mxUtils.extend(mxElbowEdgeHandler, mxEdgeHandler);
 
 /**
  * Extends mxEdgeHandler.
@@ -119,10 +120,10 @@ mxElbowEdgeHandler.prototype.createVirtualBend = function()
 	
 	mxEvent.redirectMouseEvents(bend.node, this.graph, this.state,
 		null, null, null, dblClick);
-	
+
 	if (!this.graph.isCellBendable(this.state.cell))
 	{
-		bend.node.style.visibility = 'hidden';
+		bend.node.style.display = 'none';
 	}
 
 	return bend;
@@ -232,17 +233,16 @@ mxElbowEdgeHandler.prototype.redrawInnerBends = function(p0, pe)
 		h = mxConstants.HANDLE_SIZE;
 	}
 	
-	var bounds = new mxRectangle(pt.x - w / 2, pt.y - h / 2, w, h);
+	var bounds = new mxRectangle(Math.round(pt.x - w / 2), Math.round(pt.y - h / 2), w, h);
 
 	if (this.handleImage == null && this.labelShape.node.style.visibility != 'hidden' &&
 		mxUtils.intersects(bounds, this.labelShape.bounds))
 	{
 		w += 3;
 		h += 3;
-		bounds = new mxRectangle(pt.x - w / 2, pt.y - h / 2, w, h);
+		bounds = new mxRectangle(Math.round(pt.x - w / 2), Math.round(pt.y - h / 2), w, h);
 	}
 	
-	this.bends[1].bounds = bounds; 
-	this.bends[1].reconfigure();
+	this.bends[1].bounds = bounds;
 	this.bends[1].redraw();
 };

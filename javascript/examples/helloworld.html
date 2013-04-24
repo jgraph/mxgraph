@@ -1,5 +1,5 @@
 <!--
-  $Id: helloworld.html,v 1.33 2012/11/17 18:06:52 gaudenz Exp $
+  $Id: helloworld.html,v 1.4 2013/02/01 20:59:16 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Hello, World! example for mxGraph. This example demonstrates using
@@ -32,16 +32,9 @@
 			}
 			else
 			{
-				// Enables crisp rendering of rectangles in SVG
-				mxRectangleShape.prototype.crisp = true;
-				
 				// Creates the graph inside the given container
 				var graph = new mxGraph(container);
 
-				// Uncomment the following if you want the container
-				// to fit the size of the graph
-				//graph.setResizeContainer(true);
-				
 				// Enables rubberband selection
 				new mxRubberband(graph);
 				

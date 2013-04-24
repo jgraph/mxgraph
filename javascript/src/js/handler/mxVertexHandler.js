@@ -1,5 +1,5 @@
 /**
- * $Id: mxVertexHandler.js,v 1.107 2012/11/20 09:06:07 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.19 2013/04/12 16:30:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -64,14 +64,6 @@ mxVertexHandler.prototype.index = null;
 mxVertexHandler.prototype.allowHandleBoundsCheck = true;
 
 /**
- * Variable: crisp
- * 
- * Specifies if the selection bounds and handles should be rendered in crisp
- * mode. Default is true.
- */
-mxVertexHandler.prototype.crisp = true;
-
-/**
  * Variable: handleImage
  * 
  * Optional <mxImage> to be used as handles. Default is null.
@@ -86,6 +78,21 @@ mxVertexHandler.prototype.handleImage = null;
 mxVertexHandler.prototype.tolerance = 0;
 
 /**
+ * Variable: rotationEnabled
+ * 
+ * Specifies if a rotation handle should be visible. Default is false.
+ */
+mxVertexHandler.prototype.rotationEnabled = false;
+
+/**
+ * Variable: rotationRaster
+ * 
+ * Specifies if rotation steps should be "rasterized" depening on the distance
+ * to the handle. Default is true.
+ */
+mxVertexHandler.prototype.rotationRaster = true;
+
+/**
  * Function: init
  * 
  * Initializes the shapes required for this vertex handler.
@@ -97,20 +104,10 @@ mxVertexHandler.prototype.init = function()
 	this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y,
 		this.selectionBounds.width, this.selectionBounds.height);
 	this.selectionBorder = this.createSelectionShape(this.bounds);
-	this.selectionBorder.dialect =
-		(this.graph.dialect != mxConstants.DIALECT_SVG) ?
-		mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
+	// VML dialect required here for event transparency in IE
+	this.selectionBorder.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ? mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
+	this.selectionBorder.pointerEvents = false;
 	this.selectionBorder.init(this.graph.getView().getOverlayPane());
-
-	// Event-transparency
-	if (this.selectionBorder.dialect == mxConstants.DIALECT_SVG)
-	{
-		this.selectionBorder.node.setAttribute('pointer-events', 'none');
-	}
-	else
-	{
-		this.selectionBorder.node.style.background = '';
-	}
 	
 	if (this.graph.isCellMovable(this.state.cell))
 	{
@@ -120,8 +117,7 @@ mxVertexHandler.prototype.init = function()
 	mxEvent.redirectMouseEvents(this.selectionBorder.node, this.graph, this.state);
 	
 	// Adds the sizer handles
-	if (mxGraphHandler.prototype.maxCells <= 0 ||
-		this.graph.getSelectionCount() < mxGraphHandler.prototype.maxCells)
+	if (mxGraphHandler.prototype.maxCells <= 0 || this.graph.getSelectionCount() < mxGraphHandler.prototype.maxCells)
 	{
 		var resizable = this.graph.isCellResizable(this.state.cell);
 		this.sizers = [];
@@ -153,9 +149,7 @@ mxVertexHandler.prototype.init = function()
 				this.graph.isLabelMovable(this.state.cell))
 			{
 				// Marks this as the label handle for getHandleForEvent
-				this.labelShape = this.createSizer(mxConstants.CURSOR_LABEL_HANDLE,
-						mxEvent.LABEL_HANDLE, mxConstants.LABEL_HANDLE_SIZE,
-						mxConstants.LABEL_HANDLE_FILLCOLOR);
+				this.labelShape = this.createSizer(mxConstants.CURSOR_LABEL_HANDLE, mxEvent.LABEL_HANDLE, mxConstants.LABEL_HANDLE_SIZE, mxConstants.LABEL_HANDLE_FILLCOLOR);
 				this.sizers.push(this.labelShape);
 			}
 		}
@@ -166,6 +160,15 @@ mxVertexHandler.prototype.init = function()
 				null, null, mxConstants.LABEL_HANDLE_FILLCOLOR);
 			this.sizers.push(this.labelShape);
 		}
+	}
+	
+	// Adds the rotation handler
+	if (this.rotationEnabled && this.graph.isCellRotatable(this.state.cell) &&
+		(mxGraphHandler.prototype.maxCells <= 0 || this.graph.getSelectionCount() < mxGraphHandler.prototype.maxCells))
+	{
+		this.rotationShape = this.createSizer('pointer', mxEvent.ROTATION_HANDLE,
+			mxConstants.HANDLE_SIZE + 3, mxConstants.HANDLE_FILLCOLOR);
+		this.sizers.push(this.rotationShape);
 	}
 
 	this.redraw();
@@ -179,7 +182,7 @@ mxVertexHandler.prototype.init = function()
  */
 mxVertexHandler.prototype.getSelectionBounds = function(state)
 {
-	return new mxRectangle(state.x, state.y, state.width, state.height);
+	return new mxRectangle(Math.round(state.x), Math.round(state.y), Math.round(state.width), Math.round(state.height));
 };
 
 /**
@@ -192,7 +195,6 @@ mxVertexHandler.prototype.createSelectionShape = function(bounds)
 	var shape = new mxRectangleShape(bounds, null, this.getSelectionColor());
 	shape.strokewidth = this.getSelectionStrokeWidth();
 	shape.isDashed = this.isSelectionDashed();
-	shape.crisp = this.crisp;
 	
 	return shape;
 };
@@ -240,7 +242,7 @@ mxVertexHandler.prototype.createSizer = function(cursor, index, size, fillColor)
 	var bounds = new mxRectangle(0, 0, size, size);
 	var sizer = this.createSizerShape(bounds, index, fillColor);
 
-	if (this.state.text != null && this.state.text.node.parentNode == this.graph.container)
+	if (sizer.isHtmlAllowed() && this.state.text != null && this.state.text.node.parentNode == this.graph.container)
 	{
 		sizer.bounds.height -= 1;
 		sizer.bounds.width -= 1;
@@ -250,7 +252,7 @@ mxVertexHandler.prototype.createSizer = function(cursor, index, size, fillColor)
 	else
 	{
 		sizer.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
-				mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
+				mxConstants.DIALECT_MIXEDHTML : mxConstants.DIALECT_SVG;
 		sizer.init(this.graph.getView().getOverlayPane());
 	}
 	
@@ -295,14 +297,13 @@ mxVertexHandler.prototype.createSizerShape = function(bounds, index, fillColor)
 		
 		return new mxImageShape(bounds, this.handleImage.src);
 	}
+	else if (index == mxEvent.ROTATION_HANDLE)
+	{
+		return new mxEllipse(bounds, fillColor || mxConstants.HANDLE_FILLCOLOR, mxConstants.HANDLE_STROKECOLOR);
+	}
 	else
 	{
-		var shape = new mxRectangleShape(bounds,
-				fillColor || mxConstants.HANDLE_FILLCOLOR,
-				mxConstants.HANDLE_STROKECOLOR);
-		shape.crisp = this.crisp;
-		
-		return shape;
+		return new mxRectangleShape(bounds, fillColor || mxConstants.HANDLE_FILLCOLOR, mxConstants.HANDLE_STROKECOLOR);
 	}
 };
 
@@ -316,8 +317,8 @@ mxVertexHandler.prototype.moveSizerTo = function(shape, x, y)
 {
 	if (shape != null)
 	{
-		shape.bounds.x = x - shape.bounds.width / 2;
-		shape.bounds.y = y - shape.bounds.height / 2;
+		shape.bounds.x = Math.round(x - shape.bounds.width / 2);
+		shape.bounds.y = Math.round(y - shape.bounds.height / 2);
 		shape.redraw();
 	}
 };
@@ -330,7 +331,11 @@ mxVertexHandler.prototype.moveSizerTo = function(shape, x, y)
  */
 mxVertexHandler.prototype.getHandleForEvent = function(me)
 {
-	if (me.isSource(this.labelShape))
+	if (me.isSource(this.rotationShape))
+	{
+		return mxEvent.ROTATION_HANDLE;
+	}
+	else if (me.isSource(this.labelShape))
 	{
 		return mxEvent.LABEL_HANDLE;
 	}
@@ -345,7 +350,6 @@ mxVertexHandler.prototype.getHandleForEvent = function(me)
 		for (var i = 0; i < this.sizers.length; i++)
 		{
 			if (me.isSource(this.sizers[i]) || (hit != null &&
-				this.sizers[i].node.style.visibility != 'hidden' &&
 				mxUtils.intersects(this.sizers[i].bounds, hit)))
 			{
 				return i;
@@ -391,10 +395,11 @@ mxVertexHandler.prototype.start = function(x, y, index)
 	this.index = index;
 	
 	// Creates a preview that can be on top of any HTML label
-	this.selectionBorder.node.style.visibility = 'hidden';
+	this.selectionBorder.node.style.display = (index == mxEvent.ROTATION_HANDLE) ? 'inline' : 'none';
 	this.preview = this.createSelectionShape(this.bounds);
 	
-	if (this.state.text != null && this.state.text.node.parentNode == this.graph.container)
+	if (!(mxClient.IS_SVG && Number(this.state.style[mxConstants.STYLE_ROTATION] || '0') != 0) &&
+		this.state.text != null && this.state.text.node.parentNode == this.graph.container)
 	{
 		this.preview.dialect = mxConstants.DIALECT_STRICTHTML;
 		this.preview.init(this.graph.container);
@@ -402,7 +407,7 @@ mxVertexHandler.prototype.start = function(x, y, index)
 	else
 	{
 		this.preview.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
-			mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
+				mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
 		this.preview.init(this.graph.view.getOverlayPane());
 	}
 };
@@ -431,12 +436,72 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 			this.moveSizerTo(this.sizers[this.sizers.length - 1], point.x, point.y);
 			me.consume();
 		}
-		else if (this.index != null)
+		else if (this.index == mxEvent.ROTATION_HANDLE)
 		{
+			var dx = this.state.x + this.state.width / 2 - point.x;
+			var dy = this.state.y + this.state.height / 2 - point.y;
+			
+			this.currentAlpha = (dx != 0) ? Math.atan(dy / dx) * 180 / Math.PI + 90 : ((dy < 0) ? 180 : 0);
+			
+			if (dx > 0)
+			{
+				this.currentAlpha -= 180;
+			}
+
+			// Rotation raster
+			if (this.rotationRaster)
+			{
+				var dx = point.x - this.state.getCenterX();
+				var dy = point.y - this.state.getCenterY();
+				var dist = Math.abs(Math.sqrt(dx * dx + dy * dy) - this.state.height / 2 - 20);
+				var raster = Math.max(1, 5 * Math.min(3, Math.max(0, Math.round(80 / Math.abs(dist)))));
+				
+				this.currentAlpha = Math.round(this.currentAlpha / raster) * raster;
+			}
+
+			this.selectionBorder.rotation = this.currentAlpha;
+			this.selectionBorder.redraw();
+
+			me.consume();
+		}
+		else
+		{
+			var alpha = mxUtils.toRadians(this.state.style[mxConstants.STYLE_ROTATION] || '0');
+			var cos = Math.cos(-alpha);
+			var sin = Math.sin(-alpha);
+			
+			var ct = new mxPoint(this.state.getCenterX(), this.state.getCenterY());
+			
 			var dx = point.x - this.startX;
 			var dy = point.y - this.startY;
 			var tr = this.graph.view.translate;
+			
+			// Rotates vector for mouse gesture
+			var tx = cos * dx - sin * dy;
+			var ty = sin * dx + cos * dy;
+			
+			dx = tx;
+			dy = ty;
+			
 			this.bounds = this.union(this.selectionBounds, dx, dy, this.index, gridEnabled, scale, tr);
+	
+			cos = Math.cos(alpha);
+			sin = Math.sin(alpha);
+			
+			var c2 = new mxPoint(this.bounds.getCenterX(), this.bounds.getCenterY());
+
+			var dx = c2.x - ct.x;
+			var dy = c2.y - ct.y;
+			
+			var dx2 = cos * dx - sin * dy;
+			var dy2 = sin * dx + cos * dy;
+			
+			var dx3 = dx2 - dx;
+			var dy3 = dy2 - dy;
+			
+			this.bounds.x += dx3;
+			this.bounds.y += dy3;
+			
 			this.drawPreview();
 			me.consume();
 		}
@@ -458,15 +523,112 @@ mxVertexHandler.prototype.mouseUp = function(sender, me)
 	if (!me.isConsumed() && this.index != null && this.state != null)
 	{
 		var point = new mxPoint(me.getGraphX(), me.getGraphY());
-		var scale = this.graph.getView().scale;
 
-		var gridEnabled = this.graph.isGridEnabledEvent(me.getEvent());
-		var dx = (point.x - this.startX) / scale;
-		var dy = (point.y - this.startY) / scale;
+		this.graph.getModel().beginUpdate();
+		
+		try
+		{
+			if (this.index == mxEvent.ROTATION_HANDLE)
+			{
+				if (this.currentAlpha != null)
+				{
+					var delta = this.currentAlpha - (this.state.style[mxConstants.STYLE_ROTATION] || 0);
+					
+					if (delta != 0)
+					{
+						this.rotateCell(this.state.cell, delta);
+					}
+				}
+			}
+			else
+			{
+				var gridEnabled = this.graph.isGridEnabledEvent(me.getEvent());
+				var alpha = mxUtils.toRadians(this.state.style[mxConstants.STYLE_ROTATION] || '0');
+				var cos = Math.cos(-alpha);
+				var sin = Math.sin(-alpha);
+				
+				var dx = point.x - this.startX;
+				var dy = point.y - this.startY;
+				
+				// Rotates vector for mouse gesture
+				var tx = cos * dx - sin * dy;
+				var ty = sin * dx + cos * dy;
+				
+				dx = tx;
+				dy = ty;
+				
+				var s = this.graph.view.scale;
+				this.resizeCell(this.state.cell, dx / s, dy / s, this.index, gridEnabled);
+			}
+		}
+		finally
+		{
+			this.graph.getModel().endUpdate();
+		}
 
-		this.resizeCell(this.state.cell, dx, dy, this.index, gridEnabled);
 		this.reset();
 		me.consume();
+	}
+};
+
+/**
+ * Function: rotateCell
+ * 
+ * Rotates the given cell to the given rotation.
+ */
+mxVertexHandler.prototype.rotateCell = function(cell, delta)
+{
+	var model = this.graph.getModel();
+
+	// TODO: Rotate points in edges
+	if (model.isVertex(cell))
+	{
+		var state = (cell == this.state) ? this.state : this.graph.view.getState(cell);
+		
+		if (state != null)
+		{
+			var theta = (state.style[mxConstants.STYLE_ROTATION] || 0) + delta;
+			this.graph.setCellStyles(mxConstants.STYLE_ROTATION, theta, [cell]);
+		}
+
+		if (this.state.cell != cell)
+		{
+			var geo = this.graph.getCellGeometry(cell);
+	
+			if (geo != null && !geo.relative)
+			{
+				if (delta != 0)
+				{
+					// Rotates and moves child cell
+					var parent = this.graph.getModel().getParent(cell);
+					var pgeo = this.graph.getCellGeometry(parent);
+					
+					if (!geo.relative && pgeo != null)
+					{
+						var rad = mxUtils.toRadians(delta);
+						var cos = Math.cos(rad);
+						var sin = Math.sin(rad);
+						
+						var ct = new mxPoint(geo.getCenterX(), geo.getCenterY());
+						var cx = new mxPoint(pgeo.width / 2, pgeo.height / 2);
+						var pt = mxUtils.getRotatedPoint(ct, cos, sin, cx);
+						
+						geo = geo.clone();
+						geo.x = pt.x - geo.width / 2;
+						geo.y = pt.y - geo.height / 2;
+						model.setGeometry(cell, geo);
+					}
+				}
+			}
+		}
+		
+		// Recursive handling of rotation
+		var childCount = model.getChildCount(cell);
+		
+		for (var i = 0; i < childCount; i++)
+		{
+			this.rotateCell(model.getChildAt(cell, i), delta);
+		}
 	}
 };
 
@@ -477,6 +639,7 @@ mxVertexHandler.prototype.mouseUp = function(sender, me)
  */
 mxVertexHandler.prototype.reset = function()
 {
+	this.currentAlpha = null;
 	this.index = null;
 	
 	if (this.preview != null)
@@ -488,8 +651,8 @@ mxVertexHandler.prototype.reset = function()
 	// Checks if handler has been destroyed
 	if (this.selectionBorder != null)
 	{
+		this.selectionBorder.node.style.display = 'inline';
 		this.selectionBounds = this.getSelectionBounds(this.state);
-		this.selectionBorder.node.style.visibility = 'visible';
 		this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y,
 			this.selectionBounds.width, this.selectionBounds.height);
 		this.drawPreview();
@@ -506,33 +669,100 @@ mxVertexHandler.prototype.resizeCell = function(cell, dx, dy, index, gridEnabled
 {
 	var geo = this.graph.model.getGeometry(cell);
 	
-	if (index == mxEvent.LABEL_HANDLE)
+	if (geo != null)
 	{
-		var scale = this.graph.view.scale;
-		dx = (this.labelShape.bounds.getCenterX() - this.startX) / scale;
-		dy = (this.labelShape.bounds.getCenterY() - this.startY) / scale;
-		
-		geo = geo.clone();
-		
-		if (geo.offset == null)
+		if (index == mxEvent.LABEL_HANDLE)
 		{
-			geo.offset = new mxPoint(dx, dy);
+			var scale = this.graph.view.scale;
+			dx = (this.labelShape.bounds.getCenterX() - this.startX) / scale;
+			dy = (this.labelShape.bounds.getCenterY() - this.startY) / scale;
+			
+			geo = geo.clone();
+			
+			if (geo.offset == null)
+			{
+				geo.offset = new mxPoint(dx, dy);
+			}
+			else
+			{
+				geo.offset.x += dx;
+				geo.offset.y += dy;
+			}
+			
+			this.graph.model.setGeometry(cell, geo);
 		}
 		else
 		{
-			geo.offset.x += dx;
-			geo.offset.y += dy;
+			var bounds = this.union(geo, dx, dy, index, gridEnabled, 1, new mxPoint(0, 0));
+			var alpha = mxUtils.toRadians(this.state.style[mxConstants.STYLE_ROTATION] || '0');
+			
+			if (alpha != 0)
+			{
+				var dx = bounds.getCenterX() - geo.getCenterX();
+				var dy = bounds.getCenterY() - geo.getCenterY();
+	
+				var cos = Math.cos(alpha);
+				var sin = Math.sin(alpha);
+	
+				var dx2 = cos * dx - sin * dy;
+				var dy2 = sin * dx + cos * dy;
+				
+				var dx3 = dx2 - dx;
+				var dy3 = dy2 - dy;
+				
+				var dx4 = bounds.x - geo.x;
+				var dy4 = bounds.y - geo.y;
+				
+				var dx5 = cos * dx4 - sin * dy4;
+				var dy5 = sin * dx4 + cos * dy4;
+				
+				bounds.x += dx3;
+				bounds.y += dy3;
+	
+				// Shifts the children according to parent offset
+				if (!this.graph.isCellCollapsed(cell) && (dx3 != 0 || dy3 != 0))
+				{
+					var dx4 = geo.x - bounds.x + dx5;
+					var dy4 = geo.y - bounds.y + dy5;
+					
+					this.moveChildren(cell, dx4, dy4);
+				}
+			}
+			
+			this.graph.resizeCell(cell, bounds);
 		}
-		
-		this.graph.model.setGeometry(cell, geo);
-	}
-	else
-	{
-		var bounds = this.union(geo, dx, dy, index, gridEnabled, 1, new mxPoint(0, 0));
-		this.graph.resizeCell(cell, bounds);	
 	}
 };
 
+/**
+ * Function: moveChildren
+ * 
+ * Moves the children of the given cell by the given vector.
+ */
+mxVertexHandler.prototype.moveChildren = function(cell, dx, dy)
+{
+	var model = this.graph.getModel();
+	var childCount = model.getChildCount(cell);
+	
+	for (var i = 0; i < childCount; i++)
+	{
+		var child = model.getChildAt(cell, i);
+		
+		// TODO: Move edge points
+		if (model.isVertex(child))
+		{
+			var geo = this.graph.getCellGeometry(child);
+	
+			if (geo != null && !geo.relative)
+			{
+				geo = geo.clone();
+				geo.x += dx;
+				geo.y += dy;
+				model.setGeometry(child, geo);
+			}
+		}
+	}
+};
 /**
  * Function: union
  * 
@@ -653,12 +883,11 @@ mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, s
 mxVertexHandler.prototype.redraw = function()
 {
 	this.selectionBounds = this.getSelectionBounds(this.state);
-	this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y,
-		this.selectionBounds.width, this.selectionBounds.height);
-
+	this.bounds = new mxRectangle(this.state.x, this.state.y, this.state.width, this.state.height);
+	var s = this.state;
+	
 	if (this.sizers != null)
 	{
-		var s = this.state;
 		var r = s.x + s.width;
 		var b = s.y + s.height;
 		
@@ -673,14 +902,56 @@ mxVertexHandler.prototype.redraw = function()
 			
 			if (this.sizers.length > 1)
 			{
-				this.moveSizerTo(this.sizers[0], s.x, s.y);
-				this.moveSizerTo(this.sizers[1], cx, s.y);
-				this.moveSizerTo(this.sizers[2], r, s.y);
-				this.moveSizerTo(this.sizers[3], s.x, cy);
-				this.moveSizerTo(this.sizers[4], r, cy);
-				this.moveSizerTo(this.sizers[5], s.x, b);
-				this.moveSizerTo(this.sizers[6], cx, b);
-				this.moveSizerTo(this.sizers[7], r, b);
+				var alpha = mxUtils.toRadians(s.style[mxConstants.STYLE_ROTATION] || '0');
+				var cos = Math.cos(alpha);
+				var sin = Math.sin(alpha);
+				
+				var ct = new mxPoint(s.getCenterX(), s.getCenterY());
+				var pt = mxUtils.getRotatedPoint(new mxPoint(s.x, s.y), cos, sin, ct);
+				
+				this.moveSizerTo(this.sizers[0], pt.x, pt.y);
+				
+				pt.x = cx;
+				pt.y = s.y;
+				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
+				
+				this.moveSizerTo(this.sizers[1], pt.x, pt.y);
+				
+				pt.x = r;
+				pt.y = s.y;
+				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
+				
+				this.moveSizerTo(this.sizers[2], pt.x, pt.y);
+				
+				pt.x = s.x;
+				pt.y = cy;
+				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
+				
+				this.moveSizerTo(this.sizers[3], pt.x, pt.y);
+
+				pt.x = r;
+				pt.y = cy;
+				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
+				
+				this.moveSizerTo(this.sizers[4], pt.x, pt.y);
+
+				pt.x = s.x;
+				pt.y = b;
+				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
+				
+				this.moveSizerTo(this.sizers[5], pt.x, pt.y);
+
+				pt.x = cx;
+				pt.y = b;
+				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
+				
+				this.moveSizerTo(this.sizers[6], pt.x, pt.y);
+
+				pt.x = r;
+				pt.y = b;
+				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
+				
+				this.moveSizerTo(this.sizers[7], pt.x, pt.y);
 				this.moveSizerTo(this.sizers[8],
 					cx + s.absoluteOffset.x,
 					cy + s.absoluteOffset.y);
@@ -697,7 +968,20 @@ mxVertexHandler.prototype.redraw = function()
 			}
 		}
 	}
-
+	
+	if (this.rotationShape != null)
+	{
+		var alpha = mxUtils.toRadians(this.state.style[mxConstants.STYLE_ROTATION] || '0');
+		var cos = Math.cos(alpha);
+		var sin = Math.sin(alpha);
+		
+		var ct = new mxPoint(this.state.getCenterX(), this.state.getCenterY());
+		var pt = mxUtils.getRotatedPoint(new mxPoint(s.x + s.width / 2, s.y - 16), cos, sin, ct);
+		
+		this.moveSizerTo(this.rotationShape, pt.x, pt.y);
+	}
+	
+	this.selectionBorder.rotation = Number(this.state.style[mxConstants.STYLE_ROTATION] || '0');
 	this.drawPreview();
 };
 
@@ -717,7 +1001,8 @@ mxVertexHandler.prototype.drawPreview = function()
 			this.preview.bounds.width = Math.max(0, this.preview.bounds.width - 1);
 			this.preview.bounds.height = Math.max(0, this.preview.bounds.height - 1);
 		}
-		
+	
+		this.preview.rotation = Number(this.state.style[mxConstants.STYLE_ROTATION] || '0');
 		this.preview.redraw();
 	}
 	

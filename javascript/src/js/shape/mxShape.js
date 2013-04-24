@@ -1,5 +1,5 @@
 /**
- * $Id: mxShape.js,v 1.175 2013/01/16 08:40:17 gaudenz Exp $
+aaa * $Id: mxShape.js,v 1.38 2013/02/01 13:54:05 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -28,10 +28,7 @@
  * In the special case where the custom shape consists only of
  * one filled region or one filled region and an additional stroke
  * the <mxActor> and <mxCylinder> should be subclassed,
- * respectively. These implement <redrawPath> in order to create
- * the path expression for VML and SVG via a unified API (see
- * <mxPath>). <mxCylinder.redrawPath> has an additional boolean
- * argument to draw the foreground and background separately.
+ * respectively.
  *
  * (code)
  * function CustomShape() { }
@@ -45,7 +42,7 @@
  * cell renderer as follows:
  *
  * (code)
- * graph.cellRenderer.registerShape('customShape', CustomShape);
+ * mxCellRenderer.registerShape('customShape', CustomShape);
  * (end)
  *
  * The second argument is the name of the constructor.
@@ -63,21 +60,17 @@
  *
  * Constructs a new shape.
  */
-function mxShape() { };
-
-/**
- * Variable: SVG_STROKE_TOLERANCE
- *
- * Event-tolerance for SVG strokes (in px). Default is 8.
- */
-mxShape.prototype.SVG_STROKE_TOLERANCE = 8;
-
-/**
- * Variable: scale
- *
- * Holds the scale in which the shape is being painted.
- */
-mxShape.prototype.scale = 1;
+function mxShape(stencil)
+{
+	this.stencil = stencil;
+	
+	// Sets some defaults
+	this.strokewidth = 1;
+	this.rotation = 0;
+	this.opacity = 100;
+	this.flipH = false;
+	this.flipV = false;
+};
 
 /**
  * Variable: dialect
@@ -88,44 +81,11 @@ mxShape.prototype.scale = 1;
 mxShape.prototype.dialect = null;
 
 /**
- * Variable: crisp
+ * Variable: scale
  *
- * Special attribute for SVG rendering to set the shape-rendering attribute to
- * crispEdges in the output. This is ignored in IE. Default is false. To
- * disable antialias in IE, the explorer.css file can be changed as follows:
- * 
- * [code]
- * v\:* {
- *   behavior: url(#default#VML);
- *   antialias: false;
- * }
- * [/code]
+ * Holds the scale in which the shape is being painted.
  */
-mxShape.prototype.crisp = false;
-
-/**
- * Variable: roundedCrispSvg
- *
- * Specifies if crisp rendering should be enabled for rounded shapes.
- * Default is true.
- */
-mxShape.prototype.roundedCrispSvg = true;
-
-/**
- * Variable: mixedModeHtml
- *
- * Specifies if <createHtml> should be used in mixed Html mode.
- * Default is true.
- */
-mxShape.prototype.mixedModeHtml = true;
-
-/**
- * Variable: preferModeHtml
- *
- * Specifies if <createHtml> should be used in prefer Html mode.
- * Default is true.
- */
-mxShape.prototype.preferModeHtml = true;
+mxShape.prototype.scale = 1;
 
 /**
  * Variable: bounds
@@ -149,44 +109,18 @@ mxShape.prototype.points = null;
 mxShape.prototype.node = null;
 
 /**
- * Variable: label
- *
- * Reference to the DOM node that should contain the label. This is null
- * if the label should be placed inside <node> or <innerNode>.
- */
-mxShape.prototype.label = null;
-
-/**
- * Variable: innerNode
- *
- * Holds the DOM node that graphically represents this shape. This may be
- * null if the outermost DOM <node> represents this shape.
- */
-mxShape.prototype.innerNode = null;
-
-/**
- * Variable: style
- *
- * Holds the style of the cell state that corresponds to this shape. This may
- * be null if the shape is used directly, without a cell state.
+ * Variable: state
+ * 
+ * Optional reference to the corresponding <mxCellState>.
  */
 mxShape.prototype.style = null;
 
 /**
- * Variable: startOffset
+ * Variable: style
  *
- * Specifies the offset in pixels from the first point in <points> and
- * the actual start of the shape.
+ * Optional reference to the style of the corresponding <mxCellState>.
  */
-mxShape.prototype.startOffset = null;
-
-/**
- * Variable: endOffset
- *
- * Specifies the offset in pixels from the last point in <points> and
- * the actual start of the shape.
- */
-mxShape.prototype.endOffset = null;
+mxShape.prototype.style = null;
 
 /**
  * Variable: boundingBox
@@ -197,69 +131,40 @@ mxShape.prototype.endOffset = null;
 mxShape.prototype.boundingBox = null;
 
 /**
- * Variable: vmlNodes
+ * Variable: stencil
  *
- * Array if VML node names to fix in IE8 standards mode.
+ * Holds the <mxStencil> that defines the shape.
  */
-mxShape.prototype.vmlNodes = ['node', 'strokeNode', 'fillNode', 'shadowNode'];
+mxShape.prototype.stencil = null;
+
+/**
+ * Variable: svgStrokeTolerance
+ *
+ * Event-tolerance for SVG strokes (in px). Default is 6.
+ */
+mxShape.prototype.svgStrokeTolerance = 6;
+
+/**
+ * Variable: pointerEvents
+ * 
+ * Specifies if pointer events should be handled. Default is true.
+ */
+mxShape.prototype.pointerEvents = true;
+
+/**
+ * Variable: stencilPointerEvents
+ * 
+ * Specifies if pointer events outside of stencils should be handled. Default
+ * is false. Set this to true for backwards compatibility with the 1.x branch.
+ */
+mxShape.prototype.stencilPointerEvents = false;
 
 /**
  * Variable: vmlScale
- *
- * Internal scaling for VML using coordsize for better precision.
+ * 
+ * Scale for improving the precision of VML rendering. Default is 1.
  */
 mxShape.prototype.vmlScale = 1;
-
-/**
- * Variable: strokewidth
- *
- * Holds the current strokewidth. Default is 1.
- */
-mxShape.prototype.strokewidth = 1;
-
-/**
- * Function: setCursor
- * 
- * Sets the cursor on the given shape.
- *
- * Parameters:
- *
- * cursor - The cursor to be used.
- */
-mxShape.prototype.setCursor = function(cursor)
-{
-	if (cursor == null)
-	{
-		cursor = '';
-	}
-	
-	this.cursor = cursor;
-	
-	if (this.innerNode != null)
-	{
-		this.innerNode.style.cursor = cursor;
-	}
-	
-	if (this.node != null)
-	{
-		this.node.style.cursor = cursor;
-	}
-	
-	if (this.pipe != null)
-	{
-		this.pipe.style.cursor = cursor;
-	}
-};
-
-/**
- * Function: getCursor
- * 
- * Returns the current cursor.
- */
-mxShape.prototype.getCursor = function()
-{
-	return this.cursor;
-};
 
 /**
  * Function: init
@@ -280,124 +185,41 @@ mxShape.prototype.init = function(container)
 		if (container != null)
 		{
 			container.appendChild(this.node);
-			
-			// Workaround for broken VML in IE8 standards mode. This gives an ID to
-			// each element that is referenced from this instance. After adding the
-			// DOM to the document, the outerHTML is overwritten to fix the VML
-			// rendering and the references are restored.
-			if (document.documentMode == 8 && mxUtils.isVml(this.node))
-			{
-				this.reparseVml();
-			}
-		}
-	}
-
-	// Gradients are inserted late when the owner SVG element is known
-	if (this.insertGradientNode != null)
-	{
-		this.insertGradient(this.insertGradientNode);
-		this.insertGradientNode = null;
-	}
-};
-
-/**
- * Function: reparseVml
- * 
- * Forces a parsing of the outerHTML of this node and restores all references specified in <vmlNodes>.
- * This is a workaround for the VML rendering bug in IE8 standards mode.
- */
-mxShape.prototype.reparseVml = function()
-{
-	// Assigns temporary IDs to VML nodes so that references can be restored when
-	// inserted into the DOM as a string
-	for (var i = 0; i < this.vmlNodes.length; i++)
-	{
-		if (this[this.vmlNodes[i]] != null)
-		{
-			this[this.vmlNodes[i]].setAttribute('id', 'mxTemporaryReference-' + this.vmlNodes[i]);
-		}
-	}
-
-	this.node.outerHTML = this.node.outerHTML;
-	
-	// Restores references to the actual DOM nodes
-	for (var i = 0; i < this.vmlNodes.length; i++)
-	{
-		if (this[this.vmlNodes[i]] != null)
-		{
-			this[this.vmlNodes[i]] = this.node.ownerDocument.getElementById('mxTemporaryReference-' + this.vmlNodes[i]);
-			this[this.vmlNodes[i]].removeAttribute('id');
 		}
 	}
 };
 
 /**
- * Function: insertGradient
+ * Function: isParseVml
  * 
- * Inserts the given gradient node.
+ * Specifies if any VML should be added via insertAdjacentHtml to the DOM. This
+ * is only needed in IE8 and only if the shape contains VML markup. This method
+ * returns true.
  */
-mxShape.prototype.insertGradient = function(node)
+mxShape.prototype.isParseVml = function()
 {
-	// Gradients are inserted late when the owner SVG element is known
-	if (node != null)
-	{
-		// Checks if the given gradient already exists inside the SVG element
-		// that also contains the node that represents this shape. If the gradient
-		// with the same ID exists in another SVG element, then this will add
-		// a copy of the gradient with a different ID to the SVG element and update
-		// the reference accordingly. This is required in Firefox because if the
-		// referenced fill element is removed from the DOM the shape appears black.
-		var count = 0;
-		var id = node.getAttribute('id');
-		var gradient = document.getElementById(id);
-
-		while (gradient != null && gradient.ownerSVGElement != this.node.ownerSVGElement)
-		{
-			count++;
-			id = node.getAttribute('id') + '-' + count;
-			gradient = document.getElementById(id);
-		}
-		
-		// According to specification, gradients should be put in a defs
-		// section in the first child of the owner SVG element. However,
-		// it turns out that gradients only work when added as follows.
-		if (gradient == null)
-		{
-			node.setAttribute('id', id);
-			this.node.ownerSVGElement.appendChild(node);
-			gradient = node;
-		}
-		
-		if (gradient != null)
-		{
-			var ref = 'url(#' + id + ')';
-			var tmp = (this.innerNode != null) ? this.innerNode : this.node;
-			
-			if (tmp != null && tmp.getAttribute('fill') != ref)
-			{
-				tmp.setAttribute('fill', ref);
-			}
-		}
-	}
+	return true;
 };
 
 /**
- * Function: isMixedModeHtml
+ * Function: isHtmlAllowed
  * 
- * Used to determine if a shape can be rendered using <createHtml> in mixed
- * mode Html without compromising the display accuracy. The default 
- * implementation will check if the shape is not rounded or rotated and has
- * no gradient, and will use a DIV if that is the case. It will also check
- * if <mxShape.mixedModeHtml> is true, which is the default settings.
- * Subclassers can either override <mixedModeHtml> or this function if the 
- * result depends on dynamic values. The graph's dialect is available via
- * <dialect>.
+ * Returns true if HTML is allowed for this shape. This implementation always
+ * returns false.
  */
-mxShape.prototype.isMixedModeHtml = function()
+mxShape.prototype.isHtmlAllowed = function()
 {
-	return this.mixedModeHtml && !this.isRounded && !this.isShadow && this.gradient == null &&
-		mxUtils.getValue(this.style, mxConstants.STYLE_GLASS, 0) == 0 &&
-		mxUtils.getValue(this.style, mxConstants.STYLE_ROTATION, 0) == 0;
+	return false;
+};
+
+/**
+ * Function: getSvgScreenOffset
+ * 
+ * Returns 0, or 0.5 if <strokewidth> % 2 == 1.
+ */
+mxShape.prototype.getSvgScreenOffset = function()
+{
+	return (mxUtils.mod(Math.max(1, Math.round(this.strokewidth * this.scale)), 2) == 1) ? 0.5 : 0;
 };
 
 /**
@@ -415,25 +237,47 @@ mxShape.prototype.isMixedModeHtml = function()
 mxShape.prototype.create = function(container)
 {
 	var node = null;
-	
-	if (this.dialect == mxConstants.DIALECT_SVG)
+
+	if (container.ownerSVGElement != null)
 	{
-		node = this.createSvg();
+		node = this.createSvg(container);
 	}
-	else if (this.dialect == mxConstants.DIALECT_STRICTHTML ||
-			(this.preferModeHtml && this.dialect == mxConstants.DIALECT_PREFERHTML) ||
-			(this.isMixedModeHtml() && this.dialect == mxConstants.DIALECT_MIXEDHTML))
+	else if (document.documentMode == 8 || this.dialect == mxConstants.DIALECT_SVG ||
+		(this.dialect != mxConstants.DIALECT_VML && this.isHtmlAllowed()))
 	{
-		node = this.createHtml();
+		node = this.createHtml(container);
 	}
 	else
 	{
-		node = this.createVml();
+		node = this.createVml(container);
 	}
 	
 	return node;
 };
+
+/**
+ * Function: createSvg
+ *
+ * Creates and returns the SVG node(s) to represent this shape.
+ */
+mxShape.prototype.createSvg = function()
+{
+	return document.createElementNS(mxConstants.NS_SVG, 'g');
+};
+
+/**
+ * Function: createVml
+ *
+ * Creates and returns the VML node to represent this shape.
+ */
+mxShape.prototype.createVml = function()
+{
+	var node = document.createElement(mxClient.VML_PREFIX + ':group');
+	node.style.position = 'absolute';
 	
+	return node;
+};
+
 /**
  * Function: createHtml
  *
@@ -443,37 +287,475 @@ mxShape.prototype.create = function(container)
  */
 mxShape.prototype.createHtml = function()
 {
-	var node = document.createElement('DIV');
-	this.configureHtmlShape(node);
+	var node = document.createElement('div');
+	node.style.position = 'absolute';
 	
 	return node;
 };
 
 /**
- * Function: destroy
+ * Function: reconfigure
  *
- * Destroys the shape by removing it from the DOM and releasing the DOM
- * node associated with the shape using <mxEvent.release>.
+ * Reconfigures this shape. This will update the colors etc in
+ * addition to the bounds or points.
  */
-mxShape.prototype.destroy = function()
+mxShape.prototype.reconfigure = function()
 {
-	if (this.node != null)
+	this.redraw();
+};
+
+/**
+ * Function: redraw
+ *
+ * Creates and returns the SVG node(s) to represent this shape.
+ */
+mxShape.prototype.redraw = function()
+{
+	this.updateBoundsFromPoints();
+	
+	if (this.checkBounds())
 	{
-		mxEvent.release(this.node);
-		
-		if (this.node.parentNode != null)
+		this.node.style.visibility = '';
+
+		if (this.node.nodeName == 'DIV' && this.isHtmlAllowed())
 		{
-			this.node.parentNode.removeChild(this.node);
+			this.redrawHtmlShape();
 		}
-		
-		if (this.node.glassOverlay)
-		{
-			this.node.glassOverlay.parentNode.removeChild(this.node.glassOverlay);
-			this.node.glassOverlay = null;
+		else
+		{	
+			this.redrawShape();
 		}
-		
-		this.node = null;
+
+		this.updateBoundingBox();
 	}
+	else
+	{
+		this.node.style.visibility = 'hidden';
+		this.boundingBox = null;
+	}
+};
+
+/**
+ * Function: updateBoundsFromPoints
+ * 
+ * Updates the bounds based on the points.
+ */
+mxShape.prototype.updateBoundsFromPoints = function()
+{
+	var pts = this.points;
+	
+	if (pts != null && pts.length > 0 && pts[0] != null)
+	{
+		this.bounds = new mxRectangle(Number(pts[0].x), Number(pts[0].y), 1, 1);
+		
+		for (var i = 1; i < this.points.length; i++)
+		{
+			if (pts[i] != null)
+			{
+				this.bounds.add(new mxRectangle(Number(pts[i].x), Number(pts[i].y), 1, 1));
+			}
+		}
+	}
+	
+};
+
+/**
+ * Function: checkBounds
+ * 
+ * Returns true if the bounds are not null and all of its variables are numeric.
+ */
+mxShape.prototype.checkBounds = function()
+{
+	return (this.bounds != null && !isNaN(this.bounds.x) && !isNaN(this.bounds.y) &&
+			!isNaN(this.bounds.width) && !isNaN(this.bounds.height) &&
+			this.bounds.width > 0 && this.bounds.height > 0);
+};
+
+/**
+ * Function: createVmlGroup
+ *
+ * Returns the temporary element used for rendering in IE8 standards mode.
+ */
+mxShape.prototype.createVmlGroup = function()
+{
+	var node = document.createElement(mxClient.VML_PREFIX + ':group');
+	node.style.position = 'absolute';
+	node.style.width = this.node.style.width;
+	node.style.height = this.node.style.height;
+	
+	return node;
+};
+
+/**
+ * Function: redrawShape
+ *
+ * Updates the SVG or VML shape.
+ */
+mxShape.prototype.redrawShape = function()
+{
+	var canvas = this.createCanvas();
+
+	// Specifies if events should be handled
+	canvas.pointerEvents = this.pointerEvents;
+
+	// Removes all children
+	while(this.node.hasChildNodes())
+	{
+		this.node.removeChild(this.node.lastChild);
+	}
+
+	this.paint(canvas);
+
+	if (this.node != canvas.root)
+	{
+		// Forces parsing in IE8 standards mode - slow! avoid
+		this.node.insertAdjacentHTML('beforeend', canvas.root.outerHTML);
+	}
+
+	if (this.node.nodeName == 'DIV' && document.documentMode == 8)
+	{
+		// Makes DIV transparent to events for IE8 in IE8 standards
+		// mode (Note: Does not work for IE9 in IE8 standards mode)
+		this.node.style.filter = '';
+		
+		// Adds event transparency in IE8 standards
+		if (this.stencil == null || !this.stencilPointerEvents)
+		{
+			mxUtils.addTransparentBackgroundFilter(this.node);
+		}
+	}
+	
+	this.destroyCanvas(canvas);
+};
+
+/**
+ * Function: createCanvas
+ * 
+ * Destroys the given canvas which was used for drawing. This implementation
+ * increments the reference counts on all shared gradients used in the canvas.
+ */
+mxShape.prototype.createCanvas = function()
+{
+	var canvas = null;
+	var node = null;
+	
+	// LATER: Check if reusing existing DOM nodes improves performance
+	if (this.node.ownerSVGElement != null)
+	{
+		canvas = new mxSvgCanvas2D(this.node, false);
+		canvas.strokeTolerance = this.svgStrokeTolerance;
+		canvas.blockImagePointerEvents = mxClient.IS_NS && !mxClient.IS_SF && !mxClient.IS_GC;
+		var off = this.getSvgScreenOffset();
+
+		if (off != 0)
+		{
+			this.node.setAttribute('transform', 'translate(' + off + ',' + off + ')');
+		}
+		else
+		{
+			this.node.removeAttribute('transform');
+		}
+	}
+	else
+	{
+		this.updateVmlContainer();
+		var w = Math.max(1, Math.round(this.bounds.width));
+		var h = Math.max(1, Math.round(this.bounds.height));
+		
+		// Workaround for VML rendering bug in IE8 standards mode
+		if (document.documentMode == 8 && this.isParseVml())
+		{
+			node = this.createVmlGroup();
+		}
+		else
+		{
+			node = this.node;			
+		}
+		
+		canvas = new mxVmlCanvas2D(node, false);
+		
+		if (node.tagUrn != '')
+		{
+			node.coordsize = (w * this.vmlScale) + ',' + (h * this.vmlScale);
+			canvas.scale(this.vmlScale);
+			canvas.vmlScale = this.vmlScale;
+		}
+
+		// Painting relative to top, left shape corner
+		var s = this.scale;
+		canvas.translate(-Math.round(this.bounds.x / s), -Math.round(this.bounds.y / s));
+	}
+
+	return canvas;
+};
+
+/**
+ * Function: updateVmlContainer
+ * 
+ * Updates the bounds of the VML container.
+ */
+mxShape.prototype.updateVmlContainer = function()
+{
+	this.node.style.left = Math.round(this.bounds.x) + 'px';
+	this.node.style.top = Math.round(this.bounds.y) + 'px';
+	var w = Math.max(1, Math.round(this.bounds.width));
+	var h = Math.max(1, Math.round(this.bounds.height));
+	this.node.style.width = w + 'px';
+	this.node.style.height = h + 'px';
+	this.node.style.overflow = 'visible';
+};
+
+/**
+ * Function: destroyCanvas
+ * 
+ * Destroys the given canvas which was used for drawing. This implementation
+ * increments the reference counts on all shared gradients used in the canvas.
+ */
+mxShape.prototype.destroyCanvas = function(canvas)
+{
+	// Manages reference counts
+	if (canvas instanceof mxSvgCanvas2D)
+	{
+		// Increments ref counts
+		for (var key in canvas.gradients)
+		{
+			var gradient = canvas.gradients[key];
+			gradient.mxRefCount = (gradient.mxRefCount || 0) + 1;
+		}
+		
+		this.releaseSvgGradients(this.oldGradients);
+		this.oldGradients = canvas.gradients;
+	}
+};
+
+/**
+ * Function: paint
+ * 
+ * Generic rendering code.
+ */
+mxShape.prototype.paint = function(c)
+{
+	// Scale is passed-through to canvas
+	var s = this.scale;
+	var x = this.bounds.x / s;
+	var y = this.bounds.y / s;
+	var w = this.bounds.width / s;
+	var h = this.bounds.height / s;
+
+	if (this.isPaintBoundsInverted())
+	{
+		var t = (w - h) / 2;
+		x += t;
+		y -= t;
+		var tmp = w;
+		w = h;
+		h = tmp;
+	}
+	
+	this.updateTransform(c, x, y, w, h);
+	this.configureCanvas(c, x, y, w, h);
+	
+	if (this.stencil != null)
+	{
+		this.paintStencilShape(c, x, y, w, h);
+	}
+	else
+	{
+		// Stencils have separate strokewidth
+		c.setStrokeWidth(this.strokewidth);
+		
+		if (this.points != null)
+		{
+			// Paints edge shape
+			var pts = [];
+			
+			for (var i = 0; i < this.points.length; i++)
+			{
+				pts.push(new mxPoint(this.points[i].x / s, this.points[i].y / s));
+			}
+
+			this.paintEdgeShape(c, pts);
+		}
+		else
+		{
+			// Paints vertex shape
+			this.paintVertexShape(c, x, y, w, h);
+		}
+	}
+};
+
+/**
+ * Function: configureCanvas
+ * 
+ * Sets the state of the canvas for drawing the shape.
+ */
+mxShape.prototype.configureCanvas = function(c, x, y, w, h)
+{
+	var dash = null;
+	
+	if (this.style != null)
+	{
+		dash = this.style['dashPattern'];		
+	}
+
+	c.setAlpha(this.opacity / 100);
+
+	// Sets alpha, colors and gradients
+	if (this.isShadow != null)
+	{
+		c.setShadow(this.isShadow);
+	}
+	
+	// Dash pattern
+	if (this.isDashed != null)
+	{
+		c.setDashed(this.isDashed);
+	}
+
+	if (dash != null)
+	{
+		c.setDashPattern(dash);
+	}
+	
+	if (this.gradient != null)
+	{
+		var b = this.getGradientBounds(c, x, y, w, h);
+		c.setGradient(this.fill, this.gradient, b.x, b.y, b.width, b.height, this.gradientDirection);
+	}
+	else
+	{
+		c.setFillColor(this.fill);
+	}
+
+	c.setStrokeColor(this.stroke);
+};
+
+/**
+ * Function: getGradientBounds
+ * 
+ * Returns the bounding box for the gradient box for this shape.
+ */
+mxShape.prototype.getGradientBounds = function(c, x, y, w, h)
+{
+	return new mxRectangle(x, y, w, h);
+};
+
+/**
+ * Function: updateTransform
+ * 
+ * Sets the scale and rotation on the given canvas.
+ */
+mxShape.prototype.updateTransform = function(c, x, y, w, h)
+{
+	// NOTE: Currently, scale is implemented in state and canvas. This will
+	// move to canvas in a later version, so that the states are unscaled
+	// and untranslated and do not need an update after zooming or panning.
+	c.scale(this.scale);
+	c.rotate(this.getShapeRotation(), this.flipH, this.flipV, x + w / 2, y + h / 2);
+};
+
+/**
+ * Function: paintStencilShape
+ * 
+ * Paints the line shape.
+ */
+mxShape.prototype.paintStencilShape = function(c, x, y, w, h)
+{
+	if (this.stencilPointerEvents)
+	{
+		if (this.dialect == mxConstants.DIALECT_SVG)
+		{
+			this.addTransparentBackgroundRectangle(this.node, x, y, w, h);
+		}
+		// For IE8 we do not add event transparency in redrawShape
+		else if (document.documentMode != 8)
+		{
+			this.setTransparentBackgroundImage(this.node);
+		}
+	}
+	
+	// Paints a stencil
+	this.stencil.drawShape(c, this, x, y, w, h);
+};
+
+/**
+ * Function: paintVertexShape
+ * 
+ * Paints the vertex shape.
+ */
+mxShape.prototype.paintVertexShape = function(c, x, y, w, h)
+{
+	this.paintBackground(c, x, y, w, h);
+	c.setShadow(false);
+	this.paintForeground(c, x, y, w, h);
+};
+
+/**
+ * Function: paintBackground
+ * 
+ * Hook for subclassers. This implementation is empty.
+ */
+mxShape.prototype.paintBackground = function(c, x, y, w, h) { };
+
+/**
+ * Function: paintForeground
+ * 
+ * Hook for subclassers. This implementation is empty.
+ */
+mxShape.prototype.paintForeground = function(c, x, y, w, h) { };
+
+/**
+ * Function: paintEdgeShape
+ * 
+ * Hook for subclassers. This implementation is empty.
+ */
+mxShape.prototype.paintEdgeShape = function(c, pts) { };
+
+/**
+ * Function: getArcSize
+ * 
+ * Returns the arc size for the given dimension.
+ */
+mxShape.prototype.getArcSize = function(w, h)
+{
+	var f = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE,
+		mxConstants.RECTANGLE_ROUNDING_FACTOR * 100) / 100;
+	return Math.min(w * f, h * f);
+};
+
+/**
+ * Function: paintGlassEffect
+ * 
+ * Paints the glass gradient effect.
+ */
+mxShape.prototype.paintGlassEffect = function(c, x, y, w, h, arc)
+{
+	var sw = Math.ceil(this.strokewidth / 2);
+	var size = 0.4;
+	
+	c.setGradient('#ffffff', '#ffffff', x, y, w, h * 0.6, 'south', 0.9, 0.1);
+	c.begin();
+	arc += 2 * sw;
+		
+	if (this.isRounded)
+	{
+		c.moveTo(x - sw + arc, y - sw);
+		c.quadTo(x - sw, y - sw, x - sw, y - sw + arc);
+		c.lineTo(x - sw, y + h * size);
+		c.quadTo(x + w * 0.5, y + h * 0.7, x + w + sw, y + h * size);
+		c.lineTo(x + w + sw, y - sw + arc);
+		c.quadTo(x + w + sw, y - sw, x + w + sw - arc, y - sw);
+	}
+	else
+	{
+		c.moveTo(x - sw, y - sw);
+		c.lineTo(x - sw, y + h * size);
+		c.quadTo(x + w * 0.5, y + h * 0.7, x + w + sw, y + h * size);
+		c.lineTo(x + w + sw, y - sw);
+	}
+	
+	c.close();
+	c.fill();
 };
 
 /**
@@ -498,6 +780,7 @@ mxShape.prototype.destroy = function()
  * - <mxConstants.STYLE_ENDARROW> => endArrow
  * - <mxConstants.STYLE_ROTATION> => rotation
  * - <mxConstants.STYLE_DIRECTION> => direction
+ * - <mxConstants.STYLE_GLASS> => glass
  *
  * This keeps a reference to the <style>. If you need to keep a reference to
  * the cell, you can override this method and store a local reference to
@@ -509,27 +792,45 @@ mxShape.prototype.destroy = function()
  */
 mxShape.prototype.apply = function(state)
 {
-	var style = state.style;
-	this.style = style;
-	
-	if (style != null)
+	this.state = state;
+	this.style = state.style;
+
+	if (this.style != null)
 	{
-		this.fill = mxUtils.getValue(style, mxConstants.STYLE_FILLCOLOR, this.fill);
-		this.gradient = mxUtils.getValue(style, mxConstants.STYLE_GRADIENTCOLOR, this.gradient);
-		this.gradientDirection = mxUtils.getValue(style, mxConstants.STYLE_GRADIENT_DIRECTION, this.gradientDirection);
-		this.opacity = mxUtils.getValue(style, mxConstants.STYLE_OPACITY, this.opacity);
-		this.stroke = mxUtils.getValue(style, mxConstants.STYLE_STROKECOLOR, this.stroke);
-		this.strokewidth = mxUtils.getNumber(style, mxConstants.STYLE_STROKEWIDTH, this.strokewidth);
-		this.isShadow = mxUtils.getValue(style, mxConstants.STYLE_SHADOW, this.isShadow);
-		this.isDashed = mxUtils.getValue(style, mxConstants.STYLE_DASHED, this.isDashed);
-		this.spacing = mxUtils.getValue(style, mxConstants.STYLE_SPACING, this.spacing);
-		this.startSize = mxUtils.getNumber(style, mxConstants.STYLE_STARTSIZE, this.startSize);
-		this.endSize = mxUtils.getNumber(style, mxConstants.STYLE_ENDSIZE, this.endSize);
-		this.isRounded = mxUtils.getValue(style, mxConstants.STYLE_ROUNDED, this.isRounded);
-		this.startArrow = mxUtils.getValue(style, mxConstants.STYLE_STARTARROW, this.startArrow);
-		this.endArrow = mxUtils.getValue(style, mxConstants.STYLE_ENDARROW, this.endArrow);
-		this.rotation = mxUtils.getValue(style, mxConstants.STYLE_ROTATION, this.rotation);
-		this.direction = mxUtils.getValue(style, mxConstants.STYLE_DIRECTION, this.direction);
+		this.fill = mxUtils.getValue(this.style, mxConstants.STYLE_FILLCOLOR, this.fill);
+		this.gradient = mxUtils.getValue(this.style, mxConstants.STYLE_GRADIENTCOLOR, this.gradient);
+		this.gradientDirection = mxUtils.getValue(this.style, mxConstants.STYLE_GRADIENT_DIRECTION, this.gradientDirection);
+		this.opacity = mxUtils.getValue(this.style, mxConstants.STYLE_OPACITY, this.opacity);
+		this.stroke = mxUtils.getValue(this.style, mxConstants.STYLE_STROKECOLOR, this.stroke);
+		this.strokewidth = mxUtils.getNumber(this.style, mxConstants.STYLE_STROKEWIDTH, this.strokewidth);
+		this.spacing = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING, this.spacing);
+		this.startSize = mxUtils.getNumber(this.style, mxConstants.STYLE_STARTSIZE, this.startSize);
+		this.endSize = mxUtils.getNumber(this.style, mxConstants.STYLE_ENDSIZE, this.endSize);
+		this.startArrow = mxUtils.getValue(this.style, mxConstants.STYLE_STARTARROW, this.startArrow);
+		this.endArrow = mxUtils.getValue(this.style, mxConstants.STYLE_ENDARROW, this.endArrow);
+		this.rotation = mxUtils.getValue(this.style, mxConstants.STYLE_ROTATION, this.rotation);
+		this.direction = mxUtils.getValue(this.style, mxConstants.STYLE_DIRECTION, this.direction);
+		this.flipH = mxUtils.getValue(this.style, mxConstants.STYLE_FLIPH, 0) == 1;
+		this.flipV = mxUtils.getValue(this.style, mxConstants.STYLE_FLIPV, 0) == 1;	
+		
+		// Legacy support for stencilFlipH/V
+		if (this.stencil != null)
+		{
+			this.flipH = mxUtils.getValue(this.style, 'stencilFlipH', 0) == 1 || this.flipH;
+			this.flipV = mxUtils.getValue(this.style, 'stencilFlipV', 0) == 1 || this.flipV;
+		}
+		
+		if (this.direction == 'north' || this.direction == 'south')
+		{
+			var tmp = this.flipH;
+			this.flipH = this.flipV;
+			this.flipV = tmp;
+		}
+
+		this.isShadow = mxUtils.getValue(this.style, mxConstants.STYLE_SHADOW, this.isShadow) == 1;
+		this.isDashed = mxUtils.getValue(this.style, mxConstants.STYLE_DASHED, this.isDashed) == 1;
+		this.isRounded = mxUtils.getValue(this.style, mxConstants.STYLE_ROUNDED, this.isRounded) == 1;
+		this.glass = mxUtils.getValue(this.style, mxConstants.STYLE_GLASS, this.glass) == 1;
 		
 		if (this.fill == 'none')
 		{
@@ -549,1176 +850,37 @@ mxShape.prototype.apply = function(state)
 };
 
 /**
- * Function: createSvgGroup
- *
- * Creates a SVG group element and adds the given shape as a child of the
- * element. The child is stored in <innerNode> for later access.
- */
-mxShape.prototype.createSvgGroup = function(shape)
-{
-	var g = document.createElementNS(mxConstants.NS_SVG, 'g');
-	
-	// Creates the shape inside an svg group
-	this.innerNode = document.createElementNS(mxConstants.NS_SVG, shape);
-	this.configureSvgShape(this.innerNode);
-	
-	// Avoids anti-aliasing for non-rounded rectangles with a
-	// strokewidth of 1 or more pixels
-	if (shape == 'rect' && this.strokewidth * this.scale >= 1 && !this.isRounded)
-	{
-		this.innerNode.setAttribute('shape-rendering', 'optimizeSpeed');
-	}
-	
-	// Creates the shadow
-	this.shadowNode = this.createSvgShadow(this.innerNode);
-	
-	if (this.shadowNode != null)
-	{
-		g.appendChild(this.shadowNode);
-	}
-	
-	// Appends the main shape after the shadow
-	g.appendChild(this.innerNode);
-	
-	return g;
-};
-
-/**
- * Function: createSvgShadow
- *
- * Creates a clone of the given node and configures the node's color
- * to use <mxConstants.SHADOWCOLOR>.
- */
-mxShape.prototype.createSvgShadow = function(node)
-{
-	if (this.isShadow)
-	{
-		var shadow = node.cloneNode(true);
-		shadow.setAttribute('opacity', mxConstants.SHADOW_OPACITY);
-		
-		if (this.fill != null && this.fill != mxConstants.NONE)
-		{
-			shadow.setAttribute('fill', mxConstants.SHADOWCOLOR);
-		}
-
-		if (this.stroke != null && this.stroke != mxConstants.NONE)
-		{
-			shadow.setAttribute('stroke', mxConstants.SHADOWCOLOR);
-		}
-		
-		return shadow;
-	}
-	
-	return null;
-};
-
-/**
- * Function: configureHtmlShape
- *
- * Configures the specified HTML node by applying the current color,
- * bounds, shadow, opacity etc.
- */
-mxShape.prototype.configureHtmlShape = function(node)
-{
-	if (mxUtils.isVml(node))
-	{
-		this.configureVmlShape(node);
-	}
-	else
-	{
-		node.style.position = 'absolute';
-		node.style.overflow = 'hidden';
-		var color = this.stroke;
-		
-		if (color != null && color != mxConstants.NONE)
-		{
-			node.style.borderColor = color;
-
-			if (this.isDashed)
-			{
-				node.style.borderStyle = 'dashed';
-			}
-			else if (this.strokewidth > 0)
-			{
-				node.style.borderStyle = 'solid';
-			}
-
-			node.style.borderWidth = Math.ceil(this.strokewidth * this.scale) + 'px';
-		}
-		else
-		{
-			node.style.borderWidth = '0px';
-		}
-
-		color = this.fill;
-		node.style.background = '';
-		
-		if (color != null && color != mxConstants.NONE)
-		{
-			node.style.backgroundColor = color;
-		}
-		else if (this.points == null)
-		{
-			this.configureTransparentBackground(node);
-		}
-		
-		if (this.opacity != null)
-		{
-			mxUtils.setOpacity(node, this.opacity);
-		}
-	}
-};
-
-/**
- * Function: updateVmlFill
- *
- * Updates the given VML fill node.
- */
-mxShape.prototype.updateVmlFill = function(node, c1, c2, dir, alpha)
-{
-	node.color = c1;
-	
-	if (alpha != null && alpha != 100)
-	{
-		node.opacity = alpha + '%';
-		
-		if (c2 != null)
-		{
-			// LATER: Set namespaced attribute without using setAttribute
-			// which is required for updating the value in IE8 standards.
-			node.setAttribute('o:opacity2', alpha + '%');
-		}
-	}
-
-	if (c2 != null)
-	{
-		node.type = 'gradient';
-		node.color2 = c2;
-		var angle = '180';
-		
-		if (this.gradientDirection == mxConstants.DIRECTION_EAST)
-		{
-			angle = '270';
-		}
-		else if (this.gradientDirection == mxConstants.DIRECTION_WEST)
-		{
-			angle = '90';
-		}
-		else if (this.gradientDirection == mxConstants.DIRECTION_NORTH)
-		{
-			angle = '0';
-		}
-
-		node.angle = angle;
-	}
-};
-
-/**
- * Function: updateVmlStrokeNode
- *
- * Creates the stroke node for VML.
- */
-mxShape.prototype.updateVmlStrokeNode = function(parent)
-{
-	// Stroke node is always needed to specify defaults that match SVG output
-	if (this.strokeNode == null)
-	{
-		this.strokeNode = document.createElement('v:stroke');
-		
-		// To math SVG defaults jointsyle miter and miterlimit 4
-		this.strokeNode.joinstyle = 'miter';
-		this.strokeNode.miterlimit = 4;
-		
-		parent.appendChild(this.strokeNode);
-	}
-	
-	if (this.opacity != null)
-	{
-		this.strokeNode.opacity = this.opacity + '%';
-	}
-	
-	this.updateVmlDashStyle();
-};
-
-/**
- * Function: updateVmlStrokeColor
- *
- * Updates the VML stroke color for the given node.
- */
-mxShape.prototype.updateVmlStrokeColor = function(node)
-{
-	var color = this.stroke;
-
-	if (color != null && color != mxConstants.NONE)
-	{
-		node.stroked = 'true';
-		node.strokecolor = color;
-	}
-	else
-	{
-		node.stroked = 'false';
-	}
-};
-
-/**
- * Function: configureVmlShape
- *
- * Configures the specified VML node by applying the current color,
- * bounds, shadow, opacity etc.
- */
-mxShape.prototype.configureVmlShape = function(node)
-{
-	node.style.position = 'absolute';
-	this.updateVmlStrokeColor(node);
-	node.style.background = '';
-	var color = this.fill;
-	
-	if (color != null && color != mxConstants.NONE)
-	{
-		if (this.fillNode == null)
-		{
-			this.fillNode = document.createElement('v:fill');
-			node.appendChild(this.fillNode);
-		}
-
-		this.updateVmlFill(this.fillNode, color, this.gradient, this.gradientDirection, this.opacity);
-	}
-	else
-	{
-		node.filled = 'false';
-		
-		if (this.points == null)
-		{
-			this.configureTransparentBackground(node);
-		}
-	}
-
-	this.updateVmlStrokeNode(node);
-	
-	if (this.isShadow)
-	{
-		this.createVmlShadow(node);
-	}
-
-	// Fixes possible hang in IE when arcsize is set on non-rects
-	if (node.nodeName == 'roundrect')
-	{
-		// Workaround for occasional "member not found" error
-		try
-		{
-			var f = mxConstants.RECTANGLE_ROUNDING_FACTOR * 100;
-
-			if (this.style != null)
-			{
-				f = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, f);
-			}
-			
-			node.setAttribute('arcsize', String(f) + '%');
-		}
-		catch (e)
-		{
-			// ignore
-		}
-	}
-};
-
-/**
- * Function: createVmlShadow
- *
- * Creates the VML shadow node.
- */
-mxShape.prototype.createVmlShadow = function(node)
-{
-	// Adds a shadow only once per shape
-	if (this.shadowNode == null)
-	{
-		this.shadowNode = document.createElement('v:shadow');
-		this.shadowNode.on = 'true';
-		this.shadowNode.color = mxConstants.SHADOWCOLOR;
-		this.shadowNode.opacity = (mxConstants.SHADOW_OPACITY * 100) + '%';
-		
-		this.shadowStrokeNode = document.createElement('v:stroke');
-		this.shadowNode.appendChild(this.shadowStrokeNode);
-		
-		node.appendChild(this.shadowNode);
-	}
-};
-
-/**
- * Function: configureTransparentBackground
+ * Function: setCursor
  * 
- * Hook to make the background of a shape transparent. This hook was added as
- * a workaround for the "display non secure items" warning dialog in IE which
- * appears if the background:url(transparent.gif) is used in the overlay pane
- * of a diagram. Since only mxImageShapes currently exist in the overlay pane
- * this function is only overridden in mxImageShape.
- */
-mxShape.prototype.configureTransparentBackground = function(node)
-{
-	node.style.background = 'url(\'' + mxClient.imageBasePath + '/transparent.gif\')';
-};
-
-/**
- * Function: configureSvgShape
+ * Sets the cursor on the given shape.
  *
- * Configures the specified SVG node by applying the current color,
- * bounds, shadow, opacity etc.
- */
-mxShape.prototype.configureSvgShape = function(node)
-{
-	var color = this.stroke;
-	
-	if (color != null && color != mxConstants.NONE)
-	{
-		node.setAttribute('stroke', color);
-	}
-	else
-	{
-		node.setAttribute('stroke', 'none');
-	}
-
-	color = this.fill;
-
-	if (color != null && color != mxConstants.NONE)
-	{
-		// Fetches a reference to a shared gradient
-		if (this.gradient != null)
-		{
-			var id = this.getGradientId(color, this.gradient);
-			
-			if (this.gradientNode != null && this.gradientNode.getAttribute('id') != id)
-			{
-				this.gradientNode = null;
-				node.setAttribute('fill', '');
-			}
-			
-			if (this.gradientNode == null)
-			{
-				this.gradientNode = this.createSvgGradient(id,
-					color, this.gradient, node);
-				node.setAttribute('fill', 'url(#'+id+')');
-			}
-		}
-		else
-		{
-			// TODO: Remove gradient from document if no longer shared
-			this.gradientNode = null;
-			node.setAttribute('fill', color);
-		}
-	}
-	else
-	{
-		// Workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=814952
-		if (node.nodeName == 'ellipse' && mxClient.IS_NS && !mxClient.IS_GC && !mxClient.IS_SF)
-		{
-			node.setAttribute('fill', 'transparent');
-		}
-		else
-		{
-			node.setAttribute('fill', 'none');
-		}
-	}
-
-	if (this.opacity != null)
-	{
-		// Improves opacity performance in Firefox
-		node.setAttribute('fill-opacity', this.opacity / 100);
-		node.setAttribute('stroke-opacity', this.opacity / 100);
-	}
-};
-
-/**
- * Function: getGradientId
+ * Parameters:
  *
- * Creates a unique ID for the gradient of this shape.
+ * cursor - The cursor to be used.
  */
-mxShape.prototype.getGradientId = function(start, end)
+mxShape.prototype.setCursor = function(cursor)
 {
-	// Removes illegal characters from gradient ID
-	if (start.charAt(0) == '#')
+	if (cursor == null)
 	{
-		start = start.substring(1);
+		cursor = '';
 	}
 	
-	if (end.charAt(0) == '#')
-	{
-		end = end.substring(1);
-	}
-	
-	// Workaround for gradient IDs not working in Safari 5 / Chrome 6
-	// if they contain uppercase characters
-	start = start.toLowerCase();
-	end = end.toLowerCase();
+	this.cursor = cursor;
 
-	var dir = null;
-	
-	if (this.gradientDirection == null ||
-		this.gradientDirection == mxConstants.DIRECTION_SOUTH)
+	if (this.node != null)
 	{
-		dir = 'south';
+		this.node.style.cursor = cursor;
 	}
-	else if (this.gradientDirection == mxConstants.DIRECTION_EAST)
-	{
-		dir = 'east';
-	}
-	else
-	{
-		var tmp = start;
-		start = end;
-		end = tmp;
-		
-		if (this.gradientDirection == mxConstants.DIRECTION_NORTH)
-		{
-			dir = 'south';
-		}
-		else if (this.gradientDirection == mxConstants.DIRECTION_WEST)
-		{
-			dir = 'east';
-		}
-	}
-	
-	return 'mx-gradient-'+start+'-'+end+'-'+dir;
 };
 
 /**
- * Function: createSvgPipe
- *
- * Creates an invisible path which is used to increase the hit detection for
- * edges in SVG.
- */
-mxShape.prototype.createSvgPipe = function(id, start, end, node)
-{
-	var pipe = document.createElementNS(mxConstants.NS_SVG, 'path');
-	pipe.setAttribute('pointer-events', 'stroke');
-	pipe.setAttribute('fill', 'none');
-	pipe.setAttribute('visibility', 'hidden');
-	// Workaround for Opera ignoring the visiblity attribute above while
-	// other browsers need a stroke color to perform the hit-detection but
-	// do not ignore the visibility attribute. Side-effect is that Opera's
-	// hit detection for horizontal/vertical edges seems to ignore the pipe.
-	pipe.setAttribute('stroke', (mxClient.IS_OP) ? 'none' : 'white');
-	
-	return pipe;
-};
-
-/**
- * Function: createSvgGradient
- *
- * Creates a gradient object for SVG using the specified startcolor,
- * endcolor and opacity.
- */
-mxShape.prototype.createSvgGradient = function(id, start, end, node)
-{
-	var gradient = this.insertGradientNode;
-	
-	if (gradient == null)
-	{
-		gradient = document.createElementNS(mxConstants.NS_SVG, 'linearGradient');
-		gradient.setAttribute('id', id);
-		gradient.setAttribute('x1', '0%');
-		gradient.setAttribute('y1', '0%');
-		gradient.setAttribute('x2', '0%');
-		gradient.setAttribute('y2', '0%');
-		
-		if (this.gradientDirection == null ||
-			this.gradientDirection == mxConstants.DIRECTION_SOUTH)
-		{
-			gradient.setAttribute('y2', '100%');
-		}
-		else if (this.gradientDirection == mxConstants.DIRECTION_EAST)
-		{
-			gradient.setAttribute('x2', '100%');
-		}
-		else if (this.gradientDirection == mxConstants.DIRECTION_NORTH)
-		{
-			gradient.setAttribute('y1', '100%');
-		}
-		else if (this.gradientDirection == mxConstants.DIRECTION_WEST)
-		{
-			gradient.setAttribute('x1', '100%');
-		}
-		
-		var stop = document.createElementNS(mxConstants.NS_SVG, 'stop');
-		stop.setAttribute('offset', '0%');
-		stop.setAttribute('style', 'stop-color:'+start);
-		gradient.appendChild(stop);
-		
-		stop = document.createElementNS(mxConstants.NS_SVG, 'stop');
-		stop.setAttribute('offset', '100%');
-		stop.setAttribute('style', 'stop-color:'+end);
-		gradient.appendChild(stop);
-	}
-	
-	// Inserted later when the owner SVG element is known
-	this.insertGradientNode = gradient;
-	
-	return gradient;
-};
-
-/**
- * Function: createPoints
- *
- * Creates a path expression using the specified commands for this.points.
- * If <isRounded> is true, then the path contains curves for the corners.
- */
-mxShape.prototype.createPoints = function(moveCmd, lineCmd, curveCmd, isRelative)
-{
-	var offsetX = (isRelative) ? this.bounds.x : 0;
-	var offsetY = (isRelative) ? this.bounds.y : 0;
-
-	// Workaround for crisp shape-rendering in IE9
-	var crisp = (this.crisp && this.dialect == mxConstants.DIALECT_SVG && mxClient.IS_IE) ? 0.5 : 0;
-
-	if (isNaN(this.points[0].x) || isNaN(this.points[0].y))
-	{
-		return null;
-	}
-	
-	var size = mxConstants.LINE_ARCSIZE * this.scale;
-	var p0 = this.points[0];
-	
-	if (this.startOffset != null)
-	{
-		p0 = p0.clone();
-		p0.x += this.startOffset.x;
-		p0.y += this.startOffset.y;
-	}
-	
-	var points = moveCmd + ' ' + (Math.round(p0.x - offsetX) + crisp) + ' ' +
-					(Math.round(p0.y - offsetY) + crisp) + ' ';
-	
-	for (var i = 1; i < this.points.length; i++)
-	{
-		p0 = this.points[i - 1];
-		var pt = this.points[i];
-		
-		if (isNaN(pt.x) || isNaN(pt.y))
-		{
-			return null;
-		}
-		
-		if (i == this.points.length - 1 && this.endOffset != null)
-		{
-			pt = pt.clone();
-			pt.x += this.endOffset.x;
-			pt.y += this.endOffset.y;
-		}
-		
-		var dx = p0.x - pt.x;
-		var dy = p0.y - pt.y;
-		
-		if ((this.isRounded && i < this.points.length - 1) &&
-			(dx != 0 || dy != 0) && this.scale > 0.3)
-		{
-			// Draws a line from the last point to the current point with a spacing
-			// of size off the current point into direction of the last point
-			var dist = Math.sqrt(dx * dx + dy * dy);
-			var nx1 = dx * Math.min(size, dist / 2) / dist;
-			var ny1 = dy * Math.min(size, dist / 2) / dist;
-			points += lineCmd + ' ' + (Math.round(pt.x + nx1 - offsetX) + crisp) + ' ' + 
-						(Math.round(pt.y + ny1 - offsetY) + crisp) + ' ';
-
-			// Draws a curve from the last point to the current point with a spacing
-			// of size off the current point into direction of the next point
-			var pe = this.points[i+1];
-			dx = pe.x - pt.x;
-			dy = pe.y - pt.y;
-			
-			dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
-			
-			if (dist != 0)
-			{
-				var nx2 = dx * Math.min(size, dist / 2) / dist;
-				var ny2 = dy * Math.min(size, dist / 2) / dist;
-				
-				points += curveCmd + ' ' + Math.round(pt.x - offsetX) + ' '+
-						Math.round(pt.y - offsetY) + ' ' + Math.round(pt.x - offsetX) + ',' +
-						Math.round(pt.y - offsetY) + ' ' + (Math.round(pt.x + nx2 - offsetX) + crisp) + ' ' +
-							(Math.round(pt.y + ny2 - offsetY) + crisp) + ' ';
-			}
-		}
-		else
-		{
-			points += lineCmd + ' ' + (Math.round(pt.x - offsetX) + crisp) + ' ' + (Math.round(pt.y - offsetY) + crisp) + ' ';
-		}
-	}
-	
-	return points;
-};
-
-/**
- * Function: createCurvedPoints
- *
- * Creates a path expression using the specified commands for this.points.
- */
-mxShape.prototype.createCurvedPoints = function(isVml)
-{
-	// Workaround for crisp shape-rendering in IE9
-	var crisp = (this.crisp && this.dialect == mxConstants.DIALECT_SVG && mxClient.IS_IE) ? 0.5 : 0;
-	var offsetX = (isVml) ? this.bounds.x : 0;
-	var offsetY = (isVml) ? this.bounds.y : 0;
-	
-	var p0 = this.points[0];
-	var n = this.points.length;
-	var points = ((isVml) ? 'm' : 'M') + ' ' + (Math.round(p0.x - offsetX) + crisp) + ' ' +
-		(Math.round(p0.y - offsetY) + crisp) + ' ';
-	var lastX = 0;
-	var lastY = 0;
-	
-	for (var i = 1; i < n - 2; i++)
-	{
-		p0 = this.points[i];
-		var p1 = this.points[i + 1];
-		lastX = (p0.x + p1.x) / 2;
-		lastY = (p0.y + p1.y) / 2;
-		
-		if (isVml)
-		{
-			var tmp = this.points[i - 1];
-			points += this.createVmlQuad(tmp.x - offsetX, tmp.y - offsetY,
-				p0.x - offsetX, p0.y - offsetY, lastX - offsetX, lastY - offsetY);
-		}
-		else
-		{
-			points += 'Q ' + Math.round(p0.x - offsetX) + ' '+ Math.round(p0.y - offsetY) + ' ' +
-				(Math.round(lastX - offsetX) + crisp) + ' ' + (Math.round(lastY - offsetY) + crisp) + ' ';
-		}
-	}
-	
-	p0 = this.points[n - 2];
-	var p1 = this.points[n - 1];
-	
-	if (isVml)
-	{
-		points += this.createVmlQuad(lastX - offsetX, lastY - offsetY,
-			p0.x - offsetX, p0.y - offsetY, p1.x - offsetX, p1.y - offsetY);
-	}
-	else
-	{
-		points += 'Q ' + Math.round(p0.x - offsetX) + ' ' + Math.round(p0.y - offsetY) + ' ' +
-			(Math.round(p1.x - offsetX) + crisp) + ' ' + (Math.round(p1.y - offsetY) + crisp) + ' ';
-	}
-	
-	return points;
-};
-
-/**
- * Function: createVmlQuad
+ * Function: getCursor
  * 
- * Creates a quadratic curve via a bezier curve in VML.
+ * Returns the current cursor.
  */
-mxShape.prototype.createVmlQuad = function(lastX, lastY, x1, y1, x2, y2)
+mxShape.prototype.getCursor = function()
 {
-	var cpx1 = lastX + 2/3 * (x1 - lastX);
-	var cpy1 = lastY + 2/3 * (y1 - lastY);
-	
-	var cpx2 = x2 + 2/3 * (x1 - x2);
-	var cpy2 = y2 + 2/3 * (y1 - y2);
-	
-	return 'C ' + Math.round(cpx1) + ' ' + Math.round(cpy1) +
-			' ' + Math.round(cpx2) + ' ' + Math.round(cpy2) +
-			' ' + Math.round(x2) + ' ' + Math.round(y2);
-};
-
-/**
- * Function: updateHtmlShape
- *
- * Updates the bounds or points of the specified HTML node and
- * updates the inner children to reflect the changes.
- */
-mxShape.prototype.updateHtmlShape = function(node)
-{
-	if (node != null)
-	{
-		if (mxUtils.isVml(node))
-		{
-			this.updateVmlShape(node);
-		}
-		else
-		{
-			var sw = Math.ceil(this.strokewidth * this.scale);
-			node.style.borderWidth = Math.max(1, sw) + 'px';
-			
-			if (this.bounds != null && !isNaN(this.bounds.x) && !isNaN(this.bounds.y) &&
-				!isNaN(this.bounds.width) && !isNaN(this.bounds.height))
-			{
-				node.style.left = Math.round(this.bounds.x - sw / 2) + 'px';
-				node.style.top = Math.round(this.bounds.y - sw / 2) + 'px';
-
-				if (document.compatMode == 'CSS1Compat')
-				{
-					sw = -sw;
-				}
-				
-				node.style.width = Math.round(Math.max(0, this.bounds.width + sw)) + 'px';
-				node.style.height = Math.round(Math.max(0, this.bounds.height + sw)) + 'px';
-				
-				if (this.bounds.width == 0 || this.bounds.height == 0)
-				{
-					node.style.visibility = 'hidden';
-				}
-				else
-				{
-					node.style.visibility = 'visible';
-				}
-			}
-		}
-		
-		if (this.points != null && this.bounds != null && !mxUtils.isVml(node))
-		{
-			if (this.divContainer == null)
-			{
-				this.divContainer = node;
-			}
-
-			while (this.divContainer.firstChild != null)
-			{
-				mxEvent.release(this.divContainer.firstChild);
-				this.divContainer.removeChild(this.divContainer.firstChild);
-			}
-			
-			node.style.borderStyle = '';
-			node.style.background = '';
-			
-			if (this.points.length == 2)
-			{
-				var p0 = this.points[0];
-				var pe = this.points[1];
-
-				var dx = pe.x - p0.x;
-				var dy = pe.y - p0.y;
-
-				if (dx == 0 || dy == 0)
-				{
-					node.style.borderStyle = 'solid';
-				}
-				else
-				{
-					node.style.width = Math.round(this.bounds.width + 1) + 'px';
-					node.style.height = Math.round(this.bounds.height + 1) + 'px';
-					
-					var length = Math.sqrt(dx * dx + dy * dy);
-					var dotCount = 1 + (length / (8 * this.scale));
-					
-					var nx = dx / dotCount;
-					var ny = dy / dotCount;
-					var x = p0.x - this.bounds.x;
-					var y = p0.y - this.bounds.y;
-					
-					for (var i = 0; i < dotCount; i++)
-					{
-						var tmp = document.createElement('DIV');
-						
-						tmp.style.position = 'absolute';
-						tmp.style.overflow = 'hidden';
-						
-						tmp.style.left = Math.round(x) + 'px';
-						tmp.style.top = Math.round(y) + 'px';
-						tmp.style.width = Math.max(1, 2 * this.scale) + 'px';
-						tmp.style.height = Math.max(1, 2 * this.scale) + 'px';
-
-						tmp.style.backgroundColor = this.stroke;
-						this.divContainer.appendChild(tmp);
-						
-						x += nx;
-						y += ny;
-					}
-				}
-			}
-			else if (this.points.length == 3)
-			{
-				var mid = this.points[1];
-				
-				var n = '0';
-				var s = '1';
-				var w = '0';
-				var e = '1';
-				
-				if (mid.x == this.bounds.x)
-				{
-					e = '0';
-					w = '1';
-				}
-				
-				if (mid.y == this.bounds.y)
-				{
-					n = '1';
-					s = '0';
-				}
-				
-				node.style.borderStyle = 'solid';
-				node.style.borderWidth = n + ' ' + e + ' ' + s + ' ' + w + 'px';
-			}
-			else
-			{
-				node.style.width = Math.round(this.bounds.width + 1) + 'px';
-				node.style.height = Math.round(this.bounds.height + 1) + 'px';
-				var last = this.points[0];
-				
-				for (var i = 1; i < this.points.length; i++)
-				{
-					var next = this.points[i];
-					
-					// TODO: Use one div for multiple lines
-					var tmp = document.createElement('DIV');
-
-					tmp.style.position = 'absolute';
-					tmp.style.overflow = 'hidden';
-
-					tmp.style.borderColor = this.stroke;
-					tmp.style.borderStyle = 'solid';
-					tmp.style.borderWidth = '1 0 0 1px';
-					
-					var x = Math.min(next.x, last.x) - this.bounds.x;
-					var y = Math.min(next.y, last.y) - this.bounds.y;
-					var w = Math.max(1, Math.abs(next.x - last.x));
-					var h = Math.max(1, Math.abs(next.y - last.y));
-					
-					tmp.style.left = x + 'px';
-					tmp.style.top = y + 'px';
-					tmp.style.width = w + 'px';
-					tmp.style.height = h + 'px';
-					
-					this.divContainer.appendChild(tmp);
-					last = next;
-				}
-			}
-		}
-	}
-};
-
-/**
- * Function: updateVmlDashStyle
- *
- * Updates the dashstyle in the stroke node.
- */
-mxShape.prototype.updateVmlDashStyle = function()
-{
-	if (this.isDashed)
-	{
-		if (this.strokeNode.dashstyle != 'dash')
-		{
-			this.strokeNode.dashstyle = 'dash';
-		}
-	}
-	else if (this.strokeNode.dashstyle != 'solid')
-	{
-		this.strokeNode.dashstyle = 'solid';
-	}
-};
-
-/**
- * Function: updateVmlShape
- *
- * Updates the bounds or points of the specified VML node and
- * updates the inner children to reflect the changes.
- */
-mxShape.prototype.updateVmlShape = function(node)
-{
-	node.strokeweight = (this.strokewidth * this.scale) + 'px';
-
-	// Dash pattern needs updating as it depends on strokeweight in VML
-	if (this.strokeNode != null)
-	{
-		this.updateVmlDashStyle();
-	}
-	
-	// Updates the offset of the shadow
-	if (this.shadowNode != null)
-	{
-		var dx = Math.round(mxConstants.SHADOW_OFFSET_X * this.scale);
-		var dy = Math.round(mxConstants.SHADOW_OFFSET_Y * this.scale);
-		this.shadowNode.offset = dx + 'px,' + dy + 'px';
-	}
-
-	if (this.bounds != null && !isNaN(this.bounds.x) && !isNaN(this.bounds.y) &&
-		!isNaN(this.bounds.width) && !isNaN(this.bounds.height))
-	{
-		var f = 1;
-
-		var w = Math.max(0, Math.round(this.bounds.width));
-		var h = Math.max(0, Math.round(this.bounds.height));
-		
-		// Groups and shapes need a coordsize
-		if (this.points != null || node.nodeName == 'shape' || node.nodeName == 'group')
-		{
-			var tmp = (node.parentNode.nodeName == 'group') ? 1 : this.vmlScale;
-			node.coordsize = (w * tmp) + ',' + (h * tmp);
-		}
-		else if (node.parentNode.nodeName == 'group')
-		{
-			f = this.vmlScale;
-		}
-		
-		// Only top-level nodes are non-relative and rotated
-		if (node.parentNode != this.node)
-		{
-			node.style.left = Math.round(this.bounds.x * f) + 'px';
-			node.style.top = Math.round(this.bounds.y * f) + 'px';
-			
-			if (this.points == null)
-			{
-				if (this.rotation != null && this.rotation != 0)
-				{
-					node.style.rotation = this.rotation;
-				}
-				else if (node.style.rotation != null)
-				{
-					node.style.rotation = '';
-				}
-			}
-		}
-		
-		node.style.width = (w * f) + 'px';
-		node.style.height = (h * f) + 'px';
-	}
-	
-	if (this.points != null && node.nodeName != 'group')
-	{
-		if (node.nodeName == 'polyline' && node.points != null)
-		{
-			var points = '';
-			
-			for (var i = 0; i < this.points.length; i++)
-			{
-				points += this.points[i].x + ',' + this.points[i].y + ' ';
-			}
-			
-			node.points.value = points;
-			
-			node.style.left = null;
-			node.style.top = null;
-			node.style.width = null;
-			node.style.height = null;
-		}
-		else if (this.bounds != null)
-		{
-			var points = (this.style == null || this.style[mxConstants.STYLE_CURVED] != 1) ?
-					this.createPoints('m', 'l', 'c', true) : this.createCurvedPoints(true);
-			node.path = points + ' e';
-		}
-	}
-};
-
-/**
- * Function: updateSvgBounds
- * 
- * Updates the bounds of the given node using <bounds>.
- */
-mxShape.prototype.updateSvgBounds = function(node)
-{
-	var w = this.bounds.width;
-	var h = this.bounds.height;
-	
-	if (this.isRounded && !(this.crisp && mxClient.IS_IE))
-	{
-		node.setAttribute('x', this.bounds.x);
-		node.setAttribute('y', this.bounds.y);
-		node.setAttribute('width', w);
-		node.setAttribute('height', h);
-	}
-	else
-	{
-		// Workaround for crisp shape-rendering in IE9
-		var dd = (this.crisp && mxClient.IS_IE) ? 0.5 : 0;
-		node.setAttribute('x', Math.round(this.bounds.x) + dd);
-		node.setAttribute('y', Math.round(this.bounds.y) + dd);
-
-		w = Math.round(w);
-		h = Math.round(h);
-		
-		node.setAttribute('width', w);
-		node.setAttribute('height', h);
-	}
-
-	if (this.isRounded)
-	{
-		var f = mxConstants.RECTANGLE_ROUNDING_FACTOR * 100;
-
-		if (this.style != null)
-		{
-			f = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, f) / 100;
-		}
-		
-		var r = Math.min(w * f,  h * f);
-		node.setAttribute('rx', r);
-		node.setAttribute('ry', r);
-	}
-
-	this.updateSvgTransform(node, node == this.shadowNode);
-};
-
-/**
- * Function: updateSvgPath
- * 
- * Updates the path of the given node using <points>.
- */
-mxShape.prototype.updateSvgPath = function(node)
-{
-	var d = (this.style == null || this.style[mxConstants.STYLE_CURVED] != 1) ?
-		this.createPoints('M', 'L', 'C', false) : this.createCurvedPoints(false);
-	
-	if (d != null)
-	{
-		node.setAttribute('d', d);
-		node.removeAttribute('x');
-		node.removeAttribute('y');
-		node.removeAttribute('width');
-		node.removeAttribute('height');
-	}
-};
-
-/**
- * Function: updateSvgScale
- *
- * Updates the properties of the given node that depend on the scale and checks
- * the crisp rendering attribute.
- */
-mxShape.prototype.updateSvgScale = function(node)
-{
-	node.setAttribute('stroke-width', Math.round(Math.max(1, this.strokewidth * this.scale)));
-
-	if (this.isDashed)
-	{
-		var phase = Math.max(1, Math.round(3 * this.scale * this.strokewidth));
-		node.setAttribute('stroke-dasharray', phase + ' ' + phase);
-	}
-
-	if (this.crisp && (this.roundedCrispSvg || this.isRounded != true) &&
-		(this.rotation == null || this.rotation == 0))
-	{
-		node.setAttribute('shape-rendering', 'crispEdges');
-	}
-	else
-	{
-		node.removeAttribute('shape-rendering');
-	}
-};
-
-/**
- * Function: updateSvgShape
- *
- * Updates the bounds or points of the specified SVG node and
- * updates the inner children to reflect the changes.
- */
-mxShape.prototype.updateSvgShape = function(node)
-{
-	if (this.points != null && this.points[0] != null)
-	{
-		this.updateSvgPath(node);
-	}
-	else if (this.bounds != null)
-	{
-		this.updateSvgBounds(node);
-	}
-	
-	this.updateSvgScale(node);
-};
-
-/**
- * Function: getSvgShadowTransform
- * 
- * Returns the current transformation for SVG shadows.
- */
-mxShape.prototype.getSvgShadowTransform = function(node, shadow)
-{
-	var dx = mxConstants.SHADOW_OFFSET_X * this.scale;
-	var dy = mxConstants.SHADOW_OFFSET_Y * this.scale;
-	
-	return 'translate(' + dx + ' ' + dy + ')';
-};
-
-/**
- * Function: updateSvgTransform
- * 
- * Updates the tranform of the given node.
- */
-mxShape.prototype.updateSvgTransform = function(node, shadow)
-{
-	var st = (shadow) ? this.getSvgShadowTransform() : '';
-	
-	if (this.rotation != null && this.rotation != 0)
-	{
-		var cx = this.bounds.x + this.bounds.width / 2;
-		var cy = this.bounds.y + this.bounds.height / 2;
-		node.setAttribute('transform', 'rotate(' + this.rotation + ',' + cx + ',' + cy + ') ' + st);
-	}
-	else
-	{
-		if (shadow)
-		{
-			node.setAttribute('transform', st);
-		}
-		else
-		{
-			node.removeAttribute('transform');
-		}
-	}
-};
-
-/**
- * Function: reconfigure
- *
- * Reconfigures this shape. This will update the colors etc in
- * addition to the bounds or points.
- */
-mxShape.prototype.reconfigure = function()
-{
-	if (this.dialect == mxConstants.DIALECT_SVG)
-	{
-		if (this.innerNode != null)
-		{
-			this.configureSvgShape(this.innerNode);
-		}
-		else
-		{
-			this.configureSvgShape(this.node);
-		}
-
-		if (this.insertGradientNode != null)
-		{
-			this.insertGradient(this.insertGradientNode);
-			this.insertGradientNode = null;
-		}
-	}
-	else if (mxUtils.isVml(this.node))
-	{
-		this.node.style.visibility = 'hidden';
-		this.configureVmlShape(this.node);
-		this.node.style.visibility = 'visible';
-	}
-	else
-	{
-		this.node.style.visibility = 'hidden';
-		this.configureHtmlShape(this.node);
-		this.node.style.visibility = 'visible';
-	}
-};
-
-/**
- * Function: redraw
- *
- * Invokes <redrawSvg>, <redrawVml> or <redrawHtml> depending on the
- * dialect of the shape.
- */
-mxShape.prototype.redraw = function()
-{
-	this.updateBoundingBox();
-	
-	if (this.dialect == mxConstants.DIALECT_SVG)
-	{
-		this.redrawSvg();
-	}
-	else if (mxUtils.isVml(this.node))
-	{
-		this.node.style.visibility = 'hidden';
-		this.redrawVml();
-		this.node.style.visibility = 'visible';
-	}
-	else
-	{
-		this.redrawHtml();
-	}
+	return this.cursor;
 };
 
 /**
@@ -1732,20 +894,23 @@ mxShape.prototype.updateBoundingBox = function()
 	if (this.bounds != null)
 	{
 		var bbox = this.createBoundingBox();
-		this.augmentBoundingBox(bbox);
 		
-		var rot = Number(mxUtils.getValue(this.style, mxConstants.STYLE_ROTATION, 0));
-		
-		if (rot != 0)
+		if (bbox != null)
 		{
-			bbox = mxUtils.getBoundingBox(bbox, rot);
+			this.augmentBoundingBox(bbox);
+			
+			var rot = this.getShapeRotation();
+			
+			if (rot != 0)
+			{
+				bbox = mxUtils.getBoundingBox(bbox, rot);
+			}
+	
+			bbox.x = Math.floor(bbox.x);
+			bbox.y = Math.floor(bbox.y);
+			bbox.width = Math.ceil(bbox.width);
+			bbox.height = Math.ceil(bbox.height);
 		}
-		
-		bbox.x = Math.floor(bbox.x);
-		bbox.y = Math.floor(bbox.y);
-		// TODO: Fix rounding errors
-		bbox.width = Math.ceil(bbox.width);
-		bbox.height = Math.ceil(bbox.height);
 
 		this.boundingBox = bbox;
 	}
@@ -1759,7 +924,19 @@ mxShape.prototype.updateBoundingBox = function()
  */
 mxShape.prototype.createBoundingBox = function()
 {
-	return this.bounds.clone();
+	var bb = this.bounds.clone();
+	
+	if (this.isPaintBoundsInverted())
+	{
+		var t = (bb.width - bb.height) / 2;
+		bb.x += t;
+		bb.y -= t;
+		var tmp = bb.width;
+		bb.width = bb.height;
+		bb.height = tmp;
+	}
+	
+	return bb;
 };
 
 /**
@@ -1781,203 +958,52 @@ mxShape.prototype.augmentBoundingBox = function(bbox)
 };
 
 /**
- * Function: redrawSvg
- *
- * Redraws this SVG shape by invoking <updateSvgShape> on this.node,
- * this.innerNode and this.shadowNode.
- */
-mxShape.prototype.redrawSvg = function()
-{
-	if (this.innerNode != null)
-	{
-		this.updateSvgShape(this.innerNode);
-		
-		if (this.shadowNode != null)
-		{
-			this.updateSvgShape(this.shadowNode);
-		}
-	}
-	else
-	{
-		this.updateSvgShape(this.node);
-
-		// Updates the transform of the shadow
-		if (this.shadowNode != null)
-		{
-			this.shadowNode.setAttribute('transform',  this.getSvgShadowTransform());
-		}
-	}
-	
-	this.updateSvgGlassPane();
-};
-
-/**
- * Function: updateVmlGlassPane
+ * Function: isPaintBoundsInverted
  * 
- * Draws the glass overlay if mxConstants.STYLE_GLASS is 1.
+ * Returns true if the bounds should be inverted.
  */
-mxShape.prototype.updateVmlGlassPane = function()
+mxShape.prototype.isPaintBoundsInverted = function()
 {
-	// Currently only used in mxLabel. Most shapes would have to be changed to use
-	// a group node in VML which might affect performance for glass-less cells.
-	if (this.bounds != null && this.node.nodeName == 'group' && this.style != null &&
-		mxUtils.getValue(this.style, mxConstants.STYLE_GLASS, 0) == 1)
-	{
-		// Glass overlay
-		if (this.node.glassOverlay == null)
-		{
-			// Creates glass overlay
-			this.node.glassOverlay = document.createElement('v:shape');
-			this.node.glassOverlay.setAttribute('filled', 'true');
-			this.node.glassOverlay.setAttribute('fillcolor', 'white');
-			this.node.glassOverlay.setAttribute('stroked', 'false');
-			
-			var fillNode = document.createElement('v:fill');
-			fillNode.setAttribute('type', 'gradient');
-			fillNode.setAttribute('color', 'white');
-			fillNode.setAttribute('color2', 'white');
-			fillNode.setAttribute('opacity', '90%');
-			fillNode.setAttribute('o:opacity2', '15%');
-			fillNode.setAttribute('angle', '180');
-			
-			this.node.glassOverlay.appendChild(fillNode);
-			this.node.appendChild(this.node.glassOverlay);
-		}
-		
-		var size = 0.4;
-		
-		// TODO: Mask with rectangle or rounded rectangle of label
-		var b = this.bounds;
-		var sw = Math.ceil(this.strokewidth * this.scale / 2 + 1);
-		var d = 'm ' + (-sw) + ' ' + (-sw) + ' l ' + (-sw) + ' ' + Math.round(b.height * size) +
-			' c ' + Math.round(b.width * 0.3) + ' ' + Math.round(b.height * 0.6) +
-			' ' + Math.round(b.width * 0.7) + ' ' + Math.round(b.height * 0.6) +
-			' ' + Math.round(b.width + sw) + ' ' + Math.round(b.height * size) +
-			' l '+Math.round(b.width + sw)+' ' + (-sw) + ' x e';
-		this.node.glassOverlay.style.position = 'absolute';
-		this.node.glassOverlay.style.width = b.width + 'px';
-		this.node.glassOverlay.style.height = b.height + 'px';
-		this.node.glassOverlay.setAttribute('coordsize',
-				Math.round(this.bounds.width) + ',' +
-				Math.round(this.bounds.height));
-		this.node.glassOverlay.setAttribute('path', d);
-	}
-	else if (this.node.glassOverlay != null)
-	{
-		this.node.glassOverlay.parentNode.removeChild(this.node.glassOverlay);
-		this.node.glassOverlay = null;
-	}
-};
-
-/**
- * Function: updateSvgGlassPane
- *
- * Draws the glass overlay if mxConstants.STYLE_GLASS is 1.
- */
-mxShape.prototype.updateSvgGlassPane = function()
-{
-	if (this.node.nodeName == 'g' && this.style != null &&
-		mxUtils.getValue(this.style, mxConstants.STYLE_GLASS, 0) == 1)
-	{
-		// Glass overlay
-		if (this.node.glassOverlay == null)
-		{
-			// Glass overlay gradient
-			if (this.node.ownerSVGElement.glassGradient == null)
-			{
-				// Creates glass overlay gradient
-				var glassGradient = document.createElementNS(mxConstants.NS_SVG, 'linearGradient');
-				glassGradient.setAttribute('x1', '0%');
-				glassGradient.setAttribute('y1', '0%');
-				glassGradient.setAttribute('x2', '0%');
-				glassGradient.setAttribute('y2', '100%');
-				
-				var stop1 = document.createElementNS(mxConstants.NS_SVG, 'stop');
-				stop1.setAttribute('offset', '0%');
-				stop1.setAttribute('style', 'stop-color:#ffffff;stop-opacity:0.9');
-				glassGradient.appendChild(stop1);
-				
-				var stop2 = document.createElementNS(mxConstants.NS_SVG, 'stop');
-				stop2.setAttribute('offset', '100%');
-				stop2.setAttribute('style', 'stop-color:#ffffff;stop-opacity:0.1');
-				glassGradient.appendChild(stop2);
-				
-				// Finds a unique ID for the gradient
-				var prefix = 'mx-glass-gradient-';
-				var counter = 0;
-				
-				while (document.getElementById(prefix+counter) != null)
-				{
-					counter++;
-				}
-				
-				glassGradient.setAttribute('id', prefix+counter);
-				this.node.ownerSVGElement.appendChild(glassGradient);
-				this.node.ownerSVGElement.glassGradient = glassGradient;
-			}
-			
-			// Creates glass overlay
-			this.node.glassOverlay = document.createElementNS(mxConstants.NS_SVG, 'path');
-			// LATER: Not sure what the behaviour is for mutiple SVG elements in page.
-			// Probably its possible that this points to an element in another SVG
-			// node which when removed will result in an undefined background.
-			var id = this.node.ownerSVGElement.glassGradient.getAttribute('id');
-			this.node.glassOverlay.setAttribute('style', 'fill:url(#'+id+');');
-			this.node.appendChild(this.node.glassOverlay);
-		}
-		
-		var size = 0.4;
-		
-		// TODO: Mask with rectangle or rounded rectangle of label
-		var b = this.bounds;
-		var sw = Math.ceil(this.strokewidth * this.scale / 2);
-		var d = 'm ' + (b.x - sw) + ',' + (b.y - sw) +
-			' L ' + (b.x - sw) + ',' + (b.y + b.height * size) +
-			' Q '+ (b.x + b.width * 0.5) + ',' + (b.y + b.height * 0.7) + ' '+
-			(b.x + b.width + sw) + ',' + (b.y + b.height * size) +
-			' L ' + (b.x + b.width + sw) + ',' + (b.y - sw) + ' z';
-		this.node.glassOverlay.setAttribute('d', d);
-	}
-	else if (this.node.glassOverlay != null)
-	{
-		this.node.glassOverlay.parentNode.removeChild(this.node.glassOverlay);
-		this.node.glassOverlay = null;
-	}
-};
-
-/**
- * Function: redrawVml
- *
- * Redraws this VML shape by invoking <updateVmlShape> on this.node.
- */
-mxShape.prototype.redrawVml = function()
-{
-	this.node.style.visibility = 'hidden';
-	this.updateVmlShape(this.node);
-	this.updateVmlGlassPane();
-	this.node.style.visibility = 'visible';
-};
-
-/**
- * Function: redrawHtml
- *
- * Redraws this HTML shape by invoking <updateHtmlShape> on this.node.
- */
-mxShape.prototype.redrawHtml = function()
-{
-	this.updateHtmlShape(this.node);
+	// Stencil implements inversion via aspect
+	return this.stencil == null && (this.direction == 'north' || this.direction == 'south');
 };
 
 /**
  * Function: getRotation
  * 
- * Returns the current rotation including direction.
+ * Returns the rotation from the style.
  */
 mxShape.prototype.getRotation = function()
 {
-	var rot = this.rotation || 0;
+	return (this.rotation != null) ? this.rotation : 0;
+};
+
+/**
+ * Function: getTextRotation
+ * 
+ * Returns the rotation for the text label.
+ */
+mxShape.prototype.getTextRotation = function()
+{
+	var rot = this.getRotation();
 	
-	// Default direction is east (ignored if rotation exists)
+	if (mxUtils.getValue(this.style, mxConstants.STYLE_HORIZONTAL, 1) != 1)
+	{
+		rot += mxText.prototype.verticalTextRotation;
+	}
+	
+	return rot;
+};
+
+/**
+ * Function: getShapeRotation
+ * 
+ * Returns the actual rotation of the shape.
+ */
+mxShape.prototype.getShapeRotation = function()
+{
+	var rot = this.getRotation();
+	
 	if (this.direction != null)
 	{
 		if (this.direction == 'north')
@@ -1998,88 +1024,76 @@ mxShape.prototype.getRotation = function()
 };
 
 /**
- * Function: createPath
- *
- * Creates an <mxPath> for the specified format and origin. The path object is
- * then passed to <redrawPath> and <mxPath.getPath> is returned.
+ * Function: addTransparentBackgroundRectangle
+ * 
+ * Paints the line shape.
  */
-mxShape.prototype.createPath = function(arg)
+mxShape.prototype.addTransparentBackgroundRectangle = function(node, x, y, w, h)
 {
-	var x = this.bounds.x;
-	var y = this.bounds.y;
-	var w = this.bounds.width;
-	var h = this.bounds.height;
-	var dx = 0;
-	var dy = 0;
-	
-	// Inverts bounds for stencils which are rotated 90 or 270 degrees
-	if (this.direction == 'north' || this.direction == 'south')
-	{
-		dx = (w - h) / 2;
-		dy = (h - w) / 2;
-		x += dx;
-		y += dy;
-		var tmp = w;
-		w = h;
-		h = tmp;
-	}
-	
-	var rotation = this.getRotation();
-	var path = null;
-	
-	if (this.dialect == mxConstants.DIALECT_SVG)
-	{
-		path = new mxPath('svg');
-		path.setTranslate(x, y);
-
-		// Adds rotation as a separate transform
-		if (rotation != 0)
-		{
-			var cx = this.bounds.getCenterX();
-			var cy = this.bounds.getCenterY();
-			var transform = 'rotate(' + rotation + ' ' + cx + ' ' + cy + ')';
-			
-			if (this.innerNode != null)
-			{
-				this.innerNode.setAttribute('transform', transform);
-			}
-			
-			if (this.foreground != null)
-			{
-				this.foreground.setAttribute('transform', transform);
-			}
-
-			// Shadow needs different transform so that it ends up on the correct side
-			if (this.shadowNode != null)
-			{
-				this.shadowNode.setAttribute('transform',  this.getSvgShadowTransform() + ' ' + transform);
-			}
-		}
-	}
-	else
-	{
-		path = new mxPath('vml');
-		path.setTranslate(dx, -dx);
-		path.scale = this.vmlScale;
-		
-		if (rotation != 0)
-		{
-			this.node.style.rotation = rotation;
-		}
-	}
-	
-	this.redrawPath(path, x, y, w, h, arg);
-	
-	return path.getPath();
+	var rect = document.createElementNS(mxConstants.NS_SVG, 'rect');
+	rect.setAttribute('x', x);
+	rect.setAttribute('y', y);
+	rect.setAttribute('width', w);
+	rect.setAttribute('height', h);
+	rect.setAttribute('fill', 'none');
+	rect.setAttribute('stroke', 'none');
+	rect.setAttribute('pointer-events', 'all');
+	this.node.appendChild(rect);
 };
 
 /**
- * Function: redrawPath
- *
- * Draws the path for this shape. This implementation is empty. See
- * <mxActor> and <mxCylinder> for implementations. 
+ * Function: setTransparentBackgroundImage
+ * 
+ * Paints the line shape.
  */
-mxShape.prototype.redrawPath = function(path, x, y, w, h)
+mxShape.prototype.setTransparentBackgroundImage = function(node)
 {
-	// do nothing
+	node.style.backgroundImage = 'url(\'' + mxClient.imageBasePath + '/transparent.gif\')';
+};
+
+/**
+ * Function: releaseSvgGradients
+ * 
+ * Paints the line shape.
+ */
+mxShape.prototype.releaseSvgGradients = function(grads)
+{
+	if (grads != null)
+	{
+		for (var key in grads)
+		{
+			var gradient = grads[key];
+			gradient.mxRefCount = (gradient.mxRefCount || 0) - 1;
+			
+			if (gradient.mxRefCount == 0 && gradient.parentNode != null)
+			{
+				gradient.parentNode.removeChild(gradient);
+			}
+		}
+	}
+};
+
+/**
+ * Function: destroy
+ *
+ * Destroys the shape by removing it from the DOM and releasing the DOM
+ * node associated with the shape using <mxEvent.release>.
+ */
+mxShape.prototype.destroy = function()
+{
+	if (this.node != null)
+	{
+		mxEvent.release(this.node);
+		
+		if (this.node.parentNode != null)
+		{
+			this.node.parentNode.removeChild(this.node);
+		}
+		
+		this.node = null;
+	}
+	
+	// Decrements refCount and removes unused
+	this.releaseSvgGradients(this.oldGradients);
+	this.oldGradients = null;
 };

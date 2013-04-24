@@ -1,5 +1,5 @@
 /**
- * $Id: mxImageShape.js,v 1.67 2012/04/22 10:16:23 gaudenz Exp $
+ * $Id: mxImageShape.js,v 1.7 2012/12/18 16:35:57 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -25,27 +25,19 @@
  */
 function mxImageShape(bounds, image, fill, stroke, strokewidth)
 {
+	mxShape.call(this);
 	this.bounds = bounds;
-	this.image = (image != null) ? image : '';
+	this.image = image;
 	this.fill = fill;
 	this.stroke = stroke;
 	this.strokewidth = (strokewidth != null) ? strokewidth : 1;
-	this.isShadow = false;
+	this.shadow = false;
 };
 
 /**
  * Extends mxShape.
  */
-mxImageShape.prototype = new mxShape();
-mxImageShape.prototype.constructor = mxImageShape;
-
-/**
- * Variable: crisp
- * 
- * Disables crisp rendering via attributes. Image quality defines the rendering
- * quality. Default is false.
- */
-mxImageShape.prototype.crisp = false;
+mxUtils.extend(mxImageShape, mxRectangleShape);
 
 /**
  * Variable: preserveImageAspect
@@ -53,6 +45,16 @@ mxImageShape.prototype.crisp = false;
  * Switch to preserve image aspect. Default is true.
  */
 mxImageShape.prototype.preserveImageAspect = true;
+
+/**
+ * Function: getSvgScreenOffset
+ * 
+ * Disables offset in IE9 for crisper image output.
+ */
+mxImageShape.prototype.getSvgScreenOffset = function()
+{
+	return (!mxClient.IS_IE) ? 0.5 : 0;
+};
 
 /**
  * Function: apply
@@ -77,163 +79,73 @@ mxImageShape.prototype.apply = function(state)
 	
 	this.fill = null;
 	this.stroke = null;
-
+	this.gradient = null;
+	
 	if (this.style != null)
 	{
 		this.fill = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_BACKGROUND);
 		this.stroke = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_BORDER);
 		this.preserveImageAspect = mxUtils.getNumber(this.style, mxConstants.STYLE_IMAGE_ASPECT, 1) == 1;
-		this.gradient = null;
+		
+		// Legacy support for imageFlipH/V
+		this.flipH = this.flipH || mxUtils.getValue(this.style, 'imageFlipH', 0) == 1;
+		this.flipV = this.flipV || mxUtils.getValue(this.style, 'imageFlipV', 0) == 1;
 	}
 };
 
 /**
- * Function: create
- *
- * Override to create HTML regardless of gradient and
- * rounded property.
+ * Function: isHtmlAllowed
+ * 
+ * Returns true if HTML is allowed for this shape. This implementation always
+ * returns false.
  */
-mxImageShape.prototype.create = function()
+mxImageShape.prototype.isHtmlAllowed = function()
 {
-	var node = null;
+	return !this.preserveImageAspect;
+};
 
-	if (this.dialect == mxConstants.DIALECT_SVG)
-	{
-		// Workaround: To avoid control-click on images in Firefox to
-		// open the image in a new window, this image needs to be placed
-		// inside a group with a rectangle in the foreground which has a
-		// fill property but no visibility and absorbs all events.
-		// The image in turn must have all pointer-events disabled.
-		node = this.createSvgGroup('rect');
-		this.innerNode.setAttribute('visibility', 'hidden');
-		this.innerNode.setAttribute('pointer-events', 'fill');
-		
-		this.imageNode = document.createElementNS(mxConstants.NS_SVG, 'image');
-		this.imageNode.setAttributeNS(mxConstants.NS_XLINK, 'xlink:href', this.image);
-		this.imageNode.setAttribute('style', 'pointer-events:none');
-		this.configureSvgShape(this.imageNode);
-		
-		// Removes invalid attributes on the image node
-		this.imageNode.removeAttribute('stroke');
-		this.imageNode.removeAttribute('fill');
-		node.insertBefore(this.imageNode, this.innerNode);
-		
-		// Inserts node for background and border color rendering
-		if ((this.fill != null && this.fill != mxConstants.NONE) ||
-			(this.stroke != null && this.stroke != mxConstants.NONE))
-		{
-			this.bg = document.createElementNS(mxConstants.NS_SVG, 'rect');
-			node.insertBefore(this.bg, node.firstChild);
-		}
-		
-		// Preserves image aspect as default
-		if (!this.preserveImageAspect)
-		{
-			this.imageNode.setAttribute('preserveAspectRatio', 'none');
-		}
-	}
-	else
-	{
-		// Uses VML image for all non-embedded images in IE to support better
-		// image flipping quality and avoid workarounds for event redirection
-		var flipH = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_FLIPH, 0) == 1;
-		var flipV = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_FLIPV, 0) == 1;
-        var img = this.image.toUpperCase();
-		
-		// Handles non-flipped embedded images in IE6
-		if (mxClient.IS_IE && !flipH && !flipV && img.substring(0, 6) == 'MHTML:')
-	    {
-			// LATER: Check if outer DIV is required or if aspect can be implemented
-			// by adding an offset to the image loading or the background via CSS.
-			this.imageNode = document.createElement('DIV');
-			this.imageNode.style.filter = 'progid:DXImageTransform.Microsoft.AlphaImageLoader ' +
-				'(src=\'' + this.image + '\', sizingMethod=\'scale\')';
-			
-			node = document.createElement('DIV');
-			this.configureHtmlShape(node);
-			node.appendChild(this.imageNode);
-		}
-		// Handles all data URL images and HTML images for IE9 with no VML support (in SVG mode)
-		else if (!mxClient.IS_IE || img.substring(0, 5) == 'DATA:' || document.documentMode >= 9)
-		{
-			this.imageNode = document.createElement('img');
-			this.imageNode.setAttribute('src', this.image);
-			this.imageNode.setAttribute('border', '0');
-			this.imageNode.style.position = 'absolute';
-			this.imageNode.style.width = '100%';
-			this.imageNode.style.height = '100%';
+/**
+ * Function: createHtml
+ *
+ * Creates and returns the HTML DOM node(s) to represent
+ * this shape. This implementation falls back to <createVml>
+ * so that the HTML creation is optional.
+ */
+mxImageShape.prototype.createHtml = function()
+{
+	var node = document.createElement('div');
+	node.style.position = 'absolute';
 
-			node = document.createElement('DIV');
-			this.configureHtmlShape(node);
-			node.appendChild(this.imageNode);
-		}
-		else
-		{
-			this.imageNode = document.createElement('v:image');
-			this.imageNode.style.position = 'absolute';
-			this.imageNode.src = this.image;
-
-			// Needed to draw the background and border but known
-			// to cause problems in print preview with https
-			node = document.createElement('DIV');
-			this.configureHtmlShape(node);
-			
-			// Workaround for cropped images in IE7/8
-			node.style.overflow = 'visible';
-			node.appendChild(this.imageNode);
-		}
-	}
-	
 	return node;
 };
 
 /**
- * Function: updateAspect
+ * Function: paintVertexShape
  * 
- * Updates the aspect of the image for the given image width and height.
+ * Generic background painting implementation.
  */
-mxImageShape.prototype.updateAspect = function(w, h)
+mxImageShape.prototype.paintVertexShape = function(c, x, y, w, h)
 {
-	var s = Math.min(this.bounds.width / w, this.bounds.height / h);
-	w = Math.max(0, Math.round(w * s));
-	h = Math.max(0, Math.round(h * s));
-	var x0 = Math.max(0, Math.round((this.bounds.width - w) / 2));
-	var y0 = Math.max(0, Math.round((this.bounds.height - h) / 2));
-	var st = this.imageNode.style;
-	
-	// Positions the child node relative to the parent node
-	if (this.imageNode.parentNode == this.node)
+	if (this.image != null)
 	{
-		// Workaround for duplicate offset in VML in IE8 is
-		// to use parent padding instead of left and top
-		this.node.style.paddingLeft = x0 + 'px';
-		this.node.style.paddingTop = y0 + 'px';
+		var fill = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_BACKGROUND, null);
+		var stroke = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_BORDER, null);
+		
+		if (fill != null || stroke != null)
+		{
+			c.setFillColor(fill);
+			c.setStrokeColor(stroke);
+			c.rect(x, y, w, h);
+			c.fillAndStroke();
+		}
+
+		// FlipH/V are implicit via mxShape.updateTransform
+		c.image(x, y, w, h, this.image, this.preserveImageAspect, false, false);
 	}
 	else
 	{
-		st.left = (Math.round(this.bounds.x) + x0) + 'px';
-		st.top = (Math.round(this.bounds.y) + y0) + 'px';
+		mxRectangleShape.prototype.paintBackground.apply(this, arguments);
 	}
-	
-	st.width = w + 'px';
-	st.height = h + 'px';
-};
-
-/**
- * Function: scheduleUpdateAspect
- * 
- * Schedules an asynchronous <updateAspect> using the current <image>.
- */
-mxImageShape.prototype.scheduleUpdateAspect = function()
-{
-	var img = new Image();
-	
-	img.onload = mxUtils.bind(this, function()
-	{
-		mxImageShape.prototype.updateAspect.call(this, img.width, img.height);
-	});
-	
-	img.src = this.image;
 };
 
 /**
@@ -241,165 +153,64 @@ mxImageShape.prototype.scheduleUpdateAspect = function()
  * 
  * Overrides <mxShape.redraw> to preserve the aspect ratio of images.
  */
-mxImageShape.prototype.redraw = function()
+mxImageShape.prototype.redrawHtmlShape = function()
 {
-	mxShape.prototype.redraw.apply(this, arguments);
+	this.node.style.left = Math.round(this.bounds.x) + 'px';
+	this.node.style.top = Math.round(this.bounds.y) + 'px';
+	this.node.style.width = Math.max(0, Math.round(this.bounds.width)) + 'px';
+	this.node.style.height = Math.max(0, Math.round(this.bounds.height)) + 'px';
+	this.node.style.backgroundColor = this.fill || '';
+	this.node.style.borderColor = this.stroke || '';
+	this.node.innerHTML = '';
 	
-	if (this.imageNode != null && this.bounds != null)
+	if (this.image != null)
 	{
-		// Horizontal and vertical flipping
-		var flipH = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_FLIPH, 0) == 1;
-		var flipV = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_FLIPV, 0) == 1;
+		// VML image supports PNG in IE6
+		var useVml = mxClient.IS_IE6 || (mxClient.CSS_PREFIX == null && this.rotation != 0);
+		var img = document.createElement((useVml) ? mxClient.VML_PREFIX + ':image' : 'img');
+		img.style.position = 'absolute';
+		img.src = this.image;
 		
-		if (this.dialect == mxConstants.DIALECT_SVG)
+		var filter = (this.opacity < 100) ? 'alpha(opacity=' + this.opacity + ')' : '';
+		this.node.style.filter = filter;
+		
+		if (this.flipH && this.flipV)
 		{
-			var sx = 1;
-			var sy = 1;
-			var dx = 0;
-			var dy = 0;
-			
-			if (flipH)
-			{
-				sx = -1;
-				dx = -this.bounds.width - 2 * this.bounds.x;
-			}
-			
-			if (flipV)
-			{
-				sy = -1;
-				dy = -this.bounds.height - 2 * this.bounds.y;
-			}
-			
-			// Adds image tansformation to existing transforms
-			var transform = (this.imageNode.getAttribute('transform') || '') +
-				' scale('+sx+' '+sy+')'+ ' translate('+dx+' '+dy+')';
-			this.imageNode.setAttribute('transform', transform);
+			filter += 'progid:DXImageTransform.Microsoft.BasicImage(rotation=2)';
+		}
+		else if (this.flipH)
+		{
+			filter += 'progid:DXImageTransform.Microsoft.BasicImage(mirror=1)';
+		}
+		else if (this.flipV)
+		{
+			filter += 'progid:DXImageTransform.Microsoft.BasicImage(rotation=2, mirror=1)';
+		}
+
+		if (img.style.filter != filter)
+		{
+			img.style.filter = filter;
+		}
+
+		if (img.nodeName == 'image')
+		{
+			img.style.rotation = this.rotation;
 		}
 		else
 		{
-			// Sets default size (no aspect)
-			if (this.imageNode.nodeName != 'DIV')
-			{
-				this.imageNode.style.width = Math.max(0, Math.round(this.bounds.width)) + 'px';
-				this.imageNode.style.height = Math.max(0, Math.round(this.bounds.height)) + 'px';
-			}
-
-			// Preserves image aspect
-			if (this.preserveImageAspect)
-			{
-				this.scheduleUpdateAspect();
-			} 
-
-			if (flipH || flipV)
-			{
-				if (mxUtils.isVml(this.imageNode))
-				{
-					if (flipH && flipV)
-					{
-						this.imageNode.style.rotation = '180';
-					}
-					else if (flipH)
-					{
-						this.imageNode.style.flip = 'x';
-					}
-					else
-					{
-						this.imageNode.style.flip = 'y';
-					}
-				}
-				else
-				{
-					var filter = (this.imageNode.nodeName == 'DIV') ? 'progid:DXImageTransform.Microsoft.AlphaImageLoader ' +
-						'(src=\'' + this.image + '\', sizingMethod=\'scale\')' : '';
-	
-					if (flipH && flipV)
-					{
-						filter += 'progid:DXImageTransform.Microsoft.BasicImage(rotation=2)';
-					}
-					else if (flipH)
-					{
-						filter += 'progid:DXImageTransform.Microsoft.BasicImage(mirror=1)';
-					}
-					else
-					{
-						filter += 'progid:DXImageTransform.Microsoft.BasicImage(rotation=2, mirror=1)';
-					}
-	
-					if (this.imageNode.style.filter != filter)
-					{
-						this.imageNode.style.filter = filter;
-					}
-				}
-			}
+			// LATER: Add flipV/H support
+			img.style[mxClient.CSS_PREFIX + 'Transform'] = 'rotate(' + this.rotation + 'deg)';
 		}
+
+		// Known problem: IE clips top line of image for certain angles
+		img.style.width = this.node.style.width;
+		img.style.height = this.node.style.height;
+		
+		this.node.style.backgroundImage = '';
+		this.node.appendChild(img);
 	}
-};
-
-/**
- * Function: configureTransparentBackground
- * 
- * Workaround for security warning in IE if this is used in the overlay pane
- * of a diagram. 
- */
-mxImageShape.prototype.configureTransparentBackground = function(node)
-{
-	// do nothing
-};
-
-/**
- * Function: redrawSvg
- *
- * Updates the SVG node(s) to reflect the latest bounds and scale.
- */
-mxImageShape.prototype.redrawSvg = function()
-{
-	this.updateSvgShape(this.innerNode);
-	this.updateSvgShape(this.imageNode);
-	
-	if (this.bg != null)
+	else
 	{
-		this.updateSvgShape(this.bg);
-		
-		if (this.fill != null)
-		{
-			this.bg.setAttribute('fill', this.fill);
-		}
-		else
-		{
-			this.bg.setAttribute('fill', 'none');
-		}
-		
-		if (this.stroke != null)
-		{
-			this.bg.setAttribute('stroke', this.stroke);
-		}
-		else
-		{
-			this.bg.setAttribute('stroke', 'none');
-		}
-		
-		this.bg.setAttribute('shape-rendering', 'crispEdges');
-	}
-};
-
-/**
- * Function: configureSvgShape
- *
- * Extends method to set opacity on images.
- */
-mxImageShape.prototype.configureSvgShape = function(node)
-{
-	mxShape.prototype.configureSvgShape.apply(this, arguments);
-	
-	if (this.imageNode != null)
-	{
-		if (this.opacity != null)
-		{
-			this.imageNode.setAttribute('opacity', this.opacity / 100);
-		}
-		else
-		{
-			this.imageNode.removeAttribute('opacity');
-		}
+		this.setTransparentBackgroundImage(this.node);
 	}
 };

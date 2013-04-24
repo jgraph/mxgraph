@@ -1,5 +1,5 @@
 /**
- * $Id: mxPanningHandler.js,v 1.79 2012/07/17 14:37:41 gaudenz Exp $
+ * $Id: mxPanningHandler.js,v 1.3 2013/01/10 16:39:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -54,6 +54,20 @@ mxPanningHandler.prototype.constructor = mxPanningHandler;
  * Reference to the enclosing <mxGraph>.
  */
 mxPanningHandler.prototype.graph = null;
+
+/**
+ * Variable: triggerX
+ * 
+ * X-coordinate of the mouse down event.
+ */
+mxPanningHandler.prototype.triggerX = null;
+
+/**
+ * Variable: triggerY
+ * 
+ * X-coordinate of the mouse down event.
+ */
+mxPanningHandler.prototype.triggerY = null;
 
 /**
  * Variable: usePopupTrigger
@@ -193,6 +207,9 @@ mxPanningHandler.prototype.mouseDown = function(sender, me)
 		this.dy0 = -this.graph.container.scrollTop;
 		
 		// Checks the event triggers to panning and popupmenu
+		var pt = mxUtils.convertPoint(this.graph.container, me.getX(), me.getY());
+		this.triggerX = pt.x;
+		this.triggerY = pt.y;
 		this.popupTrigger = this.isPopupTrigger(me);
 		this.panningTrigger = this.isPanningEnabled() &&
 			this.isPanningTrigger(me);

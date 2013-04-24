@@ -1,5 +1,5 @@
 /**
- * $Id: mxToolbar.js,v 1.36 2012/06/22 11:17:13 gaudenz Exp $
+ * $Id: mxToolbar.js,v 1.2 2012/12/02 12:35:31 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -112,67 +112,13 @@ mxToolbar.prototype.addItem = function(title, icon, funct, pressedIcon, style, f
 	// Invokes the function on a click on the toolbar item
 	if (funct != null)
 	{
-		mxEvent.addListener(img, (mxClient.IS_TOUCH) ? 'touchend' : 'click', funct);
-	}
-	
-	var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-	var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
-
-	// Highlights the toolbar item with a gray background
-	// while it is being clicked with the mouse
-	mxEvent.addListener(img, md, mxUtils.bind(this, function(evt)
-	{
-		if (pressedIcon != null)
-		{
-			img.setAttribute('src', pressedIcon);
-		}
-		else
-		{
-			img.style.backgroundColor = 'gray';
-		}
+		mxEvent.addListener(img, 'click', funct);
 		
-		// Popup Menu
-		if (factoryMethod != null)
+		if (mxClient.IS_TOUCH)
 		{
-			if (this.menu == null)
-			{
-				this.menu = new mxPopupMenu();
-				this.menu.init();
-			}
-			
-			var last = this.currentImg;
-			
-			if (this.menu.isMenuShowing())
-			{
-				this.menu.hideMenu();
-			}
-			
-			if (last != img)
-			{
-				// Redirects factory method to local factory method
-				this.currentImg = img;
-				this.menu.factoryMethod = factoryMethod;
-				
-				var point = new mxPoint(
-					img.offsetLeft,
-					img.offsetTop + img.offsetHeight);
-				this.menu.popup(point.x, point.y, null, evt);
-
-				// Sets and overrides to restore classname
-				if (this.menu.isMenuShowing())
-				{
-					img.className = initialClassName + 'Selected';
-					
-					this.menu.hideMenu = function()
-					{
-						mxPopupMenu.prototype.hideMenu.apply(this);
-						img.className = initialClassName;
-						this.currentImg = null;
-					};
-				}
-			}
+			mxEvent.addListener(img, 'touchend', funct);
 		}
-	}));
+	}
 
 	var mouseHandler = mxUtils.bind(this, function(evt)
 	{
@@ -185,8 +131,66 @@ mxToolbar.prototype.addItem = function(title, icon, funct, pressedIcon, style, f
 			img.style.backgroundColor = '';
 		}
 	});
+
+	// Highlights the toolbar item with a gray background
+	// while it is being clicked with the mouse
+	mxEvent.addGestureListeners(img,
+		mxUtils.bind(this, function(evt)
+		{
+			if (pressedIcon != null)
+			{
+				img.setAttribute('src', pressedIcon);
+			}
+			else
+			{
+				img.style.backgroundColor = 'gray';
+			}
+			
+			// Popup Menu
+			if (factoryMethod != null)
+			{
+				if (this.menu == null)
+				{
+					this.menu = new mxPopupMenu();
+					this.menu.init();
+				}
+				
+				var last = this.currentImg;
+				
+				if (this.menu.isMenuShowing())
+				{
+					this.menu.hideMenu();
+				}
+				
+				if (last != img)
+				{
+					// Redirects factory method to local factory method
+					this.currentImg = img;
+					this.menu.factoryMethod = factoryMethod;
+					
+					var point = new mxPoint(
+						img.offsetLeft,
+						img.offsetTop + img.offsetHeight);
+					this.menu.popup(point.x, point.y, null, evt);
 	
-	mxEvent.addListener(img, mu, mouseHandler);
+					// Sets and overrides to restore classname
+					if (this.menu.isMenuShowing())
+					{
+						img.className = initialClassName + 'Selected';
+						
+						this.menu.hideMenu = function()
+						{
+							mxPopupMenu.prototype.hideMenu.apply(this);
+							img.className = initialClassName;
+							this.currentImg = null;
+						};
+					}
+				}
+			}
+		}),
+		null,
+		mouseHandler);
+
 	mxEvent.addListener(img, 'mouseout', mouseHandler);
 	
 	return img;

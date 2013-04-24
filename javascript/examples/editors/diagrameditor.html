@@ -19,14 +19,9 @@
 		// last step in the editor constructor.
 		function onInit(editor)
 		{
-			// Crisp rendering in SVG except for connectors, actors, cylinder, ellipses
-			mxShape.prototype.crisp = true;
-			mxActor.prototype.crisp = false;
-			mxCylinder.prototype.crisp = false;
-			mxEllipse.prototype.crisp = false;
-			mxDoubleEllipse.prototype.crisp = false;
-			mxConnector.prototype.crisp = false;
-			
+			// Enables rotation handle
+			mxVertexHandler.prototype.rotationEnabled = true;
+
 			// Enables guides
 			mxGraphHandler.prototype.guidesEnabled = true;
 			

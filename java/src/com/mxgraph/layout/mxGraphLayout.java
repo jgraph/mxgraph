@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphLayout.java,v 1.28 2012/06/26 10:59:04 david Exp $
+ * $Id: mxGraphLayout.java,v 1.1 2012/11/15 13:26:37 gaudenz Exp $
  * Copyright (c) 2008-2009, JGraph Ltd
  */
 package com.mxgraph.layout;

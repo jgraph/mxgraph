@@ -1,5 +1,5 @@
 /**
- * $Id: mxClient.js,v 1.204 2013/01/24 12:14:27 gaudenz Exp $
+ * $Id: mxClient.js,v 1.10 2013/04/23 14:22:14 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClient =
@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.12.0.2.
+	 * Current version is 2.0.0.0.
 	 */
-	VERSION: '1.12.0.2',
+	VERSION: '2.0.0.0',
 
 	/**
 	 * Variable: IS_IE
@@ -45,6 +45,20 @@ var mxClient =
 	 * True if the current browser is Internet Explorer and it is in quirks mode.
 	 */
 	IS_QUIRKS: navigator.userAgent.indexOf('MSIE') >= 0 && (document.documentMode == null || document.documentMode == 5),
+
+	/**
+	 * Variable: VML_PREFIX
+	 * 
+	 * Prefix for VML namespace in node names. Default is 'v'.
+	 */
+	VML_PREFIX: 'v',
+
+	/**
+	 * Variable: OFFICE_PREFIX
+	 * 
+	 * Prefix for VML office namespace in node names. Default is 'o'.
+	 */
+	OFFICE_PREFIX: 'o',
 
 	/**
 	 * Variable: IS_NS
@@ -121,26 +135,15 @@ var mxClient =
 	  	navigator.userAgent.indexOf('AppleWebKit/') >= 0 || // Safari/Google Chrome
 	  	navigator.userAgent.indexOf('Gecko/') >= 0 || // Netscape/Gecko
 	  	navigator.userAgent.indexOf('Opera/') >= 0,
-	  	
-  	 
+
 	/**
 	 * Variable: NO_FO
 	 *
 	 * True if foreignObject support is not available. This is the case for
-	 * Opera and older SVG-based browsers. IE does not require this type
-	 * of tag.
+	 * Opera and older SVG-based browsers.
 	 */
-  	NO_FO: navigator.userAgent.indexOf('Firefox/1.') >= 0 ||
-  		navigator.userAgent.indexOf('Iceweasel/1.') >= 0 ||
-  		navigator.userAgent.indexOf('Firefox/2.') >= 0 ||
-	  	navigator.userAgent.indexOf('Iceweasel/2.') >= 0 ||
-	  	navigator.userAgent.indexOf('SeaMonkey/1.') >= 0 ||
-	  	navigator.userAgent.indexOf('Iceape/1.') >= 0 ||
-	  	navigator.userAgent.indexOf('Camino/1.') >= 0 ||
-	  	navigator.userAgent.indexOf('Epiphany/2.') >= 0 ||
-	  	navigator.userAgent.indexOf('Opera/') >= 0 ||
-	  	navigator.userAgent.indexOf('MSIE') >= 0 ||
-	  	navigator.userAgent.indexOf('Mozilla/2.') >= 0, // Safari/Google Chrome
+  	NO_FO: !document.createElementNS || document.createElementNS('http://www.w3.org/2000/svg',
+  		'foreignObject') != '[object SVGForeignObjectElement]' || navigator.userAgent.indexOf('Opera/') >= 0,
 
 	/**
 	 * Variable: IS_VML
@@ -273,6 +276,33 @@ var mxClient =
 };
 
 /**
+ * Variable: CSS_PREFIX
+ * 
+ * Optional prefix for CSS transforms if CSS transforms are supported by this browser.
+ * Can be used as follows.
+ * 
+ * (code)
+ * node.style[mxClient.CSS_PREFIX + 'TransformOrigin'] = '0% 0%';
+ * (end)
+ */
+if (mxClient.IS_OP && mxClient.IS_OT)
+{
+	mxClient.CSS_PREFIX = 'O';
+}
+else if (mxClient.IS_SF || mxClient.IS_GC)
+{
+	mxClient.CSS_PREFIX = 'Webkit';
+}
+else if (mxClient.IS_MT)
+{
+	mxClient.CSS_PREFIX = 'Moz';
+}
+else if (mxClient.IS_IE && document.documentMode >= 9)
+{
+	mxClient.CSS_PREFIX = 'ms';
+}
+
+/**
  * Variable: mxLoadResources
  * 
  * Optional global config variable to toggle loading of the two resource files
@@ -289,6 +319,24 @@ var mxClient =
 if (typeof(mxLoadResources) == 'undefined')
 {
 	mxLoadResources = true;
+}
+
+/**
+ * Variable: mxResourceExtension
+ * 
+ * Optional global config variable to specify the extension of resource files.
+ * Default is true. NOTE: This is a global variable, not a variable of mxClient.
+ *
+ * (code)
+ * <script type="text/javascript">
+ * 		var mxResourceExtension = '.txt';
+ * </script>
+ * <script type="text/javascript" src="/path/to/core/directory/js/mxClient.js"></script>
+ * (end)
+ */
+if (typeof(mxResourceExtension) == 'undefined')
+{
+	mxResourceExtension = '.txt';
 }
 
 /**
@@ -483,13 +531,13 @@ if (mxClient.IS_IE)
 		// is not possible. See mxShape.init for more code to handle this specific document mode.
 		if (document.documentMode == 8)
 		{
-			document.namespaces.add('v', 'urn:schemas-microsoft-com:vml', '#default#VML');
-			document.namespaces.add('o', 'urn:schemas-microsoft-com:office:office', '#default#VML');
+			document.namespaces.add(mxClient.VML_PREFIX, 'urn:schemas-microsoft-com:vml', '#default#VML');
+			document.namespaces.add(mxClient.OFFICE_PREFIX, 'urn:schemas-microsoft-com:office:office', '#default#VML');
 		}
 		else
 		{
-			document.namespaces.add('v', 'urn:schemas-microsoft-com:vml');
-			document.namespaces.add('o', 'urn:schemas-microsoft-com:office:office');
+			document.namespaces.add(mxClient.VML_PREFIX, 'urn:schemas-microsoft-com:vml');
+			document.namespaces.add(mxClient.OFFICE_PREFIX, 'urn:schemas-microsoft-com:office:office');
 		}
 		
         var ss = document.createStyleSheet();
@@ -506,7 +554,7 @@ if (mxClient.IS_IE)
 }
 
 /**
- * $Id: mxLog.js,v 1.32 2012/11/12 09:40:59 gaudenz Exp $
+ * $Id: mxLog.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxLog =
@@ -916,7 +964,7 @@ var mxLog =
 	
 };
 /**
- * $Id: mxObjectIdentity.js,v 1.8 2010/01/02 09:45:14 gaudenz Exp $
+ * $Id: mxObjectIdentity.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxObjectIdentity =
@@ -975,7 +1023,7 @@ var mxObjectIdentity =
 
 };
 /**
- * $Id: mxDictionary.js,v 1.12 2012/04/26 08:08:54 gaudenz Exp $
+ * $Id: mxDictionary.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1105,7 +1153,7 @@ mxDictionary.prototype.visit = function(visitor)
 	}
 };
 /**
- * $Id: mxResources.js,v 1.32 2012/10/26 13:36:50 gaudenz Exp $
+ * $Id: mxResources.js,v 1.3 2012/12/21 10:35:27 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxResources =
@@ -1166,17 +1214,17 @@ var mxResources =
 	/**
 	 * Variable: extension
 	 * 
-	 * Specifies the extension used for language files. Default is '.properties'.
+	 * Specifies the extension used for language files. Default is <mxResourceExtension>.
 	 */
-	extension: '.properties',
+	extension: mxResourceExtension,
 
 	/**
 	 * Variable: resourcesEncoded
 	 * 
 	 * Specifies whether or not values in resource files are encoded with \u or
-	 * percentage. Default is true.
+	 * percentage. Default is false.
 	 */
-	resourcesEncoded: true,
+	resourcesEncoded: false,
 
 	/**
 	 * Variable: loadDefaultBundle
@@ -1471,7 +1519,7 @@ var mxResources =
 
 };
 /**
- * $Id: mxPoint.js,v 1.12 2010/01/02 09:45:14 gaudenz Exp $
+ * $Id: mxPoint.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1526,7 +1574,7 @@ mxPoint.prototype.clone = function()
 	return mxUtils.clone(this);
 };
 /**
- * $Id: mxRectangle.js,v 1.17 2010/12/08 12:46:03 gaudenz Exp $
+ * $Id: mxRectangle.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1660,7 +1708,7 @@ mxRectangle.prototype.equals = function(obj)
 		obj.height == this.height;
 };
 /**
- * $Id: mxEffects.js,v 1.6 2012/01/04 10:01:16 gaudenz Exp $
+ * $Id: mxEffects.js,v 1.2 2012/12/03 17:33:33 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEffects =
@@ -1761,9 +1809,6 @@ var mxEffects =
 				}
 			}
 
-			// Workaround to force a repaint in AppleWebKit
-			mxUtils.repaintGraph(graph, new mxPoint(1, 1));
-			
 			if (step < maxStep && isRequired)
 			{
 				step++;
@@ -1874,7 +1919,7 @@ var mxEffects =
 
 };
 /**
- * $Id: mxUtils.js,v 1.299 2013/04/07 19:41:05 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.15 2013/04/23 07:10:47 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxUtils =
@@ -1947,38 +1992,6 @@ var mxUtils =
 	            mxUtils.removeCursors(children[i]);
 	        }
 	    }
-	},
-	
-	/**
-	 * Function: repaintGraph
-	 * 
-	 * Normally not required, this contains the code to workaround a repaint
-	 * issue and force a repaint of the graph container in AppleWebKit.
-	 * 
-	 * Parameters:
-	 * 
-	 * graph - <mxGraph> to be repainted.
-	 * pt - <mxPoint> where the dummy element should be placed.
-	 */
-	repaintGraph: function(graph, pt)
-	{
-		if (mxClient.IS_GC || mxClient.IS_SF || mxClient.IS_OP)
-		{
-			var c = graph.container;
-			
-			if (c != null && pt != null && (c.scrollLeft > 0 || c.scrollTop > 0))
-			{
-				var dummy = document.createElement('div');
-				dummy.style.position = 'absolute';
-				dummy.style.left = pt.x + 'px';
-				dummy.style.top = pt.y + 'px';
-				dummy.style.width = '1px';
-				dummy.style.height = '1px';
-			
-				c.appendChild(dummy);
-				c.removeChild(dummy);
-			}
-		}
 	},
 
 	/**
@@ -2638,7 +2651,7 @@ var mxUtils =
 		  
 		return xml;
 	},
-
+	
 	/**
 	 * Function: getTextContent
 	 * 
@@ -2917,6 +2930,19 @@ var mxUtils =
 		}
 		
 		return p;
+	},
+
+	/**
+	 * Function: addTransparentBackgroundFilter
+	 * 
+	 * Adds a transparent background to the filter of the given node. This
+	 * background can be used in IE8 standards mode (native IE8 only) to pass
+	 * events through the node.
+	 */
+	addTransparentBackgroundFilter: function(node)
+	{
+		node.style.filter += 'progid:DXImageTransform.Microsoft.AlphaImageLoader(src=\'' +
+			mxClient.imageBasePath + '/transparent.gif\', sizingMethod=\'scale\')';
 	},
 
 	/**
@@ -4157,8 +4183,7 @@ var mxUtils =
 
 			if (start > 0)
 			{
-				if (mxUtils.getValue(state.style,
-					mxConstants.STYLE_HORIZONTAL, true))
+				if (mxUtils.getValue(state.style, mxConstants.STYLE_HORIZONTAL, true))
 				{
 					cy = state.y + start / 2;
 					h = start;
@@ -4180,6 +4205,17 @@ var mxUtils =
 			}
 			
 			var rect = new mxRectangle(cx - w / 2, cy - h / 2, w, h);
+			var alpha = mxUtils.toRadians(mxUtils.getValue(state.style, mxConstants.STYLE_ROTATION) || 0);
+			
+			if (alpha != 0)
+			{
+				var cos = Math.cos(-alpha);
+				var sin = Math.sin(-alpha);
+				var cx = new mxPoint(state.getCenterX(), state.getCenterY());
+				var pt = mxUtils.getRotatedPoint(new mxPoint(x, y), cos, sin, cx);
+				x = pt.x;
+				y = pt.y;
+			}
 			
 			return mxUtils.contains(rect, x, y);			
 		}
@@ -4257,6 +4293,11 @@ var mxUtils =
 	 * 
 	 * Converts the specified point (x, y) using the offset of the specified
 	 * container and returns a new <mxPoint> with the result.
+	 * 
+	 * (code)
+	 * var pt = mxUtils.convertPoint(graph.container,
+	 *   mxEvent.getClientX(evt), mxEvent.getClientY(evt));
+	 * (end)
 	 * 
 	 * Parameters:
 	 * 
@@ -4591,7 +4632,7 @@ var mxUtils =
         
 		if (mxClient.IS_IE6 && document.compatMode != 'CSS1Compat')
 		{
-        	imageNode = document.createElement('v:image');
+        	imageNode = document.createElement(mxClient.VML_PREFIX + ':image');
         	imageNode.setAttribute('src', src);
         	imageNode.style.borderStyle = 'none';
         }
@@ -5025,6 +5066,42 @@ var mxUtils =
 	},
 	
 	/**
+	 * Function: getAlignmentAsPoint
+	 * 
+	 * Returns an <mxPoint> that represents the horizontal and vertical alignment
+	 * for numeric computations. X is -0.5 for center, -1 for right and 0 for
+	 * left alignment. Y is -0.5 for middle, -1 for bottom and 0 for top
+	 * alignment. Default values for missing arguments is top, left.
+	 */
+	getAlignmentAsPoint: function(align, valign)
+	{
+		var dx = 0;
+		var dy = 0;
+		
+		// Horizontal alignment
+		if (align == mxConstants.ALIGN_CENTER)
+		{
+			dx = -0.5;
+		}
+		else if (align == mxConstants.ALIGN_RIGHT)
+		{
+			dx = -1;
+		}
+
+		// Vertical alignment
+		if (valign == mxConstants.ALIGN_MIDDLE)
+		{
+			dy = -0.5;
+		}
+		else if (valign == mxConstants.ALIGN_BOTTOM)
+		{
+			dy = -1;
+		}
+		
+		return new mxPoint(dx, dy);
+	},
+	
+	/**
 	 * Function: getSizeForString
 	 * 
 	 * Returns an <mxRectangle> with the size (width and height in pixels) of
@@ -5045,20 +5122,35 @@ var mxUtils =
 	 * <mxConstants.DEFAULT_FONTSIZE>.
 	 * fontFamily - String that specifies the name of the font family. Default
 	 * is <mxConstants.DEFAULT_FONTFAMILY>.
+	 * textWidth - Optional width for text wrapping.
 	 */
-	getSizeForString: function(text, fontSize, fontFamily)
+	getSizeForString: function(text, fontSize, fontFamily, textWidth)
 	{
+		fontSize = (fontSize != null) ? fontSize : mxConstants.DEFAULT_FONTSIZE;
+		fontFamily = (fontFamily != null) ? fontFamily : mxConstants.DEFAULT_FONTFAMILY;
 		var div = document.createElement('div');
 		
-		// Sets the font size and family if non-default
-		div.style.fontSize = (fontSize || mxConstants.DEFAULT_FONTSIZE) + 'px';
-		div.style.fontFamily = fontFamily || mxConstants.DEFAULT_FONTFAMILY;
+		// Sets the font size and family
+		div.style.fontFamily = fontFamily;
+		div.style.fontSize = Math.round(fontSize) + 'px';
+		div.style.lineHeight = Math.round(fontSize * mxConstants.LINE_HEIGHT) + 'px';
 		
 		// Disables block layout and outside wrapping and hides the div
 		div.style.position = 'absolute';
-		div.style.display = 'inline';
 		div.style.visibility = 'hidden';
-
+		div.style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
+		div.style.zoom = '1';
+		
+		if (textWidth != null)
+		{
+			div.style.width = textWidth + 'px';
+			div.style.whiteSpace = 'normal';
+		}
+		else
+		{
+			div.style.whiteSpace = 'nowrap';
+		}
+		
 		// Adds the text and inserts into DOM for updating of size
 		div.innerHTML = text;
 		document.body.appendChild(div);
@@ -5782,7 +5874,7 @@ var mxUtils =
 
 };
 /**
- * $Id: mxConstants.js,v 1.128 2013/01/16 08:40:17 gaudenz Exp $
+ * $Id: mxConstants.js,v 1.10 2013/04/09 16:22:39 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
  var mxConstants =
@@ -6288,6 +6380,25 @@ var mxUtils =
 	DEFAULT_FONTSIZE: 11,
 
 	/**
+	 * Variable: LINE_HEIGHT
+	 * 
+	 * Defines the default line height for text labels. Default is 1.2.
+	 */
+	LINE_HEIGHT: 1.2,
+
+	/**
+	 * Variable: DEFAULT_FONTSTYLE
+	 * 
+	 * Defines the default style for all fonts. Default is 0. This can be set
+	 * to any combination of font styles as follows.
+	 * 
+	 * (code)
+	 * mxConstants.DEFAULT_FONTSTYLE = mxConstants.FONT_BOLD | mxConstants.FONT_ITALIC;
+	 * (end)
+	 */
+	DEFAULT_FONTSTYLE: 0,
+
+	/**
 	 * Variable: DEFAULT_STARTSIZE
 	 * 
 	 * Defines the default start size for swimlanes. Default is 40.
@@ -6554,6 +6665,14 @@ var mxUtils =
 	STYLE_FILLCOLOR: 'fillColor',
 
 	/**
+	 * Variable: STYLE_FILLCOLOR
+	 * 
+	 * Defines the key for the fill color of the swimlane background. Possible
+	 * values are all HTML color names or HEX codes. Default is no background.
+	 */
+	STYLE_SWIMLANE_FILLCOLOR: 'swimlaneFillColor',
+
+	/**
 	 * Variable: STYLE_GRADIENTCOLOR
 	 * 
 	 * Defines the key for the gradient color. Possible values are all HTML color
@@ -6752,36 +6871,20 @@ var mxUtils =
 	STYLE_IMAGE_BORDER: 'imageBorder',
 
 	/**
-	 * Variable: STYLE_IMAGE_FLIPH
+	 * Variable: STYLE_FLIPH
 	 * 
 	 * Defines the key for the horizontal image flip. This style is only used
 	 * in <mxImageShape>. Possible values are 0 and 1. Default is 0.
 	 */
-	STYLE_IMAGE_FLIPH: 'imageFlipH',
+	STYLE_FLIPH: 'flipH',
 
 	/**
-	 * Variable: STYLE_IMAGE_FLIPV
+	 * Variable: STYLE_FLIPV
 	 * 
-	 * Defines the key for the vertical image flip. This style is only used
-	 * in <mxImageShape>. Possible values are 0 and 1. Default is 0.
+	 * Defines the key for the vertical flip. Possible values are 0 and 1.
+	 * Default is 0.
 	 */
-	STYLE_IMAGE_FLIPV: 'imageFlipV',
-
-	/**
-	 * Variable: STYLE_STENCIL_FLIPH
-	 * 
-	 * Defines the key for the horizontal stencil flip. This style is only used
-	 * for <mxStencilShape>. Possible values are 0 and 1. Default is 0.
-	 */
-	STYLE_STENCIL_FLIPH: 'stencilFlipH',
-
-	/**
-	 * Variable: STYLE_STENCIL_FLIPV
-	 * 
-	 * Defines the key for the vertical stencil flip. This style is only used
-	 * for <mxStencilShape>. Possible values are 0 and 1. Default is 0.
-	 */
-	STYLE_STENCIL_FLIPV: 'stencilFlipV',
+	STYLE_FLIPV: 'flipV',
 
 	/**
 	 * Variable: STYLE_NOLABEL
@@ -6963,6 +7066,15 @@ var mxUtils =
 	STYLE_STARTSIZE: 'startSize',
 
 	/**
+	 * Variable: STYLE_SWIMLANE_LINE
+	 * 
+	 * Defines the key for the swimlaneLine style. This style specifies whether
+	 * the line between the title regio of a swimlane should be visible. Use 0
+	 * for hidden or 1 (default) for visible.
+	 */
+	STYLE_SWIMLANE_LINE: 'swimlaneLine',
+
+	/**
 	 * Variable: STYLE_ENDFILL
 	 * 
 	 * Defines the key for the endFill style. Use 0 for no fill or 1
@@ -7005,7 +7117,7 @@ var mxUtils =
 	 * Boolean. For edges this determines whether or not joins between edges
 	 * segments are smoothed to a rounded finish. For vertices that have the
 	 * rectangle shape, this determines whether or not the rectangle is
-	 * rounded.
+	 * rounded. Use 0 (default) for non-rounded or 1 for rounded.
 	 */
 	STYLE_ROUNDED: 'rounded',
 
@@ -7023,7 +7135,9 @@ var mxUtils =
 	 * 
 	 * Defines the rounding factor for a rounded rectangle in percent (without
 	 * the percent sign). Possible values are between 0 and 100. If this value
-	 * is not specified then RECTANGLE_ROUNDING_FACTOR * 100 is used.
+	 * is not specified then RECTANGLE_ROUNDING_FACTOR * 100 is used. For
+	 * edges, this defines the absolute size of rounded corners in pixels. If
+	 * this values is not specified then LINE_ARCSIZE is used.
 	 * (This style is only exported via <mxImageExport>.)
 	 */
 	STYLE_ARCSIZE: 'arcSize',
@@ -7237,6 +7351,15 @@ var mxUtils =
 	STYLE_RESIZABLE: 'resizable',
 
 	/**
+	 * Variable: STYLE_ROTATABLE
+	 * 
+	 * Defines the key for the rotatable style. This specifies if a cell can
+	 * be rotated. Possible values are 0 or 1. Default is 1. See
+	 * <mxGraph.isCellRotatable>.
+	 */
+	STYLE_ROTATABLE: 'rotatable',
+
+	/**
 	 * Variable: STYLE_CLONEABLE
 	 * 
 	 * Defines the key for the cloneable style. This specifies if a cell can
@@ -7327,120 +7450,120 @@ var mxUtils =
 	/**
 	 * Variable: SHAPE_RECTANGLE
 	 * 
-	 * Name under which <mxRectangleShape> is registered
-	 * in <mxCellRenderer>. Default is rectangle.
+	 * Name under which <mxRectangleShape> is registered in <mxCellRenderer>.
+	 * Default is rectangle.
 	 */
 	SHAPE_RECTANGLE: 'rectangle',
 
 	/**
 	 * Variable: SHAPE_ELLIPSE
 	 * 
-	 * Name under which <mxEllipse> is registered
-	 * in <mxCellRenderer>. Default is ellipse.
+	 * Name under which <mxEllipse> is registered in <mxCellRenderer>.
+	 * Default is ellipse.
 	 */
 	SHAPE_ELLIPSE: 'ellipse',
 
 	/**
 	 * Variable: SHAPE_DOUBLE_ELLIPSE
 	 * 
-	 * Name under which <mxDoubleEllipse> is registered
-	 * in <mxCellRenderer>. Default is doubleEllipse.
+	 * Name under which <mxDoubleEllipse> is registered in <mxCellRenderer>.
+	 * Default is doubleEllipse.
 	 */
 	SHAPE_DOUBLE_ELLIPSE: 'doubleEllipse',
 
 	/**
 	 * Variable: SHAPE_RHOMBUS
 	 * 
-	 * Name under which <mxRhombus> is registered
-	 * in <mxCellRenderer>. Default is rhombus.
+	 * Name under which <mxRhombus> is registered in <mxCellRenderer>.
+	 * Default is rhombus.
 	 */
 	SHAPE_RHOMBUS: 'rhombus',
 
 	/**
 	 * Variable: SHAPE_LINE
 	 * 
-	 * Name under which <mxLine> is registered
-	 * in <mxCellRenderer>. Default is line.
+	 * Name under which <mxLine> is registered in <mxCellRenderer>.
+	 * Default is line.
 	 */
 	SHAPE_LINE: 'line',
 
 	/**
 	 * Variable: SHAPE_IMAGE
 	 * 
-	 * Name under which <mxImageShape> is registered
-	 * in <mxCellRenderer>. Default is image.
+	 * Name under which <mxImageShape> is registered in <mxCellRenderer>.
+	 * Default is image.
 	 */
 	SHAPE_IMAGE: 'image',
 	
 	/**
 	 * Variable: SHAPE_ARROW
 	 * 
-	 * Name under which <mxArrow> is registered
-	 * in <mxCellRenderer>. Default is arrow.
+	 * Name under which <mxArrow> is registered in <mxCellRenderer>.
+	 * Default is arrow.
 	 */
 	SHAPE_ARROW: 'arrow',
 	
 	/**
 	 * Variable: SHAPE_LABEL
 	 * 
-	 * Name under which <mxLabel> is registered
-	 * in <mxCellRenderer>. Default is label.
+	 * Name under which <mxLabel> is registered in <mxCellRenderer>.
+	 * Default is label.
 	 */
 	SHAPE_LABEL: 'label',
 	
 	/**
 	 * Variable: SHAPE_CYLINDER
 	 * 
-	 * Name under which <mxCylinder> is registered
-	 * in <mxCellRenderer>. Default is cylinder.
+	 * Name under which <mxCylinder> is registered in <mxCellRenderer>.
+	 * Default is cylinder.
 	 */
 	SHAPE_CYLINDER: 'cylinder',
 	
 	/**
 	 * Variable: SHAPE_SWIMLANE
 	 * 
-	 * Name under which <mxSwimlane> is registered
-	 * in <mxCellRenderer>. Default is swimlane.
+	 * Name under which <mxSwimlane> is registered in <mxCellRenderer>.
+	 * Default is swimlane.
 	 */
 	SHAPE_SWIMLANE: 'swimlane',
 		
 	/**
 	 * Variable: SHAPE_CONNECTOR
 	 * 
-	 * Name under which <mxConnector> is registered
-	 * in <mxCellRenderer>. Default is connector.
+	 * Name under which <mxConnector> is registered in <mxCellRenderer>.
+	 * Default is connector.
 	 */
 	SHAPE_CONNECTOR: 'connector',
-		
+
 	/**
 	 * Variable: SHAPE_ACTOR
 	 * 
-	 * Name under which <mxActor> is registered
-	 * in <mxCellRenderer>. Default is actor.
+	 * Name under which <mxActor> is registered in <mxCellRenderer>.
+	 * Default is actor.
 	 */
 	SHAPE_ACTOR: 'actor',
 		
 	/**
 	 * Variable: SHAPE_CLOUD
 	 * 
-	 * Name under which <mxCloud> is registered
-	 * in <mxCellRenderer>. Default is cloud.
+	 * Name under which <mxCloud> is registered in <mxCellRenderer>.
+	 * Default is cloud.
 	 */
 	SHAPE_CLOUD: 'cloud',
 		
 	/**
 	 * Variable: SHAPE_TRIANGLE
 	 * 
-	 * Name under which <mxTriangle> is registered
-	 * in <mxCellRenderer>. Default is triangle.
+	 * Name under which <mxTriangle> is registered in <mxCellRenderer>.
+	 * Default is triangle.
 	 */
 	SHAPE_TRIANGLE: 'triangle',
 		
 	/**
 	 * Variable: SHAPE_HEXAGON
 	 * 
-	 * Name under which <mxHexagon> is registered
-	 * in <mxCellRenderer>. Default is hexagon.
+	 * Name under which <mxHexagon> is registered in <mxCellRenderer>.
+	 * Default is hexagon.
 	 */
 	SHAPE_HEXAGON: 'hexagon',
 
@@ -7702,7 +7825,7 @@ var mxUtils =
 
 };
 /**
- * $Id: mxEventObject.js,v 1.11 2011/09/09 10:29:05 gaudenz Exp $
+ * $Id: mxEventObject.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -7813,7 +7936,7 @@ mxEventObject.prototype.consume = function()
 	this.consumed = true;
 };
 /**
- * $Id: mxMouseEvent.js,v 1.20 2011/03/02 17:24:39 gaudenz Exp $
+ * $Id: mxMouseEvent.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -8054,7 +8177,7 @@ mxMouseEvent.prototype.consume = function(preventDefault)
 	this.consumed = true;
 };
 /**
- * $Id: mxEventSource.js,v 1.25 2012/04/16 10:54:20 gaudenz Exp $
+ * $Id: mxEventSource.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -8245,7 +8368,7 @@ mxEventSource.prototype.fireEvent = function(evt, sender)
 	}
 };
 /**
- * $Id: mxEvent.js,v 1.76 2012/12/07 07:39:03 gaudenz Exp $
+ * $Id: mxEvent.js,v 1.7 2013/02/12 14:00:52 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEvent =
@@ -8381,6 +8504,90 @@ var mxEvent =
 	},
 	
 	/**
+	 * Function: addGestureListeners
+	 * 
+	 * Adds the given listeners to mousedown, mousemove, mouseup and the
+	 * respective touch events if <mxClient.IS_TOUCH> is true.
+	 */
+	addGestureListeners: function(node, startListener, moveListener, endListener)
+	{
+		if (startListener != null)
+		{
+			mxEvent.addListener(node, 'mousedown', startListener);
+		}
+		
+		if (moveListener != null)
+		{
+			mxEvent.addListener(node, 'mousemove', moveListener);
+		}
+		
+		if (endListener != null)
+		{
+			mxEvent.addListener(node, 'mouseup', endListener);
+		}
+		
+		if (mxClient.IS_TOUCH)
+		{
+			if (startListener != null)
+			{
+				mxEvent.addListener(node, 'touchstart', startListener);
+			}
+			
+			if (moveListener != null)
+			{
+				mxEvent.addListener(node, 'touchmove', moveListener);
+			}
+			
+			if (endListener != null)
+			{
+				mxEvent.addListener(node, 'touchend', endListener);
+			}
+		}
+	},
+	
+	/**
+	 * Function: removeGestureListeners
+	 * 
+	 * Removes the given listeners from mousedown, mousemove, mouseup and the
+	 * respective touch events if <mxClient.IS_TOUCH> is true.
+	 */
+	removeGestureListeners: function(node, startListener, moveListener, endListener)
+	{
+		if (startListener != null)
+		{
+			mxEvent.removeListener(node, 'mousedown', startListener);
+		}
+		
+		if (moveListener != null)
+		{
+			mxEvent.removeListener(node, 'mousemove', moveListener);
+		}
+		
+		if (endListener != null)
+		{
+			mxEvent.removeListener(node, 'mouseup', endListener);
+		}
+		
+		if (mxClient.IS_TOUCH)
+		{
+			if (startListener != null)
+			{
+				mxEvent.removeListener(node, 'touchstart', startListener);
+			}
+			
+			if (moveListener != null)
+			{
+				mxEvent.removeListener(node, 'touchmove', moveListener);
+			}
+			
+			if (endListener != null)
+			{
+				mxEvent.removeListener(node, 'touchend', endListener);
+			}
+		}
+	},
+	
+	/**
 	 * Function: redirectMouseEvents
 	 *
 	 * Redirects the mouse events from the given DOM node to the graph dispatch
@@ -8397,48 +8604,43 @@ var mxEvent =
 			return (typeof(state) == 'function') ? state(evt) : state;
 		};
 		
-		var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-		var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
-		var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
-		
-		mxEvent.addListener(node, md, function (evt)
-		{
-			if (down != null)
+		mxEvent.addGestureListeners(node,
+			function (evt)
 			{
-				down(evt);
-			}
-			else if (!mxEvent.isConsumed(evt))
-			{
-				graph.fireMouseEvent(mxEvent.MOUSE_DOWN,
-					new mxMouseEvent(evt, getState(evt)));
-			}
-		});
-		
-		mxEvent.addListener(node, mm, function (evt)
-		{
-			if (move != null)
-			{
-				move(evt);
-			}
-			else if (!mxEvent.isConsumed(evt))
-			{
-				graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
+				if (down != null)
+				{
+					down(evt);
+				}
+				else if (!mxEvent.isConsumed(evt))
+				{
+					graph.fireMouseEvent(mxEvent.MOUSE_DOWN,
 						new mxMouseEvent(evt, getState(evt)));
-			}
-		});
-		
-		mxEvent.addListener(node, mu, function (evt)
-		{
-			if (up != null)
+				}
+			},
+			function (evt)
 			{
-				up(evt);
-			}
-			else if (!mxEvent.isConsumed(evt))
+				if (move != null)
+				{
+					move(evt);
+				}
+				else if (!mxEvent.isConsumed(evt))
+				{
+					graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
+							new mxMouseEvent(evt, getState(evt)));
+				}
+			},
+			function (evt)
 			{
-				graph.fireMouseEvent(mxEvent.MOUSE_UP,
-						new mxMouseEvent(evt, getState(evt)));
-			}
-		});
+				if (up != null)
+				{
+					up(evt);
+				}
+				else if (!mxEvent.isConsumed(evt))
+				{
+					graph.fireMouseEvent(mxEvent.MOUSE_UP,
+							new mxMouseEvent(evt, getState(evt)));
+				}
+			});
 
 		mxEvent.addListener(node, 'dblclick', function (evt)
 		{
@@ -9076,6 +9278,13 @@ var mxEvent =
 	EXECUTE: 'execute',
 
 	/**
+	 * Variable: EXECUTED
+	 *
+	 * Specifies the event name for executed.
+	 */
+	EXECUTED: 'executed',
+
+	/**
 	 * Variable: BEGIN_UPDATE
 	 *
 	 * Specifies the event name for beginUpdate.
@@ -9083,11 +9292,25 @@ var mxEvent =
 	BEGIN_UPDATE: 'beginUpdate',
 
 	/**
+	 * Variable: START_EDIT
+	 *
+	 * Specifies the event name for startEdit.
+	 */
+	START_EDIT: 'startEdit',
+
+	/**
 	 * Variable: END_UPDATE
 	 *
 	 * Specifies the event name for endUpdate.
 	 */
 	END_UPDATE: 'endUpdate',
+
+	/**
+	 * Variable: END_EDIT
+	 *
+	 * Specifies the event name for endEdit.
+	 */
+	END_EDIT: 'endEdit',
 
 	/**
 	 * Variable: BEFORE_UNDO
@@ -9420,7 +9643,7 @@ var mxEvent =
 
 };
 /**
- * $Id: mxXmlRequest.js,v 1.38 2012/04/22 10:16:23 gaudenz Exp $
+ * $Id: mxXmlRequest.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -9845,7 +10068,7 @@ mxXmlRequest.prototype.simulate = function(doc, target)
 	}
 };
 /**
- * $Id: mxClipboard.js,v 1.30 2013/04/03 08:32:48 gaudenz Exp $
+ * $Id: mxClipboard.js,v 1.2 2013/04/03 08:32:48 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClipboard =
@@ -10041,7 +10264,7 @@ var mxClipboard =
 
 };
 /**
- * $Id: mxWindow.js,v 1.67 2012/10/11 17:18:51 gaudenz Exp $
+ * $Id: mxWindow.js,v 1.2 2012/12/02 12:35:31 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -10390,9 +10613,14 @@ mxWindow.prototype.init = function(x, y, width, height, style)
 		this.activate();
 	});
 	
-	var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-	mxEvent.addListener(this.title, md, activator);
-	mxEvent.addListener(this.table, md, activator);
+	mxEvent.addListener(this.title, 'mousedown', activator);
+	mxEvent.addListener(this.table, 'mousedown', activator);
+	
+	if (mxClient.IS_TOUCH)
+	{
+		mxEvent.addListener(this.title, 'touchstart', activator);
+		mxEvent.addListener(this.table, 'touchstart', activator);
+	}
 
 	this.hide();
 };
@@ -10528,46 +10756,39 @@ mxWindow.prototype.setResizable = function(resizable)
 			this.resize.setAttribute('src', mxClient.imageBasePath + '/resize.gif');
 			this.resize.style.cursor = 'nw-resize';
 			
-			var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-			var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
-			var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
-
-			mxEvent.addListener(this.resize, md, mxUtils.bind(this, function(evt)
-			{
-				this.activate();
-				var startX = mxEvent.getClientX(evt);
-				var startY = mxEvent.getClientY(evt);
-				var width = this.div.offsetWidth;
-				var height = this.div.offsetHeight;
-
-				// Adds a temporary pair of listeners to intercept
-				// the gesture event in the document
-				var dragHandler = mxUtils.bind(this, function(evt)
+			mxEvent.addGestureListeners(this.resize,
+				mxUtils.bind(this, function(evt)
 				{
-					var dx = mxEvent.getClientX(evt) - startX;
-					var dy = mxEvent.getClientY(evt) - startY;
-
-					this.setSize(width + dx, height + dy);
+					this.activate();
+					var startX = mxEvent.getClientX(evt);
+					var startY = mxEvent.getClientY(evt);
+					var width = this.div.offsetWidth;
+					var height = this.div.offsetHeight;
 	
-					this.fireEvent(new mxEventObject(mxEvent.RESIZE, 'event', evt));
+					// Adds a temporary pair of listeners to intercept
+					// the gesture event in the document
+					var dragHandler = mxUtils.bind(this, function(evt)
+					{
+						var dx = mxEvent.getClientX(evt) - startX;
+						var dy = mxEvent.getClientY(evt) - startY;
+	
+						this.setSize(width + dx, height + dy);
+		
+						this.fireEvent(new mxEventObject(mxEvent.RESIZE, 'event', evt));
+						mxEvent.consume(evt);
+					});
+					
+					var dropHandler = mxUtils.bind(this, function(evt)
+					{
+						mxEvent.removeGestureListeners(document, null, dragHandler, dropHandler);
+						this.fireEvent(new mxEventObject(mxEvent.RESIZE_END, 'event', evt));
+						mxEvent.consume(evt);
+					});
+					
+					mxEvent.addGestureListeners(document, null, dragHandler, dropHandler);
+					this.fireEvent(new mxEventObject(mxEvent.RESIZE_START, 'event', evt));
 					mxEvent.consume(evt);
-				});
-				
-				var dropHandler = mxUtils.bind(this, function(evt)
-				{
-					mxEvent.removeListener(document, mm, dragHandler);
-					mxEvent.removeListener(document, mu, dropHandler);
-	
-					this.fireEvent(new mxEventObject(mxEvent.RESIZE_END, 'event', evt));
-					mxEvent.consume(evt);
-				});
-	
-				mxEvent.addListener(document, mm, dragHandler);
-				mxEvent.addListener(document, mu, dropHandler);
-
-				this.fireEvent(new mxEventObject(mxEvent.RESIZE_START, 'event', evt));
-				mxEvent.consume(evt);
-			}));
+				}), null, null);
 
 			this.div.appendChild(this.resize);
 		}
@@ -10725,8 +10946,12 @@ mxWindow.prototype.installMinimizeHandler = function()
 		mxEvent.consume(evt);
 	});
 	
-	var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-	mxEvent.addListener(this.minimize, md, funct);
+	mxEvent.addListener(this.minimize, 'mousedown', funct);
+	
+	if (mxClient.IS_TOUCH)
+	{
+		mxEvent.addListener(this.minimize, 'touchstart', funct);
+	}
 };
 	
 /**
@@ -10857,8 +11082,7 @@ mxWindow.prototype.installMaximizeHandler = function()
 		}
 	});
 	
-	var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-	mxEvent.addListener(this.maximize, md, funct);
+	mxEvent.addGestureListeners(this.maximize, funct);
 	mxEvent.addListener(this.title, 'dblclick', funct);
 };
 	
@@ -10871,43 +11095,36 @@ mxWindow.prototype.installMoveHandler = function()
 {
 	this.title.style.cursor = 'move';
 	
-	var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-	var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
-	var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
-	
-	mxEvent.addListener(this.title, md, mxUtils.bind(this, function(evt)
-	{
-		var startX = mxEvent.getClientX(evt);
-		var startY = mxEvent.getClientY(evt);
-		var x = this.getX();
-		var y = this.getY();
-					
-		// Adds a temporary pair of listeners to intercept
-		// the gesture event in the document
-		var dragHandler = mxUtils.bind(this, function(evt)
+	mxEvent.addGestureListeners(this.title,
+		mxUtils.bind(this, function(evt)
 		{
-			var dx = mxEvent.getClientX(evt) - startX;
-			var dy = mxEvent.getClientY(evt) - startY;
-			this.setLocation(x + dx, y + dy);
-			this.fireEvent(new mxEventObject(mxEvent.MOVE, 'event', evt));
+			var startX = mxEvent.getClientX(evt);
+			var startY = mxEvent.getClientY(evt);
+			var x = this.getX();
+			var y = this.getY();
+						
+			// Adds a temporary pair of listeners to intercept
+			// the gesture event in the document
+			var dragHandler = mxUtils.bind(this, function(evt)
+			{
+				var dx = mxEvent.getClientX(evt) - startX;
+				var dy = mxEvent.getClientY(evt) - startY;
+				this.setLocation(x + dx, y + dy);
+				this.fireEvent(new mxEventObject(mxEvent.MOVE, 'event', evt));
+				mxEvent.consume(evt);
+			});
+			
+			var dropHandler = mxUtils.bind(this, function(evt)
+			{
+				mxEvent.removeGestureListeners(document, null, dragHandler, dropHandler);
+				this.fireEvent(new mxEventObject(mxEvent.MOVE_END, 'event', evt));
+				mxEvent.consume(evt);
+			});
+			
+			mxEvent.addGestureListeners(document, null, dragHandler, dropHandler);
+			this.fireEvent(new mxEventObject(mxEvent.MOVE_START, 'event', evt));
 			mxEvent.consume(evt);
-		});
-		
-		var dropHandler = mxUtils.bind(this, function(evt)
-		{
-			mxEvent.removeListener(document, mm, dragHandler);
-			mxEvent.removeListener(document, mu, dropHandler);
-
-			this.fireEvent(new mxEventObject(mxEvent.MOVE_END, 'event', evt));
-			mxEvent.consume(evt);
-		});
-
-		mxEvent.addListener(document, mm, dragHandler);
-		mxEvent.addListener(document, mu, dropHandler);
-		
-		this.fireEvent(new mxEventObject(mxEvent.MOVE_START, 'event', evt));
-		mxEvent.consume(evt);
-	}));
+		}));
 };
 
 /**
@@ -10960,22 +11177,22 @@ mxWindow.prototype.installCloseHandler = function()
 	
 	this.title.insertBefore(this.closeImg, this.title.firstChild);
 
-	var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-	mxEvent.addListener(this.closeImg, md, mxUtils.bind(this, function(evt)
-	{
-		this.fireEvent(new mxEventObject(mxEvent.CLOSE, 'event', evt));
-		
-		if (this.destroyOnClose)
+	mxEvent.addGestureListeners(this.closeImg,
+		mxUtils.bind(this, function(evt)
 		{
-			this.destroy();
-		}
-		else
-		{
-			this.setVisible(false);
-		}
-		
-		mxEvent.consume(evt);
-	}));
+			this.fireEvent(new mxEventObject(mxEvent.CLOSE, 'event', evt));
+			
+			if (this.destroyOnClose)
+			{
+				this.destroy();
+			}
+			else
+			{
+				this.setVisible(false);
+			}
+			
+			mxEvent.consume(evt);
+		}));
 };
 
 /**
@@ -11106,7 +11323,7 @@ mxWindow.prototype.destroy = function()
 	this.contentWrapper = null;
 };
 /**
- * $Id: mxForm.js,v 1.16 2010/10/08 04:21:45 david Exp $
+ * $Id: mxForm.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder, David Benson
  */
 /**
@@ -11308,7 +11525,7 @@ mxForm.prototype.addField = function(name, input)
 	return input;
 };
 /**
- * $Id: mxImage.js,v 1.7 2010/01/02 09:45:14 gaudenz Exp $
+ * $Id: mxImage.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -11348,7 +11565,7 @@ mxImage.prototype.width = null;
  */
 mxImage.prototype.height = null;
 /**
- * $Id: mxDivResizer.js,v 1.22 2010/01/02 09:45:14 gaudenz Exp $
+ * $Id: mxDivResizer.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -11499,7 +11716,7 @@ mxDivResizer.prototype.getDocumentHeight = function()
 	return document.body.clientHeight;
 };
 /**
- * $Id: mxDragSource.js,v 1.14 2012/12/05 21:43:16 gaudenz Exp $
+ * $Id: mxDragSource.js,v 1.5 2012/12/05 21:43:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -11508,8 +11725,8 @@ mxDivResizer.prototype.getDocumentHeight = function()
  * Wrapper to create a drag source from a DOM element so that the element can
  * be dragged over a graph and dropped into the graph as a new cell.
  * 
- * TODO: Problem is that in the dropHandler the current preview location is
- * not available, so the preview and the dropHandler must match.
+ * Problem is that in the dropHandler the current preview location is not
+ * available, so the preview and the dropHandler must match.
  * 
  * Constructor: mxDragSource
  * 
@@ -11521,8 +11738,7 @@ function mxDragSource(element, dropHandler)
 	this.dropHandler = dropHandler;
 	
 	// Handles a drag gesture on the element
-	var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-	mxEvent.addListener(element, md, mxUtils.bind(this, this.mouseDown));
+	mxEvent.addGestureListeners(element, mxUtils.bind(this, this.mouseDown));
 };
 
 /**
@@ -11761,14 +11977,9 @@ mxDragSource.prototype.mouseDown = function(evt)
 	if (this.enabled && !mxEvent.isConsumed(evt) && this.mouseMoveHandler == null)
 	{
 		this.startDrag(evt);
-		
-		var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
-		var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
-		
 		this.mouseMoveHandler = mxUtils.bind(this, this.mouseMove);
-		mxEvent.addListener(document, mm, this.mouseMoveHandler);
-		this.mouseUpHandler = mxUtils.bind(this, this.mouseUp);
-		mxEvent.addListener(document, mu, this.mouseUpHandler);
+		this.mouseUpHandler = mxUtils.bind(this, this.mouseUp);		
+		mxEvent.addGestureListeners(document, null, this.mouseMoveHandler, this.mouseUpHandler);
 		
 		// Prevents default action (native DnD for images in FF 10)
 		// but does not stop event propagation
@@ -11920,22 +12131,11 @@ mxDragSource.prototype.mouseUp = function(evt)
 
 	this.stopDrag(evt);
 	
+	mxEvent.removeGestureListeners(document, null, this.mouseMoveHandler, this.mouseUpHandler);
+	this.mouseMoveHandler = null;
+	this.mouseUpHandler = null;
 	this.currentGraph = null;
-
-	if (this.mouseMoveHandler != null)
-	{
-		var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
-		mxEvent.removeListener(document, mm, this.mouseMoveHandler);
-		this.mouseMoveHandler = null;
-	}
 	
-	if (this.mouseUpHandler != null)
-	{
-		var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
-		mxEvent.removeListener(document, mu, this.mouseUpHandler);
-		this.mouseUpHandler = null;
-	}
-		
 	mxEvent.consume(evt);
 };
 
@@ -12093,7 +12293,7 @@ mxDragSource.prototype.drop = function(graph, evt, dropTarget, x, y)
 	graph.container.focus();
 };
 /**
- * $Id: mxToolbar.js,v 1.36 2012/06/22 11:17:13 gaudenz Exp $
+ * $Id: mxToolbar.js,v 1.2 2012/12/02 12:35:31 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -12206,67 +12406,13 @@ mxToolbar.prototype.addItem = function(title, icon, funct, pressedIcon, style, f
 	// Invokes the function on a click on the toolbar item
 	if (funct != null)
 	{
-		mxEvent.addListener(img, (mxClient.IS_TOUCH) ? 'touchend' : 'click', funct);
-	}
-	
-	var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-	var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
-
-	// Highlights the toolbar item with a gray background
-	// while it is being clicked with the mouse
-	mxEvent.addListener(img, md, mxUtils.bind(this, function(evt)
-	{
-		if (pressedIcon != null)
-		{
-			img.setAttribute('src', pressedIcon);
-		}
-		else
-		{
-			img.style.backgroundColor = 'gray';
-		}
+		mxEvent.addListener(img, 'click', funct);
 		
-		// Popup Menu
-		if (factoryMethod != null)
+		if (mxClient.IS_TOUCH)
 		{
-			if (this.menu == null)
-			{
-				this.menu = new mxPopupMenu();
-				this.menu.init();
-			}
-			
-			var last = this.currentImg;
-			
-			if (this.menu.isMenuShowing())
-			{
-				this.menu.hideMenu();
-			}
-			
-			if (last != img)
-			{
-				// Redirects factory method to local factory method
-				this.currentImg = img;
-				this.menu.factoryMethod = factoryMethod;
-				
-				var point = new mxPoint(
-					img.offsetLeft,
-					img.offsetTop + img.offsetHeight);
-				this.menu.popup(point.x, point.y, null, evt);
-
-				// Sets and overrides to restore classname
-				if (this.menu.isMenuShowing())
-				{
-					img.className = initialClassName + 'Selected';
-					
-					this.menu.hideMenu = function()
-					{
-						mxPopupMenu.prototype.hideMenu.apply(this);
-						img.className = initialClassName;
-						this.currentImg = null;
-					};
-				}
-			}
+			mxEvent.addListener(img, 'touchend', funct);
 		}
-	}));
+	}
 
 	var mouseHandler = mxUtils.bind(this, function(evt)
 	{
@@ -12279,8 +12425,66 @@ mxToolbar.prototype.addItem = function(title, icon, funct, pressedIcon, style, f
 			img.style.backgroundColor = '';
 		}
 	});
+
+	// Highlights the toolbar item with a gray background
+	// while it is being clicked with the mouse
+	mxEvent.addGestureListeners(img,
+		mxUtils.bind(this, function(evt)
+		{
+			if (pressedIcon != null)
+			{
+				img.setAttribute('src', pressedIcon);
+			}
+			else
+			{
+				img.style.backgroundColor = 'gray';
+			}
+			
+			// Popup Menu
+			if (factoryMethod != null)
+			{
+				if (this.menu == null)
+				{
+					this.menu = new mxPopupMenu();
+					this.menu.init();
+				}
+				
+				var last = this.currentImg;
+				
+				if (this.menu.isMenuShowing())
+				{
+					this.menu.hideMenu();
+				}
+				
+				if (last != img)
+				{
+					// Redirects factory method to local factory method
+					this.currentImg = img;
+					this.menu.factoryMethod = factoryMethod;
+					
+					var point = new mxPoint(
+						img.offsetLeft,
+						img.offsetTop + img.offsetHeight);
+					this.menu.popup(point.x, point.y, null, evt);
 	
-	mxEvent.addListener(img, mu, mouseHandler);
+					// Sets and overrides to restore classname
+					if (this.menu.isMenuShowing())
+					{
+						img.className = initialClassName + 'Selected';
+						
+						this.menu.hideMenu = function()
+						{
+							mxPopupMenu.prototype.hideMenu.apply(this);
+							img.className = initialClassName;
+							this.currentImg = null;
+						};
+					}
+				}
+			}
+		}),
+		null,
+		mouseHandler);
+
 	mxEvent.addListener(img, 'mouseout', mouseHandler);
 	
 	return img;
@@ -12621,7 +12825,7 @@ mxToolbar.prototype.destroy = function ()
 	}
 };
 /**
- * $Id: mxSession.js,v 1.46 2012/08/22 15:30:49 gaudenz Exp $
+ * $Id: mxSession.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -13295,7 +13499,7 @@ mxSession.prototype.cellRemoved = function(cell, codec)
 	}
 };
 /**
- * $Id: mxUndoableEdit.js,v 1.15 2013/03/27 16:06:33 gaudenz Exp $
+ * $Id: mxUndoableEdit.js,v 1.2 2013/02/12 12:34:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -13488,7 +13692,7 @@ mxUndoableEdit.prototype.redo = function()
 	this.notify();
 };
 /**
- * $Id: mxUndoManager.js,v 1.30 2011/10/05 06:39:19 gaudenz Exp $
+ * $Id: mxUndoManager.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -13717,7 +13921,7 @@ mxUndoManager.prototype.trim = function()
 	}
 };
 /**
- * $Id: mxUrlConverter.js,v 1.3 2012/08/24 17:10:41 gaudenz Exp $
+ * $Id: mxUrlConverter.js,v 1.2 2013/01/29 12:34:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -13827,6 +14031,16 @@ var mxUrlConverter = function(root)
 		},
 
 		/**
+		 * Function: isRelativeUrl
+		 * 
+		 * Returns true if the given URL is relative.
+		 */
+		isRelativeUrl: function(url)
+		{
+			return url.substring(0, 7) != 'http://' && url.substring(0, 8) != 'https://' && url.substring(0, 10) != 'data:image';
+		},
+		
+		/**
 		 * Function: convert
 		 * 
 		 * Converts the given URL to an absolute URL with protol and domain.
@@ -13834,7 +14048,7 @@ var mxUrlConverter = function(root)
 		 */
 		convert: function(url)
 		{
-			if (enabled && url.indexOf('http://') != 0 && url.indexOf('https://') != 0 && url.indexOf('data:image') != 0)
+			if (enabled && this.isRelativeUrl(url))
 			{
 				if (baseUrl == null)
 				{
@@ -13857,7 +14071,7 @@ var mxUrlConverter = function(root)
 	};
 
 };/**
- * $Id: mxPanningManager.js,v 1.7 2012/06/13 06:46:37 gaudenz Exp $
+ * $Id: mxPanningManager.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -14119,321 +14333,7 @@ mxPanningManager.prototype.handleMouseOut = true;
  */
 mxPanningManager.prototype.border = 0;
 /**
- * $Id: mxPath.js,v 1.24 2012/06/13 17:31:32 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
- */
-/**
- * Class: mxPath
- *
- * An abstraction for creating VML and SVG paths. See <mxActor> for using this
- * object inside an <mxShape> for painting cells.
- * 
- * Constructor: mxPath
- *
- * Constructs a path for the given format, which is one of svg or vml.
- * 
- * Parameters:
- * 
- * format - String specifying the <format>. May be one of vml or svg
- * (default).
- */
-function mxPath(format)
-{
-	this.format = format;
-	this.path = [];
-	this.translate = new mxPoint(0, 0);
-};
-
-/**
- * Variable: format
- *
- * Defines the format for the output of this path. Possible values are
- * svg and vml.
- */
-mxPath.prototype.format = null;
-
-/**
- * Variable: translate
- *
- * <mxPoint> that specifies the translation of the complete path.
- */
-mxPath.prototype.translate = null;
-
-/**
- * Variable: scale
- *
- * Number that specifies the translation of the path.
- */
-mxPath.prototype.scale = 1;
-
-/**
- * Variable: path
- *
- * Contains the textual representation of the path as an array.
- */
-mxPath.prototype.path = null;
-
-/**
- * Function: isVml
- *
- * Returns true if <format> is vml.
- */
-mxPath.prototype.isVml = function()
-{
-	return this.format == 'vml';
-};
-
-/**
- * Function: getPath
- *
- * Returns string that represents the path in <format>.
- */
-mxPath.prototype.getPath = function()
-{
-	return this.path.join('');
-};
-
-/**
- * Function: setTranslate
- *
- * Set the global translation of this path, that is, the origin of the 
- * coordinate system.
- * 
- * Parameters:
- * 
- * x - X-coordinate of the new origin.
- * y - Y-coordinate of the new origin.
- */
-mxPath.prototype.setTranslate = function(x, y)
-{
-	this.translate = new mxPoint(x, y);
-};
-
-/**
- * Function: moveTo
- *
- * Moves the cursor to (x, y).
- * 
- * Parameters:
- * 
- * x - X-coordinate of the new cursor location.
- * y - Y-coordinate of the new cursor location.
- */
-mxPath.prototype.moveTo = function(x, y)
-{
-	x += this.translate.x;
-	y += this.translate.y;
-	
-	x *= this.scale;
-	y *= this.scale;
-	
-	if (this.isVml())
-	{
-		this.path.push('m ', Math.round(x), ' ', Math.round(y), ' ');
-	}
-	else
-	{
-		this.path.push('M ', x, ' ', y, ' ');
-	}
-};
-	
-/**
- * Function: lineTo
- *
- * Draws a straight line from the current poin to (x, y).
- * 
- * Parameters:
- * 
- * x - X-coordinate of the endpoint.
- * y - Y-coordinate of the endpoint.
- */
-mxPath.prototype.lineTo = function(x, y)
-{
-	x += this.translate.x;
-	y += this.translate.y;
-	
-	x *= this.scale;
-	y *= this.scale;
-	
-	if (this.isVml())
-	{
-		this.path.push('l ', Math.round(x), ' ', Math.round(y), ' ');
-	}
-	else
-	{
-		this.path.push('L ', x, ' ', y, ' ');
-	}
-};
-
-/**
- * Function: quadTo
- * 
- * Draws a quadratic Bézier curve from the current point to (x, y) using
- * (x1, y1) as the control point.
- * 
- * Parameters:
- * 
- * x1 - X-coordinate of the control point.
- * y1 - Y-coordinate of the control point.
- * x - X-coordinate of the endpoint. 
- * y - Y-coordinate of the endpoint.
- */
-mxPath.prototype.quadTo = function(x1, y1, x, y)
-{
-	x1 += this.translate.x;
-	y1 += this.translate.y;
-	
-	x1 *= this.scale;
-	y1 *= this.scale;
-	
-	x += this.translate.x;
-	y += this.translate.y;
-	
-	x *= this.scale;
-	y *= this.scale;
-	
-	if (this.isVml())
-	{
-		this.path.push('c ', Math.round(x1), ' ', Math.round(y1), ' ', Math.round(x), ' ',
-			Math.round(y), ' ', Math.round(x), ' ', Math.round(y), ' ');
-	}
-	else
-	{
-		this.path.push('Q ', x1, ' ', y1, ' ', x, ' ', y, ' ');
-	}
-};
-
-/**
- * Function: curveTo
- *
- * Draws a cubic Bézier curve from the current point to (x, y) using
- * (x1, y1) as the control point at the beginning of the curve and (x2, y2)
- * as the control point at the end of the curve.
- * 
- * Parameters:
- * 
- * x1 - X-coordinate of the first control point.
- * y1 - Y-coordinate of the first control point.
- * x2 - X-coordinate of the second control point.
- * y2 - Y-coordinate of the second control point.
- * x - X-coordinate of the endpoint. 
- * y - Y-coordinate of the endpoint.
- */
-mxPath.prototype.curveTo = function(x1, y1, x2, y2, x, y)
-{
-	x1 += this.translate.x;
-	y1 += this.translate.y;
-	
-	x1 *= this.scale;
-	y1 *= this.scale;
-	
-	x2 += this.translate.x;
-	y2 += this.translate.y;
-	
-	x2 *= this.scale;
-	y2 *= this.scale;
-	
-	x += this.translate.x;
-	y += this.translate.y;
-	
-	x *= this.scale;
-	y *= this.scale;
-	
-	if (this.isVml())
-	{
-		this.path.push('c ', Math.round(x1), ' ', Math.round(y1), ' ', Math.round(x2),
-			' ', Math.round(y2), ' ', Math.round(x), ' ', Math.round(y), ' ');
-	}
-	else
-	{
-		this.path.push('C ', x1, ' ', y1, ' ', x2,
-			' ', y2, ' ', x, ' ', y, ' ');
-	}
-};
-
-/**
- * Function: ellipse
- *
- * Adds the given ellipse. Some implementations may require the path to be
- * closed after this operation.
- */
-mxPath.prototype.ellipse = function(x, y, w, h)
-{
-	x += this.translate.x;
-	y += this.translate.y;
-	x *= this.scale;
-	y *= this.scale;
-
-	if (this.isVml())
-	{
-		this.path.push('at ', Math.round(x), ' ', Math.round(y), ' ', Math.round(x + w), ' ', Math.round(y +  h), ' ',
-				Math.round(x), ' ', Math.round(y + h / 2), ' ', Math.round(x), ' ', Math.round(y + h / 2));
-	}
-	else
-	{
-		var startX = x;
-		var startY = y + h/2;
-		var endX = x + w;
-		var endY = y + h/2;
-		var r1 = w/2;
-		var r2 = h/2;
-		this.path.push('M ', startX, ' ', startY, ' ');
-		this.path.push('A ', r1, ' ', r2, ' 0 1 0 ', endX, ' ', endY, ' ');
-		this.path.push('A ', r1, ' ', r2, ' 0 1 0 ', startX, ' ', startY);
-	}
-};
-
-/**
- * Function: addPath
- *
- * Adds the given path.
- */
-mxPath.prototype.addPath = function(path)
-{
-	this.path = this.path.concat(path.path);
-};
-
-/**
- * Function: write
- *
- * Writes directly into the path. This bypasses all conversions.
- */
-mxPath.prototype.write = function(string)
-{
-	this.path.push(string, ' ');
-};
-
-/**
- * Function: end
- *
- * Ends the path.
- */
-mxPath.prototype.end = function()
-{
-	if (this.format == 'vml')
-	{
-		this.path.push('e');
-	}
-};
-
-/**
- * Function: close
- *
- * Closes the path.
- */
-mxPath.prototype.close = function()
-{
-	if (this.format == 'vml')
-	{
-		this.path.push('x e');
-	}
-	else
-	{
-		this.path.push('Z');
-	}
-};
-/**
- * $Id: mxPopupMenu.js,v 1.37 2012/04/22 10:16:23 gaudenz Exp $
+ * $Id: mxPopupMenu.js,v 1.3 2012/12/03 15:46:33 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -14683,74 +14583,69 @@ mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, e
 
 	if (enabled == null || enabled)
 	{
-		var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-		var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
-		var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
+		mxEvent.addGestureListeners(tr,
+			mxUtils.bind(this, function(evt)
+			{
+				this.eventReceiver = tr;
+				
+				if (parent.activeRow != tr && parent.activeRow != parent)
+				{
+					if (parent.activeRow != null &&
+						parent.activeRow.div.parentNode != null)
+					{
+						this.hideSubmenu(parent);
+					}
+					
+					if (tr.div != null)
+					{
+						this.showSubmenu(parent, tr);
+						parent.activeRow = tr;
+					}
+				}
+				
+				mxEvent.consume(evt);
+			}),
+			mxUtils.bind(this, function(evt)
+			{
+				if (parent.activeRow != tr && parent.activeRow != parent)
+				{
+					if (parent.activeRow != null &&
+						parent.activeRow.div.parentNode != null)
+					{
+						this.hideSubmenu(parent);
+					}
+					
+					if (this.autoExpand && tr.div != null)
+					{
+						this.showSubmenu(parent, tr);
+						parent.activeRow = tr;
+					}
+				}
 		
-		// Consumes the event on mouse down
-		mxEvent.addListener(tr, md, mxUtils.bind(this, function(evt)
-		{
-			this.eventReceiver = tr;
-			
-			if (parent.activeRow != tr && parent.activeRow != parent)
+				// Sets hover style because TR in IE doesn't have hover
+				tr.className = 'mxPopupMenuItemHover';
+			}),
+			mxUtils.bind(this, function(evt)
 			{
-				if (parent.activeRow != null &&
-					parent.activeRow.div.parentNode != null)
+				// EventReceiver avoids clicks on a submenu item
+				// which has just been shown in the mousedown
+				if (this.eventReceiver == tr)
 				{
-					this.hideSubmenu(parent);
+					if (parent.activeRow != tr)
+					{
+						this.hideMenu();
+					}
+					
+					if (funct != null)
+					{
+						funct(evt);
+					}
 				}
 				
-				if (tr.div != null)
-				{
-					this.showSubmenu(parent, tr);
-					parent.activeRow = tr;
-				}
-			}
-			
-			mxEvent.consume(evt);
-		}));
-		
-		mxEvent.addListener(tr, mm, mxUtils.bind(this, function(evt)
-		{
-			if (parent.activeRow != tr && parent.activeRow != parent)
-			{
-				if (parent.activeRow != null &&
-					parent.activeRow.div.parentNode != null)
-				{
-					this.hideSubmenu(parent);
-				}
-				
-				if (this.autoExpand && tr.div != null)
-				{
-					this.showSubmenu(parent, tr);
-					parent.activeRow = tr;
-				}
-			}
-	
-			// Sets hover style because TR in IE doesn't have hover
-			tr.className = 'mxPopupMenuItemHover';
-		}));
-	
-		mxEvent.addListener(tr, mu, mxUtils.bind(this, function(evt)
-		{
-			// EventReceiver avoids clicks on a submenu item
-			// which has just been shown in the mousedown
-			if (this.eventReceiver == tr)
-			{
-				if (parent.activeRow != tr)
-				{
-					this.hideMenu();
-				}
-				
-				if (funct != null)
-				{
-					funct(evt);
-				}
-			}
-			
-			this.eventReceiver = null;
-			mxEvent.consume(evt);
-		}));
+				this.eventReceiver = null;
+				mxEvent.consume(evt);
+			})
+		);
 	
 		// Resets hover style because TR in IE doesn't have hover
 		mxEvent.addListener(tr, 'mouseout',
@@ -15007,7 +14902,7 @@ mxPopupMenu.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxAutoSaveManager.js,v 1.9 2010/09/16 09:10:21 gaudenz Exp $
+ * $Id: mxAutoSaveManager.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -15220,7 +15115,7 @@ mxAutoSaveManager.prototype.destroy = function()
 	this.setGraph(null);
 };
 /**
- * $Id: mxAnimation.js,v 1.2 2010/03/19 12:53:29 gaudenz Exp $
+ * $Id: mxAnimation.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -15302,7 +15197,7 @@ mxAnimation.prototype.stopAnimation = function()
 	}
 };
 /**
- * $Id: mxMorphing.js,v 1.4 2010/06/03 13:37:07 gaudenz Exp $
+ * $Id: mxMorphing.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -15541,7 +15436,7 @@ mxMorphing.prototype.getOriginForCell = function(cell)
 	return result;
 };
 /**
- * $Id: mxImageBundle.js,v 1.3 2011/01/20 19:08:11 gaudenz Exp $
+ * $Id: mxImageBundle.js,v 1.2 2013/04/12 09:25:40 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -15560,6 +15455,11 @@ mxMorphing.prototype.getOriginForCell = function(cell)
  *   '//AOzp2O3r2////////yH+FUNyZWF0ZWQgd2l0aCBUaGUgR0lNUAAh+QQBCgAHACwAAAAA' +
  *   'EAAQAAADTXi63AowynnAMDfjPUDlnAAJhmeBFxAEloliKltWmiYCQvfVr6lBPB1ggxN1hi' +
  *   'laSSASFQpIV5HJBDyHpqK2ejVRm2AAgZCdmCGO9CIBADs=', fallback);
+ * bundle.putImage('mySvgImage', 'data:image/svg+xml,' + encodeURIComponent(
+ *   '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">' +
+ *   '<linearGradient id="gradient"><stop offset="10%" stop-color="#F00"/>' +
+ *   '<stop offset="90%" stop-color="#fcc"/></linearGradient>' +
+ *   '<rect fill="url(#gradient)" width="100%" height="100%"/></svg>'), fallback);
  * graph.addImageBundle(bundle);
  * (end);
  * 
@@ -15639,7 +15539,7 @@ mxImageBundle.prototype.getImage = function(key)
 	return result;
 };
 /**
- * $Id: mxImageExport.js,v 1.48 2013/01/16 08:40:17 gaudenz Exp $
+ * $Id: mxImageExport.js,v 1.3 2013/01/05 14:18:32 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -15668,32 +15568,11 @@ mxImageBundle.prototype.getImage = function(key)
  * 		.simulate(document, '_blank');
  * (end)
  * 
- * In order to export images for a graph whose container is not visible or not
- * part of the DOM, the following workaround can be used to compute the size of
- * the labels.
- * 
- * (code)
- * mxText.prototype.getTableSize = function(table)
- * {
- *   var oldParent = table.parentNode;
- *   
- *   document.body.appendChild(table);
- *   var size = new mxRectangle(0, 0, table.offsetWidth, table.offsetHeight);
- *   oldParent.appendChild(table);
- *   
- *   return size;
- * };
- * (end) 
- * 
  * Constructor: mxImageExport
  * 
  * Constructs a new image export.
  */
-function mxImageExport()
-{
-	this.initShapes();
-	this.initMarkers();
-};
+function mxImageExport() { };
 
 /**
  * Variable: includeOverlays
@@ -15701,27 +15580,6 @@ function mxImageExport()
  * Specifies if overlays should be included in the export. Default is false.
  */
 mxImageExport.prototype.includeOverlays = false;
-
-/**
- * Variable: glassSize
- * 
- * Reference to the thread while the animation is running.
- */
-mxImageExport.prototype.glassSize = 0.4;
-
-/**
- * Variable: shapes
- * 
- * Holds implementations for the built-in shapes.
- */
-mxImageExport.prototype.shapes = null;
-
-/**
- * Variable: markers
- * 
- * Holds implementations for the built-in markers.
- */
-mxImageExport.prototype.markers = null;
 
 /**
  * Function: drawState
@@ -15732,36 +15590,26 @@ mxImageExport.prototype.drawState = function(state, canvas)
 {
 	if (state != null)
 	{
-		if (state.shape != null)
+		this.visitStatesRecursive(state, canvas, this.drawCellState);
+				
+		// Paints the overlays
+		if (this.includeOverlays)
 		{
-			var shape = (state.shape.stencil != null) ?
-				state.shape.stencil :
-				this.shapes[state.style[mxConstants.STYLE_SHAPE]];
-
-			if (shape == null)
-			{
-				// Checks if there is a custom shape
-				if (typeof(state.shape.redrawPath) == 'function')
-				{
-					shape = this.createShape(state, canvas);
-				}
-				// Uses a rectangle for all vertices where no shape can be found
-				else if (state.view.graph.getModel().isVertex(state.cell))
-				{
-					shape = this.shapes['rectangle'];
-				}
-			}
-			
-			if (shape != null)
-			{
-				this.drawShape(state, canvas, shape);
-
-				if (this.includeOverlays)
-				{
-					this.drawOverlays(state, canvas);
-				}
-			}
+			this.visitStatesRecursive(state, canvas, this.drawOverlays);
 		}
+	}
+};
+
+/**
+ * Function: drawState
+ * 
+ * Draws the given state and all its descendants to the given canvas.
+ */
+mxImageExport.prototype.visitStatesRecursive = function(state, canvas, visitor)
+{
+	if (state != null)
+	{
+		visitor(state, canvas);
 		
 		var graph = state.view.graph;
 		var childCount = graph.model.getChildCount(state.cell);
@@ -15769,68 +15617,33 @@ mxImageExport.prototype.drawState = function(state, canvas)
 		for (var i = 0; i < childCount; i++)
 		{
 			var childState = graph.view.getState(graph.model.getChildAt(state.cell, i));
-			this.drawState(childState, canvas);
+			this.visitStatesRecursive(childState, canvas, visitor);
 		}
 	}
 };
 
 /**
- * Function: createShape
+ * Function: drawShape
  * 
- * Creates a shape wrapper for the custom shape in the given cell state and
- * links its output to the given canvas.
+ * Draws the given state to the given canvas.
  */
-mxImageExport.prototype.createShape = function(state, canvas)
+mxImageExport.prototype.drawCellState = function(state, canvas)
 {
-	return {
-		drawShape: function(canvas, state, bounds, background)
-		{
-			var path =
-			{
-				translate: new mxPoint(bounds.x, bounds.y),
-				moveTo: function(x, y)
-				{
-					canvas.moveTo(this.translate.x + x, this.translate.y + y);
-				},
-				lineTo: function(x, y)
-				{
-					canvas.lineTo(this.translate.x + x, this.translate.y + y);
-				},
-				quadTo: function(x1, y1, x, y)
-				{
-					canvas.quadTo(this.translate.x + x1, this.translate.y + y1, this.translate.x + x, this.translate.y + y);
-				},
-				curveTo: function(x1, y1, x2, y2, x, y)
-				{
-					canvas.curveTo(this.translate.x + x1, this.translate.y + y1, this.translate.x + x2, this.translate.y + y2, this.translate.x + x, this.translate.y + y);
-				},
-				end: function()
-				{
-					// do nothing
-				},
-				close: function()
-				{
-					canvas.close();
-				}
-			};
-			
-			if (!background)
-			{
-				canvas.fillAndStroke();
-			}
-			
-			// LATER: Remove empty path if shape does not implement foreground, add shadow/clipping
-			canvas.begin();
-			state.shape.redrawPath.call(state.shape, path, bounds.x, bounds.y, bounds.width, bounds.height, !background);
-			
-			if (!background)
-			{
-				canvas.fillAndStroke();
-			}
-			
-			return true;
-		}
-	};
+	// Paints the shape
+	if (state.shape instanceof mxShape)
+	{
+		canvas.save();
+		state.shape.paint(canvas);
+		canvas.restore();
+	}
+	
+	// Paints the label
+	if (state.text != null)
+	{
+		canvas.save();
+		state.text.paint(canvas);
+		canvas.restore();
+	}
 };
 
 /**
@@ -15845,1959 +15658,1777 @@ mxImageExport.prototype.drawOverlays = function(state, canvas)
 	{
 		state.overlays.visit(function(id, shape)
 		{
-			var bounds = shape.bounds;
-			
-			if (bounds != null)
+			if (shape instanceof mxShape)
 			{
-				canvas.image(bounds.x, bounds.y, bounds.width, bounds.height, shape.image);
+				shape.paint(canvas);
 			}
 		});
 	}
 };
 
 /**
- * Function: drawShape
- * 
- * Draws the given state to the given canvas.
- */
-mxImageExport.prototype.drawShape = function(state, canvas, shape)
-{
-	var rotation = mxUtils.getNumber(state.style, mxConstants.STYLE_ROTATION, 0);
-	var direction = mxUtils.getValue(state.style, mxConstants.STYLE_DIRECTION, null);
-
-	// New styles for shape flipping the stencil
-	var flipH = state.style[mxConstants.STYLE_STENCIL_FLIPH];
-	var flipV = state.style[mxConstants.STYLE_STENCIL_FLIPV];
-	
-	if (flipH ? !flipV : flipV)
-	{
-		rotation *= -1;
-	}
-	
-	// Default direction is east (ignored if rotation exists)
-	if (direction != null)
-	{
-		if (direction == 'north')
-		{
-			rotation += 270;
-		}
-		else if (direction == 'west')
-		{
-			rotation += 180;
-		}
-		else if (direction == 'south')
-		{
-			rotation += 90;
-		}
-	}
-
-	if (flipH && flipV)
-	{
-		rotation += 180;
-		flipH = false;
-		flipV = false;
-	}
-
-	// Saves the global state for each cell
-	canvas.save();
-
-	// Adds rotation and horizontal/vertical flipping
-	// FIXME: Rotation and stencil flip only supported for stencil shapes
-	rotation = rotation % 360;
-
-	if (rotation != 0 || flipH || flipV)
-	{
-		canvas.rotate(rotation, flipH, flipV, state.getCenterX(), state.getCenterY());
-	}
-
-	// Note: Overwritten in mxStencil.paintShape (can depend on aspect)
-	var scale = state.view.scale;
-	var sw = mxUtils.getNumber(state.style, mxConstants.STYLE_STROKEWIDTH, 1) * scale;
-	canvas.setStrokeWidth(sw);
-
-	var sw2 = sw / 2;
-	var bg = this.getBackgroundBounds(state);
-	
-	// Stencils will rotate the bounds as required
-	if (state.shape.stencil == null && (direction == 'south' || direction == 'north'))
-	{
-		var dx = (bg.width - bg.height) / 2;
-		bg.x += dx;
-		bg.y += -dx;
-		var tmp = bg.width;
-		bg.width = bg.height;
-		bg.height = tmp;
-	}
-	
-	var bb = new mxRectangle(bg.x - sw2, bg.y - sw2, bg.width + sw, bg.height + sw);
-	var alpha = mxUtils.getValue(state.style, mxConstants.STYLE_OPACITY, 100) / 100;
-
-	var shp = state.style[mxConstants.STYLE_SHAPE];
-	var imageShape = shp == mxConstants.SHAPE_IMAGE;
-	var gradientColor = (imageShape) ? null : mxUtils.getValue(state.style, mxConstants.STYLE_GRADIENTCOLOR);
-	
-	// Converts colors with special keyword none to null
-	if (gradientColor == mxConstants.NONE)
-	{
-		gradientColor = null;
-	}
-
-	var fcKey = (imageShape) ? mxConstants.STYLE_IMAGE_BACKGROUND : mxConstants.STYLE_FILLCOLOR; 
-	var fillColor = mxUtils.getValue(state.style, fcKey, null);
-	
-	if (fillColor == mxConstants.NONE)
-	{
-		fillColor = null;
-	}
-
-	var scKey = (imageShape) ? mxConstants.STYLE_IMAGE_BORDER : mxConstants.STYLE_STROKECOLOR; 
-	var strokeColor = mxUtils.getValue(state.style, scKey, null);
-	
-	if (strokeColor == mxConstants.NONE)
-	{
-		strokeColor = null;
-	}
-
-	var glass = (fillColor != null && (shp == mxConstants.SHAPE_LABEL || shp == mxConstants.SHAPE_RECTANGLE));
-	
-	// Draws the shadow if the fillColor is not transparent
-	if (mxUtils.getValue(state.style, mxConstants.STYLE_SHADOW, false))
-	{
-		this.drawShadow(canvas, state, shape, rotation, flipH, flipV, bg, alpha, fillColor != null);
-	}
-	
-	canvas.setAlpha(alpha);
-	
-	// Sets the dashed state
-	if (mxUtils.getValue(state.style, mxConstants.STYLE_DASHED, '0') == '1')
-	{
-		canvas.setDashed(true);
-		
-		// Supports custom dash patterns
-		var dash = state.style['dashPattern'];
-		
-		if (dash != null)
-		{
-			canvas.setDashPattern(dash);
-		}
-	}
-
-	// Draws background and foreground
-	if (strokeColor != null || fillColor != null)
-	{
-		if (strokeColor != null)
-		{
-			canvas.setStrokeColor(strokeColor);
-		}
-		
-		if (fillColor != null)
-		{
-			if (gradientColor != null && gradientColor != 'transparent')
-			{
-				canvas.setGradient(fillColor, gradientColor, bg.x, bg.y, bg.width, bg.height, direction);
-			}
-			else 
-			{
-				canvas.setFillColor(fillColor);
-			}
-		}
-		
-		// Draws background and foreground of shape
-		glass = shape.drawShape(canvas, state, bg, true, false) && glass;
-		shape.drawShape(canvas, state, bg, false, false);
-	}
-
-	// Draws the glass effect
-	// Requires background in generic shape for clipping
-	if (glass && mxUtils.getValue(state.style, mxConstants.STYLE_GLASS, 0) == 1)
-	{
-		this.drawGlass(state, canvas, bb, shape, this.glassSize);
-	}
-	
-	// Draws the image (currently disabled for everything but image and label shapes)
-	if (imageShape || shp == mxConstants.SHAPE_LABEL)
-	{
-		var src = state.view.graph.getImage(state);
-		
-		if (src != null)
-		{
-			var imgBounds = this.getImageBounds(state);
-			
-			if (imgBounds != null)
-			{
-				this.drawImage(state, canvas, imgBounds, src);
-			}
-		}
-	}
-
-	// Restores canvas state
-	canvas.restore();
-
-	// Draws the label (label has separate rotation)
-	var txt = state.text;
-	
-	// Does not use mxCellRenderer.getLabelValue to avoid conversion of HTML entities for VML
-	var label = state.view.graph.getLabel(state.cell);
-	
-	if (txt != null && label != null && label.length > 0)
-	{
-		canvas.save();
-		canvas.setAlpha(mxUtils.getValue(state.style, mxConstants.STYLE_TEXT_OPACITY, 100) / 100);
-		var bounds = new mxRectangle(txt.boundingBox.x, txt.boundingBox.y, txt.boundingBox.width, txt.boundingBox.height);
-		var vert = mxUtils.getValue(state.style, mxConstants.STYLE_HORIZONTAL, 1) == 0;
-		
-		// Vertical error offset
-		bounds.y += 2;
-
-		if (vert)
-		{
-			if (txt.dialect != mxConstants.DIALECT_SVG)
-			{
-				var cx = bounds.x + bounds.width / 2;
-				var cy = bounds.y + bounds.height / 2;
-				var tmp = bounds.width;
-				bounds.width = bounds.height;
-				bounds.height = tmp;
-				bounds.x = cx - bounds.width / 2;
-				bounds.y = cy - bounds.height / 2;
-			}
-			else if (txt.dialect == mxConstants.DIALECT_SVG)
-			{
-				// Workarounds for different label bounding boxes (mostly ignoring rotation).
-				// LATER: Fix in mxText so that the bounding box is consistent and rotated.
-				// TODO: Check non-center/middle-aligned vertical labels in VML for IE8.
-				var b = state.y + state.height;
-				var cx = bounds.getCenterX() - state.x;
-				var cy = bounds.getCenterY() - state.y;
-				
-				var y = b - cx - bounds.height / 2;
-				bounds.x = state.x + cy - bounds.width / 2;
-				bounds.y = y;
-				//bounds.x -= state.height / 2 - state.width / 2;
-				//bounds.y -= state.width / 2 - state.height / 2;
-			}
-		}
-		
-		this.drawLabelBackground(state, canvas, bounds, vert);
-		this.drawLabel(state, canvas, bounds, vert, label);
-		canvas.restore();
-	}
-};
-
-/**
- * Function: drawGlass
- * 
- * Draws the given state to the given canvas.
- */
-mxImageExport.prototype.drawShadow = function(canvas, state, shape, rotation, flipH, flipV, bounds, alpha, filled)
-{
-	// Requires background in generic shape for shadow, looks like only one
-	// fillAndStroke is allowed per current path, try working around that
-	// Computes rotated shadow offset
-	var rad = rotation * Math.PI / 180;
-	var cos = Math.cos(-rad);
-	var sin = Math.sin(-rad);
-	var offset = mxUtils.getRotatedPoint(new mxPoint(mxConstants.SHADOW_OFFSET_X, mxConstants.SHADOW_OFFSET_Y), cos, sin);
-	
-	if (flipH)
-	{
-		offset.x *= -1;
-	}
-	
-	if (flipV)
-	{
-		offset.y *= -1;
-	}
-	
-	// TODO: Use save/restore instead of negative offset to restore (requires fix for HTML canvas)
-	canvas.translate(offset.x, offset.y);
-	
-	// Returns true if a shadow has been painted (path has been created)
-	if (shape.drawShape(canvas, state, bounds, true, true))
-	{
-		canvas.setAlpha(mxConstants.SHADOW_OPACITY * alpha);
-		canvas.shadow(mxConstants.SHADOWCOLOR, filled);
-	}
-
-	canvas.translate(-offset.x, -offset.y);
-};
-
-/**
- * Function: drawGlass
- * 
- * Draws the given state to the given canvas.
- */
-mxImageExport.prototype.drawGlass = function(state, canvas, bounds, shape, size)
-{
-	// LATER: Clipping region should include stroke
-	if (shape.drawShape(canvas, state, bounds, true, false))
-	{
-		canvas.save();
-		canvas.clip();
-		canvas.setGlassGradient(bounds.x, bounds.y, bounds.width, bounds.height);
-	
-		canvas.begin();
-		canvas.moveTo(bounds.x, bounds.y);
-		canvas.lineTo(bounds.x, (bounds.y + bounds.height * size));
-		canvas.quadTo((bounds.x + bounds.width * 0.5),
-				(bounds.y + bounds.height * 0.7), bounds.x + bounds.width,
-				(bounds.y + bounds.height * size));
-		canvas.lineTo(bounds.x + bounds.width, bounds.y);
-		canvas.close();
-
-		canvas.fill();
-		canvas.restore();
-	}
-};
-
-/**
- * Function: drawImage
- * 
- * Draws the given state to the given canvas.
- */
-mxImageExport.prototype.drawImage = function(state, canvas, bounds, image)
-{
-	var aspect = mxUtils.getValue(state.style, mxConstants.STYLE_IMAGE_ASPECT, 1) == 1;
-	var flipH = mxUtils.getValue(state.style, mxConstants.STYLE_IMAGE_FLIPH, 0) == 1;
-	var flipV = mxUtils.getValue(state.style, mxConstants.STYLE_IMAGE_FLIPV, 0) == 1;
-	
-	canvas.image(bounds.x, bounds.y, bounds.width, bounds.height, image, aspect, flipH, flipV);
-};
-
-/**
- * Function: drawLabelBackground
- * 
- * Draws background for the label of the given state to the given canvas.
- */
-mxImageExport.prototype.drawLabelBackground = function(state, canvas, bounds, vert)
-{
-	var stroke = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_BORDERCOLOR);
-	var fill = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_BACKGROUNDCOLOR);
-	
-	if (stroke == mxConstants.NONE)
-	{
-		stroke = null;
-	}
-	
-	if (fill == mxConstants.NONE)
-	{
-		fill = null;
-	}
-	
-	if (stroke != null || fill != null)
-	{
-		var x = bounds.x;
-		var y = bounds.y - mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_PADDING, 0);
-		var w = bounds.width;
-		var h = bounds.height;
-		
-		if (vert)
-		{
-			x += (w - h) / 2;
-			y += (h - w) / 2;
-			var tmp = w;
-			w = h;
-			h = tmp;
-		}
-		
-		if (fill != null)
-		{
-			canvas.setFillColor(fill);
-		}
-		
-		if (stroke != null)
-		{
-			canvas.setStrokeColor(stroke);
-			canvas.setStrokeWidth(1);
-			canvas.setDashed(false);
-		}
-		
-		canvas.rect(x, y, w, h);
-
-		if (fill != null && stroke != null)
-		{
-			canvas.fillAndStroke();
-		}
-		else if (fill != null)
-		{
-			canvas.fill();
-		}
-		else if (stroke != null)
-		{
-			canvas.stroke();
-		}
-	}
-};
-
-/**
- * Function: drawLabel
- * 
- * Draws the given state to the given canvas.
- */
-mxImageExport.prototype.drawLabel = function(state, canvas, bounds, vert, str)
-{
-	var scale = state.view.scale;
-	
-	// Applies color
-	canvas.setFontColor(mxUtils.getValue(state.style, mxConstants.STYLE_FONTCOLOR, '#000000'));
-	
-	// Applies font settings
-	canvas.setFontFamily(mxUtils.getValue(state.style, mxConstants.STYLE_FONTFAMILY,
-			mxConstants.DEFAULT_FONTFAMILY));
-	canvas.setFontStyle(mxUtils.getValue(state.style, mxConstants.STYLE_FONTSTYLE, 0));
-	canvas.setFontSize(mxUtils.getValue(state.style, mxConstants.STYLE_FONTSIZE,
-			mxConstants.DEFAULT_FONTSIZE) * scale);
-	
-	var align = mxUtils.getValue(state.style, mxConstants.STYLE_ALIGN, mxConstants.ALIGN_LEFT);
-	
-	// Uses null alignment for default values (valign default is 'top' which is fine)
-	if (align == 'left')
-	{
-		align = null;
-	}
-		
-	var y = bounds.y - mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_PADDING, 0);
-	var wrap = state.view.graph.isWrapping(state.cell);
-	var html = state.view.graph.isHtmlLabel(state.cell);
-	
-	// Replaces linefeeds in HTML markup to match the display output
-	if (html && mxText.prototype.replaceLinefeeds)
-	{
-		str = str.replace(/\n/g, '<br/>');
-	}
-	
-	canvas.text(bounds.x, y, bounds.width, bounds.height, str, align, null, vert, wrap, (html) ? 'html' : '');
-};
-
-/**
- * Function: getBackgroundBounds
- * 
- * Draws the given state to the given canvas.
- */
-mxImageExport.prototype.getBackgroundBounds = function(state)
-{
-	if (state.style[mxConstants.STYLE_SHAPE] == mxConstants.SHAPE_SWIMLANE)
-	{
-		var scale = state.view.scale;
-		var start = mxUtils.getValue(state.style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE) * scale;
-		var w = state.width;
-		var h = state.height;
-		
-		if (mxUtils.getValue(state.style, mxConstants.STYLE_HORIZONTAL, true))
-		{
-			h = start;
-		}
-		else
-		{
-			w = start;
-		}
-		
-		return new mxRectangle(state.x, state.y, Math.min(state.width, w), Math.min(state.height, h));
-	}
-	else
-	{
-		return new mxRectangle(state.x, state.y, state.width, state.height);
-	}
-};
-
-/**
- * Function: getImageBounds
- * 
- * Draws the given state to the given canvas.
- */
-mxImageExport.prototype.getImageBounds = function(state)
-{
-	var bounds = new mxRectangle(state.x, state.y, state.width, state.height);
-	var style = state.style;
-	
-	if (mxUtils.getValue(style, mxConstants.STYLE_SHAPE) != mxConstants.SHAPE_IMAGE)
-	{
-		var imgAlign = mxUtils.getValue(style, mxConstants.STYLE_IMAGE_ALIGN, mxConstants.ALIGN_LEFT);
-		var imgValign = mxUtils.getValue(style, mxConstants.STYLE_IMAGE_VERTICAL_ALIGN, mxConstants.ALIGN_MIDDLE);
-		var imgWidth = mxUtils.getValue(style, mxConstants.STYLE_IMAGE_WIDTH, mxConstants.DEFAULT_IMAGESIZE);
-		var imgHeight = mxUtils.getValue(style, mxConstants.STYLE_IMAGE_HEIGHT, mxConstants.DEFAULT_IMAGESIZE);
-		var spacing = mxUtils.getValue(style, mxConstants.STYLE_SPACING, 2);
-
-		if (imgAlign == mxConstants.ALIGN_CENTER)
-		{
-			bounds.x += (bounds.width - imgWidth) / 2;
-		}
-		else if (imgAlign == mxConstants.ALIGN_RIGHT)
-		{
-			bounds.x += bounds.width - imgWidth - spacing - 2;
-		}
-		else
-		// LEFT
-		{
-			bounds.x += spacing + 4;
-		}
-	
-		if (imgValign == mxConstants.ALIGN_TOP)
-		{
-			bounds.y += spacing;
-		}
-		else if (imgValign == mxConstants.ALIGN_BOTTOM)
-		{
-			bounds.y += bounds.height - imgHeight - spacing;
-		}
-		else
-		// MIDDLE
-		{
-			bounds.y += (bounds.height - imgHeight) / 2;
-		}
-	
-		bounds.width = imgWidth;
-		bounds.height = imgHeight;
-	}
-	
-	return bounds;
-};
-
-/**
- * Function: drawMarker
- * 
- * Initializes the built-in shapes.
- */
-mxImageExport.prototype.drawMarker = function(canvas, state, source)
-{
-	var offset = null;
-
-	// Computes the norm and the inverse norm
-	var pts = state.absolutePoints;
-	var n = pts.length;
-	
-	var p0 = (source) ? pts[1] : pts[n - 2];
-	var pe = (source) ? pts[0] : pts[n - 1];
-	
-	var dx = pe.x - p0.x;
-	var dy = pe.y - p0.y;
-
-	var dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
-	
-	var unitX = dx / dist;
-	var unitY = dy / dist;
-
-	var size = mxUtils.getValue(state.style, (source) ?
-			mxConstants.STYLE_STARTSIZE :
-				mxConstants.STYLE_ENDSIZE,
-				mxConstants.DEFAULT_MARKERSIZE);
-	
-	// Allow for stroke width in the end point used and the 
-	// orthogonal vectors describing the direction of the marker
-	// TODO: Should get strokewidth from canvas (same for strokecolor)
-	var sw = mxUtils.getValue(state.style, mxConstants.STYLE_STROKEWIDTH, 1);
-	
-	pe = pe.clone();
-	
-	var type = mxUtils.getValue(state.style, (source) ?
-			mxConstants.STYLE_STARTARROW :
-				mxConstants.STYLE_ENDARROW);
-	var f = this.markers[type];
-	
-	if (f != null)
-	{
-		offset = f(canvas, state, type, pe, unitX, unitY, size, source, sw);
-	}
-
-	return offset;
-};
-
-/**
- * Function: initShapes
- * 
- * Initializes the built-in shapes.
- */
-mxImageExport.prototype.initShapes = function()
-{
-	this.shapes = [];
-	
-	// Implements the rectangle and rounded rectangle shape
-	this.shapes['rectangle'] =
-	{
-		drawShape: function(canvas, state, bounds, background)
-		{
-			if (background)
-			{
-				// Paints the shape
-				if (mxUtils.getValue(state.style, mxConstants.STYLE_ROUNDED, false))
-				{
-					var f = mxUtils.getValue(state.style, mxConstants.STYLE_ARCSIZE, mxConstants.RECTANGLE_ROUNDING_FACTOR * 100) / 100;
-					var r = Math.min(bounds.width * f, bounds.height * f);
-					canvas.roundrect(bounds.x, bounds.y, bounds.width, bounds.height, r, r);
-				}
-				else
-				{
-					canvas.rect(bounds.x, bounds.y, bounds.width, bounds.height);
-				}
-				
-				return true;
-			}
-			else
-			{
-				canvas.fillAndStroke();
-			}
-		}
-	};
-
-	// Implements the swimlane shape
-	this.shapes['swimlane'] =
-	{
-		drawShape: function(canvas, state, bounds, background)
-		{
-			if (background)
-			{
-				if (mxUtils.getValue(state.style, mxConstants.STYLE_ROUNDED, false))
-				{
-					var r = Math.min(bounds.width * mxConstants.RECTANGLE_ROUNDING_FACTOR,
-							bounds.height * mxConstants.RECTANGLE_ROUNDING_FACTOR);
-					canvas.roundrect(bounds.x, bounds.y, bounds.width, bounds.height, r, r);
-				}
-				else
-				{
-					canvas.rect(bounds.x, bounds.y, bounds.width, bounds.height);
-				}
-			
-				return true;
-			}
-			else
-			{
-				canvas.fillAndStroke();
-				canvas.begin();
-				
-				var x = state.x;
-				var y = state.y;
-				var w = state.width;
-				var h = state.height;
-				
-				if (mxUtils.getValue(state.style, mxConstants.STYLE_HORIZONTAL, 1) == 0)
-				{
-					x += bounds.width;
-					w -= bounds.width;
-
-					canvas.moveTo(x, y);
-					canvas.lineTo(x + w, y);
-					canvas.lineTo(x + w, y + h);
-					canvas.lineTo(x, y + h);
-				}
-				else
-				{
-					y += bounds.height;
-					h -= bounds.height;
-
-					canvas.moveTo(x, y);
-					canvas.lineTo(x, y + h);
-					canvas.lineTo(x + w, y + h);
-					canvas.lineTo(x + w, y);
-				}
-
-				canvas.stroke();
-			}
-		}
-	};
-
-	this.shapes['image'] = this.shapes['rectangle'];
-	this.shapes['label'] = this.shapes['rectangle'];
-
-	var imageExport = this;
-	
-	this.shapes['connector'] =
-	{
-		translatePoint: function(points, index, offset)
-		{
-			if (offset != null)
-			{
-				var pt = points[index].clone();
-				pt.x += offset.x;
-				pt.y += offset.y;
-				points[index] = pt;
-			}
-		},
-			
-		drawShape: function(canvas, state, bounds, background, shadow)
-		{
-			if (background)
-			{
-				// Does not draw the markers in the shadow to match the display
-				canvas.setFillColor((shadow) ? mxConstants.NONE : mxUtils.getValue(state.style, mxConstants.STYLE_STROKECOLOR, "#000000"));
-				canvas.setDashed(false);
-				var pts = state.absolutePoints.slice();
-				this.translatePoint(pts, 0, imageExport.drawMarker(canvas, state, true));
-				this.translatePoint(pts, pts.length - 1, imageExport.drawMarker(canvas, state, false));
-				canvas.setDashed(mxUtils.getValue(state.style, mxConstants.STYLE_DASHED, '0') == '1');
-				canvas.begin();
-				var pt = pts[0];
-				canvas.moveTo(pt.x, pt.y);
-				
-				if (mxUtils.getValue(state.style, mxConstants.STYLE_CURVED, false))
-				{
-					var n = pts.length;
-
-					for (var i = 1; i < n - 2; i++)
-					{
-						var p0 = pts[i];
-						var p1 = pts[i + 1];
-						var ix = (p0.x + p1.x) / 2;
-						var iy = (p0.y + p1.y) / 2;
-						
-						canvas.quadTo(p0.x, p0.y, ix, iy);
-					}
-					
-					var p0 = pts[n - 2];
-					var p1 = pts[n - 1];
-					
-					canvas.quadTo(p0.x, p0.y, p1.x, p1.y);
-				}
-				else
-				{
-					var rounded = mxUtils.getValue(state.style, mxConstants.STYLE_ROUNDED, false);
-					var arcSize = mxConstants.LINE_ARCSIZE / 2;
-
-					var pe = pts[pts.length - 1];
-					canvas.moveTo(pt.x, pt.y);
-					
-					// Draws the line segments
-					for (var i = 1; i < pts.length - 1; i++)
-					{
-						var tmp = pts[i];
-						var dx = pt.x - tmp.x;
-						var dy = pt.y - tmp.y;
-			
-						if ((rounded && i < pts.length - 1) && (dx != 0 || dy != 0))
-						{
-							// Draws a line from the last point to the current
-							// point with a spacing of size off the current point
-							// into direction of the last point
-							var dist = Math.sqrt(dx * dx + dy * dy);
-							var nx1 = dx * Math.min(arcSize, dist / 2) / dist;
-							var ny1 = dy * Math.min(arcSize, dist / 2) / dist;
-			
-							var x1 = tmp.x + nx1;
-							var y1 = tmp.y + ny1;
-							canvas.lineTo(x1, y1);
-			
-							// Draws a curve from the last point to the current
-							// point with a spacing of size off the current point
-							// into direction of the next point
-							var next = pts[i + 1];
-							dx = next.x - tmp.x;
-							dy = next.y - tmp.y;
-			
-							dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
-							var nx2 = dx * Math.min(arcSize, dist / 2) / dist;
-							var ny2 = dy * Math.min(arcSize, dist / 2) / dist;
-			
-							var x2 = tmp.x + nx2;
-							var y2 = tmp.y + ny2;
-			
-							canvas.curveTo(tmp.x, tmp.y, tmp.x, tmp.y, x2, y2);
-							tmp = new mxPoint(x2, y2);
-						}
-						else
-						{
-							canvas.lineTo(tmp.x, tmp.y);
-						}
-			
-						pt = tmp;
-					}
-			
-					canvas.lineTo(pe.x, pe.y);
-				}
-				
-				canvas.stroke();
-
-				return true;
-			}
-			else
-			{
-				// no foreground
-			}
-		}
-	};
-
-	this.shapes['arrow'] =
-	{
-		drawShape: function(canvas, state, bounds, background)
-		{
-			if (background)
-			{
-				// Geometry of arrow
-				var spacing =  mxConstants.ARROW_SPACING;
-				var width = mxConstants.ARROW_WIDTH;
-				var arrow = mxConstants.ARROW_SIZE;
-
-				// Base vector (between end points)
-				var pts = state.absolutePoints;
-				var p0 = pts[0];
-				var pe = pts[pts.length - 1];
-				var dx = pe.x - p0.x;
-				var dy = pe.y - p0.y;
-				var dist = Math.sqrt(dx * dx + dy * dy);
-				var length = dist - 2 * spacing - arrow;
-				
-				// Computes the norm and the inverse norm
-				var nx = dx / dist;
-				var ny = dy / dist;
-				var basex = length * nx;
-				var basey = length * ny;
-				var floorx = width * ny/3;
-				var floory = -width * nx/3;
-				
-				// Computes points
-				var p0x = p0.x - floorx / 2 + spacing * nx;
-				var p0y = p0.y - floory / 2 + spacing * ny;
-				var p1x = p0x + floorx;
-				var p1y = p0y + floory;
-				var p2x = p1x + basex;
-				var p2y = p1y + basey;
-				var p3x = p2x + floorx;
-				var p3y = p2y + floory;
-				// p4 not necessary
-				var p5x = p3x - 3 * floorx;
-				var p5y = p3y - 3 * floory;
-				
-				canvas.begin();
-				canvas.moveTo(p0x, p0y);
-				canvas.lineTo(p1x, p1y);
-				canvas.lineTo(p2x, p2y);
-				canvas.lineTo(p3x, p3y);
-				canvas.lineTo(pe.x - spacing * nx, pe.y - spacing * ny);
-				canvas.lineTo(p5x, p5y);
-				canvas.lineTo(p5x + floorx, p5y + floory);
-				canvas.close();
-
-				return true;
-			}
-			else
-			{
-				canvas.fillAndStroke();
-			}
-		}
-	};
-
-	this.shapes['cylinder'] =
-	{
-		drawShape: function(canvas, state, bounds, background)
-		{
-			if (background)
-			{
-				return false;
-			}
-			else
-			{
-				var x = bounds.x;
-				var y = bounds.y;
-				var w = bounds.width;
-				var h = bounds.height;
-				var dy = Math.min(mxCylinder.prototype.maxHeight, Math.floor(h / 5));
-		
-				canvas.begin();
-				canvas.moveTo(x, y + dy);
-				canvas.curveTo(x, y - dy / 3, x + w, y - dy / 3, x + w, y + dy);
-				canvas.lineTo(x + w, y + h - dy);
-				canvas.curveTo(x + w, y + h + dy / 3, x, y + h + dy / 3, x, y + h - dy);
-				canvas.close();
-				canvas.fillAndStroke();
-				
-				canvas.begin();
-				canvas.moveTo(x, y + dy);
-				canvas.curveTo(x, y + 2 * dy, x + w, y + 2 * dy, x + w, y + dy);
-				canvas.stroke();
-			}
-		}
-	};
-
-	this.shapes['line'] =
-	{
-		drawShape: function(canvas, state, bounds, background)
-		{
-			if (background)
-			{
-				return false;
-			}
-			else
-			{
-				canvas.begin();
-				
-				var mid = state.getCenterY();
-				canvas.moveTo(bounds.x, mid);
-				canvas.lineTo(bounds.x + bounds.width, mid);
-
-				canvas.stroke();
-			}
-		}
-	};
-
-	this.shapes['ellipse'] =
-	{
-		drawShape: function(canvas, state, bounds, background)
-		{
-			if (background)
-			{
-				canvas.ellipse(bounds.x, bounds.y, bounds.width, bounds.height);
-				
-				return true;
-			}
-			else
-			{
-				canvas.fillAndStroke();
-			}
-		}
-	};
-
-	this.shapes['doubleEllipse'] =
-	{
-		drawShape: function(canvas, state, bounds, background)
-		{
-			var x = bounds.x;
-			var y = bounds.y;
-			var w = bounds.width;
-			var h = bounds.height;
-			
-			if (background)
-			{
-				canvas.ellipse(x, y, w, h);
-				
-				return true;
-			}
-			else
-			{
-				canvas.fillAndStroke();
-
-				var inset = Math.min(4, Math.min(w / 5, h / 5));
-				x += inset;
-				y += inset;
-				w -= 2 * inset;
-				h -= 2 * inset;
-				
-				if (w > 0 && h > 0)
-				{
-					canvas.ellipse(x, y, w, h);
-				}
-				
-				canvas.stroke();
-			}
-		}
-	};
-
-	this.shapes['triangle'] =
-	{
-		drawShape: function(canvas, state, bounds, background)
-		{
-			if (background)
-			{
-				var x = bounds.x;
-				var y = bounds.y;
-				var w = bounds.width;
-				var h = bounds.height;
-				canvas.begin();
-				canvas.moveTo(x, y);
-				canvas.lineTo(x + w, y + h / 2);
-				canvas.lineTo(x, y + h);
-				canvas.close();
-				
-				return true;
-			}
-			else
-			{
-				canvas.fillAndStroke();
-			}
-		}
-	};
-
-	this.shapes['rhombus'] =
-	{
-		drawShape: function(canvas, state, bounds, background)
-		{
-			if (background)
-			{
-				var x = bounds.x;
-				var y = bounds.y;
-				var w = bounds.width;
-				var h = bounds.height;
-				var hw = w / 2;
-				var hh = h / 2;
-
-				canvas.begin();
-				canvas.moveTo(x + hw, y);
-				canvas.lineTo(x + w, y + hh);
-				canvas.lineTo(x + hw, y + h);
-				canvas.lineTo(x, y + hh);
-				canvas.close();
-				
-				return true;
-			}
-			else
-			{
-				canvas.fillAndStroke();
-			}
-		}
-
-	};
-
-	this.shapes['hexagon'] =
-	{
-		drawShape: function(canvas, state, bounds, background)
-		{
-			if (background)
-			{
-				var x = bounds.x;
-				var y = bounds.y;
-				var w = bounds.width;
-				var h = bounds.height;
-				
-				canvas.begin();
-				canvas.moveTo(x + 0.25 * w, y);
-				canvas.lineTo(x + 0.75 * w, y);
-				canvas.lineTo(x + w, y + 0.5 * h);
-				canvas.lineTo(x + 0.75 * w, y + h);
-				canvas.lineTo(x + 0.25 * w, y + h);
-				canvas.lineTo(x, y + 0.5 * h);
-				canvas.close();
-				
-				return true;
-			}
-			else
-			{
-				canvas.fillAndStroke();
-			}
-		}
-	};
-
-	this.shapes['actor'] =
-	{
-		drawShape: function(canvas, state, bounds, background)
-		{
-			if (background)
-			{
-				var x = bounds.x;
-				var y = bounds.y;
-				var w = bounds.width;
-				var h = bounds.height;
-				var width = w * 2 / 6;
-				
-				canvas.begin();
-				canvas.moveTo(x, y + h);
-				canvas.curveTo(x, y + 3 * h / 5, x, y + 2 * h / 5, x + w / 2, y + 2 * h
-						/ 5);
-				canvas.curveTo(x + w / 2 - width, y + 2 * h / 5, x + w / 2 - width, y, x
-						+ w / 2, y);
-				canvas.curveTo(x + w / 2 + width, y, x + w / 2 + width, y + 2 * h / 5, x
-						+ w / 2, y + 2 * h / 5);
-				canvas.curveTo(x + w, y + 2 * h / 5, x + w, y + 3 * h / 5, x + w, y + h);
-				canvas.close();
-				
-				return true;
-			}
-			else
-			{
-				canvas.fillAndStroke();
-			}
-		}
-	};
-
-	this.shapes['cloud'] =
-	{
-		drawShape: function(canvas, state, bounds, background)
-		{
-			if (background)
-			{
-				var x = bounds.x;
-				var y = bounds.y;
-				var w = bounds.width;
-				var h = bounds.height;
-				
-				canvas.begin();
-				canvas.moveTo(x + 0.25 * w, y + 0.25 * h);
-				canvas.curveTo(x + 0.05 * w, y + 0.25 * h, x,
-						y + 0.5 * h, x + 0.16 * w, y + 0.55 * h);
-				canvas.curveTo(x, y + 0.66 * h, x + 0.18 * w,
-						y + 0.9 * h, x + 0.31 * w, y + 0.8 * h);
-				canvas.curveTo(x + 0.4 * w, y + h, x + 0.7 * w,
-						y + h, x + 0.8 * w, y + 0.8 * h);
-				canvas.curveTo(x + w, y + 0.8 * h, x + w,
-						y + 0.6 * h, x + 0.875 * w, y + 0.5 * h);
-				canvas.curveTo(x + w, y + 0.3 * h, x + 0.8 * w,
-						y + 0.1 * h, x + 0.625 * w, y + 0.2 * h);
-				canvas.curveTo(x + 0.5 * w, y + 0.05 * h,
-						x + 0.3 * w, y + 0.05 * h,
-						x + 0.25 * w, y + 0.25 * h);
-				canvas.close();
-				
-				return true;
-			}
-			else
-			{
-				canvas.fillAndStroke();
-			}
-		}
-	};
-
-};
-
-/**
- * Function: initMarkers
- * 
- * Initializes the built-in markers.
- */
-mxImageExport.prototype.initMarkers = function()
-{
-	this.markers = [];
-
-	var tmp = function(canvas, state, type, pe, unitX, unitY, size, source, sw)
-	{
-		// The angle of the forward facing arrow sides against the x axis is
-		// 26.565 degrees, 1/sin(26.565) = 2.236 / 2 = 1.118 ( / 2 allows for
-		// only half the strokewidth is processed ).
-		var endOffsetX = unitX * sw * 1.118;
-		var endOffsetY = unitY * sw * 1.118;
-		
-		pe.x -= endOffsetX;
-		pe.y -= endOffsetY;
-		
-		unitX = unitX * (size + sw);
-		unitY = unitY * (size + sw);
-		
-		canvas.begin();
-		canvas.moveTo(pe.x, pe.y);
-		canvas.lineTo(pe.x - unitX - unitY / 2, pe.y - unitY + unitX / 2);
-
-		if (type == mxConstants.ARROW_CLASSIC)
-		{
-			canvas.lineTo(pe.x - unitX * 3 / 4, pe.y - unitY * 3 / 4);
-		}
-
-		canvas.lineTo(pe.x + unitY / 2 - unitX, pe.y - unitY - unitX / 2);
-		canvas.close();
-
-		var key = (source) ? mxConstants.STYLE_STARTFILL : mxConstants.STYLE_ENDFILL;
-		
-		if (state.style[key] == 0)
-		{
-			canvas.stroke();
-		}
-		else
-		{
-			canvas.fillAndStroke();
-		}
-
-		var f = (type != mxConstants.ARROW_CLASSIC) ? 1 : 3 / 4;
-		return new mxPoint(-unitX * f - endOffsetX, -unitY * f - endOffsetY);
-	};
-
-	this.markers['classic'] = tmp;
-	this.markers['block'] = tmp;
-
-	this.markers['open'] = function(canvas, state, type, pe, unitX, unitY, size, source, sw)
-	{
-		// The angle of the forward facing arrow sides against the x axis is
-		// 26.565 degrees, 1/sin(26.565) = 2.236 / 2 = 1.118 ( / 2 allows for
-		// only half the strokewidth is processed ).
-		var endOffsetX = unitX * sw * 1.118;
-		var endOffsetY = unitY * sw * 1.118;
-		
-		pe.x -= endOffsetX;
-		pe.y -= endOffsetY;
-		
-		unitX = unitX * (size + sw);
-		unitY = unitY * (size + sw);
-
-		canvas.begin();
-		canvas.moveTo(pe.x - unitX - unitY / 2, pe.y - unitY + unitX / 2);
-		canvas.lineTo(pe.x, pe.y);
-		canvas.lineTo(pe.x + unitY / 2 - unitX, pe.y - unitY - unitX / 2);
-		canvas.stroke();
-		
-		return new mxPoint(-endOffsetX * 2, -endOffsetY * 2);
-	};
-
-	this.markers['oval'] = function(canvas, state, type, pe, unitX, unitY, size, source, sw)
-	{
-		var a = size / 2;
-		
-		canvas.ellipse(pe.x - a, pe.y - a, size, size);
-		
-		var key = (source) ? mxConstants.STYLE_STARTFILL : mxConstants.STYLE_ENDFILL;
-		
-		if (state.style[key] == 0)
-		{
-			canvas.stroke();
-		}
-		else
-		{
-			canvas.fillAndStroke();
-		}
-		
-		return new mxPoint(-unitX / 2, -unitY / 2);
-	};
-
-	var tmp_diamond = function(canvas, state, type, pe, unitX, unitY, size, source, sw)
-	{
-		// The angle of the forward facing arrow sides against the x axis is
-		// 45 degrees, 1/sin(45) = 1.4142 / 2 = 0.7071 ( / 2 allows for
-		// only half the strokewidth is processed ). Or 0.9862 for thin diamond.
-		// Note these values and the tk variable below are dependent, update
-		// both together (saves trig hard coding it).
-		var swFactor = (type == mxConstants.ARROW_DIAMOND) ?  0.7071 : 0.9862;
-		var endOffsetX = unitX * sw * swFactor;
-		var endOffsetY = unitY * sw * swFactor;
-		
-		unitX = unitX * (size + sw);
-		unitY = unitY * (size + sw);
-		
-		pe.x -= endOffsetX;
-		pe.y -= endOffsetY;
-		
-		// thickness factor for diamond
-		var tk = ((type == mxConstants.ARROW_DIAMOND) ?  2 : 3.4);
-		
-		canvas.begin();
-		canvas.moveTo(pe.x, pe.y);
-		canvas.lineTo(pe.x - unitX / 2 - unitY / tk, pe.y + unitX / tk - unitY / 2);
-		canvas.lineTo(pe.x - unitX, pe.y - unitY);
-		canvas.lineTo(pe.x - unitX / 2 + unitY / tk, pe.y - unitY / 2 - unitX / tk);
-		canvas.close();
-
-		var key = (source) ? mxConstants.STYLE_STARTFILL : mxConstants.STYLE_ENDFILL;
-		
-		if (state.style[key] == 0)
-		{
-			canvas.stroke();
-		}
-		else
-		{
-			canvas.fillAndStroke();
-		}
-		
-		return new mxPoint(-endOffsetX - unitX, -endOffsetY - unitY);
-	};
-
-	this.markers['diamond'] = tmp_diamond;
-	this.markers['diamondThin'] = tmp_diamond;
-};
-/**
- * $Id: mxXmlCanvas2D.js,v 1.9 2012/04/24 13:56:56 gaudenz Exp $
+ * $Id: mxAbstractCanvas2D.js,v 1.14 2013/01/14 14:00:58 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
+ * Class: mxAbstractCanvas2D
  *
- * Class: mxXmlCanvas2D
+ * Base class for all canvases. A description of the public API is available in <mxXmlCanvas2D>.
+ * All color values of <mxConstants.NONE> will be converted to null in the state.
  * 
- * Implements a canvas to be used with <mxImageExport>. This canvas writes all
- * calls as child nodes to the given root XML node.
- * 
- * (code)
- * var xmlDoc = mxUtils.createXmlDocument();
- * var root = xmlDoc.createElement('output');
- * xmlDoc.appendChild(root);
- * var xmlCanvas = new mxXmlCanvas2D(root);
- * (end)
- * 
- * Constructor: mxXmlCanvas2D
- * 
- * Constructs a XML canvas.
- * 
- * Parameters:
- * 
- * root - XML node for adding child nodes.
+ * Constructor: mxAbstractCanvas2D
+ *
+ * Constructs a new abstract canvas.
  */
-var mxXmlCanvas2D = function(root)
+function mxAbstractCanvas2D()
 {
 	/**
 	 * Variable: converter
 	 * 
 	 * Holds the <mxUrlConverter> to convert image URLs.
 	 */
-	var converter = new mxUrlConverter();
-
-	/**
-	 * Variable: compressed
-	 * 
-	 * Specifies if the output should be compressed by removing redundant calls.
-	 * Default is true.
-	 */
-	var compressed = true;
-
-	/**
-	 * Variable: textEnabled
-	 * 
-	 * Specifies if text output should be enabled. Default is true.
-	 */
-	var textEnabled = true;
-
-	// Private reference to the owner document
-	var doc = root.ownerDocument;
-
-	// Implements stack for save/restore
-	var stack = [];
+	this.converter = this.createUrlConverter();
 	
-	// Implements state for redundancy checks
-	var state =
-	{
-		alpha: 1,
-		dashed: false,
-		strokewidth: 1,
-		fontsize: mxConstants.DEFAULT_FONTSIZE,
-		fontfamily: mxConstants.DEFAULT_FONTFAMILY,
-		fontcolor: '#000000'
-	};
-	
-	// Private helper function set set precision to 2
-	var f2 = function(x)
-	{
-		return Math.round(parseFloat(x) * 100) / 100;
-	};
+	this.reset();
+};
 
-	// Returns public interface
+/**
+ * Variable: state
+ * 
+ * Holds the current state.
+ */
+mxAbstractCanvas2D.prototype.state = null;
+
+/**
+ * Variable: states
+ * 
+ * Stack of states.
+ */
+mxAbstractCanvas2D.prototype.states = null;
+
+/**
+ * Variable: path
+ * 
+ * Holds the current path as an array.
+ */
+mxAbstractCanvas2D.prototype.path = null;
+
+/**
+ * Variable: rotateHtml
+ * 
+ * Switch for rotation of HTML. Default is false.
+ */
+mxAbstractCanvas2D.prototype.rotateHtml = true;
+
+/**
+ * Variable: lastX
+ * 
+ * Holds the last x coordinate.
+ */
+mxAbstractCanvas2D.prototype.lastX = 0;
+
+/**
+ * Variable: lastY
+ * 
+ * Holds the last y coordinate.
+ */
+mxAbstractCanvas2D.prototype.lastY = 0;
+
+/**
+ * Variable: moveOp
+ * 
+ * Contains the string used for moving in paths. Default is 'M'.
+ */
+mxAbstractCanvas2D.prototype.moveOp = 'M';
+
+/**
+ * Variable: lineOp
+ * 
+ * Contains the string used for moving in paths. Default is 'L'.
+ */
+mxAbstractCanvas2D.prototype.lineOp = 'L';
+
+/**
+ * Variable: quadOp
+ * 
+ * Contains the string used for quadratic paths. Default is 'Q'.
+ */
+mxAbstractCanvas2D.prototype.quadOp = 'Q';
+
+/**
+ * Variable: curveOp
+ * 
+ * Contains the string used for bezier curves. Default is 'C'.
+ */
+mxAbstractCanvas2D.prototype.curveOp = 'C';
+
+/**
+ * Variable: closeOp
+ * 
+ * Holds the operator for closing curves. Default is 'Z'.
+ */
+mxAbstractCanvas2D.prototype.closeOp = 'Z';
+
+/**
+ * Variable: pointerEvents
+ * 
+ * Boolean value that specifies if events should be handled. Default is false.
+ */
+mxAbstractCanvas2D.prototype.pointerEvents = false;
+
+/**
+ * Function: createUrlConverter
+ * 
+ * Create a new <mxUrlConverter> and returns it.
+ */
+mxAbstractCanvas2D.prototype.createUrlConverter = function()
+{
+	return new mxUrlConverter();
+};
+
+/**
+ * Function: reset
+ * 
+ * Resets the state of this canvas.
+ */
+mxAbstractCanvas2D.prototype.reset = function()
+{
+	this.state = this.createState();
+	this.states = [];
+};
+
+/**
+ * Function: createState
+ * 
+ * Creates the state of the this canvas.
+ */
+mxAbstractCanvas2D.prototype.createState = function()
+{
 	return {
-
-		/**
-		 * Function: getConverter
-		 * 
-		 * Returns <converter>.
-		 */
-		getConverter: function()
-		{
-			return converter;
-		},
-
-		/**
-		 * Function: isCompressed
-		 * 
-		 * Returns <compressed>.
-		 */
-		isCompressed: function()
-		{
-			return compressed;
-		},
-
-		/**
-		 * Function: setCompressed
-		 * 
-		 * Sets <compressed>.
-		 */
-		setCompressed: function(value)
-		{
-			compressed = value;
-		},
-
-		/**
-		 * Function: isTextEnabled
-		 * 
-		 * Returns <textEnabled>.
-		 */
-		isTextEnabled: function()
-		{
-			return textEnabled;
-		},
-
-		/**
-		 * Function: setTextEnabled
-		 * 
-		 * Sets <textEnabled>.
-		 */
-		setTextEnabled: function(value)
-		{
-			textEnabled = value;
-		},
-		
-		/**
-		 * Function: getDocument
-		 * 
-		 * Returns the owner document of the root element.
-		 */
-		getDocument: function()
-		{
-			return doc;
-		},
-		
-		/**
-		 * Function: save
-		 * 
-		 * Saves the state of the graphics object.
-		 */
-		save: function()
-		{
-			if (compressed)
-			{
-				stack.push(state);
-				state = mxUtils.clone(state);
-			}
-			
-			root.appendChild(doc.createElement('save'));
-		},
-		
-		/**
-		 * Function: restore
-		 * 
-		 * Restores the state of the graphics object.
-		 */
-		restore: function()
-		{
-			if (compressed)
-			{
-				state = stack.pop();
-			}
-			
-			root.appendChild(doc.createElement('restore'));
-		},
-		
-		/**
-		 * Function: scale
-		 * 
-		 * Scales the current graphics object.
-		 */
-		scale: function(value)
-		{
-			var elem = doc.createElement('scale');
-			elem.setAttribute('scale', value);
-			root.appendChild(elem);
-		},
-		
-		/**
-		 * Function: translate
-		 * 
-		 * Translates the current graphics object.
-		 */
-		translate: function(dx, dy)
-		{
-			var elem = doc.createElement('translate');
-			elem.setAttribute('dx', f2(dx));
-			elem.setAttribute('dy', f2(dy));
-			root.appendChild(elem);
-		},
-		
-		/**
-		 * Function: rotate
-		 * 
-		 * Rotates and/or flips the current graphics object.
-		 */
-		rotate: function(theta, flipH, flipV, cx, cy)
-		{
-			var elem = doc.createElement('rotate');
-			elem.setAttribute('theta', f2(theta));
-			elem.setAttribute('flipH', (flipH) ? '1' : '0');
-			elem.setAttribute('flipV', (flipV) ? '1' : '0');
-			elem.setAttribute('cx', f2(cx));
-			elem.setAttribute('cy', f2(cy));
-			root.appendChild(elem);
-		},
-		
-		/**
-		 * Function: setStrokeWidth
-		 * 
-		 * Sets the stroke width.
-		 */
-		setStrokeWidth: function(value)
-		{
-			if (compressed)
-			{
-				if (state.strokewidth == value)
-				{
-					return;
-				}
-				
-				state.strokewidth = value;
-			}
-			
-			var elem = doc.createElement('strokewidth');
-			elem.setAttribute('width', f2(value));
-			root.appendChild(elem);
-		},
-		
-		/**
-		 * Function: setStrokeColor
-		 * 
-		 * Sets the stroke color.
-		 */
-		setStrokeColor: function(value)
-		{
-			var elem = doc.createElement('strokecolor');
-			elem.setAttribute('color', value);
-			root.appendChild(elem);
-		},
-		
-		/**
-		 * Function: setDashed
-		 * 
-		 * Sets the dashed state to true or false.
-		 */
-		setDashed: function(value)
-		{
-			if (compressed)
-			{
-				if (state.dashed == value)
-				{
-					return;
-				}
-				
-				state.dashed = value;
-			}
-			
-			var elem = doc.createElement('dashed');
-			elem.setAttribute('dashed', (value) ? '1' : '0');
-			root.appendChild(elem);
-		},
-		
-		/**
-		 * Function: setDashPattern
-		 * 
-		 * Sets the dashed pattern to the given space separated list of numbers.
-		 */
-		setDashPattern: function(value)
-		{
-			var elem = doc.createElement('dashpattern');
-			elem.setAttribute('pattern', value);
-			root.appendChild(elem);
-		},
-		
-		/**
-		 * Function: setLineCap
-		 * 
-		 * Sets the linecap.
-		 */
-		setLineCap: function(value)
-		{
-			var elem = doc.createElement('linecap');
-			elem.setAttribute('cap', value);
-			root.appendChild(elem);
-		},
-		
-		/**
-		 * Function: setLineJoin
-		 * 
-		 * Sets the linejoin.
-		 */
-		setLineJoin: function(value)
-		{
-			var elem = doc.createElement('linejoin');
-			elem.setAttribute('join', value);
-			root.appendChild(elem);
-		},
-		
-		/**
-		 * Function: setMiterLimit
-		 * 
-		 * Sets the miterlimit.
-		 */
-		setMiterLimit: function(value)
-		{
-			var elem = doc.createElement('miterlimit');
-			elem.setAttribute('limit', value);
-			root.appendChild(elem);
-		},
-		
-		/**
-		 * Function: setFontSize
-		 * 
-		 * Sets the fontsize.
-		 */
-		setFontSize: function(value)
-		{
-			if (textEnabled)
-			{
-				if (compressed)
-				{
-					if (state.fontsize == value)
-					{
-						return;
-					}
-					
-					state.fontsize = value;
-				}
-				
-				var elem = doc.createElement('fontsize');
-				elem.setAttribute('size', value);
-				root.appendChild(elem);
-			}
-		},
-		
-		/**
-		 * Function: setFontColor
-		 * 
-		 * Sets the fontcolor.
-		 */
-		setFontColor: function(value)
-		{
-			if (textEnabled)
-			{
-				if (compressed)
-				{
-					if (state.fontcolor == value)
-					{
-						return;
-					}
-					
-					state.fontcolor = value;
-				}
-				
-				var elem = doc.createElement('fontcolor');
-				elem.setAttribute('color', value);
-				root.appendChild(elem);
-			}
-		},
-		
-		/**
-		 * Function: setFontFamily
-		 * 
-		 * Sets the fontfamily.
-		 */
-		setFontFamily: function(value)
-		{
-			if (textEnabled)
-			{
-				if (compressed)
-				{
-					if (state.fontfamily == value)
-					{
-						return;
-					}
-					
-					state.fontfamily = value;
-				}
-				
-				var elem = doc.createElement('fontfamily');
-				elem.setAttribute('family', value);
-				root.appendChild(elem);
-			}
-		},
-		
-		/**
-		 * Function: setFontStyle
-		 * 
-		 * Sets the fontstyle.
-		 */
-		setFontStyle: function(value)
-		{
-			if (textEnabled)
-			{
-				var elem = doc.createElement('fontstyle');
-				elem.setAttribute('style', value);
-				root.appendChild(elem);
-			}
-		},
-		
-		/**
-		 * Function: setAlpha
-		 * 
-		 * Sets the current alpha.
-		 */
-		setAlpha: function(alpha)
-		{
-			if (compressed)
-			{
-				if (state.alpha == alpha)
-				{
-					return;
-				}
-				
-				state.alpha = alpha;
-			}
-			
-			var elem = doc.createElement('alpha');
-			elem.setAttribute('alpha', f2(alpha));
-			root.appendChild(elem);
-		},
-		
-		/**
-		 * Function: setFillColor
-		 * 
-		 * Sets the fillcolor.
-		 */
-		setFillColor: function(value)
-		{
-			var elem = doc.createElement('fillcolor');
-			elem.setAttribute('color', value);
-			root.appendChild(elem);
-		},
-		
-		/**
-		 * Function: setGradient
-		 * 
-		 * Sets the gradient color.
-		 */
-		setGradient: function(color1, color2, x, y, w, h, direction)
-		{
-			var elem = doc.createElement('gradient');
-			elem.setAttribute('c1', color1);
-			elem.setAttribute('c2', color2);
-			elem.setAttribute('x', f2(x));
-			elem.setAttribute('y', f2(y));
-			elem.setAttribute('w', f2(w));
-			elem.setAttribute('h', f2(h));
-			
-			// Default direction is south
-			if (direction != null)
-			{
-				elem.setAttribute('direction', direction);
-			}
-			
-			root.appendChild(elem);
-		},
-		
-		/**
-		 * Function: setGlassGradient
-		 * 
-		 * Sets the glass gradient.
-		 */
-		setGlassGradient: function(x, y, w, h)
-		{
-			var elem = doc.createElement('glass');
-			elem.setAttribute('x', f2(x));
-			elem.setAttribute('y', f2(y));
-			elem.setAttribute('w', f2(w));
-			elem.setAttribute('h', f2(h));
-			root.appendChild(elem);
-		},
-		
-		/**
-		 * Function: rect
-		 * 
-		 * Sets the current path to a rectangle.
-		 */
-		rect: function(x, y, w, h)
-		{
-			var elem = doc.createElement('rect');
-			elem.setAttribute('x', f2(x));
-			elem.setAttribute('y', f2(y));
-			elem.setAttribute('w', f2(w));
-			elem.setAttribute('h', f2(h));
-			root.appendChild(elem);
-		},
-		
-		/**
-		 * Function: roundrect
-		 * 
-		 * Sets the current path to a rounded rectangle.
-		 */
-		roundrect: function(x, y, w, h, dx, dy)
-		{
-			var elem = doc.createElement('roundrect');
-			elem.setAttribute('x', f2(x));
-			elem.setAttribute('y', f2(y));
-			elem.setAttribute('w', f2(w));
-			elem.setAttribute('h', f2(h));
-			elem.setAttribute('dx', f2(dx));
-			elem.setAttribute('dy', f2(dy));
-			root.appendChild(elem);
-		},
-		
-		/**
-		 * Function: ellipse
-		 * 
-		 * Sets the current path to an ellipse.
-		 */
-		ellipse: function(x, y, w, h)
-		{
-			var elem = doc.createElement('ellipse');
-			elem.setAttribute('x', f2(x));
-			elem.setAttribute('y', f2(y));
-			elem.setAttribute('w', f2(w));
-			elem.setAttribute('h', f2(h));
-			root.appendChild(elem);
-		},
-		
-		/**
-		 * Function: image
-		 * 
-		 * Paints an image.
-		 */
-		image: function(x, y, w, h, src, aspect, flipH, flipV)
-		{
-			src = converter.convert(src);
-			
-			// TODO: Add option for embedding images as base64
-			var elem = doc.createElement('image');
-			elem.setAttribute('x', f2(x));
-			elem.setAttribute('y', f2(y));
-			elem.setAttribute('w', f2(w));
-			elem.setAttribute('h', f2(h));
-			elem.setAttribute('src', src);
-			elem.setAttribute('aspect', (aspect) ? '1' : '0');
-			elem.setAttribute('flipH', (flipH) ? '1' : '0');
-			elem.setAttribute('flipV', (flipV) ? '1' : '0');
-			root.appendChild(elem);
-		},
-		
-		/**
-		 * Function: text
-		 * 
-		 * Paints the given text.
-		 */
-		text: function(x, y, w, h, str, align, valign, vertical, wrap, format)
-		{
-			if (textEnabled)
-			{
-				var elem = doc.createElement('text');
-				elem.setAttribute('x', f2(x));
-				elem.setAttribute('y', f2(y));
-				elem.setAttribute('w', f2(w));
-				elem.setAttribute('h', f2(h));
-				elem.setAttribute('str', str);
-				
-				if (align != null)
-				{
-					elem.setAttribute('align', align);
-				}
-				
-				if (valign != null)
-				{
-					elem.setAttribute('valign', valign);
-				}
-				
-				elem.setAttribute('vertical', (vertical) ? '1' : '0');
-				elem.setAttribute('wrap', (wrap) ? '1' : '0');
-				elem.setAttribute('format', format);
-				root.appendChild(elem);
-			}
-		},
-		
-		/**
-		 * Function: begin
-		 * 
-		 * Starts a new path.
-		 */
-		begin: function()
-		{
-			root.appendChild(doc.createElement('begin'));
-		},
-		
-		/**
-		 * Function: moveTo
-		 * 
-		 * Moves the current path the given coordinates.
-		 */
-		moveTo: function(x, y)
-		{
-			var elem = doc.createElement('move');
-			elem.setAttribute('x', f2(x));
-			elem.setAttribute('y', f2(y));
-			root.appendChild(elem);
-		},
-		
-		/**
-		 * Function: lineTo
-		 * 
-		 * Adds a line to the current path.
-		 */
-		lineTo: function(x, y)
-		{
-			var elem = doc.createElement('line');
-			elem.setAttribute('x', f2(x));
-			elem.setAttribute('y', f2(y));
-			root.appendChild(elem);
-		},
-		
-		/**
-		 * Function: quadTo
-		 * 
-		 * Adds a quadratic curve to the current path.
-		 */
-		quadTo: function(x1, y1, x2, y2)
-		{
-			var elem = doc.createElement('quad');
-			elem.setAttribute('x1', f2(x1));
-			elem.setAttribute('y1', f2(y1));
-			elem.setAttribute('x2', f2(x2));
-			elem.setAttribute('y2', f2(y2));
-			root.appendChild(elem);
-		},
-		
-		/**
-		 * Function: curveTo
-		 * 
-		 * Adds a bezier curve to the current path.
-		 */
-		curveTo: function(x1, y1, x2, y2, x3, y3)
-		{
-			var elem = doc.createElement('curve');
-			elem.setAttribute('x1', f2(x1));
-			elem.setAttribute('y1', f2(y1));
-			elem.setAttribute('x2', f2(x2));
-			elem.setAttribute('y2', f2(y2));
-			elem.setAttribute('x3', f2(x3));
-			elem.setAttribute('y3', f2(y3));
-			root.appendChild(elem);
-		},
-
-		/**
-		 * Function: close
-		 * 
-		 * Closes the current path.
-		 */
-		close: function()
-		{
-			root.appendChild(doc.createElement('close'));
-		},
-		
-		/**
-		 * Function: stroke
-		 * 
-		 * Paints the outline of the current path.
-		 */
-		stroke: function()
-		{
-			root.appendChild(doc.createElement('stroke'));
-		},
-		
-		/**
-		 * Function: fill
-		 * 
-		 * Fills the current path.
-		 */
-		fill: function()
-		{
-			root.appendChild(doc.createElement('fill'));
-		},
-		
-		/**
-		 * Function: fillstroke
-		 * 
-		 * Fills and paints the outline of the current path.
-		 */
-		fillAndStroke: function()
-		{
-			root.appendChild(doc.createElement('fillstroke'));
-		},
-		
-		/**
-		 * Function: shadow
-		 * 
-		 * Paints the current path as a shadow of the given color.
-		 */
-		shadow: function(value, filled)
-		{
-			var elem = doc.createElement('shadow');
-			elem.setAttribute('value', value);
-			
-			if (filled != null)
-			{
-				elem.setAttribute('filled', (filled) ? '1' : '0');
-			}
-			
-			root.appendChild(elem);
-		},
-		
-		/**
-		 * Function: clip
-		 * 
-		 * Uses the current path for clipping.
-		 */
-		clip: function()
-		{
-			root.appendChild(doc.createElement('clip'));
-		}
+		dx: 0,
+		dy: 0,
+		scale: 1,
+		alpha: 1,
+		fillColor: null,
+		fillAlpha: 1,
+		gradientColor: null,
+		gradientAlpha: 1,
+		gradientDirection: null,
+		strokeColor: null,
+		strokeWidth: 1,
+		dashed: false,
+		dashPattern: '3 3',
+		lineCap: 'flat',
+		lineJoin: 'miter',
+		miterLimit: 10,
+		fontColor: '#000000',
+		fontBackgroundColor: null,
+		fontBorderColor: null,
+		fontSize: mxConstants.DEFAULT_FONTSIZE,
+		fontFamily: mxConstants.DEFAULT_FONTFAMILY,
+		fontStyle: 0,
+		shadow: false,
+		shadowColor: mxConstants.SHADOWCOLOR,
+		shadowAlpha: mxConstants.SHADOW_OPACITY,
+		shadowDx: mxConstants.SHADOW_OFFSET_X,
+		shadowDy: mxConstants.SHADOW_OFFSET_Y,
+		rotation: 0,
+		rotationCx: 0,
+		rotationCy: 0
 	};
+};
 
-};/**
- * $Id: mxSvgCanvas2D.js,v 1.18 2012/11/23 15:13:19 gaudenz Exp $
+/**
+ * Function: format
+ * 
+ * Rounds all numbers to integers.
+ */
+mxAbstractCanvas2D.prototype.format = function(value)
+{
+	return Math.round(parseFloat(value));
+};
+
+/**
+ * Function: addOp
+ * 
+ * Adds the given operation to the path.
+ */
+mxAbstractCanvas2D.prototype.addOp = function()
+{
+	if (this.path != null)
+	{
+		this.path.push(arguments[0]);
+		
+		if (arguments.length > 2)
+		{
+			var s = this.state;
+
+			for (var i = 2; i < arguments.length; i += 2)
+			{
+				this.lastX = arguments[i - 1];
+				this.lastY = arguments[i];
+				
+				this.path.push(this.format((this.lastX + s.dx) * s.scale));
+				this.path.push(this.format((this.lastY + s.dy) * s.scale));
+			}
+		}
+	}
+};
+
+/**
+ * Function: rotatePoint
+ * 
+ * Rotates the given point and returns the result as an <mxPoint>.
+ */
+mxAbstractCanvas2D.prototype.rotatePoint = function(x, y, theta, cx, cy)
+{
+	var rad = theta * (Math.PI / 180);
+	
+	return mxUtils.getRotatedPoint(new mxPoint(x, y), Math.cos(rad),
+		Math.sin(rad), new mxPoint(cx, cy));
+};
+
+/**
+ * Function: save
+ * 
+ * Saves the current state.
+ */
+mxAbstractCanvas2D.prototype.save = function()
+{
+	this.states.push(this.state);
+	this.state = mxUtils.clone(this.state);
+};
+
+/**
+ * Function: restore
+ * 
+ * Restores the current state.
+ */
+mxAbstractCanvas2D.prototype.restore = function()
+{
+	this.state = this.states.pop();
+};
+
+/**
+ * Function: scale
+ * 
+ * Scales the current state.
+ */
+mxAbstractCanvas2D.prototype.scale = function(value)
+{
+	this.state.scale *= value;
+	this.state.strokeWidth *= value;
+};
+
+/**
+ * Function: translate
+ * 
+ * Translates the current state.
+ */
+mxAbstractCanvas2D.prototype.translate = function(dx, dy)
+{
+	this.state.dx += dx;
+	this.state.dy += dy;
+};
+
+/**
+ * Function: setAlpha
+ * 
+ * Sets the current alpha.
+ */
+mxAbstractCanvas2D.prototype.setAlpha = function(value)
+{
+	this.state.alpha = value;
+};
+
+/**
+ * Function: setFillColor
+ * 
+ * Sets the current fill color.
+ */
+mxAbstractCanvas2D.prototype.setFillColor = function(value)
+{
+	if (value == mxConstants.NONE)
+	{
+		value = null;
+	}
+	
+	this.state.fillColor = value;
+	this.state.gradientColor = null;
+};
+
+/**
+ * Function: setGradient
+ * 
+ * Sets the current gradient.
+ */
+mxAbstractCanvas2D.prototype.setGradient = function(color1, color2, x, y, w, h, direction, alpha1, alpha2)
+{
+	var s = this.state;
+	s.fillColor = color1;
+	s.fillAlpha = (alpha1 != null) ? alpha1 : 1;
+	s.gradientColor = color2;
+	s.gradientAlpha = (alpha2 != null) ? alpha2 : 1;
+	s.gradientDirection = direction;
+};
+
+/**
+ * Function: setStrokeColor
+ * 
+ * Sets the current stroke color.
+ */
+mxAbstractCanvas2D.prototype.setStrokeColor = function(value)
+{
+	if (value == mxConstants.NONE)
+	{
+		value = null;
+	}
+	
+	this.state.strokeColor = value;
+};
+
+/**
+ * Function: setStrokeWidth
+ * 
+ * Sets the current stroke width.
+ */
+mxAbstractCanvas2D.prototype.setStrokeWidth = function(value)
+{
+	this.state.strokeWidth = value;
+};
+
+/**
+ * Function: setDashed
+ * 
+ * Enables or disables dashed lines.
+ */
+mxAbstractCanvas2D.prototype.setDashed = function(value)
+{
+	this.state.dashed = value;
+};
+
+/**
+ * Function: setDashPattern
+ * 
+ * Sets the current dash pattern.
+ */
+mxAbstractCanvas2D.prototype.setDashPattern = function(value)
+{
+	this.state.dashPattern = value;
+};
+
+/**
+ * Function: setLineCap
+ * 
+ * Sets the current line cap.
+ */
+mxAbstractCanvas2D.prototype.setLineCap = function(value)
+{
+	this.state.lineCap = value;
+};
+
+/**
+ * Function: setLineJoin
+ * 
+ * Sets the current line join.
+ */
+mxAbstractCanvas2D.prototype.setLineJoin = function(value)
+{
+	this.state.lineJoin = value;
+};
+
+/**
+ * Function: setMiterLimit
+ * 
+ * Sets the current miter limit.
+ */
+mxAbstractCanvas2D.prototype.setMiterLimit = function(value)
+{
+	this.state.miterLimit = value;
+};
+
+/**
+ * Function: setFontColor
+ * 
+ * Sets the current font color.
+ */
+mxAbstractCanvas2D.prototype.setFontColor = function(value)
+{
+	if (value == mxConstants.NONE)
+	{
+		value = null;
+	}
+	
+	this.state.fontColor = value;
+};
+
+/**
+ * Function: setFontColor
+ * 
+ * Sets the current font color.
+ */
+mxAbstractCanvas2D.prototype.setFontBackgroundColor = function(value)
+{
+	if (value == mxConstants.NONE)
+	{
+		value = null;
+	}
+	
+	this.state.fontBackgroundColor = value;
+};
+
+/**
+ * Function: setFontColor
+ * 
+ * Sets the current font color.
+ */
+mxAbstractCanvas2D.prototype.setFontBorderColor = function(value)
+{
+	if (value == mxConstants.NONE)
+	{
+		value = null;
+	}
+	
+	this.state.fontBorderColor = value;
+};
+
+/**
+ * Function: setFontSize
+ * 
+ * Sets the current font size.
+ */
+mxAbstractCanvas2D.prototype.setFontSize = function(value)
+{
+	this.state.fontSize = value;
+};
+
+/**
+ * Function: setFontFamily
+ * 
+ * Sets the current font family.
+ */
+mxAbstractCanvas2D.prototype.setFontFamily = function(value)
+{
+	this.state.fontFamily = value;
+};
+
+/**
+ * Function: setFontStyle
+ * 
+ * Sets the current font style.
+ */
+mxAbstractCanvas2D.prototype.setFontStyle = function(value)
+{
+	if (value == null)
+	{
+		value = 0;
+	}
+	
+	this.state.fontStyle = value;
+};
+
+/**
+ * Function: setShadow
+ * 
+ * Enables or disables and configures the current shadow.
+ */
+mxAbstractCanvas2D.prototype.setShadow = function(enabled)
+{
+	this.state.shadow = enabled;
+};
+
+/**
+ * Function: setShadowColor
+ * 
+ * Enables or disables and configures the current shadow.
+ */
+mxAbstractCanvas2D.prototype.setShadowColor = function(value)
+{
+	if (value == mxConstants.NONE)
+	{
+		value = null;
+	}
+	
+	this.state.shadowColor = value;
+};
+
+/**
+ * Function: setShadowAlpha
+ * 
+ * Enables or disables and configures the current shadow.
+ */
+mxAbstractCanvas2D.prototype.setShadowAlpha = function(value)
+{
+	this.state.shadowAlpha = value;
+};
+
+/**
+ * Function: setShadowOffset
+ * 
+ * Enables or disables and configures the current shadow.
+ */
+mxAbstractCanvas2D.prototype.setShadowOffset = function(dx, dy)
+{
+	this.state.shadowDx = dx;
+	this.state.shadowDy = dy;
+};
+
+/**
+ * Function: begin
+ * 
+ * Starts a new path.
+ */
+mxAbstractCanvas2D.prototype.begin = function()
+{
+	this.lastX = 0;
+	this.lastY = 0;
+	this.path = [];
+};
+
+/**
+ * Function: moveTo
+ * 
+ *  Moves the current path the given coordinates.
+ */
+mxAbstractCanvas2D.prototype.moveTo = function(x, y)
+{
+	this.addOp(this.moveOp, x, y);
+};
+
+/**
+ * Function: lineTo
+ * 
+ * Draws a line to the given coordinates. Uses moveTo with the op argument.
+ */
+mxAbstractCanvas2D.prototype.lineTo = function(x, y)
+{
+	this.addOp(this.lineOp, x, y);
+};
+
+/**
+ * Function: quadTo
+ * 
+ * Adds a quadratic curve to the current path.
+ */
+mxAbstractCanvas2D.prototype.quadTo = function(x1, y1, x2, y2)
+{
+	this.addOp(this.quadOp, x1, y1, x2, y2);
+};
+
+/**
+ * Function: curveTo
+ * 
+ * Adds a bezier curve to the current path.
+ */
+mxAbstractCanvas2D.prototype.curveTo = function(x1, y1, x2, y2, x3, y3)
+{
+	this.addOp(this.curveOp, x1, y1, x2, y2, x3, y3);
+};
+
+/**
+ * Function: arcTo
+ * 
+ * Adds the given arc to the current path. This is a synthetic operation that
+ * is broken down into curves.
+ */
+mxAbstractCanvas2D.prototype.arcTo = function(rx, ry, angle, largeArcFlag, sweepFlag, x, y)
+{
+	var curves = mxUtils.arcToCurves(this.lastX, this.lastY, rx, ry, angle, largeArcFlag, sweepFlag, x, y);
+	
+	for (var i = 0; i < curves.length; i += 6) 
+	{
+		this.curveTo(curves[i], curves[i + 1], curves[i + 2],
+			curves[i + 3], curves[i + 4], curves[i + 5]);
+	}
+};
+
+/**
+ * Function: close
+ * 
+ * Closes the current path.
+ */
+mxAbstractCanvas2D.prototype.close = function(x1, y1, x2, y2, x3, y3)
+{
+	this.addOp(this.closeOp);
+};
+
+/**
+ * Function: end
+ * 
+ * Empty implementation for backwards compatibility. This will be removed.
+ */
+mxAbstractCanvas2D.prototype.end = function() { };
+/**
+ * $Id: mxXmlCanvas2D.js,v 1.24 2013/01/29 12:05:33 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
+ * Class: mxXmlCanvas2D
  *
- * Class: mxSvgCanvas2D
+ * Base class for all canvases. The following methods make up the public
+ * interface of the canvas 2D for all painting in mxGraph:
  * 
- * Implements a canvas to be used with <mxImageExport>. This canvas writes all
+ * - <save>, <restore>
+ * - <scale>, <translate>, <rotate>
+ * - <setAlpha>, <setFillColor>, <setGradient>, <setStrokeColor>, <setStrokeWidth>,
+ *   <setDashed>, <setDashPattern>, <setLineCap>, <setLineJoin>, <setMiterLimit>
+ * - <setFontColor>, <setFontBackgroundColor>, <setFontBorderColor>, <setFontSize>,
+ *   <setFontFamily>, <setFontStyle>
+ * - <setShadow>, <setShadowColor>, <setShadowAlpha>, <setShadowOffset>
+ * - <rect>, <roundrect>, <ellipse>, <image>, <text>
+ * - <begin>, <moveTo>, <lineTo>, <quadTo>, <curveTo>
+ * - <stroke>, <fill>, <fillAndStroke>
+ * 
+ * <mxAbstractCanvas2D.arcTo> is an additional method for drawing paths. This is
+ * a synthetic method, meaning that it is turned into a sequence of curves by
+ * default. Subclassers may add native support for arcs.
+ * 
+ * Constructor: mxXmlCanvas2D
+ *
+ * Constructs a new abstract canvas.
+ */
+function mxXmlCanvas2D(root)
+{
+	mxAbstractCanvas2D.call(this);
+
+	/**
+	 * Variable: root
+	 * 
+	 * Reference to the container for the SVG content.
+	 */
+	this.root = root;
+
+	// Writes default settings;
+	this.writeDefaults();
+};
+
+/**
+ * Extends mxAbstractCanvas2D
+ */
+mxUtils.extend(mxXmlCanvas2D, mxAbstractCanvas2D);
+
+/**
+ * Variable: textEnabled
+ * 
+ * Specifies if text output should be enabled. Default is true.
+ */
+mxXmlCanvas2D.prototype.textEnabled = true;
+
+/**
+ * Variable: compressed
+ * 
+ * Specifies if the output should be compressed by removing redundant calls.
+ * Default is true.
+ */
+mxXmlCanvas2D.prototype.compressed = true;
+
+/**
+ * Function: writeDefaults
+ * 
+ * Writes the rendering defaults to <root>:
+ */
+mxXmlCanvas2D.prototype.writeDefaults = function()
+{
+	var elem;
+	
+	// Writes font defaults
+	elem = this.createElement('fontfamily');
+	elem.setAttribute('family', mxConstants.DEFAULT_FONTFAMILY);
+	this.root.appendChild(elem);
+	
+	elem = this.createElement('fontsize');
+	elem.setAttribute('size', mxConstants.DEFAULT_FONTSIZE);
+	this.root.appendChild(elem);
+	
+	// Writes shadow defaults
+	elem = this.createElement('shadowcolor');
+	elem.setAttribute('color', mxConstants.SHADOWCOLOR);
+	this.root.appendChild(elem);
+	
+	elem = this.createElement('shadowalpha');
+	elem.setAttribute('alpha', mxConstants.SHADOW_OPACITY);
+	this.root.appendChild(elem);
+	
+	elem = this.createElement('shadowoffset');
+	elem.setAttribute('dx', mxConstants.SHADOW_OFFSET_X);
+	elem.setAttribute('dy', mxConstants.SHADOW_OFFSET_Y);
+	this.root.appendChild(elem);
+};
+
+/**
+ * Function: format
+ * 
+ * Returns a formatted number with 2 decimal places.
+ */
+mxXmlCanvas2D.prototype.format = function(value)
+{
+	return parseFloat(parseFloat(value).toFixed(2));
+};
+
+/**
+ * Function: createElement
+ * 
+ * Creates the given element using the owner document of <root>.
+ */
+mxXmlCanvas2D.prototype.createElement = function(name)
+{
+	return this.root.ownerDocument.createElement(name);
+};
+
+/**
+ * Function: save
+ * 
+ * Saves the drawing state.
+ */
+mxXmlCanvas2D.prototype.save = function()
+{
+	if (this.compressed)
+	{
+		mxAbstractCanvas2D.prototype.save.apply(this, arguments);
+	}
+	
+	this.root.appendChild(this.createElement('save'));
+};
+
+/**
+ * Function: restore
+ * 
+ * Restores the drawing state.
+ */
+mxXmlCanvas2D.prototype.restore = function()
+{
+	if (this.compressed)
+	{
+		mxAbstractCanvas2D.prototype.restore.apply(this, arguments);
+	}
+	
+	this.root.appendChild(this.createElement('restore'));
+};
+
+/**
+ * Function: scale
+ * 
+ * Scales the output.
+ * 
+ * Parameters:
+ * 
+ * scale - Number that represents the scale where 1 is equal to 100%.
+ */
+mxXmlCanvas2D.prototype.scale = function(value)
+{
+	if (this.compressed)
+	{
+		if (this.state.scale == value)
+		{
+			return;
+		}
+		
+		mxAbstractCanvas2D.prototype.setAlpha.apply(this, arguments);
+	}
+	
+	var elem = this.createElement('scale');
+	elem.setAttribute('scale', value);
+	this.root.appendChild(elem);
+};
+
+/**
+ * Function: translate
+ * 
+ * Translates the output.
+ * 
+ * Parameters:
+ * 
+ * dx - Number that specifies the horizontal translation.
+ * dy - Number that specifies the vertical translation.
+ */
+mxXmlCanvas2D.prototype.translate = function(dx, dy)
+{
+	var elem = this.createElement('translate');
+	elem.setAttribute('dx', this.format(dx));
+	elem.setAttribute('dy', this.format(dy));
+	this.root.appendChild(elem);
+};
+
+/**
+ * Function: rotate
+ * 
+ * Rotates and/or flips the output around a given center. (Note: Due to
+ * limitations in VML, the rotation cannot be concatenated.)
+ * 
+ * Parameters:
+ * 
+ * theta - Number that represents the angle of the rotation (in degrees).
+ * flipH - Boolean indicating if the output should be flipped horizontally.
+ * flipV - Boolean indicating if the output should be flipped vertically.
+ * cx - Number that represents the x-coordinate of the rotation center.
+ * cy - Number that represents the y-coordinate of the rotation center.
+ */
+mxXmlCanvas2D.prototype.rotate = function(theta, flipH, flipV, cx, cy)
+{
+	var elem = this.createElement('rotate');
+	
+	if (theta != 0 || flipH || flipV)
+	{
+		elem.setAttribute('theta', this.format(theta));
+		elem.setAttribute('flipH', (flipH) ? '1' : '0');
+		elem.setAttribute('flipV', (flipV) ? '1' : '0');
+		elem.setAttribute('cx', this.format(cx));
+		elem.setAttribute('cy', this.format(cy));
+		this.root.appendChild(elem);
+	}
+};
+
+/**
+ * Function: setAlpha
+ * 
+ * Sets the current alpha.
+ * 
+ * Parameters:
+ * 
+ * value - Number that represents the new alpha. Possible values are between
+ * 1 (opaque) and 0 (transparent).
+ */
+mxXmlCanvas2D.prototype.setAlpha = function(value)
+{
+	if (this.compressed)
+	{
+		if (this.state.alpha == value)
+		{
+			return;
+		}
+		
+		mxAbstractCanvas2D.prototype.setAlpha.apply(this, arguments);
+	}
+	
+	var elem = this.createElement('alpha');
+	elem.setAttribute('alpha', this.format(value));
+	this.root.appendChild(elem);
+};
+
+/**
+ * Function: setFillColor
+ * 
+ * Sets the current fill color.
+ * 
+ * Parameters:
+ * 
+ * value - Hexadecimal representation of the color or 'none'.
+ */
+mxXmlCanvas2D.prototype.setFillColor = function(value)
+{
+	if (value == mxConstants.NONE)
+	{
+		value = null;
+	}
+	
+	if (this.compressed)
+	{
+		if (this.state.fillColor == value)
+		{
+			return;
+		}
+		
+		mxAbstractCanvas2D.prototype.setFillColor.apply(this, arguments);
+	}
+	
+	var elem = this.createElement('fillcolor');
+	elem.setAttribute('color', (value != null) ? value : mxConstants.NONE);
+	this.root.appendChild(elem);
+};
+
+/**
+ * Function: setGradient
+ * 
+ * Sets the gradient. Note that the coordinates may be ignored by some implementations.
+ * 
+ * Parameters:
+ * 
+ * color1 - Hexadecimal representation of the start color.
+ * color2 - Hexadecimal representation of the end color.
+ * x - X-coordinate of the gradient region.
+ * y - y-coordinate of the gradient region.
+ * w - Width of the gradient region.
+ * h - Height of the gradient region.
+ * direction - One of <mxConstants.DIRECTION_NORTH>, <mxConstants.DIRECTION_EAST>,
+ * <mxConstants.DIRECTION_SOUTH> or <mxConstants.DIRECTION_WEST>.
+ * alpha1 - Optional alpha of the start color. Default is 1. Possible values
+ * are between 1 (opaque) and 0 (transparent).
+ * alpha2 - Optional alpha of the end color. Default is 1. Possible values
+ * are between 1 (opaque) and 0 (transparent).
+ */
+mxXmlCanvas2D.prototype.setGradient = function(color1, color2, x, y, w, h, direction, alpha1, alpha2)
+{
+	if (color1 != null && color2 != null)
+	{
+		mxAbstractCanvas2D.prototype.setGradient.apply(this, arguments);
+		
+		var elem = this.createElement('gradient');
+		elem.setAttribute('c1', color1);
+		elem.setAttribute('c2', color2);
+		elem.setAttribute('x', this.format(x));
+		elem.setAttribute('y', this.format(y));
+		elem.setAttribute('w', this.format(w));
+		elem.setAttribute('h', this.format(h));
+		
+		// Default direction is south
+		if (direction != null)
+		{
+			elem.setAttribute('direction', direction);
+		}
+		
+		if (alpha1 != null)
+		{
+			elem.setAttribute('alpha1', alpha1);
+		}
+		
+		if (alpha2 != null)
+		{
+			elem.setAttribute('alpha2', alpha2);
+		}
+		
+		this.root.appendChild(elem);
+	}
+};
+
+/**
+ * Function: setStrokeColor
+ * 
+ * Sets the current stroke color.
+ * 
+ * Parameters:
+ * 
+ * value - Hexadecimal representation of the color or 'none'.
+ */
+mxXmlCanvas2D.prototype.setStrokeColor = function(value)
+{
+	if (value == mxConstants.NONE)
+	{
+		value = null;
+	}
+	
+	if (this.compressed)
+	{
+		if (this.state.strokeColor == value)
+		{
+			return;
+		}
+		
+		mxAbstractCanvas2D.prototype.setStrokeColor.apply(this, arguments);
+	}
+	
+	var elem = this.createElement('strokecolor');
+	elem.setAttribute('color', (value != null) ? value : mxConstants.NONE);
+	this.root.appendChild(elem);
+};
+
+/**
+ * Function: setStrokeWidth
+ * 
+ * Sets the current stroke width.
+ * 
+ * Parameters:
+ * 
+ * value - Numeric representation of the stroke width.
+ */
+mxXmlCanvas2D.prototype.setStrokeWidth = function(value)
+{
+	if (this.compressed)
+	{
+		if (this.state.strokeWidth == value)
+		{
+			return;
+		}
+		
+		mxAbstractCanvas2D.prototype.setStrokeWidth.apply(this, arguments);
+	}
+	
+	var elem = this.createElement('strokewidth');
+	elem.setAttribute('width', this.format(value));
+	this.root.appendChild(elem);
+};
+
+/**
+ * Function: setDashed
+ * 
+ * Enables or disables dashed lines.
+ * 
+ * Parameters:
+ * 
+ * value - Boolean that specifies if dashed lines should be enabled.
+ */
+mxXmlCanvas2D.prototype.setDashed = function(value)
+{
+	if (this.compressed)
+	{
+		if (this.state.dashed == value)
+		{
+			return;
+		}
+		
+		mxAbstractCanvas2D.prototype.setDashed.apply(this, arguments);
+	}
+	
+	var elem = this.createElement('dashed');
+	elem.setAttribute('dashed', (value) ? '1' : '0');
+	this.root.appendChild(elem);
+};
+
+/**
+ * Function: setDashPattern
+ * 
+ * Sets the current dash pattern. Default is '3 3'.
+ * 
+ * Parameters:
+ * 
+ * value - String that represents the dash pattern, which is a sequence of
+ * numbers defining the length of the dashes and the length of the spaces
+ * between the dashes. The lengths are relative to the line width - a length
+ * of 1 is equals to the line width.
+ */
+mxXmlCanvas2D.prototype.setDashPattern = function(value)
+{
+	if (this.compressed)
+	{
+		if (this.state.dashPattern == value)
+		{
+			return;
+		}
+		
+		mxAbstractCanvas2D.prototype.setDashPattern.apply(this, arguments);
+	}
+	
+	var elem = this.createElement('dashpattern');
+	elem.setAttribute('pattern', value);
+	this.root.appendChild(elem);
+};
+
+/**
+ * Function: setLineCap
+ * 
+ * Sets the line cap. Default is 'flat' which corresponds to 'butt' in SVG.
+ * 
+ * Parameters:
+ * 
+ * value - String that represents the line cap. Possible values are flat, round
+ * and square.
+ */
+mxXmlCanvas2D.prototype.setLineCap = function(value)
+{
+	if (this.compressed)
+	{
+		if (this.state.lineCap == value)
+		{
+			return;
+		}
+		
+		mxAbstractCanvas2D.prototype.setLineCap.apply(this, arguments);
+	}
+	
+	var elem = this.createElement('linecap');
+	elem.setAttribute('cap', value);
+	this.root.appendChild(elem);
+};
+
+/**
+ * Function: setLineJoin
+ * 
+ * Sets the line join. Default is 'miter'.
+ * 
+ * Parameters:
+ * 
+ * value - String that represents the line join. Possible values are miter,
+ * round and bevel.
+ */
+mxXmlCanvas2D.prototype.setLineJoin = function(value)
+{
+	if (this.compressed)
+	{
+		if (this.state.lineJoin == value)
+		{
+			return;
+		}
+		
+		mxAbstractCanvas2D.prototype.setLineJoin.apply(this, arguments);
+	}
+	
+	var elem = this.createElement('linejoin');
+	elem.setAttribute('join', value);
+	this.root.appendChild(elem);
+};
+
+/**
+ * Function: setMiterLimit
+ * 
+ * Sets the miter limit. Default is 10.
+ * 
+ * Parameters:
+ * 
+ * value - Number that represents the miter limit.
+ */
+mxXmlCanvas2D.prototype.setMiterLimit = function(value)
+{
+	if (this.compressed)
+	{
+		if (this.state.miterLimit == value)
+		{
+			return;
+		}
+		
+		mxAbstractCanvas2D.prototype.setMiterLimit.apply(this, arguments);
+	}
+	
+	var elem = this.createElement('miterlimit');
+	elem.setAttribute('limit', value);
+	this.root.appendChild(elem);
+};
+
+/**
+ * Function: setFontColor
+ * 
+ * Sets the current font color. Default is '#000000'.
+ * 
+ * Parameters:
+ * 
+ * value - Hexadecimal representation of the color or 'none'.
+ */
+mxXmlCanvas2D.prototype.setFontColor = function(value)
+{
+	if (this.textEnabled)
+	{
+		if (value == mxConstants.NONE)
+		{
+			value = null;
+		}
+		
+		if (this.compressed)
+		{
+			if (this.state.fontColor == value)
+			{
+				return;
+			}
+			
+			mxAbstractCanvas2D.prototype.setFontColor.apply(this, arguments);
+		}
+		
+		var elem = this.createElement('fontcolor');
+		elem.setAttribute('color', (value != null) ? value : mxConstants.NONE);
+		this.root.appendChild(elem);
+	}
+};
+
+/**
+ * Function: setFontBackgroundColor
+ * 
+ * Sets the current font background color.
+ * 
+ * Parameters:
+ * 
+ * value - Hexadecimal representation of the color or 'none'.
+ */
+mxXmlCanvas2D.prototype.setFontBackgroundColor = function(value)
+{
+	if (this.textEnabled)
+	{
+		if (value == mxConstants.NONE)
+		{
+			value = null;
+		}
+		
+		if (this.compressed)
+		{
+			if (this.state.fontBackgroundColor == value)
+			{
+				return;
+			}
+			
+			mxAbstractCanvas2D.prototype.setFontBackgroundColor.apply(this, arguments);
+		}
+
+		var elem = this.createElement('fontbackgroundcolor');
+		elem.setAttribute('color', (value != null) ? value : mxConstants.NONE);
+		this.root.appendChild(elem);
+	}
+};
+
+/**
+ * Function: setFontBorderColor
+ * 
+ * Sets the current font border color.
+ * 
+ * Parameters:
+ * 
+ * value - Hexadecimal representation of the color or 'none'.
+ */
+mxXmlCanvas2D.prototype.setFontBorderColor = function(value)
+{
+	if (this.textEnabled)
+	{
+		if (value == mxConstants.NONE)
+		{
+			value = null;
+		}
+		
+		if (this.compressed)
+		{
+			if (this.state.fontBorderColor == value)
+			{
+				return;
+			}
+			
+			mxAbstractCanvas2D.prototype.setFontBorderColor.apply(this, arguments);
+		}
+		
+		var elem = this.createElement('fontbordercolor');
+		elem.setAttribute('color', (value != null) ? value : mxConstants.NONE);
+		this.root.appendChild(elem);
+	}
+};
+
+/**
+ * Function: setFontSize
+ * 
+ * Sets the current font size. Default is <mxConstants.DEFAULT_FONTSIZE>.
+ * 
+ * Parameters:
+ * 
+ * value - Numeric representation of the font size.
+ */
+mxXmlCanvas2D.prototype.setFontSize = function(value)
+{
+	if (this.textEnabled)
+	{
+		if (this.compressed)
+		{
+			if (this.state.fontSize == value)
+			{
+				return;
+			}
+			
+			mxAbstractCanvas2D.prototype.setFontSize.apply(this, arguments);
+		}
+		
+		var elem = this.createElement('fontsize');
+		elem.setAttribute('size', value);
+		this.root.appendChild(elem);
+	}
+};
+
+/**
+ * Function: setFontFamily
+ * 
+ * Sets the current font family. Default is <mxConstants.DEFAULT_FONTFAMILY>.
+ * 
+ * Parameters:
+ * 
+ * value - String representation of the font family. This handles the same
+ * values as the CSS font-family property.
+ */
+mxXmlCanvas2D.prototype.setFontFamily = function(value)
+{
+	if (this.textEnabled)
+	{
+		if (this.compressed)
+		{
+			if (this.state.fontFamily == value)
+			{
+				return;
+			}
+			
+			mxAbstractCanvas2D.prototype.setFontFamily.apply(this, arguments);
+		}
+		
+		var elem = this.createElement('fontfamily');
+		elem.setAttribute('family', value);
+		this.root.appendChild(elem);
+	}
+};
+
+/**
+ * Function: setFontStyle
+ * 
+ * Sets the current font style.
+ * 
+ * Parameters:
+ * 
+ * value - Numeric representation of the font family. This is the sum of the
+ * font styles from <mxConstants>.
+ */
+mxXmlCanvas2D.prototype.setFontStyle = function(value)
+{
+	if (this.textEnabled)
+	{
+		if (value == null)
+		{
+			value = 0;
+		}
+		
+		if (this.compressed)
+		{
+			if (this.state.fontStyle == value)
+			{
+				return;
+			}
+			
+			mxAbstractCanvas2D.prototype.setFontStyle.apply(this, arguments);
+		}
+		
+		var elem = this.createElement('fontstyle');
+		elem.setAttribute('style', value);
+		this.root.appendChild(elem);
+	}
+};
+
+/**
+ * Function: setShadow
+ * 
+ * Enables or disables shadows.
+ * 
+ * Parameters:
+ * 
+ * value - Boolean that specifies if shadows should be enabled.
+ */
+mxXmlCanvas2D.prototype.setShadow = function(value)
+{
+	if (this.compressed)
+	{
+		if (this.state.shadow == value)
+		{
+			return;
+		}
+		
+		mxAbstractCanvas2D.prototype.setShadow.apply(this, arguments);
+	}
+	
+	var elem = this.createElement('shadow');
+	elem.setAttribute('enabled', (value) ? '1' : '0');
+	this.root.appendChild(elem);
+};
+
+/**
+ * Function: setShadowColor
+ * 
+ * Sets the current shadow color. Default is <mxConstants.SHADOWCOLOR>.
+ * 
+ * Parameters:
+ * 
+ * value - Hexadecimal representation of the color or 'none'.
+ */
+mxXmlCanvas2D.prototype.setShadowColor = function(value)
+{
+	if (this.compressed)
+	{
+		if (value == mxConstants.NONE)
+		{
+			value = null;
+		}
+		
+		if (this.state.shadowColor == value)
+		{
+			return;
+		}
+		
+		mxAbstractCanvas2D.prototype.setShadowColor.apply(this, arguments);
+	}
+	
+	var elem = this.createElement('shadowcolor');
+	elem.setAttribute('color', (value != null) ? value : mxConstants.NONE);
+	this.root.appendChild(elem);
+};
+
+/**
+ * Function: setShadowAlpha
+ * 
+ * Sets the current shadows alpha. Default is <mxConstants.SHADOW_OPACITY>.
+ * 
+ * Parameters:
+ * 
+ * value - Number that represents the new alpha. Possible values are between
+ * 1 (opaque) and 0 (transparent).
+ */
+mxXmlCanvas2D.prototype.setShadowAlpha = function(value)
+{
+	if (this.compressed)
+	{
+		if (this.state.shadowAlpha == value)
+		{
+			return;
+		}
+		
+		mxAbstractCanvas2D.prototype.setShadowAlpha.apply(this, arguments);
+	}
+	
+	var elem = this.createElement('shadowalpha');
+	elem.setAttribute('alpha', value);
+	this.root.appendChild(elem);
+	
+};
+
+/**
+ * Function: setShadowOffset
+ * 
+ * Sets the current shadow offset.
+ * 
+ * Parameters:
+ * 
+ * dx - Number that represents the horizontal offset of the shadow.
+ * dy - Number that represents the vertical offset of the shadow.
+ */
+mxXmlCanvas2D.prototype.setShadowOffset = function(dx, dy)
+{
+	if (this.compressed)
+	{
+		if (this.state.shadowDx == dx && this.state.shadowDy == dy)
+		{
+			return;
+		}
+		
+		mxAbstractCanvas2D.prototype.setShadowOffset.apply(this, arguments);
+	}
+	
+	var elem = this.createElement('shadowoffset');
+	elem.setAttribute('dx', dx);
+	elem.setAttribute('dy', dy);
+	this.root.appendChild(elem);
+	
+};
+
+/**
+ * Function: rect
+ * 
+ * Puts a rectangle into the drawing buffer.
+ * 
+ * Parameters:
+ * 
+ * x - Number that represents the x-coordinate of the rectangle.
+ * y - Number that represents the y-coordinate of the rectangle.
+ * w - Number that represents the width of the rectangle.
+ * h - Number that represents the height of the rectangle.
+ */
+mxXmlCanvas2D.prototype.rect = function(x, y, w, h)
+{
+	var elem = this.createElement('rect');
+	elem.setAttribute('x', this.format(x));
+	elem.setAttribute('y', this.format(y));
+	elem.setAttribute('w', this.format(w));
+	elem.setAttribute('h', this.format(h));
+	this.root.appendChild(elem);
+};
+
+/**
+ * Function: roundrect
+ * 
+ * Puts a rounded rectangle into the drawing buffer.
+ * 
+ * Parameters:
+ * 
+ * x - Number that represents the x-coordinate of the rectangle.
+ * y - Number that represents the y-coordinate of the rectangle.
+ * w - Number that represents the width of the rectangle.
+ * h - Number that represents the height of the rectangle.
+ * dx - Number that represents the horizontal rounding.
+ * dy - Number that represents the vertical rounding.
+ */
+mxXmlCanvas2D.prototype.roundrect = function(x, y, w, h, dx, dy)
+{
+	var elem = this.createElement('roundrect');
+	elem.setAttribute('x', this.format(x));
+	elem.setAttribute('y', this.format(y));
+	elem.setAttribute('w', this.format(w));
+	elem.setAttribute('h', this.format(h));
+	elem.setAttribute('dx', this.format(dx));
+	elem.setAttribute('dy', this.format(dy));
+	this.root.appendChild(elem);
+};
+
+/**
+ * Function: ellipse
+ * 
+ * Puts an ellipse into the drawing buffer.
+ * 
+ * Parameters:
+ * 
+ * x - Number that represents the x-coordinate of the ellipse.
+ * y - Number that represents the y-coordinate of the ellipse.
+ * w - Number that represents the width of the ellipse.
+ * h - Number that represents the height of the ellipse.
+ */
+mxXmlCanvas2D.prototype.ellipse = function(x, y, w, h)
+{
+	var elem = this.createElement('ellipse');
+	elem.setAttribute('x', this.format(x));
+	elem.setAttribute('y', this.format(y));
+	elem.setAttribute('w', this.format(w));
+	elem.setAttribute('h', this.format(h));
+	this.root.appendChild(elem);
+};
+
+/**
+ * Function: image
+ * 
+ * Paints an image.
+ * 
+ * Parameters:
+ * 
+ * x - Number that represents the x-coordinate of the image.
+ * y - Number that represents the y-coordinate of the image.
+ * w - Number that represents the width of the image.
+ * h - Number that represents the height of the image.
+ * src - String that specifies the URL of the image.
+ * aspect - Boolean indicating if the aspect of the image should be preserved.
+ * flipH - Boolean indicating if the image should be flipped horizontally.
+ * flipV - Boolean indicating if the image should be flipped vertically.
+ */
+mxXmlCanvas2D.prototype.image = function(x, y, w, h, src, aspect, flipH, flipV)
+{
+	src = this.converter.convert(src);
+	
+	// LATER: Add option for embedding images as base64.
+	var elem = this.createElement('image');
+	elem.setAttribute('x', this.format(x));
+	elem.setAttribute('y', this.format(y));
+	elem.setAttribute('w', this.format(w));
+	elem.setAttribute('h', this.format(h));
+	elem.setAttribute('src', src);
+	elem.setAttribute('aspect', (aspect) ? '1' : '0');
+	elem.setAttribute('flipH', (flipH) ? '1' : '0');
+	elem.setAttribute('flipV', (flipV) ? '1' : '0');
+	this.root.appendChild(elem);
+};
+
+/**
+ * Function: begin
+ * 
+ * Starts a new path and puts it into the drawing buffer.
+ */
+mxXmlCanvas2D.prototype.begin = function()
+{
+	this.root.appendChild(this.createElement('begin'));
+	this.lastX = 0;
+	this.lastY = 0;
+};
+
+/**
+ * Function: moveTo
+ * 
+ * Moves the current path the given point.
+ * 
+ * Parameters:
+ * 
+ * x - Number that represents the x-coordinate of the point.
+ * y - Number that represents the y-coordinate of the point.
+ */
+mxXmlCanvas2D.prototype.moveTo = function(x, y)
+{
+	var elem = this.createElement('move');
+	elem.setAttribute('x', this.format(x));
+	elem.setAttribute('y', this.format(y));
+	this.root.appendChild(elem);
+	this.lastX = x;
+	this.lastY = y;
+};
+
+/**
+ * Function: lineTo
+ * 
+ * Draws a line to the given coordinates.
+ * 
+ * Parameters:
+ * 
+ * x - Number that represents the x-coordinate of the endpoint.
+ * y - Number that represents the y-coordinate of the endpoint.
+ */
+mxXmlCanvas2D.prototype.lineTo = function(x, y)
+{
+	var elem = this.createElement('line');
+	elem.setAttribute('x', this.format(x));
+	elem.setAttribute('y', this.format(y));
+	this.root.appendChild(elem);
+	this.lastX = x;
+	this.lastY = y;
+};
+
+/**
+ * Function: quadTo
+ * 
+ * Adds a quadratic curve to the current path.
+ * 
+ * Parameters:
+ * 
+ * x1 - Number that represents the x-coordinate of the control point.
+ * y1 - Number that represents the y-coordinate of the control point.
+ * x2 - Number that represents the x-coordinate of the endpoint.
+ * y2 - Number that represents the y-coordinate of the endpoint.
+ */
+mxXmlCanvas2D.prototype.quadTo = function(x1, y1, x2, y2)
+{
+	var elem = this.createElement('quad');
+	elem.setAttribute('x1', this.format(x1));
+	elem.setAttribute('y1', this.format(y1));
+	elem.setAttribute('x2', this.format(x2));
+	elem.setAttribute('y2', this.format(y2));
+	this.root.appendChild(elem);
+	this.lastX = x2;
+	this.lastY = y2;
+};
+
+/**
+ * Function: curveTo
+ * 
+ * Adds a bezier curve to the current path.
+ * 
+ * Parameters:
+ * 
+ * x1 - Number that represents the x-coordinate of the first control point.
+ * y1 - Number that represents the y-coordinate of the first control point.
+ * x2 - Number that represents the x-coordinate of the second control point.
+ * y2 - Number that represents the y-coordinate of the second control point.
+ * x3 - Number that represents the x-coordinate of the endpoint.
+ * y3 - Number that represents the y-coordinate of the endpoint.
+ */
+mxXmlCanvas2D.prototype.curveTo = function(x1, y1, x2, y2, x3, y3)
+{
+	var elem = this.createElement('curve');
+	elem.setAttribute('x1', this.format(x1));
+	elem.setAttribute('y1', this.format(y1));
+	elem.setAttribute('x2', this.format(x2));
+	elem.setAttribute('y2', this.format(y2));
+	elem.setAttribute('x3', this.format(x3));
+	elem.setAttribute('y3', this.format(y3));
+	this.root.appendChild(elem);
+	this.lastX = x3;
+	this.lastY = y3;
+};
+
+/**
+ * Function: close
+ * 
+ * Closes the current path.
+ */
+mxXmlCanvas2D.prototype.close = function()
+{
+	this.root.appendChild(this.createElement('close'));
+};
+
+/**
+ * Function: text
+ * 
+ * Paints the given text. Possible values for format are empty string for
+ * plain text and html for HTML markup. Background and border color as well
+ * as clipping is not available in plain text labels for VML. HTML labels
+ * are not available as part of shapes with no foreignObject support in SVG
+ * (eg. IE9, IE10).
+ * 
+ * Parameters:
+ * 
+ * x - Number that represents the x-coordinate of the text.
+ * y - Number that represents the y-coordinate of the text.
+ * w - Number that represents the width of the text or 0 for automatic width.
+ * h - Number that represents the height of the text or 0 for automatic height.
+ * str - String that specifies the text to be painted.
+ * align - String that represents the horizontal alignment.
+ * valign - String that represents the vertical alignment.
+ * wrap - Boolean that specifies if word-wrapping is enabled. Requires w > 0.
+ * format - Empty string for plain text or 'html' for HTML markup.
+ * fill - Specifies if the label should fill the given space. Requires w > 0 and/or h > 0.
+ * clip - Boolean that specifies if the label should be clipped. Requires w > 0 and/or h > 0.
+ * rotation - Number that specifies the angle of the rotation around the anchor point of the text.
+ */
+mxXmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, format, fill, clip, rotation)
+{
+	if (this.textEnabled && str != null)
+	{
+		if (mxUtils.isNode(str))
+		{
+			str = mxUtils.getOuterHtml(str);
+		}
+		
+		var elem = this.createElement('text');
+		elem.setAttribute('x', this.format(x));
+		elem.setAttribute('y', this.format(y));
+		elem.setAttribute('w', this.format(w));
+		elem.setAttribute('h', this.format(h));
+		elem.setAttribute('str', str);
+		
+		if (align != null)
+		{
+			elem.setAttribute('align', align);
+		}
+		
+		if (valign != null)
+		{
+			elem.setAttribute('valign', valign);
+		}
+		
+		elem.setAttribute('wrap', (wrap) ? '1' : '0');
+		
+		if (format == null)
+		{
+			format = '';
+		}
+		
+		elem.setAttribute('format', format);
+		
+		if (fill != null)
+		{
+			elem.setAttribute('fill', (fill) ? '1' : '0');
+		}
+		
+		if (clip != null)
+		{
+			elem.setAttribute('clip', (clip) ? '1' : '0');
+		}
+		
+		if (rotation != null)
+		{
+			elem.setAttribute('rotation', rotation);
+		}
+		
+		this.root.appendChild(elem);
+	}
+};
+
+/**
+ * Function: stroke
+ * 
+ * Paints the outline of the current drawing buffer.
+ */
+mxXmlCanvas2D.prototype.stroke = function()
+{
+	this.root.appendChild(this.createElement('stroke'));
+};
+
+/**
+ * Function: fill
+ * 
+ * Fills the current drawing buffer.
+ */
+mxXmlCanvas2D.prototype.fill = function()
+{
+	this.root.appendChild(this.createElement('fill'));
+};
+
+/**
+ * Function: fillAndStroke
+ * 
+ * Fills the current drawing buffer and its outline.
+ */
+mxXmlCanvas2D.prototype.fillAndStroke = function()
+{
+	this.root.appendChild(this.createElement('fillstroke'));
+};
+/**
+ * $Id: mxSvgCanvas2D.js,v 1.46 2013/04/23 14:22:50 gaudenz Exp $
+ * Copyright (c) 2006-2010, JGraph Ltd
+ */
+/**
+ * Class: mxSvgCanvas2D
+ *
+ * Extends <mxAbstractCanvas2D> to implement a canvas for SVG. This canvas writes all
  * calls as SVG output to the given SVG root node.
+ * 
+ * Open issues:
+ * - Opacity for transformed foreignObjects in Chrome.
+ * - Gradient IDs must be refactored for fragments.
  * 
  * (code)
  * var svgDoc = mxUtils.createXmlDocument();
@@ -17812,6 +17443,7 @@ var mxXmlCanvas2D = function(root)
  * var bounds = graph.getGraphBounds();
  * root.setAttribute('width', (bounds.x + bounds.width + 4) + 'px');
  * root.setAttribute('height', (bounds.y + bounds.height + 4) + 'px');
+ * root.setAttribute('xmlns:xlink', mxConstants.NS_XLINK);
  * root.setAttribute('version', '1.1');
  * 
  * svgDoc.appendChild(root);
@@ -17819,9 +17451,11 @@ var mxXmlCanvas2D = function(root)
  * var svgCanvas = new mxSvgCanvas2D(root);
  * (end)
  * 
- * Constructor: mxSvgCanvas2D
+ * A description of the public API is available in <mxXmlCanvas2D>.
  * 
- * Constructs an SVG canvas.
+ * Constructor: mxSvgCanvas2D
+ *
+ * Constructs a new SVG canvas.
  * 
  * Parameters:
  * 
@@ -17830,1199 +17464,2576 @@ var mxXmlCanvas2D = function(root)
  * added. The style section sets the default font-size, font-family and
  * stroke-miterlimit globally. Default is false.
  */
-var mxSvgCanvas2D = function(root, styleEnabled)
+function mxSvgCanvas2D(root, styleEnabled)
 {
-	styleEnabled = (styleEnabled != null) ? styleEnabled : false;
+	mxAbstractCanvas2D.call(this);
 
 	/**
-	 * Variable: converter
+	 * Variable: root
 	 * 
-	 * Holds the <mxUrlConverter> to convert image URLs.
+	 * Reference to the container for the SVG content.
 	 */
-	var converter = new mxUrlConverter();
-	
-	/**
-	 * Variable: autoAntiAlias
-	 * 
-	 * Specifies if anti aliasing should be disabled for rectangles
-	 * and orthogonal paths. Default is true.
-	 */
-	var autoAntiAlias = true;
-	
-	/**
-	 * Variable: textEnabled
-	 * 
-	 * Specifies if text output should be enabled. Default is true.
-	 */
-	var textEnabled = true;
-	
-	/**
-	 * Variable: foEnabled
-	 * 
-	 * Specifies if use of foreignObject for HTML markup is allowed. Default is true.
-	 */
-	var foEnabled = true;
+	this.root = root;
 
-	// Private helper function to create SVG elements
-	var create = function(tagName, namespace)
+	/**
+	 * Variable: gradients
+	 * 
+	 * Local cache of gradients for quick lookups.
+	 */
+	this.gradients = [];
+
+	/**
+	 * Variable: defs
+	 * 
+	 * Reference to the defs section of the SVG document. Only for export.
+	 */
+	this.defs = null;
+	
+	/**
+	 * Variable: styleEnabled
+	 * 
+	 * Stores the value of styleEnabled passed to the constructor.
+	 */
+	this.styleEnabled = (styleEnabled != null) ? styleEnabled : false;
+	
+	var svg = null;
+	
+	// Adds optional defs section for export
+	if (root.ownerDocument != document)
 	{
-		var doc = root.ownerDocument || document;
-		
-		if (doc.createElementNS != null)
-		{
-			return doc.createElementNS(namespace || mxConstants.NS_SVG, tagName);
-		}
-		else
-		{
-			var elt = doc.createElement(tagName);
-			
-			if (namespace != null)
-			{
-				elt.setAttribute('xmlns', namespace);
-			}
-			
-			return elt;
-		}
-	};
+		var node = root;
 
-	// Defs section contains optional style and gradients
-	var defs = create('defs');
-	
-	// Creates defs section with optional global style
-	if (styleEnabled)
-	{
-		var style = create('style');
-		style.setAttribute('type', 'text/css');
-		mxUtils.write(style, 'svg{font-family:' + mxConstants.DEFAULT_FONTFAMILY +
-				';font-size:' + mxConstants.DEFAULT_FONTSIZE +
-				';fill:none;stroke-miterlimit:10}');
-		
-		if (autoAntiAlias)
+		// Finds owner SVG element in XML DOM
+		while (node != null && node.nodeName != 'svg')
 		{
-			mxUtils.write(style, 'rect{shape-rendering:crispEdges}');
+			node = node.parentNode;
 		}
-	
-		// Appends style to defs and defs to SVG container
-		defs.appendChild(style);
+		
+		svg = node;
 	}
 
-	root.appendChild(defs);
-	
-	// Defines the current state
-	var currentState =
+	if (svg != null)
 	{
-			dx: 0,
-			dy: 0,
-			scale: 1,
-			transform: '',
-			fill: null,
-			gradient: null,
-			stroke: null,
-			strokeWidth: 1,
-			dashed: false,
-			dashpattern: '3 3',
-			alpha: 1,
-			linecap: 'flat',
-			linejoin: 'miter',
-			miterlimit: 10,
-			fontColor: '#000000',
-			fontSize: mxConstants.DEFAULT_FONTSIZE,
-			fontFamily: mxConstants.DEFAULT_FONTFAMILY,
-			fontStyle: 0
-	};
-	
-	// Local variables
-	var currentPathIsOrthogonal = true;
-	var glassGradient = null;
-	var currentNode = null;
-	var currentPath = null;
-	var lastPoint = null;
-	var gradients = [];
-	var refCount = 0;
-	var stack = [];
-
-	// Other private helper methods
-	var createGradientId = function(start, end, direction)
-	{
-		// Removes illegal characters from gradient ID
-		if (start.charAt(0) == '#')
+		// Tries to get existing defs section
+		var tmp = svg.getElementsByTagName('defs');
+		
+		if (tmp.length > 0)
 		{
-			start = start.substring(1);
+			this.defs = svg.getElementsByTagName('defs')[0];
 		}
 		
-		if (end.charAt(0) == '#')
+		// Adds defs section if none exists
+		if (this.defs == null)
 		{
-			end = end.substring(1);
+			this.defs = this.createElement('defs');
+			
+			if (svg.firstChild != null)
+			{
+				svg.insertBefore(this.defs, svg.firstChild);
+			}
+			else
+			{
+				svg.appendChild(this.defs);
+			}
+		}
+
+		// Adds stylesheet
+		if (this.styleEnabled)
+		{
+			this.defs.appendChild(this.createStyle());
+		}
+	}
+};
+
+/**
+ * Extends mxAbstractCanvas2D
+ */
+mxUtils.extend(mxSvgCanvas2D, mxAbstractCanvas2D);
+
+/**
+ * Variable: path
+ * 
+ * Holds the current DOM node.
+ */
+mxSvgCanvas2D.prototype.node = null;
+
+/**
+ * Variable: matchHtmlAlignment
+ * 
+ * Specifies if plain text output should match HTML alignment. Defaul is true.
+ */
+mxSvgCanvas2D.prototype.matchHtmlAlignment = true;
+
+/**
+ * Variable: textEnabled
+ * 
+ * Specifies if text output should be enabled. Default is true.
+ */
+mxSvgCanvas2D.prototype.textEnabled = true;
+
+/**
+ * Variable: foEnabled
+ * 
+ * Specifies if use of foreignObject for HTML markup is allowed. Default is true.
+ */
+mxSvgCanvas2D.prototype.foEnabled = true;
+
+/**
+ * Variable: foAltText
+ * 
+ * Specifies the fallback text for unsupported foreignObjects in exported
+ * documents. Default is '[Object]'. If this is set to null then no fallback
+ * text is added to the exported document.
+ */
+mxSvgCanvas2D.prototype.foAltText = '[Object]';
+
+/**
+ * Variable: strokeTolerance
+ * 
+ * Adds transparent paths for strokes.
+ */
+mxSvgCanvas2D.prototype.strokeTolerance = 0;
+
+/**
+ * Variable: refCount
+ * 
+ * Local counter for references in SVG export.
+ */
+mxSvgCanvas2D.prototype.refCount = 0;
+
+/**
+ * Variable: blockImagePointerEvents
+ * 
+ * Specifies if a transparent rectangle should be added on top of images to absorb
+ * all pointer events. Default is false. This is only needed in Firefox to disable
+ * control-clicks on images.
+ */
+mxSvgCanvas2D.prototype.blockImagePointerEvents = false;
+
+/**
+ * Function: reset
+ * 
+ * Returns any offsets for rendering pixels.
+ */
+mxSvgCanvas2D.prototype.reset = function()
+{
+	mxAbstractCanvas2D.prototype.reset.apply(this, arguments);
+	this.gradients = [];
+};
+
+/**
+ * Function: createStyle
+ * 
+ * Creates the optional style section.
+ */
+mxSvgCanvas2D.prototype.createStyle = function(x)
+{
+	var style = this.createElement('style');
+	style.setAttribute('type', 'text/css');
+	mxUtils.write(style, 'svg{font-family:' + mxConstants.DEFAULT_FONTFAMILY +
+			';font-size:' + mxConstants.DEFAULT_FONTSIZE +
+			';fill:none;stroke-miterlimit:10}');
+	
+	return style;
+};
+
+/**
+ * Function: createElement
+ * 
+ * Private helper function to create SVG elements
+ */
+mxSvgCanvas2D.prototype.createElement = function(tagName, namespace)
+{
+	if (this.root.ownerDocument.createElementNS != null)
+	{
+		return this.root.ownerDocument.createElementNS(namespace || mxConstants.NS_SVG, tagName);
+	}
+	else
+	{
+		var elt = this.root.ownerDocument.createElement(tagName);
+		
+		if (namespace != null)
+		{
+			elt.setAttribute('xmlns', namespace);
 		}
 		
-		// Workaround for gradient IDs not working in Safari 5 / Chrome 6
-		// if they contain uppercase characters
-		start = start.toLowerCase();
-		end = end.toLowerCase();
+		return elt;
+	}
+};
 
-		// Wrong gradient directions possible?
-		var dir = null;
+/**
+ * Function: getAlternateContent
+ * 
+ * Returns the alternate content for the given foreignObject.
+ */
+mxSvgCanvas2D.prototype.createAlternateContent = function(fo, x, y, w, h, str, align, valign, wrap, format, fill, clip, rotation)
+{
+	if (this.foAltText != null)
+	{
+		var s = this.state;
+		var alt = this.createElement('text');
+		alt.setAttribute('x', Math.round(w / 2));
+		alt.setAttribute('y', Math.round((h + s.fontSize) / 2));
+		alt.setAttribute('fill', s.fontColor || 'black');
+		alt.setAttribute('text-anchor', 'middle');
+		alt.setAttribute('font-size', Math.round(s.fontSize) + 'px');
+		alt.setAttribute('font-family', s.fontFamily);
 		
-		if (direction == null || direction == mxConstants.DIRECTION_SOUTH)
+		if ((s.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
+		{
+			alt.setAttribute('font-weight', 'bold');
+		}
+		
+		if ((s.fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
+		{
+			alt.setAttribute('font-style', 'italic');
+		}
+		
+		if ((s.fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
+		{
+			alt.setAttribute('text-decoration', 'underline');
+		}
+		
+		mxUtils.write(alt, this.foAltText);
+		
+		return alt;
+	}
+	else
+	{
+		return null;
+	}
+};
+
+/**
+ * Function: createGradientId
+ * 
+ * Private helper function to create SVG elements
+ */
+mxSvgCanvas2D.prototype.createGradientId = function(start, end, alpha1, alpha2, direction)
+{
+	// Removes illegal characters from gradient ID
+	if (start.charAt(0) == '#')
+	{
+		start = start.substring(1);
+	}
+	
+	if (end.charAt(0) == '#')
+	{
+		end = end.substring(1);
+	}
+	
+	// Workaround for gradient IDs not working in Safari 5 / Chrome 6
+	// if they contain uppercase characters
+	start = start.toLowerCase() + '-' + alpha1;
+	end = end.toLowerCase() + '-' + alpha2;
+
+	// Wrong gradient directions possible?
+	var dir = null;
+	
+	if (direction == null || direction == mxConstants.DIRECTION_SOUTH)
+	{
+		dir = 's';
+	}
+	else if (direction == mxConstants.DIRECTION_EAST)
+	{
+		dir = 'e';
+	}
+	else
+	{
+		var tmp = start;
+		start = end;
+		end = tmp;
+		
+		if (direction == mxConstants.DIRECTION_NORTH)
 		{
 			dir = 's';
 		}
-		else if (direction == mxConstants.DIRECTION_EAST)
+		else if (direction == mxConstants.DIRECTION_WEST)
 		{
 			dir = 'e';
 		}
+	}
+	
+	return 'mx-gradient-' + start + '-' + end + '-' + dir;
+};
+
+/**
+ * Function: getSvgGradient
+ * 
+ * Private helper function to create SVG elements
+ */
+mxSvgCanvas2D.prototype.getSvgGradient = function(start, end, alpha1, alpha2, direction)
+{
+	var id = this.createGradientId(start, end, alpha1, alpha2, direction);
+	var gradient = this.gradients[id];
+	
+	if (gradient == null)
+	{
+		var svg = this.root.ownerSVGElement;
+
+		var counter = 0;
+		var tmpId = id + '-' + counter;
+
+		if (svg != null)
+		{
+			gradient = svg.ownerDocument.getElementById(tmpId);
+			
+			while (gradient != null && gradient.ownerSVGElement != svg)
+			{
+				tmpId = id + '-' + counter++;
+				gradient = svg.ownerDocument.getElementById(tmpId);
+			}
+		}
 		else
 		{
-			var tmp = start;
-			start = end;
-			end = tmp;
-			
-			if (direction == mxConstants.DIRECTION_NORTH)
-			{
-				dir = 's';
-			}
-			else if (direction == mxConstants.DIRECTION_WEST)
-			{
-				dir = 'e';
-			}
+			// Uses shorter IDs for export
+			tmpId = 'id' + (++this.refCount);
 		}
-		
-		return start+'-'+end+'-'+dir;
-	};
-	
-	var createHtmlBody = function(str, align, valign)
-	{
-		var style = 'margin:0px;font-size:' + Math.floor(currentState.fontSize) + 'px;' +
-			'font-family:' + currentState.fontFamily + ';color:' + currentState.fontColor+ ';';
-		
-		if ((currentState.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
-		{
-			style += 'font-weight:bold;';
-		}
-
-		if ((currentState.fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
-		{
-			style += 'font-style:italic;';
-		}
-		
-		if ((currentState.fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
-		{
-			style += 'font-decoration:underline;';
-		}
-		
-		if (align == mxConstants.ALIGN_CENTER)
-		{
-			style += 'text-align:center;';
-		}
-		else if (align == mxConstants.ALIGN_RIGHT)
-		{
-			style += 'text-align:right;';
-		}
-
-		// Converts HTML entities to unicode
-		var t = document.createElement('div');
-		t.innerHTML = str;
-		str = t.innerHTML.replace(/&nbsp;/g, '&#160;');
-		
-		// LATER: Add vertical align support via table, adds xmlns to workaround empty NS in IE9 standards
-		var node = mxUtils.parseXml('<div xmlns="http://www.w3.org/1999/xhtml" style="' +
-				style + '">' + str + '</div>').documentElement; 
-
-		return node;
-	};
-
-	var getSvgGradient = function(start, end, direction)
-	{
-		var id = createGradientId(start, end, direction);
-		var gradient = gradients[id];
 		
 		if (gradient == null)
 		{
-			gradient = create('linearGradient');
-			gradient.setAttribute('id', ++refCount);
-			gradient.setAttribute('x1', '0%');
-			gradient.setAttribute('y1', '0%');
-			gradient.setAttribute('x2', '0%');
-			gradient.setAttribute('y2', '0%');
+			gradient = this.createSvgGradient(start, end, alpha1, alpha2, direction);
+			gradient.setAttribute('id', tmpId);
 			
-			if (direction == null || direction == mxConstants.DIRECTION_SOUTH)
+			if (this.defs != null)
 			{
-				gradient.setAttribute('y2', '100%');
+				this.defs.appendChild(gradient);
 			}
-			else if (direction == mxConstants.DIRECTION_EAST)
+			else
 			{
-				gradient.setAttribute('x2', '100%');
+				svg.appendChild(gradient);
 			}
-			else if (direction == mxConstants.DIRECTION_NORTH)
-			{
-				gradient.setAttribute('y1', '100%');
-			}
-			else if (direction == mxConstants.DIRECTION_WEST)
-			{
-				gradient.setAttribute('x1', '100%');
-			}
-			
-			var stop = create('stop');
-			stop.setAttribute('offset', '0%');
-			stop.setAttribute('style', 'stop-color:'+start);
-			gradient.appendChild(stop);
-			
-			stop = create('stop');
-			stop.setAttribute('offset', '100%');
-			stop.setAttribute('style', 'stop-color:'+end);
-			gradient.appendChild(stop);
-			
-			defs.appendChild(gradient);
-			gradients[id] = gradient;
 		}
 
-		return gradient.getAttribute('id');
-	};
+		this.gradients[id] = gradient;
+	}
+
+	return gradient.getAttribute('id');
+};
+
+/**
+ * Function: createSvgGradient
+ * 
+ * Creates the given SVG gradient.
+ */
+mxSvgCanvas2D.prototype.createSvgGradient = function(start, end, alpha1, alpha2, direction)
+{
+	var gradient = this.createElement('linearGradient');
+	gradient.setAttribute('x1', '0%');
+	gradient.setAttribute('y1', '0%');
+	gradient.setAttribute('x2', '0%');
+	gradient.setAttribute('y2', '0%');
 	
-	var appendNode = function(node, state, filled, stroked)
+	if (direction == null || direction == mxConstants.DIRECTION_SOUTH)
 	{
-		if (node != null)
+		gradient.setAttribute('y2', '100%');
+	}
+	else if (direction == mxConstants.DIRECTION_EAST)
+	{
+		gradient.setAttribute('x2', '100%');
+	}
+	else if (direction == mxConstants.DIRECTION_NORTH)
+	{
+		gradient.setAttribute('y1', '100%');
+	}
+	else if (direction == mxConstants.DIRECTION_WEST)
+	{
+		gradient.setAttribute('x1', '100%');
+	}
+	
+	var op = (alpha1 < 1) ? ';stop-opacity:' + alpha1 : '';
+	
+	var stop = this.createElement('stop');
+	stop.setAttribute('offset', '0%');
+	stop.setAttribute('style', 'stop-color:' + start + op);
+	gradient.appendChild(stop);
+	
+	op = (alpha2 < 1) ? ';stop-opacity:' + alpha2 : '';
+	
+	stop = this.createElement('stop');
+	stop.setAttribute('offset', '100%');
+	stop.setAttribute('style', 'stop-color:' + end + op);
+	gradient.appendChild(stop);
+	
+	return gradient;
+};
+
+/**
+ * Function: addNode
+ * 
+ * Private helper function to create SVG elements
+ */
+mxSvgCanvas2D.prototype.addNode = function(filled, stroked)
+{
+	var node = this.node;
+	var s = this.state;
+
+	if (node != null)
+	{
+		if (node.nodeName == 'path')
 		{
-			if (state.clip != null)
+			// Checks if the path is not empty
+			if (this.path != null && this.path.length > 0)
 			{
-				node.setAttribute('clip-path', 'url(#' + state.clip + ')');
-				state.clip = null;
+				node.setAttribute('d', this.path.join(' '));
 			}
-			
-			if (currentPath != null)
+			else
 			{
-				node.setAttribute('d', currentPath.join(' '));
-				currentPath = null;
-				
-				if (autoAntiAlias && currentPathIsOrthogonal)
-				{
-					node.setAttribute('shape-rendering', 'crispEdges');
-					state.strokeWidth = Math.max(1, state.strokeWidth);
-				}
+				return;
 			}
-			
-			if (state.alpha < 1)
+		}
+
+		if (filled && s.fillColor != null)
+		{
+			this.updateFill();
+		}
+		else if (!this.styleEnabled)
+		{
+			// Workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=814952
+			if (node.nodeName == 'ellipse' && mxClient.IS_NS && !mxClient.IS_GC && !mxClient.IS_SF)
 			{
-				// LATER: Check if using fill/stroke-opacity here is faster
-				node.setAttribute('opacity', state.alpha);
-				//node.setAttribute('fill-opacity', state.alpha);
-				//node.setAttribute('stroke-opacity', state.alpha);
+				node.setAttribute('fill', 'transparent');
 			}
-			
-			if (filled && (state.fill != null || state.gradient != null))
-			{
-				if (state.gradient != null)
-				{
-					node.setAttribute('fill', 'url(#' + state.gradient + ')');
-				}
-				else
-				{
-					node.setAttribute('fill', state.fill.toLowerCase());
-				}
-			}
-			else if (!styleEnabled)
+			else
 			{
 				node.setAttribute('fill', 'none');
 			}
 			
-			if (stroked && state.stroke != null)
-			{
-				node.setAttribute('stroke', state.stroke.toLowerCase());
-				
-				// Sets the stroke properties (1 is default is SVG)
-				if (state.strokeWidth != 1)
-				{
-					if (node.nodeName == 'rect' && autoAntiAlias)
-					{
-						state.strokeWidth = Math.max(1, state.strokeWidth);
-					}
-					
-					node.setAttribute('stroke-width', state.strokeWidth);
-				}
-				
-				if (node.nodeName == 'path')
-				{
-					// Linejoin miter is default in SVG
-					if (state.linejoin != null && state.linejoin != 'miter')
-					{
-						node.setAttribute('stroke-linejoin', state.linejoin);
-					}
-					
-					if (state.linecap != null)
-					{
-						// flat is called butt in SVG
-						var value = state.linecap;
-						
-						if (value == 'flat')
-						{
-							value = 'butt';
-						}
-						
-						// Linecap butt is default in SVG
-						if (value != 'butt')
-						{
-							node.setAttribute('stroke-linecap', value);
-						}
-					}
-					
-					// Miterlimit 10 is default in our document
-					if (state.miterlimit != null && (!styleEnabled || state.miterlimit != 10))
-					{
-						node.setAttribute('stroke-miterlimit', state.miterlimit);
-					}
-				}
-				
-				if (state.dashed)
-				{
-					var dash = state.dashpattern.split(' ');
-					
-					if (dash.length > 0)
-					{
-						var pat = [];
-						
-						for (var i = 0; i < dash.length; i++)
-						{
-							pat[i] = Number(dash[i]) * currentState.strokeWidth;
-						}
-					
-					
-						node.setAttribute('stroke-dasharray', pat.join(' '));
-					}
-				}
-			}
-			
-			if (state.transform.length > 0)
-			{
-				node.setAttribute('transform', state.transform);
-			}
-			
-			root.appendChild(node);
+			// Sets the actual filled state for stroke tolerance
+			filled = false;
 		}
-	};
+		
+		if (stroked && s.strokeColor != null)
+		{
+			this.updateStroke();
+		}
+		else if (!this.styleEnabled)
+		{
+			node.setAttribute('stroke', 'none');
+		}
+		
+		if (s.transform != null && s.transform.length > 0)
+		{
+			node.setAttribute('transform', s.transform);
+		}
+		
+		if (s.shadow)
+		{
+			this.root.appendChild(this.createShadow(node));
+		}
+		
+		// Adds stroke tolerance
+		if (this.strokeTolerance > 0 && !filled)
+		{
+			this.root.appendChild(this.createTolerance(node));
+		}
+
+		// Adds pointer events
+		if (this.pointerEvents && (node.nodeName != 'path' ||
+			this.path[this.path.length - 1] == this.closeOp))
+		{
+			node.setAttribute('pointer-events', 'all');
+		}
+		
+		// LATER: Update existing DOM for performance
+		this.root.appendChild(node);
+	}
+};
+
+/**
+ * Function: updateFill
+ * 
+ * Transfers the stroke attributes from <state> to <node>.
+ */
+mxSvgCanvas2D.prototype.updateFill = function()
+{
+	var s = this.state;
 	
-	// Private helper function to format a number
-	var f2 = function(x)
+	if (s.alpha < 1)
 	{
-		return Math.round(parseFloat(x) * 100) / 100;
-	};
+		this.node.setAttribute('fill-opacity', s.alpha);
+	}
 	
-	// Returns public interface
-	return {
+	if (s.fillColor != null)
+	{
+		if (s.gradientColor != null)
+		{
+			var id = this.getSvgGradient(s.fillColor, s.gradientColor, s.fillAlpha, s.gradientAlpha, s.gradientDirection);
+			this.node.setAttribute('fill', 'url(#' + id + ')');
+		}
+		else
+		{
+			this.node.setAttribute('fill', s.fillColor.toLowerCase());
+		}
+	}
+};
 
-		/**
-		 * Function: getConverter
-		 * 
-		 * Returns <converter>.
-		 */
-		getConverter: function()
-		{
-			return converter;
-		},
+/**
+ * Function: updateStroke
+ * 
+ * Transfers the stroke attributes from <state> to <node>.
+ */
+mxSvgCanvas2D.prototype.updateStroke = function()
+{
+	var s = this.state;
 
-		/**
-		 * Function: isAutoAntiAlias
-		 * 
-		 * Returns <autoAntiAlias>.
-		 */
-		isAutoAntiAlias: function()
-		{
-			return autoAntiAlias;
-		},
-
-		/**
-		 * Function: setAutoAntiAlias
-		 * 
-		 * Sets <autoAntiAlias>.
-		 */
-		setAutoAntiAlias: function(value)
-		{
-			autoAntiAlias = value;
-		},
-
-		/**
-		 * Function: isTextEnabled
-		 * 
-		 * Returns <textEnabled>.
-		 */
-		isTextEnabled: function()
-		{
-			return textEnabled;
-		},
-
-		/**
-		 * Function: setTextEnabled
-		 * 
-		 * Sets <textEnabled>.
-		 */
-		setTextEnabled: function(value)
-		{
-			textEnabled = value;
-		},
-
-		/**
-		 * Function: isFoEnabled
-		 * 
-		 * Returns <foEnabled>.
-		 */
-		isFoEnabled: function()
-		{
-			return foEnabled;
-		},
-
-		/**
-		 * Function: setFoEnabled
-		 * 
-		 * Sets <foEnabled>.
-		 */
-		setFoEnabled: function(value)
-		{
-			foEnabled = value;
-		},
-
-		/**
-		 * Function: save
-		 * 
-		 * Saves the state of the graphics object.
-		 */
-		save: function()
-		{
-			stack.push(currentState);
-			currentState = mxUtils.clone(currentState);
-		},
-		
-		/**
-		 * Function: restore
-		 * 
-		 * Restores the state of the graphics object.
-		 */
-		restore: function()
-		{
-			currentState = stack.pop();
-		},
-		
-		/**
-		 * Function: scale
-		 * 
-		 * Scales the current graphics object.
-		 */
-		scale: function(value)
-		{
-			currentState.scale *= value;
-			currentState.strokeWidth *= value;
-		},
-		
-		/**
-		 * Function: translate
-		 * 
-		 * Translates the current graphics object.
-		 */
-		translate: function(dx, dy)
-		{
-			currentState.dx += dx;
-			currentState.dy += dy;
-		},
-		
-		/**
-		 * Function: rotate
-		 * 
-		 * Rotates and/or flips the current graphics object.
-		 */
-		rotate: function(theta, flipH, flipV, cx, cy)
-		{
-			cx += currentState.dx;
-			cy += currentState.dy;
-
-			cx *= currentState.scale;
-			cy *= currentState.scale;
-
-			// This implementation uses custom scale/translate and built-in rotation
-			// Rotation state is part of the AffineTransform in state.transform
-			if (flipH ^ flipV)
-			{
-				var tx = (flipH) ? cx : 0;
-				var sx = (flipH) ? -1 : 1;
-
-				var ty = (flipV) ? cy : 0;
-				var sy = (flipV) ? -1 : 1;
-
-				currentState.transform += 'translate(' + f2(tx) + ',' + f2(ty) + ')';
-				currentState.transform += 'scale(' + f2(sx) + ',' + f2(sy) + ')';
-				currentState.transform += 'translate(' + f2(-tx) + ' ' + f2(-ty) + ')';
-			}
-			
-			currentState.transform += 'rotate(' + f2(theta) + ',' + f2(cx) + ',' + f2(cy) + ')';
-		},
-		
-		/**
-		 * Function: setStrokeWidth
-		 * 
-		 * Sets the stroke width.
-		 */
-		setStrokeWidth: function(value)
-		{
-			currentState.strokeWidth = value * currentState.scale;
-		},
-		
-		/**
-		 * Function: setStrokeColor
-		 * 
-		 * Sets the stroke color.
-		 */
-		setStrokeColor: function(value)
-		{
-			currentState.stroke = value;
-		},
-		
-		/**
-		 * Function: setDashed
-		 * 
-		 * Sets the dashed state to true or false.
-		 */
-		setDashed: function(value)
-		{
-			currentState.dashed = value;
-		},
-		
-		/**
-		 * Function: setDashPattern
-		 * 
-		 * Sets the dashed pattern to the given space separated list of numbers.
-		 */
-		setDashPattern: function(value)
-		{
-			currentState.dashpattern = value;
-		},
-		
-		/**
-		 * Function: setLineCap
-		 * 
-		 * Sets the linecap.
-		 */
-		setLineCap: function(value)
-		{
-			currentState.linecap = value;
-		},
-		
-		/**
-		 * Function: setLineJoin
-		 * 
-		 * Sets the linejoin.
-		 */
-		setLineJoin: function(value)
-		{
-			currentState.linejoin = value;
-		},
-		
-		/**
-		 * Function: setMiterLimit
-		 * 
-		 * Sets the miterlimit.
-		 */
-		setMiterLimit: function(value)
-		{
-			currentState.miterlimit = value;
-		},
-		
-		/**
-		 * Function: setFontSize
-		 * 
-		 * Sets the fontsize.
-		 */
-		setFontSize: function(value)
-		{
-			currentState.fontSize = value;
-		},
-		
-		/**
-		 * Function: setFontColor
-		 * 
-		 * Sets the fontcolor.
-		 */
-		setFontColor: function(value)
-		{
-			currentState.fontColor = value;
-		},
-		
-		/**
-		 * Function: setFontFamily
-		 * 
-		 * Sets the fontfamily.
-		 */
-		setFontFamily: function(value)
-		{
-			currentState.fontFamily = value;
-		},
-		
-		/**
-		 * Function: setFontStyle
-		 * 
-		 * Sets the fontstyle.
-		 */
-		setFontStyle: function(value)
-		{
-			currentState.fontStyle = value;
-		},
-		
-		/**
-		 * Function: setAlpha
-		 * 
-		 * Sets the current alpha.
-		 */
-		setAlpha: function(alpha)
-		{
-			currentState.alpha = alpha;
-		},
-		
-		/**
-		 * Function: setFillColor
-		 * 
-		 * Sets the fillcolor.
-		 */
-		setFillColor: function(value)
-		{
-			currentState.fill = value;
-			currentState.gradient = null;
-		},
-		
-		/**
-		 * Function: setGradient
-		 * 
-		 * Sets the gradient color.
-		 */
-		setGradient: function(color1, color2, x, y, w, h, direction)
-		{
-			if (color1 != null && color2 != null)
-			{
-				currentState.gradient = getSvgGradient(color1, color2, direction);
-				currentState.fill = color1;
-			}
-		},
-		
-		/**
-		 * Function: setGlassGradient
-		 * 
-		 * Sets the glass gradient.
-		 */
-		setGlassGradient: function(x, y, w, h)
-		{
-			// Creates glass overlay gradient
-			if (glassGradient == null)
-			{
-				glassGradient = create('linearGradient');
-				glassGradient.setAttribute('id', '0');
-				glassGradient.setAttribute('x1', '0%');
-				glassGradient.setAttribute('y1', '0%');
-				glassGradient.setAttribute('x2', '0%');
-				glassGradient.setAttribute('y2', '100%');
-				
-				var stop1 = create('stop');
-				stop1.setAttribute('offset', '0%');
-				stop1.setAttribute('style', 'stop-color:#ffffff;stop-opacity:0.9');
-				glassGradient.appendChild(stop1);
-				
-				var stop2 = create('stop');
-				stop2.setAttribute('offset', '100%');
-				stop2.setAttribute('style', 'stop-color:#ffffff;stop-opacity:0.1');
-				glassGradient.appendChild(stop2);
-			
-				// Makes it the first entry of all gradients in defs
-				if (defs.firstChild.nextSibling != null)
-				{
-					defs.insertBefore(glassGradient, defs.firstChild.nextSibling);
-				}
-				else
-				{
-					defs.appendChild(glassGradient);
-				}
-			}
-			
-			// Glass gradient has hardcoded ID (see above)
-			currentState.gradient = '0';
-		},
-		
-		/**
-		 * Function: rect
-		 * 
-		 * Sets the current path to a rectangle.
-		 */
-		rect: function(x, y, w, h)
-		{
-			x += currentState.dx;
-			y += currentState.dy;
-			
-			currentNode = create('rect');
-			currentNode.setAttribute('x', f2(x * currentState.scale));
-			currentNode.setAttribute('y', f2(y * currentState.scale));
-			currentNode.setAttribute('width', f2(w * currentState.scale));
-			currentNode.setAttribute('height', f2(h * currentState.scale));
-			
-			if (!styleEnabled && autoAntiAlias)
-			{
-				currentNode.setAttribute('shape-rendering', 'crispEdges');
-			}
-		},
-		
-		/**
-		 * Function: roundrect
-		 * 
-		 * Sets the current path to a rounded rectangle.
-		 */
-		roundrect: function(x, y, w, h, dx, dy)
-		{
-			x += currentState.dx;
-			y += currentState.dy;
-			
-			currentNode = create('rect');
-			currentNode.setAttribute('x', f2(x * currentState.scale));
-			currentNode.setAttribute('y', f2(y * currentState.scale));
-			currentNode.setAttribute('width', f2(w * currentState.scale));
-			currentNode.setAttribute('height', f2(h * currentState.scale));
-			
-			if (dx > 0)
-			{
-				currentNode.setAttribute('rx', f2(dx * currentState.scale));
-			}
-			
-			if (dy > 0)
-			{
-				currentNode.setAttribute('ry', f2(dy * currentState.scale));
-			}
-			
-			if (!styleEnabled && autoAntiAlias)
-			{
-				currentNode.setAttribute('shape-rendering', 'crispEdges');
-			}
-		},
-		
-		/**
-		 * Function: ellipse
-		 * 
-		 * Sets the current path to an ellipse.
-		 */
-		ellipse: function(x, y, w, h)
-		{
-			x += currentState.dx;
-			y += currentState.dy;
-			
-			currentNode = create('ellipse');
-			currentNode.setAttribute('cx', f2((x + w / 2) * currentState.scale));
-			currentNode.setAttribute('cy', f2((y + h / 2) * currentState.scale));
-			currentNode.setAttribute('rx', f2(w / 2 * currentState.scale));
-			currentNode.setAttribute('ry', f2(h / 2 * currentState.scale));
-		},
-		
-		/**
-		 * Function: image
-		 * 
-		 * Paints an image.
-		 */
-		image: function(x, y, w, h, src, aspect, flipH, flipV)
-		{
-			src = converter.convert(src);
-			
-			// TODO: Add option for embedded images as base64. Current
-			// known issues are binary loading of cross-domain images.
-			aspect = (aspect != null) ? aspect : true;
-			flipH = (flipH != null) ? flipH : false;
-			flipV = (flipV != null) ? flipV : false;
-			x += currentState.dx;
-			y += currentState.dy;
-			
-			var node = create('image');
-			node.setAttribute('x', f2(x * currentState.scale));
-			node.setAttribute('y', f2(y * currentState.scale));
-			node.setAttribute('width', f2(w * currentState.scale));
-			node.setAttribute('height', f2(h * currentState.scale));
-			
-			if (mxClient.IS_VML)
-			{
-				node.setAttribute('xlink:href', src);
-			}
-			else
-			{
-				node.setAttributeNS(mxConstants.NS_XLINK, 'xlink:href', src);
-			}
-			
-			if (!aspect)
-			{
-				node.setAttribute('preserveAspectRatio', 'none');
-			}
-			
-			if (currentState.alpha < 1)
-			{
-				node.setAttribute('opacity', currentState.alpha);
-			}
-			
-
-			var tr = currentState.transform;
-			
-			if (flipH || flipV)
-			{
-				var sx = 1;
-				var sy = 1;
-				var dx = 0;
-				var dy = 0;
-				
-				if (flipH)
-				{
-					sx = -1;
-					dx = -w - 2 * x;
-				}
-				
-				if (flipV)
-				{
-					sy = -1;
-					dy = -h - 2 * y;
-				}
-				
-				// Adds image tansformation to existing transforms
-				tr += 'scale(' + sx + ',' + sy + ')translate(' + dx + ',' + dy + ')';
-			}
-			
-			if (tr.length > 0)
-			{
-				node.setAttribute('transform', tr);
-			}
-			
-			root.appendChild(node);
-		},
-		
-		/**
-		 * Function: text
-		 * 
-		 * Paints the given text. Possible values for format are empty string for
-		 * plain text and html for HTML markup.
-		 */
-		text: function(x, y, w, h, str, align, valign, vertical, wrap, format)
-		{
-			if (textEnabled)
-			{
-				x += currentState.dx;
-				y += currentState.dy;
-				
-				if (foEnabled && format == 'html')
-				{
-					var node = create('g');
-					node.setAttribute('transform', currentState.transform + 'scale(' + currentState.scale + ',' + currentState.scale + ')');
-					
-					if (currentState.alpha < 1)
-					{
-						node.setAttribute('opacity', currentState.alpha);
-					}
-					
-					var fo = create('foreignObject');
-					fo.setAttribute('x', Math.round(x));
-					fo.setAttribute('y', Math.round(y));
-					fo.setAttribute('width', Math.round(w));
-					fo.setAttribute('height', Math.round(h));
-					fo.appendChild(createHtmlBody(str, align, valign));
-					node.appendChild(fo);
-					root.appendChild(node);
-				}
-				else
-				{
-					var size = Math.floor(currentState.fontSize);
-					var node = create('g');
-					var tr = currentState.transform;
-					
-					if (vertical)
-					{
-						var cx = x + w / 2;
-						var cy = y + h / 2;
-						tr += 'rotate(-90,' + f2(cx * currentState.scale) + ',' + f2(cy * currentState.scale) + ')';
-					}
-					
-					if (tr.length > 0)
-					{
-						node.setAttribute('transform', tr);
-					}
-					
-					if (currentState.alpha < 1)
-					{
-						node.setAttribute('opacity', currentState.alpha);
-					}
+	this.node.setAttribute('stroke', s.strokeColor.toLowerCase());
 	
-					// Default is left
-					var anchor = (align == mxConstants.ALIGN_RIGHT) ? 'end' :
-									(align == mxConstants.ALIGN_CENTER) ? 'middle' :
-									'start';
-					
-					if (anchor == 'end')
-					{
-						x += Math.max(0, w - 2);
-					}
-					else if (anchor == 'middle')
-					{
-						x += w / 2;
-					}
-					else
-					{
-						x += (w > 0) ? 2 : 0;
-					}
-					
-					if ((currentState.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
-					{
-						node.setAttribute('font-weight', 'bold');
-					}
+	if (s.alpha < 1)
+	{
+		this.node.setAttribute('stroke-opacity', s.alpha);
+	}
 	
-					if ((currentState.fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
-					{
-						node.setAttribute('font-style', 'italic');
-					}
-					
-					if ((currentState.fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
-					{
-						node.setAttribute('text-decoration', 'underline');
-					}
+	// Sets the stroke properties (1 is default in SVG)
+	var sw = Math.max(1, this.format(s.strokeWidth * s.scale));
 	
-					// Text-anchor start is default in SVG
-					if (anchor != 'start')
-					{
-						node.setAttribute('text-anchor', anchor);
-					}
-					
-					if (!styleEnabled || size != mxConstants.DEFAULT_FONTSIZE)
-					{
-						node.setAttribute('font-size', Math.floor(size * currentState.scale) + 'px');
-					}
-					
-					if (!styleEnabled || currentState.fontFamily != mxConstants.DEFAULT_FONTFAMILY)
-					{
-						node.setAttribute('font-family', currentState.fontFamily);
-					}
-					
-					node.setAttribute('fill', currentState.fontColor);
+	if (sw != 1)
+	{
+		this.node.setAttribute('stroke-width', sw);
+	}
 	
-					var lines = str.split('\n');
-					
-					var lineHeight = size * 1.25;
-					var textHeight = (h > 0) ? size + (lines.length - 1) * lineHeight : lines.length * lineHeight - 1;
-					var dy = h - textHeight;
+	if (this.node.nodeName == 'path')
+	{
+		this.updateStrokeAttributes();
+	}
 	
-					// Top is default
-					if (valign == null || valign == mxConstants.ALIGN_TOP)
-					{
-						y = Math.max(y - 3 * currentState.scale, y + dy / 2 + ((h > 0) ? lineHeight / 2 - 8 : 0));
-					}
-					else if (valign == mxConstants.ALIGN_MIDDLE)
-					{
-						y = y + dy / 2;
-					}
-					else if (valign == mxConstants.ALIGN_BOTTOM)
-					{
-						y = Math.min(y, y + dy + 2 * currentState.scale);
-					}
-	
-					y += size;
-	
-					for (var i = 0; i < lines.length; i++)
-					{
-						var text = create('text');
-						text.setAttribute('x', f2(x * currentState.scale));
-						text.setAttribute('y', f2(y * currentState.scale));
-						
-						mxUtils.write(text, lines[i]);
-						node.appendChild(text);
-						y += size * 1.3;
-					}
-					
-					root.appendChild(node);
-				}
-			}
-		},
-		
-		/**
-		 * Function: begin
-		 * 
-		 * Starts a new path.
-		 */
-		begin: function()
-		{
-			currentNode = create('path');
-			currentPath = [];
-			lastPoint = null;
-			currentPathIsOrthogonal = true;
-		},
-		
-		/**
-		 * Function: moveTo
-		 * 
-		 * Moves the current path the given coordinates.
-		 */
-		moveTo: function(x, y)
-		{
-			if (currentPath != null)
-			{
-				x += currentState.dx;
-				y += currentState.dy;
-				currentPath.push('M ' + f2(x * currentState.scale) + ' ' + f2(y * currentState.scale));
-				
-				if (autoAntiAlias)
-				{
-					lastPoint = new mxPoint(x, y);
-				}
-			}
-		},
-		
-		/**
-		 * Function: lineTo
-		 * 
-		 * Adds a line to the current path.
-		 */
-		lineTo: function(x, y)
-		{
-			if (currentPath != null)
-			{
-				x += currentState.dx;
-				y += currentState.dy;
-				currentPath.push('L ' + f2(x * currentState.scale) + ' ' + f2(y * currentState.scale));
-				
-				if (autoAntiAlias)
-				{
-					if (lastPoint != null && currentPathIsOrthogonal && x != lastPoint.x && y != lastPoint.y)
-					{
-						currentPathIsOrthogonal = false;
-					}
-					
-					lastPoint = new mxPoint(x, y);
-				}
-			}
-		},
-		
-		/**
-		 * Function: quadTo
-		 * 
-		 * Adds a quadratic curve to the current path.
-		 */
-		quadTo: function(x1, y1, x2, y2)
-		{
-			if (currentPath != null)
-			{
-				x1 += currentState.dx;
-				y1 += currentState.dy;
-				x2 += currentState.dx;
-				y2 += currentState.dy;
-				currentPath.push('Q ' + f2(x1 * currentState.scale) + ' ' + f2(y1 * currentState.scale) +
-					' ' + f2(x2 * currentState.scale) + ' ' + f2(y2 * currentState.scale));
-				currentPathIsOrthogonal = false;
-			}
-		},
-		
-		/**
-		 * Function: curveTo
-		 * 
-		 * Adds a bezier curve to the current path.
-		 */
-		curveTo: function(x1, y1, x2, y2, x3, y3)
-		{
-			if (currentPath != null)
-			{
-				x1 += currentState.dx;
-				y1 += currentState.dy;
-				x2 += currentState.dx;
-				y2 += currentState.dy;
-				x3 += currentState.dx;
-				y3 += currentState.dy;
-				currentPath.push('C ' + f2(x1 * currentState.scale) + ' ' + f2(y1 * currentState.scale) +
-					' ' + f2(x2 * currentState.scale) + ' ' + f2(y2 * currentState.scale) +' ' +
-					f2(x3 * currentState.scale) + ' ' + f2(y3 * currentState.scale));
-				currentPathIsOrthogonal = false;
-			}
-		},
+	if (s.dashed)
+	{
+		this.node.setAttribute('stroke-dasharray', this.createDashPattern(sw));
+	}
+};
 
-		/**
-		 * Function: close
-		 * 
-		 * Closes the current path.
-		 */
-		close: function()
+/**
+ * Function: updateStrokeAttributes
+ * 
+ * Transfers the stroke attributes from <state> to <node>.
+ */
+mxSvgCanvas2D.prototype.updateStrokeAttributes = function()
+{
+	var s = this.state;
+	
+	// Linejoin miter is default in SVG
+	if (s.lineJoin != null && s.lineJoin != 'miter')
+	{
+		this.node.setAttribute('stroke-linejoin', s.lineJoin);
+	}
+	
+	if (s.lineCap != null)
+	{
+		// flat is called butt in SVG
+		var value = s.lineCap;
+		
+		if (value == 'flat')
 		{
-			if (currentPath != null)
+			value = 'butt';
+		}
+		
+		// Linecap butt is default in SVG
+		if (value != 'butt')
+		{
+			this.node.setAttribute('stroke-linecap', value);
+		}
+	}
+	
+	// Miterlimit 10 is default in our document
+	if (s.miterLimit != null && (!this.styleEnabled || s.miterLimit != 10))
+	{
+		this.node.setAttribute('stroke-miterlimit', s.miterLimit);
+	}
+};
+
+/**
+ * Function: createDashPattern
+ * 
+ * Creates the SVG dash pattern for the given state.
+ */
+mxSvgCanvas2D.prototype.createDashPattern = function(scale)
+{
+	var s = this.state;
+	var dash = s.dashPattern.split(' ');
+	var pat = [];
+	
+	if (dash.length > 0)
+	{
+		for (var i = 0; i < dash.length; i++)
+		{
+			pat[i] = Number(dash[i]) * scale;
+		}
+	}
+	
+	return pat.join(' ');
+};
+
+/**
+ * Function: createTolerance
+ * 
+ * Creates a hit detection tolerance shape for the given node.
+ */
+mxSvgCanvas2D.prototype.createTolerance = function(node)
+{
+	var tol = node.cloneNode(true);
+	var sw = parseFloat(tol.getAttribute('stroke-width') || 1) + this.strokeTolerance;
+	tol.setAttribute('pointer-events', 'stroke');
+	tol.setAttribute('visibility', 'hidden');
+	tol.removeAttribute('stroke-dasharray');
+	tol.setAttribute('stroke-width', sw);
+	tol.setAttribute('fill', 'none');
+	
+	// Workaround for Opera ignoring the visiblity attribute above while
+	// other browsers need a stroke color to perform the hit-detection but
+	// do not ignore the visibility attribute. Side-effect is that Opera's
+	// hit detection for horizontal/vertical edges seems to ignore the tol.
+	tol.setAttribute('stroke', (mxClient.IS_OP) ? 'none' : 'white');
+	
+	return tol;
+};
+
+/**
+ * Function: createShadow
+ * 
+ * Creates a shadow for the given node.
+ */
+mxSvgCanvas2D.prototype.createShadow = function(node)
+{
+	var shadow = node.cloneNode(true);
+	var s = this.state;
+	
+	if (shadow.getAttribute('fill') != 'none')
+	{
+		shadow.setAttribute('fill', s.shadowColor);
+	}
+	
+	if (shadow.getAttribute('stroke') != 'none')
+	{
+		shadow.setAttribute('stroke', s.shadowColor);
+	}
+
+	shadow.setAttribute('transform', 'translate(' + this.format(s.shadowDx * s.scale) +
+		',' + this.format(s.shadowDy * s.scale) + ')' + (s.transform || ''));
+	shadow.setAttribute('opacity', s.shadowAlpha);
+	
+	return shadow;
+};
+
+/**
+ * Function: rotate
+ * 
+ * Sets the rotation of the canvas. Note that rotation cannot be concatenated.
+ */
+mxSvgCanvas2D.prototype.rotate = function(theta, flipH, flipV, cx, cy)
+{
+	if (theta != 0 || flipH || flipV)
+	{
+		var s = this.state;
+		cx += s.dx;
+		cy += s.dy;
+	
+		cx *= s.scale;
+		cy *= s.scale;
+
+		s.transform = s.transform || '';
+		
+		// This implementation uses custom scale/translate and built-in rotation
+		// Rotation state is part of the AffineTransform in state.transform
+		if (flipH && flipV)
+		{
+			theta += 180;
+		}
+		else if (flipH ^ flipV)
+		{
+			var tx = (flipH) ? cx : 0;
+			var sx = (flipH) ? -1 : 1;
+	
+			var ty = (flipV) ? cy : 0;
+			var sy = (flipV) ? -1 : 1;
+	
+			s.transform += 'translate(' + this.format(tx) + ',' + this.format(ty) + ')' +
+				'scale(' + this.format(sx) + ',' + this.format(sy) + ')' +
+				'translate(' + this.format(-tx) + ',' + this.format(-ty) + ')';
+		}
+		
+		if (flipH ? !flipV : flipV)
+		{
+			theta *= -1;
+		}
+		
+		if (theta != 0)
+		{
+			s.transform += 'rotate(' + this.format(theta) + ',' + this.format(cx) + ',' + this.format(cy) + ')';
+		}
+		
+		s.rotation = s.rotation + theta;
+		s.rotationCx = cx;
+		s.rotationCy = cy;
+	}
+};
+
+/**
+ * Function: begin
+ * 
+ * Extends superclass to create path.
+ */
+mxSvgCanvas2D.prototype.begin = function()
+{
+	mxAbstractCanvas2D.prototype.begin.apply(this, arguments);
+	this.node = this.createElement('path');
+};
+
+/**
+ * Function: rect
+ * 
+ * Private helper function to create SVG elements
+ */
+mxSvgCanvas2D.prototype.rect = function(x, y, w, h)
+{
+	var s = this.state;
+	var n = this.createElement('rect');
+	n.setAttribute('x', this.format((x + s.dx) * s.scale));
+	n.setAttribute('y', this.format((y + s.dy) * s.scale));
+	n.setAttribute('width', this.format(w * s.scale));
+	n.setAttribute('height', this.format(h * s.scale));
+	
+	this.node = n;
+};
+
+/**
+ * Function: roundrect
+ * 
+ * Private helper function to create SVG elements
+ */
+mxSvgCanvas2D.prototype.roundrect = function(x, y, w, h, dx, dy)
+{
+	this.rect(x, y, w, h);
+	
+	if (dx > 0)
+	{
+		this.node.setAttribute('rx', this.format(dx * this.state.scale));
+	}
+	
+	if (dy > 0)
+	{
+		this.node.setAttribute('ry', this.format(dy * this.state.scale));
+	}
+};
+
+/**
+ * Function: ellipse
+ * 
+ * Private helper function to create SVG elements
+ */
+mxSvgCanvas2D.prototype.ellipse = function(x, y, w, h)
+{
+	var s = this.state;
+	var n = this.createElement('ellipse');
+	// No rounding for consistent output with 1.x
+	n.setAttribute('cx', Math.round((x + w / 2 + s.dx) * s.scale));
+	n.setAttribute('cy', Math.round((y + h / 2 + s.dy) * s.scale));
+	n.setAttribute('rx', w / 2 * s.scale);
+	n.setAttribute('ry', h / 2 * s.scale);
+	this.node = n;
+};
+
+/**
+ * Function: image
+ * 
+ * Private helper function to create SVG elements
+ */
+mxSvgCanvas2D.prototype.image = function(x, y, w, h, src, aspect, flipH, flipV)
+{
+	src = this.converter.convert(src);
+	
+	// LATER: Add option for embedding images as base64.
+	aspect = (aspect != null) ? aspect : true;
+	flipH = (flipH != null) ? flipH : false;
+	flipV = (flipV != null) ? flipV : false;
+	
+	var s = this.state;
+	x += s.dx;
+	y += s.dy;
+	
+	var node = this.createElement('image');
+	node.setAttribute('x', this.format(x * s.scale));
+	node.setAttribute('y', this.format(y * s.scale));
+	node.setAttribute('width', this.format(w * s.scale));
+	node.setAttribute('height', this.format(h * s.scale));
+	
+	// Workaround for implicit namespace handling in HTML5 export
+	if (node.setAttributeNS == null || this.root.ownerDocument != document)
+	{
+		node.setAttribute('xlink:href', src);
+	}
+	else
+	{
+		node.setAttributeNS(mxConstants.NS_XLINK, 'href', src);
+	}
+	
+	if (!aspect)
+	{
+		node.setAttribute('preserveAspectRatio', 'none');
+	}
+
+	if (s.alpha < 1)
+	{
+		node.setAttribute('opacity', s.alpha);
+	}
+	
+	var tr = this.state.transform || '';
+	
+	if (flipH || flipV)
+	{
+		var sx = 1;
+		var sy = 1;
+		var dx = 0;
+		var dy = 0;
+		
+		if (flipH)
+		{
+			sx = -1;
+			dx = -w - 2 * x;
+		}
+		
+		if (flipV)
+		{
+			sy = -1;
+			dy = -h - 2 * y;
+		}
+		
+		// Adds image tansformation to existing transform
+		tr += 'scale(' + sx + ',' + sy + ')translate(' + dx + ',' + dy + ')';
+	}
+
+	if (tr.length > 0)
+	{
+		node.setAttribute('transform', tr);
+	}
+	
+	this.root.appendChild(node);
+	
+	// Disables control-clicks on images in Firefox to open in new tab
+	// by putting a rect in the foreground that absorbs all events and
+	// disabling all pointer-events on the original image tag.
+	if (this.blockImagePointerEvents)
+	{
+		node.setAttribute('style', 'pointer-events:none');
+		
+		node = this.createElement('rect');
+		node.setAttribute('visibility', 'hidden');
+		node.setAttribute('pointer-events', 'fill');
+		node.setAttribute('x', this.format(x * s.scale));
+		node.setAttribute('y', this.format(y * s.scale));
+		node.setAttribute('width', this.format(w * s.scale));
+		node.setAttribute('height', this.format(h * s.scale));
+		this.root.appendChild(node);
+	}
+};
+
+/**
+ * Function: createDiv
+ * 
+ * Private helper function to create SVG elements
+ */
+mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, fill)
+{
+	var s = this.state;
+
+	// Inline block for rendering HTML background over SVG in Safari
+	style = 'display:inline-block;font-size:' + Math.round(s.fontSize) + 'px;font-family:' + s.fontFamily +
+		';color:' + s.fontColor + ';line-height:' + Math.round(s.fontSize * mxConstants.LINE_HEIGHT) + 'px;' + style;
+
+	if ((s.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
+	{
+		style += 'font-weight:bold;';
+	}
+
+	if ((s.fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
+	{
+		style += 'font-style:italic;';
+	}
+	
+	if ((s.fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
+	{
+		style += 'text-decoration:underline;';
+	}
+	
+	if (align == mxConstants.ALIGN_CENTER)
+	{
+		style += 'text-align:center;';
+	}
+	else if (align == mxConstants.ALIGN_RIGHT)
+	{
+		style += 'text-align:right;';
+	}
+
+	var css = '';
+	
+	if (s.fontBackgroundColor != null)
+	{
+		css += 'background-color:' + s.fontBackgroundColor + ';';
+	}
+	
+	if (s.fontBorderColor != null)
+	{
+		css += 'border:1px solid ' + s.fontBorderColor + ';';
+	}
+	
+	var val = str;
+	
+	if (!mxUtils.isNode(val))
+	{
+		// Converts HTML entities to unicode since HTML entities are not allowed in XHTML
+		var ta = document.createElement('textarea');
+		ta.innerHTML = val.replace(/&lt;/g, '&amp;lt;').replace(/&gt;/g, '&amp;gt;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+		val = ta.value;
+
+		if (!fill)
+		{
+			if (css.length > 0)
 			{
-				currentPath.push('Z');
-			}
-		},
-		
-		/**
-		 * Function: stroke
-		 * 
-		 * Paints the outline of the current path.
-		 */
-		stroke: function()
-		{
-			appendNode(currentNode, currentState, false, true);
-		},
-		
-		/**
-		 * Function: fill
-		 * 
-		 * Fills the current path.
-		 */
-		fill: function()
-		{
-			appendNode(currentNode, currentState, true, false);
-		},
-		
-		/**
-		 * Function: fillstroke
-		 * 
-		 * Fills and paints the outline of the current path.
-		 */
-		fillAndStroke: function()
-		{
-			appendNode(currentNode, currentState, true, true);
-		},
-		
-		/**
-		 * Function: shadow
-		 * 
-		 * Paints the current path as a shadow of the given color.
-		 */
-		shadow: function(value, filled)
-		{
-			this.save();
-			this.setStrokeColor(value);
-			
-			if (filled)
-			{
-				this.setFillColor(value);
-				this.fillAndStroke();
-			}
-			else
-			{
-				this.stroke();
-			}
-			
-			this.restore();
-		},
-		
-		/**
-		 * Function: clip
-		 * 
-		 * Uses the current path for clipping.
-		 */
-		clip: function()
-		{
-			if (currentNode != null)
-			{
-				if (currentPath != null)
-				{
-					currentNode.setAttribute('d', currentPath.join(' '));
-					currentPath = null;
-				}
-				
-				var id = ++refCount;
-				var clip = create('clipPath');
-				clip.setAttribute('id', id);
-				clip.appendChild(currentNode);
-				defs.appendChild(clip);
-				currentState.clip = id;
+				val = '<div xmlns="http://www.w3.org/1999/xhtml" style="display:inline-block;' + css + '">' + val + '</div>';
 			}
 		}
-	};
+		else
+		{
+			style += css;
+		}
+	}
 
-};/**
- * $Id: mxGuide.js,v 1.7 2012/04/13 12:53:30 gaudenz Exp $
+	// Uses DOM API where available. This cannot be used in IE9/10 to avoid
+	// an opening and two (!) closing TBODY tags being added to tables.
+	if (!mxClient.IS_IE && document.createElementNS)
+	{
+		var div = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
+		div.setAttribute('style', style);
+		
+		if (mxUtils.isNode(val))
+		{
+			// Creates a copy for export
+			if (this.root.ownerDocument != document)
+			{
+				div.appendChild(val.cloneNode(true));
+			}
+			else
+			{
+				div.appendChild(val);
+			}
+		}
+		else
+		{
+			div.innerHTML = val;
+		}
+		
+		return div;
+	}
+	else
+	{
+		// Serializes for export
+		if (mxUtils.isNode(val) && this.root.ownerDocument != document)
+		{
+			val = val.outerHTML;
+		}
+		
+		// Converts invalid tags to XHTML
+		// LATER: Check for all unclosed tags
+		val = val.replace(/<br>/g, '<br />').replace(/<hr>/g, '<hr />');
+
+		// NOTE: FF 3.6 crashes if content CSS contains "height:100%"
+		return mxUtils.parseXml('<div xmlns="http://www.w3.org/1999/xhtml" style="' + style + 
+			'">' + val + '</div>').documentElement;
+	}
+};
+
+/**
+ * Function: text
+ * 
+ * Paints the given text. Possible values for format are empty string for plain
+ * text and html for HTML markup. Note that HTML markup is only supported if
+ * foreignObject is supported and <foEnabled> is true. (This means IE9 and later
+ * does currently not support HTML text as part of shapes.)
+ */
+mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, format, fill, clip, rotation)
+{
+	if (this.textEnabled && str != null)
+	{
+		rotation = (rotation != null) ? rotation : 0;
+		
+		var s = this.state;
+		x += s.dx;
+		y += s.dy;
+		
+		if (this.foEnabled && format == 'html')
+		{
+			var style = 'vertical-align:top;';
+			
+			if (clip)
+			{
+				style += 'overflow:hidden;';
+				
+				if (h > 0)
+				{
+					style += 'max-height:' + Math.round(h) + 'px;';
+				}
+				
+				if (w > 0)
+				{
+					style += 'width:' + Math.round(w) + 'px;';
+				}
+			}
+			else if (fill)
+			{
+				style += 'width:' + Math.round(w) + 'px;';
+				
+				if (h > 0)
+				{
+					style += 'max-height:' + Math.round(h) + 'px;';
+				}
+			}
+			
+			if (wrap && w > 0)
+			{
+				if (!clip)
+				{
+					style += 'width:' + Math.round(w) + 'px;';
+				}
+				
+				style += 'white-space:normal;';
+			}
+			else
+			{
+				style += 'white-space:nowrap;';
+			}
+			
+			// Uses outer group for opacity and transforms to
+			// fix rendering order in Chrome
+			var group = this.createElement('g');
+			
+			if (s.alpha < 1)
+			{
+				group.setAttribute('opacity', s.alpha);
+			}
+
+			var fo = this.createElement('foreignObject');
+			fo.setAttribute('pointer-events', 'all');
+			
+			var div = this.createDiv(str, align, valign, style, fill);
+			
+			// Ignores invalid XHTML labels
+			if (div == null)
+			{
+				return;
+			}
+			
+			group.appendChild(fo);
+			this.root.appendChild(group);
+			
+			// Code that depends on the size which is computed after
+			// the element was added to the DOM.
+			var ow = 0;
+			
+			if (mxClient.IS_IE && !mxClient.IS_SVG)
+			{
+				// Handles non-standard namespace for getting size in IE
+				var clone = document.createElement('div');
+				
+				clone.style.cssText = div.getAttribute('style');
+				clone.style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
+				clone.style.visibility = 'hidden';
+				clone.innerHTML = (mxUtils.isNode(str)) ? str.outerHTML : str;
+
+				document.body.appendChild(clone);
+				ow = clone.offsetWidth;
+				
+				// Computes max-height in quirks
+				if (mxClient.IS_QUIRKS && h > 0 && clip)
+				{
+					// +2 to show background and border are visible
+					h = Math.min(h, clone.offsetHeight + 2);
+				}
+				else
+				{
+					h = clone.offsetHeight;
+				}
+				
+				clone.parentNode.removeChild(clone);
+				fo.appendChild(div);
+			}
+			// Workaround for export and Firefox 3.x (Opera has same bug but it cannot
+			// be fixed for all cases using this workaround so foreignObject is disabled). 
+			else if (this.root.ownerDocument != document ||
+				navigator.userAgent.indexOf('Firefox/3.') >= 0)
+			{
+				// Getting size via local document for export
+				div.style.visibility = 'hidden';
+				document.body.appendChild(div);
+				
+				ow = div.offsetWidth;
+				h = div.offsetHeight;
+
+				fo.appendChild(div);
+				div.style.visibility = '';
+			}
+			else
+			{
+				fo.appendChild(div);
+				ow = div.offsetWidth;
+				h = div.offsetHeight;
+			}
+			
+			if (fill)
+			{
+				w = Math.max(w, ow);
+			}
+			else
+			{
+				w = ow;
+			}
+
+			if (s.alpha < 1)
+			{
+				group.setAttribute('opacity', s.alpha);
+			}
+			
+			var dx = 0;
+			var dy = 0;
+
+			if (align == mxConstants.ALIGN_CENTER)
+			{
+				dx -= w / 2;
+			}
+			else if (align == mxConstants.ALIGN_RIGHT)
+			{
+				dx -= w;
+			}
+			
+			x += dx;
+			
+			if (valign == mxConstants.ALIGN_MIDDLE)
+			{
+				dy -= h / 2;
+			}
+			else if (valign == mxConstants.ALIGN_BOTTOM)
+			{
+				dy -= h;
+			}
+			
+			y += dy;
+
+			var tr = (s.scale != 1) ? 'scale(' + s.scale + ')' : '';
+
+			if (s.rotation != 0 && this.rotateHtml)
+			{
+				tr += 'rotate(' + (s.rotation) + ',' + (w / 2) + ',' + (h / 2) + ')';
+				var pt = this.rotatePoint((x + w / 2) * s.scale, (y + h / 2) * s.scale,
+					s.rotation, s.rotationCx, s.rotationCy);
+				x = pt.x - w * s.scale / 2;
+				y = pt.y - h * s.scale / 2;
+			}
+			else
+			{
+				x *= s.scale;
+				y *= s.scale;
+			}
+
+			if (rotation != 0)
+			{
+				tr += 'rotate(' + (rotation) + ',' + (-dx) + ',' + (-dy) + ')';
+			}
+
+			group.setAttribute('transform', 'translate(' + Math.round(x) + ',' + Math.round(y) + ')' + tr);
+			fo.setAttribute('width', Math.round(Math.max(1, w)));
+			fo.setAttribute('height', Math.round(Math.max(1, h)));
+			
+			// Adds alternate content if foreignObject not supported in viewer
+			if (this.root.ownerDocument != document)
+			{
+				var alt = this.createAlternateContent(fo, x, y, w, h, str, align, valign, wrap, format, fill, clip, rotation);
+				
+				if (alt != null)
+				{
+					fo.setAttribute('requiredFeatures', 'http://www.w3.org/TR/SVG11/feature#Extensibility');
+					var sw = this.createElement('switch');
+					sw.appendChild(fo);
+					sw.appendChild(alt);
+					group.appendChild(sw);
+				}
+			}
+		}
+		else
+		{
+			this.plainText(x, y, w, h, str, align, valign, wrap, fill, clip, rotation);
+		}
+	}
+};
+
+/**
+ * Function: createClip
+ * 
+ * Creates a clip for the given coordinates.
+ */
+mxSvgCanvas2D.prototype.createClip = function(x, y, w, h)
+{
+	x = Math.round(x);
+	y = Math.round(y);
+	w = Math.round(w);
+	h = Math.round(h);
+	
+	var id = 'mx-clip-' + x + '-' + y + '-' + w + '-' + h;
+
+	var counter = 0;
+	var tmp = id + '-' + counter;
+	
+	// Resolves ID conflicts
+	while (document.getElementById(tmp) != null)
+	{
+		tmp = id + '-' + (++counter);
+	}
+	
+	clip = this.createElement('clipPath');
+	clip.setAttribute('id', tmp);
+	
+	var rect = this.createElement('rect');
+	rect.setAttribute('x', x);
+	rect.setAttribute('y', y);
+	rect.setAttribute('width', w);
+	rect.setAttribute('height', h);
+		
+	clip.appendChild(rect);
+	
+	return clip;
+};
+
+/**
+ * Function: text
+ * 
+ * Paints the given text. Possible values for format are empty string for
+ * plain text and html for HTML markup.
+ */
+mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wrap, fill, clip, rotation)
+{
+	rotation = (rotation != null) ? rotation : 0;
+	var s = this.state;
+	var size = Math.round(s.fontSize);
+	var node = this.createElement('g');
+	var tr = s.transform || '';
+
+	// Non-rotated text
+	if (rotation != 0)
+	{
+		tr += 'rotate(' + rotation  + ',' + this.format(x * s.scale) + ',' + this.format(y * s.scale) + ')';
+	}
+
+	if (clip && w > 0 && h > 0)
+	{
+		var cx = x;
+		var cy = y;
+		
+		if (align == mxConstants.ALIGN_CENTER)
+		{
+			cx -= w / 2;
+		}
+		else if (align == mxConstants.ALIGN_RIGHT)
+		{
+			cx -= w;
+		}
+		
+		if (valign == mxConstants.ALIGN_MIDDLE)
+		{
+			cy -= h / 2;
+		}
+		else if (valign == mxConstants.ALIGN_BOTTOM)
+		{
+			cy -= h;
+		}
+		
+		// LATER: Remove spacing from clip rectangle
+		var c = this.createClip(cx * s.scale - 2, cy * s.scale - 2, w * s.scale + 4, h * s.scale + 4);
+		
+		if (this.defs != null)
+		{
+			this.defs.appendChild(c);
+		}
+		else
+		{
+			// Makes sure clip is removed with referencing node
+			this.root.appendChild(c);
+		}
+		
+		node.setAttribute('clip-path', 'url(#' + c.getAttribute('id') + ')');
+	}
+	
+	this.updateFont(node, align);
+
+	// Default is left
+	var anchor = (align == mxConstants.ALIGN_RIGHT) ? 'end' :
+					(align == mxConstants.ALIGN_CENTER) ? 'middle' :
+					'start';
+
+	// Text-anchor start is default in SVG
+	if (anchor != 'start')
+	{
+		node.setAttribute('text-anchor', anchor);
+	}
+	
+	if (!this.styleEnabled || size != mxConstants.DEFAULT_FONTSIZE)
+	{
+		node.setAttribute('font-size', Math.round(size * s.scale) + 'px');
+	}
+	
+	if (tr.length > 0)
+	{
+		node.setAttribute('transform', tr);
+	}
+	
+	if (s.alpha < 1)
+	{
+		node.setAttribute('opacity', s.alpha);
+	}
+	
+	var lines = str.split('\n');
+	var lh = Math.round(size * mxConstants.LINE_HEIGHT);
+	var textHeight = size + (lines.length - 1) * lh;
+
+	var cy = y + size - 1;
+
+	if (valign == mxConstants.ALIGN_MIDDLE)
+	{
+		var dy = ((this.matchHtmlAlignment && clip && h > 0) ? Math.min(textHeight, h) : textHeight) / 2;
+		cy -= dy + 1;
+	}
+	else if (valign == mxConstants.ALIGN_BOTTOM)
+	{
+		var dy = (this.matchHtmlAlignment && clip && h > 0) ? Math.min(textHeight, h) : textHeight;
+		cy -= dy + 2;
+	}
+	
+	for (var i = 0; i < lines.length; i++)
+	{
+		// Workaround for bounding box of empty lines and spaces
+		if (lines[i].length > 0 && mxUtils.trim(lines[i]).length > 0)
+		{
+			var text = this.createElement('text');
+			// LATER: Match horizontal HTML alignment
+			text.setAttribute('x', this.format(x * s.scale));
+			text.setAttribute('y', this.format(cy * s.scale));
+			
+			mxUtils.write(text, lines[i]);
+			node.appendChild(text);
+		}
+
+		cy += lh;
+	}
+
+	this.root.appendChild(node);
+	this.addTextBackground(node, str, x, y, w, textHeight, align, valign, fill);
+};
+
+/**
+ * Function: addTextBackground
+ * 
+ * Background color and border
+ */
+mxSvgCanvas2D.prototype.updateFont = function(node)
+{
+	var s = this.state;
+
+	node.setAttribute('fill', s.fontColor);
+	
+	if (!this.styleEnabled || s.fontFamily != mxConstants.DEFAULT_FONTFAMILY)
+	{
+		node.setAttribute('font-family', s.fontFamily);
+	}
+
+	if ((s.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
+	{
+		node.setAttribute('font-weight', 'bold');
+	}
+
+	if ((s.fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
+	{
+		node.setAttribute('font-style', 'italic');
+	}
+	
+	if ((s.fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
+	{
+		node.setAttribute('text-decoration', 'underline');
+	}
+};
+
+/**
+ * Function: addTextBackground
+ * 
+ * Background color and border
+ */
+mxSvgCanvas2D.prototype.addTextBackground = function(node, str, x, y, w, h, align, valign, fill)
+{
+	var s = this.state;
+
+	if (s.fontBackgroundColor != null || s.fontBorderColor != null)
+	{
+		var bbox = null;
+		
+		if (fill)
+		{
+			if (align == mxConstants.ALIGN_CENTER)
+			{
+				x -= w / 2;
+			}
+			else if (align == mxConstants.ALIGN_RIGHT)
+			{
+				x -= w;
+			}
+			
+			if (valign == mxConstants.ALIGN_MIDDLE)
+			{
+				y -= h / 2;
+			}
+			else if (valign == mxConstants.ALIGN_BOTTOM)
+			{
+				y -= h;
+			}
+			
+			bbox = new mxRectangle((x + 1) * s.scale, y * s.scale, (w - 2) * s.scale, (h + 2) * s.scale);
+		}
+		else if (node.getBBox != null && this.root.ownerDocument == document)
+		{
+			// Uses getBBox only if inside document for correct size
+			bbox = node.getBBox();
+			var ie = mxClient.IS_IE && mxClient.IS_SVG;
+			bbox = new mxRectangle(bbox.x, bbox.y + ((ie) ? 0 : 1), bbox.width, bbox.height + ((ie) ? 1 : 0));
+		}
+		else
+		{
+			// Computes size if not in document or no getBBox available
+			var div = document.createElement('div');
+
+			// Wrapping and clipping can be ignored here
+			div.style.lineHeight = Math.round(s.fontSize * mxConstants.LINE_HEIGHT) + 'px';
+			div.style.fontSize = Math.round(s.fontSize) + 'px';
+			div.style.fontFamily = s.fontFamily;
+			div.style.whiteSpace = 'nowrap';
+			div.style.position = 'absolute';
+			div.style.visibility = 'hidden';
+			div.style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
+			div.style.zoom = '1';
+			
+			if ((s.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
+			{
+				div.style.fontWeight = 'bold';
+			}
+
+			if ((s.fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
+			{
+				div.style.fontStyle = 'italic';
+			}
+			
+			str = mxUtils.htmlEntities(str, false);
+			div.innerHTML = str.replace(/\n/g, '<br/>');
+			
+			document.body.appendChild(div);
+			var w = div.offsetWidth;
+			var h = div.offsetHeight;
+			div.parentNode.removeChild(div);
+			
+			if (align == mxConstants.ALIGN_CENTER)
+			{
+				x -= w / 2;
+			}
+			else if (align == mxConstants.ALIGN_RIGHT)
+			{
+				x -= w;
+			}
+			
+			if (valign == mxConstants.ALIGN_MIDDLE)
+			{
+				y -= h / 2;
+			}
+			else if (valign == mxConstants.ALIGN_BOTTOM)
+			{
+				y -= h;
+			}
+			
+			bbox = new mxRectangle((x + 1) * s.scale, (y + 2) * s.scale, w * s.scale, (h + 1) * s.scale);
+		}
+		
+		if (bbox != null)
+		{
+			var n = this.createElement('rect');
+			n.setAttribute('fill', s.fontBackgroundColor || 'none');
+			n.setAttribute('stroke', s.fontBorderColor || 'none');
+			n.setAttribute('x', Math.floor(bbox.x - 1));
+			n.setAttribute('y', Math.floor(bbox.y - 1));
+			n.setAttribute('width', Math.ceil(bbox.width + 2));
+			n.setAttribute('height', Math.ceil(bbox.height));
+
+			var sw = (s.fontBorderColor != null) ? Math.max(1, this.format(s.scale)) : 0;
+			n.setAttribute('stroke-width', sw);
+			
+			// Workaround for crisp rendering - only required if not exporting
+			if (this.root.ownerDocument == document && mxUtils.mod(sw, 2) == 1)
+			{
+				n.setAttribute('transform', 'translate(0.5, 0.5)');
+			}
+			
+			node.insertBefore(n, node.firstChild);
+		}
+	}
+};
+
+/**
+ * Function: stroke
+ * 
+ * Paints the outline of the current path.
+ */
+mxSvgCanvas2D.prototype.stroke = function()
+{
+	this.addNode(false, true);
+};
+
+/**
+ * Function: fill
+ * 
+ * Fills the current path.
+ */
+mxSvgCanvas2D.prototype.fill = function()
+{
+	this.addNode(true, false);
+};
+
+/**
+ * Function: fillAndStroke
+ * 
+ * Fills and paints the outline of the current path.
+ */
+mxSvgCanvas2D.prototype.fillAndStroke = function()
+{
+	this.addNode(true, true);
+};
+/**
+ * $Id: mxVmlCanvas2D.js,v 1.42 2013/04/09 13:16:53 gaudenz Exp $
+ * Copyright (c) 2006-2010, JGraph Ltd
+ */
+/**
+ *
+ * Class: mxVmlCanvas2D
+ * 
+ * Implements a canvas to be used for rendering VML. Here is an example of implementing a
+ * fallback for SVG images which are not supported in VML-based browsers.
+ * 
+ * (code)
+ * var mxVmlCanvas2DImage = mxVmlCanvas2D.prototype.image;
+ * mxVmlCanvas2D.prototype.image = function(x, y, w, h, src, aspect, flipH, flipV)
+ * {
+ *   if (src.substring(src.length - 4, src.length) == '.svg')
+ *   {
+ *     src = 'http://www.jgraph.com/images/mxgraph.gif';
+ *   }
+ *   
+ *   mxVmlCanvas2DImage.apply(this, arguments);
+ * };
+ * (end)
+ * 
+ * A description of the public API is available in <mxXmlCanvas2D>. Note that
+ * there is a known issue in VML where gradients are painted using the outer
+ * bounding box of rotated shapes, not the actual bounds of the shape. See
+ * also <text> for plain text label restrictions in shapes for VML.
+ */
+var mxVmlCanvas2D = function(root)
+{
+	mxAbstractCanvas2D.call(this);
+
+	/**
+	 * Variable: root
+	 * 
+	 * Reference to the container for the SVG content.
+	 */
+	this.root = root;
+};
+
+/**
+ * Extends mxAbstractCanvas2D
+ */
+mxUtils.extend(mxVmlCanvas2D, mxAbstractCanvas2D);
+
+/**
+ * Variable: path
+ * 
+ * Holds the current DOM node.
+ */
+mxVmlCanvas2D.prototype.node = null;
+
+/**
+ * Variable: textEnabled
+ * 
+ * Specifies if text output should be enabledetB. Default is true.
+ */
+mxVmlCanvas2D.prototype.textEnabled = true;
+
+/**
+ * Variable: moveOp
+ * 
+ * Contains the string used for moving in paths. Default is 'm'.
+ */
+mxVmlCanvas2D.prototype.moveOp = 'm';
+
+/**
+ * Variable: lineOp
+ * 
+ * Contains the string used for moving in paths. Default is 'l'.
+ */
+mxVmlCanvas2D.prototype.lineOp = 'l';
+
+/**
+ * Variable: curveOp
+ * 
+ * Contains the string used for bezier curves. Default is 'c'.
+ */
+mxVmlCanvas2D.prototype.curveOp = 'c';
+
+/**
+ * Variable: closeOp
+ * 
+ * Holds the operator for closing curves. Default is 'x e'.
+ */
+mxVmlCanvas2D.prototype.closeOp = 'x';
+
+/**
+ * Variable: rotatedHtmlBackground
+ * 
+ * Background color for rotated HTML. Default is ''. This can be set to eg.
+ * white to improve rendering of rotated text in VML for IE9.
+ */
+mxVmlCanvas2D.prototype.rotatedHtmlBackground = '';
+
+/**
+ * Variable: vmlScale
+ * 
+ * Specifies the scale used to draw VML shapes.
+ */
+mxVmlCanvas2D.prototype.vmlScale = 1;
+
+/**
+ * Function: addNode
+ * 
+ * Adds the current node to the <root>.
+ */
+mxVmlCanvas2D.prototype.addNode = function(filled, stroked)
+{
+	var node = this.node;
+	var s = this.state;
+	
+	if (node != null)
+	{
+		if (node.nodeName == 'shape')
+		{
+			// Checks if the path is not empty
+			if (this.path != null && this.path.length > 0)
+			{
+				node.path = this.path.join(' ') + ' e';
+				node.style.width = this.root.style.width;
+				node.style.height = this.root.style.height;
+				node.coordsize = parseInt(node.style.width) + ' ' + parseInt(node.style.height);
+			}
+			else
+			{
+				return;
+			}
+		}
+
+		node.strokeweight = this.format(Math.max(1, s.strokeWidth * s.scale / this.vmlScale)) + 'px';
+		
+		if (s.shadow)
+		{
+			this.root.appendChild(this.createShadow(node,
+				filled && s.fillColor != null,
+				stroked && s.strokeColor != null));
+		}
+		
+		if (stroked && s.strokeColor != null)
+		{
+			node.stroked = 'true';
+			node.strokecolor = s.strokeColor;
+		}
+		else
+		{
+			node.stroked = 'false';
+		}
+
+		node.appendChild(this.createStroke());
+
+		if (filled && s.fillColor != null)
+		{
+			node.appendChild(this.createFill());
+		}
+		else if (this.pointerEvents && (node.nodeName != 'shape' ||
+			this.path[this.path.length - 1] == this.closeOp))
+		{
+			node.appendChild(this.createTransparentFill());
+		}
+		else
+		{
+			node.filled = 'false';
+		}
+
+		// LATER: Update existing DOM for performance
+		this.root.appendChild(node);
+	}
+};
+
+/**
+ * Function: createTransparentFill
+ * 
+ * Creates a transparent fill.
+ */
+mxVmlCanvas2D.prototype.createTransparentFill = function()
+{
+	var fill = document.createElement(mxClient.VML_PREFIX + ':fill');
+	fill.src = mxClient.imageBasePath + '/transparent.gif';
+	fill.type = 'tile';
+	
+	return fill;
+};
+
+/**
+ * Function: createFill
+ * 
+ * Creates a fill for the current state.
+ */
+mxVmlCanvas2D.prototype.createFill = function()
+{
+	var s = this.state;
+	
+	// Gradients in foregrounds not supported because special gradients
+	// with bounds must be created for each element in graphics-canvases
+	var fill = document.createElement(mxClient.VML_PREFIX + ':fill');
+	fill.color = s.fillColor;
+
+	if (s.gradientColor != null)
+	{
+		fill.type = 'gradient';
+		fill.method = 'none';
+		fill.color2 = s.gradientColor;
+		var angle = 180 - s.rotation;
+		
+		if (s.gradientDirection == mxConstants.DIRECTION_WEST)
+		{
+			angle -= 90 + ((this.root.style.flip == 'x') ? 180 : 0);
+		}
+		else if (s.gradientDirection == mxConstants.DIRECTION_EAST)
+		{
+			angle += 90 + ((this.root.style.flip == 'x') ? 180 : 0);
+		}
+		else if (s.gradientDirection == mxConstants.DIRECTION_NORTH)
+		{
+			angle -= 180 + ((this.root.style.flip == 'y') ? -180 : 0);
+		}
+		else
+		{
+			 angle += ((this.root.style.flip == 'y') ? -180 : 0);
+		}
+		
+		if (this.root.style.flip == 'x' || this.root.style.flip == 'y')
+		{
+			angle *= -1;
+		}
+
+		// LATER: Fix outer bounding box for rotated shapes used in VML.
+		fill.angle = mxUtils.mod(angle, 360);
+		fill.opacity = (s.alpha * s.fillAlpha * 100) + '%';
+		fill.setAttribute(mxClient.OFFICE_PREFIX + ':opacity2', (s.alpha * s.gradientAlpha * 100) + '%');
+	}
+	else if (s.alpha < 1)
+	{
+		fill.opacity = (s.alpha * 100) + '%';			
+	}
+	
+	return fill;
+};
+/**
+ * Function: createStroke
+ * 
+ * Creates a fill for the current state.
+ */
+mxVmlCanvas2D.prototype.createStroke = function()
+{
+	var s = this.state;
+	var stroke = document.createElement(mxClient.VML_PREFIX + ':stroke');
+	stroke.endcap = s.lineCap || 'flat';
+	stroke.joinstyle = s.lineJoin || 'miter';
+	stroke.miterlimit = s.miterLimit || '10';
+	
+	if (s.alpha < 1)
+	{
+		stroke.opacity = (s.alpha * 100) + '%';
+	}
+	
+	if (s.dashed)
+	{
+		stroke.dashstyle = this.getVmlDashStyle();
+	}
+	
+	return stroke;
+};
+
+/**
+ * Function: getVmlDashPattern
+ * 
+ * Returns a VML dash pattern for the current dashPattern.
+ * See http://msdn.microsoft.com/en-us/library/bb264085(v=vs.85).aspx
+ */
+mxVmlCanvas2D.prototype.getVmlDashStyle = function()
+{
+	var result = 'dash';
+	
+	if (this.state.dashPattern != null)
+	{
+		var tok = this.state.dashPattern.split(' ');
+		
+		if (tok.length > 0 && tok[0] == 1)
+		{
+			result = '0 2';
+		}
+	}
+	
+	return result;
+};
+
+/**
+ * Function: createShadow
+ * 
+ * Creates a shadow for the given node.
+ */
+mxVmlCanvas2D.prototype.createShadow = function(node, filled, stroked)
+{
+	var s = this.state;
+	var rad = -s.rotation * (Math.PI / 180);
+	var cos = Math.cos(rad);
+	var sin = Math.sin(rad);
+
+	var dx = s.shadowDx * s.scale;
+	var dy = s.shadowDy * s.scale;
+
+	if (this.root.style.flip == 'x')
+	{
+		dx *= -1;
+	}
+	else if (this.root.style.flip == 'y')
+	{
+		dy *= -1;
+	}
+	
+	var shadow = node.cloneNode(true);
+	shadow.style.marginLeft = Math.round(dx * cos - dy * sin) + 'px';
+	shadow.style.marginTop = Math.round(dx * sin + dy * cos) + 'px';
+
+	// Workaround for wrong cloning in IE8 standards mode
+	if (document.documentMode == 8)
+	{
+		shadow.strokeweight = node.strokeweight;
+		
+		if (node.nodeName == 'shape')
+		{
+			shadow.path = this.path.join(' ') + ' e';
+			shadow.style.width = this.root.style.width;
+			shadow.style.height = this.root.style.height;
+			shadow.coordsize = parseInt(node.style.width) + ' ' + parseInt(node.style.height);
+		}
+	}
+	
+	if (stroked)
+	{
+		shadow.strokecolor = s.shadowColor;
+		shadow.appendChild(this.createShadowStroke());
+	}
+	else
+	{
+		shadow.stroked = 'false';
+	}
+	
+	if (filled)
+	{
+		shadow.appendChild(this.createShadowFill());
+	}
+	else
+	{
+		shadow.filled = 'false';
+	}
+	
+	return shadow;
+};
+
+/**
+ * Function: createShadowFill
+ * 
+ * Creates the fill for the shadow.
+ */
+mxVmlCanvas2D.prototype.createShadowFill = function()
+{
+	var fill = document.createElement(mxClient.VML_PREFIX + ':fill');
+	fill.color = this.state.shadowColor;
+	fill.opacity = (this.state.alpha * this.state.shadowAlpha * 100) + '%';
+	
+	return fill;
+};
+
+/**
+ * Function: createShadowStroke
+ * 
+ * Creates the stroke for the shadow.
+ */
+mxVmlCanvas2D.prototype.createShadowStroke = function()
+{
+	var stroke = this.createStroke();
+	stroke.opacity = (this.state.alpha * this.state.shadowAlpha * 100) + '%';
+	
+	return stroke;
+};
+
+/**
+ * Function: rotate
+ * 
+ * Sets the rotation of the canvas. Note that rotation cannot be concatenated.
+ */
+mxVmlCanvas2D.prototype.rotate = function(theta, flipH, flipV, cx, cy)
+{
+	if (flipH && flipV)
+	{
+		theta += 180;
+	}
+	else if (flipH)
+	{
+		this.root.style.flip = 'x';
+	}
+	else if (flipV)
+	{
+		this.root.style.flip = 'y';
+	}
+
+	if (flipH ? !flipV : flipV)
+	{
+		theta *= -1;
+	}
+
+	this.root.style.rotation = theta;
+	this.state.rotation = this.state.rotation + theta;
+	this.state.rotationCx = cx;
+	this.state.rotationCy = cy;
+};
+
+/**
+ * Function: begin
+ * 
+ * Extends superclass to create path.
+ */
+mxVmlCanvas2D.prototype.begin = function()
+{
+	mxAbstractCanvas2D.prototype.begin.apply(this, arguments);
+	this.node = document.createElement(mxClient.VML_PREFIX + ':shape');
+	this.node.style.position = 'absolute';
+};
+
+/**
+ * Function: quadTo
+ * 
+ * Replaces quadratic curve with bezier curve in VML.
+ */
+mxVmlCanvas2D.prototype.quadTo = function(x1, y1, x2, y2)
+{
+	var s = this.state;
+
+	var cpx0 = (this.lastX + s.dx) * s.scale;
+	var cpy0 = (this.lastY + s.dy) * s.scale;
+	var qpx1 = (x1 + s.dx) * s.scale;
+	var qpy1 = (y1 + s.dy) * s.scale;
+	var cpx3 = (x2 + s.dx) * s.scale;
+	var cpy3 = (y2 + s.dy) * s.scale;
+	
+	var cpx1 = cpx0 + 2/3 * (qpx1 - cpx0);
+	var cpy1 = cpy0 + 2/3 * (qpy1 - cpy0);
+	
+	var cpx2 = cpx3 + 2/3 * (qpx1 - cpx3);
+	var cpy2 = cpy3 + 2/3 * (qpy1 - cpy3);
+	
+	this.path.push('c ' + this.format(cpx1) + ' ' + this.format(cpy1) +
+			' ' + this.format(cpx2) + ' ' + this.format(cpy2) +
+			' ' + this.format(cpx3) + ' ' + this.format(cpy3));
+	this.lastX = (cpx3 / s.scale) - s.dx;
+	this.lastY = (cpy3 / s.scale) - s.dy;
+	
+};
+
+/**
+ * Function: createRect
+ * 
+ * Sets the glass gradient.
+ */
+mxVmlCanvas2D.prototype.createRect = function(nodeName, x, y, w, h)
+{
+	var s = this.state;
+	var n = document.createElement(nodeName);
+	n.style.position = 'absolute';
+	n.style.left = this.format((x + s.dx) * s.scale) + 'px';
+	n.style.top = this.format((y + s.dy) * s.scale) + 'px';
+	n.style.width = this.format(w * s.scale) + 'px';
+	n.style.height = this.format(h * s.scale) + 'px';
+	
+	return n;
+};
+
+/**
+ * Function: rect
+ * 
+ * Sets the current path to a rectangle.
+ */
+mxVmlCanvas2D.prototype.rect = function(x, y, w, h)
+{
+	this.node = this.createRect(mxClient.VML_PREFIX + ':rect', x, y, w, h);
+};
+
+/**
+ * Function: roundrect
+ * 
+ * Sets the current path to a rounded rectangle.
+ */
+mxVmlCanvas2D.prototype.roundrect = function(x, y, w, h, dx, dy)
+{
+	this.node = this.createRect(mxClient.VML_PREFIX + ':roundrect', x, y, w, h);
+	// SetAttribute needed here for IE8
+	this.node.setAttribute('arcsize', Math.max(dx * 100 / w, dy * 100 / h) + '%');
+};
+
+/**
+ * Function: ellipse
+ * 
+ * Sets the current path to an ellipse.
+ */
+mxVmlCanvas2D.prototype.ellipse = function(x, y, w, h)
+{
+	this.node = this.createRect(mxClient.VML_PREFIX + ':oval', x, y, w, h);
+};
+
+/**
+ * Function: image
+ * 
+ * Paints an image.
+ */
+mxVmlCanvas2D.prototype.image = function(x, y, w, h, src, aspect, flipH, flipV)
+{
+	var node = null;
+	
+	if (!aspect)
+	{
+		node = this.createRect(mxClient.VML_PREFIX + ':image', x, y, w, h);
+		node.src = src;
+	}
+	else
+	{
+		// Uses fill with aspect to avoid asynchronous update of size
+		node = this.createRect(mxClient.VML_PREFIX + ':rect', x, y, w, h);
+		node.stroked = 'false';
+		
+		// Handles image aspect via fill
+		var fill = document.createElement(mxClient.VML_PREFIX + ':fill');
+		fill.aspect = (aspect) ? 'atmost' : 'ignore';
+		fill.rotate = 'true';
+		fill.type = 'frame';
+		fill.src = src;
+
+		node.appendChild(fill);
+	}
+	
+	if (flipH && flipV)
+	{
+		node.style.rotation = '180';
+	}
+	else if (flipH)
+	{
+		node.style.flip = 'x';
+	}
+	else if (flipV)
+	{
+		node.style.flip = 'y';
+	}
+	
+	if (this.state.alpha < 1)
+	{
+		// KNOWN: Borders around transparent images in IE<9. Using fill.opacity
+		// fixes this problem by adding a white background in all IE versions.
+		node.style.filter += 'alpha(opacity=' + (this.state.alpha * 100) + ')';
+	}
+
+	this.root.appendChild(node);
+};
+
+/**
+ * Function: createText
+ * 
+ * Creates the innermost element that contains the HTML text.
+ */
+mxVmlCanvas2D.prototype.createDiv = function(str, align, valign, fill)
+{
+	var div = document.createElement('div');
+	var state = this.state;
+
+	var css = '';
+	
+	if (state.fontBackgroundColor != null)
+	{
+		css += 'background-color:' + state.fontBackgroundColor + ';';
+	}
+	
+	if (state.fontBorderColor != null)
+	{
+		css += 'border:1px solid ' + state.fontBorderColor + ';';
+	}
+	
+	if (mxUtils.isNode(str))
+	{
+		div.appendChild(str);
+	}
+	else
+	{
+		if (css.length > 0 && !fill)
+		{
+			var div2 = document.createElement('div');
+			div2.style.cssText = css;
+			div2.style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
+			div2.style.zoom = '1';
+			div2.innerHTML = str;
+			div.appendChild(div2);
+		}
+		else
+		{
+			div.style.cssText = css;
+			div.innerHTML = str;
+		}
+	}
+	
+	var style = div.style;
+
+	style.fontSize = Math.round(state.fontSize / this.vmlScale) + 'px';
+	style.fontFamily = state.fontFamily;
+	style.color = state.fontColor;
+	style.verticalAlign = 'top';
+	style.textAlign = align || 'left';
+	style.lineHeight = Math.round(state.fontSize * mxConstants.LINE_HEIGHT / this.vmlScale) + 'px';
+
+	if ((state.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
+	{
+		style.fontWeight = 'bold';
+	}
+
+	if ((state.fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
+	{
+		style.fontStyle = 'italic';
+	}
+	
+	if ((state.fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
+	{
+		style.textDecoration = 'underline';
+	}
+	
+	return div;
+};
+
+/**
+ * Function: text
+ * 
+ * Paints the given text. Possible values for format are empty string for plain
+ * text and html for HTML markup. Clipping, text background and border are not
+ * supported for plain text in VML.
+ */
+mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, format, fill, clip, rotation)
+{
+	if (this.textEnabled && str != null)
+	{
+		var s = this.state;
+		
+		if (format == 'html')
+		{
+			if (s.rotation != null)
+			{
+				var pt = this.rotatePoint(x, y, s.rotation, s.rotationCx, s.rotationCy);
+				
+				x = pt.x;
+				y = pt.y;
+			}
+
+			if (document.documentMode == 8)
+			{
+				x += s.dx;
+				y += s.dy;
+			}
+			else
+			{
+				x *= s.scale;
+				y *= s.scale;
+			}
+
+			// Adds event transparency in IE8 standards without the transparent background
+			// filter which cannot be used due to bugs in the zoomed bounding box (too slow)
+			// FIXME: No event transparency if inside v:rect (ie part of shape)
+			var abs = (document.documentMode == 8) ?
+				document.createElement(mxClient.VML_PREFIX + ':group') : document.createElement('div');
+			abs.style.position = 'absolute';
+			abs.style.display = 'inline';
+			abs.style.left = this.format(x) + 'px';
+			abs.style.top = this.format(y) + 'px';
+			abs.style.zoom = s.scale;
+
+			var box = document.createElement('div');
+			box.style.position = 'relative';
+			box.style.display = 'inline';
+			
+			var margin = mxUtils.getAlignmentAsPoint(align, valign);
+			var dx = margin.x;
+			var dy = margin.y;
+
+			var div = this.createDiv(str, align, valign, fill);
+			var inner = document.createElement('div');
+
+			if (wrap && w > 0)
+			{
+				if (!clip)
+				{
+					div.style.width = Math.round(w) + 'px';
+				}
+				
+				div.style.whiteSpace = 'normal';
+			}
+			else
+			{
+				div.style.whiteSpace = 'nowrap';
+			}
+			
+			var rot = s.rotation + (rotation || 0);
+			
+			if (this.rotateHtml && rot != 0)
+			{
+				inner.style.display = 'inline';
+				inner.style.zoom = '1';
+				inner.appendChild(div);
+
+				// Box not needed for rendering in IE8 standards
+				if (document.documentMode == 8 && this.root.nodeName != 'DIV')
+				{
+					box.appendChild(inner);
+					abs.appendChild(box);
+				}
+				else
+				{
+					abs.appendChild(inner);
+				}
+			}
+			else if (document.documentMode == 8)
+			{
+				box.appendChild(div);
+				abs.appendChild(box);
+			}
+			else
+			{
+				div.style.display = 'inline';
+				abs.appendChild(div);
+			}
+			
+			// Inserts the node into the DOM
+			if (this.root.nodeName != 'DIV')
+			{
+				// Rectangle to fix position in group
+				var rect = document.createElement(mxClient.VML_PREFIX + ':rect');
+				rect.stroked = 'false';
+				rect.filled = 'false';
+
+				rect.appendChild(abs);
+				this.root.appendChild(rect);
+			}
+			else
+			{
+				this.root.appendChild(abs);
+			}
+			
+			if (clip)
+			{
+				div.style.overflow = 'hidden';
+				
+				if (w > 0)
+				{
+					div.style.width = Math.round(w) + 'px';
+				}
+				
+				if (h > 0)
+				{
+					if (document.documentMode == 8)
+					{
+						div.style.maxHeight = Math.round(h) + 'px';
+					}
+				}
+			}
+			else if (fill)
+			{
+				// KNOWN: Affects horizontal alignment in quirks
+				// but fill should only be used with align=left
+				div.style.width = w + 'px';
+				
+				if (h > 0)
+				{
+					// LATER: Check if quirks mode need special handling
+					div.style.maxHeight = Math.round(h) + 'px';
+				}
+			}
+
+			if (this.rotateHtml && rot != 0)
+			{
+				var rad = rot * (Math.PI / 180);
+				
+				// Precalculate cos and sin for the rotation
+				var real_cos = parseFloat(parseFloat(Math.cos(rad)).toFixed(8));
+				var real_sin = parseFloat(parseFloat(Math.sin(-rad)).toFixed(8));
+
+				rad %= 2 * Math.PI;
+				if (rad < 0) rad += 2 * Math.PI;
+				rad %= Math.PI;
+				if (rad > Math.PI / 2) rad = Math.PI - rad;
+				
+				var cos = Math.cos(rad);
+				var sin = Math.sin(rad);
+
+				// Adds div to document to measure size
+				if (document.documentMode == 8)
+				{
+					div.style.display = 'inline-block';
+					inner.style.display = 'inline-block';
+					box.style.display = 'inline-block';
+				}
+				
+				div.style.visibility = 'hidden';
+				document.body.appendChild(div);
+				
+				w = div.offsetWidth;
+				var oh = div.offsetHeight;
+				
+				// Simulates max-height in quirks
+				if (mxClient.IS_QUIRKS && (clip || fill) && oh > h)
+				{
+					oh = h;
+					
+					// Quirks does not support maxHeight
+					div.style.height = oh + 'px';
+				}
+				
+				h = oh;
+
+				var top_fix = (h - h * cos + w * -sin) / 2 - real_sin * w * (dx + 0.5) + real_cos * h * (dy + 0.5);
+				var left_fix = (w - w * cos + h * -sin) / 2 + real_cos * w * (dx + 0.5) + real_sin * h * (dy + 0.5);
+
+				if (abs.nodeName == 'group' && this.root.nodeName == 'DIV')
+				{
+					// Workaround for bug where group gets moved away if left and top are non-zero in IE8 standards
+					var pos = document.createElement('div');
+					pos.style.display = 'inline-block';
+					pos.style.position = 'absolute';
+					pos.style.left = this.format(x + (left_fix - w / 2) * s.scale) + 'px';
+					pos.style.top = this.format(y + (top_fix - h / 2) * s.scale) + 'px';
+					
+					abs.parentNode.appendChild(pos);
+					pos.appendChild(abs);
+				}
+				else
+				{
+					var sc = (document.documentMode == 8) ? 1 : s.scale;
+					
+					abs.style.left = this.format(x + (left_fix - w / 2) * sc) + 'px';
+					abs.style.top = this.format(y + (top_fix - h / 2) * sc) + 'px';
+				}
+				
+				// KNOWN: Rotated text rendering quality is bad for IE9 quirks
+				inner.style.filter = "progid:DXImageTransform.Microsoft.Matrix(M11="+real_cos+", M12="+
+					real_sin+", M21="+(-real_sin)+", M22="+real_cos+", sizingMethod='auto expand')";
+				inner.style.backgroundColor = this.rotatedHtmlBackground;
+				
+				if (this.state.alpha < 1)
+				{
+					inner.style.filter += 'alpha(opacity=' + (this.state.alpha * 100) + ')';
+				}
+
+				// Restore parent node for DIV
+				div.style.visibility = '';
+				inner.appendChild(div);
+			}
+			else if (document.documentMode != 8)
+			{
+				div.style.verticalAlign = 'top';
+				
+				if (this.state.alpha < 1)
+				{
+					abs.style.filter = 'alpha(opacity=' + (this.state.alpha * 100) + ')';
+				}
+				
+				// Adds div to document to measure size
+				var divParent = div.parentNode;
+				div.style.visibility = 'hidden';
+				document.body.appendChild(div);
+				
+				w = div.offsetWidth;
+				var oh = div.offsetHeight;
+				
+				// Simulates max-height in quirks
+				if (mxClient.IS_QUIRKS && clip && oh > h)
+				{
+					oh = h;
+					
+					// Quirks does not support maxHeight
+					div.style.height = oh + 'px';
+				}
+				
+				h = oh;
+				
+				div.style.visibility = '';
+				divParent.appendChild(div);
+				
+				abs.style.left = this.format(x + w * dx * this.state.scale) + 'px';
+				abs.style.top = this.format(y + h * dy * this.state.scale) + 'px';
+			}
+			else
+			{
+				if (this.state.alpha < 1)
+				{
+					div.style.filter = 'alpha(opacity=' + (this.state.alpha * 100) + ')';
+				}
+				
+				// Faster rendering in IE8 without offsetWidth/Height
+				box.style.left = (dx * 100) + '%';
+				box.style.top = (dy * 100) + '%';
+			}
+		}
+		else
+		{
+			this.plainText(x, y, w, h, mxUtils.htmlEntities(str, false), align, valign, wrap, format, fill, clip, rotation);
+		}
+	}
+};
+
+/**
+ * Function: plainText
+ * 
+ * Paints the outline of the current path.
+ */
+mxVmlCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wrap, format, fill, clip, rotation)
+{
+	var s = this.state;
+	x = (x + s.dx) * s.scale;
+	y = (y + s.dy) * s.scale;
+	
+	var node = document.createElement(mxClient.VML_PREFIX + ':shape');
+	node.style.width = '1px';
+	node.style.height = '1px';
+	node.stroked = 'false';
+
+	var fill = document.createElement(mxClient.VML_PREFIX + ':fill');
+	fill.color = s.fontColor;
+	fill.opacity = (s.alpha * 100) + '%';
+	node.appendChild(fill);
+	
+	var path = document.createElement(mxClient.VML_PREFIX + ':path');
+	path.textpathok = 'true';
+	path.v = 'm ' + this.format(0) + ' ' + this.format(0) + ' l ' + this.format(1) + ' ' + this.format(0);
+	
+	node.appendChild(path);
+	
+	// KNOWN: Font family and text decoration ignored
+	var tp = document.createElement(mxClient.VML_PREFIX + ':textpath');
+	tp.style.cssText = 'v-text-align:' + align;
+	tp.style.align = align;
+	tp.style.fontFamily = s.fontFamily;
+	tp.string = str;
+	tp.on = 'true';
+	
+	// Scale via fontsize instead of node.style.zoom for correct offsets in IE8
+	var size = Math.round(s.fontSize * s.scale / this.vmlScale);
+	tp.style.fontSize = size + 'px';
+	
+	// Bold
+	if ((s.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
+	{
+		tp.style.fontWeight = 'bold';
+	}
+	
+	// Italic
+	if ((s.fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
+	{
+		tp.style.fontStyle = 'italic';
+	}
+
+	// Underline
+	if ((s.fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
+	{
+		tp.style.textDecoration = 'underline';
+	}
+
+	var lines = str.split('\n');
+	var textHeight = size + (lines.length - 1) * size * mxConstants.LINE_HEIGHT;
+	var dx = 0;
+	var dy = 0;
+
+	if (valign == mxConstants.ALIGN_BOTTOM)
+	{
+		dy = - textHeight / 2;
+	}
+	else if (valign != mxConstants.ALIGN_MIDDLE) // top
+	{
+		dy = textHeight / 2;
+	}
+
+	if (rotation != null)
+	{
+		node.style.rotation = rotation;
+		var rad = rotation * (Math.PI / 180);
+		dx = Math.sin(rad) * dy;
+		dy = Math.cos(rad) * dy;
+	}
+
+	// FIXME: Clipping is relative to bounding box
+	/*if (clip)
+	{
+		node.style.clip = 'rect(0px ' + this.format(w) + 'px ' + this.format(h) + 'px 0px)';
+	}*/
+	
+	node.appendChild(tp);
+	node.style.left = this.format(x - dx) + 'px';
+	node.style.top = this.format(y + dy) + 'px';
+	
+	this.root.appendChild(node);
+};
+
+/**
+ * Function: stroke
+ * 
+ * Paints the outline of the current path.
+ */
+mxVmlCanvas2D.prototype.stroke = function()
+{
+	this.addNode(false, true);
+};
+
+/**
+ * Function: fill
+ * 
+ * Fills the current path.
+ */
+mxVmlCanvas2D.prototype.fill = function()
+{
+	this.addNode(true, false);
+};
+
+/**
+ * Function: fillAndStroke
+ * 
+ * Fills and paints the outline of the current path.
+ */
+mxVmlCanvas2D.prototype.fillAndStroke = function()
+{
+	this.addNode(true, true);
+};
+/**
+ * $Id: mxGuide.js,v 1.3 2013/01/24 13:46:23 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -19083,14 +20094,6 @@ mxGuide.prototype.guideX = null;
 mxGuide.prototype.guideY = null;
 
 /**
- * Variable: crisp
- * 
- * Specifies if theguide should be rendered in crisp mode if applicable.
- * Default is true.
- */
-mxGuide.prototype.crisp = true;
-
-/**
  * Function: setStates
  * 
  * Sets the <mxCellStates> that should be used for alignment.
@@ -19136,7 +20139,6 @@ mxGuide.prototype.getGuideTolerance = function()
 mxGuide.prototype.createGuideShape = function(horizontal)
 {
 	var guide = new mxPolyline([], mxConstants.GUIDE_COLOR, mxConstants.GUIDE_STROKEWIDTH);
-	guide.crisp = this.crisp;
 	guide.isDashed = true;
 	
 	return guide;
@@ -19210,13 +20212,8 @@ mxGuide.prototype.move = function(bounds, delta, gridEnabled)
 					// HTML shapes do not let mouseevents through even when transparent
 					this.guideX.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
 						mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
+					this.guideX.pointerEvents = false;
 					this.guideX.init(this.graph.getView().getOverlayPane());
-
-					if (this.graph.dialect == mxConstants.DIALECT_SVG)
-					{
-						this.guideX.node.setAttribute('pointer-events', 'none');
-						this.guideX.pipe.setAttribute('pointer-events', 'none');
-					}
 				}
 
 				var c = this.graph.container;
@@ -19263,13 +20260,8 @@ mxGuide.prototype.move = function(bounds, delta, gridEnabled)
 					// HTML shapes do not let mouseevents through even when transparent
 					this.guideY.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
 						mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
+					this.guideY.pointerEvents = false;
 					this.guideY.init(this.graph.getView().getOverlayPane());
-					
-					if (this.graph.dialect == mxConstants.DIALECT_SVG)
-					{
-						this.guideY.node.setAttribute('pointer-events', 'none');
-						this.guideY.pipe.setAttribute('pointer-events', 'none');
-					}
 				}
 
 				var c = this.graph.container;
@@ -19386,2092 +20378,7 @@ mxGuide.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxShape.js,v 1.175 2013/01/16 08:40:17 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
- */
-/**
- * Class: mxShape
- *
- * Base class for all shapes. A shape in mxGraph is a
- * separate implementation for SVG, VML and HTML. Which
- * implementation to use is controlled by the <dialect>
- * property which is assigned from within the <mxCellRenderer>
- * when the shape is created. The dialect must be assigned
- * for a shape, and it does normally depend on the browser and
- * the confiuration of the graph (see <mxGraph> rendering hint).
- *
- * For each supported shape in SVG and VML, a corresponding
- * shape exists in mxGraph, namely for text, image, rectangle,
- * rhombus, ellipse and polyline. The other shapes are a
- * combination of these shapes (eg. label and swimlane)
- * or they consist of one or more (filled) path objects
- * (eg. actor and cylinder). The HTML implementation is
- * optional but may be required for a HTML-only view of
- * the graph.
- *
- * Custom Shapes:
- *
- * To extend from this class, the basic code looks as follows.
- * In the special case where the custom shape consists only of
- * one filled region or one filled region and an additional stroke
- * the <mxActor> and <mxCylinder> should be subclassed,
- * respectively. These implement <redrawPath> in order to create
- * the path expression for VML and SVG via a unified API (see
- * <mxPath>). <mxCylinder.redrawPath> has an additional boolean
- * argument to draw the foreground and background separately.
- *
- * (code)
- * function CustomShape() { }
- * 
- * CustomShape.prototype = new mxShape();
- * CustomShape.prototype.constructor = CustomShape; 
- * (end)
- *
- * To register a custom shape in an existing graph instance,
- * one must register the shape under a new name in the graph's
- * cell renderer as follows:
- *
- * (code)
- * graph.cellRenderer.registerShape('customShape', CustomShape);
- * (end)
- *
- * The second argument is the name of the constructor.
- *
- * In order to use the shape you can refer to the given name above
- * in a stylesheet. For example, to change the shape for the default
- * vertex style, the following code is used:
- *
- * (code)
- * var style = graph.getStylesheet().getDefaultVertexStyle();
- * style[mxConstants.STYLE_SHAPE] = 'customShape';
- * (end)
- * 
- * Constructor: mxShape
- *
- * Constructs a new shape.
- */
-function mxShape() { };
-
-/**
- * Variable: SVG_STROKE_TOLERANCE
- *
- * Event-tolerance for SVG strokes (in px). Default is 8.
- */
-mxShape.prototype.SVG_STROKE_TOLERANCE = 8;
-
-/**
- * Variable: scale
- *
- * Holds the scale in which the shape is being painted.
- */
-mxShape.prototype.scale = 1;
-
-/**
- * Variable: dialect
- *
- * Holds the dialect in which the shape is to be painted.
- * This can be one of the DIALECT constants in <mxConstants>.
- */
-mxShape.prototype.dialect = null;
-
-/**
- * Variable: crisp
- *
- * Special attribute for SVG rendering to set the shape-rendering attribute to
- * crispEdges in the output. This is ignored in IE. Default is false. To
- * disable antialias in IE, the explorer.css file can be changed as follows:
- * 
- * [code]
- * v\:* {
- *   behavior: url(#default#VML);
- *   antialias: false;
- * }
- * [/code]
- */
-mxShape.prototype.crisp = false;
-
-/**
- * Variable: roundedCrispSvg
- *
- * Specifies if crisp rendering should be enabled for rounded shapes.
- * Default is true.
- */
-mxShape.prototype.roundedCrispSvg = true;
-
-/**
- * Variable: mixedModeHtml
- *
- * Specifies if <createHtml> should be used in mixed Html mode.
- * Default is true.
- */
-mxShape.prototype.mixedModeHtml = true;
-
-/**
- * Variable: preferModeHtml
- *
- * Specifies if <createHtml> should be used in prefer Html mode.
- * Default is true.
- */
-mxShape.prototype.preferModeHtml = true;
-
-/**
- * Variable: bounds
- *
- * Holds the <mxRectangle> that specifies the bounds of this shape.
- */
-mxShape.prototype.bounds = null;
-
-/**
- * Variable: points
- *
- * Holds the array of <mxPoints> that specify the points of this shape.
- */
-mxShape.prototype.points = null;
-
-/**
- * Variable: node
- *
- * Holds the outermost DOM node that represents this shape.
- */
-mxShape.prototype.node = null;
-
-/**
- * Variable: label
- *
- * Reference to the DOM node that should contain the label. This is null
- * if the label should be placed inside <node> or <innerNode>.
- */
-mxShape.prototype.label = null;
-
-/**
- * Variable: innerNode
- *
- * Holds the DOM node that graphically represents this shape. This may be
- * null if the outermost DOM <node> represents this shape.
- */
-mxShape.prototype.innerNode = null;
-
-/**
- * Variable: style
- *
- * Holds the style of the cell state that corresponds to this shape. This may
- * be null if the shape is used directly, without a cell state.
- */
-mxShape.prototype.style = null;
-
-/**
- * Variable: startOffset
- *
- * Specifies the offset in pixels from the first point in <points> and
- * the actual start of the shape.
- */
-mxShape.prototype.startOffset = null;
-
-/**
- * Variable: endOffset
- *
- * Specifies the offset in pixels from the last point in <points> and
- * the actual start of the shape.
- */
-mxShape.prototype.endOffset = null;
-
-/**
- * Variable: boundingBox
- *
- * Contains the bounding box of the shape, that is, the smallest rectangle
- * that includes all pixels of the shape.
- */
-mxShape.prototype.boundingBox = null;
-
-/**
- * Variable: vmlNodes
- *
- * Array if VML node names to fix in IE8 standards mode.
- */
-mxShape.prototype.vmlNodes = ['node', 'strokeNode', 'fillNode', 'shadowNode'];
-
-/**
- * Variable: vmlScale
- *
- * Internal scaling for VML using coordsize for better precision.
- */
-mxShape.prototype.vmlScale = 1;
-
-/**
- * Variable: strokewidth
- *
- * Holds the current strokewidth. Default is 1.
- */
-mxShape.prototype.strokewidth = 1;
-
-/**
- * Function: setCursor
- * 
- * Sets the cursor on the given shape.
- *
- * Parameters:
- *
- * cursor - The cursor to be used.
- */
-mxShape.prototype.setCursor = function(cursor)
-{
-	if (cursor == null)
-	{
-		cursor = '';
-	}
-	
-	this.cursor = cursor;
-	
-	if (this.innerNode != null)
-	{
-		this.innerNode.style.cursor = cursor;
-	}
-	
-	if (this.node != null)
-	{
-		this.node.style.cursor = cursor;
-	}
-	
-	if (this.pipe != null)
-	{
-		this.pipe.style.cursor = cursor;
-	}
-};
-
-/**
- * Function: getCursor
- * 
- * Returns the current cursor.
- */
-mxShape.prototype.getCursor = function()
-{
-	return this.cursor;
-};
-
-/**
- * Function: init
- *
- * Initializes the shape by creaing the DOM node using <create>
- * and adding it into the given container.
- *
- * Parameters:
- *
- * container - DOM node that will contain the shape.
- */
-mxShape.prototype.init = function(container)
-{
-	if (this.node == null)
-	{
-		this.node = this.create(container);
-		
-		if (container != null)
-		{
-			container.appendChild(this.node);
-			
-			// Workaround for broken VML in IE8 standards mode. This gives an ID to
-			// each element that is referenced from this instance. After adding the
-			// DOM to the document, the outerHTML is overwritten to fix the VML
-			// rendering and the references are restored.
-			if (document.documentMode == 8 && mxUtils.isVml(this.node))
-			{
-				this.reparseVml();
-			}
-		}
-	}
-
-	// Gradients are inserted late when the owner SVG element is known
-	if (this.insertGradientNode != null)
-	{
-		this.insertGradient(this.insertGradientNode);
-		this.insertGradientNode = null;
-	}
-};
-
-/**
- * Function: reparseVml
- * 
- * Forces a parsing of the outerHTML of this node and restores all references specified in <vmlNodes>.
- * This is a workaround for the VML rendering bug in IE8 standards mode.
- */
-mxShape.prototype.reparseVml = function()
-{
-	// Assigns temporary IDs to VML nodes so that references can be restored when
-	// inserted into the DOM as a string
-	for (var i = 0; i < this.vmlNodes.length; i++)
-	{
-		if (this[this.vmlNodes[i]] != null)
-		{
-			this[this.vmlNodes[i]].setAttribute('id', 'mxTemporaryReference-' + this.vmlNodes[i]);
-		}
-	}
-
-	this.node.outerHTML = this.node.outerHTML;
-	
-	// Restores references to the actual DOM nodes
-	for (var i = 0; i < this.vmlNodes.length; i++)
-	{
-		if (this[this.vmlNodes[i]] != null)
-		{
-			this[this.vmlNodes[i]] = this.node.ownerDocument.getElementById('mxTemporaryReference-' + this.vmlNodes[i]);
-			this[this.vmlNodes[i]].removeAttribute('id');
-		}
-	}
-};
-
-/**
- * Function: insertGradient
- * 
- * Inserts the given gradient node.
- */
-mxShape.prototype.insertGradient = function(node)
-{
-	// Gradients are inserted late when the owner SVG element is known
-	if (node != null)
-	{
-		// Checks if the given gradient already exists inside the SVG element
-		// that also contains the node that represents this shape. If the gradient
-		// with the same ID exists in another SVG element, then this will add
-		// a copy of the gradient with a different ID to the SVG element and update
-		// the reference accordingly. This is required in Firefox because if the
-		// referenced fill element is removed from the DOM the shape appears black.
-		var count = 0;
-		var id = node.getAttribute('id');
-		var gradient = document.getElementById(id);
-
-		while (gradient != null && gradient.ownerSVGElement != this.node.ownerSVGElement)
-		{
-			count++;
-			id = node.getAttribute('id') + '-' + count;
-			gradient = document.getElementById(id);
-		}
-		
-		// According to specification, gradients should be put in a defs
-		// section in the first child of the owner SVG element. However,
-		// it turns out that gradients only work when added as follows.
-		if (gradient == null)
-		{
-			node.setAttribute('id', id);
-			this.node.ownerSVGElement.appendChild(node);
-			gradient = node;
-		}
-		
-		if (gradient != null)
-		{
-			var ref = 'url(#' + id + ')';
-			var tmp = (this.innerNode != null) ? this.innerNode : this.node;
-			
-			if (tmp != null && tmp.getAttribute('fill') != ref)
-			{
-				tmp.setAttribute('fill', ref);
-			}
-		}
-	}
-};
-
-/**
- * Function: isMixedModeHtml
- * 
- * Used to determine if a shape can be rendered using <createHtml> in mixed
- * mode Html without compromising the display accuracy. The default 
- * implementation will check if the shape is not rounded or rotated and has
- * no gradient, and will use a DIV if that is the case. It will also check
- * if <mxShape.mixedModeHtml> is true, which is the default settings.
- * Subclassers can either override <mixedModeHtml> or this function if the 
- * result depends on dynamic values. The graph's dialect is available via
- * <dialect>.
- */
-mxShape.prototype.isMixedModeHtml = function()
-{
-	return this.mixedModeHtml && !this.isRounded && !this.isShadow && this.gradient == null &&
-		mxUtils.getValue(this.style, mxConstants.STYLE_GLASS, 0) == 0 &&
-		mxUtils.getValue(this.style, mxConstants.STYLE_ROTATION, 0) == 0;
-};
-
-/**
- * Function: create
- *
- * Creates and returns the DOM node(s) for the shape in
- * the given container. This implementation invokes
- * <createSvg>, <createHtml> or <createVml> depending
- * on the <dialect> and style settings.
- *
- * Parameters:
- *
- * container - DOM node that will contain the shape.
- */
-mxShape.prototype.create = function(container)
-{
-	var node = null;
-	
-	if (this.dialect == mxConstants.DIALECT_SVG)
-	{
-		node = this.createSvg();
-	}
-	else if (this.dialect == mxConstants.DIALECT_STRICTHTML ||
-			(this.preferModeHtml && this.dialect == mxConstants.DIALECT_PREFERHTML) ||
-			(this.isMixedModeHtml() && this.dialect == mxConstants.DIALECT_MIXEDHTML))
-	{
-		node = this.createHtml();
-	}
-	else
-	{
-		node = this.createVml();
-	}
-	
-	return node;
-};
-	
-/**
- * Function: createHtml
- *
- * Creates and returns the HTML DOM node(s) to represent
- * this shape. This implementation falls back to <createVml>
- * so that the HTML creation is optional.
- */
-mxShape.prototype.createHtml = function()
-{
-	var node = document.createElement('DIV');
-	this.configureHtmlShape(node);
-	
-	return node;
-};
-
-/**
- * Function: destroy
- *
- * Destroys the shape by removing it from the DOM and releasing the DOM
- * node associated with the shape using <mxEvent.release>.
- */
-mxShape.prototype.destroy = function()
-{
-	if (this.node != null)
-	{
-		mxEvent.release(this.node);
-		
-		if (this.node.parentNode != null)
-		{
-			this.node.parentNode.removeChild(this.node);
-		}
-		
-		if (this.node.glassOverlay)
-		{
-			this.node.glassOverlay.parentNode.removeChild(this.node.glassOverlay);
-			this.node.glassOverlay = null;
-		}
-		
-		this.node = null;
-	}
-};
-
-/**
- * Function: apply
- * 
- * Applies the style of the given <mxCellState> to the shape. This
- * implementation assigns the following styles to local fields:
- * 
- * - <mxConstants.STYLE_FILLCOLOR> => fill
- * - <mxConstants.STYLE_GRADIENTCOLOR> => gradient
- * - <mxConstants.STYLE_GRADIENT_DIRECTION> => gradientDirection
- * - <mxConstants.STYLE_OPACITY> => opacity
- * - <mxConstants.STYLE_STROKECOLOR> => stroke
- * - <mxConstants.STYLE_STROKEWIDTH> => strokewidth
- * - <mxConstants.STYLE_SHADOW> => isShadow
- * - <mxConstants.STYLE_DASHED> => isDashed
- * - <mxConstants.STYLE_SPACING> => spacing
- * - <mxConstants.STYLE_STARTSIZE> => startSize
- * - <mxConstants.STYLE_ENDSIZE> => endSize
- * - <mxConstants.STYLE_ROUNDED> => isRounded
- * - <mxConstants.STYLE_STARTARROW> => startArrow
- * - <mxConstants.STYLE_ENDARROW> => endArrow
- * - <mxConstants.STYLE_ROTATION> => rotation
- * - <mxConstants.STYLE_DIRECTION> => direction
- *
- * This keeps a reference to the <style>. If you need to keep a reference to
- * the cell, you can override this method and store a local reference to
- * state.cell or the <mxCellState> itself.
- *
- * Parameters:
- *
- * state - <mxCellState> of the corresponding cell.
- */
-mxShape.prototype.apply = function(state)
-{
-	var style = state.style;
-	this.style = style;
-	
-	if (style != null)
-	{
-		this.fill = mxUtils.getValue(style, mxConstants.STYLE_FILLCOLOR, this.fill);
-		this.gradient = mxUtils.getValue(style, mxConstants.STYLE_GRADIENTCOLOR, this.gradient);
-		this.gradientDirection = mxUtils.getValue(style, mxConstants.STYLE_GRADIENT_DIRECTION, this.gradientDirection);
-		this.opacity = mxUtils.getValue(style, mxConstants.STYLE_OPACITY, this.opacity);
-		this.stroke = mxUtils.getValue(style, mxConstants.STYLE_STROKECOLOR, this.stroke);
-		this.strokewidth = mxUtils.getNumber(style, mxConstants.STYLE_STROKEWIDTH, this.strokewidth);
-		this.isShadow = mxUtils.getValue(style, mxConstants.STYLE_SHADOW, this.isShadow);
-		this.isDashed = mxUtils.getValue(style, mxConstants.STYLE_DASHED, this.isDashed);
-		this.spacing = mxUtils.getValue(style, mxConstants.STYLE_SPACING, this.spacing);
-		this.startSize = mxUtils.getNumber(style, mxConstants.STYLE_STARTSIZE, this.startSize);
-		this.endSize = mxUtils.getNumber(style, mxConstants.STYLE_ENDSIZE, this.endSize);
-		this.isRounded = mxUtils.getValue(style, mxConstants.STYLE_ROUNDED, this.isRounded);
-		this.startArrow = mxUtils.getValue(style, mxConstants.STYLE_STARTARROW, this.startArrow);
-		this.endArrow = mxUtils.getValue(style, mxConstants.STYLE_ENDARROW, this.endArrow);
-		this.rotation = mxUtils.getValue(style, mxConstants.STYLE_ROTATION, this.rotation);
-		this.direction = mxUtils.getValue(style, mxConstants.STYLE_DIRECTION, this.direction);
-		
-		if (this.fill == 'none')
-		{
-			this.fill = null;
-		}
-
-		if (this.gradient == 'none')
-		{
-			this.gradient = null;
-		}
-
-		if (this.stroke == 'none')
-		{
-			this.stroke = null;
-		}
-	}
-};
-
-/**
- * Function: createSvgGroup
- *
- * Creates a SVG group element and adds the given shape as a child of the
- * element. The child is stored in <innerNode> for later access.
- */
-mxShape.prototype.createSvgGroup = function(shape)
-{
-	var g = document.createElementNS(mxConstants.NS_SVG, 'g');
-	
-	// Creates the shape inside an svg group
-	this.innerNode = document.createElementNS(mxConstants.NS_SVG, shape);
-	this.configureSvgShape(this.innerNode);
-	
-	// Avoids anti-aliasing for non-rounded rectangles with a
-	// strokewidth of 1 or more pixels
-	if (shape == 'rect' && this.strokewidth * this.scale >= 1 && !this.isRounded)
-	{
-		this.innerNode.setAttribute('shape-rendering', 'optimizeSpeed');
-	}
-	
-	// Creates the shadow
-	this.shadowNode = this.createSvgShadow(this.innerNode);
-	
-	if (this.shadowNode != null)
-	{
-		g.appendChild(this.shadowNode);
-	}
-	
-	// Appends the main shape after the shadow
-	g.appendChild(this.innerNode);
-	
-	return g;
-};
-
-/**
- * Function: createSvgShadow
- *
- * Creates a clone of the given node and configures the node's color
- * to use <mxConstants.SHADOWCOLOR>.
- */
-mxShape.prototype.createSvgShadow = function(node)
-{
-	if (this.isShadow)
-	{
-		var shadow = node.cloneNode(true);
-		shadow.setAttribute('opacity', mxConstants.SHADOW_OPACITY);
-		
-		if (this.fill != null && this.fill != mxConstants.NONE)
-		{
-			shadow.setAttribute('fill', mxConstants.SHADOWCOLOR);
-		}
-
-		if (this.stroke != null && this.stroke != mxConstants.NONE)
-		{
-			shadow.setAttribute('stroke', mxConstants.SHADOWCOLOR);
-		}
-		
-		return shadow;
-	}
-	
-	return null;
-};
-
-/**
- * Function: configureHtmlShape
- *
- * Configures the specified HTML node by applying the current color,
- * bounds, shadow, opacity etc.
- */
-mxShape.prototype.configureHtmlShape = function(node)
-{
-	if (mxUtils.isVml(node))
-	{
-		this.configureVmlShape(node);
-	}
-	else
-	{
-		node.style.position = 'absolute';
-		node.style.overflow = 'hidden';
-		var color = this.stroke;
-		
-		if (color != null && color != mxConstants.NONE)
-		{
-			node.style.borderColor = color;
-
-			if (this.isDashed)
-			{
-				node.style.borderStyle = 'dashed';
-			}
-			else if (this.strokewidth > 0)
-			{
-				node.style.borderStyle = 'solid';
-			}
-
-			node.style.borderWidth = Math.ceil(this.strokewidth * this.scale) + 'px';
-		}
-		else
-		{
-			node.style.borderWidth = '0px';
-		}
-
-		color = this.fill;
-		node.style.background = '';
-		
-		if (color != null && color != mxConstants.NONE)
-		{
-			node.style.backgroundColor = color;
-		}
-		else if (this.points == null)
-		{
-			this.configureTransparentBackground(node);
-		}
-		
-		if (this.opacity != null)
-		{
-			mxUtils.setOpacity(node, this.opacity);
-		}
-	}
-};
-
-/**
- * Function: updateVmlFill
- *
- * Updates the given VML fill node.
- */
-mxShape.prototype.updateVmlFill = function(node, c1, c2, dir, alpha)
-{
-	node.color = c1;
-	
-	if (alpha != null && alpha != 100)
-	{
-		node.opacity = alpha + '%';
-		
-		if (c2 != null)
-		{
-			// LATER: Set namespaced attribute without using setAttribute
-			// which is required for updating the value in IE8 standards.
-			node.setAttribute('o:opacity2', alpha + '%');
-		}
-	}
-
-	if (c2 != null)
-	{
-		node.type = 'gradient';
-		node.color2 = c2;
-		var angle = '180';
-		
-		if (this.gradientDirection == mxConstants.DIRECTION_EAST)
-		{
-			angle = '270';
-		}
-		else if (this.gradientDirection == mxConstants.DIRECTION_WEST)
-		{
-			angle = '90';
-		}
-		else if (this.gradientDirection == mxConstants.DIRECTION_NORTH)
-		{
-			angle = '0';
-		}
-
-		node.angle = angle;
-	}
-};
-
-/**
- * Function: updateVmlStrokeNode
- *
- * Creates the stroke node for VML.
- */
-mxShape.prototype.updateVmlStrokeNode = function(parent)
-{
-	// Stroke node is always needed to specify defaults that match SVG output
-	if (this.strokeNode == null)
-	{
-		this.strokeNode = document.createElement('v:stroke');
-		
-		// To math SVG defaults jointsyle miter and miterlimit 4
-		this.strokeNode.joinstyle = 'miter';
-		this.strokeNode.miterlimit = 4;
-		
-		parent.appendChild(this.strokeNode);
-	}
-	
-	if (this.opacity != null)
-	{
-		this.strokeNode.opacity = this.opacity + '%';
-	}
-	
-	this.updateVmlDashStyle();
-};
-
-/**
- * Function: updateVmlStrokeColor
- *
- * Updates the VML stroke color for the given node.
- */
-mxShape.prototype.updateVmlStrokeColor = function(node)
-{
-	var color = this.stroke;
-
-	if (color != null && color != mxConstants.NONE)
-	{
-		node.stroked = 'true';
-		node.strokecolor = color;
-	}
-	else
-	{
-		node.stroked = 'false';
-	}
-};
-
-/**
- * Function: configureVmlShape
- *
- * Configures the specified VML node by applying the current color,
- * bounds, shadow, opacity etc.
- */
-mxShape.prototype.configureVmlShape = function(node)
-{
-	node.style.position = 'absolute';
-	this.updateVmlStrokeColor(node);
-	node.style.background = '';
-	var color = this.fill;
-	
-	if (color != null && color != mxConstants.NONE)
-	{
-		if (this.fillNode == null)
-		{
-			this.fillNode = document.createElement('v:fill');
-			node.appendChild(this.fillNode);
-		}
-
-		this.updateVmlFill(this.fillNode, color, this.gradient, this.gradientDirection, this.opacity);
-	}
-	else
-	{
-		node.filled = 'false';
-		
-		if (this.points == null)
-		{
-			this.configureTransparentBackground(node);
-		}
-	}
-
-	this.updateVmlStrokeNode(node);
-	
-	if (this.isShadow)
-	{
-		this.createVmlShadow(node);
-	}
-
-	// Fixes possible hang in IE when arcsize is set on non-rects
-	if (node.nodeName == 'roundrect')
-	{
-		// Workaround for occasional "member not found" error
-		try
-		{
-			var f = mxConstants.RECTANGLE_ROUNDING_FACTOR * 100;
-
-			if (this.style != null)
-			{
-				f = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, f);
-			}
-			
-			node.setAttribute('arcsize', String(f) + '%');
-		}
-		catch (e)
-		{
-			// ignore
-		}
-	}
-};
-
-/**
- * Function: createVmlShadow
- *
- * Creates the VML shadow node.
- */
-mxShape.prototype.createVmlShadow = function(node)
-{
-	// Adds a shadow only once per shape
-	if (this.shadowNode == null)
-	{
-		this.shadowNode = document.createElement('v:shadow');
-		this.shadowNode.on = 'true';
-		this.shadowNode.color = mxConstants.SHADOWCOLOR;
-		this.shadowNode.opacity = (mxConstants.SHADOW_OPACITY * 100) + '%';
-		
-		this.shadowStrokeNode = document.createElement('v:stroke');
-		this.shadowNode.appendChild(this.shadowStrokeNode);
-		
-		node.appendChild(this.shadowNode);
-	}
-};
-
-/**
- * Function: configureTransparentBackground
- * 
- * Hook to make the background of a shape transparent. This hook was added as
- * a workaround for the "display non secure items" warning dialog in IE which
- * appears if the background:url(transparent.gif) is used in the overlay pane
- * of a diagram. Since only mxImageShapes currently exist in the overlay pane
- * this function is only overridden in mxImageShape.
- */
-mxShape.prototype.configureTransparentBackground = function(node)
-{
-	node.style.background = 'url(\'' + mxClient.imageBasePath + '/transparent.gif\')';
-};
-
-/**
- * Function: configureSvgShape
- *
- * Configures the specified SVG node by applying the current color,
- * bounds, shadow, opacity etc.
- */
-mxShape.prototype.configureSvgShape = function(node)
-{
-	var color = this.stroke;
-	
-	if (color != null && color != mxConstants.NONE)
-	{
-		node.setAttribute('stroke', color);
-	}
-	else
-	{
-		node.setAttribute('stroke', 'none');
-	}
-
-	color = this.fill;
-
-	if (color != null && color != mxConstants.NONE)
-	{
-		// Fetches a reference to a shared gradient
-		if (this.gradient != null)
-		{
-			var id = this.getGradientId(color, this.gradient);
-			
-			if (this.gradientNode != null && this.gradientNode.getAttribute('id') != id)
-			{
-				this.gradientNode = null;
-				node.setAttribute('fill', '');
-			}
-			
-			if (this.gradientNode == null)
-			{
-				this.gradientNode = this.createSvgGradient(id,
-					color, this.gradient, node);
-				node.setAttribute('fill', 'url(#'+id+')');
-			}
-		}
-		else
-		{
-			// TODO: Remove gradient from document if no longer shared
-			this.gradientNode = null;
-			node.setAttribute('fill', color);
-		}
-	}
-	else
-	{
-		// Workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=814952
-		if (node.nodeName == 'ellipse' && mxClient.IS_NS && !mxClient.IS_GC && !mxClient.IS_SF)
-		{
-			node.setAttribute('fill', 'transparent');
-		}
-		else
-		{
-			node.setAttribute('fill', 'none');
-		}
-	}
-
-	if (this.opacity != null)
-	{
-		// Improves opacity performance in Firefox
-		node.setAttribute('fill-opacity', this.opacity / 100);
-		node.setAttribute('stroke-opacity', this.opacity / 100);
-	}
-};
-
-/**
- * Function: getGradientId
- *
- * Creates a unique ID for the gradient of this shape.
- */
-mxShape.prototype.getGradientId = function(start, end)
-{
-	// Removes illegal characters from gradient ID
-	if (start.charAt(0) == '#')
-	{
-		start = start.substring(1);
-	}
-	
-	if (end.charAt(0) == '#')
-	{
-		end = end.substring(1);
-	}
-	
-	// Workaround for gradient IDs not working in Safari 5 / Chrome 6
-	// if they contain uppercase characters
-	start = start.toLowerCase();
-	end = end.toLowerCase();
-
-	var dir = null;
-	
-	if (this.gradientDirection == null ||
-		this.gradientDirection == mxConstants.DIRECTION_SOUTH)
-	{
-		dir = 'south';
-	}
-	else if (this.gradientDirection == mxConstants.DIRECTION_EAST)
-	{
-		dir = 'east';
-	}
-	else
-	{
-		var tmp = start;
-		start = end;
-		end = tmp;
-		
-		if (this.gradientDirection == mxConstants.DIRECTION_NORTH)
-		{
-			dir = 'south';
-		}
-		else if (this.gradientDirection == mxConstants.DIRECTION_WEST)
-		{
-			dir = 'east';
-		}
-	}
-	
-	return 'mx-gradient-'+start+'-'+end+'-'+dir;
-};
-
-/**
- * Function: createSvgPipe
- *
- * Creates an invisible path which is used to increase the hit detection for
- * edges in SVG.
- */
-mxShape.prototype.createSvgPipe = function(id, start, end, node)
-{
-	var pipe = document.createElementNS(mxConstants.NS_SVG, 'path');
-	pipe.setAttribute('pointer-events', 'stroke');
-	pipe.setAttribute('fill', 'none');
-	pipe.setAttribute('visibility', 'hidden');
-	// Workaround for Opera ignoring the visiblity attribute above while
-	// other browsers need a stroke color to perform the hit-detection but
-	// do not ignore the visibility attribute. Side-effect is that Opera's
-	// hit detection for horizontal/vertical edges seems to ignore the pipe.
-	pipe.setAttribute('stroke', (mxClient.IS_OP) ? 'none' : 'white');
-	
-	return pipe;
-};
-
-/**
- * Function: createSvgGradient
- *
- * Creates a gradient object for SVG using the specified startcolor,
- * endcolor and opacity.
- */
-mxShape.prototype.createSvgGradient = function(id, start, end, node)
-{
-	var gradient = this.insertGradientNode;
-	
-	if (gradient == null)
-	{
-		gradient = document.createElementNS(mxConstants.NS_SVG, 'linearGradient');
-		gradient.setAttribute('id', id);
-		gradient.setAttribute('x1', '0%');
-		gradient.setAttribute('y1', '0%');
-		gradient.setAttribute('x2', '0%');
-		gradient.setAttribute('y2', '0%');
-		
-		if (this.gradientDirection == null ||
-			this.gradientDirection == mxConstants.DIRECTION_SOUTH)
-		{
-			gradient.setAttribute('y2', '100%');
-		}
-		else if (this.gradientDirection == mxConstants.DIRECTION_EAST)
-		{
-			gradient.setAttribute('x2', '100%');
-		}
-		else if (this.gradientDirection == mxConstants.DIRECTION_NORTH)
-		{
-			gradient.setAttribute('y1', '100%');
-		}
-		else if (this.gradientDirection == mxConstants.DIRECTION_WEST)
-		{
-			gradient.setAttribute('x1', '100%');
-		}
-		
-		var stop = document.createElementNS(mxConstants.NS_SVG, 'stop');
-		stop.setAttribute('offset', '0%');
-		stop.setAttribute('style', 'stop-color:'+start);
-		gradient.appendChild(stop);
-		
-		stop = document.createElementNS(mxConstants.NS_SVG, 'stop');
-		stop.setAttribute('offset', '100%');
-		stop.setAttribute('style', 'stop-color:'+end);
-		gradient.appendChild(stop);
-	}
-	
-	// Inserted later when the owner SVG element is known
-	this.insertGradientNode = gradient;
-	
-	return gradient;
-};
-
-/**
- * Function: createPoints
- *
- * Creates a path expression using the specified commands for this.points.
- * If <isRounded> is true, then the path contains curves for the corners.
- */
-mxShape.prototype.createPoints = function(moveCmd, lineCmd, curveCmd, isRelative)
-{
-	var offsetX = (isRelative) ? this.bounds.x : 0;
-	var offsetY = (isRelative) ? this.bounds.y : 0;
-
-	// Workaround for crisp shape-rendering in IE9
-	var crisp = (this.crisp && this.dialect == mxConstants.DIALECT_SVG && mxClient.IS_IE) ? 0.5 : 0;
-
-	if (isNaN(this.points[0].x) || isNaN(this.points[0].y))
-	{
-		return null;
-	}
-	
-	var size = mxConstants.LINE_ARCSIZE * this.scale;
-	var p0 = this.points[0];
-	
-	if (this.startOffset != null)
-	{
-		p0 = p0.clone();
-		p0.x += this.startOffset.x;
-		p0.y += this.startOffset.y;
-	}
-	
-	var points = moveCmd + ' ' + (Math.round(p0.x - offsetX) + crisp) + ' ' +
-					(Math.round(p0.y - offsetY) + crisp) + ' ';
-	
-	for (var i = 1; i < this.points.length; i++)
-	{
-		p0 = this.points[i - 1];
-		var pt = this.points[i];
-		
-		if (isNaN(pt.x) || isNaN(pt.y))
-		{
-			return null;
-		}
-		
-		if (i == this.points.length - 1 && this.endOffset != null)
-		{
-			pt = pt.clone();
-			pt.x += this.endOffset.x;
-			pt.y += this.endOffset.y;
-		}
-		
-		var dx = p0.x - pt.x;
-		var dy = p0.y - pt.y;
-		
-		if ((this.isRounded && i < this.points.length - 1) &&
-			(dx != 0 || dy != 0) && this.scale > 0.3)
-		{
-			// Draws a line from the last point to the current point with a spacing
-			// of size off the current point into direction of the last point
-			var dist = Math.sqrt(dx * dx + dy * dy);
-			var nx1 = dx * Math.min(size, dist / 2) / dist;
-			var ny1 = dy * Math.min(size, dist / 2) / dist;
-			points += lineCmd + ' ' + (Math.round(pt.x + nx1 - offsetX) + crisp) + ' ' + 
-						(Math.round(pt.y + ny1 - offsetY) + crisp) + ' ';
-
-			// Draws a curve from the last point to the current point with a spacing
-			// of size off the current point into direction of the next point
-			var pe = this.points[i+1];
-			dx = pe.x - pt.x;
-			dy = pe.y - pt.y;
-			
-			dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
-			
-			if (dist != 0)
-			{
-				var nx2 = dx * Math.min(size, dist / 2) / dist;
-				var ny2 = dy * Math.min(size, dist / 2) / dist;
-				
-				points += curveCmd + ' ' + Math.round(pt.x - offsetX) + ' '+
-						Math.round(pt.y - offsetY) + ' ' + Math.round(pt.x - offsetX) + ',' +
-						Math.round(pt.y - offsetY) + ' ' + (Math.round(pt.x + nx2 - offsetX) + crisp) + ' ' +
-							(Math.round(pt.y + ny2 - offsetY) + crisp) + ' ';
-			}
-		}
-		else
-		{
-			points += lineCmd + ' ' + (Math.round(pt.x - offsetX) + crisp) + ' ' + (Math.round(pt.y - offsetY) + crisp) + ' ';
-		}
-	}
-	
-	return points;
-};
-
-/**
- * Function: createCurvedPoints
- *
- * Creates a path expression using the specified commands for this.points.
- */
-mxShape.prototype.createCurvedPoints = function(isVml)
-{
-	// Workaround for crisp shape-rendering in IE9
-	var crisp = (this.crisp && this.dialect == mxConstants.DIALECT_SVG && mxClient.IS_IE) ? 0.5 : 0;
-	var offsetX = (isVml) ? this.bounds.x : 0;
-	var offsetY = (isVml) ? this.bounds.y : 0;
-	
-	var p0 = this.points[0];
-	var n = this.points.length;
-	var points = ((isVml) ? 'm' : 'M') + ' ' + (Math.round(p0.x - offsetX) + crisp) + ' ' +
-		(Math.round(p0.y - offsetY) + crisp) + ' ';
-	var lastX = 0;
-	var lastY = 0;
-	
-	for (var i = 1; i < n - 2; i++)
-	{
-		p0 = this.points[i];
-		var p1 = this.points[i + 1];
-		lastX = (p0.x + p1.x) / 2;
-		lastY = (p0.y + p1.y) / 2;
-		
-		if (isVml)
-		{
-			var tmp = this.points[i - 1];
-			points += this.createVmlQuad(tmp.x - offsetX, tmp.y - offsetY,
-				p0.x - offsetX, p0.y - offsetY, lastX - offsetX, lastY - offsetY);
-		}
-		else
-		{
-			points += 'Q ' + Math.round(p0.x - offsetX) + ' '+ Math.round(p0.y - offsetY) + ' ' +
-				(Math.round(lastX - offsetX) + crisp) + ' ' + (Math.round(lastY - offsetY) + crisp) + ' ';
-		}
-	}
-	
-	p0 = this.points[n - 2];
-	var p1 = this.points[n - 1];
-	
-	if (isVml)
-	{
-		points += this.createVmlQuad(lastX - offsetX, lastY - offsetY,
-			p0.x - offsetX, p0.y - offsetY, p1.x - offsetX, p1.y - offsetY);
-	}
-	else
-	{
-		points += 'Q ' + Math.round(p0.x - offsetX) + ' ' + Math.round(p0.y - offsetY) + ' ' +
-			(Math.round(p1.x - offsetX) + crisp) + ' ' + (Math.round(p1.y - offsetY) + crisp) + ' ';
-	}
-	
-	return points;
-};
-
-/**
- * Function: createVmlQuad
- * 
- * Creates a quadratic curve via a bezier curve in VML.
- */
-mxShape.prototype.createVmlQuad = function(lastX, lastY, x1, y1, x2, y2)
-{
-	var cpx1 = lastX + 2/3 * (x1 - lastX);
-	var cpy1 = lastY + 2/3 * (y1 - lastY);
-	
-	var cpx2 = x2 + 2/3 * (x1 - x2);
-	var cpy2 = y2 + 2/3 * (y1 - y2);
-	
-	return 'C ' + Math.round(cpx1) + ' ' + Math.round(cpy1) +
-			' ' + Math.round(cpx2) + ' ' + Math.round(cpy2) +
-			' ' + Math.round(x2) + ' ' + Math.round(y2);
-};
-
-/**
- * Function: updateHtmlShape
- *
- * Updates the bounds or points of the specified HTML node and
- * updates the inner children to reflect the changes.
- */
-mxShape.prototype.updateHtmlShape = function(node)
-{
-	if (node != null)
-	{
-		if (mxUtils.isVml(node))
-		{
-			this.updateVmlShape(node);
-		}
-		else
-		{
-			var sw = Math.ceil(this.strokewidth * this.scale);
-			node.style.borderWidth = Math.max(1, sw) + 'px';
-			
-			if (this.bounds != null && !isNaN(this.bounds.x) && !isNaN(this.bounds.y) &&
-				!isNaN(this.bounds.width) && !isNaN(this.bounds.height))
-			{
-				node.style.left = Math.round(this.bounds.x - sw / 2) + 'px';
-				node.style.top = Math.round(this.bounds.y - sw / 2) + 'px';
-
-				if (document.compatMode == 'CSS1Compat')
-				{
-					sw = -sw;
-				}
-				
-				node.style.width = Math.round(Math.max(0, this.bounds.width + sw)) + 'px';
-				node.style.height = Math.round(Math.max(0, this.bounds.height + sw)) + 'px';
-				
-				if (this.bounds.width == 0 || this.bounds.height == 0)
-				{
-					node.style.visibility = 'hidden';
-				}
-				else
-				{
-					node.style.visibility = 'visible';
-				}
-			}
-		}
-		
-		if (this.points != null && this.bounds != null && !mxUtils.isVml(node))
-		{
-			if (this.divContainer == null)
-			{
-				this.divContainer = node;
-			}
-
-			while (this.divContainer.firstChild != null)
-			{
-				mxEvent.release(this.divContainer.firstChild);
-				this.divContainer.removeChild(this.divContainer.firstChild);
-			}
-			
-			node.style.borderStyle = '';
-			node.style.background = '';
-			
-			if (this.points.length == 2)
-			{
-				var p0 = this.points[0];
-				var pe = this.points[1];
-
-				var dx = pe.x - p0.x;
-				var dy = pe.y - p0.y;
-
-				if (dx == 0 || dy == 0)
-				{
-					node.style.borderStyle = 'solid';
-				}
-				else
-				{
-					node.style.width = Math.round(this.bounds.width + 1) + 'px';
-					node.style.height = Math.round(this.bounds.height + 1) + 'px';
-					
-					var length = Math.sqrt(dx * dx + dy * dy);
-					var dotCount = 1 + (length / (8 * this.scale));
-					
-					var nx = dx / dotCount;
-					var ny = dy / dotCount;
-					var x = p0.x - this.bounds.x;
-					var y = p0.y - this.bounds.y;
-					
-					for (var i = 0; i < dotCount; i++)
-					{
-						var tmp = document.createElement('DIV');
-						
-						tmp.style.position = 'absolute';
-						tmp.style.overflow = 'hidden';
-						
-						tmp.style.left = Math.round(x) + 'px';
-						tmp.style.top = Math.round(y) + 'px';
-						tmp.style.width = Math.max(1, 2 * this.scale) + 'px';
-						tmp.style.height = Math.max(1, 2 * this.scale) + 'px';
-
-						tmp.style.backgroundColor = this.stroke;
-						this.divContainer.appendChild(tmp);
-						
-						x += nx;
-						y += ny;
-					}
-				}
-			}
-			else if (this.points.length == 3)
-			{
-				var mid = this.points[1];
-				
-				var n = '0';
-				var s = '1';
-				var w = '0';
-				var e = '1';
-				
-				if (mid.x == this.bounds.x)
-				{
-					e = '0';
-					w = '1';
-				}
-				
-				if (mid.y == this.bounds.y)
-				{
-					n = '1';
-					s = '0';
-				}
-				
-				node.style.borderStyle = 'solid';
-				node.style.borderWidth = n + ' ' + e + ' ' + s + ' ' + w + 'px';
-			}
-			else
-			{
-				node.style.width = Math.round(this.bounds.width + 1) + 'px';
-				node.style.height = Math.round(this.bounds.height + 1) + 'px';
-				var last = this.points[0];
-				
-				for (var i = 1; i < this.points.length; i++)
-				{
-					var next = this.points[i];
-					
-					// TODO: Use one div for multiple lines
-					var tmp = document.createElement('DIV');
-
-					tmp.style.position = 'absolute';
-					tmp.style.overflow = 'hidden';
-
-					tmp.style.borderColor = this.stroke;
-					tmp.style.borderStyle = 'solid';
-					tmp.style.borderWidth = '1 0 0 1px';
-					
-					var x = Math.min(next.x, last.x) - this.bounds.x;
-					var y = Math.min(next.y, last.y) - this.bounds.y;
-					var w = Math.max(1, Math.abs(next.x - last.x));
-					var h = Math.max(1, Math.abs(next.y - last.y));
-					
-					tmp.style.left = x + 'px';
-					tmp.style.top = y + 'px';
-					tmp.style.width = w + 'px';
-					tmp.style.height = h + 'px';
-					
-					this.divContainer.appendChild(tmp);
-					last = next;
-				}
-			}
-		}
-	}
-};
-
-/**
- * Function: updateVmlDashStyle
- *
- * Updates the dashstyle in the stroke node.
- */
-mxShape.prototype.updateVmlDashStyle = function()
-{
-	if (this.isDashed)
-	{
-		if (this.strokeNode.dashstyle != 'dash')
-		{
-			this.strokeNode.dashstyle = 'dash';
-		}
-	}
-	else if (this.strokeNode.dashstyle != 'solid')
-	{
-		this.strokeNode.dashstyle = 'solid';
-	}
-};
-
-/**
- * Function: updateVmlShape
- *
- * Updates the bounds or points of the specified VML node and
- * updates the inner children to reflect the changes.
- */
-mxShape.prototype.updateVmlShape = function(node)
-{
-	node.strokeweight = (this.strokewidth * this.scale) + 'px';
-
-	// Dash pattern needs updating as it depends on strokeweight in VML
-	if (this.strokeNode != null)
-	{
-		this.updateVmlDashStyle();
-	}
-	
-	// Updates the offset of the shadow
-	if (this.shadowNode != null)
-	{
-		var dx = Math.round(mxConstants.SHADOW_OFFSET_X * this.scale);
-		var dy = Math.round(mxConstants.SHADOW_OFFSET_Y * this.scale);
-		this.shadowNode.offset = dx + 'px,' + dy + 'px';
-	}
-
-	if (this.bounds != null && !isNaN(this.bounds.x) && !isNaN(this.bounds.y) &&
-		!isNaN(this.bounds.width) && !isNaN(this.bounds.height))
-	{
-		var f = 1;
-
-		var w = Math.max(0, Math.round(this.bounds.width));
-		var h = Math.max(0, Math.round(this.bounds.height));
-		
-		// Groups and shapes need a coordsize
-		if (this.points != null || node.nodeName == 'shape' || node.nodeName == 'group')
-		{
-			var tmp = (node.parentNode.nodeName == 'group') ? 1 : this.vmlScale;
-			node.coordsize = (w * tmp) + ',' + (h * tmp);
-		}
-		else if (node.parentNode.nodeName == 'group')
-		{
-			f = this.vmlScale;
-		}
-		
-		// Only top-level nodes are non-relative and rotated
-		if (node.parentNode != this.node)
-		{
-			node.style.left = Math.round(this.bounds.x * f) + 'px';
-			node.style.top = Math.round(this.bounds.y * f) + 'px';
-			
-			if (this.points == null)
-			{
-				if (this.rotation != null && this.rotation != 0)
-				{
-					node.style.rotation = this.rotation;
-				}
-				else if (node.style.rotation != null)
-				{
-					node.style.rotation = '';
-				}
-			}
-		}
-		
-		node.style.width = (w * f) + 'px';
-		node.style.height = (h * f) + 'px';
-	}
-	
-	if (this.points != null && node.nodeName != 'group')
-	{
-		if (node.nodeName == 'polyline' && node.points != null)
-		{
-			var points = '';
-			
-			for (var i = 0; i < this.points.length; i++)
-			{
-				points += this.points[i].x + ',' + this.points[i].y + ' ';
-			}
-			
-			node.points.value = points;
-			
-			node.style.left = null;
-			node.style.top = null;
-			node.style.width = null;
-			node.style.height = null;
-		}
-		else if (this.bounds != null)
-		{
-			var points = (this.style == null || this.style[mxConstants.STYLE_CURVED] != 1) ?
-					this.createPoints('m', 'l', 'c', true) : this.createCurvedPoints(true);
-			node.path = points + ' e';
-		}
-	}
-};
-
-/**
- * Function: updateSvgBounds
- * 
- * Updates the bounds of the given node using <bounds>.
- */
-mxShape.prototype.updateSvgBounds = function(node)
-{
-	var w = this.bounds.width;
-	var h = this.bounds.height;
-	
-	if (this.isRounded && !(this.crisp && mxClient.IS_IE))
-	{
-		node.setAttribute('x', this.bounds.x);
-		node.setAttribute('y', this.bounds.y);
-		node.setAttribute('width', w);
-		node.setAttribute('height', h);
-	}
-	else
-	{
-		// Workaround for crisp shape-rendering in IE9
-		var dd = (this.crisp && mxClient.IS_IE) ? 0.5 : 0;
-		node.setAttribute('x', Math.round(this.bounds.x) + dd);
-		node.setAttribute('y', Math.round(this.bounds.y) + dd);
-
-		w = Math.round(w);
-		h = Math.round(h);
-		
-		node.setAttribute('width', w);
-		node.setAttribute('height', h);
-	}
-
-	if (this.isRounded)
-	{
-		var f = mxConstants.RECTANGLE_ROUNDING_FACTOR * 100;
-
-		if (this.style != null)
-		{
-			f = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, f) / 100;
-		}
-		
-		var r = Math.min(w * f,  h * f);
-		node.setAttribute('rx', r);
-		node.setAttribute('ry', r);
-	}
-
-	this.updateSvgTransform(node, node == this.shadowNode);
-};
-
-/**
- * Function: updateSvgPath
- * 
- * Updates the path of the given node using <points>.
- */
-mxShape.prototype.updateSvgPath = function(node)
-{
-	var d = (this.style == null || this.style[mxConstants.STYLE_CURVED] != 1) ?
-		this.createPoints('M', 'L', 'C', false) : this.createCurvedPoints(false);
-	
-	if (d != null)
-	{
-		node.setAttribute('d', d);
-		node.removeAttribute('x');
-		node.removeAttribute('y');
-		node.removeAttribute('width');
-		node.removeAttribute('height');
-	}
-};
-
-/**
- * Function: updateSvgScale
- *
- * Updates the properties of the given node that depend on the scale and checks
- * the crisp rendering attribute.
- */
-mxShape.prototype.updateSvgScale = function(node)
-{
-	node.setAttribute('stroke-width', Math.round(Math.max(1, this.strokewidth * this.scale)));
-
-	if (this.isDashed)
-	{
-		var phase = Math.max(1, Math.round(3 * this.scale * this.strokewidth));
-		node.setAttribute('stroke-dasharray', phase + ' ' + phase);
-	}
-
-	if (this.crisp && (this.roundedCrispSvg || this.isRounded != true) &&
-		(this.rotation == null || this.rotation == 0))
-	{
-		node.setAttribute('shape-rendering', 'crispEdges');
-	}
-	else
-	{
-		node.removeAttribute('shape-rendering');
-	}
-};
-
-/**
- * Function: updateSvgShape
- *
- * Updates the bounds or points of the specified SVG node and
- * updates the inner children to reflect the changes.
- */
-mxShape.prototype.updateSvgShape = function(node)
-{
-	if (this.points != null && this.points[0] != null)
-	{
-		this.updateSvgPath(node);
-	}
-	else if (this.bounds != null)
-	{
-		this.updateSvgBounds(node);
-	}
-	
-	this.updateSvgScale(node);
-};
-
-/**
- * Function: getSvgShadowTransform
- * 
- * Returns the current transformation for SVG shadows.
- */
-mxShape.prototype.getSvgShadowTransform = function(node, shadow)
-{
-	var dx = mxConstants.SHADOW_OFFSET_X * this.scale;
-	var dy = mxConstants.SHADOW_OFFSET_Y * this.scale;
-	
-	return 'translate(' + dx + ' ' + dy + ')';
-};
-
-/**
- * Function: updateSvgTransform
- * 
- * Updates the tranform of the given node.
- */
-mxShape.prototype.updateSvgTransform = function(node, shadow)
-{
-	var st = (shadow) ? this.getSvgShadowTransform() : '';
-	
-	if (this.rotation != null && this.rotation != 0)
-	{
-		var cx = this.bounds.x + this.bounds.width / 2;
-		var cy = this.bounds.y + this.bounds.height / 2;
-		node.setAttribute('transform', 'rotate(' + this.rotation + ',' + cx + ',' + cy + ') ' + st);
-	}
-	else
-	{
-		if (shadow)
-		{
-			node.setAttribute('transform', st);
-		}
-		else
-		{
-			node.removeAttribute('transform');
-		}
-	}
-};
-
-/**
- * Function: reconfigure
- *
- * Reconfigures this shape. This will update the colors etc in
- * addition to the bounds or points.
- */
-mxShape.prototype.reconfigure = function()
-{
-	if (this.dialect == mxConstants.DIALECT_SVG)
-	{
-		if (this.innerNode != null)
-		{
-			this.configureSvgShape(this.innerNode);
-		}
-		else
-		{
-			this.configureSvgShape(this.node);
-		}
-
-		if (this.insertGradientNode != null)
-		{
-			this.insertGradient(this.insertGradientNode);
-			this.insertGradientNode = null;
-		}
-	}
-	else if (mxUtils.isVml(this.node))
-	{
-		this.node.style.visibility = 'hidden';
-		this.configureVmlShape(this.node);
-		this.node.style.visibility = 'visible';
-	}
-	else
-	{
-		this.node.style.visibility = 'hidden';
-		this.configureHtmlShape(this.node);
-		this.node.style.visibility = 'visible';
-	}
-};
-
-/**
- * Function: redraw
- *
- * Invokes <redrawSvg>, <redrawVml> or <redrawHtml> depending on the
- * dialect of the shape.
- */
-mxShape.prototype.redraw = function()
-{
-	this.updateBoundingBox();
-	
-	if (this.dialect == mxConstants.DIALECT_SVG)
-	{
-		this.redrawSvg();
-	}
-	else if (mxUtils.isVml(this.node))
-	{
-		this.node.style.visibility = 'hidden';
-		this.redrawVml();
-		this.node.style.visibility = 'visible';
-	}
-	else
-	{
-		this.redrawHtml();
-	}
-};
-
-/**
- * Function: updateBoundingBox
- *
- * Updates the <boundingBox> for this shape using <createBoundingBox> and
- * <augmentBoundingBox> and stores the result in <boundingBox>.
- */
-mxShape.prototype.updateBoundingBox = function()
-{
-	if (this.bounds != null)
-	{
-		var bbox = this.createBoundingBox();
-		this.augmentBoundingBox(bbox);
-		
-		var rot = Number(mxUtils.getValue(this.style, mxConstants.STYLE_ROTATION, 0));
-		
-		if (rot != 0)
-		{
-			bbox = mxUtils.getBoundingBox(bbox, rot);
-		}
-		
-		bbox.x = Math.floor(bbox.x);
-		bbox.y = Math.floor(bbox.y);
-		// TODO: Fix rounding errors
-		bbox.width = Math.ceil(bbox.width);
-		bbox.height = Math.ceil(bbox.height);
-
-		this.boundingBox = bbox;
-	}
-};
-
-/**
- * Function: createBoundingBox
- *
- * Returns a new rectangle that represents the bounding box of the bare shape
- * with no shadows or strokewidths.
- */
-mxShape.prototype.createBoundingBox = function()
-{
-	return this.bounds.clone();
-};
-
-/**
- * Function: augmentBoundingBox
- *
- * Augments the bounding box with the strokewidth and shadow offsets.
- */
-mxShape.prototype.augmentBoundingBox = function(bbox)
-{
-	if (this.isShadow)
-	{
-		bbox.width += Math.ceil(mxConstants.SHADOW_OFFSET_X * this.scale);
-		bbox.height += Math.ceil(mxConstants.SHADOW_OFFSET_Y * this.scale);
-	}
-	
-	// Adds strokeWidth
-	var sw = Math.ceil(this.strokewidth * this.scale);
-	bbox.grow(Math.ceil(sw / 2));
-};
-
-/**
- * Function: redrawSvg
- *
- * Redraws this SVG shape by invoking <updateSvgShape> on this.node,
- * this.innerNode and this.shadowNode.
- */
-mxShape.prototype.redrawSvg = function()
-{
-	if (this.innerNode != null)
-	{
-		this.updateSvgShape(this.innerNode);
-		
-		if (this.shadowNode != null)
-		{
-			this.updateSvgShape(this.shadowNode);
-		}
-	}
-	else
-	{
-		this.updateSvgShape(this.node);
-
-		// Updates the transform of the shadow
-		if (this.shadowNode != null)
-		{
-			this.shadowNode.setAttribute('transform',  this.getSvgShadowTransform());
-		}
-	}
-	
-	this.updateSvgGlassPane();
-};
-
-/**
- * Function: updateVmlGlassPane
- * 
- * Draws the glass overlay if mxConstants.STYLE_GLASS is 1.
- */
-mxShape.prototype.updateVmlGlassPane = function()
-{
-	// Currently only used in mxLabel. Most shapes would have to be changed to use
-	// a group node in VML which might affect performance for glass-less cells.
-	if (this.bounds != null && this.node.nodeName == 'group' && this.style != null &&
-		mxUtils.getValue(this.style, mxConstants.STYLE_GLASS, 0) == 1)
-	{
-		// Glass overlay
-		if (this.node.glassOverlay == null)
-		{
-			// Creates glass overlay
-			this.node.glassOverlay = document.createElement('v:shape');
-			this.node.glassOverlay.setAttribute('filled', 'true');
-			this.node.glassOverlay.setAttribute('fillcolor', 'white');
-			this.node.glassOverlay.setAttribute('stroked', 'false');
-			
-			var fillNode = document.createElement('v:fill');
-			fillNode.setAttribute('type', 'gradient');
-			fillNode.setAttribute('color', 'white');
-			fillNode.setAttribute('color2', 'white');
-			fillNode.setAttribute('opacity', '90%');
-			fillNode.setAttribute('o:opacity2', '15%');
-			fillNode.setAttribute('angle', '180');
-			
-			this.node.glassOverlay.appendChild(fillNode);
-			this.node.appendChild(this.node.glassOverlay);
-		}
-		
-		var size = 0.4;
-		
-		// TODO: Mask with rectangle or rounded rectangle of label
-		var b = this.bounds;
-		var sw = Math.ceil(this.strokewidth * this.scale / 2 + 1);
-		var d = 'm ' + (-sw) + ' ' + (-sw) + ' l ' + (-sw) + ' ' + Math.round(b.height * size) +
-			' c ' + Math.round(b.width * 0.3) + ' ' + Math.round(b.height * 0.6) +
-			' ' + Math.round(b.width * 0.7) + ' ' + Math.round(b.height * 0.6) +
-			' ' + Math.round(b.width + sw) + ' ' + Math.round(b.height * size) +
-			' l '+Math.round(b.width + sw)+' ' + (-sw) + ' x e';
-		this.node.glassOverlay.style.position = 'absolute';
-		this.node.glassOverlay.style.width = b.width + 'px';
-		this.node.glassOverlay.style.height = b.height + 'px';
-		this.node.glassOverlay.setAttribute('coordsize',
-				Math.round(this.bounds.width) + ',' +
-				Math.round(this.bounds.height));
-		this.node.glassOverlay.setAttribute('path', d);
-	}
-	else if (this.node.glassOverlay != null)
-	{
-		this.node.glassOverlay.parentNode.removeChild(this.node.glassOverlay);
-		this.node.glassOverlay = null;
-	}
-};
-
-/**
- * Function: updateSvgGlassPane
- *
- * Draws the glass overlay if mxConstants.STYLE_GLASS is 1.
- */
-mxShape.prototype.updateSvgGlassPane = function()
-{
-	if (this.node.nodeName == 'g' && this.style != null &&
-		mxUtils.getValue(this.style, mxConstants.STYLE_GLASS, 0) == 1)
-	{
-		// Glass overlay
-		if (this.node.glassOverlay == null)
-		{
-			// Glass overlay gradient
-			if (this.node.ownerSVGElement.glassGradient == null)
-			{
-				// Creates glass overlay gradient
-				var glassGradient = document.createElementNS(mxConstants.NS_SVG, 'linearGradient');
-				glassGradient.setAttribute('x1', '0%');
-				glassGradient.setAttribute('y1', '0%');
-				glassGradient.setAttribute('x2', '0%');
-				glassGradient.setAttribute('y2', '100%');
-				
-				var stop1 = document.createElementNS(mxConstants.NS_SVG, 'stop');
-				stop1.setAttribute('offset', '0%');
-				stop1.setAttribute('style', 'stop-color:#ffffff;stop-opacity:0.9');
-				glassGradient.appendChild(stop1);
-				
-				var stop2 = document.createElementNS(mxConstants.NS_SVG, 'stop');
-				stop2.setAttribute('offset', '100%');
-				stop2.setAttribute('style', 'stop-color:#ffffff;stop-opacity:0.1');
-				glassGradient.appendChild(stop2);
-				
-				// Finds a unique ID for the gradient
-				var prefix = 'mx-glass-gradient-';
-				var counter = 0;
-				
-				while (document.getElementById(prefix+counter) != null)
-				{
-					counter++;
-				}
-				
-				glassGradient.setAttribute('id', prefix+counter);
-				this.node.ownerSVGElement.appendChild(glassGradient);
-				this.node.ownerSVGElement.glassGradient = glassGradient;
-			}
-			
-			// Creates glass overlay
-			this.node.glassOverlay = document.createElementNS(mxConstants.NS_SVG, 'path');
-			// LATER: Not sure what the behaviour is for mutiple SVG elements in page.
-			// Probably its possible that this points to an element in another SVG
-			// node which when removed will result in an undefined background.
-			var id = this.node.ownerSVGElement.glassGradient.getAttribute('id');
-			this.node.glassOverlay.setAttribute('style', 'fill:url(#'+id+');');
-			this.node.appendChild(this.node.glassOverlay);
-		}
-		
-		var size = 0.4;
-		
-		// TODO: Mask with rectangle or rounded rectangle of label
-		var b = this.bounds;
-		var sw = Math.ceil(this.strokewidth * this.scale / 2);
-		var d = 'm ' + (b.x - sw) + ',' + (b.y - sw) +
-			' L ' + (b.x - sw) + ',' + (b.y + b.height * size) +
-			' Q '+ (b.x + b.width * 0.5) + ',' + (b.y + b.height * 0.7) + ' '+
-			(b.x + b.width + sw) + ',' + (b.y + b.height * size) +
-			' L ' + (b.x + b.width + sw) + ',' + (b.y - sw) + ' z';
-		this.node.glassOverlay.setAttribute('d', d);
-	}
-	else if (this.node.glassOverlay != null)
-	{
-		this.node.glassOverlay.parentNode.removeChild(this.node.glassOverlay);
-		this.node.glassOverlay = null;
-	}
-};
-
-/**
- * Function: redrawVml
- *
- * Redraws this VML shape by invoking <updateVmlShape> on this.node.
- */
-mxShape.prototype.redrawVml = function()
-{
-	this.node.style.visibility = 'hidden';
-	this.updateVmlShape(this.node);
-	this.updateVmlGlassPane();
-	this.node.style.visibility = 'visible';
-};
-
-/**
- * Function: redrawHtml
- *
- * Redraws this HTML shape by invoking <updateHtmlShape> on this.node.
- */
-mxShape.prototype.redrawHtml = function()
-{
-	this.updateHtmlShape(this.node);
-};
-
-/**
- * Function: getRotation
- * 
- * Returns the current rotation including direction.
- */
-mxShape.prototype.getRotation = function()
-{
-	var rot = this.rotation || 0;
-	
-	// Default direction is east (ignored if rotation exists)
-	if (this.direction != null)
-	{
-		if (this.direction == 'north')
-		{
-			rot += 270;
-		}
-		else if (this.direction == 'west')
-		{
-			rot += 180;
-		}
-		else if (this.direction == 'south')
-		{
-			rot += 90;
-		}
-	}
-	
-	return rot;
-};
-
-/**
- * Function: createPath
- *
- * Creates an <mxPath> for the specified format and origin. The path object is
- * then passed to <redrawPath> and <mxPath.getPath> is returned.
- */
-mxShape.prototype.createPath = function(arg)
-{
-	var x = this.bounds.x;
-	var y = this.bounds.y;
-	var w = this.bounds.width;
-	var h = this.bounds.height;
-	var dx = 0;
-	var dy = 0;
-	
-	// Inverts bounds for stencils which are rotated 90 or 270 degrees
-	if (this.direction == 'north' || this.direction == 'south')
-	{
-		dx = (w - h) / 2;
-		dy = (h - w) / 2;
-		x += dx;
-		y += dy;
-		var tmp = w;
-		w = h;
-		h = tmp;
-	}
-	
-	var rotation = this.getRotation();
-	var path = null;
-	
-	if (this.dialect == mxConstants.DIALECT_SVG)
-	{
-		path = new mxPath('svg');
-		path.setTranslate(x, y);
-
-		// Adds rotation as a separate transform
-		if (rotation != 0)
-		{
-			var cx = this.bounds.getCenterX();
-			var cy = this.bounds.getCenterY();
-			var transform = 'rotate(' + rotation + ' ' + cx + ' ' + cy + ')';
-			
-			if (this.innerNode != null)
-			{
-				this.innerNode.setAttribute('transform', transform);
-			}
-			
-			if (this.foreground != null)
-			{
-				this.foreground.setAttribute('transform', transform);
-			}
-
-			// Shadow needs different transform so that it ends up on the correct side
-			if (this.shadowNode != null)
-			{
-				this.shadowNode.setAttribute('transform',  this.getSvgShadowTransform() + ' ' + transform);
-			}
-		}
-	}
-	else
-	{
-		path = new mxPath('vml');
-		path.setTranslate(dx, -dx);
-		path.scale = this.vmlScale;
-		
-		if (rotation != 0)
-		{
-			this.node.style.rotation = rotation;
-		}
-	}
-	
-	this.redrawPath(path, x, y, w, h, arg);
-	
-	return path.getPath();
-};
-
-/**
- * Function: redrawPath
- *
- * Draws the path for this shape. This implementation is empty. See
- * <mxActor> and <mxCylinder> for implementations. 
- */
-mxShape.prototype.redrawPath = function(path, x, y, w, h)
-{
-	// do nothing
-};
-/**
- * $Id: mxStencil.js,v 1.94 2013/04/06 09:29:09 david Exp $
+ * $Id: mxStencil.js,v 1.10 2013/04/12 07:51:33 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -21535,7 +20442,7 @@ mxShape.prototype.redrawPath = function(path, x, y, w, h)
  * the str as a key in <mxResources.get>. To handle all str attributes of all
  * text nodes like this, set the <mxStencil.defaultLocalized> value to true.
  * 
- * Constructor: mxStencilShape
+ * Constructor: mxStencil
  * 
  * Constructs a new generic shape by setting <desc> to the given XML node and
  * invoking <parseDescription> and <parseConstraints>.
@@ -21710,7 +20617,7 @@ mxStencil.prototype.evaluateTextAttribute = function(node, attribute, state)
  * a function it is invoked with <state> as the only argument and the return
  * value is used as the attribute value to be returned.
  */
-mxStencil.prototype.evaluateAttribute = function(node, attribute, state)
+mxStencil.prototype.evaluateAttribute = function(node, attribute, shape)
 {
 	var result = node.getAttribute(attribute);
 	
@@ -21724,7 +20631,7 @@ mxStencil.prototype.evaluateAttribute = function(node, attribute, state)
 			
 			if (typeof(funct) == 'function')
 			{
-				result = funct(state);
+				result = funct(shape);
 			}
 		}
 	}
@@ -21733,1021 +20640,20 @@ mxStencil.prototype.evaluateAttribute = function(node, attribute, state)
 };
 
 /**
- * Function: renderDom
+ * Function: drawShape
  *
- * Updates the SVG or VML shape.
+ * Draws this stencil inside the given bounds.
  */
-mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
+mxStencil.prototype.drawShape = function(canvas, shape, x, y, w, h)
 {
-	var vml = shape.dialect != mxConstants.DIALECT_SVG;
-	var vmlScale = (document.documentMode == 8) ? 1 : shape.vmlScale;
-	var rotation = shape.rotation || 0;
-	var inverse = false;
-	
-	// New styles for shape flipping the stencil
-	var flipH = shape.style[mxConstants.STYLE_STENCIL_FLIPH];
-	var flipV = shape.style[mxConstants.STYLE_STENCIL_FLIPV];
-	
-	if (flipH ? !flipV : flipV)
-	{
-		rotation *= -1;
-	}
-	
-	// Default direction is east (ignored if rotation exists)
-	if (shape.direction != null)
-	{
-		if (shape.direction == 'north')
-		{
-			rotation += 270;
-		}
-		else if (shape.direction == 'west')
-		{
-			rotation += 180;
-		}
-		else if (shape.direction == 'south')
-		{
-			rotation += 90;
-		}
-
-		inverse = (shape.direction == 'north' || shape.direction == 'south');
-	}
-
-	if (flipH && flipV)
-	{
-		rotation += 180;
-		flipH = false;
-		flipV = false;
-	}
-
-	// SVG transform should be applied on all child shapes
-	var svgTransform = '';
-
-	// Implements direction style and vertical/horizontal flip
-	// via container transformation.
-	if (vml)
-	{
-		if (flipH)
-		{
-			parentNode.style.flip = 'x';
-		}
-		else if (flipV)
-		{
-			parentNode.style.flip = 'y';
-		}
-		
-		if (rotation != 0)
-		{
-			parentNode.style.rotation = rotation;
-		}
-	}
-	else
-	{
-		if (flipH || flipV)
-		{
-			var sx = 1;
-			var sy = 1;
-			var dx = 0;
-			var dy = 0;
-			
-			if (flipH)
-			{
-				sx = -1;
-				dx = -bounds.width - 2 * bounds.x;
-			}
-			
-			if (flipV)
-			{
-				sy = -1;
-				dy = -bounds.height - 2 * bounds.y;
-			}
-			
-			svgTransform = 'scale(' + sx + ' ' + sy + ') translate(' + dx + ' ' + dy + ')';
-		}
-		
-		// Adds rotation as a separate transform
-		if (rotation != 0)
-		{
-			var cx = bounds.getCenterX();
-			var cy = bounds.getCenterY();
-			svgTransform += ' rotate(' + rotation + ' ' + cx + ' ' + cy + ')';
-		}
-	}
-
-	var background = (state == null);
-
-	if (this.bgNode != null || this.fgNode != null)
-	{
-		var x0 = (vml && state == null) ? 0 : bounds.x;
-		var y0 = (vml && state == null) ? 0 : bounds.y;
-		var sx = bounds.width / this.w0;
-		var sy = bounds.height / this.h0;
-
-		// Stores current location inside path
-		this.lastMoveX = 0;
-		this.lastMoveY = 0;
-		
-		if (inverse)
-		{
-			sy = bounds.width / this.h0;
-			sx = bounds.height / this.w0;
-			
-			var delta = (bounds.width - bounds.height) / 2;
-			
-			x0 += delta;
-			y0 -= delta;
-		}
-
-		if (this.aspect == 'fixed')
-		{
-			sy = Math.min(sx, sy);
-			sx = sy;
-			
-			// Centers the shape inside the available space
-			if (inverse)
-			{
-				x0 += (bounds.height - this.w0 * sx) / 2;
-				y0 += (bounds.width - this.h0 * sy) / 2;
-			}
-			else
-			{
-				x0 += (bounds.width - this.w0 * sx) / 2;
-				y0 += (bounds.height - this.h0 * sy) / 2;
-			}
-		}
-		
-		// Workaround to improve VML rendering precision.
-		if (vml)
-		{
-			sx *= vmlScale;
-			sy *= vmlScale;
-			x0 *= vmlScale;
-			y0 *= vmlScale;
-		}
-		
-		var minScale = Math.min(sx, sy);
-
-		// Stack of states for save/restore ops
-		var stack = [];
-		
-		var currentState = (state != null) ? state :
-		{
-			fillColorAssigned: false,
-			fill: shape.fill,
-			stroke: shape.stroke,
-			strokeWidth: (this.strokewidth == 'inherit') ?
-				Number(shape.strokewidth) * shape.scale :
-				Number(this.strokewidth) * minScale / ((vml) ? vmlScale : 1),
-			dashed: shape.isDashed,
-			dashpattern: [3, 3],
-			alpha: shape.opacity || 1,
-			linejoin: 'miter',
-			fontColor: '#000000',
-			fontSize: mxConstants.DEFAULT_FONTSIZE,
-			fontFamily: mxConstants.DEFAULT_FONTFAMILY,
-			fontStyle: 0
-		};
-
-		var currentPath = null;
-		var currentPoints = null;
-		
-		var configurePath = function(path, state)
-		{
-			var sw = Math.max(1, state.strokeWidth);
-			
-			if (vml)
-			{
-				path.strokeweight = Math.round(sw) + 'px';
-				
-				if (state.fill != null)
-				{
-					// Gradient in foregrounds not supported because special gradients
-					// with bounds must be created for each element in graphics-canvases
-					var gradient = (!state.fillColorAssigned) ? shape.gradient : null;
-					var fill = document.createElement('v:fill');
-					shape.updateVmlFill(fill, state.fill, gradient, shape.gradientDirection, state.alpha * 100);
-					path.appendChild(fill);
-				}
-				else
-				{
-					path.filled = 'false';
-				}
-				
-				if (state.stroke != null)
-				{
-					path.stroked = 'true';
-					path.strokecolor = state.stroke;
-				}
-				else
-				{
-					path.stroked = 'false';
-				}
-				
-				path.style.position = 'absolute';
-			}
-			else
-			{
-				path.setAttribute('stroke-width', sw);
-				
-				if (state.alpha != 1)
-				{
-					path.setAttribute('opacity', state.alpha);
-				}
-				
-				if (state.fill != null && state.fillColorAssigned)
-				{
-					path.setAttribute('fill', state.fill);
-				}
-				
-				if (state.stroke != null)
-				{
-					path.setAttribute('stroke', state.stroke);
-				}
-			}
-		};
-		
-		var addToPath = function(s)
-		{
-			if (currentPath != null && currentPoints != null)
-			{
-				currentPoints.push(s);
-			}
-		};
-		
-		var round = function(value)
-		{
-			return (vml) ? Math.round(value) : value;
-		};
-
-		// Will be moved to a hook later for example to set text values
-		var renderNode = function(node)
-		{
-			var name = node.nodeName;
-			
-			var fillOp = name == 'fill';
-			var strokeOp = name == 'stroke';
-			var fillStrokeOp = name == 'fillstroke';
-			
-			if (name == 'save')
-			{
-				stack.push(currentState);
-				currentState = mxUtils.clone(currentState);
-			}
-			else if (name == 'restore')
-			{
-				currentState = stack.pop();
-			}
-			else if (name == 'path')
-			{
-				currentPoints = [];
-				
-				if (vml)
-				{
-					currentPath = document.createElement('v:shape');
-					configurePath.call(this, currentPath, currentState);
-					var w = Math.round(bounds.width) * vmlScale;
-					var h = Math.round(bounds.height) * vmlScale;
-					currentPath.style.width = w + 'px';
-					currentPath.style.height = h + 'px';
-					currentPath.coordsize = w + ',' + h;
-				}
-				else
-				{
-					currentPath = document.createElementNS(mxConstants.NS_SVG, 'path');
-					configurePath.call(this, currentPath, currentState);
-					
-					if (svgTransform.length > 0)
-					{
-						currentPath.setAttribute('transform', svgTransform);
-					}
-					
-					if (node.getAttribute('crisp') == '1')
-					{
-						currentPath.setAttribute('shape-rendering', 'crispEdges');
-					}
-				}
-				
-				// Renders the elements inside the given path
-				var childNode = node.firstChild;
-				
-				while (childNode != null)
-				{
-					if (childNode.nodeType == mxConstants.NODETYPE_ELEMENT)
-					{
-						renderNode.call(this, childNode);
-					}
-					
-					childNode = childNode.nextSibling;
-				}
-				
-				// Ends the current path
-				if (vml)
-				{
-					addToPath('e');
-					currentPath.path = currentPoints.join('');
-				}
-				else
-				{
-					currentPath.setAttribute('d', currentPoints.join(''));
-				}
-			}
-			else if (name == 'move')
-			{
-				var op = (vml) ? 'm' : 'M';
-				this.lastMoveX = round(x0 + Number(node.getAttribute('x')) * sx);
-				this.lastMoveY = round(y0 + Number(node.getAttribute('y')) * sy);
-				addToPath(op + ' ' + this.lastMoveX + ' ' + this.lastMoveY);
-			}
-			else if (name == 'line')
-			{
-				var op = (vml) ? 'l' : 'L';
-				this.lastMoveX = round(x0 + Number(node.getAttribute('x')) * sx);
-				this.lastMoveY = round(y0 + Number(node.getAttribute('y')) * sy);
-				addToPath(op + ' ' + this.lastMoveX + ' ' +	this.lastMoveY);
-			}
-			else if (name == 'quad')
-			{
-				if (vml)
-				{
-					var cpx0 = this.lastMoveX;
-					var cpy0 = this.lastMoveY;
-					var qpx1 = x0 + Number(node.getAttribute('x1')) * sx;
-					var qpy1 = y0 + Number(node.getAttribute('y1')) * sy;
-					var cpx3 = x0 + Number(node.getAttribute('x2')) * sx;
-					var cpy3 = y0 + Number(node.getAttribute('y2')) * sy;
-					
-					var cpx1 = cpx0 + 2/3 * (qpx1 - cpx0);
-					var cpy1 = cpy0 + 2/3 * (qpy1 - cpy0);
-					
-					var cpx2 = cpx3 + 2/3 * (qpx1 - cpx3);
-					var cpy2 = cpy3 + 2/3 * (qpy1 - cpy3);
-					
-					addToPath('c ' + Math.round(cpx1) + ' ' + Math.round(cpy1) + ' ' +
-							Math.round(cpx2) + ' ' + Math.round(cpy2) + ' ' +
-							Math.round(cpx3) + ' ' + Math.round(cpy3));
-					
-					this.lastMoveX = cpx3;
-					this.lastMoveY = cpy3;
-				}
-				else
-				{
-					this.lastMoveX = x0 + Number(node.getAttribute('x2')) * sx;
-					this.lastMoveY = y0 + Number(node.getAttribute('y2')) * sy;
-
-					addToPath('Q ' + (x0 + Number(node.getAttribute('x1')) * sx) + ' ' +
-							(y0 + Number(node.getAttribute('y1')) * sy) + ' ' +
-							this.lastMoveX + ' ' + this.lastMoveY);
-				}
-			}
-			else if (name == 'curve')
-			{
-				var op = (vml) ? 'c' : 'C';
-				this.lastMoveX = round(x0 + Number(node.getAttribute('x3')) * sx);
-				this.lastMoveY = round(y0 + Number(node.getAttribute('y3')) * sy);
-
-				addToPath(op + ' ' + round(x0 + Number(node.getAttribute('x1')) * sx) + ' ' +
-						round(y0 + Number(node.getAttribute('y1')) * sy) + ' ' +
-						round(x0 + Number(node.getAttribute('x2')) * sx) + ' ' +
-						round(y0 + Number(node.getAttribute('y2')) * sy) + ' ' +
-						this.lastMoveX + ' ' + this.lastMoveY);
-			}
-			else if (name == 'close')
-			{
-				addToPath((vml) ? 'x' : 'Z');
-			}
-			else if (name == 'rect' || name == 'roundrect')
-			{
-				var rounded = name == 'roundrect';
-				var x = round(x0 + Number(node.getAttribute('x')) * sx);
-				var y = round(y0 + Number(node.getAttribute('y')) * sy);
-				var w = round(Number(node.getAttribute('w')) * sx);
-				var h = round(Number(node.getAttribute('h')) * sy);
-				
-				var arcsize = node.getAttribute('arcsize');
-				
-				if (arcsize == 0)
-				{
-					arcsize = mxConstants.RECTANGLE_ROUNDING_FACTOR * 100;
-				}
-				
-				if (vml)
-				{
-					// LATER: Use HTML for non-rounded, gradientless rectangles
-					currentPath = document.createElement((rounded) ? 'v:roundrect' : 'v:rect');
-					currentPath.style.left = x + 'px';
-					currentPath.style.top = y + 'px';
-					currentPath.style.width = w + 'px';
-					currentPath.style.height = h + 'px';
-					
-					if (rounded)
-					{
-						currentPath.setAttribute('arcsize', String(arcsize) + '%');
-					}
-				}
-				else
-				{
-					currentPath = document.createElementNS(mxConstants.NS_SVG, 'rect');
-					currentPath.setAttribute('x', x);
-					currentPath.setAttribute('y', y);
-					currentPath.setAttribute('width', w);
-					currentPath.setAttribute('height', h);
-					
-					if (rounded)
-					{
-						var factor = Number(arcsize) / 100;
-						var r = Math.min(w * factor, h * factor);
-						currentPath.setAttribute('rx', r);
-						currentPath.setAttribute('ry', r);
-					}
-					
-					if (svgTransform.length > 0)
-					{
-						currentPath.setAttribute('transform', svgTransform);
-					}
-					
-					if (node.getAttribute('crisp') == '1')
-					{
-						currentPath.setAttribute('shape-rendering', 'crispEdges');
-					}
-				}
-				
-				configurePath.call(this, currentPath, currentState);
-			}
-			else if (name == 'ellipse')
-			{
-				var x = round(x0 + Number(node.getAttribute('x')) * sx);
-				var y = round(y0 + Number(node.getAttribute('y')) * sy);
-				var w = round(Number(node.getAttribute('w')) * sx);
-				var h = round(Number(node.getAttribute('h')) * sy);
-				
-				if (vml)
-				{
-					currentPath = document.createElement('v:arc');
-					currentPath.startangle = '0';
-					currentPath.endangle = '360';
-					currentPath.style.left = x + 'px';
-					currentPath.style.top = y + 'px';
-					currentPath.style.width = w + 'px';
-					currentPath.style.height = h + 'px';
-				}
-				else
-				{
-					currentPath = document.createElementNS(mxConstants.NS_SVG, 'ellipse');
-					currentPath.setAttribute('cx', x + w / 2);
-					currentPath.setAttribute('cy', y + h / 2);
-					currentPath.setAttribute('rx', w / 2);
-					currentPath.setAttribute('ry', h / 2);
-					
-					if (svgTransform.length > 0)
-					{
-						currentPath.setAttribute('transform', svgTransform);
-					}
-				}
-				
-				configurePath.call(this, currentPath, currentState);
-			}
-			else if (name == 'arc')
-			{
-				var r1 = Number(node.getAttribute('rx')) * sx;
-				var r2 = Number(node.getAttribute('ry')) * sy;
-				var angle = Number(node.getAttribute('x-axis-rotation'));
-				var largeArcFlag = Number(node.getAttribute('large-arc-flag'));
-				var sweepFlag = Number(node.getAttribute('sweep-flag'));
-				var x = x0 + Number(node.getAttribute('x')) * sx;
-				var y = y0 + Number(node.getAttribute('y')) * sy;
-				
-				if (vml)
-				{
-					var curves = mxUtils.arcToCurves(this.lastMoveX, this.lastMoveY, r1, r2, angle, largeArcFlag, sweepFlag, x, y);
-					
-		            for (var i = 0; i < curves.length; i += 6) 
-		            {
-                        addToPath('c' + ' ' + Math.round(curves[i]) + ' ' + Math.round(curves[i + 1]) + ' ' +
-								Math.round(curves[i + 2]) + ' ' + Math.round(curves[i + 3]) + ' ' +
-								Math.round(curves[i + 4]) + ' ' + Math.round(curves[i + 5]));
-		                
-						this.lastMoveX = curves[i + 4];
-						this.lastMoveY = curves[i + 5]; 
-		            }
-				}
-				else
-				{
-					addToPath('A ' + r1 + ',' + r2 + ' ' + angle + ' ' + largeArcFlag + ',' + sweepFlag + ' ' + x + ',' + y);
-					this.lastMoveX = x0 + x;
-					this.lastMoveY = y0 + y;
-				}
-			}
-			else if (name == 'image')
-			{
-				var src = this.evaluateAttribute(node, 'src', shape.state);
-
-				if (src != null)
-				{
-					var x = round(x0 + Number(node.getAttribute('x')) * sx);
-					var y = round(y0 + Number(node.getAttribute('y')) * sy);
-					var w = round(Number(node.getAttribute('w')) * sx);
-					var h = round(Number(node.getAttribute('h')) * sy);
-					
-					// TODO: _Not_ providing an aspect in the shapes format has the advantage
-					// of not needing a callback to adjust the image in VML. Since the shape
-					// developer can specify the aspect via width and height this should OK.
-					//var aspect = node.getAttribute('aspect') != '0';
-					var aspect = false;
-					var flipH = node.getAttribute('flipH') == '1';
-					var flipV = node.getAttribute('flipV') == '1';
-					
-					if (vml)
-					{
-						currentPath = document.createElement('v:image');
-						currentPath.style.filter = 'alpha(opacity=' + currentState.alpha + ')';
-						currentPath.style.left = x + 'px';
-						currentPath.style.top = y + 'px';
-						currentPath.style.width = w + 'px';
-						currentPath.style.height = h + 'px';
-						currentPath.src = src;
-						
-						if (flipH && flipV)
-						{
-							currentPath.style.rotation = '180';
-						}
-						else if (flipH)
-						{
-							currentPath.style.flip = 'x';
-						}
-						else if (flipV)
-						{
-							currentPath.style.flip = 'y';
-						}
-					}
-					else
-					{
-						currentPath = document.createElementNS(mxConstants.NS_SVG, 'image');
-						currentPath.setAttributeNS(mxConstants.NS_XLINK, 'xlink:href', src);
-						currentPath.setAttribute('opacity', currentState.alpha / 100);
-						currentPath.setAttribute('x', x);
-						currentPath.setAttribute('y', y);
-						currentPath.setAttribute('width', w);
-						currentPath.setAttribute('height', h);
-	
-						if (!aspect)
-						{
-							currentPath.setAttribute('preserveAspectRatio', 'none');
-						}
-						
-						if (flipH || flipV)
-						{
-							var scx = 1;
-							var scy = 1;
-							var dx = 0;
-							var dy = 0;
-							
-							if (flipH)
-							{
-								scx = -1;
-								dx = -w - 2 * x;
-							}
-							
-							if (flipV)
-							{
-								scy = -1;
-								dy = -h - 2 * y;
-							}
-							
-							currentPath.setAttribute('transform', svgTransform + 'scale(' + scx + ' ' + scy + ')' +
-									' translate('+dx+' '+dy+') ');
-						}
-						else
-						{
-							currentPath.setAttribute('transform', svgTransform);
-						}
-					}
-					
-					parentNode.appendChild(currentPath);
-				}
-			}
-			else if (name == 'include-shape')
-			{
-				var stencil = mxStencilRegistry.getStencil(node.getAttribute('name'));
-				
-				if (stencil != null)
-				{
-					var x = x0 + Number(node.getAttribute('x')) * sx;
-					var y = y0 + Number(node.getAttribute('y')) * sy;
-					var w = Number(node.getAttribute('w')) * sx;
-					var h = Number(node.getAttribute('h')) * sy;
-					
-					stencil.renderDom(shape, new mxRectangle(x, y, w, h), parentNode, currentState);
-				}
-			}
-			// Additional labels are currently disabled. Needs fixing of VML
-			// text positon, SVG text rotation and ignored baseline in FF
-			else if (name == 'text')
-			{
-				var str = this.evaluateTextAttribute(node, 'str', shape.state);
-
-				if (str != null)
-				{
-					var x = round(x0 + Number(node.getAttribute('x')) * sx);
-					var y = round(y0 + Number(node.getAttribute('y')) * sy);
-					var align = node.getAttribute('align') || 'left';
-					var valign = node.getAttribute('valign') || 'top';
-					
-					if (vml)
-					{
-						// Renders a single line of text with full rotation support
-						currentPath = document.createElement('v:shape');
-						currentPath.style.position = 'absolute';
-						currentPath.style.width = '1px';
-						currentPath.style.height = '1px';
-						currentPath.style.left = x + 'px';
-						currentPath.style.top = y + 'px';
-						
-						var fill = document.createElement('v:fill');
-						fill.color = currentState.fontColor;
-						fill.on = 'true';
-						currentPath.appendChild(fill);
-						
-						var stroke = document.createElement('v:stroke');
-						stroke.on = 'false';
-						currentPath.appendChild(stroke);
-						
-						var path = document.createElement('v:path');
-						path.textpathok = 'true';
-						path.v = 'm ' + x + ' ' + y + ' l ' + (x + 1) + ' ' + y;
-						
-						currentPath.appendChild(path);
-						
-						var tp = document.createElement('v:textpath');
-						tp.style.cssText = 'v-text-align:' + align;
-						tp.style.fontSize = Math.round(currentState.fontSize / vmlScale) + 'px';
-						
-						// FIXME: Font-family seems to be ignored for textpath
-						tp.style.fontFamily = currentState.fontFamily;
-						tp.string = str;
-						tp.on = 'true';
-						
-						// Bold
-						if ((currentState.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
-						{
-							tp.style.fontWeight = 'bold';
-						}
-						
-						// Italic
-						if ((currentState.fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
-						{
-							tp.style.fontStyle = 'italic';
-						}
-
-						// FIXME: Text decoration not supported in textpath
-						if ((currentState.fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
-						{
-							tp.style.textDecoration = 'underline';
-						}
-						
-						// LATER: Find vertical center for div via CSS if possible
-						if (valign == 'top')
-						{
-							currentPath.style.top = (y + currentState.fontSize / 2) + 'px';
-						}
-						else if (valign == 'bottom')
-						{
-							currentPath.style.top = (y - currentState.fontSize / 3) + 'px';
-						}
-						
-						currentPath.appendChild(tp);
-					}
-					else
-					{
-						currentPath = document.createElementNS(mxConstants.NS_SVG, 'text');
-						currentPath.setAttribute('fill', currentState.fontColor);
-						currentPath.setAttribute('font-family', currentState.fontFamily);
-						currentPath.setAttribute('font-size', currentState.fontSize);
-						currentPath.setAttribute('stroke', 'none');
-						currentPath.setAttribute('x', x);
-						currentPath.appendChild(document.createTextNode(str));
-						
-						// Bold
-						if ((currentState.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
-						{
-							currentPath.setAttribute('font-weight', 'bold');
-						}
-						
-						// Italic
-						if ((currentState.fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
-						{
-							currentPath.setAttribute('font-style', 'italic');
-						}
-
-						// Underline
-						if ((currentState.fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
-						{
-							currentPath.setAttribute('text-decoration', uline);
-						}
-
-						// Horizontal alignment
-						if (align == 'left')
-						{
-							align = 'start';
-						}
-						else if (align == 'center')
-						{
-							align = 'middle';
-						}
-						else if (align == 'right')
-						{
-							align = 'end';
-						}
-
-						currentPath.setAttribute('text-anchor', align);
-
-						// Vertical alignment
-						// Uses dy because FF ignores alignment-baseline
-						if (valign == 'top')
-						{
-							currentPath.setAttribute('y', y + currentState.fontSize / 5);
-							currentPath.setAttribute('dy', '1ex');
-						}
-						else if (valign == 'middle')
-						{
-							currentPath.setAttribute('y', y + currentState.fontSize / 8);
-							currentPath.setAttribute('dy', '0.5ex');
-						}
-						else
-						{
-							currentPath.setAttribute('y', y);
-						}
-
-						if (svgTransform.length > 0)
-						{
-							currentPath.setAttribute('transform', svgTransform);
-						}
-					}
-
-					parentNode.appendChild(currentPath);
-				}
-			}
-			else if (fillOp || strokeOp || fillStrokeOp)
-			{
-				if (currentPath != null)
-				{
-					var pattern = null;
-					
-					if (currentState.dashed)
-					{
-						var f = (vml) ? minScale : Number(currentPath.getAttribute('stroke-width'));
-						var pat = [];
-						
-						for (var i = 0; i < currentState.dashpattern.length; i++)
-						{
-							pat.push(Math.max(1, Math.round(Number(currentState.dashpattern[i]) * f)));
-						}
-						
-						pattern = pat.join(' ');
-					}
-					
-					if (strokeOp || fillStrokeOp)
-					{
-						if (vml)
-						{
-							var stroke = document.createElement('v:stroke');
-							stroke.endcap = currentState.linecap || 'flat';
-							stroke.joinstyle = currentState.linejoin || 'miter';
-							stroke.miterlimit = currentState.miterlimit || '10';
-							currentPath.appendChild(stroke);
-							
-							// TODO: Dashpattern support in VML is limited, we should
-							// map this to VML or allow for a separate VML dashstyle.
-							if (pattern != null)
-							{
-								stroke.dashstyle = pattern;
-							}
-						}
-						else
-						{
-							if (currentState.linejoin != null)
-							{
-								currentPath.setAttribute('stroke-linejoin', currentState.linejoin);
-							}
-							
-							if (currentState.linecap != null)
-							{
-								// flat is called butt in SVG
-								var value = currentState.linecap;
-								
-								if (value == 'flat')
-								{
-									value = 'butt';
-								}
-								
-								currentPath.setAttribute('stroke-linecap', value);
-							}
-							
-							if (currentState.miterlimit != null)
-							{
-								currentPath.setAttribute('stroke-miterlimit', currentState.miterlimit);
-							}
-
-							// Handles dash pattern
-							if (pattern != null)
-							{
-								currentPath.setAttribute('stroke-dasharray', pattern);
-							}
-						}
-					}
-					
-					// Adds the shadow
-					if (background && shape.isShadow)
-					{
-						var dx = mxConstants.SHADOW_OFFSET_X * shape.scale;
-						var dy = mxConstants.SHADOW_OFFSET_Y * shape.scale;
-						
-						// Adds the shadow
-						if (vml)
-						{
-							var shadow = document.createElement('v:shadow');
-							shadow.setAttribute('on', 'true');
-							shadow.setAttribute('color', mxConstants.SHADOWCOLOR);
-							shadow.setAttribute('offset', Math.round(dx) + 'px,' + Math.round(dy) + 'px');
-							shadow.setAttribute('opacity', (mxConstants.SHADOW_OPACITY * 100) + '%');
-							
-							var stroke = document.createElement('v:stroke');
-							stroke.endcap = currentState.linecap || 'flat';
-							stroke.joinstyle = currentState.linejoin || 'miter';
-							stroke.miterlimit = currentState.miterlimit || '10';
-							
-							if (pattern != null)
-							{
-								stroke.dashstyle = pattern;
-							}
-							
-							shadow.appendChild(stroke);
-							currentPath.appendChild(shadow);
-						}
-						else
-						{
-							var shadow = currentPath.cloneNode(true);
-							shadow.setAttribute('stroke', mxConstants.SHADOWCOLOR);
-							
-							if (currentState.fill != null && (fillOp || fillStrokeOp))
-							{
-								shadow.setAttribute('fill', mxConstants.SHADOWCOLOR);
-							}
-							else
-							{
-								shadow.setAttribute('fill', 'none');
-							}
-							
-							shadow.setAttribute('transform', 'translate(' + dx + ' ' + dy + ') ' +
-									(shadow.getAttribute('transform') || ''));
-							shadow.setAttribute('opacity', mxConstants.SHADOW_OPACITY);
-							parentNode.appendChild(shadow);
-						}
-					}
-
-					if (fillOp)
-					{
-						if (vml)
-						{
-							currentPath.stroked = 'false';
-						}
-						else
-						{
-							currentPath.setAttribute('stroke', 'none');
-						}
-					}
-					else if (strokeOp)
-					{
-						if (vml)
-						{
-							currentPath.filled = 'false';
-						}
-						else
-						{
-							currentPath.setAttribute('fill', 'none');
-						}
-					}
-					
-					parentNode.appendChild(currentPath);
-				}
-				
-				// Background was painted
-				if (background)
-				{
-					background = false;
-				}
-			}
-			else if (name == 'linecap')
-			{
-				currentState.linecap = node.getAttribute('cap');
-			}
-			else if (name == 'linejoin')
-			{
-				currentState.linejoin = node.getAttribute('join');
-			}
-			else if (name == 'miterlimit')
-			{
-				currentState.miterlimit = node.getAttribute('limit');
-			}
-			else if (name == 'dashed')
-			{
-				currentState.dashed = node.getAttribute('dashed') == '1';
-			}
-			else if (name == 'dashpattern')
-			{
-				var value = node.getAttribute('pattern');
-				
-				if (value != null && value.length > 0)
-				{
-					currentState.dashpattern = value.split(' ');
-				}
-			}
-			else if (name == 'strokewidth')
-			{
-				currentState.strokeWidth = node.getAttribute('width') * minScale;
-				
-				if (vml)
-				{
-					currentState.strokeWidth /= vmlScale;
-				}
-			}
-			else if (name == 'strokecolor')
-			{
-				currentState.stroke = node.getAttribute('color');
-			}
-			else if (name == 'fillcolor')
-			{
-				currentState.fill = node.getAttribute('color');
-				currentState.fillColorAssigned = true;
-			}
-			else if (name == 'alpha')
-			{
-				currentState.alpha = Number(node.getAttribute('alpha'));
-			}
-			else if (name == 'fontcolor')
-			{
-				currentState.fontColor = node.getAttribute('color');
-			}
-			else if (name == 'fontsize')
-			{
-				currentState.fontSize = Number(node.getAttribute('size')) * minScale;
-			}
-			else if (name == 'fontfamily')
-			{
-				currentState.fontFamily = node.getAttribute('family');
-			}
-			else if (name == 'fontstyle')
-			{
-				currentState.fontStyle = Number(node.getAttribute('style'));
-			}
-		};
-
-		// Adds a transparent rectangle in the background for hit-detection in SVG
-		if (!vml)
-		{
-			var rect = document.createElementNS(mxConstants.NS_SVG, 'rect');
-			rect.setAttribute('x', bounds.x);
-			rect.setAttribute('y', bounds.y);
-			rect.setAttribute('width', bounds.width);
-			rect.setAttribute('height', bounds.height);
-			rect.setAttribute('fill', 'none');
-			rect.setAttribute('stroke', 'none');
-			parentNode.appendChild(rect);
-		}
-		
-		// Background switches to false after fill/stroke of the background
-		if (this.bgNode != null)
-		{
-			var tmp = this.bgNode.firstChild;
-			
-			while (tmp != null)
-			{
-				if (tmp.nodeType == mxConstants.NODETYPE_ELEMENT)
-				{
-					renderNode.call(this, tmp);
-				}
-				
-				tmp = tmp.nextSibling;
-			}
-		}
-		else
-		{
-			background = false;
-		}
-		
-		if (this.fgNode != null)
-		{
-			var tmp = this.fgNode.firstChild;
-			
-			while (tmp != null)
-			{
-				if (tmp.nodeType == mxConstants.NODETYPE_ELEMENT)
-				{
-					renderNode.call(this, tmp);
-				}
-				
-				tmp = tmp.nextSibling;
-			}
-		}
-	}
+	// TODO: Internal structure (array of special structs?), relative and absolute
+	// coordinates (eg. note shape, process vs star, actor etc.), text rendering
+	// and non-proportional scaling, how to implement pluggable edge shapes
+	// (start, segment, end blocks), pluggable markers, how to implement
+	// swimlanes (title area) with this API, add icon, horizontal/vertical
+	// label, indicator for all shapes, rotation
+	this.drawChildren(canvas, shape, x, y, w, h, this.bgNode, false);
+	this.drawChildren(canvas, shape, x, y, w, h, this.fgNode, true);
 };
 
 /**
@@ -22755,27 +20661,16 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
  *
  * Draws this stencil inside the given bounds.
  */
-mxStencil.prototype.drawShape = function(canvas, state, bounds, background)
+mxStencil.prototype.drawChildren = function(canvas, shape, x, y, w, h, node, disableShadow)
 {
-	// TODO: Unify with renderDom, check performance of pluggable shape,
-	// internal structure (array of special structs?), relative and absolute
-	// coordinates (eg. note shape, process vs star, actor etc.), text rendering
-	// and non-proportional scaling, how to implement pluggable edge shapes
-	// (start, segment, end blocks), pluggable markers, how to implement
-	// swimlanes (title area) with this API, add icon, horizontal/vertical
-	// label, indicator for all shapes, rotation
-	var node = (background) ? this.bgNode : this.fgNode;
-	
 	if (node != null)
 	{
-		var direction = mxUtils.getValue(state.style, mxConstants.STYLE_DIRECTION, null);
-		var aspect = this.computeAspect(state, bounds, direction);
+		var direction = mxUtils.getValue(shape.style, mxConstants.STYLE_DIRECTION, null);
+		var aspect = this.computeAspect(shape.style, x, y, w, h, direction);
 		var minScale = Math.min(aspect.width, aspect.height);
 		var sw = (this.strokewidth == 'inherit') ?
-				Number(mxUtils.getNumber(state.style, mxConstants.STYLE_STROKEWIDTH, 1)) * state.view.scale :
+				Number(mxUtils.getNumber(shape.style, mxConstants.STYLE_STROKEWIDTH, 1)) :
 				Number(this.strokewidth) * minScale;
-		this.lastMoveX = 0;
-		this.lastMoveY = 0;
 		canvas.setStrokeWidth(sw);
 
 		var tmp = node.firstChild;
@@ -22784,16 +20679,12 @@ mxStencil.prototype.drawShape = function(canvas, state, bounds, background)
 		{
 			if (tmp.nodeType == mxConstants.NODETYPE_ELEMENT)
 			{
-				this.drawNode(canvas, state, tmp, aspect);
+				this.drawNode(canvas, shape, tmp, aspect, disableShadow);
 			}
 			
 			tmp = tmp.nextSibling;
 		}
-		
-		return true;
 	}
-	
-	return false;
 };
 
 /**
@@ -22805,25 +20696,25 @@ mxStencil.prototype.drawShape = function(canvas, state, bounds, background)
  * 
  * Parameters:
  * 
- * state - <mxCellState> for which the shape should be drawn.
+ * shape - <mxShape> to be drawn.
  * bounds - <mxRectangle> that should contain the stencil.
  * direction - Optional direction of the shape to be darwn.
  */
-mxStencil.prototype.computeAspect = function(state, bounds, direction)
+mxStencil.prototype.computeAspect = function(shape, x, y, w, h, direction)
 {
-	var x0 = bounds.x;
-	var y0 = bounds.y;
-	var sx = bounds.width / this.w0;
-	var sy = bounds.height / this.h0;
+	var x0 = x;
+	var y0 = y;
+	var sx = w / this.w0;
+	var sy = h / this.h0;
 	
 	var inverse = (direction == 'north' || direction == 'south');
 
 	if (inverse)
 	{
-		sy = bounds.width / this.h0;
-		sx = bounds.height / this.w0;
+		sy = w / this.h0;
+		sx = h / this.w0;
 		
-		var delta = (bounds.width - bounds.height) / 2;
+		var delta = (w - h) / 2;
 
 		x0 += delta;
 		y0 -= delta;
@@ -22837,13 +20728,13 @@ mxStencil.prototype.computeAspect = function(state, bounds, direction)
 		// Centers the shape inside the available space
 		if (inverse)
 		{
-			x0 += (bounds.height - this.w0 * sx) / 2;
-			y0 += (bounds.width - this.h0 * sy) / 2;
+			x0 += (h - this.w0 * sx) / 2;
+			y0 += (w - this.h0 * sy) / 2;
 		}
 		else
 		{
-			x0 += (bounds.width - this.w0 * sx) / 2;
-			y0 += (bounds.height - this.h0 * sy) / 2;
+			x0 += (w - this.w0 * sx) / 2;
+			y0 += (h - this.h0 * sy) / 2;
 		}
 	}
 
@@ -22855,7 +20746,7 @@ mxStencil.prototype.computeAspect = function(state, bounds, direction)
  *
  * Draws this stencil inside the given bounds.
  */
-mxStencil.prototype.drawNode = function(canvas, state, node, aspect)
+mxStencil.prototype.drawNode = function(canvas, shape, node, aspect, disableShadow)
 {
 	var name = node.nodeName;
 	var x0 = aspect.x;
@@ -22864,7 +20755,6 @@ mxStencil.prototype.drawNode = function(canvas, state, node, aspect)
 	var sy = aspect.height;
 	var minScale = Math.min(sx, sy);
 
-	// LATER: Move to lookup table
 	if (name == 'save')
 	{
 		canvas.save();
@@ -22884,7 +20774,7 @@ mxStencil.prototype.drawNode = function(canvas, state, node, aspect)
 		{
 			if (childNode.nodeType == mxConstants.NODETYPE_ELEMENT)
 			{
-				this.drawNode(canvas, state, childNode, aspect);
+				this.drawNode(canvas, shape, childNode, aspect, disableShadow);
 			}
 			
 			childNode = childNode.nextSibling;
@@ -22896,55 +20786,37 @@ mxStencil.prototype.drawNode = function(canvas, state, node, aspect)
 	}
 	else if (name == 'move')
 	{
-		this.lastMoveX = x0 + Number(node.getAttribute('x')) * sx;
-		this.lastMoveY = y0 + Number(node.getAttribute('y')) * sy;
-		canvas.moveTo(this.lastMoveX, this.lastMoveY);
+		canvas.moveTo(x0 + Number(node.getAttribute('x')) * sx, y0 + Number(node.getAttribute('y')) * sy);
 	}
 	else if (name == 'line')
 	{
-		this.lastMoveX = x0 + Number(node.getAttribute('x')) * sx;
-		this.lastMoveY = y0 + Number(node.getAttribute('y')) * sy;
-		canvas.lineTo(this.lastMoveX, this.lastMoveY);
+		canvas.lineTo(x0 + Number(node.getAttribute('x')) * sx, y0 + Number(node.getAttribute('y')) * sy);
 	}
 	else if (name == 'quad')
 	{
-		this.lastMoveX = x0 + Number(node.getAttribute('x2')) * sx;
-		this.lastMoveY = y0 + Number(node.getAttribute('y2')) * sy;
 		canvas.quadTo(x0 + Number(node.getAttribute('x1')) * sx,
 				y0 + Number(node.getAttribute('y1')) * sy,
-				this.lastMoveX, this.lastMoveY);
+				x0 + Number(node.getAttribute('x2')) * sx,
+				y0 + Number(node.getAttribute('y2')) * sy);
 	}
 	else if (name == 'curve')
 	{
-		this.lastMoveX = x0 + Number(node.getAttribute('x3')) * sx;
-		this.lastMoveY = y0 + Number(node.getAttribute('y3')) * sy;
 		canvas.curveTo(x0 + Number(node.getAttribute('x1')) * sx,
 				y0 + Number(node.getAttribute('y1')) * sy,
 				x0 + Number(node.getAttribute('x2')) * sx,
 				y0 + Number(node.getAttribute('y2')) * sy,
-				this.lastMoveX, this.lastMoveY);
+				x0 + Number(node.getAttribute('x3')) * sx,
+				y0 + Number(node.getAttribute('y3')) * sy);
 	}
 	else if (name == 'arc')
 	{
-		// Arc from stencil is turned into curves in image output
-		var r1 = Number(node.getAttribute('rx')) * sx;
-		var r2 = Number(node.getAttribute('ry')) * sy;
-		var angle = Number(node.getAttribute('x-axis-rotation'));
-		var largeArcFlag = Number(node.getAttribute('large-arc-flag'));
-		var sweepFlag = Number(node.getAttribute('sweep-flag'));
-		var x = x0 + Number(node.getAttribute('x')) * sx;
-		var y = y0 + Number(node.getAttribute('y')) * sy;
-		
-		var curves = mxUtils.arcToCurves(this.lastMoveX, this.lastMoveY, r1, r2, angle, largeArcFlag, sweepFlag, x, y);
-		
-        for (var i = 0; i < curves.length; i += 6) 
-        {
-        	canvas.curveTo(curves[i], curves[i + 1], curves[i + 2],
-        		curves[i + 3], curves[i + 4], curves[i + 5]);
-            
-			this.lastMoveX = curves[i + 4];
-			this.lastMoveY = curves[i + 5]; 
-        }
+		canvas.arcTo(Number(node.getAttribute('rx')) * sx,
+				Number(node.getAttribute('ry')) * sy,
+				Number(node.getAttribute('x-axis-rotation')),
+				Number(node.getAttribute('large-arc-flag')),
+				Number(node.getAttribute('sweep-flag')),
+				x0 + Number(node.getAttribute('x')) * sx,
+				y0 + Number(node.getAttribute('y')) * sy);
 	}
 	else if (name == 'rect')
 	{
@@ -22980,7 +20852,7 @@ mxStencil.prototype.drawNode = function(canvas, state, node, aspect)
 	}
 	else if (name == 'image')
 	{
-		var src = this.evaluateAttribute(node, 'src', state);
+		var src = this.evaluateAttribute(node, 'src', shape);
 		
 		canvas.image(x0 + Number(node.getAttribute('x')) * sx,
 			y0 + Number(node.getAttribute('y')) * sy,
@@ -22991,13 +20863,38 @@ mxStencil.prototype.drawNode = function(canvas, state, node, aspect)
 	}
 	else if (name == 'text')
 	{
-		var str = this.evaluateTextAttribute(node, 'str', state);
+		var str = this.evaluateTextAttribute(node, 'str', shape);
+		var rotation = node.getAttribute('vertical') == '1' ? -90 : 0;
 		
+		if (node.getAttribute('align-shape') == '0')
+		{
+			var dr = shape.rotation;
+
+			// Depends on flipping
+			var flipH = mxUtils.getValue(shape.style, mxConstants.STYLE_FLIPH, 0) == 1;
+			var flipV = mxUtils.getValue(shape.style, mxConstants.STYLE_FLIPV, 0) == 1;
+			
+			if (flipH && flipV)
+			{
+				rotation -= dr;
+			}
+			else if (flipH || flipV)
+			{
+				rotation += dr;
+			}
+			else
+			{
+				rotation -= dr;
+			}
+		}
+
+		rotation -= node.getAttribute('rotation');
+
 		canvas.text(x0 + Number(node.getAttribute('x')) * sx,
 				y0 + Number(node.getAttribute('y')) * sy,
-				0, 0, str, node.getAttribute('align'),
-				node.getAttribute('valign'),
-				node.getAttribute('vertical'));
+				0, 0, str, node.getAttribute('align') || 'left',
+				node.getAttribute('valign') || 'top', false, '',
+				false, false, rotation);
 	}
 	else if (name == 'include-shape')
 	{
@@ -23010,9 +20907,7 @@ mxStencil.prototype.drawNode = function(canvas, state, node, aspect)
 			var w = Number(node.getAttribute('w')) * sx;
 			var h = Number(node.getAttribute('h')) * sy;
 			
-			var tmp = new mxRectangle(x, y, w, h);
-			stencil.drawShape(canvas, state, tmp, true);
-			stencil.drawShape(canvas, state, tmp, false);
+			stencil.drawShape(canvas, shape, x, y, w, h);
 		}
 	}
 	else if (name == 'fillstroke')
@@ -23029,7 +20924,8 @@ mxStencil.prototype.drawNode = function(canvas, state, node, aspect)
 	}
 	else if (name == 'strokewidth')
 	{
-		canvas.setStrokeWidth(Number(node.getAttribute('width')) * minScale);
+		var s = (node.getAttribute('fixed') == '1') ? 1 : minScale;
+		canvas.setStrokeWidth(Number(node.getAttribute('width')) * s);
 	}
 	else if (name == 'dashed')
 	{
@@ -23096,9 +20992,1114 @@ mxStencil.prototype.drawNode = function(canvas, state, node, aspect)
 	{
 		canvas.setFontSize(Number(node.getAttribute('size')) * minScale);
 	}
+	
+	if (disableShadow && (name == 'fillstroke' || name == 'fill' || name == 'stroke'))
+	{
+		disableShadow = false;
+		canvas.setShadow(false);
+	}
 };
 /**
- * $Id: mxStencilRegistry.js,v 1.2 2011/07/15 12:57:50 gaudenz Exp $
+aaa * $Id: mxShape.js,v 1.38 2013/02/01 13:54:05 gaudenz Exp $
+ * Copyright (c) 2006-2010, JGraph Ltd
+ */
+/**
+ * Class: mxShape
+ *
+ * Base class for all shapes. A shape in mxGraph is a
+ * separate implementation for SVG, VML and HTML. Which
+ * implementation to use is controlled by the <dialect>
+ * property which is assigned from within the <mxCellRenderer>
+ * when the shape is created. The dialect must be assigned
+ * for a shape, and it does normally depend on the browser and
+ * the confiuration of the graph (see <mxGraph> rendering hint).
+ *
+ * For each supported shape in SVG and VML, a corresponding
+ * shape exists in mxGraph, namely for text, image, rectangle,
+ * rhombus, ellipse and polyline. The other shapes are a
+ * combination of these shapes (eg. label and swimlane)
+ * or they consist of one or more (filled) path objects
+ * (eg. actor and cylinder). The HTML implementation is
+ * optional but may be required for a HTML-only view of
+ * the graph.
+ *
+ * Custom Shapes:
+ *
+ * To extend from this class, the basic code looks as follows.
+ * In the special case where the custom shape consists only of
+ * one filled region or one filled region and an additional stroke
+ * the <mxActor> and <mxCylinder> should be subclassed,
+ * respectively.
+ *
+ * (code)
+ * function CustomShape() { }
+ * 
+ * CustomShape.prototype = new mxShape();
+ * CustomShape.prototype.constructor = CustomShape; 
+ * (end)
+ *
+ * To register a custom shape in an existing graph instance,
+ * one must register the shape under a new name in the graph's
+ * cell renderer as follows:
+ *
+ * (code)
+ * mxCellRenderer.registerShape('customShape', CustomShape);
+ * (end)
+ *
+ * The second argument is the name of the constructor.
+ *
+ * In order to use the shape you can refer to the given name above
+ * in a stylesheet. For example, to change the shape for the default
+ * vertex style, the following code is used:
+ *
+ * (code)
+ * var style = graph.getStylesheet().getDefaultVertexStyle();
+ * style[mxConstants.STYLE_SHAPE] = 'customShape';
+ * (end)
+ * 
+ * Constructor: mxShape
+ *
+ * Constructs a new shape.
+ */
+function mxShape(stencil)
+{
+	this.stencil = stencil;
+	
+	// Sets some defaults
+	this.strokewidth = 1;
+	this.rotation = 0;
+	this.opacity = 100;
+	this.flipH = false;
+	this.flipV = false;
+};
+
+/**
+ * Variable: dialect
+ *
+ * Holds the dialect in which the shape is to be painted.
+ * This can be one of the DIALECT constants in <mxConstants>.
+ */
+mxShape.prototype.dialect = null;
+
+/**
+ * Variable: scale
+ *
+ * Holds the scale in which the shape is being painted.
+ */
+mxShape.prototype.scale = 1;
+
+/**
+ * Variable: bounds
+ *
+ * Holds the <mxRectangle> that specifies the bounds of this shape.
+ */
+mxShape.prototype.bounds = null;
+
+/**
+ * Variable: points
+ *
+ * Holds the array of <mxPoints> that specify the points of this shape.
+ */
+mxShape.prototype.points = null;
+
+/**
+ * Variable: node
+ *
+ * Holds the outermost DOM node that represents this shape.
+ */
+mxShape.prototype.node = null;
+
+/**
+ * Variable: state
+ * 
+ * Optional reference to the corresponding <mxCellState>.
+ */
+mxShape.prototype.style = null;
+
+/**
+ * Variable: style
+ *
+ * Optional reference to the style of the corresponding <mxCellState>.
+ */
+mxShape.prototype.style = null;
+
+/**
+ * Variable: boundingBox
+ *
+ * Contains the bounding box of the shape, that is, the smallest rectangle
+ * that includes all pixels of the shape.
+ */
+mxShape.prototype.boundingBox = null;
+
+/**
+ * Variable: stencil
+ *
+ * Holds the <mxStencil> that defines the shape.
+ */
+mxShape.prototype.stencil = null;
+
+/**
+ * Variable: svgStrokeTolerance
+ *
+ * Event-tolerance for SVG strokes (in px). Default is 6.
+ */
+mxShape.prototype.svgStrokeTolerance = 6;
+
+/**
+ * Variable: pointerEvents
+ * 
+ * Specifies if pointer events should be handled. Default is true.
+ */
+mxShape.prototype.pointerEvents = true;
+
+/**
+ * Variable: stencilPointerEvents
+ * 
+ * Specifies if pointer events outside of stencils should be handled. Default
+ * is false. Set this to true for backwards compatibility with the 1.x branch.
+ */
+mxShape.prototype.stencilPointerEvents = false;
+
+/**
+ * Variable: vmlScale
+ * 
+ * Scale for improving the precision of VML rendering. Default is 1.
+ */
+mxShape.prototype.vmlScale = 1;
+
+/**
+ * Function: init
+ *
+ * Initializes the shape by creaing the DOM node using <create>
+ * and adding it into the given container.
+ *
+ * Parameters:
+ *
+ * container - DOM node that will contain the shape.
+ */
+mxShape.prototype.init = function(container)
+{
+	if (this.node == null)
+	{
+		this.node = this.create(container);
+		
+		if (container != null)
+		{
+			container.appendChild(this.node);
+		}
+	}
+};
+
+/**
+ * Function: isParseVml
+ * 
+ * Specifies if any VML should be added via insertAdjacentHtml to the DOM. This
+ * is only needed in IE8 and only if the shape contains VML markup. This method
+ * returns true.
+ */
+mxShape.prototype.isParseVml = function()
+{
+	return true;
+};
+
+/**
+ * Function: isHtmlAllowed
+ * 
+ * Returns true if HTML is allowed for this shape. This implementation always
+ * returns false.
+ */
+mxShape.prototype.isHtmlAllowed = function()
+{
+	return false;
+};
+
+/**
+ * Function: getSvgScreenOffset
+ * 
+ * Returns 0, or 0.5 if <strokewidth> % 2 == 1.
+ */
+mxShape.prototype.getSvgScreenOffset = function()
+{
+	return (mxUtils.mod(Math.max(1, Math.round(this.strokewidth * this.scale)), 2) == 1) ? 0.5 : 0;
+};
+
+/**
+ * Function: create
+ *
+ * Creates and returns the DOM node(s) for the shape in
+ * the given container. This implementation invokes
+ * <createSvg>, <createHtml> or <createVml> depending
+ * on the <dialect> and style settings.
+ *
+ * Parameters:
+ *
+ * container - DOM node that will contain the shape.
+ */
+mxShape.prototype.create = function(container)
+{
+	var node = null;
+
+	if (container.ownerSVGElement != null)
+	{
+		node = this.createSvg(container);
+	}
+	else if (document.documentMode == 8 || this.dialect == mxConstants.DIALECT_SVG ||
+		(this.dialect != mxConstants.DIALECT_VML && this.isHtmlAllowed()))
+	{
+		node = this.createHtml(container);
+	}
+	else
+	{
+		node = this.createVml(container);
+	}
+	
+	return node;
+};
+
+/**
+ * Function: createSvg
+ *
+ * Creates and returns the SVG node(s) to represent this shape.
+ */
+mxShape.prototype.createSvg = function()
+{
+	return document.createElementNS(mxConstants.NS_SVG, 'g');
+};
+
+/**
+ * Function: createVml
+ *
+ * Creates and returns the VML node to represent this shape.
+ */
+mxShape.prototype.createVml = function()
+{
+	var node = document.createElement(mxClient.VML_PREFIX + ':group');
+	node.style.position = 'absolute';
+	
+	return node;
+};
+
+/**
+ * Function: createHtml
+ *
+ * Creates and returns the HTML DOM node(s) to represent
+ * this shape. This implementation falls back to <createVml>
+ * so that the HTML creation is optional.
+ */
+mxShape.prototype.createHtml = function()
+{
+	var node = document.createElement('div');
+	node.style.position = 'absolute';
+	
+	return node;
+};
+
+/**
+ * Function: reconfigure
+ *
+ * Reconfigures this shape. This will update the colors etc in
+ * addition to the bounds or points.
+ */
+mxShape.prototype.reconfigure = function()
+{
+	this.redraw();
+};
+
+/**
+ * Function: redraw
+ *
+ * Creates and returns the SVG node(s) to represent this shape.
+ */
+mxShape.prototype.redraw = function()
+{
+	this.updateBoundsFromPoints();
+	
+	if (this.checkBounds())
+	{
+		this.node.style.visibility = '';
+
+		if (this.node.nodeName == 'DIV' && this.isHtmlAllowed())
+		{
+			this.redrawHtmlShape();
+		}
+		else
+		{	
+			this.redrawShape();
+		}
+
+		this.updateBoundingBox();
+	}
+	else
+	{
+		this.node.style.visibility = 'hidden';
+		this.boundingBox = null;
+	}
+};
+
+/**
+ * Function: updateBoundsFromPoints
+ * 
+ * Updates the bounds based on the points.
+ */
+mxShape.prototype.updateBoundsFromPoints = function()
+{
+	var pts = this.points;
+	
+	if (pts != null && pts.length > 0 && pts[0] != null)
+	{
+		this.bounds = new mxRectangle(Number(pts[0].x), Number(pts[0].y), 1, 1);
+		
+		for (var i = 1; i < this.points.length; i++)
+		{
+			if (pts[i] != null)
+			{
+				this.bounds.add(new mxRectangle(Number(pts[i].x), Number(pts[i].y), 1, 1));
+			}
+		}
+	}
+	
+};
+
+/**
+ * Function: checkBounds
+ * 
+ * Returns true if the bounds are not null and all of its variables are numeric.
+ */
+mxShape.prototype.checkBounds = function()
+{
+	return (this.bounds != null && !isNaN(this.bounds.x) && !isNaN(this.bounds.y) &&
+			!isNaN(this.bounds.width) && !isNaN(this.bounds.height) &&
+			this.bounds.width > 0 && this.bounds.height > 0);
+};
+
+/**
+ * Function: createVmlGroup
+ *
+ * Returns the temporary element used for rendering in IE8 standards mode.
+ */
+mxShape.prototype.createVmlGroup = function()
+{
+	var node = document.createElement(mxClient.VML_PREFIX + ':group');
+	node.style.position = 'absolute';
+	node.style.width = this.node.style.width;
+	node.style.height = this.node.style.height;
+	
+	return node;
+};
+
+/**
+ * Function: redrawShape
+ *
+ * Updates the SVG or VML shape.
+ */
+mxShape.prototype.redrawShape = function()
+{
+	var canvas = this.createCanvas();
+
+	// Specifies if events should be handled
+	canvas.pointerEvents = this.pointerEvents;
+
+	// Removes all children
+	while(this.node.hasChildNodes())
+	{
+		this.node.removeChild(this.node.lastChild);
+	}
+
+	this.paint(canvas);
+
+	if (this.node != canvas.root)
+	{
+		// Forces parsing in IE8 standards mode - slow! avoid
+		this.node.insertAdjacentHTML('beforeend', canvas.root.outerHTML);
+	}
+
+	if (this.node.nodeName == 'DIV' && document.documentMode == 8)
+	{
+		// Makes DIV transparent to events for IE8 in IE8 standards
+		// mode (Note: Does not work for IE9 in IE8 standards mode)
+		this.node.style.filter = '';
+		
+		// Adds event transparency in IE8 standards
+		if (this.stencil == null || !this.stencilPointerEvents)
+		{
+			mxUtils.addTransparentBackgroundFilter(this.node);
+		}
+	}
+	
+	this.destroyCanvas(canvas);
+};
+
+/**
+ * Function: createCanvas
+ * 
+ * Destroys the given canvas which was used for drawing. This implementation
+ * increments the reference counts on all shared gradients used in the canvas.
+ */
+mxShape.prototype.createCanvas = function()
+{
+	var canvas = null;
+	var node = null;
+	
+	// LATER: Check if reusing existing DOM nodes improves performance
+	if (this.node.ownerSVGElement != null)
+	{
+		canvas = new mxSvgCanvas2D(this.node, false);
+		canvas.strokeTolerance = this.svgStrokeTolerance;
+		canvas.blockImagePointerEvents = mxClient.IS_NS && !mxClient.IS_SF && !mxClient.IS_GC;
+		var off = this.getSvgScreenOffset();
+
+		if (off != 0)
+		{
+			this.node.setAttribute('transform', 'translate(' + off + ',' + off + ')');
+		}
+		else
+		{
+			this.node.removeAttribute('transform');
+		}
+	}
+	else
+	{
+		this.updateVmlContainer();
+		var w = Math.max(1, Math.round(this.bounds.width));
+		var h = Math.max(1, Math.round(this.bounds.height));
+		
+		// Workaround for VML rendering bug in IE8 standards mode
+		if (document.documentMode == 8 && this.isParseVml())
+		{
+			node = this.createVmlGroup();
+		}
+		else
+		{
+			node = this.node;			
+		}
+		
+		canvas = new mxVmlCanvas2D(node, false);
+		
+		if (node.tagUrn != '')
+		{
+			node.coordsize = (w * this.vmlScale) + ',' + (h * this.vmlScale);
+			canvas.scale(this.vmlScale);
+			canvas.vmlScale = this.vmlScale;
+		}
+
+		// Painting relative to top, left shape corner
+		var s = this.scale;
+		canvas.translate(-Math.round(this.bounds.x / s), -Math.round(this.bounds.y / s));
+	}
+
+	return canvas;
+};
+
+/**
+ * Function: updateVmlContainer
+ * 
+ * Updates the bounds of the VML container.
+ */
+mxShape.prototype.updateVmlContainer = function()
+{
+	this.node.style.left = Math.round(this.bounds.x) + 'px';
+	this.node.style.top = Math.round(this.bounds.y) + 'px';
+	var w = Math.max(1, Math.round(this.bounds.width));
+	var h = Math.max(1, Math.round(this.bounds.height));
+	this.node.style.width = w + 'px';
+	this.node.style.height = h + 'px';
+	this.node.style.overflow = 'visible';
+};
+
+/**
+ * Function: destroyCanvas
+ * 
+ * Destroys the given canvas which was used for drawing. This implementation
+ * increments the reference counts on all shared gradients used in the canvas.
+ */
+mxShape.prototype.destroyCanvas = function(canvas)
+{
+	// Manages reference counts
+	if (canvas instanceof mxSvgCanvas2D)
+	{
+		// Increments ref counts
+		for (var key in canvas.gradients)
+		{
+			var gradient = canvas.gradients[key];
+			gradient.mxRefCount = (gradient.mxRefCount || 0) + 1;
+		}
+		
+		this.releaseSvgGradients(this.oldGradients);
+		this.oldGradients = canvas.gradients;
+	}
+};
+
+/**
+ * Function: paint
+ * 
+ * Generic rendering code.
+ */
+mxShape.prototype.paint = function(c)
+{
+	// Scale is passed-through to canvas
+	var s = this.scale;
+	var x = this.bounds.x / s;
+	var y = this.bounds.y / s;
+	var w = this.bounds.width / s;
+	var h = this.bounds.height / s;
+
+	if (this.isPaintBoundsInverted())
+	{
+		var t = (w - h) / 2;
+		x += t;
+		y -= t;
+		var tmp = w;
+		w = h;
+		h = tmp;
+	}
+	
+	this.updateTransform(c, x, y, w, h);
+	this.configureCanvas(c, x, y, w, h);
+	
+	if (this.stencil != null)
+	{
+		this.paintStencilShape(c, x, y, w, h);
+	}
+	else
+	{
+		// Stencils have separate strokewidth
+		c.setStrokeWidth(this.strokewidth);
+		
+		if (this.points != null)
+		{
+			// Paints edge shape
+			var pts = [];
+			
+			for (var i = 0; i < this.points.length; i++)
+			{
+				pts.push(new mxPoint(this.points[i].x / s, this.points[i].y / s));
+			}
+
+			this.paintEdgeShape(c, pts);
+		}
+		else
+		{
+			// Paints vertex shape
+			this.paintVertexShape(c, x, y, w, h);
+		}
+	}
+};
+
+/**
+ * Function: configureCanvas
+ * 
+ * Sets the state of the canvas for drawing the shape.
+ */
+mxShape.prototype.configureCanvas = function(c, x, y, w, h)
+{
+	var dash = null;
+	
+	if (this.style != null)
+	{
+		dash = this.style['dashPattern'];		
+	}
+
+	c.setAlpha(this.opacity / 100);
+
+	// Sets alpha, colors and gradients
+	if (this.isShadow != null)
+	{
+		c.setShadow(this.isShadow);
+	}
+	
+	// Dash pattern
+	if (this.isDashed != null)
+	{
+		c.setDashed(this.isDashed);
+	}
+
+	if (dash != null)
+	{
+		c.setDashPattern(dash);
+	}
+	
+	if (this.gradient != null)
+	{
+		var b = this.getGradientBounds(c, x, y, w, h);
+		c.setGradient(this.fill, this.gradient, b.x, b.y, b.width, b.height, this.gradientDirection);
+	}
+	else
+	{
+		c.setFillColor(this.fill);
+	}
+
+	c.setStrokeColor(this.stroke);
+};
+
+/**
+ * Function: getGradientBounds
+ * 
+ * Returns the bounding box for the gradient box for this shape.
+ */
+mxShape.prototype.getGradientBounds = function(c, x, y, w, h)
+{
+	return new mxRectangle(x, y, w, h);
+};
+
+/**
+ * Function: updateTransform
+ * 
+ * Sets the scale and rotation on the given canvas.
+ */
+mxShape.prototype.updateTransform = function(c, x, y, w, h)
+{
+	// NOTE: Currently, scale is implemented in state and canvas. This will
+	// move to canvas in a later version, so that the states are unscaled
+	// and untranslated and do not need an update after zooming or panning.
+	c.scale(this.scale);
+	c.rotate(this.getShapeRotation(), this.flipH, this.flipV, x + w / 2, y + h / 2);
+};
+
+/**
+ * Function: paintStencilShape
+ * 
+ * Paints the line shape.
+ */
+mxShape.prototype.paintStencilShape = function(c, x, y, w, h)
+{
+	if (this.stencilPointerEvents)
+	{
+		if (this.dialect == mxConstants.DIALECT_SVG)
+		{
+			this.addTransparentBackgroundRectangle(this.node, x, y, w, h);
+		}
+		// For IE8 we do not add event transparency in redrawShape
+		else if (document.documentMode != 8)
+		{
+			this.setTransparentBackgroundImage(this.node);
+		}
+	}
+	
+	// Paints a stencil
+	this.stencil.drawShape(c, this, x, y, w, h);
+};
+
+/**
+ * Function: paintVertexShape
+ * 
+ * Paints the vertex shape.
+ */
+mxShape.prototype.paintVertexShape = function(c, x, y, w, h)
+{
+	this.paintBackground(c, x, y, w, h);
+	c.setShadow(false);
+	this.paintForeground(c, x, y, w, h);
+};
+
+/**
+ * Function: paintBackground
+ * 
+ * Hook for subclassers. This implementation is empty.
+ */
+mxShape.prototype.paintBackground = function(c, x, y, w, h) { };
+
+/**
+ * Function: paintForeground
+ * 
+ * Hook for subclassers. This implementation is empty.
+ */
+mxShape.prototype.paintForeground = function(c, x, y, w, h) { };
+
+/**
+ * Function: paintEdgeShape
+ * 
+ * Hook for subclassers. This implementation is empty.
+ */
+mxShape.prototype.paintEdgeShape = function(c, pts) { };
+
+/**
+ * Function: getArcSize
+ * 
+ * Returns the arc size for the given dimension.
+ */
+mxShape.prototype.getArcSize = function(w, h)
+{
+	var f = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE,
+		mxConstants.RECTANGLE_ROUNDING_FACTOR * 100) / 100;
+	return Math.min(w * f, h * f);
+};
+
+/**
+ * Function: paintGlassEffect
+ * 
+ * Paints the glass gradient effect.
+ */
+mxShape.prototype.paintGlassEffect = function(c, x, y, w, h, arc)
+{
+	var sw = Math.ceil(this.strokewidth / 2);
+	var size = 0.4;
+	
+	c.setGradient('#ffffff', '#ffffff', x, y, w, h * 0.6, 'south', 0.9, 0.1);
+	c.begin();
+	arc += 2 * sw;
+		
+	if (this.isRounded)
+	{
+		c.moveTo(x - sw + arc, y - sw);
+		c.quadTo(x - sw, y - sw, x - sw, y - sw + arc);
+		c.lineTo(x - sw, y + h * size);
+		c.quadTo(x + w * 0.5, y + h * 0.7, x + w + sw, y + h * size);
+		c.lineTo(x + w + sw, y - sw + arc);
+		c.quadTo(x + w + sw, y - sw, x + w + sw - arc, y - sw);
+	}
+	else
+	{
+		c.moveTo(x - sw, y - sw);
+		c.lineTo(x - sw, y + h * size);
+		c.quadTo(x + w * 0.5, y + h * 0.7, x + w + sw, y + h * size);
+		c.lineTo(x + w + sw, y - sw);
+	}
+	
+	c.close();
+	c.fill();
+};
+
+/**
+ * Function: apply
+ * 
+ * Applies the style of the given <mxCellState> to the shape. This
+ * implementation assigns the following styles to local fields:
+ * 
+ * - <mxConstants.STYLE_FILLCOLOR> => fill
+ * - <mxConstants.STYLE_GRADIENTCOLOR> => gradient
+ * - <mxConstants.STYLE_GRADIENT_DIRECTION> => gradientDirection
+ * - <mxConstants.STYLE_OPACITY> => opacity
+ * - <mxConstants.STYLE_STROKECOLOR> => stroke
+ * - <mxConstants.STYLE_STROKEWIDTH> => strokewidth
+ * - <mxConstants.STYLE_SHADOW> => isShadow
+ * - <mxConstants.STYLE_DASHED> => isDashed
+ * - <mxConstants.STYLE_SPACING> => spacing
+ * - <mxConstants.STYLE_STARTSIZE> => startSize
+ * - <mxConstants.STYLE_ENDSIZE> => endSize
+ * - <mxConstants.STYLE_ROUNDED> => isRounded
+ * - <mxConstants.STYLE_STARTARROW> => startArrow
+ * - <mxConstants.STYLE_ENDARROW> => endArrow
+ * - <mxConstants.STYLE_ROTATION> => rotation
+ * - <mxConstants.STYLE_DIRECTION> => direction
+ * - <mxConstants.STYLE_GLASS> => glass
+ *
+ * This keeps a reference to the <style>. If you need to keep a reference to
+ * the cell, you can override this method and store a local reference to
+ * state.cell or the <mxCellState> itself.
+ *
+ * Parameters:
+ *
+ * state - <mxCellState> of the corresponding cell.
+ */
+mxShape.prototype.apply = function(state)
+{
+	this.state = state;
+	this.style = state.style;
+
+	if (this.style != null)
+	{
+		this.fill = mxUtils.getValue(this.style, mxConstants.STYLE_FILLCOLOR, this.fill);
+		this.gradient = mxUtils.getValue(this.style, mxConstants.STYLE_GRADIENTCOLOR, this.gradient);
+		this.gradientDirection = mxUtils.getValue(this.style, mxConstants.STYLE_GRADIENT_DIRECTION, this.gradientDirection);
+		this.opacity = mxUtils.getValue(this.style, mxConstants.STYLE_OPACITY, this.opacity);
+		this.stroke = mxUtils.getValue(this.style, mxConstants.STYLE_STROKECOLOR, this.stroke);
+		this.strokewidth = mxUtils.getNumber(this.style, mxConstants.STYLE_STROKEWIDTH, this.strokewidth);
+		this.spacing = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING, this.spacing);
+		this.startSize = mxUtils.getNumber(this.style, mxConstants.STYLE_STARTSIZE, this.startSize);
+		this.endSize = mxUtils.getNumber(this.style, mxConstants.STYLE_ENDSIZE, this.endSize);
+		this.startArrow = mxUtils.getValue(this.style, mxConstants.STYLE_STARTARROW, this.startArrow);
+		this.endArrow = mxUtils.getValue(this.style, mxConstants.STYLE_ENDARROW, this.endArrow);
+		this.rotation = mxUtils.getValue(this.style, mxConstants.STYLE_ROTATION, this.rotation);
+		this.direction = mxUtils.getValue(this.style, mxConstants.STYLE_DIRECTION, this.direction);
+		this.flipH = mxUtils.getValue(this.style, mxConstants.STYLE_FLIPH, 0) == 1;
+		this.flipV = mxUtils.getValue(this.style, mxConstants.STYLE_FLIPV, 0) == 1;	
+		
+		// Legacy support for stencilFlipH/V
+		if (this.stencil != null)
+		{
+			this.flipH = mxUtils.getValue(this.style, 'stencilFlipH', 0) == 1 || this.flipH;
+			this.flipV = mxUtils.getValue(this.style, 'stencilFlipV', 0) == 1 || this.flipV;
+		}
+		
+		if (this.direction == 'north' || this.direction == 'south')
+		{
+			var tmp = this.flipH;
+			this.flipH = this.flipV;
+			this.flipV = tmp;
+		}
+
+		this.isShadow = mxUtils.getValue(this.style, mxConstants.STYLE_SHADOW, this.isShadow) == 1;
+		this.isDashed = mxUtils.getValue(this.style, mxConstants.STYLE_DASHED, this.isDashed) == 1;
+		this.isRounded = mxUtils.getValue(this.style, mxConstants.STYLE_ROUNDED, this.isRounded) == 1;
+		this.glass = mxUtils.getValue(this.style, mxConstants.STYLE_GLASS, this.glass) == 1;
+		
+		if (this.fill == 'none')
+		{
+			this.fill = null;
+		}
+
+		if (this.gradient == 'none')
+		{
+			this.gradient = null;
+		}
+
+		if (this.stroke == 'none')
+		{
+			this.stroke = null;
+		}
+	}
+};
+
+/**
+ * Function: setCursor
+ * 
+ * Sets the cursor on the given shape.
+ *
+ * Parameters:
+ *
+ * cursor - The cursor to be used.
+ */
+mxShape.prototype.setCursor = function(cursor)
+{
+	if (cursor == null)
+	{
+		cursor = '';
+	}
+	
+	this.cursor = cursor;
+
+	if (this.node != null)
+	{
+		this.node.style.cursor = cursor;
+	}
+};
+
+/**
+ * Function: getCursor
+ * 
+ * Returns the current cursor.
+ */
+mxShape.prototype.getCursor = function()
+{
+	return this.cursor;
+};
+
+/**
+ * Function: updateBoundingBox
+ *
+ * Updates the <boundingBox> for this shape using <createBoundingBox> and
+ * <augmentBoundingBox> and stores the result in <boundingBox>.
+ */
+mxShape.prototype.updateBoundingBox = function()
+{
+	if (this.bounds != null)
+	{
+		var bbox = this.createBoundingBox();
+		
+		if (bbox != null)
+		{
+			this.augmentBoundingBox(bbox);
+			
+			var rot = this.getShapeRotation();
+			
+			if (rot != 0)
+			{
+				bbox = mxUtils.getBoundingBox(bbox, rot);
+			}
+	
+			bbox.x = Math.floor(bbox.x);
+			bbox.y = Math.floor(bbox.y);
+			bbox.width = Math.ceil(bbox.width);
+			bbox.height = Math.ceil(bbox.height);
+		}
+
+		this.boundingBox = bbox;
+	}
+};
+
+/**
+ * Function: createBoundingBox
+ *
+ * Returns a new rectangle that represents the bounding box of the bare shape
+ * with no shadows or strokewidths.
+ */
+mxShape.prototype.createBoundingBox = function()
+{
+	var bb = this.bounds.clone();
+	
+	if (this.isPaintBoundsInverted())
+	{
+		var t = (bb.width - bb.height) / 2;
+		bb.x += t;
+		bb.y -= t;
+		var tmp = bb.width;
+		bb.width = bb.height;
+		bb.height = tmp;
+	}
+	
+	return bb;
+};
+
+/**
+ * Function: augmentBoundingBox
+ *
+ * Augments the bounding box with the strokewidth and shadow offsets.
+ */
+mxShape.prototype.augmentBoundingBox = function(bbox)
+{
+	if (this.isShadow)
+	{
+		bbox.width += Math.ceil(mxConstants.SHADOW_OFFSET_X * this.scale);
+		bbox.height += Math.ceil(mxConstants.SHADOW_OFFSET_Y * this.scale);
+	}
+	
+	// Adds strokeWidth
+	var sw = Math.ceil(this.strokewidth * this.scale);
+	bbox.grow(Math.ceil(sw / 2));
+};
+
+/**
+ * Function: isPaintBoundsInverted
+ * 
+ * Returns true if the bounds should be inverted.
+ */
+mxShape.prototype.isPaintBoundsInverted = function()
+{
+	// Stencil implements inversion via aspect
+	return this.stencil == null && (this.direction == 'north' || this.direction == 'south');
+};
+
+/**
+ * Function: getRotation
+ * 
+ * Returns the rotation from the style.
+ */
+mxShape.prototype.getRotation = function()
+{
+	return (this.rotation != null) ? this.rotation : 0;
+};
+
+/**
+ * Function: getTextRotation
+ * 
+ * Returns the rotation for the text label.
+ */
+mxShape.prototype.getTextRotation = function()
+{
+	var rot = this.getRotation();
+	
+	if (mxUtils.getValue(this.style, mxConstants.STYLE_HORIZONTAL, 1) != 1)
+	{
+		rot += mxText.prototype.verticalTextRotation;
+	}
+	
+	return rot;
+};
+
+/**
+ * Function: getShapeRotation
+ * 
+ * Returns the actual rotation of the shape.
+ */
+mxShape.prototype.getShapeRotation = function()
+{
+	var rot = this.getRotation();
+	
+	if (this.direction != null)
+	{
+		if (this.direction == 'north')
+		{
+			rot += 270;
+		}
+		else if (this.direction == 'west')
+		{
+			rot += 180;
+		}
+		else if (this.direction == 'south')
+		{
+			rot += 90;
+		}
+	}
+	
+	return rot;
+};
+
+/**
+ * Function: addTransparentBackgroundRectangle
+ * 
+ * Paints the line shape.
+ */
+mxShape.prototype.addTransparentBackgroundRectangle = function(node, x, y, w, h)
+{
+	var rect = document.createElementNS(mxConstants.NS_SVG, 'rect');
+	rect.setAttribute('x', x);
+	rect.setAttribute('y', y);
+	rect.setAttribute('width', w);
+	rect.setAttribute('height', h);
+	rect.setAttribute('fill', 'none');
+	rect.setAttribute('stroke', 'none');
+	rect.setAttribute('pointer-events', 'all');
+	this.node.appendChild(rect);
+};
+
+/**
+ * Function: setTransparentBackgroundImage
+ * 
+ * Paints the line shape.
+ */
+mxShape.prototype.setTransparentBackgroundImage = function(node)
+{
+	node.style.backgroundImage = 'url(\'' + mxClient.imageBasePath + '/transparent.gif\')';
+};
+
+/**
+ * Function: releaseSvgGradients
+ * 
+ * Paints the line shape.
+ */
+mxShape.prototype.releaseSvgGradients = function(grads)
+{
+	if (grads != null)
+	{
+		for (var key in grads)
+		{
+			var gradient = grads[key];
+			gradient.mxRefCount = (gradient.mxRefCount || 0) - 1;
+			
+			if (gradient.mxRefCount == 0 && gradient.parentNode != null)
+			{
+				gradient.parentNode.removeChild(gradient);
+			}
+		}
+	}
+};
+
+/**
+ * Function: destroy
+ *
+ * Destroys the shape by removing it from the DOM and releasing the DOM
+ * node associated with the shape using <mxEvent.release>.
+ */
+mxShape.prototype.destroy = function()
+{
+	if (this.node != null)
+	{
+		mxEvent.release(this.node);
+		
+		if (this.node.parentNode != null)
+		{
+			this.node.parentNode.removeChild(this.node);
+		}
+		
+		this.node = null;
+	}
+	
+	// Decrements refCount and removes unused
+	this.releaseSvgGradients(this.oldGradients);
+	this.oldGradients = null;
+};
+/**
+ * $Id: mxStencilRegistry.js,v 1.1 2012/11/15 13:26:42 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  * 
  * Code to add stencils.
@@ -23151,216 +22152,7 @@ var mxStencilRegistry =
 
 };
 /**
- * $Id: mxStencilShape.js,v 1.10 2012/07/16 10:22:44 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
- */
-/**
- * Class: mxStencilShape
- *
- * Implements a shape based on a <mxStencil>.
- *  
- * Constructor: mxStencilShape
- * 
- * Constructs a new generic shape.
- */
-function mxStencilShape(stencil)
-{
-	this.stencil = stencil;
-};
-
-/**
- * Extends mxShape.
- */
-mxStencilShape.prototype = new mxShape();
-mxStencilShape.prototype.constructor = mxStencilShape;
-
-/**
- * Variable: mixedModeHtml
- *
- * Always prefers VML in mixed mode for stencil shapes. Default is false.
- */
-mxStencilShape.prototype.mixedModeHtml = false;
-
-/**
- * Variable: preferModeHtml
- *
- * Always prefers VML in prefer HTML mode for stencil shapes. Default is false.
- */
-mxStencilShape.prototype.preferModeHtml = false;
-
-/**
- * Variable: stencil
- *
- * Holds the <mxStencil> that defines the shape.
- */
-mxStencilShape.prototype.stencil = null;
-
-/**
- * Variable: state
- *
- * Holds the <mxCellState> associated with this shape.
- */
-mxStencilShape.prototype.state = null;
-
-/**
- * Variable: vmlScale
- *
- * Renders VML with a scale of 4.
- */
-mxStencilShape.prototype.vmlScale = 4;
-
-/**
- * Function: apply
- * 
- * Extends <mxShape> apply to keep a reference to the <mxCellState>.
- *
- * Parameters:
- *
- * state - <mxCellState> of the corresponding cell.
- */
-mxStencilShape.prototype.apply = function(state)
-{
-	this.state = state;
-	mxShape.prototype.apply.apply(this, arguments);
-};
-
-/**
- * Function: createSvg
- *
- * Creates and returns the SVG node(s) to represent this shape.
- */
-mxStencilShape.prototype.createSvg = function()
-{
-	var node = document.createElementNS(mxConstants.NS_SVG, 'g');
-	this.configureSvgShape(node);
-	
-	return node;
-};
-
-/**
- * Function: configureHtmlShape
- *
- * Overrides method to set the overflow style to visible.
- */
-mxStencilShape.prototype.configureHtmlShape = function(node)
-{
-	mxShape.prototype.configureHtmlShape.apply(this, arguments);
-	
-	if (!mxUtils.isVml(node))
-	{
-		node.style.overflow = 'visible';
-	}
-};
-
-/**
- * Function: createVml
- *
- * Creates and returns the VML node to represent this shape.
- */
-mxStencilShape.prototype.createVml = function()
-{
-	var name = (document.documentMode == 8) ? 'div' : 'v:group';
-	var node = document.createElement(name);
-	this.configureTransparentBackground(node);
-	node.style.position = 'absolute';
-	
-	return node;
-};
-
-/**
- * Function: configureVmlShape
- *
- * Configures the specified VML node by applying the current color,
- * bounds, shadow, opacity etc.
- */
-mxStencilShape.prototype.configureVmlShape = function(node)
-{
-	// do nothing
-};
-
-/**
- * Function: redraw
- *
- * Creates and returns the SVG node(s) to represent this shape.
- */
-mxStencilShape.prototype.redraw = function()
-{
-	this.updateBoundingBox();
-	
-	if (this.dialect == mxConstants.DIALECT_SVG)
-	{
-		this.redrawShape();
-	}
-	else
-	{
-		this.node.style.visibility = 'hidden';
-		this.redrawShape();
-		this.node.style.visibility = 'visible';
-	}
-};
-
-/**
- * Function: redrawShape
- *
- * Updates the SVG or VML shape.
- */
-mxStencilShape.prototype.redrawShape = function()
-{
-	// LATER: Update existing DOM nodes to improve repaint performance
-	if (this.dialect != mxConstants.DIALECT_SVG)
-	{
-		this.node.style.left = Math.round(this.bounds.x) + 'px';
-		this.node.style.top = Math.round(this.bounds.y) + 'px';
-		var w = Math.round(this.bounds.width);
-		var h = Math.round(this.bounds.height);
-		this.node.style.width = w + 'px';
-		this.node.style.height = h + 'px';
-		
-		var node = this.node;
-		
-		// Workaround for VML rendering bug in IE8 standards mode where all VML must be
-		// parsed via assigning the innerHTML of the parent HTML node to keep all event
-		// handlers referencing node and support rotation via v:group parent element. 
-		if (this.node.nodeName == 'DIV')
-		{
-			node = document.createElement('v:group');
-			node.style.position = 'absolute';
-			node.style.left = '0px';
-			node.style.top = '0px';
-			node.style.width = w + 'px';
-			node.style.height = h + 'px';
-		}
-		else
-		{
-			node.innerHTML = '';
-		}
-
-		if (mxUtils.isVml(node))
-		{
-			var s = (document.documentMode != 8) ? this.vmlScale : 1;
-			node.coordsize = (w * s) + ',' + (h * s);
-		}
-		
-		this.stencil.renderDom(this, this.bounds, node);
-		
-		if(this.node != node)
-		{
-			// Forces parsing in IE8 standards mode
-			this.node.innerHTML = node.outerHTML;
-		}
-	}
-	else
-	{
-		while (this.node.firstChild != null)
-		{
-			this.node.removeChild(this.node.firstChild);
-		}
-		
-		this.stencil.renderDom(this, this.bounds, this.node);
-	}
-};
-/**
- * $Id: mxMarker.js,v 1.19 2012/03/30 12:51:58 david Exp $
+ * $Id: mxMarker.js,v 1.2 2012/11/20 20:09:47 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxMarker =
@@ -23378,256 +22170,182 @@ var mxMarker =
 	markers: [],
 	
 	/**
-	 * Function: paintMarker
+	 * Function: addMarker
 	 * 
-	 * Paints the given marker.
+	 * Adds a factory method that updates a given endpoint and returns a
+	 * function to paint the marker onto the given canvas.
 	 */
-	paintMarker: function(node, type, p0, pe, color, strokewidth, size, scale, x0, y0, source, style)
+	addMarker: function(type, funct)
 	{
-		var marker = mxMarker.markers[type];
-		var result = null;
+		mxMarker.markers[type] = funct;
+	},
+	
+	/**
+	 * Function: createMarker
+	 * 
+	 * Returns a function to paint the given marker.
+	 */
+	createMarker: function(canvas, shape, type, pe, unitX, unitY, size, source, sw, filled)
+	{
+		var funct = mxMarker.markers[type];
 		
-		if (marker != null)
-		{
-			var isVml = mxUtils.isVml(node);
-
-			// Computes the norm and the inverse norm
-			var dx = pe.x - p0.x;
-			var dy = pe.y - p0.y;
-			
-			if (isNaN(dx) || isNaN(dy))
-			{
-				return;
-			}
-
-			var dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
-			var nx = dx * scale / dist;
-			var ny = dy * scale / dist;
-			
-			pe = pe.clone();
-			
-			if (isVml)
-			{
-				pe.x -= x0;
-				pe.y -= y0;
-			}
-
-			// Handles start-/endFill style
-			var filled = true;
-			var key = (source) ? mxConstants.STYLE_STARTFILL : mxConstants.STYLE_ENDFILL;
-			
-			if (style[key] == 0)
-			{
-				filled = false;
-			}
-
-			if (isVml)
-			{
-				// Opacity is updated in reconfigure, use nf in path for no fill
-				node.strokecolor = color;
-				
-				if (filled)
-				{
-					node.fillcolor = color;
-				}
-				else
-				{
-					node.filled = 'false';
-				}
-			}
-			else
-			{
-				node.setAttribute('stroke', color);
-				
-				var op = (style.opacity != null) ? style.opacity / 100 : 1;
-				node.setAttribute('stroke-opacity', op);
-				
-				if (filled)
-				{
-					node.setAttribute('fill', color);
-					node.setAttribute('fill-opacity', op);
-				}
-				else
-				{
-					node.setAttribute('fill', 'none');
-				}
-			}
-			
-			result = marker.call(this, node, type, pe, nx, ny, strokewidth, size, scale, isVml);
-		}
-		
-		return result;
+		return (funct != null) ? funct(canvas, shape, type, pe, unitX, unitY, size, source, sw, filled) : null;
 	}
 
 };
 
+/**
+ * Adds the classic and block marker factory method.
+ */
 (function()
 {
-	/**
-	 * Drawing of the classic and block arrows. 
-	 */
-	var tmp = function(node, type, pe, nx, ny, strokewidth, size, scale, isVml)
+	function arrow(canvas, shape, type, pe, unitX, unitY, size, source, sw, filled)
 	{
 		// The angle of the forward facing arrow sides against the x axis is
 		// 26.565 degrees, 1/sin(26.565) = 2.236 / 2 = 1.118 ( / 2 allows for
 		// only half the strokewidth is processed ).
-		var endOffsetX = nx * strokewidth * 1.118;
-		var endOffsetY = ny * strokewidth * 1.118;
-		pe.x -= endOffsetX;
-		pe.y -= endOffsetY;
+		var endOffsetX = unitX * sw * 1.118;
+		var endOffsetY = unitY * sw * 1.118;
 		
-		nx = nx * (size + strokewidth);
-		ny = ny * (size + strokewidth);
+		unitX = unitX * (size + sw);
+		unitY = unitY * (size + sw);
 
-		if (isVml)
-		{
-			node.path = 'm' + Math.round(pe.x) + ',' + Math.round(pe.y) +
-				' l' + Math.round(pe.x - nx - ny / 2) + ' ' + Math.round(pe.y - ny + nx / 2) +
-				((type != mxConstants.ARROW_CLASSIC) ? '' :
-				' ' + Math.round(pe.x - nx * 3 / 4) + ' ' + Math.round(pe.y - ny * 3 / 4)) +
-				' ' + Math.round(pe.x + ny / 2 - nx) + ' ' + Math.round(pe.y - ny - nx / 2) +
-				' x e';
-			node.setAttribute('strokeweight', (strokewidth * scale) + 'px');
-		}
-		else
-		{
-			node.setAttribute('d', 'M ' + pe.x + ' ' + pe.y +
-				' L ' + (pe.x - nx - ny / 2) + ' ' + (pe.y - ny + nx / 2) +
-				((type != mxConstants.ARROW_CLASSIC) ? '' :
-				' L ' + (pe.x - nx * 3 / 4) + ' ' + (pe.y - ny * 3 / 4)) +
-				' L ' + (pe.x + ny / 2 - nx) + ' ' + (pe.y - ny - nx / 2) +
-				' z');
-			node.setAttribute('stroke-width', strokewidth * scale);
-		}
+		var pt = pe.clone();
+		pt.x -= endOffsetX;
+		pt.y -= endOffsetY;
 		
 		var f = (type != mxConstants.ARROW_CLASSIC) ? 1 : 3 / 4;
-		return new mxPoint(-nx * f - endOffsetX, -ny * f - endOffsetY);
+		pe.x += -unitX * f - endOffsetX;
+		pe.y += -unitY * f - endOffsetY;
+
+		return function()
+		{
+			canvas.begin();
+			canvas.moveTo(pt.x, pt.y);
+			canvas.lineTo(pt.x - unitX - unitY / 2, pt.y - unitY + unitX / 2);
+		
+			if (type == mxConstants.ARROW_CLASSIC)
+			{
+				canvas.lineTo(pt.x - unitX * 3 / 4, pt.y - unitY * 3 / 4);
+			}
+		
+			canvas.lineTo(pt.x + unitY / 2 - unitX, pt.y - unitY - unitX / 2);
+			canvas.close();
+
+			if (filled)
+			{
+				canvas.fillAndStroke();
+			}
+			else
+			{
+				canvas.stroke();
+			}
+		};
+	}
+	
+	mxMarker.addMarker('classic', arrow);
+	mxMarker.addMarker('block', arrow);
+	
+	mxMarker.addMarker('open', function(canvas, shape, type, pe, unitX, unitY, size, source, sw, filled)
+	{
+		// The angle of the forward facing arrow sides against the x axis is
+		// 26.565 degrees, 1/sin(26.565) = 2.236 / 2 = 1.118 ( / 2 allows for
+		// only half the strokewidth is processed ).
+		var endOffsetX = unitX * sw * 1.118;
+		var endOffsetY = unitY * sw * 1.118;
+		
+		unitX = unitX * (size + sw);
+		unitY = unitY * (size + sw);
+		
+		var pt = pe.clone();
+		pt.x -= endOffsetX;
+		pt.y -= endOffsetY;
+		
+		pe.x += -endOffsetX * 2;
+		pe.y += -endOffsetY * 2;
+
+		return function()
+		{
+			canvas.begin();
+			canvas.moveTo(pt.x - unitX - unitY / 2, pt.y - unitY + unitX / 2);
+			canvas.lineTo(pt.x, pt.y);
+			canvas.lineTo(pt.x + unitY / 2 - unitX, pt.y - unitY - unitX / 2);
+			canvas.stroke();
+		};
+	});
+	
+	mxMarker.addMarker('oval', function(canvas, shape, type, pe, unitX, unitY, size, source, sw, filled)
+	{
+		var a = size / 2;
+		
+		var pt = pe.clone();
+		pe.x -= unitX * a;
+		pe.y -= unitY * a;
+
+		return function()
+		{
+			canvas.ellipse(pt.x - a, pt.y - a, size, size);
+						
+			if (filled)
+			{
+				canvas.fillAndStroke();
+			}
+			else
+			{
+				canvas.stroke();
+			}
+		};
+	});
+
+	function diamond(canvas, shape, type, pe, unitX, unitY, size, source, sw, filled)
+	{
+		// The angle of the forward facing arrow sides against the x axis is
+		// 45 degrees, 1/sin(45) = 1.4142 / 2 = 0.7071 ( / 2 allows for
+		// only half the strokewidth is processed ). Or 0.9862 for thin diamond.
+		// Note these values and the tk variable below are dependent, update
+		// both together (saves trig hard coding it).
+		var swFactor = (type == mxConstants.ARROW_DIAMOND) ?  0.7071 : 0.9862;
+		var endOffsetX = unitX * sw * swFactor;
+		var endOffsetY = unitY * sw * swFactor;
+		
+		unitX = unitX * (size + sw);
+		unitY = unitY * (size + sw);
+		
+		var pt = pe.clone();
+		pt.x -= endOffsetX;
+		pt.y -= endOffsetY;
+		
+		pe.x += -unitX - endOffsetX;
+		pe.y += -unitY - endOffsetY;
+		
+		// thickness factor for diamond
+		var tk = ((type == mxConstants.ARROW_DIAMOND) ?  2 : 3.4);
+		
+		return function()
+		{
+			canvas.begin();
+			canvas.moveTo(pt.x, pt.y);
+			canvas.lineTo(pt.x - unitX / 2 - unitY / tk, pt.y + unitX / tk - unitY / 2);
+			canvas.lineTo(pt.x - unitX, pt.y - unitY);
+			canvas.lineTo(pt.x - unitX / 2 + unitY / tk, pt.y - unitY / 2 - unitX / tk);
+			canvas.close();
+			
+			if (filled)
+			{
+				canvas.fillAndStroke();
+			}
+			else
+			{
+				canvas.stroke();
+			}
+		};
 	};
 
-	mxMarker.markers[mxConstants.ARROW_CLASSIC] = tmp;
-	mxMarker.markers[mxConstants.ARROW_BLOCK] = tmp;
-}());
-
-mxMarker.markers[mxConstants.ARROW_OPEN] = function(node, type, pe, nx, ny, strokewidth, size, scale, isVml)
-{
-	// The angle of the forward facing arrow sides against the x axis is
-	// 26.565 degrees, 1/sin(26.565) = 2.236 / 2 = 1.118 ( / 2 allows for
-	// only half the strokewidth is processed ).
-	var endOffsetX = nx * strokewidth * 1.118;
-	var endOffsetY = ny * strokewidth * 1.118;
-	pe.x -= endOffsetX;
-	pe.y -= endOffsetY;
-	
-	nx = nx * (size + strokewidth);
-	ny = ny * (size + strokewidth);
-
-	if (isVml)
-	{
-		node.path = 'm' + Math.round(pe.x - nx - ny / 2) + ' ' + Math.round(pe.y - ny + nx / 2) +
-			' l' + Math.round(pe.x) + ' ' + Math.round(pe.y) +
-			' ' + Math.round(pe.x + ny / 2 - nx) + ' ' + Math.round(pe.y - ny - nx / 2) +
-			' e nf';
-		node.setAttribute('strokeweight', (strokewidth * scale) + 'px');
-	}
-	else
-	{
-		node.setAttribute('d', 'M ' + (pe.x - nx - ny / 2) + ' ' + (pe.y - ny + nx / 2) +
-				' L ' + (pe.x) + ' ' + (pe.y) +
-				' L ' + (pe.x + ny / 2 - nx) + ' ' + (pe.y - ny - nx / 2));
-		node.setAttribute('stroke-width', strokewidth * scale);
-		node.setAttribute('fill', 'none');
-	}
-	
-	return new mxPoint(-endOffsetX * 2, -endOffsetY * 2);
-};
-
-mxMarker.markers[mxConstants.ARROW_OVAL] = function(node, type, pe, nx, ny, strokewidth, size, scale, isVml)
-{
-	nx *= size;
-	ny *= size;
-	
-	nx *= 0.5 + strokewidth / 2;
-	ny *= 0.5 + strokewidth / 2;
-	
-	var absSize = size * scale;
-	var radius = absSize / 2;
-	
-	if (isVml)
-	{
-		node.path = 'm' + Math.round(pe.x + radius) + ' ' + Math.round(pe.y) +
-			' at ' + Math.round(pe.x - radius) + ' ' + Math.round(pe.y - radius) +
-			' ' + Math.round(pe.x + radius) + ' ' + Math.round(pe.y + radius) +
-			' ' + Math.round(pe.x + radius) + ' ' + Math.round(pe.y) +
-			' ' + Math.round(pe.x + radius) + ' ' + Math.round(pe.y) +
-			' x e';
-		
-		node.setAttribute('strokeweight', (strokewidth * scale) + 'px');
-	}
-	else
-	{
-		node.setAttribute('d', 'M ' + (pe.x - radius) + ' ' + (pe.y) +
-			' a ' + (radius) + ' ' + (radius) +
-			' 0  1,1 ' + (absSize) + ' 0' +
-			' a ' + (radius) + ' ' + (radius) +
-			' 0  1,1 ' + (-absSize) + ' 0 z');
-		node.setAttribute('stroke-width', strokewidth * scale);
-	}
-	
-	return new mxPoint(-nx / (2 + strokewidth), -ny / (2 + strokewidth));
-};
-
-(function()
-		{
-			/**
-			 * Drawing of the diamond and thin diamond markers
-			 */
-			var tmp_diamond = function(node, type, pe, nx, ny, strokewidth, size, scale, isVml)
-			{
-				// The angle of the forward facing arrow sides against the x axis is
-				// 45 degrees, 1/sin(45) = 1.4142 / 2 = 0.7071 ( / 2 allows for
-				// only half the strokewidth is processed ). Or 0.9862 for thin diamond.
-				// Note these values and the tk variable below are dependent, update
-				// both together (saves trig hard coding it).
-				var swFactor = (type == mxConstants.ARROW_DIAMOND) ?  0.7071 : 0.9862;
-				var endOffsetX = nx * strokewidth * swFactor;
-				var endOffsetY = ny * strokewidth * swFactor;
-				
-				nx = nx * (size + strokewidth);
-				ny = ny * (size + strokewidth);
-				
-				pe.x -= endOffsetX + nx / 2;
-				pe.y -= endOffsetY + ny / 2;
-				
-				// thickness factor for diamond
-				var tk = ((type == mxConstants.ARROW_DIAMOND) ?  2 : 3.4);
-
-				if (isVml)
-				{
-					node.path = 'm' + Math.round(pe.x + nx / 2) + ' ' + Math.round(pe.y + ny / 2) +
-						' l' + Math.round(pe.x - ny / tk) + ' ' + Math.round(pe.y + nx / tk) +
-						' ' + Math.round(pe.x - nx / 2) + ' ' + Math.round(pe.y - ny / 2) +
-						' ' + Math.round(pe.x + ny / tk) + ' ' + Math.round(pe.y - nx / tk) +
-						' x e';
-					node.setAttribute('strokeweight', (strokewidth * scale) + 'px');
-				}
-				else
-				{
-					node.setAttribute('d', 'M ' + (pe.x + nx / 2) + ' ' + (pe.y + ny / 2) +
-						' L ' + (pe.x - ny / tk) + ' ' + (pe.y + nx / tk) +
-						' L ' + (pe.x - nx / 2) + ' ' + (pe.y - ny / 2) +
-						' L ' + (pe.x + ny / tk) + ' ' + (pe.y - nx / tk) +
-						' z');
-					node.setAttribute('stroke-width', strokewidth * scale);
-				}
-				
-				return new mxPoint(-endOffsetX - nx, -endOffsetY - ny);
-			};
-
-			mxMarker.markers[mxConstants.ARROW_DIAMOND] = tmp_diamond;
-			mxMarker.markers[mxConstants.ARROW_DIAMOND_THIN] = tmp_diamond;
-		}());
+	mxMarker.addMarker('diamond', diamond);
+	mxMarker.addMarker('diamondThin', diamond);
+})();
 /**
- * $Id: mxActor.js,v 1.35 2012/07/31 11:46:53 gaudenz Exp $
+ * $Id: mxActor.js,v 1.2 2012/11/22 10:40:09 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -23672,6 +22390,7 @@ mxMarker.markers[mxConstants.ARROW_OVAL] = function(node, type, pe, nx, ny, stro
  */
 function mxActor(bounds, fill, stroke, strokewidth)
 {
+	mxShape.call(this);
 	this.bounds = bounds;
 	this.fill = fill;
 	this.stroke = stroke;
@@ -23681,136 +22400,38 @@ function mxActor(bounds, fill, stroke, strokewidth)
 /**
  * Extends mxShape.
  */
-mxActor.prototype = new mxShape();
-mxActor.prototype.constructor = mxActor;
+mxUtils.extend(mxActor, mxShape);
 
 /**
- * Variable: mixedModeHtml
- *
- * Overrides the parent value with false, meaning it will
- * draw in VML in mixed Html mode.
+ * Function: paintVertexShape
+ * 
+ * Redirects to redrawPath for subclasses to work.
  */
-mxActor.prototype.mixedModeHtml = false;
-
-/**
- * Variable: preferModeHtml
- *
- * Overrides the parent value with false, meaning it will
- * draw as VML in prefer Html mode.
- */
-mxActor.prototype.preferModeHtml = false;
-
-/**
- * Variable: vmlScale
- *
- * Renders VML with a scale of 2.
- */
-mxActor.prototype.vmlScale = 2;
-
-/**
- * Function: createVml
- *
- * Creates and returns the VML node(s) to represent this shape.
- */
-mxActor.prototype.createVml = function()
+mxActor.prototype.paintVertexShape = function(c, x, y, w, h)
 {
-	var node = document.createElement('v:shape');
-	node.style.position = 'absolute';
-	this.configureVmlShape(node);
-	
-	return node;
-};
-
-/**
- * Function: redrawVml
- *
- * Updates the VML node(s) to reflect the latest bounds and scale.
- */
-mxActor.prototype.redrawVml = function()
-{
-	this.updateVmlShape(this.node);
-	this.node.path = this.createPath();
-};
-
-/**
- * Function: createSvg
- *
- * Creates and returns the SVG node(s) to represent this shape.
- */
-mxActor.prototype.createSvg = function()
-{
-	return this.createSvgGroup('path');
-};
-
-/**
- * Function: redrawSvg
- *
- * Updates the SVG node(s) to reflect the latest bounds and scale.
- */
-mxActor.prototype.redrawSvg = function()
-{
-	var strokeWidth = Math.round(Math.max(1, this.strokewidth * this.scale));
-	this.innerNode.setAttribute('stroke-width', strokeWidth);
-	this.innerNode.setAttribute('stroke-linejoin', 'round');
-
-	if (this.crisp && (this.rotation == null || this.rotation == 0))
-	{
-		this.innerNode.setAttribute('shape-rendering', 'crispEdges');
-	}
-	else
-	{
-		this.innerNode.removeAttribute('shape-rendering');
-	}
-	
-	var d = this.createPath();
-	
-	if (d.length > 0)
-	{
-		this.innerNode.setAttribute('d', d);
-
-		if (this.shadowNode != null)
-		{
-			this.shadowNode.setAttribute('transform', this.getSvgShadowTransform() + 
-				(this.innerNode.getAttribute('transform') || ''));
-			this.shadowNode.setAttribute('stroke-width', strokeWidth);
-			this.shadowNode.setAttribute('d', d);
-		}
-	}
-	else
-	{
-		this.innerNode.removeAttribute('d');
-		
-		if (this.shadowNode != null)
-		{
-			this.shadowNode.removeAttribute('d');
-		}
-	}
-	
-	if (this.isDashed)
-	{
-		var phase = Math.max(1, Math.round(3 * this.scale * this.strokewidth));
-		this.innerNode.setAttribute('stroke-dasharray', phase + ' ' + phase);
-	}
+	c.translate(x, y);
+	c.begin();
+	this.redrawPath(c, x, y, w, h);
+	c.fillAndStroke();
 };
 
 /**
  * Function: redrawPath
  *
- * Draws the path for this shape. This method uses the <mxPath>
- * abstraction to paint the shape for VML and SVG.
+ * Draws the path for this shape.
  */
-mxActor.prototype.redrawPath = function(path, x, y, w, h)
+mxActor.prototype.redrawPath = function(c, x, y, w, h)
 {
 	var width = w/3;
-	path.moveTo(0, h);
-	path.curveTo(0, 3 * h / 5, 0, 2 * h / 5, w / 2, 2 * h / 5);
-	path.curveTo(w / 2 - width, 2 * h / 5, w / 2 - width, 0, w / 2, 0);
-	path.curveTo(w / 2 + width, 0, w / 2 + width, 2 * h / 5, w / 2, 2 * h / 5);
-	path.curveTo(w, 2 * h / 5, w, 3 * h / 5, w, h);
-	path.close();
+	c.moveTo(0, h);
+	c.curveTo(0, 3 * h / 5, 0, 2 * h / 5, w / 2, 2 * h / 5);
+	c.curveTo(w / 2 - width, 2 * h / 5, w / 2 - width, 0, w / 2, 0);
+	c.curveTo(w / 2 + width, 0, w / 2 + width, 2 * h / 5, w / 2, 2 * h / 5);
+	c.curveTo(w, 2 * h / 5, w, 3 * h / 5, w, h);
+	c.close();
 };
 /**
- * $Id: mxCloud.js,v 1.12 2011/06/24 11:27:30 gaudenz Exp $
+ * $Id: mxCloud.js,v 1.3 2012/11/22 21:04:16 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -23836,6 +22457,7 @@ mxActor.prototype.redrawPath = function(path, x, y, w, h)
  */
 function mxCloud(bounds, fill, stroke, strokewidth)
 {
+	mxActor.call(this);
 	this.bounds = bounds;
 	this.fill = fill;
 	this.stroke = stroke;
@@ -23845,28 +22467,26 @@ function mxCloud(bounds, fill, stroke, strokewidth)
 /**
  * Extends mxActor.
  */
-mxCloud.prototype = new mxActor();
-mxCloud.prototype.constructor = mxActor;
+mxUtils.extend(mxCloud, mxActor);
 
 /**
  * Function: redrawPath
  *
- * Draws the path for this shape. This method uses the <mxPath>
- * abstraction to paint the shape for VML and SVG.
+ * Draws the path for this shape.
  */
-mxCloud.prototype.redrawPath = function(path, x, y, w, h)
+mxCloud.prototype.redrawPath = function(c, x, y, w, h)
 {
-	path.moveTo(0.25 * w, 0.25 * h);
-	path.curveTo(0.05 * w, 0.25 * h, 0, 0.5 * h, 0.16 * w, 0.55 * h);
-	path.curveTo(0, 0.66 * h, 0.18 * w, 0.9 * h, 0.31 * w, 0.8 * h);
-	path.curveTo(0.4 * w, h, 0.7 * w, h, 0.8 * w, 0.8 * h);
-	path.curveTo(w, 0.8 * h, w, 0.6 * h, 0.875 * w, 0.5 * h);
-	path.curveTo(w, 0.3 * h, 0.8 * w, 0.1 * h, 0.625 * w, 0.2 * h);
-	path.curveTo(0.5 * w, 0.05 * h, 0.3 * w, 0.05 * h, 0.25 * w, 0.25 * h);
-	path.close();
+	c.moveTo(0.25 * w, 0.25 * h);
+	c.curveTo(0.05 * w, 0.25 * h, 0, 0.5 * h, 0.16 * w, 0.55 * h);
+	c.curveTo(0, 0.66 * h, 0.18 * w, 0.9 * h, 0.31 * w, 0.8 * h);
+	c.curveTo(0.4 * w, h, 0.7 * w, h, 0.8 * w, 0.8 * h);
+	c.curveTo(w, 0.8 * h, w, 0.6 * h, 0.875 * w, 0.5 * h);
+	c.curveTo(w, 0.3 * h, 0.8 * w, 0.1 * h, 0.625 * w, 0.2 * h);
+	c.curveTo(0.5 * w, 0.05 * h, 0.3 * w, 0.05 * h, 0.25 * w, 0.25 * h);
+	c.close();
 };
 /**
- * $Id: mxRectangleShape.js,v 1.17 2012/09/26 07:51:29 gaudenz Exp $
+ * $Id: mxRectangleShape.js,v 1.9 2012/12/15 17:14:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -23891,6 +22511,7 @@ mxCloud.prototype.redrawPath = function(path, x, y, w, h)
  */
 function mxRectangleShape(bounds, fill, stroke, strokewidth)
 {
+	mxShape.call(this);
 	this.bounds = bounds;
 	this.fill = fill;
 	this.stroke = stroke;
@@ -23900,34 +22521,203 @@ function mxRectangleShape(bounds, fill, stroke, strokewidth)
 /**
  * Extends mxShape.
  */
-mxRectangleShape.prototype = new mxShape();
-mxRectangleShape.prototype.constructor = mxRectangleShape;
+mxUtils.extend(mxRectangleShape, mxShape);
 
 /**
- * Function: createVml
+ * Function: isHtmlAllowed
  *
- * Creates and returns the VML node to represent this shape.
+ * Returns true for non-rounded, non-rotated shapes with no glass gradient.
  */
-mxRectangleShape.prototype.createVml = function()
+mxRectangleShape.prototype.isHtmlAllowed = function()
 {
-	var name = (this.isRounded) ? 'v:roundrect' : 'v:rect';
-	var node = document.createElement(name);
-	this.configureVmlShape(node);
+	return !this.isRounded && !this.glass && this.rotation == 0;
+};
+
+/**
+ * Function: paintBackground
+ * 
+ * Generic background painting implementation.
+ */
+mxRectangleShape.prototype.paintBackground = function(c, x, y, w, h)
+{
+	if (this.isRounded)
+	{
+		var f = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE,
+			mxConstants.RECTANGLE_ROUNDING_FACTOR * 100) / 100;
+		var r = Math.min(w * f, h * f);
+		c.roundrect(x, y, w, h, r, r);
+	}
+	else
+	{
+		c.rect(x, y, w, h);
+	}
+		
+	c.fillAndStroke();
+};
+
+/**
+ * Function: paintForeground
+ * 
+ * Generic background painting implementation.
+ */
+mxRectangleShape.prototype.paintForeground = function(c, x, y, w, h)
+{
+	if (this.glass)
+	{
+		this.paintGlassEffect(c, x, y, w, h, this.getArcSize(w + this.strokewidth, h + this.strokewidth));
+	}
+};
+
+/**
+ * Function: redrawHtml
+ *
+ * Allow optimization by replacing VML with HTML.
+ */
+mxRectangleShape.prototype.redrawHtmlShape = function()
+{
+	// LATER: Refactor methods
+	this.updateHtmlBounds(this.node);
+	this.updateHtmlFilters(this.node);
+	this.updateHtmlColors(this.node);
+};
+
+/**
+ * Function: mixedModeHtml
+ *
+ * Allow optimization by replacing VML with HTML.
+ */
+mxRectangleShape.prototype.updateHtmlBounds = function(node)
+{
+	var sw = (document.documentMode >= 9) ? 0 : Math.ceil(this.strokewidth * this.scale);
+	node.style.borderWidth = Math.max(1, sw) + 'px';
+	node.style.overflow = 'hidden';
 	
-	return node;
+	node.style.left = Math.round(this.bounds.x - sw / 2) + 'px';
+	node.style.top = Math.round(this.bounds.y - sw / 2) + 'px';
+
+	if (document.compatMode == 'CSS1Compat')
+	{
+		sw = -sw;
+	}
+	
+	node.style.width = Math.round(Math.max(0, this.bounds.width + sw)) + 'px';
+	node.style.height = Math.round(Math.max(0, this.bounds.height + sw)) + 'px';
 };
 
 /**
- * Function: createSvg
+ * Function: mixedModeHtml
  *
- * Creates and returns the SVG node to represent this shape.
+ * Allow optimization by replacing VML with HTML.
  */
-mxRectangleShape.prototype.createSvg = function()
+mxRectangleShape.prototype.updateHtmlColors = function(node)
 {
-	return this.createSvgGroup('rect');
+	var color = this.stroke;
+	
+	if (color != null && color != mxConstants.NONE)
+	{
+		node.style.borderColor = color;
+
+		if (this.isDashed)
+		{
+			node.style.borderStyle = 'dashed';
+		}
+		else if (this.strokewidth > 0)
+		{
+			node.style.borderStyle = 'solid';
+		}
+
+		node.style.borderWidth = Math.max(1, Math.ceil(this.strokewidth * this.scale)) + 'px';
+	}
+	else
+	{
+		node.style.borderWidth = '0px';
+	}
+
+	color = this.fill;
+	
+	if (color != null && color != mxConstants.NONE)
+	{
+		node.style.backgroundColor = color;
+		node.style.backgroundImage = 'none';
+	}
+	else if (this.pointerEvents)
+	{
+		 node.style.backgroundColor = 'transparent';
+	}
+	else if (document.documentMode == 8)
+	{
+		mxUtils.addTransparentBackgroundFilter(node);
+	}
+	else
+	{
+		this.setTransparentBackgroundImage(node);
+	}
+};
+
+/**
+ * Function: updateHtmlFilters
+ *
+ * Allow optimization by replacing VML with HTML.
+ */
+mxRectangleShape.prototype.updateHtmlFilters = function(node)
+{
+	var f = '';
+	
+	if (this.opacity < 100)
+	{
+		f += 'alpha(opacity=' + (this.opacity) + ')';
+	}
+	
+	if (this.isShadow)
+	{
+		// FIXME: Cannot implement shadow transparency with filter
+		f += 'progid:DXImageTransform.Microsoft.dropShadow (' +
+			'OffX=\'' + Math.round(mxConstants.SHADOW_OFFSET_X * this.scale) + '\', ' +
+			'OffY=\'' + Math.round(mxConstants.SHADOW_OFFSET_Y * this.scale) + '\', ' +
+			'Color=\'' + mxConstants.SHADOWCOLOR + '\')';
+	}
+	
+	if (this.gradient)
+	{
+		var start = this.fill;
+		var end = this.gradient;
+		var type = '0';
+		
+		var lookup = {east:0,south:1,west:2,north:3};
+		var dir = (this.direction != null) ? lookup[this.direction] : 0;
+		
+		if (this.gradientDirection != null)
+		{
+			dir = mxUtils.mod(dir + lookup[this.gradientDirection] - 1, 4);
+		}
+
+		if (dir == 1)
+		{
+			type = '1';
+			var tmp = start;
+			start = end;
+			end = tmp;
+		}
+		else if (dir == 2)
+		{
+			var tmp = start;
+			start = end;
+			end = tmp;
+		}
+		else if (dir == 3)
+		{
+			type = '1';
+		}
+		
+		f += 'progid:DXImageTransform.Microsoft.gradient(' +
+			'startColorStr=\'' + start + '\', endColorStr=\'' + end +
+			'\', gradientType=\'' + type + '\')';
+	}
+
+	node.style.filter = f;
 };
 /**
- * $Id: mxEllipse.js,v 1.20 2012/04/04 07:34:50 gaudenz Exp $
+ * $Id: mxEllipse.js,v 1.1 2012/11/15 13:26:42 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -23952,6 +22742,7 @@ mxRectangleShape.prototype.createSvg = function()
  */
 function mxEllipse(bounds, fill, stroke, strokewidth)
 {
+	mxShape.call(this);
 	this.bounds = bounds;
 	this.fill = fill;
 	this.stroke = stroke;
@@ -23961,105 +22752,20 @@ function mxEllipse(bounds, fill, stroke, strokewidth)
 /**
  * Extends mxShape.
  */
-mxEllipse.prototype = new mxShape();
-mxEllipse.prototype.constructor = mxEllipse;
+mxUtils.extend(mxEllipse, mxShape);
 
 /**
- * Variable: mixedModeHtml
- *
- * Overrides the parent value with false, meaning it will
- * draw in VML in mixed Html mode.
+ * Function: paintVertexShape
+ * 
+ * Paints the ellipse shape.
  */
-mxEllipse.prototype.mixedModeHtml = false;
-
-/**
- * Variable: preferModeHtml
- *
- * Overrides the parent value with false, meaning it will
- * draw as VML in prefer Html mode.
- */
-mxEllipse.prototype.preferModeHtml = false;
-
-/**
- * Function: createVml
- *
- * Creates and returns the VML node to represent this shape.
- */
-mxEllipse.prototype.createVml = function()
+mxEllipse.prototype.paintVertexShape = function(c, x, y, w, h)
 {
-	// Uses an arc not an oval to make sure the
-	// textbox fills out the outer bounds of the
-	// circle, not just the inner rectangle
-	var node = document.createElement('v:arc');
-	node.startangle = '0';
-	node.endangle = '360';
-	this.configureVmlShape(node);
-
-	return node;
-};
-
-/**
- * Function: createSvg
- *
- * Creates and returns the SVG node(s) to represent this shape.
- */
-mxEllipse.prototype.createSvg = function()
-{
-	return this.createSvgGroup('ellipse');
-};
-
-/**
- * Function: redrawSvg
- *
- * Updates the SVG node(s) to reflect the latest bounds and scale.
- */
-mxEllipse.prototype.redrawSvg = function()
-{
-	if (this.crisp)
-	{
-		this.innerNode.setAttribute('shape-rendering', 'crispEdges');
-	}
-	else
-	{
-		this.innerNode.removeAttribute('shape-rendering');
-	}
-	
-	this.updateSvgNode(this.innerNode);
-	this.updateSvgNode(this.shadowNode);
-};
-
-/**
- * Function: updateSvgNode
- *
- * Updates the given node to reflect the new <bounds> and <scale>.
- */
-mxEllipse.prototype.updateSvgNode = function(node)
-{
-	if (node != null)
-	{
-		var strokeWidth = Math.round(Math.max(1, this.strokewidth * this.scale));
-		node.setAttribute('stroke-width', strokeWidth);
-		
-		node.setAttribute('cx', this.bounds.x + this.bounds.width / 2);
-		node.setAttribute('cy', this.bounds.y + this.bounds.height / 2);
-		node.setAttribute('rx', this.bounds.width / 2);
-		node.setAttribute('ry', this.bounds.height / 2);
-		
-		// Updates the shadow offset
-		if (this.shadowNode != null)
-		{
-			this.shadowNode.setAttribute('transform',  this.getSvgShadowTransform());
-		}
-
-		if (this.isDashed)
-		{
-			var phase = Math.max(1, Math.round(3 * this.scale * this.strokewidth));
-			node.setAttribute('stroke-dasharray', phase + ' ' + phase);
-		}
-	}
+	c.ellipse(x, y, w, h);
+	c.fillAndStroke();
 };
 /**
- * $Id: mxDoubleEllipse.js,v 1.20 2012/12/19 17:45:24 gaudenz Exp $
+ * $Id: mxDoubleEllipse.js,v 1.4 2013/01/05 21:30:31 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -24084,6 +22790,7 @@ mxEllipse.prototype.updateSvgNode = function(node)
  */
 function mxDoubleEllipse(bounds, fill, stroke, strokewidth)
 {
+	mxShape.call(this);
 	this.bounds = bounds;
 	this.fill = fill;
 	this.stroke = stroke;
@@ -24093,185 +22800,49 @@ function mxDoubleEllipse(bounds, fill, stroke, strokewidth)
 /**
  * Extends mxShape.
  */
-mxDoubleEllipse.prototype = new mxShape();
-mxDoubleEllipse.prototype.constructor = mxDoubleEllipse;
-
-/**
- * Variable: vmlNodes
- *
- * Adds local references to <mxShape.vmlNodes>.
- */
-mxDoubleEllipse.prototype.vmlNodes = mxDoubleEllipse.prototype.vmlNodes.concat(['background', 'foreground']);
-
-/**
- * Variable: mixedModeHtml
- *
- * Overrides the parent value with false, meaning it will
- * draw in VML in mixed Html mode.
- */
-mxDoubleEllipse.prototype.mixedModeHtml = false;
-
-/**
- * Variable: preferModeHtml
- *
- * Overrides the parent value with false, meaning it will
- * draw as VML in prefer Html mode.
- */
-mxDoubleEllipse.prototype.preferModeHtml = false;
+mxUtils.extend(mxDoubleEllipse, mxShape);
 
 /**
  * Variable: vmlScale
- *
- * Renders VML with a scale of 2.
+ * 
+ * Scale for improving the precision of VML rendering. Default is 10.
  */
-mxDoubleEllipse.prototype.vmlScale = 2;
+mxDoubleEllipse.prototype.vmlScale = 10;
 
 /**
- * Function: createVml
- *
- * Creates and returns the VML node to represent this shape.
+ * Function: paintBackground
+ * 
+ * Paints the background.
  */
-mxDoubleEllipse.prototype.createVml = function()
+mxDoubleEllipse.prototype.paintBackground = function(c, x, y, w, h)
 {
-	var node = document.createElement('v:group');
-
-	// Draws the background
-	this.background = document.createElement('v:arc');
-	this.background.startangle = '0';
-	this.background.endangle = '360';
-	this.configureVmlShape(this.background);
-
-	node.appendChild(this.background);
-	
-	// Ignores values that only apply to the background
-	this.label = this.background;
-	this.isShadow = false;
-	this.fill = null;
-
-	// Draws the foreground
-	this.foreground = document.createElement('v:oval');
-	this.configureVmlShape(this.foreground);
-	
-	node.appendChild(this.foreground);
-	
-	this.stroke = null;
-	this.configureVmlShape(node);
-	
-	return node;
+	c.ellipse(x, y, w, h);
+	c.fillAndStroke();
 };
 
 /**
- * Function: redrawVml
- *
- * Updates the VML node(s) to reflect the latest bounds and scale.
+ * Function: paintForeground
+ * 
+ * Paints the foreground.
  */
-mxDoubleEllipse.prototype.redrawVml = function()
+mxDoubleEllipse.prototype.paintForeground = function(c, x, y, w, h)
 {
-	this.updateVmlShape(this.node);
-	this.updateVmlShape(this.background);
-	this.updateVmlShape(this.foreground);
-
-	var inset = Math.round((this.strokewidth + 3) * this.scale) * this.vmlScale;
-	var w = Math.round(this.bounds.width * this.vmlScale);
-	var h = Math.round(this.bounds.height * this.vmlScale);
+	var inset = Math.min(4, Math.min(w / 5, h / 5));
+	x += inset;
+	y += inset;
+	w -= 2 * inset;
+	h -= 2 * inset;
 	
-	this.foreground.style.top = inset + 'px'; // relative
-	this.foreground.style.left = inset + 'px'; // relative
-	this.foreground.style.width = Math.max(0, w - 2 * inset) + 'px';
-	this.foreground.style.height = Math.max(0, h - 2 * inset) + 'px';
-};
-
-/**
- * Function: createSvg
- *
- * Creates and returns the SVG node(s) to represent this shape.
- */
-mxDoubleEllipse.prototype.createSvg = function()
-{
-	var g = this.createSvgGroup('ellipse');
-	this.foreground = document.createElementNS(mxConstants.NS_SVG, 'ellipse');
-	
-	if (this.stroke != null)
+	// FIXME: Rounding issues in IE8 standards mode (not in 1.x)
+	if (w > 0 && h > 0)
 	{
-		this.foreground.setAttribute('stroke', this.stroke);
-	}
-	else
-	{
-		this.foreground.setAttribute('stroke', 'none');
+		c.ellipse(x, y, w, h);
 	}
 	
-	// Workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=814952
-	if (mxClient.IS_NS && !mxClient.IS_GC && !mxClient.IS_SF)
-	{
-		this.foreground.setAttribute('fill', 'transparent');
-	}
-	else
-	{
-		this.foreground.setAttribute('fill', 'none');
-	}
-	
-	g.appendChild(this.foreground);
-	
-	return g;
-};
-
-/**
- * Function: redrawSvg
- *
- * Updates the SVG node(s) to reflect the latest bounds and scale.
- */
-mxDoubleEllipse.prototype.redrawSvg = function()
-{
-	if (this.crisp)
-	{
-		this.innerNode.setAttribute('shape-rendering', 'crispEdges');
-		this.foreground.setAttribute('shape-rendering', 'crispEdges');
-	}
-	else
-	{
-		this.innerNode.removeAttribute('shape-rendering');
-		this.foreground.removeAttribute('shape-rendering');
-	}
-	
-	this.updateSvgNode(this.innerNode);
-	this.updateSvgNode(this.shadowNode);
-	this.updateSvgNode(this.foreground, (this.strokewidth + 3) * this.scale);
-	
-	if (this.isDashed)
-	{
-		var phase = Math.max(1, Math.round(3 * this.scale * this.strokewidth));
-		this.innerNode.setAttribute('stroke-dasharray', phase + ' ' + phase);
-	}
-};
-
-/**
- * Function: updateSvgNode
- *
- * Updates the given node to reflect the new <bounds> and <scale>.
- */
-mxDoubleEllipse.prototype.updateSvgNode = function(node, inset)
-{
-	inset = (inset != null) ? inset : 0;
-	
-	if (node != null)
-	{
-		var strokeWidth = Math.round(Math.max(1, this.strokewidth * this.scale));
-		node.setAttribute('stroke-width', strokeWidth);
-		
-		node.setAttribute('cx', this.bounds.x + this.bounds.width / 2);
-		node.setAttribute('cy', this.bounds.y + this.bounds.height / 2);
-		node.setAttribute('rx', Math.max(0, this.bounds.width / 2 - inset));
-		node.setAttribute('ry', Math.max(0, this.bounds.height / 2 - inset));
-
-		// Updates the transform of the shadow
-		if (this.shadowNode != null)
-		{
-			this.shadowNode.setAttribute('transform',  this.getSvgShadowTransform());
-		}
-	}
+	c.stroke();
 };
 /**
- * $Id: mxRhombus.js,v 1.25 2012/04/04 07:34:50 gaudenz Exp $
+ * $Id: mxRhombus.js,v 1.2 2012/11/22 10:40:09 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -24296,6 +22867,7 @@ mxDoubleEllipse.prototype.updateSvgNode = function(node, inset)
  */
 function mxRhombus(bounds, fill, stroke, strokewidth)
 {
+	mxShape.call(this);
 	this.bounds = bounds;
 	this.fill = fill;
 	this.stroke = stroke;
@@ -24305,145 +22877,29 @@ function mxRhombus(bounds, fill, stroke, strokewidth)
 /**
  * Extends mxShape.
  */
-mxRhombus.prototype = new mxShape();
-mxRhombus.prototype.constructor = mxRhombus;
+mxUtils.extend(mxRhombus, mxShape);
 
 /**
- * Variable: mixedModeHtml
- *
- * Overrides the parent value with false, meaning it will
- * draw in VML in mixed Html mode.
+ * Function: paintVertexShape
+ * 
+ * Generic painting implementation.
  */
-mxRhombus.prototype.mixedModeHtml = false;
-
-/**
- * Variable: preferModeHtml
- *
- * Overrides the parent value with false, meaning it will
- * draw as VML in prefer Html mode.
- */
-mxRhombus.prototype.preferModeHtml = false;
-
-/**
- * Function: createHtml
- *
- * Creates and returns the HTML node to represent this shape.
- */
-mxRhombus.prototype.createHtml = function()
+mxRhombus.prototype.paintVertexShape = function(c, x, y, w, h)
 {
-	var node = document.createElement('DIV');
-	this.configureHtmlShape(node);
+	var hw = w / 2;
+	var hh = h / 2;
+
+	c.begin();
+	c.moveTo(x + hw, y);
+	c.lineTo(x + w, y + hh);
+	c.lineTo(x + hw, y + h);
+	c.lineTo(x, y + hh);
+	c.close();
 	
-	return node;
-};
-
-/**
- * Function: createVml
- *
- * Creates and returns the VML node(s) to represent this shape.
- */
-mxRhombus.prototype.createVml = function()
-{
-	var node = document.createElement('v:shape');
-	this.configureVmlShape(node);
-	
-	return node;
-};
-
-/**
- * Function: createSvg
- *
- * Creates and returns the SVG node(s) to represent this shape.
- */
-mxRhombus.prototype.createSvg = function()
-{
-	return this.createSvgGroup('path');
-};
-
-// TODO: When used as an indicator, this.node.points is null
-// so we use a path object for building general diamonds.
-//mxRhombus.prototype.redraw = function() {
-//	this.node.setAttribute('strokeweight', (this.strokewidth * this.scale) + 'px');
-//	var x = this.bounds.x;
-//	var y = this.bounds.y;
-//	var w = this.bounds.width;
-//	var h = this.bounds.height;
-//	this.node.points.value = (x+w/2)+','+y+' '+(x+w)+','+(y+h/2)+
-//		' '+(x+w/2)+','+(y+h)+' '+x+','+(y+h/2)+' '+
-//		(x+w/2)+','+y;
-//}
-
-/**
- * Function: redrawVml
- *
- * Updates the VML node(s) to reflect the latest bounds and scale.
- */
-mxRhombus.prototype.redrawVml = function()
-{
-	this.updateVmlShape(this.node);
-	var x = 0;
-	var y = 0;
-	var w = Math.round(this.bounds.width);
-	var h = Math.round(this.bounds.height);
-
-	this.node.path = 'm ' + Math.round(x + w / 2) + ' ' + y +
-		' l ' + (x + w) + ' ' + Math.round(y + h / 2) +
-		' l ' + Math.round(x + w / 2) + ' ' + (y + h) +
-		' l ' + x + ' ' + Math.round(y + h / 2) + ' x e';
-};
-
-/**
- * Function: redrawHtml
- *
- * Updates the HTML node(s) to reflect the latest bounds and scale.
- */
-mxRhombus.prototype.redrawHtml = function()
-{
-	this.updateHtmlShape(this.node);
-};
-
-/**
- * Function: redrawSvg
- *
- * Updates the SVG node(s) to reflect the latest bounds and scale.
- */
-mxRhombus.prototype.redrawSvg = function()
-{
-	this.updateSvgNode(this.innerNode);
-	
-	if (this.shadowNode != null)
-	{
-		this.updateSvgNode(this.shadowNode);
-	}
-};
-
-/**
- * Function: createSvgSpan
- *
- * Updates the path for the given SVG node.
- */
-mxRhombus.prototype.updateSvgNode = function(node)
-{
-	var strokeWidth = Math.round(Math.max(1, this.strokewidth * this.scale));
-	node.setAttribute('stroke-width', strokeWidth);
-	var x = this.bounds.x;
-	var y = this.bounds.y;
-	var w = this.bounds.width;
-	var h = this.bounds.height;
-	var d = 'M ' + Math.round(x + w / 2) + ' ' + Math.round(y) + ' L ' + Math.round(x + w) + ' ' + Math.round(y + h / 2) +
-		' L ' + Math.round(x + w / 2) + ' ' + Math.round(y + h) + ' L ' + Math.round(x) + ' ' + Math.round(y + h / 2) +
-		' Z ';
-	node.setAttribute('d', d);
-	this.updateSvgTransform(node, node == this.shadowNode);
-
-	if (this.isDashed)
-	{
-		var phase = Math.max(1, Math.round(3 * this.scale * this.strokewidth));
-		node.setAttribute('stroke-dasharray', phase + ' ' + phase);
-	}
+	c.fillAndStroke();
 };
 /**
- * $Id: mxPolyline.js,v 1.31 2012/05/24 12:00:45 gaudenz Exp $
+ * $Id: mxPolyline.js,v 1.4 2013/02/04 09:27:33 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -24468,6 +22924,7 @@ mxRhombus.prototype.updateSvgNode = function(node)
  */
 function mxPolyline(points, stroke, strokewidth)
 {
+	mxShape.call(this);
 	this.points = points;
 	this.stroke = stroke;
 	this.strokewidth = (strokewidth != null) ? strokewidth : 1;
@@ -24476,120 +22933,92 @@ function mxPolyline(points, stroke, strokewidth)
 /**
  * Extends mxShape.
  */
-mxPolyline.prototype = new mxShape();
-mxPolyline.prototype.constructor = mxPolyline;
+mxUtils.extend(mxPolyline, mxShape);
 
 /**
- * Variable: addPipe
- *
- * Specifies if a SVG path should be created around any path to increase the
- * tolerance for mouse events. Default is false since this shape is filled.
+ * Function: getRotation
+ * 
+ * Overrides to return 0.
  */
-mxPolyline.prototype.addPipe = true;
-
-/**
- * Function: create
- *
- * Override to create HTML regardless of gradient and
- * rounded property.
- */
-mxPolyline.prototype.create = function()
+mxPolyline.prototype.getRotation = function()
 {
-	var node = null;
+	return 0;
+};
+
+/**
+ * Function: paintEdgeShape
+ * 
+ * Paints the line shape.
+ */
+mxPolyline.prototype.paintEdgeShape = function(c, pts)
+{
+	this.paintLine(c, pts, this.isRounded);
+};
+
+/**
+ * Function: paintLine
+ * 
+ * Paints the line shape.
+ */
+mxPolyline.prototype.paintLine = function(c, pts, rounded)
+{
+	var arcSize = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, mxConstants.LINE_ARCSIZE) / 2;
+	var pt = pts[0];
+	var pe = pts[pts.length - 1];
+
+	c.begin();
+	c.moveTo(pt.x, pt.y);
 	
-	if (this.dialect == mxConstants.DIALECT_SVG)
+	// Draws the line segments
+	for (var i = 1; i < pts.length - 1; i++)
 	{
-		node = this.createSvg();
-	}
-	else if (this.dialect == mxConstants.DIALECT_STRICTHTML ||
-			(this.dialect == mxConstants.DIALECT_PREFERHTML &&
-			this.points != null && this.points.length > 0))
-	{
-		node = document.createElement('DIV');
-		this.configureHtmlShape(node);
-		node.style.borderStyle = '';
-		node.style.background = '';
-	}
-	else
-	{
-		node = document.createElement('v:shape');
-		this.configureVmlShape(node);
-		var strokeNode = document.createElement('v:stroke');
-	
-		if (this.opacity != null)
+		var tmp = pts[i];
+		var dx = pt.x - tmp.x;
+		var dy = pt.y - tmp.y;
+
+		if ((rounded && i < pts.length - 1) && (dx != 0 || dy != 0))
 		{
-			strokeNode.opacity = this.opacity + '%';
-		}
-		
-		node.appendChild(strokeNode);
-	}
-	
-	return node;
-};
+			// Draws a line from the last point to the current
+			// point with a spacing of size off the current point
+			// into direction of the last point
+			var dist = Math.sqrt(dx * dx + dy * dy);
+			var nx1 = dx * Math.min(arcSize, dist / 2) / dist;
+			var ny1 = dy * Math.min(arcSize, dist / 2) / dist;
 
-/**
- * Function: redrawVml
- *
- * Overrides the method to update the bounds if they have not been
- * assigned.
- */
-mxPolyline.prototype.redrawVml = function()
-{
-	// Updates the bounds based on the points
-	if (this.points != null && this.points.length > 0 && this.points[0] != null)
-	{
-		this.bounds = new mxRectangle(this.points[0].x,this.points[0].y, 0, 0);
-		
-		for (var i = 1; i < this.points.length; i++)
+			var x1 = tmp.x + nx1;
+			var y1 = tmp.y + ny1;
+			c.lineTo(x1, y1);
+
+			// Draws a curve from the last point to the current
+			// point with a spacing of size off the current point
+			// into direction of the next point
+			var next = pts[i + 1];
+			dx = next.x - tmp.x;
+			dy = next.y - tmp.y;
+
+			dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+			var nx2 = dx * Math.min(arcSize, dist / 2) / dist;
+			var ny2 = dy * Math.min(arcSize, dist / 2) / dist;
+
+			var x2 = tmp.x + nx2;
+			var y2 = tmp.y + ny2;
+
+			c.quadTo(tmp.x, tmp.y, x2, y2);
+			tmp = new mxPoint(x2, y2);
+		}
+		else
 		{
-			this.bounds.add(new mxRectangle(this.points[i].x,this.points[i].y, 0, 0));
+			c.lineTo(tmp.x, tmp.y);
 		}
+
+		pt = tmp;
 	}
 
-	mxShape.prototype.redrawVml.apply(this, arguments);
-};
-
-/**
- * Function: createSvg
- *
- * Creates and returns the SVG node(s) to represent this shape.
- */
-mxPolyline.prototype.createSvg = function()
-{
-	var g = this.createSvgGroup('path');
-	
-	// Creates an invisible shape around the path for easier
-	// selection with the mouse. Note: Firefox does not ignore
-	// the value of the stroke attribute for pointer-events: stroke,
-	// it does, however, ignore the visibility attribute.
-	if (this.addPipe)
-	{
-		this.pipe = this.createSvgPipe();
-		g.appendChild(this.pipe);
-	}
-	
-	return g;
-};
-
-/**
- * Function: redrawSvg
- *
- * Updates the SVG node(s) to reflect the latest bounds and scale.
- */
-mxPolyline.prototype.redrawSvg = function()
-{
-	this.updateSvgShape(this.innerNode);
-	var d = this.innerNode.getAttribute('d');
-	
-	if (d != null && this.pipe != null)
-	{
-		this.pipe.setAttribute('d', d);
-		var strokeWidth = Math.round(Math.max(1, this.strokewidth * this.scale));
-		this.pipe.setAttribute('stroke-width', strokeWidth + mxShape.prototype.SVG_STROKE_TOLERANCE);
-	}
+	c.lineTo(pe.x, pe.y);
+	c.stroke();
 };
 /**
- * $Id: mxArrow.js,v 1.31 2012/05/23 19:09:22 gaudenz Exp $
+ * $Id: mxArrow.js,v 1.1 2012/11/15 13:26:42 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -24622,6 +23051,7 @@ mxPolyline.prototype.redrawSvg = function()
  */
 function mxArrow(points, fill, stroke, strokewidth, arrowWidth, spacing, endSize)
 {
+	mxShape.call(this);
 	this.points = points;
 	this.fill = fill;
 	this.stroke = stroke;
@@ -24632,152 +23062,25 @@ function mxArrow(points, fill, stroke, strokewidth, arrowWidth, spacing, endSize
 };
 
 /**
- * Extends <mxActor>.
+ * Extends mxShape.
  */
-mxArrow.prototype = new mxActor();
-mxArrow.prototype.constructor = mxArrow;
+mxUtils.extend(mxArrow, mxShape);
 
 /**
- * Variable: addPipe
- *
- * Specifies if a SVG path should be created around any path to increase the
- * tolerance for mouse events. Default is false since this shape is filled.
- */
-mxArrow.prototype.addPipe = false;
-
-/**
- * Variable: enableFill
- *
- * Specifies if fill colors should be ignored. This must be set to true for
- * shapes that are stroked only. Default is true since this shape is filled.
- */
-mxArrow.prototype.enableFill = true;
-
-/**
- * Function: configureTransparentBackground
+ * Function: paintEdgeShape
  * 
- * Overidden to remove transparent background.
+ * Paints the line shape.
  */
-mxArrow.prototype.configureTransparentBackground = function(node)
+mxArrow.prototype.paintEdgeShape = function(c, pts)
 {
-	// do nothing
-};
-
-/**
- * Function: updateBoundingBox
- *
- * Updates the <boundingBox> for this shape.
- */
-mxArrow.prototype.augmentBoundingBox = function(bbox)
-{
-	// FIXME: Fix precision, share math and cache results with painting code
-	bbox.grow(Math.max(this.arrowWidth / 2, this.endSize / 2) * this.scale);
-	
-	mxShape.prototype.augmentBoundingBox.apply(this, arguments);
-};
-
-/**
- * Function: createVml
- *
- * Extends <mxShape.createVml> to ignore fill if <enableFill> is false.
- */
-mxArrow.prototype.createVml = function()
-{
-	if (!this.enableFill)
-	{
-		this.fill = null;
-	}
-	
-	return mxActor.prototype.createVml.apply(this, arguments);
-};
-
-/**
- * Function: createSvg
- *
- * Extends <mxActor.createSvg> to ignore fill if <enableFill> is false and
- * create an event handling shape if <this.addPipe> is true.
- */
-mxArrow.prototype.createSvg = function()
-{
-	if (!this.enableFill)
-	{
-		this.fill = null;
-	}
-	
-	var g = mxActor.prototype.createSvg.apply(this, arguments);
-	
-	// Creates an invisible shape around the path for easier
-	// selection with the mouse. Note: Firefox does not ignore
-	// the value of the stroke attribute for pointer-events: stroke,
-	// it does, however, ignore the visibility attribute.
-	if (this.addPipe)
-	{
-		this.pipe = this.createSvgPipe();
-		g.appendChild(this.pipe);
-	}
-	
-	return g;
-};
-
-/**
- * Function: reconfigure
- *
- * Extends <mxActor.reconfigure> to ignore fill if <enableFill> is false.
- */
-mxArrow.prototype.reconfigure = function()
-{
-	if (!this.enableFill)
-	{
-		this.fill = null;
-	}
-	
-	mxActor.prototype.reconfigure.apply(this, arguments);
-};
-
-/**
- * Function: redrawSvg
- *
- * Extends <mxActor.redrawSvg> to update the event handling shape if one
- * exists.
- */
-mxArrow.prototype.redrawSvg = function()
-{
-	mxActor.prototype.redrawSvg.apply(this, arguments);
-	
-	if (this.pipe != null)
-	{
-		var d = this.innerNode.getAttribute('d');
-		
-		if (d != null)
-		{
-			this.pipe.setAttribute('d', this.innerNode.getAttribute('d'));
-			var strokeWidth = Math.round(this.strokewidth * this.scale);
-			this.pipe.setAttribute('stroke-width', strokeWidth + mxShape.prototype.SVG_STROKE_TOLERANCE);
-		}
-	}
-};
-
-/**
- * Function: redrawPath
- *
- * Draws the path for this shape. This method uses the <mxPath>
- * abstraction to paint the shape for VML and SVG.
- */
-mxArrow.prototype.redrawPath = function(path, x, y, w, h)
-{
-	// All points are offset
-	path.translate.x -= x;
-	path.translate.y -= y;
-
 	// Geometry of arrow
-	var spacing = this.spacing * this.scale;
-	var width = this.arrowWidth * this.scale;
-	var arrow = this.endSize * this.scale;
+	var spacing =  mxConstants.ARROW_SPACING;
+	var width = mxConstants.ARROW_WIDTH;
+	var arrow = mxConstants.ARROW_SIZE;
 
 	// Base vector (between end points)
-	var p0 = this.points[0];
-	var pe = this.points[this.points.length - 1];
-	
+	var p0 = pts[0];
+	var pe = pts[pts.length - 1];
 	var dx = pe.x - p0.x;
 	var dy = pe.y - p0.y;
 	var dist = Math.sqrt(dx * dx + dy * dy);
@@ -24804,18 +23107,20 @@ mxArrow.prototype.redrawPath = function(path, x, y, w, h)
 	var p5x = p3x - 3 * floorx;
 	var p5y = p3y - 3 * floory;
 	
-	path.moveTo(p0x, p0y);
-	path.lineTo(p1x, p1y);
-	path.lineTo(p2x, p2y);
-	path.lineTo(p3x, p3y);
-	path.lineTo(pe.x - spacing * nx, pe.y - spacing * ny);
-	path.lineTo(p5x, p5y);
-	path.lineTo(p5x + floorx, p5y + floory);
-	path.lineTo(p0x, p0y);
-	path.close();
+	c.begin();
+	c.moveTo(p0x, p0y);
+	c.lineTo(p1x, p1y);
+	c.lineTo(p2x, p2y);
+	c.lineTo(p3x, p3y);
+	c.lineTo(pe.x - spacing * nx, pe.y - spacing * ny);
+	c.lineTo(p5x, p5y);
+	c.lineTo(p5x + floorx, p5y + floory);
+	c.close();
+
+	c.fillAndStroke();
 };
 /**
- * $Id: mxText.js,v 1.175 2013/04/09 14:15:50 gaudenz Exp $
+ * $Id: mxText.js,v 1.48 2013/04/09 13:16:53 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -24825,13 +23130,7 @@ mxArrow.prototype.redrawPath = function(path, x, y, w, h)
  * bottom to top to top to bottom, the following code can be used:
  * 
  * (code)
- * mxText.prototype.ieVerticalFilter = 'progid:DXImageTransform.Microsoft.BasicImage(rotation=1)';
- * mxText.prototype.verticalTextDegree = 90;
- * 
- * mxText.prototype.getVerticalOffset = function(offset)
- * {
- *   return new mxPoint(-offset.y, offset.x);
- * };
+ * mxText.prototype.verticalTextRotation = 90;
  * (end)
  * 
  * Constructor: mxText
@@ -24883,6 +23182,7 @@ function mxText(value, bounds, align, valign, color,
 	spacingBottom, spacingLeft, horizontal, background, border,
 	wrap, clipped, overflow, labelPadding)
 {
+	mxShape.call(this);
 	this.value = value;
 	this.bounds = bounds;
 	this.color = (color != null) ? color : 'black';
@@ -24890,7 +23190,7 @@ function mxText(value, bounds, align, valign, color,
 	this.valign = (valign != null) ? valign : '';
 	this.family = (family != null) ? family : mxConstants.DEFAULT_FONTFAMILY;
 	this.size = (size != null) ? size : mxConstants.DEFAULT_FONTSIZE;
-	this.fontStyle = (fontStyle != null) ? fontStyle : 0;
+	this.fontStyle = (fontStyle != null) ? fontStyle : mxConstants.DEFAULT_FONTSTYLE;
 	this.spacing = parseInt(spacing || 2);
 	this.spacingTop = this.spacing + parseInt(spacingTop || 0);
 	this.spacingRight = this.spacing + parseInt(spacingRight || 0);
@@ -24903,216 +23203,726 @@ function mxText(value, bounds, align, valign, color,
 	this.clipped = (clipped != null) ? clipped : false;
 	this.overflow = (overflow != null) ? overflow : 'visible';
 	this.labelPadding = (labelPadding != null) ? labelPadding : 0;
+	this.rotation = 0;
 };
 
 /**
  * Extends mxShape.
  */
-mxText.prototype = new mxShape();
-mxText.prototype.constructor = mxText;
+mxUtils.extend(mxText, mxShape);
+
+/**
+ * Variable: baseSpacingTop
+ * 
+ * Specifies the spacing to be added to the top spacing. Default is 0. Use the
+ * value 5 here to get the same label positions as in mxGraph 1.x.
+ */
+mxText.prototype.baseSpacingTop = 0;
+
+/**
+ * Variable: baseSpacingBottom
+ * 
+ * Specifies the spacing to be added to the bottom spacing. Default is 0. Use the
+ * value 1 here to get the same label positions as in mxGraph 1.x.
+ */
+mxText.prototype.baseSpacingBottom = 0;
+
+/**
+ * Variable: baseSpacingLeft
+ * 
+ * Specifies the spacing to be added to the left spacing. Default is 0.
+ */
+mxText.prototype.baseSpacingLeft = 0;
+
+/**
+ * Variable: baseSpacingRight
+ * 
+ * Specifies the spacing to be added to the right spacing. Default is 0.
+ */
+mxText.prototype.baseSpacingRight = 0;
 
 /**
  * Variable: replaceLinefeeds
  * 
  * Specifies if linefeeds in HTML labels should be replaced with BR tags.
- * Default is true. This is also used in <mxImageExport> to export the label.
+ * Default is true.
  */
 mxText.prototype.replaceLinefeeds = true;
 
 /**
- * Variable: ieVerticalFilter
+ * Variable: verticalTextRotation
  * 
- * Holds the filter definition for vertical text in IE. Default is
- * progid:DXImageTransform.Microsoft.BasicImage(rotation=3).
+ * Rotation for vertical text. Default is -90 (bottom to top).
  */
-mxText.prototype.ieVerticalFilter = 'progid:DXImageTransform.Microsoft.BasicImage(rotation=3)';
+mxText.prototype.verticalTextRotation = -90;
 
 /**
- * Variable: verticalTextDegree
+ * Variable: ignoreClippedStringSize
  * 
- * Specifies the degree to be used for vertical text. Default is -90.
+ * Specifies if the actual string size should be measured if a label is clipped.
+ * If disabled the boundingBox will not ignore the actual size of the string
+ * and use <bounds> instead. Default is true. <ignoreStringSize> has precedence
+ * over this switch.
  */
-mxText.prototype.verticalTextDegree = -90;
+mxText.prototype.ignoreClippedStringSize = true;
 
 /**
- * Variable: forceIgnoreStringSize
+ * Variable: ignoreStringSize
  * 
- * Specifies if the string size should always be ignored. Default is false.
- * This can be used to improve rendering speed in slow browsers. This can be
- * used if all labels are smaller than the vertex width. String sizes are
- * ignored by default for labels which are left aligned with no background and
- * border or if the overflow is set to fill. 
+ * Specifies if the actual string size should be measured. If disabled the
+ * boundingBox will not ignore the actual size of the string. Default is false.
  */
-mxText.prototype.forceIgnoreStringSize = false;
+mxText.prototype.ignoreStringSize = false;
 
 /**
- * Function: isStyleSet
- *
- * Returns true if the given font style (bold, italic etc)
- * is true in this shape's fontStyle.
- *
- * Parameters:
- *
- * style - Fontstyle constant from <mxConstants>.
+ * Function: isParseVml
+ * 
+ * Text shapes do not contain VML markup and do not need to be parsed. This
+ * method returns false to speed up rendering in IE8.
  */
-mxText.prototype.isStyleSet = function(style)
+mxText.prototype.isParseVml = function()
 {
-	return (this.fontStyle & style) == style;
+	return false;
 };
 
 /**
- * Function: create
- *
- * Override to create HTML regardless of gradient and
- * rounded property.
+ * Function: isHtmlAllowed
+ * 
+ * Returns true if HTML is allowed for this shape. This implementation returns
+ * true if the browser is not in IE8 standards mode.
  */
-mxText.prototype.create = function(container)
+mxText.prototype.isHtmlAllowed = function()
 {
-	var node = null;
-	
-	if (this.dialect == mxConstants.DIALECT_SVG)
-	{
-		node = this.createSvg();
-	}
-	else if (this.dialect == mxConstants.DIALECT_STRICTHTML ||
-			this.dialect == mxConstants.DIALECT_PREFERHTML ||
-			!mxUtils.isVml(container))
-	{
-		if (mxClient.IS_SVG && !mxClient.NO_FO)
-		{
-			node = this.createForeignObject();
-		}
-		else
-		{
-			node = this.createHtml();
-		}
-	}
-	else
-	{
-		node = this.createVml();
-	}
-	
-	return node;
+	return document.documentMode != 8;
+};
+
+/**
+ * Function: getSvgScreenOffset
+ * 
+ * Disables offset in IE9 for crisper image output.
+ */
+mxText.prototype.getSvgScreenOffset = function()
+{
+	return 0;
+};
+
+/**
+ * Function: checkBounds
+ * 
+ * Returns true if the bounds are not null and all of its variables are numeric.
+ */
+mxText.prototype.checkBounds = function()
+{
+	return (this.bounds != null && !isNaN(this.bounds.x) && !isNaN(this.bounds.y) &&
+			!isNaN(this.bounds.width) && !isNaN(this.bounds.height));
 };
 
 /**
  * Function: updateBoundingBox
- * 
- * Overrides method to do nothing.
+ *
+ * Updates the <boundingBox> for this shape using the given node and position.
  */
 mxText.prototype.updateBoundingBox = function()
 {
-	// do nothing
-};
-
-/**
- * Function: createForeignObject
- *
- * Creates and returns the foreignObject node to represent this shape.
- */
-mxText.prototype.createForeignObject = function()
-{
-	var node = document.createElementNS(mxConstants.NS_SVG, 'g');
+	var node = this.node;
 	
-	var fo = document.createElementNS(mxConstants.NS_SVG, 'foreignObject');
-	fo.setAttribute('pointer-events', 'fill');
-
-	// Ignored in FF
-	if (this.overflow == 'hidden')
+	if (document.documentMode == 8 && node.firstChild != null)
 	{
-		fo.style.overflow = 'hidden';
+		node = node.firstChild;
+		
+		if (node.firstChild != null)
+		{
+			node = node.firstChild;
+		}
+	}
+	
+	this.boundingBox = this.bounds.clone();
+	var rot = this.getTextRotation();
+
+	if (!this.ignoreStringSize && node != null && this.overflow != 'fill' && (!this.clipped || !this.ignoreClippedStringSize))
+	{
+		var ow = null;
+		var oh = null;
+		
+		if (node.ownerSVGElement != null)
+		{
+			if (node.firstChild != null && node.firstChild.firstChild != null &&
+				node.firstChild.firstChild.nodeName == 'foreignObject')
+			{
+				node = node.firstChild.firstChild;
+				ow = (this.wrap) ? this.bounds.width : parseInt(node.getAttribute('width')) * this.scale;
+				oh = parseInt(node.getAttribute('height')) * this.scale;
+			}
+			else
+			{
+				var b = node.getBBox();
+				
+				if (b.width == 0 && b.height == 0)
+				{
+					return;
+				}
+				
+				this.boundingBox = new mxRectangle(b.x, b.y, b.width, b.height);
+				rot = 0;
+			}
+		}
+		else
+		{
+			var td = this.state.view.textDiv;
+			
+			// Use cached offset size
+			if (this.offsetWidth != null && this.offsetHeight != null)
+			{
+				ow = (this.wrap) ? this.bounds.width : this.offsetWidth * this.scale;
+				oh = this.offsetHeight * this.scale;
+			}
+			// Cannot get node size while container hidden so a
+			// shared temporary DIV is used for text measuring
+			else if (td != null)
+			{
+				this.updateFont(td);
+				this.updateSize(td);
+				
+				if (mxUtils.isNode(this.value))
+				{
+					td.innerHTML = this.value.outerHTML;
+				}
+				else
+				{
+					var val = (this.replaceLinefeeds) ? this.value.replace(/\n/g, '<br/>') : this.value;
+					td.innerHTML = val;
+				}
+
+				ow = (this.wrap) ? this.bounds.width : td.offsetWidth * this.scale;
+				oh = td.offsetHeight * this.scale;
+			}
+			else
+			{
+				ow = (this.wrap) ? this.bounds.width : node.offsetWidth * this.scale;
+				oh = node.offsetHeight * this.scale;
+			}
+		}
+
+		if (ow != null && oh != null)
+		{
+			var x0 = this.bounds.x + this.margin.x * ow;
+			var y0 = this.bounds.y + this.margin.y * oh;
+			
+			this.boundingBox = new mxRectangle(x0, y0, ow, oh);
+		}
 	}
 	else
 	{
-		// Fill and default are visible
-		fo.style.overflow = 'visible';
+		this.boundingBox.x += this.margin.x * this.boundingBox.width;
+		this.boundingBox.y += this.margin.y * this.boundingBox.height;		
+	}
+
+	if (this.boundingBox != null)
+	{
+		if (rot != 0)
+		{
+			var bbox = mxUtils.getBoundingBox(this.boundingBox, rot);
+			
+			this.boundingBox.x = bbox.x;
+			this.boundingBox.y = bbox.y;
+			
+			if (!mxClient.IS_QUIRKS)
+			{
+				this.boundingBox.width = bbox.width;
+				this.boundingBox.height = bbox.height;
+			}
+		}
+	
+		this.boundingBox.x = Math.floor(this.boundingBox.x);
+		this.boundingBox.y = Math.floor(this.boundingBox.y);
+		this.boundingBox.width = Math.ceil(this.boundingBox.width);
+		this.boundingBox.height = Math.ceil(this.boundingBox.height);
+	}
+};
+
+/**
+ * Function: getShapeRotation
+ * 
+ * Returns 0 to avoid using rotation in the canvas via updateTransform.
+ */
+mxText.prototype.getShapeRotation = function()
+{
+	return 0;
+};
+
+/**
+ * Function: getTextRotation
+ * 
+ * Returns the rotation for the text label of the corresponding shape.
+ */
+mxText.prototype.getTextRotation = function()
+{
+	return (this.state != null && this.state.shape != null) ? this.state.shape.getTextRotation() : 0;
+};
+
+/**
+ * Function: isPaintBoundsInverted
+ * 
+ * Inverts the bounds if <mxShape.isBoundsInverted> returns true or if the
+ * horizontal style is false.
+ */
+mxText.prototype.isPaintBoundsInverted = function()
+{
+	return !this.horizontal && this.state != null && this.state.view.graph.model.isVertex(this.state.cell);
+};
+
+/**
+ * Function: configureCanvas
+ * 
+ * Sets the state of the canvas for drawing the shape.
+ */
+mxText.prototype.configureCanvas = function(c, x, y, w, h)
+{
+	mxShape.prototype.configureCanvas.apply(this, arguments);
+	
+	c.setFontColor(this.color);
+	c.setFontBackgroundColor(this.background);
+	c.setFontBorderColor(this.border);
+	c.setFontFamily(this.family);
+	c.setFontSize(this.size);
+	c.setFontStyle(this.fontStyle);
+};
+
+/**
+ * Function: updateVmlContainer
+ * 
+ * Sets the width and height of the container to 1px.
+ */
+mxText.prototype.updateVmlContainer = function()
+{
+	this.node.style.left = Math.round(this.bounds.x) + 'px';
+	this.node.style.top = Math.round(this.bounds.y) + 'px';
+	this.node.style.width = '1px';
+	this.node.style.height = '1px';
+	this.node.style.overflow = 'visible';
+};
+
+/**
+ * Function: paint
+ * 
+ * Generic rendering code.
+ */
+mxText.prototype.paint = function(c)
+{
+	// Scale is passed-through to canvas
+	var s = this.scale;
+	var x = this.bounds.x / s;
+	var y = this.bounds.y / s;
+	var w = this.bounds.width / s;
+	var h = this.bounds.height / s;
+
+	this.updateTransform(c, x, y, w, h);
+	this.configureCanvas(c, x, y, w, h);
+	
+	// Checks if text contains HTML markup
+	var realHtml = mxUtils.isNode(this.value) || this.dialect == mxConstants.DIALECT_STRICTHTML;
+	
+	// Always renders labels as HTML in VML
+	var fmt = (realHtml || c instanceof mxVmlCanvas2D) ? 'html' : '';
+	var val = this.value;
+	
+	if (!realHtml && fmt == 'html')
+	{
+		val =  mxUtils.htmlEntities(val, false);
 	}
 	
-	var body = document.createElement('div');
-	body.style.margin = '0px';
-	body.style.height = '100%';
-	
-	fo.appendChild(body);
-	node.appendChild(fo);
-	
-	return node;
+	val = (!mxUtils.isNode(this.value) && this.replaceLinefeeds && fmt == 'html') ?
+		val.replace(/\n/g, '<br/>') : val;
+		
+	c.text(x, y, w, h, val, this.align, this.valign, this.wrap, fmt, this.overflow == 'fill',
+		this.clipped, this.getTextRotation());
 };
 
 /**
- * Function: createHtml
- *
- * Creates and returns the HTML node to represent this shape.
- */
-mxText.prototype.createHtml = function()
-{
-	var table = this.createHtmlTable();
-	table.style.position = 'absolute';
-	
-	return table;
-};
-
-/**
- * Function: createVml
- *
- * Creates and returns the VML node(s) to represent this shape.
- */
-mxText.prototype.createVml = function()
-{
-	return document.createElement('v:textbox');
-};
-
-/**
- * Function: redrawHtml
+ * Function: redrawHtmlShape
  *
  * Updates the HTML node(s) to reflect the latest bounds and scale.
  */
-mxText.prototype.redrawHtml = function()
+mxText.prototype.redrawHtmlShape = function()
 {
-	this.redrawVml();
+	var style = this.node.style;
+	
+	if (this.opacity < 1)
+	{
+		style.opacity = this.opacity;
+	}
+	else
+	{
+		style.opacity = '';
+	}
+
+	// Resets CSS styles
+	style.overflow = '';
+	style.width = '';
+	style.height = '';
+	
+	this.updateFont(this.node);
+	this.updateSize(this.node);
+	this.updateValue();
+	
+	this.offsetWidth = null;
+	this.offsetHeight = null;
+	
+	if (mxClient.CSS_PREFIX != null)
+	{
+		this.updateHtmlTransform();
+	}
+	else
+	{
+		this.updateHtmlFilter();
+	}
 };
 
 /**
- * Function: getOffset
+ * Function: updateHtmlTransform
  *
- * Returns the description of the space between the <bounds> size and the label
- * size as an <mxPoint>.
+ * Returns the spacing as an <mxPoint>.
  */
-mxText.prototype.getOffset = function(outerWidth, outerHeight, actualWidth, actualHeight, horizontal)
+mxText.prototype.updateHtmlTransform = function()
 {
-	horizontal = (horizontal != null) ? horizontal : this.horizontal;
-
-	var tmpalign = (horizontal) ? this.align : this.valign;
-	var tmpvalign = (horizontal) ? this.valign : this.align;
-	var dx = actualWidth - outerWidth;
-	var dy = actualHeight - outerHeight;
+	var theta = this.getTextRotation();
+	var style = this.node.style;
+	var dx = this.margin.x;
+	var dy = this.margin.y;
 	
-	if (tmpalign == mxConstants.ALIGN_CENTER || tmpalign == mxConstants.ALIGN_MIDDLE)
+	if (theta != 0)
 	{
-		dx = Math.round(dx / 2);
+		style[mxClient.CSS_PREFIX + 'TransformOrigin'] = (-dx * 100) + '%' + ' ' + (-dy * 100) + '%';
+		style[mxClient.CSS_PREFIX + 'Transform'] = 'translate(' + (dx * 100) + '%' + ',' + (dy * 100) + '%)' +
+			'scale(' + this.scale + ') rotate(' + theta + 'deg)';
 	}
-	else if (tmpalign == mxConstants.ALIGN_LEFT || tmpalign === mxConstants.ALIGN_TOP)
+	else
 	{
-		dx = (horizontal) ? 0 : (actualWidth - actualHeight) / 2;
-	}
-	else if (!horizontal) // BOTTOM
-	{
-		dx = (actualWidth + actualHeight) / 2 - outerWidth;
+		style[mxClient.CSS_PREFIX + 'TransformOrigin'] = '0% 0%';
+		style[mxClient.CSS_PREFIX + 'Transform'] = 'scale(' + this.scale + ')' +
+			'translate(' + (dx * 100) + '%' + ',' + (dy * 100) + '%)';
 	}
 
-	if (tmpvalign == mxConstants.ALIGN_MIDDLE || tmpvalign == mxConstants.ALIGN_CENTER)
+	style.left = Math.round(this.bounds.x) + 'px';
+	style.top = Math.round(this.bounds.y) + 'px';
+};
+
+/**
+ * Function: updateHtmlFilter
+ *
+ * Rotated text rendering quality is bad for IE9 quirks/IE8 standards
+ */
+mxText.prototype.updateHtmlFilter = function()
+{
+	var style = this.node.style;
+	var dx = this.margin.x;
+	var dy = this.margin.y;
+	var s = this.scale;
+	
+	// Resets filter before getting offsetWidth
+	style.filter = '';
+	
+	// Adds 1 to match table height in 1.x
+	var ow = 0;
+	var oh = 0;
+	var td = (this.state != null) ? this.state.view.textDiv : null;
+
+	// Fallback for hidden text rendering in IE quirks mode
+	if (td != null)
 	{
-		dy = Math.round(dy / 2);
+		td.style.overflow = '';
+		td.style.height = '';
+		td.style.width = '';
+		
+		this.updateFont(td);
+		this.updateSize(td);
+
+		if (mxUtils.isNode(this.value))
+		{
+			td.innerHTML = this.value.outerHTML;
+		}
+		else
+		{
+			var val = this.value;
+			
+			if (this.dialect != mxConstants.DIALECT_STRICTHTML)
+			{
+				// LATER: Can be cached in updateValue
+				val = mxUtils.htmlEntities(val, false);
+			}
+	
+			val = (this.replaceLinefeeds) ? val.replace(/\n/g, '<br/>') : val;
+			td.innerHTML = val;
+		}
+		
+		ow = td.offsetWidth + 2; 
+		oh = td.offsetHeight + 2;
 	}
-	else if (tmpvalign == mxConstants.ALIGN_TOP || tmpvalign == mxConstants.ALIGN_LEFT)
+	else
 	{
-		dy = (horizontal) ? 0 : (actualHeight + actualWidth) / 2 - outerHeight;
-	}
-	else if (!horizontal) // RIGHT
-	{
-		dy = (actualHeight - actualWidth) / 2;
+		// Adds 1 to match table height in 1.x
+		ow = this.node.offsetWidth;
+		oh = this.node.offsetHeight + 1;
 	}
 	
-	return new mxPoint(dx, dy);
+	// Stores for later user
+	this.offsetWidth = ow;
+	this.offsetHeight = oh;
+
+	var w = this.bounds.width / s;
+	var h = this.bounds.height / s;
+	
+	// Simulates max-height CSS in quirks mode
+	if (mxClient.IS_QUIRKS && (this.clipped || this.overflow == 'fill') && h > 0)
+	{
+		h = Math.min(h, oh);
+		style.height = Math.round(h + 1) + 'px';
+	}
+	else
+	{
+		h = oh;
+	}
+
+	if (this.overflow != 'fill')
+	{
+		// Simulates max-height CSS in quirks mode
+		if (mxClient.IS_QUIRKS && (this.clipped || this.wrap) && w > 0)
+		{
+			w = Math.min(w, ow);
+			style.width = Math.round(w) + 'px';
+		}
+		else
+		{
+			w = ow;
+		}
+	}
+	
+	h *= s;
+	w *= s;
+	
+	// Rotation case is handled via VML canvas
+	var rad = this.getTextRotation() * (Math.PI / 180);
+	
+	// Precalculate cos and sin for the rotation
+	var real_cos = parseFloat(parseFloat(Math.cos(rad)).toFixed(8));
+	var real_sin = parseFloat(parseFloat(Math.sin(-rad)).toFixed(8));
+
+	rad %= 2 * Math.PI;
+	
+	if (rad < 0)
+	{
+		rad += 2 * Math.PI;
+	}
+	
+	rad %= Math.PI;
+	
+	if (rad > Math.PI / 2)
+	{
+		rad = Math.PI - rad;
+	}
+	
+	var cos = Math.cos(rad);
+	var sin = Math.sin(-rad);
+
+	var tx = w * -(dx + 0.5);
+	var ty = h * -(dy + 0.5);
+
+	var top_fix = (h - h * cos + w * sin) / 2 + real_sin * tx - real_cos * ty;
+	var left_fix = (w - w * cos + h * sin) / 2 - real_cos * tx - real_sin * ty;
+	
+	if (rad != 0)
+	{
+		style.filter = "progid:DXImageTransform.Microsoft.Matrix(M11=" + real_cos + ", M12="+
+			real_sin + ", M21=" + (-real_sin) + ", M22=" + real_cos + ", sizingMethod='auto expand')";
+	}
+	
+	style.zoom = s;
+	style.left = Math.round(this.bounds.x + left_fix - w / 2) + 'px';
+	style.top = Math.round(this.bounds.y + top_fix - h / 2) + 'px';
+};
+
+/**
+ * Function: updateValue
+ *
+ * Updates the HTML node(s) to reflect the latest bounds and scale.
+ */
+mxText.prototype.updateValue = function()
+{
+	if (mxUtils.isNode(this.value))
+	{
+		this.node.innerHTML = '';
+		this.node.appendChild(this.value);
+	}
+	else
+	{
+		var val = this.value;
+		
+		if (this.dialect != mxConstants.DIALECT_STRICTHTML)
+		{
+			val = mxUtils.htmlEntities(val, false);
+		}
+		
+		val = (this.replaceLinefeeds) ? val.replace(/\n/g, '<br/>') : val;
+		var bg = (this.background != null && this.background != mxConstants.NONE) ? this.background : null;
+		var bd = (this.border != null && this.border != mxConstants.NONE) ? this.border : null;
+
+		if (bg != null || bd != null)
+		{
+			if (this.overflow == 'fill')
+			{
+				if (bg != null)
+				{
+					this.node.style.backgroundColor = bg;
+				}
+				
+				if (bd != null)
+				{
+					this.node.style.border = '1px solid ' + bd;
+				}
+			}
+			else
+			{
+				var css = '';
+				
+				if (bg != null)
+				{
+					css += 'background-color:' + bg + ';';
+				}
+				
+				if (bd != null)
+				{
+					css += 'border:1px solid ' + bd + ';';
+				}
+				
+				// Wrapper DIV for background, zoom needed for inline in quirks
+				// FIXME: Background size in quirks mode for wrapped text
+				val = '<div style="zoom:1;' + css + 'display:inline-block;_display:inline;' +
+					'padding-bottom:1px;padding-right:1px;line-height:' +
+					this.node.style.lineHeight + '">' + val + '</div>';
+				this.node.style.lineHeight = '';
+			}
+		}
+	
+		this.node.innerHTML = val;
+	}
+};
+
+/**
+ * Function: updateFont
+ *
+ * Updates the HTML node(s) to reflect the latest bounds and scale.
+ */
+mxText.prototype.updateFont = function(node)
+{
+	var style = node.style;
+	
+	style.lineHeight = Math.round(this.size * mxConstants.LINE_HEIGHT) + 'px';
+	style.fontSize = Math.round(this.size) + 'px';
+	style.fontFamily = this.family;
+	style.verticalAlign = 'top';
+	style.color = this.color;
+	
+	if ((this.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
+	{
+		style.fontWeight = 'bold';
+	}
+	else
+	{
+		style.fontWeight = '';
+	}
+
+	if ((this.fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
+	{
+		style.fontStyle = 'italic';
+	}
+	else
+	{
+		style.fontStyle = '';
+	}
+	
+	if ((this.fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
+	{
+		style.textDecoration = 'underline';
+	}
+	else
+	{
+		style.textDecoration = '';
+	}
+	
+	if (this.align == mxConstants.ALIGN_CENTER)
+	{
+		style.textAlign = 'center';
+	}
+	else if (this.align == mxConstants.ALIGN_RIGHT)
+	{
+		style.textAlign = 'right';
+	}
+	else
+	{
+		style.textAlign = 'left';
+	}
+};
+
+/**
+ * Function: updateSize
+ *
+ * Updates the HTML node(s) to reflect the latest bounds and scale.
+ */
+mxText.prototype.updateSize = function(node)
+{
+	var w = Math.round(this.bounds.width / this.scale);
+	var h = Math.round(this.bounds.height / this.scale);
+	var style = node.style;
+	
+	// NOTE: Do not use maxWidth here because wrapping will
+	// go wrong if the cell is outside of the viewable area
+	if (this.clipped)
+	{
+		style.overflow = 'hidden';
+		
+		if (h > 0)
+		{
+			style.maxHeight = h + 'px';
+		}
+		
+		if (w > 0)
+		{
+			style.width = w + 'px';
+		}
+	}
+	else if (this.overflow == 'fill')
+	{
+		style.width = w + 'px';
+		
+		if (h > 0)
+		{
+			style.maxHeight = h + 'px';
+		}
+	}
+	
+	if (this.wrap && w > 0)
+	{
+		if (!this.clipped)
+		{
+			style.width = w + 'px';
+		}
+		
+		style.whiteSpace = 'normal';
+	}
+	else
+	{
+		style.whiteSpace = 'nowrap';
+	}
+};
+
+/**
+ * Function: getMargin
+ *
+ * Returns the spacing as an <mxPoint>.
+ */
+mxText.prototype.updateMargin = function()
+{
+	this.margin = mxUtils.getAlignmentAsPoint(this.align, this.valign);
 };
 
 /**
@@ -25120,10 +23930,8 @@ mxText.prototype.getOffset = function(outerWidth, outerHeight, actualWidth, actu
  *
  * Returns the spacing as an <mxPoint>.
  */
-mxText.prototype.getSpacing = function(horizontal)
+mxText.prototype.getSpacing = function()
 {
-	horizontal = (horizontal != null) ? horizontal : this.horizontal;
-
 	var dx = 0;
 	var dy = 0;
 
@@ -25133,11 +23941,11 @@ mxText.prototype.getSpacing = function(horizontal)
 	}
 	else if (this.align == mxConstants.ALIGN_RIGHT)
 	{
-		dx = -this.spacingRight;
+		dx = -this.spacingRight - this.baseSpacingRight;
 	}
 	else
 	{
-		dx = this.spacingLeft;
+		dx = this.spacingLeft + this.baseSpacingLeft;
 	}
 
 	if (this.valign == mxConstants.ALIGN_MIDDLE)
@@ -25146,1487 +23954,17 @@ mxText.prototype.getSpacing = function(horizontal)
 	}
 	else if (this.valign == mxConstants.ALIGN_BOTTOM)
 	{
-		dy = -this.spacingBottom;
+		dy = -this.spacingBottom - this.baseSpacingBottom;;
 	}
 	else
 	{
-		dy = this.spacingTop;
+		dy = this.spacingTop + this.baseSpacingTop;
 	}
 	
-	return (horizontal) ? new mxPoint(dx, dy) : new mxPoint(dy, dx);
-};
-
-/**
- * Function: createHtmlTable
- *
- * Creates and returns a HTML table with a table body and a single row with a
- * single cell.
- */
-mxText.prototype.createHtmlTable = function()
-{
-	var table = document.createElement('table');
-	table.style.borderCollapse = 'collapse';
-	var tbody = document.createElement('tbody');
-	var tr = document.createElement('tr');
-	var td = document.createElement('td');
-	
-	// Workaround for ignored table height in IE9 standards mode
-	if (document.documentMode >= 9)
-	{
-		// FIXME: Ignored in print preview for IE9 standards mode
-		td.style.height = '100%';
-	}
-
-	tr.appendChild(td);
-	tbody.appendChild(tr);
-	table.appendChild(tbody);
-	
-	return table;
-};
-
-/**
- * Function: updateTableStyle
- * 
- * Updates the style of the given HTML table and the value
- * within the table.
- */
-mxText.prototype.updateHtmlTable = function(table, scale)
-{
-	scale = (scale != null) ? scale : 1;
-	var td = table.firstChild.firstChild.firstChild;
-	
-	// Reset of width required to measure actual width after word wrap
-	if (this.wrap)
-	{
-		table.style.width = '';
-	}
-	
-	// Updates the value
-	if (mxUtils.isNode(this.value))
-	{
-		if (td.firstChild != this.value)
-		{
-			if (td.firstChild != null)
-			{
-				td.removeChild(td.firstChild);
-			}
-			
-			td.appendChild(this.value);
-		}
-	}
-	else
-	{
-		if (this.lastValue != this.value)
-		{
-			td.innerHTML = (this.replaceLinefeeds) ? this.value.replace(/\n/g, '<br/>') : this.value;
-			this.lastValue = this.value;
-		}
-	}
-
-	// Font style
-	var fontSize = Math.round(this.size * scale);
-
-	if (fontSize <= 0)
-	{
-		table.style.visibility = 'hidden';
-	}
-	else
-	{
-		// Do not use visible here as it will clone
-		// all labels while panning in IE
-		table.style.visibility = '';
-	}
-	
-	table.style.fontSize = fontSize + 'px';
-	table.style.color = this.color;
-	table.style.fontFamily = this.family;
-	
-	// Bold
-	if (this.isStyleSet(mxConstants.FONT_BOLD))
-	{
-		table.style.fontWeight = 'bold';
-	}
-	else
-	{
-		table.style.fontWeight = 'normal';
-	}
-	
-	// Italic
-	if (this.isStyleSet(mxConstants.FONT_ITALIC))
-	{
-		table.style.fontStyle = 'italic';
-	}
-	else
-	{
-		table.style.fontStyle = '';
-	}
-	
-	// Underline
-	if (this.isStyleSet(mxConstants.FONT_UNDERLINE))
-	{
-		table.style.textDecoration = 'underline';
-	}
-	else
-	{
-		table.style.textDecoration = '';
-	}
-
-	// Font shadow (only available in IE)
-	if (mxClient.IS_IE)
-	{
-		if (this.isStyleSet(mxConstants.FONT_SHADOW))
-		{
-			td.style.filter = 'Shadow(Color=#666666,'+'Direction=135,Strength=%)';
-		}
-		else
-		{
-			td.style.removeAttribute('filter');
-		}
-	}
-
-	// Horizontal and vertical alignment
-	td.style.textAlign =
-		(this.align == mxConstants.ALIGN_RIGHT) ? 'right' :
-		((this.align == mxConstants.ALIGN_CENTER) ? 'center' :
-		'left');
-	td.style.verticalAlign =
-		(this.valign == mxConstants.ALIGN_BOTTOM) ? 'bottom' :
-		((this.valign == mxConstants.ALIGN_MIDDLE) ? 'middle' :
-		'top');
-	
-	// Background style (Must use TD not TABLE for Firefox when rotated)
-	if (this.value.length > 0 && this.background != null)
-	{
-		td.style.background = this.background;
-	}
-	else
-	{
-		td.style.background = '';
-	}
-	
-	td.style.padding = this.labelPadding + 'px';
-	
-	if (this.value.length > 0 && this.border != null)
-	{
-		table.style.borderColor = this.border;
-		table.style.borderWidth = '1px';
-		table.style.borderStyle = 'solid';
-	}
-	else
-	{
-		table.style.borderStyle = 'none';
-	}
-};
-
-/**
- * Function: getTableSize
- * 
- * Returns the actual size of the table.
- */
-mxText.prototype.getTableSize = function(table)
-{
-	return new mxRectangle(0, 0, table.offsetWidth, table.offsetHeight);
-};
-
-/**
- * Function: updateTableWidth
- *
- * Updates the width of the given HTML table.
- */
-mxText.prototype.updateTableWidth = function(table)
-{
-	var td = table.firstChild.firstChild.firstChild;
-
-	// Word-wrap for vertices (not edges) and only if not
-	// just getting the bounding box in SVG
-	if (this.wrap && this.bounds.width > 0 && this.dialect != mxConstants.DIALECT_SVG)
-	{
-		// Makes sure the label is not wrapped when measuring full length
-		td.style.whiteSpace = 'nowrap';
-		var size = this.getTableSize(table);
-		var space = Math.min(size.width, ((this.horizontal || mxUtils.isVml(this.node)) ?
-				this.bounds.width : this.bounds.height) / this.scale);
-		
-		// Opera needs the new width to be scaled
-		if (mxClient.IS_OP)
-		{
-			space *= this.scale;
-		}
-
-		table.style.width = Math.round(space) + 'px';
-		td.style.whiteSpace = 'normal';
-	}
-	else
-	{
-		table.style.width = '';
-	}
-
-	if (!this.wrap || this.bounds.width == 0)
-	{
-		td.style.whiteSpace = 'nowrap';
-	}
-	else
-	{
-		td.style.whiteSpace = 'normal';
-	}
-};
-
-/**
- * Function: redrawVml
- *
- * Updates the VML node(s) to reflect the latest bounds and scale.
- */
-mxText.prototype.redrawVml = function()
-{
-	if (this.node.nodeName == 'g')
-	{
-		this.redrawForeignObject();
-	}
-	else if (mxUtils.isVml(this.node))
-	{
-		this.redrawTextbox();
-	}
-	else
-	{
-		this.redrawHtmlTable();
-	}
-};
-
-/**
- * Function: redrawTextbox
- *
- * Redraws the textbox for this text. This is only used in IE in exact
- * rendering mode.
- */
-mxText.prototype.redrawTextbox = function()
-{
-	// Gets VML textbox
-	var textbox = this.node;
-
-	// Creates HTML container on the fly
-	if (textbox.firstChild == null)
-	{
-		textbox.appendChild(this.createHtmlTable());
-	}
-
-	// Updates the table style and value
-	var table = textbox.firstChild;
-	this.updateHtmlTable(table);
-	this.updateTableWidth(table);
-	
-	// Opacity
-	if (this.opacity != null)
-	{
-		mxUtils.setOpacity(table, this.opacity);
-	}
-	
-	table.style.filter = '';
-	textbox.inset = '0px,0px,0px,0px';
-	
-	if (this.overflow != 'fill')
-	{
-		// Only tables can be used to work out the actual size of the markup
-		var size = this.getTableSize(table);
-		var w = size.width * this.scale;
-		var h = size.height * this.scale;
-		var offset = this.getOffset(this.bounds.width, this.bounds.height, w, h);
-	
-		// Rotates the label (IE only)
-		if (!this.horizontal)
-		{
-			table.style.filter = this.ieVerticalFilter;
-		}
-		
-		// Adds horizontal/vertical spacing
-		var spacing = this.getSpacing();
-		var x = this.bounds.x - offset.x + spacing.x * this.scale;
-		var y = this.bounds.y - offset.y + spacing.y * this.scale;
-	
-		// Textboxes are always relative to their parent shape's top, left corner so
-		// we use the inset for absolute positioning as they allow negative values
-		// except for edges where the bounds are used to find the shape center
-		var x0 = this.bounds.x;
-		var y0 = this.bounds.y;
-		var ow = this.bounds.width;
-		var oh = this.bounds.height;
-	
-		// Insets are given as left, top, right, bottom
-		if (this.horizontal)
-		{
-			var tx = Math.round(x - x0);
-			var ty = Math.round(y - y0);
-			
-			var r = Math.min(0, Math.round(x0 + ow - x - w - 1));
-			var b = Math.min(0, Math.round(y0 + oh - y - h - 1));
-			textbox.inset = tx + 'px,' + ty + 'px,' + r + 'px,' + b + 'px';
-		}
-		else
-		{
-			var t = 0;
-			var l = 0;
-			var r = 0;
-			var b = 0;
-			
-			if (this.align == mxConstants.ALIGN_CENTER)
-			{
-				t = (oh - w) / 2;
-				b = t;
-			}
-			else if (this.align == mxConstants.ALIGN_LEFT)
-			{
-				t = oh - w; 
-			}
-			else
-			{
-				b = oh - w;
-			}
-			
-			if (this.valign == mxConstants.ALIGN_MIDDLE)
-			{
-				l = (ow - h) / 2;
-				r = l;
-			}
-			else if (this.valign == mxConstants.ALIGN_BOTTOM)
-			{
-				l = ow - h; 
-			}
-			else
-			{
-				r = ow - h;
-			}
-			
-			textbox.inset = l + 'px,' + t + 'px,' + r + 'px,' + b + 'px';
-		}
-		
-		textbox.style.zoom = this.scale;
-	
-		// Clipping
-		if (this.clipped && this.bounds.width > 0 && this.bounds.height > 0)
-		{
-			this.boundingBox = this.bounds.clone();
-			var dx = Math.round(x0 - x);
-			var dy = Math.round(y0 - y);
-	
-			textbox.style.clip = 'rect(' + (dy / this.scale) + ' ' +
-				((dx + this.bounds.width) / this.scale) + ' ' +
-				((dy + this.bounds.height) / this.scale) + ' ' +
-				(dx / this.scale) + ')';
-		}
-		else
-		{
-			this.boundingBox = new mxRectangle(x, y, w, h);
-		}
-	}
-	else
-	{
-		this.boundingBox = this.bounds.clone();
-	}
-};
-
-/**
- * Function: redrawHtmlTable
- * 
- * Redraws the HTML table. This is used for HTML labels in all modes except
- * exact in IE and if NO_FO is false for the browser.
- */
-mxText.prototype.redrawHtmlTable = function()
-{
-	if (isNaN(this.bounds.x) || isNaN(this.bounds.y) ||
-		isNaN(this.bounds.width) || isNaN(this.bounds.height))
-	{
-		return;
-	}
-	
-	// Gets table
-	var table = this.node;
-	var td = table.firstChild.firstChild.firstChild;
-
-	// Un-rotates for computing the actual size
-	// TODO: Check if the result can be tweaked instead in getActualSize
-	// and only do this if actual rotation did change
-	var oldBrowser = false;
-	var fallbackScale = 1;
-	
-	if (mxClient.IS_IE)
-	{
-		table.style.removeAttribute('filter');
-	}
-	else if (mxClient.IS_SF || mxClient.IS_GC)
-	{
-		table.style.WebkitTransform = '';
-	}
-	else if (mxClient.IS_MT)
-	{
-		table.style.MozTransform = '';
-		td.style.MozTransform = '';
-	}
-	else
-	{
-		if (mxClient.IS_OT)
-		{
-			table.style.OTransform = '';
-		}
-		
-		fallbackScale = this.scale;
-		oldBrowser = true;
-	}
-
-	// Resets the current zoom for text measuring
-	td.style.zoom = '';
-	
-	// Updates the table style and value
-	this.updateHtmlTable(table, fallbackScale);
-	this.updateTableWidth(table);
-
-	// Opacity
-	if (this.opacity != null)
-	{
-		mxUtils.setOpacity(table, this.opacity);
-	}
-
-	// Resets the bounds for computing the actual size
-	table.style.left = '';
-	table.style.top = '';
-	table.style.height = '';
-
-	// Workaround for multiple zoom even if CSS style is reset here
-	var currentZoom = parseFloat(td.style.zoom) || 1;
-
-	// Only tables can be used to work out the actual size of the markup
-	// NOTE: offsetWidth and offsetHeight are very slow in quirks and IE 8 standards mode
-	var w = this.bounds.width;
-	var h = this.bounds.height;
-	
-	var ignoreStringSize = this.forceIgnoreStringSize || this.overflow == 'fill' ||
-			(this.align == mxConstants.ALIGN_LEFT && this.background == null && this.border == null);
-	
-	if (!ignoreStringSize)
-	{
-		var size = this.getTableSize(table);
-		w = size.width / currentZoom;
-		h = size.height / currentZoom;
-	}
-
-	var offset = this.getOffset(this.bounds.width / this.scale,
-			this.bounds.height / this.scale, w, h,
-			oldBrowser || this.horizontal);
-
-	// Adds horizontal/vertical spacing
-	var spacing = this.getSpacing(oldBrowser || this.horizontal);
-	var x = this.bounds.x / this.scale - offset.x + spacing.x;
-	var y = this.bounds.y / this.scale - offset.y + spacing.y;
-
-	// Updates the table bounds and stores the scale to be used for
-	// defining the table width and height, as well as an offset
-	var s = this.scale;
-	var s2 = 1;
-	var shiftX = 0;
-	var shiftY = 0;
-	
-	// Rotates the label and adds offset
-	if (!this.horizontal)
-	{
-		if (mxClient.IS_IE && mxClient.IS_SVG)
-		{
-			table.style.msTransform = 'rotate(' + this.verticalTextDegree + 'deg)';
-		}
-		else if (mxClient.IS_IE)
-		{
-			table.style.filter = this.ieVerticalFilter;
-			shiftX = (w - h) / 2;
-			shiftY = -shiftX;
-		}
-		else if (mxClient.IS_SF || mxClient.IS_GC)
-		{
-			table.style.WebkitTransform = 'rotate(' + this.verticalTextDegree + 'deg)';
-		}
-		else if (mxClient.IS_OT)
-		{
-			table.style.OTransform = 'rotate(' + this.verticalTextDegree + 'deg)';
-		}
-		else if (mxClient.IS_MT)
-		{
-			// Firefox paints background and border only if background is on TD
-			// and border is on TABLE and both are rotated, just the TD with a
-			// rotation of zero (don't remove the 0-rotate CSS style)
-			table.style.MozTransform = 'rotate(' + this.verticalTextDegree + 'deg)';
-			td.style.MozTransform = 'rotate(0deg)';
-			
-			s2 = 1 / this.scale;
-			s = 1;
-		}
-	}
-
-	// Sets the zoom
-	var correction = true;
-	
-	if (mxClient.IS_MT || oldBrowser)
-	{
-		if (mxClient.IS_MT)
-		{
-			table.style.MozTransform += ' scale(' + this.scale + ')';
-			s2 = 1 / this.scale;
-		}
-		else if (mxClient.IS_OT)
-		{
-			td.style.OTransform = 'scale(' + this.scale + ')';
-			table.style.borderWidth = Math.round(this.scale * parseInt(table.style.borderWidth)) + 'px';
-		}
-	}
-	else if (!oldBrowser)
-	{
-		// Workaround for unsupported zoom CSS in IE9 standards mode
-		if (document.documentMode >= 9)
-		{
-			td.style.msTransform = 'scale(' + this.scale + ')';
-		}
-		// Uses transform in Webkit for better HTML scaling
-		else if (mxClient.IS_SF || mxClient.IS_GC)
-		{
-			td.style.WebkitTransform = 'scale(' + this.scale + ')';
-		}
-		else
-		{
-			td.style.zoom = this.scale;
-			
-			// Fixes scaling of border width
-			if (table.style.borderWidth != '' && document.documentMode != 8)
-			{
-				table.style.borderWidth = Math.round(this.scale * parseInt(table.style.borderWidth)) + 'px';
-			}
-			
-			// Workaround for wrong scale in IE8 standards mode
-			if (document.documentMode == 8 || !mxClient.IS_IE)
-			{
-				s = 1;
-			}
-			
-			correction = false;
-		}
-	}
-
-	if (correction)
-	{
-		// Workaround for scaled TD position
-		shiftX = (this.scale - 1) * w / (2 * this.scale);
-		shiftY = (this.scale - 1) * h / (2 * this.scale);
-		s = 1;
-	}
-	
-	if (this.overflow != 'fill')
-	{
-	    var rect =  new mxRectangle(Math.round((x + shiftX) * this.scale),
-	    		Math.round((y + shiftY) * this.scale), Math.round(w * s), Math.round(h * s));
-	    table.style.left = rect.x + 'px';
-	    table.style.top = rect.y + 'px';
-	    table.style.width = rect.width + 'px';
-	    table.style.height = rect.height + 'px';
-		
-		// Workaround for wrong scale in border and background rendering for table and td in IE8/9 standards mode
-		if ((this.background != null || this.border != null) && document.documentMode >= 8)
-		{
-			var html = (this.replaceLinefeeds) ? this.value.replace(/\n/g, '<br/>') : this.value;
-			td.innerHTML = '<div style="padding:' + this.labelPadding + 'px;background:' + td.style.background + ';border:' + table.style.border + '">' + html + '</div>';
-			td.style.padding = '0px';
-			td.style.background = '';
-			table.style.border = '';
-		}
-
-		// Clipping
-		if (this.clipped && this.bounds.width > 0 && this.bounds.height > 0)
-		{
-			this.boundingBox = this.bounds.clone();
-	
-			// Clipping without rotation or for older browsers
-			if (this.horizontal || (oldBrowser && !mxClient.IS_OT))
-			{
-				var dx = Math.max(0, offset.x * s);
-				var dy = Math.max(0, offset.y * s);
-
-				// TODO: Fix clipping for Opera
-				table.style.clip = 'rect(' + (dy) + 'px ' + (dx + this.bounds.width * s2) +
-					'px ' + (dy + this.bounds.height * s2) + 'px ' + (dx) + 'px)';
-			}
-			else
-			{
-				// Workaround for IE clip using top, right, bottom, left (un-rotated)
-				if (mxClient.IS_IE)
-				{
-					var uw = this.bounds.width;
-					var uh = this.bounds.height;
-					var dx = 0;
-					var dy = 0;
-	
-					if (this.align == mxConstants.ALIGN_LEFT)
-					{
-						dx = Math.max(0, w - uh / this.scale) * this.scale;
-					}
-					else if (this.align == mxConstants.ALIGN_CENTER)
-					{
-						dx = Math.max(0, w - uh / this.scale) * this.scale / 2;
-					}
-					
-					if (this.valign == mxConstants.ALIGN_BOTTOM)
-					{
-						dy = Math.max(0, h - uw / this.scale) * this.scale;
-					}
-					else if (this.valign == mxConstants.ALIGN_MIDDLE)
-					{
-						dy = Math.max(0, h - uw / this.scale) * this.scale / 2;
-					}
-	
-					table.style.clip = 'rect(' + (dx) + 'px ' + (dy + uw - 1) +
-						'px ' + (dx + uh - 1) + 'px ' + (dy) + 'px)';
-				}
-				else
-				{
-					var uw = this.bounds.width / this.scale;
-					var uh = this.bounds.height / this.scale;
-					
-					if (mxClient.IS_OT)
-					{
-						uw = this.bounds.width;
-						uh = this.bounds.height;
-					}
-					
-					var dx = 0;
-					var dy = 0;
-	
-					if (this.align == mxConstants.ALIGN_RIGHT)
-					{
-						dx = Math.max(0, w - uh);
-					}
-					else if (this.align == mxConstants.ALIGN_CENTER)
-					{
-						dx = Math.max(0, w - uh) / 2;
-					}
-					
-					if (this.valign == mxConstants.ALIGN_BOTTOM)
-					{
-						dy = Math.max(0, h - uw);
-					}
-					else if (this.valign == mxConstants.ALIGN_MIDDLE)
-					{
-						dy = Math.max(0, h - uw) / 2;
-					}
-					
-					if (mxClient.IS_GC || mxClient.IS_SF)
-					{
-						dx *= this.scale;
-						dy *= this.scale;
-						uw *= this.scale;
-						uh *= this.scale;
-					}
-	
-					table.style.clip = 'rect(' + (dy) + ' ' + (dx + uh) +
-						' ' + (dy + uw) + ' ' + (dx) + ')';
-				}
-			}
-		}
-		else
-		{
-			this.boundingBox = rect;
-		}
-	}
-	else
-	{
-		this.boundingBox = this.bounds.clone();
-		
-		if (document.documentMode >= 9 || mxClient.IS_SVG)
-		{
-			table.style.left = Math.round(this.bounds.x + this.scale / 2 + shiftX) + 'px';
-			table.style.top = Math.round(this.bounds.y + this.scale / 2 + shiftY) + 'px';
-			table.style.width = Math.round((this.bounds.width - this.scale) / this.scale) + 'px';
-			table.style.height = Math.round((this.bounds.height - this.scale) / this.scale) + 'px';
-		}
-		else
-		{
-			s = (document.documentMode == 8) ? this.scale : 1;
-			table.style.left = Math.round(this.bounds.x + this.scale / 2) + 'px';
-			table.style.top = Math.round(this.bounds.y + this.scale / 2) + 'px';
-			table.style.width = Math.round((this.bounds.width - this.scale) / s) + 'px';
-			table.style.height = Math.round((this.bounds.height - this.scale) / s) + 'px';
-		}
-	}
-};
-
-/**
- * Function: getVerticalOffset
- *
- * Returns the factors for the offset to be added to the text vertical
- * text rotation. This implementation returns (offset.y, -offset.x).
- */
-mxText.prototype.getVerticalOffset = function(offset)
-{
-	return new mxPoint(offset.y, -offset.x);
-};
-
-/**
- * Function: redrawForeignObject
- *
- * Redraws the foreign object for this text.
- */
-mxText.prototype.redrawForeignObject = function()
-{
-	// Gets SVG group with foreignObject
-	var group = this.node;
-	var fo = group.firstChild;
-	
-	// Searches the table which appears behind the background
-	while (fo == this.backgroundNode)
-	{
-		fo = fo.nextSibling;
-	}
-	
-	var body = fo.firstChild;
-	
-	// Creates HTML container on the fly
-	if (body.firstChild == null)
-	{
-		body.appendChild(this.createHtmlTable());
-	}
-
-	// Updates the table style and value
-	var table = body.firstChild;
-	this.updateHtmlTable(table);
-	
-	// Workaround for bug in Google Chrome where the text is moved to origin if opacity
-	// is set on the table, so we set the opacity on the foreignObject instead.
-	if (this.opacity != null)
-	{
-		fo.setAttribute('opacity', this.opacity / 100);
-	}
-	
-	// Workaround for table background not appearing above the shape that is
-	// behind the label in Safari. To solve this, we add a background rect that
-	// paints the background instead.
-	if (mxClient.IS_SF)
-	{
-		table.style.borderStyle = 'none';
-		table.firstChild.firstChild.firstChild.style.background = '';
-		
-		if (this.backgroundNode == null && (this.background != null || this.border != null))
-		{
-			this.backgroundNode = document.createElementNS(mxConstants.NS_SVG, 'rect');
-			group.insertBefore(this.backgroundNode, group.firstChild);
-		}
-		else if (this.backgroundNode != null && this.background == null && this.border == null)
-		{
-			this.backgroundNode.parentNode.removeChild(this.backgroundNode);
-			this.backgroundNode = null;
-		}
-		
-		if (this.backgroundNode != null)
-		{
-			if (this.background != null)
-			{
-				this.backgroundNode.setAttribute('fill', this.background);
-			}
-			else
-			{
-				this.backgroundNode.setAttribute('fill', 'none');
-			}
-	
-			if (this.border != null)
-			{
-				this.backgroundNode.setAttribute('stroke', this.border);
-			}
-			else
-			{
-				this.backgroundNode.setAttribute('stroke', 'none');
-			}
-		}
-	}
-	
-	var tr = '';
-	
-	if (this.overflow != 'fill')
-	{
-		// Resets the bounds for computing the actual size
-		fo.removeAttribute('width');
-		fo.removeAttribute('height');
-		fo.style.width = '';
-		fo.style.height = '';
-		fo.style.clip = '';
-		
-		// Workaround for size of table not updated if inside foreignObject
-		if (this.wrap || (!mxClient.IS_GC && !mxClient.IS_SF))
-		{
-			document.body.appendChild(table);
-		}
-
-		this.updateTableWidth(table);
-		
-		// Only tables can be used to work out the actual size of the markup
-		var size = this.getTableSize(table);
-		var w = size.width;
-		var h = size.height;
-
-		if (table.parentNode != body)
-		{
-			body.appendChild(table);
-		}
-
-		// Adds horizontal/vertical spacing
-		var spacing = this.getSpacing();
-		
-		var x = this.bounds.x / this.scale + spacing.x;
-		var y = this.bounds.y / this.scale + spacing.y;
-		var uw = this.bounds.width / this.scale;
-		var uh = this.bounds.height / this.scale;
-		var offset = this.getOffset(uw, uh, w, h);
-		
-		// Rotates the label and adds offset
-		if (this.horizontal)
-		{
-			x -= offset.x;
-			y -= offset.y;
-			
-			tr = 'scale(' + this.scale + ')';
-		}
-		else
-		{
-			var x0 = x + w / 2;
-			var y0 = y + h / 2;
-			
-			tr = 'scale(' + this.scale + ') rotate(' + this.verticalTextDegree + ' ' + x0 + ' ' + y0 + ')';
-	
-			var tmp = this.getVerticalOffset(offset);
-			x += tmp.x;
-			y += tmp.y;
-		}
-		
-		// Must use translate instead of x- and y-attribute on FO for iOS
-		tr += ' translate(' + x + ' ' + y + ')';
-		
-		// Updates the bounds of the background node in Webkit
-		if (this.backgroundNode != null)
-		{
-			this.backgroundNode.setAttribute('width', w);
-			this.backgroundNode.setAttribute('height', h);
-		}
-		
-		// Updates the foreignObject size
-		fo.setAttribute('width', w);
-		fo.setAttribute('height', h);
-		
-		// Clipping
-		// TODO: Fix/check clipping for foreignObjects in Chrome 5.0 - if clipPath
-		// is used in the group then things can no longer be moved around
-		if (this.clipped && this.bounds.width > 0 && this.bounds.height > 0)
-		{
-			this.boundingBox = this.bounds.clone();
-			var dx = Math.max(0, offset.x);
-			var dy = Math.max(0, offset.y);
-
-			if (this.horizontal)
-			{
-				fo.style.clip = 'rect(' + dy + 'px,' + (dx + uw) +
-					'px,' + (dy + uh) + 'px,' + (dx) + 'px)';
-			}
-			else
-			{
-				var dx = 0;
-				var dy = 0;
-	
-				if (this.align == mxConstants.ALIGN_RIGHT)
-				{
-					dx = Math.max(0, w - uh);
-				}
-				else if (this.align == mxConstants.ALIGN_CENTER)
-				{
-					dx = Math.max(0, w - uh) / 2;
-				}
-				
-				if (this.valign == mxConstants.ALIGN_BOTTOM)
-				{
-					dy = Math.max(0, h - uw);
-				}
-				else if (this.valign == mxConstants.ALIGN_MIDDLE)
-				{
-					dy = Math.max(0, h - uw) / 2;
-				}
-	
-				fo.style.clip = 'rect(' + (dy) + 'px,' + (dx + uh) +
-					'px,' + (dy + uw) + 'px,' + (dx) + 'px)';
-			}
-			
-			// Clipping for the background node in Chrome
-			if (this.backgroundNode != null)
-			{
-				x = this.bounds.x / this.scale;
-				y = this.bounds.y / this.scale;
-				
-				if (!this.horizontal)
-				{
-					x += (h + w) / 2 - uh;
-					y += (h - w) / 2;
-					
-					var tmp = uw;
-					uw = uh;
-					uh = tmp;
-				}
-	
-				// No clipping in Chome available due to bug
-				if (!mxClient.IS_GC)
-				{
-					var clip = this.getSvgClip(this.node.ownerSVGElement, x, y, uw, uh);
-					
-					if (clip != this.clip)
-					{
-						this.releaseSvgClip();
-						this.clip = clip;
-						clip.refCount++;
-					}
-				
-					this.backgroundNode.setAttribute('clip-path', 'url(#' + clip.getAttribute('id') + ')');
-				}
-			}
-		}
-		else
-		{
-			// Removes clipping from background and cleans up the clip
-			this.releaseSvgClip();
-			
-			if (this.backgroundNode != null)
-			{
-				this.backgroundNode.removeAttribute('clip-path');
-			}
-			
-			if (this.horizontal)
-			{
-				this.boundingBox = new mxRectangle(x * this.scale, y * this.scale, w * this.scale, h * this.scale);
-			}
-			else
-			{
-				this.boundingBox = new mxRectangle(x * this.scale, y * this.scale, h * this.scale, w * this.scale);
-			}
-		}
-	}
-	else
-	{
-		this.boundingBox = this.bounds.clone();
-		
-		var s = this.scale;
-		var w = this.bounds.width / s;
-		var h = this.bounds.height / s;
-		
-		// Updates the foreignObject and table bounds
-		fo.setAttribute('width', w);
-		fo.setAttribute('height', h);
-		table.style.width = w + 'px';
-		table.style.height = h + 'px';
-		
-		// Updates the bounds of the background node in Webkit
-		if (this.backgroundNode != null)
-		{
-			this.backgroundNode.setAttribute('width', table.clientWidth);
-			this.backgroundNode.setAttribute('height', table.offsetHeight);
-		}
-		
-		// Must use translate instead of x- and y-attribute on FO for iOS
-		tr = 'scale(' + s + ') translate(' + (this.bounds.x / s) +
-			' ' + (this.bounds.y / s) + ')';
-
-		if (!this.wrap)
-		{
-			var td = table.firstChild.firstChild.firstChild;
-			td.style.whiteSpace = 'nowrap';
-		}
-	}
-	
-	group.setAttribute('transform', tr);
-};
-
-/**
- * Function: createSvg
- *
- * Creates and returns the SVG node(s) to represent this shape.
- */
-mxText.prototype.createSvg = function()
-{
-	// Creates a group so that shapes inside are rendered properly, if this is
-	// a text node then the background rectangle is not rendered in Webkit.
-	var node = document.createElementNS(mxConstants.NS_SVG, 'g');
-
-	var uline = this.isStyleSet(mxConstants.FONT_UNDERLINE) ? 'underline' : 'none';
-	var weight = this.isStyleSet(mxConstants.FONT_BOLD) ? 'bold' : 'normal';
-	var s = this.isStyleSet(mxConstants.FONT_ITALIC) ? 'italic' : null;
-
-	// Underline is not implemented in FF, see
-	// https://bugzilla.mozilla.org/show_bug.cgi?id=317196
-	node.setAttribute('text-decoration', uline);
-	node.setAttribute('font-family', this.family);
-	node.setAttribute('font-weight', weight);
-	node.setAttribute('font-size', Math.round(this.size * this.scale) + 'px');
-	node.setAttribute('fill', this.color);
-	var align = (this.align == mxConstants.ALIGN_RIGHT) ? 'end' :
-					(this.align == mxConstants.ALIGN_CENTER) ? 'middle' :
-					'start';
-	node.setAttribute('text-anchor', align);
-	
-	if (s != null)
-	{
-		node.setAttribute('font-style', s);
-	}
-
-	// Adds a rectangle for the background color
-	if (this.background != null || this.border != null)
-	{
-		this.backgroundNode = document.createElementNS(mxConstants.NS_SVG, 'rect');
-		this.backgroundNode.setAttribute('shape-rendering', 'crispEdges');
-
-		if (this.background != null)
-		{
-			this.backgroundNode.setAttribute('fill', this.background);
-		}
-		else
-		{
-			this.backgroundNode.setAttribute('fill', 'none');
-		}
-		
-		if (this.border != null)
-		{
-			this.backgroundNode.setAttribute('stroke', this.border);
-		}
-		else
-		{
-			this.backgroundNode.setAttribute('stroke', 'none');
-		}
-	}
-	
-	this.updateSvgValue(node);
-	
-	return node;
-};
-
-/**
- * Updates the text represented by the SVG DOM nodes.
- */
-mxText.prototype.updateSvgValue = function(node)
-{
-	if (this.currentValue != this.value)
-	{
-		// Removes all existing children
-		while (node.firstChild != null)
-		{
-			node.removeChild(node.firstChild);
-		}
-		
-		if (this.value != null)
-		{
-			// Adds tspan elements for the lines
-			var uline = this.isStyleSet(mxConstants.FONT_UNDERLINE) ? 'underline' : 'none';
-			var lines = this.value.split('\n');
-			
-			// Workaround for empty lines breaking the return value of getBBox
-			// for the enclosing g element so we avoid adding empty lines
-			// but still count them as a linefeed
-			this.textNodes = new Array(lines.length);
-			
-		 	for (var i = 0; i < lines.length; i++)
-		 	{
-		 		if (!this.isEmptyString(lines[i]))
-		 		{
-			 		var tspan = this.createSvgSpan(lines[i]);
-					node.appendChild(tspan);
-					this.textNodes[i] = tspan;
-					
-					// Requires either 'inherit' in Webkit or explicit setting
-					// to work in Webkit and IE9 standards mode. Both, inherit
-					// and underline do not work in FF. This is a known bug in
-					// FF (see above).
-			 		tspan.setAttribute('text-decoration', uline);
-		 		}
-		 		else
-		 		{
-		 			this.textNodes[i] = null;
-		 		}
-			}
-		}
-		
-		this.currentValue = this.value;
-	}
-};
-
-/**
- * Function: redrawSvg
- *
- * Updates the SVG node(s) to reflect the latest bounds and scale.
- */
-mxText.prototype.redrawSvg = function()
-{
-	if (this.node.nodeName == 'foreignObject')
-	{
-		this.redrawHtml();
-		
-		return;
-	}
-	
-	var fontSize = Math.round(this.size * this.scale);
-	
-	if (fontSize <= 0)
-	{
-		this.node.setAttribute('visibility', 'hidden');
-	}
-	else
-	{
-		this.node.removeAttribute('visibility');
-	}
-		
-	this.updateSvgValue(this.node);
-	this.node.setAttribute('font-size', fontSize + 'px');
-
-	if (this.opacity != null)
-	{
-		// Improves opacity performance in Firefox
-		this.node.setAttribute('fill-opacity', this.opacity/100);
-		this.node.setAttribute('stroke-opacity', this.opacity/100);
-	}
-
-	// Workaround to avoid the use of getBBox to find the size
-	// of the label. A temporary HTML table is created instead.
-	var previous = this.value;
-	var table = this.createHtmlTable();
-		
-	// Makes sure the table is updated and replaces all HTML entities 
-	this.lastValue = null;
-	this.value = mxUtils.htmlEntities(this.value, false);
-	this.updateHtmlTable(table);
-	
-	// Adds the table to the DOM to find the actual size
-	document.body.appendChild(table);
-	var w = table.offsetWidth * this.scale;
-	var h = table.offsetHeight * this.scale;
-	
-	// Cleans up the DOM and restores the original value
-	table.parentNode.removeChild(table);
-	this.value = previous;
-
-	// Sets the bounding box for the unclipped case so that
-	// the full background can be painted using it, the initial
-	// value for dx and the +4 in the width below are for
-	// error correction of the HTML and SVG text width
-	var dx = 2 * this.scale;
-	
-	if (this.align == mxConstants.ALIGN_CENTER)
-	{
-		dx += w / 2;
-	}
-	else if (this.align == mxConstants.ALIGN_RIGHT)
-	{
-		dx += w;
-	}
-
-	var dy = Math.round(fontSize * 1.3);
-	var childCount = this.node.childNodes.length;
-	var lineCount = (this.textNodes != null) ? this.textNodes.length : 0;
-	
-	if (this.backgroundNode != null)
-	{
-		childCount--;
-	}
-	
-	var x = this.bounds.x;
-	var y = this.bounds.y;
-
-	x += (this.align == mxConstants.ALIGN_RIGHT) ?
-		((this.horizontal) ? this.bounds.width : this.bounds.height)-
-		this.spacingRight * this.scale :
-		(this.align == mxConstants.ALIGN_CENTER) ?
-			this.spacingLeft * this.scale +
-			(((this.horizontal) ? this.bounds.width : this.bounds.height) -
-			this.spacingLeft * this.scale - this.spacingRight * this.scale) / 2 :
-			this.spacingLeft * this.scale + 1;
-
-	// Makes sure the alignment is like in VML and HTML
-	y += (this.valign == mxConstants.ALIGN_BOTTOM) ?
-			((this.horizontal) ? this.bounds.height : this.bounds.width) -
-			(lineCount - 1) * dy - this.spacingBottom * this.scale - 4 :
-			(this.valign == mxConstants.ALIGN_MIDDLE) ?
-				(this.spacingTop * this.scale +
-				((this.horizontal) ? this.bounds.height : this.bounds.width) -
-				this.spacingBottom * this.scale -
-				(lineCount - 1.5) * dy) / 2 :
-				this.spacingTop * this.scale + dy;
-	
-	if (this.overflow == 'fill')
-	{
-		if (this.align == mxConstants.ALIGN_CENTER)
-		{
-			x = Math.max(this.bounds.x + w / 2, x);	
-		}
-		
-		y = Math.max(this.bounds.y + fontSize, y);
-		
-		this.boundingBox = new mxRectangle(x - dx, y - dy,
-				w + 4 * this.scale, h + 1 * this.scale);
-		this.boundingBox.x = Math.min(this.bounds.x, this.boundingBox.x);
-		this.boundingBox.y = Math.min(this.bounds.y, this.boundingBox.y);
-		this.boundingBox.width = Math.max(this.bounds.width, this.boundingBox.width);
-		this.boundingBox.height = Math.max(this.bounds.height, this.boundingBox.height);
-	}
-	else
-	{
-		this.boundingBox = new mxRectangle(x - dx, y - dy,
-			w + 4 * this.scale, h + 1 * this.scale);
-	}
-
-	if (!this.horizontal)
-	{
-		var cx = this.bounds.x + this.bounds.width / 2;
-		var cy = this.bounds.y + this.bounds.height / 2;
-		
-		var offsetX = (this.bounds.width - this.bounds.height) / 2;
-		var offsetY = (this.bounds.height - this.bounds.width) / 2;
-		
-		this.node.setAttribute('transform',
-			'rotate(' + this.verticalTextDegree + ' ' + cx + ' ' + cy + ') ' +
-			'translate(' + (-offsetY) + ' ' + (-offsetX) + ')');
-	}
-
-	// TODO: Font-shadow
-	this.redrawSvgTextNodes(x, y, dy);
-
-	/*
-	 * FIXME: Bounding box is not rotated. This seems to be a problem for
-	 * all vertical text boxes. Workaround is in mxImageExport.
-	if (!this.horizontal)
-	{
-		var b = this.bounds.y + this.bounds.height;
-		var cx = this.boundingBox.getCenterX() - this.bounds.x;
-		var cy = this.boundingBox.getCenterY() - this.bounds.y;
-		
-		var y = b - cx - this.bounds.height / 2;
-		this.boundingBox.x = this.bounds.x + cy - this.boundingBox.width / 2;
-		this.boundingBox.y = y;
-	}
-	*/
-	
-	// Updates the bounds of the background node if one exists
-	if (this.value.length > 0 && this.backgroundNode != null && this.node.firstChild != null)
-	{
-		if (this.node.firstChild != this.backgroundNode)
-		{
-			this.node.insertBefore(this.backgroundNode, this.node.firstChild);
-		}
-
-		// FIXME: For larger font sizes the linespacing between HTML and SVG
-		// seems to be different and hence the bounding box isn't accurate.
-		// Also in Firefox the background box is slighly offset.
-		this.backgroundNode.setAttribute('x', this.boundingBox.x + this.scale / 2 + 1 * this.scale);
-		this.backgroundNode.setAttribute('y', this.boundingBox.y + this.scale / 2 + 2 * this.scale - this.labelPadding);
-		this.backgroundNode.setAttribute('width', this.boundingBox.width - this.scale - 2 * this.scale);
-		this.backgroundNode.setAttribute('height', this.boundingBox.height - this.scale);
-
-		var strokeWidth = Math.round(Math.max(1, this.scale));
-		this.backgroundNode.setAttribute('stroke-width', strokeWidth);
-	}
-	
-	// Adds clipping and updates the bounding box
-	if (this.clipped && this.bounds.width > 0 && this.bounds.height > 0)
-	{
-		this.boundingBox = this.bounds.clone();
-
-		if (!this.horizontal)
-		{
-			this.boundingBox.width = this.bounds.height;
-			this.boundingBox.height = this.bounds.width;
-		}
-		
-		x = this.bounds.x;
-		y = this.bounds.y;
-		
-		if (this.horizontal)
-		{
-			w = this.bounds.width;
-			h = this.bounds.height;
-		}
-		else
-		{
-			w = this.bounds.height;
-			h = this.bounds.width;	
-		}
-		
-		var clip = this.getSvgClip(this.node.ownerSVGElement, x, y, w, h);
-		
-		if (clip != this.clip)
-		{
-			this.releaseSvgClip();
-			this.clip = clip;
-			clip.refCount++;
-		}
-			
-		this.node.setAttribute('clip-path', 'url(#' + clip.getAttribute('id') + ')');
-	}
-	else
-	{
-		this.releaseSvgClip();
-		this.node.removeAttribute('clip-path');
-	}
-};
-
-/**
- * Function: redrawSvgTextNodes
- * 
- * Hook to update the position of the SVG text nodes.
- */
-mxText.prototype.redrawSvgTextNodes = function(x, y, dy)
-{
-	if (this.textNodes != null)
-	{
-		var currentY = y;
-		
-		for (var i = 0; i < this.textNodes.length; i++)
-		{
-			var node = this.textNodes[i];
-			
-			if (node != null)
-			{
-				node.setAttribute('x', x);
-				node.setAttribute('y', currentY);
-	
-				// Triggers an update in Firefox 1.5.0.x (don't add a semicolon!)
-				node.setAttribute('style', 'pointer-events: all');
-			}
-			
-			currentY += dy;
-		}
-	}
-};
-
-/**
- * Function: releaseSvgClip
- * 
- * Releases the given SVG clip removing it from the DOM if required.
- */
-mxText.prototype.releaseSvgClip = function()
-{
-	if (this.clip != null)
-	{
-		this.clip.refCount--;
-		
-		if (this.clip.refCount == 0)
-		{
-			this.clip.parentNode.removeChild(this.clip);
-		}
-		
-		this.clip = null;
-	}
-};
-
-/**
- * Function: getSvgClip
- * 
- * Returns a new or existing SVG clip path which is a descendant of the given
- * SVG node with a unique ID. 
- */
-mxText.prototype.getSvgClip = function(svg, x, y, w, h)
-{
-	x = Math.round(x);
-	y = Math.round(y);
-	w = Math.round(w);
-	h = Math.round(h);
-	
-	var id = 'mx-clip-' + x + '-' + y + '-' + w + '-' + h;
-
-	// Quick access
-	if (this.clip != null && this.clip.ident == id)
-	{
-		return this.clip;
-	}
-	
-	var counter = 0;
-	var tmp = id + '-' + counter;
-	var clip = document.getElementById(tmp);
-	
-	// Tries to find an existing clip in the given SVG
-	while (clip != null)
-	{
-		if (clip.ownerSVGElement == svg)
-		{
-			return clip;
-		}
-		
-		counter++;
-		tmp = id + '-' + counter;
-		clip = document.getElementById(tmp);
-	}
-	
-	// Creates a new clip node and adds it to the DOM
-	if (clip != null)
-	{
-		clip = clip.cloneNode(true);
-		counter++;
-	}
-	else
-	{
-		clip = document.createElementNS(mxConstants.NS_SVG, 'clipPath');
-		
-		var rect = document.createElementNS(mxConstants.NS_SVG, 'rect');
-		rect.setAttribute('x', x);
-		rect.setAttribute('y', y);
-		rect.setAttribute('width', w);
-		rect.setAttribute('height', h);
-		
-		clip.appendChild(rect);
-	}
-	
-	clip.setAttribute('id', id + '-' + counter);
-	clip.ident = id; // For quick access above
-	svg.appendChild(clip);
-	clip.refCount = 0;
-	
-	return clip;
-};
-
-/**
- * Function: isEmptyString
- *
- * Returns true if the given string is empty or
- * contains only whitespace.
- */
-mxText.prototype.isEmptyString = function(text)
-{
-	return text.replace(/ /g, '').length == 0;
-};
-
-/**
- * Function: createSvgSpan
- *
- * Creats an SVG tspan node for the given text.
- */
-mxText.prototype.createSvgSpan = function(text)
-{
-	// Creates a text node since there is no enclosing text element but
-	// rather a group, which is required to render the background rectangle
-	// in Webkit. This can be changed to tspan if the enclosing node is
-	// a text but this leads to an hidden background in Webkit.
-	var node = document.createElementNS(mxConstants.NS_SVG, 'text');
-	// Needed to preserve multiple white spaces, but ignored in IE9 plus white-space:pre
-	// is ignored in HTML output for VML, so better to not use this for SVG labels
-	// node.setAttributeNS('http://www.w3.org/XML/1998/namespace', 'xml:space', 'preserve')
-	// Alternative idea is to replace all spaces with &nbsp; to fix HTML in IE, but
-	// IE9/10 with SVG will still ignore the xml:space preserve tag as discussed here:
-	// http://stackoverflow.com/questions/8086292/significant-whitespace-in-svg-embedded-in-html
-	// Could replace spaces with &nbsp; in text but HTML tags must be scaped first.
-	mxUtils.write(node, text);
-	
-	return node;
-};
-
-/**
- * Function: destroy
- *
- * Extends destroy to remove any allocated SVG clips.
- */
-mxText.prototype.destroy = function()
-{
-	this.releaseSvgClip();
-	mxShape.prototype.destroy.apply(this, arguments);
+	return new mxPoint(dx, dy);
 };
 /**
- * $Id: mxTriangle.js,v 1.10 2011/09/02 10:01:00 gaudenz Exp $
+ * $Id: mxTriangle.js,v 1.3 2012/11/22 21:04:16 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -26638,29 +23976,30 @@ mxText.prototype.destroy = function()
  *
  * Constructs a new triangle shape.
  */
-function mxTriangle() { };
+function mxTriangle()
+{
+	mxActor.call(this);
+};
 
 /**
- * Extends <mxActor>.
+ * Extends mxActor.
  */
-mxTriangle.prototype = new mxActor();
-mxTriangle.prototype.constructor = mxTriangle;
+mxUtils.extend(mxTriangle, mxActor);
 
 /**
  * Function: redrawPath
  *
- * Draws the path for this shape. This method uses the <mxPath>
- * abstraction to paint the shape for VML and SVG.
+ * Draws the path for this shape.
  */
-mxTriangle.prototype.redrawPath = function(path, x, y, w, h)
+mxTriangle.prototype.redrawPath = function(c, x, y, w, h)
 {
-	path.moveTo(0, 0);
-	path.lineTo(w, 0.5 * h);
-	path.lineTo(0, h);
-	path.close();
+	c.moveTo(0, 0);
+	c.lineTo(w, 0.5 * h);
+	c.lineTo(0, h);
+	c.close();
 };
 /**
- * $Id: mxHexagon.js,v 1.8 2011/09/02 10:01:00 gaudenz Exp $
+ * $Id: mxHexagon.js,v 1.3 2012/11/22 21:04:16 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -26672,32 +24011,33 @@ mxTriangle.prototype.redrawPath = function(path, x, y, w, h)
  *
  * Constructs a new hexagon shape.
  */
-function mxHexagon() { };
+function mxHexagon()
+{
+	mxActor.call(this);
+};
 
 /**
- * Extends <mxActor>.
+ * Extends mxActor.
  */
-mxHexagon.prototype = new mxActor();
-mxHexagon.prototype.constructor = mxHexagon;
+mxUtils.extend(mxHexagon, mxActor);
 
 /**
  * Function: redrawPath
  *
- * Draws the path for this shape. This method uses the <mxPath>
- * abstraction to paint the shape for VML and SVG.
+ * Draws the path for this shape.
  */
-mxHexagon.prototype.redrawPath = function(path, x, y, w, h)
+mxHexagon.prototype.redrawPath = function(c, x, y, w, h)
 {
-	path.moveTo(0.25 * w, 0);
-	path.lineTo(0.75 * w, 0);
-	path.lineTo(w, 0.5 * h);
-	path.lineTo(0.75 * w, h);
-	path.lineTo(0.25 * w, h);
-	path.lineTo(0, 0.5 * h);
-	path.close();
+	c.moveTo(0.25 * w, 0);
+	c.lineTo(0.75 * w, 0);
+	c.lineTo(w, 0.5 * h);
+	c.lineTo(0.75 * w, h);
+	c.lineTo(0.25 * w, h);
+	c.lineTo(0, 0.5 * h);
+	c.close();
 };
 /**
- * $Id: mxLine.js,v 1.36 2012/03/30 04:44:59 gaudenz Exp $
+ * $Id: mxLine.js,v 1.1 2012/11/15 13:26:42 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -26722,6 +24062,7 @@ mxHexagon.prototype.redrawPath = function(path, x, y, w, h)
  */
 function mxLine(bounds, stroke, strokewidth)
 {
+	mxShape.call(this);
 	this.bounds = bounds;
 	this.stroke = stroke;
 	this.strokewidth = (strokewidth != null) ? strokewidth : 1;
@@ -26730,191 +24071,24 @@ function mxLine(bounds, stroke, strokewidth)
 /**
  * Extends mxShape.
  */
-mxLine.prototype = new mxShape();
-mxLine.prototype.constructor = mxLine;
+mxUtils.extend(mxLine, mxShape);
 
 /**
- * Variable: vmlNodes
- *
- * Adds local references to <mxShape.vmlNodes>.
+ * Function: paintVertexShape
+ * 
+ * Redirects to redrawPath for subclasses to work.
  */
-mxLine.prototype.vmlNodes = mxLine.prototype.vmlNodes.concat(['label', 'innerNode']);
-
-/**
- * Variable: mixedModeHtml
- *
- * Overrides the parent value with false, meaning it will
- * draw in VML in mixed Html mode.
- */
-mxLine.prototype.mixedModeHtml = false;
-
-/**
- * Variable: preferModeHtml
- *
- * Overrides the parent value with false, meaning it will
- * draw as VML in prefer Html mode.
- */
-mxLine.prototype.preferModeHtml = false;
-
-/**
- * Function: clone
- *
- * Overrides the clone method to add special fields.
- */
-mxLine.prototype.clone = function()
+mxLine.prototype.paintVertexShape = function(c, x, y, w, h)
 {
-	var clone = new mxLine(this.bounds,
-		this.stroke, this.strokewidth);
-	clone.isDashed = this.isDashed;
-	
-	return clone;
-};
+	var mid = y + h / 2;
 
-/**
- * Function: createVml
- *
- * Creates and returns the VML node to represent this shape.
- */
-mxLine.prototype.createVml = function()
-{
-	var node = document.createElement('v:group');
-	node.style.position = 'absolute';
-	
-	// Represents the text label container
-	this.label = document.createElement('v:rect');
-	this.label.style.position = 'absolute';
-	this.label.stroked = 'false';
-	this.label.filled = 'false';
-	node.appendChild(this.label);
-	
-	// Represents the straight line shape
-	this.innerNode = document.createElement('v:shape');
-	this.configureVmlShape(this.innerNode);
-	node.appendChild(this.innerNode);
-	
-	return node;
-};
-
-/**
- * Function: redrawVml
- *
- * Redraws this VML shape by invoking <updateVmlShape> on this.node.
- */
-mxLine.prototype.reconfigure = function()
-{
-	if (mxUtils.isVml(this.node))
-	{
-		this.configureVmlShape(this.innerNode);
-	}
-	else
-	{
-		mxShape.prototype.reconfigure.apply(this, arguments);
-	}
-};
-
-/**
- * Function: redrawVml
- *
- * Updates the VML node(s) to reflect the latest bounds and scale.
- */
-mxLine.prototype.redrawVml = function()
-{
-	this.updateVmlShape(this.node);
-	this.updateVmlShape(this.label);
-
-	this.innerNode.coordsize = this.node.coordsize;
-	this.innerNode.strokeweight = (this.strokewidth * this.scale) + 'px';
-	this.innerNode.style.width = this.node.style.width;
-	this.innerNode.style.height = this.node.style.height;
-
-	var w = this.bounds.width;
-	var h =this.bounds.height;
-	
-	if (this.direction == mxConstants.DIRECTION_NORTH ||
-		this.direction == mxConstants.DIRECTION_SOUTH)
-	{
-		this.innerNode.path = 'm ' + Math.round(w / 2) + ' 0' +
-			' l ' + Math.round(w / 2) + ' ' + Math.round(h) + ' e';
-	}
-	else
-	{
-		this.innerNode.path = 'm 0 ' + Math.round(h / 2) +
-			' l ' + Math.round(w) + ' ' + Math.round(h / 2) + ' e';
-	}
-};
-	
-/**
- * Function: createSvg
- *
- * Creates and returns the SVG node(s) to represent this shape.
- */
-mxLine.prototype.createSvg = function()
-{
-	var g = this.createSvgGroup('path');
-
-	// Creates an invisible shape around the path for easier
-	// selection with the mouse. Note: Firefox does not ignore
-	// the value of the stroke attribute for pointer-events: stroke.
-	// It does, however, ignore the visibility attribute.
-	this.pipe = this.createSvgPipe();
-	g.appendChild(this.pipe);
-	
-	return g;
-};
-
-/**
- * Function: redrawSvg
- *
- * Updates the SVG node(s) to reflect the latest bounds and scale.
- */
-mxLine.prototype.redrawSvg = function()
-{
-	var strokeWidth = Math.round(Math.max(1, this.strokewidth * this.scale));
-	this.innerNode.setAttribute('stroke-width', strokeWidth);
-	
-	if (this.bounds != null)
-	{
-		var x = this.bounds.x;
-		var y = this.bounds.y;
-		var w = this.bounds.width;
-		var h = this.bounds.height;
-		
-		var d = null;
-		
-		if (this.direction == mxConstants.DIRECTION_NORTH || this.direction == mxConstants.DIRECTION_SOUTH)
-		{
-			d = 'M ' + Math.round(x + w / 2) + ' ' + Math.round(y) + ' L ' + Math.round(x + w / 2) + ' ' + Math.round(y + h);
-		}
-		else
-		{
-			d = 'M ' + Math.round(x) + ' ' + Math.round(y + h / 2) + ' L ' + Math.round(x + w) + ' ' + Math.round(y + h / 2);
-		}
-		
-		this.innerNode.setAttribute('d', d);
-		this.pipe.setAttribute('d', d);
-		this.pipe.setAttribute('stroke-width', this.strokewidth + mxShape.prototype.SVG_STROKE_TOLERANCE);
-		
-		this.updateSvgTransform(this.innerNode, false);
-		this.updateSvgTransform(this.pipe, false);	
-		
-		if (this.crisp)
-		{
-			this.innerNode.setAttribute('shape-rendering', 'crispEdges');
-		}
-		else
-		{
-			this.innerNode.removeAttribute('shape-rendering');
-		}
-		
-		if (this.isDashed)
-		{
-			var phase = Math.max(1, Math.round(3 * this.scale * this.strokewidth));
-			this.innerNode.setAttribute('stroke-dasharray', phase + ' ' + phase);
-		}
-	}
+	c.begin();
+	c.moveTo(x, mid);
+	c.lineTo(x + w, mid);
+	c.stroke();
 };
 /**
- * $Id: mxImageShape.js,v 1.67 2012/04/22 10:16:23 gaudenz Exp $
+ * $Id: mxImageShape.js,v 1.7 2012/12/18 16:35:57 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -26940,27 +24114,19 @@ mxLine.prototype.redrawSvg = function()
  */
 function mxImageShape(bounds, image, fill, stroke, strokewidth)
 {
+	mxShape.call(this);
 	this.bounds = bounds;
-	this.image = (image != null) ? image : '';
+	this.image = image;
 	this.fill = fill;
 	this.stroke = stroke;
 	this.strokewidth = (strokewidth != null) ? strokewidth : 1;
-	this.isShadow = false;
+	this.shadow = false;
 };
 
 /**
  * Extends mxShape.
  */
-mxImageShape.prototype = new mxShape();
-mxImageShape.prototype.constructor = mxImageShape;
-
-/**
- * Variable: crisp
- * 
- * Disables crisp rendering via attributes. Image quality defines the rendering
- * quality. Default is false.
- */
-mxImageShape.prototype.crisp = false;
+mxUtils.extend(mxImageShape, mxRectangleShape);
 
 /**
  * Variable: preserveImageAspect
@@ -26968,6 +24134,16 @@ mxImageShape.prototype.crisp = false;
  * Switch to preserve image aspect. Default is true.
  */
 mxImageShape.prototype.preserveImageAspect = true;
+
+/**
+ * Function: getSvgScreenOffset
+ * 
+ * Disables offset in IE9 for crisper image output.
+ */
+mxImageShape.prototype.getSvgScreenOffset = function()
+{
+	return (!mxClient.IS_IE) ? 0.5 : 0;
+};
 
 /**
  * Function: apply
@@ -26992,163 +24168,73 @@ mxImageShape.prototype.apply = function(state)
 	
 	this.fill = null;
 	this.stroke = null;
-
+	this.gradient = null;
+	
 	if (this.style != null)
 	{
 		this.fill = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_BACKGROUND);
 		this.stroke = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_BORDER);
 		this.preserveImageAspect = mxUtils.getNumber(this.style, mxConstants.STYLE_IMAGE_ASPECT, 1) == 1;
-		this.gradient = null;
+		
+		// Legacy support for imageFlipH/V
+		this.flipH = this.flipH || mxUtils.getValue(this.style, 'imageFlipH', 0) == 1;
+		this.flipV = this.flipV || mxUtils.getValue(this.style, 'imageFlipV', 0) == 1;
 	}
 };
 
 /**
- * Function: create
- *
- * Override to create HTML regardless of gradient and
- * rounded property.
+ * Function: isHtmlAllowed
+ * 
+ * Returns true if HTML is allowed for this shape. This implementation always
+ * returns false.
  */
-mxImageShape.prototype.create = function()
+mxImageShape.prototype.isHtmlAllowed = function()
 {
-	var node = null;
+	return !this.preserveImageAspect;
+};
 
-	if (this.dialect == mxConstants.DIALECT_SVG)
-	{
-		// Workaround: To avoid control-click on images in Firefox to
-		// open the image in a new window, this image needs to be placed
-		// inside a group with a rectangle in the foreground which has a
-		// fill property but no visibility and absorbs all events.
-		// The image in turn must have all pointer-events disabled.
-		node = this.createSvgGroup('rect');
-		this.innerNode.setAttribute('visibility', 'hidden');
-		this.innerNode.setAttribute('pointer-events', 'fill');
-		
-		this.imageNode = document.createElementNS(mxConstants.NS_SVG, 'image');
-		this.imageNode.setAttributeNS(mxConstants.NS_XLINK, 'xlink:href', this.image);
-		this.imageNode.setAttribute('style', 'pointer-events:none');
-		this.configureSvgShape(this.imageNode);
-		
-		// Removes invalid attributes on the image node
-		this.imageNode.removeAttribute('stroke');
-		this.imageNode.removeAttribute('fill');
-		node.insertBefore(this.imageNode, this.innerNode);
-		
-		// Inserts node for background and border color rendering
-		if ((this.fill != null && this.fill != mxConstants.NONE) ||
-			(this.stroke != null && this.stroke != mxConstants.NONE))
-		{
-			this.bg = document.createElementNS(mxConstants.NS_SVG, 'rect');
-			node.insertBefore(this.bg, node.firstChild);
-		}
-		
-		// Preserves image aspect as default
-		if (!this.preserveImageAspect)
-		{
-			this.imageNode.setAttribute('preserveAspectRatio', 'none');
-		}
-	}
-	else
-	{
-		// Uses VML image for all non-embedded images in IE to support better
-		// image flipping quality and avoid workarounds for event redirection
-		var flipH = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_FLIPH, 0) == 1;
-		var flipV = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_FLIPV, 0) == 1;
-        var img = this.image.toUpperCase();
-		
-		// Handles non-flipped embedded images in IE6
-		if (mxClient.IS_IE && !flipH && !flipV && img.substring(0, 6) == 'MHTML:')
-	    {
-			// LATER: Check if outer DIV is required or if aspect can be implemented
-			// by adding an offset to the image loading or the background via CSS.
-			this.imageNode = document.createElement('DIV');
-			this.imageNode.style.filter = 'progid:DXImageTransform.Microsoft.AlphaImageLoader ' +
-				'(src=\'' + this.image + '\', sizingMethod=\'scale\')';
-			
-			node = document.createElement('DIV');
-			this.configureHtmlShape(node);
-			node.appendChild(this.imageNode);
-		}
-		// Handles all data URL images and HTML images for IE9 with no VML support (in SVG mode)
-		else if (!mxClient.IS_IE || img.substring(0, 5) == 'DATA:' || document.documentMode >= 9)
-		{
-			this.imageNode = document.createElement('img');
-			this.imageNode.setAttribute('src', this.image);
-			this.imageNode.setAttribute('border', '0');
-			this.imageNode.style.position = 'absolute';
-			this.imageNode.style.width = '100%';
-			this.imageNode.style.height = '100%';
+/**
+ * Function: createHtml
+ *
+ * Creates and returns the HTML DOM node(s) to represent
+ * this shape. This implementation falls back to <createVml>
+ * so that the HTML creation is optional.
+ */
+mxImageShape.prototype.createHtml = function()
+{
+	var node = document.createElement('div');
+	node.style.position = 'absolute';
 
-			node = document.createElement('DIV');
-			this.configureHtmlShape(node);
-			node.appendChild(this.imageNode);
-		}
-		else
-		{
-			this.imageNode = document.createElement('v:image');
-			this.imageNode.style.position = 'absolute';
-			this.imageNode.src = this.image;
-
-			// Needed to draw the background and border but known
-			// to cause problems in print preview with https
-			node = document.createElement('DIV');
-			this.configureHtmlShape(node);
-			
-			// Workaround for cropped images in IE7/8
-			node.style.overflow = 'visible';
-			node.appendChild(this.imageNode);
-		}
-	}
-	
 	return node;
 };
 
 /**
- * Function: updateAspect
+ * Function: paintVertexShape
  * 
- * Updates the aspect of the image for the given image width and height.
+ * Generic background painting implementation.
  */
-mxImageShape.prototype.updateAspect = function(w, h)
+mxImageShape.prototype.paintVertexShape = function(c, x, y, w, h)
 {
-	var s = Math.min(this.bounds.width / w, this.bounds.height / h);
-	w = Math.max(0, Math.round(w * s));
-	h = Math.max(0, Math.round(h * s));
-	var x0 = Math.max(0, Math.round((this.bounds.width - w) / 2));
-	var y0 = Math.max(0, Math.round((this.bounds.height - h) / 2));
-	var st = this.imageNode.style;
-	
-	// Positions the child node relative to the parent node
-	if (this.imageNode.parentNode == this.node)
+	if (this.image != null)
 	{
-		// Workaround for duplicate offset in VML in IE8 is
-		// to use parent padding instead of left and top
-		this.node.style.paddingLeft = x0 + 'px';
-		this.node.style.paddingTop = y0 + 'px';
+		var fill = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_BACKGROUND, null);
+		var stroke = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_BORDER, null);
+		
+		if (fill != null || stroke != null)
+		{
+			c.setFillColor(fill);
+			c.setStrokeColor(stroke);
+			c.rect(x, y, w, h);
+			c.fillAndStroke();
+		}
+
+		// FlipH/V are implicit via mxShape.updateTransform
+		c.image(x, y, w, h, this.image, this.preserveImageAspect, false, false);
 	}
 	else
 	{
-		st.left = (Math.round(this.bounds.x) + x0) + 'px';
-		st.top = (Math.round(this.bounds.y) + y0) + 'px';
+		mxRectangleShape.prototype.paintBackground.apply(this, arguments);
 	}
-	
-	st.width = w + 'px';
-	st.height = h + 'px';
-};
-
-/**
- * Function: scheduleUpdateAspect
- * 
- * Schedules an asynchronous <updateAspect> using the current <image>.
- */
-mxImageShape.prototype.scheduleUpdateAspect = function()
-{
-	var img = new Image();
-	
-	img.onload = mxUtils.bind(this, function()
-	{
-		mxImageShape.prototype.updateAspect.call(this, img.width, img.height);
-	});
-	
-	img.src = this.image;
 };
 
 /**
@@ -27156,170 +24242,69 @@ mxImageShape.prototype.scheduleUpdateAspect = function()
  * 
  * Overrides <mxShape.redraw> to preserve the aspect ratio of images.
  */
-mxImageShape.prototype.redraw = function()
+mxImageShape.prototype.redrawHtmlShape = function()
 {
-	mxShape.prototype.redraw.apply(this, arguments);
+	this.node.style.left = Math.round(this.bounds.x) + 'px';
+	this.node.style.top = Math.round(this.bounds.y) + 'px';
+	this.node.style.width = Math.max(0, Math.round(this.bounds.width)) + 'px';
+	this.node.style.height = Math.max(0, Math.round(this.bounds.height)) + 'px';
+	this.node.style.backgroundColor = this.fill || '';
+	this.node.style.borderColor = this.stroke || '';
+	this.node.innerHTML = '';
 	
-	if (this.imageNode != null && this.bounds != null)
+	if (this.image != null)
 	{
-		// Horizontal and vertical flipping
-		var flipH = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_FLIPH, 0) == 1;
-		var flipV = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_FLIPV, 0) == 1;
+		// VML image supports PNG in IE6
+		var useVml = mxClient.IS_IE6 || (mxClient.CSS_PREFIX == null && this.rotation != 0);
+		var img = document.createElement((useVml) ? mxClient.VML_PREFIX + ':image' : 'img');
+		img.style.position = 'absolute';
+		img.src = this.image;
 		
-		if (this.dialect == mxConstants.DIALECT_SVG)
+		var filter = (this.opacity < 100) ? 'alpha(opacity=' + this.opacity + ')' : '';
+		this.node.style.filter = filter;
+		
+		if (this.flipH && this.flipV)
 		{
-			var sx = 1;
-			var sy = 1;
-			var dx = 0;
-			var dy = 0;
-			
-			if (flipH)
-			{
-				sx = -1;
-				dx = -this.bounds.width - 2 * this.bounds.x;
-			}
-			
-			if (flipV)
-			{
-				sy = -1;
-				dy = -this.bounds.height - 2 * this.bounds.y;
-			}
-			
-			// Adds image tansformation to existing transforms
-			var transform = (this.imageNode.getAttribute('transform') || '') +
-				' scale('+sx+' '+sy+')'+ ' translate('+dx+' '+dy+')';
-			this.imageNode.setAttribute('transform', transform);
+			filter += 'progid:DXImageTransform.Microsoft.BasicImage(rotation=2)';
+		}
+		else if (this.flipH)
+		{
+			filter += 'progid:DXImageTransform.Microsoft.BasicImage(mirror=1)';
+		}
+		else if (this.flipV)
+		{
+			filter += 'progid:DXImageTransform.Microsoft.BasicImage(rotation=2, mirror=1)';
+		}
+
+		if (img.style.filter != filter)
+		{
+			img.style.filter = filter;
+		}
+
+		if (img.nodeName == 'image')
+		{
+			img.style.rotation = this.rotation;
 		}
 		else
 		{
-			// Sets default size (no aspect)
-			if (this.imageNode.nodeName != 'DIV')
-			{
-				this.imageNode.style.width = Math.max(0, Math.round(this.bounds.width)) + 'px';
-				this.imageNode.style.height = Math.max(0, Math.round(this.bounds.height)) + 'px';
-			}
-
-			// Preserves image aspect
-			if (this.preserveImageAspect)
-			{
-				this.scheduleUpdateAspect();
-			} 
-
-			if (flipH || flipV)
-			{
-				if (mxUtils.isVml(this.imageNode))
-				{
-					if (flipH && flipV)
-					{
-						this.imageNode.style.rotation = '180';
-					}
-					else if (flipH)
-					{
-						this.imageNode.style.flip = 'x';
-					}
-					else
-					{
-						this.imageNode.style.flip = 'y';
-					}
-				}
-				else
-				{
-					var filter = (this.imageNode.nodeName == 'DIV') ? 'progid:DXImageTransform.Microsoft.AlphaImageLoader ' +
-						'(src=\'' + this.image + '\', sizingMethod=\'scale\')' : '';
-	
-					if (flipH && flipV)
-					{
-						filter += 'progid:DXImageTransform.Microsoft.BasicImage(rotation=2)';
-					}
-					else if (flipH)
-					{
-						filter += 'progid:DXImageTransform.Microsoft.BasicImage(mirror=1)';
-					}
-					else
-					{
-						filter += 'progid:DXImageTransform.Microsoft.BasicImage(rotation=2, mirror=1)';
-					}
-	
-					if (this.imageNode.style.filter != filter)
-					{
-						this.imageNode.style.filter = filter;
-					}
-				}
-			}
+			// LATER: Add flipV/H support
+			img.style[mxClient.CSS_PREFIX + 'Transform'] = 'rotate(' + this.rotation + 'deg)';
 		}
+
+		// Known problem: IE clips top line of image for certain angles
+		img.style.width = this.node.style.width;
+		img.style.height = this.node.style.height;
+		
+		this.node.style.backgroundImage = '';
+		this.node.appendChild(img);
 	}
-};
-
-/**
- * Function: configureTransparentBackground
- * 
- * Workaround for security warning in IE if this is used in the overlay pane
- * of a diagram. 
- */
-mxImageShape.prototype.configureTransparentBackground = function(node)
-{
-	// do nothing
-};
-
-/**
- * Function: redrawSvg
- *
- * Updates the SVG node(s) to reflect the latest bounds and scale.
- */
-mxImageShape.prototype.redrawSvg = function()
-{
-	this.updateSvgShape(this.innerNode);
-	this.updateSvgShape(this.imageNode);
-	
-	if (this.bg != null)
+	else
 	{
-		this.updateSvgShape(this.bg);
-		
-		if (this.fill != null)
-		{
-			this.bg.setAttribute('fill', this.fill);
-		}
-		else
-		{
-			this.bg.setAttribute('fill', 'none');
-		}
-		
-		if (this.stroke != null)
-		{
-			this.bg.setAttribute('stroke', this.stroke);
-		}
-		else
-		{
-			this.bg.setAttribute('stroke', 'none');
-		}
-		
-		this.bg.setAttribute('shape-rendering', 'crispEdges');
-	}
-};
-
-/**
- * Function: configureSvgShape
- *
- * Extends method to set opacity on images.
- */
-mxImageShape.prototype.configureSvgShape = function(node)
-{
-	mxShape.prototype.configureSvgShape.apply(this, arguments);
-	
-	if (this.imageNode != null)
-	{
-		if (this.opacity != null)
-		{
-			this.imageNode.setAttribute('opacity', this.opacity / 100);
-		}
-		else
-		{
-			this.imageNode.removeAttribute('opacity');
-		}
+		this.setTransparentBackgroundImage(this.node);
 	}
 };
 /**
- * $Id: mxLabel.js,v 1.40 2012/05/22 16:10:12 gaudenz Exp $
+ * $Id: mxLabel.js,v 1.9 2012/12/04 12:51:40 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -27344,24 +24329,13 @@ mxImageShape.prototype.configureSvgShape = function(node)
  */
 function mxLabel(bounds, fill, stroke, strokewidth)
 {
-	this.bounds = bounds;
-	this.fill = fill;
-	this.stroke = stroke;
-	this.strokewidth = (strokewidth != null) ? strokewidth : 1;
+	mxRectangleShape.call(this, bounds, fill, stroke, strokewidth);
 };
 
 /**
  * Extends mxShape.
  */
-mxLabel.prototype = new mxShape();
-mxLabel.prototype.constructor = mxLabel;
-
-/**
- * Variable: vmlNodes
- *
- * Adds local references to <mxShape.vmlNodes>.
- */
-mxLabel.prototype.vmlNodes = mxLabel.prototype.vmlNodes.concat(['label', 'imageNode', 'indicatorImageNode', 'rectNode']);
+mxUtils.extend(mxLabel, mxRectangleShape);
 
 /**
  * Variable: imageSize
@@ -27374,15 +24348,14 @@ mxLabel.prototype.imageSize = mxConstants.DEFAULT_IMAGESIZE;
 /**
  * Variable: spacing
  *
- * Default value for spacing. Default is 2.
+ * Default value for image spacing. Default is 2.
  */
 mxLabel.prototype.spacing = 2;
 
 /**
  * Variable: indicatorSize
  *
- * Default width and height for the indicicator. Default is
- * 10.
+ * Default width and height for the indicicator. Default is 10.
  */
 mxLabel.prototype.indicatorSize = 10;
 
@@ -27394,26 +24367,14 @@ mxLabel.prototype.indicatorSize = 10;
 mxLabel.prototype.indicatorSpacing = 2;
 
 /**
- * Variable: opaqueVmlImages
- * 
- * Specifies if all VML images should be rendered without transparency, that
- * is, if the current opacity should be ignored for images. Default is false.
- */
-mxLabel.prototype.opaqueVmlImages = false;
-
-/**
  * Function: init
  *
- * Initializes the shape and adds it to the container. This function is
- * overridden so that the node is already in the DOM when the indicator
- * is added. This is required to access the ownerSVGelement of the
- * container in the init function of the indicator.
+ * Initializes the shape and the <indicator>.
  */
 mxLabel.prototype.init = function(container)
 {
 	mxShape.prototype.init.apply(this, arguments);
-	
-	// Creates the indicator shape after the node was added to the DOM
+
 	if (this.indicatorColor != null && this.indicatorShape != null)
 	{
 		this.indicator = new this.indicatorShape();
@@ -27424,329 +24385,206 @@ mxLabel.prototype.init = function(container)
 		this.indicator.gradient = this.indicatorGradientColor;
 		this.indicator.direction = this.indicatorDirection;
 		this.indicator.init(this.node);
-		this.indicatorShape = null;
 	}
 };
 
 /**
- * Function: reconfigure
+ * Function: redraw
  *
  * Reconfigures this shape. This will update the colors of the indicator
  * and reconfigure it if required.
  */
-mxLabel.prototype.reconfigure = function()
+mxLabel.prototype.redraw = function()
 {
-	mxShape.prototype.reconfigure.apply(this);
-	
 	if (this.indicator != null)
 	{
 		this.indicator.fill = this.indicatorColor;
 		this.indicator.stroke = this.indicatorColor;
 		this.indicator.gradient = this.indicatorGradientColor;
 		this.indicator.direction = this.indicatorDirection;
-		this.indicator.reconfigure();
 	}
+	
+	mxShape.prototype.redraw.apply(this, arguments);
 };
 
 /**
- * Function: createHtml
+ * Function: isHtmlAllowed
  *
- * Creates and returns the HTML node to represent this shape.
+ * Returns true for non-rounded, non-rotated shapes with no glass gradient and
+ * no indicator shape.
  */
-mxLabel.prototype.createHtml = function()
+mxLabel.prototype.isHtmlAllowed = function()
 {
-	var name = 'DIV';
-	var node = document.createElement(name);
-	this.configureHtmlShape(node);
+	return mxRectangleShape.prototype.isHtmlAllowed.apply(this, arguments) &&
+		this.indicatorColor == null && this.indicatorShape == null;
+};
+
+/**
+ * Function: paintForeground
+ * 
+ * Generic background painting implementation.
+ */
+mxLabel.prototype.paintForeground = function(c, x, y, w, h)
+{
+	this.paintImage(c, x, y, w, h);
+	this.paintIndicator(c, x, y, w, h);
 	
-	// Adds a small subshape inside this shape
-	if (this.indicatorImage != null)
-	{
-		this.indicatorImageNode = mxUtils.createImage(this.indicatorImage);
-		this.indicatorImageNode.style.position = 'absolute';
-		node.appendChild(this.indicatorImageNode);
-	}
-	
-	// Adds an image node to the div
+	mxRectangleShape.prototype.paintForeground.apply(this, arguments);
+};
+
+/**
+ * Function: paintImage
+ * 
+ * Generic background painting implementation.
+ */
+mxLabel.prototype.paintImage = function(c, x, y, w, h)
+{
 	if (this.image != null)
 	{
-		this.imageNode = mxUtils.createImage(this.image);
-		this.stroke = null;
-		this.configureHtmlShape(this.imageNode);
-		mxUtils.setOpacity(this.imageNode, '100');
-		node.appendChild(this.imageNode);
+		var bounds = this.getImageBounds(x, y, w, h);
+		c.image(bounds.x, bounds.y, bounds.width, bounds.height, this.image, false, false, false);
 	}
-	
-	return node;
 };
 
 /**
- * Function: createVml
- *
- * Creates and returns the VML node to represent this shape.
+ * Function: getImageBounds
+ * 
+ * Generic background painting implementation.
  */
-mxLabel.prototype.createVml = function()
+mxLabel.prototype.getImageBounds = function(x, y, w, h)
 {
-	var node = document.createElement('v:group');
+	var align = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_ALIGN, mxConstants.ALIGN_LEFT);
+	var valign = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_VERTICAL_ALIGN, mxConstants.ALIGN_MIDDLE);
+	var width = mxUtils.getNumber(this.style, mxConstants.STYLE_IMAGE_WIDTH, mxConstants.DEFAULT_IMAGESIZE);
+	var height = mxUtils.getNumber(this.style, mxConstants.STYLE_IMAGE_HEIGHT, mxConstants.DEFAULT_IMAGESIZE);
+	var spacing = mxUtils.getNumber(this.style, mxConstants.STYLE_SPACING, this.spacing) + 5;
 
-	// Background
-	var name = (this.isRounded) ? 'v:roundrect' : 'v:rect';
-	this.rectNode = document.createElement(name);
-	this.configureVmlShape(this.rectNode);
-	
-	// Disables the shadow and configures the enclosing group
-	this.isShadow = false;
-	this.configureVmlShape(node);
-	node.coordorigin = '0,0';
-	node.appendChild(this.rectNode);
-	
-	// Adds a small subshape inside this shape
-	if (this.indicatorImage != null)
+	if (align == mxConstants.ALIGN_CENTER)
 	{
-		this.indicatorImageNode = this.createVmlImage(this.indicatorImage, (this.opaqueVmlImages) ? null : this.opacity);
-		node.appendChild(this.indicatorImageNode);
+		x += (w - width) / 2;
 	}
-	
-	// Adds an image node to the div
-	if (this.image != null)
+	else if (align == mxConstants.ALIGN_RIGHT)
 	{
-		this.imageNode = this.createVmlImage(this.image, (this.opaqueVmlImages) ? null : this.opacity);
-		node.appendChild(this.imageNode);
-	}
-	
-	// Container for the label on top of everything
-	this.label = document.createElement('v:rect');
-	this.label.style.top = '0px'; // relative
-	this.label.style.left = '0px'; // relative
-	this.label.filled = 'false';
-	this.label.stroked = 'false';
-	node.appendChild(this.label);
-	
-	return node;
-};
-
-/**
- * Function: createVmlImage
- *
- * Creates an image node for the given image src and opacity to be used in VML.
- */
-mxLabel.prototype.createVmlImage = function(src, opacity)
-{
-	var result = null;
-	
-	// Workaround for data URIs not supported in VML and for added
-	// border around images if opacity is used (not needed in IE9,
-	// but IMG node is probably better and faster anyway).
-	if (src.substring(0, 5) == 'data:' || opacity != null)
-	{
-		result = document.createElement('img');
-		mxUtils.setOpacity(result, opacity);
-		result.setAttribute('border', '0');
-		result.style.position = 'absolute';
-		result.setAttribute('src', src);
-	}
-	else
-	{
-		result = document.createElement('v:image');
-		result.src = src;
-	}
-	
-	return result;
-};
-
-/**
- * Function: createSvg
- *
- * Creates and returns the SVG node to represent this shape.
- */
-mxLabel.prototype.createSvg = function()
-{
-	var g = this.createSvgGroup('rect');
-
-	// Adds a small subshape to the svg group
-	if (this.indicatorImage != null)
-	{
-		this.indicatorImageNode = document.createElementNS(mxConstants.NS_SVG, 'image');
-		this.indicatorImageNode.setAttributeNS(mxConstants.NS_XLINK, 'href', this.indicatorImage);
-		g.appendChild(this.indicatorImageNode);
-		
-		if (this.opacity != null)
-		{
-			this.indicatorImageNode.setAttribute('opacity', this.opacity / 100);
-		}
-	}
-	
-	// Adds an image to the svg group
-	if (this.image != null)
-	{
-		this.imageNode = document.createElementNS(mxConstants.NS_SVG, 'image');
-		this.imageNode.setAttributeNS(mxConstants.NS_XLINK, 'href', this.image);
-		
-		if (this.opacity != null)
-		{
-			this.imageNode.setAttribute('opacity', this.opacity / 100);
-		}
-
-		// Disables control-click and alt-click in Firefox
-		this.imageNode.setAttribute('style', 'pointer-events:none');
-		this.configureSvgShape(this.imageNode);
-		g.appendChild(this.imageNode);
-	}
-
-	return g;
-};
-
-/**
- * Function: redraw
- *
- * Overrides redraw to define a unified implementation for redrawing
- * all supported dialects.
- */
-mxLabel.prototype.redraw = function()
-{
-	this.updateBoundingBox();
-	var isSvg = (this.dialect == mxConstants.DIALECT_SVG);
-	var isVml = mxUtils.isVml(this.node);
-	
-	// Updates the bounds of the outermost shape
-	if (isSvg)
-	{
-		this.updateSvgShape(this.innerNode);
-		
-		if (this.shadowNode != null)
-		{
-			this.updateSvgShape(this.shadowNode);
-		}
-
-		this.updateSvgGlassPane();
-	}
-	else if (isVml)
-	{
-		this.updateVmlShape(this.node);
-		this.updateVmlShape(this.rectNode);
-		this.label.style.width = this.node.style.width;
-		this.label.style.height = this.node.style.height;
-		
-		this.updateVmlGlassPane();
-	}
-	else
-	{
-		this.updateHtmlShape(this.node);
-	}
-
-	// Updates the imagewidth and imageheight		
-	var imageWidth = 0;
-	var imageHeight = 0;
-	
-	if (this.imageNode != null)
-	{
-		imageWidth = (this.style[mxConstants.STYLE_IMAGE_WIDTH] ||
-			this.imageSize) * this.scale;
-		imageHeight = (this.style[mxConstants.STYLE_IMAGE_HEIGHT] ||
-			this.imageSize) * this.scale;
-	}
-	
-	// Updates the subshape size and location
-	var indicatorSpacing = 0;
-	var indicatorWidth = 0;
-	var indicatorHeight = 0;
-	
-	if (this.indicator != null || this.indicatorImageNode != null)
-	{
-		indicatorSpacing = (this.style[mxConstants.STYLE_INDICATOR_SPACING] ||
-			this.indicatorSpacing) * this.scale;
-		indicatorWidth = (this.style[mxConstants.STYLE_INDICATOR_WIDTH] ||
-			this.indicatorSize) * this.scale;
-		indicatorHeight = (this.style[mxConstants.STYLE_INDICATOR_HEIGHT] ||
-			this.indicatorSize) * this.scale;
-	}
-	
-	var align = this.style[mxConstants.STYLE_IMAGE_ALIGN];
-	var valign = this.style[mxConstants.STYLE_IMAGE_VERTICAL_ALIGN];
-
-	var inset = this.spacing * this.scale + 5;		
-	var width = Math.max(imageWidth, indicatorWidth);
-	var height = imageHeight + indicatorSpacing + indicatorHeight;
-	
-	var x = (isSvg) ? this.bounds.x : 0;
-	
-	if (align == mxConstants.ALIGN_RIGHT)
-	{
-		x += this.bounds.width - width - inset;
-	}
-	else if (align == mxConstants.ALIGN_CENTER)
-	{
-		x += (this.bounds.width - width) / 2;
+		x += w - width - spacing;
 	}
 	else // default is left
 	{
-		x += inset;
+		x += spacing;
 	}
-	
-	var y = (isSvg) ? this.bounds.y : 0;
-	
-	if (valign == mxConstants.ALIGN_BOTTOM)
+
+	if (valign == mxConstants.ALIGN_TOP)
 	{
-		y += this.bounds.height - height - inset;
+		y += spacing;
 	}
-	else if (valign == mxConstants.ALIGN_TOP)
+	else if (valign == mxConstants.ALIGN_BOTTOM)
 	{
-		y += inset;
+		y += h - height - spacing;
 	}
 	else // default is middle
 	{
-		y += (this.bounds.height - height) / 2;
+		y += (h - height) / 2;
 	}
 	
-	// Updates the imagenode
-	if (this.imageNode != null)
-	{
-		if (isSvg)
-		{
-			this.imageNode.setAttribute('x', (x + (width - imageWidth) / 2) + 'px');
-			this.imageNode.setAttribute('y', y + 'px');
-			this.imageNode.setAttribute('width', imageWidth + 'px');
-			this.imageNode.setAttribute('height', imageHeight + 'px');
-		}
-		else
-		{
-			this.imageNode.style.left = (x + width - imageWidth) + 'px';
-			this.imageNode.style.top = y + 'px';
-			this.imageNode.style.width = imageWidth + 'px';
-			this.imageNode.style.height = imageHeight + 'px';
-			this.imageNode.stroked = 'false';
-		}
-	}
-	
-	// Updates the subshapenode (aka. indicator)
+	return new mxRectangle(x, y, width, height);
+};
+
+/**
+ * Function: paintIndicator
+ * 
+ * Generic background painting implementation.
+ */
+mxLabel.prototype.paintIndicator = function(c, x, y, w, h)
+{
 	if (this.indicator != null)
 	{
-		this.indicator.bounds = new mxRectangle(
-			x + (width - indicatorWidth) / 2,
-			y + imageHeight + indicatorSpacing,
-			indicatorWidth, indicatorHeight);
-		this.indicator.redraw();
+		this.indicator.bounds = this.getIndicatorBounds(x, y, w, h);
+		this.indicator.paint(c);
 	}
-	else if (this.indicatorImageNode != null)
+	else if (this.indicatorImage != null)
 	{
-		if (isSvg)
-		{
-			this.indicatorImageNode.setAttribute('x', (x + (width - indicatorWidth) / 2) + 'px');
-			this.indicatorImageNode.setAttribute('y', (y + imageHeight + indicatorSpacing) + 'px');
-			this.indicatorImageNode.setAttribute('width', indicatorWidth + 'px');
-			this.indicatorImageNode.setAttribute('height', indicatorHeight + 'px');
-		}
-		else
-		{			
-			this.indicatorImageNode.style.left = (x + (width - indicatorWidth) / 2) + 'px';
-			this.indicatorImageNode.style.top = (y + imageHeight + indicatorSpacing) + 'px';
-			this.indicatorImageNode.style.width = indicatorWidth + 'px';
-			this.indicatorImageNode.style.height = indicatorHeight + 'px';
-		}
+		var bounds = this.getIndicatorBounds(x, y, w, h);
+		c.image(bounds.x, bounds.y, bounds.width, bounds.height, this.indicatorImage, false, false, false);
+	}
+};
+
+/**
+ * Function: getIndicatorBounds
+ * 
+ * Generic background painting implementation.
+ */
+mxLabel.prototype.getIndicatorBounds = function(x, y, w, h)
+{
+	var align = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_ALIGN, mxConstants.ALIGN_LEFT);
+	var valign = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_VERTICAL_ALIGN, mxConstants.ALIGN_MIDDLE);
+	var width = mxUtils.getNumber(this.style, mxConstants.STYLE_INDICATOR_WIDTH, this.indicatorSize);
+	var height = mxUtils.getNumber(this.style, mxConstants.STYLE_INDICATOR_HEIGHT, this.indicatorSize);
+	var spacing = this.spacing + 5;		
+	
+	if (align == mxConstants.ALIGN_RIGHT)
+	{
+		x += w - width - spacing;
+	}
+	else if (align == mxConstants.ALIGN_CENTER)
+	{
+		x += (w - width) / 2;
+	}
+	else // default is left
+	{
+		x += spacing;
+	}
+	
+	if (valign == mxConstants.ALIGN_BOTTOM)
+	{
+		y += h - height - spacing;
+	}
+	else if (valign == mxConstants.ALIGN_TOP)
+	{
+		y += spacing;
+	}
+	else // default is middle
+	{
+		y += (h - height) / 2;
+	}
+	
+	return new mxRectangle(x, y, width, height);
+};
+/**
+ * Function: redrawHtmlShape
+ * 
+ * Generic background painting implementation.
+ */
+mxLabel.prototype.redrawHtmlShape = function()
+{
+	mxRectangleShape.prototype.redrawHtmlShape.apply(this, arguments);
+	
+	// Removes all children
+	while(this.node.hasChildNodes())
+	{
+		this.node.removeChild(this.node.lastChild);
+	}
+	
+	if (this.image != null)
+	{
+		var node = document.createElement('img');
+		node.style.position = 'relative';
+		node.setAttribute('border', '0');
+		
+		var bounds = this.getImageBounds(this.bounds.x, this.bounds.y, this.bounds.width, this.bounds.height);
+		bounds.x -= this.bounds.x;
+		bounds.y -= this.bounds.y;
+
+		node.style.left = Math.round(bounds.x) + 'px';
+		node.style.top = Math.round(bounds.y) + 'px';
+		node.style.width = Math.round(bounds.width) + 'px';
+		node.style.height = Math.round(bounds.height) + 'px';
+		
+		node.src = this.image;
+		
+		this.node.appendChild(node);
 	}
 };
 /**
- * $Id: mxCylinder.js,v 1.38 2012/07/31 11:46:53 gaudenz Exp $
+ * $Id: mxCylinder.js,v 1.3 2012/11/22 21:04:16 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -27773,6 +24611,7 @@ mxLabel.prototype.redraw = function()
  */
 function mxCylinder(bounds, fill, stroke, strokewidth)
 {
+	mxShape.call(this);
 	this.bounds = bounds;
 	this.fill = fill;
 	this.stroke = stroke;
@@ -27782,46 +24621,7 @@ function mxCylinder(bounds, fill, stroke, strokewidth)
 /**
  * Extends mxShape.
  */
-mxCylinder.prototype = new mxShape();
-mxCylinder.prototype.constructor = mxCylinder;
-
-/**
- * Variable: vmlNodes
- *
- * Adds local references to <mxShape.vmlNodes>.
- */
-mxCylinder.prototype.vmlNodes = mxCylinder.prototype.vmlNodes.concat(['background', 'foreground']);
-
-/**
- * Variable: mixedModeHtml
- *
- * Overrides the parent value with false, meaning it will
- * draw in VML in mixed Html mode.
- */
-mxCylinder.prototype.mixedModeHtml = false;
-
-/**
- * Variable: preferModeHtml
- *
- * Overrides the parent value with false, meaning it will
- * draw as VML in prefer Html mode.
- */
-mxCylinder.prototype.preferModeHtml = false;
-
-/**
- * Variable: addPipe
- *
- * Specifies if a SVG path should be created around the background for better
- * hit detection. Default is false.
- */
-mxCylinder.prototype.addPipe = false;
-
-/**
- * Variable: strokedBackground
- *
- * Specifies if the background should be stroked. Default is true.
- */
-mxCylinder.prototype.strokedBackground = true;
+mxUtils.extend(mxCylinder, mxShape);
 
 /**
  * Variable: maxHeight
@@ -27832,240 +24632,64 @@ mxCylinder.prototype.strokedBackground = true;
 mxCylinder.prototype.maxHeight = 40;
 
 /**
- * Variable: vmlScale
+ * Variable: svgStrokeTolerance
  *
- * Renders VML with a scale of 2.
+ * Sets stroke tolerance to 0 for SVG.
  */
-mxCylinder.prototype.vmlScale = 2;
+mxCylinder.prototype.svgStrokeTolerance = 0;
 
 /**
- * Function: create
- *
- * Overrides the method to make sure the <stroke> is never
- * null. If it is null is will be assigned the <fill> color.
+ * Function: paintVertexShape
+ * 
+ * Redirects to redrawPath for subclasses to work.
  */
-mxCylinder.prototype.create = function(container)
+mxCylinder.prototype.paintVertexShape = function(c, x, y, w, h)
 {
-	if (this.stroke == null)
-	{
-		this.stroke = this.fill;
-	}
+	c.translate(x, y);
+	c.begin();
+	this.redrawPath(c, x, y, w, h, false);
+	c.fillAndStroke();
 	
-	// Calls superclass implementation of create
-	return mxShape.prototype.create.apply(this, arguments);
-};
-
-/**
- * Function: reconfigure
- *
- * Overrides the method to make sure the <stroke> is applied to the foreground.
- */
-mxCylinder.prototype.reconfigure = function()
-{
-	if (this.dialect == mxConstants.DIALECT_SVG)
-	{
-		this.configureSvgShape(this.foreground);
-		this.foreground.setAttribute('fill', 'none');
-	}
-	else if (mxUtils.isVml(this.node))
-	{
-		this.configureVmlShape(this.background);
-		this.configureVmlShape(this.foreground);
-	}
+	c.setShadow(false);
 	
-	mxShape.prototype.reconfigure.apply(this);
-};
-
-/**
- * Function: createVml
- *
- * Creates and returns the VML node to represent this shape.
- */
-mxCylinder.prototype.createVml = function()
-{
-	var node = document.createElement('v:group');
-
-	// Draws the background
-	this.background = document.createElement('v:shape');
-	this.label = this.background;
-	this.configureVmlShape(this.background);
-	node.appendChild(this.background);
-	
-	// Ignores values that only apply to the background
-	this.fill = null;
-	this.isShadow = false;
-	this.configureVmlShape(node);
-	
-	// Draws the foreground
-	this.foreground = document.createElement('v:shape');
-	this.configureVmlShape(this.foreground);
-	
-	// To match SVG defaults jointsyle miter, miterlimit 4
-	this.fgStrokeNode = document.createElement('v:stroke');
-	this.fgStrokeNode.joinstyle = 'miter';
-	this.fgStrokeNode.miterlimit = 4;
-	this.foreground.appendChild(this.fgStrokeNode);
-	
-	node.appendChild(this.foreground);
-	
-	return node;
-};
-
-/**
- * Function: redrawVml
- *
- * Updates the VML node(s) to reflect the latest bounds and scale.
- */
-mxCylinder.prototype.redrawVml = function()
-{
-	this.updateVmlShape(this.node);
-	this.updateVmlShape(this.background);
-	this.updateVmlShape(this.foreground);
-	this.background.path = this.createPath(false);
-	this.foreground.path = this.createPath(true);
-	
-	this.fgStrokeNode.dashstyle = this.strokeNode.dashstyle;
-};
-
-/**
- * Function: createSvg
- *
- * Creates and returns the SVG node(s) to represent this shape.
- */
-mxCylinder.prototype.createSvg = function()
-{
-	var g = this.createSvgGroup('path');
-	this.foreground = document.createElementNS(mxConstants.NS_SVG, 'path');
-	
-	if (this.stroke != null && this.stroke != mxConstants.NONE)
-	{
-		this.foreground.setAttribute('stroke', this.stroke);
-	}
-	else
-	{
-		this.foreground.setAttribute('stroke', 'none');
-	}
-	
-	this.foreground.setAttribute('fill', 'none');
-	g.appendChild(this.foreground);
-	
-	if (this.addPipe)
-	{
-		this.pipe = this.createSvgPipe();
-		g.appendChild(this.pipe);
-	}
-	
-	return g;
-};
-
-/**
- * Function: redrawSvg
- *
- * Updates the SVG node(s) to reflect the latest bounds and scale.
- */
-mxCylinder.prototype.redrawSvg = function()
-{
-	var strokeWidth = Math.round(Math.max(1, this.strokewidth * this.scale));
-	this.innerNode.setAttribute('stroke-width', strokeWidth);
-	
-	if (this.crisp && (this.rotation == null || this.rotation == 0))
-	{
-		this.innerNode.setAttribute('shape-rendering', 'crispEdges');
-		this.foreground.setAttribute('shape-rendering', 'crispEdges');
-	}
-	else
-	{
-		this.innerNode.removeAttribute('shape-rendering');
-		this.foreground.removeAttribute('shape-rendering');
-	}
-
-	// Paints background
-	var d = this.createPath(false);
-	
-	if (d.length > 0)
-	{
-		this.innerNode.setAttribute('d', d);
-		
-		// Updates event handling element
-		if (this.pipe != null)
-		{
-			this.pipe.setAttribute('d', d);
-			this.pipe.setAttribute('stroke-width', strokeWidth + mxShape.prototype.SVG_STROKE_TOLERANCE);
-			this.pipe.setAttribute('transform', (this.innerNode.getAttribute('transform') || ''));
-		}
-	}
-	else
-	{
-		this.innerNode.removeAttribute('d');
-		
-		// Updates event handling element
-		if (this.pipe != null)
-		{
-			this.pipe.removeAttribute('d');
-		}
-	}
-	
-	// Stroked background
-	if (!this.strokedBackground)
-	{
-		this.innerNode.setAttribute('stroke', 'none');
-	}
-
-	// Paints shadow
-	if (this.shadowNode != null)
-	{
-		this.shadowNode.setAttribute('stroke-width', strokeWidth);
-		this.shadowNode.setAttribute('d', d);
-		this.shadowNode.setAttribute('transform',  this.getSvgShadowTransform());
-	}
-
-	// Paints foreground
-	d = this.createPath(true);
-	
-	if (d.length > 0)
-	{
-		this.foreground.setAttribute('stroke-width', strokeWidth);
-		this.foreground.setAttribute('d', d);
-	}
-	else
-	{
-		this.foreground.removeAttribute('d');
-	}
-	
-	if (this.isDashed)
-	{
-		var phase = Math.max(1, Math.round(3 * this.scale * this.strokewidth));
-		this.innerNode.setAttribute('stroke-dasharray', phase + ' ' + phase);
-		this.foreground.setAttribute('stroke-dasharray', phase + ' ' + phase);
-	}
+	c.begin();
+	this.redrawPath(c, x, y, w, h, true);
+	c.stroke();
 };
 
 /**
  * Function: redrawPath
  *
- * Draws the path for this shape. This method uses the <mxPath>
- * abstraction to paint the shape for VML and SVG.
+ * Draws the path for this shape.
  */
-mxCylinder.prototype.redrawPath = function(path, x, y, w, h, isForeground)
+mxCylinder.prototype.redrawPath = function(c, x, y, w, h, isForeground)
 {
 	var dy = Math.min(this.maxHeight, Math.round(h / 5));
 	
-	if (isForeground)
+	if ((isForeground && this.fill != null) || (!isForeground && this.fill == null))
 	{
-		path.moveTo(0, dy);
-		path.curveTo(0, 2 * dy, w, 2 * dy, w, dy);
+		c.moveTo(0, dy);
+		c.curveTo(0, 2 * dy, w, 2 * dy, w, dy);
+		
+		// Needs separate shapes for correct hit-detection
+		if (!isForeground)
+		{
+			c.stroke();
+			c.begin();
+		}
 	}
-	else
+	
+	if (!isForeground)
 	{
-		path.moveTo(0, dy);
-		path.curveTo(0, -dy / 3, w, -dy / 3, w, dy);
-		path.lineTo(w, h - dy);
-		path.curveTo(w, h + dy / 3, 0, h + dy / 3, 0, h - dy);
-		path.close();
+		c.moveTo(0, dy);
+		c.curveTo(0, -dy / 3, w, -dy / 3, w, dy);
+		c.lineTo(w, h - dy);
+		c.curveTo(w, h + dy / 3, 0, h + dy / 3, 0, h - dy);
+		c.close();
 	}
 };
 /**
- * $Id: mxConnector.js,v 1.80 2012/05/24 12:00:45 gaudenz Exp $
+ * $Id: mxConnector.js,v 1.6 2013/01/15 18:03:42 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -28092,434 +24716,154 @@ mxCylinder.prototype.redrawPath = function(path, x, y, w, h, isForeground)
  */
 function mxConnector(points, stroke, strokewidth)
 {
-	this.points = points;
-	this.stroke = stroke;
-	this.strokewidth = (strokewidth != null) ? strokewidth : 1;
+	mxPolyline.call(this, points, stroke, strokewidth);
 };
 
 /**
- * Extends mxShape.
+ * Extends mxPolyline.
  */
-mxConnector.prototype = new mxShape();
-mxConnector.prototype.constructor = mxConnector;
+mxUtils.extend(mxConnector, mxPolyline);
 
 /**
- * Variable: vmlNodes
- *
- * Adds local references to <mxShape.vmlNodes>.
+ * Function: paintEdgeShape
+ * 
+ * Paints the line shape.
  */
-mxConnector.prototype.vmlNodes = mxConnector.prototype.vmlNodes.concat([
-  'shapeNode', 'start', 'end', 'startStroke', 'endStroke', 'startFill', 'endFill']);
-
-/**
- * Variable: mixedModeHtml
- *
- * Overrides the parent value with false, meaning it will
- * draw in VML in mixed Html mode.
- */
-mxConnector.prototype.mixedModeHtml = false;
-
-/**
- * Variable: preferModeHtml
- *
- * Overrides the parent value with false, meaning it will
- * draw as VML in prefer Html mode.
- */
-mxConnector.prototype.preferModeHtml = false;
-
-/**
- * Variable: allowCrispMarkers
- *
- * Specifies if <mxShape.crisp> should be allowed for markers. Default is false.
- */
-mxConnector.prototype.allowCrispMarkers = false;
-
-/**
- * Variable: addPipe
- *
- * Specifies if a SVG path should be created around any path to increase the
- * tolerance for mouse events. Default is false since this shape is filled.
- */
-mxConnector.prototype.addPipe = true;
-
-/**
- * Function: configureHtmlShape
- *
- * Overrides <mxShape.configureHtmlShape> to clear the border and background.
- */
-mxConnector.prototype.configureHtmlShape = function(node)
+mxConnector.prototype.paintEdgeShape = function(c, pts)
 {
-	mxShape.prototype.configureHtmlShape.apply(this, arguments);
-	node.style.borderStyle = '';
-	node.style.background = '';
-};
+	// The indirection via functions for markers is needed in
+	// order to apply the offsets before painting the line and
+	// paint the markers after painting the line.
+	var sourceMarker = this.createMarker(c, pts, true);
+	var targetMarker = this.createMarker(c, pts, false);
 
-/**
- * Function: createVml
- *
- * Creates and returns the VML node to represent this shape.
- */
-mxConnector.prototype.createVml = function()
-{
-	var node = document.createElement('v:group');
-	node.style.position = 'absolute';
-	this.shapeNode = document.createElement('v:shape');
-	this.updateVmlStrokeColor(this.shapeNode);
-	this.updateVmlStrokeNode(this.shapeNode);
-	node.appendChild(this.shapeNode);
-	this.shapeNode.filled = 'false';
-
-	if (this.isShadow)
+	if (this.style == null || this.style[mxConstants.STYLE_CURVED] != 1)
 	{
-		this.createVmlShadow(this.shapeNode);
-	}
-	
-	// Creates the start arrow as an additional child path		
-	if (this.startArrow != null)
-	{
-		this.start = document.createElement('v:shape');
-		this.start.style.position = 'absolute';
-		
-		// Only required for opacity and joinstyle
-		this.startStroke = document.createElement('v:stroke');
-		this.startStroke.joinstyle = 'miter';
-		this.start.appendChild(this.startStroke);
-		
-		this.startFill = document.createElement('v:fill');
-		this.start.appendChild(this.startFill);
-
-		node.appendChild(this.start);
-	}
-
-	// Creates the end arrows as an additional child path
-	if (this.endArrow != null)
-	{
-		this.end = document.createElement('v:shape');
-		this.end.style.position = 'absolute';
-		
-		// Only required for opacity and joinstyle
-		this.endStroke = document.createElement('v:stroke');
-		this.endStroke.joinstyle = 'miter';
-		this.end.appendChild(this.endStroke);
-		
-		this.endFill = document.createElement('v:fill');
-		this.end.appendChild(this.endFill);
-
-		node.appendChild(this.end);
-	}
-	
-	this.updateVmlMarkerOpacity();
-	
-	return node;
-};
-
-/**
- * Function: updateVmlMarkerOpacity
- *
- * Updates the opacity for the markers in VML.
- */
-mxConnector.prototype.updateVmlMarkerOpacity = function()
-{
-	var op = (this.opacity != null) ? (this.opacity + '%') : '100%';
-
-	if (this.start != null)
-	{
-		this.startFill.opacity = op;
-		this.startStroke.opacity = op;
-	}
-
-	if (this.end != null)
-	{
-		this.endFill.opacity = op;
-		this.endStroke.opacity = op;
-	}
-};
-
-/**
- * Function: redrawVml
- *
- * Redraws this VML shape by invoking <updateVmlShape> on this.node.
- */
-mxConnector.prototype.reconfigure = function()
-{
-	// Never fill a connector
-	this.fill = null;
-	
-	if (mxUtils.isVml(this.node))
-	{
-		// Updates the style of the given shape
-		// LATER: Check if this can be replaced with redrawVml and
-		// updating the color, dash pattern and shadow.
-		this.node.style.visibility = 'hidden';
-		this.configureVmlShape(this.shapeNode);
-		this.updateVmlMarkerOpacity();
-		this.node.style.visibility = 'visible';
+		this.paintLine(c, pts, this.isRounded);
 	}
 	else
 	{
-		mxShape.prototype.reconfigure.apply(this, arguments);
+		this.paintCurvedLine(c, pts);
+	}
+	
+	// Disables shadows, dashed styles and fixes fill color for markers
+	c.setFillColor(this.stroke);
+	c.setShadow(false);
+	c.setDashed(false);
+	
+	if (sourceMarker != null)
+	{
+		sourceMarker();
+	}
+	
+	if (targetMarker != null)
+	{
+		targetMarker();
 	}
 };
 
 /**
- * Function: redrawVml
- *
- * Redraws this VML shape by invoking <updateVmlShape> on this.node.
+ * Function: paintLine
+ * 
+ * Paints the line shape.
  */
-mxConnector.prototype.redrawVml = function()
+mxConnector.prototype.paintCurvedLine = function(c, pts)
 {
-	if (this.node != null && this.points != null && this.bounds != null &&
-		!isNaN(this.bounds.x) && !isNaN(this.bounds.y) &&
-		!isNaN(this.bounds.width) && !isNaN(this.bounds.height))
+	c.begin();
+	
+	var pt = pts[0];
+	var n = pts.length;
+	
+	c.moveTo(pt.x, pt.y);
+	
+	for (var i = 1; i < n - 2; i++)
 	{
-		var w = Math.max(0, Math.round(this.bounds.width));
-		var h = Math.max(0, Math.round(this.bounds.height));
-		var cs = w + ',' + h;
-		w += 'px';
-		h += 'px';
+		var p0 = pts[i];
+		var p1 = pts[i + 1];
+		var ix = (p0.x + p1.x) / 2;
+		var iy = (p0.y + p1.y) / 2;
 		
-		// Computes the marker paths before the main path is updated so
-		// that offsets can be taken into account
-		if (this.start != null)
-		{
-			this.start.style.width = w;
-			this.start.style.height = h;
-			this.start.coordsize = cs;
-			
-			var p0 = this.points[1];
-			var pe = this.points[0];
-			
-			var size = mxUtils.getNumber(this.style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_MARKERSIZE);
-			this.startOffset = this.redrawMarker(this.start, this.startArrow, p0, pe, this.stroke, size);
-		}
-		
-		if (this.end != null)
-		{
-			this.end.style.width = w;
-			this.end.style.height = h;
-			this.end.coordsize = cs;
-			
-			var n = this.points.length;
-			var p0 = this.points[n - 2];
-			var pe = this.points[n - 1];
-			
-			var size = mxUtils.getNumber(this.style, mxConstants.STYLE_ENDSIZE, mxConstants.DEFAULT_MARKERSIZE);
-			this.endOffset = this.redrawMarker(this.end, this.endArrow, p0, pe, this.stroke, size);
-		}
-		
-		this.updateVmlShape(this.node);
-		this.updateVmlShape(this.shapeNode);
-		this.shapeNode.filled = 'false';
-
-		// Adds custom dash pattern
-		if (this.isDashed)
-		{
-			var pat = mxUtils.getValue(this.style, 'dashStyle', null);
-			
-			if (pat != null)
-			{
-				this.strokeNode.dashstyle = pat;
-			}
-
-			if (this.shadowStrokeNode != null)
-			{
-				this.shadowStrokeNode.dashstyle = this.strokeNode.dashstyle;
-			}
-		}
+		c.quadTo(p0.x, p0.y, ix, iy);
 	}
+	
+	var p0 = pts[n - 2];
+	var p1 = pts[n - 1];
+	
+	c.quadTo(p0.x, p0.y, p1.x, p1.y);
+	c.stroke();
 };
 
 /**
- * Function: createSvg
- *
- * Creates and returns the SVG node to represent this shape.
+ * Function: createMarker
+ * 
+ * Prepares the marker by adding offsets in pts and returning a function to
+ * paint the marker.
  */
-mxConnector.prototype.createSvg = function()
+mxConnector.prototype.createMarker = function(c, pts, source)
 {
-	this.fill = null;
-	var g = this.createSvgGroup('path');
+	// Computes the norm and the inverse norm
+	var n = pts.length;
 	
-	// Creates the start arrow as an additional child path		
-	if (this.startArrow != null)
-	{
-		this.start = document.createElementNS(mxConstants.NS_SVG, 'path');
-		g.appendChild(this.start);
-	}
+	var p0 = (source) ? pts[1] : pts[n - 2];
+	var pe = (source) ? pts[0] : pts[n - 1];
 
-	// Creates the end arrows as an additional child path
-	if (this.endArrow != null)
-	{
-		this.end = document.createElementNS(mxConstants.NS_SVG, 'path');
-		g.appendChild(this.end);
-	}
+	var dx = pe.x - p0.x;
+	var dy = pe.y - p0.y;
+
+	var dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
 	
-	// Creates an invisible shape around the path for easier
-	// selection with the mouse. Note: Firefox does not ignore
-	// the value of the stroke attribute for pointer-events: stroke,
-	// it does, however, ignore the visibility attribute.
-	if (this.addPipe)
-	{
-		this.pipe = this.createSvgPipe();
-		g.appendChild(this.pipe);
-	}
+	var unitX = dx / dist;
+	var unitY = dy / dist;
+
+	var size = mxUtils.getNumber(this.style, (source) ? mxConstants.STYLE_STARTSIZE : mxConstants.STYLE_ENDSIZE, mxConstants.DEFAULT_MARKERSIZE);
 	
-	return g;
+	// Allow for stroke width in the end point used and the 
+	// orthogonal vectors describing the direction of the marker
+	var type = mxUtils.getValue(this.style, (source) ? mxConstants.STYLE_STARTARROW : mxConstants.STYLE_ENDARROW);
+	var filled = this.style[(source) ? mxConstants.STYLE_STARTFILL : mxConstants.STYLE_ENDFILL] != 0;
+	
+	return mxMarker.createMarker(c, this, type, pe, unitX, unitY, size, source, this.strokewidth, filled);
 };
 
 /**
- * Function: redrawSvg
+ * Function: augmentBoundingBox
  *
- * Updates the SVG node(s) to reflect the latest bounds and scale.
+ * Augments the bounding box with the strokewidth and shadow offsets.
  */
-mxConnector.prototype.redrawSvg = function()
+mxConnector.prototype.augmentBoundingBox = function(bbox)
 {
-	// Computes the markers first which modifies the coordinates of the
-	// endpoints to not overlap with the painted marker then updates the actual
-	// shape for the edge to take the modified endpoints into account.
-	if (this.points != null && this.points[0] != null)
-	{
-		var color = this.innerNode.getAttribute('stroke');
-		
-		// Draws the start marker
-		if (this.start != null)
-		{
-			var p0 = this.points[1];
-			var pe = this.points[0];
-			
-			var size = mxUtils.getNumber(this.style, mxConstants.STYLE_STARTSIZE,
-					mxConstants.DEFAULT_MARKERSIZE);
-			this.startOffset = this.redrawMarker(this.start,
-				this.startArrow, p0, pe, color, size);
-			
-			if (this.allowCrispMarkers && this.crisp)
-			{
-				this.start.setAttribute('shape-rendering', 'crispEdges');
-			}
-			else
-			{
-				this.start.removeAttribute('shape-rendering');
-			}
-		}
-		
-		// Draws the end marker
-		if (this.end != null)
-		{
-			var n = this.points.length;
-			
-			var p0 = this.points[n - 2];
-			var pe = this.points[n - 1];
-
-			var size = mxUtils.getNumber(this.style, mxConstants.STYLE_ENDSIZE,
-					mxConstants.DEFAULT_MARKERSIZE);
-			this.endOffset = this.redrawMarker(this.end,
-				this.endArrow, p0, pe, color, size);
-			
-			if (this.allowCrispMarkers && this.crisp)
-			{
-				this.end.setAttribute('shape-rendering', 'crispEdges');
-			}
-			else
-			{
-				this.end.removeAttribute('shape-rendering');
-			}
-		}
-	}
-
-	this.updateSvgShape(this.innerNode);
-	var d = this.innerNode.getAttribute('d');
+	mxShape.prototype.augmentBoundingBox.apply(this, arguments);
 	
-	if (d != null)
-	{
-		var strokeWidth = Math.round(this.strokewidth * this.scale);
-		
-		// Updates the tolerance of the invisible shape for event handling
-		if (this.pipe != null)
-		{
-			this.pipe.setAttribute('d', this.innerNode.getAttribute('d'));
-			this.pipe.setAttribute('stroke-width', strokeWidth + mxShape.prototype.SVG_STROKE_TOLERANCE);
-		}
-		
-		// Updates the shadow
-		if (this.shadowNode != null)
-		{
-			this.shadowNode.setAttribute('transform',  this.getSvgShadowTransform());
-			this.shadowNode.setAttribute('d',  d);
-			this.shadowNode.setAttribute('stroke-width', strokeWidth);
-		}
-	}
-
-	// Adds custom dash pattern
-	if (this.isDashed)
-	{
-		var pat = this.createDashPattern(this.scale * this.strokewidth);
-		
-		if (pat != null)
-		{
-			this.innerNode.setAttribute('stroke-dasharray', pat);
-		}
-	}
-
-	// Updates the shadow
-	if (this.shadowNode != null)
-	{
-		var pat = this.innerNode.getAttribute('stroke-dasharray');
-		
-		if (pat != null)
-		{
-			this.shadowNode.setAttribute('stroke-dasharray', pat);
-		}
-	}
-};
-
-/**
- * Function: createDashPattern
- *
- * Creates a dash pattern for the given factor.
- */
-mxConnector.prototype.createDashPattern = function(factor)
-{
-	var value = mxUtils.getValue(this.style, 'dashPattern', null);
+	// Adds marker sizes
+	var size = 0;
 	
-	if (value != null)
+	if (mxUtils.getValue(this.style, mxConstants.STYLE_STARTARROW, mxConstants.NONE) != mxConstants.NONE)
 	{
-		var tmp = value.split(' ');
-		var pat = [];
-		
-		for (var i = 0; i < tmp.length; i++)
-		{
-			if (tmp[i].length > 0)
-			{
-				pat.push(Math.round(Number(tmp[i]) * factor));
-			}
-		}
-		
-		return pat.join(' ');
+		size = mxUtils.getNumber(this.style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_MARKERSIZE) + 1;
 	}
 	
-	return null;
-};
-
-/**
- * Function: redrawMarker
- *
- * Updates the given SVG or VML marker.
- */
-mxConnector.prototype.redrawMarker = function(node, type, p0, pe, color, size)
-{
-	return mxMarker.paintMarker(node, type, p0, pe, color, this.strokewidth,
-			size, this.scale, this.bounds.x, this.bounds.y, this.start == node,
-			this.style);
+	if (mxUtils.getValue(this.style, mxConstants.STYLE_ENDARROW, mxConstants.NONE) != mxConstants.NONE)
+	{
+		size = Math.max(size, mxUtils.getNumber(this.style, mxConstants.STYLE_ENDSIZE, mxConstants.DEFAULT_MARKERSIZE)) + 1;
+	}
+	
+	bbox.grow(Math.ceil(size * this.scale));
 };
 /**
- * $Id: mxSwimlane.js,v 1.43 2011/11/04 13:54:50 gaudenz Exp $
+ * $Id: mxSwimlane.js,v 1.17 2013/04/01 12:21:21 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
  * Class: mxSwimlane
  *
- * Extends <mxShape> to implement a swimlane shape.
- * This shape is registered under <mxConstants.SHAPE_SWIMLANE>
- * in <mxCellRenderer>.
+ * Extends <mxShape> to implement a swimlane shape. This shape is registered
+ * under <mxConstants.SHAPE_SWIMLANE> in <mxCellRenderer>. Use the
+ * <mxConstants.STYLE_STYLE_STARTSIZE> to define the size of the title
+ * region, <mxConstants.STYLE_SWIMLANE_FILLCOLOR> for the content area fill,
+ * <mxConstants.STYLE_SEPARATORCOLOR> to draw an additional vertical separator
+ * and <mxConstants.STYLE_SWIMLANE_LINE> to hide the line between the title
+ * region and the content area. The <mxConstants.STYLE_HORIZONTAL> affects
+ * the orientation of this shape, not only its label.
  * 
  * Constructor: mxSwimlane
  *
@@ -28536,6 +24880,7 @@ mxConnector.prototype.redrawMarker = function(node, type, p0, pe, color, size)
  */
 function mxSwimlane(bounds, fill, stroke, strokewidth)
 {
+	mxShape.call(this);
 	this.bounds = bounds;
 	this.fill = fill;
 	this.stroke = stroke;
@@ -28545,15 +24890,7 @@ function mxSwimlane(bounds, fill, stroke, strokewidth)
 /**
  * Extends mxShape.
  */
-mxSwimlane.prototype = new mxShape();
-mxSwimlane.prototype.constructor = mxSwimlane;
-
-/**
- * Variable: vmlNodes
- *
- * Adds local references to <mxShape.vmlNodes>.
- */
-mxSwimlane.prototype.vmlNodes = mxSwimlane.prototype.vmlNodes.concat(['label', 'content', 'imageNode', 'separator']);
+mxUtils.extend(mxSwimlane, mxShape);
 
 /**
  * Variable: imageSize
@@ -28564,507 +24901,232 @@ mxSwimlane.prototype.vmlNodes = mxSwimlane.prototype.vmlNodes.concat(['label', '
 mxSwimlane.prototype.imageSize = 16;
 
 /**
- * Variable: mixedModeHtml
- *
- * Overrides the parent value with false, meaning it will
- * draw in VML in mixed Html mode. This is for better
- * handling of event-transparency of the content area.
+ * Function: getGradientBounds
+ * 
+ * Returns the bounding box for the gradient box for this shape.
  */
-mxSwimlane.prototype.mixedModeHtml = false;
-
-/**
- * Variable: preferModeHtml
- *
- * Overrides the parent value with false, meaning it will
- * draw as VML in prefer Html mode. This is for better
- * handling of event-transparency of the content area.
- */
-mxRhombus.prototype.preferModeHtml = false;
-
-/**
- * Function: createHtml
- *
- * Creates and returns the HTML node to represent this shape.
- */
-mxSwimlane.prototype.createHtml = function()
+mxSwimlane.prototype.getGradientBounds = function(c, x, y, w, h)
 {
-	var node = document.createElement('DIV');
-	this.configureHtmlShape(node);
-	node.style.background = '';
-	node.style.backgroundColor = '';
-	node.style.borderStyle = 'none';
-
-	// Adds a node that will contain the text label
-	this.label = document.createElement('DIV');
-	this.configureHtmlShape(this.label);
-	node.appendChild(this.label);
-
-	// Adds a node for the content area of the swimlane
-	this.content = document.createElement('DIV');
-	this.configureHtmlShape(this.content);
-	this.content.style.backgroundColor = '';
+	var start = Math.min(h, mxUtils.getValue(this.style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE));
 	
-	// Sets border styles depending on orientation
-	if (mxUtils.getValue(this.style, mxConstants.STYLE_HORIZONTAL, true))
+	return new mxRectangle(x, y, w, start);
+};
+
+/**
+ * Function: getRotation
+ * 
+ * Overrides rotation to include the horizontal flag in the shape rotation.
+ */
+mxSwimlane.prototype.getRotation = function()
+{
+	var rot = mxShape.prototype.getRotation.apply(this, arguments);
+	
+	if (mxUtils.getValue(this.style, mxConstants.STYLE_HORIZONTAL, 1) != 1)
 	{
-		this.content.style.borderTopStyle = 'none';			
+		rot += mxText.prototype.verticalTextRotation;
+	}
+	
+	return rot;
+};
+
+/**
+ * Function: getTextRotation
+ * 
+ * Redirect the text rotation to the shape rotation to avoid adding the vertical
+ * text rotation twice.
+ */
+mxSwimlane.prototype.getTextRotation = function()
+{
+	return this.getRotation();
+};
+
+/**
+ * Function: isPaintBoundsInverted
+ * 
+ * Overrides bounds inversion to maintain the bounds if the shape is rotated
+ * via the horizontal flag.
+ */
+mxSwimlane.prototype.isPaintBoundsInverted = function()
+{
+	return mxShape.prototype.isPaintBoundsInverted.apply(this, arguments) ||
+		mxUtils.getValue(this.style, mxConstants.STYLE_HORIZONTAL, 1) != 1;
+};
+
+/**
+ * Function: getArcSize
+ * 
+ * Returns the arcsize for the swimlane.
+ */
+mxSwimlane.prototype.getArcSize = function(w, h, start)
+{
+	var f = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, mxConstants.RECTANGLE_ROUNDING_FACTOR * 100) / 100;
+
+	return start * f * 3; 
+};
+
+/**
+ * Function: paintVertexShape
+ *
+ * Paints the swimlane vertex shape.
+ */
+mxSwimlane.prototype.paintVertexShape = function(c, x, y, w, h)
+{
+	var start = Math.min(h, mxUtils.getValue(this.style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE));
+	var fill = mxUtils.getValue(this.style, mxConstants.STYLE_SWIMLANE_FILLCOLOR, mxConstants.NONE);
+	var swimlaneLine = mxUtils.getValue(this.style, mxConstants.STYLE_SWIMLANE_LINE, 1) == 1;
+	var r = 0;
+
+	c.translate(x, y);
+	
+	if (!this.isRounded)
+	{
+		this.paintSwimlane(c, x, y, w, h, start, fill, swimlaneLine);
 	}
 	else
 	{
-		this.content.style.borderLeftStyle = 'none';
+		r = this.getArcSize(w, h, start);
+		this.paintRoundedSwimlane(c, x, y, w, h, start, r, fill, swimlaneLine);
 	}
 	
-	this.content.style.cursor = 'default';
-	node.appendChild(this.content);
-	
-	// Adds a node for the separator
-	var color = this.style[mxConstants.STYLE_SEPARATORCOLOR];
-	
-	if (color != null)
-	{
-		this.separator = document.createElement('DIV');
-		this.separator.style.borderColor = color;
-		this.separator.style.borderLeftStyle = 'dashed';
-		node.appendChild(this.separator);
-	}
-	
-	// Adds a node for the image
+	var sep = mxUtils.getValue(this.style, mxConstants.STYLE_SEPARATORCOLOR, mxConstants.NONE);
+	this.paintSeparator(c, w, start, h, sep);
+
 	if (this.image != null)
 	{
-		this.imageNode = mxUtils.createImage(this.image);
-		this.configureHtmlShape(this.imageNode);
-		this.imageNode.style.borderStyle = 'none';
-		node.appendChild(this.imageNode);
+		var bounds = this.getImageBounds(x, y, w, h);
+		c.image(bounds.x - x, bounds.y - y, bounds.width, bounds.height,
+				this.image, false, false, false);
 	}
 	
-	return node;
+	if (this.glass)
+	{
+		c.setShadow(false);
+		this.paintGlassEffect(c, 0, 0, w, start, r);
+	}
 };
 
 /**
- * Function: reconfigure
+ * Function: paintSwimlane
  *
- * Overrides to avoid filled content area in HTML and updates the shadow
- * in SVG.
+ * Paints the swimlane vertex shape.
  */
-mxSwimlane.prototype.reconfigure = function(node)
+mxSwimlane.prototype.paintSwimlane = function(c, x, y, w, h, start, fill, swimlaneLine)
 {
-	mxShape.prototype.reconfigure.apply(this, arguments);
-	
-	if (this.dialect == mxConstants.DIALECT_SVG)
+	if (fill != mxConstants.NONE)
 	{
-		if (this.shadowNode != null)
-		{
-			this.updateSvgShape(this.shadowNode);
-			
-			if (mxUtils.getValue(this.style, mxConstants.STYLE_HORIZONTAL, true))
-			{
-				this.shadowNode.setAttribute('height', this.startSize*this.scale);
-			}
-			else
-			{
-				this.shadowNode.setAttribute('width', this.startSize*this.scale);				
-			}
-		}
+		c.save();
+		c.setFillColor(fill);
+		c.rect(0, 0, w, h);
+		c.fillAndStroke();
+		c.restore();
+		c.setShadow(false);
 	}
-	else if (!mxUtils.isVml(this.node))
+	
+	c.begin();
+	c.moveTo(0, start);
+	c.lineTo(0, 0);
+	c.lineTo(w, 0);
+	c.lineTo(w, start);
+	
+	if (swimlaneLine)
 	{
-		this.node.style.background = '';
-		this.node.style.backgroundColor = '';
+		c.close();
+	}
+	
+	c.fillAndStroke();
+	
+	// Transparent content area
+	if (start < h && fill == mxConstants.NONE)
+	{
+		c.pointerEvents = false;
+		
+		c.begin();
+		c.moveTo(0, start);
+		c.lineTo(0, h);
+		c.lineTo(w, h);
+		c.lineTo(w, start);
+		c.stroke();
 	}
 };
 
 /**
- * Function: redrawHtml
+ * Function: paintRoundedSwimlane
  *
- * Updates the HTML node(s) to reflect the latest bounds and scale.
+ * Paints the swimlane vertex shape.
  */
-mxSwimlane.prototype.redrawHtml = function()
+mxSwimlane.prototype.paintRoundedSwimlane = function(c, x, y, w, h, start, r, fill, swimlaneLine)
 {
-	this.updateHtmlShape(this.node);
-	this.node.style.background = '';
-	this.node.style.backgroundColor = '';
-	this.startSize = parseInt(mxUtils.getValue(this.style,
-		mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE));
-	this.updateHtmlShape(this.label);
-	this.label.style.top = '0px';
-	this.label.style.left = '0px';
-	
-	if (mxUtils.getValue(this.style, mxConstants.STYLE_HORIZONTAL, true))
+	if (fill != mxConstants.NONE)
 	{
-		this.startSize = Math.min(this.startSize, this.bounds.height);
-		this.label.style.height = (this.startSize * this.scale)+'px'; // relative
-		this.updateHtmlShape(this.content);
-		this.content.style.background = '';
-		this.content.style.backgroundColor = '';
-		
-		var h = this.startSize*this.scale;
-		
-		this.content.style.top = h+'px';
-		this.content.style.left = '0px';
-		this.content.style.height = Math.max(1, this.bounds.height - h)+'px';
-		
-		if (this.separator != null)
-		{
-			this.separator.style.left = Math.round(this.bounds.width)+'px';
-			this.separator.style.top = Math.round(this.startSize*this.scale)+'px';
-			this.separator.style.width = '1px';
-			this.separator.style.height = Math.round(this.bounds.height)+'px';
-			this.separator.style.borderWidth = Math.round(this.scale)+'px';
-		}
-		
-		if (this.imageNode != null)
-		{
-			this.imageNode.style.left = (this.bounds.width-this.imageSize-4)+'px';
-			this.imageNode.style.top = '0px';
-			// TODO: Use imageWidth and height from style if available
-			this.imageNode.style.width = Math.round(this.imageSize*this.scale)+'px';
-			this.imageNode.style.height = Math.round(this.imageSize*this.scale)+'px';
-		}
+		c.save();
+		c.setFillColor(fill);
+		c.roundrect(0, 0, w, h, r, r);
+		c.fillAndStroke();
+		c.restore();
+		c.setShadow(false);
 	}
-	else
+	
+	c.begin();
+	c.moveTo(w, start);
+	c.lineTo(w, r);
+	c.quadTo(w, 0, w - Math.min(w / 2, r), 0);
+	c.lineTo(Math.min(w / 2, r), 0);
+	c.quadTo(0, 0, 0, r);
+	c.lineTo(0, start);
+	
+	if (swimlaneLine)
 	{
-		this.startSize = Math.min(this.startSize, this.bounds.width);
-		this.label.style.width = (this.startSize * this.scale)+'px'; // relative
-		this.updateHtmlShape(this.content);
-		this.content.style.background = '';
-		this.content.style.backgroundColor = '';
+		c.close();
+	}
+
+	c.fillAndStroke();
+	
+	// Transparent content area
+	if (start < h && fill == mxConstants.NONE)
+	{
+		c.pointerEvents = false;
 		
-		var w = this.startSize*this.scale;
-		
-		this.content.style.top = '0px';
-		this.content.style.left = w+'px';
-		this.content.style.width = Math.max(0, this.bounds.width - w)+'px';
-		
-		if (this.separator != null)
-		{
-			this.separator.style.left = Math.round(this.startSize*this.scale)+'px';
-			this.separator.style.top = Math.round(this.bounds.height)+'px';
-			this.separator.style.width = Math.round(this.bounds.width)+'px';
-			this.separator.style.height = '1px';
-		}
-		
-		if (this.imageNode != null)
-		{
-			this.imageNode.style.left = (this.bounds.width-this.imageSize-4)+'px';
-			this.imageNode.style.top = '0px';
-			this.imageNode.style.width = this.imageSize*this.scale+'px';
-			this.imageNode.style.height = this.imageSize*this.scale+'px';
-		}
+		c.begin();
+		c.moveTo(0, start);
+		c.lineTo(0, h - r);
+		c.quadTo(0, h, Math.min(w / 2, r), h);
+		c.lineTo(w - Math.min(w / 2, r), h);
+		c.quadTo(w, h, w, h - r);
+		c.lineTo(w, start);
+		c.stroke();
 	}
 };
 
 /**
- * Function: createVml
+ * Function: paintSwimlane
  *
- * Creates and returns the VML node(s) to represent this shape.
+ * Paints the swimlane vertex shape.
  */
-mxSwimlane.prototype.createVml = function()
+mxSwimlane.prototype.paintSeparator = function(c, x, y, h, color)
 {
-	var node = document.createElement('v:group');
-	var name = (this.isRounded) ? 'v:roundrect' : 'v:rect';
-	this.label = document.createElement(name);
-	
-	// First configure the label with all settings
-	this.configureVmlShape(this.label);
-	
-	if (this.isRounded)
+	if (color != mxConstants.NONE)
 	{
-		this.label.setAttribute('arcsize', '20%');
+		c.setStrokeColor(color);
+		c.setDashed(true);
+		c.begin();
+		c.moveTo(x, y);
+		c.lineTo(x, h);
+		c.stroke();
+		c.setDashed(false);
 	}
-
-	// Disables stuff and configures the rest
-	this.isShadow = false;
-	this.configureVmlShape(node);
-	node.coordorigin = '0,0';
-	node.appendChild(this.label);
-	
-	this.content = document.createElement(name);
-
-	var tmp = this.fill;
-	this.fill = null;
-	
-	this.configureVmlShape(this.content);
-	node.style.background = '';
-	
-	if (this.isRounded)
-	{
-		this.content.setAttribute('arcsize', '4%');
-	}
-	
-	this.fill = tmp;
-	this.content.style.borderBottom = '0px';
-	
-	node.appendChild(this.content);
-	
-	var color = this.style[mxConstants.STYLE_SEPARATORCOLOR];
-	
-	if (color != null)
-	{
-		this.separator = document.createElement('v:shape');
-		this.separator.style.position = 'absolute';
-		this.separator.strokecolor = color;
-
-		var strokeNode = document.createElement('v:stroke');
-		strokeNode.dashstyle = '2 2';
-		this.separator.appendChild(strokeNode);
-		
-		node.appendChild(this.separator);
-	}
-	
-	if (this.image != null)
-	{
-		this.imageNode = document.createElement('v:image');
-		this.imageNode.src = this.image;
-		this.configureVmlShape(this.imageNode);
-		this.imageNode.stroked = 'false';
-		
-		node.appendChild(this.imageNode);
-	}
-	
-	return node;
 };
 
 /**
- * Function: redrawVml
+ * Function: getImageBounds
  *
- * Updates the VML node(s) to reflect the latest bounds and scale.
+ * Paints the swimlane vertex shape.
  */
-mxSwimlane.prototype.redrawVml = function()
+mxSwimlane.prototype.getImageBounds = function(x, y, w, h)
 {
-	var x = Math.round(this.bounds.x);
-	var y = Math.round(this.bounds.y);
-	var w = Math.round(this.bounds.width);
-	var h = Math.round(this.bounds.height);
-
-	this.updateVmlShape(this.node);
-	this.node.coordsize = w + ',' + h;
-
-	this.updateVmlShape(this.label);
-	this.label.style.top = '0px';
-	this.label.style.left = '0px';
-	this.label.style.rotation = null;
-
-	this.startSize = parseInt(mxUtils.getValue(this.style,
-			mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE));
-	var start = Math.round(this.startSize * this.scale);
-
-	if (this.separator != null)
-	{
-		this.separator.coordsize = w + ',' + h;
-		this.separator.style.left = x + 'px';
-		this.separator.style.top = y + 'px';
-		this.separator.style.width = w + 'px';
-		this.separator.style.height = h + 'px';
-	}
-	
-	if (mxUtils.getValue(this.style, mxConstants.STYLE_HORIZONTAL, true))
-	{
-		start = Math.min(start, this.bounds.height);
-		this.label.style.height = start + 'px'; // relative
-		this.updateVmlShape(this.content);
-		this.content.style.background = '';
-		this.content.style.top = start + 'px';
-		this.content.style.left = '0px';
-		this.content.style.height = Math.max(0, h - start)+'px';
-		
-		if (this.separator != null)
-		{
-			var d = 'm ' + (w - x) + ' ' + (start - y) +
-				' l ' + (w - x) + ' ' + (h - y) + ' e';
-			this.separator.path = d;
-		}
-		
-		if (this.imageNode != null)
-		{
-			var img = Math.round(this.imageSize*this.scale);
-			
-			this.imageNode.style.left = (w-img-4)+'px';
-			this.imageNode.style.top = '0px';
-			this.imageNode.style.width = img + 'px';
-			this.imageNode.style.height = img + 'px';
-		}
-	}
-	else
-	{
-		start = Math.min(start, this.bounds.width);
-		this.label.style.width = start + 'px'; // relative
-		this.updateVmlShape(this.content);
-		this.content.style.background = '';
-		this.content.style.top = '0px';
-		this.content.style.left = start + 'px';
-		this.content.style.width = Math.max(0, w - start) + 'px';
-		
-		if (this.separator != null)
-		{
-			var d = 'm ' + (start - x) + ' ' + (h - y) +
-				' l ' + (w - x) + ' ' + (h - y) + ' e';
-			this.separator.path = d;
-		}
-		
-		if (this.imageNode != null)
-		{
-			var img = Math.round(this.imageSize * this.scale);
-			
-			this.imageNode.style.left = (w - img - 4)+'px';
-			this.imageNode.style.top = '0px';
-			this.imageNode.style.width = img + 'px';
-			this.imageNode.style.height = img + 'px';		
-		}
-	}
-
-	this.content.style.rotation = null;
-};
-
-/**
- * Function: createSvg
- *
- * Creates and returns the SVG node(s) to represent this shape.
- */
-mxSwimlane.prototype.createSvg = function()
-{
-	var node = this.createSvgGroup('rect');
-
-	if (this.isRounded)
-	{
-		this.innerNode.setAttribute('rx', 10);
-		this.innerNode.setAttribute('ry', 10);
-	}
-
-	this.content = document.createElementNS(mxConstants.NS_SVG, 'path');
-	this.configureSvgShape(this.content);
-	this.content.setAttribute('fill', 'none');
-
-	if (this.isRounded)
-	{
-		this.content.setAttribute('rx', 10);
-		this.content.setAttribute('ry', 10);
-	}
-	
-	node.appendChild(this.content);
-	var color = this.style[mxConstants.STYLE_SEPARATORCOLOR];
-	
-	if (color != null)
-	{
-		this.separator = document.createElementNS(mxConstants.NS_SVG, 'line');
-		
-		this.separator.setAttribute('stroke', color);
-		this.separator.setAttribute('fill', 'none');
-		this.separator.setAttribute('stroke-dasharray', '2, 2');
-		
-		node.appendChild(this.separator);
-	}
-	
-	if (this.image != null)
-	{
-		this.imageNode = document.createElementNS(mxConstants.NS_SVG, 'image');
-		
-		this.imageNode.setAttributeNS(mxConstants.NS_XLINK, 'href', this.image);
-		this.configureSvgShape(this.imageNode);
-		
-		node.appendChild(this.imageNode);
-	}
-	
-	return node;
-};
-
-/**
- * Function: redrawSvg
- *
- * Updates the SVG node(s) to reflect the latest bounds and scale.
- */
-mxSwimlane.prototype.redrawSvg = function()
-{
-	var tmp = this.isRounded;
-	this.isRounded = false;
-	
-	this.updateSvgShape(this.innerNode);
-	this.updateSvgShape(this.content);
-	var horizontal = mxUtils.getValue(this.style, mxConstants.STYLE_HORIZONTAL, true);
-	this.startSize = parseInt(mxUtils.getValue(this.style,
-			mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE));
-	var ss = this.startSize * this.scale;
-	
-	// Updates the size of the shadow node
-	if (this.shadowNode != null)
-	{
-		this.updateSvgShape(this.shadowNode);
-		
-		if (horizontal)
-		{
-			this.shadowNode.setAttribute('height', ss);
-		}
-		else
-		{
-			this.shadowNode.setAttribute('width', ss);				
-		}
-	}
-	
-	this.isRounded = tmp;
-
-	this.content.removeAttribute('x');
-	this.content.removeAttribute('y');
-	this.content.removeAttribute('width');
-	this.content.removeAttribute('height');
-	
-	var crisp = (this.crisp && mxClient.IS_IE) ? 0.5 : 0;
-	var x = Math.round(this.bounds.x) + crisp;
-	var y = Math.round(this.bounds.y) + crisp;
-	var w = Math.round(this.bounds.width);
-	var h = Math.round(this.bounds.height);
-	
-	if (horizontal)
-	{
-		ss = Math.min(ss, h);
-		this.innerNode.setAttribute('height', ss);
-		var points = 'M ' + x + ' ' + (y + ss) +
-			' l 0 ' + (h - ss) + ' l ' + w + ' 0' + 
-			' l 0 ' + (ss - h);
-		this.content.setAttribute('d', points);
-	
-		if (this.separator != null)
-		{
-			this.separator.setAttribute('x1', x + w);
-			this.separator.setAttribute('y1', y + ss);
-			this.separator.setAttribute('x2', x + w);
-			this.separator.setAttribute('y2', y + h);
-		}
-		
-		if (this.imageNode != null)
-		{
-			this.imageNode.setAttribute('x', x + w - this.imageSize - 4);
-			this.imageNode.setAttribute('y', y);
-			this.imageNode.setAttribute('width', this.imageSize * this.scale + 'px');
-			this.imageNode.setAttribute('height', this.imageSize * this.scale + 'px');
-		}
-	}
-	else
-	{
-		ss = Math.min(ss, w);
-		this.innerNode.setAttribute('width', ss);
-		var points = 'M ' + (x + ss) + ' ' + y +
-			' l ' + (w - ss) + ' 0' + ' l 0 ' + h +
-			' l ' + (ss - w) + ' 0';
-		this.content.setAttribute('d', points);
-		
-		if (this.separator != null)
-		{
-			this.separator.setAttribute('x1', x + ss);
-			this.separator.setAttribute('y1', y + h);
-			this.separator.setAttribute('x2', x + w);
-			this.separator.setAttribute('y2', y + h);
-		}
-		
-		if (this.imageNode != null)
-		{
-			this.imageNode.setAttribute('x', x + w - this.imageSize - 4);
-			this.imageNode.setAttribute('y', y);
-			this.imageNode.setAttribute('width', this.imageSize * this.scale + 'px');
-			this.imageNode.setAttribute('height', this.imageSize * this.scale + 'px');
-		}
-	}
+	return new mxRectangle(x + w - this.imageSize, y, this.imageSize, this.imageSize);
 };
 /**
- * $Id: mxGraphLayout.js,v 1.48 2012/08/21 17:22:21 gaudenz Exp $
+ * $Id: mxGraphLayout.js,v 1.2 2013/01/09 17:18:03 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -29496,8 +25558,7 @@ mxGraphLayout.prototype.getVertexBounds = function(cell)
 			var dx1 = Math.max((tmp.x + tmp.width) - (state.x + state.width), 0) / scale;
   			var dy1 = Math.max((tmp.y + tmp.height) - (state.y + state.height), 0) / scale;
 
-			geo = new mxRectangle(geo.x - dx0, geo.y - dy0,
-         							geo.width + dx0 + dx1, geo.height + dy0 + dy1);
+			geo = new mxRectangle(geo.x - dx0, geo.y - dy0, geo.width + dx0 + dx1, geo.height + dy0 + dy1);
 		}
 	}
 
@@ -29567,7 +25628,7 @@ mxGraphLayout.prototype.arrangeGroups = function(groups, border)
 	}
 };
 /**
- * $Id: mxStackLayout.js,v 1.49 2013/04/08 11:10:53 gaudenz Exp $
+ * $Id: mxStackLayout.js,v 1.4 2013/04/08 11:10:52 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -29960,7 +26021,7 @@ mxStackLayout.prototype.execute = function(parent)
 	}
 };
 /**
- * $Id: mxPartitionLayout.js,v 1.25 2010/01/04 11:18:25 gaudenz Exp $
+ * $Id: mxPartitionLayout.js,v 1.1 2012/11/15 13:26:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -30200,7 +26261,7 @@ mxPartitionLayout.prototype.execute = function(parent)
 	}
 };
 /**
- * $Id: mxCompactTreeLayout.js,v 1.57 2012/05/24 13:09:34 david Exp $
+ * $Id: mxCompactTreeLayout.js,v 1.1 2012/11/15 13:26:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -31194,7 +27255,7 @@ WeightedCellSorter.prototype.compare = function(a, b)
 		return 0;
 	}
 };/**
- * $Id: mxFastOrganicLayout.js,v 1.37 2011/04/28 13:14:55 david Exp $
+ * $Id: mxFastOrganicLayout.js,v 1.1 2012/11/15 13:26:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -31785,7 +27846,7 @@ mxFastOrganicLayout.prototype.reduceTemperature = function()
 	this.temperature = this.initialTemp * (1.0 - this.iteration / this.maxIterations);
 };
 /**
- * $Id: mxCircleLayout.js,v 1.25 2012/08/22 17:26:12 gaudenz Exp $
+ * $Id: mxCircleLayout.js,v 1.1 2012/11/15 13:26:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -31988,7 +28049,7 @@ mxCircleLayout.prototype.circle = function(vertices, r, left, top)
 	}
 };
 /**
- * $Id: mxParallelEdgeLayout.js,v 1.24 2012/03/27 15:03:34 david Exp $
+ * $Id: mxParallelEdgeLayout.js,v 1.1 2012/11/15 13:26:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -32186,7 +28247,7 @@ mxParallelEdgeLayout.prototype.route = function(edge, x, y)
 	}
 };
 /**
- * $Id: mxCompositeLayout.js,v 1.11 2010/01/02 09:45:15 gaudenz Exp $
+ * $Id: mxCompositeLayout.js,v 1.1 2012/11/15 13:26:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -32287,7 +28348,7 @@ mxCompositeLayout.prototype.execute = function(parent)
 	}
 };
 /**
- * $Id: mxEdgeLabelLayout.js,v 1.8 2010/01/04 11:18:25 gaudenz Exp $
+ * $Id: mxEdgeLabelLayout.js,v 1.1 2012/11/15 13:26:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -32452,7 +28513,7 @@ mxEdgeLabelLayout.prototype.avoid = function(edge, vertex)
 	}
 };
 /**
- * $Id: mxGraphAbstractHierarchyCell.js,v 1.12 2010/01/04 11:18:26 gaudenz Exp $
+ * $Id: mxGraphAbstractHierarchyCell.js,v 1.1 2012/11/15 13:26:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -32658,7 +28719,7 @@ mxGraphAbstractHierarchyCell.prototype.setY = function(layer, value)
 	}
 };
 /**
- * $Id: mxGraphHierarchyNode.js,v 1.13 2012/06/12 20:24:58 david Exp $
+ * $Id: mxGraphHierarchyNode.js,v 1.1 2012/11/15 13:26:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -32867,7 +28928,7 @@ mxGraphHierarchyNode.prototype.getCoreCell = function()
 {
 	return this.cell;
 };/**
- * $Id: mxGraphHierarchyEdge.js,v 1.15 2012/06/12 20:23:14 david Exp $
+ * $Id: mxGraphHierarchyEdge.js,v 1.1 2012/11/15 13:26:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -33040,7 +29101,7 @@ mxGraphHierarchyEdge.prototype.getCoreCell = function()
 	
 	return null;
 };/**
- * $Id: mxGraphHierarchyModel.js,v 1.34 2013/01/09 16:34:29 david Exp $
+ * $Id: mxGraphHierarchyModel.js,v 1.4 2013/01/09 16:37:35 david Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -33728,7 +29789,7 @@ mxGraphHierarchyModel.prototype.extendedDfs = function(parent, root, connectingE
 	}
 };
 /**
- * $Id: mxHierarchicalLayoutStage.js,v 1.8 2010/01/02 09:45:15 gaudenz Exp $
+ * $Id: mxHierarchicalLayoutStage.js,v 1.1 2012/11/15 13:26:50 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -33753,7 +29814,7 @@ function mxHierarchicalLayoutStage() { };
  */
 mxHierarchicalLayoutStage.prototype.execute = function(parent) { };
 /**
- * $Id: mxMedianHybridCrossingReduction.js,v 1.25 2012/06/07 11:16:41 david Exp $
+ * $Id: mxMedianHybridCrossingReduction.js,v 1.1 2012/11/15 13:26:50 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -34427,7 +30488,7 @@ MedianCellSorter.prototype.compare = function(a, b)
 	}
 };
 /**
- * $Id: mxMinimumCycleRemover.js,v 1.14 2010/01/04 11:18:26 gaudenz Exp $
+ * $Id: mxMinimumCycleRemover.js,v 1.1 2012/11/15 13:26:50 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -34558,8 +30619,8 @@ mxMinimumCycleRemover.prototype.execute = function(parent)
 	}
 };
 /**
- * $Id: mxCoordinateAssignment.js,v 1.31 2013/02/21 15:10:59 david Exp $
- * Copyright (c) 2005-2012, JGraph Ltd
+ * $Id: mxCoordinateAssignment.js,v 1.3 2013/02/21 15:16:29 david Exp $
+ * Copyright (c) 2005-2013, JGraph Ltd
  */
 /**
  * Class: mxCoordinateAssignment
@@ -36449,7 +32510,7 @@ WeightedCellSorter.prototype.compare = function(a, b)
 	}
 };
 /**
- * $Id: mxHierarchicalLayout.js,v 1.34 2013/04/09 14:30:02 david Exp $
+ * $Id: mxHierarchicalLayout.js,v 1.8 2013/04/11 21:15:35 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -36877,7 +32938,7 @@ mxHierarchicalLayout.prototype.run = function(parent)
 
 			for (var i = 0; i < candidateRoots.length; i++)
 			{
-				var vertexSet = [];
+				var vertexSet = Object();
 				hierarchyVertices.push(vertexSet);
 
 				this.traverse(candidateRoots[i], true, null, allVertexSet, vertexSet,
@@ -36908,7 +32969,7 @@ mxHierarchicalLayout.prototype.run = function(parent)
 
 		for (var i = 0; i < this.roots.length; i++)
 		{
-			var vertexSet = [];
+			var vertexSet = Object();
 			hierarchyVertices.push(vertexSet);
 
 			this.traverse(this.roots[i], true, null, allVertexSet, vertexSet,
@@ -37167,7 +33228,7 @@ mxHierarchicalLayout.prototype.placementStage = function(initialX, parent)
 	return placementStage.limitX + this.interHierarchySpacing;
 };
 /**
- * $Id: mxGraphModel.js,v 1.126 2013/03/27 16:06:33 gaudenz Exp $
+ * $Id: mxGraphModel.js,v 1.2 2013/02/12 12:34:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -39824,7 +35885,7 @@ mxCellAttributeChange.prototype.execute = function()
 	this.previous = tmp;
 };
 /**
- * $Id: mxCell.js,v 1.36 2011/06/17 13:45:08 gaudenz Exp $
+ * $Id: mxCell.js,v 1.1 2012/11/15 13:26:42 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -40630,7 +36691,7 @@ mxCell.prototype.cloneValue = function()
 	return value;
 };
 /**
- * $Id: mxGeometry.js,v 1.26 2010/01/02 09:45:15 gaudenz Exp $
+ * $Id: mxGeometry.js,v 1.2 2013/04/05 07:34:20 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -40677,6 +36738,9 @@ mxCell.prototype.cloneValue = function()
  * This coordinate system is applied if <relative> is true, otherwise the
  * offset defines the absolute vector from the edge's center point to the
  * label.
+ * 
+ * The width and height parameter for edge geometries can be used to set the
+ * label width and height (eg. for word wrapping).
  * 
  * Ports:
  * 
@@ -40907,7 +36971,7 @@ mxGeometry.prototype.translate = function(dx, dy)
 	}
 };
 /**
- * $Id: mxCellPath.js,v 1.12 2010/01/02 09:45:15 gaudenz Exp $
+ * $Id: mxCellPath.js,v 1.1 2012/11/15 13:26:42 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxCellPath =
@@ -41070,7 +37134,7 @@ var mxCellPath =
 
 };
 /**
- * $Id: mxPerimeter.js,v 1.28 2012/01/11 09:06:56 gaudenz Exp $
+ * $Id: mxPerimeter.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxPerimeter =
@@ -41554,7 +37618,7 @@ var mxPerimeter =
 	}
 };
 /**
- * $Id: mxPrintPreview.js,v 1.63 2013/04/09 14:10:28 gaudenz Exp $
+ * $Id: mxPrintPreview.js,v 1.6 2013/04/09 14:06:49 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -41582,6 +37646,33 @@ var mxPerimeter =
  * }
  * (end)
  * 
+ * Additional pages:
+ * 
+ * To add additional pages before and after the output, <getCoverPages> and
+ * <getAppendices> can be used, respectively.
+ * 
+ * (code)
+ * var preview = new mxPrintPreview(graph, 1);
+ * 
+ * preview.getCoverPages = function(w, h)
+ * {
+ *   return [this.renderPage(w, h, mxUtils.bind(this, function(div)
+ *   {
+ *     div.innerHTML = '<div style="position:relative;margin:4px;">Cover Page</p>'
+ *   }))];
+ * }
+ * 
+ * preview.getAppendices = function(w, h)
+ * {
+ *   return [this.renderPage(w, h, mxUtils.bind(this, function(div)
+ *   {
+ *     div.innerHTML = '<div style="position:relative;margin:4px;">Appendix</p>'
+ *   }))];
+ * }
+ * 
+ * preview.open();
+ * (end)
+ * 
  * Headers:
  * 
  * Apart from setting the title argument in the mxPrintPreview constructor you
@@ -41589,7 +37680,7 @@ var mxPerimeter =
  * 
  * (code)
  * var oldRenderPage = mxPrintPreview.prototype.renderPage;
- * mxPrintPreview.prototype.renderPage = function(w, h, dx, dy, scale, pageNumber)
+ * mxPrintPreview.prototype.renderPage = function(w, h)
  * {
  *   var div = oldRenderPage.apply(this, arguments);
  *   
@@ -41598,12 +37689,16 @@ var mxPerimeter =
  *   header.style.top = '0px';
  *   header.style.width = '100%';
  *   header.style.textAlign = 'right';
- *   mxUtils.write(header, 'Your header here - Page ' + pageNumber + ' / ' + this.pageCount);
+ *   mxUtils.write(header, 'Your header here');
  *   div.firstChild.appendChild(header);
  *   
  *   return div;
  * };
  * (end)
+ * 
+ * For adding page numbers to the graph output pages, implement a counter in
+ * the above code or override <addGraphFragment> instead, where div corresponds
+ * to div.firstChild in the above code.
  * 
  * Page Format:
  * 
@@ -41790,7 +37885,14 @@ mxPrintPreview.prototype.getWindow = function()
  */
 mxPrintPreview.prototype.getDoctype = function()
 {
-	return '';
+	var dt = '';
+	
+	if (document.documentMode == 8)
+	{
+		dt = '<meta http-equiv="X-UA-Compatible" content="IE=8">';
+	}
+	
+	return dt;
 };
 
 /**
@@ -41841,7 +37943,7 @@ mxPrintPreview.prototype.open = function(css)
 	
 			// Adds all required stylesheets and namespaces
 			mxClient.link('stylesheet', mxClient.basePath + '/css/common.css', doc);
-	
+
 			if (mxClient.IS_VML)
 			{
 				doc.namespaces.add('v', 'urn:schemas-microsoft-com:vml');
@@ -41912,65 +38014,67 @@ mxPrintPreview.prototype.open = function(css)
 				}
 			});
 			
-			// Stores pages for later retrieval
-			var pages = null;
-
-			// Workaround for aspect of image shapes updated asynchronously
-			// in VML so we need to fetch the markup of the DIV containing
-			// the image after the udpate of the style of the DOM node.
-			// LATER: Allow document for display markup to be customized.
-			if (mxClient.IS_IE && document.documentMode != 9)
+			function addPage(div, addBreak)
 			{
-				pages = [];
-	
-				// Overrides asynchronous loading of images for fetching HTML markup
-				var waitCounter = 0;
-				var isDone = false;
+				// Border of the DIV (aka page) inside the document
+				if (this.borderColor != null)
+				{
+					div.style.borderColor = this.borderColor;
+					div.style.borderStyle = 'solid';
+					div.style.borderWidth = '1px';
+				}
+				
+				// Needs to be assigned directly because IE doesn't support
+				// child selectors, eg. body > div { background: white; }
+				div.style.background = 'white';
+				
+				if (addBreak)
+				{
+					div.style.pageBreakAfter = 'always';
+				}
 
-				var mxImageShapeScheduleUpdateAspect = mxImageShape.prototype.scheduleUpdateAspect;
-				var mxImageShapeUpdateAspect = mxImageShape.prototype.updateAspect;
-				
-				var writePages = function()
+				// NOTE: We are dealing with cross-window DOM here, which
+				// is a problem in IE, so we copy the HTML markup instead.
+				// The underlying problem is that the graph display markup
+				// creation (in mxShape, mxGraphView) is hardwired to using
+				// document.createElement and hence we must use document
+				// to create the complete page and then copy it over to the
+				// new window.document. This can be fixed later by using the
+				// ownerDocument of the container in mxShape and mxGraphView.
+				if (mxClient.IS_IE)
 				{
-					if (isDone && waitCounter == 0)
-					{
-						// Restores previous implementations
-						mxImageShape.prototype.scheduleUpdateAspect = mxImageShapeScheduleUpdateAspect;
-						mxImageShape.prototype.updateAspect = mxImageShapeUpdateAspect;
-						
-						var markup = '';
-						
-						for (var i = 0; i < pages.length; i++)
-						{
-							markup += pages[i].outerHTML;
-							pages[i].parentNode.removeChild(pages[i]);
-							
-							if (i < pages.length - 1)
-							{
-								markup += '<hr/>';
-							}
-						}
-						
-						doc.body.innerHTML = markup;
-						writePageSelector();
-					}
-				};
-				
-				// Overrides functions to implement wait counter
-				mxImageShape.prototype.scheduleUpdateAspect = function()
+					// For some obscure reason, removing the DIV from the
+					// parent before fetching its outerHTML has missing
+					// fillcolor properties and fill children, so the div
+					// must be removed afterwards to keep the fillcolors.
+					doc.writeln(div.outerHTML);
+					div.parentNode.removeChild(div);
+				}
+				else
 				{
-					waitCounter++;
-					mxImageShapeScheduleUpdateAspect.apply(this, arguments);
-				};
-				
-				// Overrides functions to implement wait counter
-				mxImageShape.prototype.updateAspect = function()
+					div.parentNode.removeChild(div);
+					doc.body.appendChild(div);
+				}
+
+				if (addBreak)
 				{
-					mxImageShapeUpdateAspect.apply(this, arguments);
-					waitCounter--;
-					writePages();
-				};
+					var hr = doc.createElement('hr');
+					hr.className = 'mxPageBreak';
+					doc.body.appendChild(hr);
+				}
+			};
+			
+			var cov = this.getCoverPages(this.pageFormat.width, this.pageFormat.height);
+			
+			if (cov != null)
+			{
+				for (var i = 0; i < cov.length; i++)
+				{
+					addPage(cov[i], true);
+				}
 			}
+			
+			var apx = this.getAppendices(this.pageFormat.width, this.pageFormat.height);
 			
 			// Appends each page to the page output for printing, making
 			// sure there will be a page break after each page (ie. div)
@@ -41989,69 +38093,23 @@ mxPrintPreview.prototype.open = function(css)
 					var dx = j * availableWidth / this.scale - this.x0 / this.scale +
 							(bounds.x - tr.x * currentScale) / currentScale;
 					var pageNum = i * hpages + j + 1;
-					
-					div = this.renderPage(this.pageFormat.width, this.pageFormat.height,
-						-dx, -dy, this.scale, pageNum);
-					
+					div = this.renderPage(this.pageFormat.width, this.pageFormat.height, mxUtils.bind(this, function(div)
+					{
+						this.addGraphFragment(-dx, -dy, this.scale, pageNum, div);
+					}));
+
 					// Gives the page a unique ID for later accessing the page
 					div.setAttribute('id', 'mxPage-'+pageNum);
-	
-					// Border of the DIV (aka page) inside the document
-					if (this.borderColor != null)
-					{
-						div.style.borderColor = this.borderColor;
-						div.style.borderStyle = 'solid';
-						div.style.borderWidth = '1px';
-					}
 					
-					// Needs to be assigned directly because IE doesn't support
-					// child selectors, eg. body > div { background: white; }
-					div.style.background = 'white';
-					
-					if (i < vpages - 1 || j < hpages - 1)
-					{
-						div.style.pageBreakAfter = 'always';
-					}
-	
-					// NOTE: We are dealing with cross-window DOM here, which
-					// is a problem in IE, so we copy the HTML markup instead.
-					// The underlying problem is that the graph display markup
-					// creation (in mxShape, mxGraphView) is hardwired to using
-					// document.createElement and hence we must use document
-					// to create the complete page and then copy it over to the
-					// new window.document. This can be fixed later by using the
-					// ownerDocument of the container in mxShape and mxGraphView.
-					if (mxClient.IS_IE)
-					{
-						// For some obscure reason, removing the DIV from the
-						// parent before fetching its outerHTML has missing
-						// fillcolor properties and fill children, so the div
-						// must be removed afterwards to keep the fillcolors.
-						// For delayed output we remote the DIV from the
-						// original document when we write out all pages.
-						doc.writeln(div.outerHTML);
-						
-						if (pages != null)
-						{
-							pages.push(div);
-						}
-						else
-						{
-							div.parentNode.removeChild(div);
-						}
-					}
-					else
-					{
-						div.parentNode.removeChild(div);
-						doc.body.appendChild(div);
-					}
-	
-					if (i < vpages - 1 || j < hpages - 1)
-					{
-						var hr = doc.createElement('hr');
-						hr.className = 'mxPageBreak';
-						doc.body.appendChild(hr);
-					}
+					addPage(div, apx != null || i < vpages - 1 || j < hpages - 1);
+				}
+			}
+
+			if (apx != null)
+			{
+				for (var i = 0; i < apx.length; i++)
+				{
+					addPage(apx[i], i < apx.length);
 				}
 			}
 
@@ -42060,15 +38118,7 @@ mxPrintPreview.prototype.open = function(css)
 			doc.close();
 			
 			// Marks the printing complete for async handling
-			if (pages != null)
-			{
-				isDone = true;
-				writePages();
-			}
-			else
-			{
-				writePageSelector();
-			}
+			writePageSelector();
 			
 			// Removes all event handlers in the print output
 			mxEvent.release(doc.body);
@@ -42181,6 +38231,59 @@ mxPrintPreview.prototype.createPageSelector = function(vpages, hpages)
 };
 
 /**
+ * Function: renderPage
+ * 
+ * Creates a DIV that prints a single page of the given
+ * graph using the given scale and returns the DIV that
+ * represents the page.
+ * 
+ * Parameters:
+ * 
+ * w - Width of the page in pixels.
+ * h - Height of the page in pixels.
+ * content - Callback that adds the HTML content to the inner div of a page.
+ * Takes the inner div as the argument.
+ */
+mxPrintPreview.prototype.renderPage = function(w, h, content)
+{
+	var div = document.createElement('div');
+	
+	try
+	{
+		div.style.width = w + 'px';
+		div.style.height = h + 'px';
+		div.style.overflow = 'hidden';
+		div.style.pageBreakInside = 'avoid';
+		div.style.position = 'relative';
+		
+		var innerDiv = document.createElement('div');
+		innerDiv.style.top = this.border + 'px';
+		innerDiv.style.left = this.border + 'px';
+		innerDiv.style.width = (w - 2 * this.border) + 'px';
+		innerDiv.style.height = (h - 2 * this.border) + 'px';
+		innerDiv.style.overflow = 'hidden';
+
+		if (this.graph.dialect == mxConstants.DIALECT_VML)
+		{
+			innerDiv.style.position = 'absolute';
+		}
+		
+		div.appendChild(innerDiv);
+		document.body.appendChild(div);
+		content(innerDiv);
+	}
+	catch (e)
+	{
+		div.parentNode.removeChild(div);
+		div = null;
+		
+		throw e;
+	}
+	
+	return div;
+};
+
+/**
  * Function: getRoot
  * 
  * Returns the root cell for painting the graph.
@@ -42198,148 +38301,131 @@ mxPrintPreview.prototype.getRoot = function()
 };
 
 /**
- * Function: renderPage
+ * Function: addGraphFragment
  * 
- * Creates a DIV that prints a single page of the given
- * graph using the given scale and returns the DIV that
- * represents the page.
+ * Adds a graph fragment to the given div.
  * 
  * Parameters:
  * 
- * w - Width of the page in pixels.
- * h - Height of the page in pixels.
  * dx - Horizontal translation for the diagram.
  * dy - Vertical translation for the diagram.
  * scale - Scale for the diagram.
  * pageNumber - Number of the page to be rendered.
+ * div - Div that contains the output.
  */
-mxPrintPreview.prototype.renderPage = function(w, h, dx, dy, scale, pageNumber)
+mxPrintPreview.prototype.addGraphFragment = function(dx, dy, scale, pageNumber, div)
 {
-	var div = document.createElement('div');
+	var view = this.graph.getView();
+	var previousContainer = this.graph.container;
+	this.graph.container = div;
+	
+	var canvas = view.getCanvas();
+	var backgroundPane = view.getBackgroundPane();
+	var drawPane = view.getDrawPane();
+	var overlayPane = view.getOverlayPane();
+
+	if (this.graph.dialect == mxConstants.DIALECT_SVG)
+	{
+		view.createSvg();
+	}
+	else if (this.graph.dialect == mxConstants.DIALECT_VML)
+	{
+		view.createVml();
+	}
+	else
+	{
+		view.createHtml();
+	}
+	
+	// Disables events on the view
+	var eventsEnabled = view.isEventsEnabled();
+	view.setEventsEnabled(false);
+	
+	// Disables the graph to avoid cursors
+	var graphEnabled = this.graph.isEnabled();
+	this.graph.setEnabled(false);
+
+	// Resets the translation
+	var translate = view.getTranslate();
+	view.translate = new mxPoint(dx, dy);
+	
+	var temp = null;
 	
 	try
 	{
-		div.style.width = w + 'px';
-		div.style.height = h + 'px';
-		div.style.overflow = 'hidden';
-		div.style.pageBreakInside = 'avoid';
-		
-		var innerDiv = document.createElement('div');
-		innerDiv.style.top = this.border + 'px';
-		innerDiv.style.left = this.border + 'px';
-		innerDiv.style.width = (w - 2 * this.border) + 'px';
-		innerDiv.style.height = (h - 2 * this.border) + 'px';
-		innerDiv.style.overflow = 'hidden';
-
-		if (this.graph.dialect == mxConstants.DIALECT_VML)
+		// Creates the temporary cell states in the view and
+		// draws them onto the temporary DOM nodes in the view
+		var cells = [this.getRoot()];
+		temp = new mxTemporaryCellStates(view, scale, cells);
+	}
+	finally
+	{
+		// Removes overlay pane with selection handles
+		// controls and icons from the print output
+		if (mxClient.IS_IE)
 		{
-			innerDiv.style.position = 'absolute';
-		}
-		
-		div.appendChild(innerDiv);
-		document.body.appendChild(div);
-		var view = this.graph.getView();
-		
-		var previousContainer = this.graph.container;
-		this.graph.container = innerDiv;
-		
-		var canvas = view.getCanvas();
-		var backgroundPane = view.getBackgroundPane();
-		var drawPane = view.getDrawPane();
-		var overlayPane = view.getOverlayPane();
-	
-		if (this.graph.dialect == mxConstants.DIALECT_SVG)
-		{
-			view.createSvg();
-		}
-		else if (this.graph.dialect == mxConstants.DIALECT_VML)
-		{
-			view.createVml();
+			view.overlayPane.innerHTML = '';
 		}
 		else
 		{
-			view.createHtml();
-		}
-		
-		// Disables events on the view
-		var eventsEnabled = view.isEventsEnabled();
-		view.setEventsEnabled(false);
-		
-		// Disables the graph to avoid cursors
-		var graphEnabled = this.graph.isEnabled();
-		this.graph.setEnabled(false);
-	
-		// Resets the translation
-		var translate = view.getTranslate();
-		view.translate = new mxPoint(dx, dy);
-		
-		var temp = null;
-		
-		try
-		{
-			// Creates the temporary cell states in the view and
-			// draws them onto the temporary DOM nodes in the view
-			var cells = [this.getRoot()];
-			temp = new mxTemporaryCellStates(view, scale, cells);
-		}
-		finally
-		{
-			// Removes overlay pane with selection handles
-			// controls and icons from the print output
-			if (mxClient.IS_IE)
-			{
-				view.overlayPane.innerHTML = '';
-			}
-			else
-			{
-				// Removes everything but the SVG node
-				var tmp = innerDiv.firstChild;
+			// Removes everything but the SVG node
+			var tmp = div.firstChild;
 
-				while (tmp != null)
+			while (tmp != null)
+			{
+				var next = tmp.nextSibling;
+				var name = tmp.nodeName.toLowerCase();
+
+				// Note: Width and heigh are required in FF 11
+				if (name == 'svg')
 				{
-					var next = tmp.nextSibling;
-					var name = tmp.nodeName.toLowerCase();
-
-					// Note: Width and heigh are required in FF 11
-					if (name == 'svg')
-					{
-						tmp.setAttribute('width', parseInt(innerDiv.style.width));
-						tmp.setAttribute('height', parseInt(innerDiv.style.height));
-					}
-					// Tries to fetch all text labels and only text labels
-					else if (tmp.style.cursor != 'default' && name != 'table')
-					{
-						tmp.parentNode.removeChild(tmp);
-					}
-					
-					tmp = next;
+					tmp.setAttribute('width', parseInt(div.style.width));
+					tmp.setAttribute('height', parseInt(div.style.height));
 				}
+				// Tries to fetch all text labels and only text labels
+				else if (tmp.style.cursor != 'default' && name != 'table')
+				{
+					tmp.parentNode.removeChild(tmp);
+				}
+				
+				tmp = next;
 			}
-			
-			// Completely removes the overlay pane to remove more handles
-			view.overlayPane.parentNode.removeChild(view.overlayPane);
-	
-			// Restores the state of the view
-			this.graph.setEnabled(graphEnabled);
-			this.graph.container = previousContainer;
-			view.canvas = canvas;
-			view.backgroundPane = backgroundPane;
-			view.drawPane = drawPane;
-			view.overlayPane = overlayPane;
-			view.translate = translate;
-			temp.destroy();
-			view.setEventsEnabled(eventsEnabled);
 		}
-	}
-	catch (e)
-	{
-		div.parentNode.removeChild(div);
-		div = null;
 		
-		throw e;
+		// Completely removes the overlay pane to remove more handles
+		view.overlayPane.parentNode.removeChild(view.overlayPane);
+
+		// Restores the state of the view
+		this.graph.setEnabled(graphEnabled);
+		this.graph.container = previousContainer;
+		view.canvas = canvas;
+		view.backgroundPane = backgroundPane;
+		view.drawPane = drawPane;
+		view.overlayPane = overlayPane;
+		view.translate = translate;
+		temp.destroy();
+		view.setEventsEnabled(eventsEnabled);
 	}
-	
-	return div;
+};
+
+/**
+ * Function: getCoverPages
+ * 
+ * Returns the pages to be added before the print output. This returns null.
+ */
+mxPrintPreview.prototype.getCoverPages = function()
+{
+	return null;
+};
+
+/**
+ * Function: getAppendices
+ * 
+ * Returns the pages to be added after the print output. This returns null.
+ */
+mxPrintPreview.prototype.getAppendices = function()
+{
+	return null;
 };
 
 /**
@@ -42371,7 +38457,7 @@ mxPrintPreview.prototype.close = function()
 	}
 };
 /**
- * $Id: mxStylesheet.js,v 1.35 2010/03/26 10:24:58 gaudenz Exp $
+ * $Id: mxStylesheet.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -42637,7 +38723,7 @@ mxStylesheet.prototype.getCellStyle = function(name, defaultStyle)
 	return style;
 };
 /**
- * $Id: mxCellState.js,v 1.42 2012/03/19 10:47:08 gaudenz Exp $
+ * $Id: mxCellState.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -42820,7 +38906,7 @@ mxCellState.prototype.getPerimeterBounds = function (border, bounds)
 	
 	if (this.shape != null && this.shape.stencil != null)
 	{
-		var aspect = this.shape.stencil.computeAspect(this, bounds, null);
+		var aspect = this.shape.stencil.computeAspect(this.style, bounds.x, bounds.y, bounds.width, bounds.height);
 		
 		bounds.x = aspect.x;
 		bounds.y = aspect.y;
@@ -43012,7 +39098,7 @@ mxCellState.prototype.clone = function()
 	return clone;
 };
 /**
- * $Id: mxGraphSelectionModel.js,v 1.14 2011/11/25 10:16:08 gaudenz Exp $
+ * $Id: mxGraphSelectionModel.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -43447,7 +39533,7 @@ mxSelectionChange.prototype.execute = function()
 			'added', this.added, 'removed', this.removed));
 };
 /**
- * $Id: mxCellEditor.js,v 1.62 2012/12/11 16:59:31 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.4 2013/04/16 07:39:35 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -43556,6 +39642,14 @@ mxCellEditor.prototype.trigger = null;
 mxCellEditor.prototype.modified = false;
 
 /**
+ * Variable: autoSize
+ * 
+ * Specifies if the textarea should be resized while the text is being edited.
+ * Default is true.
+ */
+mxCellEditor.prototype.autoSize = true;
+
+/**
  * Variable: emptyLabelText
  * 
  * Text to be displayed for empty labels. Default is ''. This can be set
@@ -43589,7 +39683,7 @@ mxCellEditor.prototype.init = function ()
 	this.textarea.setAttribute('cols', '20');
 	this.textarea.setAttribute('rows', '4');
 
-	if (mxClient.IS_GC)
+	if (mxClient.IS_NS)
 	{
 		this.textarea.style.resize = 'none';
 	}
@@ -43629,6 +39723,154 @@ mxCellEditor.prototype.init = function ()
 			}
 		}
 	}));
+
+	// Adds handling of deleted cells while editing
+	this.changeHandler = mxUtils.bind(this, function(sender)
+	{
+		if (this.editingCell != null && this.graph.getView().getState(this.editingCell) == null)
+		{
+			this.stopEditing(true);
+		}
+	});
+	
+	this.graph.getModel().addListener(mxEvent.CHANGE, this.changeHandler);
+	
+	// Adds automatic resizing of the textbox while typing
+	mxEvent.addListener(this.textarea, 'keypress', mxUtils.bind(this, function(evt)
+	{
+		if (this.autoSize && !mxEvent.isConsumed(evt))
+		{
+			setTimeout(mxUtils.bind(this, function()
+			{
+				this.resize();
+			}), 0);
+		}
+	}));
+};
+
+/**
+ * Function: resize
+ * 
+ * Returns <modified>.
+ */
+mxCellEditor.prototype.resize = function()
+{
+	if (this.textDiv != null)
+	{
+		var state = this.graph.getView().getState(this.editingCell);
+		
+		if (state == null)
+		{
+			this.stopEditing(true);
+		}
+		else
+		{
+			var clip = this.graph.isLabelClipped(state.cell);
+			var wrap = this.graph.isWrapping(state.cell);
+		
+			var isEdge = this.graph.getModel().isEdge(state.cell);
+		
+			if (isEdge)
+			{
+				this.bounds.x = state.absoluteOffset.x;
+				this.bounds.y = state.absoluteOffset.y;
+				this.bounds.width = 0;
+				this.bounds.height = 0;
+			}
+			else if (this.bounds != null)
+			{
+				this.bounds.x = state.x;
+				this.bounds.y = state.y;
+				this.bounds.width = state.width;
+				this.bounds.height = state.height;
+				
+				// Applies the horizontal and vertical label positions
+				var horizontal = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_POSITION, mxConstants.ALIGN_CENTER);
+		
+				if (horizontal == mxConstants.ALIGN_LEFT)
+				{
+					this.bounds.x -= state.width;
+				}
+				else if (horizontal == mxConstants.ALIGN_RIGHT)
+				{
+					this.bounds.x += state.width;
+				}
+		
+				var vertical = mxUtils.getValue(state.style, mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.ALIGN_MIDDLE);
+		
+				if (vertical == mxConstants.ALIGN_TOP)
+				{
+					this.bounds.y -= state.height;
+				}
+				else if (vertical == mxConstants.ALIGN_BOTTOM)
+				{
+					this.bounds.y += state.height;
+				}
+			}
+			
+			var value = this.textarea.value;
+			
+			if (value.charAt(value.length - 1) == '\n' || value == '')
+			{
+				value += '&nbsp;';
+			}
+		
+			value = mxUtils.htmlEntities(value, false);
+			
+			if (wrap)
+			{
+				// TODO: Invert initial for vertical
+				this.textDiv.style.whiteSpace = 'normal';
+				this.textDiv.style.width = this.bounds.width + 'px';
+			}
+			else
+			{
+				value = value.replace(/ /g, '&nbsp;');
+			}
+			
+			value = value.replace(/\n/g, '<br/>');
+			this.textDiv.innerHTML = value;
+			var ow = this.textDiv.offsetWidth + 30;
+			var oh = this.textDiv.offsetHeight + 16;
+			
+			ow = Math.max(ow, 40);
+			oh = Math.max(oh, 20);
+			
+			if (clip)
+			{
+				ow = Math.min(this.bounds.width - 4, ow);
+				oh = Math.min(this.bounds.height, oh);
+			}
+			
+			var m = (state.text != null) ? state.text.margin : null;
+			
+			if (m == null)
+			{
+				var align = mxUtils.getValue(state.style, mxConstants.STYLE_ALIGN, mxConstants.ALIGN_CENTER);
+				var valign = mxUtils.getValue(state.style, mxConstants.STYLE_VERTICAL_ALIGN, mxConstants.ALIGN_MIDDLE);
+		
+				m = mxUtils.getAlignmentAsPoint(align, valign);
+			}
+			
+			if (m != null)
+			{
+				// TODO: Keep in visible area, add spacing
+				if (clip || !wrap)
+				{
+					this.textarea.style.left = Math.max(0, Math.round(this.bounds.x - m.x * this.bounds.width + m.x * ow) - 3) + 'px';
+				}
+	
+				this.textarea.style.top = Math.max(0, Math.round(this.bounds.y - m.y * this.bounds.height + m.y * oh) + 4) + 'px';
+			}
+			
+			if (clip || !wrap)
+			{
+				this.textarea.style.width = ow + 'px';
+			}
+		
+			this.textarea.style.height = oh + 'px';
+		}
+	}
 };
 
 /**
@@ -43687,7 +39929,7 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 		this.editingCell = cell;
 		this.trigger = trigger;
 		this.textNode = null;
-				
+
 		if (state.text != null && this.isHideLabel(state))
 		{
 			this.textNode = state.text.node;
@@ -43699,25 +39941,28 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 		var size = mxUtils.getValue(state.style, mxConstants.STYLE_FONTSIZE, mxConstants.DEFAULT_FONTSIZE) * scale;
 		var family = mxUtils.getValue(state.style, mxConstants.STYLE_FONTFAMILY, mxConstants.DEFAULT_FONTFAMILY);
 		var color = mxUtils.getValue(state.style, mxConstants.STYLE_FONTCOLOR, 'black');
-		var align = (this.graph.model.isEdge(state.cell)) ? mxConstants.ALIGN_LEFT :
-			mxUtils.getValue(state.style, mxConstants.STYLE_ALIGN, mxConstants.ALIGN_LEFT);
+		var align = mxUtils.getValue(state.style, mxConstants.STYLE_ALIGN, mxConstants.ALIGN_LEFT);
 		var bold = (mxUtils.getValue(state.style, mxConstants.STYLE_FONTSTYLE, 0) &
 				mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD;
 		var italic = (mxUtils.getValue(state.style, mxConstants.STYLE_FONTSTYLE, 0) &
 				mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC;
 		var uline = (mxUtils.getValue(state.style, mxConstants.STYLE_FONTSTYLE, 0) &
 				mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE;
-
-		this.textarea.style.fontSize = size + 'px';
+		
+		this.textarea.style.fontSize = Math.round(size) + 'px';
+		this.textarea.style.lineHeight = Math.round(size * mxConstants.LINE_HEIGHT) + 'px';
 		this.textarea.style.fontFamily = family;
 		this.textarea.style.textAlign = align;
 		this.textarea.style.color = color;
 		this.textarea.style.fontWeight = (bold) ? 'bold' : 'normal';
 		this.textarea.style.fontStyle = (italic) ? 'italic' : '';
 		this.textarea.style.textDecoration = (uline) ? 'underline' : '';
-
+		this.textarea.style.overflow = 'auto';
+		this.textarea.style.outline = 'none';
+		
 		// Specifies the bounds of the editor box
 		var bounds = this.getEditorBounds(state);
+		this.bounds = bounds;
 
 		this.textarea.style.left = bounds.x + 'px';
 		this.textarea.style.top = bounds.y + 'px';
@@ -43747,10 +39992,44 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 		if (this.textarea.style.display != 'none')
 		{
 			// FIXME: Doesn't bring up the virtual keyboard on iPad
+			if (this.autoSize)
+			{
+				this.textDiv = this.createTextDiv();
+				document.body.appendChild(this.textDiv);
+				this.resize();
+			}
+			
 			this.textarea.focus();
 			this.textarea.select();
 		}
 	}
+};
+
+
+/**
+ * Function: createTextDiv
+ *
+ * Creates the textDiv used for measuring text.
+ */
+mxCellEditor.prototype.createTextDiv = function()
+{
+	var div = document.createElement('div');
+	var style = div.style;
+	style.position = 'absolute';
+	style.whiteSpace = 'nowrap';
+	style.visibility = 'hidden';
+	style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
+	style.zoom = '1';
+	style.verticalAlign = 'top';
+	style.lineHeight = this.textarea.style.lineHeight;
+	style.fontSize = this.textarea.style.fontSize;
+	style.fontFamily = this.textarea.style.fontFamily;
+	style.fontWeight = this.textarea.style.fontWeight;
+	style.textAlign = this.textarea.style.textAlign;
+	style.fontStyle = this.textarea.style.fontStyle;
+	style.textDecoration = this.textarea.style.textDecoration;
+	
+	return div;
 };
 
 /**
@@ -43775,8 +40054,15 @@ mxCellEditor.prototype.stopEditing = function(cancel)
 			this.graph.labelChanged(this.editingCell, this.getCurrentValue(), this.trigger);
 		}
 		
+		if (this.textDiv != null)
+		{
+			document.body.removeChild(this.textDiv);
+			this.textDiv = null;
+		}
+		
 		this.editingCell = null;
 		this.trigger = null;
+		this.bounds = null;
 		this.textarea.blur();
 		this.textarea.parentNode.removeChild(this.textarea);
 	}
@@ -43966,10 +40252,16 @@ mxCellEditor.prototype.destroy = function ()
 		}
 		
 		this.textarea = null;
+		
+		if (this.changeHandler != null)
+		{
+			this.graph.getModel().removeListener(this.changeHandler);
+			this.changeHandler = null;
+		}
 	}
 };
 /**
- * $Id: mxCellRenderer.js,v 1.189 2012/11/20 09:06:07 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.19 2013/04/05 07:31:31 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -44002,18 +40294,7 @@ mxCellEditor.prototype.destroy = function ()
  * arrow, rectangle, ellipse, rhombus, image, line, label, cylinder,
  * swimlane, connector, actor and cloud.
  */
-function mxCellRenderer()
-{
-	this.shapes = mxUtils.clone(this.defaultShapes);
-};
-
-/**
- * Variable: shapes
- * 
- * Array that maps from shape names to shape constructors. All entries
- * in <defaultShapes> are added to this array.
- */
-mxCellRenderer.prototype.shapes = null;
+function mxCellRenderer() { };
 
 /**
  * Variable: defaultEdgeShape
@@ -44030,38 +40311,28 @@ mxCellRenderer.prototype.defaultEdgeShape = mxConnector;
 mxCellRenderer.prototype.defaultVertexShape = mxRectangleShape;
 
 /**
+ * Variable: defaultTextShape
+ * 
+ * Defines the default shape for labels. Default is <mxText>.
+ */
+mxCellRenderer.prototype.defaultTextShape = mxText;
+
+/**
+ * Variable: legacyControlPosition
+ * 
+ * Specifies if the folding icon should ignore the horizontal
+ * orientation of a swimlane. Default is true.
+ */
+mxCellRenderer.prototype.legacyControlPosition = true;
+
+/**
  * Variable: defaultShapes
  * 
  * Static array that contains the globally registered shapes which are
- * known to all instances of this class. For adding instance-specific
- * shapes you should use <registerShape> on the instance. For adding
- * a shape to this array you can use the following code:
- * 
- * (code)
- * mxCellRenderer.prototype.defaultShapes['myshape'] = myShape;
- * (end)
- * 
- * Where 'myshape' is the key under which the shape is to be registered
- * and myShape is the name of the constructor function.
+ * known to all instances of this class. For adding new shapes you should
+ * use the static <mxCellRenderer.registerShape> function.
  */
 mxCellRenderer.prototype.defaultShapes = new Object();
-
-// Adds default shapes into the default shapes array
-mxCellRenderer.prototype.defaultShapes[mxConstants.SHAPE_ARROW] = mxArrow;
-mxCellRenderer.prototype.defaultShapes[mxConstants.SHAPE_RECTANGLE] = mxRectangleShape;
-mxCellRenderer.prototype.defaultShapes[mxConstants.SHAPE_ELLIPSE] = mxEllipse;
-mxCellRenderer.prototype.defaultShapes[mxConstants.SHAPE_DOUBLE_ELLIPSE] = mxDoubleEllipse;
-mxCellRenderer.prototype.defaultShapes[mxConstants.SHAPE_RHOMBUS] = mxRhombus;
-mxCellRenderer.prototype.defaultShapes[mxConstants.SHAPE_IMAGE] = mxImageShape;
-mxCellRenderer.prototype.defaultShapes[mxConstants.SHAPE_LINE] = mxLine;
-mxCellRenderer.prototype.defaultShapes[mxConstants.SHAPE_LABEL] = mxLabel;
-mxCellRenderer.prototype.defaultShapes[mxConstants.SHAPE_CYLINDER] = mxCylinder;
-mxCellRenderer.prototype.defaultShapes[mxConstants.SHAPE_SWIMLANE] = mxSwimlane;
-mxCellRenderer.prototype.defaultShapes[mxConstants.SHAPE_CONNECTOR] = mxConnector;
-mxCellRenderer.prototype.defaultShapes[mxConstants.SHAPE_ACTOR] = mxActor;
-mxCellRenderer.prototype.defaultShapes[mxConstants.SHAPE_CLOUD] = mxCloud;
-mxCellRenderer.prototype.defaultShapes[mxConstants.SHAPE_TRIANGLE] = mxTriangle;
-mxCellRenderer.prototype.defaultShapes[mxConstants.SHAPE_HEXAGON] = mxHexagon;
 
 /**
  * Function: registerShape
@@ -44072,7 +40343,7 @@ mxCellRenderer.prototype.defaultShapes[mxConstants.SHAPE_HEXAGON] = mxHexagon;
  * Example:
  * 
  * (code)
- * this.registerShape(mxConstants.SHAPE_RECTANGLE, mxRectangleShape);
+ * mxCellRenderer.registerShape(mxConstants.SHAPE_RECTANGLE, mxRectangleShape);
  * (end)
  * 
  * Parameters:
@@ -44080,10 +40351,27 @@ mxCellRenderer.prototype.defaultShapes[mxConstants.SHAPE_HEXAGON] = mxHexagon;
  * key - String representing the shape name.
  * shape - Constructor of the <mxShape> subclass.
  */
-mxCellRenderer.prototype.registerShape = function(key, shape)
+mxCellRenderer.registerShape = function(key, shape)
 {
-	this.shapes[key] = shape;	
+	mxCellRenderer.prototype.defaultShapes[key] = shape;
 };
+
+// Adds default shapes into the default shapes array
+mxCellRenderer.registerShape(mxConstants.SHAPE_RECTANGLE, mxRectangleShape);
+mxCellRenderer.registerShape(mxConstants.SHAPE_ELLIPSE, mxEllipse);
+mxCellRenderer.registerShape(mxConstants.SHAPE_RHOMBUS, mxRhombus);
+mxCellRenderer.registerShape(mxConstants.SHAPE_CYLINDER, mxCylinder);
+mxCellRenderer.registerShape(mxConstants.SHAPE_CONNECTOR, mxConnector);
+mxCellRenderer.registerShape(mxConstants.SHAPE_ACTOR, mxActor);
+mxCellRenderer.registerShape(mxConstants.SHAPE_TRIANGLE, mxTriangle);
+mxCellRenderer.registerShape(mxConstants.SHAPE_HEXAGON, mxHexagon);
+mxCellRenderer.registerShape(mxConstants.SHAPE_CLOUD, mxCloud);
+mxCellRenderer.registerShape(mxConstants.SHAPE_LINE, mxLine);
+mxCellRenderer.registerShape(mxConstants.SHAPE_ARROW, mxArrow);
+mxCellRenderer.registerShape(mxConstants.SHAPE_DOUBLE_ELLIPSE, mxDoubleEllipse);
+mxCellRenderer.registerShape(mxConstants.SHAPE_SWIMLANE, mxSwimlane);
+mxCellRenderer.registerShape(mxConstants.SHAPE_IMAGE, mxImageShape);
+mxCellRenderer.registerShape(mxConstants.SHAPE_LABEL, mxLabel);
 
 /**
  * Function: initialize
@@ -44345,7 +40633,7 @@ mxCellRenderer.prototype.createShape = function(state)
 		
 		if (stencil != null)
 		{
-			state.shape = new mxStencilShape(stencil);
+			state.shape = new mxShape(stencil);
 		}
 		else
 		{
@@ -44364,14 +40652,23 @@ mxCellRenderer.prototype.createShape = function(state)
 };
 
 /**
+ * Function: getShape
+ * 
+ * Returns the shape for the given name from <defaultShapes>.
+ */
+mxCellRenderer.prototype.getShape = function(name)
+{
+	return (name != null) ? mxCellRenderer.prototype.defaultShapes[name] : null;
+};
+
+/**
  * Function: getShapeConstructor
  * 
  * Returns the constructor to be used for creating the shape.
  */
 mxCellRenderer.prototype.getShapeConstructor = function(state)
 {
-	var key = state.style[mxConstants.STYLE_SHAPE];
-	var ctor = (key != null) ? this.shapes[key] : null;
+	var ctor = this.getShape(state.style[mxConstants.STYLE_SHAPE]);
 	
 	if (ctor == null)
 	{
@@ -44394,36 +40691,14 @@ mxCellRenderer.prototype.getShapeConstructor = function(state)
 mxCellRenderer.prototype.configureShape = function(state)
 {
 	state.shape.apply(state);
-	var image = state.view.graph.getImage(state);
-	
-	if (image != null)
-	{
-		state.shape.image = image;
-	}
-	
-	var indicator = state.view.graph.getIndicatorColor(state);
-	var key = state.view.graph.getIndicatorShape(state);
-	var ctor = (key != null) ? this.shapes[key] : null;
+	state.shape.image = state.view.graph.getImage(state);
 	
 	// Configures the indicator shape or image
-	if (indicator != null)
-	{
-		state.shape.indicatorShape = ctor;
-		state.shape.indicatorColor = indicator;
-		state.shape.indicatorGradientColor =
-			state.view.graph.getIndicatorGradientColor(state);
-		state.shape.indicatorDirection =
-			state.style[mxConstants.STYLE_INDICATOR_DIRECTION];
-	}
-	else
-	{
-		var indicator = state.view.graph.getIndicatorImage(state);
-		
-		if (indicator != null)
-		{
-			state.shape.indicatorImage = indicator;
-		}
-	}
+	state.shape.indicatorShape = this.getShape(state.view.graph.getIndicatorShape(state));
+	state.shape.indicatorColor = state.view.graph.getIndicatorColor(state);
+	state.shape.indicatorGradientColor = state.view.graph.getIndicatorGradientColor(state);
+	state.shape.indicatorDirection = state.style[mxConstants.STYLE_INDICATOR_DIRECTION];
+	state.shape.indicatorImage = state.view.graph.getIndicatorImage(state);
 	
 	this.postConfigureShape(state);
 };
@@ -44513,16 +40788,7 @@ mxCellRenderer.prototype.resolveColor = function(state, field, key)
  */
 mxCellRenderer.prototype.getLabelValue = function(state)
 {
-	var graph = state.view.graph;
-	var value = graph.getLabel(state.cell);
-
-	if (!graph.isHtmlLabel(state.cell) && !mxUtils.isNode(value) &&
-		graph.dialect != mxConstants.DIALECT_SVG && value != null)
-	{
-		value = mxUtils.htmlEntities(value, false);
-	}
-	
-	return value;
+	return state.view.graph.getLabel(state.cell);
 };
 
 /**
@@ -44544,10 +40810,9 @@ mxCellRenderer.prototype.createLabel = function(state, value)
 	{
 		// Avoids using DOM node for empty labels
 		var isForceHtml = (graph.isHtmlLabel(state.cell) ||
-			(value != null && mxUtils.isNode(value))) &&
-			graph.dialect == mxConstants.DIALECT_SVG;
+			(value != null && mxUtils.isNode(value)));
 
-		state.text = new mxText(value, new mxRectangle(),
+		state.text = new this.defaultTextShape(value, new mxRectangle(),
 				(state.style[mxConstants.STYLE_ALIGN] ||
 					mxConstants.ALIGN_CENTER),
 				graph.getVerticalAlign(state),
@@ -44567,11 +40832,11 @@ mxCellRenderer.prototype.createLabel = function(state, value)
 				graph.isLabelClipped(state.cell),
 				state.style[mxConstants.STYLE_OVERFLOW],
 				state.style[mxConstants.STYLE_LABEL_PADDING]);
-		state.text.opacity = state.style[mxConstants.STYLE_TEXT_OPACITY];
-
+		state.text.opacity = mxUtils.getValue(state.style, mxConstants.STYLE_TEXT_OPACITY, 100);
 		state.text.dialect = (isForceHtml) ?
 			mxConstants.DIALECT_STRICTHTML :
 			state.view.graph.dialect;
+		state.text.state = state;
 		this.initializeLabel(state);
 		
 		// Workaround for touch devices routing all events for a mouse
@@ -44600,45 +40865,32 @@ mxCellRenderer.prototype.createLabel = function(state, value)
 			return result;
 		};
 		
-		// TODO: Add handling for gestures
-		var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-		var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
-		var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
-
-		mxEvent.addListener(state.text.node, md,
+		// TODO: Add handling for special touch device gestures
+		mxEvent.addGestureListeners(state.text.node,
 			mxUtils.bind(this, function(evt)
 			{
 				if (this.isLabelEvent(state, evt))
 				{
-					graph.fireMouseEvent(mxEvent.MOUSE_DOWN,
-						new mxMouseEvent(evt, state));
-					forceGetCell = graph.dialect != mxConstants.DIALECT_SVG && mxEvent.getSource(evt).nodeName == 'IMG';
+					graph.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt, state));
+					forceGetCell = graph.dialect != mxConstants.DIALECT_SVG &&
+						mxEvent.getSource(evt).nodeName == 'IMG';
 				}
-			})
-		);
-		
-		mxEvent.addListener(state.text.node, mm,
+			}),
 			mxUtils.bind(this, function(evt)
 			{
 				if (this.isLabelEvent(state, evt))
 				{
-					graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
-						new mxMouseEvent(evt, getState(evt)));
+					graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt, getState(evt)));
 				}
-			})
-		);
-		
-		mxEvent.addListener(state.text.node, mu,
+			}),
 			mxUtils.bind(this, function(evt)
 			{
 				if (this.isLabelEvent(state, evt))
 				{
-					graph.fireMouseEvent(mxEvent.MOUSE_UP,
-						new mxMouseEvent(evt, getState(evt)));
+					graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt, getState(evt)));
 					forceGetCell = false;
 				}
-			})
-		);
+			}));
 
 		mxEvent.addListener(state.text.node, 'dblclick',
 			mxUtils.bind(this, function(evt)
@@ -44794,19 +41046,16 @@ mxCellRenderer.prototype.installCellOverlayListeners = function(state, overlay, 
 				'event', evt, 'cell', state.cell));
 	});
 	
-	var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-	var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
-	
-	mxEvent.addListener(shape.node, md, function (evt)
-	{
-		mxEvent.consume(evt);
-	});
-	
-	mxEvent.addListener(shape.node, mm, function (evt)
-	{
-		graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
-			new mxMouseEvent(evt, state));
-	});
+	mxEvent.addGestureListeners(shape.node,
+		function (evt)
+		{
+			mxEvent.consume(evt);
+		},
+		function (evt)
+		{
+			graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
+				new mxMouseEvent(evt, state));
+		});
 	
 	if (mxClient.IS_TOUCH)
 	{
@@ -44838,9 +41087,9 @@ mxCellRenderer.prototype.createControl = function(state)
 		{
 			var b = new mxRectangle(0, 0, image.width, image.height);
 			state.control = new mxImageShape(b, image.src);
-			state.control.dialect = graph.dialect;
 			state.control.preserveImageAspect = false;
-			
+			state.control.dialect = graph.dialect;
+
 			this.initControl(state, state.control, true, function (evt)
 			{
 				if (graph.isEnabled())
@@ -44878,8 +41127,7 @@ mxCellRenderer.prototype.initControl = function(state, control, handleEvents, cl
 	// In the special case where the label is in HTML and the display is SVG the image
 	// should go into the graph container directly in order to be clickable. Otherwise
 	// it is obscured by the HTML label that overlaps the cell.
-	var isForceHtml = graph.isHtmlLabel(state.cell) &&
-		mxClient.NO_FO &&
+	var isForceHtml = graph.isHtmlLabel(state.cell) && mxClient.NO_FO &&
 		graph.dialect == mxConstants.DIALECT_SVG;
 
 	if (isForceHtml)
@@ -44907,19 +41155,16 @@ mxCellRenderer.prototype.initControl = function(state, control, handleEvents, cl
 	
 	if (handleEvents)
 	{
-		var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-		var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
-		
-		mxEvent.addListener(node, md, function (evt)
-		{
-			graph.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt, state));
-			mxEvent.consume(evt);
-		});
-	
-		mxEvent.addListener(node, mm, function (evt)
-		{
-			graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt, state));
-		});
+		mxEvent.addGestureListeners(node,
+			function (evt)
+			{
+				graph.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt, state));
+				mxEvent.consume(evt);
+			},
+			function (evt)
+			{
+				graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt, state));
+			});
 	}
 	
 	return node;
@@ -44969,30 +41214,7 @@ mxCellRenderer.prototype.isLabelEvent = function(state, evt)
 mxCellRenderer.prototype.installListeners = function(state)
 {
 	var graph = state.view.graph;
-	
-	// Receives events from transparent backgrounds
-	if (graph.dialect == mxConstants.DIALECT_SVG)
-	{
-		var events = 'all';
 
-		// Disabled fill-events on non-filled edges
-		if (graph.getModel().isEdge(state.cell) && state.shape.stroke != null &&
-			(state.shape.fill == null || state.shape.fill == mxConstants.NONE))
-		{
-			events = 'visibleStroke';
-		}
-
-		// Specifies the event-processing on the shape
-		if (state.shape.innerNode != null)
-		{
-			state.shape.innerNode.setAttribute('pointer-events', events);
-		}
-		else
-		{
-			state.shape.node.setAttribute('pointer-events', events);
-		}
-	}
-	
 	// Workaround for touch devices routing all events for a mouse
 	// gesture (down, move, up) via the initial DOM node. Same for
 	// HTML images in all IE versions (VML images are working).
@@ -45029,11 +41251,7 @@ mxCellRenderer.prototype.installListeners = function(state)
 		})
 	);
 	
-	var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-	var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
-	var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
-
-	mxEvent.addListener(state.shape.node, md,
+	mxEvent.addGestureListeners(state.shape.node,
 		mxUtils.bind(this, function(evt)
 		{
 			if (this.isShapeEvent(state, evt) && !gestureInProgress)
@@ -45051,10 +41269,7 @@ mxCellRenderer.prototype.installListeners = function(state)
 			{
 				mxEvent.consume(evt);
 			}
-		})
-	);
-	
-	mxEvent.addListener(state.shape.node, mm,
+		}),
 		mxUtils.bind(this, function(evt)
 		{
 			if (this.isShapeEvent(state, evt) && !gestureInProgress)
@@ -45068,10 +41283,7 @@ mxCellRenderer.prototype.installListeners = function(state)
 			{
 				mxEvent.consume(evt);
 			}
-		})
-	);
-	
-	mxEvent.addListener(state.shape.node, mu,
+		}),
 		mxUtils.bind(this, function(evt)
 		{
 			if (this.isShapeEvent(state, evt) && !gestureInProgress)
@@ -45085,8 +41297,7 @@ mxCellRenderer.prototype.installListeners = function(state)
 			{
 				mxEvent.consume(evt);
 			}
-		})
-	);
+		}));
 	
 	// Experimental handling for gestures. Double-tap handling is implemented
 	// in mxGraph.fireMouseEvent.
@@ -45129,11 +41340,10 @@ mxCellRenderer.prototype.installListeners = function(state)
  * 
  * state - <mxCellState> whose label should be redrawn.
  */
-mxCellRenderer.prototype.redrawLabel = function(state)
+mxCellRenderer.prototype.redrawLabel = function(state, forced)
 {
 	var value = this.getLabelValue(state);
 	
-	// FIXME: Add label always if HTML label and NO_FO
 	if (state.text == null && value != null && (mxUtils.isNode(value) || value.length > 0))
 	{
 		this.createLabel(state, value);
@@ -45151,7 +41361,7 @@ mxCellRenderer.prototype.redrawLabel = function(state)
 		var clipping = graph.isLabelClipped(state.cell);
 		var bounds = this.getLabelBounds(state);
 
-		if (state.text.value != value || state.text.isWrapping != wrapping ||
+		if (forced || state.text.value != value || state.text.isWrapping != wrapping ||
 			state.text.isClipping != clipping || state.text.scale != state.view.scale ||
 			!state.text.bounds.equals(bounds))
 		{
@@ -45192,11 +41402,36 @@ mxCellRenderer.prototype.getTextScale = function(state)
 mxCellRenderer.prototype.getLabelBounds = function(state)
 {
 	var graph = state.view.graph;
+	var scale = state.view.scale;
 	var isEdge = graph.getModel().isEdge(state.cell);
 	var bounds = new mxRectangle(state.absoluteOffset.x, state.absoluteOffset.y);
-		
-	if (!isEdge)
+
+	state.text.updateMargin();
+	
+	if (isEdge)
 	{
+		var spacing = state.text.getSpacing();
+		bounds.x += spacing.x * scale;
+		bounds.y += spacing.y * scale;
+		
+		var geo = graph.getCellGeometry(state.cell);
+		
+		if (geo != null)
+		{
+			bounds.width = Math.max(0, geo.width * scale);
+			bounds.height = Math.max(0, geo.height * scale);
+		}
+	}
+	else
+	{
+		// Inverts label position
+		if (state.text.isPaintBoundsInverted())
+		{
+			var tmp = bounds.x;
+			bounds.x = bounds.y;
+			bounds.y =tmp;
+		}
+		
 		bounds.x += state.x;
 		bounds.y += state.y;
 		
@@ -45204,23 +41439,96 @@ mxCellRenderer.prototype.getLabelBounds = function(state)
 		bounds.width = Math.max(1, state.width);
 		bounds.height = Math.max(1, state.height);
 		
+		// Swimlane is a special case
 		if (graph.isSwimlane(state.cell))
 		{
-			var scale = graph.view.scale;
 			var size = graph.getStartSize(state.cell);
-			
+
 			if (size.width > 0)
 			{
-				bounds.width = size.width * scale;
+				var tmp = Math.min(bounds.width, size.width * scale);
+				
+				if (state.shape.flipH)
+				{
+					bounds.x += bounds.width - tmp;
+				}
+
+				bounds.width = tmp;
 			}
 			else if (size.height > 0)
 			{
-				bounds.height = size.height * scale;
+				var tmp = Math.min(bounds.height, size.height * scale);
+				
+				if (state.shape.flipV)
+				{
+					bounds.y += bounds.height - tmp;
+				}
+
+				bounds.height = tmp;
 			}
 		}
+
+		this.rotateLabelBounds(state, bounds);
 	}
 	
 	return bounds;
+};
+
+/**
+ * Function: rotateLabelBounds
+ * 
+ * Adds the shape rotation to the given label bounds and
+ * applies the alignment and offsets.
+ * 
+ * Parameters:
+ * 
+ * state - <mxCellState> whose label bounds should be rotated.
+ * bounds - <mxRectangle> the rectangle to be rotated.
+ */
+mxCellRenderer.prototype.rotateLabelBounds = function(state, bounds)
+{
+	if (state.text.isPaintBoundsInverted())
+	{
+		// Rotates around center of state
+		var t = (state.width - state.height) / 2;
+		bounds.x += t;
+		bounds.y -= t;
+		var tmp = bounds.width;
+		bounds.width = bounds.height;
+		bounds.height = tmp;
+	}
+
+	bounds.x -= state.text.margin.x * bounds.width;
+	bounds.y -= state.text.margin.y * bounds.height;
+	
+	if (state.style[mxConstants.STYLE_OVERFLOW] != 'fill')
+	{
+		var s = state.view.scale;
+		var spacing = state.text.getSpacing();
+		bounds.x += spacing.x * s;
+		bounds.y += spacing.y * s;
+		bounds.width = Math.max(0, bounds.width - state.text.spacingLeft * s - state.text.spacingRight * s);
+		bounds.height = Math.max(0, bounds.height - state.text.spacingTop * s - state.text.spacingBottom * s);
+	}
+
+	var theta = state.text.getTextRotation();
+
+	// Only needed if rotated around another center
+	if (theta != 0 && state != null && state.view.graph.model.isVertex(state.cell))
+	{
+		var cx = state.getCenterX();
+		var cy = state.getCenterY();
+		
+		if (bounds.x != cx || bounds.y != cy)
+		{
+			var rad = theta * (Math.PI / 180);
+			pt = mxUtils.getRotatedPoint(new mxPoint(bounds.x, bounds.y),
+					Math.cos(rad), Math.sin(rad), new mxPoint(cx, cy));
+			
+			bounds.x = pt.x;
+			bounds.y = pt.y;
+		}
+	}
 };
 
 /**
@@ -45232,17 +41540,39 @@ mxCellRenderer.prototype.getLabelBounds = function(state)
  * 
  * state - <mxCellState> whose overlays should be redrawn.
  */
-mxCellRenderer.prototype.redrawCellOverlays = function(state)
+mxCellRenderer.prototype.redrawCellOverlays = function(state, forced)
 {
 	this.createCellOverlays(state);
-	
+
 	if (state.overlays != null)
 	{
+		var rot = mxUtils.mod(mxUtils.getValue(state.style, mxConstants.STYLE_ROTATION, 0), 90);
+        var rad = mxUtils.toRadians(rot);
+        var cos = Math.cos(rad);
+        var sin = Math.sin(rad);
+		
 		state.overlays.visit(function(id, shape)
 		{
 			var bounds = shape.overlay.getBounds(state);
+		
+			if (!state.view.graph.getModel().isEdge(state.cell))
+			{
+				if (state.shape != null && rot != 0)
+				{
+					var cx = bounds.getCenterX();
+					var cy = bounds.getCenterY();
 
-			if (shape.bounds == null || shape.scale != state.view.scale ||
+					var point = mxUtils.getRotatedPoint(new mxPoint(cx, cy), cos, sin,
+			        		new mxPoint(state.getCenterX(), state.getCenterY()));
+
+			        cx = point.x;
+			        cy = point.y;
+			        bounds.x = Math.round(cx - bounds.width / 2);
+			        bounds.y = Math.round(cy - bounds.height / 2);
+				}
+			}
+			
+			if (forced || shape.bounds == null || shape.scale != state.view.scale ||
 				!shape.bounds.equals(bounds))
 			{
 				shape.bounds = bounds;
@@ -45262,17 +41592,23 @@ mxCellRenderer.prototype.redrawCellOverlays = function(state)
  * 
  * state - <mxCellState> whose control should be redrawn.
  */
-mxCellRenderer.prototype.redrawControl = function(state)
+mxCellRenderer.prototype.redrawControl = function(state, forced)
 {
 	if (state.control != null)
 	{
 		var bounds = this.getControlBounds(state);
+		var r = (this.legacyControlPosition) ?
+				mxUtils.getValue(state.style, mxConstants.STYLE_ROTATION, 0) :
+				state.shape.getTextRotation();
 		var s = state.view.scale;
 		
-		if (state.control.scale != s || !state.control.bounds.equals(bounds))
+		if (forced || state.control.scale != s || !state.control.bounds.equals(bounds) ||
+			state.control.rotation != r)
 		{
+			state.control.rotation = r;
 			state.control.bounds = bounds;
 			state.control.scale = s;
+			
 			state.control.redraw();
 		}
 	}
@@ -45291,13 +41627,51 @@ mxCellRenderer.prototype.getControlBounds = function(state)
 		var oldScale = state.control.scale;
 		var w = state.control.bounds.width / oldScale;
 		var h = state.control.bounds.height / oldScale;
-		var s = state.view.scale;			
-
+		var s = state.view.scale;
+		var cx = state.getCenterX();
+		var cy = state.getCenterY();
+	
+		if (!state.view.graph.getModel().isEdge(state.cell))
+		{
+			cx = state.x + w * s;
+			cy = state.y + h * s;
+			
+			if (state.shape != null)
+			{
+				// TODO: Factor out common code
+				var rot = state.shape.getShapeRotation();
+				
+				if (this.legacyControlPosition)
+				{
+					rot = mxUtils.getValue(state.style, mxConstants.STYLE_ROTATION, 0);
+				}
+				else
+				{
+					if (state.shape.isPaintBoundsInverted())
+					{
+						var t = (state.width - state.height) / 2;
+						cx += t;
+						cy -= t;
+					}
+				}
+				
+				if (rot != 0)
+				{
+			        var rad = mxUtils.toRadians(rot);
+			        var cos = Math.cos(rad);
+			        var sin = Math.sin(rad);
+			        
+			        var point = mxUtils.getRotatedPoint(new mxPoint(cx, cy), cos, sin,
+			        		new mxPoint(state.getCenterX(), state.getCenterY()));
+			        cx = point.x;
+			        cy = point.y;
+				}
+			}
+		}
+		
 		return (state.view.graph.getModel().isEdge(state.cell)) ? 
-			new mxRectangle(state.x + state.width / 2 - w / 2 * s,
-				state.y + state.height / 2 - h / 2 * s, w * s, h * s)
-			: new mxRectangle(state.x + w / 2 * s,
-				state.y + h / 2 * s, w * s, h * s);
+			new mxRectangle(Math.round(cx - w / 2 * s), Math.round(cy - h / 2 * s), Math.round(w * s), Math.round(h * s))
+			: new mxRectangle(Math.round(cx - w / 2 * s), Math.round(cy - h / 2 * s), Math.round(w * s), Math.round(h * s));
 	}
 	
 	return null;
@@ -45324,6 +41698,7 @@ mxCellRenderer.prototype.redraw = function(state, force, rendering)
 	if (state.shape != null)
 	{
 		var model = state.view.graph.getModel();
+		var shapeChanged = false;
 		var isEdge = model.isEdge(state.cell);
 		reconfigure = (force != null) ? force : false;
 		
@@ -45342,40 +41717,25 @@ mxCellRenderer.prototype.redraw = function(state, force, rendering)
 				// Assert state.cell is edge
 				this.orderEdge(state);
 			}
-			
-			// Required to update inherited styles
-			reconfigure = state.orderChanged;
 		}
-		
-		delete state.invalidOrder;
-		delete state.orderChanged;
 		
 		// Checks if the style in the state is different from the style
 		// in the shape and re-applies the style if required
-		if (!reconfigure && !mxUtils.equalEntries(state.shape.style, state.style))
-		{
-			reconfigure = true;
-		}
-
-		// Reconfiures the shape after an order or style change
-		if (reconfigure)
+		if (state.orderChanged || !mxUtils.equalEntries(state.shape.style, state.style))
 		{
 			this.configureShape(state);
-			state.shape.reconfigure();
+			force = true;
 		}
-		
+
+		delete state.invalidOrder;
+		delete state.orderChanged;
+
 		// Redraws the cell if required
 		if (force || state.shape.bounds == null || state.shape.scale != state.view.scale ||
-			!state.shape.bounds.equals(state) ||
-			!mxUtils.equalPoints(state.shape.points, state.absolutePoints))
+			!state.shape.bounds.equals(state) || !mxUtils.equalPoints(state.shape.points, state.absolutePoints))
 		{
-			// FIXME: Move indicator color update into shape.redraw
-//				var indicator = state.view.graph.getIndicatorColor(state);
-//				if (indicator != null)
-//				{
-//					state.shape.indicatorColor = indicator;
-//				}
-			
+			shapeChanged = true;
+
 			if (state.absolutePoints != null)
 			{
 				state.shape.points = state.absolutePoints.slice();
@@ -45388,7 +41748,7 @@ mxCellRenderer.prototype.redraw = function(state, force, rendering)
 			state.shape.bounds = new mxRectangle(
 				state.x, state.y, state.width, state.height);
 			state.shape.scale = state.view.scale;
-			
+
 			if (rendering == null || rendering)
 			{
 				state.shape.redraw();
@@ -45402,9 +41762,9 @@ mxCellRenderer.prototype.redraw = function(state, force, rendering)
 		// Updates the text label, overlays and control
 		if (rendering == null || rendering)
 		{
-			this.redrawLabel(state);
-			this.redrawCellOverlays(state);
-			this.redrawControl(state);
+			this.redrawLabel(state, shapeChanged);
+			this.redrawCellOverlays(state, shapeChanged);
+			this.redrawControl(state, shapeChanged);
 		}
 	}
 };
@@ -45449,7 +41809,7 @@ mxCellRenderer.prototype.destroy = function(state)
 	}
 };
 /**
- * $Id: mxEdgeStyle.js,v 1.68 2012/11/20 09:06:07 gaudenz Exp $
+ * $Id: mxEdgeStyle.js,v 1.2 2012/11/20 09:10:02 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEdgeStyle =
@@ -46750,7 +43110,7 @@ var mxEdgeStyle =
 		return result;
 	}
 };/**
- * $Id: mxStyleRegistry.js,v 1.10 2011/04/27 10:15:39 gaudenz Exp $
+ * $Id: mxStyleRegistry.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxStyleRegistry =
@@ -46820,7 +43180,7 @@ mxStyleRegistry.putValue(mxConstants.PERIMETER_RECTANGLE, mxPerimeter.RectangleP
 mxStyleRegistry.putValue(mxConstants.PERIMETER_RHOMBUS, mxPerimeter.RhombusPerimeter);
 mxStyleRegistry.putValue(mxConstants.PERIMETER_TRIANGLE, mxPerimeter.TrianglePerimeter);
 /**
- * $Id: mxGraphView.js,v 1.198 2013/02/12 10:19:41 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.13 2013/02/12 10:20:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -46928,6 +43288,15 @@ mxGraphView.prototype.allowEval = false;
  * graph container. Default is true.
  */
 mxGraphView.prototype.captureDocumentGesture = true;
+
+/**
+ * Variable: optimizeVmlReflows
+ * 
+ * Specifies if the <canvas> should be hidden while rendering in IE8 standards
+ * mode and quirks mode. This will significantly improve rendering performance.
+ * Default is true.
+ */
+mxGraphView.prototype.optimizeVmlReflows = true;
 
 /**
  * Variable: rendering
@@ -47321,10 +43690,30 @@ mxGraphView.prototype.validate = function(cell)
 	var t0 = mxLog.enter('mxGraphView.validate');
 	window.status = mxResources.get(this.updatingDocumentResource) ||
 		this.updatingDocumentResource;
+
+	// Improves IE rendering speed by minimizing reflows
+	var prevDisplay = null;
+	
+	if (this.optimizeVmlReflows && this.canvas != null && this.textDiv == null &&
+		(document.documentMode == 8 || mxClient.IS_QUIRKS))
+	{
+		prevDisplay = this.canvas.style.display;
+		this.canvas.style.display = 'none';
+		
+		// Creates temporary DIV used for text measuring in mxText.updateBoundingBox
+		var div = document.createElement('div');
+		div.style.position = 'absolute';
+		div.style.whiteSpace = 'nowrap';
+		div.style.visibility = 'hidden';
+		div.style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
+		div.style.zoom = '1';
+		
+		document.body.appendChild(div);
+		this.textDiv = div;
+	}
 	
 	cell = cell || ((this.currentRoot != null) ?
-			this.currentRoot :
-				this.graph.getModel().getRoot());
+		this.currentRoot : this.graph.getModel().getRoot());
 	this.validateBounds(null, cell);
 	var graphBounds = this.validatePoints(null, cell);
 	
@@ -47335,6 +43724,13 @@ mxGraphView.prototype.validate = function(cell)
 
 	this.setGraphBounds(graphBounds);
 	this.validateBackground();
+	
+	if (prevDisplay != null)
+	{
+		this.canvas.style.display = prevDisplay;
+		document.body.removeChild(this.textDiv);
+		this.textDiv = null;
+	}
 	
 	window.status = mxResources.get(this.doneResource) ||
 		this.doneResource;
@@ -47410,19 +43806,13 @@ mxGraphView.prototype.validateBackground = function()
 				})
 			);
 			
-			var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-			var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
-			var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
-
 			// Adds basic listeners for graph event dispatching outside of the
 			// container and finishing the handling of a single gesture
-			mxEvent.addListener(this.backgroundPageShape.node, md,
+			mxEvent.addGestureListeners(this.backgroundPageShape.node,
 				mxUtils.bind(this, function(evt)
 				{
 					this.graph.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt));
-				})
-			);
-			mxEvent.addListener(this.backgroundPageShape.node, mm,
+				}),
 				mxUtils.bind(this, function(evt)
 				{
 					// Hides the tooltip if mouse is outside container
@@ -47438,15 +43828,12 @@ mxGraphView.prototype.validateBackground = function()
 						this.graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
 							new mxMouseEvent(evt));
 					}
-				})
-			);
-			mxEvent.addListener(this.backgroundPageShape.node, mu,
+				}),
 				mxUtils.bind(this, function(evt)
 				{
 					this.graph.fireMouseEvent(mxEvent.MOUSE_UP,
 							new mxMouseEvent(evt));
-				})
-			);
+				}));
 		}
 		else
 		{
@@ -47556,10 +43943,8 @@ mxGraphView.prototype.validateBounds = function(parentState, cell)
 
 					if (geo.relative)
 					{
-						state.origin.x += geo.x * parentState.width / 
-							this.scale + offset.x;
-						state.origin.y += geo.y * parentState.height /
-							this.scale + offset.y;
+						state.origin.x += geo.x * parentState.width / this.scale + offset.x;
+						state.origin.y += geo.y * parentState.height / this.scale + offset.y;
 					}
 					else
 					{
@@ -47578,6 +43963,25 @@ mxGraphView.prototype.validateBounds = function(parentState, cell)
 
 				if (model.isVertex(cell))
 				{
+					// Rotates relative child cells
+					if (geo.relative)
+					{
+						var alpha = mxUtils.toRadians(parentState.style[mxConstants.STYLE_ROTATION] || '0');
+						
+						if (alpha != 0)
+						{
+							var cos = Math.cos(alpha);
+							var sin = Math.sin(alpha);
+						
+							// Uses translate or parent origin as offset
+							var ct = new mxPoint(state.getCenterX(), state.getCenterY());
+							var cx = new mxPoint(parentState.getCenterX(), parentState.getCenterY());
+							var pt = mxUtils.getRotatedPoint(ct, cos, sin, cx);
+							state.x = pt.x - state.width / 2;
+							state.y = pt.y - state.height / 2;
+						}
+					}
+					
 					this.updateVertexLabelOffset(state);
 				}
 			}
@@ -48014,6 +44418,7 @@ mxGraphView.prototype.updateFloatingTerminalPoint = function(edge, start, end, s
 	start = this.getTerminalPort(edge, start, source);
 	var next = this.getNextPoint(edge, end, source);
 	
+	var orth = this.graph.isOrthogonal(edge);
 	var alpha = mxUtils.toRadians(Number(start.style[mxConstants.STYLE_ROTATION] || '0'));
 	var center = new mxPoint(start.getCenterX(), start.getCenterY());
 	
@@ -48028,7 +44433,7 @@ mxGraphView.prototype.updateFloatingTerminalPoint = function(edge, start, end, s
 	border += parseFloat(edge.style[(source) ?
 		mxConstants.STYLE_SOURCE_PERIMETER_SPACING :
 		mxConstants.STYLE_TARGET_PERIMETER_SPACING] || 0);
-	var pt = this.getPerimeterPoint(start, next, this.graph.isOrthogonal(edge), border);
+	var pt = this.getPerimeterPoint(start, next, alpha == 0 && orth, border);
 
 	if (alpha != 0)
 	{
@@ -48947,49 +45352,48 @@ mxGraphView.prototype.installListeners = function()
 	
 	if (container != null)
 	{
-		var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-		var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
-		var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
-		
 		// Adds basic listeners for graph event dispatching
-		mxEvent.addListener(container, md, mxUtils.bind(this, function(evt)
-		{
-			// Workaround for touch-based device not transferring
-			// the focus while editing with virtual keyboard
-			if (mxClient.IS_TOUCH && graph.isEditing())
+		mxEvent.addGestureListeners(container,
+			mxUtils.bind(this, function(evt)
 			{
-				graph.stopEditing(!graph.isInvokesStopCellEditing());
-			}
-			
-			// Condition to avoid scrollbar events starting a rubberband
-			// selection
-			if (this.isContainerEvent(evt) && ((!mxClient.IS_IE && 
-				!mxClient.IS_GC && !mxClient.IS_OP && !mxClient.IS_SF) ||
-				!this.isScrollEvent(evt)))
+				// Workaround for touch-based device not transferring
+				// the focus while editing with virtual keyboard
+				if (mxClient.IS_TOUCH && graph.isEditing())
+				{
+					graph.stopEditing(!graph.isInvokesStopCellEditing());
+				}
+				
+				// Condition to avoid scrollbar events starting a rubberband
+				// selection
+				if (this.isContainerEvent(evt) && ((!mxClient.IS_IE && 
+					!mxClient.IS_GC && !mxClient.IS_OP && !mxClient.IS_SF) ||
+					!this.isScrollEvent(evt)))
+				{
+					graph.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt));
+				}
+			}),
+			mxUtils.bind(this, function(evt)
 			{
-				graph.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt));
-			}
-		}));
-		mxEvent.addListener(container, mm, mxUtils.bind(this, function(evt)
-		{
-			if (this.isContainerEvent(evt))
+				if (this.isContainerEvent(evt))
+				{
+					graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt));
+				}
+			}),
+			mxUtils.bind(this, function(evt)
 			{
-				graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt));
-			}
-		}));
-		mxEvent.addListener(container, mu, mxUtils.bind(this, function(evt)
-		{
-			if (this.isContainerEvent(evt))
-			{
-				graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt));
-			}
-		}));
+				if (this.isContainerEvent(evt))
+				{
+					graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt));
+				}
+			}));
 		
 		// Adds listener for double click handling on background
-		mxEvent.addListener(container, 'dblclick', mxUtils.bind(this, function(evt)
-		{
-			graph.dblClick(evt);
-		}));
+		mxEvent.addListener(container, 'dblclick',
+			mxUtils.bind(this, function(evt)
+			{
+				graph.dblClick(evt);
+			})
+		);
 
 		// Workaround for touch events which started on some DOM node
 		// on top of the container, in which case the cells under the
@@ -49030,20 +45434,20 @@ mxGraphView.prototype.installListeners = function()
 		});
 		
 		this.moveHandler = mxUtils.bind(this, function(evt)
-		{
+				{
 			// Hides the tooltip if mouse is outside container
-			if (graph.tooltipHandler != null && graph.tooltipHandler.isHideOnHover())
+			if (graph.tooltipHandler != null &&
+				graph.tooltipHandler.isHideOnHover())
 			{
 				graph.tooltipHandler.hide();
 			}
 			
-			if (this.captureDocumentGesture && graph.isMouseDown && !mxEvent.isConsumed(evt))
+			if (this.captureDocumentGesture && graph.isMouseDown &&
+				!mxEvent.isConsumed(evt))
 			{
 				graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt, getState(evt)));
 			}
 		});
-		
-		mxEvent.addListener(document, mm, this.moveHandler);
 		
 		this.endHandler = mxUtils.bind(this, function(evt)
 		{
@@ -49053,7 +45457,7 @@ mxGraphView.prototype.installListeners = function()
 			}
 		});
 		
-		mxEvent.addListener(document, mu, this.endHandler);
+		mxEvent.addGestureListeners(document, null, this.moveHandler, this.endHandler);
 	}
 };
 
@@ -49192,7 +45596,7 @@ mxGraphView.prototype.createVml = function()
  */
 mxGraphView.prototype.createVmlPane = function(width, height)
 {
-	var pane = document.createElement('v:group');
+	var pane = document.createElement(mxClient.VML_PREFIX + ':group');
 	
 	// At this point the width and height are potentially
 	// uninitialized. That's OK.
@@ -49271,24 +45675,12 @@ mxGraphView.prototype.destroy = function()
 	if (root != null && root.parentNode != null)
 	{
 		this.clear(this.currentRoot, true);
-
-		if (this.moveHandler != null)
-		{
-			var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
-			mxEvent.removeListener(document, mm, this.moveHandler);
-			this.moveHandler = null;
-		}
-
-		if (this.endHandler != null)
-		{
-			var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
-			mxEvent.removeListener(document, mu, this.endHandler);
-			this.endHandler = null;
-		}
-		
+		mxEvent.removeGestureListeners(document, null, this.moveHandler, this.endHandler);
 		mxEvent.release(this.graph.container);
 		root.parentNode.removeChild(root);
 		
+		this.moveHandler = null;
+		this.endHandler = null;
 		this.canvas = null;
 		this.backgroundPane = null;
 		this.drawPane = null;
@@ -49365,7 +45757,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.705 2013/02/12 10:57:37 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.22 2013/04/23 07:40:46 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -49522,7 +45914,7 @@ mxCurrentRootChange.prototype.execute = function()
  * the cell renderer as follows:
  * 
  * (code)
- * graph.cellRenderer.registerShape('box', BoxShape);
+ * mxCellRenderer.registerShape('box', BoxShape);
  * (end)
  * 
  * The code registers the BoxShape constructor under the name box in the cell
@@ -49873,25 +46265,6 @@ mxCurrentRootChange.prototype.execute = function()
  * Fires in <click> after a click event. The <code>event</code> property
  * contains the original mouse event and <code>cell</code> property contains
  * the cell under the mouse or null if the background was clicked.
- *
- * To handle a click event, use the following code:
- * 
- * (code)
- * graph.addListener(mxEvent.CLICK, function(sender, evt)
- * {
- *   var e = evt.getProperty('event'); // mouse event
- *   var cell = evt.getProperty('cell'); // cell may be null
- *   
- *   if (!evt.isConsumed())
- *   {
- *     if (cell != null)
- *     {
- *       // Do something useful with cell and consume the event
- *       evt.consume();
- *     }
- *   }
- * });
- * (end)
  * 
  * Event: mxEvent.DOUBLE_CLICK
  *
@@ -50965,6 +47338,13 @@ mxGraph.prototype.collapseExpandResource = (mxClient.language != 'none') ? 'coll
 			})
 		);
 	}
+	
+	// Workaround for missing last shape and connect preview in IE8 standards
+	// mode if no initial graph displayed or no label for shape defined
+	if (document.documentMode == 8)
+	{
+		container.insertAdjacentHTML('beforeend', '<v:group style="DISPLAY: none;"></v:group>');
+	}
 };
 
 /**
@@ -51259,8 +47639,7 @@ mxGraph.prototype.processChange = function(change)
 
 	// Handles two special cases where the shape does not need to be
 	// recreated from scratch, it only need to be invalidated.
-	else if (change instanceof mxTerminalChange ||
-			change instanceof mxGeometryChange)
+	else if (change instanceof mxTerminalChange || change instanceof mxGeometryChange)
 	{
 		this.view.invalidate(change.cell);
 	}
@@ -51741,6 +48120,22 @@ mxGraph.prototype.escape = function(evt)
  * <selectCellForEvent> or the selection is cleared using
  * <clearSelection>. The events consumed state is set to true if the
  * corresponding <mxMouseEvent> has been consumed.
+ *
+ * To handle a click event, use the following code.
+ * 
+ * (code)
+ * graph.addListener(mxEvent.CLICK, function(sender, evt)
+ * {
+ *   var e = evt.getProperty('event'); // mouse event
+ *   var cell = evt.getProperty('cell'); // cell may be null
+ *   
+ *   if (cell != null)
+ *   {
+ *     // Do something useful with cell and consume the event
+ *     evt.consume();
+ *   }
+ * });
+ * (end)
  * 
  * Parameters:
  * 
@@ -52211,7 +48606,6 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 				pageBreak.dialect = this.dialect;
 				pageBreak.isDashed = this.pageBreakDashed;
 				pageBreak.scale = scale;
-				pageBreak.crisp = true;
 				pageBreak.init(this.view.backgroundPane);
 				pageBreak.redraw();
 				
@@ -52251,7 +48645,6 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 				pageBreak.dialect = this.dialect;
 				pageBreak.isDashed = this.pageBreakDashed;
 				pageBreak.scale = scale;
-				pageBreak.crisp = true;
 				pageBreak.init(this.view.backgroundPane);
 				pageBreak.redraw();
 	
@@ -52340,14 +48733,17 @@ mxGraph.prototype.postProcessCellStyle = function(style)
 		}
 		
 		// Converts short data uris to normal data uris
-		if (image != null && image.substring(0, 11) == "data:image/")
+		if (image != null && image.substring(0, 11) == 'data:image/')
 		{
-			var comma = image.indexOf(',');
-			
-			if (comma > 0)
+			if (image.substring(0, 19) != 'data:image/svg+xml,')
 			{
-				image = image.substring(0, comma) + ";base64,"
-					+ image.substring(comma + 1);
+				var comma = image.indexOf(',');
+				
+				if (comma > 0)
+				{
+					image = image.substring(0, comma) + ';base64,'
+						+ image.substring(comma + 1);
+				}
 			}
 			
 			style[mxConstants.STYLE_IMAGE] = image;
@@ -52925,14 +49321,16 @@ mxGraph.prototype.groupCells = function(group, border, cells)
 				this.model.setGeometry(group, new mxGeometry());
 			}
 
+			// Adds the group into the parent
+			var index = this.model.getChildCount(parent);
+			this.cellsAdded([group], parent, index, null, null, false);
+
 			// Adds the children into the group and moves
-			var index = this.model.getChildCount(group);
+			index = this.model.getChildCount(group);
 			this.cellsAdded(cells, group, index, null, null, false, false);
 			this.cellsMoved(cells, -bounds.x, -bounds.y, false, true);
 
-			// Adds the group into the parent and resizes
-			index = this.model.getChildCount(parent);
-			this.cellsAdded([group], parent, index, null, null, false);
+			// Resizes the group
 			this.cellsResized([group], [bounds]);
 
 			this.fireEvent(new mxEventObject(mxEvent.GROUP_CELLS,
@@ -53596,11 +49994,11 @@ mxGraph.prototype.cellsAdded = function(cells, parent, index, source, target, ab
 	
 					// Decrements all following indices
 					// if cell is already in parent
-					if (parent == previous)
+					if (parent == previous && index + i > this.model.getChildCount(parent))
 					{
 						index--;
 					}
-	
+
 					this.model.add(parent, cells[i], index + i);
 	
 					// Extends the parent
@@ -53667,6 +50065,8 @@ mxGraph.prototype.removeCells = function(cells, includeEdges)
 	// Adds all edges to the cells
 	if (includeEdges)
 	{
+		// FIXME: Remove duplicate cells in result or do not add if
+		// in cells or descendant of cells
 		cells = this.getDeletableCells(this.addAllEdges(cells));
 	}
 
@@ -54038,6 +50438,9 @@ mxGraph.prototype.updateAlternateBounds = function(cell, geo, willCollapse)
 {
 	if (cell != null && geo != null)
 	{
+		var state = this.view.getState(cell);
+		var style = (state != null) ? state.style : this.getCellStyle(cell);
+
 		if (geo.alternateBounds == null)
 		{
 			var bounds = geo;
@@ -54049,8 +50452,6 @@ mxGraph.prototype.updateAlternateBounds = function(cell, geo, willCollapse)
 				if (tmp != null)
 				{
 					bounds = tmp;
-					var state = this.view.getState(cell);
-					var style = (state != null) ? state.style : this.getCellStyle(cell);
 
 					var startSize = mxUtils.getValue(style, mxConstants.STYLE_STARTSIZE);
 
@@ -54061,13 +50462,32 @@ mxGraph.prototype.updateAlternateBounds = function(cell, geo, willCollapse)
 				}
 			}
 			
-			geo.alternateBounds = new mxRectangle(
-					geo.x, geo.y, bounds.width, bounds.height);
+			geo.alternateBounds = new mxRectangle(0, 0, bounds.width, bounds.height);
 		}
-		else
+		
+		if (geo.alternateBounds != null)
 		{
 			geo.alternateBounds.x = geo.x;
 			geo.alternateBounds.y = geo.y;
+			
+			var alpha = mxUtils.toRadians(style[mxConstants.STYLE_ROTATION] || '0');
+			var dx3 = 0;
+			var dy3 = 0;
+			
+			if (alpha != 0)
+			{
+				var dx = geo.alternateBounds.getCenterX() - geo.getCenterX();
+				var dy = geo.alternateBounds.getCenterY() - geo.getCenterY();
+	
+				var cos = Math.cos(alpha);
+				var sin = Math.sin(alpha);
+	
+				var dx2 = cos * dx - sin * dy;
+				var dy2 = sin * dx + cos * dy;
+				
+				geo.alternateBounds.x += dx2 - dx;
+				geo.alternateBounds.y += dy2 - dy;
+			}
 		}
 	}
 };
@@ -54428,6 +50848,39 @@ mxGraph.prototype.resizeCells = function(cells, bounds)
  * Sets the bounds of the given cells and fires a <mxEvent.CELLS_RESIZED>
  * event. If <extendParents> is true, then the parent is extended if a
  * child size is changed so that it overlaps with the parent.
+ * 
+ * The following example shows how to control group resizes to make sure
+ * that all child cells stay within the group.
+ * 
+ * (code)
+ * graph.addListener(mxEvent.CELLS_RESIZED, function(sender, evt)
+ * {
+ *   var cells = evt.getProperty('cells');
+ *   
+ *   if (cells != null)
+ *   {
+ *     for (var i = 0; i < cells.length; i++)
+ *     {
+ *       if (graph.getModel().getChildCount(cells[i]) > 0)
+ *       {
+ *         var geo = graph.getCellGeometry(cells[i]);
+ *         
+ *         if (geo != null)
+ *         {
+ *           var children = graph.getChildCells(cells[i], true, true);
+ *           var bounds = graph.getBoundingBoxFromGeometry(children, true);
+ *           
+ *           geo = geo.clone();
+ *           geo.width = Math.max(geo.width, bounds.width);
+ *           geo.height = Math.max(geo.height, bounds.height);
+ *           
+ *           graph.getModel().setGeometry(cells[i], geo);
+ *         }
+ *       }
+ *     }
+ *   }
+ * });
+ * (end)
  * 
  * Parameters:
  * 
@@ -54925,12 +51378,9 @@ mxGraph.prototype.resetEdge = function(edge)
 mxGraph.prototype.getAllConnectionConstraints = function(terminal, source)
 {
 	if (terminal != null && terminal.shape != null &&
-		terminal.shape instanceof mxStencilShape)
+		terminal.shape.stencil != null)
 	{
-		if (terminal.shape.stencil != null)
-		{
-			return terminal.shape.stencil.constraints;
-		}
+		return terminal.shape.stencil.constraints;
 	}
 
 	return null;
@@ -54951,15 +51401,11 @@ mxGraph.prototype.getAllConnectionConstraints = function(terminal, source)
 mxGraph.prototype.getConnectionConstraint = function(edge, terminal, source)
 {
 	var point = null;
-	var x = edge.style[(source) ?
-		mxConstants.STYLE_EXIT_X :
-		mxConstants.STYLE_ENTRY_X];
+	var x = edge.style[(source) ? mxConstants.STYLE_EXIT_X : mxConstants.STYLE_ENTRY_X];
 
 	if (x != null)
 	{
-		var y = edge.style[(source) ?
-			mxConstants.STYLE_EXIT_Y :
-			mxConstants.STYLE_ENTRY_Y];
+		var y = edge.style[(source) ? mxConstants.STYLE_EXIT_Y : mxConstants.STYLE_ENTRY_Y];
 		
 		if (y != null)
 		{
@@ -55095,10 +51541,17 @@ mxGraph.prototype.getConnectionPoint = function(vertex, constraint)
 			var dy = 0;
 			
 			// LATER: Add flipping support for image shapes
-			if (vertex.shape instanceof mxStencilShape)
+			if (this.getModel().isVertex(vertex.cell))
 			{
-				var flipH = vertex.style[mxConstants.STYLE_STENCIL_FLIPH];
-				var flipV = vertex.style[mxConstants.STYLE_STENCIL_FLIPV];
+				var flipH = vertex.style[mxConstants.STYLE_FLIPH];
+				var flipV = vertex.style[mxConstants.STYLE_FLIPV];
+				
+				// Legacy support for stencilFlipH/V
+				if (vertex.shape.stencil != null)
+				{
+					flipH = mxUtils.getValue(vertex.style, 'stencilFlipH', 0) == 1 || flipH;
+					flipV = mxUtils.getValue(vertex.style, 'stencilFlipV', 0) == 1 || flipV;
+				}
 				
 				if (direction == 'north' || direction == 'south')
 				{
@@ -56974,7 +53427,7 @@ mxGraph.prototype.convertValueToString = function(cell)
  * cell. This implementation uses <convertValueToString> if <labelsVisible>
  * is true. Otherwise it returns an empty string.
  * 
- * To truncate label to match the size of the cell, the following code
+ * To truncate a label to match the size of the cell, the following code
  * can be used.
  * 
  * (code)
@@ -57867,6 +54320,24 @@ mxGraph.prototype.isLabelMovable = function(cell)
 	return !this.isCellLocked(cell) &&
 		((this.model.isEdge(cell) && this.edgeLabelsMovable) ||
 		(this.model.isVertex(cell) && this.vertexLabelsMovable));
+};
+
+/**
+ * Function: isCellRotatable
+ *
+ * Returns true if the given cell is rotatable. This returns true for the given
+ * cell if its style does not specify <mxConstants.STYLE_ROTATABLE> to be 0.
+ * 
+ * Parameters:
+ * 
+ * cell - <mxCell> whose rotatable state should be returned.
+ */
+mxGraph.prototype.isCellRotatable = function(cell)
+{
+	var state = this.view.getState(cell);
+	var style = (state != null) ? state.style : this.getCellStyle(cell);
+	
+	return style[mxConstants.STYLE_ROTATABLE] != 0;
 };
 
 /**
@@ -59183,9 +55654,24 @@ mxGraph.prototype.intersects = function(state, x, y)
 				pt = next;
 			}
 		}
-		else if (mxUtils.contains(state, x, y))
+		else
 		{
-			return true;
+			var alpha = mxUtils.toRadians(mxUtils.getValue(state.style, mxConstants.STYLE_ROTATION) || 0);
+			
+			if (alpha != 0)
+			{
+				var cos = Math.cos(-alpha);
+				var sin = Math.sin(-alpha);
+				var cx = new mxPoint(state.getCenterX(), state.getCenterY());
+				var pt = mxUtils.getRotatedPoint(new mxPoint(x, y), cos, sin, cx);
+				x = pt.x;
+				y = pt.y;
+			}
+			
+			if (mxUtils.contains(state, x, y))
+			{
+				return true;
+			}
 		}
 	}
 	
@@ -59603,9 +56089,16 @@ mxGraph.prototype.getCells = function(x, y, width, height, parent, result)
 				
 				if (this.isCellVisible(cell) && state != null)
 				{
-					if (state.x >= x && state.y >= y &&
-						state.x + state.width <= right &&
-						state.y + state.height <= bottom)
+					var box = state;
+					var deg = mxUtils.getValue(state.style, mxConstants.STYLE_ROTATION) || 0;
+					
+					if (deg != 0)
+					{
+						box = mxUtils.getBoundingBox(box, deg);
+					}
+					
+					if (box.x >= x && box.y + box.height <= bottom &&
+						box.y >= y && box.x + box.width <= right)
 					{
 						result.push(cell);
 					}
@@ -60544,7 +57037,7 @@ mxGraph.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxCellOverlay.js,v 1.18 2012/12/06 15:58:44 gaudenz Exp $
+ * $Id: mxCellOverlay.js,v 1.3 2012/12/06 15:59:00 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -60762,8 +57255,8 @@ mxCellOverlay.prototype.getBounds = function(state)
 		}
 	}
 
-	return new mxRectangle(pt.x - (w * this.defaultOverlap - this.offset.x) * s,
-		pt.y - (h * this.defaultOverlap - this.offset.y) * s, w * s, h * s);
+	return new mxRectangle(Math.round(pt.x - (w * this.defaultOverlap - this.offset.x) * s),
+		Math.round(pt.y - (h * this.defaultOverlap - this.offset.y) * s), w * s, h * s);
 };
 
 /**
@@ -60777,7 +57270,7 @@ mxCellOverlay.prototype.toString = function()
 	return this.tooltip;
 };
 /**
- * $Id: mxOutline.js,v 1.81 2012/06/20 14:13:37 gaudenz Exp $
+ * $Id: mxOutline.js,v 1.2 2012/11/20 20:10:48 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -61000,7 +57493,6 @@ mxOutline.prototype.init = function(container)
 	this.selectionBorder.dialect =
 		(this.outline.dialect != mxConstants.DIALECT_SVG) ?
 		mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
-	this.selectionBorder.crisp = true;
 	this.selectionBorder.init(this.outline.getView().getOverlayPane());
 	mxEvent.redirectMouseEvents(this.selectionBorder.node, this.outline);
 	this.selectionBorder.node.style.background = '';
@@ -61099,7 +57591,6 @@ mxOutline.prototype.createSizer = function()
 		var sizer = new mxRectangleShape(new mxRectangle(0, 0, this.sizerSize, this.sizerSize),
 			mxConstants.OUTLINE_HANDLE_FILLCOLOR, mxConstants.OUTLINE_HANDLE_STROKECOLOR);
 		sizer.dialect = this.outline.dialect;
-		sizer.crisp = true;
 	
 		return sizer;
 	}
@@ -61426,7 +57917,7 @@ mxOutline.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxMultiplicity.js,v 1.24 2010/11/03 14:52:40 gaudenz Exp $
+ * $Id: mxMultiplicity.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -61683,7 +58174,7 @@ mxMultiplicity.prototype.checkType = function(graph, value, type, attr, attrValu
 	return false;
 };
 /**
- * $Id: mxLayoutManager.js,v 1.21 2012/01/04 10:01:16 gaudenz Exp $
+ * $Id: mxLayoutManager.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -62058,7 +58549,7 @@ mxLayoutManager.prototype.destroy = function()
 	this.setGraph(null);
 };
 /**
- * $Id: mxSpaceManager.js,v 1.9 2010/01/02 09:45:15 gaudenz Exp $
+ * $Id: mxSpaceManager.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -62518,7 +59009,7 @@ mxSpaceManager.prototype.destroy = function()
 	this.setGraph(null);
 };
 /**
- * $Id: mxSwimlaneManager.js,v 1.17 2011/01/14 15:21:10 gaudenz Exp $
+ * $Id: mxSwimlaneManager.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -62967,7 +59458,7 @@ mxSwimlaneManager.prototype.destroy = function()
 	this.setGraph(null);
 };
 /**
- * $Id: mxTemporaryCellStates.js,v 1.10 2010/04/20 14:43:12 gaudenz Exp $
+ * $Id: mxTemporaryCellStates.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -63072,7 +59563,7 @@ mxTemporaryCellStates.prototype.destroy = function()
 	this.view.setGraphBounds(this.oldBounds);
 };
 /**
- * $Id: mxCellStatePreview.js,v 1.6 2012/10/26 07:19:11 gaudenz Exp $
+ * $Id: mxCellStatePreview.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -63295,7 +59786,7 @@ mxCellStatePreview.prototype.addEdges = function(state)
 	}
 };
 /**
- * $Id: mxConnectionConstraint.js,v 1.2 2010/04/29 09:33:52 gaudenz Exp $
+ * $Id: mxConnectionConstraint.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -63337,7 +59828,7 @@ mxConnectionConstraint.prototype.point = null;
  */
 mxConnectionConstraint.prototype.perimeter = null;
 /**
- * $Id: mxGraphHandler.js,v 1.129 2012/04/13 12:53:30 gaudenz Exp $
+ * $Id: mxGraphHandler.js,v 1.6 2013/02/16 10:43:47 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -63528,12 +60019,11 @@ mxGraphHandler.prototype.shape = null;
 mxGraphHandler.prototype.scaleGrid = false;
 
 /**
- * Variable: crisp
+ * Variable: rotationEnabled
  * 
- * Specifies if the move preview should be rendered in crisp mode if applicable.
- * Default is true.
+ * Specifies if the bounding box should allow for rotation. Default is true.
  */
-mxGraphHandler.prototype.crisp = true;
+mxGraphHandler.prototype.rotationEnabled = true;
 
 /**
  * Function: isEnabled
@@ -63767,10 +60257,13 @@ mxGraphHandler.prototype.getCells = function(initialCell)
  */
 mxGraphHandler.prototype.getPreviewBounds = function(cells)
 {
-	var bounds = this.graph.getView().getBounds(cells);
+	var bounds = this.getBoundingBox(cells);
 	
 	if (bounds != null)
 	{
+		// Removes 1 px border
+		bounds.grow(-1, -1);
+		
 		if (bounds.width < this.minimumSize)
 		{
 			var dx = this.minimumSize - bounds.width;
@@ -63790,6 +60283,51 @@ mxGraphHandler.prototype.getPreviewBounds = function(cells)
 };
 
 /**
+ * Function: getBoundingBox
+ * 
+ * Returns the <mxRectangle> that represents the bounding box for the given
+ * cells. If bbox is true then the paint bounding box is returned.
+ */
+mxGraphHandler.prototype.getBoundingBox = function(cells)
+{
+	var result = null;
+	
+	if (cells != null && cells.length > 0)
+	{
+		var model = this.graph.getModel();
+		
+		for (var i = 0; i < cells.length; i++)
+		{
+			if (model.isVertex(cells[i]) || model.isEdge(cells[i]))
+			{
+				var state = this.graph.view.getState(cells[i]);
+			
+				if (state != null)
+				{
+					var bbox = state;
+					
+					if (model.isVertex(cells[i]) && state.shape != null && state.shape.boundingBox != null)
+					{
+						bbox = state.shape.boundingBox;
+					}
+					
+					if (result == null)
+					{
+						result = new mxRectangle(bbox.x, bbox.y, bbox.width, bbox.height);
+					}
+					else
+					{
+						result.add(bbox);
+					}
+				}
+			}
+		}
+	}
+	
+	return result;
+};
+
+/**
  * Function: createPreviewShape
  * 
  * Creates the shape used to draw the preview for the given bounds.
@@ -63798,7 +60336,6 @@ mxGraphHandler.prototype.createPreviewShape = function(bounds)
 {
 	var shape = new mxRectangleShape(bounds, null, this.previewColor);
 	shape.isDashed = true;
-	shape.crisp = this.crisp;
 	
 	if (this.htmlPreview)
 	{
@@ -63813,16 +60350,7 @@ mxGraphHandler.prototype.createPreviewShape = function(bounds)
 		shape.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
 			mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
 		shape.init(this.graph.getView().getOverlayPane());
-		
-		// Event-transparency
-		if (shape.dialect == mxConstants.DIALECT_SVG)
-		{
-			shape.node.setAttribute('style', 'pointer-events:none;');
-		}
-		else
-		{
-			shape.node.style.background = '';
-		}
+		shape.pointerEvents = false;
 	}
 	
 	return shape;
@@ -63838,7 +60366,8 @@ mxGraphHandler.prototype.start = function(cell, x, y)
 	this.cell = cell;
 	this.first = mxUtils.convertPoint(this.graph.container, x, y);
 	this.cells = this.getCells(this.cell);
-	this.bounds = this.getPreviewBounds(this.cells);
+	this.bounds = this.graph.getView().getBounds(this.cells);
+	this.pBounds = this.getPreviewBounds(this.cells);
 
 	if (this.guidesEnabled)
 	{
@@ -64051,8 +60580,8 @@ mxGraphHandler.prototype.updatePreviewShape = function()
 {
 	if (this.shape != null)
 	{
-		this.shape.bounds = new mxRectangle(this.bounds.x + this.currentDx - this.graph.panDx,
-				this.bounds.y + this.currentDy - this.graph.panDy, this.bounds.width, this.bounds.height);
+		this.shape.bounds = new mxRectangle(Math.round(this.pBounds.x + this.currentDx - this.graph.panDx),
+				Math.round(this.pBounds.y + this.currentDy - this.graph.panDy), this.pBounds.width, this.pBounds.height);
 		this.shape.redraw();
 	}
 };
@@ -64092,7 +60621,6 @@ mxGraphHandler.prototype.mouseUp = function(sender, me)
 			var clone = graph.isCloneEvent(me.getEvent()) && graph.isCellsCloneable() && this.isCloneEnabled();
 			var dx = this.currentDx / scale;
 			var dy = this.currentDy / scale;
-
 			var cell = me.getCell();
 			
 			if (this.connectOnDrop && this.target == null && cell != null && graph.getModel().isVertex(cell) &&
@@ -64170,6 +60698,15 @@ mxGraphHandler.prototype.shouldRemoveCellsFromParent = function(parent, cells, e
 		var pState = this.graph.getView().getState(parent);
 		var pt = mxUtils.convertPoint(this.graph.container,
 			mxEvent.getClientX(evt), mxEvent.getClientY(evt));
+		var alpha = mxUtils.toRadians(mxUtils.getValue(pState.style, mxConstants.STYLE_ROTATION) || 0);
+		
+		if (alpha != 0)
+		{
+			var cos = Math.cos(-alpha);
+			var sin = Math.sin(-alpha);
+			var cx = new mxPoint(pState.getCenterX(), pState.getCenterY());
+			pt = mxUtils.getRotatedPoint(pt, cos, sin, cx);
+		}
 		
 		return pState != null && !mxUtils.contains(pState, pt.x, pt.y);
 	}
@@ -64195,7 +60732,7 @@ mxGraphHandler.prototype.moveCells = function(cells, dx, dy, clone, target, evt)
 	{
 		target = this.graph.getDefaultParent();
 	}
-
+	
 	// Passes all selected cells in order to correctly clone or move into
 	// the target cell. The method checks for each cell if its movable.
 	cells = this.graph.moveCells(cells, dx - this.graph.panDx / this.graph.view.scale,
@@ -64253,7 +60790,7 @@ mxGraphHandler.prototype.destroy = function()
 	this.destroyShapes();
 };
 /**
- * $Id: mxPanningHandler.js,v 1.79 2012/07/17 14:37:41 gaudenz Exp $
+ * $Id: mxPanningHandler.js,v 1.3 2013/01/10 16:39:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -64308,6 +60845,20 @@ mxPanningHandler.prototype.constructor = mxPanningHandler;
  * Reference to the enclosing <mxGraph>.
  */
 mxPanningHandler.prototype.graph = null;
+
+/**
+ * Variable: triggerX
+ * 
+ * X-coordinate of the mouse down event.
+ */
+mxPanningHandler.prototype.triggerX = null;
+
+/**
+ * Variable: triggerY
+ * 
+ * X-coordinate of the mouse down event.
+ */
+mxPanningHandler.prototype.triggerY = null;
 
 /**
  * Variable: usePopupTrigger
@@ -64447,6 +60998,9 @@ mxPanningHandler.prototype.mouseDown = function(sender, me)
 		this.dy0 = -this.graph.container.scrollTop;
 		
 		// Checks the event triggers to panning and popupmenu
+		var pt = mxUtils.convertPoint(this.graph.container, me.getX(), me.getY());
+		this.triggerX = pt.x;
+		this.triggerY = pt.y;
 		this.popupTrigger = this.isPopupTrigger(me);
 		this.panningTrigger = this.isPanningEnabled() &&
 			this.isPanningTrigger(me);
@@ -64643,7 +61197,7 @@ mxPanningHandler.prototype.destroy = function()
 	mxPopupMenu.prototype.destroy.apply(this);
 };
 /**
- * $Id: mxCellMarker.js,v 1.30 2011/07/15 12:57:50 gaudenz Exp $
+ * $Id: mxCellMarker.js,v 1.2 2013/01/08 15:30:24 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -64688,6 +61242,8 @@ mxPanningHandler.prototype.destroy = function()
  */
 function mxCellMarker(graph, validColor, invalidColor, hotspot)
 {
+	mxEventSource.call(this);
+	
 	if (graph != null)
 	{
 		this.graph = graph;
@@ -64702,8 +61258,7 @@ function mxCellMarker(graph, validColor, invalidColor, hotspot)
 /**
  * Extends mxEventSource.
  */
-mxCellMarker.prototype = new mxEventSource();
-mxCellMarker.prototype.constructor = mxCellMarker;
+mxUtils.extend(mxCellMarker, mxEventSource);
 
 /**
  * Variable: graph
@@ -65062,7 +61617,7 @@ mxCellMarker.prototype.destroy = function()
 	this.highlight.destroy();
 };
 /**
- * $Id: mxSelectionCellsHandler.js,v 1.5 2012/08/10 11:35:06 gaudenz Exp $
+ * $Id: mxSelectionCellsHandler.js,v 1.2 2013/01/08 15:30:24 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -65089,6 +61644,8 @@ mxCellMarker.prototype.destroy = function()
  */
 function mxSelectionCellsHandler(graph)
 {
+	mxEventSource.call(this);
+	
 	this.graph = graph;
 	this.handlers = new mxDictionary();
 	this.graph.addMouseListener(this);
@@ -65113,8 +61670,7 @@ function mxSelectionCellsHandler(graph)
 /**
  * Extends mxEventSource.
  */
-mxSelectionCellsHandler.prototype = new mxEventSource();
-mxSelectionCellsHandler.prototype.constructor = mxSelectionCellsHandler;
+mxUtils.extend(mxSelectionCellsHandler, mxEventSource);
 
 /**
  * Variable: graph
@@ -65322,7 +61878,7 @@ mxSelectionCellsHandler.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxConnectionHandler.js,v 1.219 2013/04/10 11:25:12 gaudenz Exp $
+ * $Id: mxConnectionHandler.js,v 1.13 2013/04/12 15:16:03 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -65481,6 +62037,8 @@ mxSelectionCellsHandler.prototype.destroy = function()
  */
 function mxConnectionHandler(graph, factoryMethod)
 {
+	mxEventSource.call(this);
+	
 	if (graph != null)
 	{
 		this.graph = graph;
@@ -65492,8 +62050,7 @@ function mxConnectionHandler(graph, factoryMethod)
 /**
  * Extends mxEventSource.
  */
-mxConnectionHandler.prototype = new mxEventSource();
-mxConnectionHandler.prototype.constructor = mxConnectionHandler;
+mxUtils.extend(mxConnectionHandler, mxEventSource);
 
 /**
  * Variable: graph
@@ -65774,18 +62331,19 @@ mxConnectionHandler.prototype.createShape = function()
 {
 	// Creates the edge preview
 	var shape = new mxPolyline([], mxConstants.INVALID_COLOR);
-	shape.isDashed = true;
 	shape.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
 		mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
 	shape.init(this.graph.getView().getOverlayPane());
+	shape.svgStrokeTolerance = 0;
+	shape.pointerEvents = false;
+	shape.isDashed = true;
 	
 	// Event-transparency
 	if (this.graph.dialect == mxConstants.DIALECT_SVG)
 	{
 		// Sets event transparency on the internal shapes that represent
 		// the actual dashed line on the screen
-		shape.pipe.setAttribute('style', 'pointer-events:none;');
-		shape.innerNode.setAttribute('style', 'pointer-events:none;');
+		shape.node.setAttribute('pointer-events', 'none');
 	}
 	else
 	{
@@ -65845,7 +62403,7 @@ mxConnectionHandler.prototype.init = function()
 	// Removes the icon if we step into/up or start editing
 	this.drillHandler = mxUtils.bind(this, function(sender)
 	{
-		this.destroyIcons(this.icons);
+		this.reset();
 	});
 	
 	this.graph.addListener(mxEvent.START_EDITING, this.drillHandler);
@@ -66109,8 +62667,7 @@ mxConnectionHandler.prototype.createIcons = function(state)
 		else
 		{
 			icon.dialect = (this.graph.dialect == mxConstants.DIALECT_SVG) ?
-				mxConstants.DIALECT_SVG : 
-				mxConstants.DIALECT_VML;
+				mxConstants.DIALECT_SVG : mxConstants.DIALECT_VML;
 			icon.init(this.graph.getView().getOverlayPane());
 
 			// Move the icon back in the overlay pane
@@ -66191,8 +62748,20 @@ mxConnectionHandler.prototype.getIconPosition = function(icon, state)
 		
 		cx = (size.width != 0) ? state.x + size.width * scale / 2 : cx;
 		cy = (size.height != 0) ? state.y + size.height * scale / 2 : cy;
+		
+		var alpha = mxUtils.toRadians(mxUtils.getValue(state.style, mxConstants.STYLE_ROTATION) || 0);
+		
+		if (alpha != 0)
+		{
+			var cos = Math.cos(alpha);
+			var sin = Math.sin(alpha);
+			var ct = new mxPoint(state.getCenterX(), state.getCenterY());
+			var pt = mxUtils.getRotatedPoint(new mxPoint(cx, cy), cos, sin, ct);
+			cx = pt.x;
+			cy = pt.y;
+		}
 	}
-	
+
 	return new mxPoint(cx - icon.bounds.width / 2,
 			cy - icon.bounds.height / 2);
 };
@@ -66200,22 +62769,21 @@ mxConnectionHandler.prototype.getIconPosition = function(icon, state)
 /**
  * Function: destroyIcons
  * 
- * Destroys the given array of <mxImageShapes>.
- * 
- * Parameters:
- * 
- * icons - Optional array of <mxImageShapes> to be destroyed.
+ * Destroys the connect icons and resets the respective state.
  */
-mxConnectionHandler.prototype.destroyIcons = function(icons)
+mxConnectionHandler.prototype.destroyIcons = function()
 {
-	if (icons != null)
+	if (this.icons != null)
 	{
-		this.iconState = null;
-		
-		for (var i = 0; i < icons.length; i++)
+		for (var i = 0; i < this.icons.length; i++)
 		{
-			icons[i].destroy();
+			this.icons[i].destroy();
 		}
+		
+		this.icons = null;
+		this.icon = null;
+		this.selectedIcon = null;
+		this.iconState = null;
 	}
 };
 
@@ -66422,7 +62990,7 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 		// Handles special case when handler is disabled during highlight
 		if (!this.isEnabled() && this.currentState != null)
 		{
-			this.destroyIcons(this.icons);
+			this.destroyIcons();
 			this.currentState = null;
 		}
 		
@@ -66566,7 +63134,7 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 				{
 					return;
 				}
-												
+						
 				current.x -= dx * 4 / len;
 				current.y -= dy * 4 / len;
 			}
@@ -66601,7 +63169,7 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 					{
 						pts = pts.concat(this.waypoints);
 					}
-					
+
 					pts.push(current);
 					this.shape.points = pts;
 				}
@@ -66618,8 +63186,7 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 		}
 		else if (this.previous != this.currentState && this.edgeState == null)
 		{
-			this.destroyIcons(this.icons);
-			this.icons = null;
+			this.destroyIcons();
 			
 			// Sets the cursor on the current shape				
 			if (this.currentState != null && this.error == null)
@@ -66867,7 +63434,7 @@ mxConnectionHandler.prototype.mouseUp = function(sender, me)
 		}
 		
 		// Redraws the connect icons and resets the handler state
-		this.destroyIcons(this.icons);
+		this.destroyIcons();
 		me.consume();
 	}
 
@@ -66893,18 +63460,15 @@ mxConnectionHandler.prototype.reset = function()
 		this.shape = null;
 	}
 	
-	this.destroyIcons(this.icons);
-	this.icons = null;
+	this.destroyIcons();
 	this.marker.reset();
 	this.constraintHandler.reset();
-	this.selectedIcon = null;
 	this.edgeState = null;
 	this.previous = null;
 	this.error = null;
 	this.sourceConstraint = null;
 	this.mouseDownCounter = 0;
 	this.first = null;
-	this.icon = null;
 
 	this.fireEvent(new mxEventObject(mxEvent.RESET));
 };
@@ -66918,22 +63482,10 @@ mxConnectionHandler.prototype.reset = function()
 mxConnectionHandler.prototype.drawPreview = function()
 {
 	var valid = this.error == null;
-	var color = this.getEdgeColor(valid);
-	
-	if (this.shape.dialect == mxConstants.DIALECT_SVG)
-	{
-		this.shape.innerNode.setAttribute('stroke', color);
-	}
-	else
-	{
-		this.shape.node.strokecolor = color;
-	}
-
 	this.shape.strokewidth = this.getEdgeWidth(valid);
+	var color = this.getEdgeColor(valid);
+	this.shape.stroke = color;
 	this.shape.redraw();
-
-	// Workaround to force a repaint in AppleWebKit
-	mxUtils.repaintGraph(this.graph, this.shape.points[1]);
 };
 
 /**
@@ -67303,7 +63855,7 @@ mxConnectionHandler.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxConstraintHandler.js,v 1.15 2012/11/01 16:13:41 gaudenz Exp $
+ * $Id: mxConstraintHandler.js,v 1.2 2012/11/20 09:10:02 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -67498,9 +64050,9 @@ mxConstraintHandler.prototype.update = function(me, source)
 						var bounds = new mxRectangle(cp.x - img.width / 2,
 							cp.y - img.height / 2, img.width, img.height);
 						var icon = new mxImageShape(bounds, src);
-						icon.dialect = (this.graph.dialect == mxConstants.DIALECT_SVG) ?
-							mxConstants.DIALECT_SVG :
-							mxConstants.DIALECT_VML;
+						icon.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
+								mxConstants.DIALECT_MIXEDHTML : mxConstants.DIALECT_SVG;
+						icon.preserveImageAspect = false;
 						icon.init(this.graph.getView().getOverlayPane());
 						
 						// Move the icon behind all other overlays
@@ -67569,8 +64121,7 @@ mxConstraintHandler.prototype.update = function(me, source)
 					{
 						var hl = new mxRectangleShape(tmp, null, this.highlightColor, 3);
 						hl.dialect = (this.graph.dialect == mxConstants.DIALECT_SVG) ?
-									mxConstants.DIALECT_SVG :
-									mxConstants.DIALECT_VML;
+								mxConstants.DIALECT_SVG : mxConstants.DIALECT_VML;
 						hl.init(this.graph.getView().getOverlayPane());
 						this.focusHighlight = hl;
 						
@@ -67610,7 +64161,7 @@ mxConstraintHandler.prototype.destroy = function()
 {
 	this.reset();
 };/**
- * $Id: mxRubberband.js,v 1.48 2012/04/13 12:53:30 gaudenz Exp $
+ * $Id: mxRubberband.js,v 1.1 2012/11/15 13:26:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -67958,7 +64509,7 @@ mxRubberband.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxVertexHandler.js,v 1.107 2012/11/20 09:06:07 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.19 2013/04/12 16:30:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -68023,14 +64574,6 @@ mxVertexHandler.prototype.index = null;
 mxVertexHandler.prototype.allowHandleBoundsCheck = true;
 
 /**
- * Variable: crisp
- * 
- * Specifies if the selection bounds and handles should be rendered in crisp
- * mode. Default is true.
- */
-mxVertexHandler.prototype.crisp = true;
-
-/**
  * Variable: handleImage
  * 
  * Optional <mxImage> to be used as handles. Default is null.
@@ -68045,6 +64588,21 @@ mxVertexHandler.prototype.handleImage = null;
 mxVertexHandler.prototype.tolerance = 0;
 
 /**
+ * Variable: rotationEnabled
+ * 
+ * Specifies if a rotation handle should be visible. Default is false.
+ */
+mxVertexHandler.prototype.rotationEnabled = false;
+
+/**
+ * Variable: rotationRaster
+ * 
+ * Specifies if rotation steps should be "rasterized" depening on the distance
+ * to the handle. Default is true.
+ */
+mxVertexHandler.prototype.rotationRaster = true;
+
+/**
  * Function: init
  * 
  * Initializes the shapes required for this vertex handler.
@@ -68056,20 +64614,10 @@ mxVertexHandler.prototype.init = function()
 	this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y,
 		this.selectionBounds.width, this.selectionBounds.height);
 	this.selectionBorder = this.createSelectionShape(this.bounds);
-	this.selectionBorder.dialect =
-		(this.graph.dialect != mxConstants.DIALECT_SVG) ?
-		mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
+	// VML dialect required here for event transparency in IE
+	this.selectionBorder.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ? mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
+	this.selectionBorder.pointerEvents = false;
 	this.selectionBorder.init(this.graph.getView().getOverlayPane());
-
-	// Event-transparency
-	if (this.selectionBorder.dialect == mxConstants.DIALECT_SVG)
-	{
-		this.selectionBorder.node.setAttribute('pointer-events', 'none');
-	}
-	else
-	{
-		this.selectionBorder.node.style.background = '';
-	}
 	
 	if (this.graph.isCellMovable(this.state.cell))
 	{
@@ -68079,8 +64627,7 @@ mxVertexHandler.prototype.init = function()
 	mxEvent.redirectMouseEvents(this.selectionBorder.node, this.graph, this.state);
 	
 	// Adds the sizer handles
-	if (mxGraphHandler.prototype.maxCells <= 0 ||
-		this.graph.getSelectionCount() < mxGraphHandler.prototype.maxCells)
+	if (mxGraphHandler.prototype.maxCells <= 0 || this.graph.getSelectionCount() < mxGraphHandler.prototype.maxCells)
 	{
 		var resizable = this.graph.isCellResizable(this.state.cell);
 		this.sizers = [];
@@ -68112,9 +64659,7 @@ mxVertexHandler.prototype.init = function()
 				this.graph.isLabelMovable(this.state.cell))
 			{
 				// Marks this as the label handle for getHandleForEvent
-				this.labelShape = this.createSizer(mxConstants.CURSOR_LABEL_HANDLE,
-						mxEvent.LABEL_HANDLE, mxConstants.LABEL_HANDLE_SIZE,
-						mxConstants.LABEL_HANDLE_FILLCOLOR);
+				this.labelShape = this.createSizer(mxConstants.CURSOR_LABEL_HANDLE, mxEvent.LABEL_HANDLE, mxConstants.LABEL_HANDLE_SIZE, mxConstants.LABEL_HANDLE_FILLCOLOR);
 				this.sizers.push(this.labelShape);
 			}
 		}
@@ -68125,6 +64670,15 @@ mxVertexHandler.prototype.init = function()
 				null, null, mxConstants.LABEL_HANDLE_FILLCOLOR);
 			this.sizers.push(this.labelShape);
 		}
+	}
+	
+	// Adds the rotation handler
+	if (this.rotationEnabled && this.graph.isCellRotatable(this.state.cell) &&
+		(mxGraphHandler.prototype.maxCells <= 0 || this.graph.getSelectionCount() < mxGraphHandler.prototype.maxCells))
+	{
+		this.rotationShape = this.createSizer('pointer', mxEvent.ROTATION_HANDLE,
+			mxConstants.HANDLE_SIZE + 3, mxConstants.HANDLE_FILLCOLOR);
+		this.sizers.push(this.rotationShape);
 	}
 
 	this.redraw();
@@ -68138,7 +64692,7 @@ mxVertexHandler.prototype.init = function()
  */
 mxVertexHandler.prototype.getSelectionBounds = function(state)
 {
-	return new mxRectangle(state.x, state.y, state.width, state.height);
+	return new mxRectangle(Math.round(state.x), Math.round(state.y), Math.round(state.width), Math.round(state.height));
 };
 
 /**
@@ -68151,7 +64705,6 @@ mxVertexHandler.prototype.createSelectionShape = function(bounds)
 	var shape = new mxRectangleShape(bounds, null, this.getSelectionColor());
 	shape.strokewidth = this.getSelectionStrokeWidth();
 	shape.isDashed = this.isSelectionDashed();
-	shape.crisp = this.crisp;
 	
 	return shape;
 };
@@ -68199,7 +64752,7 @@ mxVertexHandler.prototype.createSizer = function(cursor, index, size, fillColor)
 	var bounds = new mxRectangle(0, 0, size, size);
 	var sizer = this.createSizerShape(bounds, index, fillColor);
 
-	if (this.state.text != null && this.state.text.node.parentNode == this.graph.container)
+	if (sizer.isHtmlAllowed() && this.state.text != null && this.state.text.node.parentNode == this.graph.container)
 	{
 		sizer.bounds.height -= 1;
 		sizer.bounds.width -= 1;
@@ -68209,7 +64762,7 @@ mxVertexHandler.prototype.createSizer = function(cursor, index, size, fillColor)
 	else
 	{
 		sizer.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
-				mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
+				mxConstants.DIALECT_MIXEDHTML : mxConstants.DIALECT_SVG;
 		sizer.init(this.graph.getView().getOverlayPane());
 	}
 	
@@ -68254,14 +64807,13 @@ mxVertexHandler.prototype.createSizerShape = function(bounds, index, fillColor)
 		
 		return new mxImageShape(bounds, this.handleImage.src);
 	}
+	else if (index == mxEvent.ROTATION_HANDLE)
+	{
+		return new mxEllipse(bounds, fillColor || mxConstants.HANDLE_FILLCOLOR, mxConstants.HANDLE_STROKECOLOR);
+	}
 	else
 	{
-		var shape = new mxRectangleShape(bounds,
-				fillColor || mxConstants.HANDLE_FILLCOLOR,
-				mxConstants.HANDLE_STROKECOLOR);
-		shape.crisp = this.crisp;
-		
-		return shape;
+		return new mxRectangleShape(bounds, fillColor || mxConstants.HANDLE_FILLCOLOR, mxConstants.HANDLE_STROKECOLOR);
 	}
 };
 
@@ -68275,8 +64827,8 @@ mxVertexHandler.prototype.moveSizerTo = function(shape, x, y)
 {
 	if (shape != null)
 	{
-		shape.bounds.x = x - shape.bounds.width / 2;
-		shape.bounds.y = y - shape.bounds.height / 2;
+		shape.bounds.x = Math.round(x - shape.bounds.width / 2);
+		shape.bounds.y = Math.round(y - shape.bounds.height / 2);
 		shape.redraw();
 	}
 };
@@ -68289,7 +64841,11 @@ mxVertexHandler.prototype.moveSizerTo = function(shape, x, y)
  */
 mxVertexHandler.prototype.getHandleForEvent = function(me)
 {
-	if (me.isSource(this.labelShape))
+	if (me.isSource(this.rotationShape))
+	{
+		return mxEvent.ROTATION_HANDLE;
+	}
+	else if (me.isSource(this.labelShape))
 	{
 		return mxEvent.LABEL_HANDLE;
 	}
@@ -68304,7 +64860,6 @@ mxVertexHandler.prototype.getHandleForEvent = function(me)
 		for (var i = 0; i < this.sizers.length; i++)
 		{
 			if (me.isSource(this.sizers[i]) || (hit != null &&
-				this.sizers[i].node.style.visibility != 'hidden' &&
 				mxUtils.intersects(this.sizers[i].bounds, hit)))
 			{
 				return i;
@@ -68350,10 +64905,11 @@ mxVertexHandler.prototype.start = function(x, y, index)
 	this.index = index;
 	
 	// Creates a preview that can be on top of any HTML label
-	this.selectionBorder.node.style.visibility = 'hidden';
+	this.selectionBorder.node.style.display = (index == mxEvent.ROTATION_HANDLE) ? 'inline' : 'none';
 	this.preview = this.createSelectionShape(this.bounds);
 	
-	if (this.state.text != null && this.state.text.node.parentNode == this.graph.container)
+	if (!(mxClient.IS_SVG && Number(this.state.style[mxConstants.STYLE_ROTATION] || '0') != 0) &&
+		this.state.text != null && this.state.text.node.parentNode == this.graph.container)
 	{
 		this.preview.dialect = mxConstants.DIALECT_STRICTHTML;
 		this.preview.init(this.graph.container);
@@ -68361,7 +64917,7 @@ mxVertexHandler.prototype.start = function(x, y, index)
 	else
 	{
 		this.preview.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
-			mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
+				mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
 		this.preview.init(this.graph.view.getOverlayPane());
 	}
 };
@@ -68390,12 +64946,72 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 			this.moveSizerTo(this.sizers[this.sizers.length - 1], point.x, point.y);
 			me.consume();
 		}
-		else if (this.index != null)
+		else if (this.index == mxEvent.ROTATION_HANDLE)
 		{
+			var dx = this.state.x + this.state.width / 2 - point.x;
+			var dy = this.state.y + this.state.height / 2 - point.y;
+			
+			this.currentAlpha = (dx != 0) ? Math.atan(dy / dx) * 180 / Math.PI + 90 : ((dy < 0) ? 180 : 0);
+			
+			if (dx > 0)
+			{
+				this.currentAlpha -= 180;
+			}
+
+			// Rotation raster
+			if (this.rotationRaster)
+			{
+				var dx = point.x - this.state.getCenterX();
+				var dy = point.y - this.state.getCenterY();
+				var dist = Math.abs(Math.sqrt(dx * dx + dy * dy) - this.state.height / 2 - 20);
+				var raster = Math.max(1, 5 * Math.min(3, Math.max(0, Math.round(80 / Math.abs(dist)))));
+				
+				this.currentAlpha = Math.round(this.currentAlpha / raster) * raster;
+			}
+
+			this.selectionBorder.rotation = this.currentAlpha;
+			this.selectionBorder.redraw();
+
+			me.consume();
+		}
+		else
+		{
+			var alpha = mxUtils.toRadians(this.state.style[mxConstants.STYLE_ROTATION] || '0');
+			var cos = Math.cos(-alpha);
+			var sin = Math.sin(-alpha);
+			
+			var ct = new mxPoint(this.state.getCenterX(), this.state.getCenterY());
+			
 			var dx = point.x - this.startX;
 			var dy = point.y - this.startY;
 			var tr = this.graph.view.translate;
+			
+			// Rotates vector for mouse gesture
+			var tx = cos * dx - sin * dy;
+			var ty = sin * dx + cos * dy;
+			
+			dx = tx;
+			dy = ty;
+			
 			this.bounds = this.union(this.selectionBounds, dx, dy, this.index, gridEnabled, scale, tr);
+	
+			cos = Math.cos(alpha);
+			sin = Math.sin(alpha);
+			
+			var c2 = new mxPoint(this.bounds.getCenterX(), this.bounds.getCenterY());
+
+			var dx = c2.x - ct.x;
+			var dy = c2.y - ct.y;
+			
+			var dx2 = cos * dx - sin * dy;
+			var dy2 = sin * dx + cos * dy;
+			
+			var dx3 = dx2 - dx;
+			var dy3 = dy2 - dy;
+			
+			this.bounds.x += dx3;
+			this.bounds.y += dy3;
+			
 			this.drawPreview();
 			me.consume();
 		}
@@ -68417,15 +65033,112 @@ mxVertexHandler.prototype.mouseUp = function(sender, me)
 	if (!me.isConsumed() && this.index != null && this.state != null)
 	{
 		var point = new mxPoint(me.getGraphX(), me.getGraphY());
-		var scale = this.graph.getView().scale;
 
-		var gridEnabled = this.graph.isGridEnabledEvent(me.getEvent());
-		var dx = (point.x - this.startX) / scale;
-		var dy = (point.y - this.startY) / scale;
+		this.graph.getModel().beginUpdate();
+		
+		try
+		{
+			if (this.index == mxEvent.ROTATION_HANDLE)
+			{
+				if (this.currentAlpha != null)
+				{
+					var delta = this.currentAlpha - (this.state.style[mxConstants.STYLE_ROTATION] || 0);
+					
+					if (delta != 0)
+					{
+						this.rotateCell(this.state.cell, delta);
+					}
+				}
+			}
+			else
+			{
+				var gridEnabled = this.graph.isGridEnabledEvent(me.getEvent());
+				var alpha = mxUtils.toRadians(this.state.style[mxConstants.STYLE_ROTATION] || '0');
+				var cos = Math.cos(-alpha);
+				var sin = Math.sin(-alpha);
+				
+				var dx = point.x - this.startX;
+				var dy = point.y - this.startY;
+				
+				// Rotates vector for mouse gesture
+				var tx = cos * dx - sin * dy;
+				var ty = sin * dx + cos * dy;
+				
+				dx = tx;
+				dy = ty;
+				
+				var s = this.graph.view.scale;
+				this.resizeCell(this.state.cell, dx / s, dy / s, this.index, gridEnabled);
+			}
+		}
+		finally
+		{
+			this.graph.getModel().endUpdate();
+		}
 
-		this.resizeCell(this.state.cell, dx, dy, this.index, gridEnabled);
 		this.reset();
 		me.consume();
+	}
+};
+
+/**
+ * Function: rotateCell
+ * 
+ * Rotates the given cell to the given rotation.
+ */
+mxVertexHandler.prototype.rotateCell = function(cell, delta)
+{
+	var model = this.graph.getModel();
+
+	// TODO: Rotate points in edges
+	if (model.isVertex(cell))
+	{
+		var state = (cell == this.state) ? this.state : this.graph.view.getState(cell);
+		
+		if (state != null)
+		{
+			var theta = (state.style[mxConstants.STYLE_ROTATION] || 0) + delta;
+			this.graph.setCellStyles(mxConstants.STYLE_ROTATION, theta, [cell]);
+		}
+
+		if (this.state.cell != cell)
+		{
+			var geo = this.graph.getCellGeometry(cell);
+	
+			if (geo != null && !geo.relative)
+			{
+				if (delta != 0)
+				{
+					// Rotates and moves child cell
+					var parent = this.graph.getModel().getParent(cell);
+					var pgeo = this.graph.getCellGeometry(parent);
+					
+					if (!geo.relative && pgeo != null)
+					{
+						var rad = mxUtils.toRadians(delta);
+						var cos = Math.cos(rad);
+						var sin = Math.sin(rad);
+						
+						var ct = new mxPoint(geo.getCenterX(), geo.getCenterY());
+						var cx = new mxPoint(pgeo.width / 2, pgeo.height / 2);
+						var pt = mxUtils.getRotatedPoint(ct, cos, sin, cx);
+						
+						geo = geo.clone();
+						geo.x = pt.x - geo.width / 2;
+						geo.y = pt.y - geo.height / 2;
+						model.setGeometry(cell, geo);
+					}
+				}
+			}
+		}
+		
+		// Recursive handling of rotation
+		var childCount = model.getChildCount(cell);
+		
+		for (var i = 0; i < childCount; i++)
+		{
+			this.rotateCell(model.getChildAt(cell, i), delta);
+		}
 	}
 };
 
@@ -68436,6 +65149,7 @@ mxVertexHandler.prototype.mouseUp = function(sender, me)
  */
 mxVertexHandler.prototype.reset = function()
 {
+	this.currentAlpha = null;
 	this.index = null;
 	
 	if (this.preview != null)
@@ -68447,8 +65161,8 @@ mxVertexHandler.prototype.reset = function()
 	// Checks if handler has been destroyed
 	if (this.selectionBorder != null)
 	{
+		this.selectionBorder.node.style.display = 'inline';
 		this.selectionBounds = this.getSelectionBounds(this.state);
-		this.selectionBorder.node.style.visibility = 'visible';
 		this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y,
 			this.selectionBounds.width, this.selectionBounds.height);
 		this.drawPreview();
@@ -68465,33 +65179,100 @@ mxVertexHandler.prototype.resizeCell = function(cell, dx, dy, index, gridEnabled
 {
 	var geo = this.graph.model.getGeometry(cell);
 	
-	if (index == mxEvent.LABEL_HANDLE)
+	if (geo != null)
 	{
-		var scale = this.graph.view.scale;
-		dx = (this.labelShape.bounds.getCenterX() - this.startX) / scale;
-		dy = (this.labelShape.bounds.getCenterY() - this.startY) / scale;
-		
-		geo = geo.clone();
-		
-		if (geo.offset == null)
+		if (index == mxEvent.LABEL_HANDLE)
 		{
-			geo.offset = new mxPoint(dx, dy);
+			var scale = this.graph.view.scale;
+			dx = (this.labelShape.bounds.getCenterX() - this.startX) / scale;
+			dy = (this.labelShape.bounds.getCenterY() - this.startY) / scale;
+			
+			geo = geo.clone();
+			
+			if (geo.offset == null)
+			{
+				geo.offset = new mxPoint(dx, dy);
+			}
+			else
+			{
+				geo.offset.x += dx;
+				geo.offset.y += dy;
+			}
+			
+			this.graph.model.setGeometry(cell, geo);
 		}
 		else
 		{
-			geo.offset.x += dx;
-			geo.offset.y += dy;
+			var bounds = this.union(geo, dx, dy, index, gridEnabled, 1, new mxPoint(0, 0));
+			var alpha = mxUtils.toRadians(this.state.style[mxConstants.STYLE_ROTATION] || '0');
+			
+			if (alpha != 0)
+			{
+				var dx = bounds.getCenterX() - geo.getCenterX();
+				var dy = bounds.getCenterY() - geo.getCenterY();
+	
+				var cos = Math.cos(alpha);
+				var sin = Math.sin(alpha);
+	
+				var dx2 = cos * dx - sin * dy;
+				var dy2 = sin * dx + cos * dy;
+				
+				var dx3 = dx2 - dx;
+				var dy3 = dy2 - dy;
+				
+				var dx4 = bounds.x - geo.x;
+				var dy4 = bounds.y - geo.y;
+				
+				var dx5 = cos * dx4 - sin * dy4;
+				var dy5 = sin * dx4 + cos * dy4;
+				
+				bounds.x += dx3;
+				bounds.y += dy3;
+	
+				// Shifts the children according to parent offset
+				if (!this.graph.isCellCollapsed(cell) && (dx3 != 0 || dy3 != 0))
+				{
+					var dx4 = geo.x - bounds.x + dx5;
+					var dy4 = geo.y - bounds.y + dy5;
+					
+					this.moveChildren(cell, dx4, dy4);
+				}
+			}
+			
+			this.graph.resizeCell(cell, bounds);
 		}
-		
-		this.graph.model.setGeometry(cell, geo);
-	}
-	else
-	{
-		var bounds = this.union(geo, dx, dy, index, gridEnabled, 1, new mxPoint(0, 0));
-		this.graph.resizeCell(cell, bounds);	
 	}
 };
 
+/**
+ * Function: moveChildren
+ * 
+ * Moves the children of the given cell by the given vector.
+ */
+mxVertexHandler.prototype.moveChildren = function(cell, dx, dy)
+{
+	var model = this.graph.getModel();
+	var childCount = model.getChildCount(cell);
+	
+	for (var i = 0; i < childCount; i++)
+	{
+		var child = model.getChildAt(cell, i);
+		
+		// TODO: Move edge points
+		if (model.isVertex(child))
+		{
+			var geo = this.graph.getCellGeometry(child);
+	
+			if (geo != null && !geo.relative)
+			{
+				geo = geo.clone();
+				geo.x += dx;
+				geo.y += dy;
+				model.setGeometry(child, geo);
+			}
+		}
+	}
+};
 /**
  * Function: union
  * 
@@ -68612,12 +65393,11 @@ mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, s
 mxVertexHandler.prototype.redraw = function()
 {
 	this.selectionBounds = this.getSelectionBounds(this.state);
-	this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y,
-		this.selectionBounds.width, this.selectionBounds.height);
-
+	this.bounds = new mxRectangle(this.state.x, this.state.y, this.state.width, this.state.height);
+	var s = this.state;
+	
 	if (this.sizers != null)
 	{
-		var s = this.state;
 		var r = s.x + s.width;
 		var b = s.y + s.height;
 		
@@ -68632,14 +65412,56 @@ mxVertexHandler.prototype.redraw = function()
 			
 			if (this.sizers.length > 1)
 			{
-				this.moveSizerTo(this.sizers[0], s.x, s.y);
-				this.moveSizerTo(this.sizers[1], cx, s.y);
-				this.moveSizerTo(this.sizers[2], r, s.y);
-				this.moveSizerTo(this.sizers[3], s.x, cy);
-				this.moveSizerTo(this.sizers[4], r, cy);
-				this.moveSizerTo(this.sizers[5], s.x, b);
-				this.moveSizerTo(this.sizers[6], cx, b);
-				this.moveSizerTo(this.sizers[7], r, b);
+				var alpha = mxUtils.toRadians(s.style[mxConstants.STYLE_ROTATION] || '0');
+				var cos = Math.cos(alpha);
+				var sin = Math.sin(alpha);
+				
+				var ct = new mxPoint(s.getCenterX(), s.getCenterY());
+				var pt = mxUtils.getRotatedPoint(new mxPoint(s.x, s.y), cos, sin, ct);
+				
+				this.moveSizerTo(this.sizers[0], pt.x, pt.y);
+				
+				pt.x = cx;
+				pt.y = s.y;
+				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
+				
+				this.moveSizerTo(this.sizers[1], pt.x, pt.y);
+				
+				pt.x = r;
+				pt.y = s.y;
+				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
+				
+				this.moveSizerTo(this.sizers[2], pt.x, pt.y);
+				
+				pt.x = s.x;
+				pt.y = cy;
+				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
+				
+				this.moveSizerTo(this.sizers[3], pt.x, pt.y);
+
+				pt.x = r;
+				pt.y = cy;
+				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
+				
+				this.moveSizerTo(this.sizers[4], pt.x, pt.y);
+
+				pt.x = s.x;
+				pt.y = b;
+				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
+				
+				this.moveSizerTo(this.sizers[5], pt.x, pt.y);
+
+				pt.x = cx;
+				pt.y = b;
+				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
+				
+				this.moveSizerTo(this.sizers[6], pt.x, pt.y);
+
+				pt.x = r;
+				pt.y = b;
+				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
+				
+				this.moveSizerTo(this.sizers[7], pt.x, pt.y);
 				this.moveSizerTo(this.sizers[8],
 					cx + s.absoluteOffset.x,
 					cy + s.absoluteOffset.y);
@@ -68656,7 +65478,20 @@ mxVertexHandler.prototype.redraw = function()
 			}
 		}
 	}
-
+	
+	if (this.rotationShape != null)
+	{
+		var alpha = mxUtils.toRadians(this.state.style[mxConstants.STYLE_ROTATION] || '0');
+		var cos = Math.cos(alpha);
+		var sin = Math.sin(alpha);
+		
+		var ct = new mxPoint(this.state.getCenterX(), this.state.getCenterY());
+		var pt = mxUtils.getRotatedPoint(new mxPoint(s.x + s.width / 2, s.y - 16), cos, sin, ct);
+		
+		this.moveSizerTo(this.rotationShape, pt.x, pt.y);
+	}
+	
+	this.selectionBorder.rotation = Number(this.state.style[mxConstants.STYLE_ROTATION] || '0');
 	this.drawPreview();
 };
 
@@ -68676,7 +65511,8 @@ mxVertexHandler.prototype.drawPreview = function()
 			this.preview.bounds.width = Math.max(0, this.preview.bounds.width - 1);
 			this.preview.bounds.height = Math.max(0, this.preview.bounds.height - 1);
 		}
-		
+	
+		this.preview.rotation = Number(this.state.style[mxConstants.STYLE_ROTATION] || '0');
 		this.preview.redraw();
 	}
 	
@@ -68711,7 +65547,7 @@ mxVertexHandler.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxEdgeHandler.js,v 1.178 2012/09/12 09:16:23 gaudenz Exp $
+ * $Id: mxEdgeHandler.js,v 1.10 2013/02/14 07:48:01 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -68854,14 +65690,6 @@ mxEdgeHandler.prototype.allowHandleBoundsCheck = true;
 mxEdgeHandler.prototype.snapToTerminals = false;
 
 /**
- * Variable: crisp
- * 
- * Specifies if the edge handles should be rendered in crisp mode. Default is
- * true.
- */
-mxEdgeHandler.prototype.crisp = true;
-
-/**
  * Variable: handleImage
  * 
  * Optional <mxImage> to be used as handles. Default is null.
@@ -68895,22 +65723,18 @@ mxEdgeHandler.prototype.init = function()
 	this.abspoints = this.getSelectionPoints(this.state);
 	this.shape = this.createSelectionShape(this.abspoints);
 	this.shape.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
-		mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
+		mxConstants.DIALECT_MIXEDHTML : mxConstants.DIALECT_SVG;
 	this.shape.init(this.graph.getView().getOverlayPane());
+	this.shape.svgStrokeTolerance = 0;
 	this.shape.node.style.cursor = mxConstants.CURSOR_MOVABLE_EDGE;
 	
-	// Event handling
-	var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-	var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
-	var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
-	
-	mxEvent.addListener(this.shape.node, 'dblclick',
-		mxUtils.bind(this, function(evt)
+	mxEvent.addListener(this.shape.node, 'dblclick', mxUtils.bind(this, function(evt)
 		{
 			this.graph.dblClick(evt, this.state.cell);
 		})
 	);
-	mxEvent.addListener(this.shape.node, md,
+	
+	mxEvent.addGestureListeners(this.shape.node,
 		mxUtils.bind(this, function(evt)
 		{
 			if (this.addEnabled && this.isAddPointEvent(evt))
@@ -68922,9 +65746,7 @@ mxEdgeHandler.prototype.init = function()
 				this.graph.fireMouseEvent(mxEvent.MOUSE_DOWN,
 					new mxMouseEvent(evt, this.state));
 			}
-		})
-	);
-	mxEvent.addListener(this.shape.node, mm,
+		}),
 		mxUtils.bind(this, function(evt)
 		{
 			var cell = this.state.cell;
@@ -68947,15 +65769,12 @@ mxEdgeHandler.prototype.init = function()
 			
 			this.graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
 				new mxMouseEvent(evt, this.graph.getView().getState(cell)));
-		})
-	);
-	mxEvent.addListener(this.shape.node, mu,
+		}),
 		mxUtils.bind(this, function(evt)
 		{
 			this.graph.fireMouseEvent(mxEvent.MOUSE_UP,
 				new mxMouseEvent(evt, this.state));
-		})
-	);
+		}));
 
 	// Updates preferHtml
 	this.preferHtml = this.state.text != null &&
@@ -68998,6 +65817,7 @@ mxEdgeHandler.prototype.init = function()
 	this.labelShape = new mxRectangleShape(new mxRectangle(),
 			mxConstants.LABEL_HANDLE_FILLCOLOR,
 			mxConstants.HANDLE_STROKECOLOR);
+	this.labelShape.pointerEvents = false;
 	this.initBend(this.labelShape);
 	this.labelShape.node.style.cursor = mxConstants.CURSOR_LABEL_HANDLE;
 	mxEvent.redirectMouseEvents(this.labelShape.node, this.graph, this.state);
@@ -69280,8 +66100,6 @@ mxEdgeHandler.prototype.createHandleShape = function(index)
  */
 mxEdgeHandler.prototype.initBend = function(bend)
 {
-	bend.crisp = this.crisp;
-	
 	if (this.preferHtml)
 	{
 		bend.dialect = mxConstants.DIALECT_STRICTHTML;
@@ -69290,7 +66108,7 @@ mxEdgeHandler.prototype.initBend = function(bend)
 	else
 	{
 		bend.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
-			mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
+			mxConstants.DIALECT_MIXEDHTML : mxConstants.DIALECT_SVG;
 		bend.init(this.graph.getView().getOverlayPane());
 	}
 };
@@ -69312,16 +66130,17 @@ mxEdgeHandler.prototype.getHandleForEvent = function(me)
 
 		for (var i = 0; i < this.bends.length; i++)
 		{
-			if (me.isSource(this.bends[i]) || (hit != null &&
-				this.bends[i].node.style.visibility != 'hidden' &&
-				mxUtils.intersects(this.bends[i].bounds, hit)))
+			if ((me.isSource(this.bends[i]) || (hit != null &&
+				mxUtils.intersects(this.bends[i].bounds, hit))) &&
+				this.bends[i].node.style.visibility != 'hidden')
 			{
 				return i;
 			}
 		}
 	}
 
-	if (me.isSource(this.labelShape) || me.isSource(this.state.text))
+	if ((me.isSource(this.labelShape) && this.labelShape.node.style.visibility != 'hidden') ||
+		me.isSource(this.state.text))
 	{
 		// Workaround for SELECT element not working in Webkit
 		if ((!mxClient.IS_SF && !mxClient.IS_GC) || me.getSource().nodeName != 'SELECT')
@@ -69791,18 +66610,12 @@ mxEdgeHandler.prototype.reset = function()
  */
 mxEdgeHandler.prototype.setPreviewColor = function(color)
 {
-	if (this.shape != null && this.shape.node != null)
+	if (this.shape != null)
 	{
-		if (this.shape.dialect == mxConstants.DIALECT_SVG)
-		{
-			this.shape.innerNode.setAttribute('stroke', color);
-		}
-		else
-		{
-			this.shape.node.strokecolor = color;
-		}
+		this.shape.stroke = color;
 	}
 };
+
 
 /**
  * Function: convertPoint
@@ -69984,16 +66797,30 @@ mxEdgeHandler.prototype.changePoints = function(edge, points)
  */
 mxEdgeHandler.prototype.addPoint = function(state, evt)
 {
+	var pt = mxUtils.convertPoint(this.graph.container, mxEvent.getClientX(evt),
+			mxEvent.getClientY(evt));
+	var gridEnabled = this.graph.isGridEnabledEvent(evt);
+	this.convertPoint(pt, gridEnabled);
+	this.addPointAt(state, pt.x, pt.y);
+	mxEvent.consume(evt);
+};
+
+/**
+ * Function: addPointAt
+ * 
+ * Adds a control point at the given point.
+ */
+mxEdgeHandler.prototype.addPointAt = function(state, x, y)
+{
 	var geo = this.graph.getCellGeometry(state.cell);
+	var pt = new mxPoint(x, y);
 	
 	if (geo != null)
 	{
 		geo = geo.clone();
-		var pt = mxUtils.convertPoint(this.graph.container, mxEvent.getClientX(evt),
-				mxEvent.getClientY(evt));
-		var index = mxUtils.findNearestSegment(state, pt.x, pt.y);
-		var gridEnabled = this.graph.isGridEnabledEvent(evt);
-		this.convertPoint(pt, gridEnabled);
+		var t = this.graph.view.translate;
+		var s = this.graph.view.scale;
+		var index = mxUtils.findNearestSegment(state, (pt.x + t.x) * s, (pt.y + t.y) * s);
 
 		if (geo.points == null)
 		{
@@ -70007,7 +66834,6 @@ mxEdgeHandler.prototype.addPoint = function(state, evt)
 		this.graph.getModel().setGeometry(state.cell, geo);
 		this.destroy();
 		this.init();
-		mxEvent.consume(evt);
 	}
 };
 
@@ -70022,8 +66848,7 @@ mxEdgeHandler.prototype.removePoint = function(state, index)
 	{
 		var geo = this.graph.getCellGeometry(this.state.cell);
 		
-		if (geo != null &&
-			geo.points != null)
+		if (geo != null && geo.points != null)
 		{
 			geo = geo.clone();
 			geo.points.splice(index - 1, 1);
@@ -70073,8 +66898,8 @@ mxEdgeHandler.prototype.redraw = function()
 	var s = mxConstants.LABEL_HANDLE_SIZE;
 	
 	this.label = new mxPoint(this.state.absoluteOffset.x, this.state.absoluteOffset.y);
-	this.labelShape.bounds = new mxRectangle(this.label.x - s / 2,
-		this.label.y - s / 2, s, s);
+	this.labelShape.bounds = new mxRectangle(Math.round(this.label.x - s / 2),
+		Math.round(this.label.y - s / 2), s, s);
 	this.labelShape.redraw();
 	
 	// Shows or hides the label handle depending on the label
@@ -70098,9 +66923,9 @@ mxEdgeHandler.prototype.redraw = function()
 		var y0 = this.abspoints[0].y;
 		
 		var b = this.bends[0].bounds;
-		this.bends[0].bounds = new mxRectangle(x0 - b.width / 2, y0 - b.height / 2, b.width, b.height);
+		this.bends[0].bounds = new mxRectangle(Math.round(x0 - b.width / 2),
+				Math.round(y0 - b.height / 2), b.width, b.height);
 		this.bends[0].fill = this.getHandleFillColor(0);
-		this.bends[0].reconfigure();
 		this.bends[0].redraw();
 		
 		var pe = this.abspoints[n];
@@ -70109,9 +66934,9 @@ mxEdgeHandler.prototype.redraw = function()
 		
 		var bn = this.bends.length - 1;
 		b = this.bends[bn].bounds;
-		this.bends[bn].bounds = new mxRectangle(xn - b.width / 2, yn - b.height / 2, b.width, b.height);
+		this.bends[bn].bounds = new mxRectangle(Math.round(xn - b.width / 2),
+				Math.round(yn - b.height / 2), b.width, b.height);
 		this.bends[bn].fill = this.getHandleFillColor(bn);
-		this.bends[bn].reconfigure();
 		this.bends[bn].redraw();
 
 		this.redrawInnerBends(p0, pe);
@@ -70153,7 +66978,8 @@ mxEdgeHandler.prototype.redrawInnerBends = function(p0, pe)
 					
 					var b = this.bends[i].bounds;
 					this.bends[i].node.style.visibility = 'visible';
-					this.bends[i].bounds = new mxRectangle(x - b.width / 2, y - b.height / 2, b.width, b.height);
+					this.bends[i].bounds = new mxRectangle(Math.round(x - b.width / 2),
+							Math.round(y - b.height / 2), b.width, b.height);
 					this.bends[i].redraw();
 					
 					this.points[i - 1] = pts[i - 1];
@@ -70179,7 +67005,8 @@ mxEdgeHandler.prototype.drawPreview = function()
 	{
 		var s = mxConstants.LABEL_HANDLE_SIZE;
 	
-		var bounds = new mxRectangle(this.label.x - s / 2, this.label.y - s / 2, s, s);
+		var bounds = new mxRectangle(Math.round(this.label.x - s / 2),
+				Math.round(this.label.y - s / 2), s, s);
 		this.labelShape.bounds = bounds;
 		this.labelShape.redraw();
 	}
@@ -70188,9 +67015,6 @@ mxEdgeHandler.prototype.drawPreview = function()
 		this.shape.points = this.abspoints;
 		this.shape.redraw();
 	}
-	
-	// Workaround to force a repaint in AppleWebKit
-	mxUtils.repaintGraph(this.graph, this.shape.points[this.shape.points.length - 1]);
 };
 
 /**
@@ -70240,7 +67064,7 @@ mxEdgeHandler.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxElbowEdgeHandler.js,v 1.43 2012/01/06 13:06:01 gaudenz Exp $
+ * $Id: mxElbowEdgeHandler.js,v 1.4 2013/02/14 07:44:38 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -70261,12 +67085,13 @@ mxEdgeHandler.prototype.destroy = function()
  */
 function mxElbowEdgeHandler(state)
 {
-	if (state != null)
-	{
-		this.state = state;
-		this.init();
-	}
+	mxEdgeHandler.call(this, state);
 };
+
+/**
+ * Extends mxEdgeHandler.
+ */
+mxUtils.extend(mxElbowEdgeHandler, mxEdgeHandler);
 
 /**
  * Extends mxEdgeHandler.
@@ -70360,10 +67185,10 @@ mxElbowEdgeHandler.prototype.createVirtualBend = function()
 	
 	mxEvent.redirectMouseEvents(bend.node, this.graph, this.state,
 		null, null, null, dblClick);
-	
+
 	if (!this.graph.isCellBendable(this.state.cell))
 	{
-		bend.node.style.visibility = 'hidden';
+		bend.node.style.display = 'none';
 	}
 
 	return bend;
@@ -70473,32 +67298,32 @@ mxElbowEdgeHandler.prototype.redrawInnerBends = function(p0, pe)
 		h = mxConstants.HANDLE_SIZE;
 	}
 	
-	var bounds = new mxRectangle(pt.x - w / 2, pt.y - h / 2, w, h);
+	var bounds = new mxRectangle(Math.round(pt.x - w / 2), Math.round(pt.y - h / 2), w, h);
 
 	if (this.handleImage == null && this.labelShape.node.style.visibility != 'hidden' &&
 		mxUtils.intersects(bounds, this.labelShape.bounds))
 	{
 		w += 3;
 		h += 3;
-		bounds = new mxRectangle(pt.x - w / 2, pt.y - h / 2, w, h);
+		bounds = new mxRectangle(Math.round(pt.x - w / 2), Math.round(pt.y - h / 2), w, h);
 	}
 	
-	this.bends[1].bounds = bounds; 
-	this.bends[1].reconfigure();
+	this.bends[1].bounds = bounds;
 	this.bends[1].redraw();
 };
 /**
- * $Id: mxEdgeSegmentHandler.js,v 1.15 2013/01/08 15:26:51 gaudenz Exp $
+ * $Id: mxEdgeSegmentHandler.js,v 1.4 2013/01/08 15:28:24 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 function mxEdgeSegmentHandler(state)
 {
-	if (state != null)
-	{
-		this.state = state;
-		this.init();
-	}
+	mxEdgeHandler.call(this, state);
 };
+
+/**
+ * Extends mxEdgeHandler.
+ */
+mxUtils.extend(mxEdgeSegmentHandler, mxEdgeHandler);
 
 /**
  * Extends mxEdgeHandler.
@@ -70713,8 +67538,8 @@ mxEdgeSegmentHandler.prototype.redrawInnerBends = function(p0, pe)
 		 			var p0 = pts[i];
 	 				var pe = pts[i + 1];
 			 		var pt = new mxPoint(p0.x + (pe.x - p0.x) / 2, p0.y + (pe.y - p0.y) / 2);
-			 		this.bends[i+1].bounds = new mxRectangle(pt.x - s / 2, pt.y - s / 2, s, s);
-				 	this.bends[i+1].reconfigure();
+			 		this.bends[i+1].bounds = new mxRectangle(Math.round(pt.x - s / 2),
+			 				Math.round(pt.y - s / 2), s, s);
 				 	this.bends[i+1].redraw();
 				}
 			}
@@ -70759,7 +67584,7 @@ mxEdgeSegmentHandler.prototype.changePoints = function(edge, points)
 	mxElbowEdgeHandler.prototype.changePoints.apply(this, arguments);
 };
 /**
- * $Id: mxKeyHandler.js,v 1.48 2012/03/30 08:30:41 gaudenz Exp $
+ * $Id: mxKeyHandler.js,v 1.1 2012/11/15 13:26:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -71161,7 +67986,7 @@ mxKeyHandler.prototype.destroy = function()
 	this.target = null;
 };
 /**
- * $Id: mxTooltipHandler.js,v 1.52 2013/03/27 16:39:04 gaudenz Exp $
+ * $Id: mxTooltipHandler.js,v 1.2 2013/03/27 16:39:19 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -71478,7 +68303,7 @@ mxTooltipHandler.prototype.destroy = function()
 	this.div = null;
 };
 /**
- * $Id: mxCellTracker.js,v 1.9 2011/08/28 09:49:46 gaudenz Exp $
+ * $Id: mxCellTracker.js,v 1.2 2013/01/08 15:30:24 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -71575,8 +68400,7 @@ function mxCellTracker(graph, color, funct)
 /**
  * Extends mxCellMarker.
  */
-mxCellTracker.prototype = new mxCellMarker();
-mxCellTracker.prototype.constructor = mxCellTracker;
+mxUtils.extend(mxCellTracker, mxCellMarker);
 
 /**
  * Function: mouseDown
@@ -71627,7 +68451,7 @@ mxCellTracker.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxCellHighlight.js,v 1.25 2012/09/27 14:43:40 boris Exp $
+ * $Id: mxCellHighlight.js,v 1.4 2013/03/14 20:47:18 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -71644,13 +68468,14 @@ mxCellTracker.prototype.destroy = function()
  * 
  * Constructs a cell highlight.
  */
-function mxCellHighlight(graph, highlightColor, strokeWidth)
+function mxCellHighlight(graph, highlightColor, strokeWidth, dashed)
 {
 	if (graph != null)
 	{
 		this.graph = graph;
 		this.highlightColor = (highlightColor != null) ? highlightColor : mxConstants.DEFAULT_VALID_COLOR;
 		this.strokeWidth = (strokeWidth != null) ? strokeWidth : mxConstants.HIGHLIGHT_STROKEWIDTH;
+		this.dashed = (dashed != null) ? dashed : false;
 
 		// Updates the marker if the graph changes
 		this.repaintHandler = mxUtils.bind(this, function()
@@ -71727,14 +68552,7 @@ mxCellHighlight.prototype.setHighlightColor = function(color)
 	
 	if (this.shape != null)
 	{
-		if (this.shape.dialect == mxConstants.DIALECT_SVG)
-		{
-			this.shape.innerNode.setAttribute('stroke', color);
-		}
-		else if (this.shape.dialect == mxConstants.DIALECT_VML)
-		{
-			this.shape.node.strokecolor = color;
-		}
+		this.shape.stroke = color;
 	}
 };
 
@@ -71751,12 +68569,6 @@ mxCellHighlight.prototype.drawHighlight = function()
 	if (!this.keepOnTop && this.shape.node.parentNode.firstChild != this.shape.node)
 	{
 		this.shape.node.parentNode.insertBefore(this.shape.node, this.shape.node.parentNode.firstChild);
-	}
-
-	// Workaround to force a repaint in AppleWebKit
-	if (this.graph.model.isEdge(this.state.cell))
-	{
-		mxUtils.repaintGraph(this.graph, this.shape.points[0]);
 	}
 };
 
@@ -71784,6 +68596,9 @@ mxCellHighlight.prototype.createShape = function()
 			mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
 	shape.init(this.graph.getView().getOverlayPane());
 	mxEvent.redirectMouseEvents(shape.node, this.graph, this.state);
+	shape.svgStrokeTolerance = 0;
+	shape.pointerEvents = false;
+	shape.isDashed = this.dashed;
 	
 	return shape;
 };
@@ -71798,6 +68613,8 @@ mxCellHighlight.prototype.repaint = function()
 {
 	if (this.state != null && this.shape != null)
 	{
+		var alpha = 0;
+		
 		if (this.graph.model.isEdge(this.state.cell))
 		{
 			this.shape.points = this.state.absolutePoints;
@@ -71806,6 +68623,7 @@ mxCellHighlight.prototype.repaint = function()
 		{
 			this.shape.bounds = new mxRectangle(this.state.x - this.spacing, this.state.y - this.spacing,
 					this.state.width + 2 * this.spacing, this.state.height + 2 * this.spacing);
+			alpha = Number(this.state.style[mxConstants.STYLE_ROTATION] || '0');
 		}
 
 		// Uses cursor from shape in highlight
@@ -71814,32 +68632,11 @@ mxCellHighlight.prototype.repaint = function()
 			this.shape.setCursor(this.state.shape.getCursor());
 		}
 	
-		var alpha = (!this.graph.model.isEdge(this.state.cell)) ? Number(this.state.style[mxConstants.STYLE_ROTATION] || '0') : 0;
-		
-		// Event-transparency
-		if (this.shape.dialect == mxConstants.DIALECT_SVG)
+		if (alpha != 0)
 		{
-			this.shape.node.setAttribute('style', 'pointer-events:none;');
-	
-			if (alpha != 0)
-			{
-				var cx = this.state.getCenterX();
-				var cy = this.state.getCenterY();
-				var transform = 'rotate(' + alpha + ' ' + cx + ' ' + cy + ')';
-				
-				this.shape.node.setAttribute('transform', transform);
-			}
+			this.shape.rotation = alpha;
 		}
-		else
-		{
-			this.shape.node.style.background = '';
-			
-			if (alpha != 0)
-			{
-				this.shape.node.rotation = alpha;
-			}
-		}
-		
+
 		this.shape.redraw();
 	}
 };
@@ -71898,7 +68695,7 @@ mxCellHighlight.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxDefaultKeyHandler.js,v 1.26 2010/01/02 09:45:15 gaudenz Exp $
+ * $Id: mxDefaultKeyHandler.js,v 1.1 2012/11/15 13:26:49 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -72024,7 +68821,7 @@ mxDefaultKeyHandler.prototype.destroy = function ()
 	this.handler = null;
 };
 /**
- * $Id: mxDefaultPopupMenu.js,v 1.29 2012/07/03 06:30:25 gaudenz Exp $
+ * $Id: mxDefaultPopupMenu.js,v 1.1 2012/11/15 13:26:49 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -72324,7 +69121,7 @@ mxDefaultPopupMenu.prototype.createConditions = function(editor, cell, evt)
 	return conditions;
 };
 /**
- * $Id: mxDefaultToolbar.js,v 1.67 2012/04/11 07:00:52 gaudenz Exp $
+ * $Id: mxDefaultToolbar.js,v 1.1 2012/11/15 13:26:49 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -72891,7 +69688,7 @@ mxDefaultToolbar.prototype.destroy = function ()
 	}
 };
 /**
- * $Id: mxEditor.js,v 1.231 2012/12/03 18:02:25 gaudenz Exp $
+ * $Id: mxEditor.js,v 1.2 2012/12/03 18:02:39 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -76111,7 +72908,7 @@ mxEditor.prototype.destroy = function ()
 	}
 };
 /**
- * $Id: mxCodecRegistry.js,v 1.12 2010/04/30 13:18:21 gaudenz Exp $
+ * $Id: mxCodecRegistry.js,v 1.1 2012/11/15 13:26:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxCodecRegistry =
@@ -76248,7 +73045,7 @@ var mxCodecRegistry =
 
 };
 /**
- * $Id: mxCodec.js,v 1.48 2012/01/04 10:01:16 gaudenz Exp $
+ * $Id: mxCodec.js,v 1.1 2012/11/15 13:26:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -76779,7 +73576,7 @@ mxCodec.prototype.setAttribute = function(node, attribute, value)
 	}
 };
 /**
- * $Id: mxObjectCodec.js,v 1.49 2010/12/01 09:19:58 gaudenz Exp $
+ * $Id: mxObjectCodec.js,v 1.1 2012/11/15 13:26:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -77762,7 +74559,7 @@ mxObjectCodec.prototype.afterDecode = function(dec, node, obj)
 	return obj;
 };
 /**
- * $Id: mxCellCodec.js,v 1.22 2010/10/21 07:12:31 gaudenz Exp $
+ * $Id: mxCellCodec.js,v 1.1 2012/11/15 13:26:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -77932,7 +74729,7 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * $Id: mxModelCodec.js,v 1.11 2010/11/23 08:46:41 gaudenz Exp $
+ * $Id: mxModelCodec.js,v 1.1 2012/11/15 13:26:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -78012,7 +74809,7 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * $Id: mxRootChangeCodec.js,v 1.6 2010/09/15 14:38:51 gaudenz Exp $
+ * $Id: mxRootChangeCodec.js,v 1.1 2012/11/15 13:26:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -78095,7 +74892,7 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * $Id: mxChildChangeCodec.js,v 1.12 2010/09/15 14:38:52 gaudenz Exp $
+ * $Id: mxChildChangeCodec.js,v 1.1 2012/11/15 13:26:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -78244,7 +75041,7 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * $Id: mxTerminalChangeCodec.js,v 1.7 2010/09/13 15:58:36 gaudenz Exp $
+ * $Id: mxTerminalChangeCodec.js,v 1.1 2012/11/15 13:26:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -78286,7 +75083,7 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * $Id: mxGenericChangeCodec.js,v 1.11 2010/09/13 15:50:36 gaudenz Exp $
+ * $Id: mxGenericChangeCodec.js,v 1.1 2012/11/15 13:26:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -78350,7 +75147,7 @@ mxCodecRegistry.register(mxGenericChangeCodec(new mxCollapseChange(), 'collapsed
 mxCodecRegistry.register(mxGenericChangeCodec(new mxVisibleChange(), 'visible'));
 mxCodecRegistry.register(mxGenericChangeCodec(new mxCellAttributeChange(), 'value'));
 /**
- * $Id: mxGraphCodec.js,v 1.8 2010/06/10 06:54:18 gaudenz Exp $
+ * $Id: mxGraphCodec.js,v 1.1 2012/11/15 13:26:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -78378,7 +75175,7 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * $Id: mxGraphViewCodec.js,v 1.18 2010/12/03 11:05:52 gaudenz Exp $
+ * $Id: mxGraphViewCodec.js,v 1.1 2012/11/15 13:26:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -78575,7 +75372,7 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * $Id: mxStylesheetCodec.js,v 1.19 2011/06/13 08:18:42 gaudenz Exp $
+ * $Id: mxStylesheetCodec.js,v 1.1 2012/11/15 13:26:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -78785,7 +75582,7 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * $Id: mxDefaultKeyHandlerCodec.js,v 1.5 2010/01/02 09:45:15 gaudenz Exp $
+ * $Id: mxDefaultKeyHandlerCodec.js,v 1.1 2012/11/15 13:26:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -78873,7 +75670,7 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * $Id: mxDefaultToolbarCodec.js,v 1.22 2012/04/11 07:00:52 gaudenz Exp $
+ * $Id: mxDefaultToolbarCodec.js,v 1.1 2012/11/15 13:26:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -79174,7 +75971,7 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * $Id: mxDefaultPopupMenuCodec.js,v 1.6 2010/01/02 09:45:15 gaudenz Exp $
+ * $Id: mxDefaultPopupMenuCodec.js,v 1.1 2012/11/15 13:26:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -79228,7 +76025,7 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * $Id: mxEditorCodec.js,v 1.11 2010/01/04 11:18:26 gaudenz Exp $
+ * $Id: mxEditorCodec.js,v 1.2 2012/12/04 11:26:07 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -79377,10 +76174,9 @@ mxCodecRegistry.register(function()
 				{
 					element = document.getElementById(elt);
 					
-					if (element != null &&
-						style != null)
+					if (element != null && style != null)
 					{
-						element.style.cssText += ';'+style;
+						element.style.cssText += ';' + style;
 					}
 				}
 				else

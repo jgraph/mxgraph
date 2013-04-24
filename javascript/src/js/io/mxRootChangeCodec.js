@@ -1,5 +1,5 @@
 /**
- * $Id: mxRootChangeCodec.js,v 1.6 2010/09/15 14:38:51 gaudenz Exp $
+ * $Id: mxRootChangeCodec.js,v 1.1 2012/11/15 13:26:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()

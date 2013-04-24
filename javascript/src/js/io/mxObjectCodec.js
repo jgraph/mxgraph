@@ -1,5 +1,5 @@
 /**
- * $Id: mxObjectCodec.js,v 1.49 2010/12/01 09:19:58 gaudenz Exp $
+ * $Id: mxObjectCodec.js,v 1.1 2012/11/15 13:26:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

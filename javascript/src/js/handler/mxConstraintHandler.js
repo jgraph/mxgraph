@@ -1,5 +1,5 @@
 /**
- * $Id: mxConstraintHandler.js,v 1.15 2012/11/01 16:13:41 gaudenz Exp $
+ * $Id: mxConstraintHandler.js,v 1.2 2012/11/20 09:10:02 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -194,9 +194,9 @@ mxConstraintHandler.prototype.update = function(me, source)
 						var bounds = new mxRectangle(cp.x - img.width / 2,
 							cp.y - img.height / 2, img.width, img.height);
 						var icon = new mxImageShape(bounds, src);
-						icon.dialect = (this.graph.dialect == mxConstants.DIALECT_SVG) ?
-							mxConstants.DIALECT_SVG :
-							mxConstants.DIALECT_VML;
+						icon.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
+								mxConstants.DIALECT_MIXEDHTML : mxConstants.DIALECT_SVG;
+						icon.preserveImageAspect = false;
 						icon.init(this.graph.getView().getOverlayPane());
 						
 						// Move the icon behind all other overlays
@@ -265,8 +265,7 @@ mxConstraintHandler.prototype.update = function(me, source)
 					{
 						var hl = new mxRectangleShape(tmp, null, this.highlightColor, 3);
 						hl.dialect = (this.graph.dialect == mxConstants.DIALECT_SVG) ?
-									mxConstants.DIALECT_SVG :
-									mxConstants.DIALECT_VML;
+								mxConstants.DIALECT_SVG : mxConstants.DIALECT_VML;
 						hl.init(this.graph.getView().getOverlayPane());
 						this.focusHighlight = hl;
 						

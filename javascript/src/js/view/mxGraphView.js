@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphView.js,v 1.198 2013/02/12 10:19:41 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.13 2013/02/12 10:20:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -107,6 +107,15 @@ mxGraphView.prototype.allowEval = false;
  * graph container. Default is true.
  */
 mxGraphView.prototype.captureDocumentGesture = true;
+
+/**
+ * Variable: optimizeVmlReflows
+ * 
+ * Specifies if the <canvas> should be hidden while rendering in IE8 standards
+ * mode and quirks mode. This will significantly improve rendering performance.
+ * Default is true.
+ */
+mxGraphView.prototype.optimizeVmlReflows = true;
 
 /**
  * Variable: rendering
@@ -500,10 +509,30 @@ mxGraphView.prototype.validate = function(cell)
 	var t0 = mxLog.enter('mxGraphView.validate');
 	window.status = mxResources.get(this.updatingDocumentResource) ||
 		this.updatingDocumentResource;
+
+	// Improves IE rendering speed by minimizing reflows
+	var prevDisplay = null;
+	
+	if (this.optimizeVmlReflows && this.canvas != null && this.textDiv == null &&
+		(document.documentMode == 8 || mxClient.IS_QUIRKS))
+	{
+		prevDisplay = this.canvas.style.display;
+		this.canvas.style.display = 'none';
+		
+		// Creates temporary DIV used for text measuring in mxText.updateBoundingBox
+		var div = document.createElement('div');
+		div.style.position = 'absolute';
+		div.style.whiteSpace = 'nowrap';
+		div.style.visibility = 'hidden';
+		div.style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
+		div.style.zoom = '1';
+		
+		document.body.appendChild(div);
+		this.textDiv = div;
+	}
 	
 	cell = cell || ((this.currentRoot != null) ?
-			this.currentRoot :
-				this.graph.getModel().getRoot());
+		this.currentRoot : this.graph.getModel().getRoot());
 	this.validateBounds(null, cell);
 	var graphBounds = this.validatePoints(null, cell);
 	
@@ -514,6 +543,13 @@ mxGraphView.prototype.validate = function(cell)
 
 	this.setGraphBounds(graphBounds);
 	this.validateBackground();
+	
+	if (prevDisplay != null)
+	{
+		this.canvas.style.display = prevDisplay;
+		document.body.removeChild(this.textDiv);
+		this.textDiv = null;
+	}
 	
 	window.status = mxResources.get(this.doneResource) ||
 		this.doneResource;
@@ -589,19 +625,13 @@ mxGraphView.prototype.validateBackground = function()
 				})
 			);
 			
-			var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-			var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
-			var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
-
 			// Adds basic listeners for graph event dispatching outside of the
 			// container and finishing the handling of a single gesture
-			mxEvent.addListener(this.backgroundPageShape.node, md,
+			mxEvent.addGestureListeners(this.backgroundPageShape.node,
 				mxUtils.bind(this, function(evt)
 				{
 					this.graph.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt));
-				})
-			);
-			mxEvent.addListener(this.backgroundPageShape.node, mm,
+				}),
 				mxUtils.bind(this, function(evt)
 				{
 					// Hides the tooltip if mouse is outside container
@@ -617,15 +647,12 @@ mxGraphView.prototype.validateBackground = function()
 						this.graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
 							new mxMouseEvent(evt));
 					}
-				})
-			);
-			mxEvent.addListener(this.backgroundPageShape.node, mu,
+				}),
 				mxUtils.bind(this, function(evt)
 				{
 					this.graph.fireMouseEvent(mxEvent.MOUSE_UP,
 							new mxMouseEvent(evt));
-				})
-			);
+				}));
 		}
 		else
 		{
@@ -735,10 +762,8 @@ mxGraphView.prototype.validateBounds = function(parentState, cell)
 
 					if (geo.relative)
 					{
-						state.origin.x += geo.x * parentState.width / 
-							this.scale + offset.x;
-						state.origin.y += geo.y * parentState.height /
-							this.scale + offset.y;
+						state.origin.x += geo.x * parentState.width / this.scale + offset.x;
+						state.origin.y += geo.y * parentState.height / this.scale + offset.y;
 					}
 					else
 					{
@@ -757,6 +782,25 @@ mxGraphView.prototype.validateBounds = function(parentState, cell)
 
 				if (model.isVertex(cell))
 				{
+					// Rotates relative child cells
+					if (geo.relative)
+					{
+						var alpha = mxUtils.toRadians(parentState.style[mxConstants.STYLE_ROTATION] || '0');
+						
+						if (alpha != 0)
+						{
+							var cos = Math.cos(alpha);
+							var sin = Math.sin(alpha);
+						
+							// Uses translate or parent origin as offset
+							var ct = new mxPoint(state.getCenterX(), state.getCenterY());
+							var cx = new mxPoint(parentState.getCenterX(), parentState.getCenterY());
+							var pt = mxUtils.getRotatedPoint(ct, cos, sin, cx);
+							state.x = pt.x - state.width / 2;
+							state.y = pt.y - state.height / 2;
+						}
+					}
+					
 					this.updateVertexLabelOffset(state);
 				}
 			}
@@ -1193,6 +1237,7 @@ mxGraphView.prototype.updateFloatingTerminalPoint = function(edge, start, end, s
 	start = this.getTerminalPort(edge, start, source);
 	var next = this.getNextPoint(edge, end, source);
 	
+	var orth = this.graph.isOrthogonal(edge);
 	var alpha = mxUtils.toRadians(Number(start.style[mxConstants.STYLE_ROTATION] || '0'));
 	var center = new mxPoint(start.getCenterX(), start.getCenterY());
 	
@@ -1207,7 +1252,7 @@ mxGraphView.prototype.updateFloatingTerminalPoint = function(edge, start, end, s
 	border += parseFloat(edge.style[(source) ?
 		mxConstants.STYLE_SOURCE_PERIMETER_SPACING :
 		mxConstants.STYLE_TARGET_PERIMETER_SPACING] || 0);
-	var pt = this.getPerimeterPoint(start, next, this.graph.isOrthogonal(edge), border);
+	var pt = this.getPerimeterPoint(start, next, alpha == 0 && orth, border);
 
 	if (alpha != 0)
 	{
@@ -2126,49 +2171,48 @@ mxGraphView.prototype.installListeners = function()
 	
 	if (container != null)
 	{
-		var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-		var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
-		var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
-		
 		// Adds basic listeners for graph event dispatching
-		mxEvent.addListener(container, md, mxUtils.bind(this, function(evt)
-		{
-			// Workaround for touch-based device not transferring
-			// the focus while editing with virtual keyboard
-			if (mxClient.IS_TOUCH && graph.isEditing())
+		mxEvent.addGestureListeners(container,
+			mxUtils.bind(this, function(evt)
 			{
-				graph.stopEditing(!graph.isInvokesStopCellEditing());
-			}
-			
-			// Condition to avoid scrollbar events starting a rubberband
-			// selection
-			if (this.isContainerEvent(evt) && ((!mxClient.IS_IE && 
-				!mxClient.IS_GC && !mxClient.IS_OP && !mxClient.IS_SF) ||
-				!this.isScrollEvent(evt)))
+				// Workaround for touch-based device not transferring
+				// the focus while editing with virtual keyboard
+				if (mxClient.IS_TOUCH && graph.isEditing())
+				{
+					graph.stopEditing(!graph.isInvokesStopCellEditing());
+				}
+				
+				// Condition to avoid scrollbar events starting a rubberband
+				// selection
+				if (this.isContainerEvent(evt) && ((!mxClient.IS_IE && 
+					!mxClient.IS_GC && !mxClient.IS_OP && !mxClient.IS_SF) ||
+					!this.isScrollEvent(evt)))
+				{
+					graph.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt));
+				}
+			}),
+			mxUtils.bind(this, function(evt)
 			{
-				graph.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt));
-			}
-		}));
-		mxEvent.addListener(container, mm, mxUtils.bind(this, function(evt)
-		{
-			if (this.isContainerEvent(evt))
+				if (this.isContainerEvent(evt))
+				{
+					graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt));
+				}
+			}),
+			mxUtils.bind(this, function(evt)
 			{
-				graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt));
-			}
-		}));
-		mxEvent.addListener(container, mu, mxUtils.bind(this, function(evt)
-		{
-			if (this.isContainerEvent(evt))
-			{
-				graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt));
-			}
-		}));
+				if (this.isContainerEvent(evt))
+				{
+					graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt));
+				}
+			}));
 		
 		// Adds listener for double click handling on background
-		mxEvent.addListener(container, 'dblclick', mxUtils.bind(this, function(evt)
-		{
-			graph.dblClick(evt);
-		}));
+		mxEvent.addListener(container, 'dblclick',
+			mxUtils.bind(this, function(evt)
+			{
+				graph.dblClick(evt);
+			})
+		);
 
 		// Workaround for touch events which started on some DOM node
 		// on top of the container, in which case the cells under the
@@ -2209,20 +2253,20 @@ mxGraphView.prototype.installListeners = function()
 		});
 		
 		this.moveHandler = mxUtils.bind(this, function(evt)
-		{
+				{
 			// Hides the tooltip if mouse is outside container
-			if (graph.tooltipHandler != null && graph.tooltipHandler.isHideOnHover())
+			if (graph.tooltipHandler != null &&
+				graph.tooltipHandler.isHideOnHover())
 			{
 				graph.tooltipHandler.hide();
 			}
 			
-			if (this.captureDocumentGesture && graph.isMouseDown && !mxEvent.isConsumed(evt))
+			if (this.captureDocumentGesture && graph.isMouseDown &&
+				!mxEvent.isConsumed(evt))
 			{
 				graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt, getState(evt)));
 			}
 		});
-		
-		mxEvent.addListener(document, mm, this.moveHandler);
 		
 		this.endHandler = mxUtils.bind(this, function(evt)
 		{
@@ -2232,7 +2276,7 @@ mxGraphView.prototype.installListeners = function()
 			}
 		});
 		
-		mxEvent.addListener(document, mu, this.endHandler);
+		mxEvent.addGestureListeners(document, null, this.moveHandler, this.endHandler);
 	}
 };
 
@@ -2371,7 +2415,7 @@ mxGraphView.prototype.createVml = function()
  */
 mxGraphView.prototype.createVmlPane = function(width, height)
 {
-	var pane = document.createElement('v:group');
+	var pane = document.createElement(mxClient.VML_PREFIX + ':group');
 	
 	// At this point the width and height are potentially
 	// uninitialized. That's OK.
@@ -2450,24 +2494,12 @@ mxGraphView.prototype.destroy = function()
 	if (root != null && root.parentNode != null)
 	{
 		this.clear(this.currentRoot, true);
-
-		if (this.moveHandler != null)
-		{
-			var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
-			mxEvent.removeListener(document, mm, this.moveHandler);
-			this.moveHandler = null;
-		}
-
-		if (this.endHandler != null)
-		{
-			var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
-			mxEvent.removeListener(document, mu, this.endHandler);
-			this.endHandler = null;
-		}
-		
+		mxEvent.removeGestureListeners(document, null, this.moveHandler, this.endHandler);
 		mxEvent.release(this.graph.container);
 		root.parentNode.removeChild(root);
 		
+		this.moveHandler = null;
+		this.endHandler = null;
 		this.canvas = null;
 		this.backgroundPane = null;
 		this.drawPane = null;

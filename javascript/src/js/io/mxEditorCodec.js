@@ -1,5 +1,5 @@
 /**
- * $Id: mxEditorCodec.js,v 1.11 2010/01/04 11:18:26 gaudenz Exp $
+ * $Id: mxEditorCodec.js,v 1.2 2012/12/04 11:26:07 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -148,10 +148,9 @@ mxCodecRegistry.register(function()
 				{
 					element = document.getElementById(elt);
 					
-					if (element != null &&
-						style != null)
+					if (element != null && style != null)
 					{
-						element.style.cssText += ';'+style;
+						element.style.cssText += ';' + style;
 					}
 				}
 				else

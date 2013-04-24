@@ -1,5 +1,5 @@
 /**
- * $Id: Dialogs.js,v 1.51 2012/12/11 09:42:03 gaudenz Exp $
+ * $Id: Dialogs.js,v 1.6 2013/04/02 11:57:32 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -1038,9 +1038,10 @@ function ExportDialog(editorUi)
 	    	}
 	        else if (format == 'svg')
 	    	{
-				var border = Math.max(0, parseInt(borderInput.value)) + 1;
+				var b = Math.max(0, parseInt(borderInput.value)) + 1;
 				var scale = parseInt(widthInput.value) / width;
 			    var bounds = graph.getGraphBounds();
+				var vs = graph.view.scale;
 	
 			    // Prepares SVG document that holds the output
 			    var svgDoc = mxUtils.createXmlDocument();
@@ -1063,15 +1064,23 @@ function ExportDialog(editorUi)
 			    {
 			    	root.setAttribute('xmlns', mxConstants.NS_SVG);
 			    }
-			    root.setAttribute('width', (Math.ceil(bounds.width * scale) + 2 * border) + 'px');
-			    root.setAttribute('height', (Math.ceil(bounds.height * scale) + 2 * border) + 'px');
+			    
+			    root.setAttribute('width', Math.ceil(bounds.width * scale / vs + 2 * b) + 'px');
+			    root.setAttribute('height', Math.ceil(bounds.height * scale / vs + 2 * b) + 'px');
+		    	root.setAttribute('xmlns:xlink', mxConstants.NS_XLINK);
 			    root.setAttribute('version', '1.1');
+
+			    // Adds group for anti-aliasing via transform
+			    var group = (svgDoc.createElementNS != null) ?
+				    	svgDoc.createElementNS(mxConstants.NS_SVG, 'g') : svgDoc.createElement('g');
+				group.setAttribute('transform', 'translate(0.5,0.5)');
+				root.appendChild(group);
 			    svgDoc.appendChild(root);
-	
-			    // Render graph
-			    var svgCanvas = new mxSvgCanvas2D(root);
-			    svgCanvas.scale(scale);
-			    svgCanvas.translate(Math.floor(-bounds.x) + border, Math.floor(-bounds.y) + border);
+
+			    // Renders graph. Offset will be multiplied with state's scale when painting state.
+			    var svgCanvas = new mxSvgCanvas2D(group);
+			    svgCanvas.translate(Math.floor((b / scale - bounds.x) / vs), Math.floor((b / scale - bounds.y) / vs));
+			    svgCanvas.scale(scale / vs);
 			    imgExport.drawState(graph.getView().getState(graph.model.root), svgCanvas);
 	
 				var xml = mxUtils.getXml(root);
@@ -1090,26 +1099,27 @@ function ExportDialog(editorUi)
 	    	}
 	        else
 	        {
-				var border = Math.max(0, parseInt(borderInput.value)) + 1;
+				var b = Math.max(0, parseInt(borderInput.value)) + 1;
 				var scale = parseInt(widthInput.value) / width;
 				var bounds = graph.getGraphBounds();
+				var vs = graph.view.scale;
 				
 	        	// New image export
 				var xmlDoc = mxUtils.createXmlDocument();
 				var root = xmlDoc.createElement('output');
 				xmlDoc.appendChild(root);
+
+			    // Renders graph. Offset will be multiplied with state's scale when painting state.
 				var xmlCanvas = new mxXmlCanvas2D(root);
-				
-				// Render graph
-				xmlCanvas.scale(scale);
-				xmlCanvas.translate(Math.floor(-bounds.x * scale) + border, Math.floor(-bounds.y * scale) + border);
-				imgExport.drawState(graph.getView().getState(graph.model.root), xmlCanvas);
-	
+				xmlCanvas.translate(Math.floor((b / scale - bounds.x) / vs), Math.floor((b / scale - bounds.y) / vs));
+				xmlCanvas.scale(scale / vs);
+			    imgExport.drawState(graph.getView().getState(graph.model.root), xmlCanvas);
+
 				// Puts request data together
-				var w = Math.ceil(bounds.width * scale) + 2 * border;
-				var h = Math.ceil(bounds.height * scale) + 2 * border;
+				var w = Math.ceil(bounds.width * scale / vs + 2 * b);
+				var h = Math.ceil(bounds.height * scale / vs + 2 * b);
 				var xml = mxUtils.getXml(root);
-				
+
 				// Requests image if request is valid
 				if (xml.length <= MAX_REQUEST_SIZE && width < MAX_WIDTH && width > 0 &&
 					height < MAX_HEIGHT && height > 0)

@@ -1,5 +1,5 @@
 /**
- * $Id: mxCodecRegistry.js,v 1.12 2010/04/30 13:18:21 gaudenz Exp $
+ * $Id: mxCodecRegistry.js,v 1.1 2012/11/15 13:26:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxCodecRegistry =

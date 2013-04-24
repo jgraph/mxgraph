@@ -1,3 +1,25 @@
+- Removes mxCellRenderer.shapes, makes registerShape static, adds getShape [JavaScript]
+- Adds mxText.baseSpacingTop/-Bottom/-Left/-Right for legacy support [JavaScript]
+- Fixes order of edits in mxGraph.groupCells [JavaScript]
+- Changes arguments of mxPrintPreview.renderPage, takes callback [JavaScript]
+- Adds mxPrintPreview.getAppendices, getCoverPages hooks [JavaScript]
+- Adds mxCellEditor.autoSize, fixes lineHeight and fontStyle [JavaScript]
+- Adds mxPanningHandler.triggerX, triggerY for initial event coordinates [JavaScript]
+- Adds mxGraph-/mxVertexHandler.prototype.rotationEnabled, rotationRaster [JavaScript]
+- Changes default for mxResources.resourcesEncoded to false [JavaScript]
+- Adds mxResourceExtension global variable, sets default to .txt [JavaScript]
+- Adds align-shape, rotation attributes in text element for stencils [JavaScript]
+- Adds mxConstants.STYLE_SWIMLANE_FILLCOLOR, STYLE_SWIMLANE_LINE, LINE_HEIGHT [JavaScript]
+- Adds mxClient.VML_PREFIX, OFFICE_PREFIX, CSS_PREFIX [JavaScript]
+- Adds dashed option to mxCellHighlight [JavaScript]
+--
+- Adds optional textWidth argument in mxUtils.getSizeForString [JavaScript]
+- Stops text editing if cell deleted while editor active in mxCellEditor [JavaScript]
+- Removes icons argument in mxConnectionHandler.destroyIcons [JavaScript]
+- Handles drill down while connecting in mxConnectionHandler [JavaScript]
+- Adds support for SVG as data URI in mxImageBundle [JavaScript]
+- Adds fixed attribute for strokewidth element in stencils [JavaScript]
+
 10-APR-2013: 1.12.0.2
 
 - Handles deleted source while connecting in mxConnectionHandler [JavaScript]

@@ -1,5 +1,5 @@
 /**
- * $Id: mxEdgeHandler.java,v 1.34 2012/04/25 06:29:20 gaudenz Exp $
+ * $Id: mxEdgeHandler.java,v 1.1 2012/11/15 13:26:44 gaudenz Exp $
  * Copyright (c) 2008-2012, JGraph Ltd
  */
 package com.mxgraph.swing.handler;

@@ -1,5 +1,5 @@
 /**
- * $Id: mxDragSource.js,v 1.14 2012/12/05 21:43:16 gaudenz Exp $
+ * $Id: mxDragSource.js,v 1.5 2012/12/05 21:43:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -8,8 +8,8 @@
  * Wrapper to create a drag source from a DOM element so that the element can
  * be dragged over a graph and dropped into the graph as a new cell.
  * 
- * TODO: Problem is that in the dropHandler the current preview location is
- * not available, so the preview and the dropHandler must match.
+ * Problem is that in the dropHandler the current preview location is not
+ * available, so the preview and the dropHandler must match.
  * 
  * Constructor: mxDragSource
  * 
@@ -21,8 +21,7 @@ function mxDragSource(element, dropHandler)
 	this.dropHandler = dropHandler;
 	
 	// Handles a drag gesture on the element
-	var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-	mxEvent.addListener(element, md, mxUtils.bind(this, this.mouseDown));
+	mxEvent.addGestureListeners(element, mxUtils.bind(this, this.mouseDown));
 };
 
 /**
@@ -261,14 +260,9 @@ mxDragSource.prototype.mouseDown = function(evt)
 	if (this.enabled && !mxEvent.isConsumed(evt) && this.mouseMoveHandler == null)
 	{
 		this.startDrag(evt);
-		
-		var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
-		var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
-		
 		this.mouseMoveHandler = mxUtils.bind(this, this.mouseMove);
-		mxEvent.addListener(document, mm, this.mouseMoveHandler);
-		this.mouseUpHandler = mxUtils.bind(this, this.mouseUp);
-		mxEvent.addListener(document, mu, this.mouseUpHandler);
+		this.mouseUpHandler = mxUtils.bind(this, this.mouseUp);		
+		mxEvent.addGestureListeners(document, null, this.mouseMoveHandler, this.mouseUpHandler);
 		
 		// Prevents default action (native DnD for images in FF 10)
 		// but does not stop event propagation
@@ -420,22 +414,11 @@ mxDragSource.prototype.mouseUp = function(evt)
 
 	this.stopDrag(evt);
 	
+	mxEvent.removeGestureListeners(document, null, this.mouseMoveHandler, this.mouseUpHandler);
+	this.mouseMoveHandler = null;
+	this.mouseUpHandler = null;
 	this.currentGraph = null;
-
-	if (this.mouseMoveHandler != null)
-	{
-		var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
-		mxEvent.removeListener(document, mm, this.mouseMoveHandler);
-		this.mouseMoveHandler = null;
-	}
 	
-	if (this.mouseUpHandler != null)
-	{
-		var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
-		mxEvent.removeListener(document, mu, this.mouseUpHandler);
-		this.mouseUpHandler = null;
-	}
-		
 	mxEvent.consume(evt);
 };
 

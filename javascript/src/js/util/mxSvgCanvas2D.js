@@ -1,13 +1,16 @@
 /**
- * $Id: mxSvgCanvas2D.js,v 1.18 2012/11/23 15:13:19 gaudenz Exp $
+ * $Id: mxSvgCanvas2D.js,v 1.46 2013/04/23 14:22:50 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
- *
  * Class: mxSvgCanvas2D
- * 
- * Implements a canvas to be used with <mxImageExport>. This canvas writes all
+ *
+ * Extends <mxAbstractCanvas2D> to implement a canvas for SVG. This canvas writes all
  * calls as SVG output to the given SVG root node.
+ * 
+ * Open issues:
+ * - Opacity for transformed foreignObjects in Chrome.
+ * - Gradient IDs must be refactored for fragments.
  * 
  * (code)
  * var svgDoc = mxUtils.createXmlDocument();
@@ -22,6 +25,7 @@
  * var bounds = graph.getGraphBounds();
  * root.setAttribute('width', (bounds.x + bounds.width + 4) + 'px');
  * root.setAttribute('height', (bounds.y + bounds.height + 4) + 'px');
+ * root.setAttribute('xmlns:xlink', mxConstants.NS_XLINK);
  * root.setAttribute('version', '1.1');
  * 
  * svgDoc.appendChild(root);
@@ -29,9 +33,11 @@
  * var svgCanvas = new mxSvgCanvas2D(root);
  * (end)
  * 
- * Constructor: mxSvgCanvas2D
+ * A description of the public API is available in <mxXmlCanvas2D>.
  * 
- * Constructs an SVG canvas.
+ * Constructor: mxSvgCanvas2D
+ *
+ * Constructs a new SVG canvas.
  * 
  * Parameters:
  * 
@@ -40,1195 +46,1546 @@
  * added. The style section sets the default font-size, font-family and
  * stroke-miterlimit globally. Default is false.
  */
-var mxSvgCanvas2D = function(root, styleEnabled)
+function mxSvgCanvas2D(root, styleEnabled)
 {
-	styleEnabled = (styleEnabled != null) ? styleEnabled : false;
+	mxAbstractCanvas2D.call(this);
 
 	/**
-	 * Variable: converter
+	 * Variable: root
 	 * 
-	 * Holds the <mxUrlConverter> to convert image URLs.
+	 * Reference to the container for the SVG content.
 	 */
-	var converter = new mxUrlConverter();
-	
-	/**
-	 * Variable: autoAntiAlias
-	 * 
-	 * Specifies if anti aliasing should be disabled for rectangles
-	 * and orthogonal paths. Default is true.
-	 */
-	var autoAntiAlias = true;
-	
-	/**
-	 * Variable: textEnabled
-	 * 
-	 * Specifies if text output should be enabled. Default is true.
-	 */
-	var textEnabled = true;
-	
-	/**
-	 * Variable: foEnabled
-	 * 
-	 * Specifies if use of foreignObject for HTML markup is allowed. Default is true.
-	 */
-	var foEnabled = true;
+	this.root = root;
 
-	// Private helper function to create SVG elements
-	var create = function(tagName, namespace)
+	/**
+	 * Variable: gradients
+	 * 
+	 * Local cache of gradients for quick lookups.
+	 */
+	this.gradients = [];
+
+	/**
+	 * Variable: defs
+	 * 
+	 * Reference to the defs section of the SVG document. Only for export.
+	 */
+	this.defs = null;
+	
+	/**
+	 * Variable: styleEnabled
+	 * 
+	 * Stores the value of styleEnabled passed to the constructor.
+	 */
+	this.styleEnabled = (styleEnabled != null) ? styleEnabled : false;
+	
+	var svg = null;
+	
+	// Adds optional defs section for export
+	if (root.ownerDocument != document)
 	{
-		var doc = root.ownerDocument || document;
-		
-		if (doc.createElementNS != null)
-		{
-			return doc.createElementNS(namespace || mxConstants.NS_SVG, tagName);
-		}
-		else
-		{
-			var elt = doc.createElement(tagName);
-			
-			if (namespace != null)
-			{
-				elt.setAttribute('xmlns', namespace);
-			}
-			
-			return elt;
-		}
-	};
+		var node = root;
 
-	// Defs section contains optional style and gradients
-	var defs = create('defs');
-	
-	// Creates defs section with optional global style
-	if (styleEnabled)
-	{
-		var style = create('style');
-		style.setAttribute('type', 'text/css');
-		mxUtils.write(style, 'svg{font-family:' + mxConstants.DEFAULT_FONTFAMILY +
-				';font-size:' + mxConstants.DEFAULT_FONTSIZE +
-				';fill:none;stroke-miterlimit:10}');
-		
-		if (autoAntiAlias)
+		// Finds owner SVG element in XML DOM
+		while (node != null && node.nodeName != 'svg')
 		{
-			mxUtils.write(style, 'rect{shape-rendering:crispEdges}');
+			node = node.parentNode;
 		}
-	
-		// Appends style to defs and defs to SVG container
-		defs.appendChild(style);
+		
+		svg = node;
 	}
 
-	root.appendChild(defs);
-	
-	// Defines the current state
-	var currentState =
+	if (svg != null)
 	{
-			dx: 0,
-			dy: 0,
-			scale: 1,
-			transform: '',
-			fill: null,
-			gradient: null,
-			stroke: null,
-			strokeWidth: 1,
-			dashed: false,
-			dashpattern: '3 3',
-			alpha: 1,
-			linecap: 'flat',
-			linejoin: 'miter',
-			miterlimit: 10,
-			fontColor: '#000000',
-			fontSize: mxConstants.DEFAULT_FONTSIZE,
-			fontFamily: mxConstants.DEFAULT_FONTFAMILY,
-			fontStyle: 0
-	};
-	
-	// Local variables
-	var currentPathIsOrthogonal = true;
-	var glassGradient = null;
-	var currentNode = null;
-	var currentPath = null;
-	var lastPoint = null;
-	var gradients = [];
-	var refCount = 0;
-	var stack = [];
-
-	// Other private helper methods
-	var createGradientId = function(start, end, direction)
-	{
-		// Removes illegal characters from gradient ID
-		if (start.charAt(0) == '#')
+		// Tries to get existing defs section
+		var tmp = svg.getElementsByTagName('defs');
+		
+		if (tmp.length > 0)
 		{
-			start = start.substring(1);
+			this.defs = svg.getElementsByTagName('defs')[0];
 		}
 		
-		if (end.charAt(0) == '#')
+		// Adds defs section if none exists
+		if (this.defs == null)
 		{
-			end = end.substring(1);
+			this.defs = this.createElement('defs');
+			
+			if (svg.firstChild != null)
+			{
+				svg.insertBefore(this.defs, svg.firstChild);
+			}
+			else
+			{
+				svg.appendChild(this.defs);
+			}
+		}
+
+		// Adds stylesheet
+		if (this.styleEnabled)
+		{
+			this.defs.appendChild(this.createStyle());
+		}
+	}
+};
+
+/**
+ * Extends mxAbstractCanvas2D
+ */
+mxUtils.extend(mxSvgCanvas2D, mxAbstractCanvas2D);
+
+/**
+ * Variable: path
+ * 
+ * Holds the current DOM node.
+ */
+mxSvgCanvas2D.prototype.node = null;
+
+/**
+ * Variable: matchHtmlAlignment
+ * 
+ * Specifies if plain text output should match HTML alignment. Defaul is true.
+ */
+mxSvgCanvas2D.prototype.matchHtmlAlignment = true;
+
+/**
+ * Variable: textEnabled
+ * 
+ * Specifies if text output should be enabled. Default is true.
+ */
+mxSvgCanvas2D.prototype.textEnabled = true;
+
+/**
+ * Variable: foEnabled
+ * 
+ * Specifies if use of foreignObject for HTML markup is allowed. Default is true.
+ */
+mxSvgCanvas2D.prototype.foEnabled = true;
+
+/**
+ * Variable: foAltText
+ * 
+ * Specifies the fallback text for unsupported foreignObjects in exported
+ * documents. Default is '[Object]'. If this is set to null then no fallback
+ * text is added to the exported document.
+ */
+mxSvgCanvas2D.prototype.foAltText = '[Object]';
+
+/**
+ * Variable: strokeTolerance
+ * 
+ * Adds transparent paths for strokes.
+ */
+mxSvgCanvas2D.prototype.strokeTolerance = 0;
+
+/**
+ * Variable: refCount
+ * 
+ * Local counter for references in SVG export.
+ */
+mxSvgCanvas2D.prototype.refCount = 0;
+
+/**
+ * Variable: blockImagePointerEvents
+ * 
+ * Specifies if a transparent rectangle should be added on top of images to absorb
+ * all pointer events. Default is false. This is only needed in Firefox to disable
+ * control-clicks on images.
+ */
+mxSvgCanvas2D.prototype.blockImagePointerEvents = false;
+
+/**
+ * Function: reset
+ * 
+ * Returns any offsets for rendering pixels.
+ */
+mxSvgCanvas2D.prototype.reset = function()
+{
+	mxAbstractCanvas2D.prototype.reset.apply(this, arguments);
+	this.gradients = [];
+};
+
+/**
+ * Function: createStyle
+ * 
+ * Creates the optional style section.
+ */
+mxSvgCanvas2D.prototype.createStyle = function(x)
+{
+	var style = this.createElement('style');
+	style.setAttribute('type', 'text/css');
+	mxUtils.write(style, 'svg{font-family:' + mxConstants.DEFAULT_FONTFAMILY +
+			';font-size:' + mxConstants.DEFAULT_FONTSIZE +
+			';fill:none;stroke-miterlimit:10}');
+	
+	return style;
+};
+
+/**
+ * Function: createElement
+ * 
+ * Private helper function to create SVG elements
+ */
+mxSvgCanvas2D.prototype.createElement = function(tagName, namespace)
+{
+	if (this.root.ownerDocument.createElementNS != null)
+	{
+		return this.root.ownerDocument.createElementNS(namespace || mxConstants.NS_SVG, tagName);
+	}
+	else
+	{
+		var elt = this.root.ownerDocument.createElement(tagName);
+		
+		if (namespace != null)
+		{
+			elt.setAttribute('xmlns', namespace);
 		}
 		
-		// Workaround for gradient IDs not working in Safari 5 / Chrome 6
-		// if they contain uppercase characters
-		start = start.toLowerCase();
-		end = end.toLowerCase();
+		return elt;
+	}
+};
 
-		// Wrong gradient directions possible?
-		var dir = null;
+/**
+ * Function: getAlternateContent
+ * 
+ * Returns the alternate content for the given foreignObject.
+ */
+mxSvgCanvas2D.prototype.createAlternateContent = function(fo, x, y, w, h, str, align, valign, wrap, format, fill, clip, rotation)
+{
+	if (this.foAltText != null)
+	{
+		var s = this.state;
+		var alt = this.createElement('text');
+		alt.setAttribute('x', Math.round(w / 2));
+		alt.setAttribute('y', Math.round((h + s.fontSize) / 2));
+		alt.setAttribute('fill', s.fontColor || 'black');
+		alt.setAttribute('text-anchor', 'middle');
+		alt.setAttribute('font-size', Math.round(s.fontSize) + 'px');
+		alt.setAttribute('font-family', s.fontFamily);
 		
-		if (direction == null || direction == mxConstants.DIRECTION_SOUTH)
+		if ((s.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
+		{
+			alt.setAttribute('font-weight', 'bold');
+		}
+		
+		if ((s.fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
+		{
+			alt.setAttribute('font-style', 'italic');
+		}
+		
+		if ((s.fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
+		{
+			alt.setAttribute('text-decoration', 'underline');
+		}
+		
+		mxUtils.write(alt, this.foAltText);
+		
+		return alt;
+	}
+	else
+	{
+		return null;
+	}
+};
+
+/**
+ * Function: createGradientId
+ * 
+ * Private helper function to create SVG elements
+ */
+mxSvgCanvas2D.prototype.createGradientId = function(start, end, alpha1, alpha2, direction)
+{
+	// Removes illegal characters from gradient ID
+	if (start.charAt(0) == '#')
+	{
+		start = start.substring(1);
+	}
+	
+	if (end.charAt(0) == '#')
+	{
+		end = end.substring(1);
+	}
+	
+	// Workaround for gradient IDs not working in Safari 5 / Chrome 6
+	// if they contain uppercase characters
+	start = start.toLowerCase() + '-' + alpha1;
+	end = end.toLowerCase() + '-' + alpha2;
+
+	// Wrong gradient directions possible?
+	var dir = null;
+	
+	if (direction == null || direction == mxConstants.DIRECTION_SOUTH)
+	{
+		dir = 's';
+	}
+	else if (direction == mxConstants.DIRECTION_EAST)
+	{
+		dir = 'e';
+	}
+	else
+	{
+		var tmp = start;
+		start = end;
+		end = tmp;
+		
+		if (direction == mxConstants.DIRECTION_NORTH)
 		{
 			dir = 's';
 		}
-		else if (direction == mxConstants.DIRECTION_EAST)
+		else if (direction == mxConstants.DIRECTION_WEST)
 		{
 			dir = 'e';
 		}
+	}
+	
+	return 'mx-gradient-' + start + '-' + end + '-' + dir;
+};
+
+/**
+ * Function: getSvgGradient
+ * 
+ * Private helper function to create SVG elements
+ */
+mxSvgCanvas2D.prototype.getSvgGradient = function(start, end, alpha1, alpha2, direction)
+{
+	var id = this.createGradientId(start, end, alpha1, alpha2, direction);
+	var gradient = this.gradients[id];
+	
+	if (gradient == null)
+	{
+		var svg = this.root.ownerSVGElement;
+
+		var counter = 0;
+		var tmpId = id + '-' + counter;
+
+		if (svg != null)
+		{
+			gradient = svg.ownerDocument.getElementById(tmpId);
+			
+			while (gradient != null && gradient.ownerSVGElement != svg)
+			{
+				tmpId = id + '-' + counter++;
+				gradient = svg.ownerDocument.getElementById(tmpId);
+			}
+		}
 		else
 		{
-			var tmp = start;
-			start = end;
-			end = tmp;
-			
-			if (direction == mxConstants.DIRECTION_NORTH)
-			{
-				dir = 's';
-			}
-			else if (direction == mxConstants.DIRECTION_WEST)
-			{
-				dir = 'e';
-			}
+			// Uses shorter IDs for export
+			tmpId = 'id' + (++this.refCount);
 		}
-		
-		return start+'-'+end+'-'+dir;
-	};
-	
-	var createHtmlBody = function(str, align, valign)
-	{
-		var style = 'margin:0px;font-size:' + Math.floor(currentState.fontSize) + 'px;' +
-			'font-family:' + currentState.fontFamily + ';color:' + currentState.fontColor+ ';';
-		
-		if ((currentState.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
-		{
-			style += 'font-weight:bold;';
-		}
-
-		if ((currentState.fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
-		{
-			style += 'font-style:italic;';
-		}
-		
-		if ((currentState.fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
-		{
-			style += 'font-decoration:underline;';
-		}
-		
-		if (align == mxConstants.ALIGN_CENTER)
-		{
-			style += 'text-align:center;';
-		}
-		else if (align == mxConstants.ALIGN_RIGHT)
-		{
-			style += 'text-align:right;';
-		}
-
-		// Converts HTML entities to unicode
-		var t = document.createElement('div');
-		t.innerHTML = str;
-		str = t.innerHTML.replace(/&nbsp;/g, '&#160;');
-		
-		// LATER: Add vertical align support via table, adds xmlns to workaround empty NS in IE9 standards
-		var node = mxUtils.parseXml('<div xmlns="http://www.w3.org/1999/xhtml" style="' +
-				style + '">' + str + '</div>').documentElement; 
-
-		return node;
-	};
-
-	var getSvgGradient = function(start, end, direction)
-	{
-		var id = createGradientId(start, end, direction);
-		var gradient = gradients[id];
 		
 		if (gradient == null)
 		{
-			gradient = create('linearGradient');
-			gradient.setAttribute('id', ++refCount);
-			gradient.setAttribute('x1', '0%');
-			gradient.setAttribute('y1', '0%');
-			gradient.setAttribute('x2', '0%');
-			gradient.setAttribute('y2', '0%');
+			gradient = this.createSvgGradient(start, end, alpha1, alpha2, direction);
+			gradient.setAttribute('id', tmpId);
 			
-			if (direction == null || direction == mxConstants.DIRECTION_SOUTH)
+			if (this.defs != null)
 			{
-				gradient.setAttribute('y2', '100%');
+				this.defs.appendChild(gradient);
 			}
-			else if (direction == mxConstants.DIRECTION_EAST)
+			else
 			{
-				gradient.setAttribute('x2', '100%');
+				svg.appendChild(gradient);
 			}
-			else if (direction == mxConstants.DIRECTION_NORTH)
-			{
-				gradient.setAttribute('y1', '100%');
-			}
-			else if (direction == mxConstants.DIRECTION_WEST)
-			{
-				gradient.setAttribute('x1', '100%');
-			}
-			
-			var stop = create('stop');
-			stop.setAttribute('offset', '0%');
-			stop.setAttribute('style', 'stop-color:'+start);
-			gradient.appendChild(stop);
-			
-			stop = create('stop');
-			stop.setAttribute('offset', '100%');
-			stop.setAttribute('style', 'stop-color:'+end);
-			gradient.appendChild(stop);
-			
-			defs.appendChild(gradient);
-			gradients[id] = gradient;
 		}
 
-		return gradient.getAttribute('id');
-	};
+		this.gradients[id] = gradient;
+	}
+
+	return gradient.getAttribute('id');
+};
+
+/**
+ * Function: createSvgGradient
+ * 
+ * Creates the given SVG gradient.
+ */
+mxSvgCanvas2D.prototype.createSvgGradient = function(start, end, alpha1, alpha2, direction)
+{
+	var gradient = this.createElement('linearGradient');
+	gradient.setAttribute('x1', '0%');
+	gradient.setAttribute('y1', '0%');
+	gradient.setAttribute('x2', '0%');
+	gradient.setAttribute('y2', '0%');
 	
-	var appendNode = function(node, state, filled, stroked)
+	if (direction == null || direction == mxConstants.DIRECTION_SOUTH)
 	{
-		if (node != null)
+		gradient.setAttribute('y2', '100%');
+	}
+	else if (direction == mxConstants.DIRECTION_EAST)
+	{
+		gradient.setAttribute('x2', '100%');
+	}
+	else if (direction == mxConstants.DIRECTION_NORTH)
+	{
+		gradient.setAttribute('y1', '100%');
+	}
+	else if (direction == mxConstants.DIRECTION_WEST)
+	{
+		gradient.setAttribute('x1', '100%');
+	}
+	
+	var op = (alpha1 < 1) ? ';stop-opacity:' + alpha1 : '';
+	
+	var stop = this.createElement('stop');
+	stop.setAttribute('offset', '0%');
+	stop.setAttribute('style', 'stop-color:' + start + op);
+	gradient.appendChild(stop);
+	
+	op = (alpha2 < 1) ? ';stop-opacity:' + alpha2 : '';
+	
+	stop = this.createElement('stop');
+	stop.setAttribute('offset', '100%');
+	stop.setAttribute('style', 'stop-color:' + end + op);
+	gradient.appendChild(stop);
+	
+	return gradient;
+};
+
+/**
+ * Function: addNode
+ * 
+ * Private helper function to create SVG elements
+ */
+mxSvgCanvas2D.prototype.addNode = function(filled, stroked)
+{
+	var node = this.node;
+	var s = this.state;
+
+	if (node != null)
+	{
+		if (node.nodeName == 'path')
 		{
-			if (state.clip != null)
+			// Checks if the path is not empty
+			if (this.path != null && this.path.length > 0)
 			{
-				node.setAttribute('clip-path', 'url(#' + state.clip + ')');
-				state.clip = null;
+				node.setAttribute('d', this.path.join(' '));
 			}
-			
-			if (currentPath != null)
+			else
 			{
-				node.setAttribute('d', currentPath.join(' '));
-				currentPath = null;
-				
-				if (autoAntiAlias && currentPathIsOrthogonal)
-				{
-					node.setAttribute('shape-rendering', 'crispEdges');
-					state.strokeWidth = Math.max(1, state.strokeWidth);
-				}
+				return;
 			}
-			
-			if (state.alpha < 1)
+		}
+
+		if (filled && s.fillColor != null)
+		{
+			this.updateFill();
+		}
+		else if (!this.styleEnabled)
+		{
+			// Workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=814952
+			if (node.nodeName == 'ellipse' && mxClient.IS_NS && !mxClient.IS_GC && !mxClient.IS_SF)
 			{
-				// LATER: Check if using fill/stroke-opacity here is faster
-				node.setAttribute('opacity', state.alpha);
-				//node.setAttribute('fill-opacity', state.alpha);
-				//node.setAttribute('stroke-opacity', state.alpha);
+				node.setAttribute('fill', 'transparent');
 			}
-			
-			if (filled && (state.fill != null || state.gradient != null))
-			{
-				if (state.gradient != null)
-				{
-					node.setAttribute('fill', 'url(#' + state.gradient + ')');
-				}
-				else
-				{
-					node.setAttribute('fill', state.fill.toLowerCase());
-				}
-			}
-			else if (!styleEnabled)
+			else
 			{
 				node.setAttribute('fill', 'none');
 			}
 			
-			if (stroked && state.stroke != null)
-			{
-				node.setAttribute('stroke', state.stroke.toLowerCase());
-				
-				// Sets the stroke properties (1 is default is SVG)
-				if (state.strokeWidth != 1)
-				{
-					if (node.nodeName == 'rect' && autoAntiAlias)
-					{
-						state.strokeWidth = Math.max(1, state.strokeWidth);
-					}
-					
-					node.setAttribute('stroke-width', state.strokeWidth);
-				}
-				
-				if (node.nodeName == 'path')
-				{
-					// Linejoin miter is default in SVG
-					if (state.linejoin != null && state.linejoin != 'miter')
-					{
-						node.setAttribute('stroke-linejoin', state.linejoin);
-					}
-					
-					if (state.linecap != null)
-					{
-						// flat is called butt in SVG
-						var value = state.linecap;
-						
-						if (value == 'flat')
-						{
-							value = 'butt';
-						}
-						
-						// Linecap butt is default in SVG
-						if (value != 'butt')
-						{
-							node.setAttribute('stroke-linecap', value);
-						}
-					}
-					
-					// Miterlimit 10 is default in our document
-					if (state.miterlimit != null && (!styleEnabled || state.miterlimit != 10))
-					{
-						node.setAttribute('stroke-miterlimit', state.miterlimit);
-					}
-				}
-				
-				if (state.dashed)
-				{
-					var dash = state.dashpattern.split(' ');
-					
-					if (dash.length > 0)
-					{
-						var pat = [];
-						
-						for (var i = 0; i < dash.length; i++)
-						{
-							pat[i] = Number(dash[i]) * currentState.strokeWidth;
-						}
-					
-					
-						node.setAttribute('stroke-dasharray', pat.join(' '));
-					}
-				}
-			}
-			
-			if (state.transform.length > 0)
-			{
-				node.setAttribute('transform', state.transform);
-			}
-			
-			root.appendChild(node);
+			// Sets the actual filled state for stroke tolerance
+			filled = false;
 		}
-	};
+		
+		if (stroked && s.strokeColor != null)
+		{
+			this.updateStroke();
+		}
+		else if (!this.styleEnabled)
+		{
+			node.setAttribute('stroke', 'none');
+		}
+		
+		if (s.transform != null && s.transform.length > 0)
+		{
+			node.setAttribute('transform', s.transform);
+		}
+		
+		if (s.shadow)
+		{
+			this.root.appendChild(this.createShadow(node));
+		}
+		
+		// Adds stroke tolerance
+		if (this.strokeTolerance > 0 && !filled)
+		{
+			this.root.appendChild(this.createTolerance(node));
+		}
+
+		// Adds pointer events
+		if (this.pointerEvents && (node.nodeName != 'path' ||
+			this.path[this.path.length - 1] == this.closeOp))
+		{
+			node.setAttribute('pointer-events', 'all');
+		}
+		
+		// LATER: Update existing DOM for performance
+		this.root.appendChild(node);
+	}
+};
+
+/**
+ * Function: updateFill
+ * 
+ * Transfers the stroke attributes from <state> to <node>.
+ */
+mxSvgCanvas2D.prototype.updateFill = function()
+{
+	var s = this.state;
 	
-	// Private helper function to format a number
-	var f2 = function(x)
+	if (s.alpha < 1)
 	{
-		return Math.round(parseFloat(x) * 100) / 100;
-	};
+		this.node.setAttribute('fill-opacity', s.alpha);
+	}
 	
-	// Returns public interface
-	return {
+	if (s.fillColor != null)
+	{
+		if (s.gradientColor != null)
+		{
+			var id = this.getSvgGradient(s.fillColor, s.gradientColor, s.fillAlpha, s.gradientAlpha, s.gradientDirection);
+			this.node.setAttribute('fill', 'url(#' + id + ')');
+		}
+		else
+		{
+			this.node.setAttribute('fill', s.fillColor.toLowerCase());
+		}
+	}
+};
 
-		/**
-		 * Function: getConverter
-		 * 
-		 * Returns <converter>.
-		 */
-		getConverter: function()
-		{
-			return converter;
-		},
+/**
+ * Function: updateStroke
+ * 
+ * Transfers the stroke attributes from <state> to <node>.
+ */
+mxSvgCanvas2D.prototype.updateStroke = function()
+{
+	var s = this.state;
 
-		/**
-		 * Function: isAutoAntiAlias
-		 * 
-		 * Returns <autoAntiAlias>.
-		 */
-		isAutoAntiAlias: function()
-		{
-			return autoAntiAlias;
-		},
-
-		/**
-		 * Function: setAutoAntiAlias
-		 * 
-		 * Sets <autoAntiAlias>.
-		 */
-		setAutoAntiAlias: function(value)
-		{
-			autoAntiAlias = value;
-		},
-
-		/**
-		 * Function: isTextEnabled
-		 * 
-		 * Returns <textEnabled>.
-		 */
-		isTextEnabled: function()
-		{
-			return textEnabled;
-		},
-
-		/**
-		 * Function: setTextEnabled
-		 * 
-		 * Sets <textEnabled>.
-		 */
-		setTextEnabled: function(value)
-		{
-			textEnabled = value;
-		},
-
-		/**
-		 * Function: isFoEnabled
-		 * 
-		 * Returns <foEnabled>.
-		 */
-		isFoEnabled: function()
-		{
-			return foEnabled;
-		},
-
-		/**
-		 * Function: setFoEnabled
-		 * 
-		 * Sets <foEnabled>.
-		 */
-		setFoEnabled: function(value)
-		{
-			foEnabled = value;
-		},
-
-		/**
-		 * Function: save
-		 * 
-		 * Saves the state of the graphics object.
-		 */
-		save: function()
-		{
-			stack.push(currentState);
-			currentState = mxUtils.clone(currentState);
-		},
-		
-		/**
-		 * Function: restore
-		 * 
-		 * Restores the state of the graphics object.
-		 */
-		restore: function()
-		{
-			currentState = stack.pop();
-		},
-		
-		/**
-		 * Function: scale
-		 * 
-		 * Scales the current graphics object.
-		 */
-		scale: function(value)
-		{
-			currentState.scale *= value;
-			currentState.strokeWidth *= value;
-		},
-		
-		/**
-		 * Function: translate
-		 * 
-		 * Translates the current graphics object.
-		 */
-		translate: function(dx, dy)
-		{
-			currentState.dx += dx;
-			currentState.dy += dy;
-		},
-		
-		/**
-		 * Function: rotate
-		 * 
-		 * Rotates and/or flips the current graphics object.
-		 */
-		rotate: function(theta, flipH, flipV, cx, cy)
-		{
-			cx += currentState.dx;
-			cy += currentState.dy;
-
-			cx *= currentState.scale;
-			cy *= currentState.scale;
-
-			// This implementation uses custom scale/translate and built-in rotation
-			// Rotation state is part of the AffineTransform in state.transform
-			if (flipH ^ flipV)
-			{
-				var tx = (flipH) ? cx : 0;
-				var sx = (flipH) ? -1 : 1;
-
-				var ty = (flipV) ? cy : 0;
-				var sy = (flipV) ? -1 : 1;
-
-				currentState.transform += 'translate(' + f2(tx) + ',' + f2(ty) + ')';
-				currentState.transform += 'scale(' + f2(sx) + ',' + f2(sy) + ')';
-				currentState.transform += 'translate(' + f2(-tx) + ' ' + f2(-ty) + ')';
-			}
-			
-			currentState.transform += 'rotate(' + f2(theta) + ',' + f2(cx) + ',' + f2(cy) + ')';
-		},
-		
-		/**
-		 * Function: setStrokeWidth
-		 * 
-		 * Sets the stroke width.
-		 */
-		setStrokeWidth: function(value)
-		{
-			currentState.strokeWidth = value * currentState.scale;
-		},
-		
-		/**
-		 * Function: setStrokeColor
-		 * 
-		 * Sets the stroke color.
-		 */
-		setStrokeColor: function(value)
-		{
-			currentState.stroke = value;
-		},
-		
-		/**
-		 * Function: setDashed
-		 * 
-		 * Sets the dashed state to true or false.
-		 */
-		setDashed: function(value)
-		{
-			currentState.dashed = value;
-		},
-		
-		/**
-		 * Function: setDashPattern
-		 * 
-		 * Sets the dashed pattern to the given space separated list of numbers.
-		 */
-		setDashPattern: function(value)
-		{
-			currentState.dashpattern = value;
-		},
-		
-		/**
-		 * Function: setLineCap
-		 * 
-		 * Sets the linecap.
-		 */
-		setLineCap: function(value)
-		{
-			currentState.linecap = value;
-		},
-		
-		/**
-		 * Function: setLineJoin
-		 * 
-		 * Sets the linejoin.
-		 */
-		setLineJoin: function(value)
-		{
-			currentState.linejoin = value;
-		},
-		
-		/**
-		 * Function: setMiterLimit
-		 * 
-		 * Sets the miterlimit.
-		 */
-		setMiterLimit: function(value)
-		{
-			currentState.miterlimit = value;
-		},
-		
-		/**
-		 * Function: setFontSize
-		 * 
-		 * Sets the fontsize.
-		 */
-		setFontSize: function(value)
-		{
-			currentState.fontSize = value;
-		},
-		
-		/**
-		 * Function: setFontColor
-		 * 
-		 * Sets the fontcolor.
-		 */
-		setFontColor: function(value)
-		{
-			currentState.fontColor = value;
-		},
-		
-		/**
-		 * Function: setFontFamily
-		 * 
-		 * Sets the fontfamily.
-		 */
-		setFontFamily: function(value)
-		{
-			currentState.fontFamily = value;
-		},
-		
-		/**
-		 * Function: setFontStyle
-		 * 
-		 * Sets the fontstyle.
-		 */
-		setFontStyle: function(value)
-		{
-			currentState.fontStyle = value;
-		},
-		
-		/**
-		 * Function: setAlpha
-		 * 
-		 * Sets the current alpha.
-		 */
-		setAlpha: function(alpha)
-		{
-			currentState.alpha = alpha;
-		},
-		
-		/**
-		 * Function: setFillColor
-		 * 
-		 * Sets the fillcolor.
-		 */
-		setFillColor: function(value)
-		{
-			currentState.fill = value;
-			currentState.gradient = null;
-		},
-		
-		/**
-		 * Function: setGradient
-		 * 
-		 * Sets the gradient color.
-		 */
-		setGradient: function(color1, color2, x, y, w, h, direction)
-		{
-			if (color1 != null && color2 != null)
-			{
-				currentState.gradient = getSvgGradient(color1, color2, direction);
-				currentState.fill = color1;
-			}
-		},
-		
-		/**
-		 * Function: setGlassGradient
-		 * 
-		 * Sets the glass gradient.
-		 */
-		setGlassGradient: function(x, y, w, h)
-		{
-			// Creates glass overlay gradient
-			if (glassGradient == null)
-			{
-				glassGradient = create('linearGradient');
-				glassGradient.setAttribute('id', '0');
-				glassGradient.setAttribute('x1', '0%');
-				glassGradient.setAttribute('y1', '0%');
-				glassGradient.setAttribute('x2', '0%');
-				glassGradient.setAttribute('y2', '100%');
-				
-				var stop1 = create('stop');
-				stop1.setAttribute('offset', '0%');
-				stop1.setAttribute('style', 'stop-color:#ffffff;stop-opacity:0.9');
-				glassGradient.appendChild(stop1);
-				
-				var stop2 = create('stop');
-				stop2.setAttribute('offset', '100%');
-				stop2.setAttribute('style', 'stop-color:#ffffff;stop-opacity:0.1');
-				glassGradient.appendChild(stop2);
-			
-				// Makes it the first entry of all gradients in defs
-				if (defs.firstChild.nextSibling != null)
-				{
-					defs.insertBefore(glassGradient, defs.firstChild.nextSibling);
-				}
-				else
-				{
-					defs.appendChild(glassGradient);
-				}
-			}
-			
-			// Glass gradient has hardcoded ID (see above)
-			currentState.gradient = '0';
-		},
-		
-		/**
-		 * Function: rect
-		 * 
-		 * Sets the current path to a rectangle.
-		 */
-		rect: function(x, y, w, h)
-		{
-			x += currentState.dx;
-			y += currentState.dy;
-			
-			currentNode = create('rect');
-			currentNode.setAttribute('x', f2(x * currentState.scale));
-			currentNode.setAttribute('y', f2(y * currentState.scale));
-			currentNode.setAttribute('width', f2(w * currentState.scale));
-			currentNode.setAttribute('height', f2(h * currentState.scale));
-			
-			if (!styleEnabled && autoAntiAlias)
-			{
-				currentNode.setAttribute('shape-rendering', 'crispEdges');
-			}
-		},
-		
-		/**
-		 * Function: roundrect
-		 * 
-		 * Sets the current path to a rounded rectangle.
-		 */
-		roundrect: function(x, y, w, h, dx, dy)
-		{
-			x += currentState.dx;
-			y += currentState.dy;
-			
-			currentNode = create('rect');
-			currentNode.setAttribute('x', f2(x * currentState.scale));
-			currentNode.setAttribute('y', f2(y * currentState.scale));
-			currentNode.setAttribute('width', f2(w * currentState.scale));
-			currentNode.setAttribute('height', f2(h * currentState.scale));
-			
-			if (dx > 0)
-			{
-				currentNode.setAttribute('rx', f2(dx * currentState.scale));
-			}
-			
-			if (dy > 0)
-			{
-				currentNode.setAttribute('ry', f2(dy * currentState.scale));
-			}
-			
-			if (!styleEnabled && autoAntiAlias)
-			{
-				currentNode.setAttribute('shape-rendering', 'crispEdges');
-			}
-		},
-		
-		/**
-		 * Function: ellipse
-		 * 
-		 * Sets the current path to an ellipse.
-		 */
-		ellipse: function(x, y, w, h)
-		{
-			x += currentState.dx;
-			y += currentState.dy;
-			
-			currentNode = create('ellipse');
-			currentNode.setAttribute('cx', f2((x + w / 2) * currentState.scale));
-			currentNode.setAttribute('cy', f2((y + h / 2) * currentState.scale));
-			currentNode.setAttribute('rx', f2(w / 2 * currentState.scale));
-			currentNode.setAttribute('ry', f2(h / 2 * currentState.scale));
-		},
-		
-		/**
-		 * Function: image
-		 * 
-		 * Paints an image.
-		 */
-		image: function(x, y, w, h, src, aspect, flipH, flipV)
-		{
-			src = converter.convert(src);
-			
-			// TODO: Add option for embedded images as base64. Current
-			// known issues are binary loading of cross-domain images.
-			aspect = (aspect != null) ? aspect : true;
-			flipH = (flipH != null) ? flipH : false;
-			flipV = (flipV != null) ? flipV : false;
-			x += currentState.dx;
-			y += currentState.dy;
-			
-			var node = create('image');
-			node.setAttribute('x', f2(x * currentState.scale));
-			node.setAttribute('y', f2(y * currentState.scale));
-			node.setAttribute('width', f2(w * currentState.scale));
-			node.setAttribute('height', f2(h * currentState.scale));
-			
-			if (mxClient.IS_VML)
-			{
-				node.setAttribute('xlink:href', src);
-			}
-			else
-			{
-				node.setAttributeNS(mxConstants.NS_XLINK, 'xlink:href', src);
-			}
-			
-			if (!aspect)
-			{
-				node.setAttribute('preserveAspectRatio', 'none');
-			}
-			
-			if (currentState.alpha < 1)
-			{
-				node.setAttribute('opacity', currentState.alpha);
-			}
-			
-
-			var tr = currentState.transform;
-			
-			if (flipH || flipV)
-			{
-				var sx = 1;
-				var sy = 1;
-				var dx = 0;
-				var dy = 0;
-				
-				if (flipH)
-				{
-					sx = -1;
-					dx = -w - 2 * x;
-				}
-				
-				if (flipV)
-				{
-					sy = -1;
-					dy = -h - 2 * y;
-				}
-				
-				// Adds image tansformation to existing transforms
-				tr += 'scale(' + sx + ',' + sy + ')translate(' + dx + ',' + dy + ')';
-			}
-			
-			if (tr.length > 0)
-			{
-				node.setAttribute('transform', tr);
-			}
-			
-			root.appendChild(node);
-		},
-		
-		/**
-		 * Function: text
-		 * 
-		 * Paints the given text. Possible values for format are empty string for
-		 * plain text and html for HTML markup.
-		 */
-		text: function(x, y, w, h, str, align, valign, vertical, wrap, format)
-		{
-			if (textEnabled)
-			{
-				x += currentState.dx;
-				y += currentState.dy;
-				
-				if (foEnabled && format == 'html')
-				{
-					var node = create('g');
-					node.setAttribute('transform', currentState.transform + 'scale(' + currentState.scale + ',' + currentState.scale + ')');
-					
-					if (currentState.alpha < 1)
-					{
-						node.setAttribute('opacity', currentState.alpha);
-					}
-					
-					var fo = create('foreignObject');
-					fo.setAttribute('x', Math.round(x));
-					fo.setAttribute('y', Math.round(y));
-					fo.setAttribute('width', Math.round(w));
-					fo.setAttribute('height', Math.round(h));
-					fo.appendChild(createHtmlBody(str, align, valign));
-					node.appendChild(fo);
-					root.appendChild(node);
-				}
-				else
-				{
-					var size = Math.floor(currentState.fontSize);
-					var node = create('g');
-					var tr = currentState.transform;
-					
-					if (vertical)
-					{
-						var cx = x + w / 2;
-						var cy = y + h / 2;
-						tr += 'rotate(-90,' + f2(cx * currentState.scale) + ',' + f2(cy * currentState.scale) + ')';
-					}
-					
-					if (tr.length > 0)
-					{
-						node.setAttribute('transform', tr);
-					}
-					
-					if (currentState.alpha < 1)
-					{
-						node.setAttribute('opacity', currentState.alpha);
-					}
+	this.node.setAttribute('stroke', s.strokeColor.toLowerCase());
 	
-					// Default is left
-					var anchor = (align == mxConstants.ALIGN_RIGHT) ? 'end' :
-									(align == mxConstants.ALIGN_CENTER) ? 'middle' :
-									'start';
-					
-					if (anchor == 'end')
-					{
-						x += Math.max(0, w - 2);
-					}
-					else if (anchor == 'middle')
-					{
-						x += w / 2;
-					}
-					else
-					{
-						x += (w > 0) ? 2 : 0;
-					}
-					
-					if ((currentState.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
-					{
-						node.setAttribute('font-weight', 'bold');
-					}
+	if (s.alpha < 1)
+	{
+		this.node.setAttribute('stroke-opacity', s.alpha);
+	}
 	
-					if ((currentState.fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
-					{
-						node.setAttribute('font-style', 'italic');
-					}
-					
-					if ((currentState.fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
-					{
-						node.setAttribute('text-decoration', 'underline');
-					}
+	// Sets the stroke properties (1 is default in SVG)
+	var sw = Math.max(1, this.format(s.strokeWidth * s.scale));
 	
-					// Text-anchor start is default in SVG
-					if (anchor != 'start')
-					{
-						node.setAttribute('text-anchor', anchor);
-					}
-					
-					if (!styleEnabled || size != mxConstants.DEFAULT_FONTSIZE)
-					{
-						node.setAttribute('font-size', Math.floor(size * currentState.scale) + 'px');
-					}
-					
-					if (!styleEnabled || currentState.fontFamily != mxConstants.DEFAULT_FONTFAMILY)
-					{
-						node.setAttribute('font-family', currentState.fontFamily);
-					}
-					
-					node.setAttribute('fill', currentState.fontColor);
+	if (sw != 1)
+	{
+		this.node.setAttribute('stroke-width', sw);
+	}
 	
-					var lines = str.split('\n');
-					
-					var lineHeight = size * 1.25;
-					var textHeight = (h > 0) ? size + (lines.length - 1) * lineHeight : lines.length * lineHeight - 1;
-					var dy = h - textHeight;
+	if (this.node.nodeName == 'path')
+	{
+		this.updateStrokeAttributes();
+	}
 	
-					// Top is default
-					if (valign == null || valign == mxConstants.ALIGN_TOP)
-					{
-						y = Math.max(y - 3 * currentState.scale, y + dy / 2 + ((h > 0) ? lineHeight / 2 - 8 : 0));
-					}
-					else if (valign == mxConstants.ALIGN_MIDDLE)
-					{
-						y = y + dy / 2;
-					}
-					else if (valign == mxConstants.ALIGN_BOTTOM)
-					{
-						y = Math.min(y, y + dy + 2 * currentState.scale);
-					}
-	
-					y += size;
-	
-					for (var i = 0; i < lines.length; i++)
-					{
-						var text = create('text');
-						text.setAttribute('x', f2(x * currentState.scale));
-						text.setAttribute('y', f2(y * currentState.scale));
-						
-						mxUtils.write(text, lines[i]);
-						node.appendChild(text);
-						y += size * 1.3;
-					}
-					
-					root.appendChild(node);
-				}
-			}
-		},
-		
-		/**
-		 * Function: begin
-		 * 
-		 * Starts a new path.
-		 */
-		begin: function()
-		{
-			currentNode = create('path');
-			currentPath = [];
-			lastPoint = null;
-			currentPathIsOrthogonal = true;
-		},
-		
-		/**
-		 * Function: moveTo
-		 * 
-		 * Moves the current path the given coordinates.
-		 */
-		moveTo: function(x, y)
-		{
-			if (currentPath != null)
-			{
-				x += currentState.dx;
-				y += currentState.dy;
-				currentPath.push('M ' + f2(x * currentState.scale) + ' ' + f2(y * currentState.scale));
-				
-				if (autoAntiAlias)
-				{
-					lastPoint = new mxPoint(x, y);
-				}
-			}
-		},
-		
-		/**
-		 * Function: lineTo
-		 * 
-		 * Adds a line to the current path.
-		 */
-		lineTo: function(x, y)
-		{
-			if (currentPath != null)
-			{
-				x += currentState.dx;
-				y += currentState.dy;
-				currentPath.push('L ' + f2(x * currentState.scale) + ' ' + f2(y * currentState.scale));
-				
-				if (autoAntiAlias)
-				{
-					if (lastPoint != null && currentPathIsOrthogonal && x != lastPoint.x && y != lastPoint.y)
-					{
-						currentPathIsOrthogonal = false;
-					}
-					
-					lastPoint = new mxPoint(x, y);
-				}
-			}
-		},
-		
-		/**
-		 * Function: quadTo
-		 * 
-		 * Adds a quadratic curve to the current path.
-		 */
-		quadTo: function(x1, y1, x2, y2)
-		{
-			if (currentPath != null)
-			{
-				x1 += currentState.dx;
-				y1 += currentState.dy;
-				x2 += currentState.dx;
-				y2 += currentState.dy;
-				currentPath.push('Q ' + f2(x1 * currentState.scale) + ' ' + f2(y1 * currentState.scale) +
-					' ' + f2(x2 * currentState.scale) + ' ' + f2(y2 * currentState.scale));
-				currentPathIsOrthogonal = false;
-			}
-		},
-		
-		/**
-		 * Function: curveTo
-		 * 
-		 * Adds a bezier curve to the current path.
-		 */
-		curveTo: function(x1, y1, x2, y2, x3, y3)
-		{
-			if (currentPath != null)
-			{
-				x1 += currentState.dx;
-				y1 += currentState.dy;
-				x2 += currentState.dx;
-				y2 += currentState.dy;
-				x3 += currentState.dx;
-				y3 += currentState.dy;
-				currentPath.push('C ' + f2(x1 * currentState.scale) + ' ' + f2(y1 * currentState.scale) +
-					' ' + f2(x2 * currentState.scale) + ' ' + f2(y2 * currentState.scale) +' ' +
-					f2(x3 * currentState.scale) + ' ' + f2(y3 * currentState.scale));
-				currentPathIsOrthogonal = false;
-			}
-		},
+	if (s.dashed)
+	{
+		this.node.setAttribute('stroke-dasharray', this.createDashPattern(sw));
+	}
+};
 
-		/**
-		 * Function: close
-		 * 
-		 * Closes the current path.
-		 */
-		close: function()
+/**
+ * Function: updateStrokeAttributes
+ * 
+ * Transfers the stroke attributes from <state> to <node>.
+ */
+mxSvgCanvas2D.prototype.updateStrokeAttributes = function()
+{
+	var s = this.state;
+	
+	// Linejoin miter is default in SVG
+	if (s.lineJoin != null && s.lineJoin != 'miter')
+	{
+		this.node.setAttribute('stroke-linejoin', s.lineJoin);
+	}
+	
+	if (s.lineCap != null)
+	{
+		// flat is called butt in SVG
+		var value = s.lineCap;
+		
+		if (value == 'flat')
 		{
-			if (currentPath != null)
+			value = 'butt';
+		}
+		
+		// Linecap butt is default in SVG
+		if (value != 'butt')
+		{
+			this.node.setAttribute('stroke-linecap', value);
+		}
+	}
+	
+	// Miterlimit 10 is default in our document
+	if (s.miterLimit != null && (!this.styleEnabled || s.miterLimit != 10))
+	{
+		this.node.setAttribute('stroke-miterlimit', s.miterLimit);
+	}
+};
+
+/**
+ * Function: createDashPattern
+ * 
+ * Creates the SVG dash pattern for the given state.
+ */
+mxSvgCanvas2D.prototype.createDashPattern = function(scale)
+{
+	var s = this.state;
+	var dash = s.dashPattern.split(' ');
+	var pat = [];
+	
+	if (dash.length > 0)
+	{
+		for (var i = 0; i < dash.length; i++)
+		{
+			pat[i] = Number(dash[i]) * scale;
+		}
+	}
+	
+	return pat.join(' ');
+};
+
+/**
+ * Function: createTolerance
+ * 
+ * Creates a hit detection tolerance shape for the given node.
+ */
+mxSvgCanvas2D.prototype.createTolerance = function(node)
+{
+	var tol = node.cloneNode(true);
+	var sw = parseFloat(tol.getAttribute('stroke-width') || 1) + this.strokeTolerance;
+	tol.setAttribute('pointer-events', 'stroke');
+	tol.setAttribute('visibility', 'hidden');
+	tol.removeAttribute('stroke-dasharray');
+	tol.setAttribute('stroke-width', sw);
+	tol.setAttribute('fill', 'none');
+	
+	// Workaround for Opera ignoring the visiblity attribute above while
+	// other browsers need a stroke color to perform the hit-detection but
+	// do not ignore the visibility attribute. Side-effect is that Opera's
+	// hit detection for horizontal/vertical edges seems to ignore the tol.
+	tol.setAttribute('stroke', (mxClient.IS_OP) ? 'none' : 'white');
+	
+	return tol;
+};
+
+/**
+ * Function: createShadow
+ * 
+ * Creates a shadow for the given node.
+ */
+mxSvgCanvas2D.prototype.createShadow = function(node)
+{
+	var shadow = node.cloneNode(true);
+	var s = this.state;
+	
+	if (shadow.getAttribute('fill') != 'none')
+	{
+		shadow.setAttribute('fill', s.shadowColor);
+	}
+	
+	if (shadow.getAttribute('stroke') != 'none')
+	{
+		shadow.setAttribute('stroke', s.shadowColor);
+	}
+
+	shadow.setAttribute('transform', 'translate(' + this.format(s.shadowDx * s.scale) +
+		',' + this.format(s.shadowDy * s.scale) + ')' + (s.transform || ''));
+	shadow.setAttribute('opacity', s.shadowAlpha);
+	
+	return shadow;
+};
+
+/**
+ * Function: rotate
+ * 
+ * Sets the rotation of the canvas. Note that rotation cannot be concatenated.
+ */
+mxSvgCanvas2D.prototype.rotate = function(theta, flipH, flipV, cx, cy)
+{
+	if (theta != 0 || flipH || flipV)
+	{
+		var s = this.state;
+		cx += s.dx;
+		cy += s.dy;
+	
+		cx *= s.scale;
+		cy *= s.scale;
+
+		s.transform = s.transform || '';
+		
+		// This implementation uses custom scale/translate and built-in rotation
+		// Rotation state is part of the AffineTransform in state.transform
+		if (flipH && flipV)
+		{
+			theta += 180;
+		}
+		else if (flipH ^ flipV)
+		{
+			var tx = (flipH) ? cx : 0;
+			var sx = (flipH) ? -1 : 1;
+	
+			var ty = (flipV) ? cy : 0;
+			var sy = (flipV) ? -1 : 1;
+	
+			s.transform += 'translate(' + this.format(tx) + ',' + this.format(ty) + ')' +
+				'scale(' + this.format(sx) + ',' + this.format(sy) + ')' +
+				'translate(' + this.format(-tx) + ',' + this.format(-ty) + ')';
+		}
+		
+		if (flipH ? !flipV : flipV)
+		{
+			theta *= -1;
+		}
+		
+		if (theta != 0)
+		{
+			s.transform += 'rotate(' + this.format(theta) + ',' + this.format(cx) + ',' + this.format(cy) + ')';
+		}
+		
+		s.rotation = s.rotation + theta;
+		s.rotationCx = cx;
+		s.rotationCy = cy;
+	}
+};
+
+/**
+ * Function: begin
+ * 
+ * Extends superclass to create path.
+ */
+mxSvgCanvas2D.prototype.begin = function()
+{
+	mxAbstractCanvas2D.prototype.begin.apply(this, arguments);
+	this.node = this.createElement('path');
+};
+
+/**
+ * Function: rect
+ * 
+ * Private helper function to create SVG elements
+ */
+mxSvgCanvas2D.prototype.rect = function(x, y, w, h)
+{
+	var s = this.state;
+	var n = this.createElement('rect');
+	n.setAttribute('x', this.format((x + s.dx) * s.scale));
+	n.setAttribute('y', this.format((y + s.dy) * s.scale));
+	n.setAttribute('width', this.format(w * s.scale));
+	n.setAttribute('height', this.format(h * s.scale));
+	
+	this.node = n;
+};
+
+/**
+ * Function: roundrect
+ * 
+ * Private helper function to create SVG elements
+ */
+mxSvgCanvas2D.prototype.roundrect = function(x, y, w, h, dx, dy)
+{
+	this.rect(x, y, w, h);
+	
+	if (dx > 0)
+	{
+		this.node.setAttribute('rx', this.format(dx * this.state.scale));
+	}
+	
+	if (dy > 0)
+	{
+		this.node.setAttribute('ry', this.format(dy * this.state.scale));
+	}
+};
+
+/**
+ * Function: ellipse
+ * 
+ * Private helper function to create SVG elements
+ */
+mxSvgCanvas2D.prototype.ellipse = function(x, y, w, h)
+{
+	var s = this.state;
+	var n = this.createElement('ellipse');
+	// No rounding for consistent output with 1.x
+	n.setAttribute('cx', Math.round((x + w / 2 + s.dx) * s.scale));
+	n.setAttribute('cy', Math.round((y + h / 2 + s.dy) * s.scale));
+	n.setAttribute('rx', w / 2 * s.scale);
+	n.setAttribute('ry', h / 2 * s.scale);
+	this.node = n;
+};
+
+/**
+ * Function: image
+ * 
+ * Private helper function to create SVG elements
+ */
+mxSvgCanvas2D.prototype.image = function(x, y, w, h, src, aspect, flipH, flipV)
+{
+	src = this.converter.convert(src);
+	
+	// LATER: Add option for embedding images as base64.
+	aspect = (aspect != null) ? aspect : true;
+	flipH = (flipH != null) ? flipH : false;
+	flipV = (flipV != null) ? flipV : false;
+	
+	var s = this.state;
+	x += s.dx;
+	y += s.dy;
+	
+	var node = this.createElement('image');
+	node.setAttribute('x', this.format(x * s.scale));
+	node.setAttribute('y', this.format(y * s.scale));
+	node.setAttribute('width', this.format(w * s.scale));
+	node.setAttribute('height', this.format(h * s.scale));
+	
+	// Workaround for implicit namespace handling in HTML5 export
+	if (node.setAttributeNS == null || this.root.ownerDocument != document)
+	{
+		node.setAttribute('xlink:href', src);
+	}
+	else
+	{
+		node.setAttributeNS(mxConstants.NS_XLINK, 'href', src);
+	}
+	
+	if (!aspect)
+	{
+		node.setAttribute('preserveAspectRatio', 'none');
+	}
+
+	if (s.alpha < 1)
+	{
+		node.setAttribute('opacity', s.alpha);
+	}
+	
+	var tr = this.state.transform || '';
+	
+	if (flipH || flipV)
+	{
+		var sx = 1;
+		var sy = 1;
+		var dx = 0;
+		var dy = 0;
+		
+		if (flipH)
+		{
+			sx = -1;
+			dx = -w - 2 * x;
+		}
+		
+		if (flipV)
+		{
+			sy = -1;
+			dy = -h - 2 * y;
+		}
+		
+		// Adds image tansformation to existing transform
+		tr += 'scale(' + sx + ',' + sy + ')translate(' + dx + ',' + dy + ')';
+	}
+
+	if (tr.length > 0)
+	{
+		node.setAttribute('transform', tr);
+	}
+	
+	this.root.appendChild(node);
+	
+	// Disables control-clicks on images in Firefox to open in new tab
+	// by putting a rect in the foreground that absorbs all events and
+	// disabling all pointer-events on the original image tag.
+	if (this.blockImagePointerEvents)
+	{
+		node.setAttribute('style', 'pointer-events:none');
+		
+		node = this.createElement('rect');
+		node.setAttribute('visibility', 'hidden');
+		node.setAttribute('pointer-events', 'fill');
+		node.setAttribute('x', this.format(x * s.scale));
+		node.setAttribute('y', this.format(y * s.scale));
+		node.setAttribute('width', this.format(w * s.scale));
+		node.setAttribute('height', this.format(h * s.scale));
+		this.root.appendChild(node);
+	}
+};
+
+/**
+ * Function: createDiv
+ * 
+ * Private helper function to create SVG elements
+ */
+mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, fill)
+{
+	var s = this.state;
+
+	// Inline block for rendering HTML background over SVG in Safari
+	style = 'display:inline-block;font-size:' + Math.round(s.fontSize) + 'px;font-family:' + s.fontFamily +
+		';color:' + s.fontColor + ';line-height:' + Math.round(s.fontSize * mxConstants.LINE_HEIGHT) + 'px;' + style;
+
+	if ((s.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
+	{
+		style += 'font-weight:bold;';
+	}
+
+	if ((s.fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
+	{
+		style += 'font-style:italic;';
+	}
+	
+	if ((s.fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
+	{
+		style += 'text-decoration:underline;';
+	}
+	
+	if (align == mxConstants.ALIGN_CENTER)
+	{
+		style += 'text-align:center;';
+	}
+	else if (align == mxConstants.ALIGN_RIGHT)
+	{
+		style += 'text-align:right;';
+	}
+
+	var css = '';
+	
+	if (s.fontBackgroundColor != null)
+	{
+		css += 'background-color:' + s.fontBackgroundColor + ';';
+	}
+	
+	if (s.fontBorderColor != null)
+	{
+		css += 'border:1px solid ' + s.fontBorderColor + ';';
+	}
+	
+	var val = str;
+	
+	if (!mxUtils.isNode(val))
+	{
+		// Converts HTML entities to unicode since HTML entities are not allowed in XHTML
+		var ta = document.createElement('textarea');
+		ta.innerHTML = val.replace(/&lt;/g, '&amp;lt;').replace(/&gt;/g, '&amp;gt;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+		val = ta.value;
+
+		if (!fill)
+		{
+			if (css.length > 0)
 			{
-				currentPath.push('Z');
-			}
-		},
-		
-		/**
-		 * Function: stroke
-		 * 
-		 * Paints the outline of the current path.
-		 */
-		stroke: function()
-		{
-			appendNode(currentNode, currentState, false, true);
-		},
-		
-		/**
-		 * Function: fill
-		 * 
-		 * Fills the current path.
-		 */
-		fill: function()
-		{
-			appendNode(currentNode, currentState, true, false);
-		},
-		
-		/**
-		 * Function: fillstroke
-		 * 
-		 * Fills and paints the outline of the current path.
-		 */
-		fillAndStroke: function()
-		{
-			appendNode(currentNode, currentState, true, true);
-		},
-		
-		/**
-		 * Function: shadow
-		 * 
-		 * Paints the current path as a shadow of the given color.
-		 */
-		shadow: function(value, filled)
-		{
-			this.save();
-			this.setStrokeColor(value);
-			
-			if (filled)
-			{
-				this.setFillColor(value);
-				this.fillAndStroke();
-			}
-			else
-			{
-				this.stroke();
-			}
-			
-			this.restore();
-		},
-		
-		/**
-		 * Function: clip
-		 * 
-		 * Uses the current path for clipping.
-		 */
-		clip: function()
-		{
-			if (currentNode != null)
-			{
-				if (currentPath != null)
-				{
-					currentNode.setAttribute('d', currentPath.join(' '));
-					currentPath = null;
-				}
-				
-				var id = ++refCount;
-				var clip = create('clipPath');
-				clip.setAttribute('id', id);
-				clip.appendChild(currentNode);
-				defs.appendChild(clip);
-				currentState.clip = id;
+				val = '<div xmlns="http://www.w3.org/1999/xhtml" style="display:inline-block;' + css + '">' + val + '</div>';
 			}
 		}
-	};
+		else
+		{
+			style += css;
+		}
+	}
 
+	// Uses DOM API where available. This cannot be used in IE9/10 to avoid
+	// an opening and two (!) closing TBODY tags being added to tables.
+	if (!mxClient.IS_IE && document.createElementNS)
+	{
+		var div = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
+		div.setAttribute('style', style);
+		
+		if (mxUtils.isNode(val))
+		{
+			// Creates a copy for export
+			if (this.root.ownerDocument != document)
+			{
+				div.appendChild(val.cloneNode(true));
+			}
+			else
+			{
+				div.appendChild(val);
+			}
+		}
+		else
+		{
+			div.innerHTML = val;
+		}
+		
+		return div;
+	}
+	else
+	{
+		// Serializes for export
+		if (mxUtils.isNode(val) && this.root.ownerDocument != document)
+		{
+			val = val.outerHTML;
+		}
+		
+		// Converts invalid tags to XHTML
+		// LATER: Check for all unclosed tags
+		val = val.replace(/<br>/g, '<br />').replace(/<hr>/g, '<hr />');
+
+		// NOTE: FF 3.6 crashes if content CSS contains "height:100%"
+		return mxUtils.parseXml('<div xmlns="http://www.w3.org/1999/xhtml" style="' + style + 
+			'">' + val + '</div>').documentElement;
+	}
+};
+
+/**
+ * Function: text
+ * 
+ * Paints the given text. Possible values for format are empty string for plain
+ * text and html for HTML markup. Note that HTML markup is only supported if
+ * foreignObject is supported and <foEnabled> is true. (This means IE9 and later
+ * does currently not support HTML text as part of shapes.)
+ */
+mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, format, fill, clip, rotation)
+{
+	if (this.textEnabled && str != null)
+	{
+		rotation = (rotation != null) ? rotation : 0;
+		
+		var s = this.state;
+		x += s.dx;
+		y += s.dy;
+		
+		if (this.foEnabled && format == 'html')
+		{
+			var style = 'vertical-align:top;';
+			
+			if (clip)
+			{
+				style += 'overflow:hidden;';
+				
+				if (h > 0)
+				{
+					style += 'max-height:' + Math.round(h) + 'px;';
+				}
+				
+				if (w > 0)
+				{
+					style += 'width:' + Math.round(w) + 'px;';
+				}
+			}
+			else if (fill)
+			{
+				style += 'width:' + Math.round(w) + 'px;';
+				
+				if (h > 0)
+				{
+					style += 'max-height:' + Math.round(h) + 'px;';
+				}
+			}
+			
+			if (wrap && w > 0)
+			{
+				if (!clip)
+				{
+					style += 'width:' + Math.round(w) + 'px;';
+				}
+				
+				style += 'white-space:normal;';
+			}
+			else
+			{
+				style += 'white-space:nowrap;';
+			}
+			
+			// Uses outer group for opacity and transforms to
+			// fix rendering order in Chrome
+			var group = this.createElement('g');
+			
+			if (s.alpha < 1)
+			{
+				group.setAttribute('opacity', s.alpha);
+			}
+
+			var fo = this.createElement('foreignObject');
+			fo.setAttribute('pointer-events', 'all');
+			
+			var div = this.createDiv(str, align, valign, style, fill);
+			
+			// Ignores invalid XHTML labels
+			if (div == null)
+			{
+				return;
+			}
+			
+			group.appendChild(fo);
+			this.root.appendChild(group);
+			
+			// Code that depends on the size which is computed after
+			// the element was added to the DOM.
+			var ow = 0;
+			
+			if (mxClient.IS_IE && !mxClient.IS_SVG)
+			{
+				// Handles non-standard namespace for getting size in IE
+				var clone = document.createElement('div');
+				
+				clone.style.cssText = div.getAttribute('style');
+				clone.style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
+				clone.style.visibility = 'hidden';
+				clone.innerHTML = (mxUtils.isNode(str)) ? str.outerHTML : str;
+
+				document.body.appendChild(clone);
+				ow = clone.offsetWidth;
+				
+				// Computes max-height in quirks
+				if (mxClient.IS_QUIRKS && h > 0 && clip)
+				{
+					// +2 to show background and border are visible
+					h = Math.min(h, clone.offsetHeight + 2);
+				}
+				else
+				{
+					h = clone.offsetHeight;
+				}
+				
+				clone.parentNode.removeChild(clone);
+				fo.appendChild(div);
+			}
+			// Workaround for export and Firefox 3.x (Opera has same bug but it cannot
+			// be fixed for all cases using this workaround so foreignObject is disabled). 
+			else if (this.root.ownerDocument != document ||
+				navigator.userAgent.indexOf('Firefox/3.') >= 0)
+			{
+				// Getting size via local document for export
+				div.style.visibility = 'hidden';
+				document.body.appendChild(div);
+				
+				ow = div.offsetWidth;
+				h = div.offsetHeight;
+
+				fo.appendChild(div);
+				div.style.visibility = '';
+			}
+			else
+			{
+				fo.appendChild(div);
+				ow = div.offsetWidth;
+				h = div.offsetHeight;
+			}
+			
+			if (fill)
+			{
+				w = Math.max(w, ow);
+			}
+			else
+			{
+				w = ow;
+			}
+
+			if (s.alpha < 1)
+			{
+				group.setAttribute('opacity', s.alpha);
+			}
+			
+			var dx = 0;
+			var dy = 0;
+
+			if (align == mxConstants.ALIGN_CENTER)
+			{
+				dx -= w / 2;
+			}
+			else if (align == mxConstants.ALIGN_RIGHT)
+			{
+				dx -= w;
+			}
+			
+			x += dx;
+			
+			if (valign == mxConstants.ALIGN_MIDDLE)
+			{
+				dy -= h / 2;
+			}
+			else if (valign == mxConstants.ALIGN_BOTTOM)
+			{
+				dy -= h;
+			}
+			
+			y += dy;
+
+			var tr = (s.scale != 1) ? 'scale(' + s.scale + ')' : '';
+
+			if (s.rotation != 0 && this.rotateHtml)
+			{
+				tr += 'rotate(' + (s.rotation) + ',' + (w / 2) + ',' + (h / 2) + ')';
+				var pt = this.rotatePoint((x + w / 2) * s.scale, (y + h / 2) * s.scale,
+					s.rotation, s.rotationCx, s.rotationCy);
+				x = pt.x - w * s.scale / 2;
+				y = pt.y - h * s.scale / 2;
+			}
+			else
+			{
+				x *= s.scale;
+				y *= s.scale;
+			}
+
+			if (rotation != 0)
+			{
+				tr += 'rotate(' + (rotation) + ',' + (-dx) + ',' + (-dy) + ')';
+			}
+
+			group.setAttribute('transform', 'translate(' + Math.round(x) + ',' + Math.round(y) + ')' + tr);
+			fo.setAttribute('width', Math.round(Math.max(1, w)));
+			fo.setAttribute('height', Math.round(Math.max(1, h)));
+			
+			// Adds alternate content if foreignObject not supported in viewer
+			if (this.root.ownerDocument != document)
+			{
+				var alt = this.createAlternateContent(fo, x, y, w, h, str, align, valign, wrap, format, fill, clip, rotation);
+				
+				if (alt != null)
+				{
+					fo.setAttribute('requiredFeatures', 'http://www.w3.org/TR/SVG11/feature#Extensibility');
+					var sw = this.createElement('switch');
+					sw.appendChild(fo);
+					sw.appendChild(alt);
+					group.appendChild(sw);
+				}
+			}
+		}
+		else
+		{
+			this.plainText(x, y, w, h, str, align, valign, wrap, fill, clip, rotation);
+		}
+	}
+};
+
+/**
+ * Function: createClip
+ * 
+ * Creates a clip for the given coordinates.
+ */
+mxSvgCanvas2D.prototype.createClip = function(x, y, w, h)
+{
+	x = Math.round(x);
+	y = Math.round(y);
+	w = Math.round(w);
+	h = Math.round(h);
+	
+	var id = 'mx-clip-' + x + '-' + y + '-' + w + '-' + h;
+
+	var counter = 0;
+	var tmp = id + '-' + counter;
+	
+	// Resolves ID conflicts
+	while (document.getElementById(tmp) != null)
+	{
+		tmp = id + '-' + (++counter);
+	}
+	
+	clip = this.createElement('clipPath');
+	clip.setAttribute('id', tmp);
+	
+	var rect = this.createElement('rect');
+	rect.setAttribute('x', x);
+	rect.setAttribute('y', y);
+	rect.setAttribute('width', w);
+	rect.setAttribute('height', h);
+		
+	clip.appendChild(rect);
+	
+	return clip;
+};
+
+/**
+ * Function: text
+ * 
+ * Paints the given text. Possible values for format are empty string for
+ * plain text and html for HTML markup.
+ */
+mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wrap, fill, clip, rotation)
+{
+	rotation = (rotation != null) ? rotation : 0;
+	var s = this.state;
+	var size = Math.round(s.fontSize);
+	var node = this.createElement('g');
+	var tr = s.transform || '';
+
+	// Non-rotated text
+	if (rotation != 0)
+	{
+		tr += 'rotate(' + rotation  + ',' + this.format(x * s.scale) + ',' + this.format(y * s.scale) + ')';
+	}
+
+	if (clip && w > 0 && h > 0)
+	{
+		var cx = x;
+		var cy = y;
+		
+		if (align == mxConstants.ALIGN_CENTER)
+		{
+			cx -= w / 2;
+		}
+		else if (align == mxConstants.ALIGN_RIGHT)
+		{
+			cx -= w;
+		}
+		
+		if (valign == mxConstants.ALIGN_MIDDLE)
+		{
+			cy -= h / 2;
+		}
+		else if (valign == mxConstants.ALIGN_BOTTOM)
+		{
+			cy -= h;
+		}
+		
+		// LATER: Remove spacing from clip rectangle
+		var c = this.createClip(cx * s.scale - 2, cy * s.scale - 2, w * s.scale + 4, h * s.scale + 4);
+		
+		if (this.defs != null)
+		{
+			this.defs.appendChild(c);
+		}
+		else
+		{
+			// Makes sure clip is removed with referencing node
+			this.root.appendChild(c);
+		}
+		
+		node.setAttribute('clip-path', 'url(#' + c.getAttribute('id') + ')');
+	}
+	
+	this.updateFont(node, align);
+
+	// Default is left
+	var anchor = (align == mxConstants.ALIGN_RIGHT) ? 'end' :
+					(align == mxConstants.ALIGN_CENTER) ? 'middle' :
+					'start';
+
+	// Text-anchor start is default in SVG
+	if (anchor != 'start')
+	{
+		node.setAttribute('text-anchor', anchor);
+	}
+	
+	if (!this.styleEnabled || size != mxConstants.DEFAULT_FONTSIZE)
+	{
+		node.setAttribute('font-size', Math.round(size * s.scale) + 'px');
+	}
+	
+	if (tr.length > 0)
+	{
+		node.setAttribute('transform', tr);
+	}
+	
+	if (s.alpha < 1)
+	{
+		node.setAttribute('opacity', s.alpha);
+	}
+	
+	var lines = str.split('\n');
+	var lh = Math.round(size * mxConstants.LINE_HEIGHT);
+	var textHeight = size + (lines.length - 1) * lh;
+
+	var cy = y + size - 1;
+
+	if (valign == mxConstants.ALIGN_MIDDLE)
+	{
+		var dy = ((this.matchHtmlAlignment && clip && h > 0) ? Math.min(textHeight, h) : textHeight) / 2;
+		cy -= dy + 1;
+	}
+	else if (valign == mxConstants.ALIGN_BOTTOM)
+	{
+		var dy = (this.matchHtmlAlignment && clip && h > 0) ? Math.min(textHeight, h) : textHeight;
+		cy -= dy + 2;
+	}
+	
+	for (var i = 0; i < lines.length; i++)
+	{
+		// Workaround for bounding box of empty lines and spaces
+		if (lines[i].length > 0 && mxUtils.trim(lines[i]).length > 0)
+		{
+			var text = this.createElement('text');
+			// LATER: Match horizontal HTML alignment
+			text.setAttribute('x', this.format(x * s.scale));
+			text.setAttribute('y', this.format(cy * s.scale));
+			
+			mxUtils.write(text, lines[i]);
+			node.appendChild(text);
+		}
+
+		cy += lh;
+	}
+
+	this.root.appendChild(node);
+	this.addTextBackground(node, str, x, y, w, textHeight, align, valign, fill);
+};
+
+/**
+ * Function: addTextBackground
+ * 
+ * Background color and border
+ */
+mxSvgCanvas2D.prototype.updateFont = function(node)
+{
+	var s = this.state;
+
+	node.setAttribute('fill', s.fontColor);
+	
+	if (!this.styleEnabled || s.fontFamily != mxConstants.DEFAULT_FONTFAMILY)
+	{
+		node.setAttribute('font-family', s.fontFamily);
+	}
+
+	if ((s.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
+	{
+		node.setAttribute('font-weight', 'bold');
+	}
+
+	if ((s.fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
+	{
+		node.setAttribute('font-style', 'italic');
+	}
+	
+	if ((s.fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
+	{
+		node.setAttribute('text-decoration', 'underline');
+	}
+};
+
+/**
+ * Function: addTextBackground
+ * 
+ * Background color and border
+ */
+mxSvgCanvas2D.prototype.addTextBackground = function(node, str, x, y, w, h, align, valign, fill)
+{
+	var s = this.state;
+
+	if (s.fontBackgroundColor != null || s.fontBorderColor != null)
+	{
+		var bbox = null;
+		
+		if (fill)
+		{
+			if (align == mxConstants.ALIGN_CENTER)
+			{
+				x -= w / 2;
+			}
+			else if (align == mxConstants.ALIGN_RIGHT)
+			{
+				x -= w;
+			}
+			
+			if (valign == mxConstants.ALIGN_MIDDLE)
+			{
+				y -= h / 2;
+			}
+			else if (valign == mxConstants.ALIGN_BOTTOM)
+			{
+				y -= h;
+			}
+			
+			bbox = new mxRectangle((x + 1) * s.scale, y * s.scale, (w - 2) * s.scale, (h + 2) * s.scale);
+		}
+		else if (node.getBBox != null && this.root.ownerDocument == document)
+		{
+			// Uses getBBox only if inside document for correct size
+			bbox = node.getBBox();
+			var ie = mxClient.IS_IE && mxClient.IS_SVG;
+			bbox = new mxRectangle(bbox.x, bbox.y + ((ie) ? 0 : 1), bbox.width, bbox.height + ((ie) ? 1 : 0));
+		}
+		else
+		{
+			// Computes size if not in document or no getBBox available
+			var div = document.createElement('div');
+
+			// Wrapping and clipping can be ignored here
+			div.style.lineHeight = Math.round(s.fontSize * mxConstants.LINE_HEIGHT) + 'px';
+			div.style.fontSize = Math.round(s.fontSize) + 'px';
+			div.style.fontFamily = s.fontFamily;
+			div.style.whiteSpace = 'nowrap';
+			div.style.position = 'absolute';
+			div.style.visibility = 'hidden';
+			div.style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
+			div.style.zoom = '1';
+			
+			if ((s.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
+			{
+				div.style.fontWeight = 'bold';
+			}
+
+			if ((s.fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
+			{
+				div.style.fontStyle = 'italic';
+			}
+			
+			str = mxUtils.htmlEntities(str, false);
+			div.innerHTML = str.replace(/\n/g, '<br/>');
+			
+			document.body.appendChild(div);
+			var w = div.offsetWidth;
+			var h = div.offsetHeight;
+			div.parentNode.removeChild(div);
+			
+			if (align == mxConstants.ALIGN_CENTER)
+			{
+				x -= w / 2;
+			}
+			else if (align == mxConstants.ALIGN_RIGHT)
+			{
+				x -= w;
+			}
+			
+			if (valign == mxConstants.ALIGN_MIDDLE)
+			{
+				y -= h / 2;
+			}
+			else if (valign == mxConstants.ALIGN_BOTTOM)
+			{
+				y -= h;
+			}
+			
+			bbox = new mxRectangle((x + 1) * s.scale, (y + 2) * s.scale, w * s.scale, (h + 1) * s.scale);
+		}
+		
+		if (bbox != null)
+		{
+			var n = this.createElement('rect');
+			n.setAttribute('fill', s.fontBackgroundColor || 'none');
+			n.setAttribute('stroke', s.fontBorderColor || 'none');
+			n.setAttribute('x', Math.floor(bbox.x - 1));
+			n.setAttribute('y', Math.floor(bbox.y - 1));
+			n.setAttribute('width', Math.ceil(bbox.width + 2));
+			n.setAttribute('height', Math.ceil(bbox.height));
+
+			var sw = (s.fontBorderColor != null) ? Math.max(1, this.format(s.scale)) : 0;
+			n.setAttribute('stroke-width', sw);
+			
+			// Workaround for crisp rendering - only required if not exporting
+			if (this.root.ownerDocument == document && mxUtils.mod(sw, 2) == 1)
+			{
+				n.setAttribute('transform', 'translate(0.5, 0.5)');
+			}
+			
+			node.insertBefore(n, node.firstChild);
+		}
+	}
+};
+
+/**
+ * Function: stroke
+ * 
+ * Paints the outline of the current path.
+ */
+mxSvgCanvas2D.prototype.stroke = function()
+{
+	this.addNode(false, true);
+};
+
+/**
+ * Function: fill
+ * 
+ * Fills the current path.
+ */
+mxSvgCanvas2D.prototype.fill = function()
+{
+	this.addNode(true, false);
+};
+
+/**
+ * Function: fillAndStroke
+ * 
+ * Fills and paints the outline of the current path.
+ */
+mxSvgCanvas2D.prototype.fillAndStroke = function()
+{
+	this.addNode(true, true);
 };

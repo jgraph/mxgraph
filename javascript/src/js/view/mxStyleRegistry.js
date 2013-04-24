@@ -1,5 +1,5 @@
 /**
- * $Id: mxStyleRegistry.js,v 1.10 2011/04/27 10:15:39 gaudenz Exp $
+ * $Id: mxStyleRegistry.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxStyleRegistry =

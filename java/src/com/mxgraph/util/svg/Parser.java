@@ -22,7 +22,7 @@ package com.mxgraph.util.svg;
  * This interface represents a parser.
  *
  * @author <a href="mailto:stephane@hillion.org">Stephane Hillion</a>
- * @version $Id: Parser.java,v 1.2 2012/01/13 11:09:54 david Exp $
+ * @version $Id: Parser.java,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  */
 public interface Parser
 {

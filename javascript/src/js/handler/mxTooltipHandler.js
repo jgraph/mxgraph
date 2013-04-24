@@ -1,5 +1,5 @@
 /**
- * $Id: mxTooltipHandler.js,v 1.52 2013/03/27 16:39:04 gaudenz Exp $
+ * $Id: mxTooltipHandler.js,v 1.2 2013/03/27 16:39:19 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

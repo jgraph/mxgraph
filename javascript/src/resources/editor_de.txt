@@ -1,4 +1,4 @@
-askZoom=Zoom eingeben (%25)
+askZoom=Zoom eingeben (%)
 properties=Eigenschaften
 outline=Uebersicht
 tasks=Aufgaben

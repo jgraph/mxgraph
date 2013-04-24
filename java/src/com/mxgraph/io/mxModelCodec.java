@@ -1,5 +1,5 @@
 /**
- * $Id: mxModelCodec.java,v 1.8 2010/11/23 08:46:41 gaudenz Exp $
+ * $Id: mxModelCodec.java,v 1.1 2012/11/15 13:26:47 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder, David Benson
  */
 package com.mxgraph.io;

@@ -1,5 +1,5 @@
 <!--
- $Id: build.xml,v 1.25 2010/08/23 15:19:57 gaudenz Exp $
+ $Id: build.xml,v 1.2 2013/01/16 15:35:42 gaudenz Exp $
  Copyright (c) 2008-2010 Gaudenz Alder, David Benson
 -->
 
@@ -8,7 +8,7 @@
 <project name="mxgraph" default="all" basedir=".">
 
 	<property name="product.name"    value="mxGraph"/>
-	<property name="product.version" value="1.12.0.2"/>
+	<property name="product.version" value="2.0.0.0"/>
 	<property name="all.jar"         value="mxgraph-all.jar"/>
 	<property name="core.jar"        value="mxgraph-core.jar"/>
 	<property name="swing.jar"       value="mxgraph-swing.jar"/>
@@ -40,7 +40,7 @@
 
 <!-- ==================== Init ==================== -->
 
-	<target name="init" description="Initializes the build">
+	<target name="init" depends="clean" description="Initializes the build">
 		<tstamp/>
 		<mkdir dir="${basedir}/classes"/>
 		<mkdir dir="${basedir}/docs"/>

@@ -1,5 +1,5 @@
 /**
- * $Id: mxStylesheetCodec.js,v 1.19 2011/06/13 08:18:42 gaudenz Exp $
+ * $Id: mxStylesheetCodec.js,v 1.1 2012/11/15 13:26:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()

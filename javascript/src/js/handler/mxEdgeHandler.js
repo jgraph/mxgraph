@@ -1,5 +1,5 @@
 /**
- * $Id: mxEdgeHandler.js,v 1.178 2012/09/12 09:16:23 gaudenz Exp $
+ * $Id: mxEdgeHandler.js,v 1.10 2013/02/14 07:48:01 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -142,14 +142,6 @@ mxEdgeHandler.prototype.allowHandleBoundsCheck = true;
 mxEdgeHandler.prototype.snapToTerminals = false;
 
 /**
- * Variable: crisp
- * 
- * Specifies if the edge handles should be rendered in crisp mode. Default is
- * true.
- */
-mxEdgeHandler.prototype.crisp = true;
-
-/**
  * Variable: handleImage
  * 
  * Optional <mxImage> to be used as handles. Default is null.
@@ -183,22 +175,18 @@ mxEdgeHandler.prototype.init = function()
 	this.abspoints = this.getSelectionPoints(this.state);
 	this.shape = this.createSelectionShape(this.abspoints);
 	this.shape.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
-		mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
+		mxConstants.DIALECT_MIXEDHTML : mxConstants.DIALECT_SVG;
 	this.shape.init(this.graph.getView().getOverlayPane());
+	this.shape.svgStrokeTolerance = 0;
 	this.shape.node.style.cursor = mxConstants.CURSOR_MOVABLE_EDGE;
 	
-	// Event handling
-	var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-	var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
-	var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
-	
-	mxEvent.addListener(this.shape.node, 'dblclick',
-		mxUtils.bind(this, function(evt)
+	mxEvent.addListener(this.shape.node, 'dblclick', mxUtils.bind(this, function(evt)
 		{
 			this.graph.dblClick(evt, this.state.cell);
 		})
 	);
-	mxEvent.addListener(this.shape.node, md,
+	
+	mxEvent.addGestureListeners(this.shape.node,
 		mxUtils.bind(this, function(evt)
 		{
 			if (this.addEnabled && this.isAddPointEvent(evt))
@@ -210,9 +198,7 @@ mxEdgeHandler.prototype.init = function()
 				this.graph.fireMouseEvent(mxEvent.MOUSE_DOWN,
 					new mxMouseEvent(evt, this.state));
 			}
-		})
-	);
-	mxEvent.addListener(this.shape.node, mm,
+		}),
 		mxUtils.bind(this, function(evt)
 		{
 			var cell = this.state.cell;
@@ -235,15 +221,12 @@ mxEdgeHandler.prototype.init = function()
 			
 			this.graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
 				new mxMouseEvent(evt, this.graph.getView().getState(cell)));
-		})
-	);
-	mxEvent.addListener(this.shape.node, mu,
+		}),
 		mxUtils.bind(this, function(evt)
 		{
 			this.graph.fireMouseEvent(mxEvent.MOUSE_UP,
 				new mxMouseEvent(evt, this.state));
-		})
-	);
+		}));
 
 	// Updates preferHtml
 	this.preferHtml = this.state.text != null &&
@@ -286,6 +269,7 @@ mxEdgeHandler.prototype.init = function()
 	this.labelShape = new mxRectangleShape(new mxRectangle(),
 			mxConstants.LABEL_HANDLE_FILLCOLOR,
 			mxConstants.HANDLE_STROKECOLOR);
+	this.labelShape.pointerEvents = false;
 	this.initBend(this.labelShape);
 	this.labelShape.node.style.cursor = mxConstants.CURSOR_LABEL_HANDLE;
 	mxEvent.redirectMouseEvents(this.labelShape.node, this.graph, this.state);
@@ -568,8 +552,6 @@ mxEdgeHandler.prototype.createHandleShape = function(index)
  */
 mxEdgeHandler.prototype.initBend = function(bend)
 {
-	bend.crisp = this.crisp;
-	
 	if (this.preferHtml)
 	{
 		bend.dialect = mxConstants.DIALECT_STRICTHTML;
@@ -578,7 +560,7 @@ mxEdgeHandler.prototype.initBend = function(bend)
 	else
 	{
 		bend.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
-			mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
+			mxConstants.DIALECT_MIXEDHTML : mxConstants.DIALECT_SVG;
 		bend.init(this.graph.getView().getOverlayPane());
 	}
 };
@@ -600,16 +582,17 @@ mxEdgeHandler.prototype.getHandleForEvent = function(me)
 
 		for (var i = 0; i < this.bends.length; i++)
 		{
-			if (me.isSource(this.bends[i]) || (hit != null &&
-				this.bends[i].node.style.visibility != 'hidden' &&
-				mxUtils.intersects(this.bends[i].bounds, hit)))
+			if ((me.isSource(this.bends[i]) || (hit != null &&
+				mxUtils.intersects(this.bends[i].bounds, hit))) &&
+				this.bends[i].node.style.visibility != 'hidden')
 			{
 				return i;
 			}
 		}
 	}
 
-	if (me.isSource(this.labelShape) || me.isSource(this.state.text))
+	if ((me.isSource(this.labelShape) && this.labelShape.node.style.visibility != 'hidden') ||
+		me.isSource(this.state.text))
 	{
 		// Workaround for SELECT element not working in Webkit
 		if ((!mxClient.IS_SF && !mxClient.IS_GC) || me.getSource().nodeName != 'SELECT')
@@ -1079,18 +1062,12 @@ mxEdgeHandler.prototype.reset = function()
  */
 mxEdgeHandler.prototype.setPreviewColor = function(color)
 {
-	if (this.shape != null && this.shape.node != null)
+	if (this.shape != null)
 	{
-		if (this.shape.dialect == mxConstants.DIALECT_SVG)
-		{
-			this.shape.innerNode.setAttribute('stroke', color);
-		}
-		else
-		{
-			this.shape.node.strokecolor = color;
-		}
+		this.shape.stroke = color;
 	}
 };
+
 
 /**
  * Function: convertPoint
@@ -1272,16 +1249,30 @@ mxEdgeHandler.prototype.changePoints = function(edge, points)
  */
 mxEdgeHandler.prototype.addPoint = function(state, evt)
 {
+	var pt = mxUtils.convertPoint(this.graph.container, mxEvent.getClientX(evt),
+			mxEvent.getClientY(evt));
+	var gridEnabled = this.graph.isGridEnabledEvent(evt);
+	this.convertPoint(pt, gridEnabled);
+	this.addPointAt(state, pt.x, pt.y);
+	mxEvent.consume(evt);
+};
+
+/**
+ * Function: addPointAt
+ * 
+ * Adds a control point at the given point.
+ */
+mxEdgeHandler.prototype.addPointAt = function(state, x, y)
+{
 	var geo = this.graph.getCellGeometry(state.cell);
+	var pt = new mxPoint(x, y);
 	
 	if (geo != null)
 	{
 		geo = geo.clone();
-		var pt = mxUtils.convertPoint(this.graph.container, mxEvent.getClientX(evt),
-				mxEvent.getClientY(evt));
-		var index = mxUtils.findNearestSegment(state, pt.x, pt.y);
-		var gridEnabled = this.graph.isGridEnabledEvent(evt);
-		this.convertPoint(pt, gridEnabled);
+		var t = this.graph.view.translate;
+		var s = this.graph.view.scale;
+		var index = mxUtils.findNearestSegment(state, (pt.x + t.x) * s, (pt.y + t.y) * s);
 
 		if (geo.points == null)
 		{
@@ -1295,7 +1286,6 @@ mxEdgeHandler.prototype.addPoint = function(state, evt)
 		this.graph.getModel().setGeometry(state.cell, geo);
 		this.destroy();
 		this.init();
-		mxEvent.consume(evt);
 	}
 };
 
@@ -1310,8 +1300,7 @@ mxEdgeHandler.prototype.removePoint = function(state, index)
 	{
 		var geo = this.graph.getCellGeometry(this.state.cell);
 		
-		if (geo != null &&
-			geo.points != null)
+		if (geo != null && geo.points != null)
 		{
 			geo = geo.clone();
 			geo.points.splice(index - 1, 1);
@@ -1361,8 +1350,8 @@ mxEdgeHandler.prototype.redraw = function()
 	var s = mxConstants.LABEL_HANDLE_SIZE;
 	
 	this.label = new mxPoint(this.state.absoluteOffset.x, this.state.absoluteOffset.y);
-	this.labelShape.bounds = new mxRectangle(this.label.x - s / 2,
-		this.label.y - s / 2, s, s);
+	this.labelShape.bounds = new mxRectangle(Math.round(this.label.x - s / 2),
+		Math.round(this.label.y - s / 2), s, s);
 	this.labelShape.redraw();
 	
 	// Shows or hides the label handle depending on the label
@@ -1386,9 +1375,9 @@ mxEdgeHandler.prototype.redraw = function()
 		var y0 = this.abspoints[0].y;
 		
 		var b = this.bends[0].bounds;
-		this.bends[0].bounds = new mxRectangle(x0 - b.width / 2, y0 - b.height / 2, b.width, b.height);
+		this.bends[0].bounds = new mxRectangle(Math.round(x0 - b.width / 2),
+				Math.round(y0 - b.height / 2), b.width, b.height);
 		this.bends[0].fill = this.getHandleFillColor(0);
-		this.bends[0].reconfigure();
 		this.bends[0].redraw();
 		
 		var pe = this.abspoints[n];
@@ -1397,9 +1386,9 @@ mxEdgeHandler.prototype.redraw = function()
 		
 		var bn = this.bends.length - 1;
 		b = this.bends[bn].bounds;
-		this.bends[bn].bounds = new mxRectangle(xn - b.width / 2, yn - b.height / 2, b.width, b.height);
+		this.bends[bn].bounds = new mxRectangle(Math.round(xn - b.width / 2),
+				Math.round(yn - b.height / 2), b.width, b.height);
 		this.bends[bn].fill = this.getHandleFillColor(bn);
-		this.bends[bn].reconfigure();
 		this.bends[bn].redraw();
 
 		this.redrawInnerBends(p0, pe);
@@ -1441,7 +1430,8 @@ mxEdgeHandler.prototype.redrawInnerBends = function(p0, pe)
 					
 					var b = this.bends[i].bounds;
 					this.bends[i].node.style.visibility = 'visible';
-					this.bends[i].bounds = new mxRectangle(x - b.width / 2, y - b.height / 2, b.width, b.height);
+					this.bends[i].bounds = new mxRectangle(Math.round(x - b.width / 2),
+							Math.round(y - b.height / 2), b.width, b.height);
 					this.bends[i].redraw();
 					
 					this.points[i - 1] = pts[i - 1];
@@ -1467,7 +1457,8 @@ mxEdgeHandler.prototype.drawPreview = function()
 	{
 		var s = mxConstants.LABEL_HANDLE_SIZE;
 	
-		var bounds = new mxRectangle(this.label.x - s / 2, this.label.y - s / 2, s, s);
+		var bounds = new mxRectangle(Math.round(this.label.x - s / 2),
+				Math.round(this.label.y - s / 2), s, s);
 		this.labelShape.bounds = bounds;
 		this.labelShape.redraw();
 	}
@@ -1476,9 +1467,6 @@ mxEdgeHandler.prototype.drawPreview = function()
 		this.shape.points = this.abspoints;
 		this.shape.redraw();
 	}
-	
-	// Workaround to force a repaint in AppleWebKit
-	mxUtils.repaintGraph(this.graph, this.shape.points[this.shape.points.length - 1]);
 };
 
 /**

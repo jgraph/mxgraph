@@ -1,5 +1,5 @@
 /**
- * $Id: Toolbar.js,v 1.12 2012/06/08 15:07:04 gaudenz Exp $
+ * $Id: Toolbar.js,v 1.3 2013/02/20 16:21:29 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -12,8 +12,7 @@ function Toolbar(editorUi, container)
 	this.init();
 
 	// Global handler to hide the current menu
-	var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-	mxEvent.addListener(document, md, mxUtils.bind(this, function(evt)
+	mxEvent.addGestureListeners(document, mxUtils.bind(this, function(evt)
 	{
 		this.hideMenu();
 	}));
@@ -52,8 +51,8 @@ Toolbar.prototype.init = function()
 		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_EDGE], ['entityRelationEdgeStyle'], 'geIcon geSprite geSprite-entity', null).setAttribute('title', mxResources.get('entityRelation'));
 		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_EDGE, mxConstants.STYLE_ELBOW], ['elbowEdgeStyle', 'horizontal'], 'geIcon geSprite geSprite-helbow', null).setAttribute('title', mxResources.get('horizontal'));
 		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_EDGE, mxConstants.STYLE_ELBOW], ['elbowEdgeStyle', 'vertical'], 'geIcon geSprite geSprite-velbow', null).setAttribute('title', mxResources.get('vertical'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_EDGE], ['segmentEdgeStyle'], 'geIcon geSprite geSprite-segment', null).setAttribute('title', mxResources.get('plain'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_EDGE], ['orthogonalEdgeStyle'], 'geIcon geSprite geSprite-orthogonal', null).setAttribute('title', mxResources.get('orthogonal'));
+		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_EDGE], ['segmentEdgeStyle'], 'geIcon geSprite geSprite-segment', null).setAttribute('title', mxResources.get('manual'));
+		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_EDGE], ['orthogonalEdgeStyle'], 'geIcon geSprite geSprite-orthogonal', null).setAttribute('title', mxResources.get('automatic'));
 	}));
 	var linestart = this.addMenuFunction('geSprite-startclassic', mxResources.get('lineend'), false, mxUtils.bind(this, function(menu)
 	{

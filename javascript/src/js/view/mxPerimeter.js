@@ -1,5 +1,5 @@
 /**
- * $Id: mxPerimeter.js,v 1.28 2012/01/11 09:06:56 gaudenz Exp $
+ * $Id: mxPerimeter.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxPerimeter =

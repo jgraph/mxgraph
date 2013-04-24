@@ -1,5 +1,5 @@
 /**
- * $Id: mxConnectionConstraint.js,v 1.2 2010/04/29 09:33:52 gaudenz Exp $
+ * $Id: mxConnectionConstraint.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

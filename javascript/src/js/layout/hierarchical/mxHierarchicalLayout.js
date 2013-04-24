@@ -1,5 +1,5 @@
 /**
- * $Id: mxHierarchicalLayout.js,v 1.34 2013/04/09 14:30:02 david Exp $
+ * $Id: mxHierarchicalLayout.js,v 1.8 2013/04/11 21:15:35 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -427,7 +427,7 @@ mxHierarchicalLayout.prototype.run = function(parent)
 
 			for (var i = 0; i < candidateRoots.length; i++)
 			{
-				var vertexSet = [];
+				var vertexSet = Object();
 				hierarchyVertices.push(vertexSet);
 
 				this.traverse(candidateRoots[i], true, null, allVertexSet, vertexSet,
@@ -458,7 +458,7 @@ mxHierarchicalLayout.prototype.run = function(parent)
 
 		for (var i = 0; i < this.roots.length; i++)
 		{
-			var vertexSet = [];
+			var vertexSet = Object();
 			hierarchyVertices.push(vertexSet);
 
 			this.traverse(this.roots[i], true, null, allVertexSet, vertexSet,

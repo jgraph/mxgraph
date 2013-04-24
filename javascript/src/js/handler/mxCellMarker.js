@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellMarker.js,v 1.30 2011/07/15 12:57:50 gaudenz Exp $
+ * $Id: mxCellMarker.js,v 1.2 2013/01/08 15:30:24 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -44,6 +44,8 @@
  */
 function mxCellMarker(graph, validColor, invalidColor, hotspot)
 {
+	mxEventSource.call(this);
+	
 	if (graph != null)
 	{
 		this.graph = graph;
@@ -58,8 +60,7 @@ function mxCellMarker(graph, validColor, invalidColor, hotspot)
 /**
  * Extends mxEventSource.
  */
-mxCellMarker.prototype = new mxEventSource();
-mxCellMarker.prototype.constructor = mxCellMarker;
+mxUtils.extend(mxCellMarker, mxEventSource);
 
 /**
  * Variable: graph

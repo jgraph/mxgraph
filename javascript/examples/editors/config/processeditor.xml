@@ -42,7 +42,7 @@
 		<add as="swimlane">
 			<Swimlane label="Role" customAttribute="text value">
 				<mxCell vertex="1" style="swimlane" connectable="0">
-					<mxGeometry as="geometry" width="160" height="400"/>
+					<mxGeometry as="geometry" width="220" height="480"/>
 				</mxCell>
 			</Swimlane>
 		</add>
@@ -213,12 +213,13 @@
 				<add as="shape" value="swimlane"/>
 				<add as="perimeter" value="rectanglePerimeter"/>
 				<add as="fontSize" value="12"/>
-				<add as="startSize" value="23"/>
+				<add as="startSize" value="36"/>
 				<add as="rounded" value="1"/>
 				<add as="align" value="center"/>
 				<add as="verticalAlign" value="top"/>
+				<add as="spacingTop" value="8"/>
 				<add as="fontColor" value="white"/>
-				<add as="separatorColor" value="#9597BE"/>
+				<add as="separatorColor" value="#c0c0c0"/>
 			</add>
 			<add as="rounded">
 				<add as="rounded" value="1"/>

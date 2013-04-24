@@ -8,7 +8,7 @@
 		</Layer>
 		<Swimlane label="Customer" customAttribute="text value"
 			id="2">
-			<mxCell style="swimlane;fillColor=#66B922;startSize=23"
+			<mxCell style="swimlane;fillColor=#66B922"
 				parent="1" connectable="0" vertex="1">
 				<mxGeometry x="20" y="20" width="220" height="900"
 					as="geometry" />
@@ -90,7 +90,7 @@
 		</Edge>
 		<Swimlane label="ATM Machine" customAttribute="text value"
 			id="15">
-			<mxCell style="swimlane;fillColor=#CF0056;startSize=23"
+			<mxCell style="swimlane;fillColor=#CF0056"
 				parent="1" connectable="0" vertex="1">
 				<mxGeometry x="240" y="20" width="200" height="900"
 					as="geometry" />
@@ -151,7 +151,7 @@
 			</mxCell>
 		</Edge>
 		<Swimlane label="Bank" customAttribute="text value" id="25">
-			<mxCell style="swimlane;fillColor=#4679B6;startSize=23"
+			<mxCell style="swimlane;fillColor=#4679B6"
 				parent="1" connectable="0" vertex="1">
 				<mxGeometry x="440" y="20" width="210" height="900"
 					as="geometry" />

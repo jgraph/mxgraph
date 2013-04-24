@@ -1,5 +1,5 @@
 /*
- * $Id: mxApplication.js,v 1.21 2010/11/08 20:09:40 gaudenz Exp $
+ * $Id: mxApplication.js,v 1.1 2012/11/15 13:26:50 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  *
  * Defines the startup sequence of the application.

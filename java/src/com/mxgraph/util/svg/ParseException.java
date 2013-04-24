@@ -28,7 +28,7 @@ package com.mxgraph.util.svg;
  * exceptions, it must wrap those exceptions in a ParseException.
  *
  * @author <a href="mailto:stephane@hillion.org">Stephane Hillion</a>
- * @version $Id: ParseException.java,v 1.1 2010/09/03 19:14:05 david Exp $
+ * @version $Id: ParseException.java,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  */
 public class ParseException extends RuntimeException
 {

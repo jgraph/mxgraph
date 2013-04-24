@@ -1,5 +1,5 @@
 /**
- * $Id: mxConnectionHandler.java,v 1.33 2012/02/14 08:17:01 gaudenz Exp $
+ * $Id: mxConnectionHandler.java,v 1.1 2012/11/15 13:26:44 gaudenz Exp $
  * Copyright (c) 2008, Gaudenz Alder
  */
 package com.mxgraph.swing.handler;

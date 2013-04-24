@@ -1,5 +1,5 @@
 /**
- * $Id: mxStyleRegistry.java,v 1.7 2013/02/20 11:41:04 gaudenz Exp $
+ * $Id: mxStyleRegistry.java,v 1.2 2013/02/20 11:41:05 gaudenz Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.view;

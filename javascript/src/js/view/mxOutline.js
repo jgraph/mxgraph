@@ -1,5 +1,5 @@
 /**
- * $Id: mxOutline.js,v 1.81 2012/06/20 14:13:37 gaudenz Exp $
+ * $Id: mxOutline.js,v 1.2 2012/11/20 20:10:48 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -222,7 +222,6 @@ mxOutline.prototype.init = function(container)
 	this.selectionBorder.dialect =
 		(this.outline.dialect != mxConstants.DIALECT_SVG) ?
 		mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
-	this.selectionBorder.crisp = true;
 	this.selectionBorder.init(this.outline.getView().getOverlayPane());
 	mxEvent.redirectMouseEvents(this.selectionBorder.node, this.outline);
 	this.selectionBorder.node.style.background = '';
@@ -321,7 +320,6 @@ mxOutline.prototype.createSizer = function()
 		var sizer = new mxRectangleShape(new mxRectangle(0, 0, this.sizerSize, this.sizerSize),
 			mxConstants.OUTLINE_HANDLE_FILLCOLOR, mxConstants.OUTLINE_HANDLE_STROKECOLOR);
 		sizer.dialect = this.outline.dialect;
-		sizer.crisp = true;
 	
 		return sizer;
 	}

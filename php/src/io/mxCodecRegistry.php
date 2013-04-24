@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxCodecRegistry.php,v 1.6 2010/06/30 11:03:50 gaudenz Exp $
+ * $Id: mxCodecRegistry.php,v 1.1 2012/11/15 13:26:46 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 class mxCodecRegistry

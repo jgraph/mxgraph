@@ -1,5 +1,5 @@
 /**
- * $Id: mxElbowEdgeHandler.java,v 1.11 2010/08/03 09:24:46 david Exp $
+ * $Id: mxElbowEdgeHandler.java,v 1.1 2012/11/15 13:26:44 gaudenz Exp $
  * Copyright (c) 2008, Gaudenz Alder
  */
 package com.mxgraph.swing.handler;

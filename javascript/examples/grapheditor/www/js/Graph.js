@@ -1,5 +1,5 @@
 /**
- * $Id: Graph.js,v 1.47 2012/12/11 15:51:11 gaudenz Exp $
+ * $Id: Graph.js,v 1.14 2013/02/16 10:19:54 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -18,6 +18,8 @@ Graph = function(container, model, renderHint, stylesheet)
 	this.setTooltips(!mxClient.IS_TOUCH);
 	this.setAllowLoops(true);
 	this.allowAutoPanning = true;
+	this.resetEdgesOnConnect = false;
+	this.constrainChildren = false;
 	
 	// Enables cloning of connection sources
 	this.connectionHandler.setCreateTarget(true);
@@ -63,7 +65,20 @@ Graph = function(container, model, renderHint, stylesheet)
 		var state = this.view.getState(cell);
 		var style = (state != null) ? state.style : this.getCellStyle(cell);
 		
-		return style['html'] == '1';
+		return style['html'] == '1' || style['whiteSpace'] == 'wrap';
+	};
+	
+	// HTML entities are displayed as plain text in wrapped plain text labels
+	this.cellRenderer.getLabelValue = function(state)
+	{
+		var result = mxCellRenderer.prototype.getLabelValue.apply(this, arguments);
+		
+		if (state.style['whiteSpace'] == 'wrap' && state.style['html'] != 1)
+		{
+			result = mxUtils.htmlEntities(result, false);
+		}
+		
+		return result;
 	};
 	
 	// Unlocks all cells
@@ -145,6 +160,44 @@ Graph.prototype.flipEdge = function(edge)
 				mxConstants.ELBOW_VERTICAL : mxConstants.ELBOW_HORIZONTAL;
 			this.setCellStyles(mxConstants.STYLE_ELBOW, value, [edge]);
 		}
+	}
+};
+
+/**
+ * Sets the default edge for future connections.
+ */
+Graph.prototype.setDefaultEdge = function(cell)
+{
+	if (cell != null && this.getModel().isEdge(cell))
+	{
+		// Take a snapshot of the cell at the moment of calling
+		var proto = this.getModel().cloneCells([cell])[0];
+		
+		// Delete existing points
+		if (proto.geometry != null)
+		{
+			proto.geometry.points = null;
+		}
+		
+		// Delete entry-/exitXY styles
+		var style = proto.getStyle();
+		style = mxUtils.setStyle(style, mxConstants.STYLE_ENTRY_X, null);
+		style = mxUtils.setStyle(style, mxConstants.STYLE_ENTRY_Y, null);
+		style = mxUtils.setStyle(style, mxConstants.STYLE_EXIT_X, null);
+		style = mxUtils.setStyle(style, mxConstants.STYLE_EXIT_Y, null);
+		proto.setStyle(style);
+		
+		// Uses edge template for connect preview
+		this.connectionHandler.createEdgeState = function(me)
+		{
+    		return this.graph.view.createState(proto);
+	    };
+
+	    // Creates new connections from edge template
+	    this.connectionHandler.factoryMethod = function()
+	    {
+    		return this.graph.cloneCells([proto])[0];
+	    };
 	}
 };
 
@@ -387,6 +440,13 @@ Graph.prototype.initTouch = function()
  */
 (function()
 {
+	// Enables rotation handle
+	mxVertexHandler.prototype.rotationEnabled = true;
+	
+	// Matches label positions of mxGraph 1.x
+	mxText.prototype.baseSpacingTop = 5;
+	mxText.prototype.baseSpacingBottom = 1;
+
 	// Touch-specific static overrides
 	if (touchStyle)
 	{
@@ -486,7 +546,6 @@ Graph.prototype.initTouch = function()
 		mxVertexHandler.prototype.init = function()
 		{
 			vertexHandlerInit.apply(this, arguments);
-			var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
 
 			// Only show connector image on one cell and do not show on containers
 			if (showConnectorImg && this.graph.connectionHandler.isEnabled() &&
@@ -510,7 +569,7 @@ Graph.prototype.initTouch = function()
 				this.connectorImg.style.padding = '2px';
 				
 				// Starts connecting on touch/mouse down
-				mxEvent.addListener(this.connectorImg, md,
+				mxEvent.addGestureListeners(this.connectorImg,
 					mxUtils.bind(this, function(evt)
 					{
 						this.graph.panningHandler.hideMenu();
@@ -591,15 +650,29 @@ Graph.prototype.initTouch = function()
 					!this.graph.isValidRoot(this.state.cell) &&
 					this.graph.getSelectionCount() == 1)
 				{
-					this.connectorImg = mxUtils.createImage(img.src);
-					this.connectorImg.style.cursor = 'pointer';
-					this.connectorImg.style.width = img.width + 'px';
-					this.connectorImg.style.height = img.height + 'px';
-					this.connectorImg.style.position = 'absolute';
+					// Workaround for event redirection via image tag in quirks and IE8
+					if (mxClient.IS_IE && !mxClient.IS_SVG)
+					{
+						this.connectorImg = document.createElement('div');
+						this.connectorImg.style.backgroundImage = 'url(' + img.src + ')';
+						this.connectorImg.style.backgroundPosition = 'center';
+						this.connectorImg.style.backgroundRepeat = 'no-repeat';
+						this.connectorImg.style.width = (img.width + 4) + 'px';
+						this.connectorImg.style.height = (img.height + 4) + 'px';
+						this.connectorImg.style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
+					}
+					else
+					{
+						this.connectorImg = mxUtils.createImage(img.src);
+						this.connectorImg.style.width = img.width + 'px';
+						this.connectorImg.style.height = img.height + 'px';
+					}
 					
+					this.connectorImg.style.cursor = 'pointer';
+					this.connectorImg.style.position = 'absolute';
 					this.connectorImg.setAttribute('title', mxResources.get('connect'));
 					mxEvent.redirectMouseEvents(this.connectorImg, this.graph, this.state);
-	
+					
 					// Adds 2px tolerance
 					this.connectorImg.style.padding = '2px';
 					

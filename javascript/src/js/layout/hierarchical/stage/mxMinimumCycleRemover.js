@@ -1,5 +1,5 @@
 /**
- * $Id: mxMinimumCycleRemover.js,v 1.14 2010/01/04 11:18:26 gaudenz Exp $
+ * $Id: mxMinimumCycleRemover.js,v 1.1 2012/11/15 13:26:50 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

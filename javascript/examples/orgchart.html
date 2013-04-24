@@ -1,5 +1,5 @@
 <!--
-  $Id: orgchart.html,v 1.67 2013/01/15 17:49:53 gaudenz Exp $
+  $Id: orgchart.html,v 1.6 2013/01/16 14:08:18 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
 
   Orgchart example for mxGraph. This example demonstrates using
@@ -82,6 +82,7 @@
 				graph.setCellsMovable(false);
 				graph.setAutoSizeCells(true);
 				graph.setPanning(true);
+				graph.centerZoom = false;
 				graph.panningHandler.useLeftButtonForPanning = true;
 
 				// Displays a popupmenu when the user clicks
@@ -183,6 +184,34 @@
 						result.width = Math.max(120, result.width - 40);
 					}
 
+					return result;
+				};
+				
+				// Sets the maximum text scale to 1
+				graph.cellRenderer.getTextScale = function(state)
+				{
+					return Math.min(1, state.view.scale);
+				};
+
+				// Dynamically adds text to the label as we zoom in
+				// (without affecting the preferred size for new cells)
+				graph.cellRenderer.getLabelValue = function(state)
+				{
+					var result = state.cell.value;
+					
+					if (state.view.graph.getModel().isVertex(state.cell))
+					{
+						if (state.view.scale > 1)
+						{
+							result += '\nDetails 1';
+						}
+						
+						if (state.view.scale > 1.3)
+						{
+							result += '\nDetails 2';
+						}
+					}
+					
 					return result;
 				};
 

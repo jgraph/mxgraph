@@ -1,5 +1,5 @@
 /**
- * $Id: Share.java,v 1.9 2012/01/13 12:40:38 david Exp $
+ * $Id: Share.java,v 1.1 2012/11/15 13:26:40 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.examples.web;

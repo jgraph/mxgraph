@@ -1,5 +1,5 @@
 /**
- * $Id: mxCell.java,v 1.32 2010/08/31 12:33:02 gaudenz Exp $
+ * $Id: mxCell.java,v 1.1 2012/11/15 13:26:47 gaudenz Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.model;

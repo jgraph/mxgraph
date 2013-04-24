@@ -1,5 +1,5 @@
 /**
- * $Id: mxArrow.js,v 1.31 2012/05/23 19:09:22 gaudenz Exp $
+ * $Id: mxArrow.js,v 1.1 2012/11/15 13:26:42 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -32,6 +32,7 @@
  */
 function mxArrow(points, fill, stroke, strokewidth, arrowWidth, spacing, endSize)
 {
+	mxShape.call(this);
 	this.points = points;
 	this.fill = fill;
 	this.stroke = stroke;
@@ -42,152 +43,25 @@ function mxArrow(points, fill, stroke, strokewidth, arrowWidth, spacing, endSize
 };
 
 /**
- * Extends <mxActor>.
+ * Extends mxShape.
  */
-mxArrow.prototype = new mxActor();
-mxArrow.prototype.constructor = mxArrow;
+mxUtils.extend(mxArrow, mxShape);
 
 /**
- * Variable: addPipe
- *
- * Specifies if a SVG path should be created around any path to increase the
- * tolerance for mouse events. Default is false since this shape is filled.
- */
-mxArrow.prototype.addPipe = false;
-
-/**
- * Variable: enableFill
- *
- * Specifies if fill colors should be ignored. This must be set to true for
- * shapes that are stroked only. Default is true since this shape is filled.
- */
-mxArrow.prototype.enableFill = true;
-
-/**
- * Function: configureTransparentBackground
+ * Function: paintEdgeShape
  * 
- * Overidden to remove transparent background.
+ * Paints the line shape.
  */
-mxArrow.prototype.configureTransparentBackground = function(node)
+mxArrow.prototype.paintEdgeShape = function(c, pts)
 {
-	// do nothing
-};
-
-/**
- * Function: updateBoundingBox
- *
- * Updates the <boundingBox> for this shape.
- */
-mxArrow.prototype.augmentBoundingBox = function(bbox)
-{
-	// FIXME: Fix precision, share math and cache results with painting code
-	bbox.grow(Math.max(this.arrowWidth / 2, this.endSize / 2) * this.scale);
-	
-	mxShape.prototype.augmentBoundingBox.apply(this, arguments);
-};
-
-/**
- * Function: createVml
- *
- * Extends <mxShape.createVml> to ignore fill if <enableFill> is false.
- */
-mxArrow.prototype.createVml = function()
-{
-	if (!this.enableFill)
-	{
-		this.fill = null;
-	}
-	
-	return mxActor.prototype.createVml.apply(this, arguments);
-};
-
-/**
- * Function: createSvg
- *
- * Extends <mxActor.createSvg> to ignore fill if <enableFill> is false and
- * create an event handling shape if <this.addPipe> is true.
- */
-mxArrow.prototype.createSvg = function()
-{
-	if (!this.enableFill)
-	{
-		this.fill = null;
-	}
-	
-	var g = mxActor.prototype.createSvg.apply(this, arguments);
-	
-	// Creates an invisible shape around the path for easier
-	// selection with the mouse. Note: Firefox does not ignore
-	// the value of the stroke attribute for pointer-events: stroke,
-	// it does, however, ignore the visibility attribute.
-	if (this.addPipe)
-	{
-		this.pipe = this.createSvgPipe();
-		g.appendChild(this.pipe);
-	}
-	
-	return g;
-};
-
-/**
- * Function: reconfigure
- *
- * Extends <mxActor.reconfigure> to ignore fill if <enableFill> is false.
- */
-mxArrow.prototype.reconfigure = function()
-{
-	if (!this.enableFill)
-	{
-		this.fill = null;
-	}
-	
-	mxActor.prototype.reconfigure.apply(this, arguments);
-};
-
-/**
- * Function: redrawSvg
- *
- * Extends <mxActor.redrawSvg> to update the event handling shape if one
- * exists.
- */
-mxArrow.prototype.redrawSvg = function()
-{
-	mxActor.prototype.redrawSvg.apply(this, arguments);
-	
-	if (this.pipe != null)
-	{
-		var d = this.innerNode.getAttribute('d');
-		
-		if (d != null)
-		{
-			this.pipe.setAttribute('d', this.innerNode.getAttribute('d'));
-			var strokeWidth = Math.round(this.strokewidth * this.scale);
-			this.pipe.setAttribute('stroke-width', strokeWidth + mxShape.prototype.SVG_STROKE_TOLERANCE);
-		}
-	}
-};
-
-/**
- * Function: redrawPath
- *
- * Draws the path for this shape. This method uses the <mxPath>
- * abstraction to paint the shape for VML and SVG.
- */
-mxArrow.prototype.redrawPath = function(path, x, y, w, h)
-{
-	// All points are offset
-	path.translate.x -= x;
-	path.translate.y -= y;
-
 	// Geometry of arrow
-	var spacing = this.spacing * this.scale;
-	var width = this.arrowWidth * this.scale;
-	var arrow = this.endSize * this.scale;
+	var spacing =  mxConstants.ARROW_SPACING;
+	var width = mxConstants.ARROW_WIDTH;
+	var arrow = mxConstants.ARROW_SIZE;
 
 	// Base vector (between end points)
-	var p0 = this.points[0];
-	var pe = this.points[this.points.length - 1];
-	
+	var p0 = pts[0];
+	var pe = pts[pts.length - 1];
 	var dx = pe.x - p0.x;
 	var dy = pe.y - p0.y;
 	var dist = Math.sqrt(dx * dx + dy * dy);
@@ -214,13 +88,15 @@ mxArrow.prototype.redrawPath = function(path, x, y, w, h)
 	var p5x = p3x - 3 * floorx;
 	var p5y = p3y - 3 * floory;
 	
-	path.moveTo(p0x, p0y);
-	path.lineTo(p1x, p1y);
-	path.lineTo(p2x, p2y);
-	path.lineTo(p3x, p3y);
-	path.lineTo(pe.x - spacing * nx, pe.y - spacing * ny);
-	path.lineTo(p5x, p5y);
-	path.lineTo(p5x + floorx, p5y + floory);
-	path.lineTo(p0x, p0y);
-	path.close();
+	c.begin();
+	c.moveTo(p0x, p0y);
+	c.lineTo(p1x, p1y);
+	c.lineTo(p2x, p2y);
+	c.lineTo(p3x, p3y);
+	c.lineTo(pe.x - spacing * nx, pe.y - spacing * ny);
+	c.lineTo(p5x, p5y);
+	c.lineTo(p5x + floorx, p5y + floory);
+	c.close();
+
+	c.fillAndStroke();
 };

@@ -1,5 +1,5 @@
 /**
- * $Id: mxTraversal.java,v 1.14 2012/11/21 13:59:52 mate Exp $
+ * $Id: mxTraversal.java,v 1.3 2012/11/21 14:16:01 mate Exp $
  * Copyright (c) 2011-2012, JGraph Ltd
  */
 package com.mxgraph.analysis;

@@ -1,4 +1,4 @@
-// $Id: mxCodec.cs,v 1.26 2010/09/20 06:21:37 gaudenz Exp $
+// $Id: mxCodec.cs,v 1.1 2012/11/15 13:26:49 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Collections.Generic;

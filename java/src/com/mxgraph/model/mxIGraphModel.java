@@ -1,5 +1,5 @@
 /**
- * $Id: mxIGraphModel.java,v 1.24 2009/05/22 11:58:23 gaudenz Exp $
+ * $Id: mxIGraphModel.java,v 1.1 2012/11/15 13:26:47 gaudenz Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.model;

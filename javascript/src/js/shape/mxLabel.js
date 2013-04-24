@@ -1,5 +1,5 @@
 /**
- * $Id: mxLabel.js,v 1.40 2012/05/22 16:10:12 gaudenz Exp $
+ * $Id: mxLabel.js,v 1.9 2012/12/04 12:51:40 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -24,24 +24,13 @@
  */
 function mxLabel(bounds, fill, stroke, strokewidth)
 {
-	this.bounds = bounds;
-	this.fill = fill;
-	this.stroke = stroke;
-	this.strokewidth = (strokewidth != null) ? strokewidth : 1;
+	mxRectangleShape.call(this, bounds, fill, stroke, strokewidth);
 };
 
 /**
  * Extends mxShape.
  */
-mxLabel.prototype = new mxShape();
-mxLabel.prototype.constructor = mxLabel;
-
-/**
- * Variable: vmlNodes
- *
- * Adds local references to <mxShape.vmlNodes>.
- */
-mxLabel.prototype.vmlNodes = mxLabel.prototype.vmlNodes.concat(['label', 'imageNode', 'indicatorImageNode', 'rectNode']);
+mxUtils.extend(mxLabel, mxRectangleShape);
 
 /**
  * Variable: imageSize
@@ -54,15 +43,14 @@ mxLabel.prototype.imageSize = mxConstants.DEFAULT_IMAGESIZE;
 /**
  * Variable: spacing
  *
- * Default value for spacing. Default is 2.
+ * Default value for image spacing. Default is 2.
  */
 mxLabel.prototype.spacing = 2;
 
 /**
  * Variable: indicatorSize
  *
- * Default width and height for the indicicator. Default is
- * 10.
+ * Default width and height for the indicicator. Default is 10.
  */
 mxLabel.prototype.indicatorSize = 10;
 
@@ -74,26 +62,14 @@ mxLabel.prototype.indicatorSize = 10;
 mxLabel.prototype.indicatorSpacing = 2;
 
 /**
- * Variable: opaqueVmlImages
- * 
- * Specifies if all VML images should be rendered without transparency, that
- * is, if the current opacity should be ignored for images. Default is false.
- */
-mxLabel.prototype.opaqueVmlImages = false;
-
-/**
  * Function: init
  *
- * Initializes the shape and adds it to the container. This function is
- * overridden so that the node is already in the DOM when the indicator
- * is added. This is required to access the ownerSVGelement of the
- * container in the init function of the indicator.
+ * Initializes the shape and the <indicator>.
  */
 mxLabel.prototype.init = function(container)
 {
 	mxShape.prototype.init.apply(this, arguments);
-	
-	// Creates the indicator shape after the node was added to the DOM
+
 	if (this.indicatorColor != null && this.indicatorShape != null)
 	{
 		this.indicator = new this.indicatorShape();
@@ -104,324 +80,201 @@ mxLabel.prototype.init = function(container)
 		this.indicator.gradient = this.indicatorGradientColor;
 		this.indicator.direction = this.indicatorDirection;
 		this.indicator.init(this.node);
-		this.indicatorShape = null;
 	}
 };
 
 /**
- * Function: reconfigure
+ * Function: redraw
  *
  * Reconfigures this shape. This will update the colors of the indicator
  * and reconfigure it if required.
  */
-mxLabel.prototype.reconfigure = function()
+mxLabel.prototype.redraw = function()
 {
-	mxShape.prototype.reconfigure.apply(this);
-	
 	if (this.indicator != null)
 	{
 		this.indicator.fill = this.indicatorColor;
 		this.indicator.stroke = this.indicatorColor;
 		this.indicator.gradient = this.indicatorGradientColor;
 		this.indicator.direction = this.indicatorDirection;
-		this.indicator.reconfigure();
 	}
+	
+	mxShape.prototype.redraw.apply(this, arguments);
 };
 
 /**
- * Function: createHtml
+ * Function: isHtmlAllowed
  *
- * Creates and returns the HTML node to represent this shape.
+ * Returns true for non-rounded, non-rotated shapes with no glass gradient and
+ * no indicator shape.
  */
-mxLabel.prototype.createHtml = function()
+mxLabel.prototype.isHtmlAllowed = function()
 {
-	var name = 'DIV';
-	var node = document.createElement(name);
-	this.configureHtmlShape(node);
+	return mxRectangleShape.prototype.isHtmlAllowed.apply(this, arguments) &&
+		this.indicatorColor == null && this.indicatorShape == null;
+};
+
+/**
+ * Function: paintForeground
+ * 
+ * Generic background painting implementation.
+ */
+mxLabel.prototype.paintForeground = function(c, x, y, w, h)
+{
+	this.paintImage(c, x, y, w, h);
+	this.paintIndicator(c, x, y, w, h);
 	
-	// Adds a small subshape inside this shape
-	if (this.indicatorImage != null)
-	{
-		this.indicatorImageNode = mxUtils.createImage(this.indicatorImage);
-		this.indicatorImageNode.style.position = 'absolute';
-		node.appendChild(this.indicatorImageNode);
-	}
-	
-	// Adds an image node to the div
+	mxRectangleShape.prototype.paintForeground.apply(this, arguments);
+};
+
+/**
+ * Function: paintImage
+ * 
+ * Generic background painting implementation.
+ */
+mxLabel.prototype.paintImage = function(c, x, y, w, h)
+{
 	if (this.image != null)
 	{
-		this.imageNode = mxUtils.createImage(this.image);
-		this.stroke = null;
-		this.configureHtmlShape(this.imageNode);
-		mxUtils.setOpacity(this.imageNode, '100');
-		node.appendChild(this.imageNode);
+		var bounds = this.getImageBounds(x, y, w, h);
+		c.image(bounds.x, bounds.y, bounds.width, bounds.height, this.image, false, false, false);
 	}
-	
-	return node;
 };
 
 /**
- * Function: createVml
- *
- * Creates and returns the VML node to represent this shape.
+ * Function: getImageBounds
+ * 
+ * Generic background painting implementation.
  */
-mxLabel.prototype.createVml = function()
+mxLabel.prototype.getImageBounds = function(x, y, w, h)
 {
-	var node = document.createElement('v:group');
+	var align = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_ALIGN, mxConstants.ALIGN_LEFT);
+	var valign = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_VERTICAL_ALIGN, mxConstants.ALIGN_MIDDLE);
+	var width = mxUtils.getNumber(this.style, mxConstants.STYLE_IMAGE_WIDTH, mxConstants.DEFAULT_IMAGESIZE);
+	var height = mxUtils.getNumber(this.style, mxConstants.STYLE_IMAGE_HEIGHT, mxConstants.DEFAULT_IMAGESIZE);
+	var spacing = mxUtils.getNumber(this.style, mxConstants.STYLE_SPACING, this.spacing) + 5;
 
-	// Background
-	var name = (this.isRounded) ? 'v:roundrect' : 'v:rect';
-	this.rectNode = document.createElement(name);
-	this.configureVmlShape(this.rectNode);
-	
-	// Disables the shadow and configures the enclosing group
-	this.isShadow = false;
-	this.configureVmlShape(node);
-	node.coordorigin = '0,0';
-	node.appendChild(this.rectNode);
-	
-	// Adds a small subshape inside this shape
-	if (this.indicatorImage != null)
+	if (align == mxConstants.ALIGN_CENTER)
 	{
-		this.indicatorImageNode = this.createVmlImage(this.indicatorImage, (this.opaqueVmlImages) ? null : this.opacity);
-		node.appendChild(this.indicatorImageNode);
+		x += (w - width) / 2;
 	}
-	
-	// Adds an image node to the div
-	if (this.image != null)
+	else if (align == mxConstants.ALIGN_RIGHT)
 	{
-		this.imageNode = this.createVmlImage(this.image, (this.opaqueVmlImages) ? null : this.opacity);
-		node.appendChild(this.imageNode);
-	}
-	
-	// Container for the label on top of everything
-	this.label = document.createElement('v:rect');
-	this.label.style.top = '0px'; // relative
-	this.label.style.left = '0px'; // relative
-	this.label.filled = 'false';
-	this.label.stroked = 'false';
-	node.appendChild(this.label);
-	
-	return node;
-};
-
-/**
- * Function: createVmlImage
- *
- * Creates an image node for the given image src and opacity to be used in VML.
- */
-mxLabel.prototype.createVmlImage = function(src, opacity)
-{
-	var result = null;
-	
-	// Workaround for data URIs not supported in VML and for added
-	// border around images if opacity is used (not needed in IE9,
-	// but IMG node is probably better and faster anyway).
-	if (src.substring(0, 5) == 'data:' || opacity != null)
-	{
-		result = document.createElement('img');
-		mxUtils.setOpacity(result, opacity);
-		result.setAttribute('border', '0');
-		result.style.position = 'absolute';
-		result.setAttribute('src', src);
-	}
-	else
-	{
-		result = document.createElement('v:image');
-		result.src = src;
-	}
-	
-	return result;
-};
-
-/**
- * Function: createSvg
- *
- * Creates and returns the SVG node to represent this shape.
- */
-mxLabel.prototype.createSvg = function()
-{
-	var g = this.createSvgGroup('rect');
-
-	// Adds a small subshape to the svg group
-	if (this.indicatorImage != null)
-	{
-		this.indicatorImageNode = document.createElementNS(mxConstants.NS_SVG, 'image');
-		this.indicatorImageNode.setAttributeNS(mxConstants.NS_XLINK, 'href', this.indicatorImage);
-		g.appendChild(this.indicatorImageNode);
-		
-		if (this.opacity != null)
-		{
-			this.indicatorImageNode.setAttribute('opacity', this.opacity / 100);
-		}
-	}
-	
-	// Adds an image to the svg group
-	if (this.image != null)
-	{
-		this.imageNode = document.createElementNS(mxConstants.NS_SVG, 'image');
-		this.imageNode.setAttributeNS(mxConstants.NS_XLINK, 'href', this.image);
-		
-		if (this.opacity != null)
-		{
-			this.imageNode.setAttribute('opacity', this.opacity / 100);
-		}
-
-		// Disables control-click and alt-click in Firefox
-		this.imageNode.setAttribute('style', 'pointer-events:none');
-		this.configureSvgShape(this.imageNode);
-		g.appendChild(this.imageNode);
-	}
-
-	return g;
-};
-
-/**
- * Function: redraw
- *
- * Overrides redraw to define a unified implementation for redrawing
- * all supported dialects.
- */
-mxLabel.prototype.redraw = function()
-{
-	this.updateBoundingBox();
-	var isSvg = (this.dialect == mxConstants.DIALECT_SVG);
-	var isVml = mxUtils.isVml(this.node);
-	
-	// Updates the bounds of the outermost shape
-	if (isSvg)
-	{
-		this.updateSvgShape(this.innerNode);
-		
-		if (this.shadowNode != null)
-		{
-			this.updateSvgShape(this.shadowNode);
-		}
-
-		this.updateSvgGlassPane();
-	}
-	else if (isVml)
-	{
-		this.updateVmlShape(this.node);
-		this.updateVmlShape(this.rectNode);
-		this.label.style.width = this.node.style.width;
-		this.label.style.height = this.node.style.height;
-		
-		this.updateVmlGlassPane();
-	}
-	else
-	{
-		this.updateHtmlShape(this.node);
-	}
-
-	// Updates the imagewidth and imageheight		
-	var imageWidth = 0;
-	var imageHeight = 0;
-	
-	if (this.imageNode != null)
-	{
-		imageWidth = (this.style[mxConstants.STYLE_IMAGE_WIDTH] ||
-			this.imageSize) * this.scale;
-		imageHeight = (this.style[mxConstants.STYLE_IMAGE_HEIGHT] ||
-			this.imageSize) * this.scale;
-	}
-	
-	// Updates the subshape size and location
-	var indicatorSpacing = 0;
-	var indicatorWidth = 0;
-	var indicatorHeight = 0;
-	
-	if (this.indicator != null || this.indicatorImageNode != null)
-	{
-		indicatorSpacing = (this.style[mxConstants.STYLE_INDICATOR_SPACING] ||
-			this.indicatorSpacing) * this.scale;
-		indicatorWidth = (this.style[mxConstants.STYLE_INDICATOR_WIDTH] ||
-			this.indicatorSize) * this.scale;
-		indicatorHeight = (this.style[mxConstants.STYLE_INDICATOR_HEIGHT] ||
-			this.indicatorSize) * this.scale;
-	}
-	
-	var align = this.style[mxConstants.STYLE_IMAGE_ALIGN];
-	var valign = this.style[mxConstants.STYLE_IMAGE_VERTICAL_ALIGN];
-
-	var inset = this.spacing * this.scale + 5;		
-	var width = Math.max(imageWidth, indicatorWidth);
-	var height = imageHeight + indicatorSpacing + indicatorHeight;
-	
-	var x = (isSvg) ? this.bounds.x : 0;
-	
-	if (align == mxConstants.ALIGN_RIGHT)
-	{
-		x += this.bounds.width - width - inset;
-	}
-	else if (align == mxConstants.ALIGN_CENTER)
-	{
-		x += (this.bounds.width - width) / 2;
+		x += w - width - spacing;
 	}
 	else // default is left
 	{
-		x += inset;
+		x += spacing;
 	}
-	
-	var y = (isSvg) ? this.bounds.y : 0;
-	
-	if (valign == mxConstants.ALIGN_BOTTOM)
+
+	if (valign == mxConstants.ALIGN_TOP)
 	{
-		y += this.bounds.height - height - inset;
+		y += spacing;
 	}
-	else if (valign == mxConstants.ALIGN_TOP)
+	else if (valign == mxConstants.ALIGN_BOTTOM)
 	{
-		y += inset;
+		y += h - height - spacing;
 	}
 	else // default is middle
 	{
-		y += (this.bounds.height - height) / 2;
+		y += (h - height) / 2;
 	}
 	
-	// Updates the imagenode
-	if (this.imageNode != null)
-	{
-		if (isSvg)
-		{
-			this.imageNode.setAttribute('x', (x + (width - imageWidth) / 2) + 'px');
-			this.imageNode.setAttribute('y', y + 'px');
-			this.imageNode.setAttribute('width', imageWidth + 'px');
-			this.imageNode.setAttribute('height', imageHeight + 'px');
-		}
-		else
-		{
-			this.imageNode.style.left = (x + width - imageWidth) + 'px';
-			this.imageNode.style.top = y + 'px';
-			this.imageNode.style.width = imageWidth + 'px';
-			this.imageNode.style.height = imageHeight + 'px';
-			this.imageNode.stroked = 'false';
-		}
-	}
-	
-	// Updates the subshapenode (aka. indicator)
+	return new mxRectangle(x, y, width, height);
+};
+
+/**
+ * Function: paintIndicator
+ * 
+ * Generic background painting implementation.
+ */
+mxLabel.prototype.paintIndicator = function(c, x, y, w, h)
+{
 	if (this.indicator != null)
 	{
-		this.indicator.bounds = new mxRectangle(
-			x + (width - indicatorWidth) / 2,
-			y + imageHeight + indicatorSpacing,
-			indicatorWidth, indicatorHeight);
-		this.indicator.redraw();
+		this.indicator.bounds = this.getIndicatorBounds(x, y, w, h);
+		this.indicator.paint(c);
 	}
-	else if (this.indicatorImageNode != null)
+	else if (this.indicatorImage != null)
 	{
-		if (isSvg)
-		{
-			this.indicatorImageNode.setAttribute('x', (x + (width - indicatorWidth) / 2) + 'px');
-			this.indicatorImageNode.setAttribute('y', (y + imageHeight + indicatorSpacing) + 'px');
-			this.indicatorImageNode.setAttribute('width', indicatorWidth + 'px');
-			this.indicatorImageNode.setAttribute('height', indicatorHeight + 'px');
-		}
-		else
-		{			
-			this.indicatorImageNode.style.left = (x + (width - indicatorWidth) / 2) + 'px';
-			this.indicatorImageNode.style.top = (y + imageHeight + indicatorSpacing) + 'px';
-			this.indicatorImageNode.style.width = indicatorWidth + 'px';
-			this.indicatorImageNode.style.height = indicatorHeight + 'px';
-		}
+		var bounds = this.getIndicatorBounds(x, y, w, h);
+		c.image(bounds.x, bounds.y, bounds.width, bounds.height, this.indicatorImage, false, false, false);
+	}
+};
+
+/**
+ * Function: getIndicatorBounds
+ * 
+ * Generic background painting implementation.
+ */
+mxLabel.prototype.getIndicatorBounds = function(x, y, w, h)
+{
+	var align = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_ALIGN, mxConstants.ALIGN_LEFT);
+	var valign = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_VERTICAL_ALIGN, mxConstants.ALIGN_MIDDLE);
+	var width = mxUtils.getNumber(this.style, mxConstants.STYLE_INDICATOR_WIDTH, this.indicatorSize);
+	var height = mxUtils.getNumber(this.style, mxConstants.STYLE_INDICATOR_HEIGHT, this.indicatorSize);
+	var spacing = this.spacing + 5;		
+	
+	if (align == mxConstants.ALIGN_RIGHT)
+	{
+		x += w - width - spacing;
+	}
+	else if (align == mxConstants.ALIGN_CENTER)
+	{
+		x += (w - width) / 2;
+	}
+	else // default is left
+	{
+		x += spacing;
+	}
+	
+	if (valign == mxConstants.ALIGN_BOTTOM)
+	{
+		y += h - height - spacing;
+	}
+	else if (valign == mxConstants.ALIGN_TOP)
+	{
+		y += spacing;
+	}
+	else // default is middle
+	{
+		y += (h - height) / 2;
+	}
+	
+	return new mxRectangle(x, y, width, height);
+};
+/**
+ * Function: redrawHtmlShape
+ * 
+ * Generic background painting implementation.
+ */
+mxLabel.prototype.redrawHtmlShape = function()
+{
+	mxRectangleShape.prototype.redrawHtmlShape.apply(this, arguments);
+	
+	// Removes all children
+	while(this.node.hasChildNodes())
+	{
+		this.node.removeChild(this.node.lastChild);
+	}
+	
+	if (this.image != null)
+	{
+		var node = document.createElement('img');
+		node.style.position = 'relative';
+		node.setAttribute('border', '0');
+		
+		var bounds = this.getImageBounds(this.bounds.x, this.bounds.y, this.bounds.width, this.bounds.height);
+		bounds.x -= this.bounds.x;
+		bounds.y -= this.bounds.y;
+
+		node.style.left = Math.round(bounds.x) + 'px';
+		node.style.top = Math.round(bounds.y) + 'px';
+		node.style.width = Math.round(bounds.width) + 'px';
+		node.style.height = Math.round(bounds.height) + 'px';
+		
+		node.src = this.image;
+		
+		this.node.appendChild(node);
 	}
 };

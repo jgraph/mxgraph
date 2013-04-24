@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphViewReader.java,v 1.33 2010/07/22 08:49:29 gaudenz Exp $
+ * $Id: mxGraphViewReader.java,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.reader;

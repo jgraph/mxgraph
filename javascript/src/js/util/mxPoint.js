@@ -1,5 +1,5 @@
 /**
- * $Id: mxPoint.js,v 1.12 2010/01/02 09:45:14 gaudenz Exp $
+ * $Id: mxPoint.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

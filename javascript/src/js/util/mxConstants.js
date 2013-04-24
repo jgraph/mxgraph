@@ -1,5 +1,5 @@
 /**
- * $Id: mxConstants.js,v 1.128 2013/01/16 08:40:17 gaudenz Exp $
+ * $Id: mxConstants.js,v 1.10 2013/04/09 16:22:39 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
  var mxConstants =
@@ -505,6 +505,25 @@
 	DEFAULT_FONTSIZE: 11,
 
 	/**
+	 * Variable: LINE_HEIGHT
+	 * 
+	 * Defines the default line height for text labels. Default is 1.2.
+	 */
+	LINE_HEIGHT: 1.2,
+
+	/**
+	 * Variable: DEFAULT_FONTSTYLE
+	 * 
+	 * Defines the default style for all fonts. Default is 0. This can be set
+	 * to any combination of font styles as follows.
+	 * 
+	 * (code)
+	 * mxConstants.DEFAULT_FONTSTYLE = mxConstants.FONT_BOLD | mxConstants.FONT_ITALIC;
+	 * (end)
+	 */
+	DEFAULT_FONTSTYLE: 0,
+
+	/**
 	 * Variable: DEFAULT_STARTSIZE
 	 * 
 	 * Defines the default start size for swimlanes. Default is 40.
@@ -771,6 +790,14 @@
 	STYLE_FILLCOLOR: 'fillColor',
 
 	/**
+	 * Variable: STYLE_FILLCOLOR
+	 * 
+	 * Defines the key for the fill color of the swimlane background. Possible
+	 * values are all HTML color names or HEX codes. Default is no background.
+	 */
+	STYLE_SWIMLANE_FILLCOLOR: 'swimlaneFillColor',
+
+	/**
 	 * Variable: STYLE_GRADIENTCOLOR
 	 * 
 	 * Defines the key for the gradient color. Possible values are all HTML color
@@ -969,36 +996,20 @@
 	STYLE_IMAGE_BORDER: 'imageBorder',
 
 	/**
-	 * Variable: STYLE_IMAGE_FLIPH
+	 * Variable: STYLE_FLIPH
 	 * 
 	 * Defines the key for the horizontal image flip. This style is only used
 	 * in <mxImageShape>. Possible values are 0 and 1. Default is 0.
 	 */
-	STYLE_IMAGE_FLIPH: 'imageFlipH',
+	STYLE_FLIPH: 'flipH',
 
 	/**
-	 * Variable: STYLE_IMAGE_FLIPV
+	 * Variable: STYLE_FLIPV
 	 * 
-	 * Defines the key for the vertical image flip. This style is only used
-	 * in <mxImageShape>. Possible values are 0 and 1. Default is 0.
+	 * Defines the key for the vertical flip. Possible values are 0 and 1.
+	 * Default is 0.
 	 */
-	STYLE_IMAGE_FLIPV: 'imageFlipV',
-
-	/**
-	 * Variable: STYLE_STENCIL_FLIPH
-	 * 
-	 * Defines the key for the horizontal stencil flip. This style is only used
-	 * for <mxStencilShape>. Possible values are 0 and 1. Default is 0.
-	 */
-	STYLE_STENCIL_FLIPH: 'stencilFlipH',
-
-	/**
-	 * Variable: STYLE_STENCIL_FLIPV
-	 * 
-	 * Defines the key for the vertical stencil flip. This style is only used
-	 * for <mxStencilShape>. Possible values are 0 and 1. Default is 0.
-	 */
-	STYLE_STENCIL_FLIPV: 'stencilFlipV',
+	STYLE_FLIPV: 'flipV',
 
 	/**
 	 * Variable: STYLE_NOLABEL
@@ -1180,6 +1191,15 @@
 	STYLE_STARTSIZE: 'startSize',
 
 	/**
+	 * Variable: STYLE_SWIMLANE_LINE
+	 * 
+	 * Defines the key for the swimlaneLine style. This style specifies whether
+	 * the line between the title regio of a swimlane should be visible. Use 0
+	 * for hidden or 1 (default) for visible.
+	 */
+	STYLE_SWIMLANE_LINE: 'swimlaneLine',
+
+	/**
 	 * Variable: STYLE_ENDFILL
 	 * 
 	 * Defines the key for the endFill style. Use 0 for no fill or 1
@@ -1222,7 +1242,7 @@
 	 * Boolean. For edges this determines whether or not joins between edges
 	 * segments are smoothed to a rounded finish. For vertices that have the
 	 * rectangle shape, this determines whether or not the rectangle is
-	 * rounded.
+	 * rounded. Use 0 (default) for non-rounded or 1 for rounded.
 	 */
 	STYLE_ROUNDED: 'rounded',
 
@@ -1240,7 +1260,9 @@
 	 * 
 	 * Defines the rounding factor for a rounded rectangle in percent (without
 	 * the percent sign). Possible values are between 0 and 100. If this value
-	 * is not specified then RECTANGLE_ROUNDING_FACTOR * 100 is used.
+	 * is not specified then RECTANGLE_ROUNDING_FACTOR * 100 is used. For
+	 * edges, this defines the absolute size of rounded corners in pixels. If
+	 * this values is not specified then LINE_ARCSIZE is used.
 	 * (This style is only exported via <mxImageExport>.)
 	 */
 	STYLE_ARCSIZE: 'arcSize',
@@ -1454,6 +1476,15 @@
 	STYLE_RESIZABLE: 'resizable',
 
 	/**
+	 * Variable: STYLE_ROTATABLE
+	 * 
+	 * Defines the key for the rotatable style. This specifies if a cell can
+	 * be rotated. Possible values are 0 or 1. Default is 1. See
+	 * <mxGraph.isCellRotatable>.
+	 */
+	STYLE_ROTATABLE: 'rotatable',
+
+	/**
 	 * Variable: STYLE_CLONEABLE
 	 * 
 	 * Defines the key for the cloneable style. This specifies if a cell can
@@ -1544,120 +1575,120 @@
 	/**
 	 * Variable: SHAPE_RECTANGLE
 	 * 
-	 * Name under which <mxRectangleShape> is registered
-	 * in <mxCellRenderer>. Default is rectangle.
+	 * Name under which <mxRectangleShape> is registered in <mxCellRenderer>.
+	 * Default is rectangle.
 	 */
 	SHAPE_RECTANGLE: 'rectangle',
 
 	/**
 	 * Variable: SHAPE_ELLIPSE
 	 * 
-	 * Name under which <mxEllipse> is registered
-	 * in <mxCellRenderer>. Default is ellipse.
+	 * Name under which <mxEllipse> is registered in <mxCellRenderer>.
+	 * Default is ellipse.
 	 */
 	SHAPE_ELLIPSE: 'ellipse',
 
 	/**
 	 * Variable: SHAPE_DOUBLE_ELLIPSE
 	 * 
-	 * Name under which <mxDoubleEllipse> is registered
-	 * in <mxCellRenderer>. Default is doubleEllipse.
+	 * Name under which <mxDoubleEllipse> is registered in <mxCellRenderer>.
+	 * Default is doubleEllipse.
 	 */
 	SHAPE_DOUBLE_ELLIPSE: 'doubleEllipse',
 
 	/**
 	 * Variable: SHAPE_RHOMBUS
 	 * 
-	 * Name under which <mxRhombus> is registered
-	 * in <mxCellRenderer>. Default is rhombus.
+	 * Name under which <mxRhombus> is registered in <mxCellRenderer>.
+	 * Default is rhombus.
 	 */
 	SHAPE_RHOMBUS: 'rhombus',
 
 	/**
 	 * Variable: SHAPE_LINE
 	 * 
-	 * Name under which <mxLine> is registered
-	 * in <mxCellRenderer>. Default is line.
+	 * Name under which <mxLine> is registered in <mxCellRenderer>.
+	 * Default is line.
 	 */
 	SHAPE_LINE: 'line',
 
 	/**
 	 * Variable: SHAPE_IMAGE
 	 * 
-	 * Name under which <mxImageShape> is registered
-	 * in <mxCellRenderer>. Default is image.
+	 * Name under which <mxImageShape> is registered in <mxCellRenderer>.
+	 * Default is image.
 	 */
 	SHAPE_IMAGE: 'image',
 	
 	/**
 	 * Variable: SHAPE_ARROW
 	 * 
-	 * Name under which <mxArrow> is registered
-	 * in <mxCellRenderer>. Default is arrow.
+	 * Name under which <mxArrow> is registered in <mxCellRenderer>.
+	 * Default is arrow.
 	 */
 	SHAPE_ARROW: 'arrow',
 	
 	/**
 	 * Variable: SHAPE_LABEL
 	 * 
-	 * Name under which <mxLabel> is registered
-	 * in <mxCellRenderer>. Default is label.
+	 * Name under which <mxLabel> is registered in <mxCellRenderer>.
+	 * Default is label.
 	 */
 	SHAPE_LABEL: 'label',
 	
 	/**
 	 * Variable: SHAPE_CYLINDER
 	 * 
-	 * Name under which <mxCylinder> is registered
-	 * in <mxCellRenderer>. Default is cylinder.
+	 * Name under which <mxCylinder> is registered in <mxCellRenderer>.
+	 * Default is cylinder.
 	 */
 	SHAPE_CYLINDER: 'cylinder',
 	
 	/**
 	 * Variable: SHAPE_SWIMLANE
 	 * 
-	 * Name under which <mxSwimlane> is registered
-	 * in <mxCellRenderer>. Default is swimlane.
+	 * Name under which <mxSwimlane> is registered in <mxCellRenderer>.
+	 * Default is swimlane.
 	 */
 	SHAPE_SWIMLANE: 'swimlane',
 		
 	/**
 	 * Variable: SHAPE_CONNECTOR
 	 * 
-	 * Name under which <mxConnector> is registered
-	 * in <mxCellRenderer>. Default is connector.
+	 * Name under which <mxConnector> is registered in <mxCellRenderer>.
+	 * Default is connector.
 	 */
 	SHAPE_CONNECTOR: 'connector',
-		
+
 	/**
 	 * Variable: SHAPE_ACTOR
 	 * 
-	 * Name under which <mxActor> is registered
-	 * in <mxCellRenderer>. Default is actor.
+	 * Name under which <mxActor> is registered in <mxCellRenderer>.
+	 * Default is actor.
 	 */
 	SHAPE_ACTOR: 'actor',
 		
 	/**
 	 * Variable: SHAPE_CLOUD
 	 * 
-	 * Name under which <mxCloud> is registered
-	 * in <mxCellRenderer>. Default is cloud.
+	 * Name under which <mxCloud> is registered in <mxCellRenderer>.
+	 * Default is cloud.
 	 */
 	SHAPE_CLOUD: 'cloud',
 		
 	/**
 	 * Variable: SHAPE_TRIANGLE
 	 * 
-	 * Name under which <mxTriangle> is registered
-	 * in <mxCellRenderer>. Default is triangle.
+	 * Name under which <mxTriangle> is registered in <mxCellRenderer>.
+	 * Default is triangle.
 	 */
 	SHAPE_TRIANGLE: 'triangle',
 		
 	/**
 	 * Variable: SHAPE_HEXAGON
 	 * 
-	 * Name under which <mxHexagon> is registered
-	 * in <mxCellRenderer>. Default is hexagon.
+	 * Name under which <mxHexagon> is registered in <mxCellRenderer>.
+	 * Default is hexagon.
 	 */
 	SHAPE_HEXAGON: 'hexagon',
 

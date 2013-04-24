@@ -1,5 +1,5 @@
 /**
- * $Id: mxLayoutManager.js,v 1.21 2012/01/04 10:01:16 gaudenz Exp $
+ * $Id: mxLayoutManager.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
