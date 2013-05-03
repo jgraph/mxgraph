@@ -1,5 +1,5 @@
 /**
- * $Id: mxCompactTreeLayout.js,v 1.57 2012/05/24 13:09:34 david Exp $
+ * $Id: mxCompactTreeLayout.js,v 1.58 2013/04/25 10:01:52 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -59,7 +59,7 @@ mxCompactTreeLayout.prototype.resizeParent = true;
 /**
  * Variable: groupPadding
  * 
- * Padding added to resized parents
+ * Padding added to resized parents.
  */
 mxCompactTreeLayout.prototype.groupPadding = 10;
 
@@ -67,7 +67,7 @@ mxCompactTreeLayout.prototype.groupPadding = 10;
  * Variable: parentsChanged
  *
  * A set of the parents that need updating based on children
- * process as part of the layout
+ * process as part of the layout.
  */
 mxCompactTreeLayout.prototype.parentsChanged = null;
 
@@ -104,21 +104,21 @@ mxCompactTreeLayout.prototype.resetEdges = true;
 /**
  * Variable: prefHozEdgeSep
  * 
- * The preferred horizontal distance between edges exiting a vertex
+ * The preferred horizontal distance between edges exiting a vertex.
  */
 mxCompactTreeLayout.prototype.prefHozEdgeSep = 5;
 
 /**
  * Variable: prefVertEdgeOff
  * 
- * The preferred vertical offset between edges exiting a vertex
+ * The preferred vertical offset between edges exiting a vertex.
  */
 mxCompactTreeLayout.prototype.prefVertEdgeOff = 4;
 
 /**
  * Variable: minEdgeJetty
  * 
- * The minimum distance for an edge jetty from a vertex
+ * The minimum distance for an edge jetty from a vertex.
  */
 mxCompactTreeLayout.prototype.minEdgeJetty = 8;
 
@@ -126,16 +126,24 @@ mxCompactTreeLayout.prototype.minEdgeJetty = 8;
  * Variable: channelBuffer
  * 
  * The size of the vertical buffer in the center of inter-rank channels
- * where edge control points should not be placed
+ * where edge control points should not be placed.
  */
 mxCompactTreeLayout.prototype.channelBuffer = 4;
 
 /**
  * Variable: edgeRouting
  * 
- * Whether or not to apply the internal tree edge routing
+ * Whether or not to apply the internal tree edge routing.
  */
 mxCompactTreeLayout.prototype.edgeRouting = true;
+
+/**
+ * Variable: sortEdges
+ * 
+ * Specifies if edges should be sorted according to the order of their
+ * opposite terminal cell in the model.
+ */
+mxCompactTreeLayout.prototype.sortEdges = false;
 
 /**
  * Function: isVertexIgnored
@@ -318,6 +326,43 @@ mxCompactTreeLayout.prototype.moveNode = function(node, dx, dy)
 	}
 };
 
+
+/**
+ * Function: sortOutgoingEdges
+ * 
+ * Called if <sortEdges> is true to sort the array of outgoing edges in place.
+ */
+mxCompactTreeLayout.prototype.sortOutgoingEdges = function(source, edges)
+{
+	var lookup = new mxDictionary();
+	
+	edges.sort(function(e1, e2)
+	{
+		var end1 = e1.getTerminal(e1.getTerminal(false) == source);
+		var p1 = lookup.get(end1);
+		
+		if (p1 == null)
+		{
+			p1 = mxCellPath.create(end1).split(mxCellPath.PATH_SEPARATOR);
+			lookup.put(end1, p1);
+		}
+
+		var end2 = e2.getTerminal(e2.getTerminal(false) == source);
+		var p2 = lookup.get(end2);
+		
+		if (p2 == null)
+		{
+			p2 = mxCellPath.create(end2).split(mxCellPath.PATH_SEPARATOR);
+			lookup.put(end2, p2);
+		}
+		
+		mxLog.show();
+		mxLog.debug('sort', end1.value, e1.value, p1, end2.value, e2.value, p2, mxCellPath.compare(p1, p2));
+		
+		return mxCellPath.compare(p1, p2);
+	});
+};
+
 /**
  * Function: dfs
  * 
@@ -341,7 +386,12 @@ mxCompactTreeLayout.prototype.dfs = function(cell, parent, visited)
 		var prev = null;
 		var out = this.graph.getEdges(cell, parent, this.invert, !this.invert, false, true);
 		var view = this.graph.getView();
-	
+		
+		if (this.sortEdges)
+		{
+			this.sortOutgoingEdges(cell, out);
+		}
+
 		for (var i = 0; i < out.length; i++)
 		{
 			var edge = out[i];

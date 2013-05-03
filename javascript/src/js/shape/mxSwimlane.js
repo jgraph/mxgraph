@@ -1,5 +1,5 @@
 /**
- * $Id: mxSwimlane.js,v 1.43 2011/11/04 13:54:50 gaudenz Exp $
+ * $Id: mxSwimlane.js,v 1.44 2013/04/29 14:41:33 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -171,72 +171,70 @@ mxSwimlane.prototype.redrawHtml = function()
 	this.updateHtmlShape(this.node);
 	this.node.style.background = '';
 	this.node.style.backgroundColor = '';
-	this.startSize = parseInt(mxUtils.getValue(this.style,
-		mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE));
+	this.startSize = parseInt(mxUtils.getValue(this.style, mxConstants.STYLE_STARTSIZE,
+		mxConstants.DEFAULT_STARTSIZE)) * this.scale;
 	this.updateHtmlShape(this.label);
 	this.label.style.top = '0px';
 	this.label.style.left = '0px';
-	
+
 	if (mxUtils.getValue(this.style, mxConstants.STYLE_HORIZONTAL, true))
 	{
-		this.startSize = Math.min(this.startSize, this.bounds.height);
-		this.label.style.height = (this.startSize * this.scale)+'px'; // relative
+		var h = Math.round(this.startSize);
+		this.startSize = Math.min(h, Math.round(this.bounds.height));
+		this.label.style.height = this.startSize + 'px'; // relative
 		this.updateHtmlShape(this.content);
 		this.content.style.background = '';
 		this.content.style.backgroundColor = '';
-		
-		var h = this.startSize*this.scale;
-		
-		this.content.style.top = h+'px';
+		this.content.style.top = h + 'px';
 		this.content.style.left = '0px';
-		this.content.style.height = Math.max(1, this.bounds.height - h)+'px';
-		
+		this.content.style.height = Math.max(1, this.bounds.height - h) + 'px';
+
 		if (this.separator != null)
 		{
-			this.separator.style.left = Math.round(this.bounds.width)+'px';
-			this.separator.style.top = Math.round(this.startSize*this.scale)+'px';
+			this.separator.style.left = Math.round(this.bounds.width) + 'px';
+			this.separator.style.top = Math.round(h) + 'px';
 			this.separator.style.width = '1px';
-			this.separator.style.height = Math.round(this.bounds.height)+'px';
-			this.separator.style.borderWidth = Math.round(this.scale)+'px';
+			this.separator.style.height = Math.round(this.bounds.height) + 'px';
+			this.separator.style.borderWidth = Math.round(this.scale) + 'px';
 		}
 		
 		if (this.imageNode != null)
 		{
-			this.imageNode.style.left = (this.bounds.width-this.imageSize-4)+'px';
+			this.imageNode.style.left = (this.bounds.width - this.imageSize - 4)+'px';
 			this.imageNode.style.top = '0px';
 			// TODO: Use imageWidth and height from style if available
-			this.imageNode.style.width = Math.round(this.imageSize*this.scale)+'px';
-			this.imageNode.style.height = Math.round(this.imageSize*this.scale)+'px';
+			this.imageNode.style.width = Math.round(this.imageSize * this.scale) + 'px';
+			this.imageNode.style.height = Math.round(this.imageSize * this.scale) + 'px';
 		}
 	}
 	else
 	{
-		this.startSize = Math.min(this.startSize, this.bounds.width);
-		this.label.style.width = (this.startSize * this.scale)+'px'; // relative
+		var w = Math.round(this.startSize);
+		this.startSize = Math.min(this.startSize, Math.round(this.bounds.width));
+		this.label.style.width = this.startSize + 'px'; // relative
 		this.updateHtmlShape(this.content);
 		this.content.style.background = '';
 		this.content.style.backgroundColor = '';
-		
-		var w = this.startSize*this.scale;
-		
 		this.content.style.top = '0px';
-		this.content.style.left = w+'px';
-		this.content.style.width = Math.max(0, this.bounds.width - w)+'px';
+		this.content.style.left = w + 'px';
+		this.content.style.width = Math.max(0, this.bounds.width - w) + 'px';
 		
 		if (this.separator != null)
 		{
-			this.separator.style.left = Math.round(this.startSize*this.scale)+'px';
-			this.separator.style.top = Math.round(this.bounds.height)+'px';
-			this.separator.style.width = Math.round(this.bounds.width)+'px';
+			this.separator.style.left = this.startSize + 'px';
+			this.separator.style.top = Math.round(this.bounds.height) + 'px';
+			this.separator.style.width = Math.round(this.bounds.width) + 'px';
 			this.separator.style.height = '1px';
+			this.separator.style.borderWidth = Math.round(this.scale) + 'px';
 		}
 		
 		if (this.imageNode != null)
 		{
-			this.imageNode.style.left = (this.bounds.width-this.imageSize-4)+'px';
+			this.imageNode.style.left = (this.bounds.width - this.imageSize - 4) + 'px';
 			this.imageNode.style.top = '0px';
-			this.imageNode.style.width = this.imageSize*this.scale+'px';
-			this.imageNode.style.height = this.imageSize*this.scale+'px';
+			// TODO: Use imageWidth and height from style if available
+			this.imageNode.style.width = (this.imageSize * this.scale) + 'px';
+			this.imageNode.style.height = (this.imageSize * this.scale) + 'px';
 		}
 	}
 };

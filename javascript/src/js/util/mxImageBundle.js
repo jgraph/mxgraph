@@ -1,5 +1,5 @@
 /**
- * $Id: mxImageBundle.js,v 1.3 2011/01/20 19:08:11 gaudenz Exp $
+ * $Id: mxImageBundle.js,v 1.4 2013/04/12 09:24:40 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -18,6 +18,11 @@
  *   '//AOzp2O3r2////////yH+FUNyZWF0ZWQgd2l0aCBUaGUgR0lNUAAh+QQBCgAHACwAAAAA' +
  *   'EAAQAAADTXi63AowynnAMDfjPUDlnAAJhmeBFxAEloliKltWmiYCQvfVr6lBPB1ggxN1hi' +
  *   'laSSASFQpIV5HJBDyHpqK2ejVRm2AAgZCdmCGO9CIBADs=', fallback);
+ * bundle.putImage('mySvgImage', 'data:image/svg+xml,' + encodeURIComponent(
+ *   '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">' +
+ *   '<linearGradient id="gradient"><stop offset="10%" stop-color="#F00"/>' +
+ *   '<stop offset="90%" stop-color="#fcc"/></linearGradient>' +
+ *   '<rect fill="url(#gradient)" width="100%" height="100%"/></svg>'), fallback);
  * graph.addImageBundle(bundle);
  * (end);
  * 

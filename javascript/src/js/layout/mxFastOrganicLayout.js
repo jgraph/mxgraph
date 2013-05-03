@@ -1,5 +1,5 @@
 /**
- * $Id: mxFastOrganicLayout.js,v 1.37 2011/04/28 13:14:55 david Exp $
+ * $Id: mxFastOrganicLayout.js,v 1.38 2013/04/29 17:15:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -230,7 +230,7 @@ mxFastOrganicLayout.prototype.execute = function(parent)
 	}
 	
 	var initialBounds = (this.useInputOrigin) ?
-			this.graph.view.getBounds(this.vertexArray) :
+			this.graph.getBoundingBoxFromGeometry(this.vertexArray) :
 				null;
 	var n = this.vertexArray.length;
 

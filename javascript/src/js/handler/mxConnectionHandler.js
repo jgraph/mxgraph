@@ -1,5 +1,5 @@
 /**
- * $Id: mxConnectionHandler.js,v 1.219 2013/04/10 11:25:12 gaudenz Exp $
+ * $Id: mxConnectionHandler.js,v 1.221 2013/04/16 07:34:54 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -522,7 +522,7 @@ mxConnectionHandler.prototype.init = function()
 	// Removes the icon if we step into/up or start editing
 	this.drillHandler = mxUtils.bind(this, function(sender)
 	{
-		this.destroyIcons(this.icons);
+		this.reset();
 	});
 	
 	this.graph.addListener(mxEvent.START_EDITING, this.drillHandler);
@@ -878,21 +878,20 @@ mxConnectionHandler.prototype.getIconPosition = function(icon, state)
  * Function: destroyIcons
  * 
  * Destroys the given array of <mxImageShapes>.
- * 
- * Parameters:
- * 
- * icons - Optional array of <mxImageShapes> to be destroyed.
  */
-mxConnectionHandler.prototype.destroyIcons = function(icons)
+mxConnectionHandler.prototype.destroyIcons = function()
 {
-	if (icons != null)
+	if (this.icons != null)
 	{
-		this.iconState = null;
-		
-		for (var i = 0; i < icons.length; i++)
+		for (var i = 0; i < this.icons.length; i++)
 		{
-			icons[i].destroy();
+			this.icons[i].destroy();
 		}
+		
+		this.icons = null;
+		this.icon = null;
+		this.selectedIcon = null;
+		this.iconState = null;
 	}
 };
 
@@ -1099,7 +1098,7 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 		// Handles special case when handler is disabled during highlight
 		if (!this.isEnabled() && this.currentState != null)
 		{
-			this.destroyIcons(this.icons);
+			this.destroyIcons();
 			this.currentState = null;
 		}
 		
@@ -1295,8 +1294,7 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 		}
 		else if (this.previous != this.currentState && this.edgeState == null)
 		{
-			this.destroyIcons(this.icons);
-			this.icons = null;
+			this.destroyIcons();
 			
 			// Sets the cursor on the current shape				
 			if (this.currentState != null && this.error == null)
@@ -1544,7 +1542,7 @@ mxConnectionHandler.prototype.mouseUp = function(sender, me)
 		}
 		
 		// Redraws the connect icons and resets the handler state
-		this.destroyIcons(this.icons);
+		this.destroyIcons();
 		me.consume();
 	}
 
@@ -1570,18 +1568,15 @@ mxConnectionHandler.prototype.reset = function()
 		this.shape = null;
 	}
 	
-	this.destroyIcons(this.icons);
-	this.icons = null;
+	this.destroyIcons();
 	this.marker.reset();
 	this.constraintHandler.reset();
-	this.selectedIcon = null;
 	this.edgeState = null;
 	this.previous = null;
 	this.error = null;
 	this.sourceConstraint = null;
 	this.mouseDownCounter = 0;
 	this.first = null;
-	this.icon = null;
 
 	this.fireEvent(new mxEventObject(mxEvent.RESET));
 };

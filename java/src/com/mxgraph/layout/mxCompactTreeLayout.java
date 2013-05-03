@@ -1129,22 +1129,9 @@ public class mxCompactTreeLayout extends mxGraphLayout
 				{
 					return -1;
 				}
-				else
-				{
-					if (nudge)
-					{
-						return 1;
-					}
-					else
-					{
-						return -1;
-					}
-				}
 			}
-			else
-			{
-				return 0;
-			}
+
+			return 0;
 		}
 	}
 

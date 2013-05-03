@@ -1,5 +1,5 @@
 /**
- * $Id: mxOutline.js,v 1.81 2012/06/20 14:13:37 gaudenz Exp $
+ * $Id: mxOutline.js,v 1.83 2013/04/29 14:44:11 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -516,8 +516,9 @@ mxOutline.prototype.mouseMove = function(sender, me)
 		this.selectionBorder.node.style.display = (this.showViewport) ? '' : 'none';
 		this.sizer.node.style.display = this.selectionBorder.node.style.display; 
 
-		var dx = me.getX() - this.startX;
-		var dy = me.getY() - this.startY;
+		var delta = this.getTranslateForEvent(me);
+		var dx = delta.x;
+		var dy = delta.y;
 		var bounds = null;
 		
 		if (!this.zoom)
@@ -566,6 +567,30 @@ mxOutline.prototype.mouseMove = function(sender, me)
 };
 
 /**
+ * Function: getTranslateForEvent
+ * 
+ * Gets the translate for the given mouse event. Here is an example to limit
+ * the outline to stay within positive coordinates:
+ * 
+ * (code)
+ * outline.getTranslateForEvent = function(me)
+ * {
+ *   var pt = new mxPoint(me.getX() - this.startX, me.getY() - this.startY);
+ *   
+ *   var tr = this.source.view.translate;
+ *   pt.x = Math.max(tr.x * this.outline.view.scale, pt.x);
+ *   pt.y = Math.max(tr.y * this.outline.view.scale, pt.y);
+ *   
+ *   return pt;
+ * };
+ * (end)
+ */
+mxOutline.prototype.getTranslateForEvent = function(me)
+{
+	return new mxPoint(me.getX() - this.startX, me.getY() - this.startY);
+};
+
+/**
  * Function: mouseUp
  * 
  * Handles the event by applying the translation or zoom to <graph>.
@@ -574,8 +599,9 @@ mxOutline.prototype.mouseUp = function(sender, me)
 {
 	if (this.active)
 	{
-		var dx = me.getX() - this.startX;
-		var dy = me.getY() - this.startY;
+		var delta = this.getTranslateForEvent(me);
+		var dx = delta.x;
+		var dy = delta.y;
 		
 		if (Math.abs(dx) > 0 || Math.abs(dy) > 0)
 		{

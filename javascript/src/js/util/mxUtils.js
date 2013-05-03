@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.js,v 1.299 2013/04/07 19:41:05 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.300 2013/04/23 07:09:55 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxUtils =
@@ -3170,8 +3170,9 @@ var mxUtils =
 	 * <mxConstants.DEFAULT_FONTSIZE>.
 	 * fontFamily - String that specifies the name of the font family. Default
 	 * is <mxConstants.DEFAULT_FONTFAMILY>.
+	 * textWidth - Optional width for text wrapping.
 	 */
-	getSizeForString: function(text, fontSize, fontFamily)
+	getSizeForString: function(text, fontSize, fontFamily, textWidth)
 	{
 		var div = document.createElement('div');
 		
@@ -3183,7 +3184,19 @@ var mxUtils =
 		div.style.position = 'absolute';
 		div.style.display = 'inline';
 		div.style.visibility = 'hidden';
-
+		div.style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
+		div.style.zoom = '1';
+		
+		if (textWidth != null)
+		{
+			div.style.width = textWidth + 'px';
+			div.style.whiteSpace = 'normal';
+		}
+		else
+		{
+			div.style.whiteSpace = 'nowrap';
+		}
+		
 		// Adds the text and inserts into DOM for updating of size
 		div.innerHTML = text;
 		document.body.appendChild(div);

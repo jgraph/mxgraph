@@ -1,5 +1,5 @@
 /**
- * $Id: mxStencil.js,v 1.94 2013/04/06 09:29:09 david Exp $
+ * $Id: mxStencil.js,v 1.95 2013/04/12 07:49:13 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1190,7 +1190,8 @@ mxStencil.prototype.renderDom = function(shape, bounds, parentNode, state)
 			}
 			else if (name == 'strokewidth')
 			{
-				currentState.strokeWidth = node.getAttribute('width') * minScale;
+				var s = (node.getAttribute('fixed') == '1') ? 1 : minScale;
+				currentState.strokeWidth = node.getAttribute('width') * s;
 				
 				if (vml)
 				{
@@ -1557,7 +1558,8 @@ mxStencil.prototype.drawNode = function(canvas, state, node, aspect)
 	}
 	else if (name == 'strokewidth')
 	{
-		canvas.setStrokeWidth(Number(node.getAttribute('width')) * minScale);
+		var s = (node.getAttribute('fixed') == '1') ? 1 : minScale;
+		canvas.setStrokeWidth(Number(node.getAttribute('width')) * s);
 	}
 	else if (name == 'dashed')
 	{

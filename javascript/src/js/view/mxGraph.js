@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.705 2013/02/12 10:57:37 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.709 2013/04/29 17:13:08 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -516,13 +516,10 @@
  *   var e = evt.getProperty('event'); // mouse event
  *   var cell = evt.getProperty('cell'); // cell may be null
  *   
- *   if (!evt.isConsumed())
+ *   if (cell != null)
  *   {
- *     if (cell != null)
- *     {
- *       // Do something useful with cell and consume the event
- *       evt.consume();
- *     }
+ *     // Do something useful with cell and consume the event
+ *     evt.consume();
  *   }
  * });
  * (end)
@@ -2976,12 +2973,15 @@ mxGraph.prototype.postProcessCellStyle = function(style)
 		// Converts short data uris to normal data uris
 		if (image != null && image.substring(0, 11) == "data:image/")
 		{
-			var comma = image.indexOf(',');
-			
-			if (comma > 0)
+			if (image.substring(0, 19) != 'data:image/svg+xml,')
 			{
-				image = image.substring(0, comma) + ";base64,"
-					+ image.substring(comma + 1);
+				var comma = image.indexOf(',');
+				
+				if (comma > 0)
+				{
+					image = image.substring(0, comma) + ";base64,"
+						+ image.substring(comma + 1);
+				}
 			}
 			
 			style[mxConstants.STYLE_IMAGE] = image;
@@ -4994,7 +4994,8 @@ mxGraph.prototype.getPreferredSizeForCell = function(cell)
  */
 mxGraph.prototype.handleGesture = function(state, evt)
 {
-	if (Math.abs(1 - evt.scale) > 0.2)
+	if (this.isEnabled() && this.isCellResizable(state.cell) &&
+		Math.abs(1 - evt.scale) > 0.2)
 	{
 		var scale = this.view.scale;
 		var tr = this.view.translate;
@@ -9631,11 +9632,11 @@ mxGraph.prototype.getDropTarget = function(cells, evt, cell)
  */
 mxGraph.prototype.getDefaultParent = function()
 {
-	var parent = this.defaultParent;
+	var parent = this.getCurrentRoot();
 	
 	if (parent == null)
 	{
-		parent = this.getCurrentRoot();
+		parent = this.defaultParent;
 		
 		if (parent == null)
 		{

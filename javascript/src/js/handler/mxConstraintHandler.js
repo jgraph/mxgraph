@@ -1,5 +1,5 @@
 /**
- * $Id: mxConstraintHandler.js,v 1.15 2012/11/01 16:13:41 gaudenz Exp $
+ * $Id: mxConstraintHandler.js,v 1.17 2013/04/30 13:34:14 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -141,6 +141,16 @@ mxConstraintHandler.prototype.isEventIgnored = function(me, source)
 };
 
 /**
+ * Function: isStateIgnored
+ * 
+ * Returns true if the given state should be ignored. This always returns false.
+ */
+mxConstraintHandler.prototype.isStateIgnored = function(state, source)
+{
+	return false;
+};
+
+/**
  * Function: update
  * 
  * Updates the state of this handler based on the given <mxMouseEvent>.
@@ -162,7 +172,7 @@ mxConstraintHandler.prototype.update = function(me, source)
 			if (me.getState() != this.currentFocus)
 			{
 				this.currentFocus = null;
-				this.constraints = (me.getState() != null && connectable) ?
+				this.constraints = (me.getState() != null && connectable && !this.isStateIgnored(me.getState(), source)) ?
 					this.graph.getAllConnectionConstraints(me.getState(), source) : null;
 				
 				// Only uses cells which have constraints

@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellEditor.js,v 1.62 2012/12/11 16:59:31 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.64 2013/04/23 07:31:31 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -181,6 +181,17 @@ mxCellEditor.prototype.init = function ()
 			}
 		}
 	}));
+
+	// Adds handling of deleted cells while editing
+	this.changeHandler = mxUtils.bind(this, function(sender)
+	{
+		if (this.editingCell != null && this.graph.getView().getState(this.editingCell) == null)
+		{
+			this.stopEditing(true);
+		}
+	});
+	
+	this.graph.getModel().addListener(mxEvent.CHANGE, this.changeHandler);
 };
 
 /**

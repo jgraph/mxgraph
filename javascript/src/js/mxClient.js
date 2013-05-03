@@ -1,5 +1,5 @@
 /**
- * $Id: mxClient.js,v 1.204 2013/01/24 12:14:27 gaudenz Exp $
+ * $Id: mxClient.js,v 1.205 2013/04/23 10:39:11 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClient =
@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.12.0.2.
+	 * Current version is 1.13.0.0.
 	 */
-	VERSION: '1.12.0.2',
+	VERSION: '1.13.0.0',
 
 	/**
 	 * Variable: IS_IE
@@ -121,8 +121,7 @@ var mxClient =
 	  	navigator.userAgent.indexOf('AppleWebKit/') >= 0 || // Safari/Google Chrome
 	  	navigator.userAgent.indexOf('Gecko/') >= 0 || // Netscape/Gecko
 	  	navigator.userAgent.indexOf('Opera/') >= 0,
-	  	
-  	 
+
 	/**
 	 * Variable: NO_FO
 	 *
