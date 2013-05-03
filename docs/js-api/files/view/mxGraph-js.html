@@ -101,13 +101,10 @@ dec.decode(node, graph.getModel());</pre></blockquote><p>For creating a page tha
   var e = evt.getProperty('event'); // mouse event
   var cell = evt.getProperty('cell'); // cell may be null
 
-  if (!evt.isConsumed())
+  if (cell != null)
   {
-    if (cell != null)
-    {
-      // Do something useful with cell and consume the event
-      evt.consume();
-    }
+    // Do something useful with cell and consume the event
+    evt.consume();
   }
 });</pre></blockquote></div></div></div>
 

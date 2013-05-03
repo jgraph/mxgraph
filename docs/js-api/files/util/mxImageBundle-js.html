@@ -16,6 +16,11 @@ bundle.putImage('myImage', 'data:image/gif,R0lGODlhEAAQAMIGAAAAAICAAICAgP' +
   '//AOzp2O3r2////////yH+FUNyZWF0ZWQgd2l0aCBUaGUgR0lNUAAh+QQBCgAHACwAAAAA' +
   'EAAQAAADTXi63AowynnAMDfjPUDlnAAJhmeBFxAEloliKltWmiYCQvfVr6lBPB1ggxN1hi' +
   'laSSASFQpIV5HJBDyHpqK2ejVRm2AAgZCdmCGO9CIBADs=', fallback);
+bundle.putImage('mySvgImage', 'data:image/svg+xml,' + encodeURIComponent(
+  '&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;100%&quot; height=&quot;100%&quot;&gt;' +
+  '&lt;linearGradient id=&quot;gradient&quot;&gt;&lt;stop offset=&quot;10%&quot; stop-color=&quot;#F00&quot;/&gt;' +
+  '&lt;stop offset=&quot;90%&quot; stop-color=&quot;#fcc&quot;/&gt;&lt;/linearGradient&gt;' +
+  '&lt;rect fill=&quot;url(#gradient)&quot; width=&quot;100%&quot; height=&quot;100%&quot;/&gt;&lt;/svg&gt;'), fallback);
 graph.addImageBundle(bundle);
 (end);
 

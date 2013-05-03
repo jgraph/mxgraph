@@ -161,7 +161,8 @@
 	        <xs:attribute name="y" use="required" type="xs:decimal"/>
 	        <xs:attribute name="align" use="optional" type="xs:string" default="left"/>
 	       	<xs:attribute name="valign" use="optional" type="xs:string" default="top"/>
-	       	<xs:attribute name="localized" use="optional" type="xs:integer"/>
+	       	<xs:attribute name="localized" use="optional" type="xs:integer" default="0"/>
+	       	<xs:attribute name="vertical" use="optional" type="xs:integer" default="0"/>
 	    </xs:complexType>
 	</xs:element>
 	<xs:element name="image">
@@ -171,6 +172,8 @@
 	        <xs:attribute name="y" use="required" type="xs:decimal"/>
 	        <xs:attribute name="w" use="required" type="xs:decimal"/>
 	       	<xs:attribute name="h" use="required" type="xs:decimal"/>
+	       	<xs:attribute name="flipH" use="optional" type="xs:integer" default="0"/>
+	       	<xs:attribute name="flipV" use="optional" type="xs:integer" default="0"/>
 	    </xs:complexType>
 	</xs:element>
 	<xs:element name="include-shape">
@@ -190,6 +193,7 @@
     <xs:element name="strokewidth">
         <xs:complexType>
             <xs:attribute name="width" use="required" type="xs:decimal"/>
+            <xs:attribute name="fixed" use="optional" type="xs:integer" default="0"/>
         </xs:complexType>
     </xs:element>
     <xs:element name="dashed">

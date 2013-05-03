@@ -657,7 +657,5 @@ public class mxMedianHybridCrossingReduction implements
 				return 0;
 			}
 		}
-
 	}
-
 }

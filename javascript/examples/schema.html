@@ -1,5 +1,5 @@
 <!--
-  $Id: schema.html,v 1.66 2013/04/01 11:58:48 gaudenz Exp $
+  $Id: schema.html,v 1.68 2013/04/29 14:25:01 david Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Schema example for mxGraph. This example demonstrates implementing
@@ -694,13 +694,10 @@
 
 				if (!isTable)
 				{
-					var offset = mxUtils.getOffset(graph.container);
-
-					parent = graph.getSwimlaneAt(evt.clientX-offset.x, evt.clientY-offset.y);
+					parent = cell
 					var pstate = graph.getView().getState(parent);
 					
-					if (parent == null ||
-						pstate == null)
+					if (parent == null || pstate == null)
 					{
 						mxUtils.alert('Drop target must be a table');
 						return;
