@@ -22,7 +22,7 @@ package com.mxgraph.util.svg;
  * This class provides a default implementation of ErrorHandler.
  *
  * @author <a href="mailto:stephane@hillion.org">Stephane Hillion</a>
- * @version $Id: DefaultErrorHandler.java,v 1.1 2010/09/03 19:14:06 david Exp $
+ * @version $Id: DefaultErrorHandler.java,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  */
 
 public class DefaultErrorHandler implements ErrorHandler

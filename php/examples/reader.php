@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: reader.php,v 1.14 2011/02/23 10:28:19 gaudenz Exp $
+ * $Id: reader.php,v 1.1 2012/11/15 13:26:41 gaudenz Exp $
  * Copyright (c) 2006, Gaudenz Alder
  */
 include_once("../src/mxServer.php");

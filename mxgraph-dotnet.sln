@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Web Developer Express 2008
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2012 for Web
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mxgraph-dotnet", "dotnet\mxgraph-dotnet.csproj", "{741CF907-C7CF-4965-94C9-59BAEC072101}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "examples", "dotnet\examples\examples.csproj", "{C10B6142-CE9A-4391-A1B0-422B562D5C7D}"

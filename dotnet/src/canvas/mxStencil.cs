@@ -209,7 +209,7 @@ namespace com.mxgraph
 				    {
 					    canvas.SetGradient(fillColor, gradientColor, state.X,
 							    state.Y, state.Width, state.Height,
-							    direction);
+							    direction, 1, 1);
 				    }
 				    else
 				    {
@@ -261,7 +261,8 @@ namespace com.mxgraph
 		    if (DrawShape(canvas, state, bounds, true))
 		    {
 			    canvas.Alpha = mxConstants.STENCIL_SHADOW_OPACITY * alpha;
-			    canvas.Shadow(mxConstants.STENCIL_SHADOWCOLOR, filled);
+                // TODO: Implement new shadow
+			    //canvas.Shadow(mxConstants.STENCIL_SHADOWCOLOR, filled);
 		    }
 
 		    canvas.Translate(-offset.X, -offset.Y);
@@ -501,11 +502,12 @@ namespace com.mxgraph
 		    else if (name.Equals("text"))
 		    {
 			    String str = EvaluateAttribute(node, "str", state);
+                double rotation = GetString(node, "vertical", "0").Equals("1") ? -90 : 0;
 
 			    canvas.Text(x0 + GetDouble(node, "x") * sx,
 					    y0 + GetDouble(node, "y") * sy, 0, 0, str,
 					    node.GetAttribute("align"), node.GetAttribute("valign"),
-					    GetString(node, "vertical", "0").Equals("1"), false, "");
+					    false, "", null, false, rotation);
 		    }
 		    else if (name.Equals("include-shape"))
 		    {

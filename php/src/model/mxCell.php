@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxCell.php,v 1.21 2010/08/31 12:33:02 gaudenz Exp $
+ * $Id: mxCell.php,v 1.1 2012/11/15 13:26:43 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 class mxCell

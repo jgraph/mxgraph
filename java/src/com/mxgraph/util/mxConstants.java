@@ -1,5 +1,5 @@
 /**
- * $Id: mxConstants.java,v 1.82 2013/02/20 11:41:04 gaudenz Exp $
+ * $Id: mxConstants.java,v 1.5 2013/02/20 11:41:05 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.util;
@@ -86,6 +86,13 @@ public class mxConstants
 	 * Defines the default start size for swimlanes. Default is 40.
 	 */
 	public static int DEFAULT_STARTSIZE = 40;
+
+	/**
+	 * Default line height for text output. Default is 1.2. This is ignored for HTML in
+	 * the current version of Java. See
+	 * http://docs.oracle.com/javase/6/docs/api/index.html?javax/swing/text/html/CSS.html
+	 */
+	public static float LINE_HEIGHT = 1.2f;
 
 	/**
 	 * Specifies the line spacing. Default is 0.

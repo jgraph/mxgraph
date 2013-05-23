@@ -1,4 +1,4 @@
-// $Id: mxImageBundle.cs,v 1.3 2010/12/01 11:48:46 gaudenz Exp $
+// $Id: mxImageBundle.cs,v 1.1 2012/11/15 13:26:48 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Collections;

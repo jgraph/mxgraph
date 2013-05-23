@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.java,v 1.136 2012/12/14 17:49:06 gaudenz Exp $
+ * $Id: mxUtils.java,v 1.8 2012/12/14 17:50:06 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.util;
@@ -1856,6 +1856,9 @@ public class mxUtils
 	public static void setAntiAlias(Graphics2D g, boolean antiAlias,
 			boolean textAntiAlias)
 	{
+		g.setRenderingHint(RenderingHints.KEY_RENDERING,
+				(antiAlias) ? RenderingHints.VALUE_RENDER_QUALITY
+						: RenderingHints.VALUE_RENDER_SPEED);
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 				(antiAlias) ? RenderingHints.VALUE_ANTIALIAS_ON
 						: RenderingHints.VALUE_ANTIALIAS_OFF);

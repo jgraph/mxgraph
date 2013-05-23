@@ -30,13 +30,8 @@ public class Constants
 	public static final int MAX_REQUEST_SIZE = 10485760;
 
 	/**
-	 * Maximum width for exüprts. Default is 5000px.
+	 * Maximum area for exports. Default is 10000x10000px.
 	 */
-	public static final int MAX_WIDTH = 6000;
-
-	/**
-	 * Maximum height for exports. Default is 5000px.
-	 */
-	public static final int MAX_HEIGHT = 6000;
+	public static final int MAX_AREA = 10000 * 10000;
 
 }

@@ -1,5 +1,5 @@
 /**
- * $Id: ExportServlet.java,v 1.4 2012/03/27 13:08:48 gaudenz Exp $
+ * $Id: ExportServlet.java,v 1.5 2013/05/07 06:54:12 gaudenz Exp $
  * Copyright (c) 2011-2012, JGraph Ltd
  */
 package com.mxgraph.examples.web;
@@ -40,6 +40,7 @@ import com.mxgraph.util.mxUtils;
  */
 public class ExportServlet extends HttpServlet
 {
+
 	/**
 	 * 
 	 */
@@ -48,8 +49,7 @@ public class ExportServlet extends HttpServlet
 	/**
 	 * 
 	 */
-	private transient SAXParserFactory parserFactory = SAXParserFactory
-			.newInstance();
+	private transient SAXParserFactory parserFactory = SAXParserFactory.newInstance();
 
 	/**
 	 * Cache for all images.
@@ -57,10 +57,17 @@ public class ExportServlet extends HttpServlet
 	private transient Hashtable<String, Image> imageCache = new Hashtable<String, Image>();
 
 	/**
+	 * @see HttpServlet#HttpServlet()
+	 */
+	public ExportServlet()
+	{
+		super();
+	}
+
+	/**
 	 * Handles exceptions and the output stream buffer.
 	 */
-	protected void doPost(HttpServletRequest request,
-			HttpServletResponse response) throws ServletException, IOException
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
 	{
 		try
 		{
@@ -70,14 +77,11 @@ public class ExportServlet extends HttpServlet
 
 				handleRequest(request, response);
 
-				long mem = Runtime.getRuntime().totalMemory()
-						- Runtime.getRuntime().freeMemory();
+				long mem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 				long dt = System.currentTimeMillis() - t0;
 
-				System.out.println("Export: ip=" + request.getRemoteAddr()
-						+ " ref=\"" + request.getHeader("Referer")
-						+ "\" length=" + request.getContentLength() + " mem="
-						+ mem + " dt=" + dt);
+				System.out.println("export: ip=" + request.getRemoteAddr() + " ref=\"" + request.getHeader("Referer") + "\" length="
+						+ request.getContentLength() + " mem=" + mem + " dt=" + dt);
 			}
 			else
 			{
@@ -88,12 +92,9 @@ public class ExportServlet extends HttpServlet
 		{
 			e.printStackTrace();
 			final Runtime r = Runtime.getRuntime();
-			System.out.println("r.freeMemory() = " + r.freeMemory() / 1024.0
-					/ 1024);
-			System.out.println("r.totalMemory() = " + r.totalMemory() / 1024.0
-					/ 1024);
-			System.out.println("r.maxMemory() = " + r.maxMemory() / 1024.0
-					/ 1024);
+			System.out.println("r.freeMemory() = " + r.freeMemory() / 1024.0 / 1024);
+			System.out.println("r.totalMemory() = " + r.totalMemory() / 1024.0 / 1024);
+			System.out.println("r.maxMemory() = " + r.maxMemory() / 1024.0 / 1024);
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
 		catch (Exception e)
@@ -115,8 +116,7 @@ public class ExportServlet extends HttpServlet
 	 * @throws SAXException 
 	 * @throws DocumentException 
 	 */
-	protected void handleRequest(HttpServletRequest request,
-			HttpServletResponse response) throws Exception
+	protected void handleRequest(HttpServletRequest request, HttpServletResponse response) throws Exception
 	{
 		// Parses parameters
 		String format = request.getParameter("format");
@@ -126,13 +126,17 @@ public class ExportServlet extends HttpServlet
 		String tmp = request.getParameter("bg");
 		String xml = getRequestXml(request);
 
-		Color bg = (tmp != null) ? mxUtils.parseColor(tmp) : Color.WHITE;
+		Color bg = (tmp != null) ? mxUtils.parseColor(tmp) : null;
 
 		// Checks parameters
-		if (w > 0 && w <= Constants.MAX_WIDTH && h > 0
-				&& h <= Constants.MAX_HEIGHT && format != null && xml != null
-				&& xml.length() > 0)
+		if (w > 0 && h > 0 && w * h < Constants.MAX_AREA && format != null && xml != null && xml.length() > 0)
 		{
+			// Allows transparent backgrounds only for PNG
+			if (bg == null && !format.equals("png"))
+			{
+				bg = Color.WHITE;
+			}
+
 			if (fname != null && fname.toLowerCase().endsWith(".xml"))
 			{
 				fname = fname.substring(0, fname.length() - 4) + format;
@@ -161,8 +165,7 @@ public class ExportServlet extends HttpServlet
 	/**
 	 * Gets the XML request parameter.
 	 */
-	protected String getRequestXml(HttpServletRequest request)
-			throws IOException, UnsupportedEncodingException
+	protected String getRequestXml(HttpServletRequest request) throws IOException, UnsupportedEncodingException
 	{
 		return URLDecoder.decode(request.getParameter("plain"), "UTF-8");
 	}
@@ -173,8 +176,7 @@ public class ExportServlet extends HttpServlet
 	 * @throws IOException
 	 * 
 	 */
-	protected void writeImage(String url, String format, String fname, int w, int h,
-			Color bg, String xml, HttpServletResponse response)
+	protected void writeImage(String url, String format, String fname, int w, int h, Color bg, String xml, HttpServletResponse response)
 			throws IOException, SAXException, ParserConfigurationException
 	{
 		BufferedImage image = mxUtils.createBufferedImage(w, h, bg);
@@ -188,24 +190,14 @@ public class ExportServlet extends HttpServlet
 			if (fname != null)
 			{
 				response.setContentType("application/x-unknown");
-				response.setHeader("Content-Disposition",
-						"attachment; filename=\"" + fname + "\"");
+				response.setHeader("Content-Disposition", "attachment; filename=\"" + fname + "\"");
 			}
 			else if (format != null)
 			{
 				response.setContentType("image/" + format.toLowerCase());
 			}
 
-			// Optional: For faster PNG encoding
-			//			if (format.equalsIgnoreCase("png"))
-			//			{
-			//				PngEncoder encoder = new PngEncoder();
-			//				encoder.encode(image, response.getOutputStream());
-			//			}
-			//			else
-			//			{
 			ImageIO.write(image, format, response.getOutputStream());
-			//			}
 		}
 	}
 
@@ -216,16 +208,14 @@ public class ExportServlet extends HttpServlet
 	 * @throws ParserConfigurationException 
 	 * @throws SAXException 
 	 */
-	protected void writePdf(String url, String fname, int w, int h, Color bg, String xml,
-			HttpServletResponse response) throws DocumentException,
-			IOException, SAXException, ParserConfigurationException
+	protected void writePdf(String url, String fname, int w, int h, Color bg, String xml, HttpServletResponse response)
+			throws DocumentException, IOException, SAXException, ParserConfigurationException
 	{
 		response.setContentType("application/pdf");
 
 		if (fname != null)
 		{
-			response.setHeader("Content-Disposition", "attachment; filename=\""
-					+ fname + "\"");
+			response.setHeader("Content-Disposition", "attachment; filename=\"" + fname + "\"");
 		}
 
 		// Fixes PDF offset
@@ -233,12 +223,10 @@ public class ExportServlet extends HttpServlet
 		h += 1;
 
 		Document document = new Document(new Rectangle(w, h));
-		PdfWriter writer = PdfWriter.getInstance(document,
-				response.getOutputStream());
+		PdfWriter writer = PdfWriter.getInstance(document, response.getOutputStream());
 		document.open();
 
-		mxGraphicsCanvas2D gc = createCanvas(url, writer.getDirectContent()
-				.createGraphics(w, h));
+		mxGraphicsCanvas2D gc = createCanvas(url, writer.getDirectContent().createGraphics(w, h));
 
 		// Fixes PDF offset
 		gc.translate(1, 1);
@@ -251,8 +239,7 @@ public class ExportServlet extends HttpServlet
 	/**
 	 * Renders the XML to the given canvas.
 	 */
-	protected void renderXml(String xml, mxICanvas2D canvas)
-			throws SAXException, ParserConfigurationException, IOException
+	protected void renderXml(String xml, mxICanvas2D canvas) throws SAXException, ParserConfigurationException, IOException
 	{
 		XMLReader reader = parserFactory.newSAXParser().getXMLReader();
 		reader.setContentHandler(new mxSaxOutputHandler(canvas));
@@ -304,8 +291,6 @@ public class ExportServlet extends HttpServlet
 				return image;
 			}
 		};
-
-		g2c.setAutoAntiAlias(true);
 
 		return g2c;
 	}

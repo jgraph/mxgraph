@@ -24,7 +24,7 @@ package com.mxgraph.util.svg;
  * notified of parsing events.
  *
  * @author <a href="mailto:stephane@hillion.org">Stephane Hillion</a>
- * @version $Id: PointsHandler.java,v 1.1 2010/09/03 19:14:06 david Exp $
+ * @version $Id: PointsHandler.java,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  */
 public interface PointsHandler
 {

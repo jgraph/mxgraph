@@ -1,5 +1,5 @@
 /**
- * $Id: mxRectangle.java,v 1.14 2010/12/08 12:46:03 gaudenz Exp $
+ * $Id: mxRectangle.java,v 1.1 2012/11/15 13:26:39 gaudenz Exp $
  * Copyright (c) 2007-2010, Gaudenz Alder, David Benson
  */
 package com.mxgraph.util;

@@ -1,5 +1,5 @@
 /**
- * $Id: mxStylesheetCodec.java,v 1.11 2011/06/13 08:18:42 gaudenz Exp $
+ * $Id: mxStylesheetCodec.java,v 1.1 2012/11/15 13:26:47 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 package com.mxgraph.io;

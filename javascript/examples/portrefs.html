@@ -1,5 +1,5 @@
 <!--
-  $Id: portrefs.html,v 1.6 2012/11/20 09:06:07 gaudenz Exp $
+  $Id: portrefs.html,v 1.1 2012/11/15 13:26:40 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Portsrefs example for mxGraph. This example demonstrates referencing
@@ -100,7 +100,7 @@
 			graph.getAllConnectionConstraints = function(terminal, source)
 			{
 				if (terminal != null && terminal.shape != null &&
-					terminal.shape instanceof mxStencilShape)
+					terminal.shape.stencil != null)
 				{
 					// for stencils with existing constraints...
 					if (terminal.shape.stencil != null)

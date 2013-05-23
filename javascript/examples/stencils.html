@@ -1,5 +1,5 @@
 <!--
-  $Id: stencils.html,v 1.12 2012/11/17 18:09:24 gaudenz Exp $
+  $Id: stencils.html,v 1.3 2012/11/22 19:13:27 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Stencils example for mxGraph. This example demonstrates using
@@ -33,14 +33,14 @@
 			}
 			else
 			{
-				// Enables crisp rendering of rectangles in SVG
-				mxRectangleShape.prototype.crisp = true;
-				
 				// Sets the global shadow color
 				mxConstants.SHADOWCOLOR = '#C0C0C0';
 				mxConstants.SHADOW_OPACITY = 0.5;
 				mxConstants.SHADOW_OFFSET_X = 4;
 				mxConstants.SHADOW_OFFSET_Y = 4;
+				mxConstants.HANDLE_FILLCOLOR = '#99ccff';
+				mxConstants.HANDLE_STROKECOLOR = '#0088cf';
+				mxConstants.VERTEX_SELECTION_COLOR = '#00a8ff';
 				
 				// Uses the shape for resize previews
 				mxVertexHandler.prototype.createSelectionShape = function(bounds)
@@ -51,7 +51,7 @@
 					
 					if (stencil != null)
 					{
-						shape = new mxStencilShape(stencil);
+						shape = new mxShape(stencil);
 						shape.apply(this.state);
 					}
 					else
@@ -61,10 +61,10 @@
 					
 					shape.fill = null;
 					shape.bounds = bounds;
-					shape.stroke = this.getSelectionColor();
+					shape.stroke = mxConstants.HANDLE_STROKECOLOR;
 					shape.strokewidth = this.getSelectionStrokeWidth();
 					shape.isDashed = this.isSelectionDashed();
-					shape.crisp = this.state.shape.crisp;
+					shape.isShadow = false;
 				    
 					return shape;
 				};
@@ -87,6 +87,17 @@
 				// Creates the graph inside the given container
 				var graph = new mxGraph(container);
 				graph.setConnectable(true);
+				graph.setTooltips(true);
+				
+				graph.getTooltipForCell = function(cell)
+				{
+					if (cell != null)
+					{
+						return cell.style;
+					}
+					
+					return null;
+				};
 				
 				// Changes default styles
 				var style = graph.getStylesheet().getDefaultEdgeStyle();
@@ -140,12 +151,12 @@
 				
 				document.body.appendChild(mxUtils.button('FlipH', function()
 				{
-					graph.toggleCellStyles(mxConstants.STYLE_STENCIL_FLIPH);
+					graph.toggleCellStyles(mxConstants.STYLE_FLIPH);
 				}));
 				
 				document.body.appendChild(mxUtils.button('FlipV', function()
 				{
-					graph.toggleCellStyles(mxConstants.STYLE_STENCIL_FLIPV);
+					graph.toggleCellStyles(mxConstants.STYLE_FLIPV);
 				}));
 
 				document.body.appendChild(document.createTextNode('\u00a0'));
@@ -226,6 +237,26 @@
 				document.body.appendChild(mxUtils.button('Xor', function()
 				{
 					graph.setCellStyles(mxConstants.STYLE_SHAPE, 'xor');
+				}));
+
+				document.body.appendChild(document.createTextNode('\u00a0'));
+				document.body.appendChild(document.createTextNode('\u00a0'));
+				document.body.appendChild(document.createTextNode('\u00a0'));
+				document.body.appendChild(document.createTextNode('\u00a0'));
+				
+				document.body.appendChild(mxUtils.button('Style', function()
+				{
+					var cell = graph.getSelectionCell();
+					
+					if (cell != null)
+					{
+						var style = mxUtils.prompt('Style', graph.getModel().getStyle(cell));
+						
+						if (style != null)
+						{
+							graph.getModel().setStyle(cell, style);
+						}
+					}
 				}));
 			}
 		};

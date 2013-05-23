@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphAbstractHierarchyCell.java,v 1.3 2010/10/18 20:02:38 david Exp $
+ * $Id: mxGraphAbstractHierarchyCell.java,v 1.1 2012/11/15 13:26:42 gaudenz Exp $
  * Copyright (c) 2005-2010, David Benson, Gaudenz Alder
  */
 package com.mxgraph.layout.hierarchical.model;

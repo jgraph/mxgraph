@@ -1,5 +1,5 @@
 /**
- * $Id: mxPerimeter.java,v 1.22 2012/01/11 09:06:56 gaudenz Exp $
+ * $Id: mxPerimeter.java,v 1.1 2012/11/15 13:26:46 gaudenz Exp $
  * Copyright (c) 2007-2010, Gaudenz Alder, David Benson
  */
 package com.mxgraph.view;

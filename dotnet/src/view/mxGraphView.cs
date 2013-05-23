@@ -1,4 +1,4 @@
-// $Id: mxGraphView.cs,v 1.112 2011/11/17 14:10:53 gaudenz Exp $
+// $Id: mxGraphView.cs,v 1.1 2012/11/15 13:26:44 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Diagnostics;

@@ -1,5 +1,5 @@
 /**
- * $Id: Menus.js,v 1.59 2013/01/16 08:40:17 gaudenz Exp $
+ * $Id: Menus.js,v 1.16 2013/05/07 09:48:56 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -68,8 +68,8 @@ Menus.prototype.init = function()
 		this.styleChange(menu, mxResources.get('horizontal'), [mxConstants.STYLE_EDGE, mxConstants.STYLE_ELBOW], ['elbowEdgeStyle', 'horizontal'], null, parent);
 		this.styleChange(menu, mxResources.get('vertical'), [mxConstants.STYLE_EDGE, mxConstants.STYLE_ELBOW], ['elbowEdgeStyle', 'vertical'], null, parent);
 		menu.addSeparator(parent);
-		this.styleChange(menu, mxResources.get('plain'), [mxConstants.STYLE_EDGE], ['segmentEdgeStyle'], null, parent);
-		this.styleChange(menu, mxResources.get('orthogonal'), [mxConstants.STYLE_EDGE], ['orthogonalEdgeStyle'], null, parent);
+		this.styleChange(menu, mxResources.get('manual'), [mxConstants.STYLE_EDGE], ['segmentEdgeStyle'], null, parent);
+		this.styleChange(menu, mxResources.get('automatic'), [mxConstants.STYLE_EDGE], ['orthogonalEdgeStyle'], null, parent);
 	})));
 	this.put('lineend', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -129,8 +129,7 @@ Menus.prototype.init = function()
 	})));
 	this.put('format', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
-		this.addSubmenu('spacing', menu, parent);
-		this.addMenuItems(menu, ['-', 'fillColor'], parent);
+		this.addMenuItems(menu, ['fillColor'], parent);
 		this.addSubmenu('gradient', menu, parent);
 		this.addMenuItems(menu, ['-', 'shadow'], parent);
 		this.promptChange(menu, mxResources.get('opacity'), '(%)', '100', mxConstants.STYLE_OPACITY, parent, this.get('format').enabled);
@@ -154,20 +153,18 @@ Menus.prototype.init = function()
 	})));
 	this.put('text', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
-		this.addMenuItem(menu, 'fontColor', parent);
+		var enabled = this.get('text').enabled;
 		menu.addSeparator(parent);
+		this.addMenuItem(menu, 'fontColor', parent);
+		this.addMenuItems(menu, ['backgroundColor', 'borderColor', '-'], parent);
 		this.addSubmenu('fontFamily', menu, parent);
 		this.addSubmenu('fontSize', menu, parent);
-		
 		this.addMenuItems(menu, ['-', 'bold', 'italic', 'underline', '-'], parent);
 	    this.addSubmenu('alignment', menu, parent);
-	    this.addSubmenu('position', menu, parent);
-		this.addMenuItems(menu, ['-', 'backgroundColor', 'borderColor', '-'], parent);
-		
-		var enabled = this.get('text').enabled;
+		this.addMenuItem(menu, 'wordWrap', parent);
+		menu.addSeparator(parent);
 		this.promptChange(menu, mxResources.get('textOpacity'), '(%)', '100', mxConstants.STYLE_TEXT_OPACITY, parent, enabled);
 		menu.addItem(mxResources.get('hide'), null, function() { graph.toggleCellStyles(mxConstants.STYLE_NOLABEL, false); }, parent, null, enabled);
-		menu.addItem(mxResources.get('rotate'), null, function() { graph.toggleCellStyles(mxConstants.STYLE_HORIZONTAL, true); }, parent, null, enabled);
 	})));
 	this.put('alignment', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -178,6 +175,12 @@ Menus.prototype.init = function()
 		this.styleChange(menu, mxResources.get('topAlign'), [mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_TOP], null, parent);
 		this.styleChange(menu, mxResources.get('middle'), [mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_MIDDLE], null, parent);
 		this.styleChange(menu, mxResources.get('bottomAlign'), [mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_BOTTOM], null, parent);
+		menu.addSeparator(parent);
+	    this.addSubmenu('position', menu, parent);
+		this.addSubmenu('spacing', menu, parent);
+		menu.addSeparator(parent);
+		var enabled = this.get('text').enabled;
+		menu.addItem(mxResources.get('vertical'), null, function() { graph.toggleCellStyles(mxConstants.STYLE_HORIZONTAL, true); }, parent, null, enabled);
 	})));
 	this.put('position', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -191,38 +194,9 @@ Menus.prototype.init = function()
 	})));
 	this.put('direction', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
-		this.styleChange(menu, mxResources.get('north'), [mxConstants.STYLE_DIRECTION], [mxConstants.DIRECTION_NORTH], null, parent);
-		this.styleChange(menu, mxResources.get('east'), [mxConstants.STYLE_DIRECTION], [mxConstants.DIRECTION_EAST], null, parent);
-		this.styleChange(menu, mxResources.get('south'), [mxConstants.STYLE_DIRECTION], [mxConstants.DIRECTION_SOUTH], null, parent);
-		this.styleChange(menu, mxResources.get('west'), [mxConstants.STYLE_DIRECTION], [mxConstants.DIRECTION_WEST], null, parent);
-		menu.addSeparator(parent);
-		menu.addItem(mxResources.get('flipH'), null, function()
-		{
-			graph.getModel().beginUpdate();
-			try
-			{
-				graph.toggleCellStyles(mxConstants.STYLE_STENCIL_FLIPH, false);
-				graph.toggleCellStyles(mxConstants.STYLE_IMAGE_FLIPH, false);
-			}
-			finally
-			{
-				graph.getModel().endUpdate();
-			}
-		}, parent);
-		menu.addItem(mxResources.get('flipV'), null, function()
-		{
-			graph.getModel().beginUpdate();
-			try
-			{
-				graph.toggleCellStyles(mxConstants.STYLE_STENCIL_FLIPV, false);
-				graph.toggleCellStyles(mxConstants.STYLE_IMAGE_FLIPV, false);
-			}
-			finally
-			{
-				graph.getModel().endUpdate();
-			}
-		}, parent);
-		this.addMenuItem(menu, 'rotation', parent);
+		menu.addItem(mxResources.get('flipH'), null, function() { graph.toggleCellStyles(mxConstants.STYLE_FLIPH, false); }, parent);
+		menu.addItem(mxResources.get('flipV'), null, function() { graph.toggleCellStyles(mxConstants.STYLE_FLIPV, false); }, parent);
+		this.addMenuItems(menu, ['-', 'tilt', 'rotation'], parent);
 	})));
 	this.put('align', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -233,6 +207,111 @@ Menus.prototype.init = function()
 		menu.addItem(mxResources.get('topAlign'), null, function() { graph.alignCells(mxConstants.ALIGN_TOP); }, parent);
 		menu.addItem(mxResources.get('middle'), null, function() { graph.alignCells(mxConstants.ALIGN_MIDDLE); }, parent);
 		menu.addItem(mxResources.get('bottomAlign'), null, function() { graph.alignCells(mxConstants.ALIGN_BOTTOM); }, parent);
+	})));
+	this.put('layers', new Menu(mxUtils.bind(this, function(menu, parent)
+	{
+		var p = graph.getDefaultParent();
+		var selectedLayer = mxResources.get('background');
+		
+		var item = menu.addItem(selectedLayer, null, mxUtils.bind(this, function()
+		{
+			graph.setDefaultParent(null);
+		}), parent);
+		
+		if (p == graph.model.getChildAt(graph.model.root, 0))
+		{
+			this.addCheckmark(item);
+		}
+		
+		var layerCount = graph.model.getChildCount(graph.model.root);
+		
+		for (var i = 1; i < layerCount; i++)
+		{
+			(mxUtils.bind(this, function(child)
+			{
+				var title = child.value || mxResources.get('layer') + ' ' + i;
+				
+				if (!graph.model.isVisible(child))
+				{
+					title += ' (' + mxResources.get('hidden') + ')';
+				}
+				var item = menu.addItem(title, null, function()
+				{
+					if (!graph.model.isVisible(child))
+					{
+						graph.model.setVisible(child, true);
+						
+						// Forces a complete refresh to hide the edges in other
+						// layers which are connected to children of this layer
+						graph.view.invalidate();
+					}
+					
+					graph.setDefaultParent(child);
+				}, parent);
+				
+				if (p == child)
+				{
+					this.addCheckmark(item);
+					selectedLayer = title;
+				}
+			}))(graph.model.getChildAt(graph.model.root, i));
+		}
+
+		var notBackground = p != graph.model.getChildAt(graph.model.root, 0);
+		menu.addSeparator(parent);
+
+		menu.addItem(mxResources.get('removeIt', [selectedLayer]), null, mxUtils.bind(this, function()
+		{
+			graph.removeCells([p]);
+			graph.setDefaultParent(null);
+		}), parent, null, notBackground);
+
+		menu.addItem(mxResources.get('renameIt', [selectedLayer]), null, mxUtils.bind(this, function()
+		{
+			var newName = mxUtils.prompt(mxResources.get('enterName'), selectedLayer);
+			
+			if (newName != null && newName.length > 0)
+			{
+				graph.getModel().setValue(p, newName);
+			}
+		}), parent, null, notBackground);
+		
+		menu.addItem(mxResources.get('hideIt', [selectedLayer]), null, mxUtils.bind(this, function()
+		{
+			if (graph.model.isVisible(p))
+			{
+				graph.model.beginUpdate();
+				try
+				{
+					graph.model.setVisible(p, !graph.model.isVisible(p));
+					
+					// Forces a complete refresh to hide the edges in other
+					// layers which are connected to children of this layer
+					graph.view.invalidate();
+				}
+				finally
+				{
+					graph.model.endUpdate();
+				}
+				
+				graph.setDefaultParent(null);
+			}
+		}), parent, null, notBackground);
+		
+		menu.addSeparator(parent);
+		
+		menu.addItem(mxResources.get('moveSelectionTo', [selectedLayer]), null, mxUtils.bind(this, function()
+		{
+			graph.moveCells(graph.getSelectionCells(), 0, 0, false, p);
+		}), parent, null, !graph.isSelectionEmpty());
+
+		menu.addSeparator(parent);
+		
+		menu.addItem(mxResources.get('addLayer'), null, mxUtils.bind(this, function()
+		{
+			var cell = graph.addCell(new mxCell(), graph.model.root);
+			graph.setDefaultParent(cell);
+		}), parent);
 	})));
 	this.put('layout', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -290,14 +369,15 @@ Menus.prototype.init = function()
 		this.addSubmenu('layout', menu, parent);
 		this.addSubmenu('align', menu, parent);
 		menu.addSeparator(parent);
+		this.addSubmenu('layers', menu, parent);
 		this.addSubmenu('navigation', menu, parent);
-		this.addMenuItems(menu, ['-', 'group', 'ungroup', 'removeFromGroup', '-', 'autosize', 'rotate'], parent);
+		this.addMenuItems(menu, ['-', 'group', 'ungroup', 'removeFromGroup', '-', 'lockUnlock', '-', 'autosize'], parent);
 	})));
 	this.put('view', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
 		this.addMenuItems(menu, ['actualSize'], parent);
 		menu.addSeparator();
-		var scales = [0.25, 0.5, 0.75, 1, 2, 4];
+		var scales = [0.25, 0.5, 0.75, 1, 1.5, 2, 4];
 		
 		for (var i = 0; i < scales.length; i++)
 		{
@@ -314,7 +394,7 @@ Menus.prototype.init = function()
 	})));
 	this.put('file', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
-		this.addMenuItems(menu, ['new', 'open', '-', 'save', 'saveAs', '-', 'import', 'export', '-', 'editFile', 'pageSetup', '-', 'print'], parent);
+		this.addMenuItems(menu, ['new', 'open', '-', 'save', 'saveAs', '-', 'import', 'export', '-', 'editFile', '-', 'pageSetup', 'print'], parent);
 	})));
 	this.put('edit', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -325,7 +405,7 @@ Menus.prototype.init = function()
 	this.put('options', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
 		this.addMenuItems(menu, ['grid', 'guides', 'tooltips', '-', 'connect', 'copyConnect', 'navigation',
-		                         'scrollbars', '-', 'pageView', '-', 'pageBackgroundColor']);
+		                         '-', 'scrollbars', 'pageView', '-', 'pageBackgroundColor']);
 	})));
 	this.put('help', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -513,7 +593,6 @@ Menus.prototype.addCheckmark = function(item)
 	td.style.backgroundImage = 'url(' + IMAGE_PATH + '/checkmark.gif)';
 	td.style.backgroundRepeat = 'no-repeat';
 	td.style.backgroundPosition = '2px 50%';
-	td.style.width = '20px';
 };
 
 /**
@@ -548,41 +627,54 @@ Menus.prototype.createPopupMenu = function(menu, cell, evt)
 	}
 	else
 	{
-		this.addMenuItems(menu, ['delete', '-', 'cut', 'copy', '-', 'duplicate', '-']);	
+		this.addMenuItems(menu, ['delete', '-', 'cut', 'copy', '-', 'duplicate']);	
+
+		if (graph.getSelectionCount() == 1 && graph.getModel().isEdge(graph.getSelectionCell()))
+		{
+			this.addMenuItems(menu, ['setAsDefaultEdge']);
+		}
+		
+		menu.addSeparator();
 	}
 	
 	if (graph.getSelectionCount() > 0)
 	{		
 		this.addMenuItems(menu, ['toFront', 'toBack', '-']);
-		this.addSubmenu('linewidth', menu);
 
 		if (graph.getModel().isEdge(graph.getSelectionCell()))
 		{
-			this.addSubmenu('line', menu);
-			menu.addSeparator();
-			this.addSubmenu('linestart', menu);
-			this.addSubmenu('lineend', menu);
-			menu.addSeparator();
-			this.addMenuItems(menu, ['setAsDefaultEdge']);
+			var isWaypoint = false;
+			var cell = graph.getSelectionCell();
+			
+			if (cell != null && graph.getModel().isEdge(cell))
+			{
+				var handler = graph.selectionCellsHandler.getHandler(cell);
+				
+				if (handler instanceof mxEdgeHandler && handler.bends != null && handler.bends.length > 2)
+				{
+					var index = handler.getHandleForEvent(new mxMouseEvent(evt));
+					
+					// Configures removeWaypoint action before execution
+					var rmWaypointAction = this.editorUi.actions.get('removeWaypoint');
+					rmWaypointAction.handler = handler;
+					rmWaypointAction.index = index;
+
+					isWaypoint = index > 0 && index < handler.bends.length;
+				}
+			}
+			
+			this.addMenuItems(menu, ['-', (isWaypoint) ? 'removeWaypoint' : 'addWaypoint']);
 		}
 		else if (graph.getSelectionCount() > 1)	
 		{
 			menu.addSeparator();
 			this.addMenuItems(menu, ['group']);
 		}
-		else
-		{
-			
-			menu.addSeparator();
-			this.addSubmenu('layout', menu);
-		}
 		
 		menu.addSeparator();
 		
 		if (graph.getSelectionCount() == 1)
 		{
-			this.addMenuItems(menu, ['editLink']);
-			
 			var link = graph.getLinkForCell(graph.getSelectionCell());
 			
 			if (link != null)
@@ -622,8 +714,7 @@ function Menubar(editorUi, container)
 	this.container = container;
 	
 	// Global handler to hide the current menu
-	var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-	mxEvent.addListener(document, md, mxUtils.bind(this, function(evt)
+	mxEvent.addGestureListeners(document, mxUtils.bind(this, function(evt)
 	{
 		this.hideMenu();
 	}));

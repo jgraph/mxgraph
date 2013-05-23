@@ -1,5 +1,5 @@
 <!--
-  $Id: swimlanes.html,v 1.50 2012/11/23 21:07:10 gaudenz Exp $
+  $Id: swimlanes.html,v 1.3 2012/11/23 21:10:26 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Swimlanes example for mxGraph. This example demonstrates using
@@ -39,9 +39,6 @@
 			}
 			else
 			{
-				// Enables crisp rendering of swimlanes in SVG
-				mxSwimlane.prototype.crisp = true;
-				
 				// Creates a wrapper editor around a new graph inside
 				// the given container using an XML config for the
 				// keyboard bindings
@@ -345,7 +342,7 @@
 					graph.insertEdge(lane1b, null, null, step3, step33);
 					graph.insertEdge(lane2a, null, null, step4, step44);
 					graph.insertEdge(lane2a, null, 'No', step44, step444, 'verticalAlign=bottom');
-					graph.insertEdge(parent, null, 'Yes', step44, step111, 'verticalAlign=bottom;horizontal=0');
+					graph.insertEdge(parent, null, 'Yes', step44, step111, 'verticalAlign=bottom;horizontal=0;labelBackgroundColor=white;');
 					
 					graph.insertEdge(lane2a, null, 'Yes', step444, end2, 'verticalAlign=bottom');
 					e = graph.insertEdge(lane2a, null, 'No', step444, end3, 'verticalAlign=top');

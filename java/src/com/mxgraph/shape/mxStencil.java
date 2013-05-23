@@ -1,5 +1,5 @@
 /**
- * $Id: mxStencil.java,v 1.8 2012/04/24 13:56:56 gaudenz Exp $
+ * $Id: mxStencil.java,v 1.3 2013/05/23 10:29:43 gaudenz Exp $
  * Copyright (c) 2010-2012, JGraph Ltd
  */
 package com.mxgraph.shape;
@@ -217,7 +217,7 @@ public class mxStencil implements mxIShape
 				{
 					canvas.setGradient(fillColor, gradientColor, state.getX(),
 							state.getY(), state.getWidth(), state.getHeight(),
-							direction);
+							direction, 1, 1);
 				}
 				else
 				{
@@ -262,7 +262,8 @@ public class mxStencil implements mxIShape
 		if (drawShape(canvas, state, bounds, true))
 		{
 			canvas.setAlpha(mxConstants.STENCIL_SHADOW_OPACITY * alpha);
-			canvas.shadow(mxConstants.STENCIL_SHADOWCOLOR, filled);
+			// TODO: Implement new shadow
+			//canvas.shadow(mxConstants.STENCIL_SHADOWCOLOR, filled);
 		}
 
 		canvas.translate(-offset.getX(), -offset.getY());
@@ -494,11 +495,12 @@ public class mxStencil implements mxIShape
 		else if (name.equals("text"))
 		{
 			String str = evaluateAttribute(node, "str", state);
-
+			double rotation = getString(node, "vertical", "0").equals("1") ? -90 : 0;
+			
 			canvas.text(x0 + getDouble(node, "x") * sx,
 					y0 + getDouble(node, "y") * sy, 0, 0, str,
 					node.getAttribute("align"), node.getAttribute("valign"),
-					getString(node, "vertical", "0").equals("1"), false, "");
+					false, "", null, false, rotation);
 		}
 		else if (name.equals("include-shape"))
 		{

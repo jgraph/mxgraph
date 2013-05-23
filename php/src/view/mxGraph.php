@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxGraph.php,v 1.80 2012/01/08 09:35:57 gaudenz Exp $
+ * $Id: mxGraph.php,v 1.1 2012/11/15 13:26:46 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 

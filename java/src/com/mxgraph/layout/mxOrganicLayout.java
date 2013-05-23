@@ -1,6 +1,6 @@
 /**
- * $Id: mxOrganicLayout.java,v 1.12 2012/12/22 22:37:52 david Exp $
- * Copyright (c) 2007-2009, JGraph Ltd
+ * $Id: mxOrganicLayout.java,v 1.2 2012/12/22 22:39:40 david Exp $
+ * Copyright (c) 2007-2013, JGraph Ltd
  */
 
 package com.mxgraph.layout;

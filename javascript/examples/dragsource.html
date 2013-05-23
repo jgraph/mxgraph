@@ -1,5 +1,5 @@
 <!--
-  $Id: dragsource.html,v 1.7 2012/10/30 11:38:46 gaudenz Exp $
+  $Id: dragsource.html,v 1.2 2012/12/02 13:54:30 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Dragsource example for mxGraph. This example demonstrates using
@@ -32,9 +32,6 @@
 			}
 			else
 			{
-				// Enables crisp rendering of rectangles in SVG
-				mxRectangleShape.prototype.crisp = true;
-
 				// Enables guides
 				mxGraphHandler.prototype.guidesEnabled = true;
 				
@@ -193,7 +190,6 @@
 				
 				if (this.mouseUpHandler != null)
 				{
-					
 					mxEvent.removeListener(doc, mu, this.mouseUpHandler);
 				}
 			}

@@ -1,5 +1,5 @@
 /**
- * $Id: mxICostFunction.java,v 1.1 2009/10/16 14:35:58 david Exp $
+ * $Id: mxICostFunction.java,v 1.2 2012/11/21 14:16:01 mate Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.analysis;

@@ -1,4 +1,4 @@
-// $Id: mxGraphModel.cs,v 1.51 2012/04/16 10:52:38 gaudenz Exp $
+// $Id: mxGraphModel.cs,v 1.1 2012/11/15 13:26:48 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Threading;

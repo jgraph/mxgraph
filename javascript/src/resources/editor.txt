@@ -1,4 +1,4 @@
-askZoom=Enter zoom (%25)
+askZoom=Enter zoom (%)
 properties=Properties
 outline=Outline
 tasks=Tasks

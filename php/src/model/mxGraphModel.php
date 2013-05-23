@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxGraphModel.php,v 1.47 2011/03/21 16:52:13 gaudenz Exp $
+ * $Id: mxGraphModel.php,v 1.1 2012/11/15 13:26:43 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 class mxGraphModel extends mxEventSource

@@ -1,5 +1,5 @@
 <!--
-  $Id: menustyle.html,v 1.2 2012/07/17 08:22:19 gaudenz Exp $
+  $Id: menustyle.html,v 1.4 2013/01/07 12:28:57 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Menustyle example for mxGraph. This example demonstrates using
@@ -74,11 +74,14 @@
 				// Disables built-in context menu
 				mxEvent.disableContextMenu(document.body);
 				
-				// Enables crisp rendering of rectangles in SVG
-				mxRectangleShape.prototype.crisp = true;
+				// Changes some default colors
+				mxConstants.HANDLE_FILLCOLOR = '#99ccff';
+				mxConstants.HANDLE_STROKECOLOR = '#0088cf';
+				mxConstants.VERTEX_SELECTION_COLOR = '#00a8ff';
 				
 				// Creates the graph inside the given container
 				var graph = new mxGraph(container);
+				graph.setTooltips(true);
 
 				// Enables rubberband selection
 				new mxRubberband(graph);
@@ -100,6 +103,42 @@
 					// Updates the display
 					graph.getModel().endUpdate();
 				}
+				
+				// Creates a new overlay with an image and a tooltip and makes it "transparent" to events
+				var overlay = new mxCellOverlay(
+					new mxImage('editors/images/overlays/check.png', 16, 16),
+					'Overlay tooltip');
+
+				var mxCellRendererInstallCellOverlayListeners = mxCellRenderer.prototype.installCellOverlayListeners;
+				mxCellRenderer.prototype.installCellOverlayListeners = function(state, overlay, shape)
+				{
+					mxCellRendererInstallCellOverlayListeners.apply(this, arguments);
+					var graph  = state.view.graph;
+
+					mxEvent.addGestureListeners(shape.node,
+						function (evt)
+						{
+							graph.fireMouseEvent(mxEvent.MOUSE_DOWN,
+									new mxMouseEvent(evt, state));
+						},
+						function (evt)
+						{
+							graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
+								new mxMouseEvent(evt, state));
+						});
+					
+					if (!mxClient.IS_TOUCH)
+					{
+						mxEvent.addListener(shape.node, 'mouseup', function (evt)
+						{
+							overlay.fireEvent(new mxEventObject(mxEvent.CLICK,
+									'event', evt, 'cell', state.cell));
+						});
+					}
+				};
+				
+				// Sets the overlay for the cell in the graph
+				graph.addCellOverlay(v1, overlay);
 				
 				// Configures automatic expand on mouseover
 				graph.panningHandler.autoExpand = true;

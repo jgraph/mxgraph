@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxEdgeStyle.php,v 1.33 2011/02/23 11:58:50 gaudenz Exp $
+ * $Id: mxEdgeStyle.php,v 1.1 2012/11/15 13:26:46 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 interface mxEdgeStyleFunction

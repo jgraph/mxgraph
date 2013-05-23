@@ -1,5 +1,5 @@
 <!--
-  $Id: schema.html,v 1.68 2013/04/29 14:25:01 david Exp $
+  $Id: schema.html,v 1.5 2013/04/12 07:10:19 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Schema example for mxGraph. This example demonstrates implementing
@@ -43,107 +43,10 @@
 				mxSwimlane.prototype.imageDx = 16;
 				mxSwimlane.prototype.imageDy = 4;
 				
-				// Implements white content area for swimlane in SVG
-				mxSwimlaneCreateSvg = mxSwimlane.prototype.createSvg;
-				mxSwimlane.prototype.createSvg = function()
+				// Changes swimlane icon bounds
+				mxSwimlane.prototype.getImageBounds = function(x, y, w, h)
 				{
-					var node = mxSwimlaneCreateSvg.apply(this, arguments);
-					
-					this.content.setAttribute('fill', '#FFFFFF');
-					
-					return node;
-				};
-				
-				// Implements full-height shadow for SVG
-				mxSwimlaneReconfigure = mxSwimlane.prototype.reconfigure;
-				mxSwimlane.prototype.reconfigure = function(node)
-				{
-					mxSwimlaneReconfigure.apply(this, arguments);
-					
-					if (this.dialect == mxConstants.DIALECT_SVG && this.shadowNode != null)
-					{
-						this.shadowNode.setAttribute('height', this.bounds.height);
-					}
-				};
-				
-				// Implements table icon position and full-height shadow for SVG repaints
-				mxSwimlaneRedrawSvg = mxSwimlane.prototype.redrawSvg;
-				mxSwimlane.prototype.redrawSvg = function()
-				{
-					mxSwimlaneRedrawSvg.apply(this, arguments);
-					
-					// Full-height shadow
-					if (this.dialect == mxConstants.DIALECT_SVG && this.shadowNode != null)
-					{
-						this.shadowNode.setAttribute('height', this.bounds.height);
-					}
-					
-					// Positions table icon
-					if (this.imageNode != null)
-					{
-						this.imageNode.setAttribute('x', this.bounds.x + this.imageDx * this.scale);
-						this.imageNode.setAttribute('y', this.bounds.y + this.imageDy * this.scale);
-					}
-				};
-
-				// Implements table icon position for swimlane in VML
-				mxSwimlaneRedrawVml = mxSwimlane.prototype.redrawVml;
-				mxSwimlane.prototype.redrawVml = function()
-				{
-					mxSwimlaneRedrawVml.apply(this, arguments);
-					
-					// Positions table icon
-					if (this.imageNode != null)
-					{
-						this.imageNode.style.left = Math.floor(this.imageDx * this.scale) + 'px';
-						this.imageNode.style.top = Math.floor(this.imageDy * this.scale) + 'px';
-					}
-				};
-
-				// Replaces the built-in shadow with a custom shadow and adds
-				// white content area for swimlane in VML
-				mxSwimlaneCreateVml = mxSwimlane.prototype.createVml;
-				mxSwimlane.prototype.createVml = function()
-				{
-					this.isShadow = false;
-					var node = mxSwimlaneCreateVml.apply(this, arguments);
-					this.shadowNode = document.createElement('v:rect');
-					
-					// Position and size of shadow are static
-					this.shadowNode.style.left = mxConstants.SHADOW_OFFSET_X + 'px';
-					this.shadowNode.style.top = mxConstants.SHADOW_OFFSET_Y + 'px';
-					this.shadowNode.style.width = '100%'
-					this.shadowNode.style.height = '100%'
-
-					// Color for shadow fill
-					var fillNode = document.createElement('v:fill');
-					this.updateVmlFill(fillNode, mxConstants.SHADOWCOLOR, null, null, mxConstants.SHADOW_OPACITY * 100);
-					this.shadowNode.appendChild(fillNode);
-					
-					// Color and weight of shadow stroke
-					this.shadowNode.setAttribute('strokecolor', mxConstants.SHADOWCOLOR);
-					this.shadowNode.setAttribute('strokeweight', (this.strokewidth * this.scale) + 'px');
-					
-					// Opacity of stroke
-					var strokeNode = document.createElement('v:stroke');
-					strokeNode.setAttribute('opacity', (mxConstants.SHADOW_OPACITY * 100) + '%');
-					this.shadowNode.appendChild(strokeNode);
-					
-					node.insertBefore(this.shadowNode, node.firstChild);
-
-					// White content area of swimlane
-					this.content.setAttribute('fillcolor', 'white');
-					this.content.setAttribute('filled', 'true');
-					
-					// Sets opacity on content area fill
-					if (this.opacity != null)
-					{
-						var contentFillNode = document.createElement('v:fill');
-						contentFillNode.setAttribute('opacity', this.opacity + '%');
-						this.content.appendChild(contentFillNode);
-					}
-					
-					return node;
+					return new mxRectangle(x + this.imageDx, y + this.imageDy, this.imageSize, this.imageSize);
 				};
 				
 				// Defines an icon for creating new connections in the connection handler.
@@ -694,7 +597,7 @@
 
 				if (!isTable)
 				{
-					parent = cell
+					parent = cell;
 					var pstate = graph.getView().getState(parent);
 					
 					if (parent == null || pstate == null)
@@ -816,6 +719,7 @@
 			style[mxConstants.STYLE_VERTICAL_ALIGN] = mxConstants.ALIGN_TOP;
 			style[mxConstants.STYLE_GRADIENTCOLOR] = '#41B9F5';
 			style[mxConstants.STYLE_FILLCOLOR] = '#8CCDF5';
+			style[mxConstants.STYLE_SWIMLANE_FILLCOLOR] = '#ffffff';
 			style[mxConstants.STYLE_STROKECOLOR] = '#1B78C8';
 			style[mxConstants.STYLE_FONTCOLOR] = '#000000';
 			style[mxConstants.STYLE_STROKEWIDTH] = '2';

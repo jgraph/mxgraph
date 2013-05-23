@@ -1,5 +1,5 @@
 <!--
-  $Id: shape.html,v 1.27 2012/07/17 08:22:19 gaudenz Exp $
+  $Id: shape.html,v 1.1 2012/11/15 13:26:40 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Shape example for mxGraph. This example demonstrates how to
@@ -41,9 +41,6 @@
 		BoxShape.prototype = new mxCylinder();
 		BoxShape.prototype.constructor = BoxShape;
 		
-		// Requests crisp rendering in SVG for this shape
-		BoxShape.prototype.crisp = true;
-
 		// Defines the extrusion of the box as a "static class variable"
 		BoxShape.prototype.extrude = 10;
 			
@@ -76,7 +73,6 @@
 				path.lineTo(w, 0);
 				path.moveTo(w - dx, dy);
 				path.lineTo(w - dx, h);
-				path.end();
 			}
 			else
 			{
@@ -89,7 +85,6 @@
 				path.lineTo(0, dy);
 				path.lineTo(dx, 0);
 				path.close();
-				path.end();
 			}
 		};
 		

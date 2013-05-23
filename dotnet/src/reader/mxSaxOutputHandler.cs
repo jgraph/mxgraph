@@ -221,6 +221,16 @@ namespace com.mxgraph
 			    canvas.FontColor = GetString(atts, "color");
 		    };
 
+            handlers["fontbackgroundcolor"] = delegate(Dictionary<string, string> atts)
+            {
+                canvas.FontBackgroundColor = GetString(atts, "color");
+            };
+
+            handlers["fontbordercolor"] = delegate(Dictionary<string, string> atts)
+            {
+                canvas.FontBorderColor = GetString(atts, "color");
+            };
+
             handlers["fontfamily"] = delegate(Dictionary<string, string> atts)
 		    {
 			    canvas.FontFamily = GetString(atts, "family");
@@ -241,18 +251,33 @@ namespace com.mxgraph
 			    canvas.FillColor = GetString(atts, "color");
 		    };
 
+            handlers["shadowcolor"] = delegate(Dictionary<string, string> atts)
+            {
+                canvas.ShadowColor = GetString(atts, "color");
+            };
+
+            handlers["shadowalpha"] = delegate(Dictionary<string, string> atts)
+            {
+                canvas.ShadowAlpha = GetDouble(atts, "alpha");
+            };
+
+            handlers["shadowoffset"] = delegate(Dictionary<string, string> atts)
+            {
+                canvas.SetShadowOffset(GetDouble(atts, "dx"), GetDouble(atts, "dy"));
+            };
+
+            handlers["shadow"] = delegate(Dictionary<string, string> atts)
+            {
+                canvas.Shadow = IsTrue(atts, "enabled");
+            };
+
             handlers["gradient"] = delegate(Dictionary<string, string> atts)
 		    {
 			    canvas.SetGradient(GetString(atts, "c1"), GetString(atts, "c2"),
                     GetDouble(atts, "x"), GetDouble(atts, "y"),
 				    GetDouble(atts, "w"), GetDouble(atts, "h"),
-				    GetString(atts, "direction"));
-		    };
-
-            handlers["glass"] = delegate(Dictionary<string, string> atts)
-		    {
-			    canvas.SetGlassGradient(GetDouble(atts, "x"), GetDouble(atts, "y"),
-				    GetDouble(atts, "w"), GetDouble(atts, "h"));
+                    GetString(atts, "direction"), GetDouble(atts, "alpha1", 1),
+                    GetDouble(atts, "alpha2", 1));
 		    };
 
             handlers["rect"] = delegate(Dictionary<string, string> atts)
@@ -287,8 +312,9 @@ namespace com.mxgraph
                 canvas.Text(GetDouble(atts, "x"), GetDouble(atts, "y"),
                     GetDouble(atts, "w"), GetDouble(atts, "h"),
                     GetString(atts, "str"), GetString(atts, "align"),
-                    GetString(atts, "valign"), IsTrue(atts, "vertical"),
-                    IsTrue(atts, "wrap"), GetString(atts, "format"));
+                    GetString(atts, "valign"), IsTrue(atts, "wrap"),
+                    GetString(atts, "format"), GetString(atts, "overflow"),
+                    IsTrue(atts, "clip"), GetDouble(atts, "rotation"));
 		    };
 
             handlers["begin"] = delegate(Dictionary<string, string> atts)
@@ -336,16 +362,6 @@ namespace com.mxgraph
             handlers["fillstroke"] = delegate(Dictionary<string, string> atts)
 		    {
 			    canvas.FillAndStroke();
-		    };
-
-            handlers["shadow"] = delegate(Dictionary<string, string> atts)
-		    {
-			    canvas.Shadow(GetString(atts, "value"), IsTrue(atts, "filled", true));
-		    };
-
-            handlers["clip"] = delegate(Dictionary<string, string> atts)
-		    {
-			    canvas.Clip();
 		    };
 	    }
     }

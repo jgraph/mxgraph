@@ -1,5 +1,5 @@
 /**
- * $Id: mxImageShape.java,v 1.6 2011/01/05 11:20:51 gaudenz Exp $
+ * $Id: mxImageShape.java,v 1.1 2012/11/15 13:26:44 gaudenz Exp $
  * Copyright (c) 2007-2010, Gaudenz Alder, David Benson
  */
 package com.mxgraph.shape;

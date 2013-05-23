@@ -1,5 +1,5 @@
 /**
- * $Id: mxHtmlColor.java,v 1.3 2012/11/25 11:27:03 gaudenz Exp $
+ * $Id: mxHtmlColor.java,v 1.3 2012/11/25 11:28:51 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.util;

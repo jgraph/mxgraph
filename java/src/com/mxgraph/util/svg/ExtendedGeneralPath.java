@@ -39,7 +39,7 @@ import java.util.Arrays;
  * path segments. For futher details, see the SVG Appendix&nbsp;F.6
  *
  * @author <a href="mailto:Thierry.Kormann@sophia.inria.fr">Thierry Kormann</a>
- * @version $Id: ExtendedGeneralPath.java,v 1.1 2010/09/03 19:14:06 david Exp $
+ * @version $Id: ExtendedGeneralPath.java,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  */
 public class ExtendedGeneralPath implements Shape, Cloneable
 {

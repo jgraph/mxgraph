@@ -5,8 +5,10 @@ import java.util.Map;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.xml.sax.Attributes;
 
 import com.mxgraph.canvas.mxICanvas2D;
+import com.mxgraph.reader.mxSaxOutputHandler.IElementHandler;
 
 /**
  *
@@ -217,6 +219,22 @@ public class mxDomOutputParser
 			}
 		});
 
+		handlers.put("fontbackgroundcolor", new IElementHandler()
+		{
+			public void parseElement(Element elt)
+			{
+				canvas.setFontBackgroundColor(elt.getAttribute("color"));
+			}
+		});
+
+		handlers.put("fontbordercolor", new IElementHandler()
+		{
+			public void parseElement(Element elt)
+			{
+				canvas.setFontBorderColor(elt.getAttribute("color"));
+			}
+		});
+
 		handlers.put("fontfamily", new IElementHandler()
 		{
 			public void parseElement(Element elt)
@@ -248,7 +266,40 @@ public class mxDomOutputParser
 				canvas.setFillColor(elt.getAttribute("color"));
 			}
 		});
+		
+		handlers.put("shadowcolor", new IElementHandler()
+		{
+			public void parseElement(Element elt)
+			{
+				canvas.setShadowColor(elt.getAttribute("color"));
+			}
+		});
+		
+		handlers.put("shadowalpha", new IElementHandler()
+		{
+			public void parseElement(Element elt)
+			{
+				canvas.setShadowAlpha(Double.parseDouble(elt.getAttribute("alpha")));
+			}
+		});
+		
+		handlers.put("shadowoffset", new IElementHandler()
+		{
+			public void parseElement(Element elt)
+			{
+				canvas.setShadowOffset(Double.parseDouble(elt.getAttribute("dx")),
+						Double.parseDouble(elt.getAttribute("dy")));
+			}
+		});
 
+		handlers.put("shadow", new IElementHandler()
+		{
+			public void parseElement(Element elt)
+			{
+				canvas.setShadow(elt.getAttribute("enabled").equals("1"));
+			}
+		});
+		
 		handlers.put("gradient", new IElementHandler()
 		{
 			public void parseElement(Element elt)
@@ -259,19 +310,9 @@ public class mxDomOutputParser
 						Double.parseDouble(elt.getAttribute("y")),
 						Double.parseDouble(elt.getAttribute("w")),
 						Double.parseDouble(elt.getAttribute("h")),
-						elt.getAttribute("direction"));
-			}
-		});
-
-		handlers.put("glass", new IElementHandler()
-		{
-			public void parseElement(Element elt)
-			{
-				canvas.setGlassGradient(
-						Double.parseDouble(elt.getAttribute("x")),
-						Double.parseDouble(elt.getAttribute("y")),
-						Double.parseDouble(elt.getAttribute("w")),
-						Double.parseDouble(elt.getAttribute("h")));
+						elt.getAttribute("direction"),
+						Double.parseDouble(getValue(elt, "alpha1", "1")),
+						Double.parseDouble(getValue(elt, "alpha2", "1")));
 			}
 		});
 
@@ -328,14 +369,18 @@ public class mxDomOutputParser
 		{
 			public void parseElement(Element elt)
 			{
-				canvas.text(Double.parseDouble(elt.getAttribute("x")), Double
-						.parseDouble(elt.getAttribute("y")), Double
-						.parseDouble(elt.getAttribute("w")), Double
-						.parseDouble(elt.getAttribute("h")), elt
-						.getAttribute("str"), elt.getAttribute("align"), elt
-						.getAttribute("valign"), elt.getAttribute("vertical")
-						.equals("1"), getValue(elt, "wrap", "").equals("1"),
-						elt.getAttribute("format"));
+				canvas.text(Double.parseDouble(elt.getAttribute("x")),
+						Double.parseDouble(elt.getAttribute("y")),
+						Double.parseDouble(elt.getAttribute("w")),
+						Double.parseDouble(elt.getAttribute("h")),
+						elt.getAttribute("str"),
+						elt.getAttribute("align"),
+						elt.getAttribute("valign"),
+						getValue(elt, "wrap", "").equals("1"),
+						elt.getAttribute("format"),
+						elt.getAttribute("overflow"),
+						getValue(elt, "clip", "").equals("1"),
+						Double.parseDouble(getValue(elt, "rotation", "0")));
 			}
 		});
 
@@ -418,23 +463,6 @@ public class mxDomOutputParser
 			public void parseElement(Element elt)
 			{
 				canvas.fillAndStroke();
-			}
-		});
-
-		handlers.put("shadow", new IElementHandler()
-		{
-			public void parseElement(Element elt)
-			{
-				canvas.shadow(elt.getAttribute("value"),
-						elt.getAttribute("filled").equals("1"));
-			}
-		});
-
-		handlers.put("clip", new IElementHandler()
-		{
-			public void parseElement(Element elt)
-			{
-				canvas.clip();
 			}
 		});
 	}

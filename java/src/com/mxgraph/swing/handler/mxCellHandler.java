@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellHandler.java,v 1.27 2012/07/01 12:19:21 gaudenz Exp $
+ * $Id: mxCellHandler.java,v 1.1 2012/11/15 13:26:44 gaudenz Exp $
  * Copyright (c) 2008-2012, JGraph Ltd
  */
 package com.mxgraph.swing.handler;

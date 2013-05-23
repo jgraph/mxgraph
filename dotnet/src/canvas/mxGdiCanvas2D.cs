@@ -1,4 +1,4 @@
-// $Id: mxGdiCanvas2D.cs,v 1.18 2012/11/19 16:56:51 gaudenz Exp $
+// $Id: mxGdiCanvas2D.cs,v 1.12 2013/05/23 10:29:42 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Drawing;
@@ -27,6 +27,21 @@ namespace com.mxgraph
     /// </summary>
     public class mxGdiCanvas2D : mxICanvas2D
     {
+        /// <summary>
+        /// matchHtmlAlignment
+        /// </summary>
+        protected bool matchHtmlAlignment = true;
+
+        /// <summary>
+        /// htmlAsPlainText
+        /// </summary>
+        protected bool htmlAsPlainText = true;
+
+        /// <summary>
+        /// htmlAsPlainText
+        /// </summary>
+        protected bool wrapPlainText = true;
+
 	    /// <summary>
         /// Reference to the graphics instance for painting.
 	    /// </summary>
@@ -54,17 +69,24 @@ namespace com.mxgraph
 	    protected mxPoint lastPoint;
 
 	    /// <summary>
-	    /// Holds the current value for the shadow color. This is used to hold the
-        /// input value of a shadow operation. The parsing result of this value is
-        /// cached in the global scope as it should be repeating.
+	    /// FontCaching
 	    /// </summary>
-	    protected string currentShadowValue;
+	    protected Font lastFont = null;
 
 	    /// <summary>
-	    /// Holds the current parsed shadow color. This holds the result of parsing
-        /// the currentShadowValue, which is an expensive operation.
+	    /// FontCaching
 	    /// </summary>
-	    protected Color currentShadowColor;
+        protected FontStyle lastFontStyle = 0;
+
+	    /// <summary>
+	    /// FontCaching
+	    /// </summary>
+	    protected float lastFontSize = 0;
+
+	    /// <summary>
+	    /// FontCaching
+	    /// </summary>
+	    protected String lastFontFamily = "";
 
 	    /// <summary>
         /// Constructs a new graphics export canvas.
@@ -110,7 +132,6 @@ namespace com.mxgraph
 	    {
 		    // This implementation uses custom scale/translate and built-in rotation
 		    state.scale = state.scale * value;
-            state.strokeWidth *= value;
 	    }
 
 	    /// <summary>
@@ -131,28 +152,29 @@ namespace com.mxgraph
 	    public void Rotate(double theta, bool flipH, bool flipV, double cx,
 			    double cy)
 	    {
+            cx += state.dx;
+            cy += state.dy;
             cx *= state.scale;
             cy *= state.scale;
 
-            // This is a special case where the rotation center is scaled so dx/dy,
-            // which are also scaled, must be applied after scaling the center.
-            cx += state.dx;
-            cy += state.dy;
+            // This implementation uses custom scale/translate and built-in rotation
+            // Rotation state is part of the AffineTransform in state.transform
+            if (flipH && flipV)
+            {
+                theta += 180;
+            }
+            else if (flipH ^ flipV)
+            {
+                double tx = (flipH) ? cx : 0;
+                int sx = (flipH) ? -1 : 1;
 
-		    // This implementation uses custom scale/translate and built-in rotation
-		    // Rotation state is part of the AffineTransform in state.transform
-		    if (flipH ^ flipV)
-		    {
-			    double tx = (flipH) ? cx : 0;
-			    int sx = (flipH) ? -1 : 1;
+                double ty = (flipV) ? cy : 0;
+                int sy = (flipV) ? -1 : 1;
 
-			    double ty = (flipV) ? cy : 0;
-			    int sy = (flipV) ? -1 : 1;
-
-                graphics.TranslateTransform((float)tx, (float)ty, MatrixOrder.Append);
-                graphics.ScaleTransform(sx, sy, MatrixOrder.Append);
                 graphics.TranslateTransform((float)-tx, (float)-ty, MatrixOrder.Append);
-		    }
+                graphics.ScaleTransform(sx, sy, MatrixOrder.Append);
+                graphics.TranslateTransform((float)tx, (float)ty, MatrixOrder.Append);
+            }
 
             graphics.TranslateTransform((float)-cx, (float)-cy, MatrixOrder.Append);
             graphics.RotateTransform((float)theta, MatrixOrder.Append);
@@ -167,12 +189,9 @@ namespace com.mxgraph
             set
             {
                 // Lazy and cached instantiation strategy for all stroke properties
-		        if (value * state.scale != state.strokeWidth)
+		        if (value != state.strokeWidth)
 		        {
-			        state.strokeWidth = value * state.scale;
-
-			        // Invalidates cached pen
-                    state.pen = null;
+			        state.strokeWidth = value;
 		        }
             }
         }
@@ -185,7 +204,7 @@ namespace com.mxgraph
             set
             {
                 // Lazy and cached instantiation strategy for all stroke properties
-		        if (!state.strokeColorValue.Equals(value))
+		        if (state.strokeColorValue == null || !state.strokeColorValue.Equals(value))
 		        {
 			        state.strokeColorValue = value;
 			        state.strokeColor = null;
@@ -205,9 +224,6 @@ namespace com.mxgraph
 		        if (value != state.dashed)
 		        {
 			        state.dashed = value;
-
-			        // Invalidates cached pen
-                    state.pen = null;
 		        }
             }
         }
@@ -230,7 +246,6 @@ namespace com.mxgraph
 			        }
 
 			        state.dashPattern = dashpattern;
-                    state.pen = null;
 		        }
             }
         }
@@ -245,7 +260,6 @@ namespace com.mxgraph
 		        if (!state.lineCap.Equals(value))
 		        {
 			        state.lineCap = value;
-                    state.pen = null;
 		        }
             }
 	    }
@@ -260,7 +274,6 @@ namespace com.mxgraph
 		        if (!state.lineJoin.Equals(value))
 		        {
 			        state.lineJoin = value;
-                    state.pen = null;
 		        }
             }
 	    }
@@ -275,7 +288,6 @@ namespace com.mxgraph
 		        if (value != state.miterLimit)
 		        {
 			        state.miterLimit = value;
-                    state.pen = null;
 		        }
             }
 	    }
@@ -289,8 +301,7 @@ namespace com.mxgraph
             {
 		        if (value != state.fontSize)
 		        {
-			        state.fontSize = value * state.scale;
-			        state.font = null;
+			        state.fontSize = value;
 		        }
             }
 	    }
@@ -302,13 +313,44 @@ namespace com.mxgraph
         {
             set
             {
-		        if (!state.fontColorValue.Equals(value))
+                if (state.fontColorValue == null || !state.fontColorValue.Equals(value))
 		        {
 			        state.fontColorValue = value;
 			        state.fontBrush = null;
-		        }
+                    state.fontColor = null;
+                }
             }
 	    }
+
+        /// <summary>
+        /// Default value 0. See {@link mxConstants#STYLE_FONTSTYLE}.
+        /// </summary>
+        public string FontBackgroundColor
+        {
+            set
+            {
+                if (state.fontBackgroundColorValue == null || !state.fontBackgroundColorValue.Equals(value))
+                {
+                    state.fontBackgroundColorValue = value;
+                    state.fontBackgroundColor = null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Default value 0. See {@link mxConstants#STYLE_FONTSTYLE}.
+        /// </summary>
+        public string FontBorderColor
+        {
+            set
+            {
+                if (state.fontBorderColorValue == null || !state.fontBorderColorValue.Equals(value))
+                {
+                    state.fontBorderColorValue = value;
+                    state.fontBorderColor = null;
+                }
+            }
+        }
 
 	    /// <summary>
 	    /// Sets the font family.
@@ -320,7 +362,6 @@ namespace com.mxgraph
 		        if (!state.fontFamily.Equals(value))
 		        {
 			        state.fontFamily = value;
-			        state.font = null;
 		        }
             }
 	    }
@@ -335,7 +376,6 @@ namespace com.mxgraph
 		        if (value != state.fontStyle)
 		        {
 			        state.fontStyle = value;
-			        state.font = null;
 		        }
             }
 	    }
@@ -362,40 +402,113 @@ namespace com.mxgraph
             }
 	    }
 
+        /// <summary>
+        /// Default value {@link mxConstants#NONE}.
+        /// </summary>
+        public bool Shadow
+        {
+            set
+            {
+                state.shadow = value;
+            }
+        }
+
+        /// <summary>
+        /// Default value {@link mxConstants#NONE}.
+        /// </summary>
+        public string ShadowColor
+        {
+            set
+            {
+                if (state.shadowColorValue == null || !state.shadowColorValue.Equals(value))
+                {
+                    state.shadowColorValue = value;
+                    state.shadowColor = null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Default value 1. This method may add rendering overhead and should be
+        /// used with care.
+        /// </summary>
+        public double ShadowAlpha
+        {
+            set
+            {
+                state.shadowAlpha = value;
+                state.shadowColor = null;
+            }
+        }
+
+        /// <summary>
+        /// Prepares the canvas to draw a gradient.
+        /// </summary>
+        public void SetShadowOffset(double dx, double dy)
+        {
+            state.shadowOffsetX = dx;
+            state.shadowOffsetY = dy;
+        }
+
 	    /// <summary>
 	    /// Sets the given gradient.
 	    /// </summary>
 	    public void SetGradient(String color1, String color2, double x, double y,
-			    double w, double h, String direction)
+			    double w, double h, String direction, double alpha1, double alpha2)
 	    {
 		    // LATER: Add lazy instantiation and check if paint already created
-            x = state.dx + x * state.scale;
-		    y = state.dy + y * state.scale;
+            x = (state.dx + x) * state.scale;
+		    y = (state.dy + y) * state.scale;
 		    h *= state.scale;
 		    w *= state.scale;
 
+            Color c1 = ParseColor(color1);
+
+            if (alpha1 != 1)
+            {
+                c1 = Color.FromArgb((int)(alpha1 * 255), c1.R, c1.G, c1.B);
+            }
+
+            Color c2 = ParseColor(color2);
+
+            if (alpha2 != 1)
+            {
+                c2 = Color.FromArgb((int)(alpha2 * 255), c2.R, c2.G, c2.B);
+            }
+		
             // FIXME: Needs to swap colors and use only horizontal and vertical
-            LinearGradientMode mode = LinearGradientMode.ForwardDiagonal;
+            LinearGradientMode mode = LinearGradientMode.Vertical;
 
             if (direction != null && direction.Length > 0
                     && !direction.Equals(mxConstants.DIRECTION_SOUTH))
             {
                 if (direction.Equals(mxConstants.DIRECTION_EAST))
                 {
-                    mode = LinearGradientMode.BackwardDiagonal;
+                    mode = LinearGradientMode.Horizontal;
                 }
                 else if (direction.Equals(mxConstants.DIRECTION_NORTH))
                 {
-                    mode = LinearGradientMode.Horizontal;
+                    Color tmp = c1;
+                    c1 = c2;
+                    c2 = tmp;
+                    double tmp2 = alpha1;
+                    alpha1 = alpha2;
+                    alpha2 = tmp2;
                 }
                 else if (direction.Equals(mxConstants.DIRECTION_WEST))
                 {
-                    mode = LinearGradientMode.Vertical;
+                    mode = LinearGradientMode.Horizontal;
+                    Color tmp = c1;
+                    c1 = c2;
+                    c2 = tmp;
+                    double tmp2 = alpha1;
+                    alpha1 = alpha2;
+                    alpha2 = tmp2;
                 }
             }
 
             state.brush = new LinearGradientBrush(new RectangleF((float) x, (float) y,
-                (float) w, (float) h), ParseColor(color1), ParseColor(color2), mode);
+                (float) w, (float) h), c1, c2, mode);
 	    }
 
 	    /// <summary>
@@ -404,6 +517,12 @@ namespace com.mxgraph
 	    /// </summary>
 	    protected Color ParseColor(string hex)
 	    {
+            if (hex == null || hex.Equals(mxConstants.NONE))
+            {
+                // TODO: Return null
+                return Color.Transparent;
+            }
+
             Color color = ColorTranslator.FromHtml(hex);
 
             // Poor man's setAlpha
@@ -413,29 +532,13 @@ namespace com.mxgraph
 	    }
 
 	    /// <summary>
-	    /// Sets the given glass gradient.
-	    /// </summary>
-	    public void SetGlassGradient(double x, double y, double w, double h)
-	    {
-		    double size = 0.6;
-		    x = state.dx + x * state.scale;
-		    y = state.dy + y * state.scale;
-		    h *= state.scale;
-		    w *= state.scale;
-
-            state.brush = new LinearGradientBrush(new RectangleF((float) x, (float) y,
-                (float) w, (float) (size * h)), Color.FromArgb((int)(0.9 * 255), 255, 255, 255),
-                Color.FromArgb((int)(0.15 * 255), 255, 255, 255), LinearGradientMode.Vertical);
-	    }
-
-	    /// <summary>
 	    /// Draws a rectangle.
 	    /// </summary>
 	    public void Rect(double x, double y, double w, double h)
 	    {
 		    currentPath = new GraphicsPath();
-		    currentPath.AddRectangle(new RectangleF((float) (state.dx + x * state.scale),
-                    (float) (state.dy + y * state.scale), (float) (w * state.scale),
+		    currentPath.AddRectangle(new RectangleF((float) ((state.dx + x) * state.scale),
+                    (float) ((state.dy + y) * state.scale), (float) (w * state.scale),
                     (float) (h * state.scale)));
 	    }
 
@@ -463,8 +566,8 @@ namespace com.mxgraph
 	    public void Ellipse(double x, double y, double w, double h)
 	    {
 		    currentPath = new GraphicsPath();
-		    currentPath.AddEllipse((float) (state.dx + x * state.scale),
-                    (float) (state.dy + y * state.scale), (float) (w * state.scale),
+		    currentPath.AddEllipse((float) ((state.dx + x) * state.scale),
+                    (float) ((state.dy + y) * state.scale), (float) (w * state.scale),
                     (float) (h * state.scale));
 	    }
 
@@ -512,8 +615,8 @@ namespace com.mxgraph
 	    protected Rectangle GetImageBounds(Image img, double x, double y,
 			    double w, double h, bool aspect)
 	    {
-		    x = state.dx + x * state.scale;
-		    y = state.dy + y * state.scale;
+		    x = (state.dx + x) * state.scale;
+		    y = (state.dy + y) * state.scale;
 		    w *= state.scale;
 		    h *= state.scale;
 
@@ -551,150 +654,197 @@ namespace com.mxgraph
 	    protected void ConfigureImageGraphics(double x, double y,
 			    double w, double h, bool flipH, bool flipV)
 	    {
+            // FIXME: Wrong results
 		    if (flipH || flipV)
 		    {
-			    int sx = 1;
-			    int sy = 1;
-			    int dx = 0;
-			    int dy = 0;
+                float cx = (float)(x + w / 2);
+                float cy = (float)(y + h / 2);
 
-			    if (flipH)
-			    {
-				    sx = -1;
-				    dx = (int) (-w - 2 * x);
-			    }
+                if (flipV && flipH)
+                {
+                    graphics.TranslateTransform(-cx, -cy, MatrixOrder.Append);
+                    graphics.RotateTransform(180, MatrixOrder.Append);
+                    graphics.TranslateTransform(cx, cy, MatrixOrder.Append);
+                }
+                else
+                {
+                    double tx = (flipH) ? cx : 0;
+                    int sx = (flipH) ? -1 : 1;
 
-			    if (flipV)
-			    {
-				    sy = -1;
-				    dy = (int) (-h - 2 * y);
-			    }
+                    double ty = (flipV) ? cy : 0;
+                    int sy = (flipV) ? -1 : 1;
 
-                graphics.ScaleTransform(sx, sy, MatrixOrder.Append);
-                graphics.TranslateTransform(dx, dy, MatrixOrder.Append);
+                    graphics.TranslateTransform((float)-tx, (float)-ty, MatrixOrder.Append);
+                    graphics.ScaleTransform(sx, sy, MatrixOrder.Append);
+                    graphics.TranslateTransform((float)tx, (float)ty, MatrixOrder.Append);
+                }
             }
 	    }
 
 	    /// <summary>
         /// Draws the given text.
 	    /// </summary>
-	    public void Text(double x, double y, double w, double h, string str, string align,
-                string valign, bool vertical, bool wrap, string format)
+	    public void Text(double x, double y, double w, double h, string str, string align, string valign,
+                bool wrap, string format, string overflow, bool clip, double rotation)
 	    {
-		    if (!state.fontColorValue.Equals(mxConstants.NONE))
+            bool htmlFormat = format != null && format.Equals("html");
+
+            if (htmlFormat && !htmlAsPlainText)
+            {
+                return;
+            }
+
+            if (state.fontColor == null)
+            {
+                state.fontColor = ParseColor(state.fontColorValue);
+                state.fontBrush = new SolidBrush((Color) state.fontColor);
+            }
+
+            if (state.fontColor != null && state.fontColor != Color.Transparent)
 		    {
                 // HTML format is currently not supported so all BR are
-                // replaced with linefeeds for minimal support
+                // replaced with linefeeds and rendered as plain text.
                 if (format != null && format.Equals("html"))
                 {
                     str = str.Replace("<br/>", "\n");
                     str = str.Replace("<br>", "\n");
                 }
 
-			    x = state.dx + x * state.scale;
-			    y = state.dy + y * state.scale;
-			    w *= state.scale;
-			    h *= state.scale;
+                x = state.dx + x;
+                y = state.dy + y;
+
+                // Uses graphics-based scaling for consistent word wrapping
+                graphics.ScaleTransform((float)state.scale, (float)state.scale, MatrixOrder.Append);
 
 			    // Font-metrics needed below this line
                 GraphicsState previous = graphics.Save();
                 UpdateFont();
 
-                if (vertical)
+                if (rotation != 0)
                 {
-                    graphics.TranslateTransform((float)-(x + w / 2), (float)-(y + h / 2), MatrixOrder.Append);
-                    graphics.RotateTransform(-90F, MatrixOrder.Append);
-                    graphics.TranslateTransform((float)(x + w / 2), (float)(y + h / 2), MatrixOrder.Append);
+                    graphics.TranslateTransform((float)-(x * state.scale), (float)-(y * state.scale), MatrixOrder.Append);
+                    graphics.RotateTransform((float) rotation, MatrixOrder.Append);
+                    graphics.TranslateTransform((float)(x * state.scale), (float)(y * state.scale), MatrixOrder.Append);
                 }
 
-                if (state.fontBrush == null)
-                {
-                    state.fontBrush = new SolidBrush(ParseColor(state.fontColorValue));
-                }
-
-			    y = GetVerticalTextPosition(x, y, w, h, align, valign, vertical, state.font, str, wrap, format);
-                x = GetHorizontalTextPosition(x, y, w, h, align, valign, vertical, state.font, str, wrap, format);
-                w = GetTextWidth(x, y, w, h, align, valign, vertical, state.font, str, wrap, format);
-
-                RectangleF bounds = new RectangleF((float)x, (float)y, (float)w, (float)h);
-                StringFormat fmt = CreateStringFormat(align, valign, wrap);
-
-                // Uses built-in rendering if wrapping is enabled because we do not know what
-                // additional linefeeds have been added so we can't compute the y increment
+                // Workaround for inconsistent word wrapping
                 if (wrap)
                 {
-                    graphics.DrawString(str, state.font, state.fontBrush, bounds, fmt);
+                    w += 5;
                 }
-                else
-                {
-                    // Needed for custom linespacing
-                    string[] lines = str.Split('\n');
 
-                    for (int i = 0; i < lines.Length; i++)
+                // Workaround for y-position
+                y += 1;
+
+                PointF margin = GetMargin(align, valign);
+                StringFormat fmt = CreateStringFormat(align, valign, (htmlFormat || wrapPlainText) && wrap,
+                    !matchHtmlAlignment && clip && w > 0 && h > 0);
+                SizeF size = graphics.MeasureString(str, lastFont, new SizeF((float)w, (float)h), fmt);
+                float cw = (w == 0 || (!wrap && !clip)) ? size.Width : (float)Math.Min(size.Width, w);
+                float ch = (h == 0 || (!wrap && !clip)) ? size.Height : (float)Math.Min(size.Height, h);
+                float cx = (float)(x + margin.X * cw);
+                float cy = (float)(y + margin.Y * ch);
+                RectangleF clipRect = new RectangleF(cx, cy, cw, ch);
+
+                if (state.fontBackgroundColorValue != null)
+                {
+                    if (state.fontBackgroundColor == null)
                     {
-                        graphics.DrawString(lines[i], state.font, state.fontBrush, bounds, fmt);
-                        bounds.Y += state.font.Height + mxConstants.LINESPACING;
+                        state.fontBackgroundColor = ParseColor(state.fontBackgroundColorValue);
+                    }
+
+                    if (state.fontBackgroundColor != null && state.fontBackgroundColor != Color.Transparent)
+                    {
+                        RectangleF bg = new RectangleF(clipRect.X + 1, clipRect.Y - 1, clipRect.Width - 2, clipRect.Height - 1);
+                        graphics.FillRectangle(new SolidBrush((Color)state.fontBackgroundColor), bg);
                     }
                 }
 
+                if (state.fontBorderColorValue != null)
+                {
+                    if (state.fontBorderColor == null)
+                    {
+                        state.fontBorderColor = ParseColor(state.fontBorderColorValue);
+                    }
+
+                    if (state.fontBorderColor != null && state.fontBorderColor != Color.Transparent)
+                    {
+                        RectangleF bg = new RectangleF(clipRect.X + 1, clipRect.Y - 1, clipRect.Width - 2, clipRect.Height);
+                        graphics.DrawRectangle(new Pen((Color)state.fontBorderColor), bg.X, bg.Y, bg.Width, bg.Height);
+                    }
+                }
+
+                // Matches clipped vertical and horizontal alignment
+                if (matchHtmlAlignment)
+                {
+                    if (clip && w > 0 && h > 0)
+                    {
+                        graphics.Clip = new Region(clipRect);
+                    }
+
+                    if (clip && size.Height > h && h > 0)
+                    {
+                        y -= margin.Y * (size.Height - h);
+                    }
+                }
+
+                x += margin.X * w;
+                y += margin.Y * h;
+
+                // LATER: Match HTML horizontal alignment
+                RectangleF bounds = new RectangleF((float)x, (float)y, (float)w, (float)h);
+                graphics.DrawString(str, lastFont, state.fontBrush, bounds, fmt);
                 graphics.Restore(previous);
 		    }
 	    }
 
-        /// <summary>
-        /// Returns the width to be used to render the specifies text.
-        /// </summary>
-        protected double GetTextWidth(double x, double y, double w, double h, string align,
-            string valign, bool vertical, Font font, string text, bool wrap, string format)
+        /**
+         * 
+         */
+        protected PointF GetMargin(String align, String valign)
         {
-            if (wrap)
+            float dx = 0;
+            float dy = 0;
+
+            if (align != null)
             {
-                w += 10;
+                if (align.Equals(mxConstants.ALIGN_CENTER))
+                {
+                    dx = -0.5f;
+                }
+                else if (align.Equals(mxConstants.ALIGN_RIGHT))
+                {
+                    dx = -1;
+                }
             }
 
-            return w;
-        }
-
-        /// <summary>
-        /// Default alignment is top.
-        /// </summary>
-        protected double GetVerticalTextPosition(double x, double y, double w, double h, string align,
-            string valign, bool vertical, Font font, string text, bool wrap, string format)
-        {
-            return y - 2;
-        }
-
-        /// <summary>
-        /// Default alignment is left.
-        /// </summary>
-        protected double GetHorizontalTextPosition(double x, double y, double w,
-                double h, string align, string valign, bool vertical,
-                Font font, string text, bool wrap, string format)
-        {
-            // Left is default
-            if (align == null)
+            if (valign != null)
             {
-                x -= 2;
-            }
-            else if (align.Equals(mxConstants.ALIGN_CENTER))
-            {
-                x -= 6;
-            }
-            else if (align.Equals(mxConstants.ALIGN_RIGHT))
-            {
-                x -= 10;
+                if (valign.Equals(mxConstants.ALIGN_MIDDLE))
+                {
+                    dy = -0.5f;
+                }
+                else if (valign.Equals(mxConstants.ALIGN_BOTTOM))
+                {
+                    dy = -1;
+                }
             }
 
-            return x;
+            return new PointF(dx, dy);
         }
 
         /// <summary>
         /// Creates the specified string format.
         /// </summary>
-        public static StringFormat CreateStringFormat(string align, string valign, bool wrap)
+        public static StringFormat CreateStringFormat(string align, string valign, bool wrap, bool clip)
         {
-            StringFormat format = new StringFormat(StringFormatFlags.NoClip);
+            StringFormat format = new StringFormat();
             format.Trimming = StringTrimming.None;
+
+            if (!clip)
+            {
+                format.FormatFlags |= StringFormatFlags.NoClip;
+            }
 
             // This is not required as the rectangle for the text will take this flag into account.
             // However, we want to avoid any possible word-wrap unless explicitely specified.
@@ -750,7 +900,7 @@ namespace com.mxgraph
 		    {
                 // StartFigure avoids connection between last figure and new figure
                 currentPath.StartFigure();
-                lastPoint = new mxPoint(state.dx + x * state.scale, state.dy + y * state.scale);
+                lastPoint = new mxPoint((state.dx + x) * state.scale, (state.dy + y) * state.scale);
 		    }
 	    }
 
@@ -761,7 +911,7 @@ namespace com.mxgraph
 	    {
 		    if (currentPath != null)
 		    {
-                mxPoint nextPoint = new mxPoint(state.dx + x * state.scale, state.dy + y * state.scale);
+                mxPoint nextPoint = new mxPoint((state.dx + x) * state.scale, (state.dy + y) * state.scale);
 
                 if (lastPoint != null)
                 {
@@ -780,15 +930,15 @@ namespace com.mxgraph
 	    {
 		    if (currentPath != null)
 		    {
-                mxPoint nextPoint = new mxPoint(state.dx + x2 * state.scale,
-                    state.dy + y2 * state.scale);
+                mxPoint nextPoint = new mxPoint((state.dx + x2) * state.scale,
+                    (state.dy + y2) * state.scale);
 
                 if (lastPoint != null)
                 {
             	    double cpx0 = lastPoint.X;
 				    double cpy0 = lastPoint.Y;
-				    double qpx1 = state.dx + x1 * state.scale;
-				    double qpy1 = state.dy + y1 * state.scale;
+				    double qpx1 = (state.dx + x1) * state.scale;
+				    double qpy1 = (state.dy + y1) * state.scale;
     				
 				    double cpx1 = cpx0 + 2f/3f * (qpx1 - cpx0);
 				    double cpy1 = cpy0 + 2f/3f * (qpy1 - cpy0);
@@ -813,15 +963,15 @@ namespace com.mxgraph
 	    {
 		    if (currentPath != null)
 		    {
-                mxPoint nextPoint = new mxPoint(state.dx + x3 * state.scale, state.dy + y3 * state.scale);
+                mxPoint nextPoint = new mxPoint((state.dx + x3) * state.scale, (state.dy + y3) * state.scale);
 
                 if (lastPoint != null)
                 {
                     currentPath.AddBezier((float)lastPoint.X, (float)lastPoint.Y,
-                        (float)(state.dx + x1 * state.scale),
-                        (float)(state.dy + y1 * state.scale),
-                        (float)(state.dx + x2 * state.scale),
-                        (float)(state.dy + y2 * state.scale),
+                        (float)((state.dx + x1) * state.scale),
+                        (float)((state.dy + y1) * state.scale),
+                        (float)((state.dx + x2) * state.scale),
+                        (float)((state.dy + y2) * state.scale),
                         (float)nextPoint.X, (float)nextPoint.Y);
                 }
 
@@ -845,17 +995,7 @@ namespace com.mxgraph
 	    /// </summary>
 	    public void Stroke()
 	    {
-		    if (currentPath != null
-				    && !state.strokeColorValue.Equals(mxConstants.NONE))
-		    {
-			    if (state.strokeColor == null)
-			    {
-				    state.strokeColor = ParseColor(state.strokeColorValue);
-			    }
-
-			    UpdatePen();
-                graphics.DrawPath(state.pen, currentPath);
-		    }
+            PaintCurrentPath(false, true);
 	    }
 
 	    /// <summary>
@@ -863,10 +1003,7 @@ namespace com.mxgraph
 	    /// </summary>
 	    public void Fill()
 	    {
-		    if (currentPath != null && state.brush != null)
-		    {
-			    graphics.FillPath(state.brush, currentPath);
-		    }
+            PaintCurrentPath(true, false);
 	    }
 
 	    /// <summary>
@@ -874,72 +1011,112 @@ namespace com.mxgraph
 	    /// </summary>
 	    public void FillAndStroke()
 	    {
-		    Fill();
-		    Stroke();
+            PaintCurrentPath(true, true);
 	    }
 
-	    /// <summary>
-	    /// 
-	    /// </summary>
-	    /// <param name="value"></param>
-	    public void Shadow(String value, bool filled)
-	    {
-		    if (value != null && currentPath != null)
-		    {
-			    if (currentShadowColor == null || currentShadowValue == null
-					    || !currentShadowValue.Equals(value))
-			    {
-				    currentShadowColor = ParseColor(value);
-				    currentShadowValue = value;
-			    }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        protected void PaintCurrentPath(bool filled, bool stroked)
+        {
+            if (currentPath != null)
+            {
+                if (stroked)
+                {
+                    if (state.strokeColor == null)
+                    {
+                        state.strokeColor = ParseColor(state.strokeColorValue);
+                    }
+                }
+
+                if (state.shadow)
+                {
+                    PaintShadow(filled, stroked);
+                }
+
+                if (filled && state.brush != null)
+                {
+                    graphics.FillPath(state.brush, currentPath);
+                }
+
+                if (stroked && state.strokeColor != null && state.strokeColor != Color.Transparent)
+                {
+                    UpdatePen();
+                    graphics.DrawPath(state.pen, currentPath);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        protected void PaintShadow(bool filled, bool stroked)
+        {
+            if (state.shadowColor == null)
+            {
+                state.shadowColor = ParseColor(state.shadowColorValue);
+
+                if (state.shadowAlpha != 1)
+                {
+                    Color c = (Color)state.shadowColor;
+                    state.shadowColor = Color.FromArgb((int)(state.shadowAlpha * 255), c.R, c.G, c.B);
+                }
+            }
+
+            if (state.shadowColor != null && state.shadowColor != Color.Transparent)
+            {
+                double dx = state.shadowOffsetX * state.scale;
+                double dy = state.shadowOffsetY * state.scale;
+                float tx = (float) dx;
+                float ty = (float) dy;
+
+                graphics.TranslateTransform(tx, ty, MatrixOrder.Append);
 
                 // LATER: Cache shadowPen and shadowBrush
-                if (filled)
+                if (filled && state.brush != null)
                 {
-                    Brush shadowBrush = new SolidBrush(currentShadowColor);
+                    Brush shadowBrush = new SolidBrush((Color)state.shadowColor);
                     graphics.FillPath(shadowBrush, currentPath);
                 }
 
-                Pen shadowPen = new Pen(currentShadowColor, (float)state.strokeWidth);
-                graphics.DrawPath(shadowPen, currentPath);
-		    }
-	    }
+                if (stroked && state.strokeColor != null && state.strokeColor != Color.Transparent)
+                {
+                    Pen shadowPen = new Pen((Color)state.shadowColor, (float)state.strokeWidth);
+                    graphics.DrawPath(shadowPen, currentPath);
+                }
 
-	    /// <summary>
-	    /// 
-	    /// </summary>
-	    public void Clip()
-	    {
-		    if (currentPath != null)
-		    {
-                graphics.Clip = new Region(currentPath);
-		    }
-	    }
+                graphics.TranslateTransform(-tx, -ty, MatrixOrder.Append);
+            }
+        }
 
-	    /// <summary>
-	    /// 
-	    /// </summary>
-	    protected void UpdateFont()
-	    {
-		    if (state.font == null)
-		    {
-                FontStyle style = ((state.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD) ?
-                    System.Drawing.FontStyle.Bold : System.Drawing.FontStyle.Regular;
-                style |= ((state.fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC) ?
-                    System.Drawing.FontStyle.Italic : System.Drawing.FontStyle.Regular;
-                style |= ((state.fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE) ?
-                    System.Drawing.FontStyle.Underline : System.Drawing.FontStyle.Regular;
+        /// <summary>
+        /// 
+        /// </summary>
+        protected void UpdateFont()
+        {
+            float size = (float)(state.fontSize * mxConstants.FONT_SIZEFACTOR);
+            FontStyle style = ((state.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD) ?
+                System.Drawing.FontStyle.Bold : System.Drawing.FontStyle.Regular;
+            style |= ((state.fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC) ?
+                System.Drawing.FontStyle.Italic : System.Drawing.FontStyle.Regular;
+            style |= ((state.fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE) ?
+                System.Drawing.FontStyle.Underline : System.Drawing.FontStyle.Regular;
 
-                int size = (int)Math.Floor(state.fontSize * mxConstants.FONT_SIZEFACTOR);
-
-			    state.font = CreateFont(state.fontFamily, style, size);
-		    }
-	    }
+            if (lastFont == null || !lastFontFamily.Equals(state.fontFamily) || size != lastFontSize || style != lastFontStyle)
+            {
+                lastFont = CreateFont(state.fontFamily, style, size);
+                lastFontFamily = state.fontFamily;
+                lastFontStyle = style;
+                lastFontSize = size;
+            }
+        }
 
 	    /// <summary>
         /// Hook for subclassers to implement font caching.
 	    /// </summary>
-        protected Font CreateFont(String family, FontStyle style, int size)
+        protected Font CreateFont(String family, FontStyle style, float size)
 	    {
             return new Font(GetFontName(family), size, style);
 	    }
@@ -969,7 +1146,8 @@ namespace com.mxgraph
 	    {
 		    if (state.pen == null)
 		    {
-                state.pen = new Pen((Color)state.strokeColor, (float)state.strokeWidth);
+                float sw = (float)(state.strokeWidth * state.scale);
+                state.pen = new Pen((Color)state.strokeColor, sw);
 
                 System.Drawing.Drawing2D.LineCap cap = System.Drawing.Drawing2D.LineCap.Flat;
 
@@ -1066,7 +1244,32 @@ namespace com.mxgraph
             /// <summary>
             /// 
             /// </summary>
+            internal Color? fontColor;
+
+            /// <summary>
+            /// 
+            /// </summary>
             internal Brush fontBrush = new SolidBrush(Color.Black);
+
+            /// <summary>
+            /// 
+            /// </summary>
+            internal string fontBackgroundColorValue = mxConstants.NONE;
+
+            /// <summary>
+            /// 
+            /// </summary>
+            internal Color? fontBackgroundColor;
+
+            /// <summary>
+            /// 
+            /// </summary>
+            internal string fontBorderColorValue = mxConstants.NONE;
+
+            /// <summary>
+            /// 
+            /// </summary>
+            internal Color? fontBorderColor;
 
             /// <summary>
             /// 
@@ -1106,17 +1309,42 @@ namespace com.mxgraph
             /// <summary>
             /// 
             /// </summary>
-            internal Font font;
-
-            /// <summary>
-            /// 
-            /// </summary>
 		    internal bool dashed = false;
 
             /// <summary>
             /// 
             /// </summary>
-		    internal float[] dashPattern = { 3, 3 };
+            internal float[] dashPattern = { 3, 3 };
+
+            /// <summary>
+            /// 
+            /// </summary>
+            internal bool shadow = false;
+
+            /// <summary>
+            /// 
+            /// </summary>
+            internal string shadowColorValue = mxConstants.NONE;
+
+            /// <summary>
+            /// 
+            /// </summary>
+            internal Color? shadowColor;
+
+            /// <summary>
+            /// 
+            /// </summary>
+            internal double shadowAlpha = 1;
+
+            /// <summary>
+            /// 
+            /// </summary>
+            internal double shadowOffsetX = mxConstants.SHADOW_OFFSETX;
+
+            /// <summary>
+            /// 
+            /// </summary>
+            internal double shadowOffsetY = mxConstants.SHADOW_OFFSETY;
 
             /// <summary>
             /// 

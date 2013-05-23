@@ -1,4 +1,4 @@
-// $Id: mxICanvas2D.cs,v 1.4 2012/04/24 13:56:56 gaudenz Exp $
+// $Id: mxICanvas2D.cs,v 1.3 2013/05/23 10:29:42 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Drawing;
@@ -138,6 +138,22 @@ namespace com.mxgraph
         }
 
         /// <summary>
+        /// Default value 0. See {@link mxConstants#STYLE_FONTSTYLE}.
+        /// </summary>
+        string FontBackgroundColor
+        {
+            set;
+        }
+
+        /// <summary>
+        /// Default value 0. See {@link mxConstants#STYLE_FONTSTYLE}.
+        /// </summary>
+        string FontBorderColor
+        {
+            set;
+        }
+
+        /// <summary>
         /// Default value 1. This method may add rendering overhead and should be
         /// used with care.
         /// </summary>
@@ -158,12 +174,37 @@ namespace com.mxgraph
         /// Prepares the canvas to draw a gradient.
         /// </summary>
         void SetGradient(string color1, string color2, double x, double y,
-                double w, double h, string direction);
+                double w, double h, string direction, double alpha1, double alpha2);
 
         /// <summary>
-        /// Prepares the canvas to draw a glass gradient.
+        /// Default value {@link mxConstants#NONE}.
         /// </summary>
-        void SetGlassGradient(double x, double y, double w, double h);
+        bool Shadow
+        {
+            set;
+        }
+
+        /// <summary>
+        /// Default value {@link mxConstants#NONE}.
+        /// </summary>
+        string ShadowColor
+        {
+            set;
+        }
+
+        /// <summary>
+        /// Default value 1. This method may add rendering overhead and should be
+        /// used with care.
+        /// </summary>
+        double ShadowAlpha
+        {
+            set;
+        }
+
+        /// <summary>
+        /// Prepares the canvas to draw a gradient.
+        /// </summary>
+        void SetShadowOffset(double dx, double dy);
 
         /// <summary>
         /// Next fill or stroke should draw a rectangle.
@@ -190,8 +231,8 @@ namespace com.mxgraph
         /// Draws the given string. Possible values for format are empty string for
         // plain text and html for HTML markup.
         /// </summary>
-        void Text(double x, double y, double w, double h, string str, string align,
-                string valign, bool vertical, bool wrap, string format);
+        void Text(double x, double y, double w, double h, string str, string align, string valign,
+                bool wrap, string format, string overflow, bool clip, double rotation);
 
         /// <summary>
         /// Begins a new path.
@@ -238,16 +279,6 @@ namespace com.mxgraph
         /// Fills and paints the outline of the current path.
         /// </summary>
         void FillAndStroke();
-
-        /// <summary>
-        /// Paints the current path as a shadow.
-        /// </summary>
-        void Shadow(string value, bool filled);
-
-        /// <summary>
-        /// Uses the current path for clipping.
-        /// </summary>
-        void Clip();
 
     }
 

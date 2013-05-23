@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxEventSource.php,v 1.8 2010/06/30 11:03:50 gaudenz Exp $
+ * $Id: mxEventSource.php,v 1.1 2012/11/15 13:26:48 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 class mxEventSource
