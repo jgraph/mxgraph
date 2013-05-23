@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.13.0.0.
+	 * Current version is 1.13.0.1.
 	 */
-	VERSION: '1.13.0.0',
+	VERSION: '1.13.0.1',
 
 	/**
 	 * Variable: IS_IE
@@ -19403,7 +19403,7 @@ mxGuide.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxShape.js,v 1.175 2013/01/16 08:40:17 gaudenz Exp $
+ * $Id: mxShape.js,v 1.176 2013/05/06 06:14:56 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -19851,6 +19851,18 @@ mxShape.prototype.createHtml = function()
 	this.configureHtmlShape(node);
 	
 	return node;
+};
+
+/**
+ * Function: getLabelBounds
+ * 
+ * Returns the <mxRectangle> for the label bounds of this shape, based on the
+ * given scaled and translated bounds of the shape. This method should not
+ * change the rectangle in-place. This implementation returns the given rect.
+ */
+mxShape.prototype.getLabelBounds = function(rect)
+{
+	return rect;
 };
 
 /**
@@ -30217,7 +30229,7 @@ mxPartitionLayout.prototype.execute = function(parent)
 	}
 };
 /**
- * $Id: mxCompactTreeLayout.js,v 1.58 2013/04/25 10:01:52 gaudenz Exp $
+ * $Id: mxCompactTreeLayout.js,v 1.59 2013/05/08 12:29:35 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -30573,10 +30585,7 @@ mxCompactTreeLayout.prototype.sortOutgoingEdges = function(source, edges)
 			p2 = mxCellPath.create(end2).split(mxCellPath.PATH_SEPARATOR);
 			lookup.put(end2, p2);
 		}
-		
-		mxLog.show();
-		mxLog.debug('sort', end1.value, e1.value, p1, end2.value, e2.value, p2, mxCellPath.compare(p1, p2));
-		
+
 		return mxCellPath.compare(p1, p2);
 	});
 };
@@ -44047,7 +44056,7 @@ mxCellEditor.prototype.destroy = function ()
 	}
 };
 /**
- * $Id: mxCellRenderer.js,v 1.189 2012/11/20 09:06:07 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.190 2013/05/06 06:14:56 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -45296,6 +45305,12 @@ mxCellRenderer.prototype.getLabelBounds = function(state)
 				bounds.height = size.height * scale;
 			}
 		}
+	}
+
+	// Shape can modify its label bounds
+	if (state.shape != null)
+	{
+		bounds = state.shape.getLabelBounds(bounds);
 	}
 	
 	return bounds;

@@ -1,5 +1,5 @@
 /**
- * $Id: mxCompactTreeLayout.js,v 1.58 2013/04/25 10:01:52 gaudenz Exp $
+ * $Id: mxCompactTreeLayout.js,v 1.59 2013/05/08 12:29:35 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -355,10 +355,7 @@ mxCompactTreeLayout.prototype.sortOutgoingEdges = function(source, edges)
 			p2 = mxCellPath.create(end2).split(mxCellPath.PATH_SEPARATOR);
 			lookup.put(end2, p2);
 		}
-		
-		mxLog.show();
-		mxLog.debug('sort', end1.value, e1.value, p1, end2.value, e2.value, p2, mxCellPath.compare(p1, p2));
-		
+
 		return mxCellPath.compare(p1, p2);
 	});
 };

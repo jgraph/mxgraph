@@ -1,3 +1,9 @@
+23-MAY-2013: 1.13.0.1
+
+- Fixes possible error for empty text drawing mxGraphicsCanvas2D [Java]
+- Fixes mxCompactTreeLayout.prototype.sortOutgoingEdges [JavaScript]
+- Adds mxShape.getLabelBounds hook for custom label bounds [JavaScript]
+
 03-MAY-2013: 1.13.0.0
 
 - Adds mxConstraintHandler.isStateIgnored hook [JavaScript]

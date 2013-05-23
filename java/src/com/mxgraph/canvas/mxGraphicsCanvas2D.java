@@ -1,3 +1,7 @@
+/**
+ * $Id: mxGraphicsCanvas2D.java,v 1.51 2013/05/23 09:51:42 david Exp $
+ * Copyright (c) 2007-2013, JGraph Ltd
+ */
 package com.mxgraph.canvas;
 
 import java.awt.AlphaComposite;
@@ -820,20 +824,23 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 					}
 
 					// Adds support for underlined text via attributed character iterator
-					if ((state.fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
+					if (!lines[i].isEmpty())
 					{
-						AttributedString as = new AttributedString(lines[i]);
-						as.addAttribute(TextAttribute.FONT, g2.getFont());
-						as.addAttribute(TextAttribute.UNDERLINE,
-								TextAttribute.UNDERLINE_ON);
-
-						g2.drawString(as.getIterator(),
-								(int) Math.round(x + dx), (int) Math.round(y));
-					}
-					else
-					{
-						g2.drawString(lines[i], (int) Math.round(x + dx),
-								(int) Math.round(y));
+						if ((state.fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
+						{
+							AttributedString as = new AttributedString(lines[i]);
+							as.addAttribute(TextAttribute.FONT, g2.getFont());
+							as.addAttribute(TextAttribute.UNDERLINE,
+									TextAttribute.UNDERLINE_ON);
+	
+							g2.drawString(as.getIterator(),
+									(int) Math.round(x + dx), (int) Math.round(y));
+						}
+						else
+						{
+							g2.drawString(lines[i], (int) Math.round(x + dx),
+									(int) Math.round(y));
+						}
 					}
 
 					y += fm.getHeight() + mxConstants.LINESPACING;

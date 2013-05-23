@@ -1,5 +1,5 @@
 /**
- * $Id: mxShape.js,v 1.175 2013/01/16 08:40:17 gaudenz Exp $
+ * $Id: mxShape.js,v 1.176 2013/05/06 06:14:56 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -447,6 +447,18 @@ mxShape.prototype.createHtml = function()
 	this.configureHtmlShape(node);
 	
 	return node;
+};
+
+/**
+ * Function: getLabelBounds
+ * 
+ * Returns the <mxRectangle> for the label bounds of this shape, based on the
+ * given scaled and translated bounds of the shape. This method should not
+ * change the rectangle in-place. This implementation returns the given rect.
+ */
+mxShape.prototype.getLabelBounds = function(rect)
+{
+	return rect;
 };
 
 /**

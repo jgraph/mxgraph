@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellRenderer.js,v 1.189 2012/11/20 09:06:07 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.190 2013/05/06 06:14:56 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1248,6 +1248,12 @@ mxCellRenderer.prototype.getLabelBounds = function(state)
 				bounds.height = size.height * scale;
 			}
 		}
+	}
+
+	// Shape can modify its label bounds
+	if (state.shape != null)
+	{
+		bounds = state.shape.getLabelBounds(bounds);
 	}
 	
 	return bounds;
