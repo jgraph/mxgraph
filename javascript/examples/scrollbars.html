@@ -1,5 +1,5 @@
 <!--
-  $Id: scrollbars.html,v 1.25 2013/05/01 16:21:50 gaudenz Exp $
+  $Id: scrollbars.html,v 1.4 2013/05/01 16:21:50 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Scrollbars example for mxGraph. This example demonstrates using
@@ -14,6 +14,9 @@
 			border-color: black;
 			border-collapse: collapse;
 			cursor: move;
+			height: 26px;
+			border-bottom-style: none;
+			color: black;
 		}
 		table.title th {
 			font-size: 10pt;
@@ -30,10 +33,11 @@
 			overflow: auto;
 			cursor: move;
 			white-space: nowrap;
-			background: #C3D9FF;
 		}
 		table.erd td {
 			border-color: black;
+			text-align: left;
+			color: black;
 		}
 	</style>
 	
@@ -60,6 +64,9 @@
 			}
 			else
 			{
+				// Must be disabled to compute positions inside the DOM tree of the cell label.
+				mxGraphView.prototype.optimizeVmlReflows = false;
+				
 				// If connect preview is not moved away then getCellAt is used to detect the cell under
 				// the mouse if the mouse is over the preview shape in IE (no event transparency), ie.
 				// the built-in hit-detection of the HTML document will not be used in this case. This is
@@ -143,6 +150,8 @@
 				graph.stylesheet.getDefaultVertexStyle()[mxConstants.STYLE_PERIMETER] =
 					mxPerimeter.EntityPerimeter;
 				graph.stylesheet.getDefaultVertexStyle()[mxConstants.STYLE_SHADOW] = true;
+				graph.stylesheet.getDefaultVertexStyle()[mxConstants.STYLE_FILLCOLOR] = '#DDEAFF';
+				graph.stylesheet.getDefaultVertexStyle()[mxConstants.STYLE_GRADIENTCOLOR] = '#A9C4EB';
 				delete graph.stylesheet.getDefaultVertexStyle()[mxConstants.STYLE_STROKECOLOR];
 
 				// Used for HTML labels that use up the complete vertex space (see
@@ -201,45 +210,38 @@
 					{
 						// Scrollbars are on the div
 						var s = graph.view.scale;
+						state.text.node.style.overflow = 'hidden';
 						var div = state.text.node.getElementsByTagName('div')[0];
 						
 						if (div != null)
 						{
 							// Adds height of the title table cell
-							var oh = 0;
+							var oh = 26;
 	
-							if (div.previousSibling != null)
-							{
-								oh = div.previousSibling.firstChild.firstChild.firstChild.offsetHeight;
-							}
-	
-							div.style.width = (state.width / s) + 'px';
-							div.style.height = ((state.height / s) - oh) + 'px';
 							div.style.zoom = s;
+							div.style.display = 'block';
+							div.style.width = Math.max(1, Math.round(state.width / s)) + 'px';
+							div.style.height = Math.max(1, Math.round((state.height / s) - oh)) + 'px';
 							
 							// Installs the handler for updating connected edges
 							if (div.scrollHandler == null)
 							{
 								div.scrollHandler = true;
 								
-								mxEvent.addListener(div, 'scroll',
-									mxUtils.bind(this, function(evt)
+								mxEvent.addListener(div, 'scroll', mxUtils.bind(this, function(evt)
+								{
+									graph.view.invalidate(state.cell, false, true);
+									graph.view.validate();
+								}));
+		
+								mxEvent.addListener(div, 'mouseup', mxUtils.bind(this, function(evt)
+								{
+									if (!this.isLabelEvent(state, evt))
 									{
 										graph.view.invalidate(state.cell, false, true);
 										graph.view.validate();
-									})
-								);
-		
-								mxEvent.addListener(div, 'mouseup',
-									mxUtils.bind(this, function(evt)
-									{
-										if (!this.isLabelEvent(state, evt))
-										{
-											graph.view.invalidate(state.cell, false, true);
-											graph.view.validate();
-										}
-									})
-								);
+									}
+								}));
 							}
 						}
 					}
@@ -354,13 +356,13 @@
 					{
 						if (this.isCellCollapsed(cell))
 						{
-							return '<table width="100%" border="1" cellpadding="4" class="title">' +
+							return '<table style="overflow:hidden;" width="100%" height="100%" border="1" cellpadding="4" class="title" style="height:100%;">' +
 								'<tr><th colspan="2">Customers</th></tr>' +
 								'</table>';
 						}
 						else
 						{
-							return '<table width="100%" border="1" cellpadding="4" class="title">' +
+							return '<table style="overflow:hidden;" width="100%" border="1" cellpadding="4" class="title">' +
 								'<tr><th colspan="2">Customers</th></tr>' +
 								'</table>'+
 								'<div style="overflow:auto;cursor:default;">'+
@@ -444,7 +446,7 @@
 			{
 				x += start.width;
 			}
-		
+
 			if (div != null)
 			{
 				y = start.getCenterY() - div.scrollTop;
@@ -465,10 +467,10 @@
 						y = getRowY(start, tr);
 					}
 				}
-			
+
 				// Keeps vertical coordinate inside start
 				y = Math.min(start.y + start.height, Math.max(start.y + div.offsetTop, y));
-				
+
 				// Updates the vertical position of the nearest point if we're not
 				// dealing with a connection preview, in which case either the
 				// edgeState or the absolutePoints are null
@@ -544,7 +546,7 @@
 			var div = tr.parentNode.parentNode.parentNode;
 			var y = state.y + tr.offsetTop + tr.offsetHeight / 2 - div.scrollTop + div.offsetTop;
 			y = Math.min(state.y + state.height, Math.max(state.y + div.offsetTop, y));
-
+			
 			return y;
 		};
 	</script>

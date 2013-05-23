@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxRectangle.php,v 1.18 2010/12/15 16:28:52 gaudenz Exp $
+ * $Id: mxRectangle.php,v 1.1 2012/11/15 13:26:48 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 class mxRectangle extends mxPoint

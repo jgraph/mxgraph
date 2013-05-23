@@ -1,5 +1,5 @@
 /**
- * $Id: mxConnectionHandler.js,v 1.221 2013/04/16 07:34:54 gaudenz Exp $
+ * $Id: mxConnectionHandler.js,v 1.13 2013/04/12 15:16:03 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -158,6 +158,8 @@
  */
 function mxConnectionHandler(graph, factoryMethod)
 {
+	mxEventSource.call(this);
+	
 	if (graph != null)
 	{
 		this.graph = graph;
@@ -169,8 +171,7 @@ function mxConnectionHandler(graph, factoryMethod)
 /**
  * Extends mxEventSource.
  */
-mxConnectionHandler.prototype = new mxEventSource();
-mxConnectionHandler.prototype.constructor = mxConnectionHandler;
+mxUtils.extend(mxConnectionHandler, mxEventSource);
 
 /**
  * Variable: graph
@@ -451,18 +452,19 @@ mxConnectionHandler.prototype.createShape = function()
 {
 	// Creates the edge preview
 	var shape = new mxPolyline([], mxConstants.INVALID_COLOR);
-	shape.isDashed = true;
 	shape.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
 		mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
 	shape.init(this.graph.getView().getOverlayPane());
+	shape.svgStrokeTolerance = 0;
+	shape.pointerEvents = false;
+	shape.isDashed = true;
 	
 	// Event-transparency
 	if (this.graph.dialect == mxConstants.DIALECT_SVG)
 	{
 		// Sets event transparency on the internal shapes that represent
 		// the actual dashed line on the screen
-		shape.pipe.setAttribute('style', 'pointer-events:none;');
-		shape.innerNode.setAttribute('style', 'pointer-events:none;');
+		shape.node.setAttribute('pointer-events', 'none');
 	}
 	else
 	{
@@ -786,8 +788,7 @@ mxConnectionHandler.prototype.createIcons = function(state)
 		else
 		{
 			icon.dialect = (this.graph.dialect == mxConstants.DIALECT_SVG) ?
-				mxConstants.DIALECT_SVG : 
-				mxConstants.DIALECT_VML;
+				mxConstants.DIALECT_SVG : mxConstants.DIALECT_VML;
 			icon.init(this.graph.getView().getOverlayPane());
 
 			// Move the icon back in the overlay pane
@@ -868,8 +869,20 @@ mxConnectionHandler.prototype.getIconPosition = function(icon, state)
 		
 		cx = (size.width != 0) ? state.x + size.width * scale / 2 : cx;
 		cy = (size.height != 0) ? state.y + size.height * scale / 2 : cy;
+		
+		var alpha = mxUtils.toRadians(mxUtils.getValue(state.style, mxConstants.STYLE_ROTATION) || 0);
+		
+		if (alpha != 0)
+		{
+			var cos = Math.cos(alpha);
+			var sin = Math.sin(alpha);
+			var ct = new mxPoint(state.getCenterX(), state.getCenterY());
+			var pt = mxUtils.getRotatedPoint(new mxPoint(cx, cy), cos, sin, ct);
+			cx = pt.x;
+			cy = pt.y;
+		}
 	}
-	
+
 	return new mxPoint(cx - icon.bounds.width / 2,
 			cy - icon.bounds.height / 2);
 };
@@ -877,7 +890,7 @@ mxConnectionHandler.prototype.getIconPosition = function(icon, state)
 /**
  * Function: destroyIcons
  * 
- * Destroys the given array of <mxImageShapes>.
+ * Destroys the connect icons and resets the respective state.
  */
 mxConnectionHandler.prototype.destroyIcons = function()
 {
@@ -1242,7 +1255,7 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 				{
 					return;
 				}
-												
+						
 				current.x -= dx * 4 / len;
 				current.y -= dy * 4 / len;
 			}
@@ -1277,7 +1290,7 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 					{
 						pts = pts.concat(this.waypoints);
 					}
-					
+
 					pts.push(current);
 					this.shape.points = pts;
 				}
@@ -1590,22 +1603,10 @@ mxConnectionHandler.prototype.reset = function()
 mxConnectionHandler.prototype.drawPreview = function()
 {
 	var valid = this.error == null;
-	var color = this.getEdgeColor(valid);
-	
-	if (this.shape.dialect == mxConstants.DIALECT_SVG)
-	{
-		this.shape.innerNode.setAttribute('stroke', color);
-	}
-	else
-	{
-		this.shape.node.strokecolor = color;
-	}
-
 	this.shape.strokewidth = this.getEdgeWidth(valid);
+	var color = this.getEdgeColor(valid);
+	this.shape.stroke = color;
 	this.shape.redraw();
-
-	// Workaround to force a repaint in AppleWebKit
-	mxUtils.repaintGraph(this.graph, this.shape.points[1]);
 };
 
 /**

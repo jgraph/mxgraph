@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellState.js,v 1.42 2012/03/19 10:47:08 gaudenz Exp $
+ * $Id: mxCellState.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -182,7 +182,7 @@ mxCellState.prototype.getPerimeterBounds = function (border, bounds)
 	
 	if (this.shape != null && this.shape.stencil != null)
 	{
-		var aspect = this.shape.stencil.computeAspect(this, bounds, null);
+		var aspect = this.shape.stencil.computeAspect(this.style, bounds.x, bounds.y, bounds.width, bounds.height);
 		
 		bounds.x = aspect.x;
 		bounds.y = aspect.y;

@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellHighlight.js,v 1.25 2012/09/27 14:43:40 boris Exp $
+ * $Id: mxCellHighlight.js,v 1.6 2013/05/23 10:29:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -16,18 +16,32 @@
  * 
  * Constructs a cell highlight.
  */
-function mxCellHighlight(graph, highlightColor, strokeWidth)
+function mxCellHighlight(graph, highlightColor, strokeWidth, dashed)
 {
 	if (graph != null)
 	{
 		this.graph = graph;
 		this.highlightColor = (highlightColor != null) ? highlightColor : mxConstants.DEFAULT_VALID_COLOR;
 		this.strokeWidth = (strokeWidth != null) ? strokeWidth : mxConstants.HIGHLIGHT_STROKEWIDTH;
+		this.dashed = (dashed != null) ? dashed : false;
 
 		// Updates the marker if the graph changes
 		this.repaintHandler = mxUtils.bind(this, function()
 		{
-			this.repaint();
+			// Updates reference to state
+			if (this.state != null)
+			{
+				this.state = this.graph.view.getState(this.state.cell);
+				
+				if (this.state == null)
+				{
+					this.hide();
+				}
+				else
+				{
+					this.repaint();
+				}
+			}
 		});
 
 		this.graph.getView().addListener(mxEvent.SCALE, this.repaintHandler);
@@ -99,14 +113,7 @@ mxCellHighlight.prototype.setHighlightColor = function(color)
 	
 	if (this.shape != null)
 	{
-		if (this.shape.dialect == mxConstants.DIALECT_SVG)
-		{
-			this.shape.innerNode.setAttribute('stroke', color);
-		}
-		else if (this.shape.dialect == mxConstants.DIALECT_VML)
-		{
-			this.shape.node.strokecolor = color;
-		}
+		this.shape.stroke = color;
 	}
 };
 
@@ -123,12 +130,6 @@ mxCellHighlight.prototype.drawHighlight = function()
 	if (!this.keepOnTop && this.shape.node.parentNode.firstChild != this.shape.node)
 	{
 		this.shape.node.parentNode.insertBefore(this.shape.node, this.shape.node.parentNode.firstChild);
-	}
-
-	// Workaround to force a repaint in AppleWebKit
-	if (this.graph.model.isEdge(this.state.cell))
-	{
-		mxUtils.repaintGraph(this.graph, this.shape.points[0]);
 	}
 };
 
@@ -156,6 +157,9 @@ mxCellHighlight.prototype.createShape = function()
 			mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
 	shape.init(this.graph.getView().getOverlayPane());
 	mxEvent.redirectMouseEvents(shape.node, this.graph, this.state);
+	shape.svgStrokeTolerance = 0;
+	shape.pointerEvents = false;
+	shape.isDashed = this.dashed;
 	
 	return shape;
 };
@@ -178,6 +182,7 @@ mxCellHighlight.prototype.repaint = function()
 		{
 			this.shape.bounds = new mxRectangle(this.state.x - this.spacing, this.state.y - this.spacing,
 					this.state.width + 2 * this.spacing, this.state.height + 2 * this.spacing);
+			this.shape.rotation = Number(this.state.style[mxConstants.STYLE_ROTATION] || '0');
 		}
 
 		// Uses cursor from shape in highlight
@@ -185,33 +190,7 @@ mxCellHighlight.prototype.repaint = function()
 		{
 			this.shape.setCursor(this.state.shape.getCursor());
 		}
-	
-		var alpha = (!this.graph.model.isEdge(this.state.cell)) ? Number(this.state.style[mxConstants.STYLE_ROTATION] || '0') : 0;
-		
-		// Event-transparency
-		if (this.shape.dialect == mxConstants.DIALECT_SVG)
-		{
-			this.shape.node.setAttribute('style', 'pointer-events:none;');
-	
-			if (alpha != 0)
-			{
-				var cx = this.state.getCenterX();
-				var cy = this.state.getCenterY();
-				var transform = 'rotate(' + alpha + ' ' + cx + ' ' + cy + ')';
-				
-				this.shape.node.setAttribute('transform', transform);
-			}
-		}
-		else
-		{
-			this.shape.node.style.background = '';
-			
-			if (alpha != 0)
-			{
-				this.shape.node.rotation = alpha;
-			}
-		}
-		
+
 		this.shape.redraw();
 	}
 };

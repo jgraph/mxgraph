@@ -1,5 +1,5 @@
 /**
- * $Id: mxSpline.java,v 1.4 2010/12/15 10:01:21 david Exp $
+ * $Id: mxSpline.java,v 1.1 2012/11/15 13:26:39 gaudenz Exp $
  * Copyright (c) 2010, David Benson
  */
 package com.mxgraph.util;

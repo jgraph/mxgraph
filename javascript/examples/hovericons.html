@@ -1,5 +1,5 @@
 <!--
-  $Id: hovericons.html,v 1.5 2012/07/17 08:22:19 gaudenz Exp $
+  $Id: hovericons.html,v 1.2 2012/12/02 13:54:30 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Hover icons example for mxGraph. This example demonstrates showing
@@ -23,15 +23,11 @@
 		// This will automatically disable the highlighting of the source vertex.
 		mxConnectionHandler.prototype.connectImage = new mxImage('images/connector.gif', 16, 16);
 		
-		// Enables crisp rendering of rectangles in SVG
-		mxRectangleShape.prototype.crisp = true;
-		
 		// Defines a new class for all icons
 		function mxIconSet(state)
 		{
 			this.images = [];
 			var graph = state.view.graph;
-			var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
 			
 			// Icon1
 			var img = mxUtils.createImage('images/copy.png');
@@ -43,7 +39,7 @@
 			img.style.left = (state.x + state.width) + 'px';
 			img.style.top = (state.y + state.height) + 'px';
 			
-			mxEvent.addListener(img, md,
+			mxEvent.addGestureListeners(img,
 				mxUtils.bind(this, function(evt)
 				{
 					var s = graph.gridSize;
@@ -66,7 +62,7 @@
 			img.style.left = (state.x + state.width) + 'px';
 			img.style.top = (state.y - 16) + 'px';
 			
-			mxEvent.addListener(img, md,
+			mxEvent.addGestureListeners(img,
 				mxUtils.bind(this, function(evt)
 				{
 					// Disables dragging the image

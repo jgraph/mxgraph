@@ -1,5 +1,5 @@
 /**
- * $Id: mxCurveLabelShape.java,v 1.32 2011/06/10 12:11:27 david Exp $
+ * $Id: mxCurveLabelShape.java,v 1.1 2012/11/15 13:26:44 gaudenz Exp $
  * Copyright (c) 2010, David Benson, Gaudenz Alder
  */
 package com.mxgraph.shape;

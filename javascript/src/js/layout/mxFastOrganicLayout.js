@@ -1,5 +1,5 @@
 /**
- * $Id: mxFastOrganicLayout.js,v 1.38 2013/04/29 17:15:43 gaudenz Exp $
+ * $Id: mxFastOrganicLayout.js,v 1.2 2013/04/29 17:14:47 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

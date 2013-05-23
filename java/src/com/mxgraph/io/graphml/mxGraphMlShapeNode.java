@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphMlShapeNode.java,v 1.1 2011/09/19 15:10:46 gaudenz Exp $
+ * $Id: mxGraphMlShapeNode.java,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2010 David Benson, Gaudenz Alder
  */
 package com.mxgraph.io.graphml;

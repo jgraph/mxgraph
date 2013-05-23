@@ -1,5 +1,5 @@
 /**
- * $Id: mxCloud.js,v 1.12 2011/06/24 11:27:30 gaudenz Exp $
+ * $Id: mxCloud.js,v 1.3 2012/11/22 21:04:16 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -25,6 +25,7 @@
  */
 function mxCloud(bounds, fill, stroke, strokewidth)
 {
+	mxActor.call(this);
 	this.bounds = bounds;
 	this.fill = fill;
 	this.stroke = stroke;
@@ -34,23 +35,21 @@ function mxCloud(bounds, fill, stroke, strokewidth)
 /**
  * Extends mxActor.
  */
-mxCloud.prototype = new mxActor();
-mxCloud.prototype.constructor = mxActor;
+mxUtils.extend(mxCloud, mxActor);
 
 /**
  * Function: redrawPath
  *
- * Draws the path for this shape. This method uses the <mxPath>
- * abstraction to paint the shape for VML and SVG.
+ * Draws the path for this shape.
  */
-mxCloud.prototype.redrawPath = function(path, x, y, w, h)
+mxCloud.prototype.redrawPath = function(c, x, y, w, h)
 {
-	path.moveTo(0.25 * w, 0.25 * h);
-	path.curveTo(0.05 * w, 0.25 * h, 0, 0.5 * h, 0.16 * w, 0.55 * h);
-	path.curveTo(0, 0.66 * h, 0.18 * w, 0.9 * h, 0.31 * w, 0.8 * h);
-	path.curveTo(0.4 * w, h, 0.7 * w, h, 0.8 * w, 0.8 * h);
-	path.curveTo(w, 0.8 * h, w, 0.6 * h, 0.875 * w, 0.5 * h);
-	path.curveTo(w, 0.3 * h, 0.8 * w, 0.1 * h, 0.625 * w, 0.2 * h);
-	path.curveTo(0.5 * w, 0.05 * h, 0.3 * w, 0.05 * h, 0.25 * w, 0.25 * h);
-	path.close();
+	c.moveTo(0.25 * w, 0.25 * h);
+	c.curveTo(0.05 * w, 0.25 * h, 0, 0.5 * h, 0.16 * w, 0.55 * h);
+	c.curveTo(0, 0.66 * h, 0.18 * w, 0.9 * h, 0.31 * w, 0.8 * h);
+	c.curveTo(0.4 * w, h, 0.7 * w, h, 0.8 * w, 0.8 * h);
+	c.curveTo(w, 0.8 * h, w, 0.6 * h, 0.875 * w, 0.5 * h);
+	c.curveTo(w, 0.3 * h, 0.8 * w, 0.1 * h, 0.625 * w, 0.2 * h);
+	c.curveTo(0.5 * w, 0.05 * h, 0.3 * w, 0.05 * h, 0.25 * w, 0.25 * h);
+	c.close();
 };

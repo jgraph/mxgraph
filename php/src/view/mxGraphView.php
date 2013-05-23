@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxGraphView.php,v 1.108 2011/11/17 14:10:53 gaudenz Exp $
+ * $Id: mxGraphView.php,v 1.1 2012/11/15 13:26:46 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 class mxGraphView extends mxEventSource

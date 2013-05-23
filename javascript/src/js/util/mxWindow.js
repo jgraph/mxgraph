@@ -1,5 +1,5 @@
 /**
- * $Id: mxWindow.js,v 1.67 2012/10/11 17:18:51 gaudenz Exp $
+ * $Id: mxWindow.js,v 1.4 2013/05/21 16:40:20 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -348,9 +348,8 @@ mxWindow.prototype.init = function(x, y, width, height, style)
 		this.activate();
 	});
 	
-	var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-	mxEvent.addListener(this.title, md, activator);
-	mxEvent.addListener(this.table, md, activator);
+	mxEvent.addGestureListeners(this.title, activator);
+	mxEvent.addGestureListeners(this.table, activator);
 
 	this.hide();
 };
@@ -486,48 +485,47 @@ mxWindow.prototype.setResizable = function(resizable)
 			this.resize.setAttribute('src', mxClient.imageBasePath + '/resize.gif');
 			this.resize.style.cursor = 'nw-resize';
 			
-			var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-			var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
-			var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
-
-			mxEvent.addListener(this.resize, md, mxUtils.bind(this, function(evt)
-			{
-				this.activate();
-				var startX = mxEvent.getClientX(evt);
-				var startY = mxEvent.getClientY(evt);
-				var width = this.div.offsetWidth;
-				var height = this.div.offsetHeight;
-
-				// Adds a temporary pair of listeners to intercept
-				// the gesture event in the document
-				var dragHandler = mxUtils.bind(this, function(evt)
+			mxEvent.addGestureListeners(this.resize,
+				mxUtils.bind(this, function(evt)
 				{
-					var dx = mxEvent.getClientX(evt) - startX;
-					var dy = mxEvent.getClientY(evt) - startY;
-
-					this.setSize(width + dx, height + dy);
+					this.activate();
+					var startX = mxEvent.getClientX(evt);
+					var startY = mxEvent.getClientY(evt);
+					var width = this.div.offsetWidth;
+					var height = this.div.offsetHeight;
 	
-					this.fireEvent(new mxEventObject(mxEvent.RESIZE, 'event', evt));
+					// Adds a temporary pair of listeners to intercept
+					// the gesture event in the document
+					var dragHandler = mxUtils.bind(this, function(evt)
+					{
+						var dx = mxEvent.getClientX(evt) - startX;
+						var dy = mxEvent.getClientY(evt) - startY;
+	
+						this.setSize(width + dx, height + dy);
+		
+						this.fireEvent(new mxEventObject(mxEvent.RESIZE, 'event', evt));
+						mxEvent.consume(evt);
+					});
+					
+					var dropHandler = mxUtils.bind(this, function(evt)
+					{
+						mxEvent.removeGestureListeners(document, null, dragHandler, dropHandler);
+						this.fireEvent(new mxEventObject(mxEvent.RESIZE_END, 'event', evt));
+						mxEvent.consume(evt);
+					});
+					
+					mxEvent.addGestureListeners(document, null, dragHandler, dropHandler);
+					this.fireEvent(new mxEventObject(mxEvent.RESIZE_START, 'event', evt));
 					mxEvent.consume(evt);
-				});
-				
-				var dropHandler = mxUtils.bind(this, function(evt)
-				{
-					mxEvent.removeListener(document, mm, dragHandler);
-					mxEvent.removeListener(document, mu, dropHandler);
-	
-					this.fireEvent(new mxEventObject(mxEvent.RESIZE_END, 'event', evt));
-					mxEvent.consume(evt);
-				});
-	
-				mxEvent.addListener(document, mm, dragHandler);
-				mxEvent.addListener(document, mu, dropHandler);
-
-				this.fireEvent(new mxEventObject(mxEvent.RESIZE_START, 'event', evt));
-				mxEvent.consume(evt);
-			}));
+				}), null, null);
 
 			this.div.appendChild(this.resize);
+			
+			// Disables built-in pan and zoom in IE10 and later
+			if (mxClient.IS_POINTER)
+			{
+				this.resize.style.msTouchAction = 'none';
+			}
 		}
 		else 
 		{
@@ -683,8 +681,7 @@ mxWindow.prototype.installMinimizeHandler = function()
 		mxEvent.consume(evt);
 	});
 	
-	var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-	mxEvent.addListener(this.minimize, md, funct);
+	mxEvent.addGestureListeners(this.minimize, funct);
 };
 	
 /**
@@ -815,8 +812,7 @@ mxWindow.prototype.installMaximizeHandler = function()
 		}
 	});
 	
-	var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-	mxEvent.addListener(this.maximize, md, funct);
+	mxEvent.addGestureListeners(this.maximize, funct);
 	mxEvent.addListener(this.title, 'dblclick', funct);
 };
 	
@@ -829,43 +825,42 @@ mxWindow.prototype.installMoveHandler = function()
 {
 	this.title.style.cursor = 'move';
 	
-	var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-	var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
-	var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
+	mxEvent.addGestureListeners(this.title,
+		mxUtils.bind(this, function(evt)
+		{
+			var startX = mxEvent.getClientX(evt);
+			var startY = mxEvent.getClientY(evt);
+			var x = this.getX();
+			var y = this.getY();
+						
+			// Adds a temporary pair of listeners to intercept
+			// the gesture event in the document
+			var dragHandler = mxUtils.bind(this, function(evt)
+			{
+				var dx = mxEvent.getClientX(evt) - startX;
+				var dy = mxEvent.getClientY(evt) - startY;
+				this.setLocation(x + dx, y + dy);
+				this.fireEvent(new mxEventObject(mxEvent.MOVE, 'event', evt));
+				mxEvent.consume(evt);
+			});
+			
+			var dropHandler = mxUtils.bind(this, function(evt)
+			{
+				mxEvent.removeGestureListeners(document, null, dragHandler, dropHandler);
+				this.fireEvent(new mxEventObject(mxEvent.MOVE_END, 'event', evt));
+				mxEvent.consume(evt);
+			});
+			
+			mxEvent.addGestureListeners(document, null, dragHandler, dropHandler);
+			this.fireEvent(new mxEventObject(mxEvent.MOVE_START, 'event', evt));
+			mxEvent.consume(evt);
+		}));
 	
-	mxEvent.addListener(this.title, md, mxUtils.bind(this, function(evt)
+	// Disables built-in pan and zoom in IE10 and later
+	if (mxClient.IS_POINTER)
 	{
-		var startX = mxEvent.getClientX(evt);
-		var startY = mxEvent.getClientY(evt);
-		var x = this.getX();
-		var y = this.getY();
-					
-		// Adds a temporary pair of listeners to intercept
-		// the gesture event in the document
-		var dragHandler = mxUtils.bind(this, function(evt)
-		{
-			var dx = mxEvent.getClientX(evt) - startX;
-			var dy = mxEvent.getClientY(evt) - startY;
-			this.setLocation(x + dx, y + dy);
-			this.fireEvent(new mxEventObject(mxEvent.MOVE, 'event', evt));
-			mxEvent.consume(evt);
-		});
-		
-		var dropHandler = mxUtils.bind(this, function(evt)
-		{
-			mxEvent.removeListener(document, mm, dragHandler);
-			mxEvent.removeListener(document, mu, dropHandler);
-
-			this.fireEvent(new mxEventObject(mxEvent.MOVE_END, 'event', evt));
-			mxEvent.consume(evt);
-		});
-
-		mxEvent.addListener(document, mm, dragHandler);
-		mxEvent.addListener(document, mu, dropHandler);
-		
-		this.fireEvent(new mxEventObject(mxEvent.MOVE_START, 'event', evt));
-		mxEvent.consume(evt);
-	}));
+		this.title.style.msTouchAction = 'none';
+	}
 };
 
 /**
@@ -918,22 +913,22 @@ mxWindow.prototype.installCloseHandler = function()
 	
 	this.title.insertBefore(this.closeImg, this.title.firstChild);
 
-	var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-	mxEvent.addListener(this.closeImg, md, mxUtils.bind(this, function(evt)
-	{
-		this.fireEvent(new mxEventObject(mxEvent.CLOSE, 'event', evt));
-		
-		if (this.destroyOnClose)
+	mxEvent.addGestureListeners(this.closeImg,
+		mxUtils.bind(this, function(evt)
 		{
-			this.destroy();
-		}
-		else
-		{
-			this.setVisible(false);
-		}
-		
-		mxEvent.consume(evt);
-	}));
+			this.fireEvent(new mxEventObject(mxEvent.CLOSE, 'event', evt));
+			
+			if (this.destroyOnClose)
+			{
+				this.destroy();
+			}
+			else
+			{
+				this.setVisible(false);
+			}
+			
+			mxEvent.consume(evt);
+		}));
 };
 
 /**

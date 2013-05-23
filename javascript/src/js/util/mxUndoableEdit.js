@@ -1,5 +1,5 @@
 /**
- * $Id: mxUndoableEdit.js,v 1.15 2013/03/27 16:06:33 gaudenz Exp $
+ * $Id: mxUndoableEdit.js,v 1.2 2013/02/12 12:34:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

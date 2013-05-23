@@ -1,5 +1,5 @@
 /**
- * $Id: mxHexagon.js,v 1.8 2011/09/02 10:01:00 gaudenz Exp $
+ * $Id: mxHexagon.js,v 1.3 2012/11/22 21:04:16 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -11,27 +11,28 @@
  *
  * Constructs a new hexagon shape.
  */
-function mxHexagon() { };
+function mxHexagon()
+{
+	mxActor.call(this);
+};
 
 /**
- * Extends <mxActor>.
+ * Extends mxActor.
  */
-mxHexagon.prototype = new mxActor();
-mxHexagon.prototype.constructor = mxHexagon;
+mxUtils.extend(mxHexagon, mxActor);
 
 /**
  * Function: redrawPath
  *
- * Draws the path for this shape. This method uses the <mxPath>
- * abstraction to paint the shape for VML and SVG.
+ * Draws the path for this shape.
  */
-mxHexagon.prototype.redrawPath = function(path, x, y, w, h)
+mxHexagon.prototype.redrawPath = function(c, x, y, w, h)
 {
-	path.moveTo(0.25 * w, 0);
-	path.lineTo(0.75 * w, 0);
-	path.lineTo(w, 0.5 * h);
-	path.lineTo(0.75 * w, h);
-	path.lineTo(0.25 * w, h);
-	path.lineTo(0, 0.5 * h);
-	path.close();
+	c.moveTo(0.25 * w, 0);
+	c.lineTo(0.75 * w, 0);
+	c.lineTo(w, 0.5 * h);
+	c.lineTo(0.75 * w, h);
+	c.lineTo(0.25 * w, h);
+	c.lineTo(0, 0.5 * h);
+	c.close();
 };

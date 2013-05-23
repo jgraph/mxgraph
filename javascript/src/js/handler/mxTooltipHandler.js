@@ -1,5 +1,5 @@
 /**
- * $Id: mxTooltipHandler.js,v 1.52 2013/03/27 16:39:04 gaudenz Exp $
+ * $Id: mxTooltipHandler.js,v 1.3 2013/05/21 13:16:33 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -129,12 +129,10 @@ mxTooltipHandler.prototype.init = function()
 
 		document.body.appendChild(this.div);
 
-		mxEvent.addListener(this.div, 'mousedown',
-			mxUtils.bind(this, function(evt)
-			{
-				this.hideTooltip();
-			})
-		);
+		mxEvent.addGestureListeners(this.div, mxUtils.bind(this, function(evt)
+		{
+			this.hideTooltip();
+		}));
 	}
 };
 

@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellEditor.js,v 1.64 2013/04/23 07:31:31 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.4 2013/04/16 07:39:35 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -108,6 +108,14 @@ mxCellEditor.prototype.trigger = null;
 mxCellEditor.prototype.modified = false;
 
 /**
+ * Variable: autoSize
+ * 
+ * Specifies if the textarea should be resized while the text is being edited.
+ * Default is true.
+ */
+mxCellEditor.prototype.autoSize = true;
+
+/**
  * Variable: emptyLabelText
  * 
  * Text to be displayed for empty labels. Default is ''. This can be set
@@ -141,7 +149,7 @@ mxCellEditor.prototype.init = function ()
 	this.textarea.setAttribute('cols', '20');
 	this.textarea.setAttribute('rows', '4');
 
-	if (mxClient.IS_GC)
+	if (mxClient.IS_NS)
 	{
 		this.textarea.style.resize = 'none';
 	}
@@ -192,6 +200,143 @@ mxCellEditor.prototype.init = function ()
 	});
 	
 	this.graph.getModel().addListener(mxEvent.CHANGE, this.changeHandler);
+	
+	// Adds automatic resizing of the textbox while typing
+	mxEvent.addListener(this.textarea, 'keypress', mxUtils.bind(this, function(evt)
+	{
+		if (this.autoSize && !mxEvent.isConsumed(evt))
+		{
+			setTimeout(mxUtils.bind(this, function()
+			{
+				this.resize();
+			}), 0);
+		}
+	}));
+};
+
+/**
+ * Function: resize
+ * 
+ * Returns <modified>.
+ */
+mxCellEditor.prototype.resize = function()
+{
+	if (this.textDiv != null)
+	{
+		var state = this.graph.getView().getState(this.editingCell);
+		
+		if (state == null)
+		{
+			this.stopEditing(true);
+		}
+		else
+		{
+			var clip = this.graph.isLabelClipped(state.cell);
+			var wrap = this.graph.isWrapping(state.cell);
+		
+			var isEdge = this.graph.getModel().isEdge(state.cell);
+		
+			if (isEdge)
+			{
+				this.bounds.x = state.absoluteOffset.x;
+				this.bounds.y = state.absoluteOffset.y;
+				this.bounds.width = 0;
+				this.bounds.height = 0;
+			}
+			else if (this.bounds != null)
+			{
+				this.bounds.x = state.x;
+				this.bounds.y = state.y;
+				this.bounds.width = state.width;
+				this.bounds.height = state.height;
+				
+				// Applies the horizontal and vertical label positions
+				var horizontal = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_POSITION, mxConstants.ALIGN_CENTER);
+		
+				if (horizontal == mxConstants.ALIGN_LEFT)
+				{
+					this.bounds.x -= state.width;
+				}
+				else if (horizontal == mxConstants.ALIGN_RIGHT)
+				{
+					this.bounds.x += state.width;
+				}
+		
+				var vertical = mxUtils.getValue(state.style, mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.ALIGN_MIDDLE);
+		
+				if (vertical == mxConstants.ALIGN_TOP)
+				{
+					this.bounds.y -= state.height;
+				}
+				else if (vertical == mxConstants.ALIGN_BOTTOM)
+				{
+					this.bounds.y += state.height;
+				}
+			}
+			
+			var value = this.textarea.value;
+			
+			if (value.charAt(value.length - 1) == '\n' || value == '')
+			{
+				value += '&nbsp;';
+			}
+		
+			value = mxUtils.htmlEntities(value, false);
+			
+			if (wrap)
+			{
+				// TODO: Invert initial for vertical
+				this.textDiv.style.whiteSpace = 'normal';
+				this.textDiv.style.width = this.bounds.width + 'px';
+			}
+			else
+			{
+				value = value.replace(/ /g, '&nbsp;');
+			}
+			
+			value = value.replace(/\n/g, '<br/>');
+			this.textDiv.innerHTML = value;
+			var ow = this.textDiv.offsetWidth + 30;
+			var oh = this.textDiv.offsetHeight + 16;
+			
+			ow = Math.max(ow, 40);
+			oh = Math.max(oh, 20);
+			
+			if (clip)
+			{
+				ow = Math.min(this.bounds.width - 4, ow);
+				oh = Math.min(this.bounds.height, oh);
+			}
+			
+			var m = (state.text != null) ? state.text.margin : null;
+			
+			if (m == null)
+			{
+				var align = mxUtils.getValue(state.style, mxConstants.STYLE_ALIGN, mxConstants.ALIGN_CENTER);
+				var valign = mxUtils.getValue(state.style, mxConstants.STYLE_VERTICAL_ALIGN, mxConstants.ALIGN_MIDDLE);
+		
+				m = mxUtils.getAlignmentAsPoint(align, valign);
+			}
+			
+			if (m != null)
+			{
+				// TODO: Keep in visible area, add spacing
+				if (clip || !wrap)
+				{
+					this.textarea.style.left = Math.max(0, Math.round(this.bounds.x - m.x * this.bounds.width + m.x * ow) - 3) + 'px';
+				}
+	
+				this.textarea.style.top = Math.max(0, Math.round(this.bounds.y - m.y * this.bounds.height + m.y * oh) + 4) + 'px';
+			}
+			
+			if (clip || !wrap)
+			{
+				this.textarea.style.width = ow + 'px';
+			}
+		
+			this.textarea.style.height = oh + 'px';
+		}
+	}
 };
 
 /**
@@ -250,7 +395,7 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 		this.editingCell = cell;
 		this.trigger = trigger;
 		this.textNode = null;
-				
+
 		if (state.text != null && this.isHideLabel(state))
 		{
 			this.textNode = state.text.node;
@@ -262,25 +407,28 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 		var size = mxUtils.getValue(state.style, mxConstants.STYLE_FONTSIZE, mxConstants.DEFAULT_FONTSIZE) * scale;
 		var family = mxUtils.getValue(state.style, mxConstants.STYLE_FONTFAMILY, mxConstants.DEFAULT_FONTFAMILY);
 		var color = mxUtils.getValue(state.style, mxConstants.STYLE_FONTCOLOR, 'black');
-		var align = (this.graph.model.isEdge(state.cell)) ? mxConstants.ALIGN_LEFT :
-			mxUtils.getValue(state.style, mxConstants.STYLE_ALIGN, mxConstants.ALIGN_LEFT);
+		var align = mxUtils.getValue(state.style, mxConstants.STYLE_ALIGN, mxConstants.ALIGN_LEFT);
 		var bold = (mxUtils.getValue(state.style, mxConstants.STYLE_FONTSTYLE, 0) &
 				mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD;
 		var italic = (mxUtils.getValue(state.style, mxConstants.STYLE_FONTSTYLE, 0) &
 				mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC;
 		var uline = (mxUtils.getValue(state.style, mxConstants.STYLE_FONTSTYLE, 0) &
 				mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE;
-
-		this.textarea.style.fontSize = size + 'px';
+		
+		this.textarea.style.fontSize = Math.round(size) + 'px';
+		this.textarea.style.lineHeight = Math.round(size * mxConstants.LINE_HEIGHT) + 'px';
 		this.textarea.style.fontFamily = family;
 		this.textarea.style.textAlign = align;
 		this.textarea.style.color = color;
 		this.textarea.style.fontWeight = (bold) ? 'bold' : 'normal';
 		this.textarea.style.fontStyle = (italic) ? 'italic' : '';
 		this.textarea.style.textDecoration = (uline) ? 'underline' : '';
-
+		this.textarea.style.overflow = 'auto';
+		this.textarea.style.outline = 'none';
+		
 		// Specifies the bounds of the editor box
 		var bounds = this.getEditorBounds(state);
+		this.bounds = bounds;
 
 		this.textarea.style.left = bounds.x + 'px';
 		this.textarea.style.top = bounds.y + 'px';
@@ -310,10 +458,44 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 		if (this.textarea.style.display != 'none')
 		{
 			// FIXME: Doesn't bring up the virtual keyboard on iPad
+			if (this.autoSize)
+			{
+				this.textDiv = this.createTextDiv();
+				document.body.appendChild(this.textDiv);
+				this.resize();
+			}
+			
 			this.textarea.focus();
 			this.textarea.select();
 		}
 	}
+};
+
+
+/**
+ * Function: createTextDiv
+ *
+ * Creates the textDiv used for measuring text.
+ */
+mxCellEditor.prototype.createTextDiv = function()
+{
+	var div = document.createElement('div');
+	var style = div.style;
+	style.position = 'absolute';
+	style.whiteSpace = 'nowrap';
+	style.visibility = 'hidden';
+	style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
+	style.zoom = '1';
+	style.verticalAlign = 'top';
+	style.lineHeight = this.textarea.style.lineHeight;
+	style.fontSize = this.textarea.style.fontSize;
+	style.fontFamily = this.textarea.style.fontFamily;
+	style.fontWeight = this.textarea.style.fontWeight;
+	style.textAlign = this.textarea.style.textAlign;
+	style.fontStyle = this.textarea.style.fontStyle;
+	style.textDecoration = this.textarea.style.textDecoration;
+	
+	return div;
 };
 
 /**
@@ -338,8 +520,15 @@ mxCellEditor.prototype.stopEditing = function(cancel)
 			this.graph.labelChanged(this.editingCell, this.getCurrentValue(), this.trigger);
 		}
 		
+		if (this.textDiv != null)
+		{
+			document.body.removeChild(this.textDiv);
+			this.textDiv = null;
+		}
+		
 		this.editingCell = null;
 		this.trigger = null;
+		this.bounds = null;
 		this.textarea.blur();
 		this.textarea.parentNode.removeChild(this.textarea);
 	}
@@ -529,5 +718,11 @@ mxCellEditor.prototype.destroy = function ()
 		}
 		
 		this.textarea = null;
+		
+		if (this.changeHandler != null)
+		{
+			this.graph.getModel().removeListener(this.changeHandler);
+			this.changeHandler = null;
+		}
 	}
 };

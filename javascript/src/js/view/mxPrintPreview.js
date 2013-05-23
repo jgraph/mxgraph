@@ -1,5 +1,5 @@
 /**
- * $Id: mxPrintPreview.js,v 1.63 2013/04/09 14:10:28 gaudenz Exp $
+ * $Id: mxPrintPreview.js,v 1.6 2013/04/09 14:06:49 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -27,6 +27,33 @@
  * }
  * (end)
  * 
+ * Additional pages:
+ * 
+ * To add additional pages before and after the output, <getCoverPages> and
+ * <getAppendices> can be used, respectively.
+ * 
+ * (code)
+ * var preview = new mxPrintPreview(graph, 1);
+ * 
+ * preview.getCoverPages = function(w, h)
+ * {
+ *   return [this.renderPage(w, h, mxUtils.bind(this, function(div)
+ *   {
+ *     div.innerHTML = '<div style="position:relative;margin:4px;">Cover Page</p>'
+ *   }))];
+ * }
+ * 
+ * preview.getAppendices = function(w, h)
+ * {
+ *   return [this.renderPage(w, h, mxUtils.bind(this, function(div)
+ *   {
+ *     div.innerHTML = '<div style="position:relative;margin:4px;">Appendix</p>'
+ *   }))];
+ * }
+ * 
+ * preview.open();
+ * (end)
+ * 
  * Headers:
  * 
  * Apart from setting the title argument in the mxPrintPreview constructor you
@@ -34,7 +61,7 @@
  * 
  * (code)
  * var oldRenderPage = mxPrintPreview.prototype.renderPage;
- * mxPrintPreview.prototype.renderPage = function(w, h, dx, dy, scale, pageNumber)
+ * mxPrintPreview.prototype.renderPage = function(w, h)
  * {
  *   var div = oldRenderPage.apply(this, arguments);
  *   
@@ -43,12 +70,16 @@
  *   header.style.top = '0px';
  *   header.style.width = '100%';
  *   header.style.textAlign = 'right';
- *   mxUtils.write(header, 'Your header here - Page ' + pageNumber + ' / ' + this.pageCount);
+ *   mxUtils.write(header, 'Your header here');
  *   div.firstChild.appendChild(header);
  *   
  *   return div;
  * };
  * (end)
+ * 
+ * For adding page numbers to the graph output pages, implement a counter in
+ * the above code or override <addGraphFragment> instead, where div corresponds
+ * to div.firstChild in the above code.
  * 
  * Page Format:
  * 
@@ -235,7 +266,14 @@ mxPrintPreview.prototype.getWindow = function()
  */
 mxPrintPreview.prototype.getDoctype = function()
 {
-	return '';
+	var dt = '';
+	
+	if (document.documentMode == 8)
+	{
+		dt = '<meta http-equiv="X-UA-Compatible" content="IE=8">';
+	}
+	
+	return dt;
 };
 
 /**
@@ -286,7 +324,7 @@ mxPrintPreview.prototype.open = function(css)
 	
 			// Adds all required stylesheets and namespaces
 			mxClient.link('stylesheet', mxClient.basePath + '/css/common.css', doc);
-	
+
 			if (mxClient.IS_VML)
 			{
 				doc.namespaces.add('v', 'urn:schemas-microsoft-com:vml');
@@ -357,65 +395,67 @@ mxPrintPreview.prototype.open = function(css)
 				}
 			});
 			
-			// Stores pages for later retrieval
-			var pages = null;
-
-			// Workaround for aspect of image shapes updated asynchronously
-			// in VML so we need to fetch the markup of the DIV containing
-			// the image after the udpate of the style of the DOM node.
-			// LATER: Allow document for display markup to be customized.
-			if (mxClient.IS_IE && document.documentMode != 9)
+			function addPage(div, addBreak)
 			{
-				pages = [];
-	
-				// Overrides asynchronous loading of images for fetching HTML markup
-				var waitCounter = 0;
-				var isDone = false;
+				// Border of the DIV (aka page) inside the document
+				if (this.borderColor != null)
+				{
+					div.style.borderColor = this.borderColor;
+					div.style.borderStyle = 'solid';
+					div.style.borderWidth = '1px';
+				}
+				
+				// Needs to be assigned directly because IE doesn't support
+				// child selectors, eg. body > div { background: white; }
+				div.style.background = 'white';
+				
+				if (addBreak)
+				{
+					div.style.pageBreakAfter = 'always';
+				}
 
-				var mxImageShapeScheduleUpdateAspect = mxImageShape.prototype.scheduleUpdateAspect;
-				var mxImageShapeUpdateAspect = mxImageShape.prototype.updateAspect;
-				
-				var writePages = function()
+				// NOTE: We are dealing with cross-window DOM here, which
+				// is a problem in IE, so we copy the HTML markup instead.
+				// The underlying problem is that the graph display markup
+				// creation (in mxShape, mxGraphView) is hardwired to using
+				// document.createElement and hence we must use document
+				// to create the complete page and then copy it over to the
+				// new window.document. This can be fixed later by using the
+				// ownerDocument of the container in mxShape and mxGraphView.
+				if (mxClient.IS_IE)
 				{
-					if (isDone && waitCounter == 0)
-					{
-						// Restores previous implementations
-						mxImageShape.prototype.scheduleUpdateAspect = mxImageShapeScheduleUpdateAspect;
-						mxImageShape.prototype.updateAspect = mxImageShapeUpdateAspect;
-						
-						var markup = '';
-						
-						for (var i = 0; i < pages.length; i++)
-						{
-							markup += pages[i].outerHTML;
-							pages[i].parentNode.removeChild(pages[i]);
-							
-							if (i < pages.length - 1)
-							{
-								markup += '<hr/>';
-							}
-						}
-						
-						doc.body.innerHTML = markup;
-						writePageSelector();
-					}
-				};
-				
-				// Overrides functions to implement wait counter
-				mxImageShape.prototype.scheduleUpdateAspect = function()
+					// For some obscure reason, removing the DIV from the
+					// parent before fetching its outerHTML has missing
+					// fillcolor properties and fill children, so the div
+					// must be removed afterwards to keep the fillcolors.
+					doc.writeln(div.outerHTML);
+					div.parentNode.removeChild(div);
+				}
+				else
 				{
-					waitCounter++;
-					mxImageShapeScheduleUpdateAspect.apply(this, arguments);
-				};
-				
-				// Overrides functions to implement wait counter
-				mxImageShape.prototype.updateAspect = function()
+					div.parentNode.removeChild(div);
+					doc.body.appendChild(div);
+				}
+
+				if (addBreak)
 				{
-					mxImageShapeUpdateAspect.apply(this, arguments);
-					waitCounter--;
-					writePages();
-				};
+					var hr = doc.createElement('hr');
+					hr.className = 'mxPageBreak';
+					doc.body.appendChild(hr);
+				}
+			};
+			
+			var cov = this.getCoverPages(this.pageFormat.width, this.pageFormat.height);
+			
+			if (cov != null)
+			{
+				for (var i = 0; i < cov.length; i++)
+				{
+					addPage(cov[i], true);
+				}
 			}
+			
+			var apx = this.getAppendices(this.pageFormat.width, this.pageFormat.height);
 			
 			// Appends each page to the page output for printing, making
 			// sure there will be a page break after each page (ie. div)
@@ -434,69 +474,23 @@ mxPrintPreview.prototype.open = function(css)
 					var dx = j * availableWidth / this.scale - this.x0 / this.scale +
 							(bounds.x - tr.x * currentScale) / currentScale;
 					var pageNum = i * hpages + j + 1;
-					
-					div = this.renderPage(this.pageFormat.width, this.pageFormat.height,
-						-dx, -dy, this.scale, pageNum);
-					
+					div = this.renderPage(this.pageFormat.width, this.pageFormat.height, mxUtils.bind(this, function(div)
+					{
+						this.addGraphFragment(-dx, -dy, this.scale, pageNum, div);
+					}));
+
 					// Gives the page a unique ID for later accessing the page
 					div.setAttribute('id', 'mxPage-'+pageNum);
-	
-					// Border of the DIV (aka page) inside the document
-					if (this.borderColor != null)
-					{
-						div.style.borderColor = this.borderColor;
-						div.style.borderStyle = 'solid';
-						div.style.borderWidth = '1px';
-					}
 					
-					// Needs to be assigned directly because IE doesn't support
-					// child selectors, eg. body > div { background: white; }
-					div.style.background = 'white';
-					
-					if (i < vpages - 1 || j < hpages - 1)
-					{
-						div.style.pageBreakAfter = 'always';
-					}
-	
-					// NOTE: We are dealing with cross-window DOM here, which
-					// is a problem in IE, so we copy the HTML markup instead.
-					// The underlying problem is that the graph display markup
-					// creation (in mxShape, mxGraphView) is hardwired to using
-					// document.createElement and hence we must use document
-					// to create the complete page and then copy it over to the
-					// new window.document. This can be fixed later by using the
-					// ownerDocument of the container in mxShape and mxGraphView.
-					if (mxClient.IS_IE)
-					{
-						// For some obscure reason, removing the DIV from the
-						// parent before fetching its outerHTML has missing
-						// fillcolor properties and fill children, so the div
-						// must be removed afterwards to keep the fillcolors.
-						// For delayed output we remote the DIV from the
-						// original document when we write out all pages.
-						doc.writeln(div.outerHTML);
-						
-						if (pages != null)
-						{
-							pages.push(div);
-						}
-						else
-						{
-							div.parentNode.removeChild(div);
-						}
-					}
-					else
-					{
-						div.parentNode.removeChild(div);
-						doc.body.appendChild(div);
-					}
-	
-					if (i < vpages - 1 || j < hpages - 1)
-					{
-						var hr = doc.createElement('hr');
-						hr.className = 'mxPageBreak';
-						doc.body.appendChild(hr);
-					}
+					addPage(div, apx != null || i < vpages - 1 || j < hpages - 1);
+				}
+			}
+
+			if (apx != null)
+			{
+				for (var i = 0; i < apx.length; i++)
+				{
+					addPage(apx[i], i < apx.length);
 				}
 			}
 
@@ -505,15 +499,7 @@ mxPrintPreview.prototype.open = function(css)
 			doc.close();
 			
 			// Marks the printing complete for async handling
-			if (pages != null)
-			{
-				isDone = true;
-				writePages();
-			}
-			else
-			{
-				writePageSelector();
-			}
+			writePageSelector();
 			
 			// Removes all event handlers in the print output
 			mxEvent.release(doc.body);
@@ -626,6 +612,59 @@ mxPrintPreview.prototype.createPageSelector = function(vpages, hpages)
 };
 
 /**
+ * Function: renderPage
+ * 
+ * Creates a DIV that prints a single page of the given
+ * graph using the given scale and returns the DIV that
+ * represents the page.
+ * 
+ * Parameters:
+ * 
+ * w - Width of the page in pixels.
+ * h - Height of the page in pixels.
+ * content - Callback that adds the HTML content to the inner div of a page.
+ * Takes the inner div as the argument.
+ */
+mxPrintPreview.prototype.renderPage = function(w, h, content)
+{
+	var div = document.createElement('div');
+	
+	try
+	{
+		div.style.width = w + 'px';
+		div.style.height = h + 'px';
+		div.style.overflow = 'hidden';
+		div.style.pageBreakInside = 'avoid';
+		div.style.position = 'relative';
+		
+		var innerDiv = document.createElement('div');
+		innerDiv.style.top = this.border + 'px';
+		innerDiv.style.left = this.border + 'px';
+		innerDiv.style.width = (w - 2 * this.border) + 'px';
+		innerDiv.style.height = (h - 2 * this.border) + 'px';
+		innerDiv.style.overflow = 'hidden';
+
+		if (this.graph.dialect == mxConstants.DIALECT_VML)
+		{
+			innerDiv.style.position = 'absolute';
+		}
+		
+		div.appendChild(innerDiv);
+		document.body.appendChild(div);
+		content(innerDiv);
+	}
+	catch (e)
+	{
+		div.parentNode.removeChild(div);
+		div = null;
+		
+		throw e;
+	}
+	
+	return div;
+};
+
+/**
  * Function: getRoot
  * 
  * Returns the root cell for painting the graph.
@@ -643,148 +682,131 @@ mxPrintPreview.prototype.getRoot = function()
 };
 
 /**
- * Function: renderPage
+ * Function: addGraphFragment
  * 
- * Creates a DIV that prints a single page of the given
- * graph using the given scale and returns the DIV that
- * represents the page.
+ * Adds a graph fragment to the given div.
  * 
  * Parameters:
  * 
- * w - Width of the page in pixels.
- * h - Height of the page in pixels.
  * dx - Horizontal translation for the diagram.
  * dy - Vertical translation for the diagram.
  * scale - Scale for the diagram.
  * pageNumber - Number of the page to be rendered.
+ * div - Div that contains the output.
  */
-mxPrintPreview.prototype.renderPage = function(w, h, dx, dy, scale, pageNumber)
+mxPrintPreview.prototype.addGraphFragment = function(dx, dy, scale, pageNumber, div)
 {
-	var div = document.createElement('div');
+	var view = this.graph.getView();
+	var previousContainer = this.graph.container;
+	this.graph.container = div;
+	
+	var canvas = view.getCanvas();
+	var backgroundPane = view.getBackgroundPane();
+	var drawPane = view.getDrawPane();
+	var overlayPane = view.getOverlayPane();
+
+	if (this.graph.dialect == mxConstants.DIALECT_SVG)
+	{
+		view.createSvg();
+	}
+	else if (this.graph.dialect == mxConstants.DIALECT_VML)
+	{
+		view.createVml();
+	}
+	else
+	{
+		view.createHtml();
+	}
+	
+	// Disables events on the view
+	var eventsEnabled = view.isEventsEnabled();
+	view.setEventsEnabled(false);
+	
+	// Disables the graph to avoid cursors
+	var graphEnabled = this.graph.isEnabled();
+	this.graph.setEnabled(false);
+
+	// Resets the translation
+	var translate = view.getTranslate();
+	view.translate = new mxPoint(dx, dy);
+	
+	var temp = null;
 	
 	try
 	{
-		div.style.width = w + 'px';
-		div.style.height = h + 'px';
-		div.style.overflow = 'hidden';
-		div.style.pageBreakInside = 'avoid';
-		
-		var innerDiv = document.createElement('div');
-		innerDiv.style.top = this.border + 'px';
-		innerDiv.style.left = this.border + 'px';
-		innerDiv.style.width = (w - 2 * this.border) + 'px';
-		innerDiv.style.height = (h - 2 * this.border) + 'px';
-		innerDiv.style.overflow = 'hidden';
-
-		if (this.graph.dialect == mxConstants.DIALECT_VML)
+		// Creates the temporary cell states in the view and
+		// draws them onto the temporary DOM nodes in the view
+		var cells = [this.getRoot()];
+		temp = new mxTemporaryCellStates(view, scale, cells);
+	}
+	finally
+	{
+		// Removes overlay pane with selection handles
+		// controls and icons from the print output
+		if (mxClient.IS_IE)
 		{
-			innerDiv.style.position = 'absolute';
-		}
-		
-		div.appendChild(innerDiv);
-		document.body.appendChild(div);
-		var view = this.graph.getView();
-		
-		var previousContainer = this.graph.container;
-		this.graph.container = innerDiv;
-		
-		var canvas = view.getCanvas();
-		var backgroundPane = view.getBackgroundPane();
-		var drawPane = view.getDrawPane();
-		var overlayPane = view.getOverlayPane();
-	
-		if (this.graph.dialect == mxConstants.DIALECT_SVG)
-		{
-			view.createSvg();
-		}
-		else if (this.graph.dialect == mxConstants.DIALECT_VML)
-		{
-			view.createVml();
+			view.overlayPane.innerHTML = '';
 		}
 		else
 		{
-			view.createHtml();
-		}
-		
-		// Disables events on the view
-		var eventsEnabled = view.isEventsEnabled();
-		view.setEventsEnabled(false);
-		
-		// Disables the graph to avoid cursors
-		var graphEnabled = this.graph.isEnabled();
-		this.graph.setEnabled(false);
-	
-		// Resets the translation
-		var translate = view.getTranslate();
-		view.translate = new mxPoint(dx, dy);
-		
-		var temp = null;
-		
-		try
-		{
-			// Creates the temporary cell states in the view and
-			// draws them onto the temporary DOM nodes in the view
-			var cells = [this.getRoot()];
-			temp = new mxTemporaryCellStates(view, scale, cells);
-		}
-		finally
-		{
-			// Removes overlay pane with selection handles
-			// controls and icons from the print output
-			if (mxClient.IS_IE)
-			{
-				view.overlayPane.innerHTML = '';
-			}
-			else
-			{
-				// Removes everything but the SVG node
-				var tmp = innerDiv.firstChild;
+			// Removes everything but the SVG node
+			var tmp = div.firstChild;
 
-				while (tmp != null)
+			while (tmp != null)
+			{
+				var next = tmp.nextSibling;
+				var name = tmp.nodeName.toLowerCase();
+
+				// Note: Width and heigh are required in FF 11
+				if (name == 'svg')
 				{
-					var next = tmp.nextSibling;
-					var name = tmp.nodeName.toLowerCase();
-
-					// Note: Width and heigh are required in FF 11
-					if (name == 'svg')
-					{
-						tmp.setAttribute('width', parseInt(innerDiv.style.width));
-						tmp.setAttribute('height', parseInt(innerDiv.style.height));
-					}
-					// Tries to fetch all text labels and only text labels
-					else if (tmp.style.cursor != 'default' && name != 'table')
-					{
-						tmp.parentNode.removeChild(tmp);
-					}
-					
-					tmp = next;
+					tmp.setAttribute('width', parseInt(div.style.width));
+					tmp.setAttribute('height', parseInt(div.style.height));
 				}
+				// Tries to fetch all text labels and only text labels
+				else if (tmp.style.cursor != 'default' && name != 'table')
+				{
+					tmp.parentNode.removeChild(tmp);
+				}
+				
+				tmp = next;
 			}
-			
-			// Completely removes the overlay pane to remove more handles
-			view.overlayPane.parentNode.removeChild(view.overlayPane);
-	
-			// Restores the state of the view
-			this.graph.setEnabled(graphEnabled);
-			this.graph.container = previousContainer;
-			view.canvas = canvas;
-			view.backgroundPane = backgroundPane;
-			view.drawPane = drawPane;
-			view.overlayPane = overlayPane;
-			view.translate = translate;
-			temp.destroy();
-			view.setEventsEnabled(eventsEnabled);
 		}
-	}
-	catch (e)
-	{
-		div.parentNode.removeChild(div);
-		div = null;
 		
-		throw e;
+		// Completely removes the overlay pane to remove more handles
+		view.overlayPane.parentNode.removeChild(view.overlayPane);
+
+		// Restores the state of the view
+		this.graph.setEnabled(graphEnabled);
+		this.graph.container = previousContainer;
+		view.canvas = canvas;
+		view.backgroundPane = backgroundPane;
+		view.drawPane = drawPane;
+		view.overlayPane = overlayPane;
+		view.translate = translate;
+		temp.destroy();
+		view.setEventsEnabled(eventsEnabled);
 	}
-	
-	return div;
+};
+
+/**
+ * Function: getCoverPages
+ * 
+ * Returns the pages to be added before the print output. This returns null.
+ */
+mxPrintPreview.prototype.getCoverPages = function()
+{
+	return null;
+};
+
+/**
+ * Function: getAppendices
+ * 
+ * Returns the pages to be added after the print output. This returns null.
+ */
+mxPrintPreview.prototype.getAppendices = function()
+{
+	return null;
 };
 
 /**

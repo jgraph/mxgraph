@@ -1,4 +1,4 @@
-// $Id: mxStylesheetCodec.cs,v 1.9 2011/06/13 08:18:42 gaudenz Exp $
+// $Id: mxStylesheetCodec.cs,v 1.1 2012/11/15 13:26:49 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Collections.Generic;

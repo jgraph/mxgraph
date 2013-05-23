@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphHandler.js,v 1.129 2012/04/13 12:53:30 gaudenz Exp $
+ * $Id: mxGraphHandler.js,v 1.6 2013/02/16 10:43:47 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -190,12 +190,11 @@ mxGraphHandler.prototype.shape = null;
 mxGraphHandler.prototype.scaleGrid = false;
 
 /**
- * Variable: crisp
+ * Variable: rotationEnabled
  * 
- * Specifies if the move preview should be rendered in crisp mode if applicable.
- * Default is true.
+ * Specifies if the bounding box should allow for rotation. Default is true.
  */
-mxGraphHandler.prototype.crisp = true;
+mxGraphHandler.prototype.rotationEnabled = true;
 
 /**
  * Function: isEnabled
@@ -429,10 +428,13 @@ mxGraphHandler.prototype.getCells = function(initialCell)
  */
 mxGraphHandler.prototype.getPreviewBounds = function(cells)
 {
-	var bounds = this.graph.getView().getBounds(cells);
+	var bounds = this.getBoundingBox(cells);
 	
 	if (bounds != null)
 	{
+		// Removes 1 px border
+		bounds.grow(-1, -1);
+		
 		if (bounds.width < this.minimumSize)
 		{
 			var dx = this.minimumSize - bounds.width;
@@ -452,6 +454,51 @@ mxGraphHandler.prototype.getPreviewBounds = function(cells)
 };
 
 /**
+ * Function: getBoundingBox
+ * 
+ * Returns the <mxRectangle> that represents the bounding box for the given
+ * cells. If bbox is true then the paint bounding box is returned.
+ */
+mxGraphHandler.prototype.getBoundingBox = function(cells)
+{
+	var result = null;
+	
+	if (cells != null && cells.length > 0)
+	{
+		var model = this.graph.getModel();
+		
+		for (var i = 0; i < cells.length; i++)
+		{
+			if (model.isVertex(cells[i]) || model.isEdge(cells[i]))
+			{
+				var state = this.graph.view.getState(cells[i]);
+			
+				if (state != null)
+				{
+					var bbox = state;
+					
+					if (model.isVertex(cells[i]) && state.shape != null && state.shape.boundingBox != null)
+					{
+						bbox = state.shape.boundingBox;
+					}
+					
+					if (result == null)
+					{
+						result = new mxRectangle(bbox.x, bbox.y, bbox.width, bbox.height);
+					}
+					else
+					{
+						result.add(bbox);
+					}
+				}
+			}
+		}
+	}
+	
+	return result;
+};
+
+/**
  * Function: createPreviewShape
  * 
  * Creates the shape used to draw the preview for the given bounds.
@@ -460,7 +507,6 @@ mxGraphHandler.prototype.createPreviewShape = function(bounds)
 {
 	var shape = new mxRectangleShape(bounds, null, this.previewColor);
 	shape.isDashed = true;
-	shape.crisp = this.crisp;
 	
 	if (this.htmlPreview)
 	{
@@ -475,16 +521,7 @@ mxGraphHandler.prototype.createPreviewShape = function(bounds)
 		shape.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
 			mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
 		shape.init(this.graph.getView().getOverlayPane());
-		
-		// Event-transparency
-		if (shape.dialect == mxConstants.DIALECT_SVG)
-		{
-			shape.node.setAttribute('style', 'pointer-events:none;');
-		}
-		else
-		{
-			shape.node.style.background = '';
-		}
+		shape.pointerEvents = false;
 	}
 	
 	return shape;
@@ -500,7 +537,8 @@ mxGraphHandler.prototype.start = function(cell, x, y)
 	this.cell = cell;
 	this.first = mxUtils.convertPoint(this.graph.container, x, y);
 	this.cells = this.getCells(this.cell);
-	this.bounds = this.getPreviewBounds(this.cells);
+	this.bounds = this.graph.getView().getBounds(this.cells);
+	this.pBounds = this.getPreviewBounds(this.cells);
 
 	if (this.guidesEnabled)
 	{
@@ -713,8 +751,8 @@ mxGraphHandler.prototype.updatePreviewShape = function()
 {
 	if (this.shape != null)
 	{
-		this.shape.bounds = new mxRectangle(this.bounds.x + this.currentDx - this.graph.panDx,
-				this.bounds.y + this.currentDy - this.graph.panDy, this.bounds.width, this.bounds.height);
+		this.shape.bounds = new mxRectangle(Math.round(this.pBounds.x + this.currentDx - this.graph.panDx),
+				Math.round(this.pBounds.y + this.currentDy - this.graph.panDy), this.pBounds.width, this.pBounds.height);
 		this.shape.redraw();
 	}
 };
@@ -754,7 +792,6 @@ mxGraphHandler.prototype.mouseUp = function(sender, me)
 			var clone = graph.isCloneEvent(me.getEvent()) && graph.isCellsCloneable() && this.isCloneEnabled();
 			var dx = this.currentDx / scale;
 			var dy = this.currentDy / scale;
-
 			var cell = me.getCell();
 			
 			if (this.connectOnDrop && this.target == null && cell != null && graph.getModel().isVertex(cell) &&
@@ -832,6 +869,15 @@ mxGraphHandler.prototype.shouldRemoveCellsFromParent = function(parent, cells, e
 		var pState = this.graph.getView().getState(parent);
 		var pt = mxUtils.convertPoint(this.graph.container,
 			mxEvent.getClientX(evt), mxEvent.getClientY(evt));
+		var alpha = mxUtils.toRadians(mxUtils.getValue(pState.style, mxConstants.STYLE_ROTATION) || 0);
+		
+		if (alpha != 0)
+		{
+			var cos = Math.cos(-alpha);
+			var sin = Math.sin(-alpha);
+			var cx = new mxPoint(pState.getCenterX(), pState.getCenterY());
+			pt = mxUtils.getRotatedPoint(pt, cos, sin, cx);
+		}
 		
 		return pState != null && !mxUtils.contains(pState, pt.x, pt.y);
 	}
@@ -857,7 +903,7 @@ mxGraphHandler.prototype.moveCells = function(cells, dx, dy, clone, target, evt)
 	{
 		target = this.graph.getDefaultParent();
 	}
-
+	
 	// Passes all selected cells in order to correctly clone or move into
 	// the target cell. The method checks for each cell if its movable.
 	cells = this.graph.moveCells(cells, dx - this.graph.panDx / this.graph.view.scale,

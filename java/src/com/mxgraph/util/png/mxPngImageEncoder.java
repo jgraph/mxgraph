@@ -1,4 +1,4 @@
-/* $Id: mxPngImageEncoder.java,v 1.5 2010/08/09 16:41:04 david Exp $
+/* $Id: mxPngImageEncoder.java,v 1.1 2012/11/15 13:26:39 gaudenz Exp $
    
    Licensed to the Apache Software Foundation (ASF) under one or more
    contributor license agreements.  See the NOTICE file distributed with
@@ -330,7 +330,7 @@ class IDATOutputStream extends FilterOutputStream
  * An ImageEncoder for the PNG file format.
  *
  * @since EA4
- * @version $Id: mxPngImageEncoder.java,v 1.5 2010/08/09 16:41:04 david Exp $
+ * @version $Id: mxPngImageEncoder.java,v 1.1 2012/11/15 13:26:39 gaudenz Exp $
  */
 public class mxPngImageEncoder
 {

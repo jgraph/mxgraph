@@ -1,5 +1,5 @@
 /**
- * $Id: mxEventObject.js,v 1.11 2011/09/09 10:29:05 gaudenz Exp $
+ * $Id: mxEventObject.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

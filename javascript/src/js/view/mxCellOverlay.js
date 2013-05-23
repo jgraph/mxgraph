@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellOverlay.js,v 1.18 2012/12/06 15:58:44 gaudenz Exp $
+ * $Id: mxCellOverlay.js,v 1.3 2012/12/06 15:59:00 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -217,8 +217,8 @@ mxCellOverlay.prototype.getBounds = function(state)
 		}
 	}
 
-	return new mxRectangle(pt.x - (w * this.defaultOverlap - this.offset.x) * s,
-		pt.y - (h * this.defaultOverlap - this.offset.y) * s, w * s, h * s);
+	return new mxRectangle(Math.round(pt.x - (w * this.defaultOverlap - this.offset.x) * s),
+		Math.round(pt.y - (h * this.defaultOverlap - this.offset.y) * s), w * s, h * s);
 };
 
 /**

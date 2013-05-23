@@ -1,5 +1,5 @@
 /**
- * $Id: mxAutoSaveManager.js,v 1.9 2010/09/16 09:10:21 gaudenz Exp $
+ * $Id: mxAutoSaveManager.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

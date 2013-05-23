@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxModelCodec.php,v 1.8 2010/11/23 08:46:40 gaudenz Exp $
+ * $Id: mxModelCodec.php,v 1.1 2012/11/15 13:26:46 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder
  */
 class mxModelCodec extends mxObjectCodec

@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellTracker.js,v 1.9 2011/08/28 09:49:46 gaudenz Exp $
+ * $Id: mxCellTracker.js,v 1.2 2013/01/08 15:30:24 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -96,8 +96,7 @@ function mxCellTracker(graph, color, funct)
 /**
  * Extends mxCellMarker.
  */
-mxCellTracker.prototype = new mxCellMarker();
-mxCellTracker.prototype.constructor = mxCellTracker;
+mxUtils.extend(mxCellTracker, mxCellMarker);
 
 /**
  * Function: mouseDown

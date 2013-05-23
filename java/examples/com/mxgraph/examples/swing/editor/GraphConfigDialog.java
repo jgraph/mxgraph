@@ -1,5 +1,5 @@
 /**
- * $Id: GraphConfigDialog.java,v 1.14 2012/11/21 13:59:45 mate Exp $
+ * $Id: GraphConfigDialog.java,v 1.2 2012/11/21 14:16:01 mate Exp $
  * Copyright (c) 2012, JGraph Ltd
  */
 
@@ -36,7 +36,6 @@ import com.mxgraph.layout.mxCircleLayout;
 import com.mxgraph.layout.mxCompactTreeLayout;
 import com.mxgraph.layout.mxOrganicLayout;
 import com.mxgraph.model.mxCell;
-import com.mxgraph.model.mxIGraphModel;
 import com.mxgraph.view.mxGraph;
 import com.mxgraph.view.mxGraph.mxICellVisitor;
 import com.mxgraph.view.mxGraphView;

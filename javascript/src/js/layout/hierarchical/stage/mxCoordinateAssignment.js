@@ -1,6 +1,6 @@
 /**
- * $Id: mxCoordinateAssignment.js,v 1.31 2013/02/21 15:10:59 david Exp $
- * Copyright (c) 2005-2012, JGraph Ltd
+ * $Id: mxCoordinateAssignment.js,v 1.3 2013/02/21 15:16:29 david Exp $
+ * Copyright (c) 2005-2013, JGraph Ltd
  */
 /**
  * Class: mxCoordinateAssignment

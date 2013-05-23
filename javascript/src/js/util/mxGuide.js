@@ -1,5 +1,5 @@
 /**
- * $Id: mxGuide.js,v 1.7 2012/04/13 12:53:30 gaudenz Exp $
+ * $Id: mxGuide.js,v 1.3 2013/01/24 13:46:23 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -60,14 +60,6 @@ mxGuide.prototype.guideX = null;
 mxGuide.prototype.guideY = null;
 
 /**
- * Variable: crisp
- * 
- * Specifies if theguide should be rendered in crisp mode if applicable.
- * Default is true.
- */
-mxGuide.prototype.crisp = true;
-
-/**
  * Function: setStates
  * 
  * Sets the <mxCellStates> that should be used for alignment.
@@ -113,7 +105,6 @@ mxGuide.prototype.getGuideTolerance = function()
 mxGuide.prototype.createGuideShape = function(horizontal)
 {
 	var guide = new mxPolyline([], mxConstants.GUIDE_COLOR, mxConstants.GUIDE_STROKEWIDTH);
-	guide.crisp = this.crisp;
 	guide.isDashed = true;
 	
 	return guide;
@@ -187,13 +178,8 @@ mxGuide.prototype.move = function(bounds, delta, gridEnabled)
 					// HTML shapes do not let mouseevents through even when transparent
 					this.guideX.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
 						mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
+					this.guideX.pointerEvents = false;
 					this.guideX.init(this.graph.getView().getOverlayPane());
-
-					if (this.graph.dialect == mxConstants.DIALECT_SVG)
-					{
-						this.guideX.node.setAttribute('pointer-events', 'none');
-						this.guideX.pipe.setAttribute('pointer-events', 'none');
-					}
 				}
 
 				var c = this.graph.container;
@@ -240,13 +226,8 @@ mxGuide.prototype.move = function(bounds, delta, gridEnabled)
 					// HTML shapes do not let mouseevents through even when transparent
 					this.guideY.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
 						mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
+					this.guideY.pointerEvents = false;
 					this.guideY.init(this.graph.getView().getOverlayPane());
-					
-					if (this.graph.dialect == mxConstants.DIALECT_SVG)
-					{
-						this.guideY.node.setAttribute('pointer-events', 'none');
-						this.guideY.pipe.setAttribute('pointer-events', 'none');
-					}
 				}
 
 				var c = this.graph.container;

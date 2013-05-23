@@ -49,7 +49,9 @@
 }
 .geMenubar a.geStatus {
 	color:gray;
-	padding-left:30px;
+	padding-left:18px;
+	position:absolute;
+	top:2px;
 }
 .geMenubar a.geStatus:hover {
 	background:transparent;
@@ -142,9 +144,10 @@
 }
 .geSidebar {
 	border-bottom:1px solid #e5e5e5;
-	padding-top:6px;
+	padding-top:2px;
 	padding-bottom:6px;
-	padding-left:2px;
+	padding-left:1px;
+	padding-right:0px;
 	overflow:hidden;
 }
 .geSidebarContainer .geTitle {
@@ -152,7 +155,7 @@
 	font-size:8pt;
 	border-bottom:1px solid #e5e5e5;
 	font-weight:normal;
-	padding:6px 0px 6px 6px;
+	padding:6px 0px 6px 14px;
 	margin:0px;
 	cursor:pointer;
 	background:#eeeeee;
@@ -170,13 +173,12 @@
 	background-position:50% 50%;
 	border:1px solid transparent;
 	border-radius:2px;
-	width:32px;
-	height:32px;
-	_width:34px;
-	_height:34px;
 }
 .geSidebar .geItem:hover {
 	border:1px solid gray !important;
+}
+.geItem {
+	vertical-align: top;
 }
 .geSidebarTooltip {
 	position:absolute;
@@ -340,8 +342,8 @@ td.mxPopupMenuIcon .geIcon {
 	margin:2px;
 	border:1px solid transparent;
 	opacity:0.5;
-	_width:21px;
-	_height:21px;
+	_width:26px;
+	_height:26px;
 }
 td.mxPopupMenuIcon .geIcon:hover {
 	border:1px solid gray;

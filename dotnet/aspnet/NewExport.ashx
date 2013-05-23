@@ -29,12 +29,17 @@ public class NewExport : IHttpHandler
         if (xml != null && width != null && height != null && bg != null
                 && filename != null && format != null)
         {
-            Image image = mxUtils.CreateImage(int.Parse(width), int.Parse(height),
-                ColorTranslator.FromHtml(bg));
+            Color? background = (bg != null && !bg.Equals(mxConstants.NONE)) ? ColorTranslator.FromHtml(bg) : (Color?)null;
+            Image image = mxUtils.CreateImage(int.Parse(width), int.Parse(height), background);
             Graphics g = Graphics.FromImage(image);
             g.SmoothingMode = SmoothingMode.HighQuality;
             mxSaxOutputHandler handler = new mxSaxOutputHandler(new mxGdiCanvas2D(g));
             handler.Read(new XmlTextReader(new StringReader(xml)));
+            
+            if (filename.Length == 0)
+            {
+                filename = "export." + format;
+            }
 
             context.Response.ContentType = "image/" + format;
             context.Response.AddHeader("Content-Disposition",

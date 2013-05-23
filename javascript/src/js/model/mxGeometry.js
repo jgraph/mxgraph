@@ -1,5 +1,5 @@
 /**
- * $Id: mxGeometry.js,v 1.26 2010/01/02 09:45:15 gaudenz Exp $
+ * $Id: mxGeometry.js,v 1.2 2013/04/05 07:34:20 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -46,6 +46,9 @@
  * This coordinate system is applied if <relative> is true, otherwise the
  * offset defines the absolute vector from the edge's center point to the
  * label.
+ * 
+ * The width and height parameter for edge geometries can be used to set the
+ * label width and height (eg. for word wrapping).
  * 
  * Ports:
  * 

@@ -163,6 +163,8 @@
 	       	<xs:attribute name="valign" use="optional" type="xs:string" default="top"/>
 	       	<xs:attribute name="localized" use="optional" type="xs:integer" default="0"/>
 	       	<xs:attribute name="vertical" use="optional" type="xs:integer" default="0"/>
+	       	<xs:attribute name="rotation" use="optional" type="xs:decimal" default="0"/>
+	       	<xs:attribute name="align-shape" use="optional" type="xs:integer" default="1"/>
 	    </xs:complexType>
 	</xs:element>
 	<xs:element name="image">

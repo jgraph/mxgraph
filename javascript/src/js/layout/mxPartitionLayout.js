@@ -1,5 +1,5 @@
 /**
- * $Id: mxPartitionLayout.js,v 1.25 2010/01/04 11:18:25 gaudenz Exp $
+ * $Id: mxPartitionLayout.js,v 1.1 2012/11/15 13:26:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

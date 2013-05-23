@@ -1,5 +1,5 @@
 /**
- * $Id: mxPopupMenu.js,v 1.37 2012/04/22 10:16:23 gaudenz Exp $
+ * $Id: mxPopupMenu.js,v 1.3 2012/12/03 15:46:33 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -249,74 +249,69 @@ mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, e
 
 	if (enabled == null || enabled)
 	{
-		var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-		var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
-		var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
+		mxEvent.addGestureListeners(tr,
+			mxUtils.bind(this, function(evt)
+			{
+				this.eventReceiver = tr;
+				
+				if (parent.activeRow != tr && parent.activeRow != parent)
+				{
+					if (parent.activeRow != null &&
+						parent.activeRow.div.parentNode != null)
+					{
+						this.hideSubmenu(parent);
+					}
+					
+					if (tr.div != null)
+					{
+						this.showSubmenu(parent, tr);
+						parent.activeRow = tr;
+					}
+				}
+				
+				mxEvent.consume(evt);
+			}),
+			mxUtils.bind(this, function(evt)
+			{
+				if (parent.activeRow != tr && parent.activeRow != parent)
+				{
+					if (parent.activeRow != null &&
+						parent.activeRow.div.parentNode != null)
+					{
+						this.hideSubmenu(parent);
+					}
+					
+					if (this.autoExpand && tr.div != null)
+					{
+						this.showSubmenu(parent, tr);
+						parent.activeRow = tr;
+					}
+				}
 		
-		// Consumes the event on mouse down
-		mxEvent.addListener(tr, md, mxUtils.bind(this, function(evt)
-		{
-			this.eventReceiver = tr;
-			
-			if (parent.activeRow != tr && parent.activeRow != parent)
+				// Sets hover style because TR in IE doesn't have hover
+				tr.className = 'mxPopupMenuItemHover';
+			}),
+			mxUtils.bind(this, function(evt)
 			{
-				if (parent.activeRow != null &&
-					parent.activeRow.div.parentNode != null)
+				// EventReceiver avoids clicks on a submenu item
+				// which has just been shown in the mousedown
+				if (this.eventReceiver == tr)
 				{
-					this.hideSubmenu(parent);
+					if (parent.activeRow != tr)
+					{
+						this.hideMenu();
+					}
+					
+					if (funct != null)
+					{
+						funct(evt);
+					}
 				}
 				
-				if (tr.div != null)
-				{
-					this.showSubmenu(parent, tr);
-					parent.activeRow = tr;
-				}
-			}
-			
-			mxEvent.consume(evt);
-		}));
-		
-		mxEvent.addListener(tr, mm, mxUtils.bind(this, function(evt)
-		{
-			if (parent.activeRow != tr && parent.activeRow != parent)
-			{
-				if (parent.activeRow != null &&
-					parent.activeRow.div.parentNode != null)
-				{
-					this.hideSubmenu(parent);
-				}
-				
-				if (this.autoExpand && tr.div != null)
-				{
-					this.showSubmenu(parent, tr);
-					parent.activeRow = tr;
-				}
-			}
-	
-			// Sets hover style because TR in IE doesn't have hover
-			tr.className = 'mxPopupMenuItemHover';
-		}));
-	
-		mxEvent.addListener(tr, mu, mxUtils.bind(this, function(evt)
-		{
-			// EventReceiver avoids clicks on a submenu item
-			// which has just been shown in the mousedown
-			if (this.eventReceiver == tr)
-			{
-				if (parent.activeRow != tr)
-				{
-					this.hideMenu();
-				}
-				
-				if (funct != null)
-				{
-					funct(evt);
-				}
-			}
-			
-			this.eventReceiver = null;
-			mxEvent.consume(evt);
-		}));
+				this.eventReceiver = null;
+				mxEvent.consume(evt);
+			})
+		);
 	
 		// Resets hover style because TR in IE doesn't have hover
 		mxEvent.addListener(tr, 'mouseout',

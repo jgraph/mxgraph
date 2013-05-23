@@ -136,6 +136,20 @@ public interface mxICanvas2D
 	void setFontStyle(int value);
 
 	/**
+	 * Default value "#000000".
+	 * 
+	 * @param value Hex representation of the color or {@link mxConstants#NONE}.
+	 */
+	void setFontBackgroundColor(String value);
+
+	/**
+	 * Default value "#000000".
+	 * 
+	 * @param value Hex representation of the color or {@link mxConstants#NONE}.
+	 */
+	void setFontBorderColor(String value);
+
+	/**
 	 * Default value 1. This method may add rendering overhead and should be
 	 * used with care.
 	 * 
@@ -163,17 +177,35 @@ public interface mxICanvas2D
 	 * 		{@link mxConstants#DIRECTION_SOUTH}.
 	 */
 	void setGradient(String color1, String color2, double x, double y,
-			double w, double h, String direction);
+			double w, double h, String direction, double alpha1, double alpha2);
 
 	/**
-	 * Prepares the canvas to draw a glass gradient.
+	 * Enables or disables the painting of shadows.
 	 * 
-	 * @param x
-	 * @param y
-	 * @param w
-	 * @param h
+	 * @param enabled Whether the shadow should be enabled.
 	 */
-	void setGlassGradient(double x, double y, double w, double h);
+	void setShadow(boolean enabled);
+
+	/**
+	 * Default value {@link mxConstants#NONE}.
+	 * 
+	 * @param value Hex representation of the color or {@link mxConstants#NONE}.
+	 */
+	void setShadowColor(String value);
+
+	/**
+	 * Default value {@link mxConstants#NONE}.
+	 * 
+	 * @param value Hex representation of the color or {@link mxConstants#NONE}.
+	 */
+	void setShadowAlpha(double value);
+
+	/**
+	 * Default value {@link mxConstants#NONE}.
+	 * 
+	 * @param value Hex representation of the color or {@link mxConstants#NONE}.
+	 */
+	void setShadowOffset(double dx, double dy);
 
 	/**
 	 * Next fill or stroke should draw a rectangle.
@@ -225,7 +257,7 @@ public interface mxICanvas2D
 			boolean aspect, boolean flipH, boolean flipV);
 
 	/**
-	 * Draws the given string.  Possible values for format are empty string for
+	 * Draws the given string. Possible values for format are empty string for
 	 * plain text and html for HTML markup.
 	 * 
 	 * @param x
@@ -237,8 +269,8 @@ public interface mxICanvas2D
 	 * @param valign
 	 * @param vertical
 	 */
-	void text(double x, double y, double w, double h, String str, String align,
-			String valign, boolean vertical, boolean wrap, String format);
+	void text(double x, double y, double w, double h, String str, String align, String valign,
+			boolean wrap, String format, String overflow, boolean clip, double rotation);
 
 	/**
 	 * Begins a new path.
@@ -303,17 +335,5 @@ public interface mxICanvas2D
 	 * Fills and paints the outline of the current path.
 	 */
 	void fillAndStroke();
-
-	/**
-	 * Paints the current path as a shadow.
-	 * 
-	 * @param value
-	 */
-	void shadow(String value, boolean filled);
-
-	/**
-	 * Uses the current path for clipping.
-	 */
-	void clip();
 
 }

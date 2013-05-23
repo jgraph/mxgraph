@@ -1,5 +1,5 @@
 /**
- * $Id: mxEdgeStyle.js,v 1.68 2012/11/20 09:06:07 gaudenz Exp $
+ * $Id: mxEdgeStyle.js,v 1.2 2012/11/20 09:10:02 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEdgeStyle =

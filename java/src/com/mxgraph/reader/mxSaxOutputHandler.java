@@ -188,6 +188,22 @@ public class mxSaxOutputHandler extends DefaultHandler
 			}
 		});
 
+		handlers.put("fontbackgroundcolor", new IElementHandler()
+		{
+			public void parseElement(Attributes atts)
+			{
+				canvas.setFontBackgroundColor(atts.getValue("color"));
+			}
+		});
+
+		handlers.put("fontbordercolor", new IElementHandler()
+		{
+			public void parseElement(Attributes atts)
+			{
+				canvas.setFontBorderColor(atts.getValue("color"));
+			}
+		});
+
 		handlers.put("fontfamily", new IElementHandler()
 		{
 			public void parseElement(Attributes atts)
@@ -219,7 +235,40 @@ public class mxSaxOutputHandler extends DefaultHandler
 				canvas.setFillColor(atts.getValue("color"));
 			}
 		});
+		
+		handlers.put("shadowcolor", new IElementHandler()
+		{
+			public void parseElement(Attributes atts)
+			{
+				canvas.setShadowColor(atts.getValue("color"));
+			}
+		});
+		
+		handlers.put("shadowalpha", new IElementHandler()
+		{
+			public void parseElement(Attributes atts)
+			{
+				canvas.setShadowAlpha(Double.parseDouble(atts.getValue("alpha")));
+			}
+		});
+		
+		handlers.put("shadowoffset", new IElementHandler()
+		{
+			public void parseElement(Attributes atts)
+			{
+				canvas.setShadowOffset(Double.parseDouble(atts.getValue("dx")),
+						Double.parseDouble(atts.getValue("dy")));
+			}
+		});
 
+		handlers.put("shadow", new IElementHandler()
+		{
+			public void parseElement(Attributes atts)
+			{
+				canvas.setShadow(getValue(atts, "enabled", "1").equals("1"));
+			}
+		});
+		
 		handlers.put("gradient", new IElementHandler()
 		{
 			public void parseElement(Attributes atts)
@@ -229,18 +278,9 @@ public class mxSaxOutputHandler extends DefaultHandler
 						Double.parseDouble(atts.getValue("y")),
 						Double.parseDouble(atts.getValue("w")),
 						Double.parseDouble(atts.getValue("h")),
-						atts.getValue("direction"));
-			}
-		});
-
-		handlers.put("glass", new IElementHandler()
-		{
-			public void parseElement(Attributes atts)
-			{
-				canvas.setGlassGradient(Double.parseDouble(atts.getValue("x")),
-						Double.parseDouble(atts.getValue("y")),
-						Double.parseDouble(atts.getValue("w")),
-						Double.parseDouble(atts.getValue("h")));
+						atts.getValue("direction"),
+						Double.parseDouble(getValue(atts, "alpha1", "1")),
+						Double.parseDouble(getValue(atts, "alpha2", "1")));
 			}
 		});
 
@@ -298,14 +338,18 @@ public class mxSaxOutputHandler extends DefaultHandler
 		{
 			public void parseElement(Attributes atts)
 			{
-				canvas.text(Double.parseDouble(atts.getValue("x")), Double
-						.parseDouble(atts.getValue("y")), Double
-						.parseDouble(atts.getValue("w")), Double
-						.parseDouble(atts.getValue("h")), atts.getValue("str"),
-						atts.getValue("align"), atts.getValue("valign"), atts
-								.getValue("vertical").equals("1"),
-						getValue(atts, "wrap", "").equals("1"), atts
-								.getValue("format"));
+				canvas.text(Double.parseDouble(atts.getValue("x")),
+						Double.parseDouble(atts.getValue("y")),
+						Double.parseDouble(atts.getValue("w")),
+						Double.parseDouble(atts.getValue("h")),
+						atts.getValue("str"),
+						atts.getValue("align"),
+						atts.getValue("valign"),
+						getValue(atts, "wrap", "").equals("1"),
+						atts.getValue("format"),
+						atts.getValue("overflow"),
+						getValue(atts, "clip", "").equals("1"),
+						Double.parseDouble(getValue(atts, "rotation", "0")));
 			}
 		});
 
@@ -388,23 +432,6 @@ public class mxSaxOutputHandler extends DefaultHandler
 			public void parseElement(Attributes atts)
 			{
 				canvas.fillAndStroke();
-			}
-		});
-
-		handlers.put("shadow", new IElementHandler()
-		{
-			public void parseElement(Attributes atts)
-			{
-				canvas.shadow(atts.getValue("value"),
-						getValue(atts, "filled", "1").equals("1"));
-			}
-		});
-
-		handlers.put("clip", new IElementHandler()
-		{
-			public void parseElement(Attributes atts)
-			{
-				canvas.clip();
 			}
 		});
 	}

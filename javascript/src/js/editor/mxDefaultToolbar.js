@@ -1,5 +1,5 @@
 /**
- * $Id: mxDefaultToolbar.js,v 1.67 2012/04/11 07:00:52 gaudenz Exp $
+ * $Id: mxDefaultToolbar.js,v 1.1 2012/11/15 13:26:49 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

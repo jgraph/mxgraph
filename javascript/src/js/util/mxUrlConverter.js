@@ -1,5 +1,5 @@
 /**
- * $Id: mxUrlConverter.js,v 1.3 2012/08/24 17:10:41 gaudenz Exp $
+ * $Id: mxUrlConverter.js,v 1.2 2013/01/29 12:34:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -109,6 +109,16 @@ var mxUrlConverter = function(root)
 		},
 
 		/**
+		 * Function: isRelativeUrl
+		 * 
+		 * Returns true if the given URL is relative.
+		 */
+		isRelativeUrl: function(url)
+		{
+			return url.substring(0, 7) != 'http://' && url.substring(0, 8) != 'https://' && url.substring(0, 10) != 'data:image';
+		},
+		
+		/**
 		 * Function: convert
 		 * 
 		 * Converts the given URL to an absolute URL with protol and domain.
@@ -116,7 +126,7 @@ var mxUrlConverter = function(root)
 		 */
 		convert: function(url)
 		{
-			if (enabled && url.indexOf('http://') != 0 && url.indexOf('https://') != 0 && url.indexOf('data:image') != 0)
+			if (enabled && this.isRelativeUrl(url))
 			{
 				if (baseUrl == null)
 				{

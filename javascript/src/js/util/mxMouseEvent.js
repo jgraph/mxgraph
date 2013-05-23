@@ -1,5 +1,5 @@
 /**
- * $Id: mxMouseEvent.js,v 1.20 2011/03/02 17:24:39 gaudenz Exp $
+ * $Id: mxMouseEvent.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

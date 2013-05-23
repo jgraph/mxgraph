@@ -1,5 +1,5 @@
 /**
- * $Id: mxImageBundle.js,v 1.4 2013/04/12 09:24:40 gaudenz Exp $
+ * $Id: mxImageBundle.js,v 1.2 2013/04/12 09:25:40 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

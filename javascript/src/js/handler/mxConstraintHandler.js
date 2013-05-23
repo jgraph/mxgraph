@@ -1,5 +1,5 @@
 /**
- * $Id: mxConstraintHandler.js,v 1.17 2013/04/30 13:34:14 gaudenz Exp $
+ * $Id: mxConstraintHandler.js,v 1.5 2013/05/04 14:31:36 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -151,6 +151,39 @@ mxConstraintHandler.prototype.isStateIgnored = function(state, source)
 };
 
 /**
+ * Function: destroyIcons
+ * 
+ * Destroys the <focusIcons> if they exist.
+ */
+mxConstraintHandler.prototype.destroyIcons = function()
+{
+	if (this.focusIcons != null)
+	{
+		for (var i = 0; i < this.focusIcons.length; i++)
+		{
+			this.focusIcons[i].destroy();
+		}
+		
+		this.focusIcons = null;
+		this.focusPoints = null;
+	}
+};
+
+/**
+ * Function: destroyFocusHighlight
+ * 
+ * Destroys the <focusHighlight> if one exists.
+ */
+mxConstraintHandler.prototype.destroyFocusHighlight = function()
+{
+	if (this.focusHighlight != null)
+	{
+		this.focusHighlight.destroy();
+		this.focusHighlight = null;
+	}
+};
+
+/**
  * Function: update
  * 
  * Updates the state of this handler based on the given <mxMouseEvent>.
@@ -204,9 +237,9 @@ mxConstraintHandler.prototype.update = function(me, source)
 						var bounds = new mxRectangle(cp.x - img.width / 2,
 							cp.y - img.height / 2, img.width, img.height);
 						var icon = new mxImageShape(bounds, src);
-						icon.dialect = (this.graph.dialect == mxConstants.DIALECT_SVG) ?
-							mxConstants.DIALECT_SVG :
-							mxConstants.DIALECT_VML;
+						icon.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
+								mxConstants.DIALECT_MIXEDHTML : mxConstants.DIALECT_SVG;
+						icon.preserveImageAspect = false;
 						icon.init(this.graph.getView().getOverlayPane());
 						
 						// Move the icon behind all other overlays
@@ -230,21 +263,10 @@ mxConstraintHandler.prototype.update = function(me, source)
 					
 					this.currentFocusArea.grow(tol);
 				}
-				else if (this.focusIcons != null)
+				else
 				{
-					if (this.focusHighlight != null)
-					{
-						this.focusHighlight.destroy();
-						this.focusHighlight = null;
-					}
-					
-					for (var i = 0; i < this.focusIcons.length; i++)
-					{
-						this.focusIcons[i].destroy();
-					}
-					
-					this.focusIcons = null;
-					this.focusPoints = null;
+					this.destroyIcons();
+					this.destroyFocusHighlight();
 				}
 			}
 		}
@@ -275,8 +297,7 @@ mxConstraintHandler.prototype.update = function(me, source)
 					{
 						var hl = new mxRectangleShape(tmp, null, this.highlightColor, 3);
 						hl.dialect = (this.graph.dialect == mxConstants.DIALECT_SVG) ?
-									mxConstants.DIALECT_SVG :
-									mxConstants.DIALECT_VML;
+								mxConstants.DIALECT_SVG : mxConstants.DIALECT_VML;
 						hl.init(this.graph.getView().getOverlayPane());
 						this.focusHighlight = hl;
 						
@@ -298,11 +319,9 @@ mxConstraintHandler.prototype.update = function(me, source)
 			}
 		}
 		
-		if (this.currentConstraint == null &&
-			this.focusHighlight != null)
+		if (this.currentConstraint == null)
 		{
-			this.focusHighlight.destroy();
-			this.focusHighlight = null;
+			this.destroyFocusHighlight();
 		}
 	}
 };

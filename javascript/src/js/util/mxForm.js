@@ -1,5 +1,5 @@
 /**
- * $Id: mxForm.js,v 1.16 2010/10/08 04:21:45 david Exp $
+ * $Id: mxForm.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  * Copyright (c) 2006-2010, Gaudenz Alder, David Benson
  */
 /**

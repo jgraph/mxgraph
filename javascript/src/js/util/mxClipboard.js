@@ -1,5 +1,5 @@
 /**
- * $Id: mxClipboard.js,v 1.30 2013/04/03 08:32:48 gaudenz Exp $
+ * $Id: mxClipboard.js,v 1.2 2013/04/03 08:32:48 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClipboard =

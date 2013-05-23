@@ -1,5 +1,5 @@
 <!--
-  $Id: fixedicon.html,v 1.4 2012/11/20 09:06:07 gaudenz Exp $
+  $Id: fixedicon.html,v 1.2 2012/11/20 09:09:08 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   FixedIcon example for mxGraph. This example demonstrates
@@ -19,70 +19,17 @@
 
 	<!-- Example code -->
 	<script type="text/javascript">
-		// Overrides the label redraw code to place the icon
-		mxLabel.prototype.redraw = function()
+		// Overrides the image bounds code to change the position
+		mxLabel.prototype.getImageBounds = function(x, y, w, h)
 		{
-			var isSvg = (this.dialect == mxConstants.DIALECT_SVG);
-			var isVml = mxUtils.isVml(this.node);
+			var iw = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_WIDTH, mxConstants.DEFAULT_IMAGESIZE);
+			var ih = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_HEIGHT, mxConstants.DEFAULT_IMAGESIZE);
 			
-			// Updates the bounds of the outermost shape
-			if (isSvg)
-			{
-				this.updateSvgShape(this.innerNode);
-				
-				if (this.shadowNode != null)
-				{
-					this.updateSvgShape(this.shadowNode);
-				}
-	
-				this.updateSvgGlassPane();
-			}
-			else if (isVml)
-			{
-				this.updateVmlShape(this.node);
-				this.updateVmlShape(this.rectNode);
-				this.label.style.width = this.node.style.width;
-				this.label.style.height = this.node.style.height;
-				
-				this.updateVmlGlassPane();
-			}
-			else
-			{
-				this.updateHtmlShape(this.node);
-			}
-	
-			// Updates the imagewidth and imageheight		
-			var imageWidth = 0;
-			var imageHeight = 0;
+			// Places the icon
+			var ix = (w - iw) / 2;
+			var iy = h - ih;
 			
-			if (this.imageNode != null)
-			{
-				imageWidth = (this.style[mxConstants.STYLE_IMAGE_WIDTH] ||
-					this.imageSize) * this.scale;
-				imageHeight = (this.style[mxConstants.STYLE_IMAGE_HEIGHT] ||
-					this.imageSize) * this.scale;
-	
-				// Places the icon
-				var x = (this.bounds.width - imageWidth) / 2;
-				var y = this.bounds.height - imageHeight;
-
-				if (isSvg)
-				{
-					this.imageNode.setAttribute('x', (this.bounds.x + x) + 'px');
-					this.imageNode.setAttribute('y', (this.bounds.y + y) + 'px');
-					this.imageNode.setAttribute('width', imageWidth + 'px');
-					this.imageNode.setAttribute('height', imageHeight + 'px');
-				}
-				else
-				{
-					this.imageNode.style.position = 'relative';
-					this.imageNode.style.left = x + 'px';
-					this.imageNode.style.top = y + 'px';
-					this.imageNode.style.width = imageWidth + 'px';
-					this.imageNode.style.height = imageHeight + 'px';
-					this.imageNode.setAttribute('stroked', 'false');
-				}
-			}
+			return new mxRectangle(x + ix, y + iy, iw, ih);
 		};
 
 		// Program starts here. Creates a sample graph in the
@@ -98,9 +45,6 @@
 			}
 			else
 			{
-				// Enables crisp rendering of rectangles in SVG
-				mxLabel.prototype.crisp = true;
-				
 				// Makes the shadow brighter
 				mxConstants.SHADOWCOLOR = '#C0C0C0';
 				

@@ -1,5 +1,5 @@
 /**
- * $Id: mxCoordinateAssignment.java,v 1.18 2013/04/26 21:35:11 david Exp $
+ * $Id: mxCoordinateAssignment.java,v 1.2 2013/04/26 21:35:56 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 
@@ -1813,7 +1813,6 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 
 			return 0;
 		}
-
 	}
 
 	/**

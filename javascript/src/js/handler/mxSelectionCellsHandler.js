@@ -1,5 +1,5 @@
 /**
- * $Id: mxSelectionCellsHandler.js,v 1.5 2012/08/10 11:35:06 gaudenz Exp $
+ * $Id: mxSelectionCellsHandler.js,v 1.2 2013/01/08 15:30:24 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -26,6 +26,8 @@
  */
 function mxSelectionCellsHandler(graph)
 {
+	mxEventSource.call(this);
+	
 	this.graph = graph;
 	this.handlers = new mxDictionary();
 	this.graph.addMouseListener(this);
@@ -50,8 +52,7 @@ function mxSelectionCellsHandler(graph)
 /**
  * Extends mxEventSource.
  */
-mxSelectionCellsHandler.prototype = new mxEventSource();
-mxSelectionCellsHandler.prototype.constructor = mxSelectionCellsHandler;
+mxUtils.extend(mxSelectionCellsHandler, mxEventSource);
 
 /**
  * Variable: graph

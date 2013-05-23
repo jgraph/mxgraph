@@ -1,5 +1,5 @@
 /**
- * $Id: mxVertexHandler.java,v 1.15 2012/01/13 13:20:06 david Exp $
+ * $Id: mxVertexHandler.java,v 1.1 2012/11/15 13:26:44 gaudenz Exp $
  * Copyright (c) 2008-2012, JGraph Ltd
  */
 package com.mxgraph.swing.handler;

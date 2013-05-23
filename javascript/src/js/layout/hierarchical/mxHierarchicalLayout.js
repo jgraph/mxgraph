@@ -1,5 +1,5 @@
 /**
- * $Id: mxHierarchicalLayout.js,v 1.35 2013/04/11 20:20:29 david Exp $
+ * $Id: mxHierarchicalLayout.js,v 1.8 2013/04/11 21:15:35 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**

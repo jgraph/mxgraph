@@ -94,10 +94,10 @@ Public Member Functions</h2></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Translates the canvas by the given amount.  <a href="#a0908bb5d77778fcc257c17311c724b7d"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#ae5df98dd5c4b0b3a21d0ee990b8255e1">Rotate</a> (double theta, bool flipH, bool flipV, double cx, double cy)</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Rotates the canvas by the given angle around the given center. This method may add rendering overhead and should be used with care.  <a href="#ae5df98dd5c4b0b3a21d0ee990b8255e1"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a46a771983440d1205eacadc6a2eeadb9">SetGradient</a> (string color1, string color2, double x, double y, double w, double h, string direction)</td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Prepares the canvas to draw a gradient.  <a href="#a46a771983440d1205eacadc6a2eeadb9"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#abdafba8404703d91c81e51848d39984c">SetGlassGradient</a> (double x, double y, double w, double h)</td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Prepares the canvas to draw a glass gradient.  <a href="#abdafba8404703d91c81e51848d39984c"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#ac7c1346650ca0027618fe589659f5aba">SetGradient</a> (string color1, string color2, double x, double y, double w, double h, string direction, double alpha1, double alpha2)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Prepares the canvas to draw a gradient.  <a href="#ac7c1346650ca0027618fe589659f5aba"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a9cdcbe54b6e52b02c013ea84c59fb4d2">SetShadowOffset</a> (double dx, double dy)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Prepares the canvas to draw a gradient.  <a href="#a9cdcbe54b6e52b02c013ea84c59fb4d2"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#ae12f3902cb72c91858bc4599aa357ef8">Rect</a> (double x, double y, double w, double h)</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Next fill or stroke should draw a rectangle.  <a href="#ae12f3902cb72c91858bc4599aa357ef8"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#ab985e28b6205b5b7f5fc6fa870858675">Roundrect</a> (double x, double y, double w, double h, double dx, double dy)</td></tr>
@@ -106,8 +106,8 @@ Public Member Functions</h2></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Next fill or stroke should draw an ellipse.  <a href="#acd713917990aac9f5ddfaffa8ef4e8f4"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#aed110a7b20146d0aa81e217eaaf2cec2">Image</a> (double x, double y, double w, double h, string src, bool aspect, bool flipH, bool flipV)</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the given image.  <a href="#aed110a7b20146d0aa81e217eaaf2cec2"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#aa360b1c1d3829a99adbb614340894fb3">Text</a> (double x, double y, double w, double h, string str, string align, string valign, bool vertical, bool wrap, string format)</td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the given string. Possible values for format are empty string for.  <a href="#aa360b1c1d3829a99adbb614340894fb3"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a0184c390798c6c00233668c6b123c650">Text</a> (double x, double y, double w, double h, string str, string align, string valign, bool wrap, string format, string overflow, bool clip, double rotation)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the given string. Possible values for format are empty string for.  <a href="#a0184c390798c6c00233668c6b123c650"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a28f01e9e99b9e5444b74fa236f3ceb59">Begin</a> ()</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Begins a new path.  <a href="#a28f01e9e99b9e5444b74fa236f3ceb59"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a6a6f46cc1adaf4df58c349b33c8c386c">MoveTo</a> (double x, double y)</td></tr>
@@ -126,10 +126,6 @@ Public Member Functions</h2></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Fills the current path.  <a href="#a304531d4025c3a00b17fcf8752cfc135"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#ae97b96672ee78e377b59423e20de7625">FillAndStroke</a> ()</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Fills and paints the outline of the current path.  <a href="#ae97b96672ee78e377b59423e20de7625"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#adc5908eef83b2f370ce265f16b46226a">Shadow</a> (string value, bool filled)</td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Paints the current path as a shadow.  <a href="#adc5908eef83b2f370ce265f16b46226a"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a548250ce6ba6cc2481fdb63d9bf7c904">Clip</a> ()</td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Uses the current path for clipping.  <a href="#a548250ce6ba6cc2481fdb63d9bf7c904"></a><br/></td></tr>
 <tr><td colspan="2"><h2><a name="properties"></a>
 Properties</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a5868009556f1500e5f54e80e83cc68d5">StrokeWidth</a><code> [set]</code></td></tr>
@@ -154,10 +150,20 @@ Properties</h2></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Default value <a class="el" href="classcom_1_1mxgraph_1_1mxConstants.html#a0122184a99891816d3409f52f804a03e">mxConstants#DEFAULT_FONTFAMILY</a>.  <a href="#a853c6b96528f390cf1a4d295b18994bc"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a416b559c908c5bda5cbae90b31320609">FontStyle</a><code> [set]</code></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Default value 0. See <a class="el" href="classcom_1_1mxgraph_1_1mxConstants.html#a3649b54150b656e80d8e1ce7b16008c8">mxConstants#STYLE_FONTSTYLE</a>.  <a href="#a416b559c908c5bda5cbae90b31320609"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a90a428ee51654c6499001a1c3d45bd33">FontBackgroundColor</a><code> [set]</code></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Default value 0. See <a class="el" href="classcom_1_1mxgraph_1_1mxConstants.html#a3649b54150b656e80d8e1ce7b16008c8">mxConstants#STYLE_FONTSTYLE</a>.  <a href="#a90a428ee51654c6499001a1c3d45bd33"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a9e1675ba744996386d34792238ee296b">FontBorderColor</a><code> [set]</code></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Default value 0. See <a class="el" href="classcom_1_1mxgraph_1_1mxConstants.html#a3649b54150b656e80d8e1ce7b16008c8">mxConstants#STYLE_FONTSTYLE</a>.  <a href="#a9e1675ba744996386d34792238ee296b"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a48894d4235ffc2fd63ebdadabaf35a79">Alpha</a><code> [set]</code></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Default value 1. This method may add rendering overhead and should be used with care.  <a href="#a48894d4235ffc2fd63ebdadabaf35a79"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a44737751e4df400227a799e7bbd00bac">FillColor</a><code> [set]</code></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Default value <a class="el" href="classcom_1_1mxgraph_1_1mxConstants.html#a3c2389aa5ac4ef2c05f01beb97498cf3">mxConstants#NONE</a>.  <a href="#a44737751e4df400227a799e7bbd00bac"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a19e8c836f79edecb939c01c24b2e8f3d">Shadow</a><code> [set]</code></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Default value <a class="el" href="classcom_1_1mxgraph_1_1mxConstants.html#a3c2389aa5ac4ef2c05f01beb97498cf3">mxConstants#NONE</a>.  <a href="#a19e8c836f79edecb939c01c24b2e8f3d"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a6a81d85d2a7d3533f71cbb3b1278d613">ShadowColor</a><code> [set]</code></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Default value <a class="el" href="classcom_1_1mxgraph_1_1mxConstants.html#a3c2389aa5ac4ef2c05f01beb97498cf3">mxConstants#NONE</a>.  <a href="#a6a81d85d2a7d3533f71cbb3b1278d613"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#aceac88ac878ddd3dc45a1254097cab75">ShadowAlpha</a><code> [set]</code></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Default value 1. This method may add rendering overhead and should be used with care.  <a href="#aceac88ac878ddd3dc45a1254097cab75"></a><br/></td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock"><p>Defines the requirements for a canvas that paints the vertices and edges of a graph. </p>
@@ -179,26 +185,6 @@ Properties</h2></td></tr>
 <p>Begins a new path. </p>
 
 <p>Implemented in <a class="el" href="classcom_1_1mxgraph_1_1mxGdiCanvas2D.html#a010db2efe1770074cc4def5f3a47a734">com.mxgraph.mxGdiCanvas2D</a>.</p>
-
-</div>
-</div>
-<a class="anchor" id="a548250ce6ba6cc2481fdb63d9bf7c904"></a><!-- doxytag: member="com::mxgraph::mxICanvas2D::Clip" ref="a548250ce6ba6cc2481fdb63d9bf7c904" args="()" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void <a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a548250ce6ba6cc2481fdb63d9bf7c904">com.mxgraph.mxICanvas2D.Clip</a> </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>Uses the current path for clipping. </p>
-
-<p>Implemented in <a class="el" href="classcom_1_1mxgraph_1_1mxGdiCanvas2D.html#a33f44acbcf6749f5478b06df02730c62">com.mxgraph.mxGdiCanvas2D</a>.</p>
 
 </div>
 </div>
@@ -754,55 +740,12 @@ Properties</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="abdafba8404703d91c81e51848d39984c"></a><!-- doxytag: member="com::mxgraph::mxICanvas2D::SetGlassGradient" ref="abdafba8404703d91c81e51848d39984c" args="(double x, double y, double w, double h)" -->
+<a class="anchor" id="ac7c1346650ca0027618fe589659f5aba"></a><!-- doxytag: member="com::mxgraph::mxICanvas2D::SetGradient" ref="ac7c1346650ca0027618fe589659f5aba" args="(string color1, string color2, double x, double y, double w, double h, string direction, double alpha1, double alpha2)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void <a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#abdafba8404703d91c81e51848d39984c">com.mxgraph.mxICanvas2D.SetGlassGradient</a> </td>
-          <td>(</td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>x</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>y</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>w</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>h</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>Prepares the canvas to draw a glass gradient. </p>
-
-<p>Implemented in <a class="el" href="classcom_1_1mxgraph_1_1mxGdiCanvas2D.html#a0a9b1b465f0277f422cd167b80e0ce80">com.mxgraph.mxGdiCanvas2D</a>.</p>
-
-</div>
-</div>
-<a class="anchor" id="a46a771983440d1205eacadc6a2eeadb9"></a><!-- doxytag: member="com::mxgraph::mxICanvas2D::SetGradient" ref="a46a771983440d1205eacadc6a2eeadb9" args="(string color1, string color2, double x, double y, double w, double h, string direction)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void <a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a46a771983440d1205eacadc6a2eeadb9">com.mxgraph.mxICanvas2D.SetGradient</a> </td>
+          <td class="memname">void <a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#ac7c1346650ca0027618fe589659f5aba">com.mxgraph.mxICanvas2D.SetGradient</a> </td>
           <td>(</td>
           <td class="paramtype">string&#160;</td>
           <td class="paramname"><em>color1</em>, </td>
@@ -841,7 +784,19 @@ Properties</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">string&#160;</td>
-          <td class="paramname"><em>direction</em>&#160;</td>
+          <td class="paramname"><em>direction</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>alpha1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>alpha2</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -856,21 +811,21 @@ Properties</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="adc5908eef83b2f370ce265f16b46226a"></a><!-- doxytag: member="com::mxgraph::mxICanvas2D::Shadow" ref="adc5908eef83b2f370ce265f16b46226a" args="(string value, bool filled)" -->
+<a class="anchor" id="a9cdcbe54b6e52b02c013ea84c59fb4d2"></a><!-- doxytag: member="com::mxgraph::mxICanvas2D::SetShadowOffset" ref="a9cdcbe54b6e52b02c013ea84c59fb4d2" args="(double dx, double dy)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void <a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#adc5908eef83b2f370ce265f16b46226a">com.mxgraph.mxICanvas2D.Shadow</a> </td>
+          <td class="memname">void <a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a9cdcbe54b6e52b02c013ea84c59fb4d2">com.mxgraph.mxICanvas2D.SetShadowOffset</a> </td>
           <td>(</td>
-          <td class="paramtype">string&#160;</td>
-          <td class="paramname"><em>value</em>, </td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>dx</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>filled</em>&#160;</td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>dy</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -881,7 +836,9 @@ Properties</h2></td></tr>
 </div>
 <div class="memdoc">
 
-<p>Paints the current path as a shadow. </p>
+<p>Prepares the canvas to draw a gradient. </p>
+
+<p>Implemented in <a class="el" href="classcom_1_1mxgraph_1_1mxGdiCanvas2D.html#a33c2596b7caccd3237f36adfbbaeb33f">com.mxgraph.mxGdiCanvas2D</a>.</p>
 
 </div>
 </div>
@@ -905,12 +862,12 @@ Properties</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="aa360b1c1d3829a99adbb614340894fb3"></a><!-- doxytag: member="com::mxgraph::mxICanvas2D::Text" ref="aa360b1c1d3829a99adbb614340894fb3" args="(double x, double y, double w, double h, string str, string align, string valign, bool vertical, bool wrap, string format)" -->
+<a class="anchor" id="a0184c390798c6c00233668c6b123c650"></a><!-- doxytag: member="com::mxgraph::mxICanvas2D::Text" ref="a0184c390798c6c00233668c6b123c650" args="(double x, double y, double w, double h, string str, string align, string valign, bool wrap, string format, string overflow, bool clip, double rotation)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void <a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#aa360b1c1d3829a99adbb614340894fb3">com.mxgraph.mxICanvas2D.Text</a> </td>
+          <td class="memname">void <a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a0184c390798c6c00233668c6b123c650">com.mxgraph.mxICanvas2D.Text</a> </td>
           <td>(</td>
           <td class="paramtype">double&#160;</td>
           <td class="paramname"><em>x</em>, </td>
@@ -955,19 +912,31 @@ Properties</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>vertical</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool&#160;</td>
           <td class="paramname"><em>wrap</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">string&#160;</td>
-          <td class="paramname"><em>format</em>&#160;</td>
+          <td class="paramname"><em>format</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>overflow</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>clip</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>rotation</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -980,7 +949,7 @@ Properties</h2></td></tr>
 
 <p>Draws the given string. Possible values for format are empty string for. </p>
 
-<p>Implemented in <a class="el" href="classcom_1_1mxgraph_1_1mxGdiCanvas2D.html#a3d7c6b9005a67451707990c94ea81a0b">com.mxgraph.mxGdiCanvas2D</a>.</p>
+<p>Implemented in <a class="el" href="classcom_1_1mxgraph_1_1mxGdiCanvas2D.html#a56ff4fad53efea561a7d9c06eb870b7b">com.mxgraph.mxGdiCanvas2D</a>.</p>
 
 </div>
 </div>
@@ -1088,6 +1057,40 @@ Properties</h2></td></tr>
 <p>Default value <a class="el" href="classcom_1_1mxgraph_1_1mxConstants.html#a3c2389aa5ac4ef2c05f01beb97498cf3">mxConstants#NONE</a>. </p>
 
 <p>Implemented in <a class="el" href="classcom_1_1mxgraph_1_1mxGdiCanvas2D.html#a088edb66bed6448341b4add4aa67d523">com.mxgraph.mxGdiCanvas2D</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a90a428ee51654c6499001a1c3d45bd33"></a><!-- doxytag: member="com::mxgraph::mxICanvas2D::FontBackgroundColor" ref="a90a428ee51654c6499001a1c3d45bd33" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">string <a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a90a428ee51654c6499001a1c3d45bd33">com.mxgraph.mxICanvas2D.FontBackgroundColor</a><code> [set]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Default value 0. See <a class="el" href="classcom_1_1mxgraph_1_1mxConstants.html#a3649b54150b656e80d8e1ce7b16008c8">mxConstants#STYLE_FONTSTYLE</a>. </p>
+
+<p>Implemented in <a class="el" href="classcom_1_1mxgraph_1_1mxGdiCanvas2D.html#a902c214d531acf6840d94b71ff086594">com.mxgraph.mxGdiCanvas2D</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a9e1675ba744996386d34792238ee296b"></a><!-- doxytag: member="com::mxgraph::mxICanvas2D::FontBorderColor" ref="a9e1675ba744996386d34792238ee296b" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">string <a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a9e1675ba744996386d34792238ee296b">com.mxgraph.mxICanvas2D.FontBorderColor</a><code> [set]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Default value 0. See <a class="el" href="classcom_1_1mxgraph_1_1mxConstants.html#a3649b54150b656e80d8e1ce7b16008c8">mxConstants#STYLE_FONTSTYLE</a>. </p>
+
+<p>Implemented in <a class="el" href="classcom_1_1mxgraph_1_1mxGdiCanvas2D.html#a94050853cf69b0779d839538fc38f19d">com.mxgraph.mxGdiCanvas2D</a>.</p>
 
 </div>
 </div>
@@ -1210,6 +1213,57 @@ Properties</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a19e8c836f79edecb939c01c24b2e8f3d"></a><!-- doxytag: member="com::mxgraph::mxICanvas2D::Shadow" ref="a19e8c836f79edecb939c01c24b2e8f3d" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool <a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a19e8c836f79edecb939c01c24b2e8f3d">com.mxgraph.mxICanvas2D.Shadow</a><code> [set]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Default value <a class="el" href="classcom_1_1mxgraph_1_1mxConstants.html#a3c2389aa5ac4ef2c05f01beb97498cf3">mxConstants#NONE</a>. </p>
+
+<p>Implemented in <a class="el" href="classcom_1_1mxgraph_1_1mxGdiCanvas2D.html#a048c5b57cd3ed270f383bce1b925b96b">com.mxgraph.mxGdiCanvas2D</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="aceac88ac878ddd3dc45a1254097cab75"></a><!-- doxytag: member="com::mxgraph::mxICanvas2D::ShadowAlpha" ref="aceac88ac878ddd3dc45a1254097cab75" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double <a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#aceac88ac878ddd3dc45a1254097cab75">com.mxgraph.mxICanvas2D.ShadowAlpha</a><code> [set]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Default value 1. This method may add rendering overhead and should be used with care. </p>
+
+<p>Implemented in <a class="el" href="classcom_1_1mxgraph_1_1mxGdiCanvas2D.html#a8657f97e7ae5e4d95121945fa62f78fc">com.mxgraph.mxGdiCanvas2D</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a6a81d85d2a7d3533f71cbb3b1278d613"></a><!-- doxytag: member="com::mxgraph::mxICanvas2D::ShadowColor" ref="a6a81d85d2a7d3533f71cbb3b1278d613" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">string <a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a6a81d85d2a7d3533f71cbb3b1278d613">com.mxgraph.mxICanvas2D.ShadowColor</a><code> [set]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Default value <a class="el" href="classcom_1_1mxgraph_1_1mxConstants.html#a3c2389aa5ac4ef2c05f01beb97498cf3">mxConstants#NONE</a>. </p>
+
+<p>Implemented in <a class="el" href="classcom_1_1mxgraph_1_1mxGdiCanvas2D.html#a74ce3a2086ea405bc062dd935b504ffe">com.mxgraph.mxGdiCanvas2D</a>.</p>
+
+</div>
+</div>
 <a class="anchor" id="a329dbd75a4cebcee7a8cdc3e3b4c9d01"></a><!-- doxytag: member="com::mxgraph::mxICanvas2D::StrokeColor" ref="a329dbd75a4cebcee7a8cdc3e3b4c9d01" args="" -->
 <div class="memitem">
 <div class="memproto">
@@ -1251,7 +1305,7 @@ Properties</h2></td></tr>
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri May 3 2013 14:13:26 for mxGraph by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu May 23 2013 17:09:19 for mxGraph by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.7.6.1
 </small></address>

@@ -1,5 +1,5 @@
 /**
- * $Id: mxGenericChangeCodec.js,v 1.11 2010/09/13 15:50:36 gaudenz Exp $
+ * $Id: mxGenericChangeCodec.js,v 1.1 2012/11/15 13:26:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

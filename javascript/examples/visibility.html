@@ -1,0 +1,130 @@
+<!--
+  $Id: visibility.html,v 1.1 2013/05/17 11:14:21 gaudenz Exp $
+  Copyright (c) 2006-2010, JGraph Ltd
+  
+  Visible example for mxGraph. This example demonstrates using
+  various solutions for hiding and showing cells.
+-->
+<html>
+<head>
+	<title>Hello, World! example for mxGraph</title>
+
+	<!-- Sets the basepath for the library if not in same directory -->
+	<script type="text/javascript">
+		mxBasePath = '../src';
+	</script>
+
+	<!-- Loads and initializes the library -->
+	<script type="text/javascript" src="../src/js/mxClient.js"></script>
+
+	<!-- Example code -->
+	<script type="text/javascript">
+		// Program starts here. Creates a sample graph in the
+		// DOM node with the specified ID. This function is invoked
+		// from the onLoad event handler of the document (see below).
+		function main(container)
+		{
+			// Checks if the browser is supported
+			if (!mxClient.isBrowserSupported())
+			{
+				// Displays an error message if the browser is not supported.
+				mxUtils.error('Browser is not supported!', 200, false);
+			}
+			else
+			{
+				// Creates the graph inside the given container
+				var graph = new mxGraph(container);
+
+				// Enables rubberband selection
+				new mxRubberband(graph);
+				
+				// Gets the default parent for inserting new cells. This
+				// is normally the first child of the root (ie. layer 0).
+				var parent = graph.getDefaultParent();
+				
+				var showOne = true;
+				var showTwo = true;
+				var showThree = true;
+				
+				// Overridden to implement dynamic conditions
+				graph.isCellVisible = function(cell)
+				{
+					var result = mxGraph.prototype.isCellVisible.apply(this, arguments);
+					
+					if (result && cell.value != null)
+					{
+						result = (showOne && cell.value == '1') ||
+							   (showTwo && cell.value == '2') ||
+							   (showThree && cell.value == '3');
+					}
+					
+					return result;
+				};
+								
+				// Adds cells to the model in a single step
+				var v1;
+				graph.getModel().beginUpdate();
+				try
+				{
+					v1 = graph.insertVertex(parent, null, '1', 20, 20, 80, 30);
+					var v2 = graph.insertVertex(parent, null, '2', 200, 150, 80, 30);
+					var e1 = graph.insertEdge(parent, null, '3', v1, v2);
+				}
+				finally
+				{
+					// Updates the display
+					graph.getModel().endUpdate();
+				}
+				
+				// Dynamic conditions (requires refresh)
+				document.body.appendChild(mxUtils.button('Cond 1', function()
+				{
+					showOne = !showOne;
+					graph.refresh();
+				}));
+				document.body.appendChild(mxUtils.button('Cond 2', function()
+				{
+					showTwo = !showTwo;
+					graph.refresh();
+				}));
+				document.body.appendChild(mxUtils.button('Cond 3', function()
+				{
+					showThree = !showThree;
+					graph.refresh();
+				}));
+				
+				// Explicit show/hide
+				document.body.appendChild(mxUtils.button('Toggle cell', function()
+				{
+					graph.toggleCells(!graph.getModel().isVisible(v1), [v1], true);
+				}));
+				
+				// Explicit remove/add
+				var removed = null;
+				
+				document.body.appendChild(mxUtils.button('Add/remove cell', function()
+				{
+					if (removed != null)
+					{
+						graph.addCells(removed);
+						removed = null;
+					}
+					else
+					{
+						removed = graph.removeCells([v1]);
+					}
+				}));
+			}
+		};
+	</script>
+</head>
+
+<!-- Page passes the container for the graph to the program -->
+<body onload="main(document.getElementById('graphContainer'))">
+
+	<!-- Creates a container for the graph with a grid wallpaper -->
+	<div id="graphContainer"
+		style="position:relative;overflow:hidden;width:321px;height:241px;background:url('editors/images/grid.gif');cursor:default;">
+	</div>
+</body>
+</html>

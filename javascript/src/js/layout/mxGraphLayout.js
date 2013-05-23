@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphLayout.js,v 1.48 2012/08/21 17:22:21 gaudenz Exp $
+ * $Id: mxGraphLayout.js,v 1.2 2013/01/09 17:18:03 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -431,8 +431,7 @@ mxGraphLayout.prototype.getVertexBounds = function(cell)
 			var dx1 = Math.max((tmp.x + tmp.width) - (state.x + state.width), 0) / scale;
   			var dy1 = Math.max((tmp.y + tmp.height) - (state.y + state.height), 0) / scale;
 
-			geo = new mxRectangle(geo.x - dx0, geo.y - dy0,
-         							geo.width + dx0 + dx1, geo.height + dy0 + dy1);
+			geo = new mxRectangle(geo.x - dx0, geo.y - dy0, geo.width + dx0 + dx1, geo.height + dy0 + dy1);
 		}
 	}
 

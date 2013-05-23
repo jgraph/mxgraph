@@ -1,5 +1,5 @@
 /**
- * $Id: mxConnector.js,v 1.80 2012/05/24 12:00:45 gaudenz Exp $
+ * $Id: mxConnector.js,v 1.6 2013/01/15 18:03:42 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -26,421 +26,136 @@
  */
 function mxConnector(points, stroke, strokewidth)
 {
-	this.points = points;
-	this.stroke = stroke;
-	this.strokewidth = (strokewidth != null) ? strokewidth : 1;
+	mxPolyline.call(this, points, stroke, strokewidth);
 };
 
 /**
- * Extends mxShape.
+ * Extends mxPolyline.
  */
-mxConnector.prototype = new mxShape();
-mxConnector.prototype.constructor = mxConnector;
+mxUtils.extend(mxConnector, mxPolyline);
 
 /**
- * Variable: vmlNodes
- *
- * Adds local references to <mxShape.vmlNodes>.
+ * Function: paintEdgeShape
+ * 
+ * Paints the line shape.
  */
-mxConnector.prototype.vmlNodes = mxConnector.prototype.vmlNodes.concat([
-  'shapeNode', 'start', 'end', 'startStroke', 'endStroke', 'startFill', 'endFill']);
-
-/**
- * Variable: mixedModeHtml
- *
- * Overrides the parent value with false, meaning it will
- * draw in VML in mixed Html mode.
- */
-mxConnector.prototype.mixedModeHtml = false;
-
-/**
- * Variable: preferModeHtml
- *
- * Overrides the parent value with false, meaning it will
- * draw as VML in prefer Html mode.
- */
-mxConnector.prototype.preferModeHtml = false;
-
-/**
- * Variable: allowCrispMarkers
- *
- * Specifies if <mxShape.crisp> should be allowed for markers. Default is false.
- */
-mxConnector.prototype.allowCrispMarkers = false;
-
-/**
- * Variable: addPipe
- *
- * Specifies if a SVG path should be created around any path to increase the
- * tolerance for mouse events. Default is false since this shape is filled.
- */
-mxConnector.prototype.addPipe = true;
-
-/**
- * Function: configureHtmlShape
- *
- * Overrides <mxShape.configureHtmlShape> to clear the border and background.
- */
-mxConnector.prototype.configureHtmlShape = function(node)
+mxConnector.prototype.paintEdgeShape = function(c, pts)
 {
-	mxShape.prototype.configureHtmlShape.apply(this, arguments);
-	node.style.borderStyle = '';
-	node.style.background = '';
-};
+	// The indirection via functions for markers is needed in
+	// order to apply the offsets before painting the line and
+	// paint the markers after painting the line.
+	var sourceMarker = this.createMarker(c, pts, true);
+	var targetMarker = this.createMarker(c, pts, false);
 
-/**
- * Function: createVml
- *
- * Creates and returns the VML node to represent this shape.
- */
-mxConnector.prototype.createVml = function()
-{
-	var node = document.createElement('v:group');
-	node.style.position = 'absolute';
-	this.shapeNode = document.createElement('v:shape');
-	this.updateVmlStrokeColor(this.shapeNode);
-	this.updateVmlStrokeNode(this.shapeNode);
-	node.appendChild(this.shapeNode);
-	this.shapeNode.filled = 'false';
-
-	if (this.isShadow)
+	if (this.style == null || this.style[mxConstants.STYLE_CURVED] != 1)
 	{
-		this.createVmlShadow(this.shapeNode);
-	}
-	
-	// Creates the start arrow as an additional child path		
-	if (this.startArrow != null)
-	{
-		this.start = document.createElement('v:shape');
-		this.start.style.position = 'absolute';
-		
-		// Only required for opacity and joinstyle
-		this.startStroke = document.createElement('v:stroke');
-		this.startStroke.joinstyle = 'miter';
-		this.start.appendChild(this.startStroke);
-		
-		this.startFill = document.createElement('v:fill');
-		this.start.appendChild(this.startFill);
-
-		node.appendChild(this.start);
-	}
-
-	// Creates the end arrows as an additional child path
-	if (this.endArrow != null)
-	{
-		this.end = document.createElement('v:shape');
-		this.end.style.position = 'absolute';
-		
-		// Only required for opacity and joinstyle
-		this.endStroke = document.createElement('v:stroke');
-		this.endStroke.joinstyle = 'miter';
-		this.end.appendChild(this.endStroke);
-		
-		this.endFill = document.createElement('v:fill');
-		this.end.appendChild(this.endFill);
-
-		node.appendChild(this.end);
-	}
-	
-	this.updateVmlMarkerOpacity();
-	
-	return node;
-};
-
-/**
- * Function: updateVmlMarkerOpacity
- *
- * Updates the opacity for the markers in VML.
- */
-mxConnector.prototype.updateVmlMarkerOpacity = function()
-{
-	var op = (this.opacity != null) ? (this.opacity + '%') : '100%';
-
-	if (this.start != null)
-	{
-		this.startFill.opacity = op;
-		this.startStroke.opacity = op;
-	}
-
-	if (this.end != null)
-	{
-		this.endFill.opacity = op;
-		this.endStroke.opacity = op;
-	}
-};
-
-/**
- * Function: redrawVml
- *
- * Redraws this VML shape by invoking <updateVmlShape> on this.node.
- */
-mxConnector.prototype.reconfigure = function()
-{
-	// Never fill a connector
-	this.fill = null;
-	
-	if (mxUtils.isVml(this.node))
-	{
-		// Updates the style of the given shape
-		// LATER: Check if this can be replaced with redrawVml and
-		// updating the color, dash pattern and shadow.
-		this.node.style.visibility = 'hidden';
-		this.configureVmlShape(this.shapeNode);
-		this.updateVmlMarkerOpacity();
-		this.node.style.visibility = 'visible';
+		this.paintLine(c, pts, this.isRounded);
 	}
 	else
 	{
-		mxShape.prototype.reconfigure.apply(this, arguments);
+		this.paintCurvedLine(c, pts);
+	}
+	
+	// Disables shadows, dashed styles and fixes fill color for markers
+	c.setFillColor(this.stroke);
+	c.setShadow(false);
+	c.setDashed(false);
+	
+	if (sourceMarker != null)
+	{
+		sourceMarker();
+	}
+	
+	if (targetMarker != null)
+	{
+		targetMarker();
 	}
 };
 
 /**
- * Function: redrawVml
- *
- * Redraws this VML shape by invoking <updateVmlShape> on this.node.
+ * Function: paintLine
+ * 
+ * Paints the line shape.
  */
-mxConnector.prototype.redrawVml = function()
+mxConnector.prototype.paintCurvedLine = function(c, pts)
 {
-	if (this.node != null && this.points != null && this.bounds != null &&
-		!isNaN(this.bounds.x) && !isNaN(this.bounds.y) &&
-		!isNaN(this.bounds.width) && !isNaN(this.bounds.height))
+	c.begin();
+	
+	var pt = pts[0];
+	var n = pts.length;
+	
+	c.moveTo(pt.x, pt.y);
+	
+	for (var i = 1; i < n - 2; i++)
 	{
-		var w = Math.max(0, Math.round(this.bounds.width));
-		var h = Math.max(0, Math.round(this.bounds.height));
-		var cs = w + ',' + h;
-		w += 'px';
-		h += 'px';
+		var p0 = pts[i];
+		var p1 = pts[i + 1];
+		var ix = (p0.x + p1.x) / 2;
+		var iy = (p0.y + p1.y) / 2;
 		
-		// Computes the marker paths before the main path is updated so
-		// that offsets can be taken into account
-		if (this.start != null)
-		{
-			this.start.style.width = w;
-			this.start.style.height = h;
-			this.start.coordsize = cs;
-			
-			var p0 = this.points[1];
-			var pe = this.points[0];
-			
-			var size = mxUtils.getNumber(this.style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_MARKERSIZE);
-			this.startOffset = this.redrawMarker(this.start, this.startArrow, p0, pe, this.stroke, size);
-		}
-		
-		if (this.end != null)
-		{
-			this.end.style.width = w;
-			this.end.style.height = h;
-			this.end.coordsize = cs;
-			
-			var n = this.points.length;
-			var p0 = this.points[n - 2];
-			var pe = this.points[n - 1];
-			
-			var size = mxUtils.getNumber(this.style, mxConstants.STYLE_ENDSIZE, mxConstants.DEFAULT_MARKERSIZE);
-			this.endOffset = this.redrawMarker(this.end, this.endArrow, p0, pe, this.stroke, size);
-		}
-		
-		this.updateVmlShape(this.node);
-		this.updateVmlShape(this.shapeNode);
-		this.shapeNode.filled = 'false';
-
-		// Adds custom dash pattern
-		if (this.isDashed)
-		{
-			var pat = mxUtils.getValue(this.style, 'dashStyle', null);
-			
-			if (pat != null)
-			{
-				this.strokeNode.dashstyle = pat;
-			}
-
-			if (this.shadowStrokeNode != null)
-			{
-				this.shadowStrokeNode.dashstyle = this.strokeNode.dashstyle;
-			}
-		}
+		c.quadTo(p0.x, p0.y, ix, iy);
 	}
+	
+	var p0 = pts[n - 2];
+	var p1 = pts[n - 1];
+	
+	c.quadTo(p0.x, p0.y, p1.x, p1.y);
+	c.stroke();
 };
 
 /**
- * Function: createSvg
- *
- * Creates and returns the SVG node to represent this shape.
+ * Function: createMarker
+ * 
+ * Prepares the marker by adding offsets in pts and returning a function to
+ * paint the marker.
  */
-mxConnector.prototype.createSvg = function()
+mxConnector.prototype.createMarker = function(c, pts, source)
 {
-	this.fill = null;
-	var g = this.createSvgGroup('path');
+	// Computes the norm and the inverse norm
+	var n = pts.length;
 	
-	// Creates the start arrow as an additional child path		
-	if (this.startArrow != null)
-	{
-		this.start = document.createElementNS(mxConstants.NS_SVG, 'path');
-		g.appendChild(this.start);
-	}
+	var p0 = (source) ? pts[1] : pts[n - 2];
+	var pe = (source) ? pts[0] : pts[n - 1];
 
-	// Creates the end arrows as an additional child path
-	if (this.endArrow != null)
-	{
-		this.end = document.createElementNS(mxConstants.NS_SVG, 'path');
-		g.appendChild(this.end);
-	}
+	var dx = pe.x - p0.x;
+	var dy = pe.y - p0.y;
+
+	var dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
 	
-	// Creates an invisible shape around the path for easier
-	// selection with the mouse. Note: Firefox does not ignore
-	// the value of the stroke attribute for pointer-events: stroke,
-	// it does, however, ignore the visibility attribute.
-	if (this.addPipe)
-	{
-		this.pipe = this.createSvgPipe();
-		g.appendChild(this.pipe);
-	}
+	var unitX = dx / dist;
+	var unitY = dy / dist;
+
+	var size = mxUtils.getNumber(this.style, (source) ? mxConstants.STYLE_STARTSIZE : mxConstants.STYLE_ENDSIZE, mxConstants.DEFAULT_MARKERSIZE);
 	
-	return g;
+	// Allow for stroke width in the end point used and the 
+	// orthogonal vectors describing the direction of the marker
+	var type = mxUtils.getValue(this.style, (source) ? mxConstants.STYLE_STARTARROW : mxConstants.STYLE_ENDARROW);
+	var filled = this.style[(source) ? mxConstants.STYLE_STARTFILL : mxConstants.STYLE_ENDFILL] != 0;
+	
+	return mxMarker.createMarker(c, this, type, pe, unitX, unitY, size, source, this.strokewidth, filled);
 };
 
 /**
- * Function: redrawSvg
+ * Function: augmentBoundingBox
  *
- * Updates the SVG node(s) to reflect the latest bounds and scale.
+ * Augments the bounding box with the strokewidth and shadow offsets.
  */
-mxConnector.prototype.redrawSvg = function()
+mxConnector.prototype.augmentBoundingBox = function(bbox)
 {
-	// Computes the markers first which modifies the coordinates of the
-	// endpoints to not overlap with the painted marker then updates the actual
-	// shape for the edge to take the modified endpoints into account.
-	if (this.points != null && this.points[0] != null)
-	{
-		var color = this.innerNode.getAttribute('stroke');
-		
-		// Draws the start marker
-		if (this.start != null)
-		{
-			var p0 = this.points[1];
-			var pe = this.points[0];
-			
-			var size = mxUtils.getNumber(this.style, mxConstants.STYLE_STARTSIZE,
-					mxConstants.DEFAULT_MARKERSIZE);
-			this.startOffset = this.redrawMarker(this.start,
-				this.startArrow, p0, pe, color, size);
-			
-			if (this.allowCrispMarkers && this.crisp)
-			{
-				this.start.setAttribute('shape-rendering', 'crispEdges');
-			}
-			else
-			{
-				this.start.removeAttribute('shape-rendering');
-			}
-		}
-		
-		// Draws the end marker
-		if (this.end != null)
-		{
-			var n = this.points.length;
-			
-			var p0 = this.points[n - 2];
-			var pe = this.points[n - 1];
-
-			var size = mxUtils.getNumber(this.style, mxConstants.STYLE_ENDSIZE,
-					mxConstants.DEFAULT_MARKERSIZE);
-			this.endOffset = this.redrawMarker(this.end,
-				this.endArrow, p0, pe, color, size);
-			
-			if (this.allowCrispMarkers && this.crisp)
-			{
-				this.end.setAttribute('shape-rendering', 'crispEdges');
-			}
-			else
-			{
-				this.end.removeAttribute('shape-rendering');
-			}
-		}
-	}
-
-	this.updateSvgShape(this.innerNode);
-	var d = this.innerNode.getAttribute('d');
+	mxShape.prototype.augmentBoundingBox.apply(this, arguments);
 	
-	if (d != null)
-	{
-		var strokeWidth = Math.round(this.strokewidth * this.scale);
-		
-		// Updates the tolerance of the invisible shape for event handling
-		if (this.pipe != null)
-		{
-			this.pipe.setAttribute('d', this.innerNode.getAttribute('d'));
-			this.pipe.setAttribute('stroke-width', strokeWidth + mxShape.prototype.SVG_STROKE_TOLERANCE);
-		}
-		
-		// Updates the shadow
-		if (this.shadowNode != null)
-		{
-			this.shadowNode.setAttribute('transform',  this.getSvgShadowTransform());
-			this.shadowNode.setAttribute('d',  d);
-			this.shadowNode.setAttribute('stroke-width', strokeWidth);
-		}
-	}
-
-	// Adds custom dash pattern
-	if (this.isDashed)
-	{
-		var pat = this.createDashPattern(this.scale * this.strokewidth);
-		
-		if (pat != null)
-		{
-			this.innerNode.setAttribute('stroke-dasharray', pat);
-		}
-	}
-
-	// Updates the shadow
-	if (this.shadowNode != null)
-	{
-		var pat = this.innerNode.getAttribute('stroke-dasharray');
-		
-		if (pat != null)
-		{
-			this.shadowNode.setAttribute('stroke-dasharray', pat);
-		}
-	}
-};
-
-/**
- * Function: createDashPattern
- *
- * Creates a dash pattern for the given factor.
- */
-mxConnector.prototype.createDashPattern = function(factor)
-{
-	var value = mxUtils.getValue(this.style, 'dashPattern', null);
+	// Adds marker sizes
+	var size = 0;
 	
-	if (value != null)
+	if (mxUtils.getValue(this.style, mxConstants.STYLE_STARTARROW, mxConstants.NONE) != mxConstants.NONE)
 	{
-		var tmp = value.split(' ');
-		var pat = [];
-		
-		for (var i = 0; i < tmp.length; i++)
-		{
-			if (tmp[i].length > 0)
-			{
-				pat.push(Math.round(Number(tmp[i]) * factor));
-			}
-		}
-		
-		return pat.join(' ');
+		size = mxUtils.getNumber(this.style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_MARKERSIZE) + 1;
 	}
 	
-	return null;
-};
-
-/**
- * Function: redrawMarker
- *
- * Updates the given SVG or VML marker.
- */
-mxConnector.prototype.redrawMarker = function(node, type, p0, pe, color, size)
-{
-	return mxMarker.paintMarker(node, type, p0, pe, color, this.strokewidth,
-			size, this.scale, this.bounds.x, this.bounds.y, this.start == node,
-			this.style);
+	if (mxUtils.getValue(this.style, mxConstants.STYLE_ENDARROW, mxConstants.NONE) != mxConstants.NONE)
+	{
+		size = Math.max(size, mxUtils.getNumber(this.style, mxConstants.STYLE_ENDSIZE, mxConstants.DEFAULT_MARKERSIZE)) + 1;
+	}
+	
+	bbox.grow(Math.ceil(size * this.scale));
 };

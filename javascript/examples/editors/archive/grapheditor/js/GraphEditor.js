@@ -1,5 +1,5 @@
 /*
- * $Id: GraphEditor.js,v 1.3 2012/03/22 09:22:39 gaudenz Exp $
+ * $Id: GraphEditor.js,v 1.1 2012/11/15 13:26:47 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 GraphEditor = {};

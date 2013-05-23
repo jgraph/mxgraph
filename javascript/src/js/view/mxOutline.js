@@ -1,5 +1,5 @@
 /**
- * $Id: mxOutline.js,v 1.83 2013/04/29 14:44:11 gaudenz Exp $
+ * $Id: mxOutline.js,v 1.7 2013/05/23 10:29:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -222,11 +222,33 @@ mxOutline.prototype.init = function(container)
 	this.selectionBorder.dialect =
 		(this.outline.dialect != mxConstants.DIALECT_SVG) ?
 		mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
-	this.selectionBorder.crisp = true;
 	this.selectionBorder.init(this.outline.getView().getOverlayPane());
-	mxEvent.redirectMouseEvents(this.selectionBorder.node, this.outline);
-	this.selectionBorder.node.style.background = '';
+
+	// Handles event by catching the initial pointer start and then listening to the
+	// complete gesture on the event target. This is needed because all the events
+	// are routed via the initial element even if that element is removed from the
+	// DOM, which happens when we repaint the selection border and zoom handles.
+	var handler = mxUtils.bind(this, function(evt)
+	{
+		var t = mxEvent.getSource(evt);
+		
+		var redirect = mxUtils.bind(this, function(evt)
+		{
+			this.outline.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt));
+		});
+		
+		var redirect2 = mxUtils.bind(this, function(evt)
+		{
+			mxEvent.removeGestureListeners(t, null, redirect, redirect2);
+			this.outline.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt));
+		});
+		
+		mxEvent.addGestureListeners(t, null, redirect, redirect2);
+		this.outline.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt));
+	});
 	
+	mxEvent.addGestureListeners(this.selectionBorder.node, handler);
+
 	// Creates a small blue rectangle for sizing (sizer handle)
 	this.sizer = this.createSizer();
 	this.sizer.init(this.outline.getView().getOverlayPane());
@@ -235,15 +257,9 @@ mxOutline.prototype.init = function(container)
 	{
 		this.sizer.node.style.cursor = 'pointer';
 	}
-
-	// Redirects all events from the sizerhandle to the outline
-	mxEvent.addListener(this.sizer.node, (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown',
-		mxUtils.bind(this, function(evt)
-		{
-			this.outline.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt));
-		})
-	);
 	
+	mxEvent.addGestureListeners(this.sizer.node, handler);
+
 	this.selectionBorder.node.style.display = (this.showViewport) ? '' : 'none';
 	this.sizer.node.style.display = this.selectionBorder.node.style.display;
 	this.selectionBorder.node.style.cursor = 'move';
@@ -321,7 +337,6 @@ mxOutline.prototype.createSizer = function()
 		var sizer = new mxRectangleShape(new mxRectangle(0, 0, this.sizerSize, this.sizerSize),
 			mxConstants.OUTLINE_HANDLE_FILLCOLOR, mxConstants.OUTLINE_HANDLE_STROKECOLOR);
 		sizer.dialect = this.outline.dialect;
-		sizer.crisp = true;
 	
 		return sizer;
 	}

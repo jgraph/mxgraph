@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.709 2013/04/29 17:13:08 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.25 2013/05/17 10:01:00 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -156,7 +156,7 @@
  * the cell renderer as follows:
  * 
  * (code)
- * graph.cellRenderer.registerShape('box', BoxShape);
+ * mxCellRenderer.registerShape('box', BoxShape);
  * (end)
  * 
  * The code registers the BoxShape constructor under the name box in the cell
@@ -507,22 +507,6 @@
  * Fires in <click> after a click event. The <code>event</code> property
  * contains the original mouse event and <code>cell</code> property contains
  * the cell under the mouse or null if the background was clicked.
- *
- * To handle a click event, use the following code:
- * 
- * (code)
- * graph.addListener(mxEvent.CLICK, function(sender, evt)
- * {
- *   var e = evt.getProperty('event'); // mouse event
- *   var cell = evt.getProperty('cell'); // cell may be null
- *   
- *   if (cell != null)
- *   {
- *     // Do something useful with cell and consume the event
- *     evt.consume();
- *   }
- * });
- * (end)
  * 
  * Event: mxEvent.DOUBLE_CLICK
  *
@@ -1596,6 +1580,13 @@ mxGraph.prototype.collapseExpandResource = (mxClient.language != 'none') ? 'coll
 			})
 		);
 	}
+	
+	// Workaround for missing last shape and connect preview in IE8 standards
+	// mode if no initial graph displayed or no label for shape defined
+	if (document.documentMode == 8)
+	{
+		container.insertAdjacentHTML('beforeend', '<v:group style="DISPLAY: none;"></v:group>');
+	}
 };
 
 /**
@@ -1890,8 +1881,7 @@ mxGraph.prototype.processChange = function(change)
 
 	// Handles two special cases where the shape does not need to be
 	// recreated from scratch, it only need to be invalidated.
-	else if (change instanceof mxTerminalChange ||
-			change instanceof mxGeometryChange)
+	else if (change instanceof mxTerminalChange || change instanceof mxGeometryChange)
 	{
 		this.view.invalidate(change.cell);
 	}
@@ -2372,6 +2362,22 @@ mxGraph.prototype.escape = function(evt)
  * <selectCellForEvent> or the selection is cleared using
  * <clearSelection>. The events consumed state is set to true if the
  * corresponding <mxMouseEvent> has been consumed.
+ *
+ * To handle a click event, use the following code.
+ * 
+ * (code)
+ * graph.addListener(mxEvent.CLICK, function(sender, evt)
+ * {
+ *   var e = evt.getProperty('event'); // mouse event
+ *   var cell = evt.getProperty('cell'); // cell may be null
+ *   
+ *   if (cell != null)
+ *   {
+ *     // Do something useful with cell and consume the event
+ *     evt.consume();
+ *   }
+ * });
+ * (end)
  * 
  * Parameters:
  * 
@@ -2842,7 +2848,6 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 				pageBreak.dialect = this.dialect;
 				pageBreak.isDashed = this.pageBreakDashed;
 				pageBreak.scale = scale;
-				pageBreak.crisp = true;
 				pageBreak.init(this.view.backgroundPane);
 				pageBreak.redraw();
 				
@@ -2882,7 +2887,6 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 				pageBreak.dialect = this.dialect;
 				pageBreak.isDashed = this.pageBreakDashed;
 				pageBreak.scale = scale;
-				pageBreak.crisp = true;
 				pageBreak.init(this.view.backgroundPane);
 				pageBreak.redraw();
 	
@@ -2971,7 +2975,7 @@ mxGraph.prototype.postProcessCellStyle = function(style)
 		}
 		
 		// Converts short data uris to normal data uris
-		if (image != null && image.substring(0, 11) == "data:image/")
+		if (image != null && image.substring(0, 11) == 'data:image/')
 		{
 			if (image.substring(0, 19) != 'data:image/svg+xml,')
 			{
@@ -2979,7 +2983,7 @@ mxGraph.prototype.postProcessCellStyle = function(style)
 				
 				if (comma > 0)
 				{
-					image = image.substring(0, comma) + ";base64,"
+					image = image.substring(0, comma) + ';base64,'
 						+ image.substring(comma + 1);
 				}
 			}
@@ -3559,14 +3563,16 @@ mxGraph.prototype.groupCells = function(group, border, cells)
 				this.model.setGeometry(group, new mxGeometry());
 			}
 
+			// Adds the group into the parent
+			var index = this.model.getChildCount(parent);
+			this.cellsAdded([group], parent, index, null, null, false);
+
 			// Adds the children into the group and moves
-			var index = this.model.getChildCount(group);
+			index = this.model.getChildCount(group);
 			this.cellsAdded(cells, group, index, null, null, false, false);
 			this.cellsMoved(cells, -bounds.x, -bounds.y, false, true);
 
-			// Adds the group into the parent and resizes
-			index = this.model.getChildCount(parent);
-			this.cellsAdded([group], parent, index, null, null, false);
+			// Resizes the group
 			this.cellsResized([group], [bounds]);
 
 			this.fireEvent(new mxEventObject(mxEvent.GROUP_CELLS,
@@ -4230,11 +4236,11 @@ mxGraph.prototype.cellsAdded = function(cells, parent, index, source, target, ab
 	
 					// Decrements all following indices
 					// if cell is already in parent
-					if (parent == previous)
+					if (parent == previous && index + i > this.model.getChildCount(parent))
 					{
 						index--;
 					}
-	
+
 					this.model.add(parent, cells[i], index + i);
 	
 					// Extends the parent
@@ -4301,6 +4307,8 @@ mxGraph.prototype.removeCells = function(cells, includeEdges)
 	// Adds all edges to the cells
 	if (includeEdges)
 	{
+		// FIXME: Remove duplicate cells in result or do not add if
+		// in cells or descendant of cells
 		cells = this.getDeletableCells(this.addAllEdges(cells));
 	}
 
@@ -4672,6 +4680,9 @@ mxGraph.prototype.updateAlternateBounds = function(cell, geo, willCollapse)
 {
 	if (cell != null && geo != null)
 	{
+		var state = this.view.getState(cell);
+		var style = (state != null) ? state.style : this.getCellStyle(cell);
+
 		if (geo.alternateBounds == null)
 		{
 			var bounds = geo;
@@ -4683,8 +4694,6 @@ mxGraph.prototype.updateAlternateBounds = function(cell, geo, willCollapse)
 				if (tmp != null)
 				{
 					bounds = tmp;
-					var state = this.view.getState(cell);
-					var style = (state != null) ? state.style : this.getCellStyle(cell);
 
 					var startSize = mxUtils.getValue(style, mxConstants.STYLE_STARTSIZE);
 
@@ -4695,13 +4704,32 @@ mxGraph.prototype.updateAlternateBounds = function(cell, geo, willCollapse)
 				}
 			}
 			
-			geo.alternateBounds = new mxRectangle(
-					geo.x, geo.y, bounds.width, bounds.height);
+			geo.alternateBounds = new mxRectangle(0, 0, bounds.width, bounds.height);
 		}
-		else
+		
+		if (geo.alternateBounds != null)
 		{
 			geo.alternateBounds.x = geo.x;
 			geo.alternateBounds.y = geo.y;
+			
+			var alpha = mxUtils.toRadians(style[mxConstants.STYLE_ROTATION] || '0');
+			var dx3 = 0;
+			var dy3 = 0;
+			
+			if (alpha != 0)
+			{
+				var dx = geo.alternateBounds.getCenterX() - geo.getCenterX();
+				var dy = geo.alternateBounds.getCenterY() - geo.getCenterY();
+	
+				var cos = Math.cos(alpha);
+				var sin = Math.sin(alpha);
+	
+				var dx2 = cos * dx - sin * dy;
+				var dy2 = sin * dx + cos * dy;
+				
+				geo.alternateBounds.x += dx2 - dx;
+				geo.alternateBounds.y += dy2 - dy;
+			}
 		}
 	}
 };
@@ -5063,6 +5091,39 @@ mxGraph.prototype.resizeCells = function(cells, bounds)
  * Sets the bounds of the given cells and fires a <mxEvent.CELLS_RESIZED>
  * event. If <extendParents> is true, then the parent is extended if a
  * child size is changed so that it overlaps with the parent.
+ * 
+ * The following example shows how to control group resizes to make sure
+ * that all child cells stay within the group.
+ * 
+ * (code)
+ * graph.addListener(mxEvent.CELLS_RESIZED, function(sender, evt)
+ * {
+ *   var cells = evt.getProperty('cells');
+ *   
+ *   if (cells != null)
+ *   {
+ *     for (var i = 0; i < cells.length; i++)
+ *     {
+ *       if (graph.getModel().getChildCount(cells[i]) > 0)
+ *       {
+ *         var geo = graph.getCellGeometry(cells[i]);
+ *         
+ *         if (geo != null)
+ *         {
+ *           var children = graph.getChildCells(cells[i], true, true);
+ *           var bounds = graph.getBoundingBoxFromGeometry(children, true);
+ *           
+ *           geo = geo.clone();
+ *           geo.width = Math.max(geo.width, bounds.width);
+ *           geo.height = Math.max(geo.height, bounds.height);
+ *           
+ *           graph.getModel().setGeometry(cells[i], geo);
+ *         }
+ *       }
+ *     }
+ *   }
+ * });
+ * (end)
  * 
  * Parameters:
  * 
@@ -5560,12 +5621,9 @@ mxGraph.prototype.resetEdge = function(edge)
 mxGraph.prototype.getAllConnectionConstraints = function(terminal, source)
 {
 	if (terminal != null && terminal.shape != null &&
-		terminal.shape instanceof mxStencilShape)
+		terminal.shape.stencil != null)
 	{
-		if (terminal.shape.stencil != null)
-		{
-			return terminal.shape.stencil.constraints;
-		}
+		return terminal.shape.stencil.constraints;
 	}
 
 	return null;
@@ -5586,15 +5644,11 @@ mxGraph.prototype.getAllConnectionConstraints = function(terminal, source)
 mxGraph.prototype.getConnectionConstraint = function(edge, terminal, source)
 {
 	var point = null;
-	var x = edge.style[(source) ?
-		mxConstants.STYLE_EXIT_X :
-		mxConstants.STYLE_ENTRY_X];
+	var x = edge.style[(source) ? mxConstants.STYLE_EXIT_X : mxConstants.STYLE_ENTRY_X];
 
 	if (x != null)
 	{
-		var y = edge.style[(source) ?
-			mxConstants.STYLE_EXIT_Y :
-			mxConstants.STYLE_ENTRY_Y];
+		var y = edge.style[(source) ? mxConstants.STYLE_EXIT_Y : mxConstants.STYLE_ENTRY_Y];
 		
 		if (y != null)
 		{
@@ -5730,10 +5784,17 @@ mxGraph.prototype.getConnectionPoint = function(vertex, constraint)
 			var dy = 0;
 			
 			// LATER: Add flipping support for image shapes
-			if (vertex.shape instanceof mxStencilShape)
+			if (this.getModel().isVertex(vertex.cell))
 			{
-				var flipH = vertex.style[mxConstants.STYLE_STENCIL_FLIPH];
-				var flipV = vertex.style[mxConstants.STYLE_STENCIL_FLIPV];
+				var flipH = vertex.style[mxConstants.STYLE_FLIPH];
+				var flipV = vertex.style[mxConstants.STYLE_FLIPV];
+				
+				// Legacy support for stencilFlipH/V
+				if (vertex.shape.stencil != null)
+				{
+					flipH = mxUtils.getValue(vertex.style, 'stencilFlipH', 0) == 1 || flipH;
+					flipV = mxUtils.getValue(vertex.style, 'stencilFlipV', 0) == 1 || flipV;
+				}
 				
 				if (direction == 'north' || direction == 'south')
 				{
@@ -6459,7 +6520,7 @@ mxGraph.prototype.panGraph = function(dx, dy)
 				// Workaround for ignored removeAttribute on SVG element in IE9 standards
 				if (mxClient.IS_IE)
 				{
-					canvas.setAttribute('transform', 'translate('+ dx + ',' + dy + ')');
+					canvas.setAttribute('transform', 'translate(' + dx + ',' + dy + ')');
 				}
 				else
 				{
@@ -6497,7 +6558,7 @@ mxGraph.prototype.panGraph = function(dx, dy)
 			}
 			else
 			{
-				canvas.setAttribute('transform', 'translate('+ dx + ',' + dy + ')');
+				canvas.setAttribute('transform', 'translate(' + dx + ',' + dy + ')');
 				
 				if (this.shiftPreview1 == null)
 				{
@@ -7609,7 +7670,7 @@ mxGraph.prototype.convertValueToString = function(cell)
  * cell. This implementation uses <convertValueToString> if <labelsVisible>
  * is true. Otherwise it returns an empty string.
  * 
- * To truncate label to match the size of the cell, the following code
+ * To truncate a label to match the size of the cell, the following code
  * can be used.
  * 
  * (code)
@@ -8502,6 +8563,24 @@ mxGraph.prototype.isLabelMovable = function(cell)
 	return !this.isCellLocked(cell) &&
 		((this.model.isEdge(cell) && this.edgeLabelsMovable) ||
 		(this.model.isVertex(cell) && this.vertexLabelsMovable));
+};
+
+/**
+ * Function: isCellRotatable
+ *
+ * Returns true if the given cell is rotatable. This returns true for the given
+ * cell if its style does not specify <mxConstants.STYLE_ROTATABLE> to be 0.
+ * 
+ * Parameters:
+ * 
+ * cell - <mxCell> whose rotatable state should be returned.
+ */
+mxGraph.prototype.isCellRotatable = function(cell)
+{
+	var state = this.view.getState(cell);
+	var style = (state != null) ? state.style : this.getCellStyle(cell);
+	
+	return style[mxConstants.STYLE_ROTATABLE] != 0;
 };
 
 /**
@@ -9818,9 +9897,24 @@ mxGraph.prototype.intersects = function(state, x, y)
 				pt = next;
 			}
 		}
-		else if (mxUtils.contains(state, x, y))
+		else
 		{
-			return true;
+			var alpha = mxUtils.toRadians(mxUtils.getValue(state.style, mxConstants.STYLE_ROTATION) || 0);
+			
+			if (alpha != 0)
+			{
+				var cos = Math.cos(-alpha);
+				var sin = Math.sin(-alpha);
+				var cx = new mxPoint(state.getCenterX(), state.getCenterY());
+				var pt = mxUtils.getRotatedPoint(new mxPoint(x, y), cos, sin, cx);
+				x = pt.x;
+				y = pt.y;
+			}
+			
+			if (mxUtils.contains(state, x, y))
+			{
+				return true;
+			}
 		}
 	}
 	
@@ -10238,9 +10332,16 @@ mxGraph.prototype.getCells = function(x, y, width, height, parent, result)
 				
 				if (this.isCellVisible(cell) && state != null)
 				{
-					if (state.x >= x && state.y >= y &&
-						state.x + state.width <= right &&
-						state.y + state.height <= bottom)
+					var box = state;
+					var deg = mxUtils.getValue(state.style, mxConstants.STYLE_ROTATION) || 0;
+					
+					if (deg != 0)
+					{
+						box = mxUtils.getBoundingBox(box, deg);
+					}
+					
+					if (box.x >= x && box.y + box.height <= bottom &&
+						box.y >= y && box.x + box.width <= right)
 					{
 						result.push(cell);
 					}

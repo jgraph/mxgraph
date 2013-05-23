@@ -1,5 +1,5 @@
 /**
- * $Id: mxEffects.js,v 1.6 2012/01/04 10:01:16 gaudenz Exp $
+ * $Id: mxEffects.js,v 1.2 2012/12/03 17:33:33 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEffects =
@@ -100,9 +100,6 @@ var mxEffects =
 				}
 			}
 
-			// Workaround to force a repaint in AppleWebKit
-			mxUtils.repaintGraph(graph, new mxPoint(1, 1));
-			
 			if (step < maxStep && isRequired)
 			{
 				step++;

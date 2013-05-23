@@ -1,5 +1,5 @@
 /**
- * $Id: mxDefaultKeyHandler.js,v 1.26 2010/01/02 09:45:15 gaudenz Exp $
+ * $Id: mxDefaultKeyHandler.js,v 1.1 2012/11/15 13:26:49 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

@@ -1,5 +1,5 @@
 /**
- * $Id: mxEvent.js,v 1.76 2012/12/07 07:39:03 gaudenz Exp $
+ * $Id: mxEvent.js,v 1.11 2013/05/23 10:29:43 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEvent =
@@ -135,6 +135,91 @@ var mxEvent =
 	},
 	
 	/**
+	 * Function: addGestureListeners
+	 * 
+	 * Adds the given listeners to mousedown, mousemove, mouseup and the
+	 * respective touch events if <mxClient.IS_TOUCH> is true.
+	 */
+	addGestureListeners: function(node, startListener, moveListener, endListener)
+	{
+		// Uses pointer events for IE10 standards mode
+		if (startListener != null)
+		{
+			mxEvent.addListener(node, (mxClient.IS_POINTER) ? 'MSPointerDown' : 'mousedown', startListener);
+		}
+		
+		if (moveListener != null)
+		{
+			mxEvent.addListener(node, (mxClient.IS_POINTER) ? 'MSPointerMove' : 'mousemove', moveListener);
+		}
+		
+		if (endListener != null)
+		{
+			mxEvent.addListener(node, (mxClient.IS_POINTER) ? 'MSPointerUp' : 'mouseup', endListener);
+		}
+		
+		if (!mxClient.IS_POINTER && mxClient.IS_TOUCH)
+		{
+			if (startListener != null)
+			{
+				mxEvent.addListener(node, 'touchstart', startListener);
+			}
+			
+			if (moveListener != null)
+			{
+				mxEvent.addListener(node, 'touchmove', moveListener);
+			}
+			
+			if (endListener != null)
+			{
+				mxEvent.addListener(node, 'touchend', endListener);
+			}
+		}
+	},
+	
+	/**
+	 * Function: removeGestureListeners
+	 * 
+	 * Removes the given listeners from mousedown, mousemove, mouseup and the
+	 * respective touch events if <mxClient.IS_TOUCH> is true.
+	 */
+	removeGestureListeners: function(node, startListener, moveListener, endListener)
+	{
+		if (startListener != null)
+		{
+			mxEvent.removeListener(node, (mxClient.IS_POINTER) ? 'MSPointerDown' : 'mousedown', startListener);
+		}
+		
+		if (moveListener != null)
+		{
+			mxEvent.removeListener(node, (mxClient.IS_POINTER) ? 'MSPointerMove' : 'mousemove', moveListener);
+		}
+		
+		if (endListener != null)
+		{
+			mxEvent.removeListener(node, (mxClient.IS_POINTER) ? 'MSPointerUp' : 'mouseup', endListener);
+		}
+		
+		if (!mxClient.IS_POINTER && mxClient.IS_TOUCH)
+		{
+			if (startListener != null)
+			{
+				mxEvent.removeListener(node, 'touchstart', startListener);
+			}
+			
+			if (moveListener != null)
+			{
+				mxEvent.removeListener(node, 'touchmove', moveListener);
+			}
+			
+			if (endListener != null)
+			{
+				mxEvent.removeListener(node, 'touchend', endListener);
+			}
+		}
+	},
+	
+	/**
 	 * Function: redirectMouseEvents
 	 *
 	 * Redirects the mouse events from the given DOM node to the graph dispatch
@@ -151,48 +236,43 @@ var mxEvent =
 			return (typeof(state) == 'function') ? state(evt) : state;
 		};
 		
-		var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-		var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
-		var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
-		
-		mxEvent.addListener(node, md, function (evt)
-		{
-			if (down != null)
+		mxEvent.addGestureListeners(node,
+			function (evt)
 			{
-				down(evt);
-			}
-			else if (!mxEvent.isConsumed(evt))
-			{
-				graph.fireMouseEvent(mxEvent.MOUSE_DOWN,
-					new mxMouseEvent(evt, getState(evt)));
-			}
-		});
-		
-		mxEvent.addListener(node, mm, function (evt)
-		{
-			if (move != null)
-			{
-				move(evt);
-			}
-			else if (!mxEvent.isConsumed(evt))
-			{
-				graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
+				if (down != null)
+				{
+					down(evt);
+				}
+				else if (!mxEvent.isConsumed(evt))
+				{
+					graph.fireMouseEvent(mxEvent.MOUSE_DOWN,
 						new mxMouseEvent(evt, getState(evt)));
-			}
-		});
-		
-		mxEvent.addListener(node, mu, function (evt)
-		{
-			if (up != null)
+				}
+			},
+			function (evt)
 			{
-				up(evt);
-			}
-			else if (!mxEvent.isConsumed(evt))
+				if (move != null)
+				{
+					move(evt);
+				}
+				else if (!mxEvent.isConsumed(evt))
+				{
+					graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
+							new mxMouseEvent(evt, getState(evt)));
+				}
+			},
+			function (evt)
 			{
-				graph.fireMouseEvent(mxEvent.MOUSE_UP,
-						new mxMouseEvent(evt, getState(evt)));
-			}
-		});
+				if (up != null)
+				{
+					up(evt);
+				}
+				else if (!mxEvent.isConsumed(evt))
+				{
+					graph.fireMouseEvent(mxEvent.MOUSE_UP,
+							new mxMouseEvent(evt, getState(evt)));
+				}
+			});
 
 		mxEvent.addListener(node, 'dblclick', function (evt)
 		{
@@ -830,6 +910,13 @@ var mxEvent =
 	EXECUTE: 'execute',
 
 	/**
+	 * Variable: EXECUTED
+	 *
+	 * Specifies the event name for executed.
+	 */
+	EXECUTED: 'executed',
+
+	/**
 	 * Variable: BEGIN_UPDATE
 	 *
 	 * Specifies the event name for beginUpdate.
@@ -837,11 +924,25 @@ var mxEvent =
 	BEGIN_UPDATE: 'beginUpdate',
 
 	/**
+	 * Variable: START_EDIT
+	 *
+	 * Specifies the event name for startEdit.
+	 */
+	START_EDIT: 'startEdit',
+
+	/**
 	 * Variable: END_UPDATE
 	 *
 	 * Specifies the event name for endUpdate.
 	 */
 	END_UPDATE: 'endUpdate',
+
+	/**
+	 * Variable: END_EDIT
+	 *
+	 * Specifies the event name for endEdit.
+	 */
+	END_EDIT: 'endEdit',
 
 	/**
 	 * Variable: BEFORE_UNDO

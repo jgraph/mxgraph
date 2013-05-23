@@ -1,5 +1,5 @@
 /**
- * $Id: mxText.js,v 1.175 2013/04/09 14:15:50 gaudenz Exp $
+ * $Id: mxText.js,v 1.50 2013/04/30 14:30:01 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -9,13 +9,7 @@
  * bottom to top to top to bottom, the following code can be used:
  * 
  * (code)
- * mxText.prototype.ieVerticalFilter = 'progid:DXImageTransform.Microsoft.BasicImage(rotation=1)';
- * mxText.prototype.verticalTextDegree = 90;
- * 
- * mxText.prototype.getVerticalOffset = function(offset)
- * {
- *   return new mxPoint(-offset.y, offset.x);
- * };
+ * mxText.prototype.verticalTextRotation = 90;
  * (end)
  * 
  * Constructor: mxText
@@ -67,6 +61,7 @@ function mxText(value, bounds, align, valign, color,
 	spacingBottom, spacingLeft, horizontal, background, border,
 	wrap, clipped, overflow, labelPadding)
 {
+	mxShape.call(this);
 	this.value = value;
 	this.bounds = bounds;
 	this.color = (color != null) ? color : 'black';
@@ -74,7 +69,7 @@ function mxText(value, bounds, align, valign, color,
 	this.valign = (valign != null) ? valign : '';
 	this.family = (family != null) ? family : mxConstants.DEFAULT_FONTFAMILY;
 	this.size = (size != null) ? size : mxConstants.DEFAULT_FONTSIZE;
-	this.fontStyle = (fontStyle != null) ? fontStyle : 0;
+	this.fontStyle = (fontStyle != null) ? fontStyle : mxConstants.DEFAULT_FONTSTYLE;
 	this.spacing = parseInt(spacing || 2);
 	this.spacingTop = this.spacing + parseInt(spacingTop || 0);
 	this.spacingRight = this.spacing + parseInt(spacingRight || 0);
@@ -87,216 +82,732 @@ function mxText(value, bounds, align, valign, color,
 	this.clipped = (clipped != null) ? clipped : false;
 	this.overflow = (overflow != null) ? overflow : 'visible';
 	this.labelPadding = (labelPadding != null) ? labelPadding : 0;
+	this.rotation = 0;
 };
 
 /**
  * Extends mxShape.
  */
-mxText.prototype = new mxShape();
-mxText.prototype.constructor = mxText;
+mxUtils.extend(mxText, mxShape);
+
+/**
+ * Variable: baseSpacingTop
+ * 
+ * Specifies the spacing to be added to the top spacing. Default is 0. Use the
+ * value 5 here to get the same label positions as in mxGraph 1.x.
+ */
+mxText.prototype.baseSpacingTop = 0;
+
+/**
+ * Variable: baseSpacingBottom
+ * 
+ * Specifies the spacing to be added to the bottom spacing. Default is 0. Use the
+ * value 1 here to get the same label positions as in mxGraph 1.x.
+ */
+mxText.prototype.baseSpacingBottom = 0;
+
+/**
+ * Variable: baseSpacingLeft
+ * 
+ * Specifies the spacing to be added to the left spacing. Default is 0.
+ */
+mxText.prototype.baseSpacingLeft = 0;
+
+/**
+ * Variable: baseSpacingRight
+ * 
+ * Specifies the spacing to be added to the right spacing. Default is 0.
+ */
+mxText.prototype.baseSpacingRight = 0;
 
 /**
  * Variable: replaceLinefeeds
  * 
  * Specifies if linefeeds in HTML labels should be replaced with BR tags.
- * Default is true. This is also used in <mxImageExport> to export the label.
+ * Default is true.
  */
 mxText.prototype.replaceLinefeeds = true;
 
 /**
- * Variable: ieVerticalFilter
+ * Variable: verticalTextRotation
  * 
- * Holds the filter definition for vertical text in IE. Default is
- * progid:DXImageTransform.Microsoft.BasicImage(rotation=3).
+ * Rotation for vertical text. Default is -90 (bottom to top).
  */
-mxText.prototype.ieVerticalFilter = 'progid:DXImageTransform.Microsoft.BasicImage(rotation=3)';
+mxText.prototype.verticalTextRotation = -90;
 
 /**
- * Variable: verticalTextDegree
+ * Variable: ignoreClippedStringSize
  * 
- * Specifies the degree to be used for vertical text. Default is -90.
+ * Specifies if the actual string size should be measured if a label is clipped.
+ * If disabled the boundingBox will not ignore the actual size of the string,
+ * otherwise <bounds> will be used instead. Default is true. <ignoreStringSize>
+ * has precedence over this switch.
  */
-mxText.prototype.verticalTextDegree = -90;
+mxText.prototype.ignoreClippedStringSize = true;
 
 /**
- * Variable: forceIgnoreStringSize
+ * Variable: ignoreStringSize
  * 
- * Specifies if the string size should always be ignored. Default is false.
- * This can be used to improve rendering speed in slow browsers. This can be
- * used if all labels are smaller than the vertex width. String sizes are
- * ignored by default for labels which are left aligned with no background and
- * border or if the overflow is set to fill. 
+ * Specifies if the actual string size should be measured. If disabled the
+ * boundingBox will not ignore the actual size of the string, otherwise
+ * <bounds> will be used instead. Default is false.
  */
-mxText.prototype.forceIgnoreStringSize = false;
+mxText.prototype.ignoreStringSize = false;
 
 /**
- * Function: isStyleSet
- *
- * Returns true if the given font style (bold, italic etc)
- * is true in this shape's fontStyle.
- *
- * Parameters:
- *
- * style - Fontstyle constant from <mxConstants>.
+ * Function: isParseVml
+ * 
+ * Text shapes do not contain VML markup and do not need to be parsed. This
+ * method returns false to speed up rendering in IE8.
  */
-mxText.prototype.isStyleSet = function(style)
+mxText.prototype.isParseVml = function()
 {
-	return (this.fontStyle & style) == style;
+	return false;
 };
 
 /**
- * Function: create
- *
- * Override to create HTML regardless of gradient and
- * rounded property.
+ * Function: isHtmlAllowed
+ * 
+ * Returns true if HTML is allowed for this shape. This implementation returns
+ * true if the browser is not in IE8 standards mode.
  */
-mxText.prototype.create = function(container)
+mxText.prototype.isHtmlAllowed = function()
 {
-	var node = null;
-	
-	if (this.dialect == mxConstants.DIALECT_SVG)
-	{
-		node = this.createSvg();
-	}
-	else if (this.dialect == mxConstants.DIALECT_STRICTHTML ||
-			this.dialect == mxConstants.DIALECT_PREFERHTML ||
-			!mxUtils.isVml(container))
-	{
-		if (mxClient.IS_SVG && !mxClient.NO_FO)
-		{
-			node = this.createForeignObject();
-		}
-		else
-		{
-			node = this.createHtml();
-		}
-	}
-	else
-	{
-		node = this.createVml();
-	}
-	
-	return node;
+	return document.documentMode != 8;
+};
+
+/**
+ * Function: getSvgScreenOffset
+ * 
+ * Disables offset in IE9 for crisper image output.
+ */
+mxText.prototype.getSvgScreenOffset = function()
+{
+	return 0;
+};
+
+/**
+ * Function: checkBounds
+ * 
+ * Returns true if the bounds are not null and all of its variables are numeric.
+ */
+mxText.prototype.checkBounds = function()
+{
+	return (this.bounds != null && !isNaN(this.bounds.x) && !isNaN(this.bounds.y) &&
+			!isNaN(this.bounds.width) && !isNaN(this.bounds.height));
 };
 
 /**
  * Function: updateBoundingBox
- * 
- * Overrides method to do nothing.
+ *
+ * Updates the <boundingBox> for this shape using the given node and position.
  */
 mxText.prototype.updateBoundingBox = function()
 {
-	// do nothing
-};
-
-/**
- * Function: createForeignObject
- *
- * Creates and returns the foreignObject node to represent this shape.
- */
-mxText.prototype.createForeignObject = function()
-{
-	var node = document.createElementNS(mxConstants.NS_SVG, 'g');
+	var node = this.node;
 	
-	var fo = document.createElementNS(mxConstants.NS_SVG, 'foreignObject');
-	fo.setAttribute('pointer-events', 'fill');
-
-	// Ignored in FF
-	if (this.overflow == 'hidden')
+	if (document.documentMode == 8 && node.firstChild != null)
 	{
-		fo.style.overflow = 'hidden';
+		node = node.firstChild;
+		
+		if (node.firstChild != null)
+		{
+			node = node.firstChild;
+		}
+	}
+	
+	this.boundingBox = this.bounds.clone();
+	var rot = this.getTextRotation();
+
+	if (!this.ignoreStringSize && node != null && this.overflow != 'fill' && (!this.clipped || !this.ignoreClippedStringSize))
+	{
+		var ow = null;
+		var oh = null;
+		
+		if (node.ownerSVGElement != null)
+		{
+			if (node.firstChild != null && node.firstChild.firstChild != null &&
+				node.firstChild.firstChild.nodeName == 'foreignObject')
+			{
+				node = node.firstChild.firstChild;
+				ow = (this.wrap) ? this.bounds.width : parseInt(node.getAttribute('width')) * this.scale;
+				oh = parseInt(node.getAttribute('height')) * this.scale;
+			}
+			else
+			{
+				var b = node.getBBox();
+				
+				if (b.width == 0 && b.height == 0)
+				{
+					return;
+				}
+				
+				this.boundingBox = new mxRectangle(b.x, b.y, b.width, b.height);
+				rot = 0;
+			}
+		}
+		else
+		{
+			var td = this.state.view.textDiv;
+			
+			// Use cached offset size
+			if (this.offsetWidth != null && this.offsetHeight != null)
+			{
+				ow = (this.wrap) ? this.bounds.width : this.offsetWidth * this.scale;
+				oh = this.offsetHeight * this.scale;
+			}
+			// Cannot get node size while container hidden so a
+			// shared temporary DIV is used for text measuring
+			else if (td != null)
+			{
+				this.updateFont(td);
+				this.updateSize(td);
+				
+				if (mxUtils.isNode(this.value))
+				{
+					td.innerHTML = this.value.outerHTML;
+				}
+				else
+				{
+					var val = (this.replaceLinefeeds) ? this.value.replace(/\n/g, '<br/>') : this.value;
+					td.innerHTML = val;
+				}
+
+				ow = (this.wrap) ? this.bounds.width : td.offsetWidth * this.scale;
+				oh = td.offsetHeight * this.scale;
+			}
+			else
+			{
+				ow = (this.wrap) ? this.bounds.width : node.offsetWidth * this.scale;
+				oh = node.offsetHeight * this.scale;
+			}
+		}
+
+		if (ow != null && oh != null)
+		{
+			var x0 = this.bounds.x + this.margin.x * ow;
+			var y0 = this.bounds.y + this.margin.y * oh;
+			
+			this.boundingBox = new mxRectangle(x0, y0, ow, oh);
+		}
 	}
 	else
 	{
-		// Fill and default are visible
-		fo.style.overflow = 'visible';
+		this.boundingBox.x += this.margin.x * this.boundingBox.width;
+		this.boundingBox.y += this.margin.y * this.boundingBox.height;		
+	}
+
+	if (this.boundingBox != null)
+	{
+		if (rot != 0)
+		{
+			var bbox = mxUtils.getBoundingBox(this.boundingBox, rot);
+			
+			this.boundingBox.x = bbox.x;
+			this.boundingBox.y = bbox.y;
+			
+			if (!mxClient.IS_QUIRKS)
+			{
+				this.boundingBox.width = bbox.width;
+				this.boundingBox.height = bbox.height;
+			}
+		}
+	
+		this.boundingBox.x = Math.floor(this.boundingBox.x);
+		this.boundingBox.y = Math.floor(this.boundingBox.y);
+		this.boundingBox.width = Math.ceil(this.boundingBox.width);
+		this.boundingBox.height = Math.ceil(this.boundingBox.height);
+	}
+};
+
+/**
+ * Function: getShapeRotation
+ * 
+ * Returns 0 to avoid using rotation in the canvas via updateTransform.
+ */
+mxText.prototype.getShapeRotation = function()
+{
+	return 0;
+};
+
+/**
+ * Function: getTextRotation
+ * 
+ * Returns the rotation for the text label of the corresponding shape.
+ */
+mxText.prototype.getTextRotation = function()
+{
+	return (this.state != null && this.state.shape != null) ? this.state.shape.getTextRotation() : 0;
+};
+
+/**
+ * Function: isPaintBoundsInverted
+ * 
+ * Inverts the bounds if <mxShape.isBoundsInverted> returns true or if the
+ * horizontal style is false.
+ */
+mxText.prototype.isPaintBoundsInverted = function()
+{
+	return !this.horizontal && this.state != null && this.state.view.graph.model.isVertex(this.state.cell);
+};
+
+/**
+ * Function: configureCanvas
+ * 
+ * Sets the state of the canvas for drawing the shape.
+ */
+mxText.prototype.configureCanvas = function(c, x, y, w, h)
+{
+	mxShape.prototype.configureCanvas.apply(this, arguments);
+	
+	c.setFontColor(this.color);
+	c.setFontBackgroundColor(this.background);
+	c.setFontBorderColor(this.border);
+	c.setFontFamily(this.family);
+	c.setFontSize(this.size);
+	c.setFontStyle(this.fontStyle);
+};
+
+/**
+ * Function: updateVmlContainer
+ * 
+ * Sets the width and height of the container to 1px.
+ */
+mxText.prototype.updateVmlContainer = function()
+{
+	this.node.style.left = Math.round(this.bounds.x) + 'px';
+	this.node.style.top = Math.round(this.bounds.y) + 'px';
+	this.node.style.width = '1px';
+	this.node.style.height = '1px';
+	this.node.style.overflow = 'visible';
+};
+
+/**
+ * Function: paint
+ * 
+ * Generic rendering code.
+ */
+mxText.prototype.paint = function(c)
+{
+	// Scale is passed-through to canvas
+	var s = this.scale;
+	var x = this.bounds.x / s;
+	var y = this.bounds.y / s;
+	var w = this.bounds.width / s;
+	var h = this.bounds.height / s;
+
+	this.updateTransform(c, x, y, w, h);
+	this.configureCanvas(c, x, y, w, h);
+	
+	// Checks if text contains HTML markup
+	var realHtml = mxUtils.isNode(this.value) || this.dialect == mxConstants.DIALECT_STRICTHTML;
+	
+	// Always renders labels as HTML in VML
+	var fmt = (realHtml || c instanceof mxVmlCanvas2D) ? 'html' : '';
+	var val = this.value;
+	
+	if (!realHtml && fmt == 'html')
+	{
+		val =  mxUtils.htmlEntities(val, false);
 	}
 	
-	var body = document.createElement('div');
-	body.style.margin = '0px';
-	body.style.height = '100%';
-	
-	fo.appendChild(body);
-	node.appendChild(fo);
-	
-	return node;
+	val = (!mxUtils.isNode(this.value) && this.replaceLinefeeds && fmt == 'html') ?
+		val.replace(/\n/g, '<br/>') : val;
+		
+	c.text(x, y, w, h, val, this.align, this.valign, this.wrap, fmt, this.overflow,
+		this.clipped, this.getTextRotation());
 };
 
 /**
- * Function: createHtml
- *
- * Creates and returns the HTML node to represent this shape.
- */
-mxText.prototype.createHtml = function()
-{
-	var table = this.createHtmlTable();
-	table.style.position = 'absolute';
-	
-	return table;
-};
-
-/**
- * Function: createVml
- *
- * Creates and returns the VML node(s) to represent this shape.
- */
-mxText.prototype.createVml = function()
-{
-	return document.createElement('v:textbox');
-};
-
-/**
- * Function: redrawHtml
+ * Function: redrawHtmlShape
  *
  * Updates the HTML node(s) to reflect the latest bounds and scale.
  */
-mxText.prototype.redrawHtml = function()
+mxText.prototype.redrawHtmlShape = function()
 {
-	this.redrawVml();
+	var style = this.node.style;
+	
+	if (this.opacity < 1)
+	{
+		style.opacity = this.opacity;
+	}
+	else
+	{
+		style.opacity = '';
+	}
+
+	// Resets CSS styles
+	style.overflow = '';
+	style.width = '';
+	style.height = '';
+	
+	this.updateFont(this.node);
+	this.updateSize(this.node);
+	this.updateValue();
+	
+	this.offsetWidth = null;
+	this.offsetHeight = null;
+	
+	if (mxClient.CSS_PREFIX != null)
+	{
+		this.updateHtmlTransform();
+	}
+	else
+	{
+		this.updateHtmlFilter();
+	}
 };
 
 /**
- * Function: getOffset
+ * Function: updateHtmlTransform
  *
- * Returns the description of the space between the <bounds> size and the label
- * size as an <mxPoint>.
+ * Returns the spacing as an <mxPoint>.
  */
-mxText.prototype.getOffset = function(outerWidth, outerHeight, actualWidth, actualHeight, horizontal)
+mxText.prototype.updateHtmlTransform = function()
 {
-	horizontal = (horizontal != null) ? horizontal : this.horizontal;
-
-	var tmpalign = (horizontal) ? this.align : this.valign;
-	var tmpvalign = (horizontal) ? this.valign : this.align;
-	var dx = actualWidth - outerWidth;
-	var dy = actualHeight - outerHeight;
+	var theta = this.getTextRotation();
+	var style = this.node.style;
+	var dx = this.margin.x;
+	var dy = this.margin.y;
 	
-	if (tmpalign == mxConstants.ALIGN_CENTER || tmpalign == mxConstants.ALIGN_MIDDLE)
+	if (theta != 0)
 	{
-		dx = Math.round(dx / 2);
+		style[mxClient.CSS_PREFIX + 'TransformOrigin'] = (-dx * 100) + '%' + ' ' + (-dy * 100) + '%';
+		style[mxClient.CSS_PREFIX + 'Transform'] = 'translate(' + (dx * 100) + '%' + ',' + (dy * 100) + '%)' +
+			'scale(' + this.scale + ') rotate(' + theta + 'deg)';
 	}
-	else if (tmpalign == mxConstants.ALIGN_LEFT || tmpalign === mxConstants.ALIGN_TOP)
+	else
 	{
-		dx = (horizontal) ? 0 : (actualWidth - actualHeight) / 2;
-	}
-	else if (!horizontal) // BOTTOM
-	{
-		dx = (actualWidth + actualHeight) / 2 - outerWidth;
+		style[mxClient.CSS_PREFIX + 'TransformOrigin'] = '0% 0%';
+		style[mxClient.CSS_PREFIX + 'Transform'] = 'scale(' + this.scale + ')' +
+			'translate(' + (dx * 100) + '%' + ',' + (dy * 100) + '%)';
 	}
 
-	if (tmpvalign == mxConstants.ALIGN_MIDDLE || tmpvalign == mxConstants.ALIGN_CENTER)
+	style.left = Math.round(this.bounds.x) + 'px';
+	style.top = Math.round(this.bounds.y) + 'px';
+};
+
+/**
+ * Function: updateHtmlFilter
+ *
+ * Rotated text rendering quality is bad for IE9 quirks/IE8 standards
+ */
+mxText.prototype.updateHtmlFilter = function()
+{
+	var style = this.node.style;
+	var dx = this.margin.x;
+	var dy = this.margin.y;
+	var s = this.scale;
+	
+	// Resets filter before getting offsetWidth
+	style.filter = '';
+	
+	// Adds 1 to match table height in 1.x
+	var ow = 0;
+	var oh = 0;
+	var td = (this.state != null) ? this.state.view.textDiv : null;
+
+	// Fallback for hidden text rendering in IE quirks mode
+	if (td != null)
 	{
-		dy = Math.round(dy / 2);
+		td.style.overflow = '';
+		td.style.height = '';
+		td.style.width = '';
+		
+		this.updateFont(td);
+		this.updateSize(td);
+
+		if (mxUtils.isNode(this.value))
+		{
+			td.innerHTML = this.value.outerHTML;
+		}
+		else
+		{
+			var val = this.value;
+			
+			if (this.dialect != mxConstants.DIALECT_STRICTHTML)
+			{
+				// LATER: Can be cached in updateValue
+				val = mxUtils.htmlEntities(val, false);
+			}
+	
+			val = (this.replaceLinefeeds) ? val.replace(/\n/g, '<br/>') : val;
+			td.innerHTML = val;
+		}
+		
+		ow = td.offsetWidth + 2; 
+		oh = td.offsetHeight + 2;
 	}
-	else if (tmpvalign == mxConstants.ALIGN_TOP || tmpvalign == mxConstants.ALIGN_LEFT)
+	else
 	{
-		dy = (horizontal) ? 0 : (actualHeight + actualWidth) / 2 - outerHeight;
-	}
-	else if (!horizontal) // RIGHT
-	{
-		dy = (actualHeight - actualWidth) / 2;
+		// Adds 1 to match table height in 1.x
+		ow = this.node.offsetWidth;
+		oh = this.node.offsetHeight + 1;
 	}
 	
-	return new mxPoint(dx, dy);
+	// Stores for later user
+	this.offsetWidth = ow;
+	this.offsetHeight = oh;
+
+	var w = this.bounds.width / s;
+	var h = this.bounds.height / s;
+	
+	// Simulates max-height CSS in quirks mode
+	if (mxClient.IS_QUIRKS && (this.clipped || this.overflow == 'width') && h > 0)
+	{
+		h = Math.min(h, oh);
+		style.height = Math.round(h) + 'px';
+	}
+	else
+	{
+		h = oh;
+	}
+
+	if (this.overflow != 'fill' && this.overflow != 'width')
+	{
+		// Simulates max-height CSS in quirks mode
+		if (mxClient.IS_QUIRKS && (this.clipped || this.wrap) && w > 0)
+		{
+			w = Math.min(w, ow);
+			style.width = Math.round(w) + 'px';
+		}
+		else
+		{
+			w = ow;
+		}
+	}
+	
+	h *= s;
+	w *= s;
+	
+	// Rotation case is handled via VML canvas
+	var rad = this.getTextRotation() * (Math.PI / 180);
+	
+	// Precalculate cos and sin for the rotation
+	var real_cos = parseFloat(parseFloat(Math.cos(rad)).toFixed(8));
+	var real_sin = parseFloat(parseFloat(Math.sin(-rad)).toFixed(8));
+
+	rad %= 2 * Math.PI;
+	
+	if (rad < 0)
+	{
+		rad += 2 * Math.PI;
+	}
+	
+	rad %= Math.PI;
+	
+	if (rad > Math.PI / 2)
+	{
+		rad = Math.PI - rad;
+	}
+	
+	var cos = Math.cos(rad);
+	var sin = Math.sin(-rad);
+
+	var tx = w * -(dx + 0.5);
+	var ty = h * -(dy + 0.5);
+
+	var top_fix = (h - h * cos + w * sin) / 2 + real_sin * tx - real_cos * ty;
+	var left_fix = (w - w * cos + h * sin) / 2 - real_cos * tx - real_sin * ty;
+	
+	if (rad != 0)
+	{
+		style.filter = "progid:DXImageTransform.Microsoft.Matrix(M11=" + real_cos + ", M12="+
+			real_sin + ", M21=" + (-real_sin) + ", M22=" + real_cos + ", sizingMethod='auto expand')";
+	}
+	
+	style.zoom = s;
+	style.left = Math.round(this.bounds.x + left_fix - w / 2) + 'px';
+	style.top = Math.round(this.bounds.y + top_fix - h / 2) + 'px';
+};
+
+/**
+ * Function: updateValue
+ *
+ * Updates the HTML node(s) to reflect the latest bounds and scale.
+ */
+mxText.prototype.updateValue = function()
+{
+	if (mxUtils.isNode(this.value))
+	{
+		this.node.innerHTML = '';
+		this.node.appendChild(this.value);
+	}
+	else
+	{
+		var val = this.value;
+		
+		if (this.dialect != mxConstants.DIALECT_STRICTHTML)
+		{
+			val = mxUtils.htmlEntities(val, false);
+		}
+		
+		val = (this.replaceLinefeeds) ? val.replace(/\n/g, '<br/>') : val;
+		var bg = (this.background != null && this.background != mxConstants.NONE) ? this.background : null;
+		var bd = (this.border != null && this.border != mxConstants.NONE) ? this.border : null;
+
+		if (bg != null || bd != null)
+		{
+			if (this.overflow == 'fill' || this.overflow == 'width')
+			{
+				if (bg != null)
+				{
+					this.node.style.backgroundColor = bg;
+				}
+				
+				if (bd != null)
+				{
+					this.node.style.border = '1px solid ' + bd;
+				}
+			}
+			else
+			{
+				var css = '';
+				
+				if (bg != null)
+				{
+					css += 'background-color:' + bg + ';';
+				}
+				
+				if (bd != null)
+				{
+					css += 'border:1px solid ' + bd + ';';
+				}
+				
+				// Wrapper DIV for background, zoom needed for inline in quirks
+				// FIXME: Background size in quirks mode for wrapped text
+				val = '<div style="zoom:1;' + css + 'display:inline-block;_display:inline;' +
+					'padding-bottom:1px;padding-right:1px;line-height:' +
+					this.node.style.lineHeight + '">' + val + '</div>';
+				this.node.style.lineHeight = '';
+			}
+		}
+	
+		this.node.innerHTML = val;
+	}
+};
+
+/**
+ * Function: updateFont
+ *
+ * Updates the HTML node(s) to reflect the latest bounds and scale.
+ */
+mxText.prototype.updateFont = function(node)
+{
+	var style = node.style;
+	
+	style.lineHeight = Math.round(this.size * mxConstants.LINE_HEIGHT) + 'px';
+	style.fontSize = Math.round(this.size) + 'px';
+	style.fontFamily = this.family;
+	style.verticalAlign = 'top';
+	style.color = this.color;
+	
+	if ((this.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
+	{
+		style.fontWeight = 'bold';
+	}
+	else
+	{
+		style.fontWeight = '';
+	}
+
+	if ((this.fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
+	{
+		style.fontStyle = 'italic';
+	}
+	else
+	{
+		style.fontStyle = '';
+	}
+	
+	if ((this.fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
+	{
+		style.textDecoration = 'underline';
+	}
+	else
+	{
+		style.textDecoration = '';
+	}
+	
+	if (this.align == mxConstants.ALIGN_CENTER)
+	{
+		style.textAlign = 'center';
+	}
+	else if (this.align == mxConstants.ALIGN_RIGHT)
+	{
+		style.textAlign = 'right';
+	}
+	else
+	{
+		style.textAlign = 'left';
+	}
+};
+
+/**
+ * Function: updateSize
+ *
+ * Updates the HTML node(s) to reflect the latest bounds and scale.
+ */
+mxText.prototype.updateSize = function(node)
+{
+	var w = Math.round(this.bounds.width / this.scale);
+	var h = Math.round(this.bounds.height / this.scale);
+	var style = node.style;
+	
+	// NOTE: Do not use maxWidth here because wrapping will
+	// go wrong if the cell is outside of the viewable area
+	if (this.clipped)
+	{
+		style.overflow = 'hidden';
+		
+		if (h > 0)
+		{
+			style.maxHeight = h + 'px';
+		}
+		
+		if (w > 0)
+		{
+			style.width = w + 'px';
+		}
+	}
+	else if (this.overflow == 'fill')
+	{
+		style.width = w + 'px';
+		style.height = h + 'px';
+	}
+	else if (this.overflow == 'width')
+	{
+		style.width = w + 'px';
+		
+		if (h > 0)
+		{
+			style.maxHeight = h + 'px';
+		}
+	}
+	
+	if (this.wrap && w > 0)
+	{
+		if (!this.clipped)
+		{
+			style.width = w + 'px';
+		}
+		
+		style.whiteSpace = 'normal';
+	}
+	else
+	{
+		style.whiteSpace = 'nowrap';
+	}
+};
+
+/**
+ * Function: getMargin
+ *
+ * Returns the spacing as an <mxPoint>.
+ */
+mxText.prototype.updateMargin = function()
+{
+	this.margin = mxUtils.getAlignmentAsPoint(this.align, this.valign);
 };
 
 /**
@@ -304,10 +815,8 @@ mxText.prototype.getOffset = function(outerWidth, outerHeight, actualWidth, actu
  *
  * Returns the spacing as an <mxPoint>.
  */
-mxText.prototype.getSpacing = function(horizontal)
+mxText.prototype.getSpacing = function()
 {
-	horizontal = (horizontal != null) ? horizontal : this.horizontal;
-
 	var dx = 0;
 	var dy = 0;
 
@@ -317,11 +826,11 @@ mxText.prototype.getSpacing = function(horizontal)
 	}
 	else if (this.align == mxConstants.ALIGN_RIGHT)
 	{
-		dx = -this.spacingRight;
+		dx = -this.spacingRight - this.baseSpacingRight;
 	}
 	else
 	{
-		dx = this.spacingLeft;
+		dx = this.spacingLeft + this.baseSpacingLeft;
 	}
 
 	if (this.valign == mxConstants.ALIGN_MIDDLE)
@@ -330,1482 +839,12 @@ mxText.prototype.getSpacing = function(horizontal)
 	}
 	else if (this.valign == mxConstants.ALIGN_BOTTOM)
 	{
-		dy = -this.spacingBottom;
+		dy = -this.spacingBottom - this.baseSpacingBottom;;
 	}
 	else
 	{
-		dy = this.spacingTop;
+		dy = this.spacingTop + this.baseSpacingTop;
 	}
 	
-	return (horizontal) ? new mxPoint(dx, dy) : new mxPoint(dy, dx);
-};
-
-/**
- * Function: createHtmlTable
- *
- * Creates and returns a HTML table with a table body and a single row with a
- * single cell.
- */
-mxText.prototype.createHtmlTable = function()
-{
-	var table = document.createElement('table');
-	table.style.borderCollapse = 'collapse';
-	var tbody = document.createElement('tbody');
-	var tr = document.createElement('tr');
-	var td = document.createElement('td');
-	
-	// Workaround for ignored table height in IE9 standards mode
-	if (document.documentMode >= 9)
-	{
-		// FIXME: Ignored in print preview for IE9 standards mode
-		td.style.height = '100%';
-	}
-
-	tr.appendChild(td);
-	tbody.appendChild(tr);
-	table.appendChild(tbody);
-	
-	return table;
-};
-
-/**
- * Function: updateTableStyle
- * 
- * Updates the style of the given HTML table and the value
- * within the table.
- */
-mxText.prototype.updateHtmlTable = function(table, scale)
-{
-	scale = (scale != null) ? scale : 1;
-	var td = table.firstChild.firstChild.firstChild;
-	
-	// Reset of width required to measure actual width after word wrap
-	if (this.wrap)
-	{
-		table.style.width = '';
-	}
-	
-	// Updates the value
-	if (mxUtils.isNode(this.value))
-	{
-		if (td.firstChild != this.value)
-		{
-			if (td.firstChild != null)
-			{
-				td.removeChild(td.firstChild);
-			}
-			
-			td.appendChild(this.value);
-		}
-	}
-	else
-	{
-		if (this.lastValue != this.value)
-		{
-			td.innerHTML = (this.replaceLinefeeds) ? this.value.replace(/\n/g, '<br/>') : this.value;
-			this.lastValue = this.value;
-		}
-	}
-
-	// Font style
-	var fontSize = Math.round(this.size * scale);
-
-	if (fontSize <= 0)
-	{
-		table.style.visibility = 'hidden';
-	}
-	else
-	{
-		// Do not use visible here as it will clone
-		// all labels while panning in IE
-		table.style.visibility = '';
-	}
-	
-	table.style.fontSize = fontSize + 'px';
-	table.style.color = this.color;
-	table.style.fontFamily = this.family;
-	
-	// Bold
-	if (this.isStyleSet(mxConstants.FONT_BOLD))
-	{
-		table.style.fontWeight = 'bold';
-	}
-	else
-	{
-		table.style.fontWeight = 'normal';
-	}
-	
-	// Italic
-	if (this.isStyleSet(mxConstants.FONT_ITALIC))
-	{
-		table.style.fontStyle = 'italic';
-	}
-	else
-	{
-		table.style.fontStyle = '';
-	}
-	
-	// Underline
-	if (this.isStyleSet(mxConstants.FONT_UNDERLINE))
-	{
-		table.style.textDecoration = 'underline';
-	}
-	else
-	{
-		table.style.textDecoration = '';
-	}
-
-	// Font shadow (only available in IE)
-	if (mxClient.IS_IE)
-	{
-		if (this.isStyleSet(mxConstants.FONT_SHADOW))
-		{
-			td.style.filter = 'Shadow(Color=#666666,'+'Direction=135,Strength=%)';
-		}
-		else
-		{
-			td.style.removeAttribute('filter');
-		}
-	}
-
-	// Horizontal and vertical alignment
-	td.style.textAlign =
-		(this.align == mxConstants.ALIGN_RIGHT) ? 'right' :
-		((this.align == mxConstants.ALIGN_CENTER) ? 'center' :
-		'left');
-	td.style.verticalAlign =
-		(this.valign == mxConstants.ALIGN_BOTTOM) ? 'bottom' :
-		((this.valign == mxConstants.ALIGN_MIDDLE) ? 'middle' :
-		'top');
-	
-	// Background style (Must use TD not TABLE for Firefox when rotated)
-	if (this.value.length > 0 && this.background != null)
-	{
-		td.style.background = this.background;
-	}
-	else
-	{
-		td.style.background = '';
-	}
-	
-	td.style.padding = this.labelPadding + 'px';
-	
-	if (this.value.length > 0 && this.border != null)
-	{
-		table.style.borderColor = this.border;
-		table.style.borderWidth = '1px';
-		table.style.borderStyle = 'solid';
-	}
-	else
-	{
-		table.style.borderStyle = 'none';
-	}
-};
-
-/**
- * Function: getTableSize
- * 
- * Returns the actual size of the table.
- */
-mxText.prototype.getTableSize = function(table)
-{
-	return new mxRectangle(0, 0, table.offsetWidth, table.offsetHeight);
-};
-
-/**
- * Function: updateTableWidth
- *
- * Updates the width of the given HTML table.
- */
-mxText.prototype.updateTableWidth = function(table)
-{
-	var td = table.firstChild.firstChild.firstChild;
-
-	// Word-wrap for vertices (not edges) and only if not
-	// just getting the bounding box in SVG
-	if (this.wrap && this.bounds.width > 0 && this.dialect != mxConstants.DIALECT_SVG)
-	{
-		// Makes sure the label is not wrapped when measuring full length
-		td.style.whiteSpace = 'nowrap';
-		var size = this.getTableSize(table);
-		var space = Math.min(size.width, ((this.horizontal || mxUtils.isVml(this.node)) ?
-				this.bounds.width : this.bounds.height) / this.scale);
-		
-		// Opera needs the new width to be scaled
-		if (mxClient.IS_OP)
-		{
-			space *= this.scale;
-		}
-
-		table.style.width = Math.round(space) + 'px';
-		td.style.whiteSpace = 'normal';
-	}
-	else
-	{
-		table.style.width = '';
-	}
-
-	if (!this.wrap || this.bounds.width == 0)
-	{
-		td.style.whiteSpace = 'nowrap';
-	}
-	else
-	{
-		td.style.whiteSpace = 'normal';
-	}
-};
-
-/**
- * Function: redrawVml
- *
- * Updates the VML node(s) to reflect the latest bounds and scale.
- */
-mxText.prototype.redrawVml = function()
-{
-	if (this.node.nodeName == 'g')
-	{
-		this.redrawForeignObject();
-	}
-	else if (mxUtils.isVml(this.node))
-	{
-		this.redrawTextbox();
-	}
-	else
-	{
-		this.redrawHtmlTable();
-	}
-};
-
-/**
- * Function: redrawTextbox
- *
- * Redraws the textbox for this text. This is only used in IE in exact
- * rendering mode.
- */
-mxText.prototype.redrawTextbox = function()
-{
-	// Gets VML textbox
-	var textbox = this.node;
-
-	// Creates HTML container on the fly
-	if (textbox.firstChild == null)
-	{
-		textbox.appendChild(this.createHtmlTable());
-	}
-
-	// Updates the table style and value
-	var table = textbox.firstChild;
-	this.updateHtmlTable(table);
-	this.updateTableWidth(table);
-	
-	// Opacity
-	if (this.opacity != null)
-	{
-		mxUtils.setOpacity(table, this.opacity);
-	}
-	
-	table.style.filter = '';
-	textbox.inset = '0px,0px,0px,0px';
-	
-	if (this.overflow != 'fill')
-	{
-		// Only tables can be used to work out the actual size of the markup
-		var size = this.getTableSize(table);
-		var w = size.width * this.scale;
-		var h = size.height * this.scale;
-		var offset = this.getOffset(this.bounds.width, this.bounds.height, w, h);
-	
-		// Rotates the label (IE only)
-		if (!this.horizontal)
-		{
-			table.style.filter = this.ieVerticalFilter;
-		}
-		
-		// Adds horizontal/vertical spacing
-		var spacing = this.getSpacing();
-		var x = this.bounds.x - offset.x + spacing.x * this.scale;
-		var y = this.bounds.y - offset.y + spacing.y * this.scale;
-	
-		// Textboxes are always relative to their parent shape's top, left corner so
-		// we use the inset for absolute positioning as they allow negative values
-		// except for edges where the bounds are used to find the shape center
-		var x0 = this.bounds.x;
-		var y0 = this.bounds.y;
-		var ow = this.bounds.width;
-		var oh = this.bounds.height;
-	
-		// Insets are given as left, top, right, bottom
-		if (this.horizontal)
-		{
-			var tx = Math.round(x - x0);
-			var ty = Math.round(y - y0);
-			
-			var r = Math.min(0, Math.round(x0 + ow - x - w - 1));
-			var b = Math.min(0, Math.round(y0 + oh - y - h - 1));
-			textbox.inset = tx + 'px,' + ty + 'px,' + r + 'px,' + b + 'px';
-		}
-		else
-		{
-			var t = 0;
-			var l = 0;
-			var r = 0;
-			var b = 0;
-			
-			if (this.align == mxConstants.ALIGN_CENTER)
-			{
-				t = (oh - w) / 2;
-				b = t;
-			}
-			else if (this.align == mxConstants.ALIGN_LEFT)
-			{
-				t = oh - w; 
-			}
-			else
-			{
-				b = oh - w;
-			}
-			
-			if (this.valign == mxConstants.ALIGN_MIDDLE)
-			{
-				l = (ow - h) / 2;
-				r = l;
-			}
-			else if (this.valign == mxConstants.ALIGN_BOTTOM)
-			{
-				l = ow - h; 
-			}
-			else
-			{
-				r = ow - h;
-			}
-			
-			textbox.inset = l + 'px,' + t + 'px,' + r + 'px,' + b + 'px';
-		}
-		
-		textbox.style.zoom = this.scale;
-	
-		// Clipping
-		if (this.clipped && this.bounds.width > 0 && this.bounds.height > 0)
-		{
-			this.boundingBox = this.bounds.clone();
-			var dx = Math.round(x0 - x);
-			var dy = Math.round(y0 - y);
-	
-			textbox.style.clip = 'rect(' + (dy / this.scale) + ' ' +
-				((dx + this.bounds.width) / this.scale) + ' ' +
-				((dy + this.bounds.height) / this.scale) + ' ' +
-				(dx / this.scale) + ')';
-		}
-		else
-		{
-			this.boundingBox = new mxRectangle(x, y, w, h);
-		}
-	}
-	else
-	{
-		this.boundingBox = this.bounds.clone();
-	}
-};
-
-/**
- * Function: redrawHtmlTable
- * 
- * Redraws the HTML table. This is used for HTML labels in all modes except
- * exact in IE and if NO_FO is false for the browser.
- */
-mxText.prototype.redrawHtmlTable = function()
-{
-	if (isNaN(this.bounds.x) || isNaN(this.bounds.y) ||
-		isNaN(this.bounds.width) || isNaN(this.bounds.height))
-	{
-		return;
-	}
-	
-	// Gets table
-	var table = this.node;
-	var td = table.firstChild.firstChild.firstChild;
-
-	// Un-rotates for computing the actual size
-	// TODO: Check if the result can be tweaked instead in getActualSize
-	// and only do this if actual rotation did change
-	var oldBrowser = false;
-	var fallbackScale = 1;
-	
-	if (mxClient.IS_IE)
-	{
-		table.style.removeAttribute('filter');
-	}
-	else if (mxClient.IS_SF || mxClient.IS_GC)
-	{
-		table.style.WebkitTransform = '';
-	}
-	else if (mxClient.IS_MT)
-	{
-		table.style.MozTransform = '';
-		td.style.MozTransform = '';
-	}
-	else
-	{
-		if (mxClient.IS_OT)
-		{
-			table.style.OTransform = '';
-		}
-		
-		fallbackScale = this.scale;
-		oldBrowser = true;
-	}
-
-	// Resets the current zoom for text measuring
-	td.style.zoom = '';
-	
-	// Updates the table style and value
-	this.updateHtmlTable(table, fallbackScale);
-	this.updateTableWidth(table);
-
-	// Opacity
-	if (this.opacity != null)
-	{
-		mxUtils.setOpacity(table, this.opacity);
-	}
-
-	// Resets the bounds for computing the actual size
-	table.style.left = '';
-	table.style.top = '';
-	table.style.height = '';
-
-	// Workaround for multiple zoom even if CSS style is reset here
-	var currentZoom = parseFloat(td.style.zoom) || 1;
-
-	// Only tables can be used to work out the actual size of the markup
-	// NOTE: offsetWidth and offsetHeight are very slow in quirks and IE 8 standards mode
-	var w = this.bounds.width;
-	var h = this.bounds.height;
-	
-	var ignoreStringSize = this.forceIgnoreStringSize || this.overflow == 'fill' ||
-			(this.align == mxConstants.ALIGN_LEFT && this.background == null && this.border == null);
-	
-	if (!ignoreStringSize)
-	{
-		var size = this.getTableSize(table);
-		w = size.width / currentZoom;
-		h = size.height / currentZoom;
-	}
-
-	var offset = this.getOffset(this.bounds.width / this.scale,
-			this.bounds.height / this.scale, w, h,
-			oldBrowser || this.horizontal);
-
-	// Adds horizontal/vertical spacing
-	var spacing = this.getSpacing(oldBrowser || this.horizontal);
-	var x = this.bounds.x / this.scale - offset.x + spacing.x;
-	var y = this.bounds.y / this.scale - offset.y + spacing.y;
-
-	// Updates the table bounds and stores the scale to be used for
-	// defining the table width and height, as well as an offset
-	var s = this.scale;
-	var s2 = 1;
-	var shiftX = 0;
-	var shiftY = 0;
-	
-	// Rotates the label and adds offset
-	if (!this.horizontal)
-	{
-		if (mxClient.IS_IE && mxClient.IS_SVG)
-		{
-			table.style.msTransform = 'rotate(' + this.verticalTextDegree + 'deg)';
-		}
-		else if (mxClient.IS_IE)
-		{
-			table.style.filter = this.ieVerticalFilter;
-			shiftX = (w - h) / 2;
-			shiftY = -shiftX;
-		}
-		else if (mxClient.IS_SF || mxClient.IS_GC)
-		{
-			table.style.WebkitTransform = 'rotate(' + this.verticalTextDegree + 'deg)';
-		}
-		else if (mxClient.IS_OT)
-		{
-			table.style.OTransform = 'rotate(' + this.verticalTextDegree + 'deg)';
-		}
-		else if (mxClient.IS_MT)
-		{
-			// Firefox paints background and border only if background is on TD
-			// and border is on TABLE and both are rotated, just the TD with a
-			// rotation of zero (don't remove the 0-rotate CSS style)
-			table.style.MozTransform = 'rotate(' + this.verticalTextDegree + 'deg)';
-			td.style.MozTransform = 'rotate(0deg)';
-			
-			s2 = 1 / this.scale;
-			s = 1;
-		}
-	}
-
-	// Sets the zoom
-	var correction = true;
-	
-	if (mxClient.IS_MT || oldBrowser)
-	{
-		if (mxClient.IS_MT)
-		{
-			table.style.MozTransform += ' scale(' + this.scale + ')';
-			s2 = 1 / this.scale;
-		}
-		else if (mxClient.IS_OT)
-		{
-			td.style.OTransform = 'scale(' + this.scale + ')';
-			table.style.borderWidth = Math.round(this.scale * parseInt(table.style.borderWidth)) + 'px';
-		}
-	}
-	else if (!oldBrowser)
-	{
-		// Workaround for unsupported zoom CSS in IE9 standards mode
-		if (document.documentMode >= 9)
-		{
-			td.style.msTransform = 'scale(' + this.scale + ')';
-		}
-		// Uses transform in Webkit for better HTML scaling
-		else if (mxClient.IS_SF || mxClient.IS_GC)
-		{
-			td.style.WebkitTransform = 'scale(' + this.scale + ')';
-		}
-		else
-		{
-			td.style.zoom = this.scale;
-			
-			// Fixes scaling of border width
-			if (table.style.borderWidth != '' && document.documentMode != 8)
-			{
-				table.style.borderWidth = Math.round(this.scale * parseInt(table.style.borderWidth)) + 'px';
-			}
-			
-			// Workaround for wrong scale in IE8 standards mode
-			if (document.documentMode == 8 || !mxClient.IS_IE)
-			{
-				s = 1;
-			}
-			
-			correction = false;
-		}
-	}
-
-	if (correction)
-	{
-		// Workaround for scaled TD position
-		shiftX = (this.scale - 1) * w / (2 * this.scale);
-		shiftY = (this.scale - 1) * h / (2 * this.scale);
-		s = 1;
-	}
-	
-	if (this.overflow != 'fill')
-	{
-	    var rect =  new mxRectangle(Math.round((x + shiftX) * this.scale),
-	    		Math.round((y + shiftY) * this.scale), Math.round(w * s), Math.round(h * s));
-	    table.style.left = rect.x + 'px';
-	    table.style.top = rect.y + 'px';
-	    table.style.width = rect.width + 'px';
-	    table.style.height = rect.height + 'px';
-		
-		// Workaround for wrong scale in border and background rendering for table and td in IE8/9 standards mode
-		if ((this.background != null || this.border != null) && document.documentMode >= 8)
-		{
-			var html = (this.replaceLinefeeds) ? this.value.replace(/\n/g, '<br/>') : this.value;
-			td.innerHTML = '<div style="padding:' + this.labelPadding + 'px;background:' + td.style.background + ';border:' + table.style.border + '">' + html + '</div>';
-			td.style.padding = '0px';
-			td.style.background = '';
-			table.style.border = '';
-		}
-
-		// Clipping
-		if (this.clipped && this.bounds.width > 0 && this.bounds.height > 0)
-		{
-			this.boundingBox = this.bounds.clone();
-	
-			// Clipping without rotation or for older browsers
-			if (this.horizontal || (oldBrowser && !mxClient.IS_OT))
-			{
-				var dx = Math.max(0, offset.x * s);
-				var dy = Math.max(0, offset.y * s);
-
-				// TODO: Fix clipping for Opera
-				table.style.clip = 'rect(' + (dy) + 'px ' + (dx + this.bounds.width * s2) +
-					'px ' + (dy + this.bounds.height * s2) + 'px ' + (dx) + 'px)';
-			}
-			else
-			{
-				// Workaround for IE clip using top, right, bottom, left (un-rotated)
-				if (mxClient.IS_IE)
-				{
-					var uw = this.bounds.width;
-					var uh = this.bounds.height;
-					var dx = 0;
-					var dy = 0;
-	
-					if (this.align == mxConstants.ALIGN_LEFT)
-					{
-						dx = Math.max(0, w - uh / this.scale) * this.scale;
-					}
-					else if (this.align == mxConstants.ALIGN_CENTER)
-					{
-						dx = Math.max(0, w - uh / this.scale) * this.scale / 2;
-					}
-					
-					if (this.valign == mxConstants.ALIGN_BOTTOM)
-					{
-						dy = Math.max(0, h - uw / this.scale) * this.scale;
-					}
-					else if (this.valign == mxConstants.ALIGN_MIDDLE)
-					{
-						dy = Math.max(0, h - uw / this.scale) * this.scale / 2;
-					}
-	
-					table.style.clip = 'rect(' + (dx) + 'px ' + (dy + uw - 1) +
-						'px ' + (dx + uh - 1) + 'px ' + (dy) + 'px)';
-				}
-				else
-				{
-					var uw = this.bounds.width / this.scale;
-					var uh = this.bounds.height / this.scale;
-					
-					if (mxClient.IS_OT)
-					{
-						uw = this.bounds.width;
-						uh = this.bounds.height;
-					}
-					
-					var dx = 0;
-					var dy = 0;
-	
-					if (this.align == mxConstants.ALIGN_RIGHT)
-					{
-						dx = Math.max(0, w - uh);
-					}
-					else if (this.align == mxConstants.ALIGN_CENTER)
-					{
-						dx = Math.max(0, w - uh) / 2;
-					}
-					
-					if (this.valign == mxConstants.ALIGN_BOTTOM)
-					{
-						dy = Math.max(0, h - uw);
-					}
-					else if (this.valign == mxConstants.ALIGN_MIDDLE)
-					{
-						dy = Math.max(0, h - uw) / 2;
-					}
-					
-					if (mxClient.IS_GC || mxClient.IS_SF)
-					{
-						dx *= this.scale;
-						dy *= this.scale;
-						uw *= this.scale;
-						uh *= this.scale;
-					}
-	
-					table.style.clip = 'rect(' + (dy) + ' ' + (dx + uh) +
-						' ' + (dy + uw) + ' ' + (dx) + ')';
-				}
-			}
-		}
-		else
-		{
-			this.boundingBox = rect;
-		}
-	}
-	else
-	{
-		this.boundingBox = this.bounds.clone();
-		
-		if (document.documentMode >= 9 || mxClient.IS_SVG)
-		{
-			table.style.left = Math.round(this.bounds.x + this.scale / 2 + shiftX) + 'px';
-			table.style.top = Math.round(this.bounds.y + this.scale / 2 + shiftY) + 'px';
-			table.style.width = Math.round((this.bounds.width - this.scale) / this.scale) + 'px';
-			table.style.height = Math.round((this.bounds.height - this.scale) / this.scale) + 'px';
-		}
-		else
-		{
-			s = (document.documentMode == 8) ? this.scale : 1;
-			table.style.left = Math.round(this.bounds.x + this.scale / 2) + 'px';
-			table.style.top = Math.round(this.bounds.y + this.scale / 2) + 'px';
-			table.style.width = Math.round((this.bounds.width - this.scale) / s) + 'px';
-			table.style.height = Math.round((this.bounds.height - this.scale) / s) + 'px';
-		}
-	}
-};
-
-/**
- * Function: getVerticalOffset
- *
- * Returns the factors for the offset to be added to the text vertical
- * text rotation. This implementation returns (offset.y, -offset.x).
- */
-mxText.prototype.getVerticalOffset = function(offset)
-{
-	return new mxPoint(offset.y, -offset.x);
-};
-
-/**
- * Function: redrawForeignObject
- *
- * Redraws the foreign object for this text.
- */
-mxText.prototype.redrawForeignObject = function()
-{
-	// Gets SVG group with foreignObject
-	var group = this.node;
-	var fo = group.firstChild;
-	
-	// Searches the table which appears behind the background
-	while (fo == this.backgroundNode)
-	{
-		fo = fo.nextSibling;
-	}
-	
-	var body = fo.firstChild;
-	
-	// Creates HTML container on the fly
-	if (body.firstChild == null)
-	{
-		body.appendChild(this.createHtmlTable());
-	}
-
-	// Updates the table style and value
-	var table = body.firstChild;
-	this.updateHtmlTable(table);
-	
-	// Workaround for bug in Google Chrome where the text is moved to origin if opacity
-	// is set on the table, so we set the opacity on the foreignObject instead.
-	if (this.opacity != null)
-	{
-		fo.setAttribute('opacity', this.opacity / 100);
-	}
-	
-	// Workaround for table background not appearing above the shape that is
-	// behind the label in Safari. To solve this, we add a background rect that
-	// paints the background instead.
-	if (mxClient.IS_SF)
-	{
-		table.style.borderStyle = 'none';
-		table.firstChild.firstChild.firstChild.style.background = '';
-		
-		if (this.backgroundNode == null && (this.background != null || this.border != null))
-		{
-			this.backgroundNode = document.createElementNS(mxConstants.NS_SVG, 'rect');
-			group.insertBefore(this.backgroundNode, group.firstChild);
-		}
-		else if (this.backgroundNode != null && this.background == null && this.border == null)
-		{
-			this.backgroundNode.parentNode.removeChild(this.backgroundNode);
-			this.backgroundNode = null;
-		}
-		
-		if (this.backgroundNode != null)
-		{
-			if (this.background != null)
-			{
-				this.backgroundNode.setAttribute('fill', this.background);
-			}
-			else
-			{
-				this.backgroundNode.setAttribute('fill', 'none');
-			}
-	
-			if (this.border != null)
-			{
-				this.backgroundNode.setAttribute('stroke', this.border);
-			}
-			else
-			{
-				this.backgroundNode.setAttribute('stroke', 'none');
-			}
-		}
-	}
-	
-	var tr = '';
-	
-	if (this.overflow != 'fill')
-	{
-		// Resets the bounds for computing the actual size
-		fo.removeAttribute('width');
-		fo.removeAttribute('height');
-		fo.style.width = '';
-		fo.style.height = '';
-		fo.style.clip = '';
-		
-		// Workaround for size of table not updated if inside foreignObject
-		if (this.wrap || (!mxClient.IS_GC && !mxClient.IS_SF))
-		{
-			document.body.appendChild(table);
-		}
-
-		this.updateTableWidth(table);
-		
-		// Only tables can be used to work out the actual size of the markup
-		var size = this.getTableSize(table);
-		var w = size.width;
-		var h = size.height;
-
-		if (table.parentNode != body)
-		{
-			body.appendChild(table);
-		}
-
-		// Adds horizontal/vertical spacing
-		var spacing = this.getSpacing();
-		
-		var x = this.bounds.x / this.scale + spacing.x;
-		var y = this.bounds.y / this.scale + spacing.y;
-		var uw = this.bounds.width / this.scale;
-		var uh = this.bounds.height / this.scale;
-		var offset = this.getOffset(uw, uh, w, h);
-		
-		// Rotates the label and adds offset
-		if (this.horizontal)
-		{
-			x -= offset.x;
-			y -= offset.y;
-			
-			tr = 'scale(' + this.scale + ')';
-		}
-		else
-		{
-			var x0 = x + w / 2;
-			var y0 = y + h / 2;
-			
-			tr = 'scale(' + this.scale + ') rotate(' + this.verticalTextDegree + ' ' + x0 + ' ' + y0 + ')';
-	
-			var tmp = this.getVerticalOffset(offset);
-			x += tmp.x;
-			y += tmp.y;
-		}
-		
-		// Must use translate instead of x- and y-attribute on FO for iOS
-		tr += ' translate(' + x + ' ' + y + ')';
-		
-		// Updates the bounds of the background node in Webkit
-		if (this.backgroundNode != null)
-		{
-			this.backgroundNode.setAttribute('width', w);
-			this.backgroundNode.setAttribute('height', h);
-		}
-		
-		// Updates the foreignObject size
-		fo.setAttribute('width', w);
-		fo.setAttribute('height', h);
-		
-		// Clipping
-		// TODO: Fix/check clipping for foreignObjects in Chrome 5.0 - if clipPath
-		// is used in the group then things can no longer be moved around
-		if (this.clipped && this.bounds.width > 0 && this.bounds.height > 0)
-		{
-			this.boundingBox = this.bounds.clone();
-			var dx = Math.max(0, offset.x);
-			var dy = Math.max(0, offset.y);
-
-			if (this.horizontal)
-			{
-				fo.style.clip = 'rect(' + dy + 'px,' + (dx + uw) +
-					'px,' + (dy + uh) + 'px,' + (dx) + 'px)';
-			}
-			else
-			{
-				var dx = 0;
-				var dy = 0;
-	
-				if (this.align == mxConstants.ALIGN_RIGHT)
-				{
-					dx = Math.max(0, w - uh);
-				}
-				else if (this.align == mxConstants.ALIGN_CENTER)
-				{
-					dx = Math.max(0, w - uh) / 2;
-				}
-				
-				if (this.valign == mxConstants.ALIGN_BOTTOM)
-				{
-					dy = Math.max(0, h - uw);
-				}
-				else if (this.valign == mxConstants.ALIGN_MIDDLE)
-				{
-					dy = Math.max(0, h - uw) / 2;
-				}
-	
-				fo.style.clip = 'rect(' + (dy) + 'px,' + (dx + uh) +
-					'px,' + (dy + uw) + 'px,' + (dx) + 'px)';
-			}
-			
-			// Clipping for the background node in Chrome
-			if (this.backgroundNode != null)
-			{
-				x = this.bounds.x / this.scale;
-				y = this.bounds.y / this.scale;
-				
-				if (!this.horizontal)
-				{
-					x += (h + w) / 2 - uh;
-					y += (h - w) / 2;
-					
-					var tmp = uw;
-					uw = uh;
-					uh = tmp;
-				}
-	
-				// No clipping in Chome available due to bug
-				if (!mxClient.IS_GC)
-				{
-					var clip = this.getSvgClip(this.node.ownerSVGElement, x, y, uw, uh);
-					
-					if (clip != this.clip)
-					{
-						this.releaseSvgClip();
-						this.clip = clip;
-						clip.refCount++;
-					}
-				
-					this.backgroundNode.setAttribute('clip-path', 'url(#' + clip.getAttribute('id') + ')');
-				}
-			}
-		}
-		else
-		{
-			// Removes clipping from background and cleans up the clip
-			this.releaseSvgClip();
-			
-			if (this.backgroundNode != null)
-			{
-				this.backgroundNode.removeAttribute('clip-path');
-			}
-			
-			if (this.horizontal)
-			{
-				this.boundingBox = new mxRectangle(x * this.scale, y * this.scale, w * this.scale, h * this.scale);
-			}
-			else
-			{
-				this.boundingBox = new mxRectangle(x * this.scale, y * this.scale, h * this.scale, w * this.scale);
-			}
-		}
-	}
-	else
-	{
-		this.boundingBox = this.bounds.clone();
-		
-		var s = this.scale;
-		var w = this.bounds.width / s;
-		var h = this.bounds.height / s;
-		
-		// Updates the foreignObject and table bounds
-		fo.setAttribute('width', w);
-		fo.setAttribute('height', h);
-		table.style.width = w + 'px';
-		table.style.height = h + 'px';
-		
-		// Updates the bounds of the background node in Webkit
-		if (this.backgroundNode != null)
-		{
-			this.backgroundNode.setAttribute('width', table.clientWidth);
-			this.backgroundNode.setAttribute('height', table.offsetHeight);
-		}
-		
-		// Must use translate instead of x- and y-attribute on FO for iOS
-		tr = 'scale(' + s + ') translate(' + (this.bounds.x / s) +
-			' ' + (this.bounds.y / s) + ')';
-
-		if (!this.wrap)
-		{
-			var td = table.firstChild.firstChild.firstChild;
-			td.style.whiteSpace = 'nowrap';
-		}
-	}
-	
-	group.setAttribute('transform', tr);
-};
-
-/**
- * Function: createSvg
- *
- * Creates and returns the SVG node(s) to represent this shape.
- */
-mxText.prototype.createSvg = function()
-{
-	// Creates a group so that shapes inside are rendered properly, if this is
-	// a text node then the background rectangle is not rendered in Webkit.
-	var node = document.createElementNS(mxConstants.NS_SVG, 'g');
-
-	var uline = this.isStyleSet(mxConstants.FONT_UNDERLINE) ? 'underline' : 'none';
-	var weight = this.isStyleSet(mxConstants.FONT_BOLD) ? 'bold' : 'normal';
-	var s = this.isStyleSet(mxConstants.FONT_ITALIC) ? 'italic' : null;
-
-	// Underline is not implemented in FF, see
-	// https://bugzilla.mozilla.org/show_bug.cgi?id=317196
-	node.setAttribute('text-decoration', uline);
-	node.setAttribute('font-family', this.family);
-	node.setAttribute('font-weight', weight);
-	node.setAttribute('font-size', Math.round(this.size * this.scale) + 'px');
-	node.setAttribute('fill', this.color);
-	var align = (this.align == mxConstants.ALIGN_RIGHT) ? 'end' :
-					(this.align == mxConstants.ALIGN_CENTER) ? 'middle' :
-					'start';
-	node.setAttribute('text-anchor', align);
-	
-	if (s != null)
-	{
-		node.setAttribute('font-style', s);
-	}
-
-	// Adds a rectangle for the background color
-	if (this.background != null || this.border != null)
-	{
-		this.backgroundNode = document.createElementNS(mxConstants.NS_SVG, 'rect');
-		this.backgroundNode.setAttribute('shape-rendering', 'crispEdges');
-
-		if (this.background != null)
-		{
-			this.backgroundNode.setAttribute('fill', this.background);
-		}
-		else
-		{
-			this.backgroundNode.setAttribute('fill', 'none');
-		}
-		
-		if (this.border != null)
-		{
-			this.backgroundNode.setAttribute('stroke', this.border);
-		}
-		else
-		{
-			this.backgroundNode.setAttribute('stroke', 'none');
-		}
-	}
-	
-	this.updateSvgValue(node);
-	
-	return node;
-};
-
-/**
- * Updates the text represented by the SVG DOM nodes.
- */
-mxText.prototype.updateSvgValue = function(node)
-{
-	if (this.currentValue != this.value)
-	{
-		// Removes all existing children
-		while (node.firstChild != null)
-		{
-			node.removeChild(node.firstChild);
-		}
-		
-		if (this.value != null)
-		{
-			// Adds tspan elements for the lines
-			var uline = this.isStyleSet(mxConstants.FONT_UNDERLINE) ? 'underline' : 'none';
-			var lines = this.value.split('\n');
-			
-			// Workaround for empty lines breaking the return value of getBBox
-			// for the enclosing g element so we avoid adding empty lines
-			// but still count them as a linefeed
-			this.textNodes = new Array(lines.length);
-			
-		 	for (var i = 0; i < lines.length; i++)
-		 	{
-		 		if (!this.isEmptyString(lines[i]))
-		 		{
-			 		var tspan = this.createSvgSpan(lines[i]);
-					node.appendChild(tspan);
-					this.textNodes[i] = tspan;
-					
-					// Requires either 'inherit' in Webkit or explicit setting
-					// to work in Webkit and IE9 standards mode. Both, inherit
-					// and underline do not work in FF. This is a known bug in
-					// FF (see above).
-			 		tspan.setAttribute('text-decoration', uline);
-		 		}
-		 		else
-		 		{
-		 			this.textNodes[i] = null;
-		 		}
-			}
-		}
-		
-		this.currentValue = this.value;
-	}
-};
-
-/**
- * Function: redrawSvg
- *
- * Updates the SVG node(s) to reflect the latest bounds and scale.
- */
-mxText.prototype.redrawSvg = function()
-{
-	if (this.node.nodeName == 'foreignObject')
-	{
-		this.redrawHtml();
-		
-		return;
-	}
-	
-	var fontSize = Math.round(this.size * this.scale);
-	
-	if (fontSize <= 0)
-	{
-		this.node.setAttribute('visibility', 'hidden');
-	}
-	else
-	{
-		this.node.removeAttribute('visibility');
-	}
-		
-	this.updateSvgValue(this.node);
-	this.node.setAttribute('font-size', fontSize + 'px');
-
-	if (this.opacity != null)
-	{
-		// Improves opacity performance in Firefox
-		this.node.setAttribute('fill-opacity', this.opacity/100);
-		this.node.setAttribute('stroke-opacity', this.opacity/100);
-	}
-
-	// Workaround to avoid the use of getBBox to find the size
-	// of the label. A temporary HTML table is created instead.
-	var previous = this.value;
-	var table = this.createHtmlTable();
-		
-	// Makes sure the table is updated and replaces all HTML entities 
-	this.lastValue = null;
-	this.value = mxUtils.htmlEntities(this.value, false);
-	this.updateHtmlTable(table);
-	
-	// Adds the table to the DOM to find the actual size
-	document.body.appendChild(table);
-	var w = table.offsetWidth * this.scale;
-	var h = table.offsetHeight * this.scale;
-	
-	// Cleans up the DOM and restores the original value
-	table.parentNode.removeChild(table);
-	this.value = previous;
-
-	// Sets the bounding box for the unclipped case so that
-	// the full background can be painted using it, the initial
-	// value for dx and the +4 in the width below are for
-	// error correction of the HTML and SVG text width
-	var dx = 2 * this.scale;
-	
-	if (this.align == mxConstants.ALIGN_CENTER)
-	{
-		dx += w / 2;
-	}
-	else if (this.align == mxConstants.ALIGN_RIGHT)
-	{
-		dx += w;
-	}
-
-	var dy = Math.round(fontSize * 1.3);
-	var childCount = this.node.childNodes.length;
-	var lineCount = (this.textNodes != null) ? this.textNodes.length : 0;
-	
-	if (this.backgroundNode != null)
-	{
-		childCount--;
-	}
-	
-	var x = this.bounds.x;
-	var y = this.bounds.y;
-
-	x += (this.align == mxConstants.ALIGN_RIGHT) ?
-		((this.horizontal) ? this.bounds.width : this.bounds.height)-
-		this.spacingRight * this.scale :
-		(this.align == mxConstants.ALIGN_CENTER) ?
-			this.spacingLeft * this.scale +
-			(((this.horizontal) ? this.bounds.width : this.bounds.height) -
-			this.spacingLeft * this.scale - this.spacingRight * this.scale) / 2 :
-			this.spacingLeft * this.scale + 1;
-
-	// Makes sure the alignment is like in VML and HTML
-	y += (this.valign == mxConstants.ALIGN_BOTTOM) ?
-			((this.horizontal) ? this.bounds.height : this.bounds.width) -
-			(lineCount - 1) * dy - this.spacingBottom * this.scale - 4 :
-			(this.valign == mxConstants.ALIGN_MIDDLE) ?
-				(this.spacingTop * this.scale +
-				((this.horizontal) ? this.bounds.height : this.bounds.width) -
-				this.spacingBottom * this.scale -
-				(lineCount - 1.5) * dy) / 2 :
-				this.spacingTop * this.scale + dy;
-	
-	if (this.overflow == 'fill')
-	{
-		if (this.align == mxConstants.ALIGN_CENTER)
-		{
-			x = Math.max(this.bounds.x + w / 2, x);	
-		}
-		
-		y = Math.max(this.bounds.y + fontSize, y);
-		
-		this.boundingBox = new mxRectangle(x - dx, y - dy,
-				w + 4 * this.scale, h + 1 * this.scale);
-		this.boundingBox.x = Math.min(this.bounds.x, this.boundingBox.x);
-		this.boundingBox.y = Math.min(this.bounds.y, this.boundingBox.y);
-		this.boundingBox.width = Math.max(this.bounds.width, this.boundingBox.width);
-		this.boundingBox.height = Math.max(this.bounds.height, this.boundingBox.height);
-	}
-	else
-	{
-		this.boundingBox = new mxRectangle(x - dx, y - dy,
-			w + 4 * this.scale, h + 1 * this.scale);
-	}
-
-	if (!this.horizontal)
-	{
-		var cx = this.bounds.x + this.bounds.width / 2;
-		var cy = this.bounds.y + this.bounds.height / 2;
-		
-		var offsetX = (this.bounds.width - this.bounds.height) / 2;
-		var offsetY = (this.bounds.height - this.bounds.width) / 2;
-		
-		this.node.setAttribute('transform',
-			'rotate(' + this.verticalTextDegree + ' ' + cx + ' ' + cy + ') ' +
-			'translate(' + (-offsetY) + ' ' + (-offsetX) + ')');
-	}
-
-	// TODO: Font-shadow
-	this.redrawSvgTextNodes(x, y, dy);
-
-	/*
-	 * FIXME: Bounding box is not rotated. This seems to be a problem for
-	 * all vertical text boxes. Workaround is in mxImageExport.
-	if (!this.horizontal)
-	{
-		var b = this.bounds.y + this.bounds.height;
-		var cx = this.boundingBox.getCenterX() - this.bounds.x;
-		var cy = this.boundingBox.getCenterY() - this.bounds.y;
-		
-		var y = b - cx - this.bounds.height / 2;
-		this.boundingBox.x = this.bounds.x + cy - this.boundingBox.width / 2;
-		this.boundingBox.y = y;
-	}
-	*/
-	
-	// Updates the bounds of the background node if one exists
-	if (this.value.length > 0 && this.backgroundNode != null && this.node.firstChild != null)
-	{
-		if (this.node.firstChild != this.backgroundNode)
-		{
-			this.node.insertBefore(this.backgroundNode, this.node.firstChild);
-		}
-
-		// FIXME: For larger font sizes the linespacing between HTML and SVG
-		// seems to be different and hence the bounding box isn't accurate.
-		// Also in Firefox the background box is slighly offset.
-		this.backgroundNode.setAttribute('x', this.boundingBox.x + this.scale / 2 + 1 * this.scale);
-		this.backgroundNode.setAttribute('y', this.boundingBox.y + this.scale / 2 + 2 * this.scale - this.labelPadding);
-		this.backgroundNode.setAttribute('width', this.boundingBox.width - this.scale - 2 * this.scale);
-		this.backgroundNode.setAttribute('height', this.boundingBox.height - this.scale);
-
-		var strokeWidth = Math.round(Math.max(1, this.scale));
-		this.backgroundNode.setAttribute('stroke-width', strokeWidth);
-	}
-	
-	// Adds clipping and updates the bounding box
-	if (this.clipped && this.bounds.width > 0 && this.bounds.height > 0)
-	{
-		this.boundingBox = this.bounds.clone();
-
-		if (!this.horizontal)
-		{
-			this.boundingBox.width = this.bounds.height;
-			this.boundingBox.height = this.bounds.width;
-		}
-		
-		x = this.bounds.x;
-		y = this.bounds.y;
-		
-		if (this.horizontal)
-		{
-			w = this.bounds.width;
-			h = this.bounds.height;
-		}
-		else
-		{
-			w = this.bounds.height;
-			h = this.bounds.width;	
-		}
-		
-		var clip = this.getSvgClip(this.node.ownerSVGElement, x, y, w, h);
-		
-		if (clip != this.clip)
-		{
-			this.releaseSvgClip();
-			this.clip = clip;
-			clip.refCount++;
-		}
-			
-		this.node.setAttribute('clip-path', 'url(#' + clip.getAttribute('id') + ')');
-	}
-	else
-	{
-		this.releaseSvgClip();
-		this.node.removeAttribute('clip-path');
-	}
-};
-
-/**
- * Function: redrawSvgTextNodes
- * 
- * Hook to update the position of the SVG text nodes.
- */
-mxText.prototype.redrawSvgTextNodes = function(x, y, dy)
-{
-	if (this.textNodes != null)
-	{
-		var currentY = y;
-		
-		for (var i = 0; i < this.textNodes.length; i++)
-		{
-			var node = this.textNodes[i];
-			
-			if (node != null)
-			{
-				node.setAttribute('x', x);
-				node.setAttribute('y', currentY);
-	
-				// Triggers an update in Firefox 1.5.0.x (don't add a semicolon!)
-				node.setAttribute('style', 'pointer-events: all');
-			}
-			
-			currentY += dy;
-		}
-	}
-};
-
-/**
- * Function: releaseSvgClip
- * 
- * Releases the given SVG clip removing it from the DOM if required.
- */
-mxText.prototype.releaseSvgClip = function()
-{
-	if (this.clip != null)
-	{
-		this.clip.refCount--;
-		
-		if (this.clip.refCount == 0)
-		{
-			this.clip.parentNode.removeChild(this.clip);
-		}
-		
-		this.clip = null;
-	}
-};
-
-/**
- * Function: getSvgClip
- * 
- * Returns a new or existing SVG clip path which is a descendant of the given
- * SVG node with a unique ID. 
- */
-mxText.prototype.getSvgClip = function(svg, x, y, w, h)
-{
-	x = Math.round(x);
-	y = Math.round(y);
-	w = Math.round(w);
-	h = Math.round(h);
-	
-	var id = 'mx-clip-' + x + '-' + y + '-' + w + '-' + h;
-
-	// Quick access
-	if (this.clip != null && this.clip.ident == id)
-	{
-		return this.clip;
-	}
-	
-	var counter = 0;
-	var tmp = id + '-' + counter;
-	var clip = document.getElementById(tmp);
-	
-	// Tries to find an existing clip in the given SVG
-	while (clip != null)
-	{
-		if (clip.ownerSVGElement == svg)
-		{
-			return clip;
-		}
-		
-		counter++;
-		tmp = id + '-' + counter;
-		clip = document.getElementById(tmp);
-	}
-	
-	// Creates a new clip node and adds it to the DOM
-	if (clip != null)
-	{
-		clip = clip.cloneNode(true);
-		counter++;
-	}
-	else
-	{
-		clip = document.createElementNS(mxConstants.NS_SVG, 'clipPath');
-		
-		var rect = document.createElementNS(mxConstants.NS_SVG, 'rect');
-		rect.setAttribute('x', x);
-		rect.setAttribute('y', y);
-		rect.setAttribute('width', w);
-		rect.setAttribute('height', h);
-		
-		clip.appendChild(rect);
-	}
-	
-	clip.setAttribute('id', id + '-' + counter);
-	clip.ident = id; // For quick access above
-	svg.appendChild(clip);
-	clip.refCount = 0;
-	
-	return clip;
-};
-
-/**
- * Function: isEmptyString
- *
- * Returns true if the given string is empty or
- * contains only whitespace.
- */
-mxText.prototype.isEmptyString = function(text)
-{
-	return text.replace(/ /g, '').length == 0;
-};
-
-/**
- * Function: createSvgSpan
- *
- * Creats an SVG tspan node for the given text.
- */
-mxText.prototype.createSvgSpan = function(text)
-{
-	// Creates a text node since there is no enclosing text element but
-	// rather a group, which is required to render the background rectangle
-	// in Webkit. This can be changed to tspan if the enclosing node is
-	// a text but this leads to an hidden background in Webkit.
-	var node = document.createElementNS(mxConstants.NS_SVG, 'text');
-	// Needed to preserve multiple white spaces, but ignored in IE9 plus white-space:pre
-	// is ignored in HTML output for VML, so better to not use this for SVG labels
-	// node.setAttributeNS('http://www.w3.org/XML/1998/namespace', 'xml:space', 'preserve')
-	// Alternative idea is to replace all spaces with &nbsp; to fix HTML in IE, but
-	// IE9/10 with SVG will still ignore the xml:space preserve tag as discussed here:
-	// http://stackoverflow.com/questions/8086292/significant-whitespace-in-svg-embedded-in-html
-	// Could replace spaces with &nbsp; in text but HTML tags must be scaped first.
-	mxUtils.write(node, text);
-	
-	return node;
-};
-
-/**
- * Function: destroy
- *
- * Extends destroy to remove any allocated SVG clips.
- */
-mxText.prototype.destroy = function()
-{
-	this.releaseSvgClip();
-	mxShape.prototype.destroy.apply(this, arguments);
+	return new mxPoint(dx, dy);
 };

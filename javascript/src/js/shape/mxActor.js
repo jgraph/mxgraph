@@ -1,5 +1,5 @@
 /**
- * $Id: mxActor.js,v 1.35 2012/07/31 11:46:53 gaudenz Exp $
+ * $Id: mxActor.js,v 1.2 2012/11/22 10:40:09 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -44,6 +44,7 @@
  */
 function mxActor(bounds, fill, stroke, strokewidth)
 {
+	mxShape.call(this);
 	this.bounds = bounds;
 	this.fill = fill;
 	this.stroke = stroke;
@@ -53,131 +54,33 @@ function mxActor(bounds, fill, stroke, strokewidth)
 /**
  * Extends mxShape.
  */
-mxActor.prototype = new mxShape();
-mxActor.prototype.constructor = mxActor;
+mxUtils.extend(mxActor, mxShape);
 
 /**
- * Variable: mixedModeHtml
- *
- * Overrides the parent value with false, meaning it will
- * draw in VML in mixed Html mode.
+ * Function: paintVertexShape
+ * 
+ * Redirects to redrawPath for subclasses to work.
  */
-mxActor.prototype.mixedModeHtml = false;
-
-/**
- * Variable: preferModeHtml
- *
- * Overrides the parent value with false, meaning it will
- * draw as VML in prefer Html mode.
- */
-mxActor.prototype.preferModeHtml = false;
-
-/**
- * Variable: vmlScale
- *
- * Renders VML with a scale of 2.
- */
-mxActor.prototype.vmlScale = 2;
-
-/**
- * Function: createVml
- *
- * Creates and returns the VML node(s) to represent this shape.
- */
-mxActor.prototype.createVml = function()
+mxActor.prototype.paintVertexShape = function(c, x, y, w, h)
 {
-	var node = document.createElement('v:shape');
-	node.style.position = 'absolute';
-	this.configureVmlShape(node);
-	
-	return node;
-};
-
-/**
- * Function: redrawVml
- *
- * Updates the VML node(s) to reflect the latest bounds and scale.
- */
-mxActor.prototype.redrawVml = function()
-{
-	this.updateVmlShape(this.node);
-	this.node.path = this.createPath();
-};
-
-/**
- * Function: createSvg
- *
- * Creates and returns the SVG node(s) to represent this shape.
- */
-mxActor.prototype.createSvg = function()
-{
-	return this.createSvgGroup('path');
-};
-
-/**
- * Function: redrawSvg
- *
- * Updates the SVG node(s) to reflect the latest bounds and scale.
- */
-mxActor.prototype.redrawSvg = function()
-{
-	var strokeWidth = Math.round(Math.max(1, this.strokewidth * this.scale));
-	this.innerNode.setAttribute('stroke-width', strokeWidth);
-	this.innerNode.setAttribute('stroke-linejoin', 'round');
-
-	if (this.crisp && (this.rotation == null || this.rotation == 0))
-	{
-		this.innerNode.setAttribute('shape-rendering', 'crispEdges');
-	}
-	else
-	{
-		this.innerNode.removeAttribute('shape-rendering');
-	}
-	
-	var d = this.createPath();
-	
-	if (d.length > 0)
-	{
-		this.innerNode.setAttribute('d', d);
-
-		if (this.shadowNode != null)
-		{
-			this.shadowNode.setAttribute('transform', this.getSvgShadowTransform() + 
-				(this.innerNode.getAttribute('transform') || ''));
-			this.shadowNode.setAttribute('stroke-width', strokeWidth);
-			this.shadowNode.setAttribute('d', d);
-		}
-	}
-	else
-	{
-		this.innerNode.removeAttribute('d');
-		
-		if (this.shadowNode != null)
-		{
-			this.shadowNode.removeAttribute('d');
-		}
-	}
-	
-	if (this.isDashed)
-	{
-		var phase = Math.max(1, Math.round(3 * this.scale * this.strokewidth));
-		this.innerNode.setAttribute('stroke-dasharray', phase + ' ' + phase);
-	}
+	c.translate(x, y);
+	c.begin();
+	this.redrawPath(c, x, y, w, h);
+	c.fillAndStroke();
 };
 
 /**
  * Function: redrawPath
  *
- * Draws the path for this shape. This method uses the <mxPath>
- * abstraction to paint the shape for VML and SVG.
+ * Draws the path for this shape.
  */
-mxActor.prototype.redrawPath = function(path, x, y, w, h)
+mxActor.prototype.redrawPath = function(c, x, y, w, h)
 {
 	var width = w/3;
-	path.moveTo(0, h);
-	path.curveTo(0, 3 * h / 5, 0, 2 * h / 5, w / 2, 2 * h / 5);
-	path.curveTo(w / 2 - width, 2 * h / 5, w / 2 - width, 0, w / 2, 0);
-	path.curveTo(w / 2 + width, 0, w / 2 + width, 2 * h / 5, w / 2, 2 * h / 5);
-	path.curveTo(w, 2 * h / 5, w, 3 * h / 5, w, h);
-	path.close();
+	c.moveTo(0, h);
+	c.curveTo(0, 3 * h / 5, 0, 2 * h / 5, w / 2, 2 * h / 5);
+	c.curveTo(w / 2 - width, 2 * h / 5, w / 2 - width, 0, w / 2, 0);
+	c.curveTo(w / 2 + width, 0, w / 2 + width, 2 * h / 5, w / 2, 2 * h / 5);
+	c.curveTo(w, 2 * h / 5, w, 3 * h / 5, w, h);
+	c.close();
 };

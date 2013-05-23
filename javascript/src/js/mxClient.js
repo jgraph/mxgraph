@@ -1,5 +1,5 @@
 /**
- * $Id: mxClient.js,v 1.205 2013/04/23 10:39:11 gaudenz Exp $
+ * $Id: mxClient.js,v 1.14 2013/05/21 16:40:21 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClient =
@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.13.0.0.
+	 * Current version is 2.0.0.1.
 	 */
-	VERSION: '1.13.0.0',
+	VERSION: '2.0.0.1',
 
 	/**
 	 * Variable: IS_IE
@@ -45,6 +45,20 @@ var mxClient =
 	 * True if the current browser is Internet Explorer and it is in quirks mode.
 	 */
 	IS_QUIRKS: navigator.userAgent.indexOf('MSIE') >= 0 && (document.documentMode == null || document.documentMode == 5),
+
+	/**
+	 * Variable: VML_PREFIX
+	 * 
+	 * Prefix for VML namespace in node names. Default is 'v'.
+	 */
+	VML_PREFIX: 'v',
+
+	/**
+	 * Variable: OFFICE_PREFIX
+	 * 
+	 * Prefix for VML office namespace in node names. Default is 'o'.
+	 */
+	OFFICE_PREFIX: 'o',
 
 	/**
 	 * Variable: IS_NS
@@ -126,20 +140,10 @@ var mxClient =
 	 * Variable: NO_FO
 	 *
 	 * True if foreignObject support is not available. This is the case for
-	 * Opera and older SVG-based browsers. IE does not require this type
-	 * of tag.
+	 * Opera and older SVG-based browsers.
 	 */
-  	NO_FO: navigator.userAgent.indexOf('Firefox/1.') >= 0 ||
-  		navigator.userAgent.indexOf('Iceweasel/1.') >= 0 ||
-  		navigator.userAgent.indexOf('Firefox/2.') >= 0 ||
-	  	navigator.userAgent.indexOf('Iceweasel/2.') >= 0 ||
-	  	navigator.userAgent.indexOf('SeaMonkey/1.') >= 0 ||
-	  	navigator.userAgent.indexOf('Iceape/1.') >= 0 ||
-	  	navigator.userAgent.indexOf('Camino/1.') >= 0 ||
-	  	navigator.userAgent.indexOf('Epiphany/2.') >= 0 ||
-	  	navigator.userAgent.indexOf('Opera/') >= 0 ||
-	  	navigator.userAgent.indexOf('MSIE') >= 0 ||
-	  	navigator.userAgent.indexOf('Mozilla/2.') >= 0, // Safari/Google Chrome
+  	NO_FO: !document.createElementNS || document.createElementNS('http://www.w3.org/2000/svg',
+  		'foreignObject') != '[object SVGForeignObjectElement]' || navigator.userAgent.indexOf('Opera/') >= 0,
 
 	/**
 	 * Variable: IS_VML
@@ -157,14 +161,18 @@ var mxClient =
 
 	/**
 	 * Variable: IS_TOUCH
-	 *
-	 * True if this client uses a touch interface (no mouse). Currently this
-	 * detects IPads, IPods, IPhones and Android devices.
+	 * 
+	 * True if this device supports touchstart/-move/-end events (Apple iOS,
+	 * Android and Chromebook).
 	 */
-  	IS_TOUCH: navigator.userAgent.toUpperCase().indexOf('IPAD') > 0 ||
-  			  navigator.userAgent.toUpperCase().indexOf('IPOD') > 0 ||
-  			  navigator.userAgent.toUpperCase().indexOf('IPHONE') > 0 ||
-  			  navigator.userAgent.toUpperCase().indexOf('ANDROID') > 0,
+  	IS_TOUCH: 'ontouchstart' in document.documentElement,
+
+	/**
+	 * Variable: IS_POINTER
+	 * 
+	 * True if this device supports MS pointer events.
+	 */
+  	IS_POINTER: window.navigator.msPointerEnabled,
 
 	/**
 	 * Variable: IS_LOCAL
@@ -272,6 +280,33 @@ var mxClient =
 };
 
 /**
+ * Variable: CSS_PREFIX
+ * 
+ * Optional prefix for CSS transforms if CSS transforms are supported by this browser.
+ * Can be used as follows.
+ * 
+ * (code)
+ * node.style[mxClient.CSS_PREFIX + 'TransformOrigin'] = '0% 0%';
+ * (end)
+ */
+if (mxClient.IS_OP && mxClient.IS_OT)
+{
+	mxClient.CSS_PREFIX = 'O';
+}
+else if (mxClient.IS_SF || mxClient.IS_GC)
+{
+	mxClient.CSS_PREFIX = 'Webkit';
+}
+else if (mxClient.IS_MT)
+{
+	mxClient.CSS_PREFIX = 'Moz';
+}
+else if (mxClient.IS_IE && document.documentMode >= 9)
+{
+	mxClient.CSS_PREFIX = 'ms';
+}
+
+/**
  * Variable: mxLoadResources
  * 
  * Optional global config variable to toggle loading of the two resource files
@@ -288,6 +323,24 @@ var mxClient =
 if (typeof(mxLoadResources) == 'undefined')
 {
 	mxLoadResources = true;
+}
+
+/**
+ * Variable: mxResourceExtension
+ * 
+ * Optional global config variable to specify the extension of resource files.
+ * Default is true. NOTE: This is a global variable, not a variable of mxClient.
+ *
+ * (code)
+ * <script type="text/javascript">
+ * 		var mxResourceExtension = '.txt';
+ * </script>
+ * <script type="text/javascript" src="/path/to/core/directory/js/mxClient.js"></script>
+ * (end)
+ */
+if (typeof(mxResourceExtension) == 'undefined')
+{
+	mxResourceExtension = '.txt';
 }
 
 /**
@@ -404,7 +457,7 @@ else
  * <mxGraph.containsValidationErrorsResource> and
  * <mxGraph.alreadyConnectedResource>.
  */
-if (typeof(mxLanguage) != 'undefined')
+if (typeof(mxLanguage) != 'undefined' && mxLanguage != null)
 {
 	mxClient.language = mxLanguage;
 }
@@ -430,7 +483,7 @@ else
  * <script type="text/javascript" src="js/mxClient.js"></script>
  * (end)
  */
-if (typeof(mxDefaultLanguage) != 'undefined')
+if (typeof(mxDefaultLanguage) != 'undefined' && mxDefaultLanguage != null)
 {
 	mxClient.defaultLanguage = mxDefaultLanguage;
 }
@@ -462,14 +515,14 @@ if (mxLoadStylesheets)
  * This is used to avoid unnecessary requests to language files, ie. if a 404
  * will be returned.
  */
-if (typeof(mxLanguages) != 'undefined')
+if (typeof(mxLanguages) != 'undefined' && mxLanguages != null)
 {
 	mxClient.languages = mxLanguages;
 }
 
 if (mxClient.IS_IE)
 {
-	// IE9/10 standards mode uses SVG (VML is broken)
+	// IE9/10 standards mode uses SVG (VML is no longer supported)
 	if (document.documentMode >= 9)
 	{
 		mxClient.IS_VML = false;
@@ -479,20 +532,21 @@ if (mxClient.IS_IE)
 	{
 		// Enables support for IE8 standards mode. Note that this requires all attributes for VML
 		// elements to be set using direct notation, ie. node.attr = value. The use of setAttribute
-		// is not possible. See mxShape.init for more code to handle this specific document mode.
+		// is not possible.
 		if (document.documentMode == 8)
 		{
-			document.namespaces.add('v', 'urn:schemas-microsoft-com:vml', '#default#VML');
-			document.namespaces.add('o', 'urn:schemas-microsoft-com:office:office', '#default#VML');
+			document.namespaces.add(mxClient.VML_PREFIX, 'urn:schemas-microsoft-com:vml', '#default#VML');
+			document.namespaces.add(mxClient.OFFICE_PREFIX, 'urn:schemas-microsoft-com:office:office', '#default#VML');
 		}
 		else
 		{
-			document.namespaces.add('v', 'urn:schemas-microsoft-com:vml');
-			document.namespaces.add('o', 'urn:schemas-microsoft-com:office:office');
+			document.namespaces.add(mxClient.VML_PREFIX, 'urn:schemas-microsoft-com:vml');
+			document.namespaces.add(mxClient.OFFICE_PREFIX, 'urn:schemas-microsoft-com:office:office');
 		}
 		
         var ss = document.createStyleSheet();
-        ss.cssText = 'v\\:*{behavior:url(#default#VML)}o\\:*{behavior:url(#default#VML)}';
+        ss.cssText = mxClient.VML_PREFIX + '\\:*{behavior:url(#default#VML)}' +
+        	mxClient.OFFICE_PREFIX + '\\:*{behavior:url(#default#VML)}';
         
         if (mxLoadStylesheets)
         {
@@ -530,20 +584,20 @@ mxClient.include(mxClient.basePath+'/js/util/mxUndoableEdit.js');
 mxClient.include(mxClient.basePath+'/js/util/mxUndoManager.js');
 mxClient.include(mxClient.basePath+'/js/util/mxUrlConverter.js');
 mxClient.include(mxClient.basePath+'/js/util/mxPanningManager.js');
-mxClient.include(mxClient.basePath+'/js/util/mxPath.js');
 mxClient.include(mxClient.basePath+'/js/util/mxPopupMenu.js');
 mxClient.include(mxClient.basePath+'/js/util/mxAutoSaveManager.js');
 mxClient.include(mxClient.basePath+'/js/util/mxAnimation.js');
 mxClient.include(mxClient.basePath+'/js/util/mxMorphing.js');
 mxClient.include(mxClient.basePath+'/js/util/mxImageBundle.js');
 mxClient.include(mxClient.basePath+'/js/util/mxImageExport.js');
+mxClient.include(mxClient.basePath+'/js/util/mxAbstractCanvas2D.js');
 mxClient.include(mxClient.basePath+'/js/util/mxXmlCanvas2D.js');
 mxClient.include(mxClient.basePath+'/js/util/mxSvgCanvas2D.js');
+mxClient.include(mxClient.basePath+'/js/util/mxVmlCanvas2D.js');
 mxClient.include(mxClient.basePath+'/js/util/mxGuide.js');
-mxClient.include(mxClient.basePath+'/js/shape/mxShape.js');
 mxClient.include(mxClient.basePath+'/js/shape/mxStencil.js');
+mxClient.include(mxClient.basePath+'/js/shape/mxShape.js');
 mxClient.include(mxClient.basePath+'/js/shape/mxStencilRegistry.js');
-mxClient.include(mxClient.basePath+'/js/shape/mxStencilShape.js');
 mxClient.include(mxClient.basePath+'/js/shape/mxMarker.js');
 mxClient.include(mxClient.basePath+'/js/shape/mxActor.js');
 mxClient.include(mxClient.basePath+'/js/shape/mxCloud.js');

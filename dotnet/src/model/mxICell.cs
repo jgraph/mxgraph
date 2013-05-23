@@ -1,4 +1,4 @@
-// $Id: mxICell.cs,v 1.11 2010/08/19 11:58:19 david Exp $
+// $Id: mxICell.cs,v 1.1 2012/11/15 13:26:48 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Collections;

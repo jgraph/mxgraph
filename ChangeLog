@@ -1,3 +1,35 @@
+23-MAY-2013: 2.0.0.1
+
+- Adds mxPanningHandler.prototype.scaleGraph for pinch gesture events [JavaScript]
+- Uses capability check for mxClient.IS_TOUCH, adds mxClient.IS_POINTER [JavaScript]
+- Adds new visibility.html example [JavaScript]
+- Adds support for Microsoft pointer events in IE10 and later [JavaScript]
+- Updates Visual Studio files for VS Express for Web 2012 [Dotnet]
+- Adds experimental mxVertexHandler, mxEdgeHandler.livePreview switch [JavaScript]
+- Adds Sidebar.itemClicked, EditorUi.createSidebarFooterContainer hooks in grapheditor
+- Adds layers menu, new shapes in grapheditor [JavaScript]
+- Adds overflow=width and changes vertical align for overflow=fill [JavaScript]
+- Removes mxCellRenderer.shapes, makes registerShape static, adds getShape [JavaScript]
+- Adds mxText.baseSpacingTop/-Bottom/-Left/-Right for legacy support [JavaScript]
+- Fixes order of edits in mxGraph.groupCells [JavaScript]
+- Changes arguments of mxPrintPreview.renderPage, takes callback [JavaScript]
+- Adds mxPrintPreview.getAppendices, getCoverPages hooks [JavaScript]
+- Adds mxCellEditor.autoSize, fixes lineHeight and fontStyle [JavaScript]
+- Adds mxPanningHandler.triggerX, triggerY for initial event coordinates [JavaScript]
+- Adds mxGraph-/mxVertexHandler.prototype.rotationEnabled, rotationRaster [JavaScript]
+- Changes default for mxResources.resourcesEncoded to false [JavaScript]
+- Adds mxResourceExtension global variable, sets default to .txt [JavaScript]
+- Adds align-shape, rotation attributes in text element for stencils [JavaScript]
+- Adds mxConstants.STYLE_SWIMLANE_FILLCOLOR, STYLE_SWIMLANE_LINE, LINE_HEIGHT [JavaScript]
+- Adds mxClient.VML_PREFIX, OFFICE_PREFIX, CSS_PREFIX [JavaScript]
+- Adds dashed option to mxCellHighlight [JavaScript]
+--
+23-MAY-2013: 1.13.0.1
+
+- Fixes possible error for empty text drawing mxGraphicsCanvas2D [Java]
+- Fixes mxCompactTreeLayout.prototype.sortOutgoingEdges [JavaScript]
+- Adds mxShape.getLabelBounds hook for custom label bounds [JavaScript]
+
 03-MAY-2013: 1.13.0.0
 
 - Adds mxConstraintHandler.isStateIgnored hook [JavaScript]

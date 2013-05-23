@@ -1,5 +1,5 @@
 /**
- * $Id: mxResources.js,v 1.32 2012/10/26 13:36:50 gaudenz Exp $
+ * $Id: mxResources.js,v 1.4 2013/05/04 20:17:09 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxResources =
@@ -60,17 +60,17 @@ var mxResources =
 	/**
 	 * Variable: extension
 	 * 
-	 * Specifies the extension used for language files. Default is '.properties'.
+	 * Specifies the extension used for language files. Default is <mxResourceExtension>.
 	 */
-	extension: '.properties',
+	extension: mxResourceExtension,
 
 	/**
 	 * Variable: resourcesEncoded
 	 * 
 	 * Specifies whether or not values in resource files are encoded with \u or
-	 * percentage. Default is true.
+	 * percentage. Default is false.
 	 */
-	resourcesEncoded: true,
+	resourcesEncoded: false,
 
 	/**
 	 * Variable: loadDefaultBundle
@@ -276,7 +276,7 @@ var mxResources =
 						}
 						else
 						{
-							mxResources.resources[key] = value;	
+							mxResources.resources[key] = value;
 						}
 					}
 				}

@@ -1,4 +1,4 @@
-// $Id: mxPoint.cs,v 1.12 2009/11/13 09:28:03 gaudenz Exp $
+// $Id: mxPoint.cs,v 1.1 2012/11/15 13:26:48 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Collections;

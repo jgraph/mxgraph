@@ -1,5 +1,5 @@
 /**
- * $Id: mxHierarchicalLayoutStage.js,v 1.8 2010/01/02 09:45:15 gaudenz Exp $
+ * $Id: mxHierarchicalLayoutStage.js,v 1.1 2012/11/15 13:26:50 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

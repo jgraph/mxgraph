@@ -1,5 +1,5 @@
 <!--
-  $Id: serverview.html,v 1.8 2012/07/17 08:22:19 gaudenz Exp $
+  $Id: serverview.html,v 1.2 2012/12/02 13:54:30 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Server-View example for mxGraph. This example demonstrates using
@@ -50,12 +50,7 @@
 			
 			if (container != null)
 			{
-				var md = (mxClient.IS_TOUCH) ? 'touchstart' : 'mousedown';
-				var mm = (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove';
-				var mu = (mxClient.IS_TOUCH) ? 'touchend' : 'mouseup';
-				
-				// Adds basic listeners for graph event dispatching
-				mxEvent.addListener(container, md,
+				mxEvent.addGestureListeners(container,
 					mxUtils.bind(this, function(evt)
 					{
 						var pt = mxUtils.convertPoint(graph.container,
@@ -78,9 +73,7 @@
 							graph.fireMouseEvent(mxEvent.MOUSE_DOWN,
 								new mxMouseEvent(evt));
 						}
-					})
-				);
-				mxEvent.addListener(container, mm,
+					}),
 					mxUtils.bind(this, function(evt)
 					{
 						var pt = mxUtils.convertPoint(graph.container,
@@ -98,9 +91,7 @@
 							graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
 								new mxMouseEvent(evt));
 						}
-					})
-				);
-				mxEvent.addListener(container, mu,
+					}),
 					mxUtils.bind(this, function(evt)
 					{
 						var pt = mxUtils.convertPoint(graph.container,
@@ -118,8 +109,7 @@
 							graph.fireMouseEvent(mxEvent.MOUSE_UP,
 								new mxMouseEvent(evt));
 						}
-					})
-				);
+					}));
 				
 				// Adds listener for double click handling on background
 				mxEvent.addListener(container, 'dblclick',

@@ -1,5 +1,5 @@
 <!--
-  $Id: editing.html,v 1.10 2012/11/20 09:06:07 gaudenz Exp $
+  $Id: editing.html,v 1.1 2012/11/15 13:26:40 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Editing example for mxGraph. This example demonstrates using the in-place
@@ -81,12 +81,16 @@
 					var body = document.createElement('tbody');
 					var tr1 = document.createElement('tr');
 					var td1 = document.createElement('td');
+					td1.style.textAlign = 'center';
 					td1.style.fontSize = '12px';
+					td1.style.color = '#774400';
 					mxUtils.write(td1, cell.value.first);
 					
 					var tr2 = document.createElement('tr');
 					var td2 = document.createElement('td');
+					td2.style.textAlign = 'center';
 					td2.style.fontSize = '12px';
+					td2.style.color = '#774400';
 					mxUtils.write(td2, cell.value.second);
 					
 					tr1.appendChild(td1);

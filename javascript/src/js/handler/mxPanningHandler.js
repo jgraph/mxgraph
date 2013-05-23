@@ -1,5 +1,5 @@
 /**
- * $Id: mxPanningHandler.js,v 1.79 2012/07/17 14:37:41 gaudenz Exp $
+ * $Id: mxPanningHandler.js,v 1.5 2013/05/23 12:18:27 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -54,6 +54,20 @@ mxPanningHandler.prototype.constructor = mxPanningHandler;
  * Reference to the enclosing <mxGraph>.
  */
 mxPanningHandler.prototype.graph = null;
+
+/**
+ * Variable: triggerX
+ * 
+ * X-coordinate of the mouse down event.
+ */
+mxPanningHandler.prototype.triggerX = null;
+
+/**
+ * Variable: triggerY
+ * 
+ * X-coordinate of the mouse down event.
+ */
+mxPanningHandler.prototype.triggerY = null;
 
 /**
  * Variable: usePopupTrigger
@@ -151,12 +165,10 @@ mxPanningHandler.prototype.init = function()
 
 	// Hides the tooltip if the mouse is over
 	// the context menu
-	mxEvent.addListener(this.div, (mxClient.IS_TOUCH) ? 'touchmove' : 'mousemove',
-		mxUtils.bind(this, function(evt)
-		{
-			this.graph.tooltipHandler.hide();
-		})
-	);
+	mxEvent.addGestureListeners(this.div, mxUtils.bind(this, function(evt)
+	{
+		this.graph.tooltipHandler.hide();
+	}));
 };
 
 /**
@@ -184,7 +196,7 @@ mxPanningHandler.prototype.isPanningTrigger = function(me)
  */
 mxPanningHandler.prototype.mouseDown = function(sender, me)
 {
-	if (!me.isConsumed() && this.isEnabled())
+	if (!me.isConsumed() && this.isEnabled() && !this.active)
 	{
 		// Hides the popupmenu if is is being displayed
 		this.hideMenu();
@@ -193,6 +205,9 @@ mxPanningHandler.prototype.mouseDown = function(sender, me)
 		this.dy0 = -this.graph.container.scrollTop;
 		
 		// Checks the event triggers to panning and popupmenu
+		var pt = mxUtils.convertPoint(this.graph.container, me.getX(), me.getY());
+		this.triggerX = pt.x;
+		this.triggerY = pt.y;
 		this.popupTrigger = this.isPopupTrigger(me);
 		this.panningTrigger = this.isPanningEnabled() &&
 			this.isPanningTrigger(me);
@@ -254,7 +269,14 @@ mxPanningHandler.prototype.mouseMove = function(sender, me)
 	
 	if (this.active)
 	{
-		if (this.previewEnabled)
+		// Handles pinch on iOS
+		var scale = me.getEvent().scale;
+		
+		if (scale != null && scale != 1)
+		{
+			this.scaleGraph(scale, true);
+		}
+		else if (this.previewEnabled)
 		{
 			// Applies the grid to the panning steps
 			if (this.useGrid)
@@ -315,7 +337,18 @@ mxPanningHandler.prototype.mouseUp = function(sender, me)
 			var t = this.graph.getView().translate;
 			
 			this.graph.panGraph(0, 0);
-			this.panGraph(t.x + dx / scale, t.y + dy / scale);
+			
+			// Handles pinch on iOS
+			var scale2 = me.getEvent().scale;
+			
+			if (scale2 != null && scale2 != 1)
+			{
+				this.scaleGraph(scale2, false);
+			}
+			else
+			{
+				this.panGraph(t.x + dx / scale, t.y + dy / scale);
+			}
 		}
 		
 		this.active = false;
@@ -354,6 +387,24 @@ mxPanningHandler.prototype.mouseUp = function(sender, me)
 	
 	this.panningTrigger = false;
 	this.popupTrigger = false;
+};
+
+/**
+ * Function: scaleGraph
+ * 
+ * Handles pinch events on touch devices.
+ */
+mxPanningHandler.prototype.scaleGraph = function(scale, preview)
+{
+	if (preview)
+	{
+		this.graph.view.getCanvas().setAttribute('transform', 'scale(' + scale + ')');
+	}
+	else
+	{
+		this.graph.view.getCanvas().removeAttribute('transform');
+		this.graph.view.setScale(this.graph.view.scale * scale);
+	}
 };
 
 /**
