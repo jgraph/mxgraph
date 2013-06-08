@@ -1,5 +1,5 @@
 /**
- * $Id: mxElbowEdgeHandler.js,v 1.43 2012/01/06 13:06:01 gaudenz Exp $
+ * $Id: mxElbowEdgeHandler.js,v 1.44 2013/06/05 11:36:48 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -204,9 +204,19 @@ mxElbowEdgeHandler.prototype.convertPoint = function(point, gridEnabled)
 mxElbowEdgeHandler.prototype.redrawInnerBends = function(p0, pe)
 {
 	var g = this.graph.getModel().getGeometry(this.state.cell);
-	var pts = g.points;
+	var pts = this.state.absolutePoints;
+	var pt = null;
 
-	var pt = (pts != null) ? pts[0] : null;
+	// Keeps the virtual bend on the edge shape
+	if (pts.length > 1)
+	{
+		p0 = pts[1];
+		pe = pts[pts.length - 2];
+	}
+	else if (g.points != null && g.points.length > 0)
+	{
+		pt = pts[0];
+	}
 	
 	if (pt == null)
 	{
@@ -214,10 +224,8 @@ mxElbowEdgeHandler.prototype.redrawInnerBends = function(p0, pe)
 	}
 	else
 	{
-		pt = new mxPoint(this.graph.getView().scale*(pt.x +
-				 this.graph.getView().translate.x + this.state.origin.x),
-				 this.graph.getView().scale*(pt.y + this.graph.getView().translate.y +
-								 this.state.origin.y));
+		pt = new mxPoint(this.graph.getView().scale * (pt.x + this.graph.getView().translate.x + this.state.origin.x),
+			this.graph.getView().scale * (pt.y + this.graph.getView().translate.y + this.state.origin.y));
 	}
 
 	// Makes handle slightly bigger if the yellow  label handle

@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.709 2013/04/29 17:13:08 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.711 2013/05/27 10:30:08 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -2472,6 +2472,7 @@ mxGraph.prototype.dblClick = function(evt, cell)
 		cell != null && this.isCellEditable(cell))
 	{
 		this.startEditingAtCell(cell, evt);
+		mxEvent.consume(evt);
 	}
 };
 
@@ -3187,56 +3188,56 @@ mxGraph.prototype.alignCells = function(align, cells, param)
 		{
 			for (var i = 0; i < cells.length; i++)
 			{
-				var geo = this.getCellGeometry(cells[i]);
+				var state = this.view.getState(cells[i]);
 				
-				if (geo != null && !this.model.isEdge(cells[i]))
+				if (state != null && !this.model.isEdge(cells[i]))
 				{
 					if (param == null)
 					{
 						if (align == mxConstants.ALIGN_CENTER)
 						{
-							param = geo.x + geo.width / 2;
+							param = state.x + state.width / 2;
 							break;
 						}
 						else if (align == mxConstants.ALIGN_RIGHT)
 						{
-							param = geo.x + geo.width;
+							param = state.x + state.width;
 						}
 						else if (align == mxConstants.ALIGN_TOP)
 						{
-							param = geo.y;
+							param = state.y;
 						}
 						else if (align == mxConstants.ALIGN_MIDDLE)
 						{
-							param = geo.y + geo.height / 2;
+							param = state.y + state.height / 2;
 							break;
 						}
 						else if (align == mxConstants.ALIGN_BOTTOM)
 						{
-							param = geo.y + geo.height;
+							param = state.y + state.height;
 						}
 						else
 						{
-							param = geo.x;
+							param = state.x;
 						}
 					}
 					else
 					{
 						if (align == mxConstants.ALIGN_RIGHT)
 						{
-							param = Math.max(param, geo.x + geo.width);
+							param = Math.max(param, state.x + state.width);
 						}
 						else if (align == mxConstants.ALIGN_TOP)
 						{
-							param = Math.min(param, geo.y);
+							param = Math.min(param, state.y);
 						}
 						else if (align == mxConstants.ALIGN_BOTTOM)
 						{
-							param = Math.max(param, geo.y + geo.height);
+							param = Math.max(param, state.y + state.height);
 						}
 						else
 						{
-							param = Math.min(param, geo.x);
+							param = Math.min(param, state.x);
 						}
 					}
 				}
@@ -3246,43 +3247,50 @@ mxGraph.prototype.alignCells = function(align, cells, param)
 		// Aligns the cells to the coordinate
 		if (param != null)
 		{
+			var s = this.view.scale;
+
 			this.model.beginUpdate();
 			try
 			{
 				for (var i = 0; i < cells.length; i++)
 				{
-					var geo = this.getCellGeometry(cells[i]);
+					var state = this.view.getState(cells[i]);
 					
-					if (geo != null && !this.model.isEdge(cells[i]))
+					if (state != null)
 					{
-						geo = geo.clone();
+						var geo = this.getCellGeometry(cells[i]);
 						
-						if (align == mxConstants.ALIGN_CENTER)
+						if (geo != null && !this.model.isEdge(cells[i]))
 						{
-							geo.x = param - geo.width / 2;
+							geo = geo.clone();
+							
+							if (align == mxConstants.ALIGN_CENTER)
+							{
+								geo.x += (param - state.x - state.width / 2) / s;
+							}
+							else if (align == mxConstants.ALIGN_RIGHT)
+							{
+								geo.x += (param - state.x - state.width) / s;
+							}
+							else if (align == mxConstants.ALIGN_TOP)
+							{
+								geo.y += (param - state.y) / s;
+							}
+							else if (align == mxConstants.ALIGN_MIDDLE)
+							{
+								geo.y += (param - state.y - state.height / 2) / s;
+							}
+							else if (align == mxConstants.ALIGN_BOTTOM)
+							{
+								geo.y += (param - state.y - state.height) / s;
+							}
+							else
+							{
+								geo.x += (param - state.x) / s;
+							}
+							
+							this.resizeCell(cells[i], geo);
 						}
-						else if (align == mxConstants.ALIGN_RIGHT)
-						{
-							geo.x = param - geo.width;
-						}
-						else if (align == mxConstants.ALIGN_TOP)
-						{
-							geo.y = param;
-						}
-						else if (align == mxConstants.ALIGN_MIDDLE)
-						{
-							geo.y = param - geo.height / 2;
-						}
-						else if (align == mxConstants.ALIGN_BOTTOM)
-						{
-							geo.y = param - geo.height;
-						}
-						else
-						{
-							geo.x = param;
-						}
-						
-						this.model.setGeometry(cells[i], geo);
 					}
 				}
 				

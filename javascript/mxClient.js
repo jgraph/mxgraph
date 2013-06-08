@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.13.0.1.
+	 * Current version is 1.13.0.2.
 	 */
-	VERSION: '1.13.0.1',
+	VERSION: '1.13.0.2',
 
 	/**
 	 * Variable: IS_IE
@@ -32064,7 +32064,7 @@ mxCircleLayout.prototype.circle = function(vertices, r, left, top)
 	}
 };
 /**
- * $Id: mxParallelEdgeLayout.js,v 1.24 2012/03/27 15:03:34 david Exp $
+ * $Id: mxParallelEdgeLayout.js,v 1.25 2013/06/05 11:36:48 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -32186,7 +32186,7 @@ mxParallelEdgeLayout.prototype.getEdgeId = function(edge)
 		src = mxCellPath.create(src);
 		trg = mxCellPath.create(trg);
 		
-		return (src > trg) ? trg+'-'+src : src+'-'+trg;
+		return (src > trg) ? trg + '-' + src : src + '-' + trg;
 	}
 	
 	return null;
@@ -32229,22 +32229,25 @@ mxParallelEdgeLayout.prototype.layout = function(parallels)
 		var dx = tcx - scx;
 		var dy = tcy - scy;
 
-		var len = Math.sqrt(dx*dx+dy*dy);
+		var len = Math.sqrt(dx * dx + dy * dy);
 		
-		var x0 = scx + dx / 2;
-		var y0 = scy + dy / 2;
-		
-		var nx = dy * this.spacing / len;
-		var ny = dx * this.spacing / len;
-		
-		x0 += nx * (parallels.length - 1) / 2;
-		y0 -= ny * (parallels.length - 1) / 2;
-
-		for (var i = 0; i < parallels.length; i++)
+		if (len > 0)
 		{
-			this.route(parallels[i], x0, y0);
-			x0 -= nx;
-			y0 += ny;
+			var x0 = scx + dx / 2;
+			var y0 = scy + dy / 2;
+			
+			var nx = dy * this.spacing / len;
+			var ny = dx * this.spacing / len;
+			
+			x0 += nx * (parallels.length - 1) / 2;
+			y0 -= ny * (parallels.length - 1) / 2;
+	
+			for (var i = 0; i < parallels.length; i++)
+			{
+				this.route(parallels[i], x0, y0);
+				x0 -= nx;
+				y0 += ny;
+			}
 		}
 	}
 };
@@ -36525,7 +36528,7 @@ WeightedCellSorter.prototype.compare = function(a, b)
 	}
 };
 /**
- * $Id: mxHierarchicalLayout.js,v 1.35 2013/04/11 20:20:29 david Exp $
+ * $Id: mxHierarchicalLayout.js,v 1.36 2013/06/05 12:25:54 gaudenz Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -36700,7 +36703,7 @@ mxHierarchicalLayout.prototype.execute = function(parent, roots)
 	var model = this.graph.model;
 	this.edgesCache = new Object();
 
-	if (roots != null && typeof roots !== 'array')
+	if (roots != null && !(roots instanceof Array))
 	{
 		roots = [roots];
 	}
@@ -43523,7 +43526,7 @@ mxSelectionChange.prototype.execute = function()
 			'added', this.added, 'removed', this.removed));
 };
 /**
- * $Id: mxCellEditor.js,v 1.64 2013/04/23 07:31:31 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.65 2013/05/27 10:31:28 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -43833,7 +43836,6 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 		
 		if (this.textarea.style.display != 'none')
 		{
-			// FIXME: Doesn't bring up the virtual keyboard on iPad
 			this.textarea.focus();
 			this.textarea.select();
 		}
@@ -49458,7 +49460,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.709 2013/04/29 17:13:08 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.711 2013/05/27 10:30:08 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -51931,6 +51933,7 @@ mxGraph.prototype.dblClick = function(evt, cell)
 		cell != null && this.isCellEditable(cell))
 	{
 		this.startEditingAtCell(cell, evt);
+		mxEvent.consume(evt);
 	}
 };
 
@@ -52646,56 +52649,56 @@ mxGraph.prototype.alignCells = function(align, cells, param)
 		{
 			for (var i = 0; i < cells.length; i++)
 			{
-				var geo = this.getCellGeometry(cells[i]);
+				var state = this.view.getState(cells[i]);
 				
-				if (geo != null && !this.model.isEdge(cells[i]))
+				if (state != null && !this.model.isEdge(cells[i]))
 				{
 					if (param == null)
 					{
 						if (align == mxConstants.ALIGN_CENTER)
 						{
-							param = geo.x + geo.width / 2;
+							param = state.x + state.width / 2;
 							break;
 						}
 						else if (align == mxConstants.ALIGN_RIGHT)
 						{
-							param = geo.x + geo.width;
+							param = state.x + state.width;
 						}
 						else if (align == mxConstants.ALIGN_TOP)
 						{
-							param = geo.y;
+							param = state.y;
 						}
 						else if (align == mxConstants.ALIGN_MIDDLE)
 						{
-							param = geo.y + geo.height / 2;
+							param = state.y + state.height / 2;
 							break;
 						}
 						else if (align == mxConstants.ALIGN_BOTTOM)
 						{
-							param = geo.y + geo.height;
+							param = state.y + state.height;
 						}
 						else
 						{
-							param = geo.x;
+							param = state.x;
 						}
 					}
 					else
 					{
 						if (align == mxConstants.ALIGN_RIGHT)
 						{
-							param = Math.max(param, geo.x + geo.width);
+							param = Math.max(param, state.x + state.width);
 						}
 						else if (align == mxConstants.ALIGN_TOP)
 						{
-							param = Math.min(param, geo.y);
+							param = Math.min(param, state.y);
 						}
 						else if (align == mxConstants.ALIGN_BOTTOM)
 						{
-							param = Math.max(param, geo.y + geo.height);
+							param = Math.max(param, state.y + state.height);
 						}
 						else
 						{
-							param = Math.min(param, geo.x);
+							param = Math.min(param, state.x);
 						}
 					}
 				}
@@ -52705,43 +52708,50 @@ mxGraph.prototype.alignCells = function(align, cells, param)
 		// Aligns the cells to the coordinate
 		if (param != null)
 		{
+			var s = this.view.scale;
+
 			this.model.beginUpdate();
 			try
 			{
 				for (var i = 0; i < cells.length; i++)
 				{
-					var geo = this.getCellGeometry(cells[i]);
+					var state = this.view.getState(cells[i]);
 					
-					if (geo != null && !this.model.isEdge(cells[i]))
+					if (state != null)
 					{
-						geo = geo.clone();
+						var geo = this.getCellGeometry(cells[i]);
 						
-						if (align == mxConstants.ALIGN_CENTER)
+						if (geo != null && !this.model.isEdge(cells[i]))
 						{
-							geo.x = param - geo.width / 2;
+							geo = geo.clone();
+							
+							if (align == mxConstants.ALIGN_CENTER)
+							{
+								geo.x += (param - state.x - state.width / 2) / s;
+							}
+							else if (align == mxConstants.ALIGN_RIGHT)
+							{
+								geo.x += (param - state.x - state.width) / s;
+							}
+							else if (align == mxConstants.ALIGN_TOP)
+							{
+								geo.y += (param - state.y) / s;
+							}
+							else if (align == mxConstants.ALIGN_MIDDLE)
+							{
+								geo.y += (param - state.y - state.height / 2) / s;
+							}
+							else if (align == mxConstants.ALIGN_BOTTOM)
+							{
+								geo.y += (param - state.y - state.height) / s;
+							}
+							else
+							{
+								geo.x += (param - state.x) / s;
+							}
+							
+							this.resizeCell(cells[i], geo);
 						}
-						else if (align == mxConstants.ALIGN_RIGHT)
-						{
-							geo.x = param - geo.width;
-						}
-						else if (align == mxConstants.ALIGN_TOP)
-						{
-							geo.y = param;
-						}
-						else if (align == mxConstants.ALIGN_MIDDLE)
-						{
-							geo.y = param - geo.height / 2;
-						}
-						else if (align == mxConstants.ALIGN_BOTTOM)
-						{
-							geo.y = param - geo.height;
-						}
-						else
-						{
-							geo.x = param;
-						}
-						
-						this.model.setGeometry(cells[i], geo);
 					}
 				}
 				
@@ -70365,7 +70375,7 @@ mxEdgeHandler.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxElbowEdgeHandler.js,v 1.43 2012/01/06 13:06:01 gaudenz Exp $
+ * $Id: mxElbowEdgeHandler.js,v 1.44 2013/06/05 11:36:48 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -70570,9 +70580,19 @@ mxElbowEdgeHandler.prototype.convertPoint = function(point, gridEnabled)
 mxElbowEdgeHandler.prototype.redrawInnerBends = function(p0, pe)
 {
 	var g = this.graph.getModel().getGeometry(this.state.cell);
-	var pts = g.points;
+	var pts = this.state.absolutePoints;
+	var pt = null;
 
-	var pt = (pts != null) ? pts[0] : null;
+	// Keeps the virtual bend on the edge shape
+	if (pts.length > 1)
+	{
+		p0 = pts[1];
+		pe = pts[pts.length - 2];
+	}
+	else if (g.points != null && g.points.length > 0)
+	{
+		pt = pts[0];
+	}
 	
 	if (pt == null)
 	{
@@ -70580,10 +70600,8 @@ mxElbowEdgeHandler.prototype.redrawInnerBends = function(p0, pe)
 	}
 	else
 	{
-		pt = new mxPoint(this.graph.getView().scale*(pt.x +
-				 this.graph.getView().translate.x + this.state.origin.x),
-				 this.graph.getView().scale*(pt.y + this.graph.getView().translate.y +
-								 this.state.origin.y));
+		pt = new mxPoint(this.graph.getView().scale * (pt.x + this.graph.getView().translate.x + this.state.origin.x),
+			this.graph.getView().scale * (pt.y + this.graph.getView().translate.y + this.state.origin.y));
 	}
 
 	// Makes handle slightly bigger if the yellow  label handle

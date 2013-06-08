@@ -1,3 +1,11 @@
+08-JUN-2013: 1.13.0.2
+
+- Fixes check for array argument in mxHierarchicalLayout.execute [JavaScript]
+- Keeps handle inside edge shape in mxElbowEdgeHandler [JavaScript]
+- Fixes possible division by zero in mxParallelEdgeLayout [JavaScript]
+- Fixes minor bug, uses resizeCell in mxGraph.alignCells [JavaScript]
+- Consumes event in mxGraph.dblClick [JavaScript]
+
 23-MAY-2013: 1.13.0.1
 
 - Fixes possible error for empty text drawing mxGraphicsCanvas2D [Java]

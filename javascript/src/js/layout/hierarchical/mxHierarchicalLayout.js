@@ -1,5 +1,5 @@
 /**
- * $Id: mxHierarchicalLayout.js,v 1.35 2013/04/11 20:20:29 david Exp $
+ * $Id: mxHierarchicalLayout.js,v 1.36 2013/06/05 12:25:54 gaudenz Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -174,7 +174,7 @@ mxHierarchicalLayout.prototype.execute = function(parent, roots)
 	var model = this.graph.model;
 	this.edgesCache = new Object();
 
-	if (roots != null && typeof roots !== 'array')
+	if (roots != null && !(roots instanceof Array))
 	{
 		roots = [roots];
 	}

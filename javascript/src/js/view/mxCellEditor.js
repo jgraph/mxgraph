@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellEditor.js,v 1.64 2013/04/23 07:31:31 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.65 2013/05/27 10:31:28 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -309,7 +309,6 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 		
 		if (this.textarea.style.display != 'none')
 		{
-			// FIXME: Doesn't bring up the virtual keyboard on iPad
 			this.textarea.focus();
 			this.textarea.select();
 		}

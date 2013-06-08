@@ -1,5 +1,5 @@
 /**
- * $Id: mxParallelEdgeLayout.js,v 1.24 2012/03/27 15:03:34 david Exp $
+ * $Id: mxParallelEdgeLayout.js,v 1.25 2013/06/05 11:36:48 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -121,7 +121,7 @@ mxParallelEdgeLayout.prototype.getEdgeId = function(edge)
 		src = mxCellPath.create(src);
 		trg = mxCellPath.create(trg);
 		
-		return (src > trg) ? trg+'-'+src : src+'-'+trg;
+		return (src > trg) ? trg + '-' + src : src + '-' + trg;
 	}
 	
 	return null;
@@ -164,22 +164,25 @@ mxParallelEdgeLayout.prototype.layout = function(parallels)
 		var dx = tcx - scx;
 		var dy = tcy - scy;
 
-		var len = Math.sqrt(dx*dx+dy*dy);
+		var len = Math.sqrt(dx * dx + dy * dy);
 		
-		var x0 = scx + dx / 2;
-		var y0 = scy + dy / 2;
-		
-		var nx = dy * this.spacing / len;
-		var ny = dx * this.spacing / len;
-		
-		x0 += nx * (parallels.length - 1) / 2;
-		y0 -= ny * (parallels.length - 1) / 2;
-
-		for (var i = 0; i < parallels.length; i++)
+		if (len > 0)
 		{
-			this.route(parallels[i], x0, y0);
-			x0 -= nx;
-			y0 += ny;
+			var x0 = scx + dx / 2;
+			var y0 = scy + dy / 2;
+			
+			var nx = dy * this.spacing / len;
+			var ny = dx * this.spacing / len;
+			
+			x0 += nx * (parallels.length - 1) / 2;
+			y0 -= ny * (parallels.length - 1) / 2;
+	
+			for (var i = 0; i < parallels.length; i++)
+			{
+				this.route(parallels[i], x0, y0);
+				x0 -= nx;
+				y0 += ny;
+			}
 		}
 	}
 };
