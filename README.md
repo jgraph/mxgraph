@@ -9,7 +9,7 @@ mxGraph uses the vector drawing language native to the browser being used, VML f
 
 mxGraph uses no third-party software, it requires no plugins and can be integrated in virtually any framework. Also provided is server-side functionality in Java and .NET for persistence (open and save) functionality, as well as server-side image generation.
 
-mxGraph is dual licensed. It is licensed under the non-commercial CC, http://creativecommons.org/licenses/by-nc-sa/3.0/, and the mxGraph license, http://www.jgraph.com/mxlicense.html. The mxGraph license is for commercial use, you can find the pricing at http://www.jgraph.com/purchase.html.
+mxGraph is licensed under the mxGraph license, http://www.jgraph.com/mxlicense.html. The mxGraph license is for commercial use, you can find the pricing at http://www.jgraph.com/purchase.html.
 
 Getting Started
 ===============
