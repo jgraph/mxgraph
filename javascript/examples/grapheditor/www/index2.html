@@ -26,6 +26,8 @@
 		var tapAndHoldStartsConnection = true;
 		var showConnectorImg = true;
 
+		mxShape.prototype.configureTransparentBackground = function(node) {};
+
 		// Parses URL parameters. Supported parameters are:
 		// - lang=xy: Specifies the language of the user interface.
 		// - touch=1: Enables a touch-style user interface.
@@ -82,7 +84,6 @@
 		// Extends EditorUi to update I/O action states
 		(function()
 		{
-       mxShape.prototype.configureTransparentBackground = function(node) {};
 			var editorUiInit = EditorUi.prototype.init;
 			
 			EditorUi.prototype.init = function()
