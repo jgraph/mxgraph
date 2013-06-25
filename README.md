@@ -19,10 +19,6 @@ In the root folder there is an index.html file that contains links to all resour
 Support
 =======
 
-If you have a programming question relating to mxGraph, you can either use Stackoverflow, http://stackoverflow.com/questions/ask/?tags=mxgraph, or our own technical forum http://forum.jgraph.com. Be aware Stackoverflow is a general Q&A site, ensure you use the mxgraph tag, that you have read the posting FAQ and that you have a programming question.
+If you have a support question and you have purchased mxGraph license(s), please use the contact mechanism described in your purchase receipt email.
 
-If your question is not programming related, or what you have to say is not a question, use our Google+ community instead, https://plus.google.com/b/100634082864796769666/communities/103111053636844545203.
-
-If your interest is commercial and you prefer to talk privately, contact us via the jgraph.com site, http://www.jgraph.com/contact.html.
-
-If you have bug reports or feature requests, use the Github issue tracker, https://github.com/jgraph/mxgraph/issues.
+If you are evaluating mxGraph commercially, please contact us via http://www.jgraph.com/contact.html and we'll arrange support during your evaluation.
