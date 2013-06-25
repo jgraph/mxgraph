@@ -14,8 +14,6 @@ mxGraph is licensed under the mxGraph license, http://www.jgraph.com/mxlicense.h
 Getting Started
 ===============
 
-If you prefer to download a zip of the mxGraph package, you can obtain that from http://www.jgraph.com/download.html.
-
 In the root folder there is an index.html file that contains links to all resources. You can view the documentation online on the Github pages branch, http://jgraph.github.com/mxgraph. The key resources are the JavaScript user manual, the JavaScript examples and the JavaScript API specificiation.
 
 Support
