@@ -1,5 +1,5 @@
 <!--
-  $Id: dbeditor.html,v 1.1 2012/11/15 13:26:40 gaudenz Exp $
+  $Id: dbeditor.html,v 1.2 2013/06/07 14:30:51 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   dbEditor example for mxGraph. Uses Google Gears database for database
@@ -119,7 +119,7 @@
 					}
 					
 					// Creates user object for new edges
-					graph.connectionHandler.factoryMethod = function(source, target)
+					graph.popupMenuHandler.factoryMethod = function(source, target)
 					{
 						if (source.value instanceof Person &&
 							target.value instanceof Location)

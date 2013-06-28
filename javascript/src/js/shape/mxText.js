@@ -1,5 +1,5 @@
 /**
- * $Id: mxText.js,v 1.50 2013/04/30 14:30:01 gaudenz Exp $
+ * $Id: mxText.js,v 1.51 2013/06/07 14:01:48 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -677,7 +677,7 @@ mxText.prototype.updateValue = function()
 				// Wrapper DIV for background, zoom needed for inline in quirks
 				// FIXME: Background size in quirks mode for wrapped text
 				val = '<div style="zoom:1;' + css + 'display:inline-block;_display:inline;' +
-					'padding-bottom:1px;padding-right:1px;line-height:' +
+					'text-decoration:inherit;padding-bottom:1px;padding-right:1px;line-height:' +
 					this.node.style.lineHeight + '">' + val + '</div>';
 				this.node.style.lineHeight = '';
 			}

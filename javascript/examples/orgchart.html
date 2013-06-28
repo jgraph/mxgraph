@@ -1,5 +1,5 @@
 <!--
-  $Id: orgchart.html,v 1.6 2013/01/16 14:08:18 gaudenz Exp $
+  $Id: orgchart.html,v 1.7 2013/06/07 14:30:51 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
 
   Orgchart example for mxGraph. This example demonstrates using
@@ -168,7 +168,7 @@
 				};
 
 				// Installs a popupmenu handler using local function (see below).
-				graph.panningHandler.factoryMethod = function(menu, cell, evt)
+				graph.popupMenuHandler.factoryMethod = function(menu, cell, evt)
 				{
 					return createPopupMenu(graph, menu, cell, evt);
 				};

@@ -305,10 +305,6 @@ td.mxPopupMenuIcon div {
 	width:16px;
 	height:16px;
 }
-html td.mxPopupMenuItem {
-	font-size:9pt;
-	padding:6px;
-}
 html div.mxPopupMenu {
 	-webkit-box-shadow:2px 2px 3px #d5d5d5;
 	-moz-box-shadow:2px 2px 3px #d5d5d5;
@@ -328,7 +324,7 @@ html tr.mxPopupMenuItem {
 	cursor:default;
 }
 html td.mxPopupMenuItem {
-	padding:6px 30px 6px 30px;
+	padding:7px 30px 7px 30px;
 	font-family:Arial;
 	font-size:10pt;
 }

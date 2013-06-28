@@ -1,5 +1,5 @@
 /**
- * $Id: mxPrintPreview.js,v 1.6 2013/04/09 14:06:49 gaudenz Exp $
+ * $Id: mxPrintPreview.js,v 1.7 2013/06/20 10:05:46 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -52,6 +52,21 @@
  * }
  * 
  * preview.open();
+ * (end)
+ * 
+ * CSS:
+ * 
+ * The CSS from the original page is not carried over to the print preview.
+ * To add CSS to the page, use the css argument in the <open> function or
+ * override <writeHead> to add the respective link tags as follows:
+ * 
+ * (code)
+ * var writeHead = preview.writeHead;
+ * preview.writeHead = function(doc, css)
+ * {
+ *   writeHead.apply(this, arguments);
+ *   doc.writeln('<link rel="stylesheet" type="text/css" href="style.css">');
+ * };
  * (end)
  * 
  * Headers:
@@ -284,7 +299,7 @@ mxPrintPreview.prototype.getDoctype = function()
  * 
  * Parameters:
  * 
- * css - Optional CSS string to be used in the new page's head section.
+ * css - Optional CSS string to be used in the head section.
  */
 mxPrintPreview.prototype.open = function(css)
 {
@@ -813,10 +828,14 @@ mxPrintPreview.prototype.getAppendices = function()
  * Function: print
  * 
  * Opens the print preview and shows the print dialog.
+ * 
+ * Parameters:
+ * 
+ * css - Optional CSS string to be used in the head section.
  */
-mxPrintPreview.prototype.print = function()
+mxPrintPreview.prototype.print = function(css)
 {
-	var wnd = this.open();
+	var wnd = this.open(css);
 	
 	if (wnd != null)
 	{

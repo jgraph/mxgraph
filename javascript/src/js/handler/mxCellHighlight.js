@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellHighlight.js,v 1.6 2013/05/23 10:29:43 gaudenz Exp $
+ * $Id: mxCellHighlight.js,v 1.8 2013/06/20 12:11:14 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -144,20 +144,16 @@ mxCellHighlight.prototype.createShape = function()
 	
 	if (this.graph.model.isEdge(this.state.cell))
 	{
-		shape = new mxPolyline(this.state.absolutePoints,
-			this.highlightColor, this.strokeWidth);
+		shape = new mxPolyline(this.state.absolutePoints, this.highlightColor, this.strokeWidth);
 	}
 	else
 	{
-		shape = new mxRectangleShape( new mxRectangle(),
-			null, this.highlightColor, this.strokeWidth);
+		shape = new mxRectangleShape( new mxRectangle(), null, this.highlightColor, this.strokeWidth);
 	}
 	
-	shape.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
-			mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
+	shape.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ? mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
 	shape.init(this.graph.getView().getOverlayPane());
 	mxEvent.redirectMouseEvents(shape.node, this.graph, this.state);
-	shape.svgStrokeTolerance = 0;
 	shape.pointerEvents = false;
 	shape.isDashed = this.dashed;
 	

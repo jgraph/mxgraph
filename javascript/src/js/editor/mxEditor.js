@@ -1,5 +1,5 @@
 /**
- * $Id: mxEditor.js,v 1.2 2012/12/03 18:02:39 gaudenz Exp $
+ * $Id: mxEditor.js,v 1.4 2013/06/26 11:42:17 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1714,7 +1714,7 @@ mxEditor.prototype.createGraph = function ()
 
 	// Redirects the function for creating the
 	// popupmenu items
-	graph.panningHandler.factoryMethod =
+	graph.popupMenuHandler.factoryMethod =
 		mxUtils.bind(this, function(menu, cell, evt)
 		{
 			return this.createPopupMenu(menu, cell, evt);
@@ -2892,7 +2892,9 @@ mxEditor.prototype.showOutline = function ()
 	if (create)
 	{
 		var div = document.createElement('div');
+		
 		div.style.overflow = 'hidden';
+		div.style.position = 'absolute';
 		div.style.width = '100%';
 		div.style.height = '100%';
 		div.style.background = 'white';

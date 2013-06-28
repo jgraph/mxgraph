@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellEditor.js,v 1.4 2013/04/16 07:39:35 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.10 2013/06/24 09:48:30 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -116,6 +116,14 @@ mxCellEditor.prototype.modified = false;
 mxCellEditor.prototype.autoSize = true;
 
 /**
+ * Variable: selectText
+ * 
+ * Specifies if the text should be selected when editing starts. Default is
+ * true.
+ */
+mxCellEditor.prototype.selectText = true;
+
+/**
  * Variable: emptyLabelText
  * 
  * Text to be displayed for empty labels. Default is ''. This can be set
@@ -159,6 +167,11 @@ mxCellEditor.prototype.init = function ()
 		this.focusLost();
 	}));
 	
+	mxEvent.addListener(this.textarea, 'change', mxUtils.bind(this, function(evt)
+	{
+		this.setModified(true);
+	}));
+
 	mxEvent.addListener(this.textarea, 'keydown', mxUtils.bind(this, function(evt)
 	{
 		if (!mxEvent.isConsumed(evt))
@@ -202,7 +215,9 @@ mxCellEditor.prototype.init = function ()
 	this.graph.getModel().addListener(mxEvent.CHANGE, this.changeHandler);
 	
 	// Adds automatic resizing of the textbox while typing
-	mxEvent.addListener(this.textarea, 'keypress', mxUtils.bind(this, function(evt)
+	// Use input event in all browsers and IE >= 9 for resize
+	var evtName = (!mxClient.IS_IE || document.documentMode >= 9) ? 'input' : 'keypress';
+	mxEvent.addListener(this.textarea, evtName, mxUtils.bind(this, function(evt)
 	{
 		if (this.autoSize && !mxEvent.isConsumed(evt))
 		{
@@ -457,7 +472,6 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 		
 		if (this.textarea.style.display != 'none')
 		{
-			// FIXME: Doesn't bring up the virtual keyboard on iPad
 			if (this.autoSize)
 			{
 				this.textDiv = this.createTextDiv();
@@ -466,7 +480,21 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 			}
 			
 			this.textarea.focus();
-			this.textarea.select();
+			
+			// Workaround to select all text on iOS
+			if (this.selectText)
+			{
+				if (mxClient.IS_IOS)
+				{
+					window.setTimeout(mxUtils.bind(this, function() {
+					    this.textarea.setSelectionRange(0, 9999);
+					}), 1);
+				}
+				else
+				{
+					this.textarea.select();
+				}
+			}
 		}
 	}
 };

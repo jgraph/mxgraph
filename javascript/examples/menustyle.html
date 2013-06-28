@@ -1,5 +1,5 @@
 <!--
-  $Id: menustyle.html,v 1.4 2013/01/07 12:28:57 gaudenz Exp $
+  $Id: menustyle.html,v 1.5 2013/06/07 14:30:51 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Menustyle example for mxGraph. This example demonstrates using
@@ -141,10 +141,10 @@
 				graph.addCellOverlay(v1, overlay);
 				
 				// Configures automatic expand on mouseover
-				graph.panningHandler.autoExpand = true;
+				graph.popupMenuHandler.autoExpand = true;
 
 			    // Installs context menu
-				graph.panningHandler.factoryMethod = function(menu, cell, evt)
+				graph.popupMenuHandler.factoryMethod = function(menu, cell, evt)
 				{
 					menu.addItem('Item 1', null, function()
 				    {

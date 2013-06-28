@@ -1,5 +1,5 @@
 /**
- * $Id: mxEdgeHandler.js,v 1.13 2013/05/21 13:16:33 gaudenz Exp $
+ * $Id: mxEdgeHandler.js,v 1.17 2013/06/21 12:19:17 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -156,14 +156,6 @@ mxEdgeHandler.prototype.handleImage = null;
 mxEdgeHandler.prototype.tolerance = 0;
 
 /**
- * Variable: livePreview
- * 
- * Specifies if changes should be displayed in-place. This is an experimental
- * feature for non-touch devices. Default is false.
- */
-mxEdgeHandler.prototype.livePreview = false;
-
-/**
  * Function: init
  * 
  * Initializes the shapes required for this edge handler.
@@ -185,56 +177,9 @@ mxEdgeHandler.prototype.init = function()
 	this.shape.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
 		mxConstants.DIALECT_MIXEDHTML : mxConstants.DIALECT_SVG;
 	this.shape.init(this.graph.getView().getOverlayPane());
-	this.shape.svgStrokeTolerance = 0;
+	this.shape.pointerEvents = false;
 	this.shape.node.style.cursor = mxConstants.CURSOR_MOVABLE_EDGE;
-	
-	mxEvent.addListener(this.shape.node, 'dblclick', mxUtils.bind(this, function(evt)
-		{
-			this.graph.dblClick(evt, this.state.cell);
-		})
-	);
-	
-	mxEvent.addGestureListeners(this.shape.node,
-		mxUtils.bind(this, function(evt)
-		{
-			if (this.addEnabled && this.isAddPointEvent(evt))
-			{
-				this.addPoint(this.state, evt);
-			}
-			else
-			{
-				this.graph.fireMouseEvent(mxEvent.MOUSE_DOWN,
-					new mxMouseEvent(evt, this.state));
-			}
-		}),
-		mxUtils.bind(this, function(evt)
-		{
-			var cell = this.state.cell;
-			
-			// Finds the cell under the mouse if the edge is being connected
-			// in which case the edge is never highlighted as it cannot
-			// be its own source or target terminal (transparent preview)
-			if (this.index != null)
-			{
-				var pt = mxUtils.convertPoint(this.graph.container, 
-					mxEvent.getClientX(evt), mxEvent.getClientY(evt));
-				cell = this.graph.getCellAt(pt.x, pt.y);
-				
-				// Swimlane content area is transparent in this case
-				if (this.graph.isSwimlane(cell) && this.graph.hitsSwimlaneContent(cell, pt.x, pt.y))
-				{
-					cell = null;
-				}
-			}
-			
-			this.graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
-				new mxMouseEvent(evt, this.graph.getView().getState(cell)));
-		}),
-		mxUtils.bind(this, function(evt)
-		{
-			this.graph.fireMouseEvent(mxEvent.MOUSE_UP,
-				new mxMouseEvent(evt, this.state));
-		}));
+	mxEvent.redirectMouseEvents(this.shape.node, this.graph, this.state);
 
 	// Updates preferHtml
 	this.preferHtml = this.state.text != null &&
@@ -274,10 +219,8 @@ mxEdgeHandler.prototype.init = function()
 
 	// Adds a rectangular handle for the label position
 	this.label = new mxPoint(this.state.absoluteOffset.x, this.state.absoluteOffset.y);
-	this.labelShape = new mxRectangleShape(new mxRectangle(),
-			mxConstants.LABEL_HANDLE_FILLCOLOR,
-			mxConstants.HANDLE_STROKECOLOR);
-	this.labelShape.pointerEvents = false;
+	this.labelShape = new mxRectangleShape(new mxRectangle(), 
+		mxConstants.LABEL_HANDLE_FILLCOLOR, mxConstants.HANDLE_STROKECOLOR);
 	this.initBend(this.labelShape);
 	this.labelShape.node.style.cursor = mxConstants.CURSOR_LABEL_HANDLE;
 	mxEvent.redirectMouseEvents(this.labelShape.node, this.graph, this.state);
@@ -387,16 +330,24 @@ mxEdgeHandler.prototype.createMarker = function()
 	marker.getCell = function(me)
 	{
 		var cell = mxCellMarker.prototype.getCell.apply(this, arguments);
+		var point = self.getPointForEvent(me);
 
-		if (!self.isConnectableCell(cell))
+		// Checks for cell under mouse
+		if (cell == self.state.cell || cell == null)
 		{
-			return null;
+			cell = this.graph.getCellAt(point.x, point.y);
+			
+			if (self.state.cell == cell)
+			{
+				cell = null;
+			}
 		}
-		
+
 		var model = self.graph.getModel();
 		
-		if (cell == self.state.cell || (cell != null &&
-			!self.graph.connectableEdges && model.isEdge(cell)))
+		if ((this.graph.isSwimlane(cell) && this.graph.hitsSwimlaneContent(cell, point.x, point.y)) ||
+			(!self.isConnectableCell(cell)) ||
+			(cell == self.state.cell || (cell != null && !self.graph.connectableEdges && model.isEdge(cell))))
 		{
 			cell = null;
 		}
@@ -467,22 +418,8 @@ mxEdgeHandler.prototype.validateConnection = function(source, target)
 
 				if (this.isHandleEnabled(i))
 				{
-					if (mxClient.IS_TOUCH)
-					{
-						var getState = mxUtils.bind(this, function(evt)
-						{
-							var pt = mxUtils.convertPoint(this.graph.container, mxEvent.getClientX(evt), mxEvent.getClientY(evt));
-							
-							return this.graph.view.getState(this.graph.getCellAt(pt.x, pt.y));
-						});
-						
-						mxEvent.redirectMouseEvents(bend.node, this.graph, getState);
-					}
-					else
-					{
-						bend.node.style.cursor = mxConstants.CURSOR_BEND_HANDLE;
-						mxEvent.redirectMouseEvents(bend.node, this.graph, this.state);
-					}
+					bend.node.style.cursor = mxConstants.CURSOR_BEND_HANDLE;
+					mxEvent.redirectMouseEvents(bend.node, this.graph, this.state);
 				}
 				
 				bends.push(bend);
@@ -529,7 +466,12 @@ mxEdgeHandler.prototype.createHandleShape = function(index)
 {
 	if (this.handleImage != null)
 	{
-		return new mxImageShape(new mxRectangle(0, 0, this.handleImage.width, this.handleImage.height), this.handleImage.src);
+		var shape = new mxImageShape(new mxRectangle(0, 0, this.handleImage.width, this.handleImage.height), this.handleImage.src);
+		
+		// Allows HTML rendering of the images
+		shape.preserveImageAspect = false;
+
+		return shape;
 	}
 	else
 	{
@@ -575,36 +517,50 @@ mxEdgeHandler.prototype.initBend = function(bend)
  */
 mxEdgeHandler.prototype.getHandleForEvent = function(me)
 {
-	// Finds the handle that triggered the event
+	// Connection highlight may consume events before they reach sizer handle
+	var tol = (!mxEvent.isMouseEvent(me.getEvent())) ? this.tolerance : 1;
+	var hit = (this.allowHandleBoundsCheck && (mxClient.IS_IE || tol > 0)) ?
+		new mxRectangle(me.getGraphX() - tol, me.getGraphY() - tol, 2 * tol, 2 * tol) : null;
+	var minDistSq = null;
+	var result = null;
+	
+	function checkShape(shape)
+	{
+		if (shape != null && shape.node.style.display != 'none' && shape.node.style.visibility != 'hidden' &&
+			(me.isSource(shape) || (hit != null && mxUtils.intersects(shape.bounds, hit))))
+		{
+			var dx = me.getGraphX() - shape.bounds.getCenterX();
+			var dy = me.getGraphY() - shape.bounds.getCenterY();
+			var tmp = dx * dx + dy * dy;
+			
+			if (minDistSq == null || tmp <= minDistSq)
+			{
+				minDistSq = tmp;
+			
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	if (me.isSource(this.state.text) || checkShape(this.labelShape))
+	{
+		result = mxEvent.LABEL_HANDLE;
+	}
+	
 	if (this.bends != null)
 	{
-		// Connection highlight may consume events before they reach sizer handle
-		var tol = this.tolerance;
-		var hit = (this.allowHandleBoundsCheck && (mxClient.IS_IE || tol > 0)) ?
-			new mxRectangle(me.getGraphX() - tol, me.getGraphY() - tol, 2 * tol, 2 * tol) : null;
-
 		for (var i = 0; i < this.bends.length; i++)
 		{
-			if ((me.isSource(this.bends[i]) || (hit != null &&
-				mxUtils.intersects(this.bends[i].bounds, hit))) &&
-				this.bends[i].node.style.visibility != 'hidden')
+			if (checkShape(this.bends[i]))
 			{
-				return i;
+				result = i;
 			}
 		}
 	}
 
-	if ((me.isSource(this.labelShape) && this.labelShape.node.style.visibility != 'hidden') ||
-		me.isSource(this.state.text))
-	{
-		// Workaround for SELECT element not working in Webkit
-		if ((!mxClient.IS_SF && !mxClient.IS_GC) || me.getSource().nodeName != 'SELECT')
-		{
-			return mxEvent.LABEL_HANDLE;
-		}
-	}
-	
-	return null;
+	return result;
 };
 
 /**
@@ -628,9 +584,12 @@ mxEdgeHandler.prototype.mouseDown = function(sender, me)
 	{
 		handle = this.getHandleForEvent(me);
 	}
-	
-	if (handle != null && !me.isConsumed() && this.graph.isEnabled() && 
-		!this.graph.isForceMarqueeEvent(me.getEvent()))
+
+	if (this.addEnabled && handle == null && this.isAddPointEvent(me.getEvent()))
+	{
+		this.addPoint(this.state, me.getEvent());
+	}
+	else if (handle != null && !me.isConsumed() && this.graph.isEnabled())
 	{
 		if (this.removeEnabled && this.isRemovePointEvent(me.getEvent()))
 		{
@@ -673,18 +632,6 @@ mxEdgeHandler.prototype.start = function(x, y, index)
 	else
 	{
 		this.index = index;
-	}
-	
-	if (this.livePreview)
-	{
-		// Visibility restored implicitely via shape.redraw
-		this.shape.node.style.visibility = 'hidden';
-		
-		// Hides source and target handle for native mouse cursor hit detection
-		if ((this.isSource || this.isTarget) && this.bends[index] != null)
-		{
-			this.bends[index].node.style.display = 'none';
-		}
 	}
 };
 
@@ -803,8 +750,7 @@ mxEdgeHandler.prototype.getPreviewTerminalState = function(me)
 	var currentState = this.marker.getValidState();
 	var result = null;
 	
-	if (this.constraintHandler.currentFocus != null &&
-		this.constraintHandler.currentConstraint != null)
+	if (this.constraintHandler.currentFocus != null && this.constraintHandler.currentConstraint != null)
 	{
 		this.marker.reset();
 	}
@@ -813,8 +759,7 @@ mxEdgeHandler.prototype.getPreviewTerminalState = function(me)
 	{
 		result = currentState;
 	}
-	else if (this.constraintHandler.currentConstraint != null &&
-			this.constraintHandler.currentFocus != null)
+	else if (this.constraintHandler.currentConstraint != null && this.constraintHandler.currentFocus != null)
 	{
 		result = this.constraintHandler.currentFocus;
 	}
@@ -939,42 +884,7 @@ mxEdgeHandler.prototype.mouseMove = function(sender, me)
 			this.active = true;
 		}
 		
-		if (this.livePreview)
-		{
-			// Saves current state
-			var pts = this.state.absolutePoints;
-
-			// Redraws cell and handles
-			if (this.isLabel)
-			{
-				this.state.absoluteOffset = point;
-			}
-			else
-			{
-				this.state.absolutePoints = this.abspoints;
-				this.state.view.updateEdgeBounds(this.state);
-				this.state.view.updateEdgeLabelOffset(this.state);
-			}
-			
-			this.state.view.graph.cellRenderer.redraw(this.state, true);
-			this.redrawHandles();
-			
-			// Redraws connected edges
-			this.state.view.invalidate(this.state.cell);
-			this.state.invalid = false;
-			this.state.view.validate();
-			
-			// Restores current state
-			this.state.absolutePoints = pts;
-			this.state.view.updateEdgeBounds(this.state);
-			this.state.view.updateEdgeLabelOffset(this.state);
-			
-		}
-		else
-		{
-			this.drawPreview();
-		}
-		
+		this.drawPreview();
 		mxEvent.consume(me.getEvent());
 		me.consume();
 	}
@@ -993,6 +903,7 @@ mxEdgeHandler.prototype.mouseMove = function(sender, me)
  */
 mxEdgeHandler.prototype.mouseUp = function(sender, me)
 {
+	// Workaround for wrong event source in Webkit
 	if (this.index != null && this.marker != null)
 	{
 		var edge = this.state.cell;
@@ -1066,7 +977,7 @@ mxEdgeHandler.prototype.mouseUp = function(sender, me)
 				this.graph.getView().revalidate(this.state.cell);						
 			}
 		}
-
+		
 		// Resets the preview color the state of the handler if this
 		// handler has not been recreated
 		if (this.marker != null)
@@ -1091,12 +1002,6 @@ mxEdgeHandler.prototype.mouseUp = function(sender, me)
  */
 mxEdgeHandler.prototype.reset = function()
 {
-	if (this.bends != null && this.index != null && this.bends[this.index] != null &&
-		this.bends[this.index].node.style.display == 'none')
-	{
-		this.bends[this.index].node.style.display = '';
-	}
-	
 	this.error = null;
 	this.index = null;
 	this.label = null;
@@ -1588,5 +1493,7 @@ mxEdgeHandler.prototype.destroy = function()
 				this.bends[i] = null;
 			}
 		}
+		
+		this.bends = null;
 	}
 };

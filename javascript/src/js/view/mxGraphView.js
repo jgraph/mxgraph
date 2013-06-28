@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphView.js,v 1.16 2013/05/21 16:40:21 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.18 2013/06/17 14:42:47 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -635,23 +635,19 @@ mxGraphView.prototype.validateBackground = function()
 				mxUtils.bind(this, function(evt)
 				{
 					// Hides the tooltip if mouse is outside container
-					if (this.graph.tooltipHandler != null &&
-							this.graph.tooltipHandler.isHideOnHover())
+					if (this.graph.tooltipHandler != null && this.graph.tooltipHandler.isHideOnHover())
 					{
 						this.graph.tooltipHandler.hide();
 					}
 					
-					if (this.graph.isMouseDown &&
-						!mxEvent.isConsumed(evt))
+					if (this.graph.isMouseDown && !mxEvent.isConsumed(evt))
 					{
-						this.graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
-							new mxMouseEvent(evt));
+						this.graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt));
 					}
 				}),
 				mxUtils.bind(this, function(evt)
 				{
-					this.graph.fireMouseEvent(mxEvent.MOUSE_UP,
-							new mxMouseEvent(evt));
+					this.graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt));
 				}));
 		}
 		else
@@ -2172,47 +2168,44 @@ mxGraphView.prototype.installListeners = function()
 	if (container != null)
 	{
 		// Adds basic listeners for graph event dispatching
-		mxEvent.addGestureListeners(container,
-			mxUtils.bind(this, function(evt)
+		mxEvent.addGestureListeners(container, mxUtils.bind(this, function(evt)
+		{
+			// Workaround for iOS device not transferring
+			// the focus while editing with virtual keyboard
+			if (mxClient.IS_IOS && graph.isEditing())
 			{
-				// Workaround for touch-based device not transferring
-				// the focus while editing with virtual keyboard
-				if (mxClient.IS_TOUCH && graph.isEditing())
-				{
-					graph.stopEditing(!graph.isInvokesStopCellEditing());
-				}
-				
-				// Condition to avoid scrollbar events starting a rubberband
-				// selection
-				if (this.isContainerEvent(evt) && ((!mxClient.IS_IE && 
-					!mxClient.IS_GC && !mxClient.IS_OP && !mxClient.IS_SF) ||
-					!this.isScrollEvent(evt)))
-				{
-					graph.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt));
-				}
-			}),
-			mxUtils.bind(this, function(evt)
+				graph.stopEditing(!graph.isInvokesStopCellEditing());
+			}
+			
+			// Condition to avoid scrollbar events starting a rubberband
+			// selection
+			if (this.isContainerEvent(evt) && ((!mxClient.IS_IE && 
+				!mxClient.IS_GC && !mxClient.IS_OP && !mxClient.IS_SF) ||
+				!this.isScrollEvent(evt)))
 			{
-				if (this.isContainerEvent(evt))
-				{
-					graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt));
-				}
-			}),
-			mxUtils.bind(this, function(evt)
+				graph.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt));
+			}
+		}),
+		mxUtils.bind(this, function(evt)
+		{
+			if (this.isContainerEvent(evt))
 			{
-				if (this.isContainerEvent(evt))
-				{
-					graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt));
-				}
-			}));
+				graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt));
+			}
+		}),
+		mxUtils.bind(this, function(evt)
+		{
+			if (this.isContainerEvent(evt))
+			{
+				graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt));
+			}
+		}));
 		
 		// Adds listener for double click handling on background
-		mxEvent.addListener(container, 'dblclick',
-			mxUtils.bind(this, function(evt)
-			{
-				graph.dblClick(evt);
-			})
-		);
+		mxEvent.addListener(container, 'dblclick', mxUtils.bind(this, function(evt)
+		{
+			graph.dblClick(evt);
+		}));
 
 		// Workaround for touch events which started on some DOM node
 		// on top of the container, in which case the cells under the
@@ -2236,8 +2229,8 @@ mxGraphView.prototype.installListeners = function()
 			}
 			
 			return state;
-		};	
-					
+		};
+		
 		// Adds basic listeners for graph event dispatching outside of the
 		// container and finishing the handling of a single gesture
 		// Implemented via graph event dispatch loop to avoid duplicate events
@@ -2246,14 +2239,14 @@ mxGraphView.prototype.installListeners = function()
 		{
 			mouseDown: function(sender, me)
 			{
-				graph.panningHandler.hideMenu();
+				graph.popupMenuHandler.hideMenu();
 			},
 			mouseMove: function() { },
 			mouseUp: function() { }
 		});
 		
 		this.moveHandler = mxUtils.bind(this, function(evt)
-				{
+		{
 			// Hides the tooltip if mouse is outside container
 			if (graph.tooltipHandler != null &&
 				graph.tooltipHandler.isHideOnHover())
@@ -2461,7 +2454,7 @@ mxGraphView.prototype.createSvg = function()
 	// in order for the container DIV to not show scrollbars.
 	root.style.display = 'block';
 	root.appendChild(this.canvas);
-	
+
 	if (container != null)
 	{
 		container.appendChild(root);

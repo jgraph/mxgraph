@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellRenderer.js,v 1.21 2013/05/15 12:36:17 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.22 2013/06/20 12:09:48 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -994,10 +994,9 @@ mxCellRenderer.prototype.installListeners = function(state)
 		{
 			if (this.isShapeEvent(state, evt) && !gestureInProgress)
 			{
-				// Redirects events from the "event-transparent" region of
-				// a swimlane to the graph. This is only required in HTML,
-				// SVG and VML do not fire mouse events on transparent
-				// backgrounds.
+				// Redirects events from the "event-transparent" region of a
+				// swimlane to the graph. This is only required in HTML, SVG
+				// and VML do not fire mouse events on transparent backgrounds.
 				graph.fireMouseEvent(mxEvent.MOUSE_DOWN,
 					new mxMouseEvent(evt, (state.shape != null &&
 					mxEvent.getSource(evt) == state.shape.content) ?
@@ -1045,26 +1044,19 @@ mxCellRenderer.prototype.installListeners = function(state)
 		mxUtils.bind(this, function(evt)
 		{
 			gestureInProgress = false;
-			
+
 			if (dc == 'gestureend')
 			{
-				// FIXME: Breaks encapsulation to reset the double
-				// tap event handling when gestures take place
-				graph.lastTouchTime = 0;
-				
-				if (graph.gestureEnabled)
-				{
-					graph.handleGesture(state, evt);
-					mxEvent.consume(evt);
-				}
+				graph.fireGestureEvent(evt, state.cell);
 			}
 			else if (this.isShapeEvent(state, evt))
 			{
 				graph.dblClick(evt, (state.shape != null &&
 					mxEvent.getSource(evt) == state.shape.content) ?
 						null : state.cell);
-				mxEvent.consume(evt);
 			}
+
+			mxEvent.consume(evt);
 		})
 	);
 };

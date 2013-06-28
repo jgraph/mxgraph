@@ -1,5 +1,5 @@
 /**
-aaa * $Id: mxShape.js,v 1.39 2013/05/06 06:15:50 gaudenz Exp $
+aaa * $Id: mxShape.js,v 1.42 2013/06/21 11:25:51 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -140,7 +140,8 @@ mxShape.prototype.stencil = null;
 /**
  * Variable: svgStrokeTolerance
  *
- * Event-tolerance for SVG strokes (in px). Default is 6.
+ * Event-tolerance for SVG strokes (in px). Default is 6. This is only passed
+ * to the canvas in <createSvgCanvas> if <pointerEvents> is true.
  */
 mxShape.prototype.svgStrokeTolerance = 6;
 
@@ -454,50 +455,66 @@ mxShape.prototype.createCanvas = function()
 	// LATER: Check if reusing existing DOM nodes improves performance
 	if (this.node.ownerSVGElement != null)
 	{
-		canvas = new mxSvgCanvas2D(this.node, false);
-		canvas.strokeTolerance = this.svgStrokeTolerance;
-		canvas.blockImagePointerEvents = mxClient.IS_NS && !mxClient.IS_SF && !mxClient.IS_GC;
-		var off = this.getSvgScreenOffset();
-
-		if (off != 0)
-		{
-			this.node.setAttribute('transform', 'translate(' + off + ',' + off + ')');
-		}
-		else
-		{
-			this.node.removeAttribute('transform');
-		}
+		canvas = this.createSvgCanvas();
 	}
 	else
 	{
 		this.updateVmlContainer();
-		var w = Math.max(1, Math.round(this.bounds.width));
-		var h = Math.max(1, Math.round(this.bounds.height));
-		
-		// Workaround for VML rendering bug in IE8 standards mode
-		if (document.documentMode == 8 && this.isParseVml())
-		{
-			node = this.createVmlGroup();
-		}
-		else
-		{
-			node = this.node;			
-		}
-		
-		canvas = new mxVmlCanvas2D(node, false);
-		
-		if (node.tagUrn != '')
-		{
-			node.coordsize = (w * this.vmlScale) + ',' + (h * this.vmlScale);
-			canvas.scale(this.vmlScale);
-			canvas.vmlScale = this.vmlScale;
-		}
-
-		// Painting relative to top, left shape corner
-		var s = this.scale;
-		canvas.translate(-Math.round(this.bounds.x / s), -Math.round(this.bounds.y / s));
+		canvas = this.createVmlCanvas(node);
 	}
 
+	return canvas;
+};
+
+/**
+ * Function: createSvgCanvas
+ * 
+ * Creates and returns an <mxSvgCanvas2D> for rendering this shape.
+ */
+mxShape.prototype.createSvgCanvas = function()
+{
+	var canvas = new mxSvgCanvas2D(this.node, false);
+	
+	canvas.strokeTolerance = (this.pointerEvents) ? this.svgStrokeTolerance : 0;
+	canvas.blockImagePointerEvents = mxClient.IS_FF;
+	var off = this.getSvgScreenOffset();
+
+	if (off != 0)
+	{
+		this.node.setAttribute('transform', 'translate(' + off + ',' + off + ')');
+	}
+	else
+	{
+		this.node.removeAttribute('transform');
+	}
+	
+	return canvas;
+};
+
+/**
+ * Function: createVmlCanvas
+ * 
+ * Creates and returns an <mxVmlCanvas2D> for rendering this shape.
+ */
+mxShape.prototype.createVmlCanvas = function()
+{
+	// Workaround for VML rendering bug in IE8 standards mode
+	var node = (document.documentMode == 8 && this.isParseVml()) ? this.createVmlGroup() : this.node;
+	var canvas = new mxVmlCanvas2D(node, false);
+	
+	if (node.tagUrn != '')
+	{
+		var w = Math.max(1, Math.round(this.bounds.width));
+		var h = Math.max(1, Math.round(this.bounds.height));
+		node.coordsize = (w * this.vmlScale) + ',' + (h * this.vmlScale);
+		canvas.scale(this.vmlScale);
+		canvas.vmlScale = this.vmlScale;
+	}
+
+	// Painting relative to top, left shape corner
+	var s = this.scale;
+	canvas.translate(-Math.round(this.bounds.x / s), -Math.round(this.bounds.y / s));
+	
 	return canvas;
 };
 
@@ -1038,7 +1055,7 @@ mxShape.prototype.getShapeRotation = function()
 /**
  * Function: addTransparentBackgroundRectangle
  * 
- * Paints the line shape.
+ * Adds a transparent rectangle that catches all events.
  */
 mxShape.prototype.addTransparentBackgroundRectangle = function(node, x, y, w, h)
 {
@@ -1055,6 +1072,8 @@ mxShape.prototype.addTransparentBackgroundRectangle = function(node, x, y, w, h)
 
 /**
  * Function: setTransparentBackgroundImage
+ * 
+ * Sets a transparent background CSS style to catch all events.
  * 
  * Paints the line shape.
  */

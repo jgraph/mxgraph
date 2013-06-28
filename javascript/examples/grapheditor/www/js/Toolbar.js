@@ -1,5 +1,5 @@
 /**
- * $Id: Toolbar.js,v 1.4 2013/05/01 13:10:22 gaudenz Exp $
+ * $Id: Toolbar.js,v 1.5 2013/06/07 14:30:50 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -388,7 +388,7 @@ Toolbar.prototype.addMenuHandler = function(elt, showLabels, funct, showAll)
 		{
 			if (elt.enabled == null || elt.enabled)
 			{
-				graph.panningHandler.hideMenu();
+				graph.popupMenuHandler.hideMenu();
 				menu = new mxPopupMenu(funct);
 				menu.div.className += ' geToolbarMenu';
 				menu.showDisabled = showAll;

@@ -1,5 +1,5 @@
 /**
- * $Id: mxHierarchicalLayout.js,v 1.8 2013/04/11 21:15:35 david Exp $
+ * $Id: mxHierarchicalLayout.js,v 1.11 2013/06/10 20:41:00 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -35,7 +35,7 @@ mxHierarchicalLayout.prototype.constructor = mxHierarchicalLayout;
 /**
  * Variable: roots
  * 
- * Holds the array of <mxGraphLayouts> that this layout contains.
+ * Holds the array of <mxCell> that this layout contains.
  */
 mxHierarchicalLayout.prototype.roots = null;
 
@@ -173,8 +173,8 @@ mxHierarchicalLayout.prototype.execute = function(parent, roots)
 	this.parent = parent;
 	var model = this.graph.model;
 	this.edgesCache = new Object();
-
-	if (roots != null && typeof roots !== 'array')
+	
+	if (roots != null && !(roots instanceof Array))
 	{
 		roots = [roots];
 	}
@@ -198,7 +198,6 @@ mxHierarchicalLayout.prototype.execute = function(parent, roots)
 
 		for (var i = 0; i < roots.length; i++)
 		{
-
 			if (model.isAncestor(parent, roots[i]))
 			{
 				rootsCopy.push(roots[i]);
@@ -217,7 +216,7 @@ mxHierarchicalLayout.prototype.execute = function(parent, roots)
 	{
 		this.run(parent);
 		
-		if (this.resizeParent &&
+		if (this.resizeParent && 
 			!this.graph.isCellCollapsed(parent))
 		{
 			this.graph.updateGroupBounds([parent],
@@ -644,7 +643,6 @@ mxHierarchicalLayout.prototype.traverse = function(vertex, directed, edge, allVe
 			{
 				// We've seen this vertex before, but not in the current component
 				// This component and the one it's in need to be merged
-
 				for (var i = 0; i < hierarchyVertices.length; i++)
 				{
 					var comp = hierarchyVertices[i];

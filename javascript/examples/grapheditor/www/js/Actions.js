@@ -1,5 +1,5 @@
 /**
- * $Id: Actions.js,v 1.9 2013/04/10 11:26:47 gaudenz Exp $
+ * $Id: Actions.js,v 1.10 2013/06/07 14:30:50 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -530,7 +530,7 @@ Actions.prototype.init = function()
 					dy += pgeo.y;
 				}
 				
-				handler.addPointAt(handler.state, graph.panningHandler.triggerX / s - dx, graph.panningHandler.triggerY / s - dy);
+				handler.addPointAt(handler.state, graph.popupMenuHandler.triggerX / s - dx, graph.popupMenuHandler.triggerY / s - dy);
 			}
 		}
 	});

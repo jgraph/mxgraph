@@ -1,5 +1,5 @@
 /**
- * $Id: mxPolyline.js,v 1.4 2013/02/04 09:27:33 gaudenz Exp $
+ * $Id: mxPolyline.js,v 1.5 2013/06/10 07:31:00 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -38,11 +38,31 @@ mxUtils.extend(mxPolyline, mxShape);
 /**
  * Function: getRotation
  * 
- * Overrides to return 0.
+ * Returns 0.
  */
 mxPolyline.prototype.getRotation = function()
 {
 	return 0;
+};
+
+/**
+ * Function: getShapeRotation
+ * 
+ * Returns 0.
+ */
+mxPolyline.prototype.getShapeRotation = function()
+{
+	return 0;
+};
+
+/**
+ * Function: isPaintBoundsInverted
+ * 
+ * Returns false.
+ */
+mxPolyline.prototype.isPaintBoundsInverted = function()
+{
+	return false;
 };
 
 /**

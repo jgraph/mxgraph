@@ -1,5 +1,5 @@
 /**
- * $Id: mxOutline.js,v 1.7 2013/05/23 10:29:44 gaudenz Exp $
+ * $Id: mxOutline.js,v 1.10 2013/06/17 14:43:47 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -70,7 +70,7 @@ mxOutline.prototype.source = null;
 /**
  * Function: outline
  * 
- * Reference to the outline <mxGraph>.
+ * Reference to the <mxGraph> that renders the outline.
  */
 mxOutline.prototype.outline = null;
 
@@ -108,6 +108,13 @@ mxOutline.prototype.border = 10;
  * Specifies the size of the sizer handler. Default is 8.
  */
 mxOutline.prototype.sizerSize = 8;
+
+/**
+ * Variable: labelsVisible
+ * 
+ * Specifies if labels should be visible in the outline. Default is false.
+ */
+mxOutline.prototype.labelsVisible = false;
 
 /**
  * Variable: updateOnPan
@@ -172,7 +179,7 @@ mxOutline.prototype.init = function(container)
 	}
 	
 	// Hides cursors and labels
-	this.outline.labelsVisible = false;
+	this.outline.labelsVisible = this.labelsVisible;
 	this.outline.setEnabled(false);
 	
 	this.updateHandler = mxUtils.bind(this, function(sender, evt)
@@ -497,13 +504,15 @@ mxOutline.prototype.mouseDown = function(sender, me)
 {
 	if (this.enabled && this.showViewport)
 	{
-		this.zoom = me.isSource(this.sizer);
+		var tol = (!mxEvent.isMouseEvent(me.getEvent())) ? this.source.tolerance : 0;
+		var hit = (this.source.allowHandleBoundsCheck && (mxClient.IS_IE || tol > 0)) ?
+				new mxRectangle(me.getGraphX() - tol, me.getGraphY() - tol, 2 * tol, 2 * tol) : null;
+		this.zoom = me.isSource(this.sizer) || (hit != null && mxUtils.intersects(shape.bounds, hit));
 		this.startX = me.getX();
 		this.startY = me.getY();
 		this.active = true;
 
-		if (this.source.useScrollbarsForPanning &&
-			mxUtils.hasScrollbars(this.source.container))
+		if (this.source.useScrollbarsForPanning && mxUtils.hasScrollbars(this.source.container))
 		{
 			this.dx0 = this.source.container.scrollLeft;
 			this.dy0 = this.source.container.scrollTop;
@@ -592,9 +601,12 @@ mxOutline.prototype.mouseMove = function(sender, me)
  * {
  *   var pt = new mxPoint(me.getX() - this.startX, me.getY() - this.startY);
  *   
- *   var tr = this.source.view.translate;
- *   pt.x = Math.max(tr.x * this.outline.view.scale, pt.x);
- *   pt.y = Math.max(tr.y * this.outline.view.scale, pt.y);
+ *   if (!this.zoom)
+ *   {
+ *     var tr = this.source.view.translate;
+ *     pt.x = Math.max(tr.x * this.outline.view.scale, pt.x);
+ *     pt.y = Math.max(tr.y * this.outline.view.scale, pt.y);
+ *   }
  *   
  *   return pt;
  * };

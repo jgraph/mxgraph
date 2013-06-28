@@ -1,5 +1,5 @@
 /**
- * $Id: mxPanningHandler.js,v 1.5 2013/05/23 12:18:27 gaudenz Exp $
+ * $Id: mxPanningHandler.js,v 1.7 2013/06/20 14:04:15 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -31,21 +31,19 @@
  * Fires when the panning handler changes its <active> state to false. The
  * <code>event</code> property contains the corresponding <mxMouseEvent>.
  */
-function mxPanningHandler(graph, factoryMethod)
+function mxPanningHandler(graph)
 {
 	if (graph != null)
 	{
 		this.graph = graph;
-		this.factoryMethod = factoryMethod;
 		this.graph.addMouseListener(this);
-		this.init();
 	}
 };
 
 /**
- * Extends mxPopupMenu.
+ * Extends mxEventSource.
  */
-mxPanningHandler.prototype = new mxPopupMenu();
+mxPanningHandler.prototype = new mxEventSource();
 mxPanningHandler.prototype.constructor = mxPanningHandler;
 
 /**
@@ -56,30 +54,6 @@ mxPanningHandler.prototype.constructor = mxPanningHandler;
 mxPanningHandler.prototype.graph = null;
 
 /**
- * Variable: triggerX
- * 
- * X-coordinate of the mouse down event.
- */
-mxPanningHandler.prototype.triggerX = null;
-
-/**
- * Variable: triggerY
- * 
- * X-coordinate of the mouse down event.
- */
-mxPanningHandler.prototype.triggerY = null;
-
-/**
- * Variable: usePopupTrigger
- * 
- * Specifies if the <isPopupTrigger> should also be used for panning. To
- * avoid conflicts, the panning is only activated if the mouse was moved
- * more than <mxGraph.tolerance>, otherwise, a single click is assumed
- * and the popupmenu is displayed. Default is true.
- */
-mxPanningHandler.prototype.usePopupTrigger = true;
-
-/**
  * Variable: useLeftButtonForPanning
  * 
  * Specifies if panning should be active for the left mouse button.
@@ -88,20 +62,11 @@ mxPanningHandler.prototype.usePopupTrigger = true;
 mxPanningHandler.prototype.useLeftButtonForPanning = false;
 
 /**
- * Variable: selectOnPopup
+ * Variable: usePopupTrigger
  * 
- * Specifies if cells should be selected if a popupmenu is displayed for
- * them. Default is true.
+ * Specifies if <mxEvent.isPopupTrigger> should also be used for panning.
  */
-mxPanningHandler.prototype.selectOnPopup = true;
-
-/**
- * Variable: clearSelectionOnBackground
- * 
- * Specifies if cells should be deselected if a popupmenu is displayed for
- * the diagram background. Default is true.
- */
-mxPanningHandler.prototype.clearSelectionOnBackground = true;
+mxPanningHandler.prototype.usePopupTrigger = true;
 
 /**
  * Variable: ignoreCell
@@ -154,24 +119,6 @@ mxPanningHandler.prototype.setPanningEnabled = function(value)
 };
 
 /**
- * Function: init
- * 
- * Initializes the shapes required for this vertex handler.
- */
-mxPanningHandler.prototype.init = function()
-{
-	// Supercall
-	mxPopupMenu.prototype.init.apply(this);
-
-	// Hides the tooltip if the mouse is over
-	// the context menu
-	mxEvent.addGestureListeners(this.div, mxUtils.bind(this, function(evt)
-	{
-		this.graph.tooltipHandler.hide();
-	}));
-};
-
-/**
  * Function: isPanningTrigger
  * 
  * Returns true if the given event is a panning trigger for the optional
@@ -184,8 +131,7 @@ mxPanningHandler.prototype.isPanningTrigger = function(me)
 	
 	return (this.useLeftButtonForPanning && (this.ignoreCell || me.getState() == null) &&
 			mxEvent.isLeftMouseButton(evt)) || (mxEvent.isControlDown(evt) &&
-			mxEvent.isShiftDown(evt)) || (this.usePopupTrigger &&
-		   	mxEvent.isPopupTrigger(evt));
+			mxEvent.isShiftDown(evt)) || (this.usePopupTrigger && mxEvent.isPopupTrigger(evt));
 };
 
 /**
@@ -196,26 +142,17 @@ mxPanningHandler.prototype.isPanningTrigger = function(me)
  */
 mxPanningHandler.prototype.mouseDown = function(sender, me)
 {
-	if (!me.isConsumed() && this.isEnabled() && !this.active)
+	if (!me.isConsumed() && this.isPanningEnabled() && !this.active)
 	{
-		// Hides the popupmenu if is is being displayed
-		this.hideMenu();
-
 		this.dx0 = -this.graph.container.scrollLeft;
 		this.dy0 = -this.graph.container.scrollTop;
-		
-		// Checks the event triggers to panning and popupmenu
-		var pt = mxUtils.convertPoint(this.graph.container, me.getX(), me.getY());
-		this.triggerX = pt.x;
-		this.triggerY = pt.y;
-		this.popupTrigger = this.isPopupTrigger(me);
-		this.panningTrigger = this.isPanningEnabled() &&
-			this.isPanningTrigger(me);
 
 		// Stores the location of the trigger event
 		this.startX = me.getX();
 		this.startY = me.getY();
-		
+
+		this.panningTrigger = this.isPanningTrigger(me);
+
 		// Displays popup menu on Mac after the mouse was released
 		if (this.panningTrigger)
 		{
@@ -266,7 +203,7 @@ mxPanningHandler.prototype.mouseMove = function(sender, me)
 {
 	var dx = me.getX() - this.startX;
 	var dy = me.getY() - this.startY;
-	
+
 	if (this.active)
 	{
 		// Handles pinch on iOS
@@ -289,7 +226,6 @@ mxPanningHandler.prototype.mouseMove = function(sender, me)
 		}
 
 		this.fireEvent(new mxEventObject(mxEvent.PAN, 'event', me));
-		me.consume();
 	}
 	else if (this.panningTrigger)
 	{
@@ -304,6 +240,11 @@ mxPanningHandler.prototype.mouseMove = function(sender, me)
 		{
 			this.fireEvent(new mxEventObject(mxEvent.PAN_START, 'event', me));
 		}
+	}
+	
+	if (this.active || this.panningTrigger)
+	{
+		me.consume();
 	}
 };
 
@@ -355,38 +296,8 @@ mxPanningHandler.prototype.mouseUp = function(sender, me)
 		this.fireEvent(new mxEventObject(mxEvent.PAN_END, 'event', me));
 		me.consume();
 	}
-	else if (this.popupTrigger)
-	{
-		if (dx < this.graph.tolerance && dy < this.graph.tolerance)
-		{
-			var cell = this.getCellForPopupEvent(me);
-			
-			// Selects the cell for which the context menu is being displayed
-			if (this.graph.isEnabled() && this.selectOnPopup &&
-				cell != null && !this.graph.isCellSelected(cell))
-			{
-				this.graph.setSelectionCell(cell);
-			}
-			else if (this.clearSelectionOnBackground && cell == null)
-			{
-				this.graph.clearSelection();
-			}
-			
-			// Hides the tooltip if there is one
-			this.graph.tooltipHandler.hide();
-			var origin = mxUtils.getScrollOrigin();
-			var point = new mxPoint(me.getX() + origin.x,
-				me.getY() + origin.y);
-			
-			// Menu is shifted by 1 pixel so that the mouse up event
-			// is routed via the underlying shape instead of the DIV
-			this.popup(point.x + 1, point.y + 1, cell, me.getEvent());
-			me.consume();
-		}
-	}
 	
 	this.panningTrigger = false;
-	this.popupTrigger = false;
 };
 
 /**
@@ -408,16 +319,6 @@ mxPanningHandler.prototype.scaleGraph = function(scale, preview)
 };
 
 /**
- * Function: getCellForPopupEvent
- * 
- * Hook to return the cell for the mouse up popup trigger handling.
- */
-mxPanningHandler.prototype.getCellForPopupEvent = function(me)
-{
-	return me.getCell();
-};
-
-/**
  * Function: panGraph
  * 
  * Pans <graph> by the given amount.
@@ -435,7 +336,4 @@ mxPanningHandler.prototype.panGraph = function(dx, dy)
 mxPanningHandler.prototype.destroy = function()
 {
 	this.graph.removeMouseListener(this);
-	
-	// Supercall
-	mxPopupMenu.prototype.destroy.apply(this);
 };

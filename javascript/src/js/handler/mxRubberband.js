@@ -1,12 +1,12 @@
 /**
- * $Id: mxRubberband.js,v 1.1 2012/11/15 13:26:44 gaudenz Exp $
+ * $Id: mxRubberband.js,v 1.2 2013/06/20 14:04:15 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
  * Class: mxRubberband
  * 
  * Event handler that selects rectangular regions. This is not built-into
- * <mxGraph>. To enable rubberband selection in a graph, use the following code.
+ * <mxGraph>. To enable rubberband selection in a graph, ssssssssuse the following code.
  * 
  * Example:
  * 
@@ -25,6 +25,20 @@ function mxRubberband(graph)
 	{
 		this.graph = graph;
 		this.graph.addMouseListener(this);
+
+		// Handles force rubberband event
+		this.forceRubberbandHandler = mxUtils.bind(this, function(sender, evt)
+		{
+			var evtName = evt.getProperty('evtName');
+			var me = evt.getProperty('me');
+			
+			if (evtName == mxEvent.MOUSE_DOWN && this.isForceRubberbandEvent(me.getEvent()))
+			{
+				this.mouseDown(this.graph, me);
+			}
+		});
+		
+		this.graph.addListener(mxEvent.FIRE_MOUSE_EVENT, this.forceRubberbandHandler);
 		
 		// Repaints the marquee after autoscroll
 		this.panHandler = mxUtils.bind(this, function()
@@ -113,6 +127,17 @@ mxRubberband.prototype.setEnabled = function(enabled)
 };
 
 /**
+ * Function: isForceRubberbandEvent
+ * 
+ * Returns true if the given event forces marquee selection. This implementation
+ * returns true if the alt key is pressed.
+ */
+mxRubberband.prototype.isForceRubberbandEvent = function(evt)
+{
+	return mxEvent.isAltDown(evt);
+};
+
+/**
  * Function: mouseDown
  * 
  * Handles the event by initiating a rubberband selection. By consuming the
@@ -122,7 +147,7 @@ mxRubberband.prototype.setEnabled = function(enabled)
 mxRubberband.prototype.mouseDown = function(sender, me)
 {
 	if (!me.isConsumed() && this.isEnabled() && this.graph.isEnabled() &&
-		(this.graph.isForceMarqueeEvent(me.getEvent()) || me.getState() == null))
+		(this.isForceRubberbandEvent(me.getEvent()) || me.getState() == null))
 	{
 		var offset = mxUtils.getOffset(this.graph.container);
 		var origin = mxUtils.getScrollOrigin(this.graph.container);
@@ -130,35 +155,33 @@ mxRubberband.prototype.mouseDown = function(sender, me)
 		origin.y -= offset.y;
 		this.start(me.getX() + origin.x, me.getY() + origin.y);
 
-		// Workaround for rubberband stopping if the mouse leaves the
-		// graph container in Firefox.
-		if (mxClient.IS_NS && !mxClient.IS_SF && !mxClient.IS_GC)
+		var container = this.graph.container;
+		
+		function createMouseEvent(evt)
 		{
-			var container = this.graph.container;
+			var me = new mxMouseEvent(evt);
+			var pt = mxUtils.convertPoint(container, me.getX(), me.getY());
 			
-			function createMouseEvent(evt)
-			{
-				var me = new mxMouseEvent(evt);
-				var pt = mxUtils.convertPoint(container, me.getX(), me.getY());
-				
-				me.graphX = pt.x;
-				me.graphY = pt.y;
-				
-				return me;
-			};
+			me.graphX = pt.x;
+			me.graphY = pt.y;
 			
-			this.dragHandler = mxUtils.bind(this, function(evt)
-			{
-				this.mouseMove(this.graph, createMouseEvent(evt));
-			});
+			return me;
+		};
 
-			this.dropHandler = mxUtils.bind(this, function(evt)
-			{
-				this.mouseUp(this.graph, createMouseEvent(evt));
-			});
+		this.dragHandler = mxUtils.bind(this, function(evt)
+		{
+			this.mouseMove(this.graph, createMouseEvent(evt));
+		});
 
-			mxEvent.addListener(document, 'mousemove', this.dragHandler);
-			mxEvent.addListener(document, 'mouseup', this.dropHandler);
+		this.dropHandler = mxUtils.bind(this, function(evt)
+		{
+			this.mouseUp(this.graph, createMouseEvent(evt));
+		});
+
+		// Workaround for rubberband stopping if the mouse leaves the container in Firefox
+		if (mxClient.IS_FF)
+		{
+			mxEvent.addGestureListeners(document, null, this.dragHandler, this.dropHandler);
 		}
 		
 		// Does not prevent the default for this event so that the
@@ -266,17 +289,9 @@ mxRubberband.prototype.reset = function()
 		this.div.parentNode.removeChild(this.div);
 	}
 
-	if (this.dragHandler != null)
-	{
-		mxEvent.removeListener(document, 'mousemove', this.dragHandler);
-		this.dragHandler = null;
-	}
-	
-	if (this.dropHandler != null)
-	{
-		mxEvent.removeListener(document, 'mouseup', this.dropHandler);
-		this.dropHandler = null;
-	}
+	mxEvent.removeGestureListeners(document, null, this.dragHandler, this.dropHandler);
+	this.dragHandler = null;
+	this.dropHandler = null;
 	
 	this.currentX = 0;
 	this.currentY = 0;
@@ -337,6 +352,7 @@ mxRubberband.prototype.destroy = function()
 	{
 		this.destroyed = true;
 		this.graph.removeMouseListener(this);
+		this.graph.removeListener(mxEvent.FIRE_MOUSE_EVENT, this.forcRubberbandHandler);
 		this.graph.removeListener(this.panHandler);
 		this.reset();
 		

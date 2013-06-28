@@ -1,5 +1,5 @@
 /**
- * $Id: mxVertexHandler.js,v 1.26 2013/05/04 20:16:05 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.29 2013/06/21 12:19:17 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -58,8 +58,8 @@ mxVertexHandler.prototype.index = null;
 /**
  * Variable: allowHandleBoundsCheck
  * 
- * Specifies if the bounds of handles should be used for hit-detection in IE
- * Default is true.
+ * Specifies if the bounds of handles should be used for hit-detection in IE or
+ * if <tolerance> > 0. Default is true.
  */
 mxVertexHandler.prototype.allowHandleBoundsCheck = true;
 
@@ -101,6 +101,14 @@ mxVertexHandler.prototype.rotationRaster = true;
 mxVertexHandler.prototype.livePreview = false;
 
 /**
+ * Variable: manageSizers
+ * 
+ * Specifies if sizers should be hidden and spaced if the vertex is small.
+ * Default is false.
+ */
+mxVertexHandler.prototype.manageSizers = false;
+
+/**
  * Function: init
  * 
  * Initializes the shapes required for this vertex handler.
@@ -116,14 +124,13 @@ mxVertexHandler.prototype.init = function()
 	this.selectionBorder.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ? mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
 	this.selectionBorder.pointerEvents = false;
 	this.selectionBorder.init(this.graph.getView().getOverlayPane());
+	mxEvent.redirectMouseEvents(this.selectionBorder.node, this.graph, this.state);
 	
 	if (this.graph.isCellMovable(this.state.cell))
 	{
 		this.selectionBorder.node.style.cursor = mxConstants.CURSOR_MOVABLE_VERTEX;
 	}
 
-	mxEvent.redirectMouseEvents(this.selectionBorder.node, this.graph, this.state);
-	
 	// Adds the sizer handles
 	if (mxGraphHandler.prototype.maxCells <= 0 || this.graph.getSelectionCount() < mxGraphHandler.prototype.maxCells)
 	{
@@ -263,7 +270,7 @@ mxVertexHandler.prototype.createSizer = function(cursor, index, size, fillColor)
 				mxConstants.DIALECT_MIXEDHTML : mxConstants.DIALECT_SVG;
 		sizer.init(this.graph.getView().getOverlayPane());
 	}
-	
+
 	mxEvent.redirectMouseEvents(sizer.node, this.graph, this.state);
 	
 	if (this.graph.isEnabled())
@@ -300,10 +307,13 @@ mxVertexHandler.prototype.createSizerShape = function(bounds, index, fillColor)
 {
 	if (this.handleImage != null)
 	{
-		bounds.width = this.handleImage.width;
-		bounds.height = this.handleImage.height;
+		bounds = new mxRectangle(bounds.x, bounds.y, this.handleImage.width, this.handleImage.height);
+		var shape = new mxImageShape(bounds, this.handleImage.src);
 		
-		return new mxImageShape(bounds, this.handleImage.src);
+		// Allows HTML rendering of the images
+		shape.preserveImageAspect = false;
+
+		return shape;
 	}
 	else if (index == mxEvent.ROTATION_HANDLE)
 	{
@@ -339,33 +349,54 @@ mxVertexHandler.prototype.moveSizerTo = function(shape, x, y)
  */
 mxVertexHandler.prototype.getHandleForEvent = function(me)
 {
-	if (me.isSource(this.rotationShape))
-	{
-		return mxEvent.ROTATION_HANDLE;
-	}
-	else if (me.isSource(this.labelShape))
-	{
-		return mxEvent.LABEL_HANDLE;
-	}
+	// Connection highlight may consume events before they reach sizer handle
+	var tol = (!mxEvent.isMouseEvent(me.getEvent())) ? this.tolerance : 1;
+	var hit = (this.allowHandleBoundsCheck && (mxClient.IS_IE || tol > 0)) ?
+		new mxRectangle(me.getGraphX() - tol, me.getGraphY() - tol, 2 * tol, 2 * tol) : null;
+	var minDistSq = null;
+	var result = null;
 	
+	function checkShape(shape)
+	{
+		if (shape != null && (me.isSource(shape) || (hit != null && mxUtils.intersects(shape.bounds, hit) &&
+			shape.node.style.display != 'none' && shape.node.style.visibility != 'hidden')))
+		{
+			var dx = me.getGraphX() - shape.bounds.getCenterX();
+			var dy = me.getGraphY() - shape.bounds.getCenterY();
+			var tmp = dx * dx + dy * dy;
+
+			if (minDistSq == null || tmp <= minDistSq)
+			{
+				minDistSq = tmp;
+			
+				return true;
+			}
+		}
+		
+		return false;
+	}
+
 	if (this.sizers != null)
 	{
-		// Connection highlight may consume events before they reach sizer handle
-		var tol = this.tolerance;
-		var hit = (this.allowHandleBoundsCheck && (mxClient.IS_IE || tol > 0)) ?
-			new mxRectangle(me.getGraphX() - tol, me.getGraphY() - tol, 2 * tol, 2 * tol) : null;
-
 		for (var i = 0; i < this.sizers.length; i++)
 		{
-			if (me.isSource(this.sizers[i]) || (hit != null &&
-				mxUtils.intersects(this.sizers[i].bounds, hit)))
+			if (checkShape(this.sizers[i]))
 			{
-				return i;
+				result = i;
 			}
 		}
 	}
 	
-	return null;
+	if (checkShape(this.rotationShape))
+	{
+		result = mxEvent.ROTATION_HANDLE;
+	}
+	else if (checkShape(this.labelShape))
+	{
+		result = mxEvent.LABEL_HANDLE;
+	}
+	
+	return result;
 };
 
 /**
@@ -377,14 +408,15 @@ mxVertexHandler.prototype.getHandleForEvent = function(me)
  */
 mxVertexHandler.prototype.mouseDown = function(sender, me)
 {
-	if (!me.isConsumed() && this.graph.isEnabled() && !this.graph.isForceMarqueeEvent(me.getEvent()) &&
-		(this.tolerance > 0 || me.getState() == this.state))
+	var tol = (!mxEvent.isMouseEvent(me.getEvent())) ? this.tolerance : 0;
+	
+	if (!me.isConsumed() && this.graph.isEnabled() && (tol > 0 || me.getState() == this.state))
 	{
 		var handle = this.getHandleForEvent(me);
 
 		if (handle != null)
 		{
-			this.start(me.getX(), me.getY(), handle);
+			this.start(me.getGraphX(), me.getGraphY(), handle);
 			me.consume();
 		}
 	}
@@ -397,10 +429,10 @@ mxVertexHandler.prototype.mouseDown = function(sender, me)
  */
 mxVertexHandler.prototype.start = function(x, y, index)
 {
-	var pt = mxUtils.convertPoint(this.graph.container, x, y);
-	this.startX = pt.x;
-	this.startY = pt.y;
+	this.inTolerance = true;
 	this.index = index;
+	this.startX = x;
+	this.startY = y;
 	
 	// Creates a preview that can be on top of any HTML label
 	this.selectionBorder.node.style.display = (index == mxEvent.ROTATION_HANDLE) ? 'inline' : 'none';
@@ -422,6 +454,54 @@ mxVertexHandler.prototype.start = function(x, y, index)
 			this.preview.init(this.graph.view.getOverlayPane());
 		}
 	}
+	else
+	{
+		this.hideSizers();
+		
+		if (index == mxEvent.ROTATION_HANDLE)
+		{
+			this.rotationShape.node.style.display = '';
+		}
+		else if (this.sizers[index] != null)
+		{
+			this.sizers[index].node.style.display = '';
+		}
+	}
+};
+
+/**
+ * Function: hideSizers
+ * 
+ * Hides all sizers except.
+ * 
+ * Starts the handling of the mouse gesture.
+ */
+mxVertexHandler.prototype.hideSizers = function()
+{
+	for (var i = 0; i < this.sizers.length; i++)
+	{
+		this.sizers[i].node.style.display = 'none';
+	}
+};
+
+/**
+ * Function: checkTolerance
+ * 
+ * Checks if the coordinates for the given event are within the
+ * <mxGraph.tolerance>. If the event is a mouse event then the tolerance is
+ * ignored.
+ */
+mxVertexHandler.prototype.checkTolerance = function(me)
+{
+	if (this.inTolerance && this.startX != null && this.startY != null)
+	{
+		if (mxEvent.isMouseEvent(me.getEvent()) ||
+			Math.abs(me.getGraphX() - this.startX) > this.graph.tolerance ||
+			Math.abs(me.getGraphY() - this.startY) > this.graph.tolerance)
+		{
+			this.inTolerance = false;
+		}
+	}
 };
 
 /**
@@ -433,126 +513,134 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 {
 	if (!me.isConsumed() && this.index != null)
 	{
-		var point = new mxPoint(me.getGraphX(), me.getGraphY());
-		var gridEnabled = this.graph.isGridEnabledEvent(me.getEvent());
-		var scale = this.graph.getView().scale;
-		
-		if (this.index == mxEvent.LABEL_HANDLE)
+		// Checks tolerance for ignoring single clicks
+		this.checkTolerance(me);
+
+		if (!this.inTolerance)
 		{
-			if (gridEnabled)
+			var point = new mxPoint(me.getGraphX(), me.getGraphY());
+			var gridEnabled = this.graph.isGridEnabledEvent(me.getEvent());
+			var scale = this.graph.getView().scale;
+			
+			if (this.index == mxEvent.LABEL_HANDLE)
 			{
-				point.x = this.graph.snap(point.x / scale) * scale;
-				point.y = this.graph.snap(point.y / scale) * scale;
+				if (gridEnabled)
+				{
+					point.x = this.graph.snap(point.x / scale) * scale;
+					point.y = this.graph.snap(point.y / scale) * scale;
+				}
+	
+				this.moveSizerTo(this.sizers[this.sizers.length - 1], point.x, point.y);
 			}
-
-			this.moveSizerTo(this.sizers[this.sizers.length - 1], point.x, point.y);
-			me.consume();
-		}
-		else if (this.index == mxEvent.ROTATION_HANDLE)
-		{
-			var dx = this.state.x + this.state.width / 2 - point.x;
-			var dy = this.state.y + this.state.height / 2 - point.y;
-			
-			this.currentAlpha = (dx != 0) ? Math.atan(dy / dx) * 180 / Math.PI + 90 : ((dy < 0) ? 180 : 0);
-			
-			if (dx > 0)
+			else if (this.index == mxEvent.ROTATION_HANDLE)
 			{
-				this.currentAlpha -= 180;
-			}
-
-			// Rotation raster
-			if (this.rotationRaster && this.graph.isGridEnabledEvent(me.getEvent()))
-			{
-				var dx = point.x - this.state.getCenterX();
-				var dy = point.y - this.state.getCenterY();
-				var dist = Math.abs(Math.sqrt(dx * dx + dy * dy) - this.state.height / 2 - 20);
-				var raster = Math.max(1, 5 * Math.min(3, Math.max(0, Math.round(80 / Math.abs(dist)))));
+				var dx = this.state.x + this.state.width / 2 - point.x;
+				var dy = this.state.y + this.state.height / 2 - point.y;
 				
-				this.currentAlpha = Math.round(this.currentAlpha / raster) * raster;
-			}
-
-			this.selectionBorder.rotation = this.currentAlpha;
-			this.selectionBorder.redraw();
-			
-			me.consume();
-		}
-		else
-		{
-			var alpha = mxUtils.toRadians(this.state.style[mxConstants.STYLE_ROTATION] || '0');
-			var cos = Math.cos(-alpha);
-			var sin = Math.sin(-alpha);
-			
-			var ct = new mxPoint(this.state.getCenterX(), this.state.getCenterY());
-			
-			var dx = point.x - this.startX;
-			var dy = point.y - this.startY;
-			var tr = this.graph.view.translate;
-			
-			// Rotates vector for mouse gesture
-			var tx = cos * dx - sin * dy;
-			var ty = sin * dx + cos * dy;
-			
-			dx = tx;
-			dy = ty;
-			
-			this.bounds = this.union(this.selectionBounds, dx, dy, this.index, gridEnabled, scale, tr);
-
-			cos = Math.cos(alpha);
-			sin = Math.sin(alpha);
-			
-			var c2 = new mxPoint(this.bounds.getCenterX(), this.bounds.getCenterY());
-
-			var dx = c2.x - ct.x;
-			var dy = c2.y - ct.y;
-			
-			var dx2 = cos * dx - sin * dy;
-			var dy2 = sin * dx + cos * dy;
-			
-			var dx3 = dx2 - dx;
-			var dy3 = dy2 - dy;
-			
-			this.bounds.x += dx3;
-			this.bounds.y += dy3;
-			
-			if (this.livePreview)
-			{
-				// Saves current state
-				var tmp = new mxRectangle(this.state.x, this.state.y, this.state.width, this.state.height);
-				var orig = this.state.origin;
+				this.currentAlpha = (dx != 0) ? Math.atan(dy / dx) * 180 / Math.PI + 90 : ((dy < 0) ? 180 : 0);
 				
-				// Temporarily changes size and origin
-				this.state.x = this.bounds.x;
-				this.state.y = this.bounds.y;
-				this.state.origin = new mxPoint(this.state.x / scale - tr.x, this.state.y / scale - tr.y);
-				this.state.width = this.bounds.width;
-				this.state.height = this.bounds.height;
+				if (dx > 0)
+				{
+					this.currentAlpha -= 180;
+				}
+	
+				// Rotation raster
+				if (this.rotationRaster && this.graph.isGridEnabledEvent(me.getEvent()))
+				{
+					var dx = point.x - this.state.getCenterX();
+					var dy = point.y - this.state.getCenterY();
+					var dist = Math.abs(Math.sqrt(dx * dx + dy * dy) - this.state.height / 2 - 20);
+					var raster = Math.max(1, 5 * Math.min(3, Math.max(0, Math.round(80 / Math.abs(dist)))));
+					
+					this.currentAlpha = Math.round(this.currentAlpha / raster) * raster;
+				}
+	
+				this.selectionBorder.rotation = this.currentAlpha;
+				this.selectionBorder.redraw();
 				
-				// Redraws cell and handles
-				this.state.view.graph.cellRenderer.redraw(this.state, true);
-				this.redrawHandles();
-				
-				// Redraws connected edges
-				this.state.view.invalidate(this.state.cell);
-				this.state.invalid = false;
-				this.state.view.validate();
-				
-				// Restores current state
-				this.state.x = tmp.x;
-				this.state.y = tmp.y;
-				this.state.width = tmp.width;
-				this.state.height = tmp.height;
-				this.state.origin = orig;
+				if (this.livePreview)
+				{
+					this.redrawHandles();
+				}
 			}
 			else
 			{
-				this.drawPreview();
+				var alpha = mxUtils.toRadians(this.state.style[mxConstants.STYLE_ROTATION] || '0');
+				var cos = Math.cos(-alpha);
+				var sin = Math.sin(-alpha);
+				
+				var ct = new mxPoint(this.state.getCenterX(), this.state.getCenterY());
+				
+				var dx = point.x - this.startX;
+				var dy = point.y - this.startY;
+				var tr = this.graph.view.translate;
+				
+				// Rotates vector for mouse gesture
+				var tx = cos * dx - sin * dy;
+				var ty = sin * dx + cos * dy;
+				
+				dx = tx;
+				dy = ty;
+				
+				this.bounds = this.union(this.selectionBounds, dx, dy, this.index, gridEnabled, scale, tr);
+	
+				cos = Math.cos(alpha);
+				sin = Math.sin(alpha);
+				
+				var c2 = new mxPoint(this.bounds.getCenterX(), this.bounds.getCenterY());
+	
+				var dx = c2.x - ct.x;
+				var dy = c2.y - ct.y;
+				
+				var dx2 = cos * dx - sin * dy;
+				var dy2 = sin * dx + cos * dy;
+				
+				var dx3 = dx2 - dx;
+				var dy3 = dy2 - dy;
+				
+				this.bounds.x += dx3;
+				this.bounds.y += dy3;
+	
+				if (this.livePreview)
+				{
+					// Saves current state
+					var tmp = new mxRectangle(this.state.x, this.state.y, this.state.width, this.state.height);
+					var orig = this.state.origin;
+					
+					// Temporarily changes size and origin
+					this.state.x = this.bounds.x;
+					this.state.y = this.bounds.y;
+					this.state.origin = new mxPoint(this.state.x / scale - tr.x, this.state.y / scale - tr.y);
+					this.state.width = this.bounds.width;
+					this.state.height = this.bounds.height;
+					
+					// Redraws cell and handles
+					this.state.view.graph.cellRenderer.redraw(this.state, true);
+					this.redrawHandles();
+					
+					// Redraws connected edges
+					this.state.view.invalidate(this.state.cell);
+					this.state.invalid = false;
+					this.state.view.validate();
+					
+					// Restores current state
+					this.state.x = tmp.x;
+					this.state.y = tmp.y;
+					this.state.width = tmp.width;
+					this.state.height = tmp.height;
+					this.state.origin = orig;
+				}
+				else
+				{
+					this.drawPreview();
+				}
 			}
-			
-			me.consume();
 		}
+		
+		me.consume();
 	}
 	// Workaround for disabling the connect highlight when over handle
-	else if (this.getHandleForEvent(me) != null)
+	else if (!this.graph.isMouseDown && this.getHandleForEvent(me) != null)
 	{
 		me.consume(false);
 	}
@@ -565,12 +653,11 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
  */
 mxVertexHandler.prototype.mouseUp = function(sender, me)
 {
-	if (!me.isConsumed() && this.index != null && this.state != null)
+	if (this.index != null && this.state != null)
 	{
 		var point = new mxPoint(me.getGraphX(), me.getGraphY());
 
 		this.graph.getModel().beginUpdate();
-		
 		try
 		{
 			if (this.index == mxEvent.ROTATION_HANDLE)
@@ -611,8 +698,8 @@ mxVertexHandler.prototype.mouseUp = function(sender, me)
 			this.graph.getModel().endUpdate();
 		}
 
-		this.reset();
 		me.consume();
+		this.reset();
 	}
 };
 
@@ -691,8 +778,9 @@ mxVertexHandler.prototype.reset = function()
 	}
 
 	this.currentAlpha = null;
+	this.inTolerance = null;
 	this.index = null;
-	
+
 	// TODO: Reset and redraw cell states for live preview
 	if (this.preview != null)
 	{
@@ -709,6 +797,19 @@ mxVertexHandler.prototype.reset = function()
 			this.selectionBounds.width, this.selectionBounds.height);
 		this.drawPreview();
 	}
+
+	if (this.livePreview && this.sizers != null)
+	{
+		for (var i = 0; i < this.sizers.length; i++)
+		{
+			if (this.sizers[i] != null)
+			{
+				this.sizers[i].node.style.display = '';
+			}
+		}
+	}
+	
+	this.redrawHandles();
 };
 
 /**
@@ -973,9 +1074,49 @@ mxVertexHandler.prototype.redraw = function()
 mxVertexHandler.prototype.redrawHandles = function()
 {
 	var s = this.state;
-	
+
 	if (this.sizers != null)
 	{
+		if (this.index == null && this.manageSizers && this.sizers.length > 1)
+		{
+			// KNOWN: Tolerance depends on event type (eg. 0 for mouse events)
+			var tol = this.tolerance;
+			
+			if (s.width < 2 * this.sizers[0].bounds.width - 2 + 2 * tol)
+			{
+				this.sizers[1].node.style.display = 'none';
+				this.sizers[6].node.style.display = 'none';
+			}
+			else
+			{
+				this.sizers[1].node.style.display = '';
+				this.sizers[6].node.style.display = '';
+			}
+			
+			if (s.height < 2 * this.sizers[0].bounds.height - 2 + 2 * tol)
+			{
+				this.sizers[3].node.style.display = 'none';
+				this.sizers[4].node.style.display = 'none';
+			}
+			else
+			{
+				this.sizers[3].node.style.display = '';
+				this.sizers[4].node.style.display = '';
+			}
+			
+			if (s.width < 2 * this.sizers[0].bounds.width - 2 + 3 * tol ||
+				s.height < 2 * this.sizers[0].bounds.height - 2 + 3 * tol)
+			{
+				s = new mxRectangle(s.x, s.y, s.width, s.height);
+				tol /= 2;
+				
+				s.x -= (this.sizers[0].bounds.width + tol) / 2;
+				s.width += this.sizers[0].bounds.width + tol;
+				s.y -= (this.sizers[0].bounds.height + tol)  / 2;
+				s.height += this.sizers[0].bounds.height + tol;
+			}
+		}
+
 		var r = s.x + s.width;
 		var b = s.y + s.height;
 		
@@ -990,61 +1131,74 @@ mxVertexHandler.prototype.redrawHandles = function()
 			
 			if (this.sizers.length > 1)
 			{
-				var alpha = mxUtils.toRadians(s.style[mxConstants.STYLE_ROTATION] || '0');
+				var crs = ['nw-resize', 'n-resize', 'ne-resize', 'e-resize', 'se-resize', 's-resize', 'sw-resize', 'w-resize'];
+				
+				var alpha = mxUtils.toRadians(this.state.style[mxConstants.STYLE_ROTATION] || '0');
 				var cos = Math.cos(alpha);
 				var sin = Math.sin(alpha);
+				
+				var da = Math.round(alpha * 4 / Math.PI);
 				
 				var ct = new mxPoint(s.getCenterX(), s.getCenterY());
 				var pt = mxUtils.getRotatedPoint(new mxPoint(s.x, s.y), cos, sin, ct);
 				
 				this.moveSizerTo(this.sizers[0], pt.x, pt.y);
+				this.sizers[0].node.style.cursor = crs[mxUtils.mod(0 + da, crs.length)];
 				
 				pt.x = cx;
 				pt.y = s.y;
 				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
 				
 				this.moveSizerTo(this.sizers[1], pt.x, pt.y);
+				this.sizers[1].node.style.cursor = crs[mxUtils.mod(1 + da, crs.length)];
 				
 				pt.x = r;
 				pt.y = s.y;
 				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
 				
 				this.moveSizerTo(this.sizers[2], pt.x, pt.y);
+				this.sizers[2].node.style.cursor = crs[mxUtils.mod(2 + da, crs.length)];
 				
 				pt.x = s.x;
 				pt.y = cy;
 				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
 				
 				this.moveSizerTo(this.sizers[3], pt.x, pt.y);
+				this.sizers[3].node.style.cursor = crs[mxUtils.mod(7 + da, crs.length)];
 
 				pt.x = r;
 				pt.y = cy;
 				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
 				
 				this.moveSizerTo(this.sizers[4], pt.x, pt.y);
+				this.sizers[4].node.style.cursor = crs[mxUtils.mod(3 + da, crs.length)];
 
 				pt.x = s.x;
 				pt.y = b;
 				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
 				
 				this.moveSizerTo(this.sizers[5], pt.x, pt.y);
+				this.sizers[5].node.style.cursor = crs[mxUtils.mod(6 + da, crs.length)];
 
 				pt.x = cx;
 				pt.y = b;
 				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
 				
 				this.moveSizerTo(this.sizers[6], pt.x, pt.y);
+				this.sizers[6].node.style.cursor = crs[mxUtils.mod(5 + da, crs.length)];
 
 				pt.x = r;
 				pt.y = b;
 				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
 				
 				this.moveSizerTo(this.sizers[7], pt.x, pt.y);
-				this.moveSizerTo(this.sizers[8], cx + s.absoluteOffset.x, cy + s.absoluteOffset.y);
+				this.sizers[7].node.style.cursor = crs[mxUtils.mod(4 + da, crs.length)];
+				
+				this.moveSizerTo(this.sizers[8], cx + this.state.absoluteOffset.x, cy + this.state.absoluteOffset.y);
 			}
 			else if (this.state.width >= 2 && this.state.height >= 2)
 			{
-				this.moveSizerTo(this.sizers[0], cx + s.absoluteOffset.x, cy + s.absoluteOffset.y);
+				this.moveSizerTo(this.sizers[0], cx + this.state.absoluteOffset.x, cy + this.state.absoluteOffset.y);
 			}
 			else
 			{
@@ -1052,20 +1206,26 @@ mxVertexHandler.prototype.redrawHandles = function()
 			}
 		}
 	}
-	
+
 	if (this.rotationShape != null)
 	{
-		var alpha = mxUtils.toRadians(this.state.style[mxConstants.STYLE_ROTATION] || '0');
+		var alpha = mxUtils.toRadians((this.currentAlpha != null) ? this.currentAlpha : this.state.style[mxConstants.STYLE_ROTATION] || '0');
 		var cos = Math.cos(alpha);
 		var sin = Math.sin(alpha);
 		
 		var ct = new mxPoint(this.state.getCenterX(), this.state.getCenterY());
 		var pt = mxUtils.getRotatedPoint(new mxPoint(s.x + s.width / 2, s.y - 16), cos, sin, ct);
-		
-		this.moveSizerTo(this.rotationShape, pt.x, pt.y);
+
+		if (this.rotationShape.node != null)
+		{
+			this.moveSizerTo(this.rotationShape, pt.x, pt.y);
+		}
 	}
 	
-	this.selectionBorder.rotation = Number(this.state.style[mxConstants.STYLE_ROTATION] || '0');
+	if (this.selectionBorder != null)
+	{
+		this.selectionBorder.rotation = Number(this.state.style[mxConstants.STYLE_ROTATION] || '0');
+	}
 };
 
 /**
@@ -1117,5 +1277,7 @@ mxVertexHandler.prototype.destroy = function()
 			this.sizers[i].destroy();
 			this.sizers[i] = null;
 		}
+		
+		this.sizers = null;
 	}
 };

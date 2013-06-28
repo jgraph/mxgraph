@@ -1,5 +1,5 @@
 /**
- * $Id: mxClient.js,v 1.14 2013/05/21 16:40:21 gaudenz Exp $
+ * $Id: mxClient.js,v 1.17 2013/06/17 14:41:14 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClient =
@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.0.0.1.
+	 * Current version is 2.1.0.0.
 	 */
-	VERSION: '2.0.0.1',
+	VERSION: '2.1.0.0',
 
 	/**
 	 * Variable: IS_IE
@@ -97,11 +97,25 @@ var mxClient =
   		navigator.userAgent.indexOf('Chrome/') < 0,
   	
 	/**
+	 * Variable: IS_IOS
+	 * 
+	 * Returns true if the user agent is an iPad, iPhone or iPod.
+	 */
+  	IS_IOS: (navigator.userAgent.match(/(iPad|iPhone|iPod)/g) ? true : false),
+  		
+	/**
 	 * Variable: IS_GC
 	 *
 	 * True if the current browser is Google Chrome.
 	 */
   	IS_GC: navigator.userAgent.indexOf('Chrome/') >= 0,
+		
+	/**
+	 * Variable: IS_FF
+	 *
+	 * True if the current browser is Firefox.
+	 */
+  	IS_FF: navigator.userAgent.indexOf('Firefox/') >= 0,
   	
 	/**
 	 * Variable: IS_MT
@@ -172,7 +186,7 @@ var mxClient =
 	 * 
 	 * True if this device supports MS pointer events.
 	 */
-  	IS_POINTER: window.navigator.msPointerEnabled,
+  	IS_POINTER: (window.navigator.msPointerEnabled != null) ? window.navigator.msPointerEnabled : false,
 
 	/**
 	 * Variable: IS_LOCAL
@@ -660,6 +674,7 @@ mxClient.include(mxClient.basePath+'/js/view/mxCellStatePreview.js');
 mxClient.include(mxClient.basePath+'/js/view/mxConnectionConstraint.js');
 mxClient.include(mxClient.basePath+'/js/handler/mxGraphHandler.js');
 mxClient.include(mxClient.basePath+'/js/handler/mxPanningHandler.js');
+mxClient.include(mxClient.basePath+'/js/handler/mxPopupMenuHandler.js');
 mxClient.include(mxClient.basePath+'/js/handler/mxCellMarker.js');
 mxClient.include(mxClient.basePath+'/js/handler/mxSelectionCellsHandler.js');
 mxClient.include(mxClient.basePath+'/js/handler/mxConnectionHandler.js');

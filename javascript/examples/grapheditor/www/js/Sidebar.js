@@ -1,5 +1,5 @@
 /**
- * $Id: Sidebar.js,v 1.42 2013/05/07 09:48:56 gaudenz Exp $
+ * $Id: Sidebar.js,v 1.47 2013/06/28 18:11:14 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -23,52 +23,49 @@ function Sidebar(editorUi, container)
 	this.graph.container.style.visibility = 'hidden';
 	this.graph.container.style.position = 'absolute';
 	document.body.appendChild(this.graph.container);
-		
-	if (!mxClient.IS_TOUCH)
+
+	mxEvent.addListener(document, (mxClient.IS_POINTER) ? 'MSPointerUp' : 'mouseup', mxUtils.bind(this, function()
 	{
-		mxEvent.addListener(document, 'mouseup', mxUtils.bind(this, function()
-		{
-			this.showTooltips = true;
-		}));
-	
-		// Enables tooltips after scroll
-		mxEvent.addListener(container, 'scroll', mxUtils.bind(this, function()
-		{
-			this.showTooltips = true;
-		}));
+		this.showTooltips = true;
+	}));
+
+	mxEvent.addListener(document, (mxClient.IS_POINTER) ? 'MSPointerDown' : 'mousedown', mxUtils.bind(this, function()
+	{
+		this.showTooltips = false;
+		this.hideTooltip();
+	}));
+
+	mxEvent.addListener(document, (mxClient.IS_POINTER) ? 'MSPointerMove' : 'mousemove', mxUtils.bind(this, function(evt)
+	{
+		var src = mxEvent.getSource(evt);
 		
-		mxEvent.addListener(document, 'mousedown', mxUtils.bind(this, function()
+		while (src != null)
 		{
-			this.showTooltips = false;
-			this.hideTooltip();
-		}));
-
-		mxEvent.addListener(document, 'mousemove', mxUtils.bind(this, function(evt)
-		{
-			var src = mxEvent.getSource(evt);
-			
-			while (src != null)
+			if (src == this.currentElt)
 			{
-				if (src == this.currentElt)
-				{
-					return;
-				}
-				
-				src = src.parentNode;
+				return;
 			}
 			
-			this.hideTooltip();
-		}));
+			src = src.parentNode;
+		}
+		
+		this.hideTooltip();
+	}));
 
-		// Handles mouse leaving the window
-		mxEvent.addListener(document, 'mouseout', mxUtils.bind(this, function(evt)
+	// Handles mouse leaving the window
+	mxEvent.addListener(document, (mxClient.IS_POINTER) ? 'MSPointerOut' : 'mouseout', mxUtils.bind(this, function(evt)
+	{
+		if (evt.toElement == null && evt.relatedTarget == null)
 		{
-			if (evt.toElement == null && evt.relatedTarget == null)
-			{
-				this.hideTooltip();
-			}
-		}));
-	}
+			this.hideTooltip();
+		}
+	}));
+
+	// Enables tooltips after scroll
+	mxEvent.addListener(container, 'scroll', mxUtils.bind(this, function()
+	{
+		this.showTooltips = true;
+	}));
 	
 	this.init();
 	
@@ -103,7 +100,7 @@ Sidebar.prototype.init = function()
 /**
  * Specifies if tooltips should be visible. Default is true.
  */
-Sidebar.prototype.enableTooltips = !mxClient.IS_TOUCH;
+Sidebar.prototype.enableTooltips = true;
 
 /**
  * Specifies the delay for the tooltip. Default is 16 px.
@@ -344,7 +341,7 @@ Sidebar.prototype.hideTooltip = function()
  */
 Sidebar.prototype.addGeneralPalette = function(expand)
 {
-	this.addPalette('general', mxResources.get('general'), expand || true, mxUtils.bind(this, function(content)
+	this.addPalette('general', mxResources.get('general'), (expand != null) ? expand : true, mxUtils.bind(this, function(content)
 	{
 		content.appendChild(this.createVertexTemplate('swimlane;whiteSpace=wrap', 200, 200, 'Container', 'Container', true));
 	    content.appendChild(this.createVertexTemplate('whiteSpace=wrap', 120, 60, '', 'Rectangle', true));
@@ -641,6 +638,15 @@ Sidebar.prototype.addUmlPalette = function(expand)
 		assoc.geometry.relative = true;
 		assoc.geometry.x = -1;
 		assoc.edge = true;
+	
+		content.appendChild(this.createEdgeTemplateFromCells([assoc], 160, 0, 'Aggregation', true));
+
+		var assoc = new mxCell('1', new mxGeometry(0, 0, 0, 0), 'endArrow=open;endSize=12;startArrow=diamondThin;startSize=14;startFill=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=bottom;');
+		assoc.geometry.setTerminalPoint(new mxPoint(0, 0), true);
+		assoc.geometry.setTerminalPoint(new mxPoint(160, 0), false);
+		assoc.geometry.relative = true;
+		assoc.geometry.x = -1;
+		assoc.edge = true;
 		
 		content.appendChild(this.createEdgeTemplateFromCells([assoc], 160, 0, 'Composition', true));
 		
@@ -670,7 +676,7 @@ Sidebar.prototype.addUmlPalette = function(expand)
 		
 		content.appendChild(this.createEdgeTemplateFromCells([assoc], 160, 0, 'Dependency', true));
 		
-		var assoc = new mxCell('Extends', new mxGeometry(0, 0, 0, 0), 'endArrow=block;endSize=16;endFill=0;dashed=1');
+		var assoc = new mxCell('Extends', new mxGeometry(0, 0, 0, 0), 'endArrow=block;endSize=16;endFill=0');
 		assoc.geometry.setTerminalPoint(new mxPoint(0, 0), true);
 		assoc.geometry.setTerminalPoint(new mxPoint(160, 0), false);
 		assoc.edge = true;
@@ -960,15 +966,37 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview)
 {
 	var dragSource = mxUtils.makeDraggable(elt, this.editorUi.editor.graph, dropHandler,
 		preview, 0, 0, this.editorUi.editor.graph.autoscroll, true, true);
+	
+	// Overrides mouseDown to ignore popup triggers
+	var mouseDown = dragSource.mouseDown;
+	
+	dragSource.mouseDown = function(evt)
+	{
+		if (!mxEvent.isPopupTrigger(evt))
+		{
+			mouseDown.apply(this, arguments);
+		}
+	};
 
 	// Allows drop into cell only if target is a valid root
 	dragSource.getDropTarget = function(graph, x, y)
 	{
 		var target = mxDragSource.prototype.getDropTarget.apply(this, arguments);
 		
-		if (!graph.isValidRoot(target))
+		if (target != null)
 		{
-			target = null;
+			// Selects parent group as drop target
+			var model = graph.getModel();
+			
+			if (!graph.isValidRoot(target) && model.isVertex(model.getParent(target)))
+			{
+				target = model.getParent(target);
+			}
+			
+			if (!graph.isValidRoot(target) && graph.getModel().getChildCount(target) == 0)
+			{
+				target = null;
+			}
 		}
 		
 		return target;
@@ -1049,13 +1077,13 @@ Sidebar.prototype.createVertexTemplateFromCells = function(cells, width, height,
 	});
 
 	// Shows a tooltip with the rendered cell
-	if (!touchStyle)
+	mxEvent.addGestureListeners(elt, null, mxUtils.bind(this, function(evt)
 	{
-		mxEvent.addListener(elt, 'mousemove', mxUtils.bind(this, function(evt)
+		if (mxEvent.isMouseEvent(evt))
 		{
 			this.showTooltip(elt, cells, title, showLabel);
-		}));
-	}
+		}
+	}));
 	
 	return elt;
 };
@@ -1103,13 +1131,13 @@ Sidebar.prototype.createEdgeTemplateFromCells = function(cells, width, height, t
 	}));
 
 	// Shows a tooltip with the rendered cell
-	if (!touchStyle)
+	mxEvent.addGestureListeners(elt, null, mxUtils.bind(this, function(evt)
 	{
-		mxEvent.addListener(elt, 'mousemove', mxUtils.bind(this, function(evt)
+		if (mxEvent.isMouseEvent(evt))
 		{
 			this.showTooltip(elt, cells, title, showLabel);
-		}));
-	}
+		}
+	}));
 	
 	return elt;
 };
@@ -1155,8 +1183,13 @@ Sidebar.prototype.addFoldingHandler = function(title, content, funct)
 {
 	var initialized = false;
 
-	title.style.backgroundImage = (content.style.display == 'none') ?
-		'url(' + IMAGE_PATH + '/collapsed.gif)' : 'url(' + IMAGE_PATH + '/expanded.gif)';
+	// Avoids mixed content warning in IE6-8
+	if (!mxClient.IS_IE || document.documentMode >= 8)
+	{
+		title.style.backgroundImage = (content.style.display == 'none') ?
+			'url(' + IMAGE_PATH + '/collapsed.gif)' : 'url(' + IMAGE_PATH + '/expanded.gif)';
+	}
+	
 	title.style.backgroundRepeat = 'no-repeat';
 	title.style.backgroundPosition = '0% 50%';
 	

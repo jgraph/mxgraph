@@ -1,0 +1,96 @@
+<!--
+  $Id: lod.html,v 1.1 2013/06/17 14:41:14 gaudenz Exp $
+  Copyright (c) 2006-2010, JGraph Ltd
+  
+  Level of detail example for mxGraph. This example demonstrates
+  implementing a level of detail per cell.
+-->
+<html>
+<head>
+	<title>Level of detail example for mxGraph</title>
+
+	<!-- Sets the basepath for the library if not in same directory -->
+	<script type="text/javascript">
+		mxBasePath = '../src';
+	</script>
+
+	<!-- Loads and initializes the library -->
+	<script type="text/javascript" src="../src/js/mxClient.js"></script>
+
+	<!-- Example code -->
+	<script type="text/javascript">
+		// Program starts here. Creates a sample graph in the
+		// DOM node with the specified ID. This function is invoked
+		// from the onLoad event handler of the document (see below).
+		function main(container)
+		{
+			// Checks if the browser is supported
+			if (!mxClient.isBrowserSupported())
+			{
+				// Displays an error message if the browser is not supported.
+				mxUtils.error('Browser is not supported!', 200, false);
+			}
+			else
+			{
+				// Creates the graph inside the given container
+				var graph = new mxGraph(container);
+				graph.centerZoom = false;
+
+				// Links level of detail to zoom level but can be independent of zoom
+				graph.isCellVisible = function(cell)
+				{
+					return cell.lod == null || cell.lod / 2 < this.view.scale;
+				};
+				
+				// Gets the default parent for inserting new cells. This
+				// is normally the first child of the root (ie. layer 0).
+				var parent = graph.getDefaultParent();
+								
+				// Adds cells to the model in a single step
+				graph.getModel().beginUpdate();
+				try
+				{
+					var v1 = graph.insertVertex(parent, null, '1', 20, 20, 80, 30);
+					v1.lod = 1;
+					var v2 = graph.insertVertex(parent, null, '1', 200, 150, 80, 30);
+					v2.lod = 1;
+					var v3 = graph.insertVertex(parent, null, '2', 20, 150, 40, 20);
+					v3.lod = 2;
+					var v4 = graph.insertVertex(parent, null, '3', 200, 10, 20, 20);
+					v4.lod = 3;
+					var e1 = graph.insertEdge(parent, null, '2', v1, v2, 'strokeWidth=2');
+					e1.lod = 2;
+					var e2 = graph.insertEdge(parent, null, '2', v3, v4, 'strokeWidth=2');
+					e2.lod = 2;
+					var e2 = graph.insertEdge(parent, null, '3', v1, v4, 'strokeWidth=1');
+					e2.lod = 3;
+				}
+				finally
+				{
+					// Updates the display
+					graph.getModel().endUpdate();
+				}
+				
+				document.body.appendChild(mxUtils.button('+', function()
+				{
+					graph.zoomIn();
+				}));
+				
+				document.body.appendChild(mxUtils.button('-', function()
+				{
+					graph.zoomOut();
+				}));
+			}
+		};
+	</script>
+</head>
+
+<!-- Page passes the container for the graph to the program -->
+<body onload="main(document.getElementById('graphContainer'))">
+
+	<!-- Creates a container for the graph with a grid wallpaper -->
+	<div id="graphContainer"
+		style="position:relative;overflow:hidden;width:621px;height:441px;background:url('editors/images/grid.gif');cursor:default;">
+	</div>
+</body>
+</html>

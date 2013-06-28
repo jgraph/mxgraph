@@ -1,5 +1,5 @@
 /**
- * $Id: mxEvent.js,v 1.11 2013/05/23 10:29:43 gaudenz Exp $
+ * $Id: mxEvent.js,v 1.13 2013/06/17 14:46:59 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEvent =
@@ -137,8 +137,11 @@ var mxEvent =
 	/**
 	 * Function: addGestureListeners
 	 * 
-	 * Adds the given listeners to mousedown, mousemove, mouseup and the
-	 * respective touch events if <mxClient.IS_TOUCH> is true.
+	 * Adds the given listeners for touch, mouse and/or pointer events. If
+	 * <mxClient.IS_POINTER> is true then MSPointerEvents will be registered,
+	 * else the respective mouse events will be registered. If <mxClient.IS_POINTER>
+	 * is false and <mxClient.IS_TOUCH> is true then the respective touch events
+	 * will be registered as well as the mouse events.
 	 */
 	addGestureListeners: function(node, startListener, moveListener, endListener)
 	{
@@ -236,43 +239,39 @@ var mxEvent =
 			return (typeof(state) == 'function') ? state(evt) : state;
 		};
 		
-		mxEvent.addGestureListeners(node,
-			function (evt)
+		mxEvent.addGestureListeners(node, function (evt)
+		{
+			if (down != null)
 			{
-				if (down != null)
-				{
-					down(evt);
-				}
-				else if (!mxEvent.isConsumed(evt))
-				{
-					graph.fireMouseEvent(mxEvent.MOUSE_DOWN,
-						new mxMouseEvent(evt, getState(evt)));
-				}
-			},
-			function (evt)
+				down(evt);
+			}
+			else if (!mxEvent.isConsumed(evt))
 			{
-				if (move != null)
-				{
-					move(evt);
-				}
-				else if (!mxEvent.isConsumed(evt))
-				{
-					graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
-							new mxMouseEvent(evt, getState(evt)));
-				}
-			},
-			function (evt)
+				graph.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt, getState(evt)));
+			}
+		},
+		function (evt)
+		{
+			if (move != null)
 			{
-				if (up != null)
-				{
-					up(evt);
-				}
-				else if (!mxEvent.isConsumed(evt))
-				{
-					graph.fireMouseEvent(mxEvent.MOUSE_UP,
-							new mxMouseEvent(evt, getState(evt)));
-				}
-			});
+				move(evt);
+			}
+			else if (!mxEvent.isConsumed(evt))
+			{
+				graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt, getState(evt)));
+			}
+		},
+		function (evt)
+		{
+			if (up != null)
+			{
+				up(evt);
+			}
+			else if (!mxEvent.isConsumed(evt))
+			{
+				graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt, getState(evt)));
+			}
+		});
 
 		mxEvent.addListener(node, 'dblclick', function (evt)
 		{
@@ -358,13 +357,13 @@ var mxEvent =
 			
 				var delta = 0;
 				
-				if (mxClient.IS_NS && !mxClient.IS_SF && !mxClient.IS_GC)
+				if (mxClient.IS_FF)
 				{
-					delta = -evt.detail/2;
+					delta = -evt.detail / 2;
 				}
 				else
 				{
-					delta = evt.wheelDelta/120;
+					delta = evt.wheelDelta / 120;
 				}
 				
 				// Handles the event using the given function
@@ -377,8 +376,7 @@ var mxEvent =
 			// Webkit has NS event API, but IE event name and details 
 			if (mxClient.IS_NS)
 			{
-				var eventName = (mxClient.IS_SF || 	mxClient.IS_GC) ?
-						'mousewheel' : 'DOMMouseScroll';
+				var eventName = (mxClient.IS_SF || 	mxClient.IS_GC) ? 'mousewheel' : 'DOMMouseScroll';
 				mxEvent.addListener(window, eventName, wheelHandler);
 			}
 			else
@@ -437,6 +435,26 @@ var mxEvent =
 	},
 
 	/**
+	 * Function: isTouchEvent
+	 * 
+	 * Returns true if the event was generated using a touch device (not a pen or mouse).
+	 */
+	isTouchEvent: function(evt)
+	{
+		return (evt.pointerType != null) ? evt.pointerType === evt.MSPOINTER_TYPE_TOUCH : evt.type.indexOf('touch') == 0;
+	},
+
+	/**
+	 * Function: isMouseEvent
+	 * 
+	 * Returns true if the event was generated using a mouse (not a pen or touch device).
+	 */
+	isMouseEvent: function(evt)
+	{
+		return (evt.pointerType != null) ? evt.pointerType === evt.MSPOINTER_TYPE_MOUSE : evt.type.indexOf('mouse') == 0;
+	},
+	
+	/**
 	 * Function: isLeftMouseButton
 	 * 
 	 * Returns true if the left mouse button is pressed for the given event.
@@ -468,9 +486,7 @@ var mxEvent =
 	 */
 	isPopupTrigger: function(evt)
 	{
-		return mxEvent.isRightMouseButton(evt) ||
-			(mxEvent.isShiftDown(evt) &&
-			!mxEvent.isControlDown(evt));
+		return mxEvent.isRightMouseButton(evt) || (mxEvent.isShiftDown(evt) && !mxEvent.isControlDown(evt));
 	},
 
 	/**
@@ -520,13 +536,11 @@ var mxEvent =
 	 */
 	getMainEvent: function(e)
 	{
-		if ((e.type == 'touchstart' || e.type == 'touchmove') &&
-			e.touches != null && e.touches[0] != null)
+		if ((e.type == 'touchstart' || e.type == 'touchmove') && e.touches != null && e.touches[0] != null)
 		{
 			e = e.touches[0];
 		}
-		else if (e.type == 'touchend' && e.changedTouches != null &&
-			e.changedTouches[0] != null)
+		else if (e.type == 'touchend' && e.changedTouches != null && e.changedTouches[0] != null)
 		{
 			e = e.changedTouches[0];
 		}
@@ -789,6 +803,27 @@ var mxEvent =
 	 * Specifies the event name for fired.
 	 */
 	FIRED: 'fired',
+
+	/**
+	 * Variable: FIRE_MOUSE_EVENT
+	 *
+	 * Specifies the event name for fireMouseEvent.
+	 */
+	FIRE_MOUSE_EVENT: 'fireMouseEvent',
+
+	/**
+	 * Variable: GESTURE
+	 *
+	 * Specifies the event name for gesture.
+	 */
+	GESTURE: 'gesture',
+
+	/**
+	 * Variable: TAP_AND_HOLD
+	 *
+	 * Specifies the event name for tapAndHold.
+	 */
+	TAP_AND_HOLD: 'tapAndHold',
 
 	/**
 	 * Variable: GET

@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.25 2013/05/17 10:01:00 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.30 2013/06/21 12:19:17 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -513,6 +513,24 @@
  * Fires in <dblClick> after a double click. The <code>event</code> property
  * contains the original mouse event and the <code>cell</code> property
  * contains the cell under the mouse or null if the background was clicked.
+ * 
+ * Event: mxEvent.GESTURE
+ *
+ * Fires in <fireGestureEvent> after a touch gesture. The <code>event</code>
+ * property contains the original gesture end event and the <code>cell</code>
+ * property contains the optional cell associated with the gesture.
+ *
+ * Event: mxEvent.TAP_AND_HOLD
+ *
+ * Fires in <tapAndHold> if a tap and hold event was detected. The <code>event</code>
+ * property contains the initial touch event and the <code>cell</code> property
+ * contains the cell under the mouse or null if the background was clicked.
+ *
+ * Event: mxEvent.FIRE_MOUSE_EVENT
+ *
+ * Fires in <fireMouseEvent> before the mouse listeners are invoked. The
+ * <code>eventName</code> property contains the event name and the
+ * <code>event</code> property contains the <mxMouseEvent>.
  *
  * Event: mxEvent.SIZE
  *
@@ -848,12 +866,48 @@ mxGraph.prototype.lastTouchY = 0;
 mxGraph.prototype.lastTouchTime = 0;
 
 /**
- * Variable: gestureEnabled
+ * Variable: tapAndHoldEnabled
  * 
- * Specifies if the handleGesture method should be invoked. Default is true. This
- * is an experimental feature for touch-based devices.
+ * Specifies if tap and hold should be used for starting connections on touch-based
+ * devices. Default is true.
  */
-mxGraph.prototype.gestureEnabled = true;
+mxGraph.prototype.tapAndHoldEnabled = true;
+
+/**
+ * Variable: tapAndHoldDelay
+ * 
+ * Specifies the time for a tap and hold. Default is 500 ms.
+ */
+mxGraph.prototype.tapAndHoldDelay = 500;
+
+/**
+ * Variable: tapAndHoldInProgress
+ * 
+ * True if the timer for tap and hold events is running.
+ */
+mxGraph.prototype.tapAndHoldInProgress = false;
+
+/**
+ * Variable: tapAndHoldValid
+ * 
+ * True as long as the timer is running and the touch events
+ * stay within the given <tapAndHoldTolerance>.
+ */
+mxGraph.prototype.tapAndHoldValid = false;
+
+/**
+ * Variable: initialTouchX
+ * 
+ * Holds the x-coordinate of the intial touch event for tap and hold.
+ */
+mxGraph.prototype.initialTouchX = 0;
+
+/**
+ * Variable: initialTouchY
+ * 
+ * Holds the y-coordinate of the intial touch event for tap and hold.
+ */
+mxGraph.prototype.initialTouchY = 0;
 
 /**
  * Variable: tolerance
@@ -1599,12 +1653,13 @@ mxGraph.prototype.createHandlers = function(container)
 {
 	this.tooltipHandler = new mxTooltipHandler(this);
 	this.tooltipHandler.setEnabled(false);
-	this.panningHandler = new mxPanningHandler(this);
-	this.panningHandler.panningEnabled = false;
 	this.selectionCellsHandler = new mxSelectionCellsHandler(this);
 	this.connectionHandler = new mxConnectionHandler(this);
 	this.connectionHandler.setEnabled(false);
 	this.graphHandler = new mxGraphHandler(this);
+	this.panningHandler = new mxPanningHandler(this);
+	this.panningHandler.panningEnabled = false;
+	this.popupMenuHandler = new mxPopupMenuHandler(this);
 };
 
 /**
@@ -2472,12 +2527,56 @@ mxGraph.prototype.dblClick = function(evt, cell)
 {
 	var mxe = new mxEventObject(mxEvent.DOUBLE_CLICK, 'event', evt, 'cell', cell);
 	this.fireEvent(mxe);
-	
+
 	// Handles the event if it has not been consumed
 	if (this.isEnabled() && !mxEvent.isConsumed(evt) && !mxe.isConsumed() &&
-		cell != null && this.isCellEditable(cell))
+		cell != null && this.isCellEditable(cell) && !this.isEditing(cell))
 	{
 		this.startEditingAtCell(cell, evt);
+		mxEvent.consume(evt);
+	}
+};
+
+/**
+ * Function: tapAndHold
+ * 
+ * Handles the <mxMouseEvent> by highlighting the <mxCellState>.
+ * 
+ * Parameters:
+ * 
+ * me - <mxMouseEvent> that represents the touch event.
+ * state - Optional <mxCellState> that is associated with the event.
+ */
+mxGraph.prototype.tapAndHold = function(me)
+{
+	var evt = me.getEvent();
+	var mxe = new mxEventObject(mxEvent.TAP_AND_HOLD, 'event', evt, 'cell', me.getCell());
+
+	// LATER: Check if event should be consumed if me is consumed
+	this.fireEvent(mxe);
+
+	if (mxe.isConsumed())
+	{
+		// Resets the state of the panning handler
+		this.panningHandler.panningTrigger = false;
+	}
+	
+	// Handles the event if it has not been consumed
+	if (this.isEnabled() && !mxEvent.isConsumed(evt) && !mxe.isConsumed() && this.connectionHandler.isEnabled())
+	{
+		var state = this.view.getState(this.connectionHandler.marker.getCell(me));
+
+		if (state != null)
+		{
+			this.connectionHandler.marker.currentColor = this.connectionHandler.marker.validColor;
+			this.connectionHandler.marker.markedState = state;
+			this.connectionHandler.marker.mark();
+			
+			this.connectionHandler.first = new mxPoint(me.getGraphX(), me.getGraphY());
+			this.connectionHandler.edgeState = this.connectionHandler.createEdgeState(me);
+			this.connectionHandler.previous = state;
+			this.connectionHandler.fireEvent(new mxEventObject(mxEvent.START, 'state', this.connectionHandler.previous));
+		}
 	}
 };
 
@@ -3191,56 +3290,56 @@ mxGraph.prototype.alignCells = function(align, cells, param)
 		{
 			for (var i = 0; i < cells.length; i++)
 			{
-				var geo = this.getCellGeometry(cells[i]);
+				var state = this.view.getState(cells[i]);
 				
-				if (geo != null && !this.model.isEdge(cells[i]))
+				if (state != null && !this.model.isEdge(cells[i]))
 				{
 					if (param == null)
 					{
 						if (align == mxConstants.ALIGN_CENTER)
 						{
-							param = geo.x + geo.width / 2;
+							param = state.x + state.width / 2;
 							break;
 						}
 						else if (align == mxConstants.ALIGN_RIGHT)
 						{
-							param = geo.x + geo.width;
+							param = state.x + state.width;
 						}
 						else if (align == mxConstants.ALIGN_TOP)
 						{
-							param = geo.y;
+							param = state.y;
 						}
 						else if (align == mxConstants.ALIGN_MIDDLE)
 						{
-							param = geo.y + geo.height / 2;
+							param = state.y + state.height / 2;
 							break;
 						}
 						else if (align == mxConstants.ALIGN_BOTTOM)
 						{
-							param = geo.y + geo.height;
+							param = state.y + state.height;
 						}
 						else
 						{
-							param = geo.x;
+							param = state.x;
 						}
 					}
 					else
 					{
 						if (align == mxConstants.ALIGN_RIGHT)
 						{
-							param = Math.max(param, geo.x + geo.width);
+							param = Math.max(param, state.x + state.width);
 						}
 						else if (align == mxConstants.ALIGN_TOP)
 						{
-							param = Math.min(param, geo.y);
+							param = Math.min(param, state.y);
 						}
 						else if (align == mxConstants.ALIGN_BOTTOM)
 						{
-							param = Math.max(param, geo.y + geo.height);
+							param = Math.max(param, state.y + state.height);
 						}
 						else
 						{
-							param = Math.min(param, geo.x);
+							param = Math.min(param, state.x);
 						}
 					}
 				}
@@ -3250,43 +3349,50 @@ mxGraph.prototype.alignCells = function(align, cells, param)
 		// Aligns the cells to the coordinate
 		if (param != null)
 		{
+			var s = this.view.scale;
+
 			this.model.beginUpdate();
 			try
 			{
 				for (var i = 0; i < cells.length; i++)
 				{
-					var geo = this.getCellGeometry(cells[i]);
+					var state = this.view.getState(cells[i]);
 					
-					if (geo != null && !this.model.isEdge(cells[i]))
+					if (state != null)
 					{
-						geo = geo.clone();
+						var geo = this.getCellGeometry(cells[i]);
 						
-						if (align == mxConstants.ALIGN_CENTER)
+						if (geo != null && !this.model.isEdge(cells[i]))
 						{
-							geo.x = param - geo.width / 2;
+							geo = geo.clone();
+							
+							if (align == mxConstants.ALIGN_CENTER)
+							{
+								geo.x += (param - state.x - state.width / 2) / s;
+							}
+							else if (align == mxConstants.ALIGN_RIGHT)
+							{
+								geo.x += (param - state.x - state.width) / s;
+							}
+							else if (align == mxConstants.ALIGN_TOP)
+							{
+								geo.y += (param - state.y) / s;
+							}
+							else if (align == mxConstants.ALIGN_MIDDLE)
+							{
+								geo.y += (param - state.y - state.height / 2) / s;
+							}
+							else if (align == mxConstants.ALIGN_BOTTOM)
+							{
+								geo.y += (param - state.y - state.height) / s;
+							}
+							else
+							{
+								geo.x += (param - state.x) / s;
+							}
+							
+							this.resizeCell(cells[i], geo);
 						}
-						else if (align == mxConstants.ALIGN_RIGHT)
-						{
-							geo.x = param - geo.width;
-						}
-						else if (align == mxConstants.ALIGN_TOP)
-						{
-							geo.y = param;
-						}
-						else if (align == mxConstants.ALIGN_MIDDLE)
-						{
-							geo.y = param - geo.height / 2;
-						}
-						else if (align == mxConstants.ALIGN_BOTTOM)
-						{
-							geo.y = param - geo.height;
-						}
-						else
-						{
-							geo.x = param;
-						}
-						
-						this.model.setGeometry(cells[i], geo);
 					}
 				}
 				
@@ -5008,36 +5114,6 @@ mxGraph.prototype.getPreferredSizeForCell = function(cell)
 	}
 	
 	return result;
-};
-
-/**
- * Function: handleGesture
- * 
- * Invokes if a gesture event has been detected on a cell state.
- * 
- * Parameters:
- * 
- * state - <mxCellState> which was pinched.
- * evt - Object that represents the gesture event.
- */
-mxGraph.prototype.handleGesture = function(state, evt)
-{
-	if (this.isEnabled() && this.isCellResizable(state.cell) &&
-		Math.abs(1 - evt.scale) > 0.2)
-	{
-		var scale = this.view.scale;
-		var tr = this.view.translate;
-		
-		var w = state.width * evt.scale;
-		var h = state.height * evt.scale;
-		var x = state.x - (w - state.width) / 2;
-		var y = state.y - (h - state.height) / 2;
-		
-		var bounds = new mxRectangle(this.snap(x / scale) - tr.x,
-			this.snap(y / scale) - tr.y,
-			this.snap(w / scale), this.snap(h / scale));
-		this.resizeCell(state.cell, bounds);
-	}
 };
 
 /**
@@ -7245,17 +7321,6 @@ mxGraph.prototype.isConstrainedEvent = function(evt)
 };
 
 /**
- * Function: isForceMarqueeEvent
- * 
- * Returns true if the given event forces marquee selection. This implementation
- * returns true if alt is pressed.
- */
-mxGraph.prototype.isForceMarqueeEvent = function(evt)
-{
-	return mxEvent.isAltDown(evt);
-};
-
-/**
  * Group: Validation
  */
 
@@ -9340,9 +9405,7 @@ mxGraph.prototype.isEditing = function(cell)
 	{
 		var editingCell = this.cellEditor.getEditingCell();
 		
-		return (cell == null) ?
-				editingCell != null :
-					cell == editingCell;
+		return (cell == null) ? editingCell != null : cell == editingCell;
 	}
 	
 	return false;
@@ -11076,7 +11139,7 @@ mxGraph.prototype.removeMouseListener = function(listener)
  * Function: updateMouseEvent
  * 
  * Sets the graphX and graphY properties if the given <mxMouseEvent> if
- * required.
+ * required and returned the event.
  */
 mxGraph.prototype.updateMouseEvent = function(me)
 {
@@ -11087,6 +11150,144 @@ mxGraph.prototype.updateMouseEvent = function(me)
 		me.graphX = pt.x - this.panDx;
 		me.graphY = pt.y - this.panDy;
 	}
+	
+	return me;
+};
+
+/**
+ * Function: getStateForEvent
+ * 
+ * Returns the state for the given touch event.
+ */
+mxGraph.prototype.getStateForTouchEvent = function(evt)
+{
+	var x = mxEvent.getClientX(evt);
+	var y = mxEvent.getClientY(evt);
+	
+	// Dispatches the drop event to the graph which
+	// consumes and executes the source function
+	var pt = mxUtils.convertPoint(this.container, x, y);
+
+	return this.view.getState(this.getCellAt(pt.x, pt.y));
+};
+
+/**
+ * Function: isEventIgnored
+ * 
+ * Returns true if the event should be ignored in <fireMouseEvent>.
+ */
+mxGraph.prototype.isEventIgnored = function(evtName, me, sender)
+{
+	var result = this.isEditing();
+	var mouseEvent = mxEvent.isMouseEvent(me.getEvent());
+	
+	// Drops events that are fired more than once
+	if (me.getEvent() == this.lastEvent)
+	{
+		result = true;
+	}
+	else
+	{
+		this.lastEvent = me.getEvent();
+	}
+
+	// Installs event listeners to capture the complete gesture from the event source
+	// for non-MS touch events as a workaround for all events for the same geture being
+	// fires from the event source even if that was removed from the DOM.
+	if (this.eventSource != null && evtName != mxEvent.MOUSE_MOVE)
+	{
+		mxEvent.removeGestureListeners(this.eventSource, null, this.mouseMoveRedirect, this.mouseUpRedirect);
+		this.mouseMoveRedirect = null;
+		this.mouseUpRedirect = null;
+		this.eventSource = null;
+	}
+	else if (this.eventSource != null && me.getSource() != this.eventSource)
+	{
+		result = true;
+	}
+	else if (mxClient.IS_TOUCH && evtName == mxEvent.MOUSE_DOWN && !mouseEvent)
+	{
+		this.eventSource = me.getSource();
+
+		this.mouseMoveRedirect = mxUtils.bind(this, function(evt)
+		{
+			this.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt, this.getStateForTouchEvent(evt)));
+		});
+		this.mouseUpRedirect = mxUtils.bind(this, function(evt)
+		{
+			this.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt, this.getStateForTouchEvent(evt)));
+		});
+		
+		mxEvent.addGestureListeners(this.eventSource, null, this.mouseMoveRedirect, this.mouseUpRedirect);
+	}
+	
+	// Workaround for IE9 standards mode ignoring tolerance for double clicks
+	if (mxClient.IS_IE && document.compatMode == 'CSS1Compat' && evtName == mxEvent.MOUSE_UP && me.getEvent().detail/*clickCount*/ == 2)
+	{
+		if ((this.lastMouseX != null && Math.abs(this.lastMouseX - me.getX()) <= this.doubleTapTolerance) &&
+			(this.lastMouseY != null && Math.abs(this.lastMouseY - me.getY()) <= this.doubleTapTolerance))
+		{
+			result = true;
+		}
+		
+		this.lastMouseX = me.getX();
+		this.lastMouseY = me.getY();
+	}
+	
+	// Factored out the workarounds for FF to make it easier to override/remove
+	// Note this method has side-effects!
+	if (this.isSyntheticEventIgnored(evtName, me, sender))
+	{
+		result = true;
+	}
+
+	// Filters out of sequence events or mixed event types during a gesture
+	if (evtName == mxEvent.MOUSE_UP && this.isMouseDown)
+	{
+		this.isMouseDown = false;
+	}
+	else if (!result)
+	{
+		if (evtName == mxEvent.MOUSE_DOWN && !this.isMouseDown)
+		{
+			this.isMouseDown = true;
+			this.isMouseTrigger = mouseEvent;
+		}
+		// Drops mouse events that are fired during touch gestures as a workaround for Webkit
+		else if (((!mxClient.IS_FF || evtName != mxEvent.MOUSE_MOVE) &&
+			this.isMouseDown && this.isMouseTrigger != mouseEvent) ||
+			(evtName == mxEvent.MOUSE_DOWN && this.isMouseDown) ||
+			(evtName == mxEvent.MOUSE_UP && !this.isMouseDown))
+		{
+			result = true;
+		}
+	}
+	
+	return result;
+};
+
+/**
+ * Function: isSyntheticEventIgnored
+ * 
+ * Hook for ignoring synthetic mouse events after touchend in Firefox.
+ */
+mxGraph.prototype.isSyntheticEventIgnored = function(evtName, me, sender)
+{
+	var result = false;
+	var mouseEvent = mxEvent.isMouseEvent(me.getEvent());
+	
+	// LATER: This does not cover all possible cases that can go wrong in FF
+	if (this.ignoreMouseEvents && mouseEvent && evtName != mxEvent.MOUSE_MOVE)
+	{
+		this.ignoreMouseEvents = evtName != mxEvent.MOUSE_UP;
+		result = true;
+	}
+	else if (mxClient.IS_FF && !mouseEvent && evtName == mxEvent.MOUSE_UP)
+	{
+		this.ignoreMouseEvents = true;
+	}
+	
+	return result;
 };
 
 /**
@@ -11109,75 +11310,38 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 	{
 		sender = this;
 	}
-	
-	// Updates the graph coordinates in the event
-	this.updateMouseEvent(me);
 
-	// Makes sure we have a uniform event-sequence across all
-	// browsers for a double click. Since evt.detail == 2 is only
-	// available on Firefox we use the fact that each mousedown
-	// must be followed by a mouseup, all out-of-sync downs
-	// will be dropped silently.
-	if (evtName == mxEvent.MOUSE_DOWN)
+	if (!this.isEventIgnored(evtName, me, sender))
 	{
-		this.isMouseDown = true;
-	}
+		// Updates the graph coordinates in the event
+		me = this.updateMouseEvent(me);
 	
-	// Detects and processes double taps for touch-based devices
-	// which do not have native double click events
-	if (mxClient.IS_TOUCH && this.doubleTapEnabled && evtName == mxEvent.MOUSE_DOWN)
-	{
-		var currentTime = new Date().getTime();
-
-		if (currentTime - this.lastTouchTime < this.doubleTapTimeout &&
-			Math.abs(this.lastTouchX - me.getX()) < this.doubleTapTolerance &&
-			Math.abs(this.lastTouchY - me.getY()) < this.doubleTapTolerance)
+		// Detects and processes double taps for touch-based devices
+		// which do not have native double click events
+		if (!mxClient.IS_FF && mxClient.IS_TOUCH && this.doubleTapEnabled && evtName == mxEvent.MOUSE_UP)
 		{
-			// FIXME: The actual editing should start on MOUSE_UP event but
-			// the detection of the double click should use the mouse_down event
-			// to make it consistent with behaviour in browser with mouse.
-			this.lastTouchTime = 0;
-			this.dblClick(me.getEvent(), me.getCell());
+			var currentTime = new Date().getTime();
 			
-			// Stop bubbling but do not consume to make sure the device
-			// can bring up the virtual keyboard for editing
-			me.getEvent().cancelBubble = true;
-		} 
-		else
-		{
-			this.lastTouchX = me.getX();
-			this.lastTouchY = me.getY();
-			this.lastTouchTime = currentTime;
+			if (this.lastTouchEvent != me.getEvent() &&
+				currentTime - this.lastTouchTime < this.doubleTapTimeout &&
+				Math.abs(this.lastTouchX - me.getX()) < this.doubleTapTolerance &&
+				Math.abs(this.lastTouchY - me.getY()) < this.doubleTapTolerance)
+			{
+				this.lastTouchTime = 0;
+				this.dblClick(me.getEvent(), me.getCell());
+			} 
+			else if (this.lastTouchEvent == null || this.lastTouchEvent != me.getEvent())
+			{
+				this.lastTouchX = me.getX();
+				this.lastTouchY = me.getY();
+				this.lastTouchTime = currentTime;
+				this.lastTouchEvent = me.getEvent();
+			}
 		}
-	}
 	
-	// Workaround for IE9 standards mode ignoring tolerance for double clicks
-	var noDoubleClick = me.getEvent().detail/*clickCount*/ != 2;
-	
-	if (mxClient.IS_IE && document.compatMode == 'CSS1Compat')
-	{
-		if ((this.lastMouseX != null && Math.abs(this.lastMouseX - me.getX()) > this.doubleTapTolerance) ||
-			(this.lastMouseY != null && Math.abs(this.lastMouseY - me.getY()) > this.doubleTapTolerance))
-		{
-			noDoubleClick = true;
-		}
+		this.fireEvent(new mxEventObject(mxEvent.FIRE_MOUSE_EVENT, 'eventName', evtName, 'event', me));
 		
-		if (evtName == mxEvent.MOUSE_UP)
-		{
-			this.lastMouseX = me.getX();
-			this.lastMouseY = me.getY();
-		}
-	}
-
-	// Filters too many mouse ups when the mouse is down
-	if ((evtName != mxEvent.MOUSE_UP || this.isMouseDown) && noDoubleClick)
-	{
-		if (evtName == mxEvent.MOUSE_UP)
-		{
-			this.isMouseDown = false;
-		}
-
-		if (!this.isEditing() && (mxClient.IS_OP || mxClient.IS_SF || mxClient.IS_GC ||
+		if ((mxClient.IS_OP || mxClient.IS_SF || mxClient.IS_GC ||
 			(mxClient.IS_IE && mxClient.IS_SVG) || me.getEvent().target != this.container))
 		{
 			if (evtName == mxEvent.MOUSE_MOVE && this.isMouseDown && this.autoScroll)
@@ -11188,7 +11352,7 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 			if (this.mouseListeners != null)
 			{
 				var args = [sender, me];
-
+	
 				// Does not change returnValue in Opera
 				me.getEvent().returnValue = true;
 				
@@ -11217,11 +11381,88 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 				this.click(me);
 			}
 		}
+		
+		// Detects tapAndHold events using a timer
+		if (mxEvent.isTouchEvent(me.getEvent()) && evtName == mxEvent.MOUSE_DOWN &&
+			this.tapAndHoldEnabled && !this.tapAndHoldInProgress)
+		{
+			this.tapAndHoldInProgress = true;
+			this.initialTouchX = me.getGraphX();
+			this.initialTouchY = me.getGraphY();
+			
+			var handler = function()
+			{
+				if (this.tapAndHoldValid)
+				{
+					this.tapAndHold(me);
+				}
+				
+				this.tapAndHoldInProgress = false;
+				this.tapAndHoldValid = false;
+			};
+			
+			if (this.tapAndHoldThread)
+			{
+				window.clearTimeout(this.tapAndHoldThread);
+			}
+	
+			this.tapAndHoldThread = window.setTimeout(mxUtils.bind(this, handler), this.tapAndHoldDelay);
+			this.tapAndHoldValid = true;
+		}
+		else if (evtName == mxEvent.MOUSE_UP)
+		{
+			this.tapAndHoldInProgress = false;
+			this.tapAndHoldValid = false;
+		}
+		else if (this.tapAndHoldValid)
+		{
+			this.tapAndHoldValid =
+				Math.abs(this.initialTouchX - me.getGraphX()) < this.tolerance &&
+				Math.abs(this.initialTouchY - me.getGraphY()) < this.tolerance;
+		}
 	}
-	else if (evtName == mxEvent.MOUSE_UP)
-	{
-		this.isMouseDown = false;
-	}
+};
+
+/**
+ * Function: fireGestureEvent
+ * 
+ * Dispatches a <mxEvent.GESTURE> event. The following example will resize the
+ * cell under the mouse based on the scale property of the native touch event.
+ * 
+ * (code)
+ * graph.addListener(mxEvent.GESTURE, function(sender, eo)
+ * {
+ *   var evt = eo.getProperty('event');
+ *   var state = graph.view.getState(eo.getProperty('cell'));
+ *   
+ *   if (graph.isEnabled() && graph.isCellResizable(state.cell) && Math.abs(1 - evt.scale) > 0.2)
+ *   {
+ *     var scale = graph.view.scale;
+ *     var tr = graph.view.translate;
+ *     
+ *     var w = state.width * evt.scale;
+ *     var h = state.height * evt.scale;
+ *     var x = state.x - (w - state.width) / 2;
+ *     var y = state.y - (h - state.height) / 2;
+ *     
+ *     var bounds = new mxRectangle(graph.snap(x / scale) - tr.x,
+ *     		graph.snap(y / scale) - tr.y, graph.snap(w / scale), graph.snap(h / scale));
+ *     graph.resizeCell(state.cell, bounds);
+ *     eo.consume();
+ *   }
+ * });
+ * (end)
+ * 
+ * Parameters:
+ * 
+ * evt - Gestureend event that represents the gesture.
+ * cell - Optional <mxCell> associated with the gesture.
+ */
+mxGraph.prototype.fireGestureEvent = function(evt, cell)
+{
+	// Resets double tap event handling when gestures take place
+	this.lastTouchTime = 0;
+	this.fireEvent(new mxEventObject(mxEvent.GESTURE, 'event', evt, 'cell', cell));
 };
 
 /**
@@ -11248,6 +11489,11 @@ mxGraph.prototype.destroy = function()
 		if (this.panningHandler != null)
 		{
 			this.panningHandler.destroy();
+		}
+
+		if (this.popupMenuHandler != null)
+		{
+			this.popupMenuHandler.destroy();
 		}
 		
 		if (this.connectionHandler != null)

@@ -1,5 +1,5 @@
 /**
- * $Id: mxWindow.js,v 1.4 2013/05/21 16:40:20 gaudenz Exp $
+ * $Id: mxWindow.js,v 1.5 2013/06/07 13:58:19 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -287,11 +287,17 @@ mxWindow.prototype.init = function(x, y, width, height, style)
 	this.div.style.top = y+'px';
 	this.table = document.createElement('table');
 	this.table.className = style;
+
+	// Disables built-in pan and zoom in IE10 and later
+	if (mxClient.IS_POINTER)
+	{
+		this.div.style.msTouchAction = 'none';
+	}
 	
 	// Workaround for table size problems in FF
 	if (width != null)
 	{
-		if (!mxClient.IS_IE)
+		if (!mxClient.IS_QUIRKS)
 		{
 			this.div.style.width = width+'px'; 
 		}
@@ -301,7 +307,7 @@ mxWindow.prototype.init = function(x, y, width, height, style)
 	
 	if (height != null)
 	{
-		if (!mxClient.IS_IE)
+		if (!mxClient.IS_QUIRKS)
 		{
 			this.div.style.height = height+'px';
 		}
@@ -330,7 +336,7 @@ mxWindow.prototype.init = function(x, y, width, height, style)
 
 	// Workaround for div around div restricts height
 	// of inner div if outerdiv has hidden overflow
-	if (mxClient.IS_IE || this.content.nodeName.toUpperCase() != 'DIV')
+	if (mxClient.IS_QUIRKS || this.content.nodeName.toUpperCase() != 'DIV')
 	{
 		this.contentWrapper.style.height = '100%';
 	}
@@ -469,7 +475,16 @@ mxWindow.prototype.isResizable = function()
 /**
  * Function: setResizable
  * 
- * Sets if the window should be resizable.
+ * Sets if the window should be resizable. To avoid interference with some
+ * built-in features of IE10 and later, the use of the following code is
+ * recommended if there are resizable <mxWindow>s in the page:
+ * 
+ * (code)
+ * if (mxClient.IS_POINTER)
+ * {
+ *   document.body.style.msTouchAction = 'none';
+ * }
+ * (end)
  */
 mxWindow.prototype.setResizable = function(resizable)
 {
@@ -485,47 +500,58 @@ mxWindow.prototype.setResizable = function(resizable)
 			this.resize.setAttribute('src', mxClient.imageBasePath + '/resize.gif');
 			this.resize.style.cursor = 'nw-resize';
 			
-			mxEvent.addGestureListeners(this.resize,
-				mxUtils.bind(this, function(evt)
-				{
-					this.activate();
-					var startX = mxEvent.getClientX(evt);
-					var startY = mxEvent.getClientY(evt);
-					var width = this.div.offsetWidth;
-					var height = this.div.offsetHeight;
-	
-					// Adds a temporary pair of listeners to intercept
-					// the gesture event in the document
-					var dragHandler = mxUtils.bind(this, function(evt)
-					{
-						var dx = mxEvent.getClientX(evt) - startX;
-						var dy = mxEvent.getClientY(evt) - startY;
-	
-						this.setSize(width + dx, height + dy);
-		
-						this.fireEvent(new mxEventObject(mxEvent.RESIZE, 'event', evt));
-						mxEvent.consume(evt);
-					});
-					
-					var dropHandler = mxUtils.bind(this, function(evt)
-					{
-						mxEvent.removeGestureListeners(document, null, dragHandler, dropHandler);
-						this.fireEvent(new mxEventObject(mxEvent.RESIZE_END, 'event', evt));
-						mxEvent.consume(evt);
-					});
-					
-					mxEvent.addGestureListeners(document, null, dragHandler, dropHandler);
-					this.fireEvent(new mxEventObject(mxEvent.RESIZE_START, 'event', evt));
-					mxEvent.consume(evt);
-				}), null, null);
-
-			this.div.appendChild(this.resize);
+			var startX = null;
+			var startY = null;
+			var width = null;
+			var height = null;
 			
-			// Disables built-in pan and zoom in IE10 and later
-			if (mxClient.IS_POINTER)
+			var start = mxUtils.bind(this, function(evt)
 			{
-				this.resize.style.msTouchAction = 'none';
-			}
+				// LATER: msPointerDown starting on border of resize does start
+				// the drag operation but does not fire consecutive events via
+				// one of the listeners below (does pan instead).
+				// Workaround: document.body.style.msTouchAction = 'none'
+				this.activate();
+				startX = mxEvent.getClientX(evt);
+				startY = mxEvent.getClientY(evt);
+				width = this.div.offsetWidth;
+				height = this.div.offsetHeight;
+				
+				mxEvent.addGestureListeners(document, null, dragHandler, dropHandler);
+				this.fireEvent(new mxEventObject(mxEvent.RESIZE_START, 'event', evt));
+				mxEvent.consume(evt);
+			});
+
+			// Adds a temporary pair of listeners to intercept
+			// the gesture event in the document
+			var dragHandler = mxUtils.bind(this, function(evt)
+			{
+				if (startX != null && startY != null)
+				{
+					var dx = mxEvent.getClientX(evt) - startX;
+					var dy = mxEvent.getClientY(evt) - startY;
+	
+					this.setSize(width + dx, height + dy);
+	
+					this.fireEvent(new mxEventObject(mxEvent.RESIZE, 'event', evt));
+					mxEvent.consume(evt);
+				}
+			});
+			
+			var dropHandler = mxUtils.bind(this, function(evt)
+			{
+				if (startX != null && startY != null)
+				{
+					startX = null;
+					startY = null;
+					mxEvent.removeGestureListeners(document, null, dragHandler, dropHandler);
+					this.fireEvent(new mxEventObject(mxEvent.RESIZE_END, 'event', evt));
+					mxEvent.consume(evt);
+				}
+			});
+			
+			mxEvent.addGestureListeners(this.resize, start, dragHandler, dropHandler);
+			this.div.appendChild(this.resize);
 		}
 		else 
 		{
@@ -549,7 +575,7 @@ mxWindow.prototype.setSize = function(width, height)
 	height = Math.max(this.minimumSize.height, height);
 
 	// Workaround for table size problems in FF
-	if (!mxClient.IS_IE)
+	if (!mxClient.IS_QUIRKS)
 	{
 		this.div.style.width =  width + 'px';
 		this.div.style.height = height + 'px';
@@ -558,7 +584,7 @@ mxWindow.prototype.setSize = function(width, height)
 	this.table.style.width =  width + 'px';
 	this.table.style.height = height + 'px';
 
-	if (!mxClient.IS_IE)
+	if (!mxClient.IS_QUIRKS)
 	{
 		this.contentWrapper.style.height =
 			(this.div.offsetHeight - this.title.offsetHeight - 2)+'px';
@@ -629,7 +655,7 @@ mxWindow.prototype.installMinimizeHandler = function()
 			
 			if (minSize.height > 0)
 			{
-				if (!mxClient.IS_IE)
+				if (!mxClient.IS_QUIRKS)
 				{
 					this.div.style.height = minSize.height + 'px';
 				}
@@ -639,7 +665,7 @@ mxWindow.prototype.installMinimizeHandler = function()
 			
 			if (minSize.width > 0)
 			{
-				if (!mxClient.IS_IE)
+				if (!mxClient.IS_QUIRKS)
 				{
 					this.div.style.width = minSize.width + 'px';
 				}
@@ -663,7 +689,7 @@ mxWindow.prototype.installMinimizeHandler = function()
 			this.contentWrapper.style.display = ''; // default
 			this.maximize.style.display = maxDisplay;
 			
-			if (!mxClient.IS_IE)
+			if (!mxClient.IS_QUIRKS)
 			{
 				this.div.style.height = height;
 			}
@@ -743,7 +769,7 @@ mxWindow.prototype.installMaximizeHandler = function()
 				this.div.style.left = '0px';
 				this.div.style.top = '0px';
 
-				if (!mxClient.IS_IE)
+				if (!mxClient.IS_QUIRKS)
 				{
 					this.div.style.height = (document.body.clientHeight-2)+'px';
 					this.div.style.width = (document.body.clientWidth-2)+'px';
@@ -757,7 +783,7 @@ mxWindow.prototype.installMaximizeHandler = function()
 					this.resize.style.visibility = 'hidden';
 				}
 
-				if (!mxClient.IS_IE)
+				if (!mxClient.IS_QUIRKS)
 				{
 					var style = mxUtils.getCurrentStyle(this.contentWrapper);
 		
@@ -783,7 +809,7 @@ mxWindow.prototype.installMaximizeHandler = function()
 				this.div.style.left = x+'px';
 				this.div.style.top = y+'px';
 				
-				if (!mxClient.IS_IE)
+				if (!mxClient.IS_QUIRKS)
 				{
 					this.div.style.height = height;
 					this.div.style.width = width;
@@ -1017,7 +1043,7 @@ mxWindow.prototype.show = function()
 	
 	var style = mxUtils.getCurrentStyle(this.contentWrapper);
 	
-	if (!mxClient.IS_IE && (style.overflow == 'auto' || this.resize != null))
+	if (!mxClient.IS_QUIRKS && (style.overflow == 'auto' || this.resize != null))
 	{
 		this.contentWrapper.style.height =
 			(this.div.offsetHeight - this.title.offsetHeight - 2)+'px';

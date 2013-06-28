@@ -1,5 +1,5 @@
 /**
- * $Id: Shapes.js,v 1.16 2013/05/03 14:43:42 gaudenz Exp $
+ * $Id: Shapes.js,v 1.18 2013/06/20 14:04:15 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 
@@ -759,6 +759,9 @@
 		mxUtils.extend(mxExtVertexHandler, mxVertexHandler);
 	
 		mxExtVertexHandler.prototype.useGridForSpecialHandle = false;
+
+		// Installs custom image
+		var specialHandle = new mxImage(IMAGE_PATH + '/touch-handle-orange.png', 16, 16);
 		
 		mxExtVertexHandler.prototype.init = function()
 		{
@@ -767,8 +770,11 @@
 	
 			if (this.handleImage != null)
 			{
-				var bounds = new mxRectangle(0, 0, this.handleImage.width, this.handleImage.height);
-				this.specialHandle = new mxImageShape(bounds, this.handleImage.src);
+				var bounds = new mxRectangle(0, 0, specialHandle.width, specialHandle.height);
+				this.specialHandle = new mxImageShape(bounds, specialHandle.src);
+				
+				// Allows HTML rendering of the images
+				this.specialHandle.preserveImageAspect = false;
 			}
 			else
 			{
@@ -777,9 +783,21 @@
 				this.specialHandle = new mxRhombus(bounds, mxConstants.HANDLE_FILLCOLOR, mxConstants.HANDLE_STROKECOLOR);
 			}
 			
-			this.specialHandle.dialect = (graph.dialect != mxConstants.DIALECT_SVG) ?
-					mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
-			this.specialHandle.init(graph.getView().getOverlayPane());
+			if (this.specialHandle.isHtmlAllowed() && this.state.text != null && this.state.text.node.parentNode == graph.container)
+			{
+				this.specialHandle.bounds.height -= 1;
+				this.specialHandle.bounds.width -= 1;
+				this.specialHandle.dialect = mxConstants.DIALECT_STRICTHTML;
+				this.specialHandle.init(graph.container);
+			}
+			else
+			{
+				this.specialHandle.dialect = (graph.dialect != mxConstants.DIALECT_SVG) ?
+						mxConstants.DIALECT_MIXEDHTML : mxConstants.DIALECT_SVG;
+				this.specialHandle.init(graph.getView().getOverlayPane());
+			}
+
+			mxEvent.redirectMouseEvents(this.specialHandle.node, graph, this.state);
 			this.specialHandle.node.style.cursor = this.getSpecialHandleCursor();
 			
 			// Locked state is implemented via rotatable flag
@@ -787,8 +805,7 @@
 			{
 				this.specialHandle.node.style.display = 'none';
 			}
-	
-			mxEvent.redirectMouseEvents(this.specialHandle.node, graph, this.state);
+			
 			mxVertexHandler.prototype.init.apply(this, arguments);
 		};
 		
@@ -797,13 +814,49 @@
 			return 'default';
 		};
 		
+		mxExtVertexHandler.prototype.hideSizers = function()
+		{
+			mxVertexHandler.prototype.hideSizers.apply(this, arguments);
+			
+			this.specialHandle.node.style.display = 'none';
+		};
+		
+		mxExtVertexHandler.prototype.start = function(x, y, index)
+		{
+			mxVertexHandler.prototype.start.apply(this, arguments);
+			
+			if (this.livePreview && index == SPECIAL_HANDLE_INDEX)
+			{
+				this.specialHandle.node.style.display = '';
+			}
+		};
+		
+		mxExtVertexHandler.prototype.reset = function()
+		{
+			mxVertexHandler.prototype.reset.apply(this, arguments);
+			
+			if (this.specialHandle != null)
+			{
+				this.specialHandle.node.style.display = '';
+			}
+		};
+		
 		mxExtVertexHandler.prototype.redrawHandles = function()
 		{
 			mxVertexHandler.prototype.redrawHandles.apply(this, arguments);
 	
-			var size = this.specialHandle.bounds.width;
-			this.specialHandle.bounds = this.getSpecialHandleBounds(size);
-			this.specialHandle.redraw();
+			if (this.specialHandle != null)
+			{
+				var size = this.specialHandle.bounds.width;
+				this.specialHandle.bounds = this.getSpecialHandleBounds(size);
+				this.specialHandle.redraw();
+				
+				// Hides special handle if shape too small
+				if (this.state.width < 2 * this.specialHandle.bounds.width && this.state.height < 2 * this.specialHandle.bounds.height)
+				{
+					this.specialHandle.node.style.visibility = 'hidden';
+				}
+			}
 		};
 
 		mxExtVertexHandler.prototype.destroy = function()
@@ -819,7 +872,35 @@
 		
 		mxExtVertexHandler.prototype.getHandleForEvent = function(me)
 		{
-			if (me.isSource(this.specialHandle))
+			// Connection highlight may consume events before they reach sizer handle
+			var tol = (!mxEvent.isMouseEvent(me.getEvent())) ? this.tolerance : 0;
+			var hit = (this.allowHandleBoundsCheck && (mxClient.IS_IE || tol > 0)) ?
+				new mxRectangle(me.getGraphX() - tol, me.getGraphY() - tol, 2 * tol, 2 * tol) : null;
+			
+			function checkShape(shape)
+			{
+				if (shape != null && (me.isSource(shape) || (hit != null && mxUtils.intersects(shape.bounds, hit) &&
+					shape.node.style.display != 'none' && shape.node.style.visibility != 'hidden')))
+				{
+					var dx = me.getGraphX() - shape.bounds.getCenterX();
+					var dy = me.getGraphY() - shape.bounds.getCenterY();
+					var tmp = dx * dx + dy * dy;
+
+					if (minDistSq == null || tmp <= minDistSq)
+					{
+						minDistSq = tmp;
+					
+						return true;
+					}
+				}
+				
+				return false;
+			}
+			
+			if ((me.isSource(this.specialHandle) || (hit != null &&
+				mxUtils.intersects(this.specialHandle.bounds, hit))) &&
+				this.specialHandle.node.style.display != 'none' &&
+				this.specialHandle.node.style.visibility != 'hidden')
 			{
 				return SPECIAL_HANDLE_INDEX;
 			}
@@ -831,27 +912,29 @@
 		{
 			if (!me.isConsumed() && this.index == SPECIAL_HANDLE_INDEX)
 			{
-				var point = new mxPoint(me.getGraphX(), me.getGraphY());
-				this.constrainPoint(point);
-				var gridEnabled = this.graph.isGridEnabledEvent(me.getEvent());
-				var scale = this.graph.getView().scale;
-				
-				if (gridEnabled && this.useGridForSpecialHandle)
+				// Checks tolerance for ignoring single clicks
+				this.checkTolerance(me);
+
+				if (!this.inTolerance)
 				{
-					point.x = this.graph.snap(point.x / scale) * scale;
-					point.y = this.graph.snap(point.y / scale) * scale;
-				}
-				
-				this.updateStyle(point);
-				this.state.view.graph.cellRenderer.redraw(this.state, true);
-				
-				// Workaround for handle image consuming events on iOS
-				if (!mxClient.IS_TOUCH)
-				{
+					var gridEnabled = this.graph.isGridEnabledEvent(me.getEvent());
+					var point = new mxPoint(me.getGraphX(), me.getGraphY());
+					var scale = this.graph.getView().scale;
+					
+					this.constrainPoint(point);
+					
+					if (gridEnabled && this.useGridForSpecialHandle)
+					{
+						point.x = this.graph.snap(point.x / scale) * scale;
+						point.y = this.graph.snap(point.y / scale) * scale;
+					}
+					
+					this.updateStyle(point);
+					this.state.view.graph.cellRenderer.redraw(this.state, true);
+					
 					this.moveSizerTo(this.specialHandle, point.x, point.y);
+					me.consume();
 				}
-				
-				me.consume();
 			}
 			else
 			{
@@ -861,7 +944,7 @@
 
 		mxExtVertexHandler.prototype.mouseUp = function(sender, me)
 		{
-			if (!me.isConsumed() && this.index == SPECIAL_HANDLE_INDEX)
+			if (!me.isConsumed() && !this.inTolerance && this.index == SPECIAL_HANDLE_INDEX)
 			{
 				this.applyStyle();
 				this.reset();

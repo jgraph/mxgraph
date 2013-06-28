@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.25 2013/05/01 16:17:21 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.28 2013/06/20 14:04:15 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -97,10 +97,10 @@ EditorUi = function(editor, container)
    	};
 
    	// Configures automatic expand on mouseover
-	graph.panningHandler.autoExpand = true;
+	graph.popupMenuHandler.autoExpand = true;
 
     // Installs context menu
-	graph.panningHandler.factoryMethod = mxUtils.bind(this, function(menu, cell, evt)
+	graph.popupMenuHandler.factoryMethod = mxUtils.bind(this, function(menu, cell, evt)
 	{
 		this.menus.createPopupMenu(menu, cell, evt);
 	});
@@ -111,7 +111,7 @@ EditorUi = function(editor, container)
 	// Hides context menu
 	mxEvent.addGestureListeners(document, mxUtils.bind(this, function(evt)
 	{
-		graph.panningHandler.hideMenu();
+		graph.popupMenuHandler.hideMenu();
 	}));
 
 	// Adds gesture handling (pinch to zoom)
@@ -169,7 +169,7 @@ EditorUi = function(editor, container)
 /**
  * Specifies the size of the split bar.
  */
-EditorUi.prototype.splitSize = (mxClient.IS_TOUCH) ? 16 : 8;
+EditorUi.prototype.splitSize = (mxClient.IS_TOUCH || mxClient.IS_POINTER) ? 12 : 8;
 
 /**
  * Specifies the height of the menubar. Default is 34.
@@ -722,6 +722,12 @@ EditorUi.prototype.addSplitHandler = function(elt, horizontal, dx, onChange)
 {
 	var start = null;
 	var initial = null;
+
+	// Disables built-in pan and zoom in IE10 and later
+	if (mxClient.IS_POINTER)
+	{
+		elt.style.msTouchAction = 'none';
+	}
 	
 	function getValue()
 	{
@@ -746,16 +752,13 @@ EditorUi.prototype.addSplitHandler = function(elt, horizontal, dx, onChange)
 	};
 	
 	mxEvent.addGestureListeners(elt, function(evt)
-		{
-			start = new mxPoint(mxEvent.getClientX(evt), mxEvent.getClientY(evt));
-			initial = getValue();
-			mxEvent.consume(evt);
-		});
+	{
+		start = new mxPoint(mxEvent.getClientX(evt), mxEvent.getClientY(evt));
+		initial = getValue();
+		mxEvent.consume(evt);
+	});
 
-	mxEvent.addListener(document, 'mousemove', moveHandler);
-	mxEvent.addListener(document, 'touchmove', moveHandler);
-	mxEvent.addListener(document, 'mouseup', dropHandler);
-	mxEvent.addListener(document, 'touchend', dropHandler);
+	mxEvent.addGestureListeners(document, null, moveHandler, dropHandler);
 };
 
 /**
@@ -816,25 +819,16 @@ EditorUi.prototype.saveFile = function(forceDialog)
 /**
  * Executes the given layout.
  */
-EditorUi.prototype.executeLayout = function(layout, animate, ignoreChildCount, exec, post)
+EditorUi.prototype.executeLayout = function(exec, animate, post)
 {
-	var graph = this.editor.graph;
-	var cell = graph.getSelectionCell();
-	
 	// Allow global overridding of animation
 	animate = this.animate != null ? this.animate : animate;
+	var graph = this.editor.graph;
 
 	graph.getModel().beginUpdate();
 	try
 	{
-		if (exec != null)
-		{
-			exec();
-		}
-		else
-		{
-			layout.execute(graph.getDefaultParent(), cell);
-		}
+		exec();
 	}
 	catch (e)
 	{

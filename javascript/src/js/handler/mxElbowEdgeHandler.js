@@ -1,5 +1,5 @@
 /**
- * $Id: mxElbowEdgeHandler.js,v 1.4 2013/02/14 07:44:38 gaudenz Exp $
+ * $Id: mxElbowEdgeHandler.js,v 1.5 2013/06/05 11:39:11 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -153,9 +153,7 @@ mxElbowEdgeHandler.prototype.getTooltipForNode = function(node)
 {
 	var tip = null;
 	
-	if (this.bends != null &&
-		this.bends[1] != null &&
-		(node == this.bends[1].node ||
+	if (this.bends != null && this.bends[1] != null && (node == this.bends[1].node ||
 		node.parentNode == this.bends[1].node))
 	{
 		tip = this.doubleClickOrientationResource;
@@ -205,9 +203,19 @@ mxElbowEdgeHandler.prototype.convertPoint = function(point, gridEnabled)
 mxElbowEdgeHandler.prototype.redrawInnerBends = function(p0, pe)
 {
 	var g = this.graph.getModel().getGeometry(this.state.cell);
-	var pts = g.points;
+	var pts = this.state.absolutePoints;
+	var pt = null;
 
-	var pt = (pts != null) ? pts[0] : null;
+	// Keeps the virtual bend on the edge shape
+	if (pts.length > 1)
+	{
+		p0 = pts[1];
+		pe = pts[pts.length - 2];
+	}
+	else if (g.points != null && g.points.length > 0)
+	{
+		pt = pts[0];
+	}
 	
 	if (pt == null)
 	{
@@ -215,10 +223,8 @@ mxElbowEdgeHandler.prototype.redrawInnerBends = function(p0, pe)
 	}
 	else
 	{
-		pt = new mxPoint(this.graph.getView().scale*(pt.x +
-				 this.graph.getView().translate.x + this.state.origin.x),
-				 this.graph.getView().scale*(pt.y + this.graph.getView().translate.y +
-								 this.state.origin.y));
+		pt = new mxPoint(this.graph.getView().scale * (pt.x + this.graph.getView().translate.x + this.state.origin.x),
+				this.graph.getView().scale * (pt.y + this.graph.getView().translate.y + this.state.origin.y));
 	}
 
 	// Makes handle slightly bigger if the yellow  label handle

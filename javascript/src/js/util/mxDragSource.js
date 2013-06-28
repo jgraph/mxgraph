@@ -1,5 +1,5 @@
 /**
- * $Id: mxDragSource.js,v 1.5 2012/12/05 21:43:44 gaudenz Exp $
+ * $Id: mxDragSource.js,v 1.9 2013/06/28 18:10:23 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -21,7 +21,10 @@ function mxDragSource(element, dropHandler)
 	this.dropHandler = dropHandler;
 	
 	// Handles a drag gesture on the element
-	mxEvent.addGestureListeners(element, mxUtils.bind(this, this.mouseDown));
+	mxEvent.addGestureListeners(element, mxUtils.bind(this, function(evt)
+	{
+		this.mouseDown(evt);
+	}));
 };
 
 /**
@@ -254,6 +257,21 @@ mxDragSource.prototype.createPreviewElement = function(graph)
  * 
  * Returns the drop target for the given graph and coordinates. This
  * implementation uses <mxGraph.getCellAt>.
+ * 
+ * To ignore popup menu events for a drag source, this function can be
+ * overridden as follows.
+ * 
+ * (code)
+ * var mouseDown = dragSource.mouseDown;
+ * 
+ * dragSource.mouseDown = function(evt)
+ * {
+ *   if (!mxEvent.isPopupTrigger(evt))
+ *   {
+ *     mouseDown.apply(this, arguments);
+ *   }
+ * };
+ * (end)
  */
 mxDragSource.prototype.mouseDown = function(evt)
 {
@@ -263,6 +281,12 @@ mxDragSource.prototype.mouseDown = function(evt)
 		this.mouseMoveHandler = mxUtils.bind(this, this.mouseMove);
 		this.mouseUpHandler = mxUtils.bind(this, this.mouseUp);		
 		mxEvent.addGestureListeners(document, null, this.mouseMoveHandler, this.mouseUpHandler);
+		
+		if (mxClient.IS_TOUCH && !mxEvent.isMouseEvent(evt))
+		{
+			this.eventSource = mxEvent.getSource(evt);
+			mxEvent.addGestureListeners(this.eventSource, null, this.mouseMoveHandler, this.mouseUpHandler);
+		}
 		
 		// Prevents default action (native DnD for images in FF 10)
 		// but does not stop event propagation
@@ -341,14 +365,14 @@ mxDragSource.prototype.mouseMove = function(evt)
 	{
 		if (this.currentGraph != null)
 		{
-			this.dragExit(this.currentGraph);
+			this.dragExit(this.currentGraph, evt);
 		}
 		
 		this.currentGraph = graph;
 		
 		if (this.currentGraph != null)
 		{
-			this.dragEnter(this.currentGraph);
+			this.dragEnter(this.currentGraph, evt);
 		}
 	}
 	
@@ -414,6 +438,12 @@ mxDragSource.prototype.mouseUp = function(evt)
 
 	this.stopDrag(evt);
 	
+	if (this.eventSource != null)
+	{
+		mxEvent.removeGestureListeners(this.eventSource, null, this.mouseMoveHandler, this.mouseUpHandler);
+		this.eventSource = null;
+	}
+	
 	mxEvent.removeGestureListeners(document, null, this.mouseMoveHandler, this.mouseUpHandler);
 	this.mouseMoveHandler = null;
 	this.mouseUpHandler = null;
@@ -427,9 +457,10 @@ mxDragSource.prototype.mouseUp = function(evt)
  * 
  * Actives the given graph as a drop target.
  */
-mxDragSource.prototype.dragEnter = function(graph)
+mxDragSource.prototype.dragEnter = function(graph, evt)
 {
 	graph.isMouseDown = true;
+	graph.isMouseTrigger = mxEvent.isMouseEvent(evt);
 	this.previewElement = this.createPreviewElement(graph);
 	
 	// Guide is only needed if preview element is used
@@ -449,7 +480,7 @@ mxDragSource.prototype.dragEnter = function(graph)
  * 
  * Deactivates the given graph as a drop target.
  */
-mxDragSource.prototype.dragExit = function(graph)
+mxDragSource.prototype.dragExit = function(graph, evt)
 {
 	this.currentDropTarget = null;
 	this.currentPoint = null;

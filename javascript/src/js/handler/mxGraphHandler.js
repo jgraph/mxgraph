@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphHandler.js,v 1.6 2013/02/16 10:43:47 gaudenz Exp $
+ * $Id: mxGraphHandler.js,v 1.8 2013/06/20 14:04:15 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -329,12 +329,11 @@ mxGraphHandler.prototype.isDelayedSelection = function(cell)
  */
 mxGraphHandler.prototype.mouseDown = function(sender, me)
 {
-	if (!me.isConsumed() && this.isEnabled() && this.graph.isEnabled() &&
-		!this.graph.isForceMarqueeEvent(me.getEvent()) && me.getState() != null)
+	if (!me.isConsumed() && this.isEnabled() && this.graph.isEnabled() && me.getState() != null)
 	{
 		var cell = this.getInitialCellForEvent(me);
-		this.cell = null;
 		this.delayedSelection = this.isDelayedSelection(cell);
+		this.cell = null;
 		
 		if (this.isSelectEnabled() && !this.delayedSelection)
 		{
@@ -582,7 +581,7 @@ mxGraphHandler.prototype.snap = function(vector)
 mxGraphHandler.prototype.mouseMove = function(sender, me)
 {
 	var graph = this.graph;
-	
+
 	if (!me.isConsumed() && graph.isMouseDown && this.cell != null &&
 		this.first != null && this.bounds != null)
 	{
@@ -590,8 +589,8 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 		var dx = point.x - this.first.x;
 		var dy = point.y - this.first.y;
 		var tol = graph.tolerance;
-		
-		if (this.shape!= null || Math.abs(dx) > tol || Math.abs(dy) > tol)
+
+		if (this.shape != null || Math.abs(dx) > tol || Math.abs(dy) > tol)
 		{
 			// Highlight is used for highlighting drop targets
 			if (this.highlight == null)
@@ -738,7 +737,6 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 		}
 
 		me.getState().setCursor(cursor);
-		me.consume();
 	}
 };
 
@@ -824,7 +822,7 @@ mxGraphHandler.prototype.mouseUp = function(sender, me)
 	{
 		me.consume();
 	}
-	
+
 	this.reset();
 };
 

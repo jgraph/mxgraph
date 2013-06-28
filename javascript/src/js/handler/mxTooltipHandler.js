@@ -1,5 +1,5 @@
 /**
- * $Id: mxTooltipHandler.js,v 1.3 2013/05/21 13:16:33 gaudenz Exp $
+ * $Id: mxTooltipHandler.js,v 1.4 2013/06/07 14:17:09 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -56,6 +56,13 @@ mxTooltipHandler.prototype.graph = null;
  * Delay to show the tooltip in milliseconds. Default is 500.
  */
 mxTooltipHandler.prototype.delay = null;
+
+/**
+ * Variable: ignoreTouchEvents
+ * 
+ * Specifies if touch and pen events should be ignored. Default is true.
+ */
+mxTooltipHandler.prototype.ignoreTouchEvents = true;
 
 /**
  * Variable: hideOnHover
@@ -206,31 +213,34 @@ mxTooltipHandler.prototype.resetTimer = function()
  */
 mxTooltipHandler.prototype.reset = function(me, restart)
 {
-	this.resetTimer();
-	
-	if (restart && this.isEnabled() && me.getState() != null && (this.div == null ||
-		this.div.style.visibility == 'hidden'))
+	if (!this.ignoreTouchEvents || mxEvent.isMouseEvent(me.getEvent()))
 	{
-		var state = me.getState();
-		var node = me.getSource();
-		var x = me.getX();
-		var y = me.getY();
-		var stateSource = me.isSource(state.shape) || me.isSource(state.text);
-
-		this.thread = window.setTimeout(mxUtils.bind(this, function()
+		this.resetTimer();
+		
+		if (restart && this.isEnabled() && me.getState() != null && (this.div == null ||
+			this.div.style.visibility == 'hidden'))
 		{
-			if (!this.graph.isEditing() && !this.graph.panningHandler.isMenuShowing())
+			var state = me.getState();
+			var node = me.getSource();
+			var x = me.getX();
+			var y = me.getY();
+			var stateSource = me.isSource(state.shape) || me.isSource(state.text);
+	
+			this.thread = window.setTimeout(mxUtils.bind(this, function()
 			{
-				// Uses information from inside event cause using the event at
-				// this (delayed) point in time is not possible in IE as it no
-				// longer contains the required information (member not found)
-				var tip = this.graph.getTooltip(state, node, x, y);
-				this.show(tip, x, y);
-				this.state = state;
-				this.node = node;
-				this.stateSource = stateSource;
-			}
-		}), this.delay);
+				if (!this.graph.isEditing() && !this.graph.popupMenuHandler.isMenuShowing())
+				{
+					// Uses information from inside event cause using the event at
+					// this (delayed) point in time is not possible in IE as it no
+					// longer contains the required information (member not found)
+					var tip = this.graph.getTooltip(state, node, x, y);
+					this.show(tip, x, y);
+					this.state = state;
+					this.node = node;
+					this.stateSource = stateSource;
+				}
+			}), this.delay);
+		}
 	}
 };
 

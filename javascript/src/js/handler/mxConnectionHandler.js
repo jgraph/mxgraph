@@ -1,5 +1,5 @@
 /**
- * $Id: mxConnectionHandler.js,v 1.13 2013/04/12 15:16:03 gaudenz Exp $
+ * $Id: mxConnectionHandler.js,v 1.16 2013/06/21 07:55:54 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -281,57 +281,6 @@ mxConnectionHandler.prototype.error = null;
 mxConnectionHandler.prototype.waypointsEnabled = false;
 
 /**
- * Variable: tapAndHoldEnabled
- * 
- * Specifies if tap and hold should be used for starting connections on touch-based
- * devices. Default is true.
- */
-mxConnectionHandler.prototype.tapAndHoldEnabled = true;
-
-/**
- * Variable: tapAndHoldDelay
- * 
- * Specifies the time for a tap and hold. Default is 500 ms.
- */
-mxConnectionHandler.prototype.tapAndHoldDelay = 500;
-
-/**
- * Variable: tapAndHoldInProgress
- * 
- * True if the timer for tap and hold events is running.
- */
-mxConnectionHandler.prototype.tapAndHoldInProgress = false;
-
-/**
- * Variable: tapAndHoldValid
- * 
- * True as long as the timer is running and the touch events
- * stay within the given <tapAndHoldTolerance>.
- */
-mxConnectionHandler.prototype.tapAndHoldValid = false;
-
-/**
- * Variable: tapAndHoldTolerance
- * 
- * Specifies the tolerance for a tap and hold. Default is 4 pixels.
- */
-mxConnectionHandler.prototype.tapAndHoldTolerance = 4;
-
-/**
- * Variable: initialTouchX
- * 
- * Holds the x-coordinate of the intial touch event for tap and hold.
- */
-mxConnectionHandler.prototype.initialTouchX = 0;
-
-/**
- * Variable: initialTouchY
- * 
- * Holds the y-coordinate of the intial touch event for tap and hold.
- */
-mxConnectionHandler.prototype.initialTouchY = 0;
-
-/**
  * Variable: ignoreMouseDown
  * 
  * Specifies if the connection handler should ignore the state of the mouse
@@ -454,33 +403,11 @@ mxConnectionHandler.prototype.createShape = function()
 	var shape = new mxPolyline([], mxConstants.INVALID_COLOR);
 	shape.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
 		mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
-	shape.init(this.graph.getView().getOverlayPane());
-	shape.svgStrokeTolerance = 0;
 	shape.pointerEvents = false;
 	shape.isDashed = true;
-	
-	// Event-transparency
-	if (this.graph.dialect == mxConstants.DIALECT_SVG)
-	{
-		// Sets event transparency on the internal shapes that represent
-		// the actual dashed line on the screen
-		shape.node.setAttribute('pointer-events', 'none');
-	}
-	else
-	{
-		// Workaround no event transparency for preview in IE
-		// FIXME: 3,3 pixel offset for custom hit detection in IE
-		var getState = mxUtils.bind(this, function(evt)
-		{
-			var pt = mxUtils.convertPoint(this.graph.container, mxEvent.getClientX(evt), mxEvent.getClientY(evt));
-			
-			return this.graph.view.getState(this.graph.getCellAt(pt.x, pt.y));
-		});
-		
-		// Redirects events on the shape to the graph
-		mxEvent.redirectMouseEvents(shape.node, this.graph, getState);
-	}
-	
+	shape.init(this.graph.getView().getOverlayPane());
+	mxEvent.redirectMouseEvents(shape.node, this.graph, null);
+
 	return shape;
 };
 
@@ -555,14 +482,24 @@ mxConnectionHandler.prototype.createMarker = function()
 
 	// Overrides to return cell at location only if valid (so that
 	// there is no highlight for invalid cells)
-	marker.getCell = mxUtils.bind(this, function(evt, cell)
+	marker.getCell = mxUtils.bind(this, function(me, cell)
 	{
 		var cell = mxCellMarker.prototype.getCell.apply(marker, arguments);
+		var scale = this.graph.view.scale;
+		var point = new mxPoint(this.graph.snap(me.getGraphX() / scale) * scale,
+				this.graph.snap(me.getGraphY() / scale) * scale);
 		this.error = null;
-
-		if (!this.isConnectableCell(cell))
+		
+		// Checks for cell under mouse
+		if (cell == null)
 		{
-			return null;
+			cell = this.graph.getCellAt(point.x, point.y);
+		}
+		
+		if ((this.graph.isSwimlane(cell) && this.graph.hitsSwimlaneContent(cell, point.t, point.y)) ||
+			!this.isConnectableCell(cell))
+		{
+			cell = null;
 		}
 		
 		if (cell != null)
@@ -919,11 +856,9 @@ mxConnectionHandler.prototype.destroyIcons = function()
  */
 mxConnectionHandler.prototype.isStartEvent = function(me)
 {
-	return !this.graph.isForceMarqueeEvent(me.getEvent()) &&
-		((this.constraintHandler.currentFocus != null &&
-		this.constraintHandler.currentConstraint != null) ||
-		(this.previous != null && this.error == null &&
-		(this.icons == null || (this.icons != null && this.icon != null))));
+	return ((this.constraintHandler.currentFocus != null && this.constraintHandler.currentConstraint != null) ||
+		(this.previous != null && this.error == null && (this.icons == null || (this.icons != null &&
+		this.icon != null))));
 };
 
 /**
@@ -972,62 +907,9 @@ mxConnectionHandler.prototype.mouseDown = function(sender, me)
 
 		me.consume();
 	}
-	// Handles connecting via tap and hold
-	else if (mxClient.IS_TOUCH && this.tapAndHoldEnabled && !this.tapAndHoldInProgress &&
-		this.isEnabled() && this.graph.isEnabled() && !this.isConnecting())
-	{
-		this.tapAndHoldInProgress = true;
-		this.initialTouchX = me.getX();
-		this.initialTouchY = me.getY();
-		var state = this.graph.view.getState(this.marker.getCell(me));
-		
-		var handler = function()
-		{
-			if (this.tapAndHoldValid)
-			{
-				this.tapAndHold(me, state);
-			}
-			
-			this.tapAndHoldInProgress = false;
-			this.tapAndHoldValid = false;
-		};
-		
-		if (this.tapAndHoldThread)
-		{
-			window.clearTimeout(this.tapAndHoldThread);
-		}
-
-		this.tapAndHoldThread = window.setTimeout(mxUtils.bind(this, handler), this.tapAndHoldDelay);
-		this.tapAndHoldValid = true;
-	}
 
 	this.selectedIcon = this.icon;
 	this.icon = null;
-};
-
-/**
- * Function: tapAndHold
- * 
- * Handles the <mxMouseEvent> by highlighting the <mxCellState>.
- * 
- * Parameters:
- * 
- * me - <mxMouseEvent> that represents the touch event.
- * state - Optional <mxCellState> that is associated with the event.
- */
-mxConnectionHandler.prototype.tapAndHold = function(me, state)
-{
-	if (state != null)
-	{
-		this.marker.currentColor = this.marker.validColor;
-		this.marker.markedState = state;
-		this.marker.mark();
-		
-		this.first = new mxPoint(me.getGraphX(), me.getGraphY());
-		this.edgeState = this.createEdgeState(me);
-		this.previous = state;
-		this.fireEvent(new mxEventObject(mxEvent.START, 'state', this.previous));
-	}
 };
 
 /**
@@ -1099,13 +981,6 @@ mxConnectionHandler.prototype.convertWaypoint = function(point)
  */
 mxConnectionHandler.prototype.mouseMove = function(sender, me)
 {
-	if (this.tapAndHoldValid)
-	{
-		this.tapAndHoldValid =
-			Math.abs(this.initialTouchX - me.getX()) < this.tapAndHoldTolerance &&
-			Math.abs(this.initialTouchY - me.getY()) < this.tapAndHoldTolerance;
-	}
-	
 	if (!me.isConsumed() && (this.ignoreMouseDown || this.first != null || !this.graph.isMouseDown))
 	{
 		// Handles special case when handler is disabled during highlight
@@ -1563,9 +1438,6 @@ mxConnectionHandler.prototype.mouseUp = function(sender, me)
 	{
 		this.reset();
 	}
-	
-	this.tapAndHoldInProgress = false;
-	this.tapAndHoldValid = false;
 };
 
 /**

@@ -1,5 +1,5 @@
 /**
- * $Id: mxSvgCanvas2D.js,v 1.51 2013/05/23 10:29:43 gaudenz Exp $
+ * $Id: mxSvgCanvas2D.js,v 1.53 2013/06/20 12:09:29 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -480,7 +480,7 @@ mxSvgCanvas2D.prototype.addNode = function(filled, stroked)
 		else if (!this.styleEnabled)
 		{
 			// Workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=814952
-			if (node.nodeName == 'ellipse' && mxClient.IS_NS && !mxClient.IS_GC && !mxClient.IS_SF)
+			if (node.nodeName == 'ellipse' && mxClient.IS_FF)
 			{
 				node.setAttribute('fill', 'transparent');
 			}
@@ -523,6 +523,10 @@ mxSvgCanvas2D.prototype.addNode = function(filled, stroked)
 			this.path[this.path.length - 1] == this.closeOp))
 		{
 			node.setAttribute('pointer-events', 'all');
+		}
+		else if (!this.pointerEvents)
+		{
+			node.setAttribute('pointer-events', 'none');
 		}
 		
 		// LATER: Update existing DOM for performance
@@ -895,6 +899,11 @@ mxSvgCanvas2D.prototype.image = function(x, y, w, h, src, aspect, flipH, flipV)
 	if (tr.length > 0)
 	{
 		node.setAttribute('transform', tr);
+	}
+	
+	if (!this.pointerEvents)
+	{
+		node.setAttribute('pointer-events', 'none');
 	}
 	
 	this.root.appendChild(node);
@@ -1365,8 +1374,6 @@ mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 		
 		node.setAttribute('clip-path', 'url(#' + c.getAttribute('id') + ')');
 	}
-	
-	this.updateFont(node, align);
 
 	// Default is left
 	var anchor = (align == mxConstants.ALIGN_RIGHT) ? 'end' :
@@ -1434,6 +1441,7 @@ mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 			// LATER: Match horizontal HTML alignment
 			text.setAttribute('x', this.format(x * s.scale));
 			text.setAttribute('y', this.format(cy * s.scale));
+			this.updateFont(text);
 			
 			mxUtils.write(text, lines[i]);
 			node.appendChild(text);
@@ -1447,9 +1455,10 @@ mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 };
 
 /**
- * Function: addTextBackground
+ * Function: updateFont
  * 
- * Background color and border
+ * Updates the text properties for the given node. (NOTE: For this to work in
+ * IE, the given node must be a text or tspan element.)
  */
 mxSvgCanvas2D.prototype.updateFont = function(node)
 {

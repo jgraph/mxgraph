@@ -1,5 +1,5 @@
 /**
- * $Id: mxImageShape.js,v 1.7 2012/12/18 16:35:57 gaudenz Exp $
+ * $Id: mxImageShape.js,v 1.8 2013/06/17 14:44:52 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -83,8 +83,6 @@ mxImageShape.prototype.apply = function(state)
 	
 	if (this.style != null)
 	{
-		this.fill = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_BACKGROUND);
-		this.stroke = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_BORDER);
 		this.preserveImageAspect = mxUtils.getNumber(this.style, mxConstants.STYLE_IMAGE_ASPECT, 1) == 1;
 		
 		// Legacy support for imageFlipH/V
@@ -159,12 +157,15 @@ mxImageShape.prototype.redrawHtmlShape = function()
 	this.node.style.top = Math.round(this.bounds.y) + 'px';
 	this.node.style.width = Math.max(0, Math.round(this.bounds.width)) + 'px';
 	this.node.style.height = Math.max(0, Math.round(this.bounds.height)) + 'px';
-	this.node.style.backgroundColor = this.fill || '';
-	this.node.style.borderColor = this.stroke || '';
 	this.node.innerHTML = '';
-	
+
 	if (this.image != null)
 	{
+		var fill = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_BACKGROUND, '');
+		var stroke = mxUtils.getValue(this.style, mxConstants.STYLE_IMAGE_BORDER, '');
+		this.node.style.backgroundColor = fill;
+		this.node.style.borderColor = stroke;
+		
 		// VML image supports PNG in IE6
 		var useVml = mxClient.IS_IE6 || (mxClient.CSS_PREFIX == null && this.rotation != 0);
 		var img = document.createElement((useVml) ? mxClient.VML_PREFIX + ':image' : 'img');
@@ -196,10 +197,14 @@ mxImageShape.prototype.redrawHtmlShape = function()
 		{
 			img.style.rotation = this.rotation;
 		}
-		else
+		else if (this.rotation != 0)
 		{
 			// LATER: Add flipV/H support
 			img.style[mxClient.CSS_PREFIX + 'Transform'] = 'rotate(' + this.rotation + 'deg)';
+		}
+		else
+		{
+			img.style[mxClient.CSS_PREFIX + 'Transform'] = '';
 		}
 
 		// Known problem: IE clips top line of image for certain angles
