@@ -1,3 +1,37 @@
+28-JUN-2013: 2.1.0.0
+
+- Fixes mxDragSource inner mouseDown call for overriding [JavaScript]
+- Improves event handling for auto size in mxCellEditor [JavaScript]
+- Returns event in mxGraph.updateMouseEvent [JavaScript]
+- Improves touch support, hit detection and event handling [JavaScript]
+- Adds tolerance before moving handles in mxVertexHandler.checkTolerance [JavaScript]
+- Fixes handling of pointer-events in mxSvgCanvas2D.image [JavaScript]
+- Moves mxGraph.isForceMarqueeEvent to mxRubberband.isForceRubberbandEvent [JavaScript]
+- Moves mxGraph.handleGesture to fireGestureEvent [JavaScript]
+- Adds mxGraph.tapAndHold, isEventIgnored, getStateForEvent [JavaScript]
+- Moves mxPanningHandler after mxGraphHandler in mxGraph.createHandlers [JavaScript]
+- Adds mxEvent.GESTURE, mxEvent.TAP_AND_HOLD in mxGraph [JavaScript]
+- Moves tapAndHold detection from mxConnectionHandler to mxGraph [JavaScript]
+- Adds handling of touch gestures via event source in mxGraph, mxDragSource [JavaScript]
+- Fixes rendering of image background and border in mxImageShape for HTML [JavaScript]
+- Uses graph.tolerance for hit detection of zoom handle in mxOutline [JavaScript]
+- Adds lod.html, folding.html and collapse.html examples [JavaScript]
+- Adds mxCellEditor.selectText, fixes selection for iOS [JavaScript]
+- Adds mxClient.IS_IOS, mxClient.IS_FF [JavaScript]
+- Fixes hit detection for iOS, removes live preview in mxEdgeHandler [JavaScript]
+- No longer consumes events for cursor changes in mxGraphHandler.mouseMove [JavaScript]
+- Creates mxPopupMenuHandler in mxGraph.createHandlers [JavaScript]
+- Adds mxVertexHandler.manageSizers, live preview for iOS [JavaScript]
+- Adds mxTooltipHandler.ignoreTouchEvents switch [JavaScript]
+- Adds mxPopupMenuHandler, removes from mxPanningHandler [JavaScript]
+- Enables mxConnectionHandler.tapAndHold for mouse events [JavaScript]
+- Adds mxShape.createSvgCanvas, createVmlCanvas hooks [JavaScript]
+- Fixes handling of disabled pointerEvents in mxSvgCanvas2D [JavaScript]
+- Fixes rendering of underlined text in mxText, mxSvgCanvas2D [JavaScript]
+- Adds mxEvent.isTouchEvent, isMouseEvent [JavaScript]
+- Adds mxOutline.prototype.labelsVisible switch [JavaScript]
+- Adds new autolayout.html, touch.html examples [JavaScript]
+
 23-MAY-2013: 2.0.0.1
 
 - Adds mxPanningHandler.prototype.scaleGraph for pinch gesture events [JavaScript]
@@ -24,6 +58,17 @@
 - Adds mxClient.VML_PREFIX, OFFICE_PREFIX, CSS_PREFIX [JavaScript]
 - Adds dashed option to mxCellHighlight [JavaScript]
 --
+- Fixes mxEditor.showOutline for IE8 in standards mode [JavaScript]
+- Fixes value ignored after paste from context menu in mxCellEditor [JavaScript]
+
+08-JUN-2013: 1.13.0.2
+
+- Fixes check for array argument in mxHierarchicalLayout.execute [JavaScript]
+- Keeps handle inside edge shape in mxElbowEdgeHandler [JavaScript]
+- Fixes possible division by zero in mxParallelEdgeLayout [JavaScript]
+- Fixes minor bug, uses resizeCell in mxGraph.alignCells [JavaScript]
+- Consumes event in mxGraph.dblClick [JavaScript]
+
 23-MAY-2013: 1.13.0.1
 
 - Fixes possible error for empty text drawing mxGraphicsCanvas2D [Java]

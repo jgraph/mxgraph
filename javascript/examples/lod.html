@@ -1,14 +1,13 @@
 <!--
-  $Id: helloworld.html,v 1.4 2013/02/01 20:59:16 gaudenz Exp $
+  $Id: lod.html,v 1.1 2013/06/17 14:41:14 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
-  Hello, World! example for mxGraph. This example demonstrates using
-  a DOM node to create a graph and adding vertices and edges.
+  Level of detail example for mxGraph. This example demonstrates
+  implementing a level of detail per cell.
 -->
-<!DOCTYPE html>
 <html>
 <head>
-  <title>Hello, World! example for mxGraph</title>
+	<title>Level of detail example for mxGraph</title>
 
 	<!-- Sets the basepath for the library if not in same directory -->
 	<script type="text/javascript">
@@ -35,27 +34,52 @@
 			{
 				// Creates the graph inside the given container
 				var graph = new mxGraph(container);
+				graph.centerZoom = false;
 
-				// Enables rubberband selection
-				new mxRubberband(graph);
-
+				// Links level of detail to zoom level but can be independent of zoom
+				graph.isCellVisible = function(cell)
+				{
+					return cell.lod == null || cell.lod / 2 < this.view.scale;
+				};
+				
 				// Gets the default parent for inserting new cells. This
 				// is normally the first child of the root (ie. layer 0).
 				var parent = graph.getDefaultParent();
-
+								
 				// Adds cells to the model in a single step
 				graph.getModel().beginUpdate();
 				try
 				{
-					var v1 = graph.insertVertex(parent, null, 'Hello,', 20, 20, 80, 30);
-					var v2 = graph.insertVertex(parent, null, 'World!', 200, 150, 80, 30);
-					var e1 = graph.insertEdge(parent, null, '', v1, v2);
+					var v1 = graph.insertVertex(parent, null, '1', 20, 20, 80, 30);
+					v1.lod = 1;
+					var v2 = graph.insertVertex(parent, null, '1', 200, 150, 80, 30);
+					v2.lod = 1;
+					var v3 = graph.insertVertex(parent, null, '2', 20, 150, 40, 20);
+					v3.lod = 2;
+					var v4 = graph.insertVertex(parent, null, '3', 200, 10, 20, 20);
+					v4.lod = 3;
+					var e1 = graph.insertEdge(parent, null, '2', v1, v2, 'strokeWidth=2');
+					e1.lod = 2;
+					var e2 = graph.insertEdge(parent, null, '2', v3, v4, 'strokeWidth=2');
+					e2.lod = 2;
+					var e2 = graph.insertEdge(parent, null, '3', v1, v4, 'strokeWidth=1');
+					e2.lod = 3;
 				}
 				finally
 				{
 					// Updates the display
 					graph.getModel().endUpdate();
 				}
+				
+				document.body.appendChild(mxUtils.button('+', function()
+				{
+					graph.zoomIn();
+				}));
+				
+				document.body.appendChild(mxUtils.button('-', function()
+				{
+					graph.zoomOut();
+				}));
 			}
 		};
 	</script>
@@ -66,7 +90,7 @@
 
 	<!-- Creates a container for the graph with a grid wallpaper -->
 	<div id="graphContainer"
-		style="position:relative;overflow:hidden;width:321px;height:241px;background:url('editors/images/grid.gif');cursor:default;">
+		style="position:relative;overflow:hidden;width:621px;height:441px;background:url('editors/images/grid.gif');cursor:default;">
 	</div>
 </body>
 </html>

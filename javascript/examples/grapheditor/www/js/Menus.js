@@ -1,5 +1,5 @@
 /**
- * $Id: Menus.js,v 1.16 2013/05/07 09:48:56 gaudenz Exp $
+ * $Id: Menus.js,v 1.20 2013/06/21 12:19:17 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -322,7 +322,10 @@ Menus.prototype.init = function()
 				var layout = new mxCompactTreeLayout(graph, true);
 				layout.edgeRouting = false;
 				layout.levelDistance = 30;
-	    		this.editorUi.executeLayout(layout, true, true);
+	    		this.editorUi.executeLayout(function()
+	    		{
+	    			layout.execute(graph.getDefaultParent(), graph.getSelectionCell());
+	    		}, true);
 			}
 		}), parent);
 		menu.addItem(mxResources.get('verticalTree'), null, mxUtils.bind(this, function()
@@ -332,30 +335,45 @@ Menus.prototype.init = function()
 				var layout = new mxCompactTreeLayout(graph, false);
 				layout.edgeRouting = false;
 				layout.levelDistance = 30;
-	    		this.editorUi.executeLayout(layout, true, true);
+	    		this.editorUi.executeLayout(function()
+	    		{
+	    			layout.execute(graph.getDefaultParent(), graph.getSelectionCell());
+	    		}, true);
 			}
 		}), parent);
 		menu.addSeparator(parent);
 		menu.addItem(mxResources.get('horizontalFlow'), null, mxUtils.bind(this, function()
 		{
 			var layout = new mxHierarchicalLayout(graph, mxConstants.DIRECTION_WEST);
-			this.editorUi.executeLayout(layout, true, true);
+    		this.editorUi.executeLayout(function()
+    		{
+    			layout.execute(graph.getDefaultParent(), graph.getSelectionCells());
+    		}, true);
 		}), parent);
 		menu.addItem(mxResources.get('verticalFlow'), null, mxUtils.bind(this, function()
 		{
 			var layout = new mxHierarchicalLayout(graph, mxConstants.DIRECTION_NORTH);
-			this.editorUi.executeLayout(layout, true, true);
+    		this.editorUi.executeLayout(function()
+    		{
+    			layout.execute(graph.getDefaultParent(), graph.getSelectionCells());
+    		}, true);
 		}), parent);
 		menu.addSeparator(parent);
 		menu.addItem(mxResources.get('organic'), null, mxUtils.bind(this, function()
 		{
 			var layout = new mxFastOrganicLayout(graph);
-    		this.editorUi.executeLayout(layout, true, true);
+    		this.editorUi.executeLayout(function()
+    		{
+    			layout.execute(graph.getDefaultParent(), graph.getSelectionCell());
+    		}, true);
 		}), parent);
 		menu.addItem(mxResources.get('circle'), null, mxUtils.bind(this, function()
 		{
 			var layout = new mxCircleLayout(graph);
-    		this.editorUi.executeLayout(layout, true, true, graph.getSelectionCells());
+    		this.editorUi.executeLayout(function()
+    		{
+    			layout.execute(graph.getDefaultParent());
+    		}, true);
 		}), parent);
 	})));
 	this.put('navigation', new Menu(mxUtils.bind(this, function(menu, parent)
@@ -399,8 +417,8 @@ Menus.prototype.init = function()
 	this.put('edit', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
 		this.addMenuItems(menu, ['undo', 'redo', '-', 'cut', 'copy', 'paste', 'delete', '-', 'duplicate', '-',
-		                         'editLink', 'openLink', '-',
-		                         'selectVertices', 'selectEdges', 'selectAll', '-', 'setAsDefaultEdge']);
+		                         'editLink', 'openLink', '-', 'selectVertices', 'selectEdges', 'selectAll', '-',
+		                         'setAsDefaultEdge']);
 	})));
 	this.put('options', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -652,14 +670,14 @@ Menus.prototype.createPopupMenu = function(menu, cell, evt)
 				
 				if (handler instanceof mxEdgeHandler && handler.bends != null && handler.bends.length > 2)
 				{
-					var index = handler.getHandleForEvent(new mxMouseEvent(evt));
+					var index = handler.getHandleForEvent(graph.updateMouseEvent(new mxMouseEvent(evt)));
 					
 					// Configures removeWaypoint action before execution
 					var rmWaypointAction = this.editorUi.actions.get('removeWaypoint');
 					rmWaypointAction.handler = handler;
 					rmWaypointAction.index = index;
 
-					isWaypoint = index > 0 && index < handler.bends.length;
+					isWaypoint = index > 0 && index < handler.bends.length - 1;
 				}
 			}
 			
@@ -760,7 +778,7 @@ Menubar.prototype.addMenuHandler = function(elt, funct)
 		{
 			if (show && elt.enabled == null || elt.enabled)
 			{
-				this.editorUi.editor.graph.panningHandler.hideMenu();
+				this.editorUi.editor.graph.popupMenuHandler.hideMenu();
 				var menu = new mxPopupMenu(funct);
 				menu.div.className += ' geMenubarMenu';
 				menu.smartSeparators = true;

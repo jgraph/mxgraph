@@ -1,5 +1,5 @@
 <!--
-  $Id: events.html,v 1.1 2012/11/15 13:26:40 gaudenz Exp $
+  $Id: events.html,v 1.2 2013/06/07 14:30:51 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Events example for mxGraph. This example demonstrates creating
@@ -108,7 +108,7 @@
 				}
 				
 				// Installs a popupmenu handler using local function (see below).
-				graph.panningHandler.factoryMethod = function(menu, cell, evt)
+				graph.popupMenuHandler.factoryMethod = function(menu, cell, evt)
 				{
 					return createPopupMenu(graph, menu, cell, evt);
 				};

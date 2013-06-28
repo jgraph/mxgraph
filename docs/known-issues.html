@@ -346,6 +346,14 @@ layer.</li>
 	from a different domain (evaluation). This problem goes away when using
 	HTTP.
 </p>
+<h2><a name="AndroidStockBrowser"></a>Android stock browser virtual keyboard</h2>
+<p>
+	In Chrome 18 Mobile a bug prevents the keyboard from appearing after a double
+	tap event. Another tap on the selected text can be used as a workaround. The
+	underlying problem is that the touchend event cannot be used as a context to
+	focus a text control on this browser, and click events are not consistently
+	handles.
+</p>
 <hr size="1">
 &copy; 2006-2012 by JGraph Ltd.
 </body>

@@ -1,0 +1,74 @@
+<!--
+  $Id: collapse.html,v 1.1 2013/06/17 14:41:14 gaudenz Exp $
+  Copyright (c) 2006-2010, JGraph Ltd
+  
+  Collapse example for mxGraph. This example demonstrates changing
+  the style of a cell based on its collapsed state.
+-->
+<html>
+<head>
+	<title>Collapse example for mxGraph</title>
+
+	<!-- Sets the basepath for the library if not in same directory -->
+	<script type="text/javascript">
+		mxBasePath = '../src';
+	</script>
+
+	<!-- Loads and initializes the library -->
+	<script type="text/javascript" src="../src/js/mxClient.js"></script>
+
+	<!-- Example code -->
+	<script type="text/javascript">
+		// Program starts here. Creates a sample graph in the
+		// DOM node with the specified ID. This function is invoked
+		// from the onLoad event handler of the document (see below).
+		function main(container)
+		{
+			var graph = new mxGraph(container);
+			var parent = graph.getDefaultParent();
+			
+			// Extends mxGraphModel.getStyle to show an image when collapsed
+			var modelGetStyle = graph.model.getStyle;
+			graph.model.getStyle = function(cell)
+			{
+				if (cell != null)
+				{
+					var style = modelGetStyle.apply(this, arguments);
+					
+					if (this.isCollapsed(cell))
+					{
+						style = style + ';shape=image;image=http://www.jgraph.com/images/mxgraph.gif;' +
+							'noLabel=1;imageBackground=#C3D9FF;imageBorder=#6482B9';
+					}
+					
+					return style;
+				}
+				
+				return null;
+			};
+			
+			graph.getModel().beginUpdate();
+			try
+			{
+				var v1 = graph.insertVertex(parent, null, 'Container', 20, 20, 200, 200,
+					'shape=swimlane;startSize=20;');
+				v1.geometry.alternateBounds = new mxRectangle(0, 0, 110, 70);
+				var v11 = graph.insertVertex(v1, null, 'Hello,', 10, 40, 120, 80);
+			}
+			finally
+			{
+				graph.getModel().endUpdate();
+			}
+		};
+	</script>
+</head>
+
+<!-- Page passes the container for the graph to the program -->
+<body onload="main(document.getElementById('graphContainer'))">
+
+	<!-- Creates a container for the graph with a grid wallpaper -->
+	<div id="graphContainer"
+		style="position:relative;overflow:hidden;width:321px;height:241px;background:url('editors/images/grid.gif');cursor:default;">
+	</div>
+</body>
+</html>

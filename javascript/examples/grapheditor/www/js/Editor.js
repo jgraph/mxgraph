@@ -1,13 +1,13 @@
 /**
- * $Id: Editor.js,v 1.17 2013/05/23 16:00:22 gaudenz Exp $
+ * $Id: Editor.js,v 1.19 2013/06/20 14:04:15 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 // Specifies if local storage should be used (eg. on the iPad which has no filesystem)
 var useLocalStorage = (mxClient.IS_TOUCH || urlParams['storage'] == 'local') && typeof(localStorage) != 'undefined';
 var fileSupport = window.File != null && window.FileReader != null && window.FileList != null;
 
-// Specifies if connector should be shown on selected cells
-var touchStyle = mxClient.IS_TOUCH || urlParams['touch'] == '1';
+// Specifies if the touch UI should be used
+var touchStyle = mxClient.IS_TOUCH || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0 || urlParams['touch'] == '1';
 
 // Counts open editor tabs (must be global for cross-window access)
 var counter = 0;
@@ -776,7 +776,7 @@ Editor.prototype.init = function()
 	};
 
 	// Returns last selected ancestor
-	mxPanningHandler.prototype.getCellForPopupEvent = function(me)
+	mxPopupMenuHandler.prototype.getCellForPopupEvent = function(me)
 	{
 		var cell = me.getCell();
 		var model = this.graph.getModel();

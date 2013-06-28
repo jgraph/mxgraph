@@ -1,5 +1,5 @@
 /**
- * $Id: Graph.js,v 1.20 2013/05/04 20:16:05 gaudenz Exp $
+ * $Id: Graph.js,v 1.25 2013/06/21 15:25:53 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -15,12 +15,12 @@ Graph = function(container, model, renderHint, stylesheet)
 	this.setConnectable(true);
 	this.setDropEnabled(true);
 	this.setPanning(true);
-	this.setTooltips(!mxClient.IS_TOUCH);
+	this.setTooltips(true);
 	this.setAllowLoops(true);
 	this.allowAutoPanning = true;
 	this.resetEdgesOnConnect = false;
 	this.constrainChildren = false;
-	
+
 	// Enables cloning of connection sources by default
 	this.connectionHandler.setCreateTarget(true);
 	
@@ -51,12 +51,19 @@ Graph = function(container, model, renderHint, stylesheet)
 	{
 		this.container.style.cursor = 'pointer';
 	}));
-			
+		
 	this.panningHandler.addListener(mxEvent.PAN_END, mxUtils.bind(this, function()
 	{
 		this.container.style.cursor = 'default';
 	}));
 
+	this.popupMenuHandler.autoExpand = true;
+	
+	this.popupMenuHandler.isSelectOnPopup = function(me)
+	{
+		return mxEvent.isMouseEvent(me.getEvent());
+	};
+	
     // Adds support for HTML labels via style. Note: Currently, only the Java
     // backend supports HTML labels but CSS support is limited to the following:
     // http://docs.oracle.com/javase/6/docs/api/index.html?javax/swing/text/html/CSS.html
@@ -86,32 +93,28 @@ Graph = function(container, model, renderHint, stylesheet)
 	{
 		return false;
 	};
-
-	// Tap and hold brings up context menu.
-	// Tolerance slightly below graph tolerance is better.
-	this.connectionHandler.tapAndHoldTolerance = 16;
 	
-	//  Tap and hold on background starts rubberband on cell starts connecting
-	var connectionHandlerTapAndHold = this.connectionHandler.tapAndHold;
-	this.connectionHandler.tapAndHold = function(me, state)
+	// Tap and hold on background starts rubberband for multiple selected
+	// cells the cell associated with the event is deselected
+	this.addListener(mxEvent.TAP_AND_HOLD, mxUtils.bind(this, function(sender, evt)
 	{
-		if (state == null)
+		var me = evt.getProperty('event');
+		var cell = evt.getProperty('cell');
+		
+		if (cell == null)
 		{
-			if (!this.graph.panningHandler.active)
-			{
-				rubberband.start(me.getGraphX(), me.getGraphY());
-				this.graph.panningHandler.panningTrigger = false;
-			}
+			var pt = mxUtils.convertPoint(this.container,
+					mxEvent.getClientX(me), mxEvent.getClientY(me));
+			rubberband.start(pt.x, pt.y);
 		}
-		else if (tapAndHoldStartsConnection)
+		else if (this.getSelectionCount() > 1 && this.isCellSelected(cell))
 		{
-			connectionHandlerTapAndHold.apply(this, arguments);	
+			this.removeSelectionCell(cell);
 		}
-		else if (this.graph.isCellSelected(state.cell) && this.graph.getSelectionCount() > 1)
-		{
-			this.graph.removeSelectionCell(state.cell);
-		}
-	};
+		
+		// Blocks further processing of the event
+		evt.consume();
+	}));
 
 	// On connect the target is selected and we clone the cell of the preview edge for insert
 	this.connectionHandler.selectCells = function(edge, target)
@@ -379,24 +382,23 @@ Graph.prototype.initTouch = function()
 	// Hides menu when editing starts
 	this.addListener(mxEvent.START_EDITING, function(sender, evt)
 	{
-		this.panningHandler.hideMenu();
+		this.popupMenuHandler.hideMenu();
 	});
 
-	// Context menu for touchstyle
-	var showMenu = false;
-	var menuCell = null;
-
-	// Checks if native hit detection did not return anything and does custom
-	// hit detection for edges to take into account the tolerance
+	// Adds custom hit detection if native hit detection found no cell
 	this.updateMouseEvent = function(me)
 	{
-		mxGraph.prototype.updateMouseEvent.apply(this, arguments);
+		var me = mxGraph.prototype.updateMouseEvent.apply(this, arguments);
 
 		if (me.getState() == null)
 		{
 			var cell = this.getCellAt(me.graphX, me.graphY);
-			
-			if (this.getModel().isEdge(cell))
+
+			if (cell != null && this.isSwimlane(cell) && this.hitsSwimlaneContent(cell, me.graphX, me.graphY))
+			{
+				cell = null;
+			}
+			else
 			{
 				me.state = this.view.getState(cell);
 				
@@ -411,55 +413,42 @@ Graph.prototype.initTouch = function()
 		{
 			this.container.style.cursor = 'default';
 		}
+		
+		return me;
 	};
+
+	// Context menu trigger implementation depending on current selection state
+	// combined with support for normal popup trigger.
+	var cellSelected = false;
+	var selectionEmpty = false;
+	var menuShowing = false;
 	
-	// Handles popup menu on touch devices (tap selected cell)
 	this.fireMouseEvent = function(evtName, me, sender)
 	{
 		if (evtName == mxEvent.MOUSE_DOWN)
 		{
-			if (!this.panningHandler.isMenuShowing())
-			{
-				menuCell = me.getCell();
-				showMenu = (menuCell != null) ? this.isCellSelected(menuCell) : this.isSelectionEmpty();
-			}
-			else
-			{
-				showMenu = false;
-				menuCell = null;
-			}
-		}
-		else if (evtName == mxEvent.MOUSE_UP)
-		{
-			if (showMenu && !this.isEditing())
-			{
-				if (!this.panningHandler.isMenuShowing())
-				{
-					var x = mxEvent.getClientX(me.getEvent());
-					var y = mxEvent.getClientY(me.getEvent());
-					
-					this.panningHandler.popup(x + 16, y, menuCell, me.getEvent());
-				}
-				
-				showMenu = false;
-				menuCell = null;
-				me.consume();
-				
-				return;
-			}
+			// For hit detection on edges
+			me = this.updateMouseEvent(me);
 			
-			showMenu = false;
-			menuCell = null;
+			cellSelected = this.isCellSelected(me.getCell());
+			selectionEmpty = this.isSelectionEmpty();
+			menuShowing = this.popupMenuHandler.isMenuShowing();
 		}
-
+		
 		mxGraph.prototype.fireMouseEvent.apply(this, arguments);
-
-		if (evtName == mxEvent.MOUSE_MOVE && me.isConsumed())
-		{
-			showMenu = false;
-			menuCell = null;
-		}
 	};
+	
+	// Shows popup menu if cell was selected or selection was empty and background was clicked
+	// FIXME: Conflicts with mxPopupMenuHandler.prototype.getCellForPopupEvent in Editor.js by
+	// selecting parent for selected children in groups before this check can be made.
+	this.popupMenuHandler.mouseUp = mxUtils.bind(this, function(sender, me)
+	{
+		this.popupMenuHandler.popupTrigger = !this.isEditing() && (this.popupMenuHandler.popupTrigger  ||
+			(!menuShowing && !mxEvent.isMouseEvent(me.getEvent()) &&
+			((selectionEmpty && me.getCell() == null && this.isSelectionEmpty()) ||
+			(cellSelected && this.isCellSelected(me.getCell())))));
+		mxPopupMenuHandler.prototype.mouseUp.apply(this.popupMenuHandler, arguments);
+	});
 };
 
 /**
@@ -469,8 +458,12 @@ Graph.prototype.initTouch = function()
 {
 	// Enables rotation handle
 	mxVertexHandler.prototype.rotationEnabled = true;
-	mxVertexHandler.prototype.livePreview = !mxClient.IS_TOUCH;
-	mxEdgeHandler.prototype.livePreview = !mxClient.IS_TOUCH;
+	
+	// Enables managing of sizers
+	mxVertexHandler.prototype.manageSizers = true;
+	
+	// Enables live preview
+	mxVertexHandler.prototype.livePreview = true;
 	
 	// Matches label positions of mxGraph 1.x
 	mxText.prototype.baseSpacingTop = 5;
@@ -484,26 +477,23 @@ Graph.prototype.initTouch = function()
 		mxConstants.LABEL_HANDLE_SIZE = 7;
 		
 		// Larger tolerance and grid for real touch devices
-		if (mxClient.IS_TOUCH)
+		if (mxClient.IS_TOUCH || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0)
 		{
-			mxVertexHandler.prototype.tolerance = 4;
-			mxEdgeHandler.prototype.tolerance = 6;
-			Graph.prototype.tolerance = 14;
-			Graph.prototype.gridSize = 20;
-			
-			// One finger pans (no rubberband selection) must start regardless of mouse button
-			mxPanningHandler.prototype.selectOnPopup = false;
-			mxPanningHandler.prototype.useLeftButtonForPanning = true;
-			mxPanningHandler.prototype.isPanningTrigger = function(me)
-			{
-				var evt = me.getEvent();
-			 	
-			 	return (this.useLeftButtonForPanning && (this.ignoreCell || me.getState() == null)/* &&
-			 			mxEvent.isLeftMouseButton(evt)*/) || (mxEvent.isControlDown(evt) &&
-			 			mxEvent.isShiftDown(evt)) || (this.usePopupTrigger &&
-			 		   	mxEvent.isPopupTrigger(evt));
-			};
+			mxShape.prototype.svgStrokeTolerance = 18;
+			mxVertexHandler.prototype.tolerance = 12;
+			mxEdgeHandler.prototype.tolerance = 12;
+			Graph.prototype.tolerance = 12;
 		}
+			
+		// One finger pans (no rubberband selection) must start regardless of mouse button
+		mxPanningHandler.prototype.isPanningTrigger = function(me)
+		{
+			var evt = me.getEvent();
+			
+		 	return (me.getState() == null && !mxEvent.isMouseEvent(evt)) ||
+		 		(mxEvent.isPopupTrigger(evt) && (me.getState() == null ||
+		 		mxEvent.isControlDown(evt) || mxEvent.isShiftDown(evt)));
+		};
 		
 		// Don't clear selection if multiple cells selected
 		var graphHandlerMouseDown = mxGraphHandler.prototype.mouseDown;
@@ -515,20 +505,6 @@ Graph.prototype.initTouch = function()
 			{
 				this.delayedSelection = false;
 			}
-		};
-
-		// Changes order of panninghandler
-		Graph.prototype.createHandlers = function(container)
-		{
-			this.tooltipHandler = new mxTooltipHandler(this);
-			this.tooltipHandler.setEnabled(false);
-			// Selection cells first
-			this.selectionCellsHandler = new mxSelectionCellsHandler(this);
-			this.panningHandler = new mxPanningHandler(this);
-			this.panningHandler.panningEnabled = false;
-			this.connectionHandler = new mxConnectionHandler(this);
-			this.connectionHandler.setEnabled(false);
-			this.graphHandler = new mxGraphHandler(this);
 		};
 
 		// Overrides double click handling to use the tolerance
@@ -548,16 +524,43 @@ Graph.prototype.initTouch = function()
 
 		// Rounded edge and vertex handles
 		var touchHandle = new mxImage(IMAGE_PATH + '/touch-handle.png', 16, 16);
+		var rotationHandle = new mxImage(IMAGE_PATH + '/touch-handle-orange.png', 16, 16);
+		var edgeHandle = new mxImage(IMAGE_PATH + '/touch-handle.png', 16, 16);
 		mxVertexHandler.prototype.handleImage = touchHandle;
-		mxEdgeHandler.prototype.handleImage = touchHandle;
+		mxEdgeHandler.prototype.handleImage = edgeHandle;
 		mxOutline.prototype.sizerImage = touchHandle;
 		
 		// Pre-fetches touch handle
 		new Image().src = touchHandle.src;
-
+		
+		var vertexHandlerCreateSizerShape = mxVertexHandler.prototype.createSizerShape;
+		mxVertexHandler.prototype.createSizerShape = function(bounds, index, fillColor)
+		{
+			this.handleImage = (index == mxEvent.ROTATION_HANDLE) ? rotationHandle : mxVertexHandler.prototype.handleImage;
+			return vertexHandlerCreateSizerShape.apply(this, arguments);
+		};
+		
+		// Installs locked and connect handles
+		// Problem is condition for source and target in segment handler before creating bends array
+		/*var edgeHandlerCreateHandleShape = mxEdgeHandler.prototype.createHandleShape;
+		mxEdgeHandler.prototype.createHandleShape = function(index)
+		{
+			if (index == 0 || index == this.abspoints.length - 1)
+			{
+				this.handleImage = connectHandle;
+			}
+			else
+			{
+				this.handleImage = touchHandle;
+			}
+			
+			return edgeHandlerCreateHandleShape.apply(this, arguments);
+		};*/
+		
 		// Adds connect icon to selected vertices
 		var connectorSrc = IMAGE_PATH + '/touch-connector.png';
 		
+		// TODO: Merge with code below
 		var vertexHandlerInit = mxVertexHandler.prototype.init;
 		mxVertexHandler.prototype.init = function()
 		{
@@ -575,23 +578,23 @@ Graph.prototype.initTouch = function()
 				this.connectorImg.style.height = '29px';
 				this.connectorImg.style.position = 'absolute';
 				
-				if (!mxClient.IS_TOUCH)
+				if (!(mxClient.IS_TOUCH || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0))
 				{
 					this.connectorImg.setAttribute('title', mxResources.get('connect'));
 					mxEvent.redirectMouseEvents(this.connectorImg, this.graph, this.state);
 				}
 
-				// Adds 2px tolerance
-				this.connectorImg.style.padding = '2px';
-				
 				// Starts connecting on touch/mouse down
 				mxEvent.addGestureListeners(this.connectorImg,
 					mxUtils.bind(this, function(evt)
 					{
-						this.graph.panningHandler.hideMenu();
+						this.graph.popupMenuHandler.hideMenu();
+						this.graph.stopEditing(false);
+						
 						var pt = mxUtils.convertPoint(this.graph.container,
 								mxEvent.getClientX(evt), mxEvent.getClientY(evt));
 						this.graph.connectionHandler.start(this.state, pt.x, pt.y);
+						this.graph.isMouseTrigger = mxEvent.isMouseEvent(evt);
 						this.graph.isMouseDown = true;
 						mxEvent.consume(evt);
 					})
@@ -600,63 +603,9 @@ Graph.prototype.initTouch = function()
 				this.graph.container.appendChild(this.connectorImg);
 			}
 
-			this.redrawTools();
+			this.redrawHandles();
 		};
-		
-		var vertexHandlerRedrawHandles = mxVertexHandler.prototype.redrawHandles;
-		mxVertexHandler.prototype.redrawHandles = function()
-		{
-			vertexHandlerRedrawHandles.apply(this);
-			this.redrawTools();
-		};
-		
-		mxVertexHandler.prototype.redrawTools = function()
-		{
-			if (this.state != null && this.connectorImg != null)
-			{
-				var pt = new mxPoint();
-				var s = this.state;
-				
-				// Top right for single-sizer
-				if (mxVertexHandler.prototype.singleSizer)
-				{
-					pt.x = s.x + s.width - this.connectorImg.offsetWidth / 2;
-					pt.y = s.y - this.connectorImg.offsetHeight / 2;
-				}
-				else
-				{
-					pt.x = s.x + s.width + mxConstants.HANDLE_SIZE / 2 + 4 + this.connectorImg.offsetWidth / 2;
-					pt.y = s.y + s.height / 2;
-				}
-				
-				var alpha = mxUtils.toRadians(mxUtils.getValue(s.style, mxConstants.STYLE_ROTATION, 0));
-				
-				if (alpha != 0)
-				{
-					var cos = Math.cos(alpha);
-					var sin = Math.sin(alpha);
-					
-					var ct = new mxPoint(s.getCenterX(), s.getCenterY());
-					pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
-				}
-				
-				this.connectorImg.style.left = (pt.x - this.connectorImg.offsetWidth / 2) + 'px';
-				this.connectorImg.style.top = (pt.y - this.connectorImg.offsetHeight / 2) + 'px';
-			}
-		};
-		
-		var vertexHandlerDestroy = mxVertexHandler.prototype.destroy;
-		mxVertexHandler.prototype.destroy = function(sender, me)
-		{
-			vertexHandlerDestroy.apply(this, arguments);
 
-			if (this.connectorImg != null)
-			{
-				this.connectorImg.parentNode.removeChild(this.connectorImg);
-				this.connectorImg = null;
-			}
-		};
-		
 		// Pre-fetches touch connector
 		new Image().src = connectorSrc;
 	}
@@ -675,7 +624,6 @@ Graph.prototype.initTouch = function()
 			var vertexHandlerInit = mxVertexHandler.prototype.init;
 			mxVertexHandler.prototype.init = function()
 			{
-				this.singleSizer = this.state.width < 30 && this.state.height < 30;
 				vertexHandlerInit.apply(this, arguments);
 
 				// Only show connector image on one cell and do not show on containers
@@ -707,81 +655,99 @@ Graph.prototype.initTouch = function()
 					this.connectorImg.setAttribute('title', mxResources.get('connect'));
 					mxEvent.redirectMouseEvents(this.connectorImg, this.graph, this.state);
 					
-					// Adds 2px tolerance
-					this.connectorImg.style.padding = '2px';
-					
 					// Starts connecting on touch/mouse down
-					mxEvent.addListener(this.connectorImg, 'mousedown',
+					// Starts connecting on touch/mouse down
+					mxEvent.addGestureListeners(this.connectorImg,
 						mxUtils.bind(this, function(evt)
 						{
-							this.graph.panningHandler.hideMenu();
+							this.graph.popupMenuHandler.hideMenu();
+							this.graph.stopEditing(false);
+							
 							var pt = mxUtils.convertPoint(this.graph.container,
 									mxEvent.getClientX(evt), mxEvent.getClientY(evt));
 							this.graph.connectionHandler.start(this.state, pt.x, pt.y);
+							this.graph.isMouseTrigger = mxEvent.isMouseEvent(evt);
 							this.graph.isMouseDown = true;
 							mxEvent.consume(evt);
 						})
 					);
 	
 					this.graph.container.appendChild(this.connectorImg);
-				}
-	
-				this.redrawTools();
-			};
-			
-			var vertexHandlerRedrawHandles = mxVertexHandler.prototype.redrawHandles;
-			mxVertexHandler.prototype.redrawHandles = function()
-			{
-				vertexHandlerRedrawHandles.apply(this);
-				this.redrawTools();
-			};
-			
-			mxVertexHandler.prototype.redrawTools = function()
-			{
-				if (this.state != null && this.connectorImg != null)
-				{
-					var pt = new mxPoint();
-					var s = this.state;
-					
-					// Top right for single-sizer
-					if (mxVertexHandler.prototype.singleSizer)
-					{
-						pt.x = s.x + s.width - this.connectorImg.offsetWidth / 2;
-						pt.y = s.y;
-					}
-					else
-					{
-						pt.x = s.x + s.width + mxConstants.HANDLE_SIZE / 2 + 2 + this.connectorImg.offsetWidth / 2;
-						pt.y = s.y + s.height / 2;
-					}
-					
-					var alpha = mxUtils.toRadians(mxUtils.getValue(s.style, mxConstants.STYLE_ROTATION, 0));
-					
-					if (alpha != 0)
-					{
-						var cos = Math.cos(alpha);
-						var sin = Math.sin(alpha);
-						
-						var ct = new mxPoint(s.getCenterX(), s.getCenterY());
-						pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
-					}
-					
-					this.connectorImg.style.left = (pt.x - this.connectorImg.offsetWidth / 2) + 'px';
-					this.connectorImg.style.top = (pt.y - this.connectorImg.offsetHeight / 2) + 'px';
-				}
-			};
-			
-			var vertexHandlerDestroy = mxVertexHandler.prototype.destroy;
-			mxVertexHandler.prototype.destroy = function(sender, me)
-			{
-				vertexHandlerDestroy.apply(this, arguments);
-	
-				if (this.connectorImg != null)
-				{
-					this.connectorImg.parentNode.removeChild(this.connectorImg);
-					this.connectorImg = null;
+					this.redrawHandles();
 				}
 			};
 		}
 	}
+
+	var vertexHandlerRedrawHandles = mxVertexHandler.prototype.redrawHandles;
+	mxVertexHandler.prototype.redrawHandles = function()
+	{
+		vertexHandlerRedrawHandles.apply(this);
+
+		if (this.state != null && this.connectorImg != null)
+		{
+			var pt = new mxPoint();
+			var s = this.state;
+			
+			// Top right for single-sizer
+			if (mxVertexHandler.prototype.singleSizer)
+			{
+				pt.x = s.x + s.width - this.connectorImg.offsetWidth / 2;
+				pt.y = s.y - this.connectorImg.offsetHeight / 2;
+			}
+			else
+			{
+				pt.x = s.x + s.width + mxConstants.HANDLE_SIZE / 2 + 4 + this.connectorImg.offsetWidth / 2;
+				pt.y = s.y + s.height / 2;
+			}
+			
+			var alpha = mxUtils.toRadians(mxUtils.getValue(s.style, mxConstants.STYLE_ROTATION, 0));
+			
+			if (alpha != 0)
+			{
+				var cos = Math.cos(alpha);
+				var sin = Math.sin(alpha);
+				
+				var ct = new mxPoint(s.getCenterX(), s.getCenterY());
+				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
+			}
+			
+			this.connectorImg.style.left = (pt.x - this.connectorImg.offsetWidth / 2) + 'px';
+			this.connectorImg.style.top = (pt.y - this.connectorImg.offsetHeight / 2) + 'px';
+		}
+	};
+	
+	var vertexHandlerHideSizers = mxVertexHandler.prototype.hideSizers;
+	mxVertexHandler.prototype.hideSizers = function()
+	{
+		vertexHandlerHideSizers.apply(this, arguments);
+		
+		if (this.connectorImg != null)
+		{
+			this.connectorImg.style.visibility = 'hidden';
+		}
+	};
+	
+	var vertexHandlerReset = mxVertexHandler.prototype.reset;
+	mxVertexHandler.prototype.reset = function()
+	{
+		vertexHandlerReset.apply(this, arguments);
+		
+		if (this.connectorImg != null)
+		{
+			this.connectorImg.style.visibility = '';
+		}
+	};
+	
+	var vertexHandlerDestroy = mxVertexHandler.prototype.destroy;
+	mxVertexHandler.prototype.destroy = function(sender, me)
+	{
+		vertexHandlerDestroy.apply(this, arguments);
+
+		if (this.connectorImg != null)
+		{
+			this.connectorImg.parentNode.removeChild(this.connectorImg);
+			this.connectorImg = null;
+		}
+	};
 })();

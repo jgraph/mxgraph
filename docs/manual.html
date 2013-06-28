@@ -9,8 +9,8 @@
 <h1>mxGraph User Manual &ndash; JavaScript Client</h1>
 <br/>
 <br/>
-<p>mxGraph Version 2.0.0.1 &ndash; 23. May 2013</p>
-<p>Copyright (c) JGraph Ltd 2006-2012</p>
+<p>mxGraph Version 2.1.0.0 &ndash; 28. June 2013</p>
+<p>Copyright (c) JGraph Ltd 2006-2013</p>
 <br/>
 <p>All rights reserved. No part of this publication may be
 reproduced, stored in a retrieval system, or transmitted in any form or
@@ -38,10 +38,9 @@ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.</p>
 
 <br/>
 <h1><a name="Introduction"></a>Introduction</h1>
-<h2><a name="mxGraph_Products"></a>Product Family Introduction</h2>
+<h2><a name="mxGraph_Products"></a>Product Introduction</h2>
 
-<p>mxGraph is a product family of libraries, written in a variety of
-technologies, that provide features aimed at applications that display
+<p>mxGraph is a JavaScript component that provides features aimed at applications that display
 interactive <a href="http://en.wikipedia.org/wiki/Diagram">diagrams</a>
 and graphs. Note by graphs we mean <a
 	href="http://en.wikipedia.org/wiki/Graph_(mathematics)">mathematical
@@ -53,46 +52,18 @@ Graph?&rdquo; for more details.</p>
 to provide a ready to use application, although many of the examples are
 close to being usable applications. mxGraph provides all the commonly
 required functionality to draw, interact with and associate a context
-with a diagram displayed in the technology of that particular mxGraph
-flavour. mxGraph comes with a number of examples that help explain how a
-basic application is put together using each technology and showcases
+with a diagram. mxGraph comes with a number of examples that help explain how a
+basic application is put together and showcases
 individual features of the library.</p>
 
-<p>Each user manual is specific to one technology, along with
-generic sections, such as this introduction and layouts. Developers will
-find the implementations of each library in the different technologies
-share the same architecture and API across the product range. The
-implementations differ slightly for technology-specific areas, usually
-event handling and rendering, but when overall porting from one
-technology, mxGraph is designed to present as common an interface as is
-possible.</p>
-
 <p>Developers integrating the library in their application should
-read the pre-requisites for the technology they are using. See section
+read the section
 &ldquo;Pre-requisites&rdquo; below. Given that mxGraph is a component
-part of your application, you must understand how applications are
-constructed in that technology and how to program in the language(s) of
-that technology.</p>
+part of your application, you must understand how JavaScript web 
+applications are constructed at an architectural level, and how to program 
+both in JavaScript, as well as any server-side languages used.</p>
 
-<h2><a name="Which_Version"></a>Which Version of mxGraph to use?</h2>
-
-<p>When deciding which of the technology implementations of mxGraph
-to use, often the choice is determined by the technology of the
-application.</p>
-
-<p>The Java visualization version is suitable for
-producing desktop applications with high performance. The 
-web-centric version, written in JavaScript, is designed to work 
-natively in all major web browsers. An example of such an 
-application is a business process modelling tool that enables 
-users to draw processes in a web browser, store them centrally, 
-allow other users to view and edit processes and
-automatically execute the process on the server using business logic
-associated with the visual information.</p>
-
-<h3><a name="JavaScript"></a>JavaScript</h3>
-
-<p>The JavaScript version of mxGraph mainly comprises one JavaScript
+<p>mxGraph mainly comprises one JavaScript
 file that contains all of the mxGraph functionality. This is loaded into
 a HTML web page in a JavaScript section and executes in an HTML
 container in the browser. This is an incredibly simple architecture that
@@ -104,7 +75,7 @@ JavaScript enabled web browser.</p>
 	<li>That no third-party plug-ins are required. This removes
 	plug-in vendor dependence.</li>
 	<li>The technologies involved are open and there are many open
-	implementations, no vendor can remove a product or technology that
+	implementations, no one vendor can remove a product or technology that
 	leaves your application unworkable in practise.</li>
 	<li>Standardized technologies, meaning your application is
 	deployable to the maximum number of browser users without need for
@@ -113,44 +84,6 @@ JavaScript enabled web browser.</p>
 	browser plug-ins and do not like to change the standard build rolled
 	out to all machines.</li>
 </ul>
-
-<p>The key disadvantage of this technology is:</p>
-<ul>
-	<li>Rendering speed. As the number of cells visible on the users
-	screen climbs into the hundreds, redrawing slows on most browsers
-	beyond acceptable levels. In information management theory displaying
-	several hundred cells is generally incorrect, since the user cannot
-	interpret the data. There are a number of mechanisms, collectively
-	known as complexity management used to limit the amount of information
-	to sensible levels, and thus maintaining reactive redraw rates for the
-	user. Complexity management is described in a later section of this
-	user manual.</li>
-</ul>
-
-<p>Comparing the pros and cons of each implementation against your
-application requirements usually provides a clearly advantage to using
-one of these technologies.</p>
-
-<h2><a name="JavaScript_Library"></a>mxGraph &ndash; JavaScript
-Library</h2>
-
-<p>This user manual is for the JavaScript library version of
-mxGraph, that enables you to produce web applications that feature
-interactive diagramming functionality across all major browsers, without
-the use of third-party plug-ins. The core client functionality of
-mxGraph is a Javascript library that describes, displays and interacts
-with your diagram through a browser, providing all the commonly required
-application features as well as easy extensibility to add custom
-features. mxGraph is designed for use in a client-server architecture,
-where the Javascript library communicates with a server and exchanges
-information on the state of the graph.</p>
-
-<div id="note">
-<p>Note: From now on the term <strong>mxGraph</strong> will be used
-to describe the JavaScript client and supporting back-end modules,
-rather than any other flavour of the product, unless otherwise
-specified.</p>
-</div>
 
 <p><img src="images/mx_man_architecture.png" name="mxgraph_architecture" />
 <br/>
@@ -199,18 +132,10 @@ browsers and adapts to the inconsistencies behind the scenes.</p>
 
 <h2><a name="mxgraph_licensing"></a>mxGraph Licensing</h2>
 
-<p>The JavaScript client of mxGraph may be licensed in two ways:</p>
-
-<ul>
-	<li>Under a standard commercial license, the pricing on the web
-	site applies to these commercial licenses.</li>
-	<li>Under a reasonable use hosted model. This requires a key to
-	access the hosted version, available in the examples in your evaluation
-	download.</li>
-</ul>
-
-<p>For detailed licensing questions you are always advised to
-consult a legal professional.</p>
+<p>The JavaScript client of mxGraph is licensed under a 
+<a href="http://www.jgraph.com/mxlicense.html"> standard 
+commercial license</a> For detailed licensing questions you are always advised to
+consult a legal professional.
 
 <h2><a name="what_graph"></a>What is a Graph?</h2>
 
@@ -336,55 +261,9 @@ software design.</p>
 language that the browser uses, such as SVG, VML or HTML canvas. mxGraph
 abstracts the description of the visual component into one API.</p>
 
-<h3><a name="Getting_help"></a>Getting Additional help</h3>
-
-<p>There are many mechanisms for receiving help for working with the
-mxGraph software. The community help <a
-	href="http://forum.jgraph.com" name="JGraph Community Forum">forum</a>
-provides free assistance to mxGraph users. The forums combine the
-advantages of many users helping to answer questions along with the
-guidance of active mxGraph developers ensuring the quality and
-correctness of responses and that as many questions as possible are
-answered. However, there is no assurance of getting free assistance,
-either the answer being correct, or getting an answer at all. If your
-question is non-trivial there is less chance of a developer finding free
-time to analyse your problem, please try to break the problem down into
-simple issues and provide as much information and examples as you can.</p>
-
-<p>When posting at the forums these <a
-	href="http://forum.jgraph.com/questions/8/how-to-post-mxgraph-questions">posting
-guidelines</a> will help you get a better answer and encourage more people
-to help you. If you are a paying customer, please use the support mechaism(s) 
-specified in your purchase email.</p>
-<br/>
-
 <h1><a name="Getting_Started"></a>Getting Started</h1>
 
-<h2><a name="mxgraph_site"></a>The mxGraph Web Site</h2>
-
-<p>To start, navigate to the <a
-	href="http://www.jgraph.com/mxgraph.html">mxGraph web site</a>. The
-most useful areas to you when starting mxGraph are listed below. Use the
-navigation bars on the top and bottom to locate the appropriate section:
-</p>
-<ul>
-	<li><a href="http://www.jgraph.com/mxdownload.html">Download</a>
-	&ndash; Here you can download the latest evaluation copy. See section
-	below on evaluation for more details.</li>
-	<li><a href="http://forum.jgraph.com">Forum</a> - Here
-	you can ask the JGraph community your questions. A timely and correct
-	answer cannot be guaranteed, however the JGraph developers tend to keep
-	a close eye on questions posted. Try to break your problem down into
-	single smaller questions. If you post asking to have someone write your
-	project for you, you are unlikely to receive a reply. If you require
-	commercial-level support please contact support@jgraph.com. Before
-	posting to the forum please search the documentation, the FAQs and
-	search the forum using the search facility provided. The JGraph team
-	have spent a great deal of effort putting those resources in place,
-	please try to save them having to point you at them because you have
-	not searched yourself. Use tags correctly, 'mxgraph' is the product, 
-	'bug' if you are reporting one, 'feature' for a feature request, etc.</li>
-</ul>
+<h2><a name="mxgraph_site"></a>The mxGraph Package</h2>
 
 <h3><a name="obtaining_mxgraph"></a>Obtaining mxGraph</h3>
 
@@ -393,10 +272,11 @@ navigation bars on the top and bottom to locate the appropriate section:
 <ul>
 	<li>Navigate to the <a
 		href="http://www.jgraph.com/mxdownload.html">evaluation download
-	page</a>.</li>
-	<li>Select the check box to indicate agreement to the license and
-	click the button &quot;Download Now&quot; to download.</li>
-	<li>The downloaded package is zipped, unzip to your preferred
+	request page</a>.</li>
+	<li>Please note that we require a commercial or organizational email 
+	address to process your request. We're not able to sell mxGraph to 
+	individuals.</li>
+	<li>When you receive the download details, unzip to your preferred
 	location.</li>
 	<li>Within the package under javascript/examples you will find a
 	number of html files that demonstrate how to invoke the library within
@@ -412,7 +292,7 @@ navigation bars on the top and bottom to locate the appropriate section:
 		href="http://jgraph.com/contact.html">contact form</a>.</li>
 </ul>
 
-<p>There is no functional difference between the evaluation and full
+<p>There is no functional API difference between the evaluation and full
 version of mxGraph.</p>
 
 <h3><a name="Installing_the_JGraph_Suite"></a>Installing mxGraph</h3>
@@ -1838,6 +1718,6 @@ operation.</p>
 <br/>
 
 <hr size="1">
-&copy; 2006-2012 by JGraph Ltd.
+&copy; 2006-2013 by JGraph Ltd.
 </body>
 </html>
