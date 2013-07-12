@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.28 2013/06/20 14:04:15 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.29 2013/07/09 08:12:44 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -258,12 +258,12 @@ EditorUi.prototype.open = function()
 				{
 					var doc = mxUtils.parseXml(xml); 
 					this.editor.setGraphXml(doc.documentElement);
-					this.editor.modified = false;
+					this.editor.setModified(false);
 					this.editor.undoManager.clear();
 					
 					if (filename != null)
 					{
-						this.editor.filename = filename;
+						this.editor.setFilename(filename);
 					}
 				}
 				catch (e)
@@ -317,8 +317,8 @@ EditorUi.prototype.save = function(name)
 				}
 			}
 
-			this.editor.filename = name;
-			this.editor.modified = false;
+			this.editor.setModified(false);
+			this.editor.setFilename(name);
 		}
 		catch (e)
 		{
@@ -766,6 +766,7 @@ EditorUi.prototype.addSplitHandler = function(elt, horizontal, dx, onChange)
  */
 EditorUi.prototype.showDialog = function(elt, w, h, modal, closable, onClose)
 {
+	this.editor.graph.tooltipHandler.hideTooltip();
 	this.hideDialog();
 	this.dialog = new Dialog(this, elt, w, (mxClient.IS_VML) ? h - 12 : h, modal, closable, onClose);
 };
@@ -990,6 +991,7 @@ EditorUi.prototype.createKeyHandler = function(editor)
     bindAction(81, true, 'connect'); // Ctrl+Q
     bindAction(86, true, 'paste'); // Ctrl+V
     bindAction(71, true, 'group'); // Ctrl+G
+    bindAction(77, true, 'editMetadata'); // Ctrl+M
     bindAction(71, true, 'grid', true); // Ctrl+Shift+G
     bindAction(76, true, 'lockUnlock'); // Ctrl+L
     bindAction(85, true, 'ungroup'); // Ctrl+U

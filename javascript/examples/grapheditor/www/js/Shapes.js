@@ -1,5 +1,5 @@
 /**
- * $Id: Shapes.js,v 1.18 2013/06/20 14:04:15 gaudenz Exp $
+ * $Id: Shapes.js,v 1.20 2013/07/09 14:16:51 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 
@@ -9,11 +9,12 @@
 (function()
 {
 	// Cube Shape, supports size style
-	function CubeShape() { };
-	CubeShape.prototype = new mxCylinder();
-	CubeShape.prototype.constructor = CubeShape;
+	function CubeShape()
+	{
+		mxCylinder.call(this);
+	};
+	mxUtils.extend(CubeShape, mxCylinder);
 	CubeShape.prototype.size = 20;
-
 	CubeShape.prototype.redrawPath = function(path, x, y, w, h, isForeground)
 	{
 		var s = Math.min(w, Math.min(h, mxUtils.getValue(this.style, 'size', this.size)));
@@ -44,9 +45,11 @@
 	mxCellRenderer.prototype.defaultShapes['cube'] = CubeShape;
 
 	// Note Shape, supports size style
-	function NoteShape() { };
-	NoteShape.prototype = new mxCylinder();
-	NoteShape.prototype.constructor = NoteShape;
+	function NoteShape()
+	{
+		mxCylinder.call(this);
+	};
+	mxUtils.extend(NoteShape, mxCylinder);
 	NoteShape.prototype.size = 30;
 	NoteShape.prototype.redrawPath = function(path, x, y, w, h, isForeground)
 	{
@@ -75,9 +78,11 @@
 	mxCellRenderer.prototype.defaultShapes['note'] = NoteShape;
 
 	// Folder Shape, supports tabWidth, tabHeight styles
-	function FolderShape() { };
-	FolderShape.prototype = new mxCylinder();
-	FolderShape.prototype.constructor = FolderShape;
+	function FolderShape()
+	{
+		mxCylinder.call(this);
+	};
+	mxUtils.extend(FolderShape, mxCylinder);
 	FolderShape.prototype.tabWidth = 60;
 	FolderShape.prototype.tabHeight = 20;
 	FolderShape.prototype.tabPosition = 'right';
@@ -133,128 +138,118 @@
 
 	mxCellRenderer.prototype.defaultShapes['folder'] = FolderShape;
 
-	// Card Shape, supports size style
-	function CardShape() { };
-	CardShape.prototype = new mxCylinder();
-	CardShape.prototype.constructor = CardShape;
+	// Card shape
+	function CardShape()
+	{
+		mxActor.call(this);
+	};
+	mxUtils.extend(CardShape, mxActor);
 	CardShape.prototype.size = 30;
-	CardShape.prototype.redrawPath = function(path, x, y, w, h, isForeground)
+	CardShape.prototype.redrawPath = function(c, x, y, w, h)
 	{
 		var s = Math.min(w, Math.min(h, mxUtils.getValue(this.style, 'size', this.size)));
-
-		if (!isForeground)
-		{
-			path.moveTo(s, 0);
-			path.lineTo(w, 0);
-			path.lineTo(w, h);
-			path.lineTo(0, h);
-			path.lineTo(0, s);
-			path.lineTo(s, 0);
-			path.close();
-			path.end();
-		}
+		c.moveTo(s, 0);
+		c.lineTo(w, 0);
+		c.lineTo(w, h);
+		c.lineTo(0, h);
+		c.lineTo(0, s);
+		c.lineTo(s, 0);
+		c.close();
+		c.end();
 	};
 
 	mxCellRenderer.prototype.defaultShapes['card'] = CardShape;
 
-	// Tape Shape, supports size style
-	function TapeShape() { };
-	TapeShape.prototype = new mxCylinder();
-	TapeShape.prototype.constructor = TapeShape;
+	// Tape shape
+	function TapeShape()
+	{
+		mxActor.call(this);
+	};
+	mxUtils.extend(TapeShape, mxActor);
 	TapeShape.prototype.size = 0.4;
-	TapeShape.prototype.redrawPath = function(path, x, y, w, h, isForeground)
+	TapeShape.prototype.redrawPath = function(c, x, y, w, h)
 	{
 		var s = mxUtils.getValue(this.style, 'size', this.size);
 		var dy = h * s;
 		var fy = 1.4;
-
-		if (!isForeground)
-		{
-			path.moveTo(0, dy / 2);
-			path.quadTo(w / 4, dy * fy, w / 2, dy / 2);
-			path.quadTo(w * 3 / 4, dy * (1 - fy), w, dy / 2);
-			path.lineTo(w, h - dy / 2);
-			path.quadTo(w * 3 / 4, h - dy * fy, w / 2, h - dy / 2);
-			path.quadTo(w / 4, h - dy * (1 - fy), 0, h - dy / 2);
-			path.lineTo(0, dy / 2);
-			path.close();
-			path.end();
-		}
+		c.moveTo(0, dy / 2);
+		c.quadTo(w / 4, dy * fy, w / 2, dy / 2);
+		c.quadTo(w * 3 / 4, dy * (1 - fy), w, dy / 2);
+		c.lineTo(w, h - dy / 2);
+		c.quadTo(w * 3 / 4, h - dy * fy, w / 2, h - dy / 2);
+		c.quadTo(w / 4, h - dy * (1 - fy), 0, h - dy / 2);
+		c.lineTo(0, dy / 2);
+		c.close();
+		c.end();
 	};
 
 	mxCellRenderer.prototype.defaultShapes['tape'] = TapeShape;
 
-	// Tape Shape, supports size style
-	function DocumentShape() { };
-	DocumentShape.prototype = new mxCylinder();
-	DocumentShape.prototype.constructor = DocumentShape;
+	// Document shape
+	function DocumentShape()
+	{
+		mxActor.call(this);
+	};
+	mxUtils.extend(DocumentShape, mxActor);
 	DocumentShape.prototype.size = 0.3;
-	DocumentShape.prototype.redrawPath = function(path, x, y, w, h, isForeground)
+	DocumentShape.prototype.redrawPath = function(c, x, y, w, h)
 	{
 		var s = mxUtils.getValue(this.style, 'size', this.size);
 		var dy = h * s;
 		var fy = 1.4;
-
-		if (!isForeground)
-		{
-			path.moveTo(0, 0);
-			path.lineTo(w, 0);
-			path.lineTo(w, h - dy / 2);
-			path.quadTo(w * 3 / 4, h - dy * fy, w / 2, h - dy / 2);
-			path.quadTo(w / 4, h - dy * (1 - fy), 0, h - dy / 2);
-			path.lineTo(0, dy / 2);
-			path.close();
-			path.end();
-		}
+		c.moveTo(0, 0);
+		c.lineTo(w, 0);
+		c.lineTo(w, h - dy / 2);
+		c.quadTo(w * 3 / 4, h - dy * fy, w / 2, h - dy / 2);
+		c.quadTo(w / 4, h - dy * (1 - fy), 0, h - dy / 2);
+		c.lineTo(0, dy / 2);
+		c.close();
+		c.end();
 	};
 
 	mxCellRenderer.prototype.defaultShapes['document'] = DocumentShape;
 
-	// Tape Shape, supports size style
-	function ParallelogramShape() { };
-	ParallelogramShape.prototype = new mxCylinder();
-	ParallelogramShape.prototype.constructor = ParallelogramShape;
+	// Parallelogram shape
+	function ParallelogramShape()
+	{
+		mxActor.call(this);
+	};
+	mxUtils.extend(ParallelogramShape, mxActor);
 	ParallelogramShape.prototype.size = 0.2;
-	ParallelogramShape.prototype.redrawPath = function(path, x, y, w, h, isForeground)
+	ParallelogramShape.prototype.redrawPath = function(c, x, y, w, h)
 	{
 		var dx = Math.min(w, Math.min(w, mxUtils.getValue(this.style, 'size', this.size) * w));
-
-		if (!isForeground)
-		{
-			path.moveTo(0, h);
-			path.lineTo(dx, 0);
-			path.lineTo(w, 0);
-			path.lineTo(w - dx, h);
-			path.close();
-			path.end();
-		}
+		c.moveTo(0, h);
+		c.lineTo(dx, 0);
+		c.lineTo(w, 0);
+		c.lineTo(w - dx, h);
+		c.close();
+		c.end();
 	};
 
 	mxCellRenderer.prototype.defaultShapes['parallelogram'] = ParallelogramShape;
 
-	// Tape Shape, supports size style
-	function TrapezoidShape() { };
-	TrapezoidShape.prototype = new mxCylinder();
-	TrapezoidShape.prototype.constructor = TrapezoidShape;
+	// Trapezoid shape
+	function TrapezoidShape()
+	{
+		mxActor.call(this);
+	};
+	mxUtils.extend(TrapezoidShape, mxActor);
 	TrapezoidShape.prototype.size = 0.2;
-	TrapezoidShape.prototype.redrawPath = function(path, x, y, w, h, isForeground)
+	TrapezoidShape.prototype.redrawPath = function(c, x, y, w, h)
 	{
 		var dx = Math.min(w, Math.min(w, mxUtils.getValue(this.style, 'size', this.size) * w));
-
-		if (!isForeground)
-		{
-			path.moveTo(0, h);
-			path.lineTo(dx, 0);
-			path.lineTo(w - dx, 0);
-			path.lineTo(w, h);
-			path.close();
-			path.end();
-		}
+		c.moveTo(0, h);
+		c.lineTo(dx, 0);
+		c.lineTo(w - dx, 0);
+		c.lineTo(w, h);
+		c.close();
+		c.end();
 	};
 
 	mxCellRenderer.prototype.defaultShapes['trapezoid'] = TrapezoidShape;
 
-	// Plus Shape
+	// Process Shape
 	function ProcessShape()
 	{
 		mxRectangleShape.call(this);
@@ -308,26 +303,24 @@
 
 	mxCellRenderer.prototype.defaultShapes['process'] = ProcessShape;
 
-	// Tape Shape, supports size style
-	function StepShape() { };
-	StepShape.prototype = new mxCylinder();
-	StepShape.prototype.constructor = StepShape;
+	// Step shape
+	function StepShape()
+	{
+		mxActor.call(this);
+	};
+	mxUtils.extend(StepShape, mxActor);
 	StepShape.prototype.size = 0.2;
-	StepShape.prototype.redrawPath = function(path, x, y, w, h, isForeground)
+	StepShape.prototype.redrawPath = function(c, x, y, w, h)
 	{
 		var s =  w * mxUtils.getValue(this.style, 'size', this.size);
-
-		if (!isForeground)
-		{
-			path.moveTo(0, 0);
-			path.lineTo(w - s, 0);
-			path.lineTo(w, h / 2);
-			path.lineTo(w - s, h);
-			path.lineTo(0, h);
-			path.lineTo(s, h / 2);
-			path.close();
-			path.end();
-		}
+		c.moveTo(0, 0);
+		c.lineTo(w - s, 0);
+		c.lineTo(w, h / 2);
+		c.lineTo(w - s, h);
+		c.lineTo(0, h);
+		c.lineTo(s, h / 2);
+		c.close();
+		c.end();
 	};
 
 	mxCellRenderer.prototype.defaultShapes['step'] = StepShape;
@@ -459,9 +452,11 @@
 	mxCellRenderer.prototype.defaultShapes['ext'] = ExtendedShape;
 	
 	// Tape Shape, supports size style
-	function MessageShape() { };
-	MessageShape.prototype = new mxCylinder();
-	MessageShape.prototype.constructor = MessageShape;
+	function MessageShape()
+	{
+		mxCylinder.call(this);
+	};
+	mxUtils.extend(MessageShape, mxCylinder);
 	MessageShape.prototype.redrawPath = function(path, x, y, w, h, isForeground)
 	{
 		if (isForeground)
@@ -483,76 +478,124 @@
 
 	mxCellRenderer.prototype.defaultShapes['message'] = MessageShape;
 	
-	// New Actor Shape
-	function UmlActorShape() { };
-	UmlActorShape.prototype = new mxCylinder();
-	UmlActorShape.prototype.constructor = UmlActorShape;
-	UmlActorShape.prototype.addPipe = true;
-	UmlActorShape.prototype.redrawPath = function(path, x, y, w, h, isForeground)
+	// UML Actor Shape
+	function UmlActorShape()
 	{
-		var width = w / 3;
-		var height = h / 4;
-		
-		if (!isForeground)
-		{
-			path.moveTo(w / 2, height);
-			path.curveTo(w / 2 - width, height, w / 2 - width, 0, w / 2, 0);
-			path.curveTo(w / 2 + width, 0, w / 2 + width, height, w / 2, height);
-			path.close();
+		mxShape.call(this);
+	};
+	mxUtils.extend(UmlActorShape, mxShape);
+	UmlActorShape.prototype.paintBackground = function(c, x, y, w, h)
+	{
+		c.translate(x, y);
 
-			path.moveTo(w / 2, height);
-			path.lineTo(w / 2, 2 * h / 3);
-			
-			// Arms
-			path.moveTo(w / 2, h / 3);
-			path.lineTo(0, h / 3);
-			path.moveTo(w / 2, h / 3);
-			path.lineTo(w, h / 3);
-			
-			// Legs
-			path.moveTo(w / 2, 2 * h / 3);
-			path.lineTo(0, h);
-			path.moveTo(w / 2, 2 * h / 3);
-			path.lineTo(w, h);
-			path.end();
-		}
+		// Head
+		c.ellipse(w / 4, 0, w / 2, h / 4);
+		c.fillAndStroke();
+
+		c.begin();
+		c.moveTo(w / 2, h / 4);
+		c.lineTo(w / 2, 2 * h / 3);
+		
+		// Arms
+		c.moveTo(w / 2, h / 3);
+		c.lineTo(0, h / 3);
+		c.moveTo(w / 2, h / 3);
+		c.lineTo(w, h / 3);
+		
+		// Legs
+		c.moveTo(w / 2, 2 * h / 3);
+		c.lineTo(0, h);
+		c.moveTo(w / 2, 2 * h / 3);
+		c.lineTo(w, h);
+		c.end();
+		
+		c.stroke();
 	};
 
 	// Replaces existing actor shape
 	mxCellRenderer.prototype.defaultShapes['umlActor'] = UmlActorShape;
-
-	// New Actor Shape
-	function LollipopShape() { };
-	LollipopShape.prototype = new mxCylinder();
-	LollipopShape.prototype.constructor = LollipopShape;
-	LollipopShape.prototype.size = 10;
-	LollipopShape.prototype.addPipe = true;
-	LollipopShape.prototype.redrawPath = function(path, x, y, w, h, isForeground)
+	
+	// UML Lifeline Shape
+	function UmlLifeline()
 	{
-		var ss = mxUtils.getValue(this.style, 'size', this.size);
-		var width = ss * 2 / 3;
-		var height = ss;
+		mxRectangleShape.call(this);
+	};
+	mxUtils.extend(UmlLifeline, mxRectangleShape);
+	UmlLifeline.prototype.size = 40;
+	UmlLifeline.prototype.isHtmlAllowed = function()
+	{
+		return false;
+	};
+	UmlLifeline.prototype.getLabelBounds = function(rect)
+	{
+		var size = mxUtils.getValue(this.style, 'size', this.size);
 		
-		if (!isForeground)
+		return new mxRectangle(rect.x, rect.y, rect.width, size * this.scale);
+	};
+	UmlLifeline.prototype.paintBackground = function(c, x, y, w, h)
+	{
+		var size = mxUtils.getValue(this.style, 'size', this.size);
+		mxRectangleShape.prototype.paintBackground.call(this, c, x, y, w, Math.min(h, size));
+		
+		if (size < h)
 		{
-			path.moveTo(w / 2, height);
-			path.curveTo(w / 2 - width, height, w / 2 - width, 0, w / 2, 0);
-			path.curveTo(w / 2 + width, 0, w / 2 + width, height, w / 2, height);
-			path.close();
-
-			path.moveTo(w / 2, height);
-			path.lineTo(w / 2, h);
-			path.end();
+			c.setDashed(true);
+			c.begin();
+			c.moveTo(x + w / 2, y + size);
+			c.lineTo(x + w / 2, y + h);
+			c.end();
+			c.stroke();
 		}
+	};
+	UmlLifeline.prototype.paintForeground = function(c, x, y, w, h)
+	{
+		var size = mxUtils.getValue(this.style, 'size', this.size);
+		mxRectangleShape.prototype.paintForeground.call(this, c, x, y, w, Math.min(h, size));
+	};
+
+	mxCellRenderer.prototype.defaultShapes['umlLifeline'] = UmlLifeline;
+	
+	mxPerimeter.LifelinePerimeter = function (bounds, vertex, next, orthogonal)
+	{
+		var size = mxUtils.getValue(vertex.style, 'size', UmlLifeline.prototype.size) * vertex.view.scale;
+		
+		return new mxPoint(bounds.getCenterX(), Math.min(bounds.y + bounds.height,
+				Math.max(bounds.y + size, next.y)));
+	};
+	
+	mxStyleRegistry.putValue('lifelinePerimeter', mxPerimeter.LifelinePerimeter);
+
+	// Lollipop Shape
+	function LollipopShape()
+	{
+		mxShape.call(this);
+	};
+	mxUtils.extend(LollipopShape, mxShape);
+	LollipopShape.prototype.size = 10;
+	LollipopShape.prototype.paintBackground = function(c, x, y, w, h)
+	{
+		var sz = mxUtils.getValue(this.style, 'size', this.size);
+		c.translate(x, y);
+		
+		c.ellipse((w - sz) / 2, 0, sz, sz);
+		c.fillAndStroke();
+
+		c.begin();
+		c.moveTo(w / 2, sz);
+		c.lineTo(w / 2, h);
+		c.end();
+		c.stroke();
 	};
 
 	// Replaces existing actor shape
 	mxCellRenderer.prototype.defaultShapes['lollipop'] = LollipopShape;
 	
-	// Folder Shape, supports tabWidth, tabHeight styles
-	function ComponentShape() { };
-	ComponentShape.prototype = new mxCylinder();
-	ComponentShape.prototype.constructor = ComponentShape;
+	// Component shape
+	function ComponentShape()
+	{
+		mxCylinder.call(this);
+	};
+	mxUtils.extend(ComponentShape, mxCylinder);
 	ComponentShape.prototype.jettyWidth = 32;
 	ComponentShape.prototype.jettyHeight = 12;
 	ComponentShape.prototype.redrawPath = function(path, x, y, w, h, isForeground)
@@ -598,9 +641,11 @@
 	mxCellRenderer.prototype.defaultShapes['component'] = ComponentShape;
 	
 	// State Shapes derives from double ellipse
-	function StateShape() { };
-	StateShape.prototype = new mxDoubleEllipse();
-	StateShape.prototype.constructor = StateShape;
+	function StateShape()
+	{
+		mxDoubleEllipse.call(this);
+	};
+	mxUtils.extend(StateShape, mxDoubleEllipse);
 	StateShape.prototype.outerStroke = true;
 	StateShape.prototype.paintVertexShape = function(c, x, y, w, h)
 	{
@@ -623,61 +668,14 @@
 
 	mxCellRenderer.prototype.defaultShapes['endState'] = StateShape;
 
-	function StartStateShape() { };
-	StartStateShape.prototype = new StateShape();
-	StartStateShape.prototype.constructor = StartStateShape;
+	function StartStateShape()
+	{
+		StateShape.call(this);
+	};
+	mxUtils.extend(StartStateShape, StateShape);
 	StartStateShape.prototype.outerStroke = false;
 	
 	mxCellRenderer.prototype.defaultShapes['startState'] = StartStateShape;
-
-	// Image export for state shapes
-	var imageExportInitShapes = mxImageExport.prototype.initShapes;
-	mxImageExport.prototype.initShapes = function()
-	{
-		imageExportInitShapes.apply(this, arguments);
-
-		function createStateShape(outerStroke)
-		{
-			return {
-				drawShape: function(canvas, state, bounds, background)
-				{
-					var x = bounds.x;
-					var y = bounds.y;
-					var w = bounds.width;
-					var h = bounds.height;
-					
-					if (background)
-					{
-						var inset = Math.min(4, Math.min(w / 5, h / 5));
-						x += inset;
-						y += inset;
-						w -= 2 * inset;
-						h -= 2 * inset;
-						
-						if (w > 0 && h > 0)
-						{
-							canvas.ellipse(x, y, w, h);
-						}
-						
-						return true;
-					}
-					else
-					{
-						canvas.fillAndStroke();
-		
-						if (outerStroke)
-						{
-							canvas.ellipse(x, y, w, h);
-							canvas.stroke();
-						}
-					}
-				}
-			};
-		};
-		
-		this.shapes['endState'] = createStateShape(true);
-		this.shapes['startState'] = createStateShape(false);
-	};
 
 	// Defines custom edge shape
 	function LinkShape()
@@ -1311,6 +1309,34 @@
 			return new mxPoint(bounds.x + size * bounds.width, bounds.y + bounds.height / 4);
 		};
 		
+		// Lifeline Handler
+		function mxLifelineHandler(state)
+		{
+			mxCubeHandler.call(this, state);
+		};
+	
+		mxUtils.extend(mxLifelineHandler, mxCubeHandler);
+		
+		mxLifelineHandler.prototype.defaultValue = UmlLifeline.prototype.size;
+		
+		mxLifelineHandler.prototype.getSpecialHandlePoint = function(bounds)
+		{
+			var scale = this.graph.getView().scale;
+			var sz = mxUtils.getValue(this.state.style, 'size', this.defaultValue) * scale;
+			
+			return new mxPoint(bounds.x + bounds.width / 2, Math.max(bounds.y,
+					Math.min(bounds.y + bounds.height, bounds.y + sz)));
+		};
+	
+		mxLifelineHandler.prototype.updateStyleUnrotated = function(pt, bounds)
+		{
+			var scale = this.graph.getView().scale;
+			var size = Math.max(0, Math.min(bounds.height, pt.y - bounds.y));
+			this.state.style['size'] = size / scale;
+			
+			return new mxPoint(bounds.x + bounds.width / 2, bounds.y + size);
+		};
+		
 		// Trapezoid Handler
 		function mxTrapezoidHandler(state)
 		{
@@ -1382,7 +1408,7 @@
 		var handlers = {'swimlane': mxSwimlaneHandler, 'folder': mxFolderHandler, 'cube': mxCubeHandler,
 				'card': mxCardHandler, 'note': mxNoteHandler, 'step': mxStepHandler, 'tape': mxTapeHandler,
 				'process': mxProcessHandler, 'document': mxDocumentHandler, 'trapezoid': mxTrapezoidHandler,
-				'parallelogram': mxParallelogramHandler};
+				'parallelogram': mxParallelogramHandler, 'umlLifeline': mxLifelineHandler};
 
 		var mxGraphCreateHandler = mxGraph.prototype.createHandler;
 		mxGraph.prototype.createHandler = function(state)
@@ -1390,7 +1416,7 @@
 			if (state != null)
 			{
 				var ctor = handlers[state.style['shape']];
-
+				
 				if (ctor != null)
 				{
 					return new ctor(state);
@@ -1559,4 +1585,5 @@
 	        	            		 new mxConnectionConstraint(new mxPoint(1, 0.5), true),
 	        	            		 new mxConnectionConstraint(new mxPoint(1, 0.75), true)];
 	mxArrow.prototype.constraints = null;
+	UmlLifeline.prototype.constraints = null;
 })();

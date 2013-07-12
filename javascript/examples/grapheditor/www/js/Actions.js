@@ -1,5 +1,5 @@
 /**
- * $Id: Actions.js,v 1.10 2013/06/07 14:30:50 gaudenz Exp $
+ * $Id: Actions.js,v 1.11 2013/07/08 12:55:21 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -130,6 +130,16 @@ Actions.prototype.init = function()
 	this.addAction('group', function() { graph.setSelectionCell(graph.groupCells(null, 0)); }, null, null, 'Ctrl+G');
 	this.addAction('ungroup', function() { graph.setSelectionCells(graph.ungroupCells()); }, null, null, 'Ctrl+U');
 	this.addAction('removeFromGroup', function() { graph.removeCellsFromParent(); });
+	// Adds action
+	this.addAction('editMetadata', function()
+	{
+		var cell = graph.getSelectionCell() || graph.getModel().getRoot();
+		
+		if (cell != null)
+		{
+			ui.showDialog(new MetadataDialog(ui, cell).container, 240, 320, true, true);
+		}
+	}, null, null, 'Ctrl+M');
 	this.addAction('editLink', function()
 	{
 		var cell = graph.getSelectionCell();
@@ -149,8 +159,7 @@ Actions.prototype.init = function()
 	});
 	this.addAction('openLink', function()
 	{
-		var cell = graph.getSelectionCell();
-		var link = graph.getLinkForCell(cell);
+		var link = graph.getLinkForCell(graph.getSelectionCell());
 		
 		if (link != null)
 		{

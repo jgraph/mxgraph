@@ -1,3 +1,11 @@
+12-JUL-2013: 2.1.0.1
+
+- Ignores overlapping points in mxConnector, mxPolyline [JavaScript]
+- Removes mxClient.CSS_PREFIX, adds mxUtils.setPrefixedStyle [JavaScript]
+- Uses mxText base spacing, getLabelBounds hook in mxCellEditor [JavaScript]
+- Fixes scaling of dash array in mxSvgCanvas2D [JavaScript]
+- Adds hoverstyle.html example [JavaScript]
+
 28-JUN-2013: 2.1.0.0
 
 - Fixes mxDragSource inner mouseDown call for overriding [JavaScript]
@@ -58,6 +66,11 @@
 - Adds mxClient.VML_PREFIX, OFFICE_PREFIX, CSS_PREFIX [JavaScript]
 - Adds dashed option to mxCellHighlight [JavaScript]
 --
+12-JUL-2013: 1.13.0.3
+
+- Fixes possible cached terminals in mxParallelEdgeLayout [JavaScript]
+- Fixes possible connection to child in mxEdgeHandler [JavaScript]
+- Fixes possible infinite loop in mxGraphView.invalidate [JavaScript]
 - Fixes mxEditor.showOutline for IE8 in standards mode [JavaScript]
 - Fixes value ignored after paste from context menu in mxCellEditor [JavaScript]
 
