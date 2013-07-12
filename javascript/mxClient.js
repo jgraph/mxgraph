@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.13.0.2.
+	 * Current version is 1.13.0.3.
 	 */
-	VERSION: '1.13.0.2',
+	VERSION: '1.13.0.3',
 
 	/**
 	 * Variable: IS_IE
@@ -19403,7 +19403,7 @@ mxGuide.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxShape.js,v 1.176 2013/05/06 06:14:56 gaudenz Exp $
+ * $Id: mxShape.js,v 1.177 2013/06/25 16:40:39 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -20263,11 +20263,17 @@ mxShape.prototype.createVmlShadow = function(node)
 /**
  * Function: configureTransparentBackground
  * 
- * Hook to make the background of a shape transparent. This hook was added as
- * a workaround for the "display non secure items" warning dialog in IE which
- * appears if the background:url(transparent.gif) is used in the overlay pane
- * of a diagram. Since only mxImageShapes currently exist in the overlay pane
- * this function is only overridden in mxImageShape.
+ * Hook to make the background of a shape transparent. This implementation sets
+ * the background in the style of the given node to the following relative URL.
+ * 
+ * (code)
+ * 'url(\'' + <mxClient.imageBasePath> + '/transparent.gif\')'.
+ * (end)
+ * 
+ * To work around the "display non secure items" dialog bug in IE, this can be
+ * replaced with a function that uses an absolute URL for the above instead.
+ * This is overridden in <mxImageShape> with an empty implementation to avoid
+ * the bug from appearing in IE when images are used in the overlay pane.
  */
 mxShape.prototype.configureTransparentBackground = function(node)
 {
@@ -32064,7 +32070,7 @@ mxCircleLayout.prototype.circle = function(vertices, r, left, top)
 	}
 };
 /**
- * $Id: mxParallelEdgeLayout.js,v 1.25 2013/06/05 11:36:48 gaudenz Exp $
+ * $Id: mxParallelEdgeLayout.js,v 1.28 2013/07/11 11:56:00 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -32079,6 +32085,29 @@ mxCircleLayout.prototype.circle = function(vertices, r, left, top)
  * (code)
  * var layout = new mxParallelEdgeLayout(graph);
  * layout.execute(graph.getDefaultParent());
+ * (end)
+ * 
+ * To run the layout for the parallel edges of a changed edge only, the
+ * following code can be used.
+ * 
+ * (code)
+ * var layout = new mxParallelEdgeLayout(graph);
+ * 
+ * graph.addListener(mxEvent.CELL_CONNECTED, function(sender, evt)
+ * {
+ *   var model = graph.getModel();
+ *   var edge = evt.getProperty('edge');
+ *   var src = model.getTerminal(edge, true);
+ *   var trg = model.getTerminal(edge, false);
+ *   
+ *   layout.isEdgeIgnored = function(edge2)
+ *   {
+ *     var src2 = model.getTerminal(edge2, true);
+ *     var trg2 = model.getTerminal(edge2, false);
+ *     
+ *     return !(model.isEdge(edge2) && ((src == src2 && trg == trg2) || (src == trg2 && trg == src2)));
+ *   };
+ * };
  * (end)
  * 
  * Constructor: mxCompactTreeLayout
@@ -32176,10 +32205,9 @@ mxParallelEdgeLayout.prototype.getEdgeId = function(edge)
 {
 	var view = this.graph.getView();
 	
-	var state = view.getState(edge);
-	
-	var src = (state != null) ? state.getVisibleTerminal(true) : view.getVisibleTerminal(edge, true);
-	var trg = (state != null) ? state.getVisibleTerminal(false) : view.getVisibleTerminal(edge, false);
+	// Cannot used cached visible terminal because this could be triggered in BEFORE_UNDO
+	var src = view.getVisibleTerminal(edge, true);
+	var trg = view.getVisibleTerminal(edge, false);
 
 	if (src != null && trg != null)
 	{
@@ -32200,10 +32228,10 @@ mxParallelEdgeLayout.prototype.getEdgeId = function(edge)
 mxParallelEdgeLayout.prototype.layout = function(parallels)
 {
 	var edge = parallels[0];
+	var view = this.graph.getView();
 	var model = this.graph.getModel();
-	
-	var src = model.getGeometry(model.getTerminal(edge, true));
-	var trg = model.getGeometry(model.getTerminal(edge, false));
+	var src = model.getGeometry(view.getVisibleTerminal(edge, true));
+	var trg = model.getGeometry(view.getVisibleTerminal(edge, false));
 	
 	// Routes multiple loops
 	if (src == trg)
@@ -33119,7 +33147,7 @@ mxGraphHierarchyEdge.prototype.getCoreCell = function()
 	
 	return null;
 };/**
- * $Id: mxGraphHierarchyModel.js,v 1.34 2013/01/09 16:34:29 david Exp $
+ * $Id: mxGraphHierarchyModel.js,v 1.35 2013/06/20 12:31:51 david Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -33327,60 +33355,57 @@ mxGraphHierarchyModel.prototype.createInternalCells = function(layout, vertices,
 			var cell = layout.getVisibleTerminal(conns[j], false);
 
 			// Looking for outgoing edges only
-			if (cell != vertices[i])
+			if (cell != vertices[i] && layout.graph.model.isVertex(cell) &&
+					!layout.isVertexIgnored(cell))
 			{
-				if (cell != vertices[i] && layout.graph.model.isVertex(cell) &&
-						!layout.isVertexIgnored(cell))
+				// We process all edge between this source and its targets
+				// If there are edges going both ways, we need to collect
+				// them all into one internal edges to avoid looping problems
+				// later. We assume this direction (source -> target) is the 
+				// natural direction if at least half the edges are going in
+				// that direction.
+
+				// The check below for edges[0] being in the vertex mapper is
+				// in case we've processed this the other way around
+				// (target -> source) and the number of edges in each direction
+				// are the same. All the graph edges will have been assigned to
+				// an internal edge going the other way, so we don't want to 
+				// process them again
+				var undirectedEdges = layout.getEdgesBetween(vertices[i],
+						cell, false);
+				var directedEdges = layout.getEdgesBetween(vertices[i],
+						cell, true);
+				var edgeId = mxCellPath.create(undirectedEdges[0]);
+				
+				if (undirectedEdges != null &&
+						undirectedEdges.length > 0 &&
+						this.edgeMapper[edgeId] == null &&
+						directedEdges.length * 2 >= undirectedEdges.length)
 				{
-					// We process all edge between this source and its targets
-					// If there are edges going both ways, we need to collect
-					// them all into one internal edges to avoid looping problems
-					// later. We assume this direction (source -> target) is the 
-					// natural direction if at least half the edges are going in
-					// that direction.
-	
-					// The check below for edges[0] being in the vertex mapper is
-					// in case we've processed this the other way around
-					// (target -> source) and the number of edges in each direction
-					// are the same. All the graph edges will have been assigned to
-					// an internal edge going the other way, so we don't want to 
-					// process them again
-					var undirectedEdges = layout.getEdgesBetween(vertices[i],
-							cell, false);
-					var directedEdges = layout.getEdgesBetween(vertices[i],
-							cell, true);
-					var edgeId = mxCellPath.create(undirectedEdges[0]);
-					
-					if (undirectedEdges != null &&
-							undirectedEdges.length > 0 &&
-							this.edgeMapper[edgeId] == null &&
-							directedEdges.length * 2 >= undirectedEdges.length)
+					var internalEdge = new mxGraphHierarchyEdge(undirectedEdges);
+
+					for (var k = 0; k < undirectedEdges.length; k++)
 					{
-						var internalEdge = new mxGraphHierarchyEdge(undirectedEdges);
-	
-						for (var k = 0; k < undirectedEdges.length; k++)
-						{
-							var edge = undirectedEdges[k];
-							edgeId = mxCellPath.create(edge);
-							this.edgeMapper[edgeId] = internalEdge;
-	
-							// Resets all point on the edge and disables the edge style
-							// without deleting it from the cell style
-							graph.resetEdge(edge);
-	
-						    if (layout.disableEdgeStyle)
-						    {
-						    	layout.setEdgeStyleEnabled(edge, false);
-						    	layout.setOrthogonalEdge(edge,true);
-						    }
-						}
-	
-						internalEdge.source = internalVertices[i];
-	
-						if (mxUtils.indexOf(internalVertices[i].connectsAsSource, internalEdge) < 0)
-						{
-							internalVertices[i].connectsAsSource.push(internalEdge);
-						}
+						var edge = undirectedEdges[k];
+						edgeId = mxCellPath.create(edge);
+						this.edgeMapper[edgeId] = internalEdge;
+
+						// Resets all point on the edge and disables the edge style
+						// without deleting it from the cell style
+						graph.resetEdge(edge);
+
+					    if (layout.disableEdgeStyle)
+					    {
+					    	layout.setEdgeStyleEnabled(edge, false);
+					    	layout.setOrthogonalEdge(edge,true);
+					    }
+					}
+
+					internalEdge.source = internalVertices[i];
+
+					if (mxUtils.indexOf(internalVertices[i].connectsAsSource, internalEdge) < 0)
+					{
+						internalVertices[i].connectsAsSource.push(internalEdge);
 					}
 				}
 			}
@@ -41633,7 +41658,7 @@ var mxPerimeter =
 	}
 };
 /**
- * $Id: mxPrintPreview.js,v 1.63 2013/04/09 14:10:28 gaudenz Exp $
+ * $Id: mxPrintPreview.js,v 1.64 2013/06/20 10:02:29 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -41660,7 +41685,22 @@ var mxPerimeter =
  *   preview.open();
  * }
  * (end)
+ *
+ * CSS:
  * 
+ * The CSS from the original page is not carried over to the print preview.
+ * To add CSS to the page, use the css argument in the <open> function or
+ * override <writeHead> to add the respective link tags as follows:
+ * 
+ * (code)
+ * var writeHead = preview.writeHead;
+ * preview.writeHead = function(doc, css)
+ * {
+ *   writeHead.apply(this, arguments);
+ *   doc.writeln('<link rel="stylesheet" type="text/css" href="style.css">');
+ * };
+ * (end)
+ *
  * Headers:
  * 
  * Apart from setting the title argument in the mxPrintPreview constructor you
@@ -41880,7 +41920,7 @@ mxPrintPreview.prototype.getDoctype = function()
  * 
  * Parameters:
  * 
- * css - Optional CSS string to be used in the new page's head section.
+ * css - Optional CSS string to be used in the head section.
  */
 mxPrintPreview.prototype.open = function(css)
 {
@@ -42425,10 +42465,14 @@ mxPrintPreview.prototype.renderPage = function(w, h, dx, dy, scale, pageNumber)
  * Function: print
  * 
  * Opens the print preview and shows the print dialog.
+ * 
+ * Parameters:
+ * 
+ * css - Optional CSS string to be used in the head section.
  */
-mxPrintPreview.prototype.print = function()
+mxPrintPreview.prototype.print = function(css)
 {
-	var wnd = this.open();
+	var wnd = this.open(css);
 	
 	if (wnd != null)
 	{
@@ -43526,7 +43570,7 @@ mxSelectionChange.prototype.execute = function()
 			'added', this.added, 'removed', this.removed));
 };
 /**
- * $Id: mxCellEditor.js,v 1.65 2013/05/27 10:31:28 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.66 2013/06/24 08:01:06 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -43676,6 +43720,11 @@ mxCellEditor.prototype.init = function ()
 	mxEvent.addListener(this.textarea, 'blur', mxUtils.bind(this, function(evt)
 	{
 		this.focusLost();
+	}));
+	
+	mxEvent.addListener(this.textarea, 'change', mxUtils.bind(this, function(evt)
+	{
+		this.setModified(true);
 	}));
 	
 	mxEvent.addListener(this.textarea, 'keydown', mxUtils.bind(this, function(evt)
@@ -46915,7 +46964,7 @@ mxStyleRegistry.putValue(mxConstants.PERIMETER_RECTANGLE, mxPerimeter.RectangleP
 mxStyleRegistry.putValue(mxConstants.PERIMETER_RHOMBUS, mxPerimeter.RhombusPerimeter);
 mxStyleRegistry.putValue(mxConstants.PERIMETER_TRIANGLE, mxPerimeter.TrianglePerimeter);
 /**
- * $Id: mxGraphView.js,v 1.198 2013/02/12 10:19:41 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.199 2013/07/09 10:23:20 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -47375,27 +47424,35 @@ mxGraphView.prototype.invalidate = function(cell, recurse, includeEdges, orderCh
 		}
 	}
 	
-	// Recursively invalidates all descendants
-	if (recurse)
+	// Avoids infinite loops for invalid graphs
+	if (!cell.invalidating)
 	{
-		var childCount = model.getChildCount(cell);
+		cell.invalidating = true;
 		
-		for (var i = 0; i < childCount; i++)
+		// Recursively invalidates all descendants
+		if (recurse)
 		{
-			var child = model.getChildAt(cell, i);
-			this.invalidate(child, recurse, includeEdges, orderChanged);
+			var childCount = model.getChildCount(cell);
+			
+			for (var i = 0; i < childCount; i++)
+			{
+				var child = model.getChildAt(cell, i);
+				this.invalidate(child, recurse, includeEdges, orderChanged);
+			}
 		}
-	}
-	
-	// Propagates invalidation to all connected edges
-	if (includeEdges)
-	{
-		var edgeCount = model.getEdgeCount(cell);
 		
-		for (var i = 0; i < edgeCount; i++)
+		// Propagates invalidation to all connected edges
+		if (includeEdges)
 		{
-			this.invalidate(model.getEdgeAt(cell, i), recurse, includeEdges);
+			var edgeCount = model.getEdgeCount(cell);
+			
+			for (var i = 0; i < edgeCount; i++)
+			{
+				this.invalidate(model.getEdgeAt(cell, i), recurse, includeEdges);
+			}
 		}
+		
+		delete cell.invalidating;
 	}
 };
 
@@ -60881,7 +60938,7 @@ mxCellOverlay.prototype.toString = function()
 	return this.tooltip;
 };
 /**
- * $Id: mxOutline.js,v 1.83 2013/04/29 14:44:11 gaudenz Exp $
+ * $Id: mxOutline.js,v 1.85 2013/06/17 14:29:48 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -61459,9 +61516,12 @@ mxOutline.prototype.mouseMove = function(sender, me)
  * {
  *   var pt = new mxPoint(me.getX() - this.startX, me.getY() - this.startY);
  *   
- *   var tr = this.source.view.translate;
- *   pt.x = Math.max(tr.x * this.outline.view.scale, pt.x);
- *   pt.y = Math.max(tr.y * this.outline.view.scale, pt.y);
+ *   if (!this.zoom)
+ *   {
+ *     var tr = this.source.view.translate;
+ *     pt.x = Math.max(tr.x * this.outline.view.scale, pt.x);
+ *     pt.y = Math.max(tr.y * this.outline.view.scale, pt.y);
+ *   }
  *   
  *   return pt;
  * };
@@ -68846,7 +68906,7 @@ mxVertexHandler.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxEdgeHandler.js,v 1.178 2012/09/12 09:16:23 gaudenz Exp $
+ * $Id: mxEdgeHandler.js,v 1.179 2013/07/09 12:31:11 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -69251,7 +69311,8 @@ mxEdgeHandler.prototype.createMarker = function()
 		var model = self.graph.getModel();
 		
 		if (cell == self.state.cell || (cell != null &&
-			!self.graph.connectableEdges && model.isEdge(cell)))
+			!self.graph.connectableEdges && model.isEdge(cell)) ||
+			model.isAncestor(self.state.cell, cell))
 		{
 			cell = null;
 		}
@@ -73034,7 +73095,7 @@ mxDefaultToolbar.prototype.destroy = function ()
 	}
 };
 /**
- * $Id: mxEditor.js,v 1.231 2012/12/03 18:02:25 gaudenz Exp $
+ * $Id: mxEditor.js,v 1.232 2013/06/26 11:41:20 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -75927,7 +75988,9 @@ mxEditor.prototype.showOutline = function ()
 	if (create)
 	{
 		var div = document.createElement('div');
+		
 		div.style.overflow = 'hidden';
+		div.style.position = 'absolute';
 		div.style.width = '100%';
 		div.style.height = '100%';
 		div.style.background = 'white';

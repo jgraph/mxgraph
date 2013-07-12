@@ -1,5 +1,5 @@
 /**
- * $Id: mxShape.js,v 1.176 2013/05/06 06:14:56 gaudenz Exp $
+ * $Id: mxShape.js,v 1.177 2013/06/25 16:40:39 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -859,11 +859,17 @@ mxShape.prototype.createVmlShadow = function(node)
 /**
  * Function: configureTransparentBackground
  * 
- * Hook to make the background of a shape transparent. This hook was added as
- * a workaround for the "display non secure items" warning dialog in IE which
- * appears if the background:url(transparent.gif) is used in the overlay pane
- * of a diagram. Since only mxImageShapes currently exist in the overlay pane
- * this function is only overridden in mxImageShape.
+ * Hook to make the background of a shape transparent. This implementation sets
+ * the background in the style of the given node to the following relative URL.
+ * 
+ * (code)
+ * 'url(\'' + <mxClient.imageBasePath> + '/transparent.gif\')'.
+ * (end)
+ * 
+ * To work around the "display non secure items" dialog bug in IE, this can be
+ * replaced with a function that uses an absolute URL for the above instead.
+ * This is overridden in <mxImageShape> with an empty implementation to avoid
+ * the bug from appearing in IE when images are used in the overlay pane.
  */
 mxShape.prototype.configureTransparentBackground = function(node)
 {

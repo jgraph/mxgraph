@@ -78,9 +78,12 @@ if (!nav.suspended)
 {
   var pt = new mxPoint(me.getX() - this.startX, me.getY() - this.startY);
 
-  var tr = this.source.view.translate;
-  pt.x = Math.max(tr.x * this.outline.view.scale, pt.x);
-  pt.y = Math.max(tr.y * this.outline.view.scale, pt.y);
+  if (!this.zoom)
+  {
+    var tr = this.source.view.translate;
+    pt.x = Math.max(tr.x * this.outline.view.scale, pt.x);
+    pt.y = Math.max(tr.y * this.outline.view.scale, pt.y);
+  }
 
   return pt;
 };</pre></blockquote></div></div></div>

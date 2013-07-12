@@ -1,5 +1,5 @@
 /**
- * $Id: mxEditor.js,v 1.231 2012/12/03 18:02:25 gaudenz Exp $
+ * $Id: mxEditor.js,v 1.232 2013/06/26 11:41:20 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -2892,7 +2892,9 @@ mxEditor.prototype.showOutline = function ()
 	if (create)
 	{
 		var div = document.createElement('div');
+		
 		div.style.overflow = 'hidden';
+		div.style.position = 'absolute';
 		div.style.width = '100%';
 		div.style.height = '100%';
 		div.style.background = 'white';

@@ -1,5 +1,5 @@
 /**
- * $Id: mxOutline.js,v 1.83 2013/04/29 14:44:11 gaudenz Exp $
+ * $Id: mxOutline.js,v 1.85 2013/06/17 14:29:48 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -577,9 +577,12 @@ mxOutline.prototype.mouseMove = function(sender, me)
  * {
  *   var pt = new mxPoint(me.getX() - this.startX, me.getY() - this.startY);
  *   
- *   var tr = this.source.view.translate;
- *   pt.x = Math.max(tr.x * this.outline.view.scale, pt.x);
- *   pt.y = Math.max(tr.y * this.outline.view.scale, pt.y);
+ *   if (!this.zoom)
+ *   {
+ *     var tr = this.source.view.translate;
+ *     pt.x = Math.max(tr.x * this.outline.view.scale, pt.x);
+ *     pt.y = Math.max(tr.y * this.outline.view.scale, pt.y);
+ *   }
  *   
  *   return pt;
  * };

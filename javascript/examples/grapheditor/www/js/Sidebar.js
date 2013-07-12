@@ -1,5 +1,5 @@
 /**
- * $Id: Sidebar.js,v 1.70 2012/12/19 17:14:03 gaudenz Exp $
+ * $Id: Sidebar.js,v 1.72 2013/06/25 16:40:39 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -283,7 +283,7 @@ Sidebar.prototype.hideTooltip = function()
  */
 Sidebar.prototype.addGeneralPalette = function(expand)
 {
-	this.addPalette('general', mxResources.get('general'), expand || true, mxUtils.bind(this, function(content)
+	this.addPalette('general', mxResources.get('general'), (expand != null) ? expand : true, mxUtils.bind(this, function(content)
 	{
 		content.appendChild(this.createVertexTemplate('swimlane', 200, 200, 'Container'));
 		content.appendChild(this.createVertexTemplate('swimlane;horizontal=0', 200, 200, 'Pool'));
@@ -1087,6 +1087,7 @@ Sidebar.prototype.addFoldingHandler = function(title, content, funct)
 {
 	var initialized = false;
 
+	// NOTE: Causes mixed content security warning in IE8 - use absolute path to fix
 	title.style.backgroundImage = (content.style.display == 'none') ?
 		'url(' + IMAGE_PATH + '/collapsed.gif)' : 'url(' + IMAGE_PATH + '/expanded.gif)';
 	title.style.backgroundRepeat = 'no-repeat';

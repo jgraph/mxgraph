@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellEditor.js,v 1.65 2013/05/27 10:31:28 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.66 2013/06/24 08:01:06 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -149,6 +149,11 @@ mxCellEditor.prototype.init = function ()
 	mxEvent.addListener(this.textarea, 'blur', mxUtils.bind(this, function(evt)
 	{
 		this.focusLost();
+	}));
+	
+	mxEvent.addListener(this.textarea, 'change', mxUtils.bind(this, function(evt)
+	{
+		this.setModified(true);
 	}));
 	
 	mxEvent.addListener(this.textarea, 'keydown', mxUtils.bind(this, function(evt)

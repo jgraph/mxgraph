@@ -1,5 +1,5 @@
 /**
- * $Id: mxParallelEdgeLayout.js,v 1.25 2013/06/05 11:36:48 gaudenz Exp $
+ * $Id: mxParallelEdgeLayout.js,v 1.28 2013/07/11 11:56:00 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -14,6 +14,29 @@
  * (code)
  * var layout = new mxParallelEdgeLayout(graph);
  * layout.execute(graph.getDefaultParent());
+ * (end)
+ * 
+ * To run the layout for the parallel edges of a changed edge only, the
+ * following code can be used.
+ * 
+ * (code)
+ * var layout = new mxParallelEdgeLayout(graph);
+ * 
+ * graph.addListener(mxEvent.CELL_CONNECTED, function(sender, evt)
+ * {
+ *   var model = graph.getModel();
+ *   var edge = evt.getProperty('edge');
+ *   var src = model.getTerminal(edge, true);
+ *   var trg = model.getTerminal(edge, false);
+ *   
+ *   layout.isEdgeIgnored = function(edge2)
+ *   {
+ *     var src2 = model.getTerminal(edge2, true);
+ *     var trg2 = model.getTerminal(edge2, false);
+ *     
+ *     return !(model.isEdge(edge2) && ((src == src2 && trg == trg2) || (src == trg2 && trg == src2)));
+ *   };
+ * };
  * (end)
  * 
  * Constructor: mxCompactTreeLayout
@@ -111,10 +134,9 @@ mxParallelEdgeLayout.prototype.getEdgeId = function(edge)
 {
 	var view = this.graph.getView();
 	
-	var state = view.getState(edge);
-	
-	var src = (state != null) ? state.getVisibleTerminal(true) : view.getVisibleTerminal(edge, true);
-	var trg = (state != null) ? state.getVisibleTerminal(false) : view.getVisibleTerminal(edge, false);
+	// Cannot used cached visible terminal because this could be triggered in BEFORE_UNDO
+	var src = view.getVisibleTerminal(edge, true);
+	var trg = view.getVisibleTerminal(edge, false);
 
 	if (src != null && trg != null)
 	{
@@ -135,10 +157,10 @@ mxParallelEdgeLayout.prototype.getEdgeId = function(edge)
 mxParallelEdgeLayout.prototype.layout = function(parallels)
 {
 	var edge = parallels[0];
+	var view = this.graph.getView();
 	var model = this.graph.getModel();
-	
-	var src = model.getGeometry(model.getTerminal(edge, true));
-	var trg = model.getGeometry(model.getTerminal(edge, false));
+	var src = model.getGeometry(view.getVisibleTerminal(edge, true));
+	var trg = model.getGeometry(view.getVisibleTerminal(edge, false));
 	
 	// Routes multiple loops
 	if (src == trg)

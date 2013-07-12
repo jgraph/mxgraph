@@ -1,3 +1,11 @@
+12-JUL-2013: 1.13.0.3
+
+- Fixes possible cached terminals in mxParallelEdgeLayout [JavaScript]
+- Fixes possible connection to child in mxEdgeHandler [JavaScript]
+- Fixes possible infinite loop in mxGraphView.invalidate [JavaScript]
+- Fixes mxEditor.showOutline for IE8 in standards mode [JavaScript]
+- Fixes value ignored after paste from context menu in mxCellEditor [JavaScript]
+
 08-JUN-2013: 1.13.0.2
 
 - Fixes check for array argument in mxHierarchicalLayout.execute [JavaScript]

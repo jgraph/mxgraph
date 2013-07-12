@@ -1,5 +1,5 @@
 /**
- * $Id: mxEdgeHandler.js,v 1.178 2012/09/12 09:16:23 gaudenz Exp $
+ * $Id: mxEdgeHandler.js,v 1.179 2013/07/09 12:31:11 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -404,7 +404,8 @@ mxEdgeHandler.prototype.createMarker = function()
 		var model = self.graph.getModel();
 		
 		if (cell == self.state.cell || (cell != null &&
-			!self.graph.connectableEdges && model.isEdge(cell)))
+			!self.graph.connectableEdges && model.isEdge(cell)) ||
+			model.isAncestor(self.state.cell, cell))
 		{
 			cell = null;
 		}

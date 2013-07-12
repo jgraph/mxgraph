@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphView.js,v 1.198 2013/02/12 10:19:41 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.199 2013/07/09 10:23:20 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -459,27 +459,35 @@ mxGraphView.prototype.invalidate = function(cell, recurse, includeEdges, orderCh
 		}
 	}
 	
-	// Recursively invalidates all descendants
-	if (recurse)
+	// Avoids infinite loops for invalid graphs
+	if (!cell.invalidating)
 	{
-		var childCount = model.getChildCount(cell);
+		cell.invalidating = true;
 		
-		for (var i = 0; i < childCount; i++)
+		// Recursively invalidates all descendants
+		if (recurse)
 		{
-			var child = model.getChildAt(cell, i);
-			this.invalidate(child, recurse, includeEdges, orderChanged);
+			var childCount = model.getChildCount(cell);
+			
+			for (var i = 0; i < childCount; i++)
+			{
+				var child = model.getChildAt(cell, i);
+				this.invalidate(child, recurse, includeEdges, orderChanged);
+			}
 		}
-	}
-	
-	// Propagates invalidation to all connected edges
-	if (includeEdges)
-	{
-		var edgeCount = model.getEdgeCount(cell);
 		
-		for (var i = 0; i < edgeCount; i++)
+		// Propagates invalidation to all connected edges
+		if (includeEdges)
 		{
-			this.invalidate(model.getEdgeAt(cell, i), recurse, includeEdges);
+			var edgeCount = model.getEdgeCount(cell);
+			
+			for (var i = 0; i < edgeCount; i++)
+			{
+				this.invalidate(model.getEdgeAt(cell, i), recurse, includeEdges);
+			}
 		}
+		
+		delete cell.invalidating;
 	}
 };
 
