@@ -1,5 +1,5 @@
 /**
- * $Id: mxImageShape.js,v 1.8 2013/06/17 14:44:52 gaudenz Exp $
+ * $Id: mxImageShape.js,v 1.9 2013/07/09 08:12:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -167,11 +167,11 @@ mxImageShape.prototype.redrawHtmlShape = function()
 		this.node.style.borderColor = stroke;
 		
 		// VML image supports PNG in IE6
-		var useVml = mxClient.IS_IE6 || (mxClient.CSS_PREFIX == null && this.rotation != 0);
+		var useVml = mxClient.IS_IE6 || ((document.documentMode == null || document.documentMode <= 8) && this.rotation != 0);
 		var img = document.createElement((useVml) ? mxClient.VML_PREFIX + ':image' : 'img');
 		img.style.position = 'absolute';
 		img.src = this.image;
-		
+
 		var filter = (this.opacity < 100) ? 'alpha(opacity=' + this.opacity + ')' : '';
 		this.node.style.filter = filter;
 		
@@ -200,11 +200,11 @@ mxImageShape.prototype.redrawHtmlShape = function()
 		else if (this.rotation != 0)
 		{
 			// LATER: Add flipV/H support
-			img.style[mxClient.CSS_PREFIX + 'Transform'] = 'rotate(' + this.rotation + 'deg)';
+			mxUtils.setPrefixedStyle(img.style, 'transform', 'rotate(' + this.rotation + 'deg)');
 		}
 		else
 		{
-			img.style[mxClient.CSS_PREFIX + 'Transform'] = '';
+			mxUtils.setPrefixedStyle(img.style, 'transform', '');
 		}
 
 		// Known problem: IE clips top line of image for certain angles

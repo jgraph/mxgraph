@@ -1,5 +1,5 @@
 /**
- * $Id: mxClient.js,v 1.17 2013/06/17 14:41:14 gaudenz Exp $
+ * $Id: mxClient.js,v 1.18 2013/07/09 08:12:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClient =
@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.1.0.0.
+	 * Current version is 2.1.0.1.
 	 */
-	VERSION: '2.1.0.0',
+	VERSION: '2.1.0.1',
 
 	/**
 	 * Variable: IS_IE
@@ -292,33 +292,6 @@ var mxClient =
 	}
 
 };
-
-/**
- * Variable: CSS_PREFIX
- * 
- * Optional prefix for CSS transforms if CSS transforms are supported by this browser.
- * Can be used as follows.
- * 
- * (code)
- * node.style[mxClient.CSS_PREFIX + 'TransformOrigin'] = '0% 0%';
- * (end)
- */
-if (mxClient.IS_OP && mxClient.IS_OT)
-{
-	mxClient.CSS_PREFIX = 'O';
-}
-else if (mxClient.IS_SF || mxClient.IS_GC)
-{
-	mxClient.CSS_PREFIX = 'Webkit';
-}
-else if (mxClient.IS_MT)
-{
-	mxClient.CSS_PREFIX = 'Moz';
-}
-else if (mxClient.IS_IE && document.documentMode >= 9)
-{
-	mxClient.CSS_PREFIX = 'ms';
-}
 
 /**
  * Variable: mxLoadResources

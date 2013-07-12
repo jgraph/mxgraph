@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.js,v 1.15 2013/04/23 07:10:47 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.16 2013/07/09 08:12:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxUtils =
@@ -103,6 +103,49 @@ var mxUtils =
 		}
 	}(),
 
+	/**
+	 * Function: setPrefixedStyle
+	 * 
+	 * Adds the given style with the standard name and an optional vendor prefix for the current
+	 * browser.
+	 * 
+	 * (code)
+	 * mxUtils.setPrefixedStyle(node.style, 'transformOrigin', '0% 0%');
+	 * (end)
+	 */
+	setPrefixedStyle: function()
+	{
+		var prefix = null;
+		
+		if (mxClient.IS_OP && mxClient.IS_OT)
+		{
+			prefix = 'O';
+		}
+		else if (mxClient.IS_SF || mxClient.IS_GC)
+		{
+			prefix = 'Webkit';
+		}
+		else if (mxClient.IS_MT)
+		{
+			prefix = 'Moz';
+		}
+		else if (mxClient.IS_IE && document.documentMode >= 9 && document.documentMode < 10)
+		{
+			prefix = 'ms';
+		}
+
+		return function(style, name, value)
+		{
+			style[name] = value;
+			
+			if (prefix != null && name.length > 0)
+			{
+				name = prefix + name.substring(0, 1).toUpperCase() + name.substring(1);
+				style[name] = value;
+			}
+		};
+	}(),
+	
 	/**
 	 * Function: hasScrollbars
 	 * 

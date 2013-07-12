@@ -1,11 +1,11 @@
 /**
- * $Id: mxLayoutManager.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
+ * $Id: mxLayoutManager.js,v 1.3 2013/07/11 11:53:35 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
  * Class: mxLayoutManager
  * 
- * Implements a layout manager that updates the layout for a given transaction.
+ * Implements a layout manager that runs a given layout after any changes to the graph:
  * 
  * Example:
  * 
@@ -230,8 +230,7 @@ mxLayoutManager.prototype.beforeUndo = function(undoableEdit)
  */
 mxLayoutManager.prototype.cellsMoved = function(cells, evt)
 {
-	if (cells != null &&
-		evt != null)
+	if (cells != null && evt != null)
 	{
 		var point = mxUtils.convertPoint(this.getGraph().container,
 			mxEvent.getClientX(evt), mxEvent.getClientY(evt));
@@ -305,8 +304,7 @@ mxLayoutManager.prototype.getCellsForChange = function(change)
 	{
 		return [change.child, change.previous, model.getParent(change.child)];
 	}
-	else if (change instanceof mxTerminalChange ||
-			change instanceof mxGeometryChange)
+	else if (change instanceof mxTerminalChange || change instanceof mxGeometryChange)
 	{
 		return [change.cell, model.getParent(change.cell)];
 	}
@@ -334,8 +332,7 @@ mxLayoutManager.prototype.layoutCells = function(cells)
 			
 			for (var i = 0; i < cells.length; i++)
 			{
-				if (cells[i] != model.getRoot() &&
-					cells[i] != last)
+				if (cells[i] != model.getRoot() && cells[i] != last)
 				{
 					last = cells[i];
 					this.executeLayout(this.getLayout(last), last);

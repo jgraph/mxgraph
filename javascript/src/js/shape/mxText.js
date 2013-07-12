@@ -1,5 +1,5 @@
 /**
- * $Id: mxText.js,v 1.51 2013/06/07 14:01:48 gaudenz Exp $
+ * $Id: mxText.js,v 1.52 2013/07/09 08:12:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -447,14 +447,14 @@ mxText.prototype.redrawHtmlShape = function()
 	
 	this.offsetWidth = null;
 	this.offsetHeight = null;
-	
-	if (mxClient.CSS_PREFIX != null)
+
+	if (document.documentMode == null || document.documentMode <= 8)
 	{
-		this.updateHtmlTransform();
+		this.updateHtmlFilter();
 	}
 	else
 	{
-		this.updateHtmlFilter();
+		this.updateHtmlTransform();
 	}
 };
 
@@ -472,15 +472,15 @@ mxText.prototype.updateHtmlTransform = function()
 	
 	if (theta != 0)
 	{
-		style[mxClient.CSS_PREFIX + 'TransformOrigin'] = (-dx * 100) + '%' + ' ' + (-dy * 100) + '%';
-		style[mxClient.CSS_PREFIX + 'Transform'] = 'translate(' + (dx * 100) + '%' + ',' + (dy * 100) + '%)' +
-			'scale(' + this.scale + ') rotate(' + theta + 'deg)';
+		mxUtils.setPrefixedStyle(style, 'transformOrigin', (-dx * 100) + '%' + ' ' + (-dy * 100) + '%');
+		mxUtils.setPrefixedStyle(style, 'transform', 'translate(' + (dx * 100) + '%' + ',' + (dy * 100) + '%)' +
+			'scale(' + this.scale + ') rotate(' + theta + 'deg)');
 	}
 	else
 	{
-		style[mxClient.CSS_PREFIX + 'TransformOrigin'] = '0% 0%';
-		style[mxClient.CSS_PREFIX + 'Transform'] = 'scale(' + this.scale + ')' +
-			'translate(' + (dx * 100) + '%' + ',' + (dy * 100) + '%)';
+		mxUtils.setPrefixedStyle('transformOrigin', '0% 0%');
+		mxUtils.setPrefixedStyle('transform', 'scale(' + this.scale + ')' +
+			'translate(' + (dx * 100) + '%' + ',' + (dy * 100) + '%)');
 	}
 
 	style.left = Math.round(this.bounds.x) + 'px';

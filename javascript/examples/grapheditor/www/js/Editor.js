@@ -1,5 +1,5 @@
 /**
- * $Id: Editor.js,v 1.19 2013/06/20 14:04:15 gaudenz Exp $
+ * $Id: Editor.js,v 1.20 2013/07/09 08:12:44 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 // Specifies if local storage should be used (eg. on the iPad which has no filesystem)
@@ -48,9 +48,6 @@ Editor = function()
 	this.outline.updateOnPan = true;
 	this.undoManager = this.createUndoManager();
 	this.status = '';
-	
-	// Contains the name which was used for the last save. Default value is null.
-	this.filename = null;
 
 	this.getOrCreateFilename = function()
 	{
@@ -74,10 +71,6 @@ Editor = function()
 	{
 		return this.status;
 	};
-
-	// Contains the current modified state of the diagram. This is false for
-	// new diagrams and after the diagram was saved.
-	this.modified = false;
 
 	// Updates modified state if graph changes
 	this.graphChangeListener = function() 
@@ -117,6 +110,17 @@ Editor.prototype.gridImage = IMAGE_PATH + '/grid.gif';
  * Specifies the image URL to be used for the transparent background.
  */
 Editor.prototype.transparentImage = IMAGE_PATH + '/transparent.gif';
+
+/**
+ * Contains the name which was used for the last save. Default value is null.
+ */
+Editor.prototype.filename = null;
+
+/**
+ * Contains the current modified state of the diagram. This is false for
+ * new diagrams and after the diagram was saved.
+ */
+Editor.prototype.modified = false;
 
 /**
  * Sets the XML node for the current diagram.
@@ -318,6 +322,32 @@ Editor.prototype.updateGraphComponents = function()
 };
 
 /**
+ * Sets the modified flag.
+ */
+Editor.prototype.setModified = function(value)
+{
+	this.modified = value;
+	this.updateDocumentTitle();
+};
+
+/**
+ * Sets the filename.
+ */
+Editor.prototype.setFilename = function(value)
+{
+	this.filename = value;
+	this.updateDocumentTitle();
+};
+
+/**
+ * Updates the document title.
+ */
+Editor.prototype.updateDocumentTitle = function()
+{
+	document.title = this.getOrCreateFilename();
+};
+
+/**
  * Initializes the environment.
  */
 Editor.prototype.init = function()
@@ -441,15 +471,12 @@ Editor.prototype.init = function()
 		{
 			if (preview)
 			{
-				shape.node.style[mxClient.CSS_PREFIX + 'Transform'] = 'scale(' + scale + ')';
+				mxUtils.setPrefixedStyle(shape.node.style, 'transform', 'scale(' + scale + ')');
 			}
 			else
 			{
-				shape.node.style[mxClient.CSS_PREFIX + 'Transform'] = '';
+				mxUtils.setPrefixedStyle(shape.node.style, 'transform', '');
 			}
-			
-			mxLog.debug('style', shape.node.style[mxClient.CSS_PREFIX + 'Transform'],
-					shape.node.style.left);
 		}
 	};*/
 	

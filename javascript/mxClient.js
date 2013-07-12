@@ -1,5 +1,5 @@
 /**
- * $Id: mxClient.js,v 1.17 2013/06/17 14:41:14 gaudenz Exp $
+ * $Id: mxClient.js,v 1.18 2013/07/09 08:12:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClient =
@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.1.0.0.
+	 * Current version is 2.1.0.1.
 	 */
-	VERSION: '2.1.0.0',
+	VERSION: '2.1.0.1',
 
 	/**
 	 * Variable: IS_IE
@@ -292,33 +292,6 @@ var mxClient =
 	}
 
 };
-
-/**
- * Variable: CSS_PREFIX
- * 
- * Optional prefix for CSS transforms if CSS transforms are supported by this browser.
- * Can be used as follows.
- * 
- * (code)
- * node.style[mxClient.CSS_PREFIX + 'TransformOrigin'] = '0% 0%';
- * (end)
- */
-if (mxClient.IS_OP && mxClient.IS_OT)
-{
-	mxClient.CSS_PREFIX = 'O';
-}
-else if (mxClient.IS_SF || mxClient.IS_GC)
-{
-	mxClient.CSS_PREFIX = 'Webkit';
-}
-else if (mxClient.IS_MT)
-{
-	mxClient.CSS_PREFIX = 'Moz';
-}
-else if (mxClient.IS_IE && document.documentMode >= 9)
-{
-	mxClient.CSS_PREFIX = 'ms';
-}
 
 /**
  * Variable: mxLoadResources
@@ -1938,7 +1911,7 @@ var mxEffects =
 
 };
 /**
- * $Id: mxUtils.js,v 1.15 2013/04/23 07:10:47 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.16 2013/07/09 08:12:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxUtils =
@@ -2042,6 +2015,49 @@ var mxUtils =
 		}
 	}(),
 
+	/**
+	 * Function: setPrefixedStyle
+	 * 
+	 * Adds the given style with the standard name and an optional vendor prefix for the current
+	 * browser.
+	 * 
+	 * (code)
+	 * mxUtils.setPrefixedStyle(node.style, 'transformOrigin', '0% 0%');
+	 * (end)
+	 */
+	setPrefixedStyle: function()
+	{
+		var prefix = null;
+		
+		if (mxClient.IS_OP && mxClient.IS_OT)
+		{
+			prefix = 'O';
+		}
+		else if (mxClient.IS_SF || mxClient.IS_GC)
+		{
+			prefix = 'Webkit';
+		}
+		else if (mxClient.IS_MT)
+		{
+			prefix = 'Moz';
+		}
+		else if (mxClient.IS_IE && document.documentMode >= 9 && document.documentMode < 10)
+		{
+			prefix = 'ms';
+		}
+
+		return function(style, name, value)
+		{
+			style[name] = value;
+			
+			if (prefix != null && name.length > 0)
+			{
+				name = prefix + name.substring(0, 1).toUpperCase() + name.substring(1);
+				style[name] = value;
+			}
+		};
+	}(),
+	
 	/**
 	 * Function: hasScrollbars
 	 * 
@@ -17531,7 +17547,7 @@ mxXmlCanvas2D.prototype.fillAndStroke = function()
 	this.root.appendChild(this.createElement('fillstroke'));
 };
 /**
- * $Id: mxSvgCanvas2D.js,v 1.53 2013/06/20 12:09:29 gaudenz Exp $
+ * $Id: mxSvgCanvas2D.js,v 1.54 2013/07/02 14:48:13 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -18043,7 +18059,7 @@ mxSvgCanvas2D.prototype.addNode = function(filled, stroked)
 		{
 			this.root.appendChild(this.createShadow(node));
 		}
-		
+	
 		// Adds stroke tolerance
 		if (this.strokeTolerance > 0 && !filled)
 		{
@@ -18125,7 +18141,7 @@ mxSvgCanvas2D.prototype.updateStroke = function()
 	
 	if (s.dashed)
 	{
-		this.node.setAttribute('stroke-dasharray', this.createDashPattern(sw));
+		this.node.setAttribute('stroke-dasharray', this.createDashPattern(s.strokeWidth * s.scale));
 	}
 };
 
@@ -21174,7 +21190,7 @@ mxStencil.prototype.drawNode = function(canvas, shape, node, aspect, disableShad
 	}
 };
 /**
-aaa * $Id: mxShape.js,v 1.42 2013/06/21 11:25:51 gaudenz Exp $
+aaa * $Id: mxShape.js,v 1.43 2013/07/02 14:47:00 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -21288,7 +21304,7 @@ mxShape.prototype.node = null;
  * 
  * Optional reference to the corresponding <mxCellState>.
  */
-mxShape.prototype.style = null;
+mxShape.prototype.state = null;
 
 /**
  * Variable: style
@@ -23104,7 +23120,7 @@ mxRhombus.prototype.paintVertexShape = function(c, x, y, w, h)
 	c.fillAndStroke();
 };
 /**
- * $Id: mxPolyline.js,v 1.5 2013/06/10 07:31:00 gaudenz Exp $
+ * $Id: mxPolyline.js,v 1.6 2013/07/09 16:49:27 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -23218,6 +23234,14 @@ mxPolyline.prototype.paintLine = function(c, pts, rounded)
 			// point with a spacing of size off the current point
 			// into direction of the next point
 			var next = pts[i + 1];
+			
+			// Uses next non-overlapping point
+			while (i < pts.length - 1 && Math.round(next.x - tmp.x) == 0 && Math.round(next.y - tmp.y) == 0)
+			{
+				next = pts[i + 2];
+				i++;
+			}
+			
 			dx = next.x - tmp.x;
 			dy = next.y - tmp.y;
 
@@ -23345,7 +23369,7 @@ mxArrow.prototype.paintEdgeShape = function(c, pts)
 	c.fillAndStroke();
 };
 /**
- * $Id: mxText.js,v 1.51 2013/06/07 14:01:48 gaudenz Exp $
+ * $Id: mxText.js,v 1.52 2013/07/09 08:12:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -23793,14 +23817,14 @@ mxText.prototype.redrawHtmlShape = function()
 	
 	this.offsetWidth = null;
 	this.offsetHeight = null;
-	
-	if (mxClient.CSS_PREFIX != null)
+
+	if (document.documentMode == null || document.documentMode <= 8)
 	{
-		this.updateHtmlTransform();
+		this.updateHtmlFilter();
 	}
 	else
 	{
-		this.updateHtmlFilter();
+		this.updateHtmlTransform();
 	}
 };
 
@@ -23818,15 +23842,15 @@ mxText.prototype.updateHtmlTransform = function()
 	
 	if (theta != 0)
 	{
-		style[mxClient.CSS_PREFIX + 'TransformOrigin'] = (-dx * 100) + '%' + ' ' + (-dy * 100) + '%';
-		style[mxClient.CSS_PREFIX + 'Transform'] = 'translate(' + (dx * 100) + '%' + ',' + (dy * 100) + '%)' +
-			'scale(' + this.scale + ') rotate(' + theta + 'deg)';
+		mxUtils.setPrefixedStyle(style, 'transformOrigin', (-dx * 100) + '%' + ' ' + (-dy * 100) + '%');
+		mxUtils.setPrefixedStyle(style, 'transform', 'translate(' + (dx * 100) + '%' + ',' + (dy * 100) + '%)' +
+			'scale(' + this.scale + ') rotate(' + theta + 'deg)');
 	}
 	else
 	{
-		style[mxClient.CSS_PREFIX + 'TransformOrigin'] = '0% 0%';
-		style[mxClient.CSS_PREFIX + 'Transform'] = 'scale(' + this.scale + ')' +
-			'translate(' + (dx * 100) + '%' + ',' + (dy * 100) + '%)';
+		mxUtils.setPrefixedStyle('transformOrigin', '0% 0%');
+		mxUtils.setPrefixedStyle('transform', 'scale(' + this.scale + ')' +
+			'translate(' + (dx * 100) + '%' + ',' + (dy * 100) + '%)');
 	}
 
 	style.left = Math.round(this.bounds.x) + 'px';
@@ -24319,7 +24343,7 @@ mxLine.prototype.paintVertexShape = function(c, x, y, w, h)
 	c.stroke();
 };
 /**
- * $Id: mxImageShape.js,v 1.8 2013/06/17 14:44:52 gaudenz Exp $
+ * $Id: mxImageShape.js,v 1.9 2013/07/09 08:12:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -24487,11 +24511,11 @@ mxImageShape.prototype.redrawHtmlShape = function()
 		this.node.style.borderColor = stroke;
 		
 		// VML image supports PNG in IE6
-		var useVml = mxClient.IS_IE6 || (mxClient.CSS_PREFIX == null && this.rotation != 0);
+		var useVml = mxClient.IS_IE6 || ((document.documentMode == null || document.documentMode <= 8) && this.rotation != 0);
 		var img = document.createElement((useVml) ? mxClient.VML_PREFIX + ':image' : 'img');
 		img.style.position = 'absolute';
 		img.src = this.image;
-		
+
 		var filter = (this.opacity < 100) ? 'alpha(opacity=' + this.opacity + ')' : '';
 		this.node.style.filter = filter;
 		
@@ -24520,11 +24544,11 @@ mxImageShape.prototype.redrawHtmlShape = function()
 		else if (this.rotation != 0)
 		{
 			// LATER: Add flipV/H support
-			img.style[mxClient.CSS_PREFIX + 'Transform'] = 'rotate(' + this.rotation + 'deg)';
+			mxUtils.setPrefixedStyle(img.style, 'transform', 'rotate(' + this.rotation + 'deg)');
 		}
 		else
 		{
-			img.style[mxClient.CSS_PREFIX + 'Transform'] = '';
+			mxUtils.setPrefixedStyle(img.style, 'transform', '');
 		}
 
 		// Known problem: IE clips top line of image for certain angles
@@ -24925,7 +24949,7 @@ mxCylinder.prototype.redrawPath = function(c, x, y, w, h, isForeground)
 	}
 };
 /**
- * $Id: mxConnector.js,v 1.6 2013/01/15 18:03:42 gaudenz Exp $
+ * $Id: mxConnector.js,v 1.7 2013/07/09 16:49:27 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -25042,6 +25066,14 @@ mxConnector.prototype.createMarker = function(c, pts, source)
 	
 	var p0 = (source) ? pts[1] : pts[n - 2];
 	var pe = (source) ? pts[0] : pts[n - 1];
+	var count = 1;
+	
+	// Uses next non-overlapping point
+	while (count < n - 1 && Math.round(p0.x - pe.x) == 0 && Math.round(p0.y - pe.y) == 0)
+	{
+		p0 = (source) ? pts[1 + count] : pts[n - 2 - count];
+		count++;
+	}
 
 	var dx = pe.x - p0.x;
 	var dy = pe.y - p0.y;
@@ -28332,7 +28364,7 @@ mxCircleLayout.prototype.circle = function(vertices, r, left, top)
 	}
 };
 /**
- * $Id: mxParallelEdgeLayout.js,v 1.2 2013/06/05 11:39:11 gaudenz Exp $
+ * $Id: mxParallelEdgeLayout.js,v 1.5 2013/07/11 11:56:21 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -28347,6 +28379,29 @@ mxCircleLayout.prototype.circle = function(vertices, r, left, top)
  * (code)
  * var layout = new mxParallelEdgeLayout(graph);
  * layout.execute(graph.getDefaultParent());
+ * (end)
+ * 
+ * To run the layout for the parallel edges of a changed edge only, the
+ * following code can be used.
+ * 
+ * (code)
+ * var layout = new mxParallelEdgeLayout(graph);
+ * 
+ * graph.addListener(mxEvent.CELL_CONNECTED, function(sender, evt)
+ * {
+ *   var model = graph.getModel();
+ *   var edge = evt.getProperty('edge');
+ *   var src = model.getTerminal(edge, true);
+ *   var trg = model.getTerminal(edge, false);
+ *   
+ *   layout.isEdgeIgnored = function(edge2)
+ *   {
+ *     var src2 = model.getTerminal(edge2, true);
+ *     var trg2 = model.getTerminal(edge2, false);
+ *     
+ *     return !(model.isEdge(edge2) && ((src == src2 && trg == trg2) || (src == trg2 && trg == src2)));
+ *   };
+ * };
  * (end)
  * 
  * Constructor: mxCompactTreeLayout
@@ -28444,10 +28499,9 @@ mxParallelEdgeLayout.prototype.getEdgeId = function(edge)
 {
 	var view = this.graph.getView();
 	
-	var state = view.getState(edge);
-	
-	var src = (state != null) ? state.getVisibleTerminal(true) : view.getVisibleTerminal(edge, true);
-	var trg = (state != null) ? state.getVisibleTerminal(false) : view.getVisibleTerminal(edge, false);
+	// Cannot used cached visible terminal because this could be triggered in BEFORE_UNDO
+	var src = view.getVisibleTerminal(edge, true);
+	var trg = view.getVisibleTerminal(edge, false);
 
 	if (src != null && trg != null)
 	{
@@ -28468,10 +28522,10 @@ mxParallelEdgeLayout.prototype.getEdgeId = function(edge)
 mxParallelEdgeLayout.prototype.layout = function(parallels)
 {
 	var edge = parallels[0];
+	var view = this.graph.getView();
 	var model = this.graph.getModel();
-	
-	var src = model.getGeometry(model.getTerminal(edge, true));
-	var trg = model.getGeometry(model.getTerminal(edge, false));
+	var src = model.getGeometry(view.getVisibleTerminal(edge, true));
+	var trg = model.getGeometry(view.getVisibleTerminal(edge, false));
 	
 	// Routes multiple loops
 	if (src == trg)
@@ -39833,7 +39887,7 @@ mxSelectionChange.prototype.execute = function()
 			'added', this.added, 'removed', this.removed));
 };
 /**
- * $Id: mxCellEditor.js,v 1.10 2013/06/24 09:48:30 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.11 2013/07/09 08:12:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -40082,9 +40136,17 @@ mxCellEditor.prototype.resize = function()
 		{
 			var clip = this.graph.isLabelClipped(state.cell);
 			var wrap = this.graph.isWrapping(state.cell);
-		
 			var isEdge = this.graph.getModel().isEdge(state.cell);
-		
+			var scale = this.graph.getView().scale;
+			var spacing = parseInt(state.style[mxConstants.STYLE_SPACING] || 0) * scale;
+			var spacingTop = (parseInt(state.style[mxConstants.STYLE_SPACING_TOP] || 0) + mxText.prototype.baseSpacingTop) * scale + spacing;
+			var spacingRight = (parseInt(state.style[mxConstants.STYLE_SPACING_RIGHT] || 0) + mxText.prototype.baseSpacingRight) * scale + spacing;
+			var spacingBottom = (parseInt(state.style[mxConstants.STYLE_SPACING_BOTTOM] || 0) + mxText.prototype.baseSpacingBottom) * scale + spacing;
+			var spacingLeft = (parseInt(state.style[mxConstants.STYLE_SPACING_LEFT] || 0) + mxText.prototype.baseSpacingLeft) * scale + spacing;
+
+		 	var bds = new mxRectangle(state.x, state.y, state.width - spacingLeft - spacingRight, state.height - spacingTop - spacingBottom);
+		 	bds = (state.shape != null) ? state.shape.getLabelBounds(bds) : bds;
+			
 			if (isEdge)
 			{
 				this.bounds.x = state.absoluteOffset.x;
@@ -40094,10 +40156,10 @@ mxCellEditor.prototype.resize = function()
 			}
 			else if (this.bounds != null)
 			{
-				this.bounds.x = state.x;
-				this.bounds.y = state.y;
-				this.bounds.width = state.width;
-				this.bounds.height = state.height;
+				this.bounds.x = bds.x;
+				this.bounds.y = bds.y;
+				this.bounds.width = bds.width;
+				this.bounds.height = bds.height;
 				
 				// Applies the horizontal and vertical label positions
 				var horizontal = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_POSITION, mxConstants.ALIGN_CENTER);
@@ -40453,15 +40515,17 @@ mxCellEditor.prototype.getEditorBounds = function(state)
 	var minWidth = minSize.width;
  	var minHeight = minSize.height;
 
-	var spacing = parseInt(state.style[mxConstants.STYLE_SPACING] || 2) * scale;
-	var spacingTop = (parseInt(state.style[mxConstants.STYLE_SPACING_TOP] || 0)) * scale + spacing;
-	var spacingRight = (parseInt(state.style[mxConstants.STYLE_SPACING_RIGHT] || 0)) * scale + spacing;
-	var spacingBottom = (parseInt(state.style[mxConstants.STYLE_SPACING_BOTTOM] || 0)) * scale + spacing;
-	var spacingLeft = (parseInt(state.style[mxConstants.STYLE_SPACING_LEFT] || 0)) * scale + spacing;
+	var spacing = parseInt(state.style[mxConstants.STYLE_SPACING] || 0) * scale;
+	var spacingTop = (parseInt(state.style[mxConstants.STYLE_SPACING_TOP] || 0) + mxText.prototype.baseSpacingTop) * scale + spacing;
+	var spacingRight = (parseInt(state.style[mxConstants.STYLE_SPACING_RIGHT] || 0) + mxText.prototype.baseSpacingRight) * scale + spacing;
+	var spacingBottom = (parseInt(state.style[mxConstants.STYLE_SPACING_BOTTOM] || 0) + mxText.prototype.baseSpacingBottom) * scale + spacing;
+	var spacingLeft = (parseInt(state.style[mxConstants.STYLE_SPACING_LEFT] || 0) + mxText.prototype.baseSpacingLeft) * scale + spacing;
 
  	var result = new mxRectangle(state.x, state.y,
  		 Math.max(minWidth, state.width - spacingLeft - spacingRight),
  		 Math.max(minHeight, state.height - spacingTop - spacingBottom));
+ 	
+	result = (state.shape != null) ? state.shape.getLabelBounds(result) : result;
 
 	if (isEdge)
 	{
@@ -43509,7 +43573,7 @@ mxStyleRegistry.putValue(mxConstants.PERIMETER_RECTANGLE, mxPerimeter.RectangleP
 mxStyleRegistry.putValue(mxConstants.PERIMETER_RHOMBUS, mxPerimeter.RhombusPerimeter);
 mxStyleRegistry.putValue(mxConstants.PERIMETER_TRIANGLE, mxPerimeter.TrianglePerimeter);
 /**
- * $Id: mxGraphView.js,v 1.18 2013/06/17 14:42:47 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.19 2013/07/09 08:38:57 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -43967,7 +44031,7 @@ mxGraphView.prototype.invalidate = function(cell, recurse, includeEdges, orderCh
 	orderChanged = (orderChanged != null) ? orderChanged : false;
 	
 	var state = this.getState(cell);
-
+	
 	if (state != null)
 	{
 		state.invalid = true;
@@ -43978,27 +44042,35 @@ mxGraphView.prototype.invalidate = function(cell, recurse, includeEdges, orderCh
 		}
 	}
 	
-	// Recursively invalidates all descendants
-	if (recurse)
+	// Avoids infinite loops for invalid graphs
+	if (!cell.invalidating)
 	{
-		var childCount = model.getChildCount(cell);
+		cell.invalidating = true;
 		
-		for (var i = 0; i < childCount; i++)
+		// Recursively invalidates all descendants
+		if (recurse)
 		{
-			var child = model.getChildAt(cell, i);
-			this.invalidate(child, recurse, includeEdges, orderChanged);
+			var childCount = model.getChildCount(cell);
+			
+			for (var i = 0; i < childCount; i++)
+			{
+				var child = model.getChildAt(cell, i);
+				this.invalidate(child, recurse, includeEdges, orderChanged);
+			}
 		}
-	}
-	
-	// Propagates invalidation to all connected edges
-	if (includeEdges)
-	{
-		var edgeCount = model.getEdgeCount(cell);
 		
-		for (var i = 0; i < edgeCount; i++)
+		// Propagates invalidation to all connected edges
+		if (includeEdges)
 		{
-			this.invalidate(model.getEdgeAt(cell, i), recurse, includeEdges);
+			var edgeCount = model.getEdgeCount(cell);
+			
+			for (var i = 0; i < edgeCount; i++)
+			{
+				this.invalidate(model.getEdgeAt(cell, i), recurse, includeEdges);
+			}
 		}
+		
+		delete cell.invalidating;
 	}
 };
 
@@ -46093,7 +46165,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.30 2013/06/21 12:19:17 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.31 2013/07/09 10:24:08 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -53635,7 +53707,7 @@ mxGraph.prototype.validateGraph = function(cell, context)
 	if (this.isCellCollapsed(cell) && !isValid)
 	{
 		warning += (mxResources.get(this.containsValidationErrorsResource) ||
-			this.containsValidationErrorsResource)+'\n';
+			this.containsValidationErrorsResource) + '\n';
 	}
 	
 	// Checks edges and cells using the defined multiplicities
@@ -58812,13 +58884,13 @@ mxMultiplicity.prototype.checkType = function(graph, value, type, attr, attrValu
 	return false;
 };
 /**
- * $Id: mxLayoutManager.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
+ * $Id: mxLayoutManager.js,v 1.3 2013/07/11 11:53:35 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
  * Class: mxLayoutManager
  * 
- * Implements a layout manager that updates the layout for a given transaction.
+ * Implements a layout manager that runs a given layout after any changes to the graph:
  * 
  * Example:
  * 
@@ -59043,8 +59115,7 @@ mxLayoutManager.prototype.beforeUndo = function(undoableEdit)
  */
 mxLayoutManager.prototype.cellsMoved = function(cells, evt)
 {
-	if (cells != null &&
-		evt != null)
+	if (cells != null && evt != null)
 	{
 		var point = mxUtils.convertPoint(this.getGraph().container,
 			mxEvent.getClientX(evt), mxEvent.getClientY(evt));
@@ -59118,8 +59189,7 @@ mxLayoutManager.prototype.getCellsForChange = function(change)
 	{
 		return [change.child, change.previous, model.getParent(change.child)];
 	}
-	else if (change instanceof mxTerminalChange ||
-			change instanceof mxGeometryChange)
+	else if (change instanceof mxTerminalChange || change instanceof mxGeometryChange)
 	{
 		return [change.cell, model.getParent(change.cell)];
 	}
@@ -59147,8 +59217,7 @@ mxLayoutManager.prototype.layoutCells = function(cells)
 			
 			for (var i = 0; i < cells.length; i++)
 			{
-				if (cells[i] != model.getRoot() &&
-					cells[i] != last)
+				if (cells[i] != model.getRoot() && cells[i] != last)
 				{
 					last = cells[i];
 					this.executeLayout(this.getLayout(last), last);
@@ -66470,7 +66539,7 @@ mxVertexHandler.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxEdgeHandler.js,v 1.17 2013/06/21 12:19:17 gaudenz Exp $
+ * $Id: mxEdgeHandler.js,v 1.18 2013/07/09 12:30:29 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -66818,7 +66887,8 @@ mxEdgeHandler.prototype.createMarker = function()
 		
 		if ((this.graph.isSwimlane(cell) && this.graph.hitsSwimlaneContent(cell, point.x, point.y)) ||
 			(!self.isConnectableCell(cell)) ||
-			(cell == self.state.cell || (cell != null && !self.graph.connectableEdges && model.isEdge(cell))))
+			(cell == self.state.cell || (cell != null && !self.graph.connectableEdges && model.isEdge(cell))) ||
+			model.isAncestor(self.state.cell, cell))
 		{
 			cell = null;
 		}

@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.30 2013/06/21 12:19:17 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.31 2013/07/09 10:24:08 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -7541,7 +7541,7 @@ mxGraph.prototype.validateGraph = function(cell, context)
 	if (this.isCellCollapsed(cell) && !isValid)
 	{
 		warning += (mxResources.get(this.containsValidationErrorsResource) ||
-			this.containsValidationErrorsResource)+'\n';
+			this.containsValidationErrorsResource) + '\n';
 	}
 	
 	// Checks edges and cells using the defined multiplicities

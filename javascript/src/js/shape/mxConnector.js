@@ -1,5 +1,5 @@
 /**
- * $Id: mxConnector.js,v 1.6 2013/01/15 18:03:42 gaudenz Exp $
+ * $Id: mxConnector.js,v 1.7 2013/07/09 16:49:27 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -116,6 +116,14 @@ mxConnector.prototype.createMarker = function(c, pts, source)
 	
 	var p0 = (source) ? pts[1] : pts[n - 2];
 	var pe = (source) ? pts[0] : pts[n - 1];
+	var count = 1;
+	
+	// Uses next non-overlapping point
+	while (count < n - 1 && Math.round(p0.x - pe.x) == 0 && Math.round(p0.y - pe.y) == 0)
+	{
+		p0 = (source) ? pts[1 + count] : pts[n - 2 - count];
+		count++;
+	}
 
 	var dx = pe.x - p0.x;
 	var dy = pe.y - p0.y;

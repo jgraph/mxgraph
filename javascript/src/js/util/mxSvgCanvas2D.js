@@ -1,5 +1,5 @@
 /**
- * $Id: mxSvgCanvas2D.js,v 1.53 2013/06/20 12:09:29 gaudenz Exp $
+ * $Id: mxSvgCanvas2D.js,v 1.54 2013/07/02 14:48:13 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -511,7 +511,7 @@ mxSvgCanvas2D.prototype.addNode = function(filled, stroked)
 		{
 			this.root.appendChild(this.createShadow(node));
 		}
-		
+	
 		// Adds stroke tolerance
 		if (this.strokeTolerance > 0 && !filled)
 		{
@@ -593,7 +593,7 @@ mxSvgCanvas2D.prototype.updateStroke = function()
 	
 	if (s.dashed)
 	{
-		this.node.setAttribute('stroke-dasharray', this.createDashPattern(sw));
+		this.node.setAttribute('stroke-dasharray', this.createDashPattern(s.strokeWidth * s.scale));
 	}
 };
 

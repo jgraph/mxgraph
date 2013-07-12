@@ -1,5 +1,5 @@
 /**
- * $Id: mxEdgeHandler.js,v 1.17 2013/06/21 12:19:17 gaudenz Exp $
+ * $Id: mxEdgeHandler.js,v 1.18 2013/07/09 12:30:29 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -347,7 +347,8 @@ mxEdgeHandler.prototype.createMarker = function()
 		
 		if ((this.graph.isSwimlane(cell) && this.graph.hitsSwimlaneContent(cell, point.x, point.y)) ||
 			(!self.isConnectableCell(cell)) ||
-			(cell == self.state.cell || (cell != null && !self.graph.connectableEdges && model.isEdge(cell))))
+			(cell == self.state.cell || (cell != null && !self.graph.connectableEdges && model.isEdge(cell))) ||
+			model.isAncestor(self.state.cell, cell))
 		{
 			cell = null;
 		}

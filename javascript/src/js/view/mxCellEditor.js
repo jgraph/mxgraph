@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellEditor.js,v 1.10 2013/06/24 09:48:30 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.11 2013/07/09 08:12:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -248,9 +248,17 @@ mxCellEditor.prototype.resize = function()
 		{
 			var clip = this.graph.isLabelClipped(state.cell);
 			var wrap = this.graph.isWrapping(state.cell);
-		
 			var isEdge = this.graph.getModel().isEdge(state.cell);
-		
+			var scale = this.graph.getView().scale;
+			var spacing = parseInt(state.style[mxConstants.STYLE_SPACING] || 0) * scale;
+			var spacingTop = (parseInt(state.style[mxConstants.STYLE_SPACING_TOP] || 0) + mxText.prototype.baseSpacingTop) * scale + spacing;
+			var spacingRight = (parseInt(state.style[mxConstants.STYLE_SPACING_RIGHT] || 0) + mxText.prototype.baseSpacingRight) * scale + spacing;
+			var spacingBottom = (parseInt(state.style[mxConstants.STYLE_SPACING_BOTTOM] || 0) + mxText.prototype.baseSpacingBottom) * scale + spacing;
+			var spacingLeft = (parseInt(state.style[mxConstants.STYLE_SPACING_LEFT] || 0) + mxText.prototype.baseSpacingLeft) * scale + spacing;
+
+		 	var bds = new mxRectangle(state.x, state.y, state.width - spacingLeft - spacingRight, state.height - spacingTop - spacingBottom);
+		 	bds = (state.shape != null) ? state.shape.getLabelBounds(bds) : bds;
+			
 			if (isEdge)
 			{
 				this.bounds.x = state.absoluteOffset.x;
@@ -260,10 +268,10 @@ mxCellEditor.prototype.resize = function()
 			}
 			else if (this.bounds != null)
 			{
-				this.bounds.x = state.x;
-				this.bounds.y = state.y;
-				this.bounds.width = state.width;
-				this.bounds.height = state.height;
+				this.bounds.x = bds.x;
+				this.bounds.y = bds.y;
+				this.bounds.width = bds.width;
+				this.bounds.height = bds.height;
 				
 				// Applies the horizontal and vertical label positions
 				var horizontal = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_POSITION, mxConstants.ALIGN_CENTER);
@@ -619,15 +627,17 @@ mxCellEditor.prototype.getEditorBounds = function(state)
 	var minWidth = minSize.width;
  	var minHeight = minSize.height;
 
-	var spacing = parseInt(state.style[mxConstants.STYLE_SPACING] || 2) * scale;
-	var spacingTop = (parseInt(state.style[mxConstants.STYLE_SPACING_TOP] || 0)) * scale + spacing;
-	var spacingRight = (parseInt(state.style[mxConstants.STYLE_SPACING_RIGHT] || 0)) * scale + spacing;
-	var spacingBottom = (parseInt(state.style[mxConstants.STYLE_SPACING_BOTTOM] || 0)) * scale + spacing;
-	var spacingLeft = (parseInt(state.style[mxConstants.STYLE_SPACING_LEFT] || 0)) * scale + spacing;
+	var spacing = parseInt(state.style[mxConstants.STYLE_SPACING] || 0) * scale;
+	var spacingTop = (parseInt(state.style[mxConstants.STYLE_SPACING_TOP] || 0) + mxText.prototype.baseSpacingTop) * scale + spacing;
+	var spacingRight = (parseInt(state.style[mxConstants.STYLE_SPACING_RIGHT] || 0) + mxText.prototype.baseSpacingRight) * scale + spacing;
+	var spacingBottom = (parseInt(state.style[mxConstants.STYLE_SPACING_BOTTOM] || 0) + mxText.prototype.baseSpacingBottom) * scale + spacing;
+	var spacingLeft = (parseInt(state.style[mxConstants.STYLE_SPACING_LEFT] || 0) + mxText.prototype.baseSpacingLeft) * scale + spacing;
 
  	var result = new mxRectangle(state.x, state.y,
  		 Math.max(minWidth, state.width - spacingLeft - spacingRight),
  		 Math.max(minHeight, state.height - spacingTop - spacingBottom));
+ 	
+	result = (state.shape != null) ? state.shape.getLabelBounds(result) : result;
 
 	if (isEdge)
 	{

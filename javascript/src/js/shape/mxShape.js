@@ -1,5 +1,5 @@
 /**
-aaa * $Id: mxShape.js,v 1.42 2013/06/21 11:25:51 gaudenz Exp $
+aaa * $Id: mxShape.js,v 1.43 2013/07/02 14:47:00 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -113,7 +113,7 @@ mxShape.prototype.node = null;
  * 
  * Optional reference to the corresponding <mxCellState>.
  */
-mxShape.prototype.style = null;
+mxShape.prototype.state = null;
 
 /**
  * Variable: style

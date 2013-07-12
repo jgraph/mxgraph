@@ -1,5 +1,5 @@
 /**
- * $Id: Graph.js,v 1.25 2013/06/21 15:25:53 gaudenz Exp $
+ * $Id: Graph.js,v 1.26 2013/07/08 12:55:22 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -285,12 +285,26 @@ Graph.prototype.getTooltipForCell = function(cell)
 				tip += '\n';
 			}
 			
-			tip += 'X: ' + f2(geo.x) + '\nY: ' + f2(geo.y) + '\nW: ' + f2(geo.width) + '\nH: ' + f2(geo.height);
+			tip += 'X/Y: ' + f2(geo.x) + '/' + f2(geo.y) + '\nWxH: ' + f2(geo.width) + 'x' + f2(geo.height);
 		}
 	}
 	else if (this.getModel().isEdge(cell))
 	{
 		tip = mxGraph.prototype.getTooltipForCell.apply(this, arguments);
+	}
+	
+	// Adds metadata
+	if (mxUtils.isNode(cell.value))
+	{
+		var attrs = cell.value.attributes;
+		
+		for (var i = 0; i < attrs.length; i++)
+		{
+			if (attrs[i].nodeName != 'label')
+			{
+				tip += '\n' + attrs[i].nodeName + ': ' + attrs[i].nodeValue;
+			}
+		}
 	}
 	
 	return tip;

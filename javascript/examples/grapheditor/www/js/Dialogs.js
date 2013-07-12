@@ -1,5 +1,5 @@
 /**
- * $Id: Dialogs.js,v 1.7 2013/05/07 06:54:12 gaudenz Exp $
+ * $Id: Dialogs.js,v 1.8 2013/07/08 12:55:22 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -1149,4 +1149,114 @@ function ExportDialog(editorUi)
 	tbody.appendChild(row);
 	table.appendChild(tbody);
 	this.container = table;
+};
+
+/**
+ * Constructs a new metadata dialog.
+ */
+function MetadataDialog(ui, cell)
+{
+	var div = document.createElement('div');
+
+	div.style.height = '310px';
+	div.style.overflow = 'auto';
+	
+	var value = ui.editor.graph.getModel().getValue(cell);
+	
+	// Converts the value to an XML node
+	if (!mxUtils.isNode(value))
+	{
+		var doc = mxUtils.createXmlDocument();
+		var obj = doc.createElement('object');
+		obj.setAttribute('label', value || '');
+		value = obj;
+	}
+
+	// Creates the dialog contents
+	var form = new mxForm('properties');
+	var attrs = value.attributes;
+	var names = [];
+	var texts = [];
+	var count = 0;
+	
+	for (var i = 0; i < attrs.length; i++)
+	{
+		if (attrs[i].nodeName != 'label')
+		{
+			names[count] = attrs[i].nodeName;
+			texts[count] = form.addTextarea(names[count], attrs[i].nodeValue, 2);
+			count++;
+		}
+	}
+	
+	var nodata = document.createElement('div');
+	mxUtils.write(nodata, mxResources.get('none'));
+	div.appendChild(nodata);
+	nodata.style.display = (attrs.length <= 1) ? '' : 'none';
+
+	div.appendChild(form.table);
+	
+	// Adds buttons
+	var addBtn = mxUtils.button(mxResources.get('add') + '...', function()
+	{
+		var name = mxUtils.prompt(mxResources.get('enterName'));
+		
+		if (name != null && name.length > 0)
+		{
+			var idx = mxUtils.indexOf(names, name);
+			
+			if (idx >= 0)
+			{
+				texts[idx].focus();
+			}
+			else
+			{
+				names.push(name);
+				var text = form.addTextarea(name, '', 2);
+				texts.push(text);
+				text.focus();
+				
+				nodata.style.display = 'none';
+			}
+		}
+	});
+
+	var applyBtn = mxUtils.button(mxResources.get('apply'), function()
+	{
+		try
+		{
+			ui.hideDialog.apply(ui, arguments);
+			
+			// Clones and updates the value
+			value = value.cloneNode(true);
+			
+			for (var i = 0; i < names.length; i++)
+			{
+				value.setAttribute(names[i], texts[i].value);
+			}
+			
+			// Updates the value of the cell (undoable)
+			ui.editor.graph.getModel().setValue(cell, value);
+		}
+		catch (e)
+		{
+			mxUtils.alert(e);
+		}
+	});
+	
+	var cancelBtn = mxUtils.button(mxResources.get('cancel'), function()
+	{
+		ui.hideDialog.apply(ui, arguments);
+	});
+	
+	var buttons = document.createElement('div');
+	buttons.style.marginTop = '10px';
+	buttons.style.textAlign = 'right';
+
+	buttons.appendChild(addBtn);
+	buttons.appendChild(applyBtn);
+	buttons.appendChild(cancelBtn);
+
+	div.appendChild(buttons);
+	this.container = div;
 };

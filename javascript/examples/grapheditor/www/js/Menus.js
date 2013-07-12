@@ -1,5 +1,5 @@
 /**
- * $Id: Menus.js,v 1.20 2013/06/21 12:19:17 gaudenz Exp $
+ * $Id: Menus.js,v 1.21 2013/07/08 12:55:21 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -417,7 +417,7 @@ Menus.prototype.init = function()
 	this.put('edit', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
 		this.addMenuItems(menu, ['undo', 'redo', '-', 'cut', 'copy', 'paste', 'delete', '-', 'duplicate', '-',
-		                         'editLink', 'openLink', '-', 'selectVertices', 'selectEdges', 'selectAll', '-',
+		                         'editMetadata', 'editLink', 'openLink', '-', 'selectVertices', 'selectEdges', 'selectAll', '-',
 		                         'setAsDefaultEdge']);
 	})));
 	this.put('options', new Menu(mxUtils.bind(this, function(menu, parent)
