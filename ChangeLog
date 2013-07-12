@@ -1,3 +1,8 @@
+12-JUL-2013: 2.1.0.2
+
+- Fixes possible index out of bounds in mxPolyline [JavaScript]
+- Adds option in tree layout to align ranks [JavaScript]
+
 12-JUL-2013: 2.1.0.1
 
 - Ignores overlapping points in mxConnector, mxPolyline [JavaScript]

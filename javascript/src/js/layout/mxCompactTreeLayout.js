@@ -1,5 +1,5 @@
 /**
- * $Id: mxCompactTreeLayout.js,v 1.3 2013/05/08 12:29:34 gaudenz Exp $
+ * $Id: mxCompactTreeLayout.js,v 1.5 2013/07/12 10:09:09 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -146,6 +146,22 @@ mxCompactTreeLayout.prototype.edgeRouting = true;
 mxCompactTreeLayout.prototype.sortEdges = false;
 
 /**
+ * Variable: alignRanks
+ * 
+ * Whether or not the tops of cells in each rank should be aligned
+ * across the rank
+ */
+mxCompactTreeLayout.prototype.alignRanks = false;
+
+/**
+ * Variable: maxRankHeight
+ * 
+ * An array of the maximum height of cells (relative to the layout direction)
+ * per rank
+ */
+mxCompactTreeLayout.prototype.maxRankHeight = null;
+
+/**
  * Function: isVertexIgnored
  * 
  * Returns a boolean indicating if the given <mxCell> should be ignored as a
@@ -237,6 +253,13 @@ mxCompactTreeLayout.prototype.execute = function(parent, root)
 		try
 		{
 			var node = this.dfs(root, parent);
+			
+			if (this.alignRanks)
+			{
+				this.maxRankHeight = [];
+				this.findRankHeights(node, 0);
+				this.setCellHeights(node, 0);
+			}
 			
 			if (node != null)
 			{
@@ -358,6 +381,50 @@ mxCompactTreeLayout.prototype.sortOutgoingEdges = function(source, edges)
 
 		return mxCellPath.compare(p1, p2);
 	});
+};
+
+/**
+ * Function: findRankHeights
+ * 
+ * Stores the maximum height (relative to the layout
+ * direction) of cells in each rank
+ */
+mxCompactTreeLayout.prototype.findRankHeights = function(node, rank)
+{
+	if (this.maxRankHeight[rank] == null || this.maxRankHeight[rank] < node.height)
+	{
+		this.maxRankHeight[rank] = node.height;
+	}
+
+	var child = node.child;
+	
+	while (child != null)
+	{
+		this.findRankHeights(child, rank + 1);
+		child = child.next;
+	}
+};
+
+/**
+ * Function: setCellHeights
+ * 
+ * Set the cells heights (relative to the layout
+ * direction) when the tops of each rank are to be aligned
+ */
+mxCompactTreeLayout.prototype.setCellHeights = function(node, rank)
+{
+	if (this.maxRankHeight[rank] != null && this.maxRankHeight[rank] > node.height)
+	{
+		node.height = this.maxRankHeight[rank];
+	}
+
+	var child = node.child;
+	
+	while (child != null)
+	{
+		this.setCellHeights(child, rank + 1);
+		child = child.next;
+	}
 };
 
 /**

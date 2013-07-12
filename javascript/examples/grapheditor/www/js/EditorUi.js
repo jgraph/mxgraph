@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.29 2013/07/09 08:12:44 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.30 2013/07/12 12:53:26 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -200,6 +200,11 @@ EditorUi.prototype.hsplitPosition = 204;
  * Specifies the position of the vertical split bar. Default is 190.
  */
 EditorUi.prototype.vsplitPosition = 190;
+
+/**
+ * Specifies if animations are allowed in <executeLayout>. Default is true.
+ */
+EditorUi.prototype.allowAnimation = true;
 
 /**
  * Installs the listeners to update the action states.
@@ -822,8 +827,6 @@ EditorUi.prototype.saveFile = function(forceDialog)
  */
 EditorUi.prototype.executeLayout = function(exec, animate, post)
 {
-	// Allow global overridding of animation
-	animate = this.animate != null ? this.animate : animate;
 	var graph = this.editor.graph;
 
 	graph.getModel().beginUpdate();
@@ -839,7 +842,7 @@ EditorUi.prototype.executeLayout = function(exec, animate, post)
 	{
 		// Animates the changes in the graph model except
 		// for Camino, where animation is too slow
-		if (animate && navigator.userAgent.indexOf('Camino') < 0)
+		if (this.allowAnimation && animate && navigator.userAgent.indexOf('Camino') < 0)
 		{
 			// New API for animating graph layout results asynchronously
 			var morph = new mxMorphing(graph);

@@ -1,5 +1,5 @@
 /**
- * $Id: mxPolyline.js,v 1.6 2013/07/09 16:49:27 gaudenz Exp $
+ * $Id: mxPolyline.js,v 1.7 2013/07/12 13:31:11 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -115,7 +115,7 @@ mxPolyline.prototype.paintLine = function(c, pts, rounded)
 			var next = pts[i + 1];
 			
 			// Uses next non-overlapping point
-			while (i < pts.length - 1 && Math.round(next.x - tmp.x) == 0 && Math.round(next.y - tmp.y) == 0)
+			while (i < pts.length - 2 && Math.round(next.x - tmp.x) == 0 && Math.round(next.y - tmp.y) == 0)
 			{
 				next = pts[i + 2];
 				i++;
