@@ -1,5 +1,5 @@
 /**
- * $Id: Actions.js,v 1.11 2013/07/08 12:55:21 gaudenz Exp $
+ * $Id: Actions.js,v 1.12 2013/07/15 13:54:44 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -131,7 +131,7 @@ Actions.prototype.init = function()
 	this.addAction('ungroup', function() { graph.setSelectionCells(graph.ungroupCells()); }, null, null, 'Ctrl+U');
 	this.addAction('removeFromGroup', function() { graph.removeCellsFromParent(); });
 	// Adds action
-	this.addAction('editMetadata', function()
+	this.addAction('editData', function()
 	{
 		var cell = graph.getSelectionCell() || graph.getModel().getRoot();
 		
@@ -451,6 +451,14 @@ Actions.prototype.init = function()
 	});
 	action.setToggleAction(true);
 	action.setSelectedCallback(function() { return graph.connectionHandler.isCreateTarget(); });
+	action = this.addAction('autosave', function()
+	{
+		ui.editor.autosave = !ui.editor.autosave;
+		ui.editor.setStatus('');
+	});
+	action.setToggleAction(true);
+	action.setSelectedCallback(function() { return ui.editor.autosave; });
+	action.visible = false;
 	
 	// Help actions
 	this.addAction('help', function()
@@ -672,6 +680,7 @@ function Action(label, funct, enabled, iconCls, shortcut)
 	this.enabled = (enabled != null) ? enabled : true;
 	this.iconCls = iconCls;
 	this.shortcut = shortcut;
+	this.visible = true;
 };
 
 // Action inherits from mxEventSource

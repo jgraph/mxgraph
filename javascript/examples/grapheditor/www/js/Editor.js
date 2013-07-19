@@ -1,5 +1,5 @@
 /**
- * $Id: Editor.js,v 1.20 2013/07/09 08:12:44 gaudenz Exp $
+ * $Id: Editor.js,v 1.22 2013/07/19 06:13:37 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 // Specifies if local storage should be used (eg. on the iPad which has no filesystem)
@@ -75,7 +75,7 @@ Editor = function()
 	// Updates modified state if graph changes
 	this.graphChangeListener = function() 
 	{
-		this.modified = true;
+		this.setModified(true);
 	};
 	this.graph.getModel().addListener(mxEvent.CHANGE, mxUtils.bind(this, function()
 	{
@@ -121,6 +121,17 @@ Editor.prototype.filename = null;
  * new diagrams and after the diagram was saved.
  */
 Editor.prototype.modified = false;
+
+/**
+ * Specifies if the diagram should be saved automatically if possible. Default
+ * is true.
+ */
+Editor.prototype.autosave = true;
+
+/**
+ * Specifies the app name. Default is 'Grapheditor'.
+ */
+Editor.prototype.appName = 'Grapheditor';
 
 /**
  * Sets the XML node for the current diagram.
@@ -327,7 +338,6 @@ Editor.prototype.updateGraphComponents = function()
 Editor.prototype.setModified = function(value)
 {
 	this.modified = value;
-	this.updateDocumentTitle();
 };
 
 /**
@@ -336,7 +346,6 @@ Editor.prototype.setModified = function(value)
 Editor.prototype.setFilename = function(value)
 {
 	this.filename = value;
-	this.updateDocumentTitle();
 };
 
 /**
@@ -344,7 +353,14 @@ Editor.prototype.setFilename = function(value)
  */
 Editor.prototype.updateDocumentTitle = function()
 {
-	document.title = this.getOrCreateFilename();
+	var title = this.getOrCreateFilename();
+	
+	if (this.appName != null)
+	{
+		title += ' - ' + this.appName;
+	}
+	
+	document.title = title;
 };
 
 /**

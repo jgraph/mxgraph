@@ -1,5 +1,5 @@
 /**
- * $Id: Menus.js,v 1.21 2013/07/08 12:55:21 gaudenz Exp $
+ * $Id: Menus.js,v 1.22 2013/07/15 13:54:44 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -417,13 +417,13 @@ Menus.prototype.init = function()
 	this.put('edit', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
 		this.addMenuItems(menu, ['undo', 'redo', '-', 'cut', 'copy', 'paste', 'delete', '-', 'duplicate', '-',
-		                         'editMetadata', 'editLink', 'openLink', '-', 'selectVertices', 'selectEdges', 'selectAll', '-',
+		                         'editData', 'editLink', 'openLink', '-', 'selectVertices', 'selectEdges', 'selectAll', '-',
 		                         'setAsDefaultEdge']);
 	})));
 	this.put('options', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
 		this.addMenuItems(menu, ['grid', 'guides', 'tooltips', '-', 'connect', 'copyConnect', 'navigation',
-		                         '-', 'scrollbars', 'pageView', '-', 'pageBackgroundColor']);
+		                         '-', 'scrollbars', 'pageView', '-', 'pageBackgroundColor', '-', 'autosave']);
 	})));
 	this.put('help', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -569,7 +569,7 @@ Menus.prototype.addMenuItem = function(menu, key, parent)
 {
 	var action = this.editorUi.actions.get(key);
 
-	if (action != null && (menu.showDisabled || action.enabled))
+	if (action != null && (menu.showDisabled || action.enabled) && action.visible)
 	{
 		var item = menu.addItem(action.label, null, action.funct, parent, null, action.enabled);
 		
