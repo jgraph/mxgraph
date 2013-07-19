@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellEditor.js,v 1.11 2013/07/09 08:12:44 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.12 2013/07/15 16:21:57 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -327,8 +327,12 @@ mxCellEditor.prototype.resize = function()
 			
 			if (clip)
 			{
-				ow = Math.min(this.bounds.width - 4, ow);
+				ow = Math.min(this.bounds.width, ow);
 				oh = Math.min(this.bounds.height, oh);
+			}
+			else if (wrap)
+			{
+				ow = Math.max(this.bounds.width, this.textDiv.scrollWidth);
 			}
 			
 			var m = (state.text != null) ? state.text.margin : null;
@@ -344,19 +348,12 @@ mxCellEditor.prototype.resize = function()
 			if (m != null)
 			{
 				// TODO: Keep in visible area, add spacing
-				if (clip || !wrap)
-				{
-					this.textarea.style.left = Math.max(0, Math.round(this.bounds.x - m.x * this.bounds.width + m.x * ow) - 3) + 'px';
-				}
-	
+				this.textarea.style.left = Math.max(0, Math.round(this.bounds.x - m.x * this.bounds.width + m.x * ow) - 3) + 'px';
 				this.textarea.style.top = Math.max(0, Math.round(this.bounds.y - m.y * this.bounds.height + m.y * oh) + 4) + 'px';
 			}
-			
-			if (clip || !wrap)
-			{
-				this.textarea.style.width = ow + 'px';
-			}
-		
+
+			var dx = this.textarea.offsetWidth - this.textarea.clientWidth + 4;
+			this.textarea.style.width = (ow + dx) + 'px';
 			this.textarea.style.height = oh + 'px';
 		}
 	}

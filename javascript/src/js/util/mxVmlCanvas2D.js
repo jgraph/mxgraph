@@ -1,5 +1,5 @@
 /**
- * $Id: mxVmlCanvas2D.js,v 1.44 2013/04/30 14:30:01 gaudenz Exp $
+ * $Id: mxVmlCanvas2D.js,v 1.45 2013/07/15 16:21:57 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -813,6 +813,13 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				
 				w = div.offsetWidth;
 				var oh = div.offsetHeight;
+				
+				// Handles words that are longer than the given wrapping width
+				if (!clip && wrap)
+				{
+					w = Math.max(w, div.scrollWidth);
+					div.style.width = w + 'px';
+				}
 				
 				// Simulates max-height in quirks
 				if (mxClient.IS_QUIRKS && (clip || overflow == 'width') && oh > h)

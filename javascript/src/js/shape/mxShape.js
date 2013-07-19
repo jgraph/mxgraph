@@ -1,5 +1,5 @@
 /**
-aaa * $Id: mxShape.js,v 1.43 2013/07/02 14:47:00 gaudenz Exp $
+aaa * $Id: mxShape.js,v 1.44 2013/07/18 13:32:27 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -107,7 +107,7 @@ mxShape.prototype.points = null;
  * Holds the outermost DOM node that represents this shape.
  */
 mxShape.prototype.node = null;
-
+ 
 /**
  * Variable: state
  * 
@@ -220,7 +220,9 @@ mxShape.prototype.isHtmlAllowed = function()
  */
 mxShape.prototype.getSvgScreenOffset = function()
 {
-	return (mxUtils.mod(Math.max(1, Math.round(this.strokewidth * this.scale)), 2) == 1) ? 0.5 : 0;
+	var sw = this.stencil && this.stencil.strokewidth != 'inherit' ? Number(this.stencil.strokewidth) : this.strokewidth;
+	
+	return (mxUtils.mod(Math.max(1, Math.round(sw * this.scale)), 2) == 1) ? 0.5 : 0;
 };
 
 /**

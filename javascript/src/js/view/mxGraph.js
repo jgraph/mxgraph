@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.31 2013/07/09 10:24:08 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.32 2013/07/18 13:34:02 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -5866,7 +5866,7 @@ mxGraph.prototype.getConnectionPoint = function(vertex, constraint)
 				var flipV = vertex.style[mxConstants.STYLE_FLIPV];
 				
 				// Legacy support for stencilFlipH/V
-				if (vertex.shape.stencil != null)
+				if (vertex.shape != null && vertex.shape.stencil != null)
 				{
 					flipH = mxUtils.getValue(vertex.style, 'stencilFlipH', 0) == 1 || flipH;
 					flipV = mxUtils.getValue(vertex.style, 'stencilFlipV', 0) == 1 || flipV;

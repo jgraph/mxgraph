@@ -1,5 +1,5 @@
 /**
- * $Id: mxKeyHandler.js,v 1.1 2012/11/15 13:26:44 gaudenz Exp $
+ * $Id: mxKeyHandler.js,v 1.2 2013/07/18 13:39:57 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -75,14 +75,14 @@ function mxKeyHandler(graph, target)
 		this.shiftKeys = [];
 		this.controlKeys = [];
 		this.controlShiftKeys = [];
+		
+		this.keydownHandler = mxUtils.bind(this, function(evt)
+		{
+			this.keyDown(evt);
+		});
 
 		// Installs the keystroke listener in the target
-		mxEvent.addListener(this.target, "keydown",
-			mxUtils.bind(this, function(evt)
-			{
-				this.keyDown(evt);
-			})
-		);
+		mxEvent.addListener(this.target, 'keydown', this.keydownHandler);
 		
 		// Automatically deallocates memory in IE
 		if (mxClient.IS_IE)
@@ -398,5 +398,11 @@ mxKeyHandler.prototype.escape = function(evt)
  */
 mxKeyHandler.prototype.destroy = function()
 {
+	if (this.target != null && this.keydownHandler != null)
+	{
+		mxEvent.removeListener(this.target, 'keydown', this.keydownHandler);
+		this.keydownHandler = null;
+	}
+	
 	this.target = null;
 };

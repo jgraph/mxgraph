@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.30 2013/07/12 12:53:26 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.32 2013/07/19 06:13:37 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -236,6 +236,8 @@ EditorUi.prototype.init = function()
 		mxClipboardCopy.apply(this, arguments);
 		updatePaste();
 	};
+	
+	updatePaste();
 };
 
 /**
@@ -269,6 +271,7 @@ EditorUi.prototype.open = function()
 					if (filename != null)
 					{
 						this.editor.setFilename(filename);
+						this.editor.updateDocumentTitle();
 					}
 				}
 				catch (e)
@@ -324,6 +327,7 @@ EditorUi.prototype.save = function(name)
 
 			this.editor.setModified(false);
 			this.editor.setFilename(name);
+			this.editor.updateDocumentTitle();
 		}
 		catch (e)
 		{
@@ -994,7 +998,7 @@ EditorUi.prototype.createKeyHandler = function(editor)
     bindAction(81, true, 'connect'); // Ctrl+Q
     bindAction(86, true, 'paste'); // Ctrl+V
     bindAction(71, true, 'group'); // Ctrl+G
-    bindAction(77, true, 'editMetadata'); // Ctrl+M
+    bindAction(77, true, 'editData'); // Ctrl+M
     bindAction(71, true, 'grid', true); // Ctrl+Shift+G
     bindAction(76, true, 'lockUnlock'); // Ctrl+L
     bindAction(85, true, 'ungroup'); // Ctrl+U

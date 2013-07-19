@@ -1,5 +1,5 @@
 /**
- * $Id: Dialogs.js,v 1.8 2013/07/08 12:55:22 gaudenz Exp $
+ * $Id: Dialogs.js,v 1.9 2013/07/19 06:13:37 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -35,7 +35,7 @@ function Dialog(editorUi, elt, w, h, modal, closable, onClose)
 		this.bg.style.top = '0px';
 		this.bg.style.bottom = '0px';
 		this.bg.style.right = '0px';
-		mxUtils.setOpacity(this.bg, 80);
+		mxUtils.setOpacity(this.bg, this.bgOpacity);
 		
 		if (mxClient.IS_QUIRKS)
 		{
@@ -73,6 +73,11 @@ function Dialog(editorUi, elt, w, h, modal, closable, onClose)
 	this.onDialogClose = onClose;
 	this.container = div;
 };
+
+/**
+ * Removes the dialog from the DOM.
+ */
+Dialog.prototype.bgOpacity = 80;
 
 /**
  * Removes the dialog from the DOM.
@@ -1211,12 +1216,23 @@ function MetadataDialog(ui, cell)
 			}
 			else
 			{
-				names.push(name);
-				var text = form.addTextarea(name, '', 2);
-				texts.push(text);
-				text.focus();
-				
-				nodata.style.display = 'none';
+				try
+				{
+					// Checks if the name is valid
+					var clone = value.cloneNode(false);
+					clone.setAttribute(name, '');
+					
+					names.push(name);
+					var text = form.addTextarea(name, '', 2);
+					texts.push(text);
+					text.focus();
+					
+					nodata.style.display = 'none';
+				}
+				catch (e)
+				{
+					mxUtils.alert(e);
+				}
 			}
 		}
 	});

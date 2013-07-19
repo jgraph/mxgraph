@@ -1,5 +1,5 @@
 /**
- * $Id: mxStencil.js,v 1.11 2013/05/15 12:36:17 gaudenz Exp $
+ * $Id: mxStencil.js,v 1.12 2013/07/14 13:55:23 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -284,7 +284,7 @@ mxStencil.prototype.drawShape = function(canvas, shape, x, y, w, h)
  */
 mxStencil.prototype.drawChildren = function(canvas, shape, x, y, w, h, node, disableShadow)
 {
-	if (node != null)
+	if (node != null && w > 0 && h > 0)
 	{
 		var direction = mxUtils.getValue(shape.style, mxConstants.STYLE_DIRECTION, null);
 		var aspect = this.computeAspect(shape.style, x, y, w, h, direction);
@@ -448,8 +448,8 @@ mxStencil.prototype.drawNode = function(canvas, shape, node, aspect, disableShad
 	}
 	else if (name == 'roundrect')
 	{
-		var arcsize = node.getAttribute('arcsize');
-		
+		var arcsize = Number(node.getAttribute('arcsize'));
+
 		if (arcsize == 0)
 		{
 			arcsize = mxConstants.RECTANGLE_ROUNDING_FACTOR * 100;

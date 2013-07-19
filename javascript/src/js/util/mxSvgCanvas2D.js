@@ -1,5 +1,5 @@
 /**
- * $Id: mxSvgCanvas2D.js,v 1.54 2013/07/02 14:48:13 gaudenz Exp $
+ * $Id: mxSvgCanvas2D.js,v 1.55 2013/07/15 16:21:57 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -150,7 +150,8 @@ mxSvgCanvas2D.prototype.node = null;
 /**
  * Variable: matchHtmlAlignment
  * 
- * Specifies if plain text output should match HTML alignment. Defaul is true.
+ * Specifies if plain text output should match the vertical HTML alignment.
+ * Defaul is true.
  */
 mxSvgCanvas2D.prototype.matchHtmlAlignment = true;
 
@@ -1146,7 +1147,7 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 
 				document.body.appendChild(clone);
 				ow = clone.offsetWidth;
-				
+
 				// Computes max-height in quirks
 				if (mxClient.IS_QUIRKS && h > 0 && clip)
 				{
@@ -1182,7 +1183,14 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				ow = div.offsetWidth;
 				oh = div.offsetHeight;
 			}
-			
+
+			// Handles words that are longer than the given wrapping width
+			if (!clip && wrap && div.scrollWidth > ow)
+			{
+				ow = Math.max(ow, div.scrollWidth);
+				div.style.width = ow + 'px';
+			}
+								
 			if (overflow == 'fill')
 			{
 				w = Math.max(w, ow);

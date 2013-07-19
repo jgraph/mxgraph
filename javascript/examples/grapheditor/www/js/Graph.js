@@ -1,5 +1,5 @@
 /**
- * $Id: Graph.js,v 1.26 2013/07/08 12:55:22 gaudenz Exp $
+ * $Id: Graph.js,v 1.27 2013/07/19 06:12:36 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -300,7 +300,7 @@ Graph.prototype.getTooltipForCell = function(cell)
 		
 		for (var i = 0; i < attrs.length; i++)
 		{
-			if (attrs[i].nodeName != 'label')
+			if (attrs[i].nodeName != 'label' && attrs[i].nodeValue.length > 0)
 			{
 				tip += '\n' + attrs[i].nodeName + ': ' + attrs[i].nodeValue;
 			}

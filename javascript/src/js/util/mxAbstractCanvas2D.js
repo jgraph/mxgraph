@@ -1,5 +1,5 @@
 /**
- * $Id: mxAbstractCanvas2D.js,v 1.14 2013/01/14 14:00:58 gaudenz Exp $
+ * $Id: mxAbstractCanvas2D.js,v 1.15 2013/07/14 09:13:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -567,10 +567,13 @@ mxAbstractCanvas2D.prototype.arcTo = function(rx, ry, angle, largeArcFlag, sweep
 {
 	var curves = mxUtils.arcToCurves(this.lastX, this.lastY, rx, ry, angle, largeArcFlag, sweepFlag, x, y);
 	
-	for (var i = 0; i < curves.length; i += 6) 
+	if (curves != null)
 	{
-		this.curveTo(curves[i], curves[i + 1], curves[i + 2],
-			curves[i + 3], curves[i + 4], curves[i + 5]);
+		for (var i = 0; i < curves.length; i += 6) 
+		{
+			this.curveTo(curves[i], curves[i + 1], curves[i + 2],
+				curves[i + 3], curves[i + 4], curves[i + 5]);
+		}
 	}
 };
 

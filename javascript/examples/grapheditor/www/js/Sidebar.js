@@ -1,5 +1,5 @@
 /**
- * $Id: Sidebar.js,v 1.49 2013/07/10 07:17:07 mate Exp $
+ * $Id: Sidebar.js,v 1.50 2013/07/19 09:02:36 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -485,7 +485,7 @@ Sidebar.prototype.addUmlPalette = function(expand)
 	    content.appendChild(this.createVertexTemplate('ellipse', 140, 70, 'Use Case', 'Use Case', true));
 
     	var cardCell = new mxCell('', new mxGeometry(0, 0, 30, 30),
-    		'shape=startState;fillColor=#000000;strokeColor=#ff0000;');
+    		'ellipse;shape=startState;fillColor=#000000;strokeColor=#ff0000;');
     	cardCell.vertex = true;
     	
 		var assoc2 = new mxCell('', new mxGeometry(0, 0, 0, 0), 'edgeStyle=elbowEdgeStyle;elbow=horizontal;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#ff0000;');
@@ -554,14 +554,14 @@ Sidebar.prototype.addUmlPalette = function(expand)
 	
 		content.appendChild(this.createVertexTemplateFromCells([cardCell, assoc2], 200, 10, 'Fork/Join', true));
 
-		content.appendChild(this.createVertexTemplate('shape=endState;fillColor=#000000;strokeColor=#ff0000', 30, 30, '', 'End', true));
+		content.appendChild(this.createVertexTemplate('ellipse;shape=endState;fillColor=#000000;strokeColor=#ff0000', 30, 30, '', 'End', true));
 
 		var umlLifeline = new mxCell(':Object', new mxGeometry(0, 0, 100, 300), 'shape=umlLifeline;perimeter=lifelinePerimeter;');
 		umlLifeline.vertex = true;
      	
     	content.appendChild(this.createVertexTemplateFromCells([umlLifeline], 100, 300, 'Lifeline', true));
     	
-    	var classCell1 = new mxCell('', new mxGeometry(100, 0, 20, 70), '');
+    	var classCell1 = new mxCell('', new mxGeometry(100, 0, 20, 70));
      	classCell1.vertex = true;
 
 		var assoc1 = new mxCell('invoke', new mxGeometry(0, 0, 0, 0), 'edgeStyle=elbowEdgeStyle;elbow=vertical;verticalAlign=bottom;endArrow=block;');

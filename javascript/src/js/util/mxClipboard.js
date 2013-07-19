@@ -1,5 +1,5 @@
 /**
- * $Id: mxClipboard.js,v 1.2 2013/04/03 08:32:48 gaudenz Exp $
+ * $Id: mxClipboard.js,v 1.3 2013/07/15 15:25:38 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClipboard =
@@ -39,16 +39,16 @@ var mxClipboard =
 	 *   }
 	 *   
 	 *   mxClipboard.insertCount = 1;
-	 *   mxClipboard.cells = graph.cloneCells(result);
+	 *   mxClipboard.setCells(graph.cloneCells(result));
 	 *   
 	 *   return result;
 	 * };
 	 * 
 	 * mxClipboard.paste = function(graph)
 	 * {
-	 *   if (mxClipboard.cells != null)
+	 *   if (!mxClipboard.isEmpty())
 	 *   {
-	 *     var cells = graph.getImportableCells(mxClipboard.cells);
+	 *     var cells = graph.getImportableCells(mxClipboard.getCells());
 	 *     var delta = mxClipboard.insertCount * mxClipboard.STEPSIZE;
 	 *     var parent = graph.getDefaultParent();
 	 *     
@@ -94,6 +94,26 @@ var mxClipboard =
 	 * Holds the array of <mxCells> currently in the clipboard.
 	 */
 	cells: null,
+
+	/**
+	 * Function: setCells
+	 * 
+	 * Sets the cells in the clipboard. Fires a <mxEvent.CHANGE> event.
+	 */
+	setCells: function(cells)
+	{
+		mxClipboard.cells = cells;
+	},
+
+	/**
+	 * Function: getCells
+	 * 
+	 * Returns  the cells in the clipboard.
+	 */
+	getCells: function()
+	{
+		return mxClipboard.cells;
+	},
 	
 	/**
 	 * Function: isEmpty
@@ -102,9 +122,9 @@ var mxClipboard =
 	 */
 	isEmpty: function()
 	{
-		return mxClipboard.cells == null;
+		return mxClipboard.getCells() == null;
 	},
-
+	
 	/**
 	 * Function: cut
 	 * 
@@ -159,7 +179,7 @@ var mxClipboard =
 		cells = cells || graph.getSelectionCells();
 		var result = graph.getExportableCells(cells);
 		mxClipboard.insertCount = 1;
-		mxClipboard.cells = graph.cloneCells(result);
+		mxClipboard.setCells(graph.cloneCells(result));
 
 		return result;
 	},
@@ -180,9 +200,9 @@ var mxClipboard =
 	 */
 	paste: function(graph)
 	{
-		if (mxClipboard.cells != null)
+		if (!mxClipboard.isEmpty())
 		{
-			var cells = graph.getImportableCells(mxClipboard.cells);
+			var cells = graph.getImportableCells(mxClipboard.getCells());
 			var delta = mxClipboard.insertCount * mxClipboard.STEPSIZE;
 			var parent = graph.getDefaultParent();
 			cells = graph.importCells(cells, delta, delta, parent);

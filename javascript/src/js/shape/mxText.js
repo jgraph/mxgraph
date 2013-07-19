@@ -1,5 +1,5 @@
 /**
- * $Id: mxText.js,v 1.52 2013/07/09 08:12:44 gaudenz Exp $
+ * $Id: mxText.js,v 1.53 2013/07/15 16:21:57 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -230,6 +230,7 @@ mxText.prototype.updateBoundingBox = function()
 				node.firstChild.firstChild.nodeName == 'foreignObject')
 			{
 				node = node.firstChild.firstChild;
+
 				ow = (this.wrap) ? this.bounds.width : parseInt(node.getAttribute('width')) * this.scale;
 				oh = parseInt(node.getAttribute('height')) * this.scale;
 			}
@@ -249,7 +250,7 @@ mxText.prototype.updateBoundingBox = function()
 		else
 		{
 			var td = this.state.view.textDiv;
-			
+
 			// Use cached offset size
 			if (this.offsetWidth != null && this.offsetHeight != null)
 			{
@@ -441,9 +442,9 @@ mxText.prototype.redrawHtmlShape = function()
 	style.width = '';
 	style.height = '';
 	
+	this.updateValue();
 	this.updateFont(this.node);
 	this.updateSize(this.node);
-	this.updateValue();
 	
 	this.offsetWidth = null;
 	this.offsetHeight = null;
@@ -478,8 +479,8 @@ mxText.prototype.updateHtmlTransform = function()
 	}
 	else
 	{
-		mxUtils.setPrefixedStyle('transformOrigin', '0% 0%');
-		mxUtils.setPrefixedStyle('transform', 'scale(' + this.scale + ')' +
+		mxUtils.setPrefixedStyle(style, 'transformOrigin', '0% 0%');
+		mxUtils.setPrefixedStyle(style, 'transform', 'scale(' + this.scale + ')' +
 			'translate(' + (dx * 100) + '%' + ',' + (dy * 100) + '%)');
 	}
 
@@ -565,8 +566,8 @@ mxText.prototype.updateHtmlFilter = function()
 
 	if (this.overflow != 'fill' && this.overflow != 'width')
 	{
-		// Simulates max-height CSS in quirks mode
-		if (mxClient.IS_QUIRKS && (this.clipped || this.wrap) && w > 0)
+		// Simulates max-width CSS in quirks mode
+		if (mxClient.IS_QUIRKS && this.clipped && w > 0)
 		{
 			w = Math.min(w, ow);
 			style.width = Math.round(w) + 'px';
@@ -574,9 +575,14 @@ mxText.prototype.updateHtmlFilter = function()
 		else
 		{
 			w = ow;
+
+			if (this.wrap && !this.clipped)
+			{
+				style.width = Math.round(w) + 'px';
+			}
 		}
 	}
-	
+
 	h *= s;
 	w *= s;
 	
@@ -789,7 +795,9 @@ mxText.prototype.updateSize = function(node)
 	{
 		if (!this.clipped)
 		{
+			// Needs first call to update scrollWidth for wrapped text
 			style.width = w + 'px';
+			style.width = Math.max(w, this.node.scrollWidth) + 'px';
 		}
 		
 		style.whiteSpace = 'normal';

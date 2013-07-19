@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.1.0.2.
+	 * Current version is 2.1.0.3.
 	 */
-	VERSION: '2.1.0.2',
+	VERSION: '2.1.0.3',
 
 	/**
 	 * Variable: IS_IE
@@ -10140,7 +10140,7 @@ mxXmlRequest.prototype.simulate = function(doc, target)
 	}
 };
 /**
- * $Id: mxClipboard.js,v 1.2 2013/04/03 08:32:48 gaudenz Exp $
+ * $Id: mxClipboard.js,v 1.3 2013/07/15 15:25:38 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClipboard =
@@ -10180,16 +10180,16 @@ var mxClipboard =
 	 *   }
 	 *   
 	 *   mxClipboard.insertCount = 1;
-	 *   mxClipboard.cells = graph.cloneCells(result);
+	 *   mxClipboard.setCells(graph.cloneCells(result));
 	 *   
 	 *   return result;
 	 * };
 	 * 
 	 * mxClipboard.paste = function(graph)
 	 * {
-	 *   if (mxClipboard.cells != null)
+	 *   if (!mxClipboard.isEmpty())
 	 *   {
-	 *     var cells = graph.getImportableCells(mxClipboard.cells);
+	 *     var cells = graph.getImportableCells(mxClipboard.getCells());
 	 *     var delta = mxClipboard.insertCount * mxClipboard.STEPSIZE;
 	 *     var parent = graph.getDefaultParent();
 	 *     
@@ -10235,6 +10235,26 @@ var mxClipboard =
 	 * Holds the array of <mxCells> currently in the clipboard.
 	 */
 	cells: null,
+
+	/**
+	 * Function: setCells
+	 * 
+	 * Sets the cells in the clipboard. Fires a <mxEvent.CHANGE> event.
+	 */
+	setCells: function(cells)
+	{
+		mxClipboard.cells = cells;
+	},
+
+	/**
+	 * Function: getCells
+	 * 
+	 * Returns  the cells in the clipboard.
+	 */
+	getCells: function()
+	{
+		return mxClipboard.cells;
+	},
 	
 	/**
 	 * Function: isEmpty
@@ -10243,9 +10263,9 @@ var mxClipboard =
 	 */
 	isEmpty: function()
 	{
-		return mxClipboard.cells == null;
+		return mxClipboard.getCells() == null;
 	},
-
+	
 	/**
 	 * Function: cut
 	 * 
@@ -10300,7 +10320,7 @@ var mxClipboard =
 		cells = cells || graph.getSelectionCells();
 		var result = graph.getExportableCells(cells);
 		mxClipboard.insertCount = 1;
-		mxClipboard.cells = graph.cloneCells(result);
+		mxClipboard.setCells(graph.cloneCells(result));
 
 		return result;
 	},
@@ -10321,9 +10341,9 @@ var mxClipboard =
 	 */
 	paste: function(graph)
 	{
-		if (mxClipboard.cells != null)
+		if (!mxClipboard.isEmpty())
 		{
-			var cells = graph.getImportableCells(mxClipboard.cells);
+			var cells = graph.getImportableCells(mxClipboard.getCells());
 			var delta = mxClipboard.insertCount * mxClipboard.STEPSIZE;
 			var parent = graph.getDefaultParent();
 			cells = graph.importCells(cells, delta, delta, parent);
@@ -15797,7 +15817,7 @@ mxImageExport.prototype.drawOverlays = function(state, canvas)
 };
 
 /**
- * $Id: mxAbstractCanvas2D.js,v 1.14 2013/01/14 14:00:58 gaudenz Exp $
+ * $Id: mxAbstractCanvas2D.js,v 1.15 2013/07/14 09:13:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -16365,10 +16385,13 @@ mxAbstractCanvas2D.prototype.arcTo = function(rx, ry, angle, largeArcFlag, sweep
 {
 	var curves = mxUtils.arcToCurves(this.lastX, this.lastY, rx, ry, angle, largeArcFlag, sweepFlag, x, y);
 	
-	for (var i = 0; i < curves.length; i += 6) 
+	if (curves != null)
 	{
-		this.curveTo(curves[i], curves[i + 1], curves[i + 2],
-			curves[i + 3], curves[i + 4], curves[i + 5]);
+		for (var i = 0; i < curves.length; i += 6) 
+		{
+			this.curveTo(curves[i], curves[i + 1], curves[i + 2],
+				curves[i + 3], curves[i + 4], curves[i + 5]);
+		}
 	}
 };
 
@@ -17547,7 +17570,7 @@ mxXmlCanvas2D.prototype.fillAndStroke = function()
 	this.root.appendChild(this.createElement('fillstroke'));
 };
 /**
- * $Id: mxSvgCanvas2D.js,v 1.54 2013/07/02 14:48:13 gaudenz Exp $
+ * $Id: mxSvgCanvas2D.js,v 1.55 2013/07/15 16:21:57 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -17698,7 +17721,8 @@ mxSvgCanvas2D.prototype.node = null;
 /**
  * Variable: matchHtmlAlignment
  * 
- * Specifies if plain text output should match HTML alignment. Defaul is true.
+ * Specifies if plain text output should match the vertical HTML alignment.
+ * Defaul is true.
  */
 mxSvgCanvas2D.prototype.matchHtmlAlignment = true;
 
@@ -18694,7 +18718,7 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 
 				document.body.appendChild(clone);
 				ow = clone.offsetWidth;
-				
+
 				// Computes max-height in quirks
 				if (mxClient.IS_QUIRKS && h > 0 && clip)
 				{
@@ -18730,7 +18754,14 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				ow = div.offsetWidth;
 				oh = div.offsetHeight;
 			}
-			
+
+			// Handles words that are longer than the given wrapping width
+			if (!clip && wrap && div.scrollWidth > ow)
+			{
+				ow = Math.max(ow, div.scrollWidth);
+				div.style.width = ow + 'px';
+			}
+								
 			if (overflow == 'fill')
 			{
 				w = Math.max(w, ow);
@@ -19185,7 +19216,7 @@ mxSvgCanvas2D.prototype.fillAndStroke = function()
 	this.addNode(true, true);
 };
 /**
- * $Id: mxVmlCanvas2D.js,v 1.44 2013/04/30 14:30:01 gaudenz Exp $
+ * $Id: mxVmlCanvas2D.js,v 1.45 2013/07/15 16:21:57 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -20000,6 +20031,13 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				w = div.offsetWidth;
 				var oh = div.offsetHeight;
 				
+				// Handles words that are longer than the given wrapping width
+				if (!clip && wrap)
+				{
+					w = Math.max(w, div.scrollWidth);
+					div.style.width = w + 'px';
+				}
+				
 				// Simulates max-height in quirks
 				if (mxClient.IS_QUIRKS && (clip || overflow == 'width') && oh > h)
 				{
@@ -20568,7 +20606,7 @@ mxGuide.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxStencil.js,v 1.11 2013/05/15 12:36:17 gaudenz Exp $
+ * $Id: mxStencil.js,v 1.12 2013/07/14 13:55:23 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -20853,7 +20891,7 @@ mxStencil.prototype.drawShape = function(canvas, shape, x, y, w, h)
  */
 mxStencil.prototype.drawChildren = function(canvas, shape, x, y, w, h, node, disableShadow)
 {
-	if (node != null)
+	if (node != null && w > 0 && h > 0)
 	{
 		var direction = mxUtils.getValue(shape.style, mxConstants.STYLE_DIRECTION, null);
 		var aspect = this.computeAspect(shape.style, x, y, w, h, direction);
@@ -21017,8 +21055,8 @@ mxStencil.prototype.drawNode = function(canvas, shape, node, aspect, disableShad
 	}
 	else if (name == 'roundrect')
 	{
-		var arcsize = node.getAttribute('arcsize');
-		
+		var arcsize = Number(node.getAttribute('arcsize'));
+
 		if (arcsize == 0)
 		{
 			arcsize = mxConstants.RECTANGLE_ROUNDING_FACTOR * 100;
@@ -21190,7 +21228,7 @@ mxStencil.prototype.drawNode = function(canvas, shape, node, aspect, disableShad
 	}
 };
 /**
-aaa * $Id: mxShape.js,v 1.43 2013/07/02 14:47:00 gaudenz Exp $
+aaa * $Id: mxShape.js,v 1.44 2013/07/18 13:32:27 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -21298,7 +21336,7 @@ mxShape.prototype.points = null;
  * Holds the outermost DOM node that represents this shape.
  */
 mxShape.prototype.node = null;
-
+ 
 /**
  * Variable: state
  * 
@@ -21411,7 +21449,9 @@ mxShape.prototype.isHtmlAllowed = function()
  */
 mxShape.prototype.getSvgScreenOffset = function()
 {
-	return (mxUtils.mod(Math.max(1, Math.round(this.strokewidth * this.scale)), 2) == 1) ? 0.5 : 0;
+	var sw = this.stencil && this.stencil.strokewidth != 'inherit' ? Number(this.stencil.strokewidth) : this.strokewidth;
+	
+	return (mxUtils.mod(Math.max(1, Math.round(sw * this.scale)), 2) == 1) ? 0.5 : 0;
 };
 
 /**
@@ -23369,7 +23409,7 @@ mxArrow.prototype.paintEdgeShape = function(c, pts)
 	c.fillAndStroke();
 };
 /**
- * $Id: mxText.js,v 1.52 2013/07/09 08:12:44 gaudenz Exp $
+ * $Id: mxText.js,v 1.53 2013/07/15 16:21:57 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -23600,6 +23640,7 @@ mxText.prototype.updateBoundingBox = function()
 				node.firstChild.firstChild.nodeName == 'foreignObject')
 			{
 				node = node.firstChild.firstChild;
+
 				ow = (this.wrap) ? this.bounds.width : parseInt(node.getAttribute('width')) * this.scale;
 				oh = parseInt(node.getAttribute('height')) * this.scale;
 			}
@@ -23619,7 +23660,7 @@ mxText.prototype.updateBoundingBox = function()
 		else
 		{
 			var td = this.state.view.textDiv;
-			
+
 			// Use cached offset size
 			if (this.offsetWidth != null && this.offsetHeight != null)
 			{
@@ -23811,9 +23852,9 @@ mxText.prototype.redrawHtmlShape = function()
 	style.width = '';
 	style.height = '';
 	
+	this.updateValue();
 	this.updateFont(this.node);
 	this.updateSize(this.node);
-	this.updateValue();
 	
 	this.offsetWidth = null;
 	this.offsetHeight = null;
@@ -23848,8 +23889,8 @@ mxText.prototype.updateHtmlTransform = function()
 	}
 	else
 	{
-		mxUtils.setPrefixedStyle('transformOrigin', '0% 0%');
-		mxUtils.setPrefixedStyle('transform', 'scale(' + this.scale + ')' +
+		mxUtils.setPrefixedStyle(style, 'transformOrigin', '0% 0%');
+		mxUtils.setPrefixedStyle(style, 'transform', 'scale(' + this.scale + ')' +
 			'translate(' + (dx * 100) + '%' + ',' + (dy * 100) + '%)');
 	}
 
@@ -23935,8 +23976,8 @@ mxText.prototype.updateHtmlFilter = function()
 
 	if (this.overflow != 'fill' && this.overflow != 'width')
 	{
-		// Simulates max-height CSS in quirks mode
-		if (mxClient.IS_QUIRKS && (this.clipped || this.wrap) && w > 0)
+		// Simulates max-width CSS in quirks mode
+		if (mxClient.IS_QUIRKS && this.clipped && w > 0)
 		{
 			w = Math.min(w, ow);
 			style.width = Math.round(w) + 'px';
@@ -23944,9 +23985,14 @@ mxText.prototype.updateHtmlFilter = function()
 		else
 		{
 			w = ow;
+
+			if (this.wrap && !this.clipped)
+			{
+				style.width = Math.round(w) + 'px';
+			}
 		}
 	}
-	
+
 	h *= s;
 	w *= s;
 	
@@ -24159,7 +24205,9 @@ mxText.prototype.updateSize = function(node)
 	{
 		if (!this.clipped)
 		{
+			// Needs first call to update scrollWidth for wrapped text
 			style.width = w + 'px';
+			style.width = Math.max(w, this.node.scrollWidth) + 'px';
 		}
 		
 		style.whiteSpace = 'normal';
@@ -39954,7 +40002,7 @@ mxSelectionChange.prototype.execute = function()
 			'added', this.added, 'removed', this.removed));
 };
 /**
- * $Id: mxCellEditor.js,v 1.11 2013/07/09 08:12:44 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.12 2013/07/15 16:21:57 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -40282,8 +40330,12 @@ mxCellEditor.prototype.resize = function()
 			
 			if (clip)
 			{
-				ow = Math.min(this.bounds.width - 4, ow);
+				ow = Math.min(this.bounds.width, ow);
 				oh = Math.min(this.bounds.height, oh);
+			}
+			else if (wrap)
+			{
+				ow = Math.max(this.bounds.width, this.textDiv.scrollWidth);
 			}
 			
 			var m = (state.text != null) ? state.text.margin : null;
@@ -40299,19 +40351,12 @@ mxCellEditor.prototype.resize = function()
 			if (m != null)
 			{
 				// TODO: Keep in visible area, add spacing
-				if (clip || !wrap)
-				{
-					this.textarea.style.left = Math.max(0, Math.round(this.bounds.x - m.x * this.bounds.width + m.x * ow) - 3) + 'px';
-				}
-	
+				this.textarea.style.left = Math.max(0, Math.round(this.bounds.x - m.x * this.bounds.width + m.x * ow) - 3) + 'px';
 				this.textarea.style.top = Math.max(0, Math.round(this.bounds.y - m.y * this.bounds.height + m.y * oh) + 4) + 'px';
 			}
-			
-			if (clip || !wrap)
-			{
-				this.textarea.style.width = ow + 'px';
-			}
-		
+
+			var dx = this.textarea.offsetWidth - this.textarea.clientWidth + 4;
+			this.textarea.style.width = (ow + dx) + 'px';
 			this.textarea.style.height = oh + 'px';
 		}
 	}
@@ -46232,7 +46277,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.31 2013/07/09 10:24:08 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.32 2013/07/18 13:34:02 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -52099,7 +52144,7 @@ mxGraph.prototype.getConnectionPoint = function(vertex, constraint)
 				var flipV = vertex.style[mxConstants.STYLE_FLIPV];
 				
 				// Legacy support for stencilFlipH/V
-				if (vertex.shape.stencil != null)
+				if (vertex.shape != null && vertex.shape.stencil != null)
 				{
 					flipH = mxUtils.getValue(vertex.style, 'stencilFlipH', 0) == 1 || flipH;
 					flipV = mxUtils.getValue(vertex.style, 'stencilFlipV', 0) == 1 || flipV;
@@ -68632,7 +68677,7 @@ mxEdgeSegmentHandler.prototype.changePoints = function(edge, points)
 	mxElbowEdgeHandler.prototype.changePoints.apply(this, arguments);
 };
 /**
- * $Id: mxKeyHandler.js,v 1.1 2012/11/15 13:26:44 gaudenz Exp $
+ * $Id: mxKeyHandler.js,v 1.2 2013/07/18 13:39:57 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -68708,14 +68753,14 @@ function mxKeyHandler(graph, target)
 		this.shiftKeys = [];
 		this.controlKeys = [];
 		this.controlShiftKeys = [];
+		
+		this.keydownHandler = mxUtils.bind(this, function(evt)
+		{
+			this.keyDown(evt);
+		});
 
 		// Installs the keystroke listener in the target
-		mxEvent.addListener(this.target, "keydown",
-			mxUtils.bind(this, function(evt)
-			{
-				this.keyDown(evt);
-			})
-		);
+		mxEvent.addListener(this.target, 'keydown', this.keydownHandler);
 		
 		// Automatically deallocates memory in IE
 		if (mxClient.IS_IE)
@@ -69031,6 +69076,12 @@ mxKeyHandler.prototype.escape = function(evt)
  */
 mxKeyHandler.prototype.destroy = function()
 {
+	if (this.target != null && this.keydownHandler != null)
+	{
+		mxEvent.removeListener(this.target, 'keydown', this.keydownHandler);
+		this.keydownHandler = null;
+	}
+	
 	this.target = null;
 };
 /**
