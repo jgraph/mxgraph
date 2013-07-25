@@ -1,5 +1,5 @@
 /**
- * $Id: mxSwimlaneManager.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
+ * $Id: mxSwimlaneManager.js,v 1.2 2013/07/22 12:01:42 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -237,8 +237,7 @@ mxSwimlaneManager.prototype.isCellHorizontal = function(cell)
 {
 	if (this.graph.isSwimlane(cell))
 	{
-		var state = this.graph.view.getState(cell);
-		var style = (state != null) ? state.style : this.graph.getCellStyle(cell);
+		var style = this.graph.getCellStyle(cell);
 		
 		return mxUtils.getValue(style, mxConstants.STYLE_HORIZONTAL, 1) == 1;
 	}
@@ -344,7 +343,7 @@ mxSwimlaneManager.prototype.cellsResized = function(cells)
 				if (!this.isSwimlaneIgnored(cells[i]))
 				{
 					var geo = model.getGeometry(cells[i]);
-					
+
 					if (geo != null)
 					{
 						var size = new mxRectangle(0, 0, geo.width, geo.height);
@@ -361,7 +360,7 @@ mxSwimlaneManager.prototype.cellsResized = function(cells)
 							size.width += tmp.width;
 							size.height += tmp.height;
 						}
-						
+
 						this.resizeSwimlane(top, size.width, size.height);
 					}
 				}
@@ -391,7 +390,7 @@ mxSwimlaneManager.prototype.resizeSwimlane = function(swimlane, w, h)
 	
 	model.beginUpdate();
 	try
-	{	
+	{
 		if (!this.isSwimlaneIgnored(swimlane))
 		{
 			var geo = model.getGeometry(swimlane);
@@ -412,7 +411,7 @@ mxSwimlaneManager.prototype.resizeSwimlane = function(swimlane, w, h)
 					{
 						geo.width = w;
 					}
-					
+
 					model.setGeometry(swimlane, geo);
 				}
 			}

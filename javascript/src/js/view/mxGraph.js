@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.32 2013/07/18 13:34:02 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.34 2013/07/23 21:28:29 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -548,8 +548,9 @@
  *
  * Fires between begin- and endUpdate in <cellLabelChanged>. The
  * <code>cell</code> property contains the cell, the <code>value</code>
- * property contains the new value for the cell and the optional
- * <code>event</code> property contains the mouse event that started the edit.
+ * property contains the new value for the cell, the <code>old</code> property
+ * contains the old value and the optional <code>event</code> property contains
+ * the mouse event that started the edit.
  * 
  * Event: mxEvent.ADD_OVERLAY
  *
@@ -2314,9 +2315,10 @@ mxGraph.prototype.labelChanged = function(cell, value, evt)
 	this.model.beginUpdate();
 	try
 	{
+		var old = cell.value;
 		this.cellLabelChanged(cell, value, this.isAutoSizeCell(cell));
 		this.fireEvent(new mxEventObject(mxEvent.LABEL_CHANGED,
-				'cell', cell, 'value', value, 'event', evt));
+			'cell', cell, 'value', value, 'old', old, 'event', evt));
 	}
 	finally
 	{
@@ -6508,6 +6510,8 @@ mxGraph.prototype.getBoundingBoxFromGeometry = function(cells, includeEdges)
 						
 						addPoint(geo.getTerminalPoint(true));
 						addPoint(geo.getTerminalPoint(false));
+						
+						geo = tmp;
 					}
 					
 					if (result == null)

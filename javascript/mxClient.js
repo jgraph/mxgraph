@@ -1,5 +1,5 @@
 /**
- * $Id: mxClient.js,v 1.18 2013/07/09 08:12:44 gaudenz Exp $
+ * $Id: mxClient.js,v 1.19 2013/07/23 21:50:54 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClient =
@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.1.0.3.
+	 * Current version is 2.1.0.4.
 	 */
-	VERSION: '2.1.0.3',
+	VERSION: '2.1.0.4',
 
 	/**
 	 * Variable: IS_IE
@@ -29556,7 +29556,7 @@ mxGraphHierarchyEdge.prototype.getCoreCell = function()
 	
 	return null;
 };/**
- * $Id: mxGraphHierarchyModel.js,v 1.5 2013/06/20 12:27:13 david Exp $
+ * $Id: mxGraphHierarchyModel.js,v 1.6 2013/07/23 21:38:58 david Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -29629,15 +29629,6 @@ function mxGraphHierarchyModel(layout, vertices, roots, parent, tightenToSource)
 				var targetCellId = mxCellPath.create(targetCell);
 				var internalTargetCell = this.vertexMapper[targetCellId];
 
-				if (internalVertices[i] == internalTargetCell)
-				{
-					// The real edge is reversed relative to the internal edge
-					targetCell = layout.getVisibleTerminal(
-							realEdge, true);
-					targetCellId = mxCellPath.create(targetCell);
-					internalTargetCell = this.vertexMapper[targetCellId];
-				}
-				
 				if (internalTargetCell != null
 						&& internalVertices[i] != internalTargetCell)
 				{
@@ -30231,6 +30222,793 @@ mxGraphHierarchyModel.prototype.extendedDfs = function(parent, root, connectingE
 				// Root check is O(|roots|)
 				this.extendedDfs(root, targetNode, internalEdge, visitor, seen,
 						root.hashCode, i, layer + 1);
+			}
+		}
+		else
+		{
+			// Use the int field to indicate this node has been seen
+			visitor(parent, root, connectingEdge, layer, 1);
+		}
+	}
+};
+/**
+ * $Id: mxSwimlaneModel.js,v 1.1 2013/07/22 14:35:12 david Exp $
+ * Copyright (c) 2006-2012, JGraph Ltd
+ */
+/**
+ * Class: mxSwimlaneModel
+ *
+ * Internal model of a hierarchical graph. This model stores nodes and edges
+ * equivalent to the real graph nodes and edges, but also stores the rank of the
+ * cells, the order within the ranks and the new candidate locations of cells.
+ * The internal model also reverses edge direction were appropriate , ignores
+ * self-loop and groups parallels together under one edge object.
+ *
+ * Constructor: mxSwimlaneModel
+ *
+ * Creates an internal ordered graph model using the vertices passed in. If
+ * there are any, leftward edge need to be inverted in the internal model
+ *
+ * Arguments:
+ *
+ * graph - the facade describing the graph to be operated on
+ * vertices - the vertices for this hierarchy
+ * ordered - whether or not the vertices are already ordered
+ * deterministic - whether or not this layout should be deterministic on each
+ * tightenToSource - whether or not to tighten vertices towards the sources
+ * scanRanksFromSinks - Whether rank assignment is from the sinks or sources.
+ * usage
+ */
+function mxSwimlaneModel(layout, vertices, roots, parent, tightenToSource)
+{
+	var graph = layout.getGraph();
+	this.tightenToSource = tightenToSource;
+	this.roots = roots;
+	this.parent = parent;
+
+	// map of cells to internal cell needed for second run through
+	// to setup the sink of edges correctly
+	this.vertexMapper = new Object();
+	this.edgeMapper = new Object();
+	this.maxRank = 0;
+	var internalVertices = [];
+
+	if (vertices == null)
+	{
+		vertices = this.graph.getChildVertices(parent);
+	}
+
+	this.maxRank = this.SOURCESCANSTARTRANK;
+	// map of cells to internal cell needed for second run through
+	// to setup the sink of edges correctly. Guess size by number
+	// of edges is roughly same as number of vertices.
+	this.createInternalCells(layout, vertices, internalVertices);
+
+	// Go through edges set their sink values. Also check the
+	// ordering if and invert edges if necessary
+	for (var i = 0; i < vertices.length; i++)
+	{
+		var edges = internalVertices[i].connectsAsSource;
+
+		for (var j = 0; j < edges.length; j++)
+		{
+			var internalEdge = edges[j];
+			var realEdges = internalEdge.edges;
+
+			// Only need to process the first real edge, since
+			// all the edges connect to the same other vertex
+			if (realEdges != null && realEdges.length > 0)
+			{
+				var realEdge = realEdges[0];
+				var targetCell = layout.getVisibleTerminal(
+						realEdge, false);
+				var targetCellId = mxCellPath.create(targetCell);
+				var internalTargetCell = this.vertexMapper[targetCellId];
+
+				if (internalTargetCell != null
+						&& internalVertices[i] != internalTargetCell)
+				{
+					internalEdge.target = internalTargetCell;
+
+					if (internalTargetCell.connectsAsTarget.length == 0)
+					{
+						internalTargetCell.connectsAsTarget = [];
+					}
+
+					if (mxUtils.indexOf(internalTargetCell.connectsAsTarget, internalEdge) < 0)
+					{
+						internalTargetCell.connectsAsTarget.push(internalEdge);
+					}
+				}
+			}
+		}
+
+		// Use the temp variable in the internal nodes to mark this
+		// internal vertex as having been visited.
+		internalVertices[i].temp[0] = 1;
+	}
+};
+
+/**
+ * Variable: maxRank
+ *
+ * Stores the largest rank number allocated
+ */
+mxSwimlaneModel.prototype.maxRank = null;
+
+/**
+ * Variable: vertexMapper
+ *
+ * Map from graph vertices to internal model nodes.
+ */
+mxSwimlaneModel.prototype.vertexMapper = null;
+
+/**
+ * Variable: edgeMapper
+ *
+ * Map from graph edges to internal model edges
+ */
+mxSwimlaneModel.prototype.edgeMapper = null;
+
+/**
+ * Variable: ranks
+ *
+ * Mapping from rank number to actual rank
+ */
+mxSwimlaneModel.prototype.ranks = null;
+
+/**
+ * Variable: roots
+ *
+ * Store of roots of this hierarchy model, these are real graph cells, not
+ * internal cells
+ */
+mxSwimlaneModel.prototype.roots = null;
+
+/**
+ * Variable: parent
+ *
+ * The parent cell whose children are being laid out
+ */
+mxSwimlaneModel.prototype.parent = null;
+
+/**
+ * Variable: dfsCount
+ *
+ * Count of the number of times the ancestor dfs has been used.
+ */
+mxSwimlaneModel.prototype.dfsCount = 0;
+
+/**
+ * Variable: SOURCESCANSTARTRANK
+ *
+ * High value to start source layering scan rank value from.
+ */
+mxSwimlaneModel.prototype.SOURCESCANSTARTRANK = 100000000;
+
+/**
+ * Variable: ranksPerGroup
+ *
+ * An array of the number of ranks within each swimlane
+ */
+mxSwimlaneModel.prototype.ranksPerGroup = null;
+
+/**
+ * Function: createInternalCells
+ *
+ * Creates all edges in the internal model
+ *
+ * Parameters:
+ *
+ * layout - Reference to the <mxHierarchicalLayout> algorithm.
+ * vertices - Array of <mxCells> that represent the vertices whom are to
+ * have an internal representation created.
+ * internalVertices - The array of <mxGraphHierarchyNodes> to have their
+ * information filled in using the real vertices.
+ */
+mxSwimlaneModel.prototype.createInternalCells = function(layout, vertices, internalVertices)
+{
+	var graph = layout.getGraph();
+	var swimlanes = layout.swimlanes;
+
+	// Create internal edges
+	for (var i = 0; i < vertices.length; i++)
+	{
+		internalVertices[i] = new mxGraphHierarchyNode(vertices[i]);
+		var vertexId = mxCellPath.create(vertices[i]);
+		this.vertexMapper[vertexId] = internalVertices[i];
+		internalVertices[i].swimlaneIndex = -1;
+
+		for (var ii = 0; ii < swimlanes.length; ii++)
+		{
+			if (graph.model.getParent(vertices[i]) == swimlanes[ii])
+			{
+				internalVertices[i].swimlaneIndex = ii;
+				break;
+			}
+		}
+
+		// If the layout is deterministic, order the cells
+		//List outgoingCells = graph.getNeighbours(vertices[i], deterministic);
+		var conns = layout.getEdges(vertices[i]);
+		internalVertices[i].connectsAsSource = [];
+
+		// Create internal edges, but don't do any rank assignment yet
+		// First use the information from the greedy cycle remover to
+		// invert the leftward edges internally
+		for (var j = 0; j < conns.length; j++)
+		{
+			var cell = layout.getVisibleTerminal(conns[j], false);
+
+			// Looking for outgoing edges only
+			if (cell != vertices[i] && layout.graph.model.isVertex(cell) &&
+					!layout.isVertexIgnored(cell))
+			{
+				// We process all edge between this source and its targets
+				// If there are edges going both ways, we need to collect
+				// them all into one internal edges to avoid looping problems
+				// later. We assume this direction (source -> target) is the 
+				// natural direction if at least half the edges are going in
+				// that direction.
+
+				// The check below for edges[0] being in the vertex mapper is
+				// in case we've processed this the other way around
+				// (target -> source) and the number of edges in each direction
+				// are the same. All the graph edges will have been assigned to
+				// an internal edge going the other way, so we don't want to 
+				// process them again
+				var undirectedEdges = layout.getEdgesBetween(vertices[i],
+						cell, false);
+				var directedEdges = layout.getEdgesBetween(vertices[i],
+						cell, true);
+				var edgeId = mxCellPath.create(undirectedEdges[0]);
+				
+				if (undirectedEdges != null &&
+						undirectedEdges.length > 0 &&
+						this.edgeMapper[edgeId] == null &&
+						directedEdges.length * 2 >= undirectedEdges.length)
+				{
+					var internalEdge = new mxGraphHierarchyEdge(undirectedEdges);
+
+					for (var k = 0; k < undirectedEdges.length; k++)
+					{
+						var edge = undirectedEdges[k];
+						edgeId = mxCellPath.create(edge);
+						this.edgeMapper[edgeId] = internalEdge;
+
+						// Resets all point on the edge and disables the edge style
+						// without deleting it from the cell style
+						graph.resetEdge(edge);
+
+					    if (layout.disableEdgeStyle)
+					    {
+					    	layout.setEdgeStyleEnabled(edge, false);
+					    	layout.setOrthogonalEdge(edge,true);
+					    }
+					}
+
+					internalEdge.source = internalVertices[i];
+
+					if (mxUtils.indexOf(internalVertices[i].connectsAsSource, internalEdge) < 0)
+					{
+						internalVertices[i].connectsAsSource.push(internalEdge);
+					}
+				}
+			}
+		}
+
+		// Ensure temp variable is cleared from any previous use
+		internalVertices[i].temp[0] = 0;
+	}
+};
+
+/**
+ * Function: initialRank
+ *
+ * Basic determination of minimum layer ranking by working from from sources
+ * or sinks and working through each node in the relevant edge direction.
+ * Starting at the sinks is basically a longest path layering algorithm.
+*/
+mxSwimlaneModel.prototype.initialRank = function()
+{
+	this.ranksPerGroup = [];
+	
+	var startNodes = [];
+	var seen = new Object();
+
+	if (this.roots != null)
+	{
+		for (var i = 0; i < this.roots.length; i++)
+		{
+			var vertexId = mxCellPath.create(this.roots[i]);
+			var internalNode = this.vertexMapper[vertexId];
+			this.maxChainDfs(null, internalNode, null, seen, 0);
+
+			if (internalNode != null)
+			{
+				startNodes.push(internalNode);
+			}
+		}
+	}
+
+	// Calculate the lower and upper rank bounds of each swimlane
+	var lowerRank = [];
+	var upperRank = [];
+	
+	for (var i = this.ranksPerGroup.length - 1; i >= 0; i--)
+	{
+		if (i == this.ranksPerGroup.length - 1)
+		{
+			lowerRank[i] = 0;
+		}
+		else
+		{
+			lowerRank[i] = upperRank[i+1] + 1;
+		}
+		
+		upperRank[i] = lowerRank[i] + this.ranksPerGroup[i];
+	}
+	
+	this.maxRank = upperRank[0];
+
+	for (var key in this.vertexMapper)
+	{
+		var internalNode = this.vertexMapper[key];
+
+		// Mark the node as not having had a layer assigned
+		internalNode.temp[0] = -1;
+	}
+
+	var startNodesCopy = startNodes.slice();
+	
+	while (startNodes.length > 0)
+	{
+		var internalNode = startNodes[0];
+		var layerDeterminingEdges;
+		var edgesToBeMarked;
+
+		layerDeterminingEdges = internalNode.connectsAsTarget;
+		edgesToBeMarked = internalNode.connectsAsSource;
+
+		// flag to keep track of whether or not all layer determining
+		// edges have been scanned
+		var allEdgesScanned = true;
+
+		// Work out the layer of this node from the layer determining
+		// edges. The minimum layer number of any node connected by one of
+		// the layer determining edges variable
+		var minimumLayer = upperRank[0];
+
+		for (var i = 0; i < layerDeterminingEdges.length; i++)
+		{
+			var internalEdge = layerDeterminingEdges[i];
+
+			if (internalEdge.temp[0] == 5270620)
+			{
+				// This edge has been scanned, get the layer of the
+				// node on the other end
+				var otherNode = internalEdge.source;
+				minimumLayer = Math.min(minimumLayer, otherNode.temp[0] - 1);
+			}
+			else
+			{
+				allEdgesScanned = false;
+
+				break;
+			}
+		}
+
+		// If all edge have been scanned, assign the layer, mark all
+		// edges in the other direction and remove from the nodes list
+		if (allEdgesScanned)
+		{
+			if (minimumLayer > upperRank[internalNode.swimlaneIndex])
+			{
+				minimumLayer = upperRank[internalNode.swimlaneIndex];
+			}
+
+			internalNode.temp[0] = minimumLayer;
+
+			if (edgesToBeMarked != null)
+			{
+				for (var i = 0; i < edgesToBeMarked.length; i++)
+				{
+					var internalEdge = edgesToBeMarked[i];
+
+					// Assign unique stamp ( y/m/d/h )
+					internalEdge.temp[0] = 5270620;
+
+					// Add node on other end of edge to LinkedList of
+					// nodes to be analysed
+					var otherNode = internalEdge.target;
+
+					// Only add node if it hasn't been assigned a layer
+					if (otherNode.temp[0] == -1)
+					{
+						startNodes.push(otherNode);
+
+						// Mark this other node as neither being
+						// unassigned nor assigned so it isn't
+						// added to this list again, but it's
+						// layer isn't used in any calculation.
+						otherNode.temp[0] = -2;
+					}
+				}
+			}
+
+			startNodes.shift();
+		}
+		else
+		{
+			// Not all the edges have been scanned, get to the back of
+			// the class and put the dunces cap on
+			var removedCell = startNodes.shift();
+			startNodes.push(internalNode);
+
+			if (removedCell == internalNode && startNodes.length == 1)
+			{
+				// This is an error condition, we can't get out of
+				// this loop. It could happen for more than one node
+				// but that's a lot harder to detect. Log the error
+				// TODO make log comment
+				break;
+			}
+		}
+	}
+
+	// Normalize the ranks down from their large starting value to place
+	// at least 1 sink on layer 0
+//	for (var key in this.vertexMapper)
+//	{
+//		var internalNode = this.vertexMapper[key];
+//		// Mark the node as not having had a layer assigned
+//		internalNode.temp[0] -= this.maxRank;
+//	}
+	
+	// Tighten the rank 0 nodes as far as possible
+//	for ( var i = 0; i < startNodesCopy.length; i++)
+//	{
+//		var internalNode = startNodesCopy[i];
+//		var currentMaxLayer = 0;
+//		var layerDeterminingEdges = internalNode.connectsAsSource;
+//
+//		for ( var j = 0; j < layerDeterminingEdges.length; j++)
+//		{
+//			var internalEdge = layerDeterminingEdges[j];
+//			var otherNode = internalEdge.target;
+//			internalNode.temp[0] = Math.max(currentMaxLayer,
+//					otherNode.temp[0] + 1);
+//			currentMaxLayer = internalNode.temp[0];
+//		}
+//	}
+};
+
+/**
+ * Function: maxChainDfs
+ *
+ * Performs a depth first search on the internal hierarchy model. This dfs
+ * extends the default version by keeping track of chains within groups.
+ * Any cycles should be removed prior to running, but previously seen cells
+ * are ignored.
+ *
+ * Parameters:
+ *
+ * parent - the parent internal node of the current internal node
+ * root - the current internal node
+ * connectingEdge - the internal edge connecting the internal node and the parent
+ * internal node, if any
+ * seen - a set of all nodes seen by this dfs
+ * chainCount - the number of edges in the chain of vertices going through
+ * the current swimlane
+ */
+mxSwimlaneModel.prototype.maxChainDfs = function(parent, root, connectingEdge, seen, chainCount)
+{
+	if (root != null)
+	{
+		var rootId = mxCellPath.create(root.cell);
+
+		if (seen[rootId] == null)
+		{
+			seen[rootId] = root;
+			var slIndex = root.swimlaneIndex;
+			
+			if (this.ranksPerGroup[slIndex] == null || this.ranksPerGroup[slIndex] < chainCount)
+			{
+				this.ranksPerGroup[slIndex] = chainCount;
+			}
+
+			// Copy the connects as source list so that visitors
+			// can change the original for edge direction inversions
+			var outgoingEdges = root.connectsAsSource.slice();
+
+			for (var i = 0; i < outgoingEdges.length; i++)
+			{
+				var internalEdge = outgoingEdges[i];
+				var targetNode = internalEdge.target;
+
+				// Only navigate in source->target direction within the same
+				// swimlane, or from a lower index swimlane to a higher one
+				if (root.swimlaneIndex < targetNode.swimlaneIndex)
+				{
+					this.maxChainDfs(root, targetNode, internalEdge, seen, 0);
+				}
+				else if (root.swimlaneIndex == targetNode.swimlaneIndex)
+				{
+					this.maxChainDfs(root, targetNode, internalEdge, seen, chainCount + 1);
+				}
+			}
+		}
+	}
+};
+
+/**
+ * Function: fixRanks
+ *
+ * Fixes the layer assignments to the values stored in the nodes. Also needs
+ * to create dummy nodes for edges that cross layers.
+ */
+mxSwimlaneModel.prototype.fixRanks = function()
+{
+	var rankList = [];
+	this.ranks = [];
+
+	for (var i = 0; i < this.maxRank + 1; i++)
+	{
+		rankList[i] = [];
+		this.ranks[i] = rankList[i];
+	}
+
+	// Perform a DFS to obtain an initial ordering for each rank.
+	// Without doing this you would end up having to process
+	// crossings for a standard tree.
+	var rootsArray = null;
+
+	if (this.roots != null)
+	{
+		var oldRootsArray = this.roots;
+		rootsArray = [];
+
+		for (var i = 0; i < oldRootsArray.length; i++)
+		{
+			var cell = oldRootsArray[i];
+			var cellId = mxCellPath.create(cell);
+			var internalNode = this.vertexMapper[cellId];
+			rootsArray[i] = internalNode;
+		}
+	}
+
+	this.visit(function(parent, node, edge, layer, seen)
+	{
+		if (seen == 0 && node.maxRank < 0 && node.minRank < 0)
+		{
+			rankList[node.temp[0]].push(node);
+			node.maxRank = node.temp[0];
+			node.minRank = node.temp[0];
+
+			// Set temp[0] to the nodes position in the rank
+			node.temp[0] = rankList[node.maxRank].length - 1;
+		}
+
+		if (parent != null && edge != null)
+		{
+			var parentToCellRankDifference = parent.maxRank - node.maxRank;
+
+			if (parentToCellRankDifference > 1)
+			{
+				// There are ranks in between the parent and current cell
+				edge.maxRank = parent.maxRank;
+				edge.minRank = node.maxRank;
+				edge.temp = [];
+				edge.x = [];
+				edge.y = [];
+
+				for (var i = edge.minRank + 1; i < edge.maxRank; i++)
+				{
+					// The connecting edge must be added to the
+					// appropriate ranks
+					rankList[i].push(edge);
+					edge.setGeneralPurposeVariable(i, rankList[i]
+							.length - 1);
+				}
+			}
+		}
+	}, rootsArray, false, null);
+};
+
+/**
+ * Function: visit
+ *
+ * A depth first search through the internal heirarchy model.
+ *
+ * Parameters:
+ *
+ * visitor - The visitor function pattern to be called for each node.
+ * trackAncestors - Whether or not the search is to keep track all nodes
+ * directly above this one in the search path.
+ */
+mxSwimlaneModel.prototype.visit = function(visitor, dfsRoots, trackAncestors, seenNodes)
+{
+	// Run dfs through on all roots
+	if (dfsRoots != null)
+	{
+		for (var i = 0; i < dfsRoots.length; i++)
+		{
+			var internalNode = dfsRoots[i];
+
+			if (internalNode != null)
+			{
+				if (seenNodes == null)
+				{
+					seenNodes = new Object();
+				}
+
+				if (trackAncestors)
+				{
+					// Set up hash code for root
+					internalNode.hashCode = [];
+					internalNode.hashCode[0] = this.dfsCount;
+					internalNode.hashCode[1] = i;
+					this.extendedDfs(null, internalNode, null, visitor, seenNodes,
+							internalNode.hashCode, i, 0);
+				}
+				else
+				{
+					this.dfs(null, internalNode, null, visitor, seenNodes, 0);
+				}
+			}
+		}
+
+		this.dfsCount++;
+	}
+};
+
+/**
+ * Function: dfs
+ *
+ * Performs a depth first search on the internal hierarchy model
+ *
+ * Parameters:
+ *
+ * parent - the parent internal node of the current internal node
+ * root - the current internal node
+ * connectingEdge - the internal edge connecting the internal node and the parent
+ * internal node, if any
+ * visitor - the visitor pattern to be called for each node
+ * seen - a set of all nodes seen by this dfs a set of all of the
+ * ancestor node of the current node
+ * layer - the layer on the dfs tree ( not the same as the model ranks )
+ */
+mxSwimlaneModel.prototype.dfs = function(parent, root, connectingEdge, visitor, seen, layer)
+{
+	if (root != null)
+	{
+		var rootId = mxCellPath.create(root.cell);
+
+		if (seen[rootId] == null)
+		{
+			seen[rootId] = root;
+			visitor(parent, root, connectingEdge, layer, 0);
+
+			// Copy the connects as source list so that visitors
+			// can change the original for edge direction inversions
+			var outgoingEdges = root.connectsAsSource.slice();
+			
+			for (var i = 0; i< outgoingEdges.length; i++)
+			{
+				var internalEdge = outgoingEdges[i];
+				var targetNode = internalEdge.target;
+
+				// Root check is O(|roots|)
+				this.dfs(root, targetNode, internalEdge, visitor, seen,
+						layer + 1);
+			}
+		}
+		else
+		{
+			// Use the int field to indicate this node has been seen
+			visitor(parent, root, connectingEdge, layer, 1);
+		}
+	}
+};
+
+/**
+ * Function: extendedDfs
+ *
+ * Performs a depth first search on the internal hierarchy model. This dfs
+ * extends the default version by keeping track of cells ancestors, but it
+ * should be only used when necessary because of it can be computationally
+ * intensive for deep searches.
+ *
+ * Parameters:
+ *
+ * parent - the parent internal node of the current internal node
+ * root - the current internal node
+ * connectingEdge - the internal edge connecting the internal node and the parent
+ * internal node, if any
+ * visitor - the visitor pattern to be called for each node
+ * seen - a set of all nodes seen by this dfs
+ * ancestors - the parent hash code
+ * childHash - the new hash code for this node
+ * layer - the layer on the dfs tree ( not the same as the model ranks )
+ */
+mxSwimlaneModel.prototype.extendedDfs = function(parent, root, connectingEdge, visitor, seen, ancestors, childHash, layer)
+{
+	// Explanation of custom hash set. Previously, the ancestors variable
+	// was passed through the dfs as a HashSet. The ancestors were copied
+	// into a new HashSet and when the new child was processed it was also
+	// added to the set. If the current node was in its ancestor list it
+	// meant there is a cycle in the graph and this information is passed
+	// to the visitor.visit() in the seen parameter. The HashSet clone was
+	// very expensive on CPU so a custom hash was developed using primitive
+	// types. temp[] couldn't be used so hashCode[] was added to each node.
+	// Each new child adds another int to the array, copying the prefix
+	// from its parent. Child of the same parent add different ints (the
+	// limit is therefore 2^32 children per parent...). If a node has a
+	// child with the hashCode already set then the child code is compared
+	// to the same portion of the current nodes array. If they match there
+	// is a loop.
+	// Note that the basic mechanism would only allow for 1 use of this
+	// functionality, so the root nodes have two ints. The second int is
+	// incremented through each node root and the first is incremented
+	// through each run of the dfs algorithm (therefore the dfs is not
+	// thread safe). The hash code of each node is set if not already set,
+	// or if the first int does not match that of the current run.
+	if (root != null)
+	{
+		if (parent != null)
+		{
+			// Form this nodes hash code if necessary, that is, if the
+			// hashCode variable has not been initialized or if the
+			// start of the parent hash code does not equal the start of
+			// this nodes hash code, indicating the code was set on a
+			// previous run of this dfs.
+			if (root.hashCode == null ||
+				root.hashCode[0] != parent.hashCode[0])
+			{
+				var hashCodeLength = parent.hashCode.length + 1;
+				root.hashCode = parent.hashCode.slice();
+				root.hashCode[hashCodeLength - 1] = childHash;
+			}
+		}
+
+		var rootId = mxCellPath.create(root.cell);
+
+		if (seen[rootId] == null)
+		{
+			seen[rootId] = root;
+			visitor(parent, root, connectingEdge, layer, 0);
+
+			// Copy the connects as source list so that visitors
+			// can change the original for edge direction inversions
+			var outgoingEdges = root.connectsAsSource.slice();
+			var incomingEdges = root.connectsAsTarget.slice();
+
+			for (var i = 0; i < outgoingEdges.length; i++)
+			{
+				var internalEdge = outgoingEdges[i];
+				var targetNode = internalEdge.target;
+
+				// Only navigate in source->target direction within the same
+				// swimlane, or from a lower index swimlane to a higher one
+				if (root.swimlaneIndex <= targetNode.swimlaneIndex)
+				{
+					this.extendedDfs(root, targetNode, internalEdge, visitor, seen,
+							root.hashCode, i, layer + 1);
+				}
+			}
+			
+			for (var i = 0; i < incomingEdges.length; i++)
+			{
+				var internalEdge = incomingEdges[i];
+				var targetNode = internalEdge.source;
+
+				// Only navigate in target->source direction from a lower index 
+				// swimlane to a higher one
+				if (root.swimlaneIndex < targetNode.swimlaneIndex)
+				{
+					this.extendedDfs(root, targetNode, internalEdge, visitor, seen,
+							root.hashCode, i, layer + 1);
+				}
 			}
 		}
 		else
@@ -32962,6 +33740,102 @@ WeightedCellSorter.prototype.compare = function(a, b)
 	}
 };
 /**
+ * $Id: mxSwimlaneOrdering.js,v 1.1 2013/07/22 14:35:13 david Exp $
+ * Copyright (c) 2006-2010, JGraph Ltd
+ */
+/**
+ * Class: mxSwimlaneOrdering
+ * 
+ * An implementation of the first stage of the Sugiyama layout. Straightforward
+ * longest path calculation of layer assignment
+ * 
+ * Constructor: mxSwimlaneOrdering
+ *
+ * Creates a cycle remover for the given internal model.
+ */
+function mxSwimlaneOrdering(layout)
+{
+	this.layout = layout;
+};
+
+/**
+ * Extends mxHierarchicalLayoutStage.
+ */
+mxSwimlaneOrdering.prototype = new mxHierarchicalLayoutStage();
+mxSwimlaneOrdering.prototype.constructor = mxSwimlaneOrdering;
+
+/**
+ * Variable: layout
+ * 
+ * Reference to the enclosing <mxHierarchicalLayout>.
+ */
+mxSwimlaneOrdering.prototype.layout = null;
+
+/**
+ * Function: execute
+ * 
+ * Takes the graph detail and configuration information within the facade
+ * and creates the resulting laid out graph within that facade for further
+ * use.
+ */
+mxSwimlaneOrdering.prototype.execute = function(parent)
+{
+	var model = this.layout.getModel();
+	var seenNodes = new Object();
+	var unseenNodes = mxUtils.clone(model.vertexMapper, null, true);
+	
+	// Perform a dfs through the internal model. If a cycle is found,
+	// reverse it.
+	var rootsArray = null;
+	
+	if (model.roots != null)
+	{
+		var modelRoots = model.roots;
+		rootsArray = [];
+		
+		for (var i = 0; i < modelRoots.length; i++)
+		{
+			var nodeId = mxCellPath.create(modelRoots[i]);
+			rootsArray[i] = model.vertexMapper[nodeId];
+		}
+	}
+
+	model.visit(function(parent, node, connectingEdge, layer, seen)
+	{
+		// Check if the cell is in it's own ancestor list, if so
+		// invert the connecting edge and reverse the target/source
+		// relationship to that edge in the parent and the cell
+		// Ancestor hashes only line up within a swimlane
+		var isAncestor = parent != null && parent.swimlaneIndex == node.swimlaneIndex && node.isAncestor(parent);
+
+		// If the source->target swimlane indices go from higher to
+		// lower, the edge is reverse
+		var reversedOverSwimlane = parent != null && connectingEdge != null &&
+						parent.swimlaneIndex < node.swimlaneIndex && connectingEdge.source == node;
+
+		if (isAncestor)
+		{
+			connectingEdge.invert();
+			mxUtils.remove(connectingEdge, parent.connectsAsSource);
+			node.connectsAsSource.push(connectingEdge);
+			parent.connectsAsTarget.push(connectingEdge);
+			mxUtils.remove(connectingEdge, node.connectsAsTarget);
+		}
+		else if (reversedOverSwimlane)
+		{
+			connectingEdge.invert();
+			mxUtils.remove(connectingEdge, parent.connectsAsTarget);
+			node.connectsAsTarget.push(connectingEdge);
+			parent.connectsAsSource.push(connectingEdge);
+			mxUtils.remove(connectingEdge, node.connectsAsSource);
+		}
+		
+		var cellId = mxCellPath.create(node.cell);
+		seenNodes[cellId] = node;
+		delete unseenNodes[cellId];
+	}, rootsArray, true, null);
+};
+/**
  * $Id: mxHierarchicalLayout.js,v 1.11 2013/06/10 20:41:00 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
@@ -33668,6 +34542,849 @@ mxHierarchicalLayout.prototype.crossingStage = function(parent)
  * Executes the placement stage using mxCoordinateAssignment.
  */
 mxHierarchicalLayout.prototype.placementStage = function(initialX, parent)
+{
+	var placementStage = new mxCoordinateAssignment(this, this.intraCellSpacing,
+			this.interRankCellSpacing, this.orientation, initialX,
+			this.parallelEdgeSpacing);
+	placementStage.fineTuning = this.fineTuning;
+	placementStage.execute(parent);
+	
+	return placementStage.limitX + this.interHierarchySpacing;
+};
+/**
+ * $Id: mxSwimlaneLayout.js,v 1.2 2013/07/23 21:39:12 david Exp $
+ * Copyright (c) 2005-2012, JGraph Ltd
+ */
+/**
+ * Class: mxSwimlaneLayout
+ * 
+ * A hierarchical layout algorithm.
+ * 
+ * Constructor: mxSwimlaneLayout
+ *
+ * Constructs a new hierarchical layout algorithm.
+ *
+ * Arguments:
+ * 
+ * graph - Reference to the enclosing <mxGraph>.
+ * orientation - Optional constant that defines the orientation of this
+ * layout.
+ * deterministic - Optional boolean that specifies if this layout should be
+ * deterministic. Default is true.
+ */
+function mxSwimlaneLayout(graph, orientation, deterministic)
+{
+	mxGraphLayout.call(this, graph);
+	this.orientation = (orientation != null) ? orientation : mxConstants.DIRECTION_NORTH;
+	this.deterministic = (deterministic != null) ? deterministic : true;
+};
+
+/**
+ * Extends mxGraphLayout.
+ */
+mxSwimlaneLayout.prototype = new mxGraphLayout();
+mxSwimlaneLayout.prototype.constructor = mxSwimlaneLayout;
+
+/**
+ * Variable: roots
+ * 
+ * Holds the array of <mxCell> that this layout contains.
+ */
+mxSwimlaneLayout.prototype.roots = null;
+
+/**
+ * Variable: swimlanes
+ * 
+ * Holds the array of <mxCell> of the ordered swimlanes to lay out
+ */
+mxSwimlaneLayout.prototype.swimlanes = null;
+
+/**
+ * Variable: dummyVertices
+ * 
+ * Holds an array of <mxCell> of dummy vertices inserted during the layout
+ * to pad out empty swimlanes
+ */
+mxSwimlaneLayout.prototype.dummyVertices = null;
+
+/**
+ * Variable: dummyVertexWidth
+ * 
+ * The cell width of any dummy vertices inserted
+ */
+mxSwimlaneLayout.prototype.dummyVertexWidth = 50;
+
+/**
+ * Variable: resizeParent
+ * 
+ * Specifies if the parent should be resized after the layout so that it
+ * contains all the child cells. Default is false. See also <parentBorder>.
+ */
+mxSwimlaneLayout.prototype.resizeParent = false;
+
+/**
+ * Variable: moveParent
+ * 
+ * Specifies if the parent should be moved if <resizeParent> is enabled.
+ * Default is false.
+ */
+mxSwimlaneLayout.prototype.moveParent = false;
+
+/**
+ * Variable: parentBorder
+ * 
+ * The border to be added around the children if the parent is to be
+ * resized using <resizeParent>. Default is 0.
+ */
+mxSwimlaneLayout.prototype.parentBorder = 30;
+
+/**
+ * Variable: intraCellSpacing
+ * 
+ * The spacing buffer added between cells on the same layer. Default is 30.
+ */
+mxSwimlaneLayout.prototype.intraCellSpacing = 30;
+
+/**
+ * Variable: interRankCellSpacing
+ * 
+ * The spacing buffer added between cell on adjacent layers. Default is 50.
+ */
+mxSwimlaneLayout.prototype.interRankCellSpacing = 100;
+
+/**
+ * Variable: interHierarchySpacing
+ * 
+ * The spacing buffer between unconnected hierarchies. Default is 60.
+ */
+mxSwimlaneLayout.prototype.interHierarchySpacing = 60;
+
+/**
+ * Variable: parallelEdgeSpacing
+ * 
+ * The distance between each parallel edge on each ranks for long edges
+ */
+mxSwimlaneLayout.prototype.parallelEdgeSpacing = 10;
+
+/**
+ * Variable: orientation
+ * 
+ * The position of the root node(s) relative to the laid out graph in.
+ * Default is <mxConstants.DIRECTION_NORTH>.
+ */
+mxSwimlaneLayout.prototype.orientation = mxConstants.DIRECTION_NORTH;
+
+/**
+ * Variable: fineTuning
+ * 
+ * Whether or not to perform local optimisations and iterate multiple times
+ * through the algorithm. Default is true.
+ */
+mxSwimlaneLayout.prototype.fineTuning = true;
+
+/**
+ * 
+ * Variable: tightenToSource
+ * 
+ * Whether or not to tighten the assigned ranks of vertices up towards
+ * the source cells.
+ */
+mxSwimlaneLayout.prototype.tightenToSource = true;
+
+/**
+ * Variable: disableEdgeStyle
+ * 
+ * Specifies if the STYLE_NOEDGESTYLE flag should be set on edges that are
+ * modified by the result. Default is true.
+ */
+mxSwimlaneLayout.prototype.disableEdgeStyle = true;
+
+/**
+ * Variable: traverseAncestors
+ * 
+ * Whether or not to drill into child cells and layout in reverse
+ * group order. This also cause the layout to navigate edges whose 
+ * terminal vertices  * have different parents but are in the same 
+ * ancestry chain
+ */
+mxSwimlaneLayout.prototype.traverseAncestors = true;
+
+/**
+ * Variable: model
+ * 
+ * The internal <mxSwimlaneModel> formed of the layout.
+ */
+mxSwimlaneLayout.prototype.model = null;
+
+/**
+ * Variable: edgesSet
+ * 
+ * A cache of edges whose source terminal is the key
+ */
+mxSwimlaneLayout.prototype.edgesCache = null;
+
+/**
+ * Function: getModel
+ * 
+ * Returns the internal <mxSwimlaneModel> for this layout algorithm.
+ */
+mxSwimlaneLayout.prototype.getModel = function()
+{
+	return this.model;
+};
+
+/**
+ * Function: execute
+ * 
+ * Executes the layout for the children of the specified parent.
+ * 
+ * Parameters:
+ * 
+ * parent - Parent <mxCell> that contains the children to be laid out.
+ * swimlanes - Ordered array of swimlanes to be laid out
+ */
+mxSwimlaneLayout.prototype.execute = function(parent, swimlanes)
+{
+	this.parent = parent;
+	var model = this.graph.model;
+	this.edgesCache = new Object();
+	
+	// If the roots are set and the parent is set, only
+	// use the roots that are some dependent of the that
+	// parent.
+	// If just the root are set, use them as-is
+	// If just the parent is set use it's immediate
+	// children as the initial set
+
+	if (swimlanes == null || swimlanes.length < 1)
+	{
+		// TODO indicate the problem
+		return;
+	}
+
+	if (parent == null)
+	{
+		parent = model.getParent(swimlanes[0]);
+	}
+
+	this.swimlanes = swimlanes;
+	this.dummyVertices = [];
+	// Check the swimlanes all have vertices
+	// in them
+	for (var i = 0; i < swimlanes.length; i++)
+	{
+		var children = this.graph.getChildCells(swimlanes[i]);
+		
+		if (children == null || children.length == 0)
+		{
+			var vertex = this.graph.insertVertex(swimlanes[i], null, null, 0, 0, this.dummyVertexWidth, 0);
+			this.dummyVertices.push(vertex);
+		}
+	}
+	
+	model.beginUpdate();
+	try
+	{
+		this.run(parent);
+		
+		if (this.resizeParent && 
+			!this.graph.isCellCollapsed(parent))
+		{
+			this.updateGroupBounds();
+		}
+		
+		this.graph.removeCells(this.dummyVertices);
+	}
+	finally
+	{
+		model.endUpdate();
+	}
+};
+
+/**
+ * Function: updateGroupBounds
+ * 
+ * Updates the bounds of the given array of groups so that it includes
+ * all child vertices.
+ * 
+ */
+mxSwimlaneLayout.prototype.updateGroupBounds = function()
+{
+	// Get all vertices and edge in the layout
+	var cells = [];
+	var model = this.model;
+	
+	for (var key in model.edgeMapper)
+	{
+		var edge = model.edgeMapper[key];
+		
+		for (var i = 0; i < edge.edges.length; i++)
+		{
+			cells.push(edge.edges[i]);
+		}
+	}
+	
+	var layoutBounds = this.graph.getBoundingBoxFromGeometry(cells, true);
+	var childBounds = [];
+
+	for (var i = 0; i < this.swimlanes.length; i++)
+	{
+		var lane = this.swimlanes[i];
+		var geo = this.graph.getCellGeometry(lane);
+		
+		if (geo != null)
+		{
+			var children = this.graph.getChildCells(lane);
+			
+			var size = (this.graph.isSwimlane(lane)) ?
+					this.graph.getStartSize(lane) : new mxRectangle();
+
+			var bounds = this.graph.getBoundingBoxFromGeometry(children);
+			childBounds[i] = bounds;
+			layoutBounds.y = Math.min(layoutBounds.y, bounds.y + geo.y - size.height - this.parentBorder);
+			var maxY = Math.max(layoutBounds.y + layoutBounds.height, bounds.y + geo.y + bounds.height);
+			layoutBounds.height = maxY - layoutBounds.y;
+		}
+	}
+	
+	
+	for (var i = 0; i < this.swimlanes.length; i++)
+	{
+		var lane = this.swimlanes[i];
+		var geo = this.graph.getCellGeometry(lane);
+		
+		if (geo != null)
+		{
+			var children = this.graph.getChildCells(lane);
+			
+			var size = (this.graph.isSwimlane(lane)) ?
+					this.graph.getStartSize(lane) : new mxRectangle();
+
+			var newGeo = geo.clone();
+			
+			var leftGroupBorder = (i == 0) ? this.parentBorder : this.interRankCellSpacing/2;
+			newGeo.x += childBounds[i].x - size.width - leftGroupBorder;
+			newGeo.y = newGeo.y + layoutBounds.y - geo.y - this.parentBorder;
+			
+			newGeo.width = childBounds[i].width + size.width + this.interRankCellSpacing/2 + leftGroupBorder;
+			newGeo.height = layoutBounds.height + size.height + 2 * this.parentBorder;
+			
+			this.graph.model.setGeometry(lane, newGeo);
+			this.graph.moveCells(children, -childBounds[i].x + size.width + leftGroupBorder, 
+					geo.y - layoutBounds.y + this.parentBorder);
+		}
+	}
+};
+
+/**
+ * Function: findRoots
+ * 
+ * Returns all visible children in the given parent which do not have
+ * incoming edges. If the result is empty then the children with the
+ * maximum difference between incoming and outgoing edges are returned.
+ * This takes into account edges that are being promoted to the given
+ * root due to invisible children or collapsed cells.
+ * 
+ * Parameters:
+ * 
+ * parent - <mxCell> whose children should be checked.
+ * vertices - array of vertices to limit search to
+ */
+mxSwimlaneLayout.prototype.findRoots = function(parent, vertices)
+{
+	var roots = [];
+	
+	if (parent != null && vertices != null)
+	{
+		var model = this.graph.model;
+		var best = null;
+		var maxDiff = -100000;
+		
+		for (var i in vertices)
+		{
+			var cell = vertices[i];
+
+			if (cell != null && model.isVertex(cell) && this.graph.isCellVisible(cell) && model.isAncestor(parent, cell))
+			{
+				var conns = this.getEdges(cell);
+				var fanOut = 0;
+				var fanIn = 0;
+
+				for (var k = 0; k < conns.length; k++)
+				{
+					var src = this.getVisibleTerminal(conns[k], true);
+
+					if (src == cell)
+					{
+						// Only count connection within this swimlane
+						var other = this.getVisibleTerminal(conns[k], false);
+						
+						if (model.isAncestor(parent, other))
+						{
+							fanOut++;
+						}
+					}
+					else if (model.isAncestor(parent, src))
+					{
+						fanIn++;
+					}
+				}
+
+				if (fanIn == 0 && fanOut > 0)
+				{
+					roots.push(cell);
+				}
+
+				var diff = fanOut - fanIn;
+
+				if (diff > maxDiff)
+				{
+					maxDiff = diff;
+					best = cell;
+				}
+			}
+		}
+		
+		if (roots.length == 0 && best != null)
+		{
+			roots.push(best);
+		}
+	}
+	
+	return roots;
+};
+
+/**
+ * Function: getEdges
+ * 
+ * Returns the connected edges for the given cell.
+ * 
+ * Parameters:
+ * 
+ * cell - <mxCell> whose edges should be returned.
+ */
+mxSwimlaneLayout.prototype.getEdges = function(cell)
+{
+	var cellID = mxCellPath.create(cell);
+	
+	if (this.edgesCache[cellID] != null)
+	{
+		return this.edgesCache[cellID];
+	}
+
+	var model = this.graph.model;
+	var edges = [];
+	var isCollapsed = this.graph.isCellCollapsed(cell);
+	var childCount = model.getChildCount(cell);
+
+	for (var i = 0; i < childCount; i++)
+	{
+		var child = model.getChildAt(cell, i);
+
+		if (this.isPort(child))
+		{
+			edges = edges.concat(model.getEdges(child, true, true));
+		}
+		else if (isCollapsed || !this.graph.isCellVisible(child))
+		{
+			edges = edges.concat(model.getEdges(child, true, true));
+		}
+	}
+
+	edges = edges.concat(model.getEdges(cell, true, true));
+	var result = [];
+	
+	for (var i = 0; i < edges.length; i++)
+	{
+		var source = this.getVisibleTerminal(edges[i], true);
+		var target = this.getVisibleTerminal(edges[i], false);
+		
+		if ((source == target) || ((source != target) && ((target == cell && (this.parent == null || this.graph.isValidAncestor(source, this.parent, this.traverseAncestors))) ||
+			(source == cell && (this.parent == null ||
+					this.graph.isValidAncestor(target, this.parent, this.traverseAncestors))))))
+		{
+			result.push(edges[i]);
+		}
+	}
+
+	this.edgesCache[cellID] = result;
+
+	return result;
+};
+
+/**
+ * Function: getVisibleTerminal
+ * 
+ * Helper function to return visible terminal for edge allowing for ports
+ * 
+ * Parameters:
+ * 
+ * edge - <mxCell> whose edges should be returned.
+ * source - Boolean that specifies whether the source or target terminal is to be returned
+ */
+mxSwimlaneLayout.prototype.getVisibleTerminal = function(edge, source)
+{
+	var state = this.graph.view.getState(edge);
+	
+	var terminal = (state != null) ? state.getVisibleTerminal(source) : this.graph.view.getVisibleTerminal(edge, source);
+	
+	if (this.isPort(terminal))
+	{
+		terminal = this.graph.model.getParent(terminal);
+	}
+	
+	return terminal;
+};
+
+/**
+ * Function: run
+ * 
+ * The API method used to exercise the layout upon the graph description
+ * and produce a separate description of the vertex position and edge
+ * routing changes made. It runs each stage of the layout that has been
+ * created.
+ */
+mxSwimlaneLayout.prototype.run = function(parent)
+{
+	// Separate out unconnected hierarchies
+	var hierarchyVertices = [];
+	var allVertexSet = [];
+
+	if (this.swimlanes != null && this.swimlanes.length > 0 && parent != null)
+	{
+		var filledVertexSet = Object();
+		
+		for (var i = 0; i < this.swimlanes.length; i++)
+		{
+			this.filterDescendants(this.swimlanes[i], filledVertexSet);
+		}
+
+		this.roots = [];
+		var filledVertexSetEmpty = true;
+
+		// Poor man's isSetEmpty
+		for (var key in filledVertexSet)
+		{
+			if (filledVertexSet[key] != null)
+			{
+				filledVertexSetEmpty = false;
+				break;
+			}
+		}
+
+		// Only test for candidates in each swimlane in order
+		var laneCounter = 0;
+
+		while (!filledVertexSetEmpty && laneCounter < this.swimlanes.length)
+		{
+			var candidateRoots = this.findRoots(this.swimlanes[laneCounter], filledVertexSet);
+			
+			if (candidateRoots.length == 0)
+			{
+				laneCounter++;
+				continue;
+			}
+			
+			// If the candidate root is an unconnected group cell, remove it from
+			// the layout. We may need a custom set that holds such groups and forces
+			// them to be processed for resizing and/or moving.
+			for (var i = 0; i < candidateRoots.length; i++)
+			{
+				var vertexSet = Object();
+				hierarchyVertices.push(vertexSet);
+
+				this.traverse(candidateRoots[i], true, null, allVertexSet, vertexSet,
+						hierarchyVertices, filledVertexSet, laneCounter);
+			}
+
+			for (var i = 0; i < candidateRoots.length; i++)
+			{
+				this.roots.push(candidateRoots[i]);
+			}
+			
+			filledVertexSetEmpty = true;
+			
+			// Poor man's isSetEmpty
+			for (var key in filledVertexSet)
+			{
+				if (filledVertexSet[key] != null)
+				{
+					filledVertexSetEmpty = false;
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		// Find vertex set as directed traversal from roots
+
+		for (var i = 0; i < this.roots.length; i++)
+		{
+			var vertexSet = Object();
+			hierarchyVertices.push(vertexSet);
+
+			this.traverse(this.roots[i], true, null, allVertexSet, vertexSet,
+					hierarchyVertices, null);
+		}
+	}
+
+	var tmp = [];
+	
+	for (var key in allVertexSet)
+	{
+		tmp.push(allVertexSet[key]);
+	}
+	
+	this.model = new mxSwimlaneModel(this, tmp, this.roots,
+		parent, this.tightenToSource);
+
+	this.cycleStage(parent);
+	this.layeringStage();
+	
+	this.crossingStage(parent);
+	initialX = this.placementStage(0, parent);
+};
+
+/**
+ * Function: filterDescendants
+ * 
+ * Creates an array of descendant cells
+ */
+mxSwimlaneLayout.prototype.filterDescendants = function(cell, result)
+{
+	var model = this.graph.model;
+
+	if (model.isVertex(cell) && cell != this.parent && model.getParent(cell) != this.parent && this.graph.isCellVisible(cell))
+	{
+		result[mxCellPath.create(cell)] = cell;
+	}
+
+	if (this.traverseAncestors || cell == this.parent
+			&& this.graph.isCellVisible(cell))
+	{
+		var childCount = model.getChildCount(cell);
+
+		for (var i = 0; i < childCount; i++)
+		{
+			var child = model.getChildAt(cell, i);
+			
+			// Ignore ports in the layout vertex list, they are dealt with
+			// in the traversal mechanisms
+			if (!this.isPort(child))
+			{
+				this.filterDescendants(child, result);
+			}
+		}
+	}
+};
+
+/**
+ * Function: isPort
+ * 
+ * Returns true if the given cell is a "port", that is, when connecting to
+ * it, its parent is the connecting vertex in terms of graph traversal
+ * 
+ * Parameters:
+ * 
+ * cell - <mxCell> that represents the port.
+ */
+mxSwimlaneLayout.prototype.isPort = function(cell)
+{
+	if (cell.geometry.relative)
+	{
+		return true;
+	}
+	
+	return false;
+};
+
+/**
+ * Function: getEdgesBetween
+ * 
+ * Returns the edges between the given source and target. This takes into
+ * account collapsed and invisible cells and ports.
+ * 
+ * Parameters:
+ * 
+ * source -
+ * target -
+ * directed -
+ */
+mxSwimlaneLayout.prototype.getEdgesBetween = function(source, target, directed)
+{
+	directed = (directed != null) ? directed : false;
+	var edges = this.getEdges(source);
+	var result = [];
+
+	// Checks if the edge is connected to the correct
+	// cell and returns the first match
+	for (var i = 0; i < edges.length; i++)
+	{
+		var src = this.getVisibleTerminal(edges[i], true);
+		var trg = this.getVisibleTerminal(edges[i], false);
+
+		if ((src == source && trg == target) || (!directed && src == target && trg == source))
+		{
+			result.push(edges[i]);
+		}
+	}
+
+	return result;
+};
+
+/**
+ * Traverses the (directed) graph invoking the given function for each
+ * visited vertex and edge. The function is invoked with the current vertex
+ * and the incoming edge as a parameter. This implementation makes sure
+ * each vertex is only visited once. The function may return false if the
+ * traversal should stop at the given vertex.
+ * 
+ * Parameters:
+ * 
+ * vertex - <mxCell> that represents the vertex where the traversal starts.
+ * directed - boolean indicating if edges should only be traversed
+ * from source to target. Default is true.
+ * edge - Optional <mxCell> that represents the incoming edge. This is
+ * null for the first step of the traversal.
+ * allVertices - Array of cell paths for the visited cells.
+ * swimlaneIndex - the laid out order index of the swimlane vertex is contained in
+ */
+mxSwimlaneLayout.prototype.traverse = function(vertex, directed, edge, allVertices, currentComp,
+											hierarchyVertices, filledVertexSet, swimlaneIndex)
+{
+	if (vertex != null && allVertices != null)
+	{
+		// Has this vertex been seen before in any traversal
+		// And if the filled vertex set is populated, only 
+		// process vertices in that it contains
+		var vertexID = mxCellPath.create(vertex);
+		
+		if ((allVertices[vertexID] == null)
+				&& (filledVertexSet == null ? true : filledVertexSet[vertexID] != null))
+		{
+			if (currentComp[vertexID] == null)
+			{
+				currentComp[vertexID] = vertex;
+			}
+			if (allVertices[vertexID] == null)
+			{
+				allVertices[vertexID] = vertex;
+			}
+
+			if (filledVertexSet !== null)
+			{
+				delete filledVertexSet[vertexID];
+			}
+
+			var edges = this.getEdges(vertex);
+			var model = this.graph.model;
+
+			for (var i = 0; i < edges.length; i++)
+			{
+				var otherVertex = this.getVisibleTerminal(edges[i], true);
+				var isSource = otherVertex == vertex;
+				
+				if (isSource)
+				{
+					otherVertex = this.getVisibleTerminal(edges[i], false);
+				}
+
+				var otherIndex = 0;
+				// Get the swimlane index of the other terminal
+				for (var otherIndex = 0; otherIndex < this.swimlanes.length; otherIndex++)
+				{
+					if (model.isAncestor(this.swimlanes[otherIndex], otherVertex))
+					{
+						break;
+					}
+				}
+				
+				if (otherIndex >= this.swimlanes.length)
+				{
+					continue;
+				}
+
+				// Traverse if the other vertex is within the same swimlane as
+				// as the current vertex, or if the swimlane index of the other
+				// vertex is greater than that of this vertex
+				if ((otherIndex > swimlaneIndex) ||
+						((!directed || isSource) && otherIndex == swimlaneIndex))
+				{
+					currentComp = this.traverse(otherVertex, directed, edges[i], allVertices,
+							currentComp, hierarchyVertices,
+							filledVertexSet, otherIndex);
+				}
+			}
+		}
+		else
+		{
+			if (currentComp[vertexID] == null)
+			{
+				// We've seen this vertex before, but not in the current component
+				// This component and the one it's in need to be merged
+				for (var i = 0; i < hierarchyVertices.length; i++)
+				{
+					var comp = hierarchyVertices[i];
+
+					if (comp[vertexID] != null)
+					{
+						for (var key in currentComp)
+						{
+							comp[key] = currentComp[key];
+						}
+						
+						// Remove the current component from the hierarchy set
+						hierarchyVertices.pop();
+						return comp;
+					}
+				}
+			}
+		}
+	}
+	
+	return currentComp;
+};
+
+/**
+ * Function: cycleStage
+ * 
+ * Executes the cycle stage using mxMinimumCycleRemover.
+ */
+mxSwimlaneLayout.prototype.cycleStage = function(parent)
+{
+	var cycleStage = new mxSwimlaneOrdering(this);
+	cycleStage.execute(parent);
+};
+
+/**
+ * Function: layeringStage
+ * 
+ * Implements first stage of a Sugiyama layout.
+ */
+mxSwimlaneLayout.prototype.layeringStage = function()
+{
+	this.model.initialRank();
+	this.model.fixRanks();
+};
+
+/**
+ * Function: crossingStage
+ * 
+ * Executes the crossing stage using mxMedianHybridCrossingReduction.
+ */
+mxSwimlaneLayout.prototype.crossingStage = function(parent)
+{
+	var crossingStage = new mxMedianHybridCrossingReduction(this);
+	crossingStage.execute(parent);
+};
+
+/**
+ * Function: placementStage
+ * 
+ * Executes the placement stage using mxCoordinateAssignment.
+ */
+mxSwimlaneLayout.prototype.placementStage = function(initialX, parent)
 {
 	var placementStage = new mxCoordinateAssignment(this, this.intraCellSpacing,
 			this.interRankCellSpacing, this.orientation, initialX,
@@ -40765,7 +42482,7 @@ mxCellEditor.prototype.destroy = function ()
 	}
 };
 /**
- * $Id: mxCellRenderer.js,v 1.22 2013/06/20 12:09:48 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.23 2013/07/22 17:44:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -40908,7 +42625,6 @@ mxCellRenderer.prototype.initialize = function(state, rendering)
 			// Maintains the model order in the DOM
 			if (state.view.graph.ordered || model.isEdge(state.cell))
 			{
-				//state.orderChanged = true;
 				state.invalidOrder = true;
 			}
 			else if (state.view.graph.keepEdgesInForeground && this.firstEdge != null)
@@ -43685,7 +45401,7 @@ mxStyleRegistry.putValue(mxConstants.PERIMETER_RECTANGLE, mxPerimeter.RectangleP
 mxStyleRegistry.putValue(mxConstants.PERIMETER_RHOMBUS, mxPerimeter.RhombusPerimeter);
 mxStyleRegistry.putValue(mxConstants.PERIMETER_TRIANGLE, mxPerimeter.TrianglePerimeter);
 /**
- * $Id: mxGraphView.js,v 1.19 2013/07/09 08:38:57 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.22 2013/07/22 17:29:31 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -44267,9 +45983,20 @@ mxGraphView.prototype.createBackgroundPageShape = function(bounds)
 /**
  * Function: validateBackground
  *
- * Validates the background image.
+ * Calls <validateBackgroundImage> and <validateBackgroundPage>.
  */
 mxGraphView.prototype.validateBackground = function()
+{
+	this.validateBackgroundImage();
+	this.validateBackgroundPage();
+};
+
+/**
+ * Function: validateBackgroundImage
+ * 
+ * Validates the background image.
+ */
+mxGraphView.prototype.validateBackgroundImage = function()
 {
 	var bg = this.graph.getBackgroundImage();
 	
@@ -44288,6 +46015,25 @@ mxGraphView.prototype.validateBackground = function()
 			this.backgroundImage.dialect = this.graph.dialect;
 			this.backgroundImage.init(this.backgroundPane);
 			this.backgroundImage.redraw();
+
+			// Workaround for ignored event on background in IE8 standards mode
+			if (document.documentMode == 8)
+			{
+				mxEvent.addGestureListeners(this.backgroundImage.node,
+					mxUtils.bind(this, function(evt)
+					{
+						this.graph.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt));
+					}),
+					mxUtils.bind(this, function(evt)
+					{
+						this.graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt));
+					}),
+					mxUtils.bind(this, function(evt)
+					{
+						this.graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt));
+					})
+				);
+			}
 		}
 		
 		this.redrawBackgroundImage(this.backgroundImage, bg);
@@ -44297,7 +46043,15 @@ mxGraphView.prototype.validateBackground = function()
 		this.backgroundImage.destroy();
 		this.backgroundImage = null;
 	}
-	
+};
+
+/**
+ * Function: validateBackgroundPage
+ * 
+ * Validates the background page.
+ */
+mxGraphView.prototype.validateBackgroundPage = function()
+{
 	if (this.graph.pageVisible)
 	{
 		var bounds = this.getBackgroundPageBounds();
@@ -44318,7 +46072,7 @@ mxGraphView.prototype.validateBackground = function()
 					this.graph.dblClick(evt);
 				})
 			);
-			
+
 			// Adds basic listeners for graph event dispatching outside of the
 			// container and finishing the handling of a single gesture
 			mxEvent.addGestureListeners(this.backgroundPageShape.node,
@@ -44342,7 +46096,8 @@ mxGraphView.prototype.validateBackground = function()
 				mxUtils.bind(this, function(evt)
 				{
 					this.graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt));
-				}));
+				})
+			);
 		}
 		else
 		{
@@ -46277,7 +48032,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.32 2013/07/18 13:34:02 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.34 2013/07/23 21:28:29 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -46826,8 +48581,9 @@ mxCurrentRootChange.prototype.execute = function()
  *
  * Fires between begin- and endUpdate in <cellLabelChanged>. The
  * <code>cell</code> property contains the cell, the <code>value</code>
- * property contains the new value for the cell and the optional
- * <code>event</code> property contains the mouse event that started the edit.
+ * property contains the new value for the cell, the <code>old</code> property
+ * contains the old value and the optional <code>event</code> property contains
+ * the mouse event that started the edit.
  * 
  * Event: mxEvent.ADD_OVERLAY
  *
@@ -48592,9 +50348,10 @@ mxGraph.prototype.labelChanged = function(cell, value, evt)
 	this.model.beginUpdate();
 	try
 	{
+		var old = cell.value;
 		this.cellLabelChanged(cell, value, this.isAutoSizeCell(cell));
 		this.fireEvent(new mxEventObject(mxEvent.LABEL_CHANGED,
-				'cell', cell, 'value', value, 'event', evt));
+			'cell', cell, 'value', value, 'old', old, 'event', evt));
 	}
 	finally
 	{
@@ -52786,6 +54543,8 @@ mxGraph.prototype.getBoundingBoxFromGeometry = function(cells, includeEdges)
 						
 						addPoint(geo.getTerminalPoint(true));
 						addPoint(geo.getTerminalPoint(false));
+						
+						geo = tmp;
 					}
 					
 					if (result == null)
@@ -59828,7 +61587,7 @@ mxSpaceManager.prototype.destroy = function()
 	this.setGraph(null);
 };
 /**
- * $Id: mxSwimlaneManager.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
+ * $Id: mxSwimlaneManager.js,v 1.2 2013/07/22 12:01:42 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -60066,8 +61825,7 @@ mxSwimlaneManager.prototype.isCellHorizontal = function(cell)
 {
 	if (this.graph.isSwimlane(cell))
 	{
-		var state = this.graph.view.getState(cell);
-		var style = (state != null) ? state.style : this.graph.getCellStyle(cell);
+		var style = this.graph.getCellStyle(cell);
 		
 		return mxUtils.getValue(style, mxConstants.STYLE_HORIZONTAL, 1) == 1;
 	}
@@ -60173,7 +61931,7 @@ mxSwimlaneManager.prototype.cellsResized = function(cells)
 				if (!this.isSwimlaneIgnored(cells[i]))
 				{
 					var geo = model.getGeometry(cells[i]);
-					
+
 					if (geo != null)
 					{
 						var size = new mxRectangle(0, 0, geo.width, geo.height);
@@ -60190,7 +61948,7 @@ mxSwimlaneManager.prototype.cellsResized = function(cells)
 							size.width += tmp.width;
 							size.height += tmp.height;
 						}
-						
+
 						this.resizeSwimlane(top, size.width, size.height);
 					}
 				}
@@ -60220,7 +61978,7 @@ mxSwimlaneManager.prototype.resizeSwimlane = function(swimlane, w, h)
 	
 	model.beginUpdate();
 	try
-	{	
+	{
 		if (!this.isSwimlaneIgnored(swimlane))
 		{
 			var geo = model.getGeometry(swimlane);
@@ -60241,7 +61999,7 @@ mxSwimlaneManager.prototype.resizeSwimlane = function(swimlane, w, h)
 					{
 						geo.width = w;
 					}
-					
+
 					model.setGeometry(swimlane, geo);
 				}
 			}
@@ -62558,7 +64316,7 @@ mxCellMarker.prototype.destroy = function()
 	this.highlight.destroy();
 };
 /**
- * $Id: mxSelectionCellsHandler.js,v 1.2 2013/01/08 15:30:24 gaudenz Exp $
+ * $Id: mxSelectionCellsHandler.js,v 1.4 2013/07/22 17:29:31 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -65368,7 +67126,7 @@ mxRubberband.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxVertexHandler.js,v 1.29 2013/06/21 12:19:17 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.30 2013/07/23 07:53:18 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -65835,6 +67593,20 @@ mxVertexHandler.prototype.start = function(x, y, index)
 		{
 			this.sizers[index].node.style.display = '';
 		}
+		
+		// Gets the array of connected edge handlers for redrawing
+		var edges = this.graph.getEdges(this.state.cell);
+		this.edgeHandlers = [];
+		
+		for (var i = 0; i < edges.length; i++)
+		{
+			var handler = this.graph.selectionCellsHandler.getHandler(edges[i]);
+			
+			if (handler != null)
+			{
+				this.edgeHandlers.push(handler);
+			}
+		}
 	}
 };
 
@@ -65985,12 +67757,12 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 					
 					// Redraws cell and handles
 					this.state.view.graph.cellRenderer.redraw(this.state, true);
-					this.redrawHandles();
 					
 					// Redraws connected edges
 					this.state.view.invalidate(this.state.cell);
 					this.state.invalid = false;
 					this.state.view.validate();
+					this.redrawHandles();
 					
 					// Restores current state
 					this.state.x = tmp.x;
@@ -66179,6 +67951,7 @@ mxVertexHandler.prototype.reset = function()
 	}
 	
 	this.redrawHandles();
+	this.edgeHandlers = null;
 };
 
 /**
@@ -66594,6 +68367,14 @@ mxVertexHandler.prototype.redrawHandles = function()
 	if (this.selectionBorder != null)
 	{
 		this.selectionBorder.rotation = Number(this.state.style[mxConstants.STYLE_ROTATION] || '0');
+	}
+	
+	if (this.edgeHandlers != null)
+	{		
+		for (var i = 0; i < this.edgeHandlers.length; i++)
+		{
+			this.edgeHandlers[i].redraw();
+		}
 	}
 };
 

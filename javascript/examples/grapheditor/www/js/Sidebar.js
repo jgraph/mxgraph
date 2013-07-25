@@ -1,5 +1,5 @@
 /**
- * $Id: Sidebar.js,v 1.50 2013/07/19 09:02:36 gaudenz Exp $
+ * $Id: Sidebar.js,v 1.52 2013/07/22 05:52:50 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**

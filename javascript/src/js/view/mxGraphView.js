@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphView.js,v 1.19 2013/07/09 08:38:57 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.22 2013/07/22 17:29:31 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -581,9 +581,20 @@ mxGraphView.prototype.createBackgroundPageShape = function(bounds)
 /**
  * Function: validateBackground
  *
- * Validates the background image.
+ * Calls <validateBackgroundImage> and <validateBackgroundPage>.
  */
 mxGraphView.prototype.validateBackground = function()
+{
+	this.validateBackgroundImage();
+	this.validateBackgroundPage();
+};
+
+/**
+ * Function: validateBackgroundImage
+ * 
+ * Validates the background image.
+ */
+mxGraphView.prototype.validateBackgroundImage = function()
 {
 	var bg = this.graph.getBackgroundImage();
 	
@@ -602,6 +613,25 @@ mxGraphView.prototype.validateBackground = function()
 			this.backgroundImage.dialect = this.graph.dialect;
 			this.backgroundImage.init(this.backgroundPane);
 			this.backgroundImage.redraw();
+
+			// Workaround for ignored event on background in IE8 standards mode
+			if (document.documentMode == 8)
+			{
+				mxEvent.addGestureListeners(this.backgroundImage.node,
+					mxUtils.bind(this, function(evt)
+					{
+						this.graph.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt));
+					}),
+					mxUtils.bind(this, function(evt)
+					{
+						this.graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt));
+					}),
+					mxUtils.bind(this, function(evt)
+					{
+						this.graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt));
+					})
+				);
+			}
 		}
 		
 		this.redrawBackgroundImage(this.backgroundImage, bg);
@@ -611,7 +641,15 @@ mxGraphView.prototype.validateBackground = function()
 		this.backgroundImage.destroy();
 		this.backgroundImage = null;
 	}
-	
+};
+
+/**
+ * Function: validateBackgroundPage
+ * 
+ * Validates the background page.
+ */
+mxGraphView.prototype.validateBackgroundPage = function()
+{
 	if (this.graph.pageVisible)
 	{
 		var bounds = this.getBackgroundPageBounds();
@@ -632,7 +670,7 @@ mxGraphView.prototype.validateBackground = function()
 					this.graph.dblClick(evt);
 				})
 			);
-			
+
 			// Adds basic listeners for graph event dispatching outside of the
 			// container and finishing the handling of a single gesture
 			mxEvent.addGestureListeners(this.backgroundPageShape.node,
@@ -656,7 +694,8 @@ mxGraphView.prototype.validateBackground = function()
 				mxUtils.bind(this, function(evt)
 				{
 					this.graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt));
-				}));
+				})
+			);
 		}
 		else
 		{

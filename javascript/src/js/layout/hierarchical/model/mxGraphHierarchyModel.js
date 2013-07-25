@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphHierarchyModel.js,v 1.5 2013/06/20 12:27:13 david Exp $
+ * $Id: mxGraphHierarchyModel.js,v 1.6 2013/07/23 21:38:58 david Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -72,15 +72,6 @@ function mxGraphHierarchyModel(layout, vertices, roots, parent, tightenToSource)
 				var targetCellId = mxCellPath.create(targetCell);
 				var internalTargetCell = this.vertexMapper[targetCellId];
 
-				if (internalVertices[i] == internalTargetCell)
-				{
-					// The real edge is reversed relative to the internal edge
-					targetCell = layout.getVisibleTerminal(
-							realEdge, true);
-					targetCellId = mxCellPath.create(targetCell);
-					internalTargetCell = this.vertexMapper[targetCellId];
-				}
-				
 				if (internalTargetCell != null
 						&& internalVertices[i] != internalTargetCell)
 				{

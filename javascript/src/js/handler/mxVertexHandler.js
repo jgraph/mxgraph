@@ -1,5 +1,5 @@
 /**
- * $Id: mxVertexHandler.js,v 1.29 2013/06/21 12:19:17 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.30 2013/07/23 07:53:18 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -466,6 +466,20 @@ mxVertexHandler.prototype.start = function(x, y, index)
 		{
 			this.sizers[index].node.style.display = '';
 		}
+		
+		// Gets the array of connected edge handlers for redrawing
+		var edges = this.graph.getEdges(this.state.cell);
+		this.edgeHandlers = [];
+		
+		for (var i = 0; i < edges.length; i++)
+		{
+			var handler = this.graph.selectionCellsHandler.getHandler(edges[i]);
+			
+			if (handler != null)
+			{
+				this.edgeHandlers.push(handler);
+			}
+		}
 	}
 };
 
@@ -616,12 +630,12 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 					
 					// Redraws cell and handles
 					this.state.view.graph.cellRenderer.redraw(this.state, true);
-					this.redrawHandles();
 					
 					// Redraws connected edges
 					this.state.view.invalidate(this.state.cell);
 					this.state.invalid = false;
 					this.state.view.validate();
+					this.redrawHandles();
 					
 					// Restores current state
 					this.state.x = tmp.x;
@@ -810,6 +824,7 @@ mxVertexHandler.prototype.reset = function()
 	}
 	
 	this.redrawHandles();
+	this.edgeHandlers = null;
 };
 
 /**
@@ -1225,6 +1240,14 @@ mxVertexHandler.prototype.redrawHandles = function()
 	if (this.selectionBorder != null)
 	{
 		this.selectionBorder.rotation = Number(this.state.style[mxConstants.STYLE_ROTATION] || '0');
+	}
+	
+	if (this.edgeHandlers != null)
+	{		
+		for (var i = 0; i < this.edgeHandlers.length; i++)
+		{
+			this.edgeHandlers[i].redraw();
+		}
 	}
 };
 

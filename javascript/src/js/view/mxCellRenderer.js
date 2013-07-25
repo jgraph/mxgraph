@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellRenderer.js,v 1.22 2013/06/20 12:09:48 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.23 2013/07/22 17:44:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -142,7 +142,6 @@ mxCellRenderer.prototype.initialize = function(state, rendering)
 			// Maintains the model order in the DOM
 			if (state.view.graph.ordered || model.isEdge(state.cell))
 			{
-				//state.orderChanged = true;
 				state.invalidOrder = true;
 			}
 			else if (state.view.graph.keepEdgesInForeground && this.firstEdge != null)

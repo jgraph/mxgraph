@@ -1,5 +1,5 @@
 /**
- * $Id: mxSelectionCellsHandler.js,v 1.2 2013/01/08 15:30:24 gaudenz Exp $
+ * $Id: mxSelectionCellsHandler.js,v 1.4 2013/07/22 17:29:31 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**

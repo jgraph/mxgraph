@@ -1,5 +1,5 @@
 /**
- * $Id: mxClient.js,v 1.18 2013/07/09 08:12:44 gaudenz Exp $
+ * $Id: mxClient.js,v 1.19 2013/07/23 21:50:54 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClient =
@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.1.0.3.
+	 * Current version is 2.1.0.4.
 	 */
-	VERSION: '2.1.0.3',
+	VERSION: '2.1.0.4',
 
 	/**
 	 * Variable: IS_IE
@@ -616,11 +616,14 @@ mxClient.include(mxClient.basePath+'/js/layout/hierarchical/model/mxGraphAbstrac
 mxClient.include(mxClient.basePath+'/js/layout/hierarchical/model/mxGraphHierarchyNode.js');
 mxClient.include(mxClient.basePath+'/js/layout/hierarchical/model/mxGraphHierarchyEdge.js');
 mxClient.include(mxClient.basePath+'/js/layout/hierarchical/model/mxGraphHierarchyModel.js');
+mxClient.include(mxClient.basePath+'/js/layout/hierarchical/model/mxSwimlaneModel.js');
 mxClient.include(mxClient.basePath+'/js/layout/hierarchical/stage/mxHierarchicalLayoutStage.js');
 mxClient.include(mxClient.basePath+'/js/layout/hierarchical/stage/mxMedianHybridCrossingReduction.js');
 mxClient.include(mxClient.basePath+'/js/layout/hierarchical/stage/mxMinimumCycleRemover.js');
 mxClient.include(mxClient.basePath+'/js/layout/hierarchical/stage/mxCoordinateAssignment.js');
+mxClient.include(mxClient.basePath+'/js/layout/hierarchical/stage/mxSwimlaneOrdering.js');
 mxClient.include(mxClient.basePath+'/js/layout/hierarchical/mxHierarchicalLayout.js');
+mxClient.include(mxClient.basePath+'/js/layout/hierarchical/mxSwimlaneLayout.js');
 mxClient.include(mxClient.basePath+'/js/model/mxGraphModel.js');
 mxClient.include(mxClient.basePath+'/js/model/mxCell.js');
 mxClient.include(mxClient.basePath+'/js/model/mxGeometry.js');
