@@ -1,3 +1,10 @@
+26-JUL-2013: 1.13.0.4
+
+- Adds support for Microsoft Internet Explorer 11 [JavaScript]
+- Fixes edge calculations in mxGraph.getBoundingBoxFromGeometry [JavaScript]
+- Adds old property for mxEvent.LABEL_CHANGED event in mxGraph [JavaScript]
+- Fixes possible cached style in mxSwimlaneManager [JavaScript]
+
 12-JUL-2013: 1.13.0.3
 
 - Fixes possible cached terminals in mxParallelEdgeLayout [JavaScript]

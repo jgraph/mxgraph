@@ -1,5 +1,5 @@
 /**
- * $Id: mxClient.js,v 1.205 2013/04/23 10:39:11 gaudenz Exp $
+ * $Id: mxClient.js,v 1.206 2013/07/26 10:25:25 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClient =
@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.13.0.3.
+	 * Current version is 1.13.0.4.
 	 */
-	VERSION: '1.13.0.3',
+	VERSION: '1.13.0.4',
 
 	/**
 	 * Variable: IS_IE
@@ -120,7 +120,8 @@ var mxClient =
 	  	navigator.userAgent.indexOf('Epiphany/') >= 0 || // Gnome Browser (new)
 	  	navigator.userAgent.indexOf('AppleWebKit/') >= 0 || // Safari/Google Chrome
 	  	navigator.userAgent.indexOf('Gecko/') >= 0 || // Netscape/Gecko
-	  	navigator.userAgent.indexOf('Opera/') >= 0,
+	  	navigator.userAgent.indexOf('Opera/') >= 0 || // Opera
+	  	(document.documentMode != null && document.documentMode >= 9), // IE9+
 
 	/**
 	 * Variable: NO_FO
@@ -467,13 +468,12 @@ if (typeof(mxLanguages) != 'undefined')
 	mxClient.languages = mxLanguages;
 }
 
-if (mxClient.IS_IE)
+// Adds required namespaces, stylesheets and memory handling for older IE browsers
+if (mxClient.IS_VML)
 {
-	// IE9/10 standards mode uses SVG (VML is broken)
-	if (document.documentMode >= 9)
+	if (mxClient.IS_SVG)
 	{
 		mxClient.IS_VML = false;
-		mxClient.IS_SVG = true;
 	}
 	else
 	{

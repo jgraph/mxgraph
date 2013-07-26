@@ -1,5 +1,5 @@
 /**
- * $Id: mxClient.js,v 1.205 2013/04/23 10:39:11 gaudenz Exp $
+ * $Id: mxClient.js,v 1.206 2013/07/26 10:25:25 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClient =
@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.13.0.3.
+	 * Current version is 1.13.0.4.
 	 */
-	VERSION: '1.13.0.3',
+	VERSION: '1.13.0.4',
 
 	/**
 	 * Variable: IS_IE
@@ -120,7 +120,8 @@ var mxClient =
 	  	navigator.userAgent.indexOf('Epiphany/') >= 0 || // Gnome Browser (new)
 	  	navigator.userAgent.indexOf('AppleWebKit/') >= 0 || // Safari/Google Chrome
 	  	navigator.userAgent.indexOf('Gecko/') >= 0 || // Netscape/Gecko
-	  	navigator.userAgent.indexOf('Opera/') >= 0,
+	  	navigator.userAgent.indexOf('Opera/') >= 0 || // Opera
+	  	(document.documentMode != null && document.documentMode >= 9), // IE9+
 
 	/**
 	 * Variable: NO_FO
@@ -467,13 +468,12 @@ if (typeof(mxLanguages) != 'undefined')
 	mxClient.languages = mxLanguages;
 }
 
-if (mxClient.IS_IE)
+// Adds required namespaces, stylesheets and memory handling for older IE browsers
+if (mxClient.IS_VML)
 {
-	// IE9/10 standards mode uses SVG (VML is broken)
-	if (document.documentMode >= 9)
+	if (mxClient.IS_SVG)
 	{
 		mxClient.IS_VML = false;
-		mxClient.IS_SVG = true;
 	}
 	else
 	{
@@ -49517,7 +49517,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.711 2013/05/27 10:30:08 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.713 2013/07/23 21:30:35 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -50064,8 +50064,9 @@ mxCurrentRootChange.prototype.execute = function()
  *
  * Fires between begin- and endUpdate in <cellLabelChanged>. The
  * <code>cell</code> property contains the cell, the <code>value</code>
- * property contains the new value for the cell and the optional
- * <code>event</code> property contains the mouse event that started the edit.
+ * property contains the new value for the cell, the <code>old</code> property
+ * contains the old value and the optional <code>event</code> property contains
+ * the mouse event that started the edit.
  * 
  * Event: mxEvent.ADD_OVERLAY
  *
@@ -51787,9 +51788,10 @@ mxGraph.prototype.labelChanged = function(cell, value, evt)
 	this.model.beginUpdate();
 	try
 	{
+		var old = cell.value;
 		this.cellLabelChanged(cell, value, this.isAutoSizeCell(cell));
 		this.fireEvent(new mxEventObject(mxEvent.LABEL_CHANGED,
-				'cell', cell, 'value', value, 'event', evt));
+			'cell', cell, 'value', value, 'old', old, 'event', evt));
 	}
 	finally
 	{
@@ -55897,6 +55899,8 @@ mxGraph.prototype.getBoundingBoxFromGeometry = function(cells, includeEdges)
 						
 						addPoint(geo.getTerminalPoint(true));
 						addPoint(geo.getTerminalPoint(false));
+
+						geo = tmp;
 					}
 					
 					if (result == null)
@@ -62708,7 +62712,7 @@ mxSpaceManager.prototype.destroy = function()
 	this.setGraph(null);
 };
 /**
- * $Id: mxSwimlaneManager.js,v 1.17 2011/01/14 15:21:10 gaudenz Exp $
+ * $Id: mxSwimlaneManager.js,v 1.18 2013/07/22 11:55:34 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -62946,8 +62950,7 @@ mxSwimlaneManager.prototype.isCellHorizontal = function(cell)
 {
 	if (this.graph.isSwimlane(cell))
 	{
-		var state = this.graph.view.getState(cell);
-		var style = (state != null) ? state.style : this.graph.getCellStyle(cell);
+		var style = this.graph.getCellStyle(cell);
 		
 		return mxUtils.getValue(style, mxConstants.STYLE_HORIZONTAL, 1) == 1;
 	}
@@ -63053,7 +63056,7 @@ mxSwimlaneManager.prototype.cellsResized = function(cells)
 				if (!this.isSwimlaneIgnored(cells[i]))
 				{
 					var geo = model.getGeometry(cells[i]);
-					
+
 					if (geo != null)
 					{
 						var size = new mxRectangle(0, 0, geo.width, geo.height);
@@ -63070,7 +63073,7 @@ mxSwimlaneManager.prototype.cellsResized = function(cells)
 							size.width += tmp.width;
 							size.height += tmp.height;
 						}
-						
+
 						this.resizeSwimlane(top, size.width, size.height);
 					}
 				}
@@ -63100,7 +63103,7 @@ mxSwimlaneManager.prototype.resizeSwimlane = function(swimlane, w, h)
 	
 	model.beginUpdate();
 	try
-	{	
+	{
 		if (!this.isSwimlaneIgnored(swimlane))
 		{
 			var geo = model.getGeometry(swimlane);
@@ -63121,7 +63124,7 @@ mxSwimlaneManager.prototype.resizeSwimlane = function(swimlane, w, h)
 					{
 						geo.width = w;
 					}
-					
+
 					model.setGeometry(swimlane, geo);
 				}
 			}

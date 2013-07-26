@@ -85,10 +85,15 @@ if (mxClient.IS_NS)
 </p>
 <h2><a name="TransparentHtmlLabels"></a>Opacity style in HTML labels</h2>
 <p>
-	There is a problem in Webkit (Chrome, Safari) where HTML labels with
-	opacities other than 1 don't scale correctly. Try using
-	<code>mxClient.NO_FO = true</code> before rendering the graph as a
-	workaround for this problem.
+	There is a problem in Webkit (Chrome, Safari) where HTML labels with CSS
+	opacities other than 1 don't scale correctly. As a workaround, try using the
+	textOpacity style for the cell instead as follows:
+<pre>
+graph.setHtmlLabels(true);
+graph.insertVertex(parent, null, '<span style="background:yellow;">Hello</span>', 20, 20, 80, 30, 'textOpacity=50');
+</pre>
+	For different CSS opacities inside the label, try using 
+	<code>mxClient.NO_FO = true</code> before rendering the graph.
 </p>
 <h2><a name="Chrome5LocalFiles"></a>Local XHR in Chrome</h2>
 <p>
