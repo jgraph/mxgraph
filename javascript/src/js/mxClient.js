@@ -1,5 +1,5 @@
 /**
- * $Id: mxClient.js,v 1.19 2013/07/23 21:50:54 david Exp $
+ * $Id: mxClient.js,v 1.20 2013/07/26 07:51:40 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClient =
@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.1.0.4.
+	 * Current version is 2.1.0.5.
 	 */
-	VERSION: '2.1.0.4',
+	VERSION: '2.1.0.5',
 
 	/**
 	 * Variable: IS_IE
@@ -148,7 +148,8 @@ var mxClient =
 	  	navigator.userAgent.indexOf('Epiphany/') >= 0 || // Gnome Browser (new)
 	  	navigator.userAgent.indexOf('AppleWebKit/') >= 0 || // Safari/Google Chrome
 	  	navigator.userAgent.indexOf('Gecko/') >= 0 || // Netscape/Gecko
-	  	navigator.userAgent.indexOf('Opera/') >= 0,
+	  	navigator.userAgent.indexOf('Opera/') >= 0 || // Opera
+	  	(document.documentMode != null && document.documentMode >= 9), // IE9+
 
 	/**
 	 * Variable: NO_FO
@@ -507,13 +508,12 @@ if (typeof(mxLanguages) != 'undefined' && mxLanguages != null)
 	mxClient.languages = mxLanguages;
 }
 
-if (mxClient.IS_IE)
+// Adds required namespaces, stylesheets and memory handling for older IE browsers
+if (mxClient.IS_VML)
 {
-	// IE9/10 standards mode uses SVG (VML is no longer supported)
-	if (document.documentMode >= 9)
+	if (mxClient.IS_SVG)
 	{
 		mxClient.IS_VML = false;
-		mxClient.IS_SVG = true;
 	}
 	else
 	{
@@ -531,18 +531,18 @@ if (mxClient.IS_IE)
 			document.namespaces.add(mxClient.OFFICE_PREFIX, 'urn:schemas-microsoft-com:office:office');
 		}
 		
-        var ss = document.createStyleSheet();
-        ss.cssText = mxClient.VML_PREFIX + '\\:*{behavior:url(#default#VML)}' +
-        	mxClient.OFFICE_PREFIX + '\\:*{behavior:url(#default#VML)}';
-        
-        if (mxLoadStylesheets)
-        {
-        	mxClient.link('stylesheet', mxClient.basePath + '/css/explorer.css');
-        }
+	    var ss = document.createStyleSheet();
+	    ss.cssText = mxClient.VML_PREFIX + '\\:*{behavior:url(#default#VML)}' +
+	    	mxClient.OFFICE_PREFIX + '\\:*{behavior:url(#default#VML)}';
+	    
+	    if (mxLoadStylesheets)
+	    {
+	    	mxClient.link('stylesheet', mxClient.basePath + '/css/explorer.css');
+	    }
+	
+		// Cleans up resources when the application terminates
+		window.attachEvent('onunload', mxClient.dispose);
 	}
-
-	// Cleans up resources when the application terminates
-	window.attachEvent('onunload', mxClient.dispose);
 }
 
 mxClient.include(mxClient.basePath+'/js/util/mxLog.js');

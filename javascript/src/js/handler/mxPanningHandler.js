@@ -1,5 +1,5 @@
 /**
- * $Id: mxPanningHandler.js,v 1.7 2013/06/20 14:04:15 gaudenz Exp $
+ * $Id: mxPanningHandler.js,v 1.8 2013/07/26 11:03:16 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -37,6 +37,22 @@ function mxPanningHandler(graph)
 	{
 		this.graph = graph;
 		this.graph.addMouseListener(this);
+
+		// Handles force panning event
+		this.forcePanningHandler = mxUtils.bind(this, function(sender, evt)
+		{
+			var evtName = evt.getProperty('eventName');
+			var me = evt.getProperty('event');
+			
+			if (evtName == mxEvent.MOUSE_DOWN && this.isForcePanningEvent(me))
+			{
+				this.start(me);
+				this.active = true;
+				me.consume();
+			}
+		});
+		
+		this.graph.addListener(mxEvent.FIRE_MOUSE_EVENT, this.forcePanningHandler);
 	}
 };
 
@@ -135,6 +151,17 @@ mxPanningHandler.prototype.isPanningTrigger = function(me)
 };
 
 /**
+ * Function: isForcePanningEvent
+ * 
+ * Returns true if the given <mxMouseEvent> should start panning. This
+ * implementation always returns false.
+ */
+mxPanningHandler.prototype.isForcePanningEvent = function(me)
+{
+	return false;
+};
+
+/**
  * Function: mouseDown
  * 
  * Handles the event by initiating the panning. By consuming the event all
@@ -142,23 +169,28 @@ mxPanningHandler.prototype.isPanningTrigger = function(me)
  */
 mxPanningHandler.prototype.mouseDown = function(sender, me)
 {
-	if (!me.isConsumed() && this.isPanningEnabled() && !this.active)
+	if (!me.isConsumed() && this.isPanningEnabled() && !this.active && this.isPanningTrigger(me))
 	{
-		this.dx0 = -this.graph.container.scrollLeft;
-		this.dy0 = -this.graph.container.scrollTop;
-
-		// Stores the location of the trigger event
-		this.startX = me.getX();
-		this.startY = me.getY();
-
-		this.panningTrigger = this.isPanningTrigger(me);
-
-		// Displays popup menu on Mac after the mouse was released
-		if (this.panningTrigger)
-		{
-			this.consumePanningTrigger(me);
-		}
+		this.start(me);
+		this.consumePanningTrigger(me);
 	}
+};
+
+/**
+ * Function: start
+ * 
+ * Starts panning at the given event.
+ */
+mxPanningHandler.prototype.start = function(me)
+{
+	this.dx0 = -this.graph.container.scrollLeft;
+	this.dy0 = -this.graph.container.scrollTop;
+
+	// Stores the location of the trigger event
+	this.startX = me.getX();
+	this.startY = me.getY();
+
+	this.panningTrigger = true;
 };
 
 /**
@@ -336,4 +368,5 @@ mxPanningHandler.prototype.panGraph = function(dx, dy)
 mxPanningHandler.prototype.destroy = function()
 {
 	this.graph.removeMouseListener(this);
+	this.graph.removeListener(mxEvent.FIRE_MOUSE_EVENT, this.forcePanningHandler);
 };

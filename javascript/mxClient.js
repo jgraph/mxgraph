@@ -1,5 +1,5 @@
 /**
- * $Id: mxClient.js,v 1.19 2013/07/23 21:50:54 david Exp $
+ * $Id: mxClient.js,v 1.20 2013/07/26 07:51:40 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClient =
@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.1.0.4.
+	 * Current version is 2.1.0.5.
 	 */
-	VERSION: '2.1.0.4',
+	VERSION: '2.1.0.5',
 
 	/**
 	 * Variable: IS_IE
@@ -148,7 +148,8 @@ var mxClient =
 	  	navigator.userAgent.indexOf('Epiphany/') >= 0 || // Gnome Browser (new)
 	  	navigator.userAgent.indexOf('AppleWebKit/') >= 0 || // Safari/Google Chrome
 	  	navigator.userAgent.indexOf('Gecko/') >= 0 || // Netscape/Gecko
-	  	navigator.userAgent.indexOf('Opera/') >= 0,
+	  	navigator.userAgent.indexOf('Opera/') >= 0 || // Opera
+	  	(document.documentMode != null && document.documentMode >= 9), // IE9+
 
 	/**
 	 * Variable: NO_FO
@@ -507,13 +508,12 @@ if (typeof(mxLanguages) != 'undefined' && mxLanguages != null)
 	mxClient.languages = mxLanguages;
 }
 
-if (mxClient.IS_IE)
+// Adds required namespaces, stylesheets and memory handling for older IE browsers
+if (mxClient.IS_VML)
 {
-	// IE9/10 standards mode uses SVG (VML is no longer supported)
-	if (document.documentMode >= 9)
+	if (mxClient.IS_SVG)
 	{
 		mxClient.IS_VML = false;
-		mxClient.IS_SVG = true;
 	}
 	else
 	{
@@ -531,18 +531,18 @@ if (mxClient.IS_IE)
 			document.namespaces.add(mxClient.OFFICE_PREFIX, 'urn:schemas-microsoft-com:office:office');
 		}
 		
-        var ss = document.createStyleSheet();
-        ss.cssText = mxClient.VML_PREFIX + '\\:*{behavior:url(#default#VML)}' +
-        	mxClient.OFFICE_PREFIX + '\\:*{behavior:url(#default#VML)}';
-        
-        if (mxLoadStylesheets)
-        {
-        	mxClient.link('stylesheet', mxClient.basePath + '/css/explorer.css');
-        }
+	    var ss = document.createStyleSheet();
+	    ss.cssText = mxClient.VML_PREFIX + '\\:*{behavior:url(#default#VML)}' +
+	    	mxClient.OFFICE_PREFIX + '\\:*{behavior:url(#default#VML)}';
+	    
+	    if (mxLoadStylesheets)
+	    {
+	    	mxClient.link('stylesheet', mxClient.basePath + '/css/explorer.css');
+	    }
+	
+		// Cleans up resources when the application terminates
+		window.attachEvent('onunload', mxClient.dispose);
 	}
-
-	// Cleans up resources when the application terminates
-	window.attachEvent('onunload', mxClient.dispose);
 }
 
 /**
@@ -63365,7 +63365,7 @@ mxGraphHandler.prototype.destroy = function()
 	this.destroyShapes();
 };
 /**
- * $Id: mxPanningHandler.js,v 1.7 2013/06/20 14:04:15 gaudenz Exp $
+ * $Id: mxPanningHandler.js,v 1.8 2013/07/26 11:03:16 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -63403,6 +63403,22 @@ function mxPanningHandler(graph)
 	{
 		this.graph = graph;
 		this.graph.addMouseListener(this);
+
+		// Handles force panning event
+		this.forcePanningHandler = mxUtils.bind(this, function(sender, evt)
+		{
+			var evtName = evt.getProperty('eventName');
+			var me = evt.getProperty('event');
+			
+			if (evtName == mxEvent.MOUSE_DOWN && this.isForcePanningEvent(me))
+			{
+				this.start(me);
+				this.active = true;
+				me.consume();
+			}
+		});
+		
+		this.graph.addListener(mxEvent.FIRE_MOUSE_EVENT, this.forcePanningHandler);
 	}
 };
 
@@ -63501,6 +63517,17 @@ mxPanningHandler.prototype.isPanningTrigger = function(me)
 };
 
 /**
+ * Function: isForcePanningEvent
+ * 
+ * Returns true if the given <mxMouseEvent> should start panning. This
+ * implementation always returns false.
+ */
+mxPanningHandler.prototype.isForcePanningEvent = function(me)
+{
+	return false;
+};
+
+/**
  * Function: mouseDown
  * 
  * Handles the event by initiating the panning. By consuming the event all
@@ -63508,23 +63535,28 @@ mxPanningHandler.prototype.isPanningTrigger = function(me)
  */
 mxPanningHandler.prototype.mouseDown = function(sender, me)
 {
-	if (!me.isConsumed() && this.isPanningEnabled() && !this.active)
+	if (!me.isConsumed() && this.isPanningEnabled() && !this.active && this.isPanningTrigger(me))
 	{
-		this.dx0 = -this.graph.container.scrollLeft;
-		this.dy0 = -this.graph.container.scrollTop;
-
-		// Stores the location of the trigger event
-		this.startX = me.getX();
-		this.startY = me.getY();
-
-		this.panningTrigger = this.isPanningTrigger(me);
-
-		// Displays popup menu on Mac after the mouse was released
-		if (this.panningTrigger)
-		{
-			this.consumePanningTrigger(me);
-		}
+		this.start(me);
+		this.consumePanningTrigger(me);
 	}
+};
+
+/**
+ * Function: start
+ * 
+ * Starts panning at the given event.
+ */
+mxPanningHandler.prototype.start = function(me)
+{
+	this.dx0 = -this.graph.container.scrollLeft;
+	this.dy0 = -this.graph.container.scrollTop;
+
+	// Stores the location of the trigger event
+	this.startX = me.getX();
+	this.startY = me.getY();
+
+	this.panningTrigger = true;
 };
 
 /**
@@ -63702,6 +63734,7 @@ mxPanningHandler.prototype.panGraph = function(dx, dy)
 mxPanningHandler.prototype.destroy = function()
 {
 	this.graph.removeMouseListener(this);
+	this.graph.removeListener(mxEvent.FIRE_MOUSE_EVENT, this.forcePanningHandler);
 };
 /**
  * $Id: mxPopupMenuHandler.js,v 1.1 2013/06/07 14:16:23 gaudenz Exp $
@@ -66762,7 +66795,7 @@ mxConstraintHandler.prototype.destroy = function()
 {
 	this.reset();
 };/**
- * $Id: mxRubberband.js,v 1.2 2013/06/20 14:04:15 gaudenz Exp $
+ * $Id: mxRubberband.js,v 1.6 2013/07/26 11:13:48 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -66792,12 +66825,17 @@ function mxRubberband(graph)
 		// Handles force rubberband event
 		this.forceRubberbandHandler = mxUtils.bind(this, function(sender, evt)
 		{
-			var evtName = evt.getProperty('evtName');
-			var me = evt.getProperty('me');
+			var evtName = evt.getProperty('eventName');
+			var me = evt.getProperty('event');
 			
-			if (evtName == mxEvent.MOUSE_DOWN && this.isForceRubberbandEvent(me.getEvent()))
+			if (evtName == mxEvent.MOUSE_DOWN && this.isForceRubberbandEvent(me))
 			{
-				this.mouseDown(this.graph, me);
+				var offset = mxUtils.getOffset(this.graph.container);
+				var origin = mxUtils.getScrollOrigin(this.graph.container);
+				origin.x -= offset.x;
+				origin.y -= offset.y;
+				this.start(me.getX() + origin.x, me.getY() + origin.y);
+				me.consume(false);
 			}
 		});
 		
@@ -66892,12 +66930,12 @@ mxRubberband.prototype.setEnabled = function(enabled)
 /**
  * Function: isForceRubberbandEvent
  * 
- * Returns true if the given event forces marquee selection. This implementation
- * returns true if the alt key is pressed.
+ * Returns true if the given <mxMouseEvent> should start rubberband selection.
+ * This implementation returns true if the alt key is pressed.
  */
-mxRubberband.prototype.isForceRubberbandEvent = function(evt)
+mxRubberband.prototype.isForceRubberbandEvent = function(me)
 {
-	return mxEvent.isAltDown(evt);
+	return mxEvent.isAltDown(me.getEvent());
 };
 
 /**
@@ -66909,8 +66947,7 @@ mxRubberband.prototype.isForceRubberbandEvent = function(evt)
  */
 mxRubberband.prototype.mouseDown = function(sender, me)
 {
-	if (!me.isConsumed() && this.isEnabled() && this.graph.isEnabled() &&
-		(this.isForceRubberbandEvent(me.getEvent()) || me.getState() == null))
+	if (!me.isConsumed() && this.isEnabled() && this.graph.isEnabled() && me.getState() == null)
 	{
 		var offset = mxUtils.getOffset(this.graph.container);
 		var origin = mxUtils.getScrollOrigin(this.graph.container);
@@ -66918,35 +66955,6 @@ mxRubberband.prototype.mouseDown = function(sender, me)
 		origin.y -= offset.y;
 		this.start(me.getX() + origin.x, me.getY() + origin.y);
 
-		var container = this.graph.container;
-		
-		function createMouseEvent(evt)
-		{
-			var me = new mxMouseEvent(evt);
-			var pt = mxUtils.convertPoint(container, me.getX(), me.getY());
-			
-			me.graphX = pt.x;
-			me.graphY = pt.y;
-			
-			return me;
-		};
-
-		this.dragHandler = mxUtils.bind(this, function(evt)
-		{
-			this.mouseMove(this.graph, createMouseEvent(evt));
-		});
-
-		this.dropHandler = mxUtils.bind(this, function(evt)
-		{
-			this.mouseUp(this.graph, createMouseEvent(evt));
-		});
-
-		// Workaround for rubberband stopping if the mouse leaves the container in Firefox
-		if (mxClient.IS_FF)
-		{
-			mxEvent.addGestureListeners(document, null, this.dragHandler, this.dropHandler);
-		}
-		
 		// Does not prevent the default for this event so that the
 		// event processing chain is still executed even if we start
 		// rubberbanding. This is required eg. in ExtJs to hide the
@@ -66964,6 +66972,35 @@ mxRubberband.prototype.mouseDown = function(sender, me)
 mxRubberband.prototype.start = function(x, y)
 {
 	this.first = new mxPoint(x, y);
+
+	var container = this.graph.container;
+	
+	function createMouseEvent(evt)
+	{
+		var me = new mxMouseEvent(evt);
+		var pt = mxUtils.convertPoint(container, me.getX(), me.getY());
+		
+		me.graphX = pt.x;
+		me.graphY = pt.y;
+		
+		return me;
+	};
+
+	this.dragHandler = mxUtils.bind(this, function(evt)
+	{
+		this.mouseMove(this.graph, createMouseEvent(evt));
+	});
+
+	this.dropHandler = mxUtils.bind(this, function(evt)
+	{
+		this.mouseUp(this.graph, createMouseEvent(evt));
+	});
+
+	// Workaround for rubberband stopping if the mouse leaves the container in Firefox
+	if (mxClient.IS_FF)
+	{
+		mxEvent.addGestureListeners(document, null, this.dragHandler, this.dropHandler);
+	}
 };
 
 /**
@@ -67115,7 +67152,7 @@ mxRubberband.prototype.destroy = function()
 	{
 		this.destroyed = true;
 		this.graph.removeMouseListener(this);
-		this.graph.removeListener(mxEvent.FIRE_MOUSE_EVENT, this.forcRubberbandHandler);
+		this.graph.removeListener(mxEvent.FIRE_MOUSE_EVENT, this.forceRubberbandHandler);
 		this.graph.removeListener(this.panHandler);
 		this.reset();
 		

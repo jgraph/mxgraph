@@ -1,5 +1,5 @@
 <!--
-  $Id: stencils.html,v 1.3 2012/11/22 19:13:27 gaudenz Exp $
+  $Id: stencils.html,v 1.4 2013/07/25 13:50:23 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Stencils example for mxGraph. This example demonstrates using
@@ -69,6 +69,44 @@
 					return shape;
 				};
 				
+				// Defines a custom stencil via the canvas API as defined here:
+				// http://jgraph.github.io/mxgraph/docs/js-api/files/util/mxXmlCanvas2D-js.html
+				function CustomShape()
+				{
+					mxShape.call(this);
+				};
+				mxUtils.extend(CustomShape, mxShape);
+				CustomShape.prototype.paintBackground = function(c, x, y, w, h)
+				{
+					c.translate(x, y);
+			
+					// Head
+					c.ellipse(w / 4, 0, w / 2, h / 4);
+					c.fillAndStroke();
+			
+					c.begin();
+					c.moveTo(w / 2, h / 4);
+					c.lineTo(w / 2, 2 * h / 3);
+					
+					// Arms
+					c.moveTo(w / 2, h / 3);
+					c.lineTo(0, h / 3);
+					c.moveTo(w / 2, h / 3);
+					c.lineTo(w, h / 3);
+					
+					// Legs
+					c.moveTo(w / 2, 2 * h / 3);
+					c.lineTo(0, h);
+					c.moveTo(w / 2, 2 * h / 3);
+					c.lineTo(w, h);
+					c.end();
+					
+					c.stroke();
+				};
+
+				// Replaces existing actor shape
+				mxCellRenderer.prototype.defaultShapes['customShape'] = CustomShape;
+				
 				// Loads the stencils into the registry
 				var req = mxUtils.load('stencils.xml');
 				var root = req.getDocumentElement();
@@ -126,7 +164,7 @@
 					var e2 = graph.insertEdge(parent, null, '', v2, v3);
 					e2.geometry.points = [new mxPoint(90, 260), new mxPoint(90, 170)];
 					
-					var v4 = graph.insertVertex(parent, null, 'A3', 520, 20, 40, 80, 'shape=and;flipH=1');
+					var v4 = graph.insertVertex(parent, null, 'A3', 520, 20, 40, 80, 'shape=customShape;flipH=1');
 					var v5 = graph.insertVertex(parent, null, 'A4', 520, 220, 40, 80, 'shape=and;flipH=1');
 					var v6 = graph.insertVertex(parent, null, 'X2', 340, 110, 80, 80, 'shape=xor;flipH=1');
 					var e3 = graph.insertEdge(parent, null, '', v4, v6);
