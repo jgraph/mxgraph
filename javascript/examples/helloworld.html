@@ -1,5 +1,5 @@
 <!--
-  $Id: helloworld.html,v 1.4 2013/02/01 20:59:16 gaudenz Exp $
+  $Id: helloworld.html,v 1.5 2013/07/26 11:46:18 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Hello, World! example for mxGraph. This example demonstrates using
@@ -32,6 +32,9 @@
 			}
 			else
 			{
+				// Disables the built-in context menu
+				mxEvent.disableContextMenu(container);
+				
 				// Creates the graph inside the given container
 				var graph = new mxGraph(container);
 

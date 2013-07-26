@@ -1,3 +1,8 @@
+26-JUL-2013: 2.1.0.5
+
+- Adds mxRubberband.start, isForcePanningEvent hook [JavaScript]
+- Fixes mxRubberband.isForceRubberbandEvent, changes argument to mxMouseEvent [JavaScript]
+
 25-JUL-2013: 2.1.0.4
 
 - Fixes edge calculations in mxGraph.getBoundingBoxFromGeometry [JavaScript]
@@ -88,6 +93,7 @@
 - Adds mxClient.VML_PREFIX, OFFICE_PREFIX, CSS_PREFIX [JavaScript]
 - Adds dashed option to mxCellHighlight [JavaScript]
 --
+- Adds support for Microsoft Internet Explorer 11 [JavaScript]
 - Adds old property for mxEvent.LABEL_CHANGED event in mxGraph [JavaScript]
 - Fixes possible cached style in mxSwimlaneManager [JavaScript]
 
