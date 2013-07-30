@@ -1,5 +1,5 @@
 /**
- * $Id: mxText.js,v 1.53 2013/07/15 16:21:57 gaudenz Exp $
+ * $Id: mxText.js,v 1.54 2013/07/29 15:40:34 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -449,7 +449,7 @@ mxText.prototype.redrawHtmlShape = function()
 	this.offsetWidth = null;
 	this.offsetHeight = null;
 
-	if (document.documentMode == null || document.documentMode <= 8)
+	if (mxClient.IS_IE && (document.documentMode == null || document.documentMode <= 8))
 	{
 		this.updateHtmlFilter();
 	}

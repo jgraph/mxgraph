@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.1.0.5.
+	 * Current version is 2.1.0.6.
 	 */
-	VERSION: '2.1.0.5',
+	VERSION: '2.1.0.6',
 
 	/**
 	 * Variable: IS_IE
@@ -10356,7 +10356,7 @@ var mxClipboard =
 
 };
 /**
- * $Id: mxWindow.js,v 1.5 2013/06/07 13:58:19 gaudenz Exp $
+ * $Id: mxWindow.js,v 1.6 2013/07/29 07:34:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -11125,15 +11125,16 @@ mxWindow.prototype.installMaximizeHandler = function()
 
 				this.div.style.left = '0px';
 				this.div.style.top = '0px';
+				var docHeight = Math.max(document.body.clientHeight || 0, document.documentElement.clientHeight || 0);
 
 				if (!mxClient.IS_QUIRKS)
 				{
-					this.div.style.height = (document.body.clientHeight-2)+'px';
-					this.div.style.width = (document.body.clientWidth-2)+'px';
+					this.div.style.width = (document.body.clientWidth - 2) + 'px';
+					this.div.style.height = (docHeight - 2) + 'px';
 				}
 
-				this.table.style.width = (document.body.clientWidth-2)+'px';
-				this.table.style.height = (document.body.clientHeight-2)+'px';
+				this.table.style.width = (document.body.clientWidth - 2) + 'px';
+				this.table.style.height = (docHeight - 2) + 'px';
 				
 				if (this.resize != null)
 				{
@@ -21228,7 +21229,7 @@ mxStencil.prototype.drawNode = function(canvas, shape, node, aspect, disableShad
 	}
 };
 /**
-aaa * $Id: mxShape.js,v 1.44 2013/07/18 13:32:27 gaudenz Exp $
+aaa * $Id: mxShape.js,v 1.45 2013/07/29 14:29:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -21663,7 +21664,7 @@ mxShape.prototype.redrawShape = function()
 		this.node.style.filter = '';
 		
 		// Adds event transparency in IE8 standards
-		if (this.stencil == null || !this.stencilPointerEvents)
+		if ((this.stencil == null && !this.pointerEvents) || (this.stencil != null && !this.stencilPointerEvents))
 		{
 			mxUtils.addTransparentBackgroundFilter(this.node);
 		}
@@ -22747,7 +22748,7 @@ mxCloud.prototype.redrawPath = function(c, x, y, w, h)
 	c.close();
 };
 /**
- * $Id: mxRectangleShape.js,v 1.9 2012/12/15 17:14:44 gaudenz Exp $
+ * $Id: mxRectangleShape.js,v 1.10 2013/07/29 14:29:36 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -22791,7 +22792,8 @@ mxUtils.extend(mxRectangleShape, mxShape);
  */
 mxRectangleShape.prototype.isHtmlAllowed = function()
 {
-	return !this.isRounded && !this.glass && this.rotation == 0;
+	return !this.isRounded && !this.glass && this.rotation == 0 &&
+		(document.documentMode != 8 || (this.opacity == 100 && !this.isShadow));
 };
 
 /**
@@ -23409,7 +23411,7 @@ mxArrow.prototype.paintEdgeShape = function(c, pts)
 	c.fillAndStroke();
 };
 /**
- * $Id: mxText.js,v 1.53 2013/07/15 16:21:57 gaudenz Exp $
+ * $Id: mxText.js,v 1.54 2013/07/29 15:40:34 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -23859,7 +23861,7 @@ mxText.prototype.redrawHtmlShape = function()
 	this.offsetWidth = null;
 	this.offsetHeight = null;
 
-	if (document.documentMode == null || document.documentMode <= 8)
+	if (mxClient.IS_IE && (document.documentMode == null || document.documentMode <= 8))
 	{
 		this.updateHtmlFilter();
 	}
@@ -29174,7 +29176,7 @@ mxGraphAbstractHierarchyCell.prototype.setY = function(layer, value)
 	}
 };
 /**
- * $Id: mxGraphHierarchyNode.js,v 1.1 2012/11/15 13:26:44 gaudenz Exp $
+ * $Id: mxGraphHierarchyNode.js,v 1.2 2013/07/29 15:58:20 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -29194,6 +29196,8 @@ function mxGraphHierarchyNode(cell)
 {
 	mxGraphAbstractHierarchyCell.apply(this, arguments);
 	this.cell = cell;
+	this.connectsAsTarget = [];
+	this.connectsAsSource = [];
 };
 
 /**
@@ -29214,14 +29218,14 @@ mxGraphHierarchyNode.prototype.cell = null;
  * 
  * Collection of hierarchy edges that have this node as a target
  */
-mxGraphHierarchyNode.prototype.connectsAsTarget = [];
+mxGraphHierarchyNode.prototype.connectsAsTarget = null;
 
 /**
  * Variable: connectsAsSource
  * 
  * Collection of hierarchy edges that have this node as a source
  */
-mxGraphHierarchyNode.prototype.connectsAsSource = [];
+mxGraphHierarchyNode.prototype.connectsAsSource = null;
 
 /**
  * Variable: hashCode
@@ -30232,7 +30236,7 @@ mxGraphHierarchyModel.prototype.extendedDfs = function(parent, root, connectingE
 	}
 };
 /**
- * $Id: mxSwimlaneModel.js,v 1.1 2013/07/22 14:35:12 david Exp $
+ * $Id: mxSwimlaneModel.js,v 1.2 2013/07/29 14:05:03 david Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -30730,11 +30734,11 @@ mxSwimlaneModel.prototype.maxChainDfs = function(parent, root, connectingEdge, s
 				// swimlane, or from a lower index swimlane to a higher one
 				if (root.swimlaneIndex < targetNode.swimlaneIndex)
 				{
-					this.maxChainDfs(root, targetNode, internalEdge, seen, 0);
+					this.maxChainDfs(root, targetNode, internalEdge, mxUtils.clone(seen, null , true), 0);
 				}
 				else if (root.swimlaneIndex == targetNode.swimlaneIndex)
 				{
-					this.maxChainDfs(root, targetNode, internalEdge, seen, chainCount + 1);
+					this.maxChainDfs(root, targetNode, internalEdge, mxUtils.clone(seen, null , true), chainCount + 1);
 				}
 			}
 		}
@@ -30781,6 +30785,11 @@ mxSwimlaneModel.prototype.fixRanks = function()
 	{
 		if (seen == 0 && node.maxRank < 0 && node.minRank < 0)
 		{
+			if (rankList[node.temp[0]] == null)
+			{
+				mxLog.show();
+			}
+
 			rankList[node.temp[0]].push(node);
 			node.maxRank = node.temp[0];
 			node.minRank = node.temp[0];

@@ -1,5 +1,5 @@
 /**
- * $Id: mxSwimlaneModel.js,v 1.1 2013/07/22 14:35:12 david Exp $
+ * $Id: mxSwimlaneModel.js,v 1.2 2013/07/29 14:05:03 david Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -497,11 +497,11 @@ mxSwimlaneModel.prototype.maxChainDfs = function(parent, root, connectingEdge, s
 				// swimlane, or from a lower index swimlane to a higher one
 				if (root.swimlaneIndex < targetNode.swimlaneIndex)
 				{
-					this.maxChainDfs(root, targetNode, internalEdge, seen, 0);
+					this.maxChainDfs(root, targetNode, internalEdge, mxUtils.clone(seen, null , true), 0);
 				}
 				else if (root.swimlaneIndex == targetNode.swimlaneIndex)
 				{
-					this.maxChainDfs(root, targetNode, internalEdge, seen, chainCount + 1);
+					this.maxChainDfs(root, targetNode, internalEdge, mxUtils.clone(seen, null , true), chainCount + 1);
 				}
 			}
 		}
@@ -548,6 +548,11 @@ mxSwimlaneModel.prototype.fixRanks = function()
 	{
 		if (seen == 0 && node.maxRank < 0 && node.minRank < 0)
 		{
+			if (rankList[node.temp[0]] == null)
+			{
+				mxLog.show();
+			}
+
 			rankList[node.temp[0]].push(node);
 			node.maxRank = node.temp[0];
 			node.minRank = node.temp[0];
