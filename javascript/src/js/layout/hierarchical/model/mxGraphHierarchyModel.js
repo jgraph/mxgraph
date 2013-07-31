@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphHierarchyModel.js,v 1.6 2013/07/23 21:38:58 david Exp $
+ * $Id: mxGraphHierarchyModel.js,v 1.7 2013/07/30 13:09:34 david Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -72,6 +72,19 @@ function mxGraphHierarchyModel(layout, vertices, roots, parent, tightenToSource)
 				var targetCellId = mxCellPath.create(targetCell);
 				var internalTargetCell = this.vertexMapper[targetCellId];
 
+				if (internalVertices[i] == internalTargetCell)
+				{
+					// If there are parallel edges going between two vertices and not all are in the same direction
+					// you can have navigated across one direction when doing the cycle reversal that isn't the same
+					// direction as the first real edge in the array above. When that happens the if above catches
+					// that and we correct the target cell before continuing.
+					// This branch only detects this single case
+					targetCell = layout.getVisibleTerminal(
+							realEdge, true);
+					targetCellId = mxCellPath.create(targetCell);
+					internalTargetCell = this.vertexMapper[targetCellId];
+				}
+				
 				if (internalTargetCell != null
 						&& internalVertices[i] != internalTargetCell)
 				{

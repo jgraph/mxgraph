@@ -1,5 +1,5 @@
 /**
- * $Id: mxSwimlaneModel.js,v 1.2 2013/07/29 14:05:03 david Exp $
+ * $Id: mxSwimlaneModel.js,v 1.3 2013/07/30 11:56:21 david Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -71,6 +71,15 @@ function mxSwimlaneModel(layout, vertices, roots, parent, tightenToSource)
 						realEdge, false);
 				var targetCellId = mxCellPath.create(targetCell);
 				var internalTargetCell = this.vertexMapper[targetCellId];
+
+				if (internalVertices[i] == internalTargetCell)
+				{
+					// The real edge is reversed relative to the internal edge
+					targetCell = layout.getVisibleTerminal(
+							realEdge, true);
+					targetCellId = mxCellPath.create(targetCell);
+					internalTargetCell = this.vertexMapper[targetCellId];
+				}
 
 				if (internalTargetCell != null
 						&& internalVertices[i] != internalTargetCell)
@@ -759,6 +768,11 @@ mxSwimlaneModel.prototype.extendedDfs = function(parent, root, connectingEdge, v
 			{
 				var internalEdge = outgoingEdges[i];
 				var targetNode = internalEdge.target;
+				
+				if (targetNode == null)
+				{
+					mxLog.show();
+				}
 
 				// Only navigate in source->target direction within the same
 				// swimlane, or from a lower index swimlane to a higher one
