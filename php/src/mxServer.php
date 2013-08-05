@@ -5,15 +5,15 @@
  *
  * Class: mxServer
  *
- * Bootstrapping for the PHP backend. This is version 2.1.0.7
+ * Bootstrapping for the PHP backend. This is version 2.1.0.8
  * of mxGraph.
  *
  * Variable: MXGRAPH-VERSION
  *
  * Constant that holds the current mxGraph version. The current version
- * is 2.1.0.7.
+ * is 2.1.0.8.
  */
-define("MXGRAPH-VERSION", "2.1.0.7");
+define("MXGRAPH-VERSION", "2.1.0.8");
 
 include_once("util/mxLog.php");
 include_once("util/mxConstants.php");
