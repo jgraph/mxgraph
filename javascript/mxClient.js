@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.1.0.7.
+	 * Current version is 2.1.0.8.
 	 */
-	VERSION: '2.1.0.7',
+	VERSION: '2.1.0.8',
 
 	/**
 	 * Variable: IS_IE
@@ -8404,7 +8404,7 @@ mxEventSource.prototype.fireEvent = function(evt, sender)
 	}
 };
 /**
- * $Id: mxEvent.js,v 1.13 2013/06/17 14:46:59 gaudenz Exp $
+ * $Id: mxEvent.js,v 1.14 2013/08/05 09:20:20 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEvent =
@@ -8498,6 +8498,13 @@ var mxEvent =
 				if (element.mxListenerList.length == 0)
 				{
 					element.mxListenerList = null;
+					
+					var idx = mxUtils.indexOf(mxEvent.objects, element);
+					
+					if (idx >= 0)
+					{
+						mxEvent.objects.splice(idx, 1);
+					}
 				}
 			}
 		};

@@ -1,3 +1,7 @@
+05-AUG-2013: 2.1.0.8
+
+- Fixes memory leak in mxEvent.objects array [JavaScript]
+
 31-JUL-2013: 2.1.0.7
 
 - Fixes hierarchical layout dual-direction parallel edges regression [JavaScript]
