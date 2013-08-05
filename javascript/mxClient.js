@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.13.0.4.
+	 * Current version is 1.13.0.5.
 	 */
-	VERSION: '1.13.0.4',
+	VERSION: '1.13.0.5',
 
 	/**
 	 * Variable: IS_IE
@@ -8257,7 +8257,7 @@ mxEventSource.prototype.fireEvent = function(evt, sender)
 	}
 };
 /**
- * $Id: mxEvent.js,v 1.76 2012/12/07 07:39:03 gaudenz Exp $
+ * $Id: mxEvent.js,v 1.77 2013/08/05 09:20:53 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEvent =
@@ -8351,6 +8351,13 @@ var mxEvent =
 				if (element.mxListenerList.length == 0)
 				{
 					element.mxListenerList = null;
+					
+					var idx = mxUtils.indexOf(mxEvent.objects, element);
+					
+					if (idx >= 0)
+					{
+						mxEvent.objects.splice(idx, 1);
+					}
 				}
 			}
 		};
@@ -10053,7 +10060,7 @@ var mxClipboard =
 
 };
 /**
- * $Id: mxWindow.js,v 1.67 2012/10/11 17:18:51 gaudenz Exp $
+ * $Id: mxWindow.js,v 1.68 2013/07/29 07:35:18 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -10799,15 +10806,16 @@ mxWindow.prototype.installMaximizeHandler = function()
 
 				this.div.style.left = '0px';
 				this.div.style.top = '0px';
+				var docHeight = Math.max(document.body.clientHeight || 0, document.documentElement.clientHeight || 0);
 
-				if (!mxClient.IS_IE)
+				if (!mxClient.IS_QUIRKS)
 				{
-					this.div.style.height = (document.body.clientHeight-2)+'px';
-					this.div.style.width = (document.body.clientWidth-2)+'px';
+					this.div.style.width = (document.body.clientWidth - 2) + 'px';
+					this.div.style.height = (docHeight - 2) + 'px';
 				}
 
-				this.table.style.width = (document.body.clientWidth-2)+'px';
-				this.table.style.height = (document.body.clientHeight-2)+'px';
+				this.table.style.width = (document.body.clientWidth - 2) + 'px';
+				this.table.style.height = (docHeight - 2) + 'px';
 				
 				if (this.resize != null)
 				{

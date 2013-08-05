@@ -1,5 +1,5 @@
 /**
- * $Id: mxWindow.js,v 1.67 2012/10/11 17:18:51 gaudenz Exp $
+ * $Id: mxWindow.js,v 1.68 2013/07/29 07:35:18 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -745,15 +745,16 @@ mxWindow.prototype.installMaximizeHandler = function()
 
 				this.div.style.left = '0px';
 				this.div.style.top = '0px';
+				var docHeight = Math.max(document.body.clientHeight || 0, document.documentElement.clientHeight || 0);
 
-				if (!mxClient.IS_IE)
+				if (!mxClient.IS_QUIRKS)
 				{
-					this.div.style.height = (document.body.clientHeight-2)+'px';
-					this.div.style.width = (document.body.clientWidth-2)+'px';
+					this.div.style.width = (document.body.clientWidth - 2) + 'px';
+					this.div.style.height = (docHeight - 2) + 'px';
 				}
 
-				this.table.style.width = (document.body.clientWidth-2)+'px';
-				this.table.style.height = (document.body.clientHeight-2)+'px';
+				this.table.style.width = (document.body.clientWidth - 2) + 'px';
+				this.table.style.height = (docHeight - 2) + 'px';
 				
 				if (this.resize != null)
 				{

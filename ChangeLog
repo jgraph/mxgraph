@@ -1,3 +1,8 @@
+05-AUG-2013: 1.13.0.5
+
+- Fixes memory leak in mxEvent.objects array [JavaScript]
+- Fixes maximizing mxWindow in standards compliant mode
+
 26-JUL-2013: 1.13.0.4
 
 - Adds support for Microsoft Internet Explorer 11 [JavaScript]

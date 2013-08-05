@@ -1,5 +1,5 @@
 /**
- * $Id: mxEvent.js,v 1.76 2012/12/07 07:39:03 gaudenz Exp $
+ * $Id: mxEvent.js,v 1.77 2013/08/05 09:20:53 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEvent =
@@ -93,6 +93,13 @@ var mxEvent =
 				if (element.mxListenerList.length == 0)
 				{
 					element.mxListenerList = null;
+					
+					var idx = mxUtils.indexOf(mxEvent.objects, element);
+					
+					if (idx >= 0)
+					{
+						mxEvent.objects.splice(idx, 1);
+					}
 				}
 			}
 		};
