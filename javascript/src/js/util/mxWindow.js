@@ -1,5 +1,5 @@
 /**
- * $Id: mxWindow.js,v 1.6 2013/07/29 07:34:37 gaudenz Exp $
+ * $Id: mxWindow.js,v 1.7 2013/08/07 20:40:22 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -234,14 +234,7 @@ mxWindow.prototype.resizeImage = mxClient.imageBasePath + '/resize.gif';
  * Boolean flag that represents the visible state of the window.
  */
 mxWindow.prototype.visible = false;
-	
-/**
- * Variable: content
- * 
- * Reference to the DOM node that represents the window content.
- */
-mxWindow.prototype.content = false;
-	
+
 /**
  * Variable: minimumSize
  * 
@@ -251,26 +244,34 @@ mxWindow.prototype.content = false;
 mxWindow.prototype.minimumSize = new mxRectangle(0, 0, 50, 40);
 
 /**
- * Variable: title
- * 
- * Reference to the DOM node (TD) that contains the title.
- */
-mxWindow.prototype.title = false;
-
-/**
- * Variable: content
- * 
- * Reference to the DOM node that represents the window content.
- */
-mxWindow.prototype.content = false;
-
-/**
  * Variable: destroyOnClose
  * 
  * Specifies if the window should be destroyed when it is closed. If this
  * is false then the window is hidden using <setVisible>. Default is true.
  */
 mxWindow.prototype.destroyOnClose = true;
+
+/**
+ * Variable: contentHeightCorrection
+ * 
+ * Defines the correction factor for computing the height of the contentWrapper.
+ * Default is 6 for IE 7/8 standards mode and 2 for all other browsers and modes.
+ */
+mxWindow.prototype.contentHeightCorrection = (document.documentMode == 8 || document.documentMode == 7) ? 6 : 2;
+
+/**
+ * Variable: title
+ * 
+ * Reference to the DOM node (TD) that contains the title.
+ */
+mxWindow.prototype.title = null;
+
+/**
+ * Variable: content
+ * 
+ * Reference to the DOM node that represents the window content.
+ */
+mxWindow.prototype.content = null;
 
 /**
  * Function: init
@@ -282,9 +283,10 @@ mxWindow.prototype.init = function(x, y, width, height, style)
 	style = (style != null) ? style : 'mxWindow';
 	
 	this.div = document.createElement('div');
-	this.div.className = style; 
-	this.div.style.left = x+'px';
-	this.div.style.top = y+'px';
+	this.div.className = style;
+
+	this.div.style.left = x + 'px';
+	this.div.style.top = y + 'px';
 	this.table = document.createElement('table');
 	this.table.className = style;
 
@@ -299,20 +301,20 @@ mxWindow.prototype.init = function(x, y, width, height, style)
 	{
 		if (!mxClient.IS_QUIRKS)
 		{
-			this.div.style.width = width+'px'; 
+			this.div.style.width = width + 'px'; 
 		}
 		
-		this.table.style.width = width+'px';
+		this.table.style.width = width + 'px';
 	} 
 	
 	if (height != null)
 	{
 		if (!mxClient.IS_QUIRKS)
 		{
-			this.div.style.height = height+'px';
+			this.div.style.height = height + 'px';
 		}
 		
-		this.table.style.height = height+'px';
+		this.table.style.height = height + 'px';
 	}		
 	
 	// Creates title row
@@ -320,17 +322,22 @@ mxWindow.prototype.init = function(x, y, width, height, style)
 	var tr = document.createElement('tr');
 	
 	this.title = document.createElement('td');
-	this.title.className = style+'Title';
+	this.title.className = style + 'Title';
 	tr.appendChild(this.title);
 	tbody.appendChild(tr);
 	
 	// Creates content row and table cell
 	tr = document.createElement('tr');
 	this.td = document.createElement('td');
-	this.td.className = style+'Pane';
+	this.td.className = style + 'Pane';
+	
+	if (document.documentMode == 7)
+	{
+		this.td.style.height = '100%';
+	}
 
 	this.contentWrapper = document.createElement('div');
-	this.contentWrapper.className = style+'Pane';
+	this.contentWrapper.className = style + 'Pane';
 	this.contentWrapper.style.width = '100%';
 	this.contentWrapper.appendChild(this.content);
 
@@ -586,8 +593,8 @@ mxWindow.prototype.setSize = function(width, height)
 
 	if (!mxClient.IS_QUIRKS)
 	{
-		this.contentWrapper.style.height =
-			(this.div.offsetHeight - this.title.offsetHeight - 2)+'px';
+		this.contentWrapper.style.height = (this.div.offsetHeight -
+			this.title.offsetHeight - this.contentHeightCorrection) + 'px';
 	}
 };
 	
@@ -790,8 +797,8 @@ mxWindow.prototype.installMaximizeHandler = function()
 		
 					if (style.overflow == 'auto' || this.resize != null)
 					{
-						this.contentWrapper.style.height =
-							(this.div.offsetHeight - this.title.offsetHeight - 2)+'px';
+						this.contentWrapper.style.height = (this.div.offsetHeight -
+							this.title.offsetHeight - this.contentHeightCorrection) + 'px';
 					}
 				}
 
@@ -819,8 +826,8 @@ mxWindow.prototype.installMaximizeHandler = function()
 		
 					if (style.overflow == 'auto' || this.resize != null)
 					{
-						this.contentWrapper.style.height =
-							(this.div.offsetHeight - this.title.offsetHeight - 2)+'px';
+						this.contentWrapper.style.height = (this.div.offsetHeight -
+							this.title.offsetHeight - this.contentHeightCorrection) + 'px';
 					}
 				}
 				
@@ -1046,8 +1053,8 @@ mxWindow.prototype.show = function()
 	
 	if (!mxClient.IS_QUIRKS && (style.overflow == 'auto' || this.resize != null))
 	{
-		this.contentWrapper.style.height =
-			(this.div.offsetHeight - this.title.offsetHeight - 2)+'px';
+		this.contentWrapper.style.height = (this.div.offsetHeight -
+				this.title.offsetHeight - this.contentHeightCorrection) + 'px';
 	}
 	
 	this.fireEvent(new mxEventObject(mxEvent.SHOW));

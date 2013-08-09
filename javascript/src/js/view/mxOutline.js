@@ -1,5 +1,5 @@
 /**
- * $Id: mxOutline.js,v 1.10 2013/06/17 14:43:47 gaudenz Exp $
+ * $Id: mxOutline.js,v 1.11 2013/08/07 20:40:22 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -14,12 +14,16 @@
  * var outline = new mxOutline(graph, div);
  * (end)
  * 
- * If the selection border in the outline appears behind the contents of the
- * graph, then you can use the following code. (This may happen when using a
- * transparent container for the outline in IE.)
+ * If an outline is used in an <mxWindow> in IE8 standards mode, the following
+ * code makes sure that the shadow filter is not inherited and that any
+ * transparent elements in the graph do not show the page background, but the
+ * background of the graph container.
  * 
  * (code)
- * mxOutline.prototype.graphRenderHint = mxConstants.RENDERING_HINT_EXACT;
+ * if (document.documentMode == 8)
+ * {
+ *   container.style.filter = 'progid:DXImageTransform.Microsoft.alpha(opacity=100)';
+ * }
  * (end)
  * 
  * To move the graph to the top, left corner the following code can be used.
@@ -150,6 +154,16 @@ mxOutline.prototype.sizerImage = null;
 mxOutline.prototype.suspended = false;
 
 /**
+ * Variable: forceVmlHandles
+ * 
+ * Specifies if VML should be used to render the handles in this control. This
+ * is true for IE8 standards mode and false for all other browsers and modes.
+ * This is a workaround for rendering issues of HTML elements over elements
+ * with filters in IE 8 standards mode.
+ */
+mxOutline.prototype.forceVmlHandles = document.documentMode == 8;
+
+/**
  * Function: init
  * 
  * Initializes the outline inside the given container.
@@ -226,9 +240,16 @@ mxOutline.prototype.init = function(container)
 	this.bounds = new mxRectangle(0, 0, 0, 0);
 	this.selectionBorder = new mxRectangleShape(this.bounds, null,
 		mxConstants.OUTLINE_COLOR, mxConstants.OUTLINE_STROKEWIDTH);
-	this.selectionBorder.dialect =
-		(this.outline.dialect != mxConstants.DIALECT_SVG) ?
-		mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
+	this.selectionBorder.dialect = this.outline.dialect;
+
+	if (this.forceVmlHandles)
+	{
+		this.selectionBorder.isHtmlAllowed = function()
+		{
+			return false;
+		};
+	}
+	
 	this.selectionBorder.init(this.outline.getView().getOverlayPane());
 
 	// Handles event by catching the initial pointer start and then listening to the
@@ -258,6 +279,15 @@ mxOutline.prototype.init = function(container)
 
 	// Creates a small blue rectangle for sizing (sizer handle)
 	this.sizer = this.createSizer();
+	
+	if (this.forceVmlHandles)
+	{
+		this.sizer.isHtmlAllowed = function()
+		{
+			return false;
+		};
+	}
+	
 	this.sizer.init(this.outline.getView().getOverlayPane());
 	
 	if (this.enabled)

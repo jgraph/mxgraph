@@ -1,5 +1,5 @@
 /**
- * $Id: mxRectangleShape.js,v 1.10 2013/07/29 14:29:36 gaudenz Exp $
+ * $Id: mxRectangleShape.js,v 1.11 2013/08/07 20:40:22 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -43,8 +43,7 @@ mxUtils.extend(mxRectangleShape, mxShape);
  */
 mxRectangleShape.prototype.isHtmlAllowed = function()
 {
-	return !this.isRounded && !this.glass && this.rotation == 0 &&
-		(document.documentMode != 8 || (this.opacity == 100 && !this.isShadow));
+	return !this.isRounded && !this.glass && this.rotation == 0;
 };
 
 /**

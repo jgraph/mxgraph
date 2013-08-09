@@ -1,5 +1,5 @@
 /**
- * $Id: mxConnectionHandler.js,v 1.16 2013/06/21 07:55:54 gaudenz Exp $
+ * $Id: mxConnectionHandler.js,v 1.17 2013/08/07 21:40:01 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -932,14 +932,14 @@ mxConnectionHandler.prototype.isImmediateConnectSource = function(state)
  * 
  * Use the following code to create a preview for an existing edge style:
  * 
- * [code]
+ * (code)
  * graph.connectionHandler.createEdgeState = function(me)
  * {
  *   var edge = graph.createEdge(null, null, null, null, null, 'edgeStyle=elbowEdgeStyle');
  *   
  *   return new mxCellState(this.graph.view, edge, this.graph.getCellStyle(edge));
  * };
- * [/code]
+ * (end)
  */
 mxConnectionHandler.prototype.createEdgeState = function(me)
 {

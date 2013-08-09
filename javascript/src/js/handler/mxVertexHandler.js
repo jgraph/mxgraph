@@ -1,5 +1,5 @@
 /**
- * $Id: mxVertexHandler.js,v 1.30 2013/07/23 07:53:18 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.31 2013/08/06 09:15:54 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1084,7 +1084,20 @@ mxVertexHandler.prototype.redraw = function()
 /**
  * Function: redrawHandles
  * 
- * Redraws the handles.
+ * Redraws the handles. To hide certain handles the following code can be used.
+ * 
+ * (code)
+ * mxVertexHandler.prototype.redrawHandles = function()
+ * {
+ *   mxVertexHandlerRedrawHandles.apply(this, arguments);
+ *   
+ *   if (this.sizers != null && this.sizers.length > 7)
+ *   {
+ *     this.sizers[1].node.style.display = 'none';
+ *     this.sizers[6].node.style.display = 'none';
+ *   }
+ * };
+ * (end)
  */
 mxVertexHandler.prototype.redrawHandles = function()
 {

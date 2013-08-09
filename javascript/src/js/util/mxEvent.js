@@ -1,5 +1,5 @@
 /**
- * $Id: mxEvent.js,v 1.14 2013/08/05 09:20:20 david Exp $
+ * $Id: mxEvent.js,v 1.15 2013/08/05 17:12:57 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEvent =
@@ -79,7 +79,7 @@ var mxEvent =
 			{
 				var listenerCount = element.mxListenerList.length;
 				
-				for (var i=0; i<listenerCount; i++)
+				for (var i = 0; i < listenerCount; i++)
 				{
 					var entry = element.mxListenerList[i];
 					

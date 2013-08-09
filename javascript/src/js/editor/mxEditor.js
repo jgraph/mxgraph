@@ -1,5 +1,5 @@
 /**
- * $Id: mxEditor.js,v 1.4 2013/06/26 11:42:17 gaudenz Exp $
+ * $Id: mxEditor.js,v 1.5 2013/08/07 20:40:22 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -2894,11 +2894,16 @@ mxEditor.prototype.showOutline = function ()
 		var div = document.createElement('div');
 		
 		div.style.overflow = 'hidden';
-		div.style.position = 'absolute';
+		div.style.position = 'relative';
 		div.style.width = '100%';
 		div.style.height = '100%';
 		div.style.background = 'white';
 		div.style.cursor = 'move';
+		
+		if (document.documentMode == 8)
+		{
+			div.style.filter = 'progid:DXImageTransform.Microsoft.alpha(opacity=100)';
+		}
 		
 		var wnd = new mxWindow(
 			mxResources.get(this.outlineResource) ||

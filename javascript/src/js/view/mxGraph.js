@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.34 2013/07/23 21:28:29 david Exp $
+ * $Id: mxGraph.js,v 1.36 2013/08/07 22:39:12 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -5019,7 +5019,24 @@ mxGraph.prototype.cellSizeUpdated = function(cell, ignoreChildren)
  * Function: getPreferredSizeForCell
  * 
  * Returns the preferred width and height of the given <mxCell> as an
- * <mxRectangle>.
+ * <mxRectangle>. To implement a minimum width, add a new style eg.
+ * minWidth in the vertex and override this method as follows.
+ * 
+ * (code)
+ * var graphGetPreferredSizeForCell = graph.getPreferredSizeForCell;
+ * graph.getPreferredSizeForCell = function(cell)
+ * {
+ *   var result = graphGetPreferredSizeForCell.apply(this, arguments);
+ *   var style = this.getCellStyle(cell);
+ *   
+ *   if (style['minWidth'] > 0)
+ *   {
+ *     result.width = Math.max(style['minWidth'], result.width);
+ *   }
+ * 
+ *   return result;
+ * };
+ * (end)
  * 
  * Parameters:
  * 
@@ -9450,6 +9467,23 @@ mxGraph.prototype.isAutoSizeCells = function()
  * 
  * Specifies if cell sizes should be automatically updated after a label
  * change. This implementation sets <autoSizeCells> to the given parameter.
+ * 
+ * To update the cells sizes when cells are added, use the code below.
+ * 
+ * (code)
+ * graph.addListener('cellsAdded', function(sender, evt)
+ * {
+ *   var cells = evt.getProperty('cells');
+ *   
+ *   for (var i = 0; i < cells.length; i++)
+ *   {
+ *     if (graph.getModel().isVertex(cells[i]) && graph.isAutoSizeCell(cells[i]))
+ *     {
+ *       graph.updateCellSize(cells[i]);
+ *     }
+ *   }
+ * });
+ * (end)
  * 
  * Parameters:
  * 

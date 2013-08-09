@@ -1,5 +1,5 @@
 /**
-aaa * $Id: mxShape.js,v 1.45 2013/07/29 14:29:37 gaudenz Exp $
+aaa * $Id: mxShape.js,v 1.46 2013/08/07 20:40:22 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -434,7 +434,7 @@ mxShape.prototype.redrawShape = function()
 		this.node.style.filter = '';
 		
 		// Adds event transparency in IE8 standards
-		if ((this.stencil == null && !this.pointerEvents) || (this.stencil != null && !this.stencilPointerEvents))
+		if (this.stencil == null || (this.stencil != null && !this.stencilPointerEvents))
 		{
 			mxUtils.addTransparentBackgroundFilter(this.node);
 		}

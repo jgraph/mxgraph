@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellCodec.js,v 1.1 2012/11/15 13:26:43 gaudenz Exp $
+ * $Id: mxCellCodec.js,v 1.2 2013/08/07 22:06:57 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -27,6 +27,21 @@ mxCodecRegistry.register(function()
 	 * Transient fields can be added using the following code:
 	 * 
 	 * mxCodecRegistry.getCodec(mxCell).exclude.push('name_of_field');
+	 * 
+	 * To subclass <mxCell>, replace the template and add an alias as
+	 * follows.
+	 * 
+	 * (code)
+	 * function CustomCell(value, geometry, style)
+	 * {
+	 *   mxCell.apply(this, arguments);
+	 * }
+	 * 
+	 * mxUtils.extend(CustomCell, mxCell);
+	 * 
+	 * mxCodecRegistry.getCodec(mxCell).template = new CustomCell();
+	 * mxCodecRegistry.addAlias('CustomCell', 'mxCell');
+	 * (end)
 	 */
 	var codec = new mxObjectCodec(new mxCell(),
 		['children', 'edges', 'overlays', 'mxTransient'],

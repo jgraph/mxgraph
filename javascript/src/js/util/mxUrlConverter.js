@@ -1,5 +1,5 @@
 /**
- * $Id: mxUrlConverter.js,v 1.2 2013/01/29 12:34:44 gaudenz Exp $
+ * $Id: mxUrlConverter.js,v 1.3 2013/08/07 08:46:07 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -115,7 +115,7 @@ var mxUrlConverter = function(root)
 		 */
 		isRelativeUrl: function(url)
 		{
-			return url.substring(0, 7) != 'http://' && url.substring(0, 8) != 'https://' && url.substring(0, 10) != 'data:image';
+			return url.substring(0, 2) != '//' && url.substring(0, 7) != 'http://' && url.substring(0, 8) != 'https://' && url.substring(0, 10) != 'data:image';
 		},
 		
 		/**

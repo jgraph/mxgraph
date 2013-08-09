@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.1.0.8.
+	 * Current version is 2.1.0.9.
 	 */
-	VERSION: '2.1.0.8',
+	VERSION: '2.1.0.9',
 
 	/**
 	 * Variable: IS_IE
@@ -8404,7 +8404,7 @@ mxEventSource.prototype.fireEvent = function(evt, sender)
 	}
 };
 /**
- * $Id: mxEvent.js,v 1.14 2013/08/05 09:20:20 david Exp $
+ * $Id: mxEvent.js,v 1.15 2013/08/05 17:12:57 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEvent =
@@ -8484,7 +8484,7 @@ var mxEvent =
 			{
 				var listenerCount = element.mxListenerList.length;
 				
-				for (var i=0; i<listenerCount; i++)
+				for (var i = 0; i < listenerCount; i++)
 				{
 					var entry = element.mxListenerList[i];
 					
@@ -10363,7 +10363,7 @@ var mxClipboard =
 
 };
 /**
- * $Id: mxWindow.js,v 1.6 2013/07/29 07:34:37 gaudenz Exp $
+ * $Id: mxWindow.js,v 1.7 2013/08/07 20:40:22 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -10598,14 +10598,7 @@ mxWindow.prototype.resizeImage = mxClient.imageBasePath + '/resize.gif';
  * Boolean flag that represents the visible state of the window.
  */
 mxWindow.prototype.visible = false;
-	
-/**
- * Variable: content
- * 
- * Reference to the DOM node that represents the window content.
- */
-mxWindow.prototype.content = false;
-	
+
 /**
  * Variable: minimumSize
  * 
@@ -10615,26 +10608,34 @@ mxWindow.prototype.content = false;
 mxWindow.prototype.minimumSize = new mxRectangle(0, 0, 50, 40);
 
 /**
- * Variable: title
- * 
- * Reference to the DOM node (TD) that contains the title.
- */
-mxWindow.prototype.title = false;
-
-/**
- * Variable: content
- * 
- * Reference to the DOM node that represents the window content.
- */
-mxWindow.prototype.content = false;
-
-/**
  * Variable: destroyOnClose
  * 
  * Specifies if the window should be destroyed when it is closed. If this
  * is false then the window is hidden using <setVisible>. Default is true.
  */
 mxWindow.prototype.destroyOnClose = true;
+
+/**
+ * Variable: contentHeightCorrection
+ * 
+ * Defines the correction factor for computing the height of the contentWrapper.
+ * Default is 6 for IE 7/8 standards mode and 2 for all other browsers and modes.
+ */
+mxWindow.prototype.contentHeightCorrection = (document.documentMode == 8 || document.documentMode == 7) ? 6 : 2;
+
+/**
+ * Variable: title
+ * 
+ * Reference to the DOM node (TD) that contains the title.
+ */
+mxWindow.prototype.title = null;
+
+/**
+ * Variable: content
+ * 
+ * Reference to the DOM node that represents the window content.
+ */
+mxWindow.prototype.content = null;
 
 /**
  * Function: init
@@ -10646,9 +10647,10 @@ mxWindow.prototype.init = function(x, y, width, height, style)
 	style = (style != null) ? style : 'mxWindow';
 	
 	this.div = document.createElement('div');
-	this.div.className = style; 
-	this.div.style.left = x+'px';
-	this.div.style.top = y+'px';
+	this.div.className = style;
+
+	this.div.style.left = x + 'px';
+	this.div.style.top = y + 'px';
 	this.table = document.createElement('table');
 	this.table.className = style;
 
@@ -10663,20 +10665,20 @@ mxWindow.prototype.init = function(x, y, width, height, style)
 	{
 		if (!mxClient.IS_QUIRKS)
 		{
-			this.div.style.width = width+'px'; 
+			this.div.style.width = width + 'px'; 
 		}
 		
-		this.table.style.width = width+'px';
+		this.table.style.width = width + 'px';
 	} 
 	
 	if (height != null)
 	{
 		if (!mxClient.IS_QUIRKS)
 		{
-			this.div.style.height = height+'px';
+			this.div.style.height = height + 'px';
 		}
 		
-		this.table.style.height = height+'px';
+		this.table.style.height = height + 'px';
 	}		
 	
 	// Creates title row
@@ -10684,17 +10686,22 @@ mxWindow.prototype.init = function(x, y, width, height, style)
 	var tr = document.createElement('tr');
 	
 	this.title = document.createElement('td');
-	this.title.className = style+'Title';
+	this.title.className = style + 'Title';
 	tr.appendChild(this.title);
 	tbody.appendChild(tr);
 	
 	// Creates content row and table cell
 	tr = document.createElement('tr');
 	this.td = document.createElement('td');
-	this.td.className = style+'Pane';
+	this.td.className = style + 'Pane';
+	
+	if (document.documentMode == 7)
+	{
+		this.td.style.height = '100%';
+	}
 
 	this.contentWrapper = document.createElement('div');
-	this.contentWrapper.className = style+'Pane';
+	this.contentWrapper.className = style + 'Pane';
 	this.contentWrapper.style.width = '100%';
 	this.contentWrapper.appendChild(this.content);
 
@@ -10950,8 +10957,8 @@ mxWindow.prototype.setSize = function(width, height)
 
 	if (!mxClient.IS_QUIRKS)
 	{
-		this.contentWrapper.style.height =
-			(this.div.offsetHeight - this.title.offsetHeight - 2)+'px';
+		this.contentWrapper.style.height = (this.div.offsetHeight -
+			this.title.offsetHeight - this.contentHeightCorrection) + 'px';
 	}
 };
 	
@@ -11154,8 +11161,8 @@ mxWindow.prototype.installMaximizeHandler = function()
 		
 					if (style.overflow == 'auto' || this.resize != null)
 					{
-						this.contentWrapper.style.height =
-							(this.div.offsetHeight - this.title.offsetHeight - 2)+'px';
+						this.contentWrapper.style.height = (this.div.offsetHeight -
+							this.title.offsetHeight - this.contentHeightCorrection) + 'px';
 					}
 				}
 
@@ -11183,8 +11190,8 @@ mxWindow.prototype.installMaximizeHandler = function()
 		
 					if (style.overflow == 'auto' || this.resize != null)
 					{
-						this.contentWrapper.style.height =
-							(this.div.offsetHeight - this.title.offsetHeight - 2)+'px';
+						this.contentWrapper.style.height = (this.div.offsetHeight -
+							this.title.offsetHeight - this.contentHeightCorrection) + 'px';
 					}
 				}
 				
@@ -11410,8 +11417,8 @@ mxWindow.prototype.show = function()
 	
 	if (!mxClient.IS_QUIRKS && (style.overflow == 'auto' || this.resize != null))
 	{
-		this.contentWrapper.style.height =
-			(this.div.offsetHeight - this.title.offsetHeight - 2)+'px';
+		this.contentWrapper.style.height = (this.div.offsetHeight -
+				this.title.offsetHeight - this.contentHeightCorrection) + 'px';
 	}
 	
 	this.fireEvent(new mxEventObject(mxEvent.SHOW));
@@ -14079,7 +14086,7 @@ mxUndoManager.prototype.trim = function()
 	}
 };
 /**
- * $Id: mxUrlConverter.js,v 1.2 2013/01/29 12:34:44 gaudenz Exp $
+ * $Id: mxUrlConverter.js,v 1.3 2013/08/07 08:46:07 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -14195,7 +14202,7 @@ var mxUrlConverter = function(root)
 		 */
 		isRelativeUrl: function(url)
 		{
-			return url.substring(0, 7) != 'http://' && url.substring(0, 8) != 'https://' && url.substring(0, 10) != 'data:image';
+			return url.substring(0, 2) != '//' && url.substring(0, 7) != 'http://' && url.substring(0, 8) != 'https://' && url.substring(0, 10) != 'data:image';
 		},
 		
 		/**
@@ -21236,7 +21243,7 @@ mxStencil.prototype.drawNode = function(canvas, shape, node, aspect, disableShad
 	}
 };
 /**
-aaa * $Id: mxShape.js,v 1.45 2013/07/29 14:29:37 gaudenz Exp $
+aaa * $Id: mxShape.js,v 1.46 2013/08/07 20:40:22 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -21671,7 +21678,7 @@ mxShape.prototype.redrawShape = function()
 		this.node.style.filter = '';
 		
 		// Adds event transparency in IE8 standards
-		if ((this.stencil == null && !this.pointerEvents) || (this.stencil != null && !this.stencilPointerEvents))
+		if (this.stencil == null || (this.stencil != null && !this.stencilPointerEvents))
 		{
 			mxUtils.addTransparentBackgroundFilter(this.node);
 		}
@@ -22755,7 +22762,7 @@ mxCloud.prototype.redrawPath = function(c, x, y, w, h)
 	c.close();
 };
 /**
- * $Id: mxRectangleShape.js,v 1.10 2013/07/29 14:29:36 gaudenz Exp $
+ * $Id: mxRectangleShape.js,v 1.11 2013/08/07 20:40:22 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -22799,8 +22806,7 @@ mxUtils.extend(mxRectangleShape, mxShape);
  */
 mxRectangleShape.prototype.isHtmlAllowed = function()
 {
-	return !this.isRounded && !this.glass && this.rotation == 0 &&
-		(document.documentMode != 8 || (this.opacity == 100 && !this.isShadow));
+	return !this.isRounded && !this.glass && this.rotation == 0;
 };
 
 /**
@@ -48075,7 +48081,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.34 2013/07/23 21:28:29 david Exp $
+ * $Id: mxGraph.js,v 1.36 2013/08/07 22:39:12 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -53095,7 +53101,24 @@ mxGraph.prototype.cellSizeUpdated = function(cell, ignoreChildren)
  * Function: getPreferredSizeForCell
  * 
  * Returns the preferred width and height of the given <mxCell> as an
- * <mxRectangle>.
+ * <mxRectangle>. To implement a minimum width, add a new style eg.
+ * minWidth in the vertex and override this method as follows.
+ * 
+ * (code)
+ * var graphGetPreferredSizeForCell = graph.getPreferredSizeForCell;
+ * graph.getPreferredSizeForCell = function(cell)
+ * {
+ *   var result = graphGetPreferredSizeForCell.apply(this, arguments);
+ *   var style = this.getCellStyle(cell);
+ *   
+ *   if (style['minWidth'] > 0)
+ *   {
+ *     result.width = Math.max(style['minWidth'], result.width);
+ *   }
+ * 
+ *   return result;
+ * };
+ * (end)
  * 
  * Parameters:
  * 
@@ -57527,6 +57550,23 @@ mxGraph.prototype.isAutoSizeCells = function()
  * Specifies if cell sizes should be automatically updated after a label
  * change. This implementation sets <autoSizeCells> to the given parameter.
  * 
+ * To update the cells sizes when cells are added, use the code below.
+ * 
+ * (code)
+ * graph.addListener('cellsAdded', function(sender, evt)
+ * {
+ *   var cells = evt.getProperty('cells');
+ *   
+ *   for (var i = 0; i < cells.length; i++)
+ *   {
+ *     if (graph.getModel().isVertex(cells[i]) && graph.isAutoSizeCell(cells[i]))
+ *     {
+ *       graph.updateCellSize(cells[i]);
+ *     }
+ *   }
+ * });
+ * (end)
+ * 
  * Parameters:
  * 
  * value - Boolean indicating if cells should be resized
@@ -59839,7 +59879,7 @@ mxCellOverlay.prototype.toString = function()
 	return this.tooltip;
 };
 /**
- * $Id: mxOutline.js,v 1.10 2013/06/17 14:43:47 gaudenz Exp $
+ * $Id: mxOutline.js,v 1.11 2013/08/07 20:40:22 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -59854,12 +59894,16 @@ mxCellOverlay.prototype.toString = function()
  * var outline = new mxOutline(graph, div);
  * (end)
  * 
- * If the selection border in the outline appears behind the contents of the
- * graph, then you can use the following code. (This may happen when using a
- * transparent container for the outline in IE.)
+ * If an outline is used in an <mxWindow> in IE8 standards mode, the following
+ * code makes sure that the shadow filter is not inherited and that any
+ * transparent elements in the graph do not show the page background, but the
+ * background of the graph container.
  * 
  * (code)
- * mxOutline.prototype.graphRenderHint = mxConstants.RENDERING_HINT_EXACT;
+ * if (document.documentMode == 8)
+ * {
+ *   container.style.filter = 'progid:DXImageTransform.Microsoft.alpha(opacity=100)';
+ * }
  * (end)
  * 
  * To move the graph to the top, left corner the following code can be used.
@@ -59990,6 +60034,16 @@ mxOutline.prototype.sizerImage = null;
 mxOutline.prototype.suspended = false;
 
 /**
+ * Variable: forceVmlHandles
+ * 
+ * Specifies if VML should be used to render the handles in this control. This
+ * is true for IE8 standards mode and false for all other browsers and modes.
+ * This is a workaround for rendering issues of HTML elements over elements
+ * with filters in IE 8 standards mode.
+ */
+mxOutline.prototype.forceVmlHandles = document.documentMode == 8;
+
+/**
  * Function: init
  * 
  * Initializes the outline inside the given container.
@@ -60066,9 +60120,16 @@ mxOutline.prototype.init = function(container)
 	this.bounds = new mxRectangle(0, 0, 0, 0);
 	this.selectionBorder = new mxRectangleShape(this.bounds, null,
 		mxConstants.OUTLINE_COLOR, mxConstants.OUTLINE_STROKEWIDTH);
-	this.selectionBorder.dialect =
-		(this.outline.dialect != mxConstants.DIALECT_SVG) ?
-		mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
+	this.selectionBorder.dialect = this.outline.dialect;
+
+	if (this.forceVmlHandles)
+	{
+		this.selectionBorder.isHtmlAllowed = function()
+		{
+			return false;
+		};
+	}
+	
 	this.selectionBorder.init(this.outline.getView().getOverlayPane());
 
 	// Handles event by catching the initial pointer start and then listening to the
@@ -60098,6 +60159,15 @@ mxOutline.prototype.init = function(container)
 
 	// Creates a small blue rectangle for sizing (sizer handle)
 	this.sizer = this.createSizer();
+	
+	if (this.forceVmlHandles)
+	{
+		this.sizer.isHtmlAllowed = function()
+		{
+			return false;
+		};
+	}
+	
 	this.sizer.init(this.outline.getView().getOverlayPane());
 	
 	if (this.enabled)
@@ -64653,7 +64723,7 @@ mxSelectionCellsHandler.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxConnectionHandler.js,v 1.16 2013/06/21 07:55:54 gaudenz Exp $
+ * $Id: mxConnectionHandler.js,v 1.17 2013/08/07 21:40:01 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -65586,14 +65656,14 @@ mxConnectionHandler.prototype.isImmediateConnectSource = function(state)
  * 
  * Use the following code to create a preview for an existing edge style:
  * 
- * [code]
+ * (code)
  * graph.connectionHandler.createEdgeState = function(me)
  * {
  *   var edge = graph.createEdge(null, null, null, null, null, 'edgeStyle=elbowEdgeStyle');
  *   
  *   return new mxCellState(this.graph.view, edge, this.graph.getCellStyle(edge));
  * };
- * [/code]
+ * (end)
  */
 mxConnectionHandler.prototype.createEdgeState = function(me)
 {
@@ -67206,7 +67276,7 @@ mxRubberband.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxVertexHandler.js,v 1.30 2013/07/23 07:53:18 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.31 2013/08/06 09:15:54 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -68291,7 +68361,20 @@ mxVertexHandler.prototype.redraw = function()
 /**
  * Function: redrawHandles
  * 
- * Redraws the handles.
+ * Redraws the handles. To hide certain handles the following code can be used.
+ * 
+ * (code)
+ * mxVertexHandler.prototype.redrawHandles = function()
+ * {
+ *   mxVertexHandlerRedrawHandles.apply(this, arguments);
+ *   
+ *   if (this.sizers != null && this.sizers.length > 7)
+ *   {
+ *     this.sizers[1].node.style.display = 'none';
+ *     this.sizers[6].node.style.display = 'none';
+ *   }
+ * };
+ * (end)
  */
 mxVertexHandler.prototype.redrawHandles = function()
 {
@@ -72658,7 +72741,7 @@ mxDefaultToolbar.prototype.destroy = function ()
 	}
 };
 /**
- * $Id: mxEditor.js,v 1.4 2013/06/26 11:42:17 gaudenz Exp $
+ * $Id: mxEditor.js,v 1.5 2013/08/07 20:40:22 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -75553,11 +75636,16 @@ mxEditor.prototype.showOutline = function ()
 		var div = document.createElement('div');
 		
 		div.style.overflow = 'hidden';
-		div.style.position = 'absolute';
+		div.style.position = 'relative';
 		div.style.width = '100%';
 		div.style.height = '100%';
 		div.style.background = 'white';
 		div.style.cursor = 'move';
+		
+		if (document.documentMode == 8)
+		{
+			div.style.filter = 'progid:DXImageTransform.Microsoft.alpha(opacity=100)';
+		}
 		
 		var wnd = new mxWindow(
 			mxResources.get(this.outlineResource) ||
@@ -77531,7 +77619,7 @@ mxObjectCodec.prototype.afterDecode = function(dec, node, obj)
 	return obj;
 };
 /**
- * $Id: mxCellCodec.js,v 1.1 2012/11/15 13:26:43 gaudenz Exp $
+ * $Id: mxCellCodec.js,v 1.2 2013/08/07 22:06:57 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -77559,6 +77647,21 @@ mxCodecRegistry.register(function()
 	 * Transient fields can be added using the following code:
 	 * 
 	 * mxCodecRegistry.getCodec(mxCell).exclude.push('name_of_field');
+	 * 
+	 * To subclass <mxCell>, replace the template and add an alias as
+	 * follows.
+	 * 
+	 * (code)
+	 * function CustomCell(value, geometry, style)
+	 * {
+	 *   mxCell.apply(this, arguments);
+	 * }
+	 * 
+	 * mxUtils.extend(CustomCell, mxCell);
+	 * 
+	 * mxCodecRegistry.getCodec(mxCell).template = new CustomCell();
+	 * mxCodecRegistry.addAlias('CustomCell', 'mxCell');
+	 * (end)
 	 */
 	var codec = new mxObjectCodec(new mxCell(),
 		['children', 'edges', 'overlays', 'mxTransient'],

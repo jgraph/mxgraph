@@ -1,6 +1,15 @@
+09-AUG-2013: 2.1.0.9
+
+- Fixes handling of generic list types in mxObjectCodec.SetFieldValue [Dotnet]
+- Fixes rendering issues in mxWindow, mx(Rectangle)Shape for IE7/8 standards [JavaScript]
+- Adds mxOutline.forceVmlHandles to fix rendering issues for IE8 standards [JavaScript]
+- Fixes rendering issues in mxEditor.showOutline for IE8 standards [JavaScript]
+- Handles //-prefix as absolute URLs in mxUrlConverter [JavaScript]
+
 05-AUG-2013: 2.1.0.8
 
 - Fixes memory leak in mxEvent.objects array [JavaScript]
+- Fixes maximizing mxWindow in standards compliant mode [JavaScript]
 
 31-JUL-2013: 2.1.0.7
 
