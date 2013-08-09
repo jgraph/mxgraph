@@ -1,4 +1,4 @@
-// $Id: mxObjectCodec.cs,v 1.1 2012/11/15 13:26:49 gaudenz Exp $
+// $Id: mxObjectCodec.cs,v 1.2 2013/08/08 12:08:55 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.ComponentModel;
@@ -564,12 +564,30 @@ namespace com.mxgraph
                 {
                     value = ConvertValueFromXml(property.PropertyType, value);
 
-					// Converts collection to a typed array before setting
-                    if (property.PropertyType.IsArray &&
-                        value is ArrayList)
+					// Converts collection to a typed array or typed list
+                    if (value is ArrayList)
                     {
                         ArrayList list = (ArrayList)value;
-                        value = list.ToArray(property.PropertyType.GetElementType());
+
+                        if (property.PropertyType.IsArray)
+                        {
+                            value = list.ToArray(property.PropertyType.GetElementType());
+                        }
+                        else if (list.Count > 0 && property.PropertyType.IsAssignableFrom(typeof(List<>).MakeGenericType(list[0].GetType())))
+                        {
+                            IList newValue = (IList)Activator.CreateInstance(property.PropertyType);
+                            Type targetType = property.PropertyType.GetGenericArguments()[0];
+
+                            foreach (var elt in list)
+                            {
+                                if (targetType.IsAssignableFrom(elt.GetType()))
+                                {
+                                    newValue.Add(elt);
+                                }
+                            }
+
+                            value = newValue;
+                        }
                     }
 
                     property.SetValue(obj, value, null);
