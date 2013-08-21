@@ -1,5 +1,5 @@
 /**
- * $Id: mxText.js,v 1.54 2013/07/29 15:40:34 gaudenz Exp $
+ * $Id: mxText.js,v 1.55 2013/08/09 18:08:30 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -195,6 +195,38 @@ mxText.prototype.checkBounds = function()
 {
 	return (this.bounds != null && !isNaN(this.bounds.x) && !isNaN(this.bounds.y) &&
 			!isNaN(this.bounds.width) && !isNaN(this.bounds.height));
+};
+
+/**
+ * Function: apply
+ * 
+ * Extends mxShape to updat the text styles.
+ *
+ * Parameters:
+ *
+ * state - <mxCellState> of the corresponding cell.
+ */
+mxText.prototype.apply = function(state)
+{
+	mxShape.prototype.apply.apply(this, arguments);
+	
+	if (this.style != null)
+	{
+		this.fontStyle = mxUtils.getValue(this.style, mxConstants.STYLE_FONTSTYLE, this.fontStyle);
+		this.family = mxUtils.getValue(this.style, mxConstants.STYLE_FONTFAMILY, this.family);
+		this.size = mxUtils.getValue(this.style, mxConstants.STYLE_FONTSIZE, this.size);
+		this.color = mxUtils.getValue(this.style, mxConstants.STYLE_FONTCOLOR, this.color);
+		this.align = mxUtils.getValue(this.style, mxConstants.STYLE_ALIGN, this.align);
+		this.valign = mxUtils.getValue(this.style, mxConstants.STYLE_VERTICAL_ALIGN, this.valign);
+		this.valign = mxUtils.getValue(this.style, mxConstants.STYLE_VERTICAL_ALIGN, this.valign);
+		this.spacingTop = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_TOP, this.spacingTop);
+		this.spacingRight = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_RIGHT, this.spacingRight);
+		this.spacingBottom = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_BOTTOM, this.spacingBottom);
+		this.spacingLeft = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_LEFT, this.spacingLeft);
+		this.horizontal = mxUtils.getValue(this.style, mxConstants.STYLE_HORIZONTAL, this.horizontal);
+		this.background = mxUtils.getValue(this.style, mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, this.background);
+		this.border = mxUtils.getValue(this.style, mxConstants.STYLE_LABEL_BORDERCOLOR, this.border);
+	}
 };
 
 /**

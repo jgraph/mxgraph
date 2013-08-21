@@ -1,5 +1,5 @@
 /**
- * $Id: mxCodec.js,v 1.1 2012/11/15 13:26:43 gaudenz Exp $
+ * $Id: mxCodec.js,v 1.2 2013/08/09 19:07:52 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -53,7 +53,7 @@
  * 
  * Debugging:
  * 
- * For debugging i/o you can use the following code to get the sequence of
+ * For debugging I/O you can use the following code to get the sequence of
  * encoded objects:
  * 
  * (code)
@@ -64,6 +64,16 @@
  *   mxLog.debug('mxCodec.encode: obj='+mxUtils.getFunctionName(obj.constructor));
  *   
  *   return oldEncode.apply(this, arguments);
+ * };
+ * (end)
+ * 
+ * Note that the I/O system adds object codecs for new object automatically. For
+ * decoding those objects, the constructor should be written as follows:
+ * 
+ * (code)
+ * var MyObj = function(name)
+ * {
+ *   // ...
  * };
  * (end)
  * 

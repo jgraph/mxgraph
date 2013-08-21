@@ -1,5 +1,5 @@
 /**
- * $Id: mxConstants.java,v 1.5 2013/02/20 11:41:05 gaudenz Exp $
+ * $Id: mxConstants.java,v 1.6 2013/08/13 05:16:03 mate Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.util;
@@ -546,6 +546,21 @@ public class mxConstants
 	 * for <mxStencilShape>. Possible values are 0 and 1. Default is 0.
 	 */
 	public static String STYLE_STENCIL_FLIPV = "stencilFlipV";
+
+
+	/**
+	 * Defines the key for the horizontal image flip. This style is only used
+	 * in <mxImageShape>. Possible values are 0 and 1. Default is 0.
+	 */
+	public static String STYLE_FLIPH = "flipH";
+
+	/**
+	 * Variable: STYLE_FLIPV
+	 * 
+	 * Defines the key for the vertical flip. Possible values are 0 and 1.
+	 * Default is 0.
+	 */
+	public static String STYLE_FLIPV = "flipV";
 
 	/**
 	 * Defines the key for the noLabel style. If this is

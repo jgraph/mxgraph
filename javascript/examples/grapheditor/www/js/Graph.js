@@ -1,5 +1,5 @@
 /**
- * $Id: Graph.js,v 1.27 2013/07/19 06:12:36 gaudenz Exp $
+ * $Id: Graph.js,v 1.28 2013/08/21 09:11:53 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -522,7 +522,6 @@ Graph.prototype.initTouch = function()
 		};
 
 		// Overrides double click handling to use the tolerance
-		// FIXME: Double click on edges in iPad needs focus on textarea
 		var graphDblClick = mxGraph.prototype.dblClick;
 		Graph.prototype.dblClick = function(evt, cell)
 		{

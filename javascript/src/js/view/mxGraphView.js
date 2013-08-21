@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphView.js,v 1.22 2013/07/22 17:29:31 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.23 2013/08/21 09:16:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -664,12 +664,13 @@ mxGraphView.prototype.validateBackgroundPage = function()
 			this.backgroundPageShape.redraw();
 			
 			// Adds listener for double click handling on background
-			mxEvent.addListener(this.backgroundPageShape.node, 'dblclick',
-				mxUtils.bind(this, function(evt)
+			if (graph.nativeDblClickEnabled)
+			{
+				mxEvent.addListener(this.backgroundPageShape.node, 'dblclick', mxUtils.bind(this, function(evt)
 				{
 					this.graph.dblClick(evt);
-				})
-			);
+				}));
+			}
 
 			// Adds basic listeners for graph event dispatching outside of the
 			// container and finishing the handling of a single gesture
@@ -2217,13 +2218,6 @@ mxGraphView.prototype.installListeners = function()
 		// Adds basic listeners for graph event dispatching
 		mxEvent.addGestureListeners(container, mxUtils.bind(this, function(evt)
 		{
-			// Workaround for iOS device not transferring
-			// the focus while editing with virtual keyboard
-			if (mxClient.IS_IOS && graph.isEditing())
-			{
-				graph.stopEditing(!graph.isInvokesStopCellEditing());
-			}
-			
 			// Condition to avoid scrollbar events starting a rubberband
 			// selection
 			if (this.isContainerEvent(evt) && ((!mxClient.IS_IE && 
@@ -2249,10 +2243,13 @@ mxGraphView.prototype.installListeners = function()
 		}));
 		
 		// Adds listener for double click handling on background
-		mxEvent.addListener(container, 'dblclick', mxUtils.bind(this, function(evt)
+		if (graph.nativeDblClickEnabled)
 		{
-			graph.dblClick(evt);
-		}));
+			mxEvent.addListener(container, 'dblclick', mxUtils.bind(this, function(evt)
+			{
+				graph.dblClick(evt);
+			}));
+		}
 
 		// Workaround for touch events which started on some DOM node
 		// on top of the container, in which case the cells under the

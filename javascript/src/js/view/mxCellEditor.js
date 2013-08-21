@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellEditor.js,v 1.12 2013/07/15 16:21:57 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.14 2013/08/21 09:16:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -227,6 +227,16 @@ mxCellEditor.prototype.init = function ()
 			}), 0);
 		}
 	}));
+};
+
+/**
+ * Function: isEventSource
+ * 
+ * Returns true if this editor is the source for the given native event.
+ */
+mxCellEditor.prototype.isEventSource = function(evt)
+{
+	return mxEvent.getSource(evt) == this.textarea;
 };
 
 /**
@@ -486,11 +496,11 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 			
 			this.textarea.focus();
 			
-			// Workaround to select all text on iOS
 			if (this.selectText)
 			{
 				if (mxClient.IS_IOS)
 				{
+					// Workaround to select all text on iOS
 					window.setTimeout(mxUtils.bind(this, function() {
 					    this.textarea.setSelectionRange(0, 9999);
 					}), 1);

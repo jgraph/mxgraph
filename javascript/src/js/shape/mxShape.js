@@ -1,5 +1,5 @@
 /**
-aaa * $Id: mxShape.js,v 1.46 2013/08/07 20:40:22 gaudenz Exp $
+aaa * $Id: mxShape.js,v 1.47 2013/08/13 10:35:39 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -851,7 +851,7 @@ mxShape.prototype.apply = function(state)
 			this.flipV = mxUtils.getValue(this.style, 'stencilFlipV', 0) == 1 || this.flipV;
 		}
 		
-		if (this.direction == 'north' || this.direction == 'south')
+		if (this.direction == mxConstants.DIRECTION_NORTH || this.direction == mxConstants.DIRECTION_SOUTH)
 		{
 			var tmp = this.flipH;
 			this.flipH = this.flipV;
@@ -957,7 +957,8 @@ mxShape.prototype.createBoundingBox = function()
 {
 	var bb = this.bounds.clone();
 	
-	if (this.isPaintBoundsInverted())
+	if ((this.stencil != null && (this.direction == mxConstants.DIRECTION_NORTH ||
+		this.direction == mxConstants.DIRECTION_SOUTH)) || this.isPaintBoundsInverted())
 	{
 		var t = (bb.width - bb.height) / 2;
 		bb.x += t;
@@ -996,7 +997,8 @@ mxShape.prototype.augmentBoundingBox = function(bbox)
 mxShape.prototype.isPaintBoundsInverted = function()
 {
 	// Stencil implements inversion via aspect
-	return this.stencil == null && (this.direction == 'north' || this.direction == 'south');
+	return this.stencil == null && (this.direction == mxConstants.DIRECTION_NORTH ||
+			this.direction == mxConstants.DIRECTION_SOUTH);
 };
 
 /**
@@ -1037,15 +1039,15 @@ mxShape.prototype.getShapeRotation = function()
 	
 	if (this.direction != null)
 	{
-		if (this.direction == 'north')
+		if (this.direction == mxConstants.DIRECTION_NORTH)
 		{
 			rot += 270;
 		}
-		else if (this.direction == 'west')
+		else if (this.direction == mxConstants.DIRECTION_WEST)
 		{
 			rot += 180;
 		}
-		else if (this.direction == 'south')
+		else if (this.direction == mxConstants.DIRECTION_SOUTH)
 		{
 			rot += 90;
 		}

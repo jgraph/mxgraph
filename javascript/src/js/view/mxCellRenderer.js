@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellRenderer.js,v 1.23 2013/07/22 17:44:45 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.26 2013/08/21 09:16:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -627,18 +627,23 @@ mxCellRenderer.prototype.createLabel = function(state, value)
 					graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt, getState(evt)));
 					forceGetCell = false;
 				}
-			}));
-
-		mxEvent.addListener(state.text.node, 'dblclick',
-			mxUtils.bind(this, function(evt)
-			{
-				if (this.isLabelEvent(state, evt))
-				{
-					graph.dblClick(evt, state.cell);
-					mxEvent.consume(evt);
-				}
 			})
 		);
+
+		// Uses double click timeout in mxGraph for quirks mode
+		if (graph.nativeDblClickEnabled)
+		{
+			mxEvent.addListener(state.text.node, 'dblclick',
+				mxUtils.bind(this, function(evt)
+				{
+					if (this.isLabelEvent(state, evt))
+					{
+						graph.dblClick(evt, state.cell);
+						mxEvent.consume(evt);
+					}
+				})
+			);
+		}
 	}
 };
 
@@ -975,18 +980,33 @@ mxCellRenderer.prototype.installListeners = function(state)
 	
 	// Experimental support for two-finger pinch to resize cells
 	var gestureInProgress = false;
-	
-	mxEvent.addListener(state.shape.node, 'gesturestart',
-		mxUtils.bind(this, function(evt)
-		{
-			// FIXME: Breaks encapsulation to reset the double
-			// tap event handling when gestures take place
-			graph.lastTouchTime = 0;
 
-			gestureInProgress = true;
-			mxEvent.consume(evt);
-		})
-	);
+	
+	// Experimental handling for gestures. Double-tap handling is implemented
+	// in mxGraph.fireMouseEvent
+	if (mxClient.IS_TOUCH)
+	{
+		mxEvent.addListener(state.shape.node, 'gesturestart',
+			mxUtils.bind(this, function(evt)
+			{
+				// FIXME: Breaks encapsulation to reset the double
+				// tap event handling when gestures take place
+				graph.lastTouchTime = 0;
+	
+				gestureInProgress = true;
+				mxEvent.consume(evt);
+			})
+		);
+
+		mxEvent.addListener(state.shape.node, 'gestureend',
+			mxUtils.bind(this, function(evt)
+			{
+				gestureInProgress = false;
+				graph.fireGestureEvent(evt, state.cell);
+				mxEvent.consume(evt);
+			})
+		);
+	}
 	
 	mxEvent.addGestureListeners(state.shape.node,
 		mxUtils.bind(this, function(evt)
@@ -1033,31 +1053,23 @@ mxCellRenderer.prototype.installListeners = function(state)
 			{
 				mxEvent.consume(evt);
 			}
-		}));
-	
-	// Experimental handling for gestures. Double-tap handling is implemented
-	// in mxGraph.fireMouseEvent.
-	var dc = (mxClient.IS_TOUCH) ? 'gestureend' : 'dblclick';
-	
-	mxEvent.addListener(state.shape.node, dc,
-		mxUtils.bind(this, function(evt)
-		{
-			gestureInProgress = false;
-
-			if (dc == 'gestureend')
-			{
-				graph.fireGestureEvent(evt, state.cell);
-			}
-			else if (this.isShapeEvent(state, evt))
-			{
-				graph.dblClick(evt, (state.shape != null &&
-					mxEvent.getSource(evt) == state.shape.content) ?
-						null : state.cell);
-			}
-
-			mxEvent.consume(evt);
 		})
 	);
+	
+	// Uses double click timeout in mxGraph for quirks mode
+	if (graph.nativeDblClickEnabled)
+	{
+		mxEvent.addListener(state.shape.node, 'dblclick',
+			mxUtils.bind(this, function(evt)
+			{
+				if (this.isShapeEvent(state, evt))
+				{
+					graph.dblClick(evt, state.cell);
+					mxEvent.consume(evt);
+				}
+			})
+		);
+	}
 };
 
 /**
@@ -1135,7 +1147,10 @@ mxCellRenderer.prototype.getLabelBounds = function(state)
 	var isEdge = graph.getModel().isEdge(state.cell);
 	var bounds = new mxRectangle(state.absoluteOffset.x, state.absoluteOffset.y);
 
-	state.text.updateMargin();
+	if (state.text != null)
+	{
+		state.text.updateMargin();
+	}
 	
 	if (isEdge)
 	{

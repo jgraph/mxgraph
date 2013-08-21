@@ -1,5 +1,5 @@
 /**
- * $Id: ExportServlet.java,v 1.5 2013/05/07 06:54:12 gaudenz Exp $
+ * $Id: ExportServlet.java,v 1.6 2013/08/20 12:10:41 gaudenz Exp $
  * Copyright (c) 2011-2012, JGraph Ltd
  */
 package com.mxgraph.examples.web;
@@ -127,6 +127,11 @@ public class ExportServlet extends HttpServlet
 		String xml = getRequestXml(request);
 
 		Color bg = (tmp != null) ? mxUtils.parseColor(tmp) : null;
+		
+		if (fname != null)
+		{
+			fname = URLDecoder.decode(fname, "UTF-8");
+		}
 
 		// Checks parameters
 		if (w > 0 && h > 0 && w * h < Constants.MAX_AREA && format != null && xml != null && xml.length() > 0)
@@ -167,7 +172,7 @@ public class ExportServlet extends HttpServlet
 	 */
 	protected String getRequestXml(HttpServletRequest request) throws IOException, UnsupportedEncodingException
 	{
-		return URLDecoder.decode(request.getParameter("plain"), "UTF-8");
+		return URLDecoder.decode(request.getParameter("xml"), "UTF-8");
 	}
 
 	/**

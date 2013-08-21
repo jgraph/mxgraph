@@ -1,5 +1,5 @@
 /**
- * $Id: mxStencil.js,v 1.12 2013/07/14 13:55:23 gaudenz Exp $
+ * $Id: mxStencil.js,v 1.13 2013/08/13 10:35:39 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -328,7 +328,7 @@ mxStencil.prototype.computeAspect = function(shape, x, y, w, h, direction)
 	var sx = w / this.w0;
 	var sy = h / this.h0;
 	
-	var inverse = (direction == 'north' || direction == 'south');
+	var inverse = (direction == mxConstants.DIRECTION_NORTH || direction == mxConstants.DIRECTION_SOUTH);
 
 	if (inverse)
 	{

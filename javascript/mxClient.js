@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.1.0.9.
+	 * Current version is 2.1.1.0.
 	 */
-	VERSION: '2.1.0.9',
+	VERSION: '2.1.1.0',
 
 	/**
 	 * Variable: IS_IE
@@ -20621,7 +20621,7 @@ mxGuide.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxStencil.js,v 1.12 2013/07/14 13:55:23 gaudenz Exp $
+ * $Id: mxStencil.js,v 1.13 2013/08/13 10:35:39 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -20950,7 +20950,7 @@ mxStencil.prototype.computeAspect = function(shape, x, y, w, h, direction)
 	var sx = w / this.w0;
 	var sy = h / this.h0;
 	
-	var inverse = (direction == 'north' || direction == 'south');
+	var inverse = (direction == mxConstants.DIRECTION_NORTH || direction == mxConstants.DIRECTION_SOUTH);
 
 	if (inverse)
 	{
@@ -21243,7 +21243,7 @@ mxStencil.prototype.drawNode = function(canvas, shape, node, aspect, disableShad
 	}
 };
 /**
-aaa * $Id: mxShape.js,v 1.46 2013/08/07 20:40:22 gaudenz Exp $
+aaa * $Id: mxShape.js,v 1.47 2013/08/13 10:35:39 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -22095,7 +22095,7 @@ mxShape.prototype.apply = function(state)
 			this.flipV = mxUtils.getValue(this.style, 'stencilFlipV', 0) == 1 || this.flipV;
 		}
 		
-		if (this.direction == 'north' || this.direction == 'south')
+		if (this.direction == mxConstants.DIRECTION_NORTH || this.direction == mxConstants.DIRECTION_SOUTH)
 		{
 			var tmp = this.flipH;
 			this.flipH = this.flipV;
@@ -22201,7 +22201,8 @@ mxShape.prototype.createBoundingBox = function()
 {
 	var bb = this.bounds.clone();
 	
-	if (this.isPaintBoundsInverted())
+	if ((this.stencil != null && (this.direction == mxConstants.DIRECTION_NORTH ||
+		this.direction == mxConstants.DIRECTION_SOUTH)) || this.isPaintBoundsInverted())
 	{
 		var t = (bb.width - bb.height) / 2;
 		bb.x += t;
@@ -22240,7 +22241,8 @@ mxShape.prototype.augmentBoundingBox = function(bbox)
 mxShape.prototype.isPaintBoundsInverted = function()
 {
 	// Stencil implements inversion via aspect
-	return this.stencil == null && (this.direction == 'north' || this.direction == 'south');
+	return this.stencil == null && (this.direction == mxConstants.DIRECTION_NORTH ||
+			this.direction == mxConstants.DIRECTION_SOUTH);
 };
 
 /**
@@ -22281,15 +22283,15 @@ mxShape.prototype.getShapeRotation = function()
 	
 	if (this.direction != null)
 	{
-		if (this.direction == 'north')
+		if (this.direction == mxConstants.DIRECTION_NORTH)
 		{
 			rot += 270;
 		}
-		else if (this.direction == 'west')
+		else if (this.direction == mxConstants.DIRECTION_WEST)
 		{
 			rot += 180;
 		}
-		else if (this.direction == 'south')
+		else if (this.direction == mxConstants.DIRECTION_SOUTH)
 		{
 			rot += 90;
 		}
@@ -23424,7 +23426,7 @@ mxArrow.prototype.paintEdgeShape = function(c, pts)
 	c.fillAndStroke();
 };
 /**
- * $Id: mxText.js,v 1.54 2013/07/29 15:40:34 gaudenz Exp $
+ * $Id: mxText.js,v 1.55 2013/08/09 18:08:30 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -23620,6 +23622,38 @@ mxText.prototype.checkBounds = function()
 {
 	return (this.bounds != null && !isNaN(this.bounds.x) && !isNaN(this.bounds.y) &&
 			!isNaN(this.bounds.width) && !isNaN(this.bounds.height));
+};
+
+/**
+ * Function: apply
+ * 
+ * Extends mxShape to updat the text styles.
+ *
+ * Parameters:
+ *
+ * state - <mxCellState> of the corresponding cell.
+ */
+mxText.prototype.apply = function(state)
+{
+	mxShape.prototype.apply.apply(this, arguments);
+	
+	if (this.style != null)
+	{
+		this.fontStyle = mxUtils.getValue(this.style, mxConstants.STYLE_FONTSTYLE, this.fontStyle);
+		this.family = mxUtils.getValue(this.style, mxConstants.STYLE_FONTFAMILY, this.family);
+		this.size = mxUtils.getValue(this.style, mxConstants.STYLE_FONTSIZE, this.size);
+		this.color = mxUtils.getValue(this.style, mxConstants.STYLE_FONTCOLOR, this.color);
+		this.align = mxUtils.getValue(this.style, mxConstants.STYLE_ALIGN, this.align);
+		this.valign = mxUtils.getValue(this.style, mxConstants.STYLE_VERTICAL_ALIGN, this.valign);
+		this.valign = mxUtils.getValue(this.style, mxConstants.STYLE_VERTICAL_ALIGN, this.valign);
+		this.spacingTop = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_TOP, this.spacingTop);
+		this.spacingRight = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_RIGHT, this.spacingRight);
+		this.spacingBottom = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_BOTTOM, this.spacingBottom);
+		this.spacingLeft = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_LEFT, this.spacingLeft);
+		this.horizontal = mxUtils.getValue(this.style, mxConstants.STYLE_HORIZONTAL, this.horizontal);
+		this.background = mxUtils.getValue(this.style, mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, this.background);
+		this.border = mxUtils.getValue(this.style, mxConstants.STYLE_LABEL_BORDERCOLOR, this.border);
+	}
 };
 
 /**
@@ -41768,7 +41802,7 @@ mxSelectionChange.prototype.execute = function()
 			'added', this.added, 'removed', this.removed));
 };
 /**
- * $Id: mxCellEditor.js,v 1.12 2013/07/15 16:21:57 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.14 2013/08/21 09:16:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -41996,6 +42030,16 @@ mxCellEditor.prototype.init = function ()
 			}), 0);
 		}
 	}));
+};
+
+/**
+ * Function: isEventSource
+ * 
+ * Returns true if this editor is the source for the given native event.
+ */
+mxCellEditor.prototype.isEventSource = function(evt)
+{
+	return mxEvent.getSource(evt) == this.textarea;
 };
 
 /**
@@ -42255,11 +42299,11 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 			
 			this.textarea.focus();
 			
-			// Workaround to select all text on iOS
 			if (this.selectText)
 			{
 				if (mxClient.IS_IOS)
 				{
+					// Workaround to select all text on iOS
 					window.setTimeout(mxUtils.bind(this, function() {
 					    this.textarea.setSelectionRange(0, 9999);
 					}), 1);
@@ -42531,7 +42575,7 @@ mxCellEditor.prototype.destroy = function ()
 	}
 };
 /**
- * $Id: mxCellRenderer.js,v 1.23 2013/07/22 17:44:45 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.26 2013/08/21 09:16:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -43159,18 +43203,23 @@ mxCellRenderer.prototype.createLabel = function(state, value)
 					graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt, getState(evt)));
 					forceGetCell = false;
 				}
-			}));
-
-		mxEvent.addListener(state.text.node, 'dblclick',
-			mxUtils.bind(this, function(evt)
-			{
-				if (this.isLabelEvent(state, evt))
-				{
-					graph.dblClick(evt, state.cell);
-					mxEvent.consume(evt);
-				}
 			})
 		);
+
+		// Uses double click timeout in mxGraph for quirks mode
+		if (graph.nativeDblClickEnabled)
+		{
+			mxEvent.addListener(state.text.node, 'dblclick',
+				mxUtils.bind(this, function(evt)
+				{
+					if (this.isLabelEvent(state, evt))
+					{
+						graph.dblClick(evt, state.cell);
+						mxEvent.consume(evt);
+					}
+				})
+			);
+		}
 	}
 };
 
@@ -43507,18 +43556,33 @@ mxCellRenderer.prototype.installListeners = function(state)
 	
 	// Experimental support for two-finger pinch to resize cells
 	var gestureInProgress = false;
-	
-	mxEvent.addListener(state.shape.node, 'gesturestart',
-		mxUtils.bind(this, function(evt)
-		{
-			// FIXME: Breaks encapsulation to reset the double
-			// tap event handling when gestures take place
-			graph.lastTouchTime = 0;
 
-			gestureInProgress = true;
-			mxEvent.consume(evt);
-		})
-	);
+	
+	// Experimental handling for gestures. Double-tap handling is implemented
+	// in mxGraph.fireMouseEvent
+	if (mxClient.IS_TOUCH)
+	{
+		mxEvent.addListener(state.shape.node, 'gesturestart',
+			mxUtils.bind(this, function(evt)
+			{
+				// FIXME: Breaks encapsulation to reset the double
+				// tap event handling when gestures take place
+				graph.lastTouchTime = 0;
+	
+				gestureInProgress = true;
+				mxEvent.consume(evt);
+			})
+		);
+
+		mxEvent.addListener(state.shape.node, 'gestureend',
+			mxUtils.bind(this, function(evt)
+			{
+				gestureInProgress = false;
+				graph.fireGestureEvent(evt, state.cell);
+				mxEvent.consume(evt);
+			})
+		);
+	}
 	
 	mxEvent.addGestureListeners(state.shape.node,
 		mxUtils.bind(this, function(evt)
@@ -43565,31 +43629,23 @@ mxCellRenderer.prototype.installListeners = function(state)
 			{
 				mxEvent.consume(evt);
 			}
-		}));
-	
-	// Experimental handling for gestures. Double-tap handling is implemented
-	// in mxGraph.fireMouseEvent.
-	var dc = (mxClient.IS_TOUCH) ? 'gestureend' : 'dblclick';
-	
-	mxEvent.addListener(state.shape.node, dc,
-		mxUtils.bind(this, function(evt)
-		{
-			gestureInProgress = false;
-
-			if (dc == 'gestureend')
-			{
-				graph.fireGestureEvent(evt, state.cell);
-			}
-			else if (this.isShapeEvent(state, evt))
-			{
-				graph.dblClick(evt, (state.shape != null &&
-					mxEvent.getSource(evt) == state.shape.content) ?
-						null : state.cell);
-			}
-
-			mxEvent.consume(evt);
 		})
 	);
+	
+	// Uses double click timeout in mxGraph for quirks mode
+	if (graph.nativeDblClickEnabled)
+	{
+		mxEvent.addListener(state.shape.node, 'dblclick',
+			mxUtils.bind(this, function(evt)
+			{
+				if (this.isShapeEvent(state, evt))
+				{
+					graph.dblClick(evt, state.cell);
+					mxEvent.consume(evt);
+				}
+			})
+		);
+	}
 };
 
 /**
@@ -43667,7 +43723,10 @@ mxCellRenderer.prototype.getLabelBounds = function(state)
 	var isEdge = graph.getModel().isEdge(state.cell);
 	var bounds = new mxRectangle(state.absoluteOffset.x, state.absoluteOffset.y);
 
-	state.text.updateMargin();
+	if (state.text != null)
+	{
+		state.text.updateMargin();
+	}
 	
 	if (isEdge)
 	{
@@ -45450,7 +45509,7 @@ mxStyleRegistry.putValue(mxConstants.PERIMETER_RECTANGLE, mxPerimeter.RectangleP
 mxStyleRegistry.putValue(mxConstants.PERIMETER_RHOMBUS, mxPerimeter.RhombusPerimeter);
 mxStyleRegistry.putValue(mxConstants.PERIMETER_TRIANGLE, mxPerimeter.TrianglePerimeter);
 /**
- * $Id: mxGraphView.js,v 1.22 2013/07/22 17:29:31 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.23 2013/08/21 09:16:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -46115,12 +46174,13 @@ mxGraphView.prototype.validateBackgroundPage = function()
 			this.backgroundPageShape.redraw();
 			
 			// Adds listener for double click handling on background
-			mxEvent.addListener(this.backgroundPageShape.node, 'dblclick',
-				mxUtils.bind(this, function(evt)
+			if (graph.nativeDblClickEnabled)
+			{
+				mxEvent.addListener(this.backgroundPageShape.node, 'dblclick', mxUtils.bind(this, function(evt)
 				{
 					this.graph.dblClick(evt);
-				})
-			);
+				}));
+			}
 
 			// Adds basic listeners for graph event dispatching outside of the
 			// container and finishing the handling of a single gesture
@@ -47668,13 +47728,6 @@ mxGraphView.prototype.installListeners = function()
 		// Adds basic listeners for graph event dispatching
 		mxEvent.addGestureListeners(container, mxUtils.bind(this, function(evt)
 		{
-			// Workaround for iOS device not transferring
-			// the focus while editing with virtual keyboard
-			if (mxClient.IS_IOS && graph.isEditing())
-			{
-				graph.stopEditing(!graph.isInvokesStopCellEditing());
-			}
-			
 			// Condition to avoid scrollbar events starting a rubberband
 			// selection
 			if (this.isContainerEvent(evt) && ((!mxClient.IS_IE && 
@@ -47700,10 +47753,13 @@ mxGraphView.prototype.installListeners = function()
 		}));
 		
 		// Adds listener for double click handling on background
-		mxEvent.addListener(container, 'dblclick', mxUtils.bind(this, function(evt)
+		if (graph.nativeDblClickEnabled)
 		{
-			graph.dblClick(evt);
-		}));
+			mxEvent.addListener(container, 'dblclick', mxUtils.bind(this, function(evt)
+			{
+				graph.dblClick(evt);
+			}));
+		}
 
 		// Workaround for touch events which started on some DOM node
 		// on top of the container, in which case the cells under the
@@ -48081,7 +48137,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.36 2013/08/07 22:39:12 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.39 2013/08/21 09:16:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -48906,24 +48962,35 @@ mxGraph.prototype.gridEnabled = true;
 mxGraph.prototype.portsEnabled = true;
 
 /**
+ * Variable: nativeDoubleClickEnabled
+ * 
+ * Specifies if native double click events should be deteced. Default is false
+ * for IE in quirks mode or IE10+, true for all other browsers. The
+ * <doubleTapTimeout> value is used to specify the double click speed.
+ */
+mxGraph.prototype.nativeDblClickEnabled = !mxClient.IS_QUIRKS && (document.documentMode == null || document.documentMode < 10);
+
+/**
  * Variable: doubleTapEnabled
  * 
- * Specifies if double taps on touch-based devices should be handled. Default
- * is true.
+ * Specifies if double taps on touch-based devices should be handled as a
+ * double click. Default is true.
  */
 mxGraph.prototype.doubleTapEnabled = true;
 
 /**
  * Variable: doubleTapTimeout
  * 
- * Specifies the timeout for double taps. Default is 700 ms.
+ * Specifies the timeout for double taps and non-native double clicks. Default
+ * is 500 ms.
  */
-mxGraph.prototype.doubleTapTimeout = 700;
+mxGraph.prototype.doubleTapTimeout = 500;
 
 /**
  * Variable: doubleTapTolerance
  * 
- * Specifies the tolerance for double taps. Default is 25 pixels.
+ * Specifies the tolerance for double taps and double clicks in quirks mode.
+ * Default is 25 pixels.
  */
 mxGraph.prototype.doubleTapTolerance = 25;
 
@@ -53929,21 +53996,21 @@ mxGraph.prototype.getConnectionPoint = function(vertex, constraint)
 		// Bounds need to be rotated by 90 degrees for further computation
 		if (direction != null)
 		{
-			if (direction == 'north')
+			if (direction == mxConstants.DIRECTION_NORTH)
 			{
 				r1 += 270;
 			}
-			else if (direction == 'west')
+			else if (direction == mxConstants.DIRECTION_WEST)
 			{
 				r1 += 180;
 			}
-			else if (direction == 'south')
+			else if (direction == mxConstants.DIRECTION_SOUTH)
 			{
 				r1 += 90;
 			}
 
 			// Bounds need to be rotated by 90 degrees for further computation
-			if (direction == 'north' || direction == 'south')
+			if (direction == mxConstants.DIRECTION_NORTH || direction == mxConstants.DIRECTION_SOUTH)
 			{
 				bounds.x += bounds.width / 2 - bounds.height / 2;
 				bounds.y += bounds.height / 2 - bounds.width / 2;
@@ -59298,9 +59365,9 @@ mxGraph.prototype.getStateForTouchEvent = function(evt)
  */
 mxGraph.prototype.isEventIgnored = function(evtName, me, sender)
 {
-	var result = this.isEditing();
 	var mouseEvent = mxEvent.isMouseEvent(me.getEvent());
-	
+	var result = this.isEditing();
+
 	// Drops events that are fired more than once
 	if (me.getEvent() == this.lastEvent)
 	{
@@ -59313,7 +59380,7 @@ mxGraph.prototype.isEventIgnored = function(evtName, me, sender)
 
 	// Installs event listeners to capture the complete gesture from the event source
 	// for non-MS touch events as a workaround for all events for the same geture being
-	// fires from the event source even if that was removed from the DOM.
+	// fired from the event source even if that was removed from the DOM.
 	if (this.eventSource != null && evtName != mxEvent.MOUSE_MOVE)
 	{
 		mxEvent.removeGestureListeners(this.eventSource, null, this.mouseMoveRedirect, this.mouseUpRedirect);
@@ -59340,20 +59407,7 @@ mxGraph.prototype.isEventIgnored = function(evtName, me, sender)
 		
 		mxEvent.addGestureListeners(this.eventSource, null, this.mouseMoveRedirect, this.mouseUpRedirect);
 	}
-	
-	// Workaround for IE9 standards mode ignoring tolerance for double clicks
-	if (mxClient.IS_IE && document.compatMode == 'CSS1Compat' && evtName == mxEvent.MOUSE_UP && me.getEvent().detail/*clickCount*/ == 2)
-	{
-		if ((this.lastMouseX != null && Math.abs(this.lastMouseX - me.getX()) <= this.doubleTapTolerance) &&
-			(this.lastMouseY != null && Math.abs(this.lastMouseY - me.getY()) <= this.doubleTapTolerance))
-		{
-			result = true;
-		}
-		
-		this.lastMouseX = me.getX();
-		this.lastMouseY = me.getY();
-	}
-	
+
 	// Factored out the workarounds for FF to make it easier to override/remove
 	// Note this method has side-effects!
 	if (this.isSyntheticEventIgnored(evtName, me, sender))
@@ -59366,21 +59420,25 @@ mxGraph.prototype.isEventIgnored = function(evtName, me, sender)
 	{
 		this.isMouseDown = false;
 	}
-	else if (!result)
+	else if (evtName == mxEvent.MOUSE_DOWN && !this.isMouseDown)
 	{
-		if (evtName == mxEvent.MOUSE_DOWN && !this.isMouseDown)
-		{
-			this.isMouseDown = true;
-			this.isMouseTrigger = mouseEvent;
-		}
-		// Drops mouse events that are fired during touch gestures as a workaround for Webkit
-		else if (((!mxClient.IS_FF || evtName != mxEvent.MOUSE_MOVE) &&
-			this.isMouseDown && this.isMouseTrigger != mouseEvent) ||
-			(evtName == mxEvent.MOUSE_DOWN && this.isMouseDown) ||
-			(evtName == mxEvent.MOUSE_UP && !this.isMouseDown))
-		{
-			result = true;
-		}
+		this.isMouseDown = true;
+		this.isMouseTrigger = mouseEvent;
+	}
+	// Drops mouse events that are fired during touch gestures as a workaround for Webkit
+	// and mouse events that are not in sync with the current internal button state
+	else if (!result && (((!mxClient.IS_FF || evtName != mxEvent.MOUSE_MOVE) &&
+		this.isMouseDown && this.isMouseTrigger != mouseEvent) ||
+		(evtName == mxEvent.MOUSE_DOWN && this.isMouseDown) ||
+		(evtName == mxEvent.MOUSE_UP && !this.isMouseDown)))
+	{
+		result = true;
+	}
+	
+	// Ignores double click events
+	if (this.lastEvent.detail >= 2)
+	{
+		result = true;
 	}
 	
 	return result;
@@ -59431,25 +59489,33 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 		sender = this;
 	}
 
-	if (!this.isEventIgnored(evtName, me, sender))
+	// Updates the graph coordinates in the event
+	me = this.updateMouseEvent(me);
+
+	// Stops editing for all events other than from cellEditor
+	if (evtName == mxEvent.MOUSE_DOWN && this.isEditing() && !this.cellEditor.isEventSource(me.getEvent()))
 	{
-		// Updates the graph coordinates in the event
-		me = this.updateMouseEvent(me);
+		this.stopEditing(!this.isInvokesStopCellEditing());
+	}
 	
-		// Detects and processes double taps for touch-based devices
-		// which do not have native double click events
-		if (!mxClient.IS_FF && mxClient.IS_TOUCH && this.doubleTapEnabled && evtName == mxEvent.MOUSE_UP)
+	// Detects and processes double taps for touch-based devices
+	// which do not have native double click events
+	if (!this.nativeDblClickEnabled || (this.doubleTapEnabled &&
+		mxClient.IS_TOUCH && mxEvent.isTouchEvent(me.getEvent())))
+	{
+		var currentTime = new Date().getTime();
+		
+		if (evtName == mxEvent.MOUSE_DOWN)
 		{
-			var currentTime = new Date().getTime();
-			
-			if (this.lastTouchEvent != me.getEvent() &&
+			if (this.lastTouchEvent != null && this.lastTouchEvent != me.getEvent() &&
 				currentTime - this.lastTouchTime < this.doubleTapTimeout &&
 				Math.abs(this.lastTouchX - me.getX()) < this.doubleTapTolerance &&
 				Math.abs(this.lastTouchY - me.getY()) < this.doubleTapTolerance)
 			{
 				this.lastTouchTime = 0;
-				this.dblClick(me.getEvent(), me.getCell());
-			} 
+				this.fireDoubleClick = true;
+				return;
+			}
 			else if (this.lastTouchEvent == null || this.lastTouchEvent != me.getEvent())
 			{
 				this.lastTouchX = me.getX();
@@ -59458,7 +59524,16 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 				this.lastTouchEvent = me.getEvent();
 			}
 		}
-	
+		else if (evtName == mxEvent.MOUSE_UP && this.fireDoubleClick)
+		{
+			this.fireDoubleClick = false;
+			this.dblClick(me.getEvent(), me.getCell());
+			return;
+		}
+	}
+
+	if (!this.isEventIgnored(evtName, me, sender))
+	{
 		this.fireEvent(new mxEventObject(mxEvent.FIRE_MOUSE_EVENT, 'eventName', evtName, 'event', me));
 		
 		if ((mxClient.IS_OP || mxClient.IS_SF || mxClient.IS_GC ||
@@ -76105,7 +76180,7 @@ var mxCodecRegistry =
 
 };
 /**
- * $Id: mxCodec.js,v 1.1 2012/11/15 13:26:43 gaudenz Exp $
+ * $Id: mxCodec.js,v 1.2 2013/08/09 19:07:52 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -76159,7 +76234,7 @@ var mxCodecRegistry =
  * 
  * Debugging:
  * 
- * For debugging i/o you can use the following code to get the sequence of
+ * For debugging I/O you can use the following code to get the sequence of
  * encoded objects:
  * 
  * (code)
@@ -76170,6 +76245,16 @@ var mxCodecRegistry =
  *   mxLog.debug('mxCodec.encode: obj='+mxUtils.getFunctionName(obj.constructor));
  *   
  *   return oldEncode.apply(this, arguments);
+ * };
+ * (end)
+ * 
+ * Note that the I/O system adds object codecs for new object automatically. For
+ * decoding those objects, the constructor should be written as follows:
+ * 
+ * (code)
+ * var MyObj = function(name)
+ * {
+ *   // ...
  * };
  * (end)
  * 

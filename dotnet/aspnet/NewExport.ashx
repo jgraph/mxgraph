@@ -26,6 +26,11 @@ public class NewExport : IHttpHandler
         string filename = context.Request.Params["filename"];
         string format = context.Request.Params["format"];
 
+        if (filename != null)
+        {
+            filename = HttpUtility.UrlDecode(filename);
+        }
+
         if (xml != null && width != null && height != null && bg != null
                 && filename != null && format != null)
         {

@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.36 2013/08/07 22:39:12 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.39 2013/08/21 09:16:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -824,24 +824,35 @@ mxGraph.prototype.gridEnabled = true;
 mxGraph.prototype.portsEnabled = true;
 
 /**
+ * Variable: nativeDoubleClickEnabled
+ * 
+ * Specifies if native double click events should be deteced. Default is false
+ * for IE in quirks mode or IE10+, true for all other browsers. The
+ * <doubleTapTimeout> value is used to specify the double click speed.
+ */
+mxGraph.prototype.nativeDblClickEnabled = !mxClient.IS_QUIRKS && (document.documentMode == null || document.documentMode < 10);
+
+/**
  * Variable: doubleTapEnabled
  * 
- * Specifies if double taps on touch-based devices should be handled. Default
- * is true.
+ * Specifies if double taps on touch-based devices should be handled as a
+ * double click. Default is true.
  */
 mxGraph.prototype.doubleTapEnabled = true;
 
 /**
  * Variable: doubleTapTimeout
  * 
- * Specifies the timeout for double taps. Default is 700 ms.
+ * Specifies the timeout for double taps and non-native double clicks. Default
+ * is 500 ms.
  */
-mxGraph.prototype.doubleTapTimeout = 700;
+mxGraph.prototype.doubleTapTimeout = 500;
 
 /**
  * Variable: doubleTapTolerance
  * 
- * Specifies the tolerance for double taps. Default is 25 pixels.
+ * Specifies the tolerance for double taps and double clicks in quirks mode.
+ * Default is 25 pixels.
  */
 mxGraph.prototype.doubleTapTolerance = 25;
 
@@ -5847,21 +5858,21 @@ mxGraph.prototype.getConnectionPoint = function(vertex, constraint)
 		// Bounds need to be rotated by 90 degrees for further computation
 		if (direction != null)
 		{
-			if (direction == 'north')
+			if (direction == mxConstants.DIRECTION_NORTH)
 			{
 				r1 += 270;
 			}
-			else if (direction == 'west')
+			else if (direction == mxConstants.DIRECTION_WEST)
 			{
 				r1 += 180;
 			}
-			else if (direction == 'south')
+			else if (direction == mxConstants.DIRECTION_SOUTH)
 			{
 				r1 += 90;
 			}
 
 			// Bounds need to be rotated by 90 degrees for further computation
-			if (direction == 'north' || direction == 'south')
+			if (direction == mxConstants.DIRECTION_NORTH || direction == mxConstants.DIRECTION_SOUTH)
 			{
 				bounds.x += bounds.width / 2 - bounds.height / 2;
 				bounds.y += bounds.height / 2 - bounds.width / 2;
@@ -11216,9 +11227,9 @@ mxGraph.prototype.getStateForTouchEvent = function(evt)
  */
 mxGraph.prototype.isEventIgnored = function(evtName, me, sender)
 {
-	var result = this.isEditing();
 	var mouseEvent = mxEvent.isMouseEvent(me.getEvent());
-	
+	var result = this.isEditing();
+
 	// Drops events that are fired more than once
 	if (me.getEvent() == this.lastEvent)
 	{
@@ -11231,7 +11242,7 @@ mxGraph.prototype.isEventIgnored = function(evtName, me, sender)
 
 	// Installs event listeners to capture the complete gesture from the event source
 	// for non-MS touch events as a workaround for all events for the same geture being
-	// fires from the event source even if that was removed from the DOM.
+	// fired from the event source even if that was removed from the DOM.
 	if (this.eventSource != null && evtName != mxEvent.MOUSE_MOVE)
 	{
 		mxEvent.removeGestureListeners(this.eventSource, null, this.mouseMoveRedirect, this.mouseUpRedirect);
@@ -11258,20 +11269,7 @@ mxGraph.prototype.isEventIgnored = function(evtName, me, sender)
 		
 		mxEvent.addGestureListeners(this.eventSource, null, this.mouseMoveRedirect, this.mouseUpRedirect);
 	}
-	
-	// Workaround for IE9 standards mode ignoring tolerance for double clicks
-	if (mxClient.IS_IE && document.compatMode == 'CSS1Compat' && evtName == mxEvent.MOUSE_UP && me.getEvent().detail/*clickCount*/ == 2)
-	{
-		if ((this.lastMouseX != null && Math.abs(this.lastMouseX - me.getX()) <= this.doubleTapTolerance) &&
-			(this.lastMouseY != null && Math.abs(this.lastMouseY - me.getY()) <= this.doubleTapTolerance))
-		{
-			result = true;
-		}
-		
-		this.lastMouseX = me.getX();
-		this.lastMouseY = me.getY();
-	}
-	
+
 	// Factored out the workarounds for FF to make it easier to override/remove
 	// Note this method has side-effects!
 	if (this.isSyntheticEventIgnored(evtName, me, sender))
@@ -11284,21 +11282,25 @@ mxGraph.prototype.isEventIgnored = function(evtName, me, sender)
 	{
 		this.isMouseDown = false;
 	}
-	else if (!result)
+	else if (evtName == mxEvent.MOUSE_DOWN && !this.isMouseDown)
 	{
-		if (evtName == mxEvent.MOUSE_DOWN && !this.isMouseDown)
-		{
-			this.isMouseDown = true;
-			this.isMouseTrigger = mouseEvent;
-		}
-		// Drops mouse events that are fired during touch gestures as a workaround for Webkit
-		else if (((!mxClient.IS_FF || evtName != mxEvent.MOUSE_MOVE) &&
-			this.isMouseDown && this.isMouseTrigger != mouseEvent) ||
-			(evtName == mxEvent.MOUSE_DOWN && this.isMouseDown) ||
-			(evtName == mxEvent.MOUSE_UP && !this.isMouseDown))
-		{
-			result = true;
-		}
+		this.isMouseDown = true;
+		this.isMouseTrigger = mouseEvent;
+	}
+	// Drops mouse events that are fired during touch gestures as a workaround for Webkit
+	// and mouse events that are not in sync with the current internal button state
+	else if (!result && (((!mxClient.IS_FF || evtName != mxEvent.MOUSE_MOVE) &&
+		this.isMouseDown && this.isMouseTrigger != mouseEvent) ||
+		(evtName == mxEvent.MOUSE_DOWN && this.isMouseDown) ||
+		(evtName == mxEvent.MOUSE_UP && !this.isMouseDown)))
+	{
+		result = true;
+	}
+	
+	// Ignores double click events
+	if (this.lastEvent.detail >= 2)
+	{
+		result = true;
 	}
 	
 	return result;
@@ -11349,25 +11351,33 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 		sender = this;
 	}
 
-	if (!this.isEventIgnored(evtName, me, sender))
+	// Updates the graph coordinates in the event
+	me = this.updateMouseEvent(me);
+
+	// Stops editing for all events other than from cellEditor
+	if (evtName == mxEvent.MOUSE_DOWN && this.isEditing() && !this.cellEditor.isEventSource(me.getEvent()))
 	{
-		// Updates the graph coordinates in the event
-		me = this.updateMouseEvent(me);
+		this.stopEditing(!this.isInvokesStopCellEditing());
+	}
 	
-		// Detects and processes double taps for touch-based devices
-		// which do not have native double click events
-		if (!mxClient.IS_FF && mxClient.IS_TOUCH && this.doubleTapEnabled && evtName == mxEvent.MOUSE_UP)
+	// Detects and processes double taps for touch-based devices
+	// which do not have native double click events
+	if (!this.nativeDblClickEnabled || (this.doubleTapEnabled &&
+		mxClient.IS_TOUCH && mxEvent.isTouchEvent(me.getEvent())))
+	{
+		var currentTime = new Date().getTime();
+		
+		if (evtName == mxEvent.MOUSE_DOWN)
 		{
-			var currentTime = new Date().getTime();
-			
-			if (this.lastTouchEvent != me.getEvent() &&
+			if (this.lastTouchEvent != null && this.lastTouchEvent != me.getEvent() &&
 				currentTime - this.lastTouchTime < this.doubleTapTimeout &&
 				Math.abs(this.lastTouchX - me.getX()) < this.doubleTapTolerance &&
 				Math.abs(this.lastTouchY - me.getY()) < this.doubleTapTolerance)
 			{
 				this.lastTouchTime = 0;
-				this.dblClick(me.getEvent(), me.getCell());
-			} 
+				this.fireDoubleClick = true;
+				return;
+			}
 			else if (this.lastTouchEvent == null || this.lastTouchEvent != me.getEvent())
 			{
 				this.lastTouchX = me.getX();
@@ -11376,7 +11386,16 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 				this.lastTouchEvent = me.getEvent();
 			}
 		}
-	
+		else if (evtName == mxEvent.MOUSE_UP && this.fireDoubleClick)
+		{
+			this.fireDoubleClick = false;
+			this.dblClick(me.getEvent(), me.getCell());
+			return;
+		}
+	}
+
+	if (!this.isEventIgnored(evtName, me, sender))
+	{
 		this.fireEvent(new mxEventObject(mxEvent.FIRE_MOUSE_EVENT, 'eventName', evtName, 'event', me));
 		
 		if ((mxClient.IS_OP || mxClient.IS_SF || mxClient.IS_GC ||
