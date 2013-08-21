@@ -1,6 +1,6 @@
 <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=5,IE=9" ><![endif]-->
 <!--
-  $Id: touch.html,v 1.6 2013/06/21 12:19:17 gaudenz Exp $
+  $Id: touch.html,v 1.7 2013/08/21 09:11:53 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Touch example for mxGraph. This example demonstrates handling of touch,
@@ -298,7 +298,6 @@
 			};
 	
 			// Overrides double click handling to use the tolerance
-			// FIXME: Double click on edges in iPad needs focus on textarea
 			var graphDblClick = mxGraph.prototype.dblClick;
 			mxGraph.prototype.dblClick = function(evt, cell)
 			{

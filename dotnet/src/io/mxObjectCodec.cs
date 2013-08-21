@@ -1,4 +1,4 @@
-// $Id: mxObjectCodec.cs,v 1.2 2013/08/08 12:08:55 gaudenz Exp $
+// $Id: mxObjectCodec.cs,v 1.3 2013/08/18 20:19:11 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.ComponentModel;

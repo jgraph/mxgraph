@@ -1,3 +1,14 @@
+21-AUG-2013: 2.1.1.0
+
+- Adds mxCellEditor.isEventSource hook [JavaScript]
+- Adds mxGraph.nativeDblClickEnabled switch for event handling [JavaScript]
+- Unifies double click handling for various browsers and versions [JavaScript]
+- Changes default value for mxGraph.doubleTapTimeout to 500 ms [JavaScript]
+- Fixes double click if style changes after first click [JavaScript]
+- Fixes bounding box for stencils with directions, uses constants [JavaScript]
+- Adds null check for state.text in mxCellRenderer.getLabelBounds [JavaScript]
+- Adds mxText.apply to update text styles [JavaScript]
+
 09-AUG-2013: 2.1.0.9
 
 - Fixes handling of generic list types in mxObjectCodec.SetFieldValue [Dotnet]
