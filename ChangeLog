@@ -1,3 +1,13 @@
+03-SEP-2013: 2.1.1.1
+
+- Fixes non-native double click handling in quirks mode [JavaScript]
+- Adds anchors.html example [JavaScript]
+- Hides rotation handle for small vertices in mxVertexHandler [JavaScript]
+- Adds parent orientation in mxSwimlaneManager.resizeSwimlane [JavaScript,Java]
+- Ignores overlapping points in mxConnectorShape.getMarkerVector, mxGraphics2DCanvas.paintPolyline [Java]
+- Adds cloning of label in mxCellState.clone [Java]
+- Fixes minor bug in mxConnectionHandler.createMarker [JavaScript]
+
 21-AUG-2013: 2.1.1.0
 
 - Adds mxCellEditor.isEventSource hook [JavaScript]

@@ -1,5 +1,5 @@
 /**
- * $Id: mxHtmlColor.java,v 1.3 2012/11/25 11:28:51 gaudenz Exp $
+ * $Id: mxHtmlColor.java,v 1.4 2013/08/28 06:32:23 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.util;
@@ -66,6 +66,7 @@ public class mxHtmlColor
 		{
 			Color result = htmlColors.get(str);
 			
+			// LATER: Return the result even if it's null to avoid invalid color codes
 			if (result != null)
 			{
 				return result;

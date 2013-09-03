@@ -1,5 +1,5 @@
 /**
- * $Id: Shapes.js,v 1.20 2013/07/09 14:16:51 gaudenz Exp $
+ * $Id: Shapes.js,v 1.21 2013/08/21 12:24:16 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 
@@ -778,21 +778,22 @@
 			{
 				var size = 10;
 				var bounds = new mxRectangle(0, 0, size, size);
-				this.specialHandle = new mxRhombus(bounds, mxConstants.HANDLE_FILLCOLOR, mxConstants.HANDLE_STROKECOLOR);
-			}
-			
-			if (this.specialHandle.isHtmlAllowed() && this.state.text != null && this.state.text.node.parentNode == graph.container)
-			{
-				this.specialHandle.bounds.height -= 1;
-				this.specialHandle.bounds.width -= 1;
-				this.specialHandle.dialect = mxConstants.DIALECT_STRICTHTML;
-				this.specialHandle.init(graph.container);
-			}
-			else
-			{
-				this.specialHandle.dialect = (graph.dialect != mxConstants.DIALECT_SVG) ?
-						mxConstants.DIALECT_MIXEDHTML : mxConstants.DIALECT_SVG;
-				this.specialHandle.init(graph.getView().getOverlayPane());
+				
+				if (this.state.text != null && this.state.text.node.parentNode == graph.container)
+				{
+					this.specialHandle = new mxRectangleShape(bounds, mxConstants.HANDLE_FILLCOLOR, mxConstants.HANDLE_STROKECOLOR);
+					this.specialHandle.bounds.height -= 4;
+					this.specialHandle.bounds.width -= 4;
+					this.specialHandle.dialect = mxConstants.DIALECT_STRICTHTML;
+					this.specialHandle.init(graph.container);
+				}
+				else
+				{
+					this.specialHandle = new mxRhombus(bounds, mxConstants.HANDLE_FILLCOLOR, mxConstants.HANDLE_STROKECOLOR);
+					this.specialHandle.dialect = (graph.dialect != mxConstants.DIALECT_SVG) ?
+							mxConstants.DIALECT_MIXEDHTML : mxConstants.DIALECT_SVG;
+					this.specialHandle.init(graph.getView().getOverlayPane());
+				}
 			}
 
 			mxEvent.redirectMouseEvents(this.specialHandle.node, graph, this.state);
