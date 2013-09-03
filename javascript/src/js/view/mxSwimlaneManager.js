@@ -1,5 +1,5 @@
 /**
- * $Id: mxSwimlaneManager.js,v 1.2 2013/07/22 12:01:42 gaudenz Exp $
+ * $Id: mxSwimlaneManager.js,v 1.3 2013/08/29 09:19:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -314,7 +314,8 @@ mxSwimlaneManager.prototype.swimlaneAdded = function(swimlane)
 	// Applies the size of the refernece to the newly added swimlane
 	if (geo != null)
 	{
-		this.resizeSwimlane(swimlane, geo.width, geo.height);
+		var parentHorizontal = (parent != null) ? this.isCellHorizontal(parent) : this.horizontal;
+		this.resizeSwimlane(swimlane, geo.width, geo.height, parentHorizontal);
 	}
 };
 
@@ -360,8 +361,9 @@ mxSwimlaneManager.prototype.cellsResized = function(cells)
 							size.width += tmp.width;
 							size.height += tmp.height;
 						}
-
-						this.resizeSwimlane(top, size.width, size.height);
+						
+						var parentHorizontal = (current != null) ? this.isCellHorizontal(current) : this.horizontal;
+						this.resizeSwimlane(top, size.width, size.height, parentHorizontal);
 					}
 				}
 			}
@@ -384,26 +386,26 @@ mxSwimlaneManager.prototype.cellsResized = function(cells)
  * 
  * swimlane - <mxCell> whose size has changed.
  */
-mxSwimlaneManager.prototype.resizeSwimlane = function(swimlane, w, h)
+mxSwimlaneManager.prototype.resizeSwimlane = function(swimlane, w, h, parentHorizontal)
 {
 	var model = this.getGraph().getModel();
 	
 	model.beginUpdate();
 	try
 	{
+		var horizontal = this.isCellHorizontal(swimlane);
+		
 		if (!this.isSwimlaneIgnored(swimlane))
 		{
 			var geo = model.getGeometry(swimlane);
 			
 			if (geo != null)
 			{
-				var horizontal = this.isCellHorizontal(swimlane);
-				
-				if ((horizontal && geo.height != h) || (!horizontal && geo.width != w))
+				if ((parentHorizontal && geo.height != h) || (!parentHorizontal && geo.width != w))
 				{
 					geo = geo.clone();
 					
-					if (horizontal)
+					if (parentHorizontal)
 					{
 						geo.height = h;
 					}
@@ -428,7 +430,7 @@ mxSwimlaneManager.prototype.resizeSwimlane = function(swimlane, w, h)
 		for (var i = 0; i < childCount; i++)
 		{
 			var child = model.getChildAt(swimlane, i);
-			this.resizeSwimlane(child, w, h);
+			this.resizeSwimlane(child, w, h, horizontal);
 		}
 	}
 	finally

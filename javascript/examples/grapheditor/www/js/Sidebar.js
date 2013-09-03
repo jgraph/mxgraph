@@ -1,5 +1,5 @@
 /**
- * $Id: Sidebar.js,v 1.52 2013/07/22 05:52:50 gaudenz Exp $
+ * $Id: Sidebar.js,v 1.53 2013/08/21 11:56:46 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -471,7 +471,7 @@ Sidebar.prototype.addUmlPalette = function(expand)
     	classCell.vertex = true;
     	content.appendChild(this.createVertexTemplateFromCells([classCell], 160, 90, 'Object', true));
 
-    	var tableCell = new mxCell('<table style="width:100%;font-size:10px;">' +
+    	var tableCell = new mxCell('<table style="width:100%;">' +
     			'<tr><td colspan="2" style="background:#e4e4e4;padding:2px;">Tablename</td></tr>' +
 				'<tr><td>PK</td><td style="padding:2px;">uniqueId</td></tr>' +
 				'<tr><td>FK1</td><td style="padding:2px;">foreignKey</td></tr>' +

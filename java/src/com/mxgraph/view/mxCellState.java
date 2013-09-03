@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellState.java,v 1.1 2012/11/15 13:26:46 gaudenz Exp $
+ * $Id: mxCellState.java,v 1.2 2013/08/28 06:01:37 gaudenz Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.view;
@@ -520,6 +520,11 @@ public class mxCellState extends mxRectangle
 	public Object clone()
 	{
 		mxCellState clone = new mxCellState(view, cell, style);
+		
+		if (label != null)
+		{
+			clone.label = label;
+		}
 
 		if (absolutePoints != null)
 		{

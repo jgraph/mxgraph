@@ -1,5 +1,5 @@
 /**
- * $Id: mxVertexHandler.js,v 1.31 2013/08/06 09:15:54 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.32 2013/09/02 21:34:57 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -179,7 +179,8 @@ mxVertexHandler.prototype.init = function()
 	
 	// Adds the rotation handler
 	if (this.rotationEnabled && this.graph.isCellRotatable(this.state.cell) &&
-		(mxGraphHandler.prototype.maxCells <= 0 || this.graph.getSelectionCount() < mxGraphHandler.prototype.maxCells))
+		(mxGraphHandler.prototype.maxCells <= 0 || this.graph.getSelectionCount() < mxGraphHandler.prototype.maxCells) &&
+		this.state.width > 2 && this.state.height > 2)
 	{
 		this.rotationShape = this.createSizer('pointer', mxEvent.ROTATION_HANDLE,
 			mxConstants.HANDLE_SIZE + 3, mxConstants.HANDLE_FILLCOLOR);

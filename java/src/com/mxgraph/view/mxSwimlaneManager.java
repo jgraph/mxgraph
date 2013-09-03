@@ -1,5 +1,5 @@
 /**
- * $Id: mxSwimlaneManager.java,v 1.1 2012/11/15 13:26:46 gaudenz Exp $
+ * $Id: mxSwimlaneManager.java,v 1.2 2013/08/29 09:19:41 gaudenz Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.view;
@@ -267,7 +267,8 @@ public class mxSwimlaneManager extends mxEventSource
 		// Applies the size of the refernece to the newly added swimlane
 		if (geo != null)
 		{
-			resizeSwimlane(swimlane, geo.getWidth(), geo.getHeight());
+			boolean parentHorizontal = (parent != null) ? isCellHorizontal(parent) : horizontal;
+			resizeSwimlane(swimlane, geo.getWidth(), geo.getHeight(), parentHorizontal);
 		}
 	}
 
@@ -308,7 +309,8 @@ public class mxSwimlaneManager extends mxEventSource
 								size.setHeight(size.getHeight() + tmp.getHeight());
 							}
 							
-							this.resizeSwimlane(top, size.getWidth(), size.getHeight());
+							boolean parentHorizontal = (current != null) ? isCellHorizontal(current) : horizontal;
+							resizeSwimlane(top, size.getWidth(), size.getHeight(), parentHorizontal);
 						}
 					}
 				}
@@ -325,27 +327,28 @@ public class mxSwimlaneManager extends mxEventSource
 	 * on <horizontal>. If <horizontal> is true, then the width is set, otherwise,
 	 * the height is set.
 	 */
-	protected void resizeSwimlane(Object swimlane, double w, double h)
+	protected void resizeSwimlane(Object swimlane, double w, double h, boolean parentHorizontal)
 	{
 		mxIGraphModel model = getGraph().getModel();
 
 		model.beginUpdate();
 		try
 		{
+			boolean horizontal = this.isCellHorizontal(swimlane);
+			
 			if (!this.isSwimlaneIgnored(swimlane))
 			{
 				mxGeometry geo = model.getGeometry(swimlane);
 
 				if (geo != null)
 				{
-					boolean horizontal = isCellHorizontal(swimlane);
 
-					if ((horizontal && geo.getHeight() != h)
-							|| (!horizontal && geo.getWidth() != w))
+					if ((parentHorizontal && geo.getHeight() != h)
+							|| (!parentHorizontal && geo.getWidth() != w))
 					{
 						geo = (mxGeometry) geo.clone();
 
-						if (horizontal)
+						if (parentHorizontal)
 						{
 							geo.setHeight(h);
 						}
@@ -369,7 +372,7 @@ public class mxSwimlaneManager extends mxEventSource
 			for (int i = 0; i < childCount; i++)
 			{
 				Object child = model.getChildAt(swimlane, i);
-				resizeSwimlane(child, w, h);
+				resizeSwimlane(child, w, h, horizontal);
 			}
 		}
 		finally

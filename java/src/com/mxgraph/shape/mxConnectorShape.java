@@ -1,5 +1,5 @@
 /**
- * $Id: mxConnectorShape.java,v 1.1 2012/11/15 13:26:44 gaudenz Exp $
+ * $Id: mxConnectorShape.java,v 1.2 2013/08/28 06:32:23 gaudenz Exp $
  * Copyright (c) 2010, Gaudenz Alder, David Benson
  */
 package com.mxgraph.shape;
@@ -179,17 +179,19 @@ public class mxConnectorShape extends mxBasicShape
 	protected mxLine getMarkerVector(List<mxPoint> points, boolean source,
 			double markerSize)
 	{
-		if (source)
+		int n = points.size();
+		mxPoint p0 = (source) ? points.get(1) : points.get(n - 2);
+		mxPoint pe = (source) ? points.get(0) : points.get(n - 1);
+		int count = 1;
+		
+		// Uses next non-overlapping point
+		while (count < n - 1 && Math.round(p0.getX() - pe.getX()) == 0 && Math.round(p0.getY() - pe.getY()) == 0)
 		{
-			return new mxLine(points.get(1), points.get(0));
+			p0 = (source) ? points.get(1 + count) : points.get(n - 2 - count);
+			count++;
 		}
-		else
-		{
-			int pointCount = points.size();
-			
-			return new mxLine(points.get(pointCount - 2),
-					points.get(pointCount - 1));
-		}
+		
+		return new mxLine(p0, pe);
 	}
 	
 }

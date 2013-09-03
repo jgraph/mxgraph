@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.39 2013/08/21 09:16:37 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.40 2013/09/03 19:36:25 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -11366,8 +11366,9 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 		mxClient.IS_TOUCH && mxEvent.isTouchEvent(me.getEvent())))
 	{
 		var currentTime = new Date().getTime();
-		
-		if (evtName == mxEvent.MOUSE_DOWN)
+
+		// NOTE: Second mouseDown for double click missing in quirks mode if event source no longer in DOM
+		if ((!mxClient.IS_QUIRKS && evtName == mxEvent.MOUSE_DOWN) || (mxClient.IS_QUIRKS && evtName == mxEvent.MOUSE_UP && !this.fireDoubleClick))
 		{
 			if (this.lastTouchEvent != null && this.lastTouchEvent != me.getEvent() &&
 				currentTime - this.lastTouchTime < this.doubleTapTimeout &&
@@ -11380,16 +11381,25 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 			}
 			else if (this.lastTouchEvent == null || this.lastTouchEvent != me.getEvent())
 			{
+				this.lastTouchCell = me.getCell();
 				this.lastTouchX = me.getX();
 				this.lastTouchY = me.getY();
 				this.lastTouchTime = currentTime;
 				this.lastTouchEvent = me.getEvent();
 			}
 		}
-		else if (evtName == mxEvent.MOUSE_UP && this.fireDoubleClick)
+		else if ((this.isMouseDown || evtName == mxEvent.MOUSE_UP) && this.fireDoubleClick)
 		{
+			var cell = this.lastTouchCell;
 			this.fireDoubleClick = false;
-			this.dblClick(me.getEvent(), me.getCell());
+			this.lastTouchCell = null;
+			
+			if (Math.abs(this.lastTouchX - me.getX()) < this.doubleTapTolerance &&
+				Math.abs(this.lastTouchY - me.getY()) < this.doubleTapTolerance)
+			{
+				this.dblClick(me.getEvent(), cell);
+			}
+			
 			return;
 		}
 	}
@@ -11477,6 +11487,12 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 				Math.abs(this.initialTouchX - me.getGraphX()) < this.tolerance &&
 				Math.abs(this.initialTouchY - me.getGraphY()) < this.tolerance;
 		}
+	}
+	
+	// Workaround for multiple processing of same mouse up event
+	if (this.lastTouchEvent != null)
+	{
+		mxEvent.consume(this.lastTouchEvent);
 	}
 };
 

@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.1.1.0.
+	 * Current version is 2.1.1.1.
 	 */
-	VERSION: '2.1.1.0',
+	VERSION: '2.1.1.1',
 
 	/**
 	 * Variable: IS_IE
@@ -48137,7 +48137,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.39 2013/08/21 09:16:37 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.40 2013/09/03 19:36:25 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -59504,8 +59504,9 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 		mxClient.IS_TOUCH && mxEvent.isTouchEvent(me.getEvent())))
 	{
 		var currentTime = new Date().getTime();
-		
-		if (evtName == mxEvent.MOUSE_DOWN)
+
+		// NOTE: Second mouseDown for double click missing in quirks mode if event source no longer in DOM
+		if ((!mxClient.IS_QUIRKS && evtName == mxEvent.MOUSE_DOWN) || (mxClient.IS_QUIRKS && evtName == mxEvent.MOUSE_UP && !this.fireDoubleClick))
 		{
 			if (this.lastTouchEvent != null && this.lastTouchEvent != me.getEvent() &&
 				currentTime - this.lastTouchTime < this.doubleTapTimeout &&
@@ -59518,16 +59519,25 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 			}
 			else if (this.lastTouchEvent == null || this.lastTouchEvent != me.getEvent())
 			{
+				this.lastTouchCell = me.getCell();
 				this.lastTouchX = me.getX();
 				this.lastTouchY = me.getY();
 				this.lastTouchTime = currentTime;
 				this.lastTouchEvent = me.getEvent();
 			}
 		}
-		else if (evtName == mxEvent.MOUSE_UP && this.fireDoubleClick)
+		else if ((this.isMouseDown || evtName == mxEvent.MOUSE_UP) && this.fireDoubleClick)
 		{
+			var cell = this.lastTouchCell;
 			this.fireDoubleClick = false;
-			this.dblClick(me.getEvent(), me.getCell());
+			this.lastTouchCell = null;
+			
+			if (Math.abs(this.lastTouchX - me.getX()) < this.doubleTapTolerance &&
+				Math.abs(this.lastTouchY - me.getY()) < this.doubleTapTolerance)
+			{
+				this.dblClick(me.getEvent(), cell);
+			}
+			
 			return;
 		}
 	}
@@ -59615,6 +59625,12 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 				Math.abs(this.initialTouchX - me.getGraphX()) < this.tolerance &&
 				Math.abs(this.initialTouchY - me.getGraphY()) < this.tolerance;
 		}
+	}
+	
+	// Workaround for multiple processing of same mouse up event
+	if (this.lastTouchEvent != null)
+	{
+		mxEvent.consume(this.lastTouchEvent);
 	}
 };
 
@@ -61775,7 +61791,7 @@ mxSpaceManager.prototype.destroy = function()
 	this.setGraph(null);
 };
 /**
- * $Id: mxSwimlaneManager.js,v 1.2 2013/07/22 12:01:42 gaudenz Exp $
+ * $Id: mxSwimlaneManager.js,v 1.3 2013/08/29 09:19:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -62090,7 +62106,8 @@ mxSwimlaneManager.prototype.swimlaneAdded = function(swimlane)
 	// Applies the size of the refernece to the newly added swimlane
 	if (geo != null)
 	{
-		this.resizeSwimlane(swimlane, geo.width, geo.height);
+		var parentHorizontal = (parent != null) ? this.isCellHorizontal(parent) : this.horizontal;
+		this.resizeSwimlane(swimlane, geo.width, geo.height, parentHorizontal);
 	}
 };
 
@@ -62136,8 +62153,9 @@ mxSwimlaneManager.prototype.cellsResized = function(cells)
 							size.width += tmp.width;
 							size.height += tmp.height;
 						}
-
-						this.resizeSwimlane(top, size.width, size.height);
+						
+						var parentHorizontal = (current != null) ? this.isCellHorizontal(current) : this.horizontal;
+						this.resizeSwimlane(top, size.width, size.height, parentHorizontal);
 					}
 				}
 			}
@@ -62160,26 +62178,26 @@ mxSwimlaneManager.prototype.cellsResized = function(cells)
  * 
  * swimlane - <mxCell> whose size has changed.
  */
-mxSwimlaneManager.prototype.resizeSwimlane = function(swimlane, w, h)
+mxSwimlaneManager.prototype.resizeSwimlane = function(swimlane, w, h, parentHorizontal)
 {
 	var model = this.getGraph().getModel();
 	
 	model.beginUpdate();
 	try
 	{
+		var horizontal = this.isCellHorizontal(swimlane);
+		
 		if (!this.isSwimlaneIgnored(swimlane))
 		{
 			var geo = model.getGeometry(swimlane);
 			
 			if (geo != null)
 			{
-				var horizontal = this.isCellHorizontal(swimlane);
-				
-				if ((horizontal && geo.height != h) || (!horizontal && geo.width != w))
+				if ((parentHorizontal && geo.height != h) || (!parentHorizontal && geo.width != w))
 				{
 					geo = geo.clone();
 					
-					if (horizontal)
+					if (parentHorizontal)
 					{
 						geo.height = h;
 					}
@@ -62204,7 +62222,7 @@ mxSwimlaneManager.prototype.resizeSwimlane = function(swimlane, w, h)
 		for (var i = 0; i < childCount; i++)
 		{
 			var child = model.getChildAt(swimlane, i);
-			this.resizeSwimlane(child, w, h);
+			this.resizeSwimlane(child, w, h, horizontal);
 		}
 	}
 	finally
@@ -64798,7 +64816,7 @@ mxSelectionCellsHandler.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxConnectionHandler.js,v 1.17 2013/08/07 21:40:01 gaudenz Exp $
+ * $Id: mxConnectionHandler.js,v 1.18 2013/08/26 07:46:10 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -65295,7 +65313,7 @@ mxConnectionHandler.prototype.createMarker = function()
 			cell = this.graph.getCellAt(point.x, point.y);
 		}
 		
-		if ((this.graph.isSwimlane(cell) && this.graph.hitsSwimlaneContent(cell, point.t, point.y)) ||
+		if ((this.graph.isSwimlane(cell) && this.graph.hitsSwimlaneContent(cell, point.x, point.y)) ||
 			!this.isConnectableCell(cell))
 		{
 			cell = null;
@@ -67351,7 +67369,7 @@ mxRubberband.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxVertexHandler.js,v 1.31 2013/08/06 09:15:54 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.32 2013/09/02 21:34:57 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -67531,7 +67549,8 @@ mxVertexHandler.prototype.init = function()
 	
 	// Adds the rotation handler
 	if (this.rotationEnabled && this.graph.isCellRotatable(this.state.cell) &&
-		(mxGraphHandler.prototype.maxCells <= 0 || this.graph.getSelectionCount() < mxGraphHandler.prototype.maxCells))
+		(mxGraphHandler.prototype.maxCells <= 0 || this.graph.getSelectionCount() < mxGraphHandler.prototype.maxCells) &&
+		this.state.width > 2 && this.state.height > 2)
 	{
 		this.rotationShape = this.createSizer('pointer', mxEvent.ROTATION_HANDLE,
 			mxConstants.HANDLE_SIZE + 3, mxConstants.HANDLE_FILLCOLOR);

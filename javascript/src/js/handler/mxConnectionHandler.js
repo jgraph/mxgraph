@@ -1,5 +1,5 @@
 /**
- * $Id: mxConnectionHandler.js,v 1.17 2013/08/07 21:40:01 gaudenz Exp $
+ * $Id: mxConnectionHandler.js,v 1.18 2013/08/26 07:46:10 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -496,7 +496,7 @@ mxConnectionHandler.prototype.createMarker = function()
 			cell = this.graph.getCellAt(point.x, point.y);
 		}
 		
-		if ((this.graph.isSwimlane(cell) && this.graph.hitsSwimlaneContent(cell, point.t, point.y)) ||
+		if ((this.graph.isSwimlane(cell) && this.graph.hitsSwimlaneContent(cell, point.x, point.y)) ||
 			!this.isConnectableCell(cell))
 		{
 			cell = null;
