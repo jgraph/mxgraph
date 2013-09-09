@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphView.js,v 1.23 2013/08/21 09:16:37 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.24 2013/09/09 13:11:52 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -2242,14 +2242,16 @@ mxGraphView.prototype.installListeners = function()
 			}
 		}));
 		
-		// Adds listener for double click handling on background
-		if (graph.nativeDblClickEnabled)
+		// Adds listener for double click handling on background, this does always
+		// use native event handler, we assume that the DOM of the background
+		// does not change during the double click
+		mxEvent.addListener(container, 'dblclick', mxUtils.bind(this, function(evt)
 		{
-			mxEvent.addListener(container, 'dblclick', mxUtils.bind(this, function(evt)
+			if (this.isContainerEvent(evt))
 			{
 				graph.dblClick(evt);
-			}));
-		}
+			}
+		}));
 
 		// Workaround for touch events which started on some DOM node
 		// on top of the container, in which case the cells under the

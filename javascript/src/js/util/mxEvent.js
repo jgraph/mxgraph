@@ -1,5 +1,5 @@
 /**
- * $Id: mxEvent.js,v 1.15 2013/08/05 17:12:57 gaudenz Exp $
+ * $Id: mxEvent.js,v 1.16 2013/09/08 21:57:05 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEvent =
@@ -152,7 +152,6 @@ var mxEvent =
 	 */
 	addGestureListeners: function(node, startListener, moveListener, endListener)
 	{
-		// Uses pointer events for IE10 standards mode
 		if (startListener != null)
 		{
 			mxEvent.addListener(node, (mxClient.IS_POINTER) ? 'MSPointerDown' : 'mousedown', startListener);

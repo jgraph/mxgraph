@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.1.1.1.
+	 * Current version is 2.1.1.2.
 	 */
-	VERSION: '2.1.1.1',
+	VERSION: '2.1.1.2',
 
 	/**
 	 * Variable: IS_IE
@@ -1911,7 +1911,7 @@ var mxEffects =
 
 };
 /**
- * $Id: mxUtils.js,v 1.16 2013/07/09 08:12:44 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.17 2013/09/05 12:18:26 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxUtils =
@@ -5691,7 +5691,7 @@ var mxUtils =
 	 */
 	prompt: function(message, defaultValue)
 	{
-		return prompt(message, defaultValue);
+		return prompt(message, (defaultValue != null) ? defaultValue : '');
 	},
 	
 	/**
@@ -8404,7 +8404,7 @@ mxEventSource.prototype.fireEvent = function(evt, sender)
 	}
 };
 /**
- * $Id: mxEvent.js,v 1.15 2013/08/05 17:12:57 gaudenz Exp $
+ * $Id: mxEvent.js,v 1.16 2013/09/08 21:57:05 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEvent =
@@ -8557,7 +8557,6 @@ var mxEvent =
 	 */
 	addGestureListeners: function(node, startListener, moveListener, endListener)
 	{
-		// Uses pointer events for IE10 standards mode
 		if (startListener != null)
 		{
 			mxEvent.addListener(node, (mxClient.IS_POINTER) ? 'MSPointerDown' : 'mousedown', startListener);
@@ -45509,7 +45508,7 @@ mxStyleRegistry.putValue(mxConstants.PERIMETER_RECTANGLE, mxPerimeter.RectangleP
 mxStyleRegistry.putValue(mxConstants.PERIMETER_RHOMBUS, mxPerimeter.RhombusPerimeter);
 mxStyleRegistry.putValue(mxConstants.PERIMETER_TRIANGLE, mxPerimeter.TrianglePerimeter);
 /**
- * $Id: mxGraphView.js,v 1.23 2013/08/21 09:16:37 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.24 2013/09/09 13:11:52 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -47752,14 +47751,16 @@ mxGraphView.prototype.installListeners = function()
 			}
 		}));
 		
-		// Adds listener for double click handling on background
-		if (graph.nativeDblClickEnabled)
+		// Adds listener for double click handling on background, this does always
+		// use native event handler, we assume that the DOM of the background
+		// does not change during the double click
+		mxEvent.addListener(container, 'dblclick', mxUtils.bind(this, function(evt)
 		{
-			mxEvent.addListener(container, 'dblclick', mxUtils.bind(this, function(evt)
+			if (this.isContainerEvent(evt))
 			{
 				graph.dblClick(evt);
-			}));
-		}
+			}
+		}));
 
 		// Workaround for touch events which started on some DOM node
 		// on top of the container, in which case the cells under the
@@ -48137,7 +48138,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.40 2013/09/03 19:36:25 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.41 2013/09/09 13:11:51 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -50678,7 +50679,7 @@ mxGraph.prototype.dblClick = function(evt, cell)
 {
 	var mxe = new mxEventObject(mxEvent.DOUBLE_CLICK, 'event', evt, 'cell', cell);
 	this.fireEvent(mxe);
-
+	
 	// Handles the event if it has not been consumed
 	if (this.isEnabled() && !mxEvent.isConsumed(evt) && !mxe.isConsumed() &&
 		cell != null && this.isCellEditable(cell) && !this.isEditing(cell))
@@ -59498,47 +59499,75 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 		this.stopEditing(!this.isInvokesStopCellEditing());
 	}
 	
-	// Detects and processes double taps for touch-based devices
-	// which do not have native double click events
+	// Detects and processes double taps for touch-based devices which do not have native double click events
+	// or where detection of double click is not always possible (quirks, IE10+). Note that this can only handle
+	// double clicks on cells because the sequence of events in IE prevents detection on the background, it fires
+	// two mouse ups, one of which without a cell but no mousedown for the second click which means we cannot
+	// detect which mouseup(s) are part of the first click, ie we do not know when the first click ends.
 	if (!this.nativeDblClickEnabled || (this.doubleTapEnabled &&
 		mxClient.IS_TOUCH && mxEvent.isTouchEvent(me.getEvent())))
 	{
 		var currentTime = new Date().getTime();
 
-		// NOTE: Second mouseDown for double click missing in quirks mode if event source no longer in DOM
-		if ((!mxClient.IS_QUIRKS && evtName == mxEvent.MOUSE_DOWN) || (mxClient.IS_QUIRKS && evtName == mxEvent.MOUSE_UP && !this.fireDoubleClick))
+		if (this.isEnabled())
 		{
-			if (this.lastTouchEvent != null && this.lastTouchEvent != me.getEvent() &&
-				currentTime - this.lastTouchTime < this.doubleTapTimeout &&
-				Math.abs(this.lastTouchX - me.getX()) < this.doubleTapTolerance &&
-				Math.abs(this.lastTouchY - me.getY()) < this.doubleTapTolerance)
+			// NOTE: Second mouseDown for double click missing in quirks mode
+			if ((!mxClient.IS_QUIRKS && evtName == mxEvent.MOUSE_DOWN) || (mxClient.IS_QUIRKS && evtName == mxEvent.MOUSE_UP && !this.fireDoubleClick))
 			{
-				this.lastTouchTime = 0;
-				this.fireDoubleClick = true;
+				if (this.lastTouchEvent != null && this.lastTouchEvent != me.getEvent() &&
+					currentTime - this.lastTouchTime < this.doubleTapTimeout &&
+					Math.abs(this.lastTouchX - me.getX()) < this.doubleTapTolerance &&
+					Math.abs(this.lastTouchY - me.getY()) < this.doubleTapTolerance)
+				{
+					if (evtName == mxEvent.MOUSE_UP)
+					{
+						if (me.getCell() == this.lastTouchCell && this.lastTouchCell != null)
+						{
+							this.lastTouchTime = 0;
+							var cell = this.lastTouchCell;
+							this.lastTouchCell = null;
+							this.dblClick(me.getEvent(), cell);
+						}
+					}
+					else
+					{
+						this.fireDoubleClick = true;
+						this.lastTouchTime = 0;
+					}
+
+					mxEvent.consume(me.getEvent());
+					return;
+				}
+				else if (this.lastTouchEvent == null || this.lastTouchEvent != me.getEvent())
+				{
+					this.lastTouchCell = me.getCell();
+					this.lastTouchX = me.getX();
+					this.lastTouchY = me.getY();
+					this.lastTouchTime = currentTime;
+					this.lastTouchEvent = me.getEvent();
+				}
+			}
+			else if ((this.isMouseDown || evtName == mxEvent.MOUSE_UP) && this.fireDoubleClick)
+			{
+				this.fireDoubleClick = false;
+				var cell = this.lastTouchCell;
+				this.lastTouchCell = null;
+				
+				// Workaround for Chrome/Safari not firing native double click events for double touch on background
+				var valid = (cell != null) || (mxEvent.isTouchEvent(me.getEvent()) && (mxClient.IS_GC || mxClient.IS_SF));
+				
+				if (valid && Math.abs(this.lastTouchX - me.getX()) < this.doubleTapTolerance &&
+					Math.abs(this.lastTouchY - me.getY()) < this.doubleTapTolerance)
+				{
+					this.dblClick(me.getEvent(), cell);
+				}
+				else
+				{
+					mxEvent.consume(me.getEvent());
+				}
+				
 				return;
 			}
-			else if (this.lastTouchEvent == null || this.lastTouchEvent != me.getEvent())
-			{
-				this.lastTouchCell = me.getCell();
-				this.lastTouchX = me.getX();
-				this.lastTouchY = me.getY();
-				this.lastTouchTime = currentTime;
-				this.lastTouchEvent = me.getEvent();
-			}
-		}
-		else if ((this.isMouseDown || evtName == mxEvent.MOUSE_UP) && this.fireDoubleClick)
-		{
-			var cell = this.lastTouchCell;
-			this.fireDoubleClick = false;
-			this.lastTouchCell = null;
-			
-			if (Math.abs(this.lastTouchX - me.getX()) < this.doubleTapTolerance &&
-				Math.abs(this.lastTouchY - me.getY()) < this.doubleTapTolerance)
-			{
-				this.dblClick(me.getEvent(), cell);
-			}
-			
-			return;
 		}
 	}
 
@@ -59625,12 +59654,12 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 				Math.abs(this.initialTouchX - me.getGraphX()) < this.tolerance &&
 				Math.abs(this.initialTouchY - me.getGraphY()) < this.tolerance;
 		}
-	}
-	
-	// Workaround for multiple processing of same mouse up event
-	if (this.lastTouchEvent != null)
-	{
-		mxEvent.consume(this.lastTouchEvent);
+		
+		// Workaround for duplicate click in Windows 8 with Chrome/FF/Opera with touch
+		if (evtName == mxEvent.MOUSE_DOWN && mxEvent.isTouchEvent(me.getEvent()))
+		{
+			me.consume(false);
+		}
 	}
 };
 

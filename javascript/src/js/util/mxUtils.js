@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.js,v 1.16 2013/07/09 08:12:44 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.17 2013/09/05 12:18:26 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxUtils =
@@ -3779,7 +3779,7 @@ var mxUtils =
 	 */
 	prompt: function(message, defaultValue)
 	{
-		return prompt(message, defaultValue);
+		return prompt(message, (defaultValue != null) ? defaultValue : '');
 	},
 	
 	/**

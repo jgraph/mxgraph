@@ -1,3 +1,9 @@
+09-SEP-2013: 2.1.1.2
+
+- Fixes NPE in Shapes.js for grapheditor example on touch devices [JavaScript]
+- Fixes undefined value in FF for null defaultValue in mxUtils.prompt [JavaScript]
+- Fixes double tap handling in IE for touch devices [JavaScript]
+
 03-SEP-2013: 2.1.1.1
 
 - Fixes non-native double click handling in quirks mode [JavaScript]
