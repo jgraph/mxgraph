@@ -1,5 +1,5 @@
 /**
- * $Id: Shapes.js,v 1.21 2013/08/21 12:24:16 gaudenz Exp $
+ * $Id: Shapes.js,v 1.23 2013/09/09 12:49:12 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 
@@ -759,41 +759,45 @@
 		mxExtVertexHandler.prototype.useGridForSpecialHandle = false;
 
 		// Installs custom image
-		var specialHandle = new mxImage(IMAGE_PATH + '/touch-handle-orange.png', 16, 16);
+		mxExtVertexHandler.prototype.specialHandleImage = new mxImage(IMAGE_PATH + '/touch-handle-orange.png', 16, 16);
 		
 		mxExtVertexHandler.prototype.init = function()
 		{
 			this.horizontal = mxUtils.getValue(this.state.style, mxConstants.STYLE_HORIZONTAL, true);
 			var graph = this.state.view.graph;
 	
+			var size = 10;
+			var bounds = new mxRectangle(0, 0, size, size);
+			
 			if (this.handleImage != null)
 			{
-				var bounds = new mxRectangle(0, 0, specialHandle.width, specialHandle.height);
-				this.specialHandle = new mxImageShape(bounds, specialHandle.src);
-				
-				// Allows HTML rendering of the images
+				bounds = new mxRectangle(0, 0, this.specialHandleImage.width, this.specialHandleImage.height);
+				this.specialHandle = new mxImageShape(bounds, this.specialHandleImage.src);
 				this.specialHandle.preserveImageAspect = false;
 			}
-			else
+			
+			if (this.state.text != null && this.state.text.node.parentNode == graph.container)
 			{
-				var size = 10;
-				var bounds = new mxRectangle(0, 0, size, size);
-				
-				if (this.state.text != null && this.state.text.node.parentNode == graph.container)
+				if (this.specialHandle == null)
 				{
 					this.specialHandle = new mxRectangleShape(bounds, mxConstants.HANDLE_FILLCOLOR, mxConstants.HANDLE_STROKECOLOR);
 					this.specialHandle.bounds.height -= 4;
 					this.specialHandle.bounds.width -= 4;
-					this.specialHandle.dialect = mxConstants.DIALECT_STRICTHTML;
-					this.specialHandle.init(graph.container);
 				}
-				else
+				
+				this.specialHandle.dialect = mxConstants.DIALECT_STRICTHTML;
+				this.specialHandle.init(graph.container);
+			}
+			else
+			{
+				if (this.specialHandle == null)
 				{
 					this.specialHandle = new mxRhombus(bounds, mxConstants.HANDLE_FILLCOLOR, mxConstants.HANDLE_STROKECOLOR);
-					this.specialHandle.dialect = (graph.dialect != mxConstants.DIALECT_SVG) ?
-							mxConstants.DIALECT_MIXEDHTML : mxConstants.DIALECT_SVG;
-					this.specialHandle.init(graph.getView().getOverlayPane());
 				}
+				
+				this.specialHandle.dialect = (graph.dialect != mxConstants.DIALECT_SVG) ?
+					mxConstants.DIALECT_MIXEDHTML : mxConstants.DIALECT_SVG;
+				this.specialHandle.init(graph.getView().getOverlayPane());
 			}
 
 			mxEvent.redirectMouseEvents(this.specialHandle.node, graph, this.state);
