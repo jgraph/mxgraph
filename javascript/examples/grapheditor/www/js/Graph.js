@@ -1,5 +1,5 @@
 /**
- * $Id: Graph.js,v 1.28 2013/08/21 09:11:53 gaudenz Exp $
+ * $Id: Graph.js,v 1.29 2013/09/18 12:35:25 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -236,7 +236,7 @@ Graph.prototype.setDefaultEdge = function(cell)
  */
 Graph.prototype.isCellFoldable = function(cell)
 {
-	return this.foldingEnabled && this.isSwimlane(cell);
+	return this.foldingEnabled && this.isContainer(cell);
 };
 
 /**
@@ -244,7 +244,35 @@ Graph.prototype.isCellFoldable = function(cell)
  */
 Graph.prototype.isValidRoot = function(cell)
 {
-	return this.isSwimlane(cell);
+	return this.isContainer(cell);
+};
+
+/**
+ * Disables drill-down for non-swimlanes.
+ */
+Graph.prototype.isValidDropTarget = function(cell)
+{
+	return this.isContainer(cell) || mxGraph.prototype.isValidDropTarget.apply(this, arguments);
+};
+
+/**
+ * Disables drill-down for non-swimlanes.
+ */
+Graph.prototype.isContainer = function(cell)
+{
+	if (this.isSwimlane(cell))
+	{
+		return true;
+	}
+	else
+	{
+		var state = this.view.getState(cell);
+		var style = (state != null) ? state.style : this.getCellStyle(cell);
+	
+		return style['container'] == '1';
+	}
+	
+	return false;
 };
 
 /**

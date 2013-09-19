@@ -1,5 +1,5 @@
 /**
- * $Id: Actions.js,v 1.12 2013/07/15 13:54:44 gaudenz Exp $
+ * $Id: Actions.js,v 1.13 2013/09/17 13:47:04 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -541,10 +541,13 @@ Actions.prototype.init = function()
 				var parent = graph.getModel().getParent(cell);
 				var pgeo = graph.getCellGeometry(parent);
 				
-				if (graph.getModel().isVertex(parent) && pgeo != null)
+				while (graph.getModel().isVertex(parent) && pgeo != null)
 				{
 					dx += pgeo.x;
 					dy += pgeo.y;
+					
+					parent = graph.getModel().getParent(parent);
+					pgeo = graph.getCellGeometry(parent);
 				}
 				
 				handler.addPointAt(handler.state, graph.popupMenuHandler.triggerX / s - dx, graph.popupMenuHandler.triggerY / s - dy);

@@ -1,3 +1,14 @@
+19-SEP-2013: 2.2.0.0
+
+- Adds mxGraph.cellResized, resize/constrainChildCells, scaleCell functions [JavaScript] 
+- Adds optional recurse argument in mxGraph.resizeCells, cellsResized [JavaScript]
+- Adds mxGraph.recursiveResize, constrainChildrenOnResize, extendParentsOnMove with accessors [JavaScript]
+- Fixes ignored right click after left click within double click interval [JavaScript]
+- Ignores overlapping points in mxGdiCanvas [Dotnet]
+- Fixes label clipping for mxGraph.labelsClipped switch [Java]
+- Adds showregion.html example [JavaScript]
+- Fixes page break dash pattern is no longer scaled [JavaScript]
+
 09-SEP-2013: 2.1.1.2
 
 - Fixes NPE in Shapes.js for grapheditor example on touch devices [JavaScript]

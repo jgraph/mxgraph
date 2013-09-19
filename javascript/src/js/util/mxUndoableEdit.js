@@ -1,11 +1,31 @@
 /**
- * $Id: mxUndoableEdit.js,v 1.2 2013/02/12 12:34:43 gaudenz Exp $
+ * $Id: mxUndoableEdit.js,v 1.3 2013/09/16 19:38:16 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
  * Class: mxUndoableEdit
  * 
- * Implements a composite undoable edit.
+ * Implements a composite undoable edit. Here is an example for a custom change
+ * which gets executed via the model:
+ * 
+ * (code)
+ * function CustomChange(model, name)
+ * {
+ *   this.model = model;
+ *   this.name = name;
+ *   this.previous = name;
+ * };
+ * 
+ * CustomChange.prototype.execute = function()
+ * {
+ *   var tmp = this.model.name;
+ *   this.model.name = this.previous;
+ *   this.previous = tmp;
+ * };
+ * 
+ * var name = prompt('Enter name');
+ * graph.model.execute(new CustomChange(graph.model, name));
+ * (end)
  * 
  * Event: mxEvent.EXECUTED
  * 

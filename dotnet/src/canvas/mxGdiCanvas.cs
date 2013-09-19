@@ -1,4 +1,4 @@
-// $Id: mxGdiCanvas.cs,v 1.1 2012/11/15 13:26:46 gaudenz Exp $
+// $Id: mxGdiCanvas.cs,v 1.2 2013/09/18 11:35:46 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Drawing;
@@ -1046,6 +1046,14 @@ namespace com.mxgraph
                         mxPoint p0 = pts[0];
                         mxPoint pt = pts[1];
                         mxPoint offset = null;
+                        int count = 1;
+
+                        // Uses next non-overlapping point
+                        while (count < pts.Count - 1 && Math.Round(p0.X - pt.X) == 0 && Math.Round(p0.Y - pt.Y) == 0)
+                        {
+                            pt = pts[1 + count];
+                            count++;
+                        }
 
                         if (marker != null)
                         {
@@ -1080,6 +1088,14 @@ namespace com.mxgraph
 
                         mxPoint pe = pts[pts.Count - 1];
                         pt = pts[pts.Count - 2];
+                        count = 1;
+
+                        // Uses next non-overlapping point
+                        while (count < pts.Count - 1 && Math.Round(pe.X - pt.X) == 0 && Math.Round(pe.Y - pt.Y) == 0)
+                        {
+                            pt = pts[pts.Count - 2 - count];
+                            count++;
+                        }
 
                         if (marker != null)
                         {
@@ -1132,10 +1148,18 @@ namespace com.mxgraph
                                 path.AddLine((float)(pt.X), (float)(pt.Y),
                                     (float)(tmp.X + nx1), (float)(tmp.Y + ny1));
 
-                                // Draws a line from the last point to the current point with a
-                                // spacing of size off the current point into direction of the
-                                // last point
+                                // Draws a curve from the last point to the current
+                                // point with a spacing of size off the current point
+                                // into direction of the next point
                                 mxPoint next = pts[i + 1];
+
+                                // Uses next non-overlapping point
+                                while (i < pts.Count - 2 && Math.Round(next.X - tmp.X) == 0 && Math.Round(next.Y - tmp.Y) == 0)
+                                {
+                                    next = pts[i + 2];
+                                    i++;
+                                }
+
                                 dx = next.X - tmp.X;
                                 dy = next.Y - tmp.Y;
                                 dist = Math.Max(1, Math.Sqrt(dx * dx + dy * dy));

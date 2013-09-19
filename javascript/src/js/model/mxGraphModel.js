@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphModel.js,v 1.2 2013/02/12 12:34:43 gaudenz Exp $
+ * $Id: mxGraphModel.js,v 1.3 2013/09/16 19:38:16 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -406,7 +406,7 @@ mxGraphModel.prototype.getDescendants = function(parent)
  * 	return model.isVertex(cell);
  * }
  * var vertices = model.filterDescendants(filter);
- * (code)
+ * (end)
  * 
  * Parameters:
  * 

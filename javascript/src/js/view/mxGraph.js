@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.41 2013/09/09 13:11:51 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.46 2013/09/19 07:00:40 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1337,16 +1337,24 @@ mxGraph.prototype.allowNegativeCoordinates = true;
 /**
  * Variable: constrainChildren
  * 
- * Specifies the return value for <isConstrainChildren>. Default is
- * true.
+ * Specifies if a child should be constrained inside the parent bounds after a move of
+ * the child. Default is true.
  */
 mxGraph.prototype.constrainChildren = true;
+
+/**
+ * Variable: constrainChildrenOnResize
+ * 
+ * Specifies if children should be constrained according to the <constrainChildren>
+ * switch if cells are resized. Default is false for backwards compatiblity.
+ */
+mxGraph.prototype.constrainChildrenOnResize = false;
 
 /**
  * Variable: extendParents
  * 
  * Specifies if a parent should contain the child bounds after a resize of
- * the child. Default is true.
+ * the child. Default is true. This has precedence over <constrainChildren>.
  */
 mxGraph.prototype.extendParents = true;
 
@@ -1357,6 +1365,22 @@ mxGraph.prototype.extendParents = true;
  * switch if cells are added. Default is true.
  */
 mxGraph.prototype.extendParentsOnAdd = true;
+
+/**
+ * Variable: extendParentsOnAdd
+ * 
+ * Specifies if parents should be extended according to the <extendParents>
+ * switch if cells are added. Default is false for backwards compatiblity.
+ */
+mxGraph.prototype.extendParentsOnMove = false;
+
+/**
+ * Variable: recursiveResize
+ * 
+ * Specifies the return value for <isRecursiveResize>. Default is
+ * false for backwards compatiblity.
+ */
+mxGraph.prototype.recursiveResize = false;
 
 /**
  * Variable: collapseToPreferredSize
@@ -2950,7 +2974,6 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 			
 			if (this.horizontalPageBreaks[i] != null)
 			{
-				this.horizontalPageBreaks[i].scale = 1;
 				this.horizontalPageBreaks[i].points = pts;
 				this.horizontalPageBreaks[i].redraw();
 			}
@@ -2959,7 +2982,6 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 				var pageBreak = new mxPolyline(pts, this.pageBreakColor, this.scale);
 				pageBreak.dialect = this.dialect;
 				pageBreak.isDashed = this.pageBreakDashed;
-				pageBreak.scale = scale;
 				pageBreak.init(this.view.backgroundPane);
 				pageBreak.redraw();
 				
@@ -2989,7 +3011,6 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 			
 			if (this.verticalPageBreaks[i] != null)
 			{
-				this.verticalPageBreaks[i].scale = 1;
 				this.verticalPageBreaks[i].points = pts;
 				this.verticalPageBreaks[i].redraw();
 			}
@@ -2998,7 +3019,6 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 				var pageBreak = new mxPolyline(pts, this.pageBreakColor, scale);
 				pageBreak.dialect = this.dialect;
 				pageBreak.isDashed = this.pageBreakDashed;
-				pageBreak.scale = scale;
 				pageBreak.init(this.view.backgroundPane);
 				pageBreak.redraw();
 	
@@ -3692,7 +3712,7 @@ mxGraph.prototype.groupCells = function(group, border, cells)
 			this.cellsMoved(cells, -bounds.x, -bounds.y, false, true);
 
 			// Resizes the group
-			this.cellsResized([group], [bounds]);
+			this.cellsResized([group], [bounds], false);
 
 			this.fireEvent(new mxEventObject(mxEvent.GROUP_CELLS,
 					'group', group, 'border', border, 'cells', cells));
@@ -4362,14 +4382,12 @@ mxGraph.prototype.cellsAdded = function(cells, parent, index, source, target, ab
 
 					this.model.add(parent, cells[i], index + i);
 	
-					// Extends the parent
+					// Extends the parent or constrains the child
 					if (this.isExtendParentsOnAdd() && this.isExtendParent(cells[i]))
 					{
 						this.extendParent(cells[i]);
 					}
-	
-					// Constrains the child
-					if (constrain == null || constrain)
+					else if (constrain == null || constrain)
 					{
 						this.constrainChild(cells[i]);
 					}
@@ -5016,7 +5034,7 @@ mxGraph.prototype.cellSizeUpdated = function(cell, ignoreChildren)
 					}
 				}
 
-				this.cellsResized([cell], [geo]);
+				this.cellsResized([cell], [geo], false);
 			}
 		}
 		finally
@@ -5157,9 +5175,9 @@ mxGraph.prototype.getPreferredSizeForCell = function(cell)
  * cell - <mxCell> whose bounds should be changed.
  * bounds - <mxRectangle> that represents the new bounds.
  */
-mxGraph.prototype.resizeCell = function(cell, bounds)
+mxGraph.prototype.resizeCell = function(cell, bounds, recurse)
 {
-	return this.resizeCells([cell], [bounds])[0];
+	return this.resizeCells([cell], [bounds], recurse)[0];
 };
 
 /**
@@ -5174,12 +5192,14 @@ mxGraph.prototype.resizeCell = function(cell, bounds)
  * cells - Array of <mxCells> whose bounds should be changed.
  * bounds - Array of <mxRectangles> that represent the new bounds.
  */
-mxGraph.prototype.resizeCells = function(cells, bounds)
+mxGraph.prototype.resizeCells = function(cells, bounds, recurse)
 {
+	recurse = (recurse != null) ? recurse : this.isRecursiveResize();
+	
 	this.model.beginUpdate();
 	try
 	{
-		this.cellsResized(cells, bounds);
+		this.cellsResized(cells, bounds, recurse);
 		this.fireEvent(new mxEventObject(mxEvent.RESIZE_CELLS,
 				'cells', cells, 'bounds', bounds));
 	}
@@ -5235,9 +5255,12 @@ mxGraph.prototype.resizeCells = function(cells, bounds)
  * 
  * cells - Array of <mxCells> whose bounds should be changed.
  * bounds - Array of <mxRectangles> that represent the new bounds.
+ * recurse - Optional boolean that specifies if the children should be resized.
  */
-mxGraph.prototype.cellsResized = function(cells, bounds)
+mxGraph.prototype.cellsResized = function(cells, bounds, recurse)
 {
+	recurse = (recurse != null) ? recurse : false;
+	
 	if (cells != null && bounds != null && cells.length == bounds.length)
 	{
 		this.model.beginUpdate();
@@ -5245,46 +5268,15 @@ mxGraph.prototype.cellsResized = function(cells, bounds)
 		{
 			for (var i = 0; i < cells.length; i++)
 			{
-				var tmp = bounds[i];
-				var geo = this.model.getGeometry(cells[i]);
+				this.cellResized(cells[i], bounds[i], false, recurse);
 
-				if (geo != null && (geo.x != tmp.x || geo.y != tmp.y ||
-					geo.width != tmp.width || geo.height != tmp.height))
+				if (this.isExtendParent(cells[i]))
 				{
-					geo = geo.clone();
-
-					if (geo.relative)
-					{
-						var offset = geo.offset;
-
-						if (offset != null)
-						{
-							offset.x += tmp.x - geo.x;
-							offset.y += tmp.y - geo.y;
-						}
-					}
-					else
-					{
-						geo.x = tmp.x;
-						geo.y = tmp.y;
-					}
-
-					geo.width = tmp.width;
-					geo.height = tmp.height;
-
-					if (!geo.relative && this.model.isVertex(cells[i]) &&
-						!this.isAllowNegativeCoordinates())
-					{
-						geo.x = Math.max(0, geo.x);
-						geo.y = Math.max(0, geo.y);
-					}
-
-					this.model.setGeometry(cells[i], geo);
-
-					if (this.isExtendParent(cells[i]))
-					{
-						this.extendParent(cells[i]);
-					}
+					this.extendParent(cells[i]);
+				}
+				else if (this.isConstrainChildrenOnResize())
+				{
+					this.constrainChild(cells[i]);
 				}
 			}
 
@@ -5299,6 +5291,162 @@ mxGraph.prototype.cellsResized = function(cells, bounds)
 		finally
 		{
 			this.model.endUpdate();
+		}
+	}
+};
+
+/**
+ * Function: cellResized
+ * 
+ * Resizes the parents recursively so that they contain the complete area
+ * of the resized child cell.
+ * 
+ * Parameters:
+ * 
+ * cell - <mxCell> whose bounds should be changed.
+ * bounds - <mxRectangles> that represent the new bounds.
+ * ignoreRelative - Boolean that indicates if relative cells should be ignored.
+ * recurse - Optional boolean that specifies if the children should be resized.
+ */
+mxGraph.prototype.cellResized = function(cell, bounds, ignoreRelative, recurse)
+{
+	var geo = this.model.getGeometry(cell);
+
+	if (geo != null && (geo.x != bounds.x || geo.y != bounds.y ||
+		geo.width != bounds.width || geo.height != bounds.height))
+	{
+		geo = geo.clone();
+
+		if (!ignoreRelative && geo.relative)
+		{
+			var offset = geo.offset;
+
+			if (offset != null)
+			{
+				offset.x += bounds.x - geo.x;
+				offset.y += bounds.y - geo.y;
+			}
+		}
+		else
+		{
+			geo.x = bounds.x;
+			geo.y = bounds.y;
+		}
+
+		geo.width = bounds.width;
+		geo.height = bounds.height;
+
+		if (!geo.relative && this.model.isVertex(cell) && !this.isAllowNegativeCoordinates())
+		{
+			geo.x = Math.max(0, geo.x);
+			geo.y = Math.max(0, geo.y);
+		}
+
+		this.model.beginUpdate();
+		try
+		{
+			if (recurse)
+			{
+				this.resizeChildCells(cell, geo);
+			}
+						
+			this.model.setGeometry(cell, geo);
+			
+			if (this.isConstrainChildrenOnResize())
+			{
+				this.constrainChildCells(cell);
+			}
+		}
+		finally
+		{
+			this.model.endUpdate();
+		}
+	}
+};
+
+/**
+ * Function: resizeChildCells
+ * 
+ * Resizes the child cells of the given cell for the given new geometry with
+ * respect to the current geometry of the cell.
+ * 
+ * Parameters:
+ * 
+ * cell - <mxCell> that has been resized.
+ * newGeo - <mxGeometry> that represents the new bounds.
+ */
+mxGraph.prototype.resizeChildCells = function(cell, newGeo)
+{
+	var geo = this.model.getGeometry(cell);
+	var dx = newGeo.width / geo.width;
+	var dy = newGeo.height / geo.height;
+	var childCount = this.model.getChildCount(cell);
+	
+	for (var i = 0; i < childCount; i++)
+	{
+		this.scaleCell(this.model.getChildAt(cell, i), dx, dy, true);
+	}
+};
+
+/**
+ * Function: constrainChildCells
+ * 
+ * Constrains the children of the given cell using <constrainChild>.
+ * 
+ * Parameters:
+ * 
+ * cell - <mxCell> that has been resized.
+ */
+mxGraph.prototype.constrainChildCells = function(cell)
+{
+	var childCount = this.model.getChildCount(cell);
+	
+	for (var i = 0; i < childCount; i++)
+	{
+		this.constrainChild(this.model.getChildAt(cell, i));
+	}
+};
+
+/**
+ * Function: scaleCell
+ * 
+ * Scales the points, position and size of the given cell according to the
+ * given vertical and horizontal scaling factors.
+ * 
+ * Parameters:
+ * 
+ * cell - <mxCell> whose geometry should be scaled.
+ * dx - Horizontal scaling factor.
+ * dy - Vertical scaling factor.
+ * recurse - Boolean indicating if the child cells should be scaled.
+ */
+mxGraph.prototype.scaleCell = function(cell, dx, dy, recurse)
+{
+	var geo = this.model.getGeometry(cell);
+	
+	if (geo != null)
+	{
+		geo = geo.clone();
+		var pts = geo.points;
+		
+		if (pts != null)
+		{
+			for (var i = 0; i < pts.length; i++)
+			{
+				pts[i].x *= dx;
+				pts[i].y *= dy;
+			}
+			
+			this.model.setGeometry(cell, geo);
+		}
+		else if (this.model.isVertex(cell))
+		{
+			geo.x *= dx;
+			geo.y *= dy;
+			geo.width *= dx;
+			geo.height *= dy;
+			
+			this.cellResized(cell, geo, true, recurse);
 		}
 	}
 };
@@ -5332,7 +5480,7 @@ mxGraph.prototype.extendParent = function(cell)
 				p.width = Math.max(p.width, geo.x + geo.width);
 				p.height = Math.max(p.height, geo.y + geo.height);
 				
-				this.cellsResized([parent], [p]);
+				this.cellsResized([parent], [p], false);
 			}
 		}
 	}
@@ -5411,7 +5559,8 @@ mxGraph.prototype.moveCells = function(cells, dx, dy, clone, target, evt)
 			}
 			
 			this.cellsMoved(cells, dx, dy, !clone && this.isDisconnectOnMove()
-					&& this.isAllowDanglingEdges(), target == null);
+					&& this.isAllowDanglingEdges(), target == null,
+					this.isExtendParentsOnMove() && target == null);
 			
 			this.setAllowNegativeCoordinates(previous);
 
@@ -5441,10 +5590,12 @@ mxGraph.prototype.moveCells = function(cells, dx, dy, clone, target, evt)
  * using disconnectGraph is disconnect is true. This method fires
  * <mxEvent.CELLS_MOVED> while the transaction is in progress.
  */
-mxGraph.prototype.cellsMoved = function(cells, dx, dy, disconnect, constrain)
+mxGraph.prototype.cellsMoved = function(cells, dx, dy, disconnect, constrain, extend)
 {
 	if (cells != null && (dx != 0 || dy != 0))
 	{
+		extend = (extend != null) ? extend : false;
+		
 		this.model.beginUpdate();
 		try
 		{
@@ -5457,7 +5608,11 @@ mxGraph.prototype.cellsMoved = function(cells, dx, dy, disconnect, constrain)
 			{
 				this.translateCell(cells[i], dx, dy);
 				
-				if (constrain)
+				if (extend && this.isExtendParent(cells[i]))
+				{
+					this.extendParent(cells[i]);
+				}
+				else if (constrain)
 				{
 					this.constrainChild(cells[i]);
 				}
@@ -5603,6 +5758,7 @@ mxGraph.prototype.constrainChild = function(cell)
 				area.width < geo.x + geo.width || area.height < geo.y + geo.height))
 			{
 				var overlap = this.getOverlap(cell);
+				geo = geo.clone();
 				
 				if (area.width > 0)
 				{
@@ -5618,6 +5774,11 @@ mxGraph.prototype.constrainChild = function(cell)
 				
 				geo.x = Math.max(geo.x, area.x - geo.width * overlap);
 				geo.y = Math.max(geo.y, area.y - geo.height * overlap);
+				
+				geo.width = Math.min(geo.width, area.width);
+				geo.height = Math.min(geo.height, area.height);
+				
+				this.model.setGeometry(cell, geo);
 			}
 		}
 	}
@@ -9571,6 +9732,54 @@ mxGraph.prototype.setExtendParentsOnAdd = function(value)
 };
 
 /**
+ * Function: isExtendParentsOnAdd
+ * 
+ * Returns <extendParentsOnAdd>.
+ */
+mxGraph.prototype.isExtendParentsOnMove = function()
+{
+	return this.extendParentsOnMove;
+};
+
+/**
+ * Function: setExtendParentsOnAdd
+ * 
+ * Sets <extendParentsOnAdd>.
+ * 
+ * Parameters:
+ * 
+ * value - New boolean value for <extendParentsOnAdd>.
+ */
+mxGraph.prototype.setExtendParentsOnMove = function(value)
+{
+	this.extendParentsOnMove = value;
+};
+
+/**
+ * Function: isRecursiveResize
+ * 
+ * Returns <recursiveResize>.
+ */
+mxGraph.prototype.isRecursiveResize = function()
+{
+	return this.recursiveResize;
+};
+
+/**
+ * Function: setRecursiveResize
+ * 
+ * Sets <recursiveResize>.
+ * 
+ * Parameters:
+ * 
+ * value - New boolean value for <recursiveResize>.
+ */
+mxGraph.prototype.setRecursiveResize = function(value)
+{
+	this.recursiveResize = value;
+};
+
+/**
  * Function: isConstrainChild
  * 
  * Returns true if the given cell should be kept inside the bounds of its
@@ -9596,6 +9805,26 @@ mxGraph.prototype.isConstrainChild = function(cell)
 mxGraph.prototype.isConstrainChildren = function()
 {
 	return this.constrainChildren;
+};
+
+/**
+ * Function: setConstrainChildrenOnResize
+ * 
+ * Sets <constrainChildrenOnResize>.
+ */
+mxGraph.prototype.setConstrainChildrenOnResize = function(value)
+{
+	this.constrainChildrenOnResize = value;
+};
+
+/**
+ * Function: isConstrainChildrenOnResize
+ * 
+ * Returns <constrainChildrenOnResize>.
+ */
+mxGraph.prototype.isConstrainChildrenOnResize = function()
+{
+	return this.constrainChildrenOnResize;
 };
 
 /**
@@ -9698,8 +9927,9 @@ mxGraph.prototype.isCellFoldable = function(cell, collapse)
  * Function: isValidDropTarget
  *
  * Returns true if the given cell is a valid drop target for the specified
- * cells. If the given cell is an edge, then <isSplitDropTarget> is used,
- * else <isParentDropTarget> is used to compute the return value.
+ * cells. If <splitEnabled> is true then this returns <isSplitTarget> for
+ * the given arguments else it returns true if the cell is not collapsed
+ * and its child count is greater than 0.
  * 
  * Parameters:
  * 
@@ -11277,8 +11507,13 @@ mxGraph.prototype.isEventIgnored = function(evtName, me, sender)
 		result = true;
 	}
 
+	// Ignores double click events
+	if (!mxEvent.isPopupTrigger(this.lastEvent) && this.lastEvent.detail == 2)
+	{
+		result = true;
+	}
 	// Filters out of sequence events or mixed event types during a gesture
-	if (evtName == mxEvent.MOUSE_UP && this.isMouseDown)
+	else if (evtName == mxEvent.MOUSE_UP && this.isMouseDown)
 	{
 		this.isMouseDown = false;
 	}
@@ -11293,12 +11528,6 @@ mxGraph.prototype.isEventIgnored = function(evtName, me, sender)
 		this.isMouseDown && this.isMouseTrigger != mouseEvent) ||
 		(evtName == mxEvent.MOUSE_DOWN && this.isMouseDown) ||
 		(evtName == mxEvent.MOUSE_UP && !this.isMouseDown)))
-	{
-		result = true;
-	}
-	
-	// Ignores double click events
-	if (this.lastEvent.detail >= 2)
 	{
 		result = true;
 	}
@@ -11359,13 +11588,13 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 	{
 		this.stopEditing(!this.isInvokesStopCellEditing());
 	}
-	
+
 	// Detects and processes double taps for touch-based devices which do not have native double click events
 	// or where detection of double click is not always possible (quirks, IE10+). Note that this can only handle
 	// double clicks on cells because the sequence of events in IE prevents detection on the background, it fires
 	// two mouse ups, one of which without a cell but no mousedown for the second click which means we cannot
 	// detect which mouseup(s) are part of the first click, ie we do not know when the first click ends.
-	if (!this.nativeDblClickEnabled || (this.doubleTapEnabled &&
+	if ((!this.nativeDblClickEnabled && !mxEvent.isPopupTrigger(me.getEvent())) || (this.doubleTapEnabled &&
 		mxClient.IS_TOUCH && mxEvent.isTouchEvent(me.getEvent())))
 	{
 		var currentTime = new Date().getTime();
@@ -11378,8 +11607,11 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 				if (this.lastTouchEvent != null && this.lastTouchEvent != me.getEvent() &&
 					currentTime - this.lastTouchTime < this.doubleTapTimeout &&
 					Math.abs(this.lastTouchX - me.getX()) < this.doubleTapTolerance &&
-					Math.abs(this.lastTouchY - me.getY()) < this.doubleTapTolerance)
+					Math.abs(this.lastTouchY - me.getY()) < this.doubleTapTolerance &&
+					this.doubleClickCounter < 2)
 				{
+					this.doubleClickCounter++;
+					
 					if (evtName == mxEvent.MOUSE_UP)
 					{
 						if (me.getCell() == this.lastTouchCell && this.lastTouchCell != null)
@@ -11406,6 +11638,7 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 					this.lastTouchY = me.getY();
 					this.lastTouchTime = currentTime;
 					this.lastTouchEvent = me.getEvent();
+					this.doubleClickCounter = 0;
 				}
 			}
 			else if ((this.isMouseDown || evtName == mxEvent.MOUSE_UP) && this.fireDoubleClick)

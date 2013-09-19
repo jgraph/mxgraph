@@ -156,29 +156,29 @@
 					var scale = graph.view.scale;
 					var bounds = graph.getGraphBounds();
 					
-		        	// New image export
+					// New image export
 					var xmlDoc = mxUtils.createXmlDocument();
 					var root = xmlDoc.createElement('output');
 					xmlDoc.appendChild(root);
 					
-				    // Renders graph. Offset will be multiplied with state's scale when painting state.
+					// Renders graph. Offset will be multiplied with state's scale when painting state.
 					var xmlCanvas = new mxXmlCanvas2D(root);
 					xmlCanvas.translate(Math.floor((1 / scale - bounds.x) / scale), Math.floor((1 / scale - bounds.y) / scale));
 					
 					var imgExport = new mxImageExport();
-				    imgExport.drawState(graph.getView().getState(graph.model.root), xmlCanvas);
-				    
+					imgExport.drawState(graph.getView().getState(graph.model.root), xmlCanvas);
+					   
 					// Puts request data together
-	    			var filename = 'export.png';
-	    			var format = 'png';
-	    			var bg = '#FFFFFF';
+					var filename = 'export.png';
+					var format = 'png';
+					var bg = '#FFFFFF';
 					var w = Math.ceil(bounds.width + 2);
 					var h = Math.ceil(bounds.height + 2);
 					var xml = mxUtils.getXml(root);
-	
+					
 					new mxXmlRequest('/New' + editor.urlImage.substring(1), 'filename=' + filename +
-							'&format=' + format + '&bg=' + bg + '&w=' + w + '&h=' + h + '&xml=' +
-							encodeURIComponent(xml)).simulate(document, '_blank');
+						'&format=' + format + '&bg=' + bg + '&w=' + w + '&h=' + h + '&xml=' +
+						encodeURIComponent(xml)).simulate(document, '_blank');
 				}
 			};
 			

@@ -1,5 +1,5 @@
 /**
- * $Id: Editor.js,v 1.22 2013/07/19 06:13:37 gaudenz Exp $
+ * $Id: Editor.js,v 1.23 2013/09/10 20:59:10 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 // Specifies if local storage should be used (eg. on the iPad which has no filesystem)
@@ -139,19 +139,7 @@ Editor.prototype.appName = 'Grapheditor';
 Editor.prototype.setGraphXml = function(node)
 {
 	var dec = new mxCodec(node.ownerDocument);
-	
-	// Preparations for wrapped graph models in case of cached clients.
-	// This will read the first mxGraphModel found inside the wrapper.
-	if (node.nodeName != 'mxGraphModel')
-	{
-		var nodes = node.getElementsByTagName('mxGraphModel');
-		
-		if (nodes != null && nodes.length > 0)
-		{
-			node = nodes[0];
-		}
-	}
-	
+
 	if (node.nodeName == 'mxGraphModel')
 	{
 		this.graph.view.scale = 1;
@@ -206,7 +194,7 @@ Editor.prototype.setGraphXml = function(node)
 		dec.decode(node, this.graph.getModel());
 		this.updateGraphComponents();
 	}
-	else
+	else if (node.nodeName == 'root')
 	{
 		// Workaround for invalid XML output in Firefox 20 due to bug in mxUtils.getXml
 		var wrapper = dec.document.createElement('mxGraphModel');
@@ -214,6 +202,16 @@ Editor.prototype.setGraphXml = function(node)
 		
 		dec.decode(wrapper, this.graph.getModel());
 		this.updateGraphComponents();
+	}
+	else
+	{
+		throw { 
+		    name: "Cannot open file", 
+		    level: "Severe", 
+		    message: "Please refresh this page and try again.", 
+		    htmlMessage: "Please refresh this page and try again.",
+		    toString: function() { return this.name + ": " + this.message; }
+		};
 	}
 };
 
