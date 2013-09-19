@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.java,v 1.2 2013/02/20 11:41:05 gaudenz Exp $
+ * $Id: mxGraph.java,v 1.3 2013/09/15 16:09:27 gaudenz Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.view;
@@ -195,9 +195,9 @@ public class mxGraph extends mxEventSource
 
 	/**
 	 * Holds the version number of this release. Current version
-	 * is 2.1.1.2.
+	 * is 2.2.0.0.
 	 */
-	public static final String VERSION = "2.1.1.2";
+	public static final String VERSION = "2.2.0.0";
 
 	/**
 	 * 
@@ -7838,7 +7838,17 @@ public class mxGraph extends mxEventSource
 			{
 				Graphics g = ((mxGraphics2DCanvas) clippedCanvas).getGraphics();
 				clip = g.getClip();
-				g.setClip(newClip);
+				
+				// Ensure that our new clip resides within our old clip
+				if (clip instanceof Rectangle)
+				{
+					g.setClip(newClip.intersection((Rectangle) clip));
+				}
+				// Otherwise, default to original implementation
+				else
+				{
+					g.setClip(newClip);
+				}
 			}
 
 			if (drawLabel)

@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.32 2013/07/19 06:13:37 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.33 2013/09/10 06:33:53 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -9,7 +9,7 @@ EditorUi = function(editor, container)
 {
 	this.editor = editor || new Editor();
 	this.container = container || document.body;
-	var graph = editor.graph;
+	var graph = this.editor.graph;
 
 	// Disables scrollbars
 	this.container.style.overflow = 'hidden';
