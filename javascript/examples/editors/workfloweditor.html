@@ -6,7 +6,6 @@
 		div.base {
 			position: absolute;
 			overflow: hidden;
-			white-space: nowrap;
 			font-family: Arial;
 			font-size: 8pt;
 		}
@@ -23,6 +22,13 @@
 	<script type="text/javascript" src="../../src/js/mxClient.js"></script>
 	<script type="text/javascript" src="js/mxApplication.js"></script>
 	<script type="text/javascript">
+	mxGraph.prototype.htmlLabels = true;
+
+	mxGraph.prototype.isWrapping = function(cell)
+	{
+		return true;
+	};
+	
 		mxConstants.DEFAULT_HOTSPOT = 1;
 		
 		// Enables guides
@@ -52,7 +58,7 @@
 	<div id="graph" class="base">
 		<!-- Graph Here -->
 	</div>
-	<div id="status" class="base" align="right">
+	<div id="status" class="base" align="right" style="white-space:nowrap;">
 		<!-- Status Here -->
 	</div>
 </body>

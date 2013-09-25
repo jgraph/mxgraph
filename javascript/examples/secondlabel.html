@@ -1,5 +1,5 @@
 <!--
-  $Id: secondlabel.html,v 1.2 2012/11/17 20:03:29 gaudenz Exp $
+  $Id: secondlabel.html,v 1.3 2013/09/24 17:59:57 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Second label example for mxGraph. This example demonstrates how to
@@ -105,6 +105,7 @@
 					{
 						var scale = graph.getView().getScale();
 						var bounds = new mxRectangle(state.x + state.width - 8 * scale, state.y + 8 * scale, 0, 0);
+						state.secondLabel.state = state;
 						state.secondLabel.value = graph.getSecondLabel(state.cell);
 						state.secondLabel.scale = scale;
 						state.secondLabel.bounds = bounds;

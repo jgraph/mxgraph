@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.46 2013/09/19 07:00:40 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.47 2013/09/24 17:59:57 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -11507,13 +11507,23 @@ mxGraph.prototype.isEventIgnored = function(evtName, me, sender)
 		result = true;
 	}
 
-	// Ignores double click events
-	if (!mxEvent.isPopupTrigger(this.lastEvent) && this.lastEvent.detail == 2)
+	// Workaround for IE9 standards mode ignoring tolerance for double clicks
+	if (!mxEvent.isPopupTrigger(this.lastEvent) && mxClient.IS_IE && document.compatMode == 'CSS1Compat' &&
+		evtName != mxEvent.MOUSE_MOVE && me.getEvent().detail == 2)
+	{
+		if (this.lastMouseX != null && Math.abs(this.lastMouseX - me.getX()) <= this.doubleTapTolerance &&
+			this.lastMouseY != null && Math.abs(this.lastMouseY - me.getY()) <= this.doubleTapTolerance)
+		{
+			result = true;
+		}
+	}
+	else if (!mxEvent.isPopupTrigger(this.lastEvent) && evtName != mxEvent.MOUSE_MOVE && this.lastEvent.detail == 2)
 	{
 		result = true;
 	}
+	
 	// Filters out of sequence events or mixed event types during a gesture
-	else if (evtName == mxEvent.MOUSE_UP && this.isMouseDown)
+	if (evtName == mxEvent.MOUSE_UP && this.isMouseDown)
 	{
 		this.isMouseDown = false;
 	}
@@ -11532,6 +11542,12 @@ mxGraph.prototype.isEventIgnored = function(evtName, me, sender)
 		result = true;
 	}
 	
+	if (!result && evtName == mxEvent.MOUSE_DOWN)
+	{
+		this.lastMouseX = me.getX();
+		this.lastMouseY = me.getY();
+	}
+
 	return result;
 };
 

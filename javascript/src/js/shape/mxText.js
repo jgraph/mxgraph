@@ -1,5 +1,5 @@
 /**
- * $Id: mxText.js,v 1.55 2013/08/09 18:08:30 gaudenz Exp $
+ * $Id: mxText.js,v 1.56 2013/09/24 18:01:29 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -83,6 +83,7 @@ function mxText(value, bounds, align, valign, color,
 	this.overflow = (overflow != null) ? overflow : 'visible';
 	this.labelPadding = (labelPadding != null) ? labelPadding : 0;
 	this.rotation = 0;
+	this.updateMargin();
 };
 
 /**
@@ -218,7 +219,6 @@ mxText.prototype.apply = function(state)
 		this.color = mxUtils.getValue(this.style, mxConstants.STYLE_FONTCOLOR, this.color);
 		this.align = mxUtils.getValue(this.style, mxConstants.STYLE_ALIGN, this.align);
 		this.valign = mxUtils.getValue(this.style, mxConstants.STYLE_VERTICAL_ALIGN, this.valign);
-		this.valign = mxUtils.getValue(this.style, mxConstants.STYLE_VERTICAL_ALIGN, this.valign);
 		this.spacingTop = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_TOP, this.spacingTop);
 		this.spacingRight = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_RIGHT, this.spacingRight);
 		this.spacingBottom = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_BOTTOM, this.spacingBottom);
@@ -226,6 +226,7 @@ mxText.prototype.apply = function(state)
 		this.horizontal = mxUtils.getValue(this.style, mxConstants.STYLE_HORIZONTAL, this.horizontal);
 		this.background = mxUtils.getValue(this.style, mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, this.background);
 		this.border = mxUtils.getValue(this.style, mxConstants.STYLE_LABEL_BORDERCOLOR, this.border);
+		this.updateMargin();
 	}
 };
 
@@ -281,7 +282,7 @@ mxText.prototype.updateBoundingBox = function()
 		}
 		else
 		{
-			var td = this.state.view.textDiv;
+			var td = (this.state != null) ? this.state.view.textDiv : null;
 
 			// Use cached offset size
 			if (this.offsetWidth != null && this.offsetHeight != null)
@@ -470,6 +471,7 @@ mxText.prototype.redrawHtmlShape = function()
 	}
 
 	// Resets CSS styles
+	style.whiteSpace = 'normal';
 	style.overflow = '';
 	style.width = '';
 	style.height = '';
@@ -578,10 +580,10 @@ mxText.prototype.updateHtmlFilter = function()
 		oh = this.node.offsetHeight + 1;
 	}
 	
-	// Stores for later user
+	// Stores for later use
 	this.offsetWidth = ow;
 	this.offsetHeight = oh;
-
+	
 	var w = this.bounds.width / s;
 	var h = this.bounds.height / s;
 	
@@ -829,7 +831,7 @@ mxText.prototype.updateSize = function(node)
 		{
 			// Needs first call to update scrollWidth for wrapped text
 			style.width = w + 'px';
-			style.width = Math.max(w, this.node.scrollWidth) + 'px';
+			style.width = Math.max(w, node.scrollWidth + ((mxClient.IS_QUIRKS) ? 2 : 0)) + 'px';
 		}
 		
 		style.whiteSpace = 'normal';

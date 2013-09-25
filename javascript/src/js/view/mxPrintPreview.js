@@ -1,5 +1,5 @@
 /**
- * $Id: mxPrintPreview.js,v 1.7 2013/06/20 10:05:46 gaudenz Exp $
+ * $Id: mxPrintPreview.js,v 1.8 2013/09/25 11:45:10 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -277,15 +277,24 @@ mxPrintPreview.prototype.getWindow = function()
  * Function: getDocType
  * 
  * Returns the string that should go before the HTML tag in the print preview
- * page. This implementation returns an empty string.
+ * page. This implementation returns an X-UA meta tag for IE5 in quirks mode,
+ * IE8 in IE8 standards mode and edge in IE9 standards mode.
  */
 mxPrintPreview.prototype.getDoctype = function()
 {
 	var dt = '';
 	
-	if (document.documentMode == 8)
+	if (document.documentMode == 5)
+	{
+		dt = '<meta http-equiv="X-UA-Compatible" content="IE=5">';
+	}
+	else if (document.documentMode == 8)
 	{
 		dt = '<meta http-equiv="X-UA-Compatible" content="IE=8">';
+	}
+	else if (document.documentMode == 9)
+	{
+		dt = '<meta http-equiv="X-UA-Compatible" content="IE=edge">';
 	}
 	
 	return dt;
@@ -331,23 +340,19 @@ mxPrintPreview.prototype.open = function(css)
 				doc.writeln(dt);
 			}
 			
-			doc.writeln('<html>');
+			if (mxClient.IS_VML)
+			{
+				doc.writeln('<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">');
+			}
+			else
+			{
+				doc.writeln('<html>');
+			}
+			
 			doc.writeln('<head>');
 			this.writeHead(doc, css);
 			doc.writeln('</head>');
 			doc.writeln('<body class="mxPage">');
-	
-			// Adds all required stylesheets and namespaces
-			mxClient.link('stylesheet', mxClient.basePath + '/css/common.css', doc);
-
-			if (mxClient.IS_VML)
-			{
-				doc.namespaces.add('v', 'urn:schemas-microsoft-com:vml');
-				doc.namespaces.add('o', 'urn:schemas-microsoft-com:office:office');
-		        var ss = doc.createStyleSheet();
-		        ss.cssText = 'v\\:*{behavior:url(#default#VML)}o\\:*{behavior:url(#default#VML)}';
-		        mxClient.link('stylesheet', mxClient.basePath + '/css/explorer.css', doc);
-			}
 
 			// Computes the horizontal and vertical page count
 			var bounds = this.graph.getGraphBounds().clone();
@@ -550,8 +555,21 @@ mxPrintPreview.prototype.writeHead = function(doc, css)
 	{
 		doc.writeln('<title>' + this.title + '</title>');
 	}
+	
+	if (mxClient.IS_VML)
+	{
+		doc.writeln('<style type="text/css">v\\:*{behavior:url(#default#VML)}o\\:*{behavior:url(#default#VML)}</style>');
+	}
 
-	// Makes sure no horizontal rulers are printed
+	// Adds all required stylesheets and namespaces
+	mxClient.link('stylesheet', mxClient.basePath + '/css/common.css', doc);
+	
+	if (mxClient.IS_VML)
+	{
+        mxClient.link('stylesheet', mxClient.basePath + '/css/explorer.css', doc);
+	}
+
+	// Removes horizontal rules and page selector from print output
 	doc.writeln('<style type="text/css">');
 	doc.writeln('@media print {');
 	doc.writeln('  table.mxPageSelector { display: none; }');
@@ -598,23 +616,18 @@ mxPrintPreview.prototype.createPageSelector = function(vpages, hpages)
 		{
 			var pageNum = i * hpages + j + 1;
 			var cell = doc.createElement('td');
-			
-			// Needs anchor for all browers to work without JavaScript
-			// LATER: Does not work in Firefox because the generated document
-			// has the URL of the opening document, the anchor is appended
-			// to that URL and the full URL is loaded on click.
-			if (!mxClient.IS_NS || mxClient.IS_SF || mxClient.IS_GC)
-			{
-				var a = doc.createElement('a');
-				a.setAttribute('href', '#mxPage-' + pageNum);
-				mxUtils.write(a, pageNum, doc);
-				cell.appendChild(a);
-			}
-			else
-			{
-				mxUtils.write(cell, pageNum, doc);
-			}
+			var a = doc.createElement('a');
+			a.setAttribute('href', '#mxPage-' + pageNum);
 
+			// Workaround for FF where the anchor is appended to the URL of the original document
+			if (mxClient.IS_NS && !mxClient.IS_SF && !mxClient.IS_GC)
+			{					
+				var js = 'var page = document.getElementById(\'mxPage-' + pageNum + '\');page.scrollIntoView(true);event.preventDefault();';
+				a.setAttribute('onclick', js);
+			}
+			
+			mxUtils.write(a, pageNum, doc);
+			cell.appendChild(a);
 			row.appendChild(cell);
 		}
 		
@@ -650,7 +663,11 @@ mxPrintPreview.prototype.renderPage = function(w, h, content)
 		div.style.height = h + 'px';
 		div.style.overflow = 'hidden';
 		div.style.pageBreakInside = 'avoid';
-		div.style.position = 'relative';
+		
+		if (document.documentMode == 8)
+		{
+			div.style.position = 'relative';
+		}
 		
 		var innerDiv = document.createElement('div');
 		innerDiv.style.top = this.border + 'px';

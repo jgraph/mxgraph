@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellRenderer.js,v 1.26 2013/08/21 09:16:37 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.27 2013/09/24 17:59:57 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1147,11 +1147,6 @@ mxCellRenderer.prototype.getLabelBounds = function(state)
 	var isEdge = graph.getModel().isEdge(state.cell);
 	var bounds = new mxRectangle(state.absoluteOffset.x, state.absoluteOffset.y);
 
-	if (state.text != null)
-	{
-		state.text.updateMargin();
-	}
-	
 	if (isEdge)
 	{
 		var spacing = state.text.getSpacing();

@@ -1,5 +1,5 @@
 /**
- * $Id: mxSwimlaneLayout.js,v 1.2 2013/07/23 21:39:12 david Exp $
+ * $Id: mxSwimlaneLayout.js,v 1.3 2013/09/23 14:11:22 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -288,12 +288,22 @@ mxSwimlaneLayout.prototype.updateGroupBounds = function()
 
 			var bounds = this.graph.getBoundingBoxFromGeometry(children);
 			childBounds[i] = bounds;
-			layoutBounds.y = Math.min(layoutBounds.y, bounds.y + geo.y - size.height - this.parentBorder);
-			var maxY = Math.max(layoutBounds.y + layoutBounds.height, bounds.y + geo.y + bounds.height);
-			layoutBounds.height = maxY - layoutBounds.y;
+			var childrenY = bounds.y + geo.y - size.height - this.parentBorder;
+			var maxChildrenY = bounds.y + geo.y + bounds.height;
+
+			if (layoutBounds == null)
+			{
+				layoutBounds = new mxRectangle(0, childrenY, 0, maxChildrenY - childrenY);
+			}
+			else
+			{
+				layoutBounds.y = Math.min(layoutBounds.y, childrenY);
+				var maxY = Math.max(layoutBounds.y + layoutBounds.height, maxChildrenY);
+				layoutBounds.height = maxY - layoutBounds.y;
+			}
 		}
 	}
-	
+
 	
 	for (var i = 0; i < this.swimlanes.length; i++)
 	{

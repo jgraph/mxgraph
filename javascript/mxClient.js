@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.2.0.0.
+	 * Current version is 2.2.0.1.
 	 */
-	VERSION: '2.2.0.0',
+	VERSION: '2.2.0.1',
 
 	/**
 	 * Variable: IS_IE
@@ -23445,7 +23445,7 @@ mxArrow.prototype.paintEdgeShape = function(c, pts)
 	c.fillAndStroke();
 };
 /**
- * $Id: mxText.js,v 1.55 2013/08/09 18:08:30 gaudenz Exp $
+ * $Id: mxText.js,v 1.56 2013/09/24 18:01:29 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -23529,6 +23529,7 @@ function mxText(value, bounds, align, valign, color,
 	this.overflow = (overflow != null) ? overflow : 'visible';
 	this.labelPadding = (labelPadding != null) ? labelPadding : 0;
 	this.rotation = 0;
+	this.updateMargin();
 };
 
 /**
@@ -23664,7 +23665,6 @@ mxText.prototype.apply = function(state)
 		this.color = mxUtils.getValue(this.style, mxConstants.STYLE_FONTCOLOR, this.color);
 		this.align = mxUtils.getValue(this.style, mxConstants.STYLE_ALIGN, this.align);
 		this.valign = mxUtils.getValue(this.style, mxConstants.STYLE_VERTICAL_ALIGN, this.valign);
-		this.valign = mxUtils.getValue(this.style, mxConstants.STYLE_VERTICAL_ALIGN, this.valign);
 		this.spacingTop = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_TOP, this.spacingTop);
 		this.spacingRight = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_RIGHT, this.spacingRight);
 		this.spacingBottom = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_BOTTOM, this.spacingBottom);
@@ -23672,6 +23672,7 @@ mxText.prototype.apply = function(state)
 		this.horizontal = mxUtils.getValue(this.style, mxConstants.STYLE_HORIZONTAL, this.horizontal);
 		this.background = mxUtils.getValue(this.style, mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, this.background);
 		this.border = mxUtils.getValue(this.style, mxConstants.STYLE_LABEL_BORDERCOLOR, this.border);
+		this.updateMargin();
 	}
 };
 
@@ -23727,7 +23728,7 @@ mxText.prototype.updateBoundingBox = function()
 		}
 		else
 		{
-			var td = this.state.view.textDiv;
+			var td = (this.state != null) ? this.state.view.textDiv : null;
 
 			// Use cached offset size
 			if (this.offsetWidth != null && this.offsetHeight != null)
@@ -23916,6 +23917,7 @@ mxText.prototype.redrawHtmlShape = function()
 	}
 
 	// Resets CSS styles
+	style.whiteSpace = 'normal';
 	style.overflow = '';
 	style.width = '';
 	style.height = '';
@@ -24024,10 +24026,10 @@ mxText.prototype.updateHtmlFilter = function()
 		oh = this.node.offsetHeight + 1;
 	}
 	
-	// Stores for later user
+	// Stores for later use
 	this.offsetWidth = ow;
 	this.offsetHeight = oh;
-
+	
 	var w = this.bounds.width / s;
 	var h = this.bounds.height / s;
 	
@@ -24275,7 +24277,7 @@ mxText.prototype.updateSize = function(node)
 		{
 			// Needs first call to update scrollWidth for wrapped text
 			style.width = w + 'px';
-			style.width = Math.max(w, this.node.scrollWidth) + 'px';
+			style.width = Math.max(w, node.scrollWidth + ((mxClient.IS_QUIRKS) ? 2 : 0)) + 'px';
 		}
 		
 		style.whiteSpace = 'normal';
@@ -34654,7 +34656,7 @@ mxHierarchicalLayout.prototype.placementStage = function(initialX, parent)
 	return placementStage.limitX + this.interHierarchySpacing;
 };
 /**
- * $Id: mxSwimlaneLayout.js,v 1.2 2013/07/23 21:39:12 david Exp $
+ * $Id: mxSwimlaneLayout.js,v 1.3 2013/09/23 14:11:22 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -34943,12 +34945,22 @@ mxSwimlaneLayout.prototype.updateGroupBounds = function()
 
 			var bounds = this.graph.getBoundingBoxFromGeometry(children);
 			childBounds[i] = bounds;
-			layoutBounds.y = Math.min(layoutBounds.y, bounds.y + geo.y - size.height - this.parentBorder);
-			var maxY = Math.max(layoutBounds.y + layoutBounds.height, bounds.y + geo.y + bounds.height);
-			layoutBounds.height = maxY - layoutBounds.y;
+			var childrenY = bounds.y + geo.y - size.height - this.parentBorder;
+			var maxChildrenY = bounds.y + geo.y + bounds.height;
+
+			if (layoutBounds == null)
+			{
+				layoutBounds = new mxRectangle(0, childrenY, 0, maxChildrenY - childrenY);
+			}
+			else
+			{
+				layoutBounds.y = Math.min(layoutBounds.y, childrenY);
+				var maxY = Math.max(layoutBounds.y + layoutBounds.height, maxChildrenY);
+				layoutBounds.height = maxY - layoutBounds.y;
+			}
 		}
 	}
-	
+
 	
 	for (var i = 0; i < this.swimlanes.length; i++)
 	{
@@ -39887,7 +39899,7 @@ var mxPerimeter =
 	}
 };
 /**
- * $Id: mxPrintPreview.js,v 1.7 2013/06/20 10:05:46 gaudenz Exp $
+ * $Id: mxPrintPreview.js,v 1.8 2013/09/25 11:45:10 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -40165,15 +40177,24 @@ mxPrintPreview.prototype.getWindow = function()
  * Function: getDocType
  * 
  * Returns the string that should go before the HTML tag in the print preview
- * page. This implementation returns an empty string.
+ * page. This implementation returns an X-UA meta tag for IE5 in quirks mode,
+ * IE8 in IE8 standards mode and edge in IE9 standards mode.
  */
 mxPrintPreview.prototype.getDoctype = function()
 {
 	var dt = '';
 	
-	if (document.documentMode == 8)
+	if (document.documentMode == 5)
+	{
+		dt = '<meta http-equiv="X-UA-Compatible" content="IE=5">';
+	}
+	else if (document.documentMode == 8)
 	{
 		dt = '<meta http-equiv="X-UA-Compatible" content="IE=8">';
+	}
+	else if (document.documentMode == 9)
+	{
+		dt = '<meta http-equiv="X-UA-Compatible" content="IE=edge">';
 	}
 	
 	return dt;
@@ -40219,23 +40240,19 @@ mxPrintPreview.prototype.open = function(css)
 				doc.writeln(dt);
 			}
 			
-			doc.writeln('<html>');
+			if (mxClient.IS_VML)
+			{
+				doc.writeln('<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">');
+			}
+			else
+			{
+				doc.writeln('<html>');
+			}
+			
 			doc.writeln('<head>');
 			this.writeHead(doc, css);
 			doc.writeln('</head>');
 			doc.writeln('<body class="mxPage">');
-	
-			// Adds all required stylesheets and namespaces
-			mxClient.link('stylesheet', mxClient.basePath + '/css/common.css', doc);
-
-			if (mxClient.IS_VML)
-			{
-				doc.namespaces.add('v', 'urn:schemas-microsoft-com:vml');
-				doc.namespaces.add('o', 'urn:schemas-microsoft-com:office:office');
-		        var ss = doc.createStyleSheet();
-		        ss.cssText = 'v\\:*{behavior:url(#default#VML)}o\\:*{behavior:url(#default#VML)}';
-		        mxClient.link('stylesheet', mxClient.basePath + '/css/explorer.css', doc);
-			}
 
 			// Computes the horizontal and vertical page count
 			var bounds = this.graph.getGraphBounds().clone();
@@ -40438,8 +40455,21 @@ mxPrintPreview.prototype.writeHead = function(doc, css)
 	{
 		doc.writeln('<title>' + this.title + '</title>');
 	}
+	
+	if (mxClient.IS_VML)
+	{
+		doc.writeln('<style type="text/css">v\\:*{behavior:url(#default#VML)}o\\:*{behavior:url(#default#VML)}</style>');
+	}
 
-	// Makes sure no horizontal rulers are printed
+	// Adds all required stylesheets and namespaces
+	mxClient.link('stylesheet', mxClient.basePath + '/css/common.css', doc);
+	
+	if (mxClient.IS_VML)
+	{
+        mxClient.link('stylesheet', mxClient.basePath + '/css/explorer.css', doc);
+	}
+
+	// Removes horizontal rules and page selector from print output
 	doc.writeln('<style type="text/css">');
 	doc.writeln('@media print {');
 	doc.writeln('  table.mxPageSelector { display: none; }');
@@ -40486,23 +40516,18 @@ mxPrintPreview.prototype.createPageSelector = function(vpages, hpages)
 		{
 			var pageNum = i * hpages + j + 1;
 			var cell = doc.createElement('td');
-			
-			// Needs anchor for all browers to work without JavaScript
-			// LATER: Does not work in Firefox because the generated document
-			// has the URL of the opening document, the anchor is appended
-			// to that URL and the full URL is loaded on click.
-			if (!mxClient.IS_NS || mxClient.IS_SF || mxClient.IS_GC)
-			{
-				var a = doc.createElement('a');
-				a.setAttribute('href', '#mxPage-' + pageNum);
-				mxUtils.write(a, pageNum, doc);
-				cell.appendChild(a);
-			}
-			else
-			{
-				mxUtils.write(cell, pageNum, doc);
-			}
+			var a = doc.createElement('a');
+			a.setAttribute('href', '#mxPage-' + pageNum);
 
+			// Workaround for FF where the anchor is appended to the URL of the original document
+			if (mxClient.IS_NS && !mxClient.IS_SF && !mxClient.IS_GC)
+			{					
+				var js = 'var page = document.getElementById(\'mxPage-' + pageNum + '\');page.scrollIntoView(true);event.preventDefault();';
+				a.setAttribute('onclick', js);
+			}
+			
+			mxUtils.write(a, pageNum, doc);
+			cell.appendChild(a);
 			row.appendChild(cell);
 		}
 		
@@ -40538,7 +40563,11 @@ mxPrintPreview.prototype.renderPage = function(w, h, content)
 		div.style.height = h + 'px';
 		div.style.overflow = 'hidden';
 		div.style.pageBreakInside = 'avoid';
-		div.style.position = 'relative';
+		
+		if (document.documentMode == 8)
+		{
+			div.style.position = 'relative';
+		}
 		
 		var innerDiv = document.createElement('div');
 		innerDiv.style.top = this.border + 'px';
@@ -42594,7 +42623,7 @@ mxCellEditor.prototype.destroy = function ()
 	}
 };
 /**
- * $Id: mxCellRenderer.js,v 1.26 2013/08/21 09:16:37 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.27 2013/09/24 17:59:57 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -43742,11 +43771,6 @@ mxCellRenderer.prototype.getLabelBounds = function(state)
 	var isEdge = graph.getModel().isEdge(state.cell);
 	var bounds = new mxRectangle(state.absoluteOffset.x, state.absoluteOffset.y);
 
-	if (state.text != null)
-	{
-		state.text.updateMargin();
-	}
-	
 	if (isEdge)
 	{
 		var spacing = state.text.getSpacing();
@@ -48158,7 +48182,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.46 2013/09/19 07:00:40 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.47 2013/09/24 17:59:57 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -59666,13 +59690,23 @@ mxGraph.prototype.isEventIgnored = function(evtName, me, sender)
 		result = true;
 	}
 
-	// Ignores double click events
-	if (!mxEvent.isPopupTrigger(this.lastEvent) && this.lastEvent.detail == 2)
+	// Workaround for IE9 standards mode ignoring tolerance for double clicks
+	if (!mxEvent.isPopupTrigger(this.lastEvent) && mxClient.IS_IE && document.compatMode == 'CSS1Compat' &&
+		evtName != mxEvent.MOUSE_MOVE && me.getEvent().detail == 2)
+	{
+		if (this.lastMouseX != null && Math.abs(this.lastMouseX - me.getX()) <= this.doubleTapTolerance &&
+			this.lastMouseY != null && Math.abs(this.lastMouseY - me.getY()) <= this.doubleTapTolerance)
+		{
+			result = true;
+		}
+	}
+	else if (!mxEvent.isPopupTrigger(this.lastEvent) && evtName != mxEvent.MOUSE_MOVE && this.lastEvent.detail == 2)
 	{
 		result = true;
 	}
+	
 	// Filters out of sequence events or mixed event types during a gesture
-	else if (evtName == mxEvent.MOUSE_UP && this.isMouseDown)
+	if (evtName == mxEvent.MOUSE_UP && this.isMouseDown)
 	{
 		this.isMouseDown = false;
 	}
@@ -59691,6 +59725,12 @@ mxGraph.prototype.isEventIgnored = function(evtName, me, sender)
 		result = true;
 	}
 	
+	if (!result && evtName == mxEvent.MOUSE_DOWN)
+	{
+		this.lastMouseX = me.getX();
+		this.lastMouseY = me.getY();
+	}
+
 	return result;
 };
 
