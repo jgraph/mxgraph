@@ -1,5 +1,5 @@
 /**
- * $Id: mxUrlConverter.js,v 1.3 2012/08/24 17:10:41 gaudenz Exp $
+ * $Id: mxUrlConverter.js,v 1.4 2013/08/07 08:45:20 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -116,7 +116,7 @@ var mxUrlConverter = function(root)
 		 */
 		convert: function(url)
 		{
-			if (enabled && url.indexOf('http://') != 0 && url.indexOf('https://') != 0 && url.indexOf('data:image') != 0)
+			if (enabled && url.substring(0, 2) != '//' && url.indexOf('http://') != 0 && url.indexOf('https://') != 0 && url.indexOf('data:image') != 0)
 			{
 				if (baseUrl == null)
 				{

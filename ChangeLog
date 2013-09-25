@@ -1,7 +1,12 @@
+25-SEP-2013: 1.13.0.6
+
+- Fixes page selector for Firefox in mxPrintPreview [JavaScript]
+- Handles //-prefix as absolute URLs in mxUrlConverter [JavaScript]
+
 05-AUG-2013: 1.13.0.5
 
 - Fixes memory leak in mxEvent.objects array [JavaScript]
-- Fixes maximizing mxWindow in standards compliant mode
+- Fixes maximizing mxWindow in standards compliant mode [JavaScript]
 
 26-JUL-2013: 1.13.0.4
 

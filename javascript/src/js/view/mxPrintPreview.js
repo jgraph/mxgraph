@@ -1,5 +1,5 @@
 /**
- * $Id: mxPrintPreview.js,v 1.64 2013/06/20 10:02:29 gaudenz Exp $
+ * $Id: mxPrintPreview.js,v 1.65 2013/09/25 11:46:11 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -296,9 +296,7 @@ mxPrintPreview.prototype.open = function(css)
 			doc.writeln('<html>');
 			doc.writeln('<head>');
 			this.writeHead(doc, css);
-			doc.writeln('</head>');
-			doc.writeln('<body class="mxPage">');
-	
+			
 			// Adds all required stylesheets and namespaces
 			mxClient.link('stylesheet', mxClient.basePath + '/css/common.css', doc);
 	
@@ -310,6 +308,9 @@ mxPrintPreview.prototype.open = function(css)
 		        ss.cssText = 'v\\:*{behavior:url(#default#VML)}o\\:*{behavior:url(#default#VML)}';
 		        mxClient.link('stylesheet', mxClient.basePath + '/css/explorer.css', doc);
 			}
+
+			doc.writeln('</head>');
+			doc.writeln('<body class="mxPage">');
 
 			// Computes the horizontal and vertical page count
 			var bounds = this.graph.getGraphBounds().clone();
@@ -612,23 +613,18 @@ mxPrintPreview.prototype.createPageSelector = function(vpages, hpages)
 		{
 			var pageNum = i * hpages + j + 1;
 			var cell = doc.createElement('td');
-			
-			// Needs anchor for all browers to work without JavaScript
-			// LATER: Does not work in Firefox because the generated document
-			// has the URL of the opening document, the anchor is appended
-			// to that URL and the full URL is loaded on click.
-			if (!mxClient.IS_NS || mxClient.IS_SF || mxClient.IS_GC)
-			{
-				var a = doc.createElement('a');
-				a.setAttribute('href', '#mxPage-' + pageNum);
-				mxUtils.write(a, pageNum, doc);
-				cell.appendChild(a);
-			}
-			else
-			{
-				mxUtils.write(cell, pageNum, doc);
-			}
+			var a = doc.createElement('a');
+			a.setAttribute('href', '#mxPage-' + pageNum);
 
+			// Workaround for FF where the anchor is appended to the URL of the original document
+			if (mxClient.IS_NS && !mxClient.IS_SF && !mxClient.IS_GC)
+			{					
+				var js = 'var page = document.getElementById(\'mxPage-' + pageNum + '\');page.scrollIntoView(true);event.preventDefault();';
+				a.setAttribute('onclick', js);
+			}
+			
+			mxUtils.write(a, pageNum, doc);
+			cell.appendChild(a);
 			row.appendChild(cell);
 		}
 		
