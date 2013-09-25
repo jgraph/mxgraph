@@ -1,3 +1,11 @@
+25-SEP-2013: 2.2.0.1
+
+- Fixes page selector for Firefox, minor bugs for quirks mode in mxPrintPreview [JavaScript]
+- Fixes ignored tolerance for double click within double click delay in IE9 [JavaScript]
+- Fixes usage of mxText in secondlabel.html example for quirks mode [JavaScript]
+- Fixes use of white-space CSS in layout-, process- and workfloweditor.html examples [JavaScript]
+- Moves calls to mxText.updateMargin from mxCellRenderer to mxText [JavaScript]
+
 19-SEP-2013: 2.2.0.0
 
 - Adds mxGraph.cellResized, resize/constrainChildCells, scaleCell functions [JavaScript] 
