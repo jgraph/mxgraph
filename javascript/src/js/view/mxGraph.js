@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.47 2013/09/24 17:59:57 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.49 2013/09/27 10:12:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1971,10 +1971,15 @@ mxGraph.prototype.processChange = function(change)
 	}
 
 	// Handles two special cases where the shape does not need to be
-	// recreated from scratch, it only need to be invalidated.
+	// recreated from scratch, it only needs to be invalidated.
 	else if (change instanceof mxTerminalChange || change instanceof mxGeometryChange)
 	{
-		this.view.invalidate(change.cell);
+		// Checks if the geometry has changed to avoid unnessecary revalidation
+		if (change instanceof mxTerminalChange || ((change.previous == null && change.geometry != null) ||
+			(change.previous != null && !change.previous.equals(change.geometry))))
+		{
+			this.view.invalidate(change.cell);
+		}
 	}
 
 	// Handles two special cases where only the shape, but no
@@ -4850,8 +4855,6 @@ mxGraph.prototype.updateAlternateBounds = function(cell, geo, willCollapse)
 			geo.alternateBounds.y = geo.y;
 			
 			var alpha = mxUtils.toRadians(style[mxConstants.STYLE_ROTATION] || '0');
-			var dx3 = 0;
-			var dy3 = 0;
 			
 			if (alpha != 0)
 			{

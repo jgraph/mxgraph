@@ -1,5 +1,5 @@
 /**
- * $Id: mxPoint.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
+ * $Id: mxPoint.js,v 1.2 2013/09/27 10:12:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -35,12 +35,11 @@ mxPoint.prototype.y = null;
 /**
  * Function: equals
  * 
- * Returns true if the given object equals this rectangle.
+ * Returns true if the given object equals this point.
  */
 mxPoint.prototype.equals = function(obj)
 {
-	return obj.x == this.x &&
-		obj.y == this.y;
+	return obj != null && obj.x == this.x && obj.y == this.y;
 };
 
 /**

@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.2.0.1.
+	 * Current version is 2.2.0.2.
 	 */
-	VERSION: '2.2.0.1',
+	VERSION: '2.2.0.2',
 
 	/**
 	 * Variable: IS_IE
@@ -1511,7 +1511,7 @@ var mxResources =
 
 };
 /**
- * $Id: mxPoint.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
+ * $Id: mxPoint.js,v 1.2 2013/09/27 10:12:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1547,12 +1547,11 @@ mxPoint.prototype.y = null;
 /**
  * Function: equals
  * 
- * Returns true if the given object equals this rectangle.
+ * Returns true if the given object equals this point.
  */
 mxPoint.prototype.equals = function(obj)
 {
-	return obj.x == this.x &&
-		obj.y == this.y;
+	return obj != null && obj.x == this.x && obj.y == this.y;
 };
 
 /**
@@ -1566,7 +1565,7 @@ mxPoint.prototype.clone = function()
 	return mxUtils.clone(this);
 };
 /**
- * $Id: mxRectangle.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
+ * $Id: mxRectangle.js,v 1.3 2013/09/27 10:12:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1694,10 +1693,8 @@ mxRectangle.prototype.getPoint = function()
  */
 mxRectangle.prototype.equals = function(obj)
 {
-	return obj.x == this.x &&
-		obj.y == this.y &&
-		obj.width == this.width &&
-		obj.height == this.height;
+	return obj != null && obj.x == this.x && obj.y == this.y &&
+		obj.width == this.width && obj.height == this.height;
 };
 /**
  * $Id: mxEffects.js,v 1.2 2012/12/03 17:33:33 gaudenz Exp $
@@ -1911,7 +1908,7 @@ var mxEffects =
 
 };
 /**
- * $Id: mxUtils.js,v 1.17 2013/09/05 12:18:26 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.18 2013/09/26 10:33:03 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxUtils =
@@ -3692,7 +3689,7 @@ var mxUtils =
 		{
 			for (var key in a)
 			{
-				if (a[key] != b[key])
+				if ((!isNaN(a[key]) || !isNaN(b[key])) && a[key] != b[key])
 				{
 					return false;
 				}
@@ -38972,7 +38969,7 @@ mxCell.prototype.cloneValue = function()
 	return value;
 };
 /**
- * $Id: mxGeometry.js,v 1.2 2013/04/05 07:34:20 gaudenz Exp $
+ * $Id: mxGeometry.js,v 1.4 2013/09/27 10:12:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -39234,8 +39231,7 @@ mxGeometry.prototype.translate = function(dx, dy)
 	}
 
 	// Translate the control points
-	if (this.TRANSLATE_CONTROL_POINTS &&
-		this.points != null)
+	if (this.TRANSLATE_CONTROL_POINTS && this.points != null)
 	{
 		var count = this.points.length;
 		
@@ -39250,6 +39246,22 @@ mxGeometry.prototype.translate = function(dx, dy)
 			}
 		}
 	}
+};
+
+/**
+ * Function: equals
+ * 
+ * Returns true if the given object equals this geometry.
+ */
+mxGeometry.prototype.equals = function(obj)
+{
+	return mxRectangle.prototype.equals.apply(this, arguments) &&
+		this.relative == obj.relative &&
+		((this.sourcePoint == null && obj.sourcePoint == null) || (this.sourcePoint != null && this.sourcePoint.equals(obj.sourcePoint))) &&
+		((this.targetPoint == null && obj.targetPoint == null) || (this.targetPoint != null && this.targetPoint.equals(obj.targetPoint))) &&
+		((this.points == null && obj.points == null) || (this.points != null && mxUtils.equalPoints(this.points, obj.points))) &&
+		((this.alternateBounds == null && obj.alternateBounds == null) || (this.alternateBounds != null && this.alternateBounds.equals(obj.alternateBounds))) &&
+		((this.offset == null && obj.offset == null) || (this.offset != null && this.offset.equals(obj.offset)));
 };
 /**
  * $Id: mxCellPath.js,v 1.1 2012/11/15 13:26:42 gaudenz Exp $
@@ -42623,7 +42635,7 @@ mxCellEditor.prototype.destroy = function ()
 	}
 };
 /**
- * $Id: mxCellRenderer.js,v 1.27 2013/09/24 17:59:57 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.28 2013/09/26 08:04:30 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -44102,9 +44114,11 @@ mxCellRenderer.prototype.redraw = function(state, force, rendering)
 		delete state.invalidOrder;
 		delete state.orderChanged;
 
-		// Redraws the cell if required
+		// Redraws the cell if required, ignores changes to bounds if points are
+		// defined as the bounds are updated for the given points inside the shape
 		if (force || state.shape.bounds == null || state.shape.scale != state.view.scale ||
-			!state.shape.bounds.equals(state) || !mxUtils.equalPoints(state.shape.points, state.absolutePoints))
+			(state.absolutePoints == null && !state.shape.bounds.equals(state)) ||
+			(state.absolutePoints != null && !mxUtils.equalPoints(state.shape.points, state.absolutePoints)))
 		{
 			shapeChanged = true;
 
@@ -48182,7 +48196,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.47 2013/09/24 17:59:57 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.49 2013/09/27 10:12:37 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -50154,10 +50168,15 @@ mxGraph.prototype.processChange = function(change)
 	}
 
 	// Handles two special cases where the shape does not need to be
-	// recreated from scratch, it only need to be invalidated.
+	// recreated from scratch, it only needs to be invalidated.
 	else if (change instanceof mxTerminalChange || change instanceof mxGeometryChange)
 	{
-		this.view.invalidate(change.cell);
+		// Checks if the geometry has changed to avoid unnessecary revalidation
+		if (change instanceof mxTerminalChange || ((change.previous == null && change.geometry != null) ||
+			(change.previous != null && !change.previous.equals(change.geometry))))
+		{
+			this.view.invalidate(change.cell);
+		}
 	}
 
 	// Handles two special cases where only the shape, but no
@@ -53033,8 +53052,6 @@ mxGraph.prototype.updateAlternateBounds = function(cell, geo, willCollapse)
 			geo.alternateBounds.y = geo.y;
 			
 			var alpha = mxUtils.toRadians(style[mxConstants.STYLE_ROTATION] || '0');
-			var dx3 = 0;
-			var dy3 = 0;
 			
 			if (alpha != 0)
 			{

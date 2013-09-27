@@ -1,5 +1,5 @@
 <!--
-  $Id: swimlanes.html,v 1.3 2012/11/23 21:10:26 gaudenz Exp $
+  $Id: swimlanes.html,v 1.4 2013/09/26 07:32:28 gaudenz Exp $
   Copyright (c) 2006-2010, JGraph Ltd
   
   Swimlanes example for mxGraph. This example demonstrates using
@@ -135,9 +135,7 @@
 						{
 							var style = this.getModel().getStyle(cell);
 							
-							return style == null ||
-								!(style == 'end' ||
-								style.indexOf('end') == 0);
+							return style == null || !(style == 'end' || style.indexOf('end') == 0);
 						}
 
 						return false;
@@ -153,11 +151,8 @@
 					{
 						var style = this.getModel().getStyle(cell);
 						
-						return !this.getModel().isEdge(cell) &&
-							!this.isSwimlane(cell) &&
-							(style == null ||
-							!(style == 'state' ||
-							style.indexOf('state') == 0));
+						return !this.getModel().isEdge(cell) && !this.isSwimlane(cell) &&
+							(style == null || !(style == 'state' || style.indexOf('state') == 0));
 					};
 					
 					// Allows dropping cells into new lanes and
@@ -169,8 +164,7 @@
 					// Returns true for valid drop operations
 					graph.isValidDropTarget = function(target, cells, evt)
 					{
-						if (this.isSplitEnabled() &&
-							this.isSplitTarget(target, cells, evt))
+						if (this.isSplitEnabled() && this.isSplitTarget(target, cells, evt))
 						{
 							return true;
 						}
@@ -190,9 +184,7 @@
 							cell = cell || !(lane || pool);
 						}
 						
-						return !pool &&
-							cell != lane &&
-							((lane && this.isPool(target)) ||
+						return !pool && cell != lane && ((lane && this.isPool(target)) ||
 							(cell && this.isPool(model.getParent(target))));
 					};
 					
@@ -202,8 +194,7 @@
 						var model = this.getModel();
 						var parent = model.getParent(cell);
 					
-						return parent != null &&
-							model.getParent(parent) == model.getRoot();
+						return parent != null && model.getParent(parent) == model.getRoot();
 					};
 					
 					// Changes swimlane orientation while collapsed

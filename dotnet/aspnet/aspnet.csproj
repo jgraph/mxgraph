@@ -60,6 +60,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Frontend.htm" />
     <Content Include="Hello.aspx" />
     <Content Include="GraphControl.js" />
     <Content Include="Web.config" />
@@ -103,6 +104,7 @@
     <Folder Include="App_Data\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Backend.ashx" />
     <None Include="Properties\PublishProfiles\localhost.pubxml" />
   </ItemGroup>
   <PropertyGroup>

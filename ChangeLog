@@ -1,3 +1,12 @@
+27-SEP-2013: 2.2.0.2
+
+- Adds mxGeometry.equals, geometry check in mxGraph.processChange [JavaScript]
+- Fixes possible NPE in mxPoint.equals, mxRectangle.equals [JavaScript]
+- Adds example for XML input/output to/from Backend [JavaScript,Java,Dotnet]
+- Fixes handling of NaN in mxUtils.equalEntries [JavaScript]
+- Fixes check for redrawing edges in mxCellRenderer.redraw [JavaScript]
+- Adds Maven targets in JGraphX build.xml [Java]
+
 25-SEP-2013: 2.2.0.1
 
 - Fixes page selector for Firefox, minor bugs for quirks mode in mxPrintPreview [JavaScript]

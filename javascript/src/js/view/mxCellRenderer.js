@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellRenderer.js,v 1.27 2013/09/24 17:59:57 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.28 2013/09/26 08:04:30 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1478,9 +1478,11 @@ mxCellRenderer.prototype.redraw = function(state, force, rendering)
 		delete state.invalidOrder;
 		delete state.orderChanged;
 
-		// Redraws the cell if required
+		// Redraws the cell if required, ignores changes to bounds if points are
+		// defined as the bounds are updated for the given points inside the shape
 		if (force || state.shape.bounds == null || state.shape.scale != state.view.scale ||
-			!state.shape.bounds.equals(state) || !mxUtils.equalPoints(state.shape.points, state.absolutePoints))
+			(state.absolutePoints == null && !state.shape.bounds.equals(state)) ||
+			(state.absolutePoints != null && !mxUtils.equalPoints(state.shape.points, state.absolutePoints)))
 		{
 			shapeChanged = true;
 
