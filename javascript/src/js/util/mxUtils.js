@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.js,v 1.300 2013/04/23 07:09:55 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.301 2013/09/26 10:33:41 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxUtils =
@@ -1756,7 +1756,7 @@ var mxUtils =
 		{
 			for (var key in a)
 			{
-				if (a[key] != b[key])
+				if ((!isNaN(a[key]) || !isNaN(b[key])) && a[key] != b[key])
 				{
 					return false;
 				}

@@ -1,3 +1,9 @@
+27-SEP-2013: 1.13.0.7
+
+- Adds mxGeometry.equals, geometry check in mxGraph.processChange [JavaScript]
+- Fixes possible NPE in mxPoint.equals, mxRectangle.equals [JavaScript]
+- Fixes handling of NaN in mxUtils.equalEntries [JavaScript]
+
 25-SEP-2013: 1.13.0.6
 
 - Fixes page selector for Firefox in mxPrintPreview [JavaScript]

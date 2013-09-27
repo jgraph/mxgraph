@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.713 2013/07/23 21:30:35 david Exp $
+ * $Id: mxGraph.js,v 1.714 2013/09/27 10:09:57 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1890,11 +1890,15 @@ mxGraph.prototype.processChange = function(change)
 	}
 
 	// Handles two special cases where the shape does not need to be
-	// recreated from scratch, it only need to be invalidated.
-	else if (change instanceof mxTerminalChange ||
-			change instanceof mxGeometryChange)
+	// recreated from scratch, it only needs to be invalidated.
+	else if (change instanceof mxTerminalChange || change instanceof mxGeometryChange)
 	{
-		this.view.invalidate(change.cell);
+		// Checks if the geometry has changed to avoid unnessecary revalidation
+		if (change instanceof mxTerminalChange || ((change.previous == null && change.geometry != null) ||
+			(change.previous != null && !change.previous.equals(change.geometry))))
+		{
+			this.view.invalidate(change.cell);
+		}
 	}
 
 	// Handles two special cases where only the shape, but no

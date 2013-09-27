@@ -1,5 +1,5 @@
 /**
- * $Id: mxRectangle.js,v 1.17 2010/12/08 12:46:03 gaudenz Exp $
+ * $Id: mxRectangle.js,v 1.18 2013/09/27 10:09:57 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -127,8 +127,6 @@ mxRectangle.prototype.getPoint = function()
  */
 mxRectangle.prototype.equals = function(obj)
 {
-	return obj.x == this.x &&
-		obj.y == this.y &&
-		obj.width == this.width &&
-		obj.height == this.height;
+	return obj != null && obj.x == this.x && obj.y == this.y &&
+		obj.width == this.width && obj.height == this.height;
 };

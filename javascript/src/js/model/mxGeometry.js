@@ -1,5 +1,5 @@
 /**
- * $Id: mxGeometry.js,v 1.26 2010/01/02 09:45:15 gaudenz Exp $
+ * $Id: mxGeometry.js,v 1.27 2013/09/27 10:09:57 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -46,6 +46,9 @@
  * This coordinate system is applied if <relative> is true, otherwise the
  * offset defines the absolute vector from the edge's center point to the
  * label.
+ * 
+ * The width and height parameter for edge geometries can be used to set the
+ * label width and height (eg. for word wrapping).
  * 
  * Ports:
  * 
@@ -258,8 +261,7 @@ mxGeometry.prototype.translate = function(dx, dy)
 	}
 
 	// Translate the control points
-	if (this.TRANSLATE_CONTROL_POINTS &&
-		this.points != null)
+	if (this.TRANSLATE_CONTROL_POINTS && this.points != null)
 	{
 		var count = this.points.length;
 		
@@ -274,4 +276,20 @@ mxGeometry.prototype.translate = function(dx, dy)
 			}
 		}
 	}
+};
+
+/**
+ * Function: equals
+ * 
+ * Returns true if the given object equals this geometry.
+ */
+mxGeometry.prototype.equals = function(obj)
+{
+	return mxRectangle.prototype.equals.apply(this, arguments) &&
+		this.relative == obj.relative &&
+		((this.sourcePoint == null && obj.sourcePoint == null) || (this.sourcePoint != null && this.sourcePoint.equals(obj.sourcePoint))) &&
+		((this.targetPoint == null && obj.targetPoint == null) || (this.targetPoint != null && this.targetPoint.equals(obj.targetPoint))) &&
+		((this.points == null && obj.points == null) || (this.points != null && mxUtils.equalPoints(this.points, obj.points))) &&
+		((this.alternateBounds == null && obj.alternateBounds == null) || (this.alternateBounds != null && this.alternateBounds.equals(obj.alternateBounds))) &&
+		((this.offset == null && obj.offset == null) || (this.offset != null && this.offset.equals(obj.offset)));
 };
