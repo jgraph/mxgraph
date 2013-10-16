@@ -1,5 +1,5 @@
 /**
- * $Id: Editor.js,v 1.23 2013/09/10 20:59:10 gaudenz Exp $
+ * $Id: Editor.js,v 1.26 2013/10/15 09:19:50 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 // Specifies if local storage should be used (eg. on the iPad which has no filesystem)
@@ -82,16 +82,8 @@ Editor = function()
 		this.graphChangeListener.apply(this, arguments);
 	}));
 	
-	// Installs dialog if browser window is closed without saving
-	// This must be disabled during save and image export
-	window.onbeforeunload = mxUtils.bind(this, function()
-	{
-		if (this.modified)
-		{
-			return mxResources.get('allChangesLost');
-		}
-	});
-	
+	this.setOnBeforeUnload();
+
 	// Sets persistent graph state defaults
 	this.graph.resetViewOnRootChange = false;
 	this.graph.scrollbars = true;
@@ -132,6 +124,22 @@ Editor.prototype.autosave = true;
  * Specifies the app name. Default is 'Grapheditor'.
  */
 Editor.prototype.appName = 'Grapheditor';
+
+/**
+ * Sets the onbeforeunload for the application
+ */
+Editor.prototype.setOnBeforeUnload = function()
+{
+	// Installs dialog if browser window is closed without saving
+	// This must be disabled during save and image export
+	window.onbeforeunload = mxUtils.bind(this, function()
+	{
+		if (this.modified)
+		{
+			return mxResources.get('allChangesLost');
+		}
+	});
+};
 
 /**
  * Sets the XML node for the current diagram.
@@ -310,7 +318,7 @@ Editor.prototype.updateGraphComponents = function()
 			outline.outline.view.validate();
 		}
 		
-		if (graph.scrollbars && graph.container.style.overflow == 'hidden' && !touchStyle)
+		if (graph.scrollbars && graph.container.style.overflow == 'hidden')
 		{
 			graph.container.style.overflow = 'auto';
 		}
