@@ -1,5 +1,5 @@
 /**
- * $Id: mxVertexHandler.js,v 1.32 2013/09/02 21:34:57 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.33 2013/10/11 13:31:32 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -109,6 +109,14 @@ mxVertexHandler.prototype.livePreview = false;
 mxVertexHandler.prototype.manageSizers = false;
 
 /**
+ * Variable: constrainGroupByChildren
+ * 
+ * Specifies if the size of groups should be constrained by the children.
+ * Default is false.
+ */
+mxVertexHandler.prototype.constrainGroupByChildren = false;
+
+/**
  * Function: init
  * 
  * Initializes the shapes required for this vertex handler.
@@ -188,6 +196,41 @@ mxVertexHandler.prototype.init = function()
 	}
 
 	this.redraw();
+	
+	if (this.constrainGroupByChildren)
+	{
+		this.updateMinBounds();
+	}
+};
+
+/**
+ * Function: updateMinBounds
+ * 
+ * Initializes the shapes required for this vertex handler.
+ */
+mxVertexHandler.prototype.updateMinBounds = function()
+{
+	var children = this.graph.getChildCells(this.state.cell);
+	
+	if (children.length > 0)
+	{
+		this.minBounds = this.graph.view.getBounds(children);
+		
+		if (this.minBounds != null)
+		{
+			var s = this.state.view.scale;
+			var t = this.state.view.translate;
+
+			this.minBounds.x -= this.state.x;
+			this.minBounds.y -= this.state.y;
+			this.minBounds.x /= s;
+			this.minBounds.y /= s;
+			this.minBounds.width /= s;
+			this.minBounds.height /= s;
+			this.x0 = this.state.x / s - t.x;
+			this.y0 = this.state.y / s - t.y;
+		}
+	}
 };
 
 /**
@@ -1064,7 +1107,17 @@ mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, s
 			height = Math.abs(height);
 		}
 		
-		return new mxRectangle(left + tr.x * scale, top + tr.y * scale, width, height);
+		var result = new mxRectangle(left + tr.x * scale, top + tr.y * scale, width, height);
+		
+		if (this.minBounds != null)
+		{
+			result.width = Math.max(result.width, this.minBounds.x * scale + this.minBounds.width * scale +
+				Math.max(0, this.x0 * scale - result.x));
+			result.height = Math.max(result.height, this.minBounds.y * scale + this.minBounds.height * scale +
+				Math.max(0, this.y0 * scale - result.y));
+		}
+		
+		return result;
 	}
 };
 

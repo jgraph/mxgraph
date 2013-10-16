@@ -1,5 +1,5 @@
 /**
- * $Id: mxClient.js,v 1.20 2013/07/26 07:51:40 gaudenz Exp $
+ * $Id: mxClient.js,v 1.21 2013/10/15 09:14:13 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClient =
@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.2.0.2.
+	 * Current version is 2.2.0.3.
 	 */
-	VERSION: '2.2.0.2',
+	VERSION: '2.2.0.3',
 
 	/**
 	 * Variable: IS_IE
@@ -178,7 +178,7 @@ var mxClient =
 	 * Variable: IS_TOUCH
 	 * 
 	 * True if this device supports touchstart/-move/-end events (Apple iOS,
-	 * Android and Chromebook).
+	 * Android, Chromebook and Chrome Browser on touch-enabled devices).
 	 */
   	IS_TOUCH: 'ontouchstart' in document.documentElement,
 

@@ -1,5 +1,5 @@
 /**
- * $Id: Actions.js,v 1.13 2013/09/17 13:47:04 gaudenz Exp $
+ * $Id: Actions.js,v 1.14 2013/10/15 09:19:50 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -393,7 +393,7 @@ Actions.prototype.init = function()
 			graph.container.scrollLeft -= Math.round(dx * graph.view.scale);
 			graph.container.scrollTop -= Math.round(dy * graph.view.scale);
 		}
-	}, !mxClient.IS_TOUCH);
+	});
 	action.setToggleAction(true);
 	action.setSelectedCallback(function() { return graph.container.style.overflow == 'auto'; });
 	action = this.addAction('pageView', mxUtils.bind(this, function()

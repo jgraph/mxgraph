@@ -1,3 +1,17 @@
+16-OCT-2013: 2.2.0.3
+
+- Fixes duplicate labels in IE9 print preview, print preview in IE11 [JavaScript]
+- Fixes double ellipse shape to fill only inner circle, adds inset style [JavaScript]
+- Fixes scrollbar positions after optimizeVmlReflows in mxGraphView [JavaScript]
+- Fixes dx event property in mxGraph.cellsMoved [JavaScript]
+- Adds mxVertexHandler.constrainGroupByChildren switch [JavaScript]
+- Fixes mxGraph.keepEdgesInBackground/Foreground switch [JavaScript]
+- Adds example for XML input/output to/from Backend [Php]
+- Ignores possible NS_ERROR_FAILURE in mxText.updateBoundingBox for FF [JavaScript]
+- Fixes mxGraphHandler.selectDelayed for popup event on selected cell [JavaScript]
+- Adds boundary.html example [JavaScript]
+- Adds new mxGraphHandler.getDelta hook [JavaScript]
+
 27-SEP-2013: 2.2.0.2
 
 - Adds mxGeometry.equals, geometry check in mxGraph.processChange [JavaScript]

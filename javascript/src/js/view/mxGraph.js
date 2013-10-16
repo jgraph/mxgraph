@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.49 2013/09/27 10:12:37 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.52 2013/10/11 13:33:48 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -5627,7 +5627,7 @@ mxGraph.prototype.cellsMoved = function(cells, dx, dy, disconnect, constrain, ex
 			}
 			
 			this.fireEvent(new mxEventObject(mxEvent.CELLS_MOVED,
-				'cells', cells, 'dx', dy, 'dy', dy, 'disconnect', disconnect));
+				'cells', cells, 'dx', dx, 'dy', dy, 'disconnect', disconnect));
 		}
 		finally
 		{
@@ -8268,8 +8268,7 @@ mxGraph.prototype.getStartSize = function(swimlane)
  */
 mxGraph.prototype.getImage = function(state)
 {
-	return (state != null && state.style != null) ?
-		state.style[mxConstants.STYLE_IMAGE] : null;
+	return (state != null && state.style != null) ? state.style[mxConstants.STYLE_IMAGE] : null;
 };
 
 /**
@@ -8306,8 +8305,7 @@ mxGraph.prototype.getVerticalAlign = function(state)
  */
 mxGraph.prototype.getIndicatorColor = function(state)
 {
-	return (state != null && state.style != null) ?
-		state.style[mxConstants.STYLE_INDICATOR_COLOR] : null;
+	return (state != null && state.style != null) ? state.style[mxConstants.STYLE_INDICATOR_COLOR] : null;
 };
 
 /**
@@ -8324,8 +8322,7 @@ mxGraph.prototype.getIndicatorColor = function(state)
  */
 mxGraph.prototype.getIndicatorGradientColor = function(state)
 {
-	return (state != null && state.style != null) ?
-		state.style[mxConstants.STYLE_INDICATOR_GRADIENTCOLOR] : null;
+	return (state != null && state.style != null) ? state.style[mxConstants.STYLE_INDICATOR_GRADIENTCOLOR] : null;
 };
 
 /**
@@ -8341,8 +8338,7 @@ mxGraph.prototype.getIndicatorGradientColor = function(state)
  */
 mxGraph.prototype.getIndicatorShape = function(state)
 {
-	return (state != null && state.style != null) ?
-		state.style[mxConstants.STYLE_INDICATOR_SHAPE] : null;
+	return (state != null && state.style != null) ? state.style[mxConstants.STYLE_INDICATOR_SHAPE] : null;
 };
 
 /**
@@ -8358,8 +8354,7 @@ mxGraph.prototype.getIndicatorShape = function(state)
  */
 mxGraph.prototype.getIndicatorImage = function(state)
 {
-	return (state != null && state.style != null) ?
-		state.style[mxConstants.STYLE_INDICATOR_IMAGE] : null;
+	return (state != null && state.style != null) ? state.style[mxConstants.STYLE_INDICATOR_IMAGE] : null;
 };
 
 /**
@@ -8408,8 +8403,7 @@ mxGraph.prototype.isSwimlane = function (cell)
 
 			if (style != null && !this.model.isEdge(cell))
 			{
-				return style[mxConstants.STYLE_SHAPE] ==
-					mxConstants.SHAPE_SWIMLANE;
+				return style[mxConstants.STYLE_SHAPE] == mxConstants.SHAPE_SWIMLANE;
 			}
 		}
 	}
@@ -8549,8 +8543,7 @@ mxGraph.prototype.isCellLocked = function(cell)
 {
 	var geometry = this.model.getGeometry(cell);
 	
-	return this.isCellsLocked() || (geometry != null &&
-			this.model.isVertex(cell) && geometry.relative);
+	return this.isCellsLocked() || (geometry != null && this.model.isVertex(cell) && geometry.relative);
 };
 
 /**

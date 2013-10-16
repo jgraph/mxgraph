@@ -1,5 +1,5 @@
 /**
- * $Id: mxSwimlaneLayout.js,v 1.3 2013/09/23 14:11:22 david Exp $
+ * $Id: mxSwimlaneLayout.js,v 1.4 2013/10/08 14:18:41 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -749,7 +749,7 @@ mxSwimlaneLayout.prototype.traverse = function(vertex, directed, edge, allVertic
 
 				var otherIndex = 0;
 				// Get the swimlane index of the other terminal
-				for (var otherIndex = 0; otherIndex < this.swimlanes.length; otherIndex++)
+				for (otherIndex = 0; otherIndex < this.swimlanes.length; otherIndex++)
 				{
 					if (model.isAncestor(this.swimlanes[otherIndex], otherVertex))
 					{

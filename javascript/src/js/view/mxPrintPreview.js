@@ -1,5 +1,5 @@
 /**
- * $Id: mxPrintPreview.js,v 1.8 2013/09/25 11:45:10 gaudenz Exp $
+ * $Id: mxPrintPreview.js,v 1.9 2013/10/16 13:32:08 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -292,7 +292,7 @@ mxPrintPreview.prototype.getDoctype = function()
 	{
 		dt = '<meta http-equiv="X-UA-Compatible" content="IE=8">';
 	}
-	else if (document.documentMode == 9)
+	else if (document.documentMode > 8)
 	{
 		dt = '<meta http-equiv="X-UA-Compatible" content="IE=edge">';
 	}
@@ -392,14 +392,14 @@ mxPrintPreview.prototype.open = function(css)
 					var table = this.createPageSelector(vpages, hpages);
 					doc.body.appendChild(table);
 					
-					// Workaround for position: fixed which isn't working in IE
-					if (mxClient.IS_IE)
+					// Implements position: fixed in IE quirks mode
+					if (mxClient.IS_IE && doc.documentMode == null || doc.documentMode == 5 || doc.documentMode == 8 || doc.documentMode == 7)
 					{
 						table.style.position = 'absolute';
 						
 						var update = function()
 						{
-							table.style.top = (doc.body.scrollTop + 10) + 'px';
+							table.style.top = ((doc.body.scrollTop || doc.documentElement.scrollTop) + 10) + 'px';
 						};
 						
 						mxEvent.addListener(this.wnd, 'scroll', function(evt)
@@ -438,11 +438,11 @@ mxPrintPreview.prototype.open = function(css)
 				// is a problem in IE, so we copy the HTML markup instead.
 				// The underlying problem is that the graph display markup
 				// creation (in mxShape, mxGraphView) is hardwired to using
-				// document.createElement and hence we must use document
+				// document.createElement and hence we must use this document
 				// to create the complete page and then copy it over to the
 				// new window.document. This can be fixed later by using the
 				// ownerDocument of the container in mxShape and mxGraphView.
-				if (mxClient.IS_IE)
+				if (mxClient.IS_IE || document.documentMode >= 11)
 				{
 					// For some obscure reason, removing the DIV from the
 					// parent before fetching its outerHTML has missing
@@ -494,10 +494,24 @@ mxPrintPreview.prototype.open = function(css)
 					var dx = j * availableWidth / this.scale - this.x0 / this.scale +
 							(bounds.x - tr.x * currentScale) / currentScale;
 					var pageNum = i * hpages + j + 1;
-					div = this.renderPage(this.pageFormat.width, this.pageFormat.height, mxUtils.bind(this, function(div)
+					
+					// Workaround for ignored clipping in IE 9 standards when
+					// printing with page breaks and HTML labels. IE preview
+					// broken for both, slightly better HTML view with this.
+					if (doc.documentMode == 8 || doc.documentMode == 9 || doc.documentMode == 10)
 					{
-						this.addGraphFragment(-dx, -dy, this.scale, pageNum, div);
-					}));
+						div = this.renderPage(this.pageFormat.width, this.pageFormat.height, -dx, -dy, mxUtils.bind(this, function(div)
+						{
+							this.addGraphFragment(0, 0, this.scale, pageNum, div);
+						}));
+					}
+					else
+					{
+						div = this.renderPage(this.pageFormat.width, this.pageFormat.height, 0, 0, mxUtils.bind(this, function(div)
+						{
+							this.addGraphFragment(-dx, -dy, this.scale, pageNum, div);
+						}));
+					}
 
 					// Gives the page a unique ID for later accessing the page
 					div.setAttribute('id', 'mxPage-'+pageNum);
@@ -556,18 +570,14 @@ mxPrintPreview.prototype.writeHead = function(doc, css)
 		doc.writeln('<title>' + this.title + '</title>');
 	}
 	
+	// Adds required namespaces
 	if (mxClient.IS_VML)
 	{
 		doc.writeln('<style type="text/css">v\\:*{behavior:url(#default#VML)}o\\:*{behavior:url(#default#VML)}</style>');
 	}
 
-	// Adds all required stylesheets and namespaces
+	// Adds all required stylesheets
 	mxClient.link('stylesheet', mxClient.basePath + '/css/common.css', doc);
-	
-	if (mxClient.IS_VML)
-	{
-        mxClient.link('stylesheet', mxClient.basePath + '/css/explorer.css', doc);
-	}
 
 	// Removes horizontal rules and page selector from print output
 	doc.writeln('<style type="text/css">');
@@ -653,37 +663,94 @@ mxPrintPreview.prototype.createPageSelector = function(vpages, hpages)
  * content - Callback that adds the HTML content to the inner div of a page.
  * Takes the inner div as the argument.
  */
-mxPrintPreview.prototype.renderPage = function(w, h, content)
+mxPrintPreview.prototype.renderPage = function(w, h, dx, dy, content)
 {
+	var doc = this.wnd.document;
 	var div = document.createElement('div');
 	
 	try
 	{
-		div.style.width = w + 'px';
-		div.style.height = h + 'px';
-		div.style.overflow = 'hidden';
-		div.style.pageBreakInside = 'avoid';
-		
-		if (document.documentMode == 8)
+		// Workaround for ignored clipping in IE 9 standards
+		// when printing with page breaks and HTML labels.
+		if (dx != 0 || dy != 0)
 		{
 			div.style.position = 'relative';
-		}
+			div.style.width = w + 'px';
+			div.style.height = h + 'px';
+			div.style.pageBreakInside = 'avoid';
+			
+			var innerDiv = document.createElement('div');
+			innerDiv.style.position = 'relative';
+			innerDiv.style.top = this.border + 'px';
+			innerDiv.style.left = this.border + 'px';
+			innerDiv.style.width = (w - 2 * this.border) + 'px';
+			innerDiv.style.height = (h - 2 * this.border) + 'px';
+			innerDiv.style.overflow = 'hidden';
+			
+			var viewport = document.createElement('div');
+			viewport.style.position = 'relative';
+			viewport.style.marginLeft = dx + 'px';
+			viewport.style.marginTop = dy + 'px';
+			
+			// FIXME: IE8 standards output problems
+			if (doc.documentMode == 8)
+			{
+				innerDiv.style.position = 'absolute';
+				viewport.style.position = 'absolute';
+			}
 		
-		var innerDiv = document.createElement('div');
-		innerDiv.style.top = this.border + 'px';
-		innerDiv.style.left = this.border + 'px';
-		innerDiv.style.width = (w - 2 * this.border) + 'px';
-		innerDiv.style.height = (h - 2 * this.border) + 'px';
-		innerDiv.style.overflow = 'hidden';
-
-		if (this.graph.dialect == mxConstants.DIALECT_VML)
+			if (doc.documentMode == 10)
+			{
+				mxLog.show();
+				mxLog.debug('10');
+				viewport.style.width = '100%';
+				viewport.style.height = '100%';
+			}
+			
+			innerDiv.appendChild(viewport);
+			div.appendChild(innerDiv);
+			document.body.appendChild(div);
+			content(viewport);
+		}
+		// FIXME: IE10/11 too many pages
+		else
 		{
-			innerDiv.style.position = 'absolute';
+			div.style.width = w + 'px';
+			div.style.height = h + 'px';
+			div.style.overflow = 'hidden';
+			div.style.pageBreakInside = 'avoid';
+			
+			// IE8 uses above branch currently
+			if (doc.documentMode == 8)
+			{
+				div.style.position = 'relative';
+			}
+			
+			var innerDiv = document.createElement('div');
+			innerDiv.style.width = (w - 2 * this.border) + 'px';
+			innerDiv.style.height = (h - 2 * this.border) + 'px';
+			innerDiv.style.overflow = 'hidden';
+			
+			if (mxClient.IS_IE && (doc.documentMode == null || doc.documentMode == 5 || doc.documentMode == 8 || doc.documentMode == 7))
+			{
+				innerDiv.style.marginTop = this.border + 'px';
+				innerDiv.style.marginLeft = this.border + 'px';	
+			}
+			else
+			{
+				innerDiv.style.top = this.border + 'px';
+				innerDiv.style.left = this.border + 'px';
+			}
+	
+			if (this.graph.dialect == mxConstants.DIALECT_VML)
+			{
+				innerDiv.style.position = 'absolute';
+			}
+
+			div.appendChild(innerDiv);
+			document.body.appendChild(div);
+			content(innerDiv);
 		}
-		
-		div.appendChild(innerDiv);
-		document.body.appendChild(div);
-		content(innerDiv);
 	}
 	catch (e)
 	{
@@ -796,7 +863,7 @@ mxPrintPreview.prototype.addGraphFragment = function(dx, dy, scale, pageNumber, 
 					tmp.setAttribute('height', parseInt(div.style.height));
 				}
 				// Tries to fetch all text labels and only text labels
-				else if (tmp.style.cursor != 'default' && name != 'table')
+				else if (tmp.style.cursor != 'default' && name != 'div')
 				{
 					tmp.parentNode.removeChild(tmp);
 				}

@@ -1,5 +1,5 @@
 /**
- * $Id: mxClient.js,v 1.20 2013/07/26 07:51:40 gaudenz Exp $
+ * $Id: mxClient.js,v 1.21 2013/10/15 09:14:13 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxClient =
@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.2.0.2.
+	 * Current version is 2.2.0.3.
 	 */
-	VERSION: '2.2.0.2',
+	VERSION: '2.2.0.3',
 
 	/**
 	 * Variable: IS_IE
@@ -178,7 +178,7 @@ var mxClient =
 	 * Variable: IS_TOUCH
 	 * 
 	 * True if this device supports touchstart/-move/-end events (Apple iOS,
-	 * Android and Chromebook).
+	 * Android, Chromebook and Chrome Browser on touch-enabled devices).
 	 */
   	IS_TOUCH: 'ontouchstart' in document.documentElement,
 
@@ -23059,7 +23059,7 @@ mxEllipse.prototype.paintVertexShape = function(c, x, y, w, h)
 	c.fillAndStroke();
 };
 /**
- * $Id: mxDoubleEllipse.js,v 1.4 2013/01/05 21:30:31 gaudenz Exp $
+ * $Id: mxDoubleEllipse.js,v 1.5 2013/10/16 08:51:36 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -23110,18 +23110,7 @@ mxDoubleEllipse.prototype.vmlScale = 10;
  */
 mxDoubleEllipse.prototype.paintBackground = function(c, x, y, w, h)
 {
-	c.ellipse(x, y, w, h);
-	c.fillAndStroke();
-};
-
-/**
- * Function: paintForeground
- * 
- * Paints the foreground.
- */
-mxDoubleEllipse.prototype.paintForeground = function(c, x, y, w, h)
-{
-	var inset = Math.min(4, Math.min(w / 5, h / 5));
+	var inset = mxUtils.getValue(this.style, 'inset', Math.min(3 + this.strokewidth / 2, Math.min(w / 5, h / 5)));
 	x += inset;
 	y += inset;
 	w -= 2 * inset;
@@ -23132,7 +23121,18 @@ mxDoubleEllipse.prototype.paintForeground = function(c, x, y, w, h)
 	{
 		c.ellipse(x, y, w, h);
 	}
-	
+
+	c.fill();
+};
+
+/**
+ * Function: paintForeground
+ * 
+ * Paints the foreground.
+ */
+mxDoubleEllipse.prototype.paintForeground = function(c, x, y, w, h)
+{
+	c.ellipse(x, y, w, h);
 	c.stroke();
 };
 /**
@@ -23442,7 +23442,7 @@ mxArrow.prototype.paintEdgeShape = function(c, pts)
 	c.fillAndStroke();
 };
 /**
- * $Id: mxText.js,v 1.56 2013/09/24 18:01:29 gaudenz Exp $
+ * $Id: mxText.js,v 1.57 2013/10/09 11:56:52 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -23712,15 +23712,22 @@ mxText.prototype.updateBoundingBox = function()
 			}
 			else
 			{
-				var b = node.getBBox();
-				
-				if (b.width == 0 && b.height == 0)
+				try
 				{
-					return;
+					var b = node.getBBox();
+					
+					if (b.width == 0 && b.height == 0)
+					{
+						return;
+					}
+					
+					this.boundingBox = new mxRectangle(b.x, b.y, b.width, b.height);
+					rot = 0;
 				}
-				
-				this.boundingBox = new mxRectangle(b.x, b.y, b.width, b.height);
-				rot = 0;
+				catch (e)
+				{
+					// Ignores NS_ERROR_FAILURE in FF if container display is none.
+				}
 			}
 		}
 		else
@@ -34653,7 +34660,7 @@ mxHierarchicalLayout.prototype.placementStage = function(initialX, parent)
 	return placementStage.limitX + this.interHierarchySpacing;
 };
 /**
- * $Id: mxSwimlaneLayout.js,v 1.3 2013/09/23 14:11:22 david Exp $
+ * $Id: mxSwimlaneLayout.js,v 1.4 2013/10/08 14:18:41 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -35403,7 +35410,7 @@ mxSwimlaneLayout.prototype.traverse = function(vertex, directed, edge, allVertic
 
 				var otherIndex = 0;
 				// Get the swimlane index of the other terminal
-				for (var otherIndex = 0; otherIndex < this.swimlanes.length; otherIndex++)
+				for (otherIndex = 0; otherIndex < this.swimlanes.length; otherIndex++)
 				{
 					if (model.isAncestor(this.swimlanes[otherIndex], otherVertex))
 					{
@@ -39911,7 +39918,7 @@ var mxPerimeter =
 	}
 };
 /**
- * $Id: mxPrintPreview.js,v 1.8 2013/09/25 11:45:10 gaudenz Exp $
+ * $Id: mxPrintPreview.js,v 1.9 2013/10/16 13:32:08 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -40204,7 +40211,7 @@ mxPrintPreview.prototype.getDoctype = function()
 	{
 		dt = '<meta http-equiv="X-UA-Compatible" content="IE=8">';
 	}
-	else if (document.documentMode == 9)
+	else if (document.documentMode > 8)
 	{
 		dt = '<meta http-equiv="X-UA-Compatible" content="IE=edge">';
 	}
@@ -40304,14 +40311,14 @@ mxPrintPreview.prototype.open = function(css)
 					var table = this.createPageSelector(vpages, hpages);
 					doc.body.appendChild(table);
 					
-					// Workaround for position: fixed which isn't working in IE
-					if (mxClient.IS_IE)
+					// Implements position: fixed in IE quirks mode
+					if (mxClient.IS_IE && doc.documentMode == null || doc.documentMode == 5 || doc.documentMode == 8 || doc.documentMode == 7)
 					{
 						table.style.position = 'absolute';
 						
 						var update = function()
 						{
-							table.style.top = (doc.body.scrollTop + 10) + 'px';
+							table.style.top = ((doc.body.scrollTop || doc.documentElement.scrollTop) + 10) + 'px';
 						};
 						
 						mxEvent.addListener(this.wnd, 'scroll', function(evt)
@@ -40350,11 +40357,11 @@ mxPrintPreview.prototype.open = function(css)
 				// is a problem in IE, so we copy the HTML markup instead.
 				// The underlying problem is that the graph display markup
 				// creation (in mxShape, mxGraphView) is hardwired to using
-				// document.createElement and hence we must use document
+				// document.createElement and hence we must use this document
 				// to create the complete page and then copy it over to the
 				// new window.document. This can be fixed later by using the
 				// ownerDocument of the container in mxShape and mxGraphView.
-				if (mxClient.IS_IE)
+				if (mxClient.IS_IE || document.documentMode >= 11)
 				{
 					// For some obscure reason, removing the DIV from the
 					// parent before fetching its outerHTML has missing
@@ -40406,10 +40413,24 @@ mxPrintPreview.prototype.open = function(css)
 					var dx = j * availableWidth / this.scale - this.x0 / this.scale +
 							(bounds.x - tr.x * currentScale) / currentScale;
 					var pageNum = i * hpages + j + 1;
-					div = this.renderPage(this.pageFormat.width, this.pageFormat.height, mxUtils.bind(this, function(div)
+					
+					// Workaround for ignored clipping in IE 9 standards when
+					// printing with page breaks and HTML labels. IE preview
+					// broken for both, slightly better HTML view with this.
+					if (doc.documentMode == 8 || doc.documentMode == 9 || doc.documentMode == 10)
 					{
-						this.addGraphFragment(-dx, -dy, this.scale, pageNum, div);
-					}));
+						div = this.renderPage(this.pageFormat.width, this.pageFormat.height, -dx, -dy, mxUtils.bind(this, function(div)
+						{
+							this.addGraphFragment(0, 0, this.scale, pageNum, div);
+						}));
+					}
+					else
+					{
+						div = this.renderPage(this.pageFormat.width, this.pageFormat.height, 0, 0, mxUtils.bind(this, function(div)
+						{
+							this.addGraphFragment(-dx, -dy, this.scale, pageNum, div);
+						}));
+					}
 
 					// Gives the page a unique ID for later accessing the page
 					div.setAttribute('id', 'mxPage-'+pageNum);
@@ -40468,18 +40489,14 @@ mxPrintPreview.prototype.writeHead = function(doc, css)
 		doc.writeln('<title>' + this.title + '</title>');
 	}
 	
+	// Adds required namespaces
 	if (mxClient.IS_VML)
 	{
 		doc.writeln('<style type="text/css">v\\:*{behavior:url(#default#VML)}o\\:*{behavior:url(#default#VML)}</style>');
 	}
 
-	// Adds all required stylesheets and namespaces
+	// Adds all required stylesheets
 	mxClient.link('stylesheet', mxClient.basePath + '/css/common.css', doc);
-	
-	if (mxClient.IS_VML)
-	{
-        mxClient.link('stylesheet', mxClient.basePath + '/css/explorer.css', doc);
-	}
 
 	// Removes horizontal rules and page selector from print output
 	doc.writeln('<style type="text/css">');
@@ -40565,37 +40582,94 @@ mxPrintPreview.prototype.createPageSelector = function(vpages, hpages)
  * content - Callback that adds the HTML content to the inner div of a page.
  * Takes the inner div as the argument.
  */
-mxPrintPreview.prototype.renderPage = function(w, h, content)
+mxPrintPreview.prototype.renderPage = function(w, h, dx, dy, content)
 {
+	var doc = this.wnd.document;
 	var div = document.createElement('div');
 	
 	try
 	{
-		div.style.width = w + 'px';
-		div.style.height = h + 'px';
-		div.style.overflow = 'hidden';
-		div.style.pageBreakInside = 'avoid';
-		
-		if (document.documentMode == 8)
+		// Workaround for ignored clipping in IE 9 standards
+		// when printing with page breaks and HTML labels.
+		if (dx != 0 || dy != 0)
 		{
 			div.style.position = 'relative';
-		}
+			div.style.width = w + 'px';
+			div.style.height = h + 'px';
+			div.style.pageBreakInside = 'avoid';
+			
+			var innerDiv = document.createElement('div');
+			innerDiv.style.position = 'relative';
+			innerDiv.style.top = this.border + 'px';
+			innerDiv.style.left = this.border + 'px';
+			innerDiv.style.width = (w - 2 * this.border) + 'px';
+			innerDiv.style.height = (h - 2 * this.border) + 'px';
+			innerDiv.style.overflow = 'hidden';
+			
+			var viewport = document.createElement('div');
+			viewport.style.position = 'relative';
+			viewport.style.marginLeft = dx + 'px';
+			viewport.style.marginTop = dy + 'px';
+			
+			// FIXME: IE8 standards output problems
+			if (doc.documentMode == 8)
+			{
+				innerDiv.style.position = 'absolute';
+				viewport.style.position = 'absolute';
+			}
 		
-		var innerDiv = document.createElement('div');
-		innerDiv.style.top = this.border + 'px';
-		innerDiv.style.left = this.border + 'px';
-		innerDiv.style.width = (w - 2 * this.border) + 'px';
-		innerDiv.style.height = (h - 2 * this.border) + 'px';
-		innerDiv.style.overflow = 'hidden';
-
-		if (this.graph.dialect == mxConstants.DIALECT_VML)
+			if (doc.documentMode == 10)
+			{
+				mxLog.show();
+				mxLog.debug('10');
+				viewport.style.width = '100%';
+				viewport.style.height = '100%';
+			}
+			
+			innerDiv.appendChild(viewport);
+			div.appendChild(innerDiv);
+			document.body.appendChild(div);
+			content(viewport);
+		}
+		// FIXME: IE10/11 too many pages
+		else
 		{
-			innerDiv.style.position = 'absolute';
+			div.style.width = w + 'px';
+			div.style.height = h + 'px';
+			div.style.overflow = 'hidden';
+			div.style.pageBreakInside = 'avoid';
+			
+			// IE8 uses above branch currently
+			if (doc.documentMode == 8)
+			{
+				div.style.position = 'relative';
+			}
+			
+			var innerDiv = document.createElement('div');
+			innerDiv.style.width = (w - 2 * this.border) + 'px';
+			innerDiv.style.height = (h - 2 * this.border) + 'px';
+			innerDiv.style.overflow = 'hidden';
+			
+			if (mxClient.IS_IE && (doc.documentMode == null || doc.documentMode == 5 || doc.documentMode == 8 || doc.documentMode == 7))
+			{
+				innerDiv.style.marginTop = this.border + 'px';
+				innerDiv.style.marginLeft = this.border + 'px';	
+			}
+			else
+			{
+				innerDiv.style.top = this.border + 'px';
+				innerDiv.style.left = this.border + 'px';
+			}
+	
+			if (this.graph.dialect == mxConstants.DIALECT_VML)
+			{
+				innerDiv.style.position = 'absolute';
+			}
+
+			div.appendChild(innerDiv);
+			document.body.appendChild(div);
+			content(innerDiv);
 		}
-		
-		div.appendChild(innerDiv);
-		document.body.appendChild(div);
-		content(innerDiv);
 	}
 	catch (e)
 	{
@@ -40708,7 +40782,7 @@ mxPrintPreview.prototype.addGraphFragment = function(dx, dy, scale, pageNumber, 
 					tmp.setAttribute('height', parseInt(div.style.height));
 				}
 				// Tries to fetch all text labels and only text labels
-				else if (tmp.style.cursor != 'default' && name != 'table')
+				else if (tmp.style.cursor != 'default' && name != 'div')
 				{
 					tmp.parentNode.removeChild(tmp);
 				}
@@ -42635,7 +42709,7 @@ mxCellEditor.prototype.destroy = function ()
 	}
 };
 /**
- * $Id: mxCellRenderer.js,v 1.28 2013/09/26 08:04:30 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.29 2013/10/11 13:31:32 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -42918,7 +42992,7 @@ mxCellRenderer.prototype.order = function(state)
  * rules. 
  * 
  * Parameters:
- * 
+ *
  * state - <mxCellState> whose shape's DOM node should be ordered.
  */
 mxCellRenderer.prototype.orderEdge = function(state)
@@ -42934,6 +43008,8 @@ mxCellRenderer.prototype.orderEdge = function(state)
 		{
 			this.firstEdge = state.shape.node;
 		}
+		
+		state.shape.node.parentNode.appendChild(state.shape.node);
 	}
 	else if (view.graph.keepEdgesInBackground)
 	{
@@ -42943,24 +43019,12 @@ mxCellRenderer.prototype.orderEdge = function(state)
 		// Keeps the DOM node in front of its parent
 		var pcell = model.getParent(state.cell);
 		var pstate = view.getState(pcell);
-
-		if (pstate != null && pstate.shape != null && pstate.shape.node != null)
+		var child = (pstate != null && pstate.shape != null && pstate.shape.node != null) ?
+			pstate.shape.node.nextSibling : parent.firstChild;
+		
+		if (child != null && child != node)
 		{
-			var child = pstate.shape.node.nextSibling;
-			
-			if (child != null && child != node)
-			{
-				this.insertState(state, child);
-			}
-		}
-		else
-		{
-			var child = parent.firstChild;
-			
-			if (child != null && child != node)
-			{
-				this.insertState(state, child);
-			}
+			this.insertState(state, child);
 		}
 	}
 };
@@ -44096,7 +44160,7 @@ mxCellRenderer.prototype.redraw = function(state, force, rendering)
 			{
 				this.order(state);
 			}
-			else
+			else if (isEdge)
 			{
 				// Assert state.cell is edge
 				this.orderEdge(state);
@@ -44195,7 +44259,7 @@ mxCellRenderer.prototype.destroy = function(state)
 	}
 };
 /**
- * $Id: mxEdgeStyle.js,v 1.2 2012/11/20 09:10:02 gaudenz Exp $
+ * $Id: mxEdgeStyle.js,v 1.3 2013/10/03 14:17:11 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEdgeStyle =
@@ -44913,6 +44977,8 @@ var mxEdgeStyle =
 	},
 	
 	orthBuffer: 10,
+	
+	orthPointsFallback: true,
 
 	dirVectors: [ [ -1, 0 ],
 			[ 0, -1 ], [ 1, 0 ], [ 0, 1 ], [ -1, 0 ], [ 0, -1 ], [ 1, 0 ] ],
@@ -44989,7 +45055,7 @@ var mxEdgeStyle =
 		var sourceEdge = source == null ? false : graph.getModel().isEdge(source.cell);
 		var targetEdge = target == null ? false : graph.getModel().isEdge(target.cell);
 
-		if ((points != null && points.length > 0) || (sourceEdge) || (targetEdge))
+		if (mxEdgeStyle.orthPointsFallback && (points != null && points.length > 0) || (sourceEdge) || (targetEdge))
 		{
 			mxEdgeStyle.SegmentConnector(state, source, target, points, result);
 			return;
@@ -45566,7 +45632,7 @@ mxStyleRegistry.putValue(mxConstants.PERIMETER_RECTANGLE, mxPerimeter.RectangleP
 mxStyleRegistry.putValue(mxConstants.PERIMETER_RHOMBUS, mxPerimeter.RhombusPerimeter);
 mxStyleRegistry.putValue(mxConstants.PERIMETER_TRIANGLE, mxPerimeter.TrianglePerimeter);
 /**
- * $Id: mxGraphView.js,v 1.24 2013/09/09 13:11:52 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.27 2013/10/15 18:53:42 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -46091,19 +46157,25 @@ mxGraphView.prototype.validate = function(cell)
 	if (this.optimizeVmlReflows && this.canvas != null && this.textDiv == null &&
 		(document.documentMode == 8 || mxClient.IS_QUIRKS))
 	{
-		prevDisplay = this.canvas.style.display;
+		// Placeholder keeps scrollbar positions when canvas is hidden
+		this.placeholder = document.createElement('div');
+		this.placeholder.style.position = 'absolute';
+		this.placeholder.style.width = this.canvas.clientWidth + 'px';
+		this.placeholder.style.height = this.canvas.clientHeight + 'px';
+		this.canvas.parentNode.appendChild(this.placeholder);
+
+		prevDisplay = this.drawPane.style.display;
 		this.canvas.style.display = 'none';
 		
 		// Creates temporary DIV used for text measuring in mxText.updateBoundingBox
-		var div = document.createElement('div');
-		div.style.position = 'absolute';
-		div.style.whiteSpace = 'nowrap';
-		div.style.visibility = 'hidden';
-		div.style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
-		div.style.zoom = '1';
+		this.textDiv = document.createElement('div');
+		this.textDiv.style.position = 'absolute';
+		this.textDiv.style.whiteSpace = 'nowrap';
+		this.textDiv.style.visibility = 'hidden';
+		this.textDiv.style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
+		this.textDiv.style.zoom = '1';
 		
-		document.body.appendChild(div);
-		this.textDiv = div;
+		document.body.appendChild(this.textDiv);
 	}
 	
 	cell = cell || ((this.currentRoot != null) ?
@@ -46122,7 +46194,10 @@ mxGraphView.prototype.validate = function(cell)
 	if (prevDisplay != null)
 	{
 		this.canvas.style.display = prevDisplay;
-		document.body.removeChild(this.textDiv);
+		this.placeholder.parentNode.removeChild(this.placeholder);
+		this.textDiv.parentNode.removeChild(this.textDiv);
+		
+		// Textdiv cannot be reused
 		this.textDiv = null;
 	}
 	
@@ -48196,7 +48271,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.49 2013/09/27 10:12:37 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.52 2013/10/11 13:33:48 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -53824,7 +53899,7 @@ mxGraph.prototype.cellsMoved = function(cells, dx, dy, disconnect, constrain, ex
 			}
 			
 			this.fireEvent(new mxEventObject(mxEvent.CELLS_MOVED,
-				'cells', cells, 'dx', dy, 'dy', dy, 'disconnect', disconnect));
+				'cells', cells, 'dx', dx, 'dy', dy, 'disconnect', disconnect));
 		}
 		finally
 		{
@@ -56465,8 +56540,7 @@ mxGraph.prototype.getStartSize = function(swimlane)
  */
 mxGraph.prototype.getImage = function(state)
 {
-	return (state != null && state.style != null) ?
-		state.style[mxConstants.STYLE_IMAGE] : null;
+	return (state != null && state.style != null) ? state.style[mxConstants.STYLE_IMAGE] : null;
 };
 
 /**
@@ -56503,8 +56577,7 @@ mxGraph.prototype.getVerticalAlign = function(state)
  */
 mxGraph.prototype.getIndicatorColor = function(state)
 {
-	return (state != null && state.style != null) ?
-		state.style[mxConstants.STYLE_INDICATOR_COLOR] : null;
+	return (state != null && state.style != null) ? state.style[mxConstants.STYLE_INDICATOR_COLOR] : null;
 };
 
 /**
@@ -56521,8 +56594,7 @@ mxGraph.prototype.getIndicatorColor = function(state)
  */
 mxGraph.prototype.getIndicatorGradientColor = function(state)
 {
-	return (state != null && state.style != null) ?
-		state.style[mxConstants.STYLE_INDICATOR_GRADIENTCOLOR] : null;
+	return (state != null && state.style != null) ? state.style[mxConstants.STYLE_INDICATOR_GRADIENTCOLOR] : null;
 };
 
 /**
@@ -56538,8 +56610,7 @@ mxGraph.prototype.getIndicatorGradientColor = function(state)
  */
 mxGraph.prototype.getIndicatorShape = function(state)
 {
-	return (state != null && state.style != null) ?
-		state.style[mxConstants.STYLE_INDICATOR_SHAPE] : null;
+	return (state != null && state.style != null) ? state.style[mxConstants.STYLE_INDICATOR_SHAPE] : null;
 };
 
 /**
@@ -56555,8 +56626,7 @@ mxGraph.prototype.getIndicatorShape = function(state)
  */
 mxGraph.prototype.getIndicatorImage = function(state)
 {
-	return (state != null && state.style != null) ?
-		state.style[mxConstants.STYLE_INDICATOR_IMAGE] : null;
+	return (state != null && state.style != null) ? state.style[mxConstants.STYLE_INDICATOR_IMAGE] : null;
 };
 
 /**
@@ -56605,8 +56675,7 @@ mxGraph.prototype.isSwimlane = function (cell)
 
 			if (style != null && !this.model.isEdge(cell))
 			{
-				return style[mxConstants.STYLE_SHAPE] ==
-					mxConstants.SHAPE_SWIMLANE;
+				return style[mxConstants.STYLE_SHAPE] == mxConstants.SHAPE_SWIMLANE;
 			}
 		}
 	}
@@ -56746,8 +56815,7 @@ mxGraph.prototype.isCellLocked = function(cell)
 {
 	var geometry = this.model.getGeometry(cell);
 	
-	return this.isCellsLocked() || (geometry != null &&
-			this.model.isVertex(cell) && geometry.relative);
+	return this.isCellsLocked() || (geometry != null && this.model.isVertex(cell) && geometry.relative);
 };
 
 /**
@@ -62950,7 +63018,7 @@ mxConnectionConstraint.prototype.point = null;
  */
 mxConnectionConstraint.prototype.perimeter = null;
 /**
- * $Id: mxGraphHandler.js,v 1.8 2013/06/20 14:04:15 gaudenz Exp $
+ * $Id: mxGraphHandler.js,v 1.10 2013/10/01 10:09:30 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -63290,7 +63358,7 @@ mxGraphHandler.prototype.mouseDown = function(sender, me)
 		{
 			this.graph.selectCellForEvent(cell, me.getEvent());
 		}
-		
+
 		if (this.isMoveEnabled())
 		{
 			var model = this.graph.model;
@@ -63524,6 +63592,19 @@ mxGraphHandler.prototype.snap = function(vector)
 };
 
 /**
+ * Function: getDelta
+ * 
+ * Returns an <mxPoint> that represents the vector for moving the cells
+ * for the given <mxMouseEvent>.
+ */
+mxGraphHandler.prototype.getDelta = function(me)
+{
+	var point = mxUtils.convertPoint(this.graph.container, me.getX(), me.getY());
+	
+	return new mxPoint(point.x - this.first.x, point.y - this.first.y);
+};
+
+/**
  * Function: mouseMove
  * 
  * Handles the event by highlighting possible drop targets and updating the
@@ -63536,9 +63617,9 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 	if (!me.isConsumed() && graph.isMouseDown && this.cell != null &&
 		this.first != null && this.bounds != null)
 	{
-		var point = mxUtils.convertPoint(graph.container, me.getX(), me.getY());
-		var dx = point.x - this.first.x;
-		var dy = point.y - this.first.y;
+		var delta = this.getDelta(me);
+		var dx = delta.x;
+		var dy = delta.y;
 		var tol = graph.tolerance;
 
 		if (this.shape != null || Math.abs(dx) > tol || Math.abs(dy) > tol)
@@ -63560,7 +63641,7 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 			
 			if (this.guide != null && this.useGuidesForEvent(me))
 			{
-				var delta = this.guide.move(this.bounds, new mxPoint(dx, dy), gridEnabled);
+				delta = this.guide.move(this.bounds, new mxPoint(dx, dy), gridEnabled);
 				hideGuide = false;
 				dx = delta.x;
 				dy = delta.y;
@@ -63784,7 +63865,10 @@ mxGraphHandler.prototype.mouseUp = function(sender, me)
  */
 mxGraphHandler.prototype.selectDelayed = function(me)
 {
-	this.graph.selectCellForEvent(this.cell, me.getEvent());
+	if (!this.graph.isCellSelected(this.cell) || !this.graph.popupMenuHandler.isPopupTrigger(me))
+	{
+		this.graph.selectCellForEvent(this.cell, me.getEvent());
+	}
 };
 
 /**
@@ -67708,7 +67792,7 @@ mxRubberband.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxVertexHandler.js,v 1.32 2013/09/02 21:34:57 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.33 2013/10/11 13:31:32 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -67818,6 +67902,14 @@ mxVertexHandler.prototype.livePreview = false;
 mxVertexHandler.prototype.manageSizers = false;
 
 /**
+ * Variable: constrainGroupByChildren
+ * 
+ * Specifies if the size of groups should be constrained by the children.
+ * Default is false.
+ */
+mxVertexHandler.prototype.constrainGroupByChildren = false;
+
+/**
  * Function: init
  * 
  * Initializes the shapes required for this vertex handler.
@@ -67897,6 +67989,41 @@ mxVertexHandler.prototype.init = function()
 	}
 
 	this.redraw();
+	
+	if (this.constrainGroupByChildren)
+	{
+		this.updateMinBounds();
+	}
+};
+
+/**
+ * Function: updateMinBounds
+ * 
+ * Initializes the shapes required for this vertex handler.
+ */
+mxVertexHandler.prototype.updateMinBounds = function()
+{
+	var children = this.graph.getChildCells(this.state.cell);
+	
+	if (children.length > 0)
+	{
+		this.minBounds = this.graph.view.getBounds(children);
+		
+		if (this.minBounds != null)
+		{
+			var s = this.state.view.scale;
+			var t = this.state.view.translate;
+
+			this.minBounds.x -= this.state.x;
+			this.minBounds.y -= this.state.y;
+			this.minBounds.x /= s;
+			this.minBounds.y /= s;
+			this.minBounds.width /= s;
+			this.minBounds.height /= s;
+			this.x0 = this.state.x / s - t.x;
+			this.y0 = this.state.y / s - t.y;
+		}
+	}
 };
 
 /**
@@ -68773,7 +68900,17 @@ mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, s
 			height = Math.abs(height);
 		}
 		
-		return new mxRectangle(left + tr.x * scale, top + tr.y * scale, width, height);
+		var result = new mxRectangle(left + tr.x * scale, top + tr.y * scale, width, height);
+		
+		if (this.minBounds != null)
+		{
+			result.width = Math.max(result.width, this.minBounds.x * scale + this.minBounds.width * scale +
+				Math.max(0, this.x0 * scale - result.x));
+			result.height = Math.max(result.height, this.minBounds.y * scale + this.minBounds.height * scale +
+				Math.max(0, this.y0 * scale - result.y));
+		}
+		
+		return result;
 	}
 };
 

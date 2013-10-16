@@ -1,5 +1,5 @@
 /**
- * $Id: mxDoubleEllipse.js,v 1.4 2013/01/05 21:30:31 gaudenz Exp $
+ * $Id: mxDoubleEllipse.js,v 1.5 2013/10/16 08:51:36 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -50,18 +50,7 @@ mxDoubleEllipse.prototype.vmlScale = 10;
  */
 mxDoubleEllipse.prototype.paintBackground = function(c, x, y, w, h)
 {
-	c.ellipse(x, y, w, h);
-	c.fillAndStroke();
-};
-
-/**
- * Function: paintForeground
- * 
- * Paints the foreground.
- */
-mxDoubleEllipse.prototype.paintForeground = function(c, x, y, w, h)
-{
-	var inset = Math.min(4, Math.min(w / 5, h / 5));
+	var inset = mxUtils.getValue(this.style, 'inset', Math.min(3 + this.strokewidth / 2, Math.min(w / 5, h / 5)));
 	x += inset;
 	y += inset;
 	w -= 2 * inset;
@@ -72,6 +61,17 @@ mxDoubleEllipse.prototype.paintForeground = function(c, x, y, w, h)
 	{
 		c.ellipse(x, y, w, h);
 	}
-	
+
+	c.fill();
+};
+
+/**
+ * Function: paintForeground
+ * 
+ * Paints the foreground.
+ */
+mxDoubleEllipse.prototype.paintForeground = function(c, x, y, w, h)
+{
+	c.ellipse(x, y, w, h);
 	c.stroke();
 };

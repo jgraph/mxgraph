@@ -1,5 +1,5 @@
 /**
- * $Id: mxEdgeStyle.js,v 1.2 2012/11/20 09:10:02 gaudenz Exp $
+ * $Id: mxEdgeStyle.js,v 1.3 2013/10/03 14:17:11 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEdgeStyle =
@@ -717,6 +717,8 @@ var mxEdgeStyle =
 	},
 	
 	orthBuffer: 10,
+	
+	orthPointsFallback: true,
 
 	dirVectors: [ [ -1, 0 ],
 			[ 0, -1 ], [ 1, 0 ], [ 0, 1 ], [ -1, 0 ], [ 0, -1 ], [ 1, 0 ] ],
@@ -793,7 +795,7 @@ var mxEdgeStyle =
 		var sourceEdge = source == null ? false : graph.getModel().isEdge(source.cell);
 		var targetEdge = target == null ? false : graph.getModel().isEdge(target.cell);
 
-		if ((points != null && points.length > 0) || (sourceEdge) || (targetEdge))
+		if (mxEdgeStyle.orthPointsFallback && (points != null && points.length > 0) || (sourceEdge) || (targetEdge))
 		{
 			mxEdgeStyle.SegmentConnector(state, source, target, points, result);
 			return;

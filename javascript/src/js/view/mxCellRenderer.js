@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellRenderer.js,v 1.28 2013/09/26 08:04:30 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.29 2013/10/11 13:31:32 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -282,7 +282,7 @@ mxCellRenderer.prototype.order = function(state)
  * rules. 
  * 
  * Parameters:
- * 
+ *
  * state - <mxCellState> whose shape's DOM node should be ordered.
  */
 mxCellRenderer.prototype.orderEdge = function(state)
@@ -298,6 +298,8 @@ mxCellRenderer.prototype.orderEdge = function(state)
 		{
 			this.firstEdge = state.shape.node;
 		}
+		
+		state.shape.node.parentNode.appendChild(state.shape.node);
 	}
 	else if (view.graph.keepEdgesInBackground)
 	{
@@ -307,24 +309,12 @@ mxCellRenderer.prototype.orderEdge = function(state)
 		// Keeps the DOM node in front of its parent
 		var pcell = model.getParent(state.cell);
 		var pstate = view.getState(pcell);
-
-		if (pstate != null && pstate.shape != null && pstate.shape.node != null)
+		var child = (pstate != null && pstate.shape != null && pstate.shape.node != null) ?
+			pstate.shape.node.nextSibling : parent.firstChild;
+		
+		if (child != null && child != node)
 		{
-			var child = pstate.shape.node.nextSibling;
-			
-			if (child != null && child != node)
-			{
-				this.insertState(state, child);
-			}
-		}
-		else
-		{
-			var child = parent.firstChild;
-			
-			if (child != null && child != node)
-			{
-				this.insertState(state, child);
-			}
+			this.insertState(state, child);
 		}
 	}
 };
@@ -1460,7 +1450,7 @@ mxCellRenderer.prototype.redraw = function(state, force, rendering)
 			{
 				this.order(state);
 			}
-			else
+			else if (isEdge)
 			{
 				// Assert state.cell is edge
 				this.orderEdge(state);

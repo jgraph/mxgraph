@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphHandler.js,v 1.8 2013/06/20 14:04:15 gaudenz Exp $
+ * $Id: mxGraphHandler.js,v 1.10 2013/10/01 10:09:30 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -339,7 +339,7 @@ mxGraphHandler.prototype.mouseDown = function(sender, me)
 		{
 			this.graph.selectCellForEvent(cell, me.getEvent());
 		}
-		
+
 		if (this.isMoveEnabled())
 		{
 			var model = this.graph.model;
@@ -573,6 +573,19 @@ mxGraphHandler.prototype.snap = function(vector)
 };
 
 /**
+ * Function: getDelta
+ * 
+ * Returns an <mxPoint> that represents the vector for moving the cells
+ * for the given <mxMouseEvent>.
+ */
+mxGraphHandler.prototype.getDelta = function(me)
+{
+	var point = mxUtils.convertPoint(this.graph.container, me.getX(), me.getY());
+	
+	return new mxPoint(point.x - this.first.x, point.y - this.first.y);
+};
+
+/**
  * Function: mouseMove
  * 
  * Handles the event by highlighting possible drop targets and updating the
@@ -585,9 +598,9 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 	if (!me.isConsumed() && graph.isMouseDown && this.cell != null &&
 		this.first != null && this.bounds != null)
 	{
-		var point = mxUtils.convertPoint(graph.container, me.getX(), me.getY());
-		var dx = point.x - this.first.x;
-		var dy = point.y - this.first.y;
+		var delta = this.getDelta(me);
+		var dx = delta.x;
+		var dy = delta.y;
 		var tol = graph.tolerance;
 
 		if (this.shape != null || Math.abs(dx) > tol || Math.abs(dy) > tol)
@@ -609,7 +622,7 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 			
 			if (this.guide != null && this.useGuidesForEvent(me))
 			{
-				var delta = this.guide.move(this.bounds, new mxPoint(dx, dy), gridEnabled);
+				delta = this.guide.move(this.bounds, new mxPoint(dx, dy), gridEnabled);
 				hideGuide = false;
 				dx = delta.x;
 				dy = delta.y;
@@ -833,7 +846,10 @@ mxGraphHandler.prototype.mouseUp = function(sender, me)
  */
 mxGraphHandler.prototype.selectDelayed = function(me)
 {
-	this.graph.selectCellForEvent(this.cell, me.getEvent());
+	if (!this.graph.isCellSelected(this.cell) || !this.graph.popupMenuHandler.isPopupTrigger(me))
+	{
+		this.graph.selectCellForEvent(this.cell, me.getEvent());
+	}
 };
 
 /**

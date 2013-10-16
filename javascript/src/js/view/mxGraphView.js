@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphView.js,v 1.24 2013/09/09 13:11:52 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.27 2013/10/15 18:53:42 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -524,19 +524,25 @@ mxGraphView.prototype.validate = function(cell)
 	if (this.optimizeVmlReflows && this.canvas != null && this.textDiv == null &&
 		(document.documentMode == 8 || mxClient.IS_QUIRKS))
 	{
-		prevDisplay = this.canvas.style.display;
+		// Placeholder keeps scrollbar positions when canvas is hidden
+		this.placeholder = document.createElement('div');
+		this.placeholder.style.position = 'absolute';
+		this.placeholder.style.width = this.canvas.clientWidth + 'px';
+		this.placeholder.style.height = this.canvas.clientHeight + 'px';
+		this.canvas.parentNode.appendChild(this.placeholder);
+
+		prevDisplay = this.drawPane.style.display;
 		this.canvas.style.display = 'none';
 		
 		// Creates temporary DIV used for text measuring in mxText.updateBoundingBox
-		var div = document.createElement('div');
-		div.style.position = 'absolute';
-		div.style.whiteSpace = 'nowrap';
-		div.style.visibility = 'hidden';
-		div.style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
-		div.style.zoom = '1';
+		this.textDiv = document.createElement('div');
+		this.textDiv.style.position = 'absolute';
+		this.textDiv.style.whiteSpace = 'nowrap';
+		this.textDiv.style.visibility = 'hidden';
+		this.textDiv.style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
+		this.textDiv.style.zoom = '1';
 		
-		document.body.appendChild(div);
-		this.textDiv = div;
+		document.body.appendChild(this.textDiv);
 	}
 	
 	cell = cell || ((this.currentRoot != null) ?
@@ -555,7 +561,10 @@ mxGraphView.prototype.validate = function(cell)
 	if (prevDisplay != null)
 	{
 		this.canvas.style.display = prevDisplay;
-		document.body.removeChild(this.textDiv);
+		this.placeholder.parentNode.removeChild(this.placeholder);
+		this.textDiv.parentNode.removeChild(this.textDiv);
+		
+		// Textdiv cannot be reused
 		this.textDiv = null;
 	}
 	

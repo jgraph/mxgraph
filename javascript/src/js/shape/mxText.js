@@ -1,5 +1,5 @@
 /**
- * $Id: mxText.js,v 1.56 2013/09/24 18:01:29 gaudenz Exp $
+ * $Id: mxText.js,v 1.57 2013/10/09 11:56:52 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -269,15 +269,22 @@ mxText.prototype.updateBoundingBox = function()
 			}
 			else
 			{
-				var b = node.getBBox();
-				
-				if (b.width == 0 && b.height == 0)
+				try
 				{
-					return;
+					var b = node.getBBox();
+					
+					if (b.width == 0 && b.height == 0)
+					{
+						return;
+					}
+					
+					this.boundingBox = new mxRectangle(b.x, b.y, b.width, b.height);
+					rot = 0;
 				}
-				
-				this.boundingBox = new mxRectangle(b.x, b.y, b.width, b.height);
-				rot = 0;
+				catch (e)
+				{
+					// Ignores NS_ERROR_FAILURE in FF if container display is none.
+				}
 			}
 		}
 		else
