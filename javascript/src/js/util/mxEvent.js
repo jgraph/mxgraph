@@ -1,5 +1,5 @@
 /**
- * $Id: mxEvent.js,v 1.16 2013/09/08 21:57:05 gaudenz Exp $
+ * $Id: mxEvent.js,v 1.17 2013/10/22 06:56:09 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEvent =
@@ -447,7 +447,8 @@ var mxEvent =
 	 */
 	isTouchEvent: function(evt)
 	{
-		return (evt.pointerType != null) ? evt.pointerType === evt.MSPOINTER_TYPE_TOUCH : evt.type.indexOf('touch') == 0;
+		return (evt.pointerType != null) ? (evt.pointerType == 'touch' || evt.pointerType ===
+			evt.MSPOINTER_TYPE_TOUCH) : evt.type.indexOf('touch') == 0;
 	},
 
 	/**
@@ -457,7 +458,8 @@ var mxEvent =
 	 */
 	isMouseEvent: function(evt)
 	{
-		return (evt.pointerType != null) ? evt.pointerType === evt.MSPOINTER_TYPE_MOUSE : evt.type.indexOf('mouse') == 0;
+		return (evt.pointerType != null) ? (evt.pointerType == 'mouse' || evt.pointerType ===
+			evt.MSPOINTER_TYPE_MOUSE) : evt.type.indexOf('mouse') == 0;
 	},
 	
 	/**

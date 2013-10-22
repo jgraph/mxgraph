@@ -1,4 +1,4 @@
-﻿<%@ WebHandler Language="C#" Class="Export" %>
+﻿<%@ WebHandler Language="C#" Class="NewExport" %>
 
 using System;
 using System.Collections.Generic;
@@ -8,49 +8,53 @@ using System.Web;
 using System.IO;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Drawing.Drawing2D;
 using com.mxgraph;
 
 /// <summary>
-/// This handler may be used to create bitmap versions of the graphs
-/// using a high-level description of the visual appearance so there
-/// is no need to create an object representation of the model on
-/// the server-side. The description even allows the server to create
-/// the bitmaps using a SAX parser. A DOM parser is not required.
-/// 
-/// To integrate the image handler with a client application, the client
-/// application must be setup to use this handler. This can be done by
-/// setting mxEditor.urlImage programmatically or using a config file.
+/// Creates a bitmap image of the diagram based on generic XML.
 /// </summary>
-public class Export : IHttpHandler
+public class NewExport : IHttpHandler
 {
 
     public void ProcessRequest (HttpContext context)
     {
-        string requestUrl = context.Request.Url.ToString();
         string xml = HttpUtility.UrlDecode(context.Request.Params["xml"]);
+        string width = context.Request.Params["w"];
+        string height = context.Request.Params["h"];
+        string bg = context.Request.Params["bg"];
+        string filename = context.Request.Params["filename"];
+        string format = context.Request.Params["format"];
 
-        if (xml != null)
+        if (filename != null)
         {
-            context.Response.ContentType = "image/png";
+            filename = HttpUtility.UrlDecode(filename);
+        }
 
-            // NOTE: To create the XML in JavaScript, use the following code:
-            // var xml = mxUtils.getXml(mxUtils.getViewXml(graph, 1), '\n');
-            XmlTextReader xmlReader = new XmlTextReader(new StringReader(xml));
-            mxGraphViewImageReader viewReader = new mxGraphViewImageReader(
-                xmlReader, Color.White, 4, true, true);
+        if (xml != null && width != null && height != null && bg != null
+                && filename != null && format != null)
+        {
+            Color? background = (bg != null && !bg.Equals(mxConstants.NONE)) ? ColorTranslator.FromHtml(bg) : (Color?)null;
+            Image image = mxUtils.CreateImage(int.Parse(width), int.Parse(height), background);
+            Graphics g = Graphics.FromImage(image);
+            g.SmoothingMode = SmoothingMode.HighQuality;
+            mxSaxOutputHandler handler = new mxSaxOutputHandler(new mxGdiCanvas2D(g));
+            handler.Read(new XmlTextReader(new StringReader(xml)));
+            
+            if (filename.Length == 0)
+            {
+                filename = "export." + format;
+            }
 
-            // Use Clip property on viewReader to render a subimage
-            Image image = mxGraphViewImageReader.Convert(viewReader);
-
-            // Displays a Save As... dialog on the client-side
+            context.Response.ContentType = "image/" + format;
             context.Response.AddHeader("Content-Disposition",
-                    "attachment; filename=diagram.png");
+                    "attachment; filename=" + filename);
 
-            // Render BitMap Stream Back To Client
             MemoryStream memStream = new MemoryStream();
             image.Save(memStream, ImageFormat.Png);
-
             memStream.WriteTo(context.Response.OutputStream);
+
+            context.Response.StatusCode = 200; /* OK */
         }
         else
         {

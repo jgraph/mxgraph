@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.52 2013/10/11 13:33:48 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.54 2013/10/22 10:42:22 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1204,6 +1204,13 @@ mxGraph.prototype.cellsDisconnectable = true;
 mxGraph.prototype.autoSizeCells = false;
 
 /**
+ * Variable: autoSizeCellsOnAdd
+ * 
+ * Specifies if autoSize style should be applied when cells are added. Default is false.
+ */
+mxGraph.prototype.autoSizeCellsOnAdd = true;
+
+/**
  * Variable: autoScroll
  * 
  * Specifies if the graph should automatically scroll if the mouse goes near
@@ -1653,6 +1660,15 @@ mxGraph.prototype.collapseExpandResource = (mxClient.language != 'none') ? 'coll
 	
 	// Updates the size of the container for the current graph
 	this.sizeDidChange();
+	
+	// Hides tooltips and resets tooltip timer if mouse leaves container
+	mxEvent.addListener(container, 'mouseleave', mxUtils.bind(this, function()
+	{
+		if (this.tooltipHandler != null)
+		{
+			this.tooltipHandler.hide();
+		}
+	}));
 
 	// Automatic deallocation of memory
 	if (mxClient.IS_IE)
@@ -4386,6 +4402,11 @@ mxGraph.prototype.cellsAdded = function(cells, parent, index, source, target, ab
 					}
 
 					this.model.add(parent, cells[i], index + i);
+					
+					if (this.autoSizeCellsOnAdd)
+					{
+						this.autoSizeCell(cells[i], true);
+					}
 	
 					// Extends the parent or constrains the child
 					if (this.isExtendParentsOnAdd() && this.isExtendParent(cells[i]))
@@ -4419,6 +4440,40 @@ mxGraph.prototype.cellsAdded = function(cells, parent, index, source, target, ab
 		{
 			this.model.endUpdate();
 		}
+	}
+};
+
+/**
+ * Function: autoSizeCell
+ * 
+ * Removes the given cells from the graph including all connected edges if
+ * includeEdges is true. The change is carried out using <cellsRemoved>.
+ * This method fires <mxEvent.REMOVE_CELLS> while the transaction is in
+ * progress. The removed cells are returned as an array.
+ * 
+ * Parameters:
+ * 
+ * cell - <mxCells> to be resized.
+ * recurse - Optional boolean which specifies if all descendants should be
+ * autosized. Default is true.
+ */
+mxGraph.prototype.autoSizeCell = function(cell, recurse)
+{
+	recurse = (recurse != null) ? recurse : true;
+	
+	if (recurse)
+	{
+		var childCount = this.model.getChildCount(cell);
+		
+		for (var i = 0; i < childCount; i++)
+		{
+			this.autosizeCell(this.model.getChildAt(cell, i));
+		}
+	}
+
+	if (this.getModel().isVertex(cell) && this.isAutoSizeCell(cell))
+	{
+		this.updateCellSize(cell);
 	}
 };
 
@@ -9635,23 +9690,8 @@ mxGraph.prototype.isAutoSizeCells = function()
  * 
  * Specifies if cell sizes should be automatically updated after a label
  * change. This implementation sets <autoSizeCells> to the given parameter.
- * 
- * To update the cells sizes when cells are added, use the code below.
- * 
- * (code)
- * graph.addListener('cellsAdded', function(sender, evt)
- * {
- *   var cells = evt.getProperty('cells');
- *   
- *   for (var i = 0; i < cells.length; i++)
- *   {
- *     if (graph.getModel().isVertex(cells[i]) && graph.isAutoSizeCell(cells[i]))
- *     {
- *       graph.updateCellSize(cells[i]);
- *     }
- *   }
- * });
- * (end)
+ * To update the size of cells when the cells are added, set
+ * <autoSizeCellsOnAdd> to true.
  * 
  * Parameters:
  * 
@@ -11503,19 +11543,10 @@ mxGraph.prototype.isEventIgnored = function(evtName, me, sender)
 		result = true;
 	}
 
-	// Workaround for IE9 standards mode ignoring tolerance for double clicks
-	if (!mxEvent.isPopupTrigger(this.lastEvent) && mxClient.IS_IE && document.compatMode == 'CSS1Compat' &&
-		evtName != mxEvent.MOUSE_MOVE && me.getEvent().detail == 2)
+	// Never fires mouseUp/-Down for double clicks
+	if (!mxEvent.isPopupTrigger(this.lastEvent) && evtName != mxEvent.MOUSE_MOVE && this.lastEvent.detail == 2)
 	{
-		if (this.lastMouseX != null && Math.abs(this.lastMouseX - me.getX()) <= this.doubleTapTolerance &&
-			this.lastMouseY != null && Math.abs(this.lastMouseY - me.getY()) <= this.doubleTapTolerance)
-		{
-			result = true;
-		}
-	}
-	else if (!mxEvent.isPopupTrigger(this.lastEvent) && evtName != mxEvent.MOUSE_MOVE && this.lastEvent.detail == 2)
-	{
-		result = true;
+		return true;
 	}
 	
 	// Filters out of sequence events or mixed event types during a gesture

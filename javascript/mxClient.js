@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.2.0.3.
+	 * Current version is 2.2.0.4.
 	 */
-	VERSION: '2.2.0.3',
+	VERSION: '2.2.0.4',
 
 	/**
 	 * Variable: IS_IE
@@ -546,7 +546,7 @@ if (mxClient.IS_VML)
 }
 
 /**
- * $Id: mxLog.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
+ * $Id: mxLog.js,v 1.2 2013/10/22 06:40:48 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxLog =
@@ -725,8 +725,9 @@ var mxLog =
 			mxLog.window.destroyOnClose = false;
 			
 			// Workaround for ignored textarea height in various setups
-			if ((mxClient.IS_NS || mxClient.IS_IE) && !mxClient.IS_GC &&
-				!mxClient.IS_SF && document.compatMode != 'BackCompat')
+			if (((mxClient.IS_NS || mxClient.IS_IE) && !mxClient.IS_GC &&
+				!mxClient.IS_SF && document.compatMode != 'BackCompat') ||
+				document.documentMode == 11)
 			{
 				var elt = mxLog.window.getElement();
 				
@@ -5906,7 +5907,7 @@ var mxUtils =
 
 };
 /**
- * $Id: mxConstants.js,v 1.13 2013/05/23 10:29:43 gaudenz Exp $
+ * $Id: mxConstants.js,v 1.14 2013/10/22 08:18:24 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
  var mxConstants =
@@ -6704,6 +6705,13 @@ var mxUtils =
 	 * values are all HTML color names or HEX codes. Default is no background.
 	 */
 	STYLE_SWIMLANE_FILLCOLOR: 'swimlaneFillColor',
+
+	/**
+	 * Variable: STYLE_MARGIN
+	 * 
+	 * Defines the key for the margin. Possible values are all positive numbers.
+	 */
+	STYLE_MARGIN: 'margin',
 
 	/**
 	 * Variable: STYLE_GRADIENTCOLOR
@@ -8401,7 +8409,7 @@ mxEventSource.prototype.fireEvent = function(evt, sender)
 	}
 };
 /**
- * $Id: mxEvent.js,v 1.16 2013/09/08 21:57:05 gaudenz Exp $
+ * $Id: mxEvent.js,v 1.17 2013/10/22 06:56:09 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxEvent =
@@ -8849,7 +8857,8 @@ var mxEvent =
 	 */
 	isTouchEvent: function(evt)
 	{
-		return (evt.pointerType != null) ? evt.pointerType === evt.MSPOINTER_TYPE_TOUCH : evt.type.indexOf('touch') == 0;
+		return (evt.pointerType != null) ? (evt.pointerType == 'touch' || evt.pointerType ===
+			evt.MSPOINTER_TYPE_TOUCH) : evt.type.indexOf('touch') == 0;
 	},
 
 	/**
@@ -8859,7 +8868,8 @@ var mxEvent =
 	 */
 	isMouseEvent: function(evt)
 	{
-		return (evt.pointerType != null) ? evt.pointerType === evt.MSPOINTER_TYPE_MOUSE : evt.type.indexOf('mouse') == 0;
+		return (evt.pointerType != null) ? (evt.pointerType == 'mouse' || evt.pointerType ===
+			evt.MSPOINTER_TYPE_MOUSE) : evt.type.indexOf('mouse') == 0;
 	},
 	
 	/**
@@ -23059,15 +23069,36 @@ mxEllipse.prototype.paintVertexShape = function(c, x, y, w, h)
 	c.fillAndStroke();
 };
 /**
- * $Id: mxDoubleEllipse.js,v 1.5 2013/10/16 08:51:36 gaudenz Exp $
+ * $Id: mxDoubleEllipse.js,v 1.7 2013/10/22 08:18:24 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
  * Class: mxDoubleEllipse
  *
- * Extends <mxShape> to implement a double ellipse shape.
- * This shape is registered under <mxConstants.SHAPE_DOUBLE_ELLIPSE>
- * in <mxCellRenderer>.
+ * Extends <mxShape> to implement a double ellipse shape. This shape is
+ * registered under <mxConstants.SHAPE_DOUBLE_ELLIPSE> in <mxCellRenderer>.
+ * Use the following override to only fill the inner ellipse in this shape:
+ * 
+ * (code)
+ * mxDoubleEllipse.prototype.paintVertexShape = function(c, x, y, w, h)
+ * {
+ *   c.ellipse(x, y, w, h);
+ *   c.stroke();
+ *   
+ *   var inset = mxUtils.getValue(this.style, mxConstants.STYLE_MARGIN, Math.min(3 + this.strokewidth, Math.min(w / 5, h / 5)));
+ *   x += inset;
+ *   y += inset;
+ *   w -= 2 * inset;
+ *   h -= 2 * inset;
+ *   
+ *   if (w > 0 && h > 0)
+ *   {
+ *     c.ellipse(x, y, w, h);
+ *   }
+ *   
+ *   c.fillAndStroke();
+ * };
+ * (end)
  * 
  * Constructor: mxDoubleEllipse
  *
@@ -23110,7 +23141,18 @@ mxDoubleEllipse.prototype.vmlScale = 10;
  */
 mxDoubleEllipse.prototype.paintBackground = function(c, x, y, w, h)
 {
-	var inset = mxUtils.getValue(this.style, 'inset', Math.min(3 + this.strokewidth / 2, Math.min(w / 5, h / 5)));
+	c.ellipse(x, y, w, h);
+	c.fillAndStroke();
+};
+
+/**
+ * Function: paintForeground
+ * 
+ * Paints the foreground.
+ */
+mxDoubleEllipse.prototype.paintForeground = function(c, x, y, w, h)
+{
+	var inset = mxUtils.getValue(this.style, mxConstants.STYLE_MARGIN, Math.min(3 + this.strokewidth, Math.min(w / 5, h / 5)));
 	x += inset;
 	y += inset;
 	w -= 2 * inset;
@@ -23121,18 +23163,7 @@ mxDoubleEllipse.prototype.paintBackground = function(c, x, y, w, h)
 	{
 		c.ellipse(x, y, w, h);
 	}
-
-	c.fill();
-};
-
-/**
- * Function: paintForeground
- * 
- * Paints the foreground.
- */
-mxDoubleEllipse.prototype.paintForeground = function(c, x, y, w, h)
-{
-	c.ellipse(x, y, w, h);
+	
 	c.stroke();
 };
 /**
@@ -48271,7 +48302,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.52 2013/10/11 13:33:48 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.54 2013/10/22 10:42:22 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -49476,6 +49507,13 @@ mxGraph.prototype.cellsDisconnectable = true;
 mxGraph.prototype.autoSizeCells = false;
 
 /**
+ * Variable: autoSizeCellsOnAdd
+ * 
+ * Specifies if autoSize style should be applied when cells are added. Default is false.
+ */
+mxGraph.prototype.autoSizeCellsOnAdd = true;
+
+/**
  * Variable: autoScroll
  * 
  * Specifies if the graph should automatically scroll if the mouse goes near
@@ -49925,6 +49963,15 @@ mxGraph.prototype.collapseExpandResource = (mxClient.language != 'none') ? 'coll
 	
 	// Updates the size of the container for the current graph
 	this.sizeDidChange();
+	
+	// Hides tooltips and resets tooltip timer if mouse leaves container
+	mxEvent.addListener(container, 'mouseleave', mxUtils.bind(this, function()
+	{
+		if (this.tooltipHandler != null)
+		{
+			this.tooltipHandler.hide();
+		}
+	}));
 
 	// Automatic deallocation of memory
 	if (mxClient.IS_IE)
@@ -52658,6 +52705,11 @@ mxGraph.prototype.cellsAdded = function(cells, parent, index, source, target, ab
 					}
 
 					this.model.add(parent, cells[i], index + i);
+					
+					if (this.autoSizeCellsOnAdd)
+					{
+						this.autoSizeCell(cells[i], true);
+					}
 	
 					// Extends the parent or constrains the child
 					if (this.isExtendParentsOnAdd() && this.isExtendParent(cells[i]))
@@ -52691,6 +52743,40 @@ mxGraph.prototype.cellsAdded = function(cells, parent, index, source, target, ab
 		{
 			this.model.endUpdate();
 		}
+	}
+};
+
+/**
+ * Function: autoSizeCell
+ * 
+ * Removes the given cells from the graph including all connected edges if
+ * includeEdges is true. The change is carried out using <cellsRemoved>.
+ * This method fires <mxEvent.REMOVE_CELLS> while the transaction is in
+ * progress. The removed cells are returned as an array.
+ * 
+ * Parameters:
+ * 
+ * cell - <mxCells> to be resized.
+ * recurse - Optional boolean which specifies if all descendants should be
+ * autosized. Default is true.
+ */
+mxGraph.prototype.autoSizeCell = function(cell, recurse)
+{
+	recurse = (recurse != null) ? recurse : true;
+	
+	if (recurse)
+	{
+		var childCount = this.model.getChildCount(cell);
+		
+		for (var i = 0; i < childCount; i++)
+		{
+			this.autosizeCell(this.model.getChildAt(cell, i));
+		}
+	}
+
+	if (this.getModel().isVertex(cell) && this.isAutoSizeCell(cell))
+	{
+		this.updateCellSize(cell);
 	}
 };
 
@@ -57907,23 +57993,8 @@ mxGraph.prototype.isAutoSizeCells = function()
  * 
  * Specifies if cell sizes should be automatically updated after a label
  * change. This implementation sets <autoSizeCells> to the given parameter.
- * 
- * To update the cells sizes when cells are added, use the code below.
- * 
- * (code)
- * graph.addListener('cellsAdded', function(sender, evt)
- * {
- *   var cells = evt.getProperty('cells');
- *   
- *   for (var i = 0; i < cells.length; i++)
- *   {
- *     if (graph.getModel().isVertex(cells[i]) && graph.isAutoSizeCell(cells[i]))
- *     {
- *       graph.updateCellSize(cells[i]);
- *     }
- *   }
- * });
- * (end)
+ * To update the size of cells when the cells are added, set
+ * <autoSizeCellsOnAdd> to true.
  * 
  * Parameters:
  * 
@@ -59775,19 +59846,10 @@ mxGraph.prototype.isEventIgnored = function(evtName, me, sender)
 		result = true;
 	}
 
-	// Workaround for IE9 standards mode ignoring tolerance for double clicks
-	if (!mxEvent.isPopupTrigger(this.lastEvent) && mxClient.IS_IE && document.compatMode == 'CSS1Compat' &&
-		evtName != mxEvent.MOUSE_MOVE && me.getEvent().detail == 2)
+	// Never fires mouseUp/-Down for double clicks
+	if (!mxEvent.isPopupTrigger(this.lastEvent) && evtName != mxEvent.MOUSE_MOVE && this.lastEvent.detail == 2)
 	{
-		if (this.lastMouseX != null && Math.abs(this.lastMouseX - me.getX()) <= this.doubleTapTolerance &&
-			this.lastMouseY != null && Math.abs(this.lastMouseY - me.getY()) <= this.doubleTapTolerance)
-		{
-			result = true;
-		}
-	}
-	else if (!mxEvent.isPopupTrigger(this.lastEvent) && evtName != mxEvent.MOUSE_MOVE && this.lastEvent.detail == 2)
-	{
-		result = true;
+		return true;
 	}
 	
 	// Filters out of sequence events or mixed event types during a gesture

@@ -1,5 +1,5 @@
 /**
- * $Id: mxLog.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
+ * $Id: mxLog.js,v 1.2 2013/10/22 06:40:48 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxLog =
@@ -178,8 +178,9 @@ var mxLog =
 			mxLog.window.destroyOnClose = false;
 			
 			// Workaround for ignored textarea height in various setups
-			if ((mxClient.IS_NS || mxClient.IS_IE) && !mxClient.IS_GC &&
-				!mxClient.IS_SF && document.compatMode != 'BackCompat')
+			if (((mxClient.IS_NS || mxClient.IS_IE) && !mxClient.IS_GC &&
+				!mxClient.IS_SF && document.compatMode != 'BackCompat') ||
+				document.documentMode == 11)
 			{
 				var elt = mxLog.window.getElement();
 				

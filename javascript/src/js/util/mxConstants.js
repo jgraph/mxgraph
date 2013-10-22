@@ -1,5 +1,5 @@
 /**
- * $Id: mxConstants.js,v 1.13 2013/05/23 10:29:43 gaudenz Exp $
+ * $Id: mxConstants.js,v 1.14 2013/10/22 08:18:24 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
  var mxConstants =
@@ -797,6 +797,13 @@
 	 * values are all HTML color names or HEX codes. Default is no background.
 	 */
 	STYLE_SWIMLANE_FILLCOLOR: 'swimlaneFillColor',
+
+	/**
+	 * Variable: STYLE_MARGIN
+	 * 
+	 * Defines the key for the margin. Possible values are all positive numbers.
+	 */
+	STYLE_MARGIN: 'margin',
 
 	/**
 	 * Variable: STYLE_GRADIENTCOLOR

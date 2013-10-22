@@ -92,19 +92,17 @@
     <Content Include="Share.ashx" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Export.ashx" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="Config.ashx" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="NewExport.ashx" />
+    <Content Include="Export.ashx" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Backend.ashx" />
+    <Content Include="Echo.ashx" />
     <None Include="Properties\PublishProfiles\localhost.pubxml" />
   </ItemGroup>
   <PropertyGroup>

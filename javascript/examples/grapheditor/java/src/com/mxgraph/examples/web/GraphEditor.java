@@ -30,7 +30,7 @@ public class GraphEditor
 
 		// Servlets
 		Context context = new Context(server, "/");
-		context.addServlet(new ServletHolder(new SaveServlet()), "/save");
+		context.addServlet(new ServletHolder(new EchoServlet()), "/save");
 		context.addServlet(new ServletHolder(new ExportServlet()), "/export");
 		context.addServlet(new ServletHolder(new OpenServlet()), "/open");
 
@@ -41,7 +41,7 @@ public class GraphEditor
 		handlers.setHandlers(new Handler[] { fileHandler, context });
 		server.setHandler(handlers);
 
-		System.out.println("Go to http://localhost:8080/javascript/examples/grapheditor/www/index.html");
+		System.out.println("Go to http://localhost:" + PORT + "/javascript/examples/grapheditor/www/index.html");
 		
 		server.start();
 		server.join();

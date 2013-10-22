@@ -1,4 +1,3 @@
-// Use http://centricle.com/tools/ascii-hex/ for hex codes
 urlHelp=help/index.html
 lastSaved=Last Saved
 currentFile=Current File
@@ -68,7 +67,7 @@ toggleShadow=Shadow
 openHref=Open URL
 show=Show
 exportImage=Export Image
-newExportImage=Export Image (New)
+exportSvg=Export SVG
 changesLost=All changes will be lost!
 swimlanes=Swimlanes
 travelBooking=Travel Booking

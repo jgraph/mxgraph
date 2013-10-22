@@ -1,13 +1,34 @@
 /**
- * $Id: mxDoubleEllipse.js,v 1.5 2013/10/16 08:51:36 gaudenz Exp $
+ * $Id: mxDoubleEllipse.js,v 1.7 2013/10/22 08:18:24 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
  * Class: mxDoubleEllipse
  *
- * Extends <mxShape> to implement a double ellipse shape.
- * This shape is registered under <mxConstants.SHAPE_DOUBLE_ELLIPSE>
- * in <mxCellRenderer>.
+ * Extends <mxShape> to implement a double ellipse shape. This shape is
+ * registered under <mxConstants.SHAPE_DOUBLE_ELLIPSE> in <mxCellRenderer>.
+ * Use the following override to only fill the inner ellipse in this shape:
+ * 
+ * (code)
+ * mxDoubleEllipse.prototype.paintVertexShape = function(c, x, y, w, h)
+ * {
+ *   c.ellipse(x, y, w, h);
+ *   c.stroke();
+ *   
+ *   var inset = mxUtils.getValue(this.style, mxConstants.STYLE_MARGIN, Math.min(3 + this.strokewidth, Math.min(w / 5, h / 5)));
+ *   x += inset;
+ *   y += inset;
+ *   w -= 2 * inset;
+ *   h -= 2 * inset;
+ *   
+ *   if (w > 0 && h > 0)
+ *   {
+ *     c.ellipse(x, y, w, h);
+ *   }
+ *   
+ *   c.fillAndStroke();
+ * };
+ * (end)
  * 
  * Constructor: mxDoubleEllipse
  *
@@ -50,7 +71,18 @@ mxDoubleEllipse.prototype.vmlScale = 10;
  */
 mxDoubleEllipse.prototype.paintBackground = function(c, x, y, w, h)
 {
-	var inset = mxUtils.getValue(this.style, 'inset', Math.min(3 + this.strokewidth / 2, Math.min(w / 5, h / 5)));
+	c.ellipse(x, y, w, h);
+	c.fillAndStroke();
+};
+
+/**
+ * Function: paintForeground
+ * 
+ * Paints the foreground.
+ */
+mxDoubleEllipse.prototype.paintForeground = function(c, x, y, w, h)
+{
+	var inset = mxUtils.getValue(this.style, mxConstants.STYLE_MARGIN, Math.min(3 + this.strokewidth, Math.min(w / 5, h / 5)));
 	x += inset;
 	y += inset;
 	w -= 2 * inset;
@@ -61,17 +93,6 @@ mxDoubleEllipse.prototype.paintBackground = function(c, x, y, w, h)
 	{
 		c.ellipse(x, y, w, h);
 	}
-
-	c.fill();
-};
-
-/**
- * Function: paintForeground
- * 
- * Paints the foreground.
- */
-mxDoubleEllipse.prototype.paintForeground = function(c, x, y, w, h)
-{
-	c.ellipse(x, y, w, h);
+	
 	c.stroke();
 };

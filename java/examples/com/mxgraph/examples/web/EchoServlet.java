@@ -1,5 +1,5 @@
 /**
- * $Id: SaveServlet.java,v 1.1 2012/11/15 13:26:49 gaudenz Exp $
+ * $Id: EchoServlet.java,v 1.1 2013/10/21 14:24:42 gaudenz Exp $
  * Copyright (c) 2011-2012, JGraph Ltd
  */
 package com.mxgraph.examples.web;
@@ -25,7 +25,7 @@ import javax.servlet.http.HttpServletResponse;
  * this servlet echoes the XML and sends it back to the client with the
  * required headers (see Content-Disposition in RFC 2183).
  */
-public class SaveServlet extends HttpServlet
+public class EchoServlet extends HttpServlet
 {
 
 	/**
@@ -44,6 +44,15 @@ public class SaveServlet extends HttpServlet
 			String filename = request.getParameter("filename");
 			String xml = request.getParameter("xml");
 
+			if (filename != null)
+			{
+				filename = URLDecoder.decode(filename, "UTF-8");
+			}
+			else
+			{
+				filename = "export";
+			}
+			
 			if (xml != null && xml.length() > 0)
 			{
 				String format = request.getParameter("format");
