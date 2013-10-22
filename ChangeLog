@@ -1,3 +1,16 @@
+22-OCT-2013: 2.2.0.4
+
+- Fixes rubberband trigger in IE9 for double click outside tolerance [JavaScript]
+- Hides tooltips if mouse leaves container in mxGraph.init [JavaScript]
+- Restores double ellips shape, adds documentation for override [JavaScript] 
+- Adds mxConstants.STYLE_MARGIN for double ellipse shape [JavaScript]
+- Fixes mxEvent.isTouch/MouseEvent for IE11 [JavaScript]
+- Fixes textarea height in mxLog for IE11 [JavaScript]
+- Uses same backend for grapheditor.html and diagrameditor.html example [Java]
+- Adds SVG export, fixes blocked popup in diagrameditor.html example [JavaScript]
+- Removes old image export from diagrameditor.html example [JavaScript]
+- Adds mxGraph.prototype.autoSizeCellsOnAdd switch [JavaScript]
+
 16-OCT-2013: 2.2.0.3
 
 - Fixes duplicate labels in IE9 print preview, print preview in IE11 [JavaScript]

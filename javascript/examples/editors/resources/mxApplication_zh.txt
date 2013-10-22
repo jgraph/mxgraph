@@ -68,6 +68,7 @@ toggleShadow=Shadow
 openHref=Open URL
 show=%u663e%u793a
 exportImage=Export Image
+exportSvg=Export SVG
 changesLost=All changes will be lost!
 swimlanes=Swimlanes
 travelBooking=Travel Booking

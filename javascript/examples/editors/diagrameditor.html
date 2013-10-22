@@ -7,7 +7,27 @@
 		#page { background: url("images/draw/drawbg.jpg") repeat-y top; border: none; }
 	</style>
 	<script type="text/javascript">
-		mxBasePath = '../../src';
+		var mxBasePath = '../../src';
+		
+		var urlParams = (function(url)
+		{
+			var result = new Object();
+			var params = window.location.search.slice(1).split('&');
+			
+			for (var i = 0; i < params.length; i++)
+			{
+				idx = params[i].indexOf('=');
+				
+				if (idx > 0)
+				{
+					result[params[i].substring(0, idx)] = params[i].substring(idx + 1);
+				}
+			}
+			
+			return result;
+		})(window.location.href);
+		
+		var mxLanguage = urlParams['lang'];
 	</script>
 	<script type="text/javascript" src="../../src/js/mxClient.js"></script>
 	<script type="text/javascript" src="js/mxApplication.js"></script>
@@ -147,43 +167,6 @@
 			
 			editor.addAction('switchView', funct);
 			
-			// Client-side code for new image export
-			var newExportImage = function(editor)
-			{
-				if (editor.urlImage != null)
-				{
-					var graph = editor.graph;
-					var scale = graph.view.scale;
-					var bounds = graph.getGraphBounds();
-					
-					// New image export
-					var xmlDoc = mxUtils.createXmlDocument();
-					var root = xmlDoc.createElement('output');
-					xmlDoc.appendChild(root);
-					
-					// Renders graph. Offset will be multiplied with state's scale when painting state.
-					var xmlCanvas = new mxXmlCanvas2D(root);
-					xmlCanvas.translate(Math.floor((1 / scale - bounds.x) / scale), Math.floor((1 / scale - bounds.y) / scale));
-					
-					var imgExport = new mxImageExport();
-					imgExport.drawState(graph.getView().getState(graph.model.root), xmlCanvas);
-					   
-					// Puts request data together
-					var filename = 'export.png';
-					var format = 'png';
-					var bg = '#FFFFFF';
-					var w = Math.ceil(bounds.width + 2);
-					var h = Math.ceil(bounds.height + 2);
-					var xml = mxUtils.getXml(root);
-					
-					new mxXmlRequest('/New' + editor.urlImage.substring(1), 'filename=' + filename +
-						'&format=' + format + '&bg=' + bg + '&w=' + w + '&h=' + h + '&xml=' +
-						encodeURIComponent(xml)).simulate(document, '_blank');
-				}
-			};
-			
-			editor.addAction('newExportImage', newExportImage);
-			
 			// Defines a new action to switch between
 			// XML and graphical display
 			mxEvent.addListener(sourceInput, 'click', function()
@@ -193,7 +176,109 @@
 
 			// Create select actions in page
 			var node = document.getElementById('mainActions');
-			var buttons = ['group', 'delete', 'undo', 'print'];
+			var buttons = ['group', 'ungroup', 'cut', 'copy', 'paste', 'delete', 'undo', 'redo', 'print', 'show'];
+			
+			// Only adds image and SVG export if backend is available
+			// NOTE: The old image export in mxEditor is not used, the urlImage is used for the new export.
+			if (editor.urlImage != null)
+			{
+				// Client-side code for image export
+				var exportImage = function(editor)
+				{
+					var graph = editor.graph;
+					var scale = graph.view.scale;
+					var bounds = graph.getGraphBounds();
+					
+		        	// New image export
+					var xmlDoc = mxUtils.createXmlDocument();
+					var root = xmlDoc.createElement('output');
+					xmlDoc.appendChild(root);
+					
+				    // Renders graph. Offset will be multiplied with state's scale when painting state.
+					var xmlCanvas = new mxXmlCanvas2D(root);
+					xmlCanvas.translate(Math.floor(1 / scale - bounds.x), Math.floor(1 / scale - bounds.y));
+					xmlCanvas.scale(scale);
+					
+					var imgExport = new mxImageExport();
+				    imgExport.drawState(graph.getView().getState(graph.model.root), xmlCanvas);
+				    
+					// Puts request data together
+					var w = Math.ceil(bounds.width * scale + 2);
+					var h = Math.ceil(bounds.height * scale + 2);
+					var xml = mxUtils.getXml(root);
+					
+					// Requests image if request is valid
+					if (w > 0 && h > 0)
+					{
+						var name = 'export.png';
+						var format = 'png';
+						var bg = '&bg=#FFFFFF';
+						
+						new mxXmlRequest(editor.urlImage, 'filename=' + name + '&format=' + format +
+		        			bg + '&w=' + w + '&h=' + h + '&xml=' + encodeURIComponent(xml)).
+		        			simulate(document, '_blank');
+					}
+				};
+				
+				editor.addAction('exportImage', exportImage);
+				
+				// Client-side code for SVG export
+				var exportSvg = function(editor)
+				{
+					var graph = editor.graph;
+					var scale = graph.view.scale;
+					var bounds = graph.getGraphBounds();
+
+				    // Prepares SVG document that holds the output
+				    var svgDoc = mxUtils.createXmlDocument();
+				    var root = (svgDoc.createElementNS != null) ?
+				    	svgDoc.createElementNS(mxConstants.NS_SVG, 'svg') : svgDoc.createElement('svg');
+				    
+					if (root.style != null)
+					{
+						root.style.backgroundColor = '#FFFFFF';
+					}
+					else
+					{
+						root.setAttribute('style', 'background-color:#FFFFFF');
+					}
+				    
+				    if (svgDoc.createElementNS == null)
+				    {
+				    	root.setAttribute('xmlns', mxConstants.NS_SVG);
+				    }
+				    
+				    root.setAttribute('width', Math.ceil(bounds.width * scale + 2) + 'px');
+				    root.setAttribute('height', Math.ceil(bounds.height * scale + 2) + 'px');
+				    root.setAttribute('xmlns:xlink', mxConstants.NS_XLINK);
+				    root.setAttribute('version', '1.1');
+				    
+				    // Adds group for anti-aliasing via transform
+				    var group = (svgDoc.createElementNS != null) ?
+					    	svgDoc.createElementNS(mxConstants.NS_SVG, 'g') : svgDoc.createElement('g');
+					group.setAttribute('transform', 'translate(0.5,0.5)');
+					root.appendChild(group);
+				    svgDoc.appendChild(root);
+
+				    // Renders graph. Offset will be multiplied with state's scale when painting state.
+				    var svgCanvas = new mxSvgCanvas2D(group);
+				    svgCanvas.translate(Math.floor(1 / scale - bounds.x), Math.floor(1 / scale - bounds.y));
+				    svgCanvas.scale(scale);
+				    
+				    var imgExport = new mxImageExport();
+				    imgExport.drawState(graph.getView().getState(graph.model.root), svgCanvas);
+
+					var name = 'export.svg';
+				    var xml = encodeURIComponent(mxUtils.getXml(root));
+					
+					new mxXmlRequest(editor.urlEcho, 'filename=' + name + '&format=svg' + '&xml=' + xml).simulate(document, "_blank");
+				};
+				
+				editor.addAction('exportSvg', exportSvg);
+				
+				buttons.push('exportImage');
+				buttons.push('exportSvg');
+			};
 			
 			for (var i = 0; i < buttons.length; i++)
 			{
@@ -211,37 +296,6 @@
 				mxEvent.addListener(button, 'click', factory(buttons[i]));
 				node.appendChild(button);
 			}
-
-			var select = document.createElement('select');
-			var option = document.createElement('option');
-			mxUtils.writeln(option, 'More Actions...');
-			select.appendChild(option);
-
-			var items = ['redo', 'ungroup', 'cut', 'copy', 'paste', 'show', 'exportImage', 'newExportImage'];
-
-			for (var i=0; i<items.length; i++)
-			{
-				var option = document.createElement('option');
-				mxUtils.writeln(option, mxResources.get(items[i]));
-				option.setAttribute('value', items[i]);
-				select.appendChild(option);
-			}
-			
-			mxEvent.addListener(select, 'change', function(evt)
-			{
-				if (select.selectedIndex > 0)
-				{
-					var option = select.options[select.selectedIndex];
-					select.selectedIndex = 0;
-				
-					if (option.value != null)
-					{
-						editor.execute(option.value);
-					}
-				}
-			});
-			
-			node.appendChild(select);
 
 			// Create select actions in page
 			var node = document.getElementById('selectActions');

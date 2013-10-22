@@ -1,5 +1,5 @@
 /**
- * $Id: Backend.java,v 1.2 2013/09/26 12:12:31 gaudenz Exp $
+ * $Id: Backend.java,v 1.3 2013/10/21 14:24:41 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.examples.web;
@@ -96,7 +96,6 @@ public class Backend extends HttpServlet
 	 */
 	public static void main(String[] args) throws Exception
 	{
-		System.out.println("Point your browser to localhost:" + PORT);
 		Server server = new Server(PORT);
 
 		// Servlets
@@ -111,6 +110,7 @@ public class Backend extends HttpServlet
 				fileHandler, context, new DefaultHandler() });
 		server.setHandler(handlers);
 
+		System.out.println("Go to http://localhost:" + PORT + "/");
 		server.start();
 		server.join();
 	}

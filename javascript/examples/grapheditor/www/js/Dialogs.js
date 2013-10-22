@@ -1,5 +1,5 @@
 /**
- * $Id: Dialogs.js,v 1.10 2013/08/20 12:10:41 gaudenz Exp $
+ * $Id: Dialogs.js,v 1.11 2013/10/21 12:20:38 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -1180,7 +1180,6 @@ function ExportDialog(editorUi)
 						bg = '&bg=' + backgroundInput.value;
 					}
 					
-					// NOTE: Overridden request parameter name for Amazon export (plain=xml)
 					new mxXmlRequest(EXPORT_URL, 'filename=' + name + '&format=' + format +
 	        			bg + '&w=' + w + '&h=' + h + '&xml=' + encodeURIComponent(xml)).
 	        			simulate(document, '_blank');

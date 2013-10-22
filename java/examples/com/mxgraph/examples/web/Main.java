@@ -26,6 +26,12 @@ public class Main
 	public static void main(String[] args) throws Exception
 	{
 		Server server = new Server(PORT);
+		
+		// Static file handler
+		Context fileContext = new Context(server, "/mxgraph", Context.SESSIONS);
+		ResourceHandler fileHandler = new ResourceHandler();
+		fileHandler.setResourceBase(".");
+		fileContext.setHandler(fileHandler);
 
 		// Servlets
 		Context context = new Context(server, "/", Context.SESSIONS);
@@ -33,21 +39,19 @@ public class Main
 		context.addServlet(new ServletHolder(new Roundtrip()), "/Roundtrip");
 		context.addServlet(new ServletHolder(new Share()), "/Share");
 		context.addServlet(new ServletHolder(new ServerView()), "/ServerView");
-		context.addServlet(new ServletHolder(new Export()), "/Export");
-		context.addServlet(new ServletHolder(new NewExport()), "/NewExport");
+		context.addServlet(new ServletHolder(new ExportServlet()), "/Export");
+		context.addServlet(new ServletHolder(new EchoServlet()), "/Echo");
 		context.addServlet(new ServletHolder(new Deploy()), "/Deploy");
 		context.addServlet(new ServletHolder(new Link()), "/Link");
 		context.addServlet(new ServletHolder(new EmbedImage()), "/EmbedImage");
-		
-		// Static file handler. How can we use "." base path with /mxgraph context?
-		ResourceHandler fileHandler = new ResourceHandler();
-		fileHandler.setResourceBase("..");
 
 		HandlerList handlers = new HandlerList();
 		handlers.setHandlers(new Handler[] { new RedirectHandler(),
-				fileHandler, context, new DefaultHandler() });
+				fileContext, context, new DefaultHandler() });
 		server.setHandler(handlers);
 
+		System.out.println("Go to http://localhost:" + PORT + "/");
+		
 		server.start();
 		server.join();
 	}
