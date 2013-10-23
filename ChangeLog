@@ -1,3 +1,8 @@
+23-OCT-2013: 2.2.0.5
+
+- Fixes mxGraph.prototype.autoSizeCell [JavaScript]
+- Removes old ExtJs-based grapheditor example [JavaScript]
+
 22-OCT-2013: 2.2.0.4
 
 - Fixes rubberband trigger in IE9 for double click outside tolerance [JavaScript]
