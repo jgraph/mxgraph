@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.2.0.4.
+	 * Current version is 2.2.0.5.
 	 */
-	VERSION: '2.2.0.4',
+	VERSION: '2.2.0.5',
 
 	/**
 	 * Variable: IS_IE
@@ -48302,7 +48302,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.54 2013/10/22 10:42:22 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.55 2013/10/23 09:58:08 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -52770,7 +52770,7 @@ mxGraph.prototype.autoSizeCell = function(cell, recurse)
 		
 		for (var i = 0; i < childCount; i++)
 		{
-			this.autosizeCell(this.model.getChildAt(cell, i));
+			this.autoSizeCell(this.model.getChildAt(cell, i));
 		}
 	}
 

@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.54 2013/10/22 10:42:22 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.55 2013/10/23 09:58:08 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -4467,7 +4467,7 @@ mxGraph.prototype.autoSizeCell = function(cell, recurse)
 		
 		for (var i = 0; i < childCount; i++)
 		{
-			this.autosizeCell(this.model.getChildAt(cell, i));
+			this.autoSizeCell(this.model.getChildAt(cell, i));
 		}
 	}
 
