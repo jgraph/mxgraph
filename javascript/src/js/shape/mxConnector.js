@@ -1,6 +1,6 @@
 /**
- * $Id: mxConnector.js,v 1.7 2013/07/09 16:49:27 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxConnector.js,v 1.9 2013/10/28 08:45:04 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxConnector
@@ -111,36 +111,42 @@ mxConnector.prototype.paintCurvedLine = function(c, pts)
  */
 mxConnector.prototype.createMarker = function(c, pts, source)
 {
-	// Computes the norm and the inverse norm
+	var result = null;
 	var n = pts.length;
-	
 	var p0 = (source) ? pts[1] : pts[n - 2];
 	var pe = (source) ? pts[0] : pts[n - 1];
-	var count = 1;
 	
-	// Uses next non-overlapping point
-	while (count < n - 1 && Math.round(p0.x - pe.x) == 0 && Math.round(p0.y - pe.y) == 0)
+	if (p0 != null && pe != null)
 	{
-		p0 = (source) ? pts[1 + count] : pts[n - 2 - count];
-		count++;
+		var count = 1;
+		
+		// Uses next non-overlapping point
+		while (count < n - 1 && Math.round(p0.x - pe.x) == 0 && Math.round(p0.y - pe.y) == 0)
+		{
+			p0 = (source) ? pts[1 + count] : pts[n - 2 - count];
+			count++;
+		}
+	
+		// Computes the norm and the inverse norm
+		var dx = pe.x - p0.x;
+		var dy = pe.y - p0.y;
+	
+		var dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+		
+		var unitX = dx / dist;
+		var unitY = dy / dist;
+	
+		var size = mxUtils.getNumber(this.style, (source) ? mxConstants.STYLE_STARTSIZE : mxConstants.STYLE_ENDSIZE, mxConstants.DEFAULT_MARKERSIZE);
+		
+		// Allow for stroke width in the end point used and the 
+		// orthogonal vectors describing the direction of the marker
+		var type = mxUtils.getValue(this.style, (source) ? mxConstants.STYLE_STARTARROW : mxConstants.STYLE_ENDARROW);
+		var filled = this.style[(source) ? mxConstants.STYLE_STARTFILL : mxConstants.STYLE_ENDFILL] != 0;
+		
+		result = mxMarker.createMarker(c, this, type, pe, unitX, unitY, size, source, this.strokewidth, filled);
 	}
-
-	var dx = pe.x - p0.x;
-	var dy = pe.y - p0.y;
-
-	var dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
 	
-	var unitX = dx / dist;
-	var unitY = dy / dist;
-
-	var size = mxUtils.getNumber(this.style, (source) ? mxConstants.STYLE_STARTSIZE : mxConstants.STYLE_ENDSIZE, mxConstants.DEFAULT_MARKERSIZE);
-	
-	// Allow for stroke width in the end point used and the 
-	// orthogonal vectors describing the direction of the marker
-	var type = mxUtils.getValue(this.style, (source) ? mxConstants.STYLE_STARTARROW : mxConstants.STYLE_ENDARROW);
-	var filled = this.style[(source) ? mxConstants.STYLE_STARTFILL : mxConstants.STYLE_ENDFILL] != 0;
-	
-	return mxMarker.createMarker(c, this, type, pe, unitX, unitY, size, source, this.strokewidth, filled);
+	return result;
 };
 
 /**

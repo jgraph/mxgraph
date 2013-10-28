@@ -1,6 +1,6 @@
 /**
- * $Id: mxVertexHandler.js,v 1.33 2013/10/11 13:31:32 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxVertexHandler.js,v 1.34 2013/10/28 08:45:07 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxVertexHandler

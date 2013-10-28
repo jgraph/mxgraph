@@ -1,6 +1,6 @@
 /**
- * $Id: mxUndoableEdit.js,v 1.3 2013/09/16 19:38:16 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxUndoableEdit.js,v 1.4 2013/10/28 08:44:59 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxUndoableEdit

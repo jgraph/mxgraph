@@ -1,6 +1,6 @@
 /**
- * $Id: mxEdgeHandler.js,v 1.18 2013/07/09 12:30:29 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxEdgeHandler.js,v 1.19 2013/10/28 08:45:07 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxEdgeHandler

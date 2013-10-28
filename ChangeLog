@@ -1,3 +1,20 @@
+28-OCT-2013: 2.3.0.0
+
+- Fixes repaint in mxShape when switch from HTML to VML dialect [JavaScript]
+- Adds optional width, height arguments in mxUtils.show [JavaScript]
+- Fixes handling of NaN in mxUtils.equalEntries, adds mxUtils.isNaN [JavaScript]
+- Removes mxCellRenderer.order(Edge), insertState [JavaScript]
+- Removes mxCellRenderer.get/findPreviousStateInContainer [JavaScript]
+- Replaces mxCellRenderer.initialize with lazy initialization [JavaScript]
+- Adds mxCellRenderer.insertStateAfter, getShapesForState, redrawShape [JavaScript]
+- Adds mxGraphView.stateValidated to implement DOM node order [JavaScript]
+- Removes orderChanged argument in mxGraphView.invalidate [JavaScript]
+- Removes mxCellState.invalidOrder, orderChanged flags [JavaScript]
+- Replaces check in mxGraphHandler with mxGraph.isEventSourceIgnored [JavaScript]
+- Changes default of mxGraph.keepEdgesInForeground to false [JavaScript]
+- Removes mxGraph.ordered, keepEdgesInBackground switches [JavaScript]
+- Removes dbeditor.html, extjs.html examples [JavaScript]
+
 23-OCT-2013: 2.2.0.5
 
 - Fixes mxGraph.prototype.autoSizeCell [JavaScript]

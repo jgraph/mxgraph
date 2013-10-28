@@ -1,6 +1,6 @@
 /**
- * $Id: mxLabel.js,v 1.9 2012/12/04 12:51:40 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxLabel.js,v 1.11 2013/10/28 08:45:04 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxLabel
@@ -70,15 +70,10 @@ mxLabel.prototype.init = function(container)
 {
 	mxShape.prototype.init.apply(this, arguments);
 
-	if (this.indicatorColor != null && this.indicatorShape != null)
+	if (this.indicatorShape != null)
 	{
 		this.indicator = new this.indicatorShape();
 		this.indicator.dialect = this.dialect;
-		this.indicator.bounds = this.bounds;
-		this.indicator.fill = this.indicatorColor;
-		this.indicator.stroke = this.indicatorColor;
-		this.indicator.gradient = this.indicatorGradientColor;
-		this.indicator.direction = this.indicatorDirection;
 		this.indicator.init(this.node);
 	}
 };

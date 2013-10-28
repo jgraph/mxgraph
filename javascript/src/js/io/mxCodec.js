@@ -1,6 +1,6 @@
 /**
- * $Id: mxCodec.js,v 1.2 2013/08/09 19:07:52 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxCodec.js,v 1.3 2013/10/28 08:45:02 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxCodec

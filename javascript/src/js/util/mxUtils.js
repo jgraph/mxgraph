@@ -1,6 +1,6 @@
 /**
- * $Id: mxUtils.js,v 1.18 2013/09/26 10:33:03 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxUtils.js,v 1.20 2013/10/28 08:44:59 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxUtils =
 {
@@ -1762,7 +1762,8 @@ var mxUtils =
 	/**
 	 * Function: equalEntries
 	 * 
-	 * Compares all entries in the given dictionaries.
+	 * Returns true if all entries of the given objects are equal. Values with
+	 * with Number.NaN are equal to Number.NaN and unequal to any other value.
 	 * 
 	 * Parameters:
 	 * 
@@ -1780,7 +1781,7 @@ var mxUtils =
 		{
 			for (var key in a)
 			{
-				if ((!isNaN(a[key]) || !isNaN(b[key])) && a[key] != b[key])
+				if ((!mxUtils.isNaN(a[key]) || !mxUtils.isNaN(b[key])) && a[key] != b[key])
 				{
 					return false;
 				}
@@ -1788,6 +1789,16 @@ var mxUtils =
 		}
 		
 		return true;
+	},
+	
+	/**
+	 * Function: isNaN
+	 *
+	 * Returns true if the given value is of type number and isNaN returns true.
+	 */
+	isNaN: function(value)
+	{
+		return typeof(value) == 'number' && isNaN(value);
 	},
 	
 	/**
@@ -3515,8 +3526,10 @@ var mxUtils =
 	 * doc - Document where the new graph is created.
 	 * x0 - X-coordinate of the graph view origin. Default is 0.
 	 * y0 - Y-coordinate of the graph view origin. Default is 0.
+	 * w - Optional width of the graph view.
+	 * h - Optional height of the graph view.
 	 */
-	show: function(graph, doc, x0, y0)
+	show: function(graph, doc, x0, y0, w, h)
 	{
 		x0 = (x0 != null) ? x0 : 0;
 		y0 = (y0 != null) ? y0 : 0;
@@ -3534,15 +3547,24 @@ var mxUtils =
 		var bounds = graph.getGraphBounds();
 		var dx = -bounds.x + x0;
 		var dy = -bounds.y + y0;
+		
+		if (w == null)
+		{
+			w = bounds.width + x0;
+		}
+		
+		if (h == null)
+		{
+			h = bounds.height + y0;
+		}
 
 		// Needs a special way of creating the page so that no click is required
 		// to refresh the contents after the external CSS styles have been loaded.
 		// To avoid a click or programmatic refresh, the styleSheets[].cssText
 		// property is copied over from the original document.
-		if (mxClient.IS_IE)
+		if (mxClient.IS_IE || document.documentMode == 11)
 		{
-			var html = '<html>';
-			html += '<head>';
+			var html = '<html><head>';
 
 			var base = document.getElementsByTagName('base');
 			
@@ -3566,93 +3588,68 @@ var mxUtils =
 				}
 			}
 
-			html += '</style>';
-
-			html += '</head>';
-			html += '<body>';
+			html += '</style></head><body>';
 			
 			// Copies the contents of the graph container
+			html += '<div style="position:absolute;overflow:hidden;width:' + w + 'px;height:' + h + 'px;"><div style="position:relative;left:' + dx + 'px;top:' + dy + 'px;">';
 			html += graph.container.innerHTML;
-			
-			html += '</body>';
-			html += '<html>';
+			html += '</div></div></body><html>';
 
 			doc.writeln(html);
 			doc.close();
-
-			// Makes sure the inner container is on the top, left
-		    var node = doc.body.getElementsByTagName('DIV')[0];
-		    
-		    if (node != null)
-		    {
-			    node.style.position = 'absolute';
-			    node.style.left = dx + 'px';
-			    node.style.top = dy + 'px';
-		    }
 		}
 		else
 		{
-			doc.writeln('<html');
-			doc.writeln('<head>');
+			doc.writeln('<html><head>');
 			
 			var base = document.getElementsByTagName('base');
 			
-			for (var i=0; i<base.length; i++)
+			for (var i = 0; i < base.length; i++)
 			{
 				doc.writeln(mxUtils.getOuterHtml(base[i]));
 			}
 			
 			var links = document.getElementsByTagName('link');
 			
-			for (var i=0; i<links.length; i++)
+			for (var i = 0; i < links.length; i++)
 			{
 				doc.writeln(mxUtils.getOuterHtml(links[i]));
 			}
 	
 			var styles = document.getElementsByTagName('style');
 			
-			for (var i=0; i<styles.length; i++)
+			for (var i = 0; i < styles.length; i++)
 			{
 				doc.writeln(mxUtils.getOuterHtml(styles[i]));
 			}
 
-			doc.writeln('</head>');
-			doc.writeln('</html>');
+			doc.writeln('</head><body></body></html>');
 			doc.close();
-			
-			// Workaround for FF2 which has no body element in a document where
-			// the body has been added using document.write.
-			if (doc.body == null)
-			{
-				doc.documentElement.appendChild(doc.createElement('body'));
-			}
-			
-			// Workaround for missing scrollbars in FF
-			doc.body.style.overflow = 'auto';
-			
+
+			var outer = doc.createElement('div');
+			outer.position = 'absolute';
+			outer.overflow = 'hidden';
+			outer.style.width = w + 'px';
+			outer.style.height = h + 'px';
+
+			var div = doc.createElement('div');
+			div.style.position = 'relative';
+			div.style.left = dx + 'px';
+			div.style.top = dy + 'px';
+
 			var node = graph.container.firstChild;
 			
 			while (node != null)
 			{
 				var clone = node.cloneNode(true);
-				doc.body.appendChild(clone);
+				div.appendChild(clone);
 				node = node.nextSibling;
 			}
-
-			// Shifts negative coordinates into visible space
-			var node = doc.getElementsByTagName('g')[0];
-
-			if (node != null)
-			{
-				node.setAttribute('transform', 'translate(' + dx + ',' + dy + ')');
-		    	
-		    	// Updates the size of the SVG container
-		    	var root = node.ownerSVGElement;
-				root.setAttribute('width', bounds.width + Math.max(bounds.x, 0) + 3);
-				root.setAttribute('height', bounds.height + Math.max(bounds.y, 0) + 3);
-			}
+			
+			outer.appendChild(div);
+			doc.body.appendChild(outer);
 		}
-	
+		
 		mxUtils.removeCursors(doc.body);
 	
 		return doc;

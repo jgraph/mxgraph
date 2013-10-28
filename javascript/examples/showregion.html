@@ -1,6 +1,6 @@
 <!--
-  $Id: showregion.html,v 1.3 2013/10/09 09:34:45 gaudenz Exp $
-  Copyright (c) 2006-2010, JGraph Ltd
+  $Id: showregion.html,v 1.5 2013/10/28 08:44:54 gaudenz Exp $
+  Copyright (c) 2006-2013, JGraph Ltd
   
   Showregion example for mxGraph. This example demonstrates using a custom
   rubberband handler to show the selected region in a new window.
@@ -99,28 +99,7 @@
 				    {
 						rubberband.popupMenu.hideMenu();
 						var bounds = graph.getGraphBounds();
-						var doc = mxUtils.show(graph, null, bounds.x - rubberband.x, bounds.y - rubberband.y);
-						
-						var svgs = doc.getElementsByTagName('svg');
-
-						if (svgs != null && svgs.length > 0)
-						{
-							svgs[0].style.width = rubberband.width + 'px';
-							svgs[0].style.height = rubberband.height + 'px';
-							svgs[0].style.minWidth = '';
-							svgs[0].style.minHeight = '';
-						}
-						else
-						{
-							var divs = doc.getElementsByTagName('div');
-							
-							if (divs != null && divs.length > 0)
-							{
-								divs[0].style.overflow = 'hidden';
-								divs[0].style.width = (rubberband.width + rubberband.x) + 'px';
-								divs[0].style.height = (rubberband.height + rubberband.y) + 'px';
-							}
-						}
+						mxUtils.show(graph, null, bounds.x - rubberband.x, bounds.y - rubberband.y, rubberband.width, rubberband.height);
 				    });
 				});
 				

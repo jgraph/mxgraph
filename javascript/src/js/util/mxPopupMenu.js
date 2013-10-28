@@ -1,20 +1,27 @@
 /**
- * $Id: mxPopupMenu.js,v 1.3 2012/12/03 15:46:33 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxPopupMenu.js,v 1.5 2013/10/28 08:44:58 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxPopupMenu
  * 
- * Event handler that pans and creates popupmenus. To use the left
- * mousebutton for panning without interfering with cell moving and
- * resizing, use <isUseLeftButton> and <isIgnoreCell>. For grid size
- * steps while panning, use <useGrid>. This handler is built-into
- * <mxGraph.panningHandler> and enabled using <mxGraph.setPanning>.
+ * Basic popup menu. To add a vertical scrollbar to a given submenu, the
+ * following code can be used.
+ * 
+ * (code)
+ * var elt = menu.addItem('Subitem 1', null, function()
+ * {
+ *   alert('Subitem 2');
+ * }, submenu1);
+ * 
+ * var container = elt.parentNode.parentNode.parentNode;
+ * container.style.overflowY = 'scroll';
+ * container.style.maxHeight = '160px';
+ * (end)
  * 
  * Constructor: mxPopupMenu
  * 
- * Constructs an event handler that creates a popupmenu. The
- * event handler is not installed anywhere in this ctor.
+ * Constructs a popupmenu.
  * 
  * Event: mxEvent.SHOW
  *

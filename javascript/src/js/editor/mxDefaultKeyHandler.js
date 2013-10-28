@@ -1,6 +1,6 @@
 /**
- * $Id: mxDefaultKeyHandler.js,v 1.1 2012/11/15 13:26:49 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxDefaultKeyHandler.js,v 1.2 2013/10/28 08:45:01 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxDefaultKeyHandler

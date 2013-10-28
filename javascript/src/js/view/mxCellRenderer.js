@@ -1,6 +1,6 @@
 /**
- * $Id: mxCellRenderer.js,v 1.29 2013/10/11 13:31:32 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxCellRenderer.js,v 1.31 2013/10/28 08:45:01 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxCellRenderer
@@ -112,59 +112,6 @@ mxCellRenderer.registerShape(mxConstants.SHAPE_IMAGE, mxImageShape);
 mxCellRenderer.registerShape(mxConstants.SHAPE_LABEL, mxLabel);
 
 /**
- * Function: initialize
- * 
- * Initializes the display for the given cell state. This is required once
- * after the cell state has been created. This is invoked in
- * mxGraphView.createState.
- * 
- * Parameters:
- * 
- * state - <mxCellState> for which the display should be initialized.
- * rendering - Optional boolean that specifies if the cell should actually
- * be initialized for any given DOM node. If this is false then init
- * will not be called on the shape.
- */
-mxCellRenderer.prototype.initialize = function(state, rendering)
-{
-	var model = state.view.graph.getModel();
-	
-	if (state.view.graph.container != null && state.shape == null &&
-		state.cell != state.view.currentRoot &&
-		(model.isVertex(state.cell) || model.isEdge(state.cell)))
-	{
-		this.createShape(state);
-		
-		if (state.shape != null && (rendering == null || rendering))
-		{
-			this.initializeShape(state);
-
-			// Maintains the model order in the DOM
-			if (state.view.graph.ordered || model.isEdge(state.cell))
-			{
-				state.invalidOrder = true;
-			}
-			else if (state.view.graph.keepEdgesInForeground && this.firstEdge != null)
-			{
-				if (this.firstEdge.parentNode == state.shape.node.parentNode)
-				{
-					this.insertState(state, this.firstEdge);
-				}
-				else
-				{
-					this.firstEdge = null;
-				}
-			}
-			
-			state.shape.scale = state.view.scale;
-			
-			this.createCellOverlays(state);
-			this.installListeners(state);
-		}
-	}
-};
-
-/**
  * Function: initializeShape
  * 
  * Initializes the shape in the given state by calling its init method with
@@ -176,167 +123,8 @@ mxCellRenderer.prototype.initialize = function(state, rendering)
  */
 mxCellRenderer.prototype.initializeShape = function(state)
 {
+	state.shape.dialect = state.view.graph.dialect;
 	state.shape.init(state.view.getDrawPane());
-};
-
-/**
- * Returns the previous state that has a shape inside the given parent.
- */
-mxCellRenderer.prototype.getPreviousStateInContainer = function(state, container)
-{
-	var result = null;
-	var graph = state.view.graph;
-	var model = graph.getModel();
-	var child = state.cell;
-	var p = model.getParent(child);
-	
-	while (p != null && result == null)
-	{
-		result = this.findPreviousStateInContainer(graph, p, child, container);
-		child = p;
-		p = model.getParent(child);
-	}
-	
-	return result;
-};
-
-/**
- * Returns the previous state that has a shape inside the given parent.
- */
-mxCellRenderer.prototype.findPreviousStateInContainer = function(graph, cell, stop, container)
-{
-	// Recurse first
-	var result = null;
-	var model = graph.getModel();
-	
-	if (stop != null)
-	{
-		var start = cell.getIndex(stop);
-		
-		for (var i = start - 1; i >= 0 && result == null; i--)
-		{
-			result = this.findPreviousStateInContainer(graph, model.getChildAt(cell, i), null, container);
-		}
-	}
-	else
-	{
-		var childCount = model.getChildCount(cell);
-
-		for (var i = childCount - 1; i >= 0 && result == null; i--)
-		{
-			result = this.findPreviousStateInContainer(graph, model.getChildAt(cell, i), null, container);
-		}
-	}
-	
-	if (result == null)
-	{
-		result = graph.view.getState(cell);
-
-		if (result != null && (result.shape == null || result.shape.node == null ||
-			result.shape.node.parentNode != container))
-		{
-			result = null;
-		}
-	}
-	
-	return result;
-};
-
-/**
- * Function: order
- * 
- * Orders the DOM node of the shape for the given state according to the
- * position of the corresponding cell in the graph model.
- * 
- * Parameters:
- * 
- * state - <mxCellState> whose shape's DOM node should be ordered.
- */
-mxCellRenderer.prototype.order = function(state)
-{
-	var container = state.shape.node.parentNode;
-	var previous = this.getPreviousStateInContainer(state, container);
-	var nextNode = container.firstChild;
-	
-	if (previous != null)
-	{
-		nextNode = previous.shape.node;
-		
-		if (previous.text != null && previous.text.node != null &&
-			previous.text.node.parentNode == container)
-		{
-			nextNode = previous.text.node;
-		}
-		
-		nextNode = nextNode.nextSibling;
-	}
-	
-	this.insertState(state, nextNode);
-};
-
-/**
- * Function: orderEdge
- * 
- * Orders the DOM node of the shape for the given edge's state according to
- * the <mxGraph.keepEdgesInBackground> and <mxGraph.keepEdgesInBackground>
- * rules. 
- * 
- * Parameters:
- *
- * state - <mxCellState> whose shape's DOM node should be ordered.
- */
-mxCellRenderer.prototype.orderEdge = function(state)
-{
-	var view = state.view;
-	var model = view.graph.getModel();
-	
-	// Moves edges to the foreground/background
-	if (view.graph.keepEdgesInForeground)
-	{
-		if (this.firstEdge == null || this.firstEdge.parentNode == null ||
-		  	this.firstEdge.parentNode != state.shape.node.parentNode)
-		{
-			this.firstEdge = state.shape.node;
-		}
-		
-		state.shape.node.parentNode.appendChild(state.shape.node);
-	}
-	else if (view.graph.keepEdgesInBackground)
-	{
-		var node = state.shape.node;
-		var parent = node.parentNode;
-		
-		// Keeps the DOM node in front of its parent
-		var pcell = model.getParent(state.cell);
-		var pstate = view.getState(pcell);
-		var child = (pstate != null && pstate.shape != null && pstate.shape.node != null) ?
-			pstate.shape.node.nextSibling : parent.firstChild;
-		
-		if (child != null && child != node)
-		{
-			this.insertState(state, child);
-		}
-	}
-};
-
-/**
- * Function: insertState
- * 
- * Inserts the given state before the given node into its parent.
- * 
- * Parameters:
- * 
- * state - <mxCellState> for which the shape should be created.
- */
-mxCellRenderer.prototype.insertState = function(state, nextNode)
-{
-	state.shape.node.parentNode.insertBefore(state.shape.node, nextNode);
-	
-	if (state.text != null && state.text.node != null &&
-		state.text.node.parentNode == state.shape.node.parentNode)
-	{
-		state.shape.node.parentNode.insertBefore(state.text.node, state.shape.node.nextSibling);
-	}
 };
 
 /**
@@ -368,14 +156,25 @@ mxCellRenderer.prototype.createShape = function(state)
 			state.shape = new ctor();
 		}
 
-		// Sets the initial bounds and points (will be updated in redraw)
-		state.shape.points = state.absolutePoints;
-		state.shape.bounds = new mxRectangle(
-			state.x, state.y, state.width, state.height);
-		state.shape.dialect = state.view.graph.dialect;
-
-		this.configureShape(state);
+		this.createIndicatorShape(state);
+		this.initializeShape(state);
+		this.createCellOverlays(state);
+		this.installListeners(state);
 	}
+};
+
+/**
+ * Function: createIndicatorShape
+ * 
+ * Creates the indicator shape for the given cell state.
+ * 
+ * Parameters:
+ * 
+ * state - <mxCellState> for which the indicator shape should be created.
+ */
+mxCellRenderer.prototype.createIndicatorShape = function(state)
+{
+	state.shape.indicatorShape = this.getShape(state.view.graph.getIndicatorShape(state));
 };
 
 /**
@@ -419,14 +218,11 @@ mxCellRenderer.prototype.configureShape = function(state)
 {
 	state.shape.apply(state);
 	state.shape.image = state.view.graph.getImage(state);
-	
-	// Configures the indicator shape or image
-	state.shape.indicatorShape = this.getShape(state.view.graph.getIndicatorShape(state));
 	state.shape.indicatorColor = state.view.graph.getIndicatorColor(state);
 	state.shape.indicatorGradientColor = state.view.graph.getIndicatorGradientColor(state);
 	state.shape.indicatorDirection = state.style[mxConstants.STYLE_INDICATOR_DIRECTION];
 	state.shape.indicatorImage = state.view.graph.getIndicatorImage(state);
-	
+
 	this.postConfigureShape(state);
 };
 
@@ -532,16 +328,13 @@ mxCellRenderer.prototype.createLabel = function(state, value)
 	var graph = state.view.graph;
 	var isEdge = graph.getModel().isEdge(state.cell);
 	
-	if (state.style[mxConstants.STYLE_FONTSIZE] > 0 ||
-		state.style[mxConstants.STYLE_FONTSIZE] == null)
+	if (state.style[mxConstants.STYLE_FONTSIZE] > 0 || state.style[mxConstants.STYLE_FONTSIZE] == null)
 	{
 		// Avoids using DOM node for empty labels
-		var isForceHtml = (graph.isHtmlLabel(state.cell) ||
-			(value != null && mxUtils.isNode(value)));
+		var isForceHtml = (graph.isHtmlLabel(state.cell) || (value != null && mxUtils.isNode(value)));
 
 		state.text = new this.defaultTextShape(value, new mxRectangle(),
-				(state.style[mxConstants.STYLE_ALIGN] ||
-					mxConstants.ALIGN_CENTER),
+				(state.style[mxConstants.STYLE_ALIGN] || mxConstants.ALIGN_CENTER),
 				graph.getVerticalAlign(state),
 				state.style[mxConstants.STYLE_FONTCOLOR],
 				state.style[mxConstants.STYLE_FONTFAMILY],
@@ -560,18 +353,15 @@ mxCellRenderer.prototype.createLabel = function(state, value)
 				state.style[mxConstants.STYLE_OVERFLOW],
 				state.style[mxConstants.STYLE_LABEL_PADDING]);
 		state.text.opacity = mxUtils.getValue(state.style, mxConstants.STYLE_TEXT_OPACITY, 100);
-		state.text.dialect = (isForceHtml) ?
-			mxConstants.DIALECT_STRICTHTML :
-			state.view.graph.dialect;
+		state.text.dialect = (isForceHtml) ? mxConstants.DIALECT_STRICTHTML : state.view.graph.dialect;
 		state.text.state = state;
 		this.initializeLabel(state);
 		
-		// Workaround for touch devices routing all events for a mouse
-		// gesture (down, move, up) via the initial DOM node. IE is even
-		// worse in that it redirects the event via the initial DOM node
-		// but the event source is the node under the mouse, so we need
-		// to check if this is the case and force getCellAt for the
-		// subsequent mouseMoves and the final mouseUp.
+		// Workaround for touch devices routing all events for a mouse gesture
+		// (down, move, up) via the initial DOM node. IE additionally redirects
+		// the event via the initial DOM node but the event source is the node
+		// under the mouse, so we need to check if this is the case and force
+		// getCellAt for the subsequent mouseMoves and the final mouseUp.
 		var forceGetCell = false;
 		
 		var getState = function(evt)
@@ -648,38 +438,13 @@ mxCellRenderer.prototype.createLabel = function(state, value)
  */
 mxCellRenderer.prototype.initializeLabel = function(state)
 {
-	var graph = state.view.graph;
-
-	if (state.text.dialect != mxConstants.DIALECT_SVG)
+	if (mxClient.IS_SVG && mxClient.NO_FO && state.text.dialect != mxConstants.DIALECT_SVG)
 	{
-		// Adds the text to the container if the dialect is not SVG and we
-		// have an SVG-based browser which doesn't support foreignObjects
-		if (mxClient.IS_SVG && mxClient.NO_FO)
-		{
-			state.text.init(graph.container);
-		}
-		else if (mxUtils.isVml(state.view.getDrawPane()))
-		{
-			if (state.shape.label != null)
-			{
-				state.text.init(state.shape.label);
-			}
-			else 
-			{
-				state.text.init(state.shape.node);
-			}
-		}
+		state.text.init(state.view.graph.container);
 	}
-
-	if (state.text.node == null)
+	else
 	{
 		state.text.init(state.view.getDrawPane());
-		
-		if (state.shape != null && state.text != null)
-		{
-			state.shape.node.parentNode.insertBefore(
-				state.text.node, state.shape.node.nextSibling);
-		}
 	}
 };
 
@@ -1416,6 +1181,70 @@ mxCellRenderer.prototype.getControlBounds = function(state)
 };
 
 /**
+ * Function: insertShapesAfter
+ * 
+ * Inserts the given array of <mxShapes> after the given nodes in the DOM.
+ * 
+ * Parameters:
+ * 
+ * shapes - Array of <mxShapes> to be inserted.
+ * node - Node in <drawPane> after which the shapes should be inserted.
+ * htmlNode - Node in the graph container after which the shapes should be inserted that
+ * will not go into the <drawPane> (eg. HTML labels without foreignObjects).
+ */
+mxCellRenderer.prototype.insertStateAfter = function(state, node, htmlNode)
+{
+	var shapes = this.getShapesForState(state);
+	
+	for (var i = 0; i < shapes.length; i++)
+	{
+		if (shapes[i] != null)
+		{
+			var html = shapes[i].node.parentNode == state.view.graph.container;
+			var temp = (html) ? htmlNode : node;
+			
+			if (temp != null && temp.nextSibling != shapes[i].node)
+			{
+				if (temp.nextSibling == null)
+				{
+					temp.parentNode.appendChild(shapes[i].node);
+				}
+				else
+				{
+					temp.parentNode.insertBefore(shapes[i].node, temp.nextSibling);
+				}
+			}
+			
+			if (html)
+			{
+				htmlNode = shapes[i].node;
+			}
+			else
+			{
+				node = shapes[i].node;
+			}
+		}
+	}
+
+	return [node, htmlNode];
+};
+
+/**
+ * Function: getShapesForState
+ * 
+ * Returns the <mxShapes> for the given cell state in the order in which they should
+ * appear in the DOM.
+ * 
+ * Parameters:
+ * 
+ * state - <mxCellState> whose shapes should be returned.
+ */
+mxCellRenderer.prototype.getShapesForState = function(state)
+{
+	return [state.shape, state.text];
+};
+
+/**
  * Function: redraw
  * 
  * Updates the bounds or points and scale of the shapes for the given cell
@@ -1433,62 +1262,66 @@ mxCellRenderer.prototype.getControlBounds = function(state)
  */
 mxCellRenderer.prototype.redraw = function(state, force, rendering)
 {
+	var shapeChanged = this.redrawShape(state, force, rendering);
+	
+	if (state.shape != null && (rendering == null || rendering))
+	{
+		this.redrawLabel(state, shapeChanged);
+		this.redrawCellOverlays(state, shapeChanged);
+		this.redrawControl(state, shapeChanged);
+	}
+};
+
+/**
+ * Function: redrawLabel
+ * 
+ * Redraws the label for the given cell state.
+ * 
+ * Parameters:
+ * 
+ * state - <mxCellState> whose label should be redrawn.
+ */
+mxCellRenderer.prototype.redrawShape = function(state, force, rendering)
+{
+	var shapeChanged = false;
+	var model = state.view.graph.getModel();
+
+	if (state.shape == null && state.view.graph.container != null && state.cell != state.view.currentRoot &&
+		(model.isVertex(state.cell) || model.isEdge(state.cell)))
+	{
+		this.createShape(state);
+	}
+	
 	if (state.shape != null)
 	{
-		var model = state.view.graph.getModel();
-		var shapeChanged = false;
-		var isEdge = model.isEdge(state.cell);
-		reconfigure = (force != null) ? force : false;
-		
 		// Handles changes of the collapse icon
 		this.createControl(state);
-		
-		// Handles changes to the order in the DOM
-		if (state.orderChanged || state.invalidOrder)
-		{
-			if (state.view.graph.ordered)
-			{
-				this.order(state);
-			}
-			else if (isEdge)
-			{
-				// Assert state.cell is edge
-				this.orderEdge(state);
-			}
-		}
-		
-		// Checks if the style in the state is different from the style
-		// in the shape and re-applies the style if required
-		if (state.orderChanged || !mxUtils.equalEntries(state.shape.style, state.style))
+
+		if (!mxUtils.equalEntries(state.shape.style, state.style))
 		{
 			this.configureShape(state);
 			force = true;
 		}
-
-		delete state.invalidOrder;
-		delete state.orderChanged;
-
+		
 		// Redraws the cell if required, ignores changes to bounds if points are
 		// defined as the bounds are updated for the given points inside the shape
 		if (force || state.shape.bounds == null || state.shape.scale != state.view.scale ||
 			(state.absolutePoints == null && !state.shape.bounds.equals(state)) ||
 			(state.absolutePoints != null && !mxUtils.equalPoints(state.shape.points, state.absolutePoints)))
 		{
-			shapeChanged = true;
-
 			if (state.absolutePoints != null)
 			{
 				state.shape.points = state.absolutePoints.slice();
+				state.shape.bounds = null;
 			}
 			else
 			{
 				state.shape.points = null;
+				state.shape.bounds = new mxRectangle(state.x, state.y, state.width, state.height);
 			}
-			
-			state.shape.bounds = new mxRectangle(
-				state.x, state.y, state.width, state.height);
-			state.shape.scale = state.view.scale;
 
+			state.shape.scale = state.view.scale;
+			
 			if (rendering == null || rendering)
 			{
 				state.shape.redraw();
@@ -1497,16 +1330,12 @@ mxCellRenderer.prototype.redraw = function(state, force, rendering)
 			{
 				state.shape.updateBoundingBox();
 			}
-		}
-		
-		// Updates the text label, overlays and control
-		if (rendering == null || rendering)
-		{
-			this.redrawLabel(state, shapeChanged);
-			this.redrawCellOverlays(state, shapeChanged);
-			this.redrawControl(state, shapeChanged);
+			
+			shapeChanged = true;
 		}
 	}
+
+	return shapeChanged;
 };
 
 /**

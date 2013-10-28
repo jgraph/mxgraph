@@ -1,6 +1,6 @@
 /**
- * $Id: mxGraphHierarchyNode.js,v 1.2 2013/07/29 15:58:20 david Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxGraphHierarchyNode.js,v 1.3 2013/10/28 08:45:05 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxGraphHierarchyNode

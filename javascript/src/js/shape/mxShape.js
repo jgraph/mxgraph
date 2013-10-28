@@ -1,6 +1,6 @@
 /**
-aaa * $Id: mxShape.js,v 1.47 2013/08/13 10:35:39 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+aaa * $Id: mxShape.js,v 1.49 2013/10/28 08:45:04 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxShape
@@ -318,8 +318,8 @@ mxShape.prototype.redraw = function()
 	
 	if (this.checkBounds())
 	{
-		this.node.style.visibility = '';
-
+		this.clear();
+		
 		if (this.node.nodeName == 'DIV' && this.isHtmlAllowed())
 		{
 			this.redrawHtmlShape();
@@ -335,6 +335,27 @@ mxShape.prototype.redraw = function()
 	{
 		this.node.style.visibility = 'hidden';
 		this.boundingBox = null;
+	}
+};
+
+/**
+ * Function: clear
+ * 
+ * Removes all child nodes and resets all CSS.
+ */
+mxShape.prototype.clear = function()
+{
+	if (this.node.ownerSVGElement != null)
+	{
+		while (this.node.lastChild != null)
+		{
+			this.node.removeChild(this.node.lastChild);
+		}
+	}
+	else
+	{
+		this.node.style.cssText = 'position:absolute;';
+		this.node.innerHTML = '';
 	}
 };
 
@@ -412,12 +433,6 @@ mxShape.prototype.redrawShape = function()
 
 	// Specifies if events should be handled
 	canvas.pointerEvents = this.pointerEvents;
-
-	// Removes all children
-	while(this.node.hasChildNodes())
-	{
-		this.node.removeChild(this.node.lastChild);
-	}
 
 	this.paint(canvas);
 
@@ -602,7 +617,10 @@ mxShape.prototype.paint = function(c)
 			
 			for (var i = 0; i < this.points.length; i++)
 			{
-				pts.push(new mxPoint(this.points[i].x / s, this.points[i].y / s));
+				if (this.points[i] != null)
+				{
+					pts.push(new mxPoint(this.points[i].x / s, this.points[i].y / s));
+				}
 			}
 
 			this.paintEdgeShape(c, pts);

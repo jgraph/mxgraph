@@ -1,6 +1,6 @@
 /**
- * $Id: mxDragSource.js,v 1.9 2013/06/28 18:10:23 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxDragSource.js,v 1.10 2013/10/28 08:44:59 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxDragSource

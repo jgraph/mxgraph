@@ -1,6 +1,6 @@
 /**
- * $Id: mxStencil.js,v 1.13 2013/08/13 10:35:39 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxStencil.js,v 1.14 2013/10/28 08:45:04 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxStencil

@@ -1,6 +1,6 @@
 <!--
-  $Id: contexticons.html,v 1.4 2013/06/20 14:00:53 gaudenz Exp $
-  Copyright (c) 2006-2010, JGraph Ltd
+  $Id: contexticons.html,v 1.6 2013/10/28 08:44:55 gaudenz Exp $
+  Copyright (c) 2006-2013, JGraph Ltd
   
   Context icons example for mxGraph. This example demonstrates adding
   icons to selected vertices to carry out special operations.
@@ -64,6 +64,7 @@
 
 			// Delete
 			var img = createImage('images/delete2.png');
+			img.setAttribute('title', 'Delete');
 			img.style.cursor = 'pointer';
 			img.style.width = '16px';
 			img.style.height = '16px';
@@ -85,6 +86,7 @@
 
 			// Size
 			var img = createImage('images/fit_to_size.png');
+			img.setAttribute('title', 'Resize');
 			img.style.cursor = 'se-resize';
 			img.style.width = '16px';
 			img.style.height = '16px';
@@ -101,6 +103,7 @@
 
 			// Move
 			var img = createImage('images/plus.png');
+			img.setAttribute('title', 'Move');
 			img.style.cursor = 'move';
 			img.style.width = '16px';
 			img.style.height = '16px';
@@ -119,6 +122,7 @@
 
 			// Connect
 			var img = createImage('images/check.png');
+			img.setAttribute('title', 'Connect');
 			img.style.cursor = 'pointer';
 			img.style.width = '16px';
 			img.style.height = '16px';

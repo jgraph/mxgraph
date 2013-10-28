@@ -1,6 +1,6 @@
 /**
- * $Id: mxSwimlane.js,v 1.17 2013/04/01 12:21:21 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxSwimlane.js,v 1.18 2013/10/28 08:45:03 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxSwimlane

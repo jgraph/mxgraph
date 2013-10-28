@@ -1,6 +1,6 @@
 /**
- * $Id: mxImageExport.js,v 1.3 2013/01/05 14:18:32 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxImageExport.js,v 1.4 2013/10/28 08:45:00 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxImageExport

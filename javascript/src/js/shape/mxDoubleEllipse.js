@@ -1,6 +1,6 @@
 /**
- * $Id: mxDoubleEllipse.js,v 1.7 2013/10/22 08:18:24 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxDoubleEllipse.js,v 1.8 2013/10/28 08:45:04 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxDoubleEllipse

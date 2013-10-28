@@ -1,6 +1,6 @@
 /**
- * $Id: mxText.js,v 1.57 2013/10/09 11:56:52 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxText.js,v 1.58 2013/10/28 08:45:04 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxText

@@ -1,6 +1,6 @@
 /**
- * $Id: mxResources.js,v 1.4 2013/05/04 20:17:09 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxResources.js,v 1.5 2013/10/28 08:44:58 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxResources =
 {
@@ -46,7 +46,7 @@ var mxResources =
 	 * 
 	 * To use unicode characters, use the standard notation (eg. \u8fd1) or %u as a
 	 * prefix (eg. %u20AC will display a Euro sign). For normal hex encoded strings,
-	 * use % as a prefix, eg. %F6 will display a � (&ouml;).
+	 * use % as a prefix, eg. %F6 will display a "o umlaut" (&ouml;).
 	 * 
 	 * See <resourcesEncoded> to disable this. If you disable this, make sure that
 	 * your files are UTF-8 encoded.

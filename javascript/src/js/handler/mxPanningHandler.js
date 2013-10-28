@@ -1,6 +1,6 @@
 /**
- * $Id: mxPanningHandler.js,v 1.8 2013/07/26 11:03:16 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxPanningHandler.js,v 1.9 2013/10/28 08:45:07 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxPanningHandler

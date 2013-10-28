@@ -1,6 +1,6 @@
 /**
- * $Id: mxCellOverlay.js,v 1.3 2012/12/06 15:59:00 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxCellOverlay.js,v 1.4 2013/10/28 08:45:01 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxCellOverlay

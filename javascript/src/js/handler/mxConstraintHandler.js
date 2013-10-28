@@ -1,6 +1,6 @@
 /**
- * $Id: mxConstraintHandler.js,v 1.5 2013/05/04 14:31:36 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxConstraintHandler.js,v 1.6 2013/10/28 08:45:07 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxConstraintHandler

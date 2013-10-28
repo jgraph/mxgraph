@@ -1,6 +1,6 @@
 /**
- * $Id: mxRhombus.js,v 1.2 2012/11/22 10:40:09 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxRhombus.js,v 1.3 2013/10/28 08:45:04 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxRhombus

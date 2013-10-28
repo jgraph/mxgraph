@@ -1,6 +1,6 @@
 /**
- * $Id: mxImageShape.js,v 1.9 2013/07/09 08:12:44 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxImageShape.js,v 1.10 2013/10/28 08:45:04 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxImageShape

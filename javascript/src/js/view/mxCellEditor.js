@@ -1,6 +1,6 @@
 /**
- * $Id: mxCellEditor.js,v 1.14 2013/08/21 09:16:37 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxCellEditor.js,v 1.15 2013/10/28 08:45:01 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxCellEditor

@@ -1,6 +1,6 @@
 /**
- * $Id: mxCellState.js,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxCellState.js,v 1.3 2013/10/28 08:45:00 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxCellState
@@ -71,22 +71,6 @@ mxCellState.prototype.style = null;
  * Specifies if the state is invalid. Default is true.
  */
 mxCellState.prototype.invalid = true;
-
-/**
- * Variable: invalidOrder
- * 
- * Specifies if the cell has an invalid order. For internal use. Default is
- * false.
- */
-mxCellState.prototype.invalidOrder = false;
-
-/**
- * Variable: orderChanged
- * 
- * Specifies if the cell has changed order and the display needs to be
- * updated.
- */
-mxCellState.prototype.orderChanged = false;
 
 /**
  * Variable: origin

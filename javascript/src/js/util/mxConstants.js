@@ -1,6 +1,6 @@
 /**
- * $Id: mxConstants.js,v 1.14 2013/10/22 08:18:24 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxConstants.js,v 1.15 2013/10/28 08:44:59 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
  var mxConstants =
  {

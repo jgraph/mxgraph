@@ -1,6 +1,6 @@
 /**
- * $Id: mxGraph.js,v 1.55 2013/10/23 09:58:08 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxGraph.js,v 1.57 2013/10/28 08:45:01 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxGraph
@@ -1208,7 +1208,7 @@ mxGraph.prototype.autoSizeCells = false;
  * 
  * Specifies if autoSize style should be applied when cells are added. Default is false.
  */
-mxGraph.prototype.autoSizeCellsOnAdd = true;
+mxGraph.prototype.autoSizeCellsOnAdd = false;
 
 /**
  * Variable: autoScroll
@@ -1306,33 +1306,15 @@ mxGraph.prototype.resizeContainer = false;
  * being resized after the graph has been changed. Default is 0.
  */
 mxGraph.prototype.border = 0;
-
-/**
- * Variable: ordered
- * 
- * Specifies if the display should reflect the order of the cells in
- * the model. Default is true. This has precendence over
- * <keepEdgesInBackground> and <keepEdgesInForeground>.
- */
-mxGraph.prototype.ordered = true;
-			
+		
 /**
  * Variable: keepEdgesInForeground
  * 
  * Specifies if edges should appear in the foreground regardless of their
- * order in the model. This has precendence over <keepEdgeInBackground>,
- * but not over <ordered>. Default is false.
+ * order in the model. This has precendence over <keepEdgeInBackground>.
+ * Default is false.
  */
 mxGraph.prototype.keepEdgesInForeground = false;
-
-/**
- * Variable: keepEdgesInBackground
- * 
- * Specifies if edges should appear in the background regardless of their
- * order in the model. <ordered> and <keepEdgesInForeground> have
- * precedence over this setting. Default is true.
- */
-mxGraph.prototype.keepEdgesInBackground = true;
 
 /**
  * Variable: allowNegativeCoordinates
@@ -1958,7 +1940,7 @@ mxGraph.prototype.processChange = function(change)
 		if (newParent != null)
 		{
 			// Flags the cell for updating the order in the renderer
-			this.view.invalidate(change.child, true, false, change.previous != null);
+			this.view.invalidate(change.child, true, false);
 		}
 		else
 		{
@@ -2008,13 +1990,12 @@ mxGraph.prototype.processChange = function(change)
 	// Requires a new mxShape in JavaScript
 	else if (change instanceof mxStyleChange)
 	{
-		this.view.invalidate(change.cell, true, true, false);
+		this.view.invalidate(change.cell, true, true);
 		this.view.removeState(change.cell);
 	}
 	
 	// Removes the state from the cache by default
-	else if (change.cell != null && 
-			change.cell instanceof mxCell)
+	else if (change.cell != null && change.cell instanceof mxCell)
 	{
 		this.removeStateForCell(change.cell);
 	}
@@ -4185,7 +4166,7 @@ mxGraph.prototype.insertVertex = function(parent, id, value,
 	x, y, width, height, style, relative)
 {
 	var vertex = this.createVertex(parent, id, value, x, y, width, height, style, relative);
-	
+
 	return this.addCell(vertex, parent);
 };
 
@@ -11603,6 +11584,24 @@ mxGraph.prototype.isSyntheticEventIgnored = function(evtName, me, sender)
 };
 
 /**
+ * Function: isEventSourceIgnored
+ * 
+ * Returns true if the given mouse down event should be ignored. This returns
+ * true for mouse events on select, option, button, anchor and input.
+ * 
+ * Parameters:
+ * 
+ * evtName - The name of the event.
+ * me - <mxMouseEvent> that should be ignored.
+ */
+mxGraph.prototype.isEventSourceIgnored = function(evtName, me)
+{
+	var name = me.getSource().nodeName.toLowerCase();
+	
+	return name == 'select' || name == 'option' || name == 'button' || name == 'a' || name == 'input';
+};
+
+/**
  * Function: fireMouseEvent
  * 
  * Dispatches the given event in the graph event dispatch loop. Possible
@@ -11618,6 +11617,16 @@ mxGraph.prototype.isSyntheticEventIgnored = function(evtName, me, sender)
  */
 mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 {
+	if (this.isEventSourceIgnored(evtName, me))
+	{
+		if (this.tooltipHandler != null)
+		{
+			this.tooltipHandler.hide();
+		}
+		
+		return;
+	}
+	
 	if (sender == null)
 	{
 		sender = this;

@@ -1,6 +1,6 @@
 /**
- * $Id: mxGuide.js,v 1.3 2013/01/24 13:46:23 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxGuide.js,v 1.4 2013/10/28 08:44:58 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxGuide

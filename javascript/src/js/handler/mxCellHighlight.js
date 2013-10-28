@@ -1,6 +1,6 @@
 /**
- * $Id: mxCellHighlight.js,v 1.8 2013/06/20 12:11:14 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxCellHighlight.js,v 1.9 2013/10/28 08:45:07 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxCellHighlight

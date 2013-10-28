@@ -1,6 +1,6 @@
 /**
- * $Id: mxXmlCanvas2D.js,v 1.26 2013/05/23 10:29:44 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxXmlCanvas2D.js,v 1.27 2013/10/28 08:44:59 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxXmlCanvas2D

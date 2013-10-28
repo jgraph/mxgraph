@@ -1,6 +1,6 @@
 /**
- * $Id: mxGraphHandler.js,v 1.10 2013/10/01 10:09:30 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxGraphHandler.js,v 1.12 2013/10/28 08:45:07 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxGraphHandler
@@ -352,24 +352,9 @@ mxGraphHandler.prototype.mouseDown = function(sender, me)
 			{
 				this.start(cell, me.getX(), me.getY());
 			}
-			
+
 			this.cellWasClicked = true;
-			
-			// Workaround for SELECT element not working in Webkit, this blocks moving
-			// of the cell if the select element is clicked in Safari which is needed
-			// because Safari doesn't seem to route the subsequent mouseUp event via
-			// this handler which leads to an inconsistent state (no reset called).
-			// Same for cellWasClicked which will block clearing the selection when
-			// clicking the background after clicking on the SELECT element in Safari.
-			if ((!mxClient.IS_SF && !mxClient.IS_GC) || me.getSource().nodeName != 'SELECT')
-			{
-				me.consume();
-			}
-			else if (mxClient.IS_SF && me.getSource().nodeName == 'SELECT')
-			{
-				this.cellWasClicked = false;
-				this.first = null;
-			}
+			me.consume();
 		}
 	}
 };

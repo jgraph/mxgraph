@@ -1,6 +1,6 @@
 /**
- * $Id: mxCloud.js,v 1.3 2012/11/22 21:04:16 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxCloud.js,v 1.4 2013/10/28 08:45:04 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxCloud

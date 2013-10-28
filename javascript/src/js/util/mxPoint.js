@@ -1,6 +1,6 @@
 /**
- * $Id: mxPoint.js,v 1.2 2013/09/27 10:12:37 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxPoint.js,v 1.3 2013/10/28 08:45:00 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxPoint

@@ -1,6 +1,6 @@
 /**
- * $Id: mxSelectionCellsHandler.js,v 1.4 2013/07/22 17:29:31 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxSelectionCellsHandler.js,v 1.5 2013/10/28 08:45:07 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxSelectionCellsHandler

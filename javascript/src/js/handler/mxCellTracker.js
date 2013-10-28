@@ -1,6 +1,6 @@
 /**
- * $Id: mxCellTracker.js,v 1.2 2013/01/08 15:30:24 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxCellTracker.js,v 1.3 2013/10/28 08:45:07 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxCellTracker

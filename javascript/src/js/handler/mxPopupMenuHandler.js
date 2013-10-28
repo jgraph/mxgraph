@@ -1,6 +1,6 @@
 /**
- * $Id: mxPopupMenuHandler.js,v 1.1 2013/06/07 14:16:23 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxPopupMenuHandler.js,v 1.2 2013/10/28 08:45:07 gaudenz Exp $
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxPanningHandler
