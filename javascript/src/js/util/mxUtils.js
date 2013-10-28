@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.js,v 1.301 2013/09/26 10:33:41 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.302 2013/10/28 08:46:44 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxUtils =
@@ -1738,7 +1738,8 @@ var mxUtils =
 	/**
 	 * Function: equalEntries
 	 * 
-	 * Compares all entries in the given dictionaries.
+	 * Returns true if all entries of the given objects are equal. Values with
+	 * with Number.NaN are equal to Number.NaN and unequal to any other value.
 	 * 
 	 * Parameters:
 	 * 
@@ -1756,7 +1757,7 @@ var mxUtils =
 		{
 			for (var key in a)
 			{
-				if ((!isNaN(a[key]) || !isNaN(b[key])) && a[key] != b[key])
+				if ((!mxUtils.isNaN(a[key]) || !mxUtils.isNaN(b[key])) && a[key] != b[key])
 				{
 					return false;
 				}
@@ -1764,6 +1765,16 @@ var mxUtils =
 		}
 		
 		return true;
+	},
+	
+	/**
+	 * Function: isNaN
+	 *
+	 * Returns true if the given value is of type number and isNaN returns true.
+	 */
+	isNaN: function(value)
+	{
+		return typeof(value) == 'number' && isNaN(value);
 	},
 	
 	/**

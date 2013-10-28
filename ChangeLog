@@ -1,3 +1,7 @@
+28-OCT-2013: 1.13.0.8
+
+- Fixes handling of NaN in mxUtils.equalEntries, adds mxUtils.isNaN [JavaScript]
+
 27-SEP-2013: 1.13.0.7
 
 - Adds mxGeometry.equals, geometry check in mxGraph.processChange [JavaScript]
