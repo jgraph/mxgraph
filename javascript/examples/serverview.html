@@ -1,6 +1,6 @@
 <!--
-  $Id: serverview.html,v 1.3 2013/06/07 14:30:51 gaudenz Exp $
-  Copyright (c) 2006-2010, JGraph Ltd
+  $Id: serverview.html,v 1.5 2013/10/28 08:44:58 gaudenz Exp $
+  Copyright (c) 2006-2013, JGraph Ltd
   
   Server-View example for mxGraph. This example demonstrates using
   a server-side image of the graph as the diagram in the client. This
@@ -125,16 +125,14 @@
 							
 				// Adds basic listeners for graph event dispatching outside of the
 				// container and finishing the handling of a single gesture
-				mxEvent.addListener(document, md,
+				mxEvent.addGestureListeners(document,
 					mxUtils.bind(this, function(evt)
 					{
 						if (this.isContainerEvent(evt))
 						{
 							graph.popupMenuHandler.hideMenu();
 						}
-					})
-				);
-				mxEvent.addListener(document, mm,
+					}),
 					mxUtils.bind(this, function(evt)
 					{
 						// Hides the tooltip if mouse is outside container
@@ -151,9 +149,7 @@
 							graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
 								new mxMouseEvent(evt));
 						}
-					})
-				);
-				mxEvent.addListener(document, mu,
+					}),
 					mxUtils.bind(this, function(evt)
 					{
 						if (this.captureDocumentGesture)
@@ -327,7 +323,7 @@
 <br>
 <strong>Important:</strong>
 <p>
-  To use this example, start com.mxgraph.examples.web.main in Java
+  To use this example, start com.mxgraph.examples.web.Main in Java
   and point your<br>browser to:
   <a href="http://localhost:8080/mxgraph/javascript/examples/serverview.html">http://localhost:8080/mxgraph/javascript/examples/serverview.html</a>
 </p>

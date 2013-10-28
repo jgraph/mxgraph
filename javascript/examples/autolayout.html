@@ -1,6 +1,6 @@
 <!--
-  $Id: autolayout.html,v 1.1 2013/05/28 12:23:17 gaudenz Exp $
-  Copyright (c) 2006-2010, JGraph Ltd
+  $Id: autolayout.html,v 1.3 2013/10/28 08:44:55 gaudenz Exp $
+  Copyright (c) 2006-2013, JGraph Ltd
   
   Autolayout example for mxGraph. This example demonstrates running
   and animating a layout algorithm after every change to a graph.
@@ -34,11 +34,27 @@
 			{
 				mxEvent.disableContextMenu(container);
 				
-				mxConnectionHandler.prototype.connectImage = new mxImage('images/connector.gif', 16, 16);
+				var mxCellRendererInstallCellOverlayListeners = mxCellRenderer.prototype.installCellOverlayListeners;
+				mxCellRenderer.prototype.installCellOverlayListeners = function(state, overlay, shape)
+				{
+					mxCellRendererInstallCellOverlayListeners.apply(this, arguments);
+
+					mxEvent.addListener(shape.node, (mxClient.IS_POINTER) ? 'MSPointerDown' : 'mousedown', function (evt)
+					{
+						overlay.fireEvent(new mxEventObject('pointerDown', 'event', evt, 'state', state));
+					});
+					
+					if (!mxClient.IS_POINTER && mxClient.IS_TOUCH)
+					{
+						mxEvent.addListener(shape.node, 'touchstart', function (evt)
+						{
+							overlay.fireEvent(new mxEventObject('pointerDown', 'event', evt, 'state', state));
+						});
+					}
+				};
 				
 				// Creates the graph inside the given container
 				var graph = new mxGraph(container);
-				graph.setConnectable(true);
 				graph.setPanning(true);
 				graph.panningHandler.useLeftButtonForPanning = true;
 				graph.setAllowDanglingEdges(false);
@@ -76,6 +92,23 @@
 						{
 							graph.scrollCellToVisible(v2);
 						});
+					});
+					
+					// Special CMS event
+					overlay.addListener('pointerDown', function(sender, eo)
+					{
+						var evt2 = eo.getProperty('event');
+						var state = eo.getProperty('state');
+						
+						graph.popupMenuHandler.hideMenu();
+						graph.stopEditing(false);
+						
+						var pt = mxUtils.convertPoint(graph.container,
+								mxEvent.getClientX(evt2), mxEvent.getClientY(evt2));
+						graph.connectionHandler.start(state, pt.x, pt.y);
+						graph.isMouseDown = true;
+						graph.isMouseTrigger = mxEvent.isMouseEvent(evt2);
+						mxEvent.consume(evt2);
 					});
 					
 					// Sets the overlay for the cell in the graph

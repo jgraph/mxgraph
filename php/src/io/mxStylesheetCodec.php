@@ -1,7 +1,7 @@
 <?php
 /**
- * $Id: mxStylesheetCodec.php,v 1.1 2012/11/15 13:26:46 gaudenz Exp $
- * Copyright (c) 2006-2010, Gaudenz Alder
+ * $Id: mxStylesheetCodec.php,v 1.2 2013/10/28 08:45:03 gaudenz Exp $
+ * Copyright (c) 2006-2013, Gaudenz Alder
  */
 class mxStylesheetCodec extends mxObjectCodec
 {

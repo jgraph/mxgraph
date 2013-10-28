@@ -1,8 +1,8 @@
 <!--
-  $Id: folding.html,v 1.1 2013/06/17 14:41:14 gaudenz Exp $
-  Copyright (c) 2006-2010, JGraph Ltd
+  $Id: folding.html,v 1.3 2013/10/28 08:44:55 gaudenz Exp $
+  Copyright (c) 2006-2013, JGraph Ltd
   
-  Hello, World! example for mxGraph. This example demonstrates
+  Folding example for mxGraph. This example demonstrates
   using a layout to implement a nested group structure.
 -->
 <html>
@@ -33,7 +33,6 @@
 			else
 			{
 				// Enables crisp rendering of rectangles in SVG
-				mxSwimlane.prototype.crisp = true;
 				mxConstants.ENTITY_SEGMENT = 20;
 				
 				// Creates the graph inside the given container
@@ -42,9 +41,10 @@
 				
 				// Disables global features
 				graph.collapseToPreferredSize = false;
+				graph.constrainChildren = false;
+				graph.cellsSelectable = false;
 				graph.extendParentsOnAdd = false;
 				graph.extendParents = false;
-				graph.cellsSelectable = false;
 				graph.border = 10;
 
 				// Sets global styles
@@ -57,7 +57,7 @@
 				style[mxConstants.STYLE_SHAPE] = 'swimlane';
 				style[mxConstants.STYLE_STARTSIZE] = 30;
 				
-				var style = [];
+				style = [];
 				style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
 				style[mxConstants.STYLE_STROKECOLOR] = 'none';
 				style[mxConstants.STYLE_FILLCOLOR] = 'none';
@@ -77,17 +77,15 @@
 							layout.resizeParent = true;
 							layout.horizontal = false;
 							layout.spacing = 10;
-							
-							return layout;
 						}
 						else
 						{
 							layout.resizeParent = true;
 							layout.horizontal = true;
 							layout.spacing = 40;
-							
-							return layout;
 						}
+						
+						return layout;
 					}
 					
 					return null;
