@@ -1,3 +1,7 @@
+01-NOV-2013: 2.3.0.1
+
+- Fixes possible component merge error in hierarchical layout [JavaScript]
+
 28-OCT-2013: 2.3.0.0
 
 - Fixes repaint in mxShape when switch from HTML to VML dialect [JavaScript]

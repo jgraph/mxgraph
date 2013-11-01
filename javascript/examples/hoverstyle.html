@@ -1,5 +1,5 @@
 <!--
-  $Id: hoverstyle.html,v 1.4 2013/10/28 08:44:55 gaudenz Exp $
+  $Id: hoverstyle.html,v 1.5 2013/10/29 13:47:09 gaudenz Exp $
   Copyright (c) 2006-2013, JGraph Ltd
   
   Hoverstyle example for mxGraph. This example shows hot to change
@@ -46,6 +46,7 @@
 					// is not set in the default style and is therefore inherited
 					// once it is set, whereas the above overrides the default value
 					state.style[mxConstants.STYLE_ROUNDED] = (hover) ? '1' : '0';
+					state.style[mxConstants.STYLE_STROKEWIDTH] = (hover) ? '4' : '1';
 				};
 				
 				// Changes fill color to red on mouseover
