@@ -1,5 +1,5 @@
 /**
- * $Id: mxHierarchicalLayout.js,v 1.11 2013/06/10 20:41:00 david Exp $
+ * $Id: mxHierarchicalLayout.js,v 1.12 2013/11/01 11:50:53 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -649,14 +649,14 @@ mxHierarchicalLayout.prototype.traverse = function(vertex, directed, edge, allVe
 
 					if (comp[vertexID] != null)
 					{
-						for (var key in currentComp)
+						for (var key in comp)
 						{
-							comp[key] = currentComp[key];
+							currentComp[key] = comp[key];
 						}
 						
 						// Remove the current component from the hierarchy set
-						hierarchyVertices.pop();
-						return comp;
+						hierarchyVertices.splice(i, 1);
+						return currentComp;
 					}
 				}
 			}

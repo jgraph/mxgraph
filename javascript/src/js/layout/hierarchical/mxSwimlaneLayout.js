@@ -1,5 +1,5 @@
 /**
- * $Id: mxSwimlaneLayout.js,v 1.4 2013/10/08 14:18:41 david Exp $
+ * $Id: mxSwimlaneLayout.js,v 1.5 2013/11/01 11:51:30 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -786,14 +786,14 @@ mxSwimlaneLayout.prototype.traverse = function(vertex, directed, edge, allVertic
 
 					if (comp[vertexID] != null)
 					{
-						for (var key in currentComp)
+						for (var key in comp)
 						{
-							comp[key] = currentComp[key];
+							currentComp[key] = comp[key];
 						}
 						
 						// Remove the current component from the hierarchy set
-						hierarchyVertices.pop();
-						return comp;
+						hierarchyVertices.splice(i, 1);
+						return currentComp;
 					}
 				}
 			}
