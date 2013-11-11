@@ -1,5 +1,5 @@
 /**
- * $Id: Menus.js,v 1.22 2013/07/15 13:54:44 gaudenz Exp $
+ * $Id: Menus.js,v 1.23 2013/11/11 12:18:16 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -58,7 +58,7 @@ Menus.prototype.init = function()
 		}
 		
 		menu.addSeparator(parent);
-		this.promptChange(menu, mxResources.get('custom'), '(px)', '1', mxConstants.STYLE_STROKEWIDTH, parent);
+		this.promptChange(menu, mxResources.get('custom') + '...', '(px)', '1', mxConstants.STYLE_STROKEWIDTH, parent);
 	})));
 	this.put('line', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -85,7 +85,7 @@ Menus.prototype.init = function()
 		menu.addSeparator(parent);
 		menu.addItem(mxResources.get('transparent'), null, function() { graph.toggleCellStyles('endFill', true); }, parent, null, true);
 		menu.addSeparator(parent);
-		this.promptChange(menu, mxResources.get('size'), '(px)', mxConstants.DEFAULT_MARKERSIZE, mxConstants.STYLE_ENDSIZE, parent);
+		this.promptChange(menu, mxResources.get('size') + '...', '(px)', mxConstants.DEFAULT_MARKERSIZE, mxConstants.STYLE_ENDSIZE, parent);
 	})));
 	this.put('linestart', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -101,7 +101,7 @@ Menus.prototype.init = function()
 		menu.addSeparator(parent);
 		menu.addItem(mxResources.get('transparent'), null, function() { graph.toggleCellStyles('startFill', true); }, parent, null, true);
 		menu.addSeparator(parent);
-		this.promptChange(menu, mxResources.get('size'), '(px)', mxConstants.DEFAULT_MARKERSIZE, mxConstants.STYLE_STARTSIZE, parent);
+		this.promptChange(menu, mxResources.get('size') + '...', '(px)', mxConstants.DEFAULT_MARKERSIZE, mxConstants.STYLE_STARTSIZE, parent);
 	})));
 	this.put('spacing', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -161,8 +161,10 @@ Menus.prototype.init = function()
 		this.addSubmenu('fontSize', menu, parent);
 		this.addMenuItems(menu, ['-', 'bold', 'italic', 'underline', '-'], parent);
 	    this.addSubmenu('alignment', menu, parent);
+	    this.addSubmenu('position', menu, parent);
+		this.addSubmenu('spacing', menu, parent);
+	    menu.addSeparator(parent);
 		this.addMenuItem(menu, 'wordWrap', parent);
-		menu.addSeparator(parent);
 		this.promptChange(menu, mxResources.get('textOpacity'), '(%)', '100', mxConstants.STYLE_TEXT_OPACITY, parent, enabled);
 		menu.addItem(mxResources.get('hide'), null, function() { graph.toggleCellStyles(mxConstants.STYLE_NOLABEL, false); }, parent, null, enabled);
 	})));
@@ -175,9 +177,6 @@ Menus.prototype.init = function()
 		this.styleChange(menu, mxResources.get('topAlign'), [mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_TOP], null, parent);
 		this.styleChange(menu, mxResources.get('middle'), [mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_MIDDLE], null, parent);
 		this.styleChange(menu, mxResources.get('bottomAlign'), [mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_BOTTOM], null, parent);
-		menu.addSeparator(parent);
-	    this.addSubmenu('position', menu, parent);
-		this.addSubmenu('spacing', menu, parent);
 		menu.addSeparator(parent);
 		var enabled = this.get('text').enabled;
 		menu.addItem(mxResources.get('vertical'), null, function() { graph.toggleCellStyles(mxConstants.STYLE_HORIZONTAL, true); }, parent, null, enabled);
@@ -452,7 +451,7 @@ Menus.prototype.get = function(name)
  */
 Menus.prototype.addSubmenu = function(name, menu, parent)
 {
-	var enabled = this.get(name).enabled;
+	var enabled = this.get(name).isEnabled();
 	
 	if (menu.showDisabled || enabled)
 	{
@@ -468,7 +467,7 @@ Menus.prototype.addMenu = function(name, popupMenu, parent)
 {
 	var menu = this.get(name);
 	
-	if (menu != null && (popupMenu.showDisabled || menu.enabled))
+	if (menu != null && (popupMenu.showDisabled || menu.isEnabled()))
 	{
 		this.get(name).execute(popupMenu, parent);
 	}
@@ -569,9 +568,9 @@ Menus.prototype.addMenuItem = function(menu, key, parent)
 {
 	var action = this.editorUi.actions.get(key);
 
-	if (action != null && (menu.showDisabled || action.enabled) && action.visible)
+	if (action != null && (menu.showDisabled || action.isEnabled()) && action.visible)
 	{
-		var item = menu.addItem(action.label, null, action.funct, parent, null, action.enabled);
+		var item = menu.addItem(action.label, null, action.funct, parent, null, action.isEnabled());
 		
 		// Adds checkmark image
 		if (action.toggleAction && action.isSelected())
@@ -717,7 +716,27 @@ Menus.prototype.createMenubar = function(container)
 	
 	for (var i = 0; i < menus.length; i++)
 	{
-		menubar.addMenu(mxResources.get(menus[i]), this.get(menus[i]).funct);
+		(function(menu)
+		{
+			var elt = menubar.addMenu(mxResources.get(menus[i]), menu.funct);
+			
+			if (elt != null)
+			{
+				menu.addListener('stateChanged', function()
+				{
+					elt.enabled = menu.enabled;
+					
+					if (!menu.enabled)
+					{
+						elt.style.opacity = '0.2';
+					}
+					else
+					{
+						elt.style.opacity = '';
+					}
+				});
+			}
+		})(this.get(menus[i]));
 	}
 
 	return menubar;
@@ -734,7 +753,10 @@ function Menubar(editorUi, container)
 	// Global handler to hide the current menu
 	mxEvent.addGestureListeners(document, mxUtils.bind(this, function(evt)
 	{
-		this.hideMenu();
+		if (this.currentMenu != null && mxEvent.getSource(evt) != this.currentMenu.div)
+		{
+			this.hideMenu();
+		}
 	}));
 };
 
@@ -794,7 +816,8 @@ Menubar.prototype.addMenuHandler = function(elt, funct)
 					this.currentElt = null;
 				});
 
-				menu.popup(elt.offsetLeft + 4, elt.offsetTop + elt.offsetHeight + 4, null, evt);
+				var offset = mxUtils.getOffset(elt);
+				menu.popup(offset.x, offset.y + elt.offsetHeight, null, evt);
 				this.currentMenu = menu;
 				this.currentElt = elt;
 			}
@@ -835,6 +858,14 @@ function Menu(funct, enabled)
 
 // Menu inherits from mxEventSource
 mxUtils.extend(Menu, mxEventSource);
+
+/**
+ * Sets the enabled state of the action and fires a stateChanged event.
+ */
+Menu.prototype.isEnabled = function()
+{
+	return this.enabled;
+};
 
 /**
  * Sets the enabled state of the action and fires a stateChanged event.

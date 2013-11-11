@@ -1,5 +1,5 @@
 /**
- * $Id: Dialogs.js,v 1.11 2013/10/21 12:20:38 gaudenz Exp $
+ * $Id: Dialogs.js,v 1.13 2013/11/11 12:18:17 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -9,7 +9,7 @@ function Dialog(editorUi, elt, w, h, modal, closable, onClose)
 {
 	var dx = 0;
 	
-	if (mxClient.IS_IE && document.documentMode != 9)
+	if (mxClient.IS_IE && document.documentMode <= 9)
 	{
 		dx = 60;
 	}
@@ -35,6 +35,7 @@ function Dialog(editorUi, elt, w, h, modal, closable, onClose)
 		this.bg.style.top = '0px';
 		this.bg.style.bottom = '0px';
 		this.bg.style.right = '0px';
+		
 		mxUtils.setOpacity(this.bg, this.bgOpacity);
 		
 		if (mxClient.IS_QUIRKS)
@@ -63,7 +64,7 @@ function Dialog(editorUi, elt, w, h, modal, closable, onClose)
 		
 		mxEvent.addListener(img, 'click', mxUtils.bind(this, function()
 		{
-			editorUi.hideDialog();
+			editorUi.hideDialog(true);
 		}));
 		
 		document.body.appendChild(img);
@@ -82,11 +83,11 @@ Dialog.prototype.bgOpacity = 80;
 /**
  * Removes the dialog from the DOM.
  */
-Dialog.prototype.close = function()
+Dialog.prototype.close = function(cancel)
 {
 	if (this.onDialogClose != null)
 	{
-		this.onDialogClose();
+		this.onDialogClose(cancel);
 		this.onDialogClose = null;
 	}
 	
@@ -637,10 +638,7 @@ function PrintDialog(editorUi)
 	this.container = table;
 };
 
-/**
- * Constructs a new save dialog.
- */
-function SaveDialog(editorUi)
+function FilenameDialog(editorUi, filename, buttonText, fn)
 {
 	var row, td;
 	
@@ -657,7 +655,7 @@ function SaveDialog(editorUi)
 	row.appendChild(td);
 	
 	var nameInput = document.createElement('input');
-	nameInput.setAttribute('value', editorUi.editor.getOrCreateFilename());
+	nameInput.setAttribute('value', filename || '');
 	nameInput.style.width = '180px';
 
 	td = document.createElement('td');
@@ -669,17 +667,18 @@ function SaveDialog(editorUi)
 	row = document.createElement('tr');
 	td = document.createElement('td');
 	td.colSpan = 2;
-	td.style.paddingTop = '30px';
+	td.style.paddingTop = '20px';
 	td.style.whiteSpace = 'nowrap';
 	td.setAttribute('align', 'right');
 
-	var saveBtn = mxUtils.button(mxResources.get('save'), function()
+	var genericBtn = mxUtils.button(buttonText, function()
 	{
-    	editorUi.save(nameInput.value);
-    	editorUi.hideDialog();
+		editorUi.hideDialog();
+		fn(nameInput.value);
 	});
 	
-	td.appendChild(saveBtn);
+	td.appendChild(genericBtn);
+	
 	td.appendChild(mxUtils.button(mxResources.get('cancel'), function()
 	{
 		editorUi.hideDialog();
@@ -1167,10 +1166,22 @@ function ExportDialog(editorUi)
 				// Puts request data together
 				var w = Math.ceil(bounds.width * scale / vs + 2 * b);
 				var h = Math.ceil(bounds.height * scale / vs + 2 * b);
-				var xml = mxUtils.getXml(root);
 				
+				var xml = null;
+				var formatKey = 'xml';
+				
+				if (ExportDialog.exportFormat != null && ExportDialog.exportFormat == 'svg')
+				{
+					xml = getSvg();
+					formatKey = 'svg';
+				}
+				else
+				{
+					xml = mxUtils.getXml(root);
+				}
+
 				// Requests image if request is valid
-				if (xml.length <= MAX_REQUEST_SIZE && w > 0 && h > 0 && w * h < MAX_AREA)
+				if (xml != null && xml.length <= MAX_REQUEST_SIZE && w > 0 && h > 0 && w * h < MAX_AREA)
 				{
 					var bg = '';
 					
@@ -1181,7 +1192,7 @@ function ExportDialog(editorUi)
 					}
 					
 					new mxXmlRequest(EXPORT_URL, 'filename=' + name + '&format=' + format +
-	        			bg + '&w=' + w + '&h=' + h + '&xml=' + encodeURIComponent(xml)).
+	        			bg + '&w=' + w + '&h=' + h + '&' + formatKey + '=' + encodeURIComponent(xml)).
 	        			simulate(document, '_blank');
 				}
 				else
@@ -1301,9 +1312,9 @@ function MetadataDialog(ui, cell)
 	div.appendChild(form.table);
 	
 	// Adds buttons
-	var addBtn = mxUtils.button(mxResources.get('add') + '...', function()
+	var addBtn = mxUtils.button(mxResources.get('addProperty') + '...', function()
 	{
-		var name = mxUtils.prompt(mxResources.get('enterName'));
+		var name = mxUtils.prompt(mxResources.get('enterPropertyName'));
 		
 		if (name != null && name.length > 0)
 		{

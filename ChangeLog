@@ -1,3 +1,10 @@
+11-NOV-2013: 2.3.0.2
+
+- Minor fixes in grapheditor.html example [JavaScript]
+- Fixes reset of validation state in mxTemporaryCellStates [JavaScript]
+- Adds resetValidationState in mxGraphView [JavaScript]
+- Resets visible style in mxShape.clear after invalid bounds [JavaScript]
+
 01-NOV-2013: 2.3.0.1
 
 - Fixes possible component merge error in hierarchical layout [JavaScript]
