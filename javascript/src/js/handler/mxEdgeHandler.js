@@ -1,5 +1,5 @@
 /**
- * $Id: mxEdgeHandler.js,v 1.19 2013/10/28 08:45:07 gaudenz Exp $
+ * $Id: mxEdgeHandler.js,v 1.20 2013/11/02 16:42:25 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -964,7 +964,7 @@ mxEdgeHandler.prototype.mouseUp = function(sender, me)
 					pt.x -= this.graph.panDx / this.graph.view.scale;
 					pt.y -= this.graph.panDy / this.graph.view.scale;
 										
-					// Destroys and rectreates this handler
+					// Destroys and recreates this handler
 					this.changeTerminalPoint(edge, pt, this.isSource);
 				}
 			}

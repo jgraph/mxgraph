@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.3.0.1.
+	 * Current version is 2.3.0.2.
 	 */
-	VERSION: '2.3.0.1',
+	VERSION: '2.3.0.2',
 
 	/**
 	 * Variable: IS_IE
@@ -14521,7 +14521,7 @@ mxPanningManager.prototype.handleMouseOut = true;
  */
 mxPanningManager.prototype.border = 0;
 /**
- * $Id: mxPopupMenu.js,v 1.5 2013/10/28 08:44:58 gaudenz Exp $
+ * $Id: mxPopupMenu.js,v 1.6 2013/11/10 17:50:05 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -14531,14 +14531,15 @@ mxPanningManager.prototype.border = 0;
  * following code can be used.
  * 
  * (code)
- * var elt = menu.addItem('Subitem 1', null, function()
+ * var mxPopupMenuShowMenu = mxPopupMenu.prototype.showMenu;
+ * mxPopupMenu.prototype.showMenu = function()
  * {
- *   alert('Subitem 2');
- * }, submenu1);
- * 
- * var container = elt.parentNode.parentNode.parentNode;
- * container.style.overflowY = 'scroll';
- * container.style.maxHeight = '160px';
+ *   mxPopupMenuShowMenu.apply(this, arguments);
+ *   
+ *   this.div.style.overflowY = 'auto';
+ *   this.div.style.overflowX = 'hidden';
+ *   this.div.style.maxHeight = '160px';
+ * };
  * (end)
  * 
  * Constructor: mxPopupMenu
@@ -21273,7 +21274,7 @@ mxStencil.prototype.drawNode = function(canvas, shape, node, aspect, disableShad
 	}
 };
 /**
-aaa * $Id: mxShape.js,v 1.49 2013/10/28 08:45:04 gaudenz Exp $
+aaa * $Id: mxShape.js,v 1.50 2013/11/06 14:35:19 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -21621,6 +21622,8 @@ mxShape.prototype.clear = function()
 {
 	if (this.node.ownerSVGElement != null)
 	{
+		this.node.style.visibility = 'visible';
+		
 		while (this.node.lastChild != null)
 		{
 			this.node.removeChild(this.node.lastChild);
@@ -45499,7 +45502,7 @@ mxStyleRegistry.putValue(mxConstants.PERIMETER_RECTANGLE, mxPerimeter.RectangleP
 mxStyleRegistry.putValue(mxConstants.PERIMETER_RHOMBUS, mxPerimeter.RhombusPerimeter);
 mxStyleRegistry.putValue(mxConstants.PERIMETER_TRIANGLE, mxPerimeter.TrianglePerimeter);
 /**
- * $Id: mxGraphView.js,v 1.29 2013/10/28 08:45:01 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.31 2013/11/11 12:24:52 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -46023,6 +46026,19 @@ mxGraphView.prototype.invalidate = function(cell, recurse, includeEdges)
 };
 
 /**
+ * Function: resetValidationState
+ *
+ * Resets the current validation state.
+ */
+mxGraphView.prototype.resetValidationState = function()
+{
+	this.lastNode = null;
+	this.lastHtmlNode = null;
+	this.lastEdgeNode = null;
+	this.lastHtmlEdgeNode = null;
+};
+
+/**
  * Function: validate
  *
  * First validates all bounds and then validates all points recursively on
@@ -46040,11 +46056,7 @@ mxGraphView.prototype.validate = function(cell)
 	window.status = mxResources.get(this.updatingDocumentResource) ||
 		this.updatingDocumentResource;
 	
-	// Clears the validation state
-	this.lastNode = null;
-	this.lastHtmlNode = null;
-	this.lastEdgeNode = null;
-	this.lastHtmlEdgeNode = null;
+	this.resetValidationState();
 	
 	// Improves IE rendering speed by minimizing reflows
 	var prevDisplay = null;
@@ -46095,6 +46107,8 @@ mxGraphView.prototype.validate = function(cell)
 		// Textdiv cannot be reused
 		this.textDiv = null;
 	}
+	
+	this.resetValidationState();
 	
 	window.status = mxResources.get(this.doneResource) ||
 		this.doneResource;
@@ -62609,7 +62623,7 @@ mxSwimlaneManager.prototype.destroy = function()
 	this.setGraph(null);
 };
 /**
- * $Id: mxTemporaryCellStates.js,v 1.2 2013/10/28 08:45:01 gaudenz Exp $
+ * $Id: mxTemporaryCellStates.js,v 1.3 2013/11/11 12:24:53 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -62639,6 +62653,8 @@ function mxTemporaryCellStates(view, scale, cells)
 	
 	if (cells != null)
 	{
+		view.resetValidationState();
+		
 		// Creates virtual parent state for validation
 		var state = view.createState(new mxCell());
 
@@ -69111,7 +69127,7 @@ mxVertexHandler.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxEdgeHandler.js,v 1.19 2013/10/28 08:45:07 gaudenz Exp $
+ * $Id: mxEdgeHandler.js,v 1.20 2013/11/02 16:42:25 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -70076,7 +70092,7 @@ mxEdgeHandler.prototype.mouseUp = function(sender, me)
 					pt.x -= this.graph.panDx / this.graph.view.scale;
 					pt.y -= this.graph.panDy / this.graph.view.scale;
 										
-					// Destroys and rectreates this handler
+					// Destroys and recreates this handler
 					this.changeTerminalPoint(edge, pt, this.isSource);
 				}
 			}

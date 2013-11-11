@@ -1,5 +1,5 @@
 /**
-aaa * $Id: mxShape.js,v 1.49 2013/10/28 08:45:04 gaudenz Exp $
+aaa * $Id: mxShape.js,v 1.50 2013/11/06 14:35:19 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -347,6 +347,8 @@ mxShape.prototype.clear = function()
 {
 	if (this.node.ownerSVGElement != null)
 	{
+		this.node.style.visibility = 'visible';
+		
 		while (this.node.lastChild != null)
 		{
 			this.node.removeChild(this.node.lastChild);

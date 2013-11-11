@@ -1,5 +1,5 @@
 /**
- * $Id: mxPopupMenu.js,v 1.5 2013/10/28 08:44:58 gaudenz Exp $
+ * $Id: mxPopupMenu.js,v 1.6 2013/11/10 17:50:05 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -9,14 +9,15 @@
  * following code can be used.
  * 
  * (code)
- * var elt = menu.addItem('Subitem 1', null, function()
+ * var mxPopupMenuShowMenu = mxPopupMenu.prototype.showMenu;
+ * mxPopupMenu.prototype.showMenu = function()
  * {
- *   alert('Subitem 2');
- * }, submenu1);
- * 
- * var container = elt.parentNode.parentNode.parentNode;
- * container.style.overflowY = 'scroll';
- * container.style.maxHeight = '160px';
+ *   mxPopupMenuShowMenu.apply(this, arguments);
+ *   
+ *   this.div.style.overflowY = 'auto';
+ *   this.div.style.overflowX = 'hidden';
+ *   this.div.style.maxHeight = '160px';
+ * };
  * (end)
  * 
  * Constructor: mxPopupMenu

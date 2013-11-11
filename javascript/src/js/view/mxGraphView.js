@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphView.js,v 1.29 2013/10/28 08:45:01 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.31 2013/11/11 12:24:52 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -523,6 +523,19 @@ mxGraphView.prototype.invalidate = function(cell, recurse, includeEdges)
 };
 
 /**
+ * Function: resetValidationState
+ *
+ * Resets the current validation state.
+ */
+mxGraphView.prototype.resetValidationState = function()
+{
+	this.lastNode = null;
+	this.lastHtmlNode = null;
+	this.lastEdgeNode = null;
+	this.lastHtmlEdgeNode = null;
+};
+
+/**
  * Function: validate
  *
  * First validates all bounds and then validates all points recursively on
@@ -540,11 +553,7 @@ mxGraphView.prototype.validate = function(cell)
 	window.status = mxResources.get(this.updatingDocumentResource) ||
 		this.updatingDocumentResource;
 	
-	// Clears the validation state
-	this.lastNode = null;
-	this.lastHtmlNode = null;
-	this.lastEdgeNode = null;
-	this.lastHtmlEdgeNode = null;
+	this.resetValidationState();
 	
 	// Improves IE rendering speed by minimizing reflows
 	var prevDisplay = null;
@@ -595,6 +604,8 @@ mxGraphView.prototype.validate = function(cell)
 		// Textdiv cannot be reused
 		this.textDiv = null;
 	}
+	
+	this.resetValidationState();
 	
 	window.status = mxResources.get(this.doneResource) ||
 		this.doneResource;

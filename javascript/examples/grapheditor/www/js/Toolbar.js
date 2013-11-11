@@ -1,5 +1,5 @@
 /**
- * $Id: Toolbar.js,v 1.5 2013/06/07 14:30:50 gaudenz Exp $
+ * $Id: Toolbar.js,v 1.6 2013/11/11 12:18:16 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -395,7 +395,8 @@ Toolbar.prototype.addMenuHandler = function(elt, showLabels, funct, showAll)
 				menu.labels = showLabels;
 				menu.autoExpand = true;
 
-				menu.popup(elt.offsetLeft, elt.offsetTop + elt.offsetHeight + 34, null, evt);
+				var offset = mxUtils.getOffset(elt);
+				menu.popup(offset.x, offset.y + elt.offsetHeight, null, evt);
 				this.currentMenu = menu;
 			}
 			

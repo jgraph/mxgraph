@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.33 2013/09/10 06:33:53 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.34 2013/11/11 12:18:16 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -174,12 +174,12 @@ EditorUi.prototype.splitSize = (mxClient.IS_TOUCH || mxClient.IS_POINTER) ? 12 :
 /**
  * Specifies the height of the menubar. Default is 34.
  */
-EditorUi.prototype.menubarHeight = 33;
+EditorUi.prototype.menubarHeight = 30;
 
 /**
  * Specifies the height of the toolbar. Default is 36.
  */
-EditorUi.prototype.toolbarHeight = 36;
+EditorUi.prototype.toolbarHeight = 34;
 
 /**
  * Specifies the height of the footer. Default is 28.
@@ -339,6 +339,38 @@ EditorUi.prototype.save = function(name)
 /**
  * Returns the URL for a copy of this editor with no state.
  */
+EditorUi.prototype.redo = function()
+{
+	this.editor.undoManager.redo();
+};
+
+/**
+ * Returns the URL for a copy of this editor with no state.
+ */
+EditorUi.prototype.undo = function()
+{
+	this.editor.undoManager.undo();
+};
+
+/**
+ * Returns the URL for a copy of this editor with no state.
+ */
+EditorUi.prototype.canRedo = function()
+{
+	return this.editor.undoManager.canRedo();
+};
+
+/**
+ * Returns the URL for a copy of this editor with no state.
+ */
+EditorUi.prototype.canUndo = function()
+{
+	return this.editor.undoManager.canUndo();
+};
+
+/**
+ * Returns the URL for a copy of this editor with no state.
+ */
 EditorUi.prototype.getUrl = function(pathname)
 {
 	var href = (pathname != null) ? pathname : window.location.pathname;
@@ -373,11 +405,11 @@ EditorUi.prototype.addUndoListener = function()
 	
 	var undoMgr = this.editor.undoManager;
 	
-    var undoListener = function()
+    var undoListener = mxUtils.bind(this, function()
     {
-    	undo.setEnabled(undoMgr.canUndo());
-    	redo.setEnabled(undoMgr.canRedo());
-    };
+    	undo.setEnabled(this.canUndo());
+    	redo.setEnabled(this.canRedo());
+    });
 
     undoMgr.addListener(mxEvent.ADD, undoListener);
     undoMgr.addListener(mxEvent.UNDO, undoListener);
@@ -429,7 +461,7 @@ EditorUi.prototype.addSelectionListener = function()
 		var actions = ['cut', 'copy', 'delete', 'duplicate', 'bold', 'italic', 'style', 'fillColor',
 		               'gradientColor', 'underline', 'fontColor', 'strokeColor', 'backgroundColor',
 		               'borderColor', 'toFront', 'toBack', 'dashed', 'rounded', 'shadow', 'tilt',
-		               'autosize', 'lockUnlock'];
+		               'autosize', 'lockUnlock', 'editData'];
     	
     	for (var i = 0; i < actions.length; i++)
     	{
@@ -775,21 +807,22 @@ EditorUi.prototype.addSplitHandler = function(elt, horizontal, dx, onChange)
  */
 EditorUi.prototype.showDialog = function(elt, w, h, modal, closable, onClose)
 {
+	this.hideDialog(true);
 	this.editor.graph.tooltipHandler.hideTooltip();
-	this.hideDialog();
 	this.dialog = new Dialog(this, elt, w, (mxClient.IS_VML) ? h - 12 : h, modal, closable, onClose);
 };
 
 /**
  * Displays a print dialog.
  */
-EditorUi.prototype.hideDialog = function()
+EditorUi.prototype.hideDialog = function(cancel)
 {
 	if (this.dialog != null)
 	{
-		this.dialog.close();
-		this.dialog = null;
 		this.editor.graph.container.focus();
+		var dlg = this.dialog;
+		this.dialog = null;
+		dlg.close(cancel);
 	}
 };
 
@@ -822,7 +855,10 @@ EditorUi.prototype.saveFile = function(forceDialog)
 	}
 	else
 	{
-		this.showDialog(new SaveDialog(this).container, 300, 100, true, true);
+		this.showDialog(new FilenameDialog(this, this.editor.getOrCreateFilename(), mxResources('save'), mxUtils.bind(this, function()
+		{
+			this.save(nameInput.value, true);
+		})).container, 300, 100, true, true);
 	}
 };
 

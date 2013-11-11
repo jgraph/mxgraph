@@ -612,6 +612,55 @@ for storing references to ports.)
 
 			return clone;
 		};
+		
+		var mxEdgeHandlerConnect = mxEdgeHandler.prototype.connect;
+		mxEdgeHandler.prototype.connect = function(edge, terminal, isSource, isClone, me)
+		{
+			var result = null;
+			var model = this.graph.getModel();
+			var parent = model.getParent(edge);
+			
+			model.beginUpdate();
+			try
+			{
+				result = mxEdgeHandlerConnect.apply(this, arguments);
+				var geo = model.getGeometry(result);
+				
+				if (geo != null)
+				{
+					geo = geo.clone();
+					var pt = null;
+					
+					if (model.isEdge(terminal))
+					{
+						pt = this.abspoints[(this.isSource) ? 0 : this.abspoints.length - 1];
+						pt.x = pt.x / this.graph.view.scale - this.graph.view.translate.x;
+						pt.y = pt.y / this.graph.view.scale - this.graph.view.translate.y;
+			
+						var pstate = this.graph.getView().getState(
+								this.graph.getModel().getParent(edge));
+								
+						if (pstate != null)
+						{
+							pt.x -= pstate.origin.x;
+							pt.y -= pstate.origin.y;
+						}
+						
+						pt.x -= this.graph.panDx / this.graph.view.scale;
+						pt.y -= this.graph.panDy / this.graph.view.scale;
+					}
+				
+					geo.setTerminalPoint(pt, isSource);
+					model.setGeometry(edge, geo);
+				}
+			}
+			finally
+			{
+				model.endUpdate();
+			}
+			
+			return result;
+		};
 	</script>
 <!--  
 	Adds in-place highlighting for complete cell area (no hotspot).

@@ -1,5 +1,5 @@
 /**
- * $Id: Editor.js,v 1.26 2013/10/15 09:19:50 gaudenz Exp $
+ * $Id: Editor.js,v 1.27 2013/11/11 12:18:16 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 // Specifies if local storage should be used (eg. on the iPad which has no filesystem)
@@ -77,6 +77,7 @@ Editor = function()
 	{
 		this.setModified(true);
 	};
+	
 	this.graph.getModel().addListener(mxEvent.CHANGE, mxUtils.bind(this, function()
 	{
 		this.graphChangeListener.apply(this, arguments);
@@ -104,6 +105,11 @@ Editor.prototype.gridImage = IMAGE_PATH + '/grid.gif';
 Editor.prototype.transparentImage = IMAGE_PATH + '/transparent.gif';
 
 /**
+ * Specifies if the editor is enabled. Default is true.
+ */
+Editor.prototype.enabled = true;
+
+/**
  * Contains the name which was used for the last save. Default value is null.
  */
 Editor.prototype.filename = null;
@@ -121,9 +127,9 @@ Editor.prototype.modified = false;
 Editor.prototype.autosave = true;
 
 /**
- * Specifies the app name. Default is 'Grapheditor'.
+ * Specifies the app name. Default is document.title.
  */
-Editor.prototype.appName = 'Grapheditor';
+Editor.prototype.appName = document.title;
 
 /**
  * Sets the onbeforeunload for the application
@@ -214,11 +220,11 @@ Editor.prototype.setGraphXml = function(node)
 	else
 	{
 		throw { 
-		    name: "Cannot open file", 
-		    level: "Severe", 
-		    message: "Please refresh this page and try again.", 
-		    htmlMessage: "Please refresh this page and try again.",
-		    toString: function() { return this.name + ": " + this.message; }
+		    name: 'Cannot open file', 
+		    level: 'Severe', 
+		    message: 'Please refresh this page and try again.', 
+		    htmlMessage: 'Please refresh this page and try again.',
+		    toString: function() { return this.name + ': ' + this.message; }
 		};
 	}
 };
@@ -805,23 +811,26 @@ Editor.prototype.init = function()
 	// Delayed selection of parent group
 	mxGraphHandler.prototype.selectDelayed = function(me)
 	{
-		var cell = me.getCell();
-		
-		if (cell == null)
+		if (!this.graph.popupMenuHandler.isPopupTrigger(me))
 		{
-			cell = this.cell;
+			var cell = me.getCell();
+			
+			if (cell == null)
+			{
+				cell = this.cell;
+			}
+			
+			var model = this.graph.getModel();
+			var parent = model.getParent(cell);
+			
+			while (this.graph.isCellSelected(cell) && model.isVertex(parent) && !this.graph.isValidRoot(parent))
+			{
+				cell = parent;
+				parent = model.getParent(cell);
+			}
+			
+			this.graph.selectCellForEvent(cell, me.getEvent());
 		}
-		
-		var model = this.graph.getModel();
-		var parent = model.getParent(cell);
-		
-		while (this.graph.isCellSelected(cell) && model.isVertex(parent) && !this.graph.isValidRoot(parent))
-		{
-			cell = parent;
-			parent = model.getParent(cell);
-		}
-		
-		this.graph.selectCellForEvent(cell, me.getEvent());
 	};
 
 	// Returns last selected ancestor

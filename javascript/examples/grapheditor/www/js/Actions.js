@@ -1,5 +1,5 @@
 /**
- * $Id: Actions.js,v 1.14 2013/10/15 09:19:50 gaudenz Exp $
+ * $Id: Actions.js,v 1.15 2013/11/11 12:18:16 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -23,14 +23,14 @@ Actions.prototype.init = function()
 
 	// File actions
 	this.addAction('new', function() { window.open(ui.getUrl()); });
-	this.addAction('open', function()
+	this.addAction('open...', function()
 	{
 		window.openNew = true;
 		window.openKey = 'open';
 		
 		ui.openFile();
 	});
-	this.addAction('import', function()
+	this.addAction('import...', function()
 	{
 		window.openNew = false;
 		window.openKey = 'import';
@@ -65,20 +65,20 @@ Actions.prototype.init = function()
 			window.openFile = null;
 		});
 	});
-	this.addAction('save', function() { ui.saveFile(false); }, null, null, 'Ctrl+S');
-	this.addAction('saveAs', function() { ui.saveFile(true); }, null, null, 'Ctrl+Shift-S');
-	this.addAction('export', function() { ui.showDialog(new ExportDialog(ui).container, 300, 200, true, true); }, null, null, 'Ctrl+E');
-	this.put('editFile', new Action(mxResources.get('edit'), mxUtils.bind(this, function()
+	this.addAction('save', function() { ui.saveFile(false); }, null, null, 'Ctrl+S').isEnabled = graph.isEnabled;
+	this.addAction('saveAs...', function() { ui.saveFile(true); }, null, null, 'Ctrl+Shift-S').isEnabled = graph.isEnabled;
+	this.addAction('export...', function() { ui.showDialog(new ExportDialog(ui).container, 300, 200, true, true); }, null, null, 'Ctrl+E');
+	this.put('editFile', new Action(mxResources.get('edit') + '...', mxUtils.bind(this, function()
 	{
 		this.editorUi.showDialog(new EditFileDialog(ui).container, 620, 420, true, true);
 	})));
-	this.addAction('pageSetup', function() { ui.showDialog(new PageSetupDialog(ui).container, 300, 200, true, true); });
-	this.addAction('print', function() { ui.showDialog(new PrintDialog(ui).container, 300, 200, true, true); }, null, 'sprite-print', 'Ctrl+P');
+	this.addAction('pageSetup...', function() { ui.showDialog(new PageSetupDialog(ui).container, 300, 200, true, true); });
+	this.addAction('print...', function() { ui.showDialog(new PrintDialog(ui).container, 300, 200, true, true); }, null, 'sprite-print', 'Ctrl+P');
 	this.addAction('preview', function() { mxUtils.show(graph, null, 10, 10); });
 	
 	// Edit actions
-	this.addAction('undo', function() { editor.undoManager.undo(); }, null, 'sprite-undo', 'Ctrl+Z');
-	this.addAction('redo', function() { editor.undoManager.redo(); }, null, 'sprite-redo', 'Ctrl+Y');
+	this.addAction('undo', function() { ui.undo(); }, null, 'sprite-undo', 'Ctrl+Z');
+	this.addAction('redo', function() { ui.redo(); }, null, 'sprite-redo', 'Ctrl+Y');
 	this.addAction('cut', function() { mxClipboard.cut(graph); }, null, 'sprite-cut', 'Ctrl+X');
 	this.addAction('copy', function() { mxClipboard.copy(graph); }, null, 'sprite-copy', 'Ctrl+C');
 	this.addAction('paste', function() { mxClipboard.paste(graph); }, false, 'sprite-paste', 'Ctrl+V');
@@ -131,16 +131,16 @@ Actions.prototype.init = function()
 	this.addAction('ungroup', function() { graph.setSelectionCells(graph.ungroupCells()); }, null, null, 'Ctrl+U');
 	this.addAction('removeFromGroup', function() { graph.removeCellsFromParent(); });
 	// Adds action
-	this.addAction('editData', function()
+	this.addAction('editData...', function()
 	{
 		var cell = graph.getSelectionCell() || graph.getModel().getRoot();
 		
 		if (cell != null)
 		{
-			ui.showDialog(new MetadataDialog(ui, cell).container, 240, 320, true, true);
+			ui.showDialog(new MetadataDialog(ui, cell).container, 280, 320, true, true);
 		}
 	}, null, null, 'Ctrl+M');
-	this.addAction('editLink', function()
+	this.addAction('editLink...', function()
 	{
 		var cell = graph.getSelectionCell();
 		var link = graph.getLinkForCell(cell);
@@ -334,7 +334,7 @@ Actions.prototype.init = function()
 		graph.container.scrollLeft = Math.round(graph.view.translate.x * scale - Math.max(10, (graph.container.clientWidth - fmt.width * ps * scale) / 2));
 		graph.container.scrollTop = Math.round(graph.view.translate.y * scale - Math.max(10, (graph.container.clientHeight - fmt.height * ps * scale) / 2));
 	}));
-	this.put('customZoom', new Action(mxResources.get('custom'), function()
+	this.put('customZoom', new Action(mxResources.get('custom') + '...', function()
 	{
     	var value = mxUtils.prompt(mxResources.get('enterValue') + ' (%)', parseInt(graph.getView().getScale() * 100));
     	
@@ -472,7 +472,7 @@ Actions.prototype.init = function()
 		
 		window.open(RESOURCES_PATH + '/help' + ext + '.html');
 	});
-	this.put('about', new Action(mxResources.get('about') + ' Graph Editor', function()
+	this.put('about', new Action(mxResources.get('about') + ' Graph Editor...', function()
 	{
 		ui.showDialog(new AboutDialog(ui).container, 320, 280, true, true);
 	}, null, null, 'F1'));
@@ -491,19 +491,19 @@ Actions.prototype.init = function()
 	toggleFontStyle('underline', mxConstants.FONT_UNDERLINE);
 	
 	// Color actions
-	this.addAction('fontColor', function() { ui.menus.pickColor(mxConstants.STYLE_FONTCOLOR); });
-	this.addAction('strokeColor', function() { ui.menus.pickColor(mxConstants.STYLE_STROKECOLOR); });
-	this.addAction('fillColor', function() { ui.menus.pickColor(mxConstants.STYLE_FILLCOLOR); });
-	this.addAction('gradientColor', function() { ui.menus.pickColor(mxConstants.STYLE_GRADIENTCOLOR); });
-	this.addAction('backgroundColor', function() { ui.menus.pickColor(mxConstants.STYLE_LABEL_BACKGROUNDCOLOR); });
-	this.addAction('borderColor', function() { ui.menus.pickColor(mxConstants.STYLE_LABEL_BORDERCOLOR); });
+	this.addAction('fontColor...', function() { ui.menus.pickColor(mxConstants.STYLE_FONTCOLOR); });
+	this.addAction('strokeColor...', function() { ui.menus.pickColor(mxConstants.STYLE_STROKECOLOR); });
+	this.addAction('fillColor...', function() { ui.menus.pickColor(mxConstants.STYLE_FILLCOLOR); });
+	this.addAction('gradientColor...', function() { ui.menus.pickColor(mxConstants.STYLE_GRADIENTCOLOR); });
+	this.addAction('backgroundColor...', function() { ui.menus.pickColor(mxConstants.STYLE_LABEL_BACKGROUNDCOLOR); });
+	this.addAction('borderColor...', function() { ui.menus.pickColor(mxConstants.STYLE_LABEL_BORDERCOLOR); });
 	
 	// Format actions
 	this.addAction('shadow', function() { graph.toggleCellStyles(mxConstants.STYLE_SHADOW); });
 	this.addAction('dashed', function() { graph.toggleCellStyles(mxConstants.STYLE_DASHED); });
 	this.addAction('rounded', function() { graph.toggleCellStyles(mxConstants.STYLE_ROUNDED); });
 	this.addAction('curved', function() { graph.toggleCellStyles(mxConstants.STYLE_CURVED); });
-	this.addAction('style', function()
+	this.addAction('style...', function()
 	{
 		var cells = graph.getSelectionCells();
 		
@@ -565,7 +565,7 @@ Actions.prototype.init = function()
 			rmWaypointAction.handler.removePoint(rmWaypointAction.handler.state, rmWaypointAction.index);
 		}
 	});
-	this.addAction('image', function()
+	this.addAction('image...', function()
 	{
 		function updateImage(value, w, h)
 		{
@@ -651,7 +651,19 @@ Actions.prototype.init = function()
  */
 Actions.prototype.addAction = function(key, funct, enabled, iconCls, shortcut)
 {
-	return this.put(key, new Action(mxResources.get(key), funct, enabled, iconCls, shortcut));
+	var title;
+	
+	if (key.substring(key.length - 3) == '...')
+	{
+		key = key.substring(0, key.length - 3);
+		title = mxResources.get(key) + '...';
+	}
+	else
+	{
+		title = mxResources.get(key);
+	}
+	
+	return this.put(key, new Action(title, funct, enabled, iconCls, shortcut));
 };
 
 /**
@@ -699,6 +711,14 @@ Action.prototype.setEnabled = function(value)
 		this.enabled = value;
 		this.fireEvent(new mxEventObject('stateChanged'));
 	}
+};
+
+/**
+ * Sets the enabled state of the action and fires a stateChanged event.
+ */
+Action.prototype.isEnabled = function()
+{
+	return this.enabled;
 };
 
 /**

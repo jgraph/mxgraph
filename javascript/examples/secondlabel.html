@@ -1,5 +1,5 @@
 <!--
-  $Id: secondlabel.html,v 1.5 2013/10/28 08:44:55 gaudenz Exp $
+  $Id: secondlabel.html,v 1.6 2013/11/02 16:57:25 gaudenz Exp $
   Copyright (c) 2006-2013, JGraph Ltd
   
   Second label example for mxGraph. This example demonstrates how to
@@ -7,7 +7,7 @@
 -->
 <html>
 <head>
-	<title>Hello, World! example for mxGraph</title>
+	<title>Second label example for mxGraph</title>
 
 	<!-- Sets the basepath for the library if not in same directory -->
 	<script type="text/javascript">
@@ -19,6 +19,29 @@
 
 	<!-- Example code -->
 	<script type="text/javascript">
+		
+		// Simple solution to add additional text to the rectangle shape definition:
+		(function()
+		{
+			var mxRectangleShapeIsHtmlAllowed = mxRectangleShape.prototype.isHtmlAllowed;
+			mxRectangleShape.prototype.isHtmlAllowed = function()
+			{
+				return mxRectangleShapeIsHtmlAllowed.apply(this, arguments) && this.state == null;
+			};
+			
+			mxRectangleShapePaintForeground = mxRectangleShape.prototype.paintForeground;
+			mxRectangleShape.prototype.paintForeground = function(c, x, y, w, h)
+			{
+				if (this.state != null)
+				{
+					c.setFontColor('#a0a0a0');
+					c.text(x + 2, y, 0, 0, this.state.cell.id, 'left', 'top');
+				}
+				
+				mxRectangleShapePaintForeground.apply(this, arguments);
+			};
+		})();
+
 		// Program starts here. Creates a sample graph in the
 		// DOM node with the specified ID. This function is invoked
 		// from the onLoad event handler of the document (see below).

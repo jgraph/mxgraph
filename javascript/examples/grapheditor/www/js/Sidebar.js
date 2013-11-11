@@ -1,5 +1,5 @@
 /**
- * $Id: Sidebar.js,v 1.53 2013/08/21 11:56:46 gaudenz Exp $
+ * $Id: Sidebar.js,v 1.55 2013/11/11 12:18:16 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -791,6 +791,7 @@ Sidebar.prototype.createTitle = function(label)
 {
 	var elt = document.createElement('a');
 	elt.setAttribute('href', 'javascript:void(0);');
+	elt.setAttribute('title', label);
 	elt.className = 'geTitle';
 	mxUtils.write(elt, label);
 
@@ -939,6 +940,8 @@ Sidebar.prototype.createDropHandler = function(cells, allowSplit)
 					graph.setSelectionCells(select);
 				}
 			}
+			
+			mxEvent.consume(evt);
 		}
 	};
 };

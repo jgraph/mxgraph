@@ -1,5 +1,5 @@
 <!--
-  $Id: menustyle.html,v 1.6 2013/10/28 08:44:55 gaudenz Exp $
+  $Id: menustyle.html,v 1.7 2013/11/06 14:12:00 gaudenz Exp $
   Copyright (c) 2006-2013, JGraph Ltd
   
   Menustyle example for mxGraph. This example demonstrates using
@@ -105,9 +105,7 @@
 				}
 				
 				// Creates a new overlay with an image and a tooltip and makes it "transparent" to events
-				var overlay = new mxCellOverlay(
-					new mxImage('editors/images/overlays/check.png', 16, 16),
-					'Overlay tooltip');
+				var overlay = new mxCellOverlay(new mxImage('editors/images/overlays/check.png', 16, 16), 'Overlay tooltip');
 
 				var mxCellRendererInstallCellOverlayListeners = mxCellRenderer.prototype.installCellOverlayListeners;
 				mxCellRenderer.prototype.installCellOverlayListeners = function(state, overlay, shape)

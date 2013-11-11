@@ -1,5 +1,5 @@
 /**
- * $Id: mxTemporaryCellStates.js,v 1.2 2013/10/28 08:45:01 gaudenz Exp $
+ * $Id: mxTemporaryCellStates.js,v 1.3 2013/11/11 12:24:53 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -29,6 +29,8 @@ function mxTemporaryCellStates(view, scale, cells)
 	
 	if (cells != null)
 	{
+		view.resetValidationState();
+		
 		// Creates virtual parent state for validation
 		var state = view.createState(new mxCell());
 
