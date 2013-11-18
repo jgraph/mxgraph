@@ -1,5 +1,5 @@
 /**
- * $Id: mxStackLayout.js,v 1.5 2013/10/28 08:45:05 gaudenz Exp $
+ * $Id: mxStackLayout.js,v 1.7 2013/11/18 14:35:48 david Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -71,6 +71,34 @@ mxStackLayout.prototype.y0 = null;
  * Border to be added if fill is true. Default is 0.
  */
 mxStackLayout.prototype.border = 0;
+
+/**
+ * Variable: marginTop
+ * 
+ * Top margin for the child area. Default is 0.
+ */
+mxStackLayout.prototype.marginTop = 0;
+
+/**
+ * Variable: marginLeft
+ * 
+ * Top margin for the child area. Default is 0.
+ */
+mxStackLayout.prototype.marginLeft = 0;
+
+/**
+ * Variable: marginRight
+ * 
+ * Top margin for the child area. Default is 0.
+ */
+mxStackLayout.prototype.marginRight = 0;
+
+/**
+ * Variable: marginBottom
+ * 
+ * Top margin for the child area. Default is 0.
+ */
+mxStackLayout.prototype.marginBottom = 0;
 
 /**
  * Variable: keepFirstLocation
@@ -214,20 +242,20 @@ mxStackLayout.prototype.execute = function(parent)
 {
 	if (parent != null)
 	{
+		var pgeo = this.getParentSize(parent);
 		var horizontal = this.isHorizontal();
 		var model = this.graph.getModel();	
-		var pgeo = this.getParentSize(parent);
-					
 		var fillValue = null;
 		
 		if (pgeo != null)
 		{
-			fillValue = (horizontal) ? pgeo.height : pgeo.width;
+			fillValue = (horizontal) ? pgeo.height - this.marginTop - this.marginBottom :
+				pgeo.width - this.marginLeft - this.marginRight;
 		}
 		
 		fillValue -= 2 * this.spacing + 2 * this.border;
-		var x0 = this.x0 + this.border;
-		var y0 = this.y0 + this.border;
+		var x0 = this.x0 + this.border + this.marginLeft;
+		var y0 = this.y0 + this.border + this.marginTop;
 		
 		// Handles swimlane start size
 		if (this.graph.isSwimlane(parent))
@@ -351,7 +379,7 @@ mxStackLayout.prototype.execute = function(parent)
 							}
 						}
 						
-						model.setGeometry(child, geo);
+						this.setChildGeometry(child, geo);
 						last = geo;
 					}
 				}
@@ -360,28 +388,17 @@ mxStackLayout.prototype.execute = function(parent)
 			if (this.resizeParent && pgeo != null && last != null &&
 				!this.graph.isCellCollapsed(parent))
 			{
-				pgeo = pgeo.clone();
-				
-				if (horizontal)
-				{
-					pgeo.width = last.x + last.width + this.spacing;
-				}
-				else
-				{
-					pgeo.height = last.y + last.height + this.spacing;
-				}
-				
-				model.setGeometry(parent, pgeo);					
+				this.updateParentGeometry(parent, pgeo, last);
 			}
 			else if (this.resizeLast && pgeo != null && last != null)
 			{
 				if (horizontal)
 				{
-					last.width = pgeo.width - last.x - this.spacing;
+					last.width = pgeo.width - last.x - this.spacing - this.marginRight - this.marginLeft;
 				}
 				else
 				{
-					last.height = pgeo.height - last.y - this.spacing;
+					last.height = pgeo.height - last.y - this.spacing - this.marginBottom;
 				}
 			}
 		}
@@ -390,4 +407,44 @@ mxStackLayout.prototype.execute = function(parent)
 			model.endUpdate();
 		}
 	}
+};
+
+/**
+ * Function: execute
+ * 
+ * Implements <mxGraphLayout.execute>.
+ * 
+ * Only children where <isVertexIgnored> returns false are taken into
+ * account.
+ */
+mxStackLayout.prototype.setChildGeometry = function(child, geo)
+{
+	this.graph.getModel().setGeometry(child, geo);
+};
+
+/**
+ * Function: execute
+ * 
+ * Implements <mxGraphLayout.execute>.
+ * 
+ * Only children where <isVertexIgnored> returns false are taken into
+ * account.
+ */
+mxStackLayout.prototype.updateParentGeometry = function(parent, pgeo, last)
+{
+	var horizontal = this.isHorizontal();
+	var model = this.graph.getModel();	
+
+	pgeo = pgeo.clone();
+	
+	if (horizontal)
+	{
+		pgeo.width = last.x + last.width + this.spacing + this.marginRight;
+	}
+	else
+	{
+		pgeo.height = last.y + last.height + this.spacing + this.marginBottom;
+	}
+	
+	model.setGeometry(parent, pgeo);
 };

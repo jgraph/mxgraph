@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellCodec.js,v 1.3 2013/10/28 08:45:02 gaudenz Exp $
+ * $Id: mxCellCodec.js,v 1.4 2013/11/12 21:51:00 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -77,8 +77,7 @@ mxCodecRegistry.register(function()
 	 */
 	codec.afterEncode = function(enc, obj, node)
 	{
-		if (obj.value != null &&
-			obj.value.nodeType == mxConstants.NODETYPE_ELEMENT)
+		if (obj.value != null && obj.value.nodeType == mxConstants.NODETYPE_ELEMENT)
 		{
 			// Wraps the graphical annotation up in the user object (inversion)
 			// by putting the result of the default encoding into a clone of the
@@ -116,8 +115,7 @@ mxCodecRegistry.register(function()
 			// object codec for further processing of the cell.
 			var tmp = node.getElementsByTagName(classname)[0];
 			
-			if (tmp != null &&
-				tmp.parentNode == node)
+			if (tmp != null && tmp.parentNode == node)
 			{
 				mxUtils.removeWhitespace(tmp, true);
 				mxUtils.removeWhitespace(tmp, false);

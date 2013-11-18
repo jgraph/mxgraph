@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.js,v 1.20 2013/10/28 08:44:59 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.21 2013/11/12 21:50:30 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxUtils =
@@ -2519,12 +2519,11 @@ var mxUtils =
 	 * 
 	 * Parameters:
 	 * 
-	 * str - String representing the possibly numeric value.
+	 * n - String representing the possibly numeric value.
 	 */
-	isNumeric: function(str)
+	isNumeric: function(n)
 	{
-		return str != null && (str.length == null || (str.length > 0 &&
-			str.indexOf('0x') < 0) && str.indexOf('0X') < 0) && !isNaN(str);
+		return !isNaN(parseFloat(n)) && isFinite(n) && (typeof(n) != 'string' || n.toLowerCase().indexOf('0x') < 0);
 	},
 	
 	/**

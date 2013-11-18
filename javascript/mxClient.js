@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.3.0.2.
+	 * Current version is 2.3.0.3.
 	 */
-	VERSION: '2.3.0.2',
+	VERSION: '2.3.0.3',
 
 	/**
 	 * Variable: IS_IE
@@ -1909,7 +1909,7 @@ var mxEffects =
 
 };
 /**
- * $Id: mxUtils.js,v 1.20 2013/10/28 08:44:59 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.21 2013/11/12 21:50:30 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxUtils =
@@ -4429,12 +4429,11 @@ var mxUtils =
 	 * 
 	 * Parameters:
 	 * 
-	 * str - String representing the possibly numeric value.
+	 * n - String representing the possibly numeric value.
 	 */
-	isNumeric: function(str)
+	isNumeric: function(n)
 	{
-		return str != null && (str.length == null || (str.length > 0 &&
-			str.indexOf('0x') < 0) && str.indexOf('0X') < 0) && !isNaN(str);
+		return !isNaN(parseFloat(n)) && isFinite(n) && (typeof(n) != 'string' || n.toLowerCase().indexOf('0x') < 0);
 	},
 	
 	/**
@@ -26075,7 +26074,7 @@ mxGraphLayout.prototype.arrangeGroups = function(groups, border)
 	}
 };
 /**
- * $Id: mxStackLayout.js,v 1.5 2013/10/28 08:45:05 gaudenz Exp $
+ * $Id: mxStackLayout.js,v 1.7 2013/11/18 14:35:48 david Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -26147,6 +26146,34 @@ mxStackLayout.prototype.y0 = null;
  * Border to be added if fill is true. Default is 0.
  */
 mxStackLayout.prototype.border = 0;
+
+/**
+ * Variable: marginTop
+ * 
+ * Top margin for the child area. Default is 0.
+ */
+mxStackLayout.prototype.marginTop = 0;
+
+/**
+ * Variable: marginLeft
+ * 
+ * Top margin for the child area. Default is 0.
+ */
+mxStackLayout.prototype.marginLeft = 0;
+
+/**
+ * Variable: marginRight
+ * 
+ * Top margin for the child area. Default is 0.
+ */
+mxStackLayout.prototype.marginRight = 0;
+
+/**
+ * Variable: marginBottom
+ * 
+ * Top margin for the child area. Default is 0.
+ */
+mxStackLayout.prototype.marginBottom = 0;
 
 /**
  * Variable: keepFirstLocation
@@ -26290,20 +26317,20 @@ mxStackLayout.prototype.execute = function(parent)
 {
 	if (parent != null)
 	{
+		var pgeo = this.getParentSize(parent);
 		var horizontal = this.isHorizontal();
 		var model = this.graph.getModel();	
-		var pgeo = this.getParentSize(parent);
-					
 		var fillValue = null;
 		
 		if (pgeo != null)
 		{
-			fillValue = (horizontal) ? pgeo.height : pgeo.width;
+			fillValue = (horizontal) ? pgeo.height - this.marginTop - this.marginBottom :
+				pgeo.width - this.marginLeft - this.marginRight;
 		}
 		
 		fillValue -= 2 * this.spacing + 2 * this.border;
-		var x0 = this.x0 + this.border;
-		var y0 = this.y0 + this.border;
+		var x0 = this.x0 + this.border + this.marginLeft;
+		var y0 = this.y0 + this.border + this.marginTop;
 		
 		// Handles swimlane start size
 		if (this.graph.isSwimlane(parent))
@@ -26427,7 +26454,7 @@ mxStackLayout.prototype.execute = function(parent)
 							}
 						}
 						
-						model.setGeometry(child, geo);
+						this.setChildGeometry(child, geo);
 						last = geo;
 					}
 				}
@@ -26436,28 +26463,17 @@ mxStackLayout.prototype.execute = function(parent)
 			if (this.resizeParent && pgeo != null && last != null &&
 				!this.graph.isCellCollapsed(parent))
 			{
-				pgeo = pgeo.clone();
-				
-				if (horizontal)
-				{
-					pgeo.width = last.x + last.width + this.spacing;
-				}
-				else
-				{
-					pgeo.height = last.y + last.height + this.spacing;
-				}
-				
-				model.setGeometry(parent, pgeo);					
+				this.updateParentGeometry(parent, pgeo, last);
 			}
 			else if (this.resizeLast && pgeo != null && last != null)
 			{
 				if (horizontal)
 				{
-					last.width = pgeo.width - last.x - this.spacing;
+					last.width = pgeo.width - last.x - this.spacing - this.marginRight - this.marginLeft;
 				}
 				else
 				{
-					last.height = pgeo.height - last.y - this.spacing;
+					last.height = pgeo.height - last.y - this.spacing - this.marginBottom;
 				}
 			}
 		}
@@ -26466,6 +26482,46 @@ mxStackLayout.prototype.execute = function(parent)
 			model.endUpdate();
 		}
 	}
+};
+
+/**
+ * Function: execute
+ * 
+ * Implements <mxGraphLayout.execute>.
+ * 
+ * Only children where <isVertexIgnored> returns false are taken into
+ * account.
+ */
+mxStackLayout.prototype.setChildGeometry = function(child, geo)
+{
+	this.graph.getModel().setGeometry(child, geo);
+};
+
+/**
+ * Function: execute
+ * 
+ * Implements <mxGraphLayout.execute>.
+ * 
+ * Only children where <isVertexIgnored> returns false are taken into
+ * account.
+ */
+mxStackLayout.prototype.updateParentGeometry = function(parent, pgeo, last)
+{
+	var horizontal = this.isHorizontal();
+	var model = this.graph.getModel();	
+
+	pgeo = pgeo.clone();
+	
+	if (horizontal)
+	{
+		pgeo.width = last.x + last.width + this.spacing + this.marginRight;
+	}
+	else
+	{
+		pgeo.height = last.y + last.height + this.spacing + this.marginBottom;
+	}
+	
+	model.setGeometry(parent, pgeo);
 };
 /**
  * $Id: mxPartitionLayout.js,v 1.2 2013/10/28 08:45:05 gaudenz Exp $
@@ -76637,7 +76693,7 @@ var mxCodecRegistry =
 
 };
 /**
- * $Id: mxCodec.js,v 1.3 2013/10/28 08:45:02 gaudenz Exp $
+ * $Id: mxCodec.js,v 1.4 2013/11/12 22:08:33 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -76991,23 +77047,16 @@ mxCodec.prototype.decode = function(node, into)
 			// ignore
 		}
 		
-		try
+		var dec = mxCodecRegistry.getCodec(ctor);
+		
+		if (dec != null)
 		{
-			var dec = mxCodecRegistry.getCodec(ctor);
-			
-			if (dec != null)
-			{
-				obj = dec.decode(this, node, into);
-			}
-			else
-			{
-				obj = node.cloneNode(true);
-				obj.removeAttribute('as');
-			}
+			obj = dec.decode(this, node, into);
 		}
-		catch (err)
+		else
 		{
-			mxLog.debug('Cannot decode '+node.nodeName+': '+err.message);
+			obj = node.cloneNode(true);
+			obj.removeAttribute('as');
 		}
 	}
 	
@@ -78161,7 +78210,7 @@ mxObjectCodec.prototype.afterDecode = function(dec, node, obj)
 	return obj;
 };
 /**
- * $Id: mxCellCodec.js,v 1.3 2013/10/28 08:45:02 gaudenz Exp $
+ * $Id: mxCellCodec.js,v 1.4 2013/11/12 21:51:00 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 mxCodecRegistry.register(function()
@@ -78239,8 +78288,7 @@ mxCodecRegistry.register(function()
 	 */
 	codec.afterEncode = function(enc, obj, node)
 	{
-		if (obj.value != null &&
-			obj.value.nodeType == mxConstants.NODETYPE_ELEMENT)
+		if (obj.value != null && obj.value.nodeType == mxConstants.NODETYPE_ELEMENT)
 		{
 			// Wraps the graphical annotation up in the user object (inversion)
 			// by putting the result of the default encoding into a clone of the
@@ -78278,8 +78326,7 @@ mxCodecRegistry.register(function()
 			// object codec for further processing of the cell.
 			var tmp = node.getElementsByTagName(classname)[0];
 			
-			if (tmp != null &&
-				tmp.parentNode == node)
+			if (tmp != null && tmp.parentNode == node)
 			{
 				mxUtils.removeWhitespace(tmp, true);
 				mxUtils.removeWhitespace(tmp, false);

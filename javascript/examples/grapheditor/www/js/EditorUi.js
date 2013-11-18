@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.34 2013/11/11 12:18:16 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.35 2013/11/13 09:15:59 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -284,55 +284,6 @@ EditorUi.prototype.open = function()
 	catch(e)
 	{
 		// ignore
-	}
-};
-
-/**
- * Saves the current graph under the given filename.
- */
-EditorUi.prototype.save = function(name)
-{
-	if (name != null)
-	{
-		var xml = mxUtils.getXml(this.editor.getGraphXml());
-		
-		try
-		{
-			if (useLocalStorage)
-			{
-				if (localStorage.getItem(name) != null &&
-					!mxUtils.confirm(mxResources.get('replace', [name])))
-				{
-					return;
-				}
-
-				localStorage.setItem(name, xml);
-				this.editor.setStatus(mxResources.get('saved') + ' ' + new Date());
-			}
-			else
-			{
-				if (xml.length < MAX_REQUEST_SIZE)
-				{
-					xml = encodeURIComponent(xml);
-					new mxXmlRequest(SAVE_URL, 'filename=' + name + '&xml=' + xml).simulate(document, "_blank");
-				}
-				else
-				{
-					mxUtils.alert(mxResources.get('drawingTooLarge'));
-					mxUtils.popup(xml);
-					
-					return;
-				}
-			}
-
-			this.editor.setModified(false);
-			this.editor.setFilename(name);
-			this.editor.updateDocumentTitle();
-		}
-		catch (e)
-		{
-			this.editor.setStatus('Error saving file');
-		}
 	}
 };
 
@@ -859,6 +810,55 @@ EditorUi.prototype.saveFile = function(forceDialog)
 		{
 			this.save(nameInput.value, true);
 		})).container, 300, 100, true, true);
+	}
+};
+
+/**
+ * Saves the current graph under the given filename.
+ */
+EditorUi.prototype.save = function(name)
+{
+	if (name != null)
+	{
+		var xml = mxUtils.getXml(this.editor.getGraphXml());
+		
+		try
+		{
+			if (useLocalStorage)
+			{
+				if (localStorage.getItem(name) != null &&
+					!mxUtils.confirm(mxResources.get('replace', [name])))
+				{
+					return;
+				}
+
+				localStorage.setItem(name, xml);
+				this.editor.setStatus(mxResources.get('saved') + ' ' + new Date());
+			}
+			else
+			{
+				if (xml.length < MAX_REQUEST_SIZE)
+				{
+					xml = encodeURIComponent(xml);
+					new mxXmlRequest(SAVE_URL, 'filename=' + name + '&xml=' + xml).simulate(document, "_blank");
+				}
+				else
+				{
+					mxUtils.alert(mxResources.get('drawingTooLarge'));
+					mxUtils.popup(xml);
+					
+					return;
+				}
+			}
+
+			this.editor.setModified(false);
+			this.editor.setFilename(name);
+			this.editor.updateDocumentTitle();
+		}
+		catch (e)
+		{
+			this.editor.setStatus('Error saving file');
+		}
 	}
 };
 

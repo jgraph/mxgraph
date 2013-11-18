@@ -1,5 +1,5 @@
 /**
- * $Id: Shapes.js,v 1.23 2013/09/09 12:49:12 gaudenz Exp $
+ * $Id: Shapes.js,v 1.24 2013/11/11 18:20:04 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 
@@ -368,8 +368,12 @@
 			if (this.style['double'] == 1)
 			{
 				var inset = Math.max(2, this.strokewidth + 1);
-	
-				mxRectangleShape.prototype.paintBackground.call(this, c, x + inset, y + inset, w - 2 * inset, h - 2 * inset);
+				
+				if (w - 2 * inset > 0 && h - 2 * inset > 0)
+				{
+					mxRectangleShape.prototype.paintBackground.call(this, c, x + inset, y + inset, w - 2 * inset, h - 2 * inset);
+				}
+
 				mxRectangleShape.prototype.paintForeground.apply(this, arguments);
 				
 				x += inset;
