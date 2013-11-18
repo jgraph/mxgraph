@@ -1,3 +1,9 @@
+18-NOV-2013: 2.3.0.3
+
+- Fixes try-catch flow in mxCodec.decode [JavaScript]
+- Fixes mxUtils.isNumeric for certain cases [JavaScript]
+- Adds mxStackLayout.marginTop/-Left/-Bottom/-Right, setChild-/updateParentGeometry [JavaScript]
+
 11-NOV-2013: 2.3.0.2
 
 - Minor fixes in grapheditor.html example [JavaScript]

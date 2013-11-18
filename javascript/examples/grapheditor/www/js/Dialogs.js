@@ -1,5 +1,5 @@
 /**
- * $Id: Dialogs.js,v 1.13 2013/11/11 12:18:17 gaudenz Exp $
+ * $Id: Dialogs.js,v 1.14 2013/11/13 09:16:49 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -719,7 +719,18 @@ function EditFileDialog(editorUi)
     			var file = evt.dataTransfer.files[0];
     			
 				var reader = new FileReader();
-				reader.onload = function(e) { textarea.value = e.target.result; };
+				reader.onload = function(e)
+				{
+					var data = e.target.result;
+					
+					// Tries decompressing file if the contents do not start with the proper XML tag
+					if (data != null && data.substring(0, 13) != '<mxGraphModel')
+					{
+						data = decodeURIComponent(RawDeflate.inflate(Base64.decode(data, true)));
+					}
+					
+					textarea.value = data;
+				};
 				reader.readAsText(file);
     		}
 		};

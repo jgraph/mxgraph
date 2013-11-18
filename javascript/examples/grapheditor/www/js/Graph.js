@@ -1,5 +1,5 @@
 /**
- * $Id: Graph.js,v 1.29 2013/09/18 12:35:25 gaudenz Exp $
+ * $Id: Graph.js,v 1.30 2013/11/15 12:13:01 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -236,7 +236,10 @@ Graph.prototype.setDefaultEdge = function(cell)
  */
 Graph.prototype.isCellFoldable = function(cell)
 {
-	return this.foldingEnabled && this.isContainer(cell);
+	var state = this.view.getState(cell);
+	var style = (state != null) ? state.style : this.getCellStyle(cell);
+	
+	return this.foldingEnabled && this.isContainer(cell) && style['collapsible'] != '0';
 };
 
 /**

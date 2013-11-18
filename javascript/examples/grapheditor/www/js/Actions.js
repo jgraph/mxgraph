@@ -1,5 +1,5 @@
 /**
- * $Id: Actions.js,v 1.15 2013/11/11 12:18:16 gaudenz Exp $
+ * $Id: Actions.js,v 1.16 2013/11/13 09:16:49 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -45,6 +45,11 @@ Actions.prototype.init = function()
 		{
 			try
 			{
+				if (xml != null && xml.substring(0, 13) != '<mxGraphModel')
+				{
+					xml = decodeURIComponent(RawDeflate.inflate(Base64.decode(xml, true)));
+				}
+
 				var doc = mxUtils.parseXml(xml);
 				var model = new mxGraphModel();
 				var codec = new mxCodec(doc);
