@@ -1,5 +1,5 @@
 /**
- * $Id: mxCodec.js,v 1.48 2012/01/04 10:01:16 gaudenz Exp $
+ * $Id: mxCodec.js,v 1.49 2013/11/12 22:09:10 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -343,23 +343,16 @@ mxCodec.prototype.decode = function(node, into)
 			// ignore
 		}
 		
-		try
+		var dec = mxCodecRegistry.getCodec(ctor);
+		
+		if (dec != null)
 		{
-			var dec = mxCodecRegistry.getCodec(ctor);
-			
-			if (dec != null)
-			{
-				obj = dec.decode(this, node, into);
-			}
-			else
-			{
-				obj = node.cloneNode(true);
-				obj.removeAttribute('as');
-			}
+			obj = dec.decode(this, node, into);
 		}
-		catch (err)
+		else
 		{
-			mxLog.debug('Cannot decode '+node.nodeName+': '+err.message);
+			obj = node.cloneNode(true);
+			obj.removeAttribute('as');
 		}
 	}
 	

@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.13.0.8.
+	 * Current version is 1.13.0.9.
 	 */
-	VERSION: '1.13.0.8',
+	VERSION: '1.13.0.9',
 
 	/**
 	 * Variable: IS_IE
@@ -1870,7 +1870,7 @@ var mxEffects =
 
 };
 /**
- * $Id: mxUtils.js,v 1.302 2013/10/28 08:46:44 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.304 2013/11/26 11:01:42 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxUtils =
@@ -4351,12 +4351,11 @@ var mxUtils =
 	 * 
 	 * Parameters:
 	 * 
-	 * str - String representing the possibly numeric value.
+	 * n - String representing the possibly numeric value.
 	 */
-	isNumeric: function(str)
+	isNumeric: function(n)
 	{
-		return str != null && (str.length == null || (str.length > 0 &&
-			str.indexOf('0x') < 0) && str.indexOf('0X') < 0) && !isNaN(str);
+		return !isNaN(parseFloat(n)) && isFinite(n) && (typeof(n) != 'string' || n.toLowerCase().indexOf('0x') < 0);
 	},
 	
 	/**
@@ -36569,7 +36568,7 @@ WeightedCellSorter.prototype.compare = function(a, b)
 	}
 };
 /**
- * $Id: mxHierarchicalLayout.js,v 1.36 2013/06/05 12:25:54 gaudenz Exp $
+ * $Id: mxHierarchicalLayout.js,v 1.37 2013/11/01 11:52:38 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -37221,14 +37220,14 @@ mxHierarchicalLayout.prototype.traverse = function(vertex, directed, edge, allVe
 
 					if (comp[vertexID] != null)
 					{
-						for (var key in currentComp)
+						for (var key in comp)
 						{
-							comp[key] = currentComp[key];
+							currentComp[key] = comp[key];
 						}
 						
 						// Remove the current component from the hierarchy set
-						hierarchyVertices.pop();
-						return comp;
+						hierarchyVertices.splice(i, 1);
+						return currentComp;
 					}
 				}
 			}
@@ -76491,7 +76490,7 @@ var mxCodecRegistry =
 
 };
 /**
- * $Id: mxCodec.js,v 1.48 2012/01/04 10:01:16 gaudenz Exp $
+ * $Id: mxCodec.js,v 1.49 2013/11/12 22:09:10 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -76835,23 +76834,16 @@ mxCodec.prototype.decode = function(node, into)
 			// ignore
 		}
 		
-		try
+		var dec = mxCodecRegistry.getCodec(ctor);
+		
+		if (dec != null)
 		{
-			var dec = mxCodecRegistry.getCodec(ctor);
-			
-			if (dec != null)
-			{
-				obj = dec.decode(this, node, into);
-			}
-			else
-			{
-				obj = node.cloneNode(true);
-				obj.removeAttribute('as');
-			}
+			obj = dec.decode(this, node, into);
 		}
-		catch (err)
+		else
 		{
-			mxLog.debug('Cannot decode '+node.nodeName+': '+err.message);
+			obj = node.cloneNode(true);
+			obj.removeAttribute('as');
 		}
 	}
 	
