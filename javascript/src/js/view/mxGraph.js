@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.57 2013/10/28 08:45:01 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.58 2013/12/04 16:44:11 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -1936,14 +1936,11 @@ mxGraph.prototype.processChange = function(change)
 	else if (change instanceof mxChildChange)
 	{
 		var newParent = this.model.getParent(change.child);
-		
-		if (newParent != null)
+		this.view.invalidate(change.child, true, true);
+
+		if (newParent == null)
 		{
-			// Flags the cell for updating the order in the renderer
-			this.view.invalidate(change.child, true, false);
-		}
-		else
-		{
+			this.view.invalidate(change.child, true, true);
 			this.removeStateForCell(change.child);
 			
 			// Handles special case of current root of view being removed
@@ -1952,7 +1949,7 @@ mxGraph.prototype.processChange = function(change)
 				this.home();
 			}
 		}
-		
+ 
 		if (newParent != change.previous)
 		{
 			// Refreshes the collapse/expand icons on the parents
@@ -5166,10 +5163,7 @@ mxGraph.prototype.getPreferredSizeForCell = function(cell)
 			
 			if (value != null && value.length > 0)
 			{
-				if (!this.isHtmlLabel(cell))
-				{
-					value = value.replace(/\n/g, '<br>');
-				}
+				value = value.replace(/\n/g, '<br>');
 				
 				var size = mxUtils.getSizeForString(value,
 					fontSize, style[mxConstants.STYLE_FONTFAMILY]);
@@ -11734,7 +11728,10 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 				var args = [sender, me];
 	
 				// Does not change returnValue in Opera
-				me.getEvent().returnValue = true;
+				if (!me.getEvent().preventDefault)
+				{
+					me.getEvent().returnValue = true;
+				}
 				
 				for (var i = 0; i < this.mouseListeners.length; i++)
 				{

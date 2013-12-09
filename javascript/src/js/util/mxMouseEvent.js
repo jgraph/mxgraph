@@ -1,5 +1,5 @@
 /**
- * $Id: mxMouseEvent.js,v 1.2 2013/10/28 08:45:00 gaudenz Exp $
+ * $Id: mxMouseEvent.js,v 1.3 2013/12/04 16:44:12 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -234,8 +234,12 @@ mxMouseEvent.prototype.consume = function(preventDefault)
 	}
 
 	// Workaround for images being dragged in IE
-	this.evt.returnValue = false;
-	
+	// Does not change returnValue in Opera
+	if (mxClient.IS_IE)
+	{
+		this.evt.returnValue = true;
+	}
+
 	// Sets local consumed state
 	this.consumed = true;
 };

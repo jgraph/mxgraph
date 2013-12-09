@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.3.0.3.
+	 * Current version is 2.3.0.4.
 	 */
-	VERSION: '2.3.0.3',
+	VERSION: '2.3.0.4',
 
 	/**
 	 * Variable: IS_IE
@@ -5903,7 +5903,7 @@ var mxUtils =
 
 };
 /**
- * $Id: mxConstants.js,v 1.15 2013/10/28 08:44:59 gaudenz Exp $
+ * $Id: mxConstants.js,v 1.16 2013/11/26 13:30:41 david Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
  var mxConstants =
@@ -6705,7 +6705,8 @@ var mxUtils =
 	/**
 	 * Variable: STYLE_MARGIN
 	 * 
-	 * Defines the key for the margin. Possible values are all positive numbers.
+	 * Defines the key for the margin between the ellipses in the double ellipse shape.
+	 * Possible values are all positive numbers.
 	 */
 	STYLE_MARGIN: 'margin',
 
@@ -7973,7 +7974,7 @@ mxEventObject.prototype.consume = function()
 	this.consumed = true;
 };
 /**
- * $Id: mxMouseEvent.js,v 1.2 2013/10/28 08:45:00 gaudenz Exp $
+ * $Id: mxMouseEvent.js,v 1.3 2013/12/04 16:44:12 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -8208,13 +8209,17 @@ mxMouseEvent.prototype.consume = function(preventDefault)
 	}
 
 	// Workaround for images being dragged in IE
-	this.evt.returnValue = false;
-	
+	// Does not change returnValue in Opera
+	if (mxClient.IS_IE)
+	{
+		this.evt.returnValue = true;
+	}
+
 	// Sets local consumed state
 	this.consumed = true;
 };
 /**
- * $Id: mxEventSource.js,v 1.2 2013/10/28 08:44:58 gaudenz Exp $
+ * $Id: mxEventSource.js,v 1.3 2013/11/27 07:24:28 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -8372,8 +8377,7 @@ mxEventSource.prototype.removeListener = function(funct)
  */
 mxEventSource.prototype.fireEvent = function(evt, sender)
 {
-	if (this.eventListeners != null &&
-		this.isEventsEnabled())
+	if (this.eventListeners != null && this.isEventsEnabled())
 	{
 		if (evt == null)
 		{
@@ -8396,8 +8400,7 @@ mxEventSource.prototype.fireEvent = function(evt, sender)
 		{
 			var listen = this.eventListeners[i];
 			
-			if (listen == null ||
-				listen == evt.getName())
+			if (listen == null || listen == evt.getName())
 			{
 				this.eventListeners[i+1].apply(this, args);
 			}
@@ -8405,7 +8408,7 @@ mxEventSource.prototype.fireEvent = function(evt, sender)
 	}
 };
 /**
- * $Id: mxEvent.js,v 1.18 2013/10/28 08:44:59 gaudenz Exp $
+ * $Id: mxEvent.js,v 1.19 2013/12/04 16:44:12 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxEvent =
@@ -9021,7 +9024,10 @@ var mxEvent =
 		evt.isConsumed = true;
 
 		// Other browsers
-		evt.returnValue = false;
+		if (!evt.preventDefault)
+		{
+			evt.returnValue = false;
+		}
 	},
 	
 	//
@@ -24741,7 +24747,7 @@ mxImageShape.prototype.redrawHtmlShape = function()
 	}
 };
 /**
- * $Id: mxLabel.js,v 1.11 2013/10/28 08:45:04 gaudenz Exp $
+ * $Id: mxLabel.js,v 1.12 2013/11/29 13:57:10 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -24831,7 +24837,7 @@ mxLabel.prototype.redraw = function()
 	if (this.indicator != null)
 	{
 		this.indicator.fill = this.indicatorColor;
-		this.indicator.stroke = this.indicatorColor;
+		this.indicator.stroke = this.indicatorStrokeColor;
 		this.indicator.gradient = this.indicatorGradientColor;
 		this.indicator.direction = this.indicatorDirection;
 	}
@@ -42033,7 +42039,7 @@ mxSelectionChange.prototype.execute = function()
 			'added', this.added, 'removed', this.removed));
 };
 /**
- * $Id: mxCellEditor.js,v 1.15 2013/10/28 08:45:01 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.16 2013/11/26 16:39:30 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -42607,7 +42613,11 @@ mxCellEditor.prototype.stopEditing = function(cancel)
 		this.trigger = null;
 		this.bounds = null;
 		this.textarea.blur();
-		this.textarea.parentNode.removeChild(this.textarea);
+		
+		if (this.textarea.parentNode != null)
+		{
+			this.textarea.parentNode.removeChild(this.textarea);
+		}
 	}
 };
 
@@ -42806,7 +42816,7 @@ mxCellEditor.prototype.destroy = function ()
 	}
 };
 /**
- * $Id: mxCellRenderer.js,v 1.31 2013/10/28 08:45:01 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.32 2013/11/29 13:57:10 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -43026,6 +43036,7 @@ mxCellRenderer.prototype.configureShape = function(state)
 	state.shape.apply(state);
 	state.shape.image = state.view.graph.getImage(state);
 	state.shape.indicatorColor = state.view.graph.getIndicatorColor(state);
+	state.shape.indicatorStrokeColor = state.style[mxConstants.STYLE_INDICATOR_STROKECOLOR];
 	state.shape.indicatorGradientColor = state.view.graph.getIndicatorGradientColor(state);
 	state.shape.indicatorDirection = state.style[mxConstants.STYLE_INDICATOR_DIRECTION];
 	state.shape.indicatorImage = state.view.graph.getIndicatorImage(state);
@@ -48262,7 +48273,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.57 2013/10/28 08:45:01 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.58 2013/12/04 16:44:11 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -50199,14 +50210,11 @@ mxGraph.prototype.processChange = function(change)
 	else if (change instanceof mxChildChange)
 	{
 		var newParent = this.model.getParent(change.child);
-		
-		if (newParent != null)
+		this.view.invalidate(change.child, true, true);
+
+		if (newParent == null)
 		{
-			// Flags the cell for updating the order in the renderer
-			this.view.invalidate(change.child, true, false);
-		}
-		else
-		{
+			this.view.invalidate(change.child, true, true);
 			this.removeStateForCell(change.child);
 			
 			// Handles special case of current root of view being removed
@@ -50215,7 +50223,7 @@ mxGraph.prototype.processChange = function(change)
 				this.home();
 			}
 		}
-		
+ 
 		if (newParent != change.previous)
 		{
 			// Refreshes the collapse/expand icons on the parents
@@ -53429,10 +53437,7 @@ mxGraph.prototype.getPreferredSizeForCell = function(cell)
 			
 			if (value != null && value.length > 0)
 			{
-				if (!this.isHtmlLabel(cell))
-				{
-					value = value.replace(/\n/g, '<br>');
-				}
+				value = value.replace(/\n/g, '<br>');
 				
 				var size = mxUtils.getSizeForString(value,
 					fontSize, style[mxConstants.STYLE_FONTFAMILY]);
@@ -59997,7 +60002,10 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 				var args = [sender, me];
 	
 				// Does not change returnValue in Opera
-				me.getEvent().returnValue = true;
+				if (!me.getEvent().preventDefault)
+				{
+					me.getEvent().returnValue = true;
+				}
 				
 				for (var i = 0; i < this.mouseListeners.length; i++)
 				{
@@ -67810,7 +67818,7 @@ mxRubberband.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxVertexHandler.js,v 1.34 2013/10/28 08:45:07 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.36 2013/12/05 11:07:09 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -68012,6 +68020,16 @@ mxVertexHandler.prototype.init = function()
 	{
 		this.updateMinBounds();
 	}
+};
+
+/**
+ * Function: isConstrainedEvent
+ * 
+ * Returns true if the aspect ratio if the cell should be maintained.
+ */
+mxVertexHandler.prototype.isConstrainedEvent = function(me)
+{
+	return mxEvent.isShiftDown(me.getEvent());
 };
 
 /**
@@ -68451,8 +68469,8 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 				dx = tx;
 				dy = ty;
 				
-				this.bounds = this.union(this.selectionBounds, dx, dy, this.index, gridEnabled, scale, tr);
-	
+				this.bounds = this.union(this.selectionBounds, dx, dy, this.index, gridEnabled, scale, tr, this.isConstrainedEvent(me));
+
 				cos = Math.cos(alpha);
 				sin = Math.sin(alpha);
 				
@@ -68559,7 +68577,7 @@ mxVertexHandler.prototype.mouseUp = function(sender, me)
 				dy = ty;
 				
 				var s = this.graph.view.scale;
-				this.resizeCell(this.state.cell, dx / s, dy / s, this.index, gridEnabled);
+				this.resizeCell(this.state.cell, dx / s, dy / s, this.index, gridEnabled, this.isConstrainedEvent(me));
 			}
 		}
 		finally
@@ -68688,7 +68706,7 @@ mxVertexHandler.prototype.reset = function()
  * Uses the given vector to change the bounds of the given cell
  * in the graph using <mxGraph.resizeCell>.
  */
-mxVertexHandler.prototype.resizeCell = function(cell, dx, dy, index, gridEnabled)
+mxVertexHandler.prototype.resizeCell = function(cell, dx, dy, index, gridEnabled, constrained)
 {
 	var geo = this.graph.model.getGeometry(cell);
 	
@@ -68716,7 +68734,7 @@ mxVertexHandler.prototype.resizeCell = function(cell, dx, dy, index, gridEnabled
 		}
 		else
 		{
-			var bounds = this.union(geo, dx, dy, index, gridEnabled, 1, new mxPoint(0, 0));
+			var bounds = this.union(geo, dx, dy, index, gridEnabled, 1, new mxPoint(0, 0), constrained);
 			var alpha = mxUtils.toRadians(this.state.style[mxConstants.STYLE_ROTATION] || '0');
 			
 			if (alpha != 0)
@@ -68797,7 +68815,7 @@ mxVertexHandler.prototype.moveChildren = function(cell, dx, dy)
  * 
  * (code)
  * var vertexHandlerUnion = mxVertexHandler.prototype.union;
- * mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, scale, tr)
+ * mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, scale, tr, constrained)
  * {
  *   var result = vertexHandlerUnion.apply(this, arguments);
  *   
@@ -68819,7 +68837,7 @@ mxVertexHandler.prototype.moveChildren = function(cell, dx, dy)
  * 
  * (code)
  * var mxVertexHandlerUnion = mxVertexHandler.prototype.union;
- * mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, scale, tr)
+ * mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, scale, tr, constrained)
  * {
  *   var result = mxVertexHandlerUnion.apply(this, arguments);
  *   var s = this.state;
@@ -68838,7 +68856,7 @@ mxVertexHandler.prototype.moveChildren = function(cell, dx, dy)
  * };
  * (end)
  */
-mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, scale, tr)
+mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, scale, tr, constrained)
 {
 	if (this.singleSizer)
 	{
@@ -68904,6 +68922,31 @@ mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, s
 		var width = right - left;
 		var height = bottom - top;
 		
+		if (constrained)
+		{
+			var geo = this.graph.getCellGeometry(this.state.cell);
+
+			if (geo != null)
+			{
+				var aspect = geo.width / geo.height;
+				
+				if (index== 1 || index== 2 || index == 7 || index == 6)
+				{
+					width = height * aspect;
+				}
+				else
+				{
+					height = width / aspect;
+				}
+				
+				if (index == 0)
+				{
+					left = right - width;
+					top = bottom - height;
+				}
+			}
+		}
+		
 		// Flips over left side
 		if (width < 0)
 		{
@@ -68917,7 +68960,7 @@ mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, s
 			top += height;
 			height = Math.abs(height);
 		}
-		
+
 		var result = new mxRectangle(left + tr.x * scale, top + tr.y * scale, width, height);
 		
 		if (this.minBounds != null)
@@ -76693,7 +76736,7 @@ var mxCodecRegistry =
 
 };
 /**
- * $Id: mxCodec.js,v 1.4 2013/11/12 22:08:33 gaudenz Exp $
+ * $Id: mxCodec.js,v 1.6 2013/11/22 12:17:31 david Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -76721,6 +76764,41 @@ var mxCodecRegistry =
  * 
  * Example:
  * 
+ * Using the code below, an XML document is decoded into an existing model. The
+ * document may be obtained using one of the functions in mxUtils for loading
+ * an XML file, eg. <mxUtils.get>, or using <mxUtils.parseXml> for parsing an
+ * XML string.
+ * 
+ * (code)
+ * var doc = mxUtils.parseXml(xmlString);
+ * var codec = new mxCodec(doc);
+ * decoder.decode(doc.documentElement, graph.getModel());
+ * (end)
+ * 
+ * Example:
+ * 
+ * This example demonstrates parsing a list of isolated cells into an existing
+ * graph model. Note that the cells do not have a parent reference so they can
+ * be added anywhere in the cell hierarchy after parsing.
+ * 
+ * (code)
+ * var xml = '<root><mxCell id="2" value="Hello," vertex="1"><mxGeometry x="20" y="20" width="80" height="30" as="geometry"/></mxCell><mxCell id="3" value="World!" vertex="1"><mxGeometry x="200" y="150" width="80" height="30" as="geometry"/></mxCell><mxCell id="4" value="" edge="1" source="2" target="3"><mxGeometry relative="1" as="geometry"/></mxCell></root>';
+ * var doc = mxUtils.parseXml(xml);
+ * var codec = new mxCodec(doc);
+ * var elt = doc.documentElement.firstChild;
+ * var cells = [];
+ * 
+ * while (elt != null)
+ * {
+ *   cells.push(codec.decode(elt));
+ *   elt = elt.nextSibling;
+ * }
+ * 
+ * graph.addCells(cells);
+ * (end)
+ * 
+ * Example:
+ * 
  * Using the following code, the selection cells of a graph are encoded and the
  * output is displayed in a dialog box.
  * 
@@ -76730,20 +76808,8 @@ var mxCodecRegistry =
  * mxUtils.alert(mxUtils.getPrettyXml(enc.encode(cells)));
  * (end)
  * 
- * Newlines in the XML can be coverted to <br>, in which case a '<br>' argument
+ * Newlines in the XML can be converted to <br>, in which case a '<br>' argument
  * must be passed to <mxUtils.getXml> as the second argument.
- * 
- * Example:
- * 
- * Using the code below, an XML document is decodec into an existing model. The
- * document may be obtained using one of the functions in mxUtils for loading
- * an XML file, eg. <mxUtils.get>, or using <mxUtils.parseXml> for parsing an
- * XML string.
- * 
- * (code)
- * var decoder = new mxCodec(doc)
- * decoder.decode(doc.documentElement, graph.getModel());
- * (end)
  * 
  * Debugging:
  * 

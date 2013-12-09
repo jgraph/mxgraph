@@ -1,3 +1,16 @@
+09-DEC-2013: 2.3.0.4
+
+- Moves updateDocumentTitle, addBeforeUnloadListener to EditorUi in grapheditor [JavaScript]
+- Maintains aspect ratio when holding down shift key in mxVertexHandler [JavaScript]
+- Invalidates edges for removed terminals in mxGraph.processChange [JavaScript]
+- Fixes mxGraph.getPreferredSizeForCell for HTML with linebreaks [JavaScript]
+- Fixes deprecated returnValue in mxGraph, mxMouseEvent, mxEvent [JavaScript]
+- Uses pt in HTML instead of mxConstants.PX_PER_PIXEL [Java]
+- mxHtmlTextShape, mxGraphView no longer ignore overflow [Java]
+- Fixes handling of STYLE_INDICATOR_STROKECOLOR style [JavaScript]
+- Adds mxGraph.set-/isPortsEnabled switch [Java]
+- Adds mxGraphTransferable.enableImageSupport switch [Java]
+
 18-NOV-2013: 2.3.0.3
 
 - Fixes try-catch flow in mxCodec.decode [JavaScript]

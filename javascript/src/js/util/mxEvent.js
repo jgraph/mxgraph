@@ -1,5 +1,5 @@
 /**
- * $Id: mxEvent.js,v 1.18 2013/10/28 08:44:59 gaudenz Exp $
+ * $Id: mxEvent.js,v 1.19 2013/12/04 16:44:12 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxEvent =
@@ -615,7 +615,10 @@ var mxEvent =
 		evt.isConsumed = true;
 
 		// Other browsers
-		evt.returnValue = false;
+		if (!evt.preventDefault)
+		{
+			evt.returnValue = false;
+		}
 	},
 	
 	//

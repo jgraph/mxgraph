@@ -1,5 +1,5 @@
 /**
- * $Id: mxLabel.js,v 1.11 2013/10/28 08:45:04 gaudenz Exp $
+ * $Id: mxLabel.js,v 1.12 2013/11/29 13:57:10 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -89,7 +89,7 @@ mxLabel.prototype.redraw = function()
 	if (this.indicator != null)
 	{
 		this.indicator.fill = this.indicatorColor;
-		this.indicator.stroke = this.indicatorColor;
+		this.indicator.stroke = this.indicatorStrokeColor;
 		this.indicator.gradient = this.indicatorGradientColor;
 		this.indicator.direction = this.indicatorDirection;
 	}

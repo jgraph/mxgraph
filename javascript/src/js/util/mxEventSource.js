@@ -1,5 +1,5 @@
 /**
- * $Id: mxEventSource.js,v 1.2 2013/10/28 08:44:58 gaudenz Exp $
+ * $Id: mxEventSource.js,v 1.3 2013/11/27 07:24:28 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -157,8 +157,7 @@ mxEventSource.prototype.removeListener = function(funct)
  */
 mxEventSource.prototype.fireEvent = function(evt, sender)
 {
-	if (this.eventListeners != null &&
-		this.isEventsEnabled())
+	if (this.eventListeners != null && this.isEventsEnabled())
 	{
 		if (evt == null)
 		{
@@ -181,8 +180,7 @@ mxEventSource.prototype.fireEvent = function(evt, sender)
 		{
 			var listen = this.eventListeners[i];
 			
-			if (listen == null ||
-				listen == evt.getName())
+			if (listen == null || listen == evt.getName())
 			{
 				this.eventListeners[i+1].apply(this, args);
 			}

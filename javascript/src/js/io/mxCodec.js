@@ -1,5 +1,5 @@
 /**
- * $Id: mxCodec.js,v 1.4 2013/11/12 22:08:33 gaudenz Exp $
+ * $Id: mxCodec.js,v 1.6 2013/11/22 12:17:31 david Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -27,6 +27,41 @@
  * 
  * Example:
  * 
+ * Using the code below, an XML document is decoded into an existing model. The
+ * document may be obtained using one of the functions in mxUtils for loading
+ * an XML file, eg. <mxUtils.get>, or using <mxUtils.parseXml> for parsing an
+ * XML string.
+ * 
+ * (code)
+ * var doc = mxUtils.parseXml(xmlString);
+ * var codec = new mxCodec(doc);
+ * decoder.decode(doc.documentElement, graph.getModel());
+ * (end)
+ * 
+ * Example:
+ * 
+ * This example demonstrates parsing a list of isolated cells into an existing
+ * graph model. Note that the cells do not have a parent reference so they can
+ * be added anywhere in the cell hierarchy after parsing.
+ * 
+ * (code)
+ * var xml = '<root><mxCell id="2" value="Hello," vertex="1"><mxGeometry x="20" y="20" width="80" height="30" as="geometry"/></mxCell><mxCell id="3" value="World!" vertex="1"><mxGeometry x="200" y="150" width="80" height="30" as="geometry"/></mxCell><mxCell id="4" value="" edge="1" source="2" target="3"><mxGeometry relative="1" as="geometry"/></mxCell></root>';
+ * var doc = mxUtils.parseXml(xml);
+ * var codec = new mxCodec(doc);
+ * var elt = doc.documentElement.firstChild;
+ * var cells = [];
+ * 
+ * while (elt != null)
+ * {
+ *   cells.push(codec.decode(elt));
+ *   elt = elt.nextSibling;
+ * }
+ * 
+ * graph.addCells(cells);
+ * (end)
+ * 
+ * Example:
+ * 
  * Using the following code, the selection cells of a graph are encoded and the
  * output is displayed in a dialog box.
  * 
@@ -36,20 +71,8 @@
  * mxUtils.alert(mxUtils.getPrettyXml(enc.encode(cells)));
  * (end)
  * 
- * Newlines in the XML can be coverted to <br>, in which case a '<br>' argument
+ * Newlines in the XML can be converted to <br>, in which case a '<br>' argument
  * must be passed to <mxUtils.getXml> as the second argument.
- * 
- * Example:
- * 
- * Using the code below, an XML document is decodec into an existing model. The
- * document may be obtained using one of the functions in mxUtils for loading
- * an XML file, eg. <mxUtils.get>, or using <mxUtils.parseXml> for parsing an
- * XML string.
- * 
- * (code)
- * var decoder = new mxCodec(doc)
- * decoder.decode(doc.documentElement, graph.getModel());
- * (end)
  * 
  * Debugging:
  * 

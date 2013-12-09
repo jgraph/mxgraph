@@ -1,5 +1,5 @@
 /**
- * $Id: Editor.js,v 1.27 2013/11/11 12:18:16 gaudenz Exp $
+ * $Id: Editor.js,v 1.29 2013/12/09 08:16:28 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 // Specifies if local storage should be used (eg. on the iPad which has no filesystem)
@@ -82,8 +82,6 @@ Editor = function()
 	{
 		this.graphChangeListener.apply(this, arguments);
 	}));
-	
-	this.setOnBeforeUnload();
 
 	// Sets persistent graph state defaults
 	this.graph.resetViewOnRootChange = false;
@@ -132,19 +130,37 @@ Editor.prototype.autosave = true;
 Editor.prototype.appName = document.title;
 
 /**
- * Sets the onbeforeunload for the application
+ * Sets the XML node for the current diagram.
  */
-Editor.prototype.setOnBeforeUnload = function()
+Editor.prototype.resetGraph = function()
 {
-	// Installs dialog if browser window is closed without saving
-	// This must be disabled during save and image export
-	window.onbeforeunload = mxUtils.bind(this, function()
+	this.graph.view.scale = 1;
+	this.graph.gridEnabled = true;
+	this.graph.graphHandler.guidesEnabled = true;
+	this.graph.setTooltips(true);
+	this.graph.setConnectable(true);
+	this.graph.foldingEnabled = true;
+	this.graph.scrollbars = true;
+	this.graph.pageVisible = true;
+	this.graph.pageBreaksVisible = this.graph.pageVisible; 
+	this.graph.preferPageSize = this.graph.pageBreaksVisible;
+	
+	// Loads the persistent state settings
+	this.graph.pageScale = 1.0;
+
+	// TODO: Reset page format
+	/*if (pw != null && ph != null)
 	{
-		if (this.modified)
-		{
-			return mxResources.get('allChangesLost');
-		}
-	});
+		this.graph.pageFormat = new mxRectangle(0, 0, parseFloat(pw), parseFloat(ph));
+		this.outline.outline.pageFormat = this.graph.pageFormat;
+	}*/
+	// TODO: Reset initial page view and scrollbars position
+
+	// Loads the persistent state settings
+	this.graph.background = null;
+	//this.graph.view.translate = new mxPoint(0, 0);
+	this.graph.view.setScale(1);
+	this.updateGraphComponents();
 };
 
 /**
@@ -204,12 +220,18 @@ Editor.prototype.setGraphXml = function(node)
 		{
 			this.graph.background = bg;
 		}
+		else
+		{
+			this.graph.background = null;
+		}
 		
 		dec.decode(node, this.graph.getModel());
 		this.updateGraphComponents();
 	}
 	else if (node.nodeName == 'root')
 	{
+		this.resetGraph();
+		
 		// Workaround for invalid XML output in Firefox 20 due to bug in mxUtils.getXml
 		var wrapper = dec.document.createElement('mxGraphModel');
 		wrapper.appendChild(node);
@@ -277,27 +299,15 @@ Editor.prototype.updateGraphComponents = function()
 	
 	if (graph.container != null && outline.outline.container != null)
 	{
-		if (graph.background != null)
+		var bg = (graph.background == null || graph.background == 'none') ? '#ffffff' : graph.background;
+		
+		if (graph.view.backgroundPageShape != null)
 		{
-			if (graph.background == 'none')
-			{
-				graph.container.style.backgroundColor = 'transparent';
-			}
-			else
-			{
-				if (graph.view.backgroundPageShape != null)
-				{
-					graph.view.backgroundPageShape.fill = graph.background;
-					graph.view.backgroundPageShape.reconfigure();
-				}
-				
-				graph.container.style.backgroundColor = graph.background;
-			}
+			graph.view.backgroundPageShape.fill = bg;
+			graph.view.backgroundPageShape.reconfigure();
 		}
-		else
-		{
-			graph.container.style.backgroundColor = '';
-		}
+		
+		graph.container.style.backgroundColor = bg;
 
 		if (graph.pageVisible)
 		{
@@ -358,21 +368,6 @@ Editor.prototype.setModified = function(value)
 Editor.prototype.setFilename = function(value)
 {
 	this.filename = value;
-};
-
-/**
- * Updates the document title.
- */
-Editor.prototype.updateDocumentTitle = function()
-{
-	var title = this.getOrCreateFilename();
-	
-	if (this.appName != null)
-	{
-		title += ' - ' + this.appName;
-	}
-	
-	document.title = title;
 };
 
 /**
@@ -577,23 +572,19 @@ Editor.prototype.init = function()
 					mxUtils.bind(this, function(evt)
 					{
 						// Hides the tooltip if mouse is outside container
-						if (this.graph.tooltipHandler != null &&
-								this.graph.tooltipHandler.isHideOnHover())
+						if (this.graph.tooltipHandler != null && this.graph.tooltipHandler.isHideOnHover())
 						{
 							this.graph.tooltipHandler.hide();
 						}
 						
-						if (this.graph.isMouseDown &&
-							!mxEvent.isConsumed(evt))
+						if (this.graph.isMouseDown && !mxEvent.isConsumed(evt))
 						{
-							this.graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
-								new mxMouseEvent(evt));
+							this.graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt));
 						}
 					}),
 					mxUtils.bind(this, function(evt)
 					{
-						this.graph.fireMouseEvent(mxEvent.MOUSE_UP,
-								new mxMouseEvent(evt));
+						this.graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt));
 					}));
 			}
 			else
@@ -625,8 +616,7 @@ Editor.prototype.init = function()
 
 		width = bounds2.width;
 		height = bounds2.height;
-		var bounds = new mxRectangle(scale * tr.x, scale * tr.y,
-				fmt.width * ps, fmt.height * ps);
+		var bounds = new mxRectangle(scale * tr.x, scale * tr.y, fmt.width * ps, fmt.height * ps);
 
 		// Does not show page breaks if the scale is too small
 		visible = visible && Math.min(bounds.width, bounds.height) > this.minPageBreakDist;
@@ -862,11 +852,16 @@ Editor.prototype.createUndoManager = function()
 	var graph = this.graph;
 	var undoMgr = new mxUndoManager();
 
-    // Installs the command history
-	var listener = function(sender, evt)
+	this.undoListener = function(sender, evt)
 	{
 		undoMgr.undoableEditHappened(evt.getProperty('edit'));
 	};
+	
+    // Installs the command history
+	var listener = mxUtils.bind(this, function(sender, evt)
+	{
+		this.undoListener.apply(this, arguments);
+	});
 	
 	graph.getModel().addListener(mxEvent.UNDO, listener);
 	graph.getView().addListener(mxEvent.UNDO, listener);

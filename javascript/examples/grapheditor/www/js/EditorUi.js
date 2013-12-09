@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.35 2013/11/13 09:15:59 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.38 2013/12/09 08:16:28 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -214,7 +214,8 @@ EditorUi.prototype.init = function()
 	// Updates action states
 	this.addUndoListener();
 	this.addSelectionListener();
-
+	this.addBeforeUnloadListener();
+	
 	// Overrides clipboard to update paste action state
 	var paste = this.actions.get('paste');
 	
@@ -249,6 +250,33 @@ EditorUi.prototype.isSelectionAllowed = function(evt)
 };
 
 /**
+ * Installs dialog if browser window is closed without saving
+ * This must be disabled during save and image export.
+ */
+EditorUi.prototype.addBeforeUnloadListener = function()
+{
+	// Installs dialog if browser window is closed without saving
+	// This must be disabled during save and image export
+	window.onbeforeunload = mxUtils.bind(this, function()
+	{
+		return this.onBeforeUnload();
+	});
+};
+
+/**
+ * Sets the onbeforeunload for the application
+ */
+EditorUi.prototype.onBeforeUnload = function()
+{
+	if (this.editor.modified)
+	{
+		return mxResources.get('allChangesLost');
+	}
+	
+	return null;
+};
+
+/**
  * Opens the current diagram via the window.opener if one exists.
  */
 EditorUi.prototype.open = function()
@@ -271,7 +299,7 @@ EditorUi.prototype.open = function()
 					if (filename != null)
 					{
 						this.editor.setFilename(filename);
-						this.editor.updateDocumentTitle();
+						this.updateDocumentTitle();
 					}
 				}
 				catch (e)
@@ -285,6 +313,21 @@ EditorUi.prototype.open = function()
 	{
 		// ignore
 	}
+};
+
+/**
+ * Updates the document title.
+ */
+EditorUi.prototype.updateDocumentTitle = function()
+{
+	var title = this.getOrCreateFilename();
+	
+	if (this.appName != null)
+	{
+		title += ' - ' + this.appName;
+	}
+	
+	document.title = title;
 };
 
 /**
@@ -430,8 +473,7 @@ EditorUi.prototype.addSelectionListener = function()
        			graph.getModel().isVertex(graph.getModel().getParent(graph.getSelectionCell())));
 
     	// Updates menu states
-    	var menus = ['fontFamily', 'fontSize', 'alignment', 'position', 'text', 'format',
-    	    'arrange', 'linewidth', 'spacing', 'gradient'];
+    	var menus = ['fontFamily', 'fontSize', 'alignment', 'position', 'text', 'format', 'linewidth', 'spacing', 'gradient'];
 
     	for (var i = 0; i < menus.length; i++)
     	{
@@ -760,7 +802,7 @@ EditorUi.prototype.showDialog = function(elt, w, h, modal, closable, onClose)
 {
 	this.hideDialog(true);
 	this.editor.graph.tooltipHandler.hideTooltip();
-	this.dialog = new Dialog(this, elt, w, (mxClient.IS_VML) ? h - 12 : h, modal, closable, onClose);
+	this.dialog = new Dialog(this, elt, w, h, modal, closable, onClose);
 };
 
 /**
@@ -770,7 +812,11 @@ EditorUi.prototype.hideDialog = function(cancel)
 {
 	if (this.dialog != null)
 	{
-		this.editor.graph.container.focus();
+		if (this.editor.graph.container.style.visibility != 'hidden')
+		{
+			this.editor.graph.container.focus();
+		}
+		
 		var dlg = this.dialog;
 		this.dialog = null;
 		dlg.close(cancel);
@@ -806,9 +852,9 @@ EditorUi.prototype.saveFile = function(forceDialog)
 	}
 	else
 	{
-		this.showDialog(new FilenameDialog(this, this.editor.getOrCreateFilename(), mxResources('save'), mxUtils.bind(this, function()
+		this.showDialog(new FilenameDialog(this, this.editor.getOrCreateFilename(), mxResources.get('save'), mxUtils.bind(this, function(name)
 		{
-			this.save(nameInput.value, true);
+			this.save(name, true);
 		})).container, 300, 100, true, true);
 	}
 };
@@ -840,7 +886,8 @@ EditorUi.prototype.save = function(name)
 				if (xml.length < MAX_REQUEST_SIZE)
 				{
 					xml = encodeURIComponent(xml);
-					new mxXmlRequest(SAVE_URL, 'filename=' + name + '&xml=' + xml).simulate(document, "_blank");
+					name = encodeURIComponent(name);
+					new mxXmlRequest(SAVE_URL, 'filename=' + name + '&xml=' + xml).simulate(document, '_blank');
 				}
 				else
 				{
@@ -853,7 +900,7 @@ EditorUi.prototype.save = function(name)
 
 			this.editor.setModified(false);
 			this.editor.setFilename(name);
-			this.editor.updateDocumentTitle();
+			this.updateDocumentTitle();
 		}
 		catch (e)
 		{

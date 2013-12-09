@@ -1,5 +1,5 @@
 /**
- * $Id: mxVertexHandler.js,v 1.34 2013/10/28 08:45:07 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.36 2013/12/05 11:07:09 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -201,6 +201,16 @@ mxVertexHandler.prototype.init = function()
 	{
 		this.updateMinBounds();
 	}
+};
+
+/**
+ * Function: isConstrainedEvent
+ * 
+ * Returns true if the aspect ratio if the cell should be maintained.
+ */
+mxVertexHandler.prototype.isConstrainedEvent = function(me)
+{
+	return mxEvent.isShiftDown(me.getEvent());
 };
 
 /**
@@ -640,8 +650,8 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 				dx = tx;
 				dy = ty;
 				
-				this.bounds = this.union(this.selectionBounds, dx, dy, this.index, gridEnabled, scale, tr);
-	
+				this.bounds = this.union(this.selectionBounds, dx, dy, this.index, gridEnabled, scale, tr, this.isConstrainedEvent(me));
+
 				cos = Math.cos(alpha);
 				sin = Math.sin(alpha);
 				
@@ -748,7 +758,7 @@ mxVertexHandler.prototype.mouseUp = function(sender, me)
 				dy = ty;
 				
 				var s = this.graph.view.scale;
-				this.resizeCell(this.state.cell, dx / s, dy / s, this.index, gridEnabled);
+				this.resizeCell(this.state.cell, dx / s, dy / s, this.index, gridEnabled, this.isConstrainedEvent(me));
 			}
 		}
 		finally
@@ -877,7 +887,7 @@ mxVertexHandler.prototype.reset = function()
  * Uses the given vector to change the bounds of the given cell
  * in the graph using <mxGraph.resizeCell>.
  */
-mxVertexHandler.prototype.resizeCell = function(cell, dx, dy, index, gridEnabled)
+mxVertexHandler.prototype.resizeCell = function(cell, dx, dy, index, gridEnabled, constrained)
 {
 	var geo = this.graph.model.getGeometry(cell);
 	
@@ -905,7 +915,7 @@ mxVertexHandler.prototype.resizeCell = function(cell, dx, dy, index, gridEnabled
 		}
 		else
 		{
-			var bounds = this.union(geo, dx, dy, index, gridEnabled, 1, new mxPoint(0, 0));
+			var bounds = this.union(geo, dx, dy, index, gridEnabled, 1, new mxPoint(0, 0), constrained);
 			var alpha = mxUtils.toRadians(this.state.style[mxConstants.STYLE_ROTATION] || '0');
 			
 			if (alpha != 0)
@@ -986,7 +996,7 @@ mxVertexHandler.prototype.moveChildren = function(cell, dx, dy)
  * 
  * (code)
  * var vertexHandlerUnion = mxVertexHandler.prototype.union;
- * mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, scale, tr)
+ * mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, scale, tr, constrained)
  * {
  *   var result = vertexHandlerUnion.apply(this, arguments);
  *   
@@ -1008,7 +1018,7 @@ mxVertexHandler.prototype.moveChildren = function(cell, dx, dy)
  * 
  * (code)
  * var mxVertexHandlerUnion = mxVertexHandler.prototype.union;
- * mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, scale, tr)
+ * mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, scale, tr, constrained)
  * {
  *   var result = mxVertexHandlerUnion.apply(this, arguments);
  *   var s = this.state;
@@ -1027,7 +1037,7 @@ mxVertexHandler.prototype.moveChildren = function(cell, dx, dy)
  * };
  * (end)
  */
-mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, scale, tr)
+mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, scale, tr, constrained)
 {
 	if (this.singleSizer)
 	{
@@ -1093,6 +1103,31 @@ mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, s
 		var width = right - left;
 		var height = bottom - top;
 		
+		if (constrained)
+		{
+			var geo = this.graph.getCellGeometry(this.state.cell);
+
+			if (geo != null)
+			{
+				var aspect = geo.width / geo.height;
+				
+				if (index== 1 || index== 2 || index == 7 || index == 6)
+				{
+					width = height * aspect;
+				}
+				else
+				{
+					height = width / aspect;
+				}
+				
+				if (index == 0)
+				{
+					left = right - width;
+					top = bottom - height;
+				}
+			}
+		}
+		
 		// Flips over left side
 		if (width < 0)
 		{
@@ -1106,7 +1141,7 @@ mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, s
 			top += height;
 			height = Math.abs(height);
 		}
-		
+
 		var result = new mxRectangle(left + tr.x * scale, top + tr.y * scale, width, height);
 		
 		if (this.minBounds != null)

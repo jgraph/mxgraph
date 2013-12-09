@@ -1,15 +1,15 @@
-.geToolbar .geButton {
+.geToolbarContainer .geButton {
 	border-color:pink;
 	filter: chroma(color=pink)alpha(opacity=50);
 }
-.geToolbar .geLabel {
+.geToolbarContainer .geLabel {
 	border-color:pink;
 	filter:chroma(color=pink)alpha(opacity=50);
 }
-.geToolbar .geDisabled {
+.geToolbarContainer .geDisabled {
 	filter:chroma(color=pink) alpha(opacity=20) !important;
 }
-.geToolbar .disabled:hover {
+.geToolbarContainer .disabled:hover {
 	border-color:pink !important;
 	filter:chroma(color=pink) alpha(opacity=20) !important;
 }

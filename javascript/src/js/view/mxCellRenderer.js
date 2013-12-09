@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellRenderer.js,v 1.31 2013/10/28 08:45:01 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.32 2013/11/29 13:57:10 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -219,6 +219,7 @@ mxCellRenderer.prototype.configureShape = function(state)
 	state.shape.apply(state);
 	state.shape.image = state.view.graph.getImage(state);
 	state.shape.indicatorColor = state.view.graph.getIndicatorColor(state);
+	state.shape.indicatorStrokeColor = state.style[mxConstants.STYLE_INDICATOR_STROKECOLOR];
 	state.shape.indicatorGradientColor = state.view.graph.getIndicatorGradientColor(state);
 	state.shape.indicatorDirection = state.style[mxConstants.STYLE_INDICATOR_DIRECTION];
 	state.shape.indicatorImage = state.view.graph.getIndicatorImage(state);

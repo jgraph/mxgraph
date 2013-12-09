@@ -1,5 +1,5 @@
 /**
- * $Id: mxConstants.js,v 1.15 2013/10/28 08:44:59 gaudenz Exp $
+ * $Id: mxConstants.js,v 1.16 2013/11/26 13:30:41 david Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
  var mxConstants =
@@ -801,7 +801,8 @@
 	/**
 	 * Variable: STYLE_MARGIN
 	 * 
-	 * Defines the key for the margin. Possible values are all positive numbers.
+	 * Defines the key for the margin between the ellipses in the double ellipse shape.
+	 * Possible values are all positive numbers.
 	 */
 	STYLE_MARGIN: 'margin',
 

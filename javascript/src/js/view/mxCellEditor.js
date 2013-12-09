@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellEditor.js,v 1.15 2013/10/28 08:45:01 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.16 2013/11/26 16:39:30 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -573,7 +573,11 @@ mxCellEditor.prototype.stopEditing = function(cancel)
 		this.trigger = null;
 		this.bounds = null;
 		this.textarea.blur();
-		this.textarea.parentNode.removeChild(this.textarea);
+		
+		if (this.textarea.parentNode != null)
+		{
+			this.textarea.parentNode.removeChild(this.textarea);
+		}
 	}
 };
 

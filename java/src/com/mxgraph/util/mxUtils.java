@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.java,v 1.8 2012/12/14 17:50:06 gaudenz Exp $
+ * $Id: mxUtils.java,v 1.9 2013/12/04 16:35:32 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.util;
@@ -71,12 +71,12 @@ public class mxUtils
 	 */
 	public static boolean IS_MAC = System.getProperty("os.name").toLowerCase()
 			.indexOf("mac") >= 0;
-			
+
 	/**
 	 * True if the machine is running a linux kernel.
 	 */
-	public static boolean IS_LINUX = System.getProperty("os.name").toLowerCase()
-			.indexOf("linux") >= 0;
+	public static boolean IS_LINUX = System.getProperty("os.name")
+			.toLowerCase().indexOf("linux") >= 0;
 
 	/**
 	 * Static Graphics used for Font Metrics.
@@ -588,8 +588,8 @@ public class mxUtils
 						style,
 						markup,
 						1,
-						(int) Math.ceil(wrapWidth * mxConstants.PX_PER_PIXEL
-								- mxConstants.LABEL_INSET * scale)));
+						(int) Math.ceil(wrapWidth - mxConstants.LABEL_INSET
+								* scale)));
 				Dimension size2 = textRenderer.getPreferredSize();
 
 				// Uses wrapped text size if any text was actually wrapped
@@ -1901,7 +1901,7 @@ public class mxUtils
 			int type = (background != null) ? BufferedImage.TYPE_INT_RGB
 					: BufferedImage.TYPE_INT_ARGB;
 			result = new BufferedImage(w, h, type);
-			
+
 			// Clears background
 			if (background != null)
 			{
@@ -2136,13 +2136,30 @@ public class mxUtils
 	public static String createHtmlDocument(Map<String, Object> style,
 			String text, double scale, int width, String head)
 	{
-		StringBuffer css = new StringBuffer();
+		return createHtmlDocument(style, text, scale, width, null, null);
+	};
+
+	/**
+	 * Returns a new, empty DOM document. The head argument can be used to
+	 * provide an optional HEAD section without the HEAD tags as follows:
+	 * 
+	 * <pre>
+	 * mxUtils.createHtmlDocument(style,  text, 1, 0, "<style type=\"text/css\">.classname { color:red; }</style>")
+	 * </pre>
+	 * 
+	 * @return Returns a new DOM document.
+	 */
+	public static String createHtmlDocument(Map<String, Object> style,
+			String text, double scale, int width, String head, String bodyCss)
+	{
+		StringBuffer css = (bodyCss != null) ? new StringBuffer(bodyCss)
+				: new StringBuffer();
 		css.append("font-family:"
 				+ getString(style, mxConstants.STYLE_FONTFAMILY,
 						mxConstants.DEFAULT_FONTFAMILIES) + ";");
 		css.append("font-size:"
 				+ (int) (getInt(style, mxConstants.STYLE_FONTSIZE,
-						mxConstants.DEFAULT_FONTSIZE) * scale) + " pt;");
+						mxConstants.DEFAULT_FONTSIZE) * scale) + "pt;");
 
 		String color = mxUtils.getString(style, mxConstants.STYLE_FONTCOLOR);
 
@@ -2183,7 +2200,7 @@ public class mxUtils
 		if (width > 0)
 		{
 			// LATER: With max-width support, wrapped text can be measured in 1 step
-			css.append("width:" + width + "px;");
+			css.append("width:" + width + "pt;");
 		}
 
 		String result = "<html>";
@@ -2193,8 +2210,8 @@ public class mxUtils
 			result += "<head>" + head + "</head>";
 		}
 
-		return result + "<body style=\"" + css.toString() + "\">" + text
-				+ "</body></html>";
+		return result + "<body style=\"border:1px solid red;" + css.toString()
+				+ "\">" + text + "</body></html>";
 	}
 
 	/**
@@ -2209,35 +2226,35 @@ public class mxUtils
 		HTMLDocument document = new HTMLDocument();
 
 		StringBuffer rule = new StringBuffer("body {");
-		rule.append(" font-family: "
+		rule.append("font-family:"
 				+ getString(style, mxConstants.STYLE_FONTFAMILY,
-						mxConstants.DEFAULT_FONTFAMILIES) + " ; ");
-		rule.append(" font-size: "
+						mxConstants.DEFAULT_FONTFAMILIES) + ";");
+		rule.append("font-size:"
 				+ (int) (getInt(style, mxConstants.STYLE_FONTSIZE,
-						mxConstants.DEFAULT_FONTSIZE) * scale) + " pt ;");
+						mxConstants.DEFAULT_FONTSIZE) * scale) + "pt;");
 
 		String color = mxUtils.getString(style, mxConstants.STYLE_FONTCOLOR);
 
 		if (color != null)
 		{
-			rule.append("color: " + color + " ; ");
+			rule.append("color:" + color + ";");
 		}
 
 		int fontStyle = mxUtils.getInt(style, mxConstants.STYLE_FONTSTYLE);
 
 		if ((fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
 		{
-			rule.append(" font-weight: bold ; ");
+			rule.append("font-weight:bold;");
 		}
 
 		if ((fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
 		{
-			rule.append(" font-style: italic ; ");
+			rule.append("font-style:italic;");
 		}
 
 		if ((fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
 		{
-			rule.append(" text-decoration: underline ; ");
+			rule.append("text-decoration:underline;");
 		}
 
 		String align = getString(style, mxConstants.STYLE_ALIGN,
@@ -2245,14 +2262,14 @@ public class mxUtils
 
 		if (align.equals(mxConstants.ALIGN_CENTER))
 		{
-			rule.append(" text-align: center ; ");
+			rule.append("text-align:center;");
 		}
 		else if (align.equals(mxConstants.ALIGN_RIGHT))
 		{
-			rule.append(" text-align: right ; ");
+			rule.append("text-align:right;");
 		}
 
-		rule.append(" } ");
+		rule.append("}");
 		document.getStyleSheet().addRule(rule.toString());
 
 		return document;

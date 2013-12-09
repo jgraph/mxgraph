@@ -1,5 +1,5 @@
 /**
- * $Id: Dialogs.js,v 1.14 2013/11/13 09:16:49 gaudenz Exp $
+ * $Id: Dialogs.js,v 1.17 2013/11/28 11:14:42 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -9,8 +9,10 @@ function Dialog(editorUi, elt, w, h, modal, closable, onClose)
 {
 	var dx = 0;
 	
-	if (mxClient.IS_IE && document.documentMode <= 9)
+	if (mxClient.IS_VML)
 	{
+		// Adds padding as a workaround for box model in older IE versions
+		// This needs to match the total padding of geDialog in CSS
 		dx = 60;
 	}
 
@@ -313,11 +315,18 @@ function AboutDialog(editorUi)
  */
 function PageSetupDialog(editorUi)
 {
+	// Defines possible page sizes. Needs to be lazy initialized to add any translations.
+	if (PageSetupDialog.formats == null)
+	{
+		PageSetupDialog.formats = [{key: 'a3', title: 'A3 (297 mm x 420 mm)', format: new mxRectangle(0, 0, 1169, 1652)},
+		                           {key: 'a4', title: 'A4 (210 mm x 297 mm)', format: mxConstants.PAGE_FORMAT_A4_PORTRAIT},
+		                           {key: 'a5', title: 'A5 (148 mm x 210 mm)', format: new mxRectangle(0, 0, 584, 826)},
+		                           {key: 'letter', title: 'US-Letter (8,5" x 11")', format: mxConstants.PAGE_FORMAT_LETTER_PORTRAIT},
+		                           {key: 'tabloid', title: 'US-Tabloid (279 mm x 432 mm)', format: new mxRectangle(0, 0, 1100, 1700)},
+		                           {key: 'custom', title: mxResources.get('custom'), format: null}];
+	}
+
 	var graph = editorUi.editor.graph;
-	var a4 = mxConstants.PAGE_FORMAT_A4_PORTRAIT;
-	var pf = ((graph.pageFormat.width == a4.width && graph.pageFormat.height == a4.height) ||
-			(graph.pageFormat.height == a4.width && graph.pageFormat.width == a4.height)) ?
-			a4 : mxConstants.PAGE_FORMAT_LETTER_PORTRAIT;
 	var row, td;
 
 	var table = document.createElement('table');
@@ -332,22 +341,59 @@ function PageSetupDialog(editorUi)
 	mxUtils.write(td, mxResources.get('paperSize') + ':');
 	
 	row.appendChild(td);
-	
-	var paperSizeSelect = document.createElement('select');
 
-	var paperSizeA4Option = document.createElement('option');
-	paperSizeA4Option.setAttribute('value', 'a4');
-	mxUtils.write(paperSizeA4Option, 'A4');
-	paperSizeSelect.appendChild(paperSizeA4Option);
+	var portraitCheckBox = document.createElement('input');
+	portraitCheckBox.setAttribute('name', 'format');
+	portraitCheckBox.setAttribute('type', 'radio');
 	
-	var paperSizeLetterOption = document.createElement('option');
-	paperSizeLetterOption.setAttribute('value', 'letter');
-	mxUtils.write(paperSizeLetterOption, 'Letter');
-	paperSizeSelect.appendChild(paperSizeLetterOption);
+	var landscapeCheckBox = document.createElement('input');
+	landscapeCheckBox.setAttribute('name', 'format');
+	landscapeCheckBox.setAttribute('type', 'radio');
+
+	var formatRow = document.createElement('tr');
+	formatRow.style.display = 'none';
 	
-	if (pf === mxConstants.PAGE_FORMAT_LETTER_PORTRAIT)
+	var customRow = document.createElement('tr');
+	customRow.style.display = 'none';
+	
+	// Adds all papersize options
+	var paperSizeSelect = document.createElement('select');
+	var detected = false;
+	var pf = new Object();
+
+	for (var i = 0; i < PageSetupDialog.formats.length; i++)
 	{
-		paperSizeLetterOption.setAttribute('selected', 'selected');
+		var f = PageSetupDialog.formats[i];
+		pf[f.key] = f;
+
+		var paperSizeOption = document.createElement('option');
+		paperSizeOption.setAttribute('value', f.key);
+		mxUtils.write(paperSizeOption, f.title);
+		paperSizeSelect.appendChild(paperSizeOption);
+		
+		if (f.format != null)
+		{
+			if (graph.pageFormat.width == f.format.width && graph.pageFormat.height == f.format.height)
+			{
+				paperSizeOption.setAttribute('selected', 'selected');
+				portraitCheckBox.setAttribute('checked', 'checked');
+				formatRow.style.display = '';
+				detected = true;
+			}
+			else if (graph.pageFormat.width == f.format.height && graph.pageFormat.height == f.format.width)
+			{
+				paperSizeOption.setAttribute('selected', 'selected');
+				landscapeCheckBox.setAttribute('checked', 'checked');
+				formatRow.style.display = '';
+				detected = true;
+			}
+		}
+		// Selects custom format which is last in list
+		else if (!detected)
+		{
+			paperSizeOption.setAttribute('selected', 'selected');
+			customRow.style.display = '';
+		}
 	}
 
 	td = document.createElement('td');
@@ -357,63 +403,93 @@ function PageSetupDialog(editorUi)
 	
 	tbody.appendChild(row);
 	
-	row = document.createElement('tr');
-	
+	formatRow = document.createElement('tr');
+	formatRow.style.height = '60px';
 	td = document.createElement('td');
-	row.appendChild(td);
+	formatRow.appendChild(td);
 
-	var landscapeCheckBox = document.createElement('input');
-	landscapeCheckBox.setAttribute('type', 'checkbox');
-
-	if (graph.pageFormat.width == pf.height)
-	{
-		landscapeCheckBox.setAttribute('checked', 'checked');
-	}
-	
 	td = document.createElement('td');
-	td.style.padding = '4 0 16 2px';
 	td.style.fontSize = '10pt';
+
+	td.appendChild(portraitCheckBox);
+	mxUtils.write(td, ' ' + mxResources.get('portrait'));
+	
+	landscapeCheckBox.style.marginLeft = '10px';
 	td.appendChild(landscapeCheckBox);
 	mxUtils.write(td, ' ' + mxResources.get('landscape'));
-	row.appendChild(td);
+
+	formatRow.appendChild(td);
 	
-	tbody.appendChild(row);
-	
+	tbody.appendChild(formatRow);
 	row = document.createElement('tr');
 	
 	td = document.createElement('td');
-	td.style.fontSize = '10pt';
-	td.style.width = '130px';
-	mxUtils.write(td, mxResources.get('pageScale') + ':');
-	
-	row.appendChild(td);
-	
-	var pageScaleInput = document.createElement('input');
-	pageScaleInput.setAttribute('value', (editorUi.editor.graph.pageScale * 100) + '%');
-	pageScaleInput.style.width = '60px';
+	customRow.appendChild(td);
 
 	td = document.createElement('td');
-	td.appendChild(pageScaleInput);
-	row.appendChild(td);
+	td.style.fontSize = '10pt';
 	
-	tbody.appendChild(row);
+	var widthInput = document.createElement('input');
+	widthInput.setAttribute('size', '6');
+	widthInput.setAttribute('value', graph.pageFormat.width);
+	td.appendChild(widthInput);
+	mxUtils.write(td, ' x ');
+	
+	var heightInput = document.createElement('input');
+	heightInput.setAttribute('size', '6');
+	heightInput.setAttribute('value', graph.pageFormat.height);
+	td.appendChild(heightInput);
+	mxUtils.write(td, ' Pixel');
+	
+	customRow.appendChild(td);
+	customRow.style.height = '60px';
+	tbody.appendChild(customRow);
+	
+	var updateInputs = function()
+	{
+		var f = pf[paperSizeSelect.value];
+		
+		if (f.format != null)
+		{
+			widthInput.value = f.format.width;
+			heightInput.value = f.format.height;
+			customRow.style.display = 'none';
+			formatRow.style.display = '';
+		}
+		else
+		{
+			formatRow.style.display = 'none';
+			customRow.style.display = '';
+		}
+	};
+	
+	mxEvent.addListener(paperSizeSelect, 'change', updateInputs);
+	updateInputs();
 	
 	row = document.createElement('tr');
 	td = document.createElement('td');
 	td.colSpan = 2;
-	td.style.paddingTop = '40px';
 	td.setAttribute('align', 'right');
 
-	td.appendChild(mxUtils.button(mxResources.get('ok'), function()
+	td.appendChild(mxUtils.button(mxResources.get('apply'), function()
 	{
 		editorUi.hideDialog();
-		
 		var ls = landscapeCheckBox.checked;
-		graph.pageFormat = (paperSizeSelect.value == 'letter') ?
-			((ls) ? mxConstants.PAGE_FORMAT_LETTER_LANDSCAPE : mxConstants.PAGE_FORMAT_LETTER_PORTRAIT) :
-			((ls) ? mxConstants.PAGE_FORMAT_A4_LANDSCAPE : mxConstants.PAGE_FORMAT_A4_PORTRAIT);
+		var f = pf[paperSizeSelect.value];
+		var size = f.format;
+		
+		if (size == null)
+		{
+			size = new mxRectangle(0, 0, parseInt(widthInput.value), parseInt(heightInput.value));
+		}
+		
+		if (ls)
+		{
+			size = new mxRectangle(0, 0, size.height, size.width);
+		}
+		
+		graph.pageFormat = size;
 		editorUi.editor.outline.outline.pageFormat = graph.pageFormat;
-		graph.pageScale = parseInt(pageScaleInput.value) / 100;
 			
 		if (!graph.pageVisible)
 		{
@@ -447,70 +523,12 @@ function PageSetupDialog(editorUi)
 function PrintDialog(editorUi)
 {
 	var graph = editorUi.editor.graph;
-	var a4 = mxConstants.PAGE_FORMAT_A4_PORTRAIT;
-	var pf = ((graph.pageFormat.width == a4.width && graph.pageFormat.height == a4.height) ||
-			(graph.pageFormat.height == a4.width && graph.pageFormat.width == a4.height)) ?
-			a4 : mxConstants.PAGE_FORMAT_LETTER_PORTRAIT;
 	var row, td;
 	
 	var table = document.createElement('table');
 	table.style.width = '100%';
 	table.style.height = '100%';
 	var tbody = document.createElement('tbody');
-	
-	row = document.createElement('tr');
-	
-	td = document.createElement('td');
-	td.style.fontSize = '10pt';
-	mxUtils.write(td, mxResources.get('paperSize') + ':');
-	
-	row.appendChild(td);
-	
-	var paperSizeSelect = document.createElement('select');
-
-	var paperSizeA4Option = document.createElement('option');
-	paperSizeA4Option.setAttribute('value', 'a4');
-	mxUtils.write(paperSizeA4Option, 'A4');
-	paperSizeSelect.appendChild(paperSizeA4Option);
-	
-	var paperSizeLetterOption = document.createElement('option');
-	paperSizeLetterOption.setAttribute('value', 'letter');
-	mxUtils.write(paperSizeLetterOption, 'Letter');
-	paperSizeSelect.appendChild(paperSizeLetterOption);
-	
-	if (pf === mxConstants.PAGE_FORMAT_LETTER_PORTRAIT)
-	{
-		paperSizeLetterOption.setAttribute('selected', 'selected');
-	}
-
-	td = document.createElement('td');
-	td.style.fontSize = '10pt';
-	td.appendChild(paperSizeSelect);
-	row.appendChild(td);
-	
-	tbody.appendChild(row);
-	
-	row = document.createElement('tr');
-	
-	td = document.createElement('td');
-	row.appendChild(td);
-
-	var landscapeCheckBox = document.createElement('input');
-	landscapeCheckBox.setAttribute('type', 'checkbox');
-	
-	if (graph.pageFormat.width == pf.height)
-	{
-		landscapeCheckBox.setAttribute('checked', 'checked');
-	}
-	
-	td = document.createElement('td');
-	td.style.padding = '4 0 16 2px';
-	td.style.fontSize = '10pt';
-	td.appendChild(landscapeCheckBox);
-	mxUtils.write(td, ' ' + mxResources.get('landscape'));
-	row.appendChild(td);
-	
-	tbody.appendChild(row);
 
 	row = document.createElement('tr');
 	
@@ -534,7 +552,7 @@ function PrintDialog(editorUi)
 	td = document.createElement('td');
 	td.style.fontSize = '10pt';
 	td.appendChild(pageCountInput);
-	mxUtils.write(td, ' ' + mxResources.get('pages'));
+	mxUtils.write(td, ' ' + mxResources.get('pages') + ' (max)');
 	row.appendChild(td);
 	tbody.appendChild(row);
 
@@ -558,10 +576,7 @@ function PrintDialog(editorUi)
 	
 	function preview()
 	{
-		var ls = landscapeCheckBox.checked;
-		var pf = (paperSizeSelect.value == 'letter') ?
-			((ls) ? mxConstants.PAGE_FORMAT_LETTER_LANDSCAPE : mxConstants.PAGE_FORMAT_LETTER_PORTRAIT) :
-			((ls) ? mxConstants.PAGE_FORMAT_A4_LANDSCAPE : mxConstants.PAGE_FORMAT_A4_PORTRAIT);
+		var pf = graph.pageFormat || mxConstants.PAGE_FORMAT_A4_PORTRAIT;
 		
 		var scale = 1 / graph.pageScale;
 		
@@ -721,15 +736,7 @@ function EditFileDialog(editorUi)
 				var reader = new FileReader();
 				reader.onload = function(e)
 				{
-					var data = e.target.result;
-					
-					// Tries decompressing file if the contents do not start with the proper XML tag
-					if (data != null && data.substring(0, 13) != '<mxGraphModel')
-					{
-						data = decodeURIComponent(RawDeflate.inflate(Base64.decode(data, true)));
-					}
-					
-					textarea.value = data;
+					textarea.value = e.target.result;
 				};
 				reader.readAsText(file);
     		}
@@ -1138,7 +1145,7 @@ function ExportDialog(editorUi)
 	        if (format == 'xml')
 	    	{
 	        	var xml = encodeURIComponent(getXml());
-				new mxXmlRequest(SAVE_URL, 'filename=' + name + '&xml=' + xml).simulate(document, "_blank");
+				new mxXmlRequest(SAVE_URL, 'filename=' + name + '&xml=' + xml).simulate(document, '_blank');
 	    	}
 	        else if (format == 'svg')
 	    	{
@@ -1148,7 +1155,7 @@ function ExportDialog(editorUi)
 				{
 					xml = encodeURIComponent(xml);
 					new mxXmlRequest(SAVE_URL, 'filename=' + name + '&format=' + format +
-							'&xml=' + xml).simulate(document, "_blank");
+							'&xml=' + xml).simulate(document, '_blank');
 				}
 				else
 				{

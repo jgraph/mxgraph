@@ -1,5 +1,5 @@
 /**
- * $Id: Actions.js,v 1.16 2013/11/13 09:16:49 gaudenz Exp $
+ * $Id: Actions.js,v 1.19 2013/12/02 16:35:52 david Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -45,11 +45,6 @@ Actions.prototype.init = function()
 		{
 			try
 			{
-				if (xml != null && xml.substring(0, 13) != '<mxGraphModel')
-				{
-					xml = decodeURIComponent(RawDeflate.inflate(Base64.decode(xml, true)));
-				}
-
 				var doc = mxUtils.parseXml(xml);
 				var model = new mxGraphModel();
 				var codec = new mxCodec(doc);
@@ -77,8 +72,8 @@ Actions.prototype.init = function()
 	{
 		this.editorUi.showDialog(new EditFileDialog(ui).container, 620, 420, true, true);
 	})));
-	this.addAction('pageSetup...', function() { ui.showDialog(new PageSetupDialog(ui).container, 300, 200, true, true); });
-	this.addAction('print...', function() { ui.showDialog(new PrintDialog(ui).container, 300, 200, true, true); }, null, 'sprite-print', 'Ctrl+P');
+	this.addAction('pageSetup...', function() { ui.showDialog(new PageSetupDialog(ui).container, 320, 120, true, true); });
+	this.addAction('print...', function() { ui.showDialog(new PrintDialog(ui).container, 300, 120, true, true); }, null, 'sprite-print', 'Ctrl+P');
 	this.addAction('preview', function() { mxUtils.show(graph, null, 10, 10); });
 	
 	// Edit actions
@@ -199,6 +194,18 @@ Actions.prototype.init = function()
 				graph.getModel().endUpdate();
 			}
 		}
+	});
+	this.addAction('htmlText', function()
+	{
+    	var state = graph.getView().getState(graph.getSelectionCell());
+    	var value = '1';
+    	
+    	if (state != null && state.style['html'] == '1')
+    	{
+    		value = null;
+    	}
+
+       	graph.setCellStyles('html', value);
 	});
 	this.addAction('wordWrap', function()
 	{
@@ -459,7 +466,6 @@ Actions.prototype.init = function()
 	action = this.addAction('autosave', function()
 	{
 		ui.editor.autosave = !ui.editor.autosave;
-		ui.editor.setStatus('');
 	});
 	action.setToggleAction(true);
 	action.setSelectedCallback(function() { return ui.editor.autosave; });

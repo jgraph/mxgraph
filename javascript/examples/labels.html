@@ -1,5 +1,5 @@
 <!--
-  $Id: labels.html,v 1.2 2013/10/28 08:44:54 gaudenz Exp $
+  $Id: labels.html,v 1.3 2013/11/26 13:11:25 gaudenz Exp $
   Copyright (c) 2006-2013, JGraph Ltd
   
   Labels example for mxGraph. This example demonstrates the use of wrapping
@@ -46,6 +46,13 @@
 				new mxRubberband(graph);
 				new mxKeyHandler(graph);
 				
+				// Do not allow removing labels from parents
+				graph.graphHandler.removeCellsFromParent = false;
+				
+				// Autosize labels on insert where autosize=1
+				graph.autoSizeCellsOnAdd = true;
+				
+				// Allows moving of relative cells
 				graph.isCellLocked = function(cell)
 				{
 					return this.isCellsLocked();
