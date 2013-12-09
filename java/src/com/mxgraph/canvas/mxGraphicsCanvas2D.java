@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphicsCanvas2D.java,v 1.51 2013/05/23 09:51:42 david Exp $
+ * $Id: mxGraphicsCanvas2D.java,v 1.52 2013/12/04 16:29:51 gaudenz Exp $
  * Copyright (c) 2007-2013, JGraph Ltd
  */
 package com.mxgraph.canvas;
@@ -740,7 +740,7 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 			}
 		}
 
-		return "<html><div style=\"width:" + w + "px;height:" + h + "px;"
+		return "<html><div style=\"width:" + w + "pt;height:" + h + "pt;"
 				+ css.toString() + "\">" + text + "</div></html>";
 	}
 	
@@ -775,11 +775,10 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 					AffineTransform previous = state.g.getTransform();
 					state.g.scale(state.scale, state.scale);
 					
-					// Renders the scaled text with a correction factor of
-					// PX_PER_PIXEL for px in HTML vs pixels in the bitmap
+					// Renders the scaled text
 					str = createHtmlDocument(str, align, valign,
-							(int) Math.round(w * mxConstants.PX_PER_PIXEL),
-							(int) Math.round(h * mxConstants.PX_PER_PIXEL));
+							(int) Math.round(w),
+							(int) Math.round(h));
 					textRenderer.setText(str);
 					rendererPane.paintComponent(state.g, textRenderer,
 							rendererPane, (int) Math.round(x),

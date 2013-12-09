@@ -1,5 +1,5 @@
 /**
- * $Id: mxConstants.java,v 1.82 2013/02/20 11:41:04 gaudenz Exp $
+ * $Id: mxConstants.java,v 1.83 2013/12/04 16:29:51 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.util;
@@ -18,12 +18,6 @@ public class mxConstants
 	 * Defines the number of degrees per radian.
 	 */
 	public static double DEG_PER_RAD = 57.2957795;
-
-	/**
-	 * Defines the ratio between px units in HTML markup and pixels on screen.
-	 * Default is 0.77.
-	 */
-	public static double PX_PER_PIXEL = 0.77;
 
 	/**
 	 * Defines the minimum scale at which rounded polylines should be painted.

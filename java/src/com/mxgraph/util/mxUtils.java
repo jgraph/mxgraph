@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.java,v 1.136 2012/12/14 17:49:06 gaudenz Exp $
+ * $Id: mxUtils.java,v 1.137 2013/12/04 16:29:51 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.util;
@@ -588,8 +588,7 @@ public class mxUtils
 						style,
 						markup,
 						1,
-						(int) Math.ceil(wrapWidth * mxConstants.PX_PER_PIXEL
-								- mxConstants.LABEL_INSET * scale)));
+						(int) Math.ceil(wrapWidth - mxConstants.LABEL_INSET * scale)));
 				Dimension size2 = textRenderer.getPreferredSize();
 
 				// Uses wrapped text size if any text was actually wrapped
@@ -2133,6 +2132,22 @@ public class mxUtils
 	public static String createHtmlDocument(Map<String, Object> style,
 			String text, double scale, int width, String head)
 	{
+		return createHtmlDocument(style, text, scale, width, null, null);
+	};
+
+	/**
+	 * Returns a new, empty DOM document. The head argument can be used to
+	 * provide an optional HEAD section without the HEAD tags as follows:
+	 * 
+	 * <pre>
+	 * mxUtils.createHtmlDocument(style,  text, 1, 0, "<style type=\"text/css\">.classname { color:red; }</style>")
+	 * </pre>
+	 * 
+	 * @return Returns a new DOM document.
+	 */
+	public static String createHtmlDocument(Map<String, Object> style,
+			String text, double scale, int width, String head, String bodyCss)
+	{
 		StringBuffer css = new StringBuffer();
 		css.append("font-family:"
 				+ getString(style, mxConstants.STYLE_FONTFAMILY,
@@ -2180,7 +2195,7 @@ public class mxUtils
 		if (width > 0)
 		{
 			// LATER: With max-width support, wrapped text can be measured in 1 step
-			css.append("width:" + width + "px;");
+			css.append("width:" + width + "pt;");
 		}
 
 		String result = "<html>";

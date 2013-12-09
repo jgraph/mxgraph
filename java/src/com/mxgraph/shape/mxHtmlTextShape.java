@@ -1,5 +1,5 @@
 /**
- * $Id: mxHtmlTextShape.java,v 1.8 2012/05/10 11:29:43 gaudenz Exp $
+ * $Id: mxHtmlTextShape.java,v 1.9 2013/12/04 16:29:51 gaudenz Exp $
  * Copyright (c) 2010, Gaudenz Alder, David Benson
  */
 package com.mxgraph.shape;
@@ -57,14 +57,23 @@ public class mxHtmlTextShape implements mxITextShape
 	{
 		replaceHtmlLinefeeds = value;
 	}
-	
+
 	/**
 	 * 
 	 */
-	protected String createHtmlDocument(Map<String, Object> style,
-			String text)
+	protected String createHtmlDocument(Map<String, Object> style, String text,
+			int w, int h)
 	{
-		return mxUtils.createHtmlDocument(style,  text);
+		String overflow = mxUtils.getString(style, mxConstants.STYLE_OVERFLOW, "");
+		
+		if (overflow.equals("fill"))
+		{
+			return mxUtils.createHtmlDocument(style, text, 1, w, null, "height:" + h + "pt;");
+		}
+		else
+		{
+			return mxUtils.createHtmlDocument(style, text);
+		}
 	}
 
 	/**
@@ -107,7 +116,9 @@ public class mxHtmlTextShape implements mxITextShape
 			}
 
 			// Renders the scaled text
-			textRenderer.setText(createHtmlDocument(style, text));
+			textRenderer.setText(createHtmlDocument(style, text,
+					(int) Math.round(w / state.getView().getScale()),
+					(int) Math.round(h / state.getView().getScale())));
 			textRenderer.setFont(mxUtils.getFont(style, canvas.getScale()));
 			g.scale(scale, scale);
 			rendererPane.paintComponent(g, textRenderer, rendererPane,

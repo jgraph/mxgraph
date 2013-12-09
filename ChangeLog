@@ -1,3 +1,8 @@
+09-DEC-2013: 1.13.0.10
+
+- Uses pt in HTML instead of mxConstants.PX_PER_PIXEL [Java]
+- mxHtmlTextShape no longer ignores overflow=fill [Java]
+
 26-NOV-2013: 1.13.0.9
 
 - Fixes try-catch flow in mxCodec.decode [JavaScript]
