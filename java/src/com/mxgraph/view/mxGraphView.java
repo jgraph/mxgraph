@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphView.java,v 1.1 2012/11/15 13:26:46 gaudenz Exp $
+ * $Id: mxGraphView.java,v 1.2 2013/12/04 16:35:32 gaudenz Exp $
  * Copyright (c) 2007-2010, Gaudenz Alder, David Benson
  */
 package com.mxgraph.view;
@@ -821,9 +821,9 @@ public class mxGraphView extends mxEventSource
 	{
 		Object cell = state.getCell();
 		Map<String, Object> style = state.getStyle();
+		String overflow = mxUtils.getString(style, mxConstants.STYLE_OVERFLOW, "");
 
-		if (mxUtils.getString(style, mxConstants.STYLE_OVERFLOW, "").equals(
-				"fill"))
+		if (overflow.equals("fill"))
 		{
 			state.setLabelBounds(new mxRectangle(state));
 		}
@@ -834,6 +834,12 @@ public class mxGraphView extends mxEventSource
 			state.setLabelBounds(mxUtils.getLabelPaintBounds(state.getLabel(),
 					style, graph.isHtmlLabel(cell), state.getAbsoluteOffset(),
 					vertexBounds, scale));
+
+			if (overflow.equals("width"))
+			{
+				state.getLabelBounds().setX(state.getX());
+				state.getLabelBounds().setWidth(state.getWidth());
+			}
 		}
 	}
 

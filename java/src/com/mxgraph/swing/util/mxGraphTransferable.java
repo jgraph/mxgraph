@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphTransferable.java,v 1.1 2012/11/15 13:26:46 gaudenz Exp $
+ * $Id: mxGraphTransferable.java,v 1.2 2013/11/26 16:24:53 gaudenz Exp $
  * Copyright (c) 2008, Gaudenz Alder
  */
 package com.mxgraph.swing.util;
@@ -33,6 +33,12 @@ public class mxGraphTransferable implements Transferable, UIResource,
 	 * 
 	 */
 	private static final long serialVersionUID = 5123819419918087664L;
+
+	/**
+	 * Global switch to disable image support in transferables. Set this to false as a workaround
+	 * for Data translation failed: not an image format in Java 1.7 on Mac OS X.
+	 */
+	public static boolean enableImageSupport = true;
 
 	/**
 	 * Serialized Data Flavor. Use the following code to switch to local 
@@ -147,7 +153,7 @@ public class mxGraphTransferable implements Transferable, UIResource,
 		int nHtml = (isHtmlSupported()) ? htmlFlavors.length : 0;
 		int nPlain = (isPlainSupported()) ? plainFlavors.length : 0;
 		int nString = (isPlainSupported()) ? stringFlavors.length : 0;
-		int nImage = (isImageSupported()) ? stringFlavors.length : 0;
+		int nImage = (isImageSupported()) ? imageFlavors.length : 0;
 		int nFlavors = nRicher + nHtml + nPlain + nString + nImage;
 
 		DataFlavor[] flavors = new DataFlavor[nFlavors];
@@ -417,7 +423,7 @@ public class mxGraphTransferable implements Transferable, UIResource,
 	 */
 	public boolean isImageSupported()
 	{
-		return image != null;
+		return enableImageSupport && image != null;
 	}
 
 	/**
@@ -511,7 +517,7 @@ public class mxGraphTransferable implements Transferable, UIResource,
 
 			imageFlavors = new DataFlavor[2];
 			imageFlavors[0] = DataFlavor.imageFlavor;
-			imageFlavors[1] = new DataFlavor("image/bmp");
+			imageFlavors[1] = new DataFlavor("image/png");
 		}
 		catch (ClassNotFoundException cle)
 		{

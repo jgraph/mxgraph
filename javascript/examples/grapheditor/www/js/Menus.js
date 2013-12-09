@@ -1,5 +1,5 @@
 /**
- * $Id: Menus.js,v 1.23 2013/11/11 12:18:16 gaudenz Exp $
+ * $Id: Menus.js,v 1.24 2013/12/02 16:35:52 david Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -164,6 +164,7 @@ Menus.prototype.init = function()
 	    this.addSubmenu('position', menu, parent);
 		this.addSubmenu('spacing', menu, parent);
 	    menu.addSeparator(parent);
+		this.addMenuItem(menu, 'htmlText', parent);
 		this.addMenuItem(menu, 'wordWrap', parent);
 		this.promptChange(menu, mxResources.get('textOpacity'), '(%)', '100', mxConstants.STYLE_TEXT_OPACITY, parent, enabled);
 		menu.addItem(mxResources.get('hide'), null, function() { graph.toggleCellStyles(mxConstants.STYLE_NOLABEL, false); }, parent, null, enabled);

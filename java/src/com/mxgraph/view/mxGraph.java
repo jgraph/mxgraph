@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.java,v 1.3 2013/09/15 16:09:27 gaudenz Exp $
+ * $Id: mxGraph.java,v 1.4 2013/11/26 16:38:00 gaudenz Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.view;
@@ -195,9 +195,9 @@ public class mxGraph extends mxEventSource
 
 	/**
 	 * Holds the version number of this release. Current version
-	 * is 2.3.0.3.
+	 * is 2.3.0.4.
 	 */
-	public static final String VERSION = "2.3.0.3";
+	public static final String VERSION = "2.3.0.4";
 
 	/**
 	 * 
@@ -249,6 +249,12 @@ public class mxGraph extends mxEventSource
 	 * Specifies if the grid is enabled. Default is true.
 	 */
 	protected boolean gridEnabled = true;
+
+	/**
+	 * Specifies if ports are enabled. This is used in <cellConnected> to update
+	 * the respective style. Default is true.
+	 */
+	protected boolean portsEnabled = true;
 
 	/**
 	 * Value returned by getOverlap if isAllowOverlapParent returns
@@ -4262,20 +4268,26 @@ public class mxGraph extends mxEventSource
 
 				// Updates the constraint
 				setConnectionConstraint(edge, terminal, source, constraint);
-
-				// Checks if the new terminal is a port
-				String id = null;
-
-				if (isPort(terminal) && terminal instanceof mxICell)
+				
+				// Checks if the new terminal is a port, uses the ID of the port in the
+				// style and the parent of the port as the actual terminal of the edge.
+				if (isPortsEnabled())
 				{
-					id = ((mxICell) terminal).getId();
-					terminal = getTerminalForPort(terminal, source);
+					// Checks if the new terminal is a port
+					String id = null;
+	
+					if (isPort(terminal) && terminal instanceof mxICell)
+					{
+						id = ((mxICell) terminal).getId();
+						terminal = getTerminalForPort(terminal, source);
+					}
+	
+					// Sets or resets all previous information for connecting to a child port
+					String key = (source) ? mxConstants.STYLE_SOURCE_PORT
+							: mxConstants.STYLE_TARGET_PORT;
+					setCellStyles(key, id, new Object[] { edge });
 				}
-
-				// Sets or resets all previous information for connecting to a child port
-				String key = (source) ? mxConstants.STYLE_SOURCE_PORT
-						: mxConstants.STYLE_TARGET_PORT;
-				setCellStyles(key, id, new Object[] { edge });
+				
 				model.setTerminal(edge, terminal, source);
 
 				if (isResetEdgesOnConnect())
@@ -6610,7 +6622,30 @@ public class mxGraph extends mxEventSource
 		boolean oldValue = gridEnabled;
 		gridEnabled = value;
 
-		changeSupport.firePropertyChange("gridEnabled", oldValue, gridSize);
+		changeSupport.firePropertyChange("gridEnabled", oldValue, gridEnabled);
+	}
+
+	/**
+	 * Returns true if ports are enabled.
+	 * 
+	 * @return Returns the enabled state of the ports.
+	 */
+	public boolean isPortsEnabled()
+	{
+		return portsEnabled;
+	}
+
+	/**
+	 * Sets if ports are enabled.
+	 * 
+	 * @param value Specifies if the ports should be enabled.
+	 */
+	public void setPortsEnabled(boolean value)
+	{
+		boolean oldValue = portsEnabled;
+		portsEnabled = value;
+
+		changeSupport.firePropertyChange("portsEnabled", oldValue, portsEnabled);
 	}
 
 	/**

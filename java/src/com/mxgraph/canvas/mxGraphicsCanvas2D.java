@@ -738,7 +738,7 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 		css.append("font-size:" + Math.round(state.fontSize) + " pt;");
 		css.append("color:" + state.fontColorValue + ";");
 		// KNOWN: Line-height ignored in JLabel
-		css.append("line-height:" + Math.round(state.fontSize * mxConstants.LINE_HEIGHT) + " px;");
+		css.append("line-height:" + Math.round(state.fontSize * mxConstants.LINE_HEIGHT) + " pt;");
 		
 		boolean setWidth = false;
 		
@@ -777,7 +777,7 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 		// KNOWN: Border ignored in JLabel
 		if (state.fontBorderColorValue != null)
 		{
-			css.append("border:1px solid " + state.fontBorderColorValue + ";");
+			css.append("border:1pt solid " + state.fontBorderColorValue + ";");
 		}
 
 		// KNOWN: max-width/-height ignored in JLabel
@@ -790,7 +790,7 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 		{
 			if (overflow.equals("fill"))
 			{
-				css.append("height:" + Math.round(h) + "px;");
+				css.append("height:" + Math.round(h) + "pt;");
 				setWidth = true;
 			}
 			else if (overflow.equals("width"))
@@ -799,7 +799,7 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	
 				if (h > 0)
 				{
-					css.append("height:" + Math.round(h) + "px;");
+					css.append("height:" + Math.round(h) + "pt;");
 				}
 			}
 		}
@@ -821,7 +821,7 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 
 		if (setWidth && w > 0)
 		{
-			css.append("width:" + Math.round(w) + "px;");
+			css.append("width:" + Math.round(w) + "pt;");
 		}
 		
 		return "<html><div style=\"" + css.toString() + "\">" + text + "</div></html>";
@@ -904,8 +904,8 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 			}
 			
 			str = createHtmlDocument(str, align, valign, (widthFill || fill) ?
-					(int) Math.round(w * mxConstants.PX_PER_PIXEL) : 0, (fill) ?
-					(int) Math.round(h * mxConstants.PX_PER_PIXEL) : 0, wrap, overflow, clip);
+					(int) Math.round(w) : 0, (fill) ?
+					(int) Math.round(h) : 0, wrap, overflow, clip);
 			textRenderer.setText(str);
 			Dimension pref = textRenderer.getPreferredSize();
 			int prefWidth = pref.width;
@@ -915,8 +915,8 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 			if (((clip || wrap) && prefWidth > w && w > 0) || (clip && prefHeight > h && h > 0))
 			{
 				// +2 is workaround for inconsistent word wrapping in Java
-				int cw = (int) Math.round(w * mxConstants.PX_PER_PIXEL + ((wrap) ? 2 : 0));
-				int ch = (int) Math.round(h * mxConstants.PX_PER_PIXEL);
+				int cw = (int) Math.round(w + ((wrap) ? 2 : 0));
+				int ch = (int) Math.round(h);
 				str = createHtmlDocument(original, align, valign, cw, ch, wrap, overflow, clip);
 				textRenderer.setText(str);
 
