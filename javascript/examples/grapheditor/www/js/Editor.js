@@ -1,9 +1,9 @@
 /**
- * $Id: Editor.js,v 1.29 2013/12/09 08:16:28 gaudenz Exp $
+ * $Id: Editor.js,v 1.32 2013/12/20 13:10:26 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 // Specifies if local storage should be used (eg. on the iPad which has no filesystem)
-var useLocalStorage = (mxClient.IS_TOUCH || urlParams['storage'] == 'local') && typeof(localStorage) != 'undefined';
+var useLocalStorage = typeof(Storage) != 'undefined' && (mxClient.IS_IOS || urlParams['storage'] == 'local');
 var fileSupport = window.File != null && window.FileReader != null && window.FileList != null;
 
 // Specifies if the touch UI should be used
@@ -85,7 +85,7 @@ Editor = function()
 
 	// Sets persistent graph state defaults
 	this.graph.resetViewOnRootChange = false;
-	this.graph.scrollbars = true;
+	this.graph.scrollbars = !touchStyle;
 	this.graph.background = null;
 };
 
@@ -140,25 +140,12 @@ Editor.prototype.resetGraph = function()
 	this.graph.setTooltips(true);
 	this.graph.setConnectable(true);
 	this.graph.foldingEnabled = true;
-	this.graph.scrollbars = true;
+	this.graph.scrollbars = !touchStyle;
 	this.graph.pageVisible = true;
 	this.graph.pageBreaksVisible = this.graph.pageVisible; 
 	this.graph.preferPageSize = this.graph.pageBreaksVisible;
-	
-	// Loads the persistent state settings
-	this.graph.pageScale = 1.0;
-
-	// TODO: Reset page format
-	/*if (pw != null && ph != null)
-	{
-		this.graph.pageFormat = new mxRectangle(0, 0, parseFloat(pw), parseFloat(ph));
-		this.outline.outline.pageFormat = this.graph.pageFormat;
-	}*/
-	// TODO: Reset initial page view and scrollbars position
-
-	// Loads the persistent state settings
 	this.graph.background = null;
-	//this.graph.view.translate = new mxPoint(0, 0);
+	this.graph.pageScale = mxGraph.prototype.pageScale;
 	this.graph.view.setScale(1);
 	this.updateGraphComponents();
 };
@@ -178,15 +165,6 @@ Editor.prototype.setGraphXml = function(node)
 		this.graph.setTooltips(node.getAttribute('tooltips') != '0');
 		this.graph.setConnectable(node.getAttribute('connect') != '0');
 		this.graph.foldingEnabled = node.getAttribute('fold') != '0';
-		this.graph.scrollbars = node.getAttribute('scrollbars') != '0';
-		
-		if (!this.graph.scrollbars)
-		{
-			this.graph.container.scrollLeft = 0;
-			this.graph.container.scrollTop = 0;
-			this.graph.view.translate.x = Number(node.getAttribute('dx') || 0);
-			this.graph.view.translate.y = Number(node.getAttribute('dy') || 0);
-		}
 
 		this.graph.pageVisible = node.getAttribute('page') == '1';
 		this.graph.pageBreaksVisible = this.graph.pageVisible; 
@@ -201,7 +179,7 @@ Editor.prototype.setGraphXml = function(node)
 		}
 		else
 		{
-			this.graph.pageScale = 1.5;
+			this.graph.pageScale = mxGraph.prototype.pageScale;
 		}
 		
 		var pw = node.getAttribute('pageWidth');
@@ -242,11 +220,8 @@ Editor.prototype.setGraphXml = function(node)
 	else
 	{
 		throw { 
-		    name: 'Cannot open file', 
-		    level: 'Severe', 
-		    message: 'Please refresh this page and try again.', 
-		    htmlMessage: 'Please refresh this page and try again.',
-		    toString: function() { return this.name + ': ' + this.message; }
+		    message: 'Cannot open file', 
+		    toString: function() { return this.message; }
 		};
 	}
 };
@@ -334,13 +309,13 @@ Editor.prototype.updateGraphComponents = function()
 			outline.outline.view.validate();
 		}
 		
-		if (graph.scrollbars && graph.container.style.overflow == 'hidden')
-		{
-			graph.container.style.overflow = 'auto';
-		}
-		else if (!graph.scrollbars || touchStyle)
+		if (!graph.scrollbars)// || touchStyle)
 		{
 			graph.container.style.overflow = 'hidden';
+		}
+		else if (graph.scrollbars)
+		{
+			graph.container.style.overflow = 'auto';
 		}
 		
 		// Transparent.gif is a workaround for focus repaint problems in IE
@@ -1104,7 +1079,7 @@ OpenFile.prototype.setData = function(value, filename)
  */
 OpenFile.prototype.error = function(msg)
 {
-	this.cancel();
+	this.cancel(true);
 	mxUtils.alert(msg);
 };
 
@@ -1115,18 +1090,18 @@ OpenFile.prototype.execute = function()
 {
 	if (this.consumer != null && this.data != null)
 	{
+		this.cancel(false);
 		this.consumer(this.data, this.filename);
-		this.cancel();
 	}
 };
 
 /**
  * Cancels the operation.
  */
-OpenFile.prototype.cancel = function()
+OpenFile.prototype.cancel = function(cancel)
 {
 	if (this.done != null)
 	{
-		this.done();
+		this.done((cancel != null) ? cancel : true);
 	}
 };

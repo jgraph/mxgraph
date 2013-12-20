@@ -1,5 +1,5 @@
 /**
- * $Id: mxDragSource.js,v 1.10 2013/10/28 08:44:59 gaudenz Exp $
+ * $Id: mxDragSource.js,v 1.11 2013/12/13 12:13:43 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -604,5 +604,8 @@ mxDragSource.prototype.drop = function(graph, evt, dropTarget, x, y)
 	// affect the scrollbars of the window in IE to try and
 	// make the complete container visible.
 	// LATER: Should be made optional.
-	graph.container.focus();
+	if (graph.container.style.visibility != 'hidden')
+	{
+		graph.container.focus();
+	}
 };

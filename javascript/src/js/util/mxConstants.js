@@ -1,5 +1,5 @@
 /**
- * $Id: mxConstants.js,v 1.16 2013/11/26 13:30:41 david Exp $
+ * $Id: mxConstants.js,v 1.18 2013/12/20 16:31:33 david Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
  var mxConstants =
@@ -667,6 +667,16 @@
 	 * DIRECTION_EAST</code> and <code>DIRECTION_WEST</code>.
 	 */
 	STYLE_PORT_CONSTRAINT: 'portConstraint',
+
+	/**
+	 * Variable: STYLE_PORT_CONSTRAINT_ROTATION
+	 * 
+	 * Define whether port constraint directions are rotated with vertex
+	 * rotation. 0 (default) causes port constraints to remain absolute, 
+	 * relative to the graph, 1 causes the constraints to rotate with
+	 * the vertex
+	 */
+	STYLE_PORT_CONSTRAINT_ROTATION: 'portConstraintRotation',
 
 	/**
 	 * Variable: STYLE_OPACITY
@@ -1428,6 +1438,15 @@
 	 * The type of the value is int.
 	 */
 	STYLE_FONTSTYLE: 'fontStyle',
+	
+	/**
+	 * Variable: STYLE_ASPECT
+	 * 
+	 * Defines the key for the aspect style. Possible values are empty or fixed.
+	 * If fixes is used then the aspect ratio of the cell will be maintained
+	 * when resizing. Default is empty.
+	 */
+	STYLE_ASPECT: 'aspect',
 
 	/**
 	 * Variable: STYLE_AUTOSIZE

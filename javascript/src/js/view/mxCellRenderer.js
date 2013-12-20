@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellRenderer.js,v 1.32 2013/11/29 13:57:10 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.35 2013/12/17 15:04:11 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -857,11 +857,16 @@ mxCellRenderer.prototype.redrawLabel = function(state, forced)
 		var wrapping = graph.isWrapping(state.cell);
 		var clipping = graph.isLabelClipped(state.cell);
 		var bounds = this.getLabelBounds(state);
+		
+		var isForceHtml = (state.view.graph.isHtmlLabel(state.cell) || (value != null && mxUtils.isNode(value)));
+		var dialect = (isForceHtml) ? mxConstants.DIALECT_STRICTHTML : state.view.graph.dialect;
 
+		// Text is a special case where change of dialect is possible at runtime
 		if (forced || state.text.value != value || state.text.isWrapping != wrapping ||
 			state.text.isClipping != clipping || state.text.scale != state.view.scale ||
-			!state.text.bounds.equals(bounds))
+			state.text.dialect != dialect || !state.text.bounds.equals(bounds))
 		{
+			state.text.dialect = dialect;
 			state.text.value = value;
 			state.text.bounds = bounds;
 			state.text.scale = this.getTextScale(state);
@@ -1285,14 +1290,7 @@ mxCellRenderer.prototype.redraw = function(state, force, rendering)
 mxCellRenderer.prototype.redrawShape = function(state, force, rendering)
 {
 	var shapeChanged = false;
-	var model = state.view.graph.getModel();
 
-	if (state.shape == null && state.view.graph.container != null && state.cell != state.view.currentRoot &&
-		(model.isVertex(state.cell) || model.isEdge(state.cell)))
-	{
-		this.createShape(state);
-	}
-	
 	if (state.shape != null)
 	{
 		// Handles changes of the collapse icon

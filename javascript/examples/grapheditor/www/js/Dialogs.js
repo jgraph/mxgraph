@@ -1,5 +1,5 @@
 /**
- * $Id: Dialogs.js,v 1.17 2013/11/28 11:14:42 gaudenz Exp $
+ * $Id: Dialogs.js,v 1.20 2013/12/20 13:10:56 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -9,11 +9,11 @@ function Dialog(editorUi, elt, w, h, modal, closable, onClose)
 {
 	var dx = 0;
 	
-	if (mxClient.IS_VML)
+	if (mxClient.IS_VML && (document.documentMode == null || document.documentMode < 8))
 	{
 		// Adds padding as a workaround for box model in older IE versions
 		// This needs to match the total padding of geDialog in CSS
-		dx = 60;
+		dx = 80;
 	}
 
 	w += dx;
@@ -115,8 +115,12 @@ function OpenDialog()
 	iframe.style.borderWidth = '0px';
 	iframe.style.overflow = 'hidden';
 	iframe.frameBorder = '0';
-	iframe.setAttribute('width', '320px');
-	iframe.setAttribute('height', '190px');
+	
+	// Adds padding as a workaround for box model in older IE versions
+	var dx = (mxClient.IS_VML && (document.documentMode == null || document.documentMode < 8)) ? 20 : 0;
+	
+	iframe.setAttribute('width', (320 + dx) + 'px');
+	iframe.setAttribute('height', (190 + dx) + 'px');
 	iframe.setAttribute('src', OPEN_FORM);
 	
 	this.container = iframe;
@@ -488,20 +492,7 @@ function PageSetupDialog(editorUi)
 			size = new mxRectangle(0, 0, size.height, size.width);
 		}
 		
-		graph.pageFormat = size;
-		editorUi.editor.outline.outline.pageFormat = graph.pageFormat;
-			
-		if (!graph.pageVisible)
-		{
-			editorUi.actions.get('pageView').funct();
-		}
-		else
-		{
-			editorUi.editor.updateGraphComponents();
-			graph.view.validateBackground();
-			graph.sizeDidChange();
-			editorUi.editor.outline.update();
-		}
+		editorUi.setPageFormat(size);
 	}));
 
 	td.appendChild(mxUtils.button(mxResources.get('cancel'), function()
@@ -672,6 +663,11 @@ function FilenameDialog(editorUi, filename, buttonText, fn)
 	var nameInput = document.createElement('input');
 	nameInput.setAttribute('value', filename || '');
 	nameInput.style.width = '180px';
+	
+	this.init = function()
+	{
+		nameInput.focus();
+	};
 
 	td = document.createElement('td');
 	td.appendChild(nameInput);
@@ -687,6 +683,69 @@ function FilenameDialog(editorUi, filename, buttonText, fn)
 	td.setAttribute('align', 'right');
 
 	var genericBtn = mxUtils.button(buttonText, function()
+	{
+		editorUi.hideDialog();
+		fn(nameInput.value);
+	});
+	
+	td.appendChild(genericBtn);
+	
+	td.appendChild(mxUtils.button(mxResources.get('cancel'), function()
+	{
+		editorUi.hideDialog();
+	}));
+	
+	row.appendChild(td);
+	tbody.appendChild(row);
+	
+	tbody.appendChild(row);
+	table.appendChild(tbody);
+	this.container = table;
+};
+
+function TextareaDialog(editorUi, title, url, fn)
+{
+	var row, td;
+	
+	var table = document.createElement('table');
+	var tbody = document.createElement('tbody');
+	
+	row = document.createElement('tr');
+	
+	td = document.createElement('td');
+	td.style.fontSize = '10pt';
+	td.style.width = '100px';
+	mxUtils.write(td, title);
+	
+	row.appendChild(td);
+	tbody.appendChild(row);
+
+	row = document.createElement('tr');
+	td = document.createElement('td');
+	
+	var nameInput = document.createElement('textarea');
+	mxUtils.write(nameInput, url || '');
+	nameInput.style.width = '300px';
+	nameInput.style.height = '100px';
+	
+	this.init = function()
+	{
+		nameInput.focus();
+	};
+
+	td = document.createElement('td');
+	td.appendChild(nameInput);
+	row.appendChild(td);
+	
+	tbody.appendChild(row);
+
+	row = document.createElement('tr');
+	td = document.createElement('td');
+	td.style.paddingTop = '20px';
+	td.style.whiteSpace = 'nowrap';
+	td.setAttribute('align', 'right');
+
+	var genericBtn = mxUtils.button(mxResources.get('apply'), function()
 	{
 		editorUi.hideDialog();
 		fn(nameInput.value);
@@ -788,9 +847,16 @@ function EditFileDialog(editorUi)
 		}
 		else if (select.value == 'replace')
 		{
-			var doc = mxUtils.parseXml(textarea.value); 
-			editorUi.editor.setGraphXml(doc.documentElement);
-			editorUi.hideDialog();
+			try
+			{
+				var doc = mxUtils.parseXml(textarea.value); 
+				editorUi.editor.setGraphXml(doc.documentElement);
+				editorUi.hideDialog();
+			}
+			catch (e)
+			{
+				mxUtils.alert(e.message);
+			}
 		}
 		else if (select.value == 'import')
 		{

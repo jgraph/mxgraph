@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.58 2013/12/04 16:44:11 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.61 2013/12/20 15:57:51 david Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -4887,7 +4887,7 @@ mxGraph.prototype.updateAlternateBounds = function(cell, geo, willCollapse)
 			geo.alternateBounds.x = geo.x;
 			geo.alternateBounds.y = geo.y;
 			
-			var alpha = mxUtils.toRadians(style[mxConstants.STYLE_ROTATION] || '0');
+			var alpha = mxUtils.toRadians(style[mxConstants.STYLE_ROTATION] || 0);
 			
 			if (alpha != 0)
 			{
@@ -6139,6 +6139,7 @@ mxGraph.prototype.getConnectionPoint = function(vertex, constraint)
 				{
 					cos = -1;
 				}
+				// This really is r2, not r1
 				else if (r2 == 270)
 				{
 					sin = -1;
@@ -11592,7 +11593,8 @@ mxGraph.prototype.isEventSourceIgnored = function(evtName, me)
 {
 	var name = me.getSource().nodeName.toLowerCase();
 	
-	return name == 'select' || name == 'option' || name == 'button' || name == 'a' || name == 'input';
+	return evtName == mxEvent.MOUSE_DOWN && (name == 'select' || name == 'option'
+		|| name == 'button' || name == 'a' || name == 'input');
 };
 
 /**

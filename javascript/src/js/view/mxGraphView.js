@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphView.js,v 1.31 2013/11/11 12:24:52 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.34 2013/12/17 15:04:45 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -2155,9 +2155,18 @@ mxGraphView.prototype.removeState = function(cell)
  */
 mxGraphView.prototype.createState = function(cell)
 {
-	return new mxCellState(this, cell, this.graph.getCellStyle(cell));
-};
+	var state = new mxCellState(this, cell, this.graph.getCellStyle(cell));
+	var model = this.graph.getModel();
+
+	if (this.isRendering() && state.view.graph.container != null && state.cell != state.view.currentRoot &&
+		(model.isVertex(state.cell) || model.isEdge(state.cell)))
+	{
+		this.graph.cellRenderer.createShape(state);
+	}
 	
+	return state;
+};
+
 /**
  * Function: getCanvas
  *

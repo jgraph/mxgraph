@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.js,v 1.21 2013/11/12 21:50:30 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.23 2013/12/20 16:31:33 david Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxUtils =
@@ -589,6 +589,10 @@ var mxUtils =
 			{
 				window.getSelection().removeAllRanges();
 			};
+		}
+		else
+		{
+			return function() { };
 		}
 	}(),
 
@@ -2078,22 +2082,106 @@ var mxUtils =
 		{
 			var directions = value.toString();
 			var returnValue = mxConstants.DIRECTION_MASK_NONE;
+			var constraintRotationEnabled = mxUtils.getValue(terminal.style, mxConstants.STYLE_PORT_CONSTRAINT_ROTATION, 0);
+			var rotation = 0;
+			
+			if (constraintRotationEnabled == 1)
+			{
+				rotation = mxUtils.getValue(terminal.style, mxConstants.STYLE_ROTATION, 0);
+			}
+			
+			var quad = 0;
+
+			if (rotation > 45)
+			{
+				quad = 1;
+				
+				if (rotation >= 135)
+				{
+					quad = 2;
+				}
+			}
+			else if (rotation < -45)
+			{
+				quad = 3;
+				
+				if (rotation <= -135)
+				{
+					quad = 2;
+				}
+			}
 
 			if (directions.indexOf(mxConstants.DIRECTION_NORTH) >= 0)
 			{
-				returnValue |= mxConstants.DIRECTION_MASK_NORTH;
+				switch (quad)
+				{
+					case 0:
+						returnValue |= mxConstants.DIRECTION_MASK_NORTH;
+						break;
+					case 1:
+						returnValue |= mxConstants.DIRECTION_MASK_EAST;
+						break;
+					case 2:
+						returnValue |= mxConstants.DIRECTION_MASK_SOUTH;
+						break;
+					case 3:
+						returnValue |= mxConstants.DIRECTION_MASK_WEST;
+						break;
+				}
 			}
 			if (directions.indexOf(mxConstants.DIRECTION_WEST) >= 0)
 			{
-				returnValue |= mxConstants.DIRECTION_MASK_WEST;
+				switch (quad)
+				{
+					case 0:
+						returnValue |= mxConstants.DIRECTION_MASK_WEST;
+						break;
+					case 1:
+						returnValue |= mxConstants.DIRECTION_MASK_NORTH;
+						break;
+					case 2:
+						returnValue |= mxConstants.DIRECTION_MASK_EAST;
+						break;
+					case 3:
+						returnValue |= mxConstants.DIRECTION_MASK_SOUTH;
+						break;
+				}
 			}
 			if (directions.indexOf(mxConstants.DIRECTION_SOUTH) >= 0)
 			{
-				returnValue |= mxConstants.DIRECTION_MASK_SOUTH;
+				switch (quad)
+				{
+					case 0:
+						returnValue |= mxConstants.DIRECTION_MASK_SOUTH;
+						break;
+					case 1:
+						returnValue |= mxConstants.DIRECTION_MASK_WEST;
+						break;
+					case 2:
+						returnValue |= mxConstants.DIRECTION_MASK_NORTH;
+						break;
+					case 3:
+						returnValue |= mxConstants.DIRECTION_MASK_EAST;
+						break;
+				}
 			}
 			if (directions.indexOf(mxConstants.DIRECTION_EAST) >= 0)
 			{
-				returnValue |= mxConstants.DIRECTION_MASK_EAST;
+				switch (quad)
+				{
+					case 0:
+						returnValue |= mxConstants.DIRECTION_MASK_EAST;
+						break;
+					case 1:
+						returnValue |= mxConstants.DIRECTION_MASK_SOUTH;
+						break;
+					case 2:
+						returnValue |= mxConstants.DIRECTION_MASK_WEST;
+						break;
+					case 3:
+						returnValue |= mxConstants.DIRECTION_MASK_NORTH;
+						break;
+				}
 			}
 
 			return returnValue;

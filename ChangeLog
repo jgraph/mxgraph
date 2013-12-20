@@ -1,3 +1,14 @@
+20-DEC-2013: 2.3.0.5
+
+- Adds option to rotate port constraints with vertices [JavaScript]
+- Fixes label position for live preview in mxVertexHandler [JavaScript]
+- Checks for mouseDown in mxGraph.isEventSourceIgnored [JavaScript]
+- Updates dialect of text shape in mxCellRenderer.redrawLabel [JavaScript]
+- Creates shape with mxCellState in mxGraphView.createState [JavaScript]
+- Fixes possible undefined function in mxUtils.clearSelection [JavaScript]
+- Adds mxConstants.STYLE_ASPECT for mxVertexHandler.isConstrainedEvent [JavaScript]
+- Fixes focus on invisible container in mxDragSource.drop [JavaScript]
+
 09-DEC-2013: 2.3.0.4
 
 - Moves updateDocumentTitle, addBeforeUnloadListener to EditorUi in grapheditor [JavaScript]

@@ -1,5 +1,5 @@
 /**
- * $Id: Graph.js,v 1.30 2013/11/15 12:13:01 gaudenz Exp $
+ * $Id: Graph.js,v 1.34 2013/12/17 11:29:32 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -71,8 +71,9 @@ Graph = function(container, model, renderHint, stylesheet)
 	{
 		var state = this.view.getState(cell);
 		var style = (state != null) ? state.style : this.getCellStyle(cell);
+		var href = this.getLinkForCell(cell);
 		
-		return style['html'] == '1' || style['whiteSpace'] == 'wrap';
+		return style['html'] == '1' || style['whiteSpace'] == 'wrap' || href != null;
 	};
 	
 	// HTML entities are displayed as plain text in wrapped plain text labels
@@ -80,9 +81,19 @@ Graph = function(container, model, renderHint, stylesheet)
 	{
 		var result = mxCellRenderer.prototype.getLabelValue.apply(this, arguments);
 		
-		if (state.style['whiteSpace'] == 'wrap' && state.style['html'] != 1)
+		if (state.view.graph.isHtmlLabel(state.cell))
 		{
-			result = mxUtils.htmlEntities(result, false);
+			if (state.style['html'] != 1)
+			{
+				result = mxUtils.htmlEntities(result, false);
+			}
+	
+			var href = state.view.graph.getLinkForCell(state.cell);
+			
+			if (href != null)
+			{
+				result = '<a style="color:inherit;text-decoration:inherit;" href="' + href + '" target="_blank">' + result + '</a>';
+			}
 		}
 		
 		return result;
@@ -550,20 +561,6 @@ Graph.prototype.initTouch = function()
 			{
 				this.delayedSelection = false;
 			}
-		};
-
-		// Overrides double click handling to use the tolerance
-		var graphDblClick = mxGraph.prototype.dblClick;
-		Graph.prototype.dblClick = function(evt, cell)
-		{
-			if (cell == null)
-			{
-				var pt = mxUtils.convertPoint(this.container,
-					mxEvent.getClientX(evt), mxEvent.getClientY(evt));
-				cell = this.getCellAt(pt.x, pt.y);
-			}
-
-			graphDblClick.call(this, evt, cell);
 		};
 
 		// Rounded edge and vertex handles

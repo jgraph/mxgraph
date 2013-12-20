@@ -1,5 +1,5 @@
 /**
- * $Id: mxVertexHandler.js,v 1.36 2013/12/05 11:07:09 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.38 2013/12/17 15:00:29 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -210,7 +210,7 @@ mxVertexHandler.prototype.init = function()
  */
 mxVertexHandler.prototype.isConstrainedEvent = function(me)
 {
-	return mxEvent.isShiftDown(me.getEvent());
+	return mxEvent.isShiftDown(me.getEvent()) || this.state.style[mxConstants.STYLE_ASPECT] == 'fixed';
 };
 
 /**
@@ -674,7 +674,7 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 					// Saves current state
 					var tmp = new mxRectangle(this.state.x, this.state.y, this.state.width, this.state.height);
 					var orig = this.state.origin;
-					
+
 					// Temporarily changes size and origin
 					this.state.x = this.bounds.x;
 					this.state.y = this.bounds.y;
@@ -683,6 +683,28 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 					this.state.height = this.bounds.height;
 					
 					// Redraws cell and handles
+					var off = this.state.absoluteOffset;
+					off = new mxPoint(off.x, off.y);
+
+					// Required to store and reset absolute offset for updating label position
+					this.state.absoluteOffset.x = 0;
+					this.state.absoluteOffset.y = 0;
+					var geo = this.graph.getCellGeometry(this.state.cell);				
+		
+					if (geo != null)
+					{
+						var offset = geo.offset || this.EMPTY_POINT;
+	
+						if (offset != null && !geo.relative)
+						{
+							this.state.absoluteOffset.x = this.state.view.scale * offset.x;
+							this.state.absoluteOffset.y = this.state.view.scale * offset.y;
+						}
+						
+						this.state.view.updateVertexLabelOffset(this.state);
+					}
+					
+					// Draws the live preview
 					this.state.view.graph.cellRenderer.redraw(this.state, true);
 					
 					// Redraws connected edges
@@ -697,6 +719,7 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 					this.state.width = tmp.width;
 					this.state.height = tmp.height;
 					this.state.origin = orig;
+					this.state.absoluteOffset = off;
 				}
 				else
 				{

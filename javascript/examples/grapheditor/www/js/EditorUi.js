@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.38 2013/12/09 08:16:28 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.42 2013/12/17 10:23:05 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -7,12 +7,11 @@
  */
 EditorUi = function(editor, container)
 {
+	mxEventSource.call(this);
+	
 	this.editor = editor || new Editor();
 	this.container = container || document.body;
 	var graph = this.editor.graph;
-
-	// Disables scrollbars
-	this.container.style.overflow = 'hidden';
 
 	// Pre-fetches submenu image
 	new Image().src = mxPopupMenu.prototype.submenuImage;
@@ -78,12 +77,54 @@ EditorUi = function(editor, container)
     
     // Enables scrollbars and sets cursor style for the container
 	graph.container.setAttribute('tabindex', '0');
-   	graph.container.style.overflow = (touchStyle) ? 'hidden' : 'auto';
    	graph.container.style.cursor = 'default';
     graph.container.style.backgroundImage = 'url(' + editor.gridImage + ')';
     graph.container.style.backgroundPosition = '-1px -1px';
    	graph.container.focus();
    	
+	// Overrides double click handling to use the tolerance and
+   	// redirect to the image action for image shapes
+   	var ui = this;
+	var graphDblClick = graph.dblClick;
+	graph.dblClick = function(evt, cell)
+	{
+		if (cell == null)
+		{
+			var pt = mxUtils.convertPoint(this.container,
+				mxEvent.getClientX(evt), mxEvent.getClientY(evt));
+			cell = this.getCellAt(pt.x, pt.y);
+		}
+
+		var state = this.view.getState(cell);
+		var textSource = false;
+		
+		// Avoids calling image action if label is event source
+		if (evt != null && state != null && state.text != null && state.text.node != null)
+		{
+			var source = mxEvent.getSource(evt);
+			
+			while (!textSource && source != null)
+			{
+				if (source == state.text.node)
+				{
+					textSource = true;
+				}
+		
+				source = source.parentNode;
+			}
+		}
+		
+		if (state != null && !textSource && state.shape.constructor == mxImageShape && !mxEvent.isAltDown(evt))
+		{
+			graph.setSelectionCell(cell);
+			ui.actions.get('image').funct();
+		}
+		else
+		{
+			graphDblClick.call(this, evt, cell);
+		}
+	};
+
    	// Keeps graph container focused on mouse down
    	var graphFireMouseEvent = graph.fireMouseEvent;
    	graph.fireMouseEvent = function(evtName, me, sender)
@@ -165,6 +206,9 @@ EditorUi = function(editor, container)
    	this.init();
    	this.open();
 };
+
+// Extends mxEventSource
+mxUtils.extend(EditorUi, mxEventSource);
 
 /**
  * Specifies the size of the split bar.
@@ -320,11 +364,11 @@ EditorUi.prototype.open = function()
  */
 EditorUi.prototype.updateDocumentTitle = function()
 {
-	var title = this.getOrCreateFilename();
+	var title = this.editor.getOrCreateFilename();
 	
-	if (this.appName != null)
+	if (this.editor.appName != null)
 	{
-		title += ' - ' + this.appName;
+		title += ' - ' + this.editor.appName;
 	}
 	
 	document.title = title;
@@ -388,6 +432,41 @@ EditorUi.prototype.getUrl = function(pathname)
 	
 	return href;
 };
+
+/**
+ * Loads the stylesheet for this graph.
+ */
+EditorUi.prototype.setBackgroundColor = function(value)
+{
+	this.editor.graph.background = value;
+	this.editor.updateGraphComponents();
+
+	this.fireEvent(new mxEventObject('backgroundColorChanged'));
+};
+
+/**
+ * Loads the stylesheet for this graph.
+ */
+EditorUi.prototype.setPageFormat = function(value)
+{
+	this.editor.graph.pageFormat = value;
+	this.editor.outline.outline.pageFormat = this.editor.graph.pageFormat;
+	
+	if (!this.editor.graph.pageVisible)
+	{
+		this.actions.get('pageView').funct();
+	}
+	else
+	{
+		this.editor.updateGraphComponents();
+		this.editor.graph.view.validateBackground();
+		this.editor.graph.sizeDidChange();
+		this.editor.outline.update();
+	}
+
+	this.fireEvent(new mxEventObject('pageFormatChanged'));
+};
+
 
 /**
  * Updates the states of the given undo/redo items.
@@ -829,9 +908,9 @@ EditorUi.prototype.hideDialog = function(cancel)
 EditorUi.prototype.openFile = function()
 {
 	// Closes dialog after open
-	window.openFile = new OpenFile(mxUtils.bind(this, function()
+	window.openFile = new OpenFile(mxUtils.bind(this, function(cancel)
 	{
-		this.hideDialog();
+		this.hideDialog(cancel);
 	}));
 
 	// Removes openFile if dialog is closed

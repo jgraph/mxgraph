@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.3.0.4.
+	 * Current version is 2.3.0.5.
 	 */
-	VERSION: '2.3.0.4',
+	VERSION: '2.3.0.5',
 
 	/**
 	 * Variable: IS_IE
@@ -1909,7 +1909,7 @@ var mxEffects =
 
 };
 /**
- * $Id: mxUtils.js,v 1.21 2013/11/12 21:50:30 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.23 2013/12/20 16:31:33 david Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxUtils =
@@ -2499,6 +2499,10 @@ var mxUtils =
 			{
 				window.getSelection().removeAllRanges();
 			};
+		}
+		else
+		{
+			return function() { };
 		}
 	}(),
 
@@ -3988,22 +3992,106 @@ var mxUtils =
 		{
 			var directions = value.toString();
 			var returnValue = mxConstants.DIRECTION_MASK_NONE;
+			var constraintRotationEnabled = mxUtils.getValue(terminal.style, mxConstants.STYLE_PORT_CONSTRAINT_ROTATION, 0);
+			var rotation = 0;
+			
+			if (constraintRotationEnabled == 1)
+			{
+				rotation = mxUtils.getValue(terminal.style, mxConstants.STYLE_ROTATION, 0);
+			}
+			
+			var quad = 0;
+
+			if (rotation > 45)
+			{
+				quad = 1;
+				
+				if (rotation >= 135)
+				{
+					quad = 2;
+				}
+			}
+			else if (rotation < -45)
+			{
+				quad = 3;
+				
+				if (rotation <= -135)
+				{
+					quad = 2;
+				}
+			}
 
 			if (directions.indexOf(mxConstants.DIRECTION_NORTH) >= 0)
 			{
-				returnValue |= mxConstants.DIRECTION_MASK_NORTH;
+				switch (quad)
+				{
+					case 0:
+						returnValue |= mxConstants.DIRECTION_MASK_NORTH;
+						break;
+					case 1:
+						returnValue |= mxConstants.DIRECTION_MASK_EAST;
+						break;
+					case 2:
+						returnValue |= mxConstants.DIRECTION_MASK_SOUTH;
+						break;
+					case 3:
+						returnValue |= mxConstants.DIRECTION_MASK_WEST;
+						break;
+				}
 			}
 			if (directions.indexOf(mxConstants.DIRECTION_WEST) >= 0)
 			{
-				returnValue |= mxConstants.DIRECTION_MASK_WEST;
+				switch (quad)
+				{
+					case 0:
+						returnValue |= mxConstants.DIRECTION_MASK_WEST;
+						break;
+					case 1:
+						returnValue |= mxConstants.DIRECTION_MASK_NORTH;
+						break;
+					case 2:
+						returnValue |= mxConstants.DIRECTION_MASK_EAST;
+						break;
+					case 3:
+						returnValue |= mxConstants.DIRECTION_MASK_SOUTH;
+						break;
+				}
 			}
 			if (directions.indexOf(mxConstants.DIRECTION_SOUTH) >= 0)
 			{
-				returnValue |= mxConstants.DIRECTION_MASK_SOUTH;
+				switch (quad)
+				{
+					case 0:
+						returnValue |= mxConstants.DIRECTION_MASK_SOUTH;
+						break;
+					case 1:
+						returnValue |= mxConstants.DIRECTION_MASK_WEST;
+						break;
+					case 2:
+						returnValue |= mxConstants.DIRECTION_MASK_NORTH;
+						break;
+					case 3:
+						returnValue |= mxConstants.DIRECTION_MASK_EAST;
+						break;
+				}
 			}
 			if (directions.indexOf(mxConstants.DIRECTION_EAST) >= 0)
 			{
-				returnValue |= mxConstants.DIRECTION_MASK_EAST;
+				switch (quad)
+				{
+					case 0:
+						returnValue |= mxConstants.DIRECTION_MASK_EAST;
+						break;
+					case 1:
+						returnValue |= mxConstants.DIRECTION_MASK_SOUTH;
+						break;
+					case 2:
+						returnValue |= mxConstants.DIRECTION_MASK_WEST;
+						break;
+					case 3:
+						returnValue |= mxConstants.DIRECTION_MASK_NORTH;
+						break;
+				}
 			}
 
 			return returnValue;
@@ -5903,7 +5991,7 @@ var mxUtils =
 
 };
 /**
- * $Id: mxConstants.js,v 1.16 2013/11/26 13:30:41 david Exp $
+ * $Id: mxConstants.js,v 1.18 2013/12/20 16:31:33 david Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
  var mxConstants =
@@ -6571,6 +6659,16 @@ var mxUtils =
 	 * DIRECTION_EAST</code> and <code>DIRECTION_WEST</code>.
 	 */
 	STYLE_PORT_CONSTRAINT: 'portConstraint',
+
+	/**
+	 * Variable: STYLE_PORT_CONSTRAINT_ROTATION
+	 * 
+	 * Define whether port constraint directions are rotated with vertex
+	 * rotation. 0 (default) causes port constraints to remain absolute, 
+	 * relative to the graph, 1 causes the constraints to rotate with
+	 * the vertex
+	 */
+	STYLE_PORT_CONSTRAINT_ROTATION: 'portConstraintRotation',
 
 	/**
 	 * Variable: STYLE_OPACITY
@@ -7332,6 +7430,15 @@ var mxUtils =
 	 * The type of the value is int.
 	 */
 	STYLE_FONTSTYLE: 'fontStyle',
+	
+	/**
+	 * Variable: STYLE_ASPECT
+	 * 
+	 * Defines the key for the aspect style. Possible values are empty or fixed.
+	 * If fixes is used then the aspect ratio of the cell will be maintained
+	 * when resizing. Default is empty.
+	 */
+	STYLE_ASPECT: 'aspect',
 
 	/**
 	 * Variable: STYLE_AUTOSIZE
@@ -11858,7 +11965,7 @@ mxDivResizer.prototype.getDocumentHeight = function()
 	return document.body.clientHeight;
 };
 /**
- * $Id: mxDragSource.js,v 1.10 2013/10/28 08:44:59 gaudenz Exp $
+ * $Id: mxDragSource.js,v 1.11 2013/12/13 12:13:43 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -12463,7 +12570,10 @@ mxDragSource.prototype.drop = function(graph, evt, dropTarget, x, y)
 	// affect the scrollbars of the window in IE to try and
 	// make the complete container visible.
 	// LATER: Should be made optional.
-	graph.container.focus();
+	if (graph.container.style.visibility != 'hidden')
+	{
+		graph.container.focus();
+	}
 };
 /**
  * $Id: mxToolbar.js,v 1.3 2013/10/28 08:44:59 gaudenz Exp $
@@ -42816,7 +42926,7 @@ mxCellEditor.prototype.destroy = function ()
 	}
 };
 /**
- * $Id: mxCellRenderer.js,v 1.32 2013/11/29 13:57:10 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.35 2013/12/17 15:04:11 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -43674,11 +43784,16 @@ mxCellRenderer.prototype.redrawLabel = function(state, forced)
 		var wrapping = graph.isWrapping(state.cell);
 		var clipping = graph.isLabelClipped(state.cell);
 		var bounds = this.getLabelBounds(state);
+		
+		var isForceHtml = (state.view.graph.isHtmlLabel(state.cell) || (value != null && mxUtils.isNode(value)));
+		var dialect = (isForceHtml) ? mxConstants.DIALECT_STRICTHTML : state.view.graph.dialect;
 
+		// Text is a special case where change of dialect is possible at runtime
 		if (forced || state.text.value != value || state.text.isWrapping != wrapping ||
 			state.text.isClipping != clipping || state.text.scale != state.view.scale ||
-			!state.text.bounds.equals(bounds))
+			state.text.dialect != dialect || !state.text.bounds.equals(bounds))
 		{
+			state.text.dialect = dialect;
 			state.text.value = value;
 			state.text.bounds = bounds;
 			state.text.scale = this.getTextScale(state);
@@ -44102,14 +44217,7 @@ mxCellRenderer.prototype.redraw = function(state, force, rendering)
 mxCellRenderer.prototype.redrawShape = function(state, force, rendering)
 {
 	var shapeChanged = false;
-	var model = state.view.graph.getModel();
 
-	if (state.shape == null && state.view.graph.container != null && state.cell != state.view.currentRoot &&
-		(model.isVertex(state.cell) || model.isEdge(state.cell)))
-	{
-		this.createShape(state);
-	}
-	
 	if (state.shape != null)
 	{
 		// Handles changes of the collapse icon
@@ -45569,7 +45677,7 @@ mxStyleRegistry.putValue(mxConstants.PERIMETER_RECTANGLE, mxPerimeter.RectangleP
 mxStyleRegistry.putValue(mxConstants.PERIMETER_RHOMBUS, mxPerimeter.RhombusPerimeter);
 mxStyleRegistry.putValue(mxConstants.PERIMETER_TRIANGLE, mxPerimeter.TrianglePerimeter);
 /**
- * $Id: mxGraphView.js,v 1.31 2013/11/11 12:24:52 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.34 2013/12/17 15:04:45 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -47725,9 +47833,18 @@ mxGraphView.prototype.removeState = function(cell)
  */
 mxGraphView.prototype.createState = function(cell)
 {
-	return new mxCellState(this, cell, this.graph.getCellStyle(cell));
-};
+	var state = new mxCellState(this, cell, this.graph.getCellStyle(cell));
+	var model = this.graph.getModel();
+
+	if (this.isRendering() && state.view.graph.container != null && state.cell != state.view.currentRoot &&
+		(model.isVertex(state.cell) || model.isEdge(state.cell)))
+	{
+		this.graph.cellRenderer.createShape(state);
+	}
 	
+	return state;
+};
+
 /**
  * Function: getCanvas
  *
@@ -48273,7 +48390,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.58 2013/12/04 16:44:11 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.61 2013/12/20 15:57:51 david Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -53161,7 +53278,7 @@ mxGraph.prototype.updateAlternateBounds = function(cell, geo, willCollapse)
 			geo.alternateBounds.x = geo.x;
 			geo.alternateBounds.y = geo.y;
 			
-			var alpha = mxUtils.toRadians(style[mxConstants.STYLE_ROTATION] || '0');
+			var alpha = mxUtils.toRadians(style[mxConstants.STYLE_ROTATION] || 0);
 			
 			if (alpha != 0)
 			{
@@ -54413,6 +54530,7 @@ mxGraph.prototype.getConnectionPoint = function(vertex, constraint)
 				{
 					cos = -1;
 				}
+				// This really is r2, not r1
 				else if (r2 == 270)
 				{
 					sin = -1;
@@ -59866,7 +59984,8 @@ mxGraph.prototype.isEventSourceIgnored = function(evtName, me)
 {
 	var name = me.getSource().nodeName.toLowerCase();
 	
-	return name == 'select' || name == 'option' || name == 'button' || name == 'a' || name == 'input';
+	return evtName == mxEvent.MOUSE_DOWN && (name == 'select' || name == 'option'
+		|| name == 'button' || name == 'a' || name == 'input');
 };
 
 /**
@@ -67818,7 +67937,7 @@ mxRubberband.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxVertexHandler.js,v 1.36 2013/12/05 11:07:09 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.38 2013/12/17 15:00:29 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -68029,7 +68148,7 @@ mxVertexHandler.prototype.init = function()
  */
 mxVertexHandler.prototype.isConstrainedEvent = function(me)
 {
-	return mxEvent.isShiftDown(me.getEvent());
+	return mxEvent.isShiftDown(me.getEvent()) || this.state.style[mxConstants.STYLE_ASPECT] == 'fixed';
 };
 
 /**
@@ -68493,7 +68612,7 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 					// Saves current state
 					var tmp = new mxRectangle(this.state.x, this.state.y, this.state.width, this.state.height);
 					var orig = this.state.origin;
-					
+
 					// Temporarily changes size and origin
 					this.state.x = this.bounds.x;
 					this.state.y = this.bounds.y;
@@ -68502,6 +68621,28 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 					this.state.height = this.bounds.height;
 					
 					// Redraws cell and handles
+					var off = this.state.absoluteOffset;
+					off = new mxPoint(off.x, off.y);
+
+					// Required to store and reset absolute offset for updating label position
+					this.state.absoluteOffset.x = 0;
+					this.state.absoluteOffset.y = 0;
+					var geo = this.graph.getCellGeometry(this.state.cell);				
+		
+					if (geo != null)
+					{
+						var offset = geo.offset || this.EMPTY_POINT;
+	
+						if (offset != null && !geo.relative)
+						{
+							this.state.absoluteOffset.x = this.state.view.scale * offset.x;
+							this.state.absoluteOffset.y = this.state.view.scale * offset.y;
+						}
+						
+						this.state.view.updateVertexLabelOffset(this.state);
+					}
+					
+					// Draws the live preview
 					this.state.view.graph.cellRenderer.redraw(this.state, true);
 					
 					// Redraws connected edges
@@ -68516,6 +68657,7 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 					this.state.width = tmp.width;
 					this.state.height = tmp.height;
 					this.state.origin = orig;
+					this.state.absoluteOffset = off;
 				}
 				else
 				{

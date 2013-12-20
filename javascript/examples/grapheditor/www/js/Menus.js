@@ -1,5 +1,5 @@
 /**
- * $Id: Menus.js,v 1.24 2013/12/02 16:35:52 david Exp $
+ * $Id: Menus.js,v 1.26 2013/12/20 15:37:12 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -315,6 +315,23 @@ Menus.prototype.init = function()
 	})));
 	this.put('layout', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
+		menu.addItem(mxResources.get('horizontalFlow'), null, mxUtils.bind(this, function()
+		{
+			var layout = new mxHierarchicalLayout(graph, mxConstants.DIRECTION_WEST);
+    		this.editorUi.executeLayout(function()
+    		{
+    			layout.execute(graph.getDefaultParent(), graph.getSelectionCells());
+    		}, true);
+		}), parent);
+		menu.addItem(mxResources.get('verticalFlow'), null, mxUtils.bind(this, function()
+		{
+			var layout = new mxHierarchicalLayout(graph, mxConstants.DIRECTION_NORTH);
+    		this.editorUi.executeLayout(function()
+    		{
+    			layout.execute(graph.getDefaultParent(), graph.getSelectionCells());
+    		}, true);
+		}), parent);
+		menu.addSeparator(parent);
 		menu.addItem(mxResources.get('horizontalTree'), null, mxUtils.bind(this, function()
 		{
 			if (!graph.isSelectionEmpty())
@@ -340,23 +357,6 @@ Menus.prototype.init = function()
 	    			layout.execute(graph.getDefaultParent(), graph.getSelectionCell());
 	    		}, true);
 			}
-		}), parent);
-		menu.addSeparator(parent);
-		menu.addItem(mxResources.get('horizontalFlow'), null, mxUtils.bind(this, function()
-		{
-			var layout = new mxHierarchicalLayout(graph, mxConstants.DIRECTION_WEST);
-    		this.editorUi.executeLayout(function()
-    		{
-    			layout.execute(graph.getDefaultParent(), graph.getSelectionCells());
-    		}, true);
-		}), parent);
-		menu.addItem(mxResources.get('verticalFlow'), null, mxUtils.bind(this, function()
-		{
-			var layout = new mxHierarchicalLayout(graph, mxConstants.DIRECTION_NORTH);
-    		this.editorUi.executeLayout(function()
-    		{
-    			layout.execute(graph.getDefaultParent(), graph.getSelectionCells());
-    		}, true);
 		}), parent);
 		menu.addSeparator(parent);
 		menu.addItem(mxResources.get('organic'), null, mxUtils.bind(this, function()
@@ -688,11 +688,11 @@ Menus.prototype.createPopupMenu = function(menu, cell, evt)
 			menu.addSeparator();
 			this.addMenuItems(menu, ['group']);
 		}
-		
-		menu.addSeparator();
-		
-		if (graph.getSelectionCount() == 1)
+		else if (graph.getSelectionCount() == 1)
 		{
+			menu.addSeparator();
+			this.addMenuItems(menu, ['editLink']);
+			
 			var link = graph.getLinkForCell(graph.getSelectionCell());
 			
 			if (link != null)

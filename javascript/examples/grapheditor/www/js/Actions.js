@@ -1,5 +1,5 @@
 /**
- * $Id: Actions.js,v 1.19 2013/12/02 16:35:52 david Exp $
+ * $Id: Actions.js,v 1.23 2013/12/20 13:11:25 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -150,12 +150,16 @@ Actions.prototype.init = function()
 			link = '';
 		}
 		
-		link = mxUtils.prompt(mxResources.get('enterValue'), link);
-		
-		if (link != null)
-		{
-			graph.setLinkForCell(cell, link);
-		}
+		var dlg = new TextareaDialog(ui, mxResources.get('enterValue') + ' (' + mxResources.get('url') + '):',
+			link, function(value)
+			{
+		    	if (value != null)
+	    		{
+	    			graph.setLinkForCell(cell, mxUtils.trim(value));
+	    		}
+			});
+		ui.showDialog(dlg.container, 320, 200, true, true);
+		dlg.init();
 	});
 	this.addAction('openLink', function()
 	{
@@ -383,31 +387,35 @@ Actions.prototype.init = function()
 	action.setSelectedCallback(function() { return graph.foldingEnabled; });
 	action = this.addAction('scrollbars', function()
 	{
+		var prev = graph.container.style.overflow;
 		graph.scrollbars = !graph.scrollbars;
 		editor.updateGraphComponents();
 
-		if (!graph.scrollbars)
+		if (prev != graph.container.style.overflow)
 		{
-			var t = graph.view.translate;
-			graph.view.setTranslate(t.x - graph.container.scrollLeft / graph.view.scale, t.y - graph.container.scrollTop / graph.view.scale);
-			graph.container.scrollLeft = 0;
-			graph.container.scrollTop = 0;
-			graph.sizeDidChange();
-		}
-		else
-		{
-			var dx = graph.view.translate.x;
-			var dy = graph.view.translate.y;
-
-			graph.view.translate.x = 0;
-			graph.view.translate.y = 0;
-			graph.sizeDidChange();
-			graph.container.scrollLeft -= Math.round(dx * graph.view.scale);
-			graph.container.scrollTop -= Math.round(dy * graph.view.scale);
+			if (graph.container.style.overflow == 'hidden')
+			{
+				var t = graph.view.translate;
+				graph.view.setTranslate(t.x - graph.container.scrollLeft / graph.view.scale, t.y - graph.container.scrollTop / graph.view.scale);
+				graph.container.scrollLeft = 0;
+				graph.container.scrollTop = 0;
+				graph.sizeDidChange();
+			}
+			else
+			{
+				var dx = graph.view.translate.x;
+				var dy = graph.view.translate.y;
+	
+				graph.view.translate.x = 0;
+				graph.view.translate.y = 0;
+				graph.sizeDidChange();
+				graph.container.scrollLeft -= Math.round(dx * graph.view.scale);
+				graph.container.scrollTop -= Math.round(dy * graph.view.scale);
+			}
 		}
 	});
 	action.setToggleAction(true);
-	action.setSelectedCallback(function() { return graph.container.style.overflow == 'auto'; });
+	action.setSelectedCallback(function() { return graph.scrollbars; });
 	action = this.addAction('pageView', mxUtils.bind(this, function()
 	{
 		graph.pageVisible = !graph.pageVisible;
@@ -439,8 +447,7 @@ Actions.prototype.init = function()
 	{
 		var apply = function(color)
 		{
-			graph.background = color;
-			editor.updateGraphComponents();
+			ui.setBackgroundColor(color);
 		};
 
 		var cd = new ColorDialog(ui, graph.background || 'none', apply);
@@ -514,7 +521,7 @@ Actions.prototype.init = function()
 	this.addAction('dashed', function() { graph.toggleCellStyles(mxConstants.STYLE_DASHED); });
 	this.addAction('rounded', function() { graph.toggleCellStyles(mxConstants.STYLE_ROUNDED); });
 	this.addAction('curved', function() { graph.toggleCellStyles(mxConstants.STYLE_CURVED); });
-	this.addAction('style...', function()
+	this.put('style', new Action(mxResources.get('edit') + '...', mxUtils.bind(this, function()
 	{
 		var cells = graph.getSelectionCells();
 		
@@ -529,7 +536,7 @@ Actions.prototype.init = function()
 				graph.setCellStyle(style, cells);
 			}
 		}
-	});
+	})));
 	this.addAction('setAsDefaultEdge', function()
 	{
 		graph.setDefaultEdge(graph.getSelectionCell());

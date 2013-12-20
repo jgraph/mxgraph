@@ -1,5 +1,5 @@
 /**
- * $Id: Sidebar.js,v 1.55 2013/11/11 12:18:16 gaudenz Exp $
+ * $Id: Sidebar.js,v 1.58 2013/12/17 10:24:37 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -346,7 +346,19 @@ Sidebar.prototype.addGeneralPalette = function(expand)
 		content.appendChild(this.createVertexTemplate('swimlane;whiteSpace=wrap', 200, 200, 'Container', 'Container', true));
 	    content.appendChild(this.createVertexTemplate('whiteSpace=wrap', 120, 60, '', 'Rectangle', true));
 	    content.appendChild(this.createVertexTemplate('rounded=1;whiteSpace=wrap', 120, 60, '', 'Rounded Rectangle', true));
-	    content.appendChild(this.createVertexTemplate('text;spacingTop=-5;', 30, 20, 'Text', 'Text', true));
+	    content.appendChild(this.createVertexTemplate('text;align=center;verticalAlign=middle;', 40, 20, 'Text', 'Text', true));
+
+	    content.appendChild(this.createVertexTemplate('text;html=1;spacing=5;spacingTop=-10;whiteSpace=wrap;overflow=hidden;', 160, 140,
+	    	'<h1>Heading</h1><p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>', 'HTML', true));
+
+	    var linkCell = new mxCell('Click here!', new mxGeometry(0, 0, 100, 40), 'fontColor=#0000EE;fontStyle=4;');
+	    linkCell.vertex = true;
+	    this.graph.setLinkForCell(linkCell, 'http://www.jgraph.com');
+    	content.appendChild(this.createVertexTemplateFromCells([linkCell], 100, 40, 'Hyperlink', true));
+
+	    content.appendChild(this.createVertexTemplate('shape=image;verticalLabelPosition=bottom;verticalAlign=top;image=' + this.gearImage, 50, 60, '', 'Image', false));
+	    content.appendChild(this.createVertexTemplate('shape=image;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=1;aspect=fixed;image=' + this.gearImage, 52, 61, '', 'Fixed Image', false));
+	    
 	    content.appendChild(this.createVertexTemplate('ellipse;whiteSpace=wrap', 80, 80, '', 'Circle', true));
 	    content.appendChild(this.createVertexTemplate('ellipse;shape=doubleEllipse;whiteSpace=wrap', 80, 80, '', 'Double Ellipse', true));
 	    content.appendChild(this.createVertexTemplate('shape=ext;double=1;whiteSpace=wrap', 120, 60, 'Double Rectangle', 'Double Rectangle', true));
@@ -369,7 +381,7 @@ Sidebar.prototype.addGeneralPalette = function(expand)
 	    content.appendChild(this.createVertexTemplate('shape=card;whiteSpace=wrap', 60, 80, '', 'Card', true));
 	    content.appendChild(this.createVertexTemplate('shape=message;whiteSpace=wrap', 60, 40, '', 'Message', true));
 	    content.appendChild(this.createVertexTemplate('shape=actor;whiteSpace=wrap', 40, 60, '', 'Actor 1', true));
-	    content.appendChild(this.createVertexTemplate('icon;image=' + this.gearImage, 60, 60, 'Image', 'Image', false));
+	    content.appendChild(this.createVertexTemplate('icon;image=' + this.gearImage, 60, 60, 'Icon', 'Icon', false));
 	    content.appendChild(this.createVertexTemplate('whiteSpace=wrap;label;image=' + this.gearImage, 140, 60, 'Label', 'Label', true));
 	    content.appendChild(this.createVertexTemplate('shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top', 30, 60, '', 'Actor 2', true));
 	    content.appendChild(this.createVertexTemplate('ellipse;shape=cloud;whiteSpace=wrap', 120, 80, '', 'Cloud', true));
