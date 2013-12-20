@@ -72,9 +72,9 @@
 	};
 	
 	// Hides this dialog
-	function hideWindow()
+	function hideWindow(cancel)
 	{
-		window.parent.openFile.cancel();
+		window.parent.openFile.cancel(cancel);
 	}
 	
 	function fileChanged()
@@ -170,7 +170,7 @@
 			
 			div.appendChild(window.parent.mxUtils.button(window.parent.mxResources.get('cancel'), function()
 			{
-				hideWindow();
+				hideWindow(true);
 			}));
 			
 			document.body.appendChild(div);
@@ -209,7 +209,7 @@
 </td>
 <td style="vertical-align:middle;text-align:right;white-space:nowrap;">
 <input type="submit" id="openButton" value="Open" disabled="disabled">
-<input type="button" id="cancelButton" value="Cancel" onclick="hideWindow();">
+<input type="button" id="cancelButton" value="Cancel" onclick="hideWindow(true);">
 </td>
 </tr>
 </table>
