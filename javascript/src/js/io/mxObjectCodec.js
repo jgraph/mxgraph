@@ -1,5 +1,5 @@
 /**
- * $Id: mxObjectCodec.js,v 1.2 2013/10/28 08:45:02 gaudenz Exp $
+ * $Id: mxObjectCodec.js,v 1.3 2013/12/31 11:59:12 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -460,8 +460,7 @@ mxObjectCodec.prototype.encodeObject = function(enc, obj, node)
  * value - Value of the property to be encoded.
  * node - XML node that contains the encoded object.
  */
-mxObjectCodec.prototype.encodeValue = function(enc, obj,
-	name, value, node)
+mxObjectCodec.prototype.encodeValue = function(enc, obj, name, value, node)
 {
 	if (value != null)
 	{
@@ -483,8 +482,7 @@ mxObjectCodec.prototype.encodeValue = function(enc, obj,
 		
 		// Checks if the value is a default value and
 		// the name is correct
-		if (name == null || enc.encodeDefaults ||
-			defaultValue != value)
+		if (name == null || enc.encodeDefaults || defaultValue != value)
 		{
 			name = this.getAttributeName(name);
 			this.writeAttribute(enc, obj, name, value, node);	
@@ -498,16 +496,15 @@ mxObjectCodec.prototype.encodeValue = function(enc, obj,
  * Writes the given value into node using <writePrimitiveAttribute>
  * or <writeComplexAttribute> depending on the type of the value.
  */
-mxObjectCodec.prototype.writeAttribute = function(enc, obj,
-	attr, value, node)
+mxObjectCodec.prototype.writeAttribute = function(enc, obj, name, value, node)
 {
 	if (typeof(value) != 'object' /* primitive type */)
 	{
-		this.writePrimitiveAttribute(enc, obj, attr, value, node);
+		this.writePrimitiveAttribute(enc, obj, name, value, node);
 	}
 	else /* complex type */
 	{
-		this.writeComplexAttribute(enc, obj, attr, value, node);
+		this.writeComplexAttribute(enc, obj, name, value, node);
 	}
 };
 
@@ -516,19 +513,17 @@ mxObjectCodec.prototype.writeAttribute = function(enc, obj,
  * 
  * Writes the given value as an attribute of the given node.
  */
-mxObjectCodec.prototype.writePrimitiveAttribute = function(enc, obj,
-	attr, value, node)
+mxObjectCodec.prototype.writePrimitiveAttribute = function(enc, obj, name, value, node)
 {
-	value = this.convertValueToXml(value);
+	value = this.convertAttributeToXml(enc, obj, name, value, node);
 	
-	if (attr == null)
+	if (name == null)
 	{
 		var child = enc.document.createElement('add');
 		
 		if (typeof(value) == 'function')
 		{
-    		child.appendChild(
-    			enc.document.createTextNode(value));
+    		child.appendChild(enc.document.createTextNode(value));
     	}
     	else
     	{
@@ -539,7 +534,7 @@ mxObjectCodec.prototype.writePrimitiveAttribute = function(enc, obj,
 	}
 	else if (typeof(value) != 'function')
 	{
-    	enc.setAttribute(node, attr, value);
+    	enc.setAttribute(node, name, value);
 	}		
 };
 	
@@ -548,60 +543,106 @@ mxObjectCodec.prototype.writePrimitiveAttribute = function(enc, obj,
  * 
  * Writes the given value as a child node of the given node.
  */
-mxObjectCodec.prototype.writeComplexAttribute = function(enc, obj,
-	attr, value, node)
+mxObjectCodec.prototype.writeComplexAttribute = function(enc, obj, name, value, node)
 {
 	var child = enc.encode(value);
 	
 	if (child != null)
 	{
-		if (attr != null)
+		if (name != null)
 		{
-    		child.setAttribute('as', attr);
+    		child.setAttribute('as', name);
     	}
     	
     	node.appendChild(child);
 	}
 	else
 	{
-		mxLog.warn('mxObjectCodec.encode: No node for ' +
-			this.getName() + '.' + attr + ': ' + value);
+		mxLog.warn('mxObjectCodec.encode: No node for ' + this.getName() + '.' + name + ': ' + value);
 	}
 };
 
 /**
- * Function: convertValueToXml
+ * Function: convertAttributeToXml
  * 
- * Converts true to "1" and false to "0". All other values are ignored.
+ * Converts true to "1" and false to "0" is <isBooleanAttribute> returns true.
+ * All other values are not converted.
+ * 
+ * Parameters:
+ *
+ * enc - <mxCodec> that controls the encoding process.
+ * obj - Objec to convert the attribute for.
+ * name - Name of the attribute to be converted.
+ * value - Value to be converted.
  */
-mxObjectCodec.prototype.convertValueToXml = function(value)
+mxObjectCodec.prototype.convertAttributeToXml = function(enc, obj, name, value)
 {
 	// Makes sure to encode boolean values as numeric values
-	if (typeof(value.length) == 'undefined' &&
-		(value == true ||
-		value == false))
-	{
-		// Checks if the value is true (do not use the
-		// value as is, because this would check if the
-		// value is not null, so 0 would be true!
+	if (this.isBooleanAttribute(enc, obj, name, value))
+	{	
+		// Checks if the value is true (do not use the value as is, because
+		// this would check if the value is not null, so 0 would be true)
 		value = (value == true) ? '1' : '0';
 	}
+	
 	return value;
 };
 
 /**
- * Function: convertValueFromXml
+ * Function: isBooleanAttribute
  * 
- * Converts booleans and numeric values to the respective types.
+ * Returns true if the given object attribute is a boolean value.
+ * 
+ * Parameters:
+ *
+ * enc - <mxCodec> that controls the encoding process.
+ * obj - Objec to convert the attribute for.
+ * name - Name of the attribute to be converted.
+ * value - Value of the attribute to be converted.
  */
-mxObjectCodec.prototype.convertValueFromXml = function(value)
+mxObjectCodec.prototype.isBooleanAttribute = function(enc, obj, name, value)
 {
-	if (mxUtils.isNumeric(value))
+	return (typeof(value.length) == 'undefined' && (value == true || value == false));
+};
+
+/**
+ * Function: convertAttributeFromXml
+ * 
+ * Converts booleans and numeric values to the respective types. Values are
+ * numeric if <isNumericAttribute> returns true.
+ * 
+ * Parameters:
+ *
+ * dec - <mxCodec> that controls the decoding process.
+ * attr - XML attribute to be converted.
+ * obj - Objec to convert the attribute for.
+ */
+mxObjectCodec.prototype.convertAttributeFromXml = function(dec, attr, obj)
+{
+	var value = attr.nodeValue;
+	
+	if (this.isNumericAttribute(dec, attr, obj))
 	{
 		value = parseFloat(value);
 	}
 	
 	return value;
+};
+
+/**
+ * Function: isNumericAttribute
+ * 
+ * Returns true if the given XML attribute is a numeric value.
+ * 
+ * Parameters:
+ *
+ * dec - <mxCodec> that controls the decoding process.
+ * attr - XML attribute to be converted.
+ * obj - Objec to convert the attribute for.
+ */
+mxObjectCodec.prototype.isNumericAttribute = function(dec, attr, obj)
+{
+	return mxUtils.isNumeric(attr.nodeValue);
 };
 
 /**
@@ -722,6 +763,12 @@ mxObjectCodec.prototype.decode = function(dec, node, into)
  * Function: decodeNode
  * 
  * Calls <decodeAttributes> and <decodeChildren> for the given node.
+ * 
+ * Parameters:
+ *
+ * dec - <mxCodec> that controls the decoding process.
+ * node - XML node to be decoded.
+ * obj - Objec to encode the node into.
  */	
 mxObjectCodec.prototype.decodeNode = function(dec, node, obj)
 {
@@ -736,6 +783,12 @@ mxObjectCodec.prototype.decodeNode = function(dec, node, obj)
  * Function: decodeAttributes
  * 
  * Decodes all attributes of the given node using <decodeAttribute>.
+ * 
+ * Parameters:
+ *
+ * dec - <mxCodec> that controls the decoding process.
+ * node - XML node to be decoded.
+ * obj - Objec to encode the node into.
  */	
 mxObjectCodec.prototype.decodeAttributes = function(dec, node, obj)
 {
@@ -754,6 +807,12 @@ mxObjectCodec.prototype.decodeAttributes = function(dec, node, obj)
  * Function: decodeAttribute
  * 
  * Reads the given attribute into the specified object.
+ * 
+ * Parameters:
+ *
+ * dec - <mxCodec> that controls the decoding process.
+ * attr - XML attribute to be decoded.
+ * obj - Objec to encode the attribute into.
  */	
 mxObjectCodec.prototype.decodeAttribute = function(dec, attr, obj)
 {
@@ -765,7 +824,7 @@ mxObjectCodec.prototype.decodeAttribute = function(dec, attr, obj)
 		// This may require an additional check on the obj to see if
 		// the existing field is a boolean value or uninitialized, in
 		// which case we may want to convert true and false to a string.
-		var value = this.convertValueFromXml(attr.nodeValue);
+		var value = this.convertAttributeFromXml(dec, attr, obj);
 		var fieldname = this.getFieldName(name);
 		
 		if (this.isReference(obj, fieldname, value, false))
@@ -794,6 +853,12 @@ mxObjectCodec.prototype.decodeAttribute = function(dec, attr, obj)
  * Function: decodeChildren
  * 
  * Decodec all children of the given node using <decodeChild>.
+ * 
+ * Parameters:
+ *
+ * dec - <mxCodec> that controls the decoding process.
+ * node - XML node to be decoded.
+ * obj - Objec to encode the node into.
  */	
 mxObjectCodec.prototype.decodeChildren = function(dec, node, obj)
 {
@@ -817,6 +882,12 @@ mxObjectCodec.prototype.decodeChildren = function(dec, node, obj)
  * Function: decodeChild
  * 
  * Reads the specified child into the given object.
+ * 
+ * Parameters:
+ *
+ * dec - <mxCodec> that controls the decoding process.
+ * child - XML child element to be decoded.
+ * obj - Objec to encode the node into.
  */	
 mxObjectCodec.prototype.decodeChild = function(dec, child, obj)
 {

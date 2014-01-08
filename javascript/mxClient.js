@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.3.0.5.
+	 * Current version is 2.4.0.0.
 	 */
-	VERSION: '2.3.0.5',
+	VERSION: '2.4.0.0',
 
 	/**
 	 * Variable: IS_IE
@@ -1909,7 +1909,7 @@ var mxEffects =
 
 };
 /**
- * $Id: mxUtils.js,v 1.23 2013/12/20 16:31:33 david Exp $
+ * $Id: mxUtils.js,v 1.24 2014/01/07 11:27:13 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxUtils =
@@ -2377,6 +2377,35 @@ var mxUtils =
  			return attributeName == null ||
  				value.getAttribute(attributeName) == attributeValue;
  		}
+	 	
+	 	return false;
+	 },
+	
+	/**
+	 * Function: isAncestorNode
+	 * 
+	 * Returns true if the given ancestor is an ancestor of the
+	 * given DOM node in the DOM. This also returns true if the
+	 * child is the ancestor.
+	 * 
+	 * Parameters:
+	 * 
+	 * ancestor - DOM node that represents the ancestor.
+	 * child - DOM node that represents the child.
+	 */
+	 isAncestorNode: function(ancestor, child)
+	 {
+	 	var parent = child;
+	 	
+	 	while (parent != null)
+	 	{
+	 		if (parent == ancestor)
+	 		{
+	 			return true;
+	 		}
+
+	 		parent = parent.parentNode;
+	 	}
 	 	
 	 	return false;
 	 },
@@ -8081,7 +8110,7 @@ mxEventObject.prototype.consume = function()
 	this.consumed = true;
 };
 /**
- * $Id: mxMouseEvent.js,v 1.3 2013/12/04 16:44:12 gaudenz Exp $
+ * $Id: mxMouseEvent.js,v 1.4 2014/01/07 11:27:13 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -8190,17 +8219,7 @@ mxMouseEvent.prototype.isSource = function(shape)
 {
 	if (shape != null)
 	{
-		var source = this.getSource();
-		
-		while (source != null)
-		{
-			if (source == shape.node)
-			{
-				return true;
-			}
-	
-			source = source.parentNode;
-		}
+		return mxUtils.isAncestorNode(shape.node, this.getSource());
 	}
 	
 	return false;
@@ -14636,7 +14655,7 @@ mxPanningManager.prototype.handleMouseOut = true;
  */
 mxPanningManager.prototype.border = 0;
 /**
- * $Id: mxPopupMenu.js,v 1.6 2013/11/10 17:50:05 gaudenz Exp $
+ * $Id: mxPopupMenu.js,v 1.8 2014/01/08 15:53:30 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -14850,7 +14869,7 @@ mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, e
 	tr.className = 'mxPopupMenuItem';
 	var col1 = document.createElement('td');
 	col1.className = 'mxPopupMenuIcon';
-	
+
 	// Adds the given image into the first column
 	if (image != null)
 	{
@@ -14860,9 +14879,20 @@ mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, e
 	}
 	else if (iconCls != null)
 	{
-		var div = document.createElement('div');
-		div.className = iconCls;
-		col1.appendChild(div);
+		// Workaround to avoid focus in quirks and IE8 standards
+		if (mxClient.IS_QUIRKS || document.documentMode == 8)
+		{
+			var div = document.createElement('a');
+			div.setAttribute('href', '#');
+			div.className = iconCls;
+			col1.appendChild(div);
+		}
+		else
+		{
+			var div = document.createElement('div');
+			div.className = iconCls;
+			col1.appendChild(div);
+		}
 	}
 	
 	tr.appendChild(col1);
@@ -14871,14 +14901,19 @@ mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, e
 	{
 		var col2 = document.createElement('td');
 		col2.className = 'mxPopupMenuItem' +
-			((enabled != null && !enabled) ? ' disabled' : '');
+			((enabled != null && !enabled) ? ' mxDisabled' : '');
+		
+		// KNOWN: Require <a href="#"> around label to avoid focus in
+		// quirks and IE 8 (see above workaround). But the problem is
+		// the anchor doesn't cover the complete active area of the
+		// item and it inherits styles (underline, blue).
 		mxUtils.write(col2, title);
 		col2.align = 'left';
 		tr.appendChild(col2);
 	
 		var col3 = document.createElement('td');
 		col3.className = 'mxPopupMenuItem' +
-			((enabled != null && !enabled) ? ' disabled' : '');
+			((enabled != null && !enabled) ? ' mxDisabled' : '');
 		col3.style.paddingRight = '6px';
 		col3.style.textAlign = 'right';
 		
@@ -17731,7 +17766,7 @@ mxXmlCanvas2D.prototype.fillAndStroke = function()
 	this.root.appendChild(this.createElement('fillstroke'));
 };
 /**
- * $Id: mxSvgCanvas2D.js,v 1.56 2013/10/28 08:44:58 gaudenz Exp $
+ * $Id: mxSvgCanvas2D.js,v 1.58 2014/01/03 11:07:40 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -17739,10 +17774,6 @@ mxXmlCanvas2D.prototype.fillAndStroke = function()
  *
  * Extends <mxAbstractCanvas2D> to implement a canvas for SVG. This canvas writes all
  * calls as SVG output to the given SVG root node.
- * 
- * Open issues:
- * - Opacity for transformed foreignObjects in Chrome.
- * - Gradient IDs must be refactored for fragments.
  * 
  * (code)
  * var svgDoc = mxUtils.createXmlDocument();
@@ -17753,11 +17784,14 @@ mxXmlCanvas2D.prototype.fillAndStroke = function()
  * {
  *   root.setAttribute('xmlns', mxConstants.NS_SVG);
  * }
+ * else
+ * {
+ *   root.setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:xlink', mxConstants.NS_XLINK);
+ * }
  * 
  * var bounds = graph.getGraphBounds();
  * root.setAttribute('width', (bounds.x + bounds.width + 4) + 'px');
  * root.setAttribute('height', (bounds.y + bounds.height + 4) + 'px');
- * root.setAttribute('xmlns:xlink', mxConstants.NS_XLINK);
  * root.setAttribute('version', '1.1');
  * 
  * svgDoc.appendChild(root);
@@ -18584,14 +18618,15 @@ mxSvgCanvas2D.prototype.image = function(x, y, w, h, src, aspect, flipH, flipV)
 	node.setAttribute('width', this.format(w * s.scale));
 	node.setAttribute('height', this.format(h * s.scale));
 	
-	// Workaround for implicit namespace handling in HTML5 export
-	if (node.setAttributeNS == null || this.root.ownerDocument != document)
+	// Workaround for implicit namespace handling in HTML5 export, IE adds NS1 namespace so use code below
+	// in all IE versions except quirks mode. KNOWN: Adds xlink namespace to each image tag in output.
+	if (node.setAttributeNS == null || (this.root.ownerDocument != document && document.documentMode == null))
 	{
 		node.setAttribute('xlink:href', src);
 	}
 	else
 	{
-		node.setAttributeNS(mxConstants.NS_XLINK, 'href', src);
+		node.setAttributeNS(mxConstants.NS_XLINK, 'xlink:href', src);
 	}
 	
 	if (!aspect)
@@ -42149,7 +42184,7 @@ mxSelectionChange.prototype.execute = function()
 			'added', this.added, 'removed', this.removed));
 };
 /**
- * $Id: mxCellEditor.js,v 1.16 2013/11/26 16:39:30 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.17 2014/01/07 11:27:13 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -42314,7 +42349,7 @@ mxCellEditor.prototype.init = function ()
 	
 	mxEvent.addListener(this.textarea, 'blur', mxUtils.bind(this, function(evt)
 	{
-		this.focusLost();
+		this.focusLost(evt);
 	}));
 	
 	mxEvent.addListener(this.textarea, 'change', mxUtils.bind(this, function(evt)
@@ -48390,7 +48425,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.61 2013/12/20 15:57:51 david Exp $
+ * $Id: mxGraph.js,v 1.62 2013/12/27 14:59:10 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -56627,6 +56662,21 @@ mxGraph.prototype.getTooltipForCell = function(cell)
 };
 
 /**
+ * Function: getCursorForMouseEvent
+ * 
+ * Returns the cursor value to be used for the CSS of the shape for the
+ * given event. This implementation calls <getCursorForCell>.
+ * 
+ * Parameters:
+ * 
+ * me - <mxMouseEvent> whose cursor should be returned.
+ */
+mxGraph.prototype.getCursorForMouseEvent = function(me)
+{
+	return this.getCursorForCell(me.getCell());
+};
+
+/**
  * Function: getCursorForCell
  * 
  * Returns the cursor value to be used for the CSS of the shape for the
@@ -63178,7 +63228,7 @@ mxConnectionConstraint.prototype.point = null;
  */
 mxConnectionConstraint.prototype.perimeter = null;
 /**
- * $Id: mxGraphHandler.js,v 1.12 2013/10/28 08:45:07 gaudenz Exp $
+ * $Id: mxGraphHandler.js,v 1.13 2013/12/27 14:59:10 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -63899,7 +63949,7 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 	else if ((this.isMoveEnabled() || this.isCloneEnabled()) && this.updateCursor &&
 		!me.isConsumed() && me.getState() != null && !graph.isMouseDown)
 	{
-		var cursor = graph.getCursorForCell(me.getCell());
+		var cursor = graph.getCursorForMouseEvent(me);
 		
 		if (cursor == null && graph.isEnabled() && graph.isCellMovable(me.getCell()))
 		{
@@ -67937,7 +67987,7 @@ mxRubberband.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxVertexHandler.js,v 1.38 2013/12/17 15:00:29 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.39 2014/01/05 10:32:17 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -68415,6 +68465,17 @@ mxVertexHandler.prototype.mouseDown = function(sender, me)
 };
 
 /**
+ * Function: isLivePreviewBorder
+ * 
+ * Called if <livePreview> is enabled to check if a border should be painted.
+ * This implementation returns true if the shape is transparent.
+ */
+mxVertexHandler.prototype.isLivePreviewBorder = function()
+{
+	return this.state.shape != null && this.state.shape.fill == null && this.state.shape.stroke == null;
+};
+
+/**
  * Function: start
  * 
  * Starts the handling of the mouse gesture.
@@ -68429,7 +68490,8 @@ mxVertexHandler.prototype.start = function(x, y, index)
 	// Creates a preview that can be on top of any HTML label
 	this.selectionBorder.node.style.display = (index == mxEvent.ROTATION_HANDLE) ? 'inline' : 'none';
 	
-	if (!this.livePreview)
+	// Creates the border that represents the new bounds
+	if (!this.livePreview || this.isLivePreviewBorder())
 	{
 		this.preview = this.createSelectionShape(this.bounds);
 		
@@ -68446,7 +68508,9 @@ mxVertexHandler.prototype.start = function(x, y, index)
 			this.preview.init(this.graph.view.getOverlayPane());
 		}
 	}
-	else
+	
+	// Prepares the handles for live preview
+	if (this.livePreview)
 	{
 		this.hideSizers();
 		
@@ -68659,7 +68723,8 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 					this.state.origin = orig;
 					this.state.absoluteOffset = off;
 				}
-				else
+				
+				if (this.preview != null)
 				{
 					this.drawPreview();
 				}
@@ -71394,7 +71459,7 @@ mxEdgeSegmentHandler.prototype.changePoints = function(edge, points)
 	mxElbowEdgeHandler.prototype.changePoints.apply(this, arguments);
 };
 /**
- * $Id: mxKeyHandler.js,v 1.3 2013/10/28 08:45:06 gaudenz Exp $
+ * $Id: mxKeyHandler.js,v 1.4 2014/01/07 11:27:13 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -71705,25 +71770,13 @@ mxKeyHandler.prototype.isGraphEvent = function(evt)
 	// Accepts events from the target object or
 	// in-place editing inside graph
 	if ((source == this.target || source.parentNode == this.target) ||
-		(this.graph.cellEditor != null && source == this.graph.cellEditor.textarea))
+		(this.graph.cellEditor != null && this.graph.cellEditor.isEventSource(evt)))
 	{
 		return true;
 	}
 	
 	// Accepts events from inside the container
-	var elt = source;
-	
-	while (elt != null)
-	{
-		if (elt == this.graph.container)
-		{
-			return true;
-		}
-		
-		elt = elt.parentNode;
-	}
-	
-	return false;
+	return mxUtils.isAncestorNode(this.graph.container, source);
 };
 
 /**
@@ -77435,7 +77488,7 @@ mxCodec.prototype.setAttribute = function(node, attribute, value)
 	}
 };
 /**
- * $Id: mxObjectCodec.js,v 1.2 2013/10/28 08:45:02 gaudenz Exp $
+ * $Id: mxObjectCodec.js,v 1.3 2013/12/31 11:59:12 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -77896,8 +77949,7 @@ mxObjectCodec.prototype.encodeObject = function(enc, obj, node)
  * value - Value of the property to be encoded.
  * node - XML node that contains the encoded object.
  */
-mxObjectCodec.prototype.encodeValue = function(enc, obj,
-	name, value, node)
+mxObjectCodec.prototype.encodeValue = function(enc, obj, name, value, node)
 {
 	if (value != null)
 	{
@@ -77919,8 +77971,7 @@ mxObjectCodec.prototype.encodeValue = function(enc, obj,
 		
 		// Checks if the value is a default value and
 		// the name is correct
-		if (name == null || enc.encodeDefaults ||
-			defaultValue != value)
+		if (name == null || enc.encodeDefaults || defaultValue != value)
 		{
 			name = this.getAttributeName(name);
 			this.writeAttribute(enc, obj, name, value, node);	
@@ -77934,16 +77985,15 @@ mxObjectCodec.prototype.encodeValue = function(enc, obj,
  * Writes the given value into node using <writePrimitiveAttribute>
  * or <writeComplexAttribute> depending on the type of the value.
  */
-mxObjectCodec.prototype.writeAttribute = function(enc, obj,
-	attr, value, node)
+mxObjectCodec.prototype.writeAttribute = function(enc, obj, name, value, node)
 {
 	if (typeof(value) != 'object' /* primitive type */)
 	{
-		this.writePrimitiveAttribute(enc, obj, attr, value, node);
+		this.writePrimitiveAttribute(enc, obj, name, value, node);
 	}
 	else /* complex type */
 	{
-		this.writeComplexAttribute(enc, obj, attr, value, node);
+		this.writeComplexAttribute(enc, obj, name, value, node);
 	}
 };
 
@@ -77952,19 +78002,17 @@ mxObjectCodec.prototype.writeAttribute = function(enc, obj,
  * 
  * Writes the given value as an attribute of the given node.
  */
-mxObjectCodec.prototype.writePrimitiveAttribute = function(enc, obj,
-	attr, value, node)
+mxObjectCodec.prototype.writePrimitiveAttribute = function(enc, obj, name, value, node)
 {
-	value = this.convertValueToXml(value);
+	value = this.convertAttributeToXml(enc, obj, name, value, node);
 	
-	if (attr == null)
+	if (name == null)
 	{
 		var child = enc.document.createElement('add');
 		
 		if (typeof(value) == 'function')
 		{
-    		child.appendChild(
-    			enc.document.createTextNode(value));
+    		child.appendChild(enc.document.createTextNode(value));
     	}
     	else
     	{
@@ -77975,7 +78023,7 @@ mxObjectCodec.prototype.writePrimitiveAttribute = function(enc, obj,
 	}
 	else if (typeof(value) != 'function')
 	{
-    	enc.setAttribute(node, attr, value);
+    	enc.setAttribute(node, name, value);
 	}		
 };
 	
@@ -77984,60 +78032,106 @@ mxObjectCodec.prototype.writePrimitiveAttribute = function(enc, obj,
  * 
  * Writes the given value as a child node of the given node.
  */
-mxObjectCodec.prototype.writeComplexAttribute = function(enc, obj,
-	attr, value, node)
+mxObjectCodec.prototype.writeComplexAttribute = function(enc, obj, name, value, node)
 {
 	var child = enc.encode(value);
 	
 	if (child != null)
 	{
-		if (attr != null)
+		if (name != null)
 		{
-    		child.setAttribute('as', attr);
+    		child.setAttribute('as', name);
     	}
     	
     	node.appendChild(child);
 	}
 	else
 	{
-		mxLog.warn('mxObjectCodec.encode: No node for ' +
-			this.getName() + '.' + attr + ': ' + value);
+		mxLog.warn('mxObjectCodec.encode: No node for ' + this.getName() + '.' + name + ': ' + value);
 	}
 };
 
 /**
- * Function: convertValueToXml
+ * Function: convertAttributeToXml
  * 
- * Converts true to "1" and false to "0". All other values are ignored.
+ * Converts true to "1" and false to "0" is <isBooleanAttribute> returns true.
+ * All other values are not converted.
+ * 
+ * Parameters:
+ *
+ * enc - <mxCodec> that controls the encoding process.
+ * obj - Objec to convert the attribute for.
+ * name - Name of the attribute to be converted.
+ * value - Value to be converted.
  */
-mxObjectCodec.prototype.convertValueToXml = function(value)
+mxObjectCodec.prototype.convertAttributeToXml = function(enc, obj, name, value)
 {
 	// Makes sure to encode boolean values as numeric values
-	if (typeof(value.length) == 'undefined' &&
-		(value == true ||
-		value == false))
-	{
-		// Checks if the value is true (do not use the
-		// value as is, because this would check if the
-		// value is not null, so 0 would be true!
+	if (this.isBooleanAttribute(enc, obj, name, value))
+	{	
+		// Checks if the value is true (do not use the value as is, because
+		// this would check if the value is not null, so 0 would be true)
 		value = (value == true) ? '1' : '0';
 	}
+	
 	return value;
 };
 
 /**
- * Function: convertValueFromXml
+ * Function: isBooleanAttribute
  * 
- * Converts booleans and numeric values to the respective types.
+ * Returns true if the given object attribute is a boolean value.
+ * 
+ * Parameters:
+ *
+ * enc - <mxCodec> that controls the encoding process.
+ * obj - Objec to convert the attribute for.
+ * name - Name of the attribute to be converted.
+ * value - Value of the attribute to be converted.
  */
-mxObjectCodec.prototype.convertValueFromXml = function(value)
+mxObjectCodec.prototype.isBooleanAttribute = function(enc, obj, name, value)
 {
-	if (mxUtils.isNumeric(value))
+	return (typeof(value.length) == 'undefined' && (value == true || value == false));
+};
+
+/**
+ * Function: convertAttributeFromXml
+ * 
+ * Converts booleans and numeric values to the respective types. Values are
+ * numeric if <isNumericAttribute> returns true.
+ * 
+ * Parameters:
+ *
+ * dec - <mxCodec> that controls the decoding process.
+ * attr - XML attribute to be converted.
+ * obj - Objec to convert the attribute for.
+ */
+mxObjectCodec.prototype.convertAttributeFromXml = function(dec, attr, obj)
+{
+	var value = attr.nodeValue;
+	
+	if (this.isNumericAttribute(dec, attr, obj))
 	{
 		value = parseFloat(value);
 	}
 	
 	return value;
+};
+
+/**
+ * Function: isNumericAttribute
+ * 
+ * Returns true if the given XML attribute is a numeric value.
+ * 
+ * Parameters:
+ *
+ * dec - <mxCodec> that controls the decoding process.
+ * attr - XML attribute to be converted.
+ * obj - Objec to convert the attribute for.
+ */
+mxObjectCodec.prototype.isNumericAttribute = function(dec, attr, obj)
+{
+	return mxUtils.isNumeric(attr.nodeValue);
 };
 
 /**
@@ -78158,6 +78252,12 @@ mxObjectCodec.prototype.decode = function(dec, node, into)
  * Function: decodeNode
  * 
  * Calls <decodeAttributes> and <decodeChildren> for the given node.
+ * 
+ * Parameters:
+ *
+ * dec - <mxCodec> that controls the decoding process.
+ * node - XML node to be decoded.
+ * obj - Objec to encode the node into.
  */	
 mxObjectCodec.prototype.decodeNode = function(dec, node, obj)
 {
@@ -78172,6 +78272,12 @@ mxObjectCodec.prototype.decodeNode = function(dec, node, obj)
  * Function: decodeAttributes
  * 
  * Decodes all attributes of the given node using <decodeAttribute>.
+ * 
+ * Parameters:
+ *
+ * dec - <mxCodec> that controls the decoding process.
+ * node - XML node to be decoded.
+ * obj - Objec to encode the node into.
  */	
 mxObjectCodec.prototype.decodeAttributes = function(dec, node, obj)
 {
@@ -78190,6 +78296,12 @@ mxObjectCodec.prototype.decodeAttributes = function(dec, node, obj)
  * Function: decodeAttribute
  * 
  * Reads the given attribute into the specified object.
+ * 
+ * Parameters:
+ *
+ * dec - <mxCodec> that controls the decoding process.
+ * attr - XML attribute to be decoded.
+ * obj - Objec to encode the attribute into.
  */	
 mxObjectCodec.prototype.decodeAttribute = function(dec, attr, obj)
 {
@@ -78201,7 +78313,7 @@ mxObjectCodec.prototype.decodeAttribute = function(dec, attr, obj)
 		// This may require an additional check on the obj to see if
 		// the existing field is a boolean value or uninitialized, in
 		// which case we may want to convert true and false to a string.
-		var value = this.convertValueFromXml(attr.nodeValue);
+		var value = this.convertAttributeFromXml(dec, attr, obj);
 		var fieldname = this.getFieldName(name);
 		
 		if (this.isReference(obj, fieldname, value, false))
@@ -78230,6 +78342,12 @@ mxObjectCodec.prototype.decodeAttribute = function(dec, attr, obj)
  * Function: decodeChildren
  * 
  * Decodec all children of the given node using <decodeChild>.
+ * 
+ * Parameters:
+ *
+ * dec - <mxCodec> that controls the decoding process.
+ * node - XML node to be decoded.
+ * obj - Objec to encode the node into.
  */	
 mxObjectCodec.prototype.decodeChildren = function(dec, node, obj)
 {
@@ -78253,6 +78371,12 @@ mxObjectCodec.prototype.decodeChildren = function(dec, node, obj)
  * Function: decodeChild
  * 
  * Reads the specified child into the given object.
+ * 
+ * Parameters:
+ *
+ * dec - <mxCodec> that controls the decoding process.
+ * child - XML child element to be decoded.
+ * obj - Objec to encode the node into.
  */	
 mxObjectCodec.prototype.decodeChild = function(dec, child, obj)
 {

@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellEditor.js,v 1.16 2013/11/26 16:39:30 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.17 2014/01/07 11:27:13 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -164,7 +164,7 @@ mxCellEditor.prototype.init = function ()
 	
 	mxEvent.addListener(this.textarea, 'blur', mxUtils.bind(this, function(evt)
 	{
-		this.focusLost();
+		this.focusLost(evt);
 	}));
 	
 	mxEvent.addListener(this.textarea, 'change', mxUtils.bind(this, function(evt)

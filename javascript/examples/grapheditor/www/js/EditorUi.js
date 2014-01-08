@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.42 2013/12/17 10:23:05 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.45 2014/01/08 10:50:55 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -74,6 +74,57 @@ EditorUi = function(editor, container)
 	// Contains the main graph instance inside the given panel
 	graph.init(this.diagramContainer);
 	graph.refresh();
+	
+	var textMode = false;
+	var nodes = null;
+	
+	var updateToolbar = mxUtils.bind(this, function()
+	{
+		if (textMode != graph.cellEditor.isContentEditing())
+		{
+			var node = this.toolbar.container.firstChild;
+			var newNodes = [];
+			
+			while (node != null)
+			{
+				var tmp = node.nextSibling;
+				node.parentNode.removeChild(node);
+				newNodes.push(node);
+				node = tmp;
+			}
+			
+			if (nodes == null)
+			{
+				this.toolbar.createTextToolbar();
+			}
+			else
+			{
+				for (var i = 0; i < nodes.length; i++)
+				{
+					this.toolbar.container.appendChild(nodes[i]);
+				}
+			}
+			
+			textMode = graph.cellEditor.isContentEditing();
+			nodes = newNodes;
+		}
+	});
+	
+	// Overrides cell editor to update toolbar
+	var cellEditorStartEditing = graph.cellEditor.startEditing;
+	graph.cellEditor.startEditing = function()
+	{
+		cellEditorStartEditing.apply(this, arguments);
+		updateToolbar();
+	};
+	
+	var cellEditorStopEditing = graph.cellEditor.stopEditing;
+	graph.cellEditor.stopEditing = function(cell, trigger)
+	{
+		cellEditorStopEditing.apply(this, arguments);
+		updateToolbar();
+	};
+	
     
     // Enables scrollbars and sets cursor style for the container
 	graph.container.setAttribute('tabindex', '0');
@@ -101,17 +152,7 @@ EditorUi = function(editor, container)
 		// Avoids calling image action if label is event source
 		if (evt != null && state != null && state.text != null && state.text.node != null)
 		{
-			var source = mxEvent.getSource(evt);
-			
-			while (!textSource && source != null)
-			{
-				if (source == state.text.node)
-				{
-					textSource = true;
-				}
-		
-				source = source.parentNode;
-			}
+			textSource = mxUtils.isAncestorNode(state.text.node, mxEvent.getSource(evt));
 		}
 		
 		if (state != null && !textSource && state.shape.constructor == mxImageShape && !mxEvent.isAltDown(evt))
@@ -263,22 +304,70 @@ EditorUi.prototype.init = function()
 	// Overrides clipboard to update paste action state
 	var paste = this.actions.get('paste');
 	
-	var updatePaste = function()
+	var updatePaste = mxUtils.bind(this, function()
 	{
-		paste.setEnabled(!mxClipboard.isEmpty());
-	};
+		paste.setEnabled(this.editor.graph.cellEditor.isContentEditing() || !mxClipboard.isEmpty());
+	});
 	
 	var mxClipboardCut = mxClipboard.cut;
-	mxClipboard.cut = function()
+	mxClipboard.cut = function(graph)
 	{
-		mxClipboardCut.apply(this, arguments);
+		if (graph.cellEditor.isContentEditing())
+		{
+			document.execCommand('cut');
+		}
+		else
+		{
+			mxClipboardCut.apply(this, arguments);
+		}
+		
 		updatePaste();
 	};
 	
 	var mxClipboardCopy = mxClipboard.copy;
-	mxClipboard.copy = function()
+	mxClipboard.copy = function(graph)
 	{
-		mxClipboardCopy.apply(this, arguments);
+		if (graph.cellEditor.isContentEditing())
+		{
+			document.execCommand('copy');
+		}
+		else
+		{
+			mxClipboardCopy.apply(this, arguments);
+		}
+		
+		updatePaste();
+	};
+	
+	var mxClipboardPaste = mxClipboard.paste;
+	mxClipboard.paste = function(graph)
+	{
+		if (graph.cellEditor.isContentEditing())
+		{
+			document.execCommand('paste');
+		}
+		else
+		{
+			mxClipboardPaste.apply(this, arguments);
+		}
+		
+		updatePaste();
+	};
+
+	// Overrides cell editor to update paste action state
+	var cellEditorStartEditing = this.editor.graph.cellEditor.startEditing;
+	
+	this.editor.graph.cellEditor.startEditing = function()
+	{
+		cellEditorStartEditing.apply(this, arguments);
+		updatePaste();
+	};
+	
+	var cellEditorStopEditing = this.editor.graph.cellEditor.stopEditing;
+	
+	this.editor.graph.cellEditor.stopEditing = function(cell, trigger)
+	{
+		cellEditorStopEditing.apply(this, arguments);
 		updatePaste();
 	};
 	
@@ -316,8 +405,6 @@ EditorUi.prototype.onBeforeUnload = function()
 	{
 		return mxResources.get('allChangesLost');
 	}
-	
-	return null;
 };
 
 /**
@@ -379,7 +466,15 @@ EditorUi.prototype.updateDocumentTitle = function()
  */
 EditorUi.prototype.redo = function()
 {
-	this.editor.undoManager.redo();
+	if (this.editor.graph.cellEditor.isContentEditing())
+	{
+		document.execCommand('redo');
+	}
+	else
+	{
+		this.editor.graph.stopEditing(false);
+		this.editor.undoManager.redo();
+	}
 };
 
 /**
@@ -387,7 +482,15 @@ EditorUi.prototype.redo = function()
  */
 EditorUi.prototype.undo = function()
 {
-	this.editor.undoManager.undo();
+	if (this.editor.graph.cellEditor.isContentEditing())
+	{
+		document.execCommand('undo');
+	}
+	else
+	{
+		this.editor.graph.stopEditing(false);
+		this.editor.undoManager.undo();
+	}
 };
 
 /**
@@ -395,7 +498,7 @@ EditorUi.prototype.undo = function()
  */
 EditorUi.prototype.canRedo = function()
 {
-	return this.editor.undoManager.canRedo();
+	return this.editor.graph.cellEditor.isContentEditing() || this.editor.undoManager.canRedo();
 };
 
 /**
@@ -403,7 +506,7 @@ EditorUi.prototype.canRedo = function()
  */
 EditorUi.prototype.canUndo = function()
 {
-	return this.editor.undoManager.canUndo();
+	return this.editor.graph.cellEditor.isContentEditing() || this.editor.undoManager.canUndo();
 };
 
 /**
@@ -489,6 +592,23 @@ EditorUi.prototype.addUndoListener = function()
     undoMgr.addListener(mxEvent.REDO, undoListener);
     undoMgr.addListener(mxEvent.CLEAR, undoListener);
 	
+	// Overrides cell editor to update action states
+	var cellEditorStartEditing = this.editor.graph.cellEditor.startEditing;
+	
+	this.editor.graph.cellEditor.startEditing = function()
+	{
+		cellEditorStartEditing.apply(this, arguments);
+		undoListener();
+	};
+	
+	var cellEditorStopEditing = this.editor.graph.cellEditor.stopEditing;
+	
+	this.editor.graph.cellEditor.stopEditing = function(cell, trigger)
+	{
+		cellEditorStopEditing.apply(this, arguments);
+		undoListener();
+	};
+	
 	// Updates the button states once
     undoListener();
 };
@@ -531,10 +651,10 @@ EditorUi.prototype.addSelectionListener = function()
 		}
 		
 		// Updates action states
-		var actions = ['cut', 'copy', 'delete', 'duplicate', 'bold', 'italic', 'style', 'fillColor',
-		               'gradientColor', 'underline', 'fontColor', 'strokeColor', 'backgroundColor',
-		               'borderColor', 'toFront', 'toBack', 'dashed', 'rounded', 'shadow', 'tilt',
-		               'autosize', 'lockUnlock', 'editData'];
+		var actions = ['cut', 'copy', 'bold', 'italic', 'underline', 'fontColor',
+		           'delete', 'duplicate', 'style', 'fillColor', 'gradientColor', 'strokeColor',
+		           'backgroundColor', 'borderColor', 'toFront', 'toBack', 'dashed', 'rounded',
+		           'shadow', 'tilt', 'autosize', 'lockUnlock', 'editData'];
     	
     	for (var i = 0; i < actions.length; i++)
     	{
@@ -552,7 +672,8 @@ EditorUi.prototype.addSelectionListener = function()
        			graph.getModel().isVertex(graph.getModel().getParent(graph.getSelectionCell())));
 
     	// Updates menu states
-    	var menus = ['fontFamily', 'fontSize', 'alignment', 'position', 'text', 'format', 'linewidth', 'spacing', 'gradient'];
+    	var menus = ['fontFamily', 'fontSize', 'alignment', 'position', 'text', 'format', 'linewidth',
+    	             'spacing', 'gradient'];
 
     	for (var i = 0; i < menus.length; i++)
     	{
@@ -720,7 +841,7 @@ EditorUi.prototype.createUi = function()
 	// Creates toolbar
 	this.toolbar = this.createToolbar(this.createDiv('geToolbar'));
 	this.toolbarContainer.appendChild(this.toolbar.container);
-	
+
 	// Creates the sidebar
 	this.sidebar = this.createSidebar(this.sidebarContainer);
 
@@ -931,10 +1052,12 @@ EditorUi.prototype.saveFile = function(forceDialog)
 	}
 	else
 	{
-		this.showDialog(new FilenameDialog(this, this.editor.getOrCreateFilename(), mxResources.get('save'), mxUtils.bind(this, function(name)
+		var dlg = new FilenameDialog(this, this.editor.getOrCreateFilename(), mxResources.get('save'), mxUtils.bind(this, function(name)
 		{
 			this.save(name, true);
-		})).container, 300, 100, true, true);
+		}));
+		this.showDialog(dlg.container, 300, 100, true, true);
+		dlg.init();
 	}
 };
 
@@ -986,6 +1109,69 @@ EditorUi.prototype.save = function(name)
 			this.editor.setStatus('Error saving file');
 		}
 	}
+};
+
+/**
+ * Translates this point by the given vector.
+ * 
+ * @param {number} dx X-coordinate of the translation.
+ * @param {number} dy Y-coordinate of the translation.
+ */
+EditorUi.prototype.getSvg = function(background, scale, border)
+{
+	scale = (scale != null) ? scale : 1;
+	border = (border != null) ? border : 1;
+
+	var graph = this.editor.graph;
+	var imgExport = new mxImageExport();
+	var bounds = graph.getGraphBounds();
+	var vs = graph.view.scale;
+
+	// Prepares SVG document that holds the output
+	var svgDoc = mxUtils.createXmlDocument();
+	var root = (svgDoc.createElementNS != null) ?
+    		svgDoc.createElementNS(mxConstants.NS_SVG, 'svg') : svgDoc.createElement('svg');
+    
+	if (background != null)
+	{
+		if (root.style != null)
+		{
+			root.style.backgroundColor = background;
+		}
+		else
+		{
+			root.setAttribute('style', 'background-color:' + background);
+		}
+	}
+    
+	if (svgDoc.createElementNS == null)
+	{
+    	root.setAttribute('xmlns', mxConstants.NS_SVG);
+	}
+	else
+	{
+		// KNOWN: Ignored in IE9-11, adds namespace for each image element instead. No workaround.
+		root.setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:xlink', mxConstants.NS_XLINK);
+	}
+	
+	root.setAttribute('width', (Math.ceil(bounds.width * scale / vs) + 2 * border) + 'px');
+	root.setAttribute('height', (Math.ceil(bounds.height * scale / vs) + 2 * border) + 'px');
+	root.setAttribute('version', '1.1');
+	
+    // Adds group for anti-aliasing via transform
+	var group = (svgDoc.createElementNS != null) ?
+			svgDoc.createElementNS(mxConstants.NS_SVG, 'g') : svgDoc.createElement('g');
+	group.setAttribute('transform', 'translate(0.5,0.5)');
+	root.appendChild(group);
+	svgDoc.appendChild(root);
+
+    // Renders graph. Offset will be multiplied with state's scale when painting state.
+	var svgCanvas = new mxSvgCanvas2D(group);
+	svgCanvas.translate(Math.floor((border / scale - bounds.x) / vs), Math.floor((border / scale - bounds.y) / vs));
+	svgCanvas.scale(scale / vs);
+	imgExport.drawState(graph.getView().getState(graph.model.root), svgCanvas);
+
+	return root;
 };
 
 /**

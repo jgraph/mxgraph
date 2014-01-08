@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.61 2013/12/20 15:57:51 david Exp $
+ * $Id: mxGraph.js,v 1.62 2013/12/27 14:59:10 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -8233,6 +8233,21 @@ mxGraph.prototype.getTooltipForCell = function(cell)
 	}
 	
 	return tip;
+};
+
+/**
+ * Function: getCursorForMouseEvent
+ * 
+ * Returns the cursor value to be used for the CSS of the shape for the
+ * given event. This implementation calls <getCursorForCell>.
+ * 
+ * Parameters:
+ * 
+ * me - <mxMouseEvent> whose cursor should be returned.
+ */
+mxGraph.prototype.getCursorForMouseEvent = function(me)
+{
+	return this.getCursorForCell(me.getCell());
 };
 
 /**

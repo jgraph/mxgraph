@@ -1,5 +1,5 @@
 /**
- * $Id: mxSvgCanvas2D.js,v 1.56 2013/10/28 08:44:58 gaudenz Exp $
+ * $Id: mxSvgCanvas2D.js,v 1.58 2014/01/03 11:07:40 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -7,10 +7,6 @@
  *
  * Extends <mxAbstractCanvas2D> to implement a canvas for SVG. This canvas writes all
  * calls as SVG output to the given SVG root node.
- * 
- * Open issues:
- * - Opacity for transformed foreignObjects in Chrome.
- * - Gradient IDs must be refactored for fragments.
  * 
  * (code)
  * var svgDoc = mxUtils.createXmlDocument();
@@ -21,11 +17,14 @@
  * {
  *   root.setAttribute('xmlns', mxConstants.NS_SVG);
  * }
+ * else
+ * {
+ *   root.setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:xlink', mxConstants.NS_XLINK);
+ * }
  * 
  * var bounds = graph.getGraphBounds();
  * root.setAttribute('width', (bounds.x + bounds.width + 4) + 'px');
  * root.setAttribute('height', (bounds.y + bounds.height + 4) + 'px');
- * root.setAttribute('xmlns:xlink', mxConstants.NS_XLINK);
  * root.setAttribute('version', '1.1');
  * 
  * svgDoc.appendChild(root);
@@ -852,14 +851,15 @@ mxSvgCanvas2D.prototype.image = function(x, y, w, h, src, aspect, flipH, flipV)
 	node.setAttribute('width', this.format(w * s.scale));
 	node.setAttribute('height', this.format(h * s.scale));
 	
-	// Workaround for implicit namespace handling in HTML5 export
-	if (node.setAttributeNS == null || this.root.ownerDocument != document)
+	// Workaround for implicit namespace handling in HTML5 export, IE adds NS1 namespace so use code below
+	// in all IE versions except quirks mode. KNOWN: Adds xlink namespace to each image tag in output.
+	if (node.setAttributeNS == null || (this.root.ownerDocument != document && document.documentMode == null))
 	{
 		node.setAttribute('xlink:href', src);
 	}
 	else
 	{
-		node.setAttributeNS(mxConstants.NS_XLINK, 'href', src);
+		node.setAttributeNS(mxConstants.NS_XLINK, 'xlink:href', src);
 	}
 	
 	if (!aspect)

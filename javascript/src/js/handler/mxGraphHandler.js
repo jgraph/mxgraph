@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphHandler.js,v 1.12 2013/10/28 08:45:07 gaudenz Exp $
+ * $Id: mxGraphHandler.js,v 1.13 2013/12/27 14:59:10 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -720,7 +720,7 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 	else if ((this.isMoveEnabled() || this.isCloneEnabled()) && this.updateCursor &&
 		!me.isConsumed() && me.getState() != null && !graph.isMouseDown)
 	{
-		var cursor = graph.getCursorForCell(me.getCell());
+		var cursor = graph.getCursorForMouseEvent(me);
 		
 		if (cursor == null && graph.isEnabled() && graph.isCellMovable(me.getCell()))
 		{

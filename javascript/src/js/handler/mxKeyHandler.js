@@ -1,5 +1,5 @@
 /**
- * $Id: mxKeyHandler.js,v 1.3 2013/10/28 08:45:06 gaudenz Exp $
+ * $Id: mxKeyHandler.js,v 1.4 2014/01/07 11:27:13 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -310,25 +310,13 @@ mxKeyHandler.prototype.isGraphEvent = function(evt)
 	// Accepts events from the target object or
 	// in-place editing inside graph
 	if ((source == this.target || source.parentNode == this.target) ||
-		(this.graph.cellEditor != null && source == this.graph.cellEditor.textarea))
+		(this.graph.cellEditor != null && this.graph.cellEditor.isEventSource(evt)))
 	{
 		return true;
 	}
 	
 	// Accepts events from inside the container
-	var elt = source;
-	
-	while (elt != null)
-	{
-		if (elt == this.graph.container)
-		{
-			return true;
-		}
-		
-		elt = elt.parentNode;
-	}
-	
-	return false;
+	return mxUtils.isAncestorNode(this.graph.container, source);
 };
 
 /**

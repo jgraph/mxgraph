@@ -1,5 +1,5 @@
 /**
- * $Id: Dialogs.js,v 1.20 2013/12/20 13:10:56 gaudenz Exp $
+ * $Id: Dialogs.js,v 1.23 2014/01/08 10:50:55 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -129,7 +129,7 @@ function OpenDialog()
 /**
  * Constructs a new color dialog.
  */
-function ColorDialog(editorUi, color, apply)
+function ColorDialog(editorUi, color, apply, cancelFn)
 {
 	this.editorUi = editorUi;
 	
@@ -143,6 +143,14 @@ function ColorDialog(editorUi, color, apply)
 		input.style.marginTop = '10px';
 		document.body.appendChild(input);
 	}
+	
+	this.init = function()
+	{
+		if (!mxClient.IS_TOUCH)
+		{
+			input.focus();
+		}
+	};
 
 	var picker = new jscolor.color(input);
 	picker.pickerOnfocus = false;
@@ -250,6 +258,11 @@ function ColorDialog(editorUi, color, apply)
 	buttons.appendChild(mxUtils.button(mxResources.get('cancel'), function()
 	{
 		editorUi.hideDialog();
+		
+		if (cancelFn != null)
+		{
+			cancelFn();
+		}
 	}));
 	
 	if (color != null)
@@ -644,7 +657,7 @@ function PrintDialog(editorUi)
 	this.container = table;
 };
 
-function FilenameDialog(editorUi, filename, buttonText, fn)
+function FilenameDialog(editorUi, filename, buttonText, fn, label)
 {
 	var row, td;
 	
@@ -655,8 +668,8 @@ function FilenameDialog(editorUi, filename, buttonText, fn)
 	
 	td = document.createElement('td');
 	td.style.fontSize = '10pt';
-	td.style.width = '100px';
-	mxUtils.write(td, mxResources.get('filename') + ':');
+	td.style.width = '120px';
+	mxUtils.write(td, (label || mxResources.get('filename')) + ':');
 	
 	row.appendChild(td);
 	
@@ -703,7 +716,7 @@ function FilenameDialog(editorUi, filename, buttonText, fn)
 	this.container = table;
 };
 
-function TextareaDialog(editorUi, title, url, fn)
+function TextareaDialog(editorUi, title, url, fn, cancelFn)
 {
 	var row, td;
 	
@@ -756,6 +769,11 @@ function TextareaDialog(editorUi, title, url, fn)
 	td.appendChild(mxUtils.button(mxResources.get('cancel'), function()
 	{
 		editorUi.hideDialog();
+		
+		if (cancelFn != null)
+		{
+			cancelFn();
+		}
 	}));
 	
 	row.appendChild(td);
@@ -1140,50 +1158,14 @@ function ExportDialog(editorUi)
 	{
 		var b = Math.max(0, parseInt(borderInput.value)) + 1;
 		var scale = parseInt(widthInput.value) / width;
-	    var bounds = graph.getGraphBounds();
-		var vs = graph.view.scale;
-
-	    // Prepares SVG document that holds the output
-	    var svgDoc = mxUtils.createXmlDocument();
-	    var root = (svgDoc.createElementNS != null) ?
-	    	svgDoc.createElementNS(mxConstants.NS_SVG, 'svg') : svgDoc.createElement('svg');
+		var bg = null;
 	    
 		if (backgroundInput.value != '' && backgroundInput.value != mxConstants.NONE && !backgroundCheckbox.checked)
 		{
-			if (root.style != null)
-			{
-				root.style.backgroundColor = backgroundInput.value;
-			}
-			else
-			{
-				root.setAttribute('style', 'background-color:' + backgroundInput.value);
-			}
+			bg = backgroundInput.value;
 		}
-	    
-	    if (svgDoc.createElementNS == null)
-	    {
-	    	root.setAttribute('xmlns', mxConstants.NS_SVG);
-	    }
-	    
-	    root.setAttribute('width', (Math.ceil(bounds.width * scale / vs) + 2 * b) + 'px');
-	    root.setAttribute('height', (Math.ceil(bounds.height * scale / vs) + 2 * b) + 'px');
-	    root.setAttribute('xmlns:xlink', mxConstants.NS_XLINK);
-	    root.setAttribute('version', '1.1');
-	    
-	    // Adds group for anti-aliasing via transform
-	    var group = (svgDoc.createElementNS != null) ?
-		    	svgDoc.createElementNS(mxConstants.NS_SVG, 'g') : svgDoc.createElement('g');
-		group.setAttribute('transform', 'translate(0.5,0.5)');
-		root.appendChild(group);
-	    svgDoc.appendChild(root);
-
-	    // Renders graph. Offset will be multiplied with state's scale when painting state.
-	    var svgCanvas = new mxSvgCanvas2D(group);
-	    svgCanvas.translate(Math.floor((b / scale - bounds.x) / vs), Math.floor((b / scale - bounds.y) / vs));
-	    svgCanvas.scale(scale / vs);
-	    imgExport.drawState(graph.getView().getState(graph.model.root), svgCanvas);
-
-		return mxUtils.getXml(root);
+		
+		return mxUtils.getXml(editorUi.getSvg(bg, scale, b));
 	};
 	
 	function getXml()
@@ -1215,7 +1197,7 @@ function ExportDialog(editorUi)
 	    	}
 	        else if (format == 'svg')
 	    	{
-				var xml = getSvg();
+	        	var xml = getSvg();
 				
 				if (xml.length < MAX_REQUEST_SIZE)
 				{
@@ -1251,18 +1233,7 @@ function ExportDialog(editorUi)
 				var w = Math.ceil(bounds.width * scale / vs + 2 * b);
 				var h = Math.ceil(bounds.height * scale / vs + 2 * b);
 				
-				var xml = null;
-				var formatKey = 'xml';
-				
-				if (ExportDialog.exportFormat != null && ExportDialog.exportFormat == 'svg')
-				{
-					xml = getSvg();
-					formatKey = 'svg';
-				}
-				else
-				{
-					xml = mxUtils.getXml(root);
-				}
+				var xml = mxUtils.getXml(root);
 
 				// Requests image if request is valid
 				if (xml != null && xml.length <= MAX_REQUEST_SIZE && w > 0 && h > 0 && w * h < MAX_AREA)
@@ -1276,7 +1247,7 @@ function ExportDialog(editorUi)
 					}
 					
 					new mxXmlRequest(EXPORT_URL, 'filename=' + name + '&format=' + format +
-	        			bg + '&w=' + w + '&h=' + h + '&' + formatKey + '=' + encodeURIComponent(xml)).
+	        			bg + '&w=' + w + '&h=' + h + '&xml=' + encodeURIComponent(xml)).
 	        			simulate(document, '_blank');
 				}
 				else
@@ -1295,56 +1266,6 @@ function ExportDialog(editorUi)
 	}));
 	
 	row.appendChild(td);
-	tbody.appendChild(row);
-	
-	var newSaveBtn = null;
-	
-	// NOTE: saveBtn must be in DOM when replaceSaveButton is called
-	// LATER: Add hooks in original dialog
-	mxEvent.addListener(imageFormatSelect, 'change', function()
-	{
-		var format = imageFormatSelect.value;
-    	
-        if (format == 'xml')
-    	{
-        	if (newSaveBtn == null)
-        	{
-				newSaveBtn = editorUi.replaceSaveButton(saveBtn, getXml,
-					mxUtils.bind(this, function() { return nameInput.value; }),
-					mxUtils.bind(this, function()
-					{
-						editorUi.hideDialog();
-					}
-				));
-        	}
-        	else if (newSaveBtn != null && newSaveBtn.style.display == 'none')
-    		{
-        		newSaveBtn.style.display = 'inline';
-    		}
-    	}
-        else if (format == 'svg')
-    	{
-        	if (newSaveBtn == null)
-        	{
-				newSaveBtn = editorUi.replaceSaveButton(saveBtn, getSvg,
-					mxUtils.bind(this, function() { return nameInput.value; }),
-					mxUtils.bind(this, function()
-					{
-						editorUi.hideDialog();
-					}
-				));
-        	}
-        	else if (newSaveBtn != null && newSaveBtn.style.display == 'none')
-    		{
-        		newSaveBtn.style.display = 'inline';
-    		}
-    	}
-        else if (newSaveBtn != null && newSaveBtn.style.display != 'none')
-    	{
-        	newSaveBtn.style.display = 'none';
-    	}
-	});
-	
 	tbody.appendChild(row);
 	table.appendChild(tbody);
 	this.container = table;

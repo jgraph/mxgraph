@@ -1,5 +1,5 @@
 /**
- * $Id: Sidebar.js,v 1.58 2013/12/17 10:24:37 gaudenz Exp $
+ * $Id: Sidebar.js,v 1.61 2014/01/08 10:50:55 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -346,18 +346,18 @@ Sidebar.prototype.addGeneralPalette = function(expand)
 		content.appendChild(this.createVertexTemplate('swimlane;whiteSpace=wrap', 200, 200, 'Container', 'Container', true));
 	    content.appendChild(this.createVertexTemplate('whiteSpace=wrap', 120, 60, '', 'Rectangle', true));
 	    content.appendChild(this.createVertexTemplate('rounded=1;whiteSpace=wrap', 120, 60, '', 'Rounded Rectangle', true));
-	    content.appendChild(this.createVertexTemplate('text;align=center;verticalAlign=middle;', 40, 20, 'Text', 'Text', true));
+	    content.appendChild(this.createVertexTemplate('text;align=center;verticalAlign=middle;', 100, 40, 'Simple Text', 'Simple Text', true));
 
 	    content.appendChild(this.createVertexTemplate('text;html=1;spacing=5;spacingTop=-10;whiteSpace=wrap;overflow=hidden;', 160, 140,
-	    	'<h1>Heading</h1><p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>', 'HTML', true));
+	    	'<h1>Heading</h1><p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>', 'Formatted Text', true));
 
 	    var linkCell = new mxCell('Click here!', new mxGeometry(0, 0, 100, 40), 'fontColor=#0000EE;fontStyle=4;');
 	    linkCell.vertex = true;
 	    this.graph.setLinkForCell(linkCell, 'http://www.jgraph.com');
     	content.appendChild(this.createVertexTemplateFromCells([linkCell], 100, 40, 'Hyperlink', true));
 
-	    content.appendChild(this.createVertexTemplate('shape=image;verticalLabelPosition=bottom;verticalAlign=top;image=' + this.gearImage, 50, 60, '', 'Image', false));
 	    content.appendChild(this.createVertexTemplate('shape=image;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=1;aspect=fixed;image=' + this.gearImage, 52, 61, '', 'Fixed Image', false));
+    	content.appendChild(this.createVertexTemplate('shape=image;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=0;image=' + this.gearImage, 50, 60, '', 'Stretched Image', false));
 	    
 	    content.appendChild(this.createVertexTemplate('ellipse;whiteSpace=wrap', 80, 80, '', 'Circle', true));
 	    content.appendChild(this.createVertexTemplate('ellipse;shape=doubleEllipse;whiteSpace=wrap', 80, 80, '', 'Double Ellipse', true));
@@ -1089,13 +1089,16 @@ Sidebar.prototype.createVertexTemplateFromCells = function(cells, width, height,
 	});
 
 	// Shows a tooltip with the rendered cell
-	mxEvent.addGestureListeners(elt, null, mxUtils.bind(this, function(evt)
+	if (!mxClient.IS_IOS)
 	{
-		if (mxEvent.isMouseEvent(evt))
+		mxEvent.addGestureListeners(elt, null, mxUtils.bind(this, function(evt)
 		{
-			this.showTooltip(elt, cells, title, showLabel);
-		}
-	}));
+			if (mxEvent.isMouseEvent(evt))
+			{
+				this.showTooltip(elt, cells, title, showLabel);
+			}
+		}));
+	}
 	
 	return elt;
 };
@@ -1143,13 +1146,16 @@ Sidebar.prototype.createEdgeTemplateFromCells = function(cells, width, height, t
 	}));
 
 	// Shows a tooltip with the rendered cell
-	mxEvent.addGestureListeners(elt, null, mxUtils.bind(this, function(evt)
+	if (!mxClient.IS_IOS)
 	{
-		if (mxEvent.isMouseEvent(evt))
+		mxEvent.addGestureListeners(elt, null, mxUtils.bind(this, function(evt)
 		{
-			this.showTooltip(elt, cells, title, showLabel);
-		}
-	}));
+			if (mxEvent.isMouseEvent(evt))
+			{
+				this.showTooltip(elt, cells, title, showLabel);
+			}
+		}));
+	}
 	
 	return elt;
 };

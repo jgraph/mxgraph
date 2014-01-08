@@ -1,5 +1,5 @@
 /**
- * $Id: Menus.js,v 1.26 2013/12/20 15:37:12 gaudenz Exp $
+ * $Id: Menus.js,v 1.28 2014/01/08 15:53:30 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -29,12 +29,42 @@ Menus.prototype.init = function()
 
 		for (var i = 0; i < fonts.length; i++)
 		{
-			var tr = this.styleChange(menu, fonts[i], [mxConstants.STYLE_FONTFAMILY], [fonts[i]], null, parent);
-			tr.firstChild.nextSibling.style.fontFamily = fonts[i];
+			(mxUtils.bind(this, function(fontname)
+			{
+				var tr = this.styleChange(menu, fontname, [mxConstants.STYLE_FONTFAMILY], [fontname], null, parent, function()
+				{
+					document.execCommand('fontname', false, fontname);
+				});
+				tr.firstChild.nextSibling.style.fontFamily = fontname;
+			}))(fonts[i]);
 		}
 		
 		menu.addSeparator(parent);
 		this.promptChange(menu, mxResources.get('custom'), '', mxConstants.DEFAULT_FONTFAMILY, mxConstants.STYLE_FONTFAMILY, parent);
+	})));
+	this.put('formatBlock', new Menu(mxUtils.bind(this, function(menu, parent)
+	{
+		function addItem(label, tag)
+		{
+			return menu.addItem(label, null, mxUtils.bind(this, function()
+			{
+				// TODO: Check if visible
+				graph.cellEditor.text2.focus();
+	      		document.execCommand('formatBlock', false, '<' + tag + '>');
+			}), parent);
+		};
+		
+		addItem(mxResources.get('normal'), 'p');
+		
+		addItem('', 'h1').firstChild.nextSibling.innerHTML = '<h1 style="margin:0px;">' + mxResources.get('heading') + ' 1</h1>';
+		addItem('', 'h2').firstChild.nextSibling.innerHTML = '<h2 style="margin:0px;">' + mxResources.get('heading') + ' 2</h2>';
+		addItem('', 'h3').firstChild.nextSibling.innerHTML = '<h3 style="margin:0px;">' + mxResources.get('heading') + ' 3</h3>';
+		addItem('', 'h4').firstChild.nextSibling.innerHTML = '<h4 style="margin:0px;">' + mxResources.get('heading') + ' 4</h4>';
+		addItem('', 'h5').firstChild.nextSibling.innerHTML = '<h5 style="margin:0px;">' + mxResources.get('heading') + ' 5</h5>';
+		addItem('', 'h6').firstChild.nextSibling.innerHTML = '<h6 style="margin:0px;">' + mxResources.get('heading') + ' 6</h6>';
+		
+		addItem('', 'pre').firstChild.nextSibling.innerHTML = '<pre style="margin:0px;">' + mxResources.get('formatted') + '</pre>';
+		addItem('', 'blockquote').firstChild.nextSibling.innerHTML = '<blockquote style="margin-top:0px;margin-bottom:0px;">' + mxResources.get('blockquote') + '</blockquote>';
 	})));
 	this.put('fontSize', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -42,7 +72,27 @@ Menus.prototype.init = function()
 		
 		for (var i = 0; i < sizes.length; i++)
 		{
-			this.styleChange(menu, sizes[i], [mxConstants.STYLE_FONTSIZE], [sizes[i]], null, parent);
+			(mxUtils.bind(this, function(fontsize)
+			{
+				this.styleChange(menu, fontsize, [mxConstants.STYLE_FONTSIZE], [fontsize], null, parent, function()
+				{
+					document.execCommand('fontSize', false, '3');
+					
+					// Changes the css font size of the first font element inside the in-place editor with size 3
+					var elts = graph.cellEditor.text2.getElementsByTagName('font');
+					
+					for (var i = 0; i < elts.length; i++)
+					{
+						if (elts[i].getAttribute('size') == '3')
+						{
+							elts[i].removeAttribute('size');
+							elts[i].style.fontSize = fontsize + 'px';
+							
+							break;
+						}
+					}
+				});
+			}))(sizes[i]);
 		}
 
 		menu.addSeparator(parent);
@@ -164,16 +214,19 @@ Menus.prototype.init = function()
 	    this.addSubmenu('position', menu, parent);
 		this.addSubmenu('spacing', menu, parent);
 	    menu.addSeparator(parent);
-		this.addMenuItem(menu, 'htmlText', parent);
+		this.addMenuItem(menu, 'formattedText', parent);
 		this.addMenuItem(menu, 'wordWrap', parent);
 		this.promptChange(menu, mxResources.get('textOpacity'), '(%)', '100', mxConstants.STYLE_TEXT_OPACITY, parent, enabled);
 		menu.addItem(mxResources.get('hide'), null, function() { graph.toggleCellStyles(mxConstants.STYLE_NOLABEL, false); }, parent, null, enabled);
 	})));
 	this.put('alignment', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
-		this.styleChange(menu, mxResources.get('leftAlign'), [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_LEFT], null, parent);
-		this.styleChange(menu, mxResources.get('center'), [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_CENTER], null, parent);
-		this.styleChange(menu, mxResources.get('rightAlign'), [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_RIGHT], null, parent);
+		this.styleChange(menu, mxResources.get('leftAlign'), [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_LEFT], null, parent,
+				function() { document.execCommand('justifyleft'); });
+		this.styleChange(menu, mxResources.get('center'), [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_CENTER], null, parent,
+				function() { document.execCommand('justifycenter'); });
+		this.styleChange(menu, mxResources.get('rightAlign'), [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_RIGHT], null, parent,
+				function() { document.execCommand('justifyright'); });
 		menu.addSeparator(parent);
 		this.styleChange(menu, mxResources.get('topAlign'), [mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_TOP], null, parent);
 		this.styleChange(menu, mxResources.get('middle'), [mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_MIDDLE], null, parent);
@@ -268,12 +321,15 @@ Menus.prototype.init = function()
 
 		menu.addItem(mxResources.get('renameIt', [selectedLayer]), null, mxUtils.bind(this, function()
 		{
-			var newName = mxUtils.prompt(mxResources.get('enterName'), selectedLayer);
-			
-			if (newName != null && newName.length > 0)
+			var dlg = new FilenameDialog(this.editorUi, selectedLayer, mxResources.get('apply'), mxUtils.bind(this, function(newValue)
 			{
-				graph.getModel().setValue(p, newName);
-			}
+				if (newValue != null && newValue.length > 0)
+				{
+					graph.getModel().setValue(p, newValue);
+				}
+			}), mxResources.get('enterName'));
+			this.editorUi.showDialog(dlg.container, 300, 80, true, true);
+			dlg.init();
 		}), parent, null, notBackground);
 		
 		menu.addItem(mxResources.get('hideIt', [selectedLayer]), null, mxUtils.bind(this, function()
@@ -477,23 +533,32 @@ Menus.prototype.addMenu = function(name, popupMenu, parent)
 /**
  * Adds a style change item to the given menu.
  */
-Menus.prototype.styleChange = function(menu, label, keys, values, sprite, parent)
+Menus.prototype.styleChange = function(menu, label, keys, values, sprite, parent, fn)
 {
 	return menu.addItem(label, null, mxUtils.bind(this, function()
 	{
 		var graph = this.editorUi.editor.graph;
 		
-		graph.getModel().beginUpdate();
-		try
+		if (fn != null && graph.cellEditor.isContentEditing())
 		{
-			for (var i = 0; i < keys.length; i++)
-			{
-				graph.setCellStyles(keys[i], values[i]);
-			}
+			fn();
 		}
-		finally
+		else
 		{
-			graph.getModel().endUpdate();
+			graph.getModel().beginUpdate();
+			try
+			{
+				graph.stopEditing(false);
+				
+				for (var i = 0; i < keys.length; i++)
+				{
+					graph.setCellStyles(keys[i], values[i]);
+				}
+			}
+			finally
+			{
+				graph.getModel().endUpdate();
+			}
 		}
 	}), parent, sprite);
 };
@@ -513,52 +578,79 @@ Menus.prototype.promptChange = function(menu, label, hint, defaultValue, key, pa
     	{
     		value = state.style[key] || value;
     	}
-		
-		value = mxUtils.prompt(mxResources.get('enterValue') + ((hint.length > 0) ? (' ' + hint) : ''), value);
-
-    	if (value != null && value.length > 0)
-    	{
-        	graph.setCellStyles(key, value);
-        }
+    	
+		var dlg = new FilenameDialog(this.editorUi, value, mxResources.get('apply'), mxUtils.bind(this, function(newValue)
+		{
+			if (newValue != null && newValue.length > 0)
+			{
+				graph.getModel().beginUpdate();
+				try
+				{
+					graph.stopEditing(false);
+					graph.setCellStyles(key, newValue);
+				}
+				finally
+				{
+					graph.getModel().endUpdate();
+				}
+			}
+		}), mxResources.get('enterValue') + ((hint.length > 0) ? (' ' + hint) : ''));
+		this.editorUi.showDialog(dlg.container, 300, 80, true, true);
+		dlg.init();
 	}), parent, null, enabled);
 };
 
 /**
  * Adds a handler for showing a menu in the given element.
  */
-Menus.prototype.pickColor = function(key)
+Menus.prototype.pickColor = function(key, cmd, defaultValue)
 {
-	if (this.colorDialog == null)
-	{
-		this.colorDialog = new ColorDialog(this.editorUi);
-	}
-
-	this.colorDialog.currentColorKey = key;
 	var graph = this.editorUi.editor.graph;
-	var state = graph.getView().getState(graph.getSelectionCell());
-	var color = 'none';
 	
-	if (state != null)
+	if (cmd != null && graph.cellEditor.isContentEditing())
 	{
-		color = state.style[key] || color;
-	}
-	
-	if (color == 'none')
-	{
-		color = 'ffffff';
-		this.colorDialog.picker.fromString('ffffff');
-		this.colorDialog.colorInput.value = 'none';
+		var selState = graph.cellEditor.saveSelection();
+		
+		var dlg = new ColorDialog(this.editorUi, defaultValue || '000000', mxUtils.bind(this, function(color)
+		{
+			graph.cellEditor.restoreSelection(selState);
+			document.execCommand(cmd, false, (color != mxConstants.NONE) ? color : 'transparent');
+		}), function()
+		{
+			graph.cellEditor.restoreSelection(selState);
+		});
+		this.editorUi.showDialog(dlg.container, 220, 400, true, false);
+		dlg.init();
 	}
 	else
 	{
-		this.colorDialog.picker.fromString(color);
-	}
-
-	this.editorUi.showDialog(this.colorDialog.container, 220, 400, true, false);
+		if (this.colorDialog == null)
+		{
+			this.colorDialog = new ColorDialog(this.editorUi);
+		}
 	
-	if (!mxClient.IS_TOUCH)
-	{
-		this.colorDialog.colorInput.focus();
+		this.colorDialog.currentColorKey = key;
+		var state = graph.getView().getState(graph.getSelectionCell());
+		var color = 'none';
+		
+		if (state != null)
+		{
+			color = state.style[key] || color;
+		}
+		
+		if (color == 'none')
+		{
+			color = 'ffffff';
+			this.colorDialog.picker.fromString('ffffff');
+			this.colorDialog.colorInput.value = 'none';
+		}
+		else
+		{
+			this.colorDialog.picker.fromString(color);
+		}
+	
+		this.editorUi.showDialog(this.colorDialog.container, 220, 400, true, false);
+		this.colorDialog.init();
 	}
 };
 
@@ -729,11 +821,11 @@ Menus.prototype.createMenubar = function(container)
 					
 					if (!menu.enabled)
 					{
-						elt.style.opacity = '0.2';
+						elt.className = 'geItem mxDisabled';
 					}
 					else
 					{
-						elt.style.opacity = '';
+						elt.className = 'geItem';
 					}
 				});
 			}

@@ -1,5 +1,5 @@
 /**
- * $Id: mxVertexHandler.js,v 1.38 2013/12/17 15:00:29 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.39 2014/01/05 10:32:17 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -477,6 +477,17 @@ mxVertexHandler.prototype.mouseDown = function(sender, me)
 };
 
 /**
+ * Function: isLivePreviewBorder
+ * 
+ * Called if <livePreview> is enabled to check if a border should be painted.
+ * This implementation returns true if the shape is transparent.
+ */
+mxVertexHandler.prototype.isLivePreviewBorder = function()
+{
+	return this.state.shape != null && this.state.shape.fill == null && this.state.shape.stroke == null;
+};
+
+/**
  * Function: start
  * 
  * Starts the handling of the mouse gesture.
@@ -491,7 +502,8 @@ mxVertexHandler.prototype.start = function(x, y, index)
 	// Creates a preview that can be on top of any HTML label
 	this.selectionBorder.node.style.display = (index == mxEvent.ROTATION_HANDLE) ? 'inline' : 'none';
 	
-	if (!this.livePreview)
+	// Creates the border that represents the new bounds
+	if (!this.livePreview || this.isLivePreviewBorder())
 	{
 		this.preview = this.createSelectionShape(this.bounds);
 		
@@ -508,7 +520,9 @@ mxVertexHandler.prototype.start = function(x, y, index)
 			this.preview.init(this.graph.view.getOverlayPane());
 		}
 	}
-	else
+	
+	// Prepares the handles for live preview
+	if (this.livePreview)
 	{
 		this.hideSizers();
 		
@@ -721,7 +735,8 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 					this.state.origin = orig;
 					this.state.absoluteOffset = off;
 				}
-				else
+				
+				if (this.preview != null)
 				{
 					this.drawPreview();
 				}

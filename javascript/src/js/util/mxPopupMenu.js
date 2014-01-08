@@ -1,5 +1,5 @@
 /**
- * $Id: mxPopupMenu.js,v 1.6 2013/11/10 17:50:05 gaudenz Exp $
+ * $Id: mxPopupMenu.js,v 1.8 2014/01/08 15:53:30 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -213,7 +213,7 @@ mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, e
 	tr.className = 'mxPopupMenuItem';
 	var col1 = document.createElement('td');
 	col1.className = 'mxPopupMenuIcon';
-	
+
 	// Adds the given image into the first column
 	if (image != null)
 	{
@@ -223,9 +223,20 @@ mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, e
 	}
 	else if (iconCls != null)
 	{
-		var div = document.createElement('div');
-		div.className = iconCls;
-		col1.appendChild(div);
+		// Workaround to avoid focus in quirks and IE8 standards
+		if (mxClient.IS_QUIRKS || document.documentMode == 8)
+		{
+			var div = document.createElement('a');
+			div.setAttribute('href', '#');
+			div.className = iconCls;
+			col1.appendChild(div);
+		}
+		else
+		{
+			var div = document.createElement('div');
+			div.className = iconCls;
+			col1.appendChild(div);
+		}
 	}
 	
 	tr.appendChild(col1);
@@ -234,14 +245,19 @@ mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, e
 	{
 		var col2 = document.createElement('td');
 		col2.className = 'mxPopupMenuItem' +
-			((enabled != null && !enabled) ? ' disabled' : '');
+			((enabled != null && !enabled) ? ' mxDisabled' : '');
+		
+		// KNOWN: Require <a href="#"> around label to avoid focus in
+		// quirks and IE 8 (see above workaround). But the problem is
+		// the anchor doesn't cover the complete active area of the
+		// item and it inherits styles (underline, blue).
 		mxUtils.write(col2, title);
 		col2.align = 'left';
 		tr.appendChild(col2);
 	
 		var col3 = document.createElement('td');
 		col3.className = 'mxPopupMenuItem' +
-			((enabled != null && !enabled) ? ' disabled' : '');
+			((enabled != null && !enabled) ? ' mxDisabled' : '');
 		col3.style.paddingRight = '6px';
 		col3.style.textAlign = 'right';
 		

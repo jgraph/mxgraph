@@ -1,3 +1,16 @@
+08-JAN-2014: 2.4.0.0
+
+- Changes disabled CSS class to mxDisabled in common.css, explorer.css [JavaScript]
+- Adds anchor tag for sprite, uses pointer cursor in mxPopupMenu [JavaScript] 
+- Passes blur event to mxCellEditor.focusLost [JavaScript]
+- Adds mxUtils.isAncestorNode [JavaScript]
+- Adds mxVertexHandler.isLivePreviewBorder for transparent shapes [JavaScript]
+- Adds export examples for exporting SVG and bitmaps using backends [Java,Dotnet]
+- Adds mxObjectCodec.isBooleanAttribute, isNumericAttribute [JavaScript]
+- Replaces mxObjectCodec.convertValueTo/FromXml with convertAttributeTo/FromXml [JavaScript]
+- Fixes image namespaces for SVG export in IE standards mode [JavaScript]
+- Adds mxGraph.getCursorForMouseEvent [JavaScript]
+
 20-DEC-2013: 2.3.0.5
 
 - Adds option to rotate port constraints with vertices [JavaScript]

@@ -1,5 +1,5 @@
 /**
- * $Id: mxMouseEvent.js,v 1.3 2013/12/04 16:44:12 gaudenz Exp $
+ * $Id: mxMouseEvent.js,v 1.4 2014/01/07 11:27:13 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -108,17 +108,7 @@ mxMouseEvent.prototype.isSource = function(shape)
 {
 	if (shape != null)
 	{
-		var source = this.getSource();
-		
-		while (source != null)
-		{
-			if (source == shape.node)
-			{
-				return true;
-			}
-	
-			source = source.parentNode;
-		}
+		return mxUtils.isAncestorNode(shape.node, this.getSource());
 	}
 	
 	return false;

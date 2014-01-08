@@ -60,6 +60,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Export.htm" />
     <Content Include="Frontend.htm" />
     <Content Include="Hello.aspx" />
     <Content Include="GraphControl.js" />

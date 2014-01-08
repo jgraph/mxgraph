@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.js,v 1.23 2013/12/20 16:31:33 david Exp $
+ * $Id: mxUtils.js,v 1.24 2014/01/07 11:27:13 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxUtils =
@@ -467,6 +467,35 @@ var mxUtils =
  			return attributeName == null ||
  				value.getAttribute(attributeName) == attributeValue;
  		}
+	 	
+	 	return false;
+	 },
+	
+	/**
+	 * Function: isAncestorNode
+	 * 
+	 * Returns true if the given ancestor is an ancestor of the
+	 * given DOM node in the DOM. This also returns true if the
+	 * child is the ancestor.
+	 * 
+	 * Parameters:
+	 * 
+	 * ancestor - DOM node that represents the ancestor.
+	 * child - DOM node that represents the child.
+	 */
+	 isAncestorNode: function(ancestor, child)
+	 {
+	 	var parent = child;
+	 	
+	 	while (parent != null)
+	 	{
+	 		if (parent == ancestor)
+	 		{
+	 			return true;
+	 		}
+
+	 		parent = parent.parentNode;
+	 	}
 	 	
 	 	return false;
 	 },
