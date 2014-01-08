@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.13.0.10.
+	 * Current version is 1.13.0.11.
 	 */
-	VERSION: '1.13.0.10',
+	VERSION: '1.13.0.11',
 
 	/**
 	 * Variable: IS_IE
@@ -1870,7 +1870,7 @@ var mxEffects =
 
 };
 /**
- * $Id: mxUtils.js,v 1.304 2013/11/26 11:01:42 david Exp $
+ * $Id: mxUtils.js,v 1.305 2014/01/08 10:51:36 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxUtils =
@@ -2449,6 +2449,10 @@ var mxUtils =
 			{
 				window.getSelection().removeAllRanges();
 			};
+		}
+		else
+		{
+			return function() { };
 		}
 	}(),
 

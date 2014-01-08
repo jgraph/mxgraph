@@ -1,3 +1,7 @@
+08-JAN-2014: 1.13.0.11
+
+- Fixes possible undefined function in mxUtils.clearSelection [JavaScript]
+
 09-DEC-2013: 1.13.0.10
 
 - Uses pt in HTML instead of mxConstants.PX_PER_PIXEL [Java]
