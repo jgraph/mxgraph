@@ -1,5 +1,5 @@
 /**
- * $Id: Toolbar.js,v 1.6 2013/11/11 12:18:16 gaudenz Exp $
+ * $Id: Toolbar.js,v 1.8 2014/01/08 15:53:30 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -37,9 +37,12 @@ Toolbar.prototype.init = function()
 	this.addItems(['-', 'bold', 'italic', 'underline']);
 	var align = this.addMenuFunction('geSprite-left', mxResources.get('align'), false, mxUtils.bind(this, function(menu)
 	{
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_LEFT], 'geIcon geSprite geSprite-left', null).setAttribute('title', mxResources.get('left'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_CENTER], 'geIcon geSprite geSprite-center', null).setAttribute('title', mxResources.get('center'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_RIGHT], 'geIcon geSprite geSprite-right', null).setAttribute('title', mxResources.get('right'));
+		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_LEFT], 'geIcon geSprite geSprite-left', null,
+				function() { document.execCommand('justifyleft'); }).setAttribute('title', mxResources.get('left'));
+		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_CENTER], 'geIcon geSprite geSprite-center', null,
+				function() { document.execCommand('justifycenter'); }).setAttribute('title', mxResources.get('center'));
+		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_RIGHT], 'geIcon geSprite geSprite-right', null,
+				function() { document.execCommand('justifyright'); }).setAttribute('title', mxResources.get('right'));
 		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_TOP], 'geIcon geSprite geSprite-top', null).setAttribute('title', mxResources.get('top'));
 		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_MIDDLE], 'geIcon geSprite geSprite-middle', null).setAttribute('title', mxResources.get('middle'));
 		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_BOTTOM], 'geIcon geSprite geSprite-bottom', null).setAttribute('title', mxResources.get('bottom'));
@@ -118,6 +121,234 @@ Toolbar.prototype.init = function()
 	// Updates button states
     this.addEdgeSelectionHandler([line, linestart, lineend]);
 	this.addSelectionHandler([align]);
+};
+
+/**
+ * Hides the current menu.
+ */
+Toolbar.prototype.createTextToolbar = function()
+{
+	var graph = this.editorUi.editor.graph;
+	this.addItems(['undo', 'redo', '-']);
+	
+	var fontElt = this.addMenu(mxResources.get('style'), mxResources.get('style'), true, 'formatBlock');
+	fontElt.style.whiteSpace = 'nowrap';
+	fontElt.style.overflow = 'hidden';
+	//fontElt.style.width = '56px';
+	
+	var fontElt = this.addMenu('Helvetica', mxResources.get('fontFamily'), true, 'fontFamily');
+	fontElt.style.whiteSpace = 'nowrap';
+	fontElt.style.overflow = 'hidden';
+	fontElt.style.width = '56px';
+	
+	this.addSeparator();
+	
+	var sizeElt = this.addMenu('12', mxResources.get('fontSize'), true, 'fontSize');
+	sizeElt.style.whiteSpace = 'nowrap';
+	sizeElt.style.overflow = 'hidden';
+	sizeElt.style.width = '22px';
+	
+	this.addItems(['-', 'bold', 'italic', 'underline']);
+
+	// KNOWN: Lost focus after click on submenu with text (not icon) in quirks and IE8. This is because the TD seems
+	// to catch the focus on click in these browsers. NOTE: Workaround in mxPopupMenu for icon items (without text).
+	this.addMenuFunction('geSprite-left', mxResources.get('align'), false, mxUtils.bind(this, function(menu)
+	{
+		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_LEFT], 'geIcon geSprite geSprite-left', null,
+				function() { document.execCommand('justifyleft'); }).setAttribute('title', mxResources.get('left'));
+		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_CENTER], 'geIcon geSprite geSprite-center', null,
+				function() { document.execCommand('justifycenter'); }).setAttribute('title', mxResources.get('center'));
+		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_RIGHT], 'geIcon geSprite geSprite-right', null,
+				function() { document.execCommand('justifyright'); }).setAttribute('title', mxResources.get('right'));
+	}));
+
+	this.addMenuFunction('geSprite-fontcolor', mxResources.get('more') + '...', false, mxUtils.bind(this, function(menu)
+	{
+		// KNOWN: IE+FF don't return keyboard focus after color dialog (calling focus doesn't help)
+		elt = menu.addItem('', null, this.editorUi.actions.get('fontColor').funct, null, 'geIcon geSprite geSprite-fontcolor');
+		elt.setAttribute('title', mxResources.get('fontColor'));
+		
+		elt = menu.addItem('', null, this.editorUi.actions.get('backgroundColor').funct, null, 'geIcon geSprite geSprite-fontbackground');
+		elt.setAttribute('title', mxResources.get('backgroundColor'));
+
+		elt = menu.addItem('', null, mxUtils.bind(this, function()
+		{
+			document.execCommand('superscript');
+		}), null, 'geIcon geSprite geSprite-superscript');
+		elt.setAttribute('title', mxResources.get('superscript'));
+		
+		elt = menu.addItem('', null, mxUtils.bind(this, function()
+		{
+			document.execCommand('subscript');
+		}), null, 'geIcon geSprite geSprite-subscript');
+		elt.setAttribute('title', mxResources.get('subscript'));
+	}));
+	
+	this.addSeparator();
+	
+	this.addButton('geIcon geSprite geSprite-orderedlist', mxResources.get('numberedList'), function()
+	{
+		document.execCommand('insertorderedlist');
+	});
+	
+	this.addButton('geIcon geSprite geSprite-unorderedlist', mxResources.get('bulletedList'), function()
+	{
+		document.execCommand('insertunorderedlist');
+	});
+	
+	this.addButton('geIcon geSprite geSprite-outdent', mxResources.get('decreaseIndent'), function()
+	{
+		document.execCommand('outdent');
+	});
+	
+	this.addButton('geIcon geSprite geSprite-indent', mxResources.get('increaseIndent'), function()
+	{
+		document.execCommand('indent');
+	});
+	
+	this.addSeparator();
+	
+	// TODO: Disable toolbar button for HTML code view
+	this.addButton('geIcon geSprite geSprite-link', mxResources.get('insertLink'), mxUtils.bind(this, function()
+	{
+		if (graph.cellEditor.isContentEditing())
+		{
+			var selState = graph.cellEditor.saveSelection();
+			
+	    	var dlg = new TextareaDialog(this.editorUi, mxResources.get('enterValue') + ' (' + mxResources.get('url') + '):', '', mxUtils.bind(this, function(value)
+			{
+	    		graph.cellEditor.restoreSelection(selState);
+				
+				// To find the new link, we create a list of all existing links first
+	    		// LATER: Refactor for reuse with code for finding inserted image below
+				var tmp = graph.cellEditor.text2.getElementsByTagName('a');
+				var oldLinks = [];
+				
+				for (var i = 0; i < tmp.length; i++)
+				{
+					oldLinks.push(tmp[i]);
+				}
+	
+				if (value != null && value.length > 0)
+				{
+					document.execCommand('createlink', false, mxUtils.trim(value));
+					
+					// Adds target="_blank" for the new link
+					var newLinks = graph.cellEditor.text2.getElementsByTagName('a');
+					
+					if (newLinks.length == oldLinks.length + 1)
+					{
+						// Inverse order in favor of appended links
+						for (var i = newLinks.length - 1; i >= 0; i--)
+						{
+							if (i == 0 || newLinks[i] != oldLinks[i - 1])
+							{
+								newLinks[i].setAttribute('target', '_blank');
+								break;
+							}
+						}
+					}
+				}
+			}), mxUtils.bind(this, function()
+			{
+				graph.cellEditor.restoreSelection(selState);
+			}));
+	    	
+			this.editorUi.showDialog(dlg.container, 320, 200, true, false);
+			dlg.init();
+		}
+	}));
+	
+	// TODO: Disable toolbar button for HTML code view
+	this.addButton('geIcon geSprite geSprite-image', mxResources.get('insertImage'), mxUtils.bind(this, function()
+	{
+		if (graph.cellEditor.isContentEditing())
+		{
+			var selState = graph.cellEditor.saveSelection();
+			
+			this.showInsertImage(mxUtils.bind(this, function(value, w, h)
+			{
+				graph.cellEditor.restoreSelection(selState);
+				
+				// To find the new image, we create a list of all existing links first
+				var tmp = graph.cellEditor.text2.getElementsByTagName('img');
+				var oldImages = [];
+				
+				for (var i = 0; i < tmp.length; i++)
+				{
+					oldImages.push(tmp[i]);
+				}
+		
+				if (value != null && value.length > 0)
+				{
+					document.execCommand('insertimage', false, value);
+					
+					// Adds target="_blank" for the new link
+					var newImages = graph.cellEditor.text2.getElementsByTagName('img');
+					
+					if (newImages.length == oldImages.length + 1)
+					{
+						// Inverse order in favor of appended images
+						for (var i = newImages.length - 1; i >= 0; i--)
+						{
+							if (i == 0 || newImages[i] != oldImages[i - 1])
+							{
+								// LATER: Add dialog for image size
+								newImages[i].style.width = w + 'px';
+								newImages[i].style.height = h + 'px';
+								
+								break;
+							}
+						}
+					}
+				}
+			}));
+		}
+	}), mxUtils.bind(this, function()
+	{
+		graph.cellEditor.restoreSelection(selState);
+	}));
+	
+	this.addButton('geIcon geSprite geSprite-horizontalrule', mxResources.get('insertHorizontalRule'), function()
+	{
+		document.execCommand('inserthorizontalrule');
+	});
+	
+	this.addSeparator();
+	
+	this.addButton('geIcon geSprite geSprite-removeformat', mxResources.get('removeFormat'), function()
+	{
+		document.execCommand('removeformat');
+	});
+	
+	this.addButton('geIcon geSprite geSprite-code', mxResources.get('html'), function()
+	{
+		graph.cellEditor.toggleViewMode();
+	});
+};
+
+/**
+ * Hides the current menu.
+ */
+Toolbar.prototype.showInsertImage = function(applyFn)
+{
+	var value = mxUtils.prompt(mxResources.get('enterValue') + ' (' + mxResources.get('url') + ')');
+
+	if (value != null && value.length > 0)
+	{
+		var img = new Image();
+		
+		img.onload = function()
+		{
+			applyFn(value, img.width, img.height);
+		};
+		img.onerror = function()
+		{
+			mxUtils.alert(mxResources.get('fileNotFound'));
+		};
+		
+		img.src = value;
+	}
 };
 
 /**
@@ -291,8 +522,6 @@ Toolbar.prototype.addEdgeSelectionHandler = function(items)
  */
 Toolbar.prototype.initElement = function(elt, tooltip)
 {
-	elt.setAttribute('tabindex', '0');
-	
 	// Adds tooltip
 	if (tooltip != null)
 	{
@@ -319,7 +548,7 @@ Toolbar.prototype.addEnabledState = function(elt)
 		}
 		else
 		{
-			elt.className = classname + ' geDisabled';
+			elt.className = classname + ' mxDisabled';
 		}
 	};
 	
@@ -342,6 +571,15 @@ Toolbar.prototype.addClickHandler = function(elt, funct)
 			
 			mxEvent.consume(evt);
 		});
+		
+		if (document.documentMode != null && document.documentMode >= 9)
+		{
+			// Prevents focus
+			mxEvent.addListener(elt, 'mousedown', function(evt)
+			{
+				evt.preventDefault();
+			});
+		}
 	}
 };
 
@@ -355,7 +593,12 @@ Toolbar.prototype.createButton = function(classname)
 	elt.className = 'geButton';
 
 	var inner = document.createElement('div');
-	inner.className = 'geSprite ' + classname;
+	
+	if (classname != null)
+	{
+		inner.className = 'geSprite ' + classname;
+	}
+	
 	elt.appendChild(inner);
 	
 	return elt;
@@ -402,5 +645,14 @@ Toolbar.prototype.addMenuHandler = function(elt, showLabels, funct, showAll)
 			
 			mxEvent.consume(evt);
 		}));
+		
+		if (document.documentMode != null && document.documentMode >= 9)
+		{
+			// Prevents focus
+			mxEvent.addListener(elt, 'mousedown', function(evt)
+			{
+				evt.preventDefault();
+			});
+		}
 	}
 };

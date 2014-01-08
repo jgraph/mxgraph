@@ -44,6 +44,7 @@ public class Main
 		context.addServlet(new ServletHolder(new Deploy()), "/Deploy");
 		context.addServlet(new ServletHolder(new Link()), "/Link");
 		context.addServlet(new ServletHolder(new EmbedImage()), "/EmbedImage");
+		context.addServlet(new ServletHolder(new Backend()), "/Backend");
 
 		HandlerList handlers = new HandlerList();
 		handlers.setHandlers(new Handler[] { new RedirectHandler(),
@@ -81,6 +82,26 @@ public class Main
 				// Gets the file contents for the index.html file
 				String filename = Main.class.getResource(
 						"/com/mxgraph/examples/web/resources/index.html")
+						.getPath();
+				response.getWriter().write(mxUtils.readFile(filename));
+				response.setStatus(HttpServletResponse.SC_OK);
+				((Request) request).setHandled(true);
+			}
+			else if (target.equalsIgnoreCase("/export.html"))
+			{
+				// Gets the file contents for the index.html file
+				String filename = Main.class.getResource(
+						"/com/mxgraph/examples/web/resources/export.html")
+						.getPath();
+				response.getWriter().write(mxUtils.readFile(filename));
+				response.setStatus(HttpServletResponse.SC_OK);
+				((Request) request).setHandled(true);
+			}
+			else if (target.equalsIgnoreCase("/frontend.html"))
+			{
+				// Gets the file contents for the index.html file
+				String filename = Main.class.getResource(
+						"/com/mxgraph/examples/web/resources/frontend.html")
 						.getPath();
 				response.getWriter().write(mxUtils.readFile(filename));
 				response.setStatus(HttpServletResponse.SC_OK);

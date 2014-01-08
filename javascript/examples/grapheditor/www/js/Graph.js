@@ -1,5 +1,5 @@
 /**
- * $Id: Graph.js,v 1.34 2013/12/17 11:29:32 gaudenz Exp $
+ * $Id: Graph.js,v 1.35 2014/01/08 10:50:55 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -507,25 +507,220 @@ Graph.prototype.initTouch = function()
 	});
 };
 
-/**
- * Implements touch devices.
- */
 (function()
 {
-	// Enables rotation handle
-	mxVertexHandler.prototype.rotationEnabled = true;
+	/**
+	 * HTML in-place editor
+	 */
+	mxCellEditor.prototype.isContentEditing = function()
+	{
+		return this.text2 != null && this.text2.style.display != 'none';
+	};
 	
-	// Enables managing of sizers
-	mxVertexHandler.prototype.manageSizers = true;
+	/**
+	 * HTML in-place editor
+	 */
+	mxCellEditor.prototype.toggleViewMode = function()
+	{
+		if (this.text2 != null)
+		{
+			var tmp = this.saveSelection();
+			
+			if (this.textarea.style.display == 'none')
+			{
+				var content = this.text2.innerHTML.replace(/\n/g, '');
+				
+				if (this.textarea.value != content)
+				{
+					this.textarea.value = content;
+					this.setModified(true);
+				}
+				
+				this.textarea.style.display = 'block';
+				this.text2.style.display = 'none';
+				this.textarea.focus();
+			}
+			else
+			{
+				var content = this.textarea.value.replace(/\n/g, '<br/>');
+				
+				if (this.text2.innerHTML != content)
+				{
+					this.text2.innerHTML = content;
+					this.setModified(true);
+				}
+				
+				this.text2.style.display = '';
+				this.textarea.style.display = 'none';
+				this.text2.focus();
+			}
+		
+			if (this.switchSelectionState != null)
+			{
+				this.restoreSelection(this.switchSelectionState);
+			}
+			
+			this.switchSelectionState = tmp;
+		}
+	};
 	
-	// Enables live preview
-	mxVertexHandler.prototype.livePreview = true;
-	
-	// Matches label positions of mxGraph 1.x
-	mxText.prototype.baseSpacingTop = 5;
-	mxText.prototype.baseSpacingBottom = 1;
+	/**
+	 * Creates the keyboard event handler for the current graph and history.
+	 */
+	mxCellEditor.prototype.saveSelection = function()
+	{
+	    if (window.getSelection)
+	    {
+	        sel = window.getSelection();
+	        
+	        if (sel.getRangeAt && sel.rangeCount)
+	        {
+	            var ranges = [];
+	            
+	            for (var i = 0, len = sel.rangeCount; i < len; ++i)
+	            {
+	                ranges.push(sel.getRangeAt(i));
+	            }
+	            
+	            return ranges;
+	        }
+	    }
+	    else if (document.selection && document.selection.createRange)
+	    {
+	        return document.selection.createRange();
+	    }
+	    
+	    return null;
+	};
 
-	// Touch-specific static overrides
+	/**
+	 * Creates the keyboard event handler for the current graph and history.
+	 */
+	mxCellEditor.prototype.restoreSelection = function(savedSel)
+	{
+	    if (savedSel)
+	    {
+	        if (window.getSelection)
+	        {
+	            sel = window.getSelection();
+	            sel.removeAllRanges();
+	            
+	            for (var i = 0, len = savedSel.length; i < len; ++i)
+	            {
+	                sel.addRange(savedSel[i]);
+	            }
+	        }
+	        else if (document.selection && savedSel.select)
+	        {
+	            savedSel.select();
+	        }
+	    }
+	};
+
+	if ('contentEditable' in document.documentElement)
+	{
+		/**
+		 * HTML in-place editor
+		 */
+		var mxCellEditorStartEditing = mxCellEditor.prototype.startEditing;
+		mxCellEditor.prototype.startEditing = function(cell, trigger)
+		{
+			this.switchSelectionState = null;
+			
+			// First run cannot set display before supercall because textarea is lazy created
+			// Lazy instantiates textarea to save memory in IE
+			if (this.textarea == null)
+			{
+				this.init();
+			}
+			
+			var state = this.graph.view.getState(cell);
+	
+			if (state != null && state.style['html'] == 1)
+			{
+				this.textarea.style.display = 'none';
+			}
+			else
+			{
+				this.textarea.style.display = 'block';
+			}
+	
+			mxCellEditorStartEditing.apply(this, arguments);
+	
+			if (this.textarea.style.display == 'none')
+			{			
+				this.text2 = document.createElement('div');
+				this.text2.innerHTML = this.textarea.value.replace(/\n/g, '<br/>');
+				var style = this.text2.style;
+								
+				// Required to catch all events on the background in IE
+				style.backgroundImage = 'url(\'' + mxClient.imageBasePath + '/transparent.gif\')';
+
+				style.cursor = 'text';
+				style.outline = 'none';
+				style.position = 'absolute';
+				style.width = parseInt(this.textarea.style.width) + 'px';
+				style.height = (parseInt(this.textarea.style.height) - 4) + 'px';
+				style.left = parseInt(this.textarea.style.left) + 'px';
+				style.top = parseInt(this.textarea.style.top) + 'px';
+				style.fontSize = this.textarea.style.fontSize;
+				style.fontFamily = this.textarea.style.fontFamily;
+				style.textAlign = this.textarea.style.textAlign;
+				style.fontWeight = this.textarea.style.fontWeight;
+				style.color = this.textarea.style.color;
+				
+				var size = parseInt(this.textarea.style.fontSize);
+				style.lineHeight = Math.round(size * mxConstants.LINE_HEIGHT) + 'px';
+				
+				this.graph.container.appendChild(this.text2);
+				this.text2.contentEditable = true;
+				this.text2.focus();
+
+				document.execCommand('selectall');
+			}
+			else
+			{
+				this.textarea.focus();
+				this.textarea.select();
+			}
+		};
+
+		var mxCellEditorStopEditing = mxCellEditor.prototype.stopEditing;
+		mxCellEditor.prototype.stopEditing = function(cancel)
+		{
+			if (this.text2 != null)
+			{
+				var content = this.text2.innerHTML;
+				
+				// Modified state also updated in code view action
+				// TODO: Roundtrip for linefeeds in quirks/IE8
+				if (this.text2.style.display != 'none' && this.textarea.value != content)
+				{
+					this.textarea.value = content.replace(/\n/g, '');
+					this.setModified(true);
+				}
+				
+				this.text2.parentNode.removeChild(this.text2);
+				this.text2 = null;
+			}
+			
+			mxCellEditorStopEditing.apply(this, arguments);
+		};
+		
+		// Workaround for focusLost calls stopEditing when in HTML view
+		var mxCellEditorFocusLost = mxCellEditor.prototype.focusLost;
+		mxCellEditor.prototype.focusLost = function(evt)
+		{
+			if (this.text2 == null)
+			{
+				mxCellEditorFocusLost.apply(this, arguments);
+			}
+		};
+	}
+
+	/**
+	 * Implements touch style
+	 */
 	if (touchStyle)
 	{
 		// Sets constants for touch style
@@ -650,7 +845,7 @@ Graph.prototype.initTouch = function()
 		// Pre-fetches touch connector
 		new Image().src = connectorSrc;
 	}
-	else
+	else // not touchStyle
 	{
 		var img = new mxImage(IMAGE_PATH + '/connector.png', 15, 15);
 		mxConnectionHandler.prototype.connectImage = img;
@@ -658,7 +853,7 @@ Graph.prototype.initTouch = function()
 		// Pre-fetches img
 		new Image().src = img.src;
 		
-		if (urlParams['connect'] == null || urlParams['connect'] == '2') // not touchStyle
+		if (urlParams['connect'] == null || urlParams['connect'] == '2')
 		{
 			var img = new mxImage(IMAGE_PATH + '/connector.png', 15, 15);
 					

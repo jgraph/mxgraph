@@ -6,9 +6,6 @@
 	border-color:pink;
 	filter:chroma(color=pink)alpha(opacity=50);
 }
-.geToolbarContainer .geDisabled {
-	filter:chroma(color=pink) alpha(opacity=20) !important;
-}
 .geToolbarContainer .disabled:hover {
 	border-color:pink !important;
 	filter:chroma(color=pink) alpha(opacity=20) !important;

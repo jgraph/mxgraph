@@ -1,5 +1,5 @@
 <!--
-  $Id: dragsource.html,v 1.3 2013/10/28 08:44:57 gaudenz Exp $
+  $Id: dragsource.html,v 1.4 2014/01/08 10:48:29 gaudenz Exp $
   Copyright (c) 2006-2013, JGraph Ltd
   
   Dragsource example for mxGraph. This example demonstrates using
@@ -90,22 +90,6 @@
 					graphs.push(graph);
 				}
 				
-				// Helper function to check if DOM node is inside graph container.
-				function containsElt(graph, elt)
-				{
-					while (elt != null)
-					{
-						if (elt == graph.container)
-						{
-							return true;
-						}
-						
-						elt = elt.parentNode;
-					}
-					
-					return false;
-				};
-				
 				// Returns the graph under the mouse
 				var graphF = function(evt)
 				{
@@ -115,7 +99,7 @@
 					
 					for (var i = 0; i < graphs.length; i++)
 					{
-						if (containsElt(graphs[i], elt))
+						if (mxUtils.isAncestorNode(graphs[i].container, elt))
 						{
 							return graphs[i];
 						}

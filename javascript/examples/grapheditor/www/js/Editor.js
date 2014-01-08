@@ -1,5 +1,5 @@
 /**
- * $Id: Editor.js,v 1.32 2013/12/20 13:10:26 gaudenz Exp $
+ * $Id: Editor.js,v 1.34 2014/01/08 16:06:38 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 // Specifies if local storage should be used (eg. on the iPad which has no filesystem)
@@ -85,7 +85,7 @@ Editor = function()
 
 	// Sets persistent graph state defaults
 	this.graph.resetViewOnRootChange = false;
-	this.graph.scrollbars = !touchStyle;
+	this.graph.scrollbars = this.defaultScrollbars;
 	this.graph.background = null;
 };
 
@@ -96,6 +96,12 @@ mxUtils.extend(Editor, mxEventSource);
  * Specifies the image URL to be used for the grid.
  */
 Editor.prototype.gridImage = IMAGE_PATH + '/grid.gif';
+
+/**
+ * Scrollbars are enabled on non-touch devices. Disabled on Firefox because it causes problems with touch
+ * events and touch feature cannot be detected.
+ */
+Editor.prototype.defaultScrollbars = !touchStyle &&	(!mxClient.IS_NS || mxClient.IS_SF || mxClient.IS_GC);
 
 /**
  * Specifies the image URL to be used for the transparent background.
@@ -140,7 +146,7 @@ Editor.prototype.resetGraph = function()
 	this.graph.setTooltips(true);
 	this.graph.setConnectable(true);
 	this.graph.foldingEnabled = true;
-	this.graph.scrollbars = !touchStyle;
+	this.graph.scrollbars = this.defaultScrollbars;
 	this.graph.pageVisible = true;
 	this.graph.pageBreaksVisible = this.graph.pageVisible; 
 	this.graph.preferPageSize = this.graph.pageBreaksVisible;
@@ -250,11 +256,6 @@ Editor.prototype.getGraphXml = function()
 	node.setAttribute('pageScale', this.graph.pageScale);
 	node.setAttribute('pageWidth', this.graph.pageFormat.width);
 	node.setAttribute('pageHeight', this.graph.pageFormat.height);
-	
-	if (!this.graph.scrollbars)
-	{
-		node.setAttribute('scrollbars', '0');
-	}
 
 	if (this.graph.background != null)
 	{
@@ -301,15 +302,14 @@ Editor.prototype.updateGraphComponents = function()
 		
 		outline.outline.container.style.backgroundColor = graph.container.style.backgroundColor;
 
-		if (outline.outline.pageVisible != graph.pageVisible ||
-			outline.outline.pageScale != graph.pageScale)
+		if (outline.outline.pageVisible != graph.pageVisible || outline.outline.pageScale != graph.pageScale)
 		{
 			outline.outline.pageScale = graph.pageScale;
 			outline.outline.pageVisible = graph.pageVisible;
 			outline.outline.view.validate();
 		}
 		
-		if (!graph.scrollbars)// || touchStyle)
+		if (!graph.scrollbars)
 		{
 			graph.container.style.overflow = 'hidden';
 		}
@@ -402,6 +402,15 @@ Editor.prototype.init = function()
 	mxGraph.prototype.pageBreakColor = '#c0c0c0';
 	mxGraph.prototype.pageScale = 1;
 	
+	// Adds rotation handle and live preview
+	mxVertexHandler.prototype.rotationEnabled = true;
+	mxVertexHandler.prototype.manageSizers = true;
+	mxVertexHandler.prototype.livePreview = true;
+
+	// Matches label positions of mxGraph 1.x
+	mxText.prototype.baseSpacingTop = 5;
+	mxText.prototype.baseSpacingBottom = 1;
+
 	// Increases default rubberband opacity (default is 20)
 	mxRubberband.prototype.defaultOpacity = 30;
 	

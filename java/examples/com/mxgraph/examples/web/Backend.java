@@ -1,5 +1,5 @@
 /**
- * $Id: Backend.java,v 1.3 2013/10/21 14:24:41 gaudenz Exp $
+ * $Id: Backend.java,v 1.4 2014/01/03 12:24:27 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.examples.web;
@@ -32,8 +32,6 @@ import com.mxgraph.view.mxGraph;
  */
 public class Backend extends HttpServlet
 {
-
-	public static int PORT = 8080;
 
 	/**
 	 * Handles save request and prints XML.
@@ -89,54 +87,6 @@ public class Backend extends HttpServlet
 		}
 
 		return mxXmlUtils.getXml(codec.encode(graph.getModel()));
-	}
-
-	/**
-	 * Starts the backend.
-	 */
-	public static void main(String[] args) throws Exception
-	{
-		Server server = new Server(PORT);
-
-		// Servlets
-		Context context = new Context(server, "/", Context.SESSIONS);
-		context.addServlet(new ServletHolder(new Backend()), "/Backend");
-
-		ResourceHandler fileHandler = new ResourceHandler();
-		fileHandler.setResourceBase("javascript");
-
-		HandlerList handlers = new HandlerList();
-		handlers.setHandlers(new Handler[] { new RedirectHandler(),
-				fileHandler, context, new DefaultHandler() });
-		server.setHandler(handlers);
-
-		System.out.println("Go to http://localhost:" + PORT + "/");
-		server.start();
-		server.join();
-	}
-
-	/**
-	 * Redirects index.html to the respective HTML file in resources.
-	 */
-	public static class RedirectHandler extends AbstractHandler
-	{
-
-		public void handle(String target, HttpServletRequest request,
-				HttpServletResponse response, int dispatch) throws IOException,
-				ServletException
-		{
-			if (target.equalsIgnoreCase("/")
-					|| target.equalsIgnoreCase("/index.html"))
-			{
-				// Gets the file contents for the index.html file
-				String filename = Backend.class.getResource(
-						"/com/mxgraph/examples/web/resources/frontend.html")
-						.getPath();
-				response.getWriter().write(mxUtils.readFile(filename));
-				response.setStatus(HttpServletResponse.SC_OK);
-				((Request) request).setHandled(true);
-			}
-		}
 	}
 
 }

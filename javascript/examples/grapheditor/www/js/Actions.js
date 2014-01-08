@@ -1,5 +1,5 @@
 /**
- * $Id: Actions.js,v 1.23 2013/12/20 13:11:25 gaudenz Exp $
+ * $Id: Actions.js,v 1.24 2014/01/08 10:50:55 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -199,17 +199,30 @@ Actions.prototype.init = function()
 			}
 		}
 	});
-	this.addAction('htmlText', function()
+	this.addAction('formattedText', function()
 	{
     	var state = graph.getView().getState(graph.getSelectionCell());
     	var value = '1';
     	
-    	if (state != null && state.style['html'] == '1')
-    	{
-    		value = null;
-    	}
-
-       	graph.setCellStyles('html', value);
+		graph.getModel().beginUpdate();
+		try
+		{
+	    	if (state != null && state.style['html'] == '1')
+	    	{
+	    		value = null;
+	    	}
+	    	else
+	    	{
+	    		// FIXME: HTML entities are converted in plain text labels if word wrap is on
+	    		// TODO: Convert HTML entities? (Check for userobject!)
+	    	}
+	
+	       	graph.setCellStyles('html', value);
+		}
+		finally
+		{
+			graph.getModel().endUpdate();
+		}
 	});
 	this.addAction('wordWrap', function()
 	{
@@ -223,7 +236,7 @@ Actions.prototype.init = function()
 
        	graph.setCellStyles(mxConstants.STYLE_WHITE_SPACE, value);
 	});
-	this.addAction('rotation', function()
+	this.addAction('rotation', mxUtils.bind(this, function()
 	{
 		var value = '0';
     	var state = graph.getView().getState(graph.getSelectionCell());
@@ -233,14 +246,16 @@ Actions.prototype.init = function()
     		value = state.style[mxConstants.STYLE_ROTATION] || value;
     	}
 
-		value = mxUtils.prompt(mxResources.get('enterValue') + ' (' +
-				mxResources.get('rotation') + ' 0-360)', value);
-        	
-    	if (value != null)
-    	{
-        	graph.setCellStyles(mxConstants.STYLE_ROTATION, value);
-        }
-	});
+		var dlg = new FilenameDialog(this.editorUi, value, mxResources.get('apply'), mxUtils.bind(this, function(newValue)
+		{
+			if (newValue != null && newValue.length > 0)
+			{
+				graph.setCellStyles(mxConstants.STYLE_ROTATION, newValue);
+			}
+		}), mxResources.get('enterValue') + ' (' + mxResources.get('rotation') + ' 0-360)');
+		this.editorUi.showDialog(dlg.container, 300, 80, true, true);
+		dlg.init();
+	}));
 	this.addAction('tilt', function()
 	{
 		var cells = graph.getSelectionCells();
@@ -350,15 +365,18 @@ Actions.prototype.init = function()
 		graph.container.scrollLeft = Math.round(graph.view.translate.x * scale - Math.max(10, (graph.container.clientWidth - fmt.width * ps * scale) / 2));
 		graph.container.scrollTop = Math.round(graph.view.translate.y * scale - Math.max(10, (graph.container.clientHeight - fmt.height * ps * scale) / 2));
 	}));
-	this.put('customZoom', new Action(mxResources.get('custom') + '...', function()
+	this.put('customZoom', new Action(mxResources.get('custom') + '...', mxUtils.bind(this, function()
 	{
-    	var value = mxUtils.prompt(mxResources.get('enterValue') + ' (%)', parseInt(graph.getView().getScale() * 100));
-    	
-    	if (value != null && value.length > 0 && !isNaN(parseInt(value)))
-    	{
-    		graph.zoomTo(parseInt(value) / 100);
-        }
-	}));
+		var dlg = new FilenameDialog(this.editorUi, parseInt(graph.getView().getScale() * 100), mxResources.get('apply'), mxUtils.bind(this, function(newValue)
+		{
+			if (newValue != null && newValue.length > 0)
+			{
+				graph.zoomTo(parseInt(newValue) / 100);
+			}
+		}), mxResources.get('enterValue') + ' (%)');
+		this.editorUi.showDialog(dlg.container, 300, 80, true, true);
+		dlg.init();
+	})));
 	
 	// Option actions
 	var action = null;
@@ -452,11 +470,7 @@ Actions.prototype.init = function()
 
 		var cd = new ColorDialog(ui, graph.background || 'none', apply);
 		ui.showDialog(cd.container, 220, 400, true, false);
-		
-		if (!mxClient.IS_TOUCH)
-		{
-			cd.colorInput.focus();
-		}
+		cd.init();
 	}));
 	action = this.addAction('connect', function()
 	{
@@ -496,24 +510,32 @@ Actions.prototype.init = function()
 	}, null, null, 'F1'));
 	
 	// Font style actions
-	var toggleFontStyle = mxUtils.bind(this, function(key, style)
+	var toggleFontStyle = mxUtils.bind(this, function(key, style, fn)
 	{
 		this.addAction(key, function()
 		{
-			graph.toggleCellStyleFlags(mxConstants.STYLE_FONTSTYLE, style);
+			if (fn != null && graph.cellEditor.isContentEditing())
+			{
+				fn();
+			}
+			else
+			{
+				graph.stopEditing(false);
+				graph.toggleCellStyleFlags(mxConstants.STYLE_FONTSTYLE, style);
+			}
 		});
 	});
 	
-	toggleFontStyle('bold', mxConstants.FONT_BOLD);
-	toggleFontStyle('italic', mxConstants.FONT_ITALIC);
-	toggleFontStyle('underline', mxConstants.FONT_UNDERLINE);
+	toggleFontStyle('bold', mxConstants.FONT_BOLD, function() { document.execCommand('bold'); });
+	toggleFontStyle('italic', mxConstants.FONT_ITALIC, function() { document.execCommand('italic'); });
+	toggleFontStyle('underline', mxConstants.FONT_UNDERLINE, function() { document.execCommand('underline'); });
 	
 	// Color actions
-	this.addAction('fontColor...', function() { ui.menus.pickColor(mxConstants.STYLE_FONTCOLOR); });
+	this.addAction('fontColor...', function() { ui.menus.pickColor(mxConstants.STYLE_FONTCOLOR, 'forecolor', '000000'); });
 	this.addAction('strokeColor...', function() { ui.menus.pickColor(mxConstants.STYLE_STROKECOLOR); });
 	this.addAction('fillColor...', function() { ui.menus.pickColor(mxConstants.STYLE_FILLCOLOR); });
 	this.addAction('gradientColor...', function() { ui.menus.pickColor(mxConstants.STYLE_GRADIENTCOLOR); });
-	this.addAction('backgroundColor...', function() { ui.menus.pickColor(mxConstants.STYLE_LABEL_BACKGROUNDCOLOR); });
+	this.addAction('backgroundColor...', function() { ui.menus.pickColor(mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, 'backcolor'); });
 	this.addAction('borderColor...', function() { ui.menus.pickColor(mxConstants.STYLE_LABEL_BORDERCOLOR); });
 	
 	// Format actions
@@ -528,13 +550,17 @@ Actions.prototype.init = function()
 		if (cells != null && cells.length > 0)
 		{
 			var model = graph.getModel();
-			var style = mxUtils.prompt(mxResources.get('enterValue')+ ' (' + mxResources.get('style') + ')',
-					model.getStyle(cells[0]) || '');
-
-			if (style != null)
+			
+	    	var dlg = new TextareaDialog(this.editorUi, mxResources.get('enterValue')+ ' (' + mxResources.get('style') + ')' + ':',
+	    			model.getStyle(cells[0]) || '', function(newValue)
 			{
-				graph.setCellStyle(style, cells);
-			}
+	    		if (newValue != null)
+				{
+					graph.setCellStyle(mxUtils.trim(newValue), cells);
+				}
+			});
+			this.editorUi.showDialog(dlg.container, 320, 200, true, true);
+			dlg.init();
 		}
 	})));
 	this.addAction('setAsDefaultEdge', function()
