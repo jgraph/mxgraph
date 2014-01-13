@@ -1,5 +1,5 @@
 /**
- * $Id: Menus.js,v 1.28 2014/01/08 15:53:30 gaudenz Exp $
+ * $Id: Menus.js,v 1.29 2014/01/09 11:41:50 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -21,6 +21,7 @@ Menus = function(editorUi)
 Menus.prototype.init = function()
 {
 	var graph = this.editorUi.editor.graph;
+	var isGraphEnabled = mxUtils.bind(graph, graph.isEnabled);
 	
 	this.put('fontFamily', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -368,7 +369,7 @@ Menus.prototype.init = function()
 			var cell = graph.addCell(new mxCell(), graph.model.root);
 			graph.setDefaultParent(cell);
 		}), parent);
-	})));
+	}))).isEnabled = isGraphEnabled;
 	this.put('layout', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
 		menu.addItem(mxResources.get('horizontalFlow'), null, mxUtils.bind(this, function()
@@ -431,7 +432,7 @@ Menus.prototype.init = function()
     			layout.execute(graph.getDefaultParent());
     		}, true);
 		}), parent);
-	})));
+	}))).isEnabled = isGraphEnabled;
 	this.put('navigation', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
 		this.addMenuItems(menu, ['home', '-', 'exitGroup', 'enterGroup', '-', 'expand', 'collapse'], parent);
@@ -446,7 +447,7 @@ Menus.prototype.init = function()
 		this.addSubmenu('layers', menu, parent);
 		this.addSubmenu('navigation', menu, parent);
 		this.addMenuItems(menu, ['-', 'group', 'ungroup', 'removeFromGroup', '-', 'lockUnlock', '-', 'autosize'], parent);
-	})));
+	}))).isEnabled = isGraphEnabled;
 	this.put('view', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
 		this.addMenuItems(menu, ['actualSize'], parent);
@@ -493,6 +494,8 @@ Menus.prototype.init = function()
 Menus.prototype.put = function(name, menu)
 {
 	this.menus[name] = menu;
+	
+	return menu;
 };
 
 /**

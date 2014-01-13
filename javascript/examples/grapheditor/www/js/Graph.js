@@ -1,5 +1,5 @@
 /**
- * $Id: Graph.js,v 1.35 2014/01/08 10:50:55 gaudenz Exp $
+ * $Id: Graph.js,v 1.36 2014/01/13 01:03:10 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -650,6 +650,7 @@ Graph.prototype.initTouch = function()
 			if (this.textarea.style.display == 'none')
 			{			
 				this.text2 = document.createElement('div');
+				this.text2.className = 'geContentEditable';
 				this.text2.innerHTML = this.textarea.value.replace(/\n/g, '<br/>');
 				var style = this.text2.style;
 								
