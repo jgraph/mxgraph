@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.4.0.0.
+	 * Current version is 2.4.0.1.
 	 */
-	VERSION: '2.4.0.0',
+	VERSION: '2.4.0.1',
 
 	/**
 	 * Variable: IS_IE
@@ -23648,7 +23648,7 @@ mxArrow.prototype.paintEdgeShape = function(c, pts)
 	c.fillAndStroke();
 };
 /**
- * $Id: mxText.js,v 1.58 2013/10/28 08:45:04 gaudenz Exp $
+ * $Id: mxText.js,v 1.59 2014/01/12 10:27:55 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -23921,6 +23921,12 @@ mxText.prototype.updateBoundingBox = function()
 				try
 				{
 					var b = node.getBBox();
+					
+					// Workaround for bounding box of empty string
+					if (typeof(this.value) == 'string' && mxUtils.trim(this.value) == 0)
+					{
+						return;
+					}
 					
 					if (b.width == 0 && b.height == 0)
 					{
@@ -31416,7 +31422,7 @@ function mxHierarchicalLayoutStage() { };
  */
 mxHierarchicalLayoutStage.prototype.execute = function(parent) { };
 /**
- * $Id: mxMedianHybridCrossingReduction.js,v 1.2 2013/10/28 08:45:02 gaudenz Exp $
+ * $Id: mxMedianHybridCrossingReduction.js,v 1.3 2014/01/13 16:05:11 david Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -31627,69 +31633,70 @@ mxMedianHybridCrossingReduction.prototype.calculateRankCrossing = function(i, mo
 	var rank = model.ranks[i];
 	var previousRank = model.ranks[i - 1];
 
-	// Create an array of connections between these two levels
-	var currentRankSize = rank.length;
-	var previousRankSize = previousRank.length;
-	var connections = [];
+	var tmpIndices = [];
 
-	for (var j = 0; j < currentRankSize; j++)
-	{
-		connections[j] = [];
-	}
-	
 	// Iterate over the top rank and fill in the connection information
 	for (var j = 0; j < rank.length; j++)
 	{
 		var node = rank[j];
 		var rankPosition = node.getGeneralPurposeVariable(i);
 		var connectedCells = node.getPreviousLayerConnectedCells(i);
-	
+		var nodeIndices = [];
+
 		for (var k = 0; k < connectedCells.length; k++)
 		{
 			var connectedNode = connectedCells[k];
 			var otherCellRankPosition = connectedNode.getGeneralPurposeVariable(i - 1);
-			connections[rankPosition][otherCellRankPosition] = 201207;
+			nodeIndices.push(otherCellRankPosition);
 		}
-	}
-
-	// Iterate through the connection matrix, crossing edges are
-	// indicated by other connected edges with a greater rank position
-	// on one rank and lower position on the other
-	for (var j = 0; j < currentRankSize; j++)
-	{
-		for (var k = 0; k < previousRankSize; k++)
-		{
-			if (connections[j][k] == 201207)
-			{
-				// Draw a grid of connections, crossings are top right
-				// and lower left from this crossing pair
-				for (var j2 = j + 1; j2 < currentRankSize; j2++)
-				{
-					for (var k2 = 0; k2 < k; k2++)
-					{
-						if (connections[j2][k2] == 201207)
-						{
-							totalCrossings++;
-						}
-					}
-				}
-				
-				for (var j2 = 0; j2 < j; j2++)
-				{
-					for (var k2 = k + 1; k2 < previousRankSize; k2++)
-					{
-						if (connections[j2][k2] == 201207)
-						{
-							totalCrossings++;
-						}
-					}
-				}
-
-			}
-		}
+		
+		nodeIndices.sort(function(x, y) { return x - y; });
+		tmpIndices[rankPosition] = nodeIndices;
 	}
 	
-	return totalCrossings / 2;
+	var indices = [];
+
+	for (var j = 0; j < tmpIndices.length; j++)
+	{
+		indices = indices.concat(tmpIndices[j]);
+	}
+
+	var firstIndex = 1;
+	
+	while (firstIndex < previousRank.length)
+	{
+		firstIndex <<= 1;
+	}
+
+	var treeSize = 2 * firstIndex - 1;
+	firstIndex -= 1;
+
+	var tree = [];
+	
+	for (var j = 0; j < treeSize; ++j)
+	{
+		tree[j] = 0;
+	}
+
+	for (var j = 0; j < indices.length; j++)
+	{
+		var index = indices[j];
+	    var treeIndex = index + firstIndex;
+	    ++tree[treeIndex];
+	    
+	    while (treeIndex > 0)
+	    {
+	    	if (treeIndex % 2)
+	    	{
+	    		totalCrossings += tree[treeIndex + 1];
+	    	}
+	      
+	    	treeIndex = (treeIndex - 1) >> 1;
+	    	++tree[treeIndex];
+	    }
+	}
+
+	return totalCrossings;
 };
 
 /**
@@ -34208,7 +34215,7 @@ mxSwimlaneOrdering.prototype.execute = function(parent)
 	}, rootsArray, true, null);
 };
 /**
- * $Id: mxHierarchicalLayout.js,v 1.12 2013/11/01 11:50:53 david Exp $
+ * $Id: mxHierarchicalLayout.js,v 1.13 2014/01/13 11:00:32 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -34358,6 +34365,20 @@ mxHierarchicalLayout.prototype.model = null;
 mxHierarchicalLayout.prototype.edgesCache = null;
 
 /**
+ * Variable: edgesSet
+ * 
+ * A cache of edges whose source terminal is the key
+ */
+mxHierarchicalLayout.prototype.edgeSourceTermCache = null;
+
+/**
+ * Variable: edgesSet
+ * 
+ * A cache of edges whose source terminal is the key
+ */
+mxHierarchicalLayout.prototype.edgesTargetTermCache = null;
+
+/**
  * Function: getModel
  * 
  * Returns the internal <mxGraphHierarchyModel> for this layout algorithm.
@@ -34382,7 +34403,9 @@ mxHierarchicalLayout.prototype.execute = function(parent, roots)
 	this.parent = parent;
 	var model = this.graph.model;
 	this.edgesCache = new Object();
-	
+	this.edgeSourceTermCache = new Object();
+	this.edgesTargetTermCache = new Object();
+
 	if (roots != null && !(roots instanceof Array))
 	{
 		roots = [roots];
@@ -34425,7 +34448,7 @@ mxHierarchicalLayout.prototype.execute = function(parent, roots)
 	{
 		this.run(parent);
 		
-		if (this.resizeParent && 
+		if (this.resizeParent &&
 			!this.graph.isCellCollapsed(parent))
 		{
 			this.graph.updateGroupBounds([parent],
@@ -34580,6 +34603,20 @@ mxHierarchicalLayout.prototype.getEdges = function(cell)
  */
 mxHierarchicalLayout.prototype.getVisibleTerminal = function(edge, source)
 {
+	var cellID = mxCellPath.create(edge);
+	
+	var terminalCache = this.edgesTargetTermCache;
+	
+	if (source)
+	{
+		terminalCache = this.edgeSourceTermCache;
+	}
+
+	if (terminalCache[cellID] != null)
+	{
+		return terminalCache[cellID];
+	}
+
 	var state = this.graph.view.getState(edge);
 	
 	var terminal = (state != null) ? state.getVisibleTerminal(source) : this.graph.view.getVisibleTerminal(edge, source);
@@ -34589,6 +34626,8 @@ mxHierarchicalLayout.prototype.getVisibleTerminal = function(edge, source)
 		terminal = this.graph.model.getParent(terminal);
 	}
 	
+	terminalCache[cellID] = terminal;
+
 	return terminal;
 };
 
@@ -34832,17 +34871,57 @@ mxHierarchicalLayout.prototype.traverse = function(vertex, directed, edge, allVe
 			}
 
 			var edges = this.getEdges(vertex);
+			var edgeIsSource = [];
 
 			for (var i = 0; i < edges.length; i++)
 			{
-				var isSource = this.getVisibleTerminal(edges[i], true) == vertex;
+				edgeIsSource[i] = (this.getVisibleTerminal(edges[i], true) == vertex);
+			}
 
-				if (!directed || isSource)
+			for (var i = 0; i < edges.length; i++)
+			{
+				if (!directed || edgeIsSource[i])
 				{
-					var next = this.getVisibleTerminal(edges[i], !isSource);
-					currentComp = this.traverse(next, directed, edges[i], allVertices,
+					var next = this.getVisibleTerminal(edges[i], !edgeIsSource[i]);
+					
+					// Check whether there are more edges incoming from the target vertex than outgoing
+					// The hierarchical model treats bi-directional parallel edges as being sourced
+					// from the more "sourced" terminal. If the directions are equal in number, the direction
+					// is that of the natural direction from the roots of the layout.
+					// The checks below are slightly more verbose than need be for performance reasons
+					var netCount = 1;
+
+					for (var j = 0; j < edges.length; j++)
+					{
+						if (j == i)
+						{
+							continue;
+						}
+						else
+						{
+							var isSource2 = edgeIsSource[j];
+							var otherTerm = this.getVisibleTerminal(edges[j], !isSource2);
+							
+							if (otherTerm == next)
+							{
+								if (isSource2)
+								{
+									netCount++;
+								}
+								else
+								{
+									netCount--;
+								}
+							}
+						}
+					}
+
+					if (netCount >= 0)
+					{
+						currentComp = this.traverse(next, directed, edges[i], allVertices,
 							currentComp, hierarchyVertices,
 							filledVertexSet);
+					}
 				}
 			}
 		}
@@ -34852,6 +34931,7 @@ mxHierarchicalLayout.prototype.traverse = function(vertex, directed, edge, allVe
 			{
 				// We've seen this vertex before, but not in the current component
 				// This component and the one it's in need to be merged
+
 				for (var i = 0; i < hierarchyVertices.length; i++)
 				{
 					var comp = hierarchyVertices[i];
@@ -42961,7 +43041,7 @@ mxCellEditor.prototype.destroy = function ()
 	}
 };
 /**
- * $Id: mxCellRenderer.js,v 1.35 2013/12/17 15:04:11 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.36 2014/01/13 15:58:25 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -44065,9 +44145,11 @@ mxCellRenderer.prototype.redrawCellOverlays = function(state, forced)
  */
 mxCellRenderer.prototype.redrawControl = function(state, forced)
 {
-	if (state.control != null)
+	var image = state.view.graph.getFoldingImage(state);
+	
+	if (state.control != null && image != null)
 	{
-		var bounds = this.getControlBounds(state);
+		var bounds = this.getControlBounds(state, image.width, image.height);
 		var r = (this.legacyControlPosition) ?
 				mxUtils.getValue(state.style, mxConstants.STYLE_ROTATION, 0) :
 				state.shape.getTextRotation();
@@ -44091,13 +44173,10 @@ mxCellRenderer.prototype.redrawControl = function(state, forced)
  * Returns the bounds to be used to draw the control (folding icon) of the
  * given state.
  */
-mxCellRenderer.prototype.getControlBounds = function(state)
+mxCellRenderer.prototype.getControlBounds = function(state, w, h)
 {
 	if (state.control != null)
 	{
-		var oldScale = state.control.scale;
-		var w = state.control.bounds.width / oldScale;
-		var h = state.control.bounds.height / oldScale;
 		var s = state.view.scale;
 		var cx = state.getCenterX();
 		var cy = state.getCenterY();
@@ -48425,7 +48504,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.62 2013/12/27 14:59:10 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.63 2014/01/13 15:58:24 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -55404,19 +55483,15 @@ mxGraph.prototype.zoomTo = function(scale, center)
 mxGraph.prototype.zoom = function(factor, center)
 {
 	center = (center != null) ? center : this.centerZoom;
-	var scale = this.view.scale * factor;
+	var scale = Math.round(this.view.scale * factor * 100) / 100;
 	var state = this.view.getState(this.getSelectionCell());
 	
 	if (this.keepSelectionVisibleOnZoom && state != null)
 	{
-		var rect = new mxRectangle(
-			state.x * factor,
-			state.y * factor,
-			state.width * factor,
-			state.height * factor);
+		var rect = new mxRectangle(state.x * factor, state.y * factor,
+			state.width * factor, state.height * factor);
 		
-		// Refreshes the display only once if a
-		// scroll is carried out
+		// Refreshes the display only once if a scroll is carried out
 		this.view.scale = scale;
 		
 		if (!this.scrollRectToVisible(rect))
@@ -60585,7 +60660,7 @@ mxCellOverlay.prototype.toString = function()
 	return this.tooltip;
 };
 /**
- * $Id: mxOutline.js,v 1.12 2013/10/28 08:45:01 gaudenz Exp $
+ * $Id: mxOutline.js,v 1.13 2014/01/13 15:58:25 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -61016,7 +61091,7 @@ mxOutline.prototype.update = function(revalidate)
 		var availableHeight = Math.max(0, this.outline.container.clientHeight - this.border);
 		
 		var outlineScale = Math.min(availableWidth / completeWidth, availableHeight / completeHeight);
-		var scale = outlineScale;
+		var scale = Math.floor(outlineScale * 100) / 100;
 		
 		if (scale > 0)
 		{

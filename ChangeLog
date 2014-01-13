@@ -1,3 +1,12 @@
+13-JAN-2014: 2.4.0.1
+
+- Improves edge crossing calculation performance in hierarchical layout [JavaScript]
+- Rounds scale to 2 decimals in mxGraph.zoom, mxOutline.update [JavaScript]
+- Fixes lost folding icon size in mxCellRenderer.getControlBounds [JavaScript]
+- Corrects issue with the hierarchical layout where there are multiple parallel, bi-directional edges between two
+    vertices and the initial traversal from roots doesn't follow the direction the majority of edges travel in. [JavaScript]
+- Fixes possible bounding box error for empty strings in mxText [JavaScript]
+
 08-JAN-2014: 2.4.0.0
 
 - Changes disabled CSS class to mxDisabled in common.css, explorer.css [JavaScript]

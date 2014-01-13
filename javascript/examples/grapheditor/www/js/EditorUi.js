@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.45 2014/01/08 10:50:55 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.47 2014/01/09 19:11:15 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -1181,38 +1181,41 @@ EditorUi.prototype.executeLayout = function(exec, animate, post)
 {
 	var graph = this.editor.graph;
 
-	graph.getModel().beginUpdate();
-	try
+	if (graph.isEnabled())
 	{
-		exec();
-	}
-	catch (e)
-	{
-		throw e;
-	}
-	finally
-	{
-		// Animates the changes in the graph model except
-		// for Camino, where animation is too slow
-		if (this.allowAnimation && animate && navigator.userAgent.indexOf('Camino') < 0)
+		graph.getModel().beginUpdate();
+		try
 		{
-			// New API for animating graph layout results asynchronously
-			var morph = new mxMorphing(graph);
-			morph.addListener(mxEvent.DONE, mxUtils.bind(this, function()
+			exec();
+		}
+		catch (e)
+		{
+			throw e;
+		}
+		finally
+		{
+			// Animates the changes in the graph model except
+			// for Camino, where animation is too slow
+			if (this.allowAnimation && animate && navigator.userAgent.indexOf('Camino') < 0)
+			{
+				// New API for animating graph layout results asynchronously
+				var morph = new mxMorphing(graph);
+				morph.addListener(mxEvent.DONE, mxUtils.bind(this, function()
+				{
+					graph.getModel().endUpdate();
+					
+					if (post != null)
+					{
+						post();
+					}
+				}));
+				
+				morph.startAnimation();
+			}
+			else
 			{
 				graph.getModel().endUpdate();
-				
-				if (post != null)
-				{
-					post();
-				}
-			}));
-			
-			morph.startAnimation();
-		}
-		else
-		{
-			graph.getModel().endUpdate();
+			}
 		}
 	}
 };
@@ -1234,7 +1237,7 @@ EditorUi.prototype.createKeyHandler = function(editor)
 	// Helper function to move cells with the cursor keys
     function nudge(keyCode)
     {
-    	if (!graph.isSelectionEmpty())
+    	if (!graph.isSelectionEmpty() && graph.isEnabled())
 		{
     		var dx = 0;
     		var dy = 0;
@@ -1270,7 +1273,7 @@ EditorUi.prototype.createKeyHandler = function(editor)
     	{
     		var f = function()
     		{
-				if (action.enabled)
+				if (action.isEnabled())
 				{
 					action.funct();
 				}
@@ -1335,7 +1338,6 @@ EditorUi.prototype.createKeyHandler = function(editor)
     bindAction(65, true, 'selectAll'); // Ctrl+A
     bindAction(86, true, 'selectVertices', true); // Ctrl+Shift+V
     bindAction(69, true, 'selectEdges', true); // Ctrl+Shift+E
-    bindAction(69, true, 'export'); // Ctrl+Shift+E
     bindAction(66, true, 'toBack'); // Ctrl+B
     bindAction(70, true, 'toFront'); // Ctrl+F
     bindAction(68, true, 'duplicate'); // Ctrl+D

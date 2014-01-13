@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellRenderer.js,v 1.35 2013/12/17 15:04:11 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.36 2014/01/13 15:58:25 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -1103,9 +1103,11 @@ mxCellRenderer.prototype.redrawCellOverlays = function(state, forced)
  */
 mxCellRenderer.prototype.redrawControl = function(state, forced)
 {
-	if (state.control != null)
+	var image = state.view.graph.getFoldingImage(state);
+	
+	if (state.control != null && image != null)
 	{
-		var bounds = this.getControlBounds(state);
+		var bounds = this.getControlBounds(state, image.width, image.height);
 		var r = (this.legacyControlPosition) ?
 				mxUtils.getValue(state.style, mxConstants.STYLE_ROTATION, 0) :
 				state.shape.getTextRotation();
@@ -1129,13 +1131,10 @@ mxCellRenderer.prototype.redrawControl = function(state, forced)
  * Returns the bounds to be used to draw the control (folding icon) of the
  * given state.
  */
-mxCellRenderer.prototype.getControlBounds = function(state)
+mxCellRenderer.prototype.getControlBounds = function(state, w, h)
 {
 	if (state.control != null)
 	{
-		var oldScale = state.control.scale;
-		var w = state.control.bounds.width / oldScale;
-		var h = state.control.bounds.height / oldScale;
 		var s = state.view.scale;
 		var cx = state.getCenterX();
 		var cy = state.getCenterY();

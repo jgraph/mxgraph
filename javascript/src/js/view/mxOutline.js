@@ -1,5 +1,5 @@
 /**
- * $Id: mxOutline.js,v 1.12 2013/10/28 08:45:01 gaudenz Exp $
+ * $Id: mxOutline.js,v 1.13 2014/01/13 15:58:25 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -430,7 +430,7 @@ mxOutline.prototype.update = function(revalidate)
 		var availableHeight = Math.max(0, this.outline.container.clientHeight - this.border);
 		
 		var outlineScale = Math.min(availableWidth / completeWidth, availableHeight / completeHeight);
-		var scale = outlineScale;
+		var scale = Math.floor(outlineScale * 100) / 100;
 		
 		if (scale > 0)
 		{

@@ -1,5 +1,5 @@
 /**
- * $Id: Actions.js,v 1.24 2014/01/08 10:50:55 gaudenz Exp $
+ * $Id: Actions.js,v 1.26 2014/01/09 19:11:14 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -20,6 +20,7 @@ Actions.prototype.init = function()
 	var ui = this.editorUi;
 	var editor = ui.editor;
 	var graph = editor.graph;
+	var isGraphEnabled = mxUtils.bind(graph, graph.isEnabled);
 
 	// File actions
 	this.addAction('new', function() { window.open(ui.getUrl()); });
@@ -64,14 +65,14 @@ Actions.prototype.init = function()
 		{
 			window.openFile = null;
 		});
-	});
-	this.addAction('save', function() { ui.saveFile(false); }, null, null, 'Ctrl+S').isEnabled = graph.isEnabled;
-	this.addAction('saveAs...', function() { ui.saveFile(true); }, null, null, 'Ctrl+Shift-S').isEnabled = graph.isEnabled;
-	this.addAction('export...', function() { ui.showDialog(new ExportDialog(ui).container, 300, 200, true, true); }, null, null, 'Ctrl+E');
+	}).isEnabled = isGraphEnabled;
+	this.addAction('save', function() { ui.saveFile(false); }, null, null, 'Ctrl+S').isEnabled = isGraphEnabled;
+	this.addAction('saveAs...', function() { ui.saveFile(true); }, null, null, 'Ctrl+Shift-S').isEnabled = isGraphEnabled;
+	this.addAction('export...', function() { ui.showDialog(new ExportDialog(ui).container, 300, 200, true, true); });
 	this.put('editFile', new Action(mxResources.get('edit') + '...', mxUtils.bind(this, function()
 	{
 		this.editorUi.showDialog(new EditFileDialog(ui).container, 620, 420, true, true);
-	})));
+	}))).isEnabled = isGraphEnabled;
 	this.addAction('pageSetup...', function() { ui.showDialog(new PageSetupDialog(ui).container, 320, 120, true, true); });
 	this.addAction('print...', function() { ui.showDialog(new PrintDialog(ui).container, 300, 120, true, true); }, null, 'sprite-print', 'Ctrl+P');
 	this.addAction('preview', function() { mxUtils.show(graph, null, 10, 10); });
@@ -99,9 +100,9 @@ Actions.prototype.init = function()
 		var s = graph.gridSize;
 		graph.setSelectionCells(graph.moveCells(graph.getSelectionCells(), s, s, true));
     }, null, null, 'Ctrl+D');
-	this.addAction('selectVertices', function() { graph.selectVertices(); }, null, null, 'Ctrl+Shift+V');
-	this.addAction('selectEdges', function() { graph.selectEdges(); }, null, null, 'Ctrl+Shift+E');
-	this.addAction('selectAll', function() { graph.selectAll(); }, null, null, 'Ctrl+A');
+	this.addAction('selectVertices', function() { graph.selectVertices(); }, null, null, 'Ctrl+Shift+V').isEnabled = isGraphEnabled;
+	this.addAction('selectEdges', function() { graph.selectEdges(); }, null, null, 'Ctrl+Shift+E').isEnabled = isGraphEnabled;
+	this.addAction('selectAll', function() { graph.selectAll(); }, null, null, 'Ctrl+A').isEnabled = isGraphEnabled;
 	this.addAction('lockUnlock', function()
 	{
 		graph.getModel().beginUpdate();
@@ -490,6 +491,7 @@ Actions.prototype.init = function()
 	});
 	action.setToggleAction(true);
 	action.setSelectedCallback(function() { return ui.editor.autosave; });
+	action.isEnabled = isGraphEnabled
 	action.visible = false;
 	
 	// Help actions

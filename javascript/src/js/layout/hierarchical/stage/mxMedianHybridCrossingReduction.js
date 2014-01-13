@@ -1,5 +1,5 @@
 /**
- * $Id: mxMedianHybridCrossingReduction.js,v 1.2 2013/10/28 08:45:02 gaudenz Exp $
+ * $Id: mxMedianHybridCrossingReduction.js,v 1.3 2014/01/13 16:05:11 david Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -210,69 +210,70 @@ mxMedianHybridCrossingReduction.prototype.calculateRankCrossing = function(i, mo
 	var rank = model.ranks[i];
 	var previousRank = model.ranks[i - 1];
 
-	// Create an array of connections between these two levels
-	var currentRankSize = rank.length;
-	var previousRankSize = previousRank.length;
-	var connections = [];
+	var tmpIndices = [];
 
-	for (var j = 0; j < currentRankSize; j++)
-	{
-		connections[j] = [];
-	}
-	
 	// Iterate over the top rank and fill in the connection information
 	for (var j = 0; j < rank.length; j++)
 	{
 		var node = rank[j];
 		var rankPosition = node.getGeneralPurposeVariable(i);
 		var connectedCells = node.getPreviousLayerConnectedCells(i);
-	
+		var nodeIndices = [];
+
 		for (var k = 0; k < connectedCells.length; k++)
 		{
 			var connectedNode = connectedCells[k];
 			var otherCellRankPosition = connectedNode.getGeneralPurposeVariable(i - 1);
-			connections[rankPosition][otherCellRankPosition] = 201207;
+			nodeIndices.push(otherCellRankPosition);
 		}
-	}
-
-	// Iterate through the connection matrix, crossing edges are
-	// indicated by other connected edges with a greater rank position
-	// on one rank and lower position on the other
-	for (var j = 0; j < currentRankSize; j++)
-	{
-		for (var k = 0; k < previousRankSize; k++)
-		{
-			if (connections[j][k] == 201207)
-			{
-				// Draw a grid of connections, crossings are top right
-				// and lower left from this crossing pair
-				for (var j2 = j + 1; j2 < currentRankSize; j2++)
-				{
-					for (var k2 = 0; k2 < k; k2++)
-					{
-						if (connections[j2][k2] == 201207)
-						{
-							totalCrossings++;
-						}
-					}
-				}
-				
-				for (var j2 = 0; j2 < j; j2++)
-				{
-					for (var k2 = k + 1; k2 < previousRankSize; k2++)
-					{
-						if (connections[j2][k2] == 201207)
-						{
-							totalCrossings++;
-						}
-					}
-				}
-
-			}
-		}
+		
+		nodeIndices.sort(function(x, y) { return x - y; });
+		tmpIndices[rankPosition] = nodeIndices;
 	}
 	
-	return totalCrossings / 2;
+	var indices = [];
+
+	for (var j = 0; j < tmpIndices.length; j++)
+	{
+		indices = indices.concat(tmpIndices[j]);
+	}
+
+	var firstIndex = 1;
+	
+	while (firstIndex < previousRank.length)
+	{
+		firstIndex <<= 1;
+	}
+
+	var treeSize = 2 * firstIndex - 1;
+	firstIndex -= 1;
+
+	var tree = [];
+	
+	for (var j = 0; j < treeSize; ++j)
+	{
+		tree[j] = 0;
+	}
+
+	for (var j = 0; j < indices.length; j++)
+	{
+		var index = indices[j];
+	    var treeIndex = index + firstIndex;
+	    ++tree[treeIndex];
+	    
+	    while (treeIndex > 0)
+	    {
+	    	if (treeIndex % 2)
+	    	{
+	    		totalCrossings += tree[treeIndex + 1];
+	    	}
+	      
+	    	treeIndex = (treeIndex - 1) >> 1;
+	    	++tree[treeIndex];
+	    }
+	}
+
+	return totalCrossings;
 };
 
 /**

@@ -1,5 +1,5 @@
 /**
- * $Id: mxText.js,v 1.58 2013/10/28 08:45:04 gaudenz Exp $
+ * $Id: mxText.js,v 1.59 2014/01/12 10:27:55 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -272,6 +272,12 @@ mxText.prototype.updateBoundingBox = function()
 				try
 				{
 					var b = node.getBBox();
+					
+					// Workaround for bounding box of empty string
+					if (typeof(this.value) == 'string' && mxUtils.trim(this.value) == 0)
+					{
+						return;
+					}
 					
 					if (b.width == 0 && b.height == 0)
 					{

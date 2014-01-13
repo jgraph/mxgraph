@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.62 2013/12/27 14:59:10 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.63 2014/01/13 15:58:24 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -6978,19 +6978,15 @@ mxGraph.prototype.zoomTo = function(scale, center)
 mxGraph.prototype.zoom = function(factor, center)
 {
 	center = (center != null) ? center : this.centerZoom;
-	var scale = this.view.scale * factor;
+	var scale = Math.round(this.view.scale * factor * 100) / 100;
 	var state = this.view.getState(this.getSelectionCell());
 	
 	if (this.keepSelectionVisibleOnZoom && state != null)
 	{
-		var rect = new mxRectangle(
-			state.x * factor,
-			state.y * factor,
-			state.width * factor,
-			state.height * factor);
+		var rect = new mxRectangle(state.x * factor, state.y * factor,
+			state.width * factor, state.height * factor);
 		
-		// Refreshes the display only once if a
-		// scroll is carried out
+		// Refreshes the display only once if a scroll is carried out
 		this.view.scale = scale;
 		
 		if (!this.scrollRectToVisible(rect))

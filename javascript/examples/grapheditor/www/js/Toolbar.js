@@ -1,5 +1,5 @@
 /**
- * $Id: Toolbar.js,v 1.8 2014/01/08 15:53:30 gaudenz Exp $
+ * $Id: Toolbar.js,v 1.9 2014/01/13 01:03:10 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -134,7 +134,6 @@ Toolbar.prototype.createTextToolbar = function()
 	var fontElt = this.addMenu(mxResources.get('style'), mxResources.get('style'), true, 'formatBlock');
 	fontElt.style.whiteSpace = 'nowrap';
 	fontElt.style.overflow = 'hidden';
-	//fontElt.style.width = '56px';
 	
 	var fontElt = this.addMenu('Helvetica', mxResources.get('fontFamily'), true, 'fontFamily');
 	fontElt.style.whiteSpace = 'nowrap';
@@ -208,14 +207,168 @@ Toolbar.prototype.createTextToolbar = function()
 	
 	this.addSeparator();
 	
+	function getSelectedElement(name)
+	{
+		if (window.getSelection)
+		{
+			var sel = window.getSelection();
+			
+		    if (sel.getRangeAt && sel.rangeCount)
+		    {
+		        var range = sel.getRangeAt(0);
+		    	var row = range.commonAncestorContainer;
+		        
+		    	while (row != null)
+		    	{
+		    		if (row.nodeName == name)
+		    		{
+		    			return row;
+		    		}
+		    		
+		    		row = row.parentNode;
+		    	}
+		    }
+		}
+		
+		return null;
+	};
+	
+	function getParentElement(node, name)
+	{
+    	var result = node;
+    	
+    	while (result != null)
+    	{
+    		if (result.nodeName == name)
+    		{
+    			break;
+    		}
+    		
+    		result = result.parentNode;
+    	}
+    	
+    	return result;
+	};
+	
+	function getSelectedCell()
+	{
+		return getSelectedElement('TD');
+	};
+
+	function getSelectedRow()
+	{
+		return getSelectedElement('TR');
+	};
+
+	function getParentTable(node)
+	{
+		return getParentElement(node, 'TABLE');
+	};
+
+	function selectNode(node)
+	{
+	    if (window.getSelection)
+	    {
+	    	var sel = window.getSelection();
+	    	
+	        if (sel.getRangeAt && sel.rangeCount)
+	        {
+	            var range = sel.getRangeAt(0);
+	            range.deleteContents();
+	            
+		        // IE9 and non-IE
+			    var sel = window.getSelection();
+				
+                range = range.cloneRange();
+                range.setStart(node);
+                range.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(range);
+	        }
+	    }
+	};
+	
+	function pasteHtmlAtCaret(html, selectPastedContent)
+	{
+	    var sel, range;
+	    
+	    if (window.getSelection)
+	    {
+	        // IE9 and non-IE
+	        sel = window.getSelection();
+	        
+	        if (sel.getRangeAt && sel.rangeCount)
+	        {
+	            range = sel.getRangeAt(0);
+	            range.deleteContents();
+
+	            // Range.createContextualFragment() would be useful here but is
+	            // only relatively recently standardized and is not supported in
+	            // some browsers (IE9, for one)
+	            var el = document.createElement("div");
+	            el.innerHTML = html;
+	            var frag = document.createDocumentFragment(), node, lastNode;
+	            
+	            while ((node = el.firstChild))
+	            {
+	                lastNode = frag.appendChild(node);
+	            }
+	            
+	            var firstNode = frag.firstChild;
+	            range.insertNode(frag);
+
+	            // Preserve the selection
+	            if (lastNode)
+	            {
+	                range = range.cloneRange();
+	                range.setStartAfter(lastNode);
+	                
+	                if (selectPastedContent)
+	                {
+	                    range.setStartBefore(firstNode);
+	                }
+	                else
+	                {
+	                    range.collapse(true);
+	                }
+	                
+	                sel.removeAllRanges();
+	                sel.addRange(range);
+	            }
+	        }
+	    }
+	    else if ((sel = document.selection) && sel.type != "Control")
+	    {
+	        // IE < 9
+	        var originalRange = sel.createRange();
+	        originalRange.collapse(true);
+	        sel.createRange().pasteHTML(html);
+	        
+	        if (selectPastedContent)
+	        {
+	            range = sel.createRange();
+	            range.setEndPoint("StartToStart", originalRange);
+	            range.select();
+	        }
+	    }
+	};
+	
 	// TODO: Disable toolbar button for HTML code view
 	this.addButton('geIcon geSprite geSprite-link', mxResources.get('insertLink'), mxUtils.bind(this, function()
 	{
 		if (graph.cellEditor.isContentEditing())
 		{
+			var link = getSelectedElement('A');
+			var oldValue = '';
+			
+			if (link != null)
+			{
+				oldValue = link.getAttribute('href');
+			}
+			
 			var selState = graph.cellEditor.saveSelection();
 			
-	    	var dlg = new TextareaDialog(this.editorUi, mxResources.get('enterValue') + ' (' + mxResources.get('url') + '):', '', mxUtils.bind(this, function(value)
+	    	var dlg = new TextareaDialog(this.editorUi, mxResources.get('enterValue') + ' (' + mxResources.get('url') + '):', oldValue, mxUtils.bind(this, function(value)
 			{
 	    		graph.cellEditor.restoreSelection(selState);
 				
@@ -313,6 +466,373 @@ Toolbar.prototype.createTextToolbar = function()
 	{
 		document.execCommand('inserthorizontalrule');
 	});
+	
+	// KNOWN: All table stuff does not work with undo/redo
+	// KNOWN: Lost focus after click on submenu with text (not icon) in quirks and IE8. This is because the TD seems
+	// to catch the focus on click in these browsers. NOTE: Workaround in mxPopupMenu for icon items (without text).
+	var elt = this.addMenuFunction('geIcon geSprite geSprite-table', mxResources.get('table'), false, mxUtils.bind(this, function(menu)
+	{
+		var cell = getSelectedCell();
+		var row = getSelectedRow();
+
+		if (row == null)
+    	{
+			function createTable(rows, cols)
+			{
+				var html = ['<table>'];
+				
+				for (var i = 0; i < rows; i++)
+				{
+					html.push('<tr>');
+					
+					for (var j = 0; j < cols; j++)
+					{
+						html.push('<td><br></td>');
+					}
+					
+					html.push('</tr>');
+				}
+				
+				html.push('</table>');
+				
+				return html.join('');
+			};
+			
+			// Show table size dialog
+			var elt2 = menu.addItem('', null, mxUtils.bind(this, function(evt)
+			{
+				var td = getParentElement(mxEvent.getSource(evt), 'TD');
+				
+				if (td != null)
+				{
+					var row2 = getParentElement(td, 'TR');
+					
+					// To find the new link, we create a list of all existing links first
+		    		// LATER: Refactor for reuse with code for finding inserted image below
+					var tmp = graph.cellEditor.text2.getElementsByTagName('table');
+					var oldTables = [];
+					
+					for (var i = 0; i < tmp.length; i++)
+					{
+						oldTables.push(tmp[i]);
+					}
+					
+					// Finding the new table will work with insertHTML, but IE does not support that
+					pasteHtmlAtCaret(createTable(row2.sectionRowIndex + 1, td.cellIndex + 1), false);
+					
+					// Moves cursor to first table cell
+					var newTables = graph.cellEditor.text2.getElementsByTagName('table');
+					
+					if (newTables.length == oldTables.length + 1)
+					{
+						// Inverse order in favor of appended tables
+						for (var i = newTables.length - 1; i >= 0; i--)
+						{
+							if (i == 0 || newTables[i] != oldTables[i - 1])
+							{
+								selectNode(newTables[i].rows[0].cells[0]);
+								break;
+							}
+						}
+					}
+				}
+			}));
+
+			function createPicker(rows, cols)
+			{
+				var table2 = document.createElement('table');
+				table2.setAttribute('cellPadding', '8');
+				table2.setAttribute('border', '1');
+				table2.style.borderCollapse = 'collapse';
+				
+				for (var i = 0; i < rows; i++)
+				{
+					var row = table2.insertRow(i);
+					
+					for (var j = 0; j < cols; j++)
+					{
+						var cell = row.insertCell(-1);
+					}
+				}
+				
+				return table2;
+			};
+
+			function extendPicker(picker, rows, cols)
+			{
+				for (var i = picker.rows.length; i < rows; i++)
+				{
+					var row = picker.insertRow(i);
+					
+					for (var j = 0; j < picker.rows[0].cells.length; j++)
+					{
+						var cell = row.insertCell(-1);
+					}
+				}
+				
+				for (var i = 0; i < picker.rows.length; i++)
+				{
+					var row = picker.rows[i];
+					
+					for (var j = row.cells.length; j < cols; j++)
+					{
+						var cell = row.insertCell(-1);
+					}
+				}
+			};
+			
+			elt2.firstChild.innerHTML = '';
+			var picker = createPicker(5, 5);
+			elt2.firstChild.appendChild(picker);
+			
+			var label = document.createElement('div');
+			label.style.padding = '4px';
+			label.style.fontSize = '12px';
+			label.innerHTML = '1x1';
+			elt2.firstChild.appendChild(label);
+			
+			mxEvent.addListener(picker, 'mouseover', function(e)
+			{
+				var td = getParentElement(mxEvent.getSource(e), 'TD');
+				
+				if (td != null)
+				{
+					var row2 = getParentElement(td, 'TR');
+					extendPicker(picker, Math.min(20, row2.sectionRowIndex + 2), Math.min(20, td.cellIndex + 2));
+					label.innerHTML = (td.cellIndex + 1) + 'x' + (row2.sectionRowIndex + 1);
+					
+					for (var i = 0; i < picker.rows.length; i++)
+					{
+						var r = picker.rows[i];
+						
+						for (var j = 0; j < r.cells.length; j++)
+						{
+							var cell = r.cells[j];
+							
+							if (i <= row2.sectionRowIndex && j <= td.cellIndex)
+							{
+								cell.style.backgroundColor = 'blue';
+							}
+							else
+							{
+								cell.style.backgroundColor = 'white';
+							}
+						}
+					}
+					
+					mxEvent.consume(e);
+				}
+			});
+    	}
+		else
+    	{
+			var table = getParentTable(row);
+
+			function insertRow(index)
+			{
+				var tblBodyObj = table.tBodies[0];
+				var colCount = (tblBodyObj.rows.length > 0) ? tblBodyObj.rows[0].cells.length : 1;
+				var newRow = tblBodyObj.insertRow(index);
+				
+				for (var i = 0; i < colCount; i++)
+				{
+					var newCell = newRow.insertCell(-1);
+					mxUtils.br(newCell);
+				}
+
+				selectNode(newRow.cells[0]);
+			}
+
+			function deleteColumn(index)
+			{
+				var tblBodyObj = table.tBodies[0];
+				var allRows = tblBodyObj.rows;
+				
+				for (var i=0; i<allRows.length; i++)
+				{
+					if (allRows[i].cells.length > index)
+					{
+						allRows[i].deleteCell(index);
+					}
+				}
+			};
+
+			function insertColumn(index)
+			{
+				var tblHeadObj = table.tHead;
+				
+				if (tblHeadObj != null)
+				{
+					// TODO: use colIndex
+					for (var h=0; h<tblHeadObj.rows.length; h++)
+					{
+						var newTH = document.createElement('th');
+						tblHeadObj.rows[h].appendChild(newTH);
+						mxUtils.br(newTH);
+					}
+				}
+
+				var tblBodyObj = table.tBodies[0];
+				
+				for (var i=0; i<tblBodyObj.rows.length; i++)
+				{
+					var newCell = tblBodyObj.rows[i].insertCell(index);
+					mxUtils.br(newCell);
+				}
+				
+				selectNode(tblBodyObj.rows[0].cells[(index >= 0) ? index : tblBodyObj.rows[0].cells.length - 1]);
+			};
+			
+			var elt = menu.addItem('', null, mxUtils.bind(this, function()
+			{
+				insertColumn((cell != null) ? cell.cellIndex : 0);
+			}), null, 'geIcon geSprite geSprite-insertcolumnbefore');
+			elt.setAttribute('title', mxResources.get('insertColumnBefore'));
+			
+			elt = menu.addItem('', null, mxUtils.bind(this, function()
+			{
+				insertColumn((cell != null) ? cell.cellIndex + 1 : -1);
+			}), null, 'geIcon geSprite geSprite-insertcolumnafter');
+			elt.setAttribute('title', mxResources.get('insertColumnAfter'));
+
+			elt = menu.addItem('Delete column', null, mxUtils.bind(this, function()
+			{
+				if (cell != null)
+				{
+					deleteColumn(cell.cellIndex);
+				}
+			}), null, 'geIcon geSprite geSprite-deletecolumn');
+			elt.setAttribute('title', mxResources.get('deleteColumn'));
+			
+			elt = menu.addItem('', null, mxUtils.bind(this, function()
+			{
+				insertRow(row.sectionRowIndex);
+			}), null, 'geIcon geSprite geSprite-insertrowbefore');
+			elt.setAttribute('title', mxResources.get('insertRowBefore'));
+
+			elt = menu.addItem('', null, mxUtils.bind(this, function()
+			{
+				insertRow(row.sectionRowIndex + 1);
+			}), null, 'geIcon geSprite geSprite-insertrowafter');
+			elt.setAttribute('title', mxResources.get('insertRowAfter'));
+
+			elt = menu.addItem('', null, mxUtils.bind(this, function()
+			{
+				var tblBodyObj = table.tBodies[0];
+				tblBodyObj.deleteRow(row.sectionRowIndex);
+			}), null, 'geIcon geSprite geSprite-deleterow');
+			elt.setAttribute('title', mxResources.get('deleteRow'));
+			
+			elt = menu.addItem('', null, mxUtils.bind(this, function()
+			{
+				var colorValue = table.style.borderColor.replace(
+					    /\brgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/g,
+					    function($0, $1, $2, $3) {
+					        return "#" + ("0"+Number($1).toString(16)).substr(-2) + ("0"+Number($2).toString(16)).substr(-2) + ("0"+Number($3).toString(16)).substr(-2);
+					    });
+
+				var selState = graph.cellEditor.saveSelection();
+				
+				var dlg = new ColorDialog(this.editorUi, colorValue || 'none', mxUtils.bind(this, function(color)
+				{
+					graph.cellEditor.restoreSelection(selState);
+					
+					if (color == null || color == mxConstants.NONE)
+					{
+						table.removeAttribute('border');
+						table.style.border = '';
+						table.style.borderCollapse = '';
+					}
+					else
+					{
+						table.setAttribute('border', '1');
+						table.style.border = '1px solid ' + color;
+						table.style.borderCollapse = 'collapse';
+					}
+				}), function()
+				{
+					graph.cellEditor.restoreSelection(selState);
+				});
+				this.editorUi.showDialog(dlg.container, 220, 400, true, false);
+				dlg.init();
+			}), null, 'geIcon geSprite geSprite-strokecolor');
+			elt.setAttribute('title', mxResources.get('borderColor'));
+			
+			elt = menu.addItem('', null, mxUtils.bind(this, function()
+			{
+				// Converts rgb(r,g,b) values
+				var colorValue = table.style.backgroundColor.replace(
+					    /\brgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/g,
+					    function($0, $1, $2, $3) {
+					        return "#" + ("0"+Number($1).toString(16)).substr(-2) + ("0"+Number($2).toString(16)).substr(-2) + ("0"+Number($3).toString(16)).substr(-2);
+					    });
+	
+				var selState = graph.cellEditor.saveSelection();
+				
+				var dlg = new ColorDialog(this.editorUi, colorValue || 'none', mxUtils.bind(this, function(color)
+				{
+					graph.cellEditor.restoreSelection(selState);
+					
+					if (color == null || color == mxConstants.NONE)
+					{
+						table.style.backgroundColor = '';
+					}
+					else
+					{
+						table.style.backgroundColor = color;
+					}
+				}), function()
+				{
+					graph.cellEditor.restoreSelection(selState);
+				});
+				this.editorUi.showDialog(dlg.container, 220, 400, true, false);
+				dlg.init();
+			}), null, 'geIcon geSprite geSprite-fillcolor');
+			elt.setAttribute('title', mxResources.get('backgroundColor'));
+			
+			elt = menu.addItem('', null, mxUtils.bind(this, function()
+			{
+				var value = table.getAttribute('cellPadding') || 0;
+				
+				var dlg = new FilenameDialog(this.editorUi, value, mxResources.get('apply'), mxUtils.bind(this, function(newValue)
+				{
+					if (newValue != null && newValue.length > 0)
+					{
+						table.setAttribute('cellPadding', newValue);
+					}
+					else
+					{
+						table.removeAttribute('cellPadding');
+					}
+				}), mxResources.get('spacing'));
+				this.editorUi.showDialog(dlg.container, 300, 80, true, true);
+				dlg.init();
+			}), null, 'geIcon geSprite geSprite-fit');
+			elt.setAttribute('title', mxResources.get('spacing'));
+			
+			elt = menu.addItem('', null, mxUtils.bind(this, function()
+			{
+				table.setAttribute('align', 'left');
+			}), null, 'geIcon geSprite geSprite-left');
+			elt.setAttribute('title', mxResources.get('left'));
+
+			elt = menu.addItem('', null, mxUtils.bind(this, function()
+			{
+				table.setAttribute('align', 'center');
+			}), null, 'geIcon geSprite geSprite-center');
+			elt.setAttribute('title', mxResources.get('center'));
+				
+			elt = menu.addItem('', null, mxUtils.bind(this, function()
+			{
+				table.setAttribute('align', 'right');
+			}), null, 'geIcon geSprite geSprite-right');
+			elt.setAttribute('title', mxResources.get('right'));
+			
+    	}
+	}));
+	elt.style.width = '16px';
+	elt.style.paddingTop = '0px';
+	elt.style.paddingLeft = '4px';
 	
 	this.addSeparator();
 	

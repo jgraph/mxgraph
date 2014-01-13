@@ -1,5 +1,5 @@
 /**
- * $Id: Dialogs.js,v 1.23 2014/01/08 10:50:55 gaudenz Exp $
+ * $Id: Dialogs.js,v 1.24 2014/01/13 01:03:10 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -625,9 +625,7 @@ function PrintDialog(editorUi)
 			}
 		}
 
-		var preview = new mxPrintPreview(graph, scale, pf, border, x0, y0);
-		preview.title = mxResources.get('preview');
-		preview.autoOrigin = autoOrigin;
+		var preview = PrintDialog.createPrintPreview(graph, scale, pf, border, x0, y0, autoOrigin);
 		
 		return preview.open();
 	};
@@ -655,6 +653,18 @@ function PrintDialog(editorUi)
 	tbody.appendChild(row);
 	table.appendChild(tbody);
 	this.container = table;
+};
+
+/**
+ * Constructs a new print dialog.
+ */
+PrintDialog.createPrintPreview = function(graph, scale, pf, border, x0, y0, autoOrigin)
+{
+	var preview = new mxPrintPreview(graph, scale, pf, border, x0, y0);
+	preview.title = mxResources.get('preview');
+	preview.autoOrigin = autoOrigin;
+	
+	return preview;
 };
 
 function FilenameDialog(editorUi, filename, buttonText, fn, label)
