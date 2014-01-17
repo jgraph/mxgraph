@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphHierarchyEdge.js,v 1.15 2012/06/12 20:23:14 david Exp $
+ * $Id: mxGraphHierarchyEdge.js,v 1.16 2014/01/16 17:35:06 david Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -19,6 +19,12 @@ function mxGraphHierarchyEdge(edges)
 {
 	mxGraphAbstractHierarchyCell.apply(this, arguments);
 	this.edges = edges;
+	this.ids = [];
+	
+	for (var i = 0; i < edges.length; i++)
+	{
+		this.ids.push(mxObjectIdentity.get(edges[i]));
+	}
 };
 
 /**
@@ -34,6 +40,13 @@ mxGraphHierarchyEdge.prototype.constructor = mxGraphHierarchyEdge;
  * together within one hierarchy edge.
  */
 mxGraphHierarchyEdge.prototype.edges = null;
+
+/**
+ * Variable: ids
+ * 
+ * The object identities of the wrapped cells
+ */
+mxGraphHierarchyEdge.prototype.ids = null;
 
 /**
  * Variable: source

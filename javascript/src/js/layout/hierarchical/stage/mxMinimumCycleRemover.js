@@ -1,6 +1,6 @@
 /**
- * $Id: mxMinimumCycleRemover.js,v 1.14 2010/01/04 11:18:26 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxMinimumCycleRemover.js,v 1.15 2014/01/16 17:35:05 david Exp $
+ * Copyright (c) 2006-2014, JGraph Ltd
  */
 /**
  * Class: mxMinimumCycleRemover
@@ -41,7 +41,13 @@ mxMinimumCycleRemover.prototype.execute = function(parent)
 {
 	var model = this.layout.getModel();
 	var seenNodes = new Object();
-	var unseenNodes = mxUtils.clone(model.vertexMapper, null, true);
+	var unseenNodesArray = model.vertexMapper.getValues();
+	var unseenNodes = new Object();
+	
+	for (var i = 0; i < unseenNodesArray.length; i++)
+	{
+		unseenNodes[unseenNodesArray[i].id] = unseenNodesArray[i];
+	}
 	
 	// Perform a dfs through the internal model. If a cycle is found,
 	// reverse it.
@@ -54,8 +60,7 @@ mxMinimumCycleRemover.prototype.execute = function(parent)
 		
 		for (var i = 0; i < modelRoots.length; i++)
 		{
-			var nodeId = mxCellPath.create(modelRoots[i]);
-			rootsArray[i] = model.vertexMapper[nodeId];
+			rootsArray[i] = model.vertexMapper.get(modelRoots[i]);
 		}
 	}
 
@@ -73,18 +78,10 @@ mxMinimumCycleRemover.prototype.execute = function(parent)
 			node.connectsAsSource.push(connectingEdge);
 		}
 		
-		var cellId = mxCellPath.create(node.cell);
-		seenNodes[cellId] = node;
-		delete unseenNodes[cellId];
+		seenNodes[node.id] = node;
+		delete unseenNodes[node.id];
 	}, rootsArray, true, null);
 
-	var possibleNewRoots = null;
-
-	if (unseenNodes.lenth > 0)
-	{
-		possibleNewRoots = mxUtils.clone(unseenNodes, null, true);
-	}
-	
 	// If there are any nodes that should be nodes that the dfs can miss
 	// these need to be processed with the dfs and the roots assigned
 	// correctly to form a correct internal model
@@ -105,27 +102,7 @@ mxMinimumCycleRemover.prototype.execute = function(parent)
 			mxUtils.remove(connectingEdge, node.connectsAsTarget);
 		}
 		
-		var cellId = mxCellPath.create(node.cell);
-		seenNodes[cellId] = node;
-		delete unseenNodes[cellId];
+		seenNodes[node.id] = node;
+		delete unseenNodes[node.id];
 	}, unseenNodes, true, seenNodesCopy);
-
-	var graph = this.layout.getGraph();
-
-	if (possibleNewRoots != null && possibleNewRoots.length > 0)
-	{
-		var roots = model.roots;
-
-		for (var i = 0; i < possibleNewRoots.length; i++)
-		{
-			var node = possibleNewRoots[i];
-			var realNode = node.cell;
-			var numIncomingEdges = graph.getIncomingEdges(realNode).length;
-
-			if (numIncomingEdges == 0)
-			{
-				roots.push(realNode);
-			}
-		}
-	}
 };

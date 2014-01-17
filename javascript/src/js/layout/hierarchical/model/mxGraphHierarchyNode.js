@@ -1,6 +1,6 @@
 /**
- * $Id: mxGraphHierarchyNode.js,v 1.13 2012/06/12 20:24:58 david Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxGraphHierarchyNode.js,v 1.14 2014/01/16 17:35:06 david Exp $
+ * Copyright (c) 2006-2014, JGraph Ltd
  */
 /**
  * Class: mxGraphHierarchyNode
@@ -19,6 +19,9 @@ function mxGraphHierarchyNode(cell)
 {
 	mxGraphAbstractHierarchyCell.apply(this, arguments);
 	this.cell = cell;
+	this.id = mxObjectIdentity.get(cell);
+	this.connectsAsTarget = [];
+	this.connectsAsSource = [];
 };
 
 /**
@@ -35,18 +38,25 @@ mxGraphHierarchyNode.prototype.constructor = mxGraphHierarchyNode;
 mxGraphHierarchyNode.prototype.cell = null;
 
 /**
+ * Variable: id
+ * 
+ * The object identity of the wrapped cell
+ */
+mxGraphHierarchyNode.prototype.id = null;
+
+/**
  * Variable: connectsAsTarget
  * 
  * Collection of hierarchy edges that have this node as a target
  */
-mxGraphHierarchyNode.prototype.connectsAsTarget = [];
+mxGraphHierarchyNode.prototype.connectsAsTarget = null;
 
 /**
  * Variable: connectsAsSource
  * 
  * Collection of hierarchy edges that have this node as a source
  */
-mxGraphHierarchyNode.prototype.connectsAsSource = [];
+mxGraphHierarchyNode.prototype.connectsAsSource = null;
 
 /**
  * Variable: hashCode

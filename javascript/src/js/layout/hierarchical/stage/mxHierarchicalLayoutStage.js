@@ -1,6 +1,6 @@
 /**
- * $Id: mxHierarchicalLayoutStage.js,v 1.8 2010/01/02 09:45:15 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * $Id: mxHierarchicalLayoutStage.js,v 1.9 2014/01/16 17:35:05 david Exp $
+ * Copyright (c) 2006-2014, JGraph Ltd
  */
 /**
  * Class: mxHierarchicalLayoutStage

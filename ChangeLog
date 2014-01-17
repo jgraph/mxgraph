@@ -1,3 +1,10 @@
+17-JAN-2014: 1.13.0.12
+
+- Fixes mxUtils.getTextContent for Firefox, adds mxUtils.setTextContent [JavaScript]
+- Improves edge crossing calculation performance in hierarchical layout [JavaScript]
+- Corrects issue with the hierarchical layout where there are multiple parallel, bi-directional edges between two
+    vertices and the initial traversal from roots doesn't follow the direction the majority of edges travel in. [JavaScript]
+
 08-JAN-2014: 1.13.0.11
 
 - Fixes possible undefined function in mxUtils.clearSelection [JavaScript]

@@ -1,6 +1,6 @@
 /**
- * $Id: mxHierarchicalLayout.js,v 1.37 2013/11/01 11:52:38 david Exp $
- * Copyright (c) 2005-2012, JGraph Ltd
+ * $Id: mxHierarchicalLayout.js,v 1.39 2014/01/16 17:35:06 david Exp $
+ * Copyright (c) 2005-2014, JGraph Ltd
  */
 /**
  * Class: mxHierarchicalLayout
@@ -35,7 +35,7 @@ mxHierarchicalLayout.prototype.constructor = mxHierarchicalLayout;
 /**
  * Variable: roots
  * 
- * Holds the array of <mxGraphLayouts> that this layout contains.
+ * Holds the array of <mxCell> that this layout contains.
  */
 mxHierarchicalLayout.prototype.roots = null;
 
@@ -149,6 +149,20 @@ mxHierarchicalLayout.prototype.model = null;
 mxHierarchicalLayout.prototype.edgesCache = null;
 
 /**
+ * Variable: edgesSet
+ * 
+ * A cache of edges whose source terminal is the key
+ */
+mxHierarchicalLayout.prototype.edgeSourceTermCache = null;
+
+/**
+ * Variable: edgesSet
+ * 
+ * A cache of edges whose source terminal is the key
+ */
+mxHierarchicalLayout.prototype.edgesTargetTermCache = null;
+
+/**
  * Function: getModel
  * 
  * Returns the internal <mxGraphHierarchyModel> for this layout algorithm.
@@ -172,7 +186,9 @@ mxHierarchicalLayout.prototype.execute = function(parent, roots)
 {
 	this.parent = parent;
 	var model = this.graph.model;
-	this.edgesCache = new Object();
+	this.edgesCache = new mxDictionary();
+	this.edgeSourceTermCache = new mxDictionary();
+	this.edgesTargetTermCache = new mxDictionary();
 
 	if (roots != null && !(roots instanceof Array))
 	{
@@ -198,7 +214,6 @@ mxHierarchicalLayout.prototype.execute = function(parent, roots)
 
 		for (var i = 0; i < roots.length; i++)
 		{
-
 			if (model.isAncestor(parent, roots[i]))
 			{
 				rootsCopy.push(roots[i]);
@@ -313,11 +328,11 @@ mxHierarchicalLayout.prototype.findRoots = function(parent, vertices)
  */
 mxHierarchicalLayout.prototype.getEdges = function(cell)
 {
-	var cellID = mxCellPath.create(cell);
+	var cachedEdges = this.edgesCache.get(cell);
 	
-	if (this.edgesCache[cellID] != null)
+	if (cachedEdges != null)
 	{
-		return this.edgesCache[cellID];
+		return cachedEdges;
 	}
 
 	var model = this.graph.model;
@@ -355,7 +370,7 @@ mxHierarchicalLayout.prototype.getEdges = function(cell)
 		}
 	}
 
-	this.edgesCache[cellID] = result;
+	this.edgesCache.put(cell, result);
 
 	return result;
 };
@@ -372,15 +387,36 @@ mxHierarchicalLayout.prototype.getEdges = function(cell)
  */
 mxHierarchicalLayout.prototype.getVisibleTerminal = function(edge, source)
 {
+	var terminalCache = this.edgesTargetTermCache;
+	
+	if (source)
+	{
+		terminalCache = this.edgeSourceTermCache;
+	}
+
+	var term = terminalCache.get(edge);
+
+	if (term != null)
+	{
+		return term;
+	}
+
 	var state = this.graph.view.getState(edge);
 	
 	var terminal = (state != null) ? state.getVisibleTerminal(source) : this.graph.view.getVisibleTerminal(edge, source);
 	
+	if (terminal == null)
+	{
+		terminal = (state != null) ? state.getVisibleTerminal(source) : this.graph.view.getVisibleTerminal(edge, source);
+	}
+
 	if (this.isPort(terminal))
 	{
 		terminal = this.graph.model.getParent(terminal);
 	}
 	
+	terminalCache.put(edge, terminal);
+
 	return terminal;
 };
 
@@ -504,7 +540,7 @@ mxHierarchicalLayout.prototype.filterDescendants = function(cell, result)
 
 	if (model.isVertex(cell) && cell != this.parent && this.graph.isCellVisible(cell))
 	{
-		result[mxCellPath.create(cell)] = cell;
+		result[mxObjectIdentity.get(cell)] = cell;
 	}
 
 	if (this.traverseAncestors || cell == this.parent
@@ -604,7 +640,7 @@ mxHierarchicalLayout.prototype.traverse = function(vertex, directed, edge, allVe
 		// Has this vertex been seen before in any traversal
 		// And if the filled vertex set is populated, only 
 		// process vertices in that it contains
-		var vertexID = mxCellPath.create(vertex);
+		var vertexID = mxObjectIdentity.get(vertex);
 		
 		if ((allVertices[vertexID] == null)
 				&& (filledVertexSet == null ? true : filledVertexSet[vertexID] != null))
@@ -624,17 +660,57 @@ mxHierarchicalLayout.prototype.traverse = function(vertex, directed, edge, allVe
 			}
 
 			var edges = this.getEdges(vertex);
+			var edgeIsSource = [];
 
 			for (var i = 0; i < edges.length; i++)
 			{
-				var isSource = this.getVisibleTerminal(edges[i], true) == vertex;
+				edgeIsSource[i] = (this.getVisibleTerminal(edges[i], true) == vertex);
+			}
 
-				if (!directed || isSource)
+			for (var i = 0; i < edges.length; i++)
+			{
+				if (!directed || edgeIsSource[i])
 				{
-					var next = this.getVisibleTerminal(edges[i], !isSource);
-					currentComp = this.traverse(next, directed, edges[i], allVertices,
+					var next = this.getVisibleTerminal(edges[i], !edgeIsSource[i]);
+					
+					// Check whether there are more edges incoming from the target vertex than outgoing
+					// The hierarchical model treats bi-directional parallel edges as being sourced
+					// from the more "sourced" terminal. If the directions are equal in number, the direction
+					// is that of the natural direction from the roots of the layout.
+					// The checks below are slightly more verbose than need be for performance reasons
+					var netCount = 1;
+
+					for (var j = 0; j < edges.length; j++)
+					{
+						if (j == i)
+						{
+							continue;
+						}
+						else
+						{
+							var isSource2 = edgeIsSource[j];
+							var otherTerm = this.getVisibleTerminal(edges[j], !isSource2);
+							
+							if (otherTerm == next)
+							{
+								if (isSource2)
+								{
+									netCount++;
+								}
+								else
+								{
+									netCount--;
+								}
+							}
+						}
+					}
+
+					if (netCount >= 0)
+					{
+						currentComp = this.traverse(next, directed, edges[i], allVertices,
 							currentComp, hierarchyVertices,
 							filledVertexSet);
+					}
 				}
 			}
 		}

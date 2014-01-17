@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.js,v 1.305 2014/01/08 10:51:36 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.306 2014/01/17 08:27:28 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 var mxUtils =
@@ -767,7 +767,7 @@ var mxUtils =
 		  
 		return xml;
 	},
-
+	
 	/**
 	 * Function: getTextContent
 	 * 
@@ -779,19 +779,22 @@ var mxUtils =
 	 */
 	getTextContent: function(node)
 	{
-		var result = '';
-		
-		if (node != null)
-		{
-			if (node.firstChild != null)
-			{
-				node = node.firstChild;
-			}
-			
-			result = node.nodeValue || '';
-		}
-		
-		return result;
+		return (node != null) ? node[(node.textContent === undefined) ? 'text' : 'textContent'] : '';
+	},
+	
+	/**
+	 * Function: setTextContent
+	 * 
+	 * Sets the text content of the specified node.
+	 * 
+	 * Parameters:
+	 * 
+	 * node - DOM node to set the text content for.
+	 * text - String that represents the text content.
+	 */
+	setTextContent: function(node, text)
+	{
+		node[(node.textContent === undefined) ? 'text' : 'textContent'] = text;
 	},
 	
 	/**
