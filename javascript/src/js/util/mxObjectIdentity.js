@@ -1,5 +1,5 @@
 /**
- * $Id: mxObjectIdentity.js,v 1.2 2013/10/28 08:45:00 gaudenz Exp $
+ * $Id: mxObjectIdentity.js,v 1.3 2014/01/15 14:36:11 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxObjectIdentity =
@@ -33,11 +33,10 @@ var mxObjectIdentity =
 	 */
 	get: function(obj)
 	{
-		if (typeof(obj) == 'object' &&
-			obj[mxObjectIdentity.FIELD_NAME] == null)
+		if (typeof(obj) == 'object' && obj[mxObjectIdentity.FIELD_NAME] == null)
 		{
 			var ctor = mxUtils.getFunctionName(obj.constructor);
-			obj[mxObjectIdentity.FIELD_NAME] = ctor+'#'+mxObjectIdentity.counter++;
+			obj[mxObjectIdentity.FIELD_NAME] = ctor + '#' + mxObjectIdentity.counter++;
 		}
 		
 		return obj[mxObjectIdentity.FIELD_NAME];

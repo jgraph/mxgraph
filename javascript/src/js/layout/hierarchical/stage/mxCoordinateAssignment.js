@@ -1,5 +1,5 @@
 /**
- * $Id: mxCoordinateAssignment.js,v 1.3 2013/02/21 15:16:29 david Exp $
+ * $Id: mxCoordinateAssignment.js,v 1.4 2014/01/16 17:23:31 david Exp $
  * Copyright (c) 2005-2013, JGraph Ltd
  */
 /**
@@ -264,7 +264,7 @@ mxCoordinateAssignment.prototype.printStatus = function()
  */
 mxCoordinateAssignment.prototype.execute = function(parent)
 {
-	this.jettyPositions = [];
+	this.jettyPositions = Object();
 	var model = this.layout.getModel();
 	this.currentXDelta = 0.0;
 
@@ -345,7 +345,7 @@ mxCoordinateAssignment.prototype.minNode = function(model)
 	var nodeList = [];
 	
 	// Need to be able to map from cell to cellWrapper
-	var map = [];
+	var map = new mxDictionary();
 	var rank = [];
 	
 	for (var i = 0; i <= model.maxRank; i++)
@@ -362,8 +362,7 @@ mxCoordinateAssignment.prototype.minNode = function(model)
 			nodeWrapper.visited = true;
 			nodeList.push(nodeWrapper);
 			
-			var cellId = mxCellPath.create(node.getCoreCell());
-			map[cellId] = nodeWrapper;
+			map.put(node, nodeWrapper);
 		}
 	}
 	
@@ -476,8 +475,7 @@ mxCoordinateAssignment.prototype.minNode = function(model)
 			for (var i = 0; i < nextLayerConnectedCells.length; i++)
 			{
 				var connectedCell = nextLayerConnectedCells[i];
-				var connectedCellId = mxCellPath.create(connectedCell.getCoreCell());
-				var connectedCellWrapper = map[connectedCellId];
+				var connectedCellWrapper = map.get(connectedCell);
 				
 				if (connectedCellWrapper != null)
 				{
@@ -493,9 +491,8 @@ mxCoordinateAssignment.prototype.minNode = function(model)
 			for (var i = 0; i < previousLayerConnectedCells.length; i++)
 			{
 				var connectedCell = previousLayerConnectedCells[i];
-				var connectedCellId = mxCellPath.create(connectedCell.getCoreCell());
-				var connectedCellWrapper = map[connectedCellId];
-				
+				var connectedCellWrapper = map.get(connectedCell);
+
 				if (connectedCellWrapper != null)
 				{
 					if (connectedCellWrapper.visited == false)
@@ -561,9 +558,9 @@ mxCoordinateAssignment.prototype.rankMedianPosition = function(rankValue, model,
 
 	// Form an array of the order in which the cell are to be processed
 	// , the order is given by the weighted sum of the in or out edges,
-	// depending on whether we're travelling up or down the hierarchy.
+	// depending on whether we're traveling up or down the hierarchy.
 	var weightedValues = [];
-	var cellMap = [];
+	var cellMap = new Object();
 
 	for (var i = 0; i < rank.length; i++)
 	{
@@ -571,8 +568,7 @@ mxCoordinateAssignment.prototype.rankMedianPosition = function(rankValue, model,
 		weightedValues[i] = new WeightedCellSorter();
 		weightedValues[i].cell = currentCell;
 		weightedValues[i].rankIndex = i;
-		var currentCellId = mxCellPath.create(currentCell.getCoreCell());
-		cellMap[currentCellId] = weightedValues[i];
+		cellMap[currentCell.id] = weightedValues[i];
 		var nextLayerConnectedCells = null;
 		
 		if (nextRankValue < rankValue)
@@ -638,8 +634,7 @@ mxCoordinateAssignment.prototype.rankMedianPosition = function(rankValue, model,
 		
 		for (var j = weightedValues[i].rankIndex - 1; j >= 0;)
 		{
-			var rankId = mxCellPath.create(rank[j].getCoreCell());
-			var weightedValue = cellMap[rankId];
+			var weightedValue = cellMap[rank[j].id];
 			
 			if (weightedValue != null)
 			{
@@ -671,8 +666,7 @@ mxCoordinateAssignment.prototype.rankMedianPosition = function(rankValue, model,
 		
 		for (var j = weightedValues[i].rankIndex + 1; j < weightedValues.length;)
 		{
-			var rankId = mxCellPath.create(rank[j].getCoreCell());
-			var weightedValue = cellMap[rankId];
+			var weightedValue = cellMap[rank[j].id];
 			
 			if (weightedValue != null)
 			{
@@ -1063,11 +1057,11 @@ mxCoordinateAssignment.prototype.minPath = function(graph, model)
 	// preferred direction used is the one where the final
 	// control points have the least offset from the connectable 
 	// region of the terminating vertices
-	var edges = model.edgeMapper;
+	var edges = model.edgeMapper.getValues();
 	
-	for (var key in edges)
+	for (var j = 0; j < edges.length; j++)
 	{
-		var cell = edges[key];
+		var cell = edges[j];
 		
 		if (cell.maxRank - cell.minRank - 1 < 1)
 		{
@@ -1298,22 +1292,20 @@ mxCoordinateAssignment.prototype.setCellLocations = function(graph, model)
 		parentsChanged = new Object();
 	}
 
-	var edges = model.edgeMapper;
-	var vertices = model.vertexMapper;
+	var vertices = model.vertexMapper.getValues();
 
 	// Process vertices all first, since they define the lower and 
 	// limits of each rank. Between these limits lie the channels
 	// where the edges can be routed across the graph
 
-	for (var key in vertices)
+	for (var i = 0; i < vertices.length; i++)
 	{
-		var vertex = vertices[key];
-		this.setVertexLocation(vertex);
+		this.setVertexLocation(vertices[i]);
 		
 		if (this.layout.resizeParent)
 		{
-			var parent = graph.model.getParent(vertex.cell);
-			var id = mxCellPath.create(parent);
+			var parent = graph.model.getParent(vertices[i].cell);
+			var id = mxObjectIdentity.create(parent);
 			
 			// Implements set semantic
 			if (parentsChanged[id] == null)
@@ -1337,9 +1329,11 @@ mxCoordinateAssignment.prototype.setCellLocations = function(graph, model)
 		this.localEdgeProcessing(model);
 	}
 
-	for (var key in edges)
+	var edges = model.edgeMapper.getValues();
+
+	for (var i = 0; i < edges.length; i++)
 	{
-		this.setEdgePosition(edges[key]);
+		this.setEdgePosition(edges[i]);
 	}
 };
 
@@ -1478,13 +1472,12 @@ mxCoordinateAssignment.prototype.localEdgeProcessing = function(model)
 						{
 							var numActualEdges = connectedEdges[j].edges
 									.length;
-							var edgeId = mxCellPath.create(connectedEdges[j].edges[0]);
-							var pos = this.jettyPositions[edgeId];
+							var pos = this.jettyPositions[connectedEdges[j].ids[0]];
 							
 							if (pos == null)
 							{
 								pos = [];
-								this.jettyPositions[edgeId] = pos;
+								this.jettyPositions[connectedEdges[j].ids[0]] = pos;
 							}
 
 							if (j < connectedEdgeCount / 2)
@@ -1543,8 +1536,7 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 		}
 		
 		var parallelEdgeCount = 0;
-		var edgeId = mxCellPath.create(cell.edges[0]);
-		var jettys = this.jettyPositions[edgeId];
+		var jettys = this.jettyPositions[cell.ids[0]];
 
 		var source = cell.isReversed ? cell.target.cell : cell.source.cell;
 		var graph = this.layout.graph;

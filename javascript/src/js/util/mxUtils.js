@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.js,v 1.24 2014/01/07 11:27:13 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.28 2014/01/16 16:34:41 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxUtils =
@@ -819,19 +819,22 @@ var mxUtils =
 	 */
 	getTextContent: function(node)
 	{
-		var result = '';
-		
-		if (node != null)
-		{
-			if (node.firstChild != null)
-			{
-				node = node.firstChild;
-			}
-			
-			result = node.nodeValue || '';
-		}
-		
-		return result;
+		return (node != null) ? node[(node.textContent === undefined) ? 'text' : 'textContent'] : '';
+	},
+	
+	/**
+	 * Function: setTextContent
+	 * 
+	 * Sets the text content of the specified node.
+	 * 
+	 * Parameters:
+	 * 
+	 * node - DOM node to set the text content for.
+	 * text - String that represents the text content.
+	 */
+	setTextContent: function(node, text)
+	{
+		node[(node.textContent === undefined) ? 'text' : 'textContent'] = text;
 	},
 	
 	/**
@@ -1196,28 +1199,27 @@ var mxUtils =
 		var left = parseInt(node.offsetLeft);
 		var width = parseInt(node.offsetWidth);
 			
+		var offset = mxUtils.getDocumentScrollOrigin(node.ownerDocument);
+		var sl = offset.x;
+		var st = offset.y;
+
 		var b = document.body;
 		var d = document.documentElement;
-			
-		var right = (b.scrollLeft || d.scrollLeft) +
-			(b.clientWidth || d.clientWidth);
+		var right = (sl) + (b.clientWidth || d.clientWidth);
 		
 		if (left + width > right)
 		{
-			node.style.left = Math.max((b.scrollLeft || d.scrollLeft),
-				right - width)+'px';
+			node.style.left = Math.max(sl, right - width) + 'px';
 		}
 		
 		var top = parseInt(node.offsetTop);
 		var height = parseInt(node.offsetHeight);
 		
-		var bottom = (b.scrollTop || d.scrollTop) +
-			Math.max(b.clientHeight || 0, d.clientHeight);
+		var bottom = st + Math.max(b.clientHeight || 0, d.clientHeight);
 		
 		if (top + height > bottom)
 		{
-			node.style.top = Math.max((b.scrollTop || d.scrollTop),
-				bottom - height)+'px';
+			node.style.top = Math.max(st, bottom - height) + 'px';
 		}
 	},
 
@@ -2494,10 +2496,9 @@ var mxUtils =
 		
 		if (scrollOffset != null && scrollOffset)
 		{
-			var b = document.body;
-			var d = document.documentElement;
-			offsetLeft += (b.scrollLeft || d.scrollLeft);
-			offsetTop += (b.scrollTop || d.scrollTop);
+			var offset = mxUtils.getDocumentScrollOrigin(container.ownerDocument);
+			offsetLeft += offset.x;
+			offsetTop += offset.y;
 		}
 
 		while (container.offsetParent)
@@ -2512,6 +2513,24 @@ var mxUtils =
 	},
 
 	/**
+	 * Function: getDocumentScrollOrigin
+	 * 
+	 * Returns the scroll origin of the given document or the current document
+	 * if no document is given.
+	 */
+	getDocumentScrollOrigin: function(doc)
+	{
+		doc = (doc != null) ? doc : document;
+		
+		var b = doc.body;
+		var d = doc.documentElement;
+		var sl = (document.compatMode == 'BackCompat') ? b.scrollLeft : d.scrollLeft;
+		var st = (document.compatMode == 'BackCompat') ? b.scrollTop : d.scrollTop;
+		
+		return new mxPoint(sl, st);
+	},
+	
+	/**
 	 * Function: getScrollOrigin
 	 * 
 	 * Returns the top, left corner of the viewrect as an <mxPoint>.
@@ -2520,10 +2539,7 @@ var mxUtils =
 	{
 		var b = document.body;
 		var d = document.documentElement;
-		var sl = (b.scrollLeft || d.scrollLeft);
-		var st = (b.scrollTop || d.scrollTop);
-		
-		var result = new mxPoint(sl, st);
+		var result = mxUtils.getDocumentScrollOrigin((node != null) ? node.ownerDocument : document);
 		
 		while (node != null && node != b && node != d)
 		{

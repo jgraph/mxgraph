@@ -1,5 +1,5 @@
 /**
- * $Id: mxHierarchicalLayout.js,v 1.13 2014/01/13 11:00:32 david Exp $
+ * $Id: mxHierarchicalLayout.js,v 1.14 2014/01/16 17:25:04 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -186,9 +186,9 @@ mxHierarchicalLayout.prototype.execute = function(parent, roots)
 {
 	this.parent = parent;
 	var model = this.graph.model;
-	this.edgesCache = new Object();
-	this.edgeSourceTermCache = new Object();
-	this.edgesTargetTermCache = new Object();
+	this.edgesCache = new mxDictionary();
+	this.edgeSourceTermCache = new mxDictionary();
+	this.edgesTargetTermCache = new mxDictionary();
 
 	if (roots != null && !(roots instanceof Array))
 	{
@@ -328,11 +328,11 @@ mxHierarchicalLayout.prototype.findRoots = function(parent, vertices)
  */
 mxHierarchicalLayout.prototype.getEdges = function(cell)
 {
-	var cellID = mxCellPath.create(cell);
+	var cachedEdges = this.edgesCache.get(cell);
 	
-	if (this.edgesCache[cellID] != null)
+	if (cachedEdges != null)
 	{
-		return this.edgesCache[cellID];
+		return cachedEdges;
 	}
 
 	var model = this.graph.model;
@@ -370,7 +370,7 @@ mxHierarchicalLayout.prototype.getEdges = function(cell)
 		}
 	}
 
-	this.edgesCache[cellID] = result;
+	this.edgesCache.put(cell, result);
 
 	return result;
 };
@@ -387,8 +387,6 @@ mxHierarchicalLayout.prototype.getEdges = function(cell)
  */
 mxHierarchicalLayout.prototype.getVisibleTerminal = function(edge, source)
 {
-	var cellID = mxCellPath.create(edge);
-	
 	var terminalCache = this.edgesTargetTermCache;
 	
 	if (source)
@@ -396,21 +394,28 @@ mxHierarchicalLayout.prototype.getVisibleTerminal = function(edge, source)
 		terminalCache = this.edgeSourceTermCache;
 	}
 
-	if (terminalCache[cellID] != null)
+	var term = terminalCache.get(edge);
+
+	if (term != null)
 	{
-		return terminalCache[cellID];
+		return term;
 	}
 
 	var state = this.graph.view.getState(edge);
 	
 	var terminal = (state != null) ? state.getVisibleTerminal(source) : this.graph.view.getVisibleTerminal(edge, source);
 	
+	if (terminal == null)
+	{
+		terminal = (state != null) ? state.getVisibleTerminal(source) : this.graph.view.getVisibleTerminal(edge, source);
+	}
+
 	if (this.isPort(terminal))
 	{
 		terminal = this.graph.model.getParent(terminal);
 	}
 	
-	terminalCache[cellID] = terminal;
+	terminalCache.put(edge, terminal);
 
 	return terminal;
 };
@@ -535,7 +540,7 @@ mxHierarchicalLayout.prototype.filterDescendants = function(cell, result)
 
 	if (model.isVertex(cell) && cell != this.parent && this.graph.isCellVisible(cell))
 	{
-		result[mxCellPath.create(cell)] = cell;
+		result[mxObjectIdentity.get(cell)] = cell;
 	}
 
 	if (this.traverseAncestors || cell == this.parent
@@ -635,7 +640,7 @@ mxHierarchicalLayout.prototype.traverse = function(vertex, directed, edge, allVe
 		// Has this vertex been seen before in any traversal
 		// And if the filled vertex set is populated, only 
 		// process vertices in that it contains
-		var vertexID = mxCellPath.create(vertex);
+		var vertexID = mxObjectIdentity.get(vertex);
 		
 		if ((allVertices[vertexID] == null)
 				&& (filledVertexSet == null ? true : filledVertexSet[vertexID] != null))

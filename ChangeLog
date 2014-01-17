@@ -1,3 +1,12 @@
+17-JAN-2014: 2.4.0.2
+
+- Removes mxCellPath.create usage for in hierarchical layout [JavaScript]
+- Fixes mxUtils.getTextContent for Firefox, adds mxUtils.setTextContent [JavaScript]
+- Adds mxUtils.getDocumentScrollOrigin, fixes deprecation warnings [JavaScript]
+- Adds update of graph bounds in mxGraphView if rendering is false [JavaScript]
+- Ignores edges with no points in mxGraph.getBoundingBoxFromGeometry [JavaScript]
+- Creates mxShape in mxGraphView.createState if rendering is false [JavaScript]
+
 13-JAN-2014: 2.4.0.1
 
 - Improves edge crossing calculation performance in hierarchical layout [JavaScript]

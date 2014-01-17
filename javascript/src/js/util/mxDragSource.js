@@ -1,5 +1,5 @@
 /**
- * $Id: mxDragSource.js,v 1.11 2013/12/13 12:13:43 gaudenz Exp $
+ * $Id: mxDragSource.js,v 1.13 2014/01/16 08:38:27 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -399,10 +399,10 @@ mxDragSource.prototype.mouseMove = function(evt)
 			y += this.dragOffset.y;
 		}
 		
-		x += document.body.scrollLeft || document.documentElement.scrollLeft;
-		y += document.body.scrollTop || document.documentElement.scrollTop;
-		this.dragElement.style.left = x + 'px';
-		this.dragElement.style.top = y + 'px';
+		var offset = mxUtils.getDocumentScrollOrigin(document);
+		
+		this.dragElement.style.left = (x + offset.x) + 'px';
+		this.dragElement.style.top = (y + offset.y) + 'px';
 	}
 	else if (this.dragElement != null)
 	{

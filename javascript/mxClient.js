@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.4.0.1.
+	 * Current version is 2.4.0.2.
 	 */
-	VERSION: '2.4.0.1',
+	VERSION: '2.4.0.2',
 
 	/**
 	 * Variable: IS_IE
@@ -957,7 +957,7 @@ var mxLog =
 	
 };
 /**
- * $Id: mxObjectIdentity.js,v 1.2 2013/10/28 08:45:00 gaudenz Exp $
+ * $Id: mxObjectIdentity.js,v 1.3 2014/01/15 14:36:11 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxObjectIdentity =
@@ -991,11 +991,10 @@ var mxObjectIdentity =
 	 */
 	get: function(obj)
 	{
-		if (typeof(obj) == 'object' &&
-			obj[mxObjectIdentity.FIELD_NAME] == null)
+		if (typeof(obj) == 'object' && obj[mxObjectIdentity.FIELD_NAME] == null)
 		{
 			var ctor = mxUtils.getFunctionName(obj.constructor);
-			obj[mxObjectIdentity.FIELD_NAME] = ctor+'#'+mxObjectIdentity.counter++;
+			obj[mxObjectIdentity.FIELD_NAME] = ctor + '#' + mxObjectIdentity.counter++;
 		}
 		
 		return obj[mxObjectIdentity.FIELD_NAME];
@@ -1909,7 +1908,7 @@ var mxEffects =
 
 };
 /**
- * $Id: mxUtils.js,v 1.24 2014/01/07 11:27:13 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.28 2014/01/16 16:34:41 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxUtils =
@@ -2729,19 +2728,22 @@ var mxUtils =
 	 */
 	getTextContent: function(node)
 	{
-		var result = '';
-		
-		if (node != null)
-		{
-			if (node.firstChild != null)
-			{
-				node = node.firstChild;
-			}
-			
-			result = node.nodeValue || '';
-		}
-		
-		return result;
+		return (node != null) ? node[(node.textContent === undefined) ? 'text' : 'textContent'] : '';
+	},
+	
+	/**
+	 * Function: setTextContent
+	 * 
+	 * Sets the text content of the specified node.
+	 * 
+	 * Parameters:
+	 * 
+	 * node - DOM node to set the text content for.
+	 * text - String that represents the text content.
+	 */
+	setTextContent: function(node, text)
+	{
+		node[(node.textContent === undefined) ? 'text' : 'textContent'] = text;
 	},
 	
 	/**
@@ -3106,28 +3108,27 @@ var mxUtils =
 		var left = parseInt(node.offsetLeft);
 		var width = parseInt(node.offsetWidth);
 			
+		var offset = mxUtils.getDocumentScrollOrigin(node.ownerDocument);
+		var sl = offset.x;
+		var st = offset.y;
+
 		var b = document.body;
 		var d = document.documentElement;
-			
-		var right = (b.scrollLeft || d.scrollLeft) +
-			(b.clientWidth || d.clientWidth);
+		var right = (sl) + (b.clientWidth || d.clientWidth);
 		
 		if (left + width > right)
 		{
-			node.style.left = Math.max((b.scrollLeft || d.scrollLeft),
-				right - width)+'px';
+			node.style.left = Math.max(sl, right - width) + 'px';
 		}
 		
 		var top = parseInt(node.offsetTop);
 		var height = parseInt(node.offsetHeight);
 		
-		var bottom = (b.scrollTop || d.scrollTop) +
-			Math.max(b.clientHeight || 0, d.clientHeight);
+		var bottom = st + Math.max(b.clientHeight || 0, d.clientHeight);
 		
 		if (top + height > bottom)
 		{
-			node.style.top = Math.max((b.scrollTop || d.scrollTop),
-				bottom - height)+'px';
+			node.style.top = Math.max(st, bottom - height) + 'px';
 		}
 	},
 
@@ -4404,10 +4405,9 @@ var mxUtils =
 		
 		if (scrollOffset != null && scrollOffset)
 		{
-			var b = document.body;
-			var d = document.documentElement;
-			offsetLeft += (b.scrollLeft || d.scrollLeft);
-			offsetTop += (b.scrollTop || d.scrollTop);
+			var offset = mxUtils.getDocumentScrollOrigin(container.ownerDocument);
+			offsetLeft += offset.x;
+			offsetTop += offset.y;
 		}
 
 		while (container.offsetParent)
@@ -4422,6 +4422,24 @@ var mxUtils =
 	},
 
 	/**
+	 * Function: getDocumentScrollOrigin
+	 * 
+	 * Returns the scroll origin of the given document or the current document
+	 * if no document is given.
+	 */
+	getDocumentScrollOrigin: function(doc)
+	{
+		doc = (doc != null) ? doc : document;
+		
+		var b = doc.body;
+		var d = doc.documentElement;
+		var sl = (document.compatMode == 'BackCompat') ? b.scrollLeft : d.scrollLeft;
+		var st = (document.compatMode == 'BackCompat') ? b.scrollTop : d.scrollTop;
+		
+		return new mxPoint(sl, st);
+	},
+	
+	/**
 	 * Function: getScrollOrigin
 	 * 
 	 * Returns the top, left corner of the viewrect as an <mxPoint>.
@@ -4430,10 +4448,7 @@ var mxUtils =
 	{
 		var b = document.body;
 		var d = document.documentElement;
-		var sl = (b.scrollLeft || d.scrollLeft);
-		var st = (b.scrollTop || d.scrollTop);
-		
-		var result = new mxPoint(sl, st);
+		var result = mxUtils.getDocumentScrollOrigin((node != null) ? node.ownerDocument : document);
 		
 		while (node != null && node != b && node != d)
 		{
@@ -11984,7 +11999,7 @@ mxDivResizer.prototype.getDocumentHeight = function()
 	return document.body.clientHeight;
 };
 /**
- * $Id: mxDragSource.js,v 1.11 2013/12/13 12:13:43 gaudenz Exp $
+ * $Id: mxDragSource.js,v 1.13 2014/01/16 08:38:27 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -12384,10 +12399,10 @@ mxDragSource.prototype.mouseMove = function(evt)
 			y += this.dragOffset.y;
 		}
 		
-		x += document.body.scrollLeft || document.documentElement.scrollLeft;
-		y += document.body.scrollTop || document.documentElement.scrollTop;
-		this.dragElement.style.left = x + 'px';
-		this.dragElement.style.top = y + 'px';
+		var offset = mxUtils.getDocumentScrollOrigin(document);
+		
+		this.dragElement.style.left = (x + offset.x) + 'px';
+		this.dragElement.style.top = (y + offset.y) + 'px';
 	}
 	else if (this.dragElement != null)
 	{
@@ -14655,7 +14670,7 @@ mxPanningManager.prototype.handleMouseOut = true;
  */
 mxPanningManager.prototype.border = 0;
 /**
- * $Id: mxPopupMenu.js,v 1.8 2014/01/08 15:53:30 gaudenz Exp $
+ * $Id: mxPopupMenu.js,v 1.10 2014/01/16 10:15:38 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -15058,16 +15073,16 @@ mxPopupMenu.prototype.showSubmenu = function(parent, row)
 		// Moves the submenu to the left side if there is no space
 		var left = parseInt(row.div.offsetLeft);
 		var width = parseInt(row.div.offsetWidth);
+		var offset = mxUtils.getDocumentScrollOrigin(document);
 		
 		var b = document.body;
 		var d = document.documentElement;
 		
-		var right = (b.scrollLeft || d.scrollLeft) + (b.clientWidth || d.clientWidth);
+		var right = offset.x + (b.clientWidth || d.clientWidth);
 		
 		if (left + width > right)
 		{
-			row.div.style.left = (parent.div.offsetLeft - width +
-				((mxClient.IS_IE) ? 6 : -6)) + 'px';
+			row.div.style.left = (parent.div.offsetLeft - width + ((mxClient.IS_IE) ? 6 : -6)) + 'px';
 		}
 		
 		mxUtils.fit(row.div);
@@ -29518,7 +29533,7 @@ mxGraphAbstractHierarchyCell.prototype.setY = function(layer, value)
 	}
 };
 /**
- * $Id: mxGraphHierarchyNode.js,v 1.3 2013/10/28 08:45:05 gaudenz Exp $
+ * $Id: mxGraphHierarchyNode.js,v 1.4 2014/01/16 16:21:33 david Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -29538,6 +29553,7 @@ function mxGraphHierarchyNode(cell)
 {
 	mxGraphAbstractHierarchyCell.apply(this, arguments);
 	this.cell = cell;
+	this.id = mxObjectIdentity.get(cell);
 	this.connectsAsTarget = [];
 	this.connectsAsSource = [];
 };
@@ -29554,6 +29570,13 @@ mxGraphHierarchyNode.prototype.constructor = mxGraphHierarchyNode;
  * The graph cell this object represents.
  */
 mxGraphHierarchyNode.prototype.cell = null;
+
+/**
+ * Variable: id
+ * 
+ * The object identity of the wrapped cell
+ */
+mxGraphHierarchyNode.prototype.id = null;
 
 /**
  * Variable: connectsAsTarget
@@ -29729,8 +29752,8 @@ mxGraphHierarchyNode.prototype.getCoreCell = function()
 {
 	return this.cell;
 };/**
- * $Id: mxGraphHierarchyEdge.js,v 1.2 2013/10/28 08:45:05 gaudenz Exp $
- * Copyright (c) 2006-2013, JGraph Ltd
+ * $Id: mxGraphHierarchyEdge.js,v 1.3 2014/01/16 16:13:52 david Exp $
+ * Copyright (c) 2006-2014, JGraph Ltd
  */
 /**
  * Class: mxGraphHierarchyEdge
@@ -29749,6 +29772,12 @@ function mxGraphHierarchyEdge(edges)
 {
 	mxGraphAbstractHierarchyCell.apply(this, arguments);
 	this.edges = edges;
+	this.ids = [];
+	
+	for (var i = 0; i < edges.length; i++)
+	{
+		this.ids.push(mxObjectIdentity.get(edges[i]));
+	}
 };
 
 /**
@@ -29764,6 +29793,13 @@ mxGraphHierarchyEdge.prototype.constructor = mxGraphHierarchyEdge;
  * together within one hierarchy edge.
  */
 mxGraphHierarchyEdge.prototype.edges = null;
+
+/**
+ * Variable: ids
+ * 
+ * The object identities of the wrapped cells
+ */
+mxGraphHierarchyEdge.prototype.ids = null;
 
 /**
  * Variable: source
@@ -29902,8 +29938,8 @@ mxGraphHierarchyEdge.prototype.getCoreCell = function()
 	
 	return null;
 };/**
- * $Id: mxGraphHierarchyModel.js,v 1.7 2013/07/30 13:09:34 david Exp $
- * Copyright (c) 2006-2012, JGraph Ltd
+ * $Id: mxGraphHierarchyModel.js,v 1.8 2014/01/16 16:45:25 david Exp $
+ * Copyright (c) 2006-2014, JGraph Ltd
  */
 /**
  * Class: mxGraphHierarchyModel
@@ -29938,8 +29974,8 @@ function mxGraphHierarchyModel(layout, vertices, roots, parent, tightenToSource)
 
 	// map of cells to internal cell needed for second run through
 	// to setup the sink of edges correctly
-	this.vertexMapper = new Object();
-	this.edgeMapper = new Object();
+	this.vertexMapper = new mxDictionary();
+	this.edgeMapper = new mxDictionary();
 	this.maxRank = 0;
 	var internalVertices = [];
 
@@ -29972,8 +30008,7 @@ function mxGraphHierarchyModel(layout, vertices, roots, parent, tightenToSource)
 				var realEdge = realEdges[0];
 				var targetCell = layout.getVisibleTerminal(
 						realEdge, false);
-				var targetCellId = mxCellPath.create(targetCell);
-				var internalTargetCell = this.vertexMapper[targetCellId];
+				var internalTargetCell = this.vertexMapper.get(targetCell);
 
 				if (internalVertices[i] == internalTargetCell)
 				{
@@ -29984,8 +30019,7 @@ function mxGraphHierarchyModel(layout, vertices, roots, parent, tightenToSource)
 					// This branch only detects this single case
 					targetCell = layout.getVisibleTerminal(
 							realEdge, true);
-					targetCellId = mxCellPath.create(targetCell);
-					internalTargetCell = this.vertexMapper[targetCellId];
+					internalTargetCell = this.vertexMapper.get(targetCell);
 				}
 				
 				if (internalTargetCell != null
@@ -30098,8 +30132,7 @@ mxGraphHierarchyModel.prototype.createInternalCells = function(layout, vertices,
 	for (var i = 0; i < vertices.length; i++)
 	{
 		internalVertices[i] = new mxGraphHierarchyNode(vertices[i]);
-		var vertexId = mxCellPath.create(vertices[i]);
-		this.vertexMapper[vertexId] = internalVertices[i];
+		this.vertexMapper.put(vertices[i], internalVertices[i]);
 
 		// If the layout is deterministic, order the cells
 		//List outgoingCells = graph.getNeighbours(vertices[i], deterministic);
@@ -30134,11 +30167,10 @@ mxGraphHierarchyModel.prototype.createInternalCells = function(layout, vertices,
 						cell, false);
 				var directedEdges = layout.getEdgesBetween(vertices[i],
 						cell, true);
-				var edgeId = mxCellPath.create(undirectedEdges[0]);
 				
 				if (undirectedEdges != null &&
 						undirectedEdges.length > 0 &&
-						this.edgeMapper[edgeId] == null &&
+						this.edgeMapper.get(undirectedEdges[0]) == null &&
 						directedEdges.length * 2 >= undirectedEdges.length)
 				{
 					var internalEdge = new mxGraphHierarchyEdge(undirectedEdges);
@@ -30146,8 +30178,7 @@ mxGraphHierarchyModel.prototype.createInternalCells = function(layout, vertices,
 					for (var k = 0; k < undirectedEdges.length; k++)
 					{
 						var edge = undirectedEdges[k];
-						edgeId = mxCellPath.create(edge);
-						this.edgeMapper[edgeId] = internalEdge;
+						this.edgeMapper.put(edge, internalEdge);
 
 						// Resets all point on the edge and disables the edge style
 						// without deleting it from the cell style
@@ -30190,8 +30221,7 @@ mxGraphHierarchyModel.prototype.initialRank = function()
 	{
 		for (var i = 0; i < this.roots.length; i++)
 		{
-			var vertexId = mxCellPath.create(this.roots[i]);
-			var internalNode = this.vertexMapper[vertexId];
+			var internalNode = this.vertexMapper.get(this.roots[i]);
 
 			if (internalNode != null)
 			{
@@ -30200,12 +30230,12 @@ mxGraphHierarchyModel.prototype.initialRank = function()
 		}
 	}
 
-	for (var key in this.vertexMapper)
+	var internalNodes = this.vertexMapper.getValues();
+	
+	for (var i=0; i < internalNodes.length; i++)
 	{
-		var internalNode = this.vertexMapper[key];
-
 		// Mark the node as not having had a layer assigned
-		internalNode.temp[0] = -1;
+		internalNodes[i].temp[0] = -1;
 	}
 
 	var startNodesCopy = startNodes.slice();
@@ -30303,11 +30333,10 @@ mxGraphHierarchyModel.prototype.initialRank = function()
 
 	// Normalize the ranks down from their large starting value to place
 	// at least 1 sink on layer 0
-	for (var key in this.vertexMapper)
+	for (var i=0; i < internalNodes.length; i++)
 	{
-		var internalNode = this.vertexMapper[key];
 		// Mark the node as not having had a layer assigned
-		internalNode.temp[0] -= this.maxRank;
+		internalNodes[i].temp[0] -= this.maxRank;
 	}
 	
 	// Tighten the rank 0 nodes as far as possible
@@ -30362,8 +30391,7 @@ mxGraphHierarchyModel.prototype.fixRanks = function()
 		for (var i = 0; i < oldRootsArray.length; i++)
 		{
 			var cell = oldRootsArray[i];
-			var cellId = mxCellPath.create(cell);
-			var internalNode = this.vertexMapper[cellId];
+			var internalNode = this.vertexMapper.get(cell);
 			rootsArray[i] = internalNode;
 		}
 	}
@@ -30473,7 +30501,7 @@ mxGraphHierarchyModel.prototype.dfs = function(parent, root, connectingEdge, vis
 {
 	if (root != null)
 	{
-		var rootId = mxCellPath.create(root.cell);
+		var rootId = root.id;
 
 		if (seen[rootId] == null)
 		{
@@ -30562,7 +30590,7 @@ mxGraphHierarchyModel.prototype.extendedDfs = function(parent, root, connectingE
 			}
 		}
 
-		var rootId = mxCellPath.create(root.cell);
+		var rootId = root.id;
 
 		if (seen[rootId] == null)
 		{
@@ -32097,7 +32125,7 @@ MedianCellSorter.prototype.compare = function(a, b)
 	}
 };
 /**
- * $Id: mxMinimumCycleRemover.js,v 1.2 2013/10/28 08:45:02 gaudenz Exp $
+ * $Id: mxMinimumCycleRemover.js,v 1.3 2014/01/16 17:23:57 david Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -32139,7 +32167,13 @@ mxMinimumCycleRemover.prototype.execute = function(parent)
 {
 	var model = this.layout.getModel();
 	var seenNodes = new Object();
-	var unseenNodes = mxUtils.clone(model.vertexMapper, null, true);
+	var unseenNodesArray = model.vertexMapper.getValues();
+	var unseenNodes = new Object();
+	
+	for (var i = 0; i < unseenNodesArray.length; i++)
+	{
+		unseenNodes[unseenNodesArray[i].id] = unseenNodesArray[i];
+	}
 	
 	// Perform a dfs through the internal model. If a cycle is found,
 	// reverse it.
@@ -32152,8 +32186,7 @@ mxMinimumCycleRemover.prototype.execute = function(parent)
 		
 		for (var i = 0; i < modelRoots.length; i++)
 		{
-			var nodeId = mxCellPath.create(modelRoots[i]);
-			rootsArray[i] = model.vertexMapper[nodeId];
+			rootsArray[i] = model.vertexMapper.get(modelRoots[i]);
 		}
 	}
 
@@ -32171,18 +32204,10 @@ mxMinimumCycleRemover.prototype.execute = function(parent)
 			node.connectsAsSource.push(connectingEdge);
 		}
 		
-		var cellId = mxCellPath.create(node.cell);
-		seenNodes[cellId] = node;
-		delete unseenNodes[cellId];
+		seenNodes[node.id] = node;
+		delete unseenNodes[node.id];
 	}, rootsArray, true, null);
 
-	var possibleNewRoots = null;
-
-	if (unseenNodes.lenth > 0)
-	{
-		possibleNewRoots = mxUtils.clone(unseenNodes, null, true);
-	}
-	
 	// If there are any nodes that should be nodes that the dfs can miss
 	// these need to be processed with the dfs and the roots assigned
 	// correctly to form a correct internal model
@@ -32203,32 +32228,12 @@ mxMinimumCycleRemover.prototype.execute = function(parent)
 			mxUtils.remove(connectingEdge, node.connectsAsTarget);
 		}
 		
-		var cellId = mxCellPath.create(node.cell);
-		seenNodes[cellId] = node;
-		delete unseenNodes[cellId];
+		seenNodes[node.id] = node;
+		delete unseenNodes[node.id];
 	}, unseenNodes, true, seenNodesCopy);
-
-	var graph = this.layout.getGraph();
-
-	if (possibleNewRoots != null && possibleNewRoots.length > 0)
-	{
-		var roots = model.roots;
-
-		for (var i = 0; i < possibleNewRoots.length; i++)
-		{
-			var node = possibleNewRoots[i];
-			var realNode = node.cell;
-			var numIncomingEdges = graph.getIncomingEdges(realNode).length;
-
-			if (numIncomingEdges == 0)
-			{
-				roots.push(realNode);
-			}
-		}
-	}
 };
 /**
- * $Id: mxCoordinateAssignment.js,v 1.3 2013/02/21 15:16:29 david Exp $
+ * $Id: mxCoordinateAssignment.js,v 1.4 2014/01/16 17:23:31 david Exp $
  * Copyright (c) 2005-2013, JGraph Ltd
  */
 /**
@@ -32493,7 +32498,7 @@ mxCoordinateAssignment.prototype.printStatus = function()
  */
 mxCoordinateAssignment.prototype.execute = function(parent)
 {
-	this.jettyPositions = [];
+	this.jettyPositions = Object();
 	var model = this.layout.getModel();
 	this.currentXDelta = 0.0;
 
@@ -32574,7 +32579,7 @@ mxCoordinateAssignment.prototype.minNode = function(model)
 	var nodeList = [];
 	
 	// Need to be able to map from cell to cellWrapper
-	var map = [];
+	var map = new mxDictionary();
 	var rank = [];
 	
 	for (var i = 0; i <= model.maxRank; i++)
@@ -32591,8 +32596,7 @@ mxCoordinateAssignment.prototype.minNode = function(model)
 			nodeWrapper.visited = true;
 			nodeList.push(nodeWrapper);
 			
-			var cellId = mxCellPath.create(node.getCoreCell());
-			map[cellId] = nodeWrapper;
+			map.put(node, nodeWrapper);
 		}
 	}
 	
@@ -32705,8 +32709,7 @@ mxCoordinateAssignment.prototype.minNode = function(model)
 			for (var i = 0; i < nextLayerConnectedCells.length; i++)
 			{
 				var connectedCell = nextLayerConnectedCells[i];
-				var connectedCellId = mxCellPath.create(connectedCell.getCoreCell());
-				var connectedCellWrapper = map[connectedCellId];
+				var connectedCellWrapper = map.get(connectedCell);
 				
 				if (connectedCellWrapper != null)
 				{
@@ -32722,9 +32725,8 @@ mxCoordinateAssignment.prototype.minNode = function(model)
 			for (var i = 0; i < previousLayerConnectedCells.length; i++)
 			{
 				var connectedCell = previousLayerConnectedCells[i];
-				var connectedCellId = mxCellPath.create(connectedCell.getCoreCell());
-				var connectedCellWrapper = map[connectedCellId];
-				
+				var connectedCellWrapper = map.get(connectedCell);
+
 				if (connectedCellWrapper != null)
 				{
 					if (connectedCellWrapper.visited == false)
@@ -32790,9 +32792,9 @@ mxCoordinateAssignment.prototype.rankMedianPosition = function(rankValue, model,
 
 	// Form an array of the order in which the cell are to be processed
 	// , the order is given by the weighted sum of the in or out edges,
-	// depending on whether we're travelling up or down the hierarchy.
+	// depending on whether we're traveling up or down the hierarchy.
 	var weightedValues = [];
-	var cellMap = [];
+	var cellMap = new Object();
 
 	for (var i = 0; i < rank.length; i++)
 	{
@@ -32800,8 +32802,7 @@ mxCoordinateAssignment.prototype.rankMedianPosition = function(rankValue, model,
 		weightedValues[i] = new WeightedCellSorter();
 		weightedValues[i].cell = currentCell;
 		weightedValues[i].rankIndex = i;
-		var currentCellId = mxCellPath.create(currentCell.getCoreCell());
-		cellMap[currentCellId] = weightedValues[i];
+		cellMap[currentCell.id] = weightedValues[i];
 		var nextLayerConnectedCells = null;
 		
 		if (nextRankValue < rankValue)
@@ -32867,8 +32868,7 @@ mxCoordinateAssignment.prototype.rankMedianPosition = function(rankValue, model,
 		
 		for (var j = weightedValues[i].rankIndex - 1; j >= 0;)
 		{
-			var rankId = mxCellPath.create(rank[j].getCoreCell());
-			var weightedValue = cellMap[rankId];
+			var weightedValue = cellMap[rank[j].id];
 			
 			if (weightedValue != null)
 			{
@@ -32900,8 +32900,7 @@ mxCoordinateAssignment.prototype.rankMedianPosition = function(rankValue, model,
 		
 		for (var j = weightedValues[i].rankIndex + 1; j < weightedValues.length;)
 		{
-			var rankId = mxCellPath.create(rank[j].getCoreCell());
-			var weightedValue = cellMap[rankId];
+			var weightedValue = cellMap[rank[j].id];
 			
 			if (weightedValue != null)
 			{
@@ -33292,11 +33291,11 @@ mxCoordinateAssignment.prototype.minPath = function(graph, model)
 	// preferred direction used is the one where the final
 	// control points have the least offset from the connectable 
 	// region of the terminating vertices
-	var edges = model.edgeMapper;
+	var edges = model.edgeMapper.getValues();
 	
-	for (var key in edges)
+	for (var j = 0; j < edges.length; j++)
 	{
-		var cell = edges[key];
+		var cell = edges[j];
 		
 		if (cell.maxRank - cell.minRank - 1 < 1)
 		{
@@ -33527,22 +33526,20 @@ mxCoordinateAssignment.prototype.setCellLocations = function(graph, model)
 		parentsChanged = new Object();
 	}
 
-	var edges = model.edgeMapper;
-	var vertices = model.vertexMapper;
+	var vertices = model.vertexMapper.getValues();
 
 	// Process vertices all first, since they define the lower and 
 	// limits of each rank. Between these limits lie the channels
 	// where the edges can be routed across the graph
 
-	for (var key in vertices)
+	for (var i = 0; i < vertices.length; i++)
 	{
-		var vertex = vertices[key];
-		this.setVertexLocation(vertex);
+		this.setVertexLocation(vertices[i]);
 		
 		if (this.layout.resizeParent)
 		{
-			var parent = graph.model.getParent(vertex.cell);
-			var id = mxCellPath.create(parent);
+			var parent = graph.model.getParent(vertices[i].cell);
+			var id = mxObjectIdentity.create(parent);
 			
 			// Implements set semantic
 			if (parentsChanged[id] == null)
@@ -33566,9 +33563,11 @@ mxCoordinateAssignment.prototype.setCellLocations = function(graph, model)
 		this.localEdgeProcessing(model);
 	}
 
-	for (var key in edges)
+	var edges = model.edgeMapper.getValues();
+
+	for (var i = 0; i < edges.length; i++)
 	{
-		this.setEdgePosition(edges[key]);
+		this.setEdgePosition(edges[i]);
 	}
 };
 
@@ -33707,13 +33706,12 @@ mxCoordinateAssignment.prototype.localEdgeProcessing = function(model)
 						{
 							var numActualEdges = connectedEdges[j].edges
 									.length;
-							var edgeId = mxCellPath.create(connectedEdges[j].edges[0]);
-							var pos = this.jettyPositions[edgeId];
+							var pos = this.jettyPositions[connectedEdges[j].ids[0]];
 							
 							if (pos == null)
 							{
 								pos = [];
-								this.jettyPositions[edgeId] = pos;
+								this.jettyPositions[connectedEdges[j].ids[0]] = pos;
 							}
 
 							if (j < connectedEdgeCount / 2)
@@ -33772,8 +33770,7 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 		}
 		
 		var parallelEdgeCount = 0;
-		var edgeId = mxCellPath.create(cell.edges[0]);
-		var jettys = this.jettyPositions[edgeId];
+		var jettys = this.jettyPositions[cell.ids[0]];
 
 		var source = cell.isReversed ? cell.target.cell : cell.source.cell;
 		var graph = this.layout.graph;
@@ -34215,7 +34212,7 @@ mxSwimlaneOrdering.prototype.execute = function(parent)
 	}, rootsArray, true, null);
 };
 /**
- * $Id: mxHierarchicalLayout.js,v 1.13 2014/01/13 11:00:32 david Exp $
+ * $Id: mxHierarchicalLayout.js,v 1.14 2014/01/16 17:25:04 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -34402,9 +34399,9 @@ mxHierarchicalLayout.prototype.execute = function(parent, roots)
 {
 	this.parent = parent;
 	var model = this.graph.model;
-	this.edgesCache = new Object();
-	this.edgeSourceTermCache = new Object();
-	this.edgesTargetTermCache = new Object();
+	this.edgesCache = new mxDictionary();
+	this.edgeSourceTermCache = new mxDictionary();
+	this.edgesTargetTermCache = new mxDictionary();
 
 	if (roots != null && !(roots instanceof Array))
 	{
@@ -34544,11 +34541,11 @@ mxHierarchicalLayout.prototype.findRoots = function(parent, vertices)
  */
 mxHierarchicalLayout.prototype.getEdges = function(cell)
 {
-	var cellID = mxCellPath.create(cell);
+	var cachedEdges = this.edgesCache.get(cell);
 	
-	if (this.edgesCache[cellID] != null)
+	if (cachedEdges != null)
 	{
-		return this.edgesCache[cellID];
+		return cachedEdges;
 	}
 
 	var model = this.graph.model;
@@ -34586,7 +34583,7 @@ mxHierarchicalLayout.prototype.getEdges = function(cell)
 		}
 	}
 
-	this.edgesCache[cellID] = result;
+	this.edgesCache.put(cell, result);
 
 	return result;
 };
@@ -34603,8 +34600,6 @@ mxHierarchicalLayout.prototype.getEdges = function(cell)
  */
 mxHierarchicalLayout.prototype.getVisibleTerminal = function(edge, source)
 {
-	var cellID = mxCellPath.create(edge);
-	
 	var terminalCache = this.edgesTargetTermCache;
 	
 	if (source)
@@ -34612,21 +34607,28 @@ mxHierarchicalLayout.prototype.getVisibleTerminal = function(edge, source)
 		terminalCache = this.edgeSourceTermCache;
 	}
 
-	if (terminalCache[cellID] != null)
+	var term = terminalCache.get(edge);
+
+	if (term != null)
 	{
-		return terminalCache[cellID];
+		return term;
 	}
 
 	var state = this.graph.view.getState(edge);
 	
 	var terminal = (state != null) ? state.getVisibleTerminal(source) : this.graph.view.getVisibleTerminal(edge, source);
 	
+	if (terminal == null)
+	{
+		terminal = (state != null) ? state.getVisibleTerminal(source) : this.graph.view.getVisibleTerminal(edge, source);
+	}
+
 	if (this.isPort(terminal))
 	{
 		terminal = this.graph.model.getParent(terminal);
 	}
 	
-	terminalCache[cellID] = terminal;
+	terminalCache.put(edge, terminal);
 
 	return terminal;
 };
@@ -34751,7 +34753,7 @@ mxHierarchicalLayout.prototype.filterDescendants = function(cell, result)
 
 	if (model.isVertex(cell) && cell != this.parent && this.graph.isCellVisible(cell))
 	{
-		result[mxCellPath.create(cell)] = cell;
+		result[mxObjectIdentity.get(cell)] = cell;
 	}
 
 	if (this.traverseAncestors || cell == this.parent
@@ -34851,7 +34853,7 @@ mxHierarchicalLayout.prototype.traverse = function(vertex, directed, edge, allVe
 		// Has this vertex been seen before in any traversal
 		// And if the filled vertex set is populated, only 
 		// process vertices in that it contains
-		var vertexID = mxCellPath.create(vertex);
+		var vertexID = mxObjectIdentity.get(vertex);
 		
 		if ((allVertices[vertexID] == null)
 				&& (filledVertexSet == null ? true : filledVertexSet[vertexID] != null))
@@ -43041,7 +43043,7 @@ mxCellEditor.prototype.destroy = function ()
 	}
 };
 /**
- * $Id: mxCellRenderer.js,v 1.36 2014/01/13 15:58:25 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.37 2014/01/15 11:32:51 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -43185,8 +43187,7 @@ mxCellRenderer.prototype.createShape = function(state)
 	{
 		// Checks if there is a stencil for the name and creates
 		// a shape instance for the stencil if one exists
-		var key = state.style[mxConstants.STYLE_SHAPE];
-		var stencil = mxStencilRegistry.getStencil(key);
+		var stencil = mxStencilRegistry.getStencil(state.style[mxConstants.STYLE_SHAPE]);
 		
 		if (stencil != null)
 		{
@@ -43197,11 +43198,6 @@ mxCellRenderer.prototype.createShape = function(state)
 			var ctor = this.getShapeConstructor(state);
 			state.shape = new ctor();
 		}
-
-		this.createIndicatorShape(state);
-		this.initializeShape(state);
-		this.createCellOverlays(state);
-		this.installListeners(state);
 	}
 };
 
@@ -44334,6 +44330,15 @@ mxCellRenderer.prototype.redrawShape = function(state, force, rendering)
 
 	if (state.shape != null)
 	{
+		// Lazy initialization
+		if (state.shape.node == null)
+		{
+			this.createIndicatorShape(state);
+			this.initializeShape(state);
+			this.createCellOverlays(state);
+			this.installListeners(state);
+		}
+		
 		// Handles changes of the collapse icon
 		this.createControl(state);
 
@@ -45791,7 +45796,7 @@ mxStyleRegistry.putValue(mxConstants.PERIMETER_RECTANGLE, mxPerimeter.RectangleP
 mxStyleRegistry.putValue(mxConstants.PERIMETER_RHOMBUS, mxPerimeter.RhombusPerimeter);
 mxStyleRegistry.putValue(mxConstants.PERIMETER_TRIANGLE, mxPerimeter.TrianglePerimeter);
 /**
- * $Id: mxGraphView.js,v 1.34 2013/12/17 15:04:45 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.35 2014/01/15 11:32:51 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -47950,7 +47955,7 @@ mxGraphView.prototype.createState = function(cell)
 	var state = new mxCellState(this, cell, this.graph.getCellStyle(cell));
 	var model = this.graph.getModel();
 
-	if (this.isRendering() && state.view.graph.container != null && state.cell != state.view.currentRoot &&
+	if (state.view.graph.container != null && state.cell != state.view.currentRoot &&
 		(model.isVertex(state.cell) || model.isEdge(state.cell)))
 	{
 		this.graph.cellRenderer.createShape(state);
@@ -48504,7 +48509,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.63 2014/01/13 15:58:24 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.64 2014/01/15 11:32:51 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -55219,36 +55224,47 @@ mxGraph.prototype.getBoundingBoxFromGeometry = function(cells, includeEdges)
 				if (geo != null)
 				{
 					var pts = geo.points;
+					var bbox = null;
 					
-					if (pts != null && pts.length > 0)
+					if (this.model.isEdge(cells[i]))
 					{
-						var tmp = new mxRectangle(pts[0].x, pts[0].y, 0, 0);
-						var addPoint = function(pt)
+						if (pts != null && pts.length > 0)
 						{
-							if (pt != null)
+							var tmp = new mxRectangle(pts[0].x, pts[0].y, 0, 0);
+							var addPoint = function(pt)
 							{
-								tmp.add(new mxRectangle(pt.x, pt.y, 0, 0));
+								if (pt != null)
+								{
+									tmp.add(new mxRectangle(pt.x, pt.y, 0, 0));
+								}
+							};
+							
+							for (var j = 1; j < pts.length; j++)
+							{
+								addPoint(pts[j]);
 							}
-						};
-						
-						for (var j = 1; j < pts.length; j++)
-						{
-							addPoint(pts[j]);
+							
+							addPoint(geo.getTerminalPoint(true));
+							addPoint(geo.getTerminalPoint(false));
+							
+							bbox = tmp;
 						}
-						
-						addPoint(geo.getTerminalPoint(true));
-						addPoint(geo.getTerminalPoint(false));
-						
-						geo = tmp;
-					}
-					
-					if (result == null)
-					{
-						result = new mxRectangle(geo.x, geo.y, geo.width, geo.height);
 					}
 					else
 					{
-						result.add(geo);
+						bbox = geo;
+					}
+					
+					if (bbox != null)
+					{
+						if (result == null)
+						{
+							result = new mxRectangle(bbox.x, bbox.y, bbox.width, bbox.height);
+						}
+						else
+						{
+							result.add(bbox);
+						}
 					}
 				}
 			}

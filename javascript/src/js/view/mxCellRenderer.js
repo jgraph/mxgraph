@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellRenderer.js,v 1.36 2014/01/13 15:58:25 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.37 2014/01/15 11:32:51 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -143,8 +143,7 @@ mxCellRenderer.prototype.createShape = function(state)
 	{
 		// Checks if there is a stencil for the name and creates
 		// a shape instance for the stencil if one exists
-		var key = state.style[mxConstants.STYLE_SHAPE];
-		var stencil = mxStencilRegistry.getStencil(key);
+		var stencil = mxStencilRegistry.getStencil(state.style[mxConstants.STYLE_SHAPE]);
 		
 		if (stencil != null)
 		{
@@ -155,11 +154,6 @@ mxCellRenderer.prototype.createShape = function(state)
 			var ctor = this.getShapeConstructor(state);
 			state.shape = new ctor();
 		}
-
-		this.createIndicatorShape(state);
-		this.initializeShape(state);
-		this.createCellOverlays(state);
-		this.installListeners(state);
 	}
 };
 
@@ -1292,6 +1286,15 @@ mxCellRenderer.prototype.redrawShape = function(state, force, rendering)
 
 	if (state.shape != null)
 	{
+		// Lazy initialization
+		if (state.shape.node == null)
+		{
+			this.createIndicatorShape(state);
+			this.initializeShape(state);
+			this.createCellOverlays(state);
+			this.installListeners(state);
+		}
+		
 		// Handles changes of the collapse icon
 		this.createControl(state);
 

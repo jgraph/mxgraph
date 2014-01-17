@@ -1,5 +1,5 @@
 /**
- * $Id: mxPopupMenu.js,v 1.8 2014/01/08 15:53:30 gaudenz Exp $
+ * $Id: mxPopupMenu.js,v 1.10 2014/01/16 10:15:38 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -402,16 +402,16 @@ mxPopupMenu.prototype.showSubmenu = function(parent, row)
 		// Moves the submenu to the left side if there is no space
 		var left = parseInt(row.div.offsetLeft);
 		var width = parseInt(row.div.offsetWidth);
+		var offset = mxUtils.getDocumentScrollOrigin(document);
 		
 		var b = document.body;
 		var d = document.documentElement;
 		
-		var right = (b.scrollLeft || d.scrollLeft) + (b.clientWidth || d.clientWidth);
+		var right = offset.x + (b.clientWidth || d.clientWidth);
 		
 		if (left + width > right)
 		{
-			row.div.style.left = (parent.div.offsetLeft - width +
-				((mxClient.IS_IE) ? 6 : -6)) + 'px';
+			row.div.style.left = (parent.div.offsetLeft - width + ((mxClient.IS_IE) ? 6 : -6)) + 'px';
 		}
 		
 		mxUtils.fit(row.div);

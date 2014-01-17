@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.63 2014/01/13 15:58:24 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.64 2014/01/15 11:32:51 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -6714,36 +6714,47 @@ mxGraph.prototype.getBoundingBoxFromGeometry = function(cells, includeEdges)
 				if (geo != null)
 				{
 					var pts = geo.points;
+					var bbox = null;
 					
-					if (pts != null && pts.length > 0)
+					if (this.model.isEdge(cells[i]))
 					{
-						var tmp = new mxRectangle(pts[0].x, pts[0].y, 0, 0);
-						var addPoint = function(pt)
+						if (pts != null && pts.length > 0)
 						{
-							if (pt != null)
+							var tmp = new mxRectangle(pts[0].x, pts[0].y, 0, 0);
+							var addPoint = function(pt)
 							{
-								tmp.add(new mxRectangle(pt.x, pt.y, 0, 0));
+								if (pt != null)
+								{
+									tmp.add(new mxRectangle(pt.x, pt.y, 0, 0));
+								}
+							};
+							
+							for (var j = 1; j < pts.length; j++)
+							{
+								addPoint(pts[j]);
 							}
-						};
-						
-						for (var j = 1; j < pts.length; j++)
-						{
-							addPoint(pts[j]);
+							
+							addPoint(geo.getTerminalPoint(true));
+							addPoint(geo.getTerminalPoint(false));
+							
+							bbox = tmp;
 						}
-						
-						addPoint(geo.getTerminalPoint(true));
-						addPoint(geo.getTerminalPoint(false));
-						
-						geo = tmp;
-					}
-					
-					if (result == null)
-					{
-						result = new mxRectangle(geo.x, geo.y, geo.width, geo.height);
 					}
 					else
 					{
-						result.add(geo);
+						bbox = geo;
+					}
+					
+					if (bbox != null)
+					{
+						if (result == null)
+						{
+							result = new mxRectangle(bbox.x, bbox.y, bbox.width, bbox.height);
+						}
+						else
+						{
+							result.add(bbox);
+						}
 					}
 				}
 			}

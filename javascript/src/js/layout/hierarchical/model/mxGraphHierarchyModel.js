@@ -1,6 +1,6 @@
 /**
- * $Id: mxGraphHierarchyModel.js,v 1.7 2013/07/30 13:09:34 david Exp $
- * Copyright (c) 2006-2012, JGraph Ltd
+ * $Id: mxGraphHierarchyModel.js,v 1.8 2014/01/16 16:45:25 david Exp $
+ * Copyright (c) 2006-2014, JGraph Ltd
  */
 /**
  * Class: mxGraphHierarchyModel
@@ -35,8 +35,8 @@ function mxGraphHierarchyModel(layout, vertices, roots, parent, tightenToSource)
 
 	// map of cells to internal cell needed for second run through
 	// to setup the sink of edges correctly
-	this.vertexMapper = new Object();
-	this.edgeMapper = new Object();
+	this.vertexMapper = new mxDictionary();
+	this.edgeMapper = new mxDictionary();
 	this.maxRank = 0;
 	var internalVertices = [];
 
@@ -69,8 +69,7 @@ function mxGraphHierarchyModel(layout, vertices, roots, parent, tightenToSource)
 				var realEdge = realEdges[0];
 				var targetCell = layout.getVisibleTerminal(
 						realEdge, false);
-				var targetCellId = mxCellPath.create(targetCell);
-				var internalTargetCell = this.vertexMapper[targetCellId];
+				var internalTargetCell = this.vertexMapper.get(targetCell);
 
 				if (internalVertices[i] == internalTargetCell)
 				{
@@ -81,8 +80,7 @@ function mxGraphHierarchyModel(layout, vertices, roots, parent, tightenToSource)
 					// This branch only detects this single case
 					targetCell = layout.getVisibleTerminal(
 							realEdge, true);
-					targetCellId = mxCellPath.create(targetCell);
-					internalTargetCell = this.vertexMapper[targetCellId];
+					internalTargetCell = this.vertexMapper.get(targetCell);
 				}
 				
 				if (internalTargetCell != null
@@ -195,8 +193,7 @@ mxGraphHierarchyModel.prototype.createInternalCells = function(layout, vertices,
 	for (var i = 0; i < vertices.length; i++)
 	{
 		internalVertices[i] = new mxGraphHierarchyNode(vertices[i]);
-		var vertexId = mxCellPath.create(vertices[i]);
-		this.vertexMapper[vertexId] = internalVertices[i];
+		this.vertexMapper.put(vertices[i], internalVertices[i]);
 
 		// If the layout is deterministic, order the cells
 		//List outgoingCells = graph.getNeighbours(vertices[i], deterministic);
@@ -231,11 +228,10 @@ mxGraphHierarchyModel.prototype.createInternalCells = function(layout, vertices,
 						cell, false);
 				var directedEdges = layout.getEdgesBetween(vertices[i],
 						cell, true);
-				var edgeId = mxCellPath.create(undirectedEdges[0]);
 				
 				if (undirectedEdges != null &&
 						undirectedEdges.length > 0 &&
-						this.edgeMapper[edgeId] == null &&
+						this.edgeMapper.get(undirectedEdges[0]) == null &&
 						directedEdges.length * 2 >= undirectedEdges.length)
 				{
 					var internalEdge = new mxGraphHierarchyEdge(undirectedEdges);
@@ -243,8 +239,7 @@ mxGraphHierarchyModel.prototype.createInternalCells = function(layout, vertices,
 					for (var k = 0; k < undirectedEdges.length; k++)
 					{
 						var edge = undirectedEdges[k];
-						edgeId = mxCellPath.create(edge);
-						this.edgeMapper[edgeId] = internalEdge;
+						this.edgeMapper.put(edge, internalEdge);
 
 						// Resets all point on the edge and disables the edge style
 						// without deleting it from the cell style
@@ -287,8 +282,7 @@ mxGraphHierarchyModel.prototype.initialRank = function()
 	{
 		for (var i = 0; i < this.roots.length; i++)
 		{
-			var vertexId = mxCellPath.create(this.roots[i]);
-			var internalNode = this.vertexMapper[vertexId];
+			var internalNode = this.vertexMapper.get(this.roots[i]);
 
 			if (internalNode != null)
 			{
@@ -297,12 +291,12 @@ mxGraphHierarchyModel.prototype.initialRank = function()
 		}
 	}
 
-	for (var key in this.vertexMapper)
+	var internalNodes = this.vertexMapper.getValues();
+	
+	for (var i=0; i < internalNodes.length; i++)
 	{
-		var internalNode = this.vertexMapper[key];
-
 		// Mark the node as not having had a layer assigned
-		internalNode.temp[0] = -1;
+		internalNodes[i].temp[0] = -1;
 	}
 
 	var startNodesCopy = startNodes.slice();
@@ -400,11 +394,10 @@ mxGraphHierarchyModel.prototype.initialRank = function()
 
 	// Normalize the ranks down from their large starting value to place
 	// at least 1 sink on layer 0
-	for (var key in this.vertexMapper)
+	for (var i=0; i < internalNodes.length; i++)
 	{
-		var internalNode = this.vertexMapper[key];
 		// Mark the node as not having had a layer assigned
-		internalNode.temp[0] -= this.maxRank;
+		internalNodes[i].temp[0] -= this.maxRank;
 	}
 	
 	// Tighten the rank 0 nodes as far as possible
@@ -459,8 +452,7 @@ mxGraphHierarchyModel.prototype.fixRanks = function()
 		for (var i = 0; i < oldRootsArray.length; i++)
 		{
 			var cell = oldRootsArray[i];
-			var cellId = mxCellPath.create(cell);
-			var internalNode = this.vertexMapper[cellId];
+			var internalNode = this.vertexMapper.get(cell);
 			rootsArray[i] = internalNode;
 		}
 	}
@@ -570,7 +562,7 @@ mxGraphHierarchyModel.prototype.dfs = function(parent, root, connectingEdge, vis
 {
 	if (root != null)
 	{
-		var rootId = mxCellPath.create(root.cell);
+		var rootId = root.id;
 
 		if (seen[rootId] == null)
 		{
@@ -659,7 +651,7 @@ mxGraphHierarchyModel.prototype.extendedDfs = function(parent, root, connectingE
 			}
 		}
 
-		var rootId = mxCellPath.create(root.cell);
+		var rootId = root.id;
 
 		if (seen[rootId] == null)
 		{

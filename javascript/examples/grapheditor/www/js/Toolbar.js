@@ -1,5 +1,5 @@
 /**
- * $Id: Toolbar.js,v 1.9 2014/01/13 01:03:10 gaudenz Exp $
+ * $Id: Toolbar.js,v 1.10 2014/01/16 12:08:57 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -209,6 +209,8 @@ Toolbar.prototype.createTextToolbar = function()
 	
 	function getSelectedElement(name)
 	{
+		var node = null;
+		
 		if (window.getSelection)
 		{
 			var sel = window.getSelection();
@@ -216,21 +218,25 @@ Toolbar.prototype.createTextToolbar = function()
 		    if (sel.getRangeAt && sel.rangeCount)
 		    {
 		        var range = sel.getRangeAt(0);
-		    	var row = range.commonAncestorContainer;
-		        
-		    	while (row != null)
-		    	{
-		    		if (row.nodeName == name)
-		    		{
-		    			return row;
-		    		}
-		    		
-		    		row = row.parentNode;
-		    	}
+		        node = range.commonAncestorContainer;
 		    }
 		}
+		else if (document.selection)
+		{
+			node = document.selection.createRange().parentElement();
+		}
 		
-		return null;
+    	while (node != null)
+    	{
+    		if (node.nodeName == name)
+    		{
+    			return node;
+    		}
+    		
+    		node = node.parentNode;
+    	}
+		
+		return node;
 	};
 	
 	function getParentElement(node, name)
@@ -267,34 +273,39 @@ Toolbar.prototype.createTextToolbar = function()
 
 	function selectNode(node)
 	{
-	    if (window.getSelection)
+		var sel = null;
+		
+        // IE9 and non-IE
+		if (window.getSelection)
 	    {
-	    	var sel = window.getSelection();
+	    	sel = window.getSelection();
 	    	
 	        if (sel.getRangeAt && sel.rangeCount)
 	        {
-	            var range = sel.getRangeAt(0);
-	            range.deleteContents();
-	            
-		        // IE9 and non-IE
-			    var sel = window.getSelection();
-				
-                range = range.cloneRange();
-                range.setStart(node);
-                range.collapse(true);
+	        	var range = document.createRange();
+                range.selectNode(node);
                 sel.removeAllRanges();
                 sel.addRange(range);
 	        }
 	    }
+        // IE < 9
+		else if ((sel = document.selection) && sel.type != 'Control')
+	    {
+	        var originalRange = sel.createRange();
+	        originalRange.collapse(true);
+            range = sel.createRange();
+            range.setEndPoint('StartToStart', originalRange);
+            range.select();
+	    }
 	};
 	
-	function pasteHtmlAtCaret(html, selectPastedContent)
+	function pasteHtmlAtCaret(html)
 	{
 	    var sel, range;
-	    
+
+    	// IE9 and non-IE
 	    if (window.getSelection)
 	    {
-	        // IE9 and non-IE
 	        sel = window.getSelection();
 	        
 	        if (sel.getRangeAt && sel.rangeCount)
@@ -307,49 +318,21 @@ Toolbar.prototype.createTextToolbar = function()
 	            // some browsers (IE9, for one)
 	            var el = document.createElement("div");
 	            el.innerHTML = html;
-	            var frag = document.createDocumentFragment(), node, lastNode;
+	            var frag = document.createDocumentFragment(), node;
 	            
 	            while ((node = el.firstChild))
 	            {
 	                lastNode = frag.appendChild(node);
 	            }
 	            
-	            var firstNode = frag.firstChild;
 	            range.insertNode(frag);
-
-	            // Preserve the selection
-	            if (lastNode)
-	            {
-	                range = range.cloneRange();
-	                range.setStartAfter(lastNode);
-	                
-	                if (selectPastedContent)
-	                {
-	                    range.setStartBefore(firstNode);
-	                }
-	                else
-	                {
-	                    range.collapse(true);
-	                }
-	                
-	                sel.removeAllRanges();
-	                sel.addRange(range);
-	            }
 	        }
 	    }
+        // IE < 9
 	    else if ((sel = document.selection) && sel.type != "Control")
 	    {
-	        // IE < 9
-	        var originalRange = sel.createRange();
-	        originalRange.collapse(true);
+	    	// FIXME: Does not work if selection is empty
 	        sel.createRange().pasteHTML(html);
-	        
-	        if (selectPastedContent)
-	        {
-	            range = sel.createRange();
-	            range.setEndPoint("StartToStart", originalRange);
-	            range.select();
-	        }
 	    }
 	};
 	
@@ -518,7 +501,7 @@ Toolbar.prototype.createTextToolbar = function()
 					}
 					
 					// Finding the new table will work with insertHTML, but IE does not support that
-					pasteHtmlAtCaret(createTable(row2.sectionRowIndex + 1, td.cellIndex + 1), false);
+					pasteHtmlAtCaret(createTable(row2.sectionRowIndex + 1, td.cellIndex + 1));
 					
 					// Moves cursor to first table cell
 					var newTables = graph.cellEditor.text2.getElementsByTagName('table');
@@ -537,13 +520,20 @@ Toolbar.prototype.createTextToolbar = function()
 					}
 				}
 			}));
+			
+			// Quirks mode does not add cell padding if cell is empty, needs good old spacer solution
+			var quirksCellHtml = '<img src="' + mxClient.imageBasePath + '/transparent.gif' + '" width="16" height="16"/>';
 
 			function createPicker(rows, cols)
 			{
 				var table2 = document.createElement('table');
-				table2.setAttribute('cellPadding', '8');
 				table2.setAttribute('border', '1');
 				table2.style.borderCollapse = 'collapse';
+
+				if (!mxClient.IS_QUIRKS)
+				{
+					table2.setAttribute('cellPadding', '8');
+				}
 				
 				for (var i = 0; i < rows; i++)
 				{
@@ -552,6 +542,11 @@ Toolbar.prototype.createTextToolbar = function()
 					for (var j = 0; j < cols; j++)
 					{
 						var cell = row.insertCell(-1);
+						
+						if (mxClient.IS_QUIRKS)
+						{
+							cell.innerHTML = quirksCellHtml;
+						}
 					}
 				}
 				
@@ -567,6 +562,11 @@ Toolbar.prototype.createTextToolbar = function()
 					for (var j = 0; j < picker.rows[0].cells.length; j++)
 					{
 						var cell = row.insertCell(-1);
+						
+						if (mxClient.IS_QUIRKS)
+						{
+							cell.innerHTML = quirksCellHtml;
+						}
 					}
 				}
 				
@@ -577,6 +577,11 @@ Toolbar.prototype.createTextToolbar = function()
 					for (var j = row.cells.length; j < cols; j++)
 					{
 						var cell = row.insertCell(-1);
+						
+						if (mxClient.IS_QUIRKS)
+						{
+							cell.innerHTML = quirksCellHtml;
+						}
 					}
 				}
 			};
@@ -648,7 +653,7 @@ Toolbar.prototype.createTextToolbar = function()
 				var tblBodyObj = table.tBodies[0];
 				var allRows = tblBodyObj.rows;
 				
-				for (var i=0; i<allRows.length; i++)
+				for (var i = 0; i < allRows.length; i++)
 				{
 					if (allRows[i].cells.length > index)
 					{
@@ -664,7 +669,7 @@ Toolbar.prototype.createTextToolbar = function()
 				if (tblHeadObj != null)
 				{
 					// TODO: use colIndex
-					for (var h=0; h<tblHeadObj.rows.length; h++)
+					for (var h = 0; h < tblHeadObj.rows.length; h++)
 					{
 						var newTH = document.createElement('th');
 						tblHeadObj.rows[h].appendChild(newTH);
@@ -674,7 +679,7 @@ Toolbar.prototype.createTextToolbar = function()
 
 				var tblBodyObj = table.tBodies[0];
 				
-				for (var i=0; i<tblBodyObj.rows.length; i++)
+				for (var i = 0; i < tblBodyObj.rows.length; i++)
 				{
 					var newCell = tblBodyObj.rows[i].insertCell(index);
 					mxUtils.br(newCell);
