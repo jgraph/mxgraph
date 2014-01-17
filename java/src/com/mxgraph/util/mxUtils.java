@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.java,v 1.9 2013/12/04 16:35:32 gaudenz Exp $
+ * $Id: mxUtils.java,v 1.10 2014/01/16 14:39:49 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.util;
@@ -2210,8 +2210,7 @@ public class mxUtils
 			result += "<head>" + head + "</head>";
 		}
 
-		return result + "<body style=\"border:1px solid red;" + css.toString()
-				+ "\">" + text + "</body></html>";
+		return result + "<body style=\"" + css.toString() + "\">" + text + "</body></html>";
 	}
 
 	/**
