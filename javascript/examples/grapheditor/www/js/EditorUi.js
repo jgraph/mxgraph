@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.47 2014/01/09 19:11:15 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.48 2014/01/20 16:32:48 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -1329,7 +1329,6 @@ EditorUi.prototype.createKeyHandler = function(editor)
     keyHandler.bindKey(8, function() { graph.foldCells(true); }); // Backspace
     bindAction(8, false, 'delete'); // Backspace
     bindAction(46, false, 'delete'); // Delete
-    bindAction(46, false, 'delete'); // Delete
     bindAction(82, true, 'tilt'); // Ctrl+R
     bindAction(83, true, 'save'); // Ctrl+S
     bindAction(83, true, 'saveAs', true); // Ctrl+Shift+S
@@ -1339,7 +1338,7 @@ EditorUi.prototype.createKeyHandler = function(editor)
     bindAction(86, true, 'selectVertices', true); // Ctrl+Shift+V
     bindAction(69, true, 'selectEdges', true); // Ctrl+Shift+E
     bindAction(66, true, 'toBack'); // Ctrl+B
-    bindAction(70, true, 'toFront'); // Ctrl+F
+    bindAction(70, true, 'toFront', true); // Ctrl+Shift+F
     bindAction(68, true, 'duplicate'); // Ctrl+D
     bindAction(90, true, 'undo'); // Ctrl+Z
     bindAction(89, true, 'redo'); // Ctrl+Y

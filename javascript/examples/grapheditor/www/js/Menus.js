@@ -1,5 +1,5 @@
 /**
- * $Id: Menus.js,v 1.29 2014/01/09 11:41:50 gaudenz Exp $
+ * $Id: Menus.js,v 1.31 2014/01/17 12:56:03 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -18,17 +18,22 @@ Menus = function(editorUi)
 /**
  * Adds the label menu items to the given menu and parent.
  */
+Menus.prototype.defaultFonts = ['Helvetica', 'Verdana', 'Times New Roman', 'Garamond', 'Comic Sans MS',
+           		             'Courier New', 'Georgia', 'Lucida Console', 'Tahoma'];
+
+/**
+ * Adds the label menu items to the given menu and parent.
+ */
 Menus.prototype.init = function()
 {
 	var graph = this.editorUi.editor.graph;
 	var isGraphEnabled = mxUtils.bind(graph, graph.isEnabled);
-	
+
+	this.customFonts = [];
+
 	this.put('fontFamily', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
-		var fonts = ['Helvetica', 'Verdana', 'Times New Roman', 'Garamond', 'Comic Sans MS',
-		             'Courier New', 'Georgia', 'Lucida Console', 'Tahoma'];
-
-		for (var i = 0; i < fonts.length; i++)
+		for (var i = 0; i < this.defaultFonts.length; i++)
 		{
 			(mxUtils.bind(this, function(fontname)
 			{
@@ -37,11 +42,39 @@ Menus.prototype.init = function()
 					document.execCommand('fontname', false, fontname);
 				});
 				tr.firstChild.nextSibling.style.fontFamily = fontname;
-			}))(fonts[i]);
+			}))(this.defaultFonts[i]);
+		}
+
+		menu.addSeparator(parent);
+		
+		if (this.customFonts.length > 0)
+		{
+			for (var i = 0; i < this.customFonts.length; i++)
+			{
+				(mxUtils.bind(this, function(fontname)
+				{
+					var tr = this.styleChange(menu, fontname, [mxConstants.STYLE_FONTFAMILY], [fontname], null, parent, function()
+					{
+						document.execCommand('fontname', false, fontname);
+					});
+					tr.firstChild.nextSibling.style.fontFamily = fontname;
+				}))(this.customFonts[i]);
+			}
+			
+			menu.addSeparator(parent);
+			
+			menu.addItem(mxResources.get('reset'), null, mxUtils.bind(this, function()
+			{
+				this.customFonts = [];
+			}), parent);
+			
+			menu.addSeparator(parent);
 		}
 		
-		menu.addSeparator(parent);
-		this.promptChange(menu, mxResources.get('custom'), '', mxConstants.DEFAULT_FONTFAMILY, mxConstants.STYLE_FONTFAMILY, parent);
+		this.promptChange(menu, mxResources.get('custom'), '', mxConstants.DEFAULT_FONTFAMILY, mxConstants.STYLE_FONTFAMILY, parent, true, mxUtils.bind(this, function(newValue)
+		{
+			this.customFonts.push(newValue);
+		}));
 	})));
 	this.put('formatBlock', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -113,6 +146,7 @@ Menus.prototype.init = function()
 	})));
 	this.put('line', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
+		// LATER: Reset label position if geometry changes
 		this.styleChange(menu, mxResources.get('straight'), [mxConstants.STYLE_EDGE], [null], null, parent);
 		this.styleChange(menu, mxResources.get('entityRelation'), [mxConstants.STYLE_EDGE], ['entityRelationEdgeStyle'], null, parent);
 		menu.addSeparator(parent);
@@ -569,7 +603,7 @@ Menus.prototype.styleChange = function(menu, label, keys, values, sprite, parent
 /**
  * Adds a style change item with a prompt to the given menu.
  */
-Menus.prototype.promptChange = function(menu, label, hint, defaultValue, key, parent, enabled)
+Menus.prototype.promptChange = function(menu, label, hint, defaultValue, key, parent, enabled, fn)
 {
 	return menu.addItem(label, null, mxUtils.bind(this, function()
 	{
@@ -595,6 +629,11 @@ Menus.prototype.promptChange = function(menu, label, hint, defaultValue, key, pa
 				finally
 				{
 					graph.getModel().endUpdate();
+				}
+				
+				if (fn != null)
+				{
+					fn(newValue);
 				}
 			}
 		}), mxResources.get('enterValue') + ((hint.length > 0) ? (' ' + hint) : ''));

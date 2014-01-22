@@ -1,5 +1,5 @@
 /**
- * $Id: Editor.js,v 1.34 2014/01/08 16:06:38 gaudenz Exp $
+ * $Id: Editor.js,v 1.35 2014/01/22 09:58:22 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 // Specifies if local storage should be used (eg. on the iPad which has no filesystem)
@@ -1001,15 +1001,14 @@ Editor.prototype.initStencilRegistry = function()
 				install = true;
 			}
 		
-			mxStencilRegistry.parseStencilSet(xmlDoc, postStencilLoad, install);
+			mxStencilRegistry.parseStencilSet(xmlDoc.documentElement, postStencilLoad, install);
 		}
 	};
 	
 	// Parses the given stencil set
-	mxStencilRegistry.parseStencilSet = function(xmlDocument, postStencilLoad, install)
+	mxStencilRegistry.parseStencilSet = function(root, postStencilLoad, install)
 	{
 		install = (install != null) ? install : true;
-		var root = xmlDocument.documentElement;
 		var shape = root.firstChild;
 		var packageName = '';
 		var name = root.getAttribute('name');
