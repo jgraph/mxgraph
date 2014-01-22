@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphModel.js,v 1.4 2013/10/28 08:45:06 gaudenz Exp $
+ * $Id: mxGraphModel.js,v 1.5 2014/01/17 12:27:26 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -1629,7 +1629,7 @@ mxGraphModel.prototype.valueForCellChanged = function(cell, value)
  * 
  * cell - <mxCell> whose geometry should be returned.
  */
-mxGraphModel.prototype.getGeometry = function(cell, geometry)
+mxGraphModel.prototype.getGeometry = function(cell)
 {
 	return (cell != null) ? cell.getGeometry() : null;
 };

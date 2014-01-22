@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.4.0.2.
+	 * Current version is 2.4.0.3.
 	 */
-	VERSION: '2.4.0.2',
+	VERSION: '2.4.0.3',
 
 	/**
 	 * Variable: IS_IE
@@ -26246,7 +26246,7 @@ mxGraphLayout.prototype.arrangeGroups = function(groups, border)
 	}
 };
 /**
- * $Id: mxStackLayout.js,v 1.7 2013/11/18 14:35:48 david Exp $
+ * $Id: mxStackLayout.js,v 1.8 2014/01/22 17:07:41 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -26385,6 +26385,13 @@ mxStackLayout.prototype.resizeLast = false;
  * Value at which a new column or row should be created. Default is null.
  */
 mxStackLayout.prototype.wrap = null;
+
+/**
+ * Variable: borderCollapse
+ * 
+ * If the strokeWidth should be ignored. Default is true.
+ */
+mxStackLayout.prototype.borderCollapse = true;
 
 /**
  * Function: isHorizontal
@@ -26544,6 +26551,7 @@ mxStackLayout.prototype.execute = function(parent)
 		{
 			var tmp = 0;
 			var last = null;
+			var lastValue = 0;
 			var childCount = model.getChildCount(parent);
 			
 			for (var i = 0; i < childCount; i++)
@@ -26581,16 +26589,23 @@ mxStackLayout.prototype.execute = function(parent)
 						}
 						
 						tmp = Math.max(tmp, (horizontal) ? geo.height : geo.width);
+						var sw = 0;
+						
+						if (!this.borderCollapse)
+						{
+							var childStyle = this.graph.getCellStyle(child);
+							sw = mxUtils.getNumber(childStyle, mxConstants.STYLE_STROKEWIDTH, 1);
+						}
 						
 						if (last != null)
 						{
 							if (horizontal)
 							{
-								geo.x = last.x + last.width + this.spacing;
+								geo.x = lastValue + this.spacing + Math.floor(sw / 2);
 							}
 							else
 							{
-								geo.y = last.y + last.height + this.spacing;
+								geo.y = lastValue + this.spacing + Math.floor(sw / 2);
 							}
 						}
 						else if (!this.keepFirstLocation)
@@ -26628,6 +26643,15 @@ mxStackLayout.prototype.execute = function(parent)
 						
 						this.setChildGeometry(child, geo);
 						last = geo;
+						
+						if (horizontal)
+						{
+							lastValue = last.x + last.width + Math.floor(sw / 2);
+						}
+						else
+						{
+							lastValue = last.y + last.height + Math.floor(sw / 2);
+						}
 					}
 				}
 			}
@@ -35859,7 +35883,7 @@ mxSwimlaneLayout.prototype.placementStage = function(initialX, parent)
 	return placementStage.limitX + this.interHierarchySpacing;
 };
 /**
- * $Id: mxGraphModel.js,v 1.4 2013/10/28 08:45:06 gaudenz Exp $
+ * $Id: mxGraphModel.js,v 1.5 2014/01/17 12:27:26 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -37489,7 +37513,7 @@ mxGraphModel.prototype.valueForCellChanged = function(cell, value)
  * 
  * cell - <mxCell> whose geometry should be returned.
  */
-mxGraphModel.prototype.getGeometry = function(cell, geometry)
+mxGraphModel.prototype.getGeometry = function(cell)
 {
 	return (cell != null) ? cell.getGeometry() : null;
 };
@@ -39322,7 +39346,7 @@ mxCell.prototype.cloneValue = function()
 	return value;
 };
 /**
- * $Id: mxGeometry.js,v 1.5 2013/10/28 08:45:06 gaudenz Exp $
+ * $Id: mxGeometry.js,v 1.6 2014/01/20 09:55:48 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -39368,7 +39392,7 @@ mxCell.prototype.cloneValue = function()
  * 
  * This coordinate system is applied if <relative> is true, otherwise the
  * offset defines the absolute vector from the edge's center point to the
- * label.
+ * label and the values for <x> and <y> are ignored.
  * 
  * The width and height parameter for edge geometries can be used to set the
  * label width and height (eg. for word wrapping).
@@ -42266,7 +42290,7 @@ mxSelectionChange.prototype.execute = function()
 			'added', this.added, 'removed', this.removed));
 };
 /**
- * $Id: mxCellEditor.js,v 1.17 2014/01/07 11:27:13 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.18 2014/01/22 17:09:44 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -42545,8 +42569,8 @@ mxCellEditor.prototype.resize = function()
 			}
 			else if (this.bounds != null)
 			{
-				this.bounds.x = bds.x;
-				this.bounds.y = bds.y;
+				this.bounds.x = bds.x + state.absoluteOffset.x;
+				this.bounds.y = bds.y + state.absoluteOffset.y;
 				this.bounds.width = bds.width;
 				this.bounds.height = bds.height;
 				
@@ -68078,7 +68102,7 @@ mxRubberband.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxVertexHandler.js,v 1.39 2014/01/05 10:32:17 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.40 2014/01/20 08:57:12 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -68487,7 +68511,6 @@ mxVertexHandler.prototype.getHandleForEvent = function(me)
 	var hit = (this.allowHandleBoundsCheck && (mxClient.IS_IE || tol > 0)) ?
 		new mxRectangle(me.getGraphX() - tol, me.getGraphY() - tol, 2 * tol, 2 * tol) : null;
 	var minDistSq = null;
-	var result = null;
 	
 	function checkShape(shape)
 	{
@@ -68508,28 +68531,28 @@ mxVertexHandler.prototype.getHandleForEvent = function(me)
 		
 		return false;
 	}
-
+	
+	if (checkShape(this.rotationShape))
+	{
+		return mxEvent.ROTATION_HANDLE;
+	}
+	else if (checkShape(this.labelShape))
+	{
+		return mxEvent.LABEL_HANDLE;
+	}
+	
 	if (this.sizers != null)
 	{
 		for (var i = 0; i < this.sizers.length; i++)
 		{
 			if (checkShape(this.sizers[i]))
 			{
-				result = i;
+				return i;
 			}
 		}
 	}
-	
-	if (checkShape(this.rotationShape))
-	{
-		result = mxEvent.ROTATION_HANDLE;
-	}
-	else if (checkShape(this.labelShape))
-	{
-		result = mxEvent.LABEL_HANDLE;
-	}
-	
-	return result;
+
+	return null;
 };
 
 /**
@@ -69524,7 +69547,7 @@ mxVertexHandler.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxEdgeHandler.js,v 1.20 2013/11/02 16:42:25 gaudenz Exp $
+ * $Id: mxEdgeHandler.js,v 1.23 2014/01/20 09:54:55 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -70048,7 +70071,6 @@ mxEdgeHandler.prototype.getHandleForEvent = function(me)
 	var hit = (this.allowHandleBoundsCheck && (mxClient.IS_IE || tol > 0)) ?
 		new mxRectangle(me.getGraphX() - tol, me.getGraphY() - tol, 2 * tol, 2 * tol) : null;
 	var minDistSq = null;
-	var result = null;
 	
 	function checkShape(shape)
 	{
@@ -70069,10 +70091,10 @@ mxEdgeHandler.prototype.getHandleForEvent = function(me)
 		
 		return false;
 	}
-	
+
 	if (me.isSource(this.state.text) || checkShape(this.labelShape))
 	{
-		result = mxEvent.LABEL_HANDLE;
+		return mxEvent.LABEL_HANDLE;
 	}
 	
 	if (this.bends != null)
@@ -70081,12 +70103,12 @@ mxEdgeHandler.prototype.getHandleForEvent = function(me)
 		{
 			if (checkShape(this.bends[i]))
 			{
-				result = i;
+				return i;
 			}
 		}
 	}
 
-	return result;
+	return null;
 };
 
 /**
@@ -70274,7 +70296,6 @@ mxEdgeHandler.prototype.getPreviewTerminalState = function(me)
 	this.constraintHandler.update(me, this.isSource);
 	this.marker.process(me);
 	var currentState = this.marker.getValidState();
-	var result = null;
 	
 	if (this.constraintHandler.currentFocus != null && this.constraintHandler.currentConstraint != null)
 	{
@@ -70283,14 +70304,14 @@ mxEdgeHandler.prototype.getPreviewTerminalState = function(me)
 	
 	if (currentState != null)
 	{
-		result = currentState;
+		return currentState;
 	}
 	else if (this.constraintHandler.currentConstraint != null && this.constraintHandler.currentFocus != null)
 	{
-		result = this.constraintHandler.currentFocus;
+		return this.constraintHandler.currentFocus;
 	}
 	
-	return result;
+	return null;
 };
 
 /**
@@ -70612,19 +70633,38 @@ mxEdgeHandler.prototype.moveLabel = function(edgeState, x, y)
 	
 	if (geometry != null)
 	{
+		var scale = this.graph.getView().scale;
 		geometry = geometry.clone();
 		
-		// Resets the relative location stored inside the geometry
-		var pt = this.graph.getView().getRelativePoint(edgeState, x, y);
-		geometry.x = pt.x;
-		geometry.y = pt.y;
-		
-		// Resets the offset inside the geometry to find the offset
-		// from the resulting point
-		var scale = this.graph.getView().scale;
-		geometry.offset = new mxPoint(0, 0);
-		var pt = this.graph.view.getPoint(edgeState, geometry);
-		geometry.offset = new mxPoint((x - pt.x) / scale, (y - pt.y) / scale);
+		if (geometry.relative)
+		{
+			// Resets the relative location stored inside the geometry
+			var pt = this.graph.getView().getRelativePoint(edgeState, x, y);
+			geometry.x = pt.x;
+			geometry.y = pt.y;
+			
+			// Resets the offset inside the geometry to find the offset
+			// from the resulting point
+			geometry.offset = new mxPoint(0, 0);
+			var pt = this.graph.view.getPoint(edgeState, geometry);
+			geometry.offset = new mxPoint((x - pt.x) / scale, (y - pt.y) / scale);
+		}
+		else
+		{
+			var points = edgeState.absolutePoints;
+			var p0 = points[0];
+			var pe = points[points.length - 1];
+			
+			if (p0 != null && pe != null)
+			{
+				var cx = p0.x + (pe.x - p0.x) / 2;
+				var cy = p0.y + (pe.y - p0.y) / 2;
+				
+				geometry.offset = new mxPoint((x - cx) / scale, (y - cy) / scale);
+				geometry.x = 0;
+				geometry.y = 0;
+			}
+		}
 
 		model.setGeometry(edgeState.cell, geometry);
 	}
@@ -77022,7 +77062,7 @@ var mxCodecRegistry =
 
 };
 /**
- * $Id: mxCodec.js,v 1.6 2013/11/22 12:17:31 david Exp $
+ * $Id: mxCodec.js,v 1.7 2014/01/20 19:35:17 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -77392,7 +77432,7 @@ mxCodec.prototype.decode = function(node, into)
 		
 		try
 		{
-			ctor = eval(node.nodeName);
+			ctor = window[node.nodeName];
 		}
 		catch (err)
 		{

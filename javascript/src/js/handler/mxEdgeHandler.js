@@ -1,5 +1,5 @@
 /**
- * $Id: mxEdgeHandler.js,v 1.20 2013/11/02 16:42:25 gaudenz Exp $
+ * $Id: mxEdgeHandler.js,v 1.23 2014/01/20 09:54:55 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -523,7 +523,6 @@ mxEdgeHandler.prototype.getHandleForEvent = function(me)
 	var hit = (this.allowHandleBoundsCheck && (mxClient.IS_IE || tol > 0)) ?
 		new mxRectangle(me.getGraphX() - tol, me.getGraphY() - tol, 2 * tol, 2 * tol) : null;
 	var minDistSq = null;
-	var result = null;
 	
 	function checkShape(shape)
 	{
@@ -544,10 +543,10 @@ mxEdgeHandler.prototype.getHandleForEvent = function(me)
 		
 		return false;
 	}
-	
+
 	if (me.isSource(this.state.text) || checkShape(this.labelShape))
 	{
-		result = mxEvent.LABEL_HANDLE;
+		return mxEvent.LABEL_HANDLE;
 	}
 	
 	if (this.bends != null)
@@ -556,12 +555,12 @@ mxEdgeHandler.prototype.getHandleForEvent = function(me)
 		{
 			if (checkShape(this.bends[i]))
 			{
-				result = i;
+				return i;
 			}
 		}
 	}
 
-	return result;
+	return null;
 };
 
 /**
@@ -749,7 +748,6 @@ mxEdgeHandler.prototype.getPreviewTerminalState = function(me)
 	this.constraintHandler.update(me, this.isSource);
 	this.marker.process(me);
 	var currentState = this.marker.getValidState();
-	var result = null;
 	
 	if (this.constraintHandler.currentFocus != null && this.constraintHandler.currentConstraint != null)
 	{
@@ -758,14 +756,14 @@ mxEdgeHandler.prototype.getPreviewTerminalState = function(me)
 	
 	if (currentState != null)
 	{
-		result = currentState;
+		return currentState;
 	}
 	else if (this.constraintHandler.currentConstraint != null && this.constraintHandler.currentFocus != null)
 	{
-		result = this.constraintHandler.currentFocus;
+		return this.constraintHandler.currentFocus;
 	}
 	
-	return result;
+	return null;
 };
 
 /**
@@ -1087,19 +1085,38 @@ mxEdgeHandler.prototype.moveLabel = function(edgeState, x, y)
 	
 	if (geometry != null)
 	{
+		var scale = this.graph.getView().scale;
 		geometry = geometry.clone();
 		
-		// Resets the relative location stored inside the geometry
-		var pt = this.graph.getView().getRelativePoint(edgeState, x, y);
-		geometry.x = pt.x;
-		geometry.y = pt.y;
-		
-		// Resets the offset inside the geometry to find the offset
-		// from the resulting point
-		var scale = this.graph.getView().scale;
-		geometry.offset = new mxPoint(0, 0);
-		var pt = this.graph.view.getPoint(edgeState, geometry);
-		geometry.offset = new mxPoint((x - pt.x) / scale, (y - pt.y) / scale);
+		if (geometry.relative)
+		{
+			// Resets the relative location stored inside the geometry
+			var pt = this.graph.getView().getRelativePoint(edgeState, x, y);
+			geometry.x = pt.x;
+			geometry.y = pt.y;
+			
+			// Resets the offset inside the geometry to find the offset
+			// from the resulting point
+			geometry.offset = new mxPoint(0, 0);
+			var pt = this.graph.view.getPoint(edgeState, geometry);
+			geometry.offset = new mxPoint((x - pt.x) / scale, (y - pt.y) / scale);
+		}
+		else
+		{
+			var points = edgeState.absolutePoints;
+			var p0 = points[0];
+			var pe = points[points.length - 1];
+			
+			if (p0 != null && pe != null)
+			{
+				var cx = p0.x + (pe.x - p0.x) / 2;
+				var cy = p0.y + (pe.y - p0.y) / 2;
+				
+				geometry.offset = new mxPoint((x - cx) / scale, (y - cy) / scale);
+				geometry.x = 0;
+				geometry.y = 0;
+			}
+		}
 
 		model.setGeometry(edgeState.cell, geometry);
 	}

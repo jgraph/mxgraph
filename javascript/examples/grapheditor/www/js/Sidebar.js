@@ -1,5 +1,5 @@
 /**
- * $Id: Sidebar.js,v 1.61 2014/01/08 10:50:55 gaudenz Exp $
+ * $Id: Sidebar.js,v 1.62 2014/01/17 12:56:03 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -926,8 +926,7 @@ Sidebar.prototype.createDropHandler = function(cells, allowSplit)
 			
 			if (cells.length > 0)
 			{
-				var validDropTarget = (target != null) ?
-					graph.isValidDropTarget(target, cells, evt) : false;
+				var validDropTarget = (target != null) ? graph.isValidDropTarget(target, cells, evt) : false;
 				var select = null;
 				
 				if (target != null && !validDropTarget)

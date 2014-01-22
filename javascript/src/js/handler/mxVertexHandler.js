@@ -1,5 +1,5 @@
 /**
- * $Id: mxVertexHandler.js,v 1.39 2014/01/05 10:32:17 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.40 2014/01/20 08:57:12 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -408,7 +408,6 @@ mxVertexHandler.prototype.getHandleForEvent = function(me)
 	var hit = (this.allowHandleBoundsCheck && (mxClient.IS_IE || tol > 0)) ?
 		new mxRectangle(me.getGraphX() - tol, me.getGraphY() - tol, 2 * tol, 2 * tol) : null;
 	var minDistSq = null;
-	var result = null;
 	
 	function checkShape(shape)
 	{
@@ -429,28 +428,28 @@ mxVertexHandler.prototype.getHandleForEvent = function(me)
 		
 		return false;
 	}
-
+	
+	if (checkShape(this.rotationShape))
+	{
+		return mxEvent.ROTATION_HANDLE;
+	}
+	else if (checkShape(this.labelShape))
+	{
+		return mxEvent.LABEL_HANDLE;
+	}
+	
 	if (this.sizers != null)
 	{
 		for (var i = 0; i < this.sizers.length; i++)
 		{
 			if (checkShape(this.sizers[i]))
 			{
-				result = i;
+				return i;
 			}
 		}
 	}
-	
-	if (checkShape(this.rotationShape))
-	{
-		result = mxEvent.ROTATION_HANDLE;
-	}
-	else if (checkShape(this.labelShape))
-	{
-		result = mxEvent.LABEL_HANDLE;
-	}
-	
-	return result;
+
+	return null;
 };
 
 /**

@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellEditor.js,v 1.17 2014/01/07 11:27:13 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.18 2014/01/22 17:09:44 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -278,8 +278,8 @@ mxCellEditor.prototype.resize = function()
 			}
 			else if (this.bounds != null)
 			{
-				this.bounds.x = bds.x;
-				this.bounds.y = bds.y;
+				this.bounds.x = bds.x + state.absoluteOffset.x;
+				this.bounds.y = bds.y + state.absoluteOffset.y;
 				this.bounds.width = bds.width;
 				this.bounds.height = bds.height;
 				

@@ -1,5 +1,5 @@
 /**
- * $Id: mxCodec.js,v 1.6 2013/11/22 12:17:31 david Exp $
+ * $Id: mxCodec.js,v 1.7 2014/01/20 19:35:17 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -369,7 +369,7 @@ mxCodec.prototype.decode = function(node, into)
 		
 		try
 		{
-			ctor = eval(node.nodeName);
+			ctor = window[node.nodeName];
 		}
 		catch (err)
 		{

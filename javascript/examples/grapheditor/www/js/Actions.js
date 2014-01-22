@@ -1,5 +1,5 @@
 /**
- * $Id: Actions.js,v 1.26 2014/01/09 19:11:14 gaudenz Exp $
+ * $Id: Actions.js,v 1.27 2014/01/20 16:32:48 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -126,7 +126,7 @@ Actions.prototype.init = function()
 	this.addAction('collapse', function() { graph.foldCells(true); }, null, null, 'Backspace');
 
 	// Arrange actions
-	this.addAction('toFront', function() { graph.orderCells(false); }, null, null, 'Ctrl+F');
+	this.addAction('toFront', function() { graph.orderCells(false); }, null, null, 'Ctrl+Shift+B');
 	this.addAction('toBack', function() { graph.orderCells(true); }, null, null, 'Ctrl+B');
 	this.addAction('group', function() { graph.setSelectionCell(graph.groupCells(null, 0)); }, null, null, 'Ctrl+G');
 	this.addAction('ungroup', function() { graph.setSelectionCells(graph.ungroupCells()); }, null, null, 'Ctrl+U');

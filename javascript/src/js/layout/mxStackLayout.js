@@ -1,5 +1,5 @@
 /**
- * $Id: mxStackLayout.js,v 1.7 2013/11/18 14:35:48 david Exp $
+ * $Id: mxStackLayout.js,v 1.8 2014/01/22 17:07:41 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -138,6 +138,13 @@ mxStackLayout.prototype.resizeLast = false;
  * Value at which a new column or row should be created. Default is null.
  */
 mxStackLayout.prototype.wrap = null;
+
+/**
+ * Variable: borderCollapse
+ * 
+ * If the strokeWidth should be ignored. Default is true.
+ */
+mxStackLayout.prototype.borderCollapse = true;
 
 /**
  * Function: isHorizontal
@@ -297,6 +304,7 @@ mxStackLayout.prototype.execute = function(parent)
 		{
 			var tmp = 0;
 			var last = null;
+			var lastValue = 0;
 			var childCount = model.getChildCount(parent);
 			
 			for (var i = 0; i < childCount; i++)
@@ -334,16 +342,23 @@ mxStackLayout.prototype.execute = function(parent)
 						}
 						
 						tmp = Math.max(tmp, (horizontal) ? geo.height : geo.width);
+						var sw = 0;
+						
+						if (!this.borderCollapse)
+						{
+							var childStyle = this.graph.getCellStyle(child);
+							sw = mxUtils.getNumber(childStyle, mxConstants.STYLE_STROKEWIDTH, 1);
+						}
 						
 						if (last != null)
 						{
 							if (horizontal)
 							{
-								geo.x = last.x + last.width + this.spacing;
+								geo.x = lastValue + this.spacing + Math.floor(sw / 2);
 							}
 							else
 							{
-								geo.y = last.y + last.height + this.spacing;
+								geo.y = lastValue + this.spacing + Math.floor(sw / 2);
 							}
 						}
 						else if (!this.keepFirstLocation)
@@ -381,6 +396,15 @@ mxStackLayout.prototype.execute = function(parent)
 						
 						this.setChildGeometry(child, geo);
 						last = geo;
+						
+						if (horizontal)
+						{
+							lastValue = last.x + last.width + Math.floor(sw / 2);
+						}
+						else
+						{
+							lastValue = last.y + last.height + Math.floor(sw / 2);
+						}
 					}
 				}
 			}
