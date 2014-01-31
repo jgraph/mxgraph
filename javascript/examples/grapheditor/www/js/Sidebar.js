@@ -1,5 +1,5 @@
 /**
- * $Id: Sidebar.js,v 1.62 2014/01/17 12:56:03 gaudenz Exp $
+ * $Id: Sidebar.js,v 1.63 2014/01/23 17:03:23 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -158,9 +158,19 @@ Sidebar.prototype.sidebarTitles = true;
 Sidebar.prototype.tooltipTitles = true;
 
 /**
+ * Specifies if titles in the tooltips should be enabled.
+ */
+Sidebar.prototype.maxTooltipWidth = 400;
+
+/**
+ * Specifies if titles in the tooltips should be enabled.
+ */
+Sidebar.prototype.maxTooltipHeight = 400;
+
+/**
  * Adds all palettes to the sidebar.
  */
-Sidebar.prototype.showTooltip = function(elt, cells, title, showLabel)
+Sidebar.prototype.showTooltip = function(elt, cells, w, h, title, showLabel)
 {
 	if (this.enableTooltips && this.showTooltips)
 	{
@@ -203,9 +213,19 @@ Sidebar.prototype.showTooltip = function(elt, cells, title, showLabel)
 					document.body.appendChild(this.tooltipImage);
 				}
 				
+				this.graph2.model.clear();
+
+				if (w > this.maxTooltipWidth || h > this.maxTooltipHeight)
+				{
+					this.graph2.view.scale = Math.round(Math.min(this.maxTooltipWidth / w, this.maxTooltipHeight / h) * 100) / 100;
+				}
+				else
+				{
+					this.graph2.view.scale = 1;
+				}
+				
 				this.tooltip.style.display = 'block';
 				this.graph2.labelsVisible = (showLabel == null || showLabel);
-				this.graph2.model.clear();
 				this.graph2.addCells(cells);
 				
 				var bounds = this.graph2.getGraphBounds();
@@ -820,8 +840,8 @@ Sidebar.prototype.createThumb = function(cells, width, height, parent, title, sh
 	this.graph.addCells(cells);
 	var bounds = this.graph.getGraphBounds();
 	var corr = this.thumbBorder;
-	var s = Math.min((width - 2) / (bounds.width - bounds.x + corr),
-		(height - 2) / (bounds.height - bounds.y + corr));
+	var s = Math.round(Math.min((width - 2) / (bounds.width - bounds.x + corr),
+		(height - 2) / (bounds.height - bounds.y + corr)) * 100) / 100;
 	var x0 = -Math.min(bounds.x, 0);
 	var y0 = -Math.min(bounds.y, 0);
 	this.graph.view.scaleAndTranslate(s, x0, y0);
@@ -1094,7 +1114,7 @@ Sidebar.prototype.createVertexTemplateFromCells = function(cells, width, height,
 		{
 			if (mxEvent.isMouseEvent(evt))
 			{
-				this.showTooltip(elt, cells, title, showLabel);
+				this.showTooltip(elt, cells, width, height, title, showLabel);
 			}
 		}));
 	}
@@ -1151,7 +1171,7 @@ Sidebar.prototype.createEdgeTemplateFromCells = function(cells, width, height, t
 		{
 			if (mxEvent.isMouseEvent(evt))
 			{
-				this.showTooltip(elt, cells, title, showLabel);
+				this.showTooltip(elt, cells, width, height, title, showLabel);
 			}
 		}));
 	}

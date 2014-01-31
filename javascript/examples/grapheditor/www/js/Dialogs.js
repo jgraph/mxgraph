@@ -1,5 +1,5 @@
 /**
- * $Id: Dialogs.js,v 1.24 2014/01/13 01:03:10 gaudenz Exp $
+ * $Id: Dialogs.js,v 1.26 2014/01/26 15:48:57 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -578,7 +578,7 @@ function PrintDialog(editorUi)
 	td.style.paddingTop = '40px';
 	td.setAttribute('align', 'right');
 	
-	function preview()
+	function preview(print)
 	{
 		var pf = graph.pageFormat || mxConstants.PAGE_FORMAT_A4_PORTRAIT;
 		
@@ -625,21 +625,19 @@ function PrintDialog(editorUi)
 			}
 		}
 
-		var preview = PrintDialog.createPrintPreview(graph, scale, pf, border, x0, y0, autoOrigin);
-		
-		return preview.open();
+		return PrintDialog.showPreview(PrintDialog.createPrintPreview(graph, scale, pf, border, x0, y0, autoOrigin, print), print);
 	};
 
 	td.appendChild(mxUtils.button(mxResources.get('print'), function()
 	{
 		editorUi.hideDialog();
-		preview().print();
+		preview(true);
 	}));
 
 	td.appendChild(mxUtils.button(mxResources.get('preview'), function()
 	{
 		editorUi.hideDialog();
-		preview();
+		preview(false);
 	}));
 	
 	td.appendChild(mxUtils.button(mxResources.get('cancel'), function()
@@ -658,6 +656,21 @@ function PrintDialog(editorUi)
 /**
  * Constructs a new print dialog.
  */
+PrintDialog.showPreview = function(preview, print)
+{
+	var result = preview.open();
+	
+	if (print)
+	{
+		result.print();
+	}
+	
+	return result;
+};
+
+/**
+ * Constructs a new print dialog.
+ */
 PrintDialog.createPrintPreview = function(graph, scale, pf, border, x0, y0, autoOrigin)
 {
 	var preview = new mxPrintPreview(graph, scale, pf, border, x0, y0);
@@ -667,6 +680,9 @@ PrintDialog.createPrintPreview = function(graph, scale, pf, border, x0, y0, auto
 	return preview;
 };
 
+/**
+ * Constructs a new filename dialog.
+ */
 function FilenameDialog(editorUi, filename, buttonText, fn, label)
 {
 	var row, td;
@@ -726,6 +742,9 @@ function FilenameDialog(editorUi, filename, buttonText, fn, label)
 	this.container = table;
 };
 
+/**
+ * Constructs a new textarea dialog.
+ */
 function TextareaDialog(editorUi, title, url, fn, cancelFn)
 {
 	var row, td;
@@ -862,6 +881,9 @@ function EditFileDialog(editorUi)
 
 	div.appendChild(mxUtils.button(mxResources.get('ok'), function()
 	{
+		// Removes all illegal control characters before parsing
+		var data = editorUi.editor.graph.zapGremlins(textarea.value);
+		
 		if (select.value == 'new')
 		{
 			window.openFile = new OpenFile(function()
@@ -870,14 +892,14 @@ function EditFileDialog(editorUi)
 				window.openFile = null;
 			});
 			
-			window.openFile.setData(textarea.value, null);
+			window.openFile.setData(data, null);
 			window.open(editorUi.getUrl());
 		}
 		else if (select.value == 'replace')
 		{
 			try
 			{
-				var doc = mxUtils.parseXml(textarea.value); 
+				var doc = mxUtils.parseXml(data); 
 				editorUi.editor.setGraphXml(doc.documentElement);
 				editorUi.hideDialog();
 			}
@@ -888,7 +910,7 @@ function EditFileDialog(editorUi)
 		}
 		else if (select.value == 'import')
 		{
-			var doc = mxUtils.parseXml(textarea.value);
+			var doc = mxUtils.parseXml(data);
 			var model = new mxGraphModel();
 			var codec = new mxCodec(doc);
 			codec.decode(doc.documentElement, model);
