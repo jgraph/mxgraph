@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellRenderer.js,v 1.37 2014/01/15 11:32:51 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.38 2014/01/23 16:27:47 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -932,37 +932,19 @@ mxCellRenderer.prototype.getLabelBounds = function(state)
 		// Minimum of 1 fixes alignment bug in HTML labels
 		bounds.width = Math.max(1, state.width);
 		bounds.height = Math.max(1, state.height);
-
-		// Swimlane is a special case
-		if (graph.isSwimlane(state.cell))
-		{
-			var size = graph.getStartSize(state.cell);
-
-			if (size.width > 0)
-			{
-				var tmp = Math.min(bounds.width, size.width * scale);
-				
-				if (state.shape.flipH)
-				{
-					bounds.x += bounds.width - tmp;
-				}
-
-				bounds.width = tmp;
-			}
-			else if (size.height > 0)
-			{
-				var tmp = Math.min(bounds.height, size.height * scale);
-				
-				if (state.shape.flipV)
-				{
-					bounds.y += bounds.height - tmp;
-				}
-
-				bounds.height = tmp;
-			}
-		}
 	}
 
+	if (state.text.isPaintBoundsInverted())
+	{
+		// Rotates around center of state
+		var t = (state.width - state.height) / 2;
+		bounds.x += t;
+		bounds.y -= t;
+		var tmp = bounds.width;
+		bounds.width = bounds.height;
+		bounds.height = tmp;
+	}
+	
 	// Shape can modify its label bounds
 	if (state.shape != null)
 	{
@@ -990,17 +972,6 @@ mxCellRenderer.prototype.getLabelBounds = function(state)
  */
 mxCellRenderer.prototype.rotateLabelBounds = function(state, bounds)
 {
-	if (state.text.isPaintBoundsInverted())
-	{
-		// Rotates around center of state
-		var t = (state.width - state.height) / 2;
-		bounds.x += t;
-		bounds.y -= t;
-		var tmp = bounds.width;
-		bounds.width = bounds.height;
-		bounds.height = tmp;
-	}
-
 	bounds.x -= state.text.margin.x * bounds.width;
 	bounds.y -= state.text.margin.y * bounds.height;
 	

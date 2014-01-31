@@ -1,5 +1,5 @@
 /**
- * $Id: Shapes.js,v 1.24 2013/11/11 18:20:04 gaudenz Exp $
+ * $Id: Shapes.js,v 1.26 2014/01/27 20:45:08 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 
@@ -262,23 +262,31 @@
 	};
 	ProcessShape.prototype.getLabelBounds = function(rect)
 	{
-		var w = rect.width;
-		var h = rect.height;
-		var r = new mxRectangle(rect.x, rect.y, w, h);
-
-		var inset = Math.min(w, Math.min(w, mxUtils.getValue(this.style, 'size', this.size) * w) + this.strokewidth);
-
-		if (this.isRounded)
+		if (mxUtils.getValue(this.state.style, mxConstants.STYLE_HORIZONTAL, true) ==
+			(this.direction == null ||
+			this.direction == mxConstants.DIRECTION_EAST ||
+			this.direction == mxConstants.DIRECTION_WEST))
 		{
-			var f = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE,
-				mxConstants.RECTANGLE_ROUNDING_FACTOR * 100) / 100;
-			inset = Math.max(inset, Math.min(w * f, h * f));
+			var w = rect.width;
+			var h = rect.height;
+			var r = new mxRectangle(rect.x, rect.y, w, h);
+	
+			var inset = Math.min(w, Math.min(w, mxUtils.getValue(this.style, 'size', this.size) * w) + this.strokewidth);
+	
+			if (this.isRounded)
+			{
+				var f = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE,
+					mxConstants.RECTANGLE_ROUNDING_FACTOR * 100) / 100;
+				inset = Math.max(inset, Math.min(w * f, h * f));
+			}
+			
+			r.x += inset;
+			r.width -= 2 * inset;
+			
+			return r;
 		}
 		
-		r.x += inset;
-		r.width -= 2 * inset;
-		
-		return r;
+		return rect;
 	};
 	ProcessShape.prototype.paintForeground = function(c, x, y, w, h)
 	{
@@ -962,10 +970,15 @@
 				mxVertexHandler.prototype.mouseUp.apply(this, arguments);
 			}
 		};
-
+		
+		mxExtVertexHandler.prototype.getRotation = function()
+		{
+			return this.state.shape.getShapeRotation();
+		};
+		
 		mxExtVertexHandler.prototype.getSpecialHandleBounds = function(size)
 		{
-			var rotation = this.state.shape.getShapeRotation();
+			var rotation = this.getRotation();
 			var alpha = mxUtils.toRadians(rotation);
 			var cos = Math.cos(alpha);
 			var sin = Math.sin(alpha);
@@ -1041,10 +1054,10 @@
 	
 			return new mxPoint(x, bounds.y + th);
 		};
-		
+
 		mxFolderHandler.prototype.updateStyle = function(point)
 		{
-			var rotation = this.state.shape.getShapeRotation();
+			var rotation = this.getRotation();
 			var alpha = mxUtils.toRadians(rotation);
 			var cos = Math.cos(-alpha);
 			var sin = Math.sin(-alpha);
@@ -1132,19 +1145,37 @@
 		};
 		
 		mxUtils.extend(mxSwimlaneHandler, mxFolderHandler);
-		
+
 		mxSwimlaneHandler.prototype.getSpecialHandlePoint = function(bounds)
 		{
 			var scale = this.graph.getView().scale;
 			var startSize = mxUtils.getValue(this.state.style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE);
 
-			return new mxPoint(bounds.x + bounds.width / 2, bounds.y + Math.min(bounds.height, startSize * scale));
+			if (mxUtils.getValue(this.state.style, mxConstants.STYLE_HORIZONTAL, true))
+			{
+				return new mxPoint(bounds.x + bounds.width / 2, bounds.y + Math.min(bounds.height, startSize * scale));
+			}
+			else
+			{
+				return new mxPoint(bounds.x + Math.min(bounds.width, startSize * scale), bounds.y + bounds.height / 2);
+			}
 		};
 		
 		mxSwimlaneHandler.prototype.updateStyleUnrotated = function(point, bounds)
 		{
-			point.x = bounds.x + bounds.width / 2;
-			startSize = point.y - bounds.y;
+			var startSize = 0;
+			
+			if (mxUtils.getValue(this.state.style, mxConstants.STYLE_HORIZONTAL, true))
+			{
+				point.x = bounds.x + bounds.width / 2;
+				startSize = point.y - bounds.y;
+			}
+			else
+			{
+				point.y = bounds.y + bounds.height / 2;
+				startSize = point.x - bounds.x;
+			}
+			
 			var scale = this.graph.getView().scale;
 			this.state.style['startSize'] = Math.round(Math.max(1, startSize) / scale);
 			
@@ -1439,18 +1470,21 @@
 	// Constraints
 	mxGraph.prototype.getAllConnectionConstraints = function(terminal, source)
 	{
-		if (terminal != null && terminal.shape != null)
+		if (mxUtils.getValue(terminal.style, 'fixedPoints', '1') != '0')
 		{
-			if (terminal.shape.stencil != null)
+			if (terminal != null && terminal.shape != null)
 			{
 				if (terminal.shape.stencil != null)
 				{
-					return terminal.shape.stencil.constraints;
+					if (terminal.shape.stencil != null)
+					{
+						return terminal.shape.stencil.constraints;
+					}
 				}
-			}
-			else if (terminal.shape.constraints != null)
-			{
-				return terminal.shape.constraints;
+				else if (terminal.shape.constraints != null)
+				{
+					return terminal.shape.constraints;
+				}
 			}
 		}
 

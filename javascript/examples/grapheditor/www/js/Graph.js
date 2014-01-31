@@ -1,5 +1,5 @@
 /**
- * $Id: Graph.js,v 1.36 2014/01/13 01:03:10 gaudenz Exp $
+ * $Id: Graph.js,v 1.37 2014/01/26 15:48:57 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -366,10 +366,35 @@ Graph.prototype.convertValueToString = function(cell)
 };
 
 /**
+ * Removes all illegal control characters with ASCII code <32 except TAB, LF
+ * and CR.
+ */
+Graph.prototype.zapGremlins = function(text)
+{
+	var checked = [];
+	
+	for (var i = 0; i < text.length; i++)
+	{
+		var code = text.charCodeAt(i);
+		
+		// Removes all control chars except TAB, LF and CR
+		if (code >= 32 || code == 9 || code == 10 || code == 13)
+		{
+			checked.push(text.charAt(i));
+		}
+	}
+	
+	return checked.join('');
+};
+
+/**
  * Handles label changes for XML user objects.
  */
 Graph.prototype.cellLabelChanged = function(cell, value, autoSize)
 {
+	// Removes all illegal control characters in user input
+	value = this.zapGremlins(value);
+	
 	if (cell.value != null && typeof(cell.value) == 'object')
 	{
 		var tmp = cell.value.cloneNode(true);

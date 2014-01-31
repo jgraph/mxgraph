@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellHighlight.js,v 1.9 2013/10/28 08:45:07 gaudenz Exp $
+ * $Id: mxCellHighlight.js,v 1.10 2014/01/29 09:23:45 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -31,14 +31,15 @@ function mxCellHighlight(graph, highlightColor, strokeWidth, dashed)
 			// Updates reference to state
 			if (this.state != null)
 			{
-				this.state = this.graph.view.getState(this.state.cell);
+				var tmp = this.graph.view.getState(this.state.cell);
 				
-				if (this.state == null)
+				if (tmp == null)
 				{
 					this.hide();
 				}
 				else
 				{
+					this.state = tmp;
 					this.repaint();
 				}
 			}

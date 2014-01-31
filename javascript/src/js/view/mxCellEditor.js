@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellEditor.js,v 1.18 2014/01/22 17:09:44 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.19 2014/01/26 11:55:59 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -282,29 +282,6 @@ mxCellEditor.prototype.resize = function()
 				this.bounds.y = bds.y + state.absoluteOffset.y;
 				this.bounds.width = bds.width;
 				this.bounds.height = bds.height;
-				
-				// Applies the horizontal and vertical label positions
-				var horizontal = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_POSITION, mxConstants.ALIGN_CENTER);
-		
-				if (horizontal == mxConstants.ALIGN_LEFT)
-				{
-					this.bounds.x -= state.width;
-				}
-				else if (horizontal == mxConstants.ALIGN_RIGHT)
-				{
-					this.bounds.x += state.width;
-				}
-		
-				var vertical = mxUtils.getValue(state.style, mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.ALIGN_MIDDLE);
-		
-				if (vertical == mxConstants.ALIGN_TOP)
-				{
-					this.bounds.y -= state.height;
-				}
-				else if (vertical == mxConstants.ALIGN_BOTTOM)
-				{
-					this.bounds.y += state.height;
-				}
 			}
 			
 			var value = this.textarea.value;

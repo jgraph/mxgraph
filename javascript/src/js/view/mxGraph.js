@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.64 2014/01/15 11:32:51 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.65 2014/01/23 16:52:17 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -1938,7 +1938,7 @@ mxGraph.prototype.processChange = function(change)
 		var newParent = this.model.getParent(change.child);
 		this.view.invalidate(change.child, true, true);
 
-		if (newParent == null)
+		if (newParent == null || this.isCellCollapsed(newParent))
 		{
 			this.view.invalidate(change.child, true, true);
 			this.removeStateForCell(change.child);

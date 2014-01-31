@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.4.0.3.
+	 * Current version is 2.4.0.4.
 	 */
-	VERSION: '2.4.0.3',
+	VERSION: '2.4.0.4',
 
 	/**
 	 * Variable: IS_IE
@@ -25468,7 +25468,7 @@ mxConnector.prototype.augmentBoundingBox = function(bbox)
 	bbox.grow(Math.ceil(size * this.scale));
 };
 /**
- * $Id: mxSwimlane.js,v 1.18 2013/10/28 08:45:03 gaudenz Exp $
+ * $Id: mxSwimlane.js,v 1.19 2014/01/23 16:27:47 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -25523,51 +25523,71 @@ mxSwimlane.prototype.imageSize = 16;
  * 
  * Returns the bounding box for the gradient box for this shape.
  */
-mxSwimlane.prototype.getGradientBounds = function(c, x, y, w, h)
+mxSwimlane.prototype.getLabelBounds = function(rect)
 {
-	var start = Math.min(h, mxUtils.getValue(this.style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE));
+	var start = mxUtils.getValue(this.style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE);
+	var bounds = new mxRectangle(rect.x, rect.y, rect.width, rect.height);
+	var horizontal = this.isHorizontal();
 	
-	return new mxRectangle(x, y, w, start);
-};
+	var flipH = mxUtils.getValue(this.style, mxConstants.STYLE_FLIPH, 0) == 1;
+	var flipV = mxUtils.getValue(this.style, mxConstants.STYLE_FLIPV, 0) == 1;	
+	
+	// East is default
+	var shapeVertical = (this.direction == mxConstants.DIRECTION_NORTH ||
+			this.direction == mxConstants.DIRECTION_SOUTH);
+	var realHorizontal = horizontal == !shapeVertical;
+	
+	var realFlipH = !realHorizontal && flipH != (this.direction == mxConstants.DIRECTION_SOUTH ||
+			this.direction == mxConstants.DIRECTION_WEST);
+	var realFlipV = realHorizontal && flipV != (this.direction == mxConstants.DIRECTION_SOUTH ||
+			this.direction == mxConstants.DIRECTION_WEST);
 
-/**
- * Function: getRotation
- * 
- * Overrides rotation to include the horizontal flag in the shape rotation.
- */
-mxSwimlane.prototype.getRotation = function()
-{
-	var rot = mxShape.prototype.getRotation.apply(this, arguments);
-	
-	if (mxUtils.getValue(this.style, mxConstants.STYLE_HORIZONTAL, 1) != 1)
+	// Shape is horizontal
+	if (!shapeVertical)
 	{
-		rot += mxText.prototype.verticalTextRotation;
+		var tmp = Math.min(bounds.height, start * this.scale);
+
+		if (realFlipH || realFlipV)
+		{
+			bounds.y += bounds.height - tmp;
+		}
+
+		bounds.height = tmp;
+	}
+	else
+	{
+		var tmp = Math.min(bounds.width, start * this.scale);
+		
+		if (realFlipH || realFlipV)
+		{
+			bounds.x += bounds.width - tmp;	
+		}
+
+		bounds.width = tmp;
 	}
 	
-	return rot;
+	return bounds;
 };
 
 /**
- * Function: getTextRotation
+ * Function: getGradientBounds
  * 
- * Redirect the text rotation to the shape rotation to avoid adding the vertical
- * text rotation twice.
+ * Returns the bounding box for the gradient box for this shape.
  */
-mxSwimlane.prototype.getTextRotation = function()
+mxSwimlane.prototype.getGradientBounds = function(c, x, y, w, h)
 {
-	return this.getRotation();
-};
-
-/**
- * Function: isPaintBoundsInverted
- * 
- * Overrides bounds inversion to maintain the bounds if the shape is rotated
- * via the horizontal flag.
- */
-mxSwimlane.prototype.isPaintBoundsInverted = function()
-{
-	return mxShape.prototype.isPaintBoundsInverted.apply(this, arguments) ||
-		mxUtils.getValue(this.style, mxConstants.STYLE_HORIZONTAL, 1) != 1;
+	var start = mxUtils.getValue(this.style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE);
+	
+	if (this.isHorizontal())
+	{
+		start = Math.min(start, h);
+		return new mxRectangle(x, y, w, start);
+	}
+	else
+	{
+		start = Math.min(start, w);
+		return new mxRectangle(x, y, start, h);
+	}
 };
 
 /**
@@ -25587,13 +25607,32 @@ mxSwimlane.prototype.getArcSize = function(w, h, start)
  *
  * Paints the swimlane vertex shape.
  */
+mxSwimlane.prototype.isHorizontal = function()
+{
+	return mxUtils.getValue(this.style, mxConstants.STYLE_HORIZONTAL, 1) == 1;
+};
+
+/**
+ * Function: paintVertexShape
+ *
+ * Paints the swimlane vertex shape.
+ */
 mxSwimlane.prototype.paintVertexShape = function(c, x, y, w, h)
 {
-	var start = Math.min(h, mxUtils.getValue(this.style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE));
+	var start = mxUtils.getValue(this.style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE);
 	var fill = mxUtils.getValue(this.style, mxConstants.STYLE_SWIMLANE_FILLCOLOR, mxConstants.NONE);
 	var swimlaneLine = mxUtils.getValue(this.style, mxConstants.STYLE_SWIMLANE_LINE, 1) == 1;
 	var r = 0;
-
+	
+	if (this.isHorizontal())
+	{
+		start = Math.min(start, h);
+	}
+	else
+	{
+		start = Math.min(start, w);
+	}
+	
 	c.translate(x, y);
 	
 	if (!this.isRounded)
@@ -25607,7 +25646,7 @@ mxSwimlane.prototype.paintVertexShape = function(c, x, y, w, h)
 	}
 	
 	var sep = mxUtils.getValue(this.style, mxConstants.STYLE_SEPARATORCOLOR, mxConstants.NONE);
-	this.paintSeparator(c, w, start, h, sep);
+	this.paintSeparator(c, x, y, w, h, start, sep);
 
 	if (this.image != null)
 	{
@@ -25639,31 +25678,62 @@ mxSwimlane.prototype.paintSwimlane = function(c, x, y, w, h, start, fill, swimla
 		c.restore();
 		c.setShadow(false);
 	}
-	
+
 	c.begin();
-	c.moveTo(0, start);
-	c.lineTo(0, 0);
-	c.lineTo(w, 0);
-	c.lineTo(w, start);
 	
-	if (swimlaneLine)
+	if (this.isHorizontal())
 	{
-		c.close();
-	}
-	
-	c.fillAndStroke();
-	
-	// Transparent content area
-	if (start < h && fill == mxConstants.NONE)
-	{
-		c.pointerEvents = false;
-		
-		c.begin();
 		c.moveTo(0, start);
-		c.lineTo(0, h);
-		c.lineTo(w, h);
+		c.lineTo(0, 0);
+		c.lineTo(w, 0);
 		c.lineTo(w, start);
-		c.stroke();
+		
+		if (swimlaneLine)
+		{
+			c.close();
+		}
+		
+		c.fillAndStroke();
+		
+		// Transparent content area
+		if (start < h && fill == mxConstants.NONE)
+		{
+			c.pointerEvents = false;
+			
+			c.begin();
+			c.moveTo(0, start);
+			c.lineTo(0, h);
+			c.lineTo(w, h);
+			c.lineTo(w, start);
+			c.stroke();
+		}
+	}
+	else
+	{
+		c.moveTo(start, 0);
+		c.lineTo(0, 0);
+		c.lineTo(0, h);
+		c.lineTo(start, h);
+		
+		if (swimlaneLine)
+		{
+			c.close();
+		}
+		
+		c.fillAndStroke();
+		
+		// Transparent content area
+		if (start < w && fill == mxConstants.NONE)
+		{
+			c.pointerEvents = false;
+			
+			c.begin();
+			c.moveTo(start, 0);
+			c.lineTo(w, 0);
+			c.lineTo(w, h);
+			c.lineTo(start, h);
+			c.stroke();
+		}
 	}
 };
 
@@ -25685,33 +25755,68 @@ mxSwimlane.prototype.paintRoundedSwimlane = function(c, x, y, w, h, start, r, fi
 	}
 	
 	c.begin();
-	c.moveTo(w, start);
-	c.lineTo(w, r);
-	c.quadTo(w, 0, w - Math.min(w / 2, r), 0);
-	c.lineTo(Math.min(w / 2, r), 0);
-	c.quadTo(0, 0, 0, r);
-	c.lineTo(0, start);
 	
-	if (swimlaneLine)
+	if (this.isHorizontal())
 	{
-		c.close();
-	}
-
-	c.fillAndStroke();
-	
-	// Transparent content area
-	if (start < h && fill == mxConstants.NONE)
-	{
-		c.pointerEvents = false;
+		c.moveTo(w, start);
+		c.lineTo(w, r);
+		c.quadTo(w, 0, w - Math.min(w / 2, r), 0);
+		c.lineTo(Math.min(w / 2, r), 0);
+		c.quadTo(0, 0, 0, r);
+		c.lineTo(0, start);
 		
-		c.begin();
-		c.moveTo(0, start);
-		c.lineTo(0, h - r);
-		c.quadTo(0, h, Math.min(w / 2, r), h);
-		c.lineTo(w - Math.min(w / 2, r), h);
-		c.quadTo(w, h, w, h - r);
-		c.lineTo(w, start);
-		c.stroke();
+		if (swimlaneLine)
+		{
+			c.close();
+		}
+	
+		c.fillAndStroke();
+		
+		// Transparent content area
+		if (start < h && fill == mxConstants.NONE)
+		{
+			c.pointerEvents = false;
+			
+			c.begin();
+			c.moveTo(0, start);
+			c.lineTo(0, h - r);
+			c.quadTo(0, h, Math.min(w / 2, r), h);
+			c.lineTo(w - Math.min(w / 2, r), h);
+			c.quadTo(w, h, w, h - r);
+			c.lineTo(w, start);
+			c.stroke();
+		}
+	}
+	else
+	{
+		c.moveTo(start, 0);
+		c.lineTo(r, 0);
+		c.quadTo(0, 0, 0, Math.min(h / 2, r));
+		c.lineTo(0, h - Math.min(h / 2, r));
+		c.quadTo(0, h, r, h);
+		c.lineTo(start, h);
+		
+		if (swimlaneLine)
+		{
+			c.close();
+		}
+	
+		c.fillAndStroke();
+		
+		// Transparent content area
+		if (start < w && fill == mxConstants.NONE)
+		{
+			c.pointerEvents = false;
+			
+			c.begin();
+			c.moveTo(start, h);
+			c.lineTo(w - r, h);
+			c.quadTo(w, h, w, h - Math.min(h / 2, r));
+			c.lineTo(w, Math.min(h / 2, r));
+			c.quadTo(w, 0, w - r, 0);
+			c.lineTo(start, 0);
+			c.stroke();
+		}
 	}
 };
 
@@ -25720,15 +25825,25 @@ mxSwimlane.prototype.paintRoundedSwimlane = function(c, x, y, w, h, start, r, fi
  *
  * Paints the swimlane vertex shape.
  */
-mxSwimlane.prototype.paintSeparator = function(c, x, y, h, color)
+mxSwimlane.prototype.paintSeparator = function(c, x, y, w, h, start, color)
 {
 	if (color != mxConstants.NONE)
 	{
 		c.setStrokeColor(color);
 		c.setDashed(true);
 		c.begin();
-		c.moveTo(x, y);
-		c.lineTo(x, h);
+		
+		if (this.isHorizontal())
+		{
+			c.moveTo(w, start);
+			c.lineTo(w, h);
+		}
+		else
+		{
+			c.moveTo(start, 0);
+			c.lineTo(w, 0);
+		}
+		
 		c.stroke();
 		c.setDashed(false);
 	}
@@ -25741,7 +25856,14 @@ mxSwimlane.prototype.paintSeparator = function(c, x, y, h, color)
  */
 mxSwimlane.prototype.getImageBounds = function(x, y, w, h)
 {
-	return new mxRectangle(x + w - this.imageSize, y, this.imageSize, this.imageSize);
+	if (this.isHorizontal())
+	{
+		return new mxRectangle(x + w - this.imageSize, y, this.imageSize, this.imageSize);
+	}
+	else
+	{
+		return new mxRectangle(x, y, this.imageSize, this.imageSize);
+	}
 };
 /**
  * $Id: mxGraphLayout.js,v 1.3 2013/10/28 08:45:05 gaudenz Exp $
@@ -42290,7 +42412,7 @@ mxSelectionChange.prototype.execute = function()
 			'added', this.added, 'removed', this.removed));
 };
 /**
- * $Id: mxCellEditor.js,v 1.18 2014/01/22 17:09:44 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.19 2014/01/26 11:55:59 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -42573,29 +42695,6 @@ mxCellEditor.prototype.resize = function()
 				this.bounds.y = bds.y + state.absoluteOffset.y;
 				this.bounds.width = bds.width;
 				this.bounds.height = bds.height;
-				
-				// Applies the horizontal and vertical label positions
-				var horizontal = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_POSITION, mxConstants.ALIGN_CENTER);
-		
-				if (horizontal == mxConstants.ALIGN_LEFT)
-				{
-					this.bounds.x -= state.width;
-				}
-				else if (horizontal == mxConstants.ALIGN_RIGHT)
-				{
-					this.bounds.x += state.width;
-				}
-		
-				var vertical = mxUtils.getValue(state.style, mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.ALIGN_MIDDLE);
-		
-				if (vertical == mxConstants.ALIGN_TOP)
-				{
-					this.bounds.y -= state.height;
-				}
-				else if (vertical == mxConstants.ALIGN_BOTTOM)
-				{
-					this.bounds.y += state.height;
-				}
 			}
 			
 			var value = this.textarea.value;
@@ -43067,7 +43166,7 @@ mxCellEditor.prototype.destroy = function ()
 	}
 };
 /**
- * $Id: mxCellRenderer.js,v 1.37 2014/01/15 11:32:51 gaudenz Exp $
+ * $Id: mxCellRenderer.js,v 1.38 2014/01/23 16:27:47 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -44000,37 +44099,19 @@ mxCellRenderer.prototype.getLabelBounds = function(state)
 		// Minimum of 1 fixes alignment bug in HTML labels
 		bounds.width = Math.max(1, state.width);
 		bounds.height = Math.max(1, state.height);
-
-		// Swimlane is a special case
-		if (graph.isSwimlane(state.cell))
-		{
-			var size = graph.getStartSize(state.cell);
-
-			if (size.width > 0)
-			{
-				var tmp = Math.min(bounds.width, size.width * scale);
-				
-				if (state.shape.flipH)
-				{
-					bounds.x += bounds.width - tmp;
-				}
-
-				bounds.width = tmp;
-			}
-			else if (size.height > 0)
-			{
-				var tmp = Math.min(bounds.height, size.height * scale);
-				
-				if (state.shape.flipV)
-				{
-					bounds.y += bounds.height - tmp;
-				}
-
-				bounds.height = tmp;
-			}
-		}
 	}
 
+	if (state.text.isPaintBoundsInverted())
+	{
+		// Rotates around center of state
+		var t = (state.width - state.height) / 2;
+		bounds.x += t;
+		bounds.y -= t;
+		var tmp = bounds.width;
+		bounds.width = bounds.height;
+		bounds.height = tmp;
+	}
+	
 	// Shape can modify its label bounds
 	if (state.shape != null)
 	{
@@ -44058,17 +44139,6 @@ mxCellRenderer.prototype.getLabelBounds = function(state)
  */
 mxCellRenderer.prototype.rotateLabelBounds = function(state, bounds)
 {
-	if (state.text.isPaintBoundsInverted())
-	{
-		// Rotates around center of state
-		var t = (state.width - state.height) / 2;
-		bounds.x += t;
-		bounds.y -= t;
-		var tmp = bounds.width;
-		bounds.width = bounds.height;
-		bounds.height = tmp;
-	}
-
 	bounds.x -= state.text.margin.x * bounds.width;
 	bounds.y -= state.text.margin.y * bounds.height;
 	
@@ -48533,7 +48603,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.64 2014/01/15 11:32:51 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.65 2014/01/23 16:52:17 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -50472,7 +50542,7 @@ mxGraph.prototype.processChange = function(change)
 		var newParent = this.model.getParent(change.child);
 		this.view.invalidate(change.child, true, true);
 
-		if (newParent == null)
+		if (newParent == null || this.isCellCollapsed(newParent))
 		{
 			this.view.invalidate(change.child, true, true);
 			this.removeStateForCell(change.child);
@@ -72459,7 +72529,7 @@ mxCellTracker.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxCellHighlight.js,v 1.9 2013/10/28 08:45:07 gaudenz Exp $
+ * $Id: mxCellHighlight.js,v 1.10 2014/01/29 09:23:45 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -72491,14 +72561,15 @@ function mxCellHighlight(graph, highlightColor, strokeWidth, dashed)
 			// Updates reference to state
 			if (this.state != null)
 			{
-				this.state = this.graph.view.getState(this.state.cell);
+				var tmp = this.graph.view.getState(this.state.cell);
 				
-				if (this.state == null)
+				if (tmp == null)
 				{
 					this.hide();
 				}
 				else
 				{
+					this.state = tmp;
 					this.repaint();
 				}
 			}
