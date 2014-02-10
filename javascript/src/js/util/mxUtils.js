@@ -1,5 +1,5 @@
 /**
- * $Id: mxUtils.js,v 1.28 2014/01/16 16:34:41 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.29 2014/02/05 10:43:24 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxUtils =
@@ -575,7 +575,16 @@ var mxUtils =
 	 */
 	parseXml: function()
 	{
-		if (mxClient.IS_IE && (typeof(document.documentMode) === 'undefined' || document.documentMode < 9))
+		if (window.DOMParser)
+		{
+			return function(xml)
+			{
+				var parser = new DOMParser();
+				
+				return parser.parseFromString(xml, 'text/xml');
+			};
+		}
+		else // IE<=9
 		{
 			return function(xml)
 			{
@@ -585,15 +594,6 @@ var mxUtils =
 				result.loadXML(xml);
 				
 				return result;
-			};
-		}
-		else
-		{
-			return function(xml)
-			{
-				var parser = new DOMParser();
-				
-				return parser.parseFromString(xml, 'text/xml');
 			};
 		}
 	}(),

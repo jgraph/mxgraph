@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.4.0.4.
+	 * Current version is 2.4.1.0.
 	 */
-	VERSION: '2.4.0.4',
+	VERSION: '2.4.1.0',
 
 	/**
 	 * Variable: IS_IE
@@ -1908,7 +1908,7 @@ var mxEffects =
 
 };
 /**
- * $Id: mxUtils.js,v 1.28 2014/01/16 16:34:41 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.29 2014/02/05 10:43:24 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxUtils =
@@ -2484,7 +2484,16 @@ var mxUtils =
 	 */
 	parseXml: function()
 	{
-		if (mxClient.IS_IE && (typeof(document.documentMode) === 'undefined' || document.documentMode < 9))
+		if (window.DOMParser)
+		{
+			return function(xml)
+			{
+				var parser = new DOMParser();
+				
+				return parser.parseFromString(xml, 'text/xml');
+			};
+		}
+		else // IE<=9
 		{
 			return function(xml)
 			{
@@ -2494,15 +2503,6 @@ var mxUtils =
 				result.loadXML(xml);
 				
 				return result;
-			};
-		}
-		else
-		{
-			return function(xml)
-			{
-				var parser = new DOMParser();
-				
-				return parser.parseFromString(xml, 'text/xml');
 			};
 		}
 	}(),
@@ -6035,7 +6035,7 @@ var mxUtils =
 
 };
 /**
- * $Id: mxConstants.js,v 1.18 2013/12/20 16:31:33 david Exp $
+ * $Id: mxConstants.js,v 1.19 2014/02/05 14:45:47 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
  var mxConstants =
@@ -6546,6 +6546,14 @@ var mxUtils =
 	 * Defines the default line height for text labels. Default is 1.2.
 	 */
 	LINE_HEIGHT: 1.2,
+
+	/**
+	 * Variable: ABSOLUTE_LINE_HEIGHT
+	 * 
+	 * Specifies if absolute line heights should be used (px) in CSS. Default
+	 * is false. Set this to true for backwards compatibility.
+	 */
+	ABSOLUTE_LINE_HEIGHT: false,
 
 	/**
 	 * Variable: DEFAULT_FONTSTYLE
@@ -9871,7 +9879,7 @@ var mxEvent =
 
 };
 /**
- * $Id: mxXmlRequest.js,v 1.2 2013/10/28 08:44:58 gaudenz Exp $
+ * $Id: mxXmlRequest.js,v 1.3 2014/02/05 09:56:31 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -10025,6 +10033,15 @@ mxXmlRequest.prototype.password = null;
  * Holds the inner, browser-specific request object.
  */
 mxXmlRequest.prototype.request = null;
+
+/**
+ * Variable: decodeSimulateValues
+ * 
+ * Specifies if request values should be decoded as URIs before setting the
+ * textarea value in <simulate>. Defaults to false for backwards compatibility,
+ * to avoid another decode on the server this should be set to true.
+ */
+mxXmlRequest.prototype.decodeSimulateValues = false;
 
 /**
  * Function: isBinary
@@ -10261,7 +10278,7 @@ mxXmlRequest.prototype.simulate = function(doc, target)
 
 	form.style.display = 'none';
 	form.style.visibility = 'hidden';
-
+	
 	var pars = (this.params.indexOf('&') > 0) ?
 		this.params.split('&') :
 		this.params.split();
@@ -10276,12 +10293,14 @@ mxXmlRequest.prototype.simulate = function(doc, target)
 			var name = pars[i].substring(0, pos);
 			var value = pars[i].substring(pos+1);
 			
+			if (this.decodeSimulateValues)
+			{
+				value = decodeURIComponent(value);
+			}
+			
 			var textarea = doc.createElement('textarea');
 			textarea.setAttribute('name', name);
-			value = value.replace(/\n/g, '&#xa;');
-			
-			var content = doc.createTextNode(value);
-			textarea.appendChild(content);
+			mxUtils.write(textarea, value);
 			form.appendChild(textarea);
 		}
 	}
@@ -14258,7 +14277,7 @@ mxUndoManager.prototype.trim = function()
 	}
 };
 /**
- * $Id: mxUrlConverter.js,v 1.4 2013/10/28 08:45:00 gaudenz Exp $
+ * $Id: mxUrlConverter.js,v 1.5 2014/02/05 11:08:05 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -14267,147 +14286,148 @@ mxUndoManager.prototype.trim = function()
  * 
  * Converts relative and absolute URLs to absolute URLs with protocol and domain.
  */
-var mxUrlConverter = function(root)
+var mxUrlConverter = function()
 {
-	/**
-	 * Variable: enabled
-	 * 
-	 * Specifies if the converter is enabled. Default is true.
-	 */
-	var enabled = true;
+	// Empty constructor
+};
 
-	/**
-	 * Variable: baseUrl
-	 * 
-	 * Specifies the base URL to be used as a prefix for relative URLs.
-	 */
-	var baseUrl = null;
+/**
+ * Variable: enabled
+ * 
+ * Specifies if the converter is enabled. Default is true.
+ */
+mxUrlConverter.prototype.enabled = true;
 
-	/**
-	 * Variable: baseDomain
-	 * 
-	 * Specifies the base domain to be used as a prefix for absolute URLs.
-	 */
-	var baseDomain = null;
+/**
+ * Variable: baseUrl
+ * 
+ * Specifies the base URL to be used as a prefix for relative URLs.
+ */
+mxUrlConverter.prototype.baseUrl = null;
+
+/**
+ * Variable: baseDomain
+ * 
+ * Specifies the base domain to be used as a prefix for absolute URLs.
+ */
+mxUrlConverter.prototype.baseDomain = null;
+
+/**
+ * Function: updateBaseUrl
+ * 
+ * Private helper function to update the base URL.
+ */
+mxUrlConverter.prototype.updateBaseUrl = function()
+{
+	this.baseDomain = location.protocol + '//' + location.host;
+	this.baseUrl = this.baseDomain + location.pathname;
+	var tmp = this.baseUrl.lastIndexOf('/');
 	
-	// Private helper function to update the base URL
-	var updateBaseUrl = function()
+	// Strips filename etc
+	if (tmp > 0)
 	{
-		baseDomain = location.protocol + '//' + location.host;
-		baseUrl = baseDomain + location.pathname;
-		var tmp = baseUrl.lastIndexOf('/');
-		
-		// Strips filename etc
-		if (tmp > 0)
+		this.baseUrl = this.baseUrl.substring(0, tmp + 1);
+	}
+};
+
+/**
+ * Function: isEnabled
+ * 
+ * Returns <enabled>.
+ */
+mxUrlConverter.prototype.isEnabled = function()
+{
+	return this.enabled;
+};
+
+/**
+ * Function: setEnabled
+ * 
+ * Sets <enabled>.
+ */
+mxUrlConverter.prototype.setEnabled = function(value)
+{
+	this.enabled = value;
+};
+
+/**
+ * Function: getBaseUrl
+ * 
+ * Returns <baseUrl>.
+ */
+mxUrlConverter.prototype.getBaseUrl = function()
+{
+	return this.baseUrl;
+};
+
+/**
+ * Function: setBaseUrl
+ * 
+ * Sets <baseUrl>.
+ */
+mxUrlConverter.prototype.setBaseUrl = function(value)
+{
+	this.baseUrl = value;
+};
+
+/**
+ * Function: getBaseDomain
+ * 
+ * Returns <baseDomain>.
+ */
+mxUrlConverter.prototype.getBaseDomain = function()
+{
+	return this.baseDomain;
+},
+
+/**
+ * Function: setBaseDomain
+ * 
+ * Sets <baseDomain>.
+ */
+mxUrlConverter.prototype.setBaseDomain = function(value)
+{
+	this.baseDomain = value;
+},
+
+/**
+ * Function: isRelativeUrl
+ * 
+ * Returns true if the given URL is relative.
+ */
+mxUrlConverter.prototype.isRelativeUrl = function(url)
+{
+	return url.substring(0, 2) != '//' && url.substring(0, 7) != 'http://' && url.substring(0, 8) != 'https://' && url.substring(0, 10) != 'data:image';
+};
+
+/**
+ * Function: convert
+ * 
+ * Converts the given URL to an absolute URL with protol and domain.
+ * Relative URLs are first converted to absolute URLs.
+ */
+mxUrlConverter.prototype.convert = function(url)
+{
+	if (this.isEnabled() && this.isRelativeUrl(url))
+	{
+		if (this.getBaseUrl() == null)
 		{
-			baseUrl = baseUrl.substring(0, tmp + 1);
+			this.updateBaseUrl();
 		}
-	};
-
-	// Returns public interface
-	return {
-
-		/**
-		 * Function: isEnabled
-		 * 
-		 * Returns <enabled>.
-		 */
-		isEnabled: function()
-		{
-			return enabled;
-		},
-
-		/**
-		 * Function: setEnabled
-		 * 
-		 * Sets <enabled>.
-		 */
-		setEnabled: function(value)
-		{
-			enabled = value;
-		},
-
-		/**
-		 * Function: getBaseUrl
-		 * 
-		 * Returns <baseUrl>.
-		 */
-		getBaseUrl: function()
-		{
-			return baseUrl;
-		},
-
-		/**
-		 * Function: setBaseUrl
-		 * 
-		 * Sets <baseUrl>.
-		 */
-		setBaseUrl: function(value)
-		{
-			baseUrl = value;
-		},
-
-		/**
-		 * Function: getBaseDomain
-		 * 
-		 * Returns <baseDomain>.
-		 */
-		getBaseDomain: function()
-		{
-			return baseUrl;
-		},
-
-		/**
-		 * Function: setBaseDomain
-		 * 
-		 * Sets <baseDomain>.
-		 */
-		setBaseDomain: function(value)
-		{
-			baseUrl = value;
-		},
-
-		/**
-		 * Function: isRelativeUrl
-		 * 
-		 * Returns true if the given URL is relative.
-		 */
-		isRelativeUrl: function(url)
-		{
-			return url.substring(0, 2) != '//' && url.substring(0, 7) != 'http://' && url.substring(0, 8) != 'https://' && url.substring(0, 10) != 'data:image';
-		},
 		
-		/**
-		 * Function: convert
-		 * 
-		 * Converts the given URL to an absolute URL with protol and domain.
-		 * Relative URLs are first converted to absolute URLs.
-		 */
-		convert: function(url)
+		if (url.charAt(0) == '/')
 		{
-			if (enabled && this.isRelativeUrl(url))
-			{
-				if (baseUrl == null)
-				{
-					updateBaseUrl();
-				}
-				
-				if (url.charAt(0) == '/')
-				{
-					url = baseDomain + url;
-				}
-				else
-				{
-					url = baseUrl + url;
-				}
-			}
-			
-			return url;
+			url = this.getBaseDomain() + url;
 		}
-
-	};
-
-};/**
+		else
+		{
+			url = this.getBaseUrl() + url;
+		}
+	}
+	
+	return url;
+};
+/**
  * $Id: mxPanningManager.js,v 1.2 2013/10/28 08:45:00 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
@@ -17781,7 +17801,7 @@ mxXmlCanvas2D.prototype.fillAndStroke = function()
 	this.root.appendChild(this.createElement('fillstroke'));
 };
 /**
- * $Id: mxSvgCanvas2D.js,v 1.58 2014/01/03 11:07:40 gaudenz Exp $
+ * $Id: mxSvgCanvas2D.js,v 1.59 2014/02/05 14:45:47 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -17981,6 +18001,13 @@ mxSvgCanvas2D.prototype.refCount = 0;
  * control-clicks on images.
  */
 mxSvgCanvas2D.prototype.blockImagePointerEvents = false;
+
+/**
+ * Variable: lineHeightCorrection
+ * 
+ * Correction factor for <mxConstants.LINE_HEIGHT> in HTML output. Default is 1.05.
+ */
+mxSvgCanvas2D.prototype.lineHeightCorrection = 1.05;
 
 /**
  * Function: reset
@@ -18719,8 +18746,11 @@ mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, overflow
 	var s = this.state;
 
 	// Inline block for rendering HTML background over SVG in Safari
+	var lh = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(s.fontSize * mxConstants.LINE_HEIGHT) + 'px' :
+		(mxConstants.LINE_HEIGHT * this.lineHeightCorrection);
+	
 	style = 'display:inline-block;font-size:' + Math.round(s.fontSize) + 'px;font-family:' + s.fontFamily +
-		';color:' + s.fontColor + ';line-height:' + Math.round(s.fontSize * mxConstants.LINE_HEIGHT) + 'px;' + style;
+		';color:' + s.fontColor + ';line-height:' + lh + ';' + style;
 
 	if ((s.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
 	{
@@ -18946,8 +18976,7 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			}
 			// Workaround for export and Firefox 3.x (Opera has same bug but it cannot
 			// be fixed for all cases using this workaround so foreignObject is disabled). 
-			else if (this.root.ownerDocument != document ||
-				navigator.userAgent.indexOf('Firefox/3.') >= 0)
+			else if (this.root.ownerDocument != document || navigator.userAgent.indexOf('Firefox/3.') >= 0)
 			{
 				// Getting size via local document for export
 				div.style.visibility = 'hidden';
@@ -19116,6 +19145,7 @@ mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 	var size = Math.round(s.fontSize);
 	var node = this.createElement('g');
 	var tr = s.transform || '';
+	this.updateFont(node);
 
 	// Non-rotated text
 	if (rotation != 0)
@@ -19231,7 +19261,6 @@ mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 			// LATER: Match horizontal HTML alignment
 			text.setAttribute('x', this.format(x * s.scale));
 			text.setAttribute('y', this.format(cy * s.scale));
-			this.updateFont(text);
 			
 			mxUtils.write(text, lines[i]);
 			node.appendChild(text);
@@ -19325,7 +19354,7 @@ mxSvgCanvas2D.prototype.addTextBackground = function(node, str, x, y, w, h, alig
 			var div = document.createElement('div');
 
 			// Wrapping and clipping can be ignored here
-			div.style.lineHeight = Math.round(s.fontSize * mxConstants.LINE_HEIGHT) + 'px';
+			div.style.lineHeight = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(s.fontSize * mxConstants.LINE_HEIGHT) + 'px' : mxConstants.LINE_HEIGHT;
 			div.style.fontSize = Math.round(s.fontSize) + 'px';
 			div.style.fontFamily = s.fontFamily;
 			div.style.whiteSpace = 'nowrap';
@@ -19427,7 +19456,7 @@ mxSvgCanvas2D.prototype.fillAndStroke = function()
 	this.addNode(true, true);
 };
 /**
- * $Id: mxVmlCanvas2D.js,v 1.46 2013/10/28 08:44:58 gaudenz Exp $
+ * $Id: mxVmlCanvas2D.js,v 1.47 2014/02/05 14:45:47 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -20039,7 +20068,7 @@ mxVmlCanvas2D.prototype.createDiv = function(str, align, valign, overflow)
 	style.color = state.fontColor;
 	style.verticalAlign = 'top';
 	style.textAlign = align || 'left';
-	style.lineHeight = Math.round(state.fontSize * mxConstants.LINE_HEIGHT / this.vmlScale) + 'px';
+	style.lineHeight = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(state.fontSize * mxConstants.LINE_HEIGHT / this.vmlScale) + 'px' : mxConstants.LINE_HEIGHT;
 
 	if ((state.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
 	{
@@ -23663,7 +23692,7 @@ mxArrow.prototype.paintEdgeShape = function(c, pts)
 	c.fillAndStroke();
 };
 /**
- * $Id: mxText.js,v 1.59 2014/01/12 10:27:55 gaudenz Exp $
+ * $Id: mxText.js,v 1.60 2014/02/05 14:45:47 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -24413,7 +24442,7 @@ mxText.prototype.updateFont = function(node)
 {
 	var style = node.style;
 	
-	style.lineHeight = Math.round(this.size * mxConstants.LINE_HEIGHT) + 'px';
+	style.lineHeight = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(this.size * mxConstants.LINE_HEIGHT) + 'px' : mxConstants.LINE_HEIGHT;
 	style.fontSize = Math.round(this.size) + 'px';
 	style.fontFamily = this.family;
 	style.verticalAlign = 'top';
@@ -40410,7 +40439,7 @@ var mxPerimeter =
 	}
 };
 /**
- * $Id: mxPrintPreview.js,v 1.10 2013/10/28 08:45:01 gaudenz Exp $
+ * $Id: mxPrintPreview.js,v 1.11 2014/02/10 12:20:25 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -40637,6 +40666,13 @@ mxPrintPreview.prototype.autoOrigin = true;
  * Specifies if overlays should be printed. Default is false.
  */
 mxPrintPreview.prototype.printOverlays = false;
+
+/**
+ * Variable: printBackgroundImage
+ * 
+ * Specifies if the background image should be printed. Default is false.
+ */
+mxPrintPreview.prototype.printBackgroundImage = false;
 
 /**
  * Variable: borderColor
@@ -40914,6 +40950,11 @@ mxPrintPreview.prototype.open = function(css)
 						div = this.renderPage(this.pageFormat.width, this.pageFormat.height, -dx, -dy, mxUtils.bind(this, function(div)
 						{
 							this.addGraphFragment(0, 0, this.scale, pageNum, div);
+							
+							if (this.printBackgroundImage)
+							{
+								this.insertBackgroundImage(div, -dx, -dy);
+							}
 						}));
 					}
 					else
@@ -40921,6 +40962,11 @@ mxPrintPreview.prototype.open = function(css)
 						div = this.renderPage(this.pageFormat.width, this.pageFormat.height, 0, 0, mxUtils.bind(this, function(div)
 						{
 							this.addGraphFragment(-dx, -dy, this.scale, pageNum, div);
+							
+							if (this.printBackgroundImage)
+							{
+								this.insertBackgroundImage(div, -dx, -dy);
+							}
 						}));
 					}
 
@@ -41078,7 +41124,8 @@ mxPrintPreview.prototype.renderPage = function(w, h, dx, dy, content)
 {
 	var doc = this.wnd.document;
 	var div = document.createElement('div');
-	
+	var arg = null;
+
 	try
 	{
 		// Workaround for ignored clipping in IE 9 standards
@@ -41102,7 +41149,7 @@ mxPrintPreview.prototype.renderPage = function(w, h, dx, dy, content)
 			viewport.style.position = 'relative';
 			viewport.style.marginLeft = dx + 'px';
 			viewport.style.marginTop = dy + 'px';
-			
+
 			// FIXME: IE8 standards output problems
 			if (doc.documentMode == 8)
 			{
@@ -41112,8 +41159,6 @@ mxPrintPreview.prototype.renderPage = function(w, h, dx, dy, content)
 		
 			if (doc.documentMode == 10)
 			{
-				mxLog.show();
-				mxLog.debug('10');
 				viewport.style.width = '100%';
 				viewport.style.height = '100%';
 			}
@@ -41121,7 +41166,7 @@ mxPrintPreview.prototype.renderPage = function(w, h, dx, dy, content)
 			innerDiv.appendChild(viewport);
 			div.appendChild(innerDiv);
 			document.body.appendChild(div);
-			content(viewport);
+			arg = viewport;
 		}
 		// FIXME: IE10/11 too many pages
 		else
@@ -41141,7 +41186,7 @@ mxPrintPreview.prototype.renderPage = function(w, h, dx, dy, content)
 			innerDiv.style.width = (w - 2 * this.border) + 'px';
 			innerDiv.style.height = (h - 2 * this.border) + 'px';
 			innerDiv.style.overflow = 'hidden';
-			
+
 			if (mxClient.IS_IE && (doc.documentMode == null || doc.documentMode == 5 || doc.documentMode == 8 || doc.documentMode == 7))
 			{
 				innerDiv.style.marginTop = this.border + 'px';
@@ -41160,7 +41205,7 @@ mxPrintPreview.prototype.renderPage = function(w, h, dx, dy, content)
 
 			div.appendChild(innerDiv);
 			document.body.appendChild(div);
-			content(innerDiv);
+			arg = innerDiv;
 		}
 	}
 	catch (e)
@@ -41170,7 +41215,9 @@ mxPrintPreview.prototype.renderPage = function(w, h, dx, dy, content)
 		
 		throw e;
 	}
-	
+
+	content(arg);
+	 
 	return div;
 };
 
@@ -41283,6 +41330,17 @@ mxPrintPreview.prototype.addGraphFragment = function(dx, dy, scale, pageNumber, 
 			}
 		}
 		
+		// Puts background image behind SVG output
+		if (this.printBackgroundImage)
+		{
+			var svgs = div.getElementsByTagName('svg');
+			
+			if (svgs.length > 0)
+			{
+				svgs[0].style.position = 'absolute';
+			}
+		}
+		
 		// Completely removes the overlay pane to remove more handles
 		view.overlayPane.parentNode.removeChild(view.overlayPane);
 
@@ -41296,6 +41354,29 @@ mxPrintPreview.prototype.addGraphFragment = function(dx, dy, scale, pageNumber, 
 		view.translate = translate;
 		temp.destroy();
 		view.setEventsEnabled(eventsEnabled);
+	}
+};
+
+/**
+ * Function: insertBackgroundImage
+ * 
+ * Inserts the background image into the given div.
+ */
+mxPrintPreview.prototype.insertBackgroundImage = function(div, dx, dy)
+{
+	var bg = this.graph.backgroundImage;
+	
+	if (bg != null)
+	{
+		var img = document.createElement('img');
+		img.style.position = 'absolute';
+		img.style.marginLeft = Math.round(dx * this.scale) + 'px';
+		img.style.marginTop = Math.round(dy * this.scale) + 'px';
+		img.setAttribute('width', Math.round(this.scale * bg.width));
+		img.setAttribute('height', Math.round(this.scale * bg.height));
+		img.src = bg.src;
+		
+		div.insertBefore(img, div.firstChild);
 	}
 };
 
@@ -42412,7 +42493,7 @@ mxSelectionChange.prototype.execute = function()
 			'added', this.added, 'removed', this.removed));
 };
 /**
- * $Id: mxCellEditor.js,v 1.19 2014/01/26 11:55:59 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.20 2014/02/05 14:45:47 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -42552,6 +42633,13 @@ mxCellEditor.prototype.emptyLabelText = '';
  * Reference to the label DOM node that has been hidden.
  */
 mxCellEditor.prototype.textNode = '';
+
+/**
+ * Variable: zIndex
+ * 
+ * Specifies the zIndex for the textarea. Default is 5.
+ */
+mxCellEditor.prototype.zIndex = 5;
 
 /**
  * Function: init
@@ -42835,16 +42923,16 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 		var uline = (mxUtils.getValue(state.style, mxConstants.STYLE_FONTSTYLE, 0) &
 				mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE;
 		
-		this.textarea.style.fontSize = Math.round(size) + 'px';
-		this.textarea.style.lineHeight = Math.round(size * mxConstants.LINE_HEIGHT) + 'px';
-		this.textarea.style.fontFamily = family;
-		this.textarea.style.textAlign = align;
-		this.textarea.style.color = color;
+		this.textarea.style.lineHeight = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(size * mxConstants.LINE_HEIGHT) + 'px' : mxConstants.LINE_HEIGHT;
+		this.textarea.style.textDecoration = (uline) ? 'underline' : '';
 		this.textarea.style.fontWeight = (bold) ? 'bold' : 'normal';
 		this.textarea.style.fontStyle = (italic) ? 'italic' : '';
-		this.textarea.style.textDecoration = (uline) ? 'underline' : '';
+		this.textarea.style.fontSize = Math.round(size) + 'px';
+		this.textarea.style.fontFamily = family;
+		this.textarea.style.textAlign = align;
 		this.textarea.style.overflow = 'auto';
 		this.textarea.style.outline = 'none';
+		this.textarea.style.color = color;
 		
 		// Specifies the bounds of the editor box
 		var bounds = this.getEditorBounds(state);
@@ -42854,7 +42942,7 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 		this.textarea.style.top = bounds.y + 'px';
 		this.textarea.style.width = bounds.width + 'px';
 		this.textarea.style.height = bounds.height + 'px';
-		this.textarea.style.zIndex = 5;
+		this.textarea.style.zIndex = this.zIndex;
 
 		var value = this.getInitialValue(state, trigger);
 
@@ -48603,7 +48691,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.65 2014/01/23 16:52:17 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.66 2014/02/07 15:28:44 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -49915,8 +50003,7 @@ mxGraph.prototype.border = 0;
  * Variable: keepEdgesInForeground
  * 
  * Specifies if edges should appear in the foreground regardless of their
- * order in the model. This has precendence over <keepEdgeInBackground>.
- * Default is false.
+ * order in the model. Default is false.
  */
 mxGraph.prototype.keepEdgesInForeground = false;
 
@@ -68172,7 +68259,7 @@ mxRubberband.prototype.destroy = function()
 	}
 };
 /**
- * $Id: mxVertexHandler.js,v 1.40 2014/01/20 08:57:12 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.41 2014/02/10 12:18:30 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -68298,8 +68385,7 @@ mxVertexHandler.prototype.init = function()
 {
 	this.graph = this.state.view.graph;
 	this.selectionBounds = this.getSelectionBounds(this.state);
-	this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y,
-		this.selectionBounds.width, this.selectionBounds.height);
+	this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y, this.selectionBounds.width, this.selectionBounds.height);
 	this.selectionBorder = this.createSelectionShape(this.bounds);
 	// VML dialect required here for event transparency in IE
 	this.selectionBorder.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ? mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
@@ -69374,7 +69460,7 @@ mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, s
 mxVertexHandler.prototype.redraw = function()
 {
 	this.selectionBounds = this.getSelectionBounds(this.state);
-	this.bounds = new mxRectangle(this.state.x, this.state.y, this.state.width, this.state.height);
+	this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y, this.selectionBounds.width, this.selectionBounds.height);
 	
 	this.redrawHandles();
 	this.drawPreview();
@@ -69400,7 +69486,7 @@ mxVertexHandler.prototype.redraw = function()
  */
 mxVertexHandler.prototype.redrawHandles = function()
 {
-	var s = this.state;
+	var s = this.bounds;
 
 	if (this.sizers != null)
 	{

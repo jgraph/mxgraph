@@ -1,0 +1,249 @@
+<!--
+  $Id: map.html,v 1.1 2014/02/07 15:31:33 gaudenz Exp $
+  Copyright (c) 2006-2013, JGraph Ltd
+  
+  Map example for mxGraph. This example demonstrates using
+  a graph container as a Google Maps overlay.
+-->
+<html>
+<html>
+<head>
+	<title>Google maps example for mxGraph</title>
+    <meta charset="utf-8">
+    <title>Adding a Custom Overlay</title>
+    <style>
+      html, body, #map-canvas {
+        height: 100%;
+        margin: 0px;
+        padding: 0px
+      }
+    </style>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+    
+	<!-- Sets the basepath for the library if not in same directory -->
+	<script type="text/javascript">
+		mxBasePath = '../src';
+	</script>
+
+	<!-- Loads and initializes the library -->
+	<script type="text/javascript" src="../src/js/mxClient.js"></script>
+
+	<!-- Example code -->
+	<script type="text/javascript">
+		// Keeps the font sizes independent of the scale
+		mxCellRenderer.prototype.getTextScale = function(state)
+		{
+			return 1;
+		};
+		
+		// This example creates a custom overlay called mxGraphOverlay, containing
+		// a mxGraph container.
+
+		// Set the custom overlay object's prototype to a new instance
+		// of OverlayView. In effect, this will subclass the overlay class.
+		// Note that we set the prototype to an instance, rather than the
+		// parent class itself, because we do not wish to modify the parent class.
+
+		var overlay;
+		mxGraphOverlay.prototype = new google.maps.OverlayView();
+
+		// Initialize the map and the custom overlay.
+		function initialize()
+		{
+		  var mapOptions = {
+		    zoom: 4,
+		    center: new google.maps.LatLng(34, -96),
+		    mapTypeId: google.maps.MapTypeId.ROADMAP,
+		    styles: [{featureType: "road", stylers: [{visibility: "off"}]},
+		      {"elementType": "labels", "stylers": [{"visibility": "off" }]}]
+		  };
+
+		  var map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+
+		  var swBound = new google.maps.LatLng(18, -126);
+		  var neBound = new google.maps.LatLng(50, -65);
+		  var bounds = new google.maps.LatLngBounds(swBound, neBound);
+
+		  // The custom mxGraphOverlay object contains the graph,
+		  // the bounds of the graph, and a reference to the map.
+		  overlay = new mxGraphOverlay(bounds, map);
+		}
+
+		function mxGraphOverlay(bounds, map)
+		{
+		  // Initialize all properties.
+		  this.bounds_ = bounds;
+		  this.map_ = map;
+
+		  // Define a property to hold the graph's div. We'll
+		  // actually create this div upon receipt of the onAdd()
+		  // method so we'll leave it null for now.
+		  this.div_ = null;
+
+		  // Explicitly call setMap on this overlay.
+		  this.setMap(map);
+		}
+
+		/**
+		 * onAdd is called when the map's panes are ready and the overlay has been
+		 * added to the map.
+		 */
+		mxGraphOverlay.prototype.onAdd = function()
+		{
+			var div = document.createElement('div');
+			div.style.borderStyle = 'none';
+			div.style.borderWidth = '0px';
+			div.style.overflow = 'visible';
+			div.style.position = 'absolute';
+
+			// Allows labels to be rendered outside the container
+			mxClient.NO_FO = true;
+			
+			// Creates the graph inside the given container
+			var graph = new mxGraph(div);
+			graph.keepEdgesInBackground = true;
+			graph.setHtmlLabels(true);
+			graph.view.setTranslate(4, 4);
+			
+			// Sets default vertex style
+			var style = new Object();
+			style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_ELLIPSE;
+			style[mxConstants.STYLE_PERIMETER] = mxPerimeter.EllipsePerimeter;
+			style[mxConstants.STYLE_FILLCOLOR] = '#8CCDF5';
+			style[mxConstants.STYLE_STROKECOLOR] = '#1B78C8';
+			style[mxConstants.STYLE_FONTCOLOR] = '#000000';
+			style[mxConstants.STYLE_OPACITY] = '50';
+			style[mxConstants.STYLE_FONTSIZE] = '16';
+			graph.getStylesheet().putDefaultVertexStyle(style);
+			
+			// Gets label from custom user object
+			graph.convertValueToString = function(cell)
+			{
+				return (cell.value != null && cell.value.label != null) ? cell.value.label : mxGraph.prototype.convertValueToString.apply(this, arguments);
+			};
+			
+			// Implements level of detail
+			graph.isCellVisible = function(cell)
+			{
+				return (cell.value != null && cell.value.minScale != null) ? cell.value.minScale <= this.view.scale : mxGraph.prototype.isCellVisible.apply(this, arguments);
+			};
+			
+			// Enables rubberband selection
+			new mxRubberband(graph);
+			
+			// Gets the default parent for inserting new cells. This
+			// is normally the first child of the root (ie. layer 0).
+			var parent = graph.getDefaultParent();
+							
+			// Adds cells to the model in a single step
+			graph.getModel().beginUpdate();
+			try
+			{
+				var n1 = graph.insertVertex(parent, null, {label:'Seattle'}, 23, 23, 10, 10);
+				var n2 = graph.insertVertex(parent, null, {label:'Sunnyvale'}, 25.76, 148.4, 10, 10);
+				var n3 = graph.insertVertex(parent, null, {label:'Los Angeles'}, 59.8, 185.25, 10, 10);
+				var n4 = graph.insertVertex(parent, null, {label:'Denver'}, 179.39, 121.25, 10, 10);
+				var n5 = graph.insertVertex(parent, null, {label:'Kansas'}, 273.30, 128.63, 10, 10);
+				var n6 = graph.insertVertex(parent, null, {label:'Houston'}, 266.36, 230.7, 10, 10);
+				var n7 = graph.insertVertex(parent, null, {label:'Chicago'}, 336, 95.67, 10, 10);
+				var n8 = graph.insertVertex(parent, null, {label:'Indianapolis'}, 349.38, 120.85, 10, 10);
+				var n9 = graph.insertVertex(parent, null, {label:'Atlanta'}, 365.23, 188.51, 10, 10);
+				var n10 = graph.insertVertex(parent, null, {label:'New York'}, 458.83, 109.61, 10, 10);
+				var n11 = graph.insertVertex(parent, null, {label:'Washington'}, 432.93, 129.52, 10, 10);
+				
+				// This node and its connections are only visible for zoom 200% and above
+				var n12 = graph.insertVertex(parent, null, {label:'Columbus', minScale:2}, 380, 120, 10, 10);
+				
+				var estyle = 'strokeWidth=2;endArrow=none;labelBackgroundColor=white;';
+				var e = [graph.insertEdge(parent, null, '', n1, n2, estyle),
+				         graph.insertEdge(parent, null, '', n2, n3, estyle),
+				         graph.insertEdge(parent, null, '', n1, n4, estyle),
+				         graph.insertEdge(parent, null, '', n2, n4, estyle),
+				         graph.insertEdge(parent, null, '', n3, n6, estyle),
+				         graph.insertEdge(parent, null, '', n4, n5, estyle),
+				         graph.insertEdge(parent, null, '', n5, n6, estyle),
+				         graph.insertEdge(parent, null, '', n5, n8, estyle),
+				         graph.insertEdge(parent, null, '', n6, n9, estyle),
+				         graph.insertEdge(parent, null, '', n8, n7, estyle),
+				         graph.insertEdge(parent, null, '', n7, n10, estyle),
+				         graph.insertEdge(parent, null, '', n9, n11, estyle),
+				         graph.insertEdge(parent, null, '', n10, n11, estyle),
+				         graph.insertEdge(parent, null, '', n8, n9, estyle),
+				         graph.insertEdge(parent, null, '', n8, n12, estyle),
+				         graph.insertEdge(parent, null, '', n12, n11, estyle)];
+			}
+			finally
+			{
+				// Updates the display
+				graph.getModel().endUpdate();
+			}
+			
+			// Writes some random numbers on the connections
+			window.setInterval(function()
+			{
+				graph.getModel().beginUpdate();
+				try
+				{
+					for (var i = 0; i < e.length; i++)
+					{
+						var rnd = Math.random();
+						graph.getModel().setValue(e[i], Math.round(rnd * 100));
+					}
+				}
+				finally
+				{
+					graph.getModel().endUpdate();
+				}
+			}, 1000);
+			
+			this.graph_ = graph;
+			this.div_ = div;
+			
+			// Add the element to the "overlayLayer" pane.
+			var panes = this.getPanes();
+			panes.overlayLayer.appendChild(div);
+		};
+
+		mxGraphOverlay.prototype.draw = function()
+		{
+		  // We use the south-west and north-east
+		  // coordinates of the overlay to peg it to the correct position and size.
+		  // To do this, we need to retrieve the projection from the overlay.
+		  var overlayProjection = this.getProjection();
+
+		  // Retrieve the south-west and north-east coordinates of this overlay
+		  // in LatLngs and convert them to pixel coordinates.
+		  // We'll use these coordinates to resize the div.
+		  var sw = overlayProjection.fromLatLngToDivPixel(this.bounds_.getSouthWest());
+		  var ne = overlayProjection.fromLatLngToDivPixel(this.bounds_.getNorthEast());
+
+		  // Resize the graph's div to fit the indicated dimensions.
+		  var div = this.div_;
+		  div.style.left = sw.x + 'px';
+		  div.style.top = ne.y + 'px';
+		  var w = (ne.x - sw.x);
+		  var h = (sw.y - ne.y);
+		  div.style.width = w + 'px';
+		  div.style.height = h + 'px';
+		  
+		  // Sets the scale of the graph based on reference width
+		  this.graph_.view.setScale(w / 550);
+		};
+
+		// The onRemove() method will be called automatically from the API if
+		// we ever set the overlay's map property to 'null'.
+		mxGraphOverlay.prototype.onRemove = function()
+		{
+		  this.div_.parentNode.removeChild(this.div_);
+		  this.div_ = null;
+		};
+
+		google.maps.event.addDomListener(window, 'load', initialize);
+	</script>
+</head>
+
+<!-- Page passes the container for the graph to the program -->
+<body>
+	<div id="map-canvas"></div>
+</body>
+</html>

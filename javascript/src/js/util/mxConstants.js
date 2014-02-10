@@ -1,5 +1,5 @@
 /**
- * $Id: mxConstants.js,v 1.18 2013/12/20 16:31:33 david Exp $
+ * $Id: mxConstants.js,v 1.19 2014/02/05 14:45:47 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
  var mxConstants =
@@ -510,6 +510,14 @@
 	 * Defines the default line height for text labels. Default is 1.2.
 	 */
 	LINE_HEIGHT: 1.2,
+
+	/**
+	 * Variable: ABSOLUTE_LINE_HEIGHT
+	 * 
+	 * Specifies if absolute line heights should be used (px) in CSS. Default
+	 * is false. Set this to true for backwards compatibility.
+	 */
+	ABSOLUTE_LINE_HEIGHT: false,
 
 	/**
 	 * Variable: DEFAULT_FONTSTYLE

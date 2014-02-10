@@ -1,5 +1,5 @@
 /**
- * $Id: ExportServlet.java,v 1.1 2013/10/21 14:24:41 gaudenz Exp $
+ * $Id: ExportServlet.java,v 1.2 2014/02/05 10:35:43 gaudenz Exp $
  * Copyright (c) 2011-2012, JGraph Ltd
  */
 package com.mxgraph.examples.web;
@@ -172,7 +172,15 @@ public class ExportServlet extends HttpServlet
 	 */
 	protected String getRequestXml(HttpServletRequest request) throws IOException, UnsupportedEncodingException
 	{
-		return URLDecoder.decode(request.getParameter("xml"), "UTF-8");
+		String xml = request.getParameter("xml");
+		
+		// Decoding is optional (no plain text values allowed)
+		if (xml != null && xml.startsWith("%3C"))
+		{
+			xml = URLDecoder.decode(xml, "UTF-8");
+		}
+
+		return xml;
 	}
 
 	/**

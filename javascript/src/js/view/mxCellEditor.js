@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellEditor.js,v 1.19 2014/01/26 11:55:59 gaudenz Exp $
+ * $Id: mxCellEditor.js,v 1.20 2014/02/05 14:45:47 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -139,6 +139,13 @@ mxCellEditor.prototype.emptyLabelText = '';
  * Reference to the label DOM node that has been hidden.
  */
 mxCellEditor.prototype.textNode = '';
+
+/**
+ * Variable: zIndex
+ * 
+ * Specifies the zIndex for the textarea. Default is 5.
+ */
+mxCellEditor.prototype.zIndex = 5;
 
 /**
  * Function: init
@@ -422,16 +429,16 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 		var uline = (mxUtils.getValue(state.style, mxConstants.STYLE_FONTSTYLE, 0) &
 				mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE;
 		
-		this.textarea.style.fontSize = Math.round(size) + 'px';
-		this.textarea.style.lineHeight = Math.round(size * mxConstants.LINE_HEIGHT) + 'px';
-		this.textarea.style.fontFamily = family;
-		this.textarea.style.textAlign = align;
-		this.textarea.style.color = color;
+		this.textarea.style.lineHeight = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(size * mxConstants.LINE_HEIGHT) + 'px' : mxConstants.LINE_HEIGHT;
+		this.textarea.style.textDecoration = (uline) ? 'underline' : '';
 		this.textarea.style.fontWeight = (bold) ? 'bold' : 'normal';
 		this.textarea.style.fontStyle = (italic) ? 'italic' : '';
-		this.textarea.style.textDecoration = (uline) ? 'underline' : '';
+		this.textarea.style.fontSize = Math.round(size) + 'px';
+		this.textarea.style.fontFamily = family;
+		this.textarea.style.textAlign = align;
 		this.textarea.style.overflow = 'auto';
 		this.textarea.style.outline = 'none';
+		this.textarea.style.color = color;
 		
 		// Specifies the bounds of the editor box
 		var bounds = this.getEditorBounds(state);
@@ -441,7 +448,7 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 		this.textarea.style.top = bounds.y + 'px';
 		this.textarea.style.width = bounds.width + 'px';
 		this.textarea.style.height = bounds.height + 'px';
-		this.textarea.style.zIndex = 5;
+		this.textarea.style.zIndex = this.zIndex;
 
 		var value = this.getInitialValue(state, trigger);
 

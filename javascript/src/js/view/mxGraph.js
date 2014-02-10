@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.65 2014/01/23 16:52:17 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.66 2014/02/07 15:28:44 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -1311,8 +1311,7 @@ mxGraph.prototype.border = 0;
  * Variable: keepEdgesInForeground
  * 
  * Specifies if edges should appear in the foreground regardless of their
- * order in the model. This has precendence over <keepEdgeInBackground>.
- * Default is false.
+ * order in the model. Default is false.
  */
 mxGraph.prototype.keepEdgesInForeground = false;
 

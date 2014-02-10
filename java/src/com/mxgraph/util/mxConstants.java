@@ -1,5 +1,5 @@
 /**
- * $Id: mxConstants.java,v 1.7 2013/12/04 16:35:32 gaudenz Exp $
+ * $Id: mxConstants.java,v 1.9 2014/02/08 14:05:57 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.util;
@@ -87,6 +87,12 @@ public class mxConstants
 	 * http://docs.oracle.com/javase/6/docs/api/index.html?javax/swing/text/html/CSS.html
 	 */
 	public static float LINE_HEIGHT = 1.2f;
+
+	/**
+	 * Specifies if absolute line heights should be used (px) in CSS. Default
+	 * is false. Set this to true for backwards compatibility.
+	 */
+	public static boolean ABSOLUTE_LINE_HEIGHT = false;
 
 	/**
 	 * Specifies the line spacing. Default is 0.
@@ -958,6 +964,11 @@ public class mxConstants
 	 * SHAPE_ELLIPSE
 	 */
 	public static final String SHAPE_ELLIPSE = "ellipse";
+
+	/**
+	 * SHAPE_DOUBLE_RECTANGLE
+	 */
+	public static final String SHAPE_DOUBLE_RECTANGLE = "doubleRectangle";
 
 	/**
 	 * SHAPE_DOUBLE_ELLIPSE

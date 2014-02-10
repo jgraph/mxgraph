@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.48 2014/01/20 16:32:48 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.50 2014/02/10 11:52:26 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -1169,6 +1169,16 @@ EditorUi.prototype.getSvg = function(background, scale, border)
 	var svgCanvas = new mxSvgCanvas2D(group);
 	svgCanvas.translate(Math.floor((border / scale - bounds.x) / vs), Math.floor((border / scale - bounds.y) / vs));
 	svgCanvas.scale(scale / vs);
+	
+	// Paints background image
+	var bgImg = graph.backgroundImage;
+	
+	if (bgImg != null)
+	{
+		var tr = graph.view.translate;
+		svgCanvas.image(tr.x, tr.y, bgImg.width, bgImg.height, bgImg.src, false);
+	}
+	
 	imgExport.drawState(graph.getView().getState(graph.model.root), svgCanvas);
 
 	return root;
@@ -1350,6 +1360,7 @@ EditorUi.prototype.createKeyHandler = function(editor)
     bindAction(77, true, 'editData'); // Ctrl+M
     bindAction(71, true, 'grid', true); // Ctrl+Shift+G
     bindAction(76, true, 'lockUnlock'); // Ctrl+L
+    bindAction(80, true, 'print'); // Ctrl+P
     bindAction(85, true, 'ungroup'); // Ctrl+U
     bindAction(112, false, 'about'); // F1
     

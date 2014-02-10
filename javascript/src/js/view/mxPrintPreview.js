@@ -1,5 +1,5 @@
 /**
- * $Id: mxPrintPreview.js,v 1.10 2013/10/28 08:45:01 gaudenz Exp $
+ * $Id: mxPrintPreview.js,v 1.11 2014/02/10 12:20:25 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -226,6 +226,13 @@ mxPrintPreview.prototype.autoOrigin = true;
  * Specifies if overlays should be printed. Default is false.
  */
 mxPrintPreview.prototype.printOverlays = false;
+
+/**
+ * Variable: printBackgroundImage
+ * 
+ * Specifies if the background image should be printed. Default is false.
+ */
+mxPrintPreview.prototype.printBackgroundImage = false;
 
 /**
  * Variable: borderColor
@@ -503,6 +510,11 @@ mxPrintPreview.prototype.open = function(css)
 						div = this.renderPage(this.pageFormat.width, this.pageFormat.height, -dx, -dy, mxUtils.bind(this, function(div)
 						{
 							this.addGraphFragment(0, 0, this.scale, pageNum, div);
+							
+							if (this.printBackgroundImage)
+							{
+								this.insertBackgroundImage(div, -dx, -dy);
+							}
 						}));
 					}
 					else
@@ -510,6 +522,11 @@ mxPrintPreview.prototype.open = function(css)
 						div = this.renderPage(this.pageFormat.width, this.pageFormat.height, 0, 0, mxUtils.bind(this, function(div)
 						{
 							this.addGraphFragment(-dx, -dy, this.scale, pageNum, div);
+							
+							if (this.printBackgroundImage)
+							{
+								this.insertBackgroundImage(div, -dx, -dy);
+							}
 						}));
 					}
 
@@ -667,7 +684,8 @@ mxPrintPreview.prototype.renderPage = function(w, h, dx, dy, content)
 {
 	var doc = this.wnd.document;
 	var div = document.createElement('div');
-	
+	var arg = null;
+
 	try
 	{
 		// Workaround for ignored clipping in IE 9 standards
@@ -691,7 +709,7 @@ mxPrintPreview.prototype.renderPage = function(w, h, dx, dy, content)
 			viewport.style.position = 'relative';
 			viewport.style.marginLeft = dx + 'px';
 			viewport.style.marginTop = dy + 'px';
-			
+
 			// FIXME: IE8 standards output problems
 			if (doc.documentMode == 8)
 			{
@@ -701,8 +719,6 @@ mxPrintPreview.prototype.renderPage = function(w, h, dx, dy, content)
 		
 			if (doc.documentMode == 10)
 			{
-				mxLog.show();
-				mxLog.debug('10');
 				viewport.style.width = '100%';
 				viewport.style.height = '100%';
 			}
@@ -710,7 +726,7 @@ mxPrintPreview.prototype.renderPage = function(w, h, dx, dy, content)
 			innerDiv.appendChild(viewport);
 			div.appendChild(innerDiv);
 			document.body.appendChild(div);
-			content(viewport);
+			arg = viewport;
 		}
 		// FIXME: IE10/11 too many pages
 		else
@@ -730,7 +746,7 @@ mxPrintPreview.prototype.renderPage = function(w, h, dx, dy, content)
 			innerDiv.style.width = (w - 2 * this.border) + 'px';
 			innerDiv.style.height = (h - 2 * this.border) + 'px';
 			innerDiv.style.overflow = 'hidden';
-			
+
 			if (mxClient.IS_IE && (doc.documentMode == null || doc.documentMode == 5 || doc.documentMode == 8 || doc.documentMode == 7))
 			{
 				innerDiv.style.marginTop = this.border + 'px';
@@ -749,7 +765,7 @@ mxPrintPreview.prototype.renderPage = function(w, h, dx, dy, content)
 
 			div.appendChild(innerDiv);
 			document.body.appendChild(div);
-			content(innerDiv);
+			arg = innerDiv;
 		}
 	}
 	catch (e)
@@ -759,7 +775,9 @@ mxPrintPreview.prototype.renderPage = function(w, h, dx, dy, content)
 		
 		throw e;
 	}
-	
+
+	content(arg);
+	 
 	return div;
 };
 
@@ -872,6 +890,17 @@ mxPrintPreview.prototype.addGraphFragment = function(dx, dy, scale, pageNumber, 
 			}
 		}
 		
+		// Puts background image behind SVG output
+		if (this.printBackgroundImage)
+		{
+			var svgs = div.getElementsByTagName('svg');
+			
+			if (svgs.length > 0)
+			{
+				svgs[0].style.position = 'absolute';
+			}
+		}
+		
 		// Completely removes the overlay pane to remove more handles
 		view.overlayPane.parentNode.removeChild(view.overlayPane);
 
@@ -885,6 +914,29 @@ mxPrintPreview.prototype.addGraphFragment = function(dx, dy, scale, pageNumber, 
 		view.translate = translate;
 		temp.destroy();
 		view.setEventsEnabled(eventsEnabled);
+	}
+};
+
+/**
+ * Function: insertBackgroundImage
+ * 
+ * Inserts the background image into the given div.
+ */
+mxPrintPreview.prototype.insertBackgroundImage = function(div, dx, dy)
+{
+	var bg = this.graph.backgroundImage;
+	
+	if (bg != null)
+	{
+		var img = document.createElement('img');
+		img.style.position = 'absolute';
+		img.style.marginLeft = Math.round(dx * this.scale) + 'px';
+		img.style.marginTop = Math.round(dy * this.scale) + 'px';
+		img.setAttribute('width', Math.round(this.scale * bg.width));
+		img.setAttribute('height', Math.round(this.scale * bg.height));
+		img.src = bg.src;
+		
+		div.insertBefore(img, div.firstChild);
 	}
 };
 

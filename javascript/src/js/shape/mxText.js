@@ -1,5 +1,5 @@
 /**
- * $Id: mxText.js,v 1.59 2014/01/12 10:27:55 gaudenz Exp $
+ * $Id: mxText.js,v 1.60 2014/02/05 14:45:47 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -749,7 +749,7 @@ mxText.prototype.updateFont = function(node)
 {
 	var style = node.style;
 	
-	style.lineHeight = Math.round(this.size * mxConstants.LINE_HEIGHT) + 'px';
+	style.lineHeight = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(this.size * mxConstants.LINE_HEIGHT) + 'px' : mxConstants.LINE_HEIGHT;
 	style.fontSize = Math.round(this.size) + 'px';
 	style.fontFamily = this.family;
 	style.verticalAlign = 'top';

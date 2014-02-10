@@ -1,5 +1,5 @@
 /**
- * $Id: mxXmlRequest.js,v 1.2 2013/10/28 08:44:58 gaudenz Exp $
+ * $Id: mxXmlRequest.js,v 1.3 2014/02/05 09:56:31 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -153,6 +153,15 @@ mxXmlRequest.prototype.password = null;
  * Holds the inner, browser-specific request object.
  */
 mxXmlRequest.prototype.request = null;
+
+/**
+ * Variable: decodeSimulateValues
+ * 
+ * Specifies if request values should be decoded as URIs before setting the
+ * textarea value in <simulate>. Defaults to false for backwards compatibility,
+ * to avoid another decode on the server this should be set to true.
+ */
+mxXmlRequest.prototype.decodeSimulateValues = false;
 
 /**
  * Function: isBinary
@@ -389,7 +398,7 @@ mxXmlRequest.prototype.simulate = function(doc, target)
 
 	form.style.display = 'none';
 	form.style.visibility = 'hidden';
-
+	
 	var pars = (this.params.indexOf('&') > 0) ?
 		this.params.split('&') :
 		this.params.split();
@@ -404,12 +413,14 @@ mxXmlRequest.prototype.simulate = function(doc, target)
 			var name = pars[i].substring(0, pos);
 			var value = pars[i].substring(pos+1);
 			
+			if (this.decodeSimulateValues)
+			{
+				value = decodeURIComponent(value);
+			}
+			
 			var textarea = doc.createElement('textarea');
 			textarea.setAttribute('name', name);
-			value = value.replace(/\n/g, '&#xa;');
-			
-			var content = doc.createTextNode(value);
-			textarea.appendChild(content);
+			mxUtils.write(textarea, value);
 			form.appendChild(textarea);
 		}
 	}

@@ -1,5 +1,5 @@
 /**
- * $Id: mxSvgCanvas2D.js,v 1.58 2014/01/03 11:07:40 gaudenz Exp $
+ * $Id: mxSvgCanvas2D.js,v 1.59 2014/02/05 14:45:47 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -199,6 +199,13 @@ mxSvgCanvas2D.prototype.refCount = 0;
  * control-clicks on images.
  */
 mxSvgCanvas2D.prototype.blockImagePointerEvents = false;
+
+/**
+ * Variable: lineHeightCorrection
+ * 
+ * Correction factor for <mxConstants.LINE_HEIGHT> in HTML output. Default is 1.05.
+ */
+mxSvgCanvas2D.prototype.lineHeightCorrection = 1.05;
 
 /**
  * Function: reset
@@ -937,8 +944,11 @@ mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, overflow
 	var s = this.state;
 
 	// Inline block for rendering HTML background over SVG in Safari
+	var lh = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(s.fontSize * mxConstants.LINE_HEIGHT) + 'px' :
+		(mxConstants.LINE_HEIGHT * this.lineHeightCorrection);
+	
 	style = 'display:inline-block;font-size:' + Math.round(s.fontSize) + 'px;font-family:' + s.fontFamily +
-		';color:' + s.fontColor + ';line-height:' + Math.round(s.fontSize * mxConstants.LINE_HEIGHT) + 'px;' + style;
+		';color:' + s.fontColor + ';line-height:' + lh + ';' + style;
 
 	if ((s.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
 	{
@@ -1164,8 +1174,7 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			}
 			// Workaround for export and Firefox 3.x (Opera has same bug but it cannot
 			// be fixed for all cases using this workaround so foreignObject is disabled). 
-			else if (this.root.ownerDocument != document ||
-				navigator.userAgent.indexOf('Firefox/3.') >= 0)
+			else if (this.root.ownerDocument != document || navigator.userAgent.indexOf('Firefox/3.') >= 0)
 			{
 				// Getting size via local document for export
 				div.style.visibility = 'hidden';
@@ -1334,6 +1343,7 @@ mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 	var size = Math.round(s.fontSize);
 	var node = this.createElement('g');
 	var tr = s.transform || '';
+	this.updateFont(node);
 
 	// Non-rotated text
 	if (rotation != 0)
@@ -1449,7 +1459,6 @@ mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 			// LATER: Match horizontal HTML alignment
 			text.setAttribute('x', this.format(x * s.scale));
 			text.setAttribute('y', this.format(cy * s.scale));
-			this.updateFont(text);
 			
 			mxUtils.write(text, lines[i]);
 			node.appendChild(text);
@@ -1543,7 +1552,7 @@ mxSvgCanvas2D.prototype.addTextBackground = function(node, str, x, y, w, h, alig
 			var div = document.createElement('div');
 
 			// Wrapping and clipping can be ignored here
-			div.style.lineHeight = Math.round(s.fontSize * mxConstants.LINE_HEIGHT) + 'px';
+			div.style.lineHeight = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(s.fontSize * mxConstants.LINE_HEIGHT) + 'px' : mxConstants.LINE_HEIGHT;
 			div.style.fontSize = Math.round(s.fontSize) + 'px';
 			div.style.fontFamily = s.fontFamily;
 			div.style.whiteSpace = 'nowrap';

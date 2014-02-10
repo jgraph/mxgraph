@@ -1,5 +1,5 @@
 /**
- * $Id: mxVmlCanvas2D.js,v 1.46 2013/10/28 08:44:58 gaudenz Exp $
+ * $Id: mxVmlCanvas2D.js,v 1.47 2014/02/05 14:45:47 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -611,7 +611,7 @@ mxVmlCanvas2D.prototype.createDiv = function(str, align, valign, overflow)
 	style.color = state.fontColor;
 	style.verticalAlign = 'top';
 	style.textAlign = align || 'left';
-	style.lineHeight = Math.round(state.fontSize * mxConstants.LINE_HEIGHT / this.vmlScale) + 'px';
+	style.lineHeight = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(state.fontSize * mxConstants.LINE_HEIGHT / this.vmlScale) + 'px' : mxConstants.LINE_HEIGHT;
 
 	if ((state.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
 	{

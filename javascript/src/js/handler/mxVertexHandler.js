@@ -1,5 +1,5 @@
 /**
- * $Id: mxVertexHandler.js,v 1.40 2014/01/20 08:57:12 gaudenz Exp $
+ * $Id: mxVertexHandler.js,v 1.41 2014/02/10 12:18:30 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -125,8 +125,7 @@ mxVertexHandler.prototype.init = function()
 {
 	this.graph = this.state.view.graph;
 	this.selectionBounds = this.getSelectionBounds(this.state);
-	this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y,
-		this.selectionBounds.width, this.selectionBounds.height);
+	this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y, this.selectionBounds.width, this.selectionBounds.height);
 	this.selectionBorder = this.createSelectionShape(this.bounds);
 	// VML dialect required here for event transparency in IE
 	this.selectionBorder.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ? mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
@@ -1201,7 +1200,7 @@ mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, s
 mxVertexHandler.prototype.redraw = function()
 {
 	this.selectionBounds = this.getSelectionBounds(this.state);
-	this.bounds = new mxRectangle(this.state.x, this.state.y, this.state.width, this.state.height);
+	this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y, this.selectionBounds.width, this.selectionBounds.height);
 	
 	this.redrawHandles();
 	this.drawPreview();
@@ -1227,7 +1226,7 @@ mxVertexHandler.prototype.redraw = function()
  */
 mxVertexHandler.prototype.redrawHandles = function()
 {
-	var s = this.state;
+	var s = this.bounds;
 
 	if (this.sizers != null)
 	{

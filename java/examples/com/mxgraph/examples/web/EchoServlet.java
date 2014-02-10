@@ -1,5 +1,5 @@
 /**
- * $Id: EchoServlet.java,v 1.1 2013/10/21 14:24:42 gaudenz Exp $
+ * $Id: EchoServlet.java,v 1.2 2014/02/05 10:35:43 gaudenz Exp $
  * Copyright (c) 2011-2012, JGraph Ltd
  */
 package com.mxgraph.examples.web;
@@ -66,6 +66,12 @@ public class EchoServlet extends HttpServlet
 				{
 					filename += "." + format;
 				}
+				
+				// Decoding is optional (no plain text values allowed)
+				if (xml != null && xml.startsWith("%3C"))
+				{
+					xml = URLDecoder.decode(xml, "UTF-8");
+				}
 
 				response.setContentType("application/xml");
 				response.setHeader("Content-Disposition",
@@ -82,7 +88,7 @@ public class EchoServlet extends HttpServlet
 					out = new GZIPOutputStream(out);
 				}
 
-				out.write(URLDecoder.decode(xml, "UTF-8").getBytes("UTF-8"));
+				out.write(xml.getBytes("UTF-8"));
 				out.flush();
 				out.close();
 			}
