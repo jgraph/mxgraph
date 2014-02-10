@@ -1,5 +1,5 @@
 /**
- * $Id: Actions.js,v 1.27 2014/01/20 16:32:48 gaudenz Exp $
+ * $Id: Actions.js,v 1.28 2014/02/07 12:26:08 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -491,7 +491,7 @@ Actions.prototype.init = function()
 	});
 	action.setToggleAction(true);
 	action.setSelectedCallback(function() { return ui.editor.autosave; });
-	action.isEnabled = isGraphEnabled
+	action.isEnabled = isGraphEnabled;
 	action.visible = false;
 	
 	// Help actions

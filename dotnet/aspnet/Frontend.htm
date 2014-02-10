@@ -1,5 +1,5 @@
 <!--
-  $Id: Frontend.htm,v 1.2 2013/10/28 08:45:09 gaudenz Exp $
+  $Id: Frontend.htm,v 1.3 2014/02/05 10:35:54 gaudenz Exp $
   Copyright (c) 2006-2013, JGraph Ltd
   
   Backend example for mxGraph. This example demonstrates using
@@ -40,7 +40,7 @@
 	                // Asks for dummy file ID to demonstrate handling of IDs in general
 	                var id = mxUtils.prompt('Enter file ID');
 
-	                mxUtils.get('Backend.ashx?id=' + id, function (req) {
+	                mxUtils.get('Backend.ashx?id=' + encodeURIComponent(id), function (req) {
 	                    var node = req.getDocumentElement();
 	                    var dec = new mxCodec(node.ownerDocument);
 	                    dec.decode(node, graph.getModel());
@@ -60,7 +60,7 @@
 	                    var node = enc.encode(graph.getModel());
 	                    var xml = mxUtils.getXml(node);
 
-	                    mxUtils.post('Backend.ashx?id=' + graph.id, 'xml=' + encodeURIComponent(xml), function () {
+	                    mxUtils.post('Backend.ashx?id=' + encodeURIComponent(graph.id), 'xml=' + encodeURIComponent(xml), function () {
 	                        mxUtils.alert('Saved');
 	                    }, function () {
 	                        mxUtils.alert('Error');

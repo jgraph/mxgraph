@@ -1,3 +1,14 @@
+10-FEB-2014: 2.4.1.0
+
+- Adds mxPrintPreview.printBackgroundImage switch [JavaScript]
+- Fixes mxVertexHandler to use getSelectionBounds in redrawHandles [JavaScript]
+- Adds mxDoubleRectangleShape and mxConstants.SHAPE_DOUBLE_RECTANGLE [Java]
+- Adds new map.html example for implementing Google Maps overlays [JavaScript]
+- Adds relative HTML line heights, mxConstants.ABSOLUTE_LINE_HEIGHT [Java,JavaScript]
+- Converts mxUrlConverter to standard class notation [JavaScript]
+- Checks for window.DOMParser in mxUtils.parseXml [JavaScript]
+- Adds mxXmlRequest.decodeSimulateValues switch [JavaScript]
+
 31-JAN-2014: 2.4.0.4
 
 - Fixes repaint of mxCellHighlight if highlighted cell is deleted [JavaScript]

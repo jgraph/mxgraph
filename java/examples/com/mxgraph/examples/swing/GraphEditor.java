@@ -1,5 +1,5 @@
 /**
- * $Id: GraphEditor.java,v 1.2 2012/11/20 09:08:09 gaudenz Exp $
+ * $Id: GraphEditor.java,v 1.3 2014/02/08 14:05:58 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd */
 package com.mxgraph.examples.swing;
 
@@ -135,6 +135,13 @@ public class GraphEditor extends BasicGraphEditor
 								GraphEditor.class
 										.getResource("/com/mxgraph/examples/swing/images/rounded.png")),
 						"rounded=1", 160, 120, "");
+		shapesPalette
+				.addTemplate(
+						"Double Rectangle",
+						new ImageIcon(
+								GraphEditor.class
+										.getResource("/com/mxgraph/examples/swing/images/doublerectangle.png")),
+						"rectangle;shape=doubleRectangle", 160, 120, "");
 		shapesPalette
 				.addTemplate(
 						"Ellipse",

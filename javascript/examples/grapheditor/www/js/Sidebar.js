@@ -1,5 +1,5 @@
 /**
- * $Id: Sidebar.js,v 1.63 2014/01/23 17:03:23 gaudenz Exp $
+ * $Id: Sidebar.js,v 1.64 2014/02/05 14:48:51 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -368,7 +368,7 @@ Sidebar.prototype.addGeneralPalette = function(expand)
 	    content.appendChild(this.createVertexTemplate('rounded=1;whiteSpace=wrap', 120, 60, '', 'Rounded Rectangle', true));
 	    content.appendChild(this.createVertexTemplate('text;align=center;verticalAlign=middle;', 100, 40, 'Simple Text', 'Simple Text', true));
 
-	    content.appendChild(this.createVertexTemplate('text;html=1;spacing=5;spacingTop=-10;whiteSpace=wrap;overflow=hidden;', 160, 140,
+	    content.appendChild(this.createVertexTemplate('text;html=1;spacing=5;spacingTop=-10;whiteSpace=wrap;overflow=hidden;', 200, 140,
 	    	'<h1>Heading</h1><p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>', 'Formatted Text', true));
 
 	    var linkCell = new mxCell('Click here!', new mxGeometry(0, 0, 100, 40), 'fontColor=#0000EE;fontStyle=4;');

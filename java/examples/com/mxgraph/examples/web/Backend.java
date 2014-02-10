@@ -1,29 +1,17 @@
 /**
- * $Id: Backend.java,v 1.4 2014/01/03 12:24:27 gaudenz Exp $
+ * $Id: Backend.java,v 1.5 2014/02/05 10:35:43 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.examples.web;
 
 import java.io.IOException;
-import java.net.URLDecoder;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.mortbay.jetty.Handler;
-import org.mortbay.jetty.Request;
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.handler.AbstractHandler;
-import org.mortbay.jetty.handler.DefaultHandler;
-import org.mortbay.jetty.handler.HandlerList;
-import org.mortbay.jetty.handler.ResourceHandler;
-import org.mortbay.jetty.servlet.Context;
-import org.mortbay.jetty.servlet.ServletHolder;
-
 import com.mxgraph.io.mxCodec;
-import com.mxgraph.util.mxUtils;
 import com.mxgraph.util.mxXmlUtils;
 import com.mxgraph.view.mxGraph;
 
@@ -39,8 +27,8 @@ public class Backend extends HttpServlet
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException
 	{
-		String id = URLDecoder.decode(request.getParameter("id"), "UTF-8");
-		String xml = URLDecoder.decode(request.getParameter("xml"), "UTF-8");
+		String id = request.getParameter("id");
+		String xml = request.getParameter("xml");
 
 		System.out.println("Received id=" + id + " xml=" + xml);
 	}
@@ -65,7 +53,7 @@ public class Backend extends HttpServlet
 	 */
 	protected String createGraph(HttpServletRequest request) throws IOException
 	{
-		String id = URLDecoder.decode(request.getParameter("id"), "UTF-8");
+		String id = request.getParameter("id");
 		System.out.println("Requested id=" + id);
 
 		mxCodec codec = new mxCodec();

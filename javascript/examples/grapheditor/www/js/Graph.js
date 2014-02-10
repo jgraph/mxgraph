@@ -1,5 +1,5 @@
 /**
- * $Id: Graph.js,v 1.37 2014/01/26 15:48:57 gaudenz Exp $
+ * $Id: Graph.js,v 1.38 2014/02/05 14:48:51 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -689,14 +689,23 @@ Graph.prototype.initTouch = function()
 				style.height = (parseInt(this.textarea.style.height) - 4) + 'px';
 				style.left = parseInt(this.textarea.style.left) + 'px';
 				style.top = parseInt(this.textarea.style.top) + 'px';
-				style.fontSize = this.textarea.style.fontSize;
 				style.fontFamily = this.textarea.style.fontFamily;
-				style.textAlign = this.textarea.style.textAlign;
 				style.fontWeight = this.textarea.style.fontWeight;
+				style.textAlign = this.textarea.style.textAlign;
+				style.fontSize = this.textarea.style.fontSize;
 				style.color = this.textarea.style.color;
 				
-				var size = parseInt(this.textarea.style.fontSize);
-				style.lineHeight = Math.round(size * mxConstants.LINE_HEIGHT) + 'px';
+				// Matches line height correctionFactor in embedded HTML output
+				if (state.text.node != null && state.text.node.ownerSVGElement != null)
+				{
+					var lh = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(parseInt(this.textarea.style.fontSize) * mxConstants.LINE_HEIGHT) + 'px' :
+						(mxConstants.LINE_HEIGHT * mxSvgCanvas2D.prototype.lineHeightCorrection);
+					style.lineHeight = lh;
+				}
+				else
+				{
+					style.lineHeight = this.textarea.style.lineHeight;
+				}
 				
 				this.graph.container.appendChild(this.text2);
 				this.text2.contentEditable = true;
@@ -719,10 +728,9 @@ Graph.prototype.initTouch = function()
 				var content = this.text2.innerHTML;
 				
 				// Modified state also updated in code view action
-				// TODO: Roundtrip for linefeeds in quirks/IE8
 				if (this.text2.style.display != 'none' && this.textarea.value != content)
 				{
-					this.textarea.value = content.replace(/\n/g, '');
+					this.textarea.value = content.replace(/\r\n/g, '').replace(/\n/g, '');
 					this.setModified(true);
 				}
 				

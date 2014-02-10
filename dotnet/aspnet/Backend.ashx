@@ -17,8 +17,8 @@ public class Share : IHttpHandler
     /// </summary>
     protected void DoPost(HttpContext context)
     {
-        string id = HttpUtility.UrlDecode(context.Request.Params["id"]);
-        string xml = HttpUtility.UrlDecode(context.Request.Params["xml"]);
+        string id = context.Request.Params["id"];
+        string xml = context.Request.Params["xml"];
 
         Console.WriteLine("Received id=" + id + " xml=" + xml);
     }
@@ -44,7 +44,7 @@ public class Share : IHttpHandler
     /// </summary>
     protected string CreateGraph(HttpContext context)
     {
-        string id = HttpUtility.UrlDecode(context.Request.Params["id"]);
+        string id = context.Request.Params["id"];
         Console.WriteLine("Requested id=" + id);
         
         mxCodec codec = new mxCodec();

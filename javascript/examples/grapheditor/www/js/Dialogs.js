@@ -1,5 +1,5 @@
 /**
- * $Id: Dialogs.js,v 1.26 2014/01/26 15:48:57 gaudenz Exp $
+ * $Id: Dialogs.js,v 1.27 2014/02/10 11:46:24 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -675,6 +675,7 @@ PrintDialog.createPrintPreview = function(graph, scale, pf, border, x0, y0, auto
 {
 	var preview = new mxPrintPreview(graph, scale, pf, border, x0, y0);
 	preview.title = mxResources.get('preview');
+	preview.printBackgroundImage = true;
 	preview.autoOrigin = autoOrigin;
 	
 	return preview;
