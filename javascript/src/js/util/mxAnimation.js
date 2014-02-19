@@ -1,5 +1,5 @@
 /**
- * $Id: mxAnimation.js,v 1.2 2013/10/28 08:44:59 gaudenz Exp $
+ * $Id: mxAnimation.js,v 1.3 2014/02/15 10:31:28 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -40,6 +40,16 @@ mxAnimation.prototype.delay = null;
  * Reference to the thread while the animation is running.
  */
 mxAnimation.prototype.thread = null;
+
+/**
+ * Function: isRunning
+ * 
+ * Returns true if the animation is running.
+ */
+mxAnimation.prototype.isRunning = function()
+{
+	return this.thread != null;
+};
 
 /**
  * Function: startAnimation

@@ -1,5 +1,5 @@
 /**
- * $Id: mxMorphing.js,v 1.2 2013/10/28 08:44:58 gaudenz Exp $
+ * $Id: mxMorphing.js,v 1.3 2014/02/17 08:10:53 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -117,8 +117,7 @@ mxMorphing.prototype.updateAnimation = function()
 	
 	this.show(move);
 	
-	if (move.isEmpty() ||
-		this.step++ >= this.steps)
+	if (move.isEmpty() || this.step++ >= this.steps)
 	{
 		this.stopAnimation();
 	}
@@ -150,8 +149,7 @@ mxMorphing.prototype.animateCell = function(cell, move, recurse)
 		// change by subtracting the given delta vector from that location
 		delta = this.getDelta(state);
 
-		if (this.graph.getModel().isVertex(cell) &&
-			(delta.x != 0 || delta.y != 0))
+		if (this.graph.getModel().isVertex(cell) && (delta.x != 0 || delta.y != 0))
 		{
 			var translate = this.graph.view.getTranslate();
 			var scale = this.graph.view.getScale();
@@ -196,13 +194,10 @@ mxMorphing.prototype.getDelta = function(state)
 	var origin = this.getOriginForCell(state.cell);
 	var translate = this.graph.getView().getTranslate();
 	var scale = this.graph.getView().getScale();
-	var current = new mxPoint(
-		state.x / scale - translate.x,
-		state.y / scale - translate.y);
+	var x = state.x / scale - translate.x;
+	var y = state.y / scale - translate.y;
 
-	return new mxPoint(
-		(origin.x - current.x) * scale,
-		(origin.y - current.y) * scale);
+	return new mxPoint((origin.x - x) * scale, (origin.y - y) * scale);
 };
 
 /**
@@ -218,14 +213,28 @@ mxMorphing.prototype.getOriginForCell = function(cell)
 	
 	if (cell != null)
 	{
-		result = this.getOriginForCell(this.graph.getModel().getParent(cell));
+		var parent = this.graph.getModel().getParent(cell);
 		var geo = this.graph.getCellGeometry(cell);
+		result = this.getOriginForCell(parent);
 		
-		// TODO: Handle offset, relative geometries etc
+		// TODO: Handle offsets
 		if (geo != null)
 		{
-			result.x += geo.x;
-			result.y += geo.y;
+			if (geo.relative)
+			{
+				var pgeo = this.graph.getCellGeometry(parent);
+				
+				if (pgeo != null)
+				{
+					result.x += geo.x * pgeo.width;
+					result.y += geo.y * pgeo.height;
+				}
+			}
+			else
+			{
+				result.x += geo.x;
+				result.y += geo.y;
+			}
 		}
 	}
 	

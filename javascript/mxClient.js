@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.4.1.0.
+	 * Current version is 2.5.0.0.
 	 */
-	VERSION: '2.4.1.0',
+	VERSION: '2.5.0.0',
 
 	/**
 	 * Variable: IS_IE
@@ -1908,7 +1908,7 @@ var mxEffects =
 
 };
 /**
- * $Id: mxUtils.js,v 1.29 2014/02/05 10:43:24 gaudenz Exp $
+ * $Id: mxUtils.js,v 1.30 2014/02/10 20:57:07 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxUtils =
@@ -3130,260 +3130,6 @@ var mxUtils =
 		{
 			node.style.top = Math.max(st, bottom - height) + 'px';
 		}
-	},
-
-	/**
-	 * Function: open
-	 * 
-	 * Opens the specified file from the local filesystem and returns the
-	 * contents of the file as a string. This implementation requires an
-	 * ActiveX object in IE and special privileges in Firefox. Relative
-	 * filenames are only supported in IE and will go onto the users'
-	 * Desktop. You may have to load 
-	 * chrome://global/content/contentAreaUtils.js to disable certain
-	 * security restrictions in Mozilla for this to work.
-	 * 
-	 * See known-issues before using this function.
-	 * 
-	 * Example:
-	 * (code)
-	 * var data = mxUtils.open('C:\\temp\\test.txt');
-	 * mxUtils.alert('Data: '+data);
-	 * (end)
-	 * 
-	 * Parameters:
-	 * 
-	 * filename - String representing the local file name.
-	 */
-	open: function(filename)
-	{
-		// Requests required privileges in Firefox
-		if (mxClient.IS_NS)
-		{
-			try
-			{
-				netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
-			}
-			catch (e)
-			{
-				mxUtils.alert('Permission to read file denied.');
-				
-				return '';
-			}
-			
-			var file = Components.classes['@mozilla.org/file/local;1'].createInstance(Components.interfaces.nsILocalFile);
-			file.initWithPath(filename);
-			
-			if (!file.exists())
-			{
-				mxUtils.alert('File not found.');
-				return '';
-			}
-			
-			var is = Components.classes['@mozilla.org/network/file-input-stream;1'].createInstance(Components.interfaces.nsIFileInputStream);
-			is.init(file,0x01, 00004, null);
-			
-			var sis = Components.classes['@mozilla.org/scriptableinputstream;1'].createInstance(Components.interfaces.nsIScriptableInputStream);
-			sis.init(is);
-			
-			var output = sis.read(sis.available());
-			
-			return output;
-		}
-		else
-		{
-			var activeXObject = new ActiveXObject('Scripting.FileSystemObject');
-			
-			var newStream = activeXObject.OpenTextFile(filename, 1);
-			var text = newStream.readAll();
-			newStream.close();
-			
-			return text;
-		}
-	},
-	
-	/**
-	 * Function: save
-	 * 
-	 * Saves the specified content in the given file on the local file system.
-	 * This implementation requires an ActiveX object in IE and special
-	 * privileges in Firefox. Relative filenames are only supported in IE and
-	 * will be loaded from the users' Desktop. You may have to load
-	 * chrome://global/content/contentAreaUtils.js to disable certain
-	 * security restrictions in Mozilla for this to work.
-	 * 
-	 * See known-issues before using this function.
-	 * 
-	 * Example:
-	 * 
-	 * (code)
-	 * var data = 'Hello, World!';
-	 * mxUtils.save('C:\\test.txt', data);
-	 * (end)
-	 * 
-	 * Parameters:
-	 * 
-	 * filename - String representing the local file name.
-	 */
-	save: function(filename, content)
-	{
-		if (mxClient.IS_NS)
-		{
-			try
-			{
-				netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
-			}
-		    catch (e)
-		    {
-		    	mxUtils.alert('Permission to write file denied.');
-		    	return;
-		    }
-		    
-			var file = Components.classes['@mozilla.org/file/local;1'].createInstance(Components.interfaces.nsILocalFile);
-			file.initWithPath(filename);
-			
-			if (!file.exists())
-			{
-				file.create(0x00, 0644);
-			}
-			
-			var outputStream = Components.classes['@mozilla.org/network/file-output-stream;1'].createInstance(Components.interfaces.nsIFileOutputStream);
-			
-			outputStream.init(file, 0x20 | 0x02,00004, null);
-            outputStream.write(content, content.length);
-            outputStream.flush();
-            outputStream.close();
-		}
-		else
-		{
-			var fso = new ActiveXObject('Scripting.FileSystemObject');
-			
-			var file = fso.CreateTextFile(filename, true);
-			file.Write(content);
-			file.Close();
-		}
-	},
-
-	/**
-	 * Function: saveAs
-	 * 
-	 * Saves the specified content by displaying a dialog to save the content
-	 * as a file on the local filesystem. This implementation does not use an
-	 * ActiveX object in IE, however, it does require special privileges in
-	 * Firefox. You may have to load 
-	 * chrome://global/content/contentAreaUtils.js to disable certain
-	 * security restrictions in Mozilla for this to work.
-	 * 
-	 * See known-issues before using this function. It is not recommended using
-	 * this function in production environment as access to the filesystem
-	 * cannot be guaranteed in Firefox. The following code is used in
-	 * Firefox to try and enable saving to the filesystem.
-	 * 
-	 * (code)
-	 * netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
-	 * (end)
-	 * 
-	 * Example:
-	 * 
-	 * (code)
-	 * mxUtils.saveAs('Hello, World!');
-	 * (end)
-	 * 
-	 * Parameters:
-	 * 
-	 * content - String representing the file's content.
-	 */
-	saveAs: function(content)
-	{
-		var iframe = document.createElement('iframe');
-		iframe.setAttribute('src', '');
-		iframe.style.visibility = 'hidden';
-		document.body.appendChild(iframe);
-		
-		try
-		{
-			if (mxClient.IS_NS)
-			{
-				var doc = iframe.contentDocument;
-				
-				doc.open();
-				doc.write(content);
-				doc.close();
-				
-				try
-				{
-					netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
-					// LATER: Remove existing HTML markup in file
-					iframe.focus();
-					saveDocument(doc);
-				}
-			    catch (e)
-			    {
-			    	mxUtils.alert('Permission to save document denied.');
-			    }
-			}
-			else
-			{
-				var doc = iframe.contentWindow.document;
-				doc.write(content);
-				doc.execCommand('SaveAs', false, document.location);
-			}
-		}
-		finally
-		{
-			document.body.removeChild(iframe);
-		}
-	},
-	
-	/**
-	 * Function: copy
-	 * 
-	 * Copies the specified content to the local clipboard. This implementation
-	 * requires special privileges in Firefox. You may have to load
-	 * chrome://global/content/contentAreaUtils.js to disable certain
-	 * security restrictions in Mozilla for this to work.
-	 * 
-	 * Parameters:
-	 * 
-	 * content - String to be copied to the clipboard.
-	 */
-	copy: function(content)
-	{
-	 	if (window.clipboardData)
-	 	{
-			window.clipboardData.setData('Text', content);
-		}
-		else
-		{
-			netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
-
-			var clip = Components.classes['@mozilla.org/widget/clipboard;1']
-				.createInstance(Components.interfaces.nsIClipboard);
-
-			if (!clip)
-			{
-				return;
-			}
-		   
-			var trans = Components.classes['@mozilla.org/widget/transferable;1']
-		    	.createInstance(Components.interfaces.nsITransferable);
-
-			if (!trans)
-			{
-				return;
-			}
-		   
-			trans.addDataFlavor('text/unicode');
-			var str = Components.classes['@mozilla.org/supports-string;1']
-				.createInstance(Components.interfaces.nsISupportsString);
-
-			var copytext=content;
-			str.data=copytext;
-			trans.setTransferData('text/unicode', str, copytext.length*2);
-			var clipid=Components.interfaces.nsIClipboard;
-			
-			clip.setData(trans,null,clipid.kGlobalClipboard);
-		} 
 	},
 
 	/**
@@ -8557,7 +8303,7 @@ mxEventSource.prototype.fireEvent = function(evt, sender)
 	}
 };
 /**
- * $Id: mxEvent.js,v 1.19 2013/12/04 16:44:12 gaudenz Exp $
+ * $Id: mxEvent.js,v 1.20 2014/02/16 10:42:49 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxEvent =
@@ -9030,6 +8776,18 @@ var mxEvent =
 	isLeftMouseButton: function(evt)
 	{
 		return evt.button == ((mxClient.IS_IE && (typeof(document.documentMode) === 'undefined' || document.documentMode < 9)) ? 1 : 0);
+	},
+	
+	/**
+	 * Function: isMiddleMouseButton
+	 * 
+	 * Returns true if the middle mouse button is pressed for the given event.
+	 * To check if a button is pressed during a mouseMove you should use the
+	 * <mxGraph.isMouseDown> property.
+	 */
+	isMiddleMouseButton: function(evt)
+	{
+		return evt.button == ((mxClient.IS_IE && (typeof(document.documentMode) === 'undefined' || document.documentMode < 9)) ? 4 : 1);
 	},
 	
 	/**
@@ -15496,7 +15254,7 @@ mxAutoSaveManager.prototype.destroy = function()
 	this.setGraph(null);
 };
 /**
- * $Id: mxAnimation.js,v 1.2 2013/10/28 08:44:59 gaudenz Exp $
+ * $Id: mxAnimation.js,v 1.3 2014/02/15 10:31:28 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -15539,6 +15297,16 @@ mxAnimation.prototype.delay = null;
 mxAnimation.prototype.thread = null;
 
 /**
+ * Function: isRunning
+ * 
+ * Returns true if the animation is running.
+ */
+mxAnimation.prototype.isRunning = function()
+{
+	return this.thread != null;
+};
+
+/**
  * Function: startAnimation
  *
  * Starts the animation by repeatedly invoking updateAnimation.
@@ -15578,7 +15346,7 @@ mxAnimation.prototype.stopAnimation = function()
 	}
 };
 /**
- * $Id: mxMorphing.js,v 1.2 2013/10/28 08:44:58 gaudenz Exp $
+ * $Id: mxMorphing.js,v 1.3 2014/02/17 08:10:53 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -15696,8 +15464,7 @@ mxMorphing.prototype.updateAnimation = function()
 	
 	this.show(move);
 	
-	if (move.isEmpty() ||
-		this.step++ >= this.steps)
+	if (move.isEmpty() || this.step++ >= this.steps)
 	{
 		this.stopAnimation();
 	}
@@ -15729,8 +15496,7 @@ mxMorphing.prototype.animateCell = function(cell, move, recurse)
 		// change by subtracting the given delta vector from that location
 		delta = this.getDelta(state);
 
-		if (this.graph.getModel().isVertex(cell) &&
-			(delta.x != 0 || delta.y != 0))
+		if (this.graph.getModel().isVertex(cell) && (delta.x != 0 || delta.y != 0))
 		{
 			var translate = this.graph.view.getTranslate();
 			var scale = this.graph.view.getScale();
@@ -15775,13 +15541,10 @@ mxMorphing.prototype.getDelta = function(state)
 	var origin = this.getOriginForCell(state.cell);
 	var translate = this.graph.getView().getTranslate();
 	var scale = this.graph.getView().getScale();
-	var current = new mxPoint(
-		state.x / scale - translate.x,
-		state.y / scale - translate.y);
+	var x = state.x / scale - translate.x;
+	var y = state.y / scale - translate.y;
 
-	return new mxPoint(
-		(origin.x - current.x) * scale,
-		(origin.y - current.y) * scale);
+	return new mxPoint((origin.x - x) * scale, (origin.y - y) * scale);
 };
 
 /**
@@ -15797,14 +15560,28 @@ mxMorphing.prototype.getOriginForCell = function(cell)
 	
 	if (cell != null)
 	{
-		result = this.getOriginForCell(this.graph.getModel().getParent(cell));
+		var parent = this.graph.getModel().getParent(cell);
 		var geo = this.graph.getCellGeometry(cell);
+		result = this.getOriginForCell(parent);
 		
-		// TODO: Handle offset, relative geometries etc
+		// TODO: Handle offsets
 		if (geo != null)
 		{
-			result.x += geo.x;
-			result.y += geo.y;
+			if (geo.relative)
+			{
+				var pgeo = this.graph.getCellGeometry(parent);
+				
+				if (pgeo != null)
+				{
+					result.x += geo.x * pgeo.width;
+					result.y += geo.y * pgeo.height;
+				}
+			}
+			else
+			{
+				result.x += geo.x;
+				result.y += geo.y;
+			}
 		}
 	}
 	
@@ -17801,7 +17578,7 @@ mxXmlCanvas2D.prototype.fillAndStroke = function()
 	this.root.appendChild(this.createElement('fillstroke'));
 };
 /**
- * $Id: mxSvgCanvas2D.js,v 1.59 2014/02/05 14:45:47 gaudenz Exp $
+ * $Id: mxSvgCanvas2D.js,v 1.60 2014/02/14 15:48:59 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -19344,9 +19121,16 @@ mxSvgCanvas2D.prototype.addTextBackground = function(node, str, x, y, w, h, alig
 		else if (node.getBBox != null && this.root.ownerDocument == document)
 		{
 			// Uses getBBox only if inside document for correct size
-			bbox = node.getBBox();
-			var ie = mxClient.IS_IE && mxClient.IS_SVG;
-			bbox = new mxRectangle(bbox.x, bbox.y + ((ie) ? 0 : 1), bbox.width, bbox.height + ((ie) ? 1 : 0));
+			try
+			{
+				bbox = node.getBBox();
+				var ie = mxClient.IS_IE && mxClient.IS_SVG;
+				bbox = new mxRectangle(bbox.x, bbox.y + ((ie) ? 0 : 1), bbox.width, bbox.height + ((ie) ? 1 : 0));
+			}
+			catch (e)
+			{
+				// Ignores NS_ERROR_FAILURE in FF if container display is none.
+			}
 		}
 		else
 		{
@@ -19456,7 +19240,7 @@ mxSvgCanvas2D.prototype.fillAndStroke = function()
 	this.addNode(true, true);
 };
 /**
- * $Id: mxVmlCanvas2D.js,v 1.47 2014/02/05 14:45:47 gaudenz Exp $
+ * $Id: mxVmlCanvas2D.js,v 1.48 2014/02/19 13:36:11 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -19565,6 +19349,27 @@ mxVmlCanvas2D.prototype.rotatedHtmlBackground = '';
 mxVmlCanvas2D.prototype.vmlScale = 1;
 
 /**
+ * Function: createElement
+ * 
+ * Creates the given element using the document.
+ */
+mxVmlCanvas2D.prototype.createElement = function(name)
+{
+	return document.createElement(name);
+};
+
+/**
+ * Function: createVmlElement
+ * 
+ * Creates a new element using <createElement> and prefixes the given name with
+ * <mxClient.VML_PREFIX>.
+ */
+mxVmlCanvas2D.prototype.createVmlElement = function(name)
+{
+	return this.createElement(mxClient.VML_PREFIX + ':' + name);
+};
+
+/**
  * Function: addNode
  * 
  * Adds the current node to the <root>.
@@ -19639,7 +19444,7 @@ mxVmlCanvas2D.prototype.addNode = function(filled, stroked)
  */
 mxVmlCanvas2D.prototype.createTransparentFill = function()
 {
-	var fill = document.createElement(mxClient.VML_PREFIX + ':fill');
+	var fill = this.createVmlElement('fill');
 	fill.src = mxClient.imageBasePath + '/transparent.gif';
 	fill.type = 'tile';
 	
@@ -19657,7 +19462,7 @@ mxVmlCanvas2D.prototype.createFill = function()
 	
 	// Gradients in foregrounds not supported because special gradients
 	// with bounds must be created for each element in graphics-canvases
-	var fill = document.createElement(mxClient.VML_PREFIX + ':fill');
+	var fill = this.createVmlElement('fill');
 	fill.color = s.fillColor;
 
 	if (s.gradientColor != null)
@@ -19709,7 +19514,7 @@ mxVmlCanvas2D.prototype.createFill = function()
 mxVmlCanvas2D.prototype.createStroke = function()
 {
 	var s = this.state;
-	var stroke = document.createElement(mxClient.VML_PREFIX + ':stroke');
+	var stroke = this.createVmlElement('stroke');
 	stroke.endcap = s.lineCap || 'flat';
 	stroke.joinstyle = s.lineJoin || 'miter';
 	stroke.miterlimit = s.miterLimit || '10';
@@ -19821,7 +19626,7 @@ mxVmlCanvas2D.prototype.createShadow = function(node, filled, stroked)
  */
 mxVmlCanvas2D.prototype.createShadowFill = function()
 {
-	var fill = document.createElement(mxClient.VML_PREFIX + ':fill');
+	var fill = this.createVmlElement('fill');
 	fill.color = this.state.shadowColor;
 	fill.opacity = (this.state.alpha * this.state.shadowAlpha * 100) + '%';
 	
@@ -19880,7 +19685,7 @@ mxVmlCanvas2D.prototype.rotate = function(theta, flipH, flipV, cx, cy)
 mxVmlCanvas2D.prototype.begin = function()
 {
 	mxAbstractCanvas2D.prototype.begin.apply(this, arguments);
-	this.node = document.createElement(mxClient.VML_PREFIX + ':shape');
+	this.node = this.createVmlElement('shape');
 	this.node.style.position = 'absolute';
 };
 
@@ -19922,7 +19727,7 @@ mxVmlCanvas2D.prototype.quadTo = function(x1, y1, x2, y2)
 mxVmlCanvas2D.prototype.createRect = function(nodeName, x, y, w, h)
 {
 	var s = this.state;
-	var n = document.createElement(nodeName);
+	var n = this.createVmlElement(nodeName);
 	n.style.position = 'absolute';
 	n.style.left = this.format((x + s.dx) * s.scale) + 'px';
 	n.style.top = this.format((y + s.dy) * s.scale) + 'px';
@@ -19939,7 +19744,7 @@ mxVmlCanvas2D.prototype.createRect = function(nodeName, x, y, w, h)
  */
 mxVmlCanvas2D.prototype.rect = function(x, y, w, h)
 {
-	this.node = this.createRect(mxClient.VML_PREFIX + ':rect', x, y, w, h);
+	this.node = this.createRect('rect', x, y, w, h);
 };
 
 /**
@@ -19949,7 +19754,7 @@ mxVmlCanvas2D.prototype.rect = function(x, y, w, h)
  */
 mxVmlCanvas2D.prototype.roundrect = function(x, y, w, h, dx, dy)
 {
-	this.node = this.createRect(mxClient.VML_PREFIX + ':roundrect', x, y, w, h);
+	this.node = this.createRect('roundrect', x, y, w, h);
 	// SetAttribute needed here for IE8
 	this.node.setAttribute('arcsize', Math.max(dx * 100 / w, dy * 100 / h) + '%');
 };
@@ -19961,7 +19766,7 @@ mxVmlCanvas2D.prototype.roundrect = function(x, y, w, h, dx, dy)
  */
 mxVmlCanvas2D.prototype.ellipse = function(x, y, w, h)
 {
-	this.node = this.createRect(mxClient.VML_PREFIX + ':oval', x, y, w, h);
+	this.node = this.createVmlElement('oval', x, y, w, h);
 };
 
 /**
@@ -19975,17 +19780,17 @@ mxVmlCanvas2D.prototype.image = function(x, y, w, h, src, aspect, flipH, flipV)
 	
 	if (!aspect)
 	{
-		node = this.createRect(mxClient.VML_PREFIX + ':image', x, y, w, h);
+		node = this.createVmlElement('image', x, y, w, h);
 		node.src = src;
 	}
 	else
 	{
 		// Uses fill with aspect to avoid asynchronous update of size
-		node = this.createRect(mxClient.VML_PREFIX + ':rect', x, y, w, h);
+		node = this.createVmlElement('rect', x, y, w, h);
 		node.stroked = 'false';
 		
 		// Handles image aspect via fill
-		var fill = document.createElement(mxClient.VML_PREFIX + ':fill');
+		var fill = this.createVmlElement('fill');
 		fill.aspect = (aspect) ? 'atmost' : 'ignore';
 		fill.rotate = 'true';
 		fill.type = 'frame';
@@ -20024,7 +19829,7 @@ mxVmlCanvas2D.prototype.image = function(x, y, w, h, src, aspect, flipH, flipV)
  */
 mxVmlCanvas2D.prototype.createDiv = function(str, align, valign, overflow)
 {
-	var div = document.createElement('div');
+	var div = this.createElement('div');
 	var state = this.state;
 
 	var css = '';
@@ -20047,7 +19852,7 @@ mxVmlCanvas2D.prototype.createDiv = function(str, align, valign, overflow)
 	{
 		if (css.length > 0 && overflow != 'fill' && overflow != 'width')
 		{
-			var div2 = document.createElement('div');
+			var div2 = this.createElement('div');
 			div2.style.cssText = css;
 			div2.style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
 			div2.style.zoom = '1';
@@ -20126,14 +19931,14 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			// filter which cannot be used due to bugs in the zoomed bounding box (too slow)
 			// FIXME: No event transparency if inside v:rect (ie part of shape)
 			var abs = (document.documentMode == 8) ?
-				document.createElement(mxClient.VML_PREFIX + ':group') : document.createElement('div');
+					this.createVmlElement('group') : this.createElement('div');
 			abs.style.position = 'absolute';
 			abs.style.display = 'inline';
 			abs.style.left = this.format(x) + 'px';
 			abs.style.top = this.format(y) + 'px';
 			abs.style.zoom = s.scale;
 
-			var box = document.createElement('div');
+			var box = this.createElement('div');
 			box.style.position = 'relative';
 			box.style.display = 'inline';
 			
@@ -20142,7 +19947,7 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			var dy = margin.y;
 
 			var div = this.createDiv(str, align, valign, overflow);
-			var inner = document.createElement('div');
+			var inner = this.createElement('div');
 
 			if (wrap && w > 0)
 			{
@@ -20192,7 +19997,7 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			if (this.root.nodeName != 'DIV')
 			{
 				// Rectangle to fix position in group
-				var rect = document.createElement(mxClient.VML_PREFIX + ':rect');
+				var rect = this.createVmlElement('rect');
 				rect.stroked = 'false';
 				rect.filled = 'false';
 
@@ -20295,7 +20100,7 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				if (abs.nodeName == 'group' && this.root.nodeName == 'DIV')
 				{
 					// Workaround for bug where group gets moved away if left and top are non-zero in IE8 standards
-					var pos = document.createElement('div');
+					var pos = this.createElement('div');
 					pos.style.display = 'inline-block';
 					pos.style.position = 'absolute';
 					pos.style.left = this.format(x + (left_fix - w / 2) * s.scale) + 'px';
@@ -20390,24 +20195,24 @@ mxVmlCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 	x = (x + s.dx) * s.scale;
 	y = (y + s.dy) * s.scale;
 	
-	var node = document.createElement(mxClient.VML_PREFIX + ':shape');
+	var node = this.createVmlElement('shape');
 	node.style.width = '1px';
 	node.style.height = '1px';
 	node.stroked = 'false';
 
-	var fill = document.createElement(mxClient.VML_PREFIX + ':fill');
+	var fill = this.createVmlElement('fill');
 	fill.color = s.fontColor;
 	fill.opacity = (s.alpha * 100) + '%';
 	node.appendChild(fill);
 	
-	var path = document.createElement(mxClient.VML_PREFIX + ':path');
+	var path = this.createVmlElement('path');
 	path.textpathok = 'true';
 	path.v = 'm ' + this.format(0) + ' ' + this.format(0) + ' l ' + this.format(1) + ' ' + this.format(0);
 	
 	node.appendChild(path);
 	
 	// KNOWN: Font family and text decoration ignored
-	var tp = document.createElement(mxClient.VML_PREFIX + ':textpath');
+	var tp = this.createVmlElement('textpath');
 	tp.style.cssText = 'v-text-align:' + align;
 	tp.style.align = align;
 	tp.style.fontFamily = s.fontFamily;
@@ -45978,7 +45783,7 @@ mxStyleRegistry.putValue(mxConstants.PERIMETER_RECTANGLE, mxPerimeter.RectangleP
 mxStyleRegistry.putValue(mxConstants.PERIMETER_RHOMBUS, mxPerimeter.RhombusPerimeter);
 mxStyleRegistry.putValue(mxConstants.PERIMETER_TRIANGLE, mxPerimeter.TrianglePerimeter);
 /**
- * $Id: mxGraphView.js,v 1.35 2014/01/15 11:32:51 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.39 2014/02/19 09:41:00 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -46224,8 +46029,7 @@ mxGraphView.prototype.getBounds = function(cells)
 				{
 					if (result == null)
 					{
-						result = new mxRectangle(state.x, state.y,
-							state.width, state.height);
+						result = new mxRectangle(state.x, state.y, state.width, state.height);
 					}
 					else
 					{
@@ -46516,10 +46320,10 @@ mxGraphView.prototype.resetValidationState = function()
 
 /**
  * Function: validate
- *
- * First validates all bounds and then validates all points recursively on
- * all visible cells starting at the given cell. Finally the background
- * is validated using <validateBackground>.
+ * 
+ * Calls <validateCell> and <validateCellState> and updates the <graphBounds>
+ * using <getBoundingBox>. Finally the background is validated using
+ * <validateBackground>.
  * 
  * Parameters:
  * 
@@ -46561,17 +46365,10 @@ mxGraphView.prototype.validate = function(cell)
 		document.body.appendChild(this.textDiv);
 	}
 	
-	cell = cell || ((this.currentRoot != null) ?
-		this.currentRoot : this.graph.getModel().getRoot());
-	this.validateBounds(null, cell);
-	var graphBounds = this.validatePoints(null, cell);
-	
-	if (graphBounds == null)
-	{
-		graphBounds = new mxRectangle();
-	}
-
-	this.setGraphBounds(graphBounds);
+	var graphBounds = this.getBoundingBox(this.validateCellState(
+		this.validateCell(cell || ((this.currentRoot != null) ?
+			this.currentRoot : this.graph.getModel().getRoot()))));
+	this.setGraphBounds((graphBounds != null) ? graphBounds : new mxRectangle());
 	this.validateBackground();
 	
 	if (prevDisplay != null)
@@ -46589,6 +46386,73 @@ mxGraphView.prototype.validate = function(cell)
 	window.status = mxResources.get(this.doneResource) ||
 		this.doneResource;
 	mxLog.leave('mxGraphView.validate', t0);
+};
+
+/**
+ * Function: getBoundingBox
+ * 
+ * Returns the bounding box of the shape and the label for the given
+ * <mxCellState> and its children if recurse is true.
+ * 
+ * Parameters:
+ * 
+ * state - <mxCellState> whose bounding box should be returned.
+ * recurse - Optional boolean indicating if the children should be included.
+ * Default is true.
+ */
+mxGraphView.prototype.getBoundingBox = function(state, recurse)
+{
+	recurse = (recurse != null) ? recurse : true;
+	var bbox = null;
+	
+	if (state != null)
+	{
+		if (state.shape != null && state.shape.boundingBox != null)
+		{
+			bbox = state.shape.boundingBox.clone();
+		}
+		
+		if (state.text != null && !this.graph.isLabelClipped(state.cell))
+		{
+			// Adds label bounding box to graph bounds
+			if (state.text.boundingBox != null)
+			{
+				if (bbox != null)
+				{
+					bbox.add(state.text.boundingBox);
+				}
+				else
+				{
+					bbox = state.text.boundingBox.clone();
+				}
+			}
+		}
+		
+		if (recurse)
+		{
+			var model = this.graph.getModel();
+			var childCount = model.getChildCount(state.cell);
+			
+			for (var i = 0; i < childCount; i++)
+			{
+				var bounds = this.getBoundingBox(this.getState(model.getChildAt(state.cell, i)));
+				
+				if (bounds != null)
+				{
+					if (bbox == null)
+					{
+						bbox = bounds;
+					}
+					else
+					{
+						bbox.add(bounds);
+					}
+				}
+			}
+		}
+	}
+	
+	return bbox;
 };
 
 /**
@@ -46793,111 +46657,258 @@ mxGraphView.prototype.redrawBackgroundImage = function(backgroundImage, bg)
 };
 
 /**
- * Function: validateBounds
- *
- * Validates the bounds of the given parent's child using the given parent
- * state as the origin for the child. The validation is carried out
- * recursively for all non-collapsed descendants.
+ * Function: validateCell
+ * 
+ * Recursively creates the cell state for the given cell if visible is true and
+ * the given cell is visible. If the cell is not visible but the state exists
+ * then it is removed using <removeState>.
  * 
  * Parameters:
  * 
- * parentState - <mxCellState> for the given parent.
- * cell - <mxCell> for which the bounds in the state should be updated.
+ * cell - <mxCell> whose <mxCellState> should be created.
+ * visible - Optional boolean indicating if the cell should be visible. Default
+ * is true.
  */
-mxGraphView.prototype.validateBounds = function(parentState, cell)
+mxGraphView.prototype.validateCell = function(cell, visible)
 {
-	var model = this.graph.getModel();
-	var state = this.getState(cell, true);
-
-	if (state != null)
+	visible = (visible != null) ? visible : true;
+	
+	if (cell != null)
 	{
-		if (!this.graph.isCellVisible(cell))
+		visible = visible && this.graph.isCellVisible(cell);
+		var state = this.getState(cell, visible);
+		
+		if (state != null && !visible)
 		{
 			this.removeState(cell);
 		}
 		else
 		{
-			if (state.invalid && cell != this.currentRoot && parentState != null)
-			{
-				state.absoluteOffset.x = 0;
-				state.absoluteOffset.y = 0;
-				state.origin.x = parentState.origin.x;
-				state.origin.y = parentState.origin.y;
-				var geo = this.graph.getCellGeometry(cell);				
-	
-				if (geo != null)
-				{
-					if (!model.isEdge(cell))
-					{
-						var offset = geo.offset || this.EMPTY_POINT;
-	
-						if (geo.relative)
-						{
-							state.origin.x += geo.x * parentState.width / this.scale + offset.x;
-							state.origin.y += geo.y * parentState.height / this.scale + offset.y;
-						}
-						else
-						{
-							state.absoluteOffset.x = this.scale * offset.x;
-							state.absoluteOffset.y = this.scale * offset.y;
-							state.origin.x += geo.x;
-							state.origin.y += geo.y;
-						}
-					}
-	
-					// Updates cell state's bounds
-					state.x = this.scale * (this.translate.x + state.origin.x);
-					state.y = this.scale * (this.translate.y + state.origin.y);
-					state.width = this.scale * geo.width;
-					state.height = this.scale * geo.height;
-	
-					if (model.isVertex(cell))
-					{
-						// Rotates relative child cells
-						if (geo.relative)
-						{
-							var alpha = mxUtils.toRadians(parentState.style[mxConstants.STYLE_ROTATION] || '0');
-							
-							if (alpha != 0)
-							{
-								var cos = Math.cos(alpha);
-								var sin = Math.sin(alpha);
-							
-								// Uses translate or parent origin as offset
-								var ct = new mxPoint(state.getCenterX(), state.getCenterY());
-								var cx = new mxPoint(parentState.getCenterX(), parentState.getCenterY());
-								var pt = mxUtils.getRotatedPoint(ct, cos, sin, cx);
-								state.x = pt.x - state.width / 2;
-								state.y = pt.y - state.height / 2;
-							}
-						}
-						
-						this.updateVertexLabelOffset(state);
-					}
-				}
-			}
-							
-			// Applies child offset to origin
-			var offset = this.graph.getChildOffsetForCell(cell);
-			
-			if (offset != null)
-			{
-				state.origin.x += offset.x;
-				state.origin.y += offset.y;
-			}
-		}
-	
-		// Recursively validates the child bounds
-		if (!this.graph.isCellCollapsed(cell) || cell == this.currentRoot)
-		{
+			var model = this.graph.getModel();
 			var childCount = model.getChildCount(cell);
 			
 			for (var i = 0; i < childCount; i++)
 			{
-				var child = model.getChildAt(cell, i);
-				this.validateBounds(state, child);
+				this.validateCell(model.getChildAt(cell, i), visible &&
+					(!this.graph.isCellCollapsed(cell) || cell == this.currentRoot));
 			}
 		}
+	}
+	
+	return cell;
+};
+
+/**
+ * Function: validateCellStates
+ * 
+ * Validates and repaints the <mxCellState> for the given <mxCell>.
+ * 
+ * Parameters:
+ * 
+ * cell - <mxCell> whose <mxCellState> should be validated.
+ * recurse - Optional boolean indicating if the children of the cell should be
+ * validated. Default is true.
+ */
+mxGraphView.prototype.validateCellState = function(cell, recurse)
+{
+	recurse = (recurse != null) ? recurse : true;
+	var state = null;
+	
+	if (cell != null)
+	{
+		state = this.getState(cell);
+		
+		if (state != null)
+		{
+			var model = this.graph.getModel();
+			
+			if (state.invalid)
+			{
+				state.invalid = false;
+				
+				if (cell != this.currentRoot)
+				{
+					this.validateCellState(model.getParent(cell), false);
+				}
+
+				state.setVisibleTerminalState(this.validateCellState(this.getVisibleTerminal(cell, true), false), true);
+				state.setVisibleTerminalState(this.validateCellState(this.getVisibleTerminal(cell, false), false), false);
+				
+				this.updateCellState(state);
+				
+				// Repaint happens immediately after the cell is validated
+				if (cell != this.currentRoot)
+				{
+					this.graph.cellRenderer.redraw(state, false, this.isRendering());
+				}
+			}
+
+			if (recurse)
+			{
+				// Updates order in DOM if recursively traversing
+				if (state.shape != null)
+				{
+					this.stateValidated(state);
+				}
+			
+				var childCount = model.getChildCount(cell);
+				
+				for (var i = 0; i < childCount; i++)
+				{
+					this.validateCellState(model.getChildAt(cell, i));
+				}
+			}
+		}
+	}
+	
+	return state;
+};
+
+/**
+ * Function: updateCellState
+ * 
+ * Updates the given <mxCellState>.
+ * 
+ * Parameters:
+ * 
+ * state - <mxCellState> to be updated.
+ */
+mxGraphView.prototype.updateCellState = function(state)
+{
+	state.absoluteOffset.x = 0;
+	state.absoluteOffset.y = 0;
+	state.origin.x = 0;
+	state.origin.y = 0;
+	state.length = 0;
+	
+	var model = this.graph.getModel();
+	var pState = this.getState(model.getParent(state.cell)); 
+	
+	if (pState != null && pState.cell != this.currentRoot)
+	{
+		state.origin.x += pState.origin.x;
+		state.origin.y += pState.origin.y;
+	}
+	
+	var offset = this.graph.getChildOffsetForCell(state.cell);
+	
+	if (offset != null)
+	{
+		state.origin.x += offset.x;
+		state.origin.y += offset.y;
+	}
+	
+	var geo = this.graph.getCellGeometry(state.cell);				
+
+	if (geo != null)
+	{
+		if (!model.isEdge(state.cell))
+		{
+			offset = geo.offset || this.EMPTY_POINT;
+
+			if (geo.relative && pState != null)
+			{
+				if (model.isEdge(pState.cell))
+				{
+					var origin = this.getPoint(pState, geo);
+					
+					if (origin != null)
+					{
+						state.origin.x += (origin.x / this.scale) - this.translate.x;
+						state.origin.y += (origin.y / this.scale) - this.translate.y;
+					}
+				}
+				else
+				{
+					state.origin.x += geo.x * pState.width / this.scale + offset.x;
+					state.origin.y += geo.y * pState.height / this.scale + offset.y;
+				}
+			}
+			else
+			{
+				state.absoluteOffset.x = this.scale * offset.x;
+				state.absoluteOffset.y = this.scale * offset.y;
+				state.origin.x += geo.x;
+				state.origin.y += geo.y;
+			}
+		}
+
+		state.x = this.scale * (this.translate.x + state.origin.x);
+		state.y = this.scale * (this.translate.y + state.origin.y);
+		state.width = this.scale * geo.width;
+		state.height = this.scale * geo.height;
+		
+		if (model.isVertex(state.cell))
+		{
+			this.updateVertexState(state, geo);
+		}
+		
+		if (model.isEdge(state.cell))
+		{
+			this.updateEdgeState(state, geo);
+		}
+	}
+};
+
+/**
+ * Function: updateVertexState
+ * 
+ * Validates the given cell state.
+ */
+mxGraphView.prototype.updateVertexState = function(state, geo)
+{
+	var model = this.graph.getModel();
+	var pState = this.getState(model.getParent(state.cell));
+	
+	if (geo.relative && pState != null)
+	{
+		var alpha = mxUtils.toRadians(pState.style[mxConstants.STYLE_ROTATION] || '0');
+		
+		if (alpha != 0)
+		{
+			var cos = Math.cos(alpha);
+			var sin = Math.sin(alpha);
+
+			var ct = new mxPoint(state.getCenterX(), state.getCenterY());
+			var cx = new mxPoint(pState.getCenterX(), pState.getCenterY());
+			var pt = mxUtils.getRotatedPoint(ct, cos, sin, cx);
+			state.x = pt.x - state.width / 2;
+			state.y = pt.y - state.height / 2;
+		}
+	}
+	
+	this.updateVertexLabelOffset(state);
+};
+
+/**
+ * Function: updateEdgeState
+ * 
+ * Validates the given cell state.
+ */
+mxGraphView.prototype.updateEdgeState = function(state, geo)
+{
+	var source = state.getVisibleTerminalState(true);
+	var target = state.getVisibleTerminalState(false);
+	
+	this.updateFixedTerminalPoints(state, source, target);
+	this.updatePoints(state, geo.points, source, target);
+	this.updateFloatingTerminalPoints(state, source, target);
+	
+	var pts = state.absolutePoints;
+	
+	if (pts == null || pts.length < 2 || pts[0] == null || pts[pts.length - 1] == null)
+	{
+		// This will remove edges with invalid points from the list of states in the view.
+		// Happens if the one of the terminals and the corresponding terminal point is null.
+		if (state.cell != this.currentRoot)
+		{
+			this.clear(state.cell, true);
+		}
+	}
+	else
+	{
+		this.updateEdgeBounds(state);
+		this.updateEdgeLabelOffset(state);
 	}
 };
 
@@ -46941,154 +46952,6 @@ mxGraphView.prototype.updateVertexLabelOffset = function(state)
 };
 
 /**
- * Function: validatePoints
- * 
- * Validates the points for the state of the given cell recursively if the
- * cell is not collapsed and returns the bounding box of all visited states
- * as an <mxRectangle>.
- * 
- * Parameters:
- * 
- * parentState - <mxCellState> for the parent cell.
- * cell - <mxCell> whose points in the state should be updated.
- */
-mxGraphView.prototype.validatePoints = function(parentState, cell)
-{
-	var model = this.graph.getModel();
-	var state = this.getState(cell);
-	var bbox = null;
-	
-	if (state != null)
-	{
-		if (state.invalid)
-		{
-			var geo = this.graph.getCellGeometry(cell);
-
-			if (geo != null && model.isEdge(cell))
-			{
-				// Updates the points on the source terminal if its an edge
-				var source = this.getState(this.getVisibleTerminal(cell, true));
-				state.setVisibleTerminalState(source, true);
-				
-				if (source != null && model.isEdge(source.cell) &&
-					!model.isAncestor(source.cell, cell))
-				{
-					var tmp = this.getState(model.getParent(source.cell));
-					this.validatePoints(tmp, source.cell);
-				}
-				
-				// Updates the points on the target terminal if its an edge
-				var target = this.getState(this.getVisibleTerminal(cell, false));
-				state.setVisibleTerminalState(target, false);
-				
-				if (target != null && model.isEdge(target.cell) &&
-					!model.isAncestor(target.cell, cell))
-				{
-					var tmp = this.getState(model.getParent(target.cell));
-					this.validatePoints(tmp, target.cell);
-				}
-
-				this.updateFixedTerminalPoints(state, source, target);
-				this.updatePoints(state, geo.points, source, target);
-				this.updateFloatingTerminalPoints(state, source, target);
-				
-				if (state.cell != this.currentRoot && (state.absolutePoints == null || state.absolutePoints.length < 2 ||
-					state.absolutePoints[0] == null || state.absolutePoints[state.absolutePoints.length - 1] == null))
-				{
-					// Note: This condition normally occurs if a connected edge has a
-					// null-terminal, ie. edge.source == null or edge.target == null,
-					// and no corresponding terminal point defined, which happens for
-					// example if the terminal-id was not resolved at cell decoding time.
-					this.clear(state.cell, true);
-					
-					return;
-				}
-				
-				this.updateEdgeBounds(state);
-				this.updateEdgeLabelOffset(state);
-			}
-			else if (geo != null && geo.relative && parentState != null &&
-				model.isEdge(parentState.cell))
-			{
-				var origin = this.getPoint(parentState, geo);
-				
-				if (origin != null)
-				{
-					state.x = origin.x;
-					state.y = origin.y;
-					
-					origin.x = (origin.x / this.scale) - this.translate.x;
-					origin.y = (origin.y / this.scale) - this.translate.y;
-					state.origin = origin;
-					
-					this.childMoved(parentState, state);
-				}
-			}
-			
-			state.invalid = false;
-
-			if (cell != this.currentRoot)
-			{
-				// NOTE: Label bounds currently ignored if rendering is false
-				this.graph.cellRenderer.redraw(state, false, this.isRendering());
-			}
-		}
-		
-		if (model.isEdge(cell) || model.isVertex(cell))
-		{
-			this.stateValidated(state);
-			
-			if (state.shape != null && state.shape.boundingBox != null)
-			{
-				bbox = state.shape.boundingBox.clone();
-			}
-			
-			if (state.text != null && !this.graph.isLabelClipped(state.cell))
-			{
-				// Adds label bounding box to graph bounds
-				if (state.text.boundingBox != null)
-				{
-					if (bbox != null)
-					{
-						bbox.add(state.text.boundingBox);
-					}
-					else
-					{
-						bbox = state.text.boundingBox.clone();
-					}
-				}
-			}
-		}
-	}
-
-	if (state != null && (!this.graph.isCellCollapsed(cell) ||
-		cell == this.currentRoot))
-	{
-		var childCount = model.getChildCount(cell);
-		
-		for (var i = 0; i < childCount; i++)
-		{
-			var child = model.getChildAt(cell, i);
-			var bounds = this.validatePoints(state, child);
-			
-			if (bounds != null)
-			{
-				if (bbox == null)
-				{
-					bbox = bounds;
-				}
-				else
-				{
-					bbox.add(bounds);
-				}
-			}
-		}
-	}
-	
-	return bbox;
-};
-
-/**
  * Function: stateValidated
  * 
  * Invoked when a state has been processed in <validatePoints>. This is used
@@ -47114,38 +46977,6 @@ mxGraphView.prototype.stateValidated = function(state)
 	{
 		this.lastHtmlNode = result[1];
 		this.lastNode = result[0];
-	}
-};
-
-/**
- * Function: childMoved
- *
- * Invoked when a child state was moved as a result of late evaluation
- * of its position. This is invoked for relative edge children whose
- * position can only be determined after the points of the parent edge
- * are updated in validatePoints, and validates the bounds of all
- * descendants of the child using validateBounds.
- * 
- * Parameters:
- * 
- * parent - <mxCellState> that represents the parent state.
- * child - <mxCellState> that represents the child state.
- */
-mxGraphView.prototype.childMoved = function(parent, child)
-{
-	var cell = child.cell;
-	
-	// Children of relative edge children need to validate
-	// their bounds after their parent state was updated
-	if (!this.graph.isCellCollapsed(cell) || cell == this.currentRoot)
-	{
-		var model = this.graph.getModel();
-		var childCount = model.getChildCount(cell);
-
-		for (var i = 0; i < childCount; i++)
-		{
-			this.validateBounds(child, model.getChildAt(cell, i));
-		}
 	}
 };
 
@@ -47650,67 +47481,62 @@ mxGraphView.prototype.getVisibleTerminal = function(edge, source)
 mxGraphView.prototype.updateEdgeBounds = function(state)
 {
 	var points = state.absolutePoints;
-	state.length = 0;
-
-	if (points != null && points.length > 0)
+	var p0 = points[0];
+	var pe = points[points.length - 1];
+	
+	if (p0.x != pe.x || p0.y != pe.y)
 	{
-		var p0 = points[0];
-		var pe = points[points.length - 1];
+		var dx = pe.x - p0.x;
+		var dy = pe.y - p0.y;
+		state.terminalDistance = Math.sqrt(dx * dx + dy * dy);
+	}
+	else
+	{
+		state.terminalDistance = 0;
+	}
+	
+	var length = 0;
+	var segments = [];
+	var pt = p0;
+	
+	if (pt != null)
+	{
+		var minX = pt.x;
+		var minY = pt.y;
+		var maxX = minX;
+		var maxY = minY;
 		
-		if (p0.x != pe.x || p0.y != pe.y)
+		for (var i = 1; i < points.length; i++)
 		{
-			var dx = pe.x - p0.x;
-			var dy = pe.y - p0.y;
-			state.terminalDistance = Math.sqrt(dx * dx + dy * dy);
-		}
-		else
-		{
-			state.terminalDistance = 0;
-		}
-		
-		var length = 0;
-		var segments = [];
-		var pt = p0;
-		
-		if (pt != null)
-		{
-			var minX = pt.x;
-			var minY = pt.y;
-			var maxX = minX;
-			var maxY = minY;
+			var tmp = points[i];
 			
-			for (var i = 1; i < points.length; i++)
+			if (tmp != null)
 			{
-				var tmp = points[i];
+				var dx = pt.x - tmp.x;
+				var dy = pt.y - tmp.y;
 				
-				if (tmp != null)
-				{
-					var dx = pt.x - tmp.x;
-					var dy = pt.y - tmp.y;
-					
-					var segment = Math.sqrt(dx * dx + dy * dy);
-					segments.push(segment);
-					length += segment;
-					
-					pt = tmp;
-					
-					minX = Math.min(pt.x, minX);
-					minY = Math.min(pt.y, minY);
-					maxX = Math.max(pt.x, maxX);
-					maxY = Math.max(pt.y, maxY);
-				}
+				var segment = Math.sqrt(dx * dx + dy * dy);
+				segments.push(segment);
+				length += segment;
+				
+				pt = tmp;
+				
+				minX = Math.min(pt.x, minX);
+				minY = Math.min(pt.y, minY);
+				maxX = Math.max(pt.x, maxX);
+				maxY = Math.max(pt.y, maxY);
 			}
-			
-			state.length = length;
-			state.segments = segments;
-			
-			var markerSize = 1; // TODO: include marker size
-			
-			state.x = minX;
-			state.y = minY;
-			state.width = Math.max(markerSize, maxX - minX);
-			state.height = Math.max(markerSize, maxY - minY);
 		}
+		
+		state.length = length;
+		state.segments = segments;
+		
+		var markerSize = 1; // TODO: include marker size
+		
+		state.x = minX;
+		state.y = minY;
+		state.width = Math.max(markerSize, maxX - minX);
+		state.height = Math.max(markerSize, maxY - minY);
 	}
 };
 
@@ -48691,7 +48517,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.66 2014/02/07 15:28:44 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.69 2014/02/17 13:17:19 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -50708,6 +50534,7 @@ mxGraph.prototype.removeStateForCell = function(cell)
 		this.removeStateForCell(this.model.getChildAt(cell, i));
 	}
 
+	this.view.invalidate(cell, false, true);
 	this.view.removeState(cell);
 };
 
@@ -52731,8 +52558,7 @@ mxGraph.prototype.cloneCells = function(cells, allowInvalidEdges)
 					if (g != null)
 					{
 						var state = this.view.getState(cells[i]);
-						var pstate = this.view.getState(
-							this.model.getParent(cells[i]));
+						var pstate = this.view.getState(this.model.getParent(cells[i]));
 						
 						if (state != null && pstate != null)
 						{
@@ -55543,7 +55369,11 @@ mxGraph.prototype.panGraph = function(dx, dy)
 						child = next;
 					}
 
-					this.shiftPreview1.parentNode.removeChild(this.shiftPreview1);
+					if (this.shiftPreview1.parentNode != null)
+					{
+						this.shiftPreview1.parentNode.removeChild(this.shiftPreview1);
+					}
+					
 					this.shiftPreview1 = null;
 					
 					this.container.appendChild(canvas.parentNode);
@@ -55557,7 +55387,11 @@ mxGraph.prototype.panGraph = function(dx, dy)
 						child = next;
 					}
 
-					this.shiftPreview2.parentNode.removeChild(this.shiftPreview2);
+					if (this.shiftPreview2.parentNode != null)
+					{
+						this.shiftPreview2.parentNode.removeChild(this.shiftPreview2);
+					}
+					
 					this.shiftPreview2 = null;
 				}
 			}
@@ -55595,9 +55429,17 @@ mxGraph.prototype.panGraph = function(dx, dy)
 						
 						child = next;
 					}
-
-					this.container.insertBefore(this.shiftPreview1, canvas.parentNode);
-					this.container.appendChild(this.shiftPreview2);
+					
+					// Inserts elements only if not empty
+					if (this.shiftPreview1.firstChild != null)
+					{
+						this.container.insertBefore(this.shiftPreview1, canvas.parentNode);
+					}
+					
+					if (this.shiftPreview2.firstChild != null)
+					{
+						this.container.appendChild(this.shiftPreview2);
+					}
 				}
 				
 				this.shiftPreview1.style.left = dx + 'px';
@@ -58947,14 +58789,12 @@ mxGraph.prototype.intersects = function(state, x, y)
 		if (pts != null)
 		{
 			var t2 = this.tolerance * this.tolerance;
-
 			var pt = pts[0];
 			
-			for (var i = 1; i<pts.length; i++)
+			for (var i = 1; i < pts.length; i++)
 			{
 				var next = pts[i];
-				var dist = mxUtils.ptSegDistSq(
-					pt.x, pt.y, next.x, next.y, x, y);
+				var dist = mxUtils.ptSegDistSq(pt.x, pt.y, next.x, next.y, x, y);
 				
 				if (dist <= t2)
 				{
@@ -62218,7 +62058,7 @@ mxLayoutManager.prototype.destroy = function()
 	this.setGraph(null);
 };
 /**
- * $Id: mxSpaceManager.js,v 1.2 2013/10/28 08:45:00 gaudenz Exp $
+ * $Id: mxSpaceManager.js,v 1.3 2014/02/15 10:45:16 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -62528,14 +62368,12 @@ mxSpaceManager.prototype.cellResized = function(cell)
 	var state = view.getState(cell);
 	var pstate = view.getState(model.getParent(cell));
 
-	if (state != null &&
-		pstate != null)
+	if (state != null && pstate != null)
 	{
 		var cells = this.getCellsToShift(state);
 		var geo = model.getGeometry(cell);
 		
-		if (cells != null &&
-			geo != null)
+		if (cells != null && geo != null)
 		{
 			var tr = view.translate;
 			var scale = view.scale;
@@ -62556,12 +62394,10 @@ mxSpaceManager.prototype.cellResized = function(cell)
 			{
 				for (var i = 0; i < cells.length; i++)
 				{
-					if (cells[i] != cell &&
-						this.isCellShiftable(cells[i]))
+					if (cells[i] != cell && this.isCellShiftable(cells[i]))
 					{
 						this.shiftCell(cells[i], dx, dy, x0, y0, right, bottom, fx, fy,
-								this.isExtendParents() &&
-								graph.isExtendParent(cells[i]));
+							this.isExtendParents() && graph.isExtendParent(cells[i]));
 					}
 				}
 			}
@@ -63128,7 +62964,7 @@ mxSwimlaneManager.prototype.destroy = function()
 	this.setGraph(null);
 };
 /**
- * $Id: mxTemporaryCellStates.js,v 1.3 2013/11/11 12:24:53 gaudenz Exp $
+ * $Id: mxTemporaryCellStates.js,v 1.5 2014/02/19 09:41:00 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -63144,8 +62980,8 @@ mxSwimlaneManager.prototype.destroy = function()
  */
 function mxTemporaryCellStates(view, scale, cells)
 {
-	this.view = view;
 	scale = (scale != null) ? scale : 1;
+	this.view = view;
 	
 	// Stores the previous state
 	this.oldBounds = view.getGraphBounds();
@@ -63159,22 +62995,13 @@ function mxTemporaryCellStates(view, scale, cells)
 	if (cells != null)
 	{
 		view.resetValidationState();
-		
-		// Creates virtual parent state for validation
-		var state = view.createState(new mxCell());
+		var bbox = null;
 
 		// Validates the vertices and edges without adding them to
 		// the model so that the original cells are not modified
 		for (var i = 0; i < cells.length; i++)
 		{
-			view.validateBounds(state, cells[i]);
-		}
-		
-		var bbox = null;
-		
-		for (var i = 0; i < cells.length; i++)
-		{
-			var bounds = view.validatePoints(state, cells[i]);
+			var bounds = view.getBoundingBox(view.validateCellState(view.validateCell(cells[i])));
 			
 			if (bbox == null)
 			{
@@ -63185,13 +63012,8 @@ function mxTemporaryCellStates(view, scale, cells)
 				bbox.add(bounds);
 			}
 		}
-		
-		if (bbox == null)
-		{
-			bbox = new mxRectangle();
-		}
-		
-		view.setGraphBounds(bbox);
+
+		view.setGraphBounds(bbox || new mxRectangle());
 	}
 };
 
@@ -63235,7 +63057,7 @@ mxTemporaryCellStates.prototype.destroy = function()
 	this.view.setGraphBounds(this.oldBounds);
 };
 /**
- * $Id: mxCellStatePreview.js,v 1.2 2013/10/28 08:45:00 gaudenz Exp $
+ * $Id: mxCellStatePreview.js,v 1.3 2014/02/17 08:10:53 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -63254,8 +63076,8 @@ mxTemporaryCellStates.prototype.destroy = function()
  */
 function mxCellStatePreview(graph)
 {
+	this.deltas = new mxDictionary();
 	this.graph = graph;
-	this.deltas = new Object();
 };
 
 /**
@@ -63296,27 +63118,25 @@ mxCellStatePreview.prototype.moveState = function(state, dx, dy, add, includeEdg
 {
 	add = (add != null) ? add : true;
 	includeEdges = (includeEdges != null) ? includeEdges : true;
-	var id = mxCellPath.create(state.cell);
-	var delta = this.deltas[id];
+	
+	var delta = this.deltas.get(state.cell);
 
 	if (delta == null)
 	{
-		delta = new mxPoint(dx, dy);
-		this.deltas[id] = delta;
+		// Note: Deltas stores the point and the state since the key is a string.
+		delta = {point: new mxPoint(dx, dy), state: state};
+		this.deltas.put(state.cell, delta);
 		this.count++;
+	}
+	else if (add)
+	{
+		delta.point.x += dx;
+		delta.point.y += dy;
 	}
 	else
 	{
-		if (add)
-		{
-			delta.X += dx;
-			delta.Y += dy;
-		}
-		else
-		{
-			delta.X = dx;
-			delta.Y = dy;
-		}
+		delta.point.x = dx;
+		delta.point.y = dy;
 	}
 	
 	if (includeEdges)
@@ -63324,7 +63144,7 @@ mxCellStatePreview.prototype.moveState = function(state, dx, dy, add, includeEdg
 		this.addEdges(state);
 	}
 	
-	return delta;
+	return delta.point;
 };
 
 /**
@@ -63332,36 +63152,21 @@ mxCellStatePreview.prototype.moveState = function(state, dx, dy, add, includeEdg
  */
 mxCellStatePreview.prototype.show = function(visitor)
 {
-	var model = this.graph.getModel();
-	var root = model.getRoot();
-	
-	// Translates the states in step
-	for (var id in this.deltas)
+	this.deltas.visit(mxUtils.bind(this, function(key, delta)
 	{
-		var cell = mxCellPath.resolve(root, id);
-		var state = this.graph.view.getState(cell);
-		var delta = this.deltas[id];
-		var parentState = this.graph.view.getState(
-			model.getParent(cell));
-		this.translateState(parentState, state, delta.x, delta.y);
-	}
+		this.translateState(delta.state, delta.point.x, delta.point.y);
+	}));
 	
-	// Revalidates the states in step
-	for (var id in this.deltas)
+	this.deltas.visit(mxUtils.bind(this, function(key, delta)
 	{
-		var cell = mxCellPath.resolve(root, id);
-		var state = this.graph.view.getState(cell);
-		var delta = this.deltas[id];
-		var parentState = this.graph.view.getState(
-			model.getParent(cell));
-		this.revalidateState(parentState, state, delta.x, delta.y, visitor);
-	}
+		this.revalidateState(delta.state, delta.point.x, delta.point.y, visitor);
+	}));
 };
 
 /**
  * Function: translateState
  */
-mxCellStatePreview.prototype.translateState = function(parentState, state, dx, dy)
+mxCellStatePreview.prototype.translateState = function(state, dx, dy)
 {
 	if (state != null)
 	{
@@ -63369,17 +63174,13 @@ mxCellStatePreview.prototype.translateState = function(parentState, state, dx, d
 		
 		if (model.isVertex(state.cell))
 		{
-			// LATER: Use hashtable to store initial state bounds
-			state.invalid = true;
-			this.graph.view.validateBounds(parentState, state.cell);
+			state.view.updateCellState(state);
 			var geo = model.getGeometry(state.cell);
-			var id = mxCellPath.create(state.cell);
-	
+			
 			// Moves selection cells and non-relative vertices in
 			// the first phase so that edge terminal points will
 			// be updated in the second phase
-			if ((dx != 0 || dy != 0) && geo != null &&
-				(!geo.relative || this.deltas[id] != null))
+			if ((dx != 0 || dy != 0) && geo != null && (!geo.relative || this.deltas.get(state.cell) != null))
 			{
 				state.x += dx;
 				state.y += dy;
@@ -63390,8 +63191,7 @@ mxCellStatePreview.prototype.translateState = function(parentState, state, dx, d
 	    
 	    for (var i = 0; i < childCount; i++)
 	    {
-	    	this.translateState(state, this.graph.view.getState(
-	    		model.getChildAt(state.cell, i)), dx, dy);
+	    	this.translateState(state.view.getState(model.getChildAt(state.cell, i)), dx, dy);
 	    }
 	}
 };
@@ -63399,29 +63199,32 @@ mxCellStatePreview.prototype.translateState = function(parentState, state, dx, d
 /**
  * Function: revalidateState
  */
-mxCellStatePreview.prototype.revalidateState = function(parentState, state, dx, dy, visitor)
+mxCellStatePreview.prototype.revalidateState = function(state, dx, dy, visitor)
 {
 	if (state != null)
 	{
+		var model = this.graph.getModel();
+		
 		// Updates the edge terminal points and restores the
 		// (relative) positions of any (relative) children
-		state.invalid = true;
-		this.graph.view.validatePoints(parentState, state.cell);
-	
-		// Moves selection vertices which are relative
-		var id = mxCellPath.create(state.cell);
-		var model = this.graph.getModel();
+		if (model.isEdge(state.cell))
+		{
+			state.view.updateCellState(state);
+		}
+
 		var geo = this.graph.getCellGeometry(state.cell);
+		var pState = state.view.getState(model.getParent(state.cell));
 		
+		// Moves selection vertices which are relative
 		if ((dx != 0 || dy != 0) && geo != null && geo.relative &&
-			model.isVertex(state.cell) && (parentState == null ||
-			model.isVertex(parentState.cell) || this.deltas[id] != null))
+			model.isVertex(state.cell) && (pState == null ||
+			model.isVertex(pState.cell) || this.deltas.get(state.cell) != null))
 		{
 			state.x += dx;
 			state.y += dy;
-	
-			this.graph.cellRenderer.redraw(state);
 		}
+		
+		this.graph.cellRenderer.redraw(state);
 	
 		// Invokes the visitor on the given state
 		if (visitor != null)
@@ -63433,8 +63236,7 @@ mxCellStatePreview.prototype.revalidateState = function(parentState, state, dx, 
 	    
 	    for (var i = 0; i < childCount; i++)
 	    {
-	    	this.revalidateState(state, this.graph.view.getState(model.getChildAt(
-	    		state.cell, i)), dx, dy, visitor);
+	    	this.revalidateState(this.graph.view.getState(model.getChildAt(state.cell, i)), dx, dy, visitor);
 	    }
 	}
 };
@@ -63449,7 +63251,7 @@ mxCellStatePreview.prototype.addEdges = function(state)
 
 	for (var i = 0; i < edgeCount; i++)
 	{
-		var s = this.graph.view.getState(model.getEdgeAt(state.cell, i));
+		var s = state.view.getState(model.getEdgeAt(state.cell, i));
 
 		if (s != null)
 		{

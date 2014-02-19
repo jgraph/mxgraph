@@ -1,5 +1,5 @@
 /**
- * $Id: mxTemporaryCellStates.js,v 1.3 2013/11/11 12:24:53 gaudenz Exp $
+ * $Id: mxTemporaryCellStates.js,v 1.5 2014/02/19 09:41:00 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -15,8 +15,8 @@
  */
 function mxTemporaryCellStates(view, scale, cells)
 {
-	this.view = view;
 	scale = (scale != null) ? scale : 1;
+	this.view = view;
 	
 	// Stores the previous state
 	this.oldBounds = view.getGraphBounds();
@@ -30,22 +30,13 @@ function mxTemporaryCellStates(view, scale, cells)
 	if (cells != null)
 	{
 		view.resetValidationState();
-		
-		// Creates virtual parent state for validation
-		var state = view.createState(new mxCell());
+		var bbox = null;
 
 		// Validates the vertices and edges without adding them to
 		// the model so that the original cells are not modified
 		for (var i = 0; i < cells.length; i++)
 		{
-			view.validateBounds(state, cells[i]);
-		}
-		
-		var bbox = null;
-		
-		for (var i = 0; i < cells.length; i++)
-		{
-			var bounds = view.validatePoints(state, cells[i]);
+			var bounds = view.getBoundingBox(view.validateCellState(view.validateCell(cells[i])));
 			
 			if (bbox == null)
 			{
@@ -56,13 +47,8 @@ function mxTemporaryCellStates(view, scale, cells)
 				bbox.add(bounds);
 			}
 		}
-		
-		if (bbox == null)
-		{
-			bbox = new mxRectangle();
-		}
-		
-		view.setGraphBounds(bbox);
+
+		view.setGraphBounds(bbox || new mxRectangle());
 	}
 };
 

@@ -1,5 +1,5 @@
 /**
- * $Id: mxEvent.js,v 1.19 2013/12/04 16:44:12 gaudenz Exp $
+ * $Id: mxEvent.js,v 1.20 2014/02/16 10:42:49 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxEvent =
@@ -472,6 +472,18 @@ var mxEvent =
 	isLeftMouseButton: function(evt)
 	{
 		return evt.button == ((mxClient.IS_IE && (typeof(document.documentMode) === 'undefined' || document.documentMode < 9)) ? 1 : 0);
+	},
+	
+	/**
+	 * Function: isMiddleMouseButton
+	 * 
+	 * Returns true if the middle mouse button is pressed for the given event.
+	 * To check if a button is pressed during a mouseMove you should use the
+	 * <mxGraph.isMouseDown> property.
+	 */
+	isMiddleMouseButton: function(evt)
+	{
+		return evt.button == ((mxClient.IS_IE && (typeof(document.documentMode) === 'undefined' || document.documentMode < 9)) ? 4 : 1);
 	},
 	
 	/**

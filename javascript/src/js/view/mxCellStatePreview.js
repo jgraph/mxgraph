@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellStatePreview.js,v 1.2 2013/10/28 08:45:00 gaudenz Exp $
+ * $Id: mxCellStatePreview.js,v 1.3 2014/02/17 08:10:53 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -18,8 +18,8 @@
  */
 function mxCellStatePreview(graph)
 {
+	this.deltas = new mxDictionary();
 	this.graph = graph;
-	this.deltas = new Object();
 };
 
 /**
@@ -60,27 +60,25 @@ mxCellStatePreview.prototype.moveState = function(state, dx, dy, add, includeEdg
 {
 	add = (add != null) ? add : true;
 	includeEdges = (includeEdges != null) ? includeEdges : true;
-	var id = mxCellPath.create(state.cell);
-	var delta = this.deltas[id];
+	
+	var delta = this.deltas.get(state.cell);
 
 	if (delta == null)
 	{
-		delta = new mxPoint(dx, dy);
-		this.deltas[id] = delta;
+		// Note: Deltas stores the point and the state since the key is a string.
+		delta = {point: new mxPoint(dx, dy), state: state};
+		this.deltas.put(state.cell, delta);
 		this.count++;
+	}
+	else if (add)
+	{
+		delta.point.x += dx;
+		delta.point.y += dy;
 	}
 	else
 	{
-		if (add)
-		{
-			delta.X += dx;
-			delta.Y += dy;
-		}
-		else
-		{
-			delta.X = dx;
-			delta.Y = dy;
-		}
+		delta.point.x = dx;
+		delta.point.y = dy;
 	}
 	
 	if (includeEdges)
@@ -88,7 +86,7 @@ mxCellStatePreview.prototype.moveState = function(state, dx, dy, add, includeEdg
 		this.addEdges(state);
 	}
 	
-	return delta;
+	return delta.point;
 };
 
 /**
@@ -96,36 +94,21 @@ mxCellStatePreview.prototype.moveState = function(state, dx, dy, add, includeEdg
  */
 mxCellStatePreview.prototype.show = function(visitor)
 {
-	var model = this.graph.getModel();
-	var root = model.getRoot();
-	
-	// Translates the states in step
-	for (var id in this.deltas)
+	this.deltas.visit(mxUtils.bind(this, function(key, delta)
 	{
-		var cell = mxCellPath.resolve(root, id);
-		var state = this.graph.view.getState(cell);
-		var delta = this.deltas[id];
-		var parentState = this.graph.view.getState(
-			model.getParent(cell));
-		this.translateState(parentState, state, delta.x, delta.y);
-	}
+		this.translateState(delta.state, delta.point.x, delta.point.y);
+	}));
 	
-	// Revalidates the states in step
-	for (var id in this.deltas)
+	this.deltas.visit(mxUtils.bind(this, function(key, delta)
 	{
-		var cell = mxCellPath.resolve(root, id);
-		var state = this.graph.view.getState(cell);
-		var delta = this.deltas[id];
-		var parentState = this.graph.view.getState(
-			model.getParent(cell));
-		this.revalidateState(parentState, state, delta.x, delta.y, visitor);
-	}
+		this.revalidateState(delta.state, delta.point.x, delta.point.y, visitor);
+	}));
 };
 
 /**
  * Function: translateState
  */
-mxCellStatePreview.prototype.translateState = function(parentState, state, dx, dy)
+mxCellStatePreview.prototype.translateState = function(state, dx, dy)
 {
 	if (state != null)
 	{
@@ -133,17 +116,13 @@ mxCellStatePreview.prototype.translateState = function(parentState, state, dx, d
 		
 		if (model.isVertex(state.cell))
 		{
-			// LATER: Use hashtable to store initial state bounds
-			state.invalid = true;
-			this.graph.view.validateBounds(parentState, state.cell);
+			state.view.updateCellState(state);
 			var geo = model.getGeometry(state.cell);
-			var id = mxCellPath.create(state.cell);
-	
+			
 			// Moves selection cells and non-relative vertices in
 			// the first phase so that edge terminal points will
 			// be updated in the second phase
-			if ((dx != 0 || dy != 0) && geo != null &&
-				(!geo.relative || this.deltas[id] != null))
+			if ((dx != 0 || dy != 0) && geo != null && (!geo.relative || this.deltas.get(state.cell) != null))
 			{
 				state.x += dx;
 				state.y += dy;
@@ -154,8 +133,7 @@ mxCellStatePreview.prototype.translateState = function(parentState, state, dx, d
 	    
 	    for (var i = 0; i < childCount; i++)
 	    {
-	    	this.translateState(state, this.graph.view.getState(
-	    		model.getChildAt(state.cell, i)), dx, dy);
+	    	this.translateState(state.view.getState(model.getChildAt(state.cell, i)), dx, dy);
 	    }
 	}
 };
@@ -163,29 +141,32 @@ mxCellStatePreview.prototype.translateState = function(parentState, state, dx, d
 /**
  * Function: revalidateState
  */
-mxCellStatePreview.prototype.revalidateState = function(parentState, state, dx, dy, visitor)
+mxCellStatePreview.prototype.revalidateState = function(state, dx, dy, visitor)
 {
 	if (state != null)
 	{
+		var model = this.graph.getModel();
+		
 		// Updates the edge terminal points and restores the
 		// (relative) positions of any (relative) children
-		state.invalid = true;
-		this.graph.view.validatePoints(parentState, state.cell);
-	
-		// Moves selection vertices which are relative
-		var id = mxCellPath.create(state.cell);
-		var model = this.graph.getModel();
+		if (model.isEdge(state.cell))
+		{
+			state.view.updateCellState(state);
+		}
+
 		var geo = this.graph.getCellGeometry(state.cell);
+		var pState = state.view.getState(model.getParent(state.cell));
 		
+		// Moves selection vertices which are relative
 		if ((dx != 0 || dy != 0) && geo != null && geo.relative &&
-			model.isVertex(state.cell) && (parentState == null ||
-			model.isVertex(parentState.cell) || this.deltas[id] != null))
+			model.isVertex(state.cell) && (pState == null ||
+			model.isVertex(pState.cell) || this.deltas.get(state.cell) != null))
 		{
 			state.x += dx;
 			state.y += dy;
-	
-			this.graph.cellRenderer.redraw(state);
 		}
+		
+		this.graph.cellRenderer.redraw(state);
 	
 		// Invokes the visitor on the given state
 		if (visitor != null)
@@ -197,8 +178,7 @@ mxCellStatePreview.prototype.revalidateState = function(parentState, state, dx, 
 	    
 	    for (var i = 0; i < childCount; i++)
 	    {
-	    	this.revalidateState(state, this.graph.view.getState(model.getChildAt(
-	    		state.cell, i)), dx, dy, visitor);
+	    	this.revalidateState(this.graph.view.getState(model.getChildAt(state.cell, i)), dx, dy, visitor);
 	    }
 	}
 };
@@ -213,7 +193,7 @@ mxCellStatePreview.prototype.addEdges = function(state)
 
 	for (var i = 0; i < edgeCount; i++)
 	{
-		var s = this.graph.view.getState(model.getEdgeAt(state.cell, i));
+		var s = state.view.getState(model.getEdgeAt(state.cell, i));
 
 		if (s != null)
 		{

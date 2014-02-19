@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphView.js,v 1.35 2014/01/15 11:32:51 gaudenz Exp $
+ * $Id: mxGraphView.js,v 1.39 2014/02/19 09:41:00 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -245,8 +245,7 @@ mxGraphView.prototype.getBounds = function(cells)
 				{
 					if (result == null)
 					{
-						result = new mxRectangle(state.x, state.y,
-							state.width, state.height);
+						result = new mxRectangle(state.x, state.y, state.width, state.height);
 					}
 					else
 					{
@@ -537,10 +536,10 @@ mxGraphView.prototype.resetValidationState = function()
 
 /**
  * Function: validate
- *
- * First validates all bounds and then validates all points recursively on
- * all visible cells starting at the given cell. Finally the background
- * is validated using <validateBackground>.
+ * 
+ * Calls <validateCell> and <validateCellState> and updates the <graphBounds>
+ * using <getBoundingBox>. Finally the background is validated using
+ * <validateBackground>.
  * 
  * Parameters:
  * 
@@ -582,17 +581,10 @@ mxGraphView.prototype.validate = function(cell)
 		document.body.appendChild(this.textDiv);
 	}
 	
-	cell = cell || ((this.currentRoot != null) ?
-		this.currentRoot : this.graph.getModel().getRoot());
-	this.validateBounds(null, cell);
-	var graphBounds = this.validatePoints(null, cell);
-	
-	if (graphBounds == null)
-	{
-		graphBounds = new mxRectangle();
-	}
-
-	this.setGraphBounds(graphBounds);
+	var graphBounds = this.getBoundingBox(this.validateCellState(
+		this.validateCell(cell || ((this.currentRoot != null) ?
+			this.currentRoot : this.graph.getModel().getRoot()))));
+	this.setGraphBounds((graphBounds != null) ? graphBounds : new mxRectangle());
 	this.validateBackground();
 	
 	if (prevDisplay != null)
@@ -610,6 +602,73 @@ mxGraphView.prototype.validate = function(cell)
 	window.status = mxResources.get(this.doneResource) ||
 		this.doneResource;
 	mxLog.leave('mxGraphView.validate', t0);
+};
+
+/**
+ * Function: getBoundingBox
+ * 
+ * Returns the bounding box of the shape and the label for the given
+ * <mxCellState> and its children if recurse is true.
+ * 
+ * Parameters:
+ * 
+ * state - <mxCellState> whose bounding box should be returned.
+ * recurse - Optional boolean indicating if the children should be included.
+ * Default is true.
+ */
+mxGraphView.prototype.getBoundingBox = function(state, recurse)
+{
+	recurse = (recurse != null) ? recurse : true;
+	var bbox = null;
+	
+	if (state != null)
+	{
+		if (state.shape != null && state.shape.boundingBox != null)
+		{
+			bbox = state.shape.boundingBox.clone();
+		}
+		
+		if (state.text != null && !this.graph.isLabelClipped(state.cell))
+		{
+			// Adds label bounding box to graph bounds
+			if (state.text.boundingBox != null)
+			{
+				if (bbox != null)
+				{
+					bbox.add(state.text.boundingBox);
+				}
+				else
+				{
+					bbox = state.text.boundingBox.clone();
+				}
+			}
+		}
+		
+		if (recurse)
+		{
+			var model = this.graph.getModel();
+			var childCount = model.getChildCount(state.cell);
+			
+			for (var i = 0; i < childCount; i++)
+			{
+				var bounds = this.getBoundingBox(this.getState(model.getChildAt(state.cell, i)));
+				
+				if (bounds != null)
+				{
+					if (bbox == null)
+					{
+						bbox = bounds;
+					}
+					else
+					{
+						bbox.add(bounds);
+					}
+				}
+			}
+		}
+	}
+	
+	return bbox;
 };
 
 /**
@@ -814,111 +873,258 @@ mxGraphView.prototype.redrawBackgroundImage = function(backgroundImage, bg)
 };
 
 /**
- * Function: validateBounds
- *
- * Validates the bounds of the given parent's child using the given parent
- * state as the origin for the child. The validation is carried out
- * recursively for all non-collapsed descendants.
+ * Function: validateCell
+ * 
+ * Recursively creates the cell state for the given cell if visible is true and
+ * the given cell is visible. If the cell is not visible but the state exists
+ * then it is removed using <removeState>.
  * 
  * Parameters:
  * 
- * parentState - <mxCellState> for the given parent.
- * cell - <mxCell> for which the bounds in the state should be updated.
+ * cell - <mxCell> whose <mxCellState> should be created.
+ * visible - Optional boolean indicating if the cell should be visible. Default
+ * is true.
  */
-mxGraphView.prototype.validateBounds = function(parentState, cell)
+mxGraphView.prototype.validateCell = function(cell, visible)
 {
-	var model = this.graph.getModel();
-	var state = this.getState(cell, true);
-
-	if (state != null)
+	visible = (visible != null) ? visible : true;
+	
+	if (cell != null)
 	{
-		if (!this.graph.isCellVisible(cell))
+		visible = visible && this.graph.isCellVisible(cell);
+		var state = this.getState(cell, visible);
+		
+		if (state != null && !visible)
 		{
 			this.removeState(cell);
 		}
 		else
 		{
-			if (state.invalid && cell != this.currentRoot && parentState != null)
-			{
-				state.absoluteOffset.x = 0;
-				state.absoluteOffset.y = 0;
-				state.origin.x = parentState.origin.x;
-				state.origin.y = parentState.origin.y;
-				var geo = this.graph.getCellGeometry(cell);				
-	
-				if (geo != null)
-				{
-					if (!model.isEdge(cell))
-					{
-						var offset = geo.offset || this.EMPTY_POINT;
-	
-						if (geo.relative)
-						{
-							state.origin.x += geo.x * parentState.width / this.scale + offset.x;
-							state.origin.y += geo.y * parentState.height / this.scale + offset.y;
-						}
-						else
-						{
-							state.absoluteOffset.x = this.scale * offset.x;
-							state.absoluteOffset.y = this.scale * offset.y;
-							state.origin.x += geo.x;
-							state.origin.y += geo.y;
-						}
-					}
-	
-					// Updates cell state's bounds
-					state.x = this.scale * (this.translate.x + state.origin.x);
-					state.y = this.scale * (this.translate.y + state.origin.y);
-					state.width = this.scale * geo.width;
-					state.height = this.scale * geo.height;
-	
-					if (model.isVertex(cell))
-					{
-						// Rotates relative child cells
-						if (geo.relative)
-						{
-							var alpha = mxUtils.toRadians(parentState.style[mxConstants.STYLE_ROTATION] || '0');
-							
-							if (alpha != 0)
-							{
-								var cos = Math.cos(alpha);
-								var sin = Math.sin(alpha);
-							
-								// Uses translate or parent origin as offset
-								var ct = new mxPoint(state.getCenterX(), state.getCenterY());
-								var cx = new mxPoint(parentState.getCenterX(), parentState.getCenterY());
-								var pt = mxUtils.getRotatedPoint(ct, cos, sin, cx);
-								state.x = pt.x - state.width / 2;
-								state.y = pt.y - state.height / 2;
-							}
-						}
-						
-						this.updateVertexLabelOffset(state);
-					}
-				}
-			}
-							
-			// Applies child offset to origin
-			var offset = this.graph.getChildOffsetForCell(cell);
-			
-			if (offset != null)
-			{
-				state.origin.x += offset.x;
-				state.origin.y += offset.y;
-			}
-		}
-	
-		// Recursively validates the child bounds
-		if (!this.graph.isCellCollapsed(cell) || cell == this.currentRoot)
-		{
+			var model = this.graph.getModel();
 			var childCount = model.getChildCount(cell);
 			
 			for (var i = 0; i < childCount; i++)
 			{
-				var child = model.getChildAt(cell, i);
-				this.validateBounds(state, child);
+				this.validateCell(model.getChildAt(cell, i), visible &&
+					(!this.graph.isCellCollapsed(cell) || cell == this.currentRoot));
 			}
 		}
+	}
+	
+	return cell;
+};
+
+/**
+ * Function: validateCellStates
+ * 
+ * Validates and repaints the <mxCellState> for the given <mxCell>.
+ * 
+ * Parameters:
+ * 
+ * cell - <mxCell> whose <mxCellState> should be validated.
+ * recurse - Optional boolean indicating if the children of the cell should be
+ * validated. Default is true.
+ */
+mxGraphView.prototype.validateCellState = function(cell, recurse)
+{
+	recurse = (recurse != null) ? recurse : true;
+	var state = null;
+	
+	if (cell != null)
+	{
+		state = this.getState(cell);
+		
+		if (state != null)
+		{
+			var model = this.graph.getModel();
+			
+			if (state.invalid)
+			{
+				state.invalid = false;
+				
+				if (cell != this.currentRoot)
+				{
+					this.validateCellState(model.getParent(cell), false);
+				}
+
+				state.setVisibleTerminalState(this.validateCellState(this.getVisibleTerminal(cell, true), false), true);
+				state.setVisibleTerminalState(this.validateCellState(this.getVisibleTerminal(cell, false), false), false);
+				
+				this.updateCellState(state);
+				
+				// Repaint happens immediately after the cell is validated
+				if (cell != this.currentRoot)
+				{
+					this.graph.cellRenderer.redraw(state, false, this.isRendering());
+				}
+			}
+
+			if (recurse)
+			{
+				// Updates order in DOM if recursively traversing
+				if (state.shape != null)
+				{
+					this.stateValidated(state);
+				}
+			
+				var childCount = model.getChildCount(cell);
+				
+				for (var i = 0; i < childCount; i++)
+				{
+					this.validateCellState(model.getChildAt(cell, i));
+				}
+			}
+		}
+	}
+	
+	return state;
+};
+
+/**
+ * Function: updateCellState
+ * 
+ * Updates the given <mxCellState>.
+ * 
+ * Parameters:
+ * 
+ * state - <mxCellState> to be updated.
+ */
+mxGraphView.prototype.updateCellState = function(state)
+{
+	state.absoluteOffset.x = 0;
+	state.absoluteOffset.y = 0;
+	state.origin.x = 0;
+	state.origin.y = 0;
+	state.length = 0;
+	
+	var model = this.graph.getModel();
+	var pState = this.getState(model.getParent(state.cell)); 
+	
+	if (pState != null && pState.cell != this.currentRoot)
+	{
+		state.origin.x += pState.origin.x;
+		state.origin.y += pState.origin.y;
+	}
+	
+	var offset = this.graph.getChildOffsetForCell(state.cell);
+	
+	if (offset != null)
+	{
+		state.origin.x += offset.x;
+		state.origin.y += offset.y;
+	}
+	
+	var geo = this.graph.getCellGeometry(state.cell);				
+
+	if (geo != null)
+	{
+		if (!model.isEdge(state.cell))
+		{
+			offset = geo.offset || this.EMPTY_POINT;
+
+			if (geo.relative && pState != null)
+			{
+				if (model.isEdge(pState.cell))
+				{
+					var origin = this.getPoint(pState, geo);
+					
+					if (origin != null)
+					{
+						state.origin.x += (origin.x / this.scale) - this.translate.x;
+						state.origin.y += (origin.y / this.scale) - this.translate.y;
+					}
+				}
+				else
+				{
+					state.origin.x += geo.x * pState.width / this.scale + offset.x;
+					state.origin.y += geo.y * pState.height / this.scale + offset.y;
+				}
+			}
+			else
+			{
+				state.absoluteOffset.x = this.scale * offset.x;
+				state.absoluteOffset.y = this.scale * offset.y;
+				state.origin.x += geo.x;
+				state.origin.y += geo.y;
+			}
+		}
+
+		state.x = this.scale * (this.translate.x + state.origin.x);
+		state.y = this.scale * (this.translate.y + state.origin.y);
+		state.width = this.scale * geo.width;
+		state.height = this.scale * geo.height;
+		
+		if (model.isVertex(state.cell))
+		{
+			this.updateVertexState(state, geo);
+		}
+		
+		if (model.isEdge(state.cell))
+		{
+			this.updateEdgeState(state, geo);
+		}
+	}
+};
+
+/**
+ * Function: updateVertexState
+ * 
+ * Validates the given cell state.
+ */
+mxGraphView.prototype.updateVertexState = function(state, geo)
+{
+	var model = this.graph.getModel();
+	var pState = this.getState(model.getParent(state.cell));
+	
+	if (geo.relative && pState != null)
+	{
+		var alpha = mxUtils.toRadians(pState.style[mxConstants.STYLE_ROTATION] || '0');
+		
+		if (alpha != 0)
+		{
+			var cos = Math.cos(alpha);
+			var sin = Math.sin(alpha);
+
+			var ct = new mxPoint(state.getCenterX(), state.getCenterY());
+			var cx = new mxPoint(pState.getCenterX(), pState.getCenterY());
+			var pt = mxUtils.getRotatedPoint(ct, cos, sin, cx);
+			state.x = pt.x - state.width / 2;
+			state.y = pt.y - state.height / 2;
+		}
+	}
+	
+	this.updateVertexLabelOffset(state);
+};
+
+/**
+ * Function: updateEdgeState
+ * 
+ * Validates the given cell state.
+ */
+mxGraphView.prototype.updateEdgeState = function(state, geo)
+{
+	var source = state.getVisibleTerminalState(true);
+	var target = state.getVisibleTerminalState(false);
+	
+	this.updateFixedTerminalPoints(state, source, target);
+	this.updatePoints(state, geo.points, source, target);
+	this.updateFloatingTerminalPoints(state, source, target);
+	
+	var pts = state.absolutePoints;
+	
+	if (pts == null || pts.length < 2 || pts[0] == null || pts[pts.length - 1] == null)
+	{
+		// This will remove edges with invalid points from the list of states in the view.
+		// Happens if the one of the terminals and the corresponding terminal point is null.
+		if (state.cell != this.currentRoot)
+		{
+			this.clear(state.cell, true);
+		}
+	}
+	else
+	{
+		this.updateEdgeBounds(state);
+		this.updateEdgeLabelOffset(state);
 	}
 };
 
@@ -962,154 +1168,6 @@ mxGraphView.prototype.updateVertexLabelOffset = function(state)
 };
 
 /**
- * Function: validatePoints
- * 
- * Validates the points for the state of the given cell recursively if the
- * cell is not collapsed and returns the bounding box of all visited states
- * as an <mxRectangle>.
- * 
- * Parameters:
- * 
- * parentState - <mxCellState> for the parent cell.
- * cell - <mxCell> whose points in the state should be updated.
- */
-mxGraphView.prototype.validatePoints = function(parentState, cell)
-{
-	var model = this.graph.getModel();
-	var state = this.getState(cell);
-	var bbox = null;
-	
-	if (state != null)
-	{
-		if (state.invalid)
-		{
-			var geo = this.graph.getCellGeometry(cell);
-
-			if (geo != null && model.isEdge(cell))
-			{
-				// Updates the points on the source terminal if its an edge
-				var source = this.getState(this.getVisibleTerminal(cell, true));
-				state.setVisibleTerminalState(source, true);
-				
-				if (source != null && model.isEdge(source.cell) &&
-					!model.isAncestor(source.cell, cell))
-				{
-					var tmp = this.getState(model.getParent(source.cell));
-					this.validatePoints(tmp, source.cell);
-				}
-				
-				// Updates the points on the target terminal if its an edge
-				var target = this.getState(this.getVisibleTerminal(cell, false));
-				state.setVisibleTerminalState(target, false);
-				
-				if (target != null && model.isEdge(target.cell) &&
-					!model.isAncestor(target.cell, cell))
-				{
-					var tmp = this.getState(model.getParent(target.cell));
-					this.validatePoints(tmp, target.cell);
-				}
-
-				this.updateFixedTerminalPoints(state, source, target);
-				this.updatePoints(state, geo.points, source, target);
-				this.updateFloatingTerminalPoints(state, source, target);
-				
-				if (state.cell != this.currentRoot && (state.absolutePoints == null || state.absolutePoints.length < 2 ||
-					state.absolutePoints[0] == null || state.absolutePoints[state.absolutePoints.length - 1] == null))
-				{
-					// Note: This condition normally occurs if a connected edge has a
-					// null-terminal, ie. edge.source == null or edge.target == null,
-					// and no corresponding terminal point defined, which happens for
-					// example if the terminal-id was not resolved at cell decoding time.
-					this.clear(state.cell, true);
-					
-					return;
-				}
-				
-				this.updateEdgeBounds(state);
-				this.updateEdgeLabelOffset(state);
-			}
-			else if (geo != null && geo.relative && parentState != null &&
-				model.isEdge(parentState.cell))
-			{
-				var origin = this.getPoint(parentState, geo);
-				
-				if (origin != null)
-				{
-					state.x = origin.x;
-					state.y = origin.y;
-					
-					origin.x = (origin.x / this.scale) - this.translate.x;
-					origin.y = (origin.y / this.scale) - this.translate.y;
-					state.origin = origin;
-					
-					this.childMoved(parentState, state);
-				}
-			}
-			
-			state.invalid = false;
-
-			if (cell != this.currentRoot)
-			{
-				// NOTE: Label bounds currently ignored if rendering is false
-				this.graph.cellRenderer.redraw(state, false, this.isRendering());
-			}
-		}
-		
-		if (model.isEdge(cell) || model.isVertex(cell))
-		{
-			this.stateValidated(state);
-			
-			if (state.shape != null && state.shape.boundingBox != null)
-			{
-				bbox = state.shape.boundingBox.clone();
-			}
-			
-			if (state.text != null && !this.graph.isLabelClipped(state.cell))
-			{
-				// Adds label bounding box to graph bounds
-				if (state.text.boundingBox != null)
-				{
-					if (bbox != null)
-					{
-						bbox.add(state.text.boundingBox);
-					}
-					else
-					{
-						bbox = state.text.boundingBox.clone();
-					}
-				}
-			}
-		}
-	}
-
-	if (state != null && (!this.graph.isCellCollapsed(cell) ||
-		cell == this.currentRoot))
-	{
-		var childCount = model.getChildCount(cell);
-		
-		for (var i = 0; i < childCount; i++)
-		{
-			var child = model.getChildAt(cell, i);
-			var bounds = this.validatePoints(state, child);
-			
-			if (bounds != null)
-			{
-				if (bbox == null)
-				{
-					bbox = bounds;
-				}
-				else
-				{
-					bbox.add(bounds);
-				}
-			}
-		}
-	}
-	
-	return bbox;
-};
-
-/**
  * Function: stateValidated
  * 
  * Invoked when a state has been processed in <validatePoints>. This is used
@@ -1135,38 +1193,6 @@ mxGraphView.prototype.stateValidated = function(state)
 	{
 		this.lastHtmlNode = result[1];
 		this.lastNode = result[0];
-	}
-};
-
-/**
- * Function: childMoved
- *
- * Invoked when a child state was moved as a result of late evaluation
- * of its position. This is invoked for relative edge children whose
- * position can only be determined after the points of the parent edge
- * are updated in validatePoints, and validates the bounds of all
- * descendants of the child using validateBounds.
- * 
- * Parameters:
- * 
- * parent - <mxCellState> that represents the parent state.
- * child - <mxCellState> that represents the child state.
- */
-mxGraphView.prototype.childMoved = function(parent, child)
-{
-	var cell = child.cell;
-	
-	// Children of relative edge children need to validate
-	// their bounds after their parent state was updated
-	if (!this.graph.isCellCollapsed(cell) || cell == this.currentRoot)
-	{
-		var model = this.graph.getModel();
-		var childCount = model.getChildCount(cell);
-
-		for (var i = 0; i < childCount; i++)
-		{
-			this.validateBounds(child, model.getChildAt(cell, i));
-		}
 	}
 };
 
@@ -1671,67 +1697,62 @@ mxGraphView.prototype.getVisibleTerminal = function(edge, source)
 mxGraphView.prototype.updateEdgeBounds = function(state)
 {
 	var points = state.absolutePoints;
-	state.length = 0;
-
-	if (points != null && points.length > 0)
+	var p0 = points[0];
+	var pe = points[points.length - 1];
+	
+	if (p0.x != pe.x || p0.y != pe.y)
 	{
-		var p0 = points[0];
-		var pe = points[points.length - 1];
+		var dx = pe.x - p0.x;
+		var dy = pe.y - p0.y;
+		state.terminalDistance = Math.sqrt(dx * dx + dy * dy);
+	}
+	else
+	{
+		state.terminalDistance = 0;
+	}
+	
+	var length = 0;
+	var segments = [];
+	var pt = p0;
+	
+	if (pt != null)
+	{
+		var minX = pt.x;
+		var minY = pt.y;
+		var maxX = minX;
+		var maxY = minY;
 		
-		if (p0.x != pe.x || p0.y != pe.y)
+		for (var i = 1; i < points.length; i++)
 		{
-			var dx = pe.x - p0.x;
-			var dy = pe.y - p0.y;
-			state.terminalDistance = Math.sqrt(dx * dx + dy * dy);
-		}
-		else
-		{
-			state.terminalDistance = 0;
-		}
-		
-		var length = 0;
-		var segments = [];
-		var pt = p0;
-		
-		if (pt != null)
-		{
-			var minX = pt.x;
-			var minY = pt.y;
-			var maxX = minX;
-			var maxY = minY;
+			var tmp = points[i];
 			
-			for (var i = 1; i < points.length; i++)
+			if (tmp != null)
 			{
-				var tmp = points[i];
+				var dx = pt.x - tmp.x;
+				var dy = pt.y - tmp.y;
 				
-				if (tmp != null)
-				{
-					var dx = pt.x - tmp.x;
-					var dy = pt.y - tmp.y;
-					
-					var segment = Math.sqrt(dx * dx + dy * dy);
-					segments.push(segment);
-					length += segment;
-					
-					pt = tmp;
-					
-					minX = Math.min(pt.x, minX);
-					minY = Math.min(pt.y, minY);
-					maxX = Math.max(pt.x, maxX);
-					maxY = Math.max(pt.y, maxY);
-				}
+				var segment = Math.sqrt(dx * dx + dy * dy);
+				segments.push(segment);
+				length += segment;
+				
+				pt = tmp;
+				
+				minX = Math.min(pt.x, minX);
+				minY = Math.min(pt.y, minY);
+				maxX = Math.max(pt.x, maxX);
+				maxY = Math.max(pt.y, maxY);
 			}
-			
-			state.length = length;
-			state.segments = segments;
-			
-			var markerSize = 1; // TODO: include marker size
-			
-			state.x = minX;
-			state.y = minY;
-			state.width = Math.max(markerSize, maxX - minX);
-			state.height = Math.max(markerSize, maxY - minY);
 		}
+		
+		state.length = length;
+		state.segments = segments;
+		
+		var markerSize = 1; // TODO: include marker size
+		
+		state.x = minX;
+		state.y = minY;
+		state.width = Math.max(markerSize, maxX - minX);
+		state.height = Math.max(markerSize, maxY - minY);
 	}
 };
 

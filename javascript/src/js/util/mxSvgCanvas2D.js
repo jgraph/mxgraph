@@ -1,5 +1,5 @@
 /**
- * $Id: mxSvgCanvas2D.js,v 1.59 2014/02/05 14:45:47 gaudenz Exp $
+ * $Id: mxSvgCanvas2D.js,v 1.60 2014/02/14 15:48:59 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -1542,9 +1542,16 @@ mxSvgCanvas2D.prototype.addTextBackground = function(node, str, x, y, w, h, alig
 		else if (node.getBBox != null && this.root.ownerDocument == document)
 		{
 			// Uses getBBox only if inside document for correct size
-			bbox = node.getBBox();
-			var ie = mxClient.IS_IE && mxClient.IS_SVG;
-			bbox = new mxRectangle(bbox.x, bbox.y + ((ie) ? 0 : 1), bbox.width, bbox.height + ((ie) ? 1 : 0));
+			try
+			{
+				bbox = node.getBBox();
+				var ie = mxClient.IS_IE && mxClient.IS_SVG;
+				bbox = new mxRectangle(bbox.x, bbox.y + ((ie) ? 0 : 1), bbox.width, bbox.height + ((ie) ? 1 : 0));
+			}
+			catch (e)
+			{
+				// Ignores NS_ERROR_FAILURE in FF if container display is none.
+			}
 		}
 		else
 		{

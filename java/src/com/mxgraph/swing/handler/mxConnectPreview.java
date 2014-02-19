@@ -1,5 +1,5 @@
 /**
- * $Id: mxConnectPreview.java,v 1.1 2012/11/15 13:26:44 gaudenz Exp $
+ * $Id: mxConnectPreview.java,v 1.2 2014/02/19 09:41:00 gaudenz Exp $
  * Copyright (c) 2008-2010, Gaudenz Alder, David Benson
  */
 package com.mxgraph.swing.handler;
@@ -12,6 +12,7 @@ import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 
 import com.mxgraph.canvas.mxGraphics2DCanvas;
+import com.mxgraph.model.mxCell;
 import com.mxgraph.model.mxGeometry;
 import com.mxgraph.model.mxICell;
 import com.mxgraph.model.mxIGraphModel;
@@ -81,10 +82,17 @@ public class mxConnectPreview extends mxEventSource
 						(startState != null) ? startState.getCell() : null,
 						null, style));
 		((mxICell) startState.getCell()).insertEdge(cell, true);
+		
+		mxCell child = new mxCell("Test");
+		mxGeometry geo = new mxGeometry();
+		geo.setRelative(true);
+		child.setGeometry(geo);
+		child.setVertex(true);
+		cell.insert(child);
 
 		return cell;
 	}
-
+	
 	/**
 	 * 
 	 */
@@ -126,8 +134,10 @@ public class mxConnectPreview extends mxEventSource
 		sourceState = startState;
 		startPoint = transformScreenPoint(startState.getCenterX(),
 				startState.getCenterY());
-		previewState = graph.getView().getState(createCell(startState, style),
-				true);
+		Object cell = createCell(startState, style);
+		graph.getView().validateCell(cell);
+		previewState = graph.getView().getState(cell);
+		
 		fireEvent(new mxEventObject(mxEvent.START, "event", e, "state",
 				previewState));
 	}
@@ -158,15 +168,14 @@ public class mxConnectPreview extends mxEventSource
 		geo.setTerminalPoint(startPoint, true);
 		geo.setTerminalPoint(transformScreenPoint(x, y), false);
 
-		revalidate(graph.getView().getState(graph.getDefaultParent()),
-				previewState.getCell());
+		revalidate(previewState);
 		fireEvent(new mxEventObject(mxEvent.CONTINUE, "event", e, "x", x, "y",
 				y));
 
 		// Repaints the dirty region
 		// TODO: Cache the new dirty region for next repaint
 		Rectangle tmp = getDirtyRect(dirty);
-		
+
 		if (tmp != null)
 		{
 			graphComponent.getGraphControl().repaint(tmp);
@@ -225,28 +234,17 @@ public class mxConnectPreview extends mxEventSource
 		mxPoint tr = graph.getView().getTranslate();
 		double scale = graph.getView().getScale();
 
-		return new mxPoint(graph.snap(x / scale - tr.getX()), graph.snap(y / scale - tr.getY()));
+		return new mxPoint(graph.snap(x / scale - tr.getX()), graph.snap(y
+				/ scale - tr.getY()));
 	}
 
 	/**
 	 * 
 	 */
-	public void revalidate(mxCellState pState, Object cell)
+	public void revalidate(mxCellState state)
 	{
-		mxGraph graph = graphComponent.getGraph();
-		mxCellState tmp = graph.getView().getState(cell);
-		tmp.setInvalid(true);
-
-		graph.getView().validateBounds(pState, cell);
-		graph.getView().validatePoints(pState, cell);
-
-		mxIGraphModel model = graph.getModel();
-		int childCount = model.getChildCount(cell);
-
-		for (int i = 0; i < childCount; i++)
-		{
-			revalidate(tmp, model.getChildAt(cell, i));
-		}
+		state.getView().invalidate(state.getCell());
+		state.getView().validateCellState(state.getCell());
 	}
 
 	/**

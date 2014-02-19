@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.66 2014/02/07 15:28:44 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.69 2014/02/17 13:17:19 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -2016,6 +2016,7 @@ mxGraph.prototype.removeStateForCell = function(cell)
 		this.removeStateForCell(this.model.getChildAt(cell, i));
 	}
 
+	this.view.invalidate(cell, false, true);
 	this.view.removeState(cell);
 };
 
@@ -4039,8 +4040,7 @@ mxGraph.prototype.cloneCells = function(cells, allowInvalidEdges)
 					if (g != null)
 					{
 						var state = this.view.getState(cells[i]);
-						var pstate = this.view.getState(
-							this.model.getParent(cells[i]));
+						var pstate = this.view.getState(this.model.getParent(cells[i]));
 						
 						if (state != null && pstate != null)
 						{
@@ -6851,7 +6851,11 @@ mxGraph.prototype.panGraph = function(dx, dy)
 						child = next;
 					}
 
-					this.shiftPreview1.parentNode.removeChild(this.shiftPreview1);
+					if (this.shiftPreview1.parentNode != null)
+					{
+						this.shiftPreview1.parentNode.removeChild(this.shiftPreview1);
+					}
+					
 					this.shiftPreview1 = null;
 					
 					this.container.appendChild(canvas.parentNode);
@@ -6865,7 +6869,11 @@ mxGraph.prototype.panGraph = function(dx, dy)
 						child = next;
 					}
 
-					this.shiftPreview2.parentNode.removeChild(this.shiftPreview2);
+					if (this.shiftPreview2.parentNode != null)
+					{
+						this.shiftPreview2.parentNode.removeChild(this.shiftPreview2);
+					}
+					
 					this.shiftPreview2 = null;
 				}
 			}
@@ -6903,9 +6911,17 @@ mxGraph.prototype.panGraph = function(dx, dy)
 						
 						child = next;
 					}
-
-					this.container.insertBefore(this.shiftPreview1, canvas.parentNode);
-					this.container.appendChild(this.shiftPreview2);
+					
+					// Inserts elements only if not empty
+					if (this.shiftPreview1.firstChild != null)
+					{
+						this.container.insertBefore(this.shiftPreview1, canvas.parentNode);
+					}
+					
+					if (this.shiftPreview2.firstChild != null)
+					{
+						this.container.appendChild(this.shiftPreview2);
+					}
 				}
 				
 				this.shiftPreview1.style.left = dx + 'px';
@@ -10255,14 +10271,12 @@ mxGraph.prototype.intersects = function(state, x, y)
 		if (pts != null)
 		{
 			var t2 = this.tolerance * this.tolerance;
-
 			var pt = pts[0];
 			
-			for (var i = 1; i<pts.length; i++)
+			for (var i = 1; i < pts.length; i++)
 			{
 				var next = pts[i];
-				var dist = mxUtils.ptSegDistSq(
-					pt.x, pt.y, next.x, next.y, x, y);
+				var dist = mxUtils.ptSegDistSq(pt.x, pt.y, next.x, next.y, x, y);
 				
 				if (dist <= t2)
 				{

@@ -1,5 +1,5 @@
 /**
- * $Id: mxVmlCanvas2D.js,v 1.47 2014/02/05 14:45:47 gaudenz Exp $
+ * $Id: mxVmlCanvas2D.js,v 1.48 2014/02/19 13:36:11 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -108,6 +108,27 @@ mxVmlCanvas2D.prototype.rotatedHtmlBackground = '';
 mxVmlCanvas2D.prototype.vmlScale = 1;
 
 /**
+ * Function: createElement
+ * 
+ * Creates the given element using the document.
+ */
+mxVmlCanvas2D.prototype.createElement = function(name)
+{
+	return document.createElement(name);
+};
+
+/**
+ * Function: createVmlElement
+ * 
+ * Creates a new element using <createElement> and prefixes the given name with
+ * <mxClient.VML_PREFIX>.
+ */
+mxVmlCanvas2D.prototype.createVmlElement = function(name)
+{
+	return this.createElement(mxClient.VML_PREFIX + ':' + name);
+};
+
+/**
  * Function: addNode
  * 
  * Adds the current node to the <root>.
@@ -182,7 +203,7 @@ mxVmlCanvas2D.prototype.addNode = function(filled, stroked)
  */
 mxVmlCanvas2D.prototype.createTransparentFill = function()
 {
-	var fill = document.createElement(mxClient.VML_PREFIX + ':fill');
+	var fill = this.createVmlElement('fill');
 	fill.src = mxClient.imageBasePath + '/transparent.gif';
 	fill.type = 'tile';
 	
@@ -200,7 +221,7 @@ mxVmlCanvas2D.prototype.createFill = function()
 	
 	// Gradients in foregrounds not supported because special gradients
 	// with bounds must be created for each element in graphics-canvases
-	var fill = document.createElement(mxClient.VML_PREFIX + ':fill');
+	var fill = this.createVmlElement('fill');
 	fill.color = s.fillColor;
 
 	if (s.gradientColor != null)
@@ -252,7 +273,7 @@ mxVmlCanvas2D.prototype.createFill = function()
 mxVmlCanvas2D.prototype.createStroke = function()
 {
 	var s = this.state;
-	var stroke = document.createElement(mxClient.VML_PREFIX + ':stroke');
+	var stroke = this.createVmlElement('stroke');
 	stroke.endcap = s.lineCap || 'flat';
 	stroke.joinstyle = s.lineJoin || 'miter';
 	stroke.miterlimit = s.miterLimit || '10';
@@ -364,7 +385,7 @@ mxVmlCanvas2D.prototype.createShadow = function(node, filled, stroked)
  */
 mxVmlCanvas2D.prototype.createShadowFill = function()
 {
-	var fill = document.createElement(mxClient.VML_PREFIX + ':fill');
+	var fill = this.createVmlElement('fill');
 	fill.color = this.state.shadowColor;
 	fill.opacity = (this.state.alpha * this.state.shadowAlpha * 100) + '%';
 	
@@ -423,7 +444,7 @@ mxVmlCanvas2D.prototype.rotate = function(theta, flipH, flipV, cx, cy)
 mxVmlCanvas2D.prototype.begin = function()
 {
 	mxAbstractCanvas2D.prototype.begin.apply(this, arguments);
-	this.node = document.createElement(mxClient.VML_PREFIX + ':shape');
+	this.node = this.createVmlElement('shape');
 	this.node.style.position = 'absolute';
 };
 
@@ -465,7 +486,7 @@ mxVmlCanvas2D.prototype.quadTo = function(x1, y1, x2, y2)
 mxVmlCanvas2D.prototype.createRect = function(nodeName, x, y, w, h)
 {
 	var s = this.state;
-	var n = document.createElement(nodeName);
+	var n = this.createVmlElement(nodeName);
 	n.style.position = 'absolute';
 	n.style.left = this.format((x + s.dx) * s.scale) + 'px';
 	n.style.top = this.format((y + s.dy) * s.scale) + 'px';
@@ -482,7 +503,7 @@ mxVmlCanvas2D.prototype.createRect = function(nodeName, x, y, w, h)
  */
 mxVmlCanvas2D.prototype.rect = function(x, y, w, h)
 {
-	this.node = this.createRect(mxClient.VML_PREFIX + ':rect', x, y, w, h);
+	this.node = this.createRect('rect', x, y, w, h);
 };
 
 /**
@@ -492,7 +513,7 @@ mxVmlCanvas2D.prototype.rect = function(x, y, w, h)
  */
 mxVmlCanvas2D.prototype.roundrect = function(x, y, w, h, dx, dy)
 {
-	this.node = this.createRect(mxClient.VML_PREFIX + ':roundrect', x, y, w, h);
+	this.node = this.createRect('roundrect', x, y, w, h);
 	// SetAttribute needed here for IE8
 	this.node.setAttribute('arcsize', Math.max(dx * 100 / w, dy * 100 / h) + '%');
 };
@@ -504,7 +525,7 @@ mxVmlCanvas2D.prototype.roundrect = function(x, y, w, h, dx, dy)
  */
 mxVmlCanvas2D.prototype.ellipse = function(x, y, w, h)
 {
-	this.node = this.createRect(mxClient.VML_PREFIX + ':oval', x, y, w, h);
+	this.node = this.createVmlElement('oval', x, y, w, h);
 };
 
 /**
@@ -518,17 +539,17 @@ mxVmlCanvas2D.prototype.image = function(x, y, w, h, src, aspect, flipH, flipV)
 	
 	if (!aspect)
 	{
-		node = this.createRect(mxClient.VML_PREFIX + ':image', x, y, w, h);
+		node = this.createVmlElement('image', x, y, w, h);
 		node.src = src;
 	}
 	else
 	{
 		// Uses fill with aspect to avoid asynchronous update of size
-		node = this.createRect(mxClient.VML_PREFIX + ':rect', x, y, w, h);
+		node = this.createVmlElement('rect', x, y, w, h);
 		node.stroked = 'false';
 		
 		// Handles image aspect via fill
-		var fill = document.createElement(mxClient.VML_PREFIX + ':fill');
+		var fill = this.createVmlElement('fill');
 		fill.aspect = (aspect) ? 'atmost' : 'ignore';
 		fill.rotate = 'true';
 		fill.type = 'frame';
@@ -567,7 +588,7 @@ mxVmlCanvas2D.prototype.image = function(x, y, w, h, src, aspect, flipH, flipV)
  */
 mxVmlCanvas2D.prototype.createDiv = function(str, align, valign, overflow)
 {
-	var div = document.createElement('div');
+	var div = this.createElement('div');
 	var state = this.state;
 
 	var css = '';
@@ -590,7 +611,7 @@ mxVmlCanvas2D.prototype.createDiv = function(str, align, valign, overflow)
 	{
 		if (css.length > 0 && overflow != 'fill' && overflow != 'width')
 		{
-			var div2 = document.createElement('div');
+			var div2 = this.createElement('div');
 			div2.style.cssText = css;
 			div2.style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
 			div2.style.zoom = '1';
@@ -669,14 +690,14 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			// filter which cannot be used due to bugs in the zoomed bounding box (too slow)
 			// FIXME: No event transparency if inside v:rect (ie part of shape)
 			var abs = (document.documentMode == 8) ?
-				document.createElement(mxClient.VML_PREFIX + ':group') : document.createElement('div');
+					this.createVmlElement('group') : this.createElement('div');
 			abs.style.position = 'absolute';
 			abs.style.display = 'inline';
 			abs.style.left = this.format(x) + 'px';
 			abs.style.top = this.format(y) + 'px';
 			abs.style.zoom = s.scale;
 
-			var box = document.createElement('div');
+			var box = this.createElement('div');
 			box.style.position = 'relative';
 			box.style.display = 'inline';
 			
@@ -685,7 +706,7 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			var dy = margin.y;
 
 			var div = this.createDiv(str, align, valign, overflow);
-			var inner = document.createElement('div');
+			var inner = this.createElement('div');
 
 			if (wrap && w > 0)
 			{
@@ -735,7 +756,7 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			if (this.root.nodeName != 'DIV')
 			{
 				// Rectangle to fix position in group
-				var rect = document.createElement(mxClient.VML_PREFIX + ':rect');
+				var rect = this.createVmlElement('rect');
 				rect.stroked = 'false';
 				rect.filled = 'false';
 
@@ -838,7 +859,7 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				if (abs.nodeName == 'group' && this.root.nodeName == 'DIV')
 				{
 					// Workaround for bug where group gets moved away if left and top are non-zero in IE8 standards
-					var pos = document.createElement('div');
+					var pos = this.createElement('div');
 					pos.style.display = 'inline-block';
 					pos.style.position = 'absolute';
 					pos.style.left = this.format(x + (left_fix - w / 2) * s.scale) + 'px';
@@ -933,24 +954,24 @@ mxVmlCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 	x = (x + s.dx) * s.scale;
 	y = (y + s.dy) * s.scale;
 	
-	var node = document.createElement(mxClient.VML_PREFIX + ':shape');
+	var node = this.createVmlElement('shape');
 	node.style.width = '1px';
 	node.style.height = '1px';
 	node.stroked = 'false';
 
-	var fill = document.createElement(mxClient.VML_PREFIX + ':fill');
+	var fill = this.createVmlElement('fill');
 	fill.color = s.fontColor;
 	fill.opacity = (s.alpha * 100) + '%';
 	node.appendChild(fill);
 	
-	var path = document.createElement(mxClient.VML_PREFIX + ':path');
+	var path = this.createVmlElement('path');
 	path.textpathok = 'true';
 	path.v = 'm ' + this.format(0) + ' ' + this.format(0) + ' l ' + this.format(1) + ' ' + this.format(0);
 	
 	node.appendChild(path);
 	
 	// KNOWN: Font family and text decoration ignored
-	var tp = document.createElement(mxClient.VML_PREFIX + ':textpath');
+	var tp = this.createVmlElement('textpath');
 	tp.style.cssText = 'v-text-align:' + align;
 	tp.style.align = align;
 	tp.style.fontFamily = s.fontFamily;

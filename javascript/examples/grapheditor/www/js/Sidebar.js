@@ -1,5 +1,5 @@
 /**
- * $Id: Sidebar.js,v 1.64 2014/02/05 14:48:51 gaudenz Exp $
+ * $Id: Sidebar.js,v 1.67 2014/02/19 10:56:15 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -503,8 +503,7 @@ Sidebar.prototype.addUmlPalette = function(expand)
     	classCell.vertex = true;
     	content.appendChild(this.createVertexTemplateFromCells([classCell], 160, 90, 'Object', true));
 
-    	var tableCell = new mxCell('<table style="width:100%;">' +
-    			'<tr><td colspan="2" style="background:#e4e4e4;padding:2px;">Tablename</td></tr>' +
+    	var tableCell = new mxCell('<div style="width:100%;background:#e4e4e4;padding:2px;margin:1px;">Tablename</div><table style="width:100%;">' +
 				'<tr><td>PK</td><td style="padding:2px;">uniqueId</td></tr>' +
 				'<tr><td>FK1</td><td style="padding:2px;">foreignKey</td></tr>' +
 				'<tr><td></td><td style="padding:2px;">fieldname</td></tr>' +
@@ -1043,7 +1042,9 @@ Sidebar.prototype.itemClicked = function(cells, ds, evt)
 {
 	var graph = this.editorUi.editor.graph;
 	var gs = graph.getGridSize();
-	ds.drop(graph, evt, null, gs, gs);
+	var dx = graph.container.scrollLeft - graph.view.translate.x;
+	var dy = graph.container.scrollTop - graph.view.translate.y;
+	ds.drop(graph, evt, null, graph.snap(dx + gs), graph.snap(dy + gs));
 };
 
 /**

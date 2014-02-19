@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxGraphView.php,v 1.2 2013/10/28 08:45:06 gaudenz Exp $
+ * $Id: mxGraphView.php,v 1.3 2014/02/19 09:41:00 gaudenz Exp $
  * Copyright (c) 2006-2013, Gaudenz Alder
  */
 class mxGraphView extends mxEventSource
@@ -135,17 +135,6 @@ class mxGraphView extends mxEventSource
     	$this->graphBounds = $value;
     }
 
-    /**
-     * Function: getBoundingBox
-     * 
-     * Returns the bounding for for an array of cells or null, if no cells are
-     * specified.
-     */
-    function getBoundingBox($cells)
-    {
-    	return $this->getBounds($cells, true);
-    }
-
 	/**
 	 * Function: getBounds
 	 * 
@@ -214,118 +203,299 @@ class mxGraphView extends mxEventSource
 	/**
 	 * Function: validate
 	 * 
-	 * Calls <validateBounds> followed by <validatePoints> on
-	 * the root cell if the cache is invalid.
+	 * Calls <validateCell> and <validateCellState> and updates the <graphBounds>
+	 * using <getBoundingBox>. Finally the background is validated using
+	 * <validateBackground>.
+	 * 
+	 * Parameters:
+	 * 
+	 * cell - Optional <mxCell> to be used as the root of the validation.
+	 * Default is the root of the model.
 	 */
 	function validate($cell = null)
 	{
-	 	if ($cell == null)
-	 	{
-	 		$cell = $this->graph->model->root;
-	 	}
-	 	
 	 	// Checks if cache is invalid
-	 	if ($cell != null && sizeof($this->states) == 0)
+	 	if (sizeof($this->states) == 0)
 	 	{
-		 	$this->validateBounds(null, $cell);
-		 	$bounds = $this->validatePoints(null, $cell);
-		 	
-		 	if (!isset($bounds))
-		 	{
-		 		$bounds = new mxRectangle();
-		 	}
-		 	
-		 	$this->setGraphBounds($bounds);
+	 		$graphBounds = $this->getBoundingBox($this->validateCellState(
+	 			$this->validateCell(($cell != null) ? $cell : $this->graph->model->root)));
+	 		$this->setGraphBounds(isset($graphBounds) ? $graphBounds : new mxRectangle());
+		}
+	}
+	
+	/**
+	 * Function: getBoundingBox
+	 *
+	 * Returns the bounding box of the shape and the label for the given
+	 * <mxCellState> and its children if recurse is true.
+	 *
+	 * Parameters:
+	 *
+	 * state - <mxCellState> whose bounding box should be returned.
+	 * recurse - Optional boolean indicating if the children should be included.
+	 * Default is true.
+	 */
+	function getBoundingBox($state, $recurse = true)
+	{
+		$bbox = null;
+	
+		if ($state != null)
+		{
+			if ($state->boundingBox != null)
+			{
+				$bbox = $state->boundingBox->copy();
+			}
+
+			if ($recurse)
+			{
+				$model = $this->graph->getModel();
+				$childCount = $model->getChildCount($state->cell);
+					
+				for ($i = 0; $i < $childCount; $i++)
+				{
+					$bounds = $this->getBoundingBox($this->getState($model->getChildAt($state->cell, $i)));
+	
+					if ($bounds != null)
+					{
+						if ($bbox == null)
+						{
+							$bbox = $bounds;
+						}
+						else
+						{
+							$bbox->add($bounds);
+						}
+					}
+				}
+			}
+		}
+	
+		return $bbox;
+	}
+	
+	/**
+	 * Function: validateCell
+	 *
+	 * Recursively creates the cell state for the given cell if visible is true and
+	 * the given cell is visible. If the cell is not visible but the state exists
+	 * then it is removed using <removeState>.
+	 *
+	 * Parameters:
+	 *
+	 * cell - <mxCell> whose <mxCellState> should be created.
+	 * visible - Optional boolean indicating if the cell should be visible. Default
+	 * is true.
+	 */
+	function validateCell($cell, $visible = true)
+	{
+		if ($cell != null)
+		{
+			$visible = $visible && $this->graph->isCellVisible($cell);
+			$state = $this->getState($cell, $visible);
+			
+			if ($state != null && !$visible)
+			{
+				$this->removeState($cell);
+			}
+			else
+			{
+				$model = $this->graph->getModel();
+				$childCount = $model->getChildCount($cell);
+				
+				for ($i = 0; $i < $childCount; $i++)
+				{
+					$this->validateCell($model->getChildAt($cell, $i), $visible &&
+						!$this->graph->isCellCollapsed($cell));
+				}
+			}
+		}
+		
+		return $cell;
+	}
+
+	/**
+	 * Function: validateCellStates
+	 *
+	 * Validates and repaints the <mxCellState> for the given <mxCell>.
+	 *
+	 * Parameters:
+	 *
+	 * cell - <mxCell> whose <mxCellState> should be validated.
+	 * recurse - Optional boolean indicating if the children of the cell should be
+	 * validated. Default is true.
+	 */
+	function validateCellState($cell, $recurse = true)
+	{
+		$state = null;
+	
+		if ($cell != null)
+		{
+			$state = $this->getState($cell);
+	
+			if ($state != null)
+			{
+				$model = $this->graph->getModel();
+					
+				if ($state->invalid)
+				{
+					$state->invalid = false;
+	
+					$this->validateCellState($model->getParent($cell), false);
+					$source = $this->validateCellState($this->getVisibleTerminal($cell, true), false);
+					$target = $this->validateCellState($this->getVisibleTerminal($cell, false), false);
+	
+					$this->updateCellState($state, $source, $target);
+					
+					if ($model->isEdge($cell) || $model->isVertex($cell))
+					{
+						$this->updateLabelBounds($state);
+						$this->updateBoundingBox($state);
+					}
+				}
+	
+				if ($recurse)
+				{
+					$childCount = $model->getChildCount($cell);
+	
+					for ($i = 0; $i < $childCount; $i++)
+					{
+						$this->validateCellState($model->getChildAt($cell, $i));
+					}
+				}
+			}
+		}
+	
+		return $state;
+	}
+
+	/**
+	 * Function: updateCellState
+	 *
+	 * Updates the given <mxCellState>.
+	 *
+	 * Parameters:
+	 *
+	 * state - <mxCellState> to be updated.
+	 * source - <mxCellState> that represents the visible source.
+	 * target - <mxCellState> that represents the visible target.
+	 */
+	function updateCellState($state, $source, $target)
+	{
+		$state->absoluteOffset->x = 0;
+		$state->absoluteOffset->y = 0;
+		$state->origin->x = 0;
+		$state->origin->y = 0;
+		$state->length = 0;
+	
+		$model = $this->graph->getModel();
+		$pState = $this->getState($model->getParent($state->cell));
+	
+		if ($pState != null && $pState->cell != $this->currentRoot)
+		{
+			$state->origin->x += $pState->origin->x;
+			$state->origin->y += $pState->origin->y;
+		}
+	
+		$offset = $this->graph->getChildOffsetForCell($state->cell);
+	
+		if ($offset != null)
+		{
+			$state->origin->x += $offset->x;
+			$state->origin->y += $offset->y;
+		}
+	
+		$geo = $this->graph->getCellGeometry($state->cell);
+	
+		if ($geo != null)
+		{
+			if (!$model->isEdge($state->cell))
+			{
+				$offset = $geo->offset;
+
+				if ($offset == null)
+				{
+					$offset = $this->EMPTY_POINT;
+				}
+	
+				if ($geo->relative && $pState != null)
+				{
+					if ($model->isEdge($pState->cell))
+					{
+						$origin = $this->getPoint($pState, $geo);
+							
+						if ($origin != null)
+						{
+							$state->origin->x += ($origin->x / $this->scale) - $this->translate->x;
+							$state->origin->y += ($origin->y / $this->scale) - $this->translate->y;
+						}
+					}
+					else
+					{
+						$state->origin->x += $geo->x * $pState->width / $this->scale + $offset->x;
+						$state->origin->y += $geo->y * $pState->height / $this->scale + $offset->y;
+					}
+				}
+				else
+				{
+					$state->absoluteOffset->x = $this->scale * $offset->x;
+					$state->absoluteOffset->y = $this->scale * $offset->y;
+					$state->origin->x += $geo->x;
+					$state->origin->y += $geo->y;
+				}
+			}
+	
+			$state->x = $this->scale * ($this->translate->x + $state->origin->x);
+			$state->y = $this->scale * ($this->translate->y + $state->origin->y);
+			$state->width = $this->scale * $geo->width;
+			$state->height = $this->scale * $geo->height;
+
+			if ($model->isVertex($state->cell))
+			{
+				$this->updateVertexState($state, $geo);
+			}
+	
+			if ($model->isEdge($state->cell))
+			{
+				$this->updateEdgeState($state, $geo, $source, $target);
+			}
 		}
 	}
 
 	/**
-	 * Function: validateBounds
-	 * 
-	 * Validates the bounds of the cell state for the specified cell
-	 * recursively, for all children if the cell is not collapsed.
+	 * Function: updateVertexState
+	 *
+	 * Validates the given cell state.
 	 */
-	function validateBounds($parentState, $cell)
+	function updateVertexState($state, $geo)
 	{
-		$model = $this->graph->getModel();
-	 	$state = $this->getState($cell, true);
-	 	
-	 	if ($state != null)
-	 	{
-	 		if (!$this->graph->isCellVisible($cell))
-	 		{
-	 			$this->removeState($cell);
-	 		}
-	 		else if ($parentState != null)
-	 		{
-				$state->absoluteOffset->x = 0;
-				$state->absoluteOffset->y = 0;
-	 			$state->origin->x = $parentState->origin->x;
-	 			$state->origin->y = $parentState->origin->y;
-	 			$geo = $this->graph->getCellGeometry($cell);
-	 			
-	 			if ($geo != null)
-	 			{
-		 			if (!$model->isEdge($cell))
-		 			{
-		 				$origin = $state->origin;
-		 				$offset = $geo->offset;
-		 				
-		 				if ($offset == null)
-		 				{
-		 					$offset = $this->EMPTY_POINT;
-		 				}
-		 				
-		 				if ($geo->relative)
-		 				{
-		 					$origin->x += $geo->x * $parentState->width /
-		 						$this->scale+ $offset->x;
-		 					$origin->y += $geo->y * $parentState->height /
-		 						$this->scale + $offset->y;
-		 				}
-		 				else
-		 				{
-		 					$state->absoluteOffset = new mxPoint(
-		 						$this->scale * $offset->x,
-		 						$this->scale * $offset->y);
-			 				$origin->x += $geo->x;
-			 				$origin->y += $geo->y;
-			 			}
-		 			}
+		// LATER: Add support for rotation
+		$this->updateVertexLabelOffset($state);
+	}
 	
-		            // Updates the cell state's bounds
-			 		$trl = $this->translate;
-			 		$state->x = $this->scale * ($trl->x + $state->origin->x);
-			 		$state->y = $this->scale * ($trl->y + $state->origin->y);
-			 		$state->width = $this->scale * $geo->width;
-			 		$state->height = $this->scale * $geo->height;
-			 		
-			 		if ($model->isVertex($cell))
-			 		{
-			 			$this->updateVertexLabelOffset($state);
-			 		}
-		 		}
-	 		}
-
- 			// Applies Offset
- 			$offset = $this->graph->getChildOffsetForCell($cell);
- 			
- 			if ($offset != null)
- 			{
- 				$state->origin->x += $offset->x;
- 				$state->origin->y += $offset->y;
- 			}
-	 	}
-	 	
-	 	if ($state != null && !$this->graph->isCellCollapsed($cell))
-	 	{
-	 		$childCount = $model->getChildCount($cell);
-	 		
-	 		for ($i = 0; $i < $childCount; $i++)
-	 		{
-	 			$this->validateBounds($state, $model->getChildAt($cell, $i));
-	 		}
-	 	}
+	/**
+	 * Function: updateEdgeState
+	 *
+	 * Validates the given cell state.
+	 */
+	function updateEdgeState($state, $geo, $source, $target)
+	{
+		$this->updateFixedTerminalPoints($state, $source, $target);
+		$this->updatePoints($state, $geo->points, $source, $target);
+		$this->updateFloatingTerminalPoints($state, $source, $target);
+		
+		$pts = $state->absolutePoints;
+		
+		if ($pts == null || sizeof($pts) < 1 || $pts[0] == null || $pts[sizeof($pts) - 1] == null)
+		{
+			// This will remove edges with invalid points from the list of states in the view.
+			// Happens if the one of the terminals and the corresponding terminal point is null.
+			$this->removeState($state->cell, true);
+		}
+		else
+		{
+			$this->updateEdgeBounds($state);
+			$state->absoluteOffset = $this->getPoint($state, $geo);
+		}
 	}
 	
 	/**
@@ -368,134 +538,7 @@ class mxGraphView extends mxEventSource
 	}
 
 	/**
-	 * Function: validatePoints
-	 * 
-	 * Validates the points of the cell state for the specified cell
-	 * recursively, for all children if the cell is not collapsed.
-	 */
-	function validatePoints($parentState, $cell)
-	{
-	 	$model = $this->graph->model;
-		$state = $this->getState($cell);
-		$bbox = null;
-	 	
-	 	if (isset($state))
-	 	{
-			$geo = $this->graph->getCellGeometry($cell);
-	 	
-	 		if (isset($geo) && $model->isEdge($cell))
-	 		{
-				// Updates the points on the source terminal if its an edge
-	 			$source = $this->getState($this->getVisibleTerminal($cell, true));
-
-	 			if (isset($source) && $model->isEdge($source->cell) &&
-	 				!$model->isAncestor($source, $cell))
-	 			{
-					$tmp = $this->getState($model->getParent($source->cell));
-					$this->validatePoints($tmp, $source->cell);
-	 			}
-
-				// Updates the points on the target terminal if its an edge
-	 			$target = $this->getState($this->getVisibleTerminal($cell, false));
-	 			
-	 			if (isset($target) && $model->isEdge($target->cell) &&
-	 				!$model->isAncestor($target, $cell))
-	 			{
-					$tmp = $this->getState($model->getParent($target->cell));
-					$this->validatePoints($tmp, $target->cell);
-	 			}
-
-	 			$this->updateFixedTerminalPoints($state, $source, $target);
-	 			$this->updatePoints($state, $geo->points, $source, $target);
-	 			$this->updateFloatingTerminalPoints($state, $source, $target);
-	 			$this->updateEdgeBounds($state);
-	 			$state->absoluteOffset = $this->getPoint($state, $geo);
-	 		}
-	 		else if ($geo != null && $geo->relative && $parentState != null &&
-	 			$model->isEdge($parentState->cell))
-	 		{
-	 			$origin = $this->getPoint($parentState, $geo);
-	 			
-	 			if (isset($origin))
-	 			{
-					$state->x = $origin->x;
-	 				$state->y = $origin->y;
-	 				
-					$origin->x = ($origin->x / $this->scale) - $this->translate->x;
-					$origin->y = ($origin->y / $this->scale) - $this->translate->y;
-		 			$state->origin = $origin;
-		 			
-		 			$this->childMoved($parentState, $state);
-				 }
-	 		}
-	 		
-		 	if ($model->isEdge($cell) || $model->isVertex($cell))
-		 	{
-		 		$this->updateLabelBounds($state);
-		 		$bbox = $this->updateBoundingBox($state)->copy();
-		 	}
-	 	}
-	 	
-	 	if (isset($state) && !$this->graph->isCellCollapsed($cell))
-	 	{
-	 		$childCount = $cell->getChildCount();
-	 		
-	 		for ($i = 0; $i < $childCount; $i++)
-	 		{
-	 			$child = $cell->getChildAt($i);
-	 			$bounds = $this->validatePoints($state, $child);
-	 			
-				if (isset($bounds))
-				{
-					if (!isset($bbox))
-					{
-						$bbox = $bounds;
-					}
-					else
-					{
-						$bbox->add($bounds);
-					}
-				}
-	 		}
-		}
-		
-		return $bbox;
-	}
-
-	/**
-	 * Function: childMoved
-	 *
-	 * Invoked when a child state was moved as a result of late evaluation
-	 * of its position. This is invoked for relative edge children whose
-	 * position can only be determined after the points of the parent edge
-	 * are updated in validatePoints, and validates the bounds of all
-	 * descendants of the child using validateBounds.
-	 * 
-	 * Parameters:
-	 * 
-	 * parent - <mxCellState> that represents the parent state.
-	 * child - <mxCellState> that represents the child state.
-	 */
-    function childMoved($parent, $child)
-    {
-        $cell = $child->cell;
-		
-		// Children of relative edge children need to validate
-		// their bounds after their parent state was updated
-		if (!$this->graph->isCellCollapsed($cell))
-		{
-			$model = $this->graph->getModel();
-			$childCount = $model->getChildCount($cell);
-
-			for ($i = 0; $i < $childCount; $i++)
-			{
-				$this->validateBounds($child, $model->getChildAt($cell, $i));
-			}
-		}
-    }
-
-	/**
-	 * Function: updateBoundingBox
+	 * Function: updateLabelBounds
 	 * 
 	 * Updates the label bounds in the given state.
 	 */
@@ -1106,73 +1149,60 @@ class mxGraphView extends mxEventSource
 	function updateEdgeBounds($state)
 	{
 	 	$points = $state->absolutePoints;
+ 		$p0 = $points[0];
+ 		$n = sizeof($points);
+ 		$pe = $points[$n-1];
+ 		
+ 		if ($p0->x != $pe->x || $p0->y != $pe->y)
+ 		{
+ 			$dx = $pe->x - $p0->x;
+ 			$dy = $pe->y - $p0->y;
+ 			$state->terminalDistance = sqrt($dx*$dx+$dy*$dy);
+ 		}
+ 		else
+ 		{
+ 			$state->terminalDistance = 0;
+ 		}
+ 		
+ 		$length = 0;
+		$segments = array();
+ 		$pt = $p0;
+ 		
+ 		if ($pt != null)
+ 		{
+ 			$minX = $pt->x;
+ 			$minY = $pt->y;
+ 			$maxX = $minX;
+ 			$maxY = $minY;
+ 			
+ 			for ($i = 1; $i < $n; $i++)
+ 			{
+ 				$tmp = $points[$i];
+ 				if ($tmp != null)
+ 				{
+ 					$dx = $pt->x - $tmp->x;
+ 					$dy = $pt->y - $tmp->y;
 
-	 	if ($points != null && sizeof($points) > 0)
-	 	{
-	 		$p0 = $points[0];
-	 		$n = sizeof($points);
-	 		$pe = $points[$n-1];
-	 		
-	 		if ($p0 == null ||
-	 			$pe == null)
-	 		{
-	 			$this->removeState($state->cell);
-	 		}
-	 		else
-	 		{
-		 		if ($p0->x != $pe->x ||
-		 			$p0->y != $pe->y)
-		 		{
-		 			$dx = $pe->x - $p0->x;
-		 			$dy = $pe->y - $p0->y;
-		 			$state->terminalDistance = sqrt($dx*$dx+$dy*$dy);
-		 		}
-		 		else
-		 		{
-		 			$state->terminalDistance = 0;
-		 		}
-		 		
-		 		$length = 0;
-				$segments = array();
-		 		$pt = $p0;
-		 		
-		 		if ($pt != null)
-		 		{
-		 			$minX = $pt->x;
-		 			$minY = $pt->y;
-		 			$maxX = $minX;
-		 			$maxY = $minY;
-		 			
-		 			for ($i=1; $i<$n; $i++)
-		 			{
-		 				$tmp = $points[$i];
-		 				if ($tmp != null)
-		 				{
-		 					$dx = $pt->x - $tmp->x;
-		 					$dy = $pt->y - $tmp->y;
-	
-							$segment = sqrt($dx*$dx+$dy*$dy);
-							array_push($segments, $segment);
-		 					$length += $segment;
-		 					$pt = $tmp;
-	
-		 					$minX = min($pt->x, $minX);
-		 					$minY = min($pt->y, $minY);
-		 					$maxX = max($pt->x, $maxX);
-		 					$maxY = max($pt->y, $maxY);
-		 				}
-		 			}
-		 			
-		 			$state->length = $length;
-		 			$state->segments = $segments;
-		 			
-		 			$state->x = $minX;
-		 			$state->y = $minY;
-		 			$state->width = $maxX - $minX;
-		 			$state->height = $maxY - $minY;
-		 		}
-			}
-		}
+					$segment = sqrt($dx*$dx+$dy*$dy);
+					array_push($segments, $segment);
+ 					$length += $segment;
+ 					$pt = $tmp;
+
+ 					$minX = min($pt->x, $minX);
+ 					$minY = min($pt->y, $minY);
+ 					$maxX = max($pt->x, $maxX);
+ 					$maxY = max($pt->y, $maxY);
+ 				}
+ 			}
+ 			
+ 			$state->length = $length;
+ 			$state->segments = $segments;
+ 			
+ 			$state->x = $minX;
+ 			$state->y = $minY;
+ 			$state->width = $maxX - $minX;
+ 			$state->height = $maxY - $minY;
+ 		}
 	}
 
 	/**
@@ -1267,11 +1297,9 @@ class mxGraphView extends mxEventSource
 	 	if ($cell != null)
 	 	{
 	 		$id = $this->getHashCode($cell);
-		 	$state = (isset($this->states[$id])) ?
-		 		$this->states[$id] : null;
+		 	$state = (isset($this->states[$id])) ? $this->states[$id] : null;
 		 	
-		 	if ($state == null && $create &&
-		 		$this->graph->isCellVisible($cell))
+		 	if ($state == null && $create && $this->graph->isCellVisible($cell))
 		 	{
 				$state = $this->createState($cell);
 				$this->states[$id] = $state;
@@ -1323,7 +1351,7 @@ class mxGraphView extends mxEventSource
 		$result = array();
 		$count = sizeof($cells);
 		
-		for ($i = 0; $i <$count; $i++)
+		for ($i = 0; $i < $count; $i++)
 		{
 			$state = $this->getState($cells[$i]);
 			
@@ -1341,8 +1369,19 @@ class mxGraphView extends mxEventSource
 	 * 
 	 * Removes and returns the mxCellState for the given cell.
 	 */
-	function removeState($cell)
+	function removeState($cell, $recurse = false)
 	{
+		if ($recurse)
+		{
+			$model = $this->graph->getModel();
+			$childCount = $model->getChildCount($cell);
+			
+			for ($i = 0; $i < $childCount; $i++)
+			{
+				$this->removeState($model->getChildAt($cell, $i), true);
+			}
+		}
+		
 	 	$state = null;
 	 	
 	 	if ($cell != null)

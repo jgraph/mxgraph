@@ -1,4 +1,4 @@
-// $Id: mxGraph.cs,v 1.1 2012/11/15 13:26:44 gaudenz Exp $
+// $Id: mxGraph.cs,v 1.2 2014/02/19 09:40:59 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Collections.Generic;
@@ -15,9 +15,9 @@ namespace com.mxgraph
     {
         /// <summary>
         /// Holds the version number of this release. Current version
-        /// is 2.4.1.0.
+        /// is 2.5.0.0.
         /// </summary>
-        public const String VERSION = "2.4.1.0";
+        public const String VERSION = "2.5.0.0";
 
         /// <summary>
         /// Holds the model that contains the cells to be displayed.
@@ -758,34 +758,28 @@ namespace com.mxgraph
                 cells = new Object[] { cell };
             }
 
-            mxRectangle result = null;
-
-            if (boundingBox)
-            {
-                result = view.GetBoundingBox(cells);
-            }
-            else
-            {
-                result = view.GetBounds(cells);
-            }
+            mxRectangle result = view.GetBounds(cells, boundingBox);
 
             // Recursively includes the bounds of the children
             if (includeDescendants)
             {
-                int childCount = model.GetChildCount(cell);
-
-                for (int i = 0; i < childCount; i++)
+                for (int i = 0; i < cells.Length; i++)
                 {
-                    mxRectangle tmp = GetCellBounds(model.GetChildAt(cell, i),
-                            includeEdges, true, boundingBox);
+                    int childCount = model.GetChildCount(cells[i]);
 
-                    if (result != null)
+                    for (int j = 0; j < childCount; j++)
                     {
-                        result.Add(tmp);
-                    }
-                    else
-                    {
-                        result = tmp;
+                        mxRectangle tmp = GetCellBounds(model.GetChildAt(cells[i], j),
+                                includeEdges, true, boundingBox);
+
+                        if (result != null)
+                        {
+                            result.Add(tmp);
+                        }
+                        else
+                        {
+                            result = tmp;
+                        }
                     }
                 }
             }

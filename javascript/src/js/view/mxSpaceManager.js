@@ -1,5 +1,5 @@
 /**
- * $Id: mxSpaceManager.js,v 1.2 2013/10/28 08:45:00 gaudenz Exp $
+ * $Id: mxSpaceManager.js,v 1.3 2014/02/15 10:45:16 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -309,14 +309,12 @@ mxSpaceManager.prototype.cellResized = function(cell)
 	var state = view.getState(cell);
 	var pstate = view.getState(model.getParent(cell));
 
-	if (state != null &&
-		pstate != null)
+	if (state != null && pstate != null)
 	{
 		var cells = this.getCellsToShift(state);
 		var geo = model.getGeometry(cell);
 		
-		if (cells != null &&
-			geo != null)
+		if (cells != null && geo != null)
 		{
 			var tr = view.translate;
 			var scale = view.scale;
@@ -337,12 +335,10 @@ mxSpaceManager.prototype.cellResized = function(cell)
 			{
 				for (var i = 0; i < cells.length; i++)
 				{
-					if (cells[i] != cell &&
-						this.isCellShiftable(cells[i]))
+					if (cells[i] != cell && this.isCellShiftable(cells[i]))
 					{
 						this.shiftCell(cells[i], dx, dy, x0, y0, right, bottom, fx, fy,
-								this.isExtendParents() &&
-								graph.isExtendParent(cells[i]));
+							this.isExtendParents() && graph.isExtendParent(cells[i]));
 					}
 				}
 			}

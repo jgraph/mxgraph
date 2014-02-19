@@ -90,14 +90,26 @@ Public Member Functions</h2></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Invalidates all cell states.  <a href="#ad6960a06a36fe20245cc25f8a97a6241"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#ae7b4e63e4603beb3a199e8e1a10ad0df">Validate</a> ()</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">First validates all bounds and then validates all points recursively on all visible cells.  <a href="#ae7b4e63e4603beb3a199e8e1a10ad0df"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#af908d839d6e08aa38cf8ed5e41a12ed8">ValidateBounds</a> (<a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a> parentState, Object cell)</td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Validates the bounds of the given parent's child using the given parent state as the origin for the child. The validation is carried out recursively for all non-collapsed descendants.  <a href="#af908d839d6e08aa38cf8ed5e41a12ed8"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcom_1_1mxgraph_1_1mxRectangle.html">mxRectangle</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#a8961d32ef200995c443a8572ae23e4da">GetBoundingBox</a> (<a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a> state)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Shortcut to validateCell with visible set to true.  <a href="#a8961d32ef200995c443a8572ae23e4da"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcom_1_1mxgraph_1_1mxRectangle.html">mxRectangle</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#a398bfb9c0dc592ae6eeafb47c677816d">GetBoundingBox</a> (<a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a> state, Boolean recurse)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the bounding box of the shape and the label for the given cell state and its children if recurse is true.  <a href="#a398bfb9c0dc592ae6eeafb47c677816d"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">Object&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#ac1c38c9cf60228e21331d6b11a643ea3">ValidateCell</a> (Object cell)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Shortcut to validateCell with visible set to true.  <a href="#ac1c38c9cf60228e21331d6b11a643ea3"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">Object&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#ac448ac6680defd6b671fae681d89cc09">ValidateCell</a> (Object cell, Boolean visible)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Recursively creates the cell state for the given cell if visible is true and the given cell is visible. If the cell is not visible but the state exists then it is removed using removeState.  <a href="#ac448ac6680defd6b671fae681d89cc09"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#aff940c998239a0fb47795bbffc7f0718">ValidateCellState</a> (Object cell)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Shortcut to validateCellState with recurse set to true.  <a href="#aff940c998239a0fb47795bbffc7f0718"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#aec33b8195aeda3a86040deab7ddadd69">ValidateCellState</a> (Object cell, Boolean recurse)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Validates the cell state for the given cell.  <a href="#aec33b8195aeda3a86040deab7ddadd69"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#a249606677ff2502dde0f8cbd62e0d5ab">UpdateCellState</a> (<a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a> state, <a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a> source, <a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a> target)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates the given cell state.  <a href="#a249606677ff2502dde0f8cbd62e0d5ab"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#a25dc83303806599ab3d8b777837f242c">UpdateVertexState</a> (<a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a> state, <a class="el" href="classcom_1_1mxgraph_1_1mxGeometry.html">mxGeometry</a> geo)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Validates the given cell state.  <a href="#a25dc83303806599ab3d8b777837f242c"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#a5217526a3a0ed82dab915c8c696ece7c">UpdateEdgeState</a> (<a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a> state, <a class="el" href="classcom_1_1mxgraph_1_1mxGeometry.html">mxGeometry</a> geo, <a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a> source, <a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a> target)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Validates the given cell state.  <a href="#a5217526a3a0ed82dab915c8c696ece7c"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#a642fe8e956e90adc559db7165cd2b17c">UpdateVertexLabelOffset</a> (<a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a> state)</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates the absoluteOffset of the given vertex cell state. This takes into account the label position styles.  <a href="#a642fe8e956e90adc559db7165cd2b17c"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcom_1_1mxgraph_1_1mxRectangle.html">mxRectangle</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#af0e03ccc456eabad7304f651e4f6b02e">ValidatePoints</a> (<a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a> parentState, Object cell)</td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Validates the points for the state of the given cell recursively if the cell is not collapsed and returns the bounding box of all visited states as a rectangle.  <a href="#af0e03ccc456eabad7304f651e4f6b02e"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#a35c74a7f2f785d1f352da20a59e1c906">childMoved</a> (<a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a> parent, <a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a> child)</td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Invoked when a child state was moved as a result of late evaluation of its position. This is invoked for relative edge children whose position can only be determined after the points of the parent edge are updated in validatePoints, and validates the bounds of all descendants of the child using validateBounds.  <a href="#a35c74a7f2f785d1f352da20a59e1c906"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#acdeb7aeb0eee2c89b84a65418c068e96">UpdateLabelBounds</a> (<a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a> state)</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates the label bounds in the given state.  <a href="#acdeb7aeb0eee2c89b84a65418c068e96"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcom_1_1mxgraph_1_1mxRectangle.html">mxRectangle</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#a55327a8cf146e104eb1b33a27669e6d2">UpdateBoundingBox</a> (<a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a> state)</td></tr>
@@ -149,7 +161,9 @@ Public Member Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#afd6cf1a99e397e8cafa2cacb7909b1c6">GetState</a> (Object cell, bool create)</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the cell state for the given cell. If create is true, then the state is created if it does not yet exist.  <a href="#afd6cf1a99e397e8cafa2cacb7909b1c6"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#a9fb177cc6385836d43895040fbdffd82">RemoveState</a> (Object cell)</td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes and returns the <a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html" title="Represents the current state of a cell in a given graph view.">mxCellState</a> for the given cell.  <a href="#a9fb177cc6385836d43895040fbdffd82"></a><br/></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Shortcut to removeState with recurse set to false.  <a href="#a9fb177cc6385836d43895040fbdffd82"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#a97e1cf43656280b302b55bb5bdcb1364">RemoveState</a> (Object cell, Boolean recurse)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes and returns the <a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html" title="Represents the current state of a cell in a given graph view.">mxCellState</a> for the given cell.  <a href="#a97e1cf43656280b302b55bb5bdcb1364"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#ab2c794618d3a4fa6675b9b69b7f53b09">CreateState</a> (Object cell)</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates and returns a cell state for the given cell.  <a href="#ab2c794618d3a4fa6675b9b69b7f53b09"></a><br/></td></tr>
 <tr><td colspan="2"><h2><a name="pro-attribs"></a>
@@ -210,42 +224,6 @@ Properties</h2></td></tr>
 </div>
 </div>
 <hr/><h2>Member Function Documentation</h2>
-<a class="anchor" id="a35c74a7f2f785d1f352da20a59e1c906"></a><!-- doxytag: member="com::mxgraph::mxGraphView::childMoved" ref="a35c74a7f2f785d1f352da20a59e1c906" args="(mxCellState parent, mxCellState child)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void <a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#a35c74a7f2f785d1f352da20a59e1c906">com.mxgraph.mxGraphView.childMoved</a> </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a>&#160;</td>
-          <td class="paramname"><em>parent</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a>&#160;</td>
-          <td class="paramname"><em>child</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td><code> [inline]</code></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>Invoked when a child state was moved as a result of late evaluation of its position. This is invoked for relative edge children whose position can only be determined after the points of the parent edge are updated in validatePoints, and validates the bounds of all descendants of the child using validateBounds. </p>
-<dl class="params"><dt><b>Parameters:</b></dt><dd>
-  <table class="params">
-    <tr><td class="paramname">parent</td><td>State that represents the parent.</td></tr>
-    <tr><td class="paramname">child</td><td>State that represents the child.</td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
 <a class="anchor" id="ab2c794618d3a4fa6675b9b69b7f53b09"></a><!-- doxytag: member="com::mxgraph::mxGraphView::CreateState" ref="ab2c794618d3a4fa6675b9b69b7f53b09" args="(Object cell)" -->
 <div class="memitem">
 <div class="memproto">
@@ -295,6 +273,61 @@ Properties</h2></td></tr>
   </dd>
 </dl>
 <dl class="return"><dt><b>Returns:</b></dt><dd></dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a8961d32ef200995c443a8572ae23e4da"></a><!-- doxytag: member="com::mxgraph::mxGraphView::GetBoundingBox" ref="a8961d32ef200995c443a8572ae23e4da" args="(mxCellState state)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classcom_1_1mxgraph_1_1mxRectangle.html">mxRectangle</a> <a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#a7a6ddb3af7b401beeeefe7234f37d795">com.mxgraph.mxGraphView.GetBoundingBox</a> </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a>&#160;</td>
+          <td class="paramname"><em>state</em></td><td>)</td>
+          <td><code> [inline]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Shortcut to validateCell with visible set to true. </p>
+
+</div>
+</div>
+<a class="anchor" id="a398bfb9c0dc592ae6eeafb47c677816d"></a><!-- doxytag: member="com::mxgraph::mxGraphView::GetBoundingBox" ref="a398bfb9c0dc592ae6eeafb47c677816d" args="(mxCellState state, Boolean recurse)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classcom_1_1mxgraph_1_1mxRectangle.html">mxRectangle</a> <a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#a7a6ddb3af7b401beeeefe7234f37d795">com.mxgraph.mxGraphView.GetBoundingBox</a> </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a>&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Boolean&#160;</td>
+          <td class="paramname"><em>recurse</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td><code> [inline]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Returns the bounding box of the shape and the label for the given cell state and its children if recurse is true. </p>
+<dl class="params"><dt><b>Parameters:</b></dt><dd>
+  <table class="params">
+    <tr><td class="paramname">state</td><td>Cell state whose bounding box should be returned.</td></tr>
+    <tr><td class="paramname">recurse</td><td>Boolean indicating if the children should be included.</td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -871,6 +904,35 @@ Properties</h2></td></tr>
 </div>
 <div class="memdoc">
 
+<p>Shortcut to removeState with recurse set to false. </p>
+
+</div>
+</div>
+<a class="anchor" id="a97e1cf43656280b302b55bb5bdcb1364"></a><!-- doxytag: member="com::mxgraph::mxGraphView::RemoveState" ref="a97e1cf43656280b302b55bb5bdcb1364" args="(Object cell, Boolean recurse)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a> <a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#a9fb177cc6385836d43895040fbdffd82">com.mxgraph.mxGraphView.RemoveState</a> </td>
+          <td>(</td>
+          <td class="paramtype">Object&#160;</td>
+          <td class="paramname"><em>cell</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Boolean&#160;</td>
+          <td class="paramname"><em>recurse</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td><code> [inline]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
 <p>Removes and returns the <a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html" title="Represents the current state of a cell in a given graph view.">mxCellState</a> for the given cell. </p>
 <dl class="params"><dt><b>Parameters:</b></dt><dd>
   <table class="params">
@@ -955,6 +1017,47 @@ Properties</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a249606677ff2502dde0f8cbd62e0d5ab"></a><!-- doxytag: member="com::mxgraph::mxGraphView::UpdateCellState" ref="a249606677ff2502dde0f8cbd62e0d5ab" args="(mxCellState state, mxCellState source, mxCellState target)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#a249606677ff2502dde0f8cbd62e0d5ab">com.mxgraph.mxGraphView.UpdateCellState</a> </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a>&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a>&#160;</td>
+          <td class="paramname"><em>source</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a>&#160;</td>
+          <td class="paramname"><em>target</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td><code> [inline]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Updates the given cell state. </p>
+<dl class="params"><dt><b>Parameters:</b></dt><dd>
+  <table class="params">
+    <tr><td class="paramname">state</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a class="anchor" id="accc7fb0e014164bad9ba2bdbc6ff56ec"></a><!-- doxytag: member="com::mxgraph::mxGraphView::UpdateEdgeBounds" ref="accc7fb0e014164bad9ba2bdbc6ff56ec" args="(mxCellState state)" -->
 <div class="memitem">
 <div class="memproto">
@@ -977,6 +1080,47 @@ Properties</h2></td></tr>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a class="anchor" id="a5217526a3a0ed82dab915c8c696ece7c"></a><!-- doxytag: member="com::mxgraph::mxGraphView::UpdateEdgeState" ref="a5217526a3a0ed82dab915c8c696ece7c" args="(mxCellState state, mxGeometry geo, mxCellState source, mxCellState target)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#a5217526a3a0ed82dab915c8c696ece7c">com.mxgraph.mxGraphView.UpdateEdgeState</a> </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a>&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classcom_1_1mxgraph_1_1mxGeometry.html">mxGeometry</a>&#160;</td>
+          <td class="paramname"><em>geo</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a>&#160;</td>
+          <td class="paramname"><em>source</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a>&#160;</td>
+          <td class="paramname"><em>target</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td><code> [inline]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Validates the given cell state. </p>
 
 </div>
 </div>
@@ -1266,6 +1410,35 @@ Properties</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a25dc83303806599ab3d8b777837f242c"></a><!-- doxytag: member="com::mxgraph::mxGraphView::UpdateVertexState" ref="a25dc83303806599ab3d8b777837f242c" args="(mxCellState state, mxGeometry geo)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#a25dc83303806599ab3d8b777837f242c">com.mxgraph.mxGraphView.UpdateVertexState</a> </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a>&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classcom_1_1mxgraph_1_1mxGeometry.html">mxGeometry</a>&#160;</td>
+          <td class="paramname"><em>geo</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td><code> [inline]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Validates the given cell state. </p>
+
+</div>
+</div>
 <a class="anchor" id="ae7b4e63e4603beb3a199e8e1a10ad0df"></a><!-- doxytag: member="com::mxgraph::mxGraphView::Validate" ref="ae7b4e63e4603beb3a199e8e1a10ad0df" args="()" -->
 <div class="memitem">
 <div class="memproto">
@@ -1284,21 +1457,40 @@ Properties</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="af908d839d6e08aa38cf8ed5e41a12ed8"></a><!-- doxytag: member="com::mxgraph::mxGraphView::ValidateBounds" ref="af908d839d6e08aa38cf8ed5e41a12ed8" args="(mxCellState parentState, Object cell)" -->
+<a class="anchor" id="ac1c38c9cf60228e21331d6b11a643ea3"></a><!-- doxytag: member="com::mxgraph::mxGraphView::ValidateCell" ref="ac1c38c9cf60228e21331d6b11a643ea3" args="(Object cell)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void <a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#af908d839d6e08aa38cf8ed5e41a12ed8">com.mxgraph.mxGraphView.ValidateBounds</a> </td>
+          <td class="memname">Object <a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#ac1c38c9cf60228e21331d6b11a643ea3">com.mxgraph.mxGraphView.ValidateCell</a> </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a>&#160;</td>
-          <td class="paramname"><em>parentState</em>, </td>
+          <td class="paramtype">Object&#160;</td>
+          <td class="paramname"><em>cell</em></td><td>)</td>
+          <td><code> [inline]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Shortcut to validateCell with visible set to true. </p>
+
+</div>
+</div>
+<a class="anchor" id="ac448ac6680defd6b671fae681d89cc09"></a><!-- doxytag: member="com::mxgraph::mxGraphView::ValidateCell" ref="ac448ac6680defd6b671fae681d89cc09" args="(Object cell, Boolean visible)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Object <a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#ac1c38c9cf60228e21331d6b11a643ea3">com.mxgraph.mxGraphView.ValidateCell</a> </td>
+          <td>(</td>
+          <td class="paramtype">Object&#160;</td>
+          <td class="paramname"><em>cell</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">Object&#160;</td>
-          <td class="paramname"><em>cell</em>&#160;</td>
+          <td class="paramtype">Boolean&#160;</td>
+          <td class="paramname"><em>visible</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1309,32 +1501,51 @@ Properties</h2></td></tr>
 </div>
 <div class="memdoc">
 
-<p>Validates the bounds of the given parent's child using the given parent state as the origin for the child. The validation is carried out recursively for all non-collapsed descendants. </p>
+<p>Recursively creates the cell state for the given cell if visible is true and the given cell is visible. If the cell is not visible but the state exists then it is removed using removeState. </p>
 <dl class="params"><dt><b>Parameters:</b></dt><dd>
   <table class="params">
-    <tr><td class="paramname">parentState</td><td>Cell state for the given parent.</td></tr>
-    <tr><td class="paramname">cell</td><td>Cell for which the bounds in the state should be updated.</td></tr>
+    <tr><td class="paramname">cell</td><td>Cell whose cell state should be created.</td></tr>
+    <tr><td class="paramname">visible</td><td>Boolean indicating if the cell should be visible.</td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a class="anchor" id="af0e03ccc456eabad7304f651e4f6b02e"></a><!-- doxytag: member="com::mxgraph::mxGraphView::ValidatePoints" ref="af0e03ccc456eabad7304f651e4f6b02e" args="(mxCellState parentState, Object cell)" -->
+<a class="anchor" id="aff940c998239a0fb47795bbffc7f0718"></a><!-- doxytag: member="com::mxgraph::mxGraphView::ValidateCellState" ref="aff940c998239a0fb47795bbffc7f0718" args="(Object cell)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classcom_1_1mxgraph_1_1mxRectangle.html">mxRectangle</a> <a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#af0e03ccc456eabad7304f651e4f6b02e">com.mxgraph.mxGraphView.ValidatePoints</a> </td>
+          <td class="memname"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a> <a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#aff940c998239a0fb47795bbffc7f0718">com.mxgraph.mxGraphView.ValidateCellState</a> </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a>&#160;</td>
-          <td class="paramname"><em>parentState</em>, </td>
+          <td class="paramtype">Object&#160;</td>
+          <td class="paramname"><em>cell</em></td><td>)</td>
+          <td><code> [inline]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Shortcut to validateCellState with recurse set to true. </p>
+
+</div>
+</div>
+<a class="anchor" id="aec33b8195aeda3a86040deab7ddadd69"></a><!-- doxytag: member="com::mxgraph::mxGraphView::ValidateCellState" ref="aec33b8195aeda3a86040deab7ddadd69" args="(Object cell, Boolean recurse)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a> <a class="el" href="classcom_1_1mxgraph_1_1mxGraphView.html#aff940c998239a0fb47795bbffc7f0718">com.mxgraph.mxGraphView.ValidateCellState</a> </td>
+          <td>(</td>
+          <td class="paramtype">Object&#160;</td>
+          <td class="paramname"><em>cell</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">Object&#160;</td>
-          <td class="paramname"><em>cell</em>&#160;</td>
+          <td class="paramtype">Boolean&#160;</td>
+          <td class="paramname"><em>recurse</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1345,7 +1556,15 @@ Properties</h2></td></tr>
 </div>
 <div class="memdoc">
 
-<p>Validates the points for the state of the given cell recursively if the cell is not collapsed and returns the bounding box of all visited states as a rectangle. </p>
+<p>Validates the cell state for the given cell. </p>
+<dl class="params"><dt><b>Parameters:</b></dt><dd>
+  <table class="params">
+    <tr><td class="paramname">cell</td><td>Cell whose cell state should be validated.</td></tr>
+    <tr><td class="paramname">recurse</td><td>Boolean indicating if the children of the cell should be validated.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd></dd></dl>
 
 </div>
 </div>
@@ -1538,7 +1757,7 @@ Properties</h2></td></tr>
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Feb 10 2014 12:23:00 for mxGraph by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Feb 19 2014 14:16:24 for mxGraph by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.7.6.1
 </small></address>

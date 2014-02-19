@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphView.java,v 1.2 2013/12/04 16:35:32 gaudenz Exp $
+ * $Id: mxGraphView.java,v 1.3 2014/02/19 09:40:59 gaudenz Exp $
  * Copyright (c) 2007-2010, Gaudenz Alder, David Benson
  */
 package com.mxgraph.view;
@@ -447,119 +447,310 @@ public class mxGraphView extends mxEventSource
 	 */
 	public void validate()
 	{
-		Object cell = (currentRoot != null) ? currentRoot : graph.getModel()
-				.getRoot();
+		mxRectangle graphBounds = getBoundingBox(validateCellState(validateCell((currentRoot != null) ? currentRoot
+				: graph.getModel().getRoot())));
+		setGraphBounds((graphBounds != null) ? graphBounds : new mxRectangle());
+	}
+
+	/**
+	 * Shortcut to validateCell with visible set to true.
+	 */
+	public mxRectangle getBoundingBox(mxCellState state)
+	{
+		return getBoundingBox(state, true);
+	}
+
+	/**
+	 * Returns the bounding box of the shape and the label for the given
+	 * cell state and its children if recurse is true.
+	 * 
+	 * @param state Cell state whose bounding box should be returned.
+	 * @param recurse Boolean indicating if the children should be included.
+	 */
+	public mxRectangle getBoundingBox(mxCellState state, boolean recurse)
+	{
+		mxRectangle bbox = null;
+
+		if (state != null)
+		{
+			if (state.getBoundingBox() != null)
+			{
+				bbox = (mxRectangle) state.getBoundingBox().clone();
+			}
+
+			if (recurse)
+			{
+				mxIGraphModel model = graph.getModel();
+				int childCount = model.getChildCount(state.cell);
+
+				for (int i = 0; i < childCount; i++)
+				{
+					mxRectangle bounds = getBoundingBox(
+							getState(model.getChildAt(state.cell, i)), true);
+
+					if (bounds != null)
+					{
+						if (bbox == null)
+						{
+							bbox = bounds;
+						}
+						else
+						{
+							bbox.add(bounds);
+						}
+					}
+				}
+			}
+		}
+
+		return bbox;
+	}
+
+	/**
+	 * Shortcut to validateCell with visible set to true.
+	 */
+	public Object validateCell(Object cell)
+	{
+		return validateCell(cell, true);
+	}
+
+	/**
+	 * Recursively creates the cell state for the given cell if visible is true and
+	 * the given cell is visible. If the cell is not visible but the state exists
+	 * then it is removed using removeState.
+	 * 
+	 * @param cell Cell whose cell state should be created.
+	 * @param visible Boolean indicating if the cell should be visible.
+	 */
+	public Object validateCell(Object cell, boolean visible)
+	{
+		if (cell != null)
+		{
+			visible = visible && graph.isCellVisible(cell);
+			mxCellState state = getState(cell, visible);
+
+			if (state != null && !visible)
+			{
+				removeState(cell);
+			}
+			else
+			{
+				mxIGraphModel model = graph.getModel();
+				int childCount = model.getChildCount(cell);
+
+				for (int i = 0; i < childCount; i++)
+				{
+					validateCell(
+							model.getChildAt(cell, i),
+							visible
+									&& (!graph.isCellCollapsed(cell) || cell == currentRoot));
+				}
+			}
+		}
+
+		return cell;
+	}
+
+	/**
+	 * Shortcut to validateCellState with recurse set to true.
+	 */
+	public mxCellState validateCellState(Object cell)
+	{
+		return validateCellState(cell, true);
+	}
+
+	/**
+	 * Validates the cell state for the given cell.
+	 * 
+	 * @param cell Cell whose cell state should be validated.
+	 * @param recurse Boolean indicating if the children of the cell should be
+	 * validated.
+	 */
+	public mxCellState validateCellState(Object cell, boolean recurse)
+	{
+		mxCellState state = null;
 
 		if (cell != null)
 		{
-			validateBounds(null, cell);
-			mxRectangle bounds = validatePoints(null, cell);
+			state = getState(cell);
 
-			if (bounds == null)
+			if (state != null)
 			{
-				bounds = new mxRectangle();
+				mxIGraphModel model = graph.getModel();
+
+				if (state.isInvalid())
+				{
+					state.setInvalid(false);
+
+					if (cell != currentRoot)
+					{
+						validateCellState(model.getParent(cell), false);
+					}
+
+					state.setVisibleTerminalState(
+							validateCellState(getVisibleTerminal(cell, true),
+									false), true);
+					state.setVisibleTerminalState(
+							validateCellState(getVisibleTerminal(cell, false),
+									false), false);
+
+					updateCellState(state);
+
+					if (model.isEdge(cell) || model.isVertex(cell))
+					{
+						updateLabelBounds(state);
+						updateBoundingBox(state);
+					}
+				}
+
+				if (recurse)
+				{
+					int childCount = model.getChildCount(cell);
+
+					for (int i = 0; i < childCount; i++)
+					{
+						validateCellState(model.getChildAt(cell, i));
+					}
+				}
+			}
+		}
+
+		return state;
+	}
+
+	/**
+	 * Updates the given cell state.
+	 * 
+	 * @param state Cell state to be updated.
+	 */
+	public void updateCellState(mxCellState state)
+	{
+		state.getAbsoluteOffset().setX(0);
+		state.getAbsoluteOffset().setY(0);
+		state.getOrigin().setX(0);
+		state.getOrigin().setY(0);
+		state.setLength(0);
+
+		mxIGraphModel model = graph.getModel();
+		mxCellState pState = getState(model.getParent(state.getCell()));
+
+		if (pState != null && pState.getCell() != currentRoot)
+		{
+			state.getOrigin().setX(
+					state.getOrigin().getX() + pState.getOrigin().getX());
+			state.getOrigin().setY(
+					state.getOrigin().getY() + pState.getOrigin().getY());
+		}
+
+		mxPoint offset = graph.getChildOffsetForCell(state.getCell());
+
+		if (offset != null)
+		{
+			state.getOrigin().setX(state.getOrigin().getX() + offset.getX());
+			state.getOrigin().setY(state.getOrigin().getY() + offset.getY());
+		}
+
+		mxGeometry geo = graph.getCellGeometry(state.getCell());
+
+		if (geo != null)
+		{
+			if (!model.isEdge(state.cell))
+			{
+				mxPoint origin = state.getOrigin();
+				offset = geo.getOffset();
+
+				if (offset == null)
+				{
+					offset = EMPTY_POINT;
+				}
+
+				if (geo.isRelative() && pState != null)
+				{
+					if (model.isEdge(pState.cell))
+					{
+						mxPoint orig = getPoint(pState, geo);
+
+						if (orig != null)
+						{
+							origin.setX(origin.getX() + (orig.getX() / scale)
+									- translate.getX());
+							origin.setY(origin.getY() + (orig.getY() / scale)
+									- translate.getY());
+						}
+					}
+					else
+					{
+						origin.setX(origin.getX() + geo.getX()
+								* pState.getWidth() / scale + offset.getX());
+						origin.setY(origin.getY() + geo.getY()
+								* pState.getHeight() / scale + offset.getY());
+					}
+				}
+				else
+				{
+					state.setAbsoluteOffset(new mxPoint(scale * offset.getX(),
+							scale * offset.getY()));
+					origin.setX(origin.getX() + geo.getX());
+					origin.setY(origin.getY() + geo.getY());
+				}
 			}
 
-			setGraphBounds(bounds);
+			state.setX(scale * (translate.getX() + state.getOrigin().getX()));
+			state.setY(scale * (translate.getY() + state.getOrigin().getY()));
+			state.setWidth(scale * geo.getWidth());
+			state.setHeight(scale * geo.getHeight());
+
+			if (model.isVertex(state.getCell()))
+			{
+				updateVertexState(state, geo);
+			}
+
+			if (model.isEdge(state.getCell()))
+			{
+				updateEdgeState(state, geo);
+			}
+
+			// Updates the cached label
+			updateLabel(state);
 		}
 	}
 
 	/**
-	 * Validates the bounds of the given parent's child using the given parent
-	 * state as the origin for the child. The validation is carried out
-	 * recursively for all non-collapsed descendants.
-	 * 
-	 * @param parentState Object that represents the state of the parent cell.
-	 * @param cell Cell for which the bounds in the state should be updated.
+	 * Validates the given cell state.
 	 */
-	public void validateBounds(mxCellState parentState, Object cell)
+	public void updateVertexState(mxCellState state, mxGeometry geo)
 	{
-		mxIGraphModel model = graph.getModel();
-		mxCellState state = getState(cell, true);
+		// LATER: Add support for rotation
+		updateVertexLabelOffset(state);
+	}
 
-		if (state != null && state.isInvalid())
+	/**
+	 * Validates the given cell state.
+	 */
+	public void updateEdgeState(mxCellState state, mxGeometry geo)
+	{
+		mxCellState source = state.getVisibleTerminalState(true);
+		mxCellState target = state.getVisibleTerminalState(false);
+
+		updateFixedTerminalPoints(state, source, target);
+		updatePoints(state, geo.getPoints(), source, target);
+		updateFloatingTerminalPoints(state, source, target);
+
+		if (state.getAbsolutePointCount() < 2
+				|| state.getAbsolutePoint(0) == null
+				|| state.getAbsolutePoint(state.getAbsolutePointCount() - 1) == null)
 		{
-			if (!graph.isCellVisible(cell))
+			// This will remove edges with invalid points from the list of states in the view.
+			// Happens if the one of the terminals and the corresponding terminal point is null.
+			if (state.getCell() != getCurrentRoot())
 			{
-				removeState(cell);
-			}
-			else if (cell != currentRoot && parentState != null)
-			{
-				state.getAbsoluteOffset().setX(0);
-				state.getAbsoluteOffset().setY(0);
-				state.setOrigin(new mxPoint(parentState.getOrigin()));
-				mxGeometry geo = graph.getCellGeometry(cell);
-
-				if (geo != null)
-				{
-					if (!model.isEdge(cell))
-					{
-						mxPoint origin = state.getOrigin();
-						mxPoint offset = geo.getOffset();
-
-						if (offset == null)
-						{
-							offset = EMPTY_POINT;
-						}
-
-						if (geo.isRelative())
-						{
-							origin.setX(origin.getX() + geo.getX()
-									* parentState.getWidth() / scale
-									+ offset.getX());
-							origin.setY(origin.getY() + geo.getY()
-									* parentState.getHeight() / scale
-									+ offset.getY());
-						}
-						else
-						{
-							state.setAbsoluteOffset(new mxPoint(scale
-									* offset.getX(), scale * offset.getY()));
-							origin.setX(origin.getX() + geo.getX());
-							origin.setY(origin.getY() + geo.getY());
-						}
-					}
-
-					// Updates the cell state's bounds
-					state.setX(scale
-							* (translate.getX() + state.getOrigin().getX()));
-					state.setY(scale
-							* (translate.getY() + state.getOrigin().getY()));
-					state.setWidth(scale * geo.getWidth());
-					state.setHeight(scale * geo.getHeight());
-
-					if (model.isVertex(cell))
-					{
-						updateVertexLabelOffset(state);
-					}
-
-					// Updates the cached label
-					updateLabel(state);
-				}
-			}
-
-			// Applies child offset to origin
-			mxPoint offset = graph.getChildOffsetForCell(cell);
-
-			if (offset != null)
-			{
-				state.getOrigin()
-						.setX(state.getOrigin().getX() + offset.getX());
-				state.getOrigin()
-						.setY(state.getOrigin().getY() + offset.getY());
+				clear(state.getCell(), true, true);
 			}
 		}
-
-		// Recursively validates the child bounds
-		if (state != null
-				&& (!graph.isCellCollapsed(cell) || cell == currentRoot))
+		else
 		{
-			int childCount = model.getChildCount(cell);
-
-			for (int i = 0; i < childCount; i++)
-			{
-				validateBounds(state, model.getChildAt(cell, i));
-			}
+			updateEdgeBounds(state);
+			state.setAbsoluteOffset(getPoint(state, geo));
 		}
 	}
 
@@ -598,140 +789,6 @@ public class mxGraphView extends mxEventSource
 		{
 			state.absoluteOffset.setY(state.absoluteOffset.getY()
 					+ state.getHeight());
-		}
-	}
-
-	/**
-	 * Validates the points for the state of the given cell recursively if the
-	 * cell is not collapsed and returns the bounding box of all visited states
-	 * as a rectangle.
-	 * 
-	 * @param parentState Object that represents the state of the parent cell.
-	 * @param cell Cell for which the points in the state should be updated.
-	 * @return Returns the bounding box for the given cell.
-	 */
-	public mxRectangle validatePoints(mxCellState parentState, Object cell)
-	{
-		mxIGraphModel model = graph.getModel();
-		mxCellState state = getState(cell);
-		mxRectangle bbox = null;
-
-		if (state != null)
-		{
-			if (state.isInvalid())
-			{
-				mxGeometry geo = graph.getCellGeometry(cell);
-
-				if (geo != null && model.isEdge(cell))
-				{
-					// Updates the points on the source terminal if its an edge
-					mxCellState source = getState(getVisibleTerminal(cell, true));
-					state.setVisibleTerminalState(source, true);
-
-					if (source != null && model.isEdge(source.getCell())
-							&& !model.isAncestor(source, cell))
-					{
-						mxCellState tmp = getState(model.getParent(source
-								.getCell()));
-						validatePoints(tmp, source);
-					}
-
-					// Updates the points on the source terminal if its an edge
-					mxCellState target = getState(getVisibleTerminal(cell,
-							false));
-					state.setVisibleTerminalState(target, false);
-
-					if (target != null && model.isEdge(target.getCell())
-							&& !model.isAncestor(target, cell))
-					{
-						mxCellState tmp = getState(model.getParent(target
-								.getCell()));
-						validatePoints(tmp, target);
-					}
-
-					updateFixedTerminalPoints(state, source, target);
-					updatePoints(state, geo.getPoints(), source, target);
-					updateFloatingTerminalPoints(state, source, target);
-					updateEdgeBounds(state);
-					state.setAbsoluteOffset(getPoint(state, geo));
-				}
-				else if (geo != null && geo.isRelative() && parentState != null
-						&& model.isEdge(parentState.getCell()))
-				{
-					mxPoint origin = getPoint(parentState, geo);
-
-					if (origin != null)
-					{
-						state.setX(origin.getX());
-						state.setY(origin.getY());
-
-						origin.setX((origin.getX() / scale) - translate.getX());
-						origin.setY((origin.getY() / scale) - translate.getY());
-						state.setOrigin(origin);
-
-						childMoved(parentState, state);
-					}
-				}
-
-				state.setInvalid(false);
-			}
-
-			if (model.isEdge(cell) || model.isVertex(cell))
-			{
-				updateLabelBounds(state);
-				bbox = new mxRectangle(updateBoundingBox(state));
-			}
-		}
-
-		if (state != null
-				&& (!graph.isCellCollapsed(cell) || cell == currentRoot))
-		{
-			int childCount = model.getChildCount(cell);
-
-			for (int i = 0; i < childCount; i++)
-			{
-				Object child = model.getChildAt(cell, i);
-				mxRectangle bounds = validatePoints(state, child);
-
-				if (bounds != null)
-				{
-					if (bbox == null)
-					{
-						bbox = bounds;
-					}
-					else
-					{
-						bbox.add(bounds);
-					}
-				}
-			}
-		}
-
-		return bbox;
-	}
-
-	/**
-	 * Invoked when a child state was moved as a result of late evaluation
-	 * of its position. This is invoked for relative edge children whose
-	 * position can only be determined after the points of the parent edge
-	 * are updated in validatePoints, and validates the bounds of all
-	 * descendants of the child using validateBounds.
-	 */
-	protected void childMoved(mxCellState parent, mxCellState child)
-	{
-		Object cell = child.getCell();
-
-		// Children of relative edge children need to validate
-		// their bounds after their parent state was updated
-		if (!graph.isCellCollapsed(cell) || cell == currentRoot)
-		{
-			mxIGraphModel model = graph.getModel();
-			int childCount = model.getChildCount(cell);
-
-			for (int i = 0; i < childCount; i++)
-			{
-				validateBounds(child, model.getChildAt(cell, i));
-			}
 		}
 	}
 
@@ -821,7 +878,8 @@ public class mxGraphView extends mxEventSource
 	{
 		Object cell = state.getCell();
 		Map<String, Object> style = state.getStyle();
-		String overflow = mxUtils.getString(style, mxConstants.STYLE_OVERFLOW, "");
+		String overflow = mxUtils.getString(style, mxConstants.STYLE_OVERFLOW,
+				"");
 
 		if (overflow.equals("fill"))
 		{
@@ -1382,76 +1440,58 @@ public class mxGraphView extends mxEventSource
 	public void updateEdgeBounds(mxCellState state)
 	{
 		List<mxPoint> points = state.getAbsolutePoints();
+		mxPoint p0 = points.get(0);
+		mxPoint pe = points.get(points.size() - 1);
 
-		if (points != null && points.size() > 0)
+		if (p0.getX() != pe.getX() || p0.getY() != pe.getY())
 		{
-			mxPoint p0 = points.get(0);
-			mxPoint pe = points.get(points.size() - 1);
+			double dx = pe.getX() - p0.getX();
+			double dy = pe.getY() - p0.getY();
+			state.setTerminalDistance(Math.sqrt(dx * dx + dy * dy));
+		}
+		else
+		{
+			state.setTerminalDistance(0);
+		}
 
-			if (p0 == null || pe == null)
+		double length = 0;
+		double[] segments = new double[points.size() - 1];
+		mxPoint pt = p0;
+
+		double minX = pt.getX();
+		double minY = pt.getY();
+		double maxX = minX;
+		double maxY = minY;
+
+		for (int i = 1; i < points.size(); i++)
+		{
+			mxPoint tmp = points.get(i);
+
+			if (tmp != null)
 			{
-				// Note: This is an error that normally occurs
-				// if a connected edge has a null-terminal, ie.
-				// source is null and/or target is null and no
-				// additional control points are defined
-				if (state.getCell() != getCurrentRoot())
-				{
-					removeState(state.getCell());
-				}
-			}
-			else
-			{
-				if (p0.getX() != pe.getX() || p0.getY() != pe.getY())
-				{
-					double dx = pe.getX() - p0.getX();
-					double dy = pe.getY() - p0.getY();
-					state.setTerminalDistance(Math.sqrt(dx * dx + dy * dy));
-				}
-				else
-				{
-					state.setTerminalDistance(0);
-				}
+				double dx = pt.getX() - tmp.getX();
+				double dy = pt.getY() - tmp.getY();
 
-				double length = 0;
-				double[] segments = new double[points.size() - 1];
-				mxPoint pt = p0;
+				double segment = Math.sqrt(dx * dx + dy * dy);
+				segments[i - 1] = segment;
+				length += segment;
+				pt = tmp;
 
-				double minX = pt.getX();
-				double minY = pt.getY();
-				double maxX = minX;
-				double maxY = minY;
-
-				for (int i = 1; i < points.size(); i++)
-				{
-					mxPoint tmp = points.get(i);
-
-					if (tmp != null)
-					{
-						double dx = pt.getX() - tmp.getX();
-						double dy = pt.getY() - tmp.getY();
-
-						double segment = Math.sqrt(dx * dx + dy * dy);
-						segments[i - 1] = segment;
-						length += segment;
-						pt = tmp;
-
-						minX = Math.min(pt.getX(), minX);
-						minY = Math.min(pt.getY(), minY);
-						maxX = Math.max(pt.getX(), maxX);
-						maxY = Math.max(pt.getY(), maxY);
-					}
-				}
-
-				state.setLength(length);
-				state.setSegments(segments);
-				double markerSize = 1; // TODO: include marker size
-
-				state.setX(minX);
-				state.setY(minY);
-				state.setWidth(Math.max(markerSize, maxX - minX));
-				state.setHeight(Math.max(markerSize, maxY - minY));
+				minX = Math.min(pt.getX(), minX);
+				minY = Math.min(pt.getY(), minY);
+				maxX = Math.max(pt.getX(), maxX);
+				maxY = Math.max(pt.getY(), maxY);
 			}
 		}
+
+		state.setLength(length);
+		state.setSegments(segments);
+		double markerSize = 1; // TODO: include marker size
+
+		state.setX(minX);
+		state.setY(minY);
+		state.setWidth(Math.max(markerSize, maxX - minX));
+		state.setHeight(Math.max(markerSize, maxY - minY));
 	}
 
 	/**

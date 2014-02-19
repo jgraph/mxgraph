@@ -1,5 +1,5 @@
 /**
- * $Id: EditorUi.js,v 1.50 2014/02/10 11:52:26 gaudenz Exp $
+ * $Id: EditorUi.js,v 1.52 2014/02/13 09:08:32 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -131,7 +131,21 @@ EditorUi = function(editor, container)
    	graph.container.style.cursor = 'default';
     graph.container.style.backgroundImage = 'url(' + editor.gridImage + ')';
     graph.container.style.backgroundPosition = '-1px -1px';
-   	graph.container.focus();
+
+	var noBackground = (mxClient.IS_IE && document.documentMode >= 9) ? 'url(' + this.editor.transparentImage + ')' : 'none';
+	graph.container.style.backgroundImage = noBackground;
+	var bgImg = (!graph.pageVisible && graph.isGridEnabled()) ? 'url(' + this.editor.gridImage + ')' : noBackground;
+	
+	if (graph.view.canvas.ownerSVGElement != null)
+	{
+		graph.view.canvas.ownerSVGElement.style.backgroundImage = bgImg;
+	}
+	else
+	{
+		graph.view.canvas.style.backgroundImage = bgImg;
+	}
+    
+    graph.container.focus();
    	
 	// Overrides double click handling to use the tolerance and
    	// redirect to the image action for image shapes

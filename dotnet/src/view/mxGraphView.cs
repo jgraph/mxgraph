@@ -1,4 +1,4 @@
-// $Id: mxGraphView.cs,v 1.1 2012/11/15 13:26:44 gaudenz Exp $
+// $Id: mxGraphView.cs,v 1.2 2014/02/19 09:40:59 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Diagnostics;
@@ -225,104 +225,282 @@ namespace com.mxgraph
 
             if (cell != null && states.Count == 0)
             {
-                ValidateBounds(null, cell);
-                GraphBounds = ValidatePoints(null, cell);
+                mxRectangle graphBounds = GetBoundingBox(ValidateCellState(ValidateCell(cell)));
+                GraphBounds = (graphBounds != null) ? graphBounds : new mxRectangle();
+            }
+        }
 
-                if (GraphBounds == null)
+        /// <summary>
+        /// Shortcut to validateCell with visible set to true.
+        /// </summary>
+        public mxRectangle GetBoundingBox(mxCellState state)
+        {
+            return GetBoundingBox(state, true);
+        }
+
+        /// <summary>
+        /// Returns the bounding box of the shape and the label for the given
+        /// cell state and its children if recurse is true.
+        /// </summary>
+        /// <param name="state">Cell state whose bounding box should be returned.</param>
+        /// <param name="recurse">Boolean indicating if the children should be included.</param>
+        public mxRectangle GetBoundingBox(mxCellState state, Boolean recurse)
+        {
+            mxRectangle bbox = null;
+
+            if (state != null)
+            {
+                if (state.BoundingBox != null)
                 {
-                    GraphBounds = new mxRectangle();
+                    bbox = (mxRectangle)state.BoundingBox.Clone();
+                }
+
+                if (recurse)
+                {
+                    mxIGraphModel model = graph.Model;
+                    int childCount = model.GetChildCount(state.Cell);
+
+                    for (int i = 0; i < childCount; i++)
+                    {
+                        mxRectangle bounds = GetBoundingBox(
+                                GetState(model.GetChildAt(state.Cell, i)), true);
+
+                        if (bounds != null)
+                        {
+                            if (bbox == null)
+                            {
+                                bbox = bounds;
+                            }
+                            else
+                            {
+                                bbox.Add(bounds);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return bbox;
+        }
+
+        /// <summary>
+        /// Shortcut to validateCell with visible set to true.
+        /// </summary>
+        public Object ValidateCell(Object cell)
+        {
+            return ValidateCell(cell, true);
+        }
+
+        /// <summary>
+        /// Recursively creates the cell state for the given cell if visible is true and
+        /// the given cell is visible. If the cell is not visible but the state exists
+        /// then it is removed using removeState.
+        /// </summary>
+        /// <param name="cell">Cell whose cell state should be created.</param>
+        /// <param name="visible">Boolean indicating if the cell should be visible.</param>
+        public Object ValidateCell(Object cell, Boolean visible)
+        {
+            if (cell != null)
+            {
+                visible = visible && graph.IsCellVisible(cell);
+                mxCellState state = GetState(cell, visible);
+
+                if (state != null && !visible)
+                {
+                    RemoveState(cell);
+                }
+                else
+                {
+                    mxIGraphModel model = graph.Model;
+                    int childCount = model.GetChildCount(cell);
+
+                    for (int i = 0; i < childCount; i++)
+                    {
+                        ValidateCell(
+                                model.GetChildAt(cell, i),
+                                visible && !graph.IsCellCollapsed(cell));
+                    }
+                }
+            }
+
+            return cell;
+        }
+
+        /// <summary>
+        /// Shortcut to validateCellState with recurse set to true.
+        /// </summary>
+        public mxCellState ValidateCellState(Object cell)
+        {
+            return ValidateCellState(cell, true);
+        }
+
+        /// <summary>
+        /// Validates the cell state for the given cell.
+        /// </summary>
+        /// <param name="cell">Cell whose cell state should be validated.</param>
+        /// <param name="recurse">Boolean indicating if the children of the cell should be
+        /// validated.</param>
+        /// <returns></returns>
+        public mxCellState ValidateCellState(Object cell, Boolean recurse)
+        {
+            mxCellState state = null;
+
+            if (cell != null)
+            {
+                state = GetState(cell);
+
+                if (state != null)
+                {
+                    mxIGraphModel model = graph.Model;
+
+                    if (state.Invalid)
+                    {
+                        state.Invalid = false;
+
+                        ValidateCellState(model.GetParent(cell), false);
+                        mxCellState source = ValidateCellState(GetVisibleTerminal(cell, true), false);
+                        mxCellState target = ValidateCellState(GetVisibleTerminal(cell, false), false);
+
+                        UpdateCellState(state, source, target);
+
+                        if (model.IsEdge(cell) || model.IsVertex(cell))
+                        {
+                            UpdateLabelBounds(state);
+                            UpdateBoundingBox(state);
+                        }
+                    }
+
+                    if (recurse)
+                    {
+                        int childCount = model.GetChildCount(cell);
+
+                        for (int i = 0; i < childCount; i++)
+                        {
+                            ValidateCellState(model.GetChildAt(cell, i));
+                        }
+                    }
+                }
+            }
+            
+            return state;
+        }
+
+        /// <summary>
+        /// Updates the given cell state.
+        /// </summary>
+        /// <param name="state"></param>
+        public void UpdateCellState(mxCellState state, mxCellState source, mxCellState target)
+        {
+            state.AbsoluteOffset.X = 0;
+            state.AbsoluteOffset.Y = 0;
+            state.Origin.X = 0;
+            state.Origin.Y = 0;
+            state.Length = 0;
+
+            mxIGraphModel model = graph.Model;
+            mxCellState pState = GetState(model.GetParent(state.Cell));
+
+            if (pState != null)
+            {
+                state.Origin.X += pState.Origin.X;
+                state.Origin.Y += pState.Origin.Y;
+            }
+
+            mxPoint offset = graph.GetChildOffsetForCell(state.Cell);
+
+            if (offset != null)
+            {
+                state.Origin.X += offset.X;
+                state.Origin.Y += offset.Y;
+            }
+
+            mxGeometry geo = graph.GetCellGeometry(state.Cell);
+
+            if (geo != null)
+            {
+                if (!model.IsEdge(state.Cell))
+                {
+                    mxPoint origin = state.Origin;
+                    offset = geo.Offset;
+
+                    if (offset == null)
+                    {
+                        offset = EMPTY_POINT;
+                    }
+
+                    if (geo.Relative && pState != null)
+                    {
+                        if (model.IsEdge(pState.Cell))
+                        {
+                            mxPoint orig = GetPoint(pState, geo);
+
+                            if (orig != null)
+                            {
+                                origin.X += (orig.X / scale) - translate.X;
+                                origin.Y += (orig.Y / scale) - translate.Y;
+                            }
+                        }
+                        else
+                        {
+                            origin.X += geo.X * pState.Width / scale + offset.X;
+                            origin.Y += geo.Y * pState.Height / scale + offset.Y;
+                        }
+                    }
+                    else
+                    {
+                        state.AbsoluteOffset = new mxPoint(scale * offset.X,
+                                scale * offset.Y);
+                        origin.X += geo.X;
+                        origin.Y += geo.Y;
+                    }
+                }
+
+                state.X = scale * (translate.X + state.Origin.X);
+                state.Y = scale * (translate.Y + state.Origin.Y);
+                state.Width = scale * geo.Width;
+                state.Height = scale * geo.Height;
+
+                if (model.IsVertex(state.Cell))
+                {
+                    UpdateVertexState(state, geo);
+                }
+
+                if (model.IsEdge(state.Cell))
+                {
+                    UpdateEdgeState(state, geo, source, target);
                 }
             }
         }
 
         /// <summary>
-        /// Validates the bounds of the given parent's child using the given parent
-        /// state as the origin for the child. The validation is carried out
-        /// recursively for all non-collapsed descendants.
+        /// Validates the given cell state.
         /// </summary>
-        /// <param name="parentState">Cell state for the given parent.</param>
-        /// <param name="cell">Cell for which the bounds in the state should be updated.</param>
-        public void ValidateBounds(mxCellState parentState, Object cell)
+        public void UpdateVertexState(mxCellState state, mxGeometry geo)
         {
-            mxIGraphModel model = graph.Model;
-            mxCellState state = GetState(cell, true);
+            // LATER: Add support for rotation
+            UpdateVertexLabelOffset(state);
+        }
 
-            if (state != null)
+        /// <summary>
+        /// Validates the given cell state.
+        /// </summary>
+        public void UpdateEdgeState(mxCellState state, mxGeometry geo, mxCellState source, mxCellState target)
+        {
+            UpdateFixedTerminalPoints(state, source, target);
+            UpdatePoints(state, geo.Points, source, target);
+            UpdateFloatingTerminalPoints(state, source, target);
+
+            if (state.AbsolutePointCount() < 2 || state.AbsolutePoints[0] == null || state
+                            .AbsolutePoints[state.AbsolutePointCount() - 1] == null)
             {
-                if (!graph.IsCellVisible(cell))
-                {
-                    RemoveState(cell);
-                }
-                else if (parentState != null)
-                {
-                    state.AbsoluteOffset.X = 0;
-                    state.AbsoluteOffset.Y = 0;
-                    state.Origin = new mxPoint(parentState.Origin.X,
-                            parentState.Origin.Y);
-                    mxGeometry geo = graph.GetCellGeometry(cell);
-
-                    if (geo != null)
-                    {
-                        if (!model.IsEdge(cell))
-                        {
-                            mxPoint origin = state.Origin;
-                            mxPoint offset = geo.Offset;
-
-                            if (offset == null)
-                            {
-                                offset = EMPTY_POINT;
-                            }
-
-                            if (geo.Relative)
-                            {
-                                origin.X += geo.X * parentState.Width /
-                                    Scale + offset.X;
-                                origin.Y += geo.Y * parentState.Height /
-                                    Scale + offset.Y;
-                            }
-                            else
-                            {
-                                state.AbsoluteOffset = new mxPoint(
-                                    scale * offset.X,
-                                    scale * offset.Y);
-                                origin.X += geo.X;
-                                origin.Y += geo.Y;
-                            }
-                        }
-
-                        // Updates the cell state's bounds
-                        state.X = scale * (translate.X + state.Origin.X);
-                        state.Y = scale * (translate.Y + state.Origin.Y);
-                        state.Width = scale * geo.Width;
-                        state.Height = scale * geo.Height;
-                        
-                        if (model.IsVertex(cell))
-                        {
-                        	UpdateVertexLabelOffset(state);
-                        }
-                    }
-                }
-
-                // Applies child offset to origin
-                mxPoint childOffset = graph.GetChildOffsetForCell(cell);
-
-                if (childOffset != null)
-                {
-                    state.Origin.X += childOffset.X;
-                    state.Origin.Y += childOffset.Y;
-                }
+                // This will remove edges with invalid points from the list of states in the view.
+                // Happens if the one of the terminals and the corresponding terminal point is null.
+                RemoveState(state.Cell, true);
             }
-
-            // Recursively validates the child bounds
-            if (state != null &&
-                !graph.IsCellCollapsed(cell))
+            else
             {
-                int childCount = model.GetChildCount(cell);
-
-                for (int i = 0; i < childCount; i++)
-                {
-                    ValidateBounds(state, model.GetChildAt(cell, i));
-                }
+                UpdateEdgeBounds(state);
+                state.AbsoluteOffset = GetPoint(state, geo);
             }
         }
 
@@ -331,155 +509,32 @@ namespace com.mxgraph
         /// into account the label position styles.
         /// </summary>
         /// <param name="state">Cell state whose absolute offset should be updated.</param>
-		public void UpdateVertexLabelOffset(mxCellState state)
-		{
-			string horizontal = mxUtils.GetString(state.Style,
-					mxConstants.STYLE_LABEL_POSITION,
-					mxConstants.ALIGN_CENTER);
-			
-			if (horizontal.Equals(mxConstants.ALIGN_LEFT))
-			{
-				state.AbsoluteOffset.X -= state.Width;
-			}
-			else if (horizontal.Equals(mxConstants.ALIGN_RIGHT))
-			{
-				state.AbsoluteOffset.X += state.Width;
-			}
-			
-			string vertical = mxUtils.GetString(state.Style,
-					mxConstants.STYLE_VERTICAL_LABEL_POSITION,
-					mxConstants.ALIGN_MIDDLE);
-			
-			if (vertical.Equals(mxConstants.ALIGN_TOP))
-			{
-				state.AbsoluteOffset.Y -= state.Height;
-			}
-			else if (vertical.Equals(mxConstants.ALIGN_BOTTOM))
-			{
-				state.AbsoluteOffset.Y += state.Height;
-			}
-		}
-
-        /// <summary>
-        /// Validates the points for the state of the given cell recursively if the
-        /// cell is not collapsed and returns the bounding box of all visited states
-        /// as a rectangle.
-        /// </summary>
-        public mxRectangle ValidatePoints(mxCellState parentState, Object cell)
+        public void UpdateVertexLabelOffset(mxCellState state)
         {
-            mxIGraphModel model = graph.Model;
-            mxCellState state = GetState(cell);
-            mxRectangle bbox = null;
+            string horizontal = mxUtils.GetString(state.Style,
+                    mxConstants.STYLE_LABEL_POSITION,
+                    mxConstants.ALIGN_CENTER);
 
-            if (state != null)
+            if (horizontal.Equals(mxConstants.ALIGN_LEFT))
             {
-                mxGeometry geo = graph.GetCellGeometry(cell);
-
-                if (geo != null && model.IsEdge(cell))
-                {
-                    // Updates the points on the source terminal if its an edge
-                    mxCellState source = GetState(GetVisibleTerminal(cell, true));
-
-                    if (source != null && model.IsEdge(source.Cell) &&
-                        !model.IsAncestor(source, cell))
-                    {
-                        mxCellState tmp = GetState(model.GetParent(source.Cell));
-                        ValidatePoints(tmp, source.Cell);
-                    }
-
-                    // Updates the points on the target terminal if its an edge
-                    mxCellState target = GetState(GetVisibleTerminal(cell, false));
-
-                    if (target != null && model.IsEdge(target.Cell) &&
-                        !model.IsAncestor(target.Cell, cell))
-                    {
-                        mxCellState tmp = GetState(model.GetParent(target.Cell));
-                        ValidatePoints(tmp, target.Cell);
-                    }
-
-                    UpdateFixedTerminalPoints(state, source, target);
-                    UpdatePoints(state, geo.Points, source, target);
-                    UpdateFloatingTerminalPoints(state, source, target);
-                    UpdateEdgeBounds(state);
-                    state.AbsoluteOffset = GetPoint(state, geo);
-                }
-                else if (geo != null &&
-                    geo.Relative &&
-                    parentState != null &&
-                    model.IsEdge(parentState.Cell))
-                {
-                    mxPoint origin = GetPoint(parentState, geo);
-
-                    if (origin != null)
-                    {
-                        state.X = origin.X;
-                        state.Y = origin.Y;
-
-                        origin.X = (origin.X / scale) - translate.X;
-                        origin.Y = (origin.Y / scale) - translate.Y;
-                        state.Origin = origin;
-
-                        childMoved(parentState, state);
-                    }
-                }
-
-                if (model.IsEdge(cell) || model.IsVertex(cell))
-                {
-                    UpdateLabelBounds(state);
-                    bbox = new mxRectangle(UpdateBoundingBox(state));
-                }
+                state.AbsoluteOffset.X -= state.Width;
+            }
+            else if (horizontal.Equals(mxConstants.ALIGN_RIGHT))
+            {
+                state.AbsoluteOffset.X += state.Width;
             }
 
-            if (state != null && !graph.IsCellCollapsed(cell))
+            string vertical = mxUtils.GetString(state.Style,
+                    mxConstants.STYLE_VERTICAL_LABEL_POSITION,
+                    mxConstants.ALIGN_MIDDLE);
+
+            if (vertical.Equals(mxConstants.ALIGN_TOP))
             {
-                int childCount = model.GetChildCount(cell);
-
-                for (int i = 0; i < childCount; i++)
-                {
-                    Object child = model.GetChildAt(cell, i);
-                    mxRectangle bounds = ValidatePoints(state, child);
-
-                    if (bounds != null)
-                    {
-                        if (bbox == null)
-                        {
-                            bbox = bounds;
-                        }
-                        else
-                        {
-                            bbox.Add(bounds);
-                        }
-                    }
-                }
+                state.AbsoluteOffset.Y -= state.Height;
             }
-
-            return bbox;
-        }
-        
-        /// <summary>
-        /// Invoked when a child state was moved as a result of late evaluation
-        /// of its position. This is invoked for relative edge children whose
-        /// position can only be determined after the points of the parent edge
-        /// are updated in validatePoints, and validates the bounds of all
-        /// descendants of the child using validateBounds.
-        /// </summary>
-        /// <param name="parent">State that represents the parent.</param>
-        /// <param name="child">State that represents the child.</param>
-        public void childMoved(mxCellState parent, mxCellState child)
-        {
-            Object cell = child.Cell;
-
-            // Children of relative edge children need to validate
-            // their bounds after their parent state was updated
-            if (!graph.IsCellCollapsed(cell))
+            else if (vertical.Equals(mxConstants.ALIGN_BOTTOM))
             {
-                mxIGraphModel model = graph.Model;
-                int childCount = model.GetChildCount(cell);
-
-                for (int i = 0; i < childCount; i++)
-                {
-                    ValidateBounds(child, model.GetChildAt(cell, i));
-                }
+                state.AbsoluteOffset.Y += state.Height;
             }
         }
 
@@ -534,7 +589,7 @@ namespace com.mxgraph
                 if (style.ContainsKey(mxConstants.STYLE_ENDARROW)
                         || style.ContainsKey(mxConstants.STYLE_STARTARROW))
                 {
-                    ms = (int) Math.Round(mxConstants.DEFAULT_MARKERSIZE * scale);
+                    ms = (int)Math.Round(mxConstants.DEFAULT_MARKERSIZE * scale);
                 }
 
                 // Adds the strokewidth
@@ -662,7 +717,7 @@ namespace com.mxgraph
             {
                 pt = graph.GetConnectionPoint(terminal, constraint);
             }
-            
+
             if (pt == null && terminal == null)
             {
                 mxPoint orig = edge.Origin;
@@ -699,7 +754,7 @@ namespace com.mxgraph
                 {
                     mxCellState src = GetTerminalPort(edge, source, true);
                     mxCellState trg = GetTerminalPort(edge, target, false);
-                    
+
                     ((mxEdgeStyleFunction)edgeStyle)(edge, src, trg, points, pts);
                 }
                 else if (points != null)
@@ -726,7 +781,7 @@ namespace com.mxgraph
         /// </summary>
         public mxPoint TransformControlPoint(mxCellState state, mxPoint pt)
         {
-        	mxPoint orig = state.Origin;
+            mxPoint orig = state.Origin;
 
             return new mxPoint(scale * (pt.X + translate.X + orig.X),
                 scale * (pt.Y + translate.Y + orig.Y));
@@ -757,26 +812,26 @@ namespace com.mxgraph
                 edge.Style.TryGetValue(mxConstants.STYLE_EDGE, out edgeStyle);
             }
 
-		    // Converts string values to objects
-		    if (edgeStyle is String)
-		    {
+            // Converts string values to objects
+            if (edgeStyle is String)
+            {
                 string str = edgeStyle.ToString();
-			    Object tmp = mxStyleRegistry.GetValue(str);
-    			
-			    if (tmp == null)
-			    {
-				    tmp = mxUtils.Eval(str);
-			    }
-    			
-			    edgeStyle = tmp;
-		    }
+                Object tmp = mxStyleRegistry.GetValue(str);
 
-		    if (edgeStyle is mxEdgeStyleFunction)
-		    {
-			    return (mxEdgeStyleFunction) edgeStyle;
-		    }
+                if (tmp == null)
+                {
+                    tmp = mxUtils.Eval(str);
+                }
 
-		    return null;
+                edgeStyle = tmp;
+            }
+
+            if (edgeStyle is mxEdgeStyleFunction)
+            {
+                return (mxEdgeStyleFunction)edgeStyle;
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -813,14 +868,14 @@ namespace com.mxgraph
         public void UpdateFloatingTerminalPoint(mxCellState edge, mxCellState start,
             mxCellState end, bool source)
         {
-			start = GetTerminalPort(edge, start, source);
-			mxPoint next = GetNextPoint(edge, end, source);
-			double border = mxUtils.GetDouble(edge.Style, mxConstants.STYLE_PERIMETER_SPACING);
-			border += mxUtils.GetDouble(edge.Style, (source) ?
-				mxConstants.STYLE_SOURCE_PERIMETER_SPACING :
-				mxConstants.STYLE_TARGET_PERIMETER_SPACING);
-			mxPoint pt = GetPerimeterPoint(start, next, graph.IsOrthogonal(edge), border);
-			edge.SetAbsoluteTerminalPoint(pt, source);
+            start = GetTerminalPort(edge, start, source);
+            mxPoint next = GetNextPoint(edge, end, source);
+            double border = mxUtils.GetDouble(edge.Style, mxConstants.STYLE_PERIMETER_SPACING);
+            border += mxUtils.GetDouble(edge.Style, (source) ?
+                mxConstants.STYLE_SOURCE_PERIMETER_SPACING :
+                mxConstants.STYLE_TARGET_PERIMETER_SPACING);
+            mxPoint pt = GetPerimeterPoint(start, next, graph.IsOrthogonal(edge), border);
+            edge.SetAbsoluteTerminalPoint(pt, source);
         }
 
         /// <summary>
@@ -884,7 +939,7 @@ namespace com.mxgraph
                         point = perimeter(bounds, terminal, next, orthogonal);
                     }
                 }
-                
+
                 if (point == null)
                 {
                     point = GetPoint(terminal);
@@ -1019,7 +1074,7 @@ namespace com.mxgraph
             {
                 best = null;
             }
-		
+
             return best;
         }
 
@@ -1031,81 +1086,77 @@ namespace com.mxgraph
         public void UpdateEdgeBounds(mxCellState state)
         {
             List<mxPoint> points = state.AbsolutePoints;
+            mxPoint p0 = points[0];
+            mxPoint pe = points[points.Count - 1];
 
-            if (points != null && points.Count > 0)
+            if (p0 == null || pe == null)
             {
-                mxPoint p0 = points[0];
-                mxPoint pe = points[points.Count - 1];
 
-                if (p0 == null || pe == null)
+                // Note: This is an error that normally occurs
+                // if a connected edge has a null-terminal, ie.
+                // edge.source == null or edge.target == null.
+                states.Remove(state.Cell);
+            }
+            else
+            {
+                if (p0.X != pe.X || p0.Y != pe.Y)
                 {
-
-                    // Note: This is an error that normally occurs
-                    // if a connected edge has a null-terminal, ie.
-                    // edge.source == null or edge.target == null.
-                    states.Remove(state.Cell);
+                    double dx = pe.X - p0.X;
+                    double dy = pe.Y - p0.Y;
+                    state.TerminalDistance = Math.Sqrt(dx * dx + dy * dy);
                 }
                 else
                 {
-                    if (p0.X != pe.X || p0.Y != pe.Y)
-                    {
-                        double dx = pe.X - p0.X;
-                        double dy = pe.Y - p0.Y;
-                        state.TerminalDistance = Math.Sqrt(dx * dx + dy * dy);
-                    }
-                    else
-                    {
-                        state.TerminalDistance = 0;
-                    }
+                    state.TerminalDistance = 0;
+                }
 
-                    double length = 0;
-                    double[] segments = new double[points.Count - 1];
-                    mxPoint pt = p0;
+                double length = 0;
+                double[] segments = new double[points.Count - 1];
+                mxPoint pt = p0;
 
-                    if (pt != null)
+                if (pt != null)
+                {
+                    double minX = pt.X;
+                    double minY = pt.Y;
+                    double maxX = minX;
+                    double maxY = minY;
+
+                    for (int i = 1; i < points.Count; i++)
                     {
-                        double minX = pt.X;
-                        double minY = pt.Y;
-                        double maxX = minX;
-                        double maxY = minY;
-
-                        for (int i = 1; i < points.Count; i++)
+                        mxPoint tmp = points[i];
+                        if (tmp != null)
                         {
-                            mxPoint tmp = points[i];
-                            if (tmp != null)
-                            {
-                                double dx = pt.X - tmp.X;
-                                double dy = pt.Y - tmp.Y;
+                            double dx = pt.X - tmp.X;
+                            double dy = pt.Y - tmp.Y;
 
-                                double segment = Math.Sqrt(dx * dx + dy * dy);
-                                segments[i - 1] = segment;
-                                length += segment;
-                                pt = tmp;
+                            double segment = Math.Sqrt(dx * dx + dy * dy);
+                            segments[i - 1] = segment;
+                            length += segment;
+                            pt = tmp;
 
-                                minX = Math.Min(pt.X, minX);
-                                minY = Math.Min(pt.Y, minY);
-                                maxX = Math.Max(pt.X, maxX);
-                                maxY = Math.Max(pt.Y, maxY);
-                            }
+                            minX = Math.Min(pt.X, minX);
+                            minY = Math.Min(pt.Y, minY);
+                            maxX = Math.Max(pt.X, maxX);
+                            maxY = Math.Max(pt.Y, maxY);
                         }
-
-                        state.Length = length;
-                        state.Segments = segments;
-                        double markerSize = 1; // TODO: include marker size
-
-                        state.X = minX;
-                        state.Y = minY;
-                        state.Width = Math.Max(markerSize, maxX - minX);
-                        state.Height = Math.Max(markerSize, maxY - minY);
                     }
-                    else
-                    {
-                        state.Length = 0;
-                    }
+
+                    state.Length = length;
+                    state.Segments = segments;
+                    double markerSize = 1; // TODO: include marker size
+
+                    state.X = minX;
+                    state.Y = minY;
+                    state.Width = Math.Max(markerSize, maxX - minX);
+                    state.Height = Math.Max(markerSize, maxY - minY);
+                }
+                else
+                {
+                    state.Length = 0;
                 }
             }
         }
-        
+
         /// <summary>
         /// Returns the absolute center point along the given edge.
         /// </summary>
@@ -1257,12 +1308,39 @@ namespace com.mxgraph
         }
 
         /// <summary>
+        /// Shortcut to removeState with recurse set to false.
+        /// </summary>
+        public mxCellState RemoveState(Object cell)
+        {
+            mxCellState state = null;
+
+            if (states.ContainsKey(cell))
+            {
+                state = states[cell];
+                states.Remove(cell);
+            }
+
+            return state;
+        }
+
+        /// <summary>
         /// Removes and returns the mxCellState for the given cell.
         /// </summary>
         /// <param name="cell">mxCell for which the mxCellState should be removed.</param>
         /// <returns>Returns the mxCellState that has been removed.</returns>
-        public mxCellState RemoveState(Object cell)
+        public mxCellState RemoveState(Object cell, Boolean recurse)
         {
+            if (recurse)
+            {
+                mxIGraphModel model = graph.Model;
+                int childCount = model.GetChildCount(cell);
+
+                for (int i = 0; i < childCount; i++)
+                {
+                    RemoveState(model.GetChildAt(cell, i), true);
+                }
+            }
+
             mxCellState state = null;
 
             if (states.ContainsKey(cell))
