@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraphHandler.java,v 1.1 2012/11/15 13:26:44 gaudenz Exp $
+ * $Id: mxGraphHandler.java,v 1.2 2014/02/16 09:54:20 gaudenz Exp $
  * Copyright (c) 2008-2012, JGraph Ltd
  * 
  * Known issue: Drag image size depends on the initial position and may sometimes
@@ -321,9 +321,10 @@ public class mxGraphHandler extends mxMouseAdapter implements
 		};
 
 		DragSource dragSource = new DragSource();
-		dragSource.createDefaultDragGestureRecognizer(
-				graphComponent.getGraphControl(),
-				DnDConstants.ACTION_COPY_OR_MOVE, dragGestureListener);
+		dragSource.createDefaultDragGestureRecognizer(graphComponent
+				.getGraphControl(),
+				(isCloneEnabled()) ? DnDConstants.ACTION_COPY_OR_MOVE
+						: DnDConstants.ACTION_MOVE, dragGestureListener);
 	}
 
 	/**
@@ -414,7 +415,7 @@ public class mxGraphHandler extends mxMouseAdapter implements
 	{
 		return new mxMovePreview(graphComponent);
 	}
-	
+
 	/**
 	 * 
 	 */
@@ -468,11 +469,12 @@ public class mxGraphHandler extends mxMouseAdapter implements
 					{
 						return null;
 					}
-					
+
 					parent = model.getParent(parent);
 				}
 
-				boolean clone = graphComponent.isCloneEvent(e) && cloneEnabled;
+				boolean clone = graphComponent.isCloneEvent(e)
+						&& isCloneEnabled();
 
 				if (isLocal && cell != null && cells.length > 0 && !clone
 						&& graph.getModel().getParent(cells[0]) == cell)
@@ -1402,23 +1404,26 @@ public class mxGraphHandler extends mxMouseAdapter implements
 		{
 			cells = graph.getCloneableCells(cells);
 		}
-
-		// Removes cells from parent
-		if (target == null
-				&& isRemoveCellsFromParent()
-				&& shouldRemoveCellFromParent(
-						graph.getModel().getParent(initialCell), cells, e))
+		
+		if (cells.length > 0)
 		{
-			target = graph.getDefaultParent();
-		}
-
-		Object[] tmp = graph.moveCells(cells, dx, dy, clone, target,
-				e.getPoint());
-
-		if (isSelectEnabled() && clone && tmp != null
-				&& tmp.length == cells.length)
-		{
-			graph.setSelectionCells(tmp);
+			// Removes cells from parent
+			if (target == null
+					&& isRemoveCellsFromParent()
+					&& shouldRemoveCellFromParent(
+							graph.getModel().getParent(initialCell), cells, e))
+			{
+				target = graph.getDefaultParent();
+			}
+	
+			Object[] tmp = graph.moveCells(cells, dx, dy, clone, target,
+					e.getPoint());
+	
+			if (isSelectEnabled() && clone && tmp != null
+					&& tmp.length == cells.length)
+			{
+				graph.setSelectionCells(tmp);
+			}
 		}
 	}
 

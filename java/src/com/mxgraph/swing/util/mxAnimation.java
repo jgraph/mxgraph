@@ -1,5 +1,5 @@
 /**
- * $Id: mxAnimation.java,v 1.1 2012/11/15 13:26:46 gaudenz Exp $
+ * $Id: mxAnimation.java,v 1.2 2014/02/15 10:31:28 gaudenz Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.swing.util;
@@ -65,6 +65,14 @@ public class mxAnimation extends mxEventSource
 	public void setDelay(int value)
 	{
 		delay = value;
+	}
+	
+	/**
+	 * Returns true if the animation is running.
+	 */
+	public boolean isRunning()
+	{
+		return timer != null;
 	}
 
 	/**

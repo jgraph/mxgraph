@@ -1,5 +1,5 @@
 /**
- * $Id: Graph.js,v 1.38 2014/02/05 14:48:51 gaudenz Exp $
+ * $Id: Graph.js,v 1.40 2014/02/17 13:46:29 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -56,6 +56,12 @@ Graph = function(container, model, renderHint, stylesheet)
 	{
 		this.container.style.cursor = 'default';
 	}));
+    
+    // Forces panning for middle mouse button
+	this.panningHandler.isForcePanningEvent = function(me)
+	{
+		return mxEvent.isMiddleMouseButton(me.getEvent());
+	};
 
 	this.popupMenuHandler.autoExpand = true;
 	
@@ -696,7 +702,7 @@ Graph.prototype.initTouch = function()
 				style.color = this.textarea.style.color;
 				
 				// Matches line height correctionFactor in embedded HTML output
-				if (state.text.node != null && state.text.node.ownerSVGElement != null)
+				if (state.text != null && state.text.node != null && state.text.node.ownerSVGElement != null)
 				{
 					var lh = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(parseInt(this.textarea.style.fontSize) * mxConstants.LINE_HEIGHT) + 'px' :
 						(mxConstants.LINE_HEIGHT * mxSvgCanvas2D.prototype.lineHeightCorrection);

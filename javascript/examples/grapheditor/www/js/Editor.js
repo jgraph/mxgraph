@@ -1,5 +1,5 @@
 /**
- * $Id: Editor.js,v 1.35 2014/01/22 09:58:22 gaudenz Exp $
+ * $Id: Editor.js,v 1.36 2014/02/11 09:27:17 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 // Specifies if local storage should be used (eg. on the iPad which has no filesystem)
@@ -320,8 +320,19 @@ Editor.prototype.updateGraphComponents = function()
 		
 		// Transparent.gif is a workaround for focus repaint problems in IE
 		var noBackground = (mxClient.IS_IE && document.documentMode >= 9) ? 'url(' + this.transparentImage + ')' : 'none';
-		graph.container.style.backgroundImage = (!graph.pageVisible && graph.isGridEnabled()) ? 'url(' + this.gridImage + ')' : noBackground;
-
+		graph.container.style.backgroundImage = noBackground;
+		
+		var bgImg = (!graph.pageVisible && graph.isGridEnabled()) ? 'url(' + this.gridImage + ')' : noBackground;
+		
+		if (graph.view.canvas.ownerSVGElement != null)
+		{
+			graph.view.canvas.ownerSVGElement.style.backgroundImage = bgImg;
+		}
+		else
+		{
+			graph.view.canvas.style.backgroundImage = bgImg;
+		}
+		
 		if (graph.view.backgroundPageShape != null)
 		{
 			graph.view.backgroundPageShape.node.style.backgroundImage = (this.graph.isGridEnabled()) ? 'url(' + this.gridImage + ')' : 'none';
@@ -536,7 +547,6 @@ Editor.prototype.init = function()
 				this.backgroundPageShape.redraw();
 				
 				this.backgroundPageShape.node.className = 'geBackgroundPage';
-				this.backgroundPageShape.node.style.backgroundPosition = '-1px -1px';
 				
 				// Adds listener for double click handling on background
 				mxEvent.addListener(this.backgroundPageShape.node, 'dblclick',
@@ -576,6 +586,7 @@ Editor.prototype.init = function()
 				this.backgroundPageShape.scale = 1;
 				this.backgroundPageShape.bounds = bounds;
 				this.backgroundPageShape.redraw();
+				this.backgroundPageShape.node.style.backgroundPosition = '-1px -1px';
 			}
 			
 			this.backgroundPageShape.node.style.backgroundImage = (this.graph.isGridEnabled()) ?

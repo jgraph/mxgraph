@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id: mxGraph.php,v 1.2 2013/10/28 08:45:06 gaudenz Exp $
+ * $Id: mxGraph.php,v 1.3 2014/02/19 09:41:00 gaudenz Exp $
  * Copyright (c) 2006-2013, Gaudenz Alder
  */
 
@@ -636,32 +636,28 @@ class mxGraph
             }
         }
 
-        if ($boundingBox)
-        {
-            $result = $this->view->getBoundingBox($cells);
-        }
-        else
-        {
-            $result = $this->view->getBounds($cells);
-        }
+		$result = $this->view->getBounds($cells, $boundingBox);
 		
 		// Recursively includes the bounds of the children
 		if ($includeDescendants)
 		{
-			$childCount = $this->model->getChildCount($cell);
-			
-			for ($i = 0; $i < $childCount; $i++)
+			for ($i = 0; $i < sizeof($cells); $i++)
 			{
-				$tmp = $this->getCellBounds($this->model->getChildAt($cell, $i),
-					$includeEdges, true, $boundingBox);
-
-				if ($result != null)
+				$childCount = $this->model->getChildCount($cells[$i]);
+				
+				for ($j = 0; $j < $childCount; $j++)
 				{
-					$result->add($tmp);
-				}
-				else
-				{
-					$result = $tmp;
+					$tmp = $this->getCellBounds($this->model->getChildAt($cells[$i], $j),
+						$includeEdges, true, $boundingBox);
+	
+					if ($result != null)
+					{
+						$result->add($tmp);
+					}
+					else
+					{
+						$result = $tmp;
+					}
 				}
 			}
 		}

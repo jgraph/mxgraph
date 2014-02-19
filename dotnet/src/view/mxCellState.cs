@@ -1,4 +1,4 @@
-// $Id: mxCellState.cs,v 1.1 2012/11/15 13:26:44 gaudenz Exp $
+// $Id: mxCellState.cs,v 1.2 2014/02/19 09:40:59 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Collections;
@@ -28,6 +28,11 @@ namespace com.mxgraph
         /// cell.
         /// </summary>
         protected Dictionary<string, Object> style;
+
+        /// <summary>
+        /// Specifies if the state is invalid. Default is true.
+        /// </summary>
+        protected Boolean invalid = true;
 
         /// <summary>
         /// Holds the origin for all child cells.
@@ -116,6 +121,15 @@ namespace com.mxgraph
         {
             get { return style; }
             set { style = value; }
+        }
+
+        /// <summary>
+        /// Sets or returns the invalid state.
+        /// </summary>
+        public Boolean Invalid
+        {
+            get { return invalid; }
+            set { invalid = value; }
         }
 
         /// <summary>

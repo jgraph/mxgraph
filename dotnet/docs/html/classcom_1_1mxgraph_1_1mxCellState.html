@@ -108,6 +108,8 @@ Protected Attributes</h2></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Reference to the cell that is represented by this state.  <a href="#a3f8a0eba22c9f3d32725d6e596cf9347"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">Dictionary&lt; string, Object &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html#a6adec96b54dafd297df12c6c8e528dde">style</a></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Contains an array of key, value pairs that represent the style of the cell.  <a href="#a6adec96b54dafd297df12c6c8e528dde"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">Boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html#a1ac85f359a2e06941fd3200a01af3470">invalid</a> = true</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies if the state is invalid. Default is true.  <a href="#a1ac85f359a2e06941fd3200a01af3470"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcom_1_1mxgraph_1_1mxPoint.html">mxPoint</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html#a6577aa53b15a2e1e69a526668905329a">origin</a> = new <a class="el" href="classcom_1_1mxgraph_1_1mxPoint.html">mxPoint</a>()</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Holds the origin for all child cells.  <a href="#a6577aa53b15a2e1e69a526668905329a"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">List&lt; <a class="el" href="classcom_1_1mxgraph_1_1mxPoint.html">mxPoint</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html#a9c5533740d7a9c6265fb347da039b61b">absolutePoints</a></td></tr>
@@ -132,6 +134,8 @@ Properties</h2></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets or returns the cell that is represented by this state.  <a href="#ad869fc482a1717e44470b6354390fc3e"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">Dictionary&lt; string, Object &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html#aafe546b3ab027ffd03fa58c016993569">Style</a><code> [get, set]</code></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets or returns the cell style as a map of key, value pairs.  <a href="#aafe546b3ab027ffd03fa58c016993569"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">Boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html#acf680b3a1eaff1cd66429b803cd7ee89">Invalid</a><code> [get, set]</code></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets or returns the invalid state.  <a href="#acf680b3a1eaff1cd66429b803cd7ee89"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcom_1_1mxgraph_1_1mxPoint.html">mxPoint</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html#aa9a8885ab5bdcb7881d7e5f9fc8a7572">Origin</a><code> [get, set]</code></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets or returns the origin for the children.  <a href="#aa9a8885ab5bdcb7881d7e5f9fc8a7572"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">List&lt; <a class="el" href="classcom_1_1mxgraph_1_1mxPoint.html">mxPoint</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html#a83abc5af3503a67998ef1f01dd0be8ff">AbsolutePoints</a><code> [get, set]</code></td></tr>
@@ -396,6 +400,21 @@ Properties</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a1ac85f359a2e06941fd3200a01af3470"></a><!-- doxytag: member="com::mxgraph::mxCellState::invalid" ref="a1ac85f359a2e06941fd3200a01af3470" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Boolean <a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html#a1ac85f359a2e06941fd3200a01af3470">com.mxgraph.mxCellState.invalid</a> = true<code> [protected]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Specifies if the state is invalid. Default is true. </p>
+
+</div>
+</div>
 <a class="anchor" id="a9d3730d7485af6ec74bb266afe362835"></a><!-- doxytag: member="com::mxgraph::mxCellState::labelBounds" ref="a9d3730d7485af6ec74bb266afe362835" args="" -->
 <div class="memitem">
 <div class="memproto">
@@ -562,6 +581,21 @@ Properties</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="acf680b3a1eaff1cd66429b803cd7ee89"></a><!-- doxytag: member="com::mxgraph::mxCellState::Invalid" ref="acf680b3a1eaff1cd66429b803cd7ee89" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Boolean <a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html#acf680b3a1eaff1cd66429b803cd7ee89">com.mxgraph.mxCellState.Invalid</a><code> [get, set]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Sets or returns the invalid state. </p>
+
+</div>
+</div>
 <a class="anchor" id="a0d097480311f00c4c835f5103a9da3af"></a><!-- doxytag: member="com::mxgraph::mxCellState::LabelBounds" ref="a0d097480311f00c4c835f5103a9da3af" args="" -->
 <div class="memitem">
 <div class="memproto">
@@ -674,7 +708,7 @@ Properties</h2></td></tr>
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Feb 10 2014 12:23:00 for mxGraph by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Feb 19 2014 14:16:24 for mxGraph by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.7.6.1
 </small></address>

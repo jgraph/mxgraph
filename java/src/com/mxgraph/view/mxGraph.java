@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.java,v 1.4 2013/11/26 16:38:00 gaudenz Exp $
+ * $Id: mxGraph.java,v 1.6 2014/02/19 09:40:59 gaudenz Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.view;
@@ -195,9 +195,9 @@ public class mxGraph extends mxEventSource
 
 	/**
 	 * Holds the version number of this release. Current version
-	 * is 2.4.1.0.
+	 * is 2.5.0.0.
 	 */
-	public static final String VERSION = "2.4.1.0";
+	public static final String VERSION = "2.5.0.0";
 
 	/**
 	 * 
@@ -1153,6 +1153,7 @@ public class mxGraph extends mxEventSource
 			removeStateForCell(model.getChildAt(cell, i));
 		}
 
+		view.invalidate(cell);
 		view.removeState(cell);
 	}
 
@@ -4738,7 +4739,6 @@ public class mxGraph extends mxEventSource
 	public mxRectangle getCellBounds(Object cell, boolean includeEdges,
 			boolean includeDescendants, boolean boundingBox)
 	{
-		mxRectangle result = null;
 		Object[] cells;
 
 		// Recursively includes connected edges
@@ -4773,32 +4773,28 @@ public class mxGraph extends mxEventSource
 			cells = new Object[] { cell };
 		}
 
-		if (boundingBox)
-		{
-			result = view.getBoundingBox(cells);
-		}
-		else
-		{
-			result = view.getBounds(cells);
-		}
+		mxRectangle result = view.getBounds(cells, boundingBox);
 
 		// Recursively includes the bounds of the children
 		if (includeDescendants)
 		{
-			int childCount = model.getChildCount(cell);
-
-			for (int i = 0; i < childCount; i++)
+			for (int i = 0; i < cells.length; i++)
 			{
-				mxRectangle tmp = getCellBounds(model.getChildAt(cell, i),
-						includeEdges, true, boundingBox);
-
-				if (result != null)
+				int childCount = model.getChildCount(cells[i]);
+	
+				for (int j = 0; j < childCount; j++)
 				{
-					result.add(tmp);
-				}
-				else
-				{
-					result = tmp;
+					mxRectangle tmp = getCellBounds(model.getChildAt(cells[i], j),
+							includeEdges, true, boundingBox);
+	
+					if (result != null)
+					{
+						result.add(tmp);
+					}
+					else
+					{
+						result = tmp;
+					}
 				}
 			}
 		}

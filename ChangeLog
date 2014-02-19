@@ -1,3 +1,20 @@
+19-FEB-2014: 2.5.0.0
+
+- Adds mxVmlCanvas2D.create(Vml)Element hooks [JavaScript]
+- Adds child bounds for connected edges in mxGraph.getCellBounds [Java,Dotnet,Php]
+- Replaces mxGraphView.getBoundingBox for arrays with getBounds and boolean argument [Php]
+- Adds mxGraphView.validateCell(State), updateCell-/Vertex-/EdgeState, getBoundingBox [Java,JavaScript,Dotnet,Php]
+- Removes mxGraphView.validateBounds/-Points and childMoved [Java,JavaScript,Dotnet,Php]
+- Adds mxCellState.invalid [Dotnet]
+- Ignores empty fore-/background divs in mxGraph.panGraph [JavaScript]
+- Adds mxEvent.isMiddleMouseButton [JavaScript]
+- Disables DnD copy if cloneEnabled is false in mxGraphHandler [Java]
+- Fixes selection in mxGraphHandler for no cloneable cells [Java]
+- Invalidates connected edges in mxGraph.removeStateForCell [Java,JavaScript]
+- Adds mxAnimation.isRunning [Java,JavaScript]
+- Ignores possible NS_ERROR_FAILURE in mxSvgCanvas2D.addTextBackground for FF [JavaScript]
+- Removes mxUtils.open, save, saveAs and copy [JavaScript]
+
 10-FEB-2014: 2.4.1.0
 
 - Adds mxPrintPreview.printBackgroundImage switch [JavaScript]
@@ -113,7 +130,7 @@
 - Replaces check in mxGraphHandler with mxGraph.isEventSourceIgnored [JavaScript]
 - Changes default of mxGraph.keepEdgesInForeground to false [JavaScript]
 - Removes mxGraph.ordered, keepEdgesInBackground switches [JavaScript]
-- Removes dbeditor.html, extjs.html examples [JavaScript]
+- Removes dbeditor.html, extjs.html examples [Java,JavaScript,Dotnet,Php]
 
 23-OCT-2013: 2.2.0.5
 

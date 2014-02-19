@@ -1,5 +1,5 @@
 /**
- * $Id: mxCellStatePreview.java,v 1.1 2012/11/15 13:26:49 gaudenz Exp $
+ * $Id: mxCellStatePreview.java,v 1.2 2014/02/19 09:41:00 gaudenz Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.swing.view;
@@ -333,9 +333,7 @@ public class mxCellStatePreview
 
 			if (model.isVertex(cell))
 			{
-				// LATER: Use hashtable to store initial state bounds
-				state.setInvalid(true);
-				graph.getView().validateBounds(parentState, cell);
+				state.getView().updateCellState(state);
 				mxGeometry geo = graph.getCellGeometry(cell);
 
 				// Moves selection cells and non-relative vertices in
@@ -373,11 +371,15 @@ public class mxCellStatePreview
 			mxGraph graph = graphComponent.getGraph();
 			mxIGraphModel model = graph.getModel();
 			Object cell = state.getCell();
-
+			
 			// Updates the edge terminal points and restores the
 			// (relative) positions of any (relative) children
-			state.setInvalid(true);
-			dirty = graph.getView().validatePoints(parentState, cell);
+			if (model.isEdge(cell))
+			{
+				state.getView().updateCellState(state);
+			}
+			
+			dirty = state.getView().getBoundingBox(state, false);
 
 			// Moves selection vertices which are relative
 			mxGeometry geo = graph.getCellGeometry(cell);

@@ -52,19 +52,11 @@ namespace com.mxgraph
                     view.States = new Dictionary<Object, mxCellState>();
                     view.Scale = scale;
 
-                    // Creates virtual parent state for validation
-                    mxCellState state = view.CreateState(new mxCell());
-
                     // Validates the vertices and edges without adding them to
                     // the model so that the original cells are not modified
                     for (int i = 0; i < cells.Length; i++)
                     {
-                        view.ValidateBounds(state, cells[i]);
-                    }
-
-                    for (int i = 0; i < cells.Length; i++)
-                    {
-                        view.ValidatePoints(state, cells[i]);
+                        view.ValidateCellState(view.ValidateCell(cells[i]));
                     }
 
                     if (clip == null)
