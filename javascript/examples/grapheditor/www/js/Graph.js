@@ -291,8 +291,6 @@ Graph.prototype.isContainer = function(cell)
 	
 		return style['container'] == '1';
 	}
-	
-	return false;
 };
 
 /**
