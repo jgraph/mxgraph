@@ -1,3 +1,7 @@
+21-FEB-2014: 2.5.0.1
+
+- Fixes mxVmlCanvas2D.ellipse, mxVmlCanvas2D.image [JavaScript]
+
 19-FEB-2014: 2.5.0.0
 
 - Adds mxVmlCanvas2D.create(Vml)Element hooks [JavaScript]
