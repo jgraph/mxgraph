@@ -525,7 +525,7 @@ mxVmlCanvas2D.prototype.roundrect = function(x, y, w, h, dx, dy)
  */
 mxVmlCanvas2D.prototype.ellipse = function(x, y, w, h)
 {
-	this.node = this.createCreate('oval', x, y, w, h);
+	this.node = this.createRect('oval', x, y, w, h);
 };
 
 /**
@@ -539,13 +539,13 @@ mxVmlCanvas2D.prototype.image = function(x, y, w, h, src, aspect, flipH, flipV)
 	
 	if (!aspect)
 	{
-		node = this.createCreate('image', x, y, w, h);
+		node = this.createRect('image', x, y, w, h);
 		node.src = src;
 	}
 	else
 	{
 		// Uses fill with aspect to avoid asynchronous update of size
-		node = this.createVmlElement('rect', x, y, w, h);
+		node = this.createRect('rect', x, y, w, h);
 		node.stroked = 'false';
 		
 		// Handles image aspect via fill
