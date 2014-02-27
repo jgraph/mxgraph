@@ -134,6 +134,14 @@ mxXmlRequest.prototype.async = null;
 mxXmlRequest.prototype.binary = false;
 
 /**
+ * Variable: withCredentials
+ * 
+ * Specifies if withCredentials should be used in HTML5-compliant browsers. Default is
+ * false.
+ */
+mxXmlRequest.prototype.withCredentials = false;
+
+/**
  * Variable: username
  * 
  * Specifies the username to be used for authentication.
@@ -328,6 +336,12 @@ mxXmlRequest.prototype.send = function(onload, onerror)
 		this.request.open(this.method, this.url, this.async,
 			this.username, this.password);
 		this.setRequestHeaders(this.request, this.params);
+		
+		if (window.XMLHttpRequest && this.withCredentials)
+		{
+			this.request.withCredentials = 'true';
+		}
+		
 		this.request.send(this.params);
 	}
 };

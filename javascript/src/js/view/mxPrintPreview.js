@@ -301,7 +301,8 @@ mxPrintPreview.prototype.getDoctype = function()
 	}
 	else if (document.documentMode > 8)
 	{
-		dt = '<meta http-equiv="X-UA-Compatible" content="IE=edge">';
+		// Comment needed to make standards doctype apply in IE
+		dt = '<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->';
 	}
 	
 	return dt;
@@ -353,6 +354,11 @@ mxPrintPreview.prototype.open = function(css)
 			}
 			else
 			{
+				if (document.compatMode === 'CSS1Compat')
+				{
+					doc.writeln('<!DOCTYPE html>');
+				}
+				
 				doc.writeln('<html>');
 			}
 			

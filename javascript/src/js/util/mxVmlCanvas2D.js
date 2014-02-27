@@ -301,7 +301,7 @@ mxVmlCanvas2D.prototype.getVmlDashStyle = function()
 {
 	var result = 'dash';
 	
-	if (this.state.dashPattern != null)
+	if (typeof(this.state.dashPattern) === 'string')
 	{
 		var tok = this.state.dashPattern.split(' ');
 		

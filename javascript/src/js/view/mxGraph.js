@@ -3108,7 +3108,12 @@ mxGraph.prototype.postProcessCellStyle = function(style)
 		// Converts short data uris to normal data uris
 		if (image != null && image.substring(0, 11) == 'data:image/')
 		{
-			if (image.substring(0, 19) != 'data:image/svg+xml,')
+			if (image.substring(0, 20) == 'data:image/svg+xml,<')
+			{
+				// Required for FF and IE11
+				image = image.substring(0, 19) + encodeURIComponent(image.substring(19));
+			}
+			else if (image.substring(0, 22) != 'data:image/svg+xml,%3C')
 			{
 				var comma = image.indexOf(',');
 				
@@ -4384,13 +4389,15 @@ mxGraph.prototype.cellsAdded = function(cells, parent, index, source, target, ab
 					{
 						this.autoSizeCell(cells[i], true);
 					}
-	
+
 					// Extends the parent or constrains the child
 					if (this.isExtendParentsOnAdd() && this.isExtendParent(cells[i]))
 					{
 						this.extendParent(cells[i]);
 					}
-					else if (constrain == null || constrain)
+					
+					// Additionally constrains the child after extending the parent
+					if (constrain == null || constrain)
 					{
 						this.constrainChild(cells[i]);
 					}
@@ -11626,7 +11633,7 @@ mxGraph.prototype.isSyntheticEventIgnored = function(evtName, me, sender)
  */
 mxGraph.prototype.isEventSourceIgnored = function(evtName, me)
 {
-	var name = me.getSource().nodeName.toLowerCase();
+	var name = (me.getSource() != null) ? me.getSource().nodeName.toLowerCase() : '';
 	
 	return evtName == mxEvent.MOUSE_DOWN && (name == 'select' || name == 'option'
 		|| name == 'button' || name == 'a' || name == 'input');

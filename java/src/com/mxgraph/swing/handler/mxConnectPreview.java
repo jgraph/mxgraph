@@ -82,13 +82,6 @@ public class mxConnectPreview extends mxEventSource
 						(startState != null) ? startState.getCell() : null,
 						null, style));
 		((mxICell) startState.getCell()).insertEdge(cell, true);
-		
-		mxCell child = new mxCell("Test");
-		mxGeometry geo = new mxGeometry();
-		geo.setRelative(true);
-		child.setGeometry(geo);
-		child.setVertex(true);
-		cell.insert(child);
 
 		return cell;
 	}

@@ -650,15 +650,18 @@ mxSvgCanvas2D.prototype.updateStrokeAttributes = function()
  */
 mxSvgCanvas2D.prototype.createDashPattern = function(scale)
 {
-	var s = this.state;
-	var dash = s.dashPattern.split(' ');
 	var pat = [];
 	
-	if (dash.length > 0)
+	if (typeof(this.state.dashPattern) === 'string')
 	{
-		for (var i = 0; i < dash.length; i++)
+		var dash = this.state.dashPattern.split(' ');
+		
+		if (dash.length > 0)
 		{
-			pat[i] = Number(dash[i]) * scale;
+			for (var i = 0; i < dash.length; i++)
+			{
+				pat[i] = Number(dash[i]) * scale;
+			}
 		}
 	}
 	
