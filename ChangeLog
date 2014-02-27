@@ -1,3 +1,11 @@
+- Removes Test label in mxConnectPreview [Java]
+- Fixes possible NPE in mxGraph.isEventSourceIgnored [JavaScript]
+- Fixes handling of data URIs in mxGraph.postProcessCellStyle [JavaScript]
+- Fixes possible type error in mxSvgCanvas2D.createDashPattern, mxVmlCanvas2D.getVmlDashStyle [JavaScript]
+- Adds HTML5 doctype in mxPrintPreview for CSS1Compat documents [JavaScript]
+- Adds mxXmlRequest.withCredentials option [JavaScript]
+- Fixes constrainChild in mxGraph.cellsAdded after extending parent [JavaScript]
+
 21-FEB-2014: 2.5.0.1
 
 - Fixes mxVmlCanvas2D.ellipse, mxVmlCanvas2D.image [JavaScript]

@@ -503,7 +503,7 @@ Sidebar.prototype.addUmlPalette = function(expand)
     	classCell.vertex = true;
     	content.appendChild(this.createVertexTemplateFromCells([classCell], 160, 90, 'Object', true));
 
-    	var tableCell = new mxCell('<div style="width:100%;background:#e4e4e4;padding:2px;margin:1px;">Tablename</div><table style="width:100%;">' +
+    	var tableCell = new mxCell('<div style="box-sizing:border-box;width:100%;background:#e4e4e4;margin:1px;padding:2px;">Tablename</div><table style="width:100%;">' +
 				'<tr><td>PK</td><td style="padding:2px;">uniqueId</td></tr>' +
 				'<tr><td>FK1</td><td style="padding:2px;">foreignKey</td></tr>' +
 				'<tr><td></td><td style="padding:2px;">fieldname</td></tr>' +
