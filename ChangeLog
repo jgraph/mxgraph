@@ -1,3 +1,5 @@
+27-FEB-2014: 2.5.0.2
+
 - Removes Test label in mxConnectPreview [Java]
 - Fixes possible NPE in mxGraph.isEventSourceIgnored [JavaScript]
 - Fixes handling of data URIs in mxGraph.postProcessCellStyle [JavaScript]
