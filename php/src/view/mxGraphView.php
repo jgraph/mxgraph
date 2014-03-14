@@ -479,22 +479,32 @@ class mxGraphView extends mxEventSource
 	 */
 	function updateEdgeState($state, $geo, $source, $target)
 	{
-		$this->updateFixedTerminalPoints($state, $source, $target);
-		$this->updatePoints($state, $geo->points, $source, $target);
-		$this->updateFloatingTerminalPoints($state, $source, $target);
-		
-		$pts = $state->absolutePoints;
-		
-		if ($pts == null || sizeof($pts) < 1 || $pts[0] == null || $pts[sizeof($pts) - 1] == null)
+		// This will remove edges with no terminals and no terminal points
+		// as such edges are invalid and produce NPEs in the edge styles.
+		if (($source == null && $geo->getTerminalPoint(true) == null)
+		|| ($target == null && $geo->getTerminalPoint(false) == null))
 		{
-			// This will remove edges with invalid points from the list of states in the view.
-			// Happens if the one of the terminals and the corresponding terminal point is null.
 			$this->removeState($state->cell, true);
 		}
 		else
 		{
-			$this->updateEdgeBounds($state);
-			$state->absoluteOffset = $this->getPoint($state, $geo);
+			$this->updateFixedTerminalPoints($state, $source, $target);
+			$this->updatePoints($state, $geo->points, $source, $target);
+			$this->updateFloatingTerminalPoints($state, $source, $target);
+			
+			$pts = $state->absolutePoints;
+			
+			if ($pts == null || sizeof($pts) < 1 || $pts[0] == null || $pts[sizeof($pts) - 1] == null)
+			{
+				// This will remove edges with invalid points from the list of states in the view.
+				// Happens if the one of the terminals and the corresponding terminal point is null.
+				$this->removeState($state->cell, true);
+			}
+			else
+			{
+				$this->updateEdgeBounds($state);
+				$state->absoluteOffset = $this->getPoint($state, $geo);
+			}
 		}
 	}
 	

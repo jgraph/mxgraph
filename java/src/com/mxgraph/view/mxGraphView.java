@@ -732,25 +732,33 @@ public class mxGraphView extends mxEventSource
 		mxCellState source = state.getVisibleTerminalState(true);
 		mxCellState target = state.getVisibleTerminalState(false);
 
-		updateFixedTerminalPoints(state, source, target);
-		updatePoints(state, geo.getPoints(), source, target);
-		updateFloatingTerminalPoints(state, source, target);
-
-		if (state.getAbsolutePointCount() < 2
-				|| state.getAbsolutePoint(0) == null
-				|| state.getAbsolutePoint(state.getAbsolutePointCount() - 1) == null)
+		// This will remove edges with no terminals and no terminal points
+		// as such edges are invalid and produce NPEs in the edge styles.
+		if ((source == null && geo.getTerminalPoint(true) == null)
+				|| (target == null && geo.getTerminalPoint(false) == null))
 		{
-			// This will remove edges with invalid points from the list of states in the view.
-			// Happens if the one of the terminals and the corresponding terminal point is null.
-			if (state.getCell() != getCurrentRoot())
-			{
-				clear(state.getCell(), true, true);
-			}
+			clear(state.cell, true, true);
 		}
 		else
 		{
-			updateEdgeBounds(state);
-			state.setAbsoluteOffset(getPoint(state, geo));
+			updateFixedTerminalPoints(state, source, target);
+			updatePoints(state, geo.getPoints(), source, target);
+			updateFloatingTerminalPoints(state, source, target);
+
+			if (state.getCell() != getCurrentRoot()
+					&& (state.getAbsolutePointCount() < 2
+							|| state.getAbsolutePoint(0) == null || state
+							.getAbsolutePoint(state.getAbsolutePointCount() - 1) == null))
+			{
+				// This will remove edges with invalid points from the list of states in the view.
+				// Happens if the one of the terminals and the corresponding terminal point is null.
+				clear(state.getCell(), true, true);
+			}
+			else
+			{
+				updateEdgeBounds(state);
+				state.setAbsoluteOffset(getPoint(state, geo));
+			}
 		}
 	}
 

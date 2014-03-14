@@ -6,6 +6,7 @@ package com.mxgraph.util;
 
 import java.awt.Color;
 import java.util.HashMap;
+import java.util.regex.Pattern;
 
 /**
  * Contains various helper methods for use with mxGraph.
@@ -17,6 +18,9 @@ public class mxHtmlColor
 	 * HTML color lookup table. Supports the 147 CSS color names.
 	 */
 	protected static HashMap<String, Color> htmlColors = new HashMap<String, Color>();
+
+	protected static final Pattern rgbRegex = Pattern.compile(
+			"rgba?\\([^)]*\\)", Pattern.CASE_INSENSITIVE);
 
 	/**
 	 * 
@@ -39,7 +43,8 @@ public class mxHtmlColor
 	 */
 	public static String getHexColorString(Color color)
 	{
-		return Integer.toHexString((color.getRGB() & 0x00FFFFFF) | (color.getAlpha() << 24));
+		return Integer.toHexString((color.getRGB() & 0x00FFFFFF)
+				| (color.getAlpha() << 24));
 	}
 
 	/**
@@ -62,10 +67,14 @@ public class mxHtmlColor
 		{
 			return null;
 		}
+		else if (rgbRegex.matcher(str).matches())
+		{
+			return parseRgb(str);
+		}
 		else if (!str.startsWith("#"))
 		{
 			Color result = htmlColors.get(str);
-			
+
 			// LATER: Return the result even if it's null to avoid invalid color codes
 			if (result != null)
 			{
@@ -75,8 +84,10 @@ public class mxHtmlColor
 		else if (str.length() == 4)
 		{
 			// Adds support for special short notation of hex colors, eg. #abc=#aabbcc
-			str = new String(new char[] { '#', str.charAt(1), str.charAt(1), str.charAt(2),
-					str.charAt(2), str.charAt(3), str.charAt(3) });
+			str = new String(
+					new char[] { '#', str.charAt(1), str.charAt(1),
+							str.charAt(2), str.charAt(2), str.charAt(3),
+							str.charAt(3) });
 		}
 
 		int value = 0;
@@ -105,7 +116,45 @@ public class mxHtmlColor
 
 		return new Color(value);
 	}
-	
+
+	protected static Color parseRgb(String rgbString)
+	{
+		String[] values = rgbString.split("[\\s,()]");
+
+		String red = values[1];
+		String green = values[2];
+		String blue = values[3];
+		String alpha = "1.0";
+
+		if (values.length >= 5)
+		{
+			alpha = values[4];
+		}
+
+		return new Color(parseValue(red, 255), parseValue(green, 255),
+				parseValue(blue, 255), parseAlpha(alpha));
+	}
+
+	protected static float parseValue(String val, int max)
+	{
+		if (val.endsWith("%"))
+		{
+			return (float) (parsePercent(val) * max / max);
+		}
+		
+		return (float) (Integer.parseInt(val) / max);
+	}
+
+	protected static double parsePercent(String perc)
+	{
+		return Integer.parseInt(perc.substring(0, perc.length() - 1)) / 100.0;
+	}
+
+	protected static float parseAlpha(String alpha)
+	{
+		return Float.parseFloat(alpha);
+	}
+
 	/**
 	 * Initializes HTML color table.
 	 */
@@ -259,5 +308,5 @@ public class mxHtmlColor
 		htmlColors.put("yellow", parseColor("#FFFF00"));
 		htmlColors.put("yellowgreen", parseColor("#9ACD32"));
 	}
-	
+
 }

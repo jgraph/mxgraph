@@ -746,7 +746,7 @@ function FilenameDialog(editorUi, filename, buttonText, fn, label)
 /**
  * Constructs a new textarea dialog.
  */
-function TextareaDialog(editorUi, title, url, fn, cancelFn)
+function TextareaDialog(editorUi, title, url, fn, cancelFn, cancelTitle)
 {
 	var row, td;
 	
@@ -771,6 +771,8 @@ function TextareaDialog(editorUi, title, url, fn, cancelFn)
 	nameInput.style.width = '300px';
 	nameInput.style.height = '100px';
 	
+	this.textarea = nameInput;
+	
 	this.init = function()
 	{
 		nameInput.focus();
@@ -788,15 +790,18 @@ function TextareaDialog(editorUi, title, url, fn, cancelFn)
 	td.style.whiteSpace = 'nowrap';
 	td.setAttribute('align', 'right');
 
-	var genericBtn = mxUtils.button(mxResources.get('apply'), function()
+	if (fn != null)
 	{
-		editorUi.hideDialog();
-		fn(nameInput.value);
-	});
+		var genericBtn = mxUtils.button(mxResources.get('apply'), function()
+		{
+			editorUi.hideDialog();
+			fn(nameInput.value);
+		});
+		
+		td.appendChild(genericBtn);
+	}
 	
-	td.appendChild(genericBtn);
-	
-	td.appendChild(mxUtils.button(mxResources.get('cancel'), function()
+	td.appendChild(mxUtils.button(cancelTitle || mxResources.get('cancel'), function()
 	{
 		editorUi.hideDialog();
 		
@@ -807,8 +812,6 @@ function TextareaDialog(editorUi, title, url, fn, cancelFn)
 	}));
 	
 	row.appendChild(td);
-	tbody.appendChild(row);
-	
 	tbody.appendChild(row);
 	table.appendChild(tbody);
 	this.container = table;

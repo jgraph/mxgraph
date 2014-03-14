@@ -486,21 +486,31 @@ namespace com.mxgraph
         /// </summary>
         public void UpdateEdgeState(mxCellState state, mxGeometry geo, mxCellState source, mxCellState target)
         {
-            UpdateFixedTerminalPoints(state, source, target);
-            UpdatePoints(state, geo.Points, source, target);
-            UpdateFloatingTerminalPoints(state, source, target);
-
-            if (state.AbsolutePointCount() < 2 || state.AbsolutePoints[0] == null || state
-                            .AbsolutePoints[state.AbsolutePointCount() - 1] == null)
+            // This will remove edges with no terminals and no terminal points
+            // as such edges are invalid and produce NPEs in the edge styles.
+            if ((source == null && geo.GetTerminalPoint(true) == null) ||
+                (target == null && geo.GetTerminalPoint(false) == null))
             {
-                // This will remove edges with invalid points from the list of states in the view.
-                // Happens if the one of the terminals and the corresponding terminal point is null.
                 RemoveState(state.Cell, true);
             }
             else
             {
-                UpdateEdgeBounds(state);
-                state.AbsoluteOffset = GetPoint(state, geo);
+                UpdateFixedTerminalPoints(state, source, target);
+                UpdatePoints(state, geo.Points, source, target);
+                UpdateFloatingTerminalPoints(state, source, target);
+
+                if (state.AbsolutePointCount() < 2 || state.AbsolutePoints[0] == null || state
+                                .AbsolutePoints[state.AbsolutePointCount() - 1] == null)
+                {
+                    // This will remove edges with invalid points from the list of states in the view.
+                    // Happens if the one of the terminals and the corresponding terminal point is null.
+                    RemoveState(state.Cell, true);
+                }
+                else
+                {
+                    UpdateEdgeBounds(state);
+                    state.AbsoluteOffset = GetPoint(state, geo);
+                }
             }
         }
 
