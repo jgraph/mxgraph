@@ -145,7 +145,7 @@ mxPanningHandler.prototype.isPanningTrigger = function(me)
 {
 	var evt = me.getEvent();
 	
-	return (this.useLeftButtonForPanning && (this.ignoreCell || me.getState() == null) &&
+	return (this.useLeftButtonForPanning && me.getState() == null &&
 			mxEvent.isLeftMouseButton(evt)) || (mxEvent.isControlDown(evt) &&
 			mxEvent.isShiftDown(evt)) || (this.usePopupTrigger && mxEvent.isPopupTrigger(evt));
 };
@@ -158,7 +158,7 @@ mxPanningHandler.prototype.isPanningTrigger = function(me)
  */
 mxPanningHandler.prototype.isForcePanningEvent = function(me)
 {
-	return false;
+	return this.ignoreCell;
 };
 
 /**

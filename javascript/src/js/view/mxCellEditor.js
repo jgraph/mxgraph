@@ -482,17 +482,7 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 			
 			if (this.selectText)
 			{
-				if (mxClient.IS_IOS)
-				{
-					// Workaround to select all text on iOS
-					window.setTimeout(mxUtils.bind(this, function() {
-					    this.textarea.setSelectionRange(0, 9999);
-					}), 1);
-				}
-				else
-				{
-					this.textarea.select();
-				}
+				document.execCommand('selectall');
 			}
 		}
 	}

@@ -1106,25 +1106,33 @@ mxGraphView.prototype.updateEdgeState = function(state, geo)
 	var source = state.getVisibleTerminalState(true);
 	var target = state.getVisibleTerminalState(false);
 	
-	this.updateFixedTerminalPoints(state, source, target);
-	this.updatePoints(state, geo.points, source, target);
-	this.updateFloatingTerminalPoints(state, source, target);
-	
-	var pts = state.absolutePoints;
-	
-	if (pts == null || pts.length < 2 || pts[0] == null || pts[pts.length - 1] == null)
+	// This will remove edges with no terminals and no terminal points
+	// as such edges are invalid and produce NPEs in the edge styles.
+	if ((source == null && geo.getTerminalPoint(true) == null) ||
+		(target == null && geo.getTerminalPoint(false) == null))
 	{
-		// This will remove edges with invalid points from the list of states in the view.
-		// Happens if the one of the terminals and the corresponding terminal point is null.
-		if (state.cell != this.currentRoot)
-		{
-			this.clear(state.cell, true);
-		}
+		this.clear(state.cell, true);
 	}
 	else
 	{
-		this.updateEdgeBounds(state);
-		this.updateEdgeLabelOffset(state);
+		this.updateFixedTerminalPoints(state, source, target);
+		this.updatePoints(state, geo.points, source, target);
+		this.updateFloatingTerminalPoints(state, source, target);
+		
+		var pts = state.absolutePoints;
+		
+		if (state.cell != this.currentRoot && (pts == null || pts.length < 2 ||
+			pts[0] == null || pts[pts.length - 1] == null))
+		{
+			// This will remove edges with invalid points from the list of states in the view.
+			// Happens if the one of the terminals and the corresponding terminal point is null.
+			this.clear(state.cell, true);
+		}
+		else
+		{
+			this.updateEdgeBounds(state);
+			this.updateEdgeLabelOffset(state);
+		}
 	}
 };
 

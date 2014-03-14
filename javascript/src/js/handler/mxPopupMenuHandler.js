@@ -3,7 +3,7 @@
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
- * Class: mxPanningHandler
+ * Class: mxPopupMenuHandler
  * 
  * Event handler that creates popupmenus.
  * 
@@ -26,7 +26,7 @@ function mxPopupMenuHandler(graph, factoryMethod)
  * Extends mxPopupMenu.
  */
 mxPopupMenuHandler.prototype = new mxPopupMenu();
-mxPopupMenuHandler.prototype.constructor = mxPanningHandler;
+mxPopupMenuHandler.prototype.constructor = mxPopupMenuHandler;
 
 /**
  * Variable: graph

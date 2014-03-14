@@ -654,7 +654,7 @@ mxPrintPreview.prototype.createPageSelector = function(vpages, hpages)
 
 			// Workaround for FF where the anchor is appended to the URL of the original document
 			if (mxClient.IS_NS && !mxClient.IS_SF && !mxClient.IS_GC)
-			{					
+			{
 				var js = 'var page = document.getElementById(\'mxPage-' + pageNum + '\');page.scrollIntoView(true);event.preventDefault();';
 				a.setAttribute('onclick', js);
 			}

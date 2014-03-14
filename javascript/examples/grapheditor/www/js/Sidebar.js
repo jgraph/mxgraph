@@ -110,7 +110,7 @@ Sidebar.prototype.tooltipBorder = 16;
 /**
  * Specifies the delay for the tooltip. Default is 3 px.
  */
-Sidebar.prototype.thumbBorder = 3;
+Sidebar.prototype.thumbBorder = 2;
 
 /**
  * Specifies the delay for the tooltip. Default is 300 ms.
@@ -838,17 +838,10 @@ Sidebar.prototype.createThumb = function(cells, width, height, parent, title, sh
 	this.graph.view.scaleAndTranslate(1, 0, 0);
 	this.graph.addCells(cells);
 	var bounds = this.graph.getGraphBounds();
-	var corr = this.thumbBorder;
-	var s = Math.round(Math.min((width - 2) / (bounds.width - bounds.x + corr),
-		(height - 2) / (bounds.height - bounds.y + corr)) * 100) / 100;
-	var x0 = -Math.min(bounds.x, 0);
-	var y0 = -Math.min(bounds.y, 0);
-	this.graph.view.scaleAndTranslate(s, x0, y0);
-	
-	bounds = this.graph.getGraphBounds();
-	var dx = Math.max(0, Math.floor((width - bounds.width - bounds.x) / 2));
-	var dy = Math.max(0, Math.floor((height - bounds.height - bounds.y) / 2));
-
+	var s = Math.floor(Math.min((width - 2 * this.thumbBorder) / bounds.width, (height - 2 * this.thumbBorder)
+		/ bounds.height) * 100) / 100;
+	this.graph.view.scaleAndTranslate(s, (width - bounds.width * s) / 2 / s - bounds.x,
+			(height - bounds.height * s) / 2 / s - bounds.y);
 	var node = null;
 	
 	// For supporting HTML labels in IE9 standards mode the container is cloned instead
@@ -871,12 +864,11 @@ Sidebar.prototype.createThumb = function(cells, width, height, parent, title, sh
 		parent.style.backgroundImage = 'url(' + this.editorUi.editor.transparentImage + ')';
 	}
 	
-	var dd = 3;
 	node.style.position = 'relative';
 	node.style.overflow = 'hidden';
 	node.style.cursor = 'pointer';
-	node.style.left = (dx + dd) + 'px';
-	node.style.top = (dy + dd) + 'px';
+	node.style.left = this.thumbBorder + 'px';
+	node.style.top = this.thumbBorder + 'px';
 	node.style.width = width + 'px';
 	node.style.height = height + 'px';
 	node.style.visibility = '';

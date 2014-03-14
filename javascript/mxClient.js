@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.5.0.2.
+	 * Current version is 2.5.0.3.
 	 */
-	VERSION: '2.5.0.2',
+	VERSION: '2.5.0.3',
 
 	/**
 	 * Variable: IS_IE
@@ -4179,8 +4179,8 @@ var mxUtils =
 		
 		var b = doc.body;
 		var d = doc.documentElement;
-		var sl = (document.compatMode == 'BackCompat') ? b.scrollLeft : d.scrollLeft;
-		var st = (document.compatMode == 'BackCompat') ? b.scrollTop : d.scrollTop;
+		var sl = (d && d.scrollLeft) || b.scrollLeft;
+		var st = (d && d.scrollTop) || b.scrollTop;
 		
 		return new mxPoint(sl, st);
 	},
@@ -40916,7 +40916,7 @@ mxPrintPreview.prototype.createPageSelector = function(vpages, hpages)
 
 			// Workaround for FF where the anchor is appended to the URL of the original document
 			if (mxClient.IS_NS && !mxClient.IS_SF && !mxClient.IS_GC)
-			{					
+			{
 				var js = 'var page = document.getElementById(\'mxPage-' + pageNum + '\');page.scrollIntoView(true);event.preventDefault();';
 				a.setAttribute('onclick', js);
 			}
@@ -42804,17 +42804,7 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 			
 			if (this.selectText)
 			{
-				if (mxClient.IS_IOS)
-				{
-					// Workaround to select all text on iOS
-					window.setTimeout(mxUtils.bind(this, function() {
-					    this.textarea.setSelectionRange(0, 9999);
-					}), 1);
-				}
-				else
-				{
-					this.textarea.select();
-				}
+				document.execCommand('selectall');
 			}
 		}
 	}
@@ -46913,25 +46903,33 @@ mxGraphView.prototype.updateEdgeState = function(state, geo)
 	var source = state.getVisibleTerminalState(true);
 	var target = state.getVisibleTerminalState(false);
 	
-	this.updateFixedTerminalPoints(state, source, target);
-	this.updatePoints(state, geo.points, source, target);
-	this.updateFloatingTerminalPoints(state, source, target);
-	
-	var pts = state.absolutePoints;
-	
-	if (pts == null || pts.length < 2 || pts[0] == null || pts[pts.length - 1] == null)
+	// This will remove edges with no terminals and no terminal points
+	// as such edges are invalid and produce NPEs in the edge styles.
+	if ((source == null && geo.getTerminalPoint(true) == null) ||
+		(target == null && geo.getTerminalPoint(false) == null))
 	{
-		// This will remove edges with invalid points from the list of states in the view.
-		// Happens if the one of the terminals and the corresponding terminal point is null.
-		if (state.cell != this.currentRoot)
-		{
-			this.clear(state.cell, true);
-		}
+		this.clear(state.cell, true);
 	}
 	else
 	{
-		this.updateEdgeBounds(state);
-		this.updateEdgeLabelOffset(state);
+		this.updateFixedTerminalPoints(state, source, target);
+		this.updatePoints(state, geo.points, source, target);
+		this.updateFloatingTerminalPoints(state, source, target);
+		
+		var pts = state.absolutePoints;
+		
+		if (state.cell != this.currentRoot && (pts == null || pts.length < 2 ||
+			pts[0] == null || pts[pts.length - 1] == null))
+		{
+			// This will remove edges with invalid points from the list of states in the view.
+			// Happens if the one of the terminals and the corresponding terminal point is null.
+			this.clear(state.cell, true);
+		}
+		else
+		{
+			this.updateEdgeBounds(state);
+			this.updateEdgeLabelOffset(state);
+		}
 	}
 };
 
@@ -60174,7 +60172,7 @@ mxGraph.prototype.isSyntheticEventIgnored = function(evtName, me, sender)
  */
 mxGraph.prototype.isEventSourceIgnored = function(evtName, me)
 {
-	var name = (me.getSource() != null) ? me.getSource().nodeName.toLowerCase() : '';
+	var name = (me.getSource().nodeName != null) ? me.getSource().nodeName.toLowerCase() : '';
 	
 	return evtName == mxEvent.MOUSE_DOWN && (name == 'select' || name == 'option'
 		|| name == 'button' || name == 'a' || name == 'input');
@@ -64439,7 +64437,7 @@ mxPanningHandler.prototype.isPanningTrigger = function(me)
 {
 	var evt = me.getEvent();
 	
-	return (this.useLeftButtonForPanning && (this.ignoreCell || me.getState() == null) &&
+	return (this.useLeftButtonForPanning && me.getState() == null &&
 			mxEvent.isLeftMouseButton(evt)) || (mxEvent.isControlDown(evt) &&
 			mxEvent.isShiftDown(evt)) || (this.usePopupTrigger && mxEvent.isPopupTrigger(evt));
 };
@@ -64452,7 +64450,7 @@ mxPanningHandler.prototype.isPanningTrigger = function(me)
  */
 mxPanningHandler.prototype.isForcePanningEvent = function(me)
 {
-	return false;
+	return this.ignoreCell;
 };
 
 /**
@@ -64669,7 +64667,7 @@ mxPanningHandler.prototype.destroy = function()
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
- * Class: mxPanningHandler
+ * Class: mxPopupMenuHandler
  * 
  * Event handler that creates popupmenus.
  * 
@@ -64692,7 +64690,7 @@ function mxPopupMenuHandler(graph, factoryMethod)
  * Extends mxPopupMenu.
  */
 mxPopupMenuHandler.prototype = new mxPopupMenu();
-mxPopupMenuHandler.prototype.constructor = mxPanningHandler;
+mxPopupMenuHandler.prototype.constructor = mxPopupMenuHandler;
 
 /**
  * Variable: graph

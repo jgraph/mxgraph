@@ -2270,8 +2270,8 @@ var mxUtils =
 		
 		var b = doc.body;
 		var d = doc.documentElement;
-		var sl = (document.compatMode == 'BackCompat') ? b.scrollLeft : d.scrollLeft;
-		var st = (document.compatMode == 'BackCompat') ? b.scrollTop : d.scrollTop;
+		var sl = (d && d.scrollLeft) || b.scrollLeft;
+		var st = (d && d.scrollTop) || b.scrollTop;
 		
 		return new mxPoint(sl, st);
 	},

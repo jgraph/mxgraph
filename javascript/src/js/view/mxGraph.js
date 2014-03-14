@@ -11633,7 +11633,7 @@ mxGraph.prototype.isSyntheticEventIgnored = function(evtName, me, sender)
  */
 mxGraph.prototype.isEventSourceIgnored = function(evtName, me)
 {
-	var name = (me.getSource() != null) ? me.getSource().nodeName.toLowerCase() : '';
+	var name = (me.getSource().nodeName != null) ? me.getSource().nodeName.toLowerCase() : '';
 	
 	return evtName == mxEvent.MOUSE_DOWN && (name == 'select' || name == 'option'
 		|| name == 'button' || name == 'a' || name == 'input');
