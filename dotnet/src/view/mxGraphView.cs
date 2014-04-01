@@ -487,10 +487,13 @@ namespace com.mxgraph
         public void UpdateEdgeState(mxCellState state, mxGeometry geo, mxCellState source, mxCellState target)
         {
             // This will remove edges with no terminals and no terminal points
-            // as such edges are invalid and produce NPEs in the edge styles.
-            if ((source == null && geo.GetTerminalPoint(true) == null) ||
-                (target == null && geo.GetTerminalPoint(false) == null))
-            {
+		    // as such edges are invalid and produce NPEs in the edge styles.
+		    // Also removes connected edges that have no visible terminals.
+		    if ((graph.Model.GetTerminal(state.Cell, true) != null && source == null) ||
+			    (source == null && geo.GetTerminalPoint(true) == null) ||
+			    (graph.Model.GetTerminal(state.Cell, false) != null && target == null) ||
+			    (target == null && geo.GetTerminalPoint(false) == null))
+		    {
                 RemoveState(state.Cell, true);
             }
             else

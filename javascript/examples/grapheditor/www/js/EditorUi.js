@@ -26,9 +26,9 @@ EditorUi = function(editor, container)
 	this.actions = new Actions(this);
 	this.menus = new Menus(this);
 	this.createDivs();
-	this.refresh();
 	this.createUi();
-
+	this.refresh();
+	
 	// Disables HTML and text selection
 	var textEditing =  mxUtils.bind(this, function(evt)
 	{
@@ -202,7 +202,10 @@ EditorUi = function(editor, container)
 	});
 	
 	// Initializes the outline
-	editor.outline.init(this.outlineContainer);
+	if (this.editor.outline != null)
+	{
+		this.editor.outline.init(this.outlineContainer);
+	}
 	
 	// Hides context menu
 	mxEvent.addGestureListeners(document, mxUtils.bind(this, function(evt)
@@ -251,10 +254,13 @@ EditorUi = function(editor, container)
 	// Updates the editor UI after the window has been resized
    	mxEvent.addListener(window, 'resize', mxUtils.bind(this, function()
    	{
-   		this.refresh();
-   		graph.sizeDidChange();
-   		this.editor.outline.update(false);
-   		this.editor.outline.outline.sizeDidChange();
+   		if (this.editor.outline != null)
+   		{
+   	   		this.refresh();
+   	   		graph.sizeDidChange();
+	   		this.editor.outline.update(false);
+	   		this.editor.outline.outline.sizeDidChange();
+   		}
    	}));
 
 	// Updates action and menu states
@@ -567,7 +573,11 @@ EditorUi.prototype.setBackgroundColor = function(value)
 EditorUi.prototype.setPageFormat = function(value)
 {
 	this.editor.graph.pageFormat = value;
-	this.editor.outline.outline.pageFormat = this.editor.graph.pageFormat;
+	
+	if (this.editor.outline != null)
+	{
+		this.editor.outline.outline.pageFormat = this.editor.graph.pageFormat;
+	}
 	
 	if (!this.editor.graph.pageVisible)
 	{
@@ -578,7 +588,11 @@ EditorUi.prototype.setPageFormat = function(value)
 		this.editor.updateGraphComponents();
 		this.editor.graph.view.validateBackground();
 		this.editor.graph.sizeDidChange();
-		this.editor.outline.update();
+		
+		if (this.editor.outline != null)
+		{
+			this.editor.outline.update();
+		}
 	}
 
 	this.fireEvent(new mxEventObject('pageFormatChanged'));
@@ -704,11 +718,11 @@ EditorUi.prototype.addSelectionListener = function()
        	this.actions.get('setAsDefaultEdge').setEnabled(edgeSelected);
         	
         this.menus.get('align').setEnabled(graph.getSelectionCount() > 1);
+        this.menus.get('distribute').setEnabled(graph.getSelectionCount() > 1);
         this.menus.get('direction').setEnabled(vertexSelected || (edgeSelected &&
         		graph.isLoop(graph.view.getState(graph.getSelectionCell()))));
         this.menus.get('navigation').setEnabled(graph.foldingEnabled && ((graph.view.currentRoot != null) ||
 				(graph.getSelectionCount() == 1 && graph.isValidRoot(graph.getSelectionCell()))));
-        this.menus.get('layers').setEnabled(graph.view.currentRoot == null);
         this.actions.get('home').setEnabled(graph.view.currentRoot != null);
         this.actions.get('exitGroup').setEnabled(graph.view.currentRoot != null);
         var groupEnabled = graph.getSelectionCount() == 1 && graph.isValidRoot(graph.getSelectionCell());
@@ -741,14 +755,23 @@ EditorUi.prototype.refresh = function()
 	
 	var effHsplitPosition = Math.max(0, Math.min(this.hsplitPosition, w - this.splitSize - 20));
 	var effVsplitPosition = Math.max(0, Math.min(this.vsplitPosition, h - this.menubarHeight - this.toolbarHeight - this.footerHeight - this.splitSize - 1));
+
+	var tmp = 0;
 	
-	this.menubarContainer.style.height = this.menubarHeight + 'px';
-	this.toolbarContainer.style.top = this.menubarHeight + 'px';
-	this.toolbarContainer.style.height = this.toolbarHeight + 'px';
+	if (this.menubar != null)
+	{
+		this.menubarContainer.style.height = this.menubarHeight + 'px';
+		tmp += this.menubarHeight;
+	}
 	
-	var tmp = this.menubarHeight + this.toolbarHeight;
+	if (this.toolbar != null)
+	{
+		this.toolbarContainer.style.top = this.menubarHeight + 'px';
+		this.toolbarContainer.style.height = this.toolbarHeight + 'px';
+		tmp += this.toolbarHeight;
+	}
 	
-	if (!mxClient.IS_QUIRKS)
+	if (tmp > 0 && !mxClient.IS_QUIRKS)
 	{
 		tmp += 1;
 	}
@@ -769,7 +792,7 @@ EditorUi.prototype.refresh = function()
 	this.outlineContainer.style.width = effHsplitPosition + 'px';
 	this.outlineContainer.style.height = effVsplitPosition + 'px';
 	this.outlineContainer.style.bottom = this.footerHeight + 'px';
-	this.diagramContainer.style.left = (effHsplitPosition + this.splitSize) + 'px';
+	this.diagramContainer.style.left = (this.hsplit.parentNode != null) ? (effHsplitPosition + this.splitSize) + 'px' : '0px';
 	this.diagramContainer.style.top = this.sidebarContainer.style.top;
 	this.footerContainer.style.height = this.footerHeight + 'px';
 	this.hsplit.style.top = this.sidebarContainer.style.top;
@@ -784,8 +807,8 @@ EditorUi.prototype.refresh = function()
 		this.toolbarContainer.style.width = this.menubarContainer.style.width;
 		var sidebarHeight = Math.max(0, h - effVsplitPosition - this.splitSize - this.footerHeight - this.menubarHeight - this.toolbarHeight);
 		this.sidebarContainer.style.height = (sidebarHeight - sidebarFooterHeight) + 'px';
-		this.diagramContainer.style.width = Math.max(0, w - effHsplitPosition - this.splitSize) + 'px';
-		var diagramHeight = Math.max(0, h - this.footerHeight - this.menubarHeight - this.toolbarHeight);
+		this.diagramContainer.style.width = (this.hsplit.parentNode != null) ? Math.max(0, w - effHsplitPosition - this.splitSize) + 'px' : w + 'px';
+		var diagramHeight = (this.editor.outline != null) ? Math.max(0, h - this.footerHeight - this.menubarHeight - this.toolbarHeight) : h;
 		this.diagramContainer.style.height = diagramHeight + 'px';
 		this.footerContainer.style.width = this.menubarContainer.style.width;
 		this.hsplit.style.height = diagramHeight + 'px';
@@ -793,7 +816,7 @@ EditorUi.prototype.refresh = function()
 	else
 	{
 		this.sidebarContainer.style.bottom = (effVsplitPosition + this.splitSize + this.footerHeight + sidebarFooterHeight) + 'px';
-		this.diagramContainer.style.bottom = this.outlineContainer.style.bottom;
+		this.diagramContainer.style.bottom = (this.editor.outline != null) ? this.outlineContainer.style.bottom : '0px';
 	}
 };
 
@@ -850,63 +873,93 @@ EditorUi.prototype.createUi = function()
 {
 	// Creates menubar
 	this.menubar = this.menus.createMenubar(this.createDiv('geMenubar'));
-	this.menubarContainer.appendChild(this.menubar.container);
+	
+	if (this.menubar != null)
+	{
+		this.menubarContainer.appendChild(this.menubar.container);
+	}
 	
 	// Creates toolbar
 	this.toolbar = this.createToolbar(this.createDiv('geToolbar'));
-	this.toolbarContainer.appendChild(this.toolbar.container);
+	
+	if (this.toolbar != null)
+	{
+		this.toolbarContainer.appendChild(this.toolbar.container);
+		this.container.appendChild(this.toolbarContainer);
+	}
 
 	// Creates the sidebar
 	this.sidebar = this.createSidebar(this.sidebarContainer);
-
-	// Creates the footer
-	this.footerContainer.appendChild(this.createFooter());
-
-	// Adds status bar in menubar
-	this.statusContainer = this.createStatusContainer();
-
-	// Connects the status bar to the editor status
-	this.editor.addListener('statusChanged', mxUtils.bind(this, function()
+	
+	if (this.sidebar != null)
 	{
-		this.setStatusText(this.editor.getStatus());
-	}));
+		this.container.appendChild(this.sidebarContainer);
+	}
 	
-	this.setStatusText(this.editor.getStatus());
-	this.menubar.container.appendChild(this.statusContainer);
+	// Creates the footer
+	var footer = this.createFooter();
 	
-	// Inserts into DOM
-	this.container.appendChild(this.menubarContainer);
-	this.container.appendChild(this.toolbarContainer);
-	this.container.appendChild(this.sidebarContainer);
-	this.container.appendChild(this.outlineContainer);
-	this.container.appendChild(this.diagramContainer);
-	this.container.appendChild(this.footerContainer);
-	this.container.appendChild(this.hsplit);
-	this.container.appendChild(this.vsplit);
-	
-	if (this.sidebarFooterContainer)
+	if (footer != null)
+	{
+		this.footerContainer.appendChild(footer);
+		this.container.appendChild(this.footerContainer);
+	}
+
+	if (this.sidebar != null && this.sidebarFooterContainer)
 	{
 		this.container.appendChild(this.sidebarFooterContainer);		
 	}
 	
-	// HSplit
-	this.addSplitHandler(this.hsplit, true, 0, mxUtils.bind(this, function(value)
+	// Adds status bar in menubar
+	if (this.menubar != null)
 	{
-		this.hsplitPosition = value;
-		this.refresh();
-		this.editor.graph.sizeDidChange();
-		this.editor.outline.update(false);
-		this.editor.outline.outline.sizeDidChange();
-	}));
+		this.statusContainer = this.createStatusContainer();
+	
+		// Connects the status bar to the editor status
+		this.editor.addListener('statusChanged', mxUtils.bind(this, function()
+		{
+			this.setStatusText(this.editor.getStatus());
+		}));
+	
+		this.setStatusText(this.editor.getStatus());
+		this.menubar.container.appendChild(this.statusContainer);
+		
+		// Inserts into DOM
+		this.container.appendChild(this.menubarContainer);
+	}
 
-	// VSplit
-	this.addSplitHandler(this.vsplit, false, this.footerHeight, mxUtils.bind(this, function(value)
+	if (this.editor.outline != null)
 	{
-		this.vsplitPosition = value;
-		this.refresh();
-		this.editor.outline.update(false);
-		this.editor.outline.outline.sizeDidChange();
-	}));
+		this.container.appendChild(this.outlineContainer);
+	}
+	
+	this.container.appendChild(this.diagramContainer);
+
+	// HSplit
+	if (this.sidebar != null && this.editor.outline != null)
+	{
+		this.container.appendChild(this.hsplit);
+		
+		this.addSplitHandler(this.hsplit, true, 0, mxUtils.bind(this, function(value)
+		{
+			this.hsplitPosition = value;
+			this.refresh();
+			this.editor.graph.sizeDidChange();
+			this.editor.outline.update(false);
+			this.editor.outline.outline.sizeDidChange();
+		}));
+	
+		this.container.appendChild(this.vsplit);
+		
+		// VSplit
+		this.addSplitHandler(this.vsplit, false, this.footerHeight, mxUtils.bind(this, function(value)
+		{
+			this.vsplitPosition = value;
+			this.refresh();
+			this.editor.outline.update(false);
+			this.editor.outline.outline.sizeDidChange();
+		}));
+	}
 };
 
 /**
@@ -1247,6 +1300,24 @@ EditorUi.prototype.executeLayout = function(exec, animate, post)
 /**
  * Creates the keyboard event handler for the current graph and history.
  */
+EditorUi.prototype.confirm = function(msg, okFn, cancelFn)
+{
+	if (mxUtils.confirm(msg))
+	{
+		if (okFn != null)
+		{
+			okFn();
+		}
+	}
+	else if (cancelFn != null)
+	{
+		cancelFn();
+	}
+};
+
+/**
+ * Creates the keyboard event handler for the current graph and history.
+ */
 EditorUi.prototype.createKeyHandler = function(editor)
 {
 	var graph = this.editor.graph;
@@ -1374,6 +1445,7 @@ EditorUi.prototype.createKeyHandler = function(editor)
     bindAction(77, true, 'editData'); // Ctrl+M
     bindAction(71, true, 'grid', true); // Ctrl+Shift+G
     bindAction(76, true, 'lockUnlock'); // Ctrl+L
+    bindAction(76, true, 'layers', true); // Ctrl+Shift+L
     bindAction(80, true, 'print'); // Ctrl+P
     bindAction(85, true, 'ungroup'); // Ctrl+U
     bindAction(112, false, 'about'); // F1

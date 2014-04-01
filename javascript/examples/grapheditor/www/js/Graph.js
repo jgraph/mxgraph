@@ -49,7 +49,7 @@ Graph = function(container, model, renderHint, stylesheet)
     // Shows hand cursor while panning
 	this.panningHandler.addListener(mxEvent.PAN_START, mxUtils.bind(this, function()
 	{
-		this.container.style.cursor = 'pointer';
+		this.container.style.cursor = 'move';
 	}));
 		
 	this.panningHandler.addListener(mxEvent.PAN_END, mxUtils.bind(this, function()
@@ -58,9 +58,10 @@ Graph = function(container, model, renderHint, stylesheet)
 	}));
     
     // Forces panning for middle mouse button
+	var panningHandlerIsForcePanningEvent = this.panningHandler.isForcePanningEvent;
 	this.panningHandler.isForcePanningEvent = function(me)
 	{
-		return mxEvent.isMiddleMouseButton(me.getEvent());
+		return panningHandlerIsForcePanningEvent.apply(this, arguments) || mxEvent.isMiddleMouseButton(me.getEvent());
 	};
 
 	this.popupMenuHandler.autoExpand = true;
@@ -452,6 +453,91 @@ Graph.prototype.getLinkForCell = function(cell)
 	
 	return null;
 };
+
+
+/**
+ * Function: alignCells
+ * 
+ * Aligns the given cells vertically or horizontally according to the given
+ * alignment using the optional parameter as the coordinate.
+ * 
+ * Parameters:
+ * 
+ * horizontal - Boolean that specifies the direction of the distribution.
+ * cells - Optional array of <mxCells> to be distributed. Edges are ignored.
+ */
+Graph.prototype.distributeCells = function(horizontal, cells)
+{
+	if (cells == null)
+	{
+		cells = this.getSelectionCells();
+	}
+	
+	if (cells != null && cells.length > 1)
+	{
+		var vertices = [];
+		var total = 0;
+		
+		for (var i = 0; i < cells.length; i++)
+		{
+			if (this.getModel().isVertex(cells[i]))
+			{
+				var geo = this.getCellGeometry(cells[i]);
+				
+				if (geo != null)
+				{
+					total += (horizontal) ? geo.width : geo.height;
+					vertices.push(cells[i]);
+				}
+			}
+		}
+		
+		if (vertices.length > 0)
+		{
+			var bounds = this.getBoundingBoxFromGeometry(vertices);
+			
+			var dt = Math.max(0, (((horizontal) ? bounds.width : bounds.height) - total) /
+					(vertices.length - 1));
+			var v0 = (horizontal) ? bounds.x : bounds.y;
+			
+			this.getModel().beginUpdate();
+			try
+			{
+				for (var i = 0; i < vertices.length; i++)
+				{
+					var geo = this.getCellGeometry(vertices[i]);
+					
+					if (geo != null)
+					{
+						geo = geo.clone();
+						
+						if (horizontal)
+						{
+							geo.x = v0;
+							v0 += geo.width + dt;
+						}
+						else
+						{
+							geo.y = v0;
+							v0 += geo.height + dt;
+						}
+						
+						this.getModel().setGeometry(vertices[i], geo);
+					}
+				}
+				
+				cells = vertices;
+			}
+			finally
+			{
+				this.getModel().endUpdate();
+			}
+		}
+	}
+	
+	return cells;
+};
+
 
 /**
  * Customized graph for touch devices.
