@@ -949,18 +949,12 @@ mxShape.prototype.updateBoundingBox = function()
 		if (bbox != null)
 		{
 			this.augmentBoundingBox(bbox);
-			
 			var rot = this.getShapeRotation();
 			
 			if (rot != 0)
 			{
 				bbox = mxUtils.getBoundingBox(bbox, rot);
 			}
-	
-			bbox.x = Math.floor(bbox.x);
-			bbox.y = Math.floor(bbox.y);
-			bbox.width = Math.ceil(bbox.width);
-			bbox.height = Math.ceil(bbox.height);
 		}
 
 		this.boundingBox = bbox;
@@ -976,7 +970,7 @@ mxShape.prototype.updateBoundingBox = function()
 mxShape.prototype.createBoundingBox = function()
 {
 	var bb = this.bounds.clone();
-	
+
 	if ((this.stencil != null && (this.direction == mxConstants.DIRECTION_NORTH ||
 		this.direction == mxConstants.DIRECTION_SOUTH)) || this.isPaintBoundsInverted())
 	{
@@ -1005,8 +999,7 @@ mxShape.prototype.augmentBoundingBox = function(bbox)
 	}
 	
 	// Adds strokeWidth
-	var sw = Math.ceil(this.strokewidth * this.scale);
-	bbox.grow(Math.ceil(sw / 2));
+	bbox.grow(this.strokewidth * this.scale / 2);
 };
 
 /**

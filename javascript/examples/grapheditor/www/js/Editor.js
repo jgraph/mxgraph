@@ -43,9 +43,14 @@ Editor = function()
 	mxEventSource.call(this);
 	this.init();
 	this.initStencilRegistry();
-	this.graph = new Graph();
-	this.outline = new mxOutline(this.graph);
-	this.outline.updateOnPan = true;
+	this.graph = this.createGraph();
+	this.outline = this.createOutline(this.graph);
+	
+	if (this.outline != null)
+	{
+		this.outline.updateOnPan = true;
+	}
+	
 	this.undoManager = this.createUndoManager();
 	this.status = '';
 
@@ -138,6 +143,22 @@ Editor.prototype.appName = document.title;
 /**
  * Sets the XML node for the current diagram.
  */
+Editor.prototype.createGraph = function()
+{
+	return new Graph();
+};
+
+/**
+ * Sets the XML node for the current diagram.
+ */
+Editor.prototype.createOutline = function(graph)
+{
+	return new mxOutline(graph);
+};
+
+/**
+ * Sets the XML node for the current diagram.
+ */
 Editor.prototype.resetGraph = function()
 {
 	this.graph.view.scale = 1;
@@ -194,7 +215,11 @@ Editor.prototype.setGraphXml = function(node)
 		if (pw != null && ph != null)
 		{
 			this.graph.pageFormat = new mxRectangle(0, 0, parseFloat(pw), parseFloat(ph));
-			this.outline.outline.pageFormat = this.graph.pageFormat;
+			
+			if (this.outline != null)
+			{
+				this.outline.outline.pageFormat = this.graph.pageFormat;
+			}
 		}
 
 		// Loads the persistent state settings
@@ -273,7 +298,7 @@ Editor.prototype.updateGraphComponents = function()
 	var graph = this.graph;
 	var outline = this.outline;
 	
-	if (graph.container != null && outline.outline.container != null)
+	if (graph.container != null)
 	{
 		var bg = (graph.background == null || graph.background == 'none') ? '#ffffff' : graph.background;
 		
@@ -300,13 +325,16 @@ Editor.prototype.updateGraphComponents = function()
 			graph.container.style.border = '';
 		}
 		
-		outline.outline.container.style.backgroundColor = graph.container.style.backgroundColor;
-
-		if (outline.outline.pageVisible != graph.pageVisible || outline.outline.pageScale != graph.pageScale)
+		if (outline != null)
 		{
-			outline.outline.pageScale = graph.pageScale;
-			outline.outline.pageVisible = graph.pageVisible;
-			outline.outline.view.validate();
+			outline.outline.container.style.backgroundColor = graph.container.style.backgroundColor;
+	
+			if (outline.outline.pageVisible != graph.pageVisible || outline.outline.pageScale != graph.pageScale)
+			{
+				outline.outline.pageScale = graph.pageScale;
+				outline.outline.pageVisible = graph.pageVisible;
+				outline.outline.view.validate();
+			}
 		}
 		
 		if (!graph.scrollbars)
@@ -635,17 +663,15 @@ Editor.prototype.init = function()
 				
 				if (this.horizontalPageBreaks[i] != null)
 				{
-					this.horizontalPageBreaks[i].scale = 1;
 					this.horizontalPageBreaks[i].points = pts;
 					this.horizontalPageBreaks[i].redraw();
 				}
 				else
 				{
-					var pageBreak = new mxPolyline(pts, this.pageBreakColor, this.scale);
+					var pageBreak = new mxPolyline(pts, this.pageBreakColor);
 					pageBreak.dialect = this.dialect;
 					pageBreak.isDashed = this.pageBreakDashed;
-					pageBreak.addPipe = false;
-					pageBreak.scale = scale;
+					pageBreak.pointerEvents = false;
 					pageBreak.init(this.view.backgroundPane);
 					pageBreak.redraw();
 					
@@ -675,17 +701,15 @@ Editor.prototype.init = function()
 				
 				if (this.verticalPageBreaks[i] != null)
 				{
-					this.verticalPageBreaks[i].scale = 1; //scale;
 					this.verticalPageBreaks[i].points = pts;
 					this.verticalPageBreaks[i].redraw();
 				}
 				else
 				{
-					var pageBreak = new mxPolyline(pts, this.pageBreakColor, scale);
+					var pageBreak = new mxPolyline(pts, this.pageBreakColor);
 					pageBreak.dialect = this.dialect;
 					pageBreak.isDashed = this.pageBreakDashed;
-					pageBreak.addPipe = false;
-					pageBreak.scale = scale;
+					pageBreak.pointerEvents = false;
 					pageBreak.init(this.view.backgroundPane);
 					pageBreak.redraw();
 		

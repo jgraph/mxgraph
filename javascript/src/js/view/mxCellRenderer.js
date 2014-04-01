@@ -1151,7 +1151,7 @@ mxCellRenderer.prototype.getControlBounds = function(state, w, h)
 };
 
 /**
- * Function: insertShapesAfter
+ * Function: insertStateAfter
  * 
  * Inserts the given array of <mxShapes> after the given nodes in the DOM.
  * 
@@ -1170,7 +1170,7 @@ mxCellRenderer.prototype.insertStateAfter = function(state, node, htmlNode)
 	{
 		if (shapes[i] != null)
 		{
-			var html = shapes[i].node.parentNode == state.view.graph.container;
+			var html = shapes[i].node.parentNode != state.view.getDrawPane();
 			var temp = (html) ? htmlNode : node;
 			
 			if (temp != null && temp.nextSibling != shapes[i].node)

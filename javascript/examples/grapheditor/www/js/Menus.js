@@ -296,114 +296,11 @@ Menus.prototype.init = function()
 		menu.addItem(mxResources.get('middle'), null, function() { graph.alignCells(mxConstants.ALIGN_MIDDLE); }, parent);
 		menu.addItem(mxResources.get('bottomAlign'), null, function() { graph.alignCells(mxConstants.ALIGN_BOTTOM); }, parent);
 	})));
-	this.put('layers', new Menu(mxUtils.bind(this, function(menu, parent)
+	this.put('distribute', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
-		var p = graph.getDefaultParent();
-		var selectedLayer = mxResources.get('background');
-		
-		var item = menu.addItem(selectedLayer, null, mxUtils.bind(this, function()
-		{
-			graph.setDefaultParent(null);
-		}), parent);
-		
-		if (p == graph.model.getChildAt(graph.model.root, 0))
-		{
-			this.addCheckmark(item);
-		}
-		
-		var layerCount = graph.model.getChildCount(graph.model.root);
-		
-		for (var i = 1; i < layerCount; i++)
-		{
-			(mxUtils.bind(this, function(child)
-			{
-				var title = child.value || mxResources.get('layer') + ' ' + i;
-				
-				if (!graph.model.isVisible(child))
-				{
-					title += ' (' + mxResources.get('hidden') + ')';
-				}
-				var item = menu.addItem(title, null, function()
-				{
-					if (!graph.model.isVisible(child))
-					{
-						graph.model.setVisible(child, true);
-						
-						// Forces a complete refresh to hide the edges in other
-						// layers which are connected to children of this layer
-						graph.view.invalidate();
-					}
-					
-					graph.setDefaultParent(child);
-				}, parent);
-				
-				if (p == child)
-				{
-					this.addCheckmark(item);
-					selectedLayer = title;
-				}
-			}))(graph.model.getChildAt(graph.model.root, i));
-		}
-
-		var notBackground = p != graph.model.getChildAt(graph.model.root, 0);
-		menu.addSeparator(parent);
-
-		menu.addItem(mxResources.get('removeIt', [selectedLayer]), null, mxUtils.bind(this, function()
-		{
-			graph.removeCells([p]);
-			graph.setDefaultParent(null);
-		}), parent, null, notBackground);
-
-		menu.addItem(mxResources.get('renameIt', [selectedLayer]), null, mxUtils.bind(this, function()
-		{
-			var dlg = new FilenameDialog(this.editorUi, selectedLayer, mxResources.get('apply'), mxUtils.bind(this, function(newValue)
-			{
-				if (newValue != null && newValue.length > 0)
-				{
-					graph.getModel().setValue(p, newValue);
-				}
-			}), mxResources.get('enterName'));
-			this.editorUi.showDialog(dlg.container, 300, 80, true, true);
-			dlg.init();
-		}), parent, null, notBackground);
-		
-		menu.addItem(mxResources.get('hideIt', [selectedLayer]), null, mxUtils.bind(this, function()
-		{
-			if (graph.model.isVisible(p))
-			{
-				graph.model.beginUpdate();
-				try
-				{
-					graph.model.setVisible(p, !graph.model.isVisible(p));
-					
-					// Forces a complete refresh to hide the edges in other
-					// layers which are connected to children of this layer
-					graph.view.invalidate();
-				}
-				finally
-				{
-					graph.model.endUpdate();
-				}
-				
-				graph.setDefaultParent(null);
-			}
-		}), parent, null, notBackground);
-		
-		menu.addSeparator(parent);
-		
-		menu.addItem(mxResources.get('moveSelectionTo', [selectedLayer]), null, mxUtils.bind(this, function()
-		{
-			graph.moveCells(graph.getSelectionCells(), 0, 0, false, p);
-		}), parent, null, !graph.isSelectionEmpty());
-
-		menu.addSeparator(parent);
-		
-		menu.addItem(mxResources.get('addLayer'), null, mxUtils.bind(this, function()
-		{
-			var cell = graph.addCell(new mxCell(), graph.model.root);
-			graph.setDefaultParent(cell);
-		}), parent);
-	}))).isEnabled = isGraphEnabled;
+		menu.addItem(mxResources.get('horizontal'), null, function() { graph.distributeCells(true); }, parent);
+		menu.addItem(mxResources.get('vertical'), null, function() { graph.distributeCells(false); }, parent);
+	})));
 	this.put('layout', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
 		menu.addItem(mxResources.get('horizontalFlow'), null, mxUtils.bind(this, function()
@@ -476,9 +373,11 @@ Menus.prototype.init = function()
 		this.addMenuItems(menu, ['toFront', 'toBack', '-'], parent);
 		this.addSubmenu('direction', menu, parent);
 		this.addSubmenu('layout', menu, parent);
-		this.addSubmenu('align', menu, parent);
 		menu.addSeparator(parent);
-		this.addSubmenu('layers', menu, parent);
+		this.addSubmenu('align', menu, parent);
+		this.addSubmenu('distribute', menu, parent);
+		menu.addSeparator(parent);
+		this.addMenuItems(menu, ['layers'], parent);
 		this.addSubmenu('navigation', menu, parent);
 		this.addMenuItems(menu, ['-', 'group', 'ungroup', 'removeFromGroup', '-', 'lockUnlock', '-', 'autosize'], parent);
 	}))).isEnabled = isGraphEnabled;

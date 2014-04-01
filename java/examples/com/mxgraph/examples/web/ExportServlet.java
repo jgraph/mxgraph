@@ -54,7 +54,7 @@ public class ExportServlet extends HttpServlet
 	/**
 	 * Cache for all images.
 	 */
-	private transient Hashtable<String, Image> imageCache = new Hashtable<String, Image>();
+	protected transient Hashtable<String, Image> imageCache = new Hashtable<String, Image>();
 
 	/**
 	 * @see HttpServlet#HttpServlet()

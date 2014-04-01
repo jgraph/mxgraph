@@ -359,11 +359,6 @@ mxText.prototype.updateBoundingBox = function()
 				this.boundingBox.height = bbox.height;
 			}
 		}
-	
-		this.boundingBox.x = Math.floor(this.boundingBox.x);
-		this.boundingBox.y = Math.floor(this.boundingBox.y);
-		this.boundingBox.width = Math.ceil(this.boundingBox.width);
-		this.boundingBox.height = Math.ceil(this.boundingBox.height);
 	}
 };
 

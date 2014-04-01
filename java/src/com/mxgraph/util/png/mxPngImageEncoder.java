@@ -958,7 +958,8 @@ public class mxPngImageEncoder
 				cs.write(0);
 				cs.write(0);
 
-				DeflaterOutputStream dos = new DeflaterOutputStream(cs);
+				DeflaterOutputStream dos = new DeflaterOutputStream(cs,
+						new Deflater(Deflater.BEST_COMPRESSION, true));
 				dos.write(value);
 				dos.finish();
 

@@ -167,6 +167,17 @@ public class mxUtils
 			Map<String, Object> style, boolean isHtml, mxPoint offset,
 			mxRectangle vertexBounds, double scale)
 	{
+		return getLabelPaintBounds(label, style, isHtml, offset, vertexBounds,
+				scale, false);
+	}
+
+	/**
+	 * Returns the paint bounds for the given label.
+	 */
+	public static mxRectangle getLabelPaintBounds(String label,
+			Map<String, Object> style, boolean isHtml, mxPoint offset,
+			mxRectangle vertexBounds, double scale, boolean isEdge)
+	{
 		double wrapWidth = 0;
 
 		if (isHtml
@@ -218,7 +229,7 @@ public class mxUtils
 			}
 			else
 			{
-				width += vertexBounds.getWidth();
+				width += (isEdge) ? 0 : vertexBounds.getWidth();
 				height += vertexBounds.getHeight();
 			}
 		}
@@ -2210,7 +2221,8 @@ public class mxUtils
 			result += "<head>" + head + "</head>";
 		}
 
-		return result + "<body style=\"" + css.toString() + "\">" + text + "</body></html>";
+		return result + "<body style=\"" + css.toString() + "\">" + text
+				+ "</body></html>";
 	}
 
 	/**

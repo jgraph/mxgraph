@@ -481,8 +481,11 @@ class mxGraphView extends mxEventSource
 	{
 		// This will remove edges with no terminals and no terminal points
 		// as such edges are invalid and produce NPEs in the edge styles.
-		if (($source == null && $geo->getTerminalPoint(true) == null)
-		|| ($target == null && $geo->getTerminalPoint(false) == null))
+		// Also removes connected edges that have no visible terminals.
+		if (($this->graph->model->getTerminal($state->cell, true) != null && $source == null) ||
+			($source == null && $geo->getTerminalPoint(true) == null) ||
+			($this->graph->model->getTerminal($state->cell, false) != null && $target == null) ||
+			($target == null && $geo->getTerminalPoint(false) == null))
 		{
 			$this->removeState($state->cell, true);
 		}

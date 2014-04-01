@@ -2926,7 +2926,7 @@ mxGraph.prototype.doResizeContainer = function(width, height)
 };
 
 /**
- * Function: redrawPageBreaks
+ * Function: updatePageBreaks
  * 
  * Invokes from <sizeDidChange> to redraw the page breaks.
  * 
@@ -2978,8 +2978,10 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 			}
 			else
 			{
-				var pageBreak = new mxPolyline(pts, this.pageBreakColor, this.scale);
+				console.log('here', this.scale, scale);
+				var pageBreak = new mxPolyline(pts, this.pageBreakColor);
 				pageBreak.dialect = this.dialect;
+				pageBreak.pointerEvents = false;
 				pageBreak.isDashed = this.pageBreakDashed;
 				pageBreak.init(this.view.backgroundPane);
 				pageBreak.redraw();
@@ -3015,8 +3017,9 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 			}
 			else
 			{
-				var pageBreak = new mxPolyline(pts, this.pageBreakColor, scale);
+				var pageBreak = new mxPolyline(pts, this.pageBreakColor);
 				pageBreak.dialect = this.dialect;
+				pageBreak.pointerEvents = false;
 				pageBreak.isDashed = this.pageBreakDashed;
 				pageBreak.init(this.view.backgroundPane);
 				pageBreak.redraw();
@@ -7013,6 +7016,7 @@ mxGraph.prototype.zoom = function(factor, center)
 	center = (center != null) ? center : this.centerZoom;
 	var scale = Math.round(this.view.scale * factor * 100) / 100;
 	var state = this.view.getState(this.getSelectionCell());
+	factor = scale / this.view.scale;
 	
 	if (this.keepSelectionVisibleOnZoom && state != null)
 	{
@@ -7030,45 +7034,49 @@ mxGraph.prototype.zoom = function(factor, center)
 			this.view.setScale(scale);
 		}
 	}
-	else if (center && !mxUtils.hasScrollbars(this.container))
 	{
-		var dx = this.container.offsetWidth;
-		var dy = this.container.offsetHeight;
+		var hasScrollbars = mxUtils.hasScrollbars(this.container);
 		
-		if (factor > 1)
+		if (center && !hasScrollbars)
 		{
-			var f = (factor -1) / (scale * 2);
-			dx *= -f;
-			dy *= -f;
+			var dx = this.container.offsetWidth;
+			var dy = this.container.offsetHeight;
+			
+			if (factor > 1)
+			{
+				var f = (factor - 1) / (scale * 2);
+				dx *= -f;
+				dy *= -f;
+			}
+			else
+			{
+				var f = (1 / factor - 1) / (this.view.scale * 2);
+				dx *= f;
+				dy *= f;
+			}
+
+			this.view.scaleAndTranslate(scale,
+				this.view.translate.x + dx,
+				this.view.translate.y + dy);
 		}
 		else
 		{
-			var f = (1/factor -1) / (this.view.scale * 2);
-			dx *= f;
-			dy *= f;
-		}
-		
-		this.view.scaleAndTranslate(scale,
-			this.view.translate.x + dx,
-			this.view.translate.y + dy);
-	}
-	else
-	{
-		this.view.setScale(scale);
-		
-		if (mxUtils.hasScrollbars(this.container))
-		{
-			var dx = 0;
-			var dy = 0;
+			this.view.setScale(scale);
 			
-			if (center)
+			if (hasScrollbars)
 			{
-				dx = this.container.offsetWidth * (factor - 1) / 2;
-				dy = this.container.offsetHeight * (factor - 1) / 2;
+				var dx = 0;
+				var dy = 0;
+				
+				if (center)
+				{
+					dx = this.container.offsetWidth * (factor - 1) / 2;
+					dy = this.container.offsetHeight * (factor - 1) / 2;
+				}
+				
+				this.container.scrollLeft = Math.round(this.container.scrollLeft * factor + dx);
+				this.container.scrollTop = Math.round(this.container.scrollTop * factor + dy);
 			}
-			
-			this.container.scrollLeft = Math.round(this.container.scrollLeft * factor + dx);
-			this.container.scrollTop = Math.round(this.container.scrollTop * factor + dy);
 		}
 	}
 };

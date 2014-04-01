@@ -119,16 +119,16 @@ public class mxHtmlColor
 
 	protected static Color parseRgb(String rgbString)
 	{
-		String[] values = rgbString.split("[\\s,()]");
+		String[] values = rgbString.split("[,()]");
 
-		String red = values[1];
-		String green = values[2];
-		String blue = values[3];
+		String red = values[1].trim();
+		String green = values[2].trim();
+		String blue = values[3].trim();
 		String alpha = "1.0";
 
 		if (values.length >= 5)
 		{
-			alpha = values[4];
+			alpha = values[4].trim();
 		}
 
 		return new Color(parseValue(red, 255), parseValue(green, 255),

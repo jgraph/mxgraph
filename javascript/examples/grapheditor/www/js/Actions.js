@@ -68,7 +68,7 @@ Actions.prototype.init = function()
 	}).isEnabled = isGraphEnabled;
 	this.addAction('save', function() { ui.saveFile(false); }, null, null, 'Ctrl+S').isEnabled = isGraphEnabled;
 	this.addAction('saveAs...', function() { ui.saveFile(true); }, null, null, 'Ctrl+Shift-S').isEnabled = isGraphEnabled;
-	this.addAction('export...', function() { ui.showDialog(new ExportDialog(ui).container, 300, 200, true, true); });
+	this.addAction('export...', function() { ui.showDialog(new ExportDialog(ui).container, 300, 210, true, true); });
 	this.put('editFile', new Action(mxResources.get('edit') + '...', mxUtils.bind(this, function()
 	{
 		this.editorUi.showDialog(new EditFileDialog(ui).container, 620, 420, true, true);
@@ -138,7 +138,7 @@ Actions.prototype.init = function()
 		
 		if (cell != null)
 		{
-			ui.showDialog(new MetadataDialog(ui, cell).container, 280, 320, true, true);
+			ui.showDialog(new MetadataDialog(ui, cell).container, 300, 320, true, true);
 		}
 	}, null, null, 'Ctrl+M');
 	this.addAction('editLink...', function()
@@ -444,7 +444,11 @@ Actions.prototype.init = function()
 		graph.sizeDidChange();
 		
 		editor.updateGraphComponents();
-		editor.outline.update();
+		
+		if (editor.outline != null)
+		{
+			editor.outline.update();
+		}
 		
 		if (mxUtils.hasScrollbars(graph.container))
 		{
@@ -690,6 +694,18 @@ Actions.prototype.init = function()
     		}
         }
 	});
+	this.addAction('layers...', function()
+	{
+		if (this.layersWindow == null)
+		{
+			this.layersWindow = new LayersWindow(ui, document.body.offsetWidth - 230, 100, 220, 180);
+			this.layersWindow.window.setVisible(true);
+		}
+		else
+		{
+			this.layersWindow.window.setVisible(!this.layersWindow.window.isVisible());
+		}
+	}, null, null, 'Ctrl+Shift-L');
 };
 
 /**

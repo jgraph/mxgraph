@@ -380,15 +380,13 @@ var mxEvent =
 			};
 	
 			// Webkit has NS event API, but IE event name and details 
-			if (mxClient.IS_NS)
+			if (mxClient.IS_NS && document.documentMode == null)
 			{
 				var eventName = (mxClient.IS_SF || 	mxClient.IS_GC) ? 'mousewheel' : 'DOMMouseScroll';
 				mxEvent.addListener(window, eventName, wheelHandler);
 			}
 			else
 			{
-				// TODO: Does not work with Safari and Chrome but it should be
-				// working as tested in etc/markup/wheel.html
 				mxEvent.addListener(document, 'mousewheel', wheelHandler);
 			}
 		}

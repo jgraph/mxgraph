@@ -406,7 +406,7 @@ mxOutline.prototype.getOutlineOffset = function(scale)
  */
 mxOutline.prototype.update = function(revalidate)
 {
-	if (this.source != null)
+	if (this.source != null && this.outline != null)
 	{
 		var sourceScale = this.source.view.scale;
 		var scaledGraphBounds = this.source.getGraphBounds();

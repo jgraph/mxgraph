@@ -1,3 +1,15 @@
+01-APR-2014: 2.5.1.0
+
+- Fixes NPE in hierarchical layout when resizeParent=true [JavaScript]
+- Hides edges with no visible terminals in mxGraphView.updateEdgeState [JavaScript]
+- Fixes rounding of bounding box in mxShape and mxText [JavaScript]
+- Fixes native HTML label check in mxCellRenderer.insertStateAfter [JavaScript]
+- Adds layers dialog in grapheditor example [JavaScript]
+- Fixes mxEvent.addMouseWheelListener for IE11 [JavaScript]
+- Handles spaces for rgb(a) values in mxHtmlColor [Java]
+- Fixes HTML edge label wrapping for geometry.width > 0 [Java]
+- Fixes possible NPE in mxOutline.update [JavaScript]
+
 14-MAR-2014: 2.5.0.3
 
 - Adds support for RGB(A) color values in mxHtmlColor [Java]

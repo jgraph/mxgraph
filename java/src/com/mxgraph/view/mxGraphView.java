@@ -12,6 +12,7 @@ import java.util.Map;
 
 import com.mxgraph.model.mxGeometry;
 import com.mxgraph.model.mxGraphModel;
+import com.mxgraph.model.mxICell;
 import com.mxgraph.model.mxIGraphModel;
 import com.mxgraph.util.mxConstants;
 import com.mxgraph.util.mxEvent;
@@ -60,7 +61,6 @@ import com.mxgraph.view.mxPerimeter.mxPerimeterFunction;
  */
 public class mxGraphView extends mxEventSource
 {
-
 	/**
 	 *
 	 */
@@ -734,8 +734,11 @@ public class mxGraphView extends mxEventSource
 
 		// This will remove edges with no terminals and no terminal points
 		// as such edges are invalid and produce NPEs in the edge styles.
-		if ((source == null && geo.getTerminalPoint(true) == null)
-				|| (target == null && geo.getTerminalPoint(false) == null))
+		// Also removes connected edges that have no visible terminals.
+		if ((graph.getModel().getTerminal(state.getCell(), true) != null && source == null) ||
+			(source == null && geo.getTerminalPoint(true) == null) ||
+			(graph.getModel().getTerminal(state.getCell(), false) != null && target == null) ||
+			(target == null && geo.getTerminalPoint(false) == null))
 		{
 			clear(state.cell, true, true);
 		}
@@ -895,11 +898,27 @@ public class mxGraphView extends mxEventSource
 		}
 		else if (state.getLabel() != null)
 		{
-			mxRectangle vertexBounds = (!graph.getModel().isEdge(cell)) ? state
-					: null;
+			// For edges, the width of the geometry is used for wrapping HTML
+			// labels or no wrapping is applied if the width is set to 0
+			mxRectangle vertexBounds = state;
+			
+			if (graph.getModel().isEdge(cell))
+			{
+				mxGeometry geo = graph.getCellGeometry(cell);
+				
+				if (geo != null && geo.getWidth() > 0)
+				{
+					vertexBounds = new mxRectangle(0, 0, geo.getWidth() * this.getScale(), 0);
+				}
+				else
+				{
+					vertexBounds = null;
+				}
+			}
+			
 			state.setLabelBounds(mxUtils.getLabelPaintBounds(state.getLabel(),
 					style, graph.isHtmlLabel(cell), state.getAbsoluteOffset(),
-					vertexBounds, scale));
+					vertexBounds, scale, graph.getModel().isEdge(cell)));
 
 			if (overflow.equals("width"))
 			{
