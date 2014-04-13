@@ -109,7 +109,7 @@ Dialog.prototype.close = function(cancel)
 /**
  * Constructs a new open dialog.
  */
-function OpenDialog()
+var OpenDialog = function()
 {
 	var iframe = document.createElement('iframe');
 	iframe.style.backgroundColor = 'transparent';
@@ -132,7 +132,7 @@ function OpenDialog()
 /**
  * Constructs a new color dialog.
  */
-function ColorDialog(editorUi, color, apply, cancelFn)
+var ColorDialog = function(editorUi, color, apply, cancelFn)
 {
 	this.editorUi = editorUi;
 	
@@ -300,7 +300,7 @@ ColorDialog.prototype.createApplyFunction = function()
 /**
  * Constructs a new about dialog.
  */
-function AboutDialog(editorUi)
+var AboutDialog = function(editorUi)
 {
 	var div = document.createElement('div');
 	div.setAttribute('align', 'center');
@@ -334,7 +334,7 @@ function AboutDialog(editorUi)
 /**
  * Constructs a new page setup dialog.
  */
-function PageSetupDialog(editorUi)
+var PageSetupDialog = function(editorUi)
 {
 	// Defines possible page sizes. Needs to be lazy initialized to add any translations.
 	if (PageSetupDialog.formats == null)
@@ -528,7 +528,7 @@ function PageSetupDialog(editorUi)
 /**
  * Constructs a new print dialog.
  */
-function PrintDialog(editorUi)
+var PrintDialog = function(editorUi)
 {
 	var graph = editorUi.editor.graph;
 	var row, td;
@@ -688,7 +688,7 @@ PrintDialog.createPrintPreview = function(graph, scale, pf, border, x0, y0, auto
 /**
  * Constructs a new filename dialog.
  */
-function FilenameDialog(editorUi, filename, buttonText, fn, label)
+var FilenameDialog = function(editorUi, filename, buttonText, fn, label)
 {
 	var row, td;
 	
@@ -711,6 +711,15 @@ function FilenameDialog(editorUi, filename, buttonText, fn, label)
 	this.init = function()
 	{
 		nameInput.focus();
+		
+		if (mxClient.IS_FF || document.documentMode >= 5 || mxClient.IS_QUIRKS)
+		{
+			nameInput.select();
+		}
+		else
+		{
+			document.execCommand('selectAll');
+		}
 	};
 
 	td = document.createElement('td');
@@ -763,7 +772,7 @@ function FilenameDialog(editorUi, filename, buttonText, fn, label)
 /**
  * Constructs a new textarea dialog.
  */
-function TextareaDialog(editorUi, title, url, fn, cancelFn, cancelTitle)
+var TextareaDialog = function(editorUi, title, url, fn, cancelFn, cancelTitle)
 {
 	var row, td;
 	
@@ -837,7 +846,7 @@ function TextareaDialog(editorUi, title, url, fn, cancelFn, cancelTitle)
 /**
  * Constructs a new edit file dialog.
  */
-function EditFileDialog(editorUi)
+var EditFileDialog = function(editorUi)
 {
 	var div = document.createElement('div');
 	div.style.textAlign = 'right';
@@ -954,7 +963,7 @@ function EditFileDialog(editorUi)
 /**
  * Constructs a new export dialog.
  */
-function ExportDialog(editorUi)
+var ExportDialog = function(editorUi)
 {
 	var graph = editorUi.editor.graph;
 	var bounds = graph.getGraphBounds();
@@ -1353,7 +1362,7 @@ ExportDialog.showXmlOption = true;
 /**
  * Constructs a new metadata dialog.
  */
-function MetadataDialog(ui, cell)
+var MetadataDialog = function(ui, cell)
 {
 	var div = document.createElement('div');
 
@@ -1476,9 +1485,103 @@ function MetadataDialog(ui, cell)
 };
 
 /**
+ * Constructs a new link dialog.
+ */
+var LinkDialog = function(editorUi, initialValue, btnLabel, fn)
+{
+	var div = document.createElement('div');
+	mxUtils.write(div, mxResources.get('enterValue') + ' (' + mxResources.get('url') + '):');
+	
+	var inner = document.createElement('div');
+	inner.className = 'geTitle';
+	inner.style.backgroundColor = 'transparent';
+	inner.style.borderColor = 'transparent';
+	inner.style.whiteSpace = 'nowrap';
+	inner.style.textOverflow = 'clip';
+	inner.style.cursor = 'default';
+	
+	if (!mxClient.IS_VML)
+	{
+		inner.style.paddingRight = '20px';
+	}
+	
+	var linkInput = document.createElement('input');
+	linkInput.setAttribute('value', initialValue);
+	linkInput.setAttribute('type', 'text');
+	linkInput.style.marginTop = '6px';
+	linkInput.style.width = '300px';
+	linkInput.style.backgroundImage = 'url(' + IMAGE_PATH + '/clear.gif)';
+	linkInput.style.backgroundRepeat = 'no-repeat';
+	linkInput.style.backgroundPosition = '100% 50%';
+	linkInput.style.paddingRight = '14px';
+	
+	var cross = document.createElement('div');
+	cross.setAttribute('title', mxResources.get('reset'));
+	cross.style.position = 'relative';
+	cross.style.left = '-16px';
+	cross.style.width = '12px';
+	cross.style.height = '14px';
+	cross.style.cursor = 'pointer';
+
+	// Workaround for inline-block not supported in IE
+	cross.style.display = (mxClient.IS_VML) ? 'inline' : 'inline-block';
+	cross.style.top = ((mxClient.IS_VML) ? 0 : 3) + 'px';
+	
+	// Needed to block event transparency in IE
+	cross.style.background = 'url(' + IMAGE_PATH + '/transparent.gif)';
+
+	mxEvent.addListener(cross, 'click', function()
+	{
+		linkInput.value = '';
+		linkInput.focus();
+	});
+	
+	inner.appendChild(linkInput);
+	inner.appendChild(cross);
+	div.appendChild(inner);
+	
+	this.init = function()
+	{
+		linkInput.focus();
+	};
+	
+	var btns = document.createElement('div');
+	btns.style.marginTop = '14px';
+	btns.style.textAlign = 'right';
+	
+	btns.appendChild(mxUtils.button(mxResources.get('cancel'), function()
+	{
+		editorUi.hideDialog();
+	}));
+
+	mxEvent.addListener(linkInput, 'keyup', function(e)
+	{
+		if (e.keyCode == 13)
+		{
+			editorUi.hideDialog();
+			fn(linkInput.value);
+		}
+		else if (e.keyCode == 27)
+		{
+			editorUi.hideDialog();
+		}
+	});
+	
+	btns.appendChild(mxUtils.button(btnLabel, function()
+	{
+		editorUi.hideDialog();
+		fn(linkInput.value);
+	}));
+
+	div.appendChild(btns);
+
+	this.container = div;
+};
+
+/**
  * 
  */
-function LayersWindow(editorUi, x, y, w, h)
+var LayersWindow = function(editorUi, x, y, w, h)
 {
 	var graph = editorUi.editor.graph;
 	

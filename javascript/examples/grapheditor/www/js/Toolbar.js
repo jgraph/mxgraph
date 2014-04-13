@@ -90,6 +90,7 @@ Toolbar.prototype.init = function()
 	this.addItems(['-', 'strokeColor', 'image', 'fillColor']);
 	this.addItem('geSprite-gradientcolor', 'gradientColor').setAttribute('title', mxResources.get('gradient'));
 	this.addItems(['shadow']);
+	this.addItems(['-', 'grid', 'guides']);
 	
 	var graph = this.editorUi.editor.graph;
 
@@ -396,55 +397,8 @@ Toolbar.prototype.createTextToolbar = function()
 	}));
 	
 	// TODO: Disable toolbar button for HTML code view
-	this.addButton('geIcon geSprite geSprite-image', mxResources.get('insertImage'), mxUtils.bind(this, function()
-	{
-		if (graph.cellEditor.isContentEditing())
-		{
-			var selState = graph.cellEditor.saveSelection();
-			
-			this.showInsertImage(mxUtils.bind(this, function(value, w, h)
-			{
-				graph.cellEditor.restoreSelection(selState);
-				
-				// To find the new image, we create a list of all existing links first
-				var tmp = graph.cellEditor.text2.getElementsByTagName('img');
-				var oldImages = [];
-				
-				for (var i = 0; i < tmp.length; i++)
-				{
-					oldImages.push(tmp[i]);
-				}
-		
-				if (value != null && value.length > 0)
-				{
-					document.execCommand('insertimage', false, value);
-					
-					// Adds target="_blank" for the new link
-					var newImages = graph.cellEditor.text2.getElementsByTagName('img');
-					
-					if (newImages.length == oldImages.length + 1)
-					{
-						// Inverse order in favor of appended images
-						for (var i = newImages.length - 1; i >= 0; i--)
-						{
-							if (i == 0 || newImages[i] != oldImages[i - 1])
-							{
-								// LATER: Add dialog for image size
-								newImages[i].style.width = w + 'px';
-								newImages[i].style.height = h + 'px';
-								
-								break;
-							}
-						}
-					}
-				}
-			}));
-		}
-	}), mxUtils.bind(this, function()
-	{
-		graph.cellEditor.restoreSelection(selState);
-	}));
-	
+	this.addItems(['image']);
+
 	this.addButton('geIcon geSprite geSprite-horizontalrule', mxResources.get('insertHorizontalRule'), function()
 	{
 		document.execCommand('inserthorizontalrule');
@@ -850,30 +804,6 @@ Toolbar.prototype.createTextToolbar = function()
 	{
 		graph.cellEditor.toggleViewMode();
 	});
-};
-
-/**
- * Hides the current menu.
- */
-Toolbar.prototype.showInsertImage = function(applyFn)
-{
-	var value = mxUtils.prompt(mxResources.get('enterValue') + ' (' + mxResources.get('url') + ')');
-
-	if (value != null && value.length > 0)
-	{
-		var img = new Image();
-		
-		img.onload = function()
-		{
-			applyFn(value, img.width, img.height);
-		};
-		img.onerror = function()
-		{
-			mxUtils.alert(mxResources.get('fileNotFound'));
-		};
-		
-		img.src = value;
-	}
 };
 
 /**

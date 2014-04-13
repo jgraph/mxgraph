@@ -1009,7 +1009,7 @@ mxWindow.prototype.isVisible = function()
 {
 	if (this.div != null)
 	{
-		return this.div.style.visibility != 'hidden';
+		return this.div.style.display != 'none';
 	}
 	
 	return false;
@@ -1046,7 +1046,7 @@ mxWindow.prototype.setVisible = function(visible)
  */
 mxWindow.prototype.show = function()
 {
-	this.div.style.visibility = '';
+	this.div.style.display = '';
 	this.activate();
 	
 	var style = mxUtils.getCurrentStyle(this.contentWrapper);
@@ -1067,7 +1067,7 @@ mxWindow.prototype.show = function()
  */
 mxWindow.prototype.hide = function()
 {
-	this.div.style.visibility = 'hidden';
+	this.div.style.display = 'none';
 	this.fireEvent(new mxEventObject(mxEvent.HIDE));
 };
 

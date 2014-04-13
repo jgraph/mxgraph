@@ -1,3 +1,10 @@
+13-APR-2014: 2.5.1.1
+
+- Adds mxVertexHandler.isRecursiveResize hook [JavaScript]
+- Fixes NS_ERROR_FAILURE in mxCellEditor.startEditing for Firefox [JavaScript]
+- Adds rectangle fallback for rendering SVG shapes in graph.container [JavaScript]
+- Uses display CSS style for mxWindow.show, hide and isVisible [JavaScript]
+
 01-APR-2014: 2.5.1.0
 
 - Fixes NPE in hierarchical layout when resizeParent=true [JavaScript]

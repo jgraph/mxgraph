@@ -13,7 +13,8 @@ import com.mxgraph.util.mxUtils;
 import com.mxgraph.view.mxCellState;
 
 /**
- * A rectangular shape that contains a single image
+ * A rectangular shape that contains a single image. See mxImageBundle for
+ * creating a lookup table with images which can then be referenced by key.
  */
 public class mxImageShape extends mxRectangleShape
 {

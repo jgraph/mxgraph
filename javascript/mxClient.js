@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.5.1.0.
+	 * Current version is 2.5.1.1.
 	 */
-	VERSION: '2.5.1.0',
+	VERSION: '2.5.1.1',
 
 	/**
 	 * Variable: IS_IE
@@ -11310,7 +11310,7 @@ mxWindow.prototype.isVisible = function()
 {
 	if (this.div != null)
 	{
-		return this.div.style.visibility != 'hidden';
+		return this.div.style.display != 'none';
 	}
 	
 	return false;
@@ -11347,7 +11347,7 @@ mxWindow.prototype.setVisible = function(visible)
  */
 mxWindow.prototype.show = function()
 {
-	this.div.style.visibility = '';
+	this.div.style.display = '';
 	this.activate();
 	
 	var style = mxUtils.getCurrentStyle(this.contentWrapper);
@@ -11368,7 +11368,7 @@ mxWindow.prototype.show = function()
  */
 mxWindow.prototype.hide = function()
 {
-	this.div.style.visibility = 'hidden';
+	this.div.style.display = 'none';
 	this.fireEvent(new mxEventObject(mxEvent.HIDE));
 };
 
@@ -21528,12 +21528,12 @@ mxShape.prototype.getSvgScreenOffset = function()
 mxShape.prototype.create = function(container)
 {
 	var node = null;
-
+	
 	if (container.ownerSVGElement != null)
 	{
 		node = this.createSvg(container);
 	}
-	else if (document.documentMode == 8 || this.dialect == mxConstants.DIALECT_SVG ||
+	else if (document.documentMode == 8 || !mxClient.IS_VML ||
 		(this.dialect != mxConstants.DIALECT_VML && this.isHtmlAllowed()))
 	{
 		node = this.createHtml(container);
@@ -21608,7 +21608,7 @@ mxShape.prototype.redraw = function()
 	{
 		this.clear();
 		
-		if (this.node.nodeName == 'DIV' && this.isHtmlAllowed())
+		if (this.node.nodeName == 'DIV' && (this.isHtmlAllowed() || !mxClient.IS_VML))
 		{
 			this.redrawHtmlShape();
 		}
@@ -21720,32 +21720,35 @@ mxShape.prototype.createVmlGroup = function()
 mxShape.prototype.redrawShape = function()
 {
 	var canvas = this.createCanvas();
-
-	// Specifies if events should be handled
-	canvas.pointerEvents = this.pointerEvents;
-
-	this.paint(canvas);
-
-	if (this.node != canvas.root)
-	{
-		// Forces parsing in IE8 standards mode - slow! avoid
-		this.node.insertAdjacentHTML('beforeend', canvas.root.outerHTML);
-	}
-
-	if (this.node.nodeName == 'DIV' && document.documentMode == 8)
-	{
-		// Makes DIV transparent to events for IE8 in IE8 standards
-		// mode (Note: Does not work for IE9 in IE8 standards mode)
-		this.node.style.filter = '';
-		
-		// Adds event transparency in IE8 standards
-		if (this.stencil == null || (this.stencil != null && !this.stencilPointerEvents))
-		{
-			mxUtils.addTransparentBackgroundFilter(this.node);
-		}
-	}
 	
-	this.destroyCanvas(canvas);
+	if (canvas != null)
+	{
+		// Specifies if events should be handled
+		canvas.pointerEvents = this.pointerEvents;
+	
+		this.paint(canvas);
+	
+		if (this.node != canvas.root)
+		{
+			// Forces parsing in IE8 standards mode - slow! avoid
+			this.node.insertAdjacentHTML('beforeend', canvas.root.outerHTML);
+		}
+	
+		if (this.node.nodeName == 'DIV' && document.documentMode == 8)
+		{
+			// Makes DIV transparent to events for IE8 in IE8 standards
+			// mode (Note: Does not work for IE9 in IE8 standards mode)
+			this.node.style.filter = '';
+			
+			// Adds event transparency in IE8 standards
+			if (this.stencil == null || (this.stencil != null && !this.stencilPointerEvents))
+			{
+				mxUtils.addTransparentBackgroundFilter(this.node);
+			}
+		}
+		
+		this.destroyCanvas(canvas);
+	}
 };
 
 /**
@@ -21757,17 +21760,16 @@ mxShape.prototype.redrawShape = function()
 mxShape.prototype.createCanvas = function()
 {
 	var canvas = null;
-	var node = null;
 	
 	// LATER: Check if reusing existing DOM nodes improves performance
 	if (this.node.ownerSVGElement != null)
 	{
 		canvas = this.createSvgCanvas();
 	}
-	else
+	else if (mxClient.IS_VML)
 	{
 		this.updateVmlContainer();
-		canvas = this.createVmlCanvas(node);
+		canvas = this.createVmlCanvas();
 	}
 
 	return canvas;
@@ -21839,6 +21841,155 @@ mxShape.prototype.updateVmlContainer = function()
 	this.node.style.width = w + 'px';
 	this.node.style.height = h + 'px';
 	this.node.style.overflow = 'visible';
+};
+
+/**
+ * Function: redrawHtml
+ *
+ * Allow optimization by replacing VML with HTML.
+ */
+mxShape.prototype.redrawHtmlShape = function()
+{
+	// LATER: Refactor methods
+	this.updateHtmlBounds(this.node);
+	this.updateHtmlFilters(this.node);
+	this.updateHtmlColors(this.node);
+};
+
+/**
+ * Function: updateHtmlFilters
+ *
+ * Allow optimization by replacing VML with HTML.
+ */
+mxShape.prototype.updateHtmlFilters = function(node)
+{
+	var f = '';
+	
+	if (this.opacity < 100)
+	{
+		f += 'alpha(opacity=' + (this.opacity) + ')';
+	}
+	
+	if (this.isShadow)
+	{
+		// FIXME: Cannot implement shadow transparency with filter
+		f += 'progid:DXImageTransform.Microsoft.dropShadow (' +
+			'OffX=\'' + Math.round(mxConstants.SHADOW_OFFSET_X * this.scale) + '\', ' +
+			'OffY=\'' + Math.round(mxConstants.SHADOW_OFFSET_Y * this.scale) + '\', ' +
+			'Color=\'' + mxConstants.SHADOWCOLOR + '\')';
+	}
+	
+	if (this.gradient)
+	{
+		var start = this.fill;
+		var end = this.gradient;
+		var type = '0';
+		
+		var lookup = {east:0,south:1,west:2,north:3};
+		var dir = (this.direction != null) ? lookup[this.direction] : 0;
+		
+		if (this.gradientDirection != null)
+		{
+			dir = mxUtils.mod(dir + lookup[this.gradientDirection] - 1, 4);
+		}
+
+		if (dir == 1)
+		{
+			type = '1';
+			var tmp = start;
+			start = end;
+			end = tmp;
+		}
+		else if (dir == 2)
+		{
+			var tmp = start;
+			start = end;
+			end = tmp;
+		}
+		else if (dir == 3)
+		{
+			type = '1';
+		}
+		
+		f += 'progid:DXImageTransform.Microsoft.gradient(' +
+			'startColorStr=\'' + start + '\', endColorStr=\'' + end +
+			'\', gradientType=\'' + type + '\')';
+	}
+
+	node.style.filter = f;
+};
+
+/**
+ * Function: mixedModeHtml
+ *
+ * Allow optimization by replacing VML with HTML.
+ */
+mxShape.prototype.updateHtmlColors = function(node)
+{
+	var color = this.stroke;
+	
+	if (color != null && color != mxConstants.NONE)
+	{
+		node.style.borderColor = color;
+
+		if (this.isDashed)
+		{
+			node.style.borderStyle = 'dashed';
+		}
+		else if (this.strokewidth > 0)
+		{
+			node.style.borderStyle = 'solid';
+		}
+
+		node.style.borderWidth = Math.max(1, Math.ceil(this.strokewidth * this.scale)) + 'px';
+	}
+	else
+	{
+		node.style.borderWidth = '0px';
+	}
+
+	color = this.fill;
+	
+	if (color != null && color != mxConstants.NONE)
+	{
+		node.style.backgroundColor = color;
+		node.style.backgroundImage = 'none';
+	}
+	else if (this.pointerEvents)
+	{
+		 node.style.backgroundColor = 'transparent';
+	}
+	else if (document.documentMode == 8)
+	{
+		mxUtils.addTransparentBackgroundFilter(node);
+	}
+	else
+	{
+		this.setTransparentBackgroundImage(node);
+	}
+};
+
+/**
+ * Function: mixedModeHtml
+ *
+ * Allow optimization by replacing VML with HTML.
+ */
+mxShape.prototype.updateHtmlBounds = function(node)
+{
+	var sw = (document.documentMode >= 9) ? 0 : Math.ceil(this.strokewidth * this.scale);
+	node.style.borderWidth = Math.max(1, sw) + 'px';
+	node.style.overflow = 'hidden';
+	
+	node.style.left = Math.round(this.bounds.x - sw / 2) + 'px';
+	node.style.top = Math.round(this.bounds.y - sw / 2) + 'px';
+
+	if (document.compatMode == 'CSS1Compat')
+	{
+		sw = -sw;
+	}
+	
+	node.style.width = Math.round(Math.max(0, this.bounds.width + sw)) + 'px';
+	node.style.height = Math.round(Math.max(0, this.bounds.height + sw)) + 'px';
 };
 
 /**
@@ -22901,155 +23052,6 @@ mxRectangleShape.prototype.paintForeground = function(c, x, y, w, h)
 	{
 		this.paintGlassEffect(c, x, y, w, h, this.getArcSize(w + this.strokewidth, h + this.strokewidth));
 	}
-};
-
-/**
- * Function: redrawHtml
- *
- * Allow optimization by replacing VML with HTML.
- */
-mxRectangleShape.prototype.redrawHtmlShape = function()
-{
-	// LATER: Refactor methods
-	this.updateHtmlBounds(this.node);
-	this.updateHtmlFilters(this.node);
-	this.updateHtmlColors(this.node);
-};
-
-/**
- * Function: mixedModeHtml
- *
- * Allow optimization by replacing VML with HTML.
- */
-mxRectangleShape.prototype.updateHtmlBounds = function(node)
-{
-	var sw = (document.documentMode >= 9) ? 0 : Math.ceil(this.strokewidth * this.scale);
-	node.style.borderWidth = Math.max(1, sw) + 'px';
-	node.style.overflow = 'hidden';
-	
-	node.style.left = Math.round(this.bounds.x - sw / 2) + 'px';
-	node.style.top = Math.round(this.bounds.y - sw / 2) + 'px';
-
-	if (document.compatMode == 'CSS1Compat')
-	{
-		sw = -sw;
-	}
-	
-	node.style.width = Math.round(Math.max(0, this.bounds.width + sw)) + 'px';
-	node.style.height = Math.round(Math.max(0, this.bounds.height + sw)) + 'px';
-};
-
-/**
- * Function: mixedModeHtml
- *
- * Allow optimization by replacing VML with HTML.
- */
-mxRectangleShape.prototype.updateHtmlColors = function(node)
-{
-	var color = this.stroke;
-	
-	if (color != null && color != mxConstants.NONE)
-	{
-		node.style.borderColor = color;
-
-		if (this.isDashed)
-		{
-			node.style.borderStyle = 'dashed';
-		}
-		else if (this.strokewidth > 0)
-		{
-			node.style.borderStyle = 'solid';
-		}
-
-		node.style.borderWidth = Math.max(1, Math.ceil(this.strokewidth * this.scale)) + 'px';
-	}
-	else
-	{
-		node.style.borderWidth = '0px';
-	}
-
-	color = this.fill;
-	
-	if (color != null && color != mxConstants.NONE)
-	{
-		node.style.backgroundColor = color;
-		node.style.backgroundImage = 'none';
-	}
-	else if (this.pointerEvents)
-	{
-		 node.style.backgroundColor = 'transparent';
-	}
-	else if (document.documentMode == 8)
-	{
-		mxUtils.addTransparentBackgroundFilter(node);
-	}
-	else
-	{
-		this.setTransparentBackgroundImage(node);
-	}
-};
-
-/**
- * Function: updateHtmlFilters
- *
- * Allow optimization by replacing VML with HTML.
- */
-mxRectangleShape.prototype.updateHtmlFilters = function(node)
-{
-	var f = '';
-	
-	if (this.opacity < 100)
-	{
-		f += 'alpha(opacity=' + (this.opacity) + ')';
-	}
-	
-	if (this.isShadow)
-	{
-		// FIXME: Cannot implement shadow transparency with filter
-		f += 'progid:DXImageTransform.Microsoft.dropShadow (' +
-			'OffX=\'' + Math.round(mxConstants.SHADOW_OFFSET_X * this.scale) + '\', ' +
-			'OffY=\'' + Math.round(mxConstants.SHADOW_OFFSET_Y * this.scale) + '\', ' +
-			'Color=\'' + mxConstants.SHADOWCOLOR + '\')';
-	}
-	
-	if (this.gradient)
-	{
-		var start = this.fill;
-		var end = this.gradient;
-		var type = '0';
-		
-		var lookup = {east:0,south:1,west:2,north:3};
-		var dir = (this.direction != null) ? lookup[this.direction] : 0;
-		
-		if (this.gradientDirection != null)
-		{
-			dir = mxUtils.mod(dir + lookup[this.gradientDirection] - 1, 4);
-		}
-
-		if (dir == 1)
-		{
-			type = '1';
-			var tmp = start;
-			start = end;
-			end = tmp;
-		}
-		else if (dir == 2)
-		{
-			var tmp = start;
-			start = end;
-			end = tmp;
-		}
-		else if (dir == 3)
-		{
-			type = '1';
-		}
-		
-		f += 'progid:DXImageTransform.Microsoft.gradient(' +
-			'startColorStr=\'' + start + '\', endColorStr=\'' + end +
-			'\', gradientType=\'' + type + '\')';
-	}
-
-	node.style.filter = f;
 };
 /**
  * $Id: mxEllipse.js,v 1.2 2013/10/28 08:45:04 gaudenz Exp $
@@ -42789,7 +42791,14 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 			
 			if (this.selectText)
 			{
-				document.execCommand('selectall');
+				if (mxClient.IS_FF)
+				{
+					this.textarea.select();
+				}
+				else
+				{
+					document.execCommand('selectAll');					
+				}
 			}
 		}
 	}
@@ -68439,8 +68448,9 @@ mxVertexHandler.prototype.isSizerVisible = function(index)
 /**
  * Function: createSizerShape
  * 
- * Creates the shape used for the sizer handle for the specified bounds and
- * index.
+ * Creates the shape used for the sizer handle for the specified bounds an
+ * index. Only images and rectangles should be returned if support for HTML
+ * labels with not foreign objects is required.
  */
 mxVertexHandler.prototype.createSizerShape = function(bounds, index, fillColor)
 {
@@ -68880,7 +68890,8 @@ mxVertexHandler.prototype.mouseUp = function(sender, me)
 				dy = ty;
 				
 				var s = this.graph.view.scale;
-				this.resizeCell(this.state.cell, dx / s, dy / s, this.index, gridEnabled, this.isConstrainedEvent(me));
+				var recurse = this.isRecursiveResize(this.state, me);
+				this.resizeCell(this.state.cell, dx / s, dy / s, this.index, gridEnabled, this.isConstrainedEvent(me), recurse);
 			}
 		}
 		finally
@@ -68891,6 +68902,16 @@ mxVertexHandler.prototype.mouseUp = function(sender, me)
 		me.consume();
 		this.reset();
 	}
+};
+
+/**
+ * Function: rotateCell
+ * 
+ * Rotates the given cell to the given rotation.
+ */
+mxVertexHandler.prototype.isRecursiveResize = function(state, me)
+{
+	return this.graph.isRecursiveResize();
 };
 
 /**
@@ -69009,7 +69030,7 @@ mxVertexHandler.prototype.reset = function()
  * Uses the given vector to change the bounds of the given cell
  * in the graph using <mxGraph.resizeCell>.
  */
-mxVertexHandler.prototype.resizeCell = function(cell, dx, dy, index, gridEnabled, constrained)
+mxVertexHandler.prototype.resizeCell = function(cell, dx, dy, index, gridEnabled, constrained, recurse)
 {
 	var geo = this.graph.model.getGeometry(cell);
 	
@@ -69073,7 +69094,7 @@ mxVertexHandler.prototype.resizeCell = function(cell, dx, dy, index, gridEnabled
 				}
 			}
 			
-			this.graph.resizeCell(cell, bounds);
+			this.graph.resizeCell(cell, bounds, recurse);
 		}
 	}
 };
@@ -69991,7 +70012,8 @@ mxEdgeHandler.prototype.isHandleVisible = function(index)
  * 
  * Creates the shape used to display the given bend. Note that the index may be
  * null for special cases, such as when called from
- * <mxElbowEdgeHandler.createVirtualBend>.
+ * <mxElbowEdgeHandler.createVirtualBend>. Only images and rectangles should be
+ * returned if support for HTML labels with not foreign objects is required.
  */
 mxEdgeHandler.prototype.createHandleShape = function(index)
 {

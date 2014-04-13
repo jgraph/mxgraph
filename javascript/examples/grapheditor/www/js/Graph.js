@@ -801,12 +801,23 @@ Graph.prototype.initTouch = function()
 				this.text2.contentEditable = true;
 				this.text2.focus();
 
-				document.execCommand('selectall');
+				document.execCommand('selectAll');					
 			}
 			else
 			{
 				this.textarea.focus();
-				this.textarea.select();
+				
+				if (this.selectText)
+				{
+					if (mxClient.IS_FF)
+					{
+						this.textarea.select();
+					}
+					else
+					{
+						document.execCommand('selectAll');					
+					}
+				}
 			}
 		};
 
@@ -842,6 +853,14 @@ Graph.prototype.initTouch = function()
 		};
 	}
 
+	/**
+	 * Enables recursive resize for groups.
+	 */
+	mxVertexHandler.prototype.isRecursiveResize = function(state, me)
+	{
+		return !this.graph.isSwimlane(state.cell) && this.graph.model.getChildCount(state.cell) > 0 && !mxEvent.isControlDown(me.getEvent());
+	};
+	
 	/**
 	 * Implements touch style
 	 */

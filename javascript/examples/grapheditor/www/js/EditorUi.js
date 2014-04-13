@@ -147,9 +147,7 @@ EditorUi = function(editor, container)
     
     graph.container.focus();
    	
-	// Overrides double click handling to use the tolerance and
-   	// redirect to the image action for image shapes
-   	var ui = this;
+	// Overrides double click handling to add the tolerance
 	var graphDblClick = graph.dblClick;
 	graph.dblClick = function(evt, cell)
 	{
@@ -160,24 +158,7 @@ EditorUi = function(editor, container)
 			cell = this.getCellAt(pt.x, pt.y);
 		}
 
-		var state = this.view.getState(cell);
-		var textSource = false;
-		
-		// Avoids calling image action if label is event source
-		if (evt != null && state != null && state.text != null && state.text.node != null)
-		{
-			textSource = mxUtils.isAncestorNode(state.text.node, mxEvent.getSource(evt));
-		}
-		
-		if (state != null && !textSource && state.shape.constructor == mxImageShape && !mxEvent.isAltDown(evt))
-		{
-			graph.setSelectionCell(cell);
-			ui.actions.get('image').funct();
-		}
-		else
-		{
-			graphDblClick.call(this, evt, cell);
-		}
+		graphDblClick.call(this, evt, cell);
 	};
 
    	// Keeps graph container focused on mouse down
@@ -1023,6 +1004,8 @@ EditorUi.prototype.addSplitHandler = function(elt, horizontal, dx, onChange)
 {
 	var start = null;
 	var initial = null;
+	var ignoreClick = true;
+	var last = null;
 
 	// Disables built-in pan and zoom in IE10 and later
 	if (mxClient.IS_POINTER)
@@ -1030,10 +1013,18 @@ EditorUi.prototype.addSplitHandler = function(elt, horizontal, dx, onChange)
 		elt.style.msTouchAction = 'none';
 	}
 	
-	function getValue()
+	var getValue = mxUtils.bind(this, function()
 	{
-		return parseInt(((horizontal) ? elt.style.left : elt.style.bottom));
-	};
+		var result = parseInt(((horizontal) ? elt.style.left : elt.style.bottom));
+	
+		// Takes into account hidden footer
+		if (!horizontal)
+		{
+			result = result + dx - this.footerHeight;
+		}
+		
+		return result;
+	});
 
 	function moveHandler(evt)
 	{
@@ -1041,22 +1032,38 @@ EditorUi.prototype.addSplitHandler = function(elt, horizontal, dx, onChange)
 		{
 			var pt = new mxPoint(mxEvent.getClientX(evt), mxEvent.getClientY(evt));
 			onChange(Math.max(0, initial + ((horizontal) ? (pt.x - start.x) : (start.y - pt.y)) - dx));
-			mxEvent.consume(evt);
+			
+			if (initial != getValue())
+			{
+				ignoreClick = true;
+				last = null;
+			}
 		}
 	};
 	
 	function dropHandler(evt)
 	{
 		moveHandler(evt);
-		start = null;
 		initial = null;
+		start = null;
 	};
 	
 	mxEvent.addGestureListeners(elt, function(evt)
 	{
 		start = new mxPoint(mxEvent.getClientX(evt), mxEvent.getClientY(evt));
 		initial = getValue();
+		ignoreClick = false;
 		mxEvent.consume(evt);
+	});
+	
+	mxEvent.addListener(elt, 'click', function(evt)
+	{
+		if (!ignoreClick)
+		{
+			var next = (last != null) ? last - dx : 0;
+			last = getValue();
+			onChange(next);
+		}
 	});
 
 	mxEvent.addGestureListeners(document, null, moveHandler, dropHandler);
@@ -1294,6 +1301,33 @@ EditorUi.prototype.executeLayout = function(exec, animate, post)
 				graph.getModel().endUpdate();
 			}
 		}
+	}
+};
+
+/**
+ * Hides the current menu.
+ */
+EditorUi.prototype.showImageDialog = function(title, value, fn)
+{
+	var cellEditor = this.editor.graph.cellEditor;
+	var selState = cellEditor.saveSelection();
+	var newValue = mxUtils.prompt(title, value);
+	cellEditor.restoreSelection(selState);
+	
+	if (newValue != null && newValue.length > 0)
+	{
+		var img = new Image();
+		
+		img.onload = function()
+		{
+			fn(newValue, img.width, img.height);
+		};
+		img.onerror = function()
+		{
+			mxUtils.alert(mxResources.get('fileNotFound'));
+		};
+		
+		img.src = newValue;
 	}
 };
 

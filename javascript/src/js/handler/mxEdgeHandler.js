@@ -461,7 +461,8 @@ mxEdgeHandler.prototype.isHandleVisible = function(index)
  * 
  * Creates the shape used to display the given bend. Note that the index may be
  * null for special cases, such as when called from
- * <mxElbowEdgeHandler.createVirtualBend>.
+ * <mxElbowEdgeHandler.createVirtualBend>. Only images and rectangles should be
+ * returned if support for HTML labels with not foreign objects is required.
  */
 mxEdgeHandler.prototype.createHandleShape = function(index)
 {

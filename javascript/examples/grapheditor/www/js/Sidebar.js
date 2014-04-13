@@ -81,6 +81,9 @@ Sidebar.prototype.init = function()
 	var dir = STENCIL_PATH;
 	
 	this.addGeneralPalette(true);
+	this.addTextAndImagePalette(false);
+	this.addConnectionPalette(false);
+	this.addAdvancedPalette(true);
 	this.addStencilPalette('basic', mxResources.get('basic'), dir + '/basic.xml',
 		';fillColor=#ffffff;strokeColor=#000000;strokeWidth=2');
 	this.addStencilPalette('arrows', mxResources.get('arrows'), dir + '/arrows.xml',
@@ -108,11 +111,6 @@ Sidebar.prototype.enableTooltips = true;
 Sidebar.prototype.tooltipBorder = 16;
 
 /**
- * Specifies the delay for the tooltip. Default is 3 px.
- */
-Sidebar.prototype.thumbBorder = 2;
-
-/**
  * Specifies the delay for the tooltip. Default is 300 ms.
  */
 Sidebar.prototype.tooltipDelay = 300;
@@ -130,17 +128,22 @@ Sidebar.prototype.gearImage = STENCIL_PATH + '/clipart/Gear_128x128.png';
 /**
  * Specifies the width of the thumbnails.
  */
-Sidebar.prototype.thumbWidth = 34;
+Sidebar.prototype.thumbWidth = 36;
 
 /**
  * Specifies the height of the thumbnails.
  */
-Sidebar.prototype.thumbHeight = 34;
+Sidebar.prototype.thumbHeight = 36;
 
 /**
  * Specifies the padding for the thumbnails. Default is 3.
  */
-Sidebar.prototype.thumbPadding = 2;
+Sidebar.prototype.thumbPadding = (document.documentMode >= 5) ? 0 : 1;
+
+/**
+ * Specifies the delay for the tooltip. Default is 3 px.
+ */
+Sidebar.prototype.thumbBorder = 2;
 
 /**
  * Specifies the size of the sidebar titles.
@@ -363,72 +366,167 @@ Sidebar.prototype.addGeneralPalette = function(expand)
 {
 	this.addPalette('general', mxResources.get('general'), (expand != null) ? expand : true, mxUtils.bind(this, function(content)
 	{
-		content.appendChild(this.createVertexTemplate('swimlane;whiteSpace=wrap', 200, 200, 'Container', 'Container', true));
-	    content.appendChild(this.createVertexTemplate('whiteSpace=wrap', 120, 60, '', 'Rectangle', true));
+		content.appendChild(this.createVertexTemplate('whiteSpace=wrap', 120, 60, '', 'Rectangle', true));
 	    content.appendChild(this.createVertexTemplate('rounded=1;whiteSpace=wrap', 120, 60, '', 'Rounded Rectangle', true));
-	    content.appendChild(this.createVertexTemplate('text;align=center;verticalAlign=middle;', 100, 40, 'Simple Text', 'Simple Text', true));
+	    content.appendChild(this.createVertexTemplate('shape=ext;double=1;whiteSpace=wrap', 120, 60, '', 'Double Rectangle', true));
+	    content.appendChild(this.createVertexTemplate('shape=ext;double=1;rounded=1;whiteSpace=wrap', 120, 60, '', 'Double Rounded Rectangle', true));
 
-	    content.appendChild(this.createVertexTemplate('text;html=1;spacing=5;spacingTop=-10;whiteSpace=wrap;overflow=hidden;', 200, 140,
-	    	'<h1>Heading</h1><p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>', 'Formatted Text', true));
-
-	    var linkCell = new mxCell('Click here!', new mxGeometry(0, 0, 100, 40), 'fontColor=#0000EE;fontStyle=4;');
-	    linkCell.vertex = true;
-	    this.graph.setLinkForCell(linkCell, 'http://www.jgraph.com');
-    	content.appendChild(this.createVertexTemplateFromCells([linkCell], 100, 40, 'Hyperlink', true));
-
-	    content.appendChild(this.createVertexTemplate('shape=image;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=1;aspect=fixed;image=' + this.gearImage, 52, 61, '', 'Fixed Image', false));
-    	content.appendChild(this.createVertexTemplate('shape=image;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=0;image=' + this.gearImage, 50, 60, '', 'Stretched Image', false));
-	    
+	    content.appendChild(this.createVertexTemplate('shape=process;whiteSpace=wrap', 120, 60, '', 'Process', true));
 	    content.appendChild(this.createVertexTemplate('ellipse;whiteSpace=wrap', 80, 80, '', 'Circle', true));
 	    content.appendChild(this.createVertexTemplate('ellipse;shape=doubleEllipse;whiteSpace=wrap', 80, 80, '', 'Double Ellipse', true));
-	    content.appendChild(this.createVertexTemplate('shape=ext;double=1;whiteSpace=wrap', 120, 60, 'Double Rectangle', 'Double Rectangle', true));
-	    content.appendChild(this.createVertexTemplate('shape=ext;double=1;rounded=1;whiteSpace=wrap', 120, 60, 'Double\nRounded Rectangle', 'Double Rounded Rectangle', true));
-	    content.appendChild(this.createVertexTemplate('shape=process;whiteSpace=wrap', 120, 60, '', 'Process', true));
+		content.appendChild(this.createVertexTemplate('triangle;whiteSpace=wrap', 60, 80, '', 'Triangle', true));
+
+	    content.appendChild(this.createVertexTemplate('shape=hexagon;whiteSpace=wrap', 120, 80, '', 'Hexagon', true));
 	    content.appendChild(this.createVertexTemplate('shape=parallelogram;whiteSpace=wrap', 120, 60, '', 'Parallelogram', true));
 	    content.appendChild(this.createVertexTemplate('shape=trapezoid;whiteSpace=wrap', 120, 60, '', 'Trapezoid', true));
-	    content.appendChild(this.createVertexTemplate('shape=document;whiteSpace=wrap', 120, 80, '', 'Document', true));
-	    content.appendChild(this.createVertexTemplate('triangle;whiteSpace=wrap', 60, 80, '', 'Triangle', true));
 	    content.appendChild(this.createVertexTemplate('rhombus;whiteSpace=wrap', 80, 80, '', 'Rhombus', true));
-	    content.appendChild(this.createVertexTemplate('shape=hexagon;whiteSpace=wrap', 120, 80, '', 'Hexagon', true));
+	    
 	    content.appendChild(this.createVertexTemplate('shape=step;whiteSpace=wrap', 120, 80, '', 'Step', true));
-	    content.appendChild(this.createVertexTemplate('shape=cylinder;whiteSpace=wrap', 60, 80, '', 'Cylinder', true));
 	    content.appendChild(this.createVertexTemplate('shape=tape;whiteSpace=wrap', 120, 100, '', 'Tape', true));
-	    content.appendChild(this.createVertexTemplate('shape=xor;whiteSpace=wrap', 60, 80, '', 'Exclusive Or', true));
-	    content.appendChild(this.createVertexTemplate('shape=or;whiteSpace=wrap', 60, 80, '', 'Or', true));
+	    content.appendChild(this.createVertexTemplate('shape=document;whiteSpace=wrap', 120, 80, '', 'Document', true));
+	    content.appendChild(this.createVertexTemplate('shape=message;whiteSpace=wrap', 60, 40, '', 'Message', true));
+	    
 	    content.appendChild(this.createVertexTemplate('shape=cube;whiteSpace=wrap', 120, 80, '', 'Cube', true));
 	    content.appendChild(this.createVertexTemplate('shape=note;whiteSpace=wrap', 80, 100, '', 'Note', true));
-	    content.appendChild(this.createVertexTemplate('shape=folder;whiteSpace=wrap', 120, 120, '', 'Folder', true));
-	    content.appendChild(this.createVertexTemplate('shape=card;whiteSpace=wrap', 60, 80, '', 'Card', true));
-	    content.appendChild(this.createVertexTemplate('shape=message;whiteSpace=wrap', 60, 40, '', 'Message', true));
-	    content.appendChild(this.createVertexTemplate('shape=actor;whiteSpace=wrap', 40, 60, '', 'Actor 1', true));
-	    content.appendChild(this.createVertexTemplate('icon;image=' + this.gearImage, 60, 60, 'Icon', 'Icon', false));
-	    content.appendChild(this.createVertexTemplate('whiteSpace=wrap;label;image=' + this.gearImage, 140, 60, 'Label', 'Label', true));
-	    content.appendChild(this.createVertexTemplate('shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top', 30, 60, '', 'Actor 2', true));
+	    content.appendChild(this.createVertexTemplate('shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top', 30, 60, '', 'Actor', true));
 	    content.appendChild(this.createVertexTemplate('ellipse;shape=cloud;whiteSpace=wrap', 120, 80, '', 'Cloud', true));
-	    content.appendChild(this.createVertexTemplate('line', 160, 10, '', 'Horizontal Line', true));
-	    content.appendChild(this.createVertexTemplate('line;direction=south', 10, 160, '', 'Vertical Line', true));
-
-	    content.appendChild(this.createEdgeTemplate('edgeStyle=none;endArrow=none;', 100, 100, '', 'Line', true));
-	    content.appendChild(this.createEdgeTemplate('edgeStyle=none;endArrow=none;dashed=1;', 100, 100, '', 'Dashed Line', true));
-	    content.appendChild(this.createEdgeTemplate('edgeStyle=none;endArrow=none;dashed=1;dashPattern=1 4', 100, 100, '', 'Dotted Line', true));
-	    content.appendChild(this.createEdgeTemplate('edgeStyle=none', 100, 100, '', 'Connection', true));
-
-		var cells = [new mxCell('', new mxGeometry(0, 0, 100, 100), 'curved=1')];
-		cells[0].geometry.setTerminalPoint(new mxPoint(0, 100), true);
-		cells[0].geometry.setTerminalPoint(new mxPoint(100, 0), false);
-		cells[0].geometry.points = [new mxPoint(100, 100), new mxPoint(0, 0)];
-		cells[0].geometry.relative = true;
-		cells[0].edge = true;
-	    content.appendChild(this.createEdgeTemplateFromCells(cells, 100, 100, 'Curve', true));
-	    
-	    content.appendChild(this.createEdgeTemplate('edgeStyle=elbowEdgeStyle;elbow=horizontal', 100, 100, '', 'Horizontal Elbow', true));
-	    content.appendChild(this.createEdgeTemplate('edgeStyle=elbowEdgeStyle;elbow=vertical', 100, 100, '', 'Vertical Elbow', true));
-	    content.appendChild(this.createEdgeTemplate('edgeStyle=entityRelationEdgeStyle', 100, 100, '', 'Entity Relation', true));
-	    content.appendChild(this.createEdgeTemplate('edgeStyle=segmentEdgeStyle', 100, 100, '', 'Manual Line', true));
-	    content.appendChild(this.createEdgeTemplate('edgeStyle=orthogonalEdgeStyle', 100, 100, '', 'Automatic Line', true));
-	    content.appendChild(this.createEdgeTemplate('shape=link', 100, 100, '', 'Link', true));
-	    content.appendChild(this.createEdgeTemplate('arrow', 100, 100, '', 'Arrow', true));
 	}));
+};
+
+/**
+ * Adds the container palette to the sidebar.
+ */
+Sidebar.prototype.addTextAndImagePalette = function(dir, expand)
+{
+	this.addPalette('textAndImages', mxResources.get('text') + ' & ' + mxResources.get('images'), (expand != null) ? expand : false, mxUtils.bind(this, function(content)
+	{
+		this.addTextAndImageShapes(dir, content);
+	}));
+};
+
+/**
+ * Adds the container palette to the sidebar.
+ */
+Sidebar.prototype.addTextAndImageShapes = function(dir, content)
+{
+    content.appendChild(this.createVertexTemplate('text;align=center;verticalAlign=middle;', 80, 40, 'Simple\nText', 'Text', true));
+
+    content.appendChild(this.createVertexTemplate('text;html=1;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;', 190, 120,
+    	'<h1>Heading</h1><p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>', 'Textbox', true));
+
+    content.appendChild(this.createVertexTemplate('text;html=1;whiteSpace=wrap;verticalAlign=middle;overflow=hidden;', 100, 80,
+    	'<ul><li>Value 1</li><li>Value 2</li><li>Value 3</li></ul>', 'Unordered list', true));
+
+    content.appendChild(this.createVertexTemplate('text;html=1;whiteSpace=wrap;verticalAlign=middle;overflow=hidden;', 100, 80,
+        	'<ol><li>Value 1</li><li>Value 2</li><li>Value 3</li></ol>', 'Ordered list', true));
+
+    // TODO: Show placeholder in outline for transparent text labels
+    content.appendChild(this.createVertexTemplate('text;html=1;strokeColor=#c0c0c0;overflow=fill;', 180, 180,
+        	'<table border="0" width="100%" height="100%" style="width:100%;height:100%;border-collapse:collapse;">' +
+        	'<tr><td align="center">Value 1</td><td align="center">Value 2</td><td align="center">Value 3</td></tr>' +
+        	'<tr><td align="center">Value 4</td><td align="center">Value 5</td><td align="center">Value 6</td></tr>' +
+        	'<tr><td align="center">Value 7</td><td align="center">Value 8</td><td align="center">Value 9</td></tr></table>', 'Table 1', true));
+    
+    content.appendChild(this.createVertexTemplate('text;html=1;overflow=fill;', 180, 180,
+        	'<table border="1" width="100%" height="100%" style="width:100%;height:100%;border-collapse:collapse;">' +
+        	'<tr><td align="center">Value 1</td><td align="center">Value 2</td><td align="center">Value 3</td></tr>' +
+        	'<tr><td align="center">Value 4</td><td align="center">Value 5</td><td align="center">Value 6</td></tr>' +
+        	'<tr><td align="center">Value 7</td><td align="center">Value 8</td><td align="center">Value 9</td></tr></table>', 'Table 2', true));
+    
+    content.appendChild(this.createVertexTemplate('text;html=1;overflow=fill;', 160, 180,
+        	'<table border="1" width="100%" height="100%" cellpadding="4" style="width:100%;height:100%;border-collapse:collapse;">' +
+        	'<tr><th align="center"><b>Title</b></th></tr>' +
+        	'<tr><td align="center">Section 1.1\nSection 1.2\nSection 1.3</td></tr>' +
+        	'<tr><td align="center">Section 2.1\nSection 2.2\nSection 2.3</td></tr></table>', 'Table 3', true));
+    
+    // For fun: Bootstrap template, Problem: Text flow in jumbotron paragraph
+    /*content.appendChild(this.createVertexTemplate('text;html=1;overflow=fill;', 100, 100,
+        	'<html><head><link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"><link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">' +
+        	'</head><body><div class="jumbotron"><div class="container"><h1>Bootstrap starter template</h1>' +
+        	'<p>This is a template for a simple marketing or informational website. It includes a large callout called a jumbotron and three supporting pieces of content. Use it as a starting point to create something more unique.</p>' +
+        	'<p><a class="btn btn-primary btn-lg" role="button">Learn more &raquo;</a></p></div></div>' +
+        	'<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script><script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script></body></html>', 'IFrame', true));*/
+    
+    var linkCell = new mxCell('Link', new mxGeometry(0, 0, 60, 40), 'text;align=center;verticalAlign=middle;fontColor=#0000EE;fontStyle=4;');
+    linkCell.vertex = true;
+    this.graph.setLinkForCell(linkCell, 'https://www.draw.io');
+	content.appendChild(this.createVertexTemplateFromCells([linkCell], 60, 40, 'Link', true));
+
+    content.appendChild(this.createVertexTemplate('shape=image;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=1;aspect=fixed;image=' + this.gearImage, 52, 61, '', 'Fixed Image', false));
+	content.appendChild(this.createVertexTemplate('shape=image;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=0;image=' + this.gearImage, 50, 60, '', 'Stretched Image', false));
+
+    content.appendChild(this.createVertexTemplate('icon;image=' + this.gearImage, 60, 60, 'Icon', 'Icon', false));
+    content.appendChild(this.createVertexTemplate('whiteSpace=wrap;label;image=' + this.gearImage, 140, 60, 'Label', 'Label', true));
+};
+
+/**
+ * Adds the container palette to the sidebar.
+ */
+Sidebar.prototype.addConnectionPalette = function(dir, expand)
+{
+	this.addPalette('connections', mxResources.get('connection'), (expand != null) ? expand : false, mxUtils.bind(this, function(content)
+	{
+		this.addConnectionShapes(dir, content);
+	}));
+};
+
+/**
+ * Adds the container palette to the sidebar.
+ */
+Sidebar.prototype.addConnectionShapes = function(dir, content)
+{
+    content.appendChild(this.createEdgeTemplate('edgeStyle=none;endArrow=none;', 100, 100, '', 'Line', true));
+    content.appendChild(this.createEdgeTemplate('edgeStyle=none;endArrow=none;dashed=1;', 100, 100, '', 'Dashed Line', true));
+    content.appendChild(this.createEdgeTemplate('edgeStyle=none;endArrow=none;dashed=1;dashPattern=1 4', 100, 100, '', 'Dotted Line', true));
+    content.appendChild(this.createEdgeTemplate('edgeStyle=none', 100, 100, '', 'Connection', true));
+
+	var cells = [new mxCell('', new mxGeometry(0, 0, 100, 100), 'curved=1')];
+	cells[0].geometry.setTerminalPoint(new mxPoint(0, 100), true);
+	cells[0].geometry.setTerminalPoint(new mxPoint(100, 0), false);
+	cells[0].geometry.points = [new mxPoint(100, 100), new mxPoint(0, 0)];
+	cells[0].geometry.relative = true;
+	cells[0].edge = true;
+    content.appendChild(this.createEdgeTemplateFromCells(cells, 100, 100, 'Curve', true));
+    
+    content.appendChild(this.createEdgeTemplate('edgeStyle=elbowEdgeStyle;elbow=horizontal', 100, 100, '', 'Horizontal Elbow', true));
+    content.appendChild(this.createEdgeTemplate('edgeStyle=elbowEdgeStyle;elbow=vertical', 100, 100, '', 'Vertical Elbow', true));
+    content.appendChild(this.createEdgeTemplate('edgeStyle=entityRelationEdgeStyle', 100, 100, '', 'Entity Relation', true));
+    content.appendChild(this.createEdgeTemplate('edgeStyle=segmentEdgeStyle', 100, 100, '', 'Manual Line', true));
+    content.appendChild(this.createEdgeTemplate('edgeStyle=orthogonalEdgeStyle', 100, 100, '', 'Automatic Line', true));
+    content.appendChild(this.createEdgeTemplate('shape=link', 100, 100, '', 'Link', true));
+    content.appendChild(this.createEdgeTemplate('arrow', 100, 100, '', 'Arrow', true));
+};
+
+/**
+ * Adds the container palette to the sidebar.
+ */
+Sidebar.prototype.addAdvancedPalette = function(dir, expand)
+{
+	this.addPalette('advanced', mxResources.get('advanced'), (expand != null) ? expand : false, mxUtils.bind(this, function(content)
+	{
+		this.addAdvancedShapes(dir, content);
+	}));
+};
+
+/**
+ * Adds the container palette to the sidebar.
+ */
+Sidebar.prototype.addAdvancedShapes = function(dir, content)
+{
+    content.appendChild(this.createVertexTemplate('shape=card;whiteSpace=wrap', 60, 80, '', 'Card', true));
+    content.appendChild(this.createVertexTemplate('shape=folder;whiteSpace=wrap', 120, 120, '', 'Folder', true));
+    content.appendChild(this.createVertexTemplate('shape=actor;whiteSpace=wrap', 40, 60, '', 'User', true));
+    content.appendChild(this.createVertexTemplate('shape=cylinder;whiteSpace=wrap', 60, 80, '', 'Cylinder', true));
+    
+    content.appendChild(this.createVertexTemplate('shape=xor;whiteSpace=wrap', 60, 80, '', 'Exclusive Or', true));
+    content.appendChild(this.createVertexTemplate('shape=or;whiteSpace=wrap', 60, 80, '', 'Or', true));
+    content.appendChild(this.createVertexTemplate('line', 160, 10, '', 'Horizontal Line', true));
+    content.appendChild(this.createVertexTemplate('line;direction=south', 10, 160, '', 'Vertical Line', true));
+	
+	content.appendChild(this.createVertexTemplate('swimlane;whiteSpace=wrap', 200, 200, 'Container', 'Container', true));
+	content.appendChild(this.createVertexTemplate('swimlane;swimlaneLine=0;whiteSpace=wrap', 200, 200, 'Container', 'No separator', true));
+	content.appendChild(this.createVertexTemplate('swimlane;swimlaneFillColor=#ffffff;whiteSpace=wrap', 200, 200, 'Container', 'Filled', true));
+	content.appendChild(this.createVertexTemplate('swimlane;swimlaneLine=0;swimlaneFillColor=#ffffff;whiteSpace=wrap', 200, 200, 'Container', 'Both', true));
 };
 
 /**
@@ -840,8 +938,8 @@ Sidebar.prototype.createThumb = function(cells, width, height, parent, title, sh
 	var bounds = this.graph.getGraphBounds();
 	var s = Math.floor(Math.min((width - 2 * this.thumbBorder) / bounds.width, (height - 2 * this.thumbBorder)
 		/ bounds.height) * 100) / 100;
-	this.graph.view.scaleAndTranslate(s, (width - bounds.width * s) / 2 / s - bounds.x,
-			(height - bounds.height * s) / 2 / s - bounds.y);
+	this.graph.view.scaleAndTranslate(s, Math.floor((width - bounds.width * s) / 2 / s - bounds.x),
+			Math.floor((height - bounds.height * s) / 2 / s - bounds.y));
 	var node = null;
 	
 	// For supporting HTML labels in IE9 standards mode the container is cloned instead
@@ -885,6 +983,7 @@ Sidebar.prototype.createThumb = function(cells, width, height, parent, title, sh
 		
 		var div = document.createElement('div');
 		div.style.fontSize = this.sidebarTitleSize + 'px';
+		div.style.color = '#808080';
 		div.style.textAlign = 'center';
 		div.style.whiteSpace = 'nowrap';
 		
@@ -908,7 +1007,7 @@ Sidebar.prototype.createItem = function(cells, title, showLabel)
 	elt.setAttribute('href', 'javascript:void(0);');
 	elt.className = 'geItem';
 	elt.style.overflow = 'hidden';
-	var border = (mxClient.IS_QUIRKS) ? 8 + 2 * this.thumbPadding : 6;
+	var border = (mxClient.IS_QUIRKS) ? 8 + 2 * this.thumbPadding : 2 * this.thumbBorder;
 	elt.style.width = (this.thumbWidth + border) + 'px';
 	elt.style.height = (this.thumbHeight + border) + 'px';
 	elt.style.padding = this.thumbPadding + 'px';
@@ -1034,8 +1133,8 @@ Sidebar.prototype.itemClicked = function(cells, ds, evt)
 {
 	var graph = this.editorUi.editor.graph;
 	var gs = graph.getGridSize();
-	var dx = graph.container.scrollLeft - graph.view.translate.x;
-	var dy = graph.container.scrollTop - graph.view.translate.y;
+	var dx = graph.container.scrollLeft / graph.view.scale - graph.view.translate.x;
+	var dy = graph.container.scrollTop / graph.view.scale - graph.view.translate.y;
 	ds.drop(graph, evt, null, graph.snap(dx + gs), graph.snap(dy + gs));
 };
 
