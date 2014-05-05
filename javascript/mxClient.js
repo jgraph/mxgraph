@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.13.0.12.
+	 * Current version is 1.13.0.13.
 	 */
-	VERSION: '1.13.0.12',
+	VERSION: '1.13.0.13',
 
 	/**
 	 * Variable: IS_IE
@@ -35987,7 +35987,7 @@ mxCoordinateAssignment.prototype.setCellLocations = function(graph, model)
 		if (this.layout.resizeParent)
 		{
 			var parent = graph.model.getParent(vertices[i].cell);
-			var id = mxObjectIdentity.create(parent);
+			var id = mxObjectIdentity.get(parent);
 			
 			// Implements set semantic
 			if (parentsChanged[id] == null)
@@ -49618,7 +49618,7 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * $Id: mxGraph.js,v 1.714 2013/09/27 10:09:57 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.715 2014/01/23 16:59:23 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -51477,7 +51477,7 @@ mxGraph.prototype.processChange = function(change)
 	{
 		var newParent = this.model.getParent(change.child);
 		
-		if (newParent != null)
+		if (newParent != null && !this.isCellCollapsed(newParent))
 		{
 			// Flags the cell for updating the order in the renderer
 			this.view.invalidate(change.child, true, false, change.previous != null);
@@ -59244,13 +59244,15 @@ mxGraph.prototype.getDropTarget = function(cells, evt, cell)
 		}
 	}
 	
-	while (cell != null && !this.isValidDropTarget(cell, cells, evt) &&
-		!this.model.isLayer(cell))
-	{
-		cell = this.model.getParent(cell);
-	}
+	// Checks if parent is dropped into child
+	var parent = cell;
 	
-	return (!this.model.isLayer(cell) && mxUtils.indexOf(cells, cell) < 0) ? cell : null;
+	while (parent != null && mxUtils.indexOf(cells, parent) < 0)
+	{
+		parent = this.model.getParent(parent);
+	}
+
+	return (!this.model.isLayer(cell) && parent == null) ? cell : null;
 };
 
 /**
@@ -64257,20 +64259,11 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 				target = graph.getDropTarget(this.cells, me.getEvent(), cell);
 			}
 
-			// Checks if parent is dropped into child
-			var parent = target;
-			var model = graph.getModel();
-			
-			while (parent != null && parent != this.cells[0])
-			{
-				parent = model.getParent(parent);
-			}
-			
 			var clone = graph.isCloneEvent(me.getEvent()) && graph.isCellsCloneable() && this.isCloneEnabled();
 			var state = graph.getView().getState(target);
 			var highlight = false;
 			
-			if (state != null && parent == null && (model.getParent(this.cell) != target || clone))
+			if (state != null && (graph.model.getParent(this.cell) != target || clone))
 			{
 			    if (this.target != target)
 			    {

@@ -1,5 +1,11 @@
+05-MAY-2014: 1.13.0.13
+
+- Fixes possible infinite loop via mxGraph.getDropTarget [JavaScript]
+- Fixes repaint after drop in collapsed cell in mxGraph.processChange [JavaScript]
+
 17-JAN-2014: 1.13.0.12
 
+- Removes mxCellPath.create usage for in hierarchical layout [JavaScript]
 - Fixes mxUtils.getTextContent for Firefox, adds mxUtils.setTextContent [JavaScript]
 - Improves edge crossing calculation performance in hierarchical layout [JavaScript]
 - Corrects issue with the hierarchical layout where there are multiple parallel, bi-directional edges between two

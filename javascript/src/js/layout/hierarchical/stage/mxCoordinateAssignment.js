@@ -1305,7 +1305,7 @@ mxCoordinateAssignment.prototype.setCellLocations = function(graph, model)
 		if (this.layout.resizeParent)
 		{
 			var parent = graph.model.getParent(vertices[i].cell);
-			var id = mxObjectIdentity.create(parent);
+			var id = mxObjectIdentity.get(parent);
 			
 			// Implements set semantic
 			if (parentsChanged[id] == null)

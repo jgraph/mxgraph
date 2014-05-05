@@ -1,5 +1,5 @@
 /**
- * $Id: mxGraph.js,v 1.714 2013/09/27 10:09:57 gaudenz Exp $
+ * $Id: mxGraph.js,v 1.715 2014/01/23 16:59:23 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
 /**
@@ -1858,7 +1858,7 @@ mxGraph.prototype.processChange = function(change)
 	{
 		var newParent = this.model.getParent(change.child);
 		
-		if (newParent != null)
+		if (newParent != null && !this.isCellCollapsed(newParent))
 		{
 			// Flags the cell for updating the order in the renderer
 			this.view.invalidate(change.child, true, false, change.previous != null);
@@ -9625,13 +9625,15 @@ mxGraph.prototype.getDropTarget = function(cells, evt, cell)
 		}
 	}
 	
-	while (cell != null && !this.isValidDropTarget(cell, cells, evt) &&
-		!this.model.isLayer(cell))
-	{
-		cell = this.model.getParent(cell);
-	}
+	// Checks if parent is dropped into child
+	var parent = cell;
 	
-	return (!this.model.isLayer(cell) && mxUtils.indexOf(cells, cell) < 0) ? cell : null;
+	while (parent != null && mxUtils.indexOf(cells, parent) < 0)
+	{
+		parent = this.model.getParent(parent);
+	}
+
+	return (!this.model.isLayer(cell) && parent == null) ? cell : null;
 };
 
 /**
