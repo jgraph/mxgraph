@@ -860,7 +860,7 @@
 		{
 			mxVertexHandler.prototype.redrawHandles.apply(this, arguments);
 	
-			if (this.specialHandle != null)
+			if (this.state.shape != null && this.specialHandle != null)
 			{
 				var size = this.specialHandle.bounds.width;
 				this.specialHandle.bounds = this.getSpecialHandleBounds(size);

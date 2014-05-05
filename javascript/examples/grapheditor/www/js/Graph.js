@@ -46,6 +46,17 @@ Graph = function(container, model, renderHint, stylesheet)
     	return rubberband;
     };
     
+    // Workaround for Firefox where first mouse down is received
+    // after tap and hold if scrollbars are visible, which means
+    // start rubberband immediately if no cell is under mouse.
+    var isForceRubberBandEvent = rubberband.isForceRubberbandEvent;
+    rubberband.isForceRubberbandEvent = function(me)
+    {
+    	return isForceRubberBandEvent.apply(this, arguments) ||
+    		(mxUtils.hasScrollbars(this.graph.container) && mxClient.IS_FF &&
+    		mxClient.IS_WIN && me.getState() == null && mxEvent.isTouchEvent(me.getEvent()));
+    };
+    
     // Shows hand cursor while panning
 	this.panningHandler.addListener(mxEvent.PAN_START, mxUtils.bind(this, function()
 	{
@@ -57,11 +68,13 @@ Graph = function(container, model, renderHint, stylesheet)
 		this.container.style.cursor = 'default';
 	}));
     
-    // Forces panning for middle mouse button
+    // Forces panning for middle and right mouse buttons
 	var panningHandlerIsForcePanningEvent = this.panningHandler.isForcePanningEvent;
 	this.panningHandler.isForcePanningEvent = function(me)
 	{
-		return panningHandlerIsForcePanningEvent.apply(this, arguments) || mxEvent.isMiddleMouseButton(me.getEvent());
+		return panningHandlerIsForcePanningEvent.apply(this, arguments) ||
+			(mxEvent.isMouseEvent(me.getEvent()) && (mxEvent.isRightMouseButton(me.getEvent()) ||
+			mxEvent.isMiddleMouseButton(me.getEvent())));
 	};
 
 	this.popupMenuHandler.autoExpand = true;
@@ -801,22 +814,9 @@ Graph.prototype.initTouch = function()
 				this.text2.contentEditable = true;
 				this.text2.focus();
 
-				document.execCommand('selectAll');					
-			}
-			else
-			{
-				this.textarea.focus();
-				
-				if (this.selectText)
+				if (this.isSelectText() && this.text2.innerHTML.length > 0)
 				{
-					if (mxClient.IS_FF)
-					{
-						this.textarea.select();
-					}
-					else
-					{
-						document.execCommand('selectAll');					
-					}
+					document.execCommand('selectAll');
 				}
 			}
 		};

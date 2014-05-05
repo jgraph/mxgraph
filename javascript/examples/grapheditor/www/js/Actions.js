@@ -69,10 +69,10 @@ Actions.prototype.init = function()
 	this.addAction('save', function() { ui.saveFile(false); }, null, null, 'Ctrl+S').isEnabled = isGraphEnabled;
 	this.addAction('saveAs...', function() { ui.saveFile(true); }, null, null, 'Ctrl+Shift-S').isEnabled = isGraphEnabled;
 	this.addAction('export...', function() { ui.showDialog(new ExportDialog(ui).container, 300, 210, true, true); });
-	this.put('editFile', new Action(mxResources.get('edit') + '...', mxUtils.bind(this, function()
+	this.put('editFile', new Action(mxResources.get('edit') + '...', function()
 	{
-		this.editorUi.showDialog(new EditFileDialog(ui).container, 620, 420, true, true);
-	}))).isEnabled = isGraphEnabled;
+		ui.showDialog(new EditFileDialog(ui).container, 620, 420, true, true);
+	})).isEnabled = isGraphEnabled;
 	this.addAction('pageSetup...', function() { ui.showDialog(new PageSetupDialog(ui).container, 320, 120, true, true); });
 	this.addAction('print...', function() { ui.showDialog(new PrintDialog(ui).container, 300, 120, true, true); }, null, 'sprite-print', 'Ctrl+P');
 	this.addAction('preview', function() { mxUtils.show(graph, null, 10, 10); });
@@ -150,7 +150,7 @@ Actions.prototype.init = function()
 			var cell = graph.getSelectionCell();
 			var value = graph.getLinkForCell(cell) || '';
 			
-			var dlg = new LinkDialog(ui, value, mxResources.get('apply'), function(link)
+			ui.showLinkDialog(value, mxResources.get('apply'), function(link)
 			{
 				link = mxUtils.trim(link);
 				graph.getModel().beginUpdate();
@@ -175,10 +175,8 @@ Actions.prototype.init = function()
 					graph.getModel().endUpdate();
 				}
 			});
-			ui.showDialog(dlg.container, 320, 90, true, true);
-			dlg.init();
 		}
-	}).isEnabled = isGraphEnabled;
+	});
 	this.addAction('openLink', function()
 	{
 		var link = graph.getLinkForCell(graph.getSelectionCell());
@@ -254,7 +252,7 @@ Actions.prototype.init = function()
 
        	graph.setCellStyles(mxConstants.STYLE_WHITE_SPACE, value);
 	});
-	this.addAction('rotation', mxUtils.bind(this, function()
+	this.addAction('rotation', function()
 	{
 		var value = '0';
     	var state = graph.getView().getState(graph.getSelectionCell());
@@ -264,16 +262,17 @@ Actions.prototype.init = function()
     		value = state.style[mxConstants.STYLE_ROTATION] || value;
     	}
 
-		var dlg = new FilenameDialog(this.editorUi, value, mxResources.get('apply'), mxUtils.bind(this, function(newValue)
+		var dlg = new FilenameDialog(ui, value, mxResources.get('apply'), function(newValue)
 		{
 			if (newValue != null && newValue.length > 0)
 			{
 				graph.setCellStyles(mxConstants.STYLE_ROTATION, newValue);
 			}
-		}), mxResources.get('enterValue') + ' (' + mxResources.get('rotation') + ' 0-360)');
-		this.editorUi.showDialog(dlg.container, 300, 80, true, true);
+		}, mxResources.get('enterValue') + ' (' + mxResources.get('rotation') + ' 0-360)');
+		
+		ui.showDialog(dlg.container, 300, 80, true, true);
 		dlg.init();
-	}));
+	});
 	this.addAction('tilt', function()
 	{
 		var cells = graph.getSelectionCells();
@@ -343,9 +342,31 @@ Actions.prototype.init = function()
 	this.addAction('actualSize', function()
 	{
 		graph.zoomTo(1);
+		
+		if (mxUtils.hasScrollbars(graph.container))
+		{
+			if (graph.pageVisible)
+			{
+				var pad = graph.getPagePadding();
+				graph.container.scrollTop = pad.y;
+				graph.container.scrollLeft = Math.min(pad.x, (graph.container.scrollWidth - graph.container.clientWidth) / 2);
+			}
+			else
+			{
+				var bounds = graph.getGraphBounds();
+				graph.container.scrollTop = Math.max(0, bounds.y - Math.max(20, (graph.container.clientHeight - bounds.height) / 4));
+				graph.container.scrollLeft = Math.max(0, bounds.x - Math.max(0, (graph.container.clientWidth - bounds.width) / 2));
+			}
+		}
 	});
-	this.addAction('zoomIn', function() { graph.zoomIn(); }, null, null, 'Add');
-	this.addAction('zoomOut', function() { graph.zoomOut(); }, null, null, 'Subtract');
+	this.addAction('zoomIn', function()
+	{
+		graph.zoomIn();
+	}, null, null, 'Add');
+	this.addAction('zoomOut', function()
+	{
+		graph.zoomOut();
+	}, null, null, 'Subtract');
 	this.addAction('fitWindow', function() { graph.fit(); });
 
 	this.addAction('fitPage', mxUtils.bind(this, function()
@@ -357,14 +378,39 @@ Actions.prototype.init = function()
 		
 		var fmt = graph.pageFormat;
 		var ps = graph.pageScale;
-		var cw = graph.container.clientWidth - 20;
-		var ch = graph.container.clientHeight - 20;
-		
+		var cw = graph.container.clientWidth - 10;
+		var ch = graph.container.clientHeight - 10;
 		var scale = Math.floor(100 * Math.min(cw / fmt.width / ps, ch / fmt.height / ps)) / 100;
 		graph.zoomTo(scale);
 		
-		graph.container.scrollLeft = Math.round(graph.view.translate.x * scale - Math.max(10, (graph.container.clientWidth - fmt.width * ps * scale) / 2));
-		graph.container.scrollTop = Math.round(graph.view.translate.y * scale - Math.max(10, (graph.container.clientHeight - fmt.height * ps * scale) / 2));
+		if (mxUtils.hasScrollbars(graph.container))
+		{
+			var pad = graph.getPagePadding();
+			graph.container.scrollTop = pad.y;
+			graph.container.scrollLeft = Math.min(pad.x, (graph.container.scrollWidth - graph.container.clientWidth) / 2);
+		}
+	}));
+	this.addAction('fitTwoPages', mxUtils.bind(this, function()
+	{
+		if (!graph.pageVisible)
+		{
+			this.get('pageView').funct();
+		}
+		
+		var fmt = graph.pageFormat;
+		var ps = graph.pageScale;
+		var cw = graph.container.clientWidth - 10;
+		var ch = graph.container.clientHeight - 10;
+		
+		var scale = Math.floor(100 * Math.min(cw / (2 * fmt.width) / ps, ch / fmt.height / ps)) / 100;
+		graph.zoomTo(scale);
+		
+		if (mxUtils.hasScrollbars(graph.container))
+		{
+			var pad = graph.getPagePadding();
+			graph.container.scrollTop = Math.min(pad.y, (graph.container.scrollHeight - graph.container.clientHeight) / 2);
+			graph.container.scrollLeft = Math.min(pad.x, (graph.container.scrollWidth - graph.container.clientWidth) / 2);
+		}
 	}));
 	this.addAction('fitPageWidth', mxUtils.bind(this, function()
 	{
@@ -375,13 +421,17 @@ Actions.prototype.init = function()
 		
 		var fmt = graph.pageFormat;
 		var ps = graph.pageScale;
-		var cw = graph.container.clientWidth - 20;
-		
+		var cw = graph.container.clientWidth - 10;
+
 		var scale = Math.floor(100 * cw / fmt.width / ps) / 100;
 		graph.zoomTo(scale);
 		
-		graph.container.scrollLeft = Math.round(graph.view.translate.x * scale - Math.max(10, (graph.container.clientWidth - fmt.width * ps * scale) / 2));
-		graph.container.scrollTop = Math.round(graph.view.translate.y * scale - Math.max(10, (graph.container.clientHeight - fmt.height * ps * scale) / 2));
+		if (mxUtils.hasScrollbars(graph.container))
+		{
+			var pad = graph.getPagePadding();
+			graph.container.scrollTop = pad.y;
+			graph.container.scrollLeft = Math.min(pad.x, (graph.container.scrollWidth - graph.container.clientWidth) / 2);
+		}
 	}));
 	this.put('customZoom', new Action(mxResources.get('custom') + '...', mxUtils.bind(this, function()
 	{
@@ -402,18 +452,28 @@ Actions.prototype.init = function()
 	{
 		graph.setGridEnabled(!graph.isGridEnabled());
 		editor.updateGraphComponents();
+		ui.fireEvent(new mxEventObject('gridEnabledChanged'));
 	}, null, null, 'Ctrl+Shift+G');
 	action.setToggleAction(true);
 	action.setSelectedCallback(function() { return graph.isGridEnabled(); });
-	action = this.addAction('guides', function() { graph.graphHandler.guidesEnabled = !graph.graphHandler.guidesEnabled; });
+	action.setEnabled(false);
+	
+	action = this.addAction('guides', function()
+	{
+		graph.graphHandler.guidesEnabled = !graph.graphHandler.guidesEnabled;
+		ui.fireEvent(new mxEventObject('guidesEnabledChanged'));
+	});
 	action.setToggleAction(true);
 	action.setSelectedCallback(function() { return graph.graphHandler.guidesEnabled; });
+	action.setEnabled(false);
+	
 	action = this.addAction('tooltips', function()
 	{
 		graph.tooltipHandler.setEnabled(!graph.tooltipHandler.isEnabled());
 	});
 	action.setToggleAction(true);
 	action.setSelectedCallback(function() { return graph.tooltipHandler.isEnabled(); });
+	
 	action = this.addAction('navigation', function()
 	{
 		graph.foldingEnabled = !graph.foldingEnabled;
@@ -435,6 +495,7 @@ Actions.prototype.init = function()
 				graph.view.setTranslate(t.x - graph.container.scrollLeft / graph.view.scale, t.y - graph.container.scrollTop / graph.view.scale);
 				graph.container.scrollLeft = 0;
 				graph.container.scrollTop = 0;
+				graph.minimumGraphSize = null;
 				graph.sizeDidChange();
 			}
 			else
@@ -454,36 +515,38 @@ Actions.prototype.init = function()
 	action.setSelectedCallback(function() { return graph.scrollbars; });
 	action = this.addAction('pageView', mxUtils.bind(this, function()
 	{
+		var hasScrollbars = mxUtils.hasScrollbars(graph.container);
+		var tx = 0;
+		var ty = 0;
+		
+		if (hasScrollbars)
+		{
+			tx = graph.view.translate.x * graph.view.scale - graph.container.scrollLeft;
+			ty = graph.view.translate.y * graph.view.scale - graph.container.scrollTop;
+		}
+		
 		graph.pageVisible = !graph.pageVisible;
 		graph.pageBreaksVisible = graph.pageVisible; 
 		graph.preferPageSize = graph.pageBreaksVisible;
-		graph.view.validate();
+		editor.updateGraphComponents();
+
+		// Removes background page
+		graph.refresh();
+		
+		// Calls updatePageBreaks
 		graph.sizeDidChange();
 		
-		editor.updateGraphComponents();
-		
-		if (editor.outline != null)
+		if (hasScrollbars)
 		{
-			editor.outline.update();
+			graph.container.scrollLeft = graph.view.translate.x * graph.view.scale - tx;
+			graph.container.scrollTop = graph.view.translate.y * graph.view.scale - ty;
 		}
 		
-		if (mxUtils.hasScrollbars(graph.container))
-		{
-			if (graph.pageVisible)
-			{
-				graph.container.scrollLeft -= 20;
-				graph.container.scrollTop -= 20;
-			}
-			else
-			{
-				graph.container.scrollLeft += 20;
-				graph.container.scrollTop += 20;
-			}
-		}
+		ui.fireEvent(new mxEventObject('pageViewChanged'));
 	}));
 	action.setToggleAction(true);
 	action.setSelectedCallback(function() { return graph.pageVisible; });
-	this.put('pageBackgroundColor', new Action(mxResources.get('backgroundColor'), function()
+	this.put('pageBackgroundColor', new Action(mxResources.get('backgroundColor') + '...', function()
 	{
 		var apply = function(color)
 		{
@@ -632,6 +695,51 @@ Actions.prototype.init = function()
 			rmWaypointAction.handler.removePoint(rmWaypointAction.handler.state, rmWaypointAction.index);
 		}
 	});
+	this.addAction('insertLink', function()
+	{
+		if (graph.isEnabled())
+		{
+			var dlg = new LinkDialog(ui, '', mxResources.get('insert'), function(link, docs)
+			{
+				link = mxUtils.trim(link);
+				
+				if (link.length > 0)
+				{
+					var title = link.substring(link.lastIndexOf('/') + 1);
+					var icon = null;
+					
+					if (docs != null && docs.length > 0)
+					{
+						icon = docs[0].iconUrl;
+						title = docs[0].name || docs[0].type;
+						title = title.charAt(0).toUpperCase() + title.substring(1);
+						
+						if (title.length > 30)
+						{
+							title = title.substring(0, 30) + '...';
+						}
+					}
+            		
+					var gs = graph.getGridSize();
+					var dx = graph.container.scrollLeft / graph.view.scale - graph.view.translate.x;
+					var dy = graph.container.scrollTop / graph.view.scale - graph.view.translate.y;
+					
+            	    var linkCell = new mxCell(title, new mxGeometry(graph.snap(dx + gs), graph.snap(dy + gs), 100, 40),
+            	    	'fontColor=#0000EE;fontStyle=4;rounded=1;overflow=hidden;' + ((icon != null) ?
+            	    	'shape=label;imageWidth=16;imageHeight=16;spacingLeft=26;align=left;image=' + icon :
+            	    	'spacing=10;'));
+            	    linkCell.vertex = true;
+
+            	    graph.setLinkForCell(linkCell, link);
+            	    graph.cellSizeUpdated(linkCell, true);
+            	    graph.setSelectionCell(graph.addCell(linkCell));
+				}
+			});
+			
+			ui.showDialog(dlg.container, 320, 90, true, true);
+			dlg.init();
+		}
+	}).isEnabled = isGraphEnabled;
 	this.addAction('image...', function()
 	{
 		var title = mxResources.get('image') + ' (' + mxResources.get('url') + '):';
@@ -736,18 +844,40 @@ Actions.prototype.init = function()
     		}
 		});
 	});
-	this.addAction('layers...', function()
+	action = this.addAction('layers', mxUtils.bind(this, function()
 	{
 		if (this.layersWindow == null)
 		{
-			this.layersWindow = new LayersWindow(ui, document.body.offsetWidth - 230, 100, 220, 180);
+			// LATER: Check outline window for initial placement
+			this.layersWindow = new LayersWindow(ui, document.body.offsetWidth - 280, 120, 220, 180);
 			this.layersWindow.window.setVisible(true);
 		}
 		else
 		{
 			this.layersWindow.window.setVisible(!this.layersWindow.window.isVisible());
 		}
-	}, null, null, 'Ctrl+Shift-L');
+	}), null, null, 'Ctrl+Shift-L');
+	action.setToggleAction(true);
+	action.setSelectedCallback(mxUtils.bind(this, function() { return this.layersWindow != null && this.layersWindow.window.isVisible(); }));
+	action = this.addAction('outline', mxUtils.bind(this, function()
+	{
+		if (this.outlineWindow == null)
+		{
+			// LATER: Check layers window for initial placement
+			this.outlineWindow = new OutlineWindow(ui, document.body.offsetWidth - 260, 100, 180, 180);
+			this.outlineWindow.window.setVisible(true);
+		}
+		else
+		{
+			this.outlineWindow.window.setVisible(!this.outlineWindow.window.isVisible());
+		}
+	}), null, null, 'Ctrl+Shift-O');
+	
+	action.setToggleAction(true);
+	action.setSelectedCallback(function() { return graph.scrollbars; });
+	
+	action.setToggleAction(true);
+	action.setSelectedCallback(mxUtils.bind(this, function() { return this.outlineWindow != null && this.outlineWindow.window.isVisible(); }));
 };
 
 /**

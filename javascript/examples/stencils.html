@@ -122,10 +122,13 @@
 					shape = shape.nextSibling;
 				}
 				
+				mxEvent.disableContextMenu(container);
+				
 				// Creates the graph inside the given container
 				var graph = new mxGraph(container);
 				graph.setConnectable(true);
 				graph.setTooltips(true);
+				graph.setPanning(true);
 				
 				graph.getTooltipForCell = function(cell)
 				{
@@ -295,6 +298,15 @@
 							graph.getModel().setStyle(cell, style);
 						}
 					}
+				}));
+				
+				document.body.appendChild(mxUtils.button('+', function()
+				{
+					graph.zoomIn();
+				}));
+				document.body.appendChild(mxUtils.button('-', function()
+				{
+					graph.zoomOut();
 				}));
 			}
 		};

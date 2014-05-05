@@ -480,7 +480,7 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 			
 			this.textarea.focus();
 			
-			if (this.selectText)
+			if (this.isSelectText() && this.textarea.value.length > 0)
 			{
 				if (mxClient.IS_FF)
 				{
@@ -495,6 +495,15 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 	}
 };
 
+/**
+ * Function: isSelectText
+ * 
+ * Returns <selectText>.
+ */
+mxCellEditor.prototype.isSelectText = function()
+{
+	return this.selectText;
+};
 
 /**
  * Function: createTextDiv

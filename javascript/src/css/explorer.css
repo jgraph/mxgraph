@@ -7,7 +7,7 @@ div.mxPopupMenu {
         Color='#C0C0C0', Positive='true');
 }
 div.mxWindow {
-	filter:progid:DXImageTransform.Microsoft.DropShadow(OffX=4, OffY=4, 
+	_filter:progid:DXImageTransform.Microsoft.DropShadow(OffX=4, OffY=4, 
         Color='#C0C0C0', Positive='true');
 }
 td.mxWindowTitle {

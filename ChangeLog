@@ -1,3 +1,21 @@
+05-MAY-2014: 2.6.0.0
+
+- Adds mxClient.IS_WIN [JavaScript]
+- Adds mxCellEditor.isSelectText function [JavaScript]
+- Allows changes of translate, scroll in mxGraph.zoom [JavaScript]
+- Fixes mxEvent.isTouchEvent, isMouseEvent for Firefox [JavaScript]
+- Sets position:absolute for mxWindow.div in common.css [JavaScript]
+- Uses shadow filter for mxWindow only in quirks mode [JavaScript]
+- Adds mxOutline.createGraph, getSourceGraphBounds hooks [JavaScript]
+- Adds mxShape.shapePointerEvents switch [JavaScript]
+- Fixes transformed event handling with mxShape.stencilPointerEvents [JavaScript]
+- Removes mxShape.paintStencilShape [JavaScript]
+- Changes mxShape.addTransparentBackgroundRectangle to createTransparentSvgRectangle [JavaScript]
+- Adds mxGraph.keepEdgesInBackground switch [JavaScript]
+- Fixes possible infinite loop via mxGraph.getDropTarget [JavaScript]
+- Calls configureShape in mxCellRenderer.initializeShape [JavaScript]
+- Fixes origin of currentRoot in mxGraphView [Java,JavaScript]
+
 13-APR-2014: 2.5.1.1
 
 - Adds mxVertexHandler.isRecursiveResize hook [JavaScript]

@@ -125,7 +125,6 @@ EditorUi = function(editor, container)
 		updateToolbar();
 	};
 	
-    
     // Enables scrollbars and sets cursor style for the container
 	graph.container.setAttribute('tabindex', '0');
    	graph.container.style.cursor = 'default';
@@ -182,12 +181,6 @@ EditorUi = function(editor, container)
 		this.menus.createPopupMenu(menu, cell, evt);
 	});
 	
-	// Initializes the outline
-	if (this.editor.outline != null)
-	{
-		this.editor.outline.init(this.outlineContainer);
-	}
-	
 	// Hides context menu
 	mxEvent.addGestureListeners(document, mxUtils.bind(this, function(evt)
 	{
@@ -233,15 +226,15 @@ EditorUi = function(editor, container)
 	};
 
 	// Updates the editor UI after the window has been resized
+	// Timeout is workaround for old IE versions which have a delay for DOM client sizes.
+	// Should not use delay > 0 to avoid handle multiple repaints during window resize
    	mxEvent.addListener(window, 'resize', mxUtils.bind(this, function()
    	{
-   		if (this.editor.outline != null)
+   		window.setTimeout(mxUtils.bind(this, function()
    		{
-   	   		this.refresh();
-   	   		graph.sizeDidChange();
-	   		this.editor.outline.update(false);
-	   		this.editor.outline.outline.sizeDidChange();
-   		}
+   	   	   	this.refresh();
+   	   	   	graph.sizeDidChange();
+   		}), 0);
    	}));
 
 	// Updates action and menu states
@@ -283,11 +276,6 @@ EditorUi.prototype.sidebarFooterHeight = 34;
 EditorUi.prototype.hsplitPosition = 204;
 
 /**
- * Specifies the position of the vertical split bar. Default is 190.
- */
-EditorUi.prototype.vsplitPosition = 190;
-
-/**
  * Specifies if animations are allowed in <executeLayout>. Default is true.
  */
 EditorUi.prototype.allowAnimation = true;
@@ -299,8 +287,14 @@ EditorUi.prototype.init = function()
 {
 	// Updates action states
 	this.addUndoListener();
-	this.addSelectionListener();
 	this.addBeforeUnloadListener();
+	
+	this.editor.graph.getSelectionModel().addListener(mxEvent.CHANGE, mxUtils.bind(this, function()
+	{
+		this.updateActionStates();
+	}));
+	
+	this.updateActionStates();
 	
 	// Overrides clipboard to update paste action state
 	var paste = this.actions.get('paste');
@@ -380,7 +374,7 @@ EditorUi.prototype.init = function()
  */
 EditorUi.prototype.isSelectionAllowed = function(evt)
 {
-	return false;
+	return mxEvent.getSource(evt).nodeName == 'SELECT';
 };
 
 /**
@@ -555,11 +549,6 @@ EditorUi.prototype.setPageFormat = function(value)
 {
 	this.editor.graph.pageFormat = value;
 	
-	if (this.editor.outline != null)
-	{
-		this.editor.outline.outline.pageFormat = this.editor.graph.pageFormat;
-	}
-	
 	if (!this.editor.graph.pageVisible)
 	{
 		this.actions.get('pageView').funct();
@@ -569,11 +558,6 @@ EditorUi.prototype.setPageFormat = function(value)
 		this.editor.updateGraphComponents();
 		this.editor.graph.view.validateBackground();
 		this.editor.graph.sizeDidChange();
-		
-		if (this.editor.outline != null)
-		{
-			this.editor.outline.update();
-		}
 	}
 
 	this.fireEvent(new mxEventObject('pageFormatChanged'));
@@ -623,100 +607,96 @@ EditorUi.prototype.addUndoListener = function()
 };
 
 /**
- * Updates the states of the given toolbar items based on the selection.
- */
-EditorUi.prototype.addSelectionListener = function()
+* Updates the states of the given toolbar items based on the selection.
+*/
+EditorUi.prototype.updateActionStates = function()
 {
-	var selectionListener = mxUtils.bind(this, function()
-    {
-		var graph = this.editor.graph;
-		var selected = !graph.isSelectionEmpty();
-		var vertexSelected = false;
-		var edgeSelected = false;
+	var graph = this.editor.graph;
+	var selected = !graph.isSelectionEmpty();
+	var vertexSelected = false;
+	var edgeSelected = false;
 
-		var cells = graph.getSelectionCells();
-		
-		if (cells != null)
-		{
-	    	for (var i = 0; i < cells.length; i++)
-	    	{
-	    		var cell = cells[i];
-	    		
-	    		if (graph.getModel().isEdge(cell))
-	    		{
-	    			edgeSelected = true;
-	    		}
-	    		
-	    		if (graph.getModel().isVertex(cell))
-	    		{
-	    			vertexSelected = true;
-	    		}
-	    		
-	    		if (edgeSelected && vertexSelected)
-				{
-					break;
-				}
-	    	}
-		}
-		
-		// Updates action states
-		var actions = ['cut', 'copy', 'bold', 'italic', 'underline', 'fontColor',
-		           'delete', 'duplicate', 'style', 'fillColor', 'gradientColor', 'strokeColor',
-		           'backgroundColor', 'borderColor', 'toFront', 'toBack', 'dashed', 'rounded',
-		           'shadow', 'tilt', 'autosize', 'lockUnlock', 'editData'];
-    	
-    	for (var i = 0; i < actions.length; i++)
+	var cells = graph.getSelectionCells();
+	
+	if (cells != null)
+	{
+    	for (var i = 0; i < cells.length; i++)
     	{
-    		this.actions.get(actions[i]).setEnabled(selected);
+    		var cell = cells[i];
+    		
+    		if (graph.getModel().isEdge(cell))
+    		{
+    			edgeSelected = true;
+    		}
+    		
+    		if (graph.getModel().isVertex(cell))
+    		{
+    			vertexSelected = true;
+    		}
+    		
+    		if (edgeSelected && vertexSelected)
+			{
+				break;
+			}
     	}
+	}
+	
+	// Updates action states
+	var actions = ['cut', 'copy', 'bold', 'italic', 'underline', 'fontColor',
+	           'delete', 'duplicate', 'style', 'fillColor', 'gradientColor', 'strokeColor',
+	           'backgroundColor', 'borderColor', 'toFront', 'toBack', 'dashed', 'rounded',
+	           'shadow', 'tilt', 'autosize', 'lockUnlock', 'editData'];
+	
+	for (var i = 0; i < actions.length; i++)
+	{
+		this.actions.get(actions[i]).setEnabled(selected);
+	}
+	
+	this.actions.get('curved').setEnabled(edgeSelected);
+	this.actions.get('rotation').setEnabled(vertexSelected);
+	this.actions.get('wordWrap').setEnabled(vertexSelected);
+   	this.actions.get('group').setEnabled(graph.getSelectionCount() > 1);
+   	this.actions.get('ungroup').setEnabled(graph.getSelectionCount() == 1 &&
+   			graph.getModel().getChildCount(graph.getSelectionCell()) > 0);
+   	var oneVertexSelected = vertexSelected && graph.getSelectionCount() == 1;
+   	this.actions.get('removeFromGroup').setEnabled(oneVertexSelected &&
+   			graph.getModel().isVertex(graph.getModel().getParent(graph.getSelectionCell())));
+
+	// Updates menu states
+	var menus = ['fontFamily', 'fontSize', 'alignment', 'position', 'text', 'format', 'linewidth',
+	             'spacing', 'gradient'];
+
+	for (var i = 0; i < menus.length; i++)
+	{
+		this.menus.get(menus[i]).setEnabled(selected);
+	}
+	
+	menus = ['line', 'lineend', 'linestart'];
+
+ 	for (var i = 0; i < menus.length; i++)
+ 	{
+ 		this.menus.get(menus[i]).setEnabled(edgeSelected);
+ 	}
+ 	
+   	this.actions.get('setAsDefaultEdge').setEnabled(edgeSelected);
     	
-    	this.actions.get('curved').setEnabled(edgeSelected);
-    	this.actions.get('rotation').setEnabled(vertexSelected);
-    	this.actions.get('wordWrap').setEnabled(vertexSelected);
-       	this.actions.get('group').setEnabled(graph.getSelectionCount() > 1);
-       	this.actions.get('ungroup').setEnabled(graph.getSelectionCount() == 1 &&
-       			graph.getModel().getChildCount(graph.getSelectionCell()) > 0);
-       	var oneVertexSelected = vertexSelected && graph.getSelectionCount() == 1;
-       	this.actions.get('removeFromGroup').setEnabled(oneVertexSelected &&
-       			graph.getModel().isVertex(graph.getModel().getParent(graph.getSelectionCell())));
-
-    	// Updates menu states
-    	var menus = ['fontFamily', 'fontSize', 'alignment', 'position', 'text', 'format', 'linewidth',
-    	             'spacing', 'gradient'];
-
-    	for (var i = 0; i < menus.length; i++)
-    	{
-    		this.menus.get(menus[i]).setEnabled(selected);
-    	}
-    	
-    	menus = ['line', 'lineend', 'linestart'];
-
-     	for (var i = 0; i < menus.length; i++)
-     	{
-     		this.menus.get(menus[i]).setEnabled(edgeSelected);
-     	}
-     	
-       	this.actions.get('setAsDefaultEdge').setEnabled(edgeSelected);
-        	
-        this.menus.get('align').setEnabled(graph.getSelectionCount() > 1);
-        this.menus.get('distribute').setEnabled(graph.getSelectionCount() > 1);
-        this.menus.get('direction').setEnabled(vertexSelected || (edgeSelected &&
-        		graph.isLoop(graph.view.getState(graph.getSelectionCell()))));
-        this.menus.get('navigation').setEnabled(graph.foldingEnabled && ((graph.view.currentRoot != null) ||
-				(graph.getSelectionCount() == 1 && graph.isValidRoot(graph.getSelectionCell()))));
-        this.actions.get('home').setEnabled(graph.view.currentRoot != null);
-        this.actions.get('exitGroup').setEnabled(graph.view.currentRoot != null);
-        var groupEnabled = graph.getSelectionCount() == 1 && graph.isValidRoot(graph.getSelectionCell());
-        this.actions.get('enterGroup').setEnabled(groupEnabled);
-        this.actions.get('expand').setEnabled(groupEnabled);
-        this.actions.get('collapse').setEnabled(groupEnabled);
-        this.actions.get('editLink').setEnabled(graph.getSelectionCount() == 1);
-        this.actions.get('openLink').setEnabled(graph.getSelectionCount() == 1 &&
-        		graph.getLinkForCell(graph.getSelectionCell()) != null);
-    });
-	    
-    this.editor.graph.getSelectionModel().addListener(mxEvent.CHANGE, selectionListener);
-    selectionListener();
+    this.menus.get('align').setEnabled(graph.getSelectionCount() > 1);
+    this.menus.get('distribute').setEnabled(graph.getSelectionCount() > 1);
+    this.menus.get('direction').setEnabled(vertexSelected || (edgeSelected &&
+    		graph.isLoop(graph.view.getState(graph.getSelectionCell()))));
+    this.menus.get('navigation').setEnabled(graph.foldingEnabled && ((graph.view.currentRoot != null) ||
+			(graph.getSelectionCount() == 1 && graph.isValidRoot(graph.getSelectionCell()))));
+    this.actions.get('home').setEnabled(graph.view.currentRoot != null);
+    this.actions.get('exitGroup').setEnabled(graph.view.currentRoot != null);
+    var groupEnabled = graph.getSelectionCount() == 1 && graph.isValidRoot(graph.getSelectionCell());
+    this.actions.get('enterGroup').setEnabled(groupEnabled);
+    this.actions.get('expand').setEnabled(groupEnabled);
+    this.actions.get('collapse').setEnabled(groupEnabled);
+    this.actions.get('editLink').setEnabled(graph.getSelectionCount() == 1);
+    this.actions.get('openLink').setEnabled(graph.getSelectionCount() == 1 &&
+    		graph.getLinkForCell(graph.getSelectionCell()) != null);
+    this.actions.get('guides').setEnabled(graph.isEnabled());
+    this.actions.get('grid').setEnabled(graph.isEnabled());
 };
 
 /**
@@ -735,7 +715,6 @@ EditorUi.prototype.refresh = function()
 	}
 	
 	var effHsplitPosition = Math.max(0, Math.min(this.hsplitPosition, w - this.splitSize - 20));
-	var effVsplitPosition = Math.max(0, Math.min(this.vsplitPosition, h - this.menubarHeight - this.toolbarHeight - this.footerHeight - this.splitSize - 1));
 
 	var tmp = 0;
 	
@@ -761,7 +740,7 @@ EditorUi.prototype.refresh = function()
 	
 	if (this.sidebarFooterContainer != null)
 	{
-		var bottom = (effVsplitPosition + this.splitSize + this.footerHeight);
+		var bottom = this.footerHeight;
 		sidebarFooterHeight = Math.max(0, Math.min(h - tmp - bottom, this.sidebarFooterHeight));
 		this.sidebarFooterContainer.style.width = effHsplitPosition + 'px';
 		this.sidebarFooterContainer.style.height = sidebarFooterHeight + 'px';
@@ -770,34 +749,30 @@ EditorUi.prototype.refresh = function()
 	
 	this.sidebarContainer.style.top = tmp + 'px';
 	this.sidebarContainer.style.width = effHsplitPosition + 'px';
-	this.outlineContainer.style.width = effHsplitPosition + 'px';
-	this.outlineContainer.style.height = effVsplitPosition + 'px';
-	this.outlineContainer.style.bottom = this.footerHeight + 'px';
+	
 	this.diagramContainer.style.left = (this.hsplit.parentNode != null) ? (effHsplitPosition + this.splitSize) + 'px' : '0px';
 	this.diagramContainer.style.top = this.sidebarContainer.style.top;
 	this.footerContainer.style.height = this.footerHeight + 'px';
 	this.hsplit.style.top = this.sidebarContainer.style.top;
-	this.hsplit.style.bottom = this.outlineContainer.style.bottom;
+	this.hsplit.style.bottom = this.footerHeight + 'px';
 	this.hsplit.style.left = effHsplitPosition + 'px';
-	this.vsplit.style.width = this.sidebarContainer.style.width;
-	this.vsplit.style.bottom = (effVsplitPosition + this.footerHeight) + 'px';
 	
 	if (quirks)
 	{
 		this.menubarContainer.style.width = w + 'px';
 		this.toolbarContainer.style.width = this.menubarContainer.style.width;
-		var sidebarHeight = Math.max(0, h - effVsplitPosition - this.splitSize - this.footerHeight - this.menubarHeight - this.toolbarHeight);
+		var sidebarHeight = Math.max(0, h - this.footerHeight - this.menubarHeight - this.toolbarHeight);
 		this.sidebarContainer.style.height = (sidebarHeight - sidebarFooterHeight) + 'px';
 		this.diagramContainer.style.width = (this.hsplit.parentNode != null) ? Math.max(0, w - effHsplitPosition - this.splitSize) + 'px' : w + 'px';
-		var diagramHeight = (this.editor.outline != null) ? Math.max(0, h - this.footerHeight - this.menubarHeight - this.toolbarHeight) : h;
+		var diagramHeight = Math.max(0, h - this.footerHeight - this.menubarHeight - this.toolbarHeight);
 		this.diagramContainer.style.height = diagramHeight + 'px';
 		this.footerContainer.style.width = this.menubarContainer.style.width;
 		this.hsplit.style.height = diagramHeight + 'px';
 	}
 	else
 	{
-		this.sidebarContainer.style.bottom = (effVsplitPosition + this.splitSize + this.footerHeight + sidebarFooterHeight) + 'px';
-		this.diagramContainer.style.bottom = (this.editor.outline != null) ? this.outlineContainer.style.bottom : '0px';
+		this.sidebarContainer.style.bottom = (this.footerHeight + sidebarFooterHeight) + 'px';
+		this.diagramContainer.style.bottom = this.footerHeight + 'px';
 	}
 };
 
@@ -809,11 +784,9 @@ EditorUi.prototype.createDivs = function()
 	this.menubarContainer = this.createDiv('geMenubarContainer');
 	this.toolbarContainer = this.createDiv('geToolbarContainer');
 	this.sidebarContainer = this.createDiv('geSidebarContainer');
-	this.outlineContainer = this.createDiv('geOutlineContainer');
 	this.diagramContainer = this.createDiv('geDiagramContainer');
 	this.footerContainer = this.createDiv('geFooterContainer');
 	this.hsplit = this.createDiv('geHsplit');
-	this.vsplit = this.createDiv('geVsplit');
 
 	// Sets static style for containers
 	this.menubarContainer.style.top = '0px';
@@ -822,13 +795,10 @@ EditorUi.prototype.createDivs = function()
 	this.toolbarContainer.style.left = '0px';
 	this.toolbarContainer.style.right = '0px';
 	this.sidebarContainer.style.left = '0px';
-	this.outlineContainer.style.left = '0px';
 	this.diagramContainer.style.right = '0px';
 	this.footerContainer.style.left = '0px';
 	this.footerContainer.style.right = '0px';
 	this.footerContainer.style.bottom = '0px';
-	this.vsplit.style.left = '0px';
-	this.vsplit.style.height = this.splitSize + 'px';
 	this.hsplit.style.width = this.splitSize + 'px';
 	
 	this.sidebarFooterContainer = this.createSidebarFooterContainer();
@@ -909,15 +879,10 @@ EditorUi.prototype.createUi = function()
 		this.container.appendChild(this.menubarContainer);
 	}
 
-	if (this.editor.outline != null)
-	{
-		this.container.appendChild(this.outlineContainer);
-	}
-	
 	this.container.appendChild(this.diagramContainer);
 
 	// HSplit
-	if (this.sidebar != null && this.editor.outline != null)
+	if (this.sidebar != null)
 	{
 		this.container.appendChild(this.hsplit);
 		
@@ -926,19 +891,6 @@ EditorUi.prototype.createUi = function()
 			this.hsplitPosition = value;
 			this.refresh();
 			this.editor.graph.sizeDidChange();
-			this.editor.outline.update(false);
-			this.editor.outline.outline.sizeDidChange();
-		}));
-	
-		this.container.appendChild(this.vsplit);
-		
-		// VSplit
-		this.addSplitHandler(this.vsplit, false, this.footerHeight, mxUtils.bind(this, function(value)
-		{
-			this.vsplitPosition = value;
-			this.refresh();
-			this.editor.outline.update(false);
-			this.editor.outline.outline.sizeDidChange();
 		}));
 	}
 };
@@ -1074,9 +1026,15 @@ EditorUi.prototype.addSplitHandler = function(elt, horizontal, dx, onChange)
  */
 EditorUi.prototype.showDialog = function(elt, w, h, modal, closable, onClose)
 {
-	this.hideDialog(true);
 	this.editor.graph.tooltipHandler.hideTooltip();
+	
+	if (this.dialogs == null)
+	{
+		this.dialogs = [];
+	}
+	
 	this.dialog = new Dialog(this, elt, w, h, modal, closable, onClose);
+	this.dialogs.push(this.dialog);
 };
 
 /**
@@ -1084,16 +1042,17 @@ EditorUi.prototype.showDialog = function(elt, w, h, modal, closable, onClose)
  */
 EditorUi.prototype.hideDialog = function(cancel)
 {
-	if (this.dialog != null)
+	if (this.dialogs != null && this.dialogs.length > 0)
 	{
-		if (this.editor.graph.container.style.visibility != 'hidden')
+		var dlg = this.dialogs.pop();
+		dlg.close(cancel);
+		
+		this.dialog = (this.dialogs.length > 0) ? this.dialogs[this.dialogs.length - 1] : null;
+
+		if (this.dialog == null && this.editor.graph.container.style.visibility != 'hidden')
 		{
 			this.editor.graph.container.focus();
 		}
-		
-		var dlg = this.dialog;
-		this.dialog = null;
-		dlg.close(cancel);
 	}
 };
 
@@ -1332,6 +1291,16 @@ EditorUi.prototype.showImageDialog = function(title, value, fn)
 };
 
 /**
+ * Hides the current menu.
+ */
+EditorUi.prototype.showLinkDialog = function(value, btnLabel, fn)
+{
+	var dlg = new LinkDialog(this, value, btnLabel, fn);
+	this.showDialog(dlg.container, 320, 90, true, true);
+	dlg.init();
+};
+
+/**
  * Creates the keyboard event handler for the current graph and history.
  */
 EditorUi.prototype.confirm = function(msg, okFn, cancelFn)
@@ -1347,6 +1316,17 @@ EditorUi.prototype.confirm = function(msg, okFn, cancelFn)
 	{
 		cancelFn();
 	}
+};
+
+/**
+ * Creates the keyboard event handler for the current graph and history.
+ */
+EditorUi.prototype.createOutline = function(window)
+{
+	var outline = new mxOutline(this.editor.graph);
+	outline.border = 20;
+
+	return outline;
 };
 
 /**
@@ -1480,6 +1460,7 @@ EditorUi.prototype.createKeyHandler = function(editor)
     bindAction(71, true, 'grid', true); // Ctrl+Shift+G
     bindAction(76, true, 'lockUnlock'); // Ctrl+L
     bindAction(76, true, 'layers', true); // Ctrl+Shift+L
+    bindAction(79, true, 'outline', true); // Ctrl+Shift+O
     bindAction(80, true, 'print'); // Ctrl+P
     bindAction(85, true, 'ungroup'); // Ctrl+U
     bindAction(112, false, 'about'); // F1

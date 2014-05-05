@@ -153,6 +153,14 @@ mxShape.prototype.svgStrokeTolerance = 6;
 mxShape.prototype.pointerEvents = true;
 
 /**
+ * Variable: shapePointerEvents
+ * 
+ * Specifies if pointer events outside of shape should be handled. Default
+ * is false.
+ */
+mxShape.prototype.shapePointerEvents = false;
+
+/**
  * Variable: stencilPointerEvents
  * 
  * Specifies if pointer events outside of stencils should be handled. Default
@@ -453,10 +461,7 @@ mxShape.prototype.redrawShape = function()
 			this.node.style.filter = '';
 			
 			// Adds event transparency in IE8 standards
-			if (this.stencil == null || (this.stencil != null && !this.stencilPointerEvents))
-			{
-				mxUtils.addTransparentBackgroundFilter(this.node);
-			}
+			mxUtils.addTransparentBackgroundFilter(this.node);
 		}
 		
 		this.destroyCanvas(canvas);
@@ -753,10 +758,32 @@ mxShape.prototype.paint = function(c)
 	
 	this.updateTransform(c, x, y, w, h);
 	this.configureCanvas(c, x, y, w, h);
+
+	// Adds background rectangle to capture events
+	var bg = null;
 	
+	if ((this.stencil == null && this.points == null && this.shapePointerEvents) ||
+		(this.stencil != null && this.stencilPointerEvents))
+	{
+		var bb = this.createBoundingBox();
+		
+		if (this.dialect == mxConstants.DIALECT_SVG)
+		{
+			bg = this.createTransparentSvgRectangle(bb.x, bb.y, bb.width, bb.height);
+			this.node.appendChild(bg);
+		}
+		else
+		{
+			var rect = c.createRect('rect', bb.x / s, bb.y / s, bb.width / s, bb.height / s);
+			rect.appendChild(c.createTransparentFill());
+			rect.stroked = 'false';
+			c.root.appendChild(rect);
+		}
+	}
+
 	if (this.stencil != null)
 	{
-		this.paintStencilShape(c, x, y, w, h);
+		this.stencil.drawShape(c, this, x, y, w, h);
 	}
 	else
 	{
@@ -783,6 +810,11 @@ mxShape.prototype.paint = function(c)
 			// Paints vertex shape
 			this.paintVertexShape(c, x, y, w, h);
 		}
+	}
+	
+	if (bg != null && c.state != null && c.state.transform != null)
+	{
+		bg.setAttribute('transform', c.state.transform);
 	}
 };
 
@@ -854,30 +886,6 @@ mxShape.prototype.updateTransform = function(c, x, y, w, h)
 	// and untranslated and do not need an update after zooming or panning.
 	c.scale(this.scale);
 	c.rotate(this.getShapeRotation(), this.flipH, this.flipV, x + w / 2, y + h / 2);
-};
-
-/**
- * Function: paintStencilShape
- * 
- * Paints the line shape.
- */
-mxShape.prototype.paintStencilShape = function(c, x, y, w, h)
-{
-	if (this.stencilPointerEvents)
-	{
-		if (this.dialect == mxConstants.DIALECT_SVG)
-		{
-			this.addTransparentBackgroundRectangle(this.node, x, y, w, h);
-		}
-		// For IE8 we do not add event transparency in redrawShape
-		else if (document.documentMode != 8)
-		{
-			this.setTransparentBackgroundImage(this.node);
-		}
-	}
-	
-	// Paints a stencil
-	this.stencil.drawShape(c, this, x, y, w, h);
 };
 
 /**
@@ -1221,11 +1229,11 @@ mxShape.prototype.getShapeRotation = function()
 };
 
 /**
- * Function: addTransparentBackgroundRectangle
+ * Function: createTransparentSvgRectangle
  * 
  * Adds a transparent rectangle that catches all events.
  */
-mxShape.prototype.addTransparentBackgroundRectangle = function(node, x, y, w, h)
+mxShape.prototype.createTransparentSvgRectangle = function(x, y, w, h)
 {
 	var rect = document.createElementNS(mxConstants.NS_SVG, 'rect');
 	rect.setAttribute('x', x);
@@ -1235,7 +1243,8 @@ mxShape.prototype.addTransparentBackgroundRectangle = function(node, x, y, w, h)
 	rect.setAttribute('fill', 'none');
 	rect.setAttribute('stroke', 'none');
 	rect.setAttribute('pointer-events', 'all');
-	this.node.appendChild(rect);
+	
+	return rect;
 };
 
 /**

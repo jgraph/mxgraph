@@ -446,7 +446,8 @@ var mxEvent =
 	isTouchEvent: function(evt)
 	{
 		return (evt.pointerType != null) ? (evt.pointerType == 'touch' || evt.pointerType ===
-			evt.MSPOINTER_TYPE_TOUCH) : evt.type.indexOf('touch') == 0;
+			evt.MSPOINTER_TYPE_TOUCH) : ((evt.mozInputSource != null) ?
+					evt.mozInputSource == 5 : evt.type.indexOf('touch') == 0);
 	},
 
 	/**
@@ -457,7 +458,8 @@ var mxEvent =
 	isMouseEvent: function(evt)
 	{
 		return (evt.pointerType != null) ? (evt.pointerType == 'mouse' || evt.pointerType ===
-			evt.MSPOINTER_TYPE_MOUSE) : evt.type.indexOf('mouse') == 0;
+			evt.MSPOINTER_TYPE_MOUSE) : ((evt.mozInputSource != null) ?
+				evt.mozInputSource == 1 : evt.type.indexOf('mouse') == 0);
 	},
 	
 	/**

@@ -170,6 +170,7 @@ Menus.prototype.init = function()
 		menu.addSeparator(parent);
 		menu.addItem(mxResources.get('transparent'), null, function() { graph.toggleCellStyles('endFill', true); }, parent, null, true);
 		menu.addSeparator(parent);
+		this.promptChange(menu, mxResources.get('targetSpacing') + '...', '(px)', '0', mxConstants.STYLE_TARGET_PERIMETER_SPACING, parent);
 		this.promptChange(menu, mxResources.get('size') + '...', '(px)', mxConstants.DEFAULT_MARKERSIZE, mxConstants.STYLE_ENDSIZE, parent);
 	})));
 	this.put('linestart', new Menu(mxUtils.bind(this, function(menu, parent)
@@ -186,13 +187,13 @@ Menus.prototype.init = function()
 		menu.addSeparator(parent);
 		menu.addItem(mxResources.get('transparent'), null, function() { graph.toggleCellStyles('startFill', true); }, parent, null, true);
 		menu.addSeparator(parent);
+		this.promptChange(menu, mxResources.get('sourceSpacing') + '...', '(px)', '0', mxConstants.STYLE_SOURCE_PERIMETER_SPACING, parent);
 		this.promptChange(menu, mxResources.get('size') + '...', '(px)', mxConstants.DEFAULT_MARKERSIZE, mxConstants.STYLE_STARTSIZE, parent);
 	})));
 	this.put('spacing', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
 		// Uses shadow action and line menu to analyze selection
 		var vertexSelected = this.editorUi.actions.get('shadow').enabled;
-		var edgeSelected = this.get('line').enabled;
 		
 		if (vertexSelected || menu.showDisabled)
 		{
@@ -204,19 +205,12 @@ Menus.prototype.init = function()
 			this.promptChange(menu, mxResources.get('global'), '(px)', '0', mxConstants.STYLE_SPACING, parent, vertexSelected);
 			this.promptChange(menu, mxResources.get('perimeter'), '(px)', '0', mxConstants.STYLE_PERIMETER_SPACING, parent, vertexSelected);
 		}
-
-		if (edgeSelected || menu.showDisabled)
-		{
-			menu.addSeparator(parent);
-			this.promptChange(menu, mxResources.get('sourceSpacing'), '(px)', '0', mxConstants.STYLE_SOURCE_PERIMETER_SPACING, parent, edgeSelected);
-			this.promptChange(menu, mxResources.get('targetSpacing'), '(px)', '0', mxConstants.STYLE_TARGET_PERIMETER_SPACING, parent, edgeSelected);
-		}
 	})));
 	this.put('format', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
 		this.addMenuItems(menu, ['fillColor'], parent);
 		this.addSubmenu('gradient', menu, parent);
-		this.addMenuItems(menu, ['-', 'shadow'], parent);
+		this.addMenuItems(menu, ['image', '-', 'shadow'], parent);
 		this.promptChange(menu, mxResources.get('opacity'), '(%)', '100', mxConstants.STYLE_OPACITY, parent, this.get('format').enabled);
 		this.addMenuItems(menu, ['-', 'curved', 'rounded', 'dashed', '-', 'strokeColor'], parent);
 		this.addSubmenu('linewidth', menu, parent);
@@ -379,11 +373,18 @@ Menus.prototype.init = function()
 		menu.addSeparator(parent);
 		this.addMenuItems(menu, ['layers'], parent);
 		this.addSubmenu('navigation', menu, parent);
-		this.addMenuItems(menu, ['-', 'group', 'ungroup', 'removeFromGroup', '-', 'lockUnlock', '-', 'autosize'], parent);
+		this.addSubmenu('insert', menu, parent);
+		this.addMenuItems(menu, ['-', 'group', 'ungroup', 'removeFromGroup', '-', 'autosize'], parent);
 	}))).isEnabled = isGraphEnabled;
+	this.put('insert', new Menu(mxUtils.bind(this, function(menu, parent)
+	{
+		this.addMenuItems(menu, ['insertLink'], parent);
+		this.addMenuItem(menu, 'image', parent).firstChild.nextSibling.innerHTML = mxResources.get('insertImage');
+	})));
+
 	this.put('view', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
-		this.addMenuItems(menu, ['actualSize'], parent);
+		this.addMenuItems(menu, ['outline'], parent);
 		menu.addSeparator();
 		var scales = [0.25, 0.5, 0.75, 1, 1.5, 2, 4];
 		
@@ -398,7 +399,7 @@ Menus.prototype.init = function()
 			})(scales[i]);
 		}
 		
-		this.addMenuItems(menu, ['-', 'zoomIn', 'zoomOut', '-', 'fitWindow', 'customZoom', '-', 'fitPage', 'fitPageWidth'], parent);
+		this.addMenuItems(menu, ['-', 'actualSize', 'zoomIn', 'zoomOut', '-', 'fitWindow', 'fitPageWidth', 'fitPage', 'fitTwoPages', '-', 'customZoom'], parent);
 	})));
 	this.put('file', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -407,13 +408,13 @@ Menus.prototype.init = function()
 	this.put('edit', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
 		this.addMenuItems(menu, ['undo', 'redo', '-', 'cut', 'copy', 'paste', 'delete', '-', 'duplicate', '-',
-		                         'editData', 'editLink', 'openLink', '-', 'selectVertices', 'selectEdges', 'selectAll', '-',
-		                         'setAsDefaultEdge']);
+		                         'editData', 'editLink', 'openLink', '-', 'selectVertices', 'selectEdges', 'selectAll',
+		                         '-', 'setAsDefaultEdge', 'lockUnlock']);
 	})));
 	this.put('options', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
-		this.addMenuItems(menu, ['grid', 'guides', 'tooltips', '-', 'connect', 'copyConnect', 'navigation',
-		                         '-', 'scrollbars', 'pageView', '-', 'pageBackgroundColor', '-', 'autosave']);
+		this.addMenuItems(menu, ['pageView', '-', 'grid', 'guides', 'tooltips', '-', 'connect', 'copyConnect', 'navigation',
+		                         '-', 'pageBackgroundColor', 'autosave']);
 	})));
 	this.put('help', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -725,12 +726,21 @@ Menus.prototype.createPopupMenu = function(menu, cell, evt)
 		{
 			menu.addSeparator();
 			this.addMenuItems(menu, ['editLink']);
-			
+
 			var link = graph.getLinkForCell(graph.getSelectionCell());
 			
 			if (link != null)
 			{
 				this.addMenuItems(menu, ['openLink']);
+			}
+			
+			// Shows edit image action if there is an image in the style
+			var state = graph.view.getState(graph.getSelectionCell());
+			
+			if (state != null && mxUtils.getValue(state.style, mxConstants.STYLE_IMAGE, null) != null)
+			{
+				menu.addSeparator();
+				this.addMenuItem(menu, 'image', null).firstChild.nextSibling.innerHTML = mxResources.get('editImage') + '...';
 			}
 		}
 	}
@@ -763,10 +773,20 @@ Menus.prototype.createMenubar = function(container)
 					if (!menu.enabled)
 					{
 						elt.className = 'geItem mxDisabled';
+						
+						if (document.documentMode == 8)
+						{
+							elt.style.color = '#c3c3c3';
+						}
 					}
 					else
 					{
 						elt.className = 'geItem';
+						
+						if (document.documentMode == 8)
+						{
+							elt.style.color = '';
+						}
 					}
 				});
 			}

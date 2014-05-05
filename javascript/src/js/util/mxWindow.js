@@ -52,6 +52,34 @@
  *   wnd.setLocation(Math.max(0, wnd.getX()), Math.max(0, wnd.getY()));
  * });
  * (end)
+ * 
+ * To keep a window inside the current window:
+ * 
+ * (code)
+ * mxEvent.addListener(window, 'resize', mxUtils.bind(this, function()
+ * {
+ *   var iw = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+ *   var ih = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+ *   
+ *   var x = this.window.getX();
+ *   var y = this.window.getY();
+ *   
+ *   if (x + this.window.table.clientWidth > iw)
+ *   {
+ *     x = Math.max(0, iw - this.window.table.clientWidth);
+ *   }
+ *   
+ *   if (y + this.window.table.clientHeight > ih)
+ *   {
+ *     y = Math.max(0, ih - this.window.table.clientHeight);
+ *   }
+ *   
+ *   if (this.window.getX() != x || this.window.getY() != y)
+ *   {
+ *     this.window.setLocation(x, y);
+ *   }
+ * }));
+ * (end)
  *
  * Event: mxEvent.MOVE_START
  *

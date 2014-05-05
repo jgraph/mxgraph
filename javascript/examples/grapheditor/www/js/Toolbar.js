@@ -87,10 +87,31 @@ Toolbar.prototype.init = function()
 		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_DIAMOND, 0], 'geIcon geSprite geSprite-enddiamondtrans', null).setAttribute('title', mxResources.get('diamond'));
 		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_DIAMOND_THIN, 0], 'geIcon geSprite geSprite-endthindiamondtrans', null).setAttribute('title', mxResources.get('diamondThin'));
 	}));
-	this.addItems(['-', 'strokeColor', 'image', 'fillColor']);
+	this.addItems(['-', 'strokeColor', 'fillColor']);
 	this.addItem('geSprite-gradientcolor', 'gradientColor').setAttribute('title', mxResources.get('gradient'));
 	this.addItems(['shadow']);
-	this.addItems(['-', 'grid', 'guides']);
+	var items = this.addItems(['-', 'grid', 'guides']);
+	var scolor = '#d0d0d0';
+	
+	// Syncs grid & guides button states
+	this.editorUi.addListener('gridEnabledChanged', mxUtils.bind(this, function()
+	{
+		items[1].style.background = (this.editorUi.actions.get('grid').selectedCallback()) ? scolor : 'none';
+	}));
+	
+	this.editorUi.addListener('guidesEnabledChanged', mxUtils.bind(this, function()
+	{
+		items[2].style.background = (this.editorUi.actions.get('guides').selectedCallback()) ? scolor : 'none';
+	}));
+	
+	this.editorUi.editor.addListener('updateGraphComponents', mxUtils.bind(this, function()
+	{
+		items[1].style.background = (this.editorUi.actions.get('grid').selectedCallback()) ? scolor : 'none';
+		items[2].style.background = (this.editorUi.actions.get('guides').selectedCallback()) ? scolor : 'none';
+	}));
+	
+	items[1].style.background = (this.editorUi.actions.get('grid').selectedCallback()) ? scolor : 'none';
+	items[2].style.background = (this.editorUi.actions.get('guides').selectedCallback()) ? scolor : 'none';
 	
 	var graph = this.editorUi.editor.graph;
 
@@ -352,7 +373,7 @@ Toolbar.prototype.createTextToolbar = function()
 			
 			var selState = graph.cellEditor.saveSelection();
 			
-	    	var dlg = new TextareaDialog(this.editorUi, mxResources.get('enterValue') + ' (' + mxResources.get('url') + '):', oldValue, mxUtils.bind(this, function(value)
+			this.editorUi.showLinkDialog(oldValue, mxResources.get('apply'), mxUtils.bind(this, function(value)
 			{
 	    		graph.cellEditor.restoreSelection(selState);
 				
@@ -386,13 +407,7 @@ Toolbar.prototype.createTextToolbar = function()
 						}
 					}
 				}
-			}), mxUtils.bind(this, function()
-			{
-				graph.cellEditor.restoreSelection(selState);
 			}));
-	    	
-			this.editorUi.showDialog(dlg.container, 320, 200, true, false);
-			dlg.init();
 		}
 	}));
 	
@@ -865,19 +880,23 @@ Toolbar.prototype.addSeparator = function()
  */
 Toolbar.prototype.addItems = function(keys)
 {
+	var items = [];
+	
 	for (var i = 0; i < keys.length; i++)
 	{
 		var key = keys[i];
 		
 		if (key == '-')
 		{
-			this.addSeparator();
+			items.push(this.addSeparator());
 		}
 		else
 		{
-			this.addItem('geSprite-' + key.toLowerCase(), key);
+			items.push(this.addItem('geSprite-' + key.toLowerCase(), key));
 		}
 	}
+	
+	return items;
 };
 
 /**

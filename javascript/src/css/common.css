@@ -18,8 +18,7 @@ div.mxWindow {
 	-moz-box-shadow: 3px 3px 12px #C0C0C0;
 	box-shadow: 3px 3px 12px #C0C0C0;
 	background: url('../images/window.gif');
-	border-style: outset;
-	border-width: 1px;
+	border:1px solid #c3c3c3;
 	position: absolute;
 	overflow: hidden;
 	z-index: 1;
@@ -49,6 +48,7 @@ td.mxWindowPane {
 }
 div.mxWindowPane {
 	overflow: hidden;
+	position: absolute;
 }
 td.mxWindowPane td {
   	font-family: Arial;

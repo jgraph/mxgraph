@@ -390,7 +390,7 @@ class mxGraphView extends mxEventSource
 		$model = $this->graph->getModel();
 		$pState = $this->getState($model->getParent($state->cell));
 	
-		if ($pState != null && $pState->cell != $this->currentRoot)
+		if ($pState != null)
 		{
 			$state->origin->x += $pState->origin->x;
 			$state->origin->y += $pState->origin->y;

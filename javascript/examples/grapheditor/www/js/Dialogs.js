@@ -398,6 +398,7 @@ var PageSetupDialog = function(editorUi)
 			{
 				paperSizeOption.setAttribute('selected', 'selected');
 				portraitCheckBox.setAttribute('checked', 'checked');
+				portraitCheckBox.defaultChecked = true;
 				formatRow.style.display = '';
 				detected = true;
 			}
@@ -405,6 +406,7 @@ var PageSetupDialog = function(editorUi)
 			{
 				paperSizeOption.setAttribute('selected', 'selected');
 				landscapeCheckBox.setAttribute('checked', 'checked');
+				landscapeCheckBox.defaultChecked = true;
 				formatRow.style.display = '';
 				detected = true;
 			}
@@ -1408,7 +1410,7 @@ var MetadataDialog = function(ui, cell)
 	div.appendChild(form.table);
 	
 	// Adds buttons
-	var addBtn = mxUtils.button(mxResources.get('addProperty') + '...', function()
+	var addBtn = mxUtils.button(mxResources.get('addProperty'), function()
 	{
 		var name = mxUtils.prompt(mxResources.get('enterPropertyName'));
 		
@@ -1578,6 +1580,174 @@ var LinkDialog = function(editorUi, initialValue, btnLabel, fn)
 	this.container = div;
 };
 
+
+/**
+ * 
+ */
+var OutlineWindow = function(editorUi, x, y, w, h)
+{
+	var graph = editorUi.editor.graph;
+	
+	var div = document.createElement('div');
+	div.style.position = 'absolute';
+	div.style.width = '100%';
+	div.style.height = '100%';
+	div.style.border = '1px solid whiteSmoke';
+	div.style.overflow = 'hidden';
+
+	this.window = new mxWindow(mxResources.get('outline'), div, x, y, w, h, true, true);
+	this.window.destroyOnClose = false;
+	this.window.setMaximizable(false);
+	this.window.setResizable(true);
+	this.window.setClosable(true);
+	this.window.setVisible(true);
+	
+	this.window.setLocation = function(x, y)
+	{
+		x = Math.max(0, x);
+		y = Math.max(0, y);
+		mxWindow.prototype.setLocation.apply(this, arguments);
+	};
+	
+	mxEvent.addListener(window, 'resize', mxUtils.bind(this, function()
+	{
+		var iw = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+		var ih = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+		
+		var x = this.window.getX();
+		var y = this.window.getY();
+		
+		if (x + this.window.table.clientWidth > iw)
+		{
+			x = Math.max(0, iw - this.window.table.clientWidth);
+		}
+		
+		if (y + this.window.table.clientHeight > ih)
+		{
+			y = Math.max(0, ih - this.window.table.clientHeight);
+		}
+		
+		if (this.window.getX() != x || this.window.getY() != y)
+		{
+			this.window.setLocation(x, y);
+		}
+	}));
+	
+	var outline = editorUi.createOutline(this.window);
+
+	this.window.addListener(mxEvent.RESIZE, mxUtils.bind(this, function()
+   	{
+		outline.update(false);
+		outline.outline.sizeDidChange();
+   	}));
+	
+	this.window.addListener(mxEvent.SHOW, mxUtils.bind(this, function()
+	{
+		outline.suspended = false;
+		outline.update();
+	}));
+	
+	this.window.addListener(mxEvent.HIDE, mxUtils.bind(this, function()
+	{
+		outline.suspended = true;
+	}));
+	
+	this.window.addListener(mxEvent.NORMALIZE, mxUtils.bind(this, function()
+	{
+		outline.suspended = false;
+		outline.update();
+	}));
+			
+	this.window.addListener(mxEvent.MINIMIZE, mxUtils.bind(this, function()
+	{
+		outline.suspended = true;
+	}));
+
+	var outlineCreateGraph = outline.createGraph;
+	outline.createGraph = function(container)
+	{
+		var g = outlineCreateGraph.apply(this, arguments);
+		g.gridEnabled = false;
+		g.pageScale = graph.pageScale;
+		g.pageFormat = graph.pageFormat;
+		g.background = graph.background;
+		g.pageVisible = graph.pageVisible;
+		
+		var current = mxUtils.getCurrentStyle(graph.container);
+		div.style.backgroundColor = current.backgroundColor;
+		
+		return g;
+	};
+	
+	function update()
+	{
+		outline.outline.pageScale = graph.pageScale;
+		outline.outline.pageFormat = graph.pageFormat;
+		outline.outline.pageVisible = graph.pageVisible;
+		outline.outline.background = graph.background;
+		
+		var current = mxUtils.getCurrentStyle(graph.container);
+		div.style.backgroundColor = current.backgroundColor;
+		
+		if (graph.view.backgroundPageShape != null && outline.outline.view.backgroundPageShape != null)
+		{
+			outline.outline.view.backgroundPageShape.fill = graph.view.backgroundPageShape.fill;
+		}
+		
+		outline.outline.refresh();
+	};
+
+	outline.init(div);
+
+	editorUi.editor.addListener('resetGraphView', update);
+	editorUi.addListener('pageFormatChanged', update);
+	editorUi.addListener('backgroundColorChanged', update);
+	editorUi.addListener('backgroundImageChanged', update);
+	editorUi.addListener('pageViewChanged', function()
+	{
+		update();
+		outline.update(true);
+	});
+	
+	if (outline.outline.dialect == mxConstants.DIALECT_SVG)
+	{
+		var zoomInAction = editorUi.actions.get('zoomIn');
+		var zoomOutAction = editorUi.actions.get('zoomOut');
+		
+		mxEvent.addMouseWheelListener(function(evt, up)
+		{
+			var outlineWheel = false;
+			var source = mxEvent.getSource(evt);
+	
+			while (source != null)
+			{
+				if (source == outline.outline.view.canvas.ownerSVGElement)
+				{
+					outlineWheel = true;
+					break;
+				}
+	
+				source = source.parentNode;
+			}
+	
+			if (outlineWheel)
+			{
+				if (up)
+				{
+					zoomInAction.funct();
+				}
+				else
+				{
+					zoomOutAction.funct();
+				}
+	
+				mxEvent.consume(evt);
+			}
+		});
+	}
+};
+
+
 /**
  * 
  */
@@ -1587,7 +1757,7 @@ var LayersWindow = function(editorUi, x, y, w, h)
 	
 	var div = document.createElement('div');
 	div.style.background = 'whiteSmoke';
-	div.style.border = '1px solid lightGray';
+	div.style.border = '1px solid whiteSmoke';
 	div.style.height = '100%';
 	div.style.marginBottom = '10px';
 	div.style.overflow = 'auto';
@@ -1610,7 +1780,7 @@ var LayersWindow = function(editorUi, x, y, w, h)
 			ldiv.style.cursor = 'pointer';
 			ldiv.style.backgroundColor = '#e5e5e5';
 			ldiv.style.borderWidth = '0px 0px 1px 0px';
-			ldiv.style.borderColor = 'lightGray';
+			ldiv.style.borderColor = '#c3c3c3';
 			ldiv.style.borderStyle = 'solid';
 			ldiv.style.whiteSpace = 'nowrap';
 			
@@ -1630,6 +1800,7 @@ var LayersWindow = function(editorUi, x, y, w, h)
 			if (graph.model.isVisible(child))
 			{
 				inp.setAttribute('checked', 'checked');
+				inp.defaultChecked = true;
 			}
 			else
 			{
@@ -1876,7 +2047,7 @@ var LayersWindow = function(editorUi, x, y, w, h)
 		ldiv.style.whiteSpace = 'nowrap';
 		
 		var link = document.createElement('a');
-		mxUtils.write(link, mxResources.get('addLayer') + '...');
+		mxUtils.write(link, mxResources.get('addLayer'));
 		link.style.marginTop = '-2px';
 		link.className = 'geLabel';
 		link.style.cursor = 'pointer';
@@ -1925,4 +2096,35 @@ var LayersWindow = function(editorUi, x, y, w, h)
 	this.window.setResizable(true);
 	this.window.setClosable(true);
 	this.window.setVisible(true);
+	
+	this.window.setLocation = function(x, y)
+	{
+		x = Math.max(0, x);
+		y = Math.max(0, y);
+		mxWindow.prototype.setLocation.apply(this, arguments);
+	};
+	
+	mxEvent.addListener(window, 'resize', mxUtils.bind(this, function()
+	{
+		var iw = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+		var ih = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+		
+		var x = this.window.getX();
+		var y = this.window.getY();
+		
+		if (x + this.window.table.clientWidth > iw)
+		{
+			x = Math.max(0, iw - this.window.table.clientWidth);
+		}
+		
+		if (y + this.window.table.clientHeight > ih)
+		{
+			y = Math.max(0, ih - this.window.table.clientHeight);
+		}
+		
+		if (this.window.getX() != x || this.window.getY() != y)
+		{
+			this.window.setLocation(x, y);
+		}
+	}));
 };

@@ -656,20 +656,11 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 				target = graph.getDropTarget(this.cells, me.getEvent(), cell);
 			}
 
-			// Checks if parent is dropped into child
-			var parent = target;
-			var model = graph.getModel();
-			
-			while (parent != null && parent != this.cells[0])
-			{
-				parent = model.getParent(parent);
-			}
-			
 			var clone = graph.isCloneEvent(me.getEvent()) && graph.isCellsCloneable() && this.isCloneEnabled();
 			var state = graph.getView().getState(target);
 			var highlight = false;
 			
-			if (state != null && parent == null && (model.getParent(this.cell) != target || clone))
+			if (state != null && (graph.model.getParent(this.cell) != target || clone))
 			{
 			    if (this.target != target)
 			    {

@@ -631,87 +631,97 @@ public class mxGraphView extends mxEventSource
 		state.getOrigin().setY(0);
 		state.setLength(0);
 
-		mxIGraphModel model = graph.getModel();
-		mxCellState pState = getState(model.getParent(state.getCell()));
-
-		if (pState != null && pState.getCell() != currentRoot)
+		if (state.getCell() != currentRoot)
 		{
-			state.getOrigin().setX(
-					state.getOrigin().getX() + pState.getOrigin().getX());
-			state.getOrigin().setY(
-					state.getOrigin().getY() + pState.getOrigin().getY());
-		}
+			mxIGraphModel model = graph.getModel();
+			mxCellState pState = getState(model.getParent(state.getCell()));
 
-		mxPoint offset = graph.getChildOffsetForCell(state.getCell());
-
-		if (offset != null)
-		{
-			state.getOrigin().setX(state.getOrigin().getX() + offset.getX());
-			state.getOrigin().setY(state.getOrigin().getY() + offset.getY());
-		}
-
-		mxGeometry geo = graph.getCellGeometry(state.getCell());
-
-		if (geo != null)
-		{
-			if (!model.isEdge(state.cell))
+			if (pState != null && pState.getCell() != currentRoot)
 			{
-				mxPoint origin = state.getOrigin();
-				offset = geo.getOffset();
+				state.getOrigin().setX(
+						state.getOrigin().getX() + pState.getOrigin().getX());
+				state.getOrigin().setY(
+						state.getOrigin().getY() + pState.getOrigin().getY());
+			}
 
-				if (offset == null)
-				{
-					offset = EMPTY_POINT;
-				}
+			mxPoint offset = graph.getChildOffsetForCell(state.getCell());
 
-				if (geo.isRelative() && pState != null)
+			if (offset != null)
+			{
+				state.getOrigin()
+						.setX(state.getOrigin().getX() + offset.getX());
+				state.getOrigin()
+						.setY(state.getOrigin().getY() + offset.getY());
+			}
+
+			mxGeometry geo = graph.getCellGeometry(state.getCell());
+
+			if (geo != null)
+			{
+				if (!model.isEdge(state.cell))
 				{
-					if (model.isEdge(pState.cell))
+					mxPoint origin = state.getOrigin();
+					offset = geo.getOffset();
+
+					if (offset == null)
 					{
-						mxPoint orig = getPoint(pState, geo);
+						offset = EMPTY_POINT;
+					}
 
-						if (orig != null)
+					if (geo.isRelative() && pState != null)
+					{
+						if (model.isEdge(pState.cell))
 						{
-							origin.setX(origin.getX() + (orig.getX() / scale)
-									- translate.getX());
-							origin.setY(origin.getY() + (orig.getY() / scale)
-									- translate.getY());
+							mxPoint orig = getPoint(pState, geo);
+
+							if (orig != null)
+							{
+								origin.setX(origin.getX()
+										+ (orig.getX() / scale)
+										- translate.getX());
+								origin.setY(origin.getY()
+										+ (orig.getY() / scale)
+										- translate.getY());
+							}
+						}
+						else
+						{
+							origin.setX(origin.getX() + geo.getX()
+									* pState.getWidth() / scale + offset.getX());
+							origin.setY(origin.getY() + geo.getY()
+									* pState.getHeight() / scale
+									+ offset.getY());
 						}
 					}
 					else
 					{
-						origin.setX(origin.getX() + geo.getX()
-								* pState.getWidth() / scale + offset.getX());
-						origin.setY(origin.getY() + geo.getY()
-								* pState.getHeight() / scale + offset.getY());
+						state.setAbsoluteOffset(new mxPoint(scale
+								* offset.getX(), scale * offset.getY()));
+						origin.setX(origin.getX() + geo.getX());
+						origin.setY(origin.getY() + geo.getY());
 					}
 				}
-				else
+
+				state.setX(scale
+						* (translate.getX() + state.getOrigin().getX()));
+				state.setY(scale
+						* (translate.getY() + state.getOrigin().getY()));
+				state.setWidth(scale * geo.getWidth());
+				state.setHeight(scale * geo.getHeight());
+
+				if (model.isVertex(state.getCell()))
 				{
-					state.setAbsoluteOffset(new mxPoint(scale * offset.getX(),
-							scale * offset.getY()));
-					origin.setX(origin.getX() + geo.getX());
-					origin.setY(origin.getY() + geo.getY());
+					updateVertexState(state, geo);
 				}
+
+				if (model.isEdge(state.getCell()))
+				{
+					updateEdgeState(state, geo);
+				}
+
+				// Updates the cached label
+				updateLabel(state);
 			}
-
-			state.setX(scale * (translate.getX() + state.getOrigin().getX()));
-			state.setY(scale * (translate.getY() + state.getOrigin().getY()));
-			state.setWidth(scale * geo.getWidth());
-			state.setHeight(scale * geo.getHeight());
-
-			if (model.isVertex(state.getCell()))
-			{
-				updateVertexState(state, geo);
-			}
-
-			if (model.isEdge(state.getCell()))
-			{
-				updateEdgeState(state, geo);
-			}
-
-			// Updates the cached label
-			updateLabel(state);
 		}
 	}
 
@@ -735,10 +745,10 @@ public class mxGraphView extends mxEventSource
 		// This will remove edges with no terminals and no terminal points
 		// as such edges are invalid and produce NPEs in the edge styles.
 		// Also removes connected edges that have no visible terminals.
-		if ((graph.getModel().getTerminal(state.getCell(), true) != null && source == null) ||
-			(source == null && geo.getTerminalPoint(true) == null) ||
-			(graph.getModel().getTerminal(state.getCell(), false) != null && target == null) ||
-			(target == null && geo.getTerminalPoint(false) == null))
+		if ((graph.getModel().getTerminal(state.getCell(), true) != null && source == null)
+				|| (source == null && geo.getTerminalPoint(true) == null)
+				|| (graph.getModel().getTerminal(state.getCell(), false) != null && target == null)
+				|| (target == null && geo.getTerminalPoint(false) == null))
 		{
 			clear(state.cell, true, true);
 		}
@@ -901,21 +911,22 @@ public class mxGraphView extends mxEventSource
 			// For edges, the width of the geometry is used for wrapping HTML
 			// labels or no wrapping is applied if the width is set to 0
 			mxRectangle vertexBounds = state;
-			
+
 			if (graph.getModel().isEdge(cell))
 			{
 				mxGeometry geo = graph.getCellGeometry(cell);
-				
+
 				if (geo != null && geo.getWidth() > 0)
 				{
-					vertexBounds = new mxRectangle(0, 0, geo.getWidth() * this.getScale(), 0);
+					vertexBounds = new mxRectangle(0, 0, geo.getWidth()
+							* this.getScale(), 0);
 				}
 				else
 				{
 					vertexBounds = null;
 				}
 			}
-			
+
 			state.setLabelBounds(mxUtils.getLabelPaintBounds(state.getLabel(),
 					style, graph.isHtmlLabel(cell), state.getAbsoluteOffset(),
 					vertexBounds, scale, graph.getModel().isEdge(cell)));
