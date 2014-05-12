@@ -30,19 +30,22 @@ Menus.prototype.init = function()
 	var isGraphEnabled = mxUtils.bind(graph, graph.isEnabled);
 
 	this.customFonts = [];
+	this.customFontSizes = [];
 
 	this.put('fontFamily', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
+		var addItem = mxUtils.bind(this, function(fontname)
+		{
+			var tr = this.styleChange(menu, fontname, [mxConstants.STYLE_FONTFAMILY], [fontname], null, parent, function()
+			{
+				document.execCommand('fontname', false, fontname);
+			});
+			tr.firstChild.nextSibling.style.fontFamily = fontname;
+		});
+		
 		for (var i = 0; i < this.defaultFonts.length; i++)
 		{
-			(mxUtils.bind(this, function(fontname)
-			{
-				var tr = this.styleChange(menu, fontname, [mxConstants.STYLE_FONTFAMILY], [fontname], null, parent, function()
-				{
-					document.execCommand('fontname', false, fontname);
-				});
-				tr.firstChild.nextSibling.style.fontFamily = fontname;
-			}))(this.defaultFonts[i]);
+			addItem(this.defaultFonts[i]);
 		}
 
 		menu.addSeparator(parent);
@@ -51,14 +54,7 @@ Menus.prototype.init = function()
 		{
 			for (var i = 0; i < this.customFonts.length; i++)
 			{
-				(mxUtils.bind(this, function(fontname)
-				{
-					var tr = this.styleChange(menu, fontname, [mxConstants.STYLE_FONTFAMILY], [fontname], null, parent, function()
-					{
-						document.execCommand('fontname', false, fontname);
-					});
-					tr.firstChild.nextSibling.style.fontFamily = fontname;
-				}))(this.customFonts[i]);
+				addItem(this.customFonts[i]);
 			}
 			
 			menu.addSeparator(parent);
@@ -71,7 +67,7 @@ Menus.prototype.init = function()
 			menu.addSeparator(parent);
 		}
 		
-		this.promptChange(menu, mxResources.get('custom'), '', mxConstants.DEFAULT_FONTFAMILY, mxConstants.STYLE_FONTFAMILY, parent, true, mxUtils.bind(this, function(newValue)
+		this.promptChange(menu, mxResources.get('custom') + '...', '', mxConstants.DEFAULT_FONTFAMILY, mxConstants.STYLE_FONTFAMILY, parent, true, mxUtils.bind(this, function(newValue)
 		{
 			this.customFonts.push(newValue);
 		}));
@@ -104,33 +100,56 @@ Menus.prototype.init = function()
 	{
 		var sizes = [6, 8, 9, 10, 11, 12, 14, 18, 24, 36, 48, 72];
 		
+		var addItem = mxUtils.bind(this, function(fontsize)
+		{
+			this.styleChange(menu, fontsize, [mxConstants.STYLE_FONTSIZE], [fontsize], null, parent, function()
+			{
+				document.execCommand('fontSize', false, '3');
+				
+				// Changes the css font size of the first font element inside the in-place editor with size 3
+				var elts = graph.cellEditor.text2.getElementsByTagName('font');
+				
+				for (var i = 0; i < elts.length; i++)
+				{
+					if (elts[i].getAttribute('size') == '3')
+					{
+						elts[i].removeAttribute('size');
+						elts[i].style.fontSize = fontsize + 'px';
+						
+						break;
+					}
+				}
+			});
+		});
+		
 		for (var i = 0; i < sizes.length; i++)
 		{
-			(mxUtils.bind(this, function(fontsize)
-			{
-				this.styleChange(menu, fontsize, [mxConstants.STYLE_FONTSIZE], [fontsize], null, parent, function()
-				{
-					document.execCommand('fontSize', false, '3');
-					
-					// Changes the css font size of the first font element inside the in-place editor with size 3
-					var elts = graph.cellEditor.text2.getElementsByTagName('font');
-					
-					for (var i = 0; i < elts.length; i++)
-					{
-						if (elts[i].getAttribute('size') == '3')
-						{
-							elts[i].removeAttribute('size');
-							elts[i].style.fontSize = fontsize + 'px';
-							
-							break;
-						}
-					}
-				});
-			}))(sizes[i]);
+			addItem(sizes[i]);
 		}
 
 		menu.addSeparator(parent);
-		this.promptChange(menu, mxResources.get('custom'), '(pt)', '12', mxConstants.STYLE_FONTSIZE, parent);
+		
+		if (this.customFontSizes.length > 0)
+		{
+			for (var i = 0; i < this.customFontSizes.length; i++)
+			{
+				addItem(this.customFontSizes[i]);
+			}
+			
+			menu.addSeparator(parent);
+			
+			menu.addItem(mxResources.get('reset'), null, mxUtils.bind(this, function()
+			{
+				this.customFontSizes = [];
+			}), parent);
+			
+			menu.addSeparator(parent);
+		}
+		
+		this.promptChange(menu, mxResources.get('custom') + '...', '(pt)', '12', mxConstants.STYLE_FONTSIZE, parent, true, mxUtils.bind(this, function(newValue)
+		{
+			this.customFontSizes.push(newValue);
+		}));
 	})));
 	this.put('linewidth', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -408,7 +427,7 @@ Menus.prototype.init = function()
 	this.put('edit', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
 		this.addMenuItems(menu, ['undo', 'redo', '-', 'cut', 'copy', 'paste', 'delete', '-', 'duplicate', '-',
-		                         'editData', 'editLink', 'openLink', '-', 'selectVertices', 'selectEdges', 'selectAll',
+		                         'editData', 'editLink', 'openLink', 'editTooltip', '-', 'selectVertices', 'selectEdges', 'selectAll',
 		                         '-', 'setAsDefaultEdge', 'lockUnlock']);
 	})));
 	this.put('options', new Menu(mxUtils.bind(this, function(menu, parent)

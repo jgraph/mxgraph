@@ -18,6 +18,15 @@ function mxPopupMenuHandler(graph, factoryMethod)
 		this.graph = graph;
 		this.factoryMethod = factoryMethod;
 		this.graph.addMouseListener(this);
+		
+		// Does not show menu if any touch gestures take place after the trigger
+		this.gestureHandler = mxUtils.bind(this, function(sender, eo)
+		{
+			this.inTolerance = false;
+		});
+		
+		this.graph.addListener(mxEvent.GESTURE, this.gestureHandler);
+		
 		this.init();
 	}
 };
@@ -102,7 +111,7 @@ mxPopupMenuHandler.prototype.isSelectOnPopup = function(me)
  */
 mxPopupMenuHandler.prototype.mouseDown = function(sender, me)
 {
-	if (this.isEnabled())
+	if (this.isEnabled() && !mxEvent.isMultiTouchEvent(me.getEvent()))
 	{
 		// Hides the popupmenu if is is being displayed
 		this.hideMenu();
@@ -186,6 +195,7 @@ mxPopupMenuHandler.prototype.getCellForPopupEvent = function(me)
 mxPopupMenuHandler.prototype.destroy = function()
 {
 	this.graph.removeMouseListener(this);
+	this.graph.removeListener(this.gestureHandler);
 	
 	// Supercall
 	mxPopupMenu.prototype.destroy.apply(this);

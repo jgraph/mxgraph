@@ -1150,7 +1150,7 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview)
 	
 	dragSource.mouseDown = function(evt)
 	{
-		if (!mxEvent.isPopupTrigger(evt))
+		if (!mxEvent.isPopupTrigger(evt) && !mxEvent.isMultiTouchEvent(evt))
 		{
 			mouseDown.apply(this, arguments);
 		}

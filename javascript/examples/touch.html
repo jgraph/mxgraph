@@ -87,6 +87,7 @@
 
 				// Creates the graph inside the given container
 				var graph = new mxGraph(container);
+				graph.centerZoom = false;
 				graph.setConnectable(true);
 				graph.setPanning(true);
 				
@@ -157,22 +158,40 @@
 				// cells the cell associated with the event is deselected
 				graph.addListener(mxEvent.TAP_AND_HOLD, function(sender, evt)
 				{
-					var me = evt.getProperty('event');
-					var cell = evt.getProperty('cell');
-					
-					if (cell == null)
+					if (!mxEvent.isMultiTouchEvent(evt))
 					{
-						var pt = mxUtils.convertPoint(this.container,
-								mxEvent.getClientX(me), mxEvent.getClientY(me));
-						rubberband.start(pt.x, pt.y);
+						var me = evt.getProperty('event');
+						var cell = evt.getProperty('cell');
+						
+						if (cell == null)
+						{
+							var pt = mxUtils.convertPoint(this.container,
+									mxEvent.getClientX(me), mxEvent.getClientY(me));
+							rubberband.start(pt.x, pt.y);
+						}
+						else if (graph.getSelectionCount() > 1 && graph.isCellSelected(cell))
+						{
+							graph.removeSelectionCell(cell);
+						}
+						
+						// Blocks further processing of the event
+						evt.consume();
 					}
-					else if (graph.getSelectionCount() > 1 && graph.isCellSelected(cell))
+				});
+				
+				// Adds mouse wheel handling for zoom
+				mxEvent.addMouseWheelListener(function(evt, up)
+				{
+					if (up)
 					{
-						graph.removeSelectionCell(cell);
+						graph.zoomIn();
 					}
-					
-					// Blocks further processing of the event
-					evt.consume();
+					else
+					{
+						graph.zoomOut();
+					}
+
+					mxEvent.consume(evt);
 				});
 
 				// Gets the default parent for inserting new cells. This
@@ -193,12 +212,6 @@
 					graph.getModel().endUpdate();
 				}
 
-				// Disables pinch to resize
-				graph.handleGesture = function()
-				{
-					// do nothing
-				};
-				
 				// Disables new connections via "hotspot"
 				graph.connectionHandler.marker.isEnabled = function()
 				{
@@ -269,7 +282,8 @@
 				var evt = me.getEvent();
 				
 			 	return (me.getState() == null && !mxEvent.isMouseEvent(evt)) ||
-			 		(mxEvent.isPopupTrigger(evt) && (me.getState() == null || mxEvent.isControlDown(evt) || mxEvent.isShiftDown(evt)));
+			 		(mxEvent.isPopupTrigger(evt) && (me.getState() == null ||
+			 		mxEvent.isControlDown(evt) || mxEvent.isShiftDown(evt)));
 			};
 	
 			// Don't clear selection if multiple cells selected

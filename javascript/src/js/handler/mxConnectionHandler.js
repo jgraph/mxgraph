@@ -165,6 +165,14 @@ function mxConnectionHandler(graph, factoryMethod)
 		this.graph = graph;
 		this.factoryMethod = factoryMethod;
 		this.init();
+		
+		// Handles escape keystrokes
+		this.escapeHandler = mxUtils.bind(this, function(sender, evt)
+		{
+			this.reset();
+		});
+		
+		this.graph.addListener(mxEvent.ESCAPE, this.escapeHandler);
 	}
 };
 
@@ -522,7 +530,7 @@ mxConnectionHandler.prototype.createMarker = function()
 					}
 				}
 			}
-			else if (!this.isValidSource(cell))
+			else if (!this.isValidSource(cell, me))
 			{
 				cell = null;
 			}
@@ -611,8 +619,9 @@ mxConnectionHandler.prototype.isConnecting = function()
  * Parameters:
  * 
  * cell - <mxCell> that represents the source terminal.
+ * me - <mxMouseEvent> that is associated with this call.
  */
-mxConnectionHandler.prototype.isValidSource = function(cell)
+mxConnectionHandler.prototype.isValidSource = function(cell, me)
 {
 	return this.graph.isValidSource(cell);
 };
@@ -1845,5 +1854,11 @@ mxConnectionHandler.prototype.destroy = function()
 		this.graph.removeListener(this.drillHandler);
 		this.graph.getView().removeListener(this.drillHandler);
 		this.drillHandler = null;
+	}
+	
+	if (this.escapeHandler != null)
+	{
+		this.graph.removeListener(this.escapeHandler);
+		this.escapeHandler = null;
 	}
 };

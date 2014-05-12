@@ -2290,21 +2290,24 @@ mxGraph.prototype.startEditing = function(evt)
  */
 mxGraph.prototype.startEditingAtCell = function(cell, evt)
 {
-	if (cell == null)
+	if (evt == null || !mxEvent.isMultiTouchEvent(evt))
 	{
-		cell = this.getSelectionCell();
-		
-		if (cell != null && !this.isCellEditable(cell))
+		if (cell == null)
 		{
-			cell = null;
+			cell = this.getSelectionCell();
+			
+			if (cell != null && !this.isCellEditable(cell))
+			{
+				cell = null;
+			}
 		}
-	}
-
-	if (cell != null)
-	{
-		this.fireEvent(new mxEventObject(mxEvent.START_EDITING,
-				'cell', cell, 'event', evt));
-		this.cellEditor.startEditing(cell, evt);
+	
+		if (cell != null)
+		{
+			this.fireEvent(new mxEventObject(mxEvent.START_EDITING,
+					'cell', cell, 'event', evt));
+			this.cellEditor.startEditing(cell, evt);
+		}
 	}
 };
 
@@ -2436,22 +2439,7 @@ mxGraph.prototype.cellLabelChanged = function(cell, value, autoSize)
  */
 mxGraph.prototype.escape = function(evt)
 {
-	this.stopEditing(true);
-	this.connectionHandler.reset();
-	this.graphHandler.reset();
-	
-	// Cancels all cell-based editing
-	var cells = this.getSelectionCells();
-	
-	for (var i = 0; i < cells.length; i++)
-	{
-		var state = this.view.getState(cells[i]);
-		
-		if (state != null && state.handler != null)
-		{
-			state.handler.reset();
-		}
-	}
+	this.fireEvent(new mxEventObject(mxEvent.ESCAPE, 'event', evt));
 };
 
 /**
@@ -2722,7 +2710,7 @@ mxGraph.prototype.scrollPointToVisible = function(x, y, extend, border)
 			}
 		}
 	}
-	else if (this.allowAutoPanning && !this.panningHandler.active)
+	else if (this.allowAutoPanning && !this.panningHandler.isActive())
 	{
 		if (this.panningManager == null)
 		{
@@ -11793,7 +11781,7 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 		if ((mxClient.IS_OP || mxClient.IS_SF || mxClient.IS_GC ||
 			(mxClient.IS_IE && mxClient.IS_SVG) || me.getEvent().target != this.container))
 		{
-			if (evtName == mxEvent.MOUSE_MOVE && this.isMouseDown && this.autoScroll)
+			if (evtName == mxEvent.MOUSE_MOVE && this.isMouseDown && this.autoScroll && !mxEvent.isMultiTouchEvent(me.getEvent))
 			{
 				this.scrollPointToVisible(me.getGraphX(), me.getGraphY(), this.autoExtend);
 			}

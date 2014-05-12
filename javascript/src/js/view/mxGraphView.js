@@ -758,7 +758,7 @@ mxGraphView.prototype.validateBackgroundPage = function()
 			this.backgroundPageShape.redraw();
 			
 			// Adds listener for double click handling on background
-			if (graph.nativeDblClickEnabled)
+			if (this.graph.nativeDblClickEnabled)
 			{
 				mxEvent.addListener(this.backgroundPageShape.node, 'dblclick', mxUtils.bind(this, function(evt)
 				{
@@ -2334,6 +2334,32 @@ mxGraphView.prototype.installListeners = function()
 	
 	if (container != null)
 	{
+		// Support for touch device gestures (eg. pinch to zoom)
+		// Double-tap handling is implemented in mxGraph.fireMouseEvent
+		if (mxClient.IS_TOUCH)
+		{
+			mxEvent.addListener(container, 'gesturestart', mxUtils.bind(this, function(evt)
+			{
+				// FIXME: Breaks encapsulation to reset the double
+				// tap event handling when gestures take place
+				graph.lastTouchTime = 0;
+				graph.fireGestureEvent(evt);
+				mxEvent.consume(evt);
+			}));
+			
+			mxEvent.addListener(container, 'gesturechange', mxUtils.bind(this, function(evt)
+			{
+				graph.fireGestureEvent(evt);
+				mxEvent.consume(evt);
+			}));
+
+			mxEvent.addListener(container, 'gestureend', mxUtils.bind(this, function(evt)
+			{
+				graph.fireGestureEvent(evt);
+				mxEvent.consume(evt);
+			}));
+		}
+		
 		// Adds basic listeners for graph event dispatching
 		mxEvent.addGestureListeners(container, mxUtils.bind(this, function(evt)
 		{

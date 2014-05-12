@@ -451,6 +451,16 @@ var mxEvent =
 	},
 
 	/**
+	 * Function: isMultiTouchEvent
+	 * 
+	 * Returns true if the event was generated using a touch device (not a pen or mouse).
+	 */
+	isMultiTouchEvent: function(evt)
+	{
+		return (evt.type != null && evt.type.indexOf('touch') == 0 && evt.touches != null && evt.touches.length > 1);
+	},
+
+	/**
 	 * Function: isMouseEvent
 	 * 
 	 * Returns true if the event was generated using a mouse (not a pen or touch device).

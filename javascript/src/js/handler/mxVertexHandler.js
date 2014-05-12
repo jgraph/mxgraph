@@ -23,6 +23,25 @@ function mxVertexHandler(state)
 	{
 		this.state = state;
 		this.init();
+		
+		// Handles escape keystrokes
+		this.escapeHandler = mxUtils.bind(this, function(sender, evt)
+		{
+			if (this.livePreview)
+			{
+				// Redraws the live preview
+				this.state.view.graph.cellRenderer.redraw(this.state, true);
+				
+				// Redraws connected edges
+				this.state.view.invalidate(this.state.cell);
+				this.state.invalid = false;
+				this.state.view.validate();
+			}
+			
+			this.reset();
+		});
+		
+		this.state.view.graph.addListener(mxEvent.ESCAPE, this.escapeHandler);
 	}
 };
 
@@ -591,6 +610,40 @@ mxVertexHandler.prototype.checkTolerance = function(me)
 };
 
 /**
+ * Function: updateHint
+ * 
+ * Hook for subclassers do show details while the handler is active.
+ */
+mxVertexHandler.prototype.updateHint = function(me) { };
+
+/**
+ * Function: removeHint
+ * 
+ * Hooks for subclassers to hide details when the handler gets inactive.
+ */
+mxVertexHandler.prototype.removeHint = function() { };
+
+/**
+ * Function: roundAngle
+ * 
+ * Hook for rounding the angle. This uses Math.round.
+ */
+mxVertexHandler.prototype.roundAngle = function(angle)
+{
+	return Math.round(angle);
+};
+
+/**
+ * Function: roundLength
+ * 
+ * Hook for rounding the unscaled width or height. This uses Math.round.
+ */
+mxVertexHandler.prototype.roundLength = function(length)
+{
+	return Math.round(length);
+};
+
+/**
  * Function: mouseMove
  * 
  * Handles the event by updating the preview.
@@ -640,6 +693,10 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 					
 					this.currentAlpha = Math.round(this.currentAlpha / raster) * raster;
 				}
+				else
+				{
+					this.currentAlpha = this.roundAngle(this.currentAlpha);
+				}
 	
 				this.selectionBorder.rotation = this.currentAlpha;
 				this.selectionBorder.redraw();
@@ -665,8 +722,8 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 				var tx = cos * dx - sin * dy;
 				var ty = sin * dx + cos * dy;
 				
-				dx = tx;
-				dy = ty;
+				dx = this.roundLength(tx / scale) * scale;
+				dy = this.roundLength(ty / scale) * scale;
 				
 				this.bounds = this.union(this.selectionBounds, dx, dy, this.index, gridEnabled, scale, tr, this.isConstrainedEvent(me));
 
@@ -745,6 +802,8 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 					this.drawPreview();
 				}
 			}
+
+			this.updateHint(me);
 		}
 		
 		me.consume();
@@ -801,7 +860,8 @@ mxVertexHandler.prototype.mouseUp = function(sender, me)
 				
 				var s = this.graph.view.scale;
 				var recurse = this.isRecursiveResize(this.state, me);
-				this.resizeCell(this.state.cell, dx / s, dy / s, this.index, gridEnabled, this.isConstrainedEvent(me), recurse);
+				this.resizeCell(this.state.cell, this.roundLength(dx / s), this.roundLength(dy / s),
+					this.index, gridEnabled, this.isConstrainedEvent(me), recurse);
 			}
 		}
 		finally
@@ -930,6 +990,7 @@ mxVertexHandler.prototype.reset = function()
 		}
 	}
 	
+	this.removeHint();
 	this.redrawHandles();
 	this.edgeHandlers = null;
 };
@@ -1438,15 +1499,22 @@ mxVertexHandler.prototype.drawPreview = function()
  */
 mxVertexHandler.prototype.destroy = function()
 {
+	if (this.escapeHandler != null)
+	{
+		this.state.view.graph.removeListener(this.escapeHandler);
+		this.escapeHandler = null;
+	}
+	
 	if (this.preview != null)
 	{
 		this.preview.destroy();
 		this.preview = null;
 	}
-	
+
 	this.selectionBorder.destroy();
 	this.selectionBorder = null;
 	this.labelShape = null;
+	this.removeHint();
 	
 	if (this.sizers != null)
 	{

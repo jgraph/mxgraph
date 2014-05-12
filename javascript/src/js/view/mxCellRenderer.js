@@ -727,41 +727,11 @@ mxCellRenderer.prototype.installListeners = function(state)
 		
 		return result;
 	};
-	
-	// Experimental support for two-finger pinch to resize cells
-	var gestureInProgress = false;
 
-	
-	// Experimental handling for gestures. Double-tap handling is implemented
-	// in mxGraph.fireMouseEvent
-	if (mxClient.IS_TOUCH)
-	{
-		mxEvent.addListener(state.shape.node, 'gesturestart',
-			mxUtils.bind(this, function(evt)
-			{
-				// FIXME: Breaks encapsulation to reset the double
-				// tap event handling when gestures take place
-				graph.lastTouchTime = 0;
-	
-				gestureInProgress = true;
-				mxEvent.consume(evt);
-			})
-		);
-
-		mxEvent.addListener(state.shape.node, 'gestureend',
-			mxUtils.bind(this, function(evt)
-			{
-				gestureInProgress = false;
-				graph.fireGestureEvent(evt, state.cell);
-				mxEvent.consume(evt);
-			})
-		);
-	}
-	
 	mxEvent.addGestureListeners(state.shape.node,
 		mxUtils.bind(this, function(evt)
 		{
-			if (this.isShapeEvent(state, evt) && !gestureInProgress)
+			if (this.isShapeEvent(state, evt))
 			{
 				// Redirects events from the "event-transparent" region of a
 				// swimlane to the graph. This is only required in HTML, SVG
@@ -771,37 +741,25 @@ mxCellRenderer.prototype.installListeners = function(state)
 					mxEvent.getSource(evt) == state.shape.content) ?
 						null : state));
 			}
-			else if (gestureInProgress)
-			{
-				mxEvent.consume(evt);
-			}
 		}),
 		mxUtils.bind(this, function(evt)
 		{
-			if (this.isShapeEvent(state, evt) && !gestureInProgress)
+			if (this.isShapeEvent(state, evt))
 			{
 				graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
 					new mxMouseEvent(evt, (state.shape != null &&
 					mxEvent.getSource(evt) == state.shape.content) ?
 						null : getState(evt)));
 			}
-			else if (gestureInProgress)
-			{
-				mxEvent.consume(evt);
-			}
 		}),
 		mxUtils.bind(this, function(evt)
 		{
-			if (this.isShapeEvent(state, evt) && !gestureInProgress)
+			if (this.isShapeEvent(state, evt))
 			{
 				graph.fireMouseEvent(mxEvent.MOUSE_UP,
 					new mxMouseEvent(evt, (state.shape != null &&
 					mxEvent.getSource(evt) == state.shape.content) ?
 						null : getState(evt)));
-			}
-			else if (gestureInProgress)
-			{
-				mxEvent.consume(evt);
 			}
 		})
 	);

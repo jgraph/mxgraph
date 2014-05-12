@@ -33,6 +33,14 @@ function mxEdgeHandler(state)
 	{
 		this.state = state;
 		this.init();
+		
+		// Handles escape keystrokes
+		this.escapeHandler = mxUtils.bind(this, function(sender, evt)
+		{
+			this.reset();
+		});
+		
+		this.state.view.graph.addListener(mxEvent.ESCAPE, this.escapeHandler);
 	}
 };
 
@@ -658,16 +666,41 @@ mxEdgeHandler.prototype.getSnapToTerminalTolerance = function()
 };
 
 /**
+ * Function: updateHint
+ * 
+ * Hook for subclassers do show details while the handler is active.
+ */
+mxEdgeHandler.prototype.updateHint = function(me, point) { };
+
+/**
+ * Function: removeHint
+ * 
+ * Hooks for subclassers to hide details when the handler gets inactive.
+ */
+mxEdgeHandler.prototype.removeHint = function() { };
+
+/**
+ * Function: roundLength
+ * 
+ * Hook for rounding the unscaled width or height. This uses Math.round.
+ */
+mxEdgeHandler.prototype.roundLength = function(length)
+{
+	return Math.round(length);
+};
+
+/**
  * Function: getPointForEvent
  * 
  * Returns the point for the given event.
  */
 mxEdgeHandler.prototype.getPointForEvent = function(me)
 {
-	var point = new mxPoint(me.getGraphX(), me.getGraphY());
+	var view = this.graph.getView();
+	var scale = view.scale;
+	var point = new mxPoint(this.roundLength(me.getGraphX() / scale) * scale, this.roundLength(me.getGraphY() / scale) * scale);
 	
 	var tt = this.getSnapToTerminalTolerance();
-	var view = this.graph.getView();
 	var overrideX = false;
 	var overrideY = false;		
 	
@@ -722,7 +755,6 @@ mxEdgeHandler.prototype.getPointForEvent = function(me)
 
 	if (this.graph.isGridEnabledEvent(me.getEvent()))
 	{
-		var scale = view.scale;
 		var tr = view.translate;
 		
 		if (!overrideX)
@@ -776,6 +808,7 @@ mxEdgeHandler.prototype.getPreviewPoints = function(point)
 {
 	var geometry = this.graph.getCellGeometry(this.state.cell);
 	var points = (geometry.points != null) ? geometry.points.slice() : null;
+	point = new mxPoint(point.x, point.y);
 
 	if (!this.isSource && !this.isTarget)
 	{
@@ -877,14 +910,14 @@ mxEdgeHandler.prototype.mouseMove = function(sender, me)
 
 			// Sets the color of the preview to valid or invalid, updates the
 			// points of the preview and redraws
-			var color = (this.error == null) ? this.marker.validColor :
-				this.marker.invalidColor;
+			var color = (this.error == null) ? this.marker.validColor : this.marker.invalidColor;
 			this.setPreviewColor(color);
 			this.abspoints = clone.absolutePoints;
 			this.active = true;
 		}
 		
 		this.drawPreview();
+		this.updateHint(me, point);
 		mxEvent.consume(me.getEvent());
 		me.consume();
 	}
@@ -948,8 +981,8 @@ mxEdgeHandler.prototype.mouseUp = function(sender, me)
 				else if (this.graph.isAllowDanglingEdges())
 				{
 					var pt = this.abspoints[(this.isSource) ? 0 : this.abspoints.length - 1];
-					pt.x = pt.x / this.graph.view.scale - this.graph.view.translate.x;
-					pt.y = pt.y / this.graph.view.scale - this.graph.view.translate.y;
+					pt.x = this.roundLength(pt.x / this.graph.view.scale - this.graph.view.translate.x);
+					pt.y = this.roundLength(pt.y / this.graph.view.scale - this.graph.view.translate.y);
 
 					var pstate = this.graph.getView().getState(
 							this.graph.getModel().getParent(edge));
@@ -1013,6 +1046,7 @@ mxEdgeHandler.prototype.reset = function()
 	this.marker.reset();
 	this.constraintHandler.reset();
 	this.setPreviewColor(mxConstants.EDGE_SELECTION_COLOR);
+	this.removeHint();
 	this.redraw();
 };
 
@@ -1264,8 +1298,8 @@ mxEdgeHandler.prototype.addPointAt = function(state, x, y)
 		}
 		
 		this.graph.getModel().setGeometry(state.cell, geo);
-		this.destroy();
-		this.init();
+		this.refresh();	
+		this.redraw();
 	}
 };
 
@@ -1285,8 +1319,8 @@ mxEdgeHandler.prototype.removePoint = function(state, index)
 			geo = geo.clone();
 			geo.points.splice(index - 1, 1);
 			this.graph.getModel().setGeometry(state.cell, geo);
-			this.destroy();
-			this.init();
+			this.refresh();
+			this.redraw();
 		}
 	}
 };
@@ -1469,6 +1503,45 @@ mxEdgeHandler.prototype.drawPreview = function()
 };
 
 /**
+ * Function: refresh
+ * 
+ * Refreshes the bends of this handler.
+ */
+mxEdgeHandler.prototype.refresh = function()
+{
+	this.abspoints = this.getSelectionPoints(this.state);
+	this.shape.points = this.abspoints;
+	this.points = [];
+	
+	if (this.bends != null)
+	{
+		this.destroyBends();
+		this.bends = this.createBends();
+	}
+};
+
+/**
+ * Function: destroyBends
+ * 
+ * Destroys all elements in <bends>.
+ */
+mxEdgeHandler.prototype.destroyBends = function()
+{
+	if (this.bends != null)
+	{
+		for (var i = 0; i < this.bends.length; i++)
+		{
+			if (this.bends[i] != null)
+			{
+				this.bends[i].destroy();
+			}
+		}
+		
+		this.bends = null;
+	}
+};
+
+/**
  * Function: destroy
  * 
  * Destroys the handler and all its resources and DOM nodes. This does
@@ -1477,6 +1550,12 @@ mxEdgeHandler.prototype.drawPreview = function()
  */
 mxEdgeHandler.prototype.destroy = function()
 {
+	if (this.escapeHandler != null)
+	{
+		this.state.view.graph.removeListener(this.escapeHandler);
+		this.escapeHandler = null;
+	}
+	
 	if (this.marker != null)
 	{
 		this.marker.destroy();
@@ -1501,18 +1580,6 @@ mxEdgeHandler.prototype.destroy = function()
 		this.constraintHandler = null;
 	}
 
-	// Destroy the control points for the bends
-	if (this.bends != null)
-	{
-		for (var i = 0; i < this.bends.length; i++)
-		{
-			if (this.bends[i] != null)
-			{
-				this.bends[i].destroy();
-				this.bends[i] = null;
-			}
-		}
-		
-		this.bends = null;
-	}
+	this.destroyBends();
+	this.removeHint();
 };

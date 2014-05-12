@@ -73,7 +73,6 @@ EditorUi = function(editor, container)
 
 	// Contains the main graph instance inside the given panel
 	graph.init(this.diagramContainer);
-	graph.refresh();
 	
 	var textMode = false;
 	var nodes = null;
@@ -187,35 +186,6 @@ EditorUi = function(editor, container)
 		graph.popupMenuHandler.hideMenu();
 	}));
 
-	// Adds gesture handling (pinch to zoom)
-	if (mxClient.IS_TOUCH)
-	{
-		mxEvent.addListener(graph.container, 'gesturechange',
-			mxUtils.bind(this, function(evt)
-			{
-				graph.view.getDrawPane().setAttribute('transform', 'scale(' + evt.scale + ')');
-				graph.view.getOverlayPane().style.visibility = 'hidden';
-				mxEvent.consume(evt);
-			})
-		);
-	
-		mxEvent.addListener(graph.container, 'gestureend',
-			mxUtils.bind(this, function(evt)
-			{
-				graph.view.getDrawPane().removeAttribute('transform');
-				graph.view.setScale(graph.view.scale * evt.scale);
-				graph.view.getOverlayPane().style.visibility = 'visible';
-				mxEvent.consume(evt);
-			})
-		);
-		
-		// Disables pinch to resize
-		graph.handleGesture = function()
-		{
-			// do nothing
-		};
-	}
-	
     // Create handler for key events
 	var keyHandler = this.createKeyHandler(editor);
     
@@ -233,9 +203,11 @@ EditorUi = function(editor, container)
    		window.setTimeout(mxUtils.bind(this, function()
    		{
    	   	   	this.refresh();
-   	   	   	graph.sizeDidChange();
    		}), 0);
    	}));
+   	
+   	this.editor.updateGraphComponents();
+	graph.refresh();
 
 	// Updates action and menu states
    	this.init();
@@ -774,6 +746,8 @@ EditorUi.prototype.refresh = function()
 		this.sidebarContainer.style.bottom = (this.footerHeight + sidebarFooterHeight) + 'px';
 		this.diagramContainer.style.bottom = this.footerHeight + 'px';
 	}
+	
+	this.editor.graph.sizeDidChange();
 };
 
 /**
@@ -890,7 +864,6 @@ EditorUi.prototype.createUi = function()
 		{
 			this.hsplitPosition = value;
 			this.refresh();
-			this.editor.graph.sizeDidChange();
 		}));
 	}
 };

@@ -1,3 +1,20 @@
+12-MAY-2014: 2.7.0.0
+
+- Adds mxGraphHandler, mxEdgeHandler.roundLength for rounding coordinates [JavaScript]
+- Adds mxVertexHandler.roundAngle, roundLength for rounding rotate and size [JavaScript]
+- Adds updateHint, removeHint in mxGraphHandler, mxVertexHandler, mxEdgeHandler [JavaScript]
+- Disables tooltips in mxTooltipHandler while mouse button is pressed [JavaSCript]
+- Adds escape event handling in mxConnectionHandler, mxGraphHandler, mxVertexHandler, mxEdgeHandler [JavaScript]
+- mxGraph.escape now only fires mxEvent.ESCAPE event [JavaScript]
+- Adds mxEdgeHandler.refresh, destroyBends [JavaScript]
+- Adds mouse event parameter in mxConnectionHandler.isValidSource [JavaScript]
+- Adds mxPanningHandler.isActive, pinchEnabled [JavaScript]
+- Moves native gesture event handling from shapes to container [JavaScript]
+- Disables autoscroll for multi touch events in mxGraph.fireMouseEvent [JavaScript]
+- Ignores multi touch events in mxGraph.startEditingAtCell, mxGraphHandler, mxRubberband, mxPopupMenuHandler [JavaScript]
+- Disables handling of multi touch events in mxGraphHandler [JavaScript]
+- Adds mxEvent.isMultiTouchEvent [JavaScript]
+
 05-MAY-2014: 2.6.0.0
 
 - Adds mxClient.IS_WIN [JavaScript]

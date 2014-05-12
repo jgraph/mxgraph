@@ -141,6 +141,42 @@ Actions.prototype.init = function()
 			ui.showDialog(new MetadataDialog(ui, cell).container, 300, 320, true, true);
 		}
 	}, null, null, 'Ctrl+M');
+	this.addAction('editTooltip...', function()
+	{
+		var graph = ui.editor.graph;
+		
+		if (graph.isEnabled() && !graph.isSelectionEmpty())
+		{
+			var cell = graph.getSelectionCell();
+			var tooltip = '';
+			
+			if (mxUtils.isNode(cell.value))
+			{
+				var tmp = cell.value.getAttribute('tooltip');
+				
+				if (tmp != null)
+				{
+					tooltip = tmp;
+				}
+			}
+			
+	    	var dlg = new TextareaDialog(ui, mxResources.get('enterValue') + ':', tooltip, function(newValue)
+			{
+				graph.setTooltipForCell(cell, newValue);
+			});
+			ui.showDialog(dlg.container, 320, 200, true, true);
+			dlg.init();
+		}
+	});
+	this.addAction('openLink', function()
+	{
+		var link = graph.getLinkForCell(graph.getSelectionCell());
+		
+		if (link != null)
+		{
+			window.open(link);
+		}
+	});
 	this.addAction('editLink...', function()
 	{
 		var graph = ui.editor.graph;
@@ -175,15 +211,6 @@ Actions.prototype.init = function()
 					graph.getModel().endUpdate();
 				}
 			});
-		}
-	});
-	this.addAction('openLink', function()
-	{
-		var link = graph.getLinkForCell(graph.getSelectionCell());
-		
-		if (link != null)
-		{
-			window.open(link);
 		}
 	});
 	this.addAction('autosize', function()

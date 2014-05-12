@@ -87,7 +87,7 @@ Toolbar.prototype.init = function()
 		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_DIAMOND, 0], 'geIcon geSprite geSprite-enddiamondtrans', null).setAttribute('title', mxResources.get('diamond'));
 		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_DIAMOND_THIN, 0], 'geIcon geSprite geSprite-endthindiamondtrans', null).setAttribute('title', mxResources.get('diamondThin'));
 	}));
-	this.addItems(['-', 'strokeColor', 'fillColor']);
+	this.addItems(['-', 'image', 'strokeColor', 'fillColor']);
 	this.addItem('geSprite-gradientcolor', 'gradientColor').setAttribute('title', mxResources.get('gradient'));
 	this.addItems(['shadow']);
 	var items = this.addItems(['-', 'grid', 'guides']);

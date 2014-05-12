@@ -24,10 +24,12 @@ Graph = function(container, model, renderHint, stylesheet)
 	// Enables cloning of connection sources by default
 	this.connectionHandler.setCreateTarget(true);
 	
-	// Disables built-in connection starts
-	this.connectionHandler.isValidSource = function()
+	// Disables built-in connection starts except shift is pressed when hovering the cell
+	this.connectionHandler.isValidSource = function(cell, me)
 	{
-		return mxConnectionHandler.prototype.isValidSource.apply(this, arguments) && urlParams['connect'] != '2' && urlParams['connect'] != null;
+		return mxConnectionHandler.prototype.isValidSource.apply(this, arguments) &&
+			((urlParams['connect'] != '2' && urlParams['connect'] != null) ||
+			mxEvent.isShiftDown(me.getEvent()));
 	};
 
 	// Sets the style to be used when an elbow edge is double clicked
@@ -129,22 +131,25 @@ Graph = function(container, model, renderHint, stylesheet)
 	// cells the cell associated with the event is deselected
 	this.addListener(mxEvent.TAP_AND_HOLD, mxUtils.bind(this, function(sender, evt)
 	{
-		var me = evt.getProperty('event');
-		var cell = evt.getProperty('cell');
-		
-		if (cell == null)
+		if (!mxEvent.isMultiTouchEvent(evt))
 		{
-			var pt = mxUtils.convertPoint(this.container,
-					mxEvent.getClientX(me), mxEvent.getClientY(me));
-			rubberband.start(pt.x, pt.y);
+			var me = evt.getProperty('event');
+			var cell = evt.getProperty('cell');
+			
+			if (cell == null)
+			{
+				var pt = mxUtils.convertPoint(this.container,
+						mxEvent.getClientX(me), mxEvent.getClientY(me));
+				rubberband.start(pt.x, pt.y);
+			}
+			else if (this.getSelectionCount() > 1 && this.isCellSelected(cell))
+			{
+				this.removeSelectionCell(cell);
+			}
+			
+			// Blocks further processing of the event
+			evt.consume();
 		}
-		else if (this.getSelectionCount() > 1 && this.isCellSelected(cell))
-		{
-			this.removeSelectionCell(cell);
-		}
-		
-		// Blocks further processing of the event
-		evt.consume();
 	}));
 
 	// On connect the target is selected and we clone the cell of the preview edge for insert
@@ -319,50 +324,37 @@ Graph.prototype.createGroupCell = function()
 };
 
 /**
- * Overrides tooltips to show position and size
+ * Overrides tooltips to show custom tooltip or metadata.
  */
 Graph.prototype.getTooltipForCell = function(cell)
 {
 	var tip = '';
 	
-	if (this.getModel().isVertex(cell))
-	{
-		var geo = this.getCellGeometry(cell);
-		
-		var f2 = function(x)
-		{
-			return Math.round(parseFloat(x) * 100) / 100;
-		};
-		
-		if (geo != null)
-		{
-			if (tip == null)
-			{
-				tip = '';
-			}
-			else if (tip.length > 0)
-			{
-				tip += '\n';
-			}
-			
-			tip += 'X/Y: ' + f2(geo.x) + '/' + f2(geo.y) + '\nWxH: ' + f2(geo.width) + 'x' + f2(geo.height);
-		}
-	}
-	else if (this.getModel().isEdge(cell))
-	{
-		tip = mxGraph.prototype.getTooltipForCell.apply(this, arguments);
-	}
-	
-	// Adds metadata
 	if (mxUtils.isNode(cell.value))
 	{
-		var attrs = cell.value.attributes;
+		var tmp = cell.value.getAttribute('tooltip');
 		
-		for (var i = 0; i < attrs.length; i++)
+		if (tmp != null)
 		{
-			if (attrs[i].nodeName != 'label' && attrs[i].nodeValue.length > 0)
+			tip = tmp;
+		}
+		else
+		{
+			var ignored = ['label', 'link', 'tooltip'];
+			var attrs = cell.value.attributes;
+			
+			for (var i = 0; i < attrs.length; i++)
 			{
-				tip += '\n' + attrs[i].nodeName + ': ' + attrs[i].nodeValue;
+				if (mxUtils.indexOf(ignored, attrs[i].nodeName) < 0 && attrs[i].nodeValue.length > 0)
+				{
+					var key = attrs[i].nodeName.substring(0, 1).toUpperCase() + attrs[i].nodeName.substring(1);
+					tip += key + ': ' + attrs[i].nodeValue + '\n';
+				}
+			}
+			
+			if (tip.length > 0)
+			{
+				tip = tip.substring(0, tip.length - 1);
 			}
 		}
 	}
@@ -428,6 +420,22 @@ Graph.prototype.cellLabelChanged = function(cell, value, autoSize)
  */
 Graph.prototype.setLinkForCell = function(cell, link)
 {
+	this.setAttributeForCell(cell, 'link', link);
+};
+
+/**
+ * Sets the link for the given cell.
+ */
+Graph.prototype.setTooltipForCell = function(cell, link)
+{
+	this.setAttributeForCell(cell, 'tooltip', link);
+};
+
+/**
+ * Sets the link for the given cell.
+ */
+Graph.prototype.setAttributeForCell = function(cell, attributeName, attributeValue)
+{
 	var value = null;
 	
 	if (cell.value != null && typeof(cell.value) == 'object')
@@ -442,13 +450,13 @@ Graph.prototype.setLinkForCell = function(cell, link)
 		value.setAttribute('label', cell.value);
 	}
 	
-	if (link != null && link.length > 0)
+	if (attributeValue != null && attributeValue.length > 0)
 	{
-		value.setAttribute('link', link);
+		value.setAttribute(attributeName, attributeValue);
 	}
 	else
 	{
-		value.removeAttribute('link');
+		value.removeAttribute(attributeName);
 	}
 	
 	this.model.setValue(cell, value);
@@ -776,7 +784,7 @@ Graph.prototype.initTouch = function()
 			mxCellEditorStartEditing.apply(this, arguments);
 	
 			if (this.textarea.style.display == 'none')
-			{			
+			{
 				this.text2 = document.createElement('div');
 				this.text2.className = 'geContentEditable';
 				this.text2.innerHTML = this.textarea.value.replace(/\n/g, '<br/>');
@@ -853,6 +861,53 @@ Graph.prototype.initTouch = function()
 		};
 	}
 
+	function createHint()
+	{
+		var hint = document.createElement('div');
+		hint.className = 'geHint';
+		hint.style.whiteSpace = 'nowrap';
+		hint.style.position = 'absolute';
+		
+		return hint;
+	};
+	
+	/**
+	 * Updates the hint for the current operation.
+	 */
+	mxGraphHandler.prototype.updateHint = function(me)
+	{
+		if (this.shape != null)
+		{
+			if (this.hint == null)
+			{
+				this.hint = createHint();
+				this.graph.container.appendChild(this.hint);
+			}
+
+			var t = this.graph.view.translate;
+			var s = this.graph.view.scale;
+			var x = this.roundLength((this.bounds.x + this.currentDx) / s - t.x);
+			var y = this.roundLength((this.bounds.y + this.currentDy) / s - t.y);
+			
+			this.hint.innerHTML = 'X: ' + x + '&nbsp;&nbsp;Y: ' + y;
+
+			this.hint.style.left = this.shape.bounds.x + Math.round((this.shape.bounds.width - this.hint.clientWidth) / 2) + 'px';
+			this.hint.style.top = (this.shape.bounds.y + this.shape.bounds.height + 20) + 'px';
+		}
+	};
+
+	/**
+	 * Updates the hint for the current operation.
+	 */
+	mxGraphHandler.prototype.removeHint = function()
+	{
+		if (this.hint != null)
+		{
+			this.hint.parentNode.removeChild(this.hint);
+			this.hint = null;
+		}
+	};
+
 	/**
 	 * Enables recursive resize for groups.
 	 */
@@ -860,7 +915,68 @@ Graph.prototype.initTouch = function()
 	{
 		return !this.graph.isSwimlane(state.cell) && this.graph.model.getChildCount(state.cell) > 0 && !mxEvent.isControlDown(me.getEvent());
 	};
-	
+
+	/**
+	 * Updates the hint for the current operation.
+	 */
+	mxVertexHandler.prototype.updateHint = function(me)
+	{
+		if (this.index != mxEvent.LABEL_HANDLE)
+		{
+			if (this.hint == null)
+			{
+				this.hint = createHint();
+				this.state.view.graph.container.appendChild(this.hint);
+			}
+
+			if (this.index == mxEvent.ROTATION_HANDLE)
+			{
+				this.hint.innerHTML = this.currentAlpha + '&deg;';
+			}
+			else
+			{
+				var s = this.state.view.scale;
+				this.hint.innerHTML = mxResources.get('width').substring(0, 1) + ': ' + this.roundLength(this.bounds.width / s) +
+					'&nbsp;&nbsp;' + mxResources.get('height').substring(0, 1) + ': ' + this.roundLength(this.bounds.height / s);
+			}
+			
+			this.hint.style.left = this.bounds.x + Math.round((this.bounds.width - this.hint.clientWidth) / 2) + 'px';
+			this.hint.style.top = (this.bounds.y + this.bounds.height + 20) + 'px';
+		}
+	};
+
+	/**
+	 * Updates the hint for the current operation.
+	 */
+	mxVertexHandler.prototype.removeHint = mxGraphHandler.prototype.removeHint;
+
+	/**
+	 * Updates the hint for the current operation.
+	 */
+	mxEdgeHandler.prototype.updateHint = function(me, point)
+	{
+		if (this.hint == null)
+		{
+			this.hint = createHint();
+			this.state.view.graph.container.appendChild(this.hint);
+		}
+
+		var t = this.graph.view.translate;
+		var s = this.graph.view.scale;
+		var x = this.roundLength(point.x / s - t.x);
+		var y = this.roundLength(point.y / s - t.y);
+		
+		this.hint.innerHTML = 'X: ' + x + '&nbsp;&nbsp;Y: ' + y;
+		
+		this.hint.style.left = Math.round(me.getGraphX() - this.hint.clientWidth / 2) + 'px';
+		this.hint.style.top = (me.getGraphY() + 20) + 'px';
+	};
+
+	/**
+	 * Updates the hint for the current operation.
+	 */
+	mxEdgeHandler.prototype.removeHint = mxGraphHandler.prototype.removeHint;
+
 	/**
 	 * Implements touch style
 	 */

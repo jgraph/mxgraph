@@ -34,6 +34,14 @@ function mxGraphHandler(graph)
 	});
 	
 	this.graph.addListener(mxEvent.PAN, this.panHandler);
+	
+	// Handles escape keystrokes
+	this.escapeHandler = mxUtils.bind(this, function(sender, evt)
+	{
+		this.reset();
+	});
+	
+	this.graph.addListener(mxEvent.ESCAPE, this.escapeHandler);
 };
 
 /**
@@ -329,7 +337,8 @@ mxGraphHandler.prototype.isDelayedSelection = function(cell)
  */
 mxGraphHandler.prototype.mouseDown = function(sender, me)
 {
-	if (!me.isConsumed() && this.isEnabled() && this.graph.isEnabled() && me.getState() != null)
+	if (!me.isConsumed() && this.isEnabled() && this.graph.isEnabled() &&
+		me.getState() != null && !mxEvent.isMultiTouchEvent(me.getEvent()))
 	{
 		var cell = this.getInitialCellForEvent(me);
 		this.delayedSelection = this.isDelayedSelection(cell);
@@ -566,8 +575,34 @@ mxGraphHandler.prototype.snap = function(vector)
 mxGraphHandler.prototype.getDelta = function(me)
 {
 	var point = mxUtils.convertPoint(this.graph.container, me.getX(), me.getY());
+	var s = this.graph.view.scale;
 	
-	return new mxPoint(point.x - this.first.x, point.y - this.first.y);
+	return new mxPoint(this.roundLength((point.x - this.first.x) / s) * s,
+		this.roundLength((point.y - this.first.y) / s) * s);
+};
+
+/**
+ * Function: updateHint
+ * 
+ * Hook for subclassers do show details while the handler is active.
+ */
+mxGraphHandler.prototype.updateHint = function(me) { };
+
+/**
+ * Function: removeHint
+ * 
+ * Hooks for subclassers to hide details when the handler gets inactive.
+ */
+mxGraphHandler.prototype.removeHint = function() { };
+
+/**
+ * Function: roundLength
+ * 
+ * Hook for rounding the unscaled vector. This uses Math.round.
+ */
+mxGraphHandler.prototype.roundLength = function(length)
+{
+	return Math.round(length);
 };
 
 /**
@@ -583,6 +618,13 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 	if (!me.isConsumed() && graph.isMouseDown && this.cell != null &&
 		this.first != null && this.bounds != null)
 	{
+		// Stops moving if a multi touch event is received
+		if (mxEvent.isMultiTouchEvent(me.getEvent()))
+		{
+			this.reset();
+			return;
+		}
+		
 		var delta = this.getDelta(me);
 		var dx = delta.x;
 		var dy = delta.y;
@@ -701,6 +743,7 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 			}
 		}
 
+		this.updateHint(me);
 		me.consume();
 		
 		// Cancels the bubbling of events to the container so
@@ -777,8 +820,8 @@ mxGraphHandler.prototype.mouseUp = function(sender, me)
 		{
 			var scale = graph.getView().scale;
 			var clone = graph.isCloneEvent(me.getEvent()) && graph.isCellsCloneable() && this.isCloneEnabled();
-			var dx = this.currentDx / scale;
-			var dy = this.currentDy / scale;
+			var dx = this.roundLength(this.currentDx / scale);
+			var dy = this.roundLength(this.currentDy / scale);
 			var cell = me.getCell();
 			
 			if (this.connectOnDrop && this.target == null && cell != null && graph.getModel().isVertex(cell) &&
@@ -836,6 +879,8 @@ mxGraphHandler.prototype.selectDelayed = function(me)
 mxGraphHandler.prototype.reset = function()
 {
 	this.destroyShapes();
+	this.removeHint();
+	
 	this.cellWasClicked = false;
 	this.delayedSelection = false;
 	this.currentDx = null;
@@ -948,5 +993,13 @@ mxGraphHandler.prototype.destroy = function()
 {
 	this.graph.removeMouseListener(this);
 	this.graph.removeListener(this.panHandler);
+	
+	if (this.escapeHandler != null)
+	{
+		this.graph.removeListener(this.escapeHandler);
+		this.escapeHandler = null;
+	}
+	
 	this.destroyShapes();
+	this.removeHint();
 };

@@ -52,7 +52,18 @@ function mxRubberband(graph)
 		});
 		
 		this.graph.addListener(mxEvent.PAN, this.panHandler);
-
+		
+		// Does not show menu if any touch gestures take place after the trigger
+		this.gestureHandler = mxUtils.bind(this, function(sender, eo)
+		{
+			if (this.first != null)
+			{
+				this.reset();
+			}
+		});
+		
+		this.graph.addListener(mxEvent.GESTURE, this.gestureHandler);
+		
 		// Automatic deallocation of memory
 		if (mxClient.IS_IE)
 		{
@@ -151,7 +162,8 @@ mxRubberband.prototype.isForceRubberbandEvent = function(me)
  */
 mxRubberband.prototype.mouseDown = function(sender, me)
 {
-	if (!me.isConsumed() && this.isEnabled() && this.graph.isEnabled() && me.getState() == null)
+	if (!me.isConsumed() && this.isEnabled() && this.graph.isEnabled() &&
+		me.getState() == null && !mxEvent.isMultiTouchEvent(me.getEvent()))
 	{
 		var offset = mxUtils.getOffset(this.graph.container);
 		var origin = mxUtils.getScrollOrigin(this.graph.container);
@@ -270,7 +282,7 @@ mxRubberband.prototype.createShape = function()
  */
 mxRubberband.prototype.mouseUp = function(sender, me)
 {
-	var execute = this.div != null;
+	var execute = this.div != null && this.div.style.display != 'none';
 	this.reset();
 
 	if (execute)
@@ -356,7 +368,7 @@ mxRubberband.prototype.destroy = function()
 	{
 		this.destroyed = true;
 		this.graph.removeMouseListener(this);
-		this.graph.removeListener(mxEvent.FIRE_MOUSE_EVENT, this.forceRubberbandHandler);
+		this.graph.removeListener(this.forceRubberbandHandler);
 		this.graph.removeListener(this.panHandler);
 		this.reset();
 		

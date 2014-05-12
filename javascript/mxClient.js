@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.6.0.0.
+	 * Current version is 2.7.0.0.
 	 */
-	VERSION: '2.6.0.0',
+	VERSION: '2.7.0.0',
 
 	/**
 	 * Variable: IS_IE
@@ -8759,6 +8759,16 @@ var mxEvent =
 		return (evt.pointerType != null) ? (evt.pointerType == 'touch' || evt.pointerType ===
 			evt.MSPOINTER_TYPE_TOUCH) : ((evt.mozInputSource != null) ?
 					evt.mozInputSource == 5 : evt.type.indexOf('touch') == 0);
+	},
+
+	/**
+	 * Function: isMultiTouchEvent
+	 * 
+	 * Returns true if the event was generated using a touch device (not a pen or mouse).
+	 */
+	isMultiTouchEvent: function(evt)
+	{
+		return (evt.type != null && evt.type.indexOf('touch') == 0 && evt.touches != null && evt.touches.length > 1);
 	},
 
 	/**
@@ -43849,41 +43859,11 @@ mxCellRenderer.prototype.installListeners = function(state)
 		
 		return result;
 	};
-	
-	// Experimental support for two-finger pinch to resize cells
-	var gestureInProgress = false;
 
-	
-	// Experimental handling for gestures. Double-tap handling is implemented
-	// in mxGraph.fireMouseEvent
-	if (mxClient.IS_TOUCH)
-	{
-		mxEvent.addListener(state.shape.node, 'gesturestart',
-			mxUtils.bind(this, function(evt)
-			{
-				// FIXME: Breaks encapsulation to reset the double
-				// tap event handling when gestures take place
-				graph.lastTouchTime = 0;
-	
-				gestureInProgress = true;
-				mxEvent.consume(evt);
-			})
-		);
-
-		mxEvent.addListener(state.shape.node, 'gestureend',
-			mxUtils.bind(this, function(evt)
-			{
-				gestureInProgress = false;
-				graph.fireGestureEvent(evt, state.cell);
-				mxEvent.consume(evt);
-			})
-		);
-	}
-	
 	mxEvent.addGestureListeners(state.shape.node,
 		mxUtils.bind(this, function(evt)
 		{
-			if (this.isShapeEvent(state, evt) && !gestureInProgress)
+			if (this.isShapeEvent(state, evt))
 			{
 				// Redirects events from the "event-transparent" region of a
 				// swimlane to the graph. This is only required in HTML, SVG
@@ -43893,37 +43873,25 @@ mxCellRenderer.prototype.installListeners = function(state)
 					mxEvent.getSource(evt) == state.shape.content) ?
 						null : state));
 			}
-			else if (gestureInProgress)
-			{
-				mxEvent.consume(evt);
-			}
 		}),
 		mxUtils.bind(this, function(evt)
 		{
-			if (this.isShapeEvent(state, evt) && !gestureInProgress)
+			if (this.isShapeEvent(state, evt))
 			{
 				graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
 					new mxMouseEvent(evt, (state.shape != null &&
 					mxEvent.getSource(evt) == state.shape.content) ?
 						null : getState(evt)));
 			}
-			else if (gestureInProgress)
-			{
-				mxEvent.consume(evt);
-			}
 		}),
 		mxUtils.bind(this, function(evt)
 		{
-			if (this.isShapeEvent(state, evt) && !gestureInProgress)
+			if (this.isShapeEvent(state, evt))
 			{
 				graph.fireMouseEvent(mxEvent.MOUSE_UP,
 					new mxMouseEvent(evt, (state.shape != null &&
 					mxEvent.getSource(evt) == state.shape.content) ?
 						null : getState(evt)));
-			}
-			else if (gestureInProgress)
-			{
-				mxEvent.consume(evt);
 			}
 		})
 	);
@@ -46627,7 +46595,7 @@ mxGraphView.prototype.validateBackgroundPage = function()
 			this.backgroundPageShape.redraw();
 			
 			// Adds listener for double click handling on background
-			if (graph.nativeDblClickEnabled)
+			if (this.graph.nativeDblClickEnabled)
 			{
 				mxEvent.addListener(this.backgroundPageShape.node, 'dblclick', mxUtils.bind(this, function(evt)
 				{
@@ -48203,6 +48171,32 @@ mxGraphView.prototype.installListeners = function()
 	
 	if (container != null)
 	{
+		// Support for touch device gestures (eg. pinch to zoom)
+		// Double-tap handling is implemented in mxGraph.fireMouseEvent
+		if (mxClient.IS_TOUCH)
+		{
+			mxEvent.addListener(container, 'gesturestart', mxUtils.bind(this, function(evt)
+			{
+				// FIXME: Breaks encapsulation to reset the double
+				// tap event handling when gestures take place
+				graph.lastTouchTime = 0;
+				graph.fireGestureEvent(evt);
+				mxEvent.consume(evt);
+			}));
+			
+			mxEvent.addListener(container, 'gesturechange', mxUtils.bind(this, function(evt)
+			{
+				graph.fireGestureEvent(evt);
+				mxEvent.consume(evt);
+			}));
+
+			mxEvent.addListener(container, 'gestureend', mxUtils.bind(this, function(evt)
+			{
+				graph.fireGestureEvent(evt);
+				mxEvent.consume(evt);
+			}));
+		}
+		
 		// Adds basic listeners for graph event dispatching
 		mxEvent.addGestureListeners(container, mxUtils.bind(this, function(evt)
 		{
@@ -50908,21 +50902,24 @@ mxGraph.prototype.startEditing = function(evt)
  */
 mxGraph.prototype.startEditingAtCell = function(cell, evt)
 {
-	if (cell == null)
+	if (evt == null || !mxEvent.isMultiTouchEvent(evt))
 	{
-		cell = this.getSelectionCell();
-		
-		if (cell != null && !this.isCellEditable(cell))
+		if (cell == null)
 		{
-			cell = null;
+			cell = this.getSelectionCell();
+			
+			if (cell != null && !this.isCellEditable(cell))
+			{
+				cell = null;
+			}
 		}
-	}
-
-	if (cell != null)
-	{
-		this.fireEvent(new mxEventObject(mxEvent.START_EDITING,
-				'cell', cell, 'event', evt));
-		this.cellEditor.startEditing(cell, evt);
+	
+		if (cell != null)
+		{
+			this.fireEvent(new mxEventObject(mxEvent.START_EDITING,
+					'cell', cell, 'event', evt));
+			this.cellEditor.startEditing(cell, evt);
+		}
 	}
 };
 
@@ -51054,22 +51051,7 @@ mxGraph.prototype.cellLabelChanged = function(cell, value, autoSize)
  */
 mxGraph.prototype.escape = function(evt)
 {
-	this.stopEditing(true);
-	this.connectionHandler.reset();
-	this.graphHandler.reset();
-	
-	// Cancels all cell-based editing
-	var cells = this.getSelectionCells();
-	
-	for (var i = 0; i < cells.length; i++)
-	{
-		var state = this.view.getState(cells[i]);
-		
-		if (state != null && state.handler != null)
-		{
-			state.handler.reset();
-		}
-	}
+	this.fireEvent(new mxEventObject(mxEvent.ESCAPE, 'event', evt));
 };
 
 /**
@@ -51340,7 +51322,7 @@ mxGraph.prototype.scrollPointToVisible = function(x, y, extend, border)
 			}
 		}
 	}
-	else if (this.allowAutoPanning && !this.panningHandler.active)
+	else if (this.allowAutoPanning && !this.panningHandler.isActive())
 	{
 		if (this.panningManager == null)
 		{
@@ -60411,7 +60393,7 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 		if ((mxClient.IS_OP || mxClient.IS_SF || mxClient.IS_GC ||
 			(mxClient.IS_IE && mxClient.IS_SVG) || me.getEvent().target != this.container))
 		{
-			if (evtName == mxEvent.MOUSE_MOVE && this.isMouseDown && this.autoScroll)
+			if (evtName == mxEvent.MOUSE_MOVE && this.isMouseDown && this.autoScroll && !mxEvent.isMultiTouchEvent(me.getEvent))
 			{
 				this.scrollPointToVisible(me.getGraphX(), me.getGraphY(), this.autoExtend);
 			}
@@ -63497,6 +63479,14 @@ function mxGraphHandler(graph)
 	});
 	
 	this.graph.addListener(mxEvent.PAN, this.panHandler);
+	
+	// Handles escape keystrokes
+	this.escapeHandler = mxUtils.bind(this, function(sender, evt)
+	{
+		this.reset();
+	});
+	
+	this.graph.addListener(mxEvent.ESCAPE, this.escapeHandler);
 };
 
 /**
@@ -63792,7 +63782,8 @@ mxGraphHandler.prototype.isDelayedSelection = function(cell)
  */
 mxGraphHandler.prototype.mouseDown = function(sender, me)
 {
-	if (!me.isConsumed() && this.isEnabled() && this.graph.isEnabled() && me.getState() != null)
+	if (!me.isConsumed() && this.isEnabled() && this.graph.isEnabled() &&
+		me.getState() != null && !mxEvent.isMultiTouchEvent(me.getEvent()))
 	{
 		var cell = this.getInitialCellForEvent(me);
 		this.delayedSelection = this.isDelayedSelection(cell);
@@ -64029,8 +64020,34 @@ mxGraphHandler.prototype.snap = function(vector)
 mxGraphHandler.prototype.getDelta = function(me)
 {
 	var point = mxUtils.convertPoint(this.graph.container, me.getX(), me.getY());
+	var s = this.graph.view.scale;
 	
-	return new mxPoint(point.x - this.first.x, point.y - this.first.y);
+	return new mxPoint(this.roundLength((point.x - this.first.x) / s) * s,
+		this.roundLength((point.y - this.first.y) / s) * s);
+};
+
+/**
+ * Function: updateHint
+ * 
+ * Hook for subclassers do show details while the handler is active.
+ */
+mxGraphHandler.prototype.updateHint = function(me) { };
+
+/**
+ * Function: removeHint
+ * 
+ * Hooks for subclassers to hide details when the handler gets inactive.
+ */
+mxGraphHandler.prototype.removeHint = function() { };
+
+/**
+ * Function: roundLength
+ * 
+ * Hook for rounding the unscaled vector. This uses Math.round.
+ */
+mxGraphHandler.prototype.roundLength = function(length)
+{
+	return Math.round(length);
 };
 
 /**
@@ -64046,6 +64063,13 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 	if (!me.isConsumed() && graph.isMouseDown && this.cell != null &&
 		this.first != null && this.bounds != null)
 	{
+		// Stops moving if a multi touch event is received
+		if (mxEvent.isMultiTouchEvent(me.getEvent()))
+		{
+			this.reset();
+			return;
+		}
+		
 		var delta = this.getDelta(me);
 		var dx = delta.x;
 		var dy = delta.y;
@@ -64164,6 +64188,7 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 			}
 		}
 
+		this.updateHint(me);
 		me.consume();
 		
 		// Cancels the bubbling of events to the container so
@@ -64240,8 +64265,8 @@ mxGraphHandler.prototype.mouseUp = function(sender, me)
 		{
 			var scale = graph.getView().scale;
 			var clone = graph.isCloneEvent(me.getEvent()) && graph.isCellsCloneable() && this.isCloneEnabled();
-			var dx = this.currentDx / scale;
-			var dy = this.currentDy / scale;
+			var dx = this.roundLength(this.currentDx / scale);
+			var dy = this.roundLength(this.currentDy / scale);
 			var cell = me.getCell();
 			
 			if (this.connectOnDrop && this.target == null && cell != null && graph.getModel().isVertex(cell) &&
@@ -64299,6 +64324,8 @@ mxGraphHandler.prototype.selectDelayed = function(me)
 mxGraphHandler.prototype.reset = function()
 {
 	this.destroyShapes();
+	this.removeHint();
+	
 	this.cellWasClicked = false;
 	this.delayedSelection = false;
 	this.currentDx = null;
@@ -64411,7 +64438,15 @@ mxGraphHandler.prototype.destroy = function()
 {
 	this.graph.removeMouseListener(this);
 	this.graph.removeListener(this.panHandler);
+	
+	if (this.escapeHandler != null)
+	{
+		this.graph.removeListener(this.escapeHandler);
+		this.escapeHandler = null;
+	}
+	
 	this.destroyShapes();
+	this.removeHint();
 };
 /**
  * $Id: mxPanningHandler.js,v 1.9 2013/10/28 08:45:07 gaudenz Exp $
@@ -64466,8 +64501,56 @@ function mxPanningHandler(graph)
 				me.consume();
 			}
 		});
-		
+
 		this.graph.addListener(mxEvent.FIRE_MOUSE_EVENT, this.forcePanningHandler);
+		
+		// Handles pinch gestures
+		this.gestureHandler = mxUtils.bind(this, function(sender, eo)
+		{
+			if (this.isPinchEnabled())
+			{
+				var evt = eo.getProperty('event');
+				
+				if (!mxEvent.isConsumed(evt) && evt.type == 'gesturestart')
+				{
+					this.initialScale = this.graph.view.scale;
+				
+					// Forces start of panning when pinch gesture starts
+					if (!this.active && this.mouseDownEvent != null)
+					{
+						this.start(this.mouseDownEvent);
+						this.mouseDownEvent = null;
+					}
+				}
+				else if (evt.type == 'gestureend' && this.initialScale == null)
+				{
+					this.initialScale = null;
+				}
+				
+				if (this.initialScale != null)
+				{
+					var value = Math.round(this.initialScale * evt.scale * 100) / 100;
+					
+					if (this.minScale != null)
+					{
+						value = Math.max(this.minScale, value);
+					}
+					
+					if (this.maxScale != null)
+					{
+						value = Math.min(this.maxScale, value);
+					}
+	
+					if (this.graph.view.scale != value)
+					{
+						this.graph.zoomTo(value);
+						mxEvent.consume(evt);
+					}
+				}
+			}
+		});
+		
+		this.graph.addListener(mxEvent.GESTURE, this.gestureHandler);
 	}
 };
 
@@ -64530,6 +64613,37 @@ mxPanningHandler.prototype.useGrid = false;
 mxPanningHandler.prototype.panningEnabled = true;
 
 /**
+ * Variable: pinchEnabled
+ * 
+ * Specifies if pinch gestures should be handled as zoom. Default is true.
+ */
+mxPanningHandler.prototype.pinchEnabled = true;
+
+/**
+ * Variable: maxScale
+ * 
+ * Specifies the maximum scale. Default is 8.
+ */
+mxPanningHandler.prototype.maxScale = 8;
+
+/**
+ * Variable: minScale
+ * 
+ * Specifies the minimum scale. Default is 0.01.
+ */
+mxPanningHandler.prototype.minScale = 0.01;
+
+/**
+ * Function: isActive
+ * 
+ * Returns true if the handler is currently active.
+ */
+mxPanningHandler.prototype.isActive = function()
+{
+	return this.active || this.initialScale != null;
+};
+
+/**
  * Function: isPanningEnabled
  * 
  * Returns <panningEnabled>.
@@ -64547,6 +64661,26 @@ mxPanningHandler.prototype.isPanningEnabled = function()
 mxPanningHandler.prototype.setPanningEnabled = function(value)
 {
 	this.panningEnabled = value;
+};
+
+/**
+ * Function: isPinchEnabled
+ * 
+ * Returns <pinchEnabled>.
+ */
+mxPanningHandler.prototype.isPinchEnabled = function()
+{
+	return this.pinchEnabled;
+};
+
+/**
+ * Function: setPinchEnabled
+ * 
+ * Sets <pinchEnabled>.
+ */
+mxPanningHandler.prototype.setPinchEnabled = function(value)
+{
+	this.pinchEnabled = value;
 };
 
 /**
@@ -64573,7 +64707,7 @@ mxPanningHandler.prototype.isPanningTrigger = function(me)
  */
 mxPanningHandler.prototype.isForcePanningEvent = function(me)
 {
-	return this.ignoreCell;
+	return this.ignoreCell || mxEvent.isMultiTouchEvent(me.getEvent());
 };
 
 /**
@@ -64584,6 +64718,8 @@ mxPanningHandler.prototype.isForcePanningEvent = function(me)
  */
 mxPanningHandler.prototype.mouseDown = function(sender, me)
 {
+	this.mouseDownEvent = me;
+	
 	if (!me.isConsumed() && this.isPanningEnabled() && !this.active && this.isPanningTrigger(me))
 	{
 		this.start(me);
@@ -64648,28 +64784,21 @@ mxPanningHandler.prototype.consumePanningTrigger = function(me)
  */
 mxPanningHandler.prototype.mouseMove = function(sender, me)
 {
-	var dx = me.getX() - this.startX;
-	var dy = me.getY() - this.startY;
+	this.dx = me.getX() - this.startX;
+	this.dy = me.getY() - this.startY;
 
 	if (this.active)
 	{
-		// Handles pinch on iOS
-		var scale = me.getEvent().scale;
-		
-		if (scale != null && scale != 1)
-		{
-			this.scaleGraph(scale, true);
-		}
-		else if (this.previewEnabled)
+		if (this.previewEnabled)
 		{
 			// Applies the grid to the panning steps
 			if (this.useGrid)
 			{
-				dx = this.graph.snap(dx);
-				dy = this.graph.snap(dy);
+				this.dx = this.graph.snap(this.dx);
+				this.dy = this.graph.snap(this.dy);
 			}
 			
-			this.graph.panGraph(dx + this.dx0, dy + this.dy0);
+			this.graph.panGraph(this.dx + this.dx0, this.dy + this.dy0);
 		}
 
 		this.fireEvent(new mxEventObject(mxEvent.PAN, 'event', me));
@@ -64680,8 +64809,7 @@ mxPanningHandler.prototype.mouseMove = function(sender, me)
 
 		// Panning is activated only if the mouse is moved
 		// beyond the graph tolerance
-		this.active = Math.abs(dx) > this.graph.tolerance ||
-			Math.abs(dy) > this.graph.tolerance;
+		this.active = Math.abs(this.dx) > this.graph.tolerance || Math.abs(this.dy) > this.graph.tolerance;
 
 		if (!tmp && this.active)
 		{
@@ -64703,66 +64831,25 @@ mxPanningHandler.prototype.mouseMove = function(sender, me)
  */
 mxPanningHandler.prototype.mouseUp = function(sender, me)
 {
-	// Shows popup menu if mouse was not moved
-	var dx = Math.abs(me.getX() - this.startX);
-	var dy = Math.abs(me.getY() - this.startY);
-
-	if (this.active)
+	if (this.active && this.dx != null && this.dy != null)
 	{
 		if (!this.graph.useScrollbarsForPanning || !mxUtils.hasScrollbars(this.graph.container))
 		{
-			dx = me.getX() - this.startX;
-			dy = me.getY() - this.startY;
-			
-			// Applies the grid to the panning steps
-			if (this.useGrid)
-			{
-				dx = this.graph.snap(dx);
-				dy = this.graph.snap(dy);
-			}
-			
 			var scale = this.graph.getView().scale;
 			var t = this.graph.getView().translate;
-			
 			this.graph.panGraph(0, 0);
-			
-			// Handles pinch on iOS
-			var scale2 = me.getEvent().scale;
-			
-			if (scale2 != null && scale2 != 1)
-			{
-				this.scaleGraph(scale2, false);
-			}
-			else
-			{
-				this.panGraph(t.x + dx / scale, t.y + dy / scale);
-			}
+			this.panGraph(t.x + this.dx / scale, t.y + this.dy / scale);
 		}
 		
-		this.active = false;
 		this.fireEvent(new mxEventObject(mxEvent.PAN_END, 'event', me));
 		me.consume();
 	}
 	
 	this.panningTrigger = false;
-};
-
-/**
- * Function: scaleGraph
- * 
- * Handles pinch events on touch devices.
- */
-mxPanningHandler.prototype.scaleGraph = function(scale, preview)
-{
-	if (preview)
-	{
-		this.graph.view.getCanvas().setAttribute('transform', 'scale(' + scale + ')');
-	}
-	else
-	{
-		this.graph.view.getCanvas().removeAttribute('transform');
-		this.graph.view.setScale(this.graph.view.scale * scale);
-	}
+	this.mouseDownEvent = null;
+	this.active = false;
+	this.dx = null;
+	this.dy = null;
 };
 
 /**
@@ -64783,7 +64870,8 @@ mxPanningHandler.prototype.panGraph = function(dx, dy)
 mxPanningHandler.prototype.destroy = function()
 {
 	this.graph.removeMouseListener(this);
-	this.graph.removeListener(mxEvent.FIRE_MOUSE_EVENT, this.forcePanningHandler);
+	this.graph.removeListener(this.forcePanningHandler);
+	this.graph.removeListener(this.gestureHandler);
 };
 /**
  * $Id: mxPopupMenuHandler.js,v 1.2 2013/10/28 08:45:07 gaudenz Exp $
@@ -64805,6 +64893,15 @@ function mxPopupMenuHandler(graph, factoryMethod)
 		this.graph = graph;
 		this.factoryMethod = factoryMethod;
 		this.graph.addMouseListener(this);
+		
+		// Does not show menu if any touch gestures take place after the trigger
+		this.gestureHandler = mxUtils.bind(this, function(sender, eo)
+		{
+			this.inTolerance = false;
+		});
+		
+		this.graph.addListener(mxEvent.GESTURE, this.gestureHandler);
+		
 		this.init();
 	}
 };
@@ -64889,7 +64986,7 @@ mxPopupMenuHandler.prototype.isSelectOnPopup = function(me)
  */
 mxPopupMenuHandler.prototype.mouseDown = function(sender, me)
 {
-	if (this.isEnabled())
+	if (this.isEnabled() && !mxEvent.isMultiTouchEvent(me.getEvent()))
 	{
 		// Hides the popupmenu if is is being displayed
 		this.hideMenu();
@@ -64973,6 +65070,7 @@ mxPopupMenuHandler.prototype.getCellForPopupEvent = function(me)
 mxPopupMenuHandler.prototype.destroy = function()
 {
 	this.graph.removeMouseListener(this);
+	this.graph.removeListener(this.gestureHandler);
 	
 	// Supercall
 	mxPopupMenu.prototype.destroy.apply(this);
@@ -65825,6 +65923,14 @@ function mxConnectionHandler(graph, factoryMethod)
 		this.graph = graph;
 		this.factoryMethod = factoryMethod;
 		this.init();
+		
+		// Handles escape keystrokes
+		this.escapeHandler = mxUtils.bind(this, function(sender, evt)
+		{
+			this.reset();
+		});
+		
+		this.graph.addListener(mxEvent.ESCAPE, this.escapeHandler);
 	}
 };
 
@@ -66182,7 +66288,7 @@ mxConnectionHandler.prototype.createMarker = function()
 					}
 				}
 			}
-			else if (!this.isValidSource(cell))
+			else if (!this.isValidSource(cell, me))
 			{
 				cell = null;
 			}
@@ -66271,8 +66377,9 @@ mxConnectionHandler.prototype.isConnecting = function()
  * Parameters:
  * 
  * cell - <mxCell> that represents the source terminal.
+ * me - <mxMouseEvent> that is associated with this call.
  */
-mxConnectionHandler.prototype.isValidSource = function(cell)
+mxConnectionHandler.prototype.isValidSource = function(cell, me)
 {
 	return this.graph.isValidSource(cell);
 };
@@ -67506,6 +67613,12 @@ mxConnectionHandler.prototype.destroy = function()
 		this.graph.getView().removeListener(this.drillHandler);
 		this.drillHandler = null;
 	}
+	
+	if (this.escapeHandler != null)
+	{
+		this.graph.removeListener(this.escapeHandler);
+		this.escapeHandler = null;
+	}
 };
 /**
  * $Id: mxConstraintHandler.js,v 1.6 2013/10/28 08:45:07 gaudenz Exp $
@@ -67897,7 +68010,18 @@ function mxRubberband(graph)
 		});
 		
 		this.graph.addListener(mxEvent.PAN, this.panHandler);
-
+		
+		// Does not show menu if any touch gestures take place after the trigger
+		this.gestureHandler = mxUtils.bind(this, function(sender, eo)
+		{
+			if (this.first != null)
+			{
+				this.reset();
+			}
+		});
+		
+		this.graph.addListener(mxEvent.GESTURE, this.gestureHandler);
+		
 		// Automatic deallocation of memory
 		if (mxClient.IS_IE)
 		{
@@ -67996,7 +68120,8 @@ mxRubberband.prototype.isForceRubberbandEvent = function(me)
  */
 mxRubberband.prototype.mouseDown = function(sender, me)
 {
-	if (!me.isConsumed() && this.isEnabled() && this.graph.isEnabled() && me.getState() == null)
+	if (!me.isConsumed() && this.isEnabled() && this.graph.isEnabled() &&
+		me.getState() == null && !mxEvent.isMultiTouchEvent(me.getEvent()))
 	{
 		var offset = mxUtils.getOffset(this.graph.container);
 		var origin = mxUtils.getScrollOrigin(this.graph.container);
@@ -68115,7 +68240,7 @@ mxRubberband.prototype.createShape = function()
  */
 mxRubberband.prototype.mouseUp = function(sender, me)
 {
-	var execute = this.div != null;
+	var execute = this.div != null && this.div.style.display != 'none';
 	this.reset();
 
 	if (execute)
@@ -68201,7 +68326,7 @@ mxRubberband.prototype.destroy = function()
 	{
 		this.destroyed = true;
 		this.graph.removeMouseListener(this);
-		this.graph.removeListener(mxEvent.FIRE_MOUSE_EVENT, this.forceRubberbandHandler);
+		this.graph.removeListener(this.forceRubberbandHandler);
 		this.graph.removeListener(this.panHandler);
 		this.reset();
 		
@@ -68236,6 +68361,25 @@ function mxVertexHandler(state)
 	{
 		this.state = state;
 		this.init();
+		
+		// Handles escape keystrokes
+		this.escapeHandler = mxUtils.bind(this, function(sender, evt)
+		{
+			if (this.livePreview)
+			{
+				// Redraws the live preview
+				this.state.view.graph.cellRenderer.redraw(this.state, true);
+				
+				// Redraws connected edges
+				this.state.view.invalidate(this.state.cell);
+				this.state.invalid = false;
+				this.state.view.validate();
+			}
+			
+			this.reset();
+		});
+		
+		this.state.view.graph.addListener(mxEvent.ESCAPE, this.escapeHandler);
 	}
 };
 
@@ -68804,6 +68948,40 @@ mxVertexHandler.prototype.checkTolerance = function(me)
 };
 
 /**
+ * Function: updateHint
+ * 
+ * Hook for subclassers do show details while the handler is active.
+ */
+mxVertexHandler.prototype.updateHint = function(me) { };
+
+/**
+ * Function: removeHint
+ * 
+ * Hooks for subclassers to hide details when the handler gets inactive.
+ */
+mxVertexHandler.prototype.removeHint = function() { };
+
+/**
+ * Function: roundAngle
+ * 
+ * Hook for rounding the angle. This uses Math.round.
+ */
+mxVertexHandler.prototype.roundAngle = function(angle)
+{
+	return Math.round(angle);
+};
+
+/**
+ * Function: roundLength
+ * 
+ * Hook for rounding the unscaled width or height. This uses Math.round.
+ */
+mxVertexHandler.prototype.roundLength = function(length)
+{
+	return Math.round(length);
+};
+
+/**
  * Function: mouseMove
  * 
  * Handles the event by updating the preview.
@@ -68853,6 +69031,10 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 					
 					this.currentAlpha = Math.round(this.currentAlpha / raster) * raster;
 				}
+				else
+				{
+					this.currentAlpha = this.roundAngle(this.currentAlpha);
+				}
 	
 				this.selectionBorder.rotation = this.currentAlpha;
 				this.selectionBorder.redraw();
@@ -68878,8 +69060,8 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 				var tx = cos * dx - sin * dy;
 				var ty = sin * dx + cos * dy;
 				
-				dx = tx;
-				dy = ty;
+				dx = this.roundLength(tx / scale) * scale;
+				dy = this.roundLength(ty / scale) * scale;
 				
 				this.bounds = this.union(this.selectionBounds, dx, dy, this.index, gridEnabled, scale, tr, this.isConstrainedEvent(me));
 
@@ -68958,6 +69140,8 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 					this.drawPreview();
 				}
 			}
+
+			this.updateHint(me);
 		}
 		
 		me.consume();
@@ -69014,7 +69198,8 @@ mxVertexHandler.prototype.mouseUp = function(sender, me)
 				
 				var s = this.graph.view.scale;
 				var recurse = this.isRecursiveResize(this.state, me);
-				this.resizeCell(this.state.cell, dx / s, dy / s, this.index, gridEnabled, this.isConstrainedEvent(me), recurse);
+				this.resizeCell(this.state.cell, this.roundLength(dx / s), this.roundLength(dy / s),
+					this.index, gridEnabled, this.isConstrainedEvent(me), recurse);
 			}
 		}
 		finally
@@ -69143,6 +69328,7 @@ mxVertexHandler.prototype.reset = function()
 		}
 	}
 	
+	this.removeHint();
 	this.redrawHandles();
 	this.edgeHandlers = null;
 };
@@ -69651,15 +69837,22 @@ mxVertexHandler.prototype.drawPreview = function()
  */
 mxVertexHandler.prototype.destroy = function()
 {
+	if (this.escapeHandler != null)
+	{
+		this.state.view.graph.removeListener(this.escapeHandler);
+		this.escapeHandler = null;
+	}
+	
 	if (this.preview != null)
 	{
 		this.preview.destroy();
 		this.preview = null;
 	}
-	
+
 	this.selectionBorder.destroy();
 	this.selectionBorder = null;
 	this.labelShape = null;
+	this.removeHint();
 	
 	if (this.sizers != null)
 	{
@@ -69707,6 +69900,14 @@ function mxEdgeHandler(state)
 	{
 		this.state = state;
 		this.init();
+		
+		// Handles escape keystrokes
+		this.escapeHandler = mxUtils.bind(this, function(sender, evt)
+		{
+			this.reset();
+		});
+		
+		this.state.view.graph.addListener(mxEvent.ESCAPE, this.escapeHandler);
 	}
 };
 
@@ -70332,16 +70533,41 @@ mxEdgeHandler.prototype.getSnapToTerminalTolerance = function()
 };
 
 /**
+ * Function: updateHint
+ * 
+ * Hook for subclassers do show details while the handler is active.
+ */
+mxEdgeHandler.prototype.updateHint = function(me, point) { };
+
+/**
+ * Function: removeHint
+ * 
+ * Hooks for subclassers to hide details when the handler gets inactive.
+ */
+mxEdgeHandler.prototype.removeHint = function() { };
+
+/**
+ * Function: roundLength
+ * 
+ * Hook for rounding the unscaled width or height. This uses Math.round.
+ */
+mxEdgeHandler.prototype.roundLength = function(length)
+{
+	return Math.round(length);
+};
+
+/**
  * Function: getPointForEvent
  * 
  * Returns the point for the given event.
  */
 mxEdgeHandler.prototype.getPointForEvent = function(me)
 {
-	var point = new mxPoint(me.getGraphX(), me.getGraphY());
+	var view = this.graph.getView();
+	var scale = view.scale;
+	var point = new mxPoint(this.roundLength(me.getGraphX() / scale) * scale, this.roundLength(me.getGraphY() / scale) * scale);
 	
 	var tt = this.getSnapToTerminalTolerance();
-	var view = this.graph.getView();
 	var overrideX = false;
 	var overrideY = false;		
 	
@@ -70396,7 +70622,6 @@ mxEdgeHandler.prototype.getPointForEvent = function(me)
 
 	if (this.graph.isGridEnabledEvent(me.getEvent()))
 	{
-		var scale = view.scale;
 		var tr = view.translate;
 		
 		if (!overrideX)
@@ -70450,6 +70675,7 @@ mxEdgeHandler.prototype.getPreviewPoints = function(point)
 {
 	var geometry = this.graph.getCellGeometry(this.state.cell);
 	var points = (geometry.points != null) ? geometry.points.slice() : null;
+	point = new mxPoint(point.x, point.y);
 
 	if (!this.isSource && !this.isTarget)
 	{
@@ -70551,14 +70777,14 @@ mxEdgeHandler.prototype.mouseMove = function(sender, me)
 
 			// Sets the color of the preview to valid or invalid, updates the
 			// points of the preview and redraws
-			var color = (this.error == null) ? this.marker.validColor :
-				this.marker.invalidColor;
+			var color = (this.error == null) ? this.marker.validColor : this.marker.invalidColor;
 			this.setPreviewColor(color);
 			this.abspoints = clone.absolutePoints;
 			this.active = true;
 		}
 		
 		this.drawPreview();
+		this.updateHint(me, point);
 		mxEvent.consume(me.getEvent());
 		me.consume();
 	}
@@ -70622,8 +70848,8 @@ mxEdgeHandler.prototype.mouseUp = function(sender, me)
 				else if (this.graph.isAllowDanglingEdges())
 				{
 					var pt = this.abspoints[(this.isSource) ? 0 : this.abspoints.length - 1];
-					pt.x = pt.x / this.graph.view.scale - this.graph.view.translate.x;
-					pt.y = pt.y / this.graph.view.scale - this.graph.view.translate.y;
+					pt.x = this.roundLength(pt.x / this.graph.view.scale - this.graph.view.translate.x);
+					pt.y = this.roundLength(pt.y / this.graph.view.scale - this.graph.view.translate.y);
 
 					var pstate = this.graph.getView().getState(
 							this.graph.getModel().getParent(edge));
@@ -70687,6 +70913,7 @@ mxEdgeHandler.prototype.reset = function()
 	this.marker.reset();
 	this.constraintHandler.reset();
 	this.setPreviewColor(mxConstants.EDGE_SELECTION_COLOR);
+	this.removeHint();
 	this.redraw();
 };
 
@@ -70938,8 +71165,8 @@ mxEdgeHandler.prototype.addPointAt = function(state, x, y)
 		}
 		
 		this.graph.getModel().setGeometry(state.cell, geo);
-		this.destroy();
-		this.init();
+		this.refresh();	
+		this.redraw();
 	}
 };
 
@@ -70959,8 +71186,8 @@ mxEdgeHandler.prototype.removePoint = function(state, index)
 			geo = geo.clone();
 			geo.points.splice(index - 1, 1);
 			this.graph.getModel().setGeometry(state.cell, geo);
-			this.destroy();
-			this.init();
+			this.refresh();
+			this.redraw();
 		}
 	}
 };
@@ -71143,6 +71370,45 @@ mxEdgeHandler.prototype.drawPreview = function()
 };
 
 /**
+ * Function: refresh
+ * 
+ * Refreshes the bends of this handler.
+ */
+mxEdgeHandler.prototype.refresh = function()
+{
+	this.abspoints = this.getSelectionPoints(this.state);
+	this.shape.points = this.abspoints;
+	this.points = [];
+	
+	if (this.bends != null)
+	{
+		this.destroyBends();
+		this.bends = this.createBends();
+	}
+};
+
+/**
+ * Function: destroyBends
+ * 
+ * Destroys all elements in <bends>.
+ */
+mxEdgeHandler.prototype.destroyBends = function()
+{
+	if (this.bends != null)
+	{
+		for (var i = 0; i < this.bends.length; i++)
+		{
+			if (this.bends[i] != null)
+			{
+				this.bends[i].destroy();
+			}
+		}
+		
+		this.bends = null;
+	}
+};
+
+/**
  * Function: destroy
  * 
  * Destroys the handler and all its resources and DOM nodes. This does
@@ -71151,6 +71417,12 @@ mxEdgeHandler.prototype.drawPreview = function()
  */
 mxEdgeHandler.prototype.destroy = function()
 {
+	if (this.escapeHandler != null)
+	{
+		this.state.view.graph.removeListener(this.escapeHandler);
+		this.escapeHandler = null;
+	}
+	
 	if (this.marker != null)
 	{
 		this.marker.destroy();
@@ -71175,20 +71447,8 @@ mxEdgeHandler.prototype.destroy = function()
 		this.constraintHandler = null;
 	}
 
-	// Destroy the control points for the bends
-	if (this.bends != null)
-	{
-		for (var i = 0; i < this.bends.length; i++)
-		{
-			if (this.bends[i] != null)
-			{
-				this.bends[i].destroy();
-				this.bends[i] = null;
-			}
-		}
-		
-		this.bends = null;
-	}
+	this.destroyBends();
+	this.removeHint();
 };
 /**
  * $Id: mxElbowEdgeHandler.js,v 1.6 2013/10/28 08:45:07 gaudenz Exp $
@@ -71626,28 +71886,6 @@ mxEdgeSegmentHandler.prototype.redraw = function()
 {
 	this.refresh();
 	mxEdgeHandler.prototype.redraw.apply(this, arguments);
-};
-
-/**
- * Function: refresh
- * 
- * Refreshes the bends of this handler.
- */
-mxEdgeSegmentHandler.prototype.refresh = function()
-{
-	if (this.bends != null)
-	{
-		for (var i = 0; i < this.bends.length; i++)
-		{
-			if (this.bends[i] != null)
-			{
-				this.bends[i].destroy();
-				this.bends[i] = null;
-			}
-		}
-		
-		this.bends = this.createBends();
-	}
 };
 
 /**
@@ -72342,7 +72580,7 @@ mxTooltipHandler.prototype.reset = function(me, restart)
 	
 			this.thread = window.setTimeout(mxUtils.bind(this, function()
 			{
-				if (!this.graph.isEditing() && !this.graph.popupMenuHandler.isMenuShowing())
+				if (!this.graph.isEditing() && !this.graph.popupMenuHandler.isMenuShowing() && !this.graph.isMouseDown)
 				{
 					// Uses information from inside event cause using the event at
 					// this (delayed) point in time is not possible in IE as it no

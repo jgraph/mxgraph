@@ -1038,7 +1038,7 @@ var ExportDialog = function(editorUi)
 	{
 		var xmlOption = document.createElement('option');
 		xmlOption.setAttribute('value', 'xml');
-		mxUtils.write(xmlOption, 'XML - Diagramly XML Document');
+		mxUtils.write(xmlOption, 'XML - Extensible Markup Language');
 		imageFormatSelect.appendChild(xmlOption);
 	}
 
@@ -1396,55 +1396,39 @@ var MetadataDialog = function(ui, cell)
 		if (attrs[i].nodeName != 'label')
 		{
 			names[count] = attrs[i].nodeName;
-			texts[count] = form.addTextarea(names[count], attrs[i].nodeValue, 2);
+			texts[count] = form.addTextarea(names[count] + ':', attrs[i].nodeValue, 2);
 			texts[count].style.width = '100%';
 			count++;
 		}
 	}
 	
-	var nodata = document.createElement('div');
-	mxUtils.write(nodata, mxResources.get('none'));
-	div.appendChild(nodata);
-	nodata.style.display = (attrs.length <= 1) ? '' : 'none';
-
 	div.appendChild(form.table);
+
+	var newProp = document.createElement('div');
+	newProp.style.whiteSpace = 'nowrap';
+	newProp.style.marginTop = '6px';
 	
-	// Adds buttons
-	var addBtn = mxUtils.button(mxResources.get('addProperty'), function()
-	{
-		var name = mxUtils.prompt(mxResources.get('enterPropertyName'));
-		
-		if (name != null && name.length > 0)
-		{
-			var idx = mxUtils.indexOf(names, name);
-			
-			if (idx >= 0)
-			{
-				texts[idx].focus();
-			}
-			else
-			{
-				try
-				{
-					// Checks if the name is valid
-					var clone = value.cloneNode(false);
-					clone.setAttribute(name, '');
-					
-					names.push(name);
-					var text = form.addTextarea(name, '', 2);
-					text.style.width = '100%';
-					texts.push(text);
-					text.focus();
-					
-					nodata.style.display = 'none';
-				}
-				catch (e)
-				{
-					mxUtils.alert(e);
-				}
-			}
-		}
-	});
+	mxUtils.write(newProp, mxResources.get('addProperty') + ':');
+	mxUtils.br(newProp);
+
+	var nameInput = document.createElement('input');
+	nameInput.setAttribute('placeholder', mxResources.get('enterPropertyName'));
+	nameInput.setAttribute('type', 'text');
+	nameInput.setAttribute('size', (mxClient.IS_QUIRKS) ? '18' : '22');
+	nameInput.style.marginLeft = '2px';
+
+	newProp.appendChild(nameInput);
+	mxUtils.write(newProp, ':');
+	
+	var valueInput = document.createElement('input');
+	valueInput.setAttribute('placeholder', mxResources.get('enterValue'));
+	valueInput.setAttribute('type', 'text');
+	valueInput.setAttribute('size', (mxClient.IS_QUIRKS) ? '18' : '22');
+	valueInput.style.marginLeft = '6px';
+
+	newProp.appendChild(valueInput);
+	
+	div.appendChild(newProp);
 	
 	var cancelBtn = mxUtils.button(mxResources.get('cancel'), function()
 	{
@@ -1453,33 +1437,79 @@ var MetadataDialog = function(ui, cell)
 	
 	var applyBtn = mxUtils.button(mxResources.get('apply'), function()
 	{
-		try
+		if (nameInput.value.length > 0)
 		{
-			ui.hideDialog.apply(ui, arguments);
+			var name = nameInput.value;
 			
-			// Clones and updates the value
-			value = value.cloneNode(true);
-			
-			for (var i = 0; i < names.length; i++)
+			if (name != null && name.length > 0)
 			{
-				value.setAttribute(names[i], texts[i].value);
+				try
+				{
+					var idx = mxUtils.indexOf(names, name);
+					
+					if (idx >= 0)
+					{
+						texts[idx].value = valueInput.value;
+						texts[idx].focus();
+					}
+					else
+					{
+						// Checks if the name is valid
+						var clone = value.cloneNode(false);
+						clone.setAttribute(name, '');
+						
+						names.push(name);
+						var text = form.addTextarea(name + ':', valueInput.value, 2);
+						text.style.width = '100%';
+						texts.push(text);
+						text.focus();
+					}
+						
+					applyBtn.innerHTML = mxResources.get('apply');
+
+					nameInput.value = '';
+					valueInput.value = '';
+				}
+				catch (e)
+				{
+					mxUtils.alert(e);
+				}
 			}
-			
-			// Updates the value of the cell (undoable)
-			ui.editor.graph.getModel().setValue(cell, value);
 		}
-		catch (e)
+		else
 		{
-			mxUtils.alert(e);
+			try
+			{
+				ui.hideDialog.apply(ui, arguments);
+				
+				// Clones and updates the value
+				value = value.cloneNode(true);
+				
+				for (var i = 0; i < names.length; i++)
+				{
+					value.setAttribute(names[i], texts[i].value);
+				}
+				
+				// Updates the value of the cell (undoable)
+				ui.editor.graph.getModel().setValue(cell, value);
+			}
+			catch (e)
+			{
+				mxUtils.alert(e);
+			}
 		}
 	});
 
+	mxEvent.addListener(nameInput, 'change', function()
+	{
+		applyBtn.innerHTML = mxResources.get((nameInput.value.length > 0) ? 'add' : 'apply');
+	});
+	
 	var buttons = document.createElement('div');
-	buttons.style.marginTop = '14px';
+	buttons.style.marginTop = '18px';
 	buttons.style.textAlign = 'right';
 
 	buttons.appendChild(cancelBtn);
-	buttons.appendChild(addBtn);
 	buttons.appendChild(applyBtn);
 
 	div.appendChild(buttons);
@@ -1509,6 +1539,7 @@ var LinkDialog = function(editorUi, initialValue, btnLabel, fn)
 	
 	var linkInput = document.createElement('input');
 	linkInput.setAttribute('value', initialValue);
+	linkInput.setAttribute('placeholder', 'http://www.example.com/');
 	linkInput.setAttribute('type', 'text');
 	linkInput.style.marginTop = '6px';
 	linkInput.style.width = '300px';

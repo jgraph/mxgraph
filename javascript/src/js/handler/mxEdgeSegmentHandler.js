@@ -183,28 +183,6 @@ mxEdgeSegmentHandler.prototype.redraw = function()
 };
 
 /**
- * Function: refresh
- * 
- * Refreshes the bends of this handler.
- */
-mxEdgeSegmentHandler.prototype.refresh = function()
-{
-	if (this.bends != null)
-	{
-		for (var i = 0; i < this.bends.length; i++)
-		{
-			if (this.bends[i] != null)
-			{
-				this.bends[i].destroy();
-				this.bends[i] = null;
-			}
-		}
-		
-		this.bends = this.createBends();
-	}
-};
-
-/**
  * Function: redrawInnerBends
  * 
  * Updates the position of the custom bends.

@@ -228,7 +228,7 @@ mxTooltipHandler.prototype.reset = function(me, restart)
 	
 			this.thread = window.setTimeout(mxUtils.bind(this, function()
 			{
-				if (!this.graph.isEditing() && !this.graph.popupMenuHandler.isMenuShowing())
+				if (!this.graph.isEditing() && !this.graph.popupMenuHandler.isMenuShowing() && !this.graph.isMouseDown)
 				{
 					// Uses information from inside event cause using the event at
 					// this (delayed) point in time is not possible in IE as it no

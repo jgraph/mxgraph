@@ -72,6 +72,7 @@ edit=Edit
 editData=Edit data
 editImage=Edit image
 editLink=Edit link
+editTooltip=Edit tooltip
 enterGroup=Enter group
 enterValue=Enter value
 enterName=Enter name
