@@ -48,15 +48,52 @@
  * }); 
  * (end)
  * 
- * Initial values:
+ * Placeholder:
  * 
- * To implement an initial value for cells without a label, use the
+ * To implement a placeholder for cells without a label, use the
  * <emptyLabelText> variable.
  * 
  * Resize in Chrome:
  * 
  * Resize of the textarea is disabled by default. If you want to enable
  * this feature extend <init> and set this.textarea.style.resize = ''.
+ * 
+ * To start editing on a key press event, the container of the graph
+ * should have focus or a focusable parent should be used to add the
+ * key press handler as follows.
+ * 
+ * (code)
+ * mxEvent.addListener(graph.container, 'keypress', mxUtils.bind(this, function(evt)
+ * {
+ *   if (!graph.isEditing() && !graph.isSelectionEmpty() && evt.which !== 0 &&
+ *       !mxEvent.isAltDown(evt) && !mxEvent.isControlDown(evt) && !mxEvent.isMetaDown(evt))
+ *   {
+ *     graph.startEditing();
+ *     
+ *     if (mxClient.IS_FF)
+ *     {
+ *       graph.cellEditor.textarea.value = String.fromCharCode(evt.which);
+ *     }
+ *   }
+ * }));
+ * (end)
+ * 
+ * To allow focus for a DIV, and hence to receive key press events, some browsers
+ * require it to have a valid tabindex attribute. In this case the following
+ * code may be used to keep the container focused.
+ * 
+ * (code)
+ * var graphFireMouseEvent = graph.fireMouseEvent;
+ * graph.fireMouseEvent = function(evtName, me, sender)
+ * {
+ *   if (evtName == mxEvent.MOUSE_DOWN)
+ *   {
+ *     this.container.focus();
+ *   }
+ *   
+ *   graphFireMouseEvent.apply(this, arguments);
+ * };
+ * (end)
  *
  * Constructor: mxCellEditor
  *
@@ -198,7 +235,7 @@ mxCellEditor.prototype.init = function ()
 			else
 			{
 				// Clears the initial empty label on the first keystroke
-				if (this.clearOnChange)
+				if (this.clearOnChange && this.textarea.value == this.getEmptyLabelText())
 				{
 					this.clearOnChange = false;
 					this.textarea.value = '';
@@ -458,7 +495,7 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 		if (value == null || value.length == 0)
 		{
 			value = this.getEmptyLabelText();
-			this.clearOnChange = true;
+			this.clearOnChange = value.length > 0;
 		}
 		else
 		{

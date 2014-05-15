@@ -205,11 +205,9 @@ EditorUi = function(editor, container)
    	   	   	this.refresh();
    		}), 0);
    	}));
-   	
-   	this.editor.updateGraphComponents();
-	graph.refresh();
 
-	// Updates action and menu states
+   	// Resets UI, updates action and menu states
+   	this.editor.resetGraph();
    	this.init();
    	this.open();
 };
@@ -399,6 +397,8 @@ EditorUi.prototype.open = function()
 						this.editor.setFilename(filename);
 						this.updateDocumentTitle();
 					}
+					
+					return;
 				}
 				catch (e)
 				{
@@ -411,6 +411,10 @@ EditorUi.prototype.open = function()
 	{
 		// ignore
 	}
+	
+	// Fires as the last step if no file was loaded
+	this.editor.graph.view.validate();
+	this.editor.fireEvent(new mxEventObject('resetGraphView'));
 };
 
 /**

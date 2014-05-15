@@ -432,8 +432,8 @@ Menus.prototype.init = function()
 	})));
 	this.put('options', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
-		this.addMenuItems(menu, ['pageView', '-', 'grid', 'guides', 'tooltips', '-', 'connect', 'copyConnect', 'navigation',
-		                         '-', 'pageBackgroundColor', 'autosave']);
+		this.addMenuItems(menu, ['pageView', '-', 'grid', 'guides', '-', 'scrollbars', 'tooltips', '-',
+ 		                         'connect', 'copyConnect', 'navigation', '-', 'pageBackgroundColor', 'autosave']);
 	})));
 	this.put('help', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -714,10 +714,10 @@ Menus.prototype.createPopupMenu = function(menu, cell, evt)
 
 		if (graph.getModel().isEdge(graph.getSelectionCell()))
 		{
-			var isWaypoint = false;
 			var cell = graph.getSelectionCell();
+			var isWaypoint = false;
 			
-			if (cell != null && graph.getModel().isEdge(cell))
+			if (graph.getModel().isEdge(cell))
 			{
 				var handler = graph.selectionCellsHandler.getHandler(cell);
 				
@@ -735,13 +735,23 @@ Menus.prototype.createPopupMenu = function(menu, cell, evt)
 			}
 			
 			this.addMenuItems(menu, ['-', (isWaypoint) ? 'removeWaypoint' : 'addWaypoint']);
+
+			// Adds reset waypoints option if waypoints exist
+			var geo = graph.getModel().getGeometry(cell);
+			
+			if (geo != null && geo.points != null && geo.points.length > 0)
+			{
+				this.addMenuItems(menu, ['resetWaypoints']);	
+			}
 		}
-		else if (graph.getSelectionCount() > 1)	
+		
+		if (graph.getSelectionCount() > 1)	
 		{
 			menu.addSeparator();
 			this.addMenuItems(menu, ['group']);
 		}
-		else if (graph.getSelectionCount() == 1)
+		
+		if (graph.getSelectionCount() == 1)
 		{
 			menu.addSeparator();
 			this.addMenuItems(menu, ['editLink']);
@@ -752,7 +762,10 @@ Menus.prototype.createPopupMenu = function(menu, cell, evt)
 			{
 				this.addMenuItems(menu, ['openLink']);
 			}
+		}
 			
+		if (graph.getModel().isVertex(graph.getSelectionCell()))
+		{
 			// Shows edit image action if there is an image in the style
 			var state = graph.view.getState(graph.getSelectionCell());
 			

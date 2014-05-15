@@ -1783,8 +1783,15 @@ var mxUtils =
 	 * Function: getBoundingBox
 	 * 
 	 * Returns the bounding box for the rotated rectangle.
+	 * 
+	 * Parameters:
+	 * 
+	 * rect - <mxRectangle> to be rotated.
+	 * angle - Number that represents the angle (in degrees).
+	 * cx - Optional <mxPoint> that represents the rotation center. If no
+	 * rotation center is given then the center of rect is used.
 	 */
-	getBoundingBox: function(rect, rotation)
+	getBoundingBox: function(rect, rotation, cx)
 	{
         var result = null;
 
@@ -1794,9 +1801,7 @@ var mxUtils =
             var cos = Math.cos(rad);
             var sin = Math.sin(rad);
 
-            var cx = new mxPoint(
-            	rect.x + rect.width / 2,
-            	rect.y  + rect.height / 2);
+            cx = (cx != null) ? cx : new mxPoint(rect.x + rect.width / 2, rect.y  + rect.height / 2);
 
             var p1 = new mxPoint(rect.x, rect.y);
             var p2 = new mxPoint(rect.x + rect.width, rect.y);

@@ -516,7 +516,8 @@ var mxEvent =
 	 */
 	isPopupTrigger: function(evt)
 	{
-		return mxEvent.isRightMouseButton(evt) || (mxEvent.isShiftDown(evt) && !mxEvent.isControlDown(evt));
+		return mxEvent.isRightMouseButton(evt) || (mxEvent.isShiftDown(evt) &&
+			!mxEvent.isControlDown(evt) && !mxEvent.isMetaDown(evt) && !mxEvent.isAltDown(evt));
 	},
 
 	/**

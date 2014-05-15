@@ -369,22 +369,7 @@ Actions.prototype.init = function()
 	this.addAction('actualSize', function()
 	{
 		graph.zoomTo(1);
-		
-		if (mxUtils.hasScrollbars(graph.container))
-		{
-			if (graph.pageVisible)
-			{
-				var pad = graph.getPagePadding();
-				graph.container.scrollTop = pad.y;
-				graph.container.scrollLeft = Math.min(pad.x, (graph.container.scrollWidth - graph.container.clientWidth) / 2);
-			}
-			else
-			{
-				var bounds = graph.getGraphBounds();
-				graph.container.scrollTop = Math.max(0, bounds.y - Math.max(20, (graph.container.clientHeight - bounds.height) / 4));
-				graph.container.scrollLeft = Math.max(0, bounds.x - Math.max(0, (graph.container.clientWidth - bounds.width) / 2));
-			}
-		}
+		editor.resetScrollbars();
 	});
 	this.addAction('zoomIn', function()
 	{
@@ -722,6 +707,39 @@ Actions.prototype.init = function()
 			rmWaypointAction.handler.removePoint(rmWaypointAction.handler.state, rmWaypointAction.index);
 		}
 	});
+	this.addAction('resetWaypoints', function()
+	{
+		var cells = graph.getSelectionCells();
+		
+		if (cells != null)
+		{
+			graph.getModel().beginUpdate();
+			try
+			{
+				for (var i = 0; i < cells.length; i++)
+				{
+					var cell = cells[i];
+					
+					if (graph.getModel().isEdge(cell))
+					{
+						var geo = graph.getCellGeometry(cell);
+			
+						if (geo != null)
+						{
+							// Rotates the size and position in the geometry
+							geo = geo.clone();
+							geo.points = null;
+							graph.getModel().setGeometry(cell, geo);
+						}
+					}
+				}
+			}
+			finally
+			{
+				graph.getModel().endUpdate();
+			}
+		}
+	});
 	this.addAction('insertLink', function()
 	{
 		if (graph.isEnabled())
@@ -834,12 +852,20 @@ Actions.prototype.init = function()
 	    				
 	    				cells = [graph.insertVertex(graph.getDefaultParent(), null, '',
 	    						graph.snap(dx + gs), graph.snap(dy + gs), w, h,
-	    						'verticalLabelPosition=bottom;verticalAlign=top;')];
+	    						'shape=image;verticalLabelPosition=bottom;verticalAlign=top;')];
 	    				select = cells;
 	    			}
 	    			
 	        		graph.setCellStyles(mxConstants.STYLE_IMAGE, newValue, cells);
-		        	graph.setCellStyles(mxConstants.STYLE_SHAPE, 'image', cells);
+	        		
+	        		// Sets shape only if not already shape with image (label or image)
+	        		var state = graph.view.getState(cells[0]);
+	        		var style = (state != null) ? state.style : graph.getCellStyle(cells[0]);
+	        		
+	        		if (style[mxConstants.STYLE_SHAPE] != 'image' && style[mxConstants.STYLE_SHAPE] != 'label')
+	        		{
+	        			graph.setCellStyles(mxConstants.STYLE_SHAPE, 'image', cells);
+	        		}
 		        	
 		        	if (graph.getSelectionCount() == 1)
 		        	{

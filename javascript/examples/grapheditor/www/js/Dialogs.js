@@ -1522,7 +1522,7 @@ var MetadataDialog = function(ui, cell)
 var LinkDialog = function(editorUi, initialValue, btnLabel, fn)
 {
 	var div = document.createElement('div');
-	mxUtils.write(div, mxResources.get('enterValue') + ' (' + mxResources.get('url') + '):');
+	mxUtils.write(div, mxResources.get('editLink') + ':');
 	
 	var inner = document.createElement('div');
 	inner.className = 'geTitle';
@@ -1576,6 +1576,15 @@ var LinkDialog = function(editorUi, initialValue, btnLabel, fn)
 	this.init = function()
 	{
 		linkInput.focus();
+		
+		if (mxClient.IS_FF || document.documentMode >= 5 || mxClient.IS_QUIRKS)
+		{
+			linkInput.select();
+		}
+		else
+		{
+			document.execCommand('selectAll');
+		}
 	};
 	
 	var btns = document.createElement('div');

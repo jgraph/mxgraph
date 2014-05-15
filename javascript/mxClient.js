@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.7.0.0.
+	 * Current version is 2.8.0.0.
 	 */
-	VERSION: '2.7.0.0',
+	VERSION: '2.8.0.0',
 
 	/**
 	 * Variable: IS_IE
@@ -3699,8 +3699,15 @@ var mxUtils =
 	 * Function: getBoundingBox
 	 * 
 	 * Returns the bounding box for the rotated rectangle.
+	 * 
+	 * Parameters:
+	 * 
+	 * rect - <mxRectangle> to be rotated.
+	 * angle - Number that represents the angle (in degrees).
+	 * cx - Optional <mxPoint> that represents the rotation center. If no
+	 * rotation center is given then the center of rect is used.
 	 */
-	getBoundingBox: function(rect, rotation)
+	getBoundingBox: function(rect, rotation, cx)
 	{
         var result = null;
 
@@ -3710,9 +3717,7 @@ var mxUtils =
             var cos = Math.cos(rad);
             var sin = Math.sin(rad);
 
-            var cx = new mxPoint(
-            	rect.x + rect.width / 2,
-            	rect.y  + rect.height / 2);
+            cx = (cx != null) ? cx : new mxPoint(rect.x + rect.width / 2, rect.y  + rect.height / 2);
 
             var p1 = new mxPoint(rect.x, rect.y);
             var p2 = new mxPoint(rect.x + rect.width, rect.y);
@@ -8827,7 +8832,8 @@ var mxEvent =
 	 */
 	isPopupTrigger: function(evt)
 	{
-		return mxEvent.isRightMouseButton(evt) || (mxEvent.isShiftDown(evt) && !mxEvent.isControlDown(evt));
+		return mxEvent.isRightMouseButton(evt) || (mxEvent.isShiftDown(evt) &&
+			!mxEvent.isControlDown(evt) && !mxEvent.isMetaDown(evt) && !mxEvent.isAltDown(evt));
 	},
 
 	/**
@@ -15510,7 +15516,7 @@ mxMorphing.prototype.updateAnimation = function()
 		// Animates the given cells individually without recursion
 		for (var i = 0; i < this.cells.length; i++)
 		{
-			this.animateCell(cells[i], move, false);
+			this.animateCell(this.cells[i], move, false);
 		}
 	}
 	else
@@ -21584,7 +21590,7 @@ mxShape.prototype.create = function(container)
 {
 	var node = null;
 	
-	if (container.ownerSVGElement != null)
+	if (container != null && container.ownerSVGElement != null)
 	{
 		node = this.createSvg(container);
 	}
@@ -28915,7 +28921,9 @@ mxCircleLayout.prototype.circle = function(vertices, r, left, top)
  *     
  *     return !(model.isEdge(edge2) && ((src == src2 && trg == trg2) || (src == trg2 && trg == src2)));
  *   };
- * };
+ *   
+ *   layout.execute(graph.getDefaultParent());
+ * });
  * (end)
  * 
  * Constructor: mxCompactTreeLayout
@@ -42413,15 +42421,52 @@ mxSelectionChange.prototype.execute = function()
  * }); 
  * (end)
  * 
- * Initial values:
+ * Placeholder:
  * 
- * To implement an initial value for cells without a label, use the
+ * To implement a placeholder for cells without a label, use the
  * <emptyLabelText> variable.
  * 
  * Resize in Chrome:
  * 
  * Resize of the textarea is disabled by default. If you want to enable
  * this feature extend <init> and set this.textarea.style.resize = ''.
+ * 
+ * To start editing on a key press event, the container of the graph
+ * should have focus or a focusable parent should be used to add the
+ * key press handler as follows.
+ * 
+ * (code)
+ * mxEvent.addListener(graph.container, 'keypress', mxUtils.bind(this, function(evt)
+ * {
+ *   if (!graph.isEditing() && !graph.isSelectionEmpty() && evt.which !== 0 &&
+ *       !mxEvent.isAltDown(evt) && !mxEvent.isControlDown(evt) && !mxEvent.isMetaDown(evt))
+ *   {
+ *     graph.startEditing();
+ *     
+ *     if (mxClient.IS_FF)
+ *     {
+ *       graph.cellEditor.textarea.value = String.fromCharCode(evt.which);
+ *     }
+ *   }
+ * }));
+ * (end)
+ * 
+ * To allow focus for a DIV, and hence to receive key press events, some browsers
+ * require it to have a valid tabindex attribute. In this case the following
+ * code may be used to keep the container focused.
+ * 
+ * (code)
+ * var graphFireMouseEvent = graph.fireMouseEvent;
+ * graph.fireMouseEvent = function(evtName, me, sender)
+ * {
+ *   if (evtName == mxEvent.MOUSE_DOWN)
+ *   {
+ *     this.container.focus();
+ *   }
+ *   
+ *   graphFireMouseEvent.apply(this, arguments);
+ * };
+ * (end)
  *
  * Constructor: mxCellEditor
  *
@@ -42563,7 +42608,7 @@ mxCellEditor.prototype.init = function ()
 			else
 			{
 				// Clears the initial empty label on the first keystroke
-				if (this.clearOnChange)
+				if (this.clearOnChange && this.textarea.value == this.getEmptyLabelText())
 				{
 					this.clearOnChange = false;
 					this.textarea.value = '';
@@ -42823,7 +42868,7 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 		if (value == null || value.length == 0)
 		{
 			value = this.getEmptyLabelText();
-			this.clearOnChange = true;
+			this.clearOnChange = value.length > 0;
 		}
 		else
 		{
@@ -46408,7 +46453,7 @@ mxGraphView.prototype.validate = function(cell)
 	var graphBounds = this.getBoundingBox(this.validateCellState(
 		this.validateCell(cell || ((this.currentRoot != null) ?
 			this.currentRoot : this.graph.getModel().getRoot()))));
-	this.setGraphBounds((graphBounds != null) ? graphBounds : new mxRectangle());
+	this.setGraphBounds((graphBounds != null) ? graphBounds : this.getEmptyBounds());
 	this.validateBackground();
 	
 	if (prevDisplay != null)
@@ -46426,6 +46471,17 @@ mxGraphView.prototype.validate = function(cell)
 	window.status = mxResources.get(this.doneResource) ||
 		this.doneResource;
 	mxLog.leave('mxGraphView.validate', t0);
+};
+
+/**
+ * Function: getEmptyBounds
+ * 
+ * Returns the bounds for an empty graph. This returns a rectangle at
+ * <translate> with the size of 0 x 0.
+ */
+mxGraphView.prototype.getEmptyBounds = function()
+{
+	return new mxRectangle(this.translate.x * this.scale, this.translate.y * this.scale);
 };
 
 /**
@@ -48177,9 +48233,6 @@ mxGraphView.prototype.installListeners = function()
 		{
 			mxEvent.addListener(container, 'gesturestart', mxUtils.bind(this, function(evt)
 			{
-				// FIXME: Breaks encapsulation to reset the double
-				// tap event handling when gestures take place
-				graph.lastTouchTime = 0;
 				graph.fireGestureEvent(evt);
 				mxEvent.consume(evt);
 			}));
@@ -60254,8 +60307,10 @@ mxGraph.prototype.isSyntheticEventIgnored = function(evtName, me, sender)
 /**
  * Function: isEventSourceIgnored
  * 
- * Returns true if the given mouse down event should be ignored. This returns
- * true for mouse events on select, option, button, anchor and input.
+ * Returns true if the event should be ignored in <fireMouseEvent>. This
+ * implementation returns true for select, option and input (if not of type
+ * checkbox, radio, button, submit or file) event sources if the event is not
+ * a mouse event or a left mouse button press event.
  * 
  * Parameters:
  * 
@@ -60264,10 +60319,13 @@ mxGraph.prototype.isSyntheticEventIgnored = function(evtName, me, sender)
  */
 mxGraph.prototype.isEventSourceIgnored = function(evtName, me)
 {
-	var name = (me.getSource().nodeName != null) ? me.getSource().nodeName.toLowerCase() : '';
+	var source = me.getSource();
+	var name = (source.nodeName != null) ? source.nodeName.toLowerCase() : '';
+	var candidate = !mxEvent.isMouseEvent(me.getEvent()) || mxEvent.isLeftMouseButton(me.getEvent());
 	
-	return evtName == mxEvent.MOUSE_DOWN && (name == 'select' || name == 'option'
-		|| name == 'button' || name == 'a' || name == 'input');
+	return evtName == mxEvent.MOUSE_DOWN && candidate && (name == 'select' || name == 'option' ||
+		(name == 'input' && source.type != 'checkbox' && source.type != 'radio' &&
+		source.type != 'button' && source.type != 'submit' && source.type != 'file'));
 };
 
 /**
@@ -60473,11 +60531,21 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 				Math.abs(this.initialTouchY - me.getGraphY()) < this.tolerance;
 		}
 		
-		// Workaround for duplicate click in Windows 8 with Chrome/FF/Opera with touch
-		if (evtName == mxEvent.MOUSE_DOWN && mxEvent.isTouchEvent(me.getEvent()))
-		{
-			me.consume(false);
-		}
+		this.consumeMouseEvent(evtName, me, sender);
+	}
+};
+
+/**
+ * Function: consumeMouseEvent
+ * 
+ * Destroys the graph and all its resources.
+ */
+mxGraph.prototype.consumeMouseEvent = function(evtName, me, sender)
+{
+	// Workaround for duplicate click in Windows 8 with Chrome/FF/Opera with touch
+	if (evtName == mxEvent.MOUSE_DOWN && mxEvent.isTouchEvent(me.getEvent()))
+	{
+		me.consume(false);
 	}
 };
 
@@ -64498,6 +64566,7 @@ function mxPanningHandler(graph)
 			{
 				this.start(me);
 				this.active = true;
+				this.fireEvent(new mxEventObject(mxEvent.PAN_START, 'event', me));
 				me.consume();
 			}
 		});
@@ -64634,6 +64703,34 @@ mxPanningHandler.prototype.maxScale = 8;
 mxPanningHandler.prototype.minScale = 0.01;
 
 /**
+ * Variable: dx
+ * 
+ * Holds the current horizontal offset.
+ */
+mxPanningHandler.prototype.dx = null;
+
+/**
+ * Variable: dy
+ * 
+ * Holds the current vertical offset.
+ */
+mxPanningHandler.prototype.dy = null;
+
+/**
+ * Variable: startX
+ * 
+ * Holds the x-coordinate of the start point.
+ */
+mxPanningHandler.prototype.startX = 0;
+
+/**
+ * Variable: startY
+ * 
+ * Holds the y-coordinate of the start point.
+ */
+mxPanningHandler.prototype.startY = 0;
+
+/**
  * Function: isActive
  * 
  * Returns true if the handler is currently active.
@@ -64740,7 +64837,9 @@ mxPanningHandler.prototype.start = function(me)
 	// Stores the location of the trigger event
 	this.startX = me.getX();
 	this.startY = me.getY();
-
+	this.dx = null;
+	this.dy = null;
+	
 	this.panningTrigger = true;
 };
 
@@ -64786,7 +64885,7 @@ mxPanningHandler.prototype.mouseMove = function(sender, me)
 {
 	this.dx = me.getX() - this.startX;
 	this.dy = me.getY() - this.startY;
-
+	
 	if (this.active)
 	{
 		if (this.previewEnabled)
@@ -68450,6 +68549,13 @@ mxVertexHandler.prototype.rotationEnabled = false;
 mxVertexHandler.prototype.rotationRaster = true;
 
 /**
+ * Variable: rotationCursor
+ * 
+ * Specifies the cursor for the rotation handle. Default is 'crosshair'.
+ */
+mxVertexHandler.prototype.rotationCursor = 'crosshair';
+
+/**
  * Variable: livePreview
  * 
  * Specifies if resize should change the cell in-place. This is an experimental
@@ -68472,6 +68578,29 @@ mxVertexHandler.prototype.manageSizers = false;
  * Default is false.
  */
 mxVertexHandler.prototype.constrainGroupByChildren = false;
+
+/**
+ * Variable: rotationHandleVSpacing
+ * 
+ * Vertical spacing for rotation icon. Default is -16.
+ */
+mxVertexHandler.prototype.rotationHandleVSpacing = -16;
+
+/**
+ * Variable: horizontalOffset
+ * 
+ * The horizontal offset for the handles. This is updated in <redrawHandles>
+ * if <manageSizers> is true and the sizers are offset horizontally.
+ */
+mxVertexHandler.prototype.horizontalOffset = 0;
+
+/**
+ * Variable: verticalOffset
+ * 
+ * The horizontal offset for the handles. This is updated in <redrawHandles>
+ * if <manageSizers> is true and the sizers are offset vertically.
+ */
+mxVertexHandler.prototype.verticalOffset = 0;
 
 /**
  * Function: init
@@ -68546,7 +68675,7 @@ mxVertexHandler.prototype.init = function()
 		(mxGraphHandler.prototype.maxCells <= 0 || this.graph.getSelectionCount() < mxGraphHandler.prototype.maxCells) &&
 		this.state.width > 2 && this.state.height > 2)
 	{
-		this.rotationShape = this.createSizer('pointer', mxEvent.ROTATION_HANDLE,
+		this.rotationShape = this.createSizer(this.rotationCursor, mxEvent.ROTATION_HANDLE,
 			mxConstants.HANDLE_SIZE + 3, mxConstants.HANDLE_FILLCOLOR);
 		this.sizers.push(this.rotationShape);
 	}
@@ -69642,6 +69771,8 @@ mxVertexHandler.prototype.redraw = function()
  */
 mxVertexHandler.prototype.redrawHandles = function()
 {
+	this.horizontalOffset = 0;
+	this.verticalOffset = 0;
 	var s = this.bounds;
 
 	if (this.sizers != null)
@@ -69679,10 +69810,12 @@ mxVertexHandler.prototype.redrawHandles = function()
 				s = new mxRectangle(s.x, s.y, s.width, s.height);
 				tol /= 2;
 				
-				s.x -= (this.sizers[0].bounds.width + tol) / 2;
-				s.width += this.sizers[0].bounds.width + tol;
-				s.y -= (this.sizers[0].bounds.height + tol)  / 2;
-				s.height += this.sizers[0].bounds.height + tol;
+				this.horizontalOffset = this.sizers[0].bounds.width + tol;
+				this.verticalOffset = this.sizers[0].bounds.height + tol;
+				s.x -= this.horizontalOffset / 2;
+				s.width += this.horizontalOffset;
+				s.y -= this.verticalOffset / 2;
+				s.height += this.verticalOffset;
 			}
 		}
 
@@ -69783,7 +69916,7 @@ mxVertexHandler.prototype.redrawHandles = function()
 		var sin = Math.sin(alpha);
 		
 		var ct = new mxPoint(this.state.getCenterX(), this.state.getCenterY());
-		var pt = mxUtils.getRotatedPoint(new mxPoint(s.x + s.width / 2, s.y - 16), cos, sin, ct);
+		var pt = mxUtils.getRotatedPoint(new mxPoint(s.x + s.width / 2, s.y + this.rotationHandleVSpacing), cos, sin, ct);
 
 		if (this.rotationShape.node != null)
 		{

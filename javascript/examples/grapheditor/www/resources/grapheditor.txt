@@ -189,6 +189,7 @@ renameIt=Rename {1}
 replace={1} already exists. Do you want to replace it?
 replaceExistingDrawing=Replace existing drawing
 reset=Reset
+resetWaypoints=Reset waypoints
 right=Right
 rightAlign=Right align
 rotate=Rotate

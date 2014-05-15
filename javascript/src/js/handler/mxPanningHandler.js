@@ -48,6 +48,7 @@ function mxPanningHandler(graph)
 			{
 				this.start(me);
 				this.active = true;
+				this.fireEvent(new mxEventObject(mxEvent.PAN_START, 'event', me));
 				me.consume();
 			}
 		});
@@ -184,6 +185,34 @@ mxPanningHandler.prototype.maxScale = 8;
 mxPanningHandler.prototype.minScale = 0.01;
 
 /**
+ * Variable: dx
+ * 
+ * Holds the current horizontal offset.
+ */
+mxPanningHandler.prototype.dx = null;
+
+/**
+ * Variable: dy
+ * 
+ * Holds the current vertical offset.
+ */
+mxPanningHandler.prototype.dy = null;
+
+/**
+ * Variable: startX
+ * 
+ * Holds the x-coordinate of the start point.
+ */
+mxPanningHandler.prototype.startX = 0;
+
+/**
+ * Variable: startY
+ * 
+ * Holds the y-coordinate of the start point.
+ */
+mxPanningHandler.prototype.startY = 0;
+
+/**
  * Function: isActive
  * 
  * Returns true if the handler is currently active.
@@ -290,7 +319,9 @@ mxPanningHandler.prototype.start = function(me)
 	// Stores the location of the trigger event
 	this.startX = me.getX();
 	this.startY = me.getY();
-
+	this.dx = null;
+	this.dy = null;
+	
 	this.panningTrigger = true;
 };
 
@@ -336,7 +367,7 @@ mxPanningHandler.prototype.mouseMove = function(sender, me)
 {
 	this.dx = me.getX() - this.startX;
 	this.dy = me.getY() - this.startY;
-
+	
 	if (this.active)
 	{
 		if (this.previewEnabled)

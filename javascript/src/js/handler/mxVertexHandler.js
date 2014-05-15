@@ -112,6 +112,13 @@ mxVertexHandler.prototype.rotationEnabled = false;
 mxVertexHandler.prototype.rotationRaster = true;
 
 /**
+ * Variable: rotationCursor
+ * 
+ * Specifies the cursor for the rotation handle. Default is 'crosshair'.
+ */
+mxVertexHandler.prototype.rotationCursor = 'crosshair';
+
+/**
  * Variable: livePreview
  * 
  * Specifies if resize should change the cell in-place. This is an experimental
@@ -134,6 +141,29 @@ mxVertexHandler.prototype.manageSizers = false;
  * Default is false.
  */
 mxVertexHandler.prototype.constrainGroupByChildren = false;
+
+/**
+ * Variable: rotationHandleVSpacing
+ * 
+ * Vertical spacing for rotation icon. Default is -16.
+ */
+mxVertexHandler.prototype.rotationHandleVSpacing = -16;
+
+/**
+ * Variable: horizontalOffset
+ * 
+ * The horizontal offset for the handles. This is updated in <redrawHandles>
+ * if <manageSizers> is true and the sizers are offset horizontally.
+ */
+mxVertexHandler.prototype.horizontalOffset = 0;
+
+/**
+ * Variable: verticalOffset
+ * 
+ * The horizontal offset for the handles. This is updated in <redrawHandles>
+ * if <manageSizers> is true and the sizers are offset vertically.
+ */
+mxVertexHandler.prototype.verticalOffset = 0;
 
 /**
  * Function: init
@@ -208,7 +238,7 @@ mxVertexHandler.prototype.init = function()
 		(mxGraphHandler.prototype.maxCells <= 0 || this.graph.getSelectionCount() < mxGraphHandler.prototype.maxCells) &&
 		this.state.width > 2 && this.state.height > 2)
 	{
-		this.rotationShape = this.createSizer('pointer', mxEvent.ROTATION_HANDLE,
+		this.rotationShape = this.createSizer(this.rotationCursor, mxEvent.ROTATION_HANDLE,
 			mxConstants.HANDLE_SIZE + 3, mxConstants.HANDLE_FILLCOLOR);
 		this.sizers.push(this.rotationShape);
 	}
@@ -1304,6 +1334,8 @@ mxVertexHandler.prototype.redraw = function()
  */
 mxVertexHandler.prototype.redrawHandles = function()
 {
+	this.horizontalOffset = 0;
+	this.verticalOffset = 0;
 	var s = this.bounds;
 
 	if (this.sizers != null)
@@ -1341,10 +1373,12 @@ mxVertexHandler.prototype.redrawHandles = function()
 				s = new mxRectangle(s.x, s.y, s.width, s.height);
 				tol /= 2;
 				
-				s.x -= (this.sizers[0].bounds.width + tol) / 2;
-				s.width += this.sizers[0].bounds.width + tol;
-				s.y -= (this.sizers[0].bounds.height + tol)  / 2;
-				s.height += this.sizers[0].bounds.height + tol;
+				this.horizontalOffset = this.sizers[0].bounds.width + tol;
+				this.verticalOffset = this.sizers[0].bounds.height + tol;
+				s.x -= this.horizontalOffset / 2;
+				s.width += this.horizontalOffset;
+				s.y -= this.verticalOffset / 2;
+				s.height += this.verticalOffset;
 			}
 		}
 
@@ -1445,7 +1479,7 @@ mxVertexHandler.prototype.redrawHandles = function()
 		var sin = Math.sin(alpha);
 		
 		var ct = new mxPoint(this.state.getCenterX(), this.state.getCenterY());
-		var pt = mxUtils.getRotatedPoint(new mxPoint(s.x + s.width / 2, s.y - 16), cos, sin, ct);
+		var pt = mxUtils.getRotatedPoint(new mxPoint(s.x + s.width / 2, s.y + this.rotationHandleVSpacing), cos, sin, ct);
 
 		if (this.rotationShape.node != null)
 		{

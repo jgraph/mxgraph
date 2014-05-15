@@ -249,7 +249,7 @@ mxShape.prototype.create = function(container)
 {
 	var node = null;
 	
-	if (container.ownerSVGElement != null)
+	if (container != null && container.ownerSVGElement != null)
 	{
 		node = this.createSvg(container);
 	}

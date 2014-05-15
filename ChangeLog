@@ -1,3 +1,17 @@
+15-MAY-2014: 2.8.0.0
+
+- Adds mxGraphView.getEmptyBounds [JavaScript]
+- Empty graph returns graph bounds at translate [JavaScript]
+- Fixes bug in mxMorphing.updateAnimation [JavaScript]
+- Adds mxVertexHandler.rotationCursor, uses crosshair cursor [JavaScript]
+- mxUtils.getBoundingBox adds optional rotation center parameter [JavaScript]
+- Fixes PAN_START event in mxPanningHandler for forced panning [JavaScript]
+- Adds mxVertexHandler.rotationHandleVSpacing, horizontal-/verticalOffset [JavaScript]
+- mxGraph.isEventSourceIgnored ignores anchors and some inputs [JavaScript]
+- Ignores events with alt and meta in mxEvent.isPopupTrigger [JavaScript]
+- Adds mxGraph.consumeMouseEvent hook [JavaScript]
+- Checks placeholder value for clearOnChange in mxCellEditor [JavaScript]
+
 12-MAY-2014: 2.7.0.0
 
 - Adds mxGraphHandler, mxEdgeHandler.roundLength for rounding coordinates [JavaScript]

@@ -771,7 +771,7 @@
 		mxExtVertexHandler.prototype.useGridForSpecialHandle = false;
 
 		// Installs custom image
-		mxExtVertexHandler.prototype.specialHandleImage = new mxImage(IMAGE_PATH + '/touch-handle-orange.png', 16, 16);
+		mxExtVertexHandler.prototype.specialHandleImage = mxVertexHandler.prototype.secondaryHandleImage;
 		
 		mxExtVertexHandler.prototype.init = function()
 		{
