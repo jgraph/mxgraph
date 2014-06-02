@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.13.0.13.
+	 * Current version is 1.13.0.14.
 	 */
-	VERSION: '1.13.0.13',
+	VERSION: '1.13.0.14',
 
 	/**
 	 * Variable: IS_IE
@@ -2361,7 +2361,65 @@ var mxUtils =
 		
 		return children;
 	},
-		
+
+	/**
+	 * Function: importNode
+	 * 
+	 * Cross browser implementation for document.importNode. Uses document.importNode
+	 * in all browsers but IE, where the node is cloned by creating a new node and
+	 * copying all attributes and children into it using importNode, recursively.
+	 * 
+	 * Parameters:
+	 * 
+	 * doc - Document to import the node into.
+	 * node - Node to be imported.
+	 * allChildren - If all children should be imported.
+	 */
+	importNode: function(doc, node, allChildren)
+	{
+		if (mxClient.IS_IE && (document.documentMode == null || document.documentMode < 10))
+		{
+			switch (node.nodeType)
+			{
+				case 1: /* element */
+				{
+					var newNode = doc.createElement(node.nodeName);
+					
+					if (node.attributes && node.attributes.length > 0)
+					{
+						for (var i = 0; i < node.attributes.length; i++)
+						{
+							newNode.setAttribute(node.attributes[i].nodeName,
+								node.getAttribute(node.attributes[i].nodeName));
+						}
+						
+						if (allChildren && node.childNodes && node.childNodes.length > 0)
+						{
+							for (var i = 0; i < node.childNodes.length; i++)
+							{
+								newNode.appendChild(mxUtils.importNode(doc, node.childNodes[i], allChildren));
+							}
+						}
+					}
+					
+					return newNode;
+					break;
+				}
+				case 3: /* text */
+			    case 4: /* cdata-section */
+			    case 8: /* comment */
+			    {
+			      return doc.createTextNode(node.nodeValue);
+			      break;
+			    }
+			};
+		}
+		else
+		{
+			return doc.importNode(node, allChildren);
+		}
+	},
+
 	/**
 	 * Function: createXmlDocument
 	 * 
@@ -2371,7 +2429,8 @@ var mxUtils =
 	{
 		var doc = null;
 		
-		if (document.implementation && document.implementation.createDocument)
+		// Workaround for IE9 standards mode creating a HTML document
+		if (document.implementation && document.implementation.createDocument && document.documentMode != 9)
 		{
 			doc = document.implementation.createDocument('', '', null);
 		}
@@ -2620,7 +2679,8 @@ var mxUtils =
 	{
 		var xml = '';
 		  
-		if (window.XMLSerializer != null)
+		// Workaround for IE9 standards mode interface not supported
+		if (window.XMLSerializer != null && document.documentMode != 9)
 		{
 			var xmlSerializer = new XMLSerializer();
 			xml = xmlSerializer.serializeToString(node);     
@@ -15442,7 +15502,7 @@ mxMorphing.prototype.updateAnimation = function()
 		// Animates the given cells individually without recursion
 		for (var i = 0; i < this.cells.length; i++)
 		{
-			this.animateCell(cells[i], move, false);
+			this.animateCell(this.cells[i], move, false);
 		}
 	}
 	else
@@ -76843,7 +76903,7 @@ mxCodec.prototype.encode = function(obj)
 	if (obj != null && obj.constructor != null)
 	{
 		var enc = mxCodecRegistry.getCodec(obj.constructor);
-		
+
 		if (enc != null)
 		{
 			node = enc.encode(this, obj);
@@ -76852,13 +76912,11 @@ mxCodec.prototype.encode = function(obj)
 		{
 			if (mxUtils.isNode(obj))
 			{
-				node = (mxClient.IS_IE) ? obj.cloneNode(true) :
-					this.document.importNode(obj, true);
+				node = mxUtils.importNode(this.document, obj, true);
 			}
 			else
 			{
-	    		mxLog.warn('mxCodec.encode: No codec for '+
-	    			mxUtils.getFunctionName(obj.constructor));
+	    		mxLog.warn('mxCodec.encode: No codec for ' + mxUtils.getFunctionName(obj.constructor));
 			}
 		}
 	}
@@ -76892,7 +76950,7 @@ mxCodec.prototype.decode = function(node, into)
 		
 		try
 		{
-			ctor = eval(node.nodeName);
+			ctor = window[node.nodeName];
 		}
 		catch (err)
 		{
@@ -78125,16 +78183,13 @@ mxCodecRegistry.register(function()
 	 */
 	codec.afterEncode = function(enc, obj, node)
 	{
-		if (obj.value != null &&
-			obj.value.nodeType == mxConstants.NODETYPE_ELEMENT)
+		if (obj.value != null && obj.value.nodeType == mxConstants.NODETYPE_ELEMENT)
 		{
 			// Wraps the graphical annotation up in the user object (inversion)
 			// by putting the result of the default encoding into a clone of the
 			// user object (node type 1) and returning this cloned user object.
 			var tmp = node;
-			node = (mxClient.IS_IE) ?
-				obj.value.cloneNode(true) :
-				enc.document.importNode(obj.value, true);
+			node = mxUtils.importNode(enc.document, obj.value, true);
 			node.appendChild(tmp);
 			
 			// Moves the id attribute to the outermost XML node, namely the
@@ -78164,8 +78219,7 @@ mxCodecRegistry.register(function()
 			// object codec for further processing of the cell.
 			var tmp = node.getElementsByTagName(classname)[0];
 			
-			if (tmp != null &&
-				tmp.parentNode == node)
+			if (tmp != null && tmp.parentNode == node)
 			{
 				mxUtils.removeWhitespace(tmp, true);
 				mxUtils.removeWhitespace(tmp, false);

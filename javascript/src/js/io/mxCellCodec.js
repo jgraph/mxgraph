@@ -62,16 +62,13 @@ mxCodecRegistry.register(function()
 	 */
 	codec.afterEncode = function(enc, obj, node)
 	{
-		if (obj.value != null &&
-			obj.value.nodeType == mxConstants.NODETYPE_ELEMENT)
+		if (obj.value != null && obj.value.nodeType == mxConstants.NODETYPE_ELEMENT)
 		{
 			// Wraps the graphical annotation up in the user object (inversion)
 			// by putting the result of the default encoding into a clone of the
 			// user object (node type 1) and returning this cloned user object.
 			var tmp = node;
-			node = (mxClient.IS_IE) ?
-				obj.value.cloneNode(true) :
-				enc.document.importNode(obj.value, true);
+			node = mxUtils.importNode(enc.document, obj.value, true);
 			node.appendChild(tmp);
 			
 			// Moves the id attribute to the outermost XML node, namely the
@@ -101,8 +98,7 @@ mxCodecRegistry.register(function()
 			// object codec for further processing of the cell.
 			var tmp = node.getElementsByTagName(classname)[0];
 			
-			if (tmp != null &&
-				tmp.parentNode == node)
+			if (tmp != null && tmp.parentNode == node)
 			{
 				mxUtils.removeWhitespace(tmp, true);
 				mxUtils.removeWhitespace(tmp, false);

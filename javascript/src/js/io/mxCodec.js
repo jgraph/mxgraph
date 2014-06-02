@@ -287,7 +287,7 @@ mxCodec.prototype.encode = function(obj)
 	if (obj != null && obj.constructor != null)
 	{
 		var enc = mxCodecRegistry.getCodec(obj.constructor);
-		
+
 		if (enc != null)
 		{
 			node = enc.encode(this, obj);
@@ -296,13 +296,11 @@ mxCodec.prototype.encode = function(obj)
 		{
 			if (mxUtils.isNode(obj))
 			{
-				node = (mxClient.IS_IE) ? obj.cloneNode(true) :
-					this.document.importNode(obj, true);
+				node = mxUtils.importNode(this.document, obj, true);
 			}
 			else
 			{
-	    		mxLog.warn('mxCodec.encode: No codec for '+
-	    			mxUtils.getFunctionName(obj.constructor));
+	    		mxLog.warn('mxCodec.encode: No codec for ' + mxUtils.getFunctionName(obj.constructor));
 			}
 		}
 	}
@@ -336,7 +334,7 @@ mxCodec.prototype.decode = function(node, into)
 		
 		try
 		{
-			ctor = eval(node.nodeName);
+			ctor = window[node.nodeName];
 		}
 		catch (err)
 		{

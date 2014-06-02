@@ -1,3 +1,11 @@
+02-JUN-2014: 1.13.0.14
+
+- mxCodec.decode no longer uses eval to convert name to ctor [JavaScript]
+- Uses mxUtils.importNode in mxCodec.encode, mxCellCodec.afterEncode [JavaScript]
+- Adds mxUtils.importNode cross-browser implementation [JavaScript]
+- Uses ActiveX in mxUtils.createaXmlDocument, getXml for IE9 standards [JavaScript]
+- Fixes bug in mxMorphing.updateAnimation [JavaScript]
+
 05-MAY-2014: 1.13.0.13
 
 - Fixes possible infinite loop via mxGraph.getDropTarget [JavaScript]

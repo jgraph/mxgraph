@@ -105,7 +105,7 @@ mxMorphing.prototype.updateAnimation = function()
 		// Animates the given cells individually without recursion
 		for (var i = 0; i < this.cells.length; i++)
 		{
-			this.animateCell(cells[i], move, false);
+			this.animateCell(this.cells[i], move, false);
 		}
 	}
 	else
