@@ -83,9 +83,7 @@ mxCodecRegistry.register(function()
 			// by putting the result of the default encoding into a clone of the
 			// user object (node type 1) and returning this cloned user object.
 			var tmp = node;
-			node = (mxClient.IS_IE) ?
-				obj.value.cloneNode(true) :
-				enc.document.importNode(obj.value, true);
+			node = mxUtils.importNode(enc.document, obj.value, true);
 			node.appendChild(tmp);
 			
 			// Moves the id attribute to the outermost XML node, namely the

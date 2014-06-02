@@ -991,7 +991,7 @@ Graph.prototype.initTouch = function()
 			
 			this.hint.innerHTML = x + ', ' + y;
 
-			this.hint.style.left = this.shape.bounds.x + Math.round((this.shape.bounds.width - this.hint.clientWidth) / 2) + 'px';
+			this.hint.style.left = (this.shape.bounds.x + Math.round((this.shape.bounds.width - this.hint.clientWidth) / 2)) + 'px';
 			this.hint.style.top = (this.shape.bounds.y + this.shape.bounds.height + 12) + 'px';
 		}
 	};
@@ -1234,7 +1234,7 @@ Graph.prototype.initTouch = function()
 			vertexHandlerInit.apply(this, arguments);
 			var redraw = false;
 			
-			this.selectionHandler = mxUtils.bind(this, function(sender, evt)
+			var update = mxUtils.bind(this, function()
 			{
 				if (this.connectorImg != null)
 				{
@@ -1255,12 +1255,17 @@ Graph.prototype.initTouch = function()
 				this.redrawHandles();
 			});
 			
+			this.selectionHandler = mxUtils.bind(this, function(sender, evt)
+			{
+				update();
+			});
+			
 			this.graph.getSelectionModel().addListener(mxEvent.CHANGE, this.selectionHandler);
 			
 			this.changeHandler = mxUtils.bind(this, function(sender, evt)
 			{
 				this.updateLinkHint(this.graph.getLinkForCell(this.state.cell));
-				this.redrawHandles();
+				update();
 			});
 			
 			this.graph.getModel().addListener(mxEvent.CHANGE, this.changeHandler);
@@ -1411,12 +1416,17 @@ Graph.prototype.initTouch = function()
 		{
 			edgeHandlerInit.apply(this, arguments);
 			
-			this.selectionHandler = mxUtils.bind(this, function(sender, evt)
+			var update = mxUtils.bind(this, function()
 			{
 				if (this.linkHint != null)
 				{
 					this.linkHint.style.display = (this.graph.getSelectionCount() == 1) ? '' : 'none';
 				}
+			});
+
+			this.selectionHandler = mxUtils.bind(this, function(sender, evt)
+			{
+				update();
 			});
 			
 			this.graph.getSelectionModel().addListener(mxEvent.CHANGE, this.selectionHandler);
@@ -1424,6 +1434,7 @@ Graph.prototype.initTouch = function()
 			this.changeHandler = mxUtils.bind(this, function(sender, evt)
 			{
 				this.updateLinkHint(this.graph.getLinkForCell(this.state.cell));
+				update();
 				this.redrawHandles();
 			});
 			

@@ -530,7 +530,65 @@ var mxUtils =
 		
 		return children;
 	},
-		
+
+	/**
+	 * Function: importNode
+	 * 
+	 * Cross browser implementation for document.importNode. Uses document.importNode
+	 * in all browsers but IE, where the node is cloned by creating a new node and
+	 * copying all attributes and children into it using importNode, recursively.
+	 * 
+	 * Parameters:
+	 * 
+	 * doc - Document to import the node into.
+	 * node - Node to be imported.
+	 * allChildren - If all children should be imported.
+	 */
+	importNode: function(doc, node, allChildren)
+	{
+		if (mxClient.IS_IE && (document.documentMode == null || document.documentMode < 10))
+		{
+			switch (node.nodeType)
+			{
+				case 1: /* element */
+				{
+					var newNode = doc.createElement(node.nodeName);
+					
+					if (node.attributes && node.attributes.length > 0)
+					{
+						for (var i = 0; i < node.attributes.length; i++)
+						{
+							newNode.setAttribute(node.attributes[i].nodeName,
+								node.getAttribute(node.attributes[i].nodeName));
+						}
+						
+						if (allChildren && node.childNodes && node.childNodes.length > 0)
+						{
+							for (var i = 0; i < node.childNodes.length; i++)
+							{
+								newNode.appendChild(mxUtils.importNode(doc, node.childNodes[i], allChildren));
+							}
+						}
+					}
+					
+					return newNode;
+					break;
+				}
+				case 3: /* text */
+			    case 4: /* cdata-section */
+			    case 8: /* comment */
+			    {
+			      return doc.createTextNode(node.nodeValue);
+			      break;
+			    }
+			};
+		}
+		else
+		{
+			return doc.importNode(node, allChildren);
+		}
+	},
+
 	/**
 	 * Function: createXmlDocument
 	 * 
@@ -540,7 +598,8 @@ var mxUtils =
 	{
 		var doc = null;
 		
-		if (document.implementation && document.implementation.createDocument)
+		// Workaround for IE9 standards mode creating a HTML document
+		if (document.implementation && document.implementation.createDocument && document.documentMode != 9)
 		{
 			doc = document.implementation.createDocument('', '', null);
 		}
@@ -788,8 +847,9 @@ var mxUtils =
 	getXml: function(node, linefeed)
 	{
 		var xml = '';
-		  
-		if (window.XMLSerializer != null)
+
+		// Workaround for IE9 standards mode interface not supported
+		if (window.XMLSerializer != null && document.documentMode != 9)
 		{
 			var xmlSerializer = new XMLSerializer();
 			xml = xmlSerializer.serializeToString(node);     
@@ -3603,7 +3663,7 @@ var mxUtils =
 			div.appendChild(pre);
 			
 			var w = document.body.clientWidth;
-			var h = (document.body.clientHeight || document.documentElement.clientHeight);
+			var h = Math.max(document.body.clientHeight || 0, document.documentElement.clientHeight)
 			var wnd = new mxWindow('Popup Window', div,
 				w/2-320, h/2-240, 640, 480, false, true);
 

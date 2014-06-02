@@ -738,7 +738,7 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 		css.append("font-size:" + Math.round(state.fontSize) + " pt;");
 		css.append("color:" + state.fontColorValue + ";");
 		// KNOWN: Line-height ignored in JLabel
-		css.append("line-height:" + ((mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(state.fontSize * mxConstants.LINE_HEIGHT) + " pt" : mxConstants.LINE_HEIGHT));
+		css.append("line-height:" + ((mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(state.fontSize * mxConstants.LINE_HEIGHT) + " pt" : mxConstants.LINE_HEIGHT) + ";");
 		
 		boolean setWidth = false;
 		

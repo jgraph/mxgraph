@@ -788,6 +788,16 @@ var mxEdgeStyle =
 	 * 
 	 * Implements a local orthogonal router between the given
 	 * cells.
+	 * 
+	 * Parameters:
+	 * 
+	 * state - <mxCellState> that represents the edge to be updated.
+	 * source - <mxCellState> that represents the source terminal.
+	 * target - <mxCellState> that represents the target terminal.
+	 * points - List of relative control points.
+	 * result - Array of <mxPoints> that represent the actual points of the
+	 * edge.
+	 * 
 	 */
 	OrthConnector: function(state, source, target, points, result)
 	{
@@ -820,17 +830,38 @@ var mxEdgeStyle =
 		// that the edge may connect to
 		// portConstraint [source, target]
 		var portConstraint = [mxConstants.DIRECTION_MASK_ALL, mxConstants.DIRECTION_MASK_ALL];
+		var rotation = 0;
 		
 		if (source != null)
 		{
 			portConstraint[0] = mxUtils.getPortConstraints(source, state, true, 
 					mxConstants.DIRECTION_MASK_ALL);
+			rotation = mxUtils.getValue(source.style, mxConstants.STYLE_ROTATION, 0);
+			
+			if (rotation != 0)
+			{
+				var newRect = mxUtils.getBoundingBox(new mxRectangle(sourceX, sourceY, sourceWidth, sourceHeight), rotation);
+				sourceX = newRect.x;
+				sourceY = newRect.y;
+				sourceWidth = newRect.width;
+				sourceHeight = newRect.height;
+			}
 		}
 		
 		if (target != null)
 		{
 			portConstraint[1] = mxUtils.getPortConstraints(target, state, false,
 				mxConstants.DIRECTION_MASK_ALL);
+			rotation = mxUtils.getValue(target.style, mxConstants.STYLE_ROTATION, 0);
+
+			if (rotation != 0)
+			{
+				var newRect = mxUtils.getBoundingBox(new mxRectangle(targetX, targetY, targetWidth, targetHeight), rotation);
+				targetX = newRect.x;
+				targetY = newRect.y;
+				targetWidth = newRect.width;
+				targetHeight = newRect.height;
+			}
 		}
 										
 		var dir = [0, 0] ;

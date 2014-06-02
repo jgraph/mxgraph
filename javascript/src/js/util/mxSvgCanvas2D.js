@@ -531,7 +531,8 @@ mxSvgCanvas2D.prototype.addNode = function(filled, stroked)
 		{
 			node.setAttribute('pointer-events', 'all');
 		}
-		else if (!this.pointerEvents)
+		// Ugly hack to activate pointer events while a link is active
+		else if (!this.pointerEvents && this.originalRoot == null)
 		{
 			node.setAttribute('pointer-events', 'none');
 		}
@@ -570,6 +571,16 @@ mxSvgCanvas2D.prototype.updateFill = function()
 };
 
 /**
+ * Function: getCurrentStrokeWidth
+ * 
+ * Returns the current stroke width (>= 1), ie. max(1, this.format(this.state.strokeWidth * this.state.scale)).
+ */
+mxSvgCanvas2D.prototype.getCurrentStrokeWidth = function()
+{
+	return Math.max(1, this.format(this.state.strokeWidth * this.state.scale));
+};
+
+/**
  * Function: updateStroke
  * 
  * Transfers the stroke attributes from <state> to <node>.
@@ -585,8 +596,7 @@ mxSvgCanvas2D.prototype.updateStroke = function()
 		this.node.setAttribute('stroke-opacity', s.alpha);
 	}
 	
-	// Sets the stroke properties (1 is default in SVG)
-	var sw = Math.max(1, this.format(s.strokeWidth * s.scale));
+	var sw = this.getCurrentStrokeWidth();
 	
 	if (sw != 1)
 	{
@@ -717,6 +727,39 @@ mxSvgCanvas2D.prototype.createShadow = function(node)
 	shadow.setAttribute('opacity', s.shadowAlpha);
 	
 	return shadow;
+};
+
+/**
+ * Function: setLink
+ * 
+ * Experimental implementation for hyperlinks.
+ */
+mxSvgCanvas2D.prototype.setLink = function(link)
+{
+	if (link == null)
+	{
+		this.root = this.originalRoot;
+	}
+	else
+	{
+		this.originalRoot = this.root;
+		
+		var node = this.createElement('a');
+		
+		// Workaround for implicit namespace handling in HTML5 export, IE adds NS1 namespace so use code below
+		// in all IE versions except quirks mode. KNOWN: Adds xlink namespace to each image tag in output.
+		if (node.setAttributeNS == null || (this.root.ownerDocument != document && document.documentMode == null))
+		{
+			node.setAttribute('xlink:href', link);
+		}
+		else
+		{
+			node.setAttributeNS(mxConstants.NS_XLINK, 'xlink:href', link);
+		}
+		
+		this.root.appendChild(node);
+		this.root = node;
+	}
 };
 
 /**

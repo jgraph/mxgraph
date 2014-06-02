@@ -31,6 +31,7 @@ function mxGraphHandler(graph)
 	this.panHandler = mxUtils.bind(this, function()
 	{
 		this.updatePreviewShape();
+		this.updateHint();
 	});
 	
 	this.graph.addListener(mxEvent.PAN, this.panHandler);

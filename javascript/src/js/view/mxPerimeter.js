@@ -480,5 +480,442 @@ var mxPerimeter =
 		}
 		
 		return result;
+	},
+	
+	/**
+	 * Function: HexagonPerimeter
+	 * 
+	 * Describes a hexagon perimeter. See <RectanglePerimeter>
+	 * for a description of the parameters.
+	 */
+	HexagonPerimeter: function (bounds, vertex, next, orthogonal)
+	{
+		var x = bounds.x;
+		var y = bounds.y;
+		var w = bounds.width;
+		var h = bounds.height;
+
+		var cx = bounds.getCenterX();
+		var cy = bounds.getCenterY();
+		var px = next.x;
+		var py = next.y;
+		var dx = px - cx;
+		var dy = py - cy;
+		var alpha = -Math.atan2(dy, dx);
+		var pi = Math.PI;
+		var pi2 = Math.PI / 2;
+
+		var result = new mxPoint(cx, cy);
+
+		var direction = (vertex != null) ? mxUtils.getValue(
+				vertex.style, mxConstants.STYLE_DIRECTION,
+				mxConstants.DIRECTION_EAST) : mxConstants.DIRECTION_EAST;
+		var vertical = direction == mxConstants.DIRECTION_NORTH
+				|| direction == mxConstants.DIRECTION_SOUTH;
+		var a = new mxPoint();
+		var b = new mxPoint();
+
+		//Only consider corrects quadrants for the orthogonal case.
+		if ((px < x) && (py < y) || (px < x) && (py > y + h)
+				|| (px > x + w) && (py < y) || (px > x + w) && (py > y + h))
+		{
+			orthogonal = false;
+		}
+
+		if (orthogonal)
+		{
+			if (vertical)
+			{
+				//Special cases where intersects with hexagon corners
+				if (px == cx)
+				{
+					if (py <= y)
+					{
+						return new mxPoint(cx, y);
+					}
+					else if (py >= y + h)
+					{
+						return new mxPoint(cx, y + h);
+					}
+				}
+				else if (px < x)
+				{
+					if (py == y + h / 4)
+					{
+						return new mxPoint(x, y + h / 4);
+					}
+					else if (py == y + 3 * h / 4)
+					{
+						return new mxPoint(x, y + 3 * h / 4);
+					}
+				}
+				else if (px > x + w)
+				{
+					if (py == y + h / 4)
+					{
+						return new mxPoint(x + w, y + h / 4);
+					}
+					else if (py == y + 3 * h / 4)
+					{
+						return new mxPoint(x + w, y + 3 * h / 4);
+					}
+				}
+				else if (px == x)
+				{
+					if (py < cy)
+					{
+						return new mxPoint(x, y + h / 4);
+					}
+					else if (py > cy)
+					{
+						return new mxPoint(x, y + 3 * h / 4);
+					}
+				}
+				else if (px == x + w)
+				{
+					if (py < cy)
+					{
+						return new mxPoint(x + w, y + h / 4);
+					}
+					else if (py > cy)
+					{
+						return new mxPoint(x + w, y + 3 * h / 4);
+					}
+				}
+				if (py == y)
+				{
+					return new mxPoint(cx, y);
+				}
+				else if (py == y + h)
+				{
+					return new mxPoint(cx, y + h);
+				}
+
+				if (px < cx)
+				{
+					if ((py > y + h / 4) && (py < y + 3 * h / 4))
+					{
+						a = new mxPoint(x, y);
+						b = new mxPoint(x, y + h);
+					}
+					else if (py < y + h / 4)
+					{
+						a = new mxPoint(x - Math.floor(0.5 * w), y
+								+ Math.floor(0.5 * h));
+						b = new mxPoint(x + w, y - Math.floor(0.25 * h));
+					}
+					else if (py > y + 3 * h / 4)
+					{
+						a = new mxPoint(x - Math.floor(0.5 * w), y
+								+ Math.floor(0.5 * h));
+						b = new mxPoint(x + w, y + Math.floor(1.25 * h));
+					}
+				}
+				else if (px > cx)
+				{
+					if ((py > y + h / 4) && (py < y + 3 * h / 4))
+					{
+						a = new mxPoint(x + w, y);
+						b = new mxPoint(x + w, y + h);
+					}
+					else if (py < y + h / 4)
+					{
+						a = new mxPoint(x, y - Math.floor(0.25 * h));
+						b = new mxPoint(x + Math.floor(1.5 * w), y
+								+ Math.floor(0.5 * h));
+					}
+					else if (py > y + 3 * h / 4)
+					{
+						a = new mxPoint(x + Math.floor(1.5 * w), y
+								+ Math.floor(0.5 * h));
+						b = new mxPoint(x, y + Math.floor(1.25 * h));
+					}
+				}
+
+			}
+			else
+			{
+				//Special cases where intersects with hexagon corners
+				if (py == cy)
+				{
+					if (px <= x)
+					{
+						return new mxPoint(x, y + h / 2);
+					}
+					else if (px >= x + w)
+					{
+						return new mxPoint(x + w, y + h / 2);
+					}
+				}
+				else if (py < y)
+				{
+					if (px == x + w / 4)
+					{
+						return new mxPoint(x + w / 4, y);
+					}
+					else if (px == x + 3 * w / 4)
+					{
+						return new mxPoint(x + 3 * w / 4, y);
+					}
+				}
+				else if (py > y + h)
+				{
+					if (px == x + w / 4)
+					{
+						return new mxPoint(x + w / 4, y + h);
+					}
+					else if (px == x + 3 * w / 4)
+					{
+						return new mxPoint(x + 3 * w / 4, y + h);
+					}
+				}
+				else if (py == y)
+				{
+					if (px < cx)
+					{
+						return new mxPoint(x + w / 4, y);
+					}
+					else if (px > cx)
+					{
+						return new mxPoint(x + 3 * w / 4, y);
+					}
+				}
+				else if (py == y + h)
+				{
+					if (px < cx)
+					{
+						return new mxPoint(x + w / 4, y + h);
+					}
+					else if (py > cy)
+					{
+						return new mxPoint(x + 3 * w / 4, y + h);
+					}
+				}
+				if (px == x)
+				{
+					return new mxPoint(x, cy);
+				}
+				else if (px == x + w)
+				{
+					return new mxPoint(x + w, cy);
+				}
+
+				if (py < cy)
+				{
+					if ((px > x + w / 4) && (px < x + 3 * w / 4))
+					{
+						a = new mxPoint(x, y);
+						b = new mxPoint(x + w, y);
+					}
+					else if (px < x + w / 4)
+					{
+						a = new mxPoint(x - Math.floor(0.25 * w), y + h);
+						b = new mxPoint(x + Math.floor(0.5 * w), y
+								- Math.floor(0.5 * h));
+					}
+					else if (px > x + 3 * w / 4)
+					{
+						a = new mxPoint(x + Math.floor(0.5 * w), y
+								- Math.floor(0.5 * h));
+						b = new mxPoint(x + Math.floor(1.25 * w), y + h);
+					}
+				}
+				else if (py > cy)
+				{
+					if ((px > x + w / 4) && (px < x + 3 * w / 4))
+					{
+						a = new mxPoint(x, y + h);
+						b = new mxPoint(x + w, y + h);
+					}
+					else if (px < x + w / 4)
+					{
+						a = new mxPoint(x - Math.floor(0.25 * w), y);
+						b = new mxPoint(x + Math.floor(0.5 * w), y
+								+ Math.floor(1.5 * h));
+					}
+					else if (px > x + 3 * w / 4)
+					{
+						a = new mxPoint(x + Math.floor(0.5 * w), y
+								+ Math.floor(1.5 * h));
+						b = new mxPoint(x + Math.floor(1.25 * w), y);
+					}
+				}
+			}
+
+			var tx = cx;
+			var ty = cy;
+
+			if (px >= x && px <= x + w)
+			{
+				tx = px;
+				
+				if (py < cy)
+				{
+					ty = y + h;
+				}
+				else
+				{
+					ty = y;
+				}
+			}
+			else if (py >= y && py <= y + h)
+			{
+				ty = py;
+				
+				if (px < cx)
+				{
+					tx = x + w;
+				}
+				else
+				{
+					tx = x;
+				}
+			}
+
+			result = mxUtils.intersection(tx, ty, next.x, next.y, a.x, a.y, b.x, b.y);
+		}
+		else
+		{
+			if (vertical)
+			{
+				var beta = Math.atan2(h / 4, w / 2);
+
+				//Special cases where intersects with hexagon corners
+				if (alpha == beta)
+				{
+					return new mxPoint(x + w, y + Math.floor(0.25 * h));
+				}
+				else if (alpha == pi2)
+				{
+					return new mxPoint(x + Math.floor(0.5 * w), y);
+				}
+				else if (alpha == (pi - beta))
+				{
+					return new mxPoint(x, y + Math.floor(0.25 * h));
+				}
+				else if (alpha == -beta)
+				{
+					return new mxPoint(x + w, y + Math.floor(0.75 * h));
+				}
+				else if (alpha == (-pi2))
+				{
+					return new mxPoint(x + Math.floor(0.5 * w), y + h);
+				}
+				else if (alpha == (-pi + beta))
+				{
+					return new mxPoint(x, y + Math.floor(0.75 * h));
+				}
+
+				if ((alpha < beta) && (alpha > -beta))
+				{
+					a = new mxPoint(x + w, y);
+					b = new mxPoint(x + w, y + h);
+				}
+				else if ((alpha > beta) && (alpha < pi2))
+				{
+					a = new mxPoint(x, y - Math.floor(0.25 * h));
+					b = new mxPoint(x + Math.floor(1.5 * w), y
+							+ Math.floor(0.5 * h));
+				}
+				else if ((alpha > pi2) && (alpha < (pi - beta)))
+				{
+					a = new mxPoint(x - Math.floor(0.5 * w), y
+							+ Math.floor(0.5 * h));
+					b = new mxPoint(x + w, y - Math.floor(0.25 * h));
+				}
+				else if (((alpha > (pi - beta)) && (alpha <= pi))
+						|| ((alpha < (-pi + beta)) && (alpha >= -pi)))
+				{
+					a = new mxPoint(x, y);
+					b = new mxPoint(x, y + h);
+				}
+				else if ((alpha < -beta) && (alpha > -pi2))
+				{
+					a = new mxPoint(x + Math.floor(1.5 * w), y
+							+ Math.floor(0.5 * h));
+					b = new mxPoint(x, y + Math.floor(1.25 * h));
+				}
+				else if ((alpha < -pi2) && (alpha > (-pi + beta)))
+				{
+					a = new mxPoint(x - Math.floor(0.5 * w), y
+							+ Math.floor(0.5 * h));
+					b = new mxPoint(x + w, y + Math.floor(1.25 * h));
+				}
+			}
+			else
+			{
+				var beta = Math.atan2(h / 2, w / 4);
+
+				//Special cases where intersects with hexagon corners
+				if (alpha == beta)
+				{
+					return new mxPoint(x + Math.floor(0.75 * w), y);
+				}
+				else if (alpha == (pi - beta))
+				{
+					return new mxPoint(x + Math.floor(0.25 * w), y);
+				}
+				else if ((alpha == pi) || (alpha == -pi))
+				{
+					return new mxPoint(x, y + Math.floor(0.5 * h));
+				}
+				else if (alpha == 0)
+				{
+					return new mxPoint(x + w, y + Math.floor(0.5 * h));
+				}
+				else if (alpha == -beta)
+				{
+					return new mxPoint(x + Math.floor(0.75 * w), y + h);
+				}
+				else if (alpha == (-pi + beta))
+				{
+					return new mxPoint(x + Math.floor(0.25 * w), y + h);
+				}
+
+				if ((alpha > 0) && (alpha < beta))
+				{
+					a = new mxPoint(x + Math.floor(0.5 * w), y
+							- Math.floor(0.5 * h));
+					b = new mxPoint(x + Math.floor(1.25 * w), y + h);
+				}
+				else if ((alpha > beta) && (alpha < (pi - beta)))
+				{
+					a = new mxPoint(x, y);
+					b = new mxPoint(x + w, y);
+				}
+				else if ((alpha > (pi - beta)) && (alpha < pi))
+				{
+					a = new mxPoint(x - Math.floor(0.25 * w), y + h);
+					b = new mxPoint(x + Math.floor(0.5 * w), y
+							- Math.floor(0.5 * h));
+				}
+				else if ((alpha < 0) && (alpha > -beta))
+				{
+					a = new mxPoint(x + Math.floor(0.5 * w), y
+							+ Math.floor(1.5 * h));
+					b = new mxPoint(x + Math.floor(1.25 * w), y);
+				}
+				else if ((alpha < -beta) && (alpha > (-pi + beta)))
+				{
+					a = new mxPoint(x, y + h);
+					b = new mxPoint(x + w, y + h);
+				}
+				else if ((alpha < (-pi + beta)) && (alpha > -pi))
+				{
+					a = new mxPoint(x - Math.floor(0.25 * w), y);
+					b = new mxPoint(x + Math.floor(0.5 * w), y
+							+ Math.floor(1.5 * h));
+				}
+			}
+
+			result = mxUtils.intersection(cx, cy, next.x, next.y, a.x, a.y, b.x, b.y);
+		}
+		
+		if (result == null)
+		{
+			return new mxPoint(cx, cy);
+		}
+		
+		return result;
 	}
 };

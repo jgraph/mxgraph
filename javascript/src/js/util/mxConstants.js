@@ -1977,6 +1977,14 @@
 	PERIMETER_RHOMBUS: 'rhombusPerimeter',
 
 	/**
+	 * Variable: PERIMETER_HEXAGON
+	 * 
+	 * Name of the hexagon perimeter. Can be used as a string value 
+	 * for the STYLE_PERIMETER style.
+	 */
+	PERIMETER_HEXAGON: 'hexagonPerimeter',
+
+	/**
 	 * Variable: PERIMETER_TRIANGLE
 	 * 
 	 * Name of the triangle perimeter. Can be used as a string value

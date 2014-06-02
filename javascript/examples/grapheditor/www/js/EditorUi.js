@@ -206,6 +206,18 @@ EditorUi = function(editor, container)
    		}), 0);
    	}));
 
+	/**
+	 * Sets the initial scrollbar locations after a file was loaded.
+	 */
+	this.editor.addListener('resetGraphView', mxUtils.bind(this, function()
+	{
+		// Timeout is a workaround for delay needed in older browsers and IE
+		window.setTimeout(mxUtils.bind(this, function()
+		{
+			this.editor.resetScrollbars();
+		}), 0);
+	}));
+
    	// Resets UI, updates action and menu states
    	this.editor.resetGraph();
    	this.init();
@@ -414,6 +426,10 @@ EditorUi.prototype.open = function()
 	
 	// Fires as the last step if no file was loaded
 	this.editor.graph.view.validate();
+	
+	// Required only in special cases where an initial file is opened
+	// and the minimumGraphSize changes and CSS must be updated.
+	this.editor.graph.sizeDidChange();
 	this.editor.fireEvent(new mxEventObject('resetGraphView'));
 };
 
@@ -1045,7 +1061,7 @@ EditorUi.prototype.openFile = function()
 	}));
 
 	// Removes openFile if dialog is closed
-	this.showDialog(new OpenDialog(this).container, 300, 180, true, true, function()
+	this.showDialog(new OpenDialog(this).container, 360, 240, true, true, function()
 	{
 		window.openFile = null;
 	});
@@ -1179,6 +1195,12 @@ EditorUi.prototype.getSvg = function(background, scale, border)
 	var svgCanvas = new mxSvgCanvas2D(group);
 	svgCanvas.translate(Math.floor((border / scale - bounds.x) / vs), Math.floor((border / scale - bounds.y) / vs));
 	svgCanvas.scale(scale / vs);
+	
+	// Adds hyperlinks (experimental)
+	imgExport.getLinkForCellState = function(state, canvas)
+	{
+		return graph.getLinkForCell(state.cell);
+	};
 	
 	// Paints background image
 	var bgImg = graph.backgroundImage;

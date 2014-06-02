@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.8.0.0.
+	 * Current version is 2.8.1.0.
 	 */
-	VERSION: '2.8.0.0',
+	VERSION: '2.8.1.0',
 
 	/**
 	 * Variable: IS_IE
@@ -2446,7 +2446,65 @@ var mxUtils =
 		
 		return children;
 	},
-		
+
+	/**
+	 * Function: importNode
+	 * 
+	 * Cross browser implementation for document.importNode. Uses document.importNode
+	 * in all browsers but IE, where the node is cloned by creating a new node and
+	 * copying all attributes and children into it using importNode, recursively.
+	 * 
+	 * Parameters:
+	 * 
+	 * doc - Document to import the node into.
+	 * node - Node to be imported.
+	 * allChildren - If all children should be imported.
+	 */
+	importNode: function(doc, node, allChildren)
+	{
+		if (mxClient.IS_IE && (document.documentMode == null || document.documentMode < 10))
+		{
+			switch (node.nodeType)
+			{
+				case 1: /* element */
+				{
+					var newNode = doc.createElement(node.nodeName);
+					
+					if (node.attributes && node.attributes.length > 0)
+					{
+						for (var i = 0; i < node.attributes.length; i++)
+						{
+							newNode.setAttribute(node.attributes[i].nodeName,
+								node.getAttribute(node.attributes[i].nodeName));
+						}
+						
+						if (allChildren && node.childNodes && node.childNodes.length > 0)
+						{
+							for (var i = 0; i < node.childNodes.length; i++)
+							{
+								newNode.appendChild(mxUtils.importNode(doc, node.childNodes[i], allChildren));
+							}
+						}
+					}
+					
+					return newNode;
+					break;
+				}
+				case 3: /* text */
+			    case 4: /* cdata-section */
+			    case 8: /* comment */
+			    {
+			      return doc.createTextNode(node.nodeValue);
+			      break;
+			    }
+			};
+		}
+		else
+		{
+			return doc.importNode(node, allChildren);
+		}
+	},
+
 	/**
 	 * Function: createXmlDocument
 	 * 
@@ -2456,7 +2514,8 @@ var mxUtils =
 	{
 		var doc = null;
 		
-		if (document.implementation && document.implementation.createDocument)
+		// Workaround for IE9 standards mode creating a HTML document
+		if (document.implementation && document.implementation.createDocument && document.documentMode != 9)
 		{
 			doc = document.implementation.createDocument('', '', null);
 		}
@@ -2704,8 +2763,9 @@ var mxUtils =
 	getXml: function(node, linefeed)
 	{
 		var xml = '';
-		  
-		if (window.XMLSerializer != null)
+
+		// Workaround for IE9 standards mode interface not supported
+		if (window.XMLSerializer != null && document.documentMode != 9)
 		{
 			var xmlSerializer = new XMLSerializer();
 			xml = xmlSerializer.serializeToString(node);     
@@ -5519,7 +5579,7 @@ var mxUtils =
 			div.appendChild(pre);
 			
 			var w = document.body.clientWidth;
-			var h = (document.body.clientHeight || document.documentElement.clientHeight);
+			var h = Math.max(document.body.clientHeight || 0, document.documentElement.clientHeight)
 			var wnd = new mxWindow('Popup Window', div,
 				w/2-320, h/2-240, 640, 480, false, true);
 
@@ -7769,6 +7829,14 @@ var mxUtils =
 	 * for the STYLE_PERIMETER style.
 	 */
 	PERIMETER_RHOMBUS: 'rhombusPerimeter',
+
+	/**
+	 * Variable: PERIMETER_HEXAGON
+	 * 
+	 * Name of the hexagon perimeter. Can be used as a string value 
+	 * for the STYLE_PERIMETER style.
+	 */
+	PERIMETER_HEXAGON: 'hexagonPerimeter',
 
 	/**
 	 * Variable: PERIMETER_TRIANGLE
@@ -15812,12 +15880,18 @@ mxImageExport.prototype.drawState = function(state, canvas)
 {
 	if (state != null)
 	{
-		this.visitStatesRecursive(state, canvas, this.drawCellState);
+		this.visitStatesRecursive(state, canvas, mxUtils.bind(this, function()
+		{
+			this.drawCellState.apply(this, arguments);
+		}));
 				
 		// Paints the overlays
 		if (this.includeOverlays)
 		{
-			this.visitStatesRecursive(state, canvas, this.drawOverlays);
+			this.visitStatesRecursive(state, canvas, mxUtils.bind(this, function()
+			{
+				this.drawOverlays.apply(this, arguments);
+			}));
 		}
 	}
 };
@@ -15845,12 +15919,30 @@ mxImageExport.prototype.visitStatesRecursive = function(state, canvas, visitor)
 };
 
 /**
+ * Function: getLinkForCellState
+ * 
+ * Returns the link for the given cell state and canvas. This returns null.
+ */
+mxImageExport.prototype.getLinkForCellState = function(state, canvas)
+{
+	return null;
+};
+
+/**
  * Function: drawShape
  * 
  * Draws the given state to the given canvas.
  */
 mxImageExport.prototype.drawCellState = function(state, canvas)
 {
+	// Experimental feature
+	var link = this.getLinkForCellState(state, canvas);
+	
+	if (link != null)
+	{
+		canvas.setLink(link);
+	}
+	
 	// Paints the shape
 	if (state.shape instanceof mxShape)
 	{
@@ -15865,6 +15957,11 @@ mxImageExport.prototype.drawCellState = function(state, canvas)
 		canvas.save();
 		state.text.paint(canvas);
 		canvas.restore();
+	}
+	
+	if (link != null)
+	{
+		canvas.setLink(null);
 	}
 };
 
@@ -16129,6 +16226,16 @@ mxAbstractCanvas2D.prototype.save = function()
 mxAbstractCanvas2D.prototype.restore = function()
 {
 	this.state = this.states.pop();
+};
+
+/**
+ * Function: setLink
+ * 
+ * Sets the current link. Hook for subclassers.
+ */
+mxAbstractCanvas2D.prototype.setLink = function(link)
+{
+	// nop
 };
 
 /**
@@ -18174,7 +18281,8 @@ mxSvgCanvas2D.prototype.addNode = function(filled, stroked)
 		{
 			node.setAttribute('pointer-events', 'all');
 		}
-		else if (!this.pointerEvents)
+		// Ugly hack to activate pointer events while a link is active
+		else if (!this.pointerEvents && this.originalRoot == null)
 		{
 			node.setAttribute('pointer-events', 'none');
 		}
@@ -18213,6 +18321,16 @@ mxSvgCanvas2D.prototype.updateFill = function()
 };
 
 /**
+ * Function: getCurrentStrokeWidth
+ * 
+ * Returns the current stroke width (>= 1), ie. max(1, this.format(this.state.strokeWidth * this.state.scale)).
+ */
+mxSvgCanvas2D.prototype.getCurrentStrokeWidth = function()
+{
+	return Math.max(1, this.format(this.state.strokeWidth * this.state.scale));
+};
+
+/**
  * Function: updateStroke
  * 
  * Transfers the stroke attributes from <state> to <node>.
@@ -18228,8 +18346,7 @@ mxSvgCanvas2D.prototype.updateStroke = function()
 		this.node.setAttribute('stroke-opacity', s.alpha);
 	}
 	
-	// Sets the stroke properties (1 is default in SVG)
-	var sw = Math.max(1, this.format(s.strokeWidth * s.scale));
+	var sw = this.getCurrentStrokeWidth();
 	
 	if (sw != 1)
 	{
@@ -18360,6 +18477,39 @@ mxSvgCanvas2D.prototype.createShadow = function(node)
 	shadow.setAttribute('opacity', s.shadowAlpha);
 	
 	return shadow;
+};
+
+/**
+ * Function: setLink
+ * 
+ * Experimental implementation for hyperlinks.
+ */
+mxSvgCanvas2D.prototype.setLink = function(link)
+{
+	if (link == null)
+	{
+		this.root = this.originalRoot;
+	}
+	else
+	{
+		this.originalRoot = this.root;
+		
+		var node = this.createElement('a');
+		
+		// Workaround for implicit namespace handling in HTML5 export, IE adds NS1 namespace so use code below
+		// in all IE versions except quirks mode. KNOWN: Adds xlink namespace to each image tag in output.
+		if (node.setAttributeNS == null || (this.root.ownerDocument != document && document.documentMode == null))
+		{
+			node.setAttribute('xlink:href', link);
+		}
+		else
+		{
+			node.setAttributeNS(mxConstants.NS_XLINK, 'xlink:href', link);
+		}
+		
+		this.root.appendChild(node);
+		this.root = node;
+	}
 };
 
 /**
@@ -40309,6 +40459,443 @@ var mxPerimeter =
 		}
 		
 		return result;
+	},
+	
+	/**
+	 * Function: HexagonPerimeter
+	 * 
+	 * Describes a hexagon perimeter. See <RectanglePerimeter>
+	 * for a description of the parameters.
+	 */
+	HexagonPerimeter: function (bounds, vertex, next, orthogonal)
+	{
+		var x = bounds.x;
+		var y = bounds.y;
+		var w = bounds.width;
+		var h = bounds.height;
+
+		var cx = bounds.getCenterX();
+		var cy = bounds.getCenterY();
+		var px = next.x;
+		var py = next.y;
+		var dx = px - cx;
+		var dy = py - cy;
+		var alpha = -Math.atan2(dy, dx);
+		var pi = Math.PI;
+		var pi2 = Math.PI / 2;
+
+		var result = new mxPoint(cx, cy);
+
+		var direction = (vertex != null) ? mxUtils.getValue(
+				vertex.style, mxConstants.STYLE_DIRECTION,
+				mxConstants.DIRECTION_EAST) : mxConstants.DIRECTION_EAST;
+		var vertical = direction == mxConstants.DIRECTION_NORTH
+				|| direction == mxConstants.DIRECTION_SOUTH;
+		var a = new mxPoint();
+		var b = new mxPoint();
+
+		//Only consider corrects quadrants for the orthogonal case.
+		if ((px < x) && (py < y) || (px < x) && (py > y + h)
+				|| (px > x + w) && (py < y) || (px > x + w) && (py > y + h))
+		{
+			orthogonal = false;
+		}
+
+		if (orthogonal)
+		{
+			if (vertical)
+			{
+				//Special cases where intersects with hexagon corners
+				if (px == cx)
+				{
+					if (py <= y)
+					{
+						return new mxPoint(cx, y);
+					}
+					else if (py >= y + h)
+					{
+						return new mxPoint(cx, y + h);
+					}
+				}
+				else if (px < x)
+				{
+					if (py == y + h / 4)
+					{
+						return new mxPoint(x, y + h / 4);
+					}
+					else if (py == y + 3 * h / 4)
+					{
+						return new mxPoint(x, y + 3 * h / 4);
+					}
+				}
+				else if (px > x + w)
+				{
+					if (py == y + h / 4)
+					{
+						return new mxPoint(x + w, y + h / 4);
+					}
+					else if (py == y + 3 * h / 4)
+					{
+						return new mxPoint(x + w, y + 3 * h / 4);
+					}
+				}
+				else if (px == x)
+				{
+					if (py < cy)
+					{
+						return new mxPoint(x, y + h / 4);
+					}
+					else if (py > cy)
+					{
+						return new mxPoint(x, y + 3 * h / 4);
+					}
+				}
+				else if (px == x + w)
+				{
+					if (py < cy)
+					{
+						return new mxPoint(x + w, y + h / 4);
+					}
+					else if (py > cy)
+					{
+						return new mxPoint(x + w, y + 3 * h / 4);
+					}
+				}
+				if (py == y)
+				{
+					return new mxPoint(cx, y);
+				}
+				else if (py == y + h)
+				{
+					return new mxPoint(cx, y + h);
+				}
+
+				if (px < cx)
+				{
+					if ((py > y + h / 4) && (py < y + 3 * h / 4))
+					{
+						a = new mxPoint(x, y);
+						b = new mxPoint(x, y + h);
+					}
+					else if (py < y + h / 4)
+					{
+						a = new mxPoint(x - Math.floor(0.5 * w), y
+								+ Math.floor(0.5 * h));
+						b = new mxPoint(x + w, y - Math.floor(0.25 * h));
+					}
+					else if (py > y + 3 * h / 4)
+					{
+						a = new mxPoint(x - Math.floor(0.5 * w), y
+								+ Math.floor(0.5 * h));
+						b = new mxPoint(x + w, y + Math.floor(1.25 * h));
+					}
+				}
+				else if (px > cx)
+				{
+					if ((py > y + h / 4) && (py < y + 3 * h / 4))
+					{
+						a = new mxPoint(x + w, y);
+						b = new mxPoint(x + w, y + h);
+					}
+					else if (py < y + h / 4)
+					{
+						a = new mxPoint(x, y - Math.floor(0.25 * h));
+						b = new mxPoint(x + Math.floor(1.5 * w), y
+								+ Math.floor(0.5 * h));
+					}
+					else if (py > y + 3 * h / 4)
+					{
+						a = new mxPoint(x + Math.floor(1.5 * w), y
+								+ Math.floor(0.5 * h));
+						b = new mxPoint(x, y + Math.floor(1.25 * h));
+					}
+				}
+
+			}
+			else
+			{
+				//Special cases where intersects with hexagon corners
+				if (py == cy)
+				{
+					if (px <= x)
+					{
+						return new mxPoint(x, y + h / 2);
+					}
+					else if (px >= x + w)
+					{
+						return new mxPoint(x + w, y + h / 2);
+					}
+				}
+				else if (py < y)
+				{
+					if (px == x + w / 4)
+					{
+						return new mxPoint(x + w / 4, y);
+					}
+					else if (px == x + 3 * w / 4)
+					{
+						return new mxPoint(x + 3 * w / 4, y);
+					}
+				}
+				else if (py > y + h)
+				{
+					if (px == x + w / 4)
+					{
+						return new mxPoint(x + w / 4, y + h);
+					}
+					else if (px == x + 3 * w / 4)
+					{
+						return new mxPoint(x + 3 * w / 4, y + h);
+					}
+				}
+				else if (py == y)
+				{
+					if (px < cx)
+					{
+						return new mxPoint(x + w / 4, y);
+					}
+					else if (px > cx)
+					{
+						return new mxPoint(x + 3 * w / 4, y);
+					}
+				}
+				else if (py == y + h)
+				{
+					if (px < cx)
+					{
+						return new mxPoint(x + w / 4, y + h);
+					}
+					else if (py > cy)
+					{
+						return new mxPoint(x + 3 * w / 4, y + h);
+					}
+				}
+				if (px == x)
+				{
+					return new mxPoint(x, cy);
+				}
+				else if (px == x + w)
+				{
+					return new mxPoint(x + w, cy);
+				}
+
+				if (py < cy)
+				{
+					if ((px > x + w / 4) && (px < x + 3 * w / 4))
+					{
+						a = new mxPoint(x, y);
+						b = new mxPoint(x + w, y);
+					}
+					else if (px < x + w / 4)
+					{
+						a = new mxPoint(x - Math.floor(0.25 * w), y + h);
+						b = new mxPoint(x + Math.floor(0.5 * w), y
+								- Math.floor(0.5 * h));
+					}
+					else if (px > x + 3 * w / 4)
+					{
+						a = new mxPoint(x + Math.floor(0.5 * w), y
+								- Math.floor(0.5 * h));
+						b = new mxPoint(x + Math.floor(1.25 * w), y + h);
+					}
+				}
+				else if (py > cy)
+				{
+					if ((px > x + w / 4) && (px < x + 3 * w / 4))
+					{
+						a = new mxPoint(x, y + h);
+						b = new mxPoint(x + w, y + h);
+					}
+					else if (px < x + w / 4)
+					{
+						a = new mxPoint(x - Math.floor(0.25 * w), y);
+						b = new mxPoint(x + Math.floor(0.5 * w), y
+								+ Math.floor(1.5 * h));
+					}
+					else if (px > x + 3 * w / 4)
+					{
+						a = new mxPoint(x + Math.floor(0.5 * w), y
+								+ Math.floor(1.5 * h));
+						b = new mxPoint(x + Math.floor(1.25 * w), y);
+					}
+				}
+			}
+
+			var tx = cx;
+			var ty = cy;
+
+			if (px >= x && px <= x + w)
+			{
+				tx = px;
+				
+				if (py < cy)
+				{
+					ty = y + h;
+				}
+				else
+				{
+					ty = y;
+				}
+			}
+			else if (py >= y && py <= y + h)
+			{
+				ty = py;
+				
+				if (px < cx)
+				{
+					tx = x + w;
+				}
+				else
+				{
+					tx = x;
+				}
+			}
+
+			result = mxUtils.intersection(tx, ty, next.x, next.y, a.x, a.y, b.x, b.y);
+		}
+		else
+		{
+			if (vertical)
+			{
+				var beta = Math.atan2(h / 4, w / 2);
+
+				//Special cases where intersects with hexagon corners
+				if (alpha == beta)
+				{
+					return new mxPoint(x + w, y + Math.floor(0.25 * h));
+				}
+				else if (alpha == pi2)
+				{
+					return new mxPoint(x + Math.floor(0.5 * w), y);
+				}
+				else if (alpha == (pi - beta))
+				{
+					return new mxPoint(x, y + Math.floor(0.25 * h));
+				}
+				else if (alpha == -beta)
+				{
+					return new mxPoint(x + w, y + Math.floor(0.75 * h));
+				}
+				else if (alpha == (-pi2))
+				{
+					return new mxPoint(x + Math.floor(0.5 * w), y + h);
+				}
+				else if (alpha == (-pi + beta))
+				{
+					return new mxPoint(x, y + Math.floor(0.75 * h));
+				}
+
+				if ((alpha < beta) && (alpha > -beta))
+				{
+					a = new mxPoint(x + w, y);
+					b = new mxPoint(x + w, y + h);
+				}
+				else if ((alpha > beta) && (alpha < pi2))
+				{
+					a = new mxPoint(x, y - Math.floor(0.25 * h));
+					b = new mxPoint(x + Math.floor(1.5 * w), y
+							+ Math.floor(0.5 * h));
+				}
+				else if ((alpha > pi2) && (alpha < (pi - beta)))
+				{
+					a = new mxPoint(x - Math.floor(0.5 * w), y
+							+ Math.floor(0.5 * h));
+					b = new mxPoint(x + w, y - Math.floor(0.25 * h));
+				}
+				else if (((alpha > (pi - beta)) && (alpha <= pi))
+						|| ((alpha < (-pi + beta)) && (alpha >= -pi)))
+				{
+					a = new mxPoint(x, y);
+					b = new mxPoint(x, y + h);
+				}
+				else if ((alpha < -beta) && (alpha > -pi2))
+				{
+					a = new mxPoint(x + Math.floor(1.5 * w), y
+							+ Math.floor(0.5 * h));
+					b = new mxPoint(x, y + Math.floor(1.25 * h));
+				}
+				else if ((alpha < -pi2) && (alpha > (-pi + beta)))
+				{
+					a = new mxPoint(x - Math.floor(0.5 * w), y
+							+ Math.floor(0.5 * h));
+					b = new mxPoint(x + w, y + Math.floor(1.25 * h));
+				}
+			}
+			else
+			{
+				var beta = Math.atan2(h / 2, w / 4);
+
+				//Special cases where intersects with hexagon corners
+				if (alpha == beta)
+				{
+					return new mxPoint(x + Math.floor(0.75 * w), y);
+				}
+				else if (alpha == (pi - beta))
+				{
+					return new mxPoint(x + Math.floor(0.25 * w), y);
+				}
+				else if ((alpha == pi) || (alpha == -pi))
+				{
+					return new mxPoint(x, y + Math.floor(0.5 * h));
+				}
+				else if (alpha == 0)
+				{
+					return new mxPoint(x + w, y + Math.floor(0.5 * h));
+				}
+				else if (alpha == -beta)
+				{
+					return new mxPoint(x + Math.floor(0.75 * w), y + h);
+				}
+				else if (alpha == (-pi + beta))
+				{
+					return new mxPoint(x + Math.floor(0.25 * w), y + h);
+				}
+
+				if ((alpha > 0) && (alpha < beta))
+				{
+					a = new mxPoint(x + Math.floor(0.5 * w), y
+							- Math.floor(0.5 * h));
+					b = new mxPoint(x + Math.floor(1.25 * w), y + h);
+				}
+				else if ((alpha > beta) && (alpha < (pi - beta)))
+				{
+					a = new mxPoint(x, y);
+					b = new mxPoint(x + w, y);
+				}
+				else if ((alpha > (pi - beta)) && (alpha < pi))
+				{
+					a = new mxPoint(x - Math.floor(0.25 * w), y + h);
+					b = new mxPoint(x + Math.floor(0.5 * w), y
+							- Math.floor(0.5 * h));
+				}
+				else if ((alpha < 0) && (alpha > -beta))
+				{
+					a = new mxPoint(x + Math.floor(0.5 * w), y
+							+ Math.floor(1.5 * h));
+					b = new mxPoint(x + Math.floor(1.25 * w), y);
+				}
+				else if ((alpha < -beta) && (alpha > (-pi + beta)))
+				{
+					a = new mxPoint(x, y + h);
+					b = new mxPoint(x + w, y + h);
+				}
+				else if ((alpha < (-pi + beta)) && (alpha > -pi))
+				{
+					a = new mxPoint(x - Math.floor(0.25 * w), y);
+					b = new mxPoint(x + Math.floor(0.5 * w), y
+							+ Math.floor(1.5 * h));
+				}
+			}
+
+			result = mxUtils.intersection(cx, cy, next.x, next.y, a.x, a.y, b.x, b.y);
+		}
+		
+		if (result == null)
+		{
+			return new mxPoint(cx, cy);
+		}
+		
+		return result;
 	}
 };
 /**
@@ -45297,6 +45884,16 @@ var mxEdgeStyle =
 	 * 
 	 * Implements a local orthogonal router between the given
 	 * cells.
+	 * 
+	 * Parameters:
+	 * 
+	 * state - <mxCellState> that represents the edge to be updated.
+	 * source - <mxCellState> that represents the source terminal.
+	 * target - <mxCellState> that represents the target terminal.
+	 * points - List of relative control points.
+	 * result - Array of <mxPoints> that represent the actual points of the
+	 * edge.
+	 * 
 	 */
 	OrthConnector: function(state, source, target, points, result)
 	{
@@ -45329,17 +45926,38 @@ var mxEdgeStyle =
 		// that the edge may connect to
 		// portConstraint [source, target]
 		var portConstraint = [mxConstants.DIRECTION_MASK_ALL, mxConstants.DIRECTION_MASK_ALL];
+		var rotation = 0;
 		
 		if (source != null)
 		{
 			portConstraint[0] = mxUtils.getPortConstraints(source, state, true, 
 					mxConstants.DIRECTION_MASK_ALL);
+			rotation = mxUtils.getValue(source.style, mxConstants.STYLE_ROTATION, 0);
+			
+			if (rotation != 0)
+			{
+				var newRect = mxUtils.getBoundingBox(new mxRectangle(sourceX, sourceY, sourceWidth, sourceHeight), rotation);
+				sourceX = newRect.x;
+				sourceY = newRect.y;
+				sourceWidth = newRect.width;
+				sourceHeight = newRect.height;
+			}
 		}
 		
 		if (target != null)
 		{
 			portConstraint[1] = mxUtils.getPortConstraints(target, state, false,
 				mxConstants.DIRECTION_MASK_ALL);
+			rotation = mxUtils.getValue(target.style, mxConstants.STYLE_ROTATION, 0);
+
+			if (rotation != 0)
+			{
+				var newRect = mxUtils.getBoundingBox(new mxRectangle(targetX, targetY, targetWidth, targetHeight), rotation);
+				targetX = newRect.x;
+				targetY = newRect.y;
+				targetWidth = newRect.width;
+				targetHeight = newRect.height;
+			}
 		}
 										
 		var dir = [0, 0] ;
@@ -45880,6 +46498,7 @@ mxStyleRegistry.putValue(mxConstants.PERIMETER_ELLIPSE, mxPerimeter.EllipsePerim
 mxStyleRegistry.putValue(mxConstants.PERIMETER_RECTANGLE, mxPerimeter.RectanglePerimeter);
 mxStyleRegistry.putValue(mxConstants.PERIMETER_RHOMBUS, mxPerimeter.RhombusPerimeter);
 mxStyleRegistry.putValue(mxConstants.PERIMETER_TRIANGLE, mxPerimeter.TrianglePerimeter);
+mxStyleRegistry.putValue(mxConstants.PERIMETER_HEXAGON, mxPerimeter.HexagonPerimeter);
 /**
  * $Id: mxGraphView.js,v 1.39 2014/02/19 09:41:00 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
@@ -63544,6 +64163,7 @@ function mxGraphHandler(graph)
 	this.panHandler = mxUtils.bind(this, function()
 	{
 		this.updatePreviewShape();
+		this.updateHint();
 	});
 	
 	this.graph.addListener(mxEvent.PAN, this.panHandler);
@@ -77891,13 +78511,11 @@ mxCodec.prototype.encode = function(obj)
 		{
 			if (mxUtils.isNode(obj))
 			{
-				node = (mxClient.IS_IE) ? obj.cloneNode(true) :
-					this.document.importNode(obj, true);
+				node = mxUtils.importNode(this.document, obj, true);
 			}
 			else
 			{
-	    		mxLog.warn('mxCodec.encode: No codec for '+
-	    			mxUtils.getFunctionName(obj.constructor));
+	    		mxLog.warn('mxCodec.encode: No codec for ' + mxUtils.getFunctionName(obj.constructor));
 			}
 		}
 	}
@@ -79256,9 +79874,7 @@ mxCodecRegistry.register(function()
 			// by putting the result of the default encoding into a clone of the
 			// user object (node type 1) and returning this cloned user object.
 			var tmp = node;
-			node = (mxClient.IS_IE) ?
-				obj.value.cloneNode(true) :
-				enc.document.importNode(obj.value, true);
+			node = mxUtils.importNode(enc.document, obj.value, true);
 			node.appendChild(tmp);
 			
 			// Moves the id attribute to the outermost XML node, namely the

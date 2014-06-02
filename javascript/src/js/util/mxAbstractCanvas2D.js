@@ -242,6 +242,16 @@ mxAbstractCanvas2D.prototype.restore = function()
 };
 
 /**
+ * Function: setLink
+ * 
+ * Sets the current link. Hook for subclassers.
+ */
+mxAbstractCanvas2D.prototype.setLink = function(link)
+{
+	// nop
+};
+
+/**
  * Function: scale
  * 
  * Scales the current state.

@@ -329,13 +329,11 @@ mxCodec.prototype.encode = function(obj)
 		{
 			if (mxUtils.isNode(obj))
 			{
-				node = (mxClient.IS_IE) ? obj.cloneNode(true) :
-					this.document.importNode(obj, true);
+				node = mxUtils.importNode(this.document, obj, true);
 			}
 			else
 			{
-	    		mxLog.warn('mxCodec.encode: No codec for '+
-	    			mxUtils.getFunctionName(obj.constructor));
+	    		mxLog.warn('mxCodec.encode: No codec for ' + mxUtils.getFunctionName(obj.constructor));
 			}
 		}
 	}

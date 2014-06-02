@@ -50,12 +50,18 @@ mxImageExport.prototype.drawState = function(state, canvas)
 {
 	if (state != null)
 	{
-		this.visitStatesRecursive(state, canvas, this.drawCellState);
+		this.visitStatesRecursive(state, canvas, mxUtils.bind(this, function()
+		{
+			this.drawCellState.apply(this, arguments);
+		}));
 				
 		// Paints the overlays
 		if (this.includeOverlays)
 		{
-			this.visitStatesRecursive(state, canvas, this.drawOverlays);
+			this.visitStatesRecursive(state, canvas, mxUtils.bind(this, function()
+			{
+				this.drawOverlays.apply(this, arguments);
+			}));
 		}
 	}
 };
@@ -83,12 +89,30 @@ mxImageExport.prototype.visitStatesRecursive = function(state, canvas, visitor)
 };
 
 /**
+ * Function: getLinkForCellState
+ * 
+ * Returns the link for the given cell state and canvas. This returns null.
+ */
+mxImageExport.prototype.getLinkForCellState = function(state, canvas)
+{
+	return null;
+};
+
+/**
  * Function: drawShape
  * 
  * Draws the given state to the given canvas.
  */
 mxImageExport.prototype.drawCellState = function(state, canvas)
 {
+	// Experimental feature
+	var link = this.getLinkForCellState(state, canvas);
+	
+	if (link != null)
+	{
+		canvas.setLink(link);
+	}
+	
 	// Paints the shape
 	if (state.shape instanceof mxShape)
 	{
@@ -103,6 +127,11 @@ mxImageExport.prototype.drawCellState = function(state, canvas)
 		canvas.save();
 		state.text.paint(canvas);
 		canvas.restore();
+	}
+	
+	if (link != null)
+	{
+		canvas.setLink(null);
 	}
 };
 

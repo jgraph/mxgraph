@@ -1,3 +1,16 @@
+02-JUN-2014: 2.8.1.0
+
+- Uses mxUtils.importNode in mxCodec.encode, mxCellCodec.afterEncode [JavaScript]
+- Adds mxUtils.importNode cross-browser implementation [JavaScript]
+- Corrects rotated bounding box around port constraints in orthogonal router [JavaScript]
+- Uses ActiveX in mxUtils.createaXmlDocument, getXml for IE9 standards [JavaScript]
+- Adds mxSvgCanvas2D.getCurrentStrokeWidth hook [JavaScript] 
+- Adds experimental support for links in mxAbstractCanvas2D, mxSvgCanvas2D [JavaScript]
+- Adds support for links in mxImageExport.getLinkForCellState [JavaScript]
+- Adds morph.html example [JavaScript]
+- Adds semicolon to line-height CSS in HTML labels [Java]
+- Adds mxPerimeter.HexagonPerimeter, mxConstants.PERIMETER_HEXAGON [JavaScript]
+
 15-MAY-2014: 2.8.0.0
 
 - Adds mxGraphView.getEmptyBounds [JavaScript]

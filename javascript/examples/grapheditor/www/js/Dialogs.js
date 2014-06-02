@@ -122,8 +122,8 @@ var OpenDialog = function()
 	// Adds padding as a workaround for box model in older IE versions
 	var dx = (mxClient.IS_VML && (document.documentMode == null || document.documentMode < 8)) ? 20 : 0;
 	
-	iframe.setAttribute('width', (320 + dx) + 'px');
-	iframe.setAttribute('height', (190 + dx) + 'px');
+	iframe.setAttribute('width', (360 + dx) + 'px');
+	iframe.setAttribute('height', (230 + dx) + 'px');
 	iframe.setAttribute('src', OPEN_FORM);
 	
 	this.container = iframe;
@@ -1385,19 +1385,78 @@ var MetadataDialog = function(ui, cell)
 	// Creates the dialog contents
 	var form = new mxForm('properties');
 	form.table.style.width = '100%';
-	form.table.style.paddingRight = '10px';
+	form.table.style.paddingRight = '20px';
+
 	var attrs = value.attributes;
 	var names = [];
 	var texts = [];
 	var count = 0;
 	
+	// FIXME: Fix remove button for quirks mode
+	var addRemoveButton = function(text, name)
+	{
+		text.parentNode.style.marginRight = '12px';
+		
+		var removeAttr = document.createElement('a');
+		var img = mxUtils.createImage(IMAGE_PATH + '/close.png');
+		img.style.height = '9px';
+		img.style.fontSize = '9px';
+		img.style.marginBottom = '7px';
+		
+		removeAttr.className = 'geButton';
+		removeAttr.setAttribute('title', mxResources.get('delete'));
+		removeAttr.style.margin = '0px';
+		removeAttr.style.width = '14px';
+		removeAttr.style.height = '14px';
+		removeAttr.style.fontSize = '14px';
+		removeAttr.style.cursor = 'pointer';
+		removeAttr.style.marginLeft = '6px';
+		removeAttr.appendChild(img);
+		
+		var removeAttrFn = (function(name)
+		{
+			return function()
+			{
+				var count = 0;
+				
+				for (var j = 0; j < names.length; j++)
+				{
+					if (names[j] == name)
+					{
+						texts[j] = null;
+						form.table.deleteRow(count);
+						
+						break;
+					}
+					
+					if (texts[j] != null)
+					{
+						count++;
+					}
+				}
+			};
+		})(name);
+		
+		mxEvent.addListener(removeAttr, 'click', removeAttrFn);
+		
+		text.parentNode.style.whiteSpace = 'nowrap';
+		text.parentNode.appendChild(removeAttr);
+	};
+	
+	var addTextArea = function(index, name, value)
+	{
+		names[index] = name;
+		texts[index] = form.addTextarea(names[count] + ':', value, 2);
+		texts[index].style.width = '100%';
+		
+		addRemoveButton(texts[index], name);
+	};
+
 	for (var i = 0; i < attrs.length; i++)
 	{
 		if (attrs[i].nodeName != 'label')
 		{
-			names[count] = attrs[i].nodeName;
-			texts[count] = form.addTextarea(names[count] + ':', attrs[i].nodeValue, 2);
-			texts[count].style.width = '100%';
+			addTextArea(count, attrs[i].nodeName, attrs[i].nodeValue);
 			count++;
 		}
 	}
@@ -1441,13 +1500,13 @@ var MetadataDialog = function(ui, cell)
 		{
 			var name = nameInput.value;
 			
-			if (name != null && name.length > 0)
+			if (name != null && name.length > 0 && name != 'label')
 			{
 				try
 				{
 					var idx = mxUtils.indexOf(names, name);
 					
-					if (idx >= 0)
+					if (idx >= 0 && texts[idx] != null)
 					{
 						texts[idx].value = valueInput.value;
 						texts[idx].focus();
@@ -1458,10 +1517,18 @@ var MetadataDialog = function(ui, cell)
 						var clone = value.cloneNode(false);
 						clone.setAttribute(name, '');
 						
+						if (idx >= 0)
+						{
+							names.splice(idx, 1);
+							texts.splice(idx, 1);
+						}
+
 						names.push(name);
 						var text = form.addTextarea(name + ':', valueInput.value, 2);
 						text.style.width = '100%';
 						texts.push(text);
+						addRemoveButton(text, name);
+
 						text.focus();
 					}
 						
@@ -1487,7 +1554,14 @@ var MetadataDialog = function(ui, cell)
 				
 				for (var i = 0; i < names.length; i++)
 				{
-					value.setAttribute(names[i], texts[i].value);
+					if (texts[i] == null)
+					{
+						value.removeAttribute(names[i]);
+					}
+					else
+					{
+						value.setAttribute(names[i], texts[i].value);
+					}
 				}
 				
 				// Updates the value of the cell (undoable)
