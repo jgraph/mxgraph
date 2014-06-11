@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.8.1.0.
+	 * Current version is 2.8.2.0.
 	 */
-	VERSION: '2.8.1.0',
+	VERSION: '2.8.2.0',
 
 	/**
 	 * Variable: IS_IE
@@ -43166,23 +43166,32 @@ mxCellEditor.prototype.init = function ()
 		this.textarea.style.resize = 'none';
 	}
 	
-	mxEvent.addListener(this.textarea, 'blur', mxUtils.bind(this, function(evt)
+	this.installListeners(this.textarea);
+};
+
+/**
+ * Function: installListeners
+ * 
+ * Installs listeners for focus, change and standard key event handling.
+ * NOTE: This code requires support for a value property in elt.
+ */
+mxCellEditor.prototype.installListeners = function(elt)
+{
+	mxEvent.addListener(elt, 'blur', mxUtils.bind(this, function(evt)
 	{
 		this.focusLost(evt);
 	}));
 	
-	mxEvent.addListener(this.textarea, 'change', mxUtils.bind(this, function(evt)
+	mxEvent.addListener(elt, 'change', mxUtils.bind(this, function(evt)
 	{
 		this.setModified(true);
 	}));
 
-	mxEvent.addListener(this.textarea, 'keydown', mxUtils.bind(this, function(evt)
+	mxEvent.addListener(elt, 'keydown', mxUtils.bind(this, function(evt)
 	{
 		if (!mxEvent.isConsumed(evt))
 		{
-			if (evt.keyCode == 113 /* F2 */ || (this.graph.isEnterStopsCellEditing() &&
-				evt.keyCode == 13 /* Enter */ && !mxEvent.isControlDown(evt) &&
-				!mxEvent.isShiftDown(evt)))
+			if (this.isStopEditingEvent(evt))
 			{
 				this.graph.stopEditing(false);
 				mxEvent.consume(evt);
@@ -43195,10 +43204,10 @@ mxCellEditor.prototype.init = function ()
 			else
 			{
 				// Clears the initial empty label on the first keystroke
-				if (this.clearOnChange && this.textarea.value == this.getEmptyLabelText())
+				if (this.clearOnChange && elt.value == this.getEmptyLabelText())
 				{
 					this.clearOnChange = false;
-					this.textarea.value = '';
+					elt.value = '';
 				}
 				
 				// Updates the modified flag for storing the value
@@ -43221,7 +43230,7 @@ mxCellEditor.prototype.init = function ()
 	// Adds automatic resizing of the textbox while typing
 	// Use input event in all browsers and IE >= 9 for resize
 	var evtName = (!mxClient.IS_IE || document.documentMode >= 9) ? 'input' : 'keypress';
-	mxEvent.addListener(this.textarea, evtName, mxUtils.bind(this, function(evt)
+	mxEvent.addListener(elt, evtName, mxUtils.bind(this, function(evt)
 	{
 		if (this.autoSize && !mxEvent.isConsumed(evt))
 		{
@@ -43231,6 +43240,20 @@ mxCellEditor.prototype.init = function ()
 			}), 0);
 		}
 	}));
+};
+
+/**
+ * Function: isStopEditingEvent
+ * 
+ * Returns true if the given keydown event should stop cell editing. This
+ * returns true if F2 is pressed of if <mxGraph.enterStopsCellEditing> is true
+ * and enter is pressed without control or shift.
+ */
+mxCellEditor.prototype.isStopEditingEvent = function(evt)
+{
+	return evt.keyCode == 113 /* F2 */ || (this.graph.isEnterStopsCellEditing() &&
+		evt.keyCode == 13 /* Enter */ && !mxEvent.isControlDown(evt) &&
+		!mxEvent.isShiftDown(evt));
 };
 
 /**
@@ -47405,7 +47428,7 @@ mxGraphView.prototype.validateCell = function(cell, visible)
 			for (var i = 0; i < childCount; i++)
 			{
 				this.validateCell(model.getChildAt(cell, i), visible &&
-					(!this.graph.isCellCollapsed(cell) || cell == this.currentRoot));
+					(!this.isCellCollapsed(cell) || cell == this.currentRoot));
 			}
 		}
 	}
@@ -47566,6 +47589,18 @@ mxGraphView.prototype.updateCellState = function(state)
 			}
 		}
 	}
+};
+
+/**
+ * Function: isCellCollapsed
+ * 
+ * Returns true if the children of the given cell should not be visible in the
+ * view. This implementation uses <mxGraph.isCellVisible> but it can be
+ * overidden to use a separate condition.
+ */
+mxGraphView.prototype.isCellCollapsed = function(cell)
+{
+	return this.graph.isCellCollapsed(cell);
 };
 
 /**
@@ -48192,7 +48227,7 @@ mxGraphView.prototype.getVisibleTerminal = function(edge, source)
 	
 	while (result != null && result != this.currentRoot)
 	{
-		if (!this.graph.isCellVisible(best) || this.graph.isCellCollapsed(result))
+		if (!this.graph.isCellVisible(best) || this.isCellCollapsed(result))
 		{
 			best = result;
 		}
@@ -50447,7 +50482,9 @@ mxGraph.prototype.dropEnabled = false;
 /**
  * Variable: splitEnabled
  * 
- * Specifies if dropping onto edges should be enabled. Default is true.
+ * Specifies if dropping onto edges should be enabled. This is ignored if
+ * <dropEnabled> is false. If enabled, it will call <splitEdge> to carry
+ * out the drop operation. Default is true.
  */
 mxGraph.prototype.splitEnabled = true;
 
@@ -50955,9 +50992,9 @@ mxGraph.prototype.collapseExpandResource = (mxClient.language != 'none') ? 'coll
 		
 		// Disable shift-click for text
 		mxEvent.addListener(container, 'selectstart',
-			mxUtils.bind(this, function()
+			mxUtils.bind(this, function(evt)
 			{
-				return this.isEditing();
+				return this.isEditing() || (!this.isMouseDown && !mxEvent.isShiftDown(evt));
 			})
 		);
 	}
@@ -62824,6 +62861,10 @@ mxLayoutManager.prototype.getCellsForChange = function(change)
 	{
 		return [change.cell, model.getParent(change.cell)];
 	}
+	else if (change instanceof mxVisibleChange || change instanceof mxStyleChange)
+	{
+		return [change.cell];
+	}
 	
 	return [];
 };
@@ -66588,7 +66629,9 @@ mxSelectionCellsHandler.prototype.destroy = function()
  * Fires between begin- and endUpdate in <connect>. The <code>cell</code>
  * property contains the inserted edge, the <code>event</code> and <code>target</code> 
  * properties contain the respective arguments that were passed to <connect> (where
- * target corresponds to the dropTarget argument).
+ * target corresponds to the dropTarget argument). Finally, the <code>terminal</code>
+ * property corresponds to the target argument in <connect> or the clone of the source
+ * terminal if <createTarget> is enabled.
  * 
  * Note that the target is the cell under the mouse where the mouse button was released.
  * Depending on the logic in the handler, this doesn't necessarily have to be the target
@@ -68020,6 +68063,7 @@ mxConnectionHandler.prototype.connect = function(source, target, evt, dropTarget
 		// Uses the common parent of source and target or
 		// the default parent to insert the edge
 		var model = this.graph.getModel();
+		var targetInserted = false;
 		var edge = null;
 
 		model.beginUpdate();
@@ -68032,6 +68076,7 @@ mxConnectionHandler.prototype.connect = function(source, target, evt, dropTarget
 				if (target != null)
 				{
 					dropTarget = this.graph.getDropTarget([target], evt, dropTarget);
+					targetInserted= true;
 					
 					// Disables edges as drop targets if the target cell was created
 					// FIXME: Should not shift if vertex was aligned (same in Java)
@@ -68129,7 +68174,7 @@ mxConnectionHandler.prototype.connect = function(source, target, evt, dropTarget
 				}
 				
 				this.fireEvent(new mxEventObject(mxEvent.CONNECT,
-						'cell', edge, 'event', evt, 'target', dropTarget));
+						'cell', edge, 'terminal', target, 'event', evt, 'target', dropTarget));
 			}
 		}
 		catch (e)
@@ -68144,7 +68189,7 @@ mxConnectionHandler.prototype.connect = function(source, target, evt, dropTarget
 		
 		if (this.select)
 		{
-			this.selectCells(edge, target);
+			this.selectCells(edge, (targetInserted) ? target : null);
 		}
 	}
 };
@@ -71049,6 +71094,17 @@ mxEdgeHandler.prototype.validateConnection = function(source, target)
 				{
 					bend.node.style.cursor = mxConstants.CURSOR_BEND_HANDLE;
 					mxEvent.redirectMouseEvents(bend.node, this.graph, this.state);
+					
+					// Fixes lost event tracking for images in quirks / IE8 standards
+					if (mxClient.IS_QUIRKS || document.documentMode == 8)
+					{
+						mxEvent.addListener(bend.node, 'dragstart', function(evt)
+						{
+							mxEvent.consume(evt);
+							
+							return false;
+						});
+					}
 				}
 				
 				bends.push(bend);
@@ -71081,7 +71137,8 @@ mxEdgeHandler.prototype.isHandleEnabled = function(index)
  */
 mxEdgeHandler.prototype.isHandleVisible = function(index)
 {
-	return true;
+	return this.state.style[mxConstants.STYLE_EDGE] != mxConstants.EDGESTYLE_ENTITY_RELATION ||
+		index == 0 || index == this.abspoints.length - 1;
 };
 
 /**
@@ -73178,6 +73235,13 @@ mxTooltipHandler.prototype.ignoreTouchEvents = true;
 mxTooltipHandler.prototype.hideOnHover = false;
 
 /**
+ * Variable: destroyed
+ * 
+ * True if this handler was destroyed using <destroy>.
+ */
+mxTooltipHandler.prototype.destroyed = false;
+
+/**
  * Variable: enabled
  * 
  * Specifies if events are handled. Default is true.
@@ -73381,7 +73445,7 @@ mxTooltipHandler.prototype.hideTooltip = function()
  */
 mxTooltipHandler.prototype.show = function(tip, x, y)
 {
-	if (tip != null && tip.length > 0)
+	if (!this.destroyed && tip != null && tip.length > 0)
 	{
 		// Initializes the DOM nodes if required
 		if (this.div == null)
@@ -73418,15 +73482,19 @@ mxTooltipHandler.prototype.show = function(tip, x, y)
  */
 mxTooltipHandler.prototype.destroy = function()
 {
-	this.graph.removeMouseListener(this);
-	mxEvent.release(this.div);
-	
-	if (this.div != null && this.div.parentNode != null)
+	if (!this.destroyed)
 	{
-		this.div.parentNode.removeChild(this.div);
+		this.graph.removeMouseListener(this);
+		mxEvent.release(this.div);
+		
+		if (this.div != null && this.div.parentNode != null)
+		{
+			this.div.parentNode.removeChild(this.div);
+		}
+		
+		this.destroyed = true;
+		this.div = null;
 	}
-	
-	this.div = null;
 };
 /**
  * $Id: mxCellTracker.js,v 1.3 2013/10/28 08:45:07 gaudenz Exp $

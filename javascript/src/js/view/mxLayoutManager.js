@@ -308,6 +308,10 @@ mxLayoutManager.prototype.getCellsForChange = function(change)
 	{
 		return [change.cell, model.getParent(change.cell)];
 	}
+	else if (change instanceof mxVisibleChange || change instanceof mxStyleChange)
+	{
+		return [change.cell];
+	}
 	
 	return [];
 };

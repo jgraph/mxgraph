@@ -904,7 +904,7 @@ mxGraphView.prototype.validateCell = function(cell, visible)
 			for (var i = 0; i < childCount; i++)
 			{
 				this.validateCell(model.getChildAt(cell, i), visible &&
-					(!this.graph.isCellCollapsed(cell) || cell == this.currentRoot));
+					(!this.isCellCollapsed(cell) || cell == this.currentRoot));
 			}
 		}
 	}
@@ -1065,6 +1065,18 @@ mxGraphView.prototype.updateCellState = function(state)
 			}
 		}
 	}
+};
+
+/**
+ * Function: isCellCollapsed
+ * 
+ * Returns true if the children of the given cell should not be visible in the
+ * view. This implementation uses <mxGraph.isCellVisible> but it can be
+ * overidden to use a separate condition.
+ */
+mxGraphView.prototype.isCellCollapsed = function(cell)
+{
+	return this.graph.isCellCollapsed(cell);
 };
 
 /**
@@ -1691,7 +1703,7 @@ mxGraphView.prototype.getVisibleTerminal = function(edge, source)
 	
 	while (result != null && result != this.currentRoot)
 	{
-		if (!this.graph.isCellVisible(best) || this.graph.isCellCollapsed(result))
+		if (!this.graph.isCellVisible(best) || this.isCellCollapsed(result))
 		{
 			best = result;
 		}

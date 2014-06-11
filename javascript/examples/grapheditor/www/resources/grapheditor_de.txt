@@ -127,6 +127,7 @@ insertImage=Bild einfügen
 insertLink=Link einfügen
 insertRowBefore=Zeile oberhalb einfügen
 insertRowAfter=Zeile unterhalb einfügen
+invalidName=Ungültiger Name
 invalidOrMissingFile=Ungültige oder fehlende Datei
 italic=Kursiv
 layer=Ebene

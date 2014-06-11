@@ -326,7 +326,7 @@
 			};
 	
 			// Rounded edge and vertex handles
-			var touchHandle = new mxImage('grapheditor/www/images/touch-handle.png', 16, 16);
+			var touchHandle = new mxImage('grapheditor/www/images/handle-main.png', 17, 17);
 			mxVertexHandler.prototype.handleImage = touchHandle;
 			mxEdgeHandler.prototype.handleImage = touchHandle;
 			mxOutline.prototype.sizerImage = touchHandle;
@@ -335,7 +335,7 @@
 			new Image().src = touchHandle.src;
 	
 			// Adds connect icon to selected vertex
-			var connectorSrc = 'grapheditor/www/images/touch-connector.png';
+			var connectorSrc = 'grapheditor/www/images/handle-connect.png';
 	
 			var vertexHandlerInit = mxVertexHandler.prototype.init;
 			mxVertexHandler.prototype.init = function()

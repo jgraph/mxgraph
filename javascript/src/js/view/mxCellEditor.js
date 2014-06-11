@@ -206,23 +206,32 @@ mxCellEditor.prototype.init = function ()
 		this.textarea.style.resize = 'none';
 	}
 	
-	mxEvent.addListener(this.textarea, 'blur', mxUtils.bind(this, function(evt)
+	this.installListeners(this.textarea);
+};
+
+/**
+ * Function: installListeners
+ * 
+ * Installs listeners for focus, change and standard key event handling.
+ * NOTE: This code requires support for a value property in elt.
+ */
+mxCellEditor.prototype.installListeners = function(elt)
+{
+	mxEvent.addListener(elt, 'blur', mxUtils.bind(this, function(evt)
 	{
 		this.focusLost(evt);
 	}));
 	
-	mxEvent.addListener(this.textarea, 'change', mxUtils.bind(this, function(evt)
+	mxEvent.addListener(elt, 'change', mxUtils.bind(this, function(evt)
 	{
 		this.setModified(true);
 	}));
 
-	mxEvent.addListener(this.textarea, 'keydown', mxUtils.bind(this, function(evt)
+	mxEvent.addListener(elt, 'keydown', mxUtils.bind(this, function(evt)
 	{
 		if (!mxEvent.isConsumed(evt))
 		{
-			if (evt.keyCode == 113 /* F2 */ || (this.graph.isEnterStopsCellEditing() &&
-				evt.keyCode == 13 /* Enter */ && !mxEvent.isControlDown(evt) &&
-				!mxEvent.isShiftDown(evt)))
+			if (this.isStopEditingEvent(evt))
 			{
 				this.graph.stopEditing(false);
 				mxEvent.consume(evt);
@@ -235,10 +244,10 @@ mxCellEditor.prototype.init = function ()
 			else
 			{
 				// Clears the initial empty label on the first keystroke
-				if (this.clearOnChange && this.textarea.value == this.getEmptyLabelText())
+				if (this.clearOnChange && elt.value == this.getEmptyLabelText())
 				{
 					this.clearOnChange = false;
-					this.textarea.value = '';
+					elt.value = '';
 				}
 				
 				// Updates the modified flag for storing the value
@@ -261,7 +270,7 @@ mxCellEditor.prototype.init = function ()
 	// Adds automatic resizing of the textbox while typing
 	// Use input event in all browsers and IE >= 9 for resize
 	var evtName = (!mxClient.IS_IE || document.documentMode >= 9) ? 'input' : 'keypress';
-	mxEvent.addListener(this.textarea, evtName, mxUtils.bind(this, function(evt)
+	mxEvent.addListener(elt, evtName, mxUtils.bind(this, function(evt)
 	{
 		if (this.autoSize && !mxEvent.isConsumed(evt))
 		{
@@ -271,6 +280,20 @@ mxCellEditor.prototype.init = function ()
 			}), 0);
 		}
 	}));
+};
+
+/**
+ * Function: isStopEditingEvent
+ * 
+ * Returns true if the given keydown event should stop cell editing. This
+ * returns true if F2 is pressed of if <mxGraph.enterStopsCellEditing> is true
+ * and enter is pressed without control or shift.
+ */
+mxCellEditor.prototype.isStopEditingEvent = function(evt)
+{
+	return evt.keyCode == 113 /* F2 */ || (this.graph.isEnterStopsCellEditing() &&
+		evt.keyCode == 13 /* Enter */ && !mxEvent.isControlDown(evt) &&
+		!mxEvent.isShiftDown(evt));
 };
 
 /**

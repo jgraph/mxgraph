@@ -111,7 +111,9 @@
  * Fires between begin- and endUpdate in <connect>. The <code>cell</code>
  * property contains the inserted edge, the <code>event</code> and <code>target</code> 
  * properties contain the respective arguments that were passed to <connect> (where
- * target corresponds to the dropTarget argument).
+ * target corresponds to the dropTarget argument). Finally, the <code>terminal</code>
+ * property corresponds to the target argument in <connect> or the clone of the source
+ * terminal if <createTarget> is enabled.
  * 
  * Note that the target is the cell under the mouse where the mouse button was released.
  * Depending on the logic in the handler, this doesn't necessarily have to be the target
@@ -1543,6 +1545,7 @@ mxConnectionHandler.prototype.connect = function(source, target, evt, dropTarget
 		// Uses the common parent of source and target or
 		// the default parent to insert the edge
 		var model = this.graph.getModel();
+		var targetInserted = false;
 		var edge = null;
 
 		model.beginUpdate();
@@ -1555,6 +1558,7 @@ mxConnectionHandler.prototype.connect = function(source, target, evt, dropTarget
 				if (target != null)
 				{
 					dropTarget = this.graph.getDropTarget([target], evt, dropTarget);
+					targetInserted= true;
 					
 					// Disables edges as drop targets if the target cell was created
 					// FIXME: Should not shift if vertex was aligned (same in Java)
@@ -1652,7 +1656,7 @@ mxConnectionHandler.prototype.connect = function(source, target, evt, dropTarget
 				}
 				
 				this.fireEvent(new mxEventObject(mxEvent.CONNECT,
-						'cell', edge, 'event', evt, 'target', dropTarget));
+						'cell', edge, 'terminal', target, 'event', evt, 'target', dropTarget));
 			}
 		}
 		catch (e)
@@ -1667,7 +1671,7 @@ mxConnectionHandler.prototype.connect = function(source, target, evt, dropTarget
 		
 		if (this.select)
 		{
-			this.selectCells(edge, target);
+			this.selectCells(edge, (targetInserted) ? target : null);
 		}
 	}
 };

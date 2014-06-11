@@ -1163,7 +1163,9 @@ mxGraph.prototype.dropEnabled = false;
 /**
  * Variable: splitEnabled
  * 
- * Specifies if dropping onto edges should be enabled. Default is true.
+ * Specifies if dropping onto edges should be enabled. This is ignored if
+ * <dropEnabled> is false. If enabled, it will call <splitEdge> to carry
+ * out the drop operation. Default is true.
  */
 mxGraph.prototype.splitEnabled = true;
 
@@ -1671,9 +1673,9 @@ mxGraph.prototype.collapseExpandResource = (mxClient.language != 'none') ? 'coll
 		
 		// Disable shift-click for text
 		mxEvent.addListener(container, 'selectstart',
-			mxUtils.bind(this, function()
+			mxUtils.bind(this, function(evt)
 			{
-				return this.isEditing();
+				return this.isEditing() || (!this.isMouseDown && !mxEvent.isShiftDown(evt));
 			})
 		);
 	}

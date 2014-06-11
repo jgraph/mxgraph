@@ -127,6 +127,7 @@ insertImage=Insert image
 insertLink=Insert link
 insertRowBefore=Insert row above
 insertRowAfter=Insert row below
+invalidName=Invalid name
 invalidOrMissingFile=Invalid or missing file
 italic=Italic
 layer=Layer

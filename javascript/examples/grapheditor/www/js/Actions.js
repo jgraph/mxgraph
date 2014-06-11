@@ -100,7 +100,7 @@ Actions.prototype.init = function()
 		var s = graph.gridSize;
 		graph.setSelectionCells(graph.moveCells(graph.getSelectionCells(), s, s, true));
     }, null, null, 'Ctrl+D');
-	this.addAction('selectVertices', function() { graph.selectVertices(); }, null, null, 'Ctrl+Shift+V').isEnabled = isGraphEnabled;
+	this.addAction('selectVertices', function() { graph.selectVertices(); }, null, null, 'Ctrl+Shift+A').isEnabled = isGraphEnabled;
 	this.addAction('selectEdges', function() { graph.selectEdges(); }, null, null, 'Ctrl+Shift+E').isEnabled = isGraphEnabled;
 	this.addAction('selectAll', function() { graph.selectAll(); }, null, null, 'Ctrl+A').isEnabled = isGraphEnabled;
 	this.addAction('lockUnlock', function()
@@ -676,7 +676,7 @@ Actions.prototype.init = function()
 			this.editorUi.showDialog(dlg.container, 320, 200, true, true);
 			dlg.init();
 		}
-	})));
+	}), null, null, 'Ctrl+E'));
 	this.addAction('setAsDefaultEdge', function()
 	{
 		graph.setDefaultEdge(graph.getSelectionCell());

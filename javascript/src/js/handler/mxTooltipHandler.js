@@ -73,6 +73,13 @@ mxTooltipHandler.prototype.ignoreTouchEvents = true;
 mxTooltipHandler.prototype.hideOnHover = false;
 
 /**
+ * Variable: destroyed
+ * 
+ * True if this handler was destroyed using <destroy>.
+ */
+mxTooltipHandler.prototype.destroyed = false;
+
+/**
  * Variable: enabled
  * 
  * Specifies if events are handled. Default is true.
@@ -276,7 +283,7 @@ mxTooltipHandler.prototype.hideTooltip = function()
  */
 mxTooltipHandler.prototype.show = function(tip, x, y)
 {
-	if (tip != null && tip.length > 0)
+	if (!this.destroyed && tip != null && tip.length > 0)
 	{
 		// Initializes the DOM nodes if required
 		if (this.div == null)
@@ -313,13 +320,17 @@ mxTooltipHandler.prototype.show = function(tip, x, y)
  */
 mxTooltipHandler.prototype.destroy = function()
 {
-	this.graph.removeMouseListener(this);
-	mxEvent.release(this.div);
-	
-	if (this.div != null && this.div.parentNode != null)
+	if (!this.destroyed)
 	{
-		this.div.parentNode.removeChild(this.div);
+		this.graph.removeMouseListener(this);
+		mxEvent.release(this.div);
+		
+		if (this.div != null && this.div.parentNode != null)
+		{
+			this.div.parentNode.removeChild(this.div);
+		}
+		
+		this.destroyed = true;
+		this.div = null;
 	}
-	
-	this.div = null;
 };

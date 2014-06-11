@@ -510,6 +510,8 @@ Menus.prototype.styleChange = function(menu, label, keys, values, sprite, parent
 				{
 					graph.setCellStyles(keys[i], values[i]);
 				}
+				
+				this.editorUi.fireEvent(new mxEventObject('styleChanged', 'keys', keys, 'values', values));
 			}
 			finally
 			{
@@ -618,13 +620,16 @@ Menus.prototype.pickColor = function(key, cmd, defaultValue)
 /**
  * Creates the keyboard event handler for the current graph and history.
  */
-Menus.prototype.addMenuItem = function(menu, key, parent)
+Menus.prototype.addMenuItem = function(menu, key, parent, trigger)
 {
 	var action = this.editorUi.actions.get(key);
 
 	if (action != null && (menu.showDisabled || action.isEnabled()) && action.visible)
 	{
-		var item = menu.addItem(action.label, null, action.funct, parent, null, action.isEnabled());
+		var item = menu.addItem(action.label, null, function()
+		{
+			action.funct(trigger);
+		}, parent, null, action.isEnabled());
 		
 		// Adds checkmark image
 		if (action.toggleAction && action.isSelected())
@@ -669,7 +674,7 @@ Menus.prototype.addCheckmark = function(item)
 /**
  * Creates the keyboard event handler for the current graph and history.
  */
-Menus.prototype.addMenuItems = function(menu, keys, parent)
+Menus.prototype.addMenuItems = function(menu, keys, parent, trigger)
 {
 	for (var i = 0; i < keys.length; i++)
 	{
@@ -679,7 +684,7 @@ Menus.prototype.addMenuItems = function(menu, keys, parent)
 		}
 		else
 		{
-			this.addMenuItem(menu, keys[i], parent);
+			this.addMenuItem(menu, keys[i], parent, trigger);
 		}
 	}
 };
@@ -694,91 +699,88 @@ Menus.prototype.createPopupMenu = function(menu, cell, evt)
 	
 	if (graph.isSelectionEmpty())
 	{
-		this.addMenuItems(menu, ['undo', 'redo', '-', 'paste', '-']);	
+		this.addMenuItems(menu, ['undo', 'redo', '-', 'paste', '-'], null, evt);	
 	}
 	else
 	{
-		this.addMenuItems(menu, ['delete', '-', 'cut', 'copy', '-', 'duplicate']);	
+		this.addMenuItems(menu, ['delete', '-', 'cut', 'copy', '-', 'duplicate'], null, evt);	
 
 		if (graph.getSelectionCount() == 1 && graph.getModel().isEdge(graph.getSelectionCell()))
 		{
-			this.addMenuItems(menu, ['setAsDefaultEdge']);
+			this.addMenuItems(menu, ['setAsDefaultEdge'], null, evt);
 		}
 		
 		menu.addSeparator();
 	}
 	
 	if (graph.getSelectionCount() > 0)
-	{		
-		this.addMenuItems(menu, ['toFront', 'toBack', '-']);
-
-		if (graph.getModel().isEdge(graph.getSelectionCell()))
+	{
+		var cell = graph.getSelectionCell();
+		var state = graph.view.getState(cell);
+		
+		if (state != null)
 		{
-			var cell = graph.getSelectionCell();
-			var isWaypoint = false;
-			
-			if (graph.getModel().isEdge(cell))
+			this.addMenuItems(menu, ['toFront', 'toBack', '-'], null, evt);
+	
+			if (graph.getModel().isEdge(cell) && mxUtils.getValue(state.style, mxConstants.STYLE_EDGE, null) != 'entityRelationEdgeStyle')
 			{
 				var handler = graph.selectionCellsHandler.getHandler(cell);
+				var isWaypoint = false;
 				
 				if (handler instanceof mxEdgeHandler && handler.bends != null && handler.bends.length > 2)
 				{
 					var index = handler.getHandleForEvent(graph.updateMouseEvent(new mxMouseEvent(evt)));
 					
 					// Configures removeWaypoint action before execution
+					// Using trigger parameter is cleaner but have to find waypoint here anyway.
 					var rmWaypointAction = this.editorUi.actions.get('removeWaypoint');
 					rmWaypointAction.handler = handler;
 					rmWaypointAction.index = index;
 
 					isWaypoint = index > 0 && index < handler.bends.length - 1;
 				}
+				
+				this.addMenuItems(menu, ['-', (isWaypoint) ? 'removeWaypoint' : 'addWaypoint'], null, evt);
+	
+				// Adds reset waypoints option if waypoints exist
+				var geo = graph.getModel().getGeometry(cell);
+				
+				if (geo != null && geo.points != null && geo.points.length > 0)
+				{
+					this.addMenuItems(menu, ['resetWaypoints'], null, evt);	
+				}
 			}
 			
-			this.addMenuItems(menu, ['-', (isWaypoint) ? 'removeWaypoint' : 'addWaypoint']);
-
-			// Adds reset waypoints option if waypoints exist
-			var geo = graph.getModel().getGeometry(cell);
-			
-			if (geo != null && geo.points != null && geo.points.length > 0)
-			{
-				this.addMenuItems(menu, ['resetWaypoints']);	
-			}
-		}
-		
-		if (graph.getSelectionCount() > 1)	
-		{
-			menu.addSeparator();
-			this.addMenuItems(menu, ['group']);
-		}
-		
-		if (graph.getSelectionCount() == 1)
-		{
-			menu.addSeparator();
-			this.addMenuItems(menu, ['editLink']);
-
-			var link = graph.getLinkForCell(graph.getSelectionCell());
-			
-			if (link != null)
-			{
-				this.addMenuItems(menu, ['openLink']);
-			}
-		}
-			
-		if (graph.getModel().isVertex(graph.getSelectionCell()))
-		{
-			// Shows edit image action if there is an image in the style
-			var state = graph.view.getState(graph.getSelectionCell());
-			
-			if (state != null && mxUtils.getValue(state.style, mxConstants.STYLE_IMAGE, null) != null)
+			if (graph.getSelectionCount() > 1)	
 			{
 				menu.addSeparator();
-				this.addMenuItem(menu, 'image', null).firstChild.nextSibling.innerHTML = mxResources.get('editImage') + '...';
+				this.addMenuItems(menu, ['group'], null, evt);
+			}
+			
+			if (graph.getSelectionCount() == 1)
+			{
+				menu.addSeparator();
+				this.addMenuItems(menu, ['editLink'], null, evt);
+	
+				var link = graph.getLinkForCell(cell);
+				
+				if (link != null)
+				{
+					this.addMenuItems(menu, ['openLink'], null, evt);
+				}
+
+				// Shows edit image action if there is an image in the style
+				if (graph.getModel().isVertex(cell) && mxUtils.getValue(state.style, mxConstants.STYLE_IMAGE, null) != null)
+				{
+					menu.addSeparator();
+					this.addMenuItem(menu, 'image', null, evt).firstChild.nextSibling.innerHTML = mxResources.get('editImage') + '...';
+				}
 			}
 		}
 	}
 	else
 	{
-		this.addMenuItems(menu, ['-', 'selectVertices', 'selectEdges', '-', 'selectAll']);
+		this.addMenuItems(menu, ['-', 'selectVertices', 'selectEdges', '-', 'selectAll'], null, evt);
 	}
 };
 

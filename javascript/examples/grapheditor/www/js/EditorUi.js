@@ -108,6 +108,15 @@ EditorUi = function(editor, container)
 			nodes = newNodes;
 		}
 	});
+
+	// Control-enter applies editing value
+	// FIXME: Fix for HTML editing
+	var cellEditorIsStopEditingEvent = graph.cellEditor.isStopEditingEvent;
+	graph.cellEditor.isStopEditingEvent = function(evt)
+	{
+		return cellEditorIsStopEditingEvent.apply(this, arguments) ||
+			(evt.keyCode == 13 && mxEvent.isControlDown(evt));
+	};
 	
 	// Overrides cell editor to update toolbar
 	var cellEditorStartEditing = graph.cellEditor.startEditing;
@@ -187,13 +196,102 @@ EditorUi = function(editor, container)
 	}));
 
     // Create handler for key events
-	var keyHandler = this.createKeyHandler(editor);
+	this.keyHandler = this.createKeyHandler(editor);
     
 	// Getter for key handler
 	this.getKeyHandler = function()
 	{
 		return keyHandler;
 	};
+	
+	// Stores the current selection for fontfamily, size and alignment and assigns it to new cells
+	var currentStyle = {};
+	var currentEdgeStyle = {};
+	var styles = ['fontFamily', 'fontSize', 'align'];
+	
+	// Edge style interferes with set default edge feature, need to cleanup
+	// edge insert, default edge, connect process and make it more consistent
+	var edgeStyles = []; //['startArrow', 'endFill', 'endSize', 'startFill', 'startSize', 'endArrow', 'edgeStyle'];
+	
+	// Implements a stateful toolbar where the current values for fontFamily,
+	// fontSize and alignment are applied to all new cells
+	var insertHandler = function(cells, connect)
+	{
+		if (cells != null && cells.length == 1)
+		{
+			var value = graph.convertValueToString(cells[0]);
+			
+			// Only applies current style to cells with no value
+			if (value == null || value.length == 0)
+			{
+				for (var j = 0; j < styles.length; j++)
+				{
+					var key = styles[j];
+					var value = currentStyle[key];
+
+					// Overrides existing and inherited styles
+					if (value != null)
+					{
+						graph.setCellStyles(key, value, cells);
+					}
+				}
+				
+				if (connect && cells.length == 1 && graph.getModel().isEdge(cells[0]))
+				{
+					for (var j = 0; j < edgeStyles.length; j++)
+					{
+						var key = edgeStyles[j];
+						var value = currentEdgeStyle[key];
+						
+						if (value != null)
+						{
+							graph.setCellStyles(key, value, cells);
+						}
+					}
+				}
+			}
+		}
+	};
+
+	this.addListener('cellsInserted', function(sender, evt)
+	{
+		insertHandler(evt.getProperty('cells'), false);
+	});
+	
+	graph.connectionHandler.addListener(mxEvent.CONNECT, function(sender, evt)
+	{
+		insertHandler([evt.getProperty('cell')], true);
+	});
+	
+	this.addListener('styleChanged', function(sender, evt)
+	{
+		var keys = evt.getProperty('keys');
+		var values = evt.getProperty('values');
+
+		for (var i = 0; i < keys.length; i++)
+		{
+			if (mxUtils.indexOf(styles, keys[i]) >= 0)
+			{
+				currentStyle[keys[i]] = values[i];
+			}
+			else if (mxUtils.indexOf(edgeStyles, keys[i]) >= 0)
+			{
+				currentEdgeStyle[keys[i]] = values[i];
+			}
+		}
+	});
+	
+	// Makes sure the current layer is visible when cells are added
+	graph.addListener(mxEvent.CELLS_ADDED, function(sender, evt)
+	{
+		var cells = evt.getProperty('cells');
+		var parent = evt.getProperty('parent');
+		
+		if (graph.getModel().isLayer(parent) && !graph.isCellVisible(parent) && cells != null && cells.length > 0)
+		{
+			graph.getModel().setVisible(parent, true);
+		}
+	});
 
 	// Updates the editor UI after the window has been resized
 	// Timeout is workaround for old IE versions which have a delay for DOM client sizes.
@@ -671,11 +769,11 @@ EditorUi.prototype.updateActionStates = function()
  	}
  	
    	this.actions.get('setAsDefaultEdge').setEnabled(edgeSelected);
-    	
+   	var state = graph.view.getState(graph.getSelectionCell());
+   	
     this.menus.get('align').setEnabled(graph.getSelectionCount() > 1);
     this.menus.get('distribute').setEnabled(graph.getSelectionCount() > 1);
-    this.menus.get('direction').setEnabled(vertexSelected || (edgeSelected &&
-    		graph.isLoop(graph.view.getState(graph.getSelectionCell()))));
+    this.menus.get('direction').setEnabled(vertexSelected || (edgeSelected && state != null && graph.isLoop(state)));
     this.menus.get('navigation').setEnabled(graph.foldingEnabled && ((graph.view.currentRoot != null) ||
 			(graph.getSelectionCount() == 1 && graph.isValidRoot(graph.getSelectionCell()))));
     this.actions.get('home').setEnabled(graph.view.currentRoot != null);
@@ -1081,6 +1179,16 @@ EditorUi.prototype.saveFile = function(forceDialog)
 		var dlg = new FilenameDialog(this, this.editor.getOrCreateFilename(), mxResources.get('save'), mxUtils.bind(this, function(name)
 		{
 			this.save(name, true);
+		}), null, mxUtils.bind(this, function(name)
+		{
+			if (name != null && name.length > 0)
+			{
+				return true;
+			}
+			
+			mxUtils.confirm(mxResources.get('invalidName'));
+			
+			return false;
 		}));
 		this.showDialog(dlg.container, 300, 100, true, true);
 		dlg.init();
@@ -1135,85 +1243,6 @@ EditorUi.prototype.save = function(name)
 			this.editor.setStatus('Error saving file');
 		}
 	}
-};
-
-/**
- * Translates this point by the given vector.
- * 
- * @param {number} dx X-coordinate of the translation.
- * @param {number} dy Y-coordinate of the translation.
- */
-EditorUi.prototype.getSvg = function(background, scale, border)
-{
-	scale = (scale != null) ? scale : 1;
-	border = (border != null) ? border : 1;
-
-	var graph = this.editor.graph;
-	var imgExport = new mxImageExport();
-	var bounds = graph.getGraphBounds();
-	var vs = graph.view.scale;
-
-	// Prepares SVG document that holds the output
-	var svgDoc = mxUtils.createXmlDocument();
-	var root = (svgDoc.createElementNS != null) ?
-    		svgDoc.createElementNS(mxConstants.NS_SVG, 'svg') : svgDoc.createElement('svg');
-    
-	if (background != null)
-	{
-		if (root.style != null)
-		{
-			root.style.backgroundColor = background;
-		}
-		else
-		{
-			root.setAttribute('style', 'background-color:' + background);
-		}
-	}
-    
-	if (svgDoc.createElementNS == null)
-	{
-    	root.setAttribute('xmlns', mxConstants.NS_SVG);
-	}
-	else
-	{
-		// KNOWN: Ignored in IE9-11, adds namespace for each image element instead. No workaround.
-		root.setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:xlink', mxConstants.NS_XLINK);
-	}
-	
-	root.setAttribute('width', (Math.ceil(bounds.width * scale / vs) + 2 * border) + 'px');
-	root.setAttribute('height', (Math.ceil(bounds.height * scale / vs) + 2 * border) + 'px');
-	root.setAttribute('version', '1.1');
-	
-    // Adds group for anti-aliasing via transform
-	var group = (svgDoc.createElementNS != null) ?
-			svgDoc.createElementNS(mxConstants.NS_SVG, 'g') : svgDoc.createElement('g');
-	group.setAttribute('transform', 'translate(0.5,0.5)');
-	root.appendChild(group);
-	svgDoc.appendChild(root);
-
-    // Renders graph. Offset will be multiplied with state's scale when painting state.
-	var svgCanvas = new mxSvgCanvas2D(group);
-	svgCanvas.translate(Math.floor((border / scale - bounds.x) / vs), Math.floor((border / scale - bounds.y) / vs));
-	svgCanvas.scale(scale / vs);
-	
-	// Adds hyperlinks (experimental)
-	imgExport.getLinkForCellState = function(state, canvas)
-	{
-		return graph.getLinkForCell(state.cell);
-	};
-	
-	// Paints background image
-	var bgImg = graph.backgroundImage;
-	
-	if (bgImg != null)
-	{
-		var tr = graph.view.translate;
-		svgCanvas.image(tr.x, tr.y, bgImg.width, bgImg.height, bgImg.src, false);
-	}
-	
-	imgExport.drawState(graph.getView().getState(graph.model.root), svgCanvas);
-
-	return root;
 };
 
 /**
@@ -1320,10 +1349,15 @@ EditorUi.prototype.confirm = function(msg, okFn, cancelFn)
 /**
  * Creates the keyboard event handler for the current graph and history.
  */
-EditorUi.prototype.createOutline = function(window)
+EditorUi.prototype.createOutline = function(wnd)
 {
 	var outline = new mxOutline(this.editor.graph);
 	outline.border = 20;
+
+	mxEvent.addListener(window, 'resize', function()
+	{
+		outline.update();
+	});
 
 	return outline;
 };
@@ -1373,7 +1407,7 @@ EditorUi.prototype.createKeyHandler = function(editor)
     };
 
     // Binds keystrokes to actions
-    var bindAction = mxUtils.bind(this, function(code, control, key, shift)
+    keyHandler.bindAction = mxUtils.bind(this, function(code, control, key, shift)
     {
     	var action = this.actions.get(key);
     	
@@ -1435,34 +1469,35 @@ EditorUi.prototype.createKeyHandler = function(editor)
     keyHandler.bindKey(40, function() { nudge(40); }); // Down arrow
     keyHandler.bindKey(113, function() { graph.startEditingAtCell(); });
     keyHandler.bindKey(8, function() { graph.foldCells(true); }); // Backspace
-    bindAction(8, false, 'delete'); // Backspace
-    bindAction(46, false, 'delete'); // Delete
-    bindAction(82, true, 'tilt'); // Ctrl+R
-    bindAction(83, true, 'save'); // Ctrl+S
-    bindAction(83, true, 'saveAs', true); // Ctrl+Shift+S
-    bindAction(107, false, 'zoomIn'); // Add
-    bindAction(109, false, 'zoomOut'); // Subtract
-    bindAction(65, true, 'selectAll'); // Ctrl+A
-    bindAction(86, true, 'selectVertices', true); // Ctrl+Shift+V
-    bindAction(69, true, 'selectEdges', true); // Ctrl+Shift+E
-    bindAction(66, true, 'toBack'); // Ctrl+B
-    bindAction(70, true, 'toFront', true); // Ctrl+Shift+F
-    bindAction(68, true, 'duplicate'); // Ctrl+D
-    bindAction(90, true, 'undo'); // Ctrl+Z
-    bindAction(89, true, 'redo'); // Ctrl+Y
-    bindAction(88, true, 'cut'); // Ctrl+X
-    bindAction(67, true, 'copy'); // Ctrl+C
-    bindAction(81, true, 'connect'); // Ctrl+Q
-    bindAction(86, true, 'paste'); // Ctrl+V
-    bindAction(71, true, 'group'); // Ctrl+G
-    bindAction(77, true, 'editData'); // Ctrl+M
-    bindAction(71, true, 'grid', true); // Ctrl+Shift+G
-    bindAction(76, true, 'lockUnlock'); // Ctrl+L
-    bindAction(76, true, 'layers', true); // Ctrl+Shift+L
-    bindAction(79, true, 'outline', true); // Ctrl+Shift+O
-    bindAction(80, true, 'print'); // Ctrl+P
-    bindAction(85, true, 'ungroup'); // Ctrl+U
-    bindAction(112, false, 'about'); // F1
+    keyHandler.bindAction(8, false, 'delete'); // Backspace
+    keyHandler.bindAction(46, false, 'delete'); // Delete
+    keyHandler.bindAction(82, true, 'tilt'); // Ctrl+R
+    keyHandler.bindAction(83, true, 'save'); // Ctrl+S
+    keyHandler.bindAction(83, true, 'saveAs', true); // Ctrl+Shift+S
+    keyHandler.bindAction(107, false, 'zoomIn'); // Add
+    keyHandler.bindAction(109, false, 'zoomOut'); // Subtract
+    keyHandler.bindAction(65, true, 'selectAll'); // Ctrl+A
+    keyHandler.bindAction(65, true, 'selectVertices', true); // Ctrl+Shift+A
+    keyHandler.bindAction(69, true, 'selectEdges', true); // Ctrl+Shift+E
+    keyHandler.bindAction(69, true, 'style'); // Ctrl+S
+    keyHandler.bindAction(66, true, 'toBack'); // Ctrl+B
+    keyHandler.bindAction(70, true, 'toFront', true); // Ctrl+Shift+F
+    keyHandler.bindAction(68, true, 'duplicate'); // Ctrl+D
+    keyHandler.bindAction(90, true, 'undo'); // Ctrl+Z
+    keyHandler.bindAction(89, true, 'redo'); // Ctrl+Y
+    keyHandler.bindAction(88, true, 'cut'); // Ctrl+X
+    keyHandler.bindAction(67, true, 'copy'); // Ctrl+C
+    keyHandler.bindAction(81, true, 'connect'); // Ctrl+Q
+    keyHandler.bindAction(86, true, 'paste'); // Ctrl+V
+    keyHandler.bindAction(71, true, 'group'); // Ctrl+G
+    keyHandler.bindAction(77, true, 'editData'); // Ctrl+M
+    keyHandler.bindAction(71, true, 'grid', true); // Ctrl+Shift+G
+    keyHandler.bindAction(76, true, 'lockUnlock'); // Ctrl+L
+    keyHandler.bindAction(76, true, 'layers', true); // Ctrl+Shift+L
+    keyHandler.bindAction(79, true, 'outline', true); // Ctrl+Shift+O
+    keyHandler.bindAction(80, true, 'print'); // Ctrl+P
+    keyHandler.bindAction(85, true, 'ungroup'); // Ctrl+U
+    keyHandler.bindAction(112, false, 'about'); // F1
     
     return keyHandler;
 };

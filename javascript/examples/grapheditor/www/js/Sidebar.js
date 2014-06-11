@@ -1085,7 +1085,7 @@ Sidebar.prototype.createItem = function(cells, title, showLabel, showTitle, widt
  */
 Sidebar.prototype.createDropHandler = function(cells, allowSplit, dx, dy)
 {
-	return function(graph, evt, target, x, y)
+	return mxUtils.bind(this, function(graph, evt, target, x, y)
 	{
 		if (graph.isEnabled())
 		{
@@ -1100,28 +1100,38 @@ Sidebar.prototype.createDropHandler = function(cells, allowSplit, dx, dy)
 				{
 					target = null;
 				}
+
+				graph.model.beginUpdate();
 				
-				// Splits the target edge or inserts into target group
-				if (allowSplit && graph.isSplitEnabled() && graph.isSplitTarget(target, cells, evt))
+				try
 				{
-					graph.splitEdge(target, cells, null, x + dx, y + dy);
-					select = cells;
+					// Splits the target edge or inserts into target group
+					if (allowSplit && graph.isSplitEnabled() && graph.isSplitTarget(target, cells, evt))
+					{
+						graph.splitEdge(target, cells, null, x + dx, y + dy);
+						select = cells;
+					}
+					else if (cells.length > 0)
+					{
+						select = graph.importCells(cells, x + dx, y + dy, target);
+						this.editorUi.fireEvent(new mxEventObject('cellsInserted', 'cells', select));
+					}
+					
+					if (select != null && select.length > 0)
+					{
+						graph.scrollCellToVisible(select[0]);
+						graph.setSelectionCells(select);
+					}
 				}
-				else if (cells.length > 0)
+				finally
 				{
-					select = graph.importCells(cells, x + dx, y + dy, target);
-				}
-				
-				if (select != null && select.length > 0)
-				{
-					graph.scrollCellToVisible(select[0]);
-					graph.setSelectionCells(select);
+					graph.model.endUpdate();
 				}
 			}
 			
 			mxEvent.consume(evt);
 		}
-	};
+	});
 };
 
 /**

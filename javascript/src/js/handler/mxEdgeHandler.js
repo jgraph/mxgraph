@@ -429,6 +429,17 @@ mxEdgeHandler.prototype.validateConnection = function(source, target)
 				{
 					bend.node.style.cursor = mxConstants.CURSOR_BEND_HANDLE;
 					mxEvent.redirectMouseEvents(bend.node, this.graph, this.state);
+					
+					// Fixes lost event tracking for images in quirks / IE8 standards
+					if (mxClient.IS_QUIRKS || document.documentMode == 8)
+					{
+						mxEvent.addListener(bend.node, 'dragstart', function(evt)
+						{
+							mxEvent.consume(evt);
+							
+							return false;
+						});
+					}
 				}
 				
 				bends.push(bend);
@@ -461,7 +472,8 @@ mxEdgeHandler.prototype.isHandleEnabled = function(index)
  */
 mxEdgeHandler.prototype.isHandleVisible = function(index)
 {
-	return true;
+	return this.state.style[mxConstants.STYLE_EDGE] != mxConstants.EDGESTYLE_ENTITY_RELATION ||
+		index == 0 || index == this.abspoints.length - 1;
 };
 
 /**

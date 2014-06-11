@@ -1,3 +1,15 @@
+11-JUN-2014: 2.8.2.0
+
+- Fixes reconnect event handling for image handles in VML [JavaScript]
+- Fixes blocking of select click for mxGraph container in IE [JavaScript]
+- mxEdgeHandler.isHandleVisible returns false for entity relation waypoints [JavaScript]
+- Adds terminal property for mxEvent.CONNECT in mxConnectionHandler [JavaScript]
+- Target null if not inserted in mxConnectionHandler.selectCells [JavaScript]
+- Visibility and style changes trigger layout in mxLayoutManager [JavaScript]
+- Adds mxCellEditor.isStopEditingEvent, installListeners [JavaScript]
+- Disables mxTooltipHandler.show if destroy was called [JavaScript]
+- Adds mxGraphView.isCellCollapsed indirection [JavaScript] 
+
 02-JUN-2014: 2.8.1.0
 
 - Uses mxUtils.importNode in mxCodec.encode, mxCellCodec.afterEncode [JavaScript]
