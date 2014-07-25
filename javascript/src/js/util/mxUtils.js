@@ -879,7 +879,14 @@ var mxUtils =
 	 */
 	getTextContent: function(node)
 	{
-		return (node != null) ? node[(node.textContent === undefined) ? 'text' : 'textContent'] : '';
+		if (node.innerText !== undefined)
+		{
+			return node.innerText;
+		}
+		else
+		{
+			return (node != null) ? node[(node.textContent === undefined) ? 'text' : 'textContent'] : '';
+		}
 	},
 	
 	/**
@@ -894,7 +901,14 @@ var mxUtils =
 	 */
 	setTextContent: function(node, text)
 	{
-		node[(node.textContent === undefined) ? 'text' : 'textContent'] = text;
+		if (node.innerText !== undefined)
+		{
+			node.innerText = text;
+		}
+		else
+		{
+			node[(node.textContent === undefined) ? 'text' : 'textContent'] = text;
+		}
 	},
 	
 	/**
@@ -2331,14 +2345,19 @@ var mxUtils =
 	 */
 	getDocumentScrollOrigin: function(doc)
 	{
-		doc = (doc != null) ? doc : document;
-		
-		var b = doc.body;
-		var d = doc.documentElement;
-		var sl = (d && d.scrollLeft) || b.scrollLeft;
-		var st = (d && d.scrollTop) || b.scrollTop;
-		
-		return new mxPoint(sl, st);
+		if (mxClient.IS_QUIRKS)
+		{
+			return new mxPoint(doc.body.scrollLeft, doc.body.scrollTop);
+		}
+		else
+		{
+			var wnd = doc.defaultView || doc.parentWindow;
+			
+			var x = (wnd != null && window.pageXOffset !== undefined) ? window.pageXOffset : (document.documentElement || document.body.parentNode || document.body).scrollLeft;
+			var y = (wnd != null && window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;
+			
+			return new mxPoint(x, y);
+		}
 	},
 	
 	/**
@@ -2387,7 +2406,7 @@ var mxUtils =
 	{
 		var origin = mxUtils.getScrollOrigin(container);
 		var offset = mxUtils.getOffset(container);
-		
+
 		offset.x -= origin.x;
 		offset.y -= origin.y;
 		

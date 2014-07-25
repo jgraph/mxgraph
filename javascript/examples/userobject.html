@@ -73,7 +73,7 @@
 				{
 					if (mxUtils.isNode(cell.value))
 					{
-						if (cell.value.nodeName.toLowerCase() == ('person'))
+						if (cell.value.nodeName.toLowerCase() == 'person')
 						{
 							var firstName = cell.getAttribute('firstName', '');
 							var lastName = cell.getAttribute('lastName', '');
@@ -101,7 +101,7 @@
 				graph.cellLabelChanged = function(cell, newValue, autoSize)
 				{
 					if (mxUtils.isNode(cell.value) &&
-						cell.value.nodeName.toLowerCase() == ('person'))
+						cell.value.nodeName.toLowerCase() == 'person')
 					{
 						var pos = newValue.indexOf(' ');
 
@@ -128,7 +128,7 @@
 				graph.getEditingValue = function(cell)
 				{
 					if (mxUtils.isNode(cell.value) &&
-						cell.value.nodeName.toLowerCase() == ('person'))
+						cell.value.nodeName.toLowerCase() == 'person')
 					{
 						var firstName = cell.getAttribute('firstName', '');
 						var lastName = cell.getAttribute('lastName', '');

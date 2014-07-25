@@ -5,7 +5,7 @@ body {
   font:14px/1.5 Lato, "Helvetica Neue", Helvetica, Arial, sans-serif;
   color:#777;
   font-weight:300;
-  max-width:1200px;
+  max-width:800px;
   margin: 0 auto;
 }
 
@@ -94,7 +94,8 @@ th {
 }
 
 img {
-  max-width:100%;
+    display:block;
+    margin:auto;
 }
 
 header {

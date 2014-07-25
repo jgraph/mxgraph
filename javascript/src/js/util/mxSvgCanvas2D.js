@@ -208,6 +208,13 @@ mxSvgCanvas2D.prototype.blockImagePointerEvents = false;
 mxSvgCanvas2D.prototype.lineHeightCorrection = 1.05;
 
 /**
+ * Variable: pointerEventsValue
+ * 
+ * Default value for active pointer events. Default is all.
+ */
+mxSvgCanvas2D.prototype.pointerEventsValue = 'all';
+
+/**
  * Function: reset
  * 
  * Returns any offsets for rendering pixels.
@@ -529,9 +536,9 @@ mxSvgCanvas2D.prototype.addNode = function(filled, stroked)
 		if (this.pointerEvents && (node.nodeName != 'path' ||
 			this.path[this.path.length - 1] == this.closeOp))
 		{
-			node.setAttribute('pointer-events', 'all');
+			node.setAttribute('pointer-events', this.pointerEventsValue);
 		}
-		// Ugly hack to activate pointer events while a link is active
+		// Enables clicks for nodes inside a link element
 		else if (!this.pointerEvents && this.originalRoot == null)
 		{
 			node.setAttribute('pointer-events', 'none');
@@ -1218,9 +1225,10 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				clone.parentNode.removeChild(clone);
 				fo.appendChild(div);
 			}
-			// Workaround for export and Firefox 3.x (Opera has same bug but it cannot
-			// be fixed for all cases using this workaround so foreignObject is disabled). 
-			else if (this.root.ownerDocument != document || navigator.userAgent.indexOf('Firefox/3.') >= 0)
+			// Workaround for export and Firefox where sizes are not reported or updated correctly
+			// when inside a foreignObject (Opera has same bug but it cannot be fixed for all cases
+			// using this workaround so foreignObject is disabled). 
+			else if (this.root.ownerDocument != document || mxClient.IS_FF)
 			{
 				// Getting size via local document for export
 				div.style.visibility = 'hidden';
@@ -1228,9 +1236,6 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				
 				ow = div.offsetWidth;
 				oh = div.offsetHeight;
-
-				fo.appendChild(div);
-				div.style.visibility = '';
 			}
 			else
 			{
@@ -1244,8 +1249,20 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			{
 				ow = Math.max(ow, div.scrollWidth);
 				div.style.width = ow + 'px';
+
+				// Workaround for wrong offsetHeight in Webkit and FF
+				if (mxClient.IS_GC || mxClient.IS_SF || mxClient.IS_FF)
+				{
+					oh = div.offsetHeight;
+				}
 			}
-								
+
+			if (div.parentNode != fo)
+			{
+				fo.appendChild(div);
+				div.style.visibility = '';
+			}
+			
 			if (overflow == 'fill')
 			{
 				w = Math.max(w, ow);

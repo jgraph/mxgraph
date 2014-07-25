@@ -901,16 +901,16 @@ var EditFileDialog = function(editorUi)
 	var select = document.createElement('select');
 	select.style.width = '180px';
 
+	var replaceOption = document.createElement('option');
+	replaceOption.setAttribute('value', 'replace');
+	mxUtils.write(replaceOption, mxResources.get('replaceExistingDrawing'));
+	select.appendChild(replaceOption);
+
 	var newOption = document.createElement('option');
 	newOption.setAttribute('value', 'new');
 	mxUtils.write(newOption, mxResources.get('openInNewWindow'));
 	select.appendChild(newOption);
 
-	var replaceOption = document.createElement('option');
-	replaceOption.setAttribute('value', 'replace');
-	mxUtils.write(replaceOption, mxResources.get('replaceExistingDrawing'));
-	select.appendChild(replaceOption);
-	
 	var importOption = document.createElement('option');
 	importOption.setAttribute('value', 'import');
 	mxUtils.write(importOption, mxResources.get('addToExistingDrawing'));

@@ -112,11 +112,14 @@
 		<add as="getTooltipForCell"><![CDATA[
 			function(cell)
 			{
-				return '<b>'+cell.getAttribute('label')+
-						'</b> ('+cell.getId()+')'+
-						'<br>Style: '+cell.getStyle()+
-						'<br>Connections: '+cell.getEdgeCount()+
-						'<br>Children: '+cell.getChildCount();
+				var label = cell.getAttribute('label');
+				var style = cell.getStyle();
+			
+				return ((label != null) ? ('<b>' + label +
+						'</b> (' + cell.getId() + ')<br>') : '') +
+						((style != null) ? ('<br>Style: ' + style + '<br>') : '') +
+						'Connections: ' + cell.getEdgeCount()+
+						'<br>Children: ' + cell.getChildCount();
 			}
 		]]></add>
 		<add as="convertValueToString"><![CDATA[

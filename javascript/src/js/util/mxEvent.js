@@ -477,7 +477,8 @@ var mxEvent =
 	 * 
 	 * Returns true if the left mouse button is pressed for the given event.
 	 * To check if a button is pressed during a mouseMove you should use the
-	 * <mxGraph.isMouseDown> property.
+	 * <mxGraph.isMouseDown> property. Note that this returns true in Firefox
+	 * for control+left-click on the Mac.
 	 */
 	isLeftMouseButton: function(evt)
 	{
@@ -512,12 +513,13 @@ var mxEvent =
 	 * Function: isPopupTrigger
 	 * 
 	 * Returns true if the event is a popup trigger. This implementation
-	 * returns true if the right mouse button or shift was pressed.
+	 * returns true if the right button or the left button and control was
+	 * pressed on a Mac.
 	 */
 	isPopupTrigger: function(evt)
 	{
-		return mxEvent.isRightMouseButton(evt) || (mxEvent.isShiftDown(evt) &&
-			!mxEvent.isControlDown(evt) && !mxEvent.isMetaDown(evt) && !mxEvent.isAltDown(evt));
+		return mxEvent.isRightMouseButton(evt) || (mxClient.IS_MAC && mxEvent.isControlDown(evt) &&
+			!mxEvent.isShiftDown(evt) && !mxEvent.isMetaDown(evt) && !mxEvent.isAltDown(evt));
 	},
 
 	/**

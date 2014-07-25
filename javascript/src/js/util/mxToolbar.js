@@ -134,62 +134,59 @@ mxToolbar.prototype.addItem = function(title, icon, funct, pressedIcon, style, f
 
 	// Highlights the toolbar item with a gray background
 	// while it is being clicked with the mouse
-	mxEvent.addGestureListeners(img,
-		mxUtils.bind(this, function(evt)
+	mxEvent.addGestureListeners(img, mxUtils.bind(this, function(evt)
+	{
+		if (pressedIcon != null)
 		{
-			if (pressedIcon != null)
+			img.setAttribute('src', pressedIcon);
+		}
+		else
+		{
+			img.style.backgroundColor = 'gray';
+		}
+		
+		// Popup Menu
+		if (factoryMethod != null)
+		{
+			if (this.menu == null)
 			{
-				img.setAttribute('src', pressedIcon);
-			}
-			else
-			{
-				img.style.backgroundColor = 'gray';
+				this.menu = new mxPopupMenu();
+				this.menu.init();
 			}
 			
-			// Popup Menu
-			if (factoryMethod != null)
+			var last = this.currentImg;
+			
+			if (this.menu.isMenuShowing())
 			{
-				if (this.menu == null)
-				{
-					this.menu = new mxPopupMenu();
-					this.menu.init();
-				}
+				this.menu.hideMenu();
+			}
+			
+			if (last != img)
+			{
+				// Redirects factory method to local factory method
+				this.currentImg = img;
+				this.menu.factoryMethod = factoryMethod;
 				
-				var last = this.currentImg;
-				
+				var point = new mxPoint(
+					img.offsetLeft,
+					img.offsetTop + img.offsetHeight);
+				this.menu.popup(point.x, point.y, null, evt);
+
+				// Sets and overrides to restore classname
 				if (this.menu.isMenuShowing())
 				{
-					this.menu.hideMenu();
-				}
-				
-				if (last != img)
-				{
-					// Redirects factory method to local factory method
-					this.currentImg = img;
-					this.menu.factoryMethod = factoryMethod;
+					img.className = initialClassName + 'Selected';
 					
-					var point = new mxPoint(
-						img.offsetLeft,
-						img.offsetTop + img.offsetHeight);
-					this.menu.popup(point.x, point.y, null, evt);
-	
-					// Sets and overrides to restore classname
-					if (this.menu.isMenuShowing())
+					this.menu.hideMenu = function()
 					{
-						img.className = initialClassName + 'Selected';
-						
-						this.menu.hideMenu = function()
-						{
-							mxPopupMenu.prototype.hideMenu.apply(this);
-							img.className = initialClassName;
-							this.currentImg = null;
-						};
-					}
+						mxPopupMenu.prototype.hideMenu.apply(this);
+						img.className = initialClassName;
+						this.currentImg = null;
+					};
 				}
 			}
-		}),
-		null,
-		mouseHandler);
+		}
+	}), null, mouseHandler);
 
 	mxEvent.addListener(img, 'mouseout', mouseHandler);
 	
@@ -237,13 +234,13 @@ mxToolbar.prototype.addActionCombo = function(title, style)
 {
 	var select = document.createElement('select');
 	select.className = style || 'mxToolbarCombo';
-	
 	this.addOption(select, title, null);
 	
 	mxEvent.addListener(select, 'change', function(evt)
 	{
 		var value = select.options[select.selectedIndex];
 		select.selectedIndex = 0;
+		
 		if (value.funct != null)
 		{
 			value.funct(evt);
@@ -391,13 +388,12 @@ mxToolbar.prototype.addMode = function(title, icon, funct, pressedIcon, style, t
 			this.selectMode(img, funct);
 			this.noReset = false;
 		}));
-		mxEvent.addListener(img, 'dblclick',
-			mxUtils.bind(this, function(evt)
-			{
-				this.selectMode(img, funct);
-				this.noReset = true;
-			})
-		);
+		
+		mxEvent.addListener(img, 'dblclick', mxUtils.bind(this, function(evt)
+		{
+			this.selectMode(img, funct);
+			this.noReset = true;
+		}));
 		
 		if (this.defaultMode == null)
 		{
@@ -463,8 +459,7 @@ mxToolbar.prototype.selectMode = function(domNode, funct)
  */
 mxToolbar.prototype.resetMode = function(forced)
 {
-	if ((forced || !this.noReset) &&
-		this.selectedMode != this.defaultMode)
+	if ((forced || !this.noReset) && this.selectedMode != this.defaultMode)
 	{
 		// The last selected switch mode will be activated
 		// so the function was already executed and is

@@ -5915,6 +5915,87 @@ mxGraph.prototype.resetEdge = function(edge)
  */
 
 /**
+ * Function: getOutlineConstraint
+ * 
+ * Returns the constraint used to connect to the outline of the given state.
+ */
+mxGraph.prototype.getOutlineConstraint = function(point, terminalState, me)
+{
+	if (terminalState.shape != null)
+	{
+		var bounds = this.view.getPerimeterBounds(terminalState);
+		var direction = terminalState.style[mxConstants.STYLE_DIRECTION];
+		
+		if (direction == mxConstants.DIRECTION_NORTH || direction == mxConstants.DIRECTION_SOUTH)
+		{
+			bounds.x += bounds.width / 2 - bounds.height / 2;
+			bounds.y += bounds.height / 2 - bounds.width / 2;
+			var tmp = bounds.width;
+			bounds.width = bounds.height;
+			bounds.height = tmp;
+		}
+	
+		var alpha = mxUtils.toRadians(terminalState.shape.getShapeRotation());
+		
+		if (alpha != 0)
+		{
+			var cos = Math.cos(-alpha);
+			var sin = Math.sin(-alpha);
+	
+			var ct = new mxPoint(bounds.getCenterX(), bounds.getCenterY());
+			point = mxUtils.getRotatedPoint(point, cos, sin, ct);
+		}
+
+		var sx = 1;
+		var sy = 1;
+		var dx = 0;
+		var dy = 0;
+		
+		// LATER: Add flipping support for image shapes
+		if (this.getModel().isVertex(terminalState.cell))
+		{
+			var flipH = terminalState.style[mxConstants.STYLE_FLIPH];
+			var flipV = terminalState.style[mxConstants.STYLE_FLIPV];
+			
+			// Legacy support for stencilFlipH/V
+			if (terminalState.shape != null && terminalState.shape.stencil != null)
+			{
+				flipH = mxUtils.getValue(terminalState.style, 'stencilFlipH', 0) == 1 || flipH;
+				flipV = mxUtils.getValue(terminalState.style, 'stencilFlipV', 0) == 1 || flipV;
+			}
+			
+			if (direction == mxConstants.DIRECTION_NORTH || direction == mxConstants.DIRECTION_SOUTH)
+			{
+				var tmp = flipH;
+				flipH = flipV;
+				flipV = tmp;
+			}
+			
+			if (flipH)
+			{
+				sx = -1;
+				dx = -bounds.width;
+			}
+			
+			if (flipV)
+			{
+				sy = -1;
+				dy = -bounds.height ;
+			}
+		}
+		
+		point = new mxPoint((point.x - bounds.x) * sx - dx + bounds.x, (point.y - bounds.y) * sy - dy + bounds.y);
+		
+		var x = Math.round((point.x - bounds.x) * 1000 / bounds.width) / 1000;
+		var y = Math.round((point.y - bounds.y) * 1000 / bounds.height) / 1000;
+		
+		return new mxConnectionConstraint(new mxPoint(x, y), false);
+	}
+	
+	return null;
+};
+
+/**
  * Function: getAllConnectionConstraints
  * 
  * Returns an array of all <mxConnectionConstraints> for the given terminal. If
@@ -5928,8 +6009,7 @@ mxGraph.prototype.resetEdge = function(edge)
  */
 mxGraph.prototype.getAllConnectionConstraints = function(terminal, source)
 {
-	if (terminal != null && terminal.shape != null &&
-		terminal.shape.stencil != null)
+	if (terminal != null && terminal.shape != null && terminal.shape.stencil != null)
 	{
 		return terminal.shape.stencil.constraints;
 	}
@@ -5995,6 +6075,7 @@ mxGraph.prototype.setConnectionConstraint = function(edge, terminal, source, con
 	if (constraint != null)
 	{
 		this.model.beginUpdate();
+		
 		try
 		{
 			if (constraint == null || constraint.point == null)
@@ -6392,12 +6473,12 @@ mxGraph.prototype.disconnectGraph = function(cells)
  * Returns the current root of the displayed cell hierarchy. This is a
  * shortcut to <mxGraphView.currentRoot> in <view>.
  */
-	mxGraph.prototype.getCurrentRoot = function()
-	{
-		return this.view.currentRoot;
-	};
+mxGraph.prototype.getCurrentRoot = function()
+{
+	return this.view.currentRoot;
+};
  
-	/**
+/**
  * Function: getTranslateForRoot
  * 
  * Returns the translation to be used if the given cell is the root cell as
@@ -7001,6 +7082,49 @@ mxGraph.prototype.zoomActual = function()
 mxGraph.prototype.zoomTo = function(scale, center)
 {
 	this.zoom(scale / this.view.scale, center);
+};
+
+/**
+ * Function: center
+ * 
+ * Centers the graph in the container.
+ */
+mxGraph.prototype.center = function()
+{
+	var hasScrollbars = mxUtils.hasScrollbars(this.container);
+	var cw = this.container.clientWidth;
+	var ch = this.container.clientHeight;
+	var bounds = this.getGraphBounds();
+	var t = this.view.translate;
+	bounds.x -= t.x;
+	bounds.y -= t.y;
+	
+	var dx = cw - bounds.width;
+	var dy = ch - bounds.height;
+	
+	if (!hasScrollbars)
+	{
+		this.view.setTranslate(dx / 2 - bounds.x, dy / 2 - bounds.y);
+	}
+	else
+	{
+		var sw = this.container.scrollWidth;
+		var sh = this.container.scrollHeight;
+		
+		if (sw > cw)
+		{
+			dx = 0;
+		}
+		
+		if (sh > ch)
+		{
+			dy = 0;
+		}
+
+		this.view.setTranslate(dx / 2 - bounds.x, dy / 2 - bounds.y);
+		this.container.scrollLeft = (sw - cw) / 2;
+		this.container.scrollTop = (sh - ch) / 2;
+	}
 };
 
 /**
@@ -9828,8 +9952,12 @@ mxGraph.prototype.setExtendParentsOnMove = function(value)
  * Function: isRecursiveResize
  * 
  * Returns <recursiveResize>.
+ * 
+ * Parameters:
+ * 
+ * state - <mxCellState> that is being resized.
  */
-mxGraph.prototype.isRecursiveResize = function()
+mxGraph.prototype.isRecursiveResize = function(state)
 {
 	return this.recursiveResize;
 };
@@ -10237,7 +10365,7 @@ mxGraph.prototype.getSwimlaneAt = function (x, y, parent)
  * x - X-coordinate of the location to be checked.
  * y - Y-coordinate of the location to be checked.
  * parent - <mxCell> that should be used as the root of the recursion.
- * Default is <defaultParent>.
+ * Default is current root of the view or the root of the model.
  * vertices - Optional boolean indicating if vertices should be returned.
  * Default is true.
  * edges - Optional boolean indicating if edges should be returned. Default
@@ -10247,7 +10375,16 @@ mxGraph.prototype.getCellAt = function(x, y, parent, vertices, edges)
 {
 	vertices = (vertices != null) ? vertices : true;
 	edges = (edges != null) ? edges : true;
-	parent = (parent != null) ? parent : this.getDefaultParent();
+
+	if (parent == null)
+	{
+		parent = this.getCurrentRoot();
+		
+		if (parent == null)
+		{
+			parent = this.getModel().getRoot();
+		}
+	}
 
 	if (parent != null)
 	{
@@ -10723,8 +10860,8 @@ mxGraph.prototype.getEdgesBetween = function(source, target, directed)
  * y - Y-coordinate of the rectangle.
  * width - Width of the rectangle.
  * height - Height of the rectangle.
- * parent - <mxCell> whose children should be checked. Default is
- * <defaultParent>.
+ * parent - <mxCell> that should be used as the root of the recursion.
+ * Default is current root of the view or the root of the model.
  * result - Optional array to store the result in.
  */
 mxGraph.prototype.getCells = function(x, y, width, height, parent, result)
@@ -10735,8 +10872,16 @@ mxGraph.prototype.getCells = function(x, y, width, height, parent, result)
 	{
 		var right = x + width;
 		var bottom = y + height;
-		
-		parent = parent || this.getDefaultParent();
+
+		if (parent == null)
+		{
+			parent = this.getCurrentRoot();
+			
+			if (parent == null)
+			{
+				parent = this.getModel().getRoot();
+			}
+		}
 		
 		if (parent != null)
 		{
@@ -11715,69 +11860,74 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 	{
 		var currentTime = new Date().getTime();
 
-		if (this.isEnabled())
+		// NOTE: Second mouseDown for double click missing in quirks mode
+		if ((!mxClient.IS_QUIRKS && evtName == mxEvent.MOUSE_DOWN) || (mxClient.IS_QUIRKS && evtName == mxEvent.MOUSE_UP && !this.fireDoubleClick))
 		{
-			// NOTE: Second mouseDown for double click missing in quirks mode
-			if ((!mxClient.IS_QUIRKS && evtName == mxEvent.MOUSE_DOWN) || (mxClient.IS_QUIRKS && evtName == mxEvent.MOUSE_UP && !this.fireDoubleClick))
+			if (this.lastTouchEvent != null && this.lastTouchEvent != me.getEvent() &&
+				currentTime - this.lastTouchTime < this.doubleTapTimeout &&
+				Math.abs(this.lastTouchX - me.getX()) < this.doubleTapTolerance &&
+				Math.abs(this.lastTouchY - me.getY()) < this.doubleTapTolerance &&
+				this.doubleClickCounter < 2)
 			{
-				if (this.lastTouchEvent != null && this.lastTouchEvent != me.getEvent() &&
-					currentTime - this.lastTouchTime < this.doubleTapTimeout &&
-					Math.abs(this.lastTouchX - me.getX()) < this.doubleTapTolerance &&
-					Math.abs(this.lastTouchY - me.getY()) < this.doubleTapTolerance &&
-					this.doubleClickCounter < 2)
+				this.doubleClickCounter++;
+				var doubleClickFired = false;
+				
+				if (evtName == mxEvent.MOUSE_UP)
 				{
-					this.doubleClickCounter++;
-					
-					if (evtName == mxEvent.MOUSE_UP)
+					if (me.getCell() == this.lastTouchCell && this.lastTouchCell != null)
 					{
-						if (me.getCell() == this.lastTouchCell && this.lastTouchCell != null)
-						{
-							this.lastTouchTime = 0;
-							var cell = this.lastTouchCell;
-							this.lastTouchCell = null;
-							this.dblClick(me.getEvent(), cell);
-						}
-					}
-					else
-					{
-						this.fireDoubleClick = true;
 						this.lastTouchTime = 0;
-					}
+						var cell = this.lastTouchCell;
+						this.lastTouchCell = null;
 
-					mxEvent.consume(me.getEvent());
-					return;
-				}
-				else if (this.lastTouchEvent == null || this.lastTouchEvent != me.getEvent())
-				{
-					this.lastTouchCell = me.getCell();
-					this.lastTouchX = me.getX();
-					this.lastTouchY = me.getY();
-					this.lastTouchTime = currentTime;
-					this.lastTouchEvent = me.getEvent();
-					this.doubleClickCounter = 0;
-				}
-			}
-			else if ((this.isMouseDown || evtName == mxEvent.MOUSE_UP) && this.fireDoubleClick)
-			{
-				this.fireDoubleClick = false;
-				var cell = this.lastTouchCell;
-				this.lastTouchCell = null;
-				
-				// Workaround for Chrome/Safari not firing native double click events for double touch on background
-				var valid = (cell != null) || (mxEvent.isTouchEvent(me.getEvent()) && (mxClient.IS_GC || mxClient.IS_SF));
-				
-				if (valid && Math.abs(this.lastTouchX - me.getX()) < this.doubleTapTolerance &&
-					Math.abs(this.lastTouchY - me.getY()) < this.doubleTapTolerance)
-				{
-					this.dblClick(me.getEvent(), cell);
+						this.dblClick(me.getEvent(), cell);
+						doubleClickFired = true;
+					}
 				}
 				else
 				{
-					mxEvent.consume(me.getEvent());
+					this.fireDoubleClick = true;
+					this.lastTouchTime = 0;
 				}
-				
-				return;
+
+				// Do not ignore mouse up in quirks in this case
+				if (!mxClient.IS_QUIRKS || doubleClickFired)
+				{
+					mxEvent.consume(me.getEvent());
+					return;
+				}
 			}
+			else if (this.lastTouchEvent == null || this.lastTouchEvent != me.getEvent())
+			{
+				this.lastTouchCell = me.getCell();
+				this.lastTouchX = me.getX();
+				this.lastTouchY = me.getY();
+				this.lastTouchTime = currentTime;
+				this.lastTouchEvent = me.getEvent();
+				this.doubleClickCounter = 0;
+			}
+		}
+		else if ((this.isMouseDown || evtName == mxEvent.MOUSE_UP) && this.fireDoubleClick)
+		{
+			this.fireDoubleClick = false;
+			var cell = this.lastTouchCell;
+			this.lastTouchCell = null;
+			this.isMouseDown = false;
+			
+			// Workaround for Chrome/Safari not firing native double click events for double touch on background
+			var valid = (cell != null) || (mxEvent.isTouchEvent(me.getEvent()) && (mxClient.IS_GC || mxClient.IS_SF));
+			
+			if (valid && Math.abs(this.lastTouchX - me.getX()) < this.doubleTapTolerance &&
+				Math.abs(this.lastTouchY - me.getY()) < this.doubleTapTolerance)
+			{
+				this.dblClick(me.getEvent(), cell);
+			}
+			else
+			{
+				mxEvent.consume(me.getEvent());
+			}
+			
+			return;
 		}
 	}
 

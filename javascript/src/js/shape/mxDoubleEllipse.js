@@ -82,17 +82,20 @@ mxDoubleEllipse.prototype.paintBackground = function(c, x, y, w, h)
  */
 mxDoubleEllipse.prototype.paintForeground = function(c, x, y, w, h)
 {
-	var inset = mxUtils.getValue(this.style, mxConstants.STYLE_MARGIN, Math.min(3 + this.strokewidth, Math.min(w / 5, h / 5)));
-	x += inset;
-	y += inset;
-	w -= 2 * inset;
-	h -= 2 * inset;
-	
-	// FIXME: Rounding issues in IE8 standards mode (not in 1.x)
-	if (w > 0 && h > 0)
+	if (!this.outline)
 	{
-		c.ellipse(x, y, w, h);
+		var inset = mxUtils.getValue(this.style, mxConstants.STYLE_MARGIN, Math.min(3 + this.strokewidth, Math.min(w / 5, h / 5)));
+		x += inset;
+		y += inset;
+		w -= 2 * inset;
+		h -= 2 * inset;
+		
+		// FIXME: Rounding issues in IE8 standards mode (not in 1.x)
+		if (w > 0 && h > 0)
+		{
+			c.ellipse(x, y, w, h);
+		}
+		
+		c.stroke();
 	}
-	
-	c.stroke();
 };

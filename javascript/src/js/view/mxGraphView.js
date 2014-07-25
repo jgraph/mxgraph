@@ -2230,7 +2230,7 @@ mxGraphView.prototype.createState = function(cell)
  * Function: getCanvas
  *
  * Returns the DOM node that contains the background-, draw- and
- * overlaypane.
+ * overlay- and decoratorpanes.
  */
 mxGraphView.prototype.getCanvas = function()
 {
@@ -2260,11 +2260,21 @@ mxGraphView.prototype.getDrawPane = function()
 /**
  * Function: getOverlayPane
  *
- * Returns the DOM node that represents the topmost drawing layer.
+ * Returns the DOM node that represents the layer above the drawing layer.
  */
 mxGraphView.prototype.getOverlayPane = function()
 {
 	return this.overlayPane;
+};
+
+/**
+ * Function: getDecoratorPane
+ *
+ * Returns the DOM node that represents the topmost drawing layer.
+ */
+mxGraphView.prototype.getDecoratorPane = function()
+{
+	return this.decoratorPane;
 };
 
 /**
@@ -2285,7 +2295,8 @@ mxGraphView.prototype.isContainerEvent = function(evt)
 		source == this.canvas ||
 		source == this.backgroundPane ||
 		source == this.drawPane ||
-		source == this.overlayPane);
+		source == this.overlayPane ||
+		source == this.decoratorPane);
 };
 
 /**
@@ -2383,8 +2394,7 @@ mxGraphView.prototype.installListeners = function()
 		// Adds basic listeners for graph event dispatching
 		mxEvent.addGestureListeners(container, mxUtils.bind(this, function(evt)
 		{
-			// Condition to avoid scrollbar events starting a rubberband
-			// selection
+			// Condition to avoid scrollbar events starting a rubberband selection
 			if (this.isContainerEvent(evt) && ((!mxClient.IS_IE && 
 				!mxClient.IS_GC && !mxClient.IS_OP && !mxClient.IS_SF) ||
 				!this.isScrollEvent(evt)))
@@ -2459,14 +2469,14 @@ mxGraphView.prototype.installListeners = function()
 		this.moveHandler = mxUtils.bind(this, function(evt)
 		{
 			// Hides the tooltip if mouse is outside container
-			if (graph.tooltipHandler != null &&
-				graph.tooltipHandler.isHideOnHover())
+			if (graph.tooltipHandler != null && graph.tooltipHandler.isHideOnHover())
 			{
 				graph.tooltipHandler.hide();
 			}
-			
-			if (this.captureDocumentGesture && graph.isMouseDown &&
-				!mxEvent.isConsumed(evt))
+
+			if (this.captureDocumentGesture && graph.isMouseDown && graph.container != null &&
+				!this.isContainerEvent(evt) && graph.container.style.display != 'none' &&
+				graph.container.style.visibility != 'hidden' && !mxEvent.isConsumed(evt))
 			{
 				graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt, getState(evt)));
 			}
@@ -2474,7 +2484,9 @@ mxGraphView.prototype.installListeners = function()
 		
 		this.endHandler = mxUtils.bind(this, function(evt)
 		{
-			if (this.captureDocumentGesture)
+			if (this.captureDocumentGesture && graph.isMouseDown && graph.container != null &&
+				!this.isContainerEvent(evt) && graph.container.style.display != 'none' &&
+				graph.container.style.visibility != 'hidden')
 			{
 				graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt));
 			}
@@ -2503,10 +2515,12 @@ mxGraphView.prototype.createHtml = function()
 		this.backgroundPane = this.createHtmlPane('1px', '1px');
 		this.drawPane = this.createHtmlPane('1px', '1px');
 		this.overlayPane = this.createHtmlPane('1px', '1px');
+		this.decoratorPane = this.createHtmlPane('1px', '1px');
 		
 		this.canvas.appendChild(this.backgroundPane);
 		this.canvas.appendChild(this.drawPane);
 		this.canvas.appendChild(this.overlayPane);
+		this.canvas.appendChild(this.decoratorPane);
 
 		container.appendChild(this.canvas);
 		
@@ -2603,10 +2617,12 @@ mxGraphView.prototype.createVml = function()
 		this.backgroundPane = this.createVmlPane(width, height);
 		this.drawPane = this.createVmlPane(width, height);
 		this.overlayPane = this.createVmlPane(width, height);
+		this.decoratorPane = this.createVmlPane(width, height);
 		
 		this.canvas.appendChild(this.backgroundPane);
 		this.canvas.appendChild(this.drawPane);
 		this.canvas.appendChild(this.overlayPane);
+		this.canvas.appendChild(this.decoratorPane);
 		
 		container.appendChild(this.canvas);
 	}
@@ -2656,6 +2672,9 @@ mxGraphView.prototype.createSvg = function()
 
 	this.overlayPane = document.createElementNS(mxConstants.NS_SVG, 'g');
 	this.canvas.appendChild(this.overlayPane);
+	
+	this.decoratorPane = document.createElementNS(mxConstants.NS_SVG, 'g');
+	this.canvas.appendChild(this.decoratorPane);
 	
 	var root = document.createElementNS(mxConstants.NS_SVG, 'svg');
 	root.style.width = '100%';
@@ -2722,6 +2741,7 @@ mxGraphView.prototype.destroy = function()
 		this.backgroundPane = null;
 		this.drawPane = null;
 		this.overlayPane = null;
+		this.decoratorPane = null;
 	}
 };
 

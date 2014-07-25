@@ -54,9 +54,19 @@ mxSwimlane.prototype.imageSize = 16;
  * 
  * Returns the bounding box for the gradient box for this shape.
  */
+mxSwimlane.prototype.getTitleSize = function()
+{
+	return mxUtils.getValue(this.style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE);
+};
+
+/**
+ * Function: getGradientBounds
+ * 
+ * Returns the bounding box for the gradient box for this shape.
+ */
 mxSwimlane.prototype.getLabelBounds = function(rect)
 {
-	var start = mxUtils.getValue(this.style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE);
+	var start = this.getTitleSize();
 	var bounds = new mxRectangle(rect.x, rect.y, rect.width, rect.height);
 	var horizontal = this.isHorizontal();
 	
@@ -107,7 +117,7 @@ mxSwimlane.prototype.getLabelBounds = function(rect)
  */
 mxSwimlane.prototype.getGradientBounds = function(c, x, y, w, h)
 {
-	var start = mxUtils.getValue(this.style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE);
+	var start = this.getTitleSize();
 	
 	if (this.isHorizontal())
 	{
@@ -150,7 +160,7 @@ mxSwimlane.prototype.isHorizontal = function()
  */
 mxSwimlane.prototype.paintVertexShape = function(c, x, y, w, h)
 {
-	var start = mxUtils.getValue(this.style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE);
+	var start = this.getTitleSize();
 	var fill = mxUtils.getValue(this.style, mxConstants.STYLE_SWIMLANE_FILLCOLOR, mxConstants.NONE);
 	var swimlaneLine = mxUtils.getValue(this.style, mxConstants.STYLE_SWIMLANE_LINE, 1) == 1;
 	var r = 0;

@@ -819,10 +819,6 @@ mxGraphHandler.prototype.mouseUp = function(sender, me)
 		if (this.cell != null && this.first != null && this.shape != null &&
 			this.currentDx != null && this.currentDy != null)
 		{
-			var scale = graph.getView().scale;
-			var clone = graph.isCloneEvent(me.getEvent()) && graph.isCellsCloneable() && this.isCloneEnabled();
-			var dx = this.roundLength(this.currentDx / scale);
-			var dy = this.roundLength(this.currentDy / scale);
 			var cell = me.getCell();
 			
 			if (this.connectOnDrop && this.target == null && cell != null && graph.getModel().isVertex(cell) &&
@@ -832,6 +828,10 @@ mxGraphHandler.prototype.mouseUp = function(sender, me)
 			}
 			else
 			{
+				var clone = graph.isCloneEvent(me.getEvent()) && graph.isCellsCloneable() && this.isCloneEnabled();
+				var scale = graph.getView().scale;
+				var dx = this.roundLength(this.currentDx / scale);
+				var dy = this.roundLength(this.currentDy / scale);
 				var target = this.target;
 				
 				if (graph.isSplitEnabled() && graph.isSplitTarget(target, this.cells, me.getEvent()))

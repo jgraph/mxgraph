@@ -13,7 +13,7 @@
   	box-shadow:0px 0px 3px 0px #d9d9d9;
 }
 .geSidebarContainer a, .geMenubarContainer a, .geToolbar a {
-	color:black;
+	color:#000000;
 	text-decoration:none;
 }
 .geMenubarContainer, .geToolbarContainer, .geDiagramContainer, .geSidebarContainer, .geFooterContainer, .geHsplit, .geVsplit {
@@ -101,9 +101,8 @@
 	float:left;
 	width:20px;
 	height:20px;
-	padding:0px 2px 0px 2px;
+	padding:0px 2px 4px 2px;
 	margin:2px;
-	padding-bottom:4px;
 	border:1px solid transparent;
 	cursor:pointer;
 	opacity:0.5;
@@ -120,12 +119,10 @@
 }
 .geToolbarContainer .geLabel {
 	float:left;
-	padding:5px;
-	padding-top:1px;
 	margin:2px;
-	margin-top:2px;
-	border:1px solid transparent;
 	cursor:pointer;
+	padding:3px 5px 3px 5px;
+	border:1px solid transparent;
 	opacity:0.5;
 	_filter:alpha(opacity=50);
 }
@@ -244,6 +241,7 @@
 	-moz-box-shadow:0px 0px 2px 2px #d5d5d5;
 	box-shadow:0px 0px 2px 2px #d5d5d5;
 	_filter:progid:DXImageTransform.Microsoft.DropShadow(OffX=2, OffY=2, Color='#d5d5d5', Positive='true');
+	z-index: 2;
 }
 .geDialogClose {
 	position:absolute;
@@ -274,16 +272,26 @@
 	background:#ececec;
 }
 .geBigButton {
+	color:#ffffff;
+	border: none;
 	padding:10px;
 	font-size:14pt;
+	white-space: nowrap;
 	border-radius:6px;
-	color:#fff;
-	border:1px solid #2b669a;
+	text-shadow: rgb(41, 89, 137) 0px 1px 0px;
 	background-color:#428bca;
-	background-image:linear-gradient(#428bca 0%, #2d6ca2 100%);
+	background-image:linear-gradient(rgb(70, 135, 206) 0px, rgb(48, 104, 162) 100%);
+	-webkit-box-shadow: rgba(255, 255, 255, 0.0980392) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.2) 0px 1px 1px 0px;
+	-moz-box-shadow: rgba(255, 255, 255, 0.0980392) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.2) 0px 1px 1px 0px;
+	box-shadow: rgba(255, 255, 255, 0.0980392) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.2) 0px 1px 1px 0px;
 }
 .geBigButton:hover {
-	background:#2d6ca2;
+	background-color:#2d6ca2;
+	background-image: linear-gradient(rgb(90, 148, 211) 0px, rgb(54, 115, 181) 100%);
+}
+.geBigButton:active {
+	background-color: rgb(54, 115, 181);
+	background-image: none;
 }
 .geSprite-actualsize { background-position: 0 0; }
 .geSprite-bold { background-position: 0 -46px; }

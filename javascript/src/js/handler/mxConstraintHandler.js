@@ -240,7 +240,18 @@ mxConstraintHandler.prototype.update = function(me, source)
 						icon.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
 								mxConstants.DIALECT_MIXEDHTML : mxConstants.DIALECT_SVG;
 						icon.preserveImageAspect = false;
-						icon.init(this.graph.getView().getOverlayPane());
+						icon.init(this.graph.getView().getDecoratorPane());
+						
+						// Fixes lost event tracking for images in quirks / IE8 standards
+						if (mxClient.IS_QUIRKS || document.documentMode == 8)
+						{
+							mxEvent.addListener(icon.node, 'dragstart', function(evt)
+							{
+								mxEvent.consume(evt);
+								
+								return false;
+							});
+						}
 						
 						// Move the icon behind all other overlays
 						if (icon.node.previousSibling != null)
@@ -270,7 +281,7 @@ mxConstraintHandler.prototype.update = function(me, source)
 				}
 			}
 		}
-		
+
 		this.currentConstraint = null;
 		this.currentPoint = null;
 		
@@ -296,6 +307,8 @@ mxConstraintHandler.prototype.update = function(me, source)
 					if (this.focusHighlight == null)
 					{
 						var hl = new mxRectangleShape(tmp, null, this.highlightColor, 3);
+						hl.pointerEvents = false;
+						
 						hl.dialect = (this.graph.dialect == mxConstants.DIALECT_SVG) ?
 								mxConstants.DIALECT_SVG : mxConstants.DIALECT_VML;
 						hl.init(this.graph.getView().getOverlayPane());
@@ -323,6 +336,12 @@ mxConstraintHandler.prototype.update = function(me, source)
 		{
 			this.destroyFocusHighlight();
 		}
+	}
+	else
+	{
+		this.currentConstraint = null;
+		this.currentFocus = null;
+		this.currentPoint = null;
 	}
 };
 

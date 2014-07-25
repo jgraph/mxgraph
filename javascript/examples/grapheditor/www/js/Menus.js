@@ -359,10 +359,44 @@ Menus.prototype.init = function()
 	    		}, true);
 			}
 		}), parent);
+		menu.addItem(mxResources.get('radialTree'), null, mxUtils.bind(this, function()
+		{
+			if (!graph.isSelectionEmpty())
+			{
+				var layout = new mxRadialTreeLayout(graph, false);
+	    		this.editorUi.executeLayout(function()
+	    		{
+	    			layout.execute(graph.getDefaultParent(), graph.getSelectionCell());
+	    		}, true);
+			}
+		}), parent);
 		menu.addSeparator(parent);
 		menu.addItem(mxResources.get('organic'), null, mxUtils.bind(this, function()
 		{
 			var layout = new mxFastOrganicLayout(graph);
+			
+			// Tries to find good force constant by averaging cell width
+			var count = 0;
+			var sum = 0;
+			
+			for (var key in graph.getModel().cells)
+			{
+				var tmp = graph.getModel().getCell(key);
+				
+				if (graph.getModel().isVertex(tmp))
+				{
+					var geo = graph.getModel().getGeometry(tmp);
+
+					if (geo != null)
+					{
+						sum += geo.width;
+						count++;
+					}
+				}
+			}
+			
+			layout.forceConstant = (sum / count) * 1.1;
+			
     		this.editorUi.executeLayout(function()
     		{
     			layout.execute(graph.getDefaultParent(), graph.getSelectionCell());
@@ -393,7 +427,7 @@ Menus.prototype.init = function()
 		this.addMenuItems(menu, ['layers'], parent);
 		this.addSubmenu('navigation', menu, parent);
 		this.addSubmenu('insert', menu, parent);
-		this.addMenuItems(menu, ['-', 'group', 'ungroup', 'removeFromGroup', '-', 'autosize'], parent);
+		this.addMenuItems(menu, ['-', 'group', 'ungroup', 'removeFromGroup', '-', 'collapsible', 'autosize'], parent);
 	}))).isEnabled = isGraphEnabled;
 	this.put('insert', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -433,7 +467,7 @@ Menus.prototype.init = function()
 	this.put('options', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
 		this.addMenuItems(menu, ['pageView', '-', 'grid', 'guides', '-', 'scrollbars', 'tooltips', '-',
- 		                         'connect', 'copyConnect', 'navigation', '-', 'pageBackgroundColor', 'autosave']);
+ 		                         'connectionPoints', 'copyConnect', 'navigation', '-', 'pageBackgroundColor', 'autosave']);
 	})));
 	this.put('help', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -703,7 +737,7 @@ Menus.prototype.createPopupMenu = function(menu, cell, evt)
 	}
 	else
 	{
-		this.addMenuItems(menu, ['delete', '-', 'cut', 'copy', '-', 'duplicate'], null, evt);	
+		this.addMenuItems(menu, ['delete', '-', 'cut', 'copy', '-', 'duplicate'], null, evt);
 
 		if (graph.getSelectionCount() == 1 && graph.getModel().isEdge(graph.getSelectionCell()))
 		{
@@ -756,18 +790,16 @@ Menus.prototype.createPopupMenu = function(menu, cell, evt)
 				menu.addSeparator();
 				this.addMenuItems(menu, ['group'], null, evt);
 			}
+			else (graph.getSelectionCount() == 1 && graph.getModel().getChildCount(graph.getSelectionCell()) > 0)
+			{
+				menu.addSeparator();
+				this.addMenuItems(menu, ['ungroup'], null, evt);
+			}
 			
 			if (graph.getSelectionCount() == 1)
 			{
 				menu.addSeparator();
 				this.addMenuItems(menu, ['editLink'], null, evt);
-	
-				var link = graph.getLinkForCell(cell);
-				
-				if (link != null)
-				{
-					this.addMenuItems(menu, ['openLink'], null, evt);
-				}
 
 				// Shows edit image action if there is an image in the style
 				if (graph.getModel().isVertex(cell) && mxUtils.getValue(state.style, mxConstants.STYLE_IMAGE, null) != null)

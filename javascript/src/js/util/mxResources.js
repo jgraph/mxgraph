@@ -89,14 +89,13 @@ var mxResources =
 	loadSpecialBundle: true,
 
 	/**
-	 * Function: isBundleSupported
+	 * Function: isLanguageSupported
 	 * 
 	 * Hook for subclassers to disable support for a given language. This
-	 * implementation always returns true.
+	 * implementation returns true if lan is in <mxClient.languages>.
 	 * 
 	 * Parameters:
-	 * 
-	 * basename - The basename for which the file should be loaded.
+	 *
 	 * lan - The current language.
 	 */
 	isLanguageSupported: function(lan)

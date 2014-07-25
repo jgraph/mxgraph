@@ -170,8 +170,7 @@ mxPopupMenu.prototype.setEnabled = function(enabled)
  */
 mxPopupMenu.prototype.isPopupTrigger = function(me)
 {
-	return me.isPopupTrigger() || (this.useLeftButtonForPopup &&
-		mxEvent.isLeftMouseButton(me.getEvent()));
+	return me.isPopupTrigger() || (this.useLeftButtonForPopup && mxEvent.isLeftMouseButton(me.getEvent()));
 };
 
 /**

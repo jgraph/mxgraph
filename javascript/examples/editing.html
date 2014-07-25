@@ -50,7 +50,7 @@
 					{
 						// Finds the relative coordinates inside the cell
 						var point = mxUtils.convertPoint(graph.container,
-								evt.clientX, evt.clientY);
+							mxEvent.getClientX(evt), mxEvent.getClientY(evt));
 						var state = graph.getView().getState(cell);
 						
 						if (state != null)

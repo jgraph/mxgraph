@@ -116,13 +116,18 @@
 					mxEvent.addGestureListeners(shape.node,
 						function (evt)
 						{
-							graph.fireMouseEvent(mxEvent.MOUSE_DOWN,
-									new mxMouseEvent(evt, state));
+							graph.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt, state));
 						},
 						function (evt)
 						{
-							graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
-								new mxMouseEvent(evt, state));
+							graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt, state));
+						},
+						function (evt)
+						{
+							if (mxClient.IS_QUIRKS)
+							{
+								graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt, state));
+							}
 						});
 					
 					if (!mxClient.IS_TOUCH)

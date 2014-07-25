@@ -71,8 +71,8 @@
 				// is normally the first child of the root (ie. layer 0).
 				var parent = graph.getDefaultParent();
 
-				var cx = graph.container.scrollWidth / 2;
-				var cy = graph.container.scrollHeight / 2;
+				var cx = graph.container.clientWidth / 2;
+				var cy = graph.container.clientHeight / 2;
 				
 				var cell = graph.insertVertex(parent, '0-0', '0-0', cx - 20, cy - 15, 60, 40);
 
@@ -94,8 +94,8 @@
 		{
 			if (graph.getModel().isVertex(cell))
 			{
-				var cx = graph.container.scrollWidth / 2;
-				var cy = graph.container.scrollHeight / 2;
+				var cx = graph.container.clientWidth / 2;
+				var cy = graph.container.clientHeight / 2;
 				
 				// Gets the default parent for inserting new cells. This
 				// is normally the first child of the root (ie. layer 0).
@@ -167,8 +167,8 @@
 					// Arranges the response in a circle
 					var cellCount = vertices.length;
 					var phi = 2 * Math.PI / cellCount;
-					var r = Math.min(graph.container.scrollWidth / 4,
-							graph.container.scrollHeight / 4);
+					var r = Math.min(graph.container.clientWidth / 4,
+							graph.container.clientHeight / 4);
 					
 					for (var i = 0; i < cellCount; i++)
 					{

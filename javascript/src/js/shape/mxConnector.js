@@ -47,14 +47,7 @@ mxConnector.prototype.paintEdgeShape = function(c, pts)
 	var sourceMarker = this.createMarker(c, pts, true);
 	var targetMarker = this.createMarker(c, pts, false);
 
-	if (this.style == null || this.style[mxConstants.STYLE_CURVED] != 1)
-	{
-		this.paintLine(c, pts, this.isRounded);
-	}
-	else
-	{
-		this.paintCurvedLine(c, pts);
-	}
+	mxPolyline.prototype.paintEdgeShape.apply(this, arguments);
 	
 	// Disables shadows, dashed styles and fixes fill color for markers
 	c.setFillColor(this.stroke);
@@ -70,37 +63,6 @@ mxConnector.prototype.paintEdgeShape = function(c, pts)
 	{
 		targetMarker();
 	}
-};
-
-/**
- * Function: paintLine
- * 
- * Paints the line shape.
- */
-mxConnector.prototype.paintCurvedLine = function(c, pts)
-{
-	c.begin();
-	
-	var pt = pts[0];
-	var n = pts.length;
-	
-	c.moveTo(pt.x, pt.y);
-	
-	for (var i = 1; i < n - 2; i++)
-	{
-		var p0 = pts[i];
-		var p1 = pts[i + 1];
-		var ix = (p0.x + p1.x) / 2;
-		var iy = (p0.y + p1.y) / 2;
-		
-		c.quadTo(p0.x, p0.y, ix, iy);
-	}
-	
-	var p0 = pts[n - 2];
-	var p1 = pts[n - 1];
-	
-	c.quadTo(p0.x, p0.y, p1.x, p1.y);
-	c.stroke();
 };
 
 /**
@@ -143,7 +105,7 @@ mxConnector.prototype.createMarker = function(c, pts, source)
 		var type = mxUtils.getValue(this.style, (source) ? mxConstants.STYLE_STARTARROW : mxConstants.STYLE_ENDARROW);
 		var filled = this.style[(source) ? mxConstants.STYLE_STARTFILL : mxConstants.STYLE_ENDFILL] != 0;
 		
-		result = mxMarker.createMarker(c, this, type, pe, unitX, unitY, size, source, this.strokewidth, filled);
+		result = mxMarker.createMarker(c, this, type, pe, unitX, unitY, size, source, this.arrowStrokewidth, filled);
 	}
 	
 	return result;

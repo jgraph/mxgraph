@@ -20,6 +20,10 @@ Graph = function(container, model, renderHint, stylesheet)
 	this.allowAutoPanning = true;
 	this.resetEdgesOnConnect = false;
 	this.constrainChildren = false;
+	
+	// Do not scroll after moving cells
+	this.graphHandler.scrollOnMove = false;
+	this.graphHandler.scaleGrid = true;
 
 	// Enables cloning of connection sources by default
 	this.connectionHandler.setCreateTarget(true);
@@ -40,6 +44,58 @@ Graph = function(container, model, renderHint, stylesheet)
 		this.loadStylesheet();
 	}
 	
+	// Changes color of move preview for black backgrounds
+	this.graphHandler.createPreviewShape = function(bounds)
+	{
+		this.previewColor = (this.graph.background == '#000000') ? 'white' : mxGraphHandler.prototype.previewColor;
+		
+		return mxGraphHandler.prototype.createPreviewShape.apply(this, arguments);
+	};
+	
+	// Handles parts of cells by checking if part=1 is in the style and returning the parent
+	// LATER: Handle recursive parts
+	this.graphHandler.getCells = function(initialCell)
+	{
+	    var cells = mxGraphHandler.prototype.getCells.apply(this, arguments);
+
+	    for (var i = 0; i < cells.length; i++)
+	    {
+			var state = this.graph.view.getState(cells[i]);
+			var style = (state != null) ? state.style : this.graph.getCellStyle(cells[i]);
+	    	
+			if (mxUtils.getValue(style, 'part', false))
+			{
+		        var parent = this.graph.model.getParent(cells[i]);
+	
+		        if (this.graph.model.isVertex(parent))
+		        {
+		            cells[i] = parent;
+		        }
+			}
+	    }
+
+	    return cells;
+	};
+	
+	// Handles parts of cells when cloning the source for new connections
+	this.connectionHandler.createTargetVertex = function(evt, source)
+	{
+		var state = this.graph.view.getState(source);
+		var style = (state != null) ? state.style : this.graph.getCellStyle(source);
+    	
+		if (mxUtils.getValue(style, 'part', false))
+		{
+	        var parent = this.graph.model.getParent(source);
+
+	        if (this.graph.model.isVertex(parent))
+	        {
+	        	source = parent;
+	        }
+		}
+		
+		return mxConnectionHandler.prototype.createTargetVertex.apply(this, arguments);
+	};
+
 	// Creates rubberband selection
     var rubberband = new mxRubberband(this);
     
@@ -246,6 +302,60 @@ Graph.prototype.loadStylesheet = function()
     var node = mxUtils.load(STYLE_PATH + '/default.xml').getDocumentElement();
 	var dec = new mxCodec(node.ownerDocument);
 	dec.decode(node, this.getStylesheet());
+};
+
+/**
+ * Overrides method to provide connection constraints for shapes.
+ */
+Graph.prototype.getAllConnectionConstraints = function(terminal, source)
+{
+	if (terminal != null)
+	{
+		var constraints = mxUtils.getValue(terminal.style, 'points', null);
+		
+		if (constraints != null)
+		{
+			// Requires an array of arrays with x, y (0..1) and an optional
+			// perimeter (0 or 1), eg. points=[[0,0,1],[0,1,0],[1,1]]
+			var result = [];
+			
+			try
+			{
+				var c = JSON.parse(constraints);
+				
+				for (var i = 0; i < c.length; i++)
+				{
+					var tmp = c[i];
+					result.push(new mxConnectionConstraint(new mxPoint(tmp[0], tmp[1]), (tmp.length > 2) ? tmp[2] != '0' : true));
+				}
+			}
+			catch (e)
+			{
+				// ignore
+			}
+			
+			return result;
+		}
+		else
+		{
+			if (terminal.shape != null)
+			{
+				if (terminal.shape.stencil != null)
+				{
+					if (terminal.shape.stencil != null)
+					{
+						return terminal.shape.stencil.constraints;
+					}
+				}
+				else if (terminal.shape.constraints != null)
+				{
+					return terminal.shape.constraints;
+				}
+			}
+		}
+	}
+
+	return null;
 };
 
 /**
@@ -543,36 +653,51 @@ Graph.prototype.distributeCells = function(horizontal, cells)
 	if (cells != null && cells.length > 1)
 	{
 		var vertices = [];
-		var total = 0;
+		var max = null;
+		var min = null;
 		
 		for (var i = 0; i < cells.length; i++)
 		{
 			if (this.getModel().isVertex(cells[i]))
 			{
-				var geo = this.getCellGeometry(cells[i]);
+				var state = this.view.getState(cells[i]);
 				
-				if (geo != null)
+				if (state != null)
 				{
-					total += (horizontal) ? geo.width : geo.height;
-					vertices.push(cells[i]);
+					var tmp = (horizontal) ? state.x : state.y;
+					min = (min != null) ? Math.min(min, tmp) : tmp;
+					
+					tmp += (horizontal) ? state.width : state.height;
+					max = (max != null) ? Math.max(max, tmp) : tmp;
+					
+					vertices.push(state);
 				}
 			}
 		}
 		
-		if (vertices.length > 0)
+		if (vertices.length > 2)
 		{
-			var bounds = this.getBoundingBoxFromGeometry(vertices);
+			vertices.sort(function(a, b)
+			{
+				return (horizontal) ? a.x - b.x : a.y - b.y;
+			});
+
+			var t = this.view.translate;
+			var s = this.view.scale;
 			
-			var dt = Math.max(0, (((horizontal) ? bounds.width : bounds.height) - total) /
-					(vertices.length - 1));
-			var v0 = (horizontal) ? bounds.x : bounds.y;
+			min = min / s - ((horizontal) ? t.x : t.y);
+			max = max / s - ((horizontal) ? t.x : t.y);
 			
 			this.getModel().beginUpdate();
 			try
 			{
-				for (var i = 0; i < vertices.length; i++)
+				var dt = (max - min) / (vertices.length - 1);
+				var t0 = min;
+				
+				for (var i = 1; i < vertices.length - 1; i++)
 				{
-					var geo = this.getCellGeometry(vertices[i]);
+					var geo = this.getCellGeometry(vertices[i].cell);
+					t0 += dt;
 					
 					if (geo != null)
 					{
@@ -580,20 +705,16 @@ Graph.prototype.distributeCells = function(horizontal, cells)
 						
 						if (horizontal)
 						{
-							geo.x = v0;
-							v0 += geo.width + dt;
+							geo.x = t0 - geo.width / 2;
 						}
 						else
 						{
-							geo.y = v0;
-							v0 += geo.height + dt;
+							geo.y = t0 - geo.height / 2;
 						}
 						
-						this.getModel().setGeometry(vertices[i], geo);
+						this.getModel().setGeometry(vertices[i].cell, geo);
 					}
 				}
-				
-				cells = vertices;
 			}
 			finally
 			{
@@ -705,7 +826,7 @@ Graph.prototype.initTouch = function()
 	{
 		var me = mxGraph.prototype.updateMouseEvent.apply(this, arguments);
 
-		if (me.getState() == null)
+		if (mxEvent.isTouchEvent(me.getEvent()) && me.getState() == null)
 		{
 			var cell = this.getCellAt(me.graphX, me.graphY);
 
@@ -758,7 +879,7 @@ Graph.prototype.initTouch = function()
 	// selecting parent for selected children in groups before this check can be made.
 	this.popupMenuHandler.mouseUp = mxUtils.bind(this, function(sender, me)
 	{
-		this.popupMenuHandler.popupTrigger = !this.isEditing() && (this.popupMenuHandler.popupTrigger  ||
+		this.popupMenuHandler.popupTrigger = !this.isEditing() && (this.popupMenuHandler.popupTrigger ||
 			(!menuShowing && !mxEvent.isMouseEvent(me.getEvent()) &&
 			((selectionEmpty && me.getCell() == null && this.isSelectionEmpty()) ||
 			(cellSelected && this.isCellSelected(me.getCell())))));
@@ -826,7 +947,7 @@ Graph.prototype.initTouch = function()
 	var mxConstraintHandlerUpdate = mxConstraintHandler.prototype.update;
 	mxConstraintHandler.prototype.update = function(me, source)
 	{
-		if (!mxEvent.isMetaDown(me.getEvent()) && !mxEvent.isShiftDown(me.getEvent()) && !mxEvent.isControlDown(me.getEvent()))
+		if (!mxEvent.isAltDown(me.getEvent()))
 		{
 			mxConstraintHandlerUpdate.apply(this, arguments);
 		}
@@ -1109,7 +1230,8 @@ Graph.prototype.initTouch = function()
 	 */
 	mxVertexHandler.prototype.isRecursiveResize = function(state, me)
 	{
-		return !this.graph.isSwimlane(state.cell) && this.graph.model.getChildCount(state.cell) > 0 && !mxEvent.isControlDown(me.getEvent());
+		return !this.graph.isSwimlane(state.cell) && this.graph.model.getChildCount(state.cell) > 0 &&
+			!mxEvent.isControlDown(me.getEvent()) && !this.graph.isCellCollapsed(state.cell);
 	};
 
 	/**
@@ -1170,9 +1292,37 @@ Graph.prototype.initTouch = function()
 		var y = this.roundLength(point.y / s - t.y);
 		
 		this.hint.innerHTML = x + ', ' + y;
+		this.hint.style.visibility = 'visible';
+		
+		if (this.isSource || this.isTarget)
+		{
+			if (this.constraintHandler.currentConstraint != null &&
+				this.constraintHandler.currentFocus != null)
+			{
+				var pt = this.constraintHandler.currentConstraint.point;
+				this.hint.innerHTML = '[' + Math.round(pt.x * 100) + '%, '+ Math.round(pt.y * 100) + '%]';
+			}
+			else if (this.marker.hasValidState())
+			{
+				this.hint.style.visibility = 'hidden';
+			}
+		}
 		
 		this.hint.style.left = Math.round(me.getGraphX() - this.hint.clientWidth / 2) + 'px';
 		this.hint.style.top = (me.getGraphY() + 12) + 'px';
+		
+		if (this.hideEdgeHintThread != null)
+		{
+			window.clearTimeout(this.hideEdgeHintThread);
+		}
+		
+		this.hideEdgeHintThread = window.setTimeout(mxUtils.bind(this, function()
+		{
+			if (this.hint != null)
+			{
+				this.hint.style.visibility = 'hidden';
+			}
+		}), 500);
 	};
 
 	/**
@@ -1187,18 +1337,21 @@ Graph.prototype.initTouch = function()
 	var mainHandle = new mxImage(IMAGE_PATH + '/handle-main.png', 17, 17);
 	var secondaryHandle = new mxImage(IMAGE_PATH + '/handle-secondary.png', 17, 17);
 	var rotationHandle = new mxImage(IMAGE_PATH + '/handle-rotate.png', 19, 21);
-	var edgeHandle = new mxImage(IMAGE_PATH + '/handle-main.png', 17, 17);
-
-	mxConstants.HANDLE_SIZE = 17;
-	mxConstants.LABEL_HANDLE_SIZE = 7;
 
 	mxVertexHandler.prototype.rotationHandleVSpacing = -20;
 
 	mxConnectionHandler.prototype.connectImage = connectHandle;
 	mxVertexHandler.prototype.handleImage = mainHandle;
 	mxVertexHandler.prototype.secondaryHandleImage = secondaryHandle;
-	mxEdgeHandler.prototype.handleImage = edgeHandle;
+	mxEdgeHandler.prototype.handleImage = mainHandle;
+	mxEdgeHandler.prototype.labelHandleImage = secondaryHandle;
 	mxOutline.prototype.sizerImage = mainHandle;
+	
+	// Enables connections along the outline
+	mxConnectionHandler.prototype.outlineConnect = true;
+	mxEdgeHandler.prototype.manageLabelHandle = true;
+	mxEdgeHandler.prototype.outlineConnect = true;
+	mxCellHighlight.prototype.keepOnTop = true;
 	
 	// Pre-fetches images
 	new Image().src = connectHandle.src;
@@ -1254,28 +1407,12 @@ Graph.prototype.initTouch = function()
 			{
 				graphHandlerMouseDown.apply(this, arguments);
 	
-				if (this.graph.isCellSelected(me.getCell()) && this.graph.getSelectionCount() > 1)
+				if (mxEvent.isTouchEvent(me.getEvent()) && this.graph.isCellSelected(me.getCell()) &&
+					this.graph.getSelectionCount() > 1)
 				{
 					this.delayedSelection = false;
 				}
 			};
-	
-			// Installs locked and connect handles
-			// Problem is condition for source and target in segment handler before creating bends array
-			/*var edgeHandlerCreateHandleShape = mxEdgeHandler.prototype.createHandleShape;
-			mxEdgeHandler.prototype.createHandleShape = function(index)
-			{
-				if (index == 0 || index == this.abspoints.length - 1)
-				{
-					this.handleImage = connectHandle;
-				}
-				else
-				{
-					this.handleImage = touchHandle;
-				}
-				
-				return edgeHandlerCreateHandleShape.apply(this, arguments);
-			};*/
 		}
 		
 		var vertexHandlerMouseMove = mxVertexHandler.prototype.mouseMove;
@@ -1323,7 +1460,19 @@ Graph.prototype.initTouch = function()
 				this.rotationShape.node.style.display = (this.graph.getSelectionCount() == 1) ? '' : 'none';
 			}
 		};
-
+		
+		var vertexHandlerReset = mxVertexHandler.prototype.reset;
+		mxVertexHandler.prototype.reset = function()
+		{
+			vertexHandlerReset.apply(this, arguments);
+			
+			// Shows rotation handle only if one vertex is selected
+			if (this.rotationShape != null && this.rotationShape.node != null)
+			{
+				this.rotationShape.node.style.display = (this.graph.getSelectionCount() == 1) ? '' : 'none';
+			}
+		};
+		
 		var vertexHandlerInit = mxVertexHandler.prototype.init;
 		mxVertexHandler.prototype.init = function()
 		{
@@ -1348,6 +1497,11 @@ Graph.prototype.initTouch = function()
 					this.rotationShape.node.style.display = (this.graph.getSelectionCount() == 1) ? '' : 'none';
 				}
 				
+				if (this.specialHandle != null)
+				{
+					this.specialHandle.node.style.display = (this.graph.isEnabled() && this.graph.getSelectionCount() < this.graph.graphHandler.maxCells) ? '' : 'none';
+				}
+				
 				this.redrawHandles();
 			});
 			
@@ -1366,12 +1520,10 @@ Graph.prototype.initTouch = function()
 			
 			this.graph.getModel().addListener(mxEvent.CHANGE, this.changeHandler);
 
-			if (touchStyle || urlParams['connect'] == null || urlParams['connect'] == '2')
+			if (this.graph.isEnabled() && (touchStyle || urlParams['connect'] == null || urlParams['connect'] == '2'))
 			{
 				// Only show connector image on one cell and do not show on containers
-				if (showConnectorImg && this.graph.connectionHandler.isEnabled() &&
-					this.graph.isCellConnectable(this.state.cell) &&
-					!this.graph.isValidRoot(this.state.cell))
+				if (showConnectorImg && this.graph.isCellConnectable(this.state.cell))
 				{
 					// Workaround for event redirection via image tag in quirks and IE8
 					if (mxClient.IS_IE && !mxClient.IS_SVG)
@@ -1424,15 +1576,20 @@ Graph.prototype.initTouch = function()
 					mxEvent.addGestureListeners(this.connectorImg,
 						mxUtils.bind(this, function(evt)
 						{
-							this.graph.popupMenuHandler.hideMenu();
-							this.graph.stopEditing(false);
-							
-							var pt = mxUtils.convertPoint(this.graph.container,
-									mxEvent.getClientX(evt), mxEvent.getClientY(evt));
-							this.graph.connectionHandler.start(this.state, pt.x, pt.y);
-							this.graph.isMouseTrigger = mxEvent.isMouseEvent(evt);
-							this.graph.isMouseDown = true;
-							mxEvent.consume(evt);
+							// FIXME: Use native event in isForceRubberband, isForcePanningEvent
+							if (!mxEvent.isAltDown(evt) && !mxEvent.isPopupTrigger(evt))
+							{
+								this.graph.popupMenuHandler.hideMenu();
+								this.graph.stopEditing(false);
+								
+								var pt = mxUtils.convertPoint(this.graph.container,
+										mxEvent.getClientX(evt), mxEvent.getClientY(evt));
+								this.graph.connectionHandler.start(this.state, pt.x, pt.y);
+								this.graph.isMouseTrigger = mxEvent.isMouseEvent(evt);
+								this.graph.isMouseDown = true;
+								
+								mxEvent.consume(evt);
+							}
 						})
 					);
 	
@@ -1488,20 +1645,23 @@ Graph.prototype.initTouch = function()
 
 				this.linkHint.innerHTML = '<a href="' + link + '" title="' + link + '" target="_blank">' + label + '</a>';
 	
-				var changeLink = document.createElement('img');
-				changeLink.setAttribute('src', IMAGE_PATH + '/edit.gif');
-				changeLink.setAttribute('title', mxResources.get('editLink'));
-				changeLink.style.marginLeft = '10px';
-				changeLink.style.marginBottom = '-1px';
-				changeLink.style.cursor = 'pointer';
-				this.linkHint.appendChild(changeLink);
-				
-				mxEvent.addListener(changeLink, 'click', mxUtils.bind(this, function(evt)
+				if (this.graph.isEnabled())
 				{
-					this.graph.setSelectionCell(this.state.cell);
-					ui.actions.get('editLink').funct();
-					mxEvent.consume(evt);
-				}));
+					var changeLink = document.createElement('img');
+					changeLink.setAttribute('src', IMAGE_PATH + '/edit.gif');
+					changeLink.setAttribute('title', mxResources.get('editLink'));
+					changeLink.style.marginLeft = '10px';
+					changeLink.style.marginBottom = '-1px';
+					changeLink.style.cursor = 'pointer';
+					this.linkHint.appendChild(changeLink);
+					
+					mxEvent.addListener(changeLink, 'click', mxUtils.bind(this, function(evt)
+					{
+						this.graph.setSelectionCell(this.state.cell);
+						ui.actions.get('editLink').funct();
+						mxEvent.consume(evt);
+					}));
+				}
 			}
 		};
 		
@@ -1512,11 +1672,22 @@ Graph.prototype.initTouch = function()
 		{
 			edgeHandlerInit.apply(this, arguments);
 			
+			// Disables connection points
+			this.constraintHandler.isEnabled = mxUtils.bind(this, function()
+			{
+				return this.state.view.graph.connectionHandler.isEnabled();
+			});
+			
 			var update = mxUtils.bind(this, function()
 			{
 				if (this.linkHint != null)
 				{
 					this.linkHint.style.display = (this.graph.getSelectionCount() == 1) ? '' : 'none';
+				}
+				
+				if (this.labelShape != null)
+				{
+					this.labelShape.node.style.display = (this.graph.isEnabled() && this.graph.getSelectionCount() < this.graph.graphHandler.maxCells) ? '' : 'none';
 				}
 			});
 
@@ -1552,6 +1723,19 @@ Graph.prototype.initTouch = function()
 			}
 		};
 	};
+	
+	// Disables connection points
+	var connectionHandlerInit = mxConnectionHandler.prototype.init;
+	
+	mxConnectionHandler.prototype.init = function()
+	{
+		connectionHandlerInit.apply(this, arguments);
+		
+		this.constraintHandler.isEnabled = mxUtils.bind(this, function()
+		{
+			return this.graph.connectionHandler.isEnabled();
+		});
+	};
 
 	var vertexHandlerRedrawHandles = mxVertexHandler.prototype.redrawHandles;
 	mxVertexHandler.prototype.redrawHandles = function()
@@ -1571,7 +1755,8 @@ Graph.prototype.initTouch = function()
 			}
 			else
 			{
-				pt.x = s.x + s.width + (mxConstants.HANDLE_SIZE + this.horizontalOffset + this.tolerance + this.connectorImg.offsetWidth) / 2;
+				var dx = (this.handleImage != null) ? this.handleImage.width : mxConstants.HANDLE_SIZE;
+				pt.x = s.x + s.width + (dx + this.horizontalOffset + this.tolerance + this.connectorImg.offsetWidth) / 2;
 				pt.y = s.y + s.height / 2;
 			}
 			

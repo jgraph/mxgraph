@@ -107,25 +107,23 @@ mxDefaultToolbar.prototype.init = function(container)
 		
 		// Installs the insert function in the editor if an item is
 		// selected in the toolbar
-		this.toolbar.addListener(mxEvent.SELECT,
-			mxUtils.bind(this, function(sender, evt)
+		this.toolbar.addListener(mxEvent.SELECT, mxUtils.bind(this, function(sender, evt)
+		{
+			var funct = evt.getProperty('function');
+			
+			if (funct != null)
 			{
-				var funct = evt.getProperty('function');
-				
-				if (funct != null)
+				this.editor.insertFunction = mxUtils.bind(this, function()
 				{
-					this.editor.insertFunction = mxUtils.bind(this, function()
-					{
-						funct.apply(this, arguments);
-						this.toolbar.resetMode();
-					});
-				}
-				else
-				{
-					this.editor.insertFunction = null;
-				}
-			})
-		);
+					funct.apply(this, arguments);
+					this.toolbar.resetMode();
+				});
+			}
+			else
+			{
+				this.editor.insertFunction = null;
+			}
+		}));
 		
 		// Resets the selected tool after a doubleclick or escape keystroke
 		this.resetHandler = mxUtils.bind(this, function()

@@ -223,6 +223,36 @@ var mxEdgeStyle =
 	 */
 	Loop: function (state, source, target, points, result)
 	{
+		var pts = state.absolutePoints;
+		
+		var p0 = pts[0];
+		var pe = pts[pts.length-1];
+		
+		if (p0 != null && pe != null)
+		{
+			// TODO: Implement loop routing for different edge styles
+			/*var edgeStyle = !mxUtils.getValue(state.style,
+					mxConstants.STYLE_NOEDGESTYLE, false) ?
+							state.style[mxConstants.STYLE_EDGE] :
+								null;
+			
+			if (edgeStyle != null && edgeStyle != '')
+			{
+				
+			}
+			else */if (points != null && points.length > 0)
+			{
+				for (var i = 0; i < points.length; i++)
+				{
+					var pt = points[i];
+					pt = state.view.transformControlPoint(state, pt);
+					result.push(new mxPoint(pt.x, pt.y));
+				}
+			}
+			
+			return;
+		}							
+		
 		if (source != null)
 		{
 			var view = state.view;

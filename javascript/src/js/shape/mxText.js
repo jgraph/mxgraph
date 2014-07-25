@@ -303,28 +303,59 @@ mxText.prototype.updateBoundingBox = function()
 				ow = (this.wrap) ? this.bounds.width : this.offsetWidth * this.scale;
 				oh = this.offsetHeight * this.scale;
 			}
-			// Cannot get node size while container hidden so a
-			// shared temporary DIV is used for text measuring
-			else if (td != null)
-			{
-				this.updateFont(td);
-				this.updateSize(td);
-				
-				if (mxUtils.isNode(this.value))
-				{
-					td.innerHTML = this.value.outerHTML;
-				}
-				else
-				{
-					var val = (this.replaceLinefeeds) ? this.value.replace(/\n/g, '<br/>') : this.value;
-					td.innerHTML = val;
-				}
-
-				ow = (this.wrap) ? this.bounds.width : td.offsetWidth * this.scale;
-				oh = td.offsetHeight * this.scale;
-			}
 			else
 			{
+				var offsetNode = this.node;
+				
+				// Cannot get node size while container hidden so a
+				// shared temporary DIV is used for text measuring
+				if (td != null)
+				{
+					this.updateFont(td);
+					this.updateSize(td, false);
+					
+					if (mxUtils.isNode(this.value))
+					{
+						td.innerHTML = this.value.outerHTML;
+					}
+					else
+					{
+						var val = (this.replaceLinefeeds) ? this.value.replace(/\n/g, '<br/>') : this.value;
+						td.innerHTML = val;
+					}
+					
+					offsetNode = td;
+					node = td;
+				}
+				
+				// Handles words that are longer than the given wrapping width
+				if (document.documentMode == 8)
+				{
+					var w = Math.round(this.bounds.width / this.scale);
+	
+					if (this.wrap && w > 0)
+					{
+						node.whiteSpace = 'normal';
+						
+						if (!this.clipped)
+						{
+							// Needs first call to update scrollWidth for wrapped text
+							offsetNode.style.width = Math.max(w, offsetNode.scrollWidth + ((mxClient.IS_QUIRKS) ? 2 : 0)) + 'px';
+							var divs = this.node.getElementsByTagName('div');
+							
+							// Updates the width of the innermost DIV which contains the text
+							if (divs != null && divs.length > 0)
+							{
+								divs[divs.length - 1].style.width = offsetNode.style.width;
+							}
+						}
+					}
+					else
+					{
+						node.whiteSpace = 'nowrap';
+					}
+				}
+				
 				ow = (this.wrap) ? this.bounds.width : node.offsetWidth * this.scale;
 				oh = node.offsetHeight * this.scale;
 			}
@@ -486,7 +517,7 @@ mxText.prototype.redrawHtmlShape = function()
 	
 	this.updateValue();
 	this.updateFont(this.node);
-	this.updateSize(this.node);
+	this.updateSize(this.node, true);
 	
 	this.offsetWidth = null;
 	this.offsetHeight = null;
@@ -558,7 +589,7 @@ mxText.prototype.updateHtmlFilter = function()
 		td.style.width = '';
 		
 		this.updateFont(td);
-		this.updateSize(td);
+		this.updateSize(td, false);
 
 		if (mxUtils.isNode(this.value))
 		{
@@ -576,6 +607,24 @@ mxText.prototype.updateHtmlFilter = function()
 	
 			val = (this.replaceLinefeeds) ? val.replace(/\n/g, '<br/>') : val;
 			td.innerHTML = val;
+		}
+		
+		// Handles words that are longer than the given wrapping width
+		var w = Math.round(this.bounds.width / this.scale);
+		
+		if (this.wrap && w > 0)
+		{
+			td.whiteSpace = 'normal';
+			
+			if (!this.clipped)
+			{
+				// Needs first call to update scrollWidth for wrapped text
+				td.style.width = Math.max(w, td.scrollWidth + ((mxClient.IS_QUIRKS) ? 2 : 0)) + 'px';
+			}
+		}
+		else
+		{
+			td.whiteSpace = 'nowrap';
 		}
 		
 		ow = td.offsetWidth + 2; 
@@ -796,7 +845,7 @@ mxText.prototype.updateFont = function(node)
  *
  * Updates the HTML node(s) to reflect the latest bounds and scale.
  */
-mxText.prototype.updateSize = function(node)
+mxText.prototype.updateSize = function(node, enableWrap)
 {
 	var w = Math.round(this.bounds.width / this.scale);
 	var h = Math.round(this.bounds.height / this.scale);
@@ -833,16 +882,21 @@ mxText.prototype.updateSize = function(node)
 		}
 	}
 	
+	// Handles words that are longer than the given wrapping width
 	if (this.wrap && w > 0)
 	{
+		style.whiteSpace = 'normal';
+		
 		if (!this.clipped)
 		{
 			// Needs first call to update scrollWidth for wrapped text
 			style.width = w + 'px';
-			style.width = Math.max(w, node.scrollWidth + ((mxClient.IS_QUIRKS) ? 2 : 0)) + 'px';
+			
+			if (enableWrap)
+			{
+				style.width = Math.max(w, node.scrollWidth + ((mxClient.IS_QUIRKS) ? 2 : 0)) + 'px';
+			}
 		}
-		
-		style.whiteSpace = 'normal';
 	}
 	else
 	{

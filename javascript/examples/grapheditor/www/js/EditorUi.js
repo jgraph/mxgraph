@@ -293,16 +293,31 @@ EditorUi = function(editor, container)
 		}
 	});
 
-	// Updates the editor UI after the window has been resized
+	// Updates the editor UI after the window has been resized or the orientation changes
 	// Timeout is workaround for old IE versions which have a delay for DOM client sizes.
 	// Should not use delay > 0 to avoid handle multiple repaints during window resize
    	mxEvent.addListener(window, 'resize', mxUtils.bind(this, function()
    	{
    		window.setTimeout(mxUtils.bind(this, function()
    		{
-   	   	   	this.refresh();
+   			this.refresh();
    		}), 0);
    	}));
+   	
+   	mxEvent.addListener(window, 'orientationchange', mxUtils.bind(this, function()
+   	{
+   		this.refresh();
+   	}));
+   	
+	// Workaround for bug on iOS see
+	// http://stackoverflow.com/questions/19012135/ios-7-ipad-safari-landscape-innerheight-outerheight-layout-issue
+	if (mxClient.IS_IOS && !window.navigator.standalone)
+	{
+	   	mxEvent.addListener(window, 'scroll', mxUtils.bind(this, function()
+	   	{
+	   		window.scrollTo(0, 0);
+	   	}));
+	}
 
 	/**
 	 * Sets the initial scrollbar locations after a file was loaded.
@@ -735,7 +750,7 @@ EditorUi.prototype.updateActionStates = function()
 	var actions = ['cut', 'copy', 'bold', 'italic', 'underline', 'fontColor',
 	           'delete', 'duplicate', 'style', 'fillColor', 'gradientColor', 'strokeColor',
 	           'backgroundColor', 'borderColor', 'toFront', 'toBack', 'dashed', 'rounded',
-	           'shadow', 'tilt', 'autosize', 'lockUnlock', 'editData'];
+	           'shadow', 'tilt', 'autosize', 'collapsible', 'lockUnlock', 'editData'];
 	
 	for (var i = 0; i < actions.length; i++)
 	{
@@ -804,6 +819,20 @@ EditorUi.prototype.refresh = function()
 		h = (quirks) ? document.body.clientHeight || document.documentElement.clientHeight : document.documentElement.clientHeight;
 	}
 	
+	// Workaround for bug on iOS see
+	// http://stackoverflow.com/questions/19012135/ios-7-ipad-safari-landscape-innerheight-outerheight-layout-issue
+	// FIXME: Fix if footer visible
+	var off = 0;
+	
+	if (mxClient.IS_IOS && !window.navigator.standalone)
+	{
+		if (window.innerHeight != document.documentElement.clientHeight)
+		{
+			off = document.documentElement.clientHeight - window.innerHeight;
+			window.scrollTo(0, 0);
+		}
+	}
+	
 	var effHsplitPosition = Math.max(0, Math.min(this.hsplitPosition, w - this.splitSize - 20));
 
 	var tmp = 0;
@@ -830,7 +859,7 @@ EditorUi.prototype.refresh = function()
 	
 	if (this.sidebarFooterContainer != null)
 	{
-		var bottom = this.footerHeight;
+		var bottom = this.footerHeight + off;
 		sidebarFooterHeight = Math.max(0, Math.min(h - tmp - bottom, this.sidebarFooterHeight));
 		this.sidebarFooterContainer.style.width = effHsplitPosition + 'px';
 		this.sidebarFooterContainer.style.height = sidebarFooterHeight + 'px';
@@ -844,7 +873,7 @@ EditorUi.prototype.refresh = function()
 	this.diagramContainer.style.top = this.sidebarContainer.style.top;
 	this.footerContainer.style.height = this.footerHeight + 'px';
 	this.hsplit.style.top = this.sidebarContainer.style.top;
-	this.hsplit.style.bottom = this.footerHeight + 'px';
+	this.hsplit.style.bottom = (this.footerHeight + off) + 'px';
 	this.hsplit.style.left = effHsplitPosition + 'px';
 	
 	if (quirks)
@@ -861,8 +890,13 @@ EditorUi.prototype.refresh = function()
 	}
 	else
 	{
-		this.sidebarContainer.style.bottom = (this.footerHeight + sidebarFooterHeight) + 'px';
-		this.diagramContainer.style.bottom = this.footerHeight + 'px';
+		if (this.footerHeight > 0)
+		{
+			this.footerContainer.style.bottom = off + 'px';
+		}
+		
+		this.sidebarContainer.style.bottom = (this.footerHeight + sidebarFooterHeight + off) + 'px';
+		this.diagramContainer.style.bottom = (this.footerHeight + off) + 'px';
 	}
 	
 	this.editor.graph.sizeDidChange();
@@ -922,6 +956,24 @@ EditorUi.prototype.createUi = function()
 		this.menubarContainer.appendChild(this.menubar.container);
 	}
 	
+	// Adds status bar in menubar
+	if (this.menubar != null)
+	{
+		this.statusContainer = this.createStatusContainer();
+	
+		// Connects the status bar to the editor status
+		this.editor.addListener('statusChanged', mxUtils.bind(this, function()
+		{
+			this.setStatusText(this.editor.getStatus());
+		}));
+	
+		this.setStatusText(this.editor.getStatus());
+		this.menubar.container.appendChild(this.statusContainer);
+		
+		// Inserts into DOM
+		this.container.appendChild(this.menubarContainer);
+	}
+
 	// Creates toolbar
 	this.toolbar = this.createToolbar(this.createDiv('geToolbar'));
 	
@@ -951,24 +1003,6 @@ EditorUi.prototype.createUi = function()
 	if (this.sidebar != null && this.sidebarFooterContainer)
 	{
 		this.container.appendChild(this.sidebarFooterContainer);		
-	}
-	
-	// Adds status bar in menubar
-	if (this.menubar != null)
-	{
-		this.statusContainer = this.createStatusContainer();
-	
-		// Connects the status bar to the editor status
-		this.editor.addListener('statusChanged', mxUtils.bind(this, function()
-		{
-			this.setStatusText(this.editor.getStatus());
-		}));
-	
-		this.setStatusText(this.editor.getStatus());
-		this.menubar.container.appendChild(this.statusContainer);
-		
-		// Inserts into DOM
-		this.container.appendChild(this.menubarContainer);
 	}
 
 	this.container.appendChild(this.diagramContainer);
@@ -1159,7 +1193,7 @@ EditorUi.prototype.openFile = function()
 	}));
 
 	// Removes openFile if dialog is closed
-	this.showDialog(new OpenDialog(this).container, 360, 240, true, true, function()
+	this.showDialog(new OpenDialog(this).container, 360, 220, true, true, function()
 	{
 		window.openFile = null;
 	});
@@ -1377,28 +1411,30 @@ EditorUi.prototype.createKeyHandler = function(editor)
     };
 	
 	// Helper function to move cells with the cursor keys
-    function nudge(keyCode)
+    function nudge(keyCode, stepSize)
     {
     	if (!graph.isSelectionEmpty() && graph.isEnabled())
 		{
+    		stepSize = (stepSize != null) ? stepSize : 1;
+    		
     		var dx = 0;
     		var dy = 0;
     		
     		if (keyCode == 37)
 			{
-    			dx = -1;
+    			dx = -stepSize;
 			}
     		else if (keyCode == 38)
     		{
-    			dy = -1;
+    			dy = -stepSize;
     		}
     		else if (keyCode == 39)
     		{
-    			dx = 1;
+    			dx = stepSize;
     		}
     		else if (keyCode == 40)
     		{
-    			dy = 1;
+    			dy = stepSize;
     		}
     		
     		graph.moveCells(graph.getSelectionCells(), dx, dy);
@@ -1457,8 +1493,8 @@ EditorUi.prototype.createKeyHandler = function(editor)
     // Ignores enter keystroke. Remove this line if you want the
     // enter keystroke to stop editing.
     keyHandler.enter = function() {};
-    keyHandler.bindShiftKey(13, function() { graph.foldCells(true); }); // Shift-Enter
-    keyHandler.bindKey(13, function() { graph.foldCells(false); }); // Enter
+    keyHandler.bindControlKey(13, function() { graph.foldCells(false); }); // Ctrl+Enter
+    keyHandler.bindControlKey(8, function() { graph.foldCells(true); }); // Ctrl+Backspace
     keyHandler.bindKey(33, function() { graph.exitGroup(); }); // Page Up
     keyHandler.bindKey(34, function() { graph.enterGroup(); }); // Page Down
     keyHandler.bindKey(36, function() { graph.home(); }); // Home
@@ -1467,8 +1503,10 @@ EditorUi.prototype.createKeyHandler = function(editor)
     keyHandler.bindKey(38, function() { nudge(38); }); // Up arrow
     keyHandler.bindKey(39, function() { nudge(39); }); // Right arrow
     keyHandler.bindKey(40, function() { nudge(40); }); // Down arrow
-    keyHandler.bindKey(113, function() { graph.startEditingAtCell(); });
-    keyHandler.bindKey(8, function() { graph.foldCells(true); }); // Backspace
+    keyHandler.bindShiftKey(37, function() { nudge(37, graph.gridSize); }); // Shift+Left arrow
+    keyHandler.bindShiftKey(38, function() { nudge(38, graph.gridSize); }); // Shift+Up arrow
+    keyHandler.bindShiftKey(39, function() { nudge(39, graph.gridSize); }); // Shift+Right arrow
+    keyHandler.bindShiftKey(40, function() { nudge(40, graph.gridSize); }); // Shift+Down arrow
     keyHandler.bindAction(8, false, 'delete'); // Backspace
     keyHandler.bindAction(46, false, 'delete'); // Delete
     keyHandler.bindAction(82, true, 'tilt'); // Ctrl+R
@@ -1479,7 +1517,7 @@ EditorUi.prototype.createKeyHandler = function(editor)
     keyHandler.bindAction(65, true, 'selectAll'); // Ctrl+A
     keyHandler.bindAction(65, true, 'selectVertices', true); // Ctrl+Shift+A
     keyHandler.bindAction(69, true, 'selectEdges', true); // Ctrl+Shift+E
-    keyHandler.bindAction(69, true, 'style'); // Ctrl+S
+    keyHandler.bindAction(69, true, 'style'); // Ctrl+E
     keyHandler.bindAction(66, true, 'toBack'); // Ctrl+B
     keyHandler.bindAction(70, true, 'toFront', true); // Ctrl+Shift+F
     keyHandler.bindAction(68, true, 'duplicate'); // Ctrl+D
@@ -1487,7 +1525,7 @@ EditorUi.prototype.createKeyHandler = function(editor)
     keyHandler.bindAction(89, true, 'redo'); // Ctrl+Y
     keyHandler.bindAction(88, true, 'cut'); // Ctrl+X
     keyHandler.bindAction(67, true, 'copy'); // Ctrl+C
-    keyHandler.bindAction(81, true, 'connect'); // Ctrl+Q
+    keyHandler.bindAction(81, true, 'connectionPoints'); // Ctrl+Q
     keyHandler.bindAction(86, true, 'paste'); // Ctrl+V
     keyHandler.bindAction(71, true, 'group'); // Ctrl+G
     keyHandler.bindAction(77, true, 'editData'); // Ctrl+M
@@ -1498,6 +1536,7 @@ EditorUi.prototype.createKeyHandler = function(editor)
     keyHandler.bindAction(80, true, 'print'); // Ctrl+P
     keyHandler.bindAction(85, true, 'ungroup'); // Ctrl+U
     keyHandler.bindAction(112, false, 'about'); // F1
+    keyHandler.bindKey(113, function() { graph.startEditingAtCell(); }); // F2
     
     return keyHandler;
 };

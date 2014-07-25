@@ -110,8 +110,7 @@ mxElbowEdgeHandler.prototype.createVirtualBend = function()
 	// Double-click changes edge style
 	var dblClick = mxUtils.bind(this, function(evt)
 	{
-		if (!mxEvent.isConsumed(evt) &&
-			this.flipEnabled)
+		if (!mxEvent.isConsumed(evt) && this.flipEnabled)
 		{
 			this.graph.flipEdge(this.state.cell, evt);
 			mxEvent.consume(evt);
@@ -232,23 +231,24 @@ mxElbowEdgeHandler.prototype.redrawInnerBends = function(p0, pe)
 	var b = this.bends[1].bounds;
 	var w = b.width;
 	var h = b.height;
-
-	if (this.handleImage == null)
-	{
-		w = mxConstants.HANDLE_SIZE;
-		h = mxConstants.HANDLE_SIZE;
-	}
-	
 	var bounds = new mxRectangle(Math.round(pt.x - w / 2), Math.round(pt.y - h / 2), w, h);
 
-	if (this.handleImage == null && this.labelShape.node.style.visibility != 'hidden' &&
-		mxUtils.intersects(bounds, this.labelShape.bounds))
+	if (this.manageLabelHandle)
 	{
-		w += 3;
-		h += 3;
+		this.checkLabelHandle(bounds);
+	}
+	else if (this.handleImage == null && this.labelShape.visible && mxUtils.intersects(bounds, this.labelShape.bounds))
+	{
+		w = mxConstants.HANDLE_SIZE + 3;
+		h = mxConstants.HANDLE_SIZE + 3;
 		bounds = new mxRectangle(Math.round(pt.x - w / 2), Math.round(pt.y - h / 2), w, h);
 	}
-	
+
 	this.bends[1].bounds = bounds;
 	this.bends[1].redraw();
+	
+	if (this.manageLabelHandle)
+	{
+		this.checkLabelHandle(this.bends[1].bounds);
+	}
 };

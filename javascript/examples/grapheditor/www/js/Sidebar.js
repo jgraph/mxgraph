@@ -208,6 +208,7 @@ Sidebar.prototype.showTooltip = function(elt, cells, w, h, title, showLabel, dx,
 					}
 					
 					this.tooltipImage = mxUtils.createImage(IMAGE_PATH + '/tooltip.png');
+					this.tooltipImage.className = 'geSidebarTooltipImage';
 					this.tooltipImage.style.position = 'absolute';
 					this.tooltipImage.style.width = '14px';
 					this.tooltipImage.style.height = '27px';
@@ -390,6 +391,11 @@ Sidebar.prototype.addGeneralPalette = function(expand)
 	    content.appendChild(this.createVertexTemplate('shape=note;whiteSpace=wrap', 80, 100, '', 'Note', true));
 	    content.appendChild(this.createVertexTemplate('shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top', 30, 60, '', 'Actor', true));
 	    content.appendChild(this.createVertexTemplate('ellipse;shape=cloud;whiteSpace=wrap', 120, 80, '', 'Cloud', true));
+
+	    content.appendChild(this.createVertexTemplate('shape=card;whiteSpace=wrap', 60, 80, '', 'Card', true));
+	    content.appendChild(this.createVertexTemplate('shape=folder;whiteSpace=wrap', 120, 120, '', 'Folder', true));
+	    content.appendChild(this.createVertexTemplate('shape=internalStorage;whiteSpace=wrap', 80, 80, '', 'Internal Storage', true));
+	    content.appendChild(this.createVertexTemplate('shape=cylinder;whiteSpace=wrap', 60, 80, '', 'Cylinder', true));
 	}));
 };
 
@@ -492,7 +498,16 @@ Sidebar.prototype.addConnectionShapes = function(dir, content)
     content.appendChild(this.createEdgeTemplate('edgeStyle=elbowEdgeStyle;elbow=vertical', 100, 100, '', 'Vertical Elbow', true));
     content.appendChild(this.createEdgeTemplate('edgeStyle=entityRelationEdgeStyle', 100, 100, '', 'Entity Relation', true));
     content.appendChild(this.createEdgeTemplate('edgeStyle=segmentEdgeStyle', 100, 100, '', 'Manual Line', true));
-    content.appendChild(this.createEdgeTemplate('edgeStyle=orthogonalEdgeStyle', 100, 100, '', 'Automatic Line', true));
+
+	var cells = [new mxCell('', new mxGeometry(0, 0, 100, 100), 'edgeStyle=orthogonalEdgeStyle')];
+	cells[0].geometry.setTerminalPoint(new mxPoint(0, 100), true);
+	cells[0].geometry.setTerminalPoint(new mxPoint(100, 0), false);
+	cells[0].geometry.points = [new mxPoint(30, 100), new mxPoint(30, 50), new mxPoint(70, 50), new mxPoint(70, 0)];
+	cells[0].geometry.relative = true;
+	cells[0].edge = true;
+	
+	content.appendChild(this.createEdgeTemplateFromCells(cells, 100, 100, 'Automatic Line', true));
+    
     content.appendChild(this.createEdgeTemplate('shape=link', 100, 100, '', 'Link', true));
     content.appendChild(this.createEdgeTemplate('arrow', 100, 100, '', 'Arrow', true));
 };
@@ -513,20 +528,30 @@ Sidebar.prototype.addAdvancedPalette = function(dir, expand)
  */
 Sidebar.prototype.addAdvancedShapes = function(dir, content)
 {
-    content.appendChild(this.createVertexTemplate('shape=card;whiteSpace=wrap', 60, 80, '', 'Card', true));
-    content.appendChild(this.createVertexTemplate('shape=folder;whiteSpace=wrap', 120, 120, '', 'Folder', true));
-    content.appendChild(this.createVertexTemplate('shape=actor;whiteSpace=wrap', 40, 60, '', 'User', true));
-    content.appendChild(this.createVertexTemplate('shape=cylinder;whiteSpace=wrap', 60, 80, '', 'Cylinder', true));
-    
     content.appendChild(this.createVertexTemplate('shape=xor;whiteSpace=wrap', 60, 80, '', 'Exclusive Or', true));
     content.appendChild(this.createVertexTemplate('shape=or;whiteSpace=wrap', 60, 80, '', 'Or', true));
+    content.appendChild(this.createVertexTemplate('shape=dataStorage;whiteSpace=wrap', 100, 80, '', 'Data Storage', true));    
+    content.appendChild(this.createVertexTemplate('shape=tapeData;whiteSpace=wrap;perimeter=ellipsePerimeter;', 80, 80, '', 'Tape Data', true));
+    
+    content.appendChild(this.createVertexTemplate('shape=manualInput;whiteSpace=wrap', 80, 80, '', 'Manual Input', true));
+    content.appendChild(this.createVertexTemplate('shape=loopLimit;whiteSpace=wrap', 100, 80, '', 'Loop Limit', true));
+    content.appendChild(this.createVertexTemplate('shape=offPageConnector;whiteSpace=wrap', 80, 80, '', 'Off Page Connector', true));
+    content.appendChild(this.createVertexTemplate('shape=actor;whiteSpace=wrap', 40, 60, '', 'User', true));
+
+    content.appendChild(this.createVertexTemplate('shape=singleArrow;direction=west;whiteSpace=wrap', 100, 60, '', 'Arrow Left', true));
+    content.appendChild(this.createVertexTemplate('shape=singleArrow;whiteSpace=wrap', 100, 60, '', 'Arrow Right', true));
+    content.appendChild(this.createVertexTemplate('shape=doubleArrow;whiteSpace=wrap', 100, 60, '', 'Double Arrow', true));
+    content.appendChild(this.createVertexTemplate('shape=cross;whiteSpace=wrap', 80, 80, '', 'Cross', true));
+    
+    content.appendChild(this.createVertexTemplate('shape=delay;whiteSpace=wrap', 80, 40, '', 'Delay', true));
+    content.appendChild(this.createVertexTemplate('shape=display;whiteSpace=wrap', 80, 40, '', 'Display', true));
     content.appendChild(this.createVertexTemplate('line', 160, 10, '', 'Horizontal Line', true));
     content.appendChild(this.createVertexTemplate('line;direction=south', 10, 160, '', 'Vertical Line', true));
-	
+    
 	content.appendChild(this.createVertexTemplate('swimlane;whiteSpace=wrap', 200, 200, 'Container', 'Container', true));
-	content.appendChild(this.createVertexTemplate('swimlane;swimlaneLine=0;whiteSpace=wrap', 200, 200, 'Container', 'No separator', true));
-	content.appendChild(this.createVertexTemplate('swimlane;swimlaneFillColor=#ffffff;whiteSpace=wrap', 200, 200, 'Container', 'Filled', true));
-	content.appendChild(this.createVertexTemplate('swimlane;swimlaneLine=0;swimlaneFillColor=#ffffff;whiteSpace=wrap', 200, 200, 'Container', 'Filled No Separator', true));
+	content.appendChild(this.createVertexTemplate('swimlane;swimlaneLine=0;whiteSpace=wrap', 200, 200, 'Container', 'Container w/o Separator', true));
+	content.appendChild(this.createVertexTemplate('swimlane;swimlaneFillColor=#ffffff;whiteSpace=wrap', 200, 200, 'Container', 'Filled Container', true));
+	content.appendChild(this.createVertexTemplate('swimlane;swimlaneLine=0;swimlaneFillColor=#ffffff;whiteSpace=wrap', 200, 200, 'Container', 'Filled Container w/o Separator', true));
 };
 
 /**
@@ -1096,6 +1121,80 @@ Sidebar.prototype.createDropHandler = function(cells, allowSplit, dx, dy)
 				var validDropTarget = (target != null) ? graph.isValidDropTarget(target, cells, evt) : false;
 				var select = null;
 				
+				// Special handling for alt-drop to change shape of cell under mouse
+				if (cells.length == 1 && mxEvent.isAltDown(evt))
+				{
+					var t = graph.view.translate;
+					var s = graph.view.scale;
+					var targetCell = graph.getCellAt((x + dx + t.x) * s, (y + dy + t.y) * s);
+					
+					if (targetCell != null)
+					{
+						if (graph.getModel().isVertex(targetCell) && graph.getModel().isVertex(cells[0]))
+						{
+							var sourceStyle = graph.getCellStyle(cells[0]);
+							var shape = mxUtils.getValue(sourceStyle, mxConstants.STYLE_SHAPE, null);
+							var image = mxUtils.getValue(sourceStyle, mxConstants.STYLE_IMAGE, null);
+							
+							// Special shape level styles
+							var rounded = mxUtils.getValue(sourceStyle, mxConstants.STYLE_ROUNDED, null);
+							var perimeter = mxUtils.getValue(sourceStyle, mxConstants.STYLE_PERIMETER, null);
+							var doubleStyle = mxUtils.getValue(sourceStyle, 'double', null);
+							
+							if (shape != null)
+							{
+								graph.model.beginUpdate();
+								
+								try
+								{
+									graph.setCellStyles(mxConstants.STYLE_SHAPE, shape, [targetCell]);
+									graph.setCellStyles(mxConstants.STYLE_IMAGE, image, [targetCell]);
+									graph.setCellStyles(mxConstants.STYLE_ROUNDED, rounded, [targetCell]);
+									graph.setCellStyles(mxConstants.STYLE_PERIMETER, perimeter, [targetCell]);
+									graph.setCellStyles('double', doubleStyle, [targetCell]);
+								}
+								finally
+								{
+									graph.model.endUpdate();
+								}
+								
+								graph.setSelectionCell(targetCell);
+								
+								return;
+							}
+						}
+						else if (graph.getModel().isEdge(targetCell) && graph.getModel().isEdge(cells[0]))
+						{
+							var sourceStyle = graph.getCellStyle(cells[0]);
+							var shape = mxUtils.getValue(sourceStyle, mxConstants.STYLE_SHAPE, null);
+							var edge = mxUtils.getValue(sourceStyle, mxConstants.STYLE_EDGE, null);
+							
+							// Special shape level styles
+							var rounded = mxUtils.getValue(sourceStyle, mxConstants.STYLE_ROUNDED, null);
+							
+							if (shape != null)
+							{
+								graph.model.beginUpdate();
+								
+								try
+								{
+									graph.setCellStyles(mxConstants.STYLE_SHAPE, shape, [targetCell]);
+									graph.setCellStyles(mxConstants.STYLE_EDGE, edge, [targetCell]);
+									graph.setCellStyles(mxConstants.STYLE_ROUNDED, rounded, [targetCell]);
+								}
+								finally
+								{
+									graph.model.endUpdate();
+								}
+								
+								graph.setSelectionCell(targetCell);
+								
+								return;
+							}
+						}
+					}
+				}
+				
 				if (target != null && !validDropTarget)
 				{
 					target = null;
@@ -1116,16 +1215,17 @@ Sidebar.prototype.createDropHandler = function(cells, allowSplit, dx, dy)
 						select = graph.importCells(cells, x + dx, y + dy, target);
 						this.editorUi.fireEvent(new mxEventObject('cellsInserted', 'cells', select));
 					}
-					
-					if (select != null && select.length > 0)
-					{
-						graph.scrollCellToVisible(select[0]);
-						graph.setSelectionCells(select);
-					}
 				}
 				finally
 				{
 					graph.model.endUpdate();
+				}
+
+				
+				if (select != null && select.length > 0)
+				{
+					graph.scrollCellToVisible(select[0]);
+					graph.setSelectionCells(select);
 				}
 			}
 			
@@ -1154,7 +1254,7 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview)
 {
 	var dragSource = mxUtils.makeDraggable(elt, this.editorUi.editor.graph, dropHandler,
 		preview, 0, 0, this.editorUi.editor.graph.autoscroll, true, true);
-	
+
 	// Overrides mouseDown to ignore popup triggers
 	var mouseDown = dragSource.mouseDown;
 	

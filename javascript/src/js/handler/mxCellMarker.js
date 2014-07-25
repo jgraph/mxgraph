@@ -257,36 +257,46 @@ mxCellMarker.prototype.process = function(me)
 	if (this.isEnabled())
 	{
 		state = this.getState(me);
-		var isValid = (state != null) ? this.isValidState(state) : false;
-		var color = this.getMarkerColor(me.getEvent(), state, isValid);
-		
-		if (isValid)
-		{
-			this.validState = state;
-		}
-		else
-		{
-			this.validState = null;
-		}
-		
-		if (state != this.markedState || color != this.currentColor)
-		{
-			this.currentColor = color;
-			
-			if (state != null && this.currentColor != null)
-			{
-				this.markedState = state;
-				this.mark();		
-			}
-			else if (this.markedState != null)
-			{
-				this.markedState = null;
-				this.unmark();
-			}
-		}
+		this.setCurrentState(state, me);
 	}
 	
 	return state;
+};
+
+/**
+ * Function: setCurrentState
+ * 
+ * Sets and marks the current valid state.
+ */
+mxCellMarker.prototype.setCurrentState = function(state, me, color)
+{
+	var isValid = (state != null) ? this.isValidState(state) : false;
+	color = (color != null) ? color : this.getMarkerColor(me.getEvent(), state, isValid);
+	
+	if (isValid)
+	{
+		this.validState = state;
+	}
+	else
+	{
+		this.validState = null;
+	}
+	
+	if (state != this.markedState || color != this.currentColor)
+	{
+		this.currentColor = color;
+		
+		if (state != null && this.currentColor != null)
+		{
+			this.markedState = state;
+			this.mark();		
+		}
+		else if (this.markedState != null)
+		{
+			this.markedState = null;
+			this.unmark();
+		}
+	}
 };
 
 /**

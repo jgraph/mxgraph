@@ -234,7 +234,7 @@ mxVertexHandler.prototype.init = function()
 	}
 	
 	// Adds the rotation handler
-	if (this.rotationEnabled && this.graph.isCellRotatable(this.state.cell) &&
+	if (this.graph.isEnabled() && this.rotationEnabled && this.graph.isCellRotatable(this.state.cell) &&
 		(mxGraphHandler.prototype.maxCells <= 0 || this.graph.getSelectionCount() < mxGraphHandler.prototype.maxCells) &&
 		this.state.width > 2 && this.state.height > 2)
 	{
@@ -548,9 +548,19 @@ mxVertexHandler.prototype.isLivePreviewBorder = function()
 mxVertexHandler.prototype.start = function(x, y, index)
 {
 	this.inTolerance = true;
+	this.childOffsetX = 0;
+	this.childOffsetY = 0;
 	this.index = index;
 	this.startX = x;
 	this.startY = y;
+	
+	// Saves reference to parent state
+	var parent = this.state.view.graph.model.getParent(this.state.cell);
+	
+	if (this.state.view.graph.model.isVertex(parent) && this.state.view.currentRoot != parent)
+	{
+		this.parentState = this.state.view.graph.view.getState(parent);
+	}
 	
 	// Creates a preview that can be on top of any HTML label
 	this.selectionBorder.node.style.display = (index == mxEvent.ROTATION_HANDLE) ? 'inline' : 'none';
@@ -613,9 +623,12 @@ mxVertexHandler.prototype.start = function(x, y, index)
  */
 mxVertexHandler.prototype.hideSizers = function()
 {
-	for (var i = 0; i < this.sizers.length; i++)
+	if (this.sizers != null)
 	{
-		this.sizers[i].node.style.display = 'none';
+		for (var i = 0; i < this.sizers.length; i++)
+		{
+			this.sizers[i].node.style.display = 'none';
+		}
 	}
 };
 
@@ -689,14 +702,15 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 		{
 			var point = new mxPoint(me.getGraphX(), me.getGraphY());
 			var gridEnabled = this.graph.isGridEnabledEvent(me.getEvent());
-			var scale = this.graph.getView().scale;
+			var scale = this.graph.view.scale;
+			var tr = this.graph.view.translate;
 			
 			if (this.index == mxEvent.LABEL_HANDLE)
 			{
 				if (gridEnabled)
 				{
-					point.x = this.graph.snap(point.x / scale) * scale;
-					point.y = this.graph.snap(point.y / scale) * scale;
+					point.x = (this.graph.snap(point.x / scale - tr.x) + tr.x) * scale;
+					point.y = (this.graph.snap(point.y / scale - tr.y) + tr.y) * scale;
 				}
 	
 				this.moveSizerTo(this.sizers[this.sizers.length - 1], point.x, point.y);
@@ -743,19 +757,23 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 				var sin = Math.sin(-alpha);
 				
 				var ct = new mxPoint(this.state.getCenterX(), this.state.getCenterY());
-				
+
 				var dx = point.x - this.startX;
 				var dy = point.y - this.startY;
-				var tr = this.graph.view.translate;
-				
+			
 				// Rotates vector for mouse gesture
 				var tx = cos * dx - sin * dy;
 				var ty = sin * dx + cos * dy;
 				
-				dx = this.roundLength(tx / scale) * scale;
-				dy = this.roundLength(ty / scale) * scale;
-				
-				this.bounds = this.union(this.selectionBounds, dx, dy, this.index, gridEnabled, scale, tr, this.isConstrainedEvent(me));
+				dx = tx;
+				dy = ty;
+
+				var geo = this.graph.getCellGeometry(this.state.cell);
+				this.unscaledBounds = this.union(geo, dx / scale, dy / scale,
+					this.index, gridEnabled, 1, new mxPoint(0, 0), this.isConstrainedEvent(me));
+				this.bounds = new mxRectangle(((this.parentState != null) ? this.parentState.x : tr.x * scale) +
+						(this.unscaledBounds.x) * scale, ((this.parentState != null) ? this.parentState.y : tr.y * scale) +
+						(this.unscaledBounds.y) * scale, this.unscaledBounds.width * scale, this.unscaledBounds.height * scale);
 
 				cos = Math.cos(alpha);
 				sin = Math.sin(alpha);
@@ -771,9 +789,34 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 				var dx3 = dx2 - dx;
 				var dy3 = dy2 - dy;
 				
+				var dx4 = this.bounds.x - this.state.x;
+				var dy4 = this.bounds.y - this.state.y;
+				
+				var dx5 = cos * dx4 - sin * dy4;
+				var dy5 = sin * dx4 + cos * dy4;
+				
 				this.bounds.x += dx3;
 				this.bounds.y += dy3;
-	
+				
+				// Rounds unscaled bounds to int
+				this.unscaledBounds.x = this.roundLength(this.unscaledBounds.x + dx3 / scale);
+				this.unscaledBounds.y = this.roundLength(this.unscaledBounds.y + dy3 / scale);
+				this.unscaledBounds.width = this.roundLength(this.unscaledBounds.width);
+				this.unscaledBounds.height = this.roundLength(this.unscaledBounds.height);
+				
+				// Shifts the children according to parent offset
+				if (!this.graph.isCellCollapsed(this.state.cell) && (dx3 != 0 || dy3 != 0))
+				{
+					this.childOffsetX = this.state.x - this.bounds.x + dx5;
+					this.childOffsetY = this.state.y - this.bounds.y + dy5;
+				}
+				else
+				{
+					this.childOffsetX = 0;
+					this.childOffsetY = 0;
+				}
+				
+				// TODO: Apply child offset to children in live preview
 				if (this.livePreview)
 				{
 					// Saves current state
@@ -911,7 +954,7 @@ mxVertexHandler.prototype.mouseUp = function(sender, me)
  */
 mxVertexHandler.prototype.isRecursiveResize = function(state, me)
 {
-	return this.graph.isRecursiveResize();
+	return this.graph.isRecursiveResize(this.state);
 };
 
 /**
@@ -1023,6 +1066,7 @@ mxVertexHandler.prototype.reset = function()
 	this.removeHint();
 	this.redrawHandles();
 	this.edgeHandlers = null;
+	this.unscaledBounds = null;
 };
 
 /**
@@ -1057,45 +1101,16 @@ mxVertexHandler.prototype.resizeCell = function(cell, dx, dy, index, gridEnabled
 			
 			this.graph.model.setGeometry(cell, geo);
 		}
-		else
+		else if (this.unscaledBounds != null)
 		{
-			var bounds = this.union(geo, dx, dy, index, gridEnabled, 1, new mxPoint(0, 0), constrained);
-			var alpha = mxUtils.toRadians(this.state.style[mxConstants.STYLE_ROTATION] || '0');
-			
-			if (alpha != 0)
+			var scale = this.graph.view.scale;
+
+			if (this.childOffsetX != 0 || this.childOffsetY != 0)
 			{
-				var dx = bounds.getCenterX() - geo.getCenterX();
-				var dy = bounds.getCenterY() - geo.getCenterY();
-	
-				var cos = Math.cos(alpha);
-				var sin = Math.sin(alpha);
-	
-				var dx2 = cos * dx - sin * dy;
-				var dy2 = sin * dx + cos * dy;
-				
-				var dx3 = dx2 - dx;
-				var dy3 = dy2 - dy;
-				
-				var dx4 = bounds.x - geo.x;
-				var dy4 = bounds.y - geo.y;
-				
-				var dx5 = cos * dx4 - sin * dy4;
-				var dy5 = sin * dx4 + cos * dy4;
-				
-				bounds.x += dx3;
-				bounds.y += dy3;
-	
-				// Shifts the children according to parent offset
-				if (!this.graph.isCellCollapsed(cell) && (dx3 != 0 || dy3 != 0))
-				{
-					var dx4 = geo.x - bounds.x + dx5;
-					var dy4 = geo.y - bounds.y + dy5;
-					
-					this.moveChildren(cell, dx4, dy4);
-				}
+				this.moveChildren(cell, this.childOffsetX / scale, this.childOffsetY / scale);
 			}
-			
-			this.graph.resizeCell(cell, bounds, recurse);
+
+			this.graph.resizeCell(cell, this.unscaledBounds, recurse);
 		}
 	}
 };

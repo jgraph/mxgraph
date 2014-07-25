@@ -140,10 +140,10 @@ mxShape.prototype.stencil = null;
 /**
  * Variable: svgStrokeTolerance
  *
- * Event-tolerance for SVG strokes (in px). Default is 6. This is only passed
+ * Event-tolerance for SVG strokes (in px). Default is 8. This is only passed
  * to the canvas in <createSvgCanvas> if <pointerEvents> is true.
  */
-mxShape.prototype.svgStrokeTolerance = 6;
+mxShape.prototype.svgStrokeTolerance = 8;
 
 /**
  * Variable: pointerEvents
@@ -151,6 +151,13 @@ mxShape.prototype.svgStrokeTolerance = 6;
  * Specifies if pointer events should be handled. Default is true.
  */
 mxShape.prototype.pointerEvents = true;
+
+/**
+ * Variable: svgPointerEvents
+ * 
+ * Specifies if pointer events should be handled. Default is true.
+ */
+mxShape.prototype.svgPointerEvents = 'all';
 
 /**
  * Variable: shapePointerEvents
@@ -174,6 +181,23 @@ mxShape.prototype.stencilPointerEvents = false;
  * Scale for improving the precision of VML rendering. Default is 1.
  */
 mxShape.prototype.vmlScale = 1;
+
+/**
+ * Variable: outline
+ * 
+ * Specifies if the shape should be drawn as an outline. This disables all
+ * fill colors and can be used to disable other drawing states that should
+ * not be painted for outlines. Default is false. This should be set before
+ * calling <apply>.
+ */
+mxShape.prototype.outline = false;
+
+/**
+ * Variable: visible
+ * 
+ * Specifies if the shape is visible. Default is true.
+ */
+mxShape.prototype.visible = true;
 
 /**
  * Function: init
@@ -324,7 +348,7 @@ mxShape.prototype.redraw = function()
 {
 	this.updateBoundsFromPoints();
 	
-	if (this.checkBounds())
+	if (this.visible && this.checkBounds())
 	{
 		this.clear();
 		
@@ -488,6 +512,23 @@ mxShape.prototype.createCanvas = function()
 		this.updateVmlContainer();
 		canvas = this.createVmlCanvas();
 	}
+	
+	if (this.outline)
+	{
+		canvas.setStrokeWidth(this.strokewidth);
+		canvas.setStrokeColor(this.stroke);
+		
+		if (this.isDashed != null)
+		{
+			canvas.setDashed(this.isDashed);
+		}
+		
+		canvas.setStrokeWidth = function() {};
+		canvas.setStrokeColor = function() {};
+		canvas.setFillColor = function() {};
+		canvas.setGradient = function() {};
+		canvas.setDashed = function() {};
+	}
 
 	return canvas;
 };
@@ -500,8 +541,8 @@ mxShape.prototype.createCanvas = function()
 mxShape.prototype.createSvgCanvas = function()
 {
 	var canvas = new mxSvgCanvas2D(this.node, false);
-	
 	canvas.strokeTolerance = (this.pointerEvents) ? this.svgStrokeTolerance : 0;
+	canvas.pointerEventsValue = this.svgPointerEvents;
 	canvas.blockImagePointerEvents = mxClient.IS_FF;
 	var off = this.getSvgScreenOffset();
 
@@ -994,7 +1035,8 @@ mxShape.prototype.paintGlassEffect = function(c, x, y, w, h, arc)
  *
  * This keeps a reference to the <style>. If you need to keep a reference to
  * the cell, you can override this method and store a local reference to
- * state.cell or the <mxCellState> itself.
+ * state.cell or the <mxCellState> itself. If <outline> should be true, make
+ * sure to set it before calling this method.
  *
  * Parameters:
  *
@@ -1013,6 +1055,8 @@ mxShape.prototype.apply = function(state)
 		this.opacity = mxUtils.getValue(this.style, mxConstants.STYLE_OPACITY, this.opacity);
 		this.stroke = mxUtils.getValue(this.style, mxConstants.STYLE_STROKECOLOR, this.stroke);
 		this.strokewidth = mxUtils.getNumber(this.style, mxConstants.STYLE_STROKEWIDTH, this.strokewidth);
+		// Arrow stroke width is used to compute the arrow heads size in mxConnector
+		this.arrowStrokewidth = mxUtils.getNumber(this.style, mxConstants.STYLE_STROKEWIDTH, this.strokewidth);
 		this.spacing = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING, this.spacing);
 		this.startSize = mxUtils.getNumber(this.style, mxConstants.STYLE_STARTSIZE, this.startSize);
 		this.endSize = mxUtils.getNumber(this.style, mxConstants.STYLE_ENDSIZE, this.endSize);

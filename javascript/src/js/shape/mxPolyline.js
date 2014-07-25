@@ -72,7 +72,14 @@ mxPolyline.prototype.isPaintBoundsInverted = function()
  */
 mxPolyline.prototype.paintEdgeShape = function(c, pts)
 {
-	this.paintLine(c, pts, this.isRounded);
+	if (this.style == null || this.style[mxConstants.STYLE_CURVED] != 1)
+	{
+		this.paintLine(c, pts, this.isRounded);
+	}
+	else
+	{
+		this.paintCurvedLine(c, pts);
+	}
 };
 
 /**
@@ -143,5 +150,36 @@ mxPolyline.prototype.paintLine = function(c, pts, rounded)
 	}
 
 	c.lineTo(pe.x, pe.y);
+	c.stroke();
+};
+
+/**
+ * Function: paintLine
+ * 
+ * Paints the line shape.
+ */
+mxPolyline.prototype.paintCurvedLine = function(c, pts)
+{
+	c.begin();
+	
+	var pt = pts[0];
+	var n = pts.length;
+	
+	c.moveTo(pt.x, pt.y);
+	
+	for (var i = 1; i < n - 2; i++)
+	{
+		var p0 = pts[i];
+		var p1 = pts[i + 1];
+		var ix = (p0.x + p1.x) / 2;
+		var iy = (p0.y + p1.y) / 2;
+		
+		c.quadTo(p0.x, p0.y, ix, iy);
+	}
+	
+	var p0 = pts[n - 2];
+	var p1 = pts[n - 1];
+	
+	c.quadTo(p0.x, p0.y, p1.x, p1.y);
 	c.stroke();
 };

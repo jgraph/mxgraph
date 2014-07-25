@@ -233,7 +233,7 @@
 	/**
 	 * Variable: DEFAULT_VALID_COLOR
 	 * 
-	 * Specifies the default valid colorr. Default is #0000FF.
+	 * Specifies the default valid color. Default is #0000FF.
 	 */
 	DEFAULT_VALID_COLOR: '#00FF00',
 
@@ -243,6 +243,22 @@
 	 * Specifies the default invalid color. Default is #FF0000.
 	 */
 	DEFAULT_INVALID_COLOR: '#FF0000',
+
+	/**
+	 * Variable: OUTLINE_HIGHLIGHT_COLOR
+	 * 
+	 * Specifies the default highlight color for shape outlines.
+	 * Default is #0000FF. This is used in <mxEdgeHandler>.
+	 */
+	OUTLINE_HIGHLIGHT_COLOR: '#00FF00',
+
+	/**
+	 * Variable: OUTLINE_HIGHLIGHT_COLOR
+	 * 
+	 * Defines the strokewidth to be used for shape outlines.
+	 * Default is 5. This is used in <mxEdgeHandler>.
+	 */
+	OUTLINE_HIGHLIGHT_STROKEWIDTH: 5,
 
 	/**
 	 * Variable: HIGHLIGHT_STROKEWIDTH

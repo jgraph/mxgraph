@@ -42,6 +42,15 @@
 				mxConstants.HANDLE_STROKECOLOR = '#0088cf';
 				mxConstants.VERTEX_SELECTION_COLOR = '#00a8ff';
 				
+				// Enables connections along the outline
+				mxConnectionHandler.prototype.outlineConnect = true;
+				mxEdgeHandler.prototype.manageLabelHandle = true;
+				mxEdgeHandler.prototype.outlineConnect = true;
+				mxCellHighlight.prototype.keepOnTop = true;
+				
+				// Enable rotation handle
+				mxVertexHandler.prototype.rotationEnabled = true;
+				
 				// Uses the shape for resize previews
 				mxVertexHandler.prototype.createSelectionShape = function(bounds)
 				{
@@ -59,7 +68,7 @@
 						shape = new this.state.shape.constructor();
 					}
 					
-					shape.fill = null;
+					shape.outline = true;
 					shape.bounds = bounds;
 					shape.stroke = mxConstants.HANDLE_STROKECOLOR;
 					shape.strokewidth = this.getSelectionStrokeWidth();

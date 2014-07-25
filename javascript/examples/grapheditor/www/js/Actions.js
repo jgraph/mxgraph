@@ -122,11 +122,11 @@ Actions.prototype.init = function()
 	this.addAction('home', function() { graph.home(); }, null, null, 'Home');
 	this.addAction('exitGroup', function() { graph.exitGroup(); }, null, null, 'Page Up');
 	this.addAction('enterGroup', function() { graph.enterGroup(); }, null, null, 'Page Down');
-	this.addAction('expand', function() { graph.foldCells(false); }, null, null, 'Enter');
-	this.addAction('collapse', function() { graph.foldCells(true); }, null, null, 'Backspace');
+	this.addAction('expand', function() { graph.foldCells(false); }, null, null, 'Ctrl+Enter');
+	this.addAction('collapse', function() { graph.foldCells(true); }, null, null, 'Ctrl+Backspace');
 
 	// Arrange actions
-	this.addAction('toFront', function() { graph.orderCells(false); }, null, null, 'Ctrl+Shift+B');
+	this.addAction('toFront', function() { graph.orderCells(false); }, null, null, 'Ctrl+Shift+F');
 	this.addAction('toBack', function() { graph.orderCells(true); }, null, null, 'Ctrl+B');
 	this.addAction('group', function() { graph.setSelectionCell(graph.groupCells(null, 0)); }, null, null, 'Ctrl+G');
 	this.addAction('ungroup', function() { graph.setSelectionCells(graph.ungroupCells()); }, null, null, 'Ctrl+U');
@@ -585,7 +585,7 @@ Actions.prototype.init = function()
 		ui.showDialog(cd.container, 220, 400, true, false);
 		cd.init();
 	}));
-	action = this.addAction('connect', function()
+	action = this.addAction('connectionPoints', function()
 	{
 		graph.setConnectable(!graph.connectionHandler.isEnabled());
 	}, null, null, 'Ctrl+Q');
@@ -656,6 +656,7 @@ Actions.prototype.init = function()
 	this.addAction('shadow', function() { graph.toggleCellStyles(mxConstants.STYLE_SHADOW); });
 	this.addAction('dashed', function() { graph.toggleCellStyles(mxConstants.STYLE_DASHED); });
 	this.addAction('rounded', function() { graph.toggleCellStyles(mxConstants.STYLE_ROUNDED); });
+	this.addAction('collapsible', function() { graph.toggleCellStyles('container'); });
 	this.addAction('curved', function() { graph.toggleCellStyles(mxConstants.STYLE_CURVED); });
 	this.put('style', new Action(mxResources.get('edit') + '...', mxUtils.bind(this, function()
 	{
@@ -708,7 +709,10 @@ Actions.prototype.init = function()
 					pgeo = graph.getCellGeometry(parent);
 				}
 				
-				handler.addPointAt(handler.state, graph.popupMenuHandler.triggerX / s - dx, graph.popupMenuHandler.triggerY / s - dy);
+				var x = Math.round(graph.snap(graph.popupMenuHandler.triggerX / s - dx));
+				var y = Math.round(graph.snap(graph.popupMenuHandler.triggerY / s - dy));
+				
+				handler.addPointAt(handler.state, x, y);
 			}
 		}
 	});

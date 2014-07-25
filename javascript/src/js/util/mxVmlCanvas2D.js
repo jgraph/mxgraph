@@ -689,6 +689,10 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			// Adds event transparency in IE8 standards without the transparent background
 			// filter which cannot be used due to bugs in the zoomed bounding box (too slow)
 			// FIXME: No event transparency if inside v:rect (ie part of shape)
+			// KNOWN: Offset wrong for rotated text with word that are longer than the wrapping
+			// width in IE8 because real width of text cannot be determined here.
+			// This should be fixed in mxText.updateBoundingBox by calling before this and
+			// passing the real width to this method if not clipped and wrapped.
 			var abs = (document.documentMode == 8) ?
 					this.createVmlElement('group') : this.createElement('div');
 			abs.style.position = 'absolute';

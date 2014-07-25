@@ -163,6 +163,11 @@ mxSelectionCellsHandler.prototype.refresh = function()
 				}
 				else
 				{
+					if (handler.refresh != null)
+					{
+						handler.refresh();
+					}
+					
 					handler.redraw();
 				}
 			}

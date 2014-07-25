@@ -187,61 +187,72 @@ Editor.prototype.setGraphXml = function(node)
 
 	if (node.nodeName == 'mxGraphModel')
 	{
-		this.graph.model.clear();
-		this.graph.view.scale = 1;
-		this.graph.gridEnabled = node.getAttribute('grid') != '0';
-		this.graph.graphHandler.guidesEnabled = node.getAttribute('guides') != '0';
-		this.graph.setTooltips(node.getAttribute('tooltips') != '0');
-		this.graph.setConnectable(node.getAttribute('connect') != '0');
-		this.graph.foldingEnabled = node.getAttribute('fold') != '0';
-
-		var ps = node.getAttribute('pageScale');
+		this.graph.model.beginUpdate();
 		
-		if (ps != null)
+		try
 		{
-			this.graph.pageScale = ps;
+			this.graph.model.clear();
+			this.graph.view.scale = 1;
+			this.graph.gridEnabled = node.getAttribute('grid') != '0';
+			this.graph.gridSize = parseFloat(node.getAttribute('gridSize')) || mxGraph.prototype.gridSize;
+			this.graph.graphHandler.guidesEnabled = node.getAttribute('guides') != '0';
+			this.graph.setTooltips(node.getAttribute('tooltips') != '0');
+			this.graph.setConnectable(node.getAttribute('connect') != '0');
+			this.graph.foldingEnabled = node.getAttribute('fold') != '0';
+	
+			var ps = node.getAttribute('pageScale');
+			
+			if (ps != null)
+			{
+				this.graph.pageScale = ps;
+			}
+			else
+			{
+				this.graph.pageScale = mxGraph.prototype.pageScale;
+			}
+			
+			var pv = node.getAttribute('page');
+			
+			if (pv != null)
+			{
+				this.graph.pageVisible = (pv == '1');
+			}
+			else
+			{
+				this.graph.pageVisible = this.defaultPageVisible;
+			}
+			
+			this.graph.pageBreaksVisible = this.graph.pageVisible; 
+			this.graph.preferPageSize = this.graph.pageBreaksVisible;
+			
+			var pw = node.getAttribute('pageWidth');
+			var ph = node.getAttribute('pageHeight');
+			
+			if (pw != null && ph != null)
+			{
+				this.graph.pageFormat = new mxRectangle(0, 0, parseFloat(pw), parseFloat(ph));
+			}
+	
+			// Loads the persistent state settings
+			var bg = node.getAttribute('background');
+			
+			if (bg != null && bg.length > 0)
+			{
+				this.graph.background = bg;
+			}
+			else
+			{
+				this.graph.background = null;
+			}
+	
+			this.updateGraphComponents();
+			dec.decode(node, this.graph.getModel());
 		}
-		else
+		finally
 		{
-			this.graph.pageScale = mxGraph.prototype.pageScale;
+			this.graph.model.endUpdate();
 		}
 		
-		var pv = node.getAttribute('page');
-		
-		if (pv != null)
-		{
-			this.graph.pageVisible = (pv == '1');
-		}
-		else
-		{
-			this.graph.pageVisible = this.defaultPageVisible;
-		}
-		
-		this.graph.pageBreaksVisible = this.graph.pageVisible; 
-		this.graph.preferPageSize = this.graph.pageBreaksVisible;
-		
-		var pw = node.getAttribute('pageWidth');
-		var ph = node.getAttribute('pageHeight');
-		
-		if (pw != null && ph != null)
-		{
-			this.graph.pageFormat = new mxRectangle(0, 0, parseFloat(pw), parseFloat(ph));
-		}
-
-		// Loads the persistent state settings
-		var bg = node.getAttribute('background');
-		
-		if (bg != null && bg.length > 0)
-		{
-			this.graph.background = bg;
-		}
-		else
-		{
-			this.graph.background = null;
-		}
-
-		this.updateGraphComponents();
-		dec.decode(node, this.graph.getModel());
 		this.fireEvent(new mxEventObject('resetGraphView'));
 	}
 	else if (node.nodeName == 'root')
@@ -280,6 +291,7 @@ Editor.prototype.getGraphXml = function()
 	}
 	
 	node.setAttribute('grid', (this.graph.isGridEnabled()) ? '1' : '0');
+	node.setAttribute('gridSize', this.graph.gridSize);
 	node.setAttribute('guides', (this.graph.graphHandler.guidesEnabled) ? '1' : '0');
 	node.setAttribute('guides', (this.graph.graphHandler.guidesEnabled) ? '1' : '0');
 	node.setAttribute('tooltips', (this.graph.tooltipHandler.isEnabled()) ? '1' : '0');
@@ -318,6 +330,12 @@ Editor.prototype.updateGraphComponents = function()
 		// Transparent.gif is a workaround for focus repaint problems in IE and clipping issues in webkit
 		var noBackground = 'url(' + this.transparentImage + ')';
 		var bgImg = (!graph.pageVisible && graph.isGridEnabled()) ? 'url(' + this.gridImage + ')' : noBackground;
+		
+		// Needed to align background position for grid
+		if (graph.isGridEnabled())
+		{
+			graph.view.validateBackground();
+		}
 
 		if (graph.view.canvas.ownerSVGElement != null)
 		{
@@ -532,7 +550,7 @@ Editor.prototype.init = function()
 		if (this.graph.pageVisible && this.graph.container != null)
 		{
 			var bounds = this.getBackgroundPageBounds();
-			
+
 			if (this.backgroundPageShape == null)
 			{
 				this.backgroundPageShape = this.createBackgroundPageShape(bounds);
@@ -589,11 +607,21 @@ Editor.prototype.init = function()
 				this.backgroundPageShape.scale = 1;
 				this.backgroundPageShape.bounds = bounds;
 				this.backgroundPageShape.redraw();
-				this.backgroundPageShape.node.style.backgroundPosition = '-1px -1px';
+				
+				var bds = this.getBackgroundPageBounds();
+				var gs = this.graph.gridSize * this.graph.view.scale;
+				var tx = -1 + (gs - mxUtils.mod(bds.x / this.graph.view.scale - this.translate.x, gs) * this.graph.view.scale);
+				var ty = -1 + (gs - mxUtils.mod(bds.y / this.graph.view.scale - this.translate.y, gs) * this.graph.view.scale);
+				this.backgroundPageShape.node.style.backgroundPosition = Math.round(tx) + 'px ' + Math.round(ty) + 'px';
 			}
 			
 			this.backgroundPageShape.node.style.backgroundImage = (this.graph.isGridEnabled()) ?
 					'url(' + editor.gridImage + ')' : 'none';
+			
+			if (this.graph.isGridEnabled())
+			{
+				
+			}
 		}
 		else if (this.backgroundPageShape != null)
 		{
@@ -886,11 +914,7 @@ Editor.prototype.createUndoManager = function()
 /**
  * Adds basic stencil set (no namespace).
  */
-Editor.prototype.initStencilRegistry = function()
-{
-	// Loads default stencils
-	mxStencilRegistry.loadStencilSet(STENCIL_PATH + '/general.xml');
-};
+Editor.prototype.initStencilRegistry = function() { };
 
 /**
  * Overrides stencil registry for dynamic loading of stencils.

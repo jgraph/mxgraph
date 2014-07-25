@@ -192,9 +192,7 @@
 				{
 					var source = mxEvent.getSource(evt);
 
-					// FIXME: No scroll events in GC
-					return state.text != null &&
-						source != state.text.node &&
+					return state.text != null && source != state.text.node &&
 						source != state.text.node.getElementsByTagName('div')[0];
 				};
 
@@ -233,7 +231,7 @@
 									graph.view.invalidate(state.cell, false, true);
 									graph.view.validate();
 								}));
-		
+								
 								mxEvent.addListener(div, 'mouseup', mxUtils.bind(this, function(evt)
 								{
 									if (!this.isLabelEvent(state, evt))

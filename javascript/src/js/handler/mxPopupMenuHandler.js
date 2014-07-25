@@ -70,9 +70,23 @@ mxPopupMenuHandler.prototype.triggerX = null;
 /**
  * Variable: triggerY
  * 
- * X-coordinate of the mouse down event.
+ * Y-coordinate of the mouse down event.
  */
 mxPopupMenuHandler.prototype.triggerY = null;
+
+/**
+ * Variable: screenX
+ * 
+ * Screen X-coordinate of the mouse down event.
+ */
+mxPopupMenuHandler.prototype.screenX = null;
+
+/**
+ * Variable: screenY
+ * 
+ * Screen Y-coordinate of the mouse down event.
+ */
+mxPopupMenuHandler.prototype.screenY = null;
 
 /**
  * Function: init
@@ -117,6 +131,8 @@ mxPopupMenuHandler.prototype.mouseDown = function(sender, me)
 		this.hideMenu();
 		this.triggerX = me.getGraphX();
 		this.triggerY = me.getGraphY();
+		this.screenX = me.getEvent().screenX;
+		this.screenY = me.getEvent().screenY;
 		this.popupTrigger = this.isPopupTrigger(me);
 		this.inTolerance = true;
 	}
@@ -130,10 +146,10 @@ mxPopupMenuHandler.prototype.mouseDown = function(sender, me)
 mxPopupMenuHandler.prototype.mouseMove = function(sender, me)
 {
 	// Popup trigger may change on mouseUp so ignore it
-	if (this.inTolerance && this.triggerX != null && this.triggerY != null)
+	if (this.inTolerance && this.screenX != null && this.screenY != null)
 	{
-		if (Math.abs(me.getGraphX() - this.triggerX) > this.graph.tolerance ||
-			Math.abs(me.getGraphY() - this.triggerY) > this.graph.tolerance)
+		if (Math.abs(me.getEvent().screenX - this.screenX) > this.graph.tolerance ||
+			Math.abs(me.getEvent().screenY - this.screenY) > this.graph.tolerance)
 		{
 			this.inTolerance = false;
 		}

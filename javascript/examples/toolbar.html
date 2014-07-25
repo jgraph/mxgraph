@@ -77,6 +77,20 @@
 				// using the fastest rendering available on the browser
 				var model = new mxGraphModel();
 				var graph = new mxGraph(container, model);
+				graph.dropEnabled = true;
+				
+				// Matches DnD inside the graph
+				mxDragSource.prototype.getDropTarget = function(graph, x, y)
+				{
+					var cell = graph.getCellAt(x, y);
+					
+					if (!graph.isValidDropTarget(cell))
+					{
+						cell = null;
+					}
+					
+					return cell;
+				};
 
 				// Enables new connections in the graph
 				graph.setConnectable(true);
@@ -94,6 +108,7 @@
 					addToolbarItem(graph, toolbar, vertex, icon);
 				};
 				
+				addVertex('editors/images/swimlane.gif', 120, 160, 'shape=swimlane;startSize=20;');
 				addVertex('editors/images/rectangle.gif', 100, 40, '');
 				addVertex('editors/images/rounded.gif', 100, 40, 'shape=rounded');
 				addVertex('editors/images/ellipse.gif', 40, 40, 'shape=ellipse');
@@ -122,8 +137,7 @@
 							var dx = pt.x - bounds.x;
 							var dy = pt.y - bounds.y;
 							
-							var clones = graph.importCells(cells, dx, dy);
-							graph.setSelectionCells(clones);
+							graph.setSelectionCells(graph.importCells(cells, dx, dy, cell));
 						}
 			
 						// Creates the image which is used as the drag icon (preview)
@@ -153,9 +167,8 @@
 				var vertex = graph.getModel().cloneCell(prototype);
 				vertex.geometry.x = pt.x;
 				vertex.geometry.y = pt.y;
-					
-				graph.addCell(vertex);
-				graph.setSelectionCell(vertex);
+				
+				graph.setSelectionCells(graph.importCells([vertex], 0, 0, cell));
 			}
 
 			// Creates the image which is used as the drag icon (preview)
