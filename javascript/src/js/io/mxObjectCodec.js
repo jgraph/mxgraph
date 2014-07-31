@@ -906,14 +906,11 @@ mxObjectCodec.prototype.decodeChild = function(dec, child, obj)
 			if (value == null)
 			{
 				value = mxUtils.eval(mxUtils.getTextContent(child));
-				//mxLog.debug('Decoded '+fieldname+' '+mxUtils.getTextContent(child));
 			}
 		}
 		else
 		{
 			value = dec.decode(child, template);
-			// mxLog.debug('Decoded '+node.nodeName+'.'+fieldname+'='+
-			//	((tmp != null) ? tmp.constructor.name : 'null'));
 		}
 
 		this.addObjectValue(obj, fieldname, value, template);

@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 2.9.0.0.
+	 * Current version is 2.9.0.1.
 	 */
-	VERSION: '2.9.0.0',
+	VERSION: '2.9.0.1',
 
 	/**
 	 * Variable: IS_IE
@@ -72563,6 +72563,12 @@ mxEdgeHandler.prototype.mouseDown = function(sender, me)
 	//if (mxClient.IS_SVG || me.getState() == this.state)
 	{
 		handle = this.getHandleForEvent(me);
+		
+		if (this.bends != null && this.bends[handle] != null)
+		{
+			var b = this.bends[handle].bounds;
+			this.snapPoint = new mxPoint(b.getCenterX(), b.getCenterY());
+		}
 	}
 
 	if (this.addEnabled && handle == null && this.isAddPointEvent(me.getEvent()))
@@ -72913,17 +72919,15 @@ mxEdgeHandler.prototype.mouseMove = function(sender, me)
 	{
 		var point = this.getPointForEvent(me);
 		
-		if (mxEvent.isShiftDown(me.getEvent()))
+		if (mxEvent.isShiftDown(me.getEvent()) && this.snapPoint != null)
 		{
-			var pt = this.state.absolutePoints[this.index];
-			
-			if (Math.abs(pt.x - point.x) < Math.abs(pt.y - point.y))
+			if (Math.abs(this.snapPoint.x - point.x) < Math.abs(this.snapPoint.y - point.y))
 			{
-				point.x = pt.x;
+				point.x = this.snapPoint.x;
 			}
 			else
 			{
-				point.y = pt.y;
+				point.y = this.snapPoint.y;
 			}
 		}
 		
@@ -73070,6 +73074,7 @@ mxEdgeHandler.prototype.reset = function()
 	this.index = null;
 	this.label = null;
 	this.points = null;
+	this.snapPoint = null;
 	this.active = false;
 	this.isLabel = false;
 	this.isSource = false;
@@ -81122,14 +81127,11 @@ mxObjectCodec.prototype.decodeChild = function(dec, child, obj)
 			if (value == null)
 			{
 				value = mxUtils.eval(mxUtils.getTextContent(child));
-				//mxLog.debug('Decoded '+fieldname+' '+mxUtils.getTextContent(child));
 			}
 		}
 		else
 		{
 			value = dec.decode(child, template);
-			// mxLog.debug('Decoded '+node.nodeName+'.'+fieldname+'='+
-			//	((tmp != null) ? tmp.constructor.name : 'null'));
 		}
 
 		this.addObjectValue(obj, fieldname, value, template);

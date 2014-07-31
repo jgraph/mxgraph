@@ -449,15 +449,15 @@ Graph.prototype.isValidDropTarget = function(cell)
  */
 Graph.prototype.isContainer = function(cell)
 {
+	var state = this.view.getState(cell);
+	var style = (state != null) ? state.style : this.getCellStyle(cell);
+	
 	if (this.isSwimlane(cell))
 	{
-		return true;
+		return style['container'] != '0';
 	}
 	else
 	{
-		var state = this.view.getState(cell);
-		var style = (state != null) ? state.style : this.getCellStyle(cell);
-	
 		return style['container'] == '1';
 	}
 };
@@ -664,11 +664,9 @@ Graph.prototype.distributeCells = function(horizontal, cells)
 				
 				if (state != null)
 				{
-					var tmp = (horizontal) ? state.x : state.y;
-					min = (min != null) ? Math.min(min, tmp) : tmp;
-					
-					tmp += (horizontal) ? state.width : state.height;
+					var tmp = (horizontal) ? state.getCenterX() : state.getCenterY();
 					max = (max != null) ? Math.max(max, tmp) : tmp;
+					min = (min != null) ? Math.min(min, tmp) : tmp;
 					
 					vertices.push(state);
 				}
@@ -705,11 +703,11 @@ Graph.prototype.distributeCells = function(horizontal, cells)
 						
 						if (horizontal)
 						{
-							geo.x = t0 - geo.width / 2;
+							geo.x = Math.round(t0 - geo.width / 2);
 						}
 						else
 						{
-							geo.y = t0 - geo.height / 2;
+							geo.y = Math.round(t0 - geo.height / 2);
 						}
 						
 						this.getModel().setGeometry(vertices[i].cell, geo);

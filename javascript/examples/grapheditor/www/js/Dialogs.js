@@ -921,7 +921,7 @@ var EditFileDialog = function(editorUi)
 	div.appendChild(mxUtils.button(mxResources.get('ok'), function()
 	{
 		// Removes all illegal control characters before parsing
-		var data = editorUi.editor.graph.zapGremlins(textarea.value);
+		var data = editorUi.editor.graph.zapGremlins(mxUtils.trim(textarea.value));
 		
 		if (select.value == 'new')
 		{

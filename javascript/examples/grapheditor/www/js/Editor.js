@@ -1037,7 +1037,10 @@ Editor.prototype.initStencilRegistry = function() { };
 				install = true;
 			}
 		
-			mxStencilRegistry.parseStencilSet(xmlDoc.documentElement, postStencilLoad, install);
+			if (xmlDoc != null && xmlDoc.documentElement != null)
+			{
+				mxStencilRegistry.parseStencilSet(xmlDoc.documentElement, postStencilLoad, install);
+			}
 		}
 	};
 	

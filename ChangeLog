@@ -1,3 +1,7 @@
+31-JUL-2014: 2.9.0.1
+
+- Fixes possible NPE in mxEdgeHandler.mouseMove [JavaScript]
+
 25-JUL-2014: 2.9.0.0
 
 - Uses selectAll command in mxCellEditor.startEditing for iOS [JavaScript]

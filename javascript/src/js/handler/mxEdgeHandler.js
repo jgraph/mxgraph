@@ -661,6 +661,12 @@ mxEdgeHandler.prototype.mouseDown = function(sender, me)
 	//if (mxClient.IS_SVG || me.getState() == this.state)
 	{
 		handle = this.getHandleForEvent(me);
+		
+		if (this.bends != null && this.bends[handle] != null)
+		{
+			var b = this.bends[handle].bounds;
+			this.snapPoint = new mxPoint(b.getCenterX(), b.getCenterY());
+		}
 	}
 
 	if (this.addEnabled && handle == null && this.isAddPointEvent(me.getEvent()))
@@ -1011,17 +1017,15 @@ mxEdgeHandler.prototype.mouseMove = function(sender, me)
 	{
 		var point = this.getPointForEvent(me);
 		
-		if (mxEvent.isShiftDown(me.getEvent()))
+		if (mxEvent.isShiftDown(me.getEvent()) && this.snapPoint != null)
 		{
-			var pt = this.state.absolutePoints[this.index];
-			
-			if (Math.abs(pt.x - point.x) < Math.abs(pt.y - point.y))
+			if (Math.abs(this.snapPoint.x - point.x) < Math.abs(this.snapPoint.y - point.y))
 			{
-				point.x = pt.x;
+				point.x = this.snapPoint.x;
 			}
 			else
 			{
-				point.y = pt.y;
+				point.y = this.snapPoint.y;
 			}
 		}
 		
@@ -1168,6 +1172,7 @@ mxEdgeHandler.prototype.reset = function()
 	this.index = null;
 	this.label = null;
 	this.points = null;
+	this.snapPoint = null;
 	this.active = false;
 	this.isLabel = false;
 	this.isSource = false;
