@@ -609,7 +609,7 @@ mxVmlCanvas2D.prototype.createDiv = function(str, align, valign, overflow)
 	}
 	else
 	{
-		if (css.length > 0 && overflow != 'fill' && overflow != 'width')
+		if (overflow != 'fill' && overflow != 'width')
 		{
 			var div2 = this.createElement('div');
 			div2.style.cssText = css;
@@ -693,8 +693,7 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			// width in IE8 because real width of text cannot be determined here.
 			// This should be fixed in mxText.updateBoundingBox by calling before this and
 			// passing the real width to this method if not clipped and wrapped.
-			var abs = (document.documentMode == 8) ?
-					this.createVmlElement('group') : this.createElement('div');
+			var abs = (document.documentMode == 8) ? this.createVmlElement('group') : this.createElement('div');
 			abs.style.position = 'absolute';
 			abs.style.display = 'inline';
 			abs.style.left = this.format(x) + 'px';
@@ -775,18 +774,11 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			if (clip)
 			{
 				div.style.overflow = 'hidden';
+				div.style.width = Math.round(w) + 'px';
 				
-				if (w > 0)
+				if (!mxClient.IS_QUIRKS)
 				{
-					div.style.width = Math.round(w) + 'px';
-				}
-				
-				if (h > 0)
-				{
-					if (document.documentMode == 8)
-					{
-						div.style.maxHeight = Math.round(h) + 'px';
-					}
+					div.style.maxHeight = Math.round(h) + 'px';
 				}
 			}
 			else if (overflow == 'fill')
@@ -808,7 +800,7 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 					div.style.maxHeight = Math.round(h) + 'px';
 				}
 			}
-
+			
 			if (this.rotateHtml && rot != 0)
 			{
 				var rad = rot * (Math.PI / 180);
@@ -834,15 +826,32 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				}
 				
 				div.style.visibility = 'hidden';
+				div.style.position = 'absolute';
 				document.body.appendChild(div);
 				
-				w = div.offsetWidth;
-				var oh = div.offsetHeight;
+				var sizeDiv = div;
 				
-				// Handles words that are longer than the given wrapping width
-				if (!clip && wrap)
+				if (sizeDiv.firstChild != null && sizeDiv.firstChild.nodeName == 'DIV')
 				{
-					w = Math.max(w, div.scrollWidth);
+					sizeDiv = sizeDiv.firstChild;
+				}
+				
+				var tmp = sizeDiv.offsetWidth + 3;
+				var oh = sizeDiv.offsetHeight;
+				
+				if (clip)
+				{
+					w = Math.min(w, tmp);
+					oh = Math.min(oh, h);
+				}
+				else
+				{
+					w = tmp;
+				}
+
+				// Handles words that are longer than the given wrapping width
+				if (wrap)
+				{
 					div.style.width = w + 'px';
 				}
 				
@@ -891,8 +900,9 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				}
 
 				// Restore parent node for DIV
-				div.style.visibility = '';
 				inner.appendChild(div);
+				div.style.position = '';
+				div.style.visibility = '';
 			}
 			else if (document.documentMode != 8)
 			{

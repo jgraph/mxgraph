@@ -507,6 +507,7 @@ mxPrintPreview.prototype.open = function(css)
 					var dx = j * availableWidth / this.scale - this.x0 / this.scale +
 							(bounds.x - tr.x * currentScale) / currentScale;
 					var pageNum = i * hpages + j + 1;
+					var clip = new mxRectangle(dx, dy, this.pageFormat.width, this.pageFormat.height);
 					
 					// Workaround for ignored clipping in IE 9 standards when
 					// printing with page breaks and HTML labels. IE preview
@@ -515,7 +516,7 @@ mxPrintPreview.prototype.open = function(css)
 					{
 						div = this.renderPage(this.pageFormat.width, this.pageFormat.height, -dx, -dy, mxUtils.bind(this, function(div)
 						{
-							this.addGraphFragment(0, 0, this.scale, pageNum, div);
+							this.addGraphFragment(0, 0, this.scale, pageNum, div, clip);
 							
 							if (this.printBackgroundImage)
 							{
@@ -527,7 +528,7 @@ mxPrintPreview.prototype.open = function(css)
 					{
 						div = this.renderPage(this.pageFormat.width, this.pageFormat.height, 0, 0, mxUtils.bind(this, function(div)
 						{
-							this.addGraphFragment(-dx, -dy, this.scale, pageNum, div);
+							this.addGraphFragment(-dx, -dy, this.scale, pageNum, div, clip);
 							
 							if (this.printBackgroundImage)
 							{
@@ -816,8 +817,9 @@ mxPrintPreview.prototype.getRoot = function()
  * scale - Scale for the diagram.
  * pageNumber - Number of the page to be rendered.
  * div - Div that contains the output.
+ * clip - Contains the clipping rectangle as an <mxRectangle>.
  */
-mxPrintPreview.prototype.addGraphFragment = function(dx, dy, scale, pageNumber, div)
+mxPrintPreview.prototype.addGraphFragment = function(dx, dy, scale, pageNumber, div, clip)
 {
 	var view = this.graph.getView();
 	var previousContainer = this.graph.container;

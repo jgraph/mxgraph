@@ -626,19 +626,16 @@ mxGraphView.prototype.getBoundingBox = function(state, recurse)
 			bbox = state.shape.boundingBox.clone();
 		}
 		
-		if (state.text != null && !this.graph.isLabelClipped(state.cell))
+		// Adds label bounding box to graph bounds
+		if (state.text != null && state.text.boundingBox != null)
 		{
-			// Adds label bounding box to graph bounds
-			if (state.text.boundingBox != null)
+			if (bbox != null)
 			{
-				if (bbox != null)
-				{
-					bbox.add(state.text.boundingBox);
-				}
-				else
-				{
-					bbox = state.text.boundingBox.clone();
-				}
+				bbox.add(state.text.boundingBox);
+			}
+			else
+			{
+				bbox = state.text.boundingBox.clone();
 			}
 		}
 		
@@ -1164,28 +1161,60 @@ mxGraphView.prototype.updateEdgeState = function(state, geo)
  */
 mxGraphView.prototype.updateVertexLabelOffset = function(state)
 {
-	var horizontal = mxUtils.getValue(state.style,
-			mxConstants.STYLE_LABEL_POSITION,
-			mxConstants.ALIGN_CENTER);
-	
-	if (horizontal == mxConstants.ALIGN_LEFT)
+	var h = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_POSITION, mxConstants.ALIGN_CENTER);
+
+	if (h == mxConstants.ALIGN_LEFT)
 	{
-		state.absoluteOffset.x -= state.width;
+		var lw = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_WIDTH, null);
+		
+		if (lw != null)
+		{
+			lw *= this.scale;
+		}
+		else
+		{
+			lw = state.width;
+		}
+		
+		state.absoluteOffset.x -= lw;
 	}
-	else if (horizontal == mxConstants.ALIGN_RIGHT)
+	else if (h == mxConstants.ALIGN_RIGHT)
 	{
 		state.absoluteOffset.x += state.width;
 	}
+	else if (h == mxConstants.ALIGN_CENTER)
+	{
+		var lw = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_WIDTH, null);
+		
+		if (lw != null)
+		{
+			// Aligns text block with given width inside the vertex width
+			var align = mxUtils.getValue(state.style, mxConstants.STYLE_ALIGN, mxConstants.ALIGN_CENTER);
+			var dx = 0;
+			
+			if (align == mxConstants.ALIGN_CENTER)
+			{
+				dx = 0.5;
+			}
+			else if (align == mxConstants.ALIGN_RIGHT)
+			{
+				dx = 1;
+			}
+			
+			if (dx != 0)
+			{
+				state.absoluteOffset.x -= (lw * this.scale - state.width) * dx;
+			}
+		}
+	}
 	
-	var vertical = mxUtils.getValue(state.style,
-			mxConstants.STYLE_VERTICAL_LABEL_POSITION,
-			mxConstants.ALIGN_MIDDLE);
+	var v = mxUtils.getValue(state.style, mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.ALIGN_MIDDLE);
 	
-	if (vertical == mxConstants.ALIGN_TOP)
+	if (v == mxConstants.ALIGN_TOP)
 	{
 		state.absoluteOffset.y -= state.height;
 	}
-	else if (vertical == mxConstants.ALIGN_BOTTOM)
+	else if (v == mxConstants.ALIGN_BOTTOM)
 	{
 		state.absoluteOffset.y += state.height;
 	}

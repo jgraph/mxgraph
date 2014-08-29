@@ -80,6 +80,14 @@ mxCompactTreeLayout.prototype.parentsChanged = null;
 mxCompactTreeLayout.prototype.moveTree = false;
 
 /**
+ * Variable: visited
+ * 
+ * Specifies if the tree should be moved to the top, left corner
+ * if it is inside a top-level layer. Default is false.
+ */
+mxCompactTreeLayout.prototype.visited = null;
+
+/**
  * Variable: levelDistance
  *
  * Holds the levelDistance. Default is 10.
@@ -162,6 +170,21 @@ mxCompactTreeLayout.prototype.alignRanks = false;
 mxCompactTreeLayout.prototype.maxRankHeight = null;
 
 /**
+ * Variable: root
+ * 
+ * The cell to use as the root of the tree
+ */
+mxCompactTreeLayout.prototype.root = null;
+
+/**
+ * Variable: node
+ * 
+ * The internal node representation of the root cell. Do not set directly
+ * , this value is only exposed to assist with post-processing functionality
+ */
+mxCompactTreeLayout.prototype.node = null;
+
+/**
  * Function: isVertexIgnored
  * 
  * Returns a boolean indicating if the given <mxCell> should be ignored as a
@@ -212,7 +235,7 @@ mxCompactTreeLayout.prototype.execute = function(parent, root)
 		if (this.graph.getEdges(parent, model.getParent(parent),
 			this.invert, !this.invert, false).length > 0)
 		{
-			root = parent;
+			this.root = parent;
 		}
 		
 		// Tries to find a suitable root in the parent's
@@ -229,15 +252,19 @@ mxCompactTreeLayout.prototype.execute = function(parent, root)
 						this.graph.getEdges(roots[i], null,
 							this.invert, !this.invert, false).length > 0)
 					{
-						root = roots[i];
+						this.root = roots[i];
 						break;
 					}
 				}
 			}
 		}
 	}
+	else
+	{
+		this.root = root;
+	}
 	
-	if (root != null)
+	if (this.root != null)
 	{
 		if (this.resizeParent)
 		{
@@ -252,24 +279,25 @@ mxCompactTreeLayout.prototype.execute = function(parent, root)
 		
 		try
 		{
-			var node = this.dfs(root, parent);
+			this.visited = new Object();
+			this.node = this.dfs(this.root, parent);
 			
 			if (this.alignRanks)
 			{
 				this.maxRankHeight = [];
-				this.findRankHeights(node, 0);
-				this.setCellHeights(node, 0);
+				this.findRankHeights(this.node, 0);
+				this.setCellHeights(this.node, 0);
 			}
 			
-			if (node != null)
+			if (this.node != null)
 			{
-				this.layout(node);
+				this.layout(this.node);
 				var x0 = this.graph.gridSize;
 				var y0 = x0;
 				
 				if (!this.moveTree)
 				{
-					var g = this.getVertexBounds(root);
+					var g = this.getVertexBounds(this.root);
 					
 					if (g != null)
 					{
@@ -282,11 +310,11 @@ mxCompactTreeLayout.prototype.execute = function(parent, root)
 				
 				if (this.isHorizontal())
 				{
-					bounds = this.horizontalLayout(node, x0, y0);
+					bounds = this.horizontalLayout(this.node, x0, y0);
 				}
 				else
 				{
-					bounds = this.verticalLayout(node, null, x0, y0);
+					bounds = this.verticalLayout(this.node, null, x0, y0);
 				}
 
 				if (bounds != null)
@@ -306,7 +334,7 @@ mxCompactTreeLayout.prototype.execute = function(parent, root)
 
 					if (dx != 0 || dy != 0)
 					{
-						this.moveNode(node, dx, dy);
+						this.moveNode(this.node, dx, dy);
 					}
 					
 					if (this.resizeParent)
@@ -317,7 +345,7 @@ mxCompactTreeLayout.prototype.execute = function(parent, root)
 					if (this.edgeRouting)
 					{
 						// Iterate through all edges setting their positions
-						this.localEdgeProcessing(node);
+						this.localEdgeProcessing(this.node);
 					}
 				}
 			}
@@ -434,16 +462,14 @@ mxCompactTreeLayout.prototype.setCellHeights = function(node, rank)
  * Makes sure the specified parent is never left by the
  * algorithm.
  */
-mxCompactTreeLayout.prototype.dfs = function(cell, parent, visited)
+mxCompactTreeLayout.prototype.dfs = function(cell, parent)
 {
-	visited = (visited != null) ? visited : [];
-	
 	var id = mxCellPath.create(cell);
 	var node = null;
 	
-	if (cell != null && visited[id] == null && !this.isVertexIgnored(cell))
+	if (cell != null && this.visited[id] == null && !this.isVertexIgnored(cell))
 	{
-		visited[id] = cell;
+		this.visited[id] = cell;
 		node = this.createNode(cell);
 
 		var model = this.graph.getModel();
@@ -477,7 +503,7 @@ mxCompactTreeLayout.prototype.dfs = function(cell, parent, visited)
 				// Checks if terminal in same swimlane
 				var state = view.getState(edge);
 				var target = (state != null) ? state.getVisibleTerminal(this.invert) : view.getVisibleTerminal(edge, this.invert);
-				var tmp = this.dfs(target, parent, visited);
+				var tmp = this.dfs(target, parent);
 				
 				if (tmp != null && model.getGeometry(target) != null)
 				{

@@ -168,7 +168,7 @@ mxCodecRegistry.register(function()
 								
 								if (cell != null && style != null)
 								{
-									cell = cell.clone();
+									cell = editor.graph.cloneCells([cell])[0];
 									cell.setStyle(style);
 								}
 								

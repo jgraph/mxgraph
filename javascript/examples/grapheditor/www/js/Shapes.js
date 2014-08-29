@@ -1183,7 +1183,7 @@
 				this.specialHandle.redraw();
 				
 				// Hides special handle if shape too small
-				if (this.state.width < 2 * this.specialHandle.bounds.width && this.state.height < 2 * this.specialHandle.bounds.height)
+				if (this.state.width < 2 * this.specialHandle.bounds.width || this.state.height < 2 * this.specialHandle.bounds.height)
 				{
 					this.specialHandle.node.style.visibility = 'hidden';
 				}

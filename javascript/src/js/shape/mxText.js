@@ -139,10 +139,10 @@ mxText.prototype.verticalTextRotation = -90;
 /**
  * Variable: ignoreClippedStringSize
  * 
- * Specifies if the actual string size should be measured if a label is clipped.
- * If disabled the boundingBox will not ignore the actual size of the string,
- * otherwise <bounds> will be used instead. Default is true. <ignoreStringSize>
- * has precedence over this switch.
+ * Specifies if the string size should be measured in <updateBoundingBox> if
+ * the label is clipped and the label position is center and middle. If this is
+ * true, then the bounding box will be set to <bounds>. Default is true.
+ * <ignoreStringSize> has precedence over this switch.
  */
 mxText.prototype.ignoreClippedStringSize = true;
 
@@ -154,6 +154,15 @@ mxText.prototype.ignoreClippedStringSize = true;
  * <bounds> will be used instead. Default is false.
  */
 mxText.prototype.ignoreStringSize = false;
+
+/**
+ * Variable: textWidthPadding
+ * 
+ * Specifies the padding to be added to the text width for the bounding box.
+ * This is needed to make sure no clipping is applied to borders. Default is 4
+ * for IE 8 standards mode and 3 for all others.
+ */
+mxText.prototype.textWidthPadding = (document.documentMode == 8) ? 4 : 3;
 
 /**
  * Function: isParseVml
@@ -238,21 +247,14 @@ mxText.prototype.apply = function(state)
 mxText.prototype.updateBoundingBox = function()
 {
 	var node = this.node;
-	
-	if (document.documentMode == 8 && node.firstChild != null)
-	{
-		node = node.firstChild;
-		
-		if (node.firstChild != null)
-		{
-			node = node.firstChild;
-		}
-	}
-	
 	this.boundingBox = this.bounds.clone();
 	var rot = this.getTextRotation();
+	
+	var h = (this.style != null) ? mxUtils.getValue(this.style, mxConstants.STYLE_LABEL_POSITION, mxConstants.ALIGN_CENTER) : null;
+	var v = (this.style != null) ? mxUtils.getValue(this.style, mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.ALIGN_MIDDLE) : null;
 
-	if (!this.ignoreStringSize && node != null && this.overflow != 'fill' && (!this.clipped || !this.ignoreClippedStringSize))
+	if (!this.ignoreStringSize && node != null && this.overflow != 'fill' && (!this.clipped ||
+		!this.ignoreClippedStringSize || h != mxConstants.ALIGN_CENTER || v != mxConstants.ALIGN_MIDDLE))
 	{
 		var ow = null;
 		var oh = null;
@@ -263,8 +265,7 @@ mxText.prototype.updateBoundingBox = function()
 				node.firstChild.firstChild.nodeName == 'foreignObject')
 			{
 				node = node.firstChild.firstChild;
-
-				ow = (this.wrap) ? this.bounds.width : parseInt(node.getAttribute('width')) * this.scale;
+				ow = parseInt(node.getAttribute('width')) * this.scale;
 				oh = parseInt(node.getAttribute('height')) * this.scale;
 			}
 			else
@@ -300,35 +301,24 @@ mxText.prototype.updateBoundingBox = function()
 			// Use cached offset size
 			if (this.offsetWidth != null && this.offsetHeight != null)
 			{
-				ow = (this.wrap) ? this.bounds.width : this.offsetWidth * this.scale;
+				ow = this.offsetWidth * this.scale;
 				oh = this.offsetHeight * this.scale;
 			}
 			else
 			{
-				var offsetNode = this.node;
-				
 				// Cannot get node size while container hidden so a
 				// shared temporary DIV is used for text measuring
 				if (td != null)
 				{
 					this.updateFont(td);
 					this.updateSize(td, false);
+					this.updateInnerHtml(td);
 					
-					if (mxUtils.isNode(this.value))
-					{
-						td.innerHTML = this.value.outerHTML;
-					}
-					else
-					{
-						var val = (this.replaceLinefeeds) ? this.value.replace(/\n/g, '<br/>') : this.value;
-						td.innerHTML = val;
-					}
-					
-					offsetNode = td;
 					node = td;
 				}
 				
-				// Handles words that are longer than the given wrapping width
+				var sizeDiv = node;
+
 				if (document.documentMode == 8)
 				{
 					var w = Math.round(this.bounds.width / this.scale);
@@ -336,18 +326,27 @@ mxText.prototype.updateBoundingBox = function()
 					if (this.wrap && w > 0)
 					{
 						node.whiteSpace = 'normal';
+
+						// Innermost DIV is used for measuring text
+						var divs = sizeDiv.getElementsByTagName('div');
 						
-						if (!this.clipped)
+						if (divs.length > 0)
 						{
-							// Needs first call to update scrollWidth for wrapped text
-							offsetNode.style.width = Math.max(w, offsetNode.scrollWidth + ((mxClient.IS_QUIRKS) ? 2 : 0)) + 'px';
-							var divs = this.node.getElementsByTagName('div');
-							
-							// Updates the width of the innermost DIV which contains the text
-							if (divs != null && divs.length > 0)
-							{
-								divs[divs.length - 1].style.width = offsetNode.style.width;
-							}
+							sizeDiv = divs[divs.length - 1];
+						}
+						
+						ow = sizeDiv.offsetWidth + 2;
+						divs = this.node.getElementsByTagName('div');
+						
+						if (this.clipped)
+						{
+							ow = Math.min(w, ow);
+						}
+						
+						// Second last DIV width must be updated in DOM tree
+						if (divs.length > 1)
+						{
+							divs[divs.length - 2].style.width = ow + 'px';
 						}
 					}
 					else
@@ -355,9 +354,13 @@ mxText.prototype.updateBoundingBox = function()
 						node.whiteSpace = 'nowrap';
 					}
 				}
+				else if (sizeDiv.firstChild != null && sizeDiv.firstChild.nodeName == 'DIV')
+				{
+					sizeDiv = sizeDiv.firstChild;
+				}
 				
-				ow = (this.wrap) ? this.bounds.width : node.offsetWidth * this.scale;
-				oh = node.offsetHeight * this.scale;
+				ow = (sizeDiv.offsetWidth + this.textWidthPadding) * this.scale;
+				oh = sizeDiv.offsetHeight * this.scale;
 			}
 		}
 
@@ -517,7 +520,7 @@ mxText.prototype.redrawHtmlShape = function()
 	
 	this.updateValue();
 	this.updateFont(this.node);
-	this.updateSize(this.node, true);
+	this.updateSize(this.node, (this.state == null || this.state.view.textDiv == null));
 	
 	this.offsetWidth = null;
 	this.offsetHeight = null;
@@ -562,6 +565,34 @@ mxText.prototype.updateHtmlTransform = function()
 };
 
 /**
+ * Function: setInnerHtml
+ * 
+ * Sets the inner HTML of the given element to the <value>.
+ */
+mxText.prototype.updateInnerHtml = function(elt)
+{
+	if (mxUtils.isNode(this.value))
+	{
+		elt.innerHTML = this.value.outerHTML;
+	}
+	else
+	{
+		var val = this.value;
+		
+		if (this.dialect != mxConstants.DIALECT_STRICTHTML)
+		{
+			// LATER: Can be cached in updateValue
+			val = mxUtils.htmlEntities(val, false);
+		}
+
+		val = (this.replaceLinefeeds) ? val.replace(/\n/g, '<br/>') : val;
+		val = '<div style="display:inline-block;_display:inline;">' + val + '</div>';
+		
+		elt.innerHTML = val;
+	}
+};
+
+/**
  * Function: updateHtmlFilter
  *
  * Rotated text rendering quality is bad for IE9 quirks/IE8 standards
@@ -580,7 +611,8 @@ mxText.prototype.updateHtmlFilter = function()
 	var ow = 0;
 	var oh = 0;
 	var td = (this.state != null) ? this.state.view.textDiv : null;
-
+	var sizeDiv = this.node;
+	
 	// Fallback for hidden text rendering in IE quirks mode
 	if (td != null)
 	{
@@ -590,51 +622,60 @@ mxText.prototype.updateHtmlFilter = function()
 		
 		this.updateFont(td);
 		this.updateSize(td, false);
-
-		if (mxUtils.isNode(this.value))
-		{
-			td.innerHTML = this.value.outerHTML;
-		}
-		else
-		{
-			var val = this.value;
-			
-			if (this.dialect != mxConstants.DIALECT_STRICTHTML)
-			{
-				// LATER: Can be cached in updateValue
-				val = mxUtils.htmlEntities(val, false);
-			}
-	
-			val = (this.replaceLinefeeds) ? val.replace(/\n/g, '<br/>') : val;
-			td.innerHTML = val;
-		}
+		this.updateInnerHtml(td);
 		
-		// Handles words that are longer than the given wrapping width
 		var w = Math.round(this.bounds.width / this.scale);
-		
+
 		if (this.wrap && w > 0)
 		{
 			td.whiteSpace = 'normal';
+			ow = w;
 			
-			if (!this.clipped)
+			if (this.clipped)
 			{
-				// Needs first call to update scrollWidth for wrapped text
-				td.style.width = Math.max(w, td.scrollWidth + ((mxClient.IS_QUIRKS) ? 2 : 0)) + 'px';
+				ow = Math.min(ow, this.bounds.width);
 			}
+
+			td.style.width = ow + 'px';
 		}
 		else
 		{
 			td.whiteSpace = 'nowrap';
 		}
 		
-		ow = td.offsetWidth + 2; 
-		oh = td.offsetHeight + 2;
+		sizeDiv = td;
+		
+		if (sizeDiv.firstChild != null && sizeDiv.firstChild.nodeName == 'DIV')
+		{
+			sizeDiv = sizeDiv.firstChild;
+		}
+
+		// Required to update the height of the text box after wrapping width is known 
+		if (!this.clipped && this.wrap && w > 0)
+		{
+			ow = sizeDiv.offsetWidth + this.textWidthPadding;
+			td.style.width = ow + 'px';
+		}
+		
+		oh = sizeDiv.offsetHeight + 2;
+		
+		if (mxClient.IS_QUIRKS && this.border != null && this.border != mxConstants.NONE)
+		{
+			oh += 3;
+		}
 	}
-	else
+	else if (sizeDiv.firstChild != null && sizeDiv.firstChild.nodeName == 'DIV')
 	{
-		// Adds 1 to match table height in 1.x
-		ow = this.node.offsetWidth;
-		oh = this.node.offsetHeight + 1;
+		sizeDiv = sizeDiv.firstChild;
+		
+		oh = sizeDiv.offsetHeight;
+	}
+
+	ow = sizeDiv.offsetWidth + this.textWidthPadding;
+	
+	if (this.clipped)
+	{
+		oh = Math.min(oh, this.bounds.height);
 	}
 	
 	// Stores for later use
@@ -645,7 +686,7 @@ mxText.prototype.updateHtmlFilter = function()
 	var h = this.bounds.height / s;
 	
 	// Simulates max-height CSS in quirks mode
-	if (mxClient.IS_QUIRKS && (this.clipped || this.overflow == 'width') && h > 0)
+	if (mxClient.IS_QUIRKS && (this.clipped || (this.overflow == 'width' && h > 0)))
 	{
 		h = Math.min(h, oh);
 		style.height = Math.round(h) + 'px';
@@ -657,20 +698,17 @@ mxText.prototype.updateHtmlFilter = function()
 
 	if (this.overflow != 'fill' && this.overflow != 'width')
 	{
-		// Simulates max-width CSS in quirks mode
-		if (mxClient.IS_QUIRKS && this.clipped && w > 0)
+		if (this.clipped)
 		{
-			w = Math.min(w, ow);
-			style.width = Math.round(w) + 'px';
+			ow = Math.min(w, ow);
 		}
-		else
-		{
-			w = ow;
+		
+		w = ow;
 
-			if (this.wrap && !this.clipped)
-			{
-				style.width = Math.round(w) + 'px';
-			}
+		// Simulates max-width CSS in quirks mode
+		if ((mxClient.IS_QUIRKS && this.clipped) || this.wrap)
+		{
+			style.width = Math.round(w) + 'px';
 		}
 	}
 
@@ -743,43 +781,41 @@ mxText.prototype.updateValue = function()
 		var bg = (this.background != null && this.background != mxConstants.NONE) ? this.background : null;
 		var bd = (this.border != null && this.border != mxConstants.NONE) ? this.border : null;
 
-		if (bg != null || bd != null)
+		if (this.overflow == 'fill' || this.overflow == 'width')
 		{
-			if (this.overflow == 'fill' || this.overflow == 'width')
+			if (bg != null)
 			{
-				if (bg != null)
-				{
-					this.node.style.backgroundColor = bg;
-				}
-				
-				if (bd != null)
-				{
-					this.node.style.border = '1px solid ' + bd;
-				}
+				this.node.style.backgroundColor = bg;
 			}
-			else
+			
+			if (bd != null)
 			{
-				var css = '';
-				
-				if (bg != null)
-				{
-					css += 'background-color:' + bg + ';';
-				}
-				
-				if (bd != null)
-				{
-					css += 'border:1px solid ' + bd + ';';
-				}
-				
-				// Wrapper DIV for background, zoom needed for inline in quirks
-				// FIXME: Background size in quirks mode for wrapped text
-				val = '<div style="zoom:1;' + css + 'display:inline-block;_display:inline;' +
-					'text-decoration:inherit;padding-bottom:1px;padding-right:1px;line-height:' +
-					this.node.style.lineHeight + '">' + val + '</div>';
-				this.node.style.lineHeight = '';
+				this.node.style.border = '1px solid ' + bd;
 			}
 		}
-	
+		else
+		{
+			var css = '';
+			
+			if (bg != null)
+			{
+				css += 'background-color:' + bg + ';';
+			}
+			
+			if (bd != null)
+			{
+				css += 'border:1px solid ' + bd + ';';
+			}
+			
+			// Wrapper DIV for background, zoom needed for inline in quirks
+			// and to measure wrapped font sizes in all browsers
+			// FIXME: Background size in quirks mode for wrapped text
+			val = '<div style="zoom:1;' + css + 'display:inline-block;_display:inline;' +
+				'text-decoration:inherit;padding-bottom:1px;padding-right:1px;line-height:' +
+				this.node.style.lineHeight + '">' + val + '</div>';
+			this.node.style.lineHeight = '';
+		}
+
 		this.node.innerHTML = val;
 	}
 };
@@ -856,15 +892,11 @@ mxText.prototype.updateSize = function(node, enableWrap)
 	if (this.clipped)
 	{
 		style.overflow = 'hidden';
+		style.width = w + 'px';
 		
-		if (h > 0)
+		if (!mxClient.IS_QUIRKS)
 		{
 			style.maxHeight = h + 'px';
-		}
-		
-		if (w > 0)
-		{
-			style.width = w + 'px';
 		}
 	}
 	else if (this.overflow == 'fill')
@@ -875,27 +907,31 @@ mxText.prototype.updateSize = function(node, enableWrap)
 	else if (this.overflow == 'width')
 	{
 		style.width = w + 'px';
-		
-		if (h > 0)
-		{
-			style.maxHeight = h + 'px';
-		}
+		style.maxHeight = h + 'px';
 	}
 	
-	// Handles words that are longer than the given wrapping width
 	if (this.wrap && w > 0)
 	{
 		style.whiteSpace = 'normal';
-		
-		if (!this.clipped)
+		style.width = w + 'px';
+
+		if (enableWrap)
 		{
-			// Needs first call to update scrollWidth for wrapped text
-			style.width = w + 'px';
+			var sizeDiv = node;
 			
-			if (enableWrap)
+			if (sizeDiv.firstChild != null && sizeDiv.firstChild.nodeName == 'DIV')
 			{
-				style.width = Math.max(w, node.scrollWidth + ((mxClient.IS_QUIRKS) ? 2 : 0)) + 'px';
+				sizeDiv = sizeDiv.firstChild;
 			}
+			
+			var tmp = sizeDiv.offsetWidth + 3;
+			
+			if (this.clipped)
+			{
+				tmp = Math.min(tmp, w);
+			}
+			
+			style.width = tmp+ 'px';
 		}
 	}
 	else

@@ -404,13 +404,13 @@ JGraphLayout.Stoppable*/
 		mxIGraphModel model = graph.getModel();
 		Set<Object> result = new LinkedHashSet<Object>();
 
-		if (model.isVertex(cell) && cell != this.parent && model.isVisible(cell))
+		if (model.isVertex(cell) && cell != this.parent && graph.isCellVisible(cell))
 		{
 			result.add(cell);
 		}
 
 		if (this.traverseAncestors || cell == this.parent
-				&& model.isVisible(cell))
+				&& graph.isCellVisible(cell))
 		{
 			int childCount = model.getChildCount(cell);
 

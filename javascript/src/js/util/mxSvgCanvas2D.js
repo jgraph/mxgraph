@@ -16,6 +16,7 @@
  * if (svgDoc.createElementNS == null)
  * {
  *   root.setAttribute('xmlns', mxConstants.NS_SVG);
+ *   root.setAttribute('xmlns:xlink', mxConstants.NS_XLINK);
  * }
  * else
  * {
@@ -213,6 +214,14 @@ mxSvgCanvas2D.prototype.lineHeightCorrection = 1.05;
  * Default value for active pointer events. Default is all.
  */
 mxSvgCanvas2D.prototype.pointerEventsValue = 'all';
+
+/**
+ * Variable: fontMetricsPadding
+ * 
+ * Padding to be added for text that is not wrapped to account for differences
+ * in font metrics on different platforms in pixels. Default is 10.
+ */
+mxSvgCanvas2D.prototype.fontMetricsPadding = 10;
 
 /**
  * Function: reset
@@ -911,9 +920,8 @@ mxSvgCanvas2D.prototype.image = function(x, y, w, h, src, aspect, flipH, flipV)
 	node.setAttribute('width', this.format(w * s.scale));
 	node.setAttribute('height', this.format(h * s.scale));
 	
-	// Workaround for implicit namespace handling in HTML5 export, IE adds NS1 namespace so use code below
-	// in all IE versions except quirks mode. KNOWN: Adds xlink namespace to each image tag in output.
-	if (node.setAttributeNS == null || (this.root.ownerDocument != document && document.documentMode == null))
+	// Workaround for missing namespace support
+	if (node.setAttributeNS == null)
 	{
 		node.setAttribute('xlink:href', src);
 	}
@@ -1017,17 +1025,19 @@ mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, overflow
 	{
 		style += 'text-decoration:underline;';
 	}
-	
+
+	var css = '';
+		
 	if (align == mxConstants.ALIGN_CENTER)
 	{
+		css += 'text-align:center;';
 		style += 'text-align:center;';
 	}
 	else if (align == mxConstants.ALIGN_RIGHT)
 	{
+		css += 'text-align:right;';
 		style += 'text-align:right;';
 	}
-
-	var css = '';
 	
 	if (s.fontBackgroundColor != null)
 	{
@@ -1050,10 +1060,8 @@ mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, overflow
 
 		if (overflow != 'fill' && overflow != 'width')
 		{
-			if (css.length > 0)
-			{
-				val = '<div xmlns="http://www.w3.org/1999/xhtml" style="display:inline-block;' + css + '">' + val + '</div>';
-			}
+			// Inner div always needed to measure wrapped text
+			val = '<div xmlns="http://www.w3.org/1999/xhtml" style="display:inline-block;' + css + '">' + val + '</div>';
 		}
 		else
 		{
@@ -1063,7 +1071,7 @@ mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, overflow
 
 	// Uses DOM API where available. This cannot be used in IE9/10 to avoid
 	// an opening and two (!) closing TBODY tags being added to tables.
-	if (!mxClient.IS_IE && document.createElementNS)
+	if (!mxClient.IS_IE && !mxClient.IS_IE11 && document.createElementNS)
 	{
 		var div = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
 		div.setAttribute('style', style);
@@ -1129,22 +1137,11 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			
 			if (clip)
 			{
-				style += 'overflow:hidden;';
-				
-				if (h > 0)
-				{
-					style += 'max-height:' + Math.round(h) + 'px;';
-				}
-				
-				if (w > 0)
-				{
-					style += 'width:' + Math.round(w) + 'px;';
-				}
+				style += 'overflow:hidden;max-height:' + Math.round(h) + 'px;width:' + Math.round(w) + 'px;';
 			}
 			else if (overflow == 'fill')
 			{
-				style += 'width:' + Math.round(w) + 'px;';
-				style += 'height:' + Math.round(h) + 'px;';
+				style += 'width:' + Math.round(w) + 'px;height:' + Math.round(h) + 'px;';
 			}
 			else if (overflow == 'width')
 			{
@@ -1158,12 +1155,7 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 
 			if (wrap && w > 0)
 			{
-				if (!clip)
-				{
-					style += 'width:' + Math.round(w) + 'px;';
-				}
-				
-				style += 'white-space:normal;';
+				style += 'width:' + Math.round(w) + 'px;white-space:normal;';
 			}
 			else
 			{
@@ -1189,7 +1181,7 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			{
 				return;
 			}
-			
+
 			group.appendChild(fo);
 			this.root.appendChild(group);
 			
@@ -1198,71 +1190,168 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			var ow = 0;
 			var oh = 0;
 			
-			if (mxClient.IS_IE && !mxClient.IS_SVG)
+			// Padding avoids clipping on border and wrapping for differing font metrics on platforms
+			var padX = 2;
+			var padY = 2;
+
+			// NOTE: IE is always export as it does not support foreign objects
+			if (mxClient.IS_IE && (document.documentMode == 9 || !mxClient.IS_SVG))
 			{
 				// Handles non-standard namespace for getting size in IE
 				var clone = document.createElement('div');
 				
 				clone.style.cssText = div.getAttribute('style');
 				clone.style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
+				clone.style.position = 'absolute';
 				clone.style.visibility = 'hidden';
-				clone.innerHTML = (mxUtils.isNode(str)) ? str.outerHTML : str;
+
+				// Inner DIV is needed for text measuring
+				var div2 = document.createElement('div');
+				div2.style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
+				div2.innerHTML = (mxUtils.isNode(str)) ? str.outerHTML : str;
+				clone.appendChild(div2);
 
 				document.body.appendChild(clone);
-				ow = clone.offsetWidth;
 
-				// Computes max-height in quirks
-				if (mxClient.IS_QUIRKS && h > 0 && clip)
+				// Workaround for different box models
+				if (document.documentMode != 8 && document.documentMode != 9 && s.fontBorderColor != null)
 				{
-					// +2 to show background and border are visible
-					oh = Math.min(h, clone.offsetHeight + 2);
+					padX += 2;
+					padY += 2;
+				}
+
+				if (wrap && w > 0)
+				{
+					var tmp = div2.offsetWidth;
+					
+					// Workaround for adding padding twice in IE8/IE9 standards mode if label is wrapped
+					var padDx = 0;
+					
+					// For export, if no wrapping occurs, we add a large padding to make
+					// sure there is no wrapping even if the text metrics are different.
+					// This adds support for text metrics on different operating systems.
+					if (!clip && this.root.ownerDocument != document)
+					{
+						var ws = clone.style.whiteSpace;
+						clone.style.whiteSpace = 'nowrap';
+						
+						// Checks if wrapped width is equal to non-wrapped width (ie no wrapping)
+						if (tmp == div2.offsetWidth)
+						{
+							padX += this.fontMetricsPadding;
+						}
+						else if (document.documentMode == 8 || document.documentMode == 9)
+						{
+							padDx = -2;
+						}
+						
+						// Restores the previous white space
+						// This is expensive!
+						clone.style.whiteSpace = ws;
+					}
+					
+					// Required to update the height of the text box after wrapping width is known
+					tmp = tmp + padX;
+					
+					if (clip)
+					{
+						tmp = Math.min(tmp, w);
+					}
+					
+					clone.style.width = tmp + 'px';
+	
+					// Padding avoids clipping on border
+					ow = div2.offsetWidth + padX + padDx;
+					oh = div2.offsetHeight + padY;
+					
+					// Overrides the width of the DIV via XML DOM by using the
+					// clone DOM style, getting the CSS text for that and
+					// then setting that on the DIV via setAttribute
+					clone.style.display = 'inline-block';
+					clone.style.position = '';
+					clone.style.visibility = '';
+					clone.style.width = ow + 'px';
+					
+					div.setAttribute('style', clone.style.cssText);
 				}
 				else
 				{
-					oh = clone.offsetHeight;
+					// Padding avoids clipping on border
+					ow = div2.offsetWidth + padX;
+					oh = div2.offsetHeight + padY;
 				}
-				
+
 				clone.parentNode.removeChild(clone);
 				fo.appendChild(div);
 			}
-			// Workaround for export and Firefox where sizes are not reported or updated correctly
-			// when inside a foreignObject (Opera has same bug but it cannot be fixed for all cases
-			// using this workaround so foreignObject is disabled). 
-			else if (this.root.ownerDocument != document || mxClient.IS_FF)
-			{
-				// Getting size via local document for export
-				div.style.visibility = 'hidden';
-				document.body.appendChild(div);
-				
-				ow = div.offsetWidth;
-				oh = div.offsetHeight;
-			}
 			else
 			{
-				fo.appendChild(div);
-				ow = div.offsetWidth;
-				oh = div.offsetHeight;
-			}
-
-			// Handles words that are longer than the given wrapping width
-			if (!clip && wrap && div.scrollWidth > ow)
-			{
-				ow = Math.max(ow, div.scrollWidth);
-				div.style.width = ow + 'px';
-
-				// Workaround for wrong offsetHeight in Webkit and FF
-				if (mxClient.IS_GC || mxClient.IS_SF || mxClient.IS_FF)
+				// Workaround for export and Firefox where sizes are not reported or updated correctly
+				// when inside a foreignObject (Opera has same bug but it cannot be fixed for all cases
+				// using this workaround so foreignObject is disabled).
+				if (this.root.ownerDocument != document || mxClient.IS_FF)
 				{
-					oh = div.offsetHeight;
+					// Getting size via local document for export
+					div.style.visibility = 'hidden';
+					document.body.appendChild(div);
+				}
+				else
+				{
+					fo.appendChild(div);
+				}
+
+				var sizeDiv = div;
+				
+				if (sizeDiv.firstChild != null && sizeDiv.firstChild.nodeName == 'DIV')
+				{
+					sizeDiv = sizeDiv.firstChild;
+				}
+				
+				var tmp = sizeDiv.offsetWidth;
+				
+				// For export, if no wrapping occurs, we add a large padding to make
+				// sure there is no wrapping even if the text metrics are different.
+				if (!clip && wrap && w > 0 && this.root.ownerDocument != document)
+				{
+					var ws = div.style.whiteSpace;
+					div.style.whiteSpace = 'nowrap';
+					
+					if (tmp == sizeDiv.offsetWidth)
+					{
+						padX += this.fontMetricsPadding;
+					}
+					
+					div.style.whiteSpace = ws;
+				}
+
+				ow = tmp + padX;
+
+				// Recomputes the height of the element for wrapped width
+				if (wrap)
+				{
+					if (clip)
+					{
+						ow = Math.min(ow, w);
+					}
+					
+					div.style.width = ow + 'px';
+				}
+
+				ow = sizeDiv.offsetWidth + padX;
+				oh = sizeDiv.offsetHeight + 2;
+
+				if (div.parentNode != fo)
+				{
+					fo.appendChild(div);
+					div.style.visibility = '';
 				}
 			}
 
-			if (div.parentNode != fo)
+			if (clip)
 			{
-				fo.appendChild(div);
-				div.style.visibility = '';
+				oh = Math.min(oh, h);
 			}
-			
+
 			if (overflow == 'fill')
 			{
 				w = Math.max(w, ow);

@@ -5482,10 +5482,13 @@ mxGraph.prototype.scaleCell = function(cell, dx, dy, recurse)
 		}
 		else if (this.model.isVertex(cell))
 		{
-			geo.x *= dx;
-			geo.y *= dy;
-			geo.width *= dx;
-			geo.height *= dy;
+			if (!geo.relative)
+			{
+				geo.x *= dx;
+				geo.y *= dy;
+				geo.width *= dx;
+				geo.height *= dy;
+			}
 			
 			this.cellResized(cell, geo, true, recurse);
 		}

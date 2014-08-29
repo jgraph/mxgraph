@@ -730,13 +730,13 @@ Graph.prototype.distributeCells = function(horizontal, cells)
  * @param {number} dx X-coordinate of the translation.
  * @param {number} dy Y-coordinate of the translation.
  */
-Graph.prototype.getSvg = function(background, scale, border)
+Graph.prototype.getSvg = function(background, scale, border, nocrop)
 {
 	scale = (scale != null) ? scale : 1;
 	border = (border != null) ? border : 1;
 
 	var imgExport = new mxImageExport();
-	var bounds = this.getGraphBounds();
+	var bounds = (nocrop) ? this.view.getBackgroundPageBounds() : this.getGraphBounds();
 	var vs = this.view.scale;
 
 	// Prepares SVG document that holds the output
@@ -759,6 +759,7 @@ Graph.prototype.getSvg = function(background, scale, border)
 	if (svgDoc.createElementNS == null)
 	{
     	root.setAttribute('xmlns', mxConstants.NS_SVG);
+    	root.setAttribute('xmlns:xlink', mxConstants.NS_XLINK);
 	}
 	else
 	{

@@ -634,7 +634,7 @@ var mxUtils =
 	 */
 	parseXml: function()
 	{
-		if (window.DOMParser)
+		if (window.DOMParser && document.documentMode != 9)
 		{
 			return function(xml)
 			{

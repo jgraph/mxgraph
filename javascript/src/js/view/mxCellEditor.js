@@ -166,7 +166,7 @@ mxCellEditor.prototype.selectText = true;
  * Text to be displayed for empty labels. Default is ''. This can be set
  * to eg. "[Type Here]" to easier visualize editing of empty labels. The
  * value is only displayed before the first keystroke and is never used
- * as the actual editin value.
+ * as the actual editing value.
  */
 mxCellEditor.prototype.emptyLabelText = '';
 

@@ -87,6 +87,7 @@
 					if (svgDoc.createElementNS == null)
 					{
 				    	root.setAttribute('xmlns', mxConstants.NS_SVG);
+				    	root.setAttribute('xmlns:xlink', mxConstants.NS_XLINK);
 					}
 					else
 					{
@@ -112,8 +113,7 @@
 					imgExport.drawState(graph.getView().getState(graph.model.root), svgCanvas);
 
 					var xml = encodeURIComponent(mxUtils.getXml(root));
-					new mxXmlRequest('/Echo', 'filename=export.svg&format=svg' +
-							'&xml=' + xml).simulate(document, '_blank');
+					new mxXmlRequest('/Echo', 'filename=export.svg&format=svg' + '&xml=' + xml).simulate(document, '_blank');
 				}));
 				
 				function exportFile(format)

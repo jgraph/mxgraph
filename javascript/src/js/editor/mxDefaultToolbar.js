@@ -43,8 +43,7 @@ function mxDefaultToolbar(container, editor)
 {
 	this.editor = editor;
 
-	if (container != null &&
-		editor != null)
+	if (container != null && editor != null)
 	{
 		this.init(container);
 	}
@@ -304,7 +303,7 @@ mxDefaultToolbar.prototype.addPrototype = function(title, icon, ptype, pressed, 
 {
 	// Creates a wrapper function that is in charge of constructing
 	// the new cell instance to be inserted into the graph
-	var factory = function()
+	var factory = mxUtils.bind(this, function()
 	{
 		if (typeof(ptype) == 'function')
 		{
@@ -312,11 +311,11 @@ mxDefaultToolbar.prototype.addPrototype = function(title, icon, ptype, pressed, 
 		}
 		else if (ptype != null)
 		{
-			return ptype.clone();
+			return this.editor.graph.cloneCells([ptype])[0];
 		}
 		
 		return null;
-	};
+	});
 	
 	// Defines the function for a click event on the graph
 	// after this item has been selected in the toolbar

@@ -1178,6 +1178,8 @@ EditorUi.prototype.hideDialog = function(cancel)
 		{
 			this.editor.graph.container.focus();
 		}
+		
+		this.editor.fireEvent(new mxEventObject('hideDialog'));
 	}
 };
 

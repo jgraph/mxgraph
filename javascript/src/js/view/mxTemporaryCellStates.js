@@ -13,15 +13,29 @@
  * Constructs a new rectangle for the optional parameters. If no parameters
  * are given then the respective default values are used.
  */
-function mxTemporaryCellStates(view, scale, cells)
+function mxTemporaryCellStates(view, scale, cells, isCellVisibleFn)
 {
 	scale = (scale != null) ? scale : 1;
 	this.view = view;
 	
 	// Stores the previous state
+	this.oldValidateCellState = view.validateCellState;
 	this.oldBounds = view.getGraphBounds();
 	this.oldStates = view.getStates();
 	this.oldScale = view.getScale();
+	
+	// Overrides validateCellState to ignore invisible cells
+	var self = this;
+	
+	view.validateCellState = function(cell, resurse)
+	{
+		if (cell == null || isCellVisibleFn == null || isCellVisibleFn(cell))
+		{
+			return self.oldValidateCellState.apply(view, arguments);
+		}
+		
+		return null;
+	};
 	
 	// Creates space for new states
 	view.setStates(new mxDictionary());
@@ -90,4 +104,5 @@ mxTemporaryCellStates.prototype.destroy = function()
 	this.view.setScale(this.oldScale);
 	this.view.setStates(this.oldStates);
 	this.view.setGraphBounds(this.oldBounds);
+	this.view.validateCellState = this.oldValidateCellState;
 };

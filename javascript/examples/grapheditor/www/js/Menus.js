@@ -321,7 +321,8 @@ Menus.prototype.init = function()
 			var layout = new mxHierarchicalLayout(graph, mxConstants.DIRECTION_WEST);
     		this.editorUi.executeLayout(function()
     		{
-    			layout.execute(graph.getDefaultParent(), graph.getSelectionCells());
+    			var selectionCells = graph.getSelectionCells();
+    			layout.execute(graph.getDefaultParent(), selectionCells.length == 0 ? null : selectionCells);
     		}, true);
 		}), parent);
 		menu.addItem(mxResources.get('verticalFlow'), null, mxUtils.bind(this, function()
@@ -329,7 +330,8 @@ Menus.prototype.init = function()
 			var layout = new mxHierarchicalLayout(graph, mxConstants.DIRECTION_NORTH);
     		this.editorUi.executeLayout(function()
     		{
-    			layout.execute(graph.getDefaultParent(), graph.getSelectionCells());
+    			var selectionCells = graph.getSelectionCells();
+    			layout.execute(graph.getDefaultParent(), selectionCells.length == 0 ? null : selectionCells);
     		}, true);
 		}), parent);
 		menu.addSeparator(parent);

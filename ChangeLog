@@ -1,3 +1,22 @@
+29-AUG-2014: 3.0.0.0
+
+- Fixes resize of relative child cells in mxGraph.scaleCell [JavaScript]
+- Uses graph.cloneCells for cloning templates in toolbars [JavaScript]
+- Adds isCellVisibleFn argument in mxTemporaryCellStates [JavaScript]
+- Adds clip argument in mxPrintPreview.addGraphFragment [JavaScript]
+- Does no longer ignore all clipped labels in graph bounds [Java/JavaScript]
+- Cell style passed to mxText in mxCellRenderer.createLabel [JavaScript]
+- Documents values for all style constants in mxConstants [JavaScript]
+- Fixes clipping for wrapped HTML labels in image export [Java]
+- Fixes hidden VML shape after live preview with size of 0 [JavaScript]
+- Spacing ignored for label size if not aligned in center/middle [JavaScript]
+- Adds mxConstants.STYLE_LABEL_WIDTH to override label width [JavaScript]
+- Fixes bounding box for HTML labels with word wrapping [JavaScript]
+- Fixes XHTML export in mxSvgCanvas for IE11 standards [JavaScript]
+- Fixes SVG export for HTML labels in IE9 standards mode [JavaScript]
+- mxUtils.createXmlDocument returns ActiveX object in IE9 standards mode [JavaScript]
+- Adds mxClient.IS_IE11 [JavaScript]
+
 31-JUL-2014: 2.9.0.1
 
 - Fixes possible NPE in mxEdgeHandler.mouseMove [JavaScript]

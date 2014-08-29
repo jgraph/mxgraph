@@ -349,6 +349,7 @@ mxCellRenderer.prototype.createLabel = function(state, value)
 				state.style[mxConstants.STYLE_LABEL_PADDING]);
 		state.text.opacity = mxUtils.getValue(state.style, mxConstants.STYLE_TEXT_OPACITY, 100);
 		state.text.dialect = (isForceHtml) ? mxConstants.DIALECT_STRICTHTML : state.view.graph.dialect;
+		state.text.style = state.style;
 		state.text.state = state;
 		this.initializeLabel(state);
 		
@@ -909,6 +910,14 @@ mxCellRenderer.prototype.getLabelBounds = function(state)
 		bounds = state.shape.getLabelBounds(bounds);
 	}
 	
+	// Label width style overrides actual label width
+	var lw = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_WIDTH, null);
+	
+	if (lw != null)
+	{
+		bounds.width = parseFloat(lw) * scale;
+	}
+	
 	if (!isEdge)
 	{
 		this.rotateLabelBounds(state, bounds);
@@ -939,8 +948,13 @@ mxCellRenderer.prototype.rotateLabelBounds = function(state, bounds)
 		var spacing = state.text.getSpacing();
 		bounds.x += spacing.x * s;
 		bounds.y += spacing.y * s;
-		bounds.width = Math.max(0, bounds.width - state.text.spacingLeft * s - state.text.spacingRight * s);
-		bounds.height = Math.max(0, bounds.height - state.text.spacingTop * s - state.text.spacingBottom * s);
+		
+		var hpos = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_POSITION, mxConstants.ALIGN_CENTER);
+		var vpos = mxUtils.getValue(state.style, mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.ALIGN_MIDDLE);
+		var lw = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_WIDTH, null);
+		
+		bounds.width = Math.max(0, bounds.width - ((hpos == mxConstants.ALIGN_CENTER && lw == null) ? (state.text.spacingLeft * s + state.text.spacingRight * s) : 0));
+		bounds.height = Math.max(0, bounds.height - ((vpos == mxConstants.ALIGN_MIDDLE) ? (state.text.spacingTop * s + state.text.spacingBottom * s) : 0));
 	}
 
 	var theta = state.text.getTextRotation();

@@ -78,6 +78,8 @@ function Dialog(editorUi, elt, w, h, modal, closable, onClose)
 	
 	this.onDialogClose = onClose;
 	this.container = div;
+	
+	editorUi.editor.fireEvent(new mxEventObject('showDialog'));
 };
 
 /**

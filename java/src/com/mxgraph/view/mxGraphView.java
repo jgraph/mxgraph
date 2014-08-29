@@ -1051,10 +1051,7 @@ public class mxGraphView extends mxEventSource
 		rect.add(bbox);
 
 		// Unifies the cell bounds and the label bounds
-		if (!graph.isLabelClipped(state.getCell()))
-		{
-			rect.add(state.getLabelBounds());
-		}
+		rect.add(state.getLabelBounds());
 
 		state.setBoundingBox(rect);
 

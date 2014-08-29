@@ -58,6 +58,12 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	public static int IMAGE_SCALING = Image.SCALE_SMOOTH;
 
 	/**
+	 * Specifies the additional pixels when computing the text width for HTML labels.
+	 * Default is 2.
+	 */
+	public static int JAVA_TEXT_WIDTH_DELTA = 2;
+
+	/**
 	 * Specifies the size of the cache used to store parsed colors
 	 */
 	public static int COLOR_CACHE_SIZE = 100;
@@ -910,12 +916,12 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 			Dimension pref = textRenderer.getPreferredSize();
 			int prefWidth = pref.width;
 			int prefHeight = pref.height;
-			
+			 
 			// Poor man's max-width
 			if (((clip || wrap) && prefWidth > w && w > 0) || (clip && prefHeight > h && h > 0))
 			{
-				// +2 is workaround for inconsistent word wrapping in Java
-				int cw = (int) Math.round(w + ((wrap) ? 2 : 0));
+				// TextWidthDelta is workaround for inconsistent word wrapping in Java
+				int cw = (int) Math.round(w + ((wrap) ? JAVA_TEXT_WIDTH_DELTA : 0));
 				int ch = (int) Math.round(h);
 				str = createHtmlDocument(original, align, valign, cw, ch, wrap, overflow, clip);
 				textRenderer.setText(str);
@@ -934,8 +940,8 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 			}
 			else if (!clip && wrap && w > 0 && h > 0)
 			{
-				prefWidth = Math.min(pref.width, (int) w);
-				w = prefWidth;
+				prefWidth = pref.width;
+				w = Math.max(pref.width, (int) w);
 				h = prefHeight;
 				prefHeight = Math.max(prefHeight, (int) h);
 			}
