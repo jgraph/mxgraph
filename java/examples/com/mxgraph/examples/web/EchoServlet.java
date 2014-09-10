@@ -73,9 +73,10 @@ public class EchoServlet extends HttpServlet
 					xml = URLDecoder.decode(xml, "UTF-8");
 				}
 
-				response.setContentType("application/xml");
+				response.setContentType("text/plain");
 				response.setHeader("Content-Disposition",
-						"attachment; filename=\"" + filename + "\"");
+						"attachment; filename=\"" + filename
+								+ "\"; filename*=UTF-8''" + filename);
 				response.setStatus(HttpServletResponse.SC_OK);
 
 				OutputStream out = response.getOutputStream();

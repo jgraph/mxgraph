@@ -1021,6 +1021,7 @@ Graph.prototype.initTouch = function()
 
 			mxEvent.addListener(this.editor.graph.container, 'keypress', mxUtils.bind(this, function(evt)
 			{
+				// KNOWN: Focus does not work if label is empty in quirks mode
 				if (!this.editor.graph.isEditing() && !this.editor.graph.isSelectionEmpty() && evt.which !== 0 &&
 					!mxEvent.isAltDown(evt) && !mxEvent.isControlDown(evt) && !mxEvent.isMetaDown(evt))
 				{

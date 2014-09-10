@@ -918,6 +918,7 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 			int prefHeight = pref.height;
 			 
 			// Poor man's max-width
+			// TODO: Is this still needed?
 			if (((clip || wrap) && prefWidth > w && w > 0) || (clip && prefHeight > h && h > 0))
 			{
 				// TextWidthDelta is workaround for inconsistent word wrapping in Java

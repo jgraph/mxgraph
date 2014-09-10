@@ -615,6 +615,7 @@ mxVmlCanvas2D.prototype.createDiv = function(str, align, valign, overflow)
 			div2.style.cssText = css;
 			div2.style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
 			div2.style.zoom = '1';
+			div2.style.textDecoration = 'inherit';
 			div2.innerHTML = str;
 			div.appendChild(div2);
 		}

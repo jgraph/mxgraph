@@ -577,7 +577,17 @@ mxSvgCanvas2D.prototype.updateFill = function()
 		if (s.gradientColor != null)
 		{
 			var id = this.getSvgGradient(s.fillColor, s.gradientColor, s.fillAlpha, s.gradientAlpha, s.gradientDirection);
-			this.node.setAttribute('fill', 'url(#' + id + ')');
+
+			if (this.root.ownerDocument == document)
+			{
+				// Workaround for potential base tag
+				var base = window.location.origin + window.location.pathname + window.location.search;
+				this.node.setAttribute('fill', 'url(' + base + '#' + id + ')');
+			}
+			else
+			{
+				this.node.setAttribute('fill', 'url(#' + id + ')');
+			}
 		}
 		else
 		{
@@ -1030,12 +1040,10 @@ mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, overflow
 		
 	if (align == mxConstants.ALIGN_CENTER)
 	{
-		css += 'text-align:center;';
 		style += 'text-align:center;';
 	}
 	else if (align == mxConstants.ALIGN_RIGHT)
 	{
-		css += 'text-align:right;';
 		style += 'text-align:right;';
 	}
 	
@@ -1061,7 +1069,7 @@ mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, overflow
 		if (overflow != 'fill' && overflow != 'width')
 		{
 			// Inner div always needed to measure wrapped text
-			val = '<div xmlns="http://www.w3.org/1999/xhtml" style="display:inline-block;' + css + '">' + val + '</div>';
+			val = '<div xmlns="http://www.w3.org/1999/xhtml" style="display:inline-block;text-align:inherit;text-decoration:inherit;' + css + '">' + val + '</div>';
 		}
 		else
 		{
@@ -1542,7 +1550,16 @@ mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 			this.root.appendChild(c);
 		}
 		
-		node.setAttribute('clip-path', 'url(#' + c.getAttribute('id') + ')');
+		if (this.root.ownerDocument == document)
+		{
+			// Workaround for potential base tag
+			var base = window.location.origin + window.location.pathname + window.location.search;
+			node.setAttribute('clip-path', 'url(' + base + '#' + c.getAttribute('id') + ')');
+		}
+		else
+		{
+			node.setAttribute('clip-path', 'url(#' + c.getAttribute('id') + ')');
+		}
 	}
 
 	// Default is left

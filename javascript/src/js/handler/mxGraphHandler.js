@@ -516,6 +516,15 @@ mxGraphHandler.prototype.createPreviewShape = function(bounds)
 			mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
 		shape.init(this.graph.getView().getOverlayPane());
 		shape.pointerEvents = false;
+		
+		// Workaround for artifacts on iOS
+		if (mxClient.IS_IOS)
+		{
+			shape.getSvgScreenOffset = function()
+			{
+				return 0;
+			};
+		}
 	}
 	
 	return shape;

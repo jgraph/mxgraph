@@ -1,3 +1,11 @@
+10-SEP-2014: 3.0.1.0
+
+- Improves radial tree output [JavaScript]
+- Fixes artifacts when moving cells on iOS [JavaScript]
+- Fixes underline style for HTML labels in SVG, VML [JavaScript]
+- Fixes gradients, clipping in SVG if base tag is used [JavaScript]
+- Adds new example drop.html [JavaScript]
+
 29-AUG-2014: 3.0.0.0
 
 - Fixes resize of relative child cells in mxGraph.scaleCell [JavaScript]

@@ -197,7 +197,6 @@ mxPrintPreview.prototype.scale = null;
 mxPrintPreview.prototype.border = 0;
 
 /**
-/**
  * Variable: x0
  * 
  * Holds the horizontal offset of the output.
