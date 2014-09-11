@@ -56,7 +56,7 @@ mxSwimlane.prototype.imageSize = 16;
  */
 mxSwimlane.prototype.getTitleSize = function()
 {
-	return mxUtils.getValue(this.style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE);
+	return Math.max(0, mxUtils.getValue(this.style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE));
 };
 
 /**

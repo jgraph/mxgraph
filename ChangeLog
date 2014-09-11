@@ -1,3 +1,8 @@
+11-SEP-2014: 3.0.1.1
+
+- Fixes gradients in SVG on pages with empty search string [JavaScript]
+- Fixes rendering of negative values for startSize in mxSwimlane [JavaScript]
+
 10-SEP-2014: 3.0.1.0
 
 - Improves radial tree output [JavaScript]

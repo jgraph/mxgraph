@@ -224,6 +224,27 @@ mxSvgCanvas2D.prototype.pointerEventsValue = 'all';
 mxSvgCanvas2D.prototype.fontMetricsPadding = 10;
 
 /**
+ * Function: getBaseUrl
+ * 
+ * Returns the URL of the page without the hash part. This needs to use href to
+ * include any search part with no params (ie question mark alone). This is a
+ * workaround for the fact that window.location.search is empty if there is
+ * no search string behind the question mark.
+ */
+mxSvgCanvas2D.prototype.getBaseUrl = function()
+{
+	var href = window.location.href;
+	var hash = href.lastIndexOf('#');
+	
+	if (hash > 0)
+	{
+		href = href.substring(0, hash);
+	}
+	
+	return href;
+};
+
+/**
  * Function: reset
  * 
  * Returns any offsets for rendering pixels.
@@ -581,8 +602,7 @@ mxSvgCanvas2D.prototype.updateFill = function()
 			if (this.root.ownerDocument == document)
 			{
 				// Workaround for potential base tag
-				var base = window.location.origin + window.location.pathname + window.location.search;
-				this.node.setAttribute('fill', 'url(' + base + '#' + id + ')');
+				this.node.setAttribute('fill', 'url(' + this.getBaseUrl() + '#' + id + ')');
 			}
 			else
 			{
@@ -1553,8 +1573,7 @@ mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 		if (this.root.ownerDocument == document)
 		{
 			// Workaround for potential base tag
-			var base = window.location.origin + window.location.pathname + window.location.search;
-			node.setAttribute('clip-path', 'url(' + base + '#' + c.getAttribute('id') + ')');
+			node.setAttribute('clip-path', 'url(' + this.getBaseUrl() + '#' + c.getAttribute('id') + ')');
 		}
 		else
 		{
