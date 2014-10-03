@@ -1,5 +1,4 @@
 /**
- * $Id: mxImageExport.js,v 1.4 2013/10/28 08:45:00 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -114,7 +113,7 @@ mxImageExport.prototype.drawCellState = function(state, canvas)
 	}
 	
 	// Paints the shape
-	if (state.shape instanceof mxShape)
+	if (state.shape instanceof mxShape && state.shape.checkBounds())
 	{
 		canvas.save();
 		state.shape.paint(canvas);
@@ -122,7 +121,7 @@ mxImageExport.prototype.drawCellState = function(state, canvas)
 	}
 	
 	// Paints the label
-	if (state.text != null)
+	if (state.text != null && state.text.checkBounds())
 	{
 		canvas.save();
 		state.text.paint(canvas);

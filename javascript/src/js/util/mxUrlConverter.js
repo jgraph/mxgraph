@@ -1,5 +1,4 @@
 /**
- * $Id: mxUrlConverter.js,v 1.5 2014/02/05 11:08:05 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**

@@ -1,5 +1,4 @@
 /**
- * $Id: mxCellState.js,v 1.3 2013/10/28 08:45:00 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -299,6 +298,46 @@ mxCellState.prototype.setVisibleTerminalState = function (terminalState, source)
 	else
 	{
 		this.visibleTargetState = terminalState;
+	}
+};
+
+/**
+ * Function: getCellBounds
+ * 
+ * Returns the unscaled, untranslated bounds.
+ */
+mxCellState.prototype.getCellBounds = function ()
+{
+	return this.cellBounds;
+};
+
+/**
+ * Function: getPaintBounds
+ * 
+ * Returns the unscaled, untranslated paint bounds. This is the same as
+ * <getCellBounds> but with a 90 degree rotation if the shape's
+ * isPaintBoundsInverted returns true.
+ */
+mxCellState.prototype.getPaintBounds = function ()
+{
+	return this.paintBounds;
+};
+
+/**
+ * Function: updateCachedBounds
+ * 
+ * Updates the cellBounds and paintBounds.
+ */
+mxCellState.prototype.updateCachedBounds = function()
+{
+	var tr = this.view.translate;
+	var s = this.view.scale;
+	this.cellBounds = new mxRectangle(this.x / s - tr.x, this.y / s - tr.y, this.width / s, this.height / s);
+	this.paintBounds = mxRectangle.fromRectangle(this.cellBounds);
+	
+	if (this.shape != null && this.shape.isPaintBoundsInverted())
+	{
+		this.paintBounds.rotate90();
 	}
 };
 

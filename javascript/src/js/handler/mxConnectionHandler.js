@@ -1,5 +1,4 @@
 /**
- * $Id: mxConnectionHandler.js,v 1.19 2013/10/28 08:45:06 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -1627,7 +1626,7 @@ mxConnectionHandler.prototype.connect = function(source, target, evt, dropTarget
 		// Uses the common parent of source and target or
 		// the default parent to insert the edge
 		var model = this.graph.getModel();
-		var targetInserted = false;
+		var terminalInserted = false;
 		var edge = null;
 
 		model.beginUpdate();
@@ -1640,7 +1639,7 @@ mxConnectionHandler.prototype.connect = function(source, target, evt, dropTarget
 				if (target != null)
 				{
 					dropTarget = this.graph.getDropTarget([target], evt, dropTarget);
-					targetInserted = true;
+					terminalInserted = true;
 					
 					// Disables edges as drop targets if the target cell was created
 					// FIXME: Should not shift if vertex was aligned (same in Java)
@@ -1739,8 +1738,8 @@ mxConnectionHandler.prototype.connect = function(source, target, evt, dropTarget
 					geo.setTerminalPoint(pt, false);
 				}
 				
-				this.fireEvent(new mxEventObject(mxEvent.CONNECT,
-						'cell', edge, 'terminal', target, 'event', evt, 'target', dropTarget));
+				this.fireEvent(new mxEventObject(mxEvent.CONNECT, 'cell', edge, 'terminal', target,
+					'event', evt, 'target', dropTarget, 'terminalInserted', terminalInserted));
 			}
 		}
 		catch (e)
@@ -1755,7 +1754,7 @@ mxConnectionHandler.prototype.connect = function(source, target, evt, dropTarget
 		
 		if (this.select)
 		{
-			this.selectCells(edge, (targetInserted) ? target : null);
+			this.selectCells(edge, (terminalInserted) ? target : null);
 		}
 	}
 };

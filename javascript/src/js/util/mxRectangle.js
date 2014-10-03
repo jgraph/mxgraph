@@ -1,5 +1,4 @@
 /**
- * $Id: mxRectangle.js,v 1.4 2013/10/28 08:44:58 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -121,6 +120,21 @@ mxRectangle.prototype.getPoint = function()
 };
 
 /**
+ * Function: rotate90
+ * 
+ * Rotates this rectangle by 90 degree around its center point.
+ */
+mxRectangle.prototype.rotate90 = function()
+{
+	var t = (this.width - this.height) / 2;
+	this.x += t;
+	this.y -= t;
+	var tmp = this.width;
+	this.width = this.height;
+	this.height = tmp;
+};
+
+/**
  * Function: equals
  * 
  * Returns true if the given object equals this rectangle.
@@ -129,4 +143,14 @@ mxRectangle.prototype.equals = function(obj)
 {
 	return obj != null && obj.x == this.x && obj.y == this.y &&
 		obj.width == this.width && obj.height == this.height;
+};
+
+/**
+ * Function: fromRectangle
+ * 
+ * Returns a new <mxRectangle> which is a copy of the given rectangle.
+ */
+mxRectangle.fromRectangle = function(rect)
+{
+	return new mxRectangle(rect.x, rect.y, rect.width, rect.height);
 };

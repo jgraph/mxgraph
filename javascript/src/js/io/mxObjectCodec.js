@@ -1,5 +1,4 @@
 /**
- * $Id: mxObjectCodec.js,v 1.3 2013/12/31 11:59:12 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -172,6 +171,8 @@
  * JavaScript expressions, including function definitions, which are mapped to
  * functions on the resulting object.
  * 
+ * Expressions are only evaluated if <allowEval> is true.
+ * 
  * Constructor: mxObjectCodec
  *
  * Constructs a new codec for the specified template object.
@@ -210,7 +211,16 @@ function mxObjectCodec(template, exclude, idrefs, mapping)
 		this.reverse[this.mapping[i]] = i;
 	}
 };
-	
+
+/**
+ * Variable: allowEval
+ *
+ * Static global switch that specifies if expressions in arrays are allowed.
+ * Default is false. NOTE: Enabling this carries a possible security risk (see
+ * the section on security in the manual).
+ */
+mxObjectCodec.allowEval = false;
+
 /**
  * Variable: template
  *
@@ -893,8 +903,7 @@ mxObjectCodec.prototype.decodeChild = function(dec, child, obj)
 {
 	var fieldname = this.getFieldName(child.getAttribute('as'));
 	
-	if (fieldname == null ||
-		!this.isExcluded(obj, fieldname, child, false))
+	if (fieldname == null || !this.isExcluded(obj, fieldname, child, false))
 	{
 		var template = this.getFieldTemplate(obj, fieldname, child);
 		var value = null;
@@ -903,7 +912,7 @@ mxObjectCodec.prototype.decodeChild = function(dec, child, obj)
 		{
 			value = child.getAttribute('value');
 			
-			if (value == null)
+			if (value == null && mxObjectCodec.allowEval)
 			{
 				value = mxUtils.eval(mxUtils.getTextContent(child));
 			}

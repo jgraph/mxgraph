@@ -1,5 +1,4 @@
 /**
- * $Id: mxUtils.js,v 1.30 2014/02/10 20:57:07 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxUtils =
@@ -598,8 +597,7 @@ var mxUtils =
 	{
 		var doc = null;
 		
-		// Workaround for IE9 standards mode creating a HTML document
-		if (document.implementation && document.implementation.createDocument && document.documentMode != 9)
+		if (document.implementation && document.implementation.createDocument)
 		{
 			doc = document.implementation.createDocument('', '', null);
 		}
@@ -634,7 +632,7 @@ var mxUtils =
 	 */
 	parseXml: function()
 	{
-		if (window.DOMParser && document.documentMode != 9)
+		if (window.DOMParser)
 		{
 			return function(xml)
 			{
@@ -848,8 +846,7 @@ var mxUtils =
 	{
 		var xml = '';
 
-		// Workaround for IE9 standards mode interface not supported
-		if (window.XMLSerializer != null && document.documentMode != 9)
+		if (window.XMLSerializer != null)
 		{
 			var xmlSerializer = new XMLSerializer();
 			xml = xmlSerializer.serializeToString(node);     
@@ -3202,7 +3199,8 @@ var mxUtils =
 	 * 
 	 * Returns an <mxRectangle> with the size (width and height in pixels) of
 	 * the given string. The string may contain HTML markup. Newlines should be
-	 * converted to <br> before calling this method.
+	 * converted to <br> before calling this method. The caller is responsible
+	 * for sanitizing the HTML markup.
 	 * 
 	 * Example:
 	 * 
@@ -3507,19 +3505,19 @@ var mxUtils =
 		}
 		
 		var bounds = graph.getGraphBounds();
-		var dx = -bounds.x + x0;
-		var dy = -bounds.y + y0;
+		var dx = Math.ceil(x0 - bounds.x);
+		var dy = Math.ceil(y0 - bounds.y);
 		
 		if (w == null)
 		{
-			w = bounds.width + x0;
+			w = Math.ceil(bounds.width + x0) + Math.ceil(Math.ceil(bounds.x) - bounds.x);
 		}
 		
 		if (h == null)
 		{
-			h = bounds.height + y0;
+			h = Math.ceil(bounds.height + y0) + Math.ceil(Math.ceil(bounds.y) - bounds.y);
 		}
-
+		
 		// Needs a special way of creating the page so that no click is required
 		// to refresh the contents after the external CSS styles have been loaded.
 		// To avoid a click or programmatic refresh, the styleSheets[].cssText
@@ -3550,7 +3548,7 @@ var mxUtils =
 				}
 			}
 
-			html += '</style></head><body>';
+			html += '</style></head><body style="margin:0px;">';
 			
 			// Copies the contents of the graph container
 			html += '<div style="position:absolute;overflow:hidden;width:' + w + 'px;height:' + h + 'px;"><div style="position:relative;left:' + dx + 'px;top:' + dy + 'px;">';
@@ -3585,7 +3583,7 @@ var mxUtils =
 				doc.writeln(mxUtils.getOuterHtml(styles[i]));
 			}
 
-			doc.writeln('</head><body></body></html>');
+			doc.writeln('</head><body style="margin:0px;"></body></html>');
 			doc.close();
 
 			var outer = doc.createElement('div');
@@ -3594,22 +3592,45 @@ var mxUtils =
 			outer.style.width = w + 'px';
 			outer.style.height = h + 'px';
 
+			// Required for HTML labels if foreignObjects are disabled
 			var div = doc.createElement('div');
-			div.style.position = 'relative';
+			div.style.position = 'absolute';
 			div.style.left = dx + 'px';
 			div.style.top = dy + 'px';
 
 			var node = graph.container.firstChild;
+			var svg = null;
 			
 			while (node != null)
 			{
 				var clone = node.cloneNode(true);
-				div.appendChild(clone);
+				
+				if (node == graph.view.drawPane.ownerSVGElement)
+				{
+					outer.appendChild(clone);
+					svg = clone;
+				}
+				else
+				{
+					div.appendChild(clone);
+				}
+				
 				node = node.nextSibling;
 			}
-			
-			outer.appendChild(div);
+
 			doc.body.appendChild(outer);
+			
+			if (div.firstChild != null)
+			{
+				doc.body.appendChild(div);
+			}
+						
+			if (svg != null)
+			{
+				svg.style.minWidth = '';
+				svg.style.minHeight = '';
+				svg.firstChild.setAttribute('transform', 'translate(' + dx + ',' + dy + ')');
+			}
 		}
 		
 		mxUtils.removeCursors(doc.body);
@@ -3632,6 +3653,7 @@ var mxUtils =
 	printScreen: function(graph)
 	{
 		var wnd = window.open();
+		var bounds = graph.getGraphBounds();
 		mxUtils.show(graph, wnd.document);
 		
 		var print = function()

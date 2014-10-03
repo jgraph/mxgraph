@@ -1,5 +1,4 @@
 /**
- * $Id: mxHierarchicalLayout.js,v 1.14 2014/01/16 17:25:04 david Exp $
  * Copyright (c) 2005-2012, JGraph Ltd
  */
 /**
@@ -208,23 +207,21 @@ mxHierarchicalLayout.prototype.execute = function(parent, roots)
 		return;
 	}
 
-	if (roots != null && parent != null)
+	if (roots != null)
 	{
 		var rootsCopy = [];
 
 		for (var i = 0; i < roots.length; i++)
 		{
-			if (model.isAncestor(parent, roots[i]))
+			var ancestor = parent != null ? model.isAncestor(parent, roots[i]) : true;
+			
+			if (ancestor && model.isVertex(roots[i]))
 			{
 				rootsCopy.push(roots[i]);
 			}
 		}
 
 		this.roots = rootsCopy;
-	}
-	else
-	{
-		this.roots = roots;
 	}
 	
 	model.beginUpdate();

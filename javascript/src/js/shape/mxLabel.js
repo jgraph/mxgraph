@@ -1,5 +1,4 @@
 /**
- * $Id: mxLabel.js,v 1.12 2013/11/29 13:57:10 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**

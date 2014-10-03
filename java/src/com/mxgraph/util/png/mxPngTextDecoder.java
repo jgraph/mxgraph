@@ -1,5 +1,4 @@
 /**
- * $Id: mxPngTextDecoder.java,v 1.1 2012/11/15 13:26:39 gaudenz Exp $
  * Copyright (c) 2010, David Benson, Gaudenz Alder
  */
 package com.mxgraph.util.png;

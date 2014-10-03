@@ -436,8 +436,8 @@ namespace com.mxgraph
 
                             if (orig != null)
                             {
-                                origin.X += (orig.X / scale) - translate.X;
-                                origin.Y += (orig.Y / scale) - translate.Y;
+                                origin.X += (orig.X / scale) - pState.Origin.X - translate.X;
+                                origin.Y += (orig.Y / scale) - pState.Origin.Y - translate.Y;
                             }
                         }
                         else

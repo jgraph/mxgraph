@@ -1,5 +1,4 @@
 /**
- * $Id: mxEdgeHandler.js,v 1.23 2014/01/20 09:54:55 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -1077,6 +1076,9 @@ mxEdgeHandler.prototype.mouseUp = function(sender, me)
 		// Ignores event if mouse has not been moved
 		if (me.getX() != this.startX || me.getY() != this.startY)
 		{
+			var clone = this.graph.isCloneEvent(me.getEvent()) && this.cloneEnabled &&
+				this.graph.isCellsCloneable();
+			
 			// Displays the reason for not carriying out the change
 			// if there is an error message with non-zero length
 			if (this.error != null)
@@ -1107,9 +1109,7 @@ mxEdgeHandler.prototype.mouseUp = function(sender, me)
 				
 				if (terminal != null)
 				{
-					edge = this.connect(edge, terminal, this.isSource,
-						this.graph.isCloneEvent(me.getEvent()) && this.cloneEnabled &&
-						this.graph.isCellsCloneable(), me);
+					edge = this.connect(edge, terminal, this.isSource, clone, me);
 				}
 				else if (this.graph.isAllowDanglingEdges())
 				{
@@ -1130,12 +1130,12 @@ mxEdgeHandler.prototype.mouseUp = function(sender, me)
 					pt.y -= this.graph.panDy / this.graph.view.scale;
 										
 					// Destroys and recreates this handler
-					this.changeTerminalPoint(edge, pt, this.isSource);
+					this.changeTerminalPoint(edge, pt, this.isSource, clone);
 				}
 			}
 			else if (this.active)
 			{
-				this.changePoints(edge, this.points);
+				this.changePoints(edge, this.points, clone);
 			}
 			else
 			{
@@ -1261,14 +1261,14 @@ mxEdgeHandler.prototype.moveLabel = function(edgeState, x, y)
 		{
 			// Resets the relative location stored inside the geometry
 			var pt = this.graph.getView().getRelativePoint(edgeState, x, y);
-			geometry.x = pt.x;
-			geometry.y = pt.y;
+			geometry.x = Math.round(pt.x * 10000) / 10000;
+			geometry.y = Math.round(pt.y);
 			
 			// Resets the offset inside the geometry to find the offset
 			// from the resulting point
 			geometry.offset = new mxPoint(0, 0);
 			var pt = this.graph.view.getPoint(edgeState, geometry);
-			geometry.offset = new mxPoint((x - pt.x) / scale, (y - pt.y) / scale);
+			geometry.offset = new mxPoint(Math.round((x - pt.x) / scale), Math.round((y - pt.y) / scale));
 		}
 		else
 		{
@@ -1281,7 +1281,7 @@ mxEdgeHandler.prototype.moveLabel = function(edgeState, x, y)
 				var cx = p0.x + (pe.x - p0.x) / 2;
 				var cy = p0.y + (pe.y - p0.y) / 2;
 				
-				geometry.offset = new mxPoint((x - cx) / scale, (y - cy) / scale);
+				geometry.offset = new mxPoint(Math.round((x - cx) / scale), Math.round((y - cy) / scale));
 				geometry.x = 0;
 				geometry.y = 0;
 			}
@@ -1318,7 +1318,7 @@ mxEdgeHandler.prototype.connect = function(edge, terminal, isSource, isClone, me
 		// Clones and adds the cell
 		if (isClone)
 		{
-			var clone = edge.clone();
+			var clone = this.graph.cloneCells([edge])[0];
 			model.add(parent, clone, model.getChildCount(parent));
 			
 			var other = model.getTerminal(edge, !isSource);
@@ -1349,25 +1349,35 @@ mxEdgeHandler.prototype.connect = function(edge, terminal, isSource, isClone, me
  * 
  * Changes the terminal point of the given edge.
  */
-mxEdgeHandler.prototype.changeTerminalPoint = function(edge, point, isSource)
+mxEdgeHandler.prototype.changeTerminalPoint = function(edge, point, isSource, clone)
 {
 	var model = this.graph.getModel();
-	var geo = model.getGeometry(edge);
-	
-	if (geo != null)
+
+	model.beginUpdate();
+	try
 	{
-		model.beginUpdate();
-		try
+		if (clone)
+		{
+			var parent = model.getParent(edge);
+			var terminal = model.getTerminal(edge, !isSource);
+			edge = this.graph.cloneCells([edge])[0];
+			model.add(parent, edge, model.getChildCount(parent));
+			model.setTerminal(edge, terminal, !isSource);
+		}
+
+		var geo = model.getGeometry(edge);
+		
+		if (geo != null)
 		{
 			geo = geo.clone();
 			geo.setTerminalPoint(point, isSource);
 			model.setGeometry(edge, geo);
 			this.graph.connectCell(edge, null, isSource, new mxConnectionConstraint());
 		}
-		finally
-		{
-			model.endUpdate();
-		}
+	}
+	finally
+	{
+		model.endUpdate();
 	}
 };
 
@@ -1376,17 +1386,36 @@ mxEdgeHandler.prototype.changeTerminalPoint = function(edge, point, isSource)
  * 
  * Changes the control points of the given edge in the graph model.
  */
-mxEdgeHandler.prototype.changePoints = function(edge, points)
+mxEdgeHandler.prototype.changePoints = function(edge, points, clone)
 {
 	var model = this.graph.getModel();
-	var geo = model.getGeometry(edge);
-	
-	if (geo != null)
+	model.beginUpdate();
+	try
 	{
-		geo = geo.clone();
-		geo.points = points;
+		if (clone)
+		{
+			var parent = model.getParent(edge);
+			var source = model.getTerminal(edge, true);
+			var target = model.getTerminal(edge, false);
+			edge = this.graph.cloneCells([edge])[0];
+			model.add(parent, edge, model.getChildCount(parent));
+			model.setTerminal(edge, source, true);
+			model.setTerminal(edge, target, false);
+		}
 		
-		model.setGeometry(edge, geo);
+		var geo = model.getGeometry(edge);
+		
+		if (geo != null)
+		{
+			geo = geo.clone();
+			geo.points = points;
+			
+			model.setGeometry(edge, geo);
+		}
+	}
+	finally
+	{
+		model.endUpdate();
 	}
 };
 
@@ -1420,7 +1449,17 @@ mxEdgeHandler.prototype.addPointAt = function(state, x, y)
 		geo = geo.clone();
 		var t = this.graph.view.translate;
 		var s = this.graph.view.scale;
-		var index = mxUtils.findNearestSegment(state, (pt.x + t.x) * s, (pt.y + t.y) * s);
+		var offset = new mxPoint(t.x * s, t.y * s);
+		
+		var parent = this.graph.model.getParent(this.state.cell);
+		
+		if (this.graph.model.isVertex(parent))
+		{
+			var pState = this.graph.view.getState(parent);
+			offset = new mxPoint(pState.x, pState.y);
+		}
+		
+		var index = mxUtils.findNearestSegment(state, pt.x * s + offset.x, pt.y * s + offset.y);
 
 		if (geo.points == null)
 		{
@@ -1580,7 +1619,7 @@ mxEdgeHandler.prototype.redrawHandles = function()
  */
 mxEdgeHandler.prototype.redrawInnerBends = function(p0, pe)
 {
-	for (var i = 1; i < this.bends.length-1; i++)
+	for (var i = 1; i < this.bends.length - 1; i++)
 	{
 		if (this.bends[i] != null)
 		{

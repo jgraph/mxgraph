@@ -25,7 +25,6 @@ import java.awt.geom.GeneralPath;
  * This class produces a polyline shape from a reader.
  *
  * @author <a href="mailto:stephane@hillion.org">Stephane Hillion</a>
- * @version $Id: AWTPolylineProducer.java,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  */
 public class AWTPolylineProducer implements PointsHandler, ShapeProducer
 {

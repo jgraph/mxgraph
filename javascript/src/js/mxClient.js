@@ -1,5 +1,4 @@
 /**
- * $Id: mxClient.js,v 1.22 2013/10/28 08:45:09 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxClient =
@@ -21,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.0.1.1.
+	 * Current version is 3.1.0.0.
 	 */
-	VERSION: '3.0.1.1',
+	VERSION: '3.1.0.0',
 
 	/**
 	 * Variable: IS_IE
@@ -672,6 +671,7 @@ mxClient.include(mxClient.basePath+'/js/handler/mxSelectionCellsHandler.js');
 mxClient.include(mxClient.basePath+'/js/handler/mxConnectionHandler.js');
 mxClient.include(mxClient.basePath+'/js/handler/mxConstraintHandler.js');
 mxClient.include(mxClient.basePath+'/js/handler/mxRubberband.js');
+mxClient.include(mxClient.basePath+'/js/handler/mxHandle.js');
 mxClient.include(mxClient.basePath+'/js/handler/mxVertexHandler.js');
 mxClient.include(mxClient.basePath+'/js/handler/mxEdgeHandler.js');
 mxClient.include(mxClient.basePath+'/js/handler/mxElbowEdgeHandler.js');

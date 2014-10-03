@@ -1,5 +1,4 @@
 /**
- * $Id: mxUtils.java,v 1.10 2014/01/16 14:39:49 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.util;

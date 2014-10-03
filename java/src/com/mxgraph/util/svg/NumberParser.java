@@ -24,7 +24,6 @@ import java.io.IOException;
  * This class represents a parser with support for numbers.
  *
  * @author <a href="mailto:stephane@hillion.org">Stephane Hillion</a>
- * @version $Id: NumberParser.java,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  */
 public abstract class NumberParser extends AbstractParser
 {

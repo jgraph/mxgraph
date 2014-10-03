@@ -1,5 +1,4 @@
 <!--
-  $Id: shape.html,v 1.2 2013/10/28 08:44:55 gaudenz Exp $
   Copyright (c) 2006-2013, JGraph Ltd
   
   Shape example for mxGraph. This example demonstrates how to
@@ -31,15 +30,17 @@
 		   	The code below defines the shape. The BoxShape function
 		   	it the constructor which creates a new object instance.
 		*/
-		function BoxShape() { };
-		
+		function BoxShape()
+		{
+			mxCylinder.call(this);
+		};
+
 		/*
 		   	The next lines use an mxCylinder instance to augment the
 		   	prototype of the shape ("inheritance") and reset the
 		   	constructor to the topmost function of the c'tor chain.
 		*/
-		BoxShape.prototype = new mxCylinder();
-		BoxShape.prototype.constructor = BoxShape;
+		mxUtils.extend(BoxShape, mxCylinder);
 		
 		// Defines the extrusion of the box as a "static class variable"
 		BoxShape.prototype.extrude = 10;

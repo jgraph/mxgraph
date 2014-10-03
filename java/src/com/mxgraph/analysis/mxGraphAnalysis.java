@@ -1,5 +1,4 @@
 /*
- * $Id: mxGraphAnalysis.java,v 1.2 2012/11/21 14:16:01 mate Exp $
  * Copyright (c) 2001-2005, Gaudenz Alder
  * 
  * All rights reserved. 

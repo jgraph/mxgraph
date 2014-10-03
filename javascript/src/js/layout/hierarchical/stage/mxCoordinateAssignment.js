@@ -1,5 +1,4 @@
 /**
- * $Id: mxCoordinateAssignment.js,v 1.4 2014/01/16 17:23:31 david Exp $
  * Copyright (c) 2005-2013, JGraph Ltd
  */
 /**

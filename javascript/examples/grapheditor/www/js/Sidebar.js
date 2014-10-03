@@ -1,5 +1,4 @@
 /**
- * $Id: Sidebar.js,v 1.67 2014/02/19 10:56:15 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -1066,28 +1065,9 @@ Sidebar.prototype.createItem = function(cells, title, showLabel, showTitle, widt
 	}
 	else if (cells[0] != null && cells[0].edge)
 	{
-		this.createDragSource(elt, this.createDropHandler(cells, false, dx, dy),
+		var ds = this.createDragSource(elt, this.createDropHandler(cells, false, dx, dy),
 			this.createDragPreview(width, height));
-
-		// Installs the default edge
-		var graph = this.editorUi.editor.graph;
-		mxEvent.addListener(elt, 'click', mxUtils.bind(this, function(evt)
-		{
-			if (this.installEdges)
-			{
-				graph.setDefaultEdge(cells[0]);
-			}
-			
-			// Highlights the entry for 200ms
-			elt.style.backgroundColor = '#ffffff';
-			
-			window.setTimeout(function()
-			{
-				elt.style.backgroundColor = '';
-			}, 300);
-		    
-		    mxEvent.consume(evt);
-		}));
+		this.addClickHandler(elt, ds, cells);
 	}
 	
 	// Shows a tooltip with the rendered cell
@@ -1103,6 +1083,69 @@ Sidebar.prototype.createItem = function(cells, title, showLabel, showTitle, widt
 	}
 	
 	return elt;
+};
+
+/**
+ * Creates a drop handler for inserting the given cells.
+ */
+Sidebar.prototype.updateShapes = function(source, targets)
+{
+	var graph = this.editorUi.editor.graph;
+	var result = [];
+	
+	graph.model.beginUpdate();
+	try
+	{
+		for (var i = 0; i < targets.length; i++)
+		{
+			var targetCell = targets[i];
+			
+			if (graph.getModel().isVertex(targetCell) && graph.getModel().isVertex(source))
+			{
+				var sourceStyle = graph.getCellStyle(source);
+				var shape = mxUtils.getValue(sourceStyle, mxConstants.STYLE_SHAPE, null);
+				var image = mxUtils.getValue(sourceStyle, mxConstants.STYLE_IMAGE, null);
+				
+				// Special shape level styles
+				var rounded = mxUtils.getValue(sourceStyle, mxConstants.STYLE_ROUNDED, null);
+				var perimeter = mxUtils.getValue(sourceStyle, mxConstants.STYLE_PERIMETER, null);
+				var doubleStyle = mxUtils.getValue(sourceStyle, 'double', null);
+				
+				if (shape != null)
+				{
+					graph.setCellStyles(mxConstants.STYLE_SHAPE, shape, [targetCell]);
+					graph.setCellStyles(mxConstants.STYLE_IMAGE, image, [targetCell]);
+					graph.setCellStyles(mxConstants.STYLE_ROUNDED, rounded, [targetCell]);
+					graph.setCellStyles(mxConstants.STYLE_PERIMETER, perimeter, [targetCell]);
+					graph.setCellStyles('double', doubleStyle, [targetCell]);
+					result.push(targetCell);
+				}
+			}
+			else if (graph.getModel().isEdge(targetCell) && graph.getModel().isEdge(source))
+			{
+				var sourceStyle = graph.getCellStyle(source);
+				var shape = mxUtils.getValue(sourceStyle, mxConstants.STYLE_SHAPE, null);
+				var edge = mxUtils.getValue(sourceStyle, mxConstants.STYLE_EDGE, null);
+				
+				// Special shape level styles
+				var rounded = mxUtils.getValue(sourceStyle, mxConstants.STYLE_ROUNDED, null);
+				
+				if (shape != null)
+				{
+					graph.setCellStyles(mxConstants.STYLE_SHAPE, shape, [targetCell]);
+					graph.setCellStyles(mxConstants.STYLE_EDGE, edge, [targetCell]);
+					graph.setCellStyles(mxConstants.STYLE_ROUNDED, rounded, [targetCell]);
+					result.push(targetCell);
+				}
+			}
+		}
+	}
+	finally
+	{
+		graph.model.endUpdate();
+	}
+	
+	return result;
 };
 
 /**
@@ -1127,71 +1170,14 @@ Sidebar.prototype.createDropHandler = function(cells, allowSplit, dx, dy)
 					var t = graph.view.translate;
 					var s = graph.view.scale;
 					var targetCell = graph.getCellAt((x + dx + t.x) * s, (y + dy + t.y) * s);
-					
-					if (targetCell != null)
+					var targets = graph.isCellSelected(targetCell) ? graph.getSelectionCells() : [targetCell];
+					var updatedCells = this.updateShapes(cells[0], targets);
+
+					if (updatedCells.length > 0)
 					{
-						if (graph.getModel().isVertex(targetCell) && graph.getModel().isVertex(cells[0]))
-						{
-							var sourceStyle = graph.getCellStyle(cells[0]);
-							var shape = mxUtils.getValue(sourceStyle, mxConstants.STYLE_SHAPE, null);
-							var image = mxUtils.getValue(sourceStyle, mxConstants.STYLE_IMAGE, null);
-							
-							// Special shape level styles
-							var rounded = mxUtils.getValue(sourceStyle, mxConstants.STYLE_ROUNDED, null);
-							var perimeter = mxUtils.getValue(sourceStyle, mxConstants.STYLE_PERIMETER, null);
-							var doubleStyle = mxUtils.getValue(sourceStyle, 'double', null);
-							
-							if (shape != null)
-							{
-								graph.model.beginUpdate();
-								
-								try
-								{
-									graph.setCellStyles(mxConstants.STYLE_SHAPE, shape, [targetCell]);
-									graph.setCellStyles(mxConstants.STYLE_IMAGE, image, [targetCell]);
-									graph.setCellStyles(mxConstants.STYLE_ROUNDED, rounded, [targetCell]);
-									graph.setCellStyles(mxConstants.STYLE_PERIMETER, perimeter, [targetCell]);
-									graph.setCellStyles('double', doubleStyle, [targetCell]);
-								}
-								finally
-								{
-									graph.model.endUpdate();
-								}
-								
-								graph.setSelectionCell(targetCell);
-								
-								return;
-							}
-						}
-						else if (graph.getModel().isEdge(targetCell) && graph.getModel().isEdge(cells[0]))
-						{
-							var sourceStyle = graph.getCellStyle(cells[0]);
-							var shape = mxUtils.getValue(sourceStyle, mxConstants.STYLE_SHAPE, null);
-							var edge = mxUtils.getValue(sourceStyle, mxConstants.STYLE_EDGE, null);
-							
-							// Special shape level styles
-							var rounded = mxUtils.getValue(sourceStyle, mxConstants.STYLE_ROUNDED, null);
-							
-							if (shape != null)
-							{
-								graph.model.beginUpdate();
-								
-								try
-								{
-									graph.setCellStyles(mxConstants.STYLE_SHAPE, shape, [targetCell]);
-									graph.setCellStyles(mxConstants.STYLE_EDGE, edge, [targetCell]);
-									graph.setCellStyles(mxConstants.STYLE_ROUNDED, rounded, [targetCell]);
-								}
-								finally
-								{
-									graph.model.endUpdate();
-								}
-								
-								graph.setSelectionCell(targetCell);
-								
-								return;
-							}
-						}
+						graph.setSelectionCells(updatedCells);
+						
+						return;
 					}
 				}
 				
@@ -1201,18 +1187,20 @@ Sidebar.prototype.createDropHandler = function(cells, allowSplit, dx, dy)
 				}
 
 				graph.model.beginUpdate();
-				
 				try
 				{
+					x = Math.round(x + dx);
+					y = Math.round(y + dy);
+					
 					// Splits the target edge or inserts into target group
 					if (allowSplit && graph.isSplitEnabled() && graph.isSplitTarget(target, cells, evt))
 					{
-						graph.splitEdge(target, cells, null, x + dx, y + dy);
+						graph.splitEdge(target, cells, null, x, y);
 						select = cells;
 					}
 					else if (cells.length > 0)
 					{
-						select = graph.importCells(cells, x + dx, y + dy, target);
+						select = graph.importCells(cells, x, y, target);
 						this.editorUi.fireEvent(new mxEventObject('cellsInserted', 'cells', select));
 					}
 				}
@@ -1221,7 +1209,6 @@ Sidebar.prototype.createDropHandler = function(cells, allowSplit, dx, dy)
 					graph.model.endUpdate();
 				}
 
-				
 				if (select != null && select.length > 0)
 				{
 					graph.scrollCellToVisible(select[0]);
@@ -1297,14 +1284,38 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview)
 /**
  * Adds a handler for inserting the cell with a single click.
  */
-Sidebar.prototype.itemClicked = function(cells, ds, evt)
+Sidebar.prototype.itemClicked = function(cells, ds, evt, elt)
 {
 	var graph = this.editorUi.editor.graph;
-	var gs = graph.getGridSize();
-	var dx = graph.container.scrollLeft / graph.view.scale - graph.view.translate.x;
-	var dy = graph.container.scrollTop / graph.view.scale - graph.view.translate.y;
+	
+	if (mxEvent.isAltDown(evt))
+	{
+		if (!graph.isSelectionEmpty())
+		{
+			graph.setSelectionCells(this.updateShapes(cells[0], graph.getSelectionCells()));
+		}
+	}
+	else if (graph.getModel().isEdge(cells[0]) && this.installEdges)
+	{
+		// Installs the default edge
+		graph.setDefaultEdge(cells[0]);
 
-	ds.drop(graph, evt, null, graph.snap(dx + gs), graph.snap(dy + gs));
+		// Highlights the entry for 200ms
+		elt.style.backgroundColor = '#ffffff';
+		
+		window.setTimeout(function()
+		{
+			elt.style.backgroundColor = '';
+		}, 300);
+	}
+	else
+	{
+		var gs = graph.getGridSize();
+		var dx = graph.container.scrollLeft / graph.view.scale - graph.view.translate.x;
+		var dy = graph.container.scrollTop / graph.view.scale - graph.view.translate.y;
+	
+		ds.drop(graph, evt, null, graph.snap(dx + gs), graph.snap(dy + gs));
+	}
 };
 
 /**
@@ -1330,7 +1341,7 @@ Sidebar.prototype.addClickHandler = function(elt, ds, cells)
 			if (Math.abs(first.x - mxEvent.getClientX(evt)) <= tol &&
 				Math.abs(first.y - mxEvent.getClientY(evt)) <= tol)
 			{
-				this.itemClicked(cells, ds, evt);
+				this.itemClicked(cells, ds, evt, elt);
 			}
 		}
 

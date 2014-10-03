@@ -25,7 +25,6 @@ import java.io.IOException;
  * attribute values.
  *
  * @author <a href="mailto:stephane@hillion.org">Stephane Hillion</a>
- * @version $Id: PathParser.java,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  */
 public class PathParser extends NumberParser
 {

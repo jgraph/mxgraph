@@ -1,5 +1,4 @@
 /**
- * $Id: mxMinimumCycleRemover.js,v 1.3 2014/01/16 17:23:57 david Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**

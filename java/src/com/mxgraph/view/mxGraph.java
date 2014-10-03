@@ -1,5 +1,4 @@
 /**
- * $Id: mxGraph.java,v 1.6 2014/02/19 09:40:59 gaudenz Exp $
  * Copyright (c) 2007, Gaudenz Alder
  */
 package com.mxgraph.view;
@@ -195,9 +194,9 @@ public class mxGraph extends mxEventSource
 
 	/**
 	 * Holds the version number of this release. Current version
-	 * is 3.0.1.1.
+	 * is 3.1.0.0.
 	 */
-	public static final String VERSION = "3.0.1.1";
+	public static final String VERSION = "3.1.0.0";
 
 	/**
 	 * 

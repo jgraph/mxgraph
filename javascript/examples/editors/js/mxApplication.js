@@ -1,9 +1,7 @@
 /*
- * $Id: mxApplication.js,v 1.2 2013/10/28 08:45:09 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  *
  * Defines the startup sequence of the application.
- *
  */
 {
 
@@ -40,8 +38,10 @@
 			}
 			else
 			{
+				mxObjectCodec.allowEval = true;
 				var node = mxUtils.load(config).getDocumentElement();
 				var editor = new mxEditor(node);
+				mxObjectCodec.allowEval = false;
 				
 				// Updates the window title after opening new files
 				var title = document.title;

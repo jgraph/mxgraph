@@ -1,5 +1,4 @@
 /**
- * $Id: mxMedianHybridCrossingReduction.js,v 1.3 2014/01/13 16:05:11 david Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**

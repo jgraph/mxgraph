@@ -1,5 +1,4 @@
 /**
- * $Id: mxGeometry.js,v 1.6 2014/01/20 09:55:48 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -222,57 +221,169 @@ mxGeometry.prototype.setTerminalPoint = function(point, isSource)
 };
 
 /**
- * Function: translate
+ * Function: rotate
  * 
- * Translates the geometry by the specified amount. That is, <x> and <y>
- * of the geometry, the <sourcePoint>, <targetPoint> and all elements of
+ * Rotates the geometry by the given angle around the given center. That is,
+ * <x> and <y> of the geometry, the <sourcePoint>, <targetPoint> and all
  * <points> are translated by the given amount. <x> and <y> are only
- * translated if <relative> is false. If <TRANSLATE_CONTROL_POINTS> is
- * false, then <points> are not modified by this function.
+ * translated if <relative> is false.
  * 
  * Parameters:
  * 
- * dx - Integer that specifies the x-coordinate of the translation.
- * dy - Integer that specifies the y-coordinate of the translation.
+ * angle - Number that specifies the rotation angle in degrees.
+ * cx - <mxPoint> that specifies the center of the rotation.
  */
-mxGeometry.prototype.translate = function(dx, dy)
+mxGeometry.prototype.rotate = function(angle, cx)
 {
-	var clone = this.clone();
+	var rad = mxUtils.toRadians(angle);
+	var cos = Math.cos(rad);
+	var sin = Math.sin(rad);
 	
-	// Translates the geometry
+	// Rotates the geometry
 	if (!this.relative)
 	{
-		this.x += dx;
-		this.y += dy;
+		var ct = new mxPoint(this.getCenterX(), this.getCenterY());
+		var pt = mxUtils.getRotatedPoint(ct, cos, sin, cx);
+		
+		this.x = Math.round(pt.x - this.width / 2);
+		this.y = Math.round(pt.y - this.height / 2);
 	}
-	
-	// Translates the source point
+
+	// Rotates the source point
 	if (this.sourcePoint != null)
 	{
-		this.sourcePoint.x += dx;
-		this.sourcePoint.y += dy;
+		var pt = mxUtils.getRotatedPoint(this.sourcePoint, cos, sin, cx);
+		this.sourcePoint.x = Math.round(pt.x);
+		this.sourcePoint.y = Math.round(pt.y);
 	}
 	
 	// Translates the target point
 	if (this.targetPoint != null)
 	{
-		this.targetPoint.x += dx;
-		this.targetPoint.y += dy;
+		var pt = mxUtils.getRotatedPoint(this.targetPoint, cos, sin, cx);
+		this.targetPoint.x = Math.round(pt.x);
+		this.targetPoint.y = Math.round(pt.y);	
+	}
+	
+	// Translate the control points
+	if (this.points != null)
+	{
+		for (var i = 0; i < this.points.length; i++)
+		{
+			if (this.points[i] != null)
+			{
+				var pt = mxUtils.getRotatedPoint(this.points[i], cos, sin, cx);
+				this.points[i].x = Math.round(pt.x);
+				this.points[i].y = Math.round(pt.y);
+			}
+		}
+	}
+};
+
+/**
+ * Function: translate
+ * 
+ * Translates the geometry by the specified amount. That is, <x> and <y> of the
+ * geometry, the <sourcePoint>, <targetPoint> and all <points> are translated
+ * by the given amount. <x> and <y> are only translated if <relative> is false.
+ * If <TRANSLATE_CONTROL_POINTS> is false, then <points> are not modified by
+ * this function.
+ * 
+ * Parameters:
+ * 
+ * dx - Number that specifies the x-coordinate of the translation.
+ * dy - Number that specifies the y-coordinate of the translation.
+ */
+mxGeometry.prototype.translate = function(dx, dy)
+{
+	dx = parseFloat(dx);
+	dy = parseFloat(dy);
+	
+	// Translates the geometry
+	if (!this.relative)
+	{
+		this.x = parseFloat(this.x) + dx;
+		this.y = parseFloat(this.y) + dy;
+	}
+
+	// Translates the source point
+	if (this.sourcePoint != null)
+	{
+		this.sourcePoint.x = parseFloat(this.sourcePoint.x) + dx;
+		this.sourcePoint.y = parseFloat(this.sourcePoint.y) + dy;
+	}
+	
+	// Translates the target point
+	if (this.targetPoint != null)
+	{
+		this.targetPoint.x = parseFloat(this.targetPoint.x) + dx;
+		this.targetPoint.y = parseFloat(this.targetPoint.y) + dy;		
 	}
 
 	// Translate the control points
 	if (this.TRANSLATE_CONTROL_POINTS && this.points != null)
 	{
-		var count = this.points.length;
-		
-		for (var i = 0; i < count; i++)
+		for (var i = 0; i < this.points.length; i++)
 		{
-			var pt = this.points[i];
-			
-			if (pt != null)
+			if (this.points[i] != null)
 			{
-				pt.x += dx;
-				pt.y += dy;
+				this.points[i].x = parseFloat(this.points[i].x) + dx;
+				this.points[i].y = parseFloat(this.points[i].y) + dy;
+			}
+		}
+	}
+};
+
+/**
+ * Function: scale
+ * 
+ * Scales the geometry by the given amount. That is, <x> and <y> of the
+ * geometry, the <sourcePoint>, <targetPoint> and all <points> are scaled
+ * by the given amount. <x>, <y>, <width> and <height> are only scaled if
+ * <relative> is false.
+ * 
+ * Parameters:
+ * 
+ * sx - Number that specifies the horizontal scale factor.
+ * sy - Number that specifies the vertical scale factor.
+ */
+mxGeometry.prototype.scale = function(sx, sy)
+{
+	sx = parseFloat(sx);
+	sy = parseFloat(sy);
+	
+	// Translates the geometry
+	if (!this.relative)
+	{
+		this.x = parseFloat(this.x) * sx;
+		this.y = parseFloat(this.y) * sy;
+		this.width = parseFloat(this.width) * sx;
+		this.height = parseFloat(this.height) * sy;
+	}
+
+	// Translates the source point
+	if (this.sourcePoint != null)
+	{
+		this.sourcePoint.x = parseFloat(this.sourcePoint.x) * sx;
+		this.sourcePoint.y = parseFloat(this.sourcePoint.y) * sy;
+	}
+	
+	// Translates the target point
+	if (this.targetPoint != null)
+	{
+		this.targetPoint.x = parseFloat(this.targetPoint.x) * sx;
+		this.targetPoint.y = parseFloat(this.targetPoint.y) * sy;		
+	}
+
+	// Translate the control points
+	if (this.points != null)
+	{
+		for (var i = 0; i < this.points.length; i++)
+		{
+			if (this.points[i] != null)
+			{
+				this.points[i].x = parseFloat(this.points[i].x) * sx;
+				this.points[i].y = parseFloat(this.points[i].y) * sy;
 			}
 		}
 	}

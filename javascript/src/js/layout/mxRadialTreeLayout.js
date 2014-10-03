@@ -1,5 +1,4 @@
 /**
- * $Id: mxRadialTreeLayout.js$
  * Copyright (c) 2006-2014, JGraph Ltd
  */
 /**

@@ -1,5 +1,4 @@
 /**
- * $Id: Backend.java,v 1.5 2014/02/05 10:35:43 gaudenz Exp $
  * Copyright (c) 2007-2012, JGraph Ltd
  */
 package com.mxgraph.examples.web;

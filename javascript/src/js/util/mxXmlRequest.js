@@ -1,5 +1,4 @@
 /**
- * $Id: mxXmlRequest.js,v 1.3 2014/02/05 09:56:31 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**

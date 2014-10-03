@@ -1,5 +1,4 @@
 /**
- * $Id: mxSwimlane.js,v 1.19 2014/01/23 16:27:47 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**

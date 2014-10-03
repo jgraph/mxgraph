@@ -1,5 +1,4 @@
 /**
- * $Id: Toolbar.js,v 1.10 2014/01/16 12:08:57 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**

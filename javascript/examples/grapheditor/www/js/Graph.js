@@ -1,5 +1,4 @@
 /**
- * $Id: Graph.js,v 1.40 2014/02/17 13:46:29 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -163,6 +162,13 @@ Graph = function(container, model, renderHint, stylesheet)
 			if (state.style['html'] != 1)
 			{
 				result = mxUtils.htmlEntities(result, false);
+			}
+			else
+			{
+				function urlX(url) { if(/^https?:\/\//.test(url)) { return url }}
+			    function idX(id) { return id }
+			    
+				result = html_sanitize(result, urlX, idX);
 			}
 		}
 		
@@ -486,7 +492,10 @@ Graph.prototype.getTooltipForCell = function(cell)
 		
 		if (tmp != null)
 		{
-			tip = tmp;
+			function urlX(url) { if(/^https?:\/\//.test(url)) { return url }}
+		    function idX(id) { return id }
+			
+			tip = html_sanitize(tmp, urlX, idX);
 		}
 		else
 		{
@@ -504,7 +513,7 @@ Graph.prototype.getTooltipForCell = function(cell)
 				if (mxUtils.indexOf(ignored, attrs[i].nodeName) < 0 && attrs[i].nodeValue.length > 0)
 				{
 					var key = attrs[i].nodeName.substring(0, 1).toUpperCase() + attrs[i].nodeName.substring(1);
-					tip += key + ': ' + attrs[i].nodeValue + '\n';
+					tip += key + ': ' + mxUtils.htmlEntities(attrs[i].nodeValue) + '\n';
 				}
 			}
 			
@@ -795,7 +804,7 @@ Graph.prototype.getSvg = function(background, scale, border, nocrop)
 	if (bgImg != null)
 	{
 		var tr = this.view.translate;
-		svgCanvas.image(tr.x, tr.y, bgImg.width, bgImg.height, bgImg.src, false);
+		svgCanvas.image(tr.x, tr.y, bgImg.width * vs / scale, bgImg.height * vs / scale, bgImg.src, false);
 	}
 	
 	imgExport.drawState(this.getView().getState(this.model.root), svgCanvas);
@@ -905,9 +914,12 @@ Graph.prototype.initTouch = function()
 		{
 			var tmp = this.saveSelection();
 			
+			function urlX(url) { if(/^https?:\/\//.test(url)) { return url }}
+		    function idX(id) { return id }
+		    
 			if (this.textarea.style.display == 'none')
 			{
-				var content = this.text2.innerHTML.replace(/\n/g, '');
+				var content = html_sanitize(this.text2.innerHTML.replace(/\n/g, ''), urlX, idX);
 				
 				if (this.textarea.value != content)
 				{
@@ -921,7 +933,7 @@ Graph.prototype.initTouch = function()
 			}
 			else
 			{
-				var content = this.textarea.value.replace(/\n/g, '<br/>');
+				var content = html_sanitize(this.textarea.value.replace(/\n/g, '<br/>'), urlX, idX);
 				
 				if (this.text2.innerHTML != content)
 				{
@@ -1083,9 +1095,12 @@ Graph.prototype.initTouch = function()
 	
 			if (this.textarea.style.display == 'none')
 			{
+				function urlX(url) { if(/^https?:\/\//.test(url)) { return url }}
+			    function idX(id) { return id }
+			    
 				this.text2 = document.createElement('div');
 				this.text2.className = 'geContentEditable';
-				this.text2.innerHTML = this.textarea.value.replace(/\n/g, '<br/>');
+				this.text2.innerHTML = html_sanitize(this.textarea.value.replace(/\n/g, '<br/>'), urlX, idX);
 				
 				// Invokes stop editing and escape hooks
 				mxEvent.addListener(this.text2, 'keydown', mxUtils.bind(this, function(evt)
@@ -1121,6 +1136,7 @@ Graph.prototype.initTouch = function()
 				style.fontWeight = this.textarea.style.fontWeight;
 				style.textAlign = this.textarea.style.textAlign;
 				style.fontSize = this.textarea.style.fontSize;
+				style.textDecoration = this.textarea.style.textDecoration;
 				style.color = this.textarea.style.color;
 				
 				// Matches line height correctionFactor in embedded HTML output
@@ -1160,6 +1176,10 @@ Graph.prototype.initTouch = function()
 					this.setModified(true);
 				}
 				
+				function urlX(url) { if(/^https?:\/\//.test(url)) { return url }}
+			    function idX(id) { return id }
+				
+				this.textarea.value = html_sanitize(this.textarea.value, urlX, idX);
 				this.text2.parentNode.removeChild(this.text2);
 				this.text2 = null;
 			}
@@ -1231,7 +1251,8 @@ Graph.prototype.initTouch = function()
 	mxVertexHandler.prototype.isRecursiveResize = function(state, me)
 	{
 		return !this.graph.isSwimlane(state.cell) && this.graph.model.getChildCount(state.cell) > 0 &&
-			!mxEvent.isControlDown(me.getEvent()) && !this.graph.isCellCollapsed(state.cell);
+			!mxEvent.isControlDown(me.getEvent()) && !this.graph.isCellCollapsed(state.cell) &&
+			state.style['childLayout'] == '';
 	};
 
 	/**
@@ -1642,14 +1663,23 @@ Graph.prototype.initTouch = function()
 				{
 					label = label.substring(0, head) + '...' + label.substring(label.length - tail);
 				}
+				
+				var a = document.createElement('a');
+				a.setAttribute('href', link);
+				a.setAttribute('title', link);
+				a.setAttribute('target', '_blank');
+				mxUtils.write(a, label);
+				
+				this.linkHint.innerHTML = '';
+				this.linkHint.appendChild(a);
 
-				this.linkHint.innerHTML = '<a href="' + link + '" title="' + link + '" target="_blank">' + label + '</a>';
-	
 				if (this.graph.isEnabled())
 				{
 					var changeLink = document.createElement('img');
 					changeLink.setAttribute('src', IMAGE_PATH + '/edit.gif');
 					changeLink.setAttribute('title', mxResources.get('editLink'));
+					changeLink.setAttribute('width', '11');
+					changeLink.setAttribute('height', '11');
 					changeLink.style.marginLeft = '10px';
 					changeLink.style.marginBottom = '-1px';
 					changeLink.style.cursor = 'pointer';

@@ -1,5 +1,4 @@
 /**
- * $Id: mxObjectIdentity.js,v 1.3 2014/01/15 14:36:11 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxObjectIdentity =

@@ -1,5 +1,4 @@
 /**
- * $Id: mxVmlCanvas2D.js,v 1.48 2014/02/19 13:36:11 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**

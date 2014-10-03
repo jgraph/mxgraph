@@ -1,5 +1,4 @@
 /**
- * $Id: mxGraphHierarchyModel.js,v 1.8 2014/01/16 16:45:25 david Exp $
  * Copyright (c) 2006-2014, JGraph Ltd
  */
 /**

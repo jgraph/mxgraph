@@ -1,5 +1,4 @@
 /**
- * $Id: mxGraphHandler.js,v 1.13 2013/12/27 14:59:10 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -125,7 +124,7 @@ mxGraphHandler.prototype.currentDy = null;
 /**
  * Variable: updateCursor
  * 
- * Specifies if a move cursor should be shown if the mouse is ove a movable
+ * Specifies if a move cursor should be shown if the mouse is over a movable
  * cell. Default is true.
  */
 mxGraphHandler.prototype.updateCursor = true;
@@ -702,13 +701,14 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 			var target = null;
 			var cell = me.getCell();
 
+			var clone = graph.isCloneEvent(me.getEvent()) && graph.isCellsCloneable() && this.isCloneEnabled();
+			
 			if (graph.isDropEnabled() && this.highlightEnabled)
 			{
 				// Contains a call to getCellAt to find the cell under the mouse
-				target = graph.getDropTarget(this.cells, me.getEvent(), cell);
+				target = graph.getDropTarget(this.cells, me.getEvent(), cell, clone);
 			}
 
-			var clone = graph.isCloneEvent(me.getEvent()) && graph.isCellsCloneable() && this.isCloneEnabled();
 			var state = graph.getView().getState(target);
 			var highlight = false;
 			

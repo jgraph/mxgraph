@@ -1,5 +1,4 @@
 /**
- * $Id: mxDoubleValCostFunction.java,v 1.2 2012/11/21 14:16:01 mate Exp $
  * Copyright (c) 2012, JGraph Ltd
  * Returns the value of a cell, which is assumed a Double
  */

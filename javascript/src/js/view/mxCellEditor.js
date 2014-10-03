@@ -1,5 +1,4 @@
 /**
- * $Id: mxCellEditor.js,v 1.20 2014/02/05 14:45:47 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**

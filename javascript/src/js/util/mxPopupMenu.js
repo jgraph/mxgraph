@@ -1,5 +1,4 @@
 /**
- * $Id: mxPopupMenu.js,v 1.10 2014/01/16 10:15:38 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**

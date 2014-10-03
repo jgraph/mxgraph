@@ -1,5 +1,4 @@
 /**
- * $Id: mxPrintPreview.js,v 1.11 2014/02/10 12:20:25 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -227,6 +226,14 @@ mxPrintPreview.prototype.autoOrigin = true;
 mxPrintPreview.prototype.printOverlays = false;
 
 /**
+ * Variable: printControls
+ * 
+ * Specifies if controls (such as folding icons) should be printed. Default is
+ * false.
+ */
+mxPrintPreview.prototype.printControls = false;
+
+/**
  * Variable: printBackgroundImage
  * 
  * Specifies if the background image should be printed. Default is false.
@@ -333,6 +340,15 @@ mxPrintPreview.prototype.open = function(css)
 			this.graph.cellRenderer.initializeOverlay = function(state, overlay)
 			{
 				overlay.init(state.view.getDrawPane());
+			};
+		}
+		
+		if (this.printControls)
+		{
+			this.graph.cellRenderer.initControl = function(state, control, handleEvents, clickHandler)
+			{
+				control.dialect = state.view.graph.dialect;
+				control.init(state.view.getDrawPane());
 			};
 		}
 		

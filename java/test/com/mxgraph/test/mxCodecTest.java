@@ -1,5 +1,4 @@
 /**
- * $Id: mxCodecTest.java,v 1.1 2012/11/15 13:26:48 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 package com.mxgraph.test;

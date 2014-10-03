@@ -1,5 +1,4 @@
 /**
- * $Id: mxSvgCanvas2D.js,v 1.60 2014/02/14 15:48:59 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -599,7 +598,7 @@ mxSvgCanvas2D.prototype.updateFill = function()
 		{
 			var id = this.getSvgGradient(s.fillColor, s.gradientColor, s.fillAlpha, s.gradientAlpha, s.gradientDirection);
 
-			if (this.root.ownerDocument == document)
+			if (!mxClient.IS_IE && this.root.ownerDocument == document)
 			{
 				// Workaround for potential base tag
 				this.node.setAttribute('fill', 'url(' + this.getBaseUrl() + '#' + id + ')');
@@ -1415,13 +1414,14 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			
 			x += dx;
 			
+			// FIXME: LINE_HEIGHT not ideal for all text sizes, fix for export
 			if (valign == mxConstants.ALIGN_MIDDLE)
 			{
-				dy -= h / 2;
+				dy -= h / 2 - 1;
 			}
 			else if (valign == mxConstants.ALIGN_BOTTOM)
 			{
-				dy -= h;
+				dy -= h - 2;
 			}
 			
 			y += dy;
@@ -1570,7 +1570,7 @@ mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 			this.root.appendChild(c);
 		}
 		
-		if (this.root.ownerDocument == document)
+		if (!mxClient.IS_IE && this.root.ownerDocument == document)
 		{
 			// Workaround for potential base tag
 			node.setAttribute('clip-path', 'url(' + this.getBaseUrl() + '#' + c.getAttribute('id') + ')');

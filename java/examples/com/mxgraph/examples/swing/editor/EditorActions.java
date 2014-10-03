@@ -1,5 +1,4 @@
 /*
- * $Id: EditorActions.java,v 1.1 2012/11/15 13:26:46 gaudenz Exp $
  * Copyright (c) 2001-2012, JGraph Ltd
  */
 package com.mxgraph.examples.swing.editor;

@@ -1,5 +1,4 @@
 /**
- * $Id: mxCellHighlight.js,v 1.10 2014/01/29 09:23:45 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**

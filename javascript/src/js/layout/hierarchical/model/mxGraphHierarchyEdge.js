@@ -1,5 +1,4 @@
 /**
- * $Id: mxGraphHierarchyEdge.js,v 1.3 2014/01/16 16:13:52 david Exp $
  * Copyright (c) 2006-2014, JGraph Ltd
  */
 /**

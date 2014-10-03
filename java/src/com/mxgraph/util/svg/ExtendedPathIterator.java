@@ -32,7 +32,6 @@ import java.awt.geom.PathIterator;
  * contract for that class.
  *
  * @author <a href="mailto:deweese@apache.org">Thomas DeWeese</a>
- * @version $Id: ExtendedPathIterator.java,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  */
 public interface ExtendedPathIterator
 {

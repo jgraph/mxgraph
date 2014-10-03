@@ -1,5 +1,4 @@
 /**
- * $Id: mxStencil.js,v 1.14 2013/10/28 08:45:04 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -86,6 +85,15 @@ function mxStencil(desc)
  * attribute of the text element. Default is false.
  */
 mxStencil.defaultLocalized = false;
+
+/**
+ * Function: allowEval
+ * 
+ * Static global switch that specifies if the use of eval is allowed for
+ * evaluating text content. Default is true. Set this to false if stencils may
+ * contain user input (see the section on security in the manual).
+ */
+mxStencil.allowEval = true;
 
 /**
  * Variable: desc
@@ -246,7 +254,7 @@ mxStencil.prototype.evaluateAttribute = function(node, attribute, shape)
 	{
 		var text = mxUtils.getTextContent(node);
 		
-		if (text != null)
+		if (text != null && mxStencil.allowEval)
 		{
 			var funct = mxUtils.eval(text);
 			

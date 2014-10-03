@@ -1,5 +1,4 @@
 /**
- * $Id: Dialogs.js,v 1.27 2014/02/10 11:46:24 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
@@ -27,7 +26,7 @@ function Dialog(editorUi, elt, w, h, modal, closable, onClose)
 	div.style.height = h + 'px';
 	div.style.left = left + 'px';
 	div.style.top = top + 'px';
-	div.style.zIndex = 99;
+	div.style.zIndex = this.zIndex;
 	
 	if (this.bg == null)
 	{
@@ -38,7 +37,7 @@ function Dialog(editorUi, elt, w, h, modal, closable, onClose)
 		this.bg.style.top = '0px';
 		this.bg.style.bottom = '0px';
 		this.bg.style.right = '0px';
-		this.bg.style.zIndex = 99;
+		this.bg.style.zIndex = this.zIndex;
 		
 		mxUtils.setOpacity(this.bg, this.bgOpacity);
 		
@@ -65,7 +64,7 @@ function Dialog(editorUi, elt, w, h, modal, closable, onClose)
 		img.className = 'geDialogClose';
 		img.style.top = (top + 14) + 'px';
 		img.style.left = (left + w + 38 - dx) + 'px';
-		img.style.zIndex = 99;
+		img.style.zIndex = this.zIndex;
 		
 		mxEvent.addListener(img, 'click', mxUtils.bind(this, function()
 		{
@@ -81,6 +80,11 @@ function Dialog(editorUi, elt, w, h, modal, closable, onClose)
 	
 	editorUi.editor.fireEvent(new mxEventObject('showDialog'));
 };
+
+/**
+ * 
+ */
+Dialog.prototype.zIndex = mxPopupMenu.prototype.zIndex - 1;
 
 /**
  * Removes the dialog from the DOM.

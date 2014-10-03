@@ -1,5 +1,4 @@
 /*
- * $Id: ShadowBorder.java,v 1.1 2012/11/15 13:26:46 gaudenz Exp $
  * Copyright (c) 2001-2005, Gaudenz Alder
  * 
  * All rights reserved. 

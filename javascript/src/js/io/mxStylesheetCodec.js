@@ -1,16 +1,15 @@
 /**
- * $Id: mxStylesheetCodec.js,v 1.2 2013/10/28 08:45:03 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
-mxCodecRegistry.register(function()
+/**
+ * Class: mxStylesheetCodec
+ *
+ * Codec for <mxStylesheet>s. This class is created and registered
+ * dynamically at load time and used implicitely via <mxCodec>
+ * and the <mxCodecRegistry>.
+ */
+var mxStylesheetCodec = mxCodecRegistry.register(function()
 {
-	/**
-	 * Class: mxStylesheetCodec
-	 *
-	 * Codec for <mxStylesheet>s. This class is created and registered
-	 * dynamically at load time and used implicitely via <mxCodec>
-	 * and the <mxCodecRegistry>.
-	 */
 	var codec = new mxObjectCodec(new mxStylesheet());
 
 	/**
@@ -98,7 +97,7 @@ mxCodecRegistry.register(function()
 	 * value - Value for the style.
 	 *
 	 * Instead of the value-attribute, one can put Javascript expressions into
-	 * the node as follows:
+	 * the node as follows if <mxStylesheetCodec.allowEval> is true:
 	 * <add as="perimeter">mxPerimeter.RectanglePerimeter</add>
 	 *
 	 * A remove node will remove the entry with the name given in the as-attribute
@@ -131,8 +130,7 @@ mxCodecRegistry.register(function()
 		
 		while (node != null)
 		{
-			if (!this.processInclude(dec, node, obj) &&
-				node.nodeName == 'add')
+			if (!this.processInclude(dec, node, obj) && node.nodeName == 'add')
 			{
 				var as = node.getAttribute('as');
 				
@@ -165,8 +163,7 @@ mxCodecRegistry.register(function()
 							 	var text = mxUtils.getTextContent(entry);
 							 	var value = null;
 							 	
-							 	if (text != null &&
-							 		text.length > 0)
+							 	if (text != null && text.length > 0 && mxStylesheetCodec.allowEval)
 							 	{
 							 		value = mxUtils.eval(text);
 							 	}
@@ -208,3 +205,12 @@ mxCodecRegistry.register(function()
 	return codec;
 
 }());
+
+/**
+ * Variable: allowEval
+ * 
+ * Static global switch that specifies if the use of eval is allowed for
+ * evaluating text content. Default is true. Set this to false if stylesheets
+ * may contain user input (see the section on security in the manual).
+ */
+mxStylesheetCodec.allowEval = true;

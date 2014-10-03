@@ -1,5 +1,4 @@
 /**
- * $Id: mxGraphView.js,v 1.39 2014/02/19 09:41:00 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
@@ -956,6 +955,8 @@ mxGraphView.prototype.validateCellState = function(cell, recurse)
 
 			if (recurse)
 			{
+				state.updateCachedBounds();
+				
 				// Updates order in DOM if recursively traversing
 				if (state.shape != null)
 				{
@@ -1024,11 +1025,11 @@ mxGraphView.prototype.updateCellState = function(state)
 					if (model.isEdge(pState.cell))
 					{
 						var origin = this.getPoint(pState, geo);
-						
+
 						if (origin != null)
 						{
-							state.origin.x += (origin.x / this.scale) - this.translate.x;
-							state.origin.y += (origin.y / this.scale) - this.translate.y;
+							state.origin.x += (origin.x / this.scale) - pState.origin.x - this.translate.x;
+							state.origin.y += (origin.y / this.scale) - pState.origin.y - this.translate.y;
 						}
 					}
 					else
@@ -1086,7 +1087,7 @@ mxGraphView.prototype.updateVertexState = function(state, geo)
 	var model = this.graph.getModel();
 	var pState = this.getState(model.getParent(state.cell));
 	
-	if (geo.relative && pState != null)
+	if (geo.relative && pState != null && !model.isEdge(pState.cell))
 	{
 		var alpha = mxUtils.toRadians(pState.style[mxConstants.STYLE_ROTATION] || '0');
 		

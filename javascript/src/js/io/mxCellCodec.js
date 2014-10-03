@@ -1,5 +1,4 @@
 /**
- * $Id: mxCellCodec.js,v 1.4 2013/11/12 21:51:00 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 mxCodecRegistry.register(function()

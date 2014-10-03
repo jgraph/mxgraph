@@ -1,5 +1,4 @@
 /**
- * $Id: mxConnectPreview.java,v 1.2 2014/02/19 09:41:00 gaudenz Exp $
  * Copyright (c) 2008-2010, Gaudenz Alder, David Benson
  */
 package com.mxgraph.swing.handler;

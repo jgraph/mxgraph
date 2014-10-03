@@ -1,4 +1,3 @@
-// $Id: mxSession.cs,v 1.1 2012/11/15 13:26:48 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Threading;

@@ -24,7 +24,6 @@ import java.awt.Shape;
  * This class produces a polygon shape from a reader.
  *
  * @author <a href="mailto:stephane@hillion.org">Stephane Hillion</a>
- * @version $Id: AWTPolygonProducer.java,v 1.1 2012/11/15 13:26:45 gaudenz Exp $
  */
 public class AWTPolygonProducer extends AWTPolylineProducer
 {

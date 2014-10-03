@@ -1,5 +1,4 @@
 /**
- * $Id: mxEvent.js,v 1.20 2014/02/16 10:42:49 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxEvent =
@@ -667,6 +666,15 @@ var mxEvent =
 	 * Default is -2.
 	 */
 	ROTATION_HANDLE: -2,
+	
+	/**
+	 * Variable: CUSTOM_HANDLE
+	 * 
+	 * Start index for the custom handles in an mxMouseEvent. This should be a
+	 * negative value and is the start index which is decremented for each
+	 * custom handle. Default is -100.
+	 */
+	CUSTOM_HANDLE: -100,
 	
 	//
 	// Event names

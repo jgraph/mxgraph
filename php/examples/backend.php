@@ -1,6 +1,5 @@
 <?php
 /**
- * $Id: backend.php,v 1.1 2013/10/10 08:37:32 gaudenz Exp $
  * Copyright (c) 2006, Gaudenz Alder
  */
 include_once("../src/mxServer.php");

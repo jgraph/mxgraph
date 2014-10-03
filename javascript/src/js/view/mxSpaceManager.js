@@ -1,5 +1,4 @@
 /**
- * $Id: mxSpaceManager.js,v 1.3 2014/02/15 10:45:16 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**

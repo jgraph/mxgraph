@@ -1,6 +1,5 @@
 <?php
 /**
- * $Id: mxGraphView.php,v 1.3 2014/02/19 09:41:00 gaudenz Exp $
  * Copyright (c) 2006-2013, Gaudenz Alder
  */
 class mxGraphView extends mxEventSource
@@ -425,8 +424,8 @@ class mxGraphView extends mxEventSource
 							
 						if ($origin != null)
 						{
-							$state->origin->x += ($origin->x / $this->scale) - $this->translate->x;
-							$state->origin->y += ($origin->y / $this->scale) - $this->translate->y;
+							$state->origin->x += ($origin->x / $this->scale) - $pState->origin->x - $this->translate->x;
+							$state->origin->y += ($origin->y / $this->scale) - $pState->origin->y - $this->translate->y;
 						}
 					}
 					else

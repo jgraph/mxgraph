@@ -1,5 +1,4 @@
 /**
- * $Id: GraphEditor.java,v 1.3 2014/02/08 14:05:58 gaudenz Exp $
  * Copyright (c) 2006-2012, JGraph Ltd */
 package com.mxgraph.examples.swing;
 

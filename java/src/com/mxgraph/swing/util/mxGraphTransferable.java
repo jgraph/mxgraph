@@ -1,5 +1,4 @@
 /**
- * $Id: mxGraphTransferable.java,v 1.2 2013/11/26 16:24:53 gaudenz Exp $
  * Copyright (c) 2008, Gaudenz Alder
  */
 package com.mxgraph.swing.util;

@@ -1,5 +1,4 @@
 /**
- * $Id: mxCircleLayout.js,v 1.2 2013/10/28 08:45:05 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**

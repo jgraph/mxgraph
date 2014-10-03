@@ -1,5 +1,4 @@
 /**
- * $Id: mxGraphView.java,v 1.3 2014/02/19 09:40:59 gaudenz Exp $
  * Copyright (c) 2007-2010, Gaudenz Alder, David Benson
  */
 package com.mxgraph.view;
@@ -29,10 +28,10 @@ import com.mxgraph.view.mxPerimeter.mxPerimeterFunction;
 /**
  * Implements a view for the graph. This class is in charge of computing the
  * absolute coordinates for the relative child geometries, the points for
- * perimeters and edge styles and keeping them cached in cell states for
- * faster retrieval. The states are updated whenever the model or the view
- * state (translate, scale) changes. The scale and translate are honoured in
- * the bounds.
+ * perimeters and edge styles and keeping them cached in cell states for faster
+ * retrieval. The states are updated whenever the model or the view state
+ * (translate, scale) changes. The scale and translate are honoured in the
+ * bounds.
  * 
  * This class fires the following events:
  * 
@@ -41,23 +40,24 @@ import com.mxgraph.view.mxPerimeter.mxPerimeterFunction;
  * mxCurrentRootChange.
  * 
  * mxEvent.SCALE_AND_TRANSLATE fires after the scale and transle have been
- * changed in scaleAndTranslate. The <code>scale</code>, <code>previousScale</code>,
- * <code>translate</code> and <code>previousTranslate</code> properties contain
- * the new and previous scale and translate, respectively.
+ * changed in scaleAndTranslate. The <code>scale</code>,
+ * <code>previousScale</code>, <code>translate</code> and
+ * <code>previousTranslate</code> properties contain the new and previous scale
+ * and translate, respectively.
  * 
  * mxEvent.SCALE fires after the scale was changed in setScale. The
- * <code>scale</code> and <code>previousScale</code> properties contain the
- * new and previous scale.
+ * <code>scale</code> and <code>previousScale</code> properties contain the new
+ * and previous scale.
  * 
  * mxEvent.TRANSLATE fires after the translate was changed in setTranslate. The
  * <code>translate</code> and <code>previousTranslate</code> properties contain
  * the new and previous value for translate.
  * 
  * mxEvent.UP and mxEvent.DOWN fire if the current root is changed by executing
- * a mxCurrentRootChange. The event name depends on the location of the root
- * in the cell hierarchy with respect to the current root. The
- * <code>root</code> and <code>previous</code> properties contain the new and
- * previous root, respectively.
+ * a mxCurrentRootChange. The event name depends on the location of the root in
+ * the cell hierarchy with respect to the current root. The <code>root</code>
+ * and <code>previous</code> properties contain the new and previous root,
+ * respectively.
  */
 public class mxGraphView extends mxEventSource
 {
@@ -87,8 +87,8 @@ public class mxGraphView extends mxEventSource
 	protected double scale = 1;
 
 	/**
-	 * Point that specifies the current translation. Default is a new
-	 * empty point.
+	 * Point that specifies the current translation. Default is a new empty
+	 * point.
 	 */
 	protected mxPoint translate = new mxPoint(0, 0);
 
@@ -100,7 +100,8 @@ public class mxGraphView extends mxEventSource
 	/**
 	 * Constructs a new view for the given graph.
 	 * 
-	 * @param graph Reference to the enclosing graph.
+	 * @param graph
+	 *            Reference to the enclosing graph.
 	 */
 	public mxGraphView(mxGraph graph)
 	{
@@ -162,7 +163,9 @@ public class mxGraphView extends mxEventSource
 	/**
 	 * Sets and returns the current root and fires an undo event.
 	 * 
-	 * @param root mxCell that specifies the root of the displayed cell hierarchy.
+	 * @param root
+	 *            mxCell that specifies the root of the displayed cell
+	 *            hierarchy.
 	 * @return Returns the object that represents the current root.
 	 */
 	public Object setCurrentRoot(Object root)
@@ -180,13 +183,15 @@ public class mxGraphView extends mxEventSource
 	}
 
 	/**
-	 * Sets the scale and translation. Fires a "scaleAndTranslate"
-	 * event after calling revalidate. Revalidate is only called if
-	 * isEventsEnabled.
+	 * Sets the scale and translation. Fires a "scaleAndTranslate" event after
+	 * calling revalidate. Revalidate is only called if isEventsEnabled.
 	 * 
-	 * @param scale Decimal value that specifies the new scale (1 is 100%).
-	 * @param dx X-coordinate of the translation.
-	 * @param dy Y-coordinate of the translation.
+	 * @param scale
+	 *            Decimal value that specifies the new scale (1 is 100%).
+	 * @param dx
+	 *            X-coordinate of the translation.
+	 * @param dy
+	 *            Y-coordinate of the translation.
 	 */
 	public void scaleAndTranslate(double scale, double dx, double dy)
 	{
@@ -221,11 +226,11 @@ public class mxGraphView extends mxEventSource
 	}
 
 	/**
-	 * Sets the current scale and revalidates the view. Fires a "scale"
-	 * event after calling revalidate. Revalidate is only called if
-	 * isEventsEnabled.
+	 * Sets the current scale and revalidates the view. Fires a "scale" event
+	 * after calling revalidate. Revalidate is only called if isEventsEnabled.
 	 * 
-	 * @param value New scale to be used.
+	 * @param value
+	 *            New scale to be used.
 	 */
 	public void setScale(double value)
 	{
@@ -256,11 +261,12 @@ public class mxGraphView extends mxEventSource
 	}
 
 	/**
-	 * Sets the current translation and invalidates the view. Fires
-	 * a property change event for "translate" after calling
-	 * revalidate. Revalidate is only called if isEventsEnabled.
+	 * Sets the current translation and invalidates the view. Fires a property
+	 * change event for "translate" after calling revalidate. Revalidate is only
+	 * called if isEventsEnabled.
 	 * 
-	 * @param value New translation to be used.
+	 * @param value
+	 *            New translation to be used.
 	 */
 	public void setTranslate(mxPoint value)
 	{
@@ -378,8 +384,8 @@ public class mxGraphView extends mxEventSource
 	}
 
 	/**
-	 * Removes the state of the given cell and all descendants if the given
-	 * cell is not the current root.
+	 * Removes the state of the given cell and all descendants if the given cell
+	 * is not the current root.
 	 * 
 	 * @param cell
 	 * @param force
@@ -461,11 +467,13 @@ public class mxGraphView extends mxEventSource
 	}
 
 	/**
-	 * Returns the bounding box of the shape and the label for the given
-	 * cell state and its children if recurse is true.
+	 * Returns the bounding box of the shape and the label for the given cell
+	 * state and its children if recurse is true.
 	 * 
-	 * @param state Cell state whose bounding box should be returned.
-	 * @param recurse Boolean indicating if the children should be included.
+	 * @param state
+	 *            Cell state whose bounding box should be returned.
+	 * @param recurse
+	 *            Boolean indicating if the children should be included.
 	 */
 	public mxRectangle getBoundingBox(mxCellState state, boolean recurse)
 	{
@@ -481,12 +489,12 @@ public class mxGraphView extends mxEventSource
 			if (recurse)
 			{
 				mxIGraphModel model = graph.getModel();
-				int childCount = model.getChildCount(state.cell);
+				int childCount = model.getChildCount(state.getCell());
 
 				for (int i = 0; i < childCount; i++)
 				{
 					mxRectangle bounds = getBoundingBox(
-							getState(model.getChildAt(state.cell, i)), true);
+							getState(model.getChildAt(state.getCell(), i)), true);
 
 					if (bounds != null)
 					{
@@ -515,12 +523,14 @@ public class mxGraphView extends mxEventSource
 	}
 
 	/**
-	 * Recursively creates the cell state for the given cell if visible is true and
-	 * the given cell is visible. If the cell is not visible but the state exists
-	 * then it is removed using removeState.
+	 * Recursively creates the cell state for the given cell if visible is true
+	 * and the given cell is visible. If the cell is not visible but the state
+	 * exists then it is removed using removeState.
 	 * 
-	 * @param cell Cell whose cell state should be created.
-	 * @param visible Boolean indicating if the cell should be visible.
+	 * @param cell
+	 *            Cell whose cell state should be created.
+	 * @param visible
+	 *            Boolean indicating if the cell should be visible.
 	 */
 	public Object validateCell(Object cell, boolean visible)
 	{
@@ -562,9 +572,11 @@ public class mxGraphView extends mxEventSource
 	/**
 	 * Validates the cell state for the given cell.
 	 * 
-	 * @param cell Cell whose cell state should be validated.
-	 * @param recurse Boolean indicating if the children of the cell should be
-	 * validated.
+	 * @param cell
+	 *            Cell whose cell state should be validated.
+	 * @param recurse
+	 *            Boolean indicating if the children of the cell should be
+	 *            validated.
 	 */
 	public mxCellState validateCellState(Object cell, boolean recurse)
 	{
@@ -593,7 +605,7 @@ public class mxGraphView extends mxEventSource
 					state.setVisibleTerminalState(
 							validateCellState(getVisibleTerminal(cell, false),
 									false), false);
-
+					
 					updateCellState(state);
 
 					if (model.isEdge(cell) || model.isVertex(cell))
@@ -621,7 +633,8 @@ public class mxGraphView extends mxEventSource
 	/**
 	 * Updates the given cell state.
 	 * 
-	 * @param state Cell state to be updated.
+	 * @param state
+	 *            Cell state to be updated.
 	 */
 	public void updateCellState(mxCellState state)
 	{
@@ -658,7 +671,7 @@ public class mxGraphView extends mxEventSource
 
 			if (geo != null)
 			{
-				if (!model.isEdge(state.cell))
+				if (!model.isEdge(state.getCell()))
 				{
 					mxPoint origin = state.getOrigin();
 					offset = geo.getOffset();
@@ -670,17 +683,17 @@ public class mxGraphView extends mxEventSource
 
 					if (geo.isRelative() && pState != null)
 					{
-						if (model.isEdge(pState.cell))
+						if (model.isEdge(pState.getCell()))
 						{
 							mxPoint orig = getPoint(pState, geo);
-
+							
 							if (orig != null)
 							{
 								origin.setX(origin.getX()
-										+ (orig.getX() / scale)
+										+ (orig.getX() / scale) - pState.getOrigin().getX()
 										- translate.getX());
 								origin.setY(origin.getY()
-										+ (orig.getY() / scale)
+										+ (orig.getY() / scale) - pState.getOrigin().getY()
 										- translate.getY());
 							}
 						}
@@ -750,7 +763,7 @@ public class mxGraphView extends mxEventSource
 				|| (graph.getModel().getTerminal(state.getCell(), false) != null && target == null)
 				|| (target == null && geo.getTerminalPoint(false) == null))
 		{
-			clear(state.cell, true, true);
+			clear(state.getCell(), true, true);
 		}
 		else
 		{
@@ -763,8 +776,10 @@ public class mxGraphView extends mxEventSource
 							|| state.getAbsolutePoint(0) == null || state
 							.getAbsolutePoint(state.getAbsolutePointCount() - 1) == null))
 			{
-				// This will remove edges with invalid points from the list of states in the view.
-				// Happens if the one of the terminals and the corresponding terminal point is null.
+				// This will remove edges with invalid points from the list of
+				// states in the view.
+				// Happens if the one of the terminals and the corresponding
+				// terminal point is null.
 				clear(state.getCell(), true, true);
 			}
 			else
@@ -779,7 +794,8 @@ public class mxGraphView extends mxEventSource
 	 * Updates the absoluteOffset of the given vertex cell state. This takes
 	 * into account the label position styles.
 	 * 
-	 * @param state Cell state whose absolute offset should be updated.
+	 * @param state
+	 *            Cell state whose absolute offset should be updated.
 	 */
 	public void updateVertexLabelOffset(mxCellState state)
 	{
@@ -821,7 +837,8 @@ public class mxGraphView extends mxEventSource
 		String label = graph.getLabel(state.getCell());
 		Map<String, Object> style = state.getStyle();
 
-		// Applies word wrapping to non-HTML labels and stores the result in the state
+		// Applies word wrapping to non-HTML labels and stores the result in the
+		// state
 		if (label != null
 				&& label.length() > 0
 				&& !graph.isHtmlLabel(state.getCell())
@@ -831,12 +848,17 @@ public class mxGraphView extends mxEventSource
 		{
 			double w = getWordWrapWidth(state);
 
-			// The lines for wrapping within the given width are calculated for no
-			// scale. The reason for this is the granularity of actual displayed 
-			// font can cause the displayed lines to change based on scale. A factor 
-			// is used to allow for different overalls widths, it ensures the largest 
-			// font size/scale factor still stays within the bounds. All this ensures
-			// the wrapped lines are constant overing scaling, at the expense the 
+			// The lines for wrapping within the given width are calculated for
+			// no
+			// scale. The reason for this is the granularity of actual displayed
+			// font can cause the displayed lines to change based on scale. A
+			// factor
+			// is used to allow for different overalls widths, it ensures the
+			// largest
+			// font size/scale factor still stays within the bounds. All this
+			// ensures
+			// the wrapped lines are constant overing scaling, at the expense
+			// the
 			// label bounds will vary.
 			String[] lines = mxUtils.wordWrap(label,
 					mxUtils.getFontMetrics(mxUtils.getFont(state.getStyle())),
@@ -859,8 +881,7 @@ public class mxGraphView extends mxEventSource
 	}
 
 	/**
-	 * Returns the width for wrapping the label of the given state at
-	 * scale 1.
+	 * Returns the width for wrapping the label of the given state at scale 1.
 	 */
 	public double getWordWrapWidth(mxCellState state)
 	{
@@ -941,9 +962,9 @@ public class mxGraphView extends mxEventSource
 
 	/**
 	 * Updates the bounding box in the given cell state.
-	 *  
-	 * @param state Cell state whose bounding box should be
-	 * updated.
+	 * 
+	 * @param state
+	 *            Cell state whose bounding box should be updated.
 	 */
 	public mxRectangle updateBoundingBox(mxCellState state)
 	{
@@ -1059,12 +1080,15 @@ public class mxGraphView extends mxEventSource
 	}
 
 	/**
-	 * Sets the initial absolute terminal points in the given state before the edge
-	 * style is computed.
+	 * Sets the initial absolute terminal points in the given state before the
+	 * edge style is computed.
 	 * 
-	 * @param edge Cell state whose initial terminal points should be updated.
-	 * @param source Cell state which represents the source terminal.
-	 * @param target Cell state which represents the target terminal.
+	 * @param edge
+	 *            Cell state whose initial terminal points should be updated.
+	 * @param source
+	 *            Cell state which represents the source terminal.
+	 * @param target
+	 *            Cell state which represents the target terminal.
 	 */
 	public void updateFixedTerminalPoints(mxCellState edge, mxCellState source,
 			mxCellState target)
@@ -1078,8 +1102,8 @@ public class mxGraphView extends mxEventSource
 	/**
 	 * Sets the fixed source or target terminal point on the given edge.
 	 * 
-	 * @param edge Cell state whose initial terminal points should be
-	 * updated.
+	 * @param edge
+	 *            Cell state whose initial terminal points should be updated.
 	 */
 	public void updateFixedTerminalPoint(mxCellState edge,
 			mxCellState terminal, boolean source,
@@ -1095,7 +1119,7 @@ public class mxGraphView extends mxEventSource
 		if (pt == null && terminal == null)
 		{
 			mxPoint orig = edge.getOrigin();
-			mxGeometry geo = graph.getCellGeometry(edge.cell);
+			mxGeometry geo = graph.getCellGeometry(edge.getCell());
 			pt = geo.getTerminalPoint(source);
 
 			if (pt != null)
@@ -1113,10 +1137,14 @@ public class mxGraphView extends mxEventSource
 	 * Updates the absolute points in the given state using the specified array
 	 * of points as the relative points.
 	 * 
-	 * @param edge Cell state whose absolute points should be updated.
-	 * @param points Array of points that constitute the relative points.
-	 * @param source Cell state that represents the source terminal.
-	 * @param target Cell state that represents the target terminal.
+	 * @param edge
+	 *            Cell state whose absolute points should be updated.
+	 * @param points
+	 *            Array of points that constitute the relative points.
+	 * @param source
+	 *            Cell state that represents the source terminal.
+	 * @param target
+	 *            Cell state that represents the target terminal.
 	 */
 	public void updatePoints(mxCellState edge, List<mxPoint> points,
 			mxCellState source, mxCellState target)
@@ -1161,8 +1189,8 @@ public class mxGraphView extends mxEventSource
 	}
 
 	/**
-	 * Returns the edge style function to be used to compute the absolute
-	 * points for the given state, control points and terminals.
+	 * Returns the edge style function to be used to compute the absolute points
+	 * for the given state, control points and terminals.
 	 */
 	public mxEdgeStyleFunction getEdgeStyle(mxCellState edge,
 			List<mxPoint> points, Object source, Object target)
@@ -1210,9 +1238,12 @@ public class mxGraphView extends mxEventSource
 	 * Updates the terminal points in the given state after the edge style was
 	 * computed for the edge.
 	 * 
-	 * @param state Cell state whose terminal points should be updated.
-	 * @param source Cell state that represents the source terminal.
-	 * @param target Cell state that represents the target terminal.
+	 * @param state
+	 *            Cell state whose terminal points should be updated.
+	 * @param source
+	 *            Cell state that represents the source terminal.
+	 * @param target
+	 *            Cell state that represents the target terminal.
 	 */
 	public void updateFloatingTerminalPoints(mxCellState state,
 			mxCellState source, mxCellState target)
@@ -1235,10 +1266,14 @@ public class mxGraphView extends mxEventSource
 	 * Updates the absolute terminal point in the given state for the given
 	 * start and end state, where start is the source if source is true.
 	 * 
-	 * @param edge Cell state whose terminal point should be updated.
-	 * @param start Cell state for the terminal on "this" side of the edge.
-	 * @param end Cell state for the terminal on the other side of the edge.
-	 * @param source Boolean indicating if start is the source terminal state.
+	 * @param edge
+	 *            Cell state whose terminal point should be updated.
+	 * @param start
+	 *            Cell state for the terminal on "this" side of the edge.
+	 * @param end
+	 *            Cell state for the terminal on the other side of the edge.
+	 * @param source
+	 *            Boolean indicating if start is the source terminal state.
 	 */
 	public void updateFloatingTerminalPoint(mxCellState edge,
 			mxCellState start, mxCellState end, boolean source)
@@ -1282,8 +1317,9 @@ public class mxGraphView extends mxEventSource
 	}
 
 	/**
-	 * Returns a point that defines the location of the intersection point between
-	 * the perimeter and the line between the center of the shape and the given point.
+	 * Returns a point that defines the location of the intersection point
+	 * between the perimeter and the line between the center of the shape and
+	 * the given point.
 	 */
 	public mxPoint getPerimeterPoint(mxCellState terminal, mxPoint next,
 			boolean orthogonal)
@@ -1292,16 +1328,21 @@ public class mxGraphView extends mxEventSource
 	}
 
 	/**
-	 * Returns a point that defines the location of the intersection point between
-	 * the perimeter and the line between the center of the shape and the given point.
+	 * Returns a point that defines the location of the intersection point
+	 * between the perimeter and the line between the center of the shape and
+	 * the given point.
 	 * 
-	 * @param terminal Cell state for the source or target terminal.
-	 * @param next Point that lies outside of the given terminal.
-	 * @param orthogonal Boolean that specifies if the orthogonal projection onto
-	 * the perimeter should be returned. If this is false then the intersection
-	 * of the perimeter and the line between the next and the center point is
-	 * returned.
-	 * @param border Optional border between the perimeter and the shape.
+	 * @param terminal
+	 *            Cell state for the source or target terminal.
+	 * @param next
+	 *            Point that lies outside of the given terminal.
+	 * @param orthogonal
+	 *            Boolean that specifies if the orthogonal projection onto the
+	 *            perimeter should be returned. If this is false then the
+	 *            intersection of the perimeter and the line between the next
+	 *            and the center point is returned.
+	 * @param border
+	 *            Optional border between the perimeter and the shape.
 	 */
 	public mxPoint getPerimeterPoint(mxCellState terminal, mxPoint next,
 			boolean orthogonal, double border)
@@ -1401,13 +1442,16 @@ public class mxGraphView extends mxEventSource
 	}
 
 	/**
-	 * Returns the nearest point in the list of absolute points or the center
-	 * of the opposite terminal.
+	 * Returns the nearest point in the list of absolute points or the center of
+	 * the opposite terminal.
 	 * 
-	 * @param edge Cell state that represents the edge.
-	 * @param opposite Cell state that represents the opposite terminal.
-	 * @param source Boolean indicating if the next point for the source or target
-	 * should be returned.
+	 * @param edge
+	 *            Cell state that represents the edge.
+	 * @param opposite
+	 *            Cell state that represents the opposite terminal.
+	 * @param source
+	 *            Boolean indicating if the next point for the source or target
+	 *            should be returned.
 	 * @return Returns the nearest point of the opposite side.
 	 */
 	public mxPoint getNextPoint(mxCellState edge, mxCellState opposite,
@@ -1436,9 +1480,11 @@ public class mxGraphView extends mxEventSource
 	 * Returns the nearest ancestor terminal that is visible. The edge appears
 	 * to be connected to this terminal on the display.
 	 * 
-	 * @param edge Cell whose visible terminal should be returned.
-	 * @param source Boolean that specifies if the source or target terminal
-	 * should be returned.
+	 * @param edge
+	 *            Cell whose visible terminal should be returned.
+	 * @param source
+	 *            Boolean that specifies if the source or target terminal should
+	 *            be returned.
 	 * @return Returns the visible source or target terminal.
 	 */
 	public Object getVisibleTerminal(Object edge, boolean source)
@@ -1470,7 +1516,8 @@ public class mxGraphView extends mxEventSource
 	 * Updates the given state using the bounding box of the absolute points.
 	 * Also updates terminal distance, length and segments.
 	 * 
-	 * @param state Cell state whose bounds should be updated.
+	 * @param state
+	 *            Cell state whose bounds should be updated.
 	 */
 	public void updateEdgeBounds(mxCellState state)
 	{
@@ -1538,13 +1585,15 @@ public class mxGraphView extends mxEventSource
 	}
 
 	/**
-	 * Returns the absolute point on the edge for the given relative
-	 * geometry as a point. The edge is represented by the given cell state.
+	 * Returns the absolute point on the edge for the given relative geometry as
+	 * a point. The edge is represented by the given cell state.
 	 * 
-	 * @param state Represents the state of the parent edge.
-	 * @param geometry Optional geometry that represents the relative location.
-	 * @return Returns the mxpoint that represents the absolute location
-	 * of the given relative geometry.
+	 * @param state
+	 *            Represents the state of the parent edge.
+	 * @param geometry
+	 *            Optional geometry that represents the relative location.
+	 * @return Returns the mxpoint that represents the absolute location of the
+	 *         given relative geometry.
 	 */
 	public mxPoint getPoint(mxCellState state, mxGeometry geometry)
 	{
@@ -1614,8 +1663,8 @@ public class mxGraphView extends mxEventSource
 	}
 
 	/**
-	 * Gets the relative point that describes the given, absolute label
-	 * position for the given edge state.
+	 * Gets the relative point that describes the given, absolute label position
+	 * for the given edge state.
 	 */
 	public mxPoint getRelativePoint(mxCellState edgeState, double x, double y)
 	{
@@ -1747,7 +1796,8 @@ public class mxGraphView extends mxEventSource
 	 * Returns the state for the given cell or null if no state is defined for
 	 * the cell.
 	 * 
-	 * @param cell Cell whose state should be returned.
+	 * @param cell
+	 *            Cell whose state should be returned.
 	 * @return Returns the state for the given cell.
 	 */
 	public mxCellState getState(Object cell)
@@ -1756,12 +1806,14 @@ public class mxGraphView extends mxEventSource
 	}
 
 	/**
-	 * Returns the cell state for the given cell. If create is true, then
-	 * the state is created if it does not yet exist.
+	 * Returns the cell state for the given cell. If create is true, then the
+	 * state is created if it does not yet exist.
 	 * 
-	 * @param cell Cell for which a new state should be returned.
-	 * @param create Boolean indicating if a new state should be created if it
-	 * does not yet exist.
+	 * @param cell
+	 *            Cell for which a new state should be returned.
+	 * @param create
+	 *            Boolean indicating if a new state should be created if it does
+	 *            not yet exist.
 	 * @return Returns the state for the given cell.
 	 */
 	public mxCellState getState(Object cell, boolean create)
@@ -1785,7 +1837,8 @@ public class mxGraphView extends mxEventSource
 	/**
 	 * Removes and returns the mxCellState for the given cell.
 	 * 
-	 * @param cell mxCell for which the mxCellState should be removed.
+	 * @param cell
+	 *            mxCell for which the mxCellState should be removed.
 	 * @return Returns the mxCellState that has been removed.
 	 */
 	public mxCellState removeState(Object cell)
@@ -1796,7 +1849,8 @@ public class mxGraphView extends mxEventSource
 	/**
 	 * Creates and returns a cell state for the given cell.
 	 * 
-	 * @param cell Cell for which a new state should be created.
+	 * @param cell
+	 *            Cell for which a new state should be created.
 	 * @return Returns a new state for the given cell.
 	 */
 	public mxCellState createState(Object cell)

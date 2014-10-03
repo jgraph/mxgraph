@@ -1,5 +1,4 @@
 /**
- * $Id: mxCodec.js,v 1.7 2014/01/20 19:35:17 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**

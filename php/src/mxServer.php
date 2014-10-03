@@ -1,19 +1,18 @@
 <?php
 /**
- * $Id: mxServer.php,v 1.1 2012/11/15 13:26:50 gaudenz Exp $
  * Copyright (c) 2006, Gaudenz Alder
  *
  * Class: mxServer
  *
- * Bootstrapping for the PHP backend. This is version 3.0.1.1
+ * Bootstrapping for the PHP backend. This is version 3.1.0.0
  * of mxGraph.
  *
  * Variable: MXGRAPH-VERSION
  *
  * Constant that holds the current mxGraph version. The current version
- * is 3.0.1.1.
+ * is 3.1.0.0.
  */
-define("MXGRAPH-VERSION", "3.0.1.1");
+define("MXGRAPH-VERSION", "3.1.0.0");
 
 include_once("util/mxLog.php");
 include_once("util/mxConstants.php");

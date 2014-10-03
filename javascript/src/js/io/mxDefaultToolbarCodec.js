@@ -1,17 +1,16 @@
 /**
- * $Id: mxDefaultToolbarCodec.js,v 1.2 2013/10/28 08:45:02 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
-mxCodecRegistry.register(function()
+/**
+ * Class: mxDefaultToolbarCodec
+ *
+ * Custom codec for configuring <mxDefaultToolbar>s. This class is created
+ * and registered dynamically at load time and used implicitely via
+ * <mxCodec> and the <mxCodecRegistry>. This codec only reads configuration
+ * data for existing toolbars handlers, it does not encode or create toolbars.
+ */
+var mxDefaultToolbarCodec = mxCodecRegistry.register(function()
 {
-	/**
-	 * Class: mxDefaultToolbarCodec
-	 *
-	 * Custom codec for configuring <mxDefaultToolbar>s. This class is created
-	 * and registered dynamically at load time and used implicitely via
-	 * <mxCodec> and the <mxCodecRegistry>. This codec only reads configuration
-	 * data for existing toolbars handlers, it does not encode or create toolbars.
-	 */
 	var codec = new mxObjectCodec(new mxDefaultToolbar());
 
 	/**
@@ -94,6 +93,8 @@ mxCodecRegistry.register(function()
 	 *   }
 	 * ]]></add>
 	 * (end)
+	 * 
+	 * Both functions require <mxDefaultToolbarCodec.allowEval> to be set to true.
 	 *
 	 * Modes:
 	 *
@@ -158,7 +159,7 @@ mxCodecRegistry.register(function()
 							}
 							else if (mode != null)
 							{
-								var funct = mxUtils.eval(text);
+								var funct = (mxDefaultToolbarCodec.allowEval) ? mxUtils.eval(text) : null;
 								elt = into.addMode(as, icon, mode, pressedIcon, funct);
 							}
 							else if (template != null || (text != null && text.length > 0))
@@ -174,7 +175,7 @@ mxCodecRegistry.register(function()
 								
 								var insertFunction = null;
 								
-								if (text != null && text.length > 0)
+								if (text != null && text.length > 0 && mxDefaultToolbarCodec.allowEval)
 								{
 									insertFunction = mxUtils.eval(text);
 								}
@@ -299,3 +300,12 @@ mxCodecRegistry.register(function()
 	return codec;
 
 }());
+
+/**
+ * Variable: allowEval
+ * 
+ * Static global switch that specifies if the use of eval is allowed for
+ * evaluating text content. Default is true. Set this to false if stylesheets
+ * may contain user input (see the section on security in the manual).
+ */
+mxDefaultToolbarCodec.allowEval = true;

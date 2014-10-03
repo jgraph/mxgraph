@@ -1,5 +1,4 @@
 /**
- * $Id: mxChildChangeCodec.js,v 1.2 2013/10/28 08:45:03 gaudenz Exp $
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 mxCodecRegistry.register(function()

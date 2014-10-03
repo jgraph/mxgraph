@@ -1,5 +1,4 @@
 /**
- * $Id: mxSwimlaneModel.js,v 1.3 2013/07/30 11:56:21 david Exp $
  * Copyright (c) 2006-2012, JGraph Ltd
  */
 /**
