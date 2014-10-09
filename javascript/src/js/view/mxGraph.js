@@ -3168,9 +3168,9 @@ mxGraph.prototype.setCellStyle = function(style, cells)
 /**
  * Function: toggleCellStyle
  * 
- * Toggles the boolean value for the given key in the style of the
- * given cell. If no cell is specified then the selection cell is
- * used.
+ * Toggles the boolean value for the given key in the style of the given cell
+ * and returns the new value as 0 or 1. If no cell is specified then the
+ * selection cell is used.
  * 
  * Parameter:
  * 
@@ -3184,16 +3184,16 @@ mxGraph.prototype.toggleCellStyle = function(key, defaultValue, cell)
 {
 	cell = cell || this.getSelectionCell();
 	
-	this.toggleCellStyles(key, defaultValue, [cell]);
+	return this.toggleCellStyles(key, defaultValue, [cell]);
 };
 
 /**
  * Function: toggleCellStyles
  * 
- * Toggles the boolean value for the given key in the style of the given
- * cells. If no cells are specified, then the selection cells are used. For
- * example, this can be used to toggle <mxConstants.STYLE_ROUNDED> or any
- * other style with a boolean value.
+ * Toggles the boolean value for the given key in the style of the given cells
+ * and returns the new value as 0 or 1. If no cells are specified, then the
+ * selection cells are used. For example, this can be used to toggle
+ * <mxConstants.STYLE_ROUNDED> or any other style with a boolean value.
  * 
  * Parameter:
  * 
@@ -3207,6 +3207,7 @@ mxGraph.prototype.toggleCellStyles = function(key, defaultValue, cells)
 {
 	defaultValue = (defaultValue != null) ? defaultValue : false;
 	cells = cells || this.getSelectionCells();
+	var value = null;
 	
 	if (cells != null && cells.length > 0)
 	{
@@ -3215,10 +3216,12 @@ mxGraph.prototype.toggleCellStyles = function(key, defaultValue, cells)
 		
 		if (style != null)
 		{
-			var val = (mxUtils.getValue(style, key, defaultValue)) ? 0 : 1;
-			this.setCellStyles(key, val, cells);
+			value = (mxUtils.getValue(style, key, defaultValue)) ? 0 : 1;
+			this.setCellStyles(key, value, cells);
 		}
 	}
+	
+	return value;
 };
 
 /**
@@ -4104,8 +4107,7 @@ mxGraph.prototype.cloneCells = function(cells, allowInvalidEdges)
 							}
 							else
 							{
-								g.x += dx;
-								g.y += dy;
+								g.translate(dx, dy);
 							}
 						}
 					}

@@ -203,82 +203,355 @@ EditorUi = function(editor, container)
 		return keyHandler;
 	};
 	
-	// Stores the current selection for fontfamily, size and alignment and assigns it to new cells
+	// Stores the current style and assigns it to new cells
+	// LATER: Update after copyStyle (handle defaults) and after menu Format, Style
+	var styles = ['shadow', 'dashed', 'dashPattern'];
+	var connectStyles = ['shape', 'edgeStyle', 'curved', 'rounded'];
+	
+	// Sets the default edge style
+	var currentEdgeStyle = {'edgeStyle': 'orthogonalEdgeStyle', 'rounded': '0'};
 	var currentStyle = {};
-	var currentEdgeStyle = {};
-	var styles = ['fontFamily', 'fontSize', 'align'];
 	
-	// Edge style interferes with set default edge feature, need to cleanup
-	// edge insert, default edge, connect process and make it more consistent
-	var edgeStyles = []; //['startArrow', 'endFill', 'endSize', 'startFill', 'startSize', 'endArrow', 'edgeStyle'];
-	
-	// Implements a stateful toolbar where the current values for fontFamily,
-	// fontSize and alignment are applied to all new cells
-	var insertHandler = function(cells, connect)
+	this.setDefaultStyle = function(cell)
 	{
-		if (cells != null && cells.length == 1)
+		var state = graph.view.getState(cell);
+		
+		if (cell != null)
 		{
-			var value = graph.convertValueToString(cells[0]);
-			
-			// Only applies current style to cells with no value
-			if (value == null || value.length == 0)
-			{
-				for (var j = 0; j < styles.length; j++)
-				{
-					var key = styles[j];
-					var value = currentStyle[key];
+			// Ignores default styles
+			var clone = cell.clone();
+			clone.style = ''
+			var defaultStyle = graph.getCellStyle(clone);
+			var values = [];
+			var keys = [];
 
-					// Overrides existing and inherited styles
-					if (value != null)
-					{
-						graph.setCellStyles(key, value, cells);
-					}
-				}
-				
-				if (connect && cells.length == 1 && graph.getModel().isEdge(cells[0]))
+			for (var key in state.style)
+			{
+				if (defaultStyle[key] != state.style[key])
 				{
-					for (var j = 0; j < edgeStyles.length; j++)
+					values.push(state.style[key]);
+					keys.push(key);
+				}
+			}
+			
+			// Handles special case for value "none"
+			var cellStyle = graph.getModel().getStyle(state.cell);
+			var tokens = (cellStyle != null) ? cellStyle.split(';') : [];
+			
+			for (var i = 0; i < tokens.length; i++)
+			{
+				var tmp = tokens[i];
+		 		var pos = tmp.indexOf('=');
+		 					 		
+		 		if (pos >= 0)
+		 		{
+		 			var key = tmp.substring(0, pos);
+		 			var value = tmp.substring(pos + 1);
+		 			
+		 			if (defaultStyle[key] != null && value == 'none')
+		 			{
+		 				values.push(value);
+		 				keys.push(key);
+		 			}
+		 		}
+			}
+
+			// Resets current style
+			if (graph.getModel().isEdge(state.cell))
+			{
+				currentEdgeStyle = {};
+			}
+			else
+			{
+				currentStyle = {}
+			}
+
+			this.fireEvent(new mxEventObject('styleChanged', 'keys', keys, 'values', values, 'cells', [state.cell]));
+		}
+	};
+	
+	// Constructs the style for the initial edge type defined in the initial value for the currentEdgeStyle
+	// This function is overridden below as soon as any style is set in the app.
+	var initialEdgeCellStyle = '';
+	
+	for (var key in currentEdgeStyle)
+	{
+		initialEdgeCellStyle += key + '=' + currentEdgeStyle[key] + ';';
+	}
+	
+	// Uses the default edge style for connect preview
+	graph.connectionHandler.createEdgeState = function(me)
+	{
+		var edge = graph.createEdge(null, null, null, null, null, initialEdgeCellStyle);
+		
+		return new mxCellState(graph.view, edge, graph.getCellStyle(edge));
+    };
+	
+	// Keys that should be ignored if the cell has a value
+	var valueStyles = ['fontFamily', 'fontSize', 'fontColor', 'align'];
+	
+	// Keys that are ignored together (if one appears all are ignored)
+	var keyGroups = [['startArrow', 'startFill', 'startSize', 'endArrow', 'endFill', 'endSize'],
+	                 ['strokeColor', 'strokeWidth'],
+	                 ['fillColor', 'gradientColor']];
+	
+	// Adds all keys used above to the styles array
+	for (var i = 0; i < valueStyles.length; i++)
+	{
+		styles.push(valueStyles[i]);
+	}
+	
+	for (var i = 0; i < keyGroups.length; i++)
+	{
+		for (var j = 0; j < keyGroups[i].length; j++)
+		{
+			styles.push(keyGroups[i][j]);
+		}
+	}
+	
+	for (var i = 0; i < connectStyles.length; i++)
+	{
+		styles.push(connectStyles[i]);
+	}
+
+	// Implements a global current style for edges and vertices that is applied to new cells
+	var insertHandler = function(cells)
+	{
+		graph.getModel().beginUpdate();
+		try
+		{
+			for (var i = 0; i < cells.length; i++)
+			{
+				var cell = cells[i];
+				
+				// Removes styles defined in the cell style from the styles to be applied
+				var cellStyle = graph.getModel().getStyle(cell);
+				var tokens = (cellStyle != null) ? cellStyle.split(';') : [];
+				var appliedStyles = styles.slice();
+				
+				for (var j = 0; j < tokens.length; j++)
+				{
+					var tmp = tokens[j];
+			 		var pos = tmp.indexOf('=');
+			 					 		
+			 		if (pos >= 0)
+			 		{
+			 			var key = tmp.substring(0, pos);
+			 			var index = mxUtils.indexOf(appliedStyles, key);
+			 			
+			 			if (index >= 0)
+			 			{
+			 				appliedStyles.splice(index, 1);
+			 			}
+			 			
+			 			// Handles special cases where one defined style ignores other styles
+			 			for (var k = 0; k < keyGroups.length; k++)
+			 			{
+			 				var group = keyGroups[k];
+			 				
+			 				if (mxUtils.indexOf(group, key) >= 0)
+			 				{
+			 					for (var l = 0; l < group.length; l++)
+			 					{
+						 			var index2 = mxUtils.indexOf(appliedStyles, group[l]);
+						 			
+						 			if (index2 >= 0)
+						 			{
+						 				appliedStyles.splice(index2, 1);
+						 			}
+			 					}
+			 				}
+			 			}
+			 		}
+				}
+
+				// Applies the current style to the cell
+				var value = graph.convertValueToString(cell);
+				var edge = graph.getModel().isEdge(cell);
+				var current = (edge) ? currentEdgeStyle : currentStyle;
+
+				for (var j = 0; j < appliedStyles.length; j++)
+				{
+					var key = appliedStyles[j];
+					var styleValue = current[key];
+
+					// Ignores text formatting styles if cell has an predefined value
+					if (styleValue != null && (value == null || value.length == 0 || mxUtils.indexOf(valueStyles, key) < 0))
 					{
-						var key = edgeStyles[j];
-						var value = currentEdgeStyle[key];
-						
-						if (value != null)
+						// Special case: Shape and edge style only applied on edges via connect
+						// which means the source terminal is not null at this point
+						if (!edge || (mxUtils.indexOf(connectStyles, key) < 0 || graph.getModel().getTerminal(cell, true) != null))
 						{
-							graph.setCellStyles(key, value, cells);
+							graph.setCellStyles(key, styleValue, [cell]);
 						}
 					}
 				}
 			}
 		}
+		finally
+		{
+			graph.getModel().endUpdate();
+		}
 	};
 
 	this.addListener('cellsInserted', function(sender, evt)
 	{
-		insertHandler(evt.getProperty('cells'), false);
+		insertHandler(evt.getProperty('cells'));
 	});
 	
 	graph.connectionHandler.addListener(mxEvent.CONNECT, function(sender, evt)
 	{
-		insertHandler([evt.getProperty('cell')], true);
+		var cells = [evt.getProperty('cell')];
+		
+		if (evt.getProperty('terminalInserted'))
+		{
+			cells.push(evt.getProperty('terminal'));
+		}
+		
+		insertHandler(cells, true);
 	});
 	
-	this.addListener('styleChanged', function(sender, evt)
+	this.addListener('styleChanged', mxUtils.bind(this, function(sender, evt)
 	{
+		// Checks if edges and/or vertices were modified
+		var cells = evt.getProperty('cells');
+		var vertex = false;
+		var edge = false;
+		
+		if (cells.length > 0)
+		{
+			for (var i = 0; i < cells.length; i++)
+			{
+				vertex = graph.getModel().isVertex(cells[i]) || vertex;
+				edge = graph.getModel().isEdge(cells[i]) || edge;
+				
+				if (edge && vertex)
+				{
+					break;
+				}
+			}
+		}
+		else
+		{
+			vertex = true;
+			edge = true;
+		}
+		
 		var keys = evt.getProperty('keys');
 		var values = evt.getProperty('values');
 
 		for (var i = 0; i < keys.length; i++)
 		{
-			if (mxUtils.indexOf(styles, keys[i]) >= 0)
+			var common = mxUtils.indexOf(valueStyles, keys[i]) >= 0;
+			
+			// Special case: Edge style and shape
+			if (mxUtils.indexOf(connectStyles, keys[i]) >= 0)
 			{
-				currentStyle[keys[i]] = values[i];
+				if (edge)
+				{
+					currentEdgeStyle[keys[i]] = values[i];
+				}
 			}
-			else if (mxUtils.indexOf(edgeStyles, keys[i]) >= 0)
+			else if (mxUtils.indexOf(styles, keys[i]) >= 0)
 			{
-				currentEdgeStyle[keys[i]] = values[i];
+				if (vertex || common)
+				{
+					currentStyle[keys[i]] = values[i];
+				}
+				
+				if (edge || common)
+				{
+					currentEdgeStyle[keys[i]] = values[i];
+				}
 			}
 		}
-	});
+
+		// Uses current edge style for connect preview
+		graph.connectionHandler.createEdgeState = function(me)
+		{
+			var style = 'edgeStyle=' + (currentEdgeStyle['edgeStyle'] || 'none') + ';';
+			
+			if (currentEdgeStyle['curved'] != null)
+			{
+				style += 'curved=' + currentEdgeStyle['curved'] + ';';
+			}
+			
+			if (currentEdgeStyle['rounded'] != null)
+			{
+				style += 'rounded=' + currentEdgeStyle['rounded'] + ';';
+			}
+			
+			var edge = graph.createEdge(null, null, null, null, null, style);
+			
+			return new mxCellState(graph.view, edge, graph.getCellStyle(edge));
+		};
+		
+		if (this.toolbar != null)
+		{
+			var ff = currentStyle['fontFamily'] || 'Helvetica';
+			this.toolbar.fontMenu.innerHTML = mxUtils.htmlEntities(ff);
+			
+			var fs = String(currentStyle['fontSize'] || '12');
+			this.toolbar.sizeMenu.innerHTML = mxUtils.htmlEntities(fs);
+	
+			// Updates toolbar icon for edge style
+			var edgeStyleDiv = this.toolbar.edgeStyleMenu.getElementsByTagName('div')[0];
+
+			if (currentEdgeStyle['shape'] == 'arrow')
+			{
+				edgeStyleDiv.className = 'geSprite geSprite-arrow';
+			}
+			else if (currentEdgeStyle['shape'] == 'link')
+			{
+				edgeStyleDiv.className = 'geSprite geSprite-linkedge';
+			}
+			else if (currentEdgeStyle['edgeStyle'] == 'orthogonalEdgeStyle' && currentEdgeStyle['curved'] == '1')
+			{
+				edgeStyleDiv.className = 'geSprite geSprite-curved';
+			}
+			else if (currentEdgeStyle['edgeStyle'] == 'straight' || currentEdgeStyle['edgeStyle'] == 'none' ||
+					currentEdgeStyle['edgeStyle'] == null)
+			{
+				edgeStyleDiv.className = 'geSprite geSprite-straight';
+			}
+			else if (currentEdgeStyle['edgeStyle'] == 'entityRelationEdgeStyle')
+			{
+				edgeStyleDiv.className = 'geSprite geSprite-entity';
+			}
+			else
+			{
+				edgeStyleDiv.className = 'geSprite geSprite-orthogonal';
+			}
+		}
+	}));
+	
+	// Update font size and font family labels
+	if (this.toolbar != null)
+	{
+		var update = mxUtils.bind(this, function()
+		{
+			var ff = currentStyle['fontFamily'] || 'Helvetica';
+			var fs = String(currentStyle['fontSize'] || '12');
+	    	var state = graph.getView().getState(graph.getSelectionCell());
+	    	
+	    	if (state != null)
+	    	{
+	    		ff = state.style[mxConstants.STYLE_FONTFAMILY] || ff;
+	    		fs = state.style[mxConstants.STYLE_FONTSIZE] || fs;
+	    		
+	    		if (ff.length > 10)
+	    		{
+	    			ff = ff.substring(0, 8) + '...';
+	    		}
+	    	}
+	
+			this.toolbar.fontMenu.innerHTML = ff;
+			this.toolbar.sizeMenu.innerHTML = fs;
+		});
+		
+	    graph.getSelectionModel().addListener(mxEvent.CHANGE, update);
+	    graph.getModel().addListener(mxEvent.CHANGE, update);
+	}
 	
 	// Makes sure the current layer is visible when cells are added
 	graph.addListener(mxEvent.CELLS_ADDED, function(sender, evt)
@@ -746,20 +1019,19 @@ EditorUi.prototype.updateActionStates = function()
 	}
 	
 	// Updates action states
-	var actions = ['cut', 'copy', 'bold', 'italic', 'underline', 'fontColor',
-	           'delete', 'duplicate', 'style', 'fillColor', 'gradientColor', 'strokeColor',
-	           'backgroundColor', 'borderColor', 'toFront', 'toBack', 'dashed', 'rounded',
-	           'shadow', 'tilt', 'autosize', 'collapsible', 'lockUnlock', 'editData'];
+	var actions = ['cut', 'copy', 'bold', 'italic', 'underline', 'delete', 'duplicate',
+	               'style', 'backgroundColor', 'borderColor', 'toFront', 'toBack',
+	               'tilt', 'autosize', 'collapsible', 'lockUnlock', 'editData'];
 	
 	for (var i = 0; i < actions.length; i++)
 	{
 		this.actions.get(actions[i]).setEnabled(selected);
 	}
 	
-	this.actions.get('curved').setEnabled(edgeSelected);
+	this.actions.get('setAsDefaultStyle').setEnabled(graph.getSelectionCount() == 1);
 	this.actions.get('rotation').setEnabled(vertexSelected);
 	this.actions.get('wordWrap').setEnabled(vertexSelected);
-   	this.actions.get('group').setEnabled(graph.getSelectionCount() > 1);
+	this.actions.get('group').setEnabled(graph.getSelectionCount() > 1);
    	this.actions.get('ungroup').setEnabled(graph.getSelectionCount() == 1 &&
    			graph.getModel().getChildCount(graph.getSelectionCell()) > 0);
    	var oneVertexSelected = vertexSelected && graph.getSelectionCount() == 1;
@@ -767,22 +1039,13 @@ EditorUi.prototype.updateActionStates = function()
    			graph.getModel().isVertex(graph.getModel().getParent(graph.getSelectionCell())));
 
 	// Updates menu states
-	var menus = ['fontFamily', 'fontSize', 'alignment', 'position', 'text', 'format', 'linewidth',
-	             'spacing', 'gradient'];
+	var menus = ['alignment', 'position', 'spacing'];
 
 	for (var i = 0; i < menus.length; i++)
 	{
 		this.menus.get(menus[i]).setEnabled(selected);
 	}
-	
-	menus = ['line', 'lineend', 'linestart'];
-
- 	for (var i = 0; i < menus.length; i++)
- 	{
- 		this.menus.get(menus[i]).setEnabled(edgeSelected);
- 	}
  	
-   	this.actions.get('setAsDefaultEdge').setEnabled(edgeSelected);
    	var state = graph.view.getState(graph.getSelectionCell());
    	
     this.menus.get('align').setEnabled(graph.getSelectionCount() > 1);
@@ -1511,6 +1774,7 @@ EditorUi.prototype.createKeyHandler = function(editor)
     keyHandler.bindAction(8, false, 'delete'); // Backspace
     keyHandler.bindAction(46, false, 'delete'); // Delete
     keyHandler.bindAction(82, true, 'tilt'); // Ctrl+R
+    keyHandler.bindAction(82, true, 'reverseEdge', true); // Ctrl+Shift+R
     keyHandler.bindAction(83, true, 'save'); // Ctrl+S
     keyHandler.bindAction(83, true, 'saveAs', true); // Ctrl+Shift+S
     keyHandler.bindAction(107, false, 'zoomIn'); // Add
@@ -1525,6 +1789,7 @@ EditorUi.prototype.createKeyHandler = function(editor)
     keyHandler.bindAction(90, true, 'undo'); // Ctrl+Z
     keyHandler.bindAction(89, true, 'redo'); // Ctrl+Y
     keyHandler.bindAction(88, true, 'cut'); // Ctrl+X
+    keyHandler.bindAction(88, true, 'setAsDefaultStyle', true); // Ctrl+Shift+X
     keyHandler.bindAction(67, true, 'copy'); // Ctrl+C
     keyHandler.bindAction(81, true, 'connectionPoints'); // Ctrl+Q
     keyHandler.bindAction(86, true, 'paste'); // Ctrl+V

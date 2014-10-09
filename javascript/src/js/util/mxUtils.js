@@ -372,7 +372,7 @@ var mxUtils =
 	/**
 	 * Function: indexOf
 	 * 
-	 * Returns the index of obj in array or -1 if the array does not contains
+	 * Returns the index of obj in array or -1 if the array does not contain
 	 * the given object.
 	 * 
 	 * Parameters:

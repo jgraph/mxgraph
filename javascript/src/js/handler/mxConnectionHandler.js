@@ -923,6 +923,11 @@ mxConnectionHandler.prototype.mouseDown = function(sender, me)
 		{
 			this.waypoints = null;
 			this.shape = this.createShape();
+			
+			if (this.edgeState != null)
+			{
+				this.shape.apply(this.edgeState);
+			}
 		}
 
 		// Stores the starting point in the geometry of the preview
@@ -1241,6 +1246,11 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 				if (dx > this.graph.tolerance || dy > this.graph.tolerance)
 				{
 					this.shape = this.createShape();
+
+					if (this.edgeState != null)
+					{
+						this.shape.apply(this.edgeState);
+					}
 					
 					// Revalidates current connection
 					this.updateCurrentState(me, point);

@@ -33,15 +33,15 @@ Toolbar.prototype.unselectedBackground = 'none';
 Toolbar.prototype.init = function()
 {
 	this.addItems(['undo', 'redo', 'delete', '-', 'actualSize', 'zoomIn', 'zoomOut', '-']);
-	var fontElt = this.addMenu('Helvetica', mxResources.get('fontFamily'), true, 'fontFamily');
-	fontElt.style.whiteSpace = 'nowrap';
-	fontElt.style.overflow = 'hidden';
-	fontElt.style.width = (mxClient.IS_QUIRKS) ? '76px' : '56px';
+	this.fontMenu = this.addMenu('Helvetica', mxResources.get('fontFamily'), true, 'fontFamily');
+	this.fontMenu.style.whiteSpace = 'nowrap';
+	this.fontMenu.style.overflow = 'hidden';
+	this.fontMenu.style.width = (mxClient.IS_QUIRKS) ? '76px' : '56px';
 	this.addSeparator();
-	var sizeElt = this.addMenu('12', mxResources.get('fontSize'), true, 'fontSize');
-	sizeElt.style.whiteSpace = 'nowrap';
-	sizeElt.style.overflow = 'hidden';
-	sizeElt.style.width = (mxClient.IS_QUIRKS) ? '42px' : '22px';
+	this.sizeMenu = this.addMenu('12', mxResources.get('fontSize'), true, 'fontSize');
+	this.sizeMenu.style.whiteSpace = 'nowrap';
+	this.sizeMenu.style.overflow = 'hidden';
+	this.sizeMenu.style.width = (mxClient.IS_QUIRKS) ? '42px' : '22px';
 
 	this.addItems(['-', 'bold', 'italic', 'underline']);
 	var align = this.addMenuFunction('geSprite-left', mxResources.get('align'), false, mxUtils.bind(this, function(menu)
@@ -57,44 +57,44 @@ Toolbar.prototype.init = function()
 		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_BOTTOM], 'geIcon geSprite geSprite-bottom', null).setAttribute('title', mxResources.get('bottom'));
 	}));
 	this.addItems(['fontColor', '-']);
-	var line = this.addMenuFunction('geSprite-straight', mxResources.get('line'), false, mxUtils.bind(this, function(menu)
+	this.edgeStyleMenu = this.addMenuFunction('geSprite-orthogonal', mxResources.get('line'), false, mxUtils.bind(this, function(menu)
 	{
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_EDGE, 'noEdgeStyle'], [null, null], 'geIcon geSprite geSprite-straight', null).setAttribute('title', mxResources.get('straight'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_EDGE, 'noEdgeStyle'], ['entityRelationEdgeStyle', null], 'geIcon geSprite geSprite-entity', null).setAttribute('title', mxResources.get('entityRelation'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_EDGE, mxConstants.STYLE_ELBOW, 'noEdgeStyle'], ['elbowEdgeStyle', 'horizontal', null], 'geIcon geSprite geSprite-helbow', null).setAttribute('title', mxResources.get('horizontal'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_EDGE, mxConstants.STYLE_ELBOW, 'noEdgeStyle'], ['elbowEdgeStyle', 'vertical', null], 'geIcon geSprite geSprite-velbow', null).setAttribute('title', mxResources.get('vertical'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_EDGE, 'noEdgeStyle'], ['segmentEdgeStyle', null], 'geIcon geSprite geSprite-segment', null).setAttribute('title', mxResources.get('manual'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_EDGE, 'noEdgeStyle'], ['orthogonalEdgeStyle', null], 'geIcon geSprite geSprite-orthogonal', null).setAttribute('title', mxResources.get('automatic'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_SHAPE, mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, 'noedgestyle'], [null, null, null, null], 'geIcon geSprite geSprite-straight', null, true).setAttribute('title', mxResources.get('straight'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_SHAPE, mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, 'noedgestyle'], [null, 'orthogonalEdgeStyle', null, null], 'geIcon geSprite geSprite-orthogonal', null, true).setAttribute('title', mxResources.get('orthogonal'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_SHAPE, mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, 'noedgestyle'], [null, 'orthogonalEdgeStyle', '1', null], 'geIcon geSprite geSprite-curved', null, true).setAttribute('title', mxResources.get('curved'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_SHAPE, mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, 'noedgestyle'], [null, 'entityRelationEdgeStyle', null, null], 'geIcon geSprite geSprite-entity', null, true).setAttribute('title', mxResources.get('entityRelation'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_SHAPE, mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, 'noedgestyle'], ['arrow', null, null, null], 'geIcon geSprite geSprite-arrow', null, true).setAttribute('title', mxResources.get('arrow'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_SHAPE, mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, 'noedgestyle'], ['link', null, null, null], 'geIcon geSprite geSprite-linkedge', null, true).setAttribute('title', mxResources.get('link'));
 	}));
 	var linestart = this.addMenuFunction('geSprite-startclassic', mxResources.get('lineend'), false, mxUtils.bind(this, function(menu)
 	{
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.NONE, 0], 'geIcon geSprite geSprite-noarrow', null).setAttribute('title', mxResources.get('none'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.ARROW_CLASSIC, 1], 'geIcon geSprite geSprite-startclassic', null).setAttribute('title', mxResources.get('classic'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.ARROW_OPEN, 1], 'geIcon geSprite geSprite-startopen', null).setAttribute('title', mxResources.get('openArrow'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.ARROW_BLOCK, 1], 'geIcon geSprite geSprite-startblock', null).setAttribute('title', mxResources.get('block'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.ARROW_OVAL, 1], 'geIcon geSprite geSprite-startoval', null).setAttribute('title', mxResources.get('oval'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.ARROW_DIAMOND, 1], 'geIcon geSprite geSprite-startdiamond', null).setAttribute('title', mxResources.get('diamond'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.ARROW_DIAMOND_THIN, 1], 'geIcon geSprite geSprite-startthindiamond', null).setAttribute('title', mxResources.get('diamondThin'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.ARROW_CLASSIC, 0], 'geIcon geSprite geSprite-startclassictrans', null).setAttribute('title', mxResources.get('classic'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.ARROW_BLOCK, 0], 'geIcon geSprite geSprite-startblocktrans', null).setAttribute('title', mxResources.get('block'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.ARROW_OVAL, 0], 'geIcon geSprite geSprite-startovaltrans', null).setAttribute('title', mxResources.get('oval'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.ARROW_DIAMOND, 0], 'geIcon geSprite geSprite-startdiamondtrans', null).setAttribute('title', mxResources.get('diamond'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.ARROW_DIAMOND_THIN, 0], 'geIcon geSprite geSprite-startthindiamondtrans', null).setAttribute('title', mxResources.get('diamondThin'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.NONE, 0], 'geIcon geSprite geSprite-noarrow', null, false).setAttribute('title', mxResources.get('none'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.ARROW_CLASSIC, 1], 'geIcon geSprite geSprite-startclassic', null, false).setAttribute('title', mxResources.get('classic'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.ARROW_OPEN, 1], 'geIcon geSprite geSprite-startopen', null, false).setAttribute('title', mxResources.get('openArrow'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.ARROW_BLOCK, 1], 'geIcon geSprite geSprite-startblock', null, false).setAttribute('title', mxResources.get('block'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.ARROW_OVAL, 1], 'geIcon geSprite geSprite-startoval', null, false).setAttribute('title', mxResources.get('oval'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.ARROW_DIAMOND, 1], 'geIcon geSprite geSprite-startdiamond', null, false).setAttribute('title', mxResources.get('diamond'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.ARROW_DIAMOND_THIN, 1], 'geIcon geSprite geSprite-startthindiamond', null, false).setAttribute('title', mxResources.get('diamondThin'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.ARROW_CLASSIC, 0], 'geIcon geSprite geSprite-startclassictrans', null, false).setAttribute('title', mxResources.get('classic'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.ARROW_BLOCK, 0], 'geIcon geSprite geSprite-startblocktrans', null, false).setAttribute('title', mxResources.get('block'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.ARROW_OVAL, 0], 'geIcon geSprite geSprite-startovaltrans', null, false).setAttribute('title', mxResources.get('oval'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.ARROW_DIAMOND, 0], 'geIcon geSprite geSprite-startdiamondtrans', null, false).setAttribute('title', mxResources.get('diamond'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.ARROW_DIAMOND_THIN, 0], 'geIcon geSprite geSprite-startthindiamondtrans', null, false).setAttribute('title', mxResources.get('diamondThin'));
 	}));
 	var lineend = this.addMenuFunction('geSprite-endclassic', mxResources.get('lineend'), false, mxUtils.bind(this, function(menu)
 	{
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.NONE, 0], 'geIcon geSprite geSprite-noarrow', null).setAttribute('title', mxResources.get('none'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_CLASSIC, 1], 'geIcon geSprite geSprite-endclassic', null).setAttribute('title', mxResources.get('classic'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_OPEN, 1], 'geIcon geSprite geSprite-endopen', null).setAttribute('title', mxResources.get('openArrow'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_BLOCK, 1], 'geIcon geSprite geSprite-endblock', null).setAttribute('title', mxResources.get('block'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_OVAL, 1], 'geIcon geSprite geSprite-endoval', null).setAttribute('title', mxResources.get('oval'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_DIAMOND, 1], 'geIcon geSprite geSprite-enddiamond', null).setAttribute('title', mxResources.get('diamond'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_DIAMOND_THIN, 1], 'geIcon geSprite geSprite-endthindiamond', null).setAttribute('title', mxResources.get('diamondThin'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_CLASSIC, 0], 'geIcon geSprite geSprite-endclassictrans', null).setAttribute('title', mxResources.get('classic'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_BLOCK, 0], 'geIcon geSprite geSprite-endblocktrans', null).setAttribute('title', mxResources.get('block'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_OVAL, 0], 'geIcon geSprite geSprite-endovaltrans', null).setAttribute('title', mxResources.get('oval'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_DIAMOND, 0], 'geIcon geSprite geSprite-enddiamondtrans', null).setAttribute('title', mxResources.get('diamond'));
-		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_DIAMOND_THIN, 0], 'geIcon geSprite geSprite-endthindiamondtrans', null).setAttribute('title', mxResources.get('diamondThin'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.NONE, 0], 'geIcon geSprite geSprite-noarrow', null, false).setAttribute('title', mxResources.get('none'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_CLASSIC, 1], 'geIcon geSprite geSprite-endclassic', null, false).setAttribute('title', mxResources.get('classic'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_OPEN, 1], 'geIcon geSprite geSprite-endopen', null, false).setAttribute('title', mxResources.get('openArrow'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_BLOCK, 1], 'geIcon geSprite geSprite-endblock', null, false).setAttribute('title', mxResources.get('block'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_OVAL, 1], 'geIcon geSprite geSprite-endoval', null, false).setAttribute('title', mxResources.get('oval'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_DIAMOND, 1], 'geIcon geSprite geSprite-enddiamond', null, false).setAttribute('title', mxResources.get('diamond'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_DIAMOND_THIN, 1], 'geIcon geSprite geSprite-endthindiamond', null, false).setAttribute('title', mxResources.get('diamondThin'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_CLASSIC, 0], 'geIcon geSprite geSprite-endclassictrans', null, false).setAttribute('title', mxResources.get('classic'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_BLOCK, 0], 'geIcon geSprite geSprite-endblocktrans', null, false).setAttribute('title', mxResources.get('block'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_OVAL, 0], 'geIcon geSprite geSprite-endovaltrans', null, false).setAttribute('title', mxResources.get('oval'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_DIAMOND, 0], 'geIcon geSprite geSprite-enddiamondtrans', null, false).setAttribute('title', mxResources.get('diamond'));
+		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_DIAMOND_THIN, 0], 'geIcon geSprite geSprite-endthindiamondtrans', null, false).setAttribute('title', mxResources.get('diamondThin'));
 	}));
 	this.addItems(['-', 'image', 'link', '-', 'strokeColor', 'fillColor']);
 	this.addItem('geSprite-gradientcolor', 'gradientColor').setAttribute('title', mxResources.get('gradient'));
@@ -123,37 +123,6 @@ Toolbar.prototype.init = function()
 	
 	items[1].style.background = (this.editorUi.actions.get('grid').selectedCallback()) ? scolor : ucolor;
 	items[2].style.background = (this.editorUi.actions.get('guides').selectedCallback()) ? scolor : ucolor;
-	
-	var graph = this.editorUi.editor.graph;
-
-	// Update font size and font family labels
-	var update = mxUtils.bind(this, function()
-	{
-		var ff = 'Helvetica';
-		var fs = '12';
-    	var state = graph.getView().getState(graph.getSelectionCell());
-    	
-    	if (state != null)
-    	{
-    		ff = state.style[mxConstants.STYLE_FONTFAMILY] || ff;
-    		fs = state.style[mxConstants.STYLE_FONTSIZE] || fs;
-    		
-    		if (ff.length > 10)
-    		{
-    			ff = ff.substring(0, 8) + '...';
-    		}
-    		
-    		fontElt.innerHTML = ff;
-    		sizeElt.innerHTML = fs;
-    	}
-	});
-	
-    graph.getSelectionModel().addListener(mxEvent.CHANGE, update);
-    graph.getModel().addListener(mxEvent.CHANGE, update);
-	
-	// Updates button states
-    this.addEdgeSelectionHandler([line, linestart, lineend]);
-	this.addSelectionHandler([align]);
 };
 
 /**
@@ -941,62 +910,6 @@ Toolbar.prototype.addButton = function(classname, tooltip, funct)
 	this.container.appendChild(elt);
 	
 	return elt;
-};
-
-/**
- * Updates the states of the given toolbar items based on the selection.
- */
-Toolbar.prototype.addSelectionHandler = function(items)
-{
-	var graph = this.editorUi.editor.graph;
-	
-	var selectionListener = function()
-    {
-    	var selected = !graph.isSelectionEmpty();
-    	
-    	for (var i = 0; i < items.length; i++)
-    	{
-    		items[i].setEnabled(selected);
-    	}
-    };
-	    
-    graph.getSelectionModel().addListener(mxEvent.CHANGE, selectionListener);
-    selectionListener();
-};
-
-/**
- * Updates the states of the given toolbar items based on the selection.
- */
-Toolbar.prototype.addEdgeSelectionHandler = function(items)
-{
-	var graph = this.editorUi.editor.graph;
-	
-	var selectionListener = function()
-    {
-		var edgeSelected = false;
-		
-		if (!graph.isSelectionEmpty())
-		{
-			var cells = graph.getSelectionCells();
-			
-			for (var i = 0; i < cells.length; i++)
-			{
-				if (graph.getModel().isEdge(cells[i]))
-				{
-					edgeSelected = true;
-					break;
-				}
-			}
-		}
-		
-    	for (var i = 0; i < items.length; i++)
-    	{
-    		items[i].setEnabled(edgeSelected);
-    	}
-    };
-	    
-    graph.getSelectionModel().addListener(mxEvent.CHANGE, selectionListener);
-    selectionListener();
 };
 
 /**

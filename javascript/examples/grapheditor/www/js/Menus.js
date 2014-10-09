@@ -164,15 +164,12 @@ Menus.prototype.init = function()
 	})));
 	this.put('line', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
-		// LATER: Reset label position if geometry changes
-		this.styleChange(menu, mxResources.get('straight'), [mxConstants.STYLE_EDGE], [null], null, parent);
-		this.styleChange(menu, mxResources.get('entityRelation'), [mxConstants.STYLE_EDGE], ['entityRelationEdgeStyle'], null, parent);
-		menu.addSeparator(parent);
-		this.styleChange(menu, mxResources.get('horizontal'), [mxConstants.STYLE_EDGE, mxConstants.STYLE_ELBOW], ['elbowEdgeStyle', 'horizontal'], null, parent);
-		this.styleChange(menu, mxResources.get('vertical'), [mxConstants.STYLE_EDGE, mxConstants.STYLE_ELBOW], ['elbowEdgeStyle', 'vertical'], null, parent);
-		menu.addSeparator(parent);
-		this.styleChange(menu, mxResources.get('manual'), [mxConstants.STYLE_EDGE], ['segmentEdgeStyle'], null, parent);
-		this.styleChange(menu, mxResources.get('automatic'), [mxConstants.STYLE_EDGE], ['orthogonalEdgeStyle'], null, parent);
+		this.edgeStyleChange(menu, mxResources.get('straight'), [mxConstants.STYLE_SHAPE, mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, 'noEdgeStyle'], [null, null, null, null], null, parent, true);
+		this.edgeStyleChange(menu, mxResources.get('orthogonal'), [mxConstants.STYLE_SHAPE, mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, 'noEdgeStyle'], [null, 'orthogonalEdgeStyle', null, null], null, parent, true);
+		this.edgeStyleChange(menu, mxResources.get('curved'), [mxConstants.STYLE_SHAPE, mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, 'noEdgeStyle'], [null, 'orthogonalEdgeStyle', '1', null], null, parent, true);
+		this.edgeStyleChange(menu, mxResources.get('entityRelation'), [mxConstants.STYLE_SHAPE, mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, 'noEdgeStyle'], [null, 'entityRelationEdgeStyle', null, null], null, parent, true);
+		this.edgeStyleChange(menu, mxResources.get('arrow'), [mxConstants.STYLE_SHAPE, mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, 'noEdgeStyle'], ['arrow', null, null, null], null, parent, true);
+		this.edgeStyleChange(menu, mxResources.get('link'), [mxConstants.STYLE_SHAPE, mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, 'noEdgeStyle'], ['link', null, null, null], null, parent, true);
 	})));
 	this.put('lineend', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -230,15 +227,14 @@ Menus.prototype.init = function()
 		this.addSubmenu('gradient', menu, parent);
 		this.addMenuItems(menu, ['image', '-', 'shadow'], parent);
 		this.promptChange(menu, mxResources.get('opacity'), '(%)', '100', mxConstants.STYLE_OPACITY, parent, this.get('format').enabled);
-		this.addMenuItems(menu, ['-', 'curved', 'rounded', 'dashed', '-', 'strokeColor'], parent);
+		this.addMenuItems(menu, ['rounded', '-', 'plain', 'dashed', 'dotted', '-', 'strokeColor'], parent);
 		this.addSubmenu('linewidth', menu, parent);
 		this.addMenuItems(menu, ['-'], parent);
 		this.addSubmenu('line', menu, parent);
 		this.addMenuItems(menu, ['-'], parent);
 		this.addSubmenu('linestart', menu, parent);
 		this.addSubmenu('lineend', menu, parent);
-		menu.addSeparator(parent);
-		this.addMenuItem(menu, 'style', parent);
+		this.addMenuItems(menu, ['-', 'setAsDefaultStyle', 'style'], parent);
 	})));
 	this.put('gradient', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -284,13 +280,17 @@ Menus.prototype.init = function()
 	})));
 	this.put('position', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
-	    this.styleChange(menu, mxResources.get('left'), [mxConstants.STYLE_LABEL_POSITION, mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_LEFT, mxConstants.ALIGN_RIGHT], null, parent);
-	    this.styleChange(menu, mxResources.get('center'), [mxConstants.STYLE_LABEL_POSITION, mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_CENTER, mxConstants.ALIGN_CENTER], null, parent);
-	    this.styleChange(menu, mxResources.get('right'), [mxConstants.STYLE_LABEL_POSITION, mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_RIGHT, mxConstants.ALIGN_LEFT], null, parent);
+		this.styleChange(menu, mxResources.get('top'), [mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.STYLE_LABEL_POSITION, mxConstants.STYLE_ALIGN, mxConstants.STYLE_VERTICAL_ALIGN],
+			[mxConstants.ALIGN_TOP, mxConstants.ALIGN_CENTER, mxConstants.ALIGN_CENTER, mxConstants.ALIGN_BOTTOM], null, parent);
+		this.styleChange(menu, mxResources.get('right'), [mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.STYLE_LABEL_POSITION, mxConstants.STYLE_ALIGN, mxConstants.STYLE_VERTICAL_ALIGN],
+			[mxConstants.ALIGN_MIDDLE, mxConstants.ALIGN_RIGHT, mxConstants.ALIGN_LEFT, mxConstants.ALIGN_MIDDLE], null, parent);
+		this.styleChange(menu, mxResources.get('bottom'), [mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.STYLE_LABEL_POSITION, mxConstants.STYLE_ALIGN, mxConstants.STYLE_VERTICAL_ALIGN],
+			[mxConstants.ALIGN_BOTTOM, mxConstants.ALIGN_CENTER, mxConstants.ALIGN_CENTER, mxConstants.ALIGN_TOP], null, parent);
+		this.styleChange(menu, mxResources.get('left'), [mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.STYLE_LABEL_POSITION, mxConstants.STYLE_ALIGN, mxConstants.STYLE_VERTICAL_ALIGN],
+			[mxConstants.ALIGN_MIDDLE, mxConstants.ALIGN_LEFT, mxConstants.ALIGN_RIGHT, mxConstants.ALIGN_MIDDLE], null, parent);
 		menu.addSeparator(parent);
-		this.styleChange(menu, mxResources.get('top'), [mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_TOP, mxConstants.ALIGN_BOTTOM], null, parent);
-		this.styleChange(menu, mxResources.get('middle'), [mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_MIDDLE, mxConstants.ALIGN_MIDDLE], null, parent);
-		this.styleChange(menu, mxResources.get('bottom'), [mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_BOTTOM, mxConstants.ALIGN_TOP], null, parent);
+		this.styleChange(menu, mxResources.get('center'), [mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.STYLE_LABEL_POSITION, mxConstants.STYLE_ALIGN, mxConstants.STYLE_VERTICAL_ALIGN],
+			[mxConstants.ALIGN_MIDDLE, mxConstants.ALIGN_CENTER, mxConstants.ALIGN_CENTER, mxConstants.ALIGN_MIDDLE], null, parent);
 	})));
 	this.put('direction', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -428,7 +428,7 @@ Menus.prototype.init = function()
 		this.addMenuItems(menu, ['layers'], parent);
 		this.addSubmenu('navigation', menu, parent);
 		this.addSubmenu('insert', menu, parent);
-		this.addMenuItems(menu, ['-', 'group', 'ungroup', 'removeFromGroup', '-', 'collapsible', 'autosize'], parent);
+		this.addMenuItems(menu, ['-', 'group', 'ungroup', 'removeFromGroup', '-', 'autosize', 'reverseEdge', '-', 'collapsible'], parent);
 	}))).isEnabled = isGraphEnabled;
 	this.put('insert', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -462,8 +462,8 @@ Menus.prototype.init = function()
 	this.put('edit', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
 		this.addMenuItems(menu, ['undo', 'redo', '-', 'cut', 'copy', 'paste', 'delete', '-', 'duplicate', '-',
-		                         'editData', 'editLink', 'openLink', 'editTooltip', '-', 'selectVertices', 'selectEdges', 'selectAll',
-		                         '-', 'setAsDefaultEdge', 'lockUnlock']);
+		                         'editData', 'editLink', 'openLink', 'editTooltip', '-', 'selectVertices',
+		                         'selectEdges', 'selectAll', '-', 'lockUnlock']);
 	})));
 	this.put('options', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -524,6 +524,59 @@ Menus.prototype.addMenu = function(name, popupMenu, parent)
 /**
  * Adds a style change item to the given menu.
  */
+Menus.prototype.edgeStyleChange = function(menu, label, keys, values, sprite, parent, reset)
+{
+	return menu.addItem(label, null, mxUtils.bind(this, function()
+	{
+		var graph = this.editorUi.editor.graph;
+		graph.stopEditing(false);
+		
+		graph.getModel().beginUpdate();
+		try
+		{
+			var cells = graph.getSelectionCells();
+			
+			for (var i = 0; i < cells.length; i++)
+			{
+				var cell = cells[i];
+				
+				if (graph.getModel().isEdge(cell))
+				{
+					if (reset)
+					{
+						var geo = graph.getCellGeometry(cell);
+			
+						// Resets all edge points and the label position
+						if (geo != null)
+						{
+							geo = geo.clone();
+							geo.points = null;
+							geo.x = 0;
+							geo.y = 0;
+							graph.getModel().setGeometry(cell, geo);
+						}
+					}
+					
+					for (var j = 0; j < keys.length; j++)
+					{
+						graph.setCellStyles(keys[j], values[j], [cell]);
+					}
+				}
+			}
+			
+			this.editorUi.fireEvent(new mxEventObject('styleChanged', 'keys', keys, 'values', values,
+				'cells', graph.getSelectionCells()));
+		}
+		finally
+		{
+			graph.getModel().endUpdate();
+		}
+	}), parent, sprite);
+};
+
+/**
+ * Adds a style change item to the given menu.
+ */
 Menus.prototype.styleChange = function(menu, label, keys, values, sprite, parent, fn)
 {
 	return menu.addItem(label, null, mxUtils.bind(this, function()
@@ -536,17 +589,18 @@ Menus.prototype.styleChange = function(menu, label, keys, values, sprite, parent
 		}
 		else
 		{
+			graph.stopEditing(false);
+			
 			graph.getModel().beginUpdate();
 			try
 			{
-				graph.stopEditing(false);
-				
 				for (var i = 0; i < keys.length; i++)
 				{
 					graph.setCellStyles(keys[i], values[i]);
 				}
 				
-				this.editorUi.fireEvent(new mxEventObject('styleChanged', 'keys', keys, 'values', values));
+				this.editorUi.fireEvent(new mxEventObject('styleChanged', 'keys', keys, 'values', values,
+					'cells', graph.getSelectionCells()));
 			}
 			finally
 			{
@@ -653,6 +707,17 @@ Menus.prototype.pickColor = function(key, cmd, defaultValue)
 };
 
 /**
+ * Adds a handler for showing a menu in the given element.
+ */
+Menus.prototype.toggleStyle = function(key)
+{
+	var graph = this.editorUi.editor.graph;
+	var value = graph.toggleCellStyles(key);
+	this.editorUi.fireEvent(new mxEventObject('styleChanged', 'keys', [key], 'values', [value],
+			'cells', graph.getSelectionCells()));
+};
+
+/**
  * Creates the keyboard event handler for the current graph and history.
  */
 Menus.prototype.addMenuItem = function(menu, key, parent, trigger, sprite)
@@ -734,19 +799,20 @@ Menus.prototype.createPopupMenu = function(menu, cell, evt)
 	
 	if (graph.isSelectionEmpty())
 	{
-		this.addMenuItems(menu, ['undo', 'redo', '-', 'paste', '-'], null, evt);	
+		this.addMenuItems(menu, ['undo', 'redo', '-', 'paste'], null, evt);	
 	}
 	else
 	{
 		this.addMenuItems(menu, ['delete', '-', 'cut', 'copy', '-', 'duplicate'], null, evt);
 
-		if (graph.getSelectionCount() == 1 && graph.getModel().isEdge(graph.getSelectionCell()))
-		{
-			this.addMenuItems(menu, ['setAsDefaultEdge'], null, evt);
-		}
-		
-		menu.addSeparator();
 	}
+
+	if (graph.getSelectionCount() == 1)
+	{
+		this.addMenuItems(menu, ['setAsDefaultStyle'], null, evt);
+	}
+	
+	menu.addSeparator();
 	
 	if (graph.getSelectionCount() > 0)
 	{
@@ -757,7 +823,9 @@ Menus.prototype.createPopupMenu = function(menu, cell, evt)
 		{
 			this.addMenuItems(menu, ['toFront', 'toBack', '-'], null, evt);
 	
-			if (graph.getModel().isEdge(cell) && mxUtils.getValue(state.style, mxConstants.STYLE_EDGE, null) != 'entityRelationEdgeStyle')
+			if (graph.getModel().isEdge(cell) && mxUtils.getValue(state.style, mxConstants.STYLE_EDGE, null) != 'entityRelationEdgeStyle' &&
+				mxUtils.getValue(state.style, mxConstants.STYLE_SHAPE, null) != 'arrow' &&
+				mxUtils.getValue(state.style, mxConstants.STYLE_SHAPE, null) != 'link')
 			{
 				var handler = graph.selectionCellsHandler.getHandler(cell);
 				var isWaypoint = false;

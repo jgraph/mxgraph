@@ -258,7 +258,7 @@ Editor.prototype.setGraphXml = function(node)
 		{
 			this.graph.model.endUpdate();
 		}
-		
+
 		this.fireEvent(new mxEventObject('resetGraphView'));
 	}
 	else if (node.nodeName == 'root')

@@ -386,44 +386,6 @@ Graph.prototype.flipEdge = function(edge)
 };
 
 /**
- * Sets the default edge for future connections.
- */
-Graph.prototype.setDefaultEdge = function(cell)
-{
-	if (cell != null && this.getModel().isEdge(cell))
-	{
-		// Take a snapshot of the cell at the moment of calling
-		var proto = this.getModel().cloneCell(cell);
-		
-		// Delete existing points
-		if (proto.geometry != null)
-		{
-			proto.geometry.points = null;
-		}
-		
-		// Delete entry-/exitXY styles
-		var style = proto.getStyle();
-		style = mxUtils.setStyle(style, mxConstants.STYLE_ENTRY_X, null);
-		style = mxUtils.setStyle(style, mxConstants.STYLE_ENTRY_Y, null);
-		style = mxUtils.setStyle(style, mxConstants.STYLE_EXIT_X, null);
-		style = mxUtils.setStyle(style, mxConstants.STYLE_EXIT_Y, null);
-		proto.setStyle(style);
-		
-		// Uses edge template for connect preview
-		this.connectionHandler.createEdgeState = function(me)
-		{
-    		return this.graph.view.createState(proto);
-	    };
-
-	    // Creates new connections from edge template
-	    this.connectionHandler.factoryMethod = function()
-	    {
-    		return this.graph.cloneCells([proto])[0];
-	    };
-	}
-};
-
-/**
  * Disables folding for non-swimlanes.
  */
 Graph.prototype.isCellFoldable = function(cell)
@@ -612,7 +574,7 @@ Graph.prototype.setAttributeForCell = function(cell, attributeName, attributeVal
 		var doc = mxUtils.createXmlDocument();
 		
 		value = doc.createElement('UserObject');
-		value.setAttribute('label', cell.value);
+		value.setAttribute('label', cell.value || '');
 	}
 	
 	if (attributeValue != null && attributeValue.length > 0)
@@ -1252,7 +1214,7 @@ Graph.prototype.initTouch = function()
 	{
 		return !this.graph.isSwimlane(state.cell) && this.graph.model.getChildCount(state.cell) > 0 &&
 			!mxEvent.isControlDown(me.getEvent()) && !this.graph.isCellCollapsed(state.cell) &&
-			state.style['childLayout'] == '';
+			mxUtils.getValue(state.style, 'childLayout', null) == null;
 	};
 
 	/**
@@ -1358,6 +1320,10 @@ Graph.prototype.initTouch = function()
 	var mainHandle = new mxImage(IMAGE_PATH + '/handle-main.png', 17, 17);
 	var secondaryHandle = new mxImage(IMAGE_PATH + '/handle-secondary.png', 17, 17);
 	var rotationHandle = new mxImage(IMAGE_PATH + '/handle-rotate.png', 19, 21);
+	var triangleUp = new mxImage(IMAGE_PATH + '/triangle-up.png', 26, 26);
+	var triangleRight = new mxImage(IMAGE_PATH + '/triangle-right.png', 26, 26);
+	var triangleDown = new mxImage(IMAGE_PATH + '/triangle-down.png', 26, 26);
+	var triangleLeft = new mxImage(IMAGE_PATH + '/triangle-left.png', 26, 26);
 
 	mxVertexHandler.prototype.rotationHandleVSpacing = -20;
 
@@ -1367,6 +1333,10 @@ Graph.prototype.initTouch = function()
 	mxEdgeHandler.prototype.handleImage = mainHandle;
 	mxEdgeHandler.prototype.labelHandleImage = secondaryHandle;
 	mxOutline.prototype.sizerImage = mainHandle;
+	Sidebar.prototype.triangleUp = triangleUp;
+	Sidebar.prototype.triangleRight = triangleRight;
+	Sidebar.prototype.triangleDown = triangleDown;
+	Sidebar.prototype.triangleLeft = triangleLeft;
 	
 	// Enables connections along the outline
 	mxConnectionHandler.prototype.outlineConnect = true;
@@ -1379,6 +1349,10 @@ Graph.prototype.initTouch = function()
 	new Image().src = mainHandle.src;
 	new Image().src = secondaryHandle.src;
 	new Image().src = rotationHandle.src;
+	new Image().src = triangleUp.src;
+	new Image().src = triangleRight.src;
+	new Image().src = triangleDown.src;
+	new Image().src = triangleLeft.src;
 	
 	var vertexHandlerCreateSizerShape = mxVertexHandler.prototype.createSizerShape;
 	mxVertexHandler.prototype.createSizerShape = function(bounds, index, fillColor)
@@ -1909,18 +1883,7 @@ Graph.prototype.initTouch = function()
 			}
 		}
 	};
-	
-	var edgeHandlerHideSizers = mxEdgeHandler.prototype.hideSizers;
-	mxEdgeHandler.prototype.hideSizers = function()
-	{
-		edgeHandlerHideSizers.apply(this, arguments);
-		
-		if (this.linkHint != null)
-		{
-			this.linkHint.style.visibility = 'hidden';
-		}
-	};
-	
+
 	var edgeHandlerReset = 	mxEdgeHandler.prototype.reset;
 	mxEdgeHandler.prototype.reset = function()
 	{

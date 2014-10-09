@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.1.0.0.
+	 * Current version is 3.1.0.1.
 	 */
-	VERSION: '3.1.0.0',
+	VERSION: '3.1.0.1',
 
 	/**
 	 * Variable: IS_IE
@@ -2312,7 +2312,7 @@ var mxUtils =
 	/**
 	 * Function: indexOf
 	 * 
-	 * Returns the index of obj in array or -1 if the array does not contains
+	 * Returns the index of obj in array or -1 if the array does not contain
 	 * the given object.
 	 * 
 	 * Parameters:
@@ -12254,7 +12254,7 @@ mxDragSource.prototype.getGraphForEvent = function(evt)
  * Returns the drop target for the given graph and coordinates. This
  * implementation uses <mxGraph.getCellAt>.
  */
-mxDragSource.prototype.getDropTarget = function(graph, x, y)
+mxDragSource.prototype.getDropTarget = function(graph, x, y, evt)
 {
 	return graph.getCellAt(x, y);
 };
@@ -12371,6 +12371,9 @@ mxDragSource.prototype.startDrag = function(evt)
  */
 mxDragSource.prototype.stopDrag = function()
 {
+	// LATER: This used to have a mouse event. If that is still needed we need to add another
+	// final call to the DnD protocol to add a cleanup step in the case of escape press, which
+	// is not associated with a mouse event and which currently calles this method.
 	this.removeDragElement();
 };
 
@@ -12611,7 +12614,7 @@ mxDragSource.prototype.dragOver = function(graph, evt)
 	// Highlights the drop target under the mouse
 	if (this.currentHighlight != null && graph.isDropEnabled())
 	{
-		this.currentDropTarget = this.getDropTarget(graph, x, y);
+		this.currentDropTarget = this.getDropTarget(graph, x, y, evt);
 		var state = graph.getView().getState(this.currentDropTarget);
 		this.currentHighlight.highlight(state);
 	}
@@ -53504,9 +53507,9 @@ mxGraph.prototype.setCellStyle = function(style, cells)
 /**
  * Function: toggleCellStyle
  * 
- * Toggles the boolean value for the given key in the style of the
- * given cell. If no cell is specified then the selection cell is
- * used.
+ * Toggles the boolean value for the given key in the style of the given cell
+ * and returns the new value as 0 or 1. If no cell is specified then the
+ * selection cell is used.
  * 
  * Parameter:
  * 
@@ -53520,16 +53523,16 @@ mxGraph.prototype.toggleCellStyle = function(key, defaultValue, cell)
 {
 	cell = cell || this.getSelectionCell();
 	
-	this.toggleCellStyles(key, defaultValue, [cell]);
+	return this.toggleCellStyles(key, defaultValue, [cell]);
 };
 
 /**
  * Function: toggleCellStyles
  * 
- * Toggles the boolean value for the given key in the style of the given
- * cells. If no cells are specified, then the selection cells are used. For
- * example, this can be used to toggle <mxConstants.STYLE_ROUNDED> or any
- * other style with a boolean value.
+ * Toggles the boolean value for the given key in the style of the given cells
+ * and returns the new value as 0 or 1. If no cells are specified, then the
+ * selection cells are used. For example, this can be used to toggle
+ * <mxConstants.STYLE_ROUNDED> or any other style with a boolean value.
  * 
  * Parameter:
  * 
@@ -53543,6 +53546,7 @@ mxGraph.prototype.toggleCellStyles = function(key, defaultValue, cells)
 {
 	defaultValue = (defaultValue != null) ? defaultValue : false;
 	cells = cells || this.getSelectionCells();
+	var value = null;
 	
 	if (cells != null && cells.length > 0)
 	{
@@ -53551,10 +53555,12 @@ mxGraph.prototype.toggleCellStyles = function(key, defaultValue, cells)
 		
 		if (style != null)
 		{
-			var val = (mxUtils.getValue(style, key, defaultValue)) ? 0 : 1;
-			this.setCellStyles(key, val, cells);
+			value = (mxUtils.getValue(style, key, defaultValue)) ? 0 : 1;
+			this.setCellStyles(key, value, cells);
 		}
 	}
+	
+	return value;
 };
 
 /**
@@ -54440,8 +54446,7 @@ mxGraph.prototype.cloneCells = function(cells, allowInvalidEdges)
 							}
 							else
 							{
-								g.x += dx;
-								g.y += dy;
+								g.translate(dx, dy);
 							}
 						}
 					}
@@ -68692,6 +68697,11 @@ mxConnectionHandler.prototype.mouseDown = function(sender, me)
 		{
 			this.waypoints = null;
 			this.shape = this.createShape();
+			
+			if (this.edgeState != null)
+			{
+				this.shape.apply(this.edgeState);
+			}
 		}
 
 		// Stores the starting point in the geometry of the preview
@@ -69010,6 +69020,11 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 				if (dx > this.graph.tolerance || dy > this.graph.tolerance)
 				{
 					this.shape = this.createShape();
+
+					if (this.edgeState != null)
+					{
+						this.shape.apply(this.edgeState);
+					}
 					
 					// Revalidates current connection
 					this.updateCurrentState(me, point);
@@ -72616,7 +72631,7 @@ mxEdgeHandler.prototype.outlineConnect = false;
  * Specifies if the label handle should be moved if it intersects with another
  * handle. Uses <checkLabelHandle> for checking and moving. Default is false.
  */
-mxVertexHandler.prototype.manageLabelHandle = false;
+mxEdgeHandler.prototype.manageLabelHandle = false;
 
 /**
  * Function: init
@@ -73569,12 +73584,12 @@ mxEdgeHandler.prototype.mouseUp = function(sender, me)
 					pt.y -= this.graph.panDy / this.graph.view.scale;
 										
 					// Destroys and recreates this handler
-					this.changeTerminalPoint(edge, pt, this.isSource, clone);
+					edge = this.changeTerminalPoint(edge, pt, this.isSource, clone);
 				}
 			}
 			else if (this.active)
 			{
-				this.changePoints(edge, this.points, clone);
+				edge = this.changePoints(edge, this.points, clone);
 			}
 			else
 			{
@@ -73616,7 +73631,12 @@ mxEdgeHandler.prototype.reset = function()
 	this.isLabel = false;
 	this.isSource = false;
 	this.isTarget = false;
-	this.marker.reset();
+	
+	if (this.marker != null)
+	{
+		this.marker.reset();
+	}
+	
 	this.constraintHandler.reset();
 	this.setPreviewColor(mxConstants.EDGE_SELECTION_COLOR);
 	this.removeHint();
@@ -73818,6 +73838,8 @@ mxEdgeHandler.prototype.changeTerminalPoint = function(edge, point, isSource, cl
 	{
 		model.endUpdate();
 	}
+	
+	return edge;
 };
 
 /**
@@ -73856,6 +73878,8 @@ mxEdgeHandler.prototype.changePoints = function(edge, points, clone)
 	{
 		model.endUpdate();
 	}
+	
+	return edge;
 };
 
 /**
@@ -74030,6 +74054,11 @@ mxEdgeHandler.prototype.redrawHandles = function()
 		this.bends[0].fill = this.getHandleFillColor(0);
 		this.bends[0].redraw();
 		
+		if (this.manageLabelHandle)
+		{
+			this.checkLabelHandle(this.bends[0].bounds);
+		}
+				
 		var pe = this.abspoints[n];
 		var xn = pe.x;
 		var yn = pe.y;
@@ -74040,7 +74069,12 @@ mxEdgeHandler.prototype.redrawHandles = function()
 				Math.round(yn - b.height / 2), b.width, b.height);
 		this.bends[bn].fill = this.getHandleFillColor(bn);
 		this.bends[bn].redraw();
-
+		
+		if (this.manageLabelHandle)
+		{
+			this.checkLabelHandle(this.bends[bn].bounds);
+		}
+		
 		this.redrawInnerBends(p0, pe);
 		this.labelShape.redraw();
 	}

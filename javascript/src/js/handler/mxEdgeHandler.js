@@ -177,7 +177,7 @@ mxEdgeHandler.prototype.outlineConnect = false;
  * Specifies if the label handle should be moved if it intersects with another
  * handle. Uses <checkLabelHandle> for checking and moving. Default is false.
  */
-mxVertexHandler.prototype.manageLabelHandle = false;
+mxEdgeHandler.prototype.manageLabelHandle = false;
 
 /**
  * Function: init
@@ -1130,12 +1130,12 @@ mxEdgeHandler.prototype.mouseUp = function(sender, me)
 					pt.y -= this.graph.panDy / this.graph.view.scale;
 										
 					// Destroys and recreates this handler
-					this.changeTerminalPoint(edge, pt, this.isSource, clone);
+					edge = this.changeTerminalPoint(edge, pt, this.isSource, clone);
 				}
 			}
 			else if (this.active)
 			{
-				this.changePoints(edge, this.points, clone);
+				edge = this.changePoints(edge, this.points, clone);
 			}
 			else
 			{
@@ -1177,7 +1177,12 @@ mxEdgeHandler.prototype.reset = function()
 	this.isLabel = false;
 	this.isSource = false;
 	this.isTarget = false;
-	this.marker.reset();
+	
+	if (this.marker != null)
+	{
+		this.marker.reset();
+	}
+	
 	this.constraintHandler.reset();
 	this.setPreviewColor(mxConstants.EDGE_SELECTION_COLOR);
 	this.removeHint();
@@ -1379,6 +1384,8 @@ mxEdgeHandler.prototype.changeTerminalPoint = function(edge, point, isSource, cl
 	{
 		model.endUpdate();
 	}
+	
+	return edge;
 };
 
 /**
@@ -1417,6 +1424,8 @@ mxEdgeHandler.prototype.changePoints = function(edge, points, clone)
 	{
 		model.endUpdate();
 	}
+	
+	return edge;
 };
 
 /**
@@ -1591,6 +1600,11 @@ mxEdgeHandler.prototype.redrawHandles = function()
 		this.bends[0].fill = this.getHandleFillColor(0);
 		this.bends[0].redraw();
 		
+		if (this.manageLabelHandle)
+		{
+			this.checkLabelHandle(this.bends[0].bounds);
+		}
+				
 		var pe = this.abspoints[n];
 		var xn = pe.x;
 		var yn = pe.y;
@@ -1601,7 +1615,12 @@ mxEdgeHandler.prototype.redrawHandles = function()
 				Math.round(yn - b.height / 2), b.width, b.height);
 		this.bends[bn].fill = this.getHandleFillColor(bn);
 		this.bends[bn].redraw();
-
+		
+		if (this.manageLabelHandle)
+		{
+			this.checkLabelHandle(this.bends[bn].bounds);
+		}
+		
 		this.redrawInnerBends(p0, pe);
 		this.labelShape.redraw();
 	}

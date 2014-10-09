@@ -90,7 +90,7 @@ Sidebar.prototype.init = function()
 	this.addUmlPalette(false);
 	this.addBpmnPalette(dir, false);
 	this.addStencilPalette('flowchart', 'Flowchart', dir + '/flowchart.xml',
-	';fillColor=#ffffff;strokeColor=#000000;strokeWidth=2');
+		';fillColor=#ffffff;strokeColor=#000000;strokeWidth=2');
 	this.addImagePalette('clipart', mxResources.get('clipart'), dir + '/clipart/', '_128x128.png',
 		['Earth_globe', 'Empty_Folder', 'Full_Folder', 'Gear', 'Lock', 'Software', 'Virus', 'Email',
 		 'Database', 'Router_Icon', 'iPad', 'iMac', 'Laptop', 'MacBook', 'Monitor_Tower', 'Printer',
@@ -113,11 +113,6 @@ Sidebar.prototype.tooltipBorder = 16;
  * Specifies the delay for the tooltip. Default is 300 ms.
  */
 Sidebar.prototype.tooltipDelay = 300;
-
-/**
- * Specifies if edges should be used as templates if clicked. Default is true.
- */
-Sidebar.prototype.installEdges = true;
 
 /**
  * Specifies the URL of the gear image.
@@ -391,7 +386,7 @@ Sidebar.prototype.addGeneralPalette = function(expand)
 	    content.appendChild(this.createVertexTemplate('shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top', 30, 60, '', 'Actor', true));
 	    content.appendChild(this.createVertexTemplate('ellipse;shape=cloud;whiteSpace=wrap', 120, 80, '', 'Cloud', true));
 
-	    content.appendChild(this.createVertexTemplate('shape=card;whiteSpace=wrap', 60, 80, '', 'Card', true));
+	    content.appendChild(this.createVertexTemplate('shape=card;whiteSpace=wrap', 80, 100, '', 'Card', true));
 	    content.appendChild(this.createVertexTemplate('shape=folder;whiteSpace=wrap', 120, 120, '', 'Folder', true));
 	    content.appendChild(this.createVertexTemplate('shape=internalStorage;whiteSpace=wrap', 80, 80, '', 'Internal Storage', true));
 	    content.appendChild(this.createVertexTemplate('shape=cylinder;whiteSpace=wrap', 60, 80, '', 'Cylinder', true));
@@ -483,9 +478,9 @@ Sidebar.prototype.addConnectionShapes = function(dir, content)
     content.appendChild(this.createEdgeTemplate('edgeStyle=none;endArrow=none;', 100, 100, '', 'Line', true));
     content.appendChild(this.createEdgeTemplate('edgeStyle=none;endArrow=none;dashed=1;', 100, 100, '', 'Dashed Line', true));
     content.appendChild(this.createEdgeTemplate('edgeStyle=none;endArrow=none;dashed=1;dashPattern=1 4', 100, 100, '', 'Dotted Line', true));
-    content.appendChild(this.createEdgeTemplate('edgeStyle=none', 100, 100, '', 'Connection', true));
+    content.appendChild(this.createEdgeTemplate('edgeStyle=none;endArrow=classic;', 100, 100, '', 'Connection', true));
 
-	var cells = [new mxCell('', new mxGeometry(0, 0, 100, 100), 'curved=1')];
+	var cells = [new mxCell('', new mxGeometry(0, 0, 100, 100), 'curved=1;endArrow=classic;')];
 	cells[0].geometry.setTerminalPoint(new mxPoint(0, 100), true);
 	cells[0].geometry.setTerminalPoint(new mxPoint(100, 0), false);
 	cells[0].geometry.points = [new mxPoint(100, 100), new mxPoint(0, 0)];
@@ -493,12 +488,12 @@ Sidebar.prototype.addConnectionShapes = function(dir, content)
 	cells[0].edge = true;
     content.appendChild(this.createEdgeTemplateFromCells(cells, 100, 100, 'Curve', true));
     
-    content.appendChild(this.createEdgeTemplate('edgeStyle=elbowEdgeStyle;elbow=horizontal', 100, 100, '', 'Horizontal Elbow', true));
-    content.appendChild(this.createEdgeTemplate('edgeStyle=elbowEdgeStyle;elbow=vertical', 100, 100, '', 'Vertical Elbow', true));
-    content.appendChild(this.createEdgeTemplate('edgeStyle=entityRelationEdgeStyle', 100, 100, '', 'Entity Relation', true));
-    content.appendChild(this.createEdgeTemplate('edgeStyle=segmentEdgeStyle', 100, 100, '', 'Manual Line', true));
+    content.appendChild(this.createEdgeTemplate('edgeStyle=elbowEdgeStyle;elbow=horizontal;endArrow=classic;', 100, 100, '', 'Horizontal Elbow', true));
+    content.appendChild(this.createEdgeTemplate('edgeStyle=elbowEdgeStyle;elbow=vertical;endArrow=classic;', 100, 100, '', 'Vertical Elbow', true));
+    content.appendChild(this.createEdgeTemplate('edgeStyle=entityRelationEdgeStyle;endArrow=classic;', 100, 100, '', 'Entity Relation', true));
+    content.appendChild(this.createEdgeTemplate('edgeStyle=segmentEdgeStyle;endArrow=classic;', 100, 100, '', 'Manual Line', true));
 
-	var cells = [new mxCell('', new mxGeometry(0, 0, 100, 100), 'edgeStyle=orthogonalEdgeStyle')];
+	var cells = [new mxCell('', new mxGeometry(0, 0, 100, 100), 'edgeStyle=orthogonalEdgeStyle;endArrow=classic;')];
 	cells[0].geometry.setTerminalPoint(new mxPoint(0, 100), true);
 	cells[0].geometry.setTerminalPoint(new mxPoint(100, 0), false);
 	cells[0].geometry.points = [new mxPoint(30, 100), new mxPoint(30, 50), new mxPoint(70, 50), new mxPoint(70, 0)];
@@ -594,19 +589,27 @@ Sidebar.prototype.addUmlPalette = function(expand)
 
     	content.appendChild(this.createVertexTemplateFromCells([classCell], 120, 60, 'Module', true));
 
-	    var classCell = new mxCell('&lt;&lt;component&gt;&gt;<br/><b>Component</b>', new mxGeometry(0, 0, 180, 90),
-	    	'shape=ext;symbol0=component;symbol0Width=20;symbol0Height=20;symbol0Align=right;symbol0VerticalAlign=top;symbol0Spacing=4;symbol0ArcSpacing=0.25;jettyWidth=8;jettyHeight=4;overflow=fill;html=1', 'Component', true);
-	    classCell.vertex = true;
-	
+		var classCell = new mxCell('&lt;&lt;component&gt;&gt;<br/><b>Component</b>', new mxGeometry(0, 0, 180, 90), 'overflow=fill;html=1;');
+		classCell.vertex = true;
+		var classCell1 = new mxCell('', new mxGeometry(1, 0, 20, 20), 'shape=component;jettyWidth=8;jettyHeight=4;');
+		classCell1.vertex = true;
+		classCell1.geometry.relative = true;
+		classCell1.geometry.offset = new mxPoint(-27, 7);
+		classCell.insert(classCell1);
+		
 		content.appendChild(this.createVertexTemplateFromCells([classCell], 180, 90, 'Component', true));
 
-	    var classCell = new mxCell('<p style="margin:0px;margin-top:6px;text-align:center;"><b>Component</b></p>' +
-				'<hr/><p style="margin:0px;margin-left:8px;">+ Attribute1: Type<br/>+ Attribute2: Type</p>', new mxGeometry(0, 0, 180, 90),
-	    	'shape=ext;symbol0=component;symbol0Width=20;symbol0Height=20;symbol0Align=right;symbol0VerticalAlign=top;symbol0ArcSpacing=0.25;jettyWidth=8;jettyHeight=4;verticalAlign=top;align=left;overflow=fill;html=1');
+		var classCell = new mxCell('<p style="margin:0px;margin-top:6px;text-align:center;"><b>Component</b></p>' +
+				'<hr/><p style="margin:0px;margin-left:8px;">+ Attribute1: Type<br/>+ Attribute2: Type</p>', new mxGeometry(0, 0, 180, 90), 'align=left;overflow=fill;html=1;');
 		classCell.vertex = true;
-
+		var classCell1 = new mxCell('', new mxGeometry(1, 0, 20, 20), 'shape=component;jettyWidth=8;jettyHeight=4;');
+		classCell1.vertex = true;
+		classCell1.geometry.relative = true;
+		classCell1.geometry.offset = new mxPoint(-23, 3);
+		classCell.insert(classCell1);
+		
 		content.appendChild(this.createVertexTemplateFromCells([classCell], 180, 90, 'Component with Attributes', true));
-
+		
 		content.appendChild(this.createVertexTemplate('shape=lollipop;direction=south;', 30, 10, '', 'Lollipop', true));
 
     	var cardCell = new mxCell('Block', new mxGeometry(0, 0, 180, 120),
@@ -854,12 +857,37 @@ Sidebar.prototype.addBpmnPalette = function(dir, expand)
 		content.appendChild(this.createVertexTemplate('shape=ext;rounded=1;dashed=1;dashPattern=1 4;', 120, 80, 'Event\nSub-Process', 'Event Sub-Process', true));
 		content.appendChild(this.createVertexTemplate('shape=ext;rounded=1;strokeWidth=3;', 120, 80, 'Call Activity', 'Call Activity', true));
 
-		content.appendChild(this.createVertexTemplate('shape=ext;rounded=1;symbol0=plus;symbol0Width=14;symbol0Height=14;symbol0Align=center;symbol0VerticalAlign=bottom;', 120, 80, 'Sub-Process', 'Sub-Process', true));
-		content.appendChild(this.createVertexTemplate('shape=ext;rounded=1;symbol0=message;symbol0Width=20;symbol0Height=14;symbol0Align=left;symbol0VerticalAlign=top;symbol0Spacing=4;symbol0ArcSpacing=0.25;', 120, 80, 'Receive', 'Receive Task', true));
-		content.appendChild(this.createVertexTemplate('shape=ext;rounded=1;symbol0=actor;symbol0Width=14;symbol0Height=14;symbol0Align=left;symbol0VerticalAlign=top;symbol0Spacing=4;symbol0ArcSpacing=0.25;', 120, 80, 'User', 'User Task', true));
+		var classCell = new mxCell('Sub-Process', new mxGeometry(0, 0, 120, 80), 'rounded=1');
+		classCell.vertex = true;
+		var classCell1 = new mxCell('', new mxGeometry(0.5, 1, 14, 14), 'shape=plus;');
+		classCell1.vertex = true;
+		classCell1.geometry.relative = true;
+		classCell1.geometry.offset = new mxPoint(-7, -14);
+		classCell.insert(classCell1);
 		
-		var classCell = new mxCell('Process', new mxGeometry(0, 0, 120, 80),
-	    	'rounded=1');
+		content.appendChild(this.createVertexTemplateFromCells([classCell], 120, 80, 'Sub-Process', true));
+		
+		var classCell = new mxCell('Receive', new mxGeometry(0, 0, 120, 80), 'rounded=1');
+		classCell.vertex = true;
+		var classCell1 = new mxCell('', new mxGeometry(0, 0, 20, 14), 'shape=message;');
+		classCell1.vertex = true;
+		classCell1.geometry.relative = true;
+		classCell1.geometry.offset = new mxPoint(7, 7);
+		classCell.insert(classCell1);
+		
+		content.appendChild(this.createVertexTemplateFromCells([classCell], 120, 80, 'Receive Task', true));
+		
+		var classCell = new mxCell('User', new mxGeometry(0, 0, 120, 80), 'rounded=1');
+		classCell.vertex = true;
+		var classCell1 = new mxCell('', new mxGeometry(0, 0, 14, 14), 'shape=actor;');
+		classCell1.vertex = true;
+		classCell1.geometry.relative = true;
+		classCell1.geometry.offset = new mxPoint(7, 7);
+		classCell.insert(classCell1);
+		
+		content.appendChild(this.createVertexTemplateFromCells([classCell], 120, 80, 'User Task', true));
+		
+		var classCell = new mxCell('Process', new mxGeometry(0, 0, 120, 80), 'rounded=1');
 		classCell.vertex = true;
 		var classCell1 = new mxCell('', new mxGeometry(1, 1, 30, 30), 'shape=mxgraph.bpmn.timer_start;perimeter=ellipsePerimeter;');
 		classCell1.vertex = true;
@@ -867,7 +895,7 @@ Sidebar.prototype.addBpmnPalette = function(dir, expand)
 		classCell1.geometry.offset = new mxPoint(-40, -15);
 		classCell.insert(classCell1);
 		
-		content.appendChild(this.createVertexTemplateFromCells([classCell], 120, 80, 'Attached Timer Event', true));
+		content.appendChild(this.createVertexTemplateFromCells([classCell], 120, 95, 'Attached Timer Event', true));
 
 		content.appendChild(this.createVertexTemplate('swimlane;horizontal=0;startSize=20', 320, 240, 'Pool', 'Pool', true));
 		content.appendChild(this.createVertexTemplate('swimlane;horizontal=0;swimlaneFillColor=white;swimlaneLine=0;', 300, 120, 'Lane', 'Lane', true));
@@ -1054,7 +1082,7 @@ Sidebar.prototype.createItem = function(cells, title, showLabel, showTitle, widt
 		dy = (bounds.height - height - 1) / 2;
 		
 		var ds = this.createDragSource(elt, this.createDropHandler(cells, true, dx, dy),
-				this.createDragPreview(bounds.width - 1, bounds.height - 1));
+				this.createDragPreview(bounds.width - 1, bounds.height - 1), cells);
 		this.addClickHandler(elt, ds, cells);
 	
 		// Uses guides for vertices only if enabled in graph
@@ -1096,47 +1124,39 @@ Sidebar.prototype.updateShapes = function(source, targets)
 	graph.model.beginUpdate();
 	try
 	{
+		var cellStyle = graph.getModel().getStyle(source);
+
+		// Lists the styles to carry over from the existing shape
+		var styles = ['shadow', 'dashed', 'dashPattern', 'fontFamily', 'fontSize', 'fontColor', 'align', 'startArrow',
+		              'startFill', 'startSize', 'endArrow', 'endFill', 'endSize', 'strokeColor', 'strokeWidth',
+		              'fillColor', 'gradientColor', 'html', 'part', 'childLayout'];
+
 		for (var i = 0; i < targets.length; i++)
 		{
 			var targetCell = targets[i];
 			
-			if (graph.getModel().isVertex(targetCell) && graph.getModel().isVertex(source))
+			if ((graph.getModel().isVertex(targetCell) == graph.getModel().isVertex(source)) ||
+				(graph.getModel().isEdge(targetCell) == graph.getModel().isEdge(source)))
 			{
-				var sourceStyle = graph.getCellStyle(source);
-				var shape = mxUtils.getValue(sourceStyle, mxConstants.STYLE_SHAPE, null);
-				var image = mxUtils.getValue(sourceStyle, mxConstants.STYLE_IMAGE, null);
+				var state = graph.view.getState(targetCell);
+				var style = (state != null) ? state.style : graph.getCellStyle(cells[i]);
 				
-				// Special shape level styles
-				var rounded = mxUtils.getValue(sourceStyle, mxConstants.STYLE_ROUNDED, null);
-				var perimeter = mxUtils.getValue(sourceStyle, mxConstants.STYLE_PERIMETER, null);
-				var doubleStyle = mxUtils.getValue(sourceStyle, 'double', null);
-				
-				if (shape != null)
+				graph.getModel().setStyle(targetCell, cellStyle);
+
+				if (style != null)
 				{
-					graph.setCellStyles(mxConstants.STYLE_SHAPE, shape, [targetCell]);
-					graph.setCellStyles(mxConstants.STYLE_IMAGE, image, [targetCell]);
-					graph.setCellStyles(mxConstants.STYLE_ROUNDED, rounded, [targetCell]);
-					graph.setCellStyles(mxConstants.STYLE_PERIMETER, perimeter, [targetCell]);
-					graph.setCellStyles('double', doubleStyle, [targetCell]);
-					result.push(targetCell);
+					for (var j = 0; j < styles.length; j++)
+					{
+						var value = style[styles[j]];
+						
+						if (value != null)
+						{
+							graph.setCellStyles(styles[j], value, [targetCell]);
+						}
+					}
 				}
-			}
-			else if (graph.getModel().isEdge(targetCell) && graph.getModel().isEdge(source))
-			{
-				var sourceStyle = graph.getCellStyle(source);
-				var shape = mxUtils.getValue(sourceStyle, mxConstants.STYLE_SHAPE, null);
-				var edge = mxUtils.getValue(sourceStyle, mxConstants.STYLE_EDGE, null);
 				
-				// Special shape level styles
-				var rounded = mxUtils.getValue(sourceStyle, mxConstants.STYLE_ROUNDED, null);
-				
-				if (shape != null)
-				{
-					graph.setCellStyles(mxConstants.STYLE_SHAPE, shape, [targetCell]);
-					graph.setCellStyles(mxConstants.STYLE_EDGE, edge, [targetCell]);
-					graph.setCellStyles(mxConstants.STYLE_ROUNDED, rounded, [targetCell]);
-					result.push(targetCell);
-				}
+				result.push(targetCell);
 			}
 		}
 	}
@@ -1201,8 +1221,9 @@ Sidebar.prototype.createDropHandler = function(cells, allowSplit, dx, dy)
 					else if (cells.length > 0)
 					{
 						select = graph.importCells(cells, x, y, target);
-						this.editorUi.fireEvent(new mxEventObject('cellsInserted', 'cells', select));
 					}
+
+					this.editorUi.fireEvent(new mxEventObject('cellsInserted', 'cells', select));
 				}
 				finally
 				{
@@ -1237,10 +1258,111 @@ Sidebar.prototype.createDragPreview = function(width, height)
 /**
  * Creates a drag source for the given element.
  */
-Sidebar.prototype.createDragSource = function(elt, dropHandler, preview)
+Sidebar.prototype.dropAndConnect = function(source, target, direction)
 {
-	var dragSource = mxUtils.makeDraggable(elt, this.editorUi.editor.graph, dropHandler,
-		preview, 0, 0, this.editorUi.editor.graph.autoscroll, true, true);
+	var geo = this.getDropAndConnectGeometry(source, target, direction);
+
+	if (geo != null)
+	{
+		var graph = this.editorUi.editor.graph;
+		
+		graph.model.beginUpdate();
+		try
+		{
+			var sourceGeo = graph.getCellGeometry(source);
+			target = graph.importCells([target], 0, 0, (sourceGeo != null && !sourceGeo.relative) ? graph.model.getParent(source) : null)[0];
+			graph.model.setGeometry(target, geo);
+			var geo2 = graph.getCellGeometry(target);
+			var edge = graph.insertEdge(null, null, '', source, target);
+			this.editorUi.fireEvent(new mxEventObject('cellsInserted', 'cells', [edge, target]));
+		}
+		finally
+		{
+			graph.model.endUpdate();
+		}
+		
+		graph.setSelectionCell(target);
+	}
+};
+
+/**
+ * Creates a drag source for the given element.
+ */
+Sidebar.prototype.getDropAndConnectGeometry = function(source, target, direction)
+{
+	var graph = this.editorUi.editor.graph;
+	var view = graph.view;
+	var geo = graph.getCellGeometry(source);
+	var geo2 = graph.getCellGeometry(target);
+	
+	if (geo != null && geo2 != null)
+	{
+		geo = geo.clone();
+		
+		if (geo.relative)
+		{
+			var state = graph.view.getState(source);
+			geo.x = (state.x - view.translate.x) / view.scale;
+			geo.y = (state.y - view.translate.y) / view.scale;
+		}
+		
+		var length = Math.min(80, geo.height);
+		geo2 = geo2.clone();
+		
+		// Try match size
+		geo2.width = geo2.width * (geo.height / geo2.height);
+		geo2.height = geo.height;
+		
+		geo2.x = geo.x + geo.width / 2 - geo2.width / 2;
+		geo2.y = geo.y + geo.height / 2 - geo2.height / 2;
+		
+		if (direction == mxConstants.DIRECTION_NORTH)
+		{
+			geo2.y = geo2.y - geo.height / 2 - geo2.height / 2 - length;
+		}
+		else if (direction == mxConstants.DIRECTION_EAST)
+		{
+			geo2.x = geo2.x + geo.width / 2 + geo2.width / 2 + length;
+		}
+		else if (direction == mxConstants.DIRECTION_SOUTH)
+		{
+			geo2.y = geo2.y + geo.height / 2 + geo2.height / 2 + length;
+		}
+		else if (direction == mxConstants.DIRECTION_WEST)
+		{
+			geo2.x = geo2.x - geo.width / 2 - geo2.width / 2 - length;
+		}
+	}
+	
+	return geo2;
+};
+
+/**
+ * Creates a drag source for the given element.
+ */
+Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
+{
+	var dragSource = mxUtils.makeDraggable(elt, this.editorUi.editor.graph, mxUtils.bind(this, function(graph, evt, target, x, y)
+	{
+		if (cells != null && activeArrow != null && currentTargetState != null)
+		{
+			this.dropAndConnect(currentTargetState.cell, cells[0], direction);
+		}
+		else
+		{
+			dropHandler.apply(this, arguments);
+		}
+	}),
+	preview, 0, 0, this.editorUi.editor.graph.autoscroll, true, true);
+	
+	// Stops dragging if cancel is pressed
+	this.editorUi.editor.graph.addListener(mxEvent.ESCAPE, function(sender, evt)
+	{
+		if (dragSource.isActive())
+		{
+			dragSource.reset();
+		}
+	});
 
 	// Overrides mouseDown to ignore popup triggers
 	var mouseDown = dragSource.mouseDown;
@@ -1253,11 +1375,239 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview)
 		}
 	};
 
-	// Allows drop into cell only if target is a valid root
-	dragSource.getDropTarget = function(graph, x, y)
+	// Workaround for event redirection via image tag in quirks and IE8
+	function createArrow(img)
 	{
-		var target = mxDragSource.prototype.getDropTarget.apply(this, arguments);
+		var arrow = null;
 		
+		if (mxClient.IS_IE && !mxClient.IS_SVG)
+		{
+			// Workaround for PNG images in IE6
+			if (mxClient.IS_IE6 && document.compatMode != 'CSS1Compat')
+			{
+				arrow = document.createElement(mxClient.VML_PREFIX + ':image');
+				arrow.setAttribute('src', img.src);
+				arrow.style.borderStyle = 'none';
+			}
+			else
+			{
+				arrow = document.createElement('div');
+				arrow.style.backgroundImage = 'url(' + img.src + ')';
+				arrow.style.backgroundPosition = 'center';
+				arrow.style.backgroundRepeat = 'no-repeat';
+			}
+			
+			arrow.style.width = (img.width + 4) + 'px';
+			arrow.style.height = (img.height + 4) + 'px';
+			arrow.style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
+		}
+		else
+		{
+			arrow = mxUtils.createImage(img.src);
+			
+			if (touchStyle)
+			{
+				arrow.style.width = '29px';
+				arrow.style.height = '29px';
+			}
+			else
+			{
+				arrow.style.width = img.width + 'px';
+				arrow.style.height = img.height + 'px';
+			}
+		}
+		
+		mxUtils.setOpacity(arrow, 20);
+		arrow.style.position = 'absolute';
+		arrow.style.cursor = 'crosshair';
+		
+		return arrow;
+	};
+
+	var currentTargetState = null;
+	var currentStateHandle = null;
+	var activeTarget = false;
+	
+	var arrowUp = createArrow(this.triangleUp);
+	var arrowRight = createArrow(this.triangleRight);
+	var arrowDown = createArrow(this.triangleDown);
+	var arrowLeft = createArrow(this.triangleLeft);
+	var arrowSpacing = 4;
+	var direction = mxConstants.DIRECTION_NORTH;
+	var activeArrow = null;
+	
+	function checkArrow(x, y, bounds, arrow)
+	{
+		if (mxUtils.contains(bounds, x, y))
+		{
+			mxUtils.setOpacity(arrow, 100);
+			activeArrow = arrow;
+		}
+		else
+		{
+			mxUtils.setOpacity(arrow, 20);
+		}
+		
+		return bounds;
+	};
+	
+	// Hides guides and preview if target is active
+	var sidebar = this;
+	var dsCreatePreviewElement = dragSource.createPreviewElement;
+	
+	// Stores initial size of preview element
+	dragSource.createPreviewElement = function(graph)
+	{
+		var elt = dsCreatePreviewElement.apply(this, arguments);
+		
+		this.previewElementWidth = elt.style.width;
+		this.previewElementHeight = elt.style.height;
+		
+		return elt;
+	};
+	
+	dragSource.dragOver = function(graph, evt)
+	{
+		mxDragSource.prototype.dragOver.apply(this, arguments);
+		
+		if (this.currentGuide != null && activeArrow != null)
+		{
+			this.currentGuide.hide();
+		}
+
+		if (this.previewElement != null)
+		{
+			if (activeArrow != null)
+			{
+				var graph = sidebar.editorUi.editor.graph;
+				var view = graph.view;
+				var geo = sidebar.getDropAndConnectGeometry(currentTargetState.cell, cells[0], direction);
+				var geo2 = graph.getCellGeometry(currentTargetState.cell);
+				var parent = graph.model.getParent(currentTargetState.cell);
+				var dx = view.translate.x * view.scale;
+				var dy = view.translate.y * view.scale;
+				
+				if (geo2 != null && !geo2.relative && graph.model.isVertex(parent))
+				{
+					var pState = view.getState(parent);
+					dx = pState.x;
+					dy = pState.y;
+				}
+				
+				// Shows preview at drop location
+				this.previewElement.style.left = (geo.x * view.scale + dx) + 'px';
+				this.previewElement.style.top = (geo.y * view.scale + dy) + 'px';
+				this.previewElement.style.width = (geo.width * view.scale) + 'px';
+				this.previewElement.style.height = (geo.height * view.scale) + 'px';
+			}
+			else
+			{
+				this.previewElement.style.width = this.previewElementWidth;
+				this.previewElement.style.height = this.previewElementHeight;
+			}
+		}
+	};
+	
+	// Allows drop into cell only if target is a valid root
+	dragSource.getDropTarget = mxUtils.bind(this, function(graph, x, y, evt)
+	{
+		// LATER: Show preview where result will go
+		var cell = (!mxEvent.isAltDown(evt) && cells != null) ? graph.getCellAt(x, y) : null;
+		var state = graph.view.getState(cell);
+		activeArrow = null;
+		var bbox = null;
+		
+		// Checks if inside bounds
+		if (activeTarget && currentTargetState != null && !mxEvent.isAltDown(evt))
+		{
+			bbox = mxRectangle.fromRectangle(currentTargetState);
+			
+			bbox.add(checkArrow(x, y, new mxRectangle(currentTargetState.getCenterX() - this.triangleUp.width / 2,
+				currentTargetState.y - this.triangleUp.height - arrowSpacing, this.triangleUp.width, this.triangleUp.height), arrowUp));
+			bbox.add(checkArrow(x, y, new mxRectangle(currentTargetState.x + currentTargetState.width + arrowSpacing,
+				currentTargetState.getCenterY() - this.triangleRight.height / 2,
+				this.triangleRight.width, this.triangleRight.height), arrowRight));
+			bbox.add(checkArrow(x, y, new mxRectangle(currentTargetState.getCenterX() - this.triangleDown.width / 2,
+					currentTargetState.y + currentTargetState.height + arrowSpacing,
+					this.triangleDown.width, this.triangleDown.height), arrowDown));
+			bbox.add(checkArrow(x, y, new mxRectangle(currentTargetState.x - this.triangleLeft.width - arrowSpacing,
+					currentTargetState.getCenterY() - this.triangleLeft.height / 2,
+					this.triangleLeft.width, this.triangleLeft.height), arrowLeft));
+			
+			// Adds tolerance
+			bbox.grow(10);
+		}
+		
+		direction = mxConstants.DIRECTION_NORTH;
+		
+		if (activeArrow == arrowRight)
+		{
+			direction = mxConstants.DIRECTION_EAST;
+		}
+		else if (activeArrow == arrowDown)
+		{
+			direction = mxConstants.DIRECTION_SOUTH;
+		}
+		else if (activeArrow == arrowLeft)
+		{
+			direction = mxConstants.DIRECTION_WEST;
+		}
+		
+		if (currentTargetState != state && (bbox == null || !mxUtils.contains(bbox, x, y)))
+		{
+			activeTarget = false;
+			currentTargetState = state;
+			
+			if (currentTargetState != null && graph.model.isVertex(cell) &&
+				graph.isCellConnectable(cell) && !graph.isContainer(cell))
+			{
+				arrowUp.style.left = (state.getCenterX() - this.triangleUp.width / 2) + 'px';
+				arrowUp.style.top = (state.y - this.triangleUp.height - arrowSpacing) + 'px';
+				
+				arrowRight.style.left = (state.x + state.width + arrowSpacing) + 'px';
+				arrowRight.style.top = (state.getCenterY() - this.triangleRight.height / 2) + 'px';
+				
+				arrowDown.style.left = arrowUp.style.left
+				arrowDown.style.top = (state.y + state.height + arrowSpacing) + 'px';
+				
+				arrowLeft.style.left = (state.x - this.triangleLeft.width - arrowSpacing) + 'px';
+				arrowLeft.style.top = arrowRight.style.top;
+				
+				graph.container.appendChild(arrowUp);
+				graph.container.appendChild(arrowRight);
+				graph.container.appendChild(arrowDown);
+				graph.container.appendChild(arrowLeft);
+				
+				// Hides handle for cell under mouse
+				if (state != null)
+				{
+					currentStateHandle = graph.selectionCellsHandler.getHandler(state.cell);
+					
+					if (currentStateHandle != null && currentStateHandle.hideSizers != null)
+					{
+						currentStateHandle.hideSizers();
+					}
+				}
+				
+				activeTarget = true;
+			}
+			else if (arrowDown.parentNode != null)
+			{
+				arrowDown.parentNode.removeChild(arrowUp);
+				arrowRight.parentNode.removeChild(arrowRight);
+				arrowDown.parentNode.removeChild(arrowDown);
+				arrowLeft.parentNode.removeChild(arrowLeft);
+			}
+		}
+
+		if (!activeTarget && currentStateHandle != null)
+		{
+			currentStateHandle.reset();
+		}
+		
+		// Handles drop target
+		var target = (!activeTarget && !mxEvent.isAltDown(evt)) ? mxDragSource.prototype.getDropTarget.apply(this, arguments) : null;
+
 		if (target != null)
 		{
 			// Selects parent group as drop target
@@ -1276,6 +1626,33 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview)
 		}
 		
 		return target;
+	});
+	
+	dragSource.stopDrag = function()
+	{
+		mxDragSource.prototype.stopDrag.apply(this, arguments);
+		
+		if (arrowDown.parentNode != null)
+		{
+			arrowDown.parentNode.removeChild(arrowUp);
+			arrowRight.parentNode.removeChild(arrowRight);
+			arrowDown.parentNode.removeChild(arrowDown);
+			arrowLeft.parentNode.removeChild(arrowLeft);
+		}
+		
+		if (activeArrow != null)
+		{
+			mxUtils.setOpacity(activeArrow, 80);
+		}
+		
+		if (currentTargetState != null && currentStateHandle != null)
+		{
+			currentStateHandle.reset();
+		}
+		
+		currentStateHandle = null;
+		currentTargetState = null;
+		activeArrow = null;
 	};
 	
 	return dragSource;
@@ -1294,19 +1671,6 @@ Sidebar.prototype.itemClicked = function(cells, ds, evt, elt)
 		{
 			graph.setSelectionCells(this.updateShapes(cells[0], graph.getSelectionCells()));
 		}
-	}
-	else if (graph.getModel().isEdge(cells[0]) && this.installEdges)
-	{
-		// Installs the default edge
-		graph.setDefaultEdge(cells[0]);
-
-		// Highlights the entry for 200ms
-		elt.style.backgroundColor = '#ffffff';
-		
-		window.setTimeout(function()
-		{
-			elt.style.backgroundColor = '';
-		}, 300);
 	}
 	else
 	{

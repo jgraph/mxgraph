@@ -235,7 +235,7 @@ mxDragSource.prototype.getGraphForEvent = function(evt)
  * Returns the drop target for the given graph and coordinates. This
  * implementation uses <mxGraph.getCellAt>.
  */
-mxDragSource.prototype.getDropTarget = function(graph, x, y)
+mxDragSource.prototype.getDropTarget = function(graph, x, y, evt)
 {
 	return graph.getCellAt(x, y);
 };
@@ -352,6 +352,9 @@ mxDragSource.prototype.startDrag = function(evt)
  */
 mxDragSource.prototype.stopDrag = function()
 {
+	// LATER: This used to have a mouse event. If that is still needed we need to add another
+	// final call to the DnD protocol to add a cleanup step in the case of escape press, which
+	// is not associated with a mouse event and which currently calles this method.
 	this.removeDragElement();
 };
 
@@ -592,7 +595,7 @@ mxDragSource.prototype.dragOver = function(graph, evt)
 	// Highlights the drop target under the mouse
 	if (this.currentHighlight != null && graph.isDropEnabled())
 	{
-		this.currentDropTarget = this.getDropTarget(graph, x, y);
+		this.currentDropTarget = this.getDropTarget(graph, x, y, evt);
 		var state = graph.getView().getState(this.currentDropTarget);
 		this.currentHighlight.highlight(state);
 	}

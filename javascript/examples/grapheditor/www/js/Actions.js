@@ -95,10 +95,76 @@ Actions.prototype.init = function()
 		}
 	}, null, null, 'Delete');
 	this.addAction('duplicate', function()
-    {
+	{
+		var cells = graph.getSelectionCells();
 		var s = graph.gridSize;
-		graph.setSelectionCells(graph.moveCells(graph.getSelectionCells(), s, s, true));
-    }, null, null, 'Ctrl+D');
+		var select = [];
+		
+		graph.getModel().beginUpdate();
+		try
+		{
+			for (var i = 0; i < cells.length; i++)
+			{
+				select.push(graph.moveCells([cells[i]], s, s, true, graph.getModel().getParent(cells[i]))[0]);
+			}
+		}
+		finally
+		{
+			graph.getModel().endUpdate();
+		}
+
+		graph.setSelectionCells(select);
+	}, null, null, 'Ctrl+D');
+	this.addAction('reverseEdge', function()
+	{
+		var cells = graph.getSelectionCells();
+		var model = graph.getModel();
+		var select = [];
+		
+		model.beginUpdate();
+		try
+		{
+			for (var i = 0; i < cells.length; i++)
+			{
+				if (model.isEdge(cells[i]))
+				{
+					var src = model.getTerminal(cells[i], true);
+					var trg = model.getTerminal(cells[i], false);
+					
+					model.setTerminal(cells[i], trg, true);
+					model.setTerminal(cells[i], src, false);
+					
+					var geo = model.getGeometry(cells[i]);
+					
+					if (geo != null)
+					{
+						geo = geo.clone();
+						
+						if (geo.points != null)
+						{
+							geo.points.reverse();
+						}
+						
+						var sp = geo.getTerminalPoint(true);
+						var tp = geo.getTerminalPoint(false)
+						
+						geo.setTerminalPoint(sp, false);
+						geo.setTerminalPoint(tp, true);
+						
+						model.setGeometry(cells[i], geo);
+					}
+					
+					select.push(cells[i]);
+				}
+			}
+		}
+		finally
+		{
+			model.endUpdate();
+		}
+
+		graph.setSelectionCells(select);
+	}, null, null, 'Ctrl+Shift+R');
 	this.addAction('selectVertices', function() { graph.selectVertices(); }, null, null, 'Ctrl+Shift+A').isEnabled = isGraphEnabled;
 	this.addAction('selectEdges', function() { graph.selectEdges(); }, null, null, 'Ctrl+Shift+E').isEnabled = isGraphEnabled;
 	this.addAction('selectAll', function() { graph.selectAll(); }, null, null, 'Ctrl+A').isEnabled = isGraphEnabled;
@@ -652,11 +718,54 @@ Actions.prototype.init = function()
 	this.addAction('borderColor...', function() { ui.menus.pickColor(mxConstants.STYLE_LABEL_BORDERCOLOR); });
 	
 	// Format actions
-	this.addAction('shadow', function() { graph.toggleCellStyles(mxConstants.STYLE_SHADOW); });
-	this.addAction('dashed', function() { graph.toggleCellStyles(mxConstants.STYLE_DASHED); });
-	this.addAction('rounded', function() { graph.toggleCellStyles(mxConstants.STYLE_ROUNDED); });
-	this.addAction('collapsible', function() { graph.toggleCellStyles('container'); });
-	this.addAction('curved', function() { graph.toggleCellStyles(mxConstants.STYLE_CURVED); });
+	this.addAction('shadow', function() { ui.menus.toggleStyle(mxConstants.STYLE_SHADOW); });
+	this.addAction('plain', function()
+	{
+		graph.getModel().beginUpdate();
+		try
+		{
+			graph.setCellStyles(mxConstants.STYLE_DASHED, null);
+			graph.setCellStyles(mxConstants.STYLE_DASH_PATTERN, null);
+			ui.fireEvent(new mxEventObject('styleChanged', 'keys', [mxConstants.STYLE_DASHED,
+			    mxConstants.STYLE_DASH_PATTERN], 'values', [null, null], 'cells', graph.getSelectionCells()));
+		}
+		finally
+		{
+			graph.getModel().endUpdate();
+		}
+	});
+	this.addAction('dashed', function()
+	{
+		graph.getModel().beginUpdate();
+		try
+		{
+			graph.setCellStyles(mxConstants.STYLE_DASHED, '1');
+			graph.setCellStyles(mxConstants.STYLE_DASH_PATTERN, null);
+			ui.fireEvent(new mxEventObject('styleChanged', 'keys', [mxConstants.STYLE_DASHED,
+			    mxConstants.STYLE_DASH_PATTERN], 'values', ['1', null], 'cells', graph.getSelectionCells()));
+		}
+		finally
+		{
+			graph.getModel().endUpdate();
+		}
+	});
+	this.addAction('dotted', function()
+	{
+		graph.getModel().beginUpdate();
+		try
+		{
+			graph.setCellStyles(mxConstants.STYLE_DASHED, '1');
+			graph.setCellStyles(mxConstants.STYLE_DASH_PATTERN, '1 4');
+			ui.fireEvent(new mxEventObject('styleChanged', 'keys', [mxConstants.STYLE_DASHED,
+			    mxConstants.STYLE_DASH_PATTERN], 'values', ['1', '1 4'], 'cells', graph.getSelectionCells()));
+		}
+		finally
+		{
+			graph.getModel().endUpdate();
+		}
+	});
+	this.addAction('rounded', function() { ui.menus.toggleStyle(mxConstants.STYLE_ROUNDED); });
+	this.addAction('collapsible', function() { ui.menus.toggleStyle('container'); });
 	this.put('style', new Action(mxResources.get('edit') + '...', mxUtils.bind(this, function()
 	{
 		var cells = graph.getSelectionCells();
@@ -677,10 +786,13 @@ Actions.prototype.init = function()
 			dlg.init();
 		}
 	}), null, null, 'Ctrl+E'));
-	this.addAction('setAsDefaultEdge', function()
+	this.addAction('setAsDefaultStyle', function()
 	{
-		graph.setDefaultEdge(graph.getSelectionCell());
-	});
+		if (graph.isEnabled() && !graph.isSelectionEmpty())
+		{
+			ui.setDefaultStyle(graph.getSelectionCell());
+		}
+	}, null, null, 'Ctrl+Shift+X');
 	this.addAction('addWaypoint', function()
 	{
 		var cell = graph.getSelectionCell();
@@ -745,7 +857,6 @@ Actions.prototype.init = function()
 			
 						if (geo != null)
 						{
-							// Rotates the size and position in the geometry
 							geo = geo.clone();
 							geo.points = null;
 							graph.getModel().setGeometry(cell, geo);

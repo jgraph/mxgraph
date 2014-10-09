@@ -1,3 +1,12 @@
+09-OCT-2014: 3.1.0.1
+
+- Uses edgeState style for preview shape in mxConnectionHandler [JavaScript]
+- Fixes translation of relative geometries in mxGraph.cloneCells [JavaScript]
+- Adds event argument in mxDragSource.getDropTarget [JavaScript]
+- mxGraph.toggleCellStyle(s) returns new value [JavaScript]
+- Fixes possible NPE in mxEdgeHandler.reset [JavaScript]
+- Selects new edges after cloning in mxEdgeHandler [JavaScript]
+
 03-OCT-2014: 3.1.0.0
 
 - Adds more cloning of edges if control is pressed in mxEdgeHandler [JavaScript]
@@ -14,7 +23,7 @@
 - Uses mxCellRenderer.getLabelValue in mxGraph.getPreferredSizeForCell [JavaScript]
 - Creates state in mxGraph.getPreferredSizeForCell if required [JavaScript]
 - Adds mxObjectCodec.allowEval = false switch [JavaScript]
-- Adds HTML label sanitization in grapheditor example [JavaScript]
+- Adds HTML label sanitation in grapheditor example [JavaScript]
 - Fixes inputing edges to roots array of hierarchical layout [JavaScript]
 - Fixes offset in mxEdgeHandler.addPointAt for edges in containers [JavaScript]
 - Fixes moving of edges in mxVertexHandler.moveChildren [JavaScript]
@@ -31,12 +40,12 @@
 - Adds rounding for new label positions in mxEdgeHandler [JavaScript]
 - Adds clone argument in mxGraph.getDropTarget [JavaScript]
 - Fixes rotation of relative edge child cells in mxGraphView.updateVertexState [JavaScript]
-- Adds mxRectangle.rotate90, fromRectangle static function [JavaScript]
+- Adds mxRectangle.fromRectangle static function [JavaScript]
 - Adds pom.xml for Maven in JGraphX [Java]
 - Fixes relative edge child positions in containers [Java,JavaScript,Dotnet,Php]
 - Fixes possible concatenation in mxGeometry.translate, mxGraph.translateCell [JavaScript]
 - Calls checkBounds in mxImageExport.drawCellState [JavaScript]
-- Adds mxRectangle.getRectangle, rotate90 [JavaScript]
+- Adds mxRectangle.rotate90 [JavaScript]
 - Adds handles.html example [JavaScript]
 
 11-SEP-2014: 3.0.1.1

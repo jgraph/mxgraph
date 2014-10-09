@@ -358,6 +358,28 @@
 	};
 
 	mxCellRenderer.prototype.defaultShapes['plus'] = PlusShape;
+	
+	// Overrides painting of rhombus shape to allow for double style
+	var mxRhombusPaintVertexShape = mxRhombus.prototype.paintVertexShape;
+	mxRhombus.prototype.paintVertexShape = function(c, x, y, w, h)
+	{
+		mxRhombusPaintVertexShape.apply(this, arguments);
+
+		if (!this.outline && this.style['double'] == 1)
+		{
+			var inset = Math.max(2, this.strokewidth + 1) * 2;
+			
+			if (w - 2 * inset > 0 && h - 2 * inset > 0)
+			{
+				x += inset;
+				y += inset;
+				w -= 2 * inset;
+				h -= 2 * inset;
+	
+				mxRhombusPaintVertexShape.apply(this, arguments);
+			}
+		}
+	};
 
 	// CompositeShape
 	function ExtendedShape()
@@ -697,7 +719,7 @@
 	mxUtils.extend(LinkShape, mxArrow);
 	LinkShape.prototype.paintEdgeShape = function(c, pts)
 	{
-		var width = 10;
+		var width = 10 + Math.max(0, this.strokewidth - 1) * 4;
 
 		// Base vector (between end points)
 		var p0 = pts[0];

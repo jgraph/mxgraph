@@ -299,7 +299,20 @@ ColorDialog.prototype.createApplyFunction = function()
 {
 	return mxUtils.bind(this, function(color)
 	{
-		this.editorUi.editor.graph.setCellStyles(this.currentColorKey, (color == 'none') ? 'none' : color);
+		var graph = this.editorUi.editor.graph;
+		
+		graph.getModel().beginUpdate();
+		try
+		{
+			var value = (color == 'none') ? 'none' : color;
+			graph.setCellStyles(this.currentColorKey, value);
+			this.editorUi.fireEvent(new mxEventObject('styleChanged', 'keys', [this.currentColorKey],
+				'values', [value], 'cells', graph.getSelectionCells()));
+		}
+		finally
+		{
+			graph.getModel().endUpdate();
+		}
 	});
 };
 
