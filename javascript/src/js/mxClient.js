@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.13.0.14.
+	 * Current version is 1.13.0.15.
 	 */
-	VERSION: '1.13.0.14',
+	VERSION: '1.13.0.15',
 
 	/**
 	 * Variable: IS_IE
@@ -491,8 +491,21 @@ if (mxClient.IS_VML)
 			document.namespaces.add('o', 'urn:schemas-microsoft-com:office:office');
 		}
 		
-        var ss = document.createStyleSheet();
-        ss.cssText = 'v\\:*{behavior:url(#default#VML)}o\\:*{behavior:url(#default#VML)}';
+		// Workaround for limited number of stylesheets in IE (does not work in standards mode)
+		if (mxClient.IS_QUIRKS && document.styleSheets.length >= 30)
+		{
+			(function()
+			{
+				var node = document.createElement('style');
+				node.type = 'text/css';
+				node.styleSheet.cssText = 'v\\:*{behavior:url(#default#VML)}o\\:*{behavior:url(#default#VML)}';
+		        document.getElementsByTagName('head')[0].appendChild(node);
+			})();
+		}
+		else
+		{
+			document.createStyleSheet().cssText = 'v\\:*{behavior:url(#default#VML)}o\\:*{behavior:url(#default#VML)}';
+		}
         
         if (mxLoadStylesheets)
         {

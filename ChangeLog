@@ -1,3 +1,10 @@
+30-OCT-2014: 1.13.0.15
+
+- Adds workarond for limited number of stylesheets in quirks mode [JavaScript]
+- Fixes rounding errors in mxEdgeStyle.OrthConnector [JavaScript]
+- Fixes printing for mxUtils.show/printScreen in IE9 standards [JavaScript]
+- Renames history to undoManager in old grapheditor example [JavaScript]
+
 02-JUN-2014: 1.13.0.14
 
 - mxCodec.decode no longer uses eval to convert name to ctor [JavaScript]

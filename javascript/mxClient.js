@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.13.0.14.
+	 * Current version is 1.13.0.15.
 	 */
-	VERSION: '1.13.0.14',
+	VERSION: '1.13.0.15',
 
 	/**
 	 * Variable: IS_IE
@@ -491,8 +491,21 @@ if (mxClient.IS_VML)
 			document.namespaces.add('o', 'urn:schemas-microsoft-com:office:office');
 		}
 		
-        var ss = document.createStyleSheet();
-        ss.cssText = 'v\\:*{behavior:url(#default#VML)}o\\:*{behavior:url(#default#VML)}';
+		// Workaround for limited number of stylesheets in IE (does not work in standards mode)
+		if (mxClient.IS_QUIRKS && document.styleSheets.length >= 30)
+		{
+			(function()
+			{
+				var node = document.createElement('style');
+				node.type = 'text/css';
+				node.styleSheet.cssText = 'v\\:*{behavior:url(#default#VML)}o\\:*{behavior:url(#default#VML)}';
+		        document.getElementsByTagName('head')[0].appendChild(node);
+			})();
+		}
+		else
+		{
+			document.createStyleSheet().cssText = 'v\\:*{behavior:url(#default#VML)}o\\:*{behavior:url(#default#VML)}';
+		}
         
         if (mxLoadStylesheets)
         {
@@ -5400,6 +5413,12 @@ var mxUtils =
 		else
 		{
 			doc.open();
+		}
+
+		// Workaround for missing print output in IE9 standards
+		if (document.documentMode == 9)
+		{
+			doc.writeln('<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=9"><![endif]-->');
 		}
 		
 		var bounds = graph.getGraphBounds();
@@ -46560,13 +46579,13 @@ var mxEdgeStyle =
 
 		var sourceX = source != null ? source.x : p0.x;
 		var sourceY = source != null ? source.y : p0.y;
-		var sourceWidth = source != null ? source.width : 1;
-		var sourceHeight = source != null ? source.height : 1;
+		var sourceWidth = source != null ? source.width : 0;
+		var sourceHeight = source != null ? source.height : 0;
 		
 		var targetX = target != null ? target.x : pe.x;
 		var targetY = target != null ? target.y : pe.y;
-		var targetWidth = target != null ? target.width : 1;
-		var targetHeight = target != null ? target.height : 1;
+		var targetWidth = target != null ? target.width : 0;
+		var targetHeight = target != null ? target.height : 0;
 		
 		var scaledOrthBuffer = state.view.scale * mxEdgeStyle.orthBuffer;
 		// Determine the side(s) of the source and target vertices

@@ -805,13 +805,13 @@ var mxEdgeStyle =
 
 		var sourceX = source != null ? source.x : p0.x;
 		var sourceY = source != null ? source.y : p0.y;
-		var sourceWidth = source != null ? source.width : 1;
-		var sourceHeight = source != null ? source.height : 1;
+		var sourceWidth = source != null ? source.width : 0;
+		var sourceHeight = source != null ? source.height : 0;
 		
 		var targetX = target != null ? target.x : pe.x;
 		var targetY = target != null ? target.y : pe.y;
-		var targetWidth = target != null ? target.width : 1;
-		var targetHeight = target != null ? target.height : 1;
+		var targetWidth = target != null ? target.width : 0;
+		var targetHeight = target != null ? target.height : 0;
 		
 		var scaledOrthBuffer = state.view.scale * mxEdgeStyle.orthBuffer;
 		// Determine the side(s) of the source and target vertices

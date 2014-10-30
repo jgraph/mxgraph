@@ -40,7 +40,7 @@ function main()
     };
     
     // Creates the command history (undo/redo)
-    var history = new mxUndoManager();
+    var undoManager = new mxUndoManager();
 
     // Loads the default stylesheet into the graph
     var node = mxUtils.load('resources/default-style.xml').getDocumentElement();
@@ -51,7 +51,7 @@ function main()
 	graph.alternateEdgeStyle = 'vertical';
 	
 	// Creates the main containers
-	var mainPanel = new MainPanel(graph, history);
+	var mainPanel = new MainPanel(graph, undoManager);
 	var library = new LibraryPanel();
 	
 	var store = new Ext.data.ArrayStore({
@@ -157,7 +157,7 @@ function main()
     // has been created
 	var listener = function(sender, evt)
 	{
-		history.undoableEditHappened(evt.getProperty('edit'));
+		undoManager.undoableEditHappened(evt.getProperty('edit'));
 	};
 	
 	graph.getModel().addListener(mxEvent.UNDO, listener);
@@ -170,8 +170,8 @@ function main()
 		graph.setSelectionCells(graph.getSelectionCellsForChanges(changes));
 	};
 	
-	history.addListener(mxEvent.UNDO, undoHandler);
-	history.addListener(mxEvent.REDO, undoHandler);
+	undoManager.addListener(mxEvent.UNDO, undoHandler);
+	undoManager.addListener(mxEvent.REDO, undoHandler);
 
 	// Initializes the graph as the DOM for the panel has now been created	
     graph.init(mainPanel.graphPanel.body.dom);
@@ -250,13 +250,13 @@ function main()
     // Updates the states of the undo/redo buttons in the toolbar
     var historyListener = function()
     {
-    	toolbarItems.get('undo').setDisabled(!history.canUndo());
-    	toolbarItems.get('redo').setDisabled(!history.canRedo());
+    	toolbarItems.get('undo').setDisabled(!undoManager.canUndo());
+    	toolbarItems.get('redo').setDisabled(!undoManager.canRedo());
     };
 
-	history.addListener(mxEvent.ADD, historyListener);
-	history.addListener(mxEvent.UNDO, historyListener);
-	history.addListener(mxEvent.REDO, historyListener);
+    undoManager.addListener(mxEvent.ADD, historyListener);
+    undoManager.addListener(mxEvent.UNDO, historyListener);
+    undoManager.addListener(mxEvent.REDO, historyListener);
 	
 	// Updates the button states once
 	selectionListener();
@@ -476,12 +476,12 @@ function main()
 
     keyHandler.bindControlKey(89, function()
     {
-    	history.redo();
+    	undoManager.redo();
     });
     
     keyHandler.bindControlKey(90, function()
     {
-    	history.undo();
+    	undoManager.undo();
     });
     
     keyHandler.bindControlKey(88, function()

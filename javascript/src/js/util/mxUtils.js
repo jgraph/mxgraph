@@ -3530,6 +3530,12 @@ var mxUtils =
 		{
 			doc.open();
 		}
+
+		// Workaround for missing print output in IE9 standards
+		if (document.documentMode == 9)
+		{
+			doc.writeln('<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=9"><![endif]-->');
+		}
 		
 		var bounds = graph.getGraphBounds();
 		var dx = -bounds.x + x0;

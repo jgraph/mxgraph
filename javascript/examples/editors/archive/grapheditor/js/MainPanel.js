@@ -2,7 +2,7 @@
  * $Id: MainPanel.js,v 1.1 2012/03/06 12:36:45 gaudenz Exp $
  * Copyright (c) 2006-2010, JGraph Ltd
  */
-MainPanel = function(graph, history)
+MainPanel = function(graph, undoManager)
 {
 	var executeLayout = function(layout, animate, ignoreChildCount)
 	{
@@ -405,7 +405,7 @@ MainPanel = function(graph, history)
 				var doc = mxUtils.parseXml(xml); 
 				var dec = new mxCodec(doc); 
 				dec.decode(doc.documentElement, graph.getModel());
-				history.clear();
+				undoManager.clear();
 				this.filename = name;
 				this.modified = false;
 				updateTitle();
@@ -422,7 +422,7 @@ MainPanel = function(graph, history)
 	    	var cell = new mxCell();
 	    	cell.insert(new mxCell());
 	    	graph.getModel().setRoot(cell);
-	    	history.clear();
+	    	undoManager.clear();
 	    	this.filename = null;
 			this.modified = false;
 	    	updateTitle();
@@ -567,7 +567,7 @@ MainPanel = function(graph, history)
             tooltip: 'Undo',
             handler: function()
             {
-            	history.undo();
+            	undoManager.undo();
             },
             scope:this
         },{
@@ -577,7 +577,7 @@ MainPanel = function(graph, history)
             tooltip: 'Redo',
             handler: function()
             {
-        		history.redo();
+        		undoManager.redo();
             },
             scope:this
         },
@@ -1274,11 +1274,11 @@ MainPanel = function(graph, history)
                 items: [{
                     text:'Undo',
                     iconCls:'undo-icon',
-                    disabled: !history.canUndo(),
+                    disabled: !undoManager.canUndo(),
                     scope: this,
                     handler:function()
                     {
-                        history.undo();
+                    	undoManager.undo();
                     }
                 },'-',{
                     text:'Cut',
