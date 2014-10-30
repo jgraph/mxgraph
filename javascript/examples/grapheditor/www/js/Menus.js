@@ -227,7 +227,7 @@ Menus.prototype.init = function()
 		this.addSubmenu('gradient', menu, parent);
 		this.addMenuItems(menu, ['image', '-', 'shadow'], parent);
 		this.promptChange(menu, mxResources.get('opacity'), '(%)', '100', mxConstants.STYLE_OPACITY, parent, this.get('format').enabled);
-		this.addMenuItems(menu, ['rounded', '-', 'plain', 'dashed', 'dotted', '-', 'strokeColor'], parent);
+		this.addMenuItems(menu, ['-', 'plain', 'dashed', 'dotted', '-', 'straight', 'rounded', 'curved', '-', 'strokeColor'], parent);
 		this.addSubmenu('linewidth', menu, parent);
 		this.addMenuItems(menu, ['-'], parent);
 		this.addSubmenu('line', menu, parent);
@@ -428,7 +428,7 @@ Menus.prototype.init = function()
 		this.addMenuItems(menu, ['layers'], parent);
 		this.addSubmenu('navigation', menu, parent);
 		this.addSubmenu('insert', menu, parent);
-		this.addMenuItems(menu, ['-', 'group', 'ungroup', 'removeFromGroup', '-', 'autosize', 'reverseEdge', '-', 'collapsible'], parent);
+		this.addMenuItems(menu, ['-', 'group', 'ungroup', 'removeFromGroup', '-', 'autosize', 'collapsible', '-', 'reverseEdge'], parent);
 	}))).isEnabled = isGraphEnabled;
 	this.put('insert', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -546,13 +546,11 @@ Menus.prototype.edgeStyleChange = function(menu, label, keys, values, sprite, pa
 					{
 						var geo = graph.getCellGeometry(cell);
 			
-						// Resets all edge points and the label position
+						// Resets all edge points
 						if (geo != null)
 						{
 							geo = geo.clone();
 							geo.points = null;
-							geo.x = 0;
-							geo.y = 0;
 							graph.getModel().setGeometry(cell, geo);
 						}
 					}

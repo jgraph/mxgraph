@@ -116,6 +116,12 @@ Editor.prototype.defaultPageVisible = false;
 Editor.prototype.transparentImage = IMAGE_PATH + '/transparent.gif';
 
 /**
+ * Specifies the order of OK/Cancel buttons in dialogs. Default is true.
+ * Cancel first is used on Macs, Windows/Confluence uses cancel last.
+ */
+Editor.prototype.cancelFirst = true;
+
+/**
  * Specifies if the editor is enabled. Default is true.
  */
 Editor.prototype.enabled = true;
@@ -567,7 +573,7 @@ Editor.prototype.init = function()
 				this.backgroundPageShape.isShadow = !mxClient.IS_QUIRKS;
 				this.backgroundPageShape.dialect = mxConstants.DIALECT_STRICTHTML;
 				this.backgroundPageShape.init(this.graph.container);
-				
+
 				// Required for the browser to render the background page in correct order
 				this.graph.container.firstChild.style.position = 'absolute';
 				this.graph.container.insertBefore(this.backgroundPageShape.node, this.graph.container.firstChild);
@@ -623,11 +629,6 @@ Editor.prototype.init = function()
 			
 			this.backgroundPageShape.node.style.backgroundImage = (this.graph.isGridEnabled()) ?
 					'url(' + editor.gridImage + ')' : 'none';
-			
-			if (this.graph.isGridEnabled())
-			{
-				
-			}
 		}
 		else if (this.backgroundPageShape != null)
 		{

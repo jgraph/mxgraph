@@ -87,6 +87,13 @@ mxHandle.prototype.processEvent = function(me)
 	var scale = this.graph.view.scale;
 	var tr = this.graph.view.translate;
 	var pt = new mxPoint(me.getGraphX() / scale - tr.x, me.getGraphY() / scale - tr.y);
+	
+	// Center shape on mouse cursor
+	if (this.shape != null && this.shape.bounds != null)
+	{
+		pt.x -= this.shape.bounds.width / 4;
+		pt.y -= this.shape.bounds.height / 4;
+	}
 
 	// Snaps to grid for the rotated position then applies the rotation for the direction after that
 	var alpha1 = -mxUtils.toRadians(this.getRotation());
@@ -218,8 +225,8 @@ mxHandle.prototype.redraw = function()
 	
 			var scale = this.graph.view.scale;
 			var tr = this.graph.view.translate;
-			this.shape.bounds.x = Math.round((pt.x + tr.x) * scale - this.shape.bounds.width / 2);
-			this.shape.bounds.y = Math.round((pt.y + tr.y) * scale - this.shape.bounds.height / 2);
+			this.shape.bounds.x = Math.floor((pt.x + tr.x) * scale - this.shape.bounds.width / 2);
+			this.shape.bounds.y = Math.floor((pt.y + tr.y) * scale - this.shape.bounds.height / 2);
 			
 			this.shape.redraw();
 		}

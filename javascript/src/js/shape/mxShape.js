@@ -386,7 +386,8 @@ mxShape.prototype.clear = function()
 	}
 	else
 	{
-		this.node.style.cssText = 'position:absolute;';
+		this.node.style.cssText = 'position:absolute;' + ((this.cursor != null) ?
+			('cursor:' + this.cursor + ';') : '');
 		this.node.innerHTML = '';
 	}
 };
@@ -479,7 +480,8 @@ mxShape.prototype.redrawShape = function()
 		if (this.node.nodeName == 'DIV' && document.documentMode == 8)
 		{
 			// Makes DIV transparent to events for IE8 in IE8 standards
-			// mode (Note: Does not work for IE9 in IE8 standards mode)
+			// mode (Note: Does not work for IE9 in IE8 standards mode
+			// and not for IE11 in enterprise mode)
 			this.node.style.filter = '';
 			
 			// Adds event transparency in IE8 standards
@@ -704,7 +706,7 @@ mxShape.prototype.updateHtmlColors = function(node)
 		node.style.borderWidth = '0px';
 	}
 
-	color = this.fill;
+	color = (this.outline) ? null : this.fill;
 	
 	if (color != null && color != mxConstants.NONE)
 	{
@@ -1005,6 +1007,93 @@ mxShape.prototype.paintGlassEffect = function(c, x, y, w, h, arc)
 	
 	c.close();
 	c.fill();
+};
+
+/**
+ * Function: addPoints
+ * 
+ * Paints the given points with rounded corners.
+ */
+mxShape.prototype.addPoints = function(c, pts, rounded, arcSize, close)
+{
+	var pe = pts[pts.length - 1];
+	
+	// Adds virtual waypoint in the center between start and end point
+	if (close && rounded)
+	{
+		pts = pts.slice();
+		var p0 = pts[0];
+		var wp = new mxPoint(pe.x + (p0.x - pe.x) / 2, pe.y + (p0.y - pe.y) / 2);
+		pts.splice(0, 0, wp);
+	}
+
+	var pt = pts[0];
+	var i = 1;
+
+	// Draws the line segments
+	c.moveTo(pt.x, pt.y);
+	
+	while (i < ((close) ? pts.length : pts.length - 1))
+	{
+		var tmp = pts[mxUtils.mod(i, pts.length)];
+		var dx = pt.x - tmp.x;
+		var dy = pt.y - tmp.y;
+
+		if (rounded && (dx != 0 || dy != 0))
+		{
+			// Draws a line from the last point to the current
+			// point with a spacing of size off the current point
+			// into direction of the last point
+			var dist = Math.sqrt(dx * dx + dy * dy);
+			var nx1 = dx * Math.min(arcSize, dist / 2) / dist;
+			var ny1 = dy * Math.min(arcSize, dist / 2) / dist;
+
+			var x1 = tmp.x + nx1;
+			var y1 = tmp.y + ny1;
+			c.lineTo(x1, y1);
+
+			// Draws a curve from the last point to the current
+			// point with a spacing of size off the current point
+			// into direction of the next point
+			var next = pts[mxUtils.mod(i + 1, pts.length)];
+			
+			// Uses next non-overlapping point
+			while (i < pts.length - 2 && Math.round(next.x - tmp.x) == 0 && Math.round(next.y - tmp.y) == 0)
+			{
+				next = pts[mxUtils.mod(i + 2, pts.length)];
+				i++;
+			}
+			
+			dx = next.x - tmp.x;
+			dy = next.y - tmp.y;
+
+			dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+			var nx2 = dx * Math.min(arcSize, dist / 2) / dist;
+			var ny2 = dy * Math.min(arcSize, dist / 2) / dist;
+
+			var x2 = tmp.x + nx2;
+			var y2 = tmp.y + ny2;
+
+			c.quadTo(tmp.x, tmp.y, x2, y2);
+			tmp = new mxPoint(x2, y2);
+		}
+		else
+		{
+			c.lineTo(tmp.x, tmp.y);
+		}
+
+		pt = tmp;
+		i++;
+	}
+
+	if (close)
+	{
+		c.close();
+	}
+	else
+	{
+		c.lineTo(pe.x, pe.y);	
+	}
 };
 
 /**

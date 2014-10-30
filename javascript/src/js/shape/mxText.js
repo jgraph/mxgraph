@@ -161,7 +161,7 @@ mxText.prototype.ignoreStringSize = false;
  * This is needed to make sure no clipping is applied to borders. Default is 4
  * for IE 8 standards mode and 3 for all others.
  */
-mxText.prototype.textWidthPadding = (document.documentMode == 8) ? 4 : 3;
+mxText.prototype.textWidthPadding = (document.documentMode == 8 && !mxClient.IS_EM) ? 4 : 3;
 
 /**
  * Function: isParseVml
@@ -182,7 +182,7 @@ mxText.prototype.isParseVml = function()
  */
 mxText.prototype.isHtmlAllowed = function()
 {
-	return document.documentMode != 8;
+	return document.documentMode != 8 || mxClient.IS_EM;
 };
 
 /**
@@ -318,7 +318,7 @@ mxText.prototype.updateBoundingBox = function()
 				
 				var sizeDiv = node;
 
-				if (document.documentMode == 8)
+				if (document.documentMode == 8 && !mxClient.IS_EM)
 				{
 					var w = Math.round(this.bounds.width / this.scale);
 	
@@ -891,11 +891,15 @@ mxText.prototype.updateSize = function(node, enableWrap)
 	if (this.clipped)
 	{
 		style.overflow = 'hidden';
-		style.width = w + 'px';
 		
 		if (!mxClient.IS_QUIRKS)
 		{
 			style.maxHeight = h + 'px';
+			style.maxWidth = w + 'px';
+		}
+		else
+		{
+			style.width = w + 'px';
 		}
 	}
 	else if (this.overflow == 'fill')

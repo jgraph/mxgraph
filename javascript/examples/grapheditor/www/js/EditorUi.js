@@ -290,6 +290,9 @@ EditorUi = function(editor, container)
 	// Keys that should be ignored if the cell has a value
 	var valueStyles = ['fontFamily', 'fontSize', 'fontColor', 'align'];
 	
+	// Keys that always update the current edge style regardless of selection
+	var alwaysEdgeStyles = ['edgeStyle', 'startArrow', 'startFill', 'startSize', 'endArrow', 'endFill', 'endSize'];
+	
 	// Keys that are ignored together (if one appears all are ignored)
 	var keyGroups = [['startArrow', 'startFill', 'startSize', 'endArrow', 'endFill', 'endSize'],
 	                 ['strokeColor', 'strokeWidth'],
@@ -447,7 +450,7 @@ EditorUi = function(editor, container)
 			// Special case: Edge style and shape
 			if (mxUtils.indexOf(connectStyles, keys[i]) >= 0)
 			{
-				if (edge)
+				if (edge || mxUtils.indexOf(alwaysEdgeStyles, keys[i]) >= 0)
 				{
 					currentEdgeStyle[keys[i]] = values[i];
 				}
@@ -459,7 +462,7 @@ EditorUi = function(editor, container)
 					currentStyle[keys[i]] = values[i];
 				}
 				
-				if (edge || common)
+				if (edge || common || mxUtils.indexOf(alwaysEdgeStyles, keys[i]) >= 0)
 				{
 					currentEdgeStyle[keys[i]] = values[i];
 				}
@@ -601,6 +604,16 @@ EditorUi = function(editor, container)
 		{
 			this.editor.resetScrollbars();
 		}), 0);
+	}));
+   	
+   	// Escape key hides dialogs
+	mxEvent.addListener(document, 'keydown', mxUtils.bind(this, function(evt)
+	{
+		// Cancels the editing if escape is pressed
+		if (!mxEvent.isConsumed(evt) && evt.keyCode == 27 /* Escape */)
+		{
+			this.hideDialog();
+		}
 	}));
 
    	// Resets UI, updates action and menu states
@@ -1021,7 +1034,7 @@ EditorUi.prototype.updateActionStates = function()
 	// Updates action states
 	var actions = ['cut', 'copy', 'bold', 'italic', 'underline', 'delete', 'duplicate',
 	               'style', 'backgroundColor', 'borderColor', 'toFront', 'toBack',
-	               'tilt', 'autosize', 'collapsible', 'lockUnlock', 'editData'];
+	               'tilt', 'lockUnlock', 'editData'];
 	
 	for (var i = 0; i < actions.length; i++)
 	{
@@ -1029,8 +1042,12 @@ EditorUi.prototype.updateActionStates = function()
 	}
 	
 	this.actions.get('setAsDefaultStyle').setEnabled(graph.getSelectionCount() == 1);
+	this.actions.get('reverseEdge').setEnabled(edgeSelected);
+	this.actions.get('curved').setEnabled(edgeSelected);
 	this.actions.get('rotation').setEnabled(vertexSelected);
 	this.actions.get('wordWrap').setEnabled(vertexSelected);
+	this.actions.get('autosize').setEnabled(vertexSelected);
+	this.actions.get('collapsible').setEnabled(vertexSelected);
 	this.actions.get('group').setEnabled(graph.getSelectionCount() > 1);
    	this.actions.get('ungroup').setEnabled(graph.getSelectionCount() == 1 &&
    			graph.getModel().getChildCount(graph.getSelectionCell()) > 0);
@@ -1750,7 +1767,6 @@ EditorUi.prototype.createKeyHandler = function(editor)
     var keyHandleEscape = keyHandler.escape;
     keyHandler.escape = function(evt)
     {
-    	ui.hideDialog();
     	keyHandleEscape.apply(this, arguments);
     };
     
@@ -1786,10 +1802,10 @@ EditorUi.prototype.createKeyHandler = function(editor)
     keyHandler.bindAction(66, true, 'toBack'); // Ctrl+B
     keyHandler.bindAction(70, true, 'toFront', true); // Ctrl+Shift+F
     keyHandler.bindAction(68, true, 'duplicate'); // Ctrl+D
+    keyHandler.bindAction(68, true, 'setAsDefaultStyle', true); // Ctrl+Shift+D   
     keyHandler.bindAction(90, true, 'undo'); // Ctrl+Z
     keyHandler.bindAction(89, true, 'redo'); // Ctrl+Y
     keyHandler.bindAction(88, true, 'cut'); // Ctrl+X
-    keyHandler.bindAction(88, true, 'setAsDefaultStyle', true); // Ctrl+Shift+X
     keyHandler.bindAction(67, true, 'copy'); // Ctrl+C
     keyHandler.bindAction(81, true, 'connectionPoints'); // Ctrl+Q
     keyHandler.bindAction(86, true, 'paste'); // Ctrl+V

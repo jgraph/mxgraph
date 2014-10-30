@@ -629,7 +629,7 @@ mxObjectCodec.prototype.isBooleanAttribute = function(enc, obj, name, value)
  */
 mxObjectCodec.prototype.convertAttributeFromXml = function(dec, attr, obj)
 {
-	var value = attr.nodeValue;
+	var value = attr.value;
 	
 	if (this.isNumericAttribute(dec, attr, obj))
 	{
@@ -652,7 +652,7 @@ mxObjectCodec.prototype.convertAttributeFromXml = function(dec, attr, obj)
  */
 mxObjectCodec.prototype.isNumericAttribute = function(dec, attr, obj)
 {
-	return mxUtils.isNumeric(attr.nodeValue);
+	return mxUtils.isNumeric(attr.value);
 };
 
 /**

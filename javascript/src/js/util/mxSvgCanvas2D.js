@@ -1054,9 +1054,7 @@ mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, overflow
 	{
 		style += 'text-decoration:underline;';
 	}
-
-	var css = '';
-		
+	
 	if (align == mxConstants.ALIGN_CENTER)
 	{
 		style += 'text-align:center;';
@@ -1065,6 +1063,8 @@ mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, overflow
 	{
 		style += 'text-align:right;';
 	}
+
+	var css = '';
 	
 	if (s.fontBackgroundColor != null)
 	{
@@ -1164,7 +1164,7 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			
 			if (clip)
 			{
-				style += 'overflow:hidden;max-height:' + Math.round(h) + 'px;width:' + Math.round(w) + 'px;';
+				style += 'overflow:hidden;max-height:' + Math.round(h) + 'px;max-width:' + Math.round(w) + 'px;';
 			}
 			else if (overflow == 'fill')
 			{
@@ -1377,6 +1377,7 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			if (clip)
 			{
 				oh = Math.min(oh, h);
+				ow = Math.min(ow, w);
 			}
 
 			if (overflow == 'fill')

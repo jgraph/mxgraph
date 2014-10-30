@@ -27,8 +27,6 @@ mxUtils.extend(mxTriangle, mxActor);
  */
 mxTriangle.prototype.redrawPath = function(c, x, y, w, h)
 {
-	c.moveTo(0, 0);
-	c.lineTo(w, 0.5 * h);
-	c.lineTo(0, h);
-	c.close();
+	var arcSize = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, mxConstants.LINE_ARCSIZE) / 2;
+	this.addPoints(c, [new mxPoint(0, 0), new mxPoint(w, 0.5 * h), new mxPoint(0, h)], this.isRounded, arcSize, true);
 };

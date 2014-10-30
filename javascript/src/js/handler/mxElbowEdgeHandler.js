@@ -61,16 +61,9 @@ mxElbowEdgeHandler.prototype.doubleClickOrientationResource =
 	
 	// Source
 	var bend = this.createHandleShape(0);
-
 	this.initBend(bend);
-	bend.node.style.cursor = mxConstants.CURSOR_BEND_HANDLE;
-	mxEvent.redirectMouseEvents(bend.node, this.graph, this.state);
+	bend.setCursor(mxConstants.CURSOR_BEND_HANDLE);
 	bends.push(bend);
-	
-	if (mxClient.IS_TOUCH)
-	{
-		bend.node.setAttribute('pointer-events', 'none');
-	}
 
 	// Virtual
 	bends.push(this.createVirtualBend());
@@ -78,16 +71,9 @@ mxElbowEdgeHandler.prototype.doubleClickOrientationResource =
 
 	// Target
 	bend = this.createHandleShape(2);
-
 	this.initBend(bend);
-	bend.node.style.cursor = mxConstants.CURSOR_BEND_HANDLE;
-	mxEvent.redirectMouseEvents(bend.node, this.graph, this.state);
+	bend.setCursor(mxConstants.CURSOR_BEND_HANDLE);
 	bends.push(bend);
-
-	if (mxClient.IS_TOUCH)
-	{
-		bend.node.setAttribute('pointer-events', 'none');
-	}
 	
 	return bends;
  };
@@ -101,23 +87,16 @@ mxElbowEdgeHandler.prototype.doubleClickOrientationResource =
 mxElbowEdgeHandler.prototype.createVirtualBend = function()
 {
 	var bend = this.createHandleShape();
-	this.initBend(bend);
-
-	var crs = this.getCursorForBend();
-	bend.node.style.cursor = crs;
-	
-	// Double-click changes edge style
-	var dblClick = mxUtils.bind(this, function(evt)
+	this.initBend(bend, mxUtils.bind(this, function(evt)
 	{
 		if (!mxEvent.isConsumed(evt) && this.flipEnabled)
 		{
 			this.graph.flipEdge(this.state.cell, evt);
 			mxEvent.consume(evt);
 		}
-	});
-	
-	mxEvent.redirectMouseEvents(bend.node, this.graph, this.state,
-		null, null, null, dblClick);
+	}));
+
+	bend.setCursor(this.getCursorForBend());
 
 	if (!this.graph.isCellBendable(this.state.cell))
 	{

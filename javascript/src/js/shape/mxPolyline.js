@@ -89,66 +89,8 @@ mxPolyline.prototype.paintEdgeShape = function(c, pts)
 mxPolyline.prototype.paintLine = function(c, pts, rounded)
 {
 	var arcSize = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, mxConstants.LINE_ARCSIZE) / 2;
-	var pt = pts[0];
-	var pe = pts[pts.length - 1];
-
 	c.begin();
-	c.moveTo(pt.x, pt.y);
-	
-	// Draws the line segments
-	for (var i = 1; i < pts.length - 1; i++)
-	{
-		var tmp = pts[i];
-		var dx = pt.x - tmp.x;
-		var dy = pt.y - tmp.y;
-
-		if ((rounded && i < pts.length - 1) && (dx != 0 || dy != 0))
-		{
-			// Draws a line from the last point to the current
-			// point with a spacing of size off the current point
-			// into direction of the last point
-			var dist = Math.sqrt(dx * dx + dy * dy);
-			var nx1 = dx * Math.min(arcSize, dist / 2) / dist;
-			var ny1 = dy * Math.min(arcSize, dist / 2) / dist;
-
-			var x1 = tmp.x + nx1;
-			var y1 = tmp.y + ny1;
-			c.lineTo(x1, y1);
-
-			// Draws a curve from the last point to the current
-			// point with a spacing of size off the current point
-			// into direction of the next point
-			var next = pts[i + 1];
-			
-			// Uses next non-overlapping point
-			while (i < pts.length - 2 && Math.round(next.x - tmp.x) == 0 && Math.round(next.y - tmp.y) == 0)
-			{
-				next = pts[i + 2];
-				i++;
-			}
-			
-			dx = next.x - tmp.x;
-			dy = next.y - tmp.y;
-
-			dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
-			var nx2 = dx * Math.min(arcSize, dist / 2) / dist;
-			var ny2 = dy * Math.min(arcSize, dist / 2) / dist;
-
-			var x2 = tmp.x + nx2;
-			var y2 = tmp.y + ny2;
-
-			c.quadTo(tmp.x, tmp.y, x2, y2);
-			tmp = new mxPoint(x2, y2);
-		}
-		else
-		{
-			c.lineTo(tmp.x, tmp.y);
-		}
-
-		pt = tmp;
-	}
-
-	c.lineTo(pe.x, pe.y);
+	this.addPoints(c, pts, rounded, arcSize, false);
 	c.stroke();
 };
 

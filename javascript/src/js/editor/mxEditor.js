@@ -2628,7 +2628,7 @@ mxEditor.prototype.createProperties = function (cell)
 		{
 			// Creates a textarea with more lines for
 			// the cell label
-			var val = attrs[i].nodeValue;
+			var val = attrs[i].value;
 			texts[i] = form.addTextarea(attrs[i].nodeName, val,
 				(attrs[i].nodeName == 'label') ? 4 : 2);
 		}

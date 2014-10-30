@@ -118,16 +118,9 @@ mxEdgeSegmentHandler.prototype.createBends = function()
 	
 	// Source
 	var bend = this.createHandleShape(0);
-
 	this.initBend(bend);
-	bend.node.style.cursor = mxConstants.CURSOR_BEND_HANDLE;
-	mxEvent.redirectMouseEvents(bend.node, this.graph, this.state);
+	bend.setCursor(mxConstants.CURSOR_BEND_HANDLE);
 	bends.push(bend);
-	
-	if (mxClient.IS_TOUCH)
-	{
-		bend.node.setAttribute('pointer-events', 'none');
-	}
 
 	var pts = this.state.absolutePoints;
 
@@ -141,31 +134,19 @@ mxEdgeSegmentHandler.prototype.createBends = function()
 		
 		for (var i = 0; i < pts.length - 1; i++)
 		{
-			var bend = this.createVirtualBend();
+			bend = this.createVirtualBend();
 			bends.push(bend);
 			var horizontal = pts[i].x - pts[i + 1].x == 0;
-			bend.node.style.cursor = (horizontal) ? 'col-resize' : 'row-resize';
+			bend.setCursor((horizontal) ? 'col-resize' : 'row-resize');
 			this.points.push(new mxPoint(0,0));
-			
-			if (mxClient.IS_TOUCH)
-			{
-				bend.node.setAttribute('pointer-events', 'none');
-			}
 		}
 	}
 
 	// Target
 	var bend = this.createHandleShape(pts.length);
-
 	this.initBend(bend);
-	bend.node.style.cursor = mxConstants.CURSOR_BEND_HANDLE;
-	mxEvent.redirectMouseEvents(bend.node, this.graph, this.state);
+	bend.setCursor(mxConstants.CURSOR_BEND_HANDLE);
 	bends.push(bend);
-	
-	if (mxClient.IS_TOUCH)
-	{
-		bend.node.setAttribute('pointer-events', 'none');
-	}
 
 	return bends;
 };

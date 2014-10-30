@@ -988,7 +988,8 @@ mxConnectionHandler.prototype.createEdgeState = function(me)
  */
 mxConnectionHandler.prototype.isOutlineConnectEvent = function(me)
 {
-	return this.outlineConnect && (me.isSource(this.marker.highlight.shape) || mxEvent.isAltDown(me.getEvent()));
+	return this.outlineConnect && !mxEvent.isShiftDown(me.getEvent()) &&
+		(me.isSource(this.marker.highlight.shape) || mxEvent.isAltDown(me.getEvent()));
 };
 
 /**

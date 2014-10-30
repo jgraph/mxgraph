@@ -289,11 +289,25 @@
 	CURSOR_LABEL_HANDLE: 'default',
 	
 	/**
+	 * Variable: CURSOR_TERMINAL_HANDLE
+	 * 
+	 * Defines the cursor for a terminal handle. Default is 'pointer'.
+	 */
+	CURSOR_TERMINAL_HANDLE: 'pointer',
+	
+	/**
 	 * Variable: CURSOR_BEND_HANDLE
 	 * 
-	 * Defines the cursor for a movable bend. Default is 'pointer'.
+	 * Defines the cursor for a movable bend. Default is 'crosshair'.
 	 */
-	CURSOR_BEND_HANDLE: 'pointer',
+	CURSOR_BEND_HANDLE: 'crosshair',
+
+	/**
+	 * Variable: CURSOR_VIRTUAL_BEND_HANDLE
+	 * 
+	 * Defines the cursor for a movable bend. Default is 'crosshair'.
+	 */
+	CURSOR_VIRTUAL_BEND_HANDLE: 'crosshair',
 	
 	/**
 	 * Variable: CURSOR_CONNECT

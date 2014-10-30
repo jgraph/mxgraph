@@ -577,7 +577,7 @@ var mxUtils =
 			    case 4: /* cdata-section */
 			    case 8: /* comment */
 			    {
-			      return doc.createTextNode(node.nodeValue);
+			      return doc.createTextNode(node.value);
 			      break;
 			    }
 			};
@@ -708,7 +708,7 @@ var mxUtils =
 			
 			if (node.nodeType == mxConstants.NODETYPE_TEXT)
 			{
-				result.push(node.nodeValue);
+				result.push(node.value);
 			}
 			else
 			{
@@ -722,7 +722,7 @@ var mxUtils =
 				{
 					for (var i = 0; i < attrs.length; i++)
 					{
-						var val = mxUtils.htmlEntities(attrs[i].nodeValue);
+						var val = mxUtils.htmlEntities(attrs[i].value);
 						result.push(' ' + attrs[i].nodeName +
 							'="' + val + '"');
 					}
@@ -982,7 +982,7 @@ var mxUtils =
 						{
 							for (var i = 0; i < attrs.length; i++)
 							{
-								var value = attrs[i].nodeValue;
+								var value = attrs[i].value;
 								
 								if (value != null && value.length > 0)
 								{
@@ -3502,6 +3502,12 @@ var mxUtils =
 		else
 		{
 			doc.open();
+		}
+
+		// Workaround for missing print output in IE9 standards
+		if (document.documentMode == 9)
+		{
+			doc.writeln('<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=9"><![endif]-->');
 		}
 		
 		var bounds = graph.getGraphBounds();

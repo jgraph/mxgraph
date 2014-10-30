@@ -301,6 +301,14 @@ Graph.prototype.minFitScale = null;
 Graph.prototype.maxFitScale = null;
 
 /**
+ * Hook for subclassers.
+ */
+Graph.prototype.getPagePadding = function()
+{
+	return new mxPoint(0, 0);
+};
+
+/**
  * Loads the stylesheet for this graph.
  */
 Graph.prototype.loadStylesheet = function()
@@ -964,23 +972,23 @@ Graph.prototype.initTouch = function()
 	 */
 	mxCellEditor.prototype.restoreSelection = function(savedSel)
 	{
-	    if (savedSel)
-	    {
-	        if (window.getSelection)
-	        {
-	            sel = window.getSelection();
-	            sel.removeAllRanges();
-	            
-	            for (var i = 0, len = savedSel.length; i < len; ++i)
-	            {
-	                sel.addRange(savedSel[i]);
-	            }
-	        }
-	        else if (document.selection && savedSel.select)
-	        {
-	            savedSel.select();
-	        }
-	    }
+		if (savedSel)
+		{
+			if (window.getSelection)
+			{
+				sel = window.getSelection();
+				sel.removeAllRanges();
+
+				for (var i = 0, len = savedSel.length; i < len; ++i)
+				{
+					sel.addRange(savedSel[i]);
+				}
+			}
+			else if (document.selection && savedSel.select)
+			{
+				savedSel.select();
+			}
+		}
 	};
 
 	if ('contentEditable' in document.documentElement)
@@ -1324,8 +1332,7 @@ Graph.prototype.initTouch = function()
 	var triangleRight = new mxImage(IMAGE_PATH + '/triangle-right.png', 26, 26);
 	var triangleDown = new mxImage(IMAGE_PATH + '/triangle-down.png', 26, 26);
 	var triangleLeft = new mxImage(IMAGE_PATH + '/triangle-left.png', 26, 26);
-
-	mxVertexHandler.prototype.rotationHandleVSpacing = -20;
+	var roundDrop = new mxImage(IMAGE_PATH + '/round-drop.png', 26, 26);
 
 	mxConnectionHandler.prototype.connectImage = connectHandle;
 	mxVertexHandler.prototype.handleImage = mainHandle;
@@ -1337,12 +1344,20 @@ Graph.prototype.initTouch = function()
 	Sidebar.prototype.triangleRight = triangleRight;
 	Sidebar.prototype.triangleDown = triangleDown;
 	Sidebar.prototype.triangleLeft = triangleLeft;
+	Sidebar.prototype.roundDrop = roundDrop;
 	
-	// Enables connections along the outline
+	// Enables connections along the outline, virtual waypoints, parent highlight etc
 	mxConnectionHandler.prototype.outlineConnect = true;
+	mxCellHighlight.prototype.keepOnTop = true;
+	mxVertexHandler.prototype.parentHighlightEnabled = true;
+	mxVertexHandler.prototype.rotationHandleVSpacing = -20;
+	
+	mxEdgeHandler.prototype.parentHighlightEnabled = true;
+	mxEdgeHandler.prototype.dblClickRemoveEnabled = true;
+	mxEdgeHandler.prototype.virtualBendsEnabled = true;
+	mxEdgeHandler.prototype.mergeRemoveEnabled = true;
 	mxEdgeHandler.prototype.manageLabelHandle = true;
 	mxEdgeHandler.prototype.outlineConnect = true;
-	mxCellHighlight.prototype.keepOnTop = true;
 	
 	// Pre-fetches images
 	new Image().src = connectHandle.src;
@@ -1353,6 +1368,7 @@ Graph.prototype.initTouch = function()
 	new Image().src = triangleRight.src;
 	new Image().src = triangleDown.src;
 	new Image().src = triangleLeft.src;
+	new Image().src = roundDrop.src;
 	
 	var vertexHandlerCreateSizerShape = mxVertexHandler.prototype.createSizerShape;
 	mxVertexHandler.prototype.createSizerShape = function(bounds, index, fillColor)
@@ -1587,6 +1603,15 @@ Graph.prototype.initTouch = function()
 							}
 						})
 					);
+					
+					mxEvent.addListener(this.connectorImg, 'click', function(evt)
+					{
+						if (mxClient.IS_IE || evt.detail < 2)
+						{
+							ui.actions.get('duplicate').funct();
+							mxEvent.consume(evt);
+						}
+					});
 	
 					this.graph.container.appendChild(this.connectorImg);
 					redraw = true;
@@ -1797,19 +1822,19 @@ Graph.prototype.initTouch = function()
 		}
 	};
 	
-	var vertexHandlerHideSizers = mxVertexHandler.prototype.hideSizers;
-	mxVertexHandler.prototype.hideSizers = function()
+	var vertexHandlerSetHandlesVisible = mxVertexHandler.prototype.setHandlesVisible;
+	mxVertexHandler.prototype.setHandlesVisible = function(visible)
 	{
-		vertexHandlerHideSizers.apply(this, arguments);
+		vertexHandlerSetHandlesVisible.apply(this, arguments);
 		
 		if (this.connectorImg != null)
 		{
-			this.connectorImg.style.visibility = 'hidden';
+			this.connectorImg.style.visibility = (visible) ? '' : 'hidden';
 		}
 		
 		if (this.linkHint != null)
 		{
-			this.linkHint.style.visibility = 'hidden';
+			this.linkHint.style.visibility = (visible) ? '' : 'hidden';
 		}
 	};
 	

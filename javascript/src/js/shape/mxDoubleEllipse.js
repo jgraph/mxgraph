@@ -83,11 +83,11 @@ mxDoubleEllipse.prototype.paintForeground = function(c, x, y, w, h)
 {
 	if (!this.outline)
 	{
-		var inset = mxUtils.getValue(this.style, mxConstants.STYLE_MARGIN, Math.min(3 + this.strokewidth, Math.min(w / 5, h / 5)));
-		x += inset;
-		y += inset;
-		w -= 2 * inset;
-		h -= 2 * inset;
+		var margin = mxUtils.getValue(this.style, mxConstants.STYLE_MARGIN, Math.min(3 + this.strokewidth, Math.min(w / 5, h / 5)));
+		x += margin;
+		y += margin;
+		w -= 2 * margin;
+		h -= 2 * margin;
 		
 		// FIXME: Rounding issues in IE8 standards mode (not in 1.x)
 		if (w > 0 && h > 0)
@@ -97,4 +97,17 @@ mxDoubleEllipse.prototype.paintForeground = function(c, x, y, w, h)
 		
 		c.stroke();
 	}
+};
+
+/**
+ * Function: getLabelBounds
+ * 
+ * Returns the bounds for the label.
+ */
+mxDoubleEllipse.prototype.getLabelBounds = function(rect)
+{
+	var margin = (mxUtils.getValue(this.style, mxConstants.STYLE_MARGIN, Math.min(3 + this.strokewidth,
+			Math.min(rect.width / 5 / this.scale, rect.height / 5 / this.scale)))) * this.scale;
+
+	return new mxRectangle(rect.x + margin, rect.y + margin, rect.width - 2 * margin, rect.height - 2 * margin);
 };

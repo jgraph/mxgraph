@@ -675,7 +675,7 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				y = pt.y;
 			}
 
-			if (document.documentMode == 8)
+			if (document.documentMode == 8 && !mxClient.IS_EM)
 			{
 				x += s.dx;
 				y += s.dy;
@@ -693,7 +693,7 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			// width in IE8 because real width of text cannot be determined here.
 			// This should be fixed in mxText.updateBoundingBox by calling before this and
 			// passing the real width to this method if not clipped and wrapped.
-			var abs = (document.documentMode == 8) ? this.createVmlElement('group') : this.createElement('div');
+			var abs = (document.documentMode == 8 && !mxClient.IS_EM) ? this.createVmlElement('group') : this.createElement('div');
 			abs.style.position = 'absolute';
 			abs.style.display = 'inline';
 			abs.style.left = this.format(x) + 'px';
@@ -734,7 +734,7 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				inner.appendChild(div);
 
 				// Box not needed for rendering in IE8 standards
-				if (document.documentMode == 8 && this.root.nodeName != 'DIV')
+				if (document.documentMode == 8 && !mxClient.IS_EM && this.root.nodeName != 'DIV')
 				{
 					box.appendChild(inner);
 					abs.appendChild(box);
@@ -744,7 +744,7 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 					abs.appendChild(inner);
 				}
 			}
-			else if (document.documentMode == 8)
+			else if (document.documentMode == 8 && !mxClient.IS_EM)
 			{
 				box.appendChild(div);
 				abs.appendChild(box);
@@ -818,7 +818,7 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				var sin = Math.sin(rad);
 
 				// Adds div to document to measure size
-				if (document.documentMode == 8)
+				if (document.documentMode == 8 && !mxClient.IS_EM)
 				{
 					div.style.display = 'inline-block';
 					inner.style.display = 'inline-block';
@@ -883,7 +883,7 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				}
 				else
 				{
-					var sc = (document.documentMode == 8) ? 1 : s.scale;
+					var sc = (document.documentMode == 8 && !mxClient.IS_EM) ? 1 : s.scale;
 					
 					abs.style.left = this.format(x + (left_fix - w / 2) * sc) + 'px';
 					abs.style.top = this.format(y + (top_fix - h / 2) * sc) + 'px';
@@ -904,7 +904,7 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				div.style.position = '';
 				div.style.visibility = '';
 			}
-			else if (document.documentMode != 8)
+			else if (document.documentMode != 8 || mxClient.IS_EM)
 			{
 				div.style.verticalAlign = 'top';
 				

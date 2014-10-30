@@ -103,6 +103,14 @@ mxVertexHandler.prototype.tolerance = 0;
 mxVertexHandler.prototype.rotationEnabled = false;
 
 /**
+ * Variable: parentHighlightEnabled
+ * 
+ * Specifies if the parent should be highlighted if a child cell is selected.
+ * Default is false.
+ */
+mxVertexHandler.prototype.parentHighlightEnabled = false;
+
+/**
  * Variable: rotationRaster
  * 
  * Specifies if rotation steps should be "rasterized" depening on the distance
@@ -184,7 +192,28 @@ mxVertexHandler.prototype.init = function()
 	
 	if (this.graph.isCellMovable(this.state.cell))
 	{
-		this.selectionBorder.node.style.cursor = mxConstants.CURSOR_MOVABLE_VERTEX;
+		this.selectionBorder.setCursor(mxConstants.CURSOR_MOVABLE_VERTEX);
+	}
+	
+	// Adds highlight for parent group
+	if (this.parentHighlightEnabled)
+	{
+		var parent = this.graph.model.getParent(this.state.cell);
+		
+		if (this.graph.model.isVertex(parent))
+		{
+			var pstate = this.graph.view.getState(parent);
+			
+			if (pstate != null)
+			{
+				this.parentHighlight = this.createParentHighlightShape(pstate);
+				// VML dialect required here for event transparency in IE
+				this.parentHighlight.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ? mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
+				this.parentHighlight.pointerEvents = false;
+				this.parentHighlight.rotation = Number(pstate.style[mxConstants.STYLE_ROTATION] || '0');
+				this.parentHighlight.init(this.graph.getView().getOverlayPane());
+			}
+		}
 	}
 	
 	// Adds the sizer handles
@@ -314,6 +343,16 @@ mxVertexHandler.prototype.getSelectionBounds = function(state)
 };
 
 /**
+ * Function: createParentHighlightShape
+ * 
+ * Creates the shape used to draw the selection border.
+ */
+mxVertexHandler.prototype.createParentHighlightShape = function(bounds)
+{
+	return this.createSelectionShape(bounds);
+};
+
+/**
  * Function: createSelectionShape
  * 
  * Creates the shape used to draw the selection border.
@@ -388,7 +427,7 @@ mxVertexHandler.prototype.createSizer = function(cursor, index, size, fillColor)
 	
 	if (this.graph.isEnabled())
 	{
-		sizer.node.style.cursor = cursor;
+		sizer.setCursor(cursor);
 	}
 	
 	if (!this.isSizerVisible(index))
@@ -643,6 +682,30 @@ mxVertexHandler.prototype.start = function(x, y, index)
 };
 
 /**
+ * Function: hideHandles
+ * 
+ * Shortcut to <hideSizers>.
+ */
+mxVertexHandler.prototype.setHandlesVisible = function(visible)
+{
+	if (this.sizers != null)
+	{
+		for (var i = 0; i < this.sizers.length; i++)
+		{
+			this.sizers[i].node.style.display = (visible) ? '' : 'none';
+		}
+	}
+
+	if (this.customHandles != null)
+	{
+		for (var i = 0; i < this.customHandles.length; i++)
+		{
+			this.customHandles[i].setVisible(visible);
+		}
+	}
+};
+
+/**
  * Function: hideSizers
  * 
  * Hides all sizers except.
@@ -651,21 +714,7 @@ mxVertexHandler.prototype.start = function(x, y, index)
  */
 mxVertexHandler.prototype.hideSizers = function()
 {
-	if (this.sizers != null)
-	{
-		for (var i = 0; i < this.sizers.length; i++)
-		{
-			this.sizers[i].node.style.display = 'none';
-		}
-	}
-
-	if (this.customHandles != null)
-	{
-		for (var i = 0; i < this.customHandles.length; i++)
-		{
-			this.customHandles[i].setVisible(false);
-		}
-	}
+	this.setHandlesVisible(false);
 };
 
 /**
@@ -1415,26 +1464,20 @@ mxVertexHandler.prototype.redrawHandles = function()
 			// KNOWN: Tolerance depends on event type (eg. 0 for mouse events)
 			var tol = this.tolerance;
 			
-			if (s.width < 2 * this.sizers[0].bounds.width - 2 + 2 * tol)
+			if ((s.width < 2 * this.sizers[0].bounds.width - 2 + 2 * tol) ||
+				(s.height < 2 * this.sizers[0].bounds.height - 2 + 2 * tol))
 			{
-				this.sizers[1].node.style.display = 'none';
-				this.sizers[6].node.style.display = 'none';
+				this.sizers[0].node.style.display = 'none';
+				this.sizers[2].node.style.display = 'none';
+				this.sizers[5].node.style.display = 'none';
+				this.sizers[7].node.style.display = 'none';
 			}
 			else
 			{
-				this.sizers[1].node.style.display = '';
-				this.sizers[6].node.style.display = '';
-			}
-			
-			if (s.height < 2 * this.sizers[0].bounds.height - 2 + 2 * tol)
-			{
-				this.sizers[3].node.style.display = 'none';
-				this.sizers[4].node.style.display = 'none';
-			}
-			else
-			{
-				this.sizers[3].node.style.display = '';
-				this.sizers[4].node.style.display = '';
+				this.sizers[0].node.style.display = '';
+				this.sizers[2].node.style.display = '';
+				this.sizers[5].node.style.display = '';
+				this.sizers[7].node.style.display = '';
 			}
 			
 			if (s.width < 2 * this.sizers[0].bounds.width - 2 + 3 * tol ||
@@ -1478,56 +1521,56 @@ mxVertexHandler.prototype.redrawHandles = function()
 				var pt = mxUtils.getRotatedPoint(new mxPoint(s.x, s.y), cos, sin, ct);
 				
 				this.moveSizerTo(this.sizers[0], pt.x, pt.y);
-				this.sizers[0].node.style.cursor = crs[mxUtils.mod(0 + da, crs.length)];
+				this.sizers[0].setCursor(crs[mxUtils.mod(0 + da, crs.length)]);
 				
 				pt.x = cx;
 				pt.y = s.y;
 				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
 				
 				this.moveSizerTo(this.sizers[1], pt.x, pt.y);
-				this.sizers[1].node.style.cursor = crs[mxUtils.mod(1 + da, crs.length)];
+				this.sizers[1].setCursor(crs[mxUtils.mod(1 + da, crs.length)]);
 				
 				pt.x = r;
 				pt.y = s.y;
 				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
 				
 				this.moveSizerTo(this.sizers[2], pt.x, pt.y);
-				this.sizers[2].node.style.cursor = crs[mxUtils.mod(2 + da, crs.length)];
+				this.sizers[2].setCursor(crs[mxUtils.mod(2 + da, crs.length)]);
 				
 				pt.x = s.x;
 				pt.y = cy;
 				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
 				
 				this.moveSizerTo(this.sizers[3], pt.x, pt.y);
-				this.sizers[3].node.style.cursor = crs[mxUtils.mod(7 + da, crs.length)];
+				this.sizers[3].setCursor(crs[mxUtils.mod(7 + da, crs.length)]);
 
 				pt.x = r;
 				pt.y = cy;
 				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
 				
 				this.moveSizerTo(this.sizers[4], pt.x, pt.y);
-				this.sizers[4].node.style.cursor = crs[mxUtils.mod(3 + da, crs.length)];
+				this.sizers[4].setCursor(crs[mxUtils.mod(3 + da, crs.length)]);
 
 				pt.x = s.x;
 				pt.y = b;
 				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
 				
 				this.moveSizerTo(this.sizers[5], pt.x, pt.y);
-				this.sizers[5].node.style.cursor = crs[mxUtils.mod(6 + da, crs.length)];
+				this.sizers[5].setCursor(crs[mxUtils.mod(6 + da, crs.length)]);
 
 				pt.x = cx;
 				pt.y = b;
 				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
 				
 				this.moveSizerTo(this.sizers[6], pt.x, pt.y);
-				this.sizers[6].node.style.cursor = crs[mxUtils.mod(5 + da, crs.length)];
+				this.sizers[6].setCursor(crs[mxUtils.mod(5 + da, crs.length)]);
 
 				pt.x = r;
 				pt.y = b;
 				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
 				
 				this.moveSizerTo(this.sizers[7], pt.x, pt.y);
-				this.sizers[7].node.style.cursor = crs[mxUtils.mod(4 + da, crs.length)];
+				this.sizers[7].setCursor(crs[mxUtils.mod(4 + da, crs.length)]);
 				
 				this.moveSizerTo(this.sizers[8], cx + this.state.absoluteOffset.x, cy + this.state.absoluteOffset.y);
 			}
@@ -1602,6 +1645,11 @@ mxVertexHandler.prototype.drawPreview = function()
 	
 	this.selectionBorder.bounds = this.bounds;
 	this.selectionBorder.redraw();
+	
+	if (this.parentHighlight != null)
+	{
+		this.parentHighlight.redraw();
+	}
 };
 
 /**
@@ -1622,12 +1670,18 @@ mxVertexHandler.prototype.destroy = function()
 		this.preview.destroy();
 		this.preview = null;
 	}
-
+	
+	if (this.parentHighlight != null)
+	{
+		this.parentHighlight.destroy();
+		this.parentHighlight = null;
+	}
+	
 	this.selectionBorder.destroy();
 	this.selectionBorder = null;
 	this.labelShape = null;
 	this.removeHint();
-	
+
 	if (this.sizers != null)
 	{
 		for (var i = 0; i < this.sizers.length; i++)

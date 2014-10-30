@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.1.0.1.
+	 * Current version is 3.1.1.0.
 	 */
-	VERSION: '3.1.0.1',
+	VERSION: '3.1.1.0',
 
 	/**
 	 * Variable: IS_IE
@@ -42,7 +42,7 @@ var mxClient =
 	/**
 	 * Variable: IS_IE11
 	 *
-	 * True if the current browser is Internet Explorer 6.x.
+	 * True if the current browser is Internet Explorer 11.x.
 	 */
 	IS_IE11: !!navigator.userAgent.match(/Trident\/7\./),
 
@@ -52,6 +52,13 @@ var mxClient =
 	 * True if the current browser is Internet Explorer and it is in quirks mode.
 	 */
 	IS_QUIRKS: navigator.userAgent.indexOf('MSIE') >= 0 && (document.documentMode == null || document.documentMode == 5),
+
+	/**
+	 * Variable: IS_EM
+	 * 
+	 * True if the browser is IE11 in enterprise mode (IE8 standards mode).
+	 */
+	IS_EM: 'spellcheck' in document.createElement('textarea') && document.documentMode == 8,
 
 	/**
 	 * Variable: VML_PREFIX
@@ -544,10 +551,24 @@ if (mxClient.IS_VML)
 			document.namespaces.add(mxClient.VML_PREFIX, 'urn:schemas-microsoft-com:vml');
 			document.namespaces.add(mxClient.OFFICE_PREFIX, 'urn:schemas-microsoft-com:office:office');
 		}
-		
-	    var ss = document.createStyleSheet();
-	    ss.cssText = mxClient.VML_PREFIX + '\\:*{behavior:url(#default#VML)}' +
-	    	mxClient.OFFICE_PREFIX + '\\:*{behavior:url(#default#VML)}';
+
+		// Workaround for limited number of stylesheets in IE (does not work in standards mode)
+		if (mxClient.IS_QUIRKS && document.styleSheets.length >= 30)
+		{
+			(function()
+			{
+				var node = document.createElement('style');
+				node.type = 'text/css';
+				node.styleSheet.cssText = mxClient.VML_PREFIX + '\\:*{behavior:url(#default#VML)}' +
+		        	mxClient.OFFICE_PREFIX + '\\:*{behavior:url(#default#VML)}';
+		        document.getElementsByTagName('head')[0].appendChild(node);
+			})();
+		}
+		else
+		{
+			document.createStyleSheet().cssText = mxClient.VML_PREFIX + '\\:*{behavior:url(#default#VML)}' +
+		    	mxClient.OFFICE_PREFIX + '\\:*{behavior:url(#default#VML)}';
+		}
 	    
 	    if (mxLoadStylesheets)
 	    {

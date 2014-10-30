@@ -49,10 +49,31 @@
 				obj.setAttribute('label', 'Hello, World!');
 				obj.setAttribute('checked', 'false');
 				
+				// Adds optional caching for the HTML label
+				var cached = true;
+				
+				if (cached)
+				{
+					// Ignores cached label in codec
+					mxCodecRegistry.getCodec(mxCell).exclude.push('div');
+					
+					// Invalidates cached labels
+					graph.model.setValue = function(cell, value)
+					{
+						cell.div = null;
+						mxGraphModel.prototype.setValue.apply(this, arguments);
+					};
+				}
+				
 				// Overrides method to provide a cell label in the display
 				graph.convertValueToString = function(cell)
 				{
-					if (mxUtils.isNode(cell.value) && cell.value.nodeName.toLowerCase() == 'userobject')
+					if (cached && cell.div != null)
+					{
+						// Uses cached label
+						return cell.div;
+					}
+					else if (mxUtils.isNode(cell.value) && cell.value.nodeName.toLowerCase() == 'userobject')
 					{
 						// Returns a DOM for the label
 						var div = document.createElement('div');
@@ -79,12 +100,18 @@
 						
 						div.appendChild(checkbox);
 						
+						if (cached)
+						{
+							// Caches label
+							cell.div = div;
+						}
+						
 						return div;
 					}
 
 					return '';
 				};
-				
+
 				// Overrides method to store a cell label in the model
 				var cellLabelChanged = graph.cellLabelChanged;
 				graph.cellLabelChanged = function(cell, newValue, autoSize)
@@ -113,7 +140,6 @@
 				var parent = graph.getDefaultParent();
 				graph.insertVertex(parent, null, obj, 20, 20, 80, 60);
 				
-				
 				// Undo/redo
 				var undoManager = new mxUndoManager();
 				var listener = function(sender, evt)
@@ -132,7 +158,6 @@
 				{
 					undoManager.redo();
 				}));
-
 			}
 		};
 	</script>

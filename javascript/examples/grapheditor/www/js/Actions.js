@@ -66,7 +66,7 @@ Actions.prototype.init = function()
 		});
 	}).isEnabled = isGraphEnabled;
 	this.addAction('save', function() { ui.saveFile(false); }, null, null, 'Ctrl+S').isEnabled = isGraphEnabled;
-	this.addAction('saveAs...', function() { ui.saveFile(true); }, null, null, 'Ctrl+Shift-S').isEnabled = isGraphEnabled;
+	this.addAction('saveAs...', function() { ui.saveFile(true); }, null, null, 'Ctrl+Shift+S').isEnabled = isGraphEnabled;
 	this.addAction('export...', function() { ui.showDialog(new ExportDialog(ui).container, 300, 210, true, true); });
 	this.put('editFile', new Action(mxResources.get('edit') + '...', function()
 	{
@@ -461,7 +461,6 @@ Actions.prototype.init = function()
 		graph.zoomOut();
 	}, null, null, 'Subtract');
 	this.addAction('fitWindow', function() { graph.fit(); });
-
 	this.addAction('fitPage', mxUtils.bind(this, function()
 	{
 		if (!graph.pageVisible)
@@ -726,8 +725,8 @@ Actions.prototype.init = function()
 		{
 			graph.setCellStyles(mxConstants.STYLE_DASHED, null);
 			graph.setCellStyles(mxConstants.STYLE_DASH_PATTERN, null);
-			ui.fireEvent(new mxEventObject('styleChanged', 'keys', [mxConstants.STYLE_DASHED,
-			    mxConstants.STYLE_DASH_PATTERN], 'values', [null, null], 'cells', graph.getSelectionCells()));
+			ui.fireEvent(new mxEventObject('styleChanged', 'keys', [mxConstants.STYLE_DASHED, mxConstants.STYLE_DASH_PATTERN],
+				'values', [null, null], 'cells', graph.getSelectionCells()));
 		}
 		finally
 		{
@@ -741,8 +740,8 @@ Actions.prototype.init = function()
 		{
 			graph.setCellStyles(mxConstants.STYLE_DASHED, '1');
 			graph.setCellStyles(mxConstants.STYLE_DASH_PATTERN, null);
-			ui.fireEvent(new mxEventObject('styleChanged', 'keys', [mxConstants.STYLE_DASHED,
-			    mxConstants.STYLE_DASH_PATTERN], 'values', ['1', null], 'cells', graph.getSelectionCells()));
+			ui.fireEvent(new mxEventObject('styleChanged', 'keys', [mxConstants.STYLE_DASHED, mxConstants.STYLE_DASH_PATTERN],
+				'values', ['1', null], 'cells', graph.getSelectionCells()));
 		}
 		finally
 		{
@@ -756,15 +755,59 @@ Actions.prototype.init = function()
 		{
 			graph.setCellStyles(mxConstants.STYLE_DASHED, '1');
 			graph.setCellStyles(mxConstants.STYLE_DASH_PATTERN, '1 4');
-			ui.fireEvent(new mxEventObject('styleChanged', 'keys', [mxConstants.STYLE_DASHED,
-			    mxConstants.STYLE_DASH_PATTERN], 'values', ['1', '1 4'], 'cells', graph.getSelectionCells()));
+			ui.fireEvent(new mxEventObject('styleChanged', 'keys', [mxConstants.STYLE_DASHED, mxConstants.STYLE_DASH_PATTERN],
+				'values', ['1', '1 4'], 'cells', graph.getSelectionCells()));
 		}
 		finally
 		{
 			graph.getModel().endUpdate();
 		}
 	});
-	this.addAction('rounded', function() { ui.menus.toggleStyle(mxConstants.STYLE_ROUNDED); });
+	this.addAction('straight', function()
+	{
+		graph.getModel().beginUpdate();
+		try
+		{
+			graph.setCellStyles(mxConstants.STYLE_ROUNDED, '0');
+			graph.setCellStyles(mxConstants.STYLE_CURVED, '0');
+			ui.fireEvent(new mxEventObject('styleChanged', 'keys', [mxConstants.STYLE_ROUNDED, mxConstants.STYLE_CURVED],
+					'values', ['0', '0'], 'cells', graph.getSelectionCells()));
+		}
+		finally
+		{
+			graph.getModel().endUpdate();
+		}
+	});
+	this.addAction('rounded', function()
+	{
+		graph.getModel().beginUpdate();
+		try
+		{
+			graph.setCellStyles(mxConstants.STYLE_ROUNDED, '1');
+			graph.setCellStyles(mxConstants.STYLE_CURVED, '0');
+			ui.fireEvent(new mxEventObject('styleChanged', 'keys', [mxConstants.STYLE_ROUNDED, mxConstants.STYLE_CURVED],
+					'values', ['1', '0'], 'cells', graph.getSelectionCells()));
+		}
+		finally
+		{
+			graph.getModel().endUpdate();
+		}
+	});
+	this.addAction('curved', function()
+	{
+		graph.getModel().beginUpdate();
+		try
+		{
+			graph.setCellStyles(mxConstants.STYLE_ROUNDED, '0');
+			graph.setCellStyles(mxConstants.STYLE_CURVED, '1');
+			ui.fireEvent(new mxEventObject('styleChanged', 'keys', [mxConstants.STYLE_ROUNDED, mxConstants.STYLE_CURVED],
+					'values', ['0', '1'], 'cells', graph.getSelectionCells()));
+		}
+		finally
+		{
+			graph.getModel().endUpdate();
+		}
+	});
 	this.addAction('collapsible', function() { ui.menus.toggleStyle('container'); });
 	this.put('style', new Action(mxResources.get('edit') + '...', mxUtils.bind(this, function()
 	{
@@ -792,7 +835,7 @@ Actions.prototype.init = function()
 		{
 			ui.setDefaultStyle(graph.getSelectionCell());
 		}
-	}, null, null, 'Ctrl+Shift+X');
+	}, null, null, 'Ctrl+Shift+D');
 	this.addAction('addWaypoint', function()
 	{
 		var cell = graph.getSelectionCell();
@@ -1042,7 +1085,7 @@ Actions.prototype.init = function()
 		{
 			this.layersWindow.window.setVisible(!this.layersWindow.window.isVisible());
 		}
-	}), null, null, 'Ctrl+Shift-L');
+	}), null, null, 'Ctrl+Shift+L');
 	action.setToggleAction(true);
 	action.setSelectedCallback(mxUtils.bind(this, function() { return this.layersWindow != null && this.layersWindow.window.isVisible(); }));
 	action = this.addAction('outline', mxUtils.bind(this, function()
@@ -1057,7 +1100,7 @@ Actions.prototype.init = function()
 		{
 			this.outlineWindow.window.setVisible(!this.outlineWindow.window.isVisible());
 		}
-	}), null, null, 'Ctrl+Shift-O');
+	}), null, null, 'Ctrl+Shift+O');
 	
 	action.setToggleAction(true);
 	action.setSelectedCallback(function() { return graph.scrollbars; });

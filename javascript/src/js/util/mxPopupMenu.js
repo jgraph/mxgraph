@@ -221,20 +221,9 @@ mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, e
 	}
 	else if (iconCls != null)
 	{
-		// Workaround to avoid focus in quirks and IE8 standards
-		if (mxClient.IS_QUIRKS || document.documentMode == 8)
-		{
-			var div = document.createElement('a');
-			div.setAttribute('href', '#');
-			div.className = iconCls;
-			col1.appendChild(div);
-		}
-		else
-		{
-			var div = document.createElement('div');
-			div.className = iconCls;
-			col1.appendChild(div);
-		}
+		var div = document.createElement('div');
+		div.className = iconCls;
+		col1.appendChild(div);
 	}
 	
 	tr.appendChild(col1);
@@ -245,10 +234,6 @@ mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, e
 		col2.className = 'mxPopupMenuItem' +
 			((enabled != null && !enabled) ? ' mxDisabled' : '');
 		
-		// KNOWN: Require <a href="#"> around label to avoid focus in
-		// quirks and IE 8 (see above workaround). But the problem is
-		// the anchor doesn't cover the complete active area of the
-		// item and it inherits styles (underline, blue).
 		mxUtils.write(col2, title);
 		col2.align = 'left';
 		tr.appendChild(col2);
@@ -271,6 +256,8 @@ mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, e
 
 	if (enabled == null || enabled)
 	{
+		var currentSelection = null;
+		
 		mxEvent.addGestureListeners(tr,
 			mxUtils.bind(this, function(evt)
 			{
@@ -278,8 +265,7 @@ mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, e
 				
 				if (parent.activeRow != tr && parent.activeRow != parent)
 				{
-					if (parent.activeRow != null &&
-						parent.activeRow.div.parentNode != null)
+					if (parent.activeRow != null && parent.activeRow.div.parentNode != null)
 					{
 						this.hideSubmenu(parent);
 					}
@@ -291,14 +277,19 @@ mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, e
 					}
 				}
 				
+				// Workaround for lost current selection in page because of focus in IE
+				if (mxClient.IS_QUIRKS || document.documentMode == 8)
+				{
+					currentSelection = document.selection.createRange();
+				}
+				
 				mxEvent.consume(evt);
 			}),
 			mxUtils.bind(this, function(evt)
 			{
 				if (parent.activeRow != tr && parent.activeRow != parent)
 				{
-					if (parent.activeRow != null &&
-						parent.activeRow.div.parentNode != null)
+					if (parent.activeRow != null && parent.activeRow.div.parentNode != null)
 					{
 						this.hideSubmenu(parent);
 					}
@@ -322,6 +313,13 @@ mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, e
 					if (parent.activeRow != tr)
 					{
 						this.hideMenu();
+					}
+					
+					// Workaround for lost current selection in page because of focus in IE
+					if (currentSelection != null)
+					{
+						currentSelection.select();
+						currentSelection = null;
 					}
 					
 					if (funct != null)

@@ -145,13 +145,9 @@
 	CardShape.prototype.redrawPath = function(c, x, y, w, h)
 	{
 		var s = Math.max(0, Math.min(w, Math.min(h, parseFloat(mxUtils.getValue(this.style, 'size', this.size)))));
-		
-		c.moveTo(s, 0);
-		c.lineTo(w, 0);
-		c.lineTo(w, h);
-		c.lineTo(0, h);
-		c.lineTo(0, s);
-		c.close();
+		var arcSize = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, mxConstants.LINE_ARCSIZE) / 2;
+		this.addPoints(c, [new mxPoint(s, 0), new mxPoint(w, 0), new mxPoint(w, h), new mxPoint(0, h), new mxPoint(0, s)],
+				this.isRounded, arcSize, true);
 		c.end();
 	};
 
@@ -216,12 +212,9 @@
 	ParallelogramShape.prototype.redrawPath = function(c, x, y, w, h)
 	{
 		var dx = w * Math.max(0, Math.min(1, parseFloat(mxUtils.getValue(this.style, 'size', this.size))));
-		
-		c.moveTo(0, h);
-		c.lineTo(dx, 0);
-		c.lineTo(w, 0);
-		c.lineTo(w - dx, h);
-		c.close();
+		var arcSize = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, mxConstants.LINE_ARCSIZE) / 2;
+		this.addPoints(c, [new mxPoint(0, h), new mxPoint(dx, 0), new mxPoint(w, 0), new mxPoint(w - dx, h)],
+				this.isRounded, arcSize, true);
 		c.end();
 	};
 
@@ -237,13 +230,9 @@
 	TrapezoidShape.prototype.redrawPath = function(c, x, y, w, h)
 	{
 		var dx = w * Math.max(0, Math.min(0.5, parseFloat(mxUtils.getValue(this.style, 'size', this.size))));
-		
-		c.moveTo(0, h);
-		c.lineTo(dx, 0);
-		c.lineTo(w - dx, 0);
-		c.lineTo(w, h);
-		c.close();
-		c.end();
+		var arcSize = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, mxConstants.LINE_ARCSIZE) / 2;
+		this.addPoints(c, [new mxPoint(0, h), new mxPoint(dx, 0), new mxPoint(w - dx, 0), new mxPoint(w, h)],
+				this.isRounded, arcSize, true);
 	};
 
 	mxCellRenderer.prototype.defaultShapes['trapezoid'] = TrapezoidShape;
@@ -320,14 +309,9 @@
 	StepShape.prototype.redrawPath = function(c, x, y, w, h)
 	{
 		var s =  w * Math.max(0, Math.min(1, parseFloat(mxUtils.getValue(this.style, 'size', this.size))));
-		
-		c.moveTo(0, 0);
-		c.lineTo(w - s, 0);
-		c.lineTo(w, h / 2);
-		c.lineTo(w - s, h);
-		c.lineTo(0, h);
-		c.lineTo(s, h / 2);
-		c.close();
+		var arcSize = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, mxConstants.LINE_ARCSIZE) / 2;
+		this.addPoints(c, [new mxPoint(0, 0), new mxPoint(w - s, 0), new mxPoint(w, h / 2), new mxPoint(w - s, h),
+		                   new mxPoint(0, h), new mxPoint(s, h / 2)], this.isRounded, arcSize, true);
 		c.end();
 	};
 
@@ -361,22 +345,36 @@
 	
 	// Overrides painting of rhombus shape to allow for double style
 	var mxRhombusPaintVertexShape = mxRhombus.prototype.paintVertexShape;
+	mxRhombus.prototype.getLabelBounds = function(rect)
+	{
+		if (this.style['double'] == 1)
+		{
+			var margin = (Math.max(2, this.strokewidth + 1) * 2 + parseFloat(this.style[mxConstants.STYLE_MARGIN] || 0)) * this.scale;
+		
+			return new mxRectangle(rect.x + margin, rect.y + margin, rect.width - 2 * margin, rect.height - 2 * margin);
+		}
+		
+		return rect;
+	};
 	mxRhombus.prototype.paintVertexShape = function(c, x, y, w, h)
 	{
 		mxRhombusPaintVertexShape.apply(this, arguments);
 
 		if (!this.outline && this.style['double'] == 1)
 		{
-			var inset = Math.max(2, this.strokewidth + 1) * 2;
+			var margin = Math.max(2, this.strokewidth + 1) * 2 + parseFloat(this.style[mxConstants.STYLE_MARGIN] || 0);
+			x += margin;
+			y += margin;
+			w -= 2 * margin;
+			h -= 2 * margin;
 			
-			if (w - 2 * inset > 0 && h - 2 * inset > 0)
+			if (w > 0 && h > 0)
 			{
-				x += inset;
-				y += inset;
-				w -= 2 * inset;
-				h -= 2 * inset;
-	
-				mxRhombusPaintVertexShape.apply(this, arguments);
+				c.setShadow(false);
+				
+				// Workaround for closure compiler bug where the lines with x and y above
+				// are removed if arguments is used as second argument in call below.
+				mxRhombusPaintVertexShape.apply(this, [c, x, y, w, h]);
 			}
 		}
 	};
@@ -391,25 +389,36 @@
 	{
 		return false;
 	};
+	ExtendedShape.prototype.getLabelBounds = function(rect)
+	{
+		if (this.style['double'] == 1)
+		{
+			var margin = (Math.max(2, this.strokewidth + 1) + parseFloat(this.style[mxConstants.STYLE_MARGIN] || 0)) * this.scale;
+		
+			return new mxRectangle(rect.x + margin, rect.y + margin, rect.width - 2 * margin, rect.height - 2 * margin);
+		}
+		
+		return rect;
+	};
+	
 	ExtendedShape.prototype.paintForeground = function(c, x, y, w, h)
 	{
 		if (this.style != null)
 		{
+			mxRectangleShape.prototype.paintBackground.apply(this, arguments);
+			
 			if (!this.outline && this.style['double'] == 1)
 			{
-				var inset = Math.max(2, this.strokewidth + 1);
+				var margin = Math.max(2, this.strokewidth + 1) + parseFloat(this.style[mxConstants.STYLE_MARGIN] || 0);
+				x += margin;
+				y += margin;
+				w -= 2 * margin;
+				h -= 2 * margin;
 				
-				if (w - 2 * inset > 0 && h - 2 * inset > 0)
+				if (w > 0 && h > 0)
 				{
-					mxRectangleShape.prototype.paintBackground.call(this, c, x + inset, y + inset, w - 2 * inset, h - 2 * inset);
+					mxRectangleShape.prototype.paintBackground.apply(this, arguments);
 				}
-
-				mxRectangleShape.prototype.paintForeground.apply(this, arguments);
-				
-				x += inset;
-				y += inset;
-				w -= 2 * inset;
-				h -= 2 * inset;
 			}
 			
 			c.setDashed(false);
@@ -621,8 +630,37 @@
 		c.stroke();
 	};
 
-	// Replaces existing actor shape
 	mxCellRenderer.prototype.defaultShapes['lollipop'] = LollipopShape;
+
+	// Lollipop Shape
+	function RequiresShape()
+	{
+		mxShape.call(this);
+	};
+	mxUtils.extend(RequiresShape, mxShape);
+	RequiresShape.prototype.size = 10;
+	RequiresShape.prototype.inset = 2;
+	RequiresShape.prototype.paintBackground = function(c, x, y, w, h)
+	{
+		var sz = parseFloat(mxUtils.getValue(this.style, 'size', this.size));
+		var inset = parseFloat(mxUtils.getValue(this.style, 'inset', this.inset)) + this.strokewidth;
+		c.translate(x, y);
+
+		c.begin();
+		c.moveTo(w / 2, sz + inset);
+		c.lineTo(w / 2, h);
+		c.end();
+		c.stroke();
+		
+		c.begin();
+		c.moveTo((w - sz) / 2 - inset, sz / 2);
+		c.quadTo((w - sz) / 2 - inset, sz + inset, w / 2, sz + inset);
+		c.quadTo((w + sz) / 2 + inset, sz + inset, (w + sz) / 2 + inset, sz / 2);
+		c.end();
+		c.stroke();
+	};
+
+	mxCellRenderer.prototype.defaultShapes['requires'] = RequiresShape;
 	
 	// Component shape
 	function ComponentShape()
@@ -772,11 +810,9 @@
 	ManualInputShape.prototype.redrawPath = function(c, x, y, w, h)
 	{
 		var s = Math.min(h, parseFloat(mxUtils.getValue(this.style, 'size', this.size)));
-		c.moveTo(0, h);
-		c.lineTo(0, s);
-		c.lineTo(w, 0);
-		c.lineTo(w, h);
-		c.close();
+		var arcSize = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, mxConstants.LINE_ARCSIZE) / 2;
+		this.addPoints(c, [new mxPoint(0, h), new mxPoint(0, s), new mxPoint(w, 0), new mxPoint(w, h)],
+				this.isRounded, arcSize, true);
 		c.end();
 	};
 
@@ -948,14 +984,9 @@
 	LoopLimitShape.prototype.redrawPath = function(c, x, y, w, h)
 	{
 		var s = Math.min(w / 2, Math.min(h, parseFloat(mxUtils.getValue(this.style, 'size', this.size))));
-		
-		c.moveTo(s, 0);
-		c.lineTo(w - s, 0);
-		c.lineTo(w, s * 0.8);
-		c.lineTo(w, h);
-		c.lineTo(0, h);
-		c.lineTo(0, s * 0.8);
-		c.close();
+		var arcSize = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, mxConstants.LINE_ARCSIZE) / 2;
+		this.addPoints(c, [new mxPoint(s, 0), new mxPoint(w - s, 0), new mxPoint(w, s * 0.8), new mxPoint(w, h),
+		                   new mxPoint(0, h), new mxPoint(0, s * 0.8)], this.isRounded, arcSize, true);
 		c.end();
 	};
 
@@ -971,13 +1002,9 @@
 	OffPageConnectorShape.prototype.redrawPath = function(c, x, y, w, h)
 	{
 		var s = h * Math.max(0, Math.min(1, parseFloat(mxUtils.getValue(this.style, 'size', this.size))));
-		
-		c.moveTo(0, 0);
-		c.lineTo(w, 0);
-		c.lineTo(w, h - s);
-		c.lineTo(w / 2, h);
-		c.lineTo(0, h - s);
-		c.close();
+		var arcSize = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, mxConstants.LINE_ARCSIZE) / 2;
+		this.addPoints(c, [new mxPoint(0, 0), new mxPoint(w, 0), new mxPoint(w, h - s), new mxPoint(w / 2, h),
+		                   new mxPoint(0, h - s)], this.isRounded, arcSize, true);
 		c.end();
 	};
 

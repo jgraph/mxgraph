@@ -44,13 +44,10 @@ mxRhombus.prototype.paintVertexShape = function(c, x, y, w, h)
 {
 	var hw = w / 2;
 	var hh = h / 2;
-
-	c.begin();
-	c.moveTo(x + hw, y);
-	c.lineTo(x + w, y + hh);
-	c.lineTo(x + hw, y + h);
-	c.lineTo(x, y + hh);
-	c.close();
 	
+	var arcSize = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, mxConstants.LINE_ARCSIZE) / 2;
+	c.begin();
+	this.addPoints(c, [new mxPoint(x + hw, y), new mxPoint(x + w, y + hh), new mxPoint(x + hw, y + h),
+	     new mxPoint(x, y + hh)], this.isRounded, arcSize, true);
 	c.fillAndStroke();
 };

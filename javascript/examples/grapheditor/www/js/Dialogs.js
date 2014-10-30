@@ -249,8 +249,8 @@ var ColorDialog = function(editorUi, color, apply, cancelFn)
 	var buttons = document.createElement('div');
 	buttons.style.textAlign = 'right';
 	buttons.style.whiteSpace = 'nowrap';
-
-	buttons.appendChild(mxUtils.button(mxResources.get('cancel'), function()
+	
+	var cancelBtn = mxUtils.button(mxResources.get('cancel'), function()
 	{
 		editorUi.hideDialog();
 		
@@ -258,7 +258,12 @@ var ColorDialog = function(editorUi, color, apply, cancelFn)
 		{
 			cancelFn();
 		}
-	}));
+	});
+
+	if (editorUi.editor.cancelFirst)
+	{
+		buttons.appendChild(cancelBtn);
+	}
 	
 	var applyFunction = (apply != null) ? apply : this.createApplyFunction();
 	
@@ -274,6 +279,11 @@ var ColorDialog = function(editorUi, color, apply, cancelFn)
 		applyFunction(color);
 		editorUi.hideDialog();
 	}));
+	
+	if (!editorUi.editor.cancelFirst)
+	{
+		buttons.appendChild(cancelBtn);
+	}
 	
 	if (color != null)
 	{
@@ -291,6 +301,24 @@ var ColorDialog = function(editorUi, color, apply, cancelFn)
 	div.appendChild(buttons);
 	this.picker = picker;
 	this.colorInput = input;
+
+	// LATER: Only fires if input if focused, should always
+	// fire if this dialog is showing.
+	mxEvent.addListener(div, 'keydown', function(e)
+	{
+		if (e.keyCode == 27)
+		{
+			editorUi.hideDialog();
+			
+			if (cancelFn != null)
+			{
+				cancelFn();
+			}
+			
+			mxEvent.consume(e);
+		}
+	});
+	
 	this.container = div;
 };
 
@@ -512,11 +540,16 @@ var PageSetupDialog = function(editorUi)
 	td = document.createElement('td');
 	td.colSpan = 2;
 	td.setAttribute('align', 'right');
-
-	td.appendChild(mxUtils.button(mxResources.get('cancel'), function()
+	
+	var cancelBtn = mxUtils.button(mxResources.get('cancel'), function()
 	{
 		editorUi.hideDialog();
-	}));
+	});
+	
+	if (editorUi.editor.cancelFirst)
+	{
+		td.appendChild(cancelBtn);
+	}
 	
 	td.appendChild(mxUtils.button(mxResources.get('apply'), function()
 	{
@@ -537,6 +570,11 @@ var PageSetupDialog = function(editorUi)
 		
 		editorUi.setPageFormat(size);
 	}));
+	
+	if (!editorUi.editor.cancelFirst)
+	{
+		td.appendChild(cancelBtn);
+	}
 
 	row.appendChild(td);
 	tbody.appendChild(row);
@@ -653,11 +691,16 @@ var PrintDialog = function(editorUi)
 		return PrintDialog.showPreview(PrintDialog.createPrintPreview(graph, scale, pf, border, x0, y0, autoOrigin, print), print);
 	};
 	
-	td.appendChild(mxUtils.button(mxResources.get('cancel'), function()
+	var cancelBtn = mxUtils.button(mxResources.get('cancel'), function()
 	{
 		editorUi.hideDialog();
-	}));
-
+	});
+	
+	if (editorUi.editor.cancelFirst)
+	{
+		td.appendChild(cancelBtn);
+	}
+	
 	td.appendChild(mxUtils.button(mxResources.get('preview'), function()
 	{
 		editorUi.hideDialog();
@@ -669,6 +712,11 @@ var PrintDialog = function(editorUi)
 		editorUi.hideDialog();
 		preview(true);
 	}));
+	
+	if (!editorUi.editor.cancelFirst)
+	{
+		td.appendChild(cancelBtn);
+	}
 
 	row.appendChild(td);
 	tbody.appendChild(row);
@@ -756,10 +804,16 @@ var FilenameDialog = function(editorUi, filename, buttonText, fn, label, validat
 	td.style.whiteSpace = 'nowrap';
 	td.setAttribute('align', 'right');
 	
-	td.appendChild(mxUtils.button(mxResources.get('cancel'), function()
+	
+	var cancelBtn = mxUtils.button(mxResources.get('cancel'), function()
 	{
 		editorUi.hideDialog();
-	}));
+	});
+	
+	if (editorUi.editor.cancelFirst)
+	{
+		td.appendChild(cancelBtn);
+	}
 	
 	var genericBtn = mxUtils.button(buttonText, function()
 	{
@@ -776,13 +830,14 @@ var FilenameDialog = function(editorUi, filename, buttonText, fn, label, validat
 		{
 			genericBtn.click();
 		}
-		else if (e.keyCode == 27)
-		{
-			editorUi.hideDialog();
-		}
 	});
 	
 	td.appendChild(genericBtn);
+	
+	if (!editorUi.editor.cancelFirst)
+	{
+		td.appendChild(cancelBtn);
+	}
 
 	row.appendChild(td);
 	tbody.appendChild(row);
@@ -839,7 +894,7 @@ var TextareaDialog = function(editorUi, title, url, fn, cancelFn, cancelTitle)
 	td.style.whiteSpace = 'nowrap';
 	td.setAttribute('align', 'right');
 	
-	td.appendChild(mxUtils.button(cancelTitle || mxResources.get('cancel'), function()
+	var cancelBtn = mxUtils.button(cancelTitle || mxResources.get('cancel'), function()
 	{
 		editorUi.hideDialog();
 		
@@ -847,7 +902,12 @@ var TextareaDialog = function(editorUi, title, url, fn, cancelFn, cancelTitle)
 		{
 			cancelFn();
 		}
-	}));
+	});
+	
+	if (editorUi.editor.cancelFirst)
+	{
+		td.appendChild(cancelBtn);
+	}
 	
 	if (fn != null)
 	{
@@ -858,6 +918,11 @@ var TextareaDialog = function(editorUi, title, url, fn, cancelFn, cancelTitle)
 		});
 		
 		td.appendChild(genericBtn);
+	}
+	
+	if (!editorUi.editor.cancelFirst)
+	{
+		td.appendChild(cancelBtn);
 	}
 
 	row.appendChild(td);
@@ -912,10 +977,15 @@ var EditFileDialog = function(editorUi)
 		textarea.addEventListener('drop', handleDrop, false);
 	}
 	
-	div.appendChild(mxUtils.button(mxResources.get('cancel'), function()
+	var cancelBtn = mxUtils.button(mxResources.get('cancel'), function()
 	{
 		editorUi.hideDialog();
-	}));
+	});
+	
+	if (editorUi.editor.cancelFirst)
+	{
+		div.appendChild(cancelBtn);
+	}
 	
 	var select = document.createElement('select');
 	select.style.width = '180px';
@@ -979,6 +1049,11 @@ var EditFileDialog = function(editorUi)
 			editorUi.hideDialog();
 		}
 	}));
+	
+	if (!editorUi.editor.cancelFirst)
+	{
+		div.appendChild(cancelBtn);
+	}
 
 	this.container = div;
 };
@@ -1265,7 +1340,7 @@ var ExportDialog = function(editorUi)
 	row = document.createElement('tr');
 	td = document.createElement('td');
 	td.setAttribute('align', 'right');
-	td.style.paddingTop = '16px';
+	td.style.paddingTop = '24px';
 	td.colSpan = 2;
 	
 	var saveBtn = mxUtils.button(mxResources.get('export'), mxUtils.bind(this, function()
@@ -1363,12 +1438,22 @@ var ExportDialog = function(editorUi)
 		}
 	}));
 	
-	td.appendChild(mxUtils.button(mxResources.get('cancel'), function()
+	var cancelBtn = mxUtils.button(mxResources.get('cancel'), function()
 	{
 		editorUi.hideDialog();
-	}));
+	});
 	
-	td.appendChild(saveBtn);
+	
+	if (editorUi.editor.cancelFirst)
+	{
+		td.appendChild(cancelBtn);
+		td.appendChild(saveBtn);
+	}
+	else
+	{
+		td.appendChild(saveBtn);
+		td.appendChild(cancelBtn);
+	}
 
 	row.appendChild(td);
 	tbody.appendChild(row);
@@ -1604,8 +1689,16 @@ var MetadataDialog = function(ui, cell)
 	buttons.style.marginTop = '18px';
 	buttons.style.textAlign = 'right';
 
-	buttons.appendChild(cancelBtn);
-	buttons.appendChild(applyBtn);
+	if (ui.editor.cancelFirst)
+	{
+		buttons.appendChild(cancelBtn);
+		buttons.appendChild(applyBtn);
+	}
+	else
+	{
+		buttons.appendChild(applyBtn);
+		buttons.appendChild(cancelBtn);
+	}
 
 	div.appendChild(buttons);
 	this.container = div;
@@ -1685,11 +1778,6 @@ var LinkDialog = function(editorUi, initialValue, btnLabel, fn)
 	var btns = document.createElement('div');
 	btns.style.marginTop = '14px';
 	btns.style.textAlign = 'right';
-	
-	btns.appendChild(mxUtils.button(mxResources.get('cancel'), function()
-	{
-		editorUi.hideDialog();
-	}));
 
 	mxEvent.addListener(linkInput, 'keyup', function(e)
 	{
@@ -1698,17 +1786,28 @@ var LinkDialog = function(editorUi, initialValue, btnLabel, fn)
 			editorUi.hideDialog();
 			fn(linkInput.value);
 		}
-		else if (e.keyCode == 27)
-		{
-			editorUi.hideDialog();
-		}
 	});
+
+	var cancelBtn = mxUtils.button(mxResources.get('cancel'), function()
+	{
+		editorUi.hideDialog();
+	});
+	
+	if (editorUi.editor.cancelFirst)
+	{
+		btns.appendChild(cancelBtn);
+	}
 	
 	btns.appendChild(mxUtils.button(btnLabel, function()
 	{
 		editorUi.hideDialog();
 		fn(linkInput.value);
 	}));
+	
+	if (!editorUi.editor.cancelFirst)
+	{
+		btns.appendChild(cancelBtn);
+	}
 
 	div.appendChild(btns);
 

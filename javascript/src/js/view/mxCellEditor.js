@@ -322,19 +322,8 @@ mxCellEditor.prototype.resize = function()
 		}
 		else
 		{
-			var clip = this.graph.isLabelClipped(state.cell);
-			var wrap = this.graph.isWrapping(state.cell);
 			var isEdge = this.graph.getModel().isEdge(state.cell);
-			var scale = this.graph.getView().scale;
-			var spacing = parseInt(state.style[mxConstants.STYLE_SPACING] || 0) * scale;
-			var spacingTop = (parseInt(state.style[mxConstants.STYLE_SPACING_TOP] || 0) + mxText.prototype.baseSpacingTop) * scale + spacing;
-			var spacingRight = (parseInt(state.style[mxConstants.STYLE_SPACING_RIGHT] || 0) + mxText.prototype.baseSpacingRight) * scale + spacing;
-			var spacingBottom = (parseInt(state.style[mxConstants.STYLE_SPACING_BOTTOM] || 0) + mxText.prototype.baseSpacingBottom) * scale + spacing;
-			var spacingLeft = (parseInt(state.style[mxConstants.STYLE_SPACING_LEFT] || 0) + mxText.prototype.baseSpacingLeft) * scale + spacing;
 
-		 	var bds = new mxRectangle(state.x, state.y, state.width - spacingLeft - spacingRight, state.height - spacingTop - spacingBottom);
-		 	bds = (state.shape != null) ? state.shape.getLabelBounds(bds) : bds;
-			
 			if (isEdge)
 			{
 				this.bounds.x = state.absoluteOffset.x;
@@ -344,6 +333,16 @@ mxCellEditor.prototype.resize = function()
 			}
 			else if (this.bounds != null)
 			{
+				var scale = this.graph.getView().scale;
+				var spacing = parseInt(state.style[mxConstants.STYLE_SPACING] || 0) * scale;
+				var spacingTop = (parseInt(state.style[mxConstants.STYLE_SPACING_TOP] || 0) + mxText.prototype.baseSpacingTop) * scale + spacing;
+				var spacingRight = (parseInt(state.style[mxConstants.STYLE_SPACING_RIGHT] || 0) + mxText.prototype.baseSpacingRight) * scale + spacing;
+				var spacingBottom = (parseInt(state.style[mxConstants.STYLE_SPACING_BOTTOM] || 0) + mxText.prototype.baseSpacingBottom) * scale + spacing;
+				var spacingLeft = (parseInt(state.style[mxConstants.STYLE_SPACING_LEFT] || 0) + mxText.prototype.baseSpacingLeft) * scale + spacing;
+
+				var bds = new mxRectangle(state.x, state.y, state.width - spacingLeft - spacingRight, state.height - spacingTop - spacingBottom);
+			 	bds = (state.shape != null) ? state.shape.getLabelBounds(bds) : bds;
+				
 				this.bounds.x = bds.x + state.absoluteOffset.x;
 				this.bounds.y = bds.y + state.absoluteOffset.y;
 				this.bounds.width = bds.width;
@@ -358,6 +357,9 @@ mxCellEditor.prototype.resize = function()
 			}
 		
 			value = mxUtils.htmlEntities(value, false);
+
+			var clip = this.graph.isLabelClipped(state.cell);
+			var wrap = this.graph.isWrapping(state.cell);
 			
 			if (wrap)
 			{
@@ -401,8 +403,17 @@ mxCellEditor.prototype.resize = function()
 			if (m != null)
 			{
 				// TODO: Keep in visible area, add spacing
-				this.textarea.style.left = Math.max(0, Math.round(this.bounds.x - m.x * this.bounds.width + m.x * ow) - 3) + 'px';
-				this.textarea.style.top = Math.max(0, Math.round(this.bounds.y - m.y * this.bounds.height + m.y * oh) + 4) + 'px';
+				if (isEdge)
+				{
+					this.textarea.style.left = Math.max(0, Math.round(this.bounds.x - m.x * this.bounds.width + m.x * ow) - 4) + 'px';
+					this.textarea.style.top = Math.max(0, Math.round(this.bounds.y - m.y * this.bounds.height + m.y * oh - m.y * 4) + 6) + 'px';
+				}
+				else
+				{
+					var size = mxUtils.getValue(state.style, mxConstants.STYLE_FONTSIZE, mxConstants.DEFAULT_FONTSIZE) * scale;
+					this.textarea.style.left = Math.max(0, Math.round(this.bounds.x - m.x * this.bounds.width + m.x * (ow + 8))) + 'px';
+					this.textarea.style.top = Math.max(0, Math.round(this.bounds.y - m.y * this.bounds.height + m.y * (oh - size * 0.5 - 3)) + 4) + 'px';
+				}
 			}
 
 			var dx = this.textarea.offsetWidth - this.textarea.clientWidth + 4;
@@ -576,6 +587,8 @@ mxCellEditor.prototype.createTextDiv = function()
 	style.position = 'absolute';
 	style.whiteSpace = 'nowrap';
 	style.visibility = 'hidden';
+	style.padding = '0px';
+	style.margin = '0px';
 	style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
 	style.zoom = '1';
 	style.verticalAlign = 'top';
