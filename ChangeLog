@@ -1,3 +1,40 @@
+10-NOV-2014: 3.1.1.1
+
+- Fixes ignored fixed aspect style in mxGraph.scaleCell [JavaScript]
+- Adds fixedAspect argument in mxGeometry.scale [JavaScript]
+- Fixes spacing for mxShape.getLabelBounds in mxCellEditor.resize [JavaScript]
+- Fixes dangling edge validation for fixed points in mxEdgeHandler, mxConnectionHandler [JavaScript]
+- Adds validation for fixed points in mxEdgeHandler, mxConnectionHandler [JavaScript]
+- Removes mxSession, mxEvent.SESSION and related resources [Java,JavaScript,Dotnet,Php]
+- Improves vertical position in mxCellEditor [JavaScript]
+- Adds Curly Bracket in General, Parallel Marker in BPMN sidebar
+- Adds Corner, Tee, Vertical/Horizontal Tree in Advanced sidebar
+- Merges tilt and reverseEdge into switchDirection in grapheditor
+- Replaces alt-drag from sidebar with refresh icon in grapheditor
+- Alt-/shift-drag from sidebar disables actions in grapheditor
+- Adds formatted text state for new connections in grapheditor
+- Moves collapsible item to Navigation submenu in grapheditor
+- Shows focus rectangle for edge label editing in grapheditor
+- Makes formatted text default for all cells in grapheditor
+- Resizes text editor for rich text editing in grapheditor
+- Rearranges general shapes based on usage in grapheditor
+- Hides custom handles for locked cells in grapheditor
+- Adds reset default style menu item in grapheditor
+- Removes Text & Images sidebar in grapheditor
+- Fixes tolerances for managed sizers in mxVertexHandler.redrawHandles [JavaScript]
+- mxGraph.getBoundingBoxFromGeometry uses relative child bounds for selected parents [JavaScript]
+- Fixes ignored maximumGraphBounds for child cells in mxGraph.constrainChild [JavaScript]
+- Fixes white-space CSS in mxUtils.createTable [Java]
+- Fixes handling for style overflow=fill in mxCellEditor, adds getCurrentHtmlValue [JavaScript]
+- Adds mxGraph.createElbowEdgeHandler, createEdgeSegmentHandler, createEdgeHandler, createVertexHandler [JavaScript]
+- Adds mxGraph.createTooltipHandler, createSelectionCellsHandler, createConnectionHandler [JavaScript]
+- Adds mxGraph.createGraphHandler, createPanningHandler, createPopupMenuHandler [JavaScript]
+- Adds mxCompactTreeLayout.groupPaddingTop, -Right, -Bottom and -Left [JavaScript]
+- Adds top-, right-, bottom- and leftBorder in mxGraphLayout.arrangeGroups [JavaScript]
+- Fixes ID attributes in SVG for URLs with brackets [JavaScript]
+- Fixes text and image rendering in mxStencil in outline mode [JavaScript]
+- Fixes tolerance check in mxPopupMenuHandler for touch events [JavaScript]
+
 30-OCT-2014: 3.1.1.0
 
 - Adds workarond for limited number of stylesheets in quirks mode [JavaScript]

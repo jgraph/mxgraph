@@ -128,12 +128,6 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxSaxOutputHandler.html">mxSaxOutputHandler</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxSession.html">mxSession</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implements a session that may be attached to a shared diagram.  <a href="classcom_1_1mxgraph_1_1mxSession.html#details">More...</a><br/></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxSharedDiagram.html">mxSharedDiagram</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implements a diagram that may be shared among multiple sessions.  <a href="classcom_1_1mxgraph_1_1mxSharedDiagram.html#details">More...</a><br/></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxCellRenderer.html">mxCellRenderer</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Class that can draw an independent array of cells.  <a href="classcom_1_1mxgraph_1_1mxCellRenderer.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -182,9 +176,6 @@ Functions</h2></td></tr>
 <tr class="memitem:abd1246a669b8db904a28aafc0336499f"><td class="memItemLeft" align="right" valign="top">delegate void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecom_1_1mxgraph.html#abd1246a669b8db904a28aafc0336499f">mxGraphModelChangeEventHandler</a> ()</td></tr>
 <tr class="memdesc:abd1246a669b8db904a28aafc0336499f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defines the requirements for an object that listens to a graph model.  <a href="#abd1246a669b8db904a28aafc0336499f">More...</a><br/></td></tr>
 <tr class="separator:abd1246a669b8db904a28aafc0336499f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7d517929d5cfd90ae8526a3f946ea6f9"><td class="memItemLeft" align="right" valign="top">delegate void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecom_1_1mxgraph.html#a7d517929d5cfd90ae8526a3f946ea6f9">mxDiagramChangeEventHandler</a> (Object sender, string xml)</td></tr>
-<tr class="memdesc:a7d517929d5cfd90ae8526a3f946ea6f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defines the requirementns for an object that listens to changes on the shared diagram.  <a href="#a7d517929d5cfd90ae8526a3f946ea6f9">More...</a><br/></td></tr>
-<tr class="separator:a7d517929d5cfd90ae8526a3f946ea6f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a83e0f4d840cac3329394b038752c9e55"><td class="memItemLeft" align="right" valign="top">delegate void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecom_1_1mxgraph.html#a83e0f4d840cac3329394b038752c9e55">mxEdgeStyleFunction</a> (<a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a> state, <a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a> source, <a class="el" href="classcom_1_1mxgraph_1_1mxCellState.html">mxCellState</a> target, List&lt; <a class="el" href="classcom_1_1mxgraph_1_1mxPoint.html">mxPoint</a> &gt; points, List&lt; <a class="el" href="classcom_1_1mxgraph_1_1mxPoint.html">mxPoint</a> &gt; result)</td></tr>
 <tr class="memdesc:a83e0f4d840cac3329394b038752c9e55"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defines the requirements for an edge style function. At the time the function is called, the result array contains a placeholder (null) for the first absolute point, that is, the point where the edge and source terminal are connected. The implementation of the style then adds all intermediate waypoints except for the last point, that is, the connection point between the edge and the target terminal. The first ant the last point in the result array are then replaced with mxPoints that take into account the terminal's perimeter and next point on the edge.  <a href="#a83e0f4d840cac3329394b038752c9e55">More...</a><br/></td></tr>
 <tr class="separator:a83e0f4d840cac3329394b038752c9e55"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -193,36 +184,6 @@ Functions</h2></td></tr>
 <tr class="separator:a602cdf1db1505f7fa83454be5a7fb30c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
-<a class="anchor" id="a7d517929d5cfd90ae8526a3f946ea6f9"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">delegate void com.mxgraph.mxDiagramChangeEventHandler </td>
-          <td>(</td>
-          <td class="paramtype">Object&#160;</td>
-          <td class="paramname"><em>sender</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">string&#160;</td>
-          <td class="paramname"><em>xml</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Defines the requirementns for an object that listens to changes on the shared diagram. </p>
-
-<p>Referenced by <a class="el" href="classcom_1_1mxgraph_1_1mxSession.html#aa3b3747c85960407fdd93f9be380c9ca">com.mxgraph.mxSession.Destroy()</a>, and <a class="el" href="classcom_1_1mxgraph_1_1mxSession.html#a917d860f029239d38f994a4ec8c050a8">com.mxgraph.mxSession.mxSession()</a>.</p>
-
-</div>
-</div>
 <a class="anchor" id="a83e0f4d840cac3329394b038752c9e55"></a>
 <div class="memitem">
 <div class="memproto">
@@ -352,7 +313,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Oct 30 2014 04:06:11 for mxGraph by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Nov 10 2014 04:00:08 for mxGraph by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.6
 </small></address>

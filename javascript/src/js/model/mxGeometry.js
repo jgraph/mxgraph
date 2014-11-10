@@ -340,26 +340,19 @@ mxGeometry.prototype.translate = function(dx, dy)
  * Scales the geometry by the given amount. That is, <x> and <y> of the
  * geometry, the <sourcePoint>, <targetPoint> and all <points> are scaled
  * by the given amount. <x>, <y>, <width> and <height> are only scaled if
- * <relative> is false.
+ * <relative> is false. If <fixedAspect> is true, then the smaller value
+ * is used to scale the width and the height.
  * 
  * Parameters:
  * 
  * sx - Number that specifies the horizontal scale factor.
  * sy - Number that specifies the vertical scale factor.
+ * fixedAspect - Optional boolean to keep the aspect ratio fixed.
  */
-mxGeometry.prototype.scale = function(sx, sy)
+mxGeometry.prototype.scale = function(sx, sy, fixedAspect)
 {
 	sx = parseFloat(sx);
 	sy = parseFloat(sy);
-	
-	// Translates the geometry
-	if (!this.relative)
-	{
-		this.x = parseFloat(this.x) * sx;
-		this.y = parseFloat(this.y) * sy;
-		this.width = parseFloat(this.width) * sx;
-		this.height = parseFloat(this.height) * sy;
-	}
 
 	// Translates the source point
 	if (this.sourcePoint != null)
@@ -386,6 +379,21 @@ mxGeometry.prototype.scale = function(sx, sy)
 				this.points[i].y = parseFloat(this.points[i].y) * sy;
 			}
 		}
+	}
+	
+	// Translates the geometry
+	if (!this.relative)
+	{
+		this.x = parseFloat(this.x) * sx;
+		this.y = parseFloat(this.y) * sy;
+
+		if (fixedAspect)
+		{
+			sy = sx = Math.min(sx, sy);
+		}
+		
+		this.width = parseFloat(this.width) * sx;
+		this.height = parseFloat(this.height) * sy;
 	}
 };
 

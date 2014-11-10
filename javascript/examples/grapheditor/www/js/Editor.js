@@ -186,6 +186,7 @@ Editor.prototype.resetGraph = function()
 	this.graph.preferPageSize = this.graph.pageBreaksVisible;
 	this.graph.background = null;
 	this.graph.pageScale = mxGraph.prototype.pageScale;
+	this.graph.pageFormat = mxGraph.prototype.pageFormat;
 	this.updateGraphComponents();
 	this.graph.view.setScale(1);
 };

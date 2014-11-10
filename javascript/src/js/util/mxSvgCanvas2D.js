@@ -600,8 +600,9 @@ mxSvgCanvas2D.prototype.updateFill = function()
 
 			if (!mxClient.IS_IE && this.root.ownerDocument == document)
 			{
-				// Workaround for potential base tag
-				this.node.setAttribute('fill', 'url(' + this.getBaseUrl() + '#' + id + ')');
+				// Workaround for potential base tag and brackets must be escaped
+				var base = this.getBaseUrl().replace(/([\(\)])/g, '\\$1');
+				this.node.setAttribute('fill', 'url(' + base + '#' + id + ')');
 			}
 			else
 			{
@@ -1574,7 +1575,8 @@ mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 		if (!mxClient.IS_IE && this.root.ownerDocument == document)
 		{
 			// Workaround for potential base tag
-			node.setAttribute('clip-path', 'url(' + this.getBaseUrl() + '#' + c.getAttribute('id') + ')');
+			var base = this.getBaseUrl().replace(/([\(\)])/g, '\\$1');
+			node.setAttribute('clip-path', 'url(' + base + '#' + c.getAttribute('id') + ')');
 		}
 		else
 		{

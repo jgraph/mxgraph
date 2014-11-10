@@ -237,6 +237,47 @@
 
 	mxCellRenderer.prototype.defaultShapes['trapezoid'] = TrapezoidShape;
 
+	// Curly Bracket shape
+	function CurlyBracketShape()
+	{
+		mxActor.call(this);
+	};
+	mxUtils.extend(CurlyBracketShape, mxActor);
+	CurlyBracketShape.prototype.size = 0.5;
+	CurlyBracketShape.prototype.redrawPath = function(c, x, y, w, h)
+	{
+		c.setFillColor(null);
+		var s = w * Math.max(0, Math.min(1, parseFloat(mxUtils.getValue(this.style, 'size', this.size))));
+		var arcSize = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, mxConstants.LINE_ARCSIZE) / 2;
+		this.addPoints(c, [new mxPoint(w, 0), new mxPoint(s, 0), new mxPoint(s, h / 2),
+		                   new mxPoint(0, h / 2), new mxPoint(s, h / 2), new mxPoint(s, h),
+		                   new mxPoint(w, h)], this.isRounded, arcSize, false);
+		c.end();
+	};
+
+	mxCellRenderer.prototype.defaultShapes['curlyBracket'] = CurlyBracketShape;
+
+	// Parallel marker shape
+	function ParallelMarkerShape()
+	{
+		mxActor.call(this);
+	};
+	mxUtils.extend(ParallelMarkerShape, mxActor);
+	ParallelMarkerShape.prototype.redrawPath = function(c, x, y, w, h)
+	{
+		c.setStrokeWidth(1);
+		c.setFillColor(this.stroke);
+		var w2 = w / 5;
+		c.rect(0, 0, w2, h);
+		c.fillAndStroke();
+		c.rect(2 * w2, 0, w2, h);
+		c.fillAndStroke();
+		c.rect(4 * w2, 0, w2, h);
+		c.fillAndStroke();
+	};
+
+	mxCellRenderer.prototype.defaultShapes['parallelMarker'] = ParallelMarkerShape;
+
 	// Process Shape
 	function ProcessShape()
 	{
@@ -405,8 +446,6 @@
 	{
 		if (this.style != null)
 		{
-			mxRectangleShape.prototype.paintBackground.apply(this, arguments);
-			
 			if (!this.outline && this.style['double'] == 1)
 			{
 				var margin = Math.max(2, this.strokewidth + 1) + parseFloat(this.style[mxConstants.STYLE_MARGIN] || 0);
@@ -490,6 +529,9 @@
 			}
 			while (shape != null);
 		}
+		
+		// Paints glass effect
+		mxRectangleShape.prototype.paintForeground.apply(this, arguments);
 	};
 
 	mxCellRenderer.prototype.defaultShapes['ext'] = ExtendedShape;
@@ -859,6 +901,56 @@
 	};
 
 	mxCellRenderer.prototype.defaultShapes['internalStorage'] = InternalStorageShape;
+
+	// Internal storage
+	function CornerShape()
+	{
+		mxActor.call(this);
+	};
+	mxUtils.extend(CornerShape, mxActor);
+	CornerShape.prototype.dx = 20;
+	CornerShape.prototype.dy = 20;
+	
+	// Corner
+	CornerShape.prototype.redrawPath = function(c, x, y, w, h)
+	{
+		var dx = Math.max(0, Math.min(w, parseFloat(mxUtils.getValue(this.style, 'dx', this.dx))));
+		var dy = Math.max(0, Math.min(h, parseFloat(mxUtils.getValue(this.style, 'dy', this.dy))));
+		
+		var s = Math.min(w / 2, Math.min(h, parseFloat(mxUtils.getValue(this.style, 'size', this.size))));
+		var arcSize = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, mxConstants.LINE_ARCSIZE) / 2;
+		this.addPoints(c, [new mxPoint(0, 0), new mxPoint(w, 0), new mxPoint(w, dy), new mxPoint(dx, dy),
+		                   new mxPoint(dx, h), new mxPoint(0, h)], this.isRounded, arcSize, true);
+		c.end();
+	};
+
+	mxCellRenderer.prototype.defaultShapes['corner'] = CornerShape;
+
+	// Internal storage
+	function TeeShape()
+	{
+		mxActor.call(this);
+	};
+	mxUtils.extend(TeeShape, mxActor);
+	TeeShape.prototype.dx = 20;
+	TeeShape.prototype.dy = 20;
+	
+	// Corner
+	TeeShape.prototype.redrawPath = function(c, x, y, w, h)
+	{
+		var dx = Math.max(0, Math.min(w, parseFloat(mxUtils.getValue(this.style, 'dx', this.dx))));
+		var dy = Math.max(0, Math.min(h, parseFloat(mxUtils.getValue(this.style, 'dy', this.dy))));
+		var w2 = Math.abs(w - dx) / 2;
+		
+		var s = Math.min(w / 2, Math.min(h, parseFloat(mxUtils.getValue(this.style, 'size', this.size))));
+		var arcSize = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, mxConstants.LINE_ARCSIZE) / 2;
+		this.addPoints(c, [new mxPoint(0, 0), new mxPoint(w, 0), new mxPoint(w, dy), new mxPoint((w + dx) / 2, dy),
+		                   new mxPoint((w + dx) / 2, h), new mxPoint((w - dx) / 2, h), new mxPoint((w - dx) / 2, dy),
+		                   new mxPoint(0, dy)], this.isRounded, arcSize, true);
+		c.end();
+	};
+
+	mxCellRenderer.prototype.defaultShapes['tee'] = TeeShape;
 
 	// Arrow
 	function SingleArrowShape()
@@ -1326,6 +1418,34 @@
 					this.state.style['dy'] = Math.round(Math.max(0, Math.min(bounds.height, pt.y - bounds.y)));
 				})];
 			},
+			'corner': function(state)
+			{
+				return [createHandle(state, ['dx', 'dy'], function(bounds)
+				{
+					var dx = Math.max(0, Math.min(bounds.width, mxUtils.getValue(this.state.style, 'dx', CornerShape.prototype.dx)));
+					var dy = Math.max(0, Math.min(bounds.height, mxUtils.getValue(this.state.style, 'dy', CornerShape.prototype.dy)));
+
+					return new mxPoint(bounds.x + dx, bounds.y + dy);
+				}, function(bounds, pt)
+				{
+					this.state.style['dx'] = Math.round(Math.max(0, Math.min(bounds.width, pt.x - bounds.x)));
+					this.state.style['dy'] = Math.round(Math.max(0, Math.min(bounds.height, pt.y - bounds.y)));
+				})];
+			},
+			'tee': function(state)
+			{
+				return [createHandle(state, ['dx', 'dy'], function(bounds)
+				{
+					var dx = Math.max(0, Math.min(bounds.width, mxUtils.getValue(this.state.style, 'dx', TeeShape.prototype.dx)));
+					var dy = Math.max(0, Math.min(bounds.height, mxUtils.getValue(this.state.style, 'dy', TeeShape.prototype.dy)));
+
+					return new mxPoint(bounds.x + (bounds.width + dx) / 2, bounds.y + dy);
+				}, function(bounds, pt)
+				{
+					this.state.style['dx'] = Math.round(Math.max(0, Math.min(bounds.width / 2, (pt.x - bounds.x - bounds.width / 2)) * 2));
+					this.state.style['dy'] = Math.round(Math.max(0, Math.min(bounds.height, pt.y - bounds.y)));
+				})];
+			},
 			'singleArrow': createArrowHandleFunction(1),
 			'doubleArrow': createArrowHandleFunction(0.5),			
 			'folder': function(state)
@@ -1391,6 +1511,7 @@
 				})];
 			},
 			'step': createDisplayHandleFunction(StepShape.prototype.size),
+			'curlyBracket': createDisplayHandleFunction(CurlyBracketShape.prototype.size),
 			'display': createDisplayHandleFunction(DisplayShape.prototype.size),
 			'cube': createCubeHandleFunction(1, CubeShape.prototype.size),
 			'card': createCubeHandleFunction(0.5, CardShape.prototype.size),
@@ -1401,11 +1522,15 @@
 
 		mxVertexHandler.prototype.createCustomHandles = function()
 		{
-			var fn = handleFactory[this.state.style['shape']];
-			
-			if (fn != null)
+			// Not rotatable means locked
+			if (this.graph.isCellRotatable(this.state.cell))
 			{
-				return fn(this.state);
+				var fn = handleFactory[this.state.style['shape']];
+			
+				if (fn != null)
+				{
+					return fn(this.state);
+				}
 			}
 			
 			return null;

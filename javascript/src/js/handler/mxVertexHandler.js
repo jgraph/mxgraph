@@ -1463,9 +1463,23 @@ mxVertexHandler.prototype.redrawHandles = function()
 		{
 			// KNOWN: Tolerance depends on event type (eg. 0 for mouse events)
 			var tol = this.tolerance;
+
+			if (s.width < 2 * this.sizers[0].bounds.width + 2 * tol ||
+				s.height < 2 * this.sizers[0].bounds.height + 2 * tol)
+			{
+				s = new mxRectangle(s.x, s.y, s.width, s.height);
+				tol /= 2;
+				
+				this.horizontalOffset = this.sizers[0].bounds.width + tol;
+				this.verticalOffset = this.sizers[0].bounds.height + tol;
+				s.x -= this.horizontalOffset / 2;
+				s.width += this.horizontalOffset;
+				s.y -= this.verticalOffset / 2;
+				s.height += this.verticalOffset;
+			}
 			
-			if ((s.width < 2 * this.sizers[0].bounds.width - 2 + 2 * tol) ||
-				(s.height < 2 * this.sizers[0].bounds.height - 2 + 2 * tol))
+			if ((s.width < 2 * this.sizers[0].bounds.width + 2 * tol) ||
+				(s.height < 2 * this.sizers[0].bounds.height + 2 * tol))
 			{
 				this.sizers[0].node.style.display = 'none';
 				this.sizers[2].node.style.display = 'none';
@@ -1478,20 +1492,6 @@ mxVertexHandler.prototype.redrawHandles = function()
 				this.sizers[2].node.style.display = '';
 				this.sizers[5].node.style.display = '';
 				this.sizers[7].node.style.display = '';
-			}
-			
-			if (s.width < 2 * this.sizers[0].bounds.width - 2 + 3 * tol ||
-				s.height < 2 * this.sizers[0].bounds.height - 2 + 3 * tol)
-			{
-				s = new mxRectangle(s.x, s.y, s.width, s.height);
-				tol /= 2;
-				
-				this.horizontalOffset = this.sizers[0].bounds.width + tol;
-				this.verticalOffset = this.sizers[0].bounds.height + tol;
-				s.x -= this.horizontalOffset / 2;
-				s.width += this.horizontalOffset;
-				s.y -= this.verticalOffset / 2;
-				s.height += this.verticalOffset;
 			}
 		}
 

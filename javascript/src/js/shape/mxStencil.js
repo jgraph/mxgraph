@@ -481,49 +481,55 @@ mxStencil.prototype.drawNode = function(canvas, shape, node, aspect, disableShad
 	}
 	else if (name == 'image')
 	{
-		var src = this.evaluateAttribute(node, 'src', shape);
-		
-		canvas.image(x0 + Number(node.getAttribute('x')) * sx,
-			y0 + Number(node.getAttribute('y')) * sy,
-			Number(node.getAttribute('w')) * sx,
-			Number(node.getAttribute('h')) * sy,
-			src, false, node.getAttribute('flipH') == '1',
-			node.getAttribute('flipV') == '1');
+		if (!shape.outline)
+		{
+			var src = this.evaluateAttribute(node, 'src', shape);
+			
+			canvas.image(x0 + Number(node.getAttribute('x')) * sx,
+				y0 + Number(node.getAttribute('y')) * sy,
+				Number(node.getAttribute('w')) * sx,
+				Number(node.getAttribute('h')) * sy,
+				src, false, node.getAttribute('flipH') == '1',
+				node.getAttribute('flipV') == '1');
+		}
 	}
 	else if (name == 'text')
 	{
-		var str = this.evaluateTextAttribute(node, 'str', shape);
-		var rotation = node.getAttribute('vertical') == '1' ? -90 : 0;
-		
-		if (node.getAttribute('align-shape') == '0')
+		if (!shape.outline)
 		{
-			var dr = shape.rotation;
-
-			// Depends on flipping
-			var flipH = mxUtils.getValue(shape.style, mxConstants.STYLE_FLIPH, 0) == 1;
-			var flipV = mxUtils.getValue(shape.style, mxConstants.STYLE_FLIPV, 0) == 1;
+			var str = this.evaluateTextAttribute(node, 'str', shape);
+			var rotation = node.getAttribute('vertical') == '1' ? -90 : 0;
 			
-			if (flipH && flipV)
+			if (node.getAttribute('align-shape') == '0')
 			{
-				rotation -= dr;
+				var dr = shape.rotation;
+	
+				// Depends on flipping
+				var flipH = mxUtils.getValue(shape.style, mxConstants.STYLE_FLIPH, 0) == 1;
+				var flipV = mxUtils.getValue(shape.style, mxConstants.STYLE_FLIPV, 0) == 1;
+				
+				if (flipH && flipV)
+				{
+					rotation -= dr;
+				}
+				else if (flipH || flipV)
+				{
+					rotation += dr;
+				}
+				else
+				{
+					rotation -= dr;
+				}
 			}
-			else if (flipH || flipV)
-			{
-				rotation += dr;
-			}
-			else
-			{
-				rotation -= dr;
-			}
+	
+			rotation -= node.getAttribute('rotation');
+	
+			canvas.text(x0 + Number(node.getAttribute('x')) * sx,
+					y0 + Number(node.getAttribute('y')) * sy,
+					0, 0, str, node.getAttribute('align') || 'left',
+					node.getAttribute('valign') || 'top', false, '',
+					null, false, rotation);
 		}
-
-		rotation -= node.getAttribute('rotation');
-
-		canvas.text(x0 + Number(node.getAttribute('x')) * sx,
-				y0 + Number(node.getAttribute('y')) * sy,
-				0, 0, str, node.getAttribute('align') || 'left',
-				node.getAttribute('valign') || 'top', false, '',
-				null, false, rotation);
 	}
 	else if (name == 'include-shape')
 	{

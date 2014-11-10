@@ -1,12 +1,4 @@
 <mxEditor defaultGroup="group" defaultEdge="connector">
-<!-- 
-	The following line is used to dynamically add a configuration hook for various backends.
-	The hook must have an ASP.NET extension because IIS does not handle any other extensions.
-	In the Dotnet and Java server examples, this hook is implemented so that it returns the
-	required configuration for using a backend, namely, the diagrameditor-backend.xml 
-	in the java and dotnet directories, respectively.
- -->
-	<include name="/Config.ashx"/>
 	<include name="config/editor-commons.xml"/>
 	<add as="onInit"><![CDATA[
 		function ()

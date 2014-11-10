@@ -13,7 +13,6 @@ com.mxgraph.layout.orthogonal.model
 com.mxgraph.model
 com.mxgraph.reader
 com.mxgraph.shape
-com.mxgraph.sharing
 com.mxgraph.swing
 com.mxgraph.swing.handler
 com.mxgraph.swing.util

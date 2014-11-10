@@ -65,26 +65,7 @@
 
 			// Clones the source if new connection has no target
 			editor.graph.connectionHandler.setCreateTarget(true);
-			
-			// Displays information about the session
-			// in the status bar
-			editor.addListener(mxEvent.SESSION, function(editor, evt)
-			{
-				var session = evt.getProperty('session');
-				
-				if (session.connected)
-				{
-					var tstamp = new Date().toLocaleString();
-					editor.setStatus(tstamp+':'+
-						' '+session.sent+' bytes sent, '+
-						' '+session.received+' bytes received');
-				}
-				else
-				{
-					editor.setStatus('Not connected');
-				}
-			});
-			
+
 			// Updates the title if the root changes
 			var title = document.getElementById('title');
 			

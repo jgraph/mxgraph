@@ -130,8 +130,8 @@ mxPopupMenuHandler.prototype.mouseDown = function(sender, me)
 		this.hideMenu();
 		this.triggerX = me.getGraphX();
 		this.triggerY = me.getGraphY();
-		this.screenX = me.getEvent().screenX;
-		this.screenY = me.getEvent().screenY;
+		this.screenX = mxEvent.getMainEvent(me.getEvent()).screenX;
+		this.screenY = mxEvent.getMainEvent(me.getEvent()).screenY;
 		this.popupTrigger = this.isPopupTrigger(me);
 		this.inTolerance = true;
 	}
@@ -147,8 +147,8 @@ mxPopupMenuHandler.prototype.mouseMove = function(sender, me)
 	// Popup trigger may change on mouseUp so ignore it
 	if (this.inTolerance && this.screenX != null && this.screenY != null)
 	{
-		if (Math.abs(me.getEvent().screenX - this.screenX) > this.graph.tolerance ||
-			Math.abs(me.getEvent().screenY - this.screenY) > this.graph.tolerance)
+		if (Math.abs(mxEvent.getMainEvent(me.getEvent()).screenX - this.screenX) > this.graph.tolerance ||
+			Math.abs(mxEvent.getMainEvent(me.getEvent()).screenY - this.screenY) > this.graph.tolerance)
 		{
 			this.inTolerance = false;
 		}

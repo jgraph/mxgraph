@@ -2015,7 +2015,7 @@ public class mxUtils
 			if (mxUtils.getString(style, mxConstants.STYLE_WHITE_SPACE,
 					"nowrap").equals("wrap"))
 			{
-				s += "whiteSpace:wrap;";
+				s += "white-space:normal;";
 			}
 
 			// Applies the background color

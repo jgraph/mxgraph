@@ -115,7 +115,7 @@ Actions.prototype.init = function()
 
 		graph.setSelectionCells(select);
 	}, null, null, 'Ctrl+D');
-	this.addAction('reverseEdge', function()
+	this.addAction('switchDirection', function()
 	{
 		var cells = graph.getSelectionCells();
 		var model = graph.getModel();
@@ -126,15 +126,17 @@ Actions.prototype.init = function()
 		{
 			for (var i = 0; i < cells.length; i++)
 			{
-				if (model.isEdge(cells[i]))
+				var cell = cells[i];
+				
+				if (model.isEdge(cell))
 				{
-					var src = model.getTerminal(cells[i], true);
-					var trg = model.getTerminal(cells[i], false);
+					var src = model.getTerminal(cell, true);
+					var trg = model.getTerminal(cell, false);
 					
-					model.setTerminal(cells[i], trg, true);
-					model.setTerminal(cells[i], src, false);
+					model.setTerminal(cell, trg, true);
+					model.setTerminal(cell, src, false);
 					
-					var geo = model.getGeometry(cells[i]);
+					var geo = model.getGeometry(cell);
 					
 					if (geo != null)
 					{
@@ -151,10 +153,54 @@ Actions.prototype.init = function()
 						geo.setTerminalPoint(sp, false);
 						geo.setTerminalPoint(tp, true);
 						
-						model.setGeometry(cells[i], geo);
+						model.setGeometry(cell, geo);
+						select.push(cell);
 					}
-					
-					select.push(cells[i]);
+				}
+				else if (graph.getModel().isVertex(cell))
+				{
+					var geo = graph.getCellGeometry(cell);
+		
+					if (geo != null)
+					{
+						// Rotates the size and position in the geometry
+						geo = geo.clone();
+						geo.x += geo.width / 2 - geo.height / 2;
+						geo.y += geo.height / 2 - geo.width / 2;
+						var tmp = geo.width;
+						geo.width = geo.height;
+						geo.height = tmp;
+						graph.getModel().setGeometry(cell, geo);
+						
+						// Reads the current direction and advances by 90 degrees
+						var state = graph.view.getState(cell);
+						
+						if (state != null)
+						{
+							var dir = state.style[mxConstants.STYLE_DIRECTION] || 'east'/*default*/;
+							
+							if (dir == 'east')
+							{
+								dir = 'south';
+							}
+							else if (dir == 'south')
+							{
+								dir = 'west';
+							}
+							else if (dir == 'west')
+							{
+								dir = 'north';
+							}
+							else if (dir == 'north')
+							{
+								dir = 'east';
+							}
+							
+							graph.setCellStyles(mxConstants.STYLE_DIRECTION, dir, [cell]);
+						}
+
+						select.push(cell);
+					}
 				}
 			}
 		}
@@ -164,7 +210,7 @@ Actions.prototype.init = function()
 		}
 
 		graph.setSelectionCells(select);
-	}, null, null, 'Ctrl+Shift+R');
+	}, null, null, 'Ctrl+R');
 	this.addAction('selectVertices', function() { graph.selectVertices(); }, null, null, 'Ctrl+Shift+A').isEnabled = isGraphEnabled;
 	this.addAction('selectEdges', function() { graph.selectEdges(); }, null, null, 'Ctrl+Shift+E').isEnabled = isGraphEnabled;
 	this.addAction('selectAll', function() { graph.selectAll(); }, null, null, 'Ctrl+A').isEnabled = isGraphEnabled;
@@ -342,6 +388,9 @@ Actions.prototype.init = function()
 	    	}
 	
 	       	graph.setCellStyles('html', value);
+			ui.fireEvent(new mxEventObject('styleChanged', 'keys', ['html'],
+					'values', [(value != null) ? value : '0'], 'cells',
+					graph.getSelectionCells()));
 		}
 		finally
 		{
@@ -381,71 +430,6 @@ Actions.prototype.init = function()
 		ui.showDialog(dlg.container, 300, 80, true, true);
 		dlg.init();
 	});
-	this.addAction('tilt', function()
-	{
-		var cells = graph.getSelectionCells();
-		
-		if (cells != null)
-		{
-			graph.getModel().beginUpdate();
-			try
-			{
-				for (var i = 0; i < cells.length; i++)
-				{
-					var cell = cells[i];
-					
-					if (graph.getModel().isVertex(cell) && graph.getModel().getChildCount(cell) == 0)
-					{
-						var geo = graph.getCellGeometry(cell);
-			
-						if (geo != null)
-						{
-							// Rotates the size and position in the geometry
-							geo = geo.clone();
-							geo.x += geo.width / 2 - geo.height / 2;
-							geo.y += geo.height / 2 - geo.width / 2;
-							var tmp = geo.width;
-							geo.width = geo.height;
-							geo.height = tmp;
-							graph.getModel().setGeometry(cell, geo);
-							
-							// Reads the current direction and advances by 90 degrees
-							var state = graph.view.getState(cell);
-							
-							if (state != null)
-							{
-								var dir = state.style[mxConstants.STYLE_DIRECTION] || 'east'/*default*/;
-								
-								if (dir == 'east')
-								{
-									dir = 'south';
-								}
-								else if (dir == 'south')
-								{
-									dir = 'west';
-								}
-								else if (dir == 'west')
-								{
-									dir = 'north';
-								}
-								else if (dir == 'north')
-								{
-									dir = 'east';
-								}
-								
-								graph.setCellStyles(mxConstants.STYLE_DIRECTION, dir, [cell]);
-							}
-						}
-					}
-				}
-			}
-			finally
-			{
-				graph.getModel().endUpdate();
-			}
-		}
-	}, null, null, 'Ctrl+R');
-	
 	// View actions
 	this.addAction('actualSize', function()
 	{
@@ -836,6 +820,13 @@ Actions.prototype.init = function()
 			ui.setDefaultStyle(graph.getSelectionCell());
 		}
 	}, null, null, 'Ctrl+Shift+D');
+	this.addAction('resetDefaultStyle', function()
+	{
+		if (graph.isEnabled())
+		{
+			ui.resetDefaultStyle();
+		}
+	});
 	this.addAction('addWaypoint', function()
 	{
 		var cell = graph.getSelectionCell();

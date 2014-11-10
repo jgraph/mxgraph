@@ -459,8 +459,14 @@ mxGraphLayout.prototype.getVertexBounds = function(cell)
  * arrangeGroups(graph, mxUtils.sortCells(Arrays.asList(
  *   new Object[] { v1, v3 }), true).toArray(), 10);
  */
-mxGraphLayout.prototype.arrangeGroups = function(groups, border)
+mxGraphLayout.prototype.arrangeGroups = function(groups, border, topBorder, rightBorder, bottomBorder, leftBorder)
 {
+	border = (border != null) ? border : 0;
+	topBorder = (topBorder != null) ? topBorder : 0;
+	rightBorder = (rightBorder != null) ? rightBorder : 0;
+	bottomBorder = (bottomBorder != null) ? bottomBorder : 0;
+	leftBorder = (leftBorder != null) ? leftBorder : 0;
+	
 	this.graph.getModel().beginUpdate();
 	try
 	{
@@ -484,13 +490,13 @@ mxGraphLayout.prototype.arrangeGroups = function(groups, border)
 			if (bounds != null && geometry != null)
 			{
 				geometry = geometry.clone();
-				geometry.x = geometry.x + bounds.x - border - left;
-				geometry.y = geometry.y + bounds.y - border - top;
-				geometry.width = bounds.width + 2 * border + left;
-				geometry.height = bounds.height + 2 * border + top;
+				geometry.x = geometry.x + bounds.x - border - left - leftBorder;
+				geometry.y = geometry.y + bounds.y - border - top - topBorder;
+				geometry.width = bounds.width + 2 * border + left + leftBorder + rightBorder;
+				geometry.height = bounds.height + 2 * border + top + topBorder + bottomBorder;
 				this.graph.getModel().setGeometry(group, geometry);
-				this.graph.moveCells(children, border + left - bounds.x,
-						border + top - bounds.y);
+				this.graph.moveCells(children, border + left - bounds.x + leftBorder,
+						border + top - bounds.y + topBorder);
 			}
 		}
 	}

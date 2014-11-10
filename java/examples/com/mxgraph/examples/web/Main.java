@@ -35,9 +35,7 @@ public class Main
 
 		// Servlets
 		Context context = new Context(server, "/", Context.SESSIONS);
-		context.addServlet(new ServletHolder(new Config()), "/Config.ashx");
 		context.addServlet(new ServletHolder(new Roundtrip()), "/Roundtrip");
-		context.addServlet(new ServletHolder(new Share()), "/Share");
 		context.addServlet(new ServletHolder(new ServerView()), "/ServerView");
 		context.addServlet(new ServletHolder(new ExportServlet()), "/Export");
 		context.addServlet(new ServletHolder(new EchoServlet()), "/Echo");

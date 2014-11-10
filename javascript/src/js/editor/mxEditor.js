@@ -10,8 +10,7 @@
  * properties, help, outline, toolbar, and popupmenu. It also adds <templates>
  * to be used as cells in toolbars, auto-validation using the <validation>
  * flag, attribute cycling using <cycleAttributeValues>, higher-level events
- * such as <root>, and backend integration using <urlPost>, <urlImage>,
- * <urlInit>, <urlNotify> and <urlPoll>. 
+ * such as <root>, and backend integration using <urlPost> and <urlImage>. 
  * 
  * Actions:
  * 
@@ -291,11 +290,6 @@
  * Fires when the current root has changed, or when the title of the current
  * root has changed. This event has no properties.
  *
- * Event: mxEvent.SESSION
- *
- * Fires when anything in the session has changed. The <code>session</code>
- * property contains the respective <mxSession>.
- * 
  * Event: mxEvent.BEFORE_ADD_VERTEX
  * 
  * Fires before a vertex is added in <addVertex>. The <code>vertex</code>
@@ -377,13 +371,6 @@ function mxEditor(config)
 		
 		// Assigns the swimlaneIndicatorColorAttribute on the graph
 		this.graph.swimlaneIndicatorColorAttribute = this.cycleAttributeName;
-		
-		// Initializes the session if the urlInit
-		// member field of this editor is set.
-		if (!mxClient.IS_LOCAL && this.urlInit != null)
-		{
-			this.session = this.createSession();
-		}
 
 		// Checks ifthe <onInit> hook has been set		
 		if (this.onInit != null)
@@ -517,13 +504,6 @@ mxEditor.prototype.graphRenderHint = null;
  * toolbar is created in <setToolbarContainer>.
  */
 mxEditor.prototype.toolbar = null;
-
-/**
- * Variable: session
- *
- * Holds a <mxSession> instance associated with this editor.
- */
-mxEditor.prototype.session = null;
 
 /**
  * Variable: status
@@ -728,28 +708,6 @@ mxEditor.prototype.urlPost = null;
  * the graph in the image action.
  */
 mxEditor.prototype.urlImage = null;
-
-/**
- * Variable: urlInit
- *
- * Specifies the URL to be used for initializing the session.
- */
-mxEditor.prototype.urlInit = null;
-
-/**
- * Variable: urlNotify
- *
- * Specifies the URL to be used for notifying the backend
- * in the session.
- */
-mxEditor.prototype.urlNotify = null;
-
-/**
- * Variable: urlPoll
- *
- * Specifies the URL to be used for polling in the session.
- */
-mxEditor.prototype.urlPoll = null;
 
 /**
  * Group: Autolayout
@@ -1509,25 +1467,6 @@ mxEditor.prototype.addActions = function ()
 	{
 		mxLog.setVisible(!mxLog.isVisible());
 	});
-};
-
-/**
- * Function: createSession
- *
- * Creates and returns and <mxSession> using <urlInit>, <urlPoll> and <urlNotify>.
- */
-mxEditor.prototype.createSession = function ()
-{
-	// Routes any change events from the session
-	// through the editor and dispatches them as
-	// a session event.
-	var sessionChanged = mxUtils.bind(this, function(session)
-	{
-		this.fireEvent(new mxEventObject(mxEvent.SESSION, 'session', session));
-	});
-	
-	return this.connect(this.urlInit, this.urlPoll,
-		this.urlNotify, sessionChanged);
 };
 
 /**
@@ -2434,47 +2373,6 @@ mxEditor.prototype.getUrlPost = function ()
 mxEditor.prototype.getUrlImage = function ()
 {
 	return this.urlImage;
-};
-
-/**
- * Function: connect
- * 
- * Creates and returns a session for the specified parameters, installing
- * the onChange function as a change listener for the session.
- */
-mxEditor.prototype.connect = function (urlInit, urlPoll, urlNotify, onChange)
-{
-	var session = null;
-	
-	if (!mxClient.IS_LOCAL)
-	{
-		session = new mxSession(this.graph.getModel(),
-			urlInit, urlPoll, urlNotify);
-
-		// Resets the undo history if the session was initialized which is the
-		// case if the message carries a namespace to be used for new IDs.
-		session.addListener(mxEvent.RECEIVE,
-			mxUtils.bind(this, function(sender, evt)
-			{
-				var node = evt.getProperty('node');
-				
-				if (node.getAttribute('namespace') != null)
-				{
-					this.resetHistory();
-				}
-			})
-		);
-		
-		// Installs the listener for all events
-		// that signal a change of the session
-		session.addListener(mxEvent.DISCONNECT, onChange);
-		session.addListener(mxEvent.CONNECT, onChange);
-		session.addListener(mxEvent.NOTIFY, onChange);
-		session.addListener(mxEvent.GET, onChange);
-		session.start();
-	}
-	
-	return session;
 };
 
 /**

@@ -165,10 +165,7 @@ Graph = function(container, model, renderHint, stylesheet)
 			}
 			else
 			{
-				function urlX(url) { if(/^https?:\/\//.test(url)) { return url }}
-			    function idX(id) { return id }
-			    
-				result = html_sanitize(result, urlX, idX);
+				result = state.view.graph.sanitizeHtml(result);
 			}
 		}
 		
@@ -299,6 +296,19 @@ Graph.prototype.minFitScale = null;
  * Allows to all values in fit.
  */
 Graph.prototype.maxFitScale = null;
+
+/**
+ * Sanitizes the given HTML markup.
+ */
+Graph.prototype.sanitizeHtml = function(value)
+{
+	// Uses https://code.google.com/p/google-caja/wiki/JsHtmlSanitizer
+	// TODO: Add MathML to whitelisted tags
+	function urlX(url) { if(/^https?:\/\//.test(url)) { return url }}
+    function idX(id) { return id }
+	
+	return html_sanitize(value, urlX, idX);
+};
 
 /**
  * Hook for subclassers.
@@ -462,10 +472,7 @@ Graph.prototype.getTooltipForCell = function(cell)
 		
 		if (tmp != null)
 		{
-			function urlX(url) { if(/^https?:\/\//.test(url)) { return url }}
-		    function idX(id) { return id }
-			
-			tip = html_sanitize(tmp, urlX, idX);
+			tip = this.sanitizeHtml(tmp);
 		}
 		else
 		{
@@ -884,12 +891,9 @@ Graph.prototype.initTouch = function()
 		{
 			var tmp = this.saveSelection();
 			
-			function urlX(url) { if(/^https?:\/\//.test(url)) { return url }}
-		    function idX(id) { return id }
-		    
 			if (this.textarea.style.display == 'none')
 			{
-				var content = html_sanitize(this.text2.innerHTML.replace(/\n/g, ''), urlX, idX);
+				var content = this.graph.sanitizeHtml(this.text2.innerHTML.replace(/\n/g, ''));
 				
 				if (this.textarea.value != content)
 				{
@@ -903,7 +907,7 @@ Graph.prototype.initTouch = function()
 			}
 			else
 			{
-				var content = html_sanitize(this.textarea.value.replace(/\n/g, '<br/>'), urlX, idX);
+				var content = this.graph.sanitizeHtml(this.textarea.value.replace(/\n/g, '<br/>'));
 				
 				if (this.text2.innerHTML != content)
 				{
@@ -1062,15 +1066,30 @@ Graph.prototype.initTouch = function()
 			}
 	
 			mxCellEditorStartEditing.apply(this, arguments);
+			
+			// Enables focus outline for edges
+			if (this.graph.getModel().isEdge(cell))
+			{
+				this.textarea.style.outline = '';
+			}
 	
 			if (this.textarea.style.display == 'none')
 			{
-				function urlX(url) { if(/^https?:\/\//.test(url)) { return url }}
-			    function idX(id) { return id }
-			    
 				this.text2 = document.createElement('div');
 				this.text2.className = 'geContentEditable';
-				this.text2.innerHTML = html_sanitize(this.textarea.value.replace(/\n/g, '<br/>'), urlX, idX);
+				this.text2.innerHTML = this.graph.sanitizeHtml(this.textarea.value.replace(/\n/g, '<br/>'));
+				
+				var evtName = (!mxClient.IS_IE || document.documentMode >= 9) ? 'input' : 'keypress';
+				mxEvent.addListener(this.text2, evtName, mxUtils.bind(this, function(evt)
+				{
+					if (this.autoSize && !mxEvent.isConsumed(evt))
+					{
+						setTimeout(mxUtils.bind(this, function()
+						{
+							this.resize();
+						}), 0);
+					}
+				}));
 				
 				// Invokes stop editing and escape hooks
 				mxEvent.addListener(this.text2, 'keydown', mxUtils.bind(this, function(evt)
@@ -1096,8 +1115,8 @@ Graph.prototype.initTouch = function()
 				style.backgroundImage = 'url(\'' + mxClient.imageBasePath + '/transparent.gif\')';
 
 				style.cursor = 'text';
-				style.outline = 'none';
 				style.position = 'absolute';
+				style.outline = this.textarea.style.outline;
 				style.width = parseInt(this.textarea.style.width) + 'px';
 				style.height = (parseInt(this.textarea.style.height) - 4) + 'px';
 				style.left = parseInt(this.textarea.style.left) + 'px';
@@ -1122,6 +1141,14 @@ Graph.prototype.initTouch = function()
 				}
 				
 				this.graph.container.appendChild(this.text2);
+				
+				if (this.autoSize)
+				{
+					this.textDiv = this.createTextDiv();
+					document.body.appendChild(this.textDiv);
+					this.resize();
+				}
+				
 				this.text2.contentEditable = true;
 				this.text2.focus();
 
@@ -1132,6 +1159,20 @@ Graph.prototype.initTouch = function()
 			}
 		};
 
+		var mxCellEditorResize = mxCellEditor.prototype.resize;
+		mxCellEditor.prototype.resize = function()
+		{
+			mxCellEditorResize.apply(this, arguments);
+			
+			if (this.textarea.style.display == 'none' && this.text2 != null)
+			{
+				this.text2.style.top = parseInt(this.textarea.style.top) + 2 + 'px';
+				this.text2.style.left = parseInt(this.textarea.style.left) + 1 + 'px';
+				this.text2.style.width = this.textarea.style.width;
+				this.text2.style.height = this.textarea.style.height;
+			}
+		};
+		
 		var mxCellEditorStopEditing = mxCellEditor.prototype.stopEditing;
 		mxCellEditor.prototype.stopEditing = function(cancel)
 		{
@@ -1146,10 +1187,7 @@ Graph.prototype.initTouch = function()
 					this.setModified(true);
 				}
 				
-				function urlX(url) { if(/^https?:\/\//.test(url)) { return url }}
-			    function idX(id) { return id }
-				
-				this.textarea.value = html_sanitize(this.textarea.value, urlX, idX);
+				this.textarea.value = this.graph.sanitizeHtml(this.textarea.value);
 				this.text2.parentNode.removeChild(this.text2);
 				this.text2 = null;
 			}
@@ -1157,6 +1195,40 @@ Graph.prototype.initTouch = function()
 			mxCellEditorStopEditing.apply(this, arguments);
 		};
 		
+		// Allows resizing for current HTML value
+		var mxCellEditorGetCurrentValue = mxCellEditor.prototype.getCurrentValue;
+		mxCellEditor.prototype.getCurrentValue = function()
+		{
+			if (this.textarea.style.display == 'none' && this.text2 != null)
+			{
+				return this.text2.innerHTML;
+			}
+			else
+			{
+				return mxCellEditorGetCurrentValue.apply(this, arguments);
+			}
+		};
+		
+		mxCellEditor.prototype.getMinimumSize = function(state)
+		{
+			var scale = this.graph.getView().scale;
+			
+			return new mxRectangle(0, 0, (state.text == null) ? 30 :  state.text.size * scale + 20, 30);
+		};
+		
+		var mxCellEditorGetCurrentHtmlValue = mxCellEditor.prototype.getCurrentHtmlValue;
+		mxCellEditor.prototype.getCurrentHtmlValue = function()
+		{
+			if (this.textarea.style.display == 'none' && this.text2 != null)
+			{
+				return this.getCurrentValue();
+			}
+			else
+			{
+				return mxCellEditorGetCurrentHtmlValue.apply(this, arguments);
+			}
+		};
+
 		// Workaround for focusLost calls stopEditing when in HTML view
 		var mxCellEditorFocusLost = mxCellEditor.prototype.focusLost;
 		mxCellEditor.prototype.focusLost = function(evt)
@@ -1332,6 +1404,7 @@ Graph.prototype.initTouch = function()
 	var triangleRight = new mxImage(IMAGE_PATH + '/triangle-right.png', 26, 26);
 	var triangleDown = new mxImage(IMAGE_PATH + '/triangle-down.png', 26, 26);
 	var triangleLeft = new mxImage(IMAGE_PATH + '/triangle-left.png', 26, 26);
+	var refreshTarget = new mxImage(IMAGE_PATH + '/refresh.png', 38, 38);
 	var roundDrop = new mxImage(IMAGE_PATH + '/round-drop.png', 26, 26);
 
 	mxConnectionHandler.prototype.connectImage = connectHandle;
@@ -1344,6 +1417,7 @@ Graph.prototype.initTouch = function()
 	Sidebar.prototype.triangleRight = triangleRight;
 	Sidebar.prototype.triangleDown = triangleDown;
 	Sidebar.prototype.triangleLeft = triangleLeft;
+	Sidebar.prototype.refreshTarget = refreshTarget;
 	Sidebar.prototype.roundDrop = roundDrop;
 	
 	// Enables connections along the outline, virtual waypoints, parent highlight etc
@@ -1358,6 +1432,14 @@ Graph.prototype.initTouch = function()
 	mxEdgeHandler.prototype.mergeRemoveEnabled = true;
 	mxEdgeHandler.prototype.manageLabelHandle = true;
 	mxEdgeHandler.prototype.outlineConnect = true;
+	
+	mxEdgeHandlerIsVirtualBendsEnabled = mxEdgeHandler.prototype.isVirtualBendsEnabled;
+	
+	mxEdgeHandler.prototype.isVirtualBendsEnabled = function()
+	{
+		return mxEdgeHandlerIsVirtualBendsEnabled.apply(this, arguments) &&
+			mxUtils.getValue(this.state.style, mxConstants.STYLE_SHAPE, null) != 'link';
+	};
 	
 	// Pre-fetches images
 	new Image().src = connectHandle.src;

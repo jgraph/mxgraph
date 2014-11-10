@@ -90,12 +90,6 @@
     <Content Include="Deploy.ashx" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Share.ashx" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Config.ashx" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="Export.ashx" />
   </ItemGroup>
   <ItemGroup>

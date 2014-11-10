@@ -919,13 +919,6 @@ var mxEvent =
 	MARK: 'mark',
 
 	/**
-	 * Variable: SESSION
-	 *
-	 * Specifies the event name for session.
-	 */
-	SESSION: 'session',
-
-	/**
 	 * Variable: ROOT
 	 *
 	 * Specifies the event name for root.

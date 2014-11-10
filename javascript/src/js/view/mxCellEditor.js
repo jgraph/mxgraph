@@ -324,101 +324,93 @@ mxCellEditor.prototype.resize = function()
 		{
 			var isEdge = this.graph.getModel().isEdge(state.cell);
 
-			if (isEdge)
-			{
-				this.bounds.x = state.absoluteOffset.x;
-				this.bounds.y = state.absoluteOffset.y;
-				this.bounds.width = 0;
-				this.bounds.height = 0;
-			}
-			else if (this.bounds != null)
-			{
-				var scale = this.graph.getView().scale;
-				var spacing = parseInt(state.style[mxConstants.STYLE_SPACING] || 0) * scale;
-				var spacingTop = (parseInt(state.style[mxConstants.STYLE_SPACING_TOP] || 0) + mxText.prototype.baseSpacingTop) * scale + spacing;
-				var spacingRight = (parseInt(state.style[mxConstants.STYLE_SPACING_RIGHT] || 0) + mxText.prototype.baseSpacingRight) * scale + spacing;
-				var spacingBottom = (parseInt(state.style[mxConstants.STYLE_SPACING_BOTTOM] || 0) + mxText.prototype.baseSpacingBottom) * scale + spacing;
-				var spacingLeft = (parseInt(state.style[mxConstants.STYLE_SPACING_LEFT] || 0) + mxText.prototype.baseSpacingLeft) * scale + spacing;
-
-				var bds = new mxRectangle(state.x, state.y, state.width - spacingLeft - spacingRight, state.height - spacingTop - spacingBottom);
-			 	bds = (state.shape != null) ? state.shape.getLabelBounds(bds) : bds;
-				
-				this.bounds.x = bds.x + state.absoluteOffset.x;
-				this.bounds.y = bds.y + state.absoluteOffset.y;
-				this.bounds.width = bds.width;
-				this.bounds.height = bds.height;
-			}
-			
-			var value = this.textarea.value;
-			
-			if (value.charAt(value.length - 1) == '\n' || value == '')
-			{
-				value += '&nbsp;';
-			}
-		
-			value = mxUtils.htmlEntities(value, false);
-
-			var clip = this.graph.isLabelClipped(state.cell);
-			var wrap = this.graph.isWrapping(state.cell);
-			
-			if (wrap)
-			{
-				// TODO: Invert initial for vertical
-				this.textDiv.style.whiteSpace = 'normal';
-				this.textDiv.style.width = this.bounds.width + 'px';
-			}
-			else
-			{
-				value = value.replace(/ /g, '&nbsp;');
-			}
-			
-			value = value.replace(/\n/g, '<br/>');
-			this.textDiv.innerHTML = value;
-			var ow = this.textDiv.offsetWidth + 30;
-			var oh = this.textDiv.offsetHeight + 16;
-			
-			ow = Math.max(ow, 40);
-			oh = Math.max(oh, 20);
-			
-			if (clip)
-			{
-				ow = Math.min(this.bounds.width, ow);
-				oh = Math.min(this.bounds.height, oh);
-			}
-			else if (wrap)
-			{
-				ow = Math.max(this.bounds.width, this.textDiv.scrollWidth);
-			}
-			
-			var m = (state.text != null) ? state.text.margin : null;
-			
-			if (m == null)
-			{
-				var align = mxUtils.getValue(state.style, mxConstants.STYLE_ALIGN, mxConstants.ALIGN_CENTER);
-				var valign = mxUtils.getValue(state.style, mxConstants.STYLE_VERTICAL_ALIGN, mxConstants.ALIGN_MIDDLE);
-		
-				m = mxUtils.getAlignmentAsPoint(align, valign);
-			}
-			
-			if (m != null)
-			{
-				// TODO: Keep in visible area, add spacing
+		 	if (isEdge || state.style[mxConstants.STYLE_OVERFLOW] != 'fill')
+		 	{
 				if (isEdge)
 				{
-					this.textarea.style.left = Math.max(0, Math.round(this.bounds.x - m.x * this.bounds.width + m.x * ow) - 4) + 'px';
-					this.textarea.style.top = Math.max(0, Math.round(this.bounds.y - m.y * this.bounds.height + m.y * oh - m.y * 4) + 6) + 'px';
+					this.bounds.x = state.absoluteOffset.x;
+					this.bounds.y = state.absoluteOffset.y;
+					this.bounds.width = 0;
+					this.bounds.height = 0;
+				}
+				else if (this.bounds != null)
+				{
+					var bds = mxRectangle.fromRectangle(state);
+				 	bds = (state.shape != null) ? state.shape.getLabelBounds(bds) : bds;
+				 	
+					var scale = this.graph.getView().scale;
+					var spacing = parseInt(state.style[mxConstants.STYLE_SPACING] || 0) * scale;
+					var spacingTop = (parseInt(state.style[mxConstants.STYLE_SPACING_TOP] || 0) + mxText.prototype.baseSpacingTop) * scale + spacing;
+					var spacingRight = (parseInt(state.style[mxConstants.STYLE_SPACING_RIGHT] || 0) + mxText.prototype.baseSpacingRight) * scale + spacing;
+					var spacingBottom = (parseInt(state.style[mxConstants.STYLE_SPACING_BOTTOM] || 0) + mxText.prototype.baseSpacingBottom) * scale + spacing;
+					var spacingLeft = (parseInt(state.style[mxConstants.STYLE_SPACING_LEFT] || 0) + mxText.prototype.baseSpacingLeft) * scale + spacing;
+	
+					bds = new mxRectangle(bds.x, bds.y, bds.width - spacingLeft - spacingRight, bds.height - spacingTop - spacingBottom);
+					
+					this.bounds.x = bds.x + state.absoluteOffset.x;
+					this.bounds.y = bds.y + state.absoluteOffset.y;
+					this.bounds.width = bds.width;
+					this.bounds.height = bds.height;
+				}
+				
+				// Measures string using a hidden div
+				var value = this.getCurrentHtmlValue();
+				var clip = this.graph.isLabelClipped(state.cell);
+				var wrap = this.graph.isWrapping(state.cell);
+				
+				if (wrap)
+				{
+					// TODO: Invert initial for vertical
+					this.textDiv.style.whiteSpace = 'normal';
+					this.textDiv.style.width = this.bounds.width + 'px';
 				}
 				else
 				{
-					var size = mxUtils.getValue(state.style, mxConstants.STYLE_FONTSIZE, mxConstants.DEFAULT_FONTSIZE) * scale;
-					this.textarea.style.left = Math.max(0, Math.round(this.bounds.x - m.x * this.bounds.width + m.x * (ow + 8))) + 'px';
-					this.textarea.style.top = Math.max(0, Math.round(this.bounds.y - m.y * this.bounds.height + m.y * (oh - size * 0.5 - 3)) + 4) + 'px';
+					value = value.replace(/ /g, '&nbsp;');
 				}
-			}
+				
+				this.textDiv.innerHTML = (value.length > 0) ? value : '&nbsp;';
+				var ow = this.textDiv.offsetWidth + 30;
+				var oh = this.textDiv.offsetHeight + 16;
+				
+				ow = Math.max(ow, 40);
+				oh = Math.max(oh, 20);
 
-			var dx = this.textarea.offsetWidth - this.textarea.clientWidth + 4;
-			this.textarea.style.width = (ow + dx) + 'px';
-			this.textarea.style.height = oh + 'px';
+				if (wrap)
+				{
+					ow = Math.max(this.bounds.width, this.textDiv.scrollWidth);
+				}
+
+				var m = (state.text != null) ? state.text.margin : null;
+				
+				if (m == null)
+				{
+					var align = mxUtils.getValue(state.style, mxConstants.STYLE_ALIGN, mxConstants.ALIGN_CENTER);
+					var valign = mxUtils.getValue(state.style, mxConstants.STYLE_VERTICAL_ALIGN, mxConstants.ALIGN_MIDDLE);
+			
+					m = mxUtils.getAlignmentAsPoint(align, valign);
+				}
+				
+				if (m != null)
+				{
+					// TODO: Keep in visible area, add spacing
+					if (isEdge)
+					{
+						this.textarea.style.left = Math.max(0, Math.round(this.bounds.x - m.x * this.bounds.width + m.x * ow) - 4) + 'px';
+						this.textarea.style.top = Math.max(0, Math.round(this.bounds.y - m.y * this.bounds.height + m.y * oh - m.y * 4) + 6) + 'px';
+					}
+					else
+					{
+						var size = mxUtils.getValue(state.style, mxConstants.STYLE_FONTSIZE, mxConstants.DEFAULT_FONTSIZE) * scale;
+						this.textarea.style.left = Math.max(0, Math.ceil(this.bounds.x - m.x * this.bounds.width + m.x * (ow + 7))) + 'px';
+						this.textarea.style.top = Math.max(0, Math.floor(this.bounds.y - m.y * (this.bounds.height - oh + size * 0.1 + 8)) + 5) + 'px';
+					}
+				}
+	
+				var dx = this.textarea.offsetWidth - this.textarea.clientWidth + 4;
+				this.textarea.style.width = (ow + dx) + 'px';
+				this.textarea.style.height = oh + 'px';
+		 	}
 		}
 	}
 };
@@ -664,6 +656,23 @@ mxCellEditor.prototype.getCurrentValue = function()
 };
 
 /**
+ * Function: getCurrentHtmlValue
+ * 
+ * Returns the current value as HTML to measure the text size.
+ */
+mxCellEditor.prototype.getCurrentHtmlValue = function()
+{
+	var value = this.getCurrentValue();
+	
+	if (value.charAt(value.length - 1) == '\n' || value == '')
+	{
+		value += '&nbsp;';
+	}
+
+	return mxUtils.htmlEntities(value, false).replace(/\n/g, '<br/>');
+};
+
+/**
  * Function: isHideLabel
  * 
  * Returns true if the label should be hidden while the cell is being
@@ -683,7 +692,7 @@ mxCellEditor.prototype.getMinimumSize = function(state)
 {
 	var scale = this.graph.getView().scale;
 	
-	return new mxRectangle(0, 0, (state.text == null) ? 30 :  state.text.size * scale + 20,
+	return new mxRectangle(0, 0, (state.text == null) ? 30 : state.text.size * scale + 20,
 			(this.textarea.style.textAlign == 'left') ? 120 : 40);
 };
 
@@ -699,87 +708,95 @@ mxCellEditor.prototype.getEditorBounds = function(state)
 	var minSize = this.getMinimumSize(state);
 	var minWidth = minSize.width;
  	var minHeight = minSize.height;
-
-	var spacing = parseInt(state.style[mxConstants.STYLE_SPACING] || 0) * scale;
-	var spacingTop = (parseInt(state.style[mxConstants.STYLE_SPACING_TOP] || 0) + mxText.prototype.baseSpacingTop) * scale + spacing;
-	var spacingRight = (parseInt(state.style[mxConstants.STYLE_SPACING_RIGHT] || 0) + mxText.prototype.baseSpacingRight) * scale + spacing;
-	var spacingBottom = (parseInt(state.style[mxConstants.STYLE_SPACING_BOTTOM] || 0) + mxText.prototype.baseSpacingBottom) * scale + spacing;
-	var spacingLeft = (parseInt(state.style[mxConstants.STYLE_SPACING_LEFT] || 0) + mxText.prototype.baseSpacingLeft) * scale + spacing;
-
- 	var result = new mxRectangle(state.x, state.y,
- 		 Math.max(minWidth, state.width - spacingLeft - spacingRight),
- 		 Math.max(minHeight, state.height - spacingTop - spacingBottom));
+ 	var result = null;
  	
-	result = (state.shape != null) ? state.shape.getLabelBounds(result) : result;
-
-	if (isEdge)
-	{
-		result.x = state.absoluteOffset.x;
-		result.y = state.absoluteOffset.y;
-
+ 	if (!isEdge && state.style[mxConstants.STYLE_OVERFLOW] == 'fill')
+ 	{
+ 		result = mxRectangle.fromRectangle(state);
+ 	}
+ 	else
+ 	{
+		var spacing = parseInt(state.style[mxConstants.STYLE_SPACING] || 0) * scale;
+		var spacingTop = (parseInt(state.style[mxConstants.STYLE_SPACING_TOP] || 0) + mxText.prototype.baseSpacingTop) * scale + spacing;
+		var spacingRight = (parseInt(state.style[mxConstants.STYLE_SPACING_RIGHT] || 0) + mxText.prototype.baseSpacingRight) * scale + spacing;
+		var spacingBottom = (parseInt(state.style[mxConstants.STYLE_SPACING_BOTTOM] || 0) + mxText.prototype.baseSpacingBottom) * scale + spacing;
+		var spacingLeft = (parseInt(state.style[mxConstants.STYLE_SPACING_LEFT] || 0) + mxText.prototype.baseSpacingLeft) * scale + spacing;
+	
+	 	result = new mxRectangle(state.x, state.y,
+	 		 Math.max(minWidth, state.width - spacingLeft - spacingRight),
+	 		 Math.max(minHeight, state.height - spacingTop - spacingBottom));
+	 	
+		result = (state.shape != null) ? state.shape.getLabelBounds(result) : result;
+	
+		if (isEdge)
+		{
+			result.x = state.absoluteOffset.x;
+			result.y = state.absoluteOffset.y;
+	
+			if (state.text != null && state.text.boundingBox != null)
+			{
+				// Workaround for label containing just spaces in which case
+				// the bounding box location contains negative numbers 
+				if (state.text.boundingBox.x > 0)
+				{
+					result.x = state.text.boundingBox.x;
+				}
+				
+				if (state.text.boundingBox.y > 0)
+				{
+					result.y = state.text.boundingBox.y;
+				}
+			}
+		}
+		else if (state.text != null && state.text.boundingBox != null)
+		{
+			result.x = Math.min(result.x, state.text.boundingBox.x);
+			result.y = Math.min(result.y, state.text.boundingBox.y);
+		}
+	
+		result.x += spacingLeft;
+		result.y += spacingTop;
+	
 		if (state.text != null && state.text.boundingBox != null)
 		{
-			// Workaround for label containing just spaces in which case
-			// the bounding box location contains negative numbers 
-			if (state.text.boundingBox.x > 0)
+			if (!isEdge)
 			{
-				result.x = state.text.boundingBox.x;
+				result.width = Math.max(result.width, state.text.boundingBox.width);
+				result.height = Math.max(result.height, state.text.boundingBox.height);
 			}
-			
-			if (state.text.boundingBox.y > 0)
+			else
 			{
-				result.y = state.text.boundingBox.y;
+				result.width = Math.max(minWidth, state.text.boundingBox.width);
+				result.height = Math.max(minHeight, state.text.boundingBox.height);
 			}
 		}
-	}
-	else if (state.text != null && state.text.boundingBox != null)
-	{
-		result.x = Math.min(result.x, state.text.boundingBox.x);
-		result.y = Math.min(result.y, state.text.boundingBox.y);
-	}
-
-	result.x += spacingLeft;
-	result.y += spacingTop;
-
-	if (state.text != null && state.text.boundingBox != null)
-	{
-		if (!isEdge)
+		
+		// Applies the horizontal and vertical label positions
+		if (this.graph.getModel().isVertex(state.cell))
 		{
-			result.width = Math.max(result.width, state.text.boundingBox.width);
-			result.height = Math.max(result.height, state.text.boundingBox.height);
-		}
-		else
-		{
-			result.width = Math.max(minWidth, state.text.boundingBox.width);
-			result.height = Math.max(minHeight, state.text.boundingBox.height);
-		}
-	}
+			var horizontal = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_POSITION, mxConstants.ALIGN_CENTER);
 	
-	// Applies the horizontal and vertical label positions
-	if (this.graph.getModel().isVertex(state.cell))
-	{
-		var horizontal = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_POSITION, mxConstants.ALIGN_CENTER);
-
-		if (horizontal == mxConstants.ALIGN_LEFT)
-		{
-			result.x -= state.width;
+			if (horizontal == mxConstants.ALIGN_LEFT)
+			{
+				result.x -= state.width;
+			}
+			else if (horizontal == mxConstants.ALIGN_RIGHT)
+			{
+				result.x += state.width;
+			}
+	
+			var vertical = mxUtils.getValue(state.style, mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.ALIGN_MIDDLE);
+	
+			if (vertical == mxConstants.ALIGN_TOP)
+			{
+				result.y -= state.height;
+			}
+			else if (vertical == mxConstants.ALIGN_BOTTOM)
+			{
+				result.y += state.height;
+			}
 		}
-		else if (horizontal == mxConstants.ALIGN_RIGHT)
-		{
-			result.x += state.width;
-		}
-
-		var vertical = mxUtils.getValue(state.style, mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.ALIGN_MIDDLE);
-
-		if (vertical == mxConstants.ALIGN_TOP)
-		{
-			result.y -= state.height;
-		}
-		else if (vertical == mxConstants.ALIGN_BOTTOM)
-		{
-			result.y += state.height;
-		}
-	}
+ 	}
 	
 	return result;
 };

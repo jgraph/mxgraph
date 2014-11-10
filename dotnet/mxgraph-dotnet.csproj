@@ -86,8 +86,6 @@
     <Compile Include="src\reader\mxGraphViewImageReader.cs" />
     <Compile Include="src\reader\mxGraphViewReader.cs" />
     <Compile Include="src\reader\mxSaxOutputHandler.cs" />
-    <Compile Include="src\sharing\mxSession.cs" />
-    <Compile Include="src\sharing\mxSharedState.cs" />
     <Compile Include="src\utils\mxImageBundle.cs" />
     <Compile Include="src\utils\mxCellRenderer.cs" />
     <Compile Include="src\utils\mxConstants.cs" />

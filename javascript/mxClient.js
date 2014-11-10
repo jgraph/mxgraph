@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.1.1.0.
+	 * Current version is 3.1.1.1.
 	 */
-	VERSION: '3.1.1.0',
+	VERSION: '3.1.1.1',
 
 	/**
 	 * Variable: IS_IE
@@ -9450,13 +9450,6 @@ var mxEvent =
 	MARK: 'mark',
 
 	/**
-	 * Variable: SESSION
-	 *
-	 * Specifies the event name for session.
-	 */
-	SESSION: 'session',
-
-	/**
 	 * Variable: ROOT
 	 *
 	 * Specifies the event name for root.
@@ -13258,679 +13251,6 @@ mxToolbar.prototype.destroy = function ()
 	if (this.menu != null)
 	{
 		this.menu.destroy();
-	}
-};
-/**
- * Copyright (c) 2006-2013, JGraph Ltd
- */
-/**
- * Class: mxSession
- *
- * Session for sharing an <mxGraphModel> with other parties
- * via a backend that acts as a multicaster for all changes.
- * 
- * Diagram Sharing:
- * 
- * The diagram sharing is a mechanism where each atomic change of the model is
- * encoded into XML using <mxCodec> and then transmitted to the server by the
- * <mxSession> object. On the server, the XML data is dispatched to each
- * listener on the same diagram (except the sender), and the XML is decoded
- * back into atomic changes on the client side, which are then executed on the
- * model and stored in the command history.
- * 
- * The <mxSession.significantRemoteChanges> specifies how these changes are
- * treated with respect to undo: The default value (true) will undo the last
- * change regardless of whether it was a remote or a local change. If the
- * switch is false, then an undo will go back until the last local change,
- * silently undoing all remote changes up to that point. Note that these
- * changes will be added as new remote changes to the history of the other
- * clients.
- * 
- * Event: mxEvent.CONNECT
- *
- * Fires after the session has been started, that is, after the response to the
- * initial request was received and the session goes into polling mode. This
- * event has no properties.
- *
- * Event: mxEvent.SUSPEND
- *
- * Fires after <suspend> was called an the session was not already in suspended
- * state. This event has no properties.
- *
- * Event: mxEvent.RESUME
- *
- * Fires after the session was resumed in <resume>. This event has no
- * properties.
- *
- * Event: mxEvent.DISCONNECT
- *
- * Fires after the session was stopped in <stop>. The <code>reason</code>
- * property contains the optional exception that was passed to the stop method.
- *
- * Event: mxEvent.NOTIFY
- *
- * Fires after a notification was sent in <notify>. The <code>url</code>
- * property contains the URL and the <code>xml</code> property contains the XML
- * data of the request.
- *
- * Event: mxEvent.GET
- *
- * Fires after a response was received in <get>. The <code>url</code> property
- * contains the URL and the <code>request</code> is the <mxXmlRequest> that
- * contains the response.
- *
- * Event: mxEvent.FIRED
- * 
- * Fires after an array of edits has been executed on the model. The
- * <code>changes</code> property contains the array of changes.
- * 
- * Event: mxEvent.RECEIVE
- *
- * Fires after an XML node was received in <receive>. The <code>node</code>
- * property contains the node that was received.
- * 
- * Constructor: mxSession
- * 
- * Constructs a new session using the given <mxGraphModel> and URLs to
- * communicate with the backend.
- * 
- * Parameters:
- * 
- * model - <mxGraphModel> that contains the data.
- * urlInit - URL to be used for initializing the session.
- * urlPoll - URL to be used for polling the backend.
- * urlNotify - URL to be used for sending changes to the backend.
- */
-function mxSession(model, urlInit, urlPoll, urlNotify)
-{
-	this.model = model;
-	this.urlInit = urlInit;
-	this.urlPoll = urlPoll;
-	this.urlNotify = urlNotify;
-
-	// Resolves cells by id using the model
-	if (model != null)
-	{
-		this.codec = new mxCodec();
-		
-		this.codec.lookup = function(id)
-		{
-			return model.getCell(id);
-		};
-	}
-	
-	// Adds the listener for notifying the backend of any
-	// changes in the model
-	model.addListener(mxEvent.NOTIFY, mxUtils.bind(this, function(sender, evt)
-	{
-		var edit = evt.getProperty('edit');
-		
-		if (edit != null && this.debug || (this.connected && !this.suspended))
-		{
-			this.notify('<edit>'+this.encodeChanges(edit.changes, edit.undone)+'</edit>');
-		}
-	}));
-};
-
-/**
- * Extends mxEventSource.
- */
-mxSession.prototype = new mxEventSource();
-mxSession.prototype.constructor = mxSession;
-
-/**
- * Variable: model
- * 
- * Reference to the enclosing <mxGraphModel>.
- */
-mxSession.prototype.model = null;
-
-/**
- * Variable: urlInit
- * 
- * URL to initialize the session.
- */
-mxSession.prototype.urlInit = null;
-
-/**
- * Variable: urlPoll
- * 
- * URL for polling the backend.
- */
-mxSession.prototype.urlPoll = null;
-
-/**
- * Variable: urlNotify
- * 
- * URL to send changes to the backend.
- */
-mxSession.prototype.urlNotify = null;
-
-/**
- * Variable: codec
- * 
- * Reference to the <mxCodec> used to encoding and decoding changes.
- */
-mxSession.prototype.codec = null;
-
-/**
- * Variable: linefeed
- * 
- * Used for encoding linefeeds. Default is '&#xa;'.
- */
-mxSession.prototype.linefeed = '&#xa;';
-
-/**
- * Variable: escapePostData
- * 
- * Specifies if the data in the post request sent in <notify>
- * should be converted using encodeURIComponent. Default is true.
- */
-mxSession.prototype.escapePostData = true;
-
-/**
- * Variable: significantRemoteChanges
- * 
- * Whether remote changes should be significant in the
- * local command history. Default is true.
- */
-mxSession.prototype.significantRemoteChanges = true;
-
-/**
- * Variable: sent
- * 
- * Total number of sent bytes.
- */
-mxSession.prototype.sent = 0;
-
-/**
- * Variable: received
- * 
- * Total number of received bytes.
- */
-mxSession.prototype.received = 0;
-
-/**
- * Variable: debug
- * 
- * Specifies if the session should run in debug mode. In this mode, no
- * connection is established. The data is written to the console instead.
- * Default is false.
- */
-mxSession.prototype.debug = false;
-
-/**
- * Variable: connected
- */
-mxSession.prototype.connected = false;
-	
-/**
- * Variable: send
- */
-mxSession.prototype.suspended = false;
-	
-/**
- * Variable: polling
- */
-mxSession.prototype.polling = false;
-
-/**
- * Function: start
- */
-mxSession.prototype.start = function()
-{
-	if (this.debug)
-	{
-		this.connected = true;
-		this.fireEvent(new mxEventObject(mxEvent.CONNECT));
-	}
-	else if (!this.connected)
-	{
-		this.get(this.urlInit, mxUtils.bind(this, function(req)
-		{
-			this.connected = true;
-			this.fireEvent(new mxEventObject(mxEvent.CONNECT));
-			this.poll();
-		}));
-	}
-};
-
-/**
- * Function: suspend
- * 
- * Suspends the polling. Use <resume> to reactive the session. Fires a
- * suspend event.
- */
-mxSession.prototype.suspend = function()
-{
-	if (this.connected && !this.suspended)
-	{
-		this.suspended = true;
-		this.fireEvent(new mxEventObject(mxEvent.SUSPEND));
-	}
-};
-	
-/**
- * Function: resume
- * 
- * Resumes the session if it has been suspended. Fires a resume-event
- * before starting the polling.
- */
-mxSession.prototype.resume = function(type, attr, value)
-{
-	if (this.connected &&
-		this.suspended)
-	{
-		this.suspended = false;
-		this.fireEvent(new mxEventObject(mxEvent.RESUME));
-		
-		if (!this.polling)
-		{
-			this.poll();
-		}
-	}
-};
-		
-/**
- * Function: stop
- * 
- * Stops the session and fires a disconnect event. The given reason is
- * passed to the disconnect event listener as the second argument.
- */
-mxSession.prototype.stop = function(reason)
-{
-	if (this.connected)
-	{
-		this.connected = false;
-	}
-	
-	this.fireEvent(new mxEventObject(mxEvent.DISCONNECT,
-			'reason', reason));
-};
-
-/**
- * Function: poll
- * 
- * Sends an asynchronous GET request to <urlPoll>.
- */
-mxSession.prototype.poll = function()
-{
-	if (this.connected &&
-		!this.suspended &&
-		this.urlPoll != null)
-	{
-		this.polling = true;
-
-		this.get(this.urlPoll, mxUtils.bind(this, function()
-		{
-			this.poll();
-		}));
-	}
-	else
-	{
-		this.polling = false;
-	}
-};
-
-/**
- * Function: notify
- * 
- * Sends out the specified XML to <urlNotify> and fires a <notify> event.
- */
-mxSession.prototype.notify = function(xml, onLoad, onError)
-{
-	if (xml != null &&
-		xml.length > 0)
-	{
-		if (this.urlNotify != null)
-		{
-			if (this.debug)
-			{
-				mxLog.show();
-				mxLog.debug('mxSession.notify: '+this.urlNotify+' xml='+xml);			
-			}
-			else
-			{
-				xml = '<message><delta>'+xml+'</delta></message>';
-				
-				if (this.escapePostData)
-				{
-					xml = encodeURIComponent(xml);
-				}
-				
-				mxUtils.post(this.urlNotify, 'xml='+xml, onLoad, onError);
-			}
-		}
-		
-		this.sent += xml.length;
-		this.fireEvent(new mxEventObject(mxEvent.NOTIFY,
-				'url', this.urlNotify, 'xml', xml));
-	}
-};
-
-/**
- * Function: get
- * 
- * Sends an asynchronous get request to the given URL, fires a <get> event
- * and invokes the given onLoad function when a response is received.
- */
-mxSession.prototype.get = function(url, onLoad, onError)
-{
-	// Response after browser refresh has no global scope
-	// defined. This response is ignored and the session
-	// stops implicitely.
-	if (typeof(mxUtils) != 'undefined')
-	{
-		var onErrorWrapper = mxUtils.bind(this, function(ex)
-		{
-			if (onError != null)
-			{
-				onError(ex);
-			}
-			else
-			{
-				this.stop(ex);
-			}
-		});
-
-		// Handles a successful response for
-		// the above request.
-		mxUtils.get(url, mxUtils.bind(this, function(req)
-		{
-			if (typeof(mxUtils) != 'undefined')
-			{
-    			if (req.isReady() && req.getStatus() != 404)
-    			{
-    				this.received += req.getText().length;
-					this.fireEvent(new mxEventObject(mxEvent.GET, 'url', url, 'request', req));
-
-					if (this.isValidResponse(req))
-					{
-		    			if (req.getText().length > 0)
-		    			{
-							var node = req.getDocumentElement();
-							
-							if (node == null)
-							{
-								onErrorWrapper('Invalid response: '+req.getText());
-							}
-							else
-							{
-								this.receive(node);
-							}
-						}
-		    			
-		    			if (onLoad != null)
-		    			{
-							onLoad(req);
-						}
-					}
-				}
-				else
-				{
-					onErrorWrapper('Response not ready');
-				}
-			}
-		}),
-		// Handles a transmission error for the
-		// above request
-		function(req)
-		{
-			onErrorWrapper('Transmission error');
-		});
-	}
-};
-
-/**
- * Function: isValidResponse
- * 
- * Returns true if the response data in the given <mxXmlRequest> is valid.
- */
-mxSession.prototype.isValidResponse = function(req)
-{
-	// TODO: Find condition to check if response
-	// contains valid XML (not eg. the PHP code).
-	return req.getText().indexOf('<?php') < 0;
-};
-
-/**
- * Function: encodeChanges
- * 
- * Returns the XML representation for the given array of changes.
- */
-mxSession.prototype.encodeChanges = function(changes, invert)
-{
-	// TODO: Use array for string concatenation
-	var xml = '';
-	var step = (invert) ? -1 : 1;
-	var i0 = (invert) ? changes.length - 1 : 0;
-
-	for (var i = i0; i >= 0 && i < changes.length; i += step)
-	{	
-		// Newlines must be kept, they will be converted
-		// to &#xa; when the server sends data to the
-		// client
-		var node = this.codec.encode(changes[i]);
-		xml += mxUtils.getXml(node, this.linefeed);
-	}
-	
-	return xml;
-};
-
-/**
- * Function: receive
- * 
- * Processes the given node by applying the changes to the model. If the nodename
- * is state, then the namespace is used as a prefix for creating Ids in the model,
- * and the child nodes are visited recursively. If the nodename is delta, then the
- * changes encoded in the child nodes are applied to the model. Each call to the
- * receive function fires a <receive> event with the given node as the second argument
- * after processing. If changes are processed, then the function additionally fires
- * a <mxEvent.FIRED> event before the <mxEvent.RECEIVE> event.
- */
-mxSession.prototype.receive = function(node)
-{
-	if (node != null && node.nodeType == mxConstants.NODETYPE_ELEMENT)
-	{
-		// Uses the namespace in the model
-		var ns = node.getAttribute('namespace');
-		
-		if (ns != null)
-		{
-			this.model.prefix = ns + '-';
-		}
-		
-		var child = node.firstChild;
-		
-		while (child != null)
-		{
-			var name = child.nodeName.toLowerCase();
-			
-			if (name == 'state')
-			{
-				this.processState(child);
-			}
-			else if (name == 'delta')
-			{
-				this.processDelta(child);	
-			}
-			
-			child = child.nextSibling;
-		}
-		
-		// Fires receive event
-		this.fireEvent(new mxEventObject(mxEvent.RECEIVE, 'node', node));
-	}
-};
-
-/**
- * Function: processState
- * 
- * Processes the given state node which contains the current state of the
- * remote model.
- */
-mxSession.prototype.processState = function(node)
-{
-	var dec = new mxCodec(node.ownerDocument);
-	dec.decode(node.firstChild, this.model);
-};
-
-/**
- * Function: processDelta
- * 
- * Processes the given delta node which contains a sequence of edits which in
- * turn map to one transaction on the remote model each.
- */
-mxSession.prototype.processDelta = function(node)
-{
-	var edit = node.firstChild;
-	
-	while (edit != null)
-	{
-		if (edit.nodeName == 'edit')
-		{
-			this.processEdit(edit);
-		}
-		
-		edit = edit.nextSibling;
-	}
-};
-
-/**
- * Function: processEdit
- * 
- * Processes the given edit by executing its changes and firing the required
- * events via the model.
- */
-mxSession.prototype.processEdit = function(node)
-{
-	var changes = this.decodeChanges(node);
-	
-	if (changes.length > 0)
-	{
-		var edit = this.createUndoableEdit(changes);
-		
-		// No notify event here to avoid the edit from being encoded and transmitted
-		// LATER: Remove changes property (deprecated)
-		this.model.fireEvent(new mxEventObject(mxEvent.CHANGE,
-			'edit', edit, 'changes', changes));
-		this.model.fireEvent(new mxEventObject(mxEvent.UNDO, 'edit', edit));
-		this.fireEvent(new mxEventObject(mxEvent.FIRED, 'edit', edit));
-	}
-};
-
-/**
- * Function: createUndoableEdit
- * 
- * Creates a new <mxUndoableEdit> that implements the notify function to fire a
- * <change> and <notify> event via the model.
- */
-mxSession.prototype.createUndoableEdit = function(changes)
-{
-	var edit = new mxUndoableEdit(this.model, this.significantRemoteChanges);
-	edit.changes = changes;
-	
-	edit.notify = function()
-	{
-		// LATER: Remove changes property (deprecated)
-		edit.source.fireEvent(new mxEventObject(mxEvent.CHANGE,
-			'edit', edit, 'changes', edit.changes));
-		edit.source.fireEvent(new mxEventObject(mxEvent.NOTIFY,
-			'edit', edit, 'changes', edit.changes));
-	};
-	
-	return edit;
-};
-
-/**
- * Function: decodeChanges
- * 
- * Decodes and executes the changes represented by the children in the
- * given node. Returns an array that contains all changes.
- */
-mxSession.prototype.decodeChanges = function(node)
-{
-	// Updates the document in the existing codec
-	this.codec.document = node.ownerDocument;
-
-	// Parses and executes the changes on the model
-	var changes = [];
-	node = node.firstChild;
-	
-	while (node != null)
-	{
-		var change = this.decodeChange(node);
-		
-		if (change != null)
-		{
-			changes.push(change);
-		}
-		
-		node = node.nextSibling;
-	}
-	
-	return changes;
-};
-
-/**
- * Function: decodeChange
- * 
- * Decodes, executes and returns the change object represented by the given
- * XML node.
- */
-mxSession.prototype.decodeChange = function(node)
-{
-	var change = null;
-
-	if (node.nodeType == mxConstants.NODETYPE_ELEMENT)
-	{
-		if (node.nodeName == 'mxRootChange')
-		{
-			// Handles the special case were no ids should be
-			// resolved in the existing model. This change will
-			// replace all registered ids and cells from the
-			// model and insert a new cell hierarchy instead.
-			var tmp = new mxCodec(node.ownerDocument);
-			change = tmp.decode(node);
-		}
-		else
-		{
-			change = this.codec.decode(node);
-		}
-		
-		if (change != null)
-		{
-			change.model = this.model;
-			change.execute();
-			
-			// Workaround for references not being resolved if cells have
-			// been removed from the model prior to being referenced. This
-			// adds removed cells in the codec object lookup table.
-			if (node.nodeName == 'mxChildChange' && change.parent == null)
-			{
-				this.cellRemoved(change.child);
-			}
-		}
-	}
-	
-	return change;
-};
-
-/**
- * Function: cellRemoved
- * 
- * Adds removed cells to the codec object lookup for references to the removed
- * cells after this point in time.
- */
-mxSession.prototype.cellRemoved = function(cell, codec)
-{
-	this.codec.putObject(cell.getId(), cell);
-	
-	var childCount = this.model.getChildCount(cell);
-	
-	for (var i = 0; i < childCount; i++)
-	{
-		this.cellRemoved(this.model.getChildAt(cell, i));
 	}
 };
 /**
@@ -18544,8 +17864,9 @@ mxSvgCanvas2D.prototype.updateFill = function()
 
 			if (!mxClient.IS_IE && this.root.ownerDocument == document)
 			{
-				// Workaround for potential base tag
-				this.node.setAttribute('fill', 'url(' + this.getBaseUrl() + '#' + id + ')');
+				// Workaround for potential base tag and brackets must be escaped
+				var base = this.getBaseUrl().replace(/([\(\)])/g, '\\$1');
+				this.node.setAttribute('fill', 'url(' + base + '#' + id + ')');
 			}
 			else
 			{
@@ -19518,7 +18839,8 @@ mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 		if (!mxClient.IS_IE && this.root.ownerDocument == document)
 		{
 			// Workaround for potential base tag
-			node.setAttribute('clip-path', 'url(' + this.getBaseUrl() + '#' + c.getAttribute('id') + ')');
+			var base = this.getBaseUrl().replace(/([\(\)])/g, '\\$1');
+			node.setAttribute('clip-path', 'url(' + base + '#' + c.getAttribute('id') + ')');
 		}
 		else
 		{
@@ -21700,49 +21022,55 @@ mxStencil.prototype.drawNode = function(canvas, shape, node, aspect, disableShad
 	}
 	else if (name == 'image')
 	{
-		var src = this.evaluateAttribute(node, 'src', shape);
-		
-		canvas.image(x0 + Number(node.getAttribute('x')) * sx,
-			y0 + Number(node.getAttribute('y')) * sy,
-			Number(node.getAttribute('w')) * sx,
-			Number(node.getAttribute('h')) * sy,
-			src, false, node.getAttribute('flipH') == '1',
-			node.getAttribute('flipV') == '1');
+		if (!shape.outline)
+		{
+			var src = this.evaluateAttribute(node, 'src', shape);
+			
+			canvas.image(x0 + Number(node.getAttribute('x')) * sx,
+				y0 + Number(node.getAttribute('y')) * sy,
+				Number(node.getAttribute('w')) * sx,
+				Number(node.getAttribute('h')) * sy,
+				src, false, node.getAttribute('flipH') == '1',
+				node.getAttribute('flipV') == '1');
+		}
 	}
 	else if (name == 'text')
 	{
-		var str = this.evaluateTextAttribute(node, 'str', shape);
-		var rotation = node.getAttribute('vertical') == '1' ? -90 : 0;
-		
-		if (node.getAttribute('align-shape') == '0')
+		if (!shape.outline)
 		{
-			var dr = shape.rotation;
-
-			// Depends on flipping
-			var flipH = mxUtils.getValue(shape.style, mxConstants.STYLE_FLIPH, 0) == 1;
-			var flipV = mxUtils.getValue(shape.style, mxConstants.STYLE_FLIPV, 0) == 1;
+			var str = this.evaluateTextAttribute(node, 'str', shape);
+			var rotation = node.getAttribute('vertical') == '1' ? -90 : 0;
 			
-			if (flipH && flipV)
+			if (node.getAttribute('align-shape') == '0')
 			{
-				rotation -= dr;
+				var dr = shape.rotation;
+	
+				// Depends on flipping
+				var flipH = mxUtils.getValue(shape.style, mxConstants.STYLE_FLIPH, 0) == 1;
+				var flipV = mxUtils.getValue(shape.style, mxConstants.STYLE_FLIPV, 0) == 1;
+				
+				if (flipH && flipV)
+				{
+					rotation -= dr;
+				}
+				else if (flipH || flipV)
+				{
+					rotation += dr;
+				}
+				else
+				{
+					rotation -= dr;
+				}
 			}
-			else if (flipH || flipV)
-			{
-				rotation += dr;
-			}
-			else
-			{
-				rotation -= dr;
-			}
+	
+			rotation -= node.getAttribute('rotation');
+	
+			canvas.text(x0 + Number(node.getAttribute('x')) * sx,
+					y0 + Number(node.getAttribute('y')) * sy,
+					0, 0, str, node.getAttribute('align') || 'left',
+					node.getAttribute('valign') || 'top', false, '',
+					null, false, rotation);
 		}
-
-		rotation -= node.getAttribute('rotation');
-
-		canvas.text(x0 + Number(node.getAttribute('x')) * sx,
-				y0 + Number(node.getAttribute('y')) * sy,
-				0, 0, str, node.getAttribute('align') || 'left',
-				node.getAttribute('valign') || 'top', false, '',
-				null, false, rotation);
 	}
 	else if (name == 'include-shape')
 	{
@@ -26899,8 +26227,14 @@ mxGraphLayout.prototype.getVertexBounds = function(cell)
  * arrangeGroups(graph, mxUtils.sortCells(Arrays.asList(
  *   new Object[] { v1, v3 }), true).toArray(), 10);
  */
-mxGraphLayout.prototype.arrangeGroups = function(groups, border)
+mxGraphLayout.prototype.arrangeGroups = function(groups, border, topBorder, rightBorder, bottomBorder, leftBorder)
 {
+	border = (border != null) ? border : 0;
+	topBorder = (topBorder != null) ? topBorder : 0;
+	rightBorder = (rightBorder != null) ? rightBorder : 0;
+	bottomBorder = (bottomBorder != null) ? bottomBorder : 0;
+	leftBorder = (leftBorder != null) ? leftBorder : 0;
+	
 	this.graph.getModel().beginUpdate();
 	try
 	{
@@ -26924,13 +26258,13 @@ mxGraphLayout.prototype.arrangeGroups = function(groups, border)
 			if (bounds != null && geometry != null)
 			{
 				geometry = geometry.clone();
-				geometry.x = geometry.x + bounds.x - border - left;
-				geometry.y = geometry.y + bounds.y - border - top;
-				geometry.width = bounds.width + 2 * border + left;
-				geometry.height = bounds.height + 2 * border + top;
+				geometry.x = geometry.x + bounds.x - border - left - leftBorder;
+				geometry.y = geometry.y + bounds.y - border - top - topBorder;
+				geometry.width = bounds.width + 2 * border + left + leftBorder + rightBorder;
+				geometry.height = bounds.height + 2 * border + top + topBorder + bottomBorder;
 				this.graph.getModel().setGeometry(group, geometry);
-				this.graph.moveCells(children, border + left - bounds.x,
-						border + top - bounds.y);
+				this.graph.moveCells(children, border + left - bounds.x + leftBorder,
+						border + top - bounds.y + topBorder);
 			}
 		}
 	}
@@ -27711,9 +27045,37 @@ mxCompactTreeLayout.prototype.resizeParent = true;
 /**
  * Variable: groupPadding
  * 
- * Padding added to resized parents.
+ * Padding added to resized parents. Default is 10.
  */
 mxCompactTreeLayout.prototype.groupPadding = 10;
+
+/**
+ * Variable: groupPaddingTop
+ * 
+ * Top padding added to resized parents. Default is 0.
+ */
+mxCompactTreeLayout.prototype.groupPaddingTop = 0;
+
+/**
+ * Variable: groupPaddingRight
+ * 
+ * Right padding added to resized parents. Default is 0.
+ */
+mxCompactTreeLayout.prototype.groupPaddingRight = 0;
+
+/**
+ * Variable: groupPaddingBottom
+ * 
+ * Bottom padding added to resized parents. Default is 0.
+ */
+mxCompactTreeLayout.prototype.groupPaddingBottom = 0;
+
+/**
+ * Variable: groupPaddingLeft
+ * 
+ * Left padding added to resized parents. Default is 0.
+ */
+mxCompactTreeLayout.prototype.groupPaddingLeft = 0;
 
 /**
  * Variable: parentsChanged
@@ -28563,7 +27925,8 @@ mxCompactTreeLayout.prototype.adjustParents = function()
 		tmp.push(this.parentsChanged[id]);
 	}
 	
-	this.arrangeGroups(mxUtils.sortCells(tmp, true), this.groupPadding);
+	this.arrangeGroups(mxUtils.sortCells(tmp, true), this.groupPadding, this.groupPaddingTop,
+		this.groupPaddingRight, this.groupPaddingBottom, this.groupPaddingLeft);
 };
 
 /**
@@ -40706,26 +40069,19 @@ mxGeometry.prototype.translate = function(dx, dy)
  * Scales the geometry by the given amount. That is, <x> and <y> of the
  * geometry, the <sourcePoint>, <targetPoint> and all <points> are scaled
  * by the given amount. <x>, <y>, <width> and <height> are only scaled if
- * <relative> is false.
+ * <relative> is false. If <fixedAspect> is true, then the smaller value
+ * is used to scale the width and the height.
  * 
  * Parameters:
  * 
  * sx - Number that specifies the horizontal scale factor.
  * sy - Number that specifies the vertical scale factor.
+ * fixedAspect - Optional boolean to keep the aspect ratio fixed.
  */
-mxGeometry.prototype.scale = function(sx, sy)
+mxGeometry.prototype.scale = function(sx, sy, fixedAspect)
 {
 	sx = parseFloat(sx);
 	sy = parseFloat(sy);
-	
-	// Translates the geometry
-	if (!this.relative)
-	{
-		this.x = parseFloat(this.x) * sx;
-		this.y = parseFloat(this.y) * sy;
-		this.width = parseFloat(this.width) * sx;
-		this.height = parseFloat(this.height) * sy;
-	}
 
 	// Translates the source point
 	if (this.sourcePoint != null)
@@ -40752,6 +40108,21 @@ mxGeometry.prototype.scale = function(sx, sy)
 				this.points[i].y = parseFloat(this.points[i].y) * sy;
 			}
 		}
+	}
+	
+	// Translates the geometry
+	if (!this.relative)
+	{
+		this.x = parseFloat(this.x) * sx;
+		this.y = parseFloat(this.y) * sy;
+
+		if (fixedAspect)
+		{
+			sy = sx = Math.min(sx, sy);
+		}
+		
+		this.width = parseFloat(this.width) * sx;
+		this.height = parseFloat(this.height) * sy;
 	}
 };
 
@@ -44292,101 +43663,93 @@ mxCellEditor.prototype.resize = function()
 		{
 			var isEdge = this.graph.getModel().isEdge(state.cell);
 
-			if (isEdge)
-			{
-				this.bounds.x = state.absoluteOffset.x;
-				this.bounds.y = state.absoluteOffset.y;
-				this.bounds.width = 0;
-				this.bounds.height = 0;
-			}
-			else if (this.bounds != null)
-			{
-				var scale = this.graph.getView().scale;
-				var spacing = parseInt(state.style[mxConstants.STYLE_SPACING] || 0) * scale;
-				var spacingTop = (parseInt(state.style[mxConstants.STYLE_SPACING_TOP] || 0) + mxText.prototype.baseSpacingTop) * scale + spacing;
-				var spacingRight = (parseInt(state.style[mxConstants.STYLE_SPACING_RIGHT] || 0) + mxText.prototype.baseSpacingRight) * scale + spacing;
-				var spacingBottom = (parseInt(state.style[mxConstants.STYLE_SPACING_BOTTOM] || 0) + mxText.prototype.baseSpacingBottom) * scale + spacing;
-				var spacingLeft = (parseInt(state.style[mxConstants.STYLE_SPACING_LEFT] || 0) + mxText.prototype.baseSpacingLeft) * scale + spacing;
-
-				var bds = new mxRectangle(state.x, state.y, state.width - spacingLeft - spacingRight, state.height - spacingTop - spacingBottom);
-			 	bds = (state.shape != null) ? state.shape.getLabelBounds(bds) : bds;
-				
-				this.bounds.x = bds.x + state.absoluteOffset.x;
-				this.bounds.y = bds.y + state.absoluteOffset.y;
-				this.bounds.width = bds.width;
-				this.bounds.height = bds.height;
-			}
-			
-			var value = this.textarea.value;
-			
-			if (value.charAt(value.length - 1) == '\n' || value == '')
-			{
-				value += '&nbsp;';
-			}
-		
-			value = mxUtils.htmlEntities(value, false);
-
-			var clip = this.graph.isLabelClipped(state.cell);
-			var wrap = this.graph.isWrapping(state.cell);
-			
-			if (wrap)
-			{
-				// TODO: Invert initial for vertical
-				this.textDiv.style.whiteSpace = 'normal';
-				this.textDiv.style.width = this.bounds.width + 'px';
-			}
-			else
-			{
-				value = value.replace(/ /g, '&nbsp;');
-			}
-			
-			value = value.replace(/\n/g, '<br/>');
-			this.textDiv.innerHTML = value;
-			var ow = this.textDiv.offsetWidth + 30;
-			var oh = this.textDiv.offsetHeight + 16;
-			
-			ow = Math.max(ow, 40);
-			oh = Math.max(oh, 20);
-			
-			if (clip)
-			{
-				ow = Math.min(this.bounds.width, ow);
-				oh = Math.min(this.bounds.height, oh);
-			}
-			else if (wrap)
-			{
-				ow = Math.max(this.bounds.width, this.textDiv.scrollWidth);
-			}
-			
-			var m = (state.text != null) ? state.text.margin : null;
-			
-			if (m == null)
-			{
-				var align = mxUtils.getValue(state.style, mxConstants.STYLE_ALIGN, mxConstants.ALIGN_CENTER);
-				var valign = mxUtils.getValue(state.style, mxConstants.STYLE_VERTICAL_ALIGN, mxConstants.ALIGN_MIDDLE);
-		
-				m = mxUtils.getAlignmentAsPoint(align, valign);
-			}
-			
-			if (m != null)
-			{
-				// TODO: Keep in visible area, add spacing
+		 	if (isEdge || state.style[mxConstants.STYLE_OVERFLOW] != 'fill')
+		 	{
 				if (isEdge)
 				{
-					this.textarea.style.left = Math.max(0, Math.round(this.bounds.x - m.x * this.bounds.width + m.x * ow) - 4) + 'px';
-					this.textarea.style.top = Math.max(0, Math.round(this.bounds.y - m.y * this.bounds.height + m.y * oh - m.y * 4) + 6) + 'px';
+					this.bounds.x = state.absoluteOffset.x;
+					this.bounds.y = state.absoluteOffset.y;
+					this.bounds.width = 0;
+					this.bounds.height = 0;
+				}
+				else if (this.bounds != null)
+				{
+					var bds = mxRectangle.fromRectangle(state);
+				 	bds = (state.shape != null) ? state.shape.getLabelBounds(bds) : bds;
+				 	
+					var scale = this.graph.getView().scale;
+					var spacing = parseInt(state.style[mxConstants.STYLE_SPACING] || 0) * scale;
+					var spacingTop = (parseInt(state.style[mxConstants.STYLE_SPACING_TOP] || 0) + mxText.prototype.baseSpacingTop) * scale + spacing;
+					var spacingRight = (parseInt(state.style[mxConstants.STYLE_SPACING_RIGHT] || 0) + mxText.prototype.baseSpacingRight) * scale + spacing;
+					var spacingBottom = (parseInt(state.style[mxConstants.STYLE_SPACING_BOTTOM] || 0) + mxText.prototype.baseSpacingBottom) * scale + spacing;
+					var spacingLeft = (parseInt(state.style[mxConstants.STYLE_SPACING_LEFT] || 0) + mxText.prototype.baseSpacingLeft) * scale + spacing;
+	
+					bds = new mxRectangle(bds.x, bds.y, bds.width - spacingLeft - spacingRight, bds.height - spacingTop - spacingBottom);
+					
+					this.bounds.x = bds.x + state.absoluteOffset.x;
+					this.bounds.y = bds.y + state.absoluteOffset.y;
+					this.bounds.width = bds.width;
+					this.bounds.height = bds.height;
+				}
+				
+				// Measures string using a hidden div
+				var value = this.getCurrentHtmlValue();
+				var clip = this.graph.isLabelClipped(state.cell);
+				var wrap = this.graph.isWrapping(state.cell);
+				
+				if (wrap)
+				{
+					// TODO: Invert initial for vertical
+					this.textDiv.style.whiteSpace = 'normal';
+					this.textDiv.style.width = this.bounds.width + 'px';
 				}
 				else
 				{
-					var size = mxUtils.getValue(state.style, mxConstants.STYLE_FONTSIZE, mxConstants.DEFAULT_FONTSIZE) * scale;
-					this.textarea.style.left = Math.max(0, Math.round(this.bounds.x - m.x * this.bounds.width + m.x * (ow + 8))) + 'px';
-					this.textarea.style.top = Math.max(0, Math.round(this.bounds.y - m.y * this.bounds.height + m.y * (oh - size * 0.5 - 3)) + 4) + 'px';
+					value = value.replace(/ /g, '&nbsp;');
 				}
-			}
+				
+				this.textDiv.innerHTML = (value.length > 0) ? value : '&nbsp;';
+				var ow = this.textDiv.offsetWidth + 30;
+				var oh = this.textDiv.offsetHeight + 16;
+				
+				ow = Math.max(ow, 40);
+				oh = Math.max(oh, 20);
 
-			var dx = this.textarea.offsetWidth - this.textarea.clientWidth + 4;
-			this.textarea.style.width = (ow + dx) + 'px';
-			this.textarea.style.height = oh + 'px';
+				if (wrap)
+				{
+					ow = Math.max(this.bounds.width, this.textDiv.scrollWidth);
+				}
+
+				var m = (state.text != null) ? state.text.margin : null;
+				
+				if (m == null)
+				{
+					var align = mxUtils.getValue(state.style, mxConstants.STYLE_ALIGN, mxConstants.ALIGN_CENTER);
+					var valign = mxUtils.getValue(state.style, mxConstants.STYLE_VERTICAL_ALIGN, mxConstants.ALIGN_MIDDLE);
+			
+					m = mxUtils.getAlignmentAsPoint(align, valign);
+				}
+				
+				if (m != null)
+				{
+					// TODO: Keep in visible area, add spacing
+					if (isEdge)
+					{
+						this.textarea.style.left = Math.max(0, Math.round(this.bounds.x - m.x * this.bounds.width + m.x * ow) - 4) + 'px';
+						this.textarea.style.top = Math.max(0, Math.round(this.bounds.y - m.y * this.bounds.height + m.y * oh - m.y * 4) + 6) + 'px';
+					}
+					else
+					{
+						var size = mxUtils.getValue(state.style, mxConstants.STYLE_FONTSIZE, mxConstants.DEFAULT_FONTSIZE) * scale;
+						this.textarea.style.left = Math.max(0, Math.ceil(this.bounds.x - m.x * this.bounds.width + m.x * (ow + 7))) + 'px';
+						this.textarea.style.top = Math.max(0, Math.floor(this.bounds.y - m.y * (this.bounds.height - oh + size * 0.1 + 8)) + 5) + 'px';
+					}
+				}
+	
+				var dx = this.textarea.offsetWidth - this.textarea.clientWidth + 4;
+				this.textarea.style.width = (ow + dx) + 'px';
+				this.textarea.style.height = oh + 'px';
+		 	}
 		}
 	}
 };
@@ -44632,6 +43995,23 @@ mxCellEditor.prototype.getCurrentValue = function()
 };
 
 /**
+ * Function: getCurrentHtmlValue
+ * 
+ * Returns the current value as HTML to measure the text size.
+ */
+mxCellEditor.prototype.getCurrentHtmlValue = function()
+{
+	var value = this.getCurrentValue();
+	
+	if (value.charAt(value.length - 1) == '\n' || value == '')
+	{
+		value += '&nbsp;';
+	}
+
+	return mxUtils.htmlEntities(value, false).replace(/\n/g, '<br/>');
+};
+
+/**
  * Function: isHideLabel
  * 
  * Returns true if the label should be hidden while the cell is being
@@ -44651,7 +44031,7 @@ mxCellEditor.prototype.getMinimumSize = function(state)
 {
 	var scale = this.graph.getView().scale;
 	
-	return new mxRectangle(0, 0, (state.text == null) ? 30 :  state.text.size * scale + 20,
+	return new mxRectangle(0, 0, (state.text == null) ? 30 : state.text.size * scale + 20,
 			(this.textarea.style.textAlign == 'left') ? 120 : 40);
 };
 
@@ -44667,87 +44047,95 @@ mxCellEditor.prototype.getEditorBounds = function(state)
 	var minSize = this.getMinimumSize(state);
 	var minWidth = minSize.width;
  	var minHeight = minSize.height;
-
-	var spacing = parseInt(state.style[mxConstants.STYLE_SPACING] || 0) * scale;
-	var spacingTop = (parseInt(state.style[mxConstants.STYLE_SPACING_TOP] || 0) + mxText.prototype.baseSpacingTop) * scale + spacing;
-	var spacingRight = (parseInt(state.style[mxConstants.STYLE_SPACING_RIGHT] || 0) + mxText.prototype.baseSpacingRight) * scale + spacing;
-	var spacingBottom = (parseInt(state.style[mxConstants.STYLE_SPACING_BOTTOM] || 0) + mxText.prototype.baseSpacingBottom) * scale + spacing;
-	var spacingLeft = (parseInt(state.style[mxConstants.STYLE_SPACING_LEFT] || 0) + mxText.prototype.baseSpacingLeft) * scale + spacing;
-
- 	var result = new mxRectangle(state.x, state.y,
- 		 Math.max(minWidth, state.width - spacingLeft - spacingRight),
- 		 Math.max(minHeight, state.height - spacingTop - spacingBottom));
+ 	var result = null;
  	
-	result = (state.shape != null) ? state.shape.getLabelBounds(result) : result;
-
-	if (isEdge)
-	{
-		result.x = state.absoluteOffset.x;
-		result.y = state.absoluteOffset.y;
-
+ 	if (!isEdge && state.style[mxConstants.STYLE_OVERFLOW] == 'fill')
+ 	{
+ 		result = mxRectangle.fromRectangle(state);
+ 	}
+ 	else
+ 	{
+		var spacing = parseInt(state.style[mxConstants.STYLE_SPACING] || 0) * scale;
+		var spacingTop = (parseInt(state.style[mxConstants.STYLE_SPACING_TOP] || 0) + mxText.prototype.baseSpacingTop) * scale + spacing;
+		var spacingRight = (parseInt(state.style[mxConstants.STYLE_SPACING_RIGHT] || 0) + mxText.prototype.baseSpacingRight) * scale + spacing;
+		var spacingBottom = (parseInt(state.style[mxConstants.STYLE_SPACING_BOTTOM] || 0) + mxText.prototype.baseSpacingBottom) * scale + spacing;
+		var spacingLeft = (parseInt(state.style[mxConstants.STYLE_SPACING_LEFT] || 0) + mxText.prototype.baseSpacingLeft) * scale + spacing;
+	
+	 	result = new mxRectangle(state.x, state.y,
+	 		 Math.max(minWidth, state.width - spacingLeft - spacingRight),
+	 		 Math.max(minHeight, state.height - spacingTop - spacingBottom));
+	 	
+		result = (state.shape != null) ? state.shape.getLabelBounds(result) : result;
+	
+		if (isEdge)
+		{
+			result.x = state.absoluteOffset.x;
+			result.y = state.absoluteOffset.y;
+	
+			if (state.text != null && state.text.boundingBox != null)
+			{
+				// Workaround for label containing just spaces in which case
+				// the bounding box location contains negative numbers 
+				if (state.text.boundingBox.x > 0)
+				{
+					result.x = state.text.boundingBox.x;
+				}
+				
+				if (state.text.boundingBox.y > 0)
+				{
+					result.y = state.text.boundingBox.y;
+				}
+			}
+		}
+		else if (state.text != null && state.text.boundingBox != null)
+		{
+			result.x = Math.min(result.x, state.text.boundingBox.x);
+			result.y = Math.min(result.y, state.text.boundingBox.y);
+		}
+	
+		result.x += spacingLeft;
+		result.y += spacingTop;
+	
 		if (state.text != null && state.text.boundingBox != null)
 		{
-			// Workaround for label containing just spaces in which case
-			// the bounding box location contains negative numbers 
-			if (state.text.boundingBox.x > 0)
+			if (!isEdge)
 			{
-				result.x = state.text.boundingBox.x;
+				result.width = Math.max(result.width, state.text.boundingBox.width);
+				result.height = Math.max(result.height, state.text.boundingBox.height);
 			}
-			
-			if (state.text.boundingBox.y > 0)
+			else
 			{
-				result.y = state.text.boundingBox.y;
+				result.width = Math.max(minWidth, state.text.boundingBox.width);
+				result.height = Math.max(minHeight, state.text.boundingBox.height);
 			}
 		}
-	}
-	else if (state.text != null && state.text.boundingBox != null)
-	{
-		result.x = Math.min(result.x, state.text.boundingBox.x);
-		result.y = Math.min(result.y, state.text.boundingBox.y);
-	}
-
-	result.x += spacingLeft;
-	result.y += spacingTop;
-
-	if (state.text != null && state.text.boundingBox != null)
-	{
-		if (!isEdge)
+		
+		// Applies the horizontal and vertical label positions
+		if (this.graph.getModel().isVertex(state.cell))
 		{
-			result.width = Math.max(result.width, state.text.boundingBox.width);
-			result.height = Math.max(result.height, state.text.boundingBox.height);
-		}
-		else
-		{
-			result.width = Math.max(minWidth, state.text.boundingBox.width);
-			result.height = Math.max(minHeight, state.text.boundingBox.height);
-		}
-	}
+			var horizontal = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_POSITION, mxConstants.ALIGN_CENTER);
 	
-	// Applies the horizontal and vertical label positions
-	if (this.graph.getModel().isVertex(state.cell))
-	{
-		var horizontal = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_POSITION, mxConstants.ALIGN_CENTER);
-
-		if (horizontal == mxConstants.ALIGN_LEFT)
-		{
-			result.x -= state.width;
+			if (horizontal == mxConstants.ALIGN_LEFT)
+			{
+				result.x -= state.width;
+			}
+			else if (horizontal == mxConstants.ALIGN_RIGHT)
+			{
+				result.x += state.width;
+			}
+	
+			var vertical = mxUtils.getValue(state.style, mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.ALIGN_MIDDLE);
+	
+			if (vertical == mxConstants.ALIGN_TOP)
+			{
+				result.y -= state.height;
+			}
+			else if (vertical == mxConstants.ALIGN_BOTTOM)
+			{
+				result.y += state.height;
+			}
 		}
-		else if (horizontal == mxConstants.ALIGN_RIGHT)
-		{
-			result.x += state.width;
-		}
-
-		var vertical = mxUtils.getValue(state.style, mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.ALIGN_MIDDLE);
-
-		if (vertical == mxConstants.ALIGN_TOP)
-		{
-			result.y -= state.height;
-		}
-		else if (vertical == mxConstants.ALIGN_BOTTOM)
-		{
-			result.y += state.height;
-		}
-	}
+ 	}
 	
 	return result;
 };
@@ -52125,17 +51513,77 @@ mxGraph.prototype.collapseExpandResource = (mxClient.language != 'none') ? 'coll
  * Creates the tooltip-, panning-, connection- and graph-handler (in this
  * order). This is called in the constructor before <init> is called.
  */
-mxGraph.prototype.createHandlers = function(container)
+mxGraph.prototype.createHandlers = function()
 {
-	this.tooltipHandler = new mxTooltipHandler(this);
+	this.tooltipHandler = this.createTooltipHandler();
 	this.tooltipHandler.setEnabled(false);
-	this.selectionCellsHandler = new mxSelectionCellsHandler(this);
-	this.connectionHandler = new mxConnectionHandler(this);
+	this.selectionCellsHandler = this.createSelectionCellsHandler();
+	this.connectionHandler = this.createConnectionHandler();
 	this.connectionHandler.setEnabled(false);
-	this.graphHandler = new mxGraphHandler(this);
-	this.panningHandler = new mxPanningHandler(this);
+	this.graphHandler = this.createGraphHandler();
+	this.panningHandler = this.createPanningHandler();
 	this.panningHandler.panningEnabled = false;
-	this.popupMenuHandler = new mxPopupMenuHandler(this);
+	this.popupMenuHandler = this.createPopupMenuHandler();
+};
+
+/**
+ * Function: createTooltipHandler
+ * 
+ * Creates and returns a new <mxTooltipHandler> to be used in this graph.
+ */
+mxGraph.prototype.createTooltipHandler = function()
+{
+	return new mxTooltipHandler(this);
+};
+
+/**
+ * Function: createSelectionCellsHandler
+ * 
+ * Creates and returns a new <mxTooltipHandler> to be used in this graph.
+ */
+mxGraph.prototype.createSelectionCellsHandler = function()
+{
+	return new mxSelectionCellsHandler(this);
+};
+
+/**
+ * Function: createConnectionHandler
+ * 
+ * Creates and returns a new <mxConnectionHandler> to be used in this graph.
+ */
+mxGraph.prototype.createConnectionHandler = function()
+{
+	return new mxConnectionHandler(this);
+};
+
+/**
+ * Function: createGraphHandler
+ * 
+ * Creates and returns a new <mxGraphHandler> to be used in this graph.
+ */
+mxGraph.prototype.createGraphHandler = function()
+{
+	return new mxGraphHandler(this);
+};
+
+/**
+ * Function: createPanningHandler
+ * 
+ * Creates and returns a new <mxPanningHandler> to be used in this graph.
+ */
+mxGraph.prototype.createPanningHandler = function()
+{
+	return new mxPanningHandler(this);
+};
+
+/**
+ * Function: createPopupMenuHandler
+ * 
+ * Creates and returns a new <mxPopupMenuHandler> to be used in this graph.
+ */
+mxGraph.prototype.createPopupMenuHandler = function()
+{
+	return new mxPopupMenuHandler(this);
 };
 
 /**
@@ -55910,8 +55358,11 @@ mxGraph.prototype.scaleCell = function(cell, dx, dy, recurse)
 	
 	if (geo != null && this.isCellMovable(cell) && this.isCellResizable(cell))
 	{
+		var state = this.view.getState(cell);
+		var style = (state != null) ? state.style : this.getCellStyle(cell);
+		
 		geo = geo.clone();
-		geo.scale(dx, dy);
+		geo.scale(dx, dy, state.style[mxConstants.STYLE_ASPECT] == 'fixed');
 		
 		if (this.model.isVertex(cell))
 		{
@@ -56264,7 +55715,8 @@ mxGraph.prototype.constrainChild = function(cell)
 	if (cell != null)
 	{
 		var geo = this.getCellGeometry(cell);
-		var area = (this.isConstrainChild(cell)) ? this.getCellContainmentArea(cell) : this.getMaximumGraphBounds();		
+		var max = this.getMaximumGraphBounds();
+		var area = (this.isConstrainChild(cell)) ? this.getCellContainmentArea(cell) : max;
 		
 		if (geo != null && !geo.relative && area != null)
 		{
@@ -56284,29 +55736,76 @@ mxGraph.prototype.constrainChild = function(cell)
 			}
 			
 			var bbox = this.getBoundingBoxFromGeometry(cells, false);
-
+			
 			if (bbox != null)
 			{
-				// Keeps child within the content area of the parent
-				if (bbox.x < area.x || bbox.y < area.y || area.width < bbox.x +
-					bbox.width || area.height < bbox.y + bbox.height)
+				var overlap = (area == max) ? 0 : this.getOverlap(cell);
+				
+				// Includes max area to constrain child overlap
+				var areaUpdate = area == max;
+				max = mxRectangle.fromRectangle(max);
+				
+				// Max is relative to the parent origin
+				var parent = this.model.getParent(cell);
+				
+				while (this.model.isVertex(parent))
 				{
-					var overlap = this.getOverlap(cell);
+					var pgeo = this.getCellGeometry(parent);
+					
+					if (pgeo != null)
+					{
+						max.x -= pgeo.x;
+						max.y -= pgeo.y;
+					}
+					
+					parent = this.model.getParent(parent);
+				}
+
+				if (areaUpdate)
+				{
+					area = max;
+				}
+				
+				var left = area.x - bbox.width * overlap;
+				var top = area.y - bbox.height * overlap;
+				var right = area.x + area.width + bbox.width * overlap;
+				var bottom = area.y + area.height + bbox.height * overlap;
+				
+				// Includes max area to constrain child overlap
+				if (area != max)
+				{
+					left = Math.max(left, max.x);
+					top = Math.max(top, max.y);
+				}
+
+				// Keeps child within the content area of the parent
+				if (bbox.x < left || bbox.x + bbox.width > right || 
+					bbox.y < top || bbox.y + bbox.height > bottom)
+				{
 					geo = geo.clone();
 					
-					if (area.width > 0)
+					if (bbox.x < left)
 					{
-						geo.x = Math.min(bbox.x, area.x + area.width - (1 - overlap) * bbox.width);
+						var dx = left - bbox.x;
+						geo.x += dx;
+					}
+					else if (area.width > 0 && bbox.x + bbox.width > right)
+					{
+						var dx = bbox.x + bbox.width - right;
+						geo.x -= dx;
 					}
 					
-					if (area.height > 0)
+					if (bbox.y < top)
 					{
-						geo.y = Math.min(bbox.y, area.y + area.height - (1 - overlap) * bbox.height);
+						var dy = top - bbox.y;
+						geo.y += dy;
 					}
-					
-					geo.x = Math.max(geo.x, area.x - bbox.width * overlap);
-					geo.y = Math.max(geo.y, area.y - bbox.height * overlap);
-					
+					else if (area.width > 0 && bbox.y + bbox.height > bottom)
+					{
+						var dy = bbox.y + bbox.height - bottom;
+						geo.y -= dy;
+					}
+
 					geo.width = Math.min(geo.width, area.width + geo.width - bbox.width);
 					geo.height = Math.min(geo.height, area.height + geo.height - bbox.height);
 					
@@ -57302,6 +56801,7 @@ mxGraph.prototype.getBoundingBoxFromGeometry = function(cells, includeEdges)
 						if (pts != null && pts.length > 0)
 						{
 							var tmp = new mxRectangle(pts[0].x, pts[0].y, 0, 0);
+							
 							var addPoint = function(pt)
 							{
 								if (pt != null)
@@ -57326,16 +56826,32 @@ mxGraph.prototype.getBoundingBoxFromGeometry = function(cells, includeEdges)
 						if (geo.relative)
 						{
 							var parent = this.model.getParent(cells[i]);
-							var tmp = this.getBoundingBoxFromGeometry([parent], false);
-
-							if (tmp != null)
+							
+							if (this.model.isVertex(parent) && mxUtils.indexOf(cells, parent) >= 0)
 							{
-								bbox = new mxRectangle(tmp.x + geo.x * tmp.width, tmp.y + geo.y * tmp.height, geo.width, geo.height);
+								var tmp = this.getBoundingBoxFromGeometry([parent], false);
+	
+								if (tmp != null)
+								{
+									bbox = new mxRectangle(tmp.x + geo.x * tmp.width, tmp.y + geo.y * tmp.height, geo.width, geo.height);
+								}
 							}
 						}
 						else
 						{
-							bbox = geo;
+							bbox = mxRectangle.fromRectangle(geo);
+							var parent = this.model.getParent(cells[i]);
+							
+							if (this.model.isVertex(parent) && mxUtils.indexOf(cells, parent) >= 0)
+							{
+								var tmp = this.getBoundingBoxFromGeometry([parent], false);
+
+								if (tmp != null)
+								{
+									bbox.x += tmp.x;
+									bbox.y += tmp.y;
+								}
+							}
 						}
 						
 						if (geo.offset != null)
@@ -62081,25 +61597,81 @@ mxGraph.prototype.createHandler = function(state)
 				style == mxEdgeStyle.SideToSide ||
 				style == mxEdgeStyle.TopToBottom)
 			{
-				result = new mxElbowEdgeHandler(state);
+				result = this.createElbowEdgeHandler(state);
 			}
 			else if (style == mxEdgeStyle.SegmentConnector || 
 					 style == mxEdgeStyle.OrthConnector)
 			{
-				result = new mxEdgeSegmentHandler(state);
+				result = this.createEdgeSegmentHandler(state);
 			}
 			else
 			{
-				result = new mxEdgeHandler(state);
+				result = this.createEdgeHandler(state);
 			}
 		}
 		else
 		{
-			result = new mxVertexHandler(state);
+			result = this.createVertexHandler(state);
 		}
 	}
 	
 	return result;
+};
+
+/**
+ * Function: createVertexHandler
+ * 
+ * Hooks to create a new <mxVertexHandler> for the given <mxCellState>.
+ * 
+ * Parameters:
+ * 
+ * state - <mxCellState> to create the handler for.
+ */
+mxGraph.prototype.createVertexHandler = function(state)
+{
+	return new mxVertexHandler(state);
+};
+
+/**
+ * Function: createEdgeHandler
+ * 
+ * Hooks to create a new <mxEdgeHandler> for the given <mxCellState>.
+ * 
+ * Parameters:
+ * 
+ * state - <mxCellState> to create the handler for.
+ */
+mxGraph.prototype.createEdgeHandler = function(state)
+{
+	return new mxEdgeHandler(state);
+};
+
+/**
+ * Function: createEdgeSegmentHandler
+ * 
+ * Hooks to create a new <mxEdgeSegmentHandler> for the given <mxCellState>.
+ * 
+ * Parameters:
+ * 
+ * state - <mxCellState> to create the handler for.
+ */
+mxGraph.prototype.createEdgeSegmentHandler = function(state)
+{
+	return new mxEdgeSegmentHandler(state);
+};
+
+/**
+ * Function: createElbowEdgeHandler
+ * 
+ * Hooks to create a new <mxElbowEdgeHandler> for the given <mxCellState>.
+ * 
+ * Parameters:
+ * 
+ * state - <mxCellState> to create the handler for.
+ */
+mxGraph.prototype.createElbowEdgeHandler = function(state)
+{
+	return new mxElbowEdgeHandler(state);
 };
 
 /**
@@ -67138,8 +66710,8 @@ mxPopupMenuHandler.prototype.mouseDown = function(sender, me)
 		this.hideMenu();
 		this.triggerX = me.getGraphX();
 		this.triggerY = me.getGraphY();
-		this.screenX = me.getEvent().screenX;
-		this.screenY = me.getEvent().screenY;
+		this.screenX = mxEvent.getMainEvent(me.getEvent()).screenX;
+		this.screenY = mxEvent.getMainEvent(me.getEvent()).screenY;
 		this.popupTrigger = this.isPopupTrigger(me);
 		this.inTolerance = true;
 	}
@@ -67155,8 +66727,8 @@ mxPopupMenuHandler.prototype.mouseMove = function(sender, me)
 	// Popup trigger may change on mouseUp so ignore it
 	if (this.inTolerance && this.screenX != null && this.screenY != null)
 	{
-		if (Math.abs(me.getEvent().screenX - this.screenX) > this.graph.tolerance ||
-			Math.abs(me.getEvent().screenY - this.screenY) > this.graph.tolerance)
+		if (Math.abs(mxEvent.getMainEvent(me.getEvent()).screenX - this.screenX) > this.graph.tolerance ||
+			Math.abs(mxEvent.getMainEvent(me.getEvent()).screenY - this.screenY) > this.graph.tolerance)
 		{
 			this.inTolerance = false;
 		}
@@ -68924,7 +68496,21 @@ mxConnectionHandler.prototype.updateCurrentState = function(me, point)
 	if (this.constraintHandler.currentFocus != null && this.constraintHandler.currentConstraint != null)
 	{
 		this.marker.reset();
-		this.currentState = this.constraintHandler.currentFocus;
+		
+		// Updates validation state
+		if (this.previous != null)
+		{
+			this.error = this.validateConnection(this.previous.cell, this.constraintHandler.currentFocus.cell);
+			
+			if (this.error == null)
+			{
+				this.currentState = this.constraintHandler.currentFocus;
+			}
+			else
+			{
+				this.constraintHandler.reset();
+			}
+		}
 	}
 	else
 	{
@@ -68996,6 +68582,7 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 		var scale = view.scale;
 		var tr = view.translate;
 		var point = new mxPoint(me.getGraphX(), me.getGraphY());
+		this.error = null;
 		
 		if (this.graph.isGridEnabledEvent(me.getEvent()))
 		{
@@ -72420,9 +72007,23 @@ mxVertexHandler.prototype.redrawHandles = function()
 		{
 			// KNOWN: Tolerance depends on event type (eg. 0 for mouse events)
 			var tol = this.tolerance;
+
+			if (s.width < 2 * this.sizers[0].bounds.width + 2 * tol ||
+				s.height < 2 * this.sizers[0].bounds.height + 2 * tol)
+			{
+				s = new mxRectangle(s.x, s.y, s.width, s.height);
+				tol /= 2;
+				
+				this.horizontalOffset = this.sizers[0].bounds.width + tol;
+				this.verticalOffset = this.sizers[0].bounds.height + tol;
+				s.x -= this.horizontalOffset / 2;
+				s.width += this.horizontalOffset;
+				s.y -= this.verticalOffset / 2;
+				s.height += this.verticalOffset;
+			}
 			
-			if ((s.width < 2 * this.sizers[0].bounds.width - 2 + 2 * tol) ||
-				(s.height < 2 * this.sizers[0].bounds.height - 2 + 2 * tol))
+			if ((s.width < 2 * this.sizers[0].bounds.width + 2 * tol) ||
+				(s.height < 2 * this.sizers[0].bounds.height + 2 * tol))
 			{
 				this.sizers[0].node.style.display = 'none';
 				this.sizers[2].node.style.display = 'none';
@@ -72435,20 +72036,6 @@ mxVertexHandler.prototype.redrawHandles = function()
 				this.sizers[2].node.style.display = '';
 				this.sizers[5].node.style.display = '';
 				this.sizers[7].node.style.display = '';
-			}
-			
-			if (s.width < 2 * this.sizers[0].bounds.width - 2 + 3 * tol ||
-				s.height < 2 * this.sizers[0].bounds.height - 2 + 3 * tol)
-			{
-				s = new mxRectangle(s.x, s.y, s.width, s.height);
-				tol /= 2;
-				
-				this.horizontalOffset = this.sizers[0].bounds.width + tol;
-				this.verticalOffset = this.sizers[0].bounds.height + tol;
-				s.x -= this.horizontalOffset / 2;
-				s.width += this.horizontalOffset;
-				s.y -= this.verticalOffset / 2;
-				s.height += this.verticalOffset;
 			}
 		}
 
@@ -72980,8 +72567,7 @@ mxEdgeHandler.prototype.isVirtualBendsEnabled = function(evt)
 {
 	return this.virtualBendsEnabled && (this.state.style[mxConstants.STYLE_EDGE] == null ||
 			this.state.style[mxConstants.STYLE_NOEDGESTYLE] == 1) &&
-			mxUtils.getValue(this.state.style, mxConstants.STYLE_SHAPE, null) != 'arrow' &&
-			mxUtils.getValue(this.state.style, mxConstants.STYLE_SHAPE, null) != 'link';
+			mxUtils.getValue(this.state.style, mxConstants.STYLE_SHAPE, null) != 'arrow';
 };
 
 /**
@@ -73674,7 +73260,28 @@ mxEdgeHandler.prototype.getPreviewTerminalState = function(me)
 		// This results in flickering for the first move after hiding the constraint highlight.
 		this.marker.reset();
 		
-		return this.constraintHandler.currentFocus;
+		var model = this.graph.getModel();
+		var other = this.graph.view.getTerminalPort(this.state,
+				this.graph.view.getState(model.getTerminal(this.state.cell,
+			!this.isSource)), !this.isSource);
+		var otherCell = (other != null) ? other.cell : null;
+		var source = (this.isSource) ? this.constraintHandler.currentFocus.cell : otherCell;
+		var target = (this.isSource) ? otherCell : this.constraintHandler.currentFocus.cell;
+		
+		// Updates the error message of the handler
+		this.error = this.validateConnection(source, target);
+		var result = null;
+		
+		if (this.error == null)
+		{
+			result = this.constraintHandler.currentFocus;
+		}
+		else
+		{
+			this.constraintHandler.reset();
+		}
+		
+		return result;
 	}
 	else
 	{
@@ -73858,6 +73465,7 @@ mxEdgeHandler.prototype.mouseMove = function(sender, me)
 	if (this.index != null && this.marker != null)
 	{
 		var point = this.getPointForEvent(me);
+		this.error = null;
 		
 		if (mxEvent.isShiftDown(me.getEvent()) && this.snapPoint != null)
 		{
@@ -77367,8 +76975,7 @@ mxDefaultToolbar.prototype.destroy = function ()
  * properties, help, outline, toolbar, and popupmenu. It also adds <templates>
  * to be used as cells in toolbars, auto-validation using the <validation>
  * flag, attribute cycling using <cycleAttributeValues>, higher-level events
- * such as <root>, and backend integration using <urlPost>, <urlImage>,
- * <urlInit>, <urlNotify> and <urlPoll>. 
+ * such as <root>, and backend integration using <urlPost> and <urlImage>. 
  * 
  * Actions:
  * 
@@ -77648,11 +77255,6 @@ mxDefaultToolbar.prototype.destroy = function ()
  * Fires when the current root has changed, or when the title of the current
  * root has changed. This event has no properties.
  *
- * Event: mxEvent.SESSION
- *
- * Fires when anything in the session has changed. The <code>session</code>
- * property contains the respective <mxSession>.
- * 
  * Event: mxEvent.BEFORE_ADD_VERTEX
  * 
  * Fires before a vertex is added in <addVertex>. The <code>vertex</code>
@@ -77734,13 +77336,6 @@ function mxEditor(config)
 		
 		// Assigns the swimlaneIndicatorColorAttribute on the graph
 		this.graph.swimlaneIndicatorColorAttribute = this.cycleAttributeName;
-		
-		// Initializes the session if the urlInit
-		// member field of this editor is set.
-		if (!mxClient.IS_LOCAL && this.urlInit != null)
-		{
-			this.session = this.createSession();
-		}
 
 		// Checks ifthe <onInit> hook has been set		
 		if (this.onInit != null)
@@ -77874,13 +77469,6 @@ mxEditor.prototype.graphRenderHint = null;
  * toolbar is created in <setToolbarContainer>.
  */
 mxEditor.prototype.toolbar = null;
-
-/**
- * Variable: session
- *
- * Holds a <mxSession> instance associated with this editor.
- */
-mxEditor.prototype.session = null;
 
 /**
  * Variable: status
@@ -78085,28 +77673,6 @@ mxEditor.prototype.urlPost = null;
  * the graph in the image action.
  */
 mxEditor.prototype.urlImage = null;
-
-/**
- * Variable: urlInit
- *
- * Specifies the URL to be used for initializing the session.
- */
-mxEditor.prototype.urlInit = null;
-
-/**
- * Variable: urlNotify
- *
- * Specifies the URL to be used for notifying the backend
- * in the session.
- */
-mxEditor.prototype.urlNotify = null;
-
-/**
- * Variable: urlPoll
- *
- * Specifies the URL to be used for polling in the session.
- */
-mxEditor.prototype.urlPoll = null;
 
 /**
  * Group: Autolayout
@@ -78866,25 +78432,6 @@ mxEditor.prototype.addActions = function ()
 	{
 		mxLog.setVisible(!mxLog.isVisible());
 	});
-};
-
-/**
- * Function: createSession
- *
- * Creates and returns and <mxSession> using <urlInit>, <urlPoll> and <urlNotify>.
- */
-mxEditor.prototype.createSession = function ()
-{
-	// Routes any change events from the session
-	// through the editor and dispatches them as
-	// a session event.
-	var sessionChanged = mxUtils.bind(this, function(session)
-	{
-		this.fireEvent(new mxEventObject(mxEvent.SESSION, 'session', session));
-	});
-	
-	return this.connect(this.urlInit, this.urlPoll,
-		this.urlNotify, sessionChanged);
 };
 
 /**
@@ -79791,47 +79338,6 @@ mxEditor.prototype.getUrlPost = function ()
 mxEditor.prototype.getUrlImage = function ()
 {
 	return this.urlImage;
-};
-
-/**
- * Function: connect
- * 
- * Creates and returns a session for the specified parameters, installing
- * the onChange function as a change listener for the session.
- */
-mxEditor.prototype.connect = function (urlInit, urlPoll, urlNotify, onChange)
-{
-	var session = null;
-	
-	if (!mxClient.IS_LOCAL)
-	{
-		session = new mxSession(this.graph.getModel(),
-			urlInit, urlPoll, urlNotify);
-
-		// Resets the undo history if the session was initialized which is the
-		// case if the message carries a namespace to be used for new IDs.
-		session.addListener(mxEvent.RECEIVE,
-			mxUtils.bind(this, function(sender, evt)
-			{
-				var node = evt.getProperty('node');
-				
-				if (node.getAttribute('namespace') != null)
-				{
-					this.resetHistory();
-				}
-			})
-		);
-		
-		// Installs the listener for all events
-		// that signal a change of the session
-		session.addListener(mxEvent.DISCONNECT, onChange);
-		session.addListener(mxEvent.CONNECT, onChange);
-		session.addListener(mxEvent.NOTIFY, onChange);
-		session.addListener(mxEvent.GET, onChange);
-		session.start();
-	}
-	
-	return session;
 };
 
 /**

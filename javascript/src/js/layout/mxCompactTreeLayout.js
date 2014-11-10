@@ -58,9 +58,37 @@ mxCompactTreeLayout.prototype.resizeParent = true;
 /**
  * Variable: groupPadding
  * 
- * Padding added to resized parents.
+ * Padding added to resized parents. Default is 10.
  */
 mxCompactTreeLayout.prototype.groupPadding = 10;
+
+/**
+ * Variable: groupPaddingTop
+ * 
+ * Top padding added to resized parents. Default is 0.
+ */
+mxCompactTreeLayout.prototype.groupPaddingTop = 0;
+
+/**
+ * Variable: groupPaddingRight
+ * 
+ * Right padding added to resized parents. Default is 0.
+ */
+mxCompactTreeLayout.prototype.groupPaddingRight = 0;
+
+/**
+ * Variable: groupPaddingBottom
+ * 
+ * Bottom padding added to resized parents. Default is 0.
+ */
+mxCompactTreeLayout.prototype.groupPaddingBottom = 0;
+
+/**
+ * Variable: groupPaddingLeft
+ * 
+ * Left padding added to resized parents. Default is 0.
+ */
+mxCompactTreeLayout.prototype.groupPaddingLeft = 0;
 
 /**
  * Variable: parentsChanged
@@ -910,7 +938,8 @@ mxCompactTreeLayout.prototype.adjustParents = function()
 		tmp.push(this.parentsChanged[id]);
 	}
 	
-	this.arrangeGroups(mxUtils.sortCells(tmp, true), this.groupPadding);
+	this.arrangeGroups(mxUtils.sortCells(tmp, true), this.groupPadding, this.groupPaddingTop,
+		this.groupPaddingRight, this.groupPaddingBottom, this.groupPaddingLeft);
 };
 
 /**

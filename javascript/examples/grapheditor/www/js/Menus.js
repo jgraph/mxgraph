@@ -234,7 +234,7 @@ Menus.prototype.init = function()
 		this.addMenuItems(menu, ['-'], parent);
 		this.addSubmenu('linestart', menu, parent);
 		this.addSubmenu('lineend', menu, parent);
-		this.addMenuItems(menu, ['-', 'setAsDefaultStyle', 'style'], parent);
+		this.addMenuItems(menu, ['-', 'setAsDefaultStyle', 'resetDefaultStyle', '-', 'style'], parent);
 	})));
 	this.put('gradient', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -296,7 +296,7 @@ Menus.prototype.init = function()
 	{
 		menu.addItem(mxResources.get('flipH'), null, function() { graph.toggleCellStyles(mxConstants.STYLE_FLIPH, false); }, parent);
 		menu.addItem(mxResources.get('flipV'), null, function() { graph.toggleCellStyles(mxConstants.STYLE_FLIPV, false); }, parent);
-		this.addMenuItems(menu, ['-', 'tilt', 'rotation'], parent);
+		this.addMenuItems(menu, ['-', 'rotation'], parent);
 	})));
 	this.put('align', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -414,21 +414,21 @@ Menus.prototype.init = function()
 	}))).isEnabled = isGraphEnabled;
 	this.put('navigation', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
-		this.addMenuItems(menu, ['home', '-', 'exitGroup', 'enterGroup', '-', 'expand', 'collapse'], parent);
+		this.addMenuItems(menu, ['home', '-', 'exitGroup', 'enterGroup', '-', 'expand', 'collapse', '-', 'collapsible'], parent);
 	})));
 	this.put('arrange', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
 		this.addMenuItems(menu, ['toFront', 'toBack', '-'], parent);
 		this.addSubmenu('direction', menu, parent);
-		this.addSubmenu('layout', menu, parent);
-		menu.addSeparator(parent);
+		this.addMenuItems(menu, ['switchDirection', '-'], parent);
 		this.addSubmenu('align', menu, parent);
 		this.addSubmenu('distribute', menu, parent);
-		menu.addSeparator(parent);
 		this.addMenuItems(menu, ['layers'], parent);
+		menu.addSeparator(parent);
 		this.addSubmenu('navigation', menu, parent);
 		this.addSubmenu('insert', menu, parent);
-		this.addMenuItems(menu, ['-', 'group', 'ungroup', 'removeFromGroup', '-', 'autosize', 'collapsible', '-', 'reverseEdge'], parent);
+		this.addSubmenu('layout', menu, parent);
+		this.addMenuItems(menu, ['-', 'group', 'ungroup', 'removeFromGroup', '-', 'autosize'], parent);
 	}))).isEnabled = isGraphEnabled;
 	this.put('insert', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -535,6 +535,7 @@ Menus.prototype.edgeStyleChange = function(menu, label, keys, values, sprite, pa
 		try
 		{
 			var cells = graph.getSelectionCells();
+			var edges = [];
 			
 			for (var i = 0; i < cells.length; i++)
 			{
@@ -559,11 +560,13 @@ Menus.prototype.edgeStyleChange = function(menu, label, keys, values, sprite, pa
 					{
 						graph.setCellStyles(keys[j], values[j], [cell]);
 					}
+					
+					edges.push(cell);
 				}
 			}
 			
-			this.editorUi.fireEvent(new mxEventObject('styleChanged', 'keys', keys, 'values', values,
-				'cells', graph.getSelectionCells()));
+			this.editorUi.fireEvent(new mxEventObject('styleChanged', 'keys', keys,
+				'values', values, 'cells', edges));
 		}
 		finally
 		{

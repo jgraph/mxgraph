@@ -319,8 +319,7 @@ mxEdgeHandler.prototype.isVirtualBendsEnabled = function(evt)
 {
 	return this.virtualBendsEnabled && (this.state.style[mxConstants.STYLE_EDGE] == null ||
 			this.state.style[mxConstants.STYLE_NOEDGESTYLE] == 1) &&
-			mxUtils.getValue(this.state.style, mxConstants.STYLE_SHAPE, null) != 'arrow' &&
-			mxUtils.getValue(this.state.style, mxConstants.STYLE_SHAPE, null) != 'link';
+			mxUtils.getValue(this.state.style, mxConstants.STYLE_SHAPE, null) != 'arrow';
 };
 
 /**
@@ -1013,7 +1012,28 @@ mxEdgeHandler.prototype.getPreviewTerminalState = function(me)
 		// This results in flickering for the first move after hiding the constraint highlight.
 		this.marker.reset();
 		
-		return this.constraintHandler.currentFocus;
+		var model = this.graph.getModel();
+		var other = this.graph.view.getTerminalPort(this.state,
+				this.graph.view.getState(model.getTerminal(this.state.cell,
+			!this.isSource)), !this.isSource);
+		var otherCell = (other != null) ? other.cell : null;
+		var source = (this.isSource) ? this.constraintHandler.currentFocus.cell : otherCell;
+		var target = (this.isSource) ? otherCell : this.constraintHandler.currentFocus.cell;
+		
+		// Updates the error message of the handler
+		this.error = this.validateConnection(source, target);
+		var result = null;
+		
+		if (this.error == null)
+		{
+			result = this.constraintHandler.currentFocus;
+		}
+		else
+		{
+			this.constraintHandler.reset();
+		}
+		
+		return result;
 	}
 	else
 	{
@@ -1197,6 +1217,7 @@ mxEdgeHandler.prototype.mouseMove = function(sender, me)
 	if (this.index != null && this.marker != null)
 	{
 		var point = this.getPointForEvent(me);
+		this.error = null;
 		
 		if (mxEvent.isShiftDown(me.getEvent()) && this.snapPoint != null)
 		{

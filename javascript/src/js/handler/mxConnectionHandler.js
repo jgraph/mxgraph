@@ -1005,7 +1005,21 @@ mxConnectionHandler.prototype.updateCurrentState = function(me, point)
 	if (this.constraintHandler.currentFocus != null && this.constraintHandler.currentConstraint != null)
 	{
 		this.marker.reset();
-		this.currentState = this.constraintHandler.currentFocus;
+		
+		// Updates validation state
+		if (this.previous != null)
+		{
+			this.error = this.validateConnection(this.previous.cell, this.constraintHandler.currentFocus.cell);
+			
+			if (this.error == null)
+			{
+				this.currentState = this.constraintHandler.currentFocus;
+			}
+			else
+			{
+				this.constraintHandler.reset();
+			}
+		}
 	}
 	else
 	{
@@ -1077,6 +1091,7 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 		var scale = view.scale;
 		var tr = view.translate;
 		var point = new mxPoint(me.getGraphX(), me.getGraphY());
+		this.error = null;
 		
 		if (this.graph.isGridEnabledEvent(me.getEvent()))
 		{
