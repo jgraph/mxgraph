@@ -2150,9 +2150,8 @@ mxGraphView.prototype.installListeners = function()
 			
 			// Condition to avoid scrollbar events starting a rubberband
 			// selection
-			if (this.isContainerEvent(evt) && ((!mxClient.IS_IE && 
-				!mxClient.IS_GC && !mxClient.IS_OP && !mxClient.IS_SF) ||
-				!this.isScrollEvent(evt)))
+			if (this.isContainerEvent(evt) && ((!mxClient.IS_IE && !mxClient.IS_IE11 && !mxClient.IS_GC &&
+				!mxClient.IS_OP && !mxClient.IS_SF) || !this.isScrollEvent(evt)))
 			{
 				graph.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt));
 			}

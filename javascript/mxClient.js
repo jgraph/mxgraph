@@ -21,14 +21,15 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.13.0.15.
+	 * Current version is 1.13.0.16.
 	 */
-	VERSION: '1.13.0.15',
+	VERSION: '1.13.0.16',
 
 	/**
 	 * Variable: IS_IE
 	 *
-	 * True if the current browser is Internet Explorer.
+	 * True if the current browser is Internet Explorer 10 or below. Use <mxClient.IS_IE11>
+	 * to detect IE 11.
 	 */
 	IS_IE: navigator.userAgent.indexOf('MSIE') >= 0,
 
@@ -38,6 +39,13 @@ var mxClient =
 	 * True if the current browser is Internet Explorer 6.x.
 	 */
 	IS_IE6: navigator.userAgent.indexOf('MSIE 6') >= 0,
+
+	/**
+	 * Variable: IS_IE11
+	 *
+	 * True if the current browser is Internet Explorer 11.x.
+	 */
+	IS_IE11: !!navigator.userAgent.match(/Trident\/7\./),
 
 	/**
 	 * Variable: IS_QUIRKS
@@ -34760,7 +34768,6 @@ mxMinimumCycleRemover.prototype.execute = function(parent)
 	}, unseenNodes, true, seenNodesCopy);
 };
 /**
- * $Id: mxCoordinateAssignment.js,v 1.32 2014/01/16 17:35:05 david Exp $
  * Copyright (c) 2005-2014, JGraph Ltd
  */
 /**
@@ -36043,7 +36050,7 @@ mxCoordinateAssignment.prototype.setCellLocations = function(graph, model)
 	for (var i = 0; i < model.ranks.length; i++)
 	{
 		this.rankTopY[i] = Number.MAX_VALUE;
-		this.rankBottomY[i] = 0.0;
+		this.rankBottomY[i] = -Number.MAX_VALUE;
 	}
 	
 	var parentsChanged = null;
@@ -36076,11 +36083,6 @@ mxCoordinateAssignment.prototype.setCellLocations = function(graph, model)
 		}
 	}
 	
-	if (this.layout.resizeParent && parentsChanged != null)
-	{
-		this.adjustParents(parentsChanged);
-	}
-	
 	// Post process edge styles. Needs the vertex locations set for initial
 	// values of the top and bottoms of each rank
 	if (this.edgeStyle == mxHierarchicalEdgeStyle.ORTHOGONAL
@@ -36095,6 +36097,11 @@ mxCoordinateAssignment.prototype.setCellLocations = function(graph, model)
 	for (var i = 0; i < edges.length; i++)
 	{
 		this.setEdgePosition(edges[i]);
+	}
+	
+	if (this.layout.resizeParent && parentsChanged != null)
+	{
+		this.adjustParents(parentsChanged);
 	}
 };
 
@@ -36301,12 +36308,13 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 
 		var source = cell.isReversed ? cell.target.cell : cell.source.cell;
 		var graph = this.layout.graph;
+		var layoutReversed = this.orientation == mxConstants.DIRECTION_EAST
+				|| this.orientation == mxConstants.DIRECTION_SOUTH;
 
 		for (var i = 0; i < cell.edges.length; i++)
 		{
 			var realEdge = cell.edges[i];
 			var realSource = this.layout.getVisibleTerminal(realEdge, true);
-			var modelSource = graph.model.getTerminal(realEdge, true);
 
 			//List oldPoints = graph.getPoints(realEdge);
 			var newPoints = [];
@@ -36324,15 +36332,17 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 				// treat if as reversed
 				reversed = !reversed;
 			}
-			
+
 			// First jetty of edge
 			if (jettys != null)
 			{
 				var arrayOffset = reversed ? 2 : 0;
-				var y = reversed ? this.rankTopY[minRank] : this.rankBottomY[maxRank];
+				var y = reversed ?
+						(layoutReversed ? this.rankBottomY[minRank] : this.rankTopY[minRank]) :
+							(layoutReversed ? this.rankTopY[maxRank] : this.rankBottomY[maxRank]);
 				var jetty = jettys[parallelEdgeCount * 4 + 1 + arrayOffset];
 				
-				if (reversed)
+				if (reversed != layoutReversed)
 				{
 					jetty = -jetty;
 				}
@@ -36431,10 +36441,12 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 			if (jettys != null)
 			{
 				var arrayOffset = reversed ? 2 : 0;
-				var rankY = reversed ? this.rankBottomY[maxRank] : this.rankTopY[minRank];
+				var rankY = reversed ?
+						(layoutReversed ? this.rankTopY[maxRank] : this.rankBottomY[maxRank]) :
+							(layoutReversed ? this.rankBottomY[minRank] : this.rankTopY[minRank]);
 				var jetty = jettys[parallelEdgeCount * 4 + 3 - arrayOffset];
 				
-				if (reversed)
+				if (reversed != layoutReversed)
 				{
 					jetty = -jetty;
 				}
@@ -36643,7 +36655,6 @@ WeightedCellSorter.prototype.compare = function(a, b)
 	}
 };
 /**
- * $Id: mxHierarchicalLayout.js,v 1.39 2014/01/16 17:35:06 david Exp $
  * Copyright (c) 2005-2014, JGraph Ltd
  */
 /**
@@ -36690,6 +36701,15 @@ mxHierarchicalLayout.prototype.roots = null;
  * contains all the child cells. Default is false. See also <parentBorder>.
  */
 mxHierarchicalLayout.prototype.resizeParent = false;
+
+/**
+ * Variable: maintainParentLocation
+ * 
+ * Specifies if the parent location should be maintained, so that the
+ * top, left corner stays the same before and after execution of
+ * the layout. Default is false for backwards compatibility.
+ */
+mxCompactTreeLayout.prototype.maintainParentLocation = false;
 
 /**
  * Variable: moveParent
@@ -36851,14 +36871,31 @@ mxHierarchicalLayout.prototype.execute = function(parent, roots)
 		// TODO indicate the problem
 		return;
 	}
-
-	if (roots != null && parent != null)
+	
+	//  Maintaining parent location
+	this.parentX = null;
+	this.parentY = null;
+	
+	if (parent != this.root && model.isVertex(parent) != null && this.maintainParentLocation)
+	{
+		var geo = this.graph.getCellGeometry(parent);
+		
+		if (geo != null)
+		{
+			this.parentX = geo.x;
+			this.parentY = geo.y;
+		}
+	}
+	
+	if (roots != null)
 	{
 		var rootsCopy = [];
 
 		for (var i = 0; i < roots.length; i++)
 		{
-			if (model.isAncestor(parent, roots[i]))
+			var ancestor = parent != null ? model.isAncestor(parent, roots[i]) : true;
+			
+			if (ancestor && model.isVertex(roots[i]))
 			{
 				rootsCopy.push(roots[i]);
 			}
@@ -36866,21 +36903,29 @@ mxHierarchicalLayout.prototype.execute = function(parent, roots)
 
 		this.roots = rootsCopy;
 	}
-	else
-	{
-		this.roots = roots;
-	}
 	
 	model.beginUpdate();
 	try
 	{
 		this.run(parent);
 		
-		if (this.resizeParent &&
-			!this.graph.isCellCollapsed(parent))
+		if (this.resizeParent && !this.graph.isCellCollapsed(parent))
 		{
-			this.graph.updateGroupBounds([parent],
-				this.parentBorder, this.moveParent);
+			this.graph.updateGroupBounds([parent], this.parentBorder, this.moveParent);
+		}
+		
+		// Maintaining parent location
+		if (this.parentX != null && this.parentY != null)
+		{
+			var geo = this.graph.getCellGeometry(parent);
+			
+			if (geo != null)
+			{
+				geo = geo.clone();
+				geo.x = this.parentX;
+				geo.y = this.parentY;
+				model.setGeometry(parent, geo);
+			}
 		}
 	}
 	finally
@@ -37054,12 +37099,15 @@ mxHierarchicalLayout.prototype.getVisibleTerminal = function(edge, source)
 		terminal = (state != null) ? state.getVisibleTerminal(source) : this.graph.view.getVisibleTerminal(edge, source);
 	}
 
-	if (this.isPort(terminal))
+	if (terminal != null)
 	{
-		terminal = this.graph.model.getParent(terminal);
+		if (this.isPort(terminal))
+		{
+			terminal = this.graph.model.getParent(terminal);
+		}
+		
+		terminalCache.put(edge, terminal);
 	}
-	
-	terminalCache.put(edge, terminal);
 
 	return terminal;
 };
@@ -49295,9 +49343,8 @@ mxGraphView.prototype.installListeners = function()
 			
 			// Condition to avoid scrollbar events starting a rubberband
 			// selection
-			if (this.isContainerEvent(evt) && ((!mxClient.IS_IE && 
-				!mxClient.IS_GC && !mxClient.IS_OP && !mxClient.IS_SF) ||
-				!this.isScrollEvent(evt)))
+			if (this.isContainerEvent(evt) && ((!mxClient.IS_IE && !mxClient.IS_IE11 && !mxClient.IS_GC &&
+				!mxClient.IS_OP && !mxClient.IS_SF) || !this.isScrollEvent(evt)))
 			{
 				graph.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt));
 			}

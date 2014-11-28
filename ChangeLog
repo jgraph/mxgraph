@@ -1,6 +1,13 @@
+28-NOV-2014: 1.13.0.16
+
+- Fixes autoscroll after click on scrollbar in IE11 [JavaScript]
+- Adds mxClient.IS_IE11 [JavaScript]
+- Fixes dangling edge handling in mxHierarchicalLayout.getVisibleTerminal [JavaScript]
+- Fixes jetty positioning for South and East hierarchical orientation [JavaScript]
+
 30-OCT-2014: 1.13.0.15
 
-- Adds workarond for limited number of stylesheets in quirks mode [JavaScript]
+- Adds workaround for limited number of stylesheets in quirks mode [JavaScript]
 - Fixes rounding errors in mxEdgeStyle.OrthConnector [JavaScript]
 - Fixes printing for mxUtils.show/printScreen in IE9 standards [JavaScript]
 - Renames history to undoManager in old grapheditor example [JavaScript]
