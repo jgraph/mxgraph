@@ -477,7 +477,7 @@ mxGraphHandler.prototype.getBoundingBox = function(cells)
 					
 					if (result == null)
 					{
-						result = new mxRectangle(bbox.x, bbox.y, bbox.width, bbox.height);
+						result = mxRectangle.fromRectangle(bbox);
 					}
 					else
 					{

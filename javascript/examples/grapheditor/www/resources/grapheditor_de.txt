@@ -61,6 +61,7 @@ decreaseIndent=Einzug verringern
 delete=Löschen
 deleteColumn=Spalte löschen
 deleteRow=Zeile löschen
+diagram=Diagramm
 diamond=Diamant
 diamondThin=Diamant (Schmal)
 direction=Richtung

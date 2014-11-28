@@ -56,6 +56,15 @@ mxCompactTreeLayout.prototype.invert = null;
 mxCompactTreeLayout.prototype.resizeParent = true;
 
 /**
+ * Variable: maintainParentLocation
+ * 
+ * Specifies if the parent location should be maintained, so that the
+ * top, left corner stays the same before and after execution of
+ * the layout. Default is false for backwards compatibility.
+ */
+mxCompactTreeLayout.prototype.maintainParentLocation = false;
+
+/**
  * Variable: groupPadding
  * 
  * Padding added to resized parents. Default is 10.
@@ -250,12 +259,13 @@ mxCompactTreeLayout.prototype.isHorizontal = function()
  * 
  * parent - <mxCell> whose children should be laid out.
  * root - Optional <mxCell> that will be used as the root of the tree.
+ * Overrides <root> if specified.
  */
 mxCompactTreeLayout.prototype.execute = function(parent, root)
 {
 	this.parent = parent;
 	var model = this.graph.getModel();
-	
+
 	if (root == null)
 	{
 		// Takes the parent as the root if it has outgoing edges
@@ -302,6 +312,21 @@ mxCompactTreeLayout.prototype.execute = function(parent, root)
 			this.parentsChanged = null;
 		}
 
+		//  Maintaining parent location
+		this.parentX = null;
+		this.parentY = null;
+		
+		if (parent != this.root && model.isVertex(parent) != null && this.maintainParentLocation)
+		{
+			var geo = this.graph.getCellGeometry(parent);
+			
+			if (geo != null)
+			{
+				this.parentX = geo.x;
+				this.parentY = geo.y;
+			}
+		}
+		
 		model.beginUpdate();
 		
 		try
@@ -373,6 +398,20 @@ mxCompactTreeLayout.prototype.execute = function(parent, root)
 					{
 						// Iterate through all edges setting their positions
 						this.localEdgeProcessing(this.node);
+					}
+				}
+				
+				// Maintaining parent location
+				if (this.parentX != null && this.parentY != null)
+				{
+					var geo = this.graph.getCellGeometry(parent);
+					
+					if (geo != null)
+					{
+						geo = geo.clone();
+						geo.x = this.parentX;
+						geo.y = this.parentY;
+						model.setGeometry(parent, geo);
 					}
 				}
 			}

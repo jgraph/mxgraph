@@ -44,9 +44,10 @@ catch (e)
 /**
  * Editor constructor executed on page load.
  */
-Editor = function()
+Editor = function(chromeless)
 {
 	mxEventSource.call(this);
+	this.chromeless = (chromeless != null) ? chromeless : this.chromeless;
 	this.init();
 	this.initStencilRegistry();
 	this.graph = this.createGraph();
@@ -106,14 +107,25 @@ Editor.prototype.gridImage = IMAGE_PATH + '/grid.gif';
 Editor.prototype.defaultScrollbars = !mxClient.IS_IOS;
 
 /**
- * Specifies if the page should be visible for new files. Default is false.
+ * Specifies if the page should be visible for new files. Default is true.
  */
-Editor.prototype.defaultPageVisible = false;
+Editor.prototype.defaultPageVisible = true;
 
 /**
  * Specifies the image URL to be used for the transparent background.
  */
 Editor.prototype.transparentImage = IMAGE_PATH + '/transparent.gif';
+
+/**
+ * Specifies if the canvas should be extended in all directions. Default is true.
+ */
+Editor.prototype.extendCanvas = true;
+
+/**
+ * Specifies if the app should run in chromeless mode. Default is false.
+ * This default is only used if the contructor argument is null.
+ */
+Editor.prototype.chromeless = false;
 
 /**
  * Specifies the order of OK/Cancel buttons in dialogs. Default is true.
@@ -144,6 +156,11 @@ Editor.prototype.modified = false;
 Editor.prototype.autosave = true;
 
 /**
+ * Specifies the top spacing for the initial page view. Default is 0.
+ */
+Editor.prototype.initialTopSpacing = 0;
+
+/**
  * Specifies the app name. Default is document.title.
  */
 Editor.prototype.appName = document.title;
@@ -161,12 +178,51 @@ Editor.prototype.createGraph = function()
  */
 Editor.prototype.resetScrollbars = function()
 {
-	this.graph.container.scrollTop = 0;
-	this.graph.container.scrollLeft = 0;
-	
-	if (!mxUtils.hasScrollbars(this.graph.container))
+	if (!this.extendCanvas)
 	{
-		this.graph.view.setTranslate(0, 0);
+		this.graph.container.scrollTop = 0;
+		this.graph.container.scrollLeft = 0;
+	
+		if (!mxUtils.hasScrollbars(this.graph.container))
+		{
+			this.graph.view.setTranslate(0, 0);
+		}
+	}
+	else if (!this.chromeless)
+	{
+		if (mxUtils.hasScrollbars(this.graph.container))
+		{
+			if (this.graph.pageVisible)
+			{
+				var pad = this.graph.getPagePadding();
+				this.graph.container.scrollTop = Math.floor(pad.y - this.initialTopSpacing);
+				this.graph.container.scrollLeft = Math.floor(Math.min(pad.x, (this.graph.container.scrollWidth - this.graph.container.clientWidth) / 2));
+			}
+			else
+			{
+				var bounds = this.graph.getGraphBounds();
+				var width = Math.max(bounds.width, this.graph.scrollTileSize.width * this.graph.view.scale);
+				var height = Math.max(bounds.height, this.graph.scrollTileSize.height * this.graph.view.scale);
+				this.graph.container.scrollTop = Math.floor(Math.max(0, bounds.y - Math.max(20, (this.graph.container.clientHeight - height) / 4)));
+				this.graph.container.scrollLeft = Math.floor(Math.max(0, bounds.x - Math.max(0, (this.graph.container.clientWidth - width) / 2)));
+			}
+		}
+		else
+		{
+			// This code is not actively used since the default for scrollbars is always true
+			if (this.graph.pageVisible)
+			{
+				var b = this.graph.view.getBackgroundPageBounds();
+				this.graph.view.setTranslate(Math.floor(Math.max(0, (this.graph.container.clientWidth - b.width) / 2) - b.x),
+					Math.floor(Math.max(0, (this.graph.container.clientHeight - b.height) / 2) - b.y));
+			}
+			else
+			{
+				var bounds = this.graph.getGraphBounds();
+				this.graph.view.setTranslate(Math.floor(Math.max(0, Math.max(0, (this.graph.container.clientWidth - bounds.width) / 2) - bounds.x)),
+					Math.floor(Math.max(0, Math.max(20, (this.graph.container.clientHeight - bounds.height) / 4)) - bounds.y));
+			}
+		}
 	}
 };
 
@@ -900,11 +956,12 @@ Editor.prototype.createUndoManager = function()
 	var undoHandler = function(sender, evt)
 	{
 		var cand = graph.getSelectionCellsForChanges(evt.getProperty('edit').changes);
+		var model = graph.getModel();
 		var cells = [];
 		
 		for (var i = 0; i < cand.length; i++)
 		{
-			if (graph.view.getState(cand[i]) != null)
+			if ((model.isVertex(cand[i]) || model.isEdge(cand[i])) && graph.view.getState(cand[i]) != null)
 			{
 				cells.push(cand[i]);
 			}

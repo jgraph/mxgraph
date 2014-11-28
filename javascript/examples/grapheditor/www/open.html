@@ -168,10 +168,12 @@
 			window.parent.mxUtils.br(div);
 			window.parent.mxUtils.br(div);
 			
-			div.appendChild(window.parent.mxUtils.button(window.parent.mxResources.get('cancel'), function()
+			var cancelBtn = window.parent.mxUtils.button(window.parent.mxResources.get('cancel'), function()
 			{
 				hideWindow(true);
-			}));
+			});
+			cancelBtn.className = 'geBtn';
+			div.appendChild(cancelBtn);
 			
 			document.body.appendChild(div);
 		}
@@ -208,8 +210,8 @@
 <td>
 </td>
 <td style="vertical-align:middle;text-align:right;white-space:nowrap;">
-<input type="button" id="cancelButton" value="Cancel" onclick="hideWindow(true);">
-<input type="submit" id="openButton" value="Open" disabled="disabled">
+<input type="button" id="cancelButton" class="geBtn" value="Cancel" onclick="hideWindow(true);">
+<input type="submit" id="openButton" class="geBtn gePrimaryBtn" value="Open" disabled="disabled">
 </td>
 </tr>
 </table>

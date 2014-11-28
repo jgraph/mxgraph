@@ -87,6 +87,13 @@ mxShape.prototype.dialect = null;
 mxShape.prototype.scale = 1;
 
 /**
+ * Variable: antiAlias
+ * 
+ * Rendering hint for configuring the canvas.
+ */
+mxShape.prototype.antiAlias = true;
+
+/**
  * Variable: bounds
  *
  * Holds the <mxRectangle> that specifies the bounds of this shape.
@@ -555,6 +562,15 @@ mxShape.prototype.createSvgCanvas = function()
 		this.node.removeAttribute('transform');
 	}
 	
+	if (!this.antiAlias)
+	{
+		// Rounds all numbers in the SVG output to integers
+		canvas.format = function(value)
+		{
+			return Math.round(parseFloat(value));
+		};
+	}
+	
 	return canvas;
 };
 
@@ -637,7 +653,7 @@ mxShape.prototype.updateHtmlFilters = function(node)
 			'Color=\'' + mxConstants.SHADOWCOLOR + '\')';
 	}
 	
-	if (this.gradient)
+	if (this.fill != null && this.fill != mxConstants.NONE && this.gradient && this.gradient != mxConstants.NONE)
 	{
 		var start = this.fill;
 		var end = this.gradient;
@@ -891,8 +907,8 @@ mxShape.prototype.configureCanvas = function(c, x, y, w, h)
 	{
 		c.setDashPattern(dash);
 	}
-	
-	if (this.gradient != null)
+
+	if (this.fill != null && this.fill != mxConstants.NONE && this.gradient && this.gradient != mxConstants.NONE)
 	{
 		var b = this.getGradientBounds(c, x, y, w, h);
 		c.setGradient(this.fill, this.gradient, b.x, b.y, b.width, b.height, this.gradientDirection);
@@ -1173,17 +1189,17 @@ mxShape.prototype.apply = function(state)
 		this.isRounded = mxUtils.getValue(this.style, mxConstants.STYLE_ROUNDED, this.isRounded) == 1;
 		this.glass = mxUtils.getValue(this.style, mxConstants.STYLE_GLASS, this.glass) == 1;
 		
-		if (this.fill == 'none')
+		if (this.fill == mxConstants.NONE)
 		{
 			this.fill = null;
 		}
 
-		if (this.gradient == 'none')
+		if (this.gradient == mxConstants.NONE)
 		{
 			this.gradient = null;
 		}
 
-		if (this.stroke == 'none')
+		if (this.stroke == mxConstants.NONE)
 		{
 			this.stroke = null;
 		}
@@ -1264,12 +1280,7 @@ mxShape.prototype.createBoundingBox = function()
 	if ((this.stencil != null && (this.direction == mxConstants.DIRECTION_NORTH ||
 		this.direction == mxConstants.DIRECTION_SOUTH)) || this.isPaintBoundsInverted())
 	{
-		var t = (bb.width - bb.height) / 2;
-		bb.x += t;
-		bb.y -= t;
-		var tmp = bb.width;
-		bb.width = bb.height;
-		bb.height = tmp;
+		bb.rotate90();
 	}
 	
 	return bb;

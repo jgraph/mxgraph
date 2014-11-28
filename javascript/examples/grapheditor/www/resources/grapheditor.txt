@@ -61,6 +61,7 @@ decreaseIndent=Descrease indent
 delete=Delete
 deleteColumn=Delete column
 deleteRow=Delete row
+diagram=Diagram
 diamond=Diamond
 diamondThin=Diamond (thin)
 direction=Direction

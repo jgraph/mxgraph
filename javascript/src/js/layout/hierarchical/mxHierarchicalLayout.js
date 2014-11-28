@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2005-2012, JGraph Ltd
+ * Copyright (c) 2005-2014, JGraph Ltd
  */
 /**
  * Class: mxHierarchicalLayout
@@ -45,6 +45,15 @@ mxHierarchicalLayout.prototype.roots = null;
  * contains all the child cells. Default is false. See also <parentBorder>.
  */
 mxHierarchicalLayout.prototype.resizeParent = false;
+
+/**
+ * Variable: maintainParentLocation
+ * 
+ * Specifies if the parent location should be maintained, so that the
+ * top, left corner stays the same before and after execution of
+ * the layout. Default is false for backwards compatibility.
+ */
+mxCompactTreeLayout.prototype.maintainParentLocation = false;
 
 /**
  * Variable: moveParent
@@ -206,7 +215,22 @@ mxHierarchicalLayout.prototype.execute = function(parent, roots)
 		// TODO indicate the problem
 		return;
 	}
-
+	
+	//  Maintaining parent location
+	this.parentX = null;
+	this.parentY = null;
+	
+	if (parent != this.root && model.isVertex(parent) != null && this.maintainParentLocation)
+	{
+		var geo = this.graph.getCellGeometry(parent);
+		
+		if (geo != null)
+		{
+			this.parentX = geo.x;
+			this.parentY = geo.y;
+		}
+	}
+	
 	if (roots != null)
 	{
 		var rootsCopy = [];
@@ -229,11 +253,23 @@ mxHierarchicalLayout.prototype.execute = function(parent, roots)
 	{
 		this.run(parent);
 		
-		if (this.resizeParent &&
-			!this.graph.isCellCollapsed(parent))
+		if (this.resizeParent && !this.graph.isCellCollapsed(parent))
 		{
-			this.graph.updateGroupBounds([parent],
-				this.parentBorder, this.moveParent);
+			this.graph.updateGroupBounds([parent], this.parentBorder, this.moveParent);
+		}
+		
+		// Maintaining parent location
+		if (this.parentX != null && this.parentY != null)
+		{
+			var geo = this.graph.getCellGeometry(parent);
+			
+			if (geo != null)
+			{
+				geo = geo.clone();
+				geo.x = this.parentX;
+				geo.y = this.parentY;
+				model.setGeometry(parent, geo);
+			}
 		}
 	}
 	finally
@@ -407,12 +443,15 @@ mxHierarchicalLayout.prototype.getVisibleTerminal = function(edge, source)
 		terminal = (state != null) ? state.getVisibleTerminal(source) : this.graph.view.getVisibleTerminal(edge, source);
 	}
 
-	if (this.isPort(terminal))
+	if (terminal != null)
 	{
-		terminal = this.graph.model.getParent(terminal);
+		if (this.isPort(terminal))
+		{
+			terminal = this.graph.model.getParent(terminal);
+		}
+		
+		terminalCache.put(edge, terminal);
 	}
-	
-	terminalCache.put(edge, terminal);
 
 	return terminal;
 };

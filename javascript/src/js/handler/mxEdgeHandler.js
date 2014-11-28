@@ -659,7 +659,7 @@ mxEdgeHandler.prototype.createLabelHandleShape = function()
 {
 	if (this.labelHandleImage != null)
 	{
-		var shape = new mxImageShape(new mxRectangle(0, 0, this.labelHandleImage.width, this.handleImage.height), this.labelHandleImage.src);
+		var shape = new mxImageShape(new mxRectangle(0, 0, this.labelHandleImage.width, this.labelHandleImage.height), this.labelHandleImage.src);
 		
 		// Allows HTML rendering of the images
 		shape.preserveImageAspect = false;
@@ -728,7 +728,8 @@ mxEdgeHandler.prototype.getHandleForEvent = function(me)
 	var hit = (this.allowHandleBoundsCheck && (mxClient.IS_IE || tol > 0)) ?
 		new mxRectangle(me.getGraphX() - tol, me.getGraphY() - tol, 2 * tol, 2 * tol) : null;
 	var minDistSq = null;
-	
+	var result = null;
+
 	function checkShape(shape)
 	{
 		if (shape != null && shape.node.style.display != 'none' && shape.node.style.visibility != 'hidden' &&
@@ -751,7 +752,7 @@ mxEdgeHandler.prototype.getHandleForEvent = function(me)
 
 	if (me.isSource(this.state.text) || checkShape(this.labelShape))
 	{
-		return mxEvent.LABEL_HANDLE;
+		result = mxEvent.LABEL_HANDLE;
 	}
 	
 	if (this.bends != null)
@@ -760,7 +761,7 @@ mxEdgeHandler.prototype.getHandleForEvent = function(me)
 		{
 			if (checkShape(this.bends[i]))
 			{
-				return i;
+				result = i;
 			}
 		}
 	}
@@ -771,12 +772,12 @@ mxEdgeHandler.prototype.getHandleForEvent = function(me)
 		{
 			if (checkShape(this.virtualBends[i]))
 			{
-				return mxEvent.CUSTOM_HANDLE - i;
+				result = mxEvent.CUSTOM_HANDLE - i;
 			}
 		}
 	}
 
-	return null;
+	return result;
 };
 
 /**
@@ -790,21 +791,12 @@ mxEdgeHandler.prototype.getHandleForEvent = function(me)
  */
 mxEdgeHandler.prototype.mouseDown = function(sender, me)
 {
-	var handle = null;
+	var handle = this.getHandleForEvent(me);
 	
-	// Handles the case where the state in the event points to another
-	// cell if the cell has a HTML label which sits on top of the handles
-	// NOTE: Commented out. This should not be required as all HTML labels
-	// are in order an do not appear behind the handles.
-	//if (mxClient.IS_SVG || me.getState() == this.state)
+	if (this.bends != null && this.bends[handle] != null)
 	{
-		handle = this.getHandleForEvent(me);
-		
-		if (this.bends != null && this.bends[handle] != null)
-		{
-			var b = this.bends[handle].bounds;
-			this.snapPoint = new mxPoint(b.getCenterX(), b.getCenterY());
-		}
+		var b = this.bends[handle].bounds;
+		this.snapPoint = new mxPoint(b.getCenterX(), b.getCenterY());
 	}
 	
 	if (this.addEnabled && handle == null && this.isAddPointEvent(me.getEvent()))
@@ -1182,6 +1174,9 @@ mxEdgeHandler.prototype.updatePreviewState = function(edge, point, terminalState
 	{
 		targetConstraint = constraint;
 	}
+	
+	edge.setVisibleTerminalState(sourceState, true);
+	edge.setVisibleTerminalState(targetState, false);
 	
 	if (!this.isSource || sourceState != null)
 	{

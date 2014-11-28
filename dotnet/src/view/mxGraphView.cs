@@ -1042,7 +1042,7 @@ namespace com.mxgraph
             List<mxPoint> pts = edge.AbsolutePoints;
             mxPoint point = null;
 
-            if (pts != null && (source || pts.Count > 2 || opposite == null))
+            if (pts != null && pts.Count >= 2)
             {
                 int count = pts.Count;
                 int index = (source) ? Math.Min(1, count - 1) : Math.Max(0, count - 2);

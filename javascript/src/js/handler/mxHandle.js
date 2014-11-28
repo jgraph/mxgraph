@@ -91,8 +91,8 @@ mxHandle.prototype.processEvent = function(me)
 	// Center shape on mouse cursor
 	if (this.shape != null && this.shape.bounds != null)
 	{
-		pt.x -= this.shape.bounds.width / 4;
-		pt.y -= this.shape.bounds.height / 4;
+		pt.x -= this.shape.bounds.width / scale / 4;
+		pt.y -= this.shape.bounds.height / scale / 4;
 	}
 
 	// Snaps to grid for the rotated position then applies the rotation for the direction after that

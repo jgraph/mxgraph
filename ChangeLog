@@ -1,3 +1,63 @@
+28-NOV-2014: 3.1.2.0
+
+- Changes background color of sidebar to white in grapheditor
+- Fixes autosize in mxCellEditor for IE11 [JavaScript]
+- mxCellEditor.resize no longer ignores labelWidth style [JavaScript]
+- Uses text bounding box for edge label cells in grapheditor
+- Uses state position in handle for vertex with size 1 or 0 [JavaScript]
+- Moves cellsInserted event from EditorUi to Graph in grapheditor
+- Undo in text editor stops editing after last change in grapheditor
+- Fixes focus rectangle for edge label editing in IE in grapheditor
+- Fixes gradients with no fill color in mxShape for VML [JavaScript]
+- Fixes autoscroll after click on scrollbar in IE11 [JavaScript]
+- Uses Helvetica Neue as default CSS font family in grapheditor
+- Adds mxVertexHandler.isRotationHandleVisible, fixes possible NPEs [JavaScript]
+- mxCellEditor.resize ignores wrapping for cells with size 1 or 0 [JavaScript]
+- No longer replaces spaces with &nbsp; in mxCellEditor.resize
+- Adds nl2Br style to disable conversion of linefeeds in grapheditor
+- Hides handles for editing cell in grapheditor
+- Automatically removes empty edge labels in grapheditor
+- Double click on edge adds new label in grapheditor
+- Adds mxCellRenderer.antiAlias, mxShape.antiAlias switches [JavaScript]
+- Rounds all numbers in mxSvgCanvas2D to 2 decimal points [JavaScript]
+- Fixes dangling edge handling in mxHierarchicalLayout.getVisibleTerminal [JavaScript]
+- Fixes jetty positioning for South and East hierarchical orientation [JavaScript]
+- Uses helper method in mxShape.createBoundingBox [JavaScript]
+- Fixes italic rich text editing in grapheditor
+- Fixes handling of XHTML entities in mxSvgCanvas2D.createDiv [JavaScript]
+- Fixes HTML source mode editor size in grapheditor [JavaScript]
+- Fixes possible NPE in mxEdgeSegmentHandler.start [JavaScript]
+- Fixes bug in mxCellEditor.resize for edge labels [JavaScript]
+- Fixes handling of special cases in mxEdgeStyle.SegmentConnector, mxEdgeSegmentHandler [JavaScript]
+- Allows for fixed points in mxGraphView.getNextPoint [Java,JavaScript,Dotnet,Php]
+- Adds CSS styles for all buttons in grapheditor
+- Click on background closes modal dialogs, makes color dialogs closable in grapheditor
+- Adds mxCellEditor.minResize [JavaScript]
+- Fixes rendering of glass effect for mxRectangleShape in outline mode [JavaScript]
+- Fixes scrollbars.html example in FF [JavaScript]
+- Fixes rounding errors, intersecting points in mxEdgeStyle.SegmentConnector [JavaScript]
+- Uses nearest instead of first handle in mxEdgeHandler.getHandleForEvent [JavaScript]
+- Updates visible terminal state for preview in mxEdgeHandler.updatePreviewState [JavaScript]
+- Adds alt-wheel zoom, chromeless mode, page view, infinite canvas in grapheditor [JavaScript]
+- Adds mxCellRenderer.legacySpacing for spacing with overflow fill/width [JavaScript]
+- Fixes top-/leftSpacing in mxCellEditor.resize [JavaScript]
+- Fixes special label bounds in mxCellEditor.getEditorBounds for overflow=fill [JavaScript]
+- Fixes width in mxCellEditor.resize if word wrapping is enabled [JavaScript]
+- Adds mouse event argument in mxConstraintHandler.getTolerance [JavaScript]
+- Uses nearest instead of first point in mxConstraintHandler.update [JavaScript]
+- Fixes ignored scale for handle center in mxHandle.processEvent [JavaScript]
+- Fixes tooltip, dblclick for mxEdgeSegmentHandler bends [JavaScript]
+- Adds dblClickHandler argument in mxElbowEdgeHandler.createVirtualBend [JavaScript]
+- Adds data store, activity markers and task types in BPMN sidebar
+- Fixes possible NPE in mxGraph.constrainChild [JavaScript]
+- mxGraph.getBoundsForGroup no longer ignores child edges [JavaScript]
+- Uses mxGraph.updateGroupBounds in mxGraphLayout.arrangeGroups [JavaScript]
+- Inverts cells order, adds child edges in mxGraph.updateGroupBounds [JavaScript]
+- Fixes mxGraph.getConnectionPoint for direction=north [JavaScript]
+- Adds mxCompactTreeLayout, mxHierarchicalLayout.maintainParentLocation switch [JavaScript]
+- Increments version number to reflect API changes [JavaScript]
+- Fixes merging of 2 segments in mxEdgeSegmentHandler [JavaScript]
+
 10-NOV-2014: 3.1.1.1
 
 - Fixes ignored fixed aspect style in mxGraph.scaleCell [JavaScript]
@@ -32,12 +92,12 @@
 - Adds mxCompactTreeLayout.groupPaddingTop, -Right, -Bottom and -Left [JavaScript]
 - Adds top-, right-, bottom- and leftBorder in mxGraphLayout.arrangeGroups [JavaScript]
 - Fixes ID attributes in SVG for URLs with brackets [JavaScript]
-- Fixes text and image rendering in mxStencil in outline mode [JavaScript]
+- Fixes text and image rendering for mxStencil in outline mode [JavaScript]
 - Fixes tolerance check in mxPopupMenuHandler for touch events [JavaScript]
 
 30-OCT-2014: 3.1.1.0
 
-- Adds workarond for limited number of stylesheets in quirks mode [JavaScript]
+- Adds workaround for limited number of stylesheets in quirks mode [JavaScript]
 - Adds bends argument in mxEdgeHandler.destroyBends [JavaScript]
 - Adds mxEdgeHandler.mergeRemoveEnabled, dblClickRemoveEnabled [JavaScript]
 - Adds mxEdgeHandler.virtualBendsEnabled and getter, createVirtualBends [JavaScript]

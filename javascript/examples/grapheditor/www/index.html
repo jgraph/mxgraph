@@ -31,6 +31,7 @@
 		// - lang=xy: Specifies the language of the user interface.
 		// - touch=1: Enables a touch-style user interface.
 		// - storage=local: Enables HTML5 local storage.
+		// - chrome=0: Chromeless mode.
 		var urlParams = (function(url)
 		{
 			var result = new Object();
@@ -107,7 +108,7 @@
 			};
 		})();
 	
-		new EditorUi(new Editor());
+		new EditorUi(new Editor(urlParams['chrome'] == '0'));
 	</script>
 </body>
 </html>

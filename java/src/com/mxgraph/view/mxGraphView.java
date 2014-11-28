@@ -11,7 +11,6 @@ import java.util.Map;
 
 import com.mxgraph.model.mxGeometry;
 import com.mxgraph.model.mxGraphModel;
-import com.mxgraph.model.mxICell;
 import com.mxgraph.model.mxIGraphModel;
 import com.mxgraph.util.mxConstants;
 import com.mxgraph.util.mxEvent;
@@ -1460,7 +1459,7 @@ public class mxGraphView extends mxEventSource
 		List<mxPoint> pts = edge.getAbsolutePoints();
 		mxPoint point = null;
 
-		if (pts != null && (source || pts.size() > 2 || opposite == null))
+		if (pts != null && pts.size() >= 2)
 		{
 			int count = pts.size();
 			int index = (source) ? Math.min(1, count - 1) : Math.max(0,

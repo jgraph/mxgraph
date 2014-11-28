@@ -74,7 +74,7 @@ mxRectangleShape.prototype.paintBackground = function(c, x, y, w, h)
  */
 mxRectangleShape.prototype.paintForeground = function(c, x, y, w, h)
 {
-	if (this.glass)
+	if (this.glass && !this.outline)
 	{
 		this.paintGlassEffect(c, x, y, w, h, this.getArcSize(w + this.strokewidth, h + this.strokewidth));
 	}

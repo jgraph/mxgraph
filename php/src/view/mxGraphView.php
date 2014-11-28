@@ -1099,7 +1099,7 @@ class mxGraphView extends mxEventSource
 		$pts = $edge->absolutePoints;
 		$point = null;
 		
-		if ($pts != null && ($source || sizeof($pts) > 2 || !isset($opposite)))
+		if ($pts != null && sizeof($pts) >= 2)
 		{
 			$count = sizeof($pts);
 			$index = ($source) ? min(1, $count - 1) : max(0, $count - 2);

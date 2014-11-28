@@ -453,55 +453,9 @@ mxGraphLayout.prototype.getVertexBounds = function(cell)
 /**
  * Function: arrangeGroups
  * 
- * Updates the bounds of the given groups to include all children. Call
- * this with the groups in parent to child order, top-most group first, eg.
- * 
- * arrangeGroups(graph, mxUtils.sortCells(Arrays.asList(
- *   new Object[] { v1, v3 }), true).toArray(), 10);
+ * Shortcut to <mxGraph.updateGroupBounds> with moveGroup set to true.
  */
-mxGraphLayout.prototype.arrangeGroups = function(groups, border, topBorder, rightBorder, bottomBorder, leftBorder)
+mxGraphLayout.prototype.arrangeGroups = function(cells, border, topBorder, rightBorder, bottomBorder, leftBorder)
 {
-	border = (border != null) ? border : 0;
-	topBorder = (topBorder != null) ? topBorder : 0;
-	rightBorder = (rightBorder != null) ? rightBorder : 0;
-	bottomBorder = (bottomBorder != null) ? bottomBorder : 0;
-	leftBorder = (leftBorder != null) ? leftBorder : 0;
-	
-	this.graph.getModel().beginUpdate();
-	try
-	{
-		for (var i = groups.length - 1; i >= 0; i--)
-		{
-			var group = groups[i];
-			var children = this.graph.getChildVertices(group);
-			var bounds = this.graph.getBoundingBoxFromGeometry(children);
-			var geometry = this.graph.getCellGeometry(group);
-			var left = 0;
-			var top = 0;
-
-			// Adds the size of the title area for swimlanes
-			if (this.graph.isSwimlane(group))
-			{
-				var size = this.graph.getStartSize(group);
-				left = size.width;
-				top = size.height;
-			}
-
-			if (bounds != null && geometry != null)
-			{
-				geometry = geometry.clone();
-				geometry.x = geometry.x + bounds.x - border - left - leftBorder;
-				geometry.y = geometry.y + bounds.y - border - top - topBorder;
-				geometry.width = bounds.width + 2 * border + left + leftBorder + rightBorder;
-				geometry.height = bounds.height + 2 * border + top + topBorder + bottomBorder;
-				this.graph.getModel().setGeometry(group, geometry);
-				this.graph.moveCells(children, border + left - bounds.x + leftBorder,
-						border + top - bounds.y + topBorder);
-			}
-		}
-	}
-	finally
-	{
-		this.graph.getModel().endUpdate();
-	}
+	return this.graph.updateGroupBounds(cells, border, true, topBorder, rightBorder, bottomBorder, leftBorder);
 };

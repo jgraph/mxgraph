@@ -74,12 +74,8 @@
 				// is aligned to the grid during the preview.
 				mxConnectionHandler.prototype.movePreviewAway = false;
 				
-				// Disables foreignObject support for Webkit because scrollbars in
-				// HTML labels do not work if x- or y-attribute of foreignObject != 0
-				// see http://code.google.com/p/chromium/issues/detail?id=35545
-				// also all HTML background is not visible if the vertex has a fill
-				// color in SVG, which in turn is required for a shadow in mxGraph
-				mxClient.NO_FO = mxClient.NO_FO || mxClient.IS_GC || mxClient.IS_SF;
+				// Disables foreignObjects
+				mxClient.NO_FO = true;
 
 				// Enables move preview in HTML to appear on top
 				mxGraphHandler.prototype.htmlPreview = true;

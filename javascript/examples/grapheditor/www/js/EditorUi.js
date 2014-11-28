@@ -21,6 +21,14 @@ EditorUi = function(editor, container)
 		new Image().src = mxConnectionHandler.prototype.connectImage.src;
 	}
 	
+	// Disables graph and forced panning in chromeless mode
+	if (this.editor.chromeless)
+	{
+		this.footerHeight = 0;
+		graph.isEnabled = function() { return false; };
+		graph.panningHandler.isForcePanningEvent = function() { return true; };
+	}
+	
     // Creates the user interface
 	this.actions = new Actions(this);
 	this.menus = new Menus(this);
@@ -55,6 +63,8 @@ EditorUi = function(editor, container)
 		this.diagramContainer.onmousedown = textEditing;
 		this.sidebarContainer.onselectstart = textEditing;
 		this.sidebarContainer.onmousedown = textEditing;
+		this.formatContainer.onselectstart = textEditing;
+		this.formatContainer.onmousedown = textEditing;
 		this.footerContainer.onselectstart = textEditing;
 		this.footerContainer.onmousedown = textEditing;
 	}
@@ -72,7 +82,7 @@ EditorUi = function(editor, container)
 
 	// Contains the main graph instance inside the given panel
 	graph.init(this.diagramContainer);
-	
+
 	var textMode = false;
 	var nodes = null;
 	
@@ -152,20 +162,6 @@ EditorUi = function(editor, container)
 	}
     
     graph.container.focus();
-   	
-	// Overrides double click handling to add the tolerance
-	var graphDblClick = graph.dblClick;
-	graph.dblClick = function(evt, cell)
-	{
-		if (cell == null)
-		{
-			var pt = mxUtils.convertPoint(this.container,
-				mxEvent.getClientX(evt), mxEvent.getClientY(evt));
-			cell = this.getCellAt(pt.x, pt.y);
-		}
-
-		graphDblClick.call(this, evt, cell);
-	};
 
    	// Keeps graph container focused on mouse down
    	var graphFireMouseEvent = graph.fireMouseEvent;
@@ -206,7 +202,7 @@ EditorUi = function(editor, container)
 	// Stores the current style and assigns it to new cells
 	// LATER: Update after copyStyle (handle defaults) and after menu Format, Style
 	var styles = ['shadow', 'dashed', 'dashPattern'];
-	var connectStyles = ['shape', 'edgeStyle', 'curved', 'rounded'];
+	var connectStyles = ['shape', 'edgeStyle', 'curved', 'rounded', 'elbow'];
 	
 	// Sets the default edge style
 	var currentEdgeStyle = {'edgeStyle': 'orthogonalEdgeStyle', 'rounded': '0', 'html': '1'};
@@ -400,7 +396,7 @@ EditorUi = function(editor, container)
 		}
 	};
 
-	this.addListener('cellsInserted', function(sender, evt)
+	graph.addListener('cellsInserted', function(sender, evt)
 	{
 		insertHandler(evt.getProperty('cells'));
 	});
@@ -435,6 +431,12 @@ EditorUi = function(editor, container)
 		if (currentEdgeStyle['rounded'] != null)
 		{
 			style += 'rounded=' + currentEdgeStyle['rounded'] + ';';
+		}
+		
+		// Special logic for custom property of elbowEdgeStyle
+		if (currentEdgeStyle['edgeStyle'] == 'elbowEdgeStyle' && currentEdgeStyle['elbow'] != null)
+		{
+			style += 'elbow=' + currentEdgeStyle['elbow'] + ';';
 		}
 		
 		if (currentEdgeStyle['html'] != null)
@@ -661,6 +663,11 @@ EditorUi.prototype.splitSize = (mxClient.IS_TOUCH || mxClient.IS_POINTER) ? 12 :
 EditorUi.prototype.menubarHeight = 30;
 
 /**
+ * Specifies the width of the format sidebar. Default is 0.
+ */
+EditorUi.prototype.formatWidth = 0;
+
+/**
  * Specifies the height of the toolbar. Default is 36.
  */
 EditorUi.prototype.toolbarHeight = 34;
@@ -676,7 +683,7 @@ EditorUi.prototype.footerHeight = 28;
 EditorUi.prototype.sidebarFooterHeight = 34;
 
 /**
- * Specifies the height of the horizontal split bar. Default is 212.
+ * Specifies the height of the horizontal split bar. Default is 204.
  */
 EditorUi.prototype.hsplitPosition = 204;
 
@@ -700,7 +707,15 @@ EditorUi.prototype.init = function()
 	}));
 	
 	this.updateActionStates();
-	
+	this.initClipboard();
+	this.initCanvas();
+};
+
+/**
+ * Hook for allowing selection and context menu for certain events.
+ */
+EditorUi.prototype.initClipboard = function()
+{
 	// Overrides clipboard to update paste action state
 	var paste = this.actions.get('paste');
 	
@@ -775,11 +790,251 @@ EditorUi.prototype.init = function()
 };
 
 /**
+ * Initializes the infinite canvas.
+ */
+EditorUi.prototype.initCanvas = function()
+{
+	var graph = this.editor.graph;
+
+	// Initial page layout view, scrollBuffer and timer-based scrolling
+	var graph = this.editor.graph;
+	graph.timerAutoScroll = true;
+	
+	/**
+	 * Specifies the size of the size for "tiles" to be used for a graph with
+	 * scrollbars but no visible background page. A good value is large
+	 * enough to reduce the number of repaints that is caused for auto-
+	 * translation, which depends on this value, and small enough to give
+	 * a small empty buffer around the graph. Default is 400x400.
+	 */
+	graph.scrollTileSize = new mxRectangle(0, 0, 400, 400);
+	
+	/**
+	 * Returns the padding for pages in page view with scrollbars.
+	 */
+	graph.getPagePadding = function()
+	{
+		return new mxPoint(Math.max(0, Math.round(graph.container.offsetWidth - 34)),
+				Math.max(0, Math.round(graph.container.offsetHeight - 34)));
+	};
+	
+	/**
+	 * Returns the size of the page format scaled with the page size.
+	 */
+	graph.getPageSize = function()
+	{
+		return (this.pageVisible) ? new mxRectangle(0, 0, this.pageFormat.width * this.pageScale,
+				this.pageFormat.height * this.pageScale) : this.scrollTileSize;
+	};
+	
+	/**
+	 * Returns a rectangle describing the position and count of the
+	 * background pages, where x and y are the position of the top,
+	 * left page and width and height are the vertical and horizontal
+	 * page count.
+	 */
+	graph.getPageLayout = function()
+	{
+		var size = (this.pageVisible) ? this.getPageSize() : this.scrollTileSize;
+		var bounds = this.getGraphBounds();
+
+		if (bounds.width == 0 || bounds.height == 0)
+		{
+			return new mxRectangle(0, 0, 1, 1);
+		}
+		else
+		{
+			// Computes untransformed graph bounds
+			var x = Math.ceil(bounds.x / this.view.scale - this.view.translate.x);
+			var y = Math.ceil(bounds.y / this.view.scale - this.view.translate.y);
+			var w = Math.floor(bounds.width / this.view.scale);
+			var h = Math.floor(bounds.height / this.view.scale);
+			
+			var x0 = Math.floor(x / size.width);
+			var y0 = Math.floor(y / size.height);
+			var w0 = Math.ceil((x + w) / size.width) - x0;
+			var h0 = Math.ceil((y + h) / size.height) - y0;
+			
+			return new mxRectangle(x0, y0, w0, h0);
+		}
+	};
+
+	// Fits the number of background pages to the graph
+	graph.view.getBackgroundPageBounds = function()
+	{
+		var layout = this.graph.getPageLayout();
+		var page = this.graph.getPageSize();
+		
+		return new mxRectangle(this.scale * (this.translate.x + layout.x * page.width),
+				this.scale * (this.translate.y + layout.y * page.height),
+				this.scale * layout.width * page.width,
+				this.scale * layout.height * page.height);
+	};
+	
+	// Scales pages/graph to fit available size
+	var resize = null;
+	
+	if (this.editor.chromeless)
+	{
+		resize = mxUtils.bind(this, function(autoscale)
+	   	{
+			if (graph.container != null)
+			{
+				var tr = graph.view.translate;
+				var s = graph.view.scale;
+				var bounds = (graph.pageVisible) ? graph.view.getBackgroundPageBounds() : graph.getGraphBounds();
+				var pw = bounds.width;
+				var ph = bounds.height;
+				
+				var st = graph.container.scrollTop;
+				var sl = graph.container.scrollLeft;
+				var cw = graph.container.clientWidth - 10;
+				var ch = graph.container.clientHeight - 10;
+				
+				var scale = (autoscale) ? Math.max(0.3, Math.min(1, cw / pw * s)) : s;
+				graph.view.scaleAndTranslate(scale, Math.max(0, (cw - pw / ((autoscale) ? s : 1)) / 2 / s) - bounds.x / s + tr.x,
+						Math.max(0, (ch - ph / ((autoscale) ? s : 1)) / 4 / s) - bounds.y / s + tr.y);
+				
+				graph.container.scrollTop = st;
+				graph.container.scrollLeft = sl;
+			}
+	   	});
+		
+	   	mxEvent.addListener(window, 'resize', mxUtils.bind(this, function()
+	   	{
+	   		resize(false);
+	   	}));
+	   	
+		this.editor.addListener('resetGraphView', mxUtils.bind(this, function()
+		{
+			resize(true);
+		}));
+	   	
+	   	// TODO: Chromeless mode should work with getPreferredPageSize
+	   	// below but there is a clipping issue
+		graph.getPreferredPageSize = function(bounds, width, height)
+		{
+			var pages = this.getPageLayout();
+			var size = this.getPageSize();
+			var s = this.view.scale;
+			
+			return new mxRectangle(0, 0, pages.width * size.width * s, pages.height * size.height * s);
+		};
+	}
+	else if (this.editor.extendCanvas)
+	{
+		graph.getPreferredPageSize = function(bounds, width, height)
+		{
+			var pages = this.getPageLayout();
+			var size = this.getPageSize();
+			
+			return new mxRectangle(0, 0, pages.width * size.width, pages.height * size.height);
+		};
+
+		/**
+		 * Guesses autoTranslate to avoid another repaint (see below).
+		 * Works if only the scale of the graph changes or if pages
+		 * are visible and the visible pages do not change.
+		 */
+		var graphViewValidate = graph.view.validate;
+		graph.view.validate = function()
+		{
+			if (this.graph.container != null && mxUtils.hasScrollbars(this.graph.container))
+			{
+				var pad = this.graph.getPagePadding();
+				var size = this.graph.getPageSize();
+				
+				// Updating scrollbars here causes flickering in quirks and is not needed
+				// if zoom method is always used to set the current scale on the graph.
+				var tx = this.translate.x;
+				var ty = this.translate.y;
+				this.translate.x = pad.x / this.scale - (this.x0 || 0) * size.width;
+				this.translate.y = pad.y / this.scale - (this.y0 || 0) * size.height;
+			}
+			
+			graphViewValidate.apply(this, arguments);
+		};
+		
+		var graphSizeDidChange = graph.sizeDidChange;
+		graph.sizeDidChange = function()
+		{
+			if (this.container != null && mxUtils.hasScrollbars(this.container))
+			{
+				var pages = this.getPageLayout();
+				var pad = this.getPagePadding();
+				var size = this.getPageSize();
+				
+				// Updates the minimum graph size
+				var minw = Math.ceil(2 * pad.x / this.view.scale + pages.width * size.width);
+				var minh = Math.ceil(2 * pad.y / this.view.scale + pages.height * size.height);
+				
+				var min = graph.minimumGraphSize;
+				
+				// LATER: Fix flicker of scrollbar size in IE quirks mode
+				// after delayed call in window.resize event handler
+				if (min == null || min.width != minw || min.height != minh)
+				{
+					graph.minimumGraphSize = new mxRectangle(0, 0, minw, minh);
+				}
+				
+				// Updates auto-translate to include padding and graph size
+				var dx = pad.x / this.view.scale - pages.x * size.width;
+				var dy = pad.y / this.view.scale - pages.y * size.height;
+				
+				if (!this.autoTranslate && (this.view.translate.x != dx || this.view.translate.y != dy))
+				{
+					this.autoTranslate = true;
+					this.view.x0 = pages.x;
+					this.view.y0 = pages.y;
+
+					// NOTE: THIS INVOKES THIS METHOD AGAIN. UNFORTUNATELY THERE IS NO WAY AROUND THIS SINCE THE
+					// BOUNDS ARE KNOWN AFTER THE VALIDATION AND SETTING THE TRANSLATE TRIGGERS A REVALIDATION.
+					// SHOULD MOVE TRANSLATE/SCALE TO VIEW.
+					var tx = graph.view.translate.x;
+					var ty = graph.view.translate.y;
+
+					graph.view.setTranslate(dx, dy);
+					graph.container.scrollLeft += (dx - tx) * graph.view.scale;
+					graph.container.scrollTop += (dy - ty) * graph.view.scale;
+
+					this.autoTranslate = false;
+					return;
+				}
+
+				graphSizeDidChange.apply(this, arguments);
+			}
+		};
+	}
+	
+	mxEvent.addMouseWheelListener(function(evt, up)
+	{
+		if (mxEvent.isAltDown(evt) || graph.panningHandler.isActive())
+		{
+			if (up)
+			{
+				graph.zoomIn();
+			}
+			else
+			{
+				graph.zoomOut();
+			}
+			
+			if (resize != null)
+			{
+				resize(false);
+			}
+
+			mxEvent.consume(evt);
+		}
+	});
+};
+
+/**
  * Hook for allowing selection and context menu for certain events.
  */
 EditorUi.prototype.isSelectionAllowed = function(evt)
 {
-	return mxEvent.getSource(evt).nodeName == 'SELECT';
+	return mxEvent.getSource(evt).nodeName == 'SELECT' || mxUtils.isAncestorNode(this.formatContainer, mxEvent.getSource(evt));
 };
 
 /**
@@ -894,7 +1149,14 @@ EditorUi.prototype.undo = function()
 {
 	if (this.editor.graph.cellEditor.isContentEditing())
 	{
+		// Stops editing if undo doesn't change anything in the editing value
+		var value = this.editor.graph.cellEditor.getCurrentValue();
 		document.execCommand('undo');
+		
+		if (value == this.editor.graph.cellEditor.getCurrentValue())
+		{
+			this.editor.graph.stopEditing(false);
+		}
 	}
 	else
 	{
@@ -1170,6 +1432,8 @@ EditorUi.prototype.refresh = function()
 	
 	this.sidebarContainer.style.top = tmp + 'px';
 	this.sidebarContainer.style.width = effHsplitPosition + 'px';
+	this.formatContainer.style.top = tmp + 'px';
+	this.formatContainer.style.width = this.formatWidth + 'px';
 	
 	this.diagramContainer.style.left = (this.hsplit.parentNode != null) ? (effHsplitPosition + this.splitSize) + 'px' : '0px';
 	this.diagramContainer.style.top = this.sidebarContainer.style.top;
@@ -1184,7 +1448,8 @@ EditorUi.prototype.refresh = function()
 		this.toolbarContainer.style.width = this.menubarContainer.style.width;
 		var sidebarHeight = Math.max(0, h - this.footerHeight - this.menubarHeight - this.toolbarHeight);
 		this.sidebarContainer.style.height = (sidebarHeight - sidebarFooterHeight) + 'px';
-		this.diagramContainer.style.width = (this.hsplit.parentNode != null) ? Math.max(0, w - effHsplitPosition - this.splitSize) + 'px' : w + 'px';
+		this.formatContainer.style.height = sidebarHeight + 'px';
+		this.diagramContainer.style.width = (this.hsplit.parentNode != null) ? Math.max(0, w - effHsplitPosition - this.splitSize - this.formatWidth) + 'px' : w + 'px';
 		var diagramHeight = Math.max(0, h - this.footerHeight - this.menubarHeight - this.toolbarHeight);
 		this.diagramContainer.style.height = diagramHeight + 'px';
 		this.footerContainer.style.width = this.menubarContainer.style.width;
@@ -1198,6 +1463,7 @@ EditorUi.prototype.refresh = function()
 		}
 		
 		this.sidebarContainer.style.bottom = (this.footerHeight + sidebarFooterHeight + off) + 'px';
+		this.formatContainer.style.bottom = (this.footerHeight + off) + 'px';
 		this.diagramContainer.style.bottom = (this.footerHeight + off) + 'px';
 	}
 	
@@ -1212,6 +1478,7 @@ EditorUi.prototype.createDivs = function()
 	this.menubarContainer = this.createDiv('geMenubarContainer');
 	this.toolbarContainer = this.createDiv('geToolbarContainer');
 	this.sidebarContainer = this.createDiv('geSidebarContainer');
+	this.formatContainer = this.createDiv('geSidebarContainer');
 	this.diagramContainer = this.createDiv('geDiagramContainer');
 	this.footerContainer = this.createDiv('geFooterContainer');
 	this.hsplit = this.createDiv('geHsplit');
@@ -1223,10 +1490,12 @@ EditorUi.prototype.createDivs = function()
 	this.toolbarContainer.style.left = '0px';
 	this.toolbarContainer.style.right = '0px';
 	this.sidebarContainer.style.left = '0px';
-	this.diagramContainer.style.right = '0px';
+	this.formatContainer.style.right = '0px';
+	this.diagramContainer.style.right = this.formatWidth + 'px';
 	this.footerContainer.style.left = '0px';
 	this.footerContainer.style.right = '0px';
 	this.footerContainer.style.bottom = '0px';
+	this.footerContainer.style.zIndex = mxPopupMenu.prototype.zIndex;
 	this.hsplit.style.width = this.splitSize + 'px';
 	
 	this.sidebarFooterContainer = this.createSidebarFooterContainer();
@@ -1251,7 +1520,7 @@ EditorUi.prototype.createSidebarFooterContainer = function()
 EditorUi.prototype.createUi = function()
 {
 	// Creates menubar
-	this.menubar = this.menus.createMenubar(this.createDiv('geMenubar'));
+	this.menubar = (this.editor.chromeless) ? null : this.menus.createMenubar(this.createDiv('geMenubar'));
 	
 	if (this.menubar != null)
 	{
@@ -1277,7 +1546,7 @@ EditorUi.prototype.createUi = function()
 	}
 
 	// Creates toolbar
-	this.toolbar = this.createToolbar(this.createDiv('geToolbar'));
+	this.toolbar = (this.editor.chromeless) ? null : this.createToolbar(this.createDiv('geToolbar'));
 	
 	if (this.toolbar != null)
 	{
@@ -1286,15 +1555,23 @@ EditorUi.prototype.createUi = function()
 	}
 
 	// Creates the sidebar
-	this.sidebar = this.createSidebar(this.sidebarContainer);
+	this.sidebar = (this.editor.chromeless) ? null : this.createSidebar(this.sidebarContainer);
 	
 	if (this.sidebar != null)
 	{
 		this.container.appendChild(this.sidebarContainer);
 	}
 	
+	// Creates the format sidebar
+	this.format = (this.editor.chromeless) ? null : this.createFormat(this.formatContainer);
+	
+	if (this.format != null)
+	{
+		this.container.appendChild(this.formatContainer);
+	}
+	
 	// Creates the footer
-	var footer = this.createFooter();
+	var footer = (this.editor.chromeless) ? null : this.createFooter();
 	
 	if (footer != null)
 	{
@@ -1355,6 +1632,14 @@ EditorUi.prototype.createToolbar = function(container)
 EditorUi.prototype.createSidebar = function(container)
 {
 	return new Sidebar(this, container);
+};
+
+/**
+ * Creates a new sidebar for the given container.
+ */
+EditorUi.prototype.createFormat = function(container)
+{
+	return null;// new Format(this, container);
 };
 
 /**

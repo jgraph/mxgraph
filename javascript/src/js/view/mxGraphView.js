@@ -1698,7 +1698,7 @@ mxGraphView.prototype.getNextPoint = function(edge, opposite, source)
 	var pts = edge.absolutePoints;
 	var point = null;
 	
-	if (pts != null && (source || pts.length > 2 || opposite == null))
+	if (pts != null && pts.length >= 2)
 	{
 		var count = pts.length;
 		point = pts[(source) ? Math.min(1, count - 1) : Math.max(0, count - 2)];
@@ -2425,9 +2425,8 @@ mxGraphView.prototype.installListeners = function()
 		mxEvent.addGestureListeners(container, mxUtils.bind(this, function(evt)
 		{
 			// Condition to avoid scrollbar events starting a rubberband selection
-			if (this.isContainerEvent(evt) && ((!mxClient.IS_IE && 
-				!mxClient.IS_GC && !mxClient.IS_OP && !mxClient.IS_SF) ||
-				!this.isScrollEvent(evt)))
+			if (this.isContainerEvent(evt) && ((!mxClient.IS_IE && !mxClient.IS_IE11 && !mxClient.IS_GC &&
+				!mxClient.IS_OP && !mxClient.IS_SF) || !this.isScrollEvent(evt)))
 			{
 				graph.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt));
 			}

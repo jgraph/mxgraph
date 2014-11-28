@@ -1281,7 +1281,7 @@ mxCoordinateAssignment.prototype.setCellLocations = function(graph, model)
 	for (var i = 0; i < model.ranks.length; i++)
 	{
 		this.rankTopY[i] = Number.MAX_VALUE;
-		this.rankBottomY[i] = 0.0;
+		this.rankBottomY[i] = -Number.MAX_VALUE;
 	}
 	
 	var parentsChanged = null;
@@ -1314,11 +1314,6 @@ mxCoordinateAssignment.prototype.setCellLocations = function(graph, model)
 		}
 	}
 	
-	if (this.layout.resizeParent && parentsChanged != null)
-	{
-		this.adjustParents(parentsChanged);
-	}
-	
 	// Post process edge styles. Needs the vertex locations set for initial
 	// values of the top and bottoms of each rank
 	if (this.edgeStyle == mxHierarchicalEdgeStyle.ORTHOGONAL
@@ -1333,6 +1328,11 @@ mxCoordinateAssignment.prototype.setCellLocations = function(graph, model)
 	for (var i = 0; i < edges.length; i++)
 	{
 		this.setEdgePosition(edges[i]);
+	}
+	
+	if (this.layout.resizeParent && parentsChanged != null)
+	{
+		this.adjustParents(parentsChanged);
 	}
 };
 
@@ -1539,12 +1539,13 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 
 		var source = cell.isReversed ? cell.target.cell : cell.source.cell;
 		var graph = this.layout.graph;
+		var layoutReversed = this.orientation == mxConstants.DIRECTION_EAST
+				|| this.orientation == mxConstants.DIRECTION_SOUTH;
 
 		for (var i = 0; i < cell.edges.length; i++)
 		{
 			var realEdge = cell.edges[i];
 			var realSource = this.layout.getVisibleTerminal(realEdge, true);
-			var modelSource = graph.model.getTerminal(realEdge, true);
 
 			//List oldPoints = graph.getPoints(realEdge);
 			var newPoints = [];
@@ -1562,15 +1563,17 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 				// treat if as reversed
 				reversed = !reversed;
 			}
-			
+
 			// First jetty of edge
 			if (jettys != null)
 			{
 				var arrayOffset = reversed ? 2 : 0;
-				var y = reversed ? this.rankTopY[minRank] : this.rankBottomY[maxRank];
+				var y = reversed ?
+						(layoutReversed ? this.rankBottomY[minRank] : this.rankTopY[minRank]) :
+							(layoutReversed ? this.rankTopY[maxRank] : this.rankBottomY[maxRank]);
 				var jetty = jettys[parallelEdgeCount * 4 + 1 + arrayOffset];
 				
-				if (reversed)
+				if (reversed != layoutReversed)
 				{
 					jetty = -jetty;
 				}
@@ -1669,10 +1672,12 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 			if (jettys != null)
 			{
 				var arrayOffset = reversed ? 2 : 0;
-				var rankY = reversed ? this.rankBottomY[maxRank] : this.rankTopY[minRank];
+				var rankY = reversed ?
+						(layoutReversed ? this.rankTopY[maxRank] : this.rankBottomY[maxRank]) :
+							(layoutReversed ? this.rankBottomY[minRank] : this.rankTopY[minRank]);
 				var jetty = jettys[parallelEdgeCount * 4 + 3 - arrayOffset];
 				
-				if (reversed)
+				if (reversed != layoutReversed)
 				{
 					jetty = -jetty;
 				}

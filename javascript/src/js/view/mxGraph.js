@@ -3830,7 +3830,7 @@ mxGraph.prototype.getCellsForGroup = function(cells)
  */
 mxGraph.prototype.getBoundsForGroup = function(group, children, border)
 {
-	var result = this.getBoundingBoxFromGeometry(children);
+	var result = this.getBoundingBoxFromGeometry(children, true);
 	
 	if (result != null)
 	{
@@ -3987,17 +3987,24 @@ mxGraph.prototype.removeCellsFromParent = function(cells)
 /**
  * Function: updateGroupBounds
  * 
- * Updates the bounds of the given array of groups so that it includes
- * all child vertices.
+ * Updates the bounds of the given groups to include all children and returns
+ * the passed-in cells. Call this with the groups in parent to child order,
+ * top-most group first, the cells are processed in reverse order and cells
+ * with no children are ignored.
  * 
  * Parameters:
  * 
- * cells - The groups whose bounds should be updated.
+ * cells - The groups whose bounds should be updated. If this is null, then
+ * the selection cells are used.
  * border - Optional border to be added in the group. Default is 0.
  * moveGroup - Optional boolean that allows the group to be moved. Default
  * is false.
+ * topBorder - Optional top border to be added in the group. Default is 0.
+ * rightBorder - Optional top border to be added in the group. Default is 0.
+ * bottomBorder - Optional top border to be added in the group. Default is 0.
+ * leftBorder - Optional top border to be added in the group. Default is 0.
  */
-mxGraph.prototype.updateGroupBounds = function(cells, border, moveGroup)
+mxGraph.prototype.updateGroupBounds = function(cells, border, moveGroup, topBorder, rightBorder, bottomBorder, leftBorder)
 {
 	if (cells == null)
 	{
@@ -4006,11 +4013,15 @@ mxGraph.prototype.updateGroupBounds = function(cells, border, moveGroup)
 	
 	border = (border != null) ? border : 0;
 	moveGroup = (moveGroup != null) ? moveGroup : false;
+	topBorder = (topBorder != null) ? topBorder : 0;
+	rightBorder = (rightBorder != null) ? rightBorder : 0;
+	bottomBorder = (bottomBorder != null) ? bottomBorder : 0;
+	leftBorder = (leftBorder != null) ? leftBorder : 0;
 
 	this.model.beginUpdate();
 	try
 	{
-		for (var i = 0; i < cells.length; i++)
+		for (var i = cells.length - 1; i >= 0; i--)
 		{
 			var geo = this.getCellGeometry(cells[i]);
 			
@@ -4020,27 +4031,35 @@ mxGraph.prototype.updateGroupBounds = function(cells, border, moveGroup)
 				
 				if (children != null && children.length > 0)
 				{
-					var childBounds = this.getBoundingBoxFromGeometry(children);
+					var bounds = this.getBoundingBoxFromGeometry(children, true);
 					
-					if (childBounds.width > 0 && childBounds.height > 0)
+					if (bounds != null && bounds.width > 0 && bounds.height > 0)
 					{
-						var size = (this.isSwimlane(cells[i])) ?
-								this.getStartSize(cells[i]) : new mxRectangle();
-
+						var left = 0;
+						var top = 0;
+						
+						// Adds the size of the title area for swimlanes
+						if (this.isSwimlane(cells[i]))
+						{
+							var size = this.getStartSize(cells[i]);
+							left = size.width;
+							top = size.height;
+						}
+						
 						geo = geo.clone();
 						
 						if (moveGroup)
 						{
-							geo.x += childBounds.x - size.width - border;
-							geo.y += childBounds.y - size.height - border;
+							geo.x = geo.x + bounds.x - border - left - leftBorder;
+							geo.y = geo.y + bounds.y - border - top - topBorder;
 						}
 						
-						geo.width = childBounds.width + size.width + 2 * border;
-						geo.height = childBounds.height + size.height + 2 * border;
+						geo.width = bounds.width + 2 * border + left + leftBorder + rightBorder;
+						geo.height = bounds.height + 2 * border + top + topBorder + bottomBorder;
 						
 						this.model.setGeometry(cells[i], geo);
-						this.moveCells(children, -childBounds.x + size.width + border,
-							-childBounds.y + size.height + border);
+						this.moveCells(children, border + left - bounds.x + leftBorder,
+								border + top - bounds.y + topBorder);
 					}
 				}
 			}
@@ -5924,27 +5943,31 @@ mxGraph.prototype.constrainChild = function(cell)
 				
 				// Includes max area to constrain child overlap
 				var areaUpdate = area == max;
-				max = mxRectangle.fromRectangle(max);
 				
-				// Max is relative to the parent origin
-				var parent = this.model.getParent(cell);
-				
-				while (this.model.isVertex(parent))
+				if (max != null)
 				{
-					var pgeo = this.getCellGeometry(parent);
+					max = mxRectangle.fromRectangle(max);
 					
-					if (pgeo != null)
+					// Max is relative to the parent origin
+					var parent = this.model.getParent(cell);
+					
+					while (this.model.isVertex(parent))
 					{
-						max.x -= pgeo.x;
-						max.y -= pgeo.y;
+						var pgeo = this.getCellGeometry(parent);
+						
+						if (pgeo != null)
+						{
+							max.x -= pgeo.x;
+							max.y -= pgeo.y;
+						}
+						
+						parent = this.model.getParent(parent);
 					}
-					
-					parent = this.model.getParent(parent);
-				}
-
-				if (areaUpdate)
-				{
-					area = max;
+	
+					if (areaUpdate)
+					{
+						area = max;
+					}
 				}
 				
 				var left = area.x - bbox.width * overlap;
@@ -5953,14 +5976,14 @@ mxGraph.prototype.constrainChild = function(cell)
 				var bottom = area.y + area.height + bbox.height * overlap;
 				
 				// Includes max area to constrain child overlap
-				if (area != max)
+				if (area != max && max != null)
 				{
 					left = Math.max(left, max.x);
 					top = Math.max(top, max.y);
 				}
 
 				// Keeps child within the content area of the parent
-				if (bbox.x < left || bbox.x + bbox.width > right || 
+				if (bbox.x < left || bbox.x + bbox.width > right ||
 					bbox.y < top || bbox.y + bbox.height > bottom)
 				{
 					geo = geo.clone();
@@ -5981,7 +6004,7 @@ mxGraph.prototype.constrainChild = function(cell)
 						var dy = top - bbox.y;
 						geo.y += dy;
 					}
-					else if (area.width > 0 && bbox.y + bbox.height > bottom)
+					else if (area.height > 0 && bbox.y + bbox.height > bottom)
 					{
 						var dy = bbox.y + bbox.height - bottom;
 						geo.y -= dy;
@@ -6302,11 +6325,10 @@ mxGraph.prototype.getConnectionPoint = function(vertex, constraint)
 {
 	var point = null;
 	
-	if (vertex != null)
+	if (vertex != null && constraint.point != null)
 	{
 		var bounds = this.view.getPerimeterBounds(vertex);
         var cx = new mxPoint(bounds.getCenterX(), bounds.getCenterY());
-
 		var direction = vertex.style[mxConstants.STYLE_DIRECTION];
 		var r1 = 0;
 		
@@ -6329,11 +6351,7 @@ mxGraph.prototype.getConnectionPoint = function(vertex, constraint)
 			// Bounds need to be rotated by 90 degrees for further computation
 			if (direction == mxConstants.DIRECTION_NORTH || direction == mxConstants.DIRECTION_SOUTH)
 			{
-				bounds.x += bounds.width / 2 - bounds.height / 2;
-				bounds.y += bounds.height / 2 - bounds.width / 2;
-				var tmp = bounds.width;
-				bounds.width = bounds.height;
-				bounds.height = tmp;
+				bounds.rotate90();
 			}
 		}
 
@@ -6357,7 +6375,7 @@ mxGraph.prototype.getConnectionPoint = function(vertex, constraint)
 					flipV = mxUtils.getValue(vertex.style, 'stencilFlipV', 0) == 1 || flipV;
 				}
 				
-				if (direction == 'north' || direction == 'south')
+				if (direction == mxConstants.DIRECTION_NORTH || direction == mxConstants.DIRECTION_SOUTH)
 				{
 					var tmp = flipH;
 					flipH = flipV;
@@ -6400,8 +6418,7 @@ mxGraph.prototype.getConnectionPoint = function(vertex, constraint)
 				{
 					cos = -1;
 				}
-				// This really is r2, not r1
-				else if (r2 == 270)
+				else if (r1 == 270)
 				{
 					sin = -1;
 				}

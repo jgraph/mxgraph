@@ -66,7 +66,14 @@ mxElbowEdgeHandler.prototype.doubleClickOrientationResource =
 	bends.push(bend);
 
 	// Virtual
-	bends.push(this.createVirtualBend());
+	bends.push(this.createVirtualBend(mxUtils.bind(this, function(evt)
+	{
+		if (!mxEvent.isConsumed(evt) && this.flipEnabled)
+		{
+			this.graph.flipEdge(this.state.cell, evt);
+			mxEvent.consume(evt);
+		}
+	})));
 	this.points.push(new mxPoint(0,0));
 
 	// Target
@@ -84,17 +91,10 @@ mxElbowEdgeHandler.prototype.doubleClickOrientationResource =
  * Creates a virtual bend that supports double clicking and calls
  * <mxGraph.flipEdge>.
  */
-mxElbowEdgeHandler.prototype.createVirtualBend = function()
+mxElbowEdgeHandler.prototype.createVirtualBend = function(dblClickHandler)
 {
 	var bend = this.createHandleShape();
-	this.initBend(bend, mxUtils.bind(this, function(evt)
-	{
-		if (!mxEvent.isConsumed(evt) && this.flipEnabled)
-		{
-			this.graph.flipEdge(this.state.cell, evt);
-			mxEvent.consume(evt);
-		}
-	}));
+	this.initBend(bend, dblClickHandler);
 
 	bend.setCursor(this.getCursorForBend());
 

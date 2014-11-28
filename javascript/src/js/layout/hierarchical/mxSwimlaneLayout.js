@@ -233,10 +233,9 @@ mxSwimlaneLayout.prototype.execute = function(parent, swimlanes)
 	{
 		this.run(parent);
 		
-		if (this.resizeParent && 
-			!this.graph.isCellCollapsed(parent))
+		if (this.resizeParent && !this.graph.isCellCollapsed(parent))
 		{
-			this.updateGroupBounds();
+			this.graph.updateGroupBounds([parent], this.parentBorder, this.moveParent);
 		}
 		
 		this.graph.removeCells(this.dummyVertices);

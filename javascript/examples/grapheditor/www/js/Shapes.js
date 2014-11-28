@@ -42,6 +42,91 @@
 	};
 
 	mxCellRenderer.prototype.defaultShapes['cube'] = CubeShape;
+	
+	// DataStore Shape, supports size style
+	function DataStoreShape()
+	{
+		mxCylinder.call(this);
+	};
+	mxUtils.extend(DataStoreShape, mxCylinder);
+
+	DataStoreShape.prototype.redrawPath = function(c, x, y, w, h, isForeground)
+	{
+		var dy = Math.min(h / 2, Math.round(h / 8) + this.strokewidth - 1);
+		
+		if ((isForeground && this.fill != null) || (!isForeground && this.fill == null))
+		{
+			c.moveTo(0, dy);
+			c.curveTo(0, 2 * dy, w, 2 * dy, w, dy);
+			
+			// Needs separate shapes for correct hit-detection
+			if (!isForeground)
+			{
+				c.stroke();
+				c.begin();
+			}
+			
+			c.translate(0, dy / 2);
+			c.moveTo(0, dy);
+			c.curveTo(0, 2 * dy, w, 2 * dy, w, dy);
+			
+			// Needs separate shapes for correct hit-detection
+			if (!isForeground)
+			{
+				c.stroke();
+				c.begin();
+			}
+			
+			c.translate(0, dy / 2);
+			c.moveTo(0, dy);
+			c.curveTo(0, 2 * dy, w, 2 * dy, w, dy);
+			
+			// Needs separate shapes for correct hit-detection
+			if (!isForeground)
+			{
+				c.stroke();
+				c.begin();
+			}
+			
+			c.translate(0, -dy);
+		}
+		
+		if (!isForeground)
+		{
+			c.moveTo(0, dy);
+			c.curveTo(0, -dy / 3, w, -dy / 3, w, dy);
+			c.lineTo(w, h - dy);
+			c.curveTo(w, h + dy / 3, 0, h + dy / 3, 0, h - dy);
+			c.close();
+		}
+	};
+	DataStoreShape.prototype.getLabelBounds = function(rect)
+	{
+		var dy = 2.5 * Math.min(rect.height / 2, Math.round(rect.height / 8) + this.strokewidth - 1);
+		
+		if (this.direction == null || this.direction == mxConstants.DIRECTION_EAST)
+		{
+			rect.y += dy;
+			rect.height -= dy;
+		}
+		else if (this.direction == mxConstants.DIRECTION_SOUTH)
+		{
+			rect.width -= dy;
+		}
+		if (this.direction == mxConstants.DIRECTION_WEST)
+		{
+			rect.height -= dy;
+		}
+		if (this.direction == mxConstants.DIRECTION_NORTH)
+		{
+			rect.x += dy;
+			rect.width -= dy;
+		}
+		
+		return rect;
+	};
+
+	mxCellRenderer.prototype.defaultShapes['datastore'] = DataStoreShape;
 
 	// Note Shape, supports size style
 	function NoteShape()

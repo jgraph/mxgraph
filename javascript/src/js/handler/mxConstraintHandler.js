@@ -111,9 +111,14 @@ mxConstraintHandler.prototype.reset = function()
 /**
  * Function: getTolerance
  * 
- * Returns the tolerance to be used for intersecting connection points.
+ * Returns the tolerance to be used for intersecting connection points. This
+ * implementation returns <mxGraph.tolerance>.
+ * 
+ * Parameters:
+ * 
+ * me - <mxMouseEvent> whose tolerance should be returned.
  */
-mxConstraintHandler.prototype.getTolerance = function()
+mxConstraintHandler.prototype.getTolerance = function(me)
 {
 	return this.graph.getTolerance();
 };
@@ -192,7 +197,7 @@ mxConstraintHandler.prototype.update = function(me, source)
 {
 	if (this.isEnabled() && !this.isEventIgnored(me))
 	{
-		var tol = this.getTolerance();
+		var tol = this.getTolerance(me);
 		var mouse = new mxRectangle(me.getGraphX() - tol, me.getGraphY() - tol, 2 * tol, 2 * tol);
 		var connectable = (me.getCell() != null) ? this.graph.isCellConnectable(me.getCell()) : false;
 
@@ -283,16 +288,22 @@ mxConstraintHandler.prototype.update = function(me, source)
 
 		this.currentConstraint = null;
 		this.currentPoint = null;
+		var minDistSq = null;
 		
 		if (this.focusIcons != null && this.constraints != null &&
 			(me.getState() == null || this.currentFocus == me.getState()))
 		{
 			for (var i = 0; i < this.focusIcons.length; i++)
 			{
-				if (mxUtils.intersects(this.focusIcons[i].bounds, mouse))
+				var dx = me.getGraphX() - this.focusIcons[i].bounds.getCenterX();
+				var dy = me.getGraphY() - this.focusIcons[i].bounds.getCenterY();
+				var tmp = dx * dx + dy * dy;
+				
+				if (mxUtils.intersects(this.focusIcons[i].bounds, mouse) && (minDistSq == null || tmp < minDistSq))
 				{
 					this.currentConstraint = this.constraints[i];
 					this.currentPoint = this.focusPoints[i];
+					minDistSq = tmp;
 					
 					var tmp = this.focusIcons[i].bounds.clone();
 					tmp.grow((mxClient.IS_IE) ? 3 : 2);
@@ -318,15 +329,13 @@ mxConstraintHandler.prototype.update = function(me, source)
 							return (this.currentFocus != null) ? this.currentFocus : me.getState();
 						});
 	
-						mxEvent.redirectMouseEvents(hl.node, this.graph, getState/*, mouseDown*/);
+						mxEvent.redirectMouseEvents(hl.node, this.graph, getState);
 					}
 					else
 					{
 						this.focusHighlight.bounds = tmp;
 						this.focusHighlight.redraw();
 					}
-					
-					break;
 				}
 			}
 		}

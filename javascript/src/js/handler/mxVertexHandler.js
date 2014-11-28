@@ -257,15 +257,13 @@ mxVertexHandler.prototype.init = function()
 			this.state.width < 2 && this.state.height < 2)
 		{
 			this.labelShape = this.createSizer(mxConstants.CURSOR_MOVABLE_VERTEX,
-				null, null, mxConstants.LABEL_HANDLE_FILLCOLOR);
+				mxEvent.LABEL_HANDLE, null, mxConstants.LABEL_HANDLE_FILLCOLOR);
 			this.sizers.push(this.labelShape);
 		}
 	}
 	
 	// Adds the rotation handler
-	if (this.graph.isEnabled() && this.rotationEnabled && this.graph.isCellRotatable(this.state.cell) &&
-		(mxGraphHandler.prototype.maxCells <= 0 || this.graph.getSelectionCount() < mxGraphHandler.prototype.maxCells) &&
-		this.state.width > 2 && this.state.height > 2)
+	if (this.isRotationHandleVisible())
 	{
 		this.rotationShape = this.createSizer(this.rotationCursor, mxEvent.ROTATION_HANDLE,
 			mxConstants.HANDLE_SIZE + 3, mxConstants.HANDLE_FILLCOLOR);
@@ -282,13 +280,15 @@ mxVertexHandler.prototype.init = function()
 };
 
 /**
- * Function: isConstrainedEvent
+ * Function: isRotationHandleVisible
  * 
- * Returns true if the aspect ratio if the cell should be maintained.
+ * Returns true if the rotation handle should be showing.
  */
-mxVertexHandler.prototype.createCustomHandles = function()
+mxVertexHandler.prototype.isRotationHandleVisible = function()
 {
-	return null;
+	return this.graph.isEnabled() && this.rotationEnabled && this.graph.isCellRotatable(this.state.cell) &&
+		(mxGraphHandler.prototype.maxCells <= 0 || this.graph.getSelectionCount() < mxGraphHandler.prototype.maxCells) &&
+		this.state.width >= 2 && this.state.height >= 2;
 };
 
 /**
@@ -299,6 +299,16 @@ mxVertexHandler.prototype.createCustomHandles = function()
 mxVertexHandler.prototype.isConstrainedEvent = function(me)
 {
 	return mxEvent.isShiftDown(me.getEvent()) || this.state.style[mxConstants.STYLE_ASPECT] == 'fixed';
+};
+
+/**
+ * Function: createCustomHandles
+ * 
+ * Returns true if the aspect ratio if the cell should be maintained.
+ */
+mxVertexHandler.prototype.createCustomHandles = function()
+{
+	return null;
 };
 
 /**
@@ -511,26 +521,11 @@ mxVertexHandler.prototype.getHandleForEvent = function(me)
 	var tol = (!mxEvent.isMouseEvent(me.getEvent())) ? this.tolerance : 1;
 	var hit = (this.allowHandleBoundsCheck && (mxClient.IS_IE || tol > 0)) ?
 		new mxRectangle(me.getGraphX() - tol, me.getGraphY() - tol, 2 * tol, 2 * tol) : null;
-	var minDistSq = null;
 	
 	function checkShape(shape)
 	{
-		if (shape != null && (me.isSource(shape) || (hit != null && mxUtils.intersects(shape.bounds, hit) &&
-			shape.node.style.display != 'none' && shape.node.style.visibility != 'hidden')))
-		{
-			var dx = me.getGraphX() - shape.bounds.getCenterX();
-			var dy = me.getGraphY() - shape.bounds.getCenterY();
-			var tmp = dx * dx + dy * dy;
-
-			if (minDistSq == null || tmp <= minDistSq)
-			{
-				minDistSq = tmp;
-			
-				return true;
-			}
-		}
-		
-		return false;
+		return shape != null && (me.isSource(shape) || (hit != null && mxUtils.intersects(shape.bounds, hit) &&
+			shape.node.style.display != 'none' && shape.node.style.visibility != 'hidden'));
 	}
 
 	if (this.customHandles != null)
@@ -1459,7 +1454,7 @@ mxVertexHandler.prototype.redrawHandles = function()
 
 	if (this.sizers != null)
 	{
-		if (this.index == null && this.manageSizers && this.sizers.length > 1)
+		if (this.index == null && this.manageSizers && this.sizers.length >= 8)
 		{
 			// KNOWN: Tolerance depends on event type (eg. 0 for mouse events)
 			var tol = this.tolerance;
@@ -1507,7 +1502,7 @@ mxVertexHandler.prototype.redrawHandles = function()
 			var cx = s.x + s.width / 2;
 			var cy = s.y + s.height / 2;
 			
-			if (this.sizers.length > 1)
+			if (this.sizers.length >= 8)
 			{
 				var crs = ['nw-resize', 'n-resize', 'ne-resize', 'e-resize', 'se-resize', 's-resize', 'sw-resize', 'w-resize'];
 				
@@ -1580,7 +1575,7 @@ mxVertexHandler.prototype.redrawHandles = function()
 			}
 			else
 			{
-				this.moveSizerTo(this.sizers[0], s.x, s.y);
+				this.moveSizerTo(this.sizers[0], this.state.x, this.state.y);
 			}
 		}
 	}

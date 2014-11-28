@@ -1299,7 +1299,7 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 			mxEvent.consume(me.getEvent());
 			me.consume();
 		}
-		else if(!this.isEnabled() || !this.graph.isEnabled())
+		else if (!this.isEnabled() || !this.graph.isEnabled())
 		{
 			this.constraintHandler.reset();
 		}
