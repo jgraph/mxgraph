@@ -907,6 +907,19 @@ mxCellRenderer.prototype.getLabelBounds = function(state)
 		// Minimum of 1 fixes alignment bug in HTML labels
 		bounds.width = Math.max(1, state.width);
 		bounds.height = Math.max(1, state.height);
+
+		var sc = mxUtils.getValue(state.style, mxConstants.STYLE_STROKECOLOR, mxConstants.NONE);
+		
+		if (sc != mxConstants.NONE && sc != '')
+		{
+			var s = parseFloat(mxUtils.getValue(state.style, mxConstants.STYLE_STROKEWIDTH, 1)) * scale / 2;
+			var s2 = 2 * s + 0.5;
+
+			bounds.x += s;
+			bounds.y += s;
+			bounds.width -= s2;
+			bounds.height -= s2;
+		}
 	}
 
 	if (state.text.isPaintBoundsInverted())
@@ -1174,19 +1187,23 @@ mxCellRenderer.prototype.insertStateAfter = function(state, node, htmlNode)
 			}
 			else if (temp == null)
 			{
-				// Special case: First HTML node should be first sibling after canvas container
+				// Special case: First HTML node should be first sibling after canvas
 				if (shapes[i].node.parentNode == state.view.graph.container)
 				{
 					var canvas = state.view.canvas;
 					
-					while (canvas.parentNode != null && canvas.parentNode != state.view.graph.container)
+					while (canvas != null && canvas.parentNode != state.view.graph.container)
 					{
 						canvas = canvas.parentNode;
 					}
 					
-					if (canvas.nextSibling != null && canvas.nextSibling != shapes[i].node)
+					if (canvas != null && canvas.nextSibling != null && canvas.nextSibling != shapes[i].node)
 					{
 						shapes[i].node.parentNode.insertBefore(shapes[i].node, canvas.nextSibling);
+					}
+					else
+					{
+						shapes[i].node.parentNode.appendChild(shapes[i].node);
 					}
 				}
 				else if (shapes[i].node.parentNode.firstChild != null && shapes[i].node.parentNode.firstChild != shapes[i].node)

@@ -344,10 +344,9 @@ ColorDialog.prototype.createApplyFunction = function()
 		graph.getModel().beginUpdate();
 		try
 		{
-			var value = (color == 'none') ? 'none' : color;
-			graph.setCellStyles(this.currentColorKey, value);
+			graph.setCellStyles(this.currentColorKey, color);
 			this.editorUi.fireEvent(new mxEventObject('styleChanged', 'keys', [this.currentColorKey],
-				'values', [value], 'cells', graph.getSelectionCells()));
+				'values', [color], 'cells', graph.getSelectionCells()));
 		}
 		finally
 		{
@@ -397,17 +396,6 @@ var AboutDialog = function(editorUi)
  */
 var PageSetupDialog = function(editorUi)
 {
-	// Defines possible page sizes. Needs to be lazy initialized to add any translations.
-	if (PageSetupDialog.formats == null)
-	{
-		PageSetupDialog.formats = [{key: 'a3', title: 'A3 (297 mm x 420 mm)', format: new mxRectangle(0, 0, 1169, 1652)},
-		                           {key: 'a4', title: 'A4 (210 mm x 297 mm)', format: mxConstants.PAGE_FORMAT_A4_PORTRAIT},
-		                           {key: 'a5', title: 'A5 (148 mm x 210 mm)', format: new mxRectangle(0, 0, 584, 826)},
-		                           {key: 'letter', title: 'US-Letter (8,5" x 11")', format: mxConstants.PAGE_FORMAT_LETTER_PORTRAIT},
-		                           {key: 'tabloid', title: 'US-Tabloid (279 mm x 432 mm)', format: new mxRectangle(0, 0, 1100, 1700)},
-		                           {key: 'custom', title: mxResources.get('custom'), format: null}];
-	}
-
 	var graph = editorUi.editor.graph;
 	var row, td;
 
@@ -442,10 +430,11 @@ var PageSetupDialog = function(editorUi)
 	var paperSizeSelect = document.createElement('select');
 	var detected = false;
 	var pf = new Object();
-
-	for (var i = 0; i < PageSetupDialog.formats.length; i++)
+	var formats = PageSetupDialog.getFormats();
+	
+	for (var i = 0; i < formats.length; i++)
 	{
-		var f = PageSetupDialog.formats[i];
+		var f = formats[i];
 		pf[f.key] = f;
 
 		var paperSizeOption = document.createElement('option');
@@ -472,12 +461,13 @@ var PageSetupDialog = function(editorUi)
 				detected = true;
 			}
 		}
-		// Selects custom format which is last in list
-		else if (!detected)
-		{
-			paperSizeOption.setAttribute('selected', 'selected');
-			customRow.style.display = '';
-		}
+	}
+
+	// Selects custom format which is last in list
+	if (!detected)
+	{
+		paperSizeOption.setAttribute('selected', 'selected');
+		customRow.style.display = '';
 	}
 
 	td = document.createElement('td');
@@ -616,6 +606,19 @@ var PageSetupDialog = function(editorUi)
 	tbody.appendChild(row);
 	table.appendChild(tbody);
 	this.container = table;
+};
+
+/**
+ * 
+ */
+PageSetupDialog.getFormats = function()
+{
+	return [{key: 'a3', title: 'A3 (297 mm x 420 mm)', format: new mxRectangle(0, 0, 1169, 1652)},
+	        {key: 'a4', title: 'A4 (210 mm x 297 mm)', format: mxConstants.PAGE_FORMAT_A4_PORTRAIT},
+	        {key: 'a5', title: 'A5 (148 mm x 210 mm)', format: new mxRectangle(0, 0, 584, 826)},
+	        {key: 'letter', title: 'US-Letter (8,5" x 11")', format: mxConstants.PAGE_FORMAT_LETTER_PORTRAIT},
+	        {key: 'tabloid', title: 'US-Tabloid (279 mm x 432 mm)', format: new mxRectangle(0, 0, 1100, 1700)},
+	        {key: 'custom', title: mxResources.get('custom'), format: null}];
 };
 
 /**
@@ -1010,14 +1013,19 @@ var EditFileDialog = function(editorUi)
 		    if (evt.dataTransfer.files.length > 0)
 		    {
     			var file = evt.dataTransfer.files[0];
-    			
-				var reader = new FileReader();
+    			var reader = new FileReader();
+				
 				reader.onload = function(e)
 				{
 					textarea.value = e.target.result;
 				};
+				
 				reader.readAsText(file);
     		}
+		    else
+		    {
+		    	textarea.value = editorUi.extractGraphModelFromEvent(evt);
+		    }
 		};
 		
 		function handleDragOver(evt)
@@ -1435,21 +1443,19 @@ var ExportDialog = function(editorUi)
 	    	}
 	        else
 	        {
-	        	var xml = null;
-	        	var w = 0;
-	        	var h = 0;
+	        	var param = null;
+	        	var w = parseInt(widthInput.value) || 0;
+	        	var h = parseInt(heightInput.value) || 0;
+				var b = Math.max(0, parseInt(borderInput.value)) + 1;
 	        	
-	        	if (ExportDialog.imgExportFormat == 'svg')
+	        	var exp = ExportDialog.getExportParameter(editorUi, format);
+	        	
+	        	if (typeof exp == 'function')
 	        	{
-	        		var svgRoot = getSvg();
-	        			
-	        		w = parseInt(svgRoot.getAttribute('width'));
-					h = parseInt(svgRoot.getAttribute('height'));
-	        		xml = mxUtils.getXml(svgRoot);
+	        		param = exp();
 	        	}
 	        	else
 	        	{
-					var b = Math.max(0, parseInt(borderInput.value)) + 1;
 					var scale = parseInt(widthInput.value) / width;
 					var bounds = graph.getGraphBounds();
 					var vs = graph.view.scale;
@@ -1468,11 +1474,11 @@ var ExportDialog = function(editorUi)
 					// Puts request data together
 					w = Math.ceil(bounds.width * scale / vs + 2 * b);
 					h = Math.ceil(bounds.height * scale / vs + 2 * b);
-					xml = mxUtils.getXml(root);
+					param = 'xml=' + encodeURIComponent(mxUtils.getXml(root));
 	        	}
 	
 				// Requests image if request is valid
-				if (xml != null && xml.length <= MAX_REQUEST_SIZE && w > 0 && h > 0 && w * h < MAX_AREA)
+				if (param != null && param.length <= MAX_REQUEST_SIZE && w * h < MAX_AREA)
 				{
 					var bg = '';
 					
@@ -1483,8 +1489,8 @@ var ExportDialog = function(editorUi)
 					}
 					
 					new mxXmlRequest(EXPORT_URL, 'filename=' + name + '&format=' + format +
-	        			bg + '&w=' + w + '&h=' + h + '&' + ExportDialog.imgExportFormat + '=' +
-	        			encodeURIComponent(xml)).simulate(document, '_blank');
+	        			bg + '&w=' + w + '&h=' + h + '&border=' + b + '&' + param).
+	        			simulate(document, '_blank');
 				}
 				else
 				{
@@ -1523,8 +1529,18 @@ var ExportDialog = function(editorUi)
 /**
  * Global switches for the export dialog.
  */
-ExportDialog.imgExportFormat = 'xml';
 ExportDialog.showXmlOption = true;
+
+/**
+ * Hook for getting the export format. Returns null for the default
+ * intermediate XML export format or a function that returns the
+ * parameter and value to be used in the request in the form
+ * key=value, where value should be URL encoded.
+ */
+ExportDialog.getExportParameter = function(ui, format)
+{
+	return null;
+};
 
 /**
  * Constructs a new metadata dialog.

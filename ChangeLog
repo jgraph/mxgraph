@@ -1,3 +1,52 @@
+05-JAN-2015: 3.1.2.1
+
+- Fixes flipH/V in mxSvgCanvas2D.image [JavaScript] 
+- Fixes offset in mxPrintPreview for poster print in IE8-10 [JavaScript]
+- Adds Graph.pasteHtmlAtCaret, insertRow/-Column, deleteRow/-Colum in grapheditor
+- Adds Graph.getSelectedElement, getParentByName, selectNode in grapheditor
+- Fixes padding, action states, renames straight to sharp in grapheditor
+- Moves style action to edit menu, editStyle, layers to view in grapheditor
+- Adds mxEvent.EDITING_STOPPED event in mxGraph.stopEditing [JavaScript]
+- Adds mxEvent.EDITING_STARTED event in mxGraph.startEditingAtCell [JavaScript]
+- Ignores height for rotation raster in mxVertexHandler [JavaScript]
+- Removes dashed line style for guides in grapheditor
+- Fixes length of guides in mxGraphHandler [JavaScript]
+- Fixes missing line-height CSS in inner DIV in mxText [JavaScript]
+- Fixes ignored text opacity for quirks, NO_FO in mxText [JavaScript]
+- EditorUi.showImageDialog invokes callback with null [JavaScript]
+- Fixes rendering of image border in mxImageShape [JavaScript]
+- Fixes mxEvent.EVENT_HIDE in mxPopupMenu.hideMenu [JavaScript]
+- Removes graph model listener for overridden handlers in grapheditor [JavaScript]
+- Fixes possible parent highlight in destroyed mxVertexHandler [JavaScript]
+- Adds vertical, horizontal arguments, rounding in mxGraph.center [JavaScript]
+- Assigns Ctrl+Shift+R to clearDefaultStyle in grapheditor
+- Renames reset- to clearDefaultStyle, reset- to clearWaypoints in grapheditor
+- Hides ungroup for containers and edges with labels in grapheditor
+- Fixes 1px offset in mxGraphHandler.getPreviewBounds [JavaScript]
+- Adds EditorUi.set/getScrollbars, scrollbarsChanged event in grapheditor
+- Adds switch shape, moves Editor.resetScrollbars to EditorUi in grapheditor
+- Adds mxVertexHandler.updateParentHighlight called from redrawHandles [JavaScript]
+- Adds mxImageExport.drawShape, drawText hooks [JavaScript]
+- Adds alt key to disable drop into groups for existing cells in grapheditor
+- Adds padding to avoid border in mxCellRenderer.getLabelBounds [JavaScript]
+- Fixes possible NPE in AnalyzeGraph [Java]
+- Fixes mxEdgeSegmentHandler, merges segments in connect [JavaScript]
+- Returns point in mxElbowEdgeHandler.convertPoint [JavaScript]
+- Adds mxGraphicsCanvas2D.createHtmlDocument hook [Java]
+- Changes shortcuts for zoomin, zoomout to ctrl+plus/minus in grapheditor
+- Adds PageSetupDialog.getFormats, ExportDialog.getExportParameter in grapheditor
+- Fixes arrow directions, possible NPEs in SegmentConnector [JavaScript]
+- Adds rounding in OrthConnector, mxGraphView.getPerimeterPoint [JavaScript]
+- Adds Graph.linkTarget option in grapheditor
+- Shows connect icon with control instead of shift, for selected cells in grapheditor
+- Renames switchDirection action to turn in grapheditor
+- Rounds coordinates in mxGraph.getConnectionPoint result [JavaScript]
+- Adds mxConstraintHandler.isKeepFocusEvent to keep focus with shift key [JavaScript]
+- Keeps connection points visible in constraint handler while over cell [JavaScript]
+- Fixes group resize for multiple hierarchies in mxHierarchicalLayout [JavaScript]
+- mxGraph.selectCells ignores child count for edges [JavaScript]
+- Sets mxGraph.nativeDblClickEnabled to false for all browsers [JavaScript]
+
 28-NOV-2014: 3.1.2.0
 
 - Changes background color of sidebar to white in grapheditor

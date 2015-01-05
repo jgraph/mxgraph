@@ -590,10 +590,24 @@ var mxEdgeStyle =
 	{
 		// Creates array of all way- and terminalpoints
 		var pts = state.absolutePoints;
+		var tol = Math.max(1, 2 * state.view.scale);
 		// Whether the first segment outgoing from the source end is horizontal
+		var lastPushed = (result.length > 0) ? result[0] : null;
 		var horizontal = true;
 		var hint = null;
 		
+		// Adds waypoints only if outside of tolerance
+		function pushPoint(pt)
+		{
+			if (lastPushed == null || Math.abs(lastPushed.x - pt.x) > tol || Math.abs(lastPushed.y - pt.y) > tol)
+			{
+				result.push(pt);
+				lastPushed = pt;
+			}
+			
+			return lastPushed;
+		};
+
 		// Adds the first point
 		var pt = pts[0];
 		
@@ -608,16 +622,54 @@ var mxEdgeStyle =
 		
 		pt.x = Math.round(pt.x);
 		pt.y = Math.round(pt.y);
-
-		var lastInx = pts.length - 1;
 		
+		var lastInx = pts.length - 1;
+
 		// Adds the waypoints
 		if (hints != null && hints.length > 0)
 		{
-			hint = state.view.transformControlPoint(state, hints[0]);
+			// Converts all hints
+			var newHints = [];
 			
-			hint.x = Math.round(hint.x);
-			hint.y = Math.round(hint.y);
+			for (var i = 0; i < hints.length; i++)
+			{
+				newHints[i] = state.view.transformControlPoint(state, hints[i]);
+				newHints[i].x = Math.round(newHints[i].x);
+				newHints[i].y = Math.round(newHints[i].y);
+			}
+			
+			hints = newHints;
+			
+			// Aligns source and target hint to fixed points
+			if (pt != null && hints[0] != null)
+			{
+				if (Math.abs(hints[0].x - pt.x) <= tol)
+				{
+					hints[0].x = pt.x;
+				}
+				
+				if (Math.abs(hints[0].y - pt.y) <= tol)
+				{
+					hints[0].y = pt.y;
+				}
+			}
+			
+			var pe = pts[lastInx];
+			
+			if (pe != null && hints[hints.length - 1] != null)
+			{
+				if (Math.abs(hints[hints.length - 1].x - pe.x) <= tol)
+				{
+					hints[hints.length - 1].x = pe.x;
+				}
+				
+				if (Math.abs(hints[hints.length - 1].y - pe.y) <= tol)
+				{
+					hints[hints.length - 1].y = pe.y;
+				}
+			}
+			
+			hint = hints[0];
 
 			var currentTerm = source;
 			var currentPt = pts[0];
@@ -686,10 +738,7 @@ var mxEdgeStyle =
 					currentTerm = null;
 				}
 				
-				currentHint = state.view.transformControlPoint(state, hints[hints.length - 1]);
-				
-				currentHint.x = Math.round(currentHint.x);
-				currentHint.y = Math.round(currentHint.y);
+				currentHint = hints[hints.length - 1];
 				
 				if (fixedVertAlign && fixedHozAlign)
 				{
@@ -701,13 +750,13 @@ var mxEdgeStyle =
 				(pts[0] == null && source != null &&
 				(hint.y < source.y || hint.y > source.y + source.height))))
 			{
-				result.push(new mxPoint(pt.x, hint.y));
+				pushPoint(new mxPoint(pt.x, hint.y));
 			}
 			else if (!horizontal && ((pts[0] != null && pts[0].x != hint.x) ||
 					(pts[0] == null && source != null &&
 					(hint.x < source.x || hint.x > source.x + source.width))))
 			{
-				result.push(new mxPoint(hint.x, pt.y));
+				pushPoint(new mxPoint(hint.x, pt.y));
 			}
 			
 			if (horizontal)
@@ -722,11 +771,8 @@ var mxEdgeStyle =
 			for (var i = 0; i < hints.length; i++)
 			{
 				horizontal = !horizontal;
-				hint = state.view.transformControlPoint(state, hints[i]);
+				hint = hints[i];
 				
-				hint.x = Math.round(hint.x);
-				hint.y = Math.round(hint.y);
-		
 //				mxLog.show();
 //				mxLog.debug('hint', i, hint.x, hint.y);
 				
@@ -739,7 +785,7 @@ var mxEdgeStyle =
 					pt.x = hint.x;
 				}
 		
-				result.push(pt.clone());
+				pushPoint(pt.clone());
 			}
 		}
 		else
@@ -761,25 +807,29 @@ var mxEdgeStyle =
 		{
 			pt.x = Math.round(pt.x);
 			pt.y = Math.round(pt.y);
-		}
-
-		if (horizontal && ((pts[lastInx] != null && pts[lastInx].y != hint.y) ||
-			(pts[lastInx] == null && target != null &&
-			(hint.y < target.y || hint.y > target.y + target.height))))
-		{
-			result.push(new mxPoint(pt.x, hint.y));
-		}
-		else if (!horizontal && ((pts[lastInx] != null && pts[lastInx].x != hint.x) ||
-				(pts[lastInx] == null && target != null &&
-				(hint.x < target.x || hint.x > target.x + target.width))))
-		{
-			result.push(new mxPoint(hint.x, pt.y));
+			
+			if (hint != null)
+			{
+				if (horizontal && ((pts[lastInx] != null && pts[lastInx].y != hint.y) ||
+					(pts[lastInx] == null && target != null &&
+					(hint.y < target.y || hint.y > target.y + target.height))))
+				{
+					pushPoint(new mxPoint(pt.x, hint.y));
+				}
+				else if (!horizontal && ((pts[lastInx] != null && pts[lastInx].x != hint.x) ||
+						(pts[lastInx] == null && target != null &&
+						(hint.x < target.x || hint.x > target.x + target.width))))
+				{
+					pushPoint(new mxPoint(hint.x, pt.y));
+				}
+			}
 		}
 		
 		// Removes bends inside the source terminal for floating ports
 		if (pts[0] == null && source != null)
 		{
-			while (result.length > 1 && mxUtils.contains(source, result[1].x, result[1].y))
+			while (result.length > 1 && result[1] != null &&
+				mxUtils.contains(source, result[1].x, result[1].y))
 			{
 				result.splice(1, 1);
 			}
@@ -788,9 +838,32 @@ var mxEdgeStyle =
 		// Removes bends inside the target terminal
 		if (pts[lastInx] == null && target != null)
 		{
-			while (result.length > 1 && mxUtils.contains(target, result[result.length - 1].x, result[result.length - 1].y))
+			while (result.length > 1 && result[result.length - 1] != null &&
+				mxUtils.contains(target, result[result.length - 1].x, result[result.length - 1].y))
 			{
 				result.splice(result.length - 1, 1);
+			}
+		}
+		
+		// Removes last point if inside tolerance with end point
+		if (pe != null && result[result.length - 1] != null &&
+			Math.abs(pe.x - result[result.length - 1].x) <= tol &&
+			Math.abs(pe.y - result[result.length - 1].y) <= tol)
+		{
+			result.splice(result.length - 1, 1);
+			
+			// Lines up second last point in result with end point
+			if (result[result.length - 1] != null)
+			{
+				if (Math.abs(result[result.length - 1].x - pe.x) <= tol)
+				{
+					result[result.length - 1].x = pe.x;
+				}
+				
+				if (Math.abs(result[result.length - 1].y - pe.y) <= tol)
+				{
+					result[result.length - 1].y = pe.y;
+				}
 			}
 		}
 		
@@ -1379,7 +1452,7 @@ var mxEdgeStyle =
 				}
 			}
 			
-			result.push(new mxPoint(mxEdgeStyle.wayPoints1[i][0], mxEdgeStyle.wayPoints1[i][1]));
+			result.push(new mxPoint(Math.round(mxEdgeStyle.wayPoints1[i][0]), Math.round(mxEdgeStyle.wayPoints1[i][1])));
 		}
 	},
 	

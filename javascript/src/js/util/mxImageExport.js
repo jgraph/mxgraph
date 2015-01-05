@@ -98,7 +98,7 @@ mxImageExport.prototype.getLinkForCellState = function(state, canvas)
 };
 
 /**
- * Function: drawShape
+ * Function: drawCellState
  * 
  * Draws the given state to the given canvas.
  */
@@ -112,25 +112,43 @@ mxImageExport.prototype.drawCellState = function(state, canvas)
 		canvas.setLink(link);
 	}
 	
-	// Paints the shape
+	// Paints the shape and text
+	this.drawShape(state, canvas);
+	this.drawText(state, canvas);
+
+	if (link != null)
+	{
+		canvas.setLink(null);
+	}
+};
+
+/**
+ * Function: drawShape
+ * 
+ * Draws the shape of the given state.
+ */
+mxImageExport.prototype.drawShape = function(state, canvas)
+{
 	if (state.shape instanceof mxShape && state.shape.checkBounds())
 	{
 		canvas.save();
 		state.shape.paint(canvas);
 		canvas.restore();
 	}
-	
-	// Paints the label
+};
+
+/**
+ * Function: drawText
+ * 
+ * Draws the text of the given state.
+ */
+mxImageExport.prototype.drawText = function(state, canvas)
+{
 	if (state.text != null && state.text.checkBounds())
 	{
 		canvas.save();
 		state.text.paint(canvas);
 		canvas.restore();
-	}
-	
-	if (link != null)
-	{
-		canvas.setLink(null);
 	}
 };
 

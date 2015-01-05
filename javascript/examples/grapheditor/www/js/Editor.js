@@ -176,59 +176,6 @@ Editor.prototype.createGraph = function()
 /**
  * Sets the XML node for the current diagram.
  */
-Editor.prototype.resetScrollbars = function()
-{
-	if (!this.extendCanvas)
-	{
-		this.graph.container.scrollTop = 0;
-		this.graph.container.scrollLeft = 0;
-	
-		if (!mxUtils.hasScrollbars(this.graph.container))
-		{
-			this.graph.view.setTranslate(0, 0);
-		}
-	}
-	else if (!this.chromeless)
-	{
-		if (mxUtils.hasScrollbars(this.graph.container))
-		{
-			if (this.graph.pageVisible)
-			{
-				var pad = this.graph.getPagePadding();
-				this.graph.container.scrollTop = Math.floor(pad.y - this.initialTopSpacing);
-				this.graph.container.scrollLeft = Math.floor(Math.min(pad.x, (this.graph.container.scrollWidth - this.graph.container.clientWidth) / 2));
-			}
-			else
-			{
-				var bounds = this.graph.getGraphBounds();
-				var width = Math.max(bounds.width, this.graph.scrollTileSize.width * this.graph.view.scale);
-				var height = Math.max(bounds.height, this.graph.scrollTileSize.height * this.graph.view.scale);
-				this.graph.container.scrollTop = Math.floor(Math.max(0, bounds.y - Math.max(20, (this.graph.container.clientHeight - height) / 4)));
-				this.graph.container.scrollLeft = Math.floor(Math.max(0, bounds.x - Math.max(0, (this.graph.container.clientWidth - width) / 2)));
-			}
-		}
-		else
-		{
-			// This code is not actively used since the default for scrollbars is always true
-			if (this.graph.pageVisible)
-			{
-				var b = this.graph.view.getBackgroundPageBounds();
-				this.graph.view.setTranslate(Math.floor(Math.max(0, (this.graph.container.clientWidth - b.width) / 2) - b.x),
-					Math.floor(Math.max(0, (this.graph.container.clientHeight - b.height) / 2) - b.y));
-			}
-			else
-			{
-				var bounds = this.graph.getGraphBounds();
-				this.graph.view.setTranslate(Math.floor(Math.max(0, Math.max(0, (this.graph.container.clientWidth - bounds.width) / 2) - bounds.x)),
-					Math.floor(Math.max(0, Math.max(20, (this.graph.container.clientHeight - bounds.height) / 4)) - bounds.y));
-			}
-		}
-	}
-};
-
-/**
- * Sets the XML node for the current diagram.
- */
 Editor.prototype.resetGraph = function()
 {
 	this.graph.gridEnabled = true;

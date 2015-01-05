@@ -911,6 +911,7 @@ public class EditorMenuBar extends JMenuBar
 			{
 				mxGraphComponent graphComponent = (mxGraphComponent) e.getSource();
 				mxGraph graph = graphComponent.getGraph();
+				aGraph.setGraph(graph);
 
 				if (analyzeType == AnalyzeType.IS_CONNECTED)
 				{

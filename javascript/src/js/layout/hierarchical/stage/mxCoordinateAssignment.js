@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2005-2013, JGraph Ltd
+ * Copyright (c) 2005-2014, JGraph Ltd
  */
 /**
  * Class: mxCoordinateAssignment
@@ -1284,13 +1284,6 @@ mxCoordinateAssignment.prototype.setCellLocations = function(graph, model)
 		this.rankBottomY[i] = -Number.MAX_VALUE;
 	}
 	
-	var parentsChanged = null;
-
-	if (this.layout.resizeParent)
-	{
-		parentsChanged = new Object();
-	}
-
 	var vertices = model.vertexMapper.getValues();
 
 	// Process vertices all first, since they define the lower and 
@@ -1300,18 +1293,6 @@ mxCoordinateAssignment.prototype.setCellLocations = function(graph, model)
 	for (var i = 0; i < vertices.length; i++)
 	{
 		this.setVertexLocation(vertices[i]);
-		
-		if (this.layout.resizeParent)
-		{
-			var parent = graph.model.getParent(vertices[i].cell);
-			var id = mxObjectIdentity.get(parent);
-			
-			// Implements set semantic
-			if (parentsChanged[id] == null)
-			{
-				parentsChanged[id] = parent;					
-			}
-		}
 	}
 	
 	// Post process edge styles. Needs the vertex locations set for initial
@@ -1329,30 +1310,6 @@ mxCoordinateAssignment.prototype.setCellLocations = function(graph, model)
 	{
 		this.setEdgePosition(edges[i]);
 	}
-	
-	if (this.layout.resizeParent && parentsChanged != null)
-	{
-		this.adjustParents(parentsChanged);
-	}
-};
-
-/**
- * Function: adjustParents
- * 
- * Adjust parent cells whose child geometries have changed. The default 
- * implementation adjusts the group to just fit around the children with 
- * a padding.
- */
-mxCoordinateAssignment.prototype.adjustParents = function(parentsChanged)
-{
-	var tmp = [];
-	
-	for (var id in parentsChanged)
-	{
-		tmp.push(parentsChanged[id]);
-	}
-	
-	this.layout.arrangeGroups(mxUtils.sortCells(tmp, true), this.groupPadding);
 };
 
 /**

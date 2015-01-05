@@ -541,6 +541,7 @@ mxPopupMenu.prototype.hideMenu = function()
 		
 		this.hideSubmenu(this);
 		this.containsItems = false;
+		this.fireEvent(new mxEventObject(mxEvent.HIDE));
 	}
 };
 

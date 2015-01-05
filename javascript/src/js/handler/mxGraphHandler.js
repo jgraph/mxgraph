@@ -425,8 +425,9 @@ mxGraphHandler.prototype.getPreviewBounds = function(cells)
 	
 	if (bounds != null)
 	{
-		// Removes 1 px border
-		bounds.grow(-1, -1);
+		// Corrects width and height
+		bounds.width = Math.max(0, bounds.width - 1);
+		bounds.height = Math.max(0, bounds.height - 1);
 		
 		if (bounds.width < this.minimumSize)
 		{

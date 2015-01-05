@@ -32,7 +32,7 @@ Graph = function(container, model, renderHint, stylesheet)
 	{
 		return mxConnectionHandler.prototype.isValidSource.apply(this, arguments) &&
 			((urlParams['connect'] != '2' && urlParams['connect'] != null) ||
-			mxEvent.isShiftDown(me.getEvent()));
+			(!this.graph.isCellSelected(cell) && mxEvent.isControlDown(me.getEvent())));
 	};
 
 	// Sets the style to be used when an elbow edge is double clicked
@@ -62,7 +62,7 @@ Graph = function(container, model, renderHint, stylesheet)
 			var state = this.graph.view.getState(cells[i]);
 			var style = (state != null) ? state.style : this.graph.getCellStyle(cells[i]);
 	    	
-			if (mxUtils.getValue(style, 'part', false))
+			if (mxUtils.getValue(style, 'part', '0') == '1')
 			{
 		        var parent = this.graph.model.getParent(cells[i]);
 	
@@ -296,6 +296,11 @@ Graph.prototype.minFitScale = null;
  * Allows to all values in fit.
  */
 Graph.prototype.maxFitScale = null;
+
+/**
+ * Sets the default target for all links in cells.
+ */
+Graph.prototype.linkTarget = '_blank';
 
 /**
  * Sanitizes the given HTML markup.
@@ -634,7 +639,6 @@ Graph.prototype.dblClick = function(evt, cell)
 	{
 		var state = this.view.getState(cell);
 		
-		// FIXME: Called twice in quirks mode
 		if (state != null && (state.text == null || state.text.node == null || (!mxUtils.contains(state.text.boundingBox, pt.x, pt.y) &&
 			!mxUtils.isAncestorNode(state.text.node, mxEvent.getSource(evt)))))
 		{
@@ -643,6 +647,31 @@ Graph.prototype.dblClick = function(evt, cell)
 	}
 
 	mxGraph.prototype.dblClick.call(this, evt, cell);
+};
+
+/**
+ * Overridden to stop moving edge labels between cells.
+ */
+Graph.prototype.getDropTarget = function(cells, evt, cell, clone)
+{
+	var model = this.getModel();
+	
+	// Disables drop into group if alt is pressed
+	if (mxEvent.isAltDown(evt))
+	{
+		return null;
+	}
+	
+	// Disables dragging edge labels out of edges
+	for (var i = 0; i < cells.length; i++)
+	{
+		if (this.model.isEdge(this.model.getParent(cells[i])))
+		{
+			return null;
+		}
+	}
+	
+	return mxGraph.prototype.getDropTarget.apply(this, arguments);
 };
 
 /**
@@ -684,7 +713,6 @@ Graph.prototype.addEdgeLabelAt = function(state, x, y)
 	
 	return label;
 };
-
 
 /**
  * Function: alignCells
@@ -784,10 +812,11 @@ Graph.prototype.distributeCells = function(horizontal, cells)
  * @param {number} dx X-coordinate of the translation.
  * @param {number} dy Y-coordinate of the translation.
  */
-Graph.prototype.getSvg = function(background, scale, border, nocrop)
+Graph.prototype.getSvg = function(background, scale, border, nocrop, crisp)
 {
 	scale = (scale != null) ? scale : 1;
 	border = (border != null) ? border : 1;
+	crisp = (crisp != null) ? crisp : true;
 
 	var imgExport = new mxImageExport();
 	var bounds = (nocrop) ? this.view.getBackgroundPageBounds() : this.getGraphBounds();
@@ -826,14 +855,24 @@ Graph.prototype.getSvg = function(background, scale, border, nocrop)
 	root.setAttribute('version', '1.1');
 	
     // Adds group for anti-aliasing via transform
-	var group = (svgDoc.createElementNS != null) ?
-			svgDoc.createElementNS(mxConstants.NS_SVG, 'g') : svgDoc.createElement('g');
-	group.setAttribute('transform', 'translate(0.5,0.5)');
-	root.appendChild(group);
-	svgDoc.appendChild(root);
+	var node = root;
+	
+	if (crisp)
+	{
+		var group = (svgDoc.createElementNS != null) ?
+				svgDoc.createElementNS(mxConstants.NS_SVG, 'g') : svgDoc.createElement('g');
+		group.setAttribute('transform', 'translate(0.5,0.5)');
+		root.appendChild(group);
+		svgDoc.appendChild(root);
+		node = group;
+	}
+	else
+	{
+		svgDoc.appendChild(root);
+	}
 
     // Renders graph. Offset will be multiplied with state's scale when painting state.
-	var svgCanvas = new mxSvgCanvas2D(group);
+	var svgCanvas = new mxSvgCanvas2D(node);
 	svgCanvas.translate(Math.floor((border / scale - bounds.x) / vs), Math.floor((border / scale - bounds.y) / vs));
 	svgCanvas.scale(scale / vs);
 	
@@ -855,6 +894,196 @@ Graph.prototype.getSvg = function(background, scale, border, nocrop)
 	imgExport.drawState(this.getView().getState(this.model.root), svgCanvas);
 
 	return root;
+};
+
+/**
+ * Returns the first ancestor of the current selection with the given name.
+ */
+Graph.prototype.getSelectedElement = function()
+{
+	var node = null;
+	
+	if (window.getSelection)
+	{
+		var sel = window.getSelection();
+		
+	    if (sel.getRangeAt && sel.rangeCount)
+	    {
+	        var range = sel.getRangeAt(0);
+	        node = range.commonAncestorContainer;
+	    }
+	}
+	else if (document.selection)
+	{
+		node = document.selection.createRange().parentElement();
+	}
+	
+	return node;
+};
+
+/**
+ * Returns the first ancestor of the current selection with the given name.
+ */
+Graph.prototype.getParentByName = function(node, name, stopAt)
+{
+	while (node != null)
+	{
+		if (node.nodeName == name)
+		{
+			return node;
+		}
+
+		if (node == stopAt)
+		{
+			return null;
+		}
+		
+		node = node.parentNode;
+	}
+	
+	return node;
+};
+
+/**
+ * Selects the given node.
+ */
+Graph.prototype.selectNode = function(node)
+{
+	var sel = null;
+	
+    // IE9 and non-IE
+	if (window.getSelection)
+    {
+    	sel = window.getSelection();
+    	
+        if (sel.getRangeAt && sel.rangeCount)
+        {
+        	var range = document.createRange();
+            range.selectNode(node);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
+    }
+    // IE < 9
+	else if ((sel = document.selection) && sel.type != 'Control')
+    {
+        var originalRange = sel.createRange();
+        originalRange.collapse(true);
+        range = sel.createRange();
+        range.setEndPoint('StartToStart', originalRange);
+        range.select();
+    }
+};
+
+/**
+ * Inserts a new row into the given table.
+ */
+Graph.prototype.insertRow = function(table, index)
+{
+	var bd = table.tBodies[0];
+	var cols = (bd.rows.length > 0) ? bd.rows[0].cells.length : 1;
+	var row = bd.insertRow(index);
+	
+	for (var i = 0; i < cols; i++)
+	{
+		mxUtils.br(row.insertCell(-1));
+	}
+	
+	return row.cells[0];
+};
+
+/**
+ * Deletes the given column.
+ */
+Graph.prototype.deleteRow = function(table, index)
+{
+	table.tBodies[0].deleteRow(index);
+};
+
+/**
+ * Deletes the given column.
+ */
+Graph.prototype.insertColumn = function(table, index)
+{
+	var hd = table.tHead;
+	
+	if (hd != null)
+	{
+		// TODO: use colIndex
+		for (var h = 0; h < hd.rows.length; h++)
+		{
+			var th = document.createElement('th');
+			hd.rows[h].appendChild(th);
+			mxUtils.br(th);
+		}
+	}
+
+	var bd = table.tBodies[0];
+	
+	for (var i = 0; i < bd.rows.length; i++)
+	{
+		var cell = bd.rows[i].insertCell(index);
+		mxUtils.br(cell);
+	}
+	
+	return bd.rows[0].cells[(index >= 0) ? index : bd.rows[0].cells.length - 1];
+};
+
+/**
+ * Deletes the given column.
+ */
+Graph.prototype.deleteColumn = function(table, index)
+{
+	var bd = table.tBodies[0];
+	var rows = bd.rows;
+	
+	for (var i = 0; i < rows.length; i++)
+	{
+		if (rows[i].cells.length > index)
+		{
+			rows[i].deleteCell(index);
+		}
+	}
+};
+
+/**
+ * Inserts the given HTML at the caret position (no undo).
+ */
+Graph.prototype.pasteHtmlAtCaret = function(html)
+{
+    var sel, range;
+
+	// IE9 and non-IE
+    if (window.getSelection)
+    {
+        sel = window.getSelection();
+        
+        if (sel.getRangeAt && sel.rangeCount)
+        {
+            range = sel.getRangeAt(0);
+            range.deleteContents();
+
+            // Range.createContextualFragment() would be useful here but is
+            // only relatively recently standardized and is not supported in
+            // some browsers (IE9, for one)
+            var el = document.createElement("div");
+            el.innerHTML = html;
+            var frag = document.createDocumentFragment(), node;
+            
+            while ((node = el.firstChild))
+            {
+                lastNode = frag.appendChild(node);
+            }
+            
+            range.insertNode(frag);
+        }
+    }
+    // IE < 9
+    else if ((sel = document.selection) && sel.type != "Control")
+    {
+    	// FIXME: Does not work if selection is empty
+        sel.createRange().pasteHTML(html);
+    }
 };
 
 /**
@@ -1003,7 +1232,7 @@ Graph.prototype.initTouch = function()
 	var mxConstraintHandlerUpdate = mxConstraintHandler.prototype.update;
 	mxConstraintHandler.prototype.update = function(me, source)
 	{
-		if (!mxEvent.isAltDown(me.getEvent()))
+		if (this.isKeepFocusEvent(me) || !mxEvent.isAltDown(me.getEvent()))
 		{
 			mxConstraintHandlerUpdate.apply(this, arguments);
 		}
@@ -1081,6 +1310,16 @@ Graph.prototype.initTouch = function()
 		
 		mxCellRendererInitializeLabel.apply(this, arguments);
 	};
+	
+	/**
+	 * No dashed shapes.
+	 */
+	mxGuide.prototype.createGuideShape = function(horizontal)
+	{
+		var guide = new mxPolyline([], mxConstants.GUIDE_COLOR, mxConstants.GUIDE_STROKEWIDTH);
+		
+		return guide;
+	};
 
 	if ('contentEditable' in document.documentElement)
 	{
@@ -1133,6 +1372,9 @@ Graph.prototype.initTouch = function()
 		mxCellEditor.prototype.startEditing = function(cell, trigger)
 		{
 			this.switchSelectionState = null;
+			
+			// Selects editing cell
+			this.graph.setSelectionCell(cell);
 
 			// First run cannot set display before supercall because textarea is lazy created
 			// Lazy instantiates textarea to save memory in IE
@@ -1166,8 +1408,8 @@ Graph.prototype.initTouch = function()
 				{
 					this.textarea.style.border = 'gray dotted 1px';
 				}
-				// IE>8 uses outline default of none
-				else if (mxClient.IS_IE || mxClient.IS_IE11)
+				// IE>8 and FF on Windows uses outline default of none
+				else if (mxClient.IS_IE || mxClient.IS_IE11 || (mxClient.IS_FF && mxClient.IS_WIN))
 				{
 					this.textarea.style.outline = 'gray dotted 1px';
 				}
@@ -1235,6 +1477,8 @@ Graph.prototype.initTouch = function()
 				style.fontWeight = this.textarea.style.fontWeight;
 				style.fontStyle = this.textarea.style.fontStyle;
 				style.textAlign = this.textarea.style.textAlign;
+				// FIXME: Use zoom, not font style for scaling (fix affected position)
+				//style.zoom = Math.round(state.view.scale * 100) + '%';
 				style.fontSize = this.textarea.style.fontSize;
 				style.textDecoration = this.textarea.style.textDecoration;
 				style.color = this.textarea.style.color;
@@ -2064,7 +2308,12 @@ Graph.prototype.initTouch = function()
 				var a = document.createElement('a');
 				a.setAttribute('href', link);
 				a.setAttribute('title', link);
-				a.setAttribute('target', '_blank');
+				
+				if (this.graph.linkTarget != null)
+				{
+					a.setAttribute('target', this.graph.linkTarget);
+				}
+				
 				mxUtils.write(a, label);
 				
 				this.linkHint.innerHTML = '';
@@ -2277,7 +2526,7 @@ Graph.prototype.initTouch = function()
 		
 		if  (this.changeHandler != null)
 		{
-			this.graph.getModel().removeListener(this.cahngeHandler);
+			this.graph.getModel().removeListener(this.changeHandler);
 			this.changeHandler = null;
 		}
 	};
@@ -2337,7 +2586,7 @@ Graph.prototype.initTouch = function()
 
 		if  (this.changeHandler != null)
 		{
-			this.graph.getModel().removeListener(this.cahngeHandler);
+			this.graph.getModel().removeListener(this.changeHandler);
 			this.changeHandler = null;
 		}
 	};

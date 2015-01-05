@@ -523,34 +523,15 @@ mxPrintPreview.prototype.open = function(css)
 							(bounds.x - tr.x * currentScale) / currentScale;
 					var pageNum = i * hpages + j + 1;
 					var clip = new mxRectangle(dx, dy, this.pageFormat.width, this.pageFormat.height);
-					
-					// Workaround for ignored clipping in IE 9 standards when
-					// printing with page breaks and HTML labels. IE preview
-					// broken for both, slightly better HTML view with this.
-					if (doc.documentMode == 8 || doc.documentMode == 9 || doc.documentMode == 10)
+					div = this.renderPage(this.pageFormat.width, this.pageFormat.height, 0, 0, mxUtils.bind(this, function(div)
 					{
-						div = this.renderPage(this.pageFormat.width, this.pageFormat.height, -dx, -dy, mxUtils.bind(this, function(div)
+						this.addGraphFragment(-dx, -dy, this.scale, pageNum, div, clip);
+						
+						if (this.printBackgroundImage)
 						{
-							this.addGraphFragment(0, 0, this.scale, pageNum, div, clip);
-							
-							if (this.printBackgroundImage)
-							{
-								this.insertBackgroundImage(div, -dx, -dy);
-							}
-						}));
-					}
-					else
-					{
-						div = this.renderPage(this.pageFormat.width, this.pageFormat.height, 0, 0, mxUtils.bind(this, function(div)
-						{
-							this.addGraphFragment(-dx, -dy, this.scale, pageNum, div, clip);
-							
-							if (this.printBackgroundImage)
-							{
-								this.insertBackgroundImage(div, -dx, -dy);
-							}
-						}));
-					}
+							this.insertBackgroundImage(div, -dx, -dy);
+						}
+					}));
 
 					// Gives the page a unique ID for later accessing the page
 					div.setAttribute('id', 'mxPage-'+pageNum);

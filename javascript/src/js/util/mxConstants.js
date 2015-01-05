@@ -1507,7 +1507,7 @@
 	 * Variable: STYLE_ASPECT
 	 * 
 	 * Defines the key for the aspect style. Possible values are empty or fixed.
-	 * If fixes is used then the aspect ratio of the cell will be maintained
+	 * If fixed is used then the aspect ratio of the cell will be maintained
 	 * when resizing. Default is empty. Value is <code>aspect</code>.
 	 */
 	STYLE_ASPECT: 'aspect',

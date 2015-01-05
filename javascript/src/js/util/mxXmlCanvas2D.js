@@ -1061,8 +1061,8 @@ mxXmlCanvas2D.prototype.close = function()
  * 
  * x - Number that represents the x-coordinate of the text.
  * y - Number that represents the y-coordinate of the text.
- * w - Number that represents the width of the text or 0 for automatic width.
- * h - Number that represents the height of the text or 0 for automatic height.
+ * w - Number that represents the available width for the text or 0 for automatic width.
+ * h - Number that represents the available height for the text or 0 for automatic height.
  * str - String that specifies the text to be painted.
  * align - String that represents the horizontal alignment.
  * valign - String that represents the vertical alignment.

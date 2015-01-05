@@ -1002,7 +1002,7 @@ mxSvgCanvas2D.prototype.image = function(x, y, w, h, src, aspect, flipH, flipV)
 		}
 		
 		// Adds image tansformation to existing transform
-		tr += 'scale(' + sx + ',' + sy + ')translate(' + dx + ',' + dy + ')';
+		tr += 'scale(' + sx + ',' + sy + ')translate(' + (dx * s.scale) + ',' + (dy * s.scale) + ')';
 	}
 
 	if (tr.length > 0)

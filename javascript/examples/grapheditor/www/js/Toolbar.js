@@ -33,12 +33,12 @@ Toolbar.prototype.unselectedBackground = 'none';
 Toolbar.prototype.init = function()
 {
 	this.addItems(['undo', 'redo', 'delete', '-', 'actualSize', 'zoomIn', 'zoomOut', '-']);
-	this.fontMenu = this.addMenu('Helvetica', mxResources.get('fontFamily'), true, 'fontFamily');
+	this.fontMenu = this.addMenu(Menus.prototype.defaultFont, mxResources.get('fontFamily'), true, 'fontFamily');
 	this.fontMenu.style.whiteSpace = 'nowrap';
 	this.fontMenu.style.overflow = 'hidden';
 	this.fontMenu.style.width = (mxClient.IS_QUIRKS) ? '76px' : '56px';
 	this.addSeparator();
-	this.sizeMenu = this.addMenu('12', mxResources.get('fontSize'), true, 'fontSize');
+	this.sizeMenu = this.addMenu(Menus.prototype.defaultFontSize, mxResources.get('fontSize'), true, 'fontSize');
 	this.sizeMenu.style.whiteSpace = 'nowrap';
 	this.sizeMenu.style.overflow = 'hidden';
 	this.sizeMenu.style.width = (mxClient.IS_QUIRKS) ? '42px' : '22px';
@@ -99,7 +99,7 @@ Toolbar.prototype.init = function()
 	this.addItems(['-', 'image', 'link', '-', 'strokeColor', 'fillColor']);
 	this.addItem('geSprite-gradientcolor', 'gradientColor').setAttribute('title', mxResources.get('gradient'));
 	this.addItems(['shadow']);
-	var items = this.addItems(['-', 'grid', 'guides']);
+	var items = this.addItems(['-', 'grid', 'guides'].concat((this.editorUi.format != null) ? ['-', 'formatPanel'] : []));
 	
 	var ucolor = this.unselectedBackground;
 	var scolor = this.selectedBackground;
@@ -115,14 +115,32 @@ Toolbar.prototype.init = function()
 		items[2].style.background = (this.editorUi.actions.get('guides').selectedCallback()) ? scolor : ucolor;
 	}));
 	
+	if (items.length > 3)
+	{
+		this.editorUi.addListener('formatWidthChanged', mxUtils.bind(this, function()
+		{
+			items[4].style.background = (this.editorUi.actions.get('formatPanel').selectedCallback()) ? scolor : ucolor;
+		}));
+	}
+
 	this.editorUi.editor.addListener('updateGraphComponents', mxUtils.bind(this, function()
 	{
 		items[1].style.background = (this.editorUi.actions.get('grid').selectedCallback()) ? scolor : ucolor;
 		items[2].style.background = (this.editorUi.actions.get('guides').selectedCallback()) ? scolor : ucolor;
+		
+		if (items.length > 3)
+		{
+			items[4].style.background = (this.editorUi.actions.get('formatPanel').selectedCallback()) ? scolor : ucolor;
+		}
 	}));
 	
 	items[1].style.background = (this.editorUi.actions.get('grid').selectedCallback()) ? scolor : ucolor;
 	items[2].style.background = (this.editorUi.actions.get('guides').selectedCallback()) ? scolor : ucolor;
+
+	if (items.length > 3)
+	{
+		items[4].style.background = (this.editorUi.actions.get('formatPanel').selectedCallback()) ? scolor : ucolor;
+	}
 };
 
 /**
@@ -137,14 +155,14 @@ Toolbar.prototype.createTextToolbar = function()
 	fontElt.style.whiteSpace = 'nowrap';
 	fontElt.style.overflow = 'hidden';
 	
-	var fontElt = this.addMenu('Helvetica', mxResources.get('fontFamily'), true, 'fontFamily');
+	var fontElt = this.addMenu(Menus.prototype.defaultFont, mxResources.get('fontFamily'), true, 'fontFamily');
 	fontElt.style.whiteSpace = 'nowrap';
 	fontElt.style.overflow = 'hidden';
 	fontElt.style.width = (mxClient.IS_QUIRKS) ? '76px' : '56px';
 	
 	this.addSeparator();
 	
-	var sizeElt = this.addMenu('12', mxResources.get('fontSize'), true, 'fontSize');
+	var sizeElt = this.addMenu(Menus.prototype.defaultFontSize, mxResources.get('fontSize'), true, 'fontSize');
 	sizeElt.style.whiteSpace = 'nowrap';
 	sizeElt.style.overflow = 'hidden';
 	sizeElt.style.width = (mxClient.IS_QUIRKS) ? '42px' : '22px';
@@ -208,191 +226,7 @@ Toolbar.prototype.createTextToolbar = function()
 	});
 	
 	this.addSeparator();
-	
-	function getSelectedElement(name)
-	{
-		var node = null;
-		
-		if (window.getSelection)
-		{
-			var sel = window.getSelection();
-			
-		    if (sel.getRangeAt && sel.rangeCount)
-		    {
-		        var range = sel.getRangeAt(0);
-		        node = range.commonAncestorContainer;
-		    }
-		}
-		else if (document.selection)
-		{
-			node = document.selection.createRange().parentElement();
-		}
-		
-    	while (node != null)
-    	{
-    		if (node.nodeName == name)
-    		{
-    			return node;
-    		}
-    		
-    		node = node.parentNode;
-    	}
-		
-		return node;
-	};
-	
-	function getParentElement(node, name)
-	{
-    	var result = node;
-    	
-    	while (result != null)
-    	{
-    		if (result.nodeName == name)
-    		{
-    			break;
-    		}
-    		
-    		result = result.parentNode;
-    	}
-    	
-    	return result;
-	};
-	
-	function getSelectedCell()
-	{
-		return getSelectedElement('TD');
-	};
-
-	function getSelectedRow()
-	{
-		return getSelectedElement('TR');
-	};
-
-	function getParentTable(node)
-	{
-		return getParentElement(node, 'TABLE');
-	};
-
-	function selectNode(node)
-	{
-		var sel = null;
-		
-        // IE9 and non-IE
-		if (window.getSelection)
-	    {
-	    	sel = window.getSelection();
-	    	
-	        if (sel.getRangeAt && sel.rangeCount)
-	        {
-	        	var range = document.createRange();
-                range.selectNode(node);
-                sel.removeAllRanges();
-                sel.addRange(range);
-	        }
-	    }
-        // IE < 9
-		else if ((sel = document.selection) && sel.type != 'Control')
-	    {
-	        var originalRange = sel.createRange();
-	        originalRange.collapse(true);
-            range = sel.createRange();
-            range.setEndPoint('StartToStart', originalRange);
-            range.select();
-	    }
-	};
-	
-	function pasteHtmlAtCaret(html)
-	{
-	    var sel, range;
-
-    	// IE9 and non-IE
-	    if (window.getSelection)
-	    {
-	        sel = window.getSelection();
-	        
-	        if (sel.getRangeAt && sel.rangeCount)
-	        {
-	            range = sel.getRangeAt(0);
-	            range.deleteContents();
-
-	            // Range.createContextualFragment() would be useful here but is
-	            // only relatively recently standardized and is not supported in
-	            // some browsers (IE9, for one)
-	            var el = document.createElement("div");
-	            el.innerHTML = html;
-	            var frag = document.createDocumentFragment(), node;
-	            
-	            while ((node = el.firstChild))
-	            {
-	                lastNode = frag.appendChild(node);
-	            }
-	            
-	            range.insertNode(frag);
-	        }
-	    }
-        // IE < 9
-	    else if ((sel = document.selection) && sel.type != "Control")
-	    {
-	    	// FIXME: Does not work if selection is empty
-	        sel.createRange().pasteHTML(html);
-	    }
-	};
-	
-	// TODO: Disable toolbar button for HTML code view
-	this.addButton('geIcon geSprite geSprite-link', mxResources.get('insertLink'), mxUtils.bind(this, function()
-	{
-		if (graph.cellEditor.isContentEditing())
-		{
-			var link = getSelectedElement('A');
-			var oldValue = '';
-			
-			if (link != null)
-			{
-				oldValue = link.getAttribute('href');
-			}
-			
-			var selState = graph.cellEditor.saveSelection();
-			
-			this.editorUi.showLinkDialog(oldValue, mxResources.get('apply'), mxUtils.bind(this, function(value)
-			{
-	    		graph.cellEditor.restoreSelection(selState);
-				
-				// To find the new link, we create a list of all existing links first
-	    		// LATER: Refactor for reuse with code for finding inserted image below
-				var tmp = graph.cellEditor.text2.getElementsByTagName('a');
-				var oldLinks = [];
-				
-				for (var i = 0; i < tmp.length; i++)
-				{
-					oldLinks.push(tmp[i]);
-				}
-	
-				if (value != null && value.length > 0)
-				{
-					document.execCommand('createlink', false, mxUtils.trim(value));
-					
-					// Adds target="_blank" for the new link
-					var newLinks = graph.cellEditor.text2.getElementsByTagName('a');
-					
-					if (newLinks.length == oldLinks.length + 1)
-					{
-						// Inverse order in favor of appended links
-						for (var i = newLinks.length - 1; i >= 0; i--)
-						{
-							if (i == 0 || newLinks[i] != oldLinks[i - 1])
-							{
-								newLinks[i].setAttribute('target', '_blank');
-								break;
-							}
-						}
-					}
-				}
-			}));
-		}
-	}));
-	
-	// TODO: Disable toolbar button for HTML code view
-	this.addItems(['image']);
+	this.addItems(['link', 'image']);
 
 	this.addButton('geIcon geSprite geSprite-horizontalrule', mxResources.get('insertHorizontalRule'), function()
 	{
@@ -404,248 +238,27 @@ Toolbar.prototype.createTextToolbar = function()
 	// to catch the focus on click in these browsers. NOTE: Workaround in mxPopupMenu for icon items (without text).
 	var elt = this.addMenuFunction('geIcon geSprite geSprite-table', mxResources.get('table'), false, mxUtils.bind(this, function(menu)
 	{
-		var cell = getSelectedCell();
-		var row = getSelectedRow();
+		var elt = graph.getSelectedElement();
+		var cell = graph.getParentByName(elt, 'TD', graph.cellEditor.text2);
+		var row = graph.getParentByName(elt, 'TR', graph.cellEditor.text2);
 
 		if (row == null)
     	{
-			function createTable(rows, cols)
-			{
-				var html = ['<table>'];
-				
-				for (var i = 0; i < rows; i++)
-				{
-					html.push('<tr>');
-					
-					for (var j = 0; j < cols; j++)
-					{
-						html.push('<td><br></td>');
-					}
-					
-					html.push('</tr>');
-				}
-				
-				html.push('</table>');
-				
-				return html.join('');
-			};
-			
-			// Show table size dialog
-			var elt2 = menu.addItem('', null, mxUtils.bind(this, function(evt)
-			{
-				var td = getParentElement(mxEvent.getSource(evt), 'TD');
-				
-				if (td != null)
-				{
-					var row2 = getParentElement(td, 'TR');
-					
-					// To find the new link, we create a list of all existing links first
-		    		// LATER: Refactor for reuse with code for finding inserted image below
-					var tmp = graph.cellEditor.text2.getElementsByTagName('table');
-					var oldTables = [];
-					
-					for (var i = 0; i < tmp.length; i++)
-					{
-						oldTables.push(tmp[i]);
-					}
-					
-					// Finding the new table will work with insertHTML, but IE does not support that
-					pasteHtmlAtCaret(createTable(row2.sectionRowIndex + 1, td.cellIndex + 1));
-					
-					// Moves cursor to first table cell
-					var newTables = graph.cellEditor.text2.getElementsByTagName('table');
-					
-					if (newTables.length == oldTables.length + 1)
-					{
-						// Inverse order in favor of appended tables
-						for (var i = newTables.length - 1; i >= 0; i--)
-						{
-							if (i == 0 || newTables[i] != oldTables[i - 1])
-							{
-								selectNode(newTables[i].rows[0].cells[0]);
-								break;
-							}
-						}
-					}
-				}
-			}));
-			
-			// Quirks mode does not add cell padding if cell is empty, needs good old spacer solution
-			var quirksCellHtml = '<img src="' + mxClient.imageBasePath + '/transparent.gif' + '" width="16" height="16"/>';
-
-			function createPicker(rows, cols)
-			{
-				var table2 = document.createElement('table');
-				table2.setAttribute('border', '1');
-				table2.style.borderCollapse = 'collapse';
-
-				if (!mxClient.IS_QUIRKS)
-				{
-					table2.setAttribute('cellPadding', '8');
-				}
-				
-				for (var i = 0; i < rows; i++)
-				{
-					var row = table2.insertRow(i);
-					
-					for (var j = 0; j < cols; j++)
-					{
-						var cell = row.insertCell(-1);
-						
-						if (mxClient.IS_QUIRKS)
-						{
-							cell.innerHTML = quirksCellHtml;
-						}
-					}
-				}
-				
-				return table2;
-			};
-
-			function extendPicker(picker, rows, cols)
-			{
-				for (var i = picker.rows.length; i < rows; i++)
-				{
-					var row = picker.insertRow(i);
-					
-					for (var j = 0; j < picker.rows[0].cells.length; j++)
-					{
-						var cell = row.insertCell(-1);
-						
-						if (mxClient.IS_QUIRKS)
-						{
-							cell.innerHTML = quirksCellHtml;
-						}
-					}
-				}
-				
-				for (var i = 0; i < picker.rows.length; i++)
-				{
-					var row = picker.rows[i];
-					
-					for (var j = row.cells.length; j < cols; j++)
-					{
-						var cell = row.insertCell(-1);
-						
-						if (mxClient.IS_QUIRKS)
-						{
-							cell.innerHTML = quirksCellHtml;
-						}
-					}
-				}
-			};
-			
-			elt2.firstChild.innerHTML = '';
-			var picker = createPicker(5, 5);
-			elt2.firstChild.appendChild(picker);
-			
-			var label = document.createElement('div');
-			label.style.padding = '4px';
-			label.style.fontSize = '12px';
-			label.innerHTML = '1x1';
-			elt2.firstChild.appendChild(label);
-			
-			mxEvent.addListener(picker, 'mouseover', function(e)
-			{
-				var td = getParentElement(mxEvent.getSource(e), 'TD');
-				
-				if (td != null)
-				{
-					var row2 = getParentElement(td, 'TR');
-					extendPicker(picker, Math.min(20, row2.sectionRowIndex + 2), Math.min(20, td.cellIndex + 2));
-					label.innerHTML = (td.cellIndex + 1) + 'x' + (row2.sectionRowIndex + 1);
-					
-					for (var i = 0; i < picker.rows.length; i++)
-					{
-						var r = picker.rows[i];
-						
-						for (var j = 0; j < r.cells.length; j++)
-						{
-							var cell = r.cells[j];
-							
-							if (i <= row2.sectionRowIndex && j <= td.cellIndex)
-							{
-								cell.style.backgroundColor = 'blue';
-							}
-							else
-							{
-								cell.style.backgroundColor = 'white';
-							}
-						}
-					}
-					
-					mxEvent.consume(e);
-				}
-			});
+			this.editorUi.menus.addInsertTableItem(menu);
     	}
 		else
     	{
-			var table = getParentTable(row);
+			var table = graph.getParentByName(row, 'TABLE', graph.cellEditor.text2);
 
-			function insertRow(index)
-			{
-				var tblBodyObj = table.tBodies[0];
-				var colCount = (tblBodyObj.rows.length > 0) ? tblBodyObj.rows[0].cells.length : 1;
-				var newRow = tblBodyObj.insertRow(index);
-				
-				for (var i = 0; i < colCount; i++)
-				{
-					var newCell = newRow.insertCell(-1);
-					mxUtils.br(newCell);
-				}
-
-				selectNode(newRow.cells[0]);
-			}
-
-			function deleteColumn(index)
-			{
-				var tblBodyObj = table.tBodies[0];
-				var allRows = tblBodyObj.rows;
-				
-				for (var i = 0; i < allRows.length; i++)
-				{
-					if (allRows[i].cells.length > index)
-					{
-						allRows[i].deleteCell(index);
-					}
-				}
-			};
-
-			function insertColumn(index)
-			{
-				var tblHeadObj = table.tHead;
-				
-				if (tblHeadObj != null)
-				{
-					// TODO: use colIndex
-					for (var h = 0; h < tblHeadObj.rows.length; h++)
-					{
-						var newTH = document.createElement('th');
-						tblHeadObj.rows[h].appendChild(newTH);
-						mxUtils.br(newTH);
-					}
-				}
-
-				var tblBodyObj = table.tBodies[0];
-				
-				for (var i = 0; i < tblBodyObj.rows.length; i++)
-				{
-					var newCell = tblBodyObj.rows[i].insertCell(index);
-					mxUtils.br(newCell);
-				}
-				
-				selectNode(tblBodyObj.rows[0].cells[(index >= 0) ? index : tblBodyObj.rows[0].cells.length - 1]);
-			};
-			
 			elt = menu.addItem('', null, mxUtils.bind(this, function()
 			{
-				insertColumn((cell != null) ? cell.cellIndex : 0);
+				graph.selectNode(graph.insertColumn(table, (cell != null) ? cell.cellIndex : 0));
 			}), null, 'geIcon geSprite geSprite-insertcolumnbefore');
 			elt.setAttribute('title', mxResources.get('insertColumnBefore'));
 			
 			elt = menu.addItem('', null, mxUtils.bind(this, function()
 			{
-				insertColumn((cell != null) ? cell.cellIndex + 1 : -1);
+				graph.selectNode(graph.insertColumn(table, (cell != null) ? cell.cellIndex + 1 : -1));
 			}), null, 'geIcon geSprite geSprite-insertcolumnafter');
 			elt.setAttribute('title', mxResources.get('insertColumnAfter'));
 
@@ -653,45 +266,40 @@ Toolbar.prototype.createTextToolbar = function()
 			{
 				if (cell != null)
 				{
-					deleteColumn(cell.cellIndex);
+					graph.deleteColumn(table, cell.cellIndex);
 				}
 			}), null, 'geIcon geSprite geSprite-deletecolumn');
 			elt.setAttribute('title', mxResources.get('deleteColumn'));
 			
 			elt = menu.addItem('', null, mxUtils.bind(this, function()
 			{
-				insertRow(row.sectionRowIndex);
+				graph.selectNode(graph.insertRow(table, row.sectionRowIndex));
 			}), null, 'geIcon geSprite geSprite-insertrowbefore');
 			elt.setAttribute('title', mxResources.get('insertRowBefore'));
 
 			elt = menu.addItem('', null, mxUtils.bind(this, function()
 			{
-				insertRow(row.sectionRowIndex + 1);
+				graph.selectNode(graph.insertRow(table, row.sectionRowIndex + 1));
 			}), null, 'geIcon geSprite geSprite-insertrowafter');
 			elt.setAttribute('title', mxResources.get('insertRowAfter'));
 
 			elt = menu.addItem('', null, mxUtils.bind(this, function()
 			{
-				var tblBodyObj = table.tBodies[0];
-				tblBodyObj.deleteRow(row.sectionRowIndex);
+				graph.deleteRow(table, row.sectionRowIndex);
 			}), null, 'geIcon geSprite geSprite-deleterow');
 			elt.setAttribute('title', mxResources.get('deleteRow'));
 			
 			elt = menu.addItem('', null, mxUtils.bind(this, function()
 			{
-				var colorValue = table.style.borderColor.replace(
+				// Converts rgb(r,g,b) values
+				var color = table.style.borderColor.replace(
 					    /\brgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/g,
 					    function($0, $1, $2, $3) {
 					        return "#" + ("0"+Number($1).toString(16)).substr(-2) + ("0"+Number($2).toString(16)).substr(-2) + ("0"+Number($3).toString(16)).substr(-2);
 					    });
-
-				var selState = graph.cellEditor.saveSelection();
-				
-				var dlg = new ColorDialog(this.editorUi, colorValue || 'none', mxUtils.bind(this, function(color)
+				this.editorUi.pickColor(color, function(newColor)
 				{
-					graph.cellEditor.restoreSelection(selState);
-					
-					if (color == null || color == mxConstants.NONE)
+					if (newColor == null || newColor == mxConstants.NONE)
 					{
 						table.removeAttribute('border');
 						table.style.border = '';
@@ -700,47 +308,32 @@ Toolbar.prototype.createTextToolbar = function()
 					else
 					{
 						table.setAttribute('border', '1');
-						table.style.border = '1px solid ' + color;
+						table.style.border = '1px solid ' + newColor;
 						table.style.borderCollapse = 'collapse';
 					}
-				}), function()
-				{
-					graph.cellEditor.restoreSelection(selState);
 				});
-				this.editorUi.showDialog(dlg.container, 220, 400, true, false);
-				dlg.init();
 			}), null, 'geIcon geSprite geSprite-strokecolor');
 			elt.setAttribute('title', mxResources.get('borderColor'));
 			
 			elt = menu.addItem('', null, mxUtils.bind(this, function()
 			{
 				// Converts rgb(r,g,b) values
-				var colorValue = table.style.backgroundColor.replace(
+				var color = table.style.backgroundColor.replace(
 					    /\brgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/g,
 					    function($0, $1, $2, $3) {
 					        return "#" + ("0"+Number($1).toString(16)).substr(-2) + ("0"+Number($2).toString(16)).substr(-2) + ("0"+Number($3).toString(16)).substr(-2);
 					    });
-	
-				var selState = graph.cellEditor.saveSelection();
-				
-				var dlg = new ColorDialog(this.editorUi, colorValue || 'none', mxUtils.bind(this, function(color)
+				this.editorUi.pickColor(color, function(newColor)
 				{
-					graph.cellEditor.restoreSelection(selState);
-					
-					if (color == null || color == mxConstants.NONE)
+					if (newColor == null || newColor == mxConstants.NONE)
 					{
 						table.style.backgroundColor = '';
 					}
 					else
 					{
-						table.style.backgroundColor = color;
+						table.style.backgroundColor = newColor;
 					}
-				}), function()
-				{
-					graph.cellEditor.restoreSelection(selState);
 				});
-				this.editorUi.showDialog(dlg.container, 220, 400, true, false);
-				dlg.init();
 			}), null, 'geIcon geSprite geSprite-fillcolor');
 			elt.setAttribute('title', mxResources.get('backgroundColor'));
 			
@@ -781,7 +374,6 @@ Toolbar.prototype.createTextToolbar = function()
 				table.setAttribute('align', 'right');
 			}), null, 'geIcon geSprite geSprite-right');
 			elt.setAttribute('title', mxResources.get('right'));
-			
     	}
 	}));
 	
@@ -807,17 +399,16 @@ Toolbar.prototype.hideMenu = function()
 	{
 		this.currentMenu.hideMenu();
 		this.currentMenu.destroy();
-		this.currentMenu = null;
 	}
 };
 
 /**
  * Adds a label to the toolbar.
  */
-Toolbar.prototype.addMenu = function(label, tooltip, showLabels, name)
+Toolbar.prototype.addMenu = function(label, tooltip, showLabels, name, c)
 {
 	var menu = this.editorUi.menus.get(name);
-	var elt = this.addMenuFunction(label, tooltip, showLabels, menu.funct);
+	var elt = this.addMenuFunction(label, tooltip, showLabels, menu.funct, c);
 	
 	menu.addListener('stateChanged', function()
 	{
@@ -830,12 +421,20 @@ Toolbar.prototype.addMenu = function(label, tooltip, showLabels, name)
 /**
  * Adds a label to the toolbar.
  */
-Toolbar.prototype.addMenuFunction = function(label, tooltip, showLabels, funct)
+Toolbar.prototype.addMenuFunction = function(label, tooltip, showLabels, funct, c)
+{
+	return this.addMenuFunctionInContainer((c != null) ? c : this.container, label, tooltip, showLabels, funct);
+};
+
+/**
+ * Adds a label to the toolbar.
+ */
+Toolbar.prototype.addMenuFunctionInContainer = function(container, label, tooltip, showLabels, funct)
 {
 	var elt = (showLabels) ? this.createLabel(label) : this.createButton(label);
 	this.initElement(elt, tooltip);
 	this.addMenuHandler(elt, showLabels, funct);
-	this.container.appendChild(elt);
+	container.appendChild(elt);
 	
 	return elt;
 };
@@ -843,11 +442,12 @@ Toolbar.prototype.addMenuFunction = function(label, tooltip, showLabels, funct)
 /**
  * Adds a separator to the separator.
  */
-Toolbar.prototype.addSeparator = function()
+Toolbar.prototype.addSeparator = function(c)
 {
+	c = (c != null) ? c : this.container;
 	var elt = document.createElement('div');
 	elt.className = 'geSeparator';
-	this.container.appendChild(elt);
+	c.appendChild(elt);
 	
 	return elt;
 };
@@ -855,7 +455,7 @@ Toolbar.prototype.addSeparator = function()
 /**
  * Adds given action item
  */
-Toolbar.prototype.addItems = function(keys)
+Toolbar.prototype.addItems = function(keys, c, ignoreDisabled)
 {
 	var items = [];
 	
@@ -865,11 +465,11 @@ Toolbar.prototype.addItems = function(keys)
 		
 		if (key == '-')
 		{
-			items.push(this.addSeparator());
+			items.push(this.addSeparator(c));
 		}
 		else
 		{
-			items.push(this.addItem('geSprite-' + key.toLowerCase(), key));
+			items.push(this.addItem('geSprite-' + key.toLowerCase(), key, c, ignoreDisabled));
 		}
 	}
 	
@@ -879,20 +479,24 @@ Toolbar.prototype.addItems = function(keys)
 /**
  * Adds given action item
  */
-Toolbar.prototype.addItem = function(sprite, key)
+Toolbar.prototype.addItem = function(sprite, key, c, ignoreDisabled)
 {
 	var action = this.editorUi.actions.get(key);
 	var elt = null;
 	
 	if (action != null)
 	{
-		elt = this.addButton(sprite, action.label, action.funct);
-		elt.setEnabled(action.enabled);
-		
-		action.addListener('stateChanged', function()
+		elt = this.addButton(sprite, action.label, action.funct, c);
+
+		if (!ignoreDisabled)
 		{
 			elt.setEnabled(action.enabled);
-		});
+			
+			action.addListener('stateChanged', function()
+			{
+				elt.setEnabled(action.enabled);
+			});
+		}
 	}
 	
 	return elt;
@@ -901,13 +505,14 @@ Toolbar.prototype.addItem = function(sprite, key)
 /**
  * Adds a button to the toolbar.
  */
-Toolbar.prototype.addButton = function(classname, tooltip, funct)
+Toolbar.prototype.addButton = function(classname, tooltip, funct, c)
 {
 	var elt = this.createButton(classname);
+	c = (c != null) ? c : this.container;
 	
 	this.initElement(elt, tooltip);
 	this.addClickHandler(elt, funct);
-	this.container.appendChild(elt);
+	c.appendChild(elt);
 	
 	return elt;
 };
@@ -940,12 +545,10 @@ Toolbar.prototype.addEnabledState = function(elt)
 		if (value)
 		{
 			elt.className = classname;
-			//elt.style.display = '';
 		}
 		else
 		{
 			elt.className = classname + ' mxDisabled';
-			//elt.style.display = 'none';
 		}
 	};
 	
@@ -1023,10 +626,11 @@ Toolbar.prototype.addMenuHandler = function(elt, showLabels, funct, showAll)
 	{
 		var graph = this.editorUi.editor.graph;
 		var menu = null;
+		var show = true;
 
 		mxEvent.addListener(elt, 'click', mxUtils.bind(this, function(evt)
 		{
-			if (elt.enabled == null || elt.enabled)
+			if (show && (elt.enabled == null || elt.enabled))
 			{
 				graph.popupMenuHandler.hideMenu();
 				menu = new mxPopupMenu(funct);
@@ -1034,22 +638,33 @@ Toolbar.prototype.addMenuHandler = function(elt, showLabels, funct, showAll)
 				menu.showDisabled = showAll;
 				menu.labels = showLabels;
 				menu.autoExpand = true;
-
+				
 				var offset = mxUtils.getOffset(elt);
 				menu.popup(offset.x, offset.y + elt.offsetHeight, null, evt);
 				this.currentMenu = menu;
+				this.currentElt = elt;
+				
+				// Extends destroy to reset global state
+				menu.addListener(mxEvent.EVENT_HIDE, mxUtils.bind(this, function()
+				{
+					this.currentElt = null;
+				}));
 			}
 			
+			show = true;
 			mxEvent.consume(evt);
 		}));
-		
-		if (document.documentMode != null && document.documentMode >= 9)
+
+		// Hides menu if already showing
+		mxEvent.addListener(elt, 'mousedown', mxUtils.bind(this, function(evt)
 		{
+			show = this.currentElt != elt;
+			
 			// Prevents focus
-			mxEvent.addListener(elt, 'mousedown', function(evt)
+			if (document.documentMode != null && document.documentMode >= 9)
 			{
 				evt.preventDefault();
-			});
-		}
+			}
+		}));
 	}
 };

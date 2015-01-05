@@ -194,28 +194,7 @@ mxVertexHandler.prototype.init = function()
 	{
 		this.selectionBorder.setCursor(mxConstants.CURSOR_MOVABLE_VERTEX);
 	}
-	
-	// Adds highlight for parent group
-	if (this.parentHighlightEnabled)
-	{
-		var parent = this.graph.model.getParent(this.state.cell);
-		
-		if (this.graph.model.isVertex(parent))
-		{
-			var pstate = this.graph.view.getState(parent);
-			
-			if (pstate != null)
-			{
-				this.parentHighlight = this.createParentHighlightShape(pstate);
-				// VML dialect required here for event transparency in IE
-				this.parentHighlight.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ? mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
-				this.parentHighlight.pointerEvents = false;
-				this.parentHighlight.rotation = Number(pstate.style[mxConstants.STYLE_ROTATION] || '0');
-				this.parentHighlight.init(this.graph.getView().getOverlayPane());
-			}
-		}
-	}
-	
+
 	// Adds the sizer handles
 	if (mxGraphHandler.prototype.maxCells <= 0 || this.graph.getSelectionCount() < mxGraphHandler.prototype.maxCells)
 	{
@@ -819,7 +798,7 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 				{
 					var dx = point.x - this.state.getCenterX();
 					var dy = point.y - this.state.getCenterY();
-					var dist = Math.abs(Math.sqrt(dx * dx + dy * dy) - this.state.height / 2 - 20);
+					var dist = Math.abs(Math.sqrt(dx * dx + dy * dy) - 20);
 					var raster = Math.max(1, 5 * Math.min(3, Math.max(0, Math.round(80 / Math.abs(dist)))));
 					
 					this.currentAlpha = Math.round(this.currentAlpha / raster) * raster;
@@ -1613,6 +1592,62 @@ mxVertexHandler.prototype.redrawHandles = function()
 		for (var i = 0; i < this.customHandles.length; i++)
 		{
 			this.customHandles[i].redraw();
+		}
+	}
+
+	this.updateParentHighlight();
+};
+
+/**
+ * Function: updateParentHighlight
+ * 
+ * Updates the highlight of the parent if <parentHighlightEnabled> is true.
+ */
+mxVertexHandler.prototype.updateParentHighlight = function()
+{
+	// If not destroyed
+	if (this.selectionBorder != null)
+	{
+		if (this.parentHighlight != null)
+		{
+			var parent = this.graph.model.getParent(this.state.cell);
+	
+			if (this.graph.model.isVertex(parent))
+			{
+				var pstate = this.graph.view.getState(parent);
+				var b = this.parentHighlight.bounds;
+				
+				if (pstate != null && (b.x != pstate.x || b.y != pstate.y ||
+					b.width != pstate.width || b.height != pstate.height))
+				{
+					this.parentHighlight.bounds = pstate;
+					this.parentHighlight.redraw();
+				}
+			}
+			else
+			{
+				this.parentHighlight.destroy();
+				this.parentHighlight = null;
+			}
+		}
+		else if (this.parentHighlightEnabled)
+		{
+			var parent = this.graph.model.getParent(this.state.cell);
+			
+			if (this.graph.model.isVertex(parent))
+			{
+				var pstate = this.graph.view.getState(parent);
+				
+				if (pstate != null)
+				{
+					this.parentHighlight = this.createParentHighlightShape(pstate);
+					// VML dialect required here for event transparency in IE
+					this.parentHighlight.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ? mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
+					this.parentHighlight.pointerEvents = false;
+					this.parentHighlight.rotation = Number(pstate.style[mxConstants.STYLE_ROTATION] || '0');
+					this.parentHighlight.init(this.graph.getView().getOverlayPane());
+				}
+			}
 		}
 	}
 };

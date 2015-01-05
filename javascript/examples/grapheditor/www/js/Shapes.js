@@ -161,6 +161,25 @@
 
 	mxCellRenderer.prototype.defaultShapes['note'] = NoteShape;
 
+	// Note Shape, supports size style
+	function SwitchShape()
+	{
+		mxActor.call(this);
+	};
+	mxUtils.extend(SwitchShape, mxActor);
+	SwitchShape.prototype.redrawPath = function(c, x, y, w, h)
+	{
+		var curve = 0.5;
+		c.moveTo(0, 0);
+		c.quadTo(w / 2, h * curve,  w, 0);
+		c.quadTo(w * (1 - curve), h / 2, w, h);
+		c.quadTo(w / 2, h * (1 - curve), 0, h);
+		c.quadTo(w * curve, h / 2, 0, 0);
+		c.end();
+	};
+
+	mxCellRenderer.prototype.defaultShapes['switch'] = SwitchShape;
+
 	// Folder Shape, supports tabWidth, tabHeight styles
 	function FolderShape()
 	{
@@ -1695,6 +1714,14 @@
    	            		 new mxConnectionConstraint(new mxPoint(0.25, 1), true),
    	            		 new mxConnectionConstraint(new mxPoint(0.5, 1), true),
    	            		 new mxConnectionConstraint(new mxPoint(0.75, 1), true)];
+	SwitchShape.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0, 0), false),
+                                         new mxConnectionConstraint(new mxPoint(0.5, 0.25), false),
+                                         new mxConnectionConstraint(new mxPoint(1, 0), false),
+			       	              		 new mxConnectionConstraint(new mxPoint(0.25, 0.5), false),
+			       	              		 new mxConnectionConstraint(new mxPoint(0.75, 0.5), false),
+			       	              		 new mxConnectionConstraint(new mxPoint(0, 1), false),
+			       	            		 new mxConnectionConstraint(new mxPoint(0.5, 0.75), false),
+			       	            		 new mxConnectionConstraint(new mxPoint(1, 1), false)];
 	TapeShape.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0, 0.35), false),
 	                                   new mxConnectionConstraint(new mxPoint(0, 0.5), false),
 	                                   new mxConnectionConstraint(new mxPoint(0, 0.65), false),

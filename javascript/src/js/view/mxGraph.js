@@ -542,6 +542,17 @@
  * <code>cell</code> property contains the cell that is being edited and the
  * <code>event</code> property contains the optional event argument that was
  * passed to <startEditingAtCell>.
+ * 
+ * Event: mxEvent.EDITING_STARTED
+ *
+ * Fires after the in-place editor starts in <startEditingAtCell>. The
+ * <code>cell</code> property contains the cell that is being edited and the
+ * <code>event</code> property contains the optional event argument that was
+ * passed to <startEditingAtCell>.
+ * 
+ * Event: mxEvent.EDITING_STOPPED
+ *
+ * Fires after the in-place editor stops in <stopEditing>.
  *
  * Event: mxEvent.LABEL_CHANGED
  *
@@ -825,11 +836,9 @@ mxGraph.prototype.portsEnabled = true;
 /**
  * Variable: nativeDoubleClickEnabled
  * 
- * Specifies if native double click events should be deteced. Default is false
- * for IE in quirks mode or IE10+, true for all other browsers. The
- * <doubleTapTimeout> value is used to specify the double click speed.
+ * Specifies if native double click events should be deteced. Default is false.
  */
-mxGraph.prototype.nativeDblClickEnabled = !mxClient.IS_QUIRKS && (document.documentMode == null || document.documentMode < 10);
+mxGraph.prototype.nativeDblClickEnabled = true;
 
 /**
  * Variable: doubleTapEnabled
@@ -2343,7 +2352,8 @@ mxGraph.prototype.startEditing = function(evt)
  * Function: startEditingAtCell
  * 
  * Fires a <startEditing> event and invokes <mxCellEditor.startEditing>
- * on <editor>.
+ * on <editor>. After editing was started, a <editingStarted> event is
+ * fired.
  * 
  * Parameters:
  * 
@@ -2369,6 +2379,8 @@ mxGraph.prototype.startEditingAtCell = function(cell, evt)
 			this.fireEvent(new mxEventObject(mxEvent.START_EDITING,
 					'cell', cell, 'event', evt));
 			this.cellEditor.startEditing(cell, evt);
+			this.fireEvent(new mxEventObject(mxEvent.EDITING_STARTED,
+					'cell', cell, 'event', evt));
 		}
 	}
 };
@@ -2394,7 +2406,7 @@ mxGraph.prototype.getEditingValue = function(cell, evt)
 /**
  * Function: stopEditing
  * 
- * Stops the current editing.
+ * Stops the current editing  and fires a <editingStopped> event.
  * 
  * Parameters:
  * 
@@ -2404,6 +2416,7 @@ mxGraph.prototype.getEditingValue = function(cell, evt)
 mxGraph.prototype.stopEditing = function(cancel)
 {
 	this.cellEditor.stopEditing(cancel);
+	this.fireEvent(new mxEventObject(mxEvent.EDITING_STOPPED, 'cancel', cancel));
 };
 
 /**
@@ -6447,6 +6460,12 @@ mxGraph.prototype.getConnectionPoint = function(vertex, constraint)
 		}
 	}
 	
+	if (point != null)
+	{
+		point.x = Math.round(point.x);
+		point.y = Math.round(point.y);
+	}
+	
 	return point;
 };
 
@@ -7313,9 +7332,19 @@ mxGraph.prototype.zoomTo = function(scale, center)
  * Function: center
  * 
  * Centers the graph in the container.
+ * 
+ * Parameters:
+ * 
+ * horizontal - Optional boolean that specifies if the graph should be centered
+ * horizontally. Default is true.
+ * vertical - Optional boolean that specifies if the graph should be centered
+ * vertically. Default is true.
  */
-mxGraph.prototype.center = function()
+mxGraph.prototype.center = function(horizontal, vertical)
 {
+	horizontal = (horizontal != null) ? horizontal : true;
+	vertical = (vertical != null) ? vertical : true;
+	
 	var hasScrollbars = mxUtils.hasScrollbars(this.container);
 	var cw = this.container.clientWidth;
 	var ch = this.container.clientHeight;
@@ -7324,12 +7353,12 @@ mxGraph.prototype.center = function()
 	bounds.x -= t.x;
 	bounds.y -= t.y;
 	
-	var dx = cw - bounds.width;
-	var dy = ch - bounds.height;
+	var dx = (horizontal) ? cw - bounds.width : 0;
+	var dy = (vertical) ? ch - bounds.height : 0;
 	
 	if (!hasScrollbars)
 	{
-		this.view.setTranslate(dx / 2 - bounds.x, dy / 2 - bounds.y);
+		this.view.setTranslate(Math.floor(dx / 2 - bounds.x), Math.floor(dy / 2 - bounds.y));
 	}
 	else
 	{
@@ -7346,7 +7375,7 @@ mxGraph.prototype.center = function()
 			dy = 0;
 		}
 
-		this.view.setTranslate(dx / 2 - bounds.x, dy / 2 - bounds.y);
+		this.view.setTranslate(Math.floor(dx / 2 - bounds.x), Math.floor(dy / 2 - bounds.y));
 		this.container.scrollLeft = (sw - cw) / 2;
 		this.container.scrollTop = (sh - ch) / 2;
 	}
@@ -11684,6 +11713,7 @@ mxGraph.prototype.selectEdges = function(parent)
  * Selects all vertices and/or edges depending on the given boolean
  * arguments recursively, starting at the given parent or the default
  * parent if no parent is specified. Use <selectAll> to select all cells.
+ * For vertices, only cells with no children are selected.
  * 
  * Parameters:
  * 
@@ -11699,8 +11729,7 @@ mxGraph.prototype.selectCells = function(vertices, edges, parent)
 	var filter = mxUtils.bind(this, function(cell)
 	{
 		return this.view.getState(cell) != null &&
-			this.model.getChildCount(cell) == 0 &&
-			((this.model.isVertex(cell) && vertices) ||
+			((this.model.getChildCount(cell) == 0 && this.model.isVertex(cell) && vertices) ||
 			(this.model.isEdge(cell) && edges));
 	});
 	
@@ -12168,6 +12197,10 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 						this.lastTouchCell = null;
 
 						// Fires native dblclick event via event source
+						// NOTE: This fires two double click events on edges in quirks mode. While
+						// trying to fix this, we realized that nativeDoubleClick can be disabled for
+						// quirks and IE10+ (or we didn't find the case mentioned above where it
+						// would not work), ie. all double clicks seem to be working without this.
 						if (mxClient.IS_QUIRKS)
 						{
 							me.getSource().fireEvent('ondblclick');

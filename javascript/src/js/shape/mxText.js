@@ -501,15 +501,6 @@ mxText.prototype.paint = function(c)
 mxText.prototype.redrawHtmlShape = function()
 {
 	var style = this.node.style;
-	
-	if (this.opacity < 1)
-	{
-		style.opacity = this.opacity;
-	}
-	else
-	{
-		style.opacity = '';
-	}
 
 	// Resets CSS styles
 	style.whiteSpace = 'normal';
@@ -561,6 +552,15 @@ mxText.prototype.updateHtmlTransform = function()
 
 	style.left = Math.round(this.bounds.x) + 'px';
 	style.top = Math.round(this.bounds.y) + 'px';
+	
+	if (this.opacity < 100)
+	{
+		style.opacity = this.opacity / 100;
+	}
+	else
+	{
+		style.opacity = '';
+	}
 };
 
 /**
@@ -604,7 +604,7 @@ mxText.prototype.updateHtmlFilter = function()
 	var s = this.scale;
 	
 	// Resets filter before getting offsetWidth
-	style.filter = '';
+	mxUtils.setOpacity(this.node, this.opacity);
 	
 	// Adds 1 to match table height in 1.x
 	var ow = 0;
@@ -746,8 +746,17 @@ mxText.prototype.updateHtmlFilter = function()
 	
 	if (rad != 0)
 	{
-		style.filter = "progid:DXImageTransform.Microsoft.Matrix(M11=" + real_cos + ", M12="+
-			real_sin + ", M21=" + (-real_sin) + ", M22=" + real_cos + ", sizingMethod='auto expand')";
+		var f = 'progid:DXImageTransform.Microsoft.Matrix(M11=' + real_cos + ', M12='+
+			real_sin + ', M21=' + (-real_sin) + ', M22=' + real_cos + ', sizingMethod=\'auto expand\')';
+		
+		if (style.filter != null && style.filter.length > 0)
+		{
+			style.filter += ' ' + f;
+		}
+		else
+		{
+			style.filter = f;
+		}
 	}
 	
 	style.zoom = s;
@@ -809,10 +818,9 @@ mxText.prototype.updateValue = function()
 			// Wrapper DIV for background, zoom needed for inline in quirks
 			// and to measure wrapped font sizes in all browsers
 			// FIXME: Background size in quirks mode for wrapped text
-			val = '<div style="zoom:1;' + css + 'display:inline-block;_display:inline;' +
-				'text-decoration:inherit;padding-bottom:1px;padding-right:1px;line-height:' +
-				this.node.style.lineHeight + '">' + val + '</div>';
-			this.node.style.lineHeight = '';
+			var lh = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(this.size * mxConstants.LINE_HEIGHT) + 'px' : mxConstants.LINE_HEIGHT;
+			val = '<div style="zoom:1;' + css + 'display:inline-block;_display:inline;text-decoration:inherit;' +
+				'padding-bottom:1px;padding-right:1px;line-height:' + lh + '">' + val + '</div>';
 		}
 
 		this.node.innerHTML = val;

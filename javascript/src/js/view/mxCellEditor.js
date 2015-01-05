@@ -382,17 +382,12 @@ mxCellEditor.prototype.resize = function()
 							bds.width - ((hpos == mxConstants.ALIGN_CENTER && lw == null) ? (spacingLeft + spacingRight) : 0),
 							bds.height - ((vpos == mxConstants.ALIGN_MIDDLE) ? (spacingTop + spacingBottom) : 0));
 				 	}
-				 	
-					this.bounds.x = bds.x + state.absoluteOffset.x;
+
+					// +2/-1 is used to match the box model workarounds in the rendering code
+					this.bounds.x = bds.x + state.absoluteOffset.x - 1;
 					this.bounds.y = bds.y + state.absoluteOffset.y;
-					this.bounds.width = bds.width;
+					this.bounds.width = bds.width + 2;
 					this.bounds.height = bds.height;
-					
-					// Workaround for different box model in quirks mode
-					if (mxClient.IS_QUIRKS)
-					{
-						this.bounds.width += 2;
-					}
 				}
 				
 				// Measures string using a hidden div

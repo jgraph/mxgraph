@@ -115,7 +115,7 @@ Actions.prototype.init = function()
 
 		graph.setSelectionCells(select);
 	}, null, null, 'Ctrl+D');
-	this.addAction('switchDirection', function()
+	this.addAction('turn', function()
 	{
 		var cells = graph.getSelectionCells();
 		var model = graph.getModel();
@@ -152,8 +152,22 @@ Actions.prototype.init = function()
 						
 						geo.setTerminalPoint(sp, false);
 						geo.setTerminalPoint(tp, true);
-						
 						model.setGeometry(cell, geo);
+						
+						// Inverts constraints
+						var edgeState = graph.view.getState(cell);
+						var sourceState = graph.view.getState(src);
+						var targetState = graph.view.getState(trg);
+						
+						if (edgeState != null)
+						{
+							var sc = (sourceState != null) ? graph.getConnectionConstraint(edgeState, sourceState, true) : null;
+							var tc = (targetState != null) ? graph.getConnectionConstraint(edgeState, targetState, false) : null;
+							
+							graph.setConnectionConstraint(cell, src, true, tc);
+							graph.setConnectionConstraint(cell, trg, false, sc);
+						}
+
 						select.push(cell);
 					}
 				}
@@ -323,14 +337,62 @@ Actions.prototype.init = function()
 				}
 			});
 		}
-	}).isEnabled = isGraphEnabled;
+	});
 	this.addAction('link...', mxUtils.bind(this, function()
 	{
 		var graph = ui.editor.graph;
 		
 		if (graph.isEnabled())
 		{
-			if (graph.isSelectionEmpty())
+			if (graph.cellEditor.isContentEditing())
+			{
+				var link = graph.getParentByName(graph.getSelectedElement(), 'A', graph.cellEditor.text2);
+				var oldValue = '';
+				
+				if (link != null)
+				{
+					oldValue = link.getAttribute('href');
+				}
+				
+				var selState = graph.cellEditor.saveSelection();
+				
+				ui.showLinkDialog(oldValue, mxResources.get('apply'), mxUtils.bind(this, function(value)
+				{
+		    		graph.cellEditor.restoreSelection(selState);
+					
+					// To find the new link, we create a list of all existing links first
+		    		// LATER: Refactor for reuse with code for finding inserted image below
+					var tmp = graph.cellEditor.text2.getElementsByTagName('a');
+					var oldLinks = [];
+					
+					for (var i = 0; i < tmp.length; i++)
+					{
+						oldLinks.push(tmp[i]);
+					}
+		
+					if (value != null && value.length > 0)
+					{
+						document.execCommand('createlink', false, mxUtils.trim(value));
+						
+						// Adds target="_blank" for the new link
+						var newLinks = graph.cellEditor.text2.getElementsByTagName('a');
+						
+						if (newLinks.length == oldLinks.length + 1)
+						{
+							// Inverse order in favor of appended links
+							for (var i = newLinks.length - 1; i >= 0; i--)
+							{
+								if (i == 0 || newLinks[i] != oldLinks[i - 1])
+								{
+									newLinks[i].setAttribute('target', '_blank');
+									break;
+								}
+							}
+						}
+					}
+				}));
+			}
+			else if (graph.isSelectionEmpty())
 			{
 				this.get('insertLink').funct();
 			}
@@ -434,16 +496,16 @@ Actions.prototype.init = function()
 	this.addAction('actualSize', function()
 	{
 		graph.zoomTo(1);
-		editor.resetScrollbars();
+		ui.resetScrollbars();
 	});
 	this.addAction('zoomIn', function()
 	{
 		graph.zoomIn();
-	}, null, null, 'Add');
+	}, null, null, 'Ctrl +');
 	this.addAction('zoomOut', function()
 	{
 		graph.zoomOut();
-	}, null, null, 'Subtract');
+	}, null, null, 'Ctrl -');
 	this.addAction('fitWindow', function() { graph.fit(); });
 	this.addAction('fitPage', mxUtils.bind(this, function()
 	{
@@ -559,33 +621,7 @@ Actions.prototype.init = function()
 	action.setSelectedCallback(function() { return graph.foldingEnabled; });
 	action = this.addAction('scrollbars', function()
 	{
-		var prev = graph.container.style.overflow;
-		graph.scrollbars = !graph.scrollbars;
-		editor.updateGraphComponents();
-
-		if (prev != graph.container.style.overflow)
-		{
-			if (graph.container.style.overflow == 'hidden')
-			{
-				var t = graph.view.translate;
-				graph.view.setTranslate(t.x - graph.container.scrollLeft / graph.view.scale, t.y - graph.container.scrollTop / graph.view.scale);
-				graph.container.scrollLeft = 0;
-				graph.container.scrollTop = 0;
-				graph.minimumGraphSize = null;
-				graph.sizeDidChange();
-			}
-			else
-			{
-				var dx = graph.view.translate.x;
-				var dy = graph.view.translate.y;
-	
-				graph.view.translate.x = 0;
-				graph.view.translate.y = 0;
-				graph.sizeDidChange();
-				graph.container.scrollLeft -= Math.round(dx * graph.view.scale);
-				graph.container.scrollTop -= Math.round(dy * graph.view.scale);
-			}
-		}
+		ui.setScrollbars(!ui.hasScrollbars());
 	});
 	action.setToggleAction(true);
 	action.setSelectedCallback(function() { return graph.scrollbars; });
@@ -624,14 +660,10 @@ Actions.prototype.init = function()
 	action.setSelectedCallback(function() { return graph.pageVisible; });
 	this.put('pageBackgroundColor', new Action(mxResources.get('backgroundColor') + '...', function()
 	{
-		var apply = function(color)
+		ui.pickColor(graph.background || 'none', function(color)
 		{
 			ui.setBackgroundColor(color);
-		};
-
-		var cd = new ColorDialog(ui, graph.background || 'none', apply);
-		ui.showDialog(cd.container, 220, 400, true, false);
-		cd.init();
+		});
 	}));
 	action = this.addAction('connectionPoints', function()
 	{
@@ -747,7 +779,7 @@ Actions.prototype.init = function()
 			graph.getModel().endUpdate();
 		}
 	});
-	this.addAction('straight', function()
+	this.addAction('sharp', function()
 	{
 		graph.getModel().beginUpdate();
 		try
@@ -793,7 +825,7 @@ Actions.prototype.init = function()
 		}
 	});
 	this.addAction('collapsible', function() { ui.menus.toggleStyle('container'); });
-	this.put('style', new Action(mxResources.get('edit') + '...', mxUtils.bind(this, function()
+	this.addAction('editStyle...', mxUtils.bind(this, function()
 	{
 		var cells = graph.getSelectionCells();
 		
@@ -812,7 +844,7 @@ Actions.prototype.init = function()
 			this.editorUi.showDialog(dlg.container, 320, 200, true, true);
 			dlg.init();
 		}
-	}), null, null, 'Ctrl+E'));
+	}), null, null, 'Ctrl+E');
 	this.addAction('setAsDefaultStyle', function()
 	{
 		if (graph.isEnabled() && !graph.isSelectionEmpty())
@@ -820,13 +852,13 @@ Actions.prototype.init = function()
 			ui.setDefaultStyle(graph.getSelectionCell());
 		}
 	}, null, null, 'Ctrl+Shift+D');
-	this.addAction('resetDefaultStyle', function()
+	this.addAction('clearDefaultStyle', function()
 	{
 		if (graph.isEnabled())
 		{
-			ui.resetDefaultStyle();
+			ui.clearDefaultStyle();
 		}
-	});
+	}, null, null, 'Ctrl+Shift+R');
 	this.addAction('addWaypoint', function()
 	{
 		var cell = graph.getSelectionCell();
@@ -872,7 +904,7 @@ Actions.prototype.init = function()
 			rmWaypointAction.handler.removePoint(rmWaypointAction.handler.state, rmWaypointAction.index);
 		}
 	});
-	this.addAction('resetWaypoints', function()
+	this.addAction('clearWaypoints', function()
 	{
 		var cells = graph.getSelectionCells();
 		
@@ -972,96 +1004,105 @@ Actions.prototype.init = function()
 	    			graph.cellEditor.restoreSelection(selectionState);
 	    			
 					// To find the new image, we create a list of all existing links first
-					var tmp = graph.cellEditor.text2.getElementsByTagName('img');
-					var oldImages = [];
-					
-					for (var i = 0; i < tmp.length; i++)
-					{
-						oldImages.push(tmp[i]);
-					}
-			
-					document.execCommand('insertimage', false, newValue);
-					
-					// Sets size of new image
-					var newImages = graph.cellEditor.text2.getElementsByTagName('img');
-					
-					if (newImages.length == oldImages.length + 1)
-					{
-						// Inverse order in favor of appended images
-						for (var i = newImages.length - 1; i >= 0; i--)
+	    			if (newValue != null)
+	    			{
+						var tmp = graph.cellEditor.text2.getElementsByTagName('img');
+						var oldImages = [];
+						
+						for (var i = 0; i < tmp.length; i++)
 						{
-							if (i == 0 || newImages[i] != oldImages[i - 1])
+							oldImages.push(tmp[i]);
+						}
+				
+						document.execCommand('insertimage', false, newValue);
+						
+						// Sets size of new image
+						var newImages = graph.cellEditor.text2.getElementsByTagName('img');
+						
+						if (newImages.length == oldImages.length + 1)
+						{
+							// Inverse order in favor of appended images
+							for (var i = newImages.length - 1; i >= 0; i--)
 							{
-								// LATER: Add dialog for image size
-								newImages[i].style.width = w + 'px';
-								newImages[i].style.height = h + 'px';
-								
-								break;
+								if (i == 0 || newImages[i] != oldImages[i - 1])
+								{
+									ui.loadImage(newValue, function(img)
+						    		{
+										newImages[i].style.width = img.width + 'px';
+										newImages[i].style.height = img.height + 'px';
+						    		});
+									
+									break;
+								}
 							}
 						}
-					}
+	    			}
 	    		}
 	    		else
 	    		{
-					var select = null;
 					var cells = graph.getSelectionCells();
-					
-					graph.getModel().beginUpdate();
-		        	try
-		        	{
-		        		// Inserts new cell if no cell is selected
-		    			if (cells.length == 0)
-		    			{
-		    				var gs = graph.getGridSize();
-							var dx = graph.container.scrollLeft / graph.view.scale - graph.view.translate.x;
-							var dy = graph.container.scrollTop / graph.view.scale - graph.view.translate.y;
-		    				
-		    				cells = [graph.insertVertex(graph.getDefaultParent(), null, '',
-		    						graph.snap(dx + gs), graph.snap(dy + gs), w, h,
-		    						'shape=image;verticalLabelPosition=bottom;verticalAlign=top;')];
-		    				select = cells;
-		    			}
-		    			
-		        		graph.setCellStyles(mxConstants.STYLE_IMAGE, newValue, cells);
-		        		
-		        		// Sets shape only if not already shape with image (label or image)
-		        		var state = graph.view.getState(cells[0]);
-		        		var style = (state != null) ? state.style : graph.getCellStyle(cells[0]);
-		        		
-		        		if (style[mxConstants.STYLE_SHAPE] != 'image' && style[mxConstants.STYLE_SHAPE] != 'label')
-		        		{
-		        			graph.setCellStyles(mxConstants.STYLE_SHAPE, 'image', cells);
-		        		}
-			        	
-			        	if (graph.getSelectionCount() == 1)
+
+					if (cells.length > 0 || newValue != null)
+					{
+						var select = null;
+						
+						graph.getModel().beginUpdate();
+			        	try
 			        	{
-				        	if (w != null && h != null)
+			        		// Inserts new cell if no cell is selected
+			    			if (cells.length == 0)
+			    			{
+			    				var gs = graph.getGridSize();
+								var dx = graph.container.scrollLeft / graph.view.scale - graph.view.translate.x;
+								var dy = graph.container.scrollTop / graph.view.scale - graph.view.translate.y;
+			    				
+			    				cells = [graph.insertVertex(graph.getDefaultParent(), null, '',
+			    						graph.snap(dx + gs), graph.snap(dy + gs), w, h,
+			    						'shape=image;verticalLabelPosition=bottom;verticalAlign=top;')];
+			    				select = cells;
+			    			}
+			    			
+			        		graph.setCellStyles(mxConstants.STYLE_IMAGE, newValue, cells);
+			        		
+			        		// Sets shape only if not already shape with image (label or image)
+			        		var state = graph.view.getState(cells[0]);
+			        		var style = (state != null) ? state.style : graph.getCellStyle(cells[0]);
+			        		
+			        		if (style[mxConstants.STYLE_SHAPE] != 'image' && style[mxConstants.STYLE_SHAPE] != 'label')
+			        		{
+			        			graph.setCellStyles(mxConstants.STYLE_SHAPE, 'image', cells);
+			        		}
+				        	
+				        	if (graph.getSelectionCount() == 1)
 				        	{
-				        		var cell = cells[0];
-				        		var geo = graph.getModel().getGeometry(cell);
-				        		
-				        		if (geo != null)
-				        		{
-				        			geo = geo.clone();
-					        		geo.width = w;
-					        		geo.height = h;
-					        		graph.getModel().setGeometry(cell, geo);
-				        		}
+					        	if (w != null && h != null)
+					        	{
+					        		var cell = cells[0];
+					        		var geo = graph.getModel().getGeometry(cell);
+					        		
+					        		if (geo != null)
+					        		{
+					        			geo = geo.clone();
+						        		geo.width = w;
+						        		geo.height = h;
+						        		graph.getModel().setGeometry(cell, geo);
+					        		}
+					        	}
 				        	}
 			        	}
-		        	}
-		        	finally
-		        	{
-		        		graph.getModel().endUpdate();
-		        	}
-		        	
-		        	if (select != null)
-		        	{
-		        		graph.setSelectionCells(select);
-		        		graph.scrollCellToVisible(select[0]);
-		        	}
+			        	finally
+			        	{
+			        		graph.getModel().endUpdate();
+			        	}
+			        	
+			        	if (select != null)
+			        	{
+			        		graph.setSelectionCells(select);
+			        		graph.scrollCellToVisible(select[0]);
+			        	}
+					}
 	    		}
-			});
+			}, graph.cellEditor.isContentEditing());
 		}
 	}).isEnabled = isGraphEnabled;
 	action = this.addAction('layers', mxUtils.bind(this, function()
@@ -1079,6 +1120,15 @@ Actions.prototype.init = function()
 	}), null, null, 'Ctrl+Shift+L');
 	action.setToggleAction(true);
 	action.setSelectedCallback(mxUtils.bind(this, function() { return this.layersWindow != null && this.layersWindow.window.isVisible(); }));
+	action = this.addAction('formatPanel', mxUtils.bind(this, function()
+	{
+		ui.formatWidth = (ui.formatWidth > 0) ? 0 : 240;
+		ui.formatContainer.style.display = (ui.formatWidth > 0) ? '' : 'none';
+		ui.refresh();
+		ui.fireEvent(new mxEventObject('formatWidthChanged'));
+	}), null, null, 'Ctrl+Shift+P');
+	action.setToggleAction(true);
+	action.setSelectedCallback(mxUtils.bind(this, function() { return ui.formatWidth > 0; }));
 	action = this.addAction('outline', mxUtils.bind(this, function()
 	{
 		if (this.outlineWindow == null)

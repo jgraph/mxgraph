@@ -830,7 +830,15 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 			css.append("width:" + Math.round(w) + "pt;");
 		}
 		
-		return "<html><div style=\"" + css.toString() + "\">" + text + "</div></html>";
+		return createHtmlDocument(text, css.toString());
+	}
+
+	/**
+	 * Creates a HTML document for the given text and CSS style.
+	 */
+	protected String createHtmlDocument(String text, String style)
+	{
+		return "<html><div style=\"" + style + "\">" + text + "</div></html>";
 	}
 
 	/**

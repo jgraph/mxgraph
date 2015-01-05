@@ -479,12 +479,10 @@ Sidebar.prototype.addAdvancedShapes = function(dir, content)
 {
     content.appendChild(this.createVertexTemplate('text;html=1;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;', 190, 120,
     	'<h1>Heading</h1><p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>', 'Textbox', true));
-
     content.appendChild(this.createVertexTemplate('text;html=1;whiteSpace=wrap;verticalAlign=middle;overflow=hidden;', 100, 80,
 	    	'<ul><li>Value 1</li><li>Value 2</li><li>Value 3</li></ul>', 'Unordered list', true));
     content.appendChild(this.createVertexTemplate('text;html=1;whiteSpace=wrap;verticalAlign=middle;overflow=hidden;', 100, 80,
         	'<ol><li>Value 1</li><li>Value 2</li><li>Value 3</li></ol>', 'Ordered list', true));
-
 	content.appendChild(this.createVertexTemplate('text;html=1;strokeColor=#c0c0c0;overflow=fill;', 180, 180,
         	'<table border="0" width="100%" height="100%" style="width:100%;height:100%;border-collapse:collapse;">' +
         	'<tr><td align="center">Value 1</td><td align="center">Value 2</td><td align="center">Value 3</td></tr>' +
@@ -496,7 +494,6 @@ Sidebar.prototype.addAdvancedShapes = function(dir, content)
         	'<tr><td align="center">Value 1</td><td align="center">Value 2</td><td align="center">Value 3</td></tr>' +
         	'<tr><td align="center">Value 4</td><td align="center">Value 5</td><td align="center">Value 6</td></tr>' +
         	'<tr><td align="center">Value 7</td><td align="center">Value 8</td><td align="center">Value 9</td></tr></table>', 'Table 2', true));
-    
     content.appendChild(this.createVertexTemplate('text;html=1;overflow=fill;', 160, 180,
         	'<table border="1" width="100%" height="100%" cellpadding="4" style="width:100%;height:100%;border-collapse:collapse;">' +
         	'<tr><th align="center"><b>Title</b></th></tr>' +
@@ -516,30 +513,33 @@ Sidebar.prototype.addAdvancedShapes = function(dir, content)
     this.graph.setLinkForCell(linkCell, 'https://www.draw.io');
 	content.appendChild(this.createVertexTemplateFromCells([linkCell], 60, 40, 'Link', true));
     content.appendChild(this.createVertexTemplate('shape=image;html=1;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=1;aspect=fixed;image=' + this.gearImage, 52, 61, '', 'Fixed Image', false));
-	content.appendChild(this.createVertexTemplate('shape=image;html=1;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=0;image=' + this.gearImage, 50, 60, '', 'Stretched Image', false));
-	content.appendChild(this.createVertexTemplate('icon;html=1;image=' + this.gearImage, 60, 60, 'Icon', 'Icon', false));
 
+    content.appendChild(this.createVertexTemplate('shape=image;html=1;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=0;image=' + this.gearImage, 50, 60, '', 'Stretched Image', false));
+	content.appendChild(this.createVertexTemplate('icon;html=1;image=' + this.gearImage, 60, 60, 'Icon', 'Icon', false));
 	content.appendChild(this.createVertexTemplate('whiteSpace=wrap;html=1;label;image=' + this.gearImage, 140, 60, 'Label', 'Label', true));
     content.appendChild(this.createVertexTemplate('shape=xor;whiteSpace=wrap;html=1;', 60, 80, '', 'Exclusive Or', true));
+
     content.appendChild(this.createVertexTemplate('shape=or;whiteSpace=wrap;html=1;', 60, 80, '', 'Or', true));
     content.appendChild(this.createVertexTemplate('shape=dataStorage;whiteSpace=wrap;html=1;', 100, 80, '', 'Data Storage', true));    
-
     content.appendChild(this.createVertexTemplate('shape=tapeData;whiteSpace=wrap;html=1;perimeter=ellipsePerimeter;', 80, 80, '', 'Tape Data', true));
     content.appendChild(this.createVertexTemplate('shape=manualInput;whiteSpace=wrap;html=1;', 80, 80, '', 'Manual Input', true));
+
     content.appendChild(this.createVertexTemplate('shape=loopLimit;whiteSpace=wrap;html=1;', 100, 80, '', 'Loop Limit', true));
     content.appendChild(this.createVertexTemplate('shape=offPageConnector;whiteSpace=wrap;html=1;', 80, 80, '', 'Off Page Connector', true));
-    
     content.appendChild(this.createVertexTemplate('shape=delay;whiteSpace=wrap;html=1;', 80, 40, '', 'Delay', true));
     content.appendChild(this.createVertexTemplate('shape=display;whiteSpace=wrap;html=1;', 80, 40, '', 'Display', true));
+    
     content.appendChild(this.createVertexTemplate('shape=doubleArrow;whiteSpace=wrap;html=1;', 100, 60, '', 'Double Arrow', true));
     content.appendChild(this.createVertexTemplate('shape=doubleArrow;direction=south;whiteSpace=wrap;html=1;', 60, 100, '', 'Double Arrow Vertical', true));
-
     content.appendChild(this.createVertexTemplate('shape=actor;whiteSpace=wrap;html=1;', 40, 60, '', 'User', true));
     content.appendChild(this.createVertexTemplate('shape=cross;whiteSpace=wrap;html=1;', 80, 80, '', 'Cross', true));
+
     content.appendChild(this.createVertexTemplate('shape=corner;whiteSpace=wrap;html=1;', 80, 80, '', 'Corner', true));
     content.appendChild(this.createVertexTemplate('shape=tee;whiteSpace=wrap;html=1;', 80, 80, '', 'Tee', true));
+    content.appendChild(this.createVertexTemplate('shape=datastore;whiteSpace=wrap;html=1;', 60, 60, '', 'Data Store', true));
+    content.appendChild(this.createVertexTemplate('shape=switch;whiteSpace=wrap;html=1;', 60, 60, '', 'Switch', true));
     
-	content.appendChild(this.createVertexTemplate('swimlane;whiteSpace=wrap;html=1;', 200, 200, 'Container', 'Container', true));
+    content.appendChild(this.createVertexTemplate('swimlane;whiteSpace=wrap;html=1;', 200, 200, 'Container', 'Container', true));
 	content.appendChild(this.createVertexTemplate('swimlane;swimlaneLine=0;whiteSpace=wrap;html=1;', 200, 200, 'Container', 'Container w/o Separator', true));
 	content.appendChild(this.createVertexTemplate('swimlane;swimlaneFillColor=#ffffff;whiteSpace=wrap;html=1;', 200, 200, 'Container', 'Filled Container', true));
 	content.appendChild(this.createVertexTemplate('swimlane;swimlaneLine=0;swimlaneFillColor=#ffffff;whiteSpace=wrap;html=1;', 200, 200, 'Container', 'Filled Container w/o Separator', true));
