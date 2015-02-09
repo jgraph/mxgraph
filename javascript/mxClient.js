@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.13.0.16.
+	 * Current version is 1.13.0.17.
 	 */
-	VERSION: '1.13.0.16',
+	VERSION: '1.13.0.17',
 
 	/**
 	 * Variable: IS_IE
@@ -135,20 +135,10 @@ var mxClient =
 	 * Variable: NO_FO
 	 *
 	 * True if foreignObject support is not available. This is the case for
-	 * Opera and older SVG-based browsers. IE does not require this type
-	 * of tag.
+	 * Opera, older SVG-based browsers and all versions of IE.
 	 */
-  	NO_FO: navigator.userAgent.indexOf('Firefox/1.') >= 0 ||
-  		navigator.userAgent.indexOf('Iceweasel/1.') >= 0 ||
-  		navigator.userAgent.indexOf('Firefox/2.') >= 0 ||
-	  	navigator.userAgent.indexOf('Iceweasel/2.') >= 0 ||
-	  	navigator.userAgent.indexOf('SeaMonkey/1.') >= 0 ||
-	  	navigator.userAgent.indexOf('Iceape/1.') >= 0 ||
-	  	navigator.userAgent.indexOf('Camino/1.') >= 0 ||
-	  	navigator.userAgent.indexOf('Epiphany/2.') >= 0 ||
-	  	navigator.userAgent.indexOf('Opera/') >= 0 ||
-	  	navigator.userAgent.indexOf('MSIE') >= 0 ||
-	  	navigator.userAgent.indexOf('Mozilla/2.') >= 0, // Safari/Google Chrome
+  	NO_FO: !document.createElementNS || document.createElementNS('http://www.w3.org/2000/svg',
+  		'foreignObject') != '[object SVGForeignObjectElement]' || navigator.userAgent.indexOf('Opera/') >= 0,
 
 	/**
 	 * Variable: IS_VML
@@ -4644,7 +4634,7 @@ var mxUtils =
 		{
 	    	if (value >= 100)
 	    	{
-	    		node.style.filter = null;
+	    		node.style.filter = '';
 	    	}
 	    	else
 	    	{
@@ -4656,7 +4646,7 @@ var mxUtils =
 	    {
 	    	if (value >= 100)
 	    	{
-	    		node.style.filter = null;
+	    		node.style.filter = '';
 	    	}
 	    	else
 	    	{
@@ -34768,7 +34758,7 @@ mxMinimumCycleRemover.prototype.execute = function(parent)
 	}, unseenNodes, true, seenNodesCopy);
 };
 /**
- * Copyright (c) 2005-2014, JGraph Ltd
+ * Copyright (c) 2005-2015, JGraph Ltd
  */
 /**
  * Class: mxCoordinateAssignment
@@ -34797,14 +34787,6 @@ function mxCoordinateAssignment(layout, intraCellSpacing, interRankCellSpacing,
 	this.orientation = orientation;
 	this.initialX = initialX;
 	this.parallelEdgeSpacing = parallelEdgeSpacing;
-};
-
-var mxHierarchicalEdgeStyle =
-{
-	ORTHOGONAL: 1,
-	POLYLINE: 2,
-	STRAIGHT: 3,
-	CURVE: 4
 };
 
 /**
@@ -34969,13 +34951,6 @@ mxCoordinateAssignment.prototype.rankY = null;
  * through the algorithm. Default is true.
  */
 mxCoordinateAssignment.prototype.fineTuning = true;
-
-/**
- * Variable: edgeStyle
- * 
- * The style to apply between cell layers to edge segments
- */
-mxCoordinateAssignment.prototype.edgeStyle = mxHierarchicalEdgeStyle.POLYLINE;
 
 /**
  * Variable: nextLayerConnectedCache
@@ -36053,13 +36028,6 @@ mxCoordinateAssignment.prototype.setCellLocations = function(graph, model)
 		this.rankBottomY[i] = -Number.MAX_VALUE;
 	}
 	
-	var parentsChanged = null;
-
-	if (this.layout.resizeParent)
-	{
-		parentsChanged = new Object();
-	}
-
 	var vertices = model.vertexMapper.getValues();
 
 	// Process vertices all first, since they define the lower and 
@@ -36069,25 +36037,13 @@ mxCoordinateAssignment.prototype.setCellLocations = function(graph, model)
 	for (var i = 0; i < vertices.length; i++)
 	{
 		this.setVertexLocation(vertices[i]);
-		
-		if (this.layout.resizeParent)
-		{
-			var parent = graph.model.getParent(vertices[i].cell);
-			var id = mxObjectIdentity.get(parent);
-			
-			// Implements set semantic
-			if (parentsChanged[id] == null)
-			{
-				parentsChanged[id] = parent;					
-			}
-		}
 	}
 	
 	// Post process edge styles. Needs the vertex locations set for initial
 	// values of the top and bottoms of each rank
-	if (this.edgeStyle == mxHierarchicalEdgeStyle.ORTHOGONAL
-			|| this.edgeStyle == mxHierarchicalEdgeStyle.POLYLINE
-			|| this.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
+	if (this.layout.edgeStyle == mxHierarchicalEdgeStyle.ORTHOGONAL
+			|| this.layout.edgeStyle == mxHierarchicalEdgeStyle.POLYLINE
+			|| this.layout.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
 	{
 		this.localEdgeProcessing(model);
 	}
@@ -36098,30 +36054,6 @@ mxCoordinateAssignment.prototype.setCellLocations = function(graph, model)
 	{
 		this.setEdgePosition(edges[i]);
 	}
-	
-	if (this.layout.resizeParent && parentsChanged != null)
-	{
-		this.adjustParents(parentsChanged);
-	}
-};
-
-/**
- * Function: adjustParents
- * 
- * Adjust parent cells whose child geometries have changed. The default 
- * implementation adjusts the group to just fit around the children with 
- * a padding.
- */
-mxCoordinateAssignment.prototype.adjustParents = function(parentsChanged)
-{
-	var tmp = [];
-	
-	for (var id in parentsChanged)
-	{
-		tmp.push(parentsChanged[id]);
-	}
-	
-	this.layout.arrangeGroups(mxUtils.sortCells(tmp, true), this.groupPadding);
 };
 
 /**
@@ -36371,7 +36303,7 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 				{
 					newPoints.push(new mxPoint(x, y));
 					
-					if (this.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
+					if (this.layout.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
 					{
 						newPoints.push(new mxPoint(x, y + jetty));
 					}
@@ -36380,7 +36312,7 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 				{
 					newPoints.push(new mxPoint(y, x));
 					
-					if (this.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
+					if (this.layout.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
 					{
 						newPoints.push(new mxPoint(y + jetty, x));
 					}
@@ -36473,7 +36405,7 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 				if (this.orientation == mxConstants.DIRECTION_NORTH ||
 						this.orientation == mxConstants.DIRECTION_SOUTH)
 				{
-					if (this.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
+					if (this.layout.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
 					{
 						newPoints.push(new mxPoint(x, y - jetty));
 					}
@@ -36482,7 +36414,7 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 				}
 				else
 				{
-					if (this.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
+					if (this.layout.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
 					{
 						newPoints.push(new mxPoint(y - jetty, x));
 					}
@@ -36655,7 +36587,7 @@ WeightedCellSorter.prototype.compare = function(a, b)
 	}
 };
 /**
- * Copyright (c) 2005-2014, JGraph Ltd
+ * Copyright (c) 2005-2015, JGraph Ltd
  */
 /**
  * Class: mxHierarchicalLayout
@@ -36679,6 +36611,14 @@ function mxHierarchicalLayout(graph, orientation, deterministic)
 	mxGraphLayout.call(this, graph);
 	this.orientation = (orientation != null) ? orientation : mxConstants.DIRECTION_NORTH;
 	this.deterministic = (deterministic != null) ? deterministic : true;
+};
+
+var mxHierarchicalEdgeStyle =
+{
+	ORTHOGONAL: 1,
+	POLYLINE: 2,
+	STRAIGHT: 3,
+	CURVE: 4
 };
 
 /**
@@ -36825,6 +36765,13 @@ mxHierarchicalLayout.prototype.edgeSourceTermCache = null;
  * A cache of edges whose source terminal is the key
  */
 mxHierarchicalLayout.prototype.edgesTargetTermCache = null;
+
+/**
+ * Variable: edgeStyle
+ * 
+ * The style to apply between cell layers to edge segments
+ */
+mxHierarchicalLayout.prototype.edgeStyle = mxHierarchicalEdgeStyle.POLYLINE;
 
 /**
  * Function: getModel

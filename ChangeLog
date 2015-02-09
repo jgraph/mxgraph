@@ -1,3 +1,9 @@
+09-FEB-2015: 1.13.0.17
+
+- Uses capability check for mxClient.NO_FO [JavaScript]
+- Fixes reset of filter in mxUtils.setOpacity [JavaScript]
+- Fixes group resize for multiple hierarchies in mxHierarchicalLayout [JavaScript]
+
 28-NOV-2014: 1.13.0.16
 
 - Fixes autoscroll after click on scrollbar in IE11 [JavaScript]

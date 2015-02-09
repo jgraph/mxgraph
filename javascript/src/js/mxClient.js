@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.13.0.16.
+	 * Current version is 1.13.0.17.
 	 */
-	VERSION: '1.13.0.16',
+	VERSION: '1.13.0.17',
 
 	/**
 	 * Variable: IS_IE
@@ -135,20 +135,10 @@ var mxClient =
 	 * Variable: NO_FO
 	 *
 	 * True if foreignObject support is not available. This is the case for
-	 * Opera and older SVG-based browsers. IE does not require this type
-	 * of tag.
+	 * Opera, older SVG-based browsers and all versions of IE.
 	 */
-  	NO_FO: navigator.userAgent.indexOf('Firefox/1.') >= 0 ||
-  		navigator.userAgent.indexOf('Iceweasel/1.') >= 0 ||
-  		navigator.userAgent.indexOf('Firefox/2.') >= 0 ||
-	  	navigator.userAgent.indexOf('Iceweasel/2.') >= 0 ||
-	  	navigator.userAgent.indexOf('SeaMonkey/1.') >= 0 ||
-	  	navigator.userAgent.indexOf('Iceape/1.') >= 0 ||
-	  	navigator.userAgent.indexOf('Camino/1.') >= 0 ||
-	  	navigator.userAgent.indexOf('Epiphany/2.') >= 0 ||
-	  	navigator.userAgent.indexOf('Opera/') >= 0 ||
-	  	navigator.userAgent.indexOf('MSIE') >= 0 ||
-	  	navigator.userAgent.indexOf('Mozilla/2.') >= 0, // Safari/Google Chrome
+  	NO_FO: !document.createElementNS || document.createElementNS('http://www.w3.org/2000/svg',
+  		'foreignObject') != '[object SVGForeignObjectElement]' || navigator.userAgent.indexOf('Opera/') >= 0,
 
 	/**
 	 * Variable: IS_VML

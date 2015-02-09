@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2005-2014, JGraph Ltd
+ * Copyright (c) 2005-2015, JGraph Ltd
  */
 /**
  * Class: mxHierarchicalLayout
@@ -23,6 +23,14 @@ function mxHierarchicalLayout(graph, orientation, deterministic)
 	mxGraphLayout.call(this, graph);
 	this.orientation = (orientation != null) ? orientation : mxConstants.DIRECTION_NORTH;
 	this.deterministic = (deterministic != null) ? deterministic : true;
+};
+
+var mxHierarchicalEdgeStyle =
+{
+	ORTHOGONAL: 1,
+	POLYLINE: 2,
+	STRAIGHT: 3,
+	CURVE: 4
 };
 
 /**
@@ -169,6 +177,13 @@ mxHierarchicalLayout.prototype.edgeSourceTermCache = null;
  * A cache of edges whose source terminal is the key
  */
 mxHierarchicalLayout.prototype.edgesTargetTermCache = null;
+
+/**
+ * Variable: edgeStyle
+ * 
+ * The style to apply between cell layers to edge segments
+ */
+mxHierarchicalLayout.prototype.edgeStyle = mxHierarchicalEdgeStyle.POLYLINE;
 
 /**
  * Function: getModel

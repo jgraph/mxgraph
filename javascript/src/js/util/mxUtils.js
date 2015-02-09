@@ -2752,7 +2752,7 @@ var mxUtils =
 		{
 	    	if (value >= 100)
 	    	{
-	    		node.style.filter = null;
+	    		node.style.filter = '';
 	    	}
 	    	else
 	    	{
@@ -2764,7 +2764,7 @@ var mxUtils =
 	    {
 	    	if (value >= 100)
 	    	{
-	    		node.style.filter = null;
+	    		node.style.filter = '';
 	    	}
 	    	else
 	    	{
