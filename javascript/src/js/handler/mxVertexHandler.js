@@ -798,7 +798,7 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 				{
 					var dx = point.x - this.state.getCenterX();
 					var dy = point.y - this.state.getCenterY();
-					var dist = Math.abs(Math.sqrt(dx * dx + dy * dy) - 20);
+					var dist = Math.abs(Math.sqrt(dx * dx + dy * dy) - 20) * 3;
 					var raster = Math.max(1, 5 * Math.min(3, Math.max(0, Math.round(80 / Math.abs(dist)))));
 					
 					this.currentAlpha = Math.round(this.currentAlpha / raster) * raster;

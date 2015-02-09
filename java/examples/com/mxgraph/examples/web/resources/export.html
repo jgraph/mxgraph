@@ -109,6 +109,9 @@
 					var svgCanvas = new mxSvgCanvas2D(group);
 					svgCanvas.translate(Math.floor((border / scale - bounds.x) / vs), Math.floor((border / scale - bounds.y) / vs));
 					svgCanvas.scale(scale / vs);
+
+					// Displayed if a viewer does not support foreignObjects (which is needed to HTML output)
+					svgCanvas.foAltText = '[Not supported by viewer]';
 					imgExport.drawState(graph.getView().getState(graph.model.root), svgCanvas);
 
 					var xml = encodeURIComponent(mxUtils.getXml(root));

@@ -829,8 +829,8 @@ mxCellEditor.prototype.getEditorBounds = function(state)
 			}
 		}
  	}
-	
-	return result;
+ 	
+ 	return new mxRectangle(Math.round(result.x), Math.round(result.y), Math.round(result.width), Math.round(result.height));
 };
 
 /**

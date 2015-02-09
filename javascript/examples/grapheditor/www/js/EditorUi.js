@@ -200,7 +200,6 @@ EditorUi = function(editor, container)
 	};
 	
 	// Stores the current style and assigns it to new cells
-	// LATER: Update after copyStyle (handle defaults) and after menu Format, Style
 	var styles = ['shadow', 'dashed', 'dashPattern'];
 	var connectStyles = ['shape', 'edgeStyle', 'curved', 'rounded', 'elbow'];
 	
@@ -734,7 +733,7 @@ EditorUi.prototype.initClipboard = function()
 	{
 		if (graph.cellEditor.isContentEditing())
 		{
-			document.execCommand('cut');
+			document.execCommand('cut', false, null);
 		}
 		else
 		{
@@ -749,7 +748,7 @@ EditorUi.prototype.initClipboard = function()
 	{
 		if (graph.cellEditor.isContentEditing())
 		{
-			document.execCommand('copy');
+			document.execCommand('copy', false, null);
 		}
 		else
 		{
@@ -764,7 +763,7 @@ EditorUi.prototype.initClipboard = function()
 	{
 		if (graph.cellEditor.isContentEditing())
 		{
-			document.execCommand('paste');
+			document.execCommand('paste', false, null);
 		}
 		else
 		{
@@ -1139,7 +1138,7 @@ EditorUi.prototype.redo = function()
 {
 	if (this.editor.graph.cellEditor.isContentEditing())
 	{
-		document.execCommand('redo');
+		document.execCommand('redo', false, null);
 	}
 	else
 	{
@@ -1157,7 +1156,7 @@ EditorUi.prototype.undo = function()
 	{
 		// Stops editing if undo doesn't change anything in the editing value
 		var value = this.editor.graph.cellEditor.getCurrentValue();
-		document.execCommand('undo');
+		document.execCommand('undo', false, null);
 		
 		if (value == this.editor.graph.cellEditor.getCurrentValue())
 		{
@@ -1470,7 +1469,7 @@ EditorUi.prototype.updateActionStates = function()
     this.menus.get('line').setEnabled(edgeSelected);
     this.menus.get('linestart').setEnabled(edgeSelected);
     this.menus.get('lineend').setEnabled(edgeSelected);
-    this.menus.get('linewidth').setEnabled(edgeSelected);
+    this.menus.get('linewidth').setEnabled(!graph.isSelectionEmpty());
     this.menus.get('direction').setEnabled(vertexSelected || (edgeSelected && state != null && graph.isLoop(state)));
     this.actions.get('home').setEnabled(graph.view.currentRoot != null);
     this.actions.get('exitGroup').setEnabled(graph.view.currentRoot != null);
@@ -1615,7 +1614,7 @@ EditorUi.prototype.createDivs = function()
 	this.footerContainer.style.left = '0px';
 	this.footerContainer.style.right = '0px';
 	this.footerContainer.style.bottom = '0px';
-	this.footerContainer.style.zIndex = mxPopupMenu.prototype.zIndex;
+	this.footerContainer.style.zIndex = mxPopupMenu.prototype.zIndex - 2;
 	this.hsplit.style.width = this.splitSize + 'px';
 	
 	// Only vertical scrollbars, no background in format sidebar
@@ -1928,7 +1927,7 @@ EditorUi.prototype.openFile = function()
 	}));
 
 	// Removes openFile if dialog is closed
-	this.showDialog(new OpenDialog(this).container, 360, 220, true, true, function()
+	this.showDialog(new OpenDialog(this).container, 320, 220, true, true, function()
 	{
 		window.openFile = null;
 	});
@@ -1986,19 +1985,32 @@ EditorUi.prototype.extractGraphModelFromEvent = function(evt)
 		
 		if (provider != null)
 		{
-			if (mxUtils.indexOf(provider.types, 'text/html') >= 0)
-		    {
-				data = this.extractGraphModelFromHtml(this.editor.graph.zapGremlins(
-					mxUtils.trim(provider.getData('text/html'))));
-		    }
-		    else if (mxUtils.indexOf(provider.types, 'text/plain') >= 0)
-		    {
-		    	data = this.editor.graph.zapGremlins(mxUtils.trim(provider.getData('text/plain')));
-		    }
-		    else if (document.documentMode == 11)
-		    {
-		    	data = this.editor.graph.zapGremlins(mxUtils.trim(provider.getData('Text')));
-		    }
+			if (document.documentMode == 11)
+			{
+				data = provider.getData('Text');
+			}
+			else
+			{
+				data = (mxUtils.indexOf(provider.types, 'text/html') >= 0) ? provider.getData('text/html') : null;
+			
+				if (mxUtils.indexOf(provider.types, 'text/plain' && (data == null || data.length == 0)))
+				{
+					data = provider.getData('text/plain');
+				}
+			}
+
+			if (data != null)
+			{
+				data = this.editor.graph.zapGremlins(mxUtils.trim(data));
+				
+				// Tries parsing as HTML document with embedded XML
+				var xml =  this.extractGraphModelFromHtml(data);
+				
+				if (xml != null)
+				{
+					data = xml;
+				}
+			}		
 		}
 	}
 	
@@ -2344,6 +2356,7 @@ EditorUi.prototype.createKeyHandler = function(editor)
 	keyHandler.bindAction(68, true, 'duplicate'); // Ctrl+D
 	keyHandler.bindAction(68, true, 'setAsDefaultStyle', true); // Ctrl+Shift+D   
 	keyHandler.bindAction(90, true, 'undo'); // Ctrl+Z
+	keyHandler.bindAction(90, true, 'autosize', true); // Ctrl+Shift+Z
 	keyHandler.bindAction(89, true, 'redo'); // Ctrl+Y
 	keyHandler.bindAction(88, true, 'cut'); // Ctrl+X
 	keyHandler.bindAction(67, true, 'copy'); // Ctrl+C

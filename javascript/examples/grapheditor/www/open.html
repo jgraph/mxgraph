@@ -187,8 +187,7 @@
 			var supportedText = document.getElementById('openSupported');
 			supportedText.innerHTML = window.parent.mxResources.get('openSupported');
 			var form = window.openForm || document.getElementById('openForm');
-			
-			// FIXME: Adds .html in IE
+
 			form.setAttribute('action', window.parent.OPEN_URL);
 		}
 	};
@@ -196,7 +195,7 @@
 <body onload="main();">
 <form method="POST" enctype="multipart/form-data" action="" name="openForm"
 	id="openForm" onsubmit="return handleSubmit();" accept-charset="UTF-8">
-<table>
+<table style="width:100%;">
 <tr>
 <td style="height:40px;vertical-align:top;" colspan="2">
 <input type="file" name="upfile" onchange="fileChanged()">

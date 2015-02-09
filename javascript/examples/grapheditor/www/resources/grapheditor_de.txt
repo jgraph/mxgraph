@@ -41,6 +41,7 @@ borderColor=Rahmenfarbe
 bottom=Unten
 bottomAlign=Unten
 bulletedList=Aufzählungsliste
+cannotOpenFile=Kann Datei nicht öffnen
 center=Zentriert
 changeOrientation=Orientierung ändern
 circle=Kreis

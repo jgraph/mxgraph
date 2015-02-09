@@ -277,6 +277,12 @@ Format.prototype.clear = function()
  */
 Format.prototype.refresh = function()
 {
+	// Performance tweak: No refresh needed if not visible
+	if (this.container.style.width == '0px')
+	{
+		return;
+	}
+	
 	this.clear();
 	var ui = this.editorUi;
 	var graph = ui.editor.graph;
@@ -302,6 +308,28 @@ Format.prototype.refresh = function()
 	if (graph.isSelectionEmpty())
 	{
 		mxUtils.write(label, mxResources.get('diagram'));
+		
+		// Adds button to hide the format panel since
+		// people don't seem to find the toolbar button
+		// and the menu item in the format menu
+		var img = document.createElement('img');
+		img.setAttribute('border', '0');
+		img.setAttribute('src', IMAGE_PATH + '/close.png');
+		img.setAttribute('title', mxResources.get('hide'));
+		img.style.cssFloat = 'right';
+		img.style.cursor = 'pointer';
+		img.style.marginTop = '1px';
+		img.style.marginRight = '16px';
+		img.style.border = '1px solid transparent';
+		img.style.padding = '1px';
+		img.style.opacity = 0.5;
+		label.appendChild(img)
+		
+		mxEvent.addListener(img, 'click', function()
+		{
+			ui.actions.get('formatPanel').funct();
+		});
+		
 		div.appendChild(label);
 		this.panels.push(new DiagramFormatPanel(this, ui, div));
 	}
@@ -319,7 +347,7 @@ Format.prototype.refresh = function()
 		
 		var addClickHandler = mxUtils.bind(this, function(elt, panel, index)
 		{
-			mxEvent.addListener(elt, 'click', mxUtils.bind(this, function(evt)
+			var clickHandler = mxUtils.bind(this, function(evt)
 			{
 				if (currentLabel != elt)
 				{
@@ -353,11 +381,14 @@ Format.prototype.refresh = function()
 						currentPanel.style.display = '';
 					}
 				}
-			}));
+			});
+			
+			mxEvent.addListener(elt, 'click', clickHandler);
 			
 			if (index == ((containsLabel) ? this.labelIndex : this.currentIndex))
 			{
-				elt.click();
+				// Invokes handler directly as a workaround for no click on DIV in KHTML.
+				clickHandler();
 			}
 		});
 		
@@ -612,11 +643,16 @@ BaseFormatPanel.prototype.createStepper = function(input, update, step, height, 
 
 	mxEvent.addListener(down, 'click', function(evt)
 	{
-		input.value = (parseInt(input.value) - step);
+		var val = parseInt(input.value);
 		
-		if (update != null)
+		if (!isNaN(val))
 		{
-			update(evt);
+			input.value = val - step;
+			
+			if (update != null)
+			{
+				update(evt);
+			}
 		}
 		
 		mxEvent.consume(evt);
@@ -624,30 +660,59 @@ BaseFormatPanel.prototype.createStepper = function(input, update, step, height, 
 	
 	mxEvent.addListener(up, 'click', function(evt)
 	{
-		input.value = (parseInt(input.value) + step);
+		var val = parseInt(input.value);
 		
-		if (update != null)
+		if (!isNaN(val))
 		{
-			update(evt);
+			input.value = val + step;
+			
+			if (update != null)
+			{
+				update(evt);
+			}
 		}
 		
 		mxEvent.consume(evt);
 	});
 	
-	// Disables transfer of focus to DIV but also active state
+	// Disables transfer of focus to DIV but also :active CSS
 	// so it's only used for fontSize where the focus should
 	// stay on the selected text, but not for any other input.
 	if (disableFocus)
 	{
-		mxEvent.addListener(down, 'mousedown', function(evt)
-		{
-			mxEvent.consume(evt);
-		});
+		var currentSelection = null;
 		
-		mxEvent.addListener(up, 'mousedown', function(evt)
-		{
-			mxEvent.consume(evt);
-		});
+		mxEvent.addGestureListeners(stepper,
+			function(evt)
+			{
+				// Workaround for lost current selection in page because of focus in IE
+				if (mxClient.IS_QUIRKS || document.documentMode == 8)
+				{
+					currentSelection = document.selection.createRange();
+				}
+				
+				mxEvent.consume(evt);
+			},
+			null,
+			function(evt)
+			{
+				// Workaround for lost current selection in page because of focus in IE
+				if (currentSelection != null)
+				{
+					try
+					{
+						currentSelection.select();
+					}
+					catch (e)
+					{
+						// ignore
+					}
+					
+					currentSelection = null;
+					mxEvent.consume(evt);
+				}
+			}
+		);
 	}
 	
 	return stepper;
@@ -714,7 +779,9 @@ BaseFormatPanel.prototype.createOption = function(label, isCheckedFn, setChecked
 	mxEvent.addListener(div, 'click', function(evt)
 	{
 		// Toggles checkbox state for click on label
-		if (mxEvent.getSource(evt) != cb)
+		var source = mxEvent.getSource(evt);
+		
+		if (source == div || source == span)
 		{
 			cb.checked = !cb.checked;
 		}
@@ -942,7 +1009,13 @@ BaseFormatPanel.prototype.createCellColorOption = function(label, colorKey, defa
 		{
 			this.listener = function()
 			{
-				apply(mxUtils.getValue(graph.view.getState(graph.getSelectionCell()).style, colorKey, null));
+				// Seems to be null sometimes, not sure why...
+				var state = graph.view.getState(graph.getSelectionCell());
+				
+				if (state != null)
+				{
+					apply(mxUtils.getValue(state.style, colorKey, null));
+				}
 			};
 			
 			graph.getModel().addListener(mxEvent.CHANGE, this.listener);
@@ -1059,7 +1132,7 @@ BaseFormatPanel.prototype.createRelativeOption = function(label, key)
 		mxEvent.consume(evt);
 	};
 
-	var input = this.addUnitInput(div, '%', 20, 40, update, 10, -15);
+	var input = this.addUnitInput(div, '%', 20, 44, update, 10, -15);
 
 	var listener = mxUtils.bind(this, function(sender, evt, force)
 	{
@@ -1493,7 +1566,7 @@ ArrangePanel.prototype.addGeometry = function(container)
 	
 	var span = document.createElement('div');
 	span.style.position = 'absolute';
-	span.style.width = '70px';
+	span.style.width = '50px';
 	span.style.marginTop = '0px';
 	span.style.fontWeight = 'bold';
 	mxUtils.write(span, mxResources.get('size'));
@@ -1508,8 +1581,33 @@ ArrangePanel.prototype.addGeometry = function(container)
 	{
 		heightUpdate.apply(this, arguments);
 	});
+	
+	var autosizeBtn = document.createElement('div');
+	autosizeBtn.className = 'geSprite geSprite-actualsize';
+	autosizeBtn.setAttribute('title', mxResources.get('autosize') + ' (Ctrl+Shift+Z)');
+	autosizeBtn.style.position = 'relative';
+	autosizeBtn.style.cursor = 'pointer';
+	autosizeBtn.style.marginTop = '-3px';
+	autosizeBtn.style.border = '0px';
+	autosizeBtn.style.left = '52px';
+	mxUtils.setOpacity(autosizeBtn, 50);
+	
+	mxEvent.addListener(autosizeBtn, 'mouseenter', function()
+	{
+		mxUtils.setOpacity(autosizeBtn, 100);
+	});
+	
+	mxEvent.addListener(autosizeBtn, 'mouseleave', function()
+	{
+		mxUtils.setOpacity(autosizeBtn, 50);
+	});
 
-	mxUtils.br(div);
+	mxEvent.addListener(autosizeBtn, 'click', function()
+	{
+		ui.actions.get('autosize').funct();
+	});
+	
+	div.appendChild(autosizeBtn);
 	this.addLabel(div, mxResources.get('width'), 84);
 	this.addLabel(div, mxResources.get('height'), 20);
 	mxUtils.br(div);
@@ -1801,6 +1899,12 @@ TextFormatPanel.prototype.addFont = function(container)
 	var stylePanel2 = stylePanel.cloneNode(false);
 	stylePanel2.style.marginLeft = '-3px';
 	var fontStyleItems = this.editorUi.toolbar.addItems(['bold', 'italic', 'underline'], stylePanel2, true);
+	
+	if (mxClient.IS_QUIRKS)
+	{
+		mxUtils.br(container);
+	}
+	
 	container.appendChild(stylePanel2);
 
 	this.styleButtons(fontStyleItems);
@@ -1813,19 +1917,19 @@ TextFormatPanel.prototype.addFont = function(container)
 			(graph.cellEditor.isContentEditing()) ?
 			function()
 			{
-				document.execCommand('justifyleft');
+				document.execCommand('justifyleft', false, null);
 			} : this.editorUi.menus.createStyleChangeFunction([mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_LEFT]), stylePanel3);
 	var center = this.editorUi.toolbar.addButton('geSprite-center', mxResources.get('center'),
 			(graph.cellEditor.isContentEditing()) ?
 			function()
 			{
-				document.execCommand('justifycenter');
+				document.execCommand('justifycenter', false, null);
 			} : this.editorUi.menus.createStyleChangeFunction([mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_CENTER]), stylePanel3);
 	var right = this.editorUi.toolbar.addButton('geSprite-right', mxResources.get('right'),
 			(graph.cellEditor.isContentEditing()) ?
 			function()
 			{
-				document.execCommand('justifyright');
+				document.execCommand('justifyright', false, null);
 			} : this.editorUi.menus.createStyleChangeFunction([mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_RIGHT]), stylePanel3);
 
 	this.styleButtons([left, center, right]);
@@ -1835,7 +1939,7 @@ TextFormatPanel.prototype.addFont = function(container)
 		var clear = this.editorUi.toolbar.addButton('geSprite-removeformat', mxResources.get('removeFormat'),
 			function()
 			{
-				document.execCommand('removeformat');
+				document.execCommand('removeformat', false, null);
 			}, stylePanel2);
 		this.styleButtons([clear]);
 	}
@@ -1848,6 +1952,12 @@ TextFormatPanel.prototype.addFont = function(container)
 		this.editorUi.menus.createStyleChangeFunction([mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_BOTTOM]), stylePanel3);
 	
 	this.styleButtons([top, middle, bottom]);
+	
+	if (mxClient.IS_QUIRKS)
+	{
+		mxUtils.br(container);
+	}
+	
 	container.appendChild(stylePanel3);
 	
 	// Hack for updating UI state below based on current text selection
@@ -1863,17 +1973,17 @@ TextFormatPanel.prototype.addFont = function(container)
 		full = this.editorUi.toolbar.addButton('geSprite-justifyfull', null,
 			function()
 			{
-				document.execCommand('justifyfull');
+				document.execCommand('justifyfull', false, null);
 			}, stylePanel3);
 		this.styleButtons([full,
        		sup = this.editorUi.toolbar.addButton('geSprite-superscript', mxResources.get('superscript'),
 			function()
 			{
-				document.execCommand('superscript');
+				document.execCommand('superscript', false, null);
 			}, stylePanel3), sub = this.editorUi.toolbar.addButton('geSprite-subscript', mxResources.get('subscript'),
 			function()
 			{
-				document.execCommand('subscript');
+				document.execCommand('subscript', false, null);
 			}, stylePanel3)]);
 		full.style.marginRight = '9px';
 		
@@ -1882,22 +1992,22 @@ TextFormatPanel.prototype.addFont = function(container)
 		var btns = [this.editorUi.toolbar.addButton('geSprite-orderedlist', mxResources.get('numberelist'),
 				function()
 				{
-					document.execCommand('insertorderedlist');
+					document.execCommand('insertorderedlist', false, null);
 				}, tmp),
 			this.editorUi.toolbar.addButton('geSprite-unorderedlist', mxResources.get('bulletedlist'),
 				function()
 				{
-					document.execCommand('insertunorderedlist');
+					document.execCommand('insertunorderedlist', false, null);
 				}, tmp),
 			this.editorUi.toolbar.addButton('geSprite-outdent', mxResources.get('decreaseIndent'),
 					function()
 					{
-						document.execCommand('outdent');
+						document.execCommand('outdent', false, null);
 					}, tmp),
 			this.editorUi.toolbar.addButton('geSprite-indent', mxResources.get('increaseIndent'),
 				function()
 				{
-					document.execCommand('indent');
+					document.execCommand('indent', false, null);
 				}, tmp),
 			this.editorUi.toolbar.addButton('geSprite-code', mxResources.get('html'),
 				function()
@@ -1906,6 +2016,13 @@ TextFormatPanel.prototype.addFont = function(container)
 				}, tmp)];
 		this.styleButtons(btns);
 		btns[btns.length - 1].style.marginLeft = '9px';
+		
+		if (mxClient.IS_QUIRKS)
+		{
+			mxUtils.br(container);
+			tmp.style.height = '40';
+		}
+		
 		container.appendChild(tmp);
 	}
 	else
@@ -1975,19 +2092,24 @@ TextFormatPanel.prototype.addFont = function(container)
 
 	// Font size
 	var input = document.createElement('input');
-	input.style.position = 'absolute';
 	input.style.textAlign = 'right';
 	input.style.marginTop = '4px';
-	input.style.right = '32px';
+	
+	if (!mxClient.IS_QUIRKS)
+	{
+		input.style.position = 'absolute';
+		input.style.right = '32px';
+	}
+	
 	input.style.width = '47px';
-	input.style.height = '17px';
+	input.style.height = (mxClient.IS_QUIRKS) ? '21px' : '17px';
 	stylePanel2.appendChild(input);
 
 	var inputUpdate = this.installInputHandler(input, mxConstants.STYLE_FONTSIZE, Menus.prototype.defaultFontSize, 1, 999, ' pt',
 	function(fontsize)
 	{
-		// Creates an element with arbitrary size 3
-		document.execCommand('fontSize', false, '3');
+		// Creates an element with arbitrary size 7
+		document.execCommand('fontSize', false, '7');
 		
 		// Changes the css font size of the first font element inside the in-place editor with size 3
 		// hopefully the above element that we've just created. LATER: Check for new element using
@@ -1996,7 +2118,7 @@ TextFormatPanel.prototype.addFont = function(container)
 		
 		for (var i = 0; i < elts.length; i++)
 		{
-			if (elts[i].getAttribute('size') == '3')
+			if (elts[i].getAttribute('size') == '7')
 			{
 				elts[i].removeAttribute('size');
 				elts[i].style.fontSize = fontsize + 'px';
@@ -2009,7 +2131,12 @@ TextFormatPanel.prototype.addFont = function(container)
 	var stepper = this.createStepper(input, inputUpdate, 1, 10, true);
 	stepper.style.display = input.style.display;
 	stepper.style.marginTop = '4px';
-	stepper.style.right = '20px';
+	
+	if (!mxClient.IS_QUIRKS)
+	{
+		stepper.style.right = '20px';
+	}
+	
 	stylePanel2.appendChild(stepper);
 	
 	var arrow = fontMenu.getElementsByTagName('div')[0];
@@ -2162,7 +2289,7 @@ TextFormatPanel.prototype.addFont = function(container)
 		        this.editorUi.toolbar.addButton('geSprite-horizontalrule', mxResources.get('insertHorizontalRule'),
 				function()
 				{
-					document.execCommand('inserthorizontalrule');
+					document.execCommand('inserthorizontalrule', false, null);
 				}, insertPanel),				
 				this.editorUi.toolbar.addMenuFunctionInContainer(insertPanel, 'geSprite-table', mxResources.get('table'), false, mxUtils.bind(this, function(menu)
 				{
@@ -2177,6 +2304,11 @@ TextFormatPanel.prototype.addFont = function(container)
 		wrapper2.appendChild(this.createTitle(mxResources.get('insert')));
 		wrapper2.appendChild(insertPanel);
 		container.appendChild(wrapper2);
+		
+		if (mxClient.IS_QUIRKS)
+		{
+			wrapper2.style.height = '70';
+		}
 		
 		var tablePanel = stylePanel.cloneNode(false);
 		tablePanel.style.paddingLeft = '0px';
@@ -2239,6 +2371,12 @@ TextFormatPanel.prototype.addFont = function(container)
 		wrapper3.appendChild(this.createTitle(mxResources.get('table')));
 		wrapper3.appendChild(tablePanel);
 
+		if (mxClient.IS_QUIRKS)
+		{
+			mxUtils.br(container);
+			wrapper3.style.height = '70';
+		}
+		
 		var tablePanel2 = stylePanel.cloneNode(false);
 		tablePanel2.style.paddingLeft = '0px';
 		
@@ -2343,6 +2481,13 @@ TextFormatPanel.prototype.addFont = function(container)
 				}, tablePanel2)];
 		this.styleButtons(btns);
 		btns[2].style.marginRight = '9px';
+		
+		if (mxClient.IS_QUIRKS)
+		{
+			mxUtils.br(wrapper3);
+			mxUtils.br(wrapper3);
+		}
+		
 		wrapper3.appendChild(tablePanel2);
 		container.appendChild(wrapper3);
 		
@@ -2544,20 +2689,25 @@ TextFormatPanel.prototype.addFont = function(container)
 							bgColorApply(currentBgColor);
 						}
 						
-						// Strips leading and trailing quotes
-						var ff = css.fontFamily;
-						
-						if (ff.charAt(0) == '\'')
+						// Workaround for firstChild is null or not an object
+						// in the log which seems to be IE8- only / 29.01.15
+						if (fontMenu.firstChild != null)
 						{
-							ff = ff.substring(1);
+							// Strips leading and trailing quotes
+							var ff = css.fontFamily;
+							
+							if (ff.charAt(0) == '\'')
+							{
+								ff = ff.substring(1);
+							}
+							
+							if (ff.charAt(ff.length - 1) == '\'')
+							{
+								ff = ff.substring(0, ff.length - 1);
+							}
+							
+							fontMenu.firstChild.nodeValue = ff;
 						}
-						
-						if (ff.charAt(ff.length - 1) == '\'')
-						{
-							ff = ff.substring(0, ff.length - 1);
-						}
-						
-						fontMenu.firstChild.nodeValue = ff;
 					}
 					
 					updating = false;
@@ -2599,36 +2749,72 @@ StyleFormatPanel.prototype.init = function()
 	var editor = ui.editor;
 	var graph = editor.graph;
 	var ss = this.format.getSelectionState();
-
+	
 	if (!ss.containsImage || ss.style.shape == 'image')
 	{
 		this.container.appendChild(this.addFill(this.createPanel()));
 	}
 
 	this.container.appendChild(this.addStroke(this.createPanel()));
-
-	if (ss.image)
+	var opacityPanel = this.createRelativeOption(mxResources.get('opacity'), mxConstants.STYLE_OPACITY);
+	opacityPanel.style.paddingTop = '10px';
+	opacityPanel.style.paddingBottom = '10px';
+	this.container.appendChild(opacityPanel);
+	this.container.appendChild(this.addEffects(this.createPanel()));
+	var opsPanel = this.addEditOps(this.createPanel());
+	
+	if (opsPanel.firstChild != null)
 	{
-		this.container.appendChild(this.addImageOps(this.createPanel()));
+		mxUtils.br(opsPanel);
 	}
 	
-	this.container.appendChild(this.createRelativeOption(mxResources.get('opacity'), mxConstants.STYLE_OPACITY));
-	this.container.appendChild(this.addEffects(this.createPanel()));
-	this.container.appendChild(this.addStyleOps(this.createPanel()));
+	this.container.appendChild(this.addStyleOps(opsPanel));
 };
 
 /**
  * Adds the label menu items to the given menu and parent.
  */
-StyleFormatPanel.prototype.addImageOps = function(div)
+StyleFormatPanel.prototype.addEditOps = function(div)
 {
-	var btn = mxUtils.button(mxResources.get('editImage'), mxUtils.bind(this, function(evt)
-	{
-		this.editorUi.actions.get('image').funct();
-	}));
+	var ss = this.format.getSelectionState();
+	var btn = null;
 	
-	btn.style.width = '202px';
-	div.appendChild(btn);
+	if (this.editorUi.editor.graph.getSelectionCount() == 1)
+	{
+		btn = mxUtils.button(mxResources.get('editStyle'), mxUtils.bind(this, function(evt)
+		{
+			this.editorUi.actions.get('editStyle').funct();
+		}));
+		
+		btn.setAttribute('title', 'Ctrl+E');
+		btn.style.width = '202px';
+		btn.style.marginBottom = '2px';
+		
+		div.appendChild(btn);
+	}
+	
+	if (ss.image)
+	{
+		var btn2 = mxUtils.button(mxResources.get('editImage'), mxUtils.bind(this, function(evt)
+		{
+			this.editorUi.actions.get('image').funct();
+		}));
+		
+		btn2.style.marginBottom = '2px';
+		
+		if (btn == null)
+		{
+			btn2.style.width = '202px';
+		}
+		else
+		{
+			btn.style.width = '100px';
+			btn2.style.width = '100px';
+			btn2.style.marginLeft = '2px';
+		}
+		
+		div.appendChild(btn2);
+	}
 	
 	return div;
 };
@@ -2683,7 +2869,9 @@ StyleFormatPanel.prototype.addFill = function(container)
 	});
 	fillPanel.style.fontWeight = 'bold';
 
-	gradientPanel.style.display = (ss.fill && ss.style.shape != 'image') ? '' : 'none';
+	var tmpColor = mxUtils.getValue(ss.style, fillKey, null);
+	gradientPanel.style.display = (tmpColor != null && tmpColor != mxConstants.NONE &&
+		ss.fill && ss.style.shape != 'image') ? '' : 'none';
 
 	var directions = [mxConstants.DIRECTION_NORTH, mxConstants.DIRECTION_EAST,
 	                  mxConstants.DIRECTION_SOUTH, mxConstants.DIRECTION_WEST];
@@ -2744,7 +2932,7 @@ StyleFormatPanel.prototype.addStroke = function(container)
 	var ss = this.format.getSelectionState();
 	
 	container.style.paddingTop = '8px';
-	container.style.paddingBottom = '8px';
+	container.style.paddingBottom = '6px';
 	container.style.whiteSpace = 'normal';
 	
 	var colorPanel = document.createElement('div');
@@ -2816,16 +3004,36 @@ StyleFormatPanel.prototype.addStroke = function(container)
 	stylePanel.style.marginTop = '2px';
 	stylePanel.className = 'geToolbarContainer';
 
+	var pattern = this.editorUi.toolbar.addMenuFunctionInContainer(stylePanel, 'geSprite-orthogonal', mxResources.get('line'), false, mxUtils.bind(this, function(menu)
+	{
+		var addItem = mxUtils.bind(this, function(cssName, keys, values)
+		{
+			var item = this.editorUi.menus.styleChange(menu, '', keys, values, 'geIcon', null);
+		
+			var pat = document.createElement('div');
+			pat.style.width = '70px';
+			pat.style.height = '1px';
+			pat.style.borderBottom = '1px ' + cssName + ' black';
+			pat.style.paddingTop = '6px';
+	
+			item.firstChild.firstChild.style.padding = '0px 4px 0px 4px';
+			item.firstChild.firstChild.style.width = '70px';
+			item.firstChild.firstChild.appendChild(pat);
+		});
+
+		addItem('solid', [mxConstants.STYLE_DASHED, mxConstants.STYLE_DASH_PATTERN], [null, null]);
+		addItem('dashed', [mxConstants.STYLE_DASHED, mxConstants.STYLE_DASH_PATTERN], ['1', null]);
+		addItem('dotted', [mxConstants.STYLE_DASHED, mxConstants.STYLE_DASH_PATTERN], ['1', '1 4']);
+	}));
+	
 	var stylePanel2 = stylePanel.cloneNode(false);
 
 	// Stroke width
 	var input = document.createElement('input');
-	input.style.position = 'absolute';
 	input.style.textAlign = 'right';
 	input.style.marginTop = '2px';
-	input.style.right = '32px';
 	input.style.width = '41px';
-	input.style.height = '15px';
+	
 	stylePanel.appendChild(input);
 
 	var strokeKey = (ss.style.shape == 'image') ? mxConstants.STYLE_IMAGE_BORDER : mxConstants.STYLE_STROKECOLOR;
@@ -2854,33 +3062,29 @@ StyleFormatPanel.prototype.addStroke = function(container)
 	var stepper = this.createStepper(input, update, 1, 9);
 	stepper.style.display = input.style.display;
 	stepper.style.marginTop = '2px';
-	stepper.style.right = '20px';
 	stylePanel.appendChild(stepper);
+	
+	if (!mxClient.IS_QUIRKS)
+	{
+		input.style.position = 'absolute';
+		input.style.right = '32px';
+		stepper.style.right = '20px';
+		input.style.height = '15px';
+	}
+	else
+	{
+		input.style.height = '17px';		
+	}
 	
 	mxEvent.addListener(input, 'blur', update);
 	mxEvent.addListener(input, 'change', update);
-	
-	var pattern = this.editorUi.toolbar.addMenuFunctionInContainer(stylePanel, 'geSprite-orthogonal', mxResources.get('line'), false, mxUtils.bind(this, function(menu)
-	{
-		var addItem = mxUtils.bind(this, function(cssName, keys, values)
-		{
-			var item = this.editorUi.menus.styleChange(menu, '', keys, values, 'geIcon', null);
-		
-			var pat = document.createElement('div');
-			pat.style.width = '70px';
-			pat.style.height = '1px';
-			pat.style.borderBottom = '1px ' + cssName + ' black';
-			pat.style.paddingTop = '6px';
-	
-			item.firstChild.firstChild.style.padding = '0px 4px 0px 4px';
-			item.firstChild.firstChild.style.width = '70px';
-			item.firstChild.firstChild.appendChild(pat);
-		});
 
-		addItem('solid', [mxConstants.STYLE_DASHED, mxConstants.STYLE_DASH_PATTERN], [null, null]);
-		addItem('dashed', [mxConstants.STYLE_DASHED, mxConstants.STYLE_DASH_PATTERN], ['1', null]);
-		addItem('dotted', [mxConstants.STYLE_DASHED, mxConstants.STYLE_DASH_PATTERN], ['1', '1 4']);
-	}));
+	if (mxClient.IS_QUIRKS)
+	{
+		mxUtils.br(stylePanel2);
+		mxUtils.br(stylePanel2);
+	}
+	
 	var edgeStyle = this.editorUi.toolbar.addMenuFunctionInContainer(stylePanel2, 'geSprite-orthogonal', mxResources.get('line'), false, mxUtils.bind(this, function(menu)
 	{
 		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_SHAPE, mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, 'noedgestyle'], [null, null, null, null], 'geIcon geSprite geSprite-straight', null, true).setAttribute('title', mxResources.get('straight'));
@@ -3030,10 +3234,22 @@ StyleFormatPanel.prototype.addStroke = function(container)
 	if (ss.edges.length == graph.getSelectionCount())
 	{
 		container.appendChild(stylePanel2);
+		
+		if (mxClient.IS_QUIRKS)
+		{
+			mxUtils.br(container);
+			mxUtils.br(container);
+		}
+		
 		container.appendChild(arrowPanel);
 	}
 	else if (ss.vertices.length == graph.getSelectionCount())
 	{
+		if (mxClient.IS_QUIRKS)
+		{
+			mxUtils.br(container);
+		}
+		
 		container.appendChild(perimeterPanel);
 	}
 	
@@ -3241,7 +3457,7 @@ StyleFormatPanel.prototype.addEffects = function(div)
 	var graph = editor.graph;
 	var ss = this.format.getSelectionState();
 	
-	div.style.paddingTop = '4px';
+	div.style.paddingTop = '2px';
 	div.style.paddingBottom = '4px';
 
 	var table = document.createElement('table');
@@ -3256,7 +3472,9 @@ StyleFormatPanel.prototype.addEffects = function(div)
 	table.style.paddingRight = '20px';
 	var tbody = document.createElement('tbody');
 	var row = document.createElement('tr');
+	row.style.padding = '0px';
 	var left = document.createElement('td');
+	left.style.padding = '0px';
 	left.style.width = '50%';
 	left.setAttribute('valign', 'top');
 	
@@ -3313,6 +3531,9 @@ StyleFormatPanel.prototype.addEffects = function(div)
  */
 StyleFormatPanel.prototype.addStyleOps = function(div)
 {
+	div.style.paddingTop = '10px';
+	div.style.paddingBottom = '10px';
+	
 	var btn = mxUtils.button(mxResources.get('setAsDefaultStyle'), mxUtils.bind(this, function(evt)
 	{
 		this.editorUi.actions.get('setAsDefaultStyle').funct();
@@ -3594,42 +3815,6 @@ DiagramFormatPanel.prototype.addDocumentProperties = function(div)
 
 	bg.appendChild(btn);
 	div.appendChild(bg);
-	
-	if (typeof(MathJax) !== 'undefined')
-	{
-		var opt = this.createOption(mxResources.get('mathematicalTypesetting'), function()
-		{
-			return graph.mathEnabled;
-		}, function(checked)
-		{
-			ui.setMathEnabled(checked);
-		},
-		{
-			install: function(apply)
-			{
-				this.listener = function()
-				{
-					apply(graph.mathEnabled);
-				};
-				
-				ui.addListener('mathEnabledChanged', this.listener);
-			},
-			destroy: function()
-			{
-				ui.removeListener(this.listener);
-			}
-		});
-		div.appendChild(opt);
-
-		// Offline check not needed since math is only available in online mode
-		var link = document.createElement('a');
-		link.setAttribute('href', 'https://support.draw.io/questions/2949135/how-to-use-mathematical-typesetting');
-		link.setAttribute('title', mxResources.get('help'));
-		link.setAttribute('target', '_blank');
-		link.style.cssText = 'color:blue;text-decoration:underline;position:absolute;right:20px;';
-		mxUtils.write(link, '?');
-		opt.appendChild(link);
-	}
 
 	return div;
 };

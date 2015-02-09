@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.1.2.1.
+	 * Current version is 3.1.2.2.
 	 */
-	VERSION: '3.1.2.1',
+	VERSION: '3.1.2.2',
 
 	/**
 	 * Variable: IS_IE
@@ -169,7 +169,7 @@ var mxClient =
 	 * Variable: NO_FO
 	 *
 	 * True if foreignObject support is not available. This is the case for
-	 * Opera and older SVG-based browsers.
+	 * Opera, older SVG-based browsers and all versions of IE.
 	 */
   	NO_FO: !document.createElementNS || document.createElementNS('http://www.w3.org/2000/svg',
   		'foreignObject') != '[object SVGForeignObjectElement]' || navigator.userAgent.indexOf('Opera/') >= 0,

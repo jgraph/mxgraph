@@ -278,11 +278,11 @@ Menus.prototype.init = function()
 	this.put('alignment', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
 		this.styleChange(menu, mxResources.get('leftAlign'), [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_LEFT], null, parent,
-				function() { document.execCommand('justifyleft'); });
+				function() { document.execCommand('justifyleft', false, null); });
 		this.styleChange(menu, mxResources.get('center'), [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_CENTER], null, parent,
-				function() { document.execCommand('justifycenter'); });
+				function() { document.execCommand('justifycenter', false, null); });
 		this.styleChange(menu, mxResources.get('rightAlign'), [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_RIGHT], null, parent,
-				function() { document.execCommand('justifyright'); });
+				function() { document.execCommand('justifyright', false, null); });
 		menu.addSeparator(parent);
 		this.styleChange(menu, mxResources.get('topAlign'), [mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_TOP], null, parent);
 		this.styleChange(menu, mxResources.get('middle'), [mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_MIDDLE], null, parent);

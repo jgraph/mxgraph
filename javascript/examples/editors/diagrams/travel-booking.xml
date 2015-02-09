@@ -18,9 +18,8 @@
 			<mxCell style="verticalEdge" parent="2" source="14"
 				target="11" edge="1">
 				<mxGeometry x="0" y="0" as="geometry" relative="1">
-					<Object x="-30" y="2" as="offset"/>
 					<Array as="points">
-						<Object x="440" y="30" />
+						<mxPoint x="440" y="30" />
 					</Array>
 				</mxGeometry>
 			</mxCell>
@@ -121,107 +120,104 @@
 		</Symbol>
 		<Edge description="" href="" id="18">
 			<mxCell parent="2" source="4" target="5" edge="1">
-				<mxGeometry x="-60300" y="-300-10" as="geometry">
-					<Object x="52" y="166" as="sourcePoint" />
-					<Array as="points" />
+				<mxGeometry x="0" y="0" as="geometry">
+					<mxPoint x="52" y="166" as="sourcePoint" />
 				</mxGeometry>
 			</mxCell>
 		</Edge>
 		<Edge description="" href="" id="19">
 			<mxCell parent="2" source="6" target="7" edge="1">
-				<mxGeometry x="-60300" y="-300-10" as="geometry">
+				<mxGeometry x="0" y="0" as="geometry">
 					<Array as="points">
-						<Object x="120" y="250" />
+						<mxPoint x="120" y="250" />
 					</Array>
 				</mxGeometry>
 			</mxCell>
 		</Edge>
 		<Edge description="" href="" id="20">
 			<mxCell parent="2" source="7" target="16" edge="1">
-				<mxGeometry x="-60300" y="-300-10" as="geometry">
+				<mxGeometry x="0" y="0" as="geometry">
 					<Array as="points" />
 				</mxGeometry>
 			</mxCell>
 		</Edge>
 		<Edge description="" href="" id="21">
 			<mxCell parent="2" source="5" target="8" edge="1">
-				<mxGeometry x="-60300" y="-300-10" as="geometry">
+				<mxGeometry x="0" y="0" as="geometry">
 					<Array as="points" />
 				</mxGeometry>
 			</mxCell>
 		</Edge>
 		<Edge description="" href="" id="22">
 			<mxCell parent="2" source="5" target="9" edge="1">
-				<mxGeometry x="-90300" y="-500-10" as="geometry">
-					<Object x="244" y="205" as="sourcePoint" />
-					<Array as="points" />
+				<mxGeometry x="0" y="0" as="geometry">
+					<mxPoint x="244" y="205" as="sourcePoint" />
 				</mxGeometry>
 			</mxCell>
 		</Edge>
 		<Edge description="" href="" id="23">
 			<mxCell parent="2" source="5" target="10" edge="1">
-				<mxGeometry x="-130300" y="-2200-10" as="geometry">
-					<Object x="234" y="55" as="sourcePoint" />
-					<Array as="points" />
+				<mxGeometry x="0" y="0" as="geometry">
+					<mxPoint x="234" y="55" as="sourcePoint" />
 				</mxGeometry>
 			</mxCell>
 		</Edge>
 		<Edge description="" href="" id="24">
 			<mxCell parent="2" source="10" target="11" edge="1">
-				<mxGeometry x="-20300" y="-10" as="geometry">
+				<mxGeometry x="0" y="0" as="geometry">
 					<Array as="points" />
 				</mxGeometry>
 			</mxCell>
 		</Edge>
 		<Edge description="" href="" id="25">
 			<mxCell parent="2" source="12" target="15" edge="1">
-				<mxGeometry x="40" y="-10" as="geometry">
+				<mxGeometry x="0" y="0" as="geometry">
 					<Array as="points" />
 				</mxGeometry>
 			</mxCell>
 		</Edge>
 		<Edge description="" href="" id="26">
 			<mxCell parent="2" source="8" target="12" edge="1">
-				<mxGeometry x="-20300" y="-10" as="geometry">
+				<mxGeometry x="0" y="0" as="geometry">
 					<Array as="points" />
 				</mxGeometry>
 			</mxCell>
 		</Edge>
 		<Edge description="" href="" id="27">
 			<mxCell parent="2" source="11" target="13" edge="1">
-				<mxGeometry x="-20300" y="-10" as="geometry">
+				<mxGeometry x="0" y="0" as="geometry">
 					<Array as="points" />
 				</mxGeometry>
 			</mxCell>
 		</Edge>
 		<Edge description="" href="" id="28">
 			<mxCell parent="2" source="13" target="14" edge="1">
-				<mxGeometry x="-20300" y="-10" as="geometry">
+				<mxGeometry x="0" y="0" as="geometry">
 					<Array as="points" />
 				</mxGeometry>
 			</mxCell>
 		</Edge>
 		<Edge description="" href="" id="29">
 			<mxCell parent="2" source="9" target="12" edge="1">
-				<mxGeometry x="-20300" y="-10" as="geometry">
+				<mxGeometry x="0" y="0" as="geometry">
 					<Array as="points">
-						<Object x="570" y="200" />
+						<mxPoint x="570" y="200" />
 					</Array>
 				</mxGeometry>
 			</mxCell>
 		</Edge>
 		<Edge description="" href="" id="30">
 			<mxCell parent="2" source="14" target="12" edge="1">
-				<mxGeometry x="-20300" y="-10" as="geometry">
+				<mxGeometry x="0" y="0" as="geometry">
 					<Array as="points">
-						<Object x="570" y="130" />
+						<mxPoint x="570" y="130" />
 					</Array>
 				</mxGeometry>
 			</mxCell>
 		</Edge>
 		<Edge description="" href="" id="31">
 			<mxCell parent="2" source="15" target="17" edge="1">
-				<mxGeometry x="-30300" y="-10" as="geometry">
+				<mxGeometry x="0" y="0" as="geometry">
 					<Array as="points" />
 				</mxGeometry>
 			</mxCell>

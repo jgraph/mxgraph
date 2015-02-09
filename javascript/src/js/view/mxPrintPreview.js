@@ -213,8 +213,8 @@ mxPrintPreview.prototype.y0 = 0;
  * Variable: autoOrigin
  * 
  * Specifies if the origin should be automatically computed based on the top,
- * left corner of the actual diagram contents. If this is set to false then the
- * values for <x0> and <y0> will be overridden in <open>. Default is true.
+ * left corner of the actual diagram contents. The required offset will be added
+ * to <x0> and <y0> in <open>. Default is true.
  */
 mxPrintPreview.prototype.autoOrigin = true;
 
@@ -391,8 +391,8 @@ mxPrintPreview.prototype.open = function(css)
 			// Uses the absolute origin with no offset for all printing
 			if (!this.autoOrigin)
 			{
-				this.x0 = -tr.x * this.scale;
-				this.y0 = -tr.y * this.scale;
+				this.x0 -= tr.x * this.scale;
+				this.y0 -= tr.y * this.scale;
 				bounds.width += bounds.x;
 				bounds.height += bounds.y;
 				bounds.x = 0;

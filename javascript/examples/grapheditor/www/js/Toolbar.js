@@ -47,11 +47,11 @@ Toolbar.prototype.init = function()
 	var align = this.addMenuFunction('geSprite-left', mxResources.get('align'), false, mxUtils.bind(this, function(menu)
 	{
 		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_LEFT], 'geIcon geSprite geSprite-left', null,
-				function() { document.execCommand('justifyleft'); }).setAttribute('title', mxResources.get('left'));
+				function() { document.execCommand('justifyleft', false, null); }).setAttribute('title', mxResources.get('left'));
 		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_CENTER], 'geIcon geSprite geSprite-center', null,
-				function() { document.execCommand('justifycenter'); }).setAttribute('title', mxResources.get('center'));
+				function() { document.execCommand('justifycenter', false, null); }).setAttribute('title', mxResources.get('center'));
 		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_RIGHT], 'geIcon geSprite geSprite-right', null,
-				function() { document.execCommand('justifyright'); }).setAttribute('title', mxResources.get('right'));
+				function() { document.execCommand('justifyright', false, null); }).setAttribute('title', mxResources.get('right'));
 		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_TOP], 'geIcon geSprite geSprite-top', null).setAttribute('title', mxResources.get('top'));
 		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_MIDDLE], 'geIcon geSprite geSprite-middle', null).setAttribute('title', mxResources.get('middle'));
 		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_BOTTOM], 'geIcon geSprite geSprite-bottom', null).setAttribute('title', mxResources.get('bottom'));
@@ -174,11 +174,11 @@ Toolbar.prototype.createTextToolbar = function()
 	this.addMenuFunction('geSprite-left', mxResources.get('align'), false, mxUtils.bind(this, function(menu)
 	{
 		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_LEFT], 'geIcon geSprite geSprite-left', null,
-				function() { document.execCommand('justifyleft'); }).setAttribute('title', mxResources.get('left'));
+				function() { document.execCommand('justifyleft', false, null); }).setAttribute('title', mxResources.get('left'));
 		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_CENTER], 'geIcon geSprite geSprite-center', null,
-				function() { document.execCommand('justifycenter'); }).setAttribute('title', mxResources.get('center'));
+				function() { document.execCommand('justifycenter', false, null); }).setAttribute('title', mxResources.get('center'));
 		this.editorUi.menus.styleChange(menu, '', [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_RIGHT], 'geIcon geSprite geSprite-right', null,
-				function() { document.execCommand('justifyright'); }).setAttribute('title', mxResources.get('right'));
+				function() { document.execCommand('justifyright', false, null); }).setAttribute('title', mxResources.get('right'));
 	}));
 
 	this.addMenuFunction('geSprite-fontcolor', mxResources.get('more') + '...', false, mxUtils.bind(this, function(menu)
@@ -192,13 +192,13 @@ Toolbar.prototype.createTextToolbar = function()
 
 		elt = menu.addItem('', null, mxUtils.bind(this, function()
 		{
-			document.execCommand('superscript');
+			document.execCommand('superscript', false, null);
 		}), null, 'geIcon geSprite geSprite-superscript');
 		elt.setAttribute('title', mxResources.get('superscript'));
 		
 		elt = menu.addItem('', null, mxUtils.bind(this, function()
 		{
-			document.execCommand('subscript');
+			document.execCommand('subscript', false, null);
 		}), null, 'geIcon geSprite geSprite-subscript');
 		elt.setAttribute('title', mxResources.get('subscript'));
 	}));
@@ -207,22 +207,22 @@ Toolbar.prototype.createTextToolbar = function()
 	
 	this.addButton('geIcon geSprite geSprite-orderedlist', mxResources.get('numberedList'), function()
 	{
-		document.execCommand('insertorderedlist');
+		document.execCommand('insertorderedlist', false, null);
 	});
 	
 	this.addButton('geIcon geSprite geSprite-unorderedlist', mxResources.get('bulletedList'), function()
 	{
-		document.execCommand('insertunorderedlist');
+		document.execCommand('insertunorderedlist', false, null);
 	});
 	
 	this.addButton('geIcon geSprite geSprite-outdent', mxResources.get('decreaseIndent'), function()
 	{
-		document.execCommand('outdent');
+		document.execCommand('outdent', false, null);
 	});
 	
 	this.addButton('geIcon geSprite geSprite-indent', mxResources.get('increaseIndent'), function()
 	{
-		document.execCommand('indent');
+		document.execCommand('indent', false, null);
 	});
 	
 	this.addSeparator();
@@ -230,7 +230,7 @@ Toolbar.prototype.createTextToolbar = function()
 
 	this.addButton('geIcon geSprite geSprite-horizontalrule', mxResources.get('insertHorizontalRule'), function()
 	{
-		document.execCommand('inserthorizontalrule');
+		document.execCommand('inserthorizontalrule', false, null);
 	});
 	
 	// KNOWN: All table stuff does not work with undo/redo
@@ -381,7 +381,7 @@ Toolbar.prototype.createTextToolbar = function()
 	
 	this.addButton('geIcon geSprite geSprite-removeformat', mxResources.get('removeFormat'), function()
 	{
-		document.execCommand('removeformat');
+		document.execCommand('removeformat', false, null);
 	});
 	
 	this.addButton('geIcon geSprite geSprite-code', mxResources.get('html'), function()

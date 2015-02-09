@@ -5609,7 +5609,8 @@ mxGraph.prototype.extendParent = function(cell)
 		{
 			var geo = this.getCellGeometry(cell);
 			
-			if (geo != null && (p.width < geo.x + geo.width ||
+			if (geo != null && !geo.relative &&
+				(p.width < geo.x + geo.width ||
 				p.height < geo.y + geo.height))
 			{
 				p = p.clone();
@@ -7010,11 +7011,12 @@ mxGraph.prototype.getBoundingBoxFromGeometry = function(cells, includeEdges)
 				
 				if (geo != null)
 				{
-					var pts = geo.points;
 					var bbox = null;
 					
 					if (this.model.isEdge(cells[i]))
 					{
+						var pts = geo.points;
+						
 						if (pts != null && pts.length > 0)
 						{
 							var tmp = new mxRectangle(pts[0].x, pts[0].y, 0, 0);
@@ -7040,14 +7042,14 @@ mxGraph.prototype.getBoundingBoxFromGeometry = function(cells, includeEdges)
 					}
 					else
 					{
+						var parent = this.model.getParent(cells[i]);
+						
 						if (geo.relative)
 						{
-							var parent = this.model.getParent(cells[i]);
-							
-							if (this.model.isVertex(parent) && mxUtils.indexOf(cells, parent) >= 0)
+							if (this.model.isVertex(parent) && parent != this.view.currentRoot)
 							{
 								var tmp = this.getBoundingBoxFromGeometry([parent], false);
-	
+								
 								if (tmp != null)
 								{
 									bbox = new mxRectangle(tmp.x + geo.x * tmp.width, tmp.y + geo.y * tmp.height, geo.width, geo.height);
@@ -7057,7 +7059,6 @@ mxGraph.prototype.getBoundingBoxFromGeometry = function(cells, includeEdges)
 						else
 						{
 							bbox = mxRectangle.fromRectangle(geo);
-							var parent = this.model.getParent(cells[i]);
 							
 							if (this.model.isVertex(parent) && mxUtils.indexOf(cells, parent) >= 0)
 							{
@@ -7071,7 +7072,7 @@ mxGraph.prototype.getBoundingBoxFromGeometry = function(cells, includeEdges)
 							}
 						}
 						
-						if (geo.offset != null)
+						if (bbox != null && geo.offset != null)
 						{
 							bbox.x += geo.offset.x;
 							bbox.y += geo.offset.y;
@@ -7082,7 +7083,7 @@ mxGraph.prototype.getBoundingBoxFromGeometry = function(cells, includeEdges)
 					{
 						if (result == null)
 						{
-							result = new mxRectangle(bbox.x, bbox.y, bbox.width, bbox.height);
+							result = mxRectangle.fromRectangle(bbox);
 						}
 						else
 						{

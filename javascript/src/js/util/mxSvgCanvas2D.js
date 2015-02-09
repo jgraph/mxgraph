@@ -140,6 +140,22 @@ function mxSvgCanvas2D(root, styleEnabled)
 mxUtils.extend(mxSvgCanvas2D, mxAbstractCanvas2D);
 
 /**
+ * Capability check for DOM parser.
+ */
+(function()
+{
+	mxSvgCanvas2D.prototype.useDomParser = !mxClient.IS_IE && typeof DOMParser === 'function' && typeof XMLSerializer === 'function';
+	
+	if (mxSvgCanvas2D.prototype.useDomParser)
+	{
+		// Checks using a generic test text if the parsing actually works. This is a workaround
+		// for older browsers where the capability check returns true but the parsing fails.
+		var doc = new DOMParser().parseFromString('test text', 'text/html');
+		mxSvgCanvas2D.prototype.useDomParser = doc != null;
+	}
+})();
+
+/**
  * Variable: path
  * 
  * Holds the current DOM node.
@@ -1036,6 +1052,53 @@ mxSvgCanvas2D.prototype.image = function(x, y, w, h, src, aspect, flipH, flipV)
 };
 
 /**
+ * Function: convertHtml
+ * 
+ * Converts the given HTML string to XHTML.
+ */
+mxSvgCanvas2D.prototype.convertHtml = function(val)
+{
+	if (this.useDomParser)
+	{
+		var doc = new DOMParser().parseFromString(val, 'text/html');
+
+		if (doc != null)
+		{
+			val = new XMLSerializer().serializeToString(doc.body);
+			
+			// Extracts body content from DOM
+			if (val.substring(0, 5) == '<body')
+			{
+				val = val.substring(val.indexOf('>', 5) + 1);
+			}
+			
+			if (val.substring(val.length - 7, val.length) == '</body>')
+			{
+				val = val.substring(0, val.length - 7);
+			}
+		}
+	}
+	else
+	{
+		var ta = document.createElement('textarea');
+		
+		// Handles special HTML entities < and > and double escaping
+		// and converts unclosed br, hr and img tags to XHTML
+		// LATER: Convert all unclosed tags
+		ta.innerHTML = val.replace(/&amp;/g, '&amp;amp;').
+			replace(/&#60;/g, '&amp;lt;').replace(/&#62;/g, '&amp;gt;').
+			replace(/&lt;/g, '&amp;lt;').replace(/&gt;/g, '&amp;gt;').
+			replace(/</g, '&lt;').replace(/>/g, '&gt;');
+		val = ta.value.replace(/&/g, '&amp;').replace(/&amp;lt;/g, '&lt;').
+			replace(/&amp;gt;/g, '&gt;').replace(/&amp;amp;/g, '&amp;').
+			replace(/<br>/g, '<br />').replace(/<hr>/g, '<hr />').
+			replace(/(<img[^>]+)>/gm, "$1 />");
+	}
+	
+	return val;
+};
+
+/**
  * Function: createDiv
  * 
  * Private helper function to create SVG elements
@@ -1091,14 +1154,8 @@ mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, overflow
 	
 	if (!mxUtils.isNode(val))
 	{
-		// Converts HTML entities to unicode since HTML entities are not allowed in XHTML
-		var ta = document.createElement('textarea');
-		ta.innerHTML = val.replace(/&quot;/g, '&amp;quot;').replace(/&#34;/g, '&amp;#34;').
-			replace(/&#60;/g, '&amp;#60;').replace(/&#62;/g, '&amp;#62;').
-			replace(/&lt;/g, '&amp;lt;').replace(/&gt;/g, '&amp;gt;').
-			replace(/</g, '&lt;').replace(/>/g, '&gt;');
-		val = ta.value;
-
+		val = this.convertHtml(val);
+		
 		if (overflow != 'fill' && overflow != 'width')
 		{
 			// Inner div always needed to measure wrapped text
@@ -1110,9 +1167,9 @@ mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, overflow
 		}
 	}
 
-	// Uses DOM API where available. This cannot be used in IE9/10 to avoid
+	// Uses DOM API where available. This cannot be used in IE to avoid
 	// an opening and two (!) closing TBODY tags being added to tables.
-	if (!mxClient.IS_IE && !mxClient.IS_IE11 && document.createElementNS)
+	if (!mxClient.IS_IE && document.createElementNS)
 	{
 		var div = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
 		div.setAttribute('style', style);
@@ -1143,10 +1200,6 @@ mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, overflow
 		{
 			val = val.outerHTML;
 		}
-		
-		// Converts invalid tags to XHTML
-		// LATER: Check for all unclosed tags
-		val = val.replace(/<br>/g, '<br />').replace(/<hr>/g, '<hr />');
 
 		// NOTE: FF 3.6 crashes if content CSS contains "height:100%"
 		return mxUtils.parseXml('<div xmlns="http://www.w3.org/1999/xhtml" style="' + style + 

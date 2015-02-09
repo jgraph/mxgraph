@@ -41,6 +41,7 @@ borderColor=Border color
 bottom=Bottom
 bottomAlign=Bottom align
 bulletedList=Bulleted list
+cannotOpenFile=Cannot open file
 center=Center
 changeOrientation=Change orientation
 circle=Circle

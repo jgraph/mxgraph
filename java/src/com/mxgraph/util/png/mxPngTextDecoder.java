@@ -9,6 +9,7 @@ import java.io.DataInputStream;
 import java.io.InputStream;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
 /**
@@ -76,7 +77,7 @@ public class mxPngTextDecoder
 
 					String key = new String(data, 0, currentIndex - 1);
 
-					// TODO Add option to decode uncompressed text
+					// LATER Add option to decode uncompressed text
 					// NOTE Do not comment this line out as the
 					// increment of the currentIndex is required
 					byte compressType = data[currentIndex++];
@@ -86,7 +87,8 @@ public class mxPngTextDecoder
 					{
 						InputStream is = new ByteArrayInputStream(data,
 								currentIndex, length);
-						InputStream iis = new InflaterInputStream(is);
+						InputStream iis = new InflaterInputStream(is,
+								new Inflater(true));
 
 						int c;
 						while ((c = iis.read()) != -1)

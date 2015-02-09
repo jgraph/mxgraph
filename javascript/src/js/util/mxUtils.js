@@ -1737,6 +1737,16 @@ var mxUtils =
 	{
 		return Math.PI * deg / 180;
 	},
+
+	/**
+	 * Function: toDegree
+	 * 
+	 * Converts the given radians to degree.
+	 */
+	toDegree: function(rad)
+	{
+		return rad * 180 / Math.PI;
+	},
 	
 	/**
 	 * Function: arcToCurves

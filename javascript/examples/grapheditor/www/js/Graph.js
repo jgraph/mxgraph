@@ -523,6 +523,29 @@ Graph.prototype.convertValueToString = function(cell)
 };
 
 /**
+ * Overrides autosize to add a border.
+ */
+Graph.prototype.getPreferredSizeForCell = function(cell)
+{
+	var result = mxGraph.prototype.getPreferredSizeForCell.apply(this, arguments);
+	
+	// Adds buffer
+	if (result != null)
+	{
+		result.width += 10;
+		result.height += 4;
+		
+		if (this.gridEnabled)
+		{
+			result.width = this.snap(result.width);
+			result.height = this.snap(result.height);
+		}
+	}
+	
+	return result;
+}
+
+/**
  * Removes all illegal control characters with ASCII code <32 except TAB, LF
  * and CR.
  */
@@ -623,33 +646,6 @@ Graph.prototype.getLinkForCell = function(cell)
 };
 
 /**
- * Overrides double click handling to add the tolerance.
- */
-Graph.prototype.dblClick = function(evt, cell)
-{
-	var pt = mxUtils.convertPoint(this.container, mxEvent.getClientX(evt), mxEvent.getClientY(evt));
-	
-	if (cell == null)
-	{
-		cell = this.getCellAt(pt.x, pt.y);
-	}
-
-	// Automatically adds new child cells to edges on double click
-	if (evt != null && this.model.isEdge(cell))
-	{
-		var state = this.view.getState(cell);
-		
-		if (state != null && (state.text == null || state.text.node == null || (!mxUtils.contains(state.text.boundingBox, pt.x, pt.y) &&
-			!mxUtils.isAncestorNode(state.text.node, mxEvent.getSource(evt)))))
-		{
-			cell = this.addEdgeLabelAt(state, pt.x, pt.y);
-		}
-	}
-
-	mxGraph.prototype.dblClick.call(this, evt, cell);
-};
-
-/**
  * Overridden to stop moving edge labels between cells.
  */
 Graph.prototype.getDropTarget = function(cells, evt, cell, clone)
@@ -675,35 +671,80 @@ Graph.prototype.getDropTarget = function(cells, evt, cell, clone)
 };
 
 /**
- * Adds a new edge label at the given position and returns the new cell.
+ * Overrides double click handling to add the tolerance and inserting text.
  */
-Graph.prototype.addEdgeLabelAt = function(state, x, y)
+Graph.prototype.dblClick = function(evt, cell)
+{
+	var pt = mxUtils.convertPoint(this.container, mxEvent.getClientX(evt), mxEvent.getClientY(evt));
+	
+	if (cell == null)
+	{
+		cell = this.getCellAt(pt.x, pt.y);
+	}
+
+	// Automatically adds new child cells to edges on double click
+	if (evt != null && !this.model.isVertex(cell))
+	{
+		var state = (this.model.isEdge(cell)) ? this.view.getState(cell) : null;
+		
+		if (state == null || (state.text == null || state.text.node == null ||
+			(!mxUtils.contains(state.text.boundingBox, pt.x, pt.y) &&
+			!mxUtils.isAncestorNode(state.text.node, mxEvent.getSource(evt)))))
+		{
+			cell = this.addText(pt.x, pt.y, state);
+		}
+	}
+
+	mxGraph.prototype.dblClick.call(this, evt, cell);
+};
+
+/**
+ * Adds a new label at the given position and returns the new cell. State is
+ * an optional edge state to be used as the parent for the label. Vertices
+ * are not allowed currently as states.
+ */
+Graph.prototype.addText = function(x, y, state)
 {
 	// Creates a new edge label with a predefined text
 	var label = new mxCell();
 	label.value = 'Text';
-	label.style = 'text;html=1;resizable=0;align=center;verticalAlign=middle;labelBackgroundColor=#ffffff;'
+	label.style = 'text;html=1;resizable=0;'
 	label.geometry = new mxGeometry(0, 0, 0, 0);
-	label.geometry.relative = true;
 	label.connectable = false;
 	label.vertex = true;
 	
-	// Resets the relative location stored inside the geometry
-	var pt2 = this.view.getRelativePoint(state, x, y);
-	label.geometry.x = Math.round(pt2.x * 10000) / 10000;
-	label.geometry.y = Math.round(pt2.y);
+	if (state != null)
+	{
+		label.style += ';align=center;verticalAlign=middle;labelBackgroundColor=#ffffff;'
+		label.geometry.relative = true;
+		
+		// Resets the relative location stored inside the geometry
+		var pt2 = this.view.getRelativePoint(state, x, y);
+		label.geometry.x = Math.round(pt2.x * 10000) / 10000;
+		label.geometry.y = Math.round(pt2.y);
+		
+		// Resets the offset inside the geometry to find the offset from the resulting point
+		label.geometry.offset = new mxPoint(0, 0);
+		pt2 = this.view.getPoint(state, label.geometry);
 	
-	// Resets the offset inside the geometry to find the offset from the resulting point
-	label.geometry.offset = new mxPoint(0, 0);
-	pt2 = this.view.getPoint(state, label.geometry);
+		var scale = this.view.scale;
+		label.geometry.offset = new mxPoint(Math.round((x - pt2.x) / scale), Math.round((y - pt2.y) / scale));
+	}
+	else
+	{
+		label.style += 'autosize=1;align=left;verticalAlign=top;spacingTop=-4;'
 
-	var scale = this.view.scale;
-	label.geometry.offset = new mxPoint(Math.round((x - pt2.x) / scale), Math.round((y - pt2.y) / scale));
-	
+		var tr = this.view.translate;
+		label.geometry.width = '40';
+		label.geometry.height = '20';
+		label.geometry.x = Math.round(x / this.view.scale) - tr.x;
+		label.geometry.y = Math.round(y / this.view.scale) - tr.y;
+	}
+		
 	this.getModel().beginUpdate();
 	try
 	{
-		this.addCells([label], state.cell);
+		this.addCells([label], (state != null) ? state.cell : null);
 		this.fireEvent(new mxEventObject('cellsInserted', 'cells', [label]));
 	}
 	finally
@@ -712,6 +753,60 @@ Graph.prototype.addEdgeLabelAt = function(state, x, y)
 	}
 	
 	return label;
+};
+
+/**
+ * Inserts the given image at the cursor in a content editable text box using
+ * the insertimage command on the document instance and updates the size.
+ */
+Graph.prototype.insertImage = function(newValue, w, h)
+{
+	// To find the new image, we create a list of all existing links first
+	if (newValue != null)
+	{
+		var tmp = this.cellEditor.text2.getElementsByTagName('img');
+		var oldImages = [];
+		
+		for (var i = 0; i < tmp.length; i++)
+		{
+			oldImages.push(tmp[i]);
+		}
+
+		document.execCommand('insertimage', false, newValue);
+		
+		// Sets size of new image
+		var newImages = this.cellEditor.text2.getElementsByTagName('img');
+		
+		if (newImages.length == oldImages.length + 1)
+		{
+			// Inverse order in favor of appended images
+			for (var i = newImages.length - 1; i >= 0; i--)
+			{
+				if (i == 0 || newImages[i] != oldImages[i - 1])
+				{
+					newImages[i].style.width = w + 'px';
+					newImages[i].style.height = h + 'px';
+					
+					break;
+				}
+			}
+		}
+	}
+};
+
+/**
+ * 
+ * @param cell
+ * @returns {Boolean}
+ */
+Graph.prototype.isCellResizable = function(cell)
+{
+	var result = mxGraph.prototype.isCellResizable.apply(this, arguments);
+
+	var state = this.view.getState(cell);
+	var style = (state != null) ? state.style : this.getCellStyle(cell);
+		
+	return result || style['whiteSpace'] == 'wrap';
 };
 
 /**
@@ -1034,14 +1129,17 @@ Graph.prototype.insertColumn = function(table, index)
  */
 Graph.prototype.deleteColumn = function(table, index)
 {
-	var bd = table.tBodies[0];
-	var rows = bd.rows;
-	
-	for (var i = 0; i < rows.length; i++)
+	if (index >= 0)
 	{
-		if (rows[i].cells.length > index)
+		var bd = table.tBodies[0];
+		var rows = bd.rows;
+		
+		for (var i = 0; i < rows.length; i++)
 		{
-			rows[i].deleteCell(index);
+			if (rows[i].cells.length > index)
+			{
+				rows[i].deleteCell(index);
+			}
 		}
 	}
 };
@@ -1509,7 +1607,7 @@ Graph.prototype.initTouch = function()
 
 				if (this.isSelectText() && this.text2.innerHTML.length > 0)
 				{
-					document.execCommand('selectAll');
+					document.execCommand('selectAll', false, null);
 				}
 				
 				// Hides handles on selected cell
@@ -1987,7 +2085,7 @@ Graph.prototype.initTouch = function()
 		
 		if (model.isEdge(parent) && geo != null && geo.relative && state.width < 2 && state.height < 2 && state.text != null && state.text.boundingBox != null)
 		{
-			var bbox = state.text.boundingBox;
+			var bbox = state.text.unrotatedBoundingBox || state.text.boundingBox;
 			
 			return new mxRectangle(Math.round(bbox.x), Math.round(bbox.y), Math.round(bbox.width), Math.round(bbox.height));
 		}
@@ -2006,10 +2104,21 @@ Graph.prototype.initTouch = function()
 		var parent = model.getParent(this.state.cell);
 		var geo = this.graph.getCellGeometry(this.state.cell);
 		
-		if (!model.isEdge(parent) || geo == null || !geo.relative || this.state == null || this.state.width >= 2 || this.state.height >= 2)
+		// Lets rotation events through
+		var handle = this.getHandleForEvent(me);
+		
+		if (handle == mxEvent.ROTATION_HANDLE || !model.isEdge(parent) || geo == null || !geo.relative ||
+			this.state == null || this.state.width >= 2 || this.state.height >= 2)
 		{
 			mxVertexHandlerMouseDown.apply(this, arguments);
 		}
+	};
+	
+	// Shows rotation handle for edge labels.
+	mxVertexHandler.prototype.isRotationHandleVisible = function()
+	{
+		return this.graph.isEnabled() && this.rotationEnabled && this.graph.isCellRotatable(this.state.cell) &&
+			(mxGraphHandler.prototype.maxCells <= 0 || this.graph.getSelectionCount() < mxGraphHandler.prototype.maxCells);
 	};
 
 	// Requires callback to editorUi in edit link so override editorUi.init

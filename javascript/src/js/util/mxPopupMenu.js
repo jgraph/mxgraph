@@ -189,8 +189,10 @@ mxPopupMenu.prototype.isPopupTrigger = function(me)
  * iconCls - Optional string that represents the CSS class for the image icon.
  * IconsCls is ignored if image is given.
  * enabled - Optional boolean indicating if the item is enabled. Default is true.
+ * active - Optional boolean indicating if the menu should implement any event handling.
+ * Default is true.
  */
-mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, enabled)
+mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, enabled, active)
 {
 	parent = parent || this;
 	this.itemCount++;
@@ -254,7 +256,7 @@ mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, e
 	
 	parent.tbody.appendChild(tr);
 
-	if (enabled == null || enabled)
+	if (active != false && enabled != false)
 	{
 		var currentSelection = null;
 		
@@ -318,7 +320,16 @@ mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, e
 					// Workaround for lost current selection in page because of focus in IE
 					if (currentSelection != null)
 					{
-						currentSelection.select();
+						// Workaround for "unspecified error" in IE8 standards
+						try
+						{
+							currentSelection.select();
+						}
+						catch (e)
+						{
+							// ignore
+						}
+
 						currentSelection = null;
 					}
 					

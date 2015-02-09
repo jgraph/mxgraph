@@ -1,3 +1,22 @@
+09-FEB-2015: 3.1.2.2
+
+- mxText.updateBoundingBox sets unrotatedBoundingBox [JavaScript] 
+- Adds additional check for DOMParser functionality [JavaScript]
+- Rounds coordinates in mxCellEditor.getEditorBounds [JavaScript]
+- Fixes handling of HTML entities for SVG export in quirks, IE11 [JavaScript]
+- Adds mxSvgCanvas2D.convertHtml for HTML to XHTML conversion [JavaScript]
+- Adds Xml2Svg.java example [Java]
+- Fixes mxGraph.extendParent for relative children [JavaScript]
+- Fixes mxGraph.getBoundingBoxFromGeometry for relative children if parent is not in cells argument [JavaScript]
+- Fixes possible NPE in mxGraph.getBoundingBoxFromGeometry [JavaScript]
+- Fixes incorrect header when parsing PNG+XML files [Java]
+- Adds mxUtils.toDegree [JavaScript]
+- Adds pageScale option for print dialog in grapheditor
+- mxPrintPreview.autoOrigin no longer overrides x0, y0 in open [JavaScript]
+- Fixes mxDisabled class in explorer.css for IE8 standards [JavaScript]
+- Fixes unspecified error in mxPopupMenu.addItem for quirks/IE8 [JavaScript]
+- Adds active argument in mxPopupMenu.addItem [JavaScript]
+
 05-JAN-2015: 3.1.2.1
 
 - Fixes flipH/V in mxSvgCanvas2D.image [JavaScript] 

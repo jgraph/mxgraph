@@ -381,6 +381,7 @@ mxText.prototype.updateBoundingBox = function()
 	{
 		if (rot != 0)
 		{
+			this.unrotatedBoundingBox = mxRectangle.fromRectangle(this.boundingBox);
 			var bbox = mxUtils.getBoundingBox(this.boundingBox, rot);
 			
 			this.boundingBox.x = bbox.x;

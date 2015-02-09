@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.1.2.1.
+	 * Current version is 3.1.2.2.
 	 */
-	VERSION: '3.1.2.1',
+	VERSION: '3.1.2.2',
 
 	/**
 	 * Variable: IS_IE
@@ -169,7 +169,7 @@ var mxClient =
 	 * Variable: NO_FO
 	 *
 	 * True if foreignObject support is not available. This is the case for
-	 * Opera and older SVG-based browsers.
+	 * Opera, older SVG-based browsers and all versions of IE.
 	 */
   	NO_FO: !document.createElementNS || document.createElementNS('http://www.w3.org/2000/svg',
   		'foreignObject') != '[object SVGForeignObjectElement]' || navigator.userAgent.indexOf('Opera/') >= 0,
@@ -3697,6 +3697,16 @@ var mxUtils =
 	toRadians: function(deg)
 	{
 		return Math.PI * deg / 180;
+	},
+
+	/**
+	 * Function: toDegree
+	 * 
+	 * Converts the given radians to degree.
+	 */
+	toDegree: function(rad)
+	{
+		return rad * 180 / Math.PI;
 	},
 	
 	/**
@@ -14309,8 +14319,10 @@ mxPopupMenu.prototype.isPopupTrigger = function(me)
  * iconCls - Optional string that represents the CSS class for the image icon.
  * IconsCls is ignored if image is given.
  * enabled - Optional boolean indicating if the item is enabled. Default is true.
+ * active - Optional boolean indicating if the menu should implement any event handling.
+ * Default is true.
  */
-mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, enabled)
+mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, enabled, active)
 {
 	parent = parent || this;
 	this.itemCount++;
@@ -14374,7 +14386,7 @@ mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, e
 	
 	parent.tbody.appendChild(tr);
 
-	if (enabled == null || enabled)
+	if (active != false && enabled != false)
 	{
 		var currentSelection = null;
 		
@@ -14438,7 +14450,16 @@ mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, e
 					// Workaround for lost current selection in page because of focus in IE
 					if (currentSelection != null)
 					{
-						currentSelection.select();
+						// Workaround for "unspecified error" in IE8 standards
+						try
+						{
+							currentSelection.select();
+						}
+						catch (e)
+						{
+							// ignore
+						}
+
 						currentSelection = null;
 					}
 					
@@ -17437,6 +17458,22 @@ function mxSvgCanvas2D(root, styleEnabled)
 mxUtils.extend(mxSvgCanvas2D, mxAbstractCanvas2D);
 
 /**
+ * Capability check for DOM parser.
+ */
+(function()
+{
+	mxSvgCanvas2D.prototype.useDomParser = !mxClient.IS_IE && typeof DOMParser === 'function' && typeof XMLSerializer === 'function';
+	
+	if (mxSvgCanvas2D.prototype.useDomParser)
+	{
+		// Checks using a generic test text if the parsing actually works. This is a workaround
+		// for older browsers where the capability check returns true but the parsing fails.
+		var doc = new DOMParser().parseFromString('test text', 'text/html');
+		mxSvgCanvas2D.prototype.useDomParser = doc != null;
+	}
+})();
+
+/**
  * Variable: path
  * 
  * Holds the current DOM node.
@@ -18333,6 +18370,53 @@ mxSvgCanvas2D.prototype.image = function(x, y, w, h, src, aspect, flipH, flipV)
 };
 
 /**
+ * Function: convertHtml
+ * 
+ * Converts the given HTML string to XHTML.
+ */
+mxSvgCanvas2D.prototype.convertHtml = function(val)
+{
+	if (this.useDomParser)
+	{
+		var doc = new DOMParser().parseFromString(val, 'text/html');
+
+		if (doc != null)
+		{
+			val = new XMLSerializer().serializeToString(doc.body);
+			
+			// Extracts body content from DOM
+			if (val.substring(0, 5) == '<body')
+			{
+				val = val.substring(val.indexOf('>', 5) + 1);
+			}
+			
+			if (val.substring(val.length - 7, val.length) == '</body>')
+			{
+				val = val.substring(0, val.length - 7);
+			}
+		}
+	}
+	else
+	{
+		var ta = document.createElement('textarea');
+		
+		// Handles special HTML entities < and > and double escaping
+		// and converts unclosed br, hr and img tags to XHTML
+		// LATER: Convert all unclosed tags
+		ta.innerHTML = val.replace(/&amp;/g, '&amp;amp;').
+			replace(/&#60;/g, '&amp;lt;').replace(/&#62;/g, '&amp;gt;').
+			replace(/&lt;/g, '&amp;lt;').replace(/&gt;/g, '&amp;gt;').
+			replace(/</g, '&lt;').replace(/>/g, '&gt;');
+		val = ta.value.replace(/&/g, '&amp;').replace(/&amp;lt;/g, '&lt;').
+			replace(/&amp;gt;/g, '&gt;').replace(/&amp;amp;/g, '&amp;').
+			replace(/<br>/g, '<br />').replace(/<hr>/g, '<hr />').
+			replace(/(<img[^>]+)>/gm, "$1 />");
+	}
+	
+	return val;
+};
+
+/**
  * Function: createDiv
  * 
  * Private helper function to create SVG elements
@@ -18388,14 +18472,8 @@ mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, overflow
 	
 	if (!mxUtils.isNode(val))
 	{
-		// Converts HTML entities to unicode since HTML entities are not allowed in XHTML
-		var ta = document.createElement('textarea');
-		ta.innerHTML = val.replace(/&quot;/g, '&amp;quot;').replace(/&#34;/g, '&amp;#34;').
-			replace(/&#60;/g, '&amp;#60;').replace(/&#62;/g, '&amp;#62;').
-			replace(/&lt;/g, '&amp;lt;').replace(/&gt;/g, '&amp;gt;').
-			replace(/</g, '&lt;').replace(/>/g, '&gt;');
-		val = ta.value;
-
+		val = this.convertHtml(val);
+		
 		if (overflow != 'fill' && overflow != 'width')
 		{
 			// Inner div always needed to measure wrapped text
@@ -18407,9 +18485,9 @@ mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, overflow
 		}
 	}
 
-	// Uses DOM API where available. This cannot be used in IE9/10 to avoid
+	// Uses DOM API where available. This cannot be used in IE to avoid
 	// an opening and two (!) closing TBODY tags being added to tables.
-	if (!mxClient.IS_IE && !mxClient.IS_IE11 && document.createElementNS)
+	if (!mxClient.IS_IE && document.createElementNS)
 	{
 		var div = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
 		div.setAttribute('style', style);
@@ -18440,10 +18518,6 @@ mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, overflow
 		{
 			val = val.outerHTML;
 		}
-		
-		// Converts invalid tags to XHTML
-		// LATER: Check for all unclosed tags
-		val = val.replace(/<br>/g, '<br />').replace(/<hr>/g, '<hr />');
 
 		// NOTE: FF 3.6 crashes if content CSS contains "height:100%"
 		return mxUtils.parseXml('<div xmlns="http://www.w3.org/1999/xhtml" style="' + style + 
@@ -23992,6 +24066,7 @@ mxText.prototype.updateBoundingBox = function()
 	{
 		if (rot != 0)
 		{
+			this.unrotatedBoundingBox = mxRectangle.fromRectangle(this.boundingBox);
 			var bbox = mxUtils.getBoundingBox(this.boundingBox, rot);
 			
 			this.boundingBox.x = bbox.x;
@@ -32751,7 +32826,7 @@ mxMinimumCycleRemover.prototype.execute = function(parent)
 	}, unseenNodes, true, seenNodesCopy);
 };
 /**
- * Copyright (c) 2005-2014, JGraph Ltd
+ * Copyright (c) 2005-2015, JGraph Ltd
  */
 /**
  * Class: mxCoordinateAssignment
@@ -32780,14 +32855,6 @@ function mxCoordinateAssignment(layout, intraCellSpacing, interRankCellSpacing,
 	this.orientation = orientation;
 	this.initialX = initialX;
 	this.parallelEdgeSpacing = parallelEdgeSpacing;
-};
-
-var mxHierarchicalEdgeStyle =
-{
-	ORTHOGONAL: 1,
-	POLYLINE: 2,
-	STRAIGHT: 3,
-	CURVE: 4
 };
 
 /**
@@ -32952,13 +33019,6 @@ mxCoordinateAssignment.prototype.rankY = null;
  * through the algorithm. Default is true.
  */
 mxCoordinateAssignment.prototype.fineTuning = true;
-
-/**
- * Variable: edgeStyle
- * 
- * The style to apply between cell layers to edge segments
- */
-mxCoordinateAssignment.prototype.edgeStyle = mxHierarchicalEdgeStyle.POLYLINE;
 
 /**
  * Variable: nextLayerConnectedCache
@@ -34049,9 +34109,9 @@ mxCoordinateAssignment.prototype.setCellLocations = function(graph, model)
 	
 	// Post process edge styles. Needs the vertex locations set for initial
 	// values of the top and bottoms of each rank
-	if (this.edgeStyle == mxHierarchicalEdgeStyle.ORTHOGONAL
-			|| this.edgeStyle == mxHierarchicalEdgeStyle.POLYLINE
-			|| this.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
+	if (this.layout.edgeStyle == mxHierarchicalEdgeStyle.ORTHOGONAL
+			|| this.layout.edgeStyle == mxHierarchicalEdgeStyle.POLYLINE
+			|| this.layout.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
 	{
 		this.localEdgeProcessing(model);
 	}
@@ -34311,7 +34371,7 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 				{
 					newPoints.push(new mxPoint(x, y));
 					
-					if (this.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
+					if (this.layout.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
 					{
 						newPoints.push(new mxPoint(x, y + jetty));
 					}
@@ -34320,7 +34380,7 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 				{
 					newPoints.push(new mxPoint(y, x));
 					
-					if (this.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
+					if (this.layout.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
 					{
 						newPoints.push(new mxPoint(y + jetty, x));
 					}
@@ -34413,7 +34473,7 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 				if (this.orientation == mxConstants.DIRECTION_NORTH ||
 						this.orientation == mxConstants.DIRECTION_SOUTH)
 				{
-					if (this.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
+					if (this.layout.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
 					{
 						newPoints.push(new mxPoint(x, y - jetty));
 					}
@@ -34422,7 +34482,7 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 				}
 				else
 				{
-					if (this.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
+					if (this.layout.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
 					{
 						newPoints.push(new mxPoint(y - jetty, x));
 					}
@@ -34690,7 +34750,7 @@ mxSwimlaneOrdering.prototype.execute = function(parent)
 	}, rootsArray, true, null);
 };
 /**
- * Copyright (c) 2005-2014, JGraph Ltd
+ * Copyright (c) 2005-2015, JGraph Ltd
  */
 /**
  * Class: mxHierarchicalLayout
@@ -34714,6 +34774,14 @@ function mxHierarchicalLayout(graph, orientation, deterministic)
 	mxGraphLayout.call(this, graph);
 	this.orientation = (orientation != null) ? orientation : mxConstants.DIRECTION_NORTH;
 	this.deterministic = (deterministic != null) ? deterministic : true;
+};
+
+var mxHierarchicalEdgeStyle =
+{
+	ORTHOGONAL: 1,
+	POLYLINE: 2,
+	STRAIGHT: 3,
+	CURVE: 4
 };
 
 /**
@@ -34860,6 +34928,13 @@ mxHierarchicalLayout.prototype.edgeSourceTermCache = null;
  * A cache of edges whose source terminal is the key
  */
 mxHierarchicalLayout.prototype.edgesTargetTermCache = null;
+
+/**
+ * Variable: edgeStyle
+ * 
+ * The style to apply between cell layers to edge segments
+ */
+mxHierarchicalLayout.prototype.edgeStyle = mxHierarchicalEdgeStyle.POLYLINE;
 
 /**
  * Function: getModel
@@ -41542,8 +41617,8 @@ mxPrintPreview.prototype.y0 = 0;
  * Variable: autoOrigin
  * 
  * Specifies if the origin should be automatically computed based on the top,
- * left corner of the actual diagram contents. If this is set to false then the
- * values for <x0> and <y0> will be overridden in <open>. Default is true.
+ * left corner of the actual diagram contents. The required offset will be added
+ * to <x0> and <y0> in <open>. Default is true.
  */
 mxPrintPreview.prototype.autoOrigin = true;
 
@@ -41720,8 +41795,8 @@ mxPrintPreview.prototype.open = function(css)
 			// Uses the absolute origin with no offset for all printing
 			if (!this.autoOrigin)
 			{
-				this.x0 = -tr.x * this.scale;
-				this.y0 = -tr.y * this.scale;
+				this.x0 -= tr.x * this.scale;
+				this.y0 -= tr.y * this.scale;
 				bounds.width += bounds.x;
 				bounds.height += bounds.y;
 				bounds.x = 0;
@@ -44253,8 +44328,8 @@ mxCellEditor.prototype.getEditorBounds = function(state)
 			}
 		}
  	}
-	
-	return result;
+ 	
+ 	return new mxRectangle(Math.round(result.x), Math.round(result.y), Math.round(result.width), Math.round(result.height));
 };
 
 /**
@@ -55714,7 +55789,8 @@ mxGraph.prototype.extendParent = function(cell)
 		{
 			var geo = this.getCellGeometry(cell);
 			
-			if (geo != null && (p.width < geo.x + geo.width ||
+			if (geo != null && !geo.relative &&
+				(p.width < geo.x + geo.width ||
 				p.height < geo.y + geo.height))
 			{
 				p = p.clone();
@@ -57115,11 +57191,12 @@ mxGraph.prototype.getBoundingBoxFromGeometry = function(cells, includeEdges)
 				
 				if (geo != null)
 				{
-					var pts = geo.points;
 					var bbox = null;
 					
 					if (this.model.isEdge(cells[i]))
 					{
+						var pts = geo.points;
+						
 						if (pts != null && pts.length > 0)
 						{
 							var tmp = new mxRectangle(pts[0].x, pts[0].y, 0, 0);
@@ -57145,14 +57222,14 @@ mxGraph.prototype.getBoundingBoxFromGeometry = function(cells, includeEdges)
 					}
 					else
 					{
+						var parent = this.model.getParent(cells[i]);
+						
 						if (geo.relative)
 						{
-							var parent = this.model.getParent(cells[i]);
-							
-							if (this.model.isVertex(parent) && mxUtils.indexOf(cells, parent) >= 0)
+							if (this.model.isVertex(parent) && parent != this.view.currentRoot)
 							{
 								var tmp = this.getBoundingBoxFromGeometry([parent], false);
-	
+								
 								if (tmp != null)
 								{
 									bbox = new mxRectangle(tmp.x + geo.x * tmp.width, tmp.y + geo.y * tmp.height, geo.width, geo.height);
@@ -57162,7 +57239,6 @@ mxGraph.prototype.getBoundingBoxFromGeometry = function(cells, includeEdges)
 						else
 						{
 							bbox = mxRectangle.fromRectangle(geo);
-							var parent = this.model.getParent(cells[i]);
 							
 							if (this.model.isVertex(parent) && mxUtils.indexOf(cells, parent) >= 0)
 							{
@@ -57176,7 +57252,7 @@ mxGraph.prototype.getBoundingBoxFromGeometry = function(cells, includeEdges)
 							}
 						}
 						
-						if (geo.offset != null)
+						if (bbox != null && geo.offset != null)
 						{
 							bbox.x += geo.offset.x;
 							bbox.y += geo.offset.y;
@@ -57187,7 +57263,7 @@ mxGraph.prototype.getBoundingBoxFromGeometry = function(cells, includeEdges)
 					{
 						if (result == null)
 						{
-							result = new mxRectangle(bbox.x, bbox.y, bbox.width, bbox.height);
+							result = mxRectangle.fromRectangle(bbox);
 						}
 						else
 						{
@@ -71698,7 +71774,7 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 				{
 					var dx = point.x - this.state.getCenterX();
 					var dy = point.y - this.state.getCenterY();
-					var dist = Math.abs(Math.sqrt(dx * dx + dy * dy) - 20);
+					var dist = Math.abs(Math.sqrt(dx * dx + dy * dy) - 20) * 3;
 					var raster = Math.max(1, 5 * Math.min(3, Math.max(0, Math.round(80 / Math.abs(dist)))));
 					
 					this.currentAlpha = Math.round(this.currentAlpha / raster) * raster;

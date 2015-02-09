@@ -87,7 +87,7 @@
 		<Edge description="" href="" id="24">
 			<mxCell edge="1" target="23" parent="4" source="19">
 				<mxGeometry x="-20" y="-180" as="geometry">
-					<Object x="332" y="75" as="sourcePoint" />
+					<mxPoint x="332" y="75" as="sourcePoint" />
 					<Array as="points" />
 				</mxGeometry>
 			</mxCell>
@@ -105,7 +105,7 @@
 		<Edge label="no" description="" href="" id="20">
 			<mxCell edge="1" target="19" parent="1" source="11">
 				<mxGeometry x="-20" y="-30" as="geometry">
-					<Object x="286" y="200" as="sourcePoint" />
+					<mxPoint x="286" y="200" as="sourcePoint" />
 					<Array as="points" />
 				</mxGeometry>
 			</mxCell>

@@ -66,7 +66,7 @@
 			<mxCell parent="2" source="9" target="10" edge="1">
 				<mxGeometry as="geometry">
 					<Array as="points">
-						<Object x="90" y="420" />
+						<mxPoint x="90" y="420" />
 					</Array>
 				</mxGeometry>
 			</mxCell>
@@ -232,7 +232,7 @@
 			<mxCell parent="1" source="9" target="32" edge="1">
 				<mxGeometry as="geometry">
 					<Array as="points">
-						<Object x="540" y="440" />
+						<mxPoint x="540" y="440" />
 					</Array>
 				</mxGeometry>
 			</mxCell>
@@ -241,7 +241,7 @@
 			<mxCell parent="1" source="32" target="16" edge="1">
 				<mxGeometry as="geometry">
 					<Array as="points">
-						<Object x="364" y="503" />
+						<mxPoint x="364" y="503" />
 					</Array>
 				</mxGeometry>
 			</mxCell>
@@ -250,7 +250,7 @@
 			<mxCell parent="1" source="10" target="16" edge="1">
 				<mxGeometry as="geometry">
 					<Array as="points">
-						<Object x="304" y="503" />
+						<mxPoint x="304" y="503" />
 					</Array>
 				</mxGeometry>
 			</mxCell>
@@ -259,7 +259,7 @@
 			<mxCell parent="1" source="30" target="17" edge="1">
 				<mxGeometry as="geometry">
 					<Array as="points">
-						<Object x="654" y="463" />
+						<mxPoint x="654" y="463" />
 					</Array>
 				</mxGeometry>
 			</mxCell>
@@ -268,7 +268,7 @@
 			<mxCell parent="1" source="26" target="21" edge="1">
 				<mxGeometry as="geometry">
 					<Array as="points">
-						<Object x="664" y="453" />
+						<mxPoint x="664" y="453" />
 					</Array>
 				</mxGeometry>
 			</mxCell>
@@ -277,7 +277,7 @@
 			<mxCell parent="1" source="23" target="12" edge="1">
 				<mxGeometry as="geometry">
 					<Array as="points">
-						<Object x="110" y="783" />
+						<mxPoint x="110" y="783" />
 					</Array>
 				</mxGeometry>
 			</mxCell>

@@ -14,5 +14,5 @@ td.mxWindowTitle {
 	_height: 23px;
 }
 .mxDisabled {
-	_filter:alpha(opacity=20) !important;
+	filter:alpha(opacity=20) !important;
 }

@@ -60,7 +60,7 @@ Actions.prototype.init = function()
 		}));
 
 		// Removes openFile if dialog is closed
-		ui.showDialog(new OpenDialog(this).container, 300, 180, true, true, function()
+		ui.showDialog(new OpenDialog(this).container, 320, 220, true, true, function()
 		{
 			window.openFile = null;
 		});
@@ -73,7 +73,7 @@ Actions.prototype.init = function()
 		ui.showDialog(new EditFileDialog(ui).container, 620, 420, true, true);
 	})).isEnabled = isGraphEnabled;
 	this.addAction('pageSetup...', function() { ui.showDialog(new PageSetupDialog(ui).container, 320, 120, true, true); });
-	this.addAction('print...', function() { ui.showDialog(new PrintDialog(ui).container, 300, 120, true, true); }, null, 'sprite-print', 'Ctrl+P');
+	this.addAction('print...', function() { ui.showDialog(new PrintDialog(ui).container, 300, 140, true, true); }, null, 'sprite-print', 'Ctrl+P');
 	this.addAction('preview', function() { mxUtils.show(graph, null, 10, 10); });
 	
 	// Edit actions
@@ -430,7 +430,7 @@ Actions.prototype.init = function()
 				graph.getModel().endUpdate();
 			}
 		}
-	});
+	}, null, null, 'Ctrl+Shift+Z');
 	this.addAction('formattedText', function()
 	{
     	var state = graph.getView().getState(graph.getSelectionCell());
@@ -645,6 +645,14 @@ Actions.prototype.init = function()
 		// Removes background page
 		graph.refresh();
 		
+		// Workaround for possible handle offset
+		if (hasScrollbars)
+		{
+			var cells = graph.getSelectionCells();
+			graph.clearSelection();
+			graph.setSelectionCells(cells);
+		}
+		
 		// Calls updatePageBreaks
 		graph.sizeDidChange();
 		
@@ -720,9 +728,9 @@ Actions.prototype.init = function()
 		});
 	});
 	
-	toggleFontStyle('bold', mxConstants.FONT_BOLD, function() { document.execCommand('bold'); });
-	toggleFontStyle('italic', mxConstants.FONT_ITALIC, function() { document.execCommand('italic'); });
-	toggleFontStyle('underline', mxConstants.FONT_UNDERLINE, function() { document.execCommand('underline'); });
+	toggleFontStyle('bold', mxConstants.FONT_BOLD, function() { document.execCommand('bold', false, null); });
+	toggleFontStyle('italic', mxConstants.FONT_ITALIC, function() { document.execCommand('italic', false, null); });
+	toggleFontStyle('underline', mxConstants.FONT_UNDERLINE, function() { document.execCommand('underline', false, null); });
 	
 	// Color actions
 	this.addAction('fontColor...', function() { ui.menus.pickColor(mxConstants.STYLE_FONTCOLOR, 'forecolor', '000000'); });
@@ -1002,41 +1010,7 @@ Actions.prototype.init = function()
 	    		if (graph.cellEditor.isContentEditing())
 	    		{
 	    			graph.cellEditor.restoreSelection(selectionState);
-	    			
-					// To find the new image, we create a list of all existing links first
-	    			if (newValue != null)
-	    			{
-						var tmp = graph.cellEditor.text2.getElementsByTagName('img');
-						var oldImages = [];
-						
-						for (var i = 0; i < tmp.length; i++)
-						{
-							oldImages.push(tmp[i]);
-						}
-				
-						document.execCommand('insertimage', false, newValue);
-						
-						// Sets size of new image
-						var newImages = graph.cellEditor.text2.getElementsByTagName('img');
-						
-						if (newImages.length == oldImages.length + 1)
-						{
-							// Inverse order in favor of appended images
-							for (var i = newImages.length - 1; i >= 0; i--)
-							{
-								if (i == 0 || newImages[i] != oldImages[i - 1])
-								{
-									ui.loadImage(newValue, function(img)
-						    		{
-										newImages[i].style.width = img.width + 'px';
-										newImages[i].style.height = img.height + 'px';
-						    		});
-									
-									break;
-								}
-							}
-						}
-	    			}
+	    			graph.insertImage(newValue, w, h);
 	    		}
 	    		else
 	    		{
@@ -1125,6 +1099,7 @@ Actions.prototype.init = function()
 		ui.formatWidth = (ui.formatWidth > 0) ? 0 : 240;
 		ui.formatContainer.style.display = (ui.formatWidth > 0) ? '' : 'none';
 		ui.refresh();
+		ui.format.refresh();
 		ui.fireEvent(new mxEventObject('formatWidthChanged'));
 	}), null, null, 'Ctrl+Shift+P');
 	action.setToggleAction(true);

@@ -103,21 +103,25 @@
 	DataStoreShape.prototype.getLabelBounds = function(rect)
 	{
 		var dy = 2.5 * Math.min(rect.height / 2, Math.round(rect.height / 8) + this.strokewidth - 1);
-		
-		if (this.direction == null || this.direction == mxConstants.DIRECTION_EAST)
+
+		if ((!this.flipV && (this.direction == null || this.direction == mxConstants.DIRECTION_EAST) ||
+			(this.flipV && this.direction == mxConstants.DIRECTION_WEST)))
 		{
 			rect.y += dy;
 			rect.height -= dy;
 		}
-		else if (this.direction == mxConstants.DIRECTION_SOUTH)
+		else if ((!this.flipV && this.direction == mxConstants.DIRECTION_SOUTH) ||
+				((this.flipV && this.direction == mxConstants.DIRECTION_NORTH)))
 		{
 			rect.width -= dy;
 		}
-		if (this.direction == mxConstants.DIRECTION_WEST)
+		else if ((!this.flipV && this.direction == mxConstants.DIRECTION_WEST) ||
+				(this.flipV && (this.direction == null || this.direction == mxConstants.DIRECTION_EAST)))
 		{
 			rect.height -= dy;
 		}
-		if (this.direction == mxConstants.DIRECTION_NORTH)
+		else if ((!this.flipV && this.direction == mxConstants.DIRECTION_NORTH) ||
+				(this.flipV && this.direction == mxConstants.DIRECTION_SOUTH))
 		{
 			rect.x += dy;
 			rect.width -= dy;

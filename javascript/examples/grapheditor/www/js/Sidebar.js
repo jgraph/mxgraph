@@ -375,7 +375,7 @@ Sidebar.prototype.addGeneralPalette = function(expand)
 	    content.appendChild(this.createVertexTemplate('ellipse;whiteSpace=wrap;html=1;', 80, 80, '', 'Circle', true));
 	    // Explicit strokecolor/fillcolor=none is a workaround to maintain transparent background regardless of current style
 	    content.appendChild(this.createVertexTemplate('text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;overflow=hidden;',
-	    		60, 30, 'Text', 'Text', true));
+	    		40, 20, 'Text', 'Text', true));
 	    
 	    content.appendChild(this.createVertexTemplate('shape=ext;double=1;whiteSpace=wrap;html=1;', 120, 60, '', 'Double Rectangle', true));
 	    content.appendChild(this.createVertexTemplate('shape=ext;double=1;rounded=1;whiteSpace=wrap;html=1;', 120, 60, '', 'Double Rounded Rectangle', true));
@@ -1432,8 +1432,8 @@ Sidebar.prototype.dropAndConnect = function(source, targets, direction, dropCell
 				geo2 = graph.getCellGeometry(targets[dropCellIndex]);
 				var dx = geo.x - geo2.x;
 				var dy = geo.y - geo2.y;
-				geo.x = geo2.x;
-				geo.y = geo2.y;
+				geo.x = Math.round(geo2.x);
+				geo.y = Math.round(geo2.y);
 				graph.model.setGeometry(targets[dropCellIndex], geo);
 				graph.cellsMoved(targets, dx, dy, null, null, true);
 				tmp = targets.slice();

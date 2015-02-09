@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2005-2014, JGraph Ltd
+ * Copyright (c) 2005-2015, JGraph Ltd
  */
 /**
  * Class: mxCoordinateAssignment
@@ -28,14 +28,6 @@ function mxCoordinateAssignment(layout, intraCellSpacing, interRankCellSpacing,
 	this.orientation = orientation;
 	this.initialX = initialX;
 	this.parallelEdgeSpacing = parallelEdgeSpacing;
-};
-
-var mxHierarchicalEdgeStyle =
-{
-	ORTHOGONAL: 1,
-	POLYLINE: 2,
-	STRAIGHT: 3,
-	CURVE: 4
 };
 
 /**
@@ -200,13 +192,6 @@ mxCoordinateAssignment.prototype.rankY = null;
  * through the algorithm. Default is true.
  */
 mxCoordinateAssignment.prototype.fineTuning = true;
-
-/**
- * Variable: edgeStyle
- * 
- * The style to apply between cell layers to edge segments
- */
-mxCoordinateAssignment.prototype.edgeStyle = mxHierarchicalEdgeStyle.POLYLINE;
 
 /**
  * Variable: nextLayerConnectedCache
@@ -1297,9 +1282,9 @@ mxCoordinateAssignment.prototype.setCellLocations = function(graph, model)
 	
 	// Post process edge styles. Needs the vertex locations set for initial
 	// values of the top and bottoms of each rank
-	if (this.edgeStyle == mxHierarchicalEdgeStyle.ORTHOGONAL
-			|| this.edgeStyle == mxHierarchicalEdgeStyle.POLYLINE
-			|| this.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
+	if (this.layout.edgeStyle == mxHierarchicalEdgeStyle.ORTHOGONAL
+			|| this.layout.edgeStyle == mxHierarchicalEdgeStyle.POLYLINE
+			|| this.layout.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
 	{
 		this.localEdgeProcessing(model);
 	}
@@ -1559,7 +1544,7 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 				{
 					newPoints.push(new mxPoint(x, y));
 					
-					if (this.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
+					if (this.layout.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
 					{
 						newPoints.push(new mxPoint(x, y + jetty));
 					}
@@ -1568,7 +1553,7 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 				{
 					newPoints.push(new mxPoint(y, x));
 					
-					if (this.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
+					if (this.layout.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
 					{
 						newPoints.push(new mxPoint(y + jetty, x));
 					}
@@ -1661,7 +1646,7 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 				if (this.orientation == mxConstants.DIRECTION_NORTH ||
 						this.orientation == mxConstants.DIRECTION_SOUTH)
 				{
-					if (this.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
+					if (this.layout.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
 					{
 						newPoints.push(new mxPoint(x, y - jetty));
 					}
@@ -1670,7 +1655,7 @@ mxCoordinateAssignment.prototype.setEdgePosition = function(cell)
 				}
 				else
 				{
-					if (this.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
+					if (this.layout.edgeStyle == mxHierarchicalEdgeStyle.CURVE)
 					{
 						newPoints.push(new mxPoint(y - jetty, x));
 					}
