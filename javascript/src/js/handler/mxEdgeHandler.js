@@ -139,6 +139,15 @@ mxEdgeHandler.prototype.dblClickRemoveEnabled = false;
 mxEdgeHandler.prototype.mergeRemoveEnabled = false;
 
 /**
+ * Variable: straightRemoveEnabled
+ * 
+ * Specifies if removing bends by creating straight segments should be enabled.
+ * If enabled, this can be overridden by holding down the alt key while moving.
+ * Default is false.
+ */
+mxEdgeHandler.prototype.straightRemoveEnabled = false;
+
+/**
  * Variable: virtualBendsEnabled
  * 
  * Specifies if virtual bends should be added in the center of each
@@ -146,6 +155,14 @@ mxEdgeHandler.prototype.mergeRemoveEnabled = false;
  * Default is false.
  */
 mxEdgeHandler.prototype.virtualBendsEnabled = false;
+
+/**
+ * Variable: virtualBendOpacity
+ * 
+ * Opacity to be used for virtual bends (see <virtualBendsEnabled>).
+ * Default is 20.
+ */
+mxEdgeHandler.prototype.virtualBendOpacity = 20;
 
 /**
  * Variable: parentHighlightEnabled
@@ -305,7 +322,19 @@ mxEdgeHandler.prototype.init = function()
 	this.initBend(this.labelShape);
 	this.labelShape.setCursor(mxConstants.CURSOR_LABEL_HANDLE);
 	
+	this.customHandles = this.createCustomHandles();
+	
 	this.redraw();
+};
+
+/**
+ * Function: createCustomHandles
+ * 
+ * Returns an array of custom handles. This implementation returns null.
+ */
+mxEdgeHandler.prototype.createCustomHandles = function()
+{
+	return null;
 };
 
 /**
@@ -318,7 +347,8 @@ mxEdgeHandler.prototype.init = function()
 mxEdgeHandler.prototype.isVirtualBendsEnabled = function(evt)
 {
 	return this.virtualBendsEnabled && (this.state.style[mxConstants.STYLE_EDGE] == null ||
-			this.state.style[mxConstants.STYLE_NOEDGESTYLE] == 1) &&
+			this.state.style[mxConstants.STYLE_EDGE] == mxConstants.NONE ||
+			this.state.style[mxConstants.STYLE_NOEDGESTYLE] == 1)  &&
 			mxUtils.getValue(this.state.style, mxConstants.STYLE_SHAPE, null) != 'arrow';
 };
 
@@ -749,6 +779,19 @@ mxEdgeHandler.prototype.getHandleForEvent = function(me)
 		
 		return false;
 	}
+	
+	if (this.customHandles != null && this.isCustomHandleEvent(me))
+	{
+		// Inverse loop order to match display order
+		for (var i = this.customHandles.length - 1; i >= 0; i--)
+		{
+			if (checkShape(this.customHandles[i].shape))
+			{
+				// LATER: Return reference to active shape
+				return mxEvent.CUSTOM_HANDLE - i;
+			}
+		}
+	}
 
 	if (me.isSource(this.state.text) || checkShape(this.labelShape))
 	{
@@ -766,18 +809,40 @@ mxEdgeHandler.prototype.getHandleForEvent = function(me)
 		}
 	}
 	
-	if (this.virtualBends != null)
+	if (this.virtualBends != null && this.isAddVirtualBendEvent(me))
 	{
 		for (var i = 0; i < this.virtualBends.length; i++)
 		{
 			if (checkShape(this.virtualBends[i]))
 			{
-				result = mxEvent.CUSTOM_HANDLE - i;
+				result = mxEvent.VIRTUAL_HANDLE - i;
 			}
 		}
 	}
 
 	return result;
+};
+
+/**
+ * Function: isAddVirtualBendEvent
+ * 
+ * Returns true if the given event allows virtual bends to be added. This
+ * implementation returns true.
+ */
+mxEdgeHandler.prototype.isAddVirtualBendEvent = function(me)
+{
+	return true;
+};
+
+/**
+ * Function: isCustomHandleEvent
+ * 
+ * Returns true if the given event allows custom handles to be changed. This
+ * implementation returns true.
+ */
+mxEdgeHandler.prototype.isCustomHandleEvent = function(me)
+{
+	return true;
 };
 
 /**
@@ -811,9 +876,9 @@ mxEdgeHandler.prototype.mouseDown = function(sender, me)
 		}
 		else if (handle != mxEvent.LABEL_HANDLE || this.graph.isLabelMovable(me.getCell()))
 		{
-			if (handle <= mxEvent.CUSTOM_HANDLE)
+			if (handle <= mxEvent.VIRTUAL_HANDLE)
 			{
-				mxUtils.setOpacity(this.virtualBends[mxEvent.CUSTOM_HANDLE - handle].node, 100);
+				mxUtils.setOpacity(this.virtualBends[mxEvent.VIRTUAL_HANDLE - handle].node, 100);
 			}
 			
 			this.start(me.getX(), me.getY(), handle);
@@ -1039,13 +1104,19 @@ mxEdgeHandler.prototype.getPreviewTerminalState = function(me)
  * Function: getPreviewPoints
  * 
  * Updates the given preview state taking into account the state of the constraint handler.
+ * 
+ * Parameters:
+ * 
+ * pt - <mxPoint> that contains the current pointer position.
+ * me - Optional <mxMouseEvent> that contains the current event.
  */
-mxEdgeHandler.prototype.getPreviewPoints = function(pt)
+mxEdgeHandler.prototype.getPreviewPoints = function(pt, me)
 {
 	var geometry = this.graph.getCellGeometry(this.state.cell);
 	var points = (geometry.points != null) ? geometry.points.slice() : null;
 	var point = new mxPoint(pt.x, pt.y);
-
+	var result = null;
+	
 	if (!this.isSource && !this.isTarget)
 	{
 		this.convertPoint(point, false);
@@ -1057,9 +1128,9 @@ mxEdgeHandler.prototype.getPreviewPoints = function(pt)
 		else
 		{
 			// Adds point from virtual bend
-			if (this.index <= mxEvent.CUSTOM_HANDLE)
+			if (this.index <= mxEvent.VIRTUAL_HANDLE)
 			{
-				points.splice(mxEvent.CUSTOM_HANDLE - this.index, 0, point);
+				points.splice(mxEvent.VIRTUAL_HANDLE - this.index, 0, point);
 			}
 
 			// Removes point if dragged on terminal point
@@ -1073,23 +1144,72 @@ mxEdgeHandler.prototype.getPreviewPoints = function(pt)
 						
 						if (bend != null && mxUtils.contains(bend.bounds, pt.x, pt.y))
 						{
-							if (this.index <= mxEvent.CUSTOM_HANDLE)
+							if (this.index <= mxEvent.VIRTUAL_HANDLE)
 							{
-								points.splice(mxEvent.CUSTOM_HANDLE - this.index, 1);
+								points.splice(mxEvent.VIRTUAL_HANDLE - this.index, 1);
 							}
 							else
 							{
 								points.splice(this.index - 1, 1);
 							}
 							
-							return points;
+							result = points;
 						}
 					}
+				}
+				
+				// Removes point if user tries to straighten a segment
+				if (result == null && this.straightRemoveEnabled && (me == null || !mxEvent.isAltDown(me.getEvent())))
+				{
+					var tol = this.graph.tolerance * this.graph.tolerance;
+					var abs = this.state.absolutePoints.slice();
+					abs[this.index] = pt;
+					
+					// Handes special case where removing waypoint affects tolerance (flickering)
+					var src = this.state.getVisibleTerminalState(true);
+					
+					if (src != null)
+					{
+						var c = this.graph.getConnectionConstraint(this.state, src, true);
+						
+						// Checks if point is not fixed
+						if (c == null || this.graph.getConnectionPoint(src, c) == null)
+						{
+							abs[0] = new mxPoint(src.view.getRoutingCenterX(src), src.view.getRoutingCenterY(src));
+						}
+					}
+					
+					var trg = this.state.getVisibleTerminalState(false);
+					
+					if (trg != null)
+					{
+						var c = this.graph.getConnectionConstraint(this.state, trg, false);
+						
+						// Checks if point is not fixed
+						if (c == null || this.graph.getConnectionPoint(trg, c) == null)
+						{
+							abs[abs.length - 1] = new mxPoint(trg.view.getRoutingCenterX(trg), trg.view.getRoutingCenterY(trg));
+						}
+					}
+
+					function checkRemove(idx, tmp)
+					{
+						if (idx > 0 && idx < abs.length - 1 &&
+							mxUtils.ptSegDistSq(abs[idx - 1].x, abs[idx - 1].y,
+								abs[idx + 1].x, abs[idx + 1].y, tmp.x, tmp.y) < tol)
+						{
+							points.splice(idx - 1, 1);
+							result = points;
+						}
+					};
+					
+					// LATER: Check if other points can be removed if a segment is made straight
+					checkRemove(this.index, pt);
 				}
 			}
 			
 			// Updates existing point
-			if (this.index > mxEvent.CUSTOM_HANDLE)
+			if (result == null && this.index > mxEvent.VIRTUAL_HANDLE)
 			{
 				points[this.index - 1] = point;
 			}
@@ -1100,7 +1220,7 @@ mxEdgeHandler.prototype.getPreviewPoints = function(pt)
 		points = null;
 	}
 	
-	return points;
+	return (result != null) ? result : points;
 };
 
 /**
@@ -1226,14 +1346,21 @@ mxEdgeHandler.prototype.mouseMove = function(sender, me)
 			}
 		}
 		
-		if (this.isLabel)
+		if (this.index <= mxEvent.CUSTOM_HANDLE && this.index > mxEvent.VIRTUAL_HANDLE)
+		{
+			if (this.customHandles != null)
+			{
+				this.customHandles[mxEvent.CUSTOM_HANDLE - this.index].processEvent(me);
+			}
+		}
+		else if (this.isLabel)
 		{
 			this.label.x = point.x;
 			this.label.y = point.y;
 		}
 		else
 		{
-			this.points = this.getPreviewPoints(point);
+			this.points = this.getPreviewPoints(point, me);
 			var terminalState = (this.isSource || this.isTarget) ? this.getPreviewTerminalState(me) : null;
 			var clone = this.clonePreviewState(point, (terminalState != null) ? terminalState.cell : null);
 			this.updatePreviewState(clone, point, terminalState, me);
@@ -1284,6 +1411,23 @@ mxEdgeHandler.prototype.mouseUp = function(sender, me)
 				if (this.error.length > 0)
 				{
 					this.graph.validationAlert(this.error);
+				}
+			}
+			else if (this.index <= mxEvent.CUSTOM_HANDLE && this.index > mxEvent.VIRTUAL_HANDLE)
+			{
+				if (this.customHandles != null)
+				{
+					var model = this.graph.getModel();
+					
+					model.beginUpdate();
+					try
+					{
+						this.customHandles[mxEvent.CUSTOM_HANDLE - this.index].execute();
+					}
+					finally
+					{
+						model.endUpdate();
+					}
 				}
 			}
 			else if (this.isLabel)
@@ -1403,6 +1547,14 @@ mxEdgeHandler.prototype.reset = function()
 	if (this.constraintHandler != null)
 	{
 		this.constraintHandler.reset();
+	}
+	
+	if (this.customHandles != null)
+	{
+		for (var i = 0; i < this.customHandles.length; i++)
+		{
+			this.customHandles[i].reset();
+		}
 	}
 
 	this.setPreviewColor(mxConstants.EDGE_SELECTION_COLOR);
@@ -1860,7 +2012,7 @@ mxEdgeHandler.prototype.redrawHandles = function()
 				b.bounds = new mxRectangle(Math.round(x - b.bounds.width / 2),
 						Math.round(y - b.bounds.height / 2), b.bounds.width, b.bounds.height);
 				b.redraw();
-				mxUtils.setOpacity(b.node, 20);
+				mxUtils.setOpacity(b.node, this.virtualBendOpacity);
 				last = pt;
 				
 				if (this.manageLabelHandle)
@@ -1874,6 +2026,14 @@ mxEdgeHandler.prototype.redrawHandles = function()
 	if (this.labelShape != null)
 	{
 		this.labelShape.redraw();
+	}
+	
+	if (this.customHandles != null)
+	{
+		for (var i = 0; i < this.customHandles.length; i++)
+		{
+			this.customHandles[i].redraw();
+		}
 	}
 };
 
@@ -1903,6 +2063,14 @@ mxEdgeHandler.prototype.setHandlesVisible = function(visible)
 	if (this.labelShape != null)
 	{
 		this.labelShape.node.style.display = (visible) ? '' : 'none';
+	}
+	
+	if (this.customHandles != null)
+	{
+		for (var i = 0; i < this.customHandles.length; i++)
+		{
+			this.customHandles[i].setVisible(visible);
+		}
 	}
 };
 
@@ -1997,10 +2165,14 @@ mxEdgeHandler.prototype.drawPreview = function()
 	}
 	else if (this.shape != null)
 	{
+		this.shape.apply(this.state);
 		this.shape.points = this.abspoints;
 		this.shape.scale = this.state.view.scale;
+		this.shape.isDashed = this.isSelectionDashed();
+		this.shape.stroke = this.getSelectionColor();
 		this.shape.strokewidth = this.getSelectionStrokeWidth() / this.shape.scale / this.shape.scale;
 		this.shape.arrowStrokewidth = this.getSelectionStrokeWidth();
+		this.shape.isShadow = false;
 		this.shape.redraw();
 	}
 	
@@ -2035,6 +2207,12 @@ mxEdgeHandler.prototype.refresh = function()
 	{
 		this.destroyBends(this.virtualBends);
 		this.virtualBends = this.createVirtualBends();
+	}
+	
+	if (this.customHandles != null)
+	{
+		this.destroyBends(this.customHandles);
+		this.customHandles = this.createCustomHandles();
 	}
 	
 	// Puts label node on top of bends
@@ -2110,6 +2288,9 @@ mxEdgeHandler.prototype.destroy = function()
 	
 	this.destroyBends(this.virtualBends);
 	this.virtualBends = null;
+	
+	this.destroyBends(this.customHandles);
+	this.customHandles = null;
 
 	this.destroyBends(this.bends);
 	this.bends = null;

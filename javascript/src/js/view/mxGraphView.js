@@ -219,12 +219,12 @@ mxGraphView.prototype.setGraphBounds = function(value)
 
 /**
  * Function: getBounds
- *
- * Returns the bounds (on the screen) for the given array of <mxCells>.
+ * 
+ * Returns the union of all <mxCellStates> for the given array of <mxCells>.
  *
  * Parameters:
  *
- * cells - Array of <mxCells> to return the bounds for.
+ * cells - Array of <mxCells> whose bounds should be returned.
  */
 mxGraphView.prototype.getBounds = function(cells)
 {
@@ -244,7 +244,7 @@ mxGraphView.prototype.getBounds = function(cells)
 				{
 					if (result == null)
 					{
-						result = new mxRectangle(state.x, state.y, state.width, state.height);
+						result = mxRectangle.fromRectangle(state);
 					}
 					else
 					{
@@ -2260,7 +2260,8 @@ mxGraphView.prototype.createState = function(cell)
 	if (state.view.graph.container != null && state.cell != state.view.currentRoot &&
 		(model.isVertex(state.cell) || model.isEdge(state.cell)))
 	{
-		this.graph.cellRenderer.createShape(state);
+		state.shape = this.graph.cellRenderer.createShape(state);
+		state.shape.antiAlias = this.graph.cellRenderer.antiAlias;
 	}
 	
 	return state;

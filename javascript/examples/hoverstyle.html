@@ -46,6 +46,7 @@
 					// once it is set, whereas the above overrides the default value
 					state.style[mxConstants.STYLE_ROUNDED] = (hover) ? '1' : '0';
 					state.style[mxConstants.STYLE_STROKEWIDTH] = (hover) ? '4' : '1';
+					state.style[mxConstants.STYLE_FONTSTYLE] = (hover) ? mxConstants.FONT_BOLD : '0';
 				};
 				
 				// Changes fill color to red on mouseover
@@ -101,7 +102,13 @@
 				        	state.style = mxUtils.clone(state.style);
 				        	updateStyle(state, true);
 				        	state.shape.apply(state);
-				        	state.shape.reconfigure();
+				        	state.shape.redraw();
+				        	
+				        	if (state.text != null)
+				        	{
+				        		state.text.apply(state);
+				        		state.text.redraw();
+				        	}
 				        }
 				    },
 				    dragLeave: function(evt, state)
@@ -111,7 +118,13 @@
 				        	state.style = this.previousStyle;
 				        	updateStyle(state, false);
 				        	state.shape.apply(state);
-				        	state.shape.reconfigure();
+				        	state.shape.redraw();
+				        	
+				        	if (state.text != null)
+				        	{
+				        		state.text.apply(state);
+				        		state.text.redraw();
+				        	}
 				        }
 				    }
 				});

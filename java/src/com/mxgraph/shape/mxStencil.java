@@ -499,7 +499,7 @@ public class mxStencil implements mxIShape
 			canvas.text(x0 + getDouble(node, "x") * sx,
 					y0 + getDouble(node, "y") * sy, 0, 0, str,
 					node.getAttribute("align"), node.getAttribute("valign"),
-					false, "", null, false, rotation);
+					false, "", null, false, rotation, null);
 		}
 		else if (name.equals("include-shape"))
 		{

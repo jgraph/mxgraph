@@ -684,7 +684,7 @@ namespace com.mxgraph
         /// Draws the given text.
 	    /// </summary>
 	    public void Text(double x, double y, double w, double h, string str, string align, string valign,
-                bool wrap, string format, string overflow, bool clip, double rotation)
+                bool wrap, string format, string overflow, bool clip, double rotation, string dir)
 	    {
             bool htmlFormat = format != null && format.Equals("html");
 

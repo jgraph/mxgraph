@@ -116,7 +116,7 @@ var mxUtils =
 	{
 		var prefix = null;
 		
-		if (mxClient.IS_OP && mxClient.IS_OT)
+		if (mxClient.IS_OT)
 		{
 			prefix = 'O';
 		}
@@ -2547,9 +2547,11 @@ var mxUtils =
 	},
 	
 	/**
-	 * Function: ptSeqDistSq
+	 * Function: ptSegDistSq
 	 * 
-	 * Returns the square distance between a segment and a point.
+	 * Returns the square distance between a segment and a point. To get the
+	 * distance between a point and a line (with infinite length) use
+	 * <mxUtils.ptLineDist>.
 	 * 
 	 * Parameters:
 	 * 
@@ -2599,6 +2601,28 @@ var mxUtils =
 		}
 		
 		return lenSq;
+    },
+	
+	/**
+	 * Function: ptLineDist
+	 * 
+	 * Returns the distance between a line defined by two points and a point.
+	 * To get the distance between a point and a segment (with a specific
+	 * length) use <mxUtils.ptSeqDistSq>.
+	 * 
+	 * Parameters:
+	 * 
+	 * x1 - X-coordinate of point 1 of the line.
+	 * y1 - Y-coordinate of point 1 of the line.
+	 * x2 - X-coordinate of point 1 of the line.
+	 * y2 - Y-coordinate of point 1 of the line.
+	 * px - X-coordinate of the point.
+	 * py - Y-coordinate of the point.
+	 */
+    ptLineDist: function(x1, y1, x2, y2, px, py)
+    {
+		return Math.abs((y2 - y1) * px - (x2 - x1) * py + x2 * y1 - y2 * x1) /
+			Math.sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1));
     },
     	
 	/**

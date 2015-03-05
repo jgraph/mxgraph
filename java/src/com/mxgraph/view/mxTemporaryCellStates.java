@@ -2,7 +2,6 @@ package com.mxgraph.view;
 
 import java.util.Hashtable;
 
-import com.mxgraph.model.mxCell;
 import com.mxgraph.util.mxRectangle;
 
 public class mxTemporaryCellStates

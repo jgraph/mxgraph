@@ -2,7 +2,6 @@ package com.mxgraph.test;
 
 import javax.swing.JFrame;
 
-
 import com.mxgraph.layout.hierarchical.mxHierarchicalLayout;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.swing.handler.mxRubberband;
@@ -99,6 +98,7 @@ private void populate1(final mxGraph graph, final Object parent,
     }
 }
 
+@SuppressWarnings("unused")
 private void populate2(final mxGraph graph, final Object parent,
 		final mxHierarchicalLayout layout)
 {
@@ -142,6 +142,7 @@ private void populate2(final mxGraph graph, final Object parent,
     }
 }
 
+@SuppressWarnings("unused")
 private void populate3(final mxGraph graph, final Object parent,
 		final mxHierarchicalLayout layout)
 {
@@ -187,6 +188,7 @@ private void populate3(final mxGraph graph, final Object parent,
     }
 }
 
+@SuppressWarnings("unused")
 private void populate4(final mxGraph graph, final Object parent,
 		final mxHierarchicalLayout layout)
 {
@@ -249,6 +251,7 @@ private void populate4(final mxGraph graph, final Object parent,
  * @param parent
  * @param layout
  */
+@SuppressWarnings("unused")
 private void populate5(final mxGraph graph, final Object parent,
 		final mxHierarchicalLayout layout)
 {

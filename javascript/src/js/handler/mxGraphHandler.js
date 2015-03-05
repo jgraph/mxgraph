@@ -435,12 +435,22 @@ mxGraphHandler.prototype.getPreviewBounds = function(cells)
 			bounds.x -= dx / 2;
 			bounds.width = this.minimumSize;
 		}
+		else
+		{
+			bounds.x = Math.floor(bounds.x);
+			bounds.width = Math.ceil(bounds.width);
+		}
 		
 		if (bounds.height < this.minimumSize)
 		{
 			var dy = this.minimumSize - bounds.height;
 			bounds.y -= dy / 2;
 			bounds.height = this.minimumSize;
+		}
+		else
+		{
+			bounds.y = Math.floor(bounds.y);
+			bounds.height = Math.ceil(bounds.height);
 		}
 	}
 	
@@ -450,8 +460,14 @@ mxGraphHandler.prototype.getPreviewBounds = function(cells)
 /**
  * Function: getBoundingBox
  * 
- * Returns the <mxRectangle> that represents the bounding box for the given
- * cells. If bbox is true then the paint bounding box is returned.
+ * Returns the union of the <mxCellStates> for the given array of <mxCells>.
+ * For vertices, this method uses the bounding box of the corresponding shape
+ * if one exists. The bounding box of the corresponding text label and all
+ * controls and overlays are ignored. See also: <mxGraphView.getBounds>.
+ *
+ * Parameters:
+ *
+ * cells - Array of <mxCells> whose bounding box should be returned.
  */
 mxGraphHandler.prototype.getBoundingBox = function(cells)
 {

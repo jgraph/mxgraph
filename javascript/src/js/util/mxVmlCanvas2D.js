@@ -659,7 +659,7 @@ mxVmlCanvas2D.prototype.createDiv = function(str, align, valign, overflow)
  * text and html for HTML markup. Clipping, text background and border are not
  * supported for plain text in VML.
  */
-mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, format, overflow, clip, rotation)
+mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, format, overflow, clip, rotation, dir)
 {
 	if (this.textEnabled && str != null)
 	{
@@ -679,6 +679,12 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			{
 				x += s.dx;
 				y += s.dy;
+				
+				// Workaround for rendering offsets
+				if (valign == mxConstants.ALIGN_TOP)
+				{
+					y -= 1;
+				}
 			}
 			else
 			{
@@ -710,6 +716,11 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 
 			var div = this.createDiv(str, align, valign, overflow);
 			var inner = this.createElement('div');
+			
+			if (dir != null)
+			{
+				div.setAttribute('dir', dir);
+			}
 
 			if (wrap && w > 0)
 			{
@@ -952,7 +963,7 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 		}
 		else
 		{
-			this.plainText(x, y, w, h, mxUtils.htmlEntities(str, false), align, valign, wrap, format, overflow, clip, rotation);
+			this.plainText(x, y, w, h, mxUtils.htmlEntities(str, false), align, valign, wrap, format, overflow, clip, rotation, dir);
 		}
 	}
 };
@@ -962,8 +973,9 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
  * 
  * Paints the outline of the current path.
  */
-mxVmlCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wrap, format, overflow, clip, rotation)
+mxVmlCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wrap, format, overflow, clip, rotation, dir)
 {
+	// TextDirection is ignored since this code is not used (format is always HTML in the text function)
 	var s = this.state;
 	x = (x + s.dx) * s.scale;
 	y = (y + s.dy) * s.scale;

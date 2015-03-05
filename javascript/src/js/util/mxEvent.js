@@ -676,6 +676,17 @@ var mxEvent =
 	 */
 	CUSTOM_HANDLE: -100,
 	
+	/**
+	 * Variable: VIRTUAL_HANDLE
+	 * 
+	 * Start index for the virtual handles in an mxMouseEvent. This should be a
+	 * negative value and is the start index which is decremented for each
+	 * virtual handle. Default is -100000. This assumes that there are no more
+	 * than VIRTUAL_HANDLE - CUSTOM_HANDLE custom handles.
+	 * 
+	 */
+	VIRTUAL_HANDLE: -100000,
+	
 	//
 	// Event names
 	//

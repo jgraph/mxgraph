@@ -349,7 +349,8 @@ public class mxSaxOutputHandler extends DefaultHandler
 						atts.getValue("format"),
 						atts.getValue("overflow"),
 						getValue(atts, "clip", "").equals("1"),
-						Double.parseDouble(getValue(atts, "rotation", "0")));
+						Double.parseDouble(getValue(atts, "rotation", "0")),
+						getValue(atts, "dir", null));
 			}
 		});
 

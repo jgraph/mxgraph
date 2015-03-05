@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2006-2012, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
  */
 
 /**
@@ -899,57 +899,61 @@
 	
 	mxCellRenderer.prototype.defaultShapes['startState'] = StartStateShape;
 
-	// Defines custom edge shape
+	// Link shape
 	function LinkShape()
 	{
-		mxArrow.call(this);
+		mxArrowConnector.call(this);
+		this.spacing = 0;
 	};
-	mxUtils.extend(LinkShape, mxArrow);
-	LinkShape.prototype.paintEdgeShape = function(c, pts)
+	mxUtils.extend(LinkShape, mxArrowConnector);
+	LinkShape.prototype.defaultWidth = 4;
+	
+	LinkShape.prototype.isOpenEnded = function()
 	{
-		var width = 10 + Math.max(0, this.strokewidth - 1) * 4;
+		return true;
+	};
 
-		// Base vector (between end points)
-		var p0 = pts[0];
-		var pe = pts[pts.length - 1];
-		
-		var dx = pe.x - p0.x;
-		var dy = pe.y - p0.y;
-		var dist = Math.sqrt(dx * dx + dy * dy);
-		var length = dist;
-		
-		// Computes the norm and the inverse norm
-		var nx = dx / dist;
-		var ny = dy / dist;
-		var basex = length * nx;
-		var basey = length * ny;
-		var floorx = width * ny/3;
-		var floory = -width * nx/3;
-		
-		// Computes points
-		var p0x = p0.x - floorx / 2;
-		var p0y = p0.y - floory / 2;
-		var p1x = p0x + floorx;
-		var p1y = p0y + floory;
-		var p2x = p1x + basex;
-		var p2y = p1y + basey;
-		var p3x = p2x + floorx;
-		var p3y = p2y + floory;
-		// p4 not necessary
-		var p5x = p3x - 3 * floorx;
-		var p5y = p3y - 3 * floory;
-		
-		c.begin();
-		c.moveTo(p1x, p1y);
-		c.lineTo(p2x, p2y);
-		c.moveTo(p5x + floorx, p5y + floory);
-		c.lineTo(p0x, p0y);
-		c.stroke();
+	LinkShape.prototype.getEdgeWidth = function()
+	{
+		return mxUtils.getNumber(this.style, 'width', this.defaultWidth) + Math.max(0, this.strokewidth - 1);
+	};
+	
+	LinkShape.prototype.isArrowRounded = function()
+	{
+		return this.isRounded;
 	};
 
 	// Registers the link shape
 	mxCellRenderer.prototype.defaultShapes['link'] = LinkShape;
 
+	// Generic arrow
+	function FlexArrowShape()
+	{
+		mxArrowConnector.call(this);
+		this.spacing = 0;
+	};
+	mxUtils.extend(FlexArrowShape, mxArrowConnector);
+	FlexArrowShape.prototype.defaultWidth = 10;
+	FlexArrowShape.prototype.defaultArrowWidth = 20;
+
+	FlexArrowShape.prototype.getStartArrowWidth = function()
+	{
+		return this.getEdgeWidth() + mxUtils.getNumber(this.style, 'startWidth', this.defaultArrowWidth);
+	};
+
+	FlexArrowShape.prototype.getEndArrowWidth = function()
+	{
+		return this.getEdgeWidth() + mxUtils.getNumber(this.style, 'endWidth', this.defaultArrowWidth);;
+	};
+
+	FlexArrowShape.prototype.getEdgeWidth = function()
+	{
+		return mxUtils.getNumber(this.style, 'width', this.defaultWidth) + Math.max(0, this.strokewidth - 1);
+	};
+	
+	// Registers the link shape
+	mxCellRenderer.prototype.defaultShapes['flexArrow'] = FlexArrowShape;
+	
 	// Manual Input shape
 	function ManualInputShape()
 	{
@@ -1075,14 +1079,10 @@
 		var at = (h - aw) / 2;
 		var ab = at + aw;
 		
-		c.moveTo(0, at);
-		c.lineTo(w - as, at);
-		c.lineTo(w - as, 0);
-		c.lineTo(w, h / 2);
-		c.lineTo(w - as, h);
-		c.lineTo(w - as, ab);
-		c.lineTo(0, ab);
-		c.close();
+		var arcSize = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, mxConstants.LINE_ARCSIZE) / 2;
+		this.addPoints(c, [new mxPoint(0, at), new mxPoint(w - as, at), new mxPoint(w - as, 0), new mxPoint(w, h / 2),
+		                   new mxPoint(w - as, h), new mxPoint(w - as, ab), new mxPoint(0, ab)],
+		                   this.isRounded, arcSize, true);
 		c.end();
 	};
 
@@ -1101,17 +1101,11 @@
 		var at = (h - aw) / 2;
 		var ab = at + aw;
 		
-		c.moveTo(0, h / 2);
-		c.lineTo(as, 0);
-		c.lineTo(as, at);
-		c.lineTo(w - as, at);
-		c.lineTo(w - as, 0);
-		c.lineTo(w, h / 2);
-		c.lineTo(w - as, h);
-		c.lineTo(w - as, ab);
-		c.lineTo(as, ab);
-		c.lineTo(as, h);
-		c.close();
+		var arcSize = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, mxConstants.LINE_ARCSIZE) / 2;
+		this.addPoints(c, [new mxPoint(0, h / 2), new mxPoint(as, 0), new mxPoint(as, at), new mxPoint(w - as, at),
+		                   new mxPoint(w - as, 0), new mxPoint(w, h / 2), new mxPoint(w - as, h),
+		                   new mxPoint(w - as, ab), new mxPoint(as, ab), new mxPoint(as, h)],
+		                   this.isRounded, arcSize, true);
 		c.end();
 	};
 
@@ -1411,8 +1405,194 @@
 				})];
 			};
 		};
+		
+		function createEdgeHandle(state, keys, start, getPosition, setPosition)
+		{
+			var pts = state.absolutePoints;
+			var n = pts.length - 1;
+			
+			var tr = state.view.translate;
+			var s = state.view.scale;
+			
+			var p0 = (start) ? pts[0] : pts[n];
+			var p1 = (start) ? pts[1] : pts[n - 1];
+			var dx = (start) ? p1.x - p0.x : p1.x - p0.x;
+			var dy = (start) ? p1.y - p0.y : p1.y - p0.y;
+
+			var dist = Math.sqrt(dx * dx + dy * dy);
+			
+			return createHandle(state, keys, function(bounds)
+			{
+				var pt = getPosition(dist, dx / dist, dy / dist, p0, p1);
+				
+				return new mxPoint(pt.x / s - tr.x, pt.y / s - tr.y);
+			}, function(bounds, pt, me)
+			{
+				var dist = Math.sqrt(dx * dx + dy * dy);
+				pt.x = (pt.x + tr.x) * s;
+				pt.y = (pt.y + tr.y) * s;
+
+				setPosition(dist, dx / dist, dy / dist, p0, p1, pt, me);
+			});
+		};
+		
+		function createEdgeWidthHandle(state, start, spacing)
+		{
+			return createEdgeHandle(state, ['width'], start, function(dist, nx, ny, p0, p1)
+			{
+				var w = state.shape.getEdgeWidth() * state.view.scale + spacing;
+
+				return new mxPoint(p0.x + nx * dist / 4 + ny * w / 2, p0.y + ny * dist / 4 - nx * w / 2);
+			}, function(dist, nx, ny, p0, p1, pt)
+			{
+				var w = Math.sqrt(mxUtils.ptSegDistSq(p0.x, p0.y, p1.x, p1.y, pt.x, pt.y));					
+				state.style['width'] = Math.round(w * 2) / state.view.scale - spacing;
+			});
+		};
+		
+		function ptLineDistance(x1, y1, x2, y2, x0, y0)
+		{
+			return Math.abs((y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1) / Math.sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1));
+		}
 
 		var handleFactory = {
+			'link': function(state)
+			{
+				var spacing = 10;
+
+				return [createEdgeWidthHandle(state, true, spacing), createEdgeWidthHandle(state, false, spacing)];
+			},
+			'flexArrow': function(state)
+			{
+				// Do not use state.shape.startSize/endSize since it is cached
+				var handles = [];
+				
+				if (mxUtils.getValue(state.style, mxConstants.STYLE_STARTARROW, mxConstants.NONE) != mxConstants.NONE)
+				{
+					handles.push(createEdgeHandle(state, ['width', mxConstants.STYLE_STARTSIZE], true, function(dist, nx, ny, p0, p1)
+					{
+						var w = (state.shape.getEdgeWidth() - state.shape.strokewidth) * state.view.scale;
+						var l = mxUtils.getNumber(state.style, mxConstants.STYLE_STARTSIZE, mxConstants.ARROW_SIZE / 5) * 3 * state.view.scale;
+						
+						return new mxPoint(p0.x + nx * (l + state.shape.strokewidth * state.view.scale) + ny * w / 2,
+							p0.y + ny * (l + state.shape.strokewidth * state.view.scale) - nx * w / 2);
+					}, function(dist, nx, ny, p0, p1, pt, me)
+					{
+						var w = Math.sqrt(mxUtils.ptSegDistSq(p0.x, p0.y, p1.x, p1.y, pt.x, pt.y));
+						var l = mxUtils.ptLineDist(p0.x, p0.y, p0.x + ny, p0.y - nx, pt.x, pt.y);
+						
+						state.style[mxConstants.STYLE_STARTSIZE] = Math.round((l - state.shape.strokewidth) / 3) / state.view.scale;
+						state.style['width'] = Math.round(w * 2) / state.view.scale;
+						
+						// Snaps to end geometry
+						if (!mxEvent.isAltDown(me.getEvent()))
+						{
+							var tol = state.view.graph.gridSize / state.view.scale;
+
+							if (Math.abs(parseFloat(state.style[mxConstants.STYLE_STARTSIZE]) - parseFloat(state.style[mxConstants.STYLE_ENDSIZE])) < tol / 6)
+							{
+								state.style[mxConstants.STYLE_STARTSIZE] = state.style[mxConstants.STYLE_ENDSIZE];
+							}
+						}
+					}));
+					
+					handles.push(createEdgeHandle(state, ['startWidth', mxConstants.STYLE_STARTSIZE], true, function(dist, nx, ny, p0, p1)
+					{
+						var w = (state.shape.getStartArrowWidth() - state.shape.strokewidth) * state.view.scale;
+						var l = mxUtils.getNumber(state.style, mxConstants.STYLE_STARTSIZE, mxConstants.ARROW_SIZE / 5) * 3 * state.view.scale;
+						
+						return new mxPoint(p0.x + nx * (l + state.shape.strokewidth * state.view.scale) + ny * w / 2,
+							p0.y + ny * (l + state.shape.strokewidth * state.view.scale) - nx * w / 2);
+					}, function(dist, nx, ny, p0, p1, pt, me)
+					{
+						var w = Math.sqrt(mxUtils.ptSegDistSq(p0.x, p0.y, p1.x, p1.y, pt.x, pt.y));
+						var l = mxUtils.ptLineDist(p0.x, p0.y, p0.x + ny, p0.y - nx, pt.x, pt.y);
+						
+						state.style[mxConstants.STYLE_STARTSIZE] = Math.round((l - state.shape.strokewidth) / 3) / state.view.scale;
+						state.style['startWidth'] = Math.max(0, Math.round(w * 2) - state.shape.getEdgeWidth()) / state.view.scale;
+						
+						// Snaps to endWidth
+						if (!mxEvent.isAltDown(me.getEvent()))
+						{
+							var tol = state.view.graph.gridSize / state.view.scale;
+
+							if (Math.abs(parseFloat(state.style[mxConstants.STYLE_STARTSIZE]) - parseFloat(state.style[mxConstants.STYLE_ENDSIZE])) < tol / 6)
+							{
+								state.style[mxConstants.STYLE_STARTSIZE] = state.style[mxConstants.STYLE_ENDSIZE];
+							}
+							
+							if (Math.abs(parseFloat(state.style['startWidth']) - parseFloat(state.style['endWidth'])) < tol)
+							{
+								state.style['startWidth'] = state.style['endWidth'];
+							}
+						}
+					}));
+				}
+				
+				if (mxUtils.getValue(state.style, mxConstants.STYLE_ENDARROW, mxConstants.NONE) != mxConstants.NONE)
+				{
+					handles.push(createEdgeHandle(state, ['width', mxConstants.STYLE_ENDSIZE], false, function(dist, nx, ny, p0, p1)
+					{
+						var w = (state.shape.getEdgeWidth() - state.shape.strokewidth) * state.view.scale;
+						var l = mxUtils.getNumber(state.style, mxConstants.STYLE_ENDSIZE, mxConstants.ARROW_SIZE / 5) * 3 * state.view.scale;
+						
+						return new mxPoint(p0.x + nx * (l + state.shape.strokewidth * state.view.scale) + ny * w / 2,
+							p0.y + ny * (l + state.shape.strokewidth * state.view.scale) - nx * w / 2);
+					}, function(dist, nx, ny, p0, p1, pt, me)
+					{
+						var w = Math.sqrt(mxUtils.ptSegDistSq(p0.x, p0.y, p1.x, p1.y, pt.x, pt.y));
+						var l = mxUtils.ptLineDist(p0.x, p0.y, p0.x + ny, p0.y - nx, pt.x, pt.y);
+						
+						state.style[mxConstants.STYLE_ENDSIZE] = Math.round((l - state.shape.strokewidth) / 3) / state.view.scale;
+						state.style['width'] = Math.round(w * 2) / state.view.scale;
+						
+						// Snaps to start geometry
+						if (!mxEvent.isAltDown(me.getEvent()))
+						{
+							var tol = state.view.graph.gridSize / state.view.scale;
+
+							if (Math.abs(parseFloat(state.style[mxConstants.STYLE_ENDSIZE]) - parseFloat(state.style[mxConstants.STYLE_STARTSIZE])) < tol / 6)
+							{
+								state.style[mxConstants.STYLE_ENDSIZE] = state.style[mxConstants.STYLE_STARTSIZE];
+							}
+						}
+					}));
+					
+					handles.push(createEdgeHandle(state, ['endWidth', mxConstants.STYLE_ENDSIZE], false, function(dist, nx, ny, p0, p1)
+					{
+						var w = (state.shape.getEndArrowWidth() - state.shape.strokewidth) * state.view.scale;
+						var l = mxUtils.getNumber(state.style, mxConstants.STYLE_ENDSIZE, mxConstants.ARROW_SIZE / 5) * 3 * state.view.scale;
+						
+						return new mxPoint(p0.x + nx * (l + state.shape.strokewidth * state.view.scale) + ny * w / 2,
+							p0.y + ny * (l + state.shape.strokewidth * state.view.scale) - nx * w / 2);
+					}, function(dist, nx, ny, p0, p1, pt, me)
+					{
+						var w = Math.sqrt(mxUtils.ptSegDistSq(p0.x, p0.y, p1.x, p1.y, pt.x, pt.y));
+						var l = mxUtils.ptLineDist(p0.x, p0.y, p0.x + ny, p0.y - nx, pt.x, pt.y);
+						
+						state.style[mxConstants.STYLE_ENDSIZE] = Math.round((l - state.shape.strokewidth) / 3) / state.view.scale;
+						state.style['endWidth'] = Math.max(0, Math.round(w * 2) - state.shape.getEdgeWidth()) / state.view.scale;
+					
+						// Snaps to start geometry
+						if (!mxEvent.isAltDown(me.getEvent()))
+						{
+							var tol = state.view.graph.gridSize / state.view.scale;
+
+							if (Math.abs(parseFloat(state.style[mxConstants.STYLE_ENDSIZE]) - parseFloat(state.style[mxConstants.STYLE_STARTSIZE])) < tol / 6)
+							{
+								state.style[mxConstants.STYLE_ENDSIZE] = state.style[mxConstants.STYLE_STARTSIZE];
+							}
+							
+							if (Math.abs(parseFloat(state.style['endWidth']) - parseFloat(state.style['startWidth'])) < tol)
+							{
+								state.style['endWidth'] = state.style['startWidth'];
+							}
+						}
+					}));
+				}
+				
+				return handles;
+			},
 			'swimlane': function(state)
 			{
 				return [createHandle(state, [mxConstants.STYLE_STARTSIZE], function(bounds)
@@ -1643,6 +1823,16 @@
 			
 			return null;
 		};
+		
+		mxEdgeHandler.prototype.createCustomHandles = function()
+		{
+			var fn = handleFactory[this.state.style['shape']];
+			
+			if (fn != null)
+			{
+				return fn(this.state);
+			}
+		}
 	}
 
 	mxRectangleShape.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0.25, 0), true),
@@ -1798,6 +1988,8 @@
 	        	            		 new mxConnectionConstraint(new mxPoint(1, 0.5), true),
 	        	            		 new mxConnectionConstraint(new mxPoint(1, 0.75), true)];
 	mxArrow.prototype.constraints = null;
+	TeeShape.prototype.constraints = null;
+	CornerShape.prototype.constraints = null;
 	SingleArrowShape.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0, 0.5), false),
 	                                    new mxConnectionConstraint(new mxPoint(1, 0.5), false)];
 	DoubleArrowShape.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0, 0.5), false),

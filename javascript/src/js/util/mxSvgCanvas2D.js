@@ -769,7 +769,7 @@ mxSvgCanvas2D.prototype.createTolerance = function(node)
 	// other browsers need a stroke color to perform the hit-detection but
 	// do not ignore the visibility attribute. Side-effect is that Opera's
 	// hit detection for horizontal/vertical edges seems to ignore the tol.
-	tol.setAttribute('stroke', (mxClient.IS_OP) ? 'none' : 'white');
+	tol.setAttribute('stroke', (mxClient.IS_OT) ? 'none' : 'white');
 	
 	return tol;
 };
@@ -1215,7 +1215,7 @@ mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, overflow
  * foreignObject is supported and <foEnabled> is true. (This means IE9 and later
  * does currently not support HTML text as part of shapes.)
  */
-mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, format, overflow, clip, rotation)
+mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, format, overflow, clip, rotation, dir)
 {
 	if (this.textEnabled && str != null)
 	{
@@ -1274,6 +1274,10 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			if (div == null)
 			{
 				return;
+			}
+			else if (dir != null)
+			{
+				div.setAttribute('dir', dir);
 			}
 
 			group.appendChild(fo);
@@ -1485,11 +1489,25 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			// FIXME: LINE_HEIGHT not ideal for all text sizes, fix for export
 			if (valign == mxConstants.ALIGN_MIDDLE)
 			{
-				dy -= h / 2 - 1;
+				dy -= h / 2 - 2;
 			}
 			else if (valign == mxConstants.ALIGN_BOTTOM)
 			{
-				dy -= h - 2;
+				dy -= h - 3;
+			}
+			
+			// Workaround for rendering offsets
+			// TODO: Check if export needs these fixes, too
+			//if (this.root.ownerDocument == document)
+			{
+				if (!mxClient.IS_OP && mxClient.IS_GC && mxClient.IS_MAC)
+				{
+					dy += 1;
+				}
+				else if (mxClient.IS_FF && mxClient.IS_WIN)
+				{
+					dy -= 1;
+				}
 			}
 			
 			y += dy;
@@ -1536,7 +1554,7 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 		}
 		else
 		{
-			this.plainText(x, y, w, h, str, align, valign, wrap, overflow, clip, rotation);
+			this.plainText(x, y, w, h, str, align, valign, wrap, overflow, clip, rotation, dir);
 		}
 	}
 };
@@ -1584,7 +1602,7 @@ mxSvgCanvas2D.prototype.createClip = function(x, y, w, h)
  * Paints the given text. Possible values for format are empty string for
  * plain text and html for HTML markup.
  */
-mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wrap, overflow, clip, rotation)
+mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wrap, overflow, clip, rotation, dir)
 {
 	rotation = (rotation != null) ? rotation : 0;
 	var s = this.state;
@@ -1592,11 +1610,16 @@ mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 	var node = this.createElement('g');
 	var tr = s.transform || '';
 	this.updateFont(node);
-
+	
 	// Non-rotated text
 	if (rotation != 0)
 	{
 		tr += 'rotate(' + rotation  + ',' + this.format(x * s.scale) + ',' + this.format(y * s.scale) + ')';
+	}
+	
+	if (dir != null)
+	{
+		node.setAttribute('direction', dir);
 	}
 
 	if (clip && w > 0 && h > 0)

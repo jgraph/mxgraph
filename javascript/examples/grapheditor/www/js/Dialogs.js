@@ -21,6 +21,12 @@ function Dialog(editorUi, elt, w, h, modal, closable, onClose)
 	var left = Math.max(0, Math.round((document.body.scrollWidth - w) / 2));
 	var top = Math.max(0, Math.round((Math.max(document.body.scrollHeight, document.documentElement.scrollHeight) - h) / 3));
 	
+	// Increments zIndex to put subdialogs and background over existing dialogs and background
+	if (editorUi.dialogs.length > 0)
+	{
+		this.zIndex += editorUi.dialogs.length * 2;
+	}
+	
 	var div = editorUi.createDiv('geDialog');
 	div.style.width = w + 'px';
 	div.style.height = h + 'px';
@@ -869,6 +875,16 @@ var FilenameDialog = function(editorUi, filename, buttonText, fn, label, validat
 	nameInput.setAttribute('value', filename || '');
 	nameInput.style.width = '180px';
 	
+	var genericBtn = mxUtils.button(buttonText, function()
+	{
+		if (validateFn == null || validateFn(nameInput.value))
+		{
+			editorUi.hideDialog();
+			fn(nameInput.value);
+		}
+	});
+	genericBtn.className = 'geBtn gePrimaryBtn';
+	
 	this.init = function()
 	{
 		nameInput.focus();
@@ -880,6 +896,58 @@ var FilenameDialog = function(editorUi, filename, buttonText, fn, label, validat
 		else
 		{
 			document.execCommand('selectAll', false, null);
+		}
+		
+		// Installs drag and drop handler for links
+		if (fileSupport)
+		{
+			// Setup the dnd listeners
+			var dlg = table.parentNode;
+			var graph = editorUi.editor.graph;
+			var dropElt = null;
+				
+			mxEvent.addListener(dlg, 'dragleave', function(evt)
+			{
+				if (dropElt != null)
+			    {
+					dropElt.style.backgroundColor = '';
+			    	dropElt = null;
+			    }
+			    
+				evt.stopPropagation();
+				evt.preventDefault();
+			});
+			
+			mxEvent.addListener(dlg, 'dragover', mxUtils.bind(this, function(evt)
+			{
+				// IE 10 does not implement pointer-events so it can't have a drop highlight
+				if (dropElt == null && (!mxClient.IS_IE || document.documentMode > 10))
+				{
+					dropElt = nameInput;
+					dropElt.style.backgroundColor = '#ebf2f9';
+				}
+				
+				evt.stopPropagation();
+				evt.preventDefault();
+			}));
+					
+			mxEvent.addListener(dlg, 'drop', mxUtils.bind(this, function(evt)
+			{
+			    if (dropElt != null)
+			    {
+					dropElt.style.backgroundColor = '';
+			    	dropElt = null;
+			    }
+
+			    if (mxUtils.indexOf(evt.dataTransfer.types, 'text/uri-list') >= 0)
+			    {
+			    	nameInput.value = decodeURIComponent(evt.dataTransfer.getData('text/uri-list'));
+			    	genericBtn.click();
+			    }
+
+			    evt.stopPropagation();
+			    evt.preventDefault();
+			}), false);
 		}
 	};
 
@@ -896,7 +964,6 @@ var FilenameDialog = function(editorUi, filename, buttonText, fn, label, validat
 	td.style.whiteSpace = 'nowrap';
 	td.setAttribute('align', 'right');
 	
-	
 	var cancelBtn = mxUtils.button(mxResources.get('cancel'), function()
 	{
 		editorUi.hideDialog();
@@ -907,17 +974,7 @@ var FilenameDialog = function(editorUi, filename, buttonText, fn, label, validat
 	{
 		td.appendChild(cancelBtn);
 	}
-	
-	var genericBtn = mxUtils.button(buttonText, function()
-	{
-		if (validateFn == null || validateFn(nameInput.value))
-		{
-			editorUi.hideDialog();
-			fn(nameInput.value);
-		}
-	});
-	genericBtn.className = 'geBtn gePrimaryBtn';
-	
+
 	mxEvent.addListener(nameInput, 'keypress', function(e)
 	{
 		if (e.keyCode == 13)
@@ -1999,6 +2056,7 @@ var OutlineWindow = function(editorUi, x, y, w, h)
 	this.window.addListener(mxEvent.SHOW, mxUtils.bind(this, function()
 	{
 		outline.suspended = false;
+		outline.outline.refresh();
 		outline.update();
 	}));
 	

@@ -267,10 +267,16 @@ public interface mxICanvas2D
 	 * @param str
 	 * @param align
 	 * @param valign
-	 * @param vertical
+	 * @param wrap
+	 * @param format
+	 * @param overflow
+	 * @param clip
+	 * @param rotation
+	 * @param dir
 	 */
-	void text(double x, double y, double w, double h, String str, String align, String valign,
-			boolean wrap, String format, String overflow, boolean clip, double rotation);
+	void text(double x, double y, double w, double h, String str, String align,
+			String valign, boolean wrap, String format, String overflow,
+			boolean clip, double rotation, String dir);
 
 	/**
 	 * Begins a new path.

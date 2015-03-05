@@ -283,7 +283,7 @@ mxVertexHandler.prototype.isConstrainedEvent = function(me)
 /**
  * Function: createCustomHandles
  * 
- * Returns true if the aspect ratio if the cell should be maintained.
+ * Returns an array of custom handles. This implementation returns null.
  */
 mxVertexHandler.prototype.createCustomHandles = function()
 {
@@ -507,9 +507,10 @@ mxVertexHandler.prototype.getHandleForEvent = function(me)
 			shape.node.style.display != 'none' && shape.node.style.visibility != 'hidden'));
 	}
 
-	if (this.customHandles != null)
+	if (this.customHandles != null && this.isCustomHandleEvent(me))
 	{
-		for (var i = 0; i < this.customHandles.length; i++)
+		// Inverse loop order to match display order
+		for (var i = this.customHandles.length - 1; i >= 0; i--)
 		{
 			if (checkShape(this.customHandles[i].shape))
 			{
@@ -540,6 +541,17 @@ mxVertexHandler.prototype.getHandleForEvent = function(me)
 	}
 
 	return null;
+};
+
+/**
+ * Function: isCustomHandleEvent
+ * 
+ * Returns true if the given event allows custom handles to be changed. This
+ * implementation returns true.
+ */
+mxVertexHandler.prototype.isCustomHandleEvent = function(me)
+{
+	return true;
 };
 
 /**
@@ -732,7 +744,7 @@ mxVertexHandler.prototype.removeHint = function() { };
  */
 mxVertexHandler.prototype.roundAngle = function(angle)
 {
-	return Math.round(angle);
+	return Math.round(angle * 10) / 10;
 };
 
 /**
@@ -992,6 +1004,10 @@ mxVertexHandler.prototype.mouseUp = function(sender, me)
 						this.rotateCell(this.state.cell, delta);
 					}
 				}
+				else
+				{
+					this.rotateClick();
+				}
 			}
 			else
 			{
@@ -1035,6 +1051,15 @@ mxVertexHandler.prototype.isRecursiveResize = function(state, me)
 {
 	return this.graph.isRecursiveResize(this.state);
 };
+
+/**
+ * Function: rotateClick
+ * 
+ * Hook for subclassers to implement a single click on the rotation handle.
+ * This code is executed as part of the model transaction. This implementation
+ * is empty.
+ */
+mxVertexHandler.prototype.rotateClick = function() { };
 
 /**
  * Function: rotateCell
@@ -1431,7 +1456,7 @@ mxVertexHandler.prototype.redrawHandles = function()
 	this.verticalOffset = 0;
 	var s = this.bounds;
 
-	if (this.sizers != null)
+	if (this.sizers != null && this.sizers.length > 0)
 	{
 		if (this.index == null && this.manageSizers && this.sizers.length >= 8)
 		{
@@ -1452,20 +1477,23 @@ mxVertexHandler.prototype.redrawHandles = function()
 				s.height += this.verticalOffset;
 			}
 			
-			if ((s.width < 2 * this.sizers[0].bounds.width + 2 * tol) ||
-				(s.height < 2 * this.sizers[0].bounds.height + 2 * tol))
+			if (this.sizers.length >= 8)
 			{
-				this.sizers[0].node.style.display = 'none';
-				this.sizers[2].node.style.display = 'none';
-				this.sizers[5].node.style.display = 'none';
-				this.sizers[7].node.style.display = 'none';
-			}
-			else
-			{
-				this.sizers[0].node.style.display = '';
-				this.sizers[2].node.style.display = '';
-				this.sizers[5].node.style.display = '';
-				this.sizers[7].node.style.display = '';
+				if ((s.width < 2 * this.sizers[0].bounds.width + 2 * tol) ||
+					(s.height < 2 * this.sizers[0].bounds.height + 2 * tol))
+				{
+					this.sizers[0].node.style.display = 'none';
+					this.sizers[2].node.style.display = 'none';
+					this.sizers[5].node.style.display = 'none';
+					this.sizers[7].node.style.display = 'none';
+				}
+				else
+				{
+					this.sizers[0].node.style.display = '';
+					this.sizers[2].node.style.display = '';
+					this.sizers[5].node.style.display = '';
+					this.sizers[7].node.style.display = '';
+				}
 			}
 		}
 

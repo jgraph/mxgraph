@@ -3,10 +3,8 @@
  */
 package com.mxgraph.layout;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.mxgraph.model.mxGeometry;
 import com.mxgraph.model.mxIGraphModel;
@@ -15,7 +13,6 @@ import com.mxgraph.util.mxPoint;
 import com.mxgraph.util.mxRectangle;
 import com.mxgraph.view.mxCellState;
 import com.mxgraph.view.mxGraph;
-import com.mxgraph.view.mxGraph.mxICellVisitor;
 import com.mxgraph.view.mxGraphView;
 
 /**

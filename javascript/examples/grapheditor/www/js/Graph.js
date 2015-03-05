@@ -196,6 +196,8 @@ Graph = function(container, model, renderHint, stylesheet)
 		}
 	};
 	
+	// Shows pointer cursor for clickable cells with links
+	// ie. if the graph is disabled and cells cannot be selected
 	var getCursorForCell = this.getCursorForCell;
 	this.getCursorForCell = function(cell)
 	{
@@ -214,11 +216,115 @@ Graph = function(container, model, renderHint, stylesheet)
 		}
 	};
 	
-	// Allows all events through
-	this.isEventSourceIgnored2 = function(evtName, me)
+	// Changes rubberband selection to be recursive
+	this.selectRegion = function(rect, evt)
 	{
+		var cells = this.getAllCells(rect.x, rect.y, rect.width, rect.height);
+		this.selectCellsForEvent(cells, evt);
+		
+		return cells;
+	};
+	
+	// Recursive implementation for rubberband selection
+	this.getAllCells = function(x, y, width, height, parent, result)
+	{
+		result = (result != null) ? result : [];
+		
+		if (width > 0 || height > 0)
+		{
+			var model = this.getModel();
+			var right = x + width;
+			var bottom = y + height;
+
+			if (parent == null)
+			{
+				parent = this.getCurrentRoot();
+				
+				if (parent == null)
+				{
+					parent = model.getRoot();
+				}
+			}
+			
+			if (parent != null)
+			{
+				var childCount = model.getChildCount(parent);
+				
+				for (var i = 0; i < childCount; i++)
+				{
+					var cell = model.getChildAt(parent, i);
+					var state = this.view.getState(cell);
+					
+					if (state != null && this.isCellVisible(cell))
+					{
+						var deg = mxUtils.getValue(state.style, mxConstants.STYLE_ROTATION) || 0;
+						var box = state;
+						
+						if (deg != 0)
+						{
+							box = mxUtils.getBoundingBox(box, deg);
+						}
+						
+						if ((model.isEdge(cell) || model.isVertex(cell)) &&
+							box.x >= x && box.y + box.height <= bottom &&
+							box.y >= y && box.x + box.width <= right)
+						{
+							result.push(cell);
+						}
+
+						this.getAllCells(x, y, width, height, cell, result);
+					}
+				}
+			}
+		}
+		
+		return result;
+	};
+	
+	// Disabled splitting edges when edges are moved
+	var isSplitTarget = this.isSplitTarget;
+	
+	this.isSplitTarget = function(target, cells, evt)
+	{
+		for (var i = 0; i < cells.length; i++)
+		{
+			if (this.model.isEdge(cells[i]))
+			{
+				return false;
+			}
+		}
+		
+		return isSplitTarget.apply(this, arguments);
+	};
+
+	/**
+	 * Function: isSplitTarget
+	 *
+	 * Returns true if the given edge may be splitted into two edges with the
+	 * given cell as a new terminal between the two.
+	 * 
+	 * Parameters:
+	 * 
+	 * target - <mxCell> that represents the edge to be splitted.
+	 * cells - <mxCells> that should split the edge.
+	 * evt - Mouseevent that triggered the invocation.
+	 */
+	mxGraph.prototype.isSplitTarget = function(target, cells, evt)
+	{
+		if (this.model.isEdge(target) && cells != null && cells.length == 1 &&
+			this.isCellConnectable(cells[0]) && this.getEdgeValidationError(target,
+				this.model.getTerminal(target, true), cells[0]) == null)
+		{
+			var src = this.model.getTerminal(target, true);
+			var trg = this.model.getTerminal(target, false);
+
+			return (!this.model.isAncestor(cells[0], src) &&
+					!this.model.isAncestor(cells[0], trg));
+		}
+
 		return false;
 	};
+
 	
 	// Unlocks all cells
 	this.isCellLocked = function(cell)
@@ -565,6 +671,119 @@ Graph.prototype.zapGremlins = function(text)
 	}
 	
 	return checked.join('');
+};
+
+/**
+ * Turns the given cells and returns the changed cells.
+ */
+Graph.prototype.turnShapes = function(cells)
+{
+	var model = this.getModel();
+	var select = [];
+	
+	model.beginUpdate();
+	try
+	{
+		for (var i = 0; i < cells.length; i++)
+		{
+			var cell = cells[i];
+			
+			if (model.isEdge(cell))
+			{
+				var src = model.getTerminal(cell, true);
+				var trg = model.getTerminal(cell, false);
+				
+				model.setTerminal(cell, trg, true);
+				model.setTerminal(cell, src, false);
+				
+				var geo = model.getGeometry(cell);
+				
+				if (geo != null)
+				{
+					geo = geo.clone();
+					
+					if (geo.points != null)
+					{
+						geo.points.reverse();
+					}
+					
+					var sp = geo.getTerminalPoint(true);
+					var tp = geo.getTerminalPoint(false)
+					
+					geo.setTerminalPoint(sp, false);
+					geo.setTerminalPoint(tp, true);
+					model.setGeometry(cell, geo);
+					
+					// Inverts constraints
+					var edgeState = this.view.getState(cell);
+					var sourceState = this.view.getState(src);
+					var targetState = this.view.getState(trg);
+					
+					if (edgeState != null)
+					{
+						var sc = (sourceState != null) ? this.getConnectionConstraint(edgeState, sourceState, true) : null;
+						var tc = (targetState != null) ? this.getConnectionConstraint(edgeState, targetState, false) : null;
+						
+						this.setConnectionConstraint(cell, src, true, tc);
+						this.setConnectionConstraint(cell, trg, false, sc);
+					}
+
+					select.push(cell);
+				}
+			}
+			else if (model.isVertex(cell))
+			{
+				var geo = this.getCellGeometry(cell);
+	
+				if (geo != null)
+				{
+					// Rotates the size and position in the geometry
+					geo = geo.clone();
+					geo.x += geo.width / 2 - geo.height / 2;
+					geo.y += geo.height / 2 - geo.width / 2;
+					var tmp = geo.width;
+					geo.width = geo.height;
+					geo.height = tmp;
+					model.setGeometry(cell, geo);
+					
+					// Reads the current direction and advances by 90 degrees
+					var state = this.view.getState(cell);
+					
+					if (state != null)
+					{
+						var dir = state.style[mxConstants.STYLE_DIRECTION] || 'east'/*default*/;
+						
+						if (dir == 'east')
+						{
+							dir = 'south';
+						}
+						else if (dir == 'south')
+						{
+							dir = 'west';
+						}
+						else if (dir == 'west')
+						{
+							dir = 'north';
+						}
+						else if (dir == 'north')
+						{
+							dir = 'east';
+						}
+						
+						this.setCellStyles(mxConstants.STYLE_DIRECTION, dir, [cell]);
+					}
+
+					select.push(cell);
+				}
+			}
+		}
+	}
+	finally
+	{
+		model.endUpdate();
+	}
+	
+	return select;
 };
 
 /**
@@ -1581,6 +1800,13 @@ Graph.prototype.initTouch = function()
 				style.textDecoration = this.textarea.style.textDecoration;
 				style.color = this.textarea.style.color;
 				
+				var dir = this.textarea.getAttribute('dir');
+				
+				if (dir != null && dir.length > 0)
+				{
+					this.text2.setAttribute('dir', dir);
+				}
+				
 				// Matches line height correctionFactor in embedded HTML output
 				if (state.text != null && state.text.node != null && state.text.node.ownerSVGElement != null)
 				{
@@ -2001,18 +2227,30 @@ Graph.prototype.initTouch = function()
 	
 	mxEdgeHandler.prototype.parentHighlightEnabled = true;
 	mxEdgeHandler.prototype.dblClickRemoveEnabled = true;
+	mxEdgeHandler.prototype.straightRemoveEnabled = true;
 	mxEdgeHandler.prototype.virtualBendsEnabled = true;
 	mxEdgeHandler.prototype.mergeRemoveEnabled = true;
 	mxEdgeHandler.prototype.manageLabelHandle = true;
 	mxEdgeHandler.prototype.outlineConnect = true;
 	
-	mxEdgeHandlerIsVirtualBendsEnabled = mxEdgeHandler.prototype.isVirtualBendsEnabled;
-	mxEdgeHandler.prototype.isVirtualBendsEnabled = function()
+	// Disables adding waypoints if shift is pressed
+	mxEdgeHandler.prototype.isAddVirtualBendEvent = function(me)
 	{
-		return mxEdgeHandlerIsVirtualBendsEnabled.apply(this, arguments) &&
-			mxUtils.getValue(this.state.style, mxConstants.STYLE_SHAPE, null) != 'link';
+		return !mxEvent.isShiftDown(me.getEvent());
 	};
-	
+
+	// Disables custom handles if shift is pressed
+	mxEdgeHandler.prototype.isCustomHandleEvent = function(me)
+	{
+		return !mxEvent.isShiftDown(me.getEvent());
+	};
+
+	// Disables custom handles if shift is pressed
+	mxVertexHandler.prototype.isCustomHandleEvent = function(me)
+	{
+		return !mxEvent.isShiftDown(me.getEvent());
+	};
+
 	// Shows secondary handle for fixed connection points
 	mxEdgeHandler.prototype.createHandleShape = function(index)
 	{
@@ -2085,7 +2323,7 @@ Graph.prototype.initTouch = function()
 		
 		if (model.isEdge(parent) && geo != null && geo.relative && state.width < 2 && state.height < 2 && state.text != null && state.text.boundingBox != null)
 		{
-			var bbox = state.text.unrotatedBoundingBox || state.text.boundingBox;
+			var bbox = state.text.unrotatedBoundingBox || state.text.boundingBox;
 			
 			return new mxRectangle(Math.round(bbox.x), Math.round(bbox.y), Math.round(bbox.width), Math.round(bbox.height));
 		}
@@ -2119,6 +2357,12 @@ Graph.prototype.initTouch = function()
 	{
 		return this.graph.isEnabled() && this.rotationEnabled && this.graph.isCellRotatable(this.state.cell) &&
 			(mxGraphHandler.prototype.maxCells <= 0 || this.graph.getSelectionCount() < mxGraphHandler.prototype.maxCells);
+	};
+
+	// Invokes turn on single click on rotation handle
+	mxVertexHandler.prototype.rotateClick = function()
+	{
+		this.state.view.graph.turnShapes([this.state.cell]);
 	};
 
 	// Requires callback to editorUi in edit link so override editorUi.init

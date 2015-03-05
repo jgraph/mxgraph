@@ -2,19 +2,17 @@
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
- * Class: mxVertexHandler
+ * Class: mxHandle
  * 
- * Event handler for resizing cells. This handler is automatically created in
- * <mxGraph.createHandler>.
+ * Implements a single custom handle for vertices.
  * 
- * Constructor: mxVertexHandler
+ * Constructor: mxHandle
  * 
- * Constructs an event handler that allows to resize vertices
- * and groups.
+ * Constructs a new handle for the given state.
  * 
  * Parameters:
  * 
- * state - <mxCellState> of the cell to be resized.
+ * state - <mxCellState> of the cell to be handled.
  */
 function mxHandle(state, cursor, image)
 {
@@ -113,7 +111,20 @@ mxHandle.prototype.processEvent = function(me)
  */
 mxHandle.prototype.positionChanged = function()
 {
-	this.graph.cellRenderer.redraw(this.state, true);
+	if (this.state.view.graph.model.isVertex(this.state.cell))
+	{
+		if (this.state.text != null)
+		{
+			this.state.text.apply(this.state);
+		}
+		
+		if (this.state.shape != null)
+		{
+			this.state.shape.apply(this.state);
+		}
+		
+		this.graph.cellRenderer.redraw(this.state, true);
+	}
 };
 
 /**

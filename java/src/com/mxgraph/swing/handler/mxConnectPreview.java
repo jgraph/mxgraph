@@ -11,10 +11,8 @@ import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 
 import com.mxgraph.canvas.mxGraphics2DCanvas;
-import com.mxgraph.model.mxCell;
 import com.mxgraph.model.mxGeometry;
 import com.mxgraph.model.mxICell;
-import com.mxgraph.model.mxIGraphModel;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.util.mxEvent;
 import com.mxgraph.util.mxEventObject;

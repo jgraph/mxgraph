@@ -18,7 +18,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.Map;
 
 import javax.swing.SwingUtilities;
 

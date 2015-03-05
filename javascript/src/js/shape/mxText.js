@@ -58,7 +58,7 @@
 function mxText(value, bounds, align, valign, color,
 	family,	size, fontStyle, spacing, spacingTop, spacingRight,
 	spacingBottom, spacingLeft, horizontal, background, border,
-	wrap, clipped, overflow, labelPadding)
+	wrap, clipped, overflow, labelPadding, textDirection)
 {
 	mxShape.call(this);
 	this.value = value;
@@ -81,6 +81,7 @@ function mxText(value, bounds, align, valign, color,
 	this.clipped = (clipped != null) ? clipped : false;
 	this.overflow = (overflow != null) ? overflow : 'visible';
 	this.labelPadding = (labelPadding != null) ? labelPadding : 0;
+	this.textDirection = textDirection;
 	this.rotation = 0;
 	this.updateMargin();
 };
@@ -234,8 +235,27 @@ mxText.prototype.apply = function(state)
 		this.horizontal = mxUtils.getValue(this.style, mxConstants.STYLE_HORIZONTAL, this.horizontal);
 		this.background = mxUtils.getValue(this.style, mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, this.background);
 		this.border = mxUtils.getValue(this.style, mxConstants.STYLE_LABEL_BORDERCOLOR, this.border);
+		this.textDirection = mxUtils.getValue(this.style, mxConstants.STYLE_TEXT_DIRECTION, mxConstants.DEFAULT_TEXT_DIRECTION);
 		this.updateMargin();
 	}
+};
+
+/**
+ * Function: getAutoDirection
+ * 
+ * Used to determine the automatic text direction. Returns
+ * <mxConstants.TEXT_DIRECTION_LTR> or <mxConstants.TEXT_DIRECTION_RTL>
+ * depending on the contents of <value>. This is not invoked for HTML, wrapped
+ * content or if <value> is a DOM node.
+ */
+mxText.prototype.getAutoDirection = function()
+{
+	// Looks for strong (directional) characters
+	var tmp = /[A-Za-z\u05d0-\u065f\u066a-\u06ef\u06fa-\u07ff\ufb1d-\ufdff\ufe70-\ufefc]/.exec(this.value);
+	
+	// Returns the direction defined by the character
+	return (tmp != null && tmp.length > 0 && tmp[0] > 'z') ?
+		mxConstants.TEXT_DIRECTION_RTL : mxConstants.TEXT_DIRECTION_LTR;
 };
 
 /**
@@ -490,8 +510,20 @@ mxText.prototype.paint = function(c)
 	val = (!mxUtils.isNode(this.value) && this.replaceLinefeeds && fmt == 'html') ?
 		val.replace(/\n/g, '<br/>') : val;
 		
+	var dir = this.textDirection;
+
+	if (dir == mxConstants.TEXT_DIRECTION_AUTO && !realHtml)
+	{
+		dir = this.getAutoDirection();
+	}
+	
+	if (dir != mxConstants.TEXT_DIRECTION_LTR && dir != mxConstants.TEXT_DIRECTION_RTL)
+	{
+		dir = null;
+	}
+		
 	c.text(x, y, w, h, val, this.align, this.valign, this.wrap, fmt, this.overflow,
-		this.clipped, this.getTextRotation());
+		this.clipped, this.getTextRotation(), dir);
 };
 
 /**
@@ -550,9 +582,55 @@ mxText.prototype.updateHtmlTransform = function()
 		mxUtils.setPrefixedStyle(style, 'transform', 'scale(' + this.scale + ')' +
 			'translate(' + (dx * 100) + '%' + ',' + (dy * 100) + '%)');
 	}
+	
+	// Workaround for rendering offsets
+	var dy = 0;
+	
+	if (document.documentMode >= 10 && this.valign != mxConstants.ALIGN_TOP)
+	{
+		dy += 1;
+	}
+	else if (document.documentMode == 9 && this.valign == mxConstants.ALIGN_BOTTOM)
+	{
+		dy += 1;
+	}
+	else if (mxClient.IS_MAC && !mxClient.IS_OP && mxClient.IS_GC)
+	{
+		if (mxClient.IS_MAC)
+		{
+			if (this.valign == mxConstants.ALIGN_BOTTOM)
+			{
+				dy += 2;
+			}
+			else
+			{
+				dy += 1;
+			}
+		}
+		else if (this.valign == mxConstants.ALIGN_BOTTOM)
+		{
+			dy += 1;
+		}
+	}
+	else if (mxClient.IS_MAC && mxClient.IS_FF)
+	{
+		if (this.valign == mxConstants.ALIGN_BOTTOM)
+		{
+			dy += 2;
+		}
+		else if (this.valign == mxConstants.ALIGN_MIDDLE)
+		{
+			dy += 1;
+		}
+	}
+	else if (!mxClient.IS_MAC && (mxClient.IS_GC || mxClient.IS_FF) &&
+			this.valign == mxConstants.ALIGN_BOTTOM) // includes Opera
+	{
+		dy += 1;
+	}
 
 	style.left = Math.round(this.bounds.x) + 'px';
-	style.top = Math.round(this.bounds.y) + 'px';
+	style.top = Math.round(this.bounds.y + dy) + 'px';
 	
 	if (this.opacity < 100)
 	{
@@ -760,9 +838,28 @@ mxText.prototype.updateHtmlFilter = function()
 		}
 	}
 	
+	// Workaround for rendering offsets
+	var dy = 0;
+	
+	if (mxClient.IS_QUIRKS)
+	{
+		if (this.valign == mxConstants.ALIGN_TOP)
+		{
+			dy -= 1;
+		}
+		else if (this.valign == mxConstants.ALIGN_BOTTOM)
+		{
+			dy += 2;
+		}
+		else
+		{
+			dy += 1;
+		}
+	}
+
 	style.zoom = s;
 	style.left = Math.round(this.bounds.x + left_fix - w / 2) + 'px';
-	style.top = Math.round(this.bounds.y + top_fix - h / 2) + 'px';
+	style.top = Math.round(this.bounds.y + top_fix - h / 2 + dy) + 'px';
 };
 
 /**
@@ -825,6 +922,28 @@ mxText.prototype.updateValue = function()
 		}
 
 		this.node.innerHTML = val;
+		
+		// Sets text direction
+		var divs = this.node.getElementsByTagName('div');
+		
+		if (divs.length > 0)
+		{
+			var dir = this.textDirection;
+
+			if (dir == mxConstants.TEXT_DIRECTION_AUTO && this.dialect != mxConstants.DIALECT_STRICTHTML)
+			{
+				dir = this.getAutoDirection();
+			}
+			
+			if (dir == mxConstants.TEXT_DIRECTION_LTR || dir == mxConstants.TEXT_DIRECTION_RTL)
+			{
+				divs[divs.length - 1].setAttribute('dir', dir);
+			}
+			else
+			{
+				divs[divs.length - 1].removeAttribute('dir');
+			}
+		}
 	}
 };
 

@@ -200,13 +200,14 @@ EditorUi = function(editor, container)
 	};
 	
 	// Stores the current style and assigns it to new cells
-	var styles = ['shadow', 'dashed', 'dashPattern'];
+	var styles = ['shadow', 'glass', 'dashed', 'dashPattern'];
 	var connectStyles = ['shape', 'edgeStyle', 'curved', 'rounded', 'elbow'];
 	
 	// Sets the default edge style
 	var currentEdgeStyle = {'edgeStyle': 'orthogonalEdgeStyle', 'rounded': '0', 'html': '1'};
 	var currentStyle = {};
 	
+	// Note: Everything that is not in styles is ignored (styles is augmented below)
 	this.setDefaultStyle = function(cell)
 	{
 		var state = graph.view.getState(cell);
@@ -525,16 +526,8 @@ EditorUi = function(editor, container)
 	
 			// Updates toolbar icon for edge style
 			var edgeStyleDiv = this.toolbar.edgeStyleMenu.getElementsByTagName('div')[0];
-
-			if (currentEdgeStyle['shape'] == 'arrow')
-			{
-				edgeStyleDiv.className = 'geSprite geSprite-arrow';
-			}
-			else if (currentEdgeStyle['shape'] == 'link')
-			{
-				edgeStyleDiv.className = 'geSprite geSprite-linkedge';
-			}
-			else if (currentEdgeStyle['edgeStyle'] == 'orthogonalEdgeStyle' && currentEdgeStyle['curved'] == '1')
+			
+			if (currentEdgeStyle['edgeStyle'] == 'orthogonalEdgeStyle' && currentEdgeStyle['curved'] == '1')
 			{
 				edgeStyleDiv.className = 'geSprite geSprite-curved';
 			}
@@ -550,6 +543,46 @@ EditorUi = function(editor, container)
 			else
 			{
 				edgeStyleDiv.className = 'geSprite geSprite-orthogonal';
+			}
+
+			// Updates icon for edge shape
+			var edgeShapeDiv = this.toolbar.edgeShapeMenu.getElementsByTagName('div')[0];
+			
+			if (currentEdgeStyle['shape'] == 'link')
+			{
+				edgeShapeDiv.className = 'geSprite geSprite-linkedge';
+			}
+			else if (currentEdgeStyle['shape'] == 'flexArrow')
+			{
+				edgeShapeDiv.className = 'geSprite geSprite-arrow';
+			}
+			else if (currentEdgeStyle['shape'] == 'arrow')
+			{
+				edgeShapeDiv.className = 'geSprite geSprite-simplearrow';
+			}
+			else
+			{
+				edgeShapeDiv.className = 'geSprite geSprite-connection';
+			}
+			
+			// Updates icon for optinal line start shape
+			if (this.toolbar.lineStartMenu != null)
+			{
+				var lineStartDiv = this.toolbar.lineStartMenu.getElementsByTagName('div')[0];
+				
+				lineStartDiv.className = this.getCssClassForMarker('start',
+						currentEdgeStyle['shape'], currentEdgeStyle[mxConstants.STYLE_STARTARROW],
+						mxUtils.getValue(currentEdgeStyle, 'startFill', '0'));
+			}
+
+			// Updates icon for optinal line end shape
+			if (this.toolbar.lineEndMenu != null)
+			{
+				var lineEndDiv = this.toolbar.lineEndMenu.getElementsByTagName('div')[0];
+				
+				lineEndDiv.className = this.getCssClassForMarker('end',
+						currentEdgeStyle['shape'], currentEdgeStyle[mxConstants.STYLE_ENDARROW],
+						mxUtils.getValue(currentEdgeStyle, 'endFill', '0'));
 			}
 		}
 	}));
@@ -713,6 +746,53 @@ EditorUi.prototype.init = function()
 	this.updateActionStates();
 	this.initClipboard();
 	this.initCanvas();
+};
+
+/**
+ * Private helper method.
+ */
+EditorUi.prototype.getCssClassForMarker = function(prefix, shape, marker, fill)
+{
+	var result = '';
+
+	if (shape == 'flexArrow')
+	{
+		result = (marker != null && marker != mxConstants.NONE) ?
+			'geSprite geSprite-' + prefix + 'blocktrans' : 'geSprite geSprite-noarrow';
+	}
+	else
+	{
+		if (marker == mxConstants.ARROW_CLASSIC)
+		{
+			result = (fill == '1') ? 'geSprite geSprite-' + prefix + 'classic' : 'geSprite geSprite-' + prefix + 'classictrans';
+		}
+		else if (marker == mxConstants.ARROW_OPEN)
+		{
+			result = 'geSprite geSprite-' + prefix + 'open';
+		}
+		else if (marker == mxConstants.ARROW_BLOCK)
+		{
+			result = (fill == '1') ? 'geSprite geSprite-' + prefix + 'block' : 'geSprite geSprite-' + prefix + 'blocktrans';
+		}
+		else if (marker == mxConstants.ARROW_OVAL)
+		{
+			result = (fill == '1') ? 'geSprite geSprite-' + prefix + 'oval' : 'geSprite geSprite-' + prefix + 'ovaltrans';
+		}
+		else if (marker == mxConstants.ARROW_DIAMOND)
+		{
+			result = (fill == '1') ? 'geSprite geSprite-' + prefix + 'diamond' : 'geSprite geSprite-' + prefix + 'diamondtrans';
+		}
+		else if (marker == mxConstants.ARROW_DIAMOND_THIN)
+		{
+			result = (fill == '1') ? 'geSprite geSprite-' + prefix + 'thindiamond' : 'geSprite geSprite-' + prefix + 'thindiamondtrans';
+		}
+		else
+		{
+			result = 'geSprite geSprite-noarrow';
+		}
+	}
+
+	return result;
 };
 
 /**
@@ -884,23 +964,29 @@ EditorUi.prototype.initCanvas = function()
 	   	{
 			if (graph.container != null)
 			{
+				var b = (graph.pageVisible) ? graph.view.getBackgroundPageBounds() : graph.getGraphBounds();
 				var tr = graph.view.translate;
 				var s = graph.view.scale;
-				var bounds = (graph.pageVisible) ? graph.view.getBackgroundPageBounds() : graph.getGraphBounds();
-				var pw = bounds.width;
-				var ph = bounds.height;
+				
+				// Normalizes the bounds
+				b.x = b.x / s - tr.x;
+				b.y = b.y / s - tr.y;
+				b.width /= s;
+				b.height /= s;
 				
 				var st = graph.container.scrollTop;
 				var sl = graph.container.scrollLeft;
-				var cw = graph.container.clientWidth - 10;
-				var ch = graph.container.clientHeight - 10;
+				var cw = graph.container.offsetWidth - 14;
+				var ch = graph.container.offsetHeight - 14;
 				
-				var scale = (autoscale) ? Math.max(0.3, Math.min(1, cw / pw * s)) : s;
-				graph.view.scaleAndTranslate(scale, Math.max(0, (cw - pw / ((autoscale) ? s : 1)) / 2 / s) - bounds.x / s + tr.x,
-						Math.max(0, (ch - ph / ((autoscale) ? s : 1)) / 4 / s) - bounds.y / s + tr.y);
+				var ns = (autoscale) ? Math.max(0.3, Math.min(1, cw / b.width)) : s;
+				var dx = Math.max((cw - ns * b.width) / 2, 0) / ns;
+				var dy = Math.max((ch - ns * b.height) / 4, 0) / ns;
 				
-				graph.container.scrollTop = st;
-				graph.container.scrollLeft = sl;
+				graph.view.scaleAndTranslate(ns, dx - b.x, dy - b.y);
+
+				graph.container.scrollTop = st * ns / s;
+				graph.container.scrollLeft = sl * ns/ s;
 			}
 	   	});
 		
@@ -914,8 +1000,7 @@ EditorUi.prototype.initCanvas = function()
 			resize(true);
 		}));
 	   	
-	   	// TODO: Chromeless mode should work with getPreferredPageSize
-	   	// below but there is a clipping issue
+		// Workaround for clipping problem
 		graph.getPreferredPageSize = function(bounds, width, height)
 		{
 			var pages = this.getPageLayout();
@@ -924,6 +1009,52 @@ EditorUi.prototype.initCanvas = function()
 			
 			return new mxRectangle(0, 0, pages.width * size.width * s, pages.height * size.height * s);
 		};
+		
+		// Adds zoom toolbar
+		var zoomInBtn = mxUtils.button('', function(evt)
+		{
+			graph.zoomIn();
+			resize(false);
+			mxEvent.consume(evt);
+		});
+		zoomInBtn.className = 'geSprite geSprite-zoomin';
+		zoomInBtn.setAttribute('title', mxResources.get('zoomIn'));
+		zoomInBtn.style.border = 'none';
+		zoomInBtn.style.margin = '2px';
+		
+		var zoomOutBtn = mxUtils.button('', function(evt)
+		{
+			graph.zoomOut();
+			resize(false);
+			mxEvent.consume(evt);
+		});
+		zoomOutBtn.className = 'geSprite geSprite-zoomout';
+		zoomOutBtn.setAttribute('title', mxResources.get('zoomOut'));
+		zoomOutBtn.style.border = 'none';
+		zoomOutBtn.style.margin = '2px';
+
+		var zoomActualBtn = mxUtils.button('', function(evt)
+		{
+			resize(true);
+			mxEvent.consume(evt);
+		});
+		zoomActualBtn.className = 'geSprite geSprite-actualsize';
+		zoomActualBtn.setAttribute('title', mxResources.get('actualSize'));
+		zoomActualBtn.style.border = 'none';
+		zoomActualBtn.style.margin = '2px';
+		
+		var tb = document.createElement('div');
+		tb.className = 'geToolbarContainer';
+		tb.style.borderRight = '1px solid #e0e0e0';
+		tb.style.padding = '2px';
+		tb.style.left = '0px';
+		tb.style.top = '0px';
+		
+		tb.appendChild(zoomInBtn);
+		tb.appendChild(zoomOutBtn);
+		tb.appendChild(zoomActualBtn);
+		
+		document.body.appendChild(tb);
 	}
 	else if (this.editor.extendCanvas)
 	{
@@ -934,7 +1065,7 @@ EditorUi.prototype.initCanvas = function()
 			
 			return new mxRectangle(0, 0, pages.width * size.width, pages.height * size.height);
 		};
-
+		
 		/**
 		 * Guesses autoTranslate to avoid another repaint (see below).
 		 * Works if only the scale of the graph changes or if pages
@@ -1009,28 +1140,31 @@ EditorUi.prototype.initCanvas = function()
 			}
 		};
 	}
-	
-	mxEvent.addMouseWheelListener(function(evt, up)
+
+	mxEvent.addMouseWheelListener(mxUtils.bind(this, function(evt, up)
 	{
 		if (mxEvent.isAltDown(evt) || graph.panningHandler.isActive())
 		{
-			if (up)
+			if (this.dialogs == null || this.dialogs.length == 0)
 			{
-				graph.zoomIn();
-			}
-			else
-			{
-				graph.zoomOut();
-			}
-			
-			if (resize != null)
-			{
-				resize(false);
+				if (up)
+				{
+					graph.zoomIn();
+				}
+				else
+				{
+					graph.zoomOut();
+				}
+				
+				if (resize != null)
+				{
+					resize(false);
+				}
 			}
 
 			mxEvent.consume(evt);
 		}
-	});
+	}));
 };
 
 /**
@@ -1426,17 +1560,12 @@ EditorUi.prototype.updateActionStates = function()
 	// Updates action states
 	var actions = ['cut', 'copy', 'bold', 'italic', 'underline', 'delete', 'duplicate',
 	               'editStyle', 'editTooltip', 'editLink', 'backgroundColor', 'borderColor',
-	               'toFront', 'toBack', 'lockUnlock', 'editData', 'plain', 'dashed',
-	               'dotted', 'fillColor', 'shadow', 'fontColor', 'formattedText',
-	               'rounded', 'sharp', 'strokeColor'];
+	               'toFront', 'toBack', 'lockUnlock', 'editData', 'solid', 'dashed',
+	               'dotted', 'fillColor', 'gradientColor', 'shadow', 'fontColor',
+	               'formattedText', 'rounded', 'sharp', 'strokeColor'];
 	
 	for (var i = 0; i < actions.length; i++)
 	{
-		if (this.actions.get(actions[i]) == null)
-		{
-			console.log('null', actions[i]);
-		}
-		
 		this.actions.get(actions[i]).setEnabled(selected);
 	}
 	
@@ -1455,7 +1584,7 @@ EditorUi.prototype.updateActionStates = function()
    			graph.getModel().isVertex(graph.getModel().getParent(graph.getSelectionCell())));
 
 	// Updates menu states
-	var menus = ['alignment', 'position', 'spacing', 'gradient', 'layout', 'fontFamily', 'fontSize', 'navigation'];
+	var menus = ['alignment', 'position', 'spacing', 'writingDirection', 'gradient', 'layout', 'fontFamily', 'fontSize', 'navigation'];
 
 	for (var i = 0; i < menus.length; i++)
 	{
@@ -1466,7 +1595,8 @@ EditorUi.prototype.updateActionStates = function()
    	
     this.menus.get('align').setEnabled(graph.getSelectionCount() > 1);
     this.menus.get('distribute').setEnabled(graph.getSelectionCount() > 1);
-    this.menus.get('line').setEnabled(edgeSelected);
+    this.menus.get('connection').setEnabled(edgeSelected);
+    this.menus.get('waypoints').setEnabled(edgeSelected);
     this.menus.get('linestart').setEnabled(edgeSelected);
     this.menus.get('lineend').setEnabled(edgeSelected);
     this.menus.get('linewidth').setEnabled(!graph.isSelectionEmpty());
@@ -1985,7 +2115,7 @@ EditorUi.prototype.extractGraphModelFromEvent = function(evt)
 		
 		if (provider != null)
 		{
-			if (document.documentMode == 11)
+			if (document.documentMode == 10 || document.documentMode == 11)
 			{
 				data = provider.getData('Text');
 			}
@@ -2035,7 +2165,7 @@ EditorUi.prototype.saveFile = function(forceDialog)
 	{
 		var dlg = new FilenameDialog(this, this.editor.getOrCreateFilename(), mxResources.get('save'), mxUtils.bind(this, function(name)
 		{
-			this.save(name, true);
+			this.save(name);
 		}), null, mxUtils.bind(this, function(name)
 		{
 			if (name != null && name.length > 0)

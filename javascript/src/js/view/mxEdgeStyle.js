@@ -866,8 +866,6 @@ var mxEdgeStyle =
 				}
 			}
 		}
-		
-		return result;
 	},
 	
 	orthBuffer: 10,

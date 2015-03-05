@@ -303,7 +303,7 @@ mxOutline.prototype.init = function(container)
 	
 	if (this.enabled)
 	{
-		this.sizer.node.style.cursor = 'pointer';
+		this.sizer.node.style.cursor = 'nwse-resize';
 	}
 	
 	mxEvent.addGestureListeners(this.sizer.node, handler);

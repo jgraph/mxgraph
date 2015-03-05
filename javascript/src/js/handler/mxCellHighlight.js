@@ -140,18 +140,7 @@ mxCellHighlight.prototype.drawHighlight = function()
  */
 mxCellHighlight.prototype.createShape = function()
 {
-	var key = this.state.style[mxConstants.STYLE_SHAPE];
-	var stencil = mxStencilRegistry.getStencil(key);
-	var shape = null;
-	
-	if (stencil != null)
-	{
-		shape = new mxShape(stencil);
-	}
-	else
-	{
-		shape = new this.state.shape.constructor();
-	}
+	var shape = this.graph.cellRenderer.createShape(this.state);
 	
 	shape.scale = this.state.view.scale;
 	shape.outline = true;

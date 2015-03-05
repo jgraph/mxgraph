@@ -992,8 +992,9 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	 * Draws the given text.
 	 */
 	public void text(double x, double y, double w, double h, String str, String align, String valign, boolean wrap, String format,
-			String overflow, boolean clip, double rotation)
+			String overflow, boolean clip, double rotation, String textDirection)
 	{
+		// TODO: Add support for text direction
 		if (format != null && format.equals("html"))
 		{
 			htmlText(x, y, w, h, str, align, valign, wrap, format, overflow, clip, rotation);

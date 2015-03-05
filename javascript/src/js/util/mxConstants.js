@@ -534,6 +534,15 @@
 	DEFAULT_FONTSIZE: 11,
 
 	/**
+	 * Variable: DEFAULT_TEXT_DIRECTION
+	 * 
+	 * Defines the default value for the <STYLE_TEXT_DIRECTION> if no value is
+	 * defined for it in the style. Default value is an empty string which means
+	 * the default system setting is used and no direction is set.
+	 */
+	DEFAULT_TEXT_DIRECTION: '',
+
+	/**
 	 * Variable: LINE_HEIGHT
 	 * 
 	 * Defines the default line height for text labels. Default is 1.2.
@@ -733,6 +742,18 @@
 	 * numeric and the possible range is 0-100. Value is <code>textOpacity</code>.
 	 */
 	STYLE_TEXT_OPACITY: 'textOpacity',
+
+	/**
+	 * Variable: STYLE_TEXT_DIRECTION
+	 * 
+	 * Defines the key for the text direction style. Possible values are
+	 * <code>TEXT_DIRECTION_DEFAULT, TEXT_DIRECTION_AUTO, TEXT_DIRECTION_LTR</code>
+	 * and <code>TEXT_DIRECTION_RTL</code>. Value is <code>textDirection</code>.
+	 * The default value for the style is defined in <DEFAULT_TEXT_DIRECTION>.
+	 * It is used is no value is defined for this key in a given style. This is
+	 * an experimental style that is currently ignored in the backends.
+	 */
+	STYLE_TEXT_DIRECTION: 'textDirection',
 
 	/**
 	 * Variable: STYLE_OVERFLOW
@@ -1723,6 +1744,14 @@
 	SHAPE_ARROW: 'arrow',
 	
 	/**
+	 * Variable: SHAPE_ARROW_CONNECTOR
+	 * 
+	 * Name under which <mxArrowConnector> is registered in <mxCellRenderer>.
+	 * Default is arrowConnector.
+	 */
+	SHAPE_ARROW_CONNECTOR: 'arrowConnector',
+	
+	/**
 	 * Variable: SHAPE_LABEL
 	 * 
 	 * Name under which <mxLabel> is registered in <mxCellRenderer>.
@@ -1897,6 +1926,38 @@
 	 * Constant for direction west. Default is west.
 	 */
 	DIRECTION_WEST: 'west',
+
+	/**
+	 * Variable: TEXT_DIRECTION_DEFAULT
+	 * 
+	 * Constant for text direction default. Default is an empty string. Use
+	 * this value to use the default text direction of the operating system. 
+	 */
+	TEXT_DIRECTION_DEFAULT: '',
+
+	/**
+	 * Variable: TEXT_DIRECTION_AUTO
+	 * 
+	 * Constant for text direction automatic. Default is auto. Use this value
+	 * to find the direction for a given text with <mxText.getAutoDirection>. 
+	 */
+	TEXT_DIRECTION_AUTO: 'auto',
+
+	/**
+	 * Variable: TEXT_DIRECTION_LTR
+	 * 
+	 * Constant for text direction left to right. Default is ltr. Use this
+	 * value for left to right text direction.
+	 */
+	TEXT_DIRECTION_LTR: 'ltr',
+
+	/**
+	 * Variable: TEXT_DIRECTION_RTL
+	 * 
+	 * Constant for text direction right to left. Default is rtl. Use this
+	 * value for right to left text direction.
+	 */
+	TEXT_DIRECTION_RTL: 'rtl',
 
 	/**
 	 * Variable: DIRECTION_MASK_NONE

@@ -120,6 +120,7 @@ mxCellRenderer.registerShape(mxConstants.SHAPE_HEXAGON, mxHexagon);
 mxCellRenderer.registerShape(mxConstants.SHAPE_CLOUD, mxCloud);
 mxCellRenderer.registerShape(mxConstants.SHAPE_LINE, mxLine);
 mxCellRenderer.registerShape(mxConstants.SHAPE_ARROW, mxArrow);
+mxCellRenderer.registerShape(mxConstants.SHAPE_ARROW_CONNECTOR, mxArrowConnector);
 mxCellRenderer.registerShape(mxConstants.SHAPE_DOUBLE_ELLIPSE, mxDoubleEllipse);
 mxCellRenderer.registerShape(mxConstants.SHAPE_SWIMLANE, mxSwimlane);
 mxCellRenderer.registerShape(mxConstants.SHAPE_IMAGE, mxImageShape);
@@ -145,7 +146,7 @@ mxCellRenderer.prototype.initializeShape = function(state)
 /**
  * Function: createShape
  * 
- * Creates the shape for the given cell state.
+ * Creates and returns the shape for the given cell state.
  * 
  * Parameters:
  * 
@@ -153,6 +154,8 @@ mxCellRenderer.prototype.initializeShape = function(state)
  */
 mxCellRenderer.prototype.createShape = function(state)
 {
+	var shape = null;
+	
 	if (state.style != null)
 	{
 		// Checks if there is a stencil for the name and creates
@@ -161,16 +164,16 @@ mxCellRenderer.prototype.createShape = function(state)
 		
 		if (stencil != null)
 		{
-			state.shape = new mxShape(stencil);
+			shape = new mxShape(stencil);
 		}
 		else
 		{
 			var ctor = this.getShapeConstructor(state);
-			state.shape = new ctor();
+			shape = new ctor();
 		}
-		
-		state.shape.antiAlias = this.antiAlias;
 	}
+	
+	return shape;
 };
 
 /**
@@ -362,7 +365,8 @@ mxCellRenderer.prototype.createLabel = function(state, value)
 				graph.isWrapping(state.cell) && graph.isHtmlLabel(state.cell),
 				graph.isLabelClipped(state.cell),
 				state.style[mxConstants.STYLE_OVERFLOW],
-				state.style[mxConstants.STYLE_LABEL_PADDING]);
+				state.style[mxConstants.STYLE_LABEL_PADDING],
+				mxUtils.getValue(state.style, mxConstants.STYLE_TEXT_DIRECTION, mxConstants.DEFAULT_TEXT_DIRECTION));
 		state.text.opacity = mxUtils.getValue(state.style, mxConstants.STYLE_TEXT_OPACITY, 100);
 		state.text.dialect = (isForceHtml) ? mxConstants.DIALECT_STRICTHTML : state.view.graph.dialect;
 		state.text.style = state.style;

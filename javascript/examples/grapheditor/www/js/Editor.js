@@ -199,96 +199,106 @@ Editor.prototype.resetGraph = function()
  */
 Editor.prototype.setGraphXml = function(node)
 {
-	var dec = new mxCodec(node.ownerDocument);
-
-	if (node.nodeName == 'mxGraphModel')
+	if (node != null)
 	{
-		this.graph.model.beginUpdate();
-		
-		try
+		var dec = new mxCodec(node.ownerDocument);
+	
+		if (node.nodeName == 'mxGraphModel')
 		{
-			this.graph.model.clear();
-			this.graph.view.scale = 1;
-			this.graph.gridEnabled = node.getAttribute('grid') != '0';
-			this.graph.gridSize = parseFloat(node.getAttribute('gridSize')) || mxGraph.prototype.gridSize;
-			this.graph.graphHandler.guidesEnabled = node.getAttribute('guides') != '0';
-			this.graph.setTooltips(node.getAttribute('tooltips') != '0');
-			this.graph.setConnectable(node.getAttribute('connect') != '0');
-			this.graph.foldingEnabled = node.getAttribute('fold') != '0';
+			this.graph.model.beginUpdate();
+			
+			try
+			{
+				this.graph.model.clear();
+				this.graph.view.scale = 1;
+				this.graph.gridEnabled = node.getAttribute('grid') != '0';
+				this.graph.gridSize = parseFloat(node.getAttribute('gridSize')) || mxGraph.prototype.gridSize;
+				this.graph.graphHandler.guidesEnabled = node.getAttribute('guides') != '0';
+				this.graph.setTooltips(node.getAttribute('tooltips') != '0');
+				this.graph.setConnectable(node.getAttribute('connect') != '0');
+				this.graph.foldingEnabled = node.getAttribute('fold') != '0';
+		
+				var ps = node.getAttribute('pageScale');
+				
+				if (ps != null)
+				{
+					this.graph.pageScale = ps;
+				}
+				else
+				{
+					this.graph.pageScale = mxGraph.prototype.pageScale;
+				}
+				
+				var pv = node.getAttribute('page');
+				
+				if (pv != null)
+				{
+					this.graph.pageVisible = (pv == '1');
+				}
+				else
+				{
+					this.graph.pageVisible = this.defaultPageVisible;
+				}
+				
+				this.graph.pageBreaksVisible = this.graph.pageVisible; 
+				this.graph.preferPageSize = this.graph.pageBreaksVisible;
+				
+				var pw = node.getAttribute('pageWidth');
+				var ph = node.getAttribute('pageHeight');
+				
+				if (pw != null && ph != null)
+				{
+					this.graph.pageFormat = new mxRectangle(0, 0, parseFloat(pw), parseFloat(ph));
+				}
+		
+				// Loads the persistent state settings
+				var bg = node.getAttribute('background');
+				
+				if (bg != null && bg.length > 0)
+				{
+					this.graph.background = bg;
+				}
+				else
+				{
+					this.graph.background = null;
+				}
+		
+				this.updateGraphComponents();
+				dec.decode(node, this.graph.getModel());
+			}
+			finally
+			{
+				this.graph.model.endUpdate();
+			}
 	
-			var ps = node.getAttribute('pageScale');
+			this.fireEvent(new mxEventObject('resetGraphView'));
+		}
+		else if (node.nodeName == 'root')
+		{
+			this.resetGraph();
 			
-			if (ps != null)
-			{
-				this.graph.pageScale = ps;
-			}
-			else
-			{
-				this.graph.pageScale = mxGraph.prototype.pageScale;
-			}
+			// Workaround for invalid XML output in Firefox 20 due to bug in mxUtils.getXml
+			var wrapper = dec.document.createElement('mxGraphModel');
+			wrapper.appendChild(node);
 			
-			var pv = node.getAttribute('page');
-			
-			if (pv != null)
-			{
-				this.graph.pageVisible = (pv == '1');
-			}
-			else
-			{
-				this.graph.pageVisible = this.defaultPageVisible;
-			}
-			
-			this.graph.pageBreaksVisible = this.graph.pageVisible; 
-			this.graph.preferPageSize = this.graph.pageBreaksVisible;
-			
-			var pw = node.getAttribute('pageWidth');
-			var ph = node.getAttribute('pageHeight');
-			
-			if (pw != null && ph != null)
-			{
-				this.graph.pageFormat = new mxRectangle(0, 0, parseFloat(pw), parseFloat(ph));
-			}
-	
-			// Loads the persistent state settings
-			var bg = node.getAttribute('background');
-			
-			if (bg != null && bg.length > 0)
-			{
-				this.graph.background = bg;
-			}
-			else
-			{
-				this.graph.background = null;
-			}
-	
+			dec.decode(wrapper, this.graph.getModel());
 			this.updateGraphComponents();
-			dec.decode(node, this.graph.getModel());
+			this.fireEvent(new mxEventObject('resetGraphView'));
 		}
-		finally
+		else
 		{
-			this.graph.model.endUpdate();
+			throw { 
+			    message: mxResources.get('cannotOpenFile'), 
+			    node: node,
+			    toString: function() { return this.message; }
+			};
 		}
-
-		this.fireEvent(new mxEventObject('resetGraphView'));
-	}
-	else if (node.nodeName == 'root')
-	{
-		this.resetGraph();
-		
-		// Workaround for invalid XML output in Firefox 20 due to bug in mxUtils.getXml
-		var wrapper = dec.document.createElement('mxGraphModel');
-		wrapper.appendChild(node);
-		
-		dec.decode(wrapper, this.graph.getModel());
-		this.updateGraphComponents();
-		this.fireEvent(new mxEventObject('resetGraphView'));
 	}
 	else
 	{
-		throw { 
-		    message: mxResources.get('cannotOpenFile'), 
-		    toString: function() { return this.message; }
-		};
+		this.resetGraph();
+		this.graph.model.clear();
+		this.fireEvent(new mxEventObject('resetGraphView'));
 	}
 };
 
@@ -340,7 +350,7 @@ Editor.prototype.updateGraphComponents = function()
 		if (graph.view.backgroundPageShape != null)
 		{
 			graph.view.backgroundPageShape.fill = bg;
-			graph.view.backgroundPageShape.reconfigure();
+			graph.view.backgroundPageShape.redraw();
 		}
 
 		// Transparent.gif is a workaround for focus repaint problems in IE and clipping issues in webkit

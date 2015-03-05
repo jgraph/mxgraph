@@ -1071,8 +1071,9 @@ mxXmlCanvas2D.prototype.close = function()
  * overflow - Specifies the overflow behaviour of the label. Requires w > 0 and/or h > 0.
  * clip - Boolean that specifies if the label should be clipped. Requires w > 0 and/or h > 0.
  * rotation - Number that specifies the angle of the rotation around the anchor point of the text.
+ * dir - Optional string that specifies the text direction. Possible values are rtl and lrt.
  */
-mxXmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, format, overflow, clip, rotation)
+mxXmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, format, overflow, clip, rotation, dir)
 {
 	if (this.textEnabled && str != null)
 	{
@@ -1120,6 +1121,11 @@ mxXmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 		if (rotation != null)
 		{
 			elem.setAttribute('rotation', rotation);
+		}
+		
+		if (dir != null)
+		{
+			elem.setAttribute('dir', dir);
 		}
 		
 		this.root.appendChild(elem);

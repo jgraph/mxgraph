@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.1.2.2.
+	 * Current version is 3.1.3.0.
 	 */
-	VERSION: '3.1.2.2',
+	VERSION: '3.1.3.0',
 
 	/**
 	 * Variable: IS_IE
@@ -87,15 +87,17 @@ var mxClient =
 	 *
 	 * True if the current browser is Opera.
 	 */
-  	IS_OP: navigator.userAgent.indexOf('Opera/') >= 0,
+  	IS_OP: navigator.userAgent.indexOf('Opera/') >= 0 ||
+  		navigator.userAgent.indexOf('OPR/') >= 0,
 
 	/**
 	 * Variable: IS_OT
 	 *
-	 * True if -o-transform is available as a CSS style. This is the case
-	 * for Opera browsers that use Presto/2.5 and later.
+	 * True if -o-transform is available as a CSS style, ie for Opera browsers
+	 * based on a Presto engine with version 2.5 or later.
 	 */
-  	IS_OT: navigator.userAgent.indexOf('Presto/2.4.') < 0 &&
+  	IS_OT: navigator.userAgent.indexOf('Presto/') >= 0 &&
+  		navigator.userAgent.indexOf('Presto/2.4.') < 0 &&
   		navigator.userAgent.indexOf('Presto/2.3.') < 0 &&
   		navigator.userAgent.indexOf('Presto/2.2.') < 0 &&
   		navigator.userAgent.indexOf('Presto/2.1.') < 0 &&
@@ -628,6 +630,7 @@ mxClient.include(mxClient.basePath+'/js/shape/mxDoubleEllipse.js');
 mxClient.include(mxClient.basePath+'/js/shape/mxRhombus.js');
 mxClient.include(mxClient.basePath+'/js/shape/mxPolyline.js');
 mxClient.include(mxClient.basePath+'/js/shape/mxArrow.js');
+mxClient.include(mxClient.basePath+'/js/shape/mxArrowConnector.js');
 mxClient.include(mxClient.basePath+'/js/shape/mxText.js');
 mxClient.include(mxClient.basePath+'/js/shape/mxTriangle.js');
 mxClient.include(mxClient.basePath+'/js/shape/mxHexagon.js');

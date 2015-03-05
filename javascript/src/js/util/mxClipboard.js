@@ -165,8 +165,8 @@ var mxClipboard =
 	 * Function: copy
 	 * 
 	 * Copies the given array of <mxCells> from the specified
-	 * graph to <cells>.Returns the original array of cells that has
-	 * been cloned.
+	 * graph to <cells>. Returns the original array of cells that has
+	 * been cloned. Descendants of cells in the array are ignored.
 	 * 
 	 * Parameters:
 	 * 
@@ -176,7 +176,7 @@ var mxClipboard =
 	copy: function(graph, cells)
 	{
 		cells = cells || graph.getSelectionCells();
-		var result = graph.getExportableCells(cells);
+		var result = graph.getExportableCells(graph.model.getTopmostCells(cells));
 		mxClipboard.insertCount = 1;
 		mxClipboard.setCells(graph.cloneCells(result));
 

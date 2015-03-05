@@ -7350,19 +7350,23 @@ mxGraph.prototype.center = function(horizontal, vertical)
 	var cw = this.container.clientWidth;
 	var ch = this.container.clientHeight;
 	var bounds = this.getGraphBounds();
+
 	var t = this.view.translate;
-	bounds.x -= t.x;
-	bounds.y -= t.y;
-	
+	var s = this.view.scale;
+
 	var dx = (horizontal) ? cw - bounds.width : 0;
 	var dy = (vertical) ? ch - bounds.height : 0;
 	
 	if (!hasScrollbars)
 	{
-		this.view.setTranslate(Math.floor(dx / 2 - bounds.x), Math.floor(dy / 2 - bounds.y));
+		this.view.setTranslate((horizontal) ? Math.floor(t.x - bounds.x / s + dx / (2 * s)) : t.x,
+				(vertical) ? Math.floor(t.y - bounds.y / s + dy / (2 * s)) : t.y);
 	}
 	else
 	{
+		bounds.x -= t.x;
+		bounds.y -= t.y;
+	
 		var sw = this.container.scrollWidth;
 		var sh = this.container.scrollHeight;
 		
@@ -11110,7 +11114,7 @@ mxGraph.prototype.getEdgesBetween = function(source, target, directed)
  * 
  * Returns the child vertices and edges of the given parent that are contained
  * in the given rectangle. The result is added to the optional result array,
- * which is returned. If no result arrayis specified then a new array is
+ * which is returned. If no result array is specified then a new array is
  * created and returned.
  * 
  * Parameters:

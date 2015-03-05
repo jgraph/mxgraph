@@ -175,14 +175,19 @@ Menus.prototype.init = function()
 		menu.addSeparator(parent);
 		this.promptChange(menu, mxResources.get('custom') + '...', '(px)', '1', mxConstants.STYLE_STROKEWIDTH, parent);
 	})));
-	this.put('line', new Menu(mxUtils.bind(this, function(menu, parent)
+	this.put('connection', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
-		this.edgeStyleChange(menu, mxResources.get('straight'), [mxConstants.STYLE_SHAPE, mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, 'noEdgeStyle'], [null, null, null, null], null, parent, true);
-		this.edgeStyleChange(menu, mxResources.get('orthogonal'), [mxConstants.STYLE_SHAPE, mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, 'noEdgeStyle'], [null, 'orthogonalEdgeStyle', null, null], null, parent, true);
-		this.edgeStyleChange(menu, mxResources.get('curved'), [mxConstants.STYLE_SHAPE, mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, 'noEdgeStyle'], [null, 'orthogonalEdgeStyle', '1', null], null, parent, true);
-		this.edgeStyleChange(menu, mxResources.get('entityRelation'), [mxConstants.STYLE_SHAPE, mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, 'noEdgeStyle'], [null, 'entityRelationEdgeStyle', null, null], null, parent, true);
-		this.edgeStyleChange(menu, mxResources.get('arrow'), [mxConstants.STYLE_SHAPE, mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, 'noEdgeStyle'], ['arrow', null, null, null], null, parent, true);
-		this.edgeStyleChange(menu, mxResources.get('link'), [mxConstants.STYLE_SHAPE, mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, 'noEdgeStyle'], ['link', null, null, null], null, parent, true);
+		this.edgeStyleChange(menu, mxResources.get('line'), [mxConstants.STYLE_SHAPE, 'width'], [null, null], null, parent, true);
+		this.edgeStyleChange(menu, mxResources.get('link'), [mxConstants.STYLE_SHAPE, 'width'], ['link', null], null, parent, true);
+		this.edgeStyleChange(menu, mxResources.get('arrow'), [mxConstants.STYLE_SHAPE, 'width'], ['flexArrow', null], null, parent, true);
+		this.edgeStyleChange(menu, mxResources.get('simpleArrow'), [mxConstants.STYLE_SHAPE, 'width'], ['arrow', null], null, parent, true);
+	})));
+	this.put('waypoints', new Menu(mxUtils.bind(this, function(menu, parent)
+	{
+		this.edgeStyleChange(menu, mxResources.get('straight'), [mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, mxConstants.STYLE_NOEDGESTYLE], [null, null, null], null, parent, true);
+		this.edgeStyleChange(menu, mxResources.get('orthogonal'), [mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, mxConstants.STYLE_NOEDGESTYLE], ['orthogonalEdgeStyle', null, null], null, parent, true);
+		this.edgeStyleChange(menu, mxResources.get('curved'), [mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, mxConstants.STYLE_NOEDGESTYLE], ['orthogonalEdgeStyle', '1', null], null, parent, true);
+		this.edgeStyleChange(menu, mxResources.get('entityRelation'), [mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, mxConstants.STYLE_NOEDGESTYLE], ['entityRelationEdgeStyle', null, null], null, parent, true);
 	})));
 	this.put('lineend', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -240,10 +245,11 @@ Menus.prototype.init = function()
 		this.addSubmenu('gradient', menu, parent);
 		this.addMenuItems(menu, ['image', '-', 'shadow'], parent);
 		this.promptChange(menu, mxResources.get('opacity'), '(%)', '100', mxConstants.STYLE_OPACITY, parent, this.editorUi.actions.get('fillColor').enabled);
-		this.addMenuItems(menu, ['-', 'plain', 'dashed', 'dotted', '-', 'sharp', 'rounded', 'curved', '-', 'strokeColor'], parent);
+		this.addMenuItems(menu, ['-', 'solid', 'dashed', 'dotted', '-', 'sharp', 'rounded', 'curved', '-', 'strokeColor'], parent);
 		this.addSubmenu('linewidth', menu, parent);
 		this.addMenuItems(menu, ['-'], parent);
-		this.addSubmenu('line', menu, parent);
+		this.addSubmenu('connection', menu, parent);
+		this.addSubmenu('waypoints', menu, parent);
 		this.addMenuItems(menu, ['-'], parent);
 		this.addSubmenu('linestart', menu, parent);
 		this.addSubmenu('lineend', menu, parent);
@@ -269,9 +275,11 @@ Menus.prototype.init = function()
 	    this.addSubmenu('alignment', menu, parent);
 	    this.addSubmenu('position', menu, parent);
 		this.addSubmenu('spacing', menu, parent);
-	    menu.addSeparator(parent);
+		menu.addSeparator(parent);
+		this.addSubmenu('writingDirection', menu, parent);
 		this.addMenuItem(menu, 'formattedText', parent);
 		this.addMenuItem(menu, 'wordWrap', parent);
+		menu.addSeparator(parent);
 		this.promptChange(menu, mxResources.get('textOpacity'), '(%)', '100', mxConstants.STYLE_TEXT_OPACITY, parent, enabled);
 		menu.addItem(mxResources.get('hide'), null, function() { graph.toggleCellStyles(mxConstants.STYLE_NOLABEL, false); }, parent, null, enabled);
 	})));
@@ -304,6 +312,12 @@ Menus.prototype.init = function()
 		menu.addSeparator(parent);
 		this.styleChange(menu, mxResources.get('center'), [mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.STYLE_LABEL_POSITION, mxConstants.STYLE_ALIGN, mxConstants.STYLE_VERTICAL_ALIGN],
 			[mxConstants.ALIGN_MIDDLE, mxConstants.ALIGN_CENTER, mxConstants.ALIGN_CENTER, mxConstants.ALIGN_MIDDLE], null, parent);
+	})));
+	this.put('writingDirection', new Menu(mxUtils.bind(this, function(menu, parent)
+	{
+		this.styleChange(menu, mxResources.get('automatic'), [mxConstants.STYLE_TEXT_DIRECTION], [null], null, parent);
+		this.styleChange(menu, mxResources.get('leftToRight'), [mxConstants.STYLE_TEXT_DIRECTION], [mxConstants.TEXT_DIRECTION_LTR], null, parent);
+		this.styleChange(menu, mxResources.get('rightToLeft'), [mxConstants.STYLE_TEXT_DIRECTION], [mxConstants.TEXT_DIRECTION_RTL], null, parent);
 	})));
 	this.put('direction', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -915,10 +929,10 @@ Menus.prototype.pickColor = function(key, cmd, defaultValue)
 /**
  * Adds a handler for showing a menu in the given element.
  */
-Menus.prototype.toggleStyle = function(key)
+Menus.prototype.toggleStyle = function(key, defaultValue)
 {
 	var graph = this.editorUi.editor.graph;
-	var value = graph.toggleCellStyles(key);
+	var value = graph.toggleCellStyles(key, defaultValue);
 	this.editorUi.fireEvent(new mxEventObject('styleChanged', 'keys', [key], 'values', [value],
 			'cells', graph.getSelectionCells()));
 };
@@ -1030,8 +1044,7 @@ Menus.prototype.createPopupMenu = function(menu, cell, evt)
 			this.addMenuItems(menu, ['toFront', 'toBack', '-'], null, evt);
 	
 			if (graph.getModel().isEdge(cell) && mxUtils.getValue(state.style, mxConstants.STYLE_EDGE, null) != 'entityRelationEdgeStyle' &&
-				mxUtils.getValue(state.style, mxConstants.STYLE_SHAPE, null) != 'arrow' &&
-				mxUtils.getValue(state.style, mxConstants.STYLE_SHAPE, null) != 'link')
+				mxUtils.getValue(state.style, mxConstants.STYLE_SHAPE, null) != 'arrow')
 			{
 				var handler = graph.selectionCellsHandler.getHandler(cell);
 				var isWaypoint = false;

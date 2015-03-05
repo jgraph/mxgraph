@@ -231,7 +231,7 @@ namespace com.mxgraph
         // plain text and html for HTML markup.
         /// </summary>
         void Text(double x, double y, double w, double h, string str, string align, string valign,
-                bool wrap, string format, string overflow, bool clip, double rotation);
+                bool wrap, string format, string overflow, bool clip, double rotation, string dir);
 
         /// <summary>
         /// Begins a new path.

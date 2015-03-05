@@ -1071,6 +1071,32 @@ mxConnectionHandler.prototype.convertWaypoint = function(point)
 };
 
 /**
+ * Function: snapToPreview
+ * 
+ * Called to snap the given point to the current preview. This snaps to the
+ * first point of the preview if alt is not pressed.
+ */
+mxConnectionHandler.prototype.snapToPreview = function(me, point)
+{
+	if (!mxEvent.isAltDown(me.getEvent()) && this.shape != null &&
+		this.shape.points != null && this.shape.points.length > 0)
+	{
+		var tol = this.graph.gridSize * this.graph.view.scale / 2;	
+		var tmp = this.shape.points[0];
+		
+		if (Math.abs(tmp.x - me.getGraphX()) < tol)
+		{
+			point.x = tmp.x;
+		}
+		
+		if (Math.abs(tmp.y - me.getGraphY()) < tol)
+		{
+			point.y = tmp.y;
+		}
+	}	
+};
+
+/**
  * Function: mouseMove
  * 
  * Handles the event by updating the preview edge or by highlighting
@@ -1092,13 +1118,14 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 		var tr = view.translate;
 		var point = new mxPoint(me.getGraphX(), me.getGraphY());
 		this.error = null;
-		
+
 		if (this.graph.isGridEnabledEvent(me.getEvent()))
 		{
 			point = new mxPoint((this.graph.snap(point.x / scale - tr.x) + tr.x) * scale,
 				(this.graph.snap(point.y / scale - tr.y) + tr.y) * scale);
 		}
 		
+		this.snapToPreview(me, point);
 		this.currentPoint = point;
 		
 		if (this.first != null || (this.isEnabled() && this.graph.isEnabled()))

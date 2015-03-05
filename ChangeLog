@@ -1,3 +1,45 @@
+05-MAR-2015: 3.1.3.0
+
+- Invokes turn for click on rotate handle in grapheditor [JavaScript]
+- Adds mxVertexHandler.rotateClick hook for clicks on rotate handle [JavaScript]
+- Changes sizer cursor in mxOutline to nwse-resize [JavaScript]
+- Changes mxCellRenderer.createShape to return shape instead of updating state [JavaScript]
+- Fixes zoom buttons for chromeless mode in grapheditor
+- Adds mxgraph-js with package.json for automated builds [JavaScript]
+- Adds mxConnectionHandler.snapToPreview [JavaScript]
+- Adds mxEdgeHandler.isAddVirtualBendEvent, mxEdge/VertexHandler.isCustomHandleEvent [JavaScript]
+- Simplified edge entries for general sidebar in grapheditor
+- Adds simple arrow, vertical text option, edge shape/style toolbar in grapheditor
+- Adds mxArrowConnector shape, mxConstants.SHAPE_ARROW_CONNECTOR [JavaScript]
+- Fixes bounding box in mxArrow [JavaScript]
+- Disables zoom with mousewheel if dialogs are open in grapheditor
+- Adds zoom controls for chromeless mode in grapheditor
+- Fixes mxGraph.center for certain scales [JavaScript]
+- Adds mxUtils.ptLineDist [JavaScript]
+- Adds glass effect to current style in grapheditor
+- Fixes gradient color action state in grapheditor
+- Adds arrows to advanced sidebar in grapheditor
+- Adds connections to general sidebar in grapheditor
+- Removes edge styles from toolbar in grapheditor
+- Separates waypoints and connection in style panel and menu in grapheditor
+- Adds edge width option in arrange panel in grapheditor
+- Fixes connection points for tee and corner shape in grapheditor
+- Adds rounded support for single- and doubleArrow vertices in grapheditor
+- Disables splitting edges with edges in grapheditor
+- Inverts order of lineend/-start options for format panel in grapheditor
+- Adds support for custom handles in mxEdgeHandler [JavaScript]
+- Adds rounding in mxGraphHandler.getPreviewBounds [JavaScript]
+- Adds mxEdgeHandler.straightRemoveEnabled switch [JavaScript]
+- Adds mxMouseEvent argument in mxEdgeHandler.getPreviewPoints [JavaScript]
+- Adds text direction in all canvas implementations [Java,JavaScript,Dotnet]
+- Adds mxConstants.STYLE_TEXT_DIRECTION for writing direction (experimental) [JavaScript]
+- Fixes mxClient.IS_OP for newer versions of Opera [JavaScript]
+- Ignores children of selected parents in mxClipboard.copy [JavaScript] 
+- Adds recursive rubberband selection in grapheditor
+- Adds decimal values in mxVertexHandler.roundAngle [JavaScript]
+- Adds mxEdgeHandler.prototype.virtualBendOpacity [JavaScript]
+- Fixes possible NPE in mxVertexHandler.redrawHandles [JavaScript]
+
 09-FEB-2015: 3.1.2.2
 
 - mxText.updateBoundingBox sets unrotatedBoundingBox [JavaScript] 

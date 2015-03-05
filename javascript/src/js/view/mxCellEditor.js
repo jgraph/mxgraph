@@ -533,6 +533,27 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 		this.textarea.style.overflow = 'auto';
 		this.textarea.style.outline = 'none';
 		this.textarea.style.color = color;
+		this.textarea.style.lineHeight = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(size * mxConstants.LINE_HEIGHT) + 'px' : mxConstants.LINE_HEIGHT;
+		
+		var dir = this.textDirection = mxUtils.getValue(state.style, mxConstants.STYLE_TEXT_DIRECTION, mxConstants.DEFAULT_TEXT_DIRECTION);
+		
+		if (dir == mxConstants.TEXT_DIRECTION_AUTO)
+		{
+			if (state != null && state.text != null && state.text.dialect != mxConstants.DIALECT_STRICTHTML &&
+				!mxUtils.isNode(state.text.value))
+			{
+				dir = state.text.getAutoDirection();
+			}
+		}
+		
+		if (dir == mxConstants.TEXT_DIRECTION_LTR || dir == mxConstants.TEXT_DIRECTION_RTL)
+		{
+			this.textarea.setAttribute('dir', dir);
+		}
+		else
+		{
+			this.textarea.removeAttribute('dir');
+		}
 		
 		// Specifies the bounds of the editor box
 		var bounds = this.getEditorBounds(state);

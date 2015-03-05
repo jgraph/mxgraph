@@ -5,10 +5,8 @@ import java.util.Map;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.xml.sax.Attributes;
 
 import com.mxgraph.canvas.mxICanvas2D;
-import com.mxgraph.reader.mxSaxOutputHandler.IElementHandler;
 
 /**
  *
@@ -380,7 +378,8 @@ public class mxDomOutputParser
 						elt.getAttribute("format"),
 						elt.getAttribute("overflow"),
 						getValue(elt, "clip", "").equals("1"),
-						Double.parseDouble(getValue(elt, "rotation", "0")));
+						Double.parseDouble(getValue(elt, "rotation", "0")),
+						elt.getAttribute("dir"));
 			}
 		});
 

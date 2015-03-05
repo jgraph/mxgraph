@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.1.2.2.
+	 * Current version is 3.1.3.0.
 	 */
-	VERSION: '3.1.2.2',
+	VERSION: '3.1.3.0',
 
 	/**
 	 * Variable: IS_IE
@@ -87,15 +87,17 @@ var mxClient =
 	 *
 	 * True if the current browser is Opera.
 	 */
-  	IS_OP: navigator.userAgent.indexOf('Opera/') >= 0,
+  	IS_OP: navigator.userAgent.indexOf('Opera/') >= 0 ||
+  		navigator.userAgent.indexOf('OPR/') >= 0,
 
 	/**
 	 * Variable: IS_OT
 	 *
-	 * True if -o-transform is available as a CSS style. This is the case
-	 * for Opera browsers that use Presto/2.5 and later.
+	 * True if -o-transform is available as a CSS style, ie for Opera browsers
+	 * based on a Presto engine with version 2.5 or later.
 	 */
-  	IS_OT: navigator.userAgent.indexOf('Presto/2.4.') < 0 &&
+  	IS_OT: navigator.userAgent.indexOf('Presto/') >= 0 &&
+  		navigator.userAgent.indexOf('Presto/2.4.') < 0 &&
   		navigator.userAgent.indexOf('Presto/2.3.') < 0 &&
   		navigator.userAgent.indexOf('Presto/2.2.') < 0 &&
   		navigator.userAgent.indexOf('Presto/2.1.') < 0 &&
@@ -2077,7 +2079,7 @@ var mxUtils =
 	{
 		var prefix = null;
 		
-		if (mxClient.IS_OP && mxClient.IS_OT)
+		if (mxClient.IS_OT)
 		{
 			prefix = 'O';
 		}
@@ -4508,9 +4510,11 @@ var mxUtils =
 	},
 	
 	/**
-	 * Function: ptSeqDistSq
+	 * Function: ptSegDistSq
 	 * 
-	 * Returns the square distance between a segment and a point.
+	 * Returns the square distance between a segment and a point. To get the
+	 * distance between a point and a line (with infinite length) use
+	 * <mxUtils.ptLineDist>.
 	 * 
 	 * Parameters:
 	 * 
@@ -4560,6 +4564,28 @@ var mxUtils =
 		}
 		
 		return lenSq;
+    },
+	
+	/**
+	 * Function: ptLineDist
+	 * 
+	 * Returns the distance between a line defined by two points and a point.
+	 * To get the distance between a point and a segment (with a specific
+	 * length) use <mxUtils.ptSeqDistSq>.
+	 * 
+	 * Parameters:
+	 * 
+	 * x1 - X-coordinate of point 1 of the line.
+	 * y1 - Y-coordinate of point 1 of the line.
+	 * x2 - X-coordinate of point 1 of the line.
+	 * y2 - Y-coordinate of point 1 of the line.
+	 * px - X-coordinate of the point.
+	 * py - Y-coordinate of the point.
+	 */
+    ptLineDist: function(x1, y1, x2, y2, px, py)
+    {
+		return Math.abs((y2 - y1) * px - (x2 - x1) * py + x2 * y1 - y2 * x1) /
+			Math.sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1));
     },
     	
 	/**
@@ -6490,6 +6516,15 @@ var mxUtils =
 	DEFAULT_FONTSIZE: 11,
 
 	/**
+	 * Variable: DEFAULT_TEXT_DIRECTION
+	 * 
+	 * Defines the default value for the <STYLE_TEXT_DIRECTION> if no value is
+	 * defined for it in the style. Default value is an empty string which means
+	 * the default system setting is used and no direction is set.
+	 */
+	DEFAULT_TEXT_DIRECTION: '',
+
+	/**
 	 * Variable: LINE_HEIGHT
 	 * 
 	 * Defines the default line height for text labels. Default is 1.2.
@@ -6689,6 +6724,18 @@ var mxUtils =
 	 * numeric and the possible range is 0-100. Value is <code>textOpacity</code>.
 	 */
 	STYLE_TEXT_OPACITY: 'textOpacity',
+
+	/**
+	 * Variable: STYLE_TEXT_DIRECTION
+	 * 
+	 * Defines the key for the text direction style. Possible values are
+	 * <code>TEXT_DIRECTION_DEFAULT, TEXT_DIRECTION_AUTO, TEXT_DIRECTION_LTR</code>
+	 * and <code>TEXT_DIRECTION_RTL</code>. Value is <code>textDirection</code>.
+	 * The default value for the style is defined in <DEFAULT_TEXT_DIRECTION>.
+	 * It is used is no value is defined for this key in a given style. This is
+	 * an experimental style that is currently ignored in the backends.
+	 */
+	STYLE_TEXT_DIRECTION: 'textDirection',
 
 	/**
 	 * Variable: STYLE_OVERFLOW
@@ -7679,6 +7726,14 @@ var mxUtils =
 	SHAPE_ARROW: 'arrow',
 	
 	/**
+	 * Variable: SHAPE_ARROW_CONNECTOR
+	 * 
+	 * Name under which <mxArrowConnector> is registered in <mxCellRenderer>.
+	 * Default is arrowConnector.
+	 */
+	SHAPE_ARROW_CONNECTOR: 'arrowConnector',
+	
+	/**
 	 * Variable: SHAPE_LABEL
 	 * 
 	 * Name under which <mxLabel> is registered in <mxCellRenderer>.
@@ -7853,6 +7908,38 @@ var mxUtils =
 	 * Constant for direction west. Default is west.
 	 */
 	DIRECTION_WEST: 'west',
+
+	/**
+	 * Variable: TEXT_DIRECTION_DEFAULT
+	 * 
+	 * Constant for text direction default. Default is an empty string. Use
+	 * this value to use the default text direction of the operating system. 
+	 */
+	TEXT_DIRECTION_DEFAULT: '',
+
+	/**
+	 * Variable: TEXT_DIRECTION_AUTO
+	 * 
+	 * Constant for text direction automatic. Default is auto. Use this value
+	 * to find the direction for a given text with <mxText.getAutoDirection>. 
+	 */
+	TEXT_DIRECTION_AUTO: 'auto',
+
+	/**
+	 * Variable: TEXT_DIRECTION_LTR
+	 * 
+	 * Constant for text direction left to right. Default is ltr. Use this
+	 * value for left to right text direction.
+	 */
+	TEXT_DIRECTION_LTR: 'ltr',
+
+	/**
+	 * Variable: TEXT_DIRECTION_RTL
+	 * 
+	 * Constant for text direction right to left. Default is rtl. Use this
+	 * value for right to left text direction.
+	 */
+	TEXT_DIRECTION_RTL: 'rtl',
 
 	/**
 	 * Variable: DIRECTION_MASK_NONE
@@ -9217,6 +9304,17 @@ var mxEvent =
 	 */
 	CUSTOM_HANDLE: -100,
 	
+	/**
+	 * Variable: VIRTUAL_HANDLE
+	 * 
+	 * Start index for the virtual handles in an mxMouseEvent. This should be a
+	 * negative value and is the start index which is decremented for each
+	 * virtual handle. Default is -100000. This assumes that there are no more
+	 * than VIRTUAL_HANDLE - CUSTOM_HANDLE custom handles.
+	 * 
+	 */
+	VIRTUAL_HANDLE: -100000,
+	
 	//
 	// Event names
 	//
@@ -10516,8 +10614,8 @@ var mxClipboard =
 	 * Function: copy
 	 * 
 	 * Copies the given array of <mxCells> from the specified
-	 * graph to <cells>.Returns the original array of cells that has
-	 * been cloned.
+	 * graph to <cells>. Returns the original array of cells that has
+	 * been cloned. Descendants of cells in the array are ignored.
 	 * 
 	 * Parameters:
 	 * 
@@ -10527,7 +10625,7 @@ var mxClipboard =
 	copy: function(graph, cells)
 	{
 		cells = cells || graph.getSelectionCells();
-		var result = graph.getExportableCells(cells);
+		var result = graph.getExportableCells(graph.model.getTopmostCells(cells));
 		mxClipboard.insertCount = 1;
 		mxClipboard.setCells(graph.cloneCells(result));
 
@@ -17232,8 +17330,9 @@ mxXmlCanvas2D.prototype.close = function()
  * overflow - Specifies the overflow behaviour of the label. Requires w > 0 and/or h > 0.
  * clip - Boolean that specifies if the label should be clipped. Requires w > 0 and/or h > 0.
  * rotation - Number that specifies the angle of the rotation around the anchor point of the text.
+ * dir - Optional string that specifies the text direction. Possible values are rtl and lrt.
  */
-mxXmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, format, overflow, clip, rotation)
+mxXmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, format, overflow, clip, rotation, dir)
 {
 	if (this.textEnabled && str != null)
 	{
@@ -17281,6 +17380,11 @@ mxXmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 		if (rotation != null)
 		{
 			elem.setAttribute('rotation', rotation);
+		}
+		
+		if (dir != null)
+		{
+			elem.setAttribute('dir', dir);
 		}
 		
 		this.root.appendChild(elem);
@@ -18087,7 +18191,7 @@ mxSvgCanvas2D.prototype.createTolerance = function(node)
 	// other browsers need a stroke color to perform the hit-detection but
 	// do not ignore the visibility attribute. Side-effect is that Opera's
 	// hit detection for horizontal/vertical edges seems to ignore the tol.
-	tol.setAttribute('stroke', (mxClient.IS_OP) ? 'none' : 'white');
+	tol.setAttribute('stroke', (mxClient.IS_OT) ? 'none' : 'white');
 	
 	return tol;
 };
@@ -18533,7 +18637,7 @@ mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, overflow
  * foreignObject is supported and <foEnabled> is true. (This means IE9 and later
  * does currently not support HTML text as part of shapes.)
  */
-mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, format, overflow, clip, rotation)
+mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, format, overflow, clip, rotation, dir)
 {
 	if (this.textEnabled && str != null)
 	{
@@ -18592,6 +18696,10 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			if (div == null)
 			{
 				return;
+			}
+			else if (dir != null)
+			{
+				div.setAttribute('dir', dir);
 			}
 
 			group.appendChild(fo);
@@ -18803,11 +18911,25 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			// FIXME: LINE_HEIGHT not ideal for all text sizes, fix for export
 			if (valign == mxConstants.ALIGN_MIDDLE)
 			{
-				dy -= h / 2 - 1;
+				dy -= h / 2 - 2;
 			}
 			else if (valign == mxConstants.ALIGN_BOTTOM)
 			{
-				dy -= h - 2;
+				dy -= h - 3;
+			}
+			
+			// Workaround for rendering offsets
+			// TODO: Check if export needs these fixes, too
+			//if (this.root.ownerDocument == document)
+			{
+				if (!mxClient.IS_OP && mxClient.IS_GC && mxClient.IS_MAC)
+				{
+					dy += 1;
+				}
+				else if (mxClient.IS_FF && mxClient.IS_WIN)
+				{
+					dy -= 1;
+				}
 			}
 			
 			y += dy;
@@ -18854,7 +18976,7 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 		}
 		else
 		{
-			this.plainText(x, y, w, h, str, align, valign, wrap, overflow, clip, rotation);
+			this.plainText(x, y, w, h, str, align, valign, wrap, overflow, clip, rotation, dir);
 		}
 	}
 };
@@ -18902,7 +19024,7 @@ mxSvgCanvas2D.prototype.createClip = function(x, y, w, h)
  * Paints the given text. Possible values for format are empty string for
  * plain text and html for HTML markup.
  */
-mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wrap, overflow, clip, rotation)
+mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wrap, overflow, clip, rotation, dir)
 {
 	rotation = (rotation != null) ? rotation : 0;
 	var s = this.state;
@@ -18910,11 +19032,16 @@ mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 	var node = this.createElement('g');
 	var tr = s.transform || '';
 	this.updateFont(node);
-
+	
 	// Non-rotated text
 	if (rotation != 0)
 	{
 		tr += 'rotate(' + rotation  + ',' + this.format(x * s.scale) + ',' + this.format(y * s.scale) + ')';
+	}
+	
+	if (dir != null)
+	{
+		node.setAttribute('direction', dir);
 	}
 
 	if (clip && w > 0 && h > 0)
@@ -19896,7 +20023,7 @@ mxVmlCanvas2D.prototype.createDiv = function(str, align, valign, overflow)
  * text and html for HTML markup. Clipping, text background and border are not
  * supported for plain text in VML.
  */
-mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, format, overflow, clip, rotation)
+mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, format, overflow, clip, rotation, dir)
 {
 	if (this.textEnabled && str != null)
 	{
@@ -19916,6 +20043,12 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			{
 				x += s.dx;
 				y += s.dy;
+				
+				// Workaround for rendering offsets
+				if (valign == mxConstants.ALIGN_TOP)
+				{
+					y -= 1;
+				}
 			}
 			else
 			{
@@ -19947,6 +20080,11 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 
 			var div = this.createDiv(str, align, valign, overflow);
 			var inner = this.createElement('div');
+			
+			if (dir != null)
+			{
+				div.setAttribute('dir', dir);
+			}
 
 			if (wrap && w > 0)
 			{
@@ -20189,7 +20327,7 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 		}
 		else
 		{
-			this.plainText(x, y, w, h, mxUtils.htmlEntities(str, false), align, valign, wrap, format, overflow, clip, rotation);
+			this.plainText(x, y, w, h, mxUtils.htmlEntities(str, false), align, valign, wrap, format, overflow, clip, rotation, dir);
 		}
 	}
 };
@@ -20199,8 +20337,9 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
  * 
  * Paints the outline of the current path.
  */
-mxVmlCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wrap, format, overflow, clip, rotation)
+mxVmlCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wrap, format, overflow, clip, rotation, dir)
 {
+	// TextDirection is ignored since this code is not used (format is always HTML in the text function)
 	var s = this.state;
 	x = (x + s.dx) * s.scale;
 	y = (y + s.dy) * s.scale;
@@ -23631,6 +23770,19 @@ function mxArrow(points, fill, stroke, strokewidth, arrowWidth, spacing, endSize
 mxUtils.extend(mxArrow, mxShape);
 
 /**
+ * Function: augmentBoundingBox
+ *
+ * Augments the bounding box with the edge width and markers.
+ */
+mxArrow.prototype.augmentBoundingBox = function(bbox)
+{
+	mxShape.prototype.augmentBoundingBox.apply(this, arguments);
+	
+	var w = Math.max(this.arrowWidth, this.endSize);
+	bbox.grow((w / 2 + this.strokewidth) * this.scale);
+};
+
+/**
  * Function: paintEdgeShape
  * 
  * Paints the line shape.
@@ -23682,6 +23834,463 @@ mxArrow.prototype.paintEdgeShape = function(c, pts)
 	c.close();
 
 	c.fillAndStroke();
+};
+/**
+ * Copyright (c) 2006-2015, JGraph Ltd
+ */
+/**
+ * Class: mxArrowConnector
+ *
+ * Extends <mxShape> to implement an new rounded arrow shape with support for
+ * waypoints and double arrows. (The shape is used to represent edges, not
+ * vertices.) This shape is registered under <mxConstants.SHAPE_ARROW_CONNECTOR>
+ * in <mxCellRenderer>.
+ * 
+ * Constructor: mxArrowConnector
+ *
+ * Constructs a new arrow shape.
+ * 
+ * Parameters:
+ * 
+ * points - Array of <mxPoints> that define the points. This is stored in
+ * <mxShape.points>.
+ * fill - String that defines the fill color. This is stored in <fill>.
+ * stroke - String that defines the stroke color. This is stored in <stroke>.
+ * strokewidth - Optional integer that defines the stroke width. Default is
+ * 1. This is stored in <strokewidth>.
+ * arrowWidth - Optional integer that defines the arrow width. Default is
+ * <mxConstants.ARROW_WIDTH>. This is stored in <arrowWidth>.
+ * spacing - Optional integer that defines the spacing between the arrow shape
+ * and its endpoints. Default is <mxConstants.ARROW_SPACING>. This is stored in
+ * <spacing>.
+ * endSize - Optional integer that defines the size of the arrowhead. Default
+ * is <mxConstants.ARROW_SIZE>. This is stored in <endSize>.
+ */
+function mxArrowConnector(points, fill, stroke, strokewidth, arrowWidth, spacing, endSize)
+{
+	mxShape.call(this);
+	this.points = points;
+	this.fill = fill;
+	this.stroke = stroke;
+	this.strokewidth = (strokewidth != null) ? strokewidth : 1;
+	this.arrowWidth = (arrowWidth != null) ? arrowWidth : mxConstants.ARROW_WIDTH;
+	this.spacing = (spacing != null) ? spacing : mxConstants.ARROW_SPACING;
+	this.startSize = mxConstants.ARROW_SIZE / 5;
+	this.endSize = mxConstants.ARROW_SIZE / 5;
+};
+
+/**
+ * Extends mxShape.
+ */
+mxUtils.extend(mxArrowConnector, mxShape);
+
+/**
+ * Overrides apply to get smooth transition from default start- and endsize.
+ */
+mxArrowConnector.prototype.apply = function(state)
+{
+	mxShape.prototype.apply.apply(this, arguments);
+
+	if (this.style != null)
+	{
+		this.startSize = mxUtils.getNumber(this.style, mxConstants.STYLE_STARTSIZE, mxConstants.ARROW_SIZE / 5) * 3;
+		this.endSize = mxUtils.getNumber(this.style, mxConstants.STYLE_ENDSIZE, mxConstants.ARROW_SIZE / 5) * 3;
+	}
+};
+
+/**
+ * Function: augmentBoundingBox
+ *
+ * Augments the bounding box with the edge width and markers.
+ */
+mxArrowConnector.prototype.augmentBoundingBox = function(bbox)
+{
+	mxShape.prototype.augmentBoundingBox.apply(this, arguments);
+	
+	var w = this.getEdgeWidth();
+	
+	if (this.isMarkerStart())
+	{
+		w = Math.max(w, this.getStartArrowWidth());
+	}
+	
+	if (this.isMarkerEnd())
+	{
+		w = Math.max(w, this.getEndArrowWidth());
+	}
+	
+	bbox.grow((w / 2 + this.strokewidth) * this.scale);
+};
+
+/**
+ * Function: paintEdgeShape
+ * 
+ * Paints the line shape.
+ */
+mxArrowConnector.prototype.paintEdgeShape = function(c, pts)
+{
+	// Geometry of arrow
+	var strokeWidth = this.strokewidth;
+	
+	if (this.outline)
+	{
+		strokeWidth = Math.max(1, mxUtils.getNumber(this.style, mxConstants.STYLE_STROKEWIDTH, this.strokewidth));
+	}
+	
+	var startWidth = this.getStartArrowWidth() + strokeWidth;
+	var endWidth = this.getEndArrowWidth() + strokeWidth;
+	var edgeWidth = this.outline ? this.getEdgeWidth() + strokeWidth : this.getEdgeWidth();
+	var openEnded = this.isOpenEnded();
+	var markerStart = this.isMarkerStart();
+	var markerEnd = this.isMarkerEnd();
+	var spacing = (openEnded) ? 0 : this.spacing + strokeWidth / 2;
+	var startSize = this.startSize + strokeWidth;
+	var endSize = this.endSize + strokeWidth;
+	var isRounded = this.isArrowRounded();
+	
+	// Base vector (between first points)
+	var pe = pts[pts.length - 1];
+
+	// Finds first non-overlapping point
+	var i0 = 1;
+	
+	while (i0 < pts.length - 1 && pts[i0].x == pts[0].x && pts[i0].y == pts[0].y)
+	{
+		i0++;
+	}
+	
+	var dx = pts[i0].x - pts[0].x;
+	var dy = pts[i0].y - pts[0].y;
+	var dist = Math.sqrt(dx * dx + dy * dy);
+	
+	if (dist == 0)
+	{
+		return;
+	}
+	
+	// Computes the norm and the inverse norm
+	var nx = dx / dist;
+	var nx2, nx1 = nx;
+	var ny = dy / dist;
+	var ny2, ny1 = ny;
+	var orthx = edgeWidth * ny;
+	var orthy = -edgeWidth * nx;
+	
+	// Stores the inbound function calls in reverse order in fns
+	var fns = [];
+	
+	if (isRounded)
+	{
+		c.setLineJoin('round');
+	}
+	else if (pts.length > 2)
+	{
+		// Only mitre if there are waypoints
+		c.setMiterLimit(1.42);
+	}
+
+	c.begin();
+
+	var startNx = nx;
+	var startNy = ny;
+
+	if (markerStart && !openEnded)
+	{
+		this.paintMarker(c, pts[0].x, pts[0].y, nx, ny, startSize, startWidth, edgeWidth, spacing, true);
+	}
+	else
+	{
+		var outStartX = pts[0].x + orthx / 2 + spacing * nx;
+		var outStartY = pts[0].y + orthy / 2 + spacing * ny;
+		var inEndX = pts[0].x - orthx / 2 + spacing * nx;
+		var inEndY = pts[0].y - orthy / 2 + spacing * ny;
+		
+		if (openEnded)
+		{
+			c.moveTo(outStartX, outStartY);
+			
+			fns.push(function()
+			{
+				c.lineTo(inEndX, inEndY);
+			});
+		}
+		else
+		{
+			c.moveTo(inEndX, inEndY);
+			c.lineTo(outStartX, outStartY);
+		}
+	}
+	
+	var dx1 = 0;
+	var dy1 = 0;
+	var dist1 = 0;
+
+	for (var i = 0; i < pts.length - 2; i++)
+	{
+		// Work out in which direction the line is bending
+		var pos = mxUtils.relativeCcw(pts[i].x, pts[i].y, pts[i+1].x, pts[i+1].y, pts[i+2].x, pts[i+2].y);
+
+		dx1 = pts[i+2].x - pts[i+1].x;
+		dy1 = pts[i+2].y - pts[i+1].y;
+
+		dist1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
+		
+		nx1 = dx1 / dist1;
+		ny1 = dy1 / dist1;
+		
+		var tmp1 = nx * nx1 + ny * ny1;
+		tmp = Math.max(Math.sqrt((tmp1 + 1) / 2), 0.04);
+		
+		// Work out the normal orthogonal to the line through the control point and the edge sides intersection
+		nx2 = (nx + nx1);
+		ny2 = (ny + ny1);
+
+		var dist2 = Math.sqrt(nx2 * nx2 + ny2 * ny2);
+		nx2 = nx2 / dist2;
+		ny2 = ny2 / dist2;
+		
+		// Higher strokewidths require a larger minimum bend, 0.35 covers all but the most extreme cases
+		var strokeWidthFactor = Math.max(tmp, Math.min(this.strokewidth / 200 + 0.04, 0.35));
+		var angleFactor = (pos != 0 && isRounded) ? Math.max(0.1, strokeWidthFactor) : Math.max(tmp, 0.06);
+		
+		var outX = pts[i+1].x + ny2 * edgeWidth / 2 / angleFactor;
+		var outY = pts[i+1].y - nx2 * edgeWidth / 2 / angleFactor;
+		var inX = pts[i+1].x - ny2 * edgeWidth / 2 / angleFactor;
+		var inY = pts[i+1].y + nx2 * edgeWidth / 2 / angleFactor;
+		
+		if (pos == 0 || !isRounded)
+		{
+			// If the two segments are aligned, or if we're not drawing curved sections between segments
+			// just draw straight to the intersection point
+			c.lineTo(outX, outY);
+			
+			(function(x, y)
+			{
+				fns.push(function()
+				{
+					c.lineTo(x, y);
+				});
+			})(inX, inY);
+		}
+		else if (pos == -1)
+		{
+			var c1x = inX + ny * edgeWidth;
+			var c1y = inY - nx * edgeWidth;
+			var c2x = inX + ny1 * edgeWidth;
+			var c2y = inY - nx1 * edgeWidth;
+			c.lineTo(c1x, c1y);
+			c.quadTo(outX, outY, c2x, c2y);
+			
+			(function(x, y)
+			{
+				fns.push(function()
+				{
+					c.lineTo(x, y);
+				});
+			})(inX, inY);
+		}
+		else
+		{
+			c.lineTo(outX, outY);
+			
+			(function(x, y)
+			{
+				var c1x = outX - ny * edgeWidth;
+				var c1y = outY + nx * edgeWidth;
+				var c2x = outX - ny1 * edgeWidth;
+				var c2y = outY + nx1 * edgeWidth;
+				
+				fns.push(function()
+				{
+					c.quadTo(x, y, c1x, c1y);
+				});
+				fns.push(function()
+				{
+					c.lineTo(c2x, c2y);
+				});
+			})(inX, inY);
+		}
+		
+		nx = nx1;
+		ny = ny1;
+	}
+	
+	orthx = edgeWidth * ny1;
+	orthy = - edgeWidth * nx1;
+
+	if (markerEnd && !openEnded)
+	{
+		this.paintMarker(c, pe.x, pe.y, -nx, -ny, endSize, endWidth, edgeWidth, spacing, false);
+	}
+	else
+	{
+		c.lineTo(pe.x - spacing * nx1 + orthx / 2, pe.y - spacing * ny1 + orthy / 2);
+		
+		var inStartX = pe.x - spacing * nx1 - orthx / 2;
+		var inStartY = pe.y - spacing * ny1 - orthy / 2;
+
+		if (!openEnded)
+		{
+			c.lineTo(inStartX, inStartY);
+		}
+		else
+		{
+			c.moveTo(inStartX, inStartY);
+			
+			fns.splice(0, 0, function()
+			{
+				c.moveTo(inStartX, inStartY);
+			});
+		}
+	}
+	
+	for (var i = fns.length - 1; i >= 0; i--)
+	{
+		fns[i]();
+	}
+
+	if (openEnded)
+	{
+		c.end();
+		c.stroke();
+	}
+	else
+	{
+		c.close();
+		c.fillAndStroke();
+	}
+	
+	// Workaround for shadow on top of base arrow
+	c.setShadow(false);
+	
+	// Need to redraw the markers without the low miter limit
+	c.setMiterLimit(4);
+	
+	if (isRounded)
+	{
+		c.setLineJoin('flat');
+	}
+
+	if (pts.length > 2)
+	{
+		// Only to repaint markers if no waypoints
+		// Need to redraw the markers without the low miter limit
+		c.setMiterLimit(4);
+		if (markerStart && !openEnded)
+		{
+			c.begin();
+			this.paintMarker(c, pts[0].x, pts[0].y, startNx, startNy, startSize, startWidth, edgeWidth, spacing, true);
+			c.stroke();
+			c.end();
+		}
+		
+		if (markerEnd && !openEnded)
+		{
+			c.begin();
+			this.paintMarker(c, pe.x, pe.y, -nx, -ny, endSize, endWidth, edgeWidth, spacing, true);
+			c.stroke();
+			c.end();
+		}
+	}
+};
+
+/**
+ * Function: paintEdgeShape
+ * 
+ * Paints the line shape.
+ */
+mxArrowConnector.prototype.paintMarker = function(c, ptX, ptY, nx, ny, size, arrowWidth, edgeWidth, spacing, initialMove)
+{
+	var widthArrowRatio = edgeWidth / arrowWidth;
+	var orthx = edgeWidth * ny / 2;
+	var orthy = -edgeWidth * nx / 2;
+
+	var spaceX = (spacing + size) * nx;
+	var spaceY = (spacing + size) * ny;
+
+	if (initialMove)
+	{
+		c.moveTo(ptX - orthx + spaceX, ptY - orthy + spaceY);
+	}
+	else
+	{
+		c.lineTo(ptX - orthx + spaceX, ptY - orthy + spaceY);
+	}
+
+	c.lineTo(ptX - orthx / widthArrowRatio + spaceX, ptY - orthy / widthArrowRatio + spaceY);
+	c.lineTo(ptX + spacing * nx, ptY + spacing * ny);
+	c.lineTo(ptX + orthx / widthArrowRatio + spaceX, ptY + orthy / widthArrowRatio + spaceY);
+	c.lineTo(ptX + orthx + spaceX, ptY + orthy + spaceY);
+}
+
+/**
+ * Function: isArrowRounded
+ * 
+ * Returns wether the arrow is rounded
+ */
+mxArrowConnector.prototype.isArrowRounded = function()
+{
+	return this.isRounded;
+};
+
+/**
+ * Function: getStartArrowWidth
+ * 
+ * Returns the width of the start arrow
+ */
+mxArrowConnector.prototype.getStartArrowWidth = function()
+{
+	return mxConstants.ARROW_WIDTH;
+};
+
+/**
+ * Function: getEndArrowWidth
+ * 
+ * Returns the width of the end arrow
+ */
+mxArrowConnector.prototype.getEndArrowWidth = function()
+{
+	return mxConstants.ARROW_WIDTH;
+};
+
+/**
+ * Function: getEdgeWidth
+ * 
+ * Returns the width of the body of the edge
+ */
+mxArrowConnector.prototype.getEdgeWidth = function()
+{
+	return mxConstants.ARROW_WIDTH / 3;
+};
+
+/**
+ * Function: isOpenEnded
+ * 
+ * Returns whether the ends of the shape are drawn
+ */
+mxArrowConnector.prototype.isOpenEnded = function()
+{
+	return false;
+};
+
+/**
+ * Function: isMarkerStart
+ * 
+ * Returns whether the start marker is drawn
+ */
+mxArrowConnector.prototype.isMarkerStart = function()
+{
+	return (mxUtils.getValue(this.style, mxConstants.STYLE_STARTARROW, mxConstants.NONE) != mxConstants.NONE);
+};
+
+/**
+ * Function: isMarkerEnd
+ * 
+ * Returns whether the end marker is drawn
+ */
+mxArrowConnector.prototype.isMarkerEnd = function()
+{
+	return (mxUtils.getValue(this.style, mxConstants.STYLE_ENDARROW, mxConstants.NONE) != mxConstants.NONE);
 };
 /**
  * Copyright (c) 2006-2013, JGraph Ltd
@@ -23743,7 +24352,7 @@ mxArrow.prototype.paintEdgeShape = function(c, pts)
 function mxText(value, bounds, align, valign, color,
 	family,	size, fontStyle, spacing, spacingTop, spacingRight,
 	spacingBottom, spacingLeft, horizontal, background, border,
-	wrap, clipped, overflow, labelPadding)
+	wrap, clipped, overflow, labelPadding, textDirection)
 {
 	mxShape.call(this);
 	this.value = value;
@@ -23766,6 +24375,7 @@ function mxText(value, bounds, align, valign, color,
 	this.clipped = (clipped != null) ? clipped : false;
 	this.overflow = (overflow != null) ? overflow : 'visible';
 	this.labelPadding = (labelPadding != null) ? labelPadding : 0;
+	this.textDirection = textDirection;
 	this.rotation = 0;
 	this.updateMargin();
 };
@@ -23919,8 +24529,27 @@ mxText.prototype.apply = function(state)
 		this.horizontal = mxUtils.getValue(this.style, mxConstants.STYLE_HORIZONTAL, this.horizontal);
 		this.background = mxUtils.getValue(this.style, mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, this.background);
 		this.border = mxUtils.getValue(this.style, mxConstants.STYLE_LABEL_BORDERCOLOR, this.border);
+		this.textDirection = mxUtils.getValue(this.style, mxConstants.STYLE_TEXT_DIRECTION, mxConstants.DEFAULT_TEXT_DIRECTION);
 		this.updateMargin();
 	}
+};
+
+/**
+ * Function: getAutoDirection
+ * 
+ * Used to determine the automatic text direction. Returns
+ * <mxConstants.TEXT_DIRECTION_LTR> or <mxConstants.TEXT_DIRECTION_RTL>
+ * depending on the contents of <value>. This is not invoked for HTML, wrapped
+ * content or if <value> is a DOM node.
+ */
+mxText.prototype.getAutoDirection = function()
+{
+	// Looks for strong (directional) characters
+	var tmp = /[A-Za-z\u05d0-\u065f\u066a-\u06ef\u06fa-\u07ff\ufb1d-\ufdff\ufe70-\ufefc]/.exec(this.value);
+	
+	// Returns the direction defined by the character
+	return (tmp != null && tmp.length > 0 && tmp[0] > 'z') ?
+		mxConstants.TEXT_DIRECTION_RTL : mxConstants.TEXT_DIRECTION_LTR;
 };
 
 /**
@@ -24175,8 +24804,20 @@ mxText.prototype.paint = function(c)
 	val = (!mxUtils.isNode(this.value) && this.replaceLinefeeds && fmt == 'html') ?
 		val.replace(/\n/g, '<br/>') : val;
 		
+	var dir = this.textDirection;
+
+	if (dir == mxConstants.TEXT_DIRECTION_AUTO && !realHtml)
+	{
+		dir = this.getAutoDirection();
+	}
+	
+	if (dir != mxConstants.TEXT_DIRECTION_LTR && dir != mxConstants.TEXT_DIRECTION_RTL)
+	{
+		dir = null;
+	}
+		
 	c.text(x, y, w, h, val, this.align, this.valign, this.wrap, fmt, this.overflow,
-		this.clipped, this.getTextRotation());
+		this.clipped, this.getTextRotation(), dir);
 };
 
 /**
@@ -24235,9 +24876,55 @@ mxText.prototype.updateHtmlTransform = function()
 		mxUtils.setPrefixedStyle(style, 'transform', 'scale(' + this.scale + ')' +
 			'translate(' + (dx * 100) + '%' + ',' + (dy * 100) + '%)');
 	}
+	
+	// Workaround for rendering offsets
+	var dy = 0;
+	
+	if (document.documentMode >= 10 && this.valign != mxConstants.ALIGN_TOP)
+	{
+		dy += 1;
+	}
+	else if (document.documentMode == 9 && this.valign == mxConstants.ALIGN_BOTTOM)
+	{
+		dy += 1;
+	}
+	else if (mxClient.IS_MAC && !mxClient.IS_OP && mxClient.IS_GC)
+	{
+		if (mxClient.IS_MAC)
+		{
+			if (this.valign == mxConstants.ALIGN_BOTTOM)
+			{
+				dy += 2;
+			}
+			else
+			{
+				dy += 1;
+			}
+		}
+		else if (this.valign == mxConstants.ALIGN_BOTTOM)
+		{
+			dy += 1;
+		}
+	}
+	else if (mxClient.IS_MAC && mxClient.IS_FF)
+	{
+		if (this.valign == mxConstants.ALIGN_BOTTOM)
+		{
+			dy += 2;
+		}
+		else if (this.valign == mxConstants.ALIGN_MIDDLE)
+		{
+			dy += 1;
+		}
+	}
+	else if (!mxClient.IS_MAC && (mxClient.IS_GC || mxClient.IS_FF) &&
+			this.valign == mxConstants.ALIGN_BOTTOM) // includes Opera
+	{
+		dy += 1;
+	}
 
 	style.left = Math.round(this.bounds.x) + 'px';
-	style.top = Math.round(this.bounds.y) + 'px';
+	style.top = Math.round(this.bounds.y + dy) + 'px';
 	
 	if (this.opacity < 100)
 	{
@@ -24445,9 +25132,28 @@ mxText.prototype.updateHtmlFilter = function()
 		}
 	}
 	
+	// Workaround for rendering offsets
+	var dy = 0;
+	
+	if (mxClient.IS_QUIRKS)
+	{
+		if (this.valign == mxConstants.ALIGN_TOP)
+		{
+			dy -= 1;
+		}
+		else if (this.valign == mxConstants.ALIGN_BOTTOM)
+		{
+			dy += 2;
+		}
+		else
+		{
+			dy += 1;
+		}
+	}
+
 	style.zoom = s;
 	style.left = Math.round(this.bounds.x + left_fix - w / 2) + 'px';
-	style.top = Math.round(this.bounds.y + top_fix - h / 2) + 'px';
+	style.top = Math.round(this.bounds.y + top_fix - h / 2 + dy) + 'px';
 };
 
 /**
@@ -24510,6 +25216,28 @@ mxText.prototype.updateValue = function()
 		}
 
 		this.node.innerHTML = val;
+		
+		// Sets text direction
+		var divs = this.node.getElementsByTagName('div');
+		
+		if (divs.length > 0)
+		{
+			var dir = this.textDirection;
+
+			if (dir == mxConstants.TEXT_DIRECTION_AUTO && this.dialect != mxConstants.DIALECT_STRICTHTML)
+			{
+				dir = this.getAutoDirection();
+			}
+			
+			if (dir == mxConstants.TEXT_DIRECTION_LTR || dir == mxConstants.TEXT_DIRECTION_RTL)
+			{
+				divs[divs.length - 1].setAttribute('dir', dir);
+			}
+			else
+			{
+				divs[divs.length - 1].removeAttribute('dir');
+			}
+		}
 	}
 };
 
@@ -44032,6 +44760,27 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 		this.textarea.style.overflow = 'auto';
 		this.textarea.style.outline = 'none';
 		this.textarea.style.color = color;
+		this.textarea.style.lineHeight = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(size * mxConstants.LINE_HEIGHT) + 'px' : mxConstants.LINE_HEIGHT;
+		
+		var dir = this.textDirection = mxUtils.getValue(state.style, mxConstants.STYLE_TEXT_DIRECTION, mxConstants.DEFAULT_TEXT_DIRECTION);
+		
+		if (dir == mxConstants.TEXT_DIRECTION_AUTO)
+		{
+			if (state != null && state.text != null && state.text.dialect != mxConstants.DIALECT_STRICTHTML &&
+				!mxUtils.isNode(state.text.value))
+			{
+				dir = state.text.getAutoDirection();
+			}
+		}
+		
+		if (dir == mxConstants.TEXT_DIRECTION_LTR || dir == mxConstants.TEXT_DIRECTION_RTL)
+		{
+			this.textarea.setAttribute('dir', dir);
+		}
+		else
+		{
+			this.textarea.removeAttribute('dir');
+		}
 		
 		// Specifies the bounds of the editor box
 		var bounds = this.getEditorBounds(state);
@@ -44507,6 +45256,7 @@ mxCellRenderer.registerShape(mxConstants.SHAPE_HEXAGON, mxHexagon);
 mxCellRenderer.registerShape(mxConstants.SHAPE_CLOUD, mxCloud);
 mxCellRenderer.registerShape(mxConstants.SHAPE_LINE, mxLine);
 mxCellRenderer.registerShape(mxConstants.SHAPE_ARROW, mxArrow);
+mxCellRenderer.registerShape(mxConstants.SHAPE_ARROW_CONNECTOR, mxArrowConnector);
 mxCellRenderer.registerShape(mxConstants.SHAPE_DOUBLE_ELLIPSE, mxDoubleEllipse);
 mxCellRenderer.registerShape(mxConstants.SHAPE_SWIMLANE, mxSwimlane);
 mxCellRenderer.registerShape(mxConstants.SHAPE_IMAGE, mxImageShape);
@@ -44532,7 +45282,7 @@ mxCellRenderer.prototype.initializeShape = function(state)
 /**
  * Function: createShape
  * 
- * Creates the shape for the given cell state.
+ * Creates and returns the shape for the given cell state.
  * 
  * Parameters:
  * 
@@ -44540,6 +45290,8 @@ mxCellRenderer.prototype.initializeShape = function(state)
  */
 mxCellRenderer.prototype.createShape = function(state)
 {
+	var shape = null;
+	
 	if (state.style != null)
 	{
 		// Checks if there is a stencil for the name and creates
@@ -44548,16 +45300,16 @@ mxCellRenderer.prototype.createShape = function(state)
 		
 		if (stencil != null)
 		{
-			state.shape = new mxShape(stencil);
+			shape = new mxShape(stencil);
 		}
 		else
 		{
 			var ctor = this.getShapeConstructor(state);
-			state.shape = new ctor();
+			shape = new ctor();
 		}
-		
-		state.shape.antiAlias = this.antiAlias;
 	}
+	
+	return shape;
 };
 
 /**
@@ -44749,7 +45501,8 @@ mxCellRenderer.prototype.createLabel = function(state, value)
 				graph.isWrapping(state.cell) && graph.isHtmlLabel(state.cell),
 				graph.isLabelClipped(state.cell),
 				state.style[mxConstants.STYLE_OVERFLOW],
-				state.style[mxConstants.STYLE_LABEL_PADDING]);
+				state.style[mxConstants.STYLE_LABEL_PADDING],
+				mxUtils.getValue(state.style, mxConstants.STYLE_TEXT_DIRECTION, mxConstants.DEFAULT_TEXT_DIRECTION));
 		state.text.opacity = mxUtils.getValue(state.style, mxConstants.STYLE_TEXT_OPACITY, 100);
 		state.text.dialect = (isForceHtml) ? mxConstants.DIALECT_STRICTHTML : state.view.graph.dialect;
 		state.text.style = state.style;
@@ -46632,8 +47385,6 @@ var mxEdgeStyle =
 				}
 			}
 		}
-		
-		return result;
 	},
 	
 	orthBuffer: 10,
@@ -47545,12 +48296,12 @@ mxGraphView.prototype.setGraphBounds = function(value)
 
 /**
  * Function: getBounds
- *
- * Returns the bounds (on the screen) for the given array of <mxCells>.
+ * 
+ * Returns the union of all <mxCellStates> for the given array of <mxCells>.
  *
  * Parameters:
  *
- * cells - Array of <mxCells> to return the bounds for.
+ * cells - Array of <mxCells> whose bounds should be returned.
  */
 mxGraphView.prototype.getBounds = function(cells)
 {
@@ -47570,7 +48321,7 @@ mxGraphView.prototype.getBounds = function(cells)
 				{
 					if (result == null)
 					{
-						result = new mxRectangle(state.x, state.y, state.width, state.height);
+						result = mxRectangle.fromRectangle(state);
 					}
 					else
 					{
@@ -49586,7 +50337,8 @@ mxGraphView.prototype.createState = function(cell)
 	if (state.view.graph.container != null && state.cell != state.view.currentRoot &&
 		(model.isVertex(state.cell) || model.isEdge(state.cell)))
 	{
-		this.graph.cellRenderer.createShape(state);
+		state.shape = this.graph.cellRenderer.createShape(state);
+		state.shape.antiAlias = this.graph.cellRenderer.antiAlias;
 	}
 	
 	return state;
@@ -57530,19 +58282,23 @@ mxGraph.prototype.center = function(horizontal, vertical)
 	var cw = this.container.clientWidth;
 	var ch = this.container.clientHeight;
 	var bounds = this.getGraphBounds();
+
 	var t = this.view.translate;
-	bounds.x -= t.x;
-	bounds.y -= t.y;
-	
+	var s = this.view.scale;
+
 	var dx = (horizontal) ? cw - bounds.width : 0;
 	var dy = (vertical) ? ch - bounds.height : 0;
 	
 	if (!hasScrollbars)
 	{
-		this.view.setTranslate(Math.floor(dx / 2 - bounds.x), Math.floor(dy / 2 - bounds.y));
+		this.view.setTranslate((horizontal) ? Math.floor(t.x - bounds.x / s + dx / (2 * s)) : t.x,
+				(vertical) ? Math.floor(t.y - bounds.y / s + dy / (2 * s)) : t.y);
 	}
 	else
 	{
+		bounds.x -= t.x;
+		bounds.y -= t.y;
+	
 		var sw = this.container.scrollWidth;
 		var sh = this.container.scrollHeight;
 		
@@ -61290,7 +62046,7 @@ mxGraph.prototype.getEdgesBetween = function(source, target, directed)
  * 
  * Returns the child vertices and edges of the given parent that are contained
  * in the given rectangle. The result is added to the optional result array,
- * which is returned. If no result arrayis specified then a new array is
+ * which is returned. If no result array is specified then a new array is
  * created and returned.
  * 
  * Parameters:
@@ -63182,7 +63938,7 @@ mxOutline.prototype.init = function(container)
 	
 	if (this.enabled)
 	{
-		this.sizer.node.style.cursor = 'pointer';
+		this.sizer.node.style.cursor = 'nwse-resize';
 	}
 	
 	mxEvent.addGestureListeners(this.sizer.node, handler);
@@ -65952,12 +66708,22 @@ mxGraphHandler.prototype.getPreviewBounds = function(cells)
 			bounds.x -= dx / 2;
 			bounds.width = this.minimumSize;
 		}
+		else
+		{
+			bounds.x = Math.floor(bounds.x);
+			bounds.width = Math.ceil(bounds.width);
+		}
 		
 		if (bounds.height < this.minimumSize)
 		{
 			var dy = this.minimumSize - bounds.height;
 			bounds.y -= dy / 2;
 			bounds.height = this.minimumSize;
+		}
+		else
+		{
+			bounds.y = Math.floor(bounds.y);
+			bounds.height = Math.ceil(bounds.height);
 		}
 	}
 	
@@ -65967,8 +66733,14 @@ mxGraphHandler.prototype.getPreviewBounds = function(cells)
 /**
  * Function: getBoundingBox
  * 
- * Returns the <mxRectangle> that represents the bounding box for the given
- * cells. If bbox is true then the paint bounding box is returned.
+ * Returns the union of the <mxCellStates> for the given array of <mxCells>.
+ * For vertices, this method uses the bounding box of the corresponding shape
+ * if one exists. The bounding box of the corresponding text label and all
+ * controls and overlays are ignored. See also: <mxGraphView.getBounds>.
+ *
+ * Parameters:
+ *
+ * cells - Array of <mxCells> whose bounding box should be returned.
  */
 mxGraphHandler.prototype.getBoundingBox = function(cells)
 {
@@ -68975,6 +69747,32 @@ mxConnectionHandler.prototype.convertWaypoint = function(point)
 };
 
 /**
+ * Function: snapToPreview
+ * 
+ * Called to snap the given point to the current preview. This snaps to the
+ * first point of the preview if alt is not pressed.
+ */
+mxConnectionHandler.prototype.snapToPreview = function(me, point)
+{
+	if (!mxEvent.isAltDown(me.getEvent()) && this.shape != null &&
+		this.shape.points != null && this.shape.points.length > 0)
+	{
+		var tol = this.graph.gridSize * this.graph.view.scale / 2;	
+		var tmp = this.shape.points[0];
+		
+		if (Math.abs(tmp.x - me.getGraphX()) < tol)
+		{
+			point.x = tmp.x;
+		}
+		
+		if (Math.abs(tmp.y - me.getGraphY()) < tol)
+		{
+			point.y = tmp.y;
+		}
+	}	
+};
+
+/**
  * Function: mouseMove
  * 
  * Handles the event by updating the preview edge or by highlighting
@@ -68996,13 +69794,14 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 		var tr = view.translate;
 		var point = new mxPoint(me.getGraphX(), me.getGraphY());
 		this.error = null;
-		
+
 		if (this.graph.isGridEnabledEvent(me.getEvent()))
 		{
 			point = new mxPoint((this.graph.snap(point.x / scale - tr.x) + tr.x) * scale,
 				(this.graph.snap(point.y / scale - tr.y) + tr.y) * scale);
 		}
 		
+		this.snapToPreview(me, point);
 		this.currentPoint = point;
 		
 		if (this.first != null || (this.isEnabled() && this.graph.isEnabled()))
@@ -70639,19 +71438,17 @@ mxRubberband.prototype.destroy = function()
  * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
- * Class: mxVertexHandler
+ * Class: mxHandle
  * 
- * Event handler for resizing cells. This handler is automatically created in
- * <mxGraph.createHandler>.
+ * Implements a single custom handle for vertices.
  * 
- * Constructor: mxVertexHandler
+ * Constructor: mxHandle
  * 
- * Constructs an event handler that allows to resize vertices
- * and groups.
+ * Constructs a new handle for the given state.
  * 
  * Parameters:
  * 
- * state - <mxCellState> of the cell to be resized.
+ * state - <mxCellState> of the cell to be handled.
  */
 function mxHandle(state, cursor, image)
 {
@@ -70750,7 +71547,20 @@ mxHandle.prototype.processEvent = function(me)
  */
 mxHandle.prototype.positionChanged = function()
 {
-	this.graph.cellRenderer.redraw(this.state, true);
+	if (this.state.view.graph.model.isVertex(this.state.cell))
+	{
+		if (this.state.text != null)
+		{
+			this.state.text.apply(this.state);
+		}
+		
+		if (this.state.shape != null)
+		{
+			this.state.shape.apply(this.state);
+		}
+		
+		this.graph.cellRenderer.redraw(this.state, true);
+	}
 };
 
 /**
@@ -71259,7 +72069,7 @@ mxVertexHandler.prototype.isConstrainedEvent = function(me)
 /**
  * Function: createCustomHandles
  * 
- * Returns true if the aspect ratio if the cell should be maintained.
+ * Returns an array of custom handles. This implementation returns null.
  */
 mxVertexHandler.prototype.createCustomHandles = function()
 {
@@ -71483,9 +72293,10 @@ mxVertexHandler.prototype.getHandleForEvent = function(me)
 			shape.node.style.display != 'none' && shape.node.style.visibility != 'hidden'));
 	}
 
-	if (this.customHandles != null)
+	if (this.customHandles != null && this.isCustomHandleEvent(me))
 	{
-		for (var i = 0; i < this.customHandles.length; i++)
+		// Inverse loop order to match display order
+		for (var i = this.customHandles.length - 1; i >= 0; i--)
 		{
 			if (checkShape(this.customHandles[i].shape))
 			{
@@ -71516,6 +72327,17 @@ mxVertexHandler.prototype.getHandleForEvent = function(me)
 	}
 
 	return null;
+};
+
+/**
+ * Function: isCustomHandleEvent
+ * 
+ * Returns true if the given event allows custom handles to be changed. This
+ * implementation returns true.
+ */
+mxVertexHandler.prototype.isCustomHandleEvent = function(me)
+{
+	return true;
 };
 
 /**
@@ -71708,7 +72530,7 @@ mxVertexHandler.prototype.removeHint = function() { };
  */
 mxVertexHandler.prototype.roundAngle = function(angle)
 {
-	return Math.round(angle);
+	return Math.round(angle * 10) / 10;
 };
 
 /**
@@ -71968,6 +72790,10 @@ mxVertexHandler.prototype.mouseUp = function(sender, me)
 						this.rotateCell(this.state.cell, delta);
 					}
 				}
+				else
+				{
+					this.rotateClick();
+				}
 			}
 			else
 			{
@@ -72011,6 +72837,15 @@ mxVertexHandler.prototype.isRecursiveResize = function(state, me)
 {
 	return this.graph.isRecursiveResize(this.state);
 };
+
+/**
+ * Function: rotateClick
+ * 
+ * Hook for subclassers to implement a single click on the rotation handle.
+ * This code is executed as part of the model transaction. This implementation
+ * is empty.
+ */
+mxVertexHandler.prototype.rotateClick = function() { };
 
 /**
  * Function: rotateCell
@@ -72407,7 +73242,7 @@ mxVertexHandler.prototype.redrawHandles = function()
 	this.verticalOffset = 0;
 	var s = this.bounds;
 
-	if (this.sizers != null)
+	if (this.sizers != null && this.sizers.length > 0)
 	{
 		if (this.index == null && this.manageSizers && this.sizers.length >= 8)
 		{
@@ -72428,20 +73263,23 @@ mxVertexHandler.prototype.redrawHandles = function()
 				s.height += this.verticalOffset;
 			}
 			
-			if ((s.width < 2 * this.sizers[0].bounds.width + 2 * tol) ||
-				(s.height < 2 * this.sizers[0].bounds.height + 2 * tol))
+			if (this.sizers.length >= 8)
 			{
-				this.sizers[0].node.style.display = 'none';
-				this.sizers[2].node.style.display = 'none';
-				this.sizers[5].node.style.display = 'none';
-				this.sizers[7].node.style.display = 'none';
-			}
-			else
-			{
-				this.sizers[0].node.style.display = '';
-				this.sizers[2].node.style.display = '';
-				this.sizers[5].node.style.display = '';
-				this.sizers[7].node.style.display = '';
+				if ((s.width < 2 * this.sizers[0].bounds.width + 2 * tol) ||
+					(s.height < 2 * this.sizers[0].bounds.height + 2 * tol))
+				{
+					this.sizers[0].node.style.display = 'none';
+					this.sizers[2].node.style.display = 'none';
+					this.sizers[5].node.style.display = 'none';
+					this.sizers[7].node.style.display = 'none';
+				}
+				else
+				{
+					this.sizers[0].node.style.display = '';
+					this.sizers[2].node.style.display = '';
+					this.sizers[5].node.style.display = '';
+					this.sizers[7].node.style.display = '';
+				}
 			}
 		}
 
@@ -72849,6 +73687,15 @@ mxEdgeHandler.prototype.dblClickRemoveEnabled = false;
 mxEdgeHandler.prototype.mergeRemoveEnabled = false;
 
 /**
+ * Variable: straightRemoveEnabled
+ * 
+ * Specifies if removing bends by creating straight segments should be enabled.
+ * If enabled, this can be overridden by holding down the alt key while moving.
+ * Default is false.
+ */
+mxEdgeHandler.prototype.straightRemoveEnabled = false;
+
+/**
  * Variable: virtualBendsEnabled
  * 
  * Specifies if virtual bends should be added in the center of each
@@ -72856,6 +73703,14 @@ mxEdgeHandler.prototype.mergeRemoveEnabled = false;
  * Default is false.
  */
 mxEdgeHandler.prototype.virtualBendsEnabled = false;
+
+/**
+ * Variable: virtualBendOpacity
+ * 
+ * Opacity to be used for virtual bends (see <virtualBendsEnabled>).
+ * Default is 20.
+ */
+mxEdgeHandler.prototype.virtualBendOpacity = 20;
 
 /**
  * Variable: parentHighlightEnabled
@@ -73015,7 +73870,19 @@ mxEdgeHandler.prototype.init = function()
 	this.initBend(this.labelShape);
 	this.labelShape.setCursor(mxConstants.CURSOR_LABEL_HANDLE);
 	
+	this.customHandles = this.createCustomHandles();
+	
 	this.redraw();
+};
+
+/**
+ * Function: createCustomHandles
+ * 
+ * Returns an array of custom handles. This implementation returns null.
+ */
+mxEdgeHandler.prototype.createCustomHandles = function()
+{
+	return null;
 };
 
 /**
@@ -73028,7 +73895,8 @@ mxEdgeHandler.prototype.init = function()
 mxEdgeHandler.prototype.isVirtualBendsEnabled = function(evt)
 {
 	return this.virtualBendsEnabled && (this.state.style[mxConstants.STYLE_EDGE] == null ||
-			this.state.style[mxConstants.STYLE_NOEDGESTYLE] == 1) &&
+			this.state.style[mxConstants.STYLE_EDGE] == mxConstants.NONE ||
+			this.state.style[mxConstants.STYLE_NOEDGESTYLE] == 1)  &&
 			mxUtils.getValue(this.state.style, mxConstants.STYLE_SHAPE, null) != 'arrow';
 };
 
@@ -73459,6 +74327,19 @@ mxEdgeHandler.prototype.getHandleForEvent = function(me)
 		
 		return false;
 	}
+	
+	if (this.customHandles != null && this.isCustomHandleEvent(me))
+	{
+		// Inverse loop order to match display order
+		for (var i = this.customHandles.length - 1; i >= 0; i--)
+		{
+			if (checkShape(this.customHandles[i].shape))
+			{
+				// LATER: Return reference to active shape
+				return mxEvent.CUSTOM_HANDLE - i;
+			}
+		}
+	}
 
 	if (me.isSource(this.state.text) || checkShape(this.labelShape))
 	{
@@ -73476,18 +74357,40 @@ mxEdgeHandler.prototype.getHandleForEvent = function(me)
 		}
 	}
 	
-	if (this.virtualBends != null)
+	if (this.virtualBends != null && this.isAddVirtualBendEvent(me))
 	{
 		for (var i = 0; i < this.virtualBends.length; i++)
 		{
 			if (checkShape(this.virtualBends[i]))
 			{
-				result = mxEvent.CUSTOM_HANDLE - i;
+				result = mxEvent.VIRTUAL_HANDLE - i;
 			}
 		}
 	}
 
 	return result;
+};
+
+/**
+ * Function: isAddVirtualBendEvent
+ * 
+ * Returns true if the given event allows virtual bends to be added. This
+ * implementation returns true.
+ */
+mxEdgeHandler.prototype.isAddVirtualBendEvent = function(me)
+{
+	return true;
+};
+
+/**
+ * Function: isCustomHandleEvent
+ * 
+ * Returns true if the given event allows custom handles to be changed. This
+ * implementation returns true.
+ */
+mxEdgeHandler.prototype.isCustomHandleEvent = function(me)
+{
+	return true;
 };
 
 /**
@@ -73521,9 +74424,9 @@ mxEdgeHandler.prototype.mouseDown = function(sender, me)
 		}
 		else if (handle != mxEvent.LABEL_HANDLE || this.graph.isLabelMovable(me.getCell()))
 		{
-			if (handle <= mxEvent.CUSTOM_HANDLE)
+			if (handle <= mxEvent.VIRTUAL_HANDLE)
 			{
-				mxUtils.setOpacity(this.virtualBends[mxEvent.CUSTOM_HANDLE - handle].node, 100);
+				mxUtils.setOpacity(this.virtualBends[mxEvent.VIRTUAL_HANDLE - handle].node, 100);
 			}
 			
 			this.start(me.getX(), me.getY(), handle);
@@ -73749,13 +74652,19 @@ mxEdgeHandler.prototype.getPreviewTerminalState = function(me)
  * Function: getPreviewPoints
  * 
  * Updates the given preview state taking into account the state of the constraint handler.
+ * 
+ * Parameters:
+ * 
+ * pt - <mxPoint> that contains the current pointer position.
+ * me - Optional <mxMouseEvent> that contains the current event.
  */
-mxEdgeHandler.prototype.getPreviewPoints = function(pt)
+mxEdgeHandler.prototype.getPreviewPoints = function(pt, me)
 {
 	var geometry = this.graph.getCellGeometry(this.state.cell);
 	var points = (geometry.points != null) ? geometry.points.slice() : null;
 	var point = new mxPoint(pt.x, pt.y);
-
+	var result = null;
+	
 	if (!this.isSource && !this.isTarget)
 	{
 		this.convertPoint(point, false);
@@ -73767,9 +74676,9 @@ mxEdgeHandler.prototype.getPreviewPoints = function(pt)
 		else
 		{
 			// Adds point from virtual bend
-			if (this.index <= mxEvent.CUSTOM_HANDLE)
+			if (this.index <= mxEvent.VIRTUAL_HANDLE)
 			{
-				points.splice(mxEvent.CUSTOM_HANDLE - this.index, 0, point);
+				points.splice(mxEvent.VIRTUAL_HANDLE - this.index, 0, point);
 			}
 
 			// Removes point if dragged on terminal point
@@ -73783,23 +74692,72 @@ mxEdgeHandler.prototype.getPreviewPoints = function(pt)
 						
 						if (bend != null && mxUtils.contains(bend.bounds, pt.x, pt.y))
 						{
-							if (this.index <= mxEvent.CUSTOM_HANDLE)
+							if (this.index <= mxEvent.VIRTUAL_HANDLE)
 							{
-								points.splice(mxEvent.CUSTOM_HANDLE - this.index, 1);
+								points.splice(mxEvent.VIRTUAL_HANDLE - this.index, 1);
 							}
 							else
 							{
 								points.splice(this.index - 1, 1);
 							}
 							
-							return points;
+							result = points;
 						}
 					}
+				}
+				
+				// Removes point if user tries to straighten a segment
+				if (result == null && this.straightRemoveEnabled && (me == null || !mxEvent.isAltDown(me.getEvent())))
+				{
+					var tol = this.graph.tolerance * this.graph.tolerance;
+					var abs = this.state.absolutePoints.slice();
+					abs[this.index] = pt;
+					
+					// Handes special case where removing waypoint affects tolerance (flickering)
+					var src = this.state.getVisibleTerminalState(true);
+					
+					if (src != null)
+					{
+						var c = this.graph.getConnectionConstraint(this.state, src, true);
+						
+						// Checks if point is not fixed
+						if (c == null || this.graph.getConnectionPoint(src, c) == null)
+						{
+							abs[0] = new mxPoint(src.view.getRoutingCenterX(src), src.view.getRoutingCenterY(src));
+						}
+					}
+					
+					var trg = this.state.getVisibleTerminalState(false);
+					
+					if (trg != null)
+					{
+						var c = this.graph.getConnectionConstraint(this.state, trg, false);
+						
+						// Checks if point is not fixed
+						if (c == null || this.graph.getConnectionPoint(trg, c) == null)
+						{
+							abs[abs.length - 1] = new mxPoint(trg.view.getRoutingCenterX(trg), trg.view.getRoutingCenterY(trg));
+						}
+					}
+
+					function checkRemove(idx, tmp)
+					{
+						if (idx > 0 && idx < abs.length - 1 &&
+							mxUtils.ptSegDistSq(abs[idx - 1].x, abs[idx - 1].y,
+								abs[idx + 1].x, abs[idx + 1].y, tmp.x, tmp.y) < tol)
+						{
+							points.splice(idx - 1, 1);
+							result = points;
+						}
+					};
+					
+					// LATER: Check if other points can be removed if a segment is made straight
+					checkRemove(this.index, pt);
 				}
 			}
 			
 			// Updates existing point
-			if (this.index > mxEvent.CUSTOM_HANDLE)
+			if (result == null && this.index > mxEvent.VIRTUAL_HANDLE)
 			{
 				points[this.index - 1] = point;
 			}
@@ -73810,7 +74768,7 @@ mxEdgeHandler.prototype.getPreviewPoints = function(pt)
 		points = null;
 	}
 	
-	return points;
+	return (result != null) ? result : points;
 };
 
 /**
@@ -73936,14 +74894,21 @@ mxEdgeHandler.prototype.mouseMove = function(sender, me)
 			}
 		}
 		
-		if (this.isLabel)
+		if (this.index <= mxEvent.CUSTOM_HANDLE && this.index > mxEvent.VIRTUAL_HANDLE)
+		{
+			if (this.customHandles != null)
+			{
+				this.customHandles[mxEvent.CUSTOM_HANDLE - this.index].processEvent(me);
+			}
+		}
+		else if (this.isLabel)
 		{
 			this.label.x = point.x;
 			this.label.y = point.y;
 		}
 		else
 		{
-			this.points = this.getPreviewPoints(point);
+			this.points = this.getPreviewPoints(point, me);
 			var terminalState = (this.isSource || this.isTarget) ? this.getPreviewTerminalState(me) : null;
 			var clone = this.clonePreviewState(point, (terminalState != null) ? terminalState.cell : null);
 			this.updatePreviewState(clone, point, terminalState, me);
@@ -73994,6 +74959,23 @@ mxEdgeHandler.prototype.mouseUp = function(sender, me)
 				if (this.error.length > 0)
 				{
 					this.graph.validationAlert(this.error);
+				}
+			}
+			else if (this.index <= mxEvent.CUSTOM_HANDLE && this.index > mxEvent.VIRTUAL_HANDLE)
+			{
+				if (this.customHandles != null)
+				{
+					var model = this.graph.getModel();
+					
+					model.beginUpdate();
+					try
+					{
+						this.customHandles[mxEvent.CUSTOM_HANDLE - this.index].execute();
+					}
+					finally
+					{
+						model.endUpdate();
+					}
 				}
 			}
 			else if (this.isLabel)
@@ -74113,6 +75095,14 @@ mxEdgeHandler.prototype.reset = function()
 	if (this.constraintHandler != null)
 	{
 		this.constraintHandler.reset();
+	}
+	
+	if (this.customHandles != null)
+	{
+		for (var i = 0; i < this.customHandles.length; i++)
+		{
+			this.customHandles[i].reset();
+		}
 	}
 
 	this.setPreviewColor(mxConstants.EDGE_SELECTION_COLOR);
@@ -74570,7 +75560,7 @@ mxEdgeHandler.prototype.redrawHandles = function()
 				b.bounds = new mxRectangle(Math.round(x - b.bounds.width / 2),
 						Math.round(y - b.bounds.height / 2), b.bounds.width, b.bounds.height);
 				b.redraw();
-				mxUtils.setOpacity(b.node, 20);
+				mxUtils.setOpacity(b.node, this.virtualBendOpacity);
 				last = pt;
 				
 				if (this.manageLabelHandle)
@@ -74584,6 +75574,14 @@ mxEdgeHandler.prototype.redrawHandles = function()
 	if (this.labelShape != null)
 	{
 		this.labelShape.redraw();
+	}
+	
+	if (this.customHandles != null)
+	{
+		for (var i = 0; i < this.customHandles.length; i++)
+		{
+			this.customHandles[i].redraw();
+		}
 	}
 };
 
@@ -74613,6 +75611,14 @@ mxEdgeHandler.prototype.setHandlesVisible = function(visible)
 	if (this.labelShape != null)
 	{
 		this.labelShape.node.style.display = (visible) ? '' : 'none';
+	}
+	
+	if (this.customHandles != null)
+	{
+		for (var i = 0; i < this.customHandles.length; i++)
+		{
+			this.customHandles[i].setVisible(visible);
+		}
 	}
 };
 
@@ -74707,10 +75713,14 @@ mxEdgeHandler.prototype.drawPreview = function()
 	}
 	else if (this.shape != null)
 	{
+		this.shape.apply(this.state);
 		this.shape.points = this.abspoints;
 		this.shape.scale = this.state.view.scale;
+		this.shape.isDashed = this.isSelectionDashed();
+		this.shape.stroke = this.getSelectionColor();
 		this.shape.strokewidth = this.getSelectionStrokeWidth() / this.shape.scale / this.shape.scale;
 		this.shape.arrowStrokewidth = this.getSelectionStrokeWidth();
+		this.shape.isShadow = false;
 		this.shape.redraw();
 	}
 	
@@ -74745,6 +75755,12 @@ mxEdgeHandler.prototype.refresh = function()
 	{
 		this.destroyBends(this.virtualBends);
 		this.virtualBends = this.createVirtualBends();
+	}
+	
+	if (this.customHandles != null)
+	{
+		this.destroyBends(this.customHandles);
+		this.customHandles = this.createCustomHandles();
 	}
 	
 	// Puts label node on top of bends
@@ -74820,6 +75836,9 @@ mxEdgeHandler.prototype.destroy = function()
 	
 	this.destroyBends(this.virtualBends);
 	this.virtualBends = null;
+	
+	this.destroyBends(this.customHandles);
+	this.customHandles = null;
 
 	this.destroyBends(this.bends);
 	this.bends = null;
@@ -75459,8 +76478,8 @@ mxEdgeSegmentHandler.prototype.redrawInnerBends = function(p0, pe)
 			
 			if (straight)
 			{
-				mxUtils.setOpacity(this.bends[1].node, 20);
-				mxUtils.setOpacity(this.bends[3].node, 20);
+				mxUtils.setOpacity(this.bends[1].node, this.virtualBendOpacity);
+				mxUtils.setOpacity(this.bends[3].node, this.virtualBendOpacity);
 			}
 		}
 	}
@@ -76484,18 +77503,7 @@ mxCellHighlight.prototype.drawHighlight = function()
  */
 mxCellHighlight.prototype.createShape = function()
 {
-	var key = this.state.style[mxConstants.STYLE_SHAPE];
-	var stencil = mxStencilRegistry.getStencil(key);
-	var shape = null;
-	
-	if (stencil != null)
-	{
-		shape = new mxShape(stencil);
-	}
-	else
-	{
-		shape = new this.state.shape.constructor();
-	}
+	var shape = this.graph.cellRenderer.createShape(this.state);
 	
 	shape.scale = this.state.view.scale;
 	shape.outline = true;
