@@ -839,7 +839,7 @@ public class mxConstants
 
 	/**
 	 * Defines the key for the fontStyle style. Values may be any logical AND
-	 * (sum) of FONT_BOLD, FONT_ITALIC, FONT_UNDERLINE and FONT_SHADOW. The type
+	 * (sum) of FONT_BOLD, FONT_ITALIC and FONT_UNDERLINE. The type
 	 * of the value is <code>int</code>.
 	 */
 	public static String STYLE_FONTSTYLE = "fontStyle";
@@ -948,11 +948,6 @@ public class mxConstants
 	 * FONT_UNDERLINE
 	 */
 	public static final int FONT_UNDERLINE = 4;
-
-	/**
-	 * FONT_SHADOW
-	 */
-	public static final int FONT_SHADOW = 8;
 
 	/**
 	 * SHAPE_RECTANGLE

@@ -512,11 +512,16 @@ Sidebar.prototype.addAdvancedShapes = function(dir, content)
     content.appendChild(this.createVertexTemplate('shape=tee;whiteSpace=wrap;html=1;', 80, 80, '', 'Tee', true));
     content.appendChild(this.createVertexTemplate('shape=datastore;whiteSpace=wrap;html=1;', 60, 60, '', 'Data Store', true));
     content.appendChild(this.createVertexTemplate('shape=switch;whiteSpace=wrap;html=1;', 60, 60, '', 'Switch', true));
+
+    content.appendChild(this.createVertexTemplate('shape=orEllipse;perimeter=ellipsePerimeter;whiteSpace=wrap;html=1;', 80, 80, '', 'Or', true));
+    content.appendChild(this.createVertexTemplate('shape=sumEllipse;perimeter=ellipsePerimeter;whiteSpace=wrap;html=1;', 80, 80, '', 'Sum', true));
+    content.appendChild(this.createVertexTemplate('shape=lineEllipse;perimeter=ellipsePerimeter;whiteSpace=wrap;html=1;', 80, 80, '', 'Ellipse with horizontal divider', true));
+    content.appendChild(this.createVertexTemplate('shape=lineEllipse;perimeter=ellipsePerimeter;whiteSpace=wrap;html=1;direction=north;', 80, 80, '', 'Ellipse with vertical divider', true));
     
     content.appendChild(this.createVertexTemplate('swimlane;whiteSpace=wrap;html=1;', 200, 200, 'Container', 'Container', true));
-	content.appendChild(this.createVertexTemplate('swimlane;swimlaneLine=0;whiteSpace=wrap;html=1;', 200, 200, 'Container', 'Container w/o Separator', true));
+	content.appendChild(this.createVertexTemplate('swimlane;swimlaneLine=0;whiteSpace=wrap;html=1;', 200, 200, 'Container', 'Container w/o Divider', true));
 	content.appendChild(this.createVertexTemplate('swimlane;swimlaneFillColor=#ffffff;whiteSpace=wrap;html=1;', 200, 200, 'Container', 'Filled Container', true));
-	content.appendChild(this.createVertexTemplate('swimlane;swimlaneLine=0;swimlaneFillColor=#ffffff;whiteSpace=wrap;html=1;', 200, 200, 'Container', 'Filled Container w/o Separator', true));
+	content.appendChild(this.createVertexTemplate('swimlane;swimlaneLine=0;swimlaneFillColor=#ffffff;whiteSpace=wrap;html=1;', 200, 200, 'Container', 'Filled Container w/o Divider', true));
 };
 
 /**
@@ -526,6 +531,124 @@ Sidebar.prototype.addUmlPalette = function(expand)
 {
 	this.addPalette('uml', 'UML', expand || false, mxUtils.bind(this, function(content)
 	{
+		//
+		// Class
+		//
+		var entityCell = new mxCell('Classname', new mxGeometry(0, 0, 200, 90),
+	    	'swimlane;html=1;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;container=0;collapsible=1;marginBottom=0;swimlaneFillColor=#ffffff;');
+		entityCell.vertex = true;
+		var row1 = new mxCell('+ field: Type', new mxGeometry(0, 0, 200, 26), 'text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;');
+		row1.vertex = true;
+		entityCell.insert(row1);
+		
+		var divider = new mxCell('', new mxGeometry(0, 0, 200, 8), 'line;html=1;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;');
+		divider.vertex = true;
+		entityCell.insert(divider);
+
+		var row3 = row1.clone();
+		row3.value = '+ method2(Type): Type';
+		entityCell.insert(row3);
+		
+		content.appendChild(this.createVertexTemplateFromCells([entityCell], 200, 90, 'Class', true));
+	
+		//
+		// Item
+		//
+		// LATER: Extend parent switch will use x-coordinate of drop location
+		// plus width and increase parent width before parent layout is applied
+		var row = row1.clone();
+		row.value = '+ item: attribute';
+		row.geometry.x = 0;
+		row.geometry.y = 0;
+		row.geometry.width = 100;
+		row.geometry.height = 26;
+		row.vertex = true;
+		
+		content.appendChild(this.createVertexTemplateFromCells([row.clone()], 100, 26, 'Item', true));
+
+		//
+		// Spacer
+		//
+		var spacer = new mxCell('', new mxGeometry(0, 0, 20, 14), 'text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=4;spacingRight=4;rotatable=0;labelPosition=right;');
+		spacer.vertex = true;
+		entityCell.insert(spacer);
+
+		content.appendChild(this.createVertexTemplateFromCells([spacer], 20, 14, 'Spacer', true));
+
+		//
+		// Divider
+		//
+		divider = divider.clone();
+		divider.geometry.x = 0;
+		divider.geometry.y = 0;
+		divider.geometry.width = 40;
+		divider.geometry.height = 8;
+		
+		content.appendChild(this.createVertexTemplateFromCells([divider], 40, 14, 'Divider', true));
+		
+		//
+		// Title
+		//
+	    content.appendChild(this.createVertexTemplate('text;html=1;align=center;fontStyle=1;verticalAlign=middle;spacingLeft=3;spacingRight=3;strokeColor=none;rotatable=0;', 80, 26, 'Title', 'Title', true));
+	    
+	    //
+	    // Section
+	    //
+		entityCell = new mxCell('Section', new mxGeometry(0, 0, 140, 90),
+	    	'swimlane;html=1;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeLast=0;container=0;collapsible=1;marginBottom=0;swimlaneFillColor=#ffffff;');
+		entityCell.vertex = true;
+		row1 = row1.clone();
+		row1.geometry.width = 140;
+		row1.vertex = true;
+		entityCell.insert(row1);
+		divider = divider.clone();
+		entityCell.insert(divider);
+		row3 = row1.clone();
+		row3.value = '+ method2(Type): Type';
+		entityCell.insert(row3);
+		
+		content.appendChild(this.createVertexTemplateFromCells([entityCell], 140, 90, 'Section', true));
+		
+		//
+		// ER Table
+		//
+		var entityCell = new mxCell('Table', new mxGeometry(0, 0, 160, 106),
+	    	'swimlane;html=1;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=#e0e0e0;horizontalStack=0;resizeParent=1;resizeLast=0;container=0;collapsible=1;marginBottom=0;swimlaneFillColor=#ffffff;');
+		entityCell.vertex = true;
+		var row1 = new mxCell('Row 1', new mxGeometry(0, 0, 160, 26), 'text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;');
+		row1.vertex = true;
+		entityCell.insert(row1);
+		var row2 = row1.clone();
+		row2.value = 'Row 2';
+		entityCell.insert(row2);
+		var row3 = row1.clone();
+		row3.value = 'Row 3';
+		entityCell.insert(row3);
+
+		content.appendChild(this.createVertexTemplateFromCells([entityCell], 160, 106, 'Table', true));
+		
+		//
+		// ER Section
+		//
+		entityCell = new mxCell('Section', new mxGeometry(0, 0, 80, 102),
+	    	'swimlane;html=1;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=22;fillColor=none;horizontalStack=0;resizeParent=1;resizeLast=0;container=0;collapsible=1;marginBottom=0;swimlaneFillColor=#ffffff;');
+		entityCell.vertex = true;
+		row1 = row1.clone();
+		row1.geometry.width = 80;
+		row1.vertex = true;
+		entityCell.insert(row1);
+		row2 = row1.clone();
+		row2.value = 'Row 2';
+		entityCell.insert(row2);
+		row3 = row1.clone();
+		row3.value = 'Row 3';
+		entityCell.insert(row3);
+		
+		content.appendChild(this.createVertexTemplateFromCells([entityCell], 80, 102, 'Section', true));
+
+		//
+		// Basic UML
+		//
 	    content.appendChild(this.createVertexTemplate('html=1;', 110, 50, 'Object', 'Object', true));
     	
 	    var classCell = new mxCell('<p style="margin:0px;margin-top:4px;text-align:center;">' +
@@ -600,7 +723,7 @@ Sidebar.prototype.addUmlPalette = function(expand)
     	
 		content.appendChild(this.createVertexTemplate('shape=lollipop;direction=south;html=1;', 30, 10, '', 'Provided Interface', true));
 		content.appendChild(this.createVertexTemplate('shape=requires;direction=north;html=1;', 30, 20, '', 'Required Interface', true));
-		
+
     	var tableCell = new mxCell('<div style="box-sizing:border-box;width:100%;background:#e4e4e4;margin:1px;padding:2px;">Tablename</div><table style="width:100%;">' +
 				'<tr><td>PK</td><td style="padding:2px;">uniqueId</td></tr>' +
 				'<tr><td>FK1</td><td style="padding:2px;">foreignKey</td></tr>' +
@@ -688,7 +811,7 @@ Sidebar.prototype.addUmlPalette = function(expand)
 
 		content.appendChild(this.createVertexTemplate('ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#ff0000', 30, 30, '', 'End', true));
 
-		var umlLifeline = new mxCell(':Object', new mxGeometry(0, 0, 100, 300), 'shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;');
+		var umlLifeline = new mxCell(':Object', new mxGeometry(0, 0, 100, 300), 'shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;');
 		umlLifeline.vertex = true;
      	
     	content.appendChild(this.createVertexTemplateFromCells([umlLifeline], 100, 300, 'Lifeline', true));
@@ -1239,9 +1362,9 @@ Sidebar.prototype.updateShapes = function(source, targets)
 		var cellStyle = graph.getModel().getStyle(source);
 
 		// Lists the styles to carry over from the existing shape
-		var styles = ['shadow', 'dashed', 'dashPattern', 'fontFamily', 'fontSize', 'fontColor', 'align', 'startArrow',
-		              'startFill', 'startSize', 'endArrow', 'endFill', 'endSize', 'strokeColor', 'strokeWidth',
-		              'fillColor', 'gradientColor', 'html', 'part', 'noEdgeStyle', 'edgeStyle', 'elbow', 'childLayout'];
+		var styles = ['shadow', 'dashed', 'dashPattern', 'fontFamily', 'fontSize', 'fontColor', 'align', 'startFill',
+		              'startSize', 'endFill', 'endSize', 'strokeColor', 'strokeWidth', 'fillColor', 'gradientColor',
+		              'html', 'part', 'noEdgeStyle', 'edgeStyle', 'elbow', 'childLayout'];
 
 		for (var i = 0; i < targets.length; i++)
 		{
@@ -1293,6 +1416,8 @@ Sidebar.prototype.createDropHandler = function(cells, allowSplit, dx, dy)
 			
 			if (cells.length > 0)
 			{
+				graph.stopEditing();
+				
 				var validDropTarget = (target != null) ? graph.isValidDropTarget(target, cells, evt) : false;
 				var select = null;
 
@@ -1316,6 +1441,26 @@ Sidebar.prototype.createDropHandler = function(cells, allowSplit, dx, dy)
 					else if (cells.length > 0)
 					{
 						select = graph.importCells(cells, x, y, target);
+					}
+					
+					// Executes parent layout hooks for position/order
+					if (graph.layoutManager != null)
+					{
+						var layout = graph.layoutManager.getLayout(target);
+						
+						if (layout != null)
+						{
+							var targetState = graph.view.getState(target);
+							var s = graph.view.scale;
+							var tr = graph.view.translate;
+							var tx = (x + tr.x) * s;
+							var ty = (y + tr.y) * s;
+							
+							for (var i = 0; i < select.length; i++)
+							{
+								layout.moveCell(select[i], tx, ty);
+							}
+						}
 					}
 
 					graph.fireEvent(new mxEventObject('cellsInserted', 'cells', select));
@@ -1369,8 +1514,34 @@ Sidebar.prototype.dropAndConnect = function(source, targets, direction, dropCell
 		{
 			var sourceGeo = graph.getCellGeometry(source);
 			var geo2 = graph.getCellGeometry(targets[dropCellIndex]);
-			targets = graph.importCells(targets, geo.x - geo2.x, geo.y - geo2.y, (graph.model.isEdge(source) ||
-					(sourceGeo != null && !sourceGeo.relative)) ? graph.model.getParent(source) : null);
+
+			// Handles special case where target should be ignored for stack layouts
+			var targetParent = graph.model.getParent(source);
+			var validLayout = true;
+			
+			// Ignores parent if it has a stack layout
+			if (graph.layoutManager != null)
+			{
+				var layout = graph.layoutManager.getLayout(targetParent);
+			
+				if (layout != null && layout.constructor == mxStackLayout)
+				{
+					validLayout = false;
+					
+					var tmp = graph.view.getState(targetParent);
+					
+					// Offsets by parent position
+					if (tmp != null)
+					{
+						geo.x += (tmp.x/ graph.view.scale - graph.view.translate.x);
+						geo.y += (tmp.y / graph.view.scale - graph.view.translate.y);
+					}
+				}
+			}
+			
+			targets = graph.importCells(targets, (geo.x - (validLayout ? geo2.x : 0)),
+					(geo.y - (validLayout ? geo2.y : 0)), (graph.model.isEdge(source) ||
+					(sourceGeo != null && !sourceGeo.relative && validLayout)) ? targetParent : null);
 			tmp = targets;
 			
 			if (graph.model.isEdge(source))
@@ -1390,8 +1561,8 @@ Sidebar.prototype.dropAndConnect = function(source, targets, direction, dropCell
 			else
 			{
 				geo2 = graph.getCellGeometry(targets[dropCellIndex]);
-				var dx = geo.x - geo2.x;
-				var dy = geo.y - geo2.y;
+				var dx = geo.x - Math.round(geo2.x);
+				var dy = geo.y - Math.round(geo2.y);
 				geo.x = Math.round(geo2.x);
 				geo.y = Math.round(geo2.y);
 				graph.model.setGeometry(targets[dropCellIndex], geo);
@@ -1876,9 +2047,8 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
 			activeTarget = false;
 			currentTargetState = state;
 
-			// Containers could be enabled here but it just makes the UX even more complex
-			var validTarget = (graph.model.isEdge(cell) && firstVertex != null) || (graph.model.isVertex(cell) &&
-				graph.isCellConnectable(cell) && !graph.isContainer(cell));
+			var validTarget = (graph.model.isEdge(cell) && firstVertex != null) ||
+				(graph.model.isVertex(cell) && graph.isCellConnectable(cell));
 			
 			if (currentTargetState != null && validTarget)
 			{
@@ -1973,15 +2143,15 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
 		}
 		
 		// Handles drop target
-		var target = (!activeTarget && !mxEvent.isAltDown(evt) && !(currentStyleTarget != null && activeArrow == styleTarget)) ?
+		var target = ((!mxEvent.isAltDown(evt) || mxEvent.isShiftDown(evt)) && !(currentStyleTarget != null && activeArrow == styleTarget)) ?
 				mxDragSource.prototype.getDropTarget.apply(this, arguments) : null;
-
+				
 		if (target != null)
 		{
 			// Selects parent group as drop target
 			var model = graph.getModel();
-			
-			if (!graph.isValidRoot(target) && model.isVertex(model.getParent(target)))
+
+			while (target != null && !graph.isValidDropTarget(target, cells, evt) && model.isVertex(model.getParent(target)))
 			{
 				target = model.getParent(target);
 			}

@@ -1876,8 +1876,8 @@ mxConnectionHandler.prototype.createTargetVertex = function(evt, source)
 		var t = this.graph.view.translate;
 		var s = this.graph.view.scale;
 		var point = new mxPoint(this.currentPoint.x / s - t.x, this.currentPoint.y / s - t.y);
-		geo.x = point.x - geo.width / 2 - this.graph.panDx / s;
-		geo.y = point.y - geo.height / 2 - this.graph.panDy / s;
+		geo.x = Math.round(point.x - geo.width / 2 - this.graph.panDx / s);
+		geo.y = Math.round(point.y - geo.height / 2 - this.graph.panDy / s);
 
 		// Aligns with source if within certain tolerance
 		var tol = this.getAlignmentTolerance();
@@ -1893,12 +1893,12 @@ mxConnectionHandler.prototype.createTargetVertex = function(evt, source)
 				
 				if (Math.abs(x - geo.x) <= tol)
 				{
-					geo.x = x;
+					geo.x = Math.round(x);
 				}
 				
 				if (Math.abs(y - geo.y) <= tol)
 				{
-					geo.y = y;
+					geo.y = Math.round(y);
 				}
 			}
 		}

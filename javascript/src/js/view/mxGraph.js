@@ -2961,8 +2961,13 @@ mxGraph.prototype.sizeDidChange = function()
  */
 mxGraph.prototype.doResizeContainer = function(width, height)
 {
-	// Fixes container size for different box models
-	if (mxClient.IS_IE)
+	// Sets container size for different box models
+	if (document.documentMode >= 9)
+	{
+		width += 3;
+		height += 5;
+	}
+	else if (mxClient.IS_IE)
 	{
 		if (mxClient.IS_QUIRKS)
 		{
@@ -2971,12 +2976,7 @@ mxGraph.prototype.doResizeContainer = function(width, height)
 			// max(2, ...) required for native IE8 in quirks mode
 			width += Math.max(2, borders.x + borders.width + 1);
 			height += Math.max(2, borders.y + borders.height + 1);
-		}
-		else if (document.documentMode >= 9)
-		{
-			width += 3;
-			height += 5;
-		}
+		} 
 		else
 		{
 			width += 1;
@@ -4488,7 +4488,7 @@ mxGraph.prototype.cellsAdded = function(cells, parent, index, source, target, ab
 					}
 
 					// Extends the parent or constrains the child
-					if (this.isExtendParentsOnAdd() && this.isExtendParent(cells[i]))
+					if (this.isExtendParentsOnAdd(cells[i]) && this.isExtendParent(cells[i]))
 					{
 						this.extendParent(cells[i]);
 					}
@@ -4827,8 +4827,9 @@ mxGraph.prototype.cellsToggled = function(cells, show)
  * null is specified then the foldable selection cells are used.
  * checkFoldable - Optional boolean indicating of isCellFoldable should be
  * checked. Default is false.
+ * evt - Optional native event that triggered the invocation.
  */
-mxGraph.prototype.foldCells = function(collapse, recurse, cells, checkFoldable)
+mxGraph.prototype.foldCells = function(collapse, recurse, cells, checkFoldable, evt)
 {
 	recurse = (recurse != null) ? recurse : false;
 	
@@ -7576,8 +7577,9 @@ mxGraph.prototype.fit = function(border, keepOrigin)
 		border = (border != null) ? border : 0;
 		keepOrigin = (keepOrigin != null) ? keepOrigin : false;
 		
-		var w1 = this.container.clientWidth;
-		var h1 = this.container.clientHeight;
+		var sb = (document.documentMode >= 9) ? 4 : 0;
+		var w1 = this.container.clientWidth - sb;
+		var h1 = this.container.clientHeight - sb;
 
 		var bounds = this.view.getGraphBounds();
 
@@ -9763,8 +9765,9 @@ mxGraph.prototype.isCellResizable = function(cell)
 {
 	var state = this.view.getState(cell);
 	var style = (state != null) ? state.style : this.getCellStyle(cell);
-	
-	return this.isCellsResizable() && !this.isCellLocked(cell) && style[mxConstants.STYLE_RESIZABLE] != 0;
+
+	return this.isCellsResizable() && !this.isCellLocked(cell) &&
+		mxUtils.getValue(style, mxConstants.STYLE_RESIZABLE, '1') != '0';
 };
 
 /**
@@ -10164,7 +10167,7 @@ mxGraph.prototype.setExtendParents = function(value)
  * 
  * Returns <extendParentsOnAdd>.
  */
-mxGraph.prototype.isExtendParentsOnAdd = function()
+mxGraph.prototype.isExtendParentsOnAdd = function(cell)
 {
 	return this.extendParentsOnAdd;
 };
@@ -10184,7 +10187,7 @@ mxGraph.prototype.setExtendParentsOnAdd = function(value)
 };
 
 /**
- * Function: isExtendParentsOnAdd
+ * Function: isExtendParentsOnMove
  * 
  * Returns <extendParentsOnAdd>.
  */
@@ -10194,7 +10197,7 @@ mxGraph.prototype.isExtendParentsOnMove = function()
 };
 
 /**
- * Function: setExtendParentsOnAdd
+ * Function: setExtendParentsOnMove
  * 
  * Sets <extendParentsOnAdd>.
  * 
@@ -11188,7 +11191,7 @@ mxGraph.prototype.getCells = function(x, y, width, height, parent, result)
  * Function: getCellsBeyond
  * 
  * Returns the children of the given parent that are contained in the
- * halfpane from the given point (x0, y0) rightwards and/or downwards
+ * halfpane from the given point (x0, y0) rightwards or downwards
  * depending on rightHalfpane and bottomHalfpane.
  * 
  * Parameters:
@@ -11224,10 +11227,8 @@ mxGraph.prototype.getCellsBeyond = function(x0, y0, parent, rightHalfpane, botto
 				
 				if (this.isCellVisible(child) && state != null)
 				{
-					if ((!rightHalfpane ||
-						state.x >= x0) &&
-						(!bottomHalfpane ||
-						state.y >= y0))
+					if ((!rightHalfpane || state.x >= x0) &&
+						(!bottomHalfpane || state.y >= y0))
 					{
 						result.push(child);
 					}

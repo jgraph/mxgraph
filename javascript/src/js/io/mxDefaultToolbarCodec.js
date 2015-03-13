@@ -306,6 +306,6 @@ var mxDefaultToolbarCodec = mxCodecRegistry.register(function()
  * 
  * Static global switch that specifies if the use of eval is allowed for
  * evaluating text content. Default is true. Set this to false if stylesheets
- * may contain user input (see the section on security in the manual).
+ * may contain user input
  */
 mxDefaultToolbarCodec.allowEval = true;

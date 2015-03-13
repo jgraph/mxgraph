@@ -124,6 +124,14 @@ mxStackLayout.prototype.fill = false;
 mxStackLayout.prototype.resizeParent = false;
 
 /**
+ * Variable: resizeParentMax
+ * 
+ * Use maximum of existing value and new value for resize of parent.
+ * Default is false.
+ */
+mxStackLayout.prototype.resizeParentMax = false;
+
+/**
  * Variable: resizeLast
  * 
  * If the last element should be resized to fill out the parent. Default is
@@ -178,6 +186,8 @@ mxStackLayout.prototype.moveCell = function(cell, x, y)
 		{
 			value -= (horizontal) ? pstate.x : pstate.y;
 		}
+		
+		value /= this.graph.view.scale;
 		
 		for (i = 0; i < childCount; i++)
 		{
@@ -462,11 +472,29 @@ mxStackLayout.prototype.updateParentGeometry = function(parent, pgeo, last)
 	
 	if (horizontal)
 	{
-		pgeo.width = last.x + last.width + this.spacing + this.marginRight;
+		var tmp = last.x + last.width + this.spacing + this.marginRight;
+		
+		if (this.resizeParentMax)
+		{
+			pgeo.width = Math.max(pgeo.width, tmp);
+		}
+		else
+		{
+			pgeo.width = tmp;
+		}
 	}
 	else
 	{
-		pgeo.height = last.y + last.height + this.spacing + this.marginBottom;
+		var tmp = last.y + last.height + this.spacing + this.marginBottom;
+		
+		if (this.resizeParentMax)
+		{
+			pgeo.height = Math.max(pgeo.height, tmp);
+		}
+		else
+		{
+			pgeo.height = tmp;
+		}
 	}
 	
 	model.setGeometry(parent, pgeo);

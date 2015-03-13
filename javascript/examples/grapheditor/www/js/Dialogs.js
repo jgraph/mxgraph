@@ -1001,8 +1001,11 @@ var FilenameDialog = function(editorUi, filename, buttonText, fn, label, validat
 /**
  * Constructs a new textarea dialog.
  */
-var TextareaDialog = function(editorUi, title, url, fn, cancelFn, cancelTitle)
+var TextareaDialog = function(editorUi, title, url, fn, cancelFn, cancelTitle, w, h, addButtons, noHide)
 {
+	w = (w != null) ? w : 300;
+	h = (h != null) ? h : 120;
+	noHide = (noHide != null) ? noHide : false;
 	var row, td;
 	
 	var table = document.createElement('table');
@@ -1020,21 +1023,21 @@ var TextareaDialog = function(editorUi, title, url, fn, cancelFn, cancelTitle)
 
 	row = document.createElement('tr');
 	td = document.createElement('td');
-	
+
 	var nameInput = document.createElement('textarea');
 	mxUtils.write(nameInput, url || '');
 	nameInput.style.resize = 'none';
-	nameInput.style.width = '300px';
-	nameInput.style.height = '120px';
+	nameInput.style.width = w + 'px';
+	nameInput.style.height = h + 'px';
 	
 	this.textarea = nameInput;
 
 	this.init = function()
 	{
 		nameInput.focus();
+		nameInput.scrollTop = 0;
 	};
 
-	td = document.createElement('td');
 	td.appendChild(nameInput);
 	row.appendChild(td);
 	
@@ -1062,13 +1065,23 @@ var TextareaDialog = function(editorUi, title, url, fn, cancelFn, cancelTitle)
 		td.appendChild(cancelBtn);
 	}
 	
+	if (addButtons != null)
+	{
+		addButtons(td);
+	}
+	
 	if (fn != null)
 	{
 		var genericBtn = mxUtils.button(mxResources.get('apply'), function()
 		{
-			editorUi.hideDialog();
+			if (!noHide)
+			{
+				editorUi.hideDialog();
+			}
+			
 			fn(nameInput.value);
 		});
+		
 		genericBtn.className = 'geBtn gePrimaryBtn';	
 		td.appendChild(genericBtn);
 	}

@@ -849,7 +849,7 @@ class mxConstants
 	 * Variable: STYLE_FONTSTYLE
 	 *
 	 * Defines the key for the fontStyle style. Values may be any logical AND
-	 * (sum) of <FONT_BOLD>, <FONT_ITALIC>, <FONT_UNDERLINE> and <FONT_SHADOW>.
+	 * (sum) of <FONT_BOLD>, <FONT_ITALIC> and <FONT_UNDERLINE>.
 	 * The type of the value is int.
 	 */
 	public static $STYLE_FONTSTYLE = "fontStyle";
@@ -910,11 +910,6 @@ class mxConstants
 	 * Variable: FONT_UNDERLINE
 	 */
 	public static $FONT_UNDERLINE = 4;
-
-	/**
-	 * Variable: FONT_SHADOW
-	 */
-	public static $FONT_SHADOW = 8;
 
 	/**
 	 * Variable: SHAPE_RECTANGLE

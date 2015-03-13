@@ -1,3 +1,52 @@
+13-MAR-2015: 3.2.0.0
+
+- Adds arcSize handle in grapheditor [JavaScript]
+- Fixes scrolling in scrollbars.html example [JavaScript]
+- Adds padding in mxGraph.fit for IE 9 and later [JavaScript] 
+- Adds shape argument in mxCellRenderer.initializeLabel [JavaScript]
+- Fixes secondlabel.html example, adds wrapping [JavaScript]
+- Adds keyboard shortcuts for zoom actions in grapheditor
+- Adds Or-, Sum- and LineEllipse shape in Advanced sidebar
+- Adds live preview for custom edge handles, fixes mxHandle.reset [JavaScript]
+- Shows/hides link hint if link changes in grapheditor
+- Removes text format change for edit link action in grapheditor
+- Fixes conversion of newlines for formattedText action in grapheditor
+- Adds rounding in mxConnectionHandler.createTargetVertex [JavaScript]
+- Adds EditorUi.setFoldingEnabled, foldingEnabledChanged event in grapheditor
+- Adds mxCellRenderer.createControlClickHandler hook [JavaScript]
+- Adds key shortcuts for select next/previous/parent/child (Ctrl+Tab/Ctrl+Shift+Tab) in grapheditor
+- Changes key shortcuts for edit and enter group (Ctrl+Shift+Home/End) in grapheditor
+- Changes key shortcuts for expand and collapse (Ctrl+Home/End) in grapheditor
+- Fixes focus after stop editing with Ctrl+Enter in grapheditor
+- Adds Ctrl+Enter for cloning cells "in-place" in grapheditor
+- Shift+expand/collapse moves siblings cells (experimental) in grapheditor
+- Removes mxSpaceManager class [Java,JavaScript]
+- Shift+expand/collapse moves neighbour cells in grapheditor (experimental)
+- Sets collapsed swimlane in vertical/horizontal stack to horizontal/vertical in grapheditor
+- Ignores previous width/height for stack child folding in grapheditor
+- Disables extending parents with stack layouts on add in grapheditor
+- Fixes format panel close icon position in grapheditor
+- Fixes delayed selection after folding in grapheditor
+- Adds mxMouseEvnet argument in mxGraphHandler.isDelayedSelection [JavaScript]
+- Maintains cell order for duplicates in grapheditor
+- Selects parents after deleting cells in grapheditor
+- Adds optional event argument in mxGraph.foldCells [JavaScript]
+- Adds optional cell argument in mxGraph.isExtendParentsOnAdd [JavaScript]
+- Adds capture/bubble phase in mxLayoutManager [JavaScript]
+- Adds mxStackLayout.resizeParentMax switch [JavaScript]
+- Adds UML shapes and elements in grapheditor UML sidebar 
+- Changes UML lifeline container state in grapheditor
+- Adds support for childLayout style in grapheditor
+- Fixes size handles for locked shape in grapheditor
+- Adds capture phase, fixes duplicates in mxLayoutManager [JavaScript]
+- Fixes mxStackLayout.moveCell for scaled graphs [JavaScript]
+- Changes title and size of edit style dialog in grapheditor
+- Changes default of mxStencil.allowEval to false [JavaScript]
+- Adds control key to apply arrow handle to opposite side in grapheditor
+- Fixes arrow handles to appear on same side in grapheditor
+- Removes shadow action in mxEditor [JavaScript]
+- Removes mxConstants.FONT_SHADOW [Java,JavaScript,Dotnet,Php]
+
 05-MAR-2015: 3.1.3.0
 
 - Invokes turn for click on rotate handle in grapheditor [JavaScript]

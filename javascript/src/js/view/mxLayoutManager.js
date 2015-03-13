@@ -201,11 +201,21 @@ mxLayoutManager.prototype.beforeUndo = function(undoableEdit)
 {
 	var cells = this.getCellsForChanges(undoableEdit.changes);
 	var model = this.getGraph().getModel();
+
+	// Adds all descendants
+	var tmp = [];
+	
+	for (var i = 0; i < cells.length; i++)
+	{
+		tmp = tmp.concat(model.getDescendants(cells[i]));
+	}
+	
+	cells = tmp;
 	
 	// Adds all parent ancestors
 	if (this.isBubbling())
 	{
-		var tmp = model.getParents(cells);
+		tmp = model.getParents(cells);
 		
 		while (tmp.length > 0)
 		{
@@ -214,7 +224,22 @@ mxLayoutManager.prototype.beforeUndo = function(undoableEdit)
 		}
 	}
 	
-	this.layoutCells(mxUtils.sortCells(cells, false));
+	this.executeLayoutForCells(cells);
+};
+
+/**
+ * Function: executeLayout
+ * 
+ * Executes the given layout on the given parent.
+ */
+mxLayoutManager.prototype.executeLayoutForCells = function(cells)
+{
+	// Adds reverse to this array to avoid duplicate execution of leafes
+	// Works like capture/bubble for events, first executes all layout
+	// from top to bottom and in reverse order and removes duplicates.
+	var sorted = mxUtils.sortCells(cells, true);
+	sorted = sorted.concat(sorted.slice().reverse());
+	this.layoutCells(sorted);
 };
 
 /**
@@ -337,8 +362,10 @@ mxLayoutManager.prototype.layoutCells = function(cells)
 			{
 				if (cells[i] != model.getRoot() && cells[i] != last)
 				{
-					last = cells[i];
-					this.executeLayout(this.getLayout(last), last);
+					if (this.executeLayout(this.getLayout(cells[i]), cells[i]))
+					{
+						last = cells[i];
+					}
 				}
 			}
 			
@@ -358,10 +385,15 @@ mxLayoutManager.prototype.layoutCells = function(cells)
  */
 mxLayoutManager.prototype.executeLayout = function(layout, parent)
 {
+	var result = false;
+	
 	if (layout != null && parent != null)
 	{
 		layout.execute(parent);
+		result = true;
 	}
+	
+	return result;
 };
 
 /**

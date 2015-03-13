@@ -1531,14 +1531,6 @@ mxEdgeHandler.prototype.reset = function()
 		}
 	}
 
-	if (this.customHandles != null)
-	{
-		for (var i = 0; i < this.customHandles.length; i++)
-		{
-			this.customHandles[i].reset();
-		}
-	}
-	
 	if (this.marker != null)
 	{
 		this.marker.reset();

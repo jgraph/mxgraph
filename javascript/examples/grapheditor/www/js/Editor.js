@@ -217,7 +217,12 @@ Editor.prototype.setGraphXml = function(node)
 				this.graph.setTooltips(node.getAttribute('tooltips') != '0');
 				this.graph.setConnectable(node.getAttribute('connect') != '0');
 				this.graph.foldingEnabled = node.getAttribute('fold') != '0';
-		
+
+				if (this.chromeless && this.graph.foldingEnabled)
+				{
+					this.graph.foldingEnabled = urlParams['nav'] == '1';
+				}
+				
 				var ps = node.getAttribute('pageScale');
 				
 				if (ps != null)
@@ -457,37 +462,6 @@ Editor.prototype.init = function()
 		return marker;
 	};
 
-	// Makes the shadow brighter
-	mxConstants.SHADOWCOLOR = '#d0d0d0';
-	
-	// Changes some default colors
-	mxConstants.HANDLE_FILLCOLOR = '#99ccff';
-	mxConstants.HANDLE_STROKECOLOR = '#0088cf';
-	mxConstants.VERTEX_SELECTION_COLOR = '#00a8ff';
-	mxConstants.OUTLINE_COLOR = '#00a8ff';
-	mxConstants.OUTLINE_HANDLE_FILLCOLOR = '#99ccff';
-	mxConstants.OUTLINE_HANDLE_STROKECOLOR = '#00a8ff';
-	mxConstants.CONNECT_HANDLE_FILLCOLOR = '#cee7ff';
-	mxConstants.EDGE_SELECTION_COLOR = '#00a8ff';
-	mxConstants.DEFAULT_VALID_COLOR = '#00a8ff';
-	mxConstants.LABEL_HANDLE_FILLCOLOR = '#cee7ff';
-	mxConstants.GUIDE_COLOR = '#0088cf';
-
-	mxGraph.prototype.pageBreakColor = '#c0c0c0';
-	mxGraph.prototype.pageScale = 1;
-	
-	// Adds rotation handle and live preview
-	mxVertexHandler.prototype.rotationEnabled = true;
-	mxVertexHandler.prototype.manageSizers = true;
-	mxVertexHandler.prototype.livePreview = true;
-
-	// Matches label positions of mxGraph 1.x
-	mxText.prototype.baseSpacingTop = 5;
-	mxText.prototype.baseSpacingBottom = 1;
-
-	// Increases default rubberband opacity (default is 20)
-	mxRubberband.prototype.defaultOpacity = 30;
-	
 	// Changes border color of background page shape
 	mxGraphView.prototype.createBackgroundPageShape = function(bounds)
 	{
@@ -823,19 +797,18 @@ Editor.prototype.init = function()
 	
 	// Selection is delayed to mouseup if child selected
 	var graphHandlerIsDelayedSelection = mxGraphHandler.prototype.isDelayedSelection;
-	mxGraphHandler.prototype.isDelayedSelection = function(cell)
+	mxGraphHandler.prototype.isDelayedSelection = function(cell, me)
 	{
 		var result = graphHandlerIsDelayedSelection.apply(this, arguments);
 		var model = this.graph.getModel();
 		var psel = model.getParent(this.graph.getSelectionCell());
 		var parent = model.getParent(cell);
 		
-		if (psel == null || (psel != cell && psel != parent))
+		if ((psel == null || (psel != cell && psel != parent)) &&
+			!this.graph.isCellSelected(cell) && model.isVertex(parent) &&
+			!this.graph.isValidRoot(parent))
 		{
-			if (!this.graph.isCellSelected(cell) && model.isVertex(parent) && !this.graph.isValidRoot(parent))
-			{
-				result = true;
-			}
+			result = true;
 		}
 		
 		return result;
@@ -852,17 +825,27 @@ Editor.prototype.init = function()
 			{
 				cell = this.cell;
 			}
+
+			// Selects folded cell for hit on folding icon
+			var state = this.graph.view.getState(cell)
 			
-			var model = this.graph.getModel();
-			var parent = model.getParent(cell);
-			
-			while (this.graph.isCellSelected(cell) && model.isVertex(parent) && !this.graph.isValidRoot(parent))
+			if (state != null && me.isSource(state.control))
 			{
-				cell = parent;
-				parent = model.getParent(cell);
+				this.graph.selectCellForEvent(cell, me.getEvent());
 			}
-			
-			this.graph.selectCellForEvent(cell, me.getEvent());
+			else
+			{
+				var model = this.graph.getModel();
+				var parent = model.getParent(cell);
+				
+				while (this.graph.isCellSelected(cell) && model.isVertex(parent) && !this.graph.isValidRoot(parent))
+				{
+					cell = parent;
+					parent = model.getParent(cell);
+				}
+				
+				this.graph.selectCellForEvent(cell, me.getEvent());
+			}
 		}
 	};
 

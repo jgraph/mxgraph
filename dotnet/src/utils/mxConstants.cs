@@ -700,7 +700,7 @@ namespace com.mxgraph
 
         /// <summary>
         /// Defines the key for the fontStyle style. Values may be any logical AND
-        /// (sum) of FONT_BOLD, FONT_ITALIC, FONT_UNDERLINE and FONT_SHADOW. The type
+        /// (sum) of FONT_BOLD, FONT_ITALIC and FONT_UNDERLINE. The type
         /// of the value is <i>int</i>.
         /// </summary>
 	    public static string STYLE_FONTSTYLE = "fontStyle";
@@ -752,11 +752,6 @@ namespace com.mxgraph
         /// FONT_UNDERLINE
         /// </summary>
         public const int FONT_UNDERLINE = 4;
-
-        /// <summary>
-        /// FONT_SHADOW
-        /// </summary>
-        public const int FONT_SHADOW = 8;
 
         /// <summary>
         /// SHAPE_RECTANGLE

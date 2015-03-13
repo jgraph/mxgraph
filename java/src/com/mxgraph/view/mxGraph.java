@@ -194,9 +194,9 @@ public class mxGraph extends mxEventSource
 
 	/**
 	 * Holds the version number of this release. Current version
-	 * is 3.1.3.0.
+	 * is 3.2.0.0.
 	 */
-	public static final String VERSION = "3.1.3.0";
+	public static final String VERSION = "3.2.0.0";
 
 	/**
 	 * 
@@ -2665,6 +2665,7 @@ public class mxGraph extends mxEventSource
 
 		return cells;
 	}
+
 	/**
 	 * Adds the specified cells to the given parent. This method fires
 	 * mxEvent.CELLS_ADDED while the transaction is in progress.
@@ -2674,7 +2675,7 @@ public class mxGraph extends mxEventSource
 	{
 		cellsAdded(cells, parent, index, source, target, absolute, true);
 	}
-	
+
 	/**
 	 * Adds the specified cells to the given parent. This method fires
 	 * mxEvent.CELLS_ADDED while the transaction is in progress.
@@ -3757,15 +3758,15 @@ public class mxGraph extends mxEventSource
 				// Need to disable allowNegativeCoordinates if target not null to
 				// allow for temporary negative numbers until cellsAdded is called.
 				boolean previous = isAllowNegativeCoordinates();
-				
+
 				if (target != null)
 				{
 					setAllowNegativeCoordinates(true);
 				}
-				
+
 				cellsMoved(cells, dx, dy, !clone && isDisconnectOnMove()
 						&& isAllowDanglingEdges(), target == null);
-				
+
 				setAllowNegativeCoordinates(previous);
 
 				if (target != null)
@@ -4268,26 +4269,26 @@ public class mxGraph extends mxEventSource
 
 				// Updates the constraint
 				setConnectionConstraint(edge, terminal, source, constraint);
-				
+
 				// Checks if the new terminal is a port, uses the ID of the port in the
 				// style and the parent of the port as the actual terminal of the edge.
 				if (isPortsEnabled())
 				{
 					// Checks if the new terminal is a port
 					String id = null;
-	
+
 					if (isPort(terminal) && terminal instanceof mxICell)
 					{
 						id = ((mxICell) terminal).getId();
 						terminal = getTerminalForPort(terminal, source);
 					}
-	
+
 					// Sets or resets all previous information for connecting to a child port
 					String key = (source) ? mxConstants.STYLE_SOURCE_PORT
 							: mxConstants.STYLE_TARGET_PORT;
 					setCellStyles(key, id, new Object[] { edge });
 				}
-				
+
 				model.setTerminal(edge, terminal, source);
 
 				if (isResetEdgesOnConnect())
@@ -4780,12 +4781,13 @@ public class mxGraph extends mxEventSource
 			for (int i = 0; i < cells.length; i++)
 			{
 				int childCount = model.getChildCount(cells[i]);
-	
+
 				for (int j = 0; j < childCount; j++)
 				{
-					mxRectangle tmp = getCellBounds(model.getChildAt(cells[i], j),
-							includeEdges, true, boundingBox);
-	
+					mxRectangle tmp = getCellBounds(
+							model.getChildAt(cells[i], j), includeEdges, true,
+							boundingBox);
+
 					if (result != null)
 					{
 						result.add(tmp);
@@ -6640,7 +6642,8 @@ public class mxGraph extends mxEventSource
 		boolean oldValue = portsEnabled;
 		portsEnabled = value;
 
-		changeSupport.firePropertyChange("portsEnabled", oldValue, portsEnabled);
+		changeSupport
+				.firePropertyChange("portsEnabled", oldValue, portsEnabled);
 	}
 
 	/**
@@ -7868,7 +7871,7 @@ public class mxGraph extends mxEventSource
 			{
 				Graphics g = ((mxGraphics2DCanvas) clippedCanvas).getGraphics();
 				clip = g.getClip();
-				
+
 				// Ensure that our new clip resides within our old clip
 				if (clip instanceof Rectangle)
 				{

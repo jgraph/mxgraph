@@ -323,7 +323,7 @@ mxGraphHandler.prototype.getInitialCellForEvent = function(me)
  * 
  * Hook to return true for delayed selections.
  */
-mxGraphHandler.prototype.isDelayedSelection = function(cell)
+mxGraphHandler.prototype.isDelayedSelection = function(cell, me)
 {
 	return this.graph.isCellSelected(cell);
 };
@@ -341,7 +341,7 @@ mxGraphHandler.prototype.mouseDown = function(sender, me)
 		me.getState() != null && !mxEvent.isMultiTouchEvent(me.getEvent()))
 	{
 		var cell = this.getInitialCellForEvent(me);
-		this.delayedSelection = this.isDelayedSelection(cell);
+		this.delayedSelection = this.isDelayedSelection(cell, me);
 		this.cell = null;
 		
 		if (this.isSelectEnabled() && !this.delayedSelection)

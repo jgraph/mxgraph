@@ -750,7 +750,12 @@
 	
 	mxPerimeter.LifelinePerimeter = function (bounds, vertex, next, orthogonal)
 	{
-		var size = mxUtils.getValue(vertex.style, 'size', UmlLifeline.prototype.size) * vertex.view.scale;
+		var size = UmlLifeline.prototype.size;
+		
+		if (vertex != null)
+		{
+			size = mxUtils.getValue(vertex.style, 'size', size) * vertex.view.scale;
+		}
 		
 		return new mxPoint(bounds.getCenterX(), Math.min(bounds.y + bounds.height,
 				Math.max(bounds.y + size, next.y)));
@@ -1223,6 +1228,79 @@
 
 	mxCellRenderer.prototype.defaultShapes['tapeData'] = TapeDataShape;
 
+	// OrEllipseShape
+	function OrEllipseShape()
+	{
+		mxEllipse.call(this);
+	};
+	mxUtils.extend(OrEllipseShape, mxEllipse);
+	OrEllipseShape.prototype.paintVertexShape = function(c, x, y, w, h)
+	{
+		mxEllipse.prototype.paintVertexShape.apply(this, arguments);
+		
+		c.setShadow(false);
+		c.begin();
+		c.moveTo(x, y + h / 2);
+		c.lineTo(x + w, y + h / 2);
+		c.end();
+		c.stroke();
+		
+		c.begin();
+		c.moveTo(x + w / 2, y);
+		c.lineTo(x + w / 2, y + h);
+		c.end();
+		c.stroke();
+	};
+
+	mxCellRenderer.prototype.defaultShapes['orEllipse'] = OrEllipseShape;
+
+	// SumEllipseShape
+	function SumEllipseShape()
+	{
+		mxEllipse.call(this);
+	};
+	mxUtils.extend(SumEllipseShape, mxEllipse);
+	SumEllipseShape.prototype.paintVertexShape = function(c, x, y, w, h)
+	{
+		mxEllipse.prototype.paintVertexShape.apply(this, arguments);
+		var s2 = 0.145;
+		
+		c.setShadow(false);
+		c.begin();
+		c.moveTo(x + w * s2, y + h * s2);
+		c.lineTo(x + w * (1 - s2), y + h * (1 - s2));
+		c.end();
+		c.stroke();
+		
+		c.begin();
+		c.moveTo(x + w * (1 - s2), y + h * s2);
+		c.lineTo(x + w * s2, y + h * (1 - s2));
+		c.end();
+		c.stroke();
+	};
+
+	mxCellRenderer.prototype.defaultShapes['sumEllipse'] = SumEllipseShape;
+
+	// LineEllipseShape
+	function LineEllipseShape()
+	{
+		mxEllipse.call(this);
+	};
+	mxUtils.extend(LineEllipseShape, mxEllipse);
+	LineEllipseShape.prototype.paintVertexShape = function(c, x, y, w, h)
+	{
+		mxEllipse.prototype.paintVertexShape.apply(this, arguments);
+		
+		c.setShadow(false);
+		c.begin();
+		c.moveTo(x, y + h / 2);
+		c.lineTo(x + w, y + h / 2);
+		c.end();
+		c.stroke();
+	};
+
+	mxCellRenderer.prototype.defaultShapes['lineEllipse'] = LineEllipseShape;
+
 	// Delay
 	function DelayShape()
 	{
@@ -1317,7 +1395,7 @@
 	});
 
 	// Handlers are only added if mxVertexHandler is defined (ie. not in embedded graph)
-	if (typeof(mxVertexHandler) != 'undefined')
+	if (typeof mxVertexHandler !== 'undefined')
 	{
 		function createHandle(state, keys, getPositionFn, setPositionFn, ignoreGrid)
 		{
@@ -1338,11 +1416,44 @@
 			return handle;
 		};
 		
+		function createArcHandle(state, yOffset)
+		{
+			return createHandle(state, [mxConstants.STYLE_ARCSIZE], function(bounds)
+			{
+				var arcSize = Math.max(0, parseFloat(mxUtils.getValue(state.style,
+					mxConstants.STYLE_ARCSIZE, mxConstants.RECTANGLE_ROUNDING_FACTOR * 100))) / 100;
+				var tmp = (yOffset != null) ? yOffset : bounds.height / 8;
+				
+				return new mxPoint(bounds.x + bounds.width - Math.min(Math.max(bounds.width / 2, bounds.height / 2),
+					Math.min(bounds.width, bounds.height) * arcSize), bounds.y + tmp);
+			}, function(bounds, pt, me)
+			{
+				var f = Math.min(50, Math.max(0, (bounds.width - pt.x + bounds.x) * 100 /
+					Math.min(bounds.width, bounds.height)));
+				this.state.style[mxConstants.STYLE_ARCSIZE] = Math.round(f);
+			});
+		}
+
+		function createArcHandleFunction()
+		{
+			return function(state)
+			{
+				var handles = [];
+				
+				if (mxUtils.getValue(state.style, mxConstants.STYLE_ROUNDED, false))
+				{
+					handles.push(createArcHandle(state));
+				}
+				
+				return handles;
+			};
+		};
+		
 		function createTrapezoidHandleFunction(max)
 		{
 			return function(state)
 			{
-				return [createHandle(state, ['size'], function(bounds)
+				var handles = [createHandle(state, ['size'], function(bounds)
 				{
 					var size = Math.max(0, Math.min(max, parseFloat(mxUtils.getValue(this.state.style, 'size', TrapezoidShape.prototype.size))));
 				
@@ -1351,14 +1462,21 @@
 				{
 					this.state.style['size'] = Math.max(0, Math.min(max, (pt.x - bounds.x) / (bounds.width * 0.75)));
 				})];
+				
+				if (mxUtils.getValue(state.style, mxConstants.STYLE_ROUNDED, false))
+				{
+					handles.push(createArcHandle(state));
+				}
+				
+				return handles;
 			};
 		};
 		
-		function createDisplayHandleFunction(defaultValue)
+		function createDisplayHandleFunction(defaultValue, allowArcHandle)
 		{
 			return function(state)
 			{
-				return [createHandle(state, ['size'], function(bounds)
+				var handles = [createHandle(state, ['size'], function(bounds)
 				{
 					var size = parseFloat(mxUtils.getValue(this.state.style, 'size', defaultValue));
 	
@@ -1367,14 +1485,21 @@
 				{
 					this.state.style['size'] = Math.max(0, Math.min(1, (pt.x - bounds.x) / bounds.width));
 				})];
+				
+				if (allowArcHandle && mxUtils.getValue(state.style, mxConstants.STYLE_ROUNDED, false))
+				{
+					handles.push(createArcHandle(state));
+				}
+				
+				return handles;
 			};
 		};
 		
-		function createCubeHandleFunction(factor, defaultValue)
+		function createCubeHandleFunction(factor, defaultValue, allowArcHandle)
 		{
 			return function(state)
 			{
-				return [createHandle(state, ['size'], function(bounds)
+				var handles = [createHandle(state, ['size'], function(bounds)
 				{
 					var size = Math.max(0, Math.min(bounds.width, Math.min(bounds.height, parseFloat(
 						mxUtils.getValue(this.state.style, 'size', defaultValue))))) * factor;
@@ -1385,6 +1510,13 @@
 					this.state.style['size'] = Math.round(Math.max(0, Math.min(Math.min(bounds.width, pt.x - bounds.x),
 							Math.min(bounds.height, pt.y - bounds.y))) / factor);
 				})];
+				
+				if (allowArcHandle && mxUtils.getValue(state.style, mxConstants.STYLE_ROUNDED, false))
+				{
+					handles.push(createArcHandle(state));
+				}
+				
+				return handles;
 			};
 		};
 		
@@ -1423,7 +1555,7 @@
 			
 			return createHandle(state, keys, function(bounds)
 			{
-				var pt = getPosition(dist, dx / dist, dy / dist, p0, p1);
+				var pt = getPosition.call(this, dist, dx / dist, dy / dist, p0, p1);
 				
 				return new mxPoint(pt.x / s - tr.x, pt.y / s - tr.y);
 			}, function(bounds, pt, me)
@@ -1432,7 +1564,7 @@
 				pt.x = (pt.x + tr.x) * s;
 				pt.y = (pt.y + tr.y) * s;
 
-				setPosition(dist, dx / dist, dy / dist, p0, p1, pt, me);
+				setPosition.call(this, dist, dx / dist, dy / dist, p0, p1, pt, me);
 			});
 		};
 		
@@ -1465,11 +1597,12 @@
 			'flexArrow': function(state)
 			{
 				// Do not use state.shape.startSize/endSize since it is cached
+				var tol = state.view.graph.gridSize / state.view.scale;
 				var handles = [];
 				
 				if (mxUtils.getValue(state.style, mxConstants.STYLE_STARTARROW, mxConstants.NONE) != mxConstants.NONE)
 				{
-					handles.push(createEdgeHandle(state, ['width', mxConstants.STYLE_STARTSIZE], true, function(dist, nx, ny, p0, p1)
+					handles.push(createEdgeHandle(state, ['width', mxConstants.STYLE_STARTSIZE, mxConstants.STYLE_ENDSIZE], true, function(dist, nx, ny, p0, p1)
 					{
 						var w = (state.shape.getEdgeWidth() - state.shape.strokewidth) * state.view.scale;
 						var l = mxUtils.getNumber(state.style, mxConstants.STYLE_STARTSIZE, mxConstants.ARROW_SIZE / 5) * 3 * state.view.scale;
@@ -1481,14 +1614,18 @@
 						var w = Math.sqrt(mxUtils.ptSegDistSq(p0.x, p0.y, p1.x, p1.y, pt.x, pt.y));
 						var l = mxUtils.ptLineDist(p0.x, p0.y, p0.x + ny, p0.y - nx, pt.x, pt.y);
 						
-						state.style[mxConstants.STYLE_STARTSIZE] = Math.round((l - state.shape.strokewidth) / 3) / state.view.scale;
+						state.style[mxConstants.STYLE_STARTSIZE] = Math.round((l - state.shape.strokewidth) * 100 / 3) / 100 / state.view.scale;
 						state.style['width'] = Math.round(w * 2) / state.view.scale;
 						
+						// Applies to opposite side
+						if (mxEvent.isControlDown(me.getEvent()))
+						{
+							state.style[mxConstants.STYLE_ENDSIZE] = state.style[mxConstants.STYLE_STARTSIZE];
+						}
+
 						// Snaps to end geometry
 						if (!mxEvent.isAltDown(me.getEvent()))
 						{
-							var tol = state.view.graph.gridSize / state.view.scale;
-
 							if (Math.abs(parseFloat(state.style[mxConstants.STYLE_STARTSIZE]) - parseFloat(state.style[mxConstants.STYLE_ENDSIZE])) < tol / 6)
 							{
 								state.style[mxConstants.STYLE_STARTSIZE] = state.style[mxConstants.STYLE_ENDSIZE];
@@ -1496,7 +1633,7 @@
 						}
 					}));
 					
-					handles.push(createEdgeHandle(state, ['startWidth', mxConstants.STYLE_STARTSIZE], true, function(dist, nx, ny, p0, p1)
+					handles.push(createEdgeHandle(state, ['startWidth', 'endWidth', mxConstants.STYLE_STARTSIZE, mxConstants.STYLE_ENDSIZE], true, function(dist, nx, ny, p0, p1)
 					{
 						var w = (state.shape.getStartArrowWidth() - state.shape.strokewidth) * state.view.scale;
 						var l = mxUtils.getNumber(state.style, mxConstants.STYLE_STARTSIZE, mxConstants.ARROW_SIZE / 5) * 3 * state.view.scale;
@@ -1508,14 +1645,19 @@
 						var w = Math.sqrt(mxUtils.ptSegDistSq(p0.x, p0.y, p1.x, p1.y, pt.x, pt.y));
 						var l = mxUtils.ptLineDist(p0.x, p0.y, p0.x + ny, p0.y - nx, pt.x, pt.y);
 						
-						state.style[mxConstants.STYLE_STARTSIZE] = Math.round((l - state.shape.strokewidth) / 3) / state.view.scale;
+						state.style[mxConstants.STYLE_STARTSIZE] = Math.round((l - state.shape.strokewidth) * 100 / 3) / 100 / state.view.scale;
 						state.style['startWidth'] = Math.max(0, Math.round(w * 2) - state.shape.getEdgeWidth()) / state.view.scale;
+						
+						// Applies to opposite side
+						if (mxEvent.isControlDown(me.getEvent()))
+						{
+							state.style[mxConstants.STYLE_ENDSIZE] = state.style[mxConstants.STYLE_STARTSIZE];
+							state.style['endWidth'] = state.style['startWidth'];
+						}
 						
 						// Snaps to endWidth
 						if (!mxEvent.isAltDown(me.getEvent()))
 						{
-							var tol = state.view.graph.gridSize / state.view.scale;
-
 							if (Math.abs(parseFloat(state.style[mxConstants.STYLE_STARTSIZE]) - parseFloat(state.style[mxConstants.STYLE_ENDSIZE])) < tol / 6)
 							{
 								state.style[mxConstants.STYLE_STARTSIZE] = state.style[mxConstants.STYLE_ENDSIZE];
@@ -1531,26 +1673,30 @@
 				
 				if (mxUtils.getValue(state.style, mxConstants.STYLE_ENDARROW, mxConstants.NONE) != mxConstants.NONE)
 				{
-					handles.push(createEdgeHandle(state, ['width', mxConstants.STYLE_ENDSIZE], false, function(dist, nx, ny, p0, p1)
+					handles.push(createEdgeHandle(state, ['width', mxConstants.STYLE_STARTSIZE, mxConstants.STYLE_ENDSIZE], false, function(dist, nx, ny, p0, p1)
 					{
 						var w = (state.shape.getEdgeWidth() - state.shape.strokewidth) * state.view.scale;
 						var l = mxUtils.getNumber(state.style, mxConstants.STYLE_ENDSIZE, mxConstants.ARROW_SIZE / 5) * 3 * state.view.scale;
 						
-						return new mxPoint(p0.x + nx * (l + state.shape.strokewidth * state.view.scale) + ny * w / 2,
-							p0.y + ny * (l + state.shape.strokewidth * state.view.scale) - nx * w / 2);
+						return new mxPoint(p0.x + nx * (l + state.shape.strokewidth * state.view.scale) - ny * w / 2,
+							p0.y + ny * (l + state.shape.strokewidth * state.view.scale) + nx * w / 2);
 					}, function(dist, nx, ny, p0, p1, pt, me)
 					{
 						var w = Math.sqrt(mxUtils.ptSegDistSq(p0.x, p0.y, p1.x, p1.y, pt.x, pt.y));
 						var l = mxUtils.ptLineDist(p0.x, p0.y, p0.x + ny, p0.y - nx, pt.x, pt.y);
 						
-						state.style[mxConstants.STYLE_ENDSIZE] = Math.round((l - state.shape.strokewidth) / 3) / state.view.scale;
+						state.style[mxConstants.STYLE_ENDSIZE] = Math.round((l - state.shape.strokewidth) * 100 / 3) / 100 / state.view.scale;
 						state.style['width'] = Math.round(w * 2) / state.view.scale;
 						
+						// Applies to opposite side
+						if (mxEvent.isControlDown(me.getEvent()))
+						{
+							state.style[mxConstants.STYLE_STARTSIZE] = state.style[mxConstants.STYLE_ENDSIZE];
+						}
+					
 						// Snaps to start geometry
 						if (!mxEvent.isAltDown(me.getEvent()))
 						{
-							var tol = state.view.graph.gridSize / state.view.scale;
-
 							if (Math.abs(parseFloat(state.style[mxConstants.STYLE_ENDSIZE]) - parseFloat(state.style[mxConstants.STYLE_STARTSIZE])) < tol / 6)
 							{
 								state.style[mxConstants.STYLE_ENDSIZE] = state.style[mxConstants.STYLE_STARTSIZE];
@@ -1558,26 +1704,31 @@
 						}
 					}));
 					
-					handles.push(createEdgeHandle(state, ['endWidth', mxConstants.STYLE_ENDSIZE], false, function(dist, nx, ny, p0, p1)
+					handles.push(createEdgeHandle(state, ['startWidth', 'endWidth', mxConstants.STYLE_STARTSIZE, mxConstants.STYLE_ENDSIZE], false, function(dist, nx, ny, p0, p1)
 					{
 						var w = (state.shape.getEndArrowWidth() - state.shape.strokewidth) * state.view.scale;
 						var l = mxUtils.getNumber(state.style, mxConstants.STYLE_ENDSIZE, mxConstants.ARROW_SIZE / 5) * 3 * state.view.scale;
 						
-						return new mxPoint(p0.x + nx * (l + state.shape.strokewidth * state.view.scale) + ny * w / 2,
-							p0.y + ny * (l + state.shape.strokewidth * state.view.scale) - nx * w / 2);
+						return new mxPoint(p0.x + nx * (l + state.shape.strokewidth * state.view.scale) - ny * w / 2,
+							p0.y + ny * (l + state.shape.strokewidth * state.view.scale) + nx * w / 2);
 					}, function(dist, nx, ny, p0, p1, pt, me)
 					{
 						var w = Math.sqrt(mxUtils.ptSegDistSq(p0.x, p0.y, p1.x, p1.y, pt.x, pt.y));
 						var l = mxUtils.ptLineDist(p0.x, p0.y, p0.x + ny, p0.y - nx, pt.x, pt.y);
 						
-						state.style[mxConstants.STYLE_ENDSIZE] = Math.round((l - state.shape.strokewidth) / 3) / state.view.scale;
+						state.style[mxConstants.STYLE_ENDSIZE] = Math.round((l - state.shape.strokewidth) * 100 / 3) / 100 / state.view.scale;
 						state.style['endWidth'] = Math.max(0, Math.round(w * 2) - state.shape.getEdgeWidth()) / state.view.scale;
+						
+						// Applies to opposite side
+						if (mxEvent.isControlDown(me.getEvent()))
+						{
+							state.style[mxConstants.STYLE_STARTSIZE] = state.style[mxConstants.STYLE_ENDSIZE];
+							state.style['startWidth'] = state.style['endWidth'];
+						}
 					
 						// Snaps to start geometry
 						if (!mxEvent.isAltDown(me.getEvent()))
 						{
-							var tol = state.view.graph.gridSize / state.view.scale;
-
 							if (Math.abs(parseFloat(state.style[mxConstants.STYLE_ENDSIZE]) - parseFloat(state.style[mxConstants.STYLE_STARTSIZE])) < tol / 6)
 							{
 								state.style[mxConstants.STYLE_ENDSIZE] = state.style[mxConstants.STYLE_STARTSIZE];
@@ -1595,11 +1746,11 @@
 			},
 			'swimlane': function(state)
 			{
-				return [createHandle(state, [mxConstants.STYLE_STARTSIZE], function(bounds)
+				var handles = [createHandle(state, [mxConstants.STYLE_STARTSIZE], function(bounds)
 				{
-					var size = parseFloat(mxUtils.getValue(this.state.style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE));
+					var size = parseFloat(mxUtils.getValue(state.style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE));
 					
-					if (mxUtils.getValue(this.state.style, mxConstants.STYLE_HORIZONTAL, 1) == 1)
+					if (mxUtils.getValue(state.style, mxConstants.STYLE_HORIZONTAL, 1) == 1)
 					{
 						return new mxPoint(bounds.getCenterX(), bounds.y + Math.max(0, Math.min(bounds.height, size)));
 					}
@@ -1609,12 +1760,25 @@
 					}
 				}, function(bounds, pt)
 				{	
-					this.state.style[mxConstants.STYLE_STARTSIZE] =
+					state.style[mxConstants.STYLE_STARTSIZE] =
 						(mxUtils.getValue(this.state.style, mxConstants.STYLE_HORIZONTAL, 1) == 1) ?
 							Math.round(Math.max(0, Math.min(bounds.height, pt.y - bounds.y))) :
 							Math.round(Math.max(0, Math.min(bounds.width, pt.x - bounds.x)));
 				})];
+				
+				if (mxUtils.getValue(state.style, mxConstants.STYLE_ROUNDED))
+				{
+					var size = parseFloat(mxUtils.getValue(state.style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE));
+					handles.push(createArcHandle(state, size / 2));
+				}
+				
+				return handles;
 			},
+			'label': createArcHandleFunction(),
+			'ext': createArcHandleFunction(),
+			'rectangle': createArcHandleFunction(),
+			'triangle': createArcHandleFunction(),
+			'rhombus': createArcHandleFunction(),
 			'umlLifeline': function(state)
 			{
 				return [createHandle(state, ['size'], function(bounds)
@@ -1629,7 +1793,7 @@
 			},
 			'process': function(state)
 			{
-				return [createHandle(state, ['size'], function(bounds)
+				var handles = [createHandle(state, ['size'], function(bounds)
 				{
 					var size = Math.max(0, Math.min(0.5, parseFloat(mxUtils.getValue(this.state.style, 'size', ProcessShape.prototype.size))));
 
@@ -1638,6 +1802,13 @@
 				{
 					this.state.style['size'] = Math.max(0, Math.min(0.5, (pt.x - bounds.x) / bounds.width));
 				})];
+				
+				if (mxUtils.getValue(state.style, mxConstants.STYLE_ROUNDED, false))
+				{
+					handles.push(createArcHandle(state));
+				}
+				
+				return handles;
 			},
 			'cross': function(state)
 			{
@@ -1670,7 +1841,7 @@
 			},
 			'manualInput': function(state)
 			{
-				return [createHandle(state, ['size'], function(bounds)
+				var handles = [createHandle(state, ['size'], function(bounds)
 				{
 					var size = Math.max(0, Math.min(bounds.height, mxUtils.getValue(this.state.style, 'size', ManualInputShape.prototype.size)));
 					
@@ -1679,6 +1850,13 @@
 				{
 					this.state.style['size'] = Math.round(Math.max(0, Math.min(bounds.height, (pt.y - bounds.y) * 4 / 3)));
 				})];
+				
+				if (mxUtils.getValue(state.style, mxConstants.STYLE_ROUNDED, false))
+				{
+					handles.push(createArcHandle(state));
+				}
+				
+				return handles;
 			},
 			'dataStorage': function(state)
 			{
@@ -1694,7 +1872,7 @@
 			},
 			'internalStorage': function(state)
 			{
-				return [createHandle(state, ['dx', 'dy'], function(bounds)
+				var handles = [createHandle(state, ['dx', 'dy'], function(bounds)
 				{
 					var dx = Math.max(0, Math.min(bounds.width, mxUtils.getValue(this.state.style, 'dx', InternalStorageShape.prototype.dx)));
 					var dy = Math.max(0, Math.min(bounds.height, mxUtils.getValue(this.state.style, 'dy', InternalStorageShape.prototype.dy)));
@@ -1705,6 +1883,13 @@
 					this.state.style['dx'] = Math.round(Math.max(0, Math.min(bounds.width, pt.x - bounds.x)));
 					this.state.style['dy'] = Math.round(Math.max(0, Math.min(bounds.height, pt.y - bounds.y)));
 				})];
+				
+				if (mxUtils.getValue(state.style, mxConstants.STYLE_ROUNDED, false))
+				{
+					handles.push(createArcHandle(state));
+				}
+				
+				return handles;
 			},
 			'corner': function(state)
 			{
@@ -1798,12 +1983,12 @@
 					this.state.style['size'] = Math.max(0, Math.min(1, (bounds.y + bounds.height - pt.y) / bounds.height));
 				})];
 			},
-			'step': createDisplayHandleFunction(StepShape.prototype.size),
-			'curlyBracket': createDisplayHandleFunction(CurlyBracketShape.prototype.size),
-			'display': createDisplayHandleFunction(DisplayShape.prototype.size),
-			'cube': createCubeHandleFunction(1, CubeShape.prototype.size),
-			'card': createCubeHandleFunction(0.5, CardShape.prototype.size),
-			'loopLimit': createCubeHandleFunction(0.5, LoopLimitShape.prototype.size),
+			'step': createDisplayHandleFunction(StepShape.prototype.size, true),
+			'curlyBracket': createDisplayHandleFunction(CurlyBracketShape.prototype.size, false),
+			'display': createDisplayHandleFunction(DisplayShape.prototype.size, false),
+			'cube': createCubeHandleFunction(1, CubeShape.prototype.size, false),
+			'card': createCubeHandleFunction(0.5, CardShape.prototype.size, true),
+			'loopLimit': createCubeHandleFunction(0.5, LoopLimitShape.prototype.size, true),
 			'trapezoid': createTrapezoidHandleFunction(0.5),
 			'parallelogram': createTrapezoidHandleFunction(1)
 		};
@@ -1812,6 +1997,8 @@
 		{
 			// Not rotatable means locked
 			if (this.graph.isCellRotatable(this.state.cell))
+			// LATER: Make locked state independent of rotatable flag, fix toggle if default is false
+			//if (this.graph.isCellResizable(this.state.cell) || this.graph.isCellMovable(this.state.cell))
 			{
 				var fn = handleFactory[this.state.style['shape']];
 			
@@ -1862,6 +2049,9 @@
 	InternalStorageShape.prototype.constraints = mxRectangleShape.prototype.constraints;
 	DataStorageShape.prototype.constraints = mxRectangleShape.prototype.constraints;
 	TapeDataShape.prototype.constraints = mxEllipse.prototype.constraints;
+	OrEllipseShape.prototype.constraints = mxEllipse.prototype.constraints;
+	SumEllipseShape.prototype.constraints = mxEllipse.prototype.constraints;
+	LineEllipseShape.prototype.constraints = mxEllipse.prototype.constraints;
 	ManualInputShape.prototype.constraints = mxRectangleShape.prototype.constraints;
 	DelayShape.prototype.constraints = mxRectangleShape.prototype.constraints;
 	DisplayShape.prototype.constraints = mxRectangleShape.prototype.constraints;

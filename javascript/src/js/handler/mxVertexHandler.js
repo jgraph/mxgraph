@@ -1142,16 +1142,6 @@ mxVertexHandler.prototype.reset = function()
 		this.preview.destroy();
 		this.preview = null;
 	}
-	
-	// Checks if handler has been destroyed
-	if (this.selectionBorder != null)
-	{
-		this.selectionBorder.node.style.display = 'inline';
-		this.selectionBounds = this.getSelectionBounds(this.state);
-		this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y,
-			this.selectionBounds.width, this.selectionBounds.height);
-		this.drawPreview();
-	}
 
 	if (this.livePreview && this.sizers != null)
 	{
@@ -1170,6 +1160,16 @@ mxVertexHandler.prototype.reset = function()
 		{
 			this.customHandles[i].reset();
 		}
+	}
+	
+	// Checks if handler has been destroyed
+	if (this.selectionBorder != null)
+	{
+		this.selectionBorder.node.style.display = 'inline';
+		this.selectionBounds = this.getSelectionBounds(this.state);
+		this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y,
+			this.selectionBounds.width, this.selectionBounds.height);
+		this.drawPreview();
 	}
 
 	this.removeHint();
@@ -1687,7 +1687,7 @@ mxVertexHandler.prototype.updateParentHighlight = function()
  */
 mxVertexHandler.prototype.drawPreview = function()
 {
-	if  (this.preview != null)
+	if (this.preview != null)
 	{
 		this.preview.bounds = this.bounds;
 		

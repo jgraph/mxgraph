@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.1.3.0.
+	 * Current version is 3.2.0.0.
 	 */
-	VERSION: '3.1.3.0',
+	VERSION: '3.2.0.0',
 
 	/**
 	 * Variable: IS_IE
@@ -681,7 +681,6 @@ mxClient.include(mxClient.basePath+'/js/view/mxCellOverlay.js');
 mxClient.include(mxClient.basePath+'/js/view/mxOutline.js');
 mxClient.include(mxClient.basePath+'/js/view/mxMultiplicity.js');
 mxClient.include(mxClient.basePath+'/js/view/mxLayoutManager.js');
-mxClient.include(mxClient.basePath+'/js/view/mxSpaceManager.js');
 mxClient.include(mxClient.basePath+'/js/view/mxSwimlaneManager.js');
 mxClient.include(mxClient.basePath+'/js/view/mxTemporaryCellStates.js');
 mxClient.include(mxClient.basePath+'/js/view/mxCellStatePreview.js');

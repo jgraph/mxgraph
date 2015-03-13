@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.1.3.0.
+	 * Current version is 3.2.0.0.
 	 */
-	VERSION: '3.1.3.0',
+	VERSION: '3.2.0.0',
 
 	/**
 	 * Variable: IS_IE
@@ -7501,7 +7501,7 @@ var mxUtils =
 	 * Variable: STYLE_FONTSTYLE
 	 * 
 	 * Defines the key for the fontStyle style. Values may be any logical AND
-	 * (sum) of <FONT_BOLD>, <FONT_ITALIC>, <FONT_UNDERLINE> and <FONT_SHADOW>.
+	 * (sum) of <FONT_BOLD>, <FONT_ITALIC> and <FONT_UNDERLINE>.
 	 * The type of the value is int. Value is <code>fontStyle</code>.
 	 */
 	STYLE_FONTSTYLE: 'fontStyle',
@@ -7661,13 +7661,6 @@ var mxUtils =
 	 * Constant for underlined fonts. Default is 4.
 	 */
 	FONT_UNDERLINE: 4,
-
-	/**
-	 * Variable: FONT_SHADOW
-	 * 
-	 * Constant for fonts with a shadow. Default is 8.
-	 */
-	FONT_SHADOW: 8,
 
 	/**
 	 * Variable: SHAPE_RECTANGLE
@@ -20840,62 +20833,177 @@ mxGuide.prototype.destroy = function()
  * Class: mxStencil
  *
  * Implements a generic shape which is based on a XML node as a description.
- * The node contains a background and a foreground node, which contain the
- * definition to render the respective part of the shape. Note that the
- * fill, stroke or fillstroke of the background is be the first statement
- * of the foreground. This is because the content of the background node
- * maybe used to not only render the shape itself, but also its shadow and
- * other elements which do not require a fill, stroke or fillstroke.
  * 
- * The shape uses a coordinate system with a width of 100 and a height of
- * 100 by default. This can be changed by setting the w and h attribute of
- * the shape element. The aspect attribute can be set to "variable" (default)
- * or "fixed". If fixed is used, then the aspect which is defined via the w
- * and h attribute is kept constant while the shape is scaled.
+ * shape:
  * 
- * The possible contents of the background and foreground elements are rect,
- * ellipse, roundrect, text, image, include-shape or paths. A path element
- * contains move, line, curve, quad, arc and close elements. The rect, ellipse
- * and roundrect elements may be thought of as special path elements. All these
- * path elements must be followed by either fill, stroke or fillstroke (note
- * that text, image and include-shape or not path elements).
+ * The outer element is *shape*, that has attributes:
  * 
- * The background element can be empty or contain at most one path element. It
- * should not contain a text, image or include-shape element. If the background
- * element is empty, then no shadow or glass effect will be rendered. If the
- * background element is non-empty, then the corresponding fill, stroke or
- * fillstroke should be the first element in the subsequent foreground element.
- *  
- * The format of the XML is "a simplified HTML 5 Canvas". Each command changes
- * the "current" state, so eg. a linecap, linejoin will be used for all
- * subsequent line drawing, unless a save/restore appears, which saves/restores
- * a state in a stack.
- * 
- * The connections section contains the fixed connection points for a stencil.
- * The perimeter attribute of the constraint element should have a value of 0
- * or 1 (default), where 1 (true) specifies that the given point should be
- * projected into the perimeter of the given shape.
- * 
- * The x- and y-coordinates are typically between 0 and 1 and define the
- * location of the connection point relative to the width and height of the
- * shape.
- * 
- * The dashpattern directive sets the current dashpattern. The format for the
- * pattern attribute is a space-separated sequence of numbers, eg. 5 5 5 5,
- * that specifies the lengths of alternating dashes and spaces in dashed lines.
- * The dashpattern should be used together with the dashed directive to
- * enabled/disable the dashpattern. The default dashpattern is 3 3.
- * 
- * The strokewidth attribute defines a strokewidth behaviour for the shape. It
- * can contain a numeric value or the keyword "inherit", which means that the
- * strokeWidth of the cell is only changed on scaling, not on resizing.
+ * - "name", string, required. The stencil name that uniquely identifies the shape.
+ * - "w" and "h" are optional decimal view bounds. This defines your co-ordinate
+ * system for the graphics operations in the shape. The default is 100,100.
+ * - "aspect", optional string. Either "variable", the default, or "fixed". Fixed
+ * means always render the shape with the aspect ratio defined by the ratio w/h.
+ * Variable causes the ratio to match that of the geometry of the current vertex.
+ * - "strokewidth", optional string. Either an integer or the string "inherit".
+ * "inherit" indicates that the strokeWidth of the cell is only changed on scaling,
+ * not on resizing.
  * If numeric values are used, the strokeWidth of the cell is changed on both
  * scaling and resizing and the value defines the multiple that is applied to
  * the width.
  * 
- * To support i18n in the text element, use the localized attribute of 1 to use
- * the str as a key in <mxResources.get>. To handle all str attributes of all
- * text nodes like this, set the <mxStencil.defaultLocalized> value to true.
+ * connections:
+ * 
+ * If you want to define specific fixed connection points on the shape use the
+ * *connections* element. Each *constraint* element within connections defines
+ * a fixed connection point on the shape. Constraints have attributes:
+ * 
+ * - "perimeter", required. 1 or 0. 0 sets the connection point where specified
+ * by x,y. 1 Causes the position of the connection point to be extrapolated from
+ * the center of the shape, through x,y to the point of intersection with the
+ * perimeter of the shape.
+ * - "x" and "y" are the position of the fixed point relative to the bounds of
+ * the shape. They can be automatically adjusted if perimeter=1. So, (0,0) is top
+ * left, (0.5,0.5) the center, (1,0.5) the center of the right hand edge of the
+ * bounds, etc. Values may be less than 0 or greater than 1 to be positioned
+ * outside of the shape.
+ * - "name", optional string. A unique identifier for the port on the shape.
+ * 
+ * background and foreground:
+ * 
+ * The path of the graphics drawing is split into two elements, *foreground* and
+ * *background*. The split is to define which part any shadow applied to the shape
+ * is derived from (the background). This, generally, means the background is the
+ * line tracing of the outside of the shape, but not always.
+ * 
+ * Any stroke, fill or fillstroke of a background must be the first element of the
+ * foreground element, they must not used within *background*. If the background
+ * is empty, this is not required.
+ * 
+ * Because the background cannot have any fill or stroke, it can contain only one
+ * *path*, *rect*, *roundrect* or *ellipse* element (or none). It can also not
+ * include *image*, *text* or *include-shape*.
+ * 
+ * Note that the state, styling and drawing in mxGraph stencils is very close in
+ * design to that of HTML 5 canvas. Tutorials on this subject, if you're not
+ * familiar with the topic, will give a good high-level introduction to the
+ * concepts used.
+ * 
+ * State:
+ * 
+ * Rendering within the foreground and background elements has the concept of
+ * state. There are two types of operations other than state save/load, styling
+ * and drawing. The styling operations change the current state, so you can save
+ * the current state with <save/> and pull the last saved state from the state
+ * stack using <restore/>.
+ * 
+ * Styling:
+ * 
+ * The elements that change colors within the current state all take a hash
+ * prefixed hex color code ("#FFEA80").
+ * 
+ * - *strokecolor*, this sets the color that drawing paths will be rendered in
+ * when a stroke or fillstroke command is issued.
+ * - *fillcolor*, this sets the color that the inside of closed paths will be
+ * rendered in when a fill or fillstroke command is issued.
+ * - *fontcolor*, this sets the color that fonts are rendered in when text is drawn.
+ * 
+ * *alpha* defines the degree of transparency used between 1.0 for fully opaque
+ * and 0.0 for fully transparent.
+ * 
+ * *strokewidth* defines the integer thickness of drawing elements rendered by
+ * stroking.
+ * 
+ * *dashed* is "1" for dashing enabled and "0" for disabled.
+ * 
+ * When *dashed* is enabled the current dash pattern, defined by *dashpattern*,
+ * is used on strokes. dashpattern is a sequence of space separated "on, off"
+ * lengths that define what distance to paint the stroke for, then what distance
+ * to paint nothing for, repeat... The default is "3 3". You could define a more
+ * complex pattern with "5 3 2 6", for example. Generally, it makes sense to have
+ * an even number of elements in the dashpattern, but that's not required.
+ * 
+ * *linejoin*, *linecap* and *miterlimit* are best explained by the Mozilla page
+ * on Canvas styling (about halfway down). The values are all the same except we
+ * use "flat" for linecap, instead of Canvas' "butt".
+ * 
+ * For font styling there are.
+ * 
+ * - *fontsize*, an integer,
+ * - *fontstyle*, an ORed bit pattern of bold (1), italic (2) and underline (4),
+ * i.e bold underline is "5".
+ * - *fontfamily*, is a string defining the typeface to be used.
+ * 
+ * Drawing:
+ * 
+ * Most drawing is contained within a *path* element. Again, the graphic
+ * primitives are very similar to that of HTML 5 canvas.
+ * 
+ * - *move* to attributes required decimals (x,y).
+ * - *line* to attributes required decimals (x,y).
+ * - *quad* to required decimals (x2,y2) via control point required decimals
+ * (x1,y1).
+ * - *curve* to required decimals (x3,y3), via control points required decimals
+ * (x1,y1) and (x2,y2).
+ * - *arc*, this doesn't follow the HTML Canvas signatures, instead it's a copy
+ * of the SVG arc command. The SVG specification documentation gives the best
+ * description of its behaviors. The attributes are named identically, they are
+ * decimals and all required.
+ * - *close* ends the current subpath and causes an automatic straight line to
+ * be drawn from the current point to the initial point of the current subpath.
+ * 
+ * Complex drawing:
+ * 
+ * In addition to the graphics primitive operations there are non-primitive
+ * operations. These provide an easy method to draw some basic shapes.
+ * 
+ * - *rect*, attributes "x", "y", "w", "h", all required decimals
+ * - *roundrect*, attributes "x", "y", "w", "h", all required decimals. Also
+ * "arcsize" an optional decimal attribute defining how large, the corner curves
+ * are.
+ * - *ellipse*, attributes "x", "y", "w", "h", all required decimals.
+ * 
+ * Note that these 3 shapes and all paths must be followed by either a fill,
+ * stroke, or fillstroke.
+ * 
+ * Text:
+ * 
+ * *text* elements have the following attributes.
+ * 
+ * - "str", the text string to display, required.
+ * - "x" and "y", the decimal location (x,y) of the text element, required.
+ * - "align", the horizontal alignment of the text element, either "left",
+ * "center" or "right". Optional, default is "left".
+ * - "valign", the vertical alignment of the text element, either "top", "middle"
+ * or "bottom". Optional, default is "top".
+ * - "localized", 0 or 1, if 1 then the "str" actually contains a key to use to
+ * fetch the value out of mxResources. Optional, default is
+ * <mxStencil.defaultLocalized>.
+ * - "vertical", 0 or 1, if 1 the label is rendered vertically (rotated by 90
+ * degrees). Optional, default is 0.
+ * - "rotation", angle in degrees (0 to 360). The angle to rotate the text by.
+ * Optional, default is 0.
+ * - "align-shape", 0 or 1, if 0 ignore the rotation of the shape when setting
+ * the text rotation. Optional, default is 1.
+ * 
+ * Images:
+ * 
+ * *image* elements can either be external URLs, or data URIs, where supported
+ * (not in IE 7-). Attributes are:
+ * 
+ * - "src", required string. Either a data URI or URL.
+ * - "x", "y", required decimals. The (x,y) position of the image.
+ * - "w", "h", required decimals. The width and height of the image.
+ * - "flipH" and "flipV", optional 0 or 1. Whether to flip the image along the
+ * horizontal/vertical axis. Default is 0 for both.
+ * 
+ * Sub-shapes:
+ * 
+ * *include-shape* allow stencils to be rendered within the current stencil by
+ * referencing the sub-stencil by name. Attributes are:
+ * 
+ * - "name", required string. The unique shape name of the stencil.
+ * - "x", "y", "w", "h", required decimals. The (x,y) position of the sub-shape
+ * and its width and height.
  * 
  * Constructor: mxStencil
  * 
@@ -20925,10 +21033,10 @@ mxStencil.defaultLocalized = false;
  * Function: allowEval
  * 
  * Static global switch that specifies if the use of eval is allowed for
- * evaluating text content. Default is true. Set this to false if stencils may
- * contain user input (see the section on security in the manual).
+ * evaluating text content and images. Default is false. Set this to true
+ * if stencils can not contain user input.
  */
-mxStencil.allowEval = true;
+mxStencil.allowEval = false;
 
 /**
  * Variable: desc
@@ -27267,6 +27375,14 @@ mxStackLayout.prototype.fill = false;
 mxStackLayout.prototype.resizeParent = false;
 
 /**
+ * Variable: resizeParentMax
+ * 
+ * Use maximum of existing value and new value for resize of parent.
+ * Default is false.
+ */
+mxStackLayout.prototype.resizeParentMax = false;
+
+/**
  * Variable: resizeLast
  * 
  * If the last element should be resized to fill out the parent. Default is
@@ -27321,6 +27437,8 @@ mxStackLayout.prototype.moveCell = function(cell, x, y)
 		{
 			value -= (horizontal) ? pstate.x : pstate.y;
 		}
+		
+		value /= this.graph.view.scale;
 		
 		for (i = 0; i < childCount; i++)
 		{
@@ -27605,11 +27723,29 @@ mxStackLayout.prototype.updateParentGeometry = function(parent, pgeo, last)
 	
 	if (horizontal)
 	{
-		pgeo.width = last.x + last.width + this.spacing + this.marginRight;
+		var tmp = last.x + last.width + this.spacing + this.marginRight;
+		
+		if (this.resizeParentMax)
+		{
+			pgeo.width = Math.max(pgeo.width, tmp);
+		}
+		else
+		{
+			pgeo.width = tmp;
+		}
 	}
 	else
 	{
-		pgeo.height = last.y + last.height + this.spacing + this.marginBottom;
+		var tmp = last.y + last.height + this.spacing + this.marginBottom;
+		
+		if (this.resizeParentMax)
+		{
+			pgeo.height = Math.max(pgeo.height, tmp);
+		}
+		else
+		{
+			pgeo.height = tmp;
+		}
 	}
 	
 	model.setGeometry(parent, pgeo);
@@ -45507,7 +45643,7 @@ mxCellRenderer.prototype.createLabel = function(state, value)
 		state.text.dialect = (isForceHtml) ? mxConstants.DIALECT_STRICTHTML : state.view.graph.dialect;
 		state.text.style = state.style;
 		state.text.state = state;
-		this.initializeLabel(state);
+		this.initializeLabel(state, state.text);
 		
 		// Workaround for touch devices routing all events for a mouse gesture
 		// (down, move, up) via the initial DOM node. IE additionally redirects
@@ -45588,15 +45724,15 @@ mxCellRenderer.prototype.createLabel = function(state, value)
  * 
  * state - <mxCellState> whose label should be initialized.
  */
-mxCellRenderer.prototype.initializeLabel = function(state)
+mxCellRenderer.prototype.initializeLabel = function(state, shape)
 {
-	if (mxClient.IS_SVG && mxClient.NO_FO && state.text.dialect != mxConstants.DIALECT_SVG)
+	if (mxClient.IS_SVG && mxClient.NO_FO && shape.dialect != mxConstants.DIALECT_SVG)
 	{
-		state.text.init(state.view.graph.container);
+		shape.init(state.view.graph.container);
 	}
 	else
 	{
-		state.text.init(state.view.getDrawPane());
+		shape.init(state.view.getDrawPane());
 	}
 };
 
@@ -45739,15 +45875,7 @@ mxCellRenderer.prototype.createControl = function(state)
 			state.control.preserveImageAspect = false;
 			state.control.dialect = graph.dialect;
 
-			this.initControl(state, state.control, true, function (evt)
-			{
-				if (graph.isEnabled())
-				{
-					var collapse = !graph.isCellCollapsed(state.cell);
-					graph.foldCells(collapse, false, [state.cell]);
-					mxEvent.consume(evt);
-				}
-			});
+			this.initControl(state, state.control, true, this.createControlClickHandler(state));
 		}
 	}
 	else if (state.control != null)
@@ -45755,6 +45883,30 @@ mxCellRenderer.prototype.createControl = function(state)
 		state.control.destroy();
 		state.control = null;
 	}
+};
+
+/**
+ * Function: createControlClickHandler
+ * 
+ * Hook for creating the click handler for the folding icon.
+ * 
+ * Parameters:
+ * 
+ * state - <mxCellState> whose control click handler should be returned.
+ */
+mxCellRenderer.prototype.createControlClickHandler = function(state)
+{
+	var graph = state.view.graph;
+	
+	return function (evt)
+	{
+		if (graph.isEnabled())
+		{
+			var collapse = !graph.isCellCollapsed(state.cell);
+			graph.foldCells(collapse, false, [state.cell], null, evt);
+			mxEvent.consume(evt);
+		}
+	};
 };
 
 /**
@@ -48171,8 +48323,7 @@ mxGraphView.prototype.updatingDocumentResource = (mxClient.language != 'none') ?
  * Specifies if string values in cell styles should be evaluated using
  * <mxUtils.eval>. This will only be used if the string values can't be mapped
  * to objects using <mxStyleRegistry>. Default is false. NOTE: Enabling this
- * switch carries a possible security risk (see the section on security in
- * the manual).
+ * switch carries a possible security risk.
  */
 mxGraphView.prototype.allowEval = false;
 
@@ -53893,8 +54044,13 @@ mxGraph.prototype.sizeDidChange = function()
  */
 mxGraph.prototype.doResizeContainer = function(width, height)
 {
-	// Fixes container size for different box models
-	if (mxClient.IS_IE)
+	// Sets container size for different box models
+	if (document.documentMode >= 9)
+	{
+		width += 3;
+		height += 5;
+	}
+	else if (mxClient.IS_IE)
 	{
 		if (mxClient.IS_QUIRKS)
 		{
@@ -53903,12 +54059,7 @@ mxGraph.prototype.doResizeContainer = function(width, height)
 			// max(2, ...) required for native IE8 in quirks mode
 			width += Math.max(2, borders.x + borders.width + 1);
 			height += Math.max(2, borders.y + borders.height + 1);
-		}
-		else if (document.documentMode >= 9)
-		{
-			width += 3;
-			height += 5;
-		}
+		} 
 		else
 		{
 			width += 1;
@@ -55420,7 +55571,7 @@ mxGraph.prototype.cellsAdded = function(cells, parent, index, source, target, ab
 					}
 
 					// Extends the parent or constrains the child
-					if (this.isExtendParentsOnAdd() && this.isExtendParent(cells[i]))
+					if (this.isExtendParentsOnAdd(cells[i]) && this.isExtendParent(cells[i]))
 					{
 						this.extendParent(cells[i]);
 					}
@@ -55759,8 +55910,9 @@ mxGraph.prototype.cellsToggled = function(cells, show)
  * null is specified then the foldable selection cells are used.
  * checkFoldable - Optional boolean indicating of isCellFoldable should be
  * checked. Default is false.
+ * evt - Optional native event that triggered the invocation.
  */
-mxGraph.prototype.foldCells = function(collapse, recurse, cells, checkFoldable)
+mxGraph.prototype.foldCells = function(collapse, recurse, cells, checkFoldable, evt)
 {
 	recurse = (recurse != null) ? recurse : false;
 	
@@ -58508,8 +58660,9 @@ mxGraph.prototype.fit = function(border, keepOrigin)
 		border = (border != null) ? border : 0;
 		keepOrigin = (keepOrigin != null) ? keepOrigin : false;
 		
-		var w1 = this.container.clientWidth;
-		var h1 = this.container.clientHeight;
+		var sb = (document.documentMode >= 9) ? 4 : 0;
+		var w1 = this.container.clientWidth - sb;
+		var h1 = this.container.clientHeight - sb;
 
 		var bounds = this.view.getGraphBounds();
 
@@ -60695,8 +60848,9 @@ mxGraph.prototype.isCellResizable = function(cell)
 {
 	var state = this.view.getState(cell);
 	var style = (state != null) ? state.style : this.getCellStyle(cell);
-	
-	return this.isCellsResizable() && !this.isCellLocked(cell) && style[mxConstants.STYLE_RESIZABLE] != 0;
+
+	return this.isCellsResizable() && !this.isCellLocked(cell) &&
+		mxUtils.getValue(style, mxConstants.STYLE_RESIZABLE, '1') != '0';
 };
 
 /**
@@ -61096,7 +61250,7 @@ mxGraph.prototype.setExtendParents = function(value)
  * 
  * Returns <extendParentsOnAdd>.
  */
-mxGraph.prototype.isExtendParentsOnAdd = function()
+mxGraph.prototype.isExtendParentsOnAdd = function(cell)
 {
 	return this.extendParentsOnAdd;
 };
@@ -61116,7 +61270,7 @@ mxGraph.prototype.setExtendParentsOnAdd = function(value)
 };
 
 /**
- * Function: isExtendParentsOnAdd
+ * Function: isExtendParentsOnMove
  * 
  * Returns <extendParentsOnAdd>.
  */
@@ -61126,7 +61280,7 @@ mxGraph.prototype.isExtendParentsOnMove = function()
 };
 
 /**
- * Function: setExtendParentsOnAdd
+ * Function: setExtendParentsOnMove
  * 
  * Sets <extendParentsOnAdd>.
  * 
@@ -62120,7 +62274,7 @@ mxGraph.prototype.getCells = function(x, y, width, height, parent, result)
  * Function: getCellsBeyond
  * 
  * Returns the children of the given parent that are contained in the
- * halfpane from the given point (x0, y0) rightwards and/or downwards
+ * halfpane from the given point (x0, y0) rightwards or downwards
  * depending on rightHalfpane and bottomHalfpane.
  * 
  * Parameters:
@@ -62156,10 +62310,8 @@ mxGraph.prototype.getCellsBeyond = function(x0, y0, parent, rightHalfpane, botto
 				
 				if (this.isCellVisible(child) && state != null)
 				{
-					if ((!rightHalfpane ||
-						state.x >= x0) &&
-						(!bottomHalfpane ||
-						state.y >= y0))
+					if ((!rightHalfpane || state.x >= x0) &&
+						(!bottomHalfpane || state.y >= y0))
 					{
 						result.push(child);
 					}
@@ -64845,11 +64997,21 @@ mxLayoutManager.prototype.beforeUndo = function(undoableEdit)
 {
 	var cells = this.getCellsForChanges(undoableEdit.changes);
 	var model = this.getGraph().getModel();
+
+	// Adds all descendants
+	var tmp = [];
+	
+	for (var i = 0; i < cells.length; i++)
+	{
+		tmp = tmp.concat(model.getDescendants(cells[i]));
+	}
+	
+	cells = tmp;
 	
 	// Adds all parent ancestors
 	if (this.isBubbling())
 	{
-		var tmp = model.getParents(cells);
+		tmp = model.getParents(cells);
 		
 		while (tmp.length > 0)
 		{
@@ -64858,7 +65020,22 @@ mxLayoutManager.prototype.beforeUndo = function(undoableEdit)
 		}
 	}
 	
-	this.layoutCells(mxUtils.sortCells(cells, false));
+	this.executeLayoutForCells(cells);
+};
+
+/**
+ * Function: executeLayout
+ * 
+ * Executes the given layout on the given parent.
+ */
+mxLayoutManager.prototype.executeLayoutForCells = function(cells)
+{
+	// Adds reverse to this array to avoid duplicate execution of leafes
+	// Works like capture/bubble for events, first executes all layout
+	// from top to bottom and in reverse order and removes duplicates.
+	var sorted = mxUtils.sortCells(cells, true);
+	sorted = sorted.concat(sorted.slice().reverse());
+	this.layoutCells(sorted);
 };
 
 /**
@@ -64981,8 +65158,10 @@ mxLayoutManager.prototype.layoutCells = function(cells)
 			{
 				if (cells[i] != model.getRoot() && cells[i] != last)
 				{
-					last = cells[i];
-					this.executeLayout(this.getLayout(last), last);
+					if (this.executeLayout(this.getLayout(cells[i]), cells[i]))
+					{
+						last = cells[i];
+					}
 				}
 			}
 			
@@ -65002,10 +65181,15 @@ mxLayoutManager.prototype.layoutCells = function(cells)
  */
 mxLayoutManager.prototype.executeLayout = function(layout, parent)
 {
+	var result = false;
+	
 	if (layout != null && parent != null)
 	{
 		layout.execute(parent);
+		result = true;
 	}
+	
+	return result;
 };
 
 /**
@@ -65014,461 +65198,6 @@ mxLayoutManager.prototype.executeLayout = function(layout, parent)
  * Removes all handlers from the <graph> and deletes the reference to it.
  */
 mxLayoutManager.prototype.destroy = function()
-{
-	this.setGraph(null);
-};
-/**
- * Copyright (c) 2006-2013, JGraph Ltd
- */
-/**
- * Class: mxSpaceManager
- * 
- * In charge of moving cells after a resize.
- * 
- * Constructor: mxSpaceManager
- *
- * Constructs a new automatic layout for the given graph.
- *
- * Arguments:
- * 
- * graph - Reference to the enclosing graph. 
- */
-function mxSpaceManager(graph, shiftRightwards, shiftDownwards, extendParents)
-{
-	this.resizeHandler = mxUtils.bind(this, function(sender, evt)
-	{
-		if (this.isEnabled())
-		{
-			this.cellsResized(evt.getProperty('cells'));
-		}
-	});
-
-	this.foldHandler = mxUtils.bind(this, function(sender, evt)
-	{
-		if (this.isEnabled())
-		{
-			this.cellsResized(evt.getProperty('cells'));
-		}
-	});
-	
-	this.shiftRightwards = (shiftRightwards != null) ? shiftRightwards : true;
-	this.shiftDownwards = (shiftDownwards != null) ? shiftDownwards : true;
-	this.extendParents = (extendParents != null) ? extendParents : true;
-	this.setGraph(graph);
-};
-
-/**
- * Extends mxEventSource.
- */
-mxSpaceManager.prototype = new mxEventSource();
-mxSpaceManager.prototype.constructor = mxSpaceManager;
-
-/**
- * Variable: graph
- * 
- * Reference to the enclosing <mxGraph>.
- */
-mxSpaceManager.prototype.graph = null;
-
-/**
- * Variable: enabled
- * 
- * Specifies if event handling is enabled. Default is true.
- */
-mxSpaceManager.prototype.enabled = true;
-
-/**
- * Variable: shiftRightwards
- * 
- * Specifies if event handling is enabled. Default is true.
- */
-mxSpaceManager.prototype.shiftRightwards = true;
-
-/**
- * Variable: shiftDownwards
- * 
- * Specifies if event handling is enabled. Default is true.
- */
-mxSpaceManager.prototype.shiftDownwards = true;
-
-/**
- * Variable: extendParents
- * 
- * Specifies if event handling is enabled. Default is true.
- */
-mxSpaceManager.prototype.extendParents = true;
-
-/**
- * Variable: resizeHandler
- * 
- * Holds the function that handles the move event.
- */
-mxSpaceManager.prototype.resizeHandler = null;
-
-/**
- * Variable: foldHandler
- * 
- * Holds the function that handles the fold event.
- */
-mxSpaceManager.prototype.foldHandler = null;
-
-/**
- * Function: isCellIgnored
- * 
- * Sets the graph that the layouts operate on.
- */
-mxSpaceManager.prototype.isCellIgnored = function(cell)
-{
-	return !this.getGraph().getModel().isVertex(cell);
-};
-
-/**
- * Function: isCellShiftable
- * 
- * Sets the graph that the layouts operate on.
- */
-mxSpaceManager.prototype.isCellShiftable = function(cell)
-{
-	return this.getGraph().getModel().isVertex(cell) &&
-		this.getGraph().isCellMovable(cell);
-};
-
-/**
- * Function: isEnabled
- * 
- * Returns true if events are handled. This implementation
- * returns <enabled>.
- */
-mxSpaceManager.prototype.isEnabled = function()
-{
-	return this.enabled;
-};
-
-/**
- * Function: setEnabled
- * 
- * Enables or disables event handling. This implementation
- * updates <enabled>.
- * 
- * Parameters:
- * 
- * enabled - Boolean that specifies the new enabled state.
- */
-mxSpaceManager.prototype.setEnabled = function(value)
-{
-	this.enabled = value;
-};
-
-/**
- * Function: isShiftRightwards
- * 
- * Returns true if events are handled. This implementation
- * returns <enabled>.
- */
-mxSpaceManager.prototype.isShiftRightwards = function()
-{
-	return this.shiftRightwards;
-};
-
-/**
- * Function: setShiftRightwards
- * 
- * Enables or disables event handling. This implementation
- * updates <enabled>.
- * 
- * Parameters:
- * 
- * enabled - Boolean that specifies the new enabled state.
- */
-mxSpaceManager.prototype.setShiftRightwards = function(value)
-{
-	this.shiftRightwards = value;
-};
-
-/**
- * Function: isShiftDownwards
- * 
- * Returns true if events are handled. This implementation
- * returns <enabled>.
- */
-mxSpaceManager.prototype.isShiftDownwards = function()
-{
-	return this.shiftDownwards;
-};
-
-/**
- * Function: setShiftDownwards
- * 
- * Enables or disables event handling. This implementation
- * updates <enabled>.
- * 
- * Parameters:
- * 
- * enabled - Boolean that specifies the new enabled state.
- */
-mxSpaceManager.prototype.setShiftDownwards = function(value)
-{
-	this.shiftDownwards = value;
-};
-
-/**
- * Function: isExtendParents
- * 
- * Returns true if events are handled. This implementation
- * returns <enabled>.
- */
-mxSpaceManager.prototype.isExtendParents = function()
-{
-	return this.extendParents;
-};
-
-/**
- * Function: setShiftDownwards
- * 
- * Enables or disables event handling. This implementation
- * updates <enabled>.
- * 
- * Parameters:
- * 
- * enabled - Boolean that specifies the new enabled state.
- */
-mxSpaceManager.prototype.setExtendParents = function(value)
-{
-	this.extendParents = value;
-};
-
-/**
- * Function: getGraph
- * 
- * Returns the graph that this layout operates on.
- */
-mxSpaceManager.prototype.getGraph = function()
-{
-	return this.graph;
-};
-
-/**
- * Function: setGraph
- * 
- * Sets the graph that the layouts operate on.
- */
-mxSpaceManager.prototype.setGraph = function(graph)
-{
-	if (this.graph != null)
-	{
-		this.graph.removeListener(this.resizeHandler);
-		this.graph.removeListener(this.foldHandler);
-	}
-	
-	this.graph = graph;
-	
-	if (this.graph != null)
-	{
-		this.graph.addListener(mxEvent.RESIZE_CELLS, this.resizeHandler);
-		this.graph.addListener(mxEvent.FOLD_CELLS, this.foldHandler);
-	}
-};
-
-/**
- * Function: cellsResized
- * 
- * Called from <moveCellsIntoParent> to invoke the <move> hook in the
- * automatic layout of each modified cell's parent. The event is used to
- * define the x- and y-coordinates passed to the move function.
- * 
- * Parameters:
- * 
- * cell - Array of <mxCells> that have been resized.
- */
-mxSpaceManager.prototype.cellsResized = function(cells)
-{
-	if (cells != null)
-	{
-		var model = this.graph.getModel();
-		
-		// Raising the update level should not be required
-		// since only one call is made below
-		model.beginUpdate();
-		try
-		{
-			for (var i = 0; i < cells.length; i++)
-			{
-				if (!this.isCellIgnored(cells[i]))
-				{
-					this.cellResized(cells[i]);
-					break;
-				}
-			}
-		}
-		finally
-		{
-			model.endUpdate();
-		}
-	}
-};
-
-/**
- * Function: cellResized
- * 
- * Called from <moveCellsIntoParent> to invoke the <move> hook in the
- * automatic layout of each modified cell's parent. The event is used to
- * define the x- and y-coordinates passed to the move function.
- * 
- * Parameters:
- * 
- * cell - <mxCell> that has been resized.
- */
-mxSpaceManager.prototype.cellResized = function(cell)
-{
-	var graph = this.getGraph();
-	var view = graph.getView();
-	var model = graph.getModel();
-	
-	var state = view.getState(cell);
-	var pstate = view.getState(model.getParent(cell));
-
-	if (state != null && pstate != null)
-	{
-		var cells = this.getCellsToShift(state);
-		var geo = model.getGeometry(cell);
-		
-		if (cells != null && geo != null)
-		{
-			var tr = view.translate;
-			var scale = view.scale;
-			
-			var x0 = state.x - pstate.origin.x - tr.x * scale;
-			var y0 = state.y - pstate.origin.y - tr.y * scale;
-			var right = state.x + state.width;
-			var bottom = state.y + state.height;
-			
-			var dx = state.width - geo.width * scale + x0 - geo.x * scale;
-			var dy = state.height - geo.height * scale + y0 - geo.y * scale;
-				
-			var fx = 1 - geo.width * scale / state.width;
-			var fy = 1 - geo.height * scale / state.height;
-			
-			model.beginUpdate();
-			try
-			{
-				for (var i = 0; i < cells.length; i++)
-				{
-					if (cells[i] != cell && this.isCellShiftable(cells[i]))
-					{
-						this.shiftCell(cells[i], dx, dy, x0, y0, right, bottom, fx, fy,
-							this.isExtendParents() && graph.isExtendParent(cells[i]));
-					}
-				}
-			}
-			finally
-			{
-				model.endUpdate();
-			}
-		}
-	}
-};
-
-/**
- * Function: shiftCell
- * 
- * Called from <moveCellsIntoParent> to invoke the <move> hook in the
- * automatic layout of each modified cell's parent. The event is used to
- * define the x- and y-coordinates passed to the move function.
- * 
- * Parameters:
- * 
- * cell - Array of <mxCells> that have been moved.
- * evt - Mouse event that represents the mousedown.
- */
-mxSpaceManager.prototype.shiftCell = function(cell, dx, dy, Ox0, y0, right,
-		bottom, fx, fy, extendParent)
-{
-	var graph = this.getGraph();
-	var state = graph.getView().getState(cell);
-	
-	if (state != null)
-	{
-		var model = graph.getModel();
-		var geo = model.getGeometry(cell);
-		
-		if (geo != null)
-		{
-			model.beginUpdate();
-			try
-			{
-				if (this.isShiftRightwards())
-				{
-					if (state.x >= right)
-					{
-						geo = geo.clone();
-						geo.translate(-dx, 0);
-					}
-					else
-					{
-						var tmpDx = Math.max(0, state.x - x0);
-						geo = geo.clone();
-						geo.translate(-fx * tmpDx, 0);
-					}
-				}
-				
-				if (this.isShiftDownwards())
-				{
-					if (state.y >= bottom)
-					{
-						geo = geo.clone();
-						geo.translate(0, -dy);
-					}
-					else
-					{
-						var tmpDy = Math.max(0, state.y - y0);
-						geo = geo.clone();
-						geo.translate(0, -fy * tmpDy);
-					}
-				}
-				
-				if (geo != model.getGeometry(cell))
-				{
-					model.setGeometry(cell, geo);
-					
-					// Parent size might need to be updated if this
-					// is seen as part of the resize
-					if (extendParent)
-					{
-						graph.extendParent(cell);
-					}
-				}
-			}
-			finally
-			{
-				model.endUpdate();
-			}
-		}
-	}
-};
-
-/**
- * Function: getCellsToShift
- * 
- * Returns the cells to shift after a resize of the
- * specified <mxCellState>.
- */
-mxSpaceManager.prototype.getCellsToShift = function(state)
-{
-	var graph = this.getGraph();
-	var parent = graph.getModel().getParent(state.cell);
-	var down = this.isShiftDownwards();
-	var right = this.isShiftRightwards();
-	
-	return graph.getCellsBeyond(state.x + ((down) ? 0 : state.width),
-		state.y + ((down && right) ? 0 : state.height), parent, right, down);
-};
-
-/**
- * Function: destroy
- * 
- * Removes all handlers from the <graph> and deletes the reference to it.
- */
-mxSpaceManager.prototype.destroy = function()
 {
 	this.setGraph(null);
 };
@@ -66596,7 +66325,7 @@ mxGraphHandler.prototype.getInitialCellForEvent = function(me)
  * 
  * Hook to return true for delayed selections.
  */
-mxGraphHandler.prototype.isDelayedSelection = function(cell)
+mxGraphHandler.prototype.isDelayedSelection = function(cell, me)
 {
 	return this.graph.isCellSelected(cell);
 };
@@ -66614,7 +66343,7 @@ mxGraphHandler.prototype.mouseDown = function(sender, me)
 		me.getState() != null && !mxEvent.isMultiTouchEvent(me.getEvent()))
 	{
 		var cell = this.getInitialCellForEvent(me);
-		this.delayedSelection = this.isDelayedSelection(cell);
+		this.delayedSelection = this.isDelayedSelection(cell, me);
 		this.cell = null;
 		
 		if (this.isSelectEnabled() && !this.delayedSelection)
@@ -70552,8 +70281,8 @@ mxConnectionHandler.prototype.createTargetVertex = function(evt, source)
 		var t = this.graph.view.translate;
 		var s = this.graph.view.scale;
 		var point = new mxPoint(this.currentPoint.x / s - t.x, this.currentPoint.y / s - t.y);
-		geo.x = point.x - geo.width / 2 - this.graph.panDx / s;
-		geo.y = point.y - geo.height / 2 - this.graph.panDy / s;
+		geo.x = Math.round(point.x - geo.width / 2 - this.graph.panDx / s);
+		geo.y = Math.round(point.y - geo.height / 2 - this.graph.panDy / s);
 
 		// Aligns with source if within certain tolerance
 		var tol = this.getAlignmentTolerance();
@@ -70569,12 +70298,12 @@ mxConnectionHandler.prototype.createTargetVertex = function(evt, source)
 				
 				if (Math.abs(x - geo.x) <= tol)
 				{
-					geo.x = x;
+					geo.x = Math.round(x);
 				}
 				
 				if (Math.abs(y - geo.y) <= tol)
 				{
-					geo.y = y;
+					geo.y = Math.round(y);
 				}
 			}
 		}
@@ -71547,20 +71276,17 @@ mxHandle.prototype.processEvent = function(me)
  */
 mxHandle.prototype.positionChanged = function()
 {
-	if (this.state.view.graph.model.isVertex(this.state.cell))
+	if (this.state.text != null)
 	{
-		if (this.state.text != null)
-		{
-			this.state.text.apply(this.state);
-		}
-		
-		if (this.state.shape != null)
-		{
-			this.state.shape.apply(this.state);
-		}
-		
-		this.graph.cellRenderer.redraw(this.state, true);
+		this.state.text.apply(this.state);
 	}
+	
+	if (this.state.shape != null)
+	{
+		this.state.shape.apply(this.state);
+	}
+	
+	this.graph.cellRenderer.redraw(this.state, true);
 };
 
 /**
@@ -71769,6 +71495,8 @@ mxHandle.prototype.setVisible = function(visible)
 mxHandle.prototype.reset = function()
 {
 	this.setVisible(true);
+	this.state.style = this.graph.getCellStyle(this.state.cell);
+	this.positionChanged();
 };
 
 /**
@@ -72928,16 +72656,6 @@ mxVertexHandler.prototype.reset = function()
 		this.preview.destroy();
 		this.preview = null;
 	}
-	
-	// Checks if handler has been destroyed
-	if (this.selectionBorder != null)
-	{
-		this.selectionBorder.node.style.display = 'inline';
-		this.selectionBounds = this.getSelectionBounds(this.state);
-		this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y,
-			this.selectionBounds.width, this.selectionBounds.height);
-		this.drawPreview();
-	}
 
 	if (this.livePreview && this.sizers != null)
 	{
@@ -72956,6 +72674,16 @@ mxVertexHandler.prototype.reset = function()
 		{
 			this.customHandles[i].reset();
 		}
+	}
+	
+	// Checks if handler has been destroyed
+	if (this.selectionBorder != null)
+	{
+		this.selectionBorder.node.style.display = 'inline';
+		this.selectionBounds = this.getSelectionBounds(this.state);
+		this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y,
+			this.selectionBounds.width, this.selectionBounds.height);
+		this.drawPreview();
 	}
 
 	this.removeHint();
@@ -73473,7 +73201,7 @@ mxVertexHandler.prototype.updateParentHighlight = function()
  */
 mxVertexHandler.prototype.drawPreview = function()
 {
-	if  (this.preview != null)
+	if (this.preview != null)
 	{
 		this.preview.bounds = this.bounds;
 		
@@ -75079,14 +74807,6 @@ mxEdgeHandler.prototype.reset = function()
 		}
 	}
 
-	if (this.customHandles != null)
-	{
-		for (var i = 0; i < this.customHandles.length; i++)
-		{
-			this.customHandles[i].reset();
-		}
-	}
-	
 	if (this.marker != null)
 	{
 		this.marker.reset();
@@ -79575,7 +79295,6 @@ mxEditor.prototype.setModified = function (value)
  * bold - Toggle bold text style.
  * italic - Toggle italic text style.
  * underline - Toggle underline text style.
- * shadow - Toggle shadow text style.
  * alignCellsLeft - Aligns the selection cells at the left.
  * alignCellsCenter - Aligns the selection cells in the center.
  * alignCellsRight - Aligns the selection cells at the right.
@@ -79898,17 +79617,7 @@ mxEditor.prototype.addActions = function ()
 				mxConstants.FONT_UNDERLINE);
 		}
 	});
-	
-	this.addAction('shadow', function(editor)
-	{
-		if (editor.graph.isEnabled())
-		{
-			editor.graph.toggleCellStyleFlags(
-				mxConstants.STYLE_FONTSTYLE,
-				mxConstants.FONT_SHADOW);
-		}
-	});
-	
+
 	this.addAction('alignCellsLeft', function(editor)
 	{
 		if (editor.graph.isEnabled())
@@ -82632,8 +82341,7 @@ function mxObjectCodec(template, exclude, idrefs, mapping)
  * Variable: allowEval
  *
  * Static global switch that specifies if expressions in arrays are allowed.
- * Default is false. NOTE: Enabling this carries a possible security risk (see
- * the section on security in the manual).
+ * Default is false. NOTE: Enabling this carries a possible security risk.
  */
 mxObjectCodec.allowEval = false;
 
@@ -84503,7 +84211,7 @@ var mxStylesheetCodec = mxCodecRegistry.register(function()
  * 
  * Static global switch that specifies if the use of eval is allowed for
  * evaluating text content. Default is true. Set this to false if stylesheets
- * may contain user input (see the section on security in the manual).
+ * may contain user input.
  */
 mxStylesheetCodec.allowEval = true;
 /**
@@ -84901,7 +84609,7 @@ var mxDefaultToolbarCodec = mxCodecRegistry.register(function()
  * 
  * Static global switch that specifies if the use of eval is allowed for
  * evaluating text content. Default is true. Set this to false if stylesheets
- * may contain user input (see the section on security in the manual).
+ * may contain user input
  */
 mxDefaultToolbarCodec.allowEval = true;
 /**

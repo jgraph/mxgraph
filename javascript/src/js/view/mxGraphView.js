@@ -94,8 +94,7 @@ mxGraphView.prototype.updatingDocumentResource = (mxClient.language != 'none') ?
  * Specifies if string values in cell styles should be evaluated using
  * <mxUtils.eval>. This will only be used if the string values can't be mapped
  * to objects using <mxStyleRegistry>. Default is false. NOTE: Enabling this
- * switch carries a possible security risk (see the section on security in
- * the manual).
+ * switch carries a possible security risk.
  */
 mxGraphView.prototype.allowEval = false;
 

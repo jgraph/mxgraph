@@ -27,6 +27,19 @@ EditorUi = function(editor, container)
 		this.footerHeight = 0;
 		graph.isEnabled = function() { return false; };
 		graph.panningHandler.isForcePanningEvent = function() { return true; };
+
+		// Overrides click handler to ignore graph enabled state
+		graph.cellRenderer.createControlClickHandler = function(state)
+		{
+			var graph = state.view.graph;
+			
+			return function (evt)
+			{
+				var collapse = !graph.isCellCollapsed(state.cell);
+				graph.foldCells(collapse, false, [state.cell], null, evt);
+				mxEvent.consume(evt);
+			};
+		};
 	}
 	
     // Creates the user interface
@@ -976,8 +989,15 @@ EditorUi.prototype.initCanvas = function()
 				
 				var st = graph.container.scrollTop;
 				var sl = graph.container.scrollLeft;
-				var cw = graph.container.offsetWidth - 14;
-				var ch = graph.container.offsetHeight - 14;
+				var sb = (mxClient.IS_QUIRKS || document.documentMode >= 8) ? 20 : 14;
+				
+				if (document.documentMode == 8 || document.documentMode == 9)
+				{
+					sb += 3;
+				}
+				
+				var cw = graph.container.offsetWidth - sb;
+				var ch = graph.container.offsetHeight - sb;
 				
 				var ns = (autoscale) ? Math.max(0.3, Math.min(1, cw / b.width)) : s;
 				var dx = Math.max((cw - ns * b.width) / 2, 0) / ns;
@@ -1019,6 +1039,7 @@ EditorUi.prototype.initCanvas = function()
 		});
 		zoomInBtn.className = 'geSprite geSprite-zoomin';
 		zoomInBtn.setAttribute('title', mxResources.get('zoomIn'));
+		zoomInBtn.style.outline = 'none';
 		zoomInBtn.style.border = 'none';
 		zoomInBtn.style.margin = '2px';
 		
@@ -1030,6 +1051,7 @@ EditorUi.prototype.initCanvas = function()
 		});
 		zoomOutBtn.className = 'geSprite geSprite-zoomout';
 		zoomOutBtn.setAttribute('title', mxResources.get('zoomOut'));
+		zoomOutBtn.style.outline = 'none';
 		zoomOutBtn.style.border = 'none';
 		zoomOutBtn.style.margin = '2px';
 
@@ -1040,6 +1062,7 @@ EditorUi.prototype.initCanvas = function()
 		});
 		zoomActualBtn.className = 'geSprite geSprite-actualsize';
 		zoomActualBtn.setAttribute('title', mxResources.get('actualSize'));
+		zoomActualBtn.style.outline = 'none';
 		zoomActualBtn.style.border = 'none';
 		zoomActualBtn.style.margin = '2px';
 		
@@ -1461,6 +1484,17 @@ EditorUi.prototype.setBackgroundColor = function(value)
 /**
  * Loads the stylesheet for this graph.
  */
+EditorUi.prototype.setFoldingEnabled = function(value)
+{
+	this.editor.graph.foldingEnabled = value;
+	this.editor.graph.view.revalidate();
+	
+	this.fireEvent(new mxEventObject('foldingEnabledChanged'));
+};
+
+/**
+ * Loads the stylesheet for this graph.
+ */
 EditorUi.prototype.setPageFormat = function(value)
 {
 	this.editor.graph.pageFormat = value;
@@ -1603,10 +1637,10 @@ EditorUi.prototype.updateActionStates = function()
     this.menus.get('direction').setEnabled(vertexSelected || (edgeSelected && state != null && graph.isLoop(state)));
     this.actions.get('home').setEnabled(graph.view.currentRoot != null);
     this.actions.get('exitGroup').setEnabled(graph.view.currentRoot != null);
-    var groupEnabled = graph.getSelectionCount() == 1 && graph.isValidRoot(graph.getSelectionCell());
-    this.actions.get('enterGroup').setEnabled(groupEnabled);
-    this.actions.get('expand').setEnabled(groupEnabled);
-    this.actions.get('collapse').setEnabled(groupEnabled);
+    this.actions.get('enterGroup').setEnabled(graph.getSelectionCount() == 1 && graph.isValidRoot(graph.getSelectionCell()));
+    var foldable = graph.getSelectionCount() == 1 && graph.isCellFoldable(graph.getSelectionCell())
+    this.actions.get('expand').setEnabled(foldable);
+    this.actions.get('collapse').setEnabled(foldable);
     this.actions.get('editLink').setEnabled(graph.getSelectionCount() == 1);
     this.actions.get('openLink').setEnabled(graph.getSelectionCount() == 1 &&
     		graph.getLinkForCell(graph.getSelectionCell()) != null);
@@ -2455,10 +2489,10 @@ EditorUi.prototype.createKeyHandler = function(editor)
 	// Ignores enter keystroke. Remove this line if you want the
 	// enter keystroke to stop editing.
 	keyHandler.enter = function() {};
-	keyHandler.bindControlKey(13, function() { graph.foldCells(false); }); // Ctrl+Enter
-	keyHandler.bindControlKey(8, function() { graph.foldCells(true); }); // Ctrl+Backspace
-	keyHandler.bindKey(33, function() { graph.exitGroup(); }); // Page Up
-	keyHandler.bindKey(34, function() { graph.enterGroup(); }); // Page Down
+	keyHandler.bindControlKey(36, function() { graph.foldCells(true); }); // Ctrl+Home
+	keyHandler.bindControlKey(35, function() { graph.foldCells(false); }); // Ctrl+End
+	keyHandler.bindControlShiftKey(36, function() { graph.exitGroup(); }); // Ctrl+Shift+Home
+	keyHandler.bindControlShiftKey(35, function() { graph.enterGroup(); }); // Ctrl+Shift+End
 	keyHandler.bindKey(36, function() { graph.home(); }); // Home
 	keyHandler.bindKey(35, function() { graph.refresh(); }); // End
 	keyHandler.bindKey(37, function() { nudge(37); }); // Left arrow
@@ -2469,8 +2503,19 @@ EditorUi.prototype.createKeyHandler = function(editor)
 	keyHandler.bindShiftKey(38, function() { nudge(38, graph.gridSize); }); // Shift+Up arrow
 	keyHandler.bindShiftKey(39, function() { nudge(39, graph.gridSize); }); // Shift+Right arrow
 	keyHandler.bindShiftKey(40, function() { nudge(40, graph.gridSize); }); // Shift+Down arrow
+	keyHandler.bindControlKey(13, function() { graph.setSelectionCells(graph.duplicateCells(graph.getSelectionCells(), false)); }); // Ctrl+Enter
+	keyHandler.bindKey(9, function() { graph.selectNextCell(); }); // Tab
+	keyHandler.bindShiftKey(9, function() { graph.selectPreviousCell(); }); // Shift+Tab
+	keyHandler.bindControlKey(9, function() { graph.selectParentCell(); }); // Ctrl++Tab
+	keyHandler.bindControlShiftKey(9, function() { graph.selectChildCell(); }); // Ctrl+Shift+Tab
 	keyHandler.bindAction(8, false, 'delete'); // Backspace
 	keyHandler.bindAction(46, false, 'delete'); // Delete
+	keyHandler.bindAction(48, true, 'actualSize'); // Ctrl+0
+	keyHandler.bindAction(49, true, 'fitWindow'); // Ctrl+1
+	keyHandler.bindAction(50, true, 'fitPageWidth'); // Ctrl+2
+	keyHandler.bindAction(51, true, 'fitPage'); // Ctrl+3
+	keyHandler.bindAction(52, true, 'fitTwoPages'); // Ctrl+4
+	keyHandler.bindAction(53, true, 'customZoom'); // Ctrl+5
 	keyHandler.bindAction(82, true, 'turn'); // Ctrl+R
 	keyHandler.bindAction(82, true, 'clearDefaultStyle', true); // Ctrl+Shift+R
 	keyHandler.bindAction(83, true, 'save'); // Ctrl+S

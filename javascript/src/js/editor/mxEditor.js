@@ -973,7 +973,6 @@ mxEditor.prototype.setModified = function (value)
  * bold - Toggle bold text style.
  * italic - Toggle italic text style.
  * underline - Toggle underline text style.
- * shadow - Toggle shadow text style.
  * alignCellsLeft - Aligns the selection cells at the left.
  * alignCellsCenter - Aligns the selection cells in the center.
  * alignCellsRight - Aligns the selection cells at the right.
@@ -1296,17 +1295,7 @@ mxEditor.prototype.addActions = function ()
 				mxConstants.FONT_UNDERLINE);
 		}
 	});
-	
-	this.addAction('shadow', function(editor)
-	{
-		if (editor.graph.isEnabled())
-		{
-			editor.graph.toggleCellStyleFlags(
-				mxConstants.STYLE_FONTSTYLE,
-				mxConstants.FONT_SHADOW);
-		}
-	});
-	
+
 	this.addAction('alignCellsLeft', function(editor)
 	{
 		if (editor.graph.isEnabled())

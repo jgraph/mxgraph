@@ -111,20 +111,17 @@ mxHandle.prototype.processEvent = function(me)
  */
 mxHandle.prototype.positionChanged = function()
 {
-	if (this.state.view.graph.model.isVertex(this.state.cell))
+	if (this.state.text != null)
 	{
-		if (this.state.text != null)
-		{
-			this.state.text.apply(this.state);
-		}
-		
-		if (this.state.shape != null)
-		{
-			this.state.shape.apply(this.state);
-		}
-		
-		this.graph.cellRenderer.redraw(this.state, true);
+		this.state.text.apply(this.state);
 	}
+	
+	if (this.state.shape != null)
+	{
+		this.state.shape.apply(this.state);
+	}
+	
+	this.graph.cellRenderer.redraw(this.state, true);
 };
 
 /**
@@ -333,6 +330,8 @@ mxHandle.prototype.setVisible = function(visible)
 mxHandle.prototype.reset = function()
 {
 	this.setVisible(true);
+	this.state.style = this.graph.getCellStyle(this.state.cell);
+	this.positionChanged();
 };
 
 /**

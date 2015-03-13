@@ -216,8 +216,7 @@ function mxObjectCodec(template, exclude, idrefs, mapping)
  * Variable: allowEval
  *
  * Static global switch that specifies if expressions in arrays are allowed.
- * Default is false. NOTE: Enabling this carries a possible security risk (see
- * the section on security in the manual).
+ * Default is false. NOTE: Enabling this carries a possible security risk.
  */
 mxObjectCodec.allowEval = false;
 

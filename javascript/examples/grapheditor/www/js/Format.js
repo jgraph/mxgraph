@@ -232,7 +232,7 @@ Format.prototype.isRoundedState = function(state)
 			shape == 'ext' || shape == 'step' || shape == 'tee' || shape == 'process' || shape == 'link' ||
 			shape == 'rhombus' || shape == 'offPageConnector' || shape == 'loopLimit' || shape == 'hexagon' ||
 			shape == 'manualInput' || shape == 'curlyBracket' || shape == 'singleArrow' ||
-			shape == 'doubleArrow' || shape == 'flexArrow');
+			shape == 'doubleArrow' || shape == 'flexArrow' || shape == 'card');
 };
 
 /**
@@ -318,7 +318,10 @@ Format.prototype.refresh = function()
 		img.setAttribute('border', '0');
 		img.setAttribute('src', IMAGE_PATH + '/close.png');
 		img.setAttribute('title', mxResources.get('hide'));
-		img.style.cssFloat = 'right';
+		img.style.position = 'absolute';
+		img.style.display = 'block';
+		img.style.right = '0px';
+		img.style.top = '8px';
 		img.style.cursor = 'pointer';
 		img.style.marginTop = '1px';
 		img.style.marginRight = '16px';
@@ -818,7 +821,7 @@ BaseFormatPanel.prototype.createOption = function(label, isCheckedFn, setChecked
 /**
  * The string 'null' means use null in values.
  */
-BaseFormatPanel.prototype.createCellOption = function(label, key, defaultValue, enabledValue, disabledValue, fn)
+BaseFormatPanel.prototype.createCellOption = function(label, key, defaultValue, enabledValue, disabledValue, fn, action)
 {
 	enabledValue = (enabledValue != null) ? ((enabledValue == 'null') ? null : enabledValue) : '1';
 	disabledValue = (disabledValue != null) ? ((disabledValue == 'null') ? null : disabledValue) : '0';
@@ -840,23 +843,30 @@ BaseFormatPanel.prototype.createCellOption = function(label, key, defaultValue, 
 		return null;
 	}, function(checked)
 	{
-		graph.getModel().beginUpdate();
-		try
+		if (action != null)
 		{
-			var value = (checked) ? enabledValue : disabledValue;
-			graph.setCellStyles(key, value, graph.getSelectionCells());
-			
-			if (fn != null)
-			{
-				fn(graph.getSelectionCells(), value);
-			}
-			
-			ui.fireEvent(new mxEventObject('styleChanged', 'keys', [key],
-				'values', [value], 'cells', graph.getSelectionCells()));
+			action.funct();
 		}
-		finally
+		else
 		{
-			graph.getModel().endUpdate();
+			graph.getModel().beginUpdate();
+			try
+			{
+				var value = (checked) ? enabledValue : disabledValue;
+				graph.setCellStyles(key, value, graph.getSelectionCells());
+				
+				if (fn != null)
+				{
+					fn(graph.getSelectionCells(), value);
+				}
+				
+				ui.fireEvent(new mxEventObject('styleChanged', 'keys', [key],
+					'values', [value], 'cells', graph.getSelectionCells()));
+			}
+			finally
+			{
+				graph.getModel().endUpdate();
+			}
 		}
 	},
 	{
@@ -2401,7 +2411,9 @@ TextFormatPanel.prototype.addFont = function(container)
 		extraPanel.appendChild(wwOpt);
 	}
 	
-	var htmlOpt = this.createCellOption(mxResources.get('formattedText'), 'html', '0');
+	// Delegates switch of style to formattedText action as it also convertes newlines
+	var htmlOpt = this.createCellOption(mxResources.get('formattedText'), 'html', '0',
+		null, null, null, ui.actions.get('formattedText'));
 	htmlOpt.style.fontWeight = 'bold';
 	extraPanel.appendChild(htmlOpt);
 	
@@ -3936,8 +3948,22 @@ DiagramFormatPanel.prototype.addOptions = function(div)
 		return graph.foldingEnabled;
 	}, function(checked)
 	{
-		graph.foldingEnabled = checked;
-		graph.view.revalidate();
+		ui.setFoldingEnabled(checked);
+	},
+	{
+		install: function(apply)
+		{
+			this.listener = function()
+			{
+				apply(graph.foldingEnabled);
+			};
+			
+			ui.addListener('foldingEnabledChanged', this.listener);
+		},
+		destroy: function()
+		{
+			ui.removeListener(this.listener);
+		}
 	}));
 	
 	// Scrollbars

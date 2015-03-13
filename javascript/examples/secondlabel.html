@@ -71,7 +71,7 @@
 					if (!this.model.isEdge(cell))
 					{
 						// Possible to return any string here
-						return "ID="+cell.id;
+						return 'The ID of this cell is ' + cell.id;
 					}
 
 					return null;
@@ -88,11 +88,11 @@
 				};
 
 				// Creates the shape for the shape number and puts it into the draw pane
-				var createShape = graph.cellRenderer.createShape;
-				graph.cellRenderer.createShape = function(state)
+				var createState = mxGraphView.prototype.createState;
+				mxGraphView.prototype.createState = function(cell)
 				{
-					createShape.apply(this, arguments);
-
+					var state = createState.apply(this, arguments);
+					
 					if (secondLabelVisible && !state.cell.geometry.relative)
 					{
 						var secondLabel = graph.getSecondLabel(state.cell);
@@ -109,11 +109,15 @@
 							state.secondLabel.fontStyle = mxConstants.FONT_ITALIC;
 							state.secondLabel.background = 'yellow';
 							state.secondLabel.border = 'black';
-
+							state.secondLabel.valign = 'bottom';
 							state.secondLabel.dialect = state.shape.dialect;
-							state.secondLabel.init(state.view.getDrawPane());
+							state.secondLabel.dialect = mxConstants.DIALECT_STRICTHTML;
+							state.secondLabel.wrap = true;
+							this.graph.cellRenderer.initializeLabel(state, state.secondLabel);
 						}
 					}
+					
+					return state;
 				};
 
 				// Redraws the shape number after the cell has been moved/resized
@@ -125,7 +129,7 @@
 					if (state.shape != null && state.secondLabel != null)
 					{
 						var scale = graph.getView().getScale();
-						var bounds = new mxRectangle(state.x + state.width - 8 * scale, state.y + 8 * scale, 0, 0);
+						var bounds = new mxRectangle(state.x + state.width - 8 * scale, state.y + 8 * scale, 35, 0);
 						state.secondLabel.state = state;
 						state.secondLabel.value = graph.getSecondLabel(state.cell);
 						state.secondLabel.scale = scale;
@@ -160,7 +164,7 @@
 				graph.getModel().beginUpdate();
 				try
 				{
-					var v1 = graph.insertVertex(parent, null, 'Hello,', 30, 20, 80, 30);
+					var v1 = graph.insertVertex(parent, null, 'Hello,', 30, 40, 80, 30);
 					// Alternative solution of creating a second label by creating a realtive child vertex
 					// with size (0, 0). This will not be selectable and only the label colors can be used
 					// for coloring as the actual shape will have zero size.
@@ -208,7 +212,7 @@
 
 	<!-- Creates a container for the graph with a grid wallpaper -->
 	<div id="graphContainer"
-		style="overflow:hidden;width:321px;height:241px;background:url('editors/images/grid.gif')">
+		style="position:relative;overflow:hidden;width:321px;height:241px;background:url('editors/images/grid.gif')">
 	</div>
 </body>
 </html>

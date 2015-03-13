@@ -198,8 +198,9 @@
 				{
 					oldRedrawLabel.apply(this, arguments); // "supercall"
 					var graph = state.view.graph;
+					var model = graph.model;
 
-					if (graph.getModel().isVertex(state.cell) && state.text != null)
+					if (model.isVertex(state.cell) && state.text != null)
 					{
 						// Scrollbars are on the div
 						var s = graph.view.scale;
@@ -221,20 +222,22 @@
 							{
 								div.scrollHandler = true;
 								
-								mxEvent.addListener(div, 'scroll', mxUtils.bind(this, function(evt)
+								var updateEdges = mxUtils.bind(this, function()
 								{
-									graph.view.invalidate(state.cell, false, true);
-									graph.view.validate();
-								}));
-								
-								mxEvent.addListener(div, 'mouseup', mxUtils.bind(this, function(evt)
-								{
-									if (!this.isLabelEvent(state, evt))
+									var edgeCount = model.getEdgeCount(state.cell);
+									
+									// Only updates edges to avoid update in DOM order
+									// for text label which would reset the scrollbar
+									for (var i = 0; i < edgeCount; i++)
 									{
-										graph.view.invalidate(state.cell, false, true);
-										graph.view.validate();
+										var edge = model.getEdgeAt(state.cell, i);
+										graph.view.invalidate(edge, true, false);
+										graph.view.validate(edge);
 									}
-								}));
+								});
+								
+								mxEvent.addListener(div, 'scroll',updateEdges);
+								mxEvent.addListener(div, 'mouseup', updateEdges);
 							}
 						}
 					}
