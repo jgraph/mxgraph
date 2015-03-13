@@ -19,20 +19,19 @@
 - Changes key shortcuts for expand and collapse (Ctrl+Home/End) in grapheditor
 - Fixes focus after stop editing with Ctrl+Enter in grapheditor
 - Adds Ctrl+Enter for cloning cells "in-place" in grapheditor
-- Shift+expand/collapse moves siblings cells (experimental) in grapheditor
+- Shift+expand/collapse moves sibling cells (experimental) in grapheditor
 - Removes mxSpaceManager class [Java,JavaScript]
 - Shift+expand/collapse moves neighbour cells in grapheditor (experimental)
-- Sets collapsed swimlane in vertical/horizontal stack to horizontal/vertical in grapheditor
+- Sets collapsed swimlane label in vertical/horizontal stack to horizontal/vertical in grapheditor
 - Ignores previous width/height for stack child folding in grapheditor
 - Disables extending parents with stack layouts on add in grapheditor
-- Fixes format panel close icon position in grapheditor
+- Fixes format panel close icon position for FF in grapheditor
 - Fixes delayed selection after folding in grapheditor
-- Adds mxMouseEvnet argument in mxGraphHandler.isDelayedSelection [JavaScript]
+- Adds mxMouseEvent argument in mxGraphHandler.isDelayedSelection [JavaScript]
 - Maintains cell order for duplicates in grapheditor
 - Selects parents after deleting cells in grapheditor
 - Adds optional event argument in mxGraph.foldCells [JavaScript]
 - Adds optional cell argument in mxGraph.isExtendParentsOnAdd [JavaScript]
-- Adds capture/bubble phase in mxLayoutManager [JavaScript]
 - Adds mxStackLayout.resizeParentMax switch [JavaScript]
 - Adds UML shapes and elements in grapheditor UML sidebar 
 - Changes UML lifeline container state in grapheditor
