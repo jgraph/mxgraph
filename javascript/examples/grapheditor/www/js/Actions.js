@@ -78,7 +78,7 @@ Actions.prototype.init = function()
 	
 	// Edit actions
 	this.addAction('undo', function() { ui.undo(); }, null, 'sprite-undo', 'Ctrl+Z');
-	this.addAction('redo', function() { ui.redo(); }, null, 'sprite-redo', 'Ctrl+Y');
+	this.addAction('redo', function() { ui.redo(); }, null, 'sprite-redo', (mxClient.IS_MAC) ? 'Ctrl+Shift+Z' : 'Ctrl+Y');
 	this.addAction('cut', function() { mxClipboard.cut(graph); }, null, 'sprite-cut', 'Ctrl+X');
 	this.addAction('copy', function() { mxClipboard.copy(graph); }, null, 'sprite-copy', 'Ctrl+C');
 	this.addAction('paste', function() { mxClipboard.paste(graph); }, false, 'sprite-paste', 'Ctrl+V');
@@ -305,7 +305,7 @@ Actions.prototype.init = function()
 				graph.getModel().endUpdate();
 			}
 		}
-	}, null, null, 'Ctrl+Shift+Z');
+	}, null, null, 'Ctrl+Shift+Y');
 	this.addAction('formattedText', function()
 	{
     	var state = graph.getView().getState(graph.getSelectionCell());
@@ -502,7 +502,7 @@ Actions.prototype.init = function()
 	action.setToggleAction(true);
 	action.setSelectedCallback(function() { return graph.tooltipHandler.isEnabled(); });
 	
-	action = this.addAction('navigation', function()
+	action = this.addAction('collapse-expand', function()
 	{
 		ui.setFoldingEnabled(!graph.foldingEnabled);
 	});
@@ -722,7 +722,7 @@ Actions.prototype.init = function()
 			graph.getModel().endUpdate();
 		}
 	});
-	this.addAction('collapsible', function() { ui.menus.toggleStyle('container'); });
+	this.addAction('collapsible', function() { ui.menus.toggleStyle('collapsible', '1'); });
 	this.addAction('editStyle...', mxUtils.bind(this, function()
 	{
 		var cells = graph.getSelectionCells();
@@ -906,7 +906,7 @@ Actions.prototype.init = function()
 	    		{
 					var cells = graph.getSelectionCells();
 
-					if (cells.length > 0 || newValue != null)
+					if (newValue != null)
 					{
 						var select = null;
 						

@@ -917,6 +917,21 @@ mxEdgeHandler.prototype.start = function(x, y, index)
 	{
 		this.index = index;
 	}
+	
+	// Hides other custom handles
+	if (this.index <= mxEvent.CUSTOM_HANDLE && this.index > mxEvent.VIRTUAL_HANDLE)
+	{
+		if (this.customHandles != null)
+		{
+			for (var i = 0; i < this.customHandles.length; i++)
+			{
+				if (i != mxEvent.CUSTOM_HANDLE - this.index)
+				{
+					this.customHandles[i].setVisible(false);
+				}
+			}
+		}
+	}
 };
 
 /**

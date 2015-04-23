@@ -770,8 +770,8 @@
 </shape>
 <shape name="U Turn Left Arrow" h="97.07" w="62.23" aspect="variable" strokewidth="inherit">
 <connections>
-<constraint x="0" y="0.89" perimeter="0" name="SW"/>
-<constraint x="0" y="0.24" perimeter="0" name="NW"/>
+<constraint x="0" y="0.76" perimeter="0" name="SW"/>
+<constraint x="0" y="0.1" perimeter="0" name="NW"/>
 </connections>
 <background>
 <path>
@@ -796,8 +796,8 @@
 </shape>
 <shape name="U Turn Right Arrow" h="97.07" w="62.23" aspect="variable" strokewidth="inherit">
 <connections>
-<constraint x="1" y="0.89" perimeter="0" name="SE"/>
-<constraint x="1" y="0.24" perimeter="0" name="NE"/>
+<constraint x="1" y="0.76" perimeter="0" name="SW"/>
+<constraint x="1" y="0.1" perimeter="0" name="NW"/>
 </connections>
 <background>
 <path>

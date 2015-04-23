@@ -42,7 +42,15 @@ mxUtils.extend(mxRectangleShape, mxShape);
  */
 mxRectangleShape.prototype.isHtmlAllowed = function()
 {
-	return !this.isRounded && !this.glass && this.rotation == 0;
+	var events = true;
+	
+	if (this.style != null)
+	{
+		events = mxUtils.getValue(this.style, mxConstants.STYLE_POINTER_EVENTS, '1') == '1';		
+	}
+	
+	return !this.isRounded && !this.glass && this.rotation == 0 && (events ||
+		(this.fill != null && this.fill != mxConstants.NONE));
 };
 
 /**
@@ -52,19 +60,35 @@ mxRectangleShape.prototype.isHtmlAllowed = function()
  */
 mxRectangleShape.prototype.paintBackground = function(c, x, y, w, h)
 {
-	if (this.isRounded)
+	var events = true;
+	
+	if (this.style != null)
 	{
-		var f = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE,
-			mxConstants.RECTANGLE_ROUNDING_FACTOR * 100) / 100;
-		var r = Math.min(w * f, h * f);
-		c.roundrect(x, y, w, h, r, r);
+		events = mxUtils.getValue(this.style, mxConstants.STYLE_POINTER_EVENTS, '1') == '1';		
 	}
-	else
+	
+	if (events || (this.fill != null && this.fill != mxConstants.NONE) ||
+		(this.stroke != null && this.stroke != mxConstants.NONE))
 	{
-		c.rect(x, y, w, h);
-	}
+		if (!events && (this.fill == null || this.fill == mxConstants.NONE))
+		{
+			c.pointerEvents = false;
+		}
 		
-	c.fillAndStroke();
+		if (this.isRounded)
+		{
+			var f = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE,
+				mxConstants.RECTANGLE_ROUNDING_FACTOR * 100) / 100;
+			var r = Math.min(w * f, h * f);
+			c.roundrect(x, y, w, h, r, r);
+		}
+		else
+		{
+			c.rect(x, y, w, h);
+		}
+			
+		c.fillAndStroke();
+	}
 };
 
 /**
@@ -74,7 +98,7 @@ mxRectangleShape.prototype.paintBackground = function(c, x, y, w, h)
  */
 mxRectangleShape.prototype.paintForeground = function(c, x, y, w, h)
 {
-	if (this.glass && !this.outline)
+	if (this.glass && !this.outline && this.fill != null && this.fill != mxConstants.NONE)
 	{
 		this.paintGlassEffect(c, x, y, w, h, this.getArcSize(w + this.strokewidth, h + this.strokewidth));
 	}

@@ -291,7 +291,7 @@ mxCell.prototype.setStyle = function(style)
  */
 mxCell.prototype.isVertex = function()
 {
-	return this.vertex;
+	return this.vertex != 0;
 };
 
 /**
@@ -316,7 +316,7 @@ mxCell.prototype.setVertex = function(vertex)
  */
 mxCell.prototype.isEdge = function()
 {
-	return this.edge;
+	return this.edge != 0;
 };
 	
 /**
@@ -341,7 +341,7 @@ mxCell.prototype.setEdge = function(edge)
  */
 mxCell.prototype.isConnectable = function()
 {
-	return this.connectable;
+	return this.connectable != 0;
 };
 
 /**
@@ -365,7 +365,7 @@ mxCell.prototype.setConnectable = function(connectable)
  */
 mxCell.prototype.isVisible = function()
 {
-	return this.visible;
+	return this.visible != 0;
 };
 
 /**
@@ -389,7 +389,7 @@ mxCell.prototype.setVisible = function(visible)
  */
 mxCell.prototype.isCollapsed = function()
 {
-	return this.collapsed;
+	return this.collapsed != 0;
 };
 
 /**

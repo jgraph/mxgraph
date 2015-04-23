@@ -343,7 +343,7 @@ mxKeyHandler.prototype.keyDown = function(evt)
 		}
 		
 		// Invokes the function for the keystroke
-		else if (!this.graph.isEditing())
+		else if (!this.isEventIgnored(evt))
 		{
 			var boundFunction = this.getFunction(evt);
 			
@@ -354,6 +354,21 @@ mxKeyHandler.prototype.keyDown = function(evt)
 			}
 		}
 	}
+};
+
+/**
+ * Function: isEventIgnored
+ * 
+ * Returns true if the given keystroke should be ignored. This returns
+ * graph.isEditing().
+ * 
+ * Parameters:
+ * 
+ * evt - Key event that represents the keystroke.
+ */
+mxKeyHandler.prototype.isEventIgnored = function(evt)
+{
+	return this.graph.isEditing();
 };
 
 /**

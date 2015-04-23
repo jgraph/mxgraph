@@ -1,4 +1,4 @@
-<shapes name="mxGraph.basic">
+<shapes name="mxgraph.basic">
 <shape name="4 Point Star" h="92" w="92" aspect="variable" strokewidth="inherit">
 <connections>
 <constraint x="0.5" y="0" perimeter="0" name="N"/>
@@ -224,7 +224,7 @@
 <fillstroke/>
 </foreground>
 </shape>
-<shape name="Document" h="98" w="99" aspect="variable" strokewidth="inherit">
+<shape name="Document" h="98" w="98" aspect="variable" strokewidth="inherit">
 <connections>
 <constraint x="0.5" y="0" perimeter="0" name="N"/>
 <constraint x="0.5" y="1" perimeter="0" name="S"/>
@@ -246,10 +246,9 @@
 <path>
 <move x="84" y="0"/>
 <arc rx="18" ry="10" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="79" y="9"/>
-<line x="99" y="14.7"/>
-<close/>
+<line x="98" y="14"/>
 </path>
-<fillstroke/>
+<stroke/>
 </foreground>
 </shape>
 <shape name="Flash" h="95.5" w="60" aspect="variable" strokewidth="inherit">
@@ -678,10 +677,9 @@
 <line x="92" y="57"/>
 </path>
 <stroke/>
-
+<strokewidth width="6"/>
 <ellipse x="24" y="27" w="6" h="16"/>
 <fillstroke/>
-<strokewidth width="6"/>
 <ellipse x="68" y="27" w="6" h="16"/>
 <fillstroke/>
 </foreground>

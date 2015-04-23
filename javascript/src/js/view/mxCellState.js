@@ -163,7 +163,7 @@ mxCellState.prototype.getPerimeterBounds = function (border, bounds)
 	border = border || 0;
 	bounds = (bounds != null) ? bounds : new mxRectangle(this.x, this.y, this.width, this.height);
 	
-	if (this.shape != null && this.shape.stencil != null)
+	if (this.shape != null && this.shape.stencil != null && this.shape.stencil.aspect == 'fixed')
 	{
 		var aspect = this.shape.stencil.computeAspect(this.style, bounds.x, bounds.y, bounds.width, bounds.height);
 		

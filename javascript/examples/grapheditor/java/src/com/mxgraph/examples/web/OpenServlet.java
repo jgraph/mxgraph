@@ -137,9 +137,11 @@ public class OpenServlet extends HttpServlet
 		return result;
 	}
 
-	//
-	// Handling of multipart/form-data *** NOT FOR PRODUCTION USE ***
-	//
+	///////////////////////////////////////////////////////////////////////
+	// Handling of multipart/form-data **** NOT FOR PRODUCTION USE! **** //
+	// If you want a production library, we recommend Commons-Fileupload //
+	//       https://commons.apache.org/proper/commons-fileupload/       //
+	///////////////////////////////////////////////////////////////////////
 
 	/**
 	 * Encoding for the multipart/form-data.

@@ -836,7 +836,7 @@ mxGraph.prototype.portsEnabled = true;
 /**
  * Variable: nativeDoubleClickEnabled
  * 
- * Specifies if native double click events should be deteced. Default is false.
+ * Specifies if native double click events should be deteced. Default is true.
  */
 mxGraph.prototype.nativeDblClickEnabled = true;
 
@@ -10636,8 +10636,10 @@ mxGraph.prototype.getSwimlaneAt = function (x, y, parent)
  * Default is true.
  * edges - Optional boolean indicating if edges should be returned. Default
  * is true.
+ * ignoreFn - Optional function that returns true if cell should be ignored.
+ * The function is passed the cell state and the x and y parameter.
  */
-mxGraph.prototype.getCellAt = function(x, y, parent, vertices, edges)
+mxGraph.prototype.getCellAt = function(x, y, parent, vertices, edges, ignoreFn)
 {
 	vertices = (vertices != null) ? vertices : true;
 	edges = (edges != null) ? edges : true;
@@ -10659,7 +10661,7 @@ mxGraph.prototype.getCellAt = function(x, y, parent, vertices, edges)
 		for (var i = childCount - 1; i >= 0; i--)
 		{
 			var cell = this.model.getChildAt(parent, i);
-			var result = this.getCellAt(x, y, cell, vertices, edges);
+			var result = this.getCellAt(x, y, cell, vertices, edges, ignoreFn);
 			
 			if (result != null)
 			{
@@ -10669,8 +10671,9 @@ mxGraph.prototype.getCellAt = function(x, y, parent, vertices, edges)
 				vertices && this.model.isVertex(cell)))
 			{
 				var state = this.view.getState(cell);
-				
-				if (this.intersects(state, x, y))
+
+				if (state != null && (ignoreFn == null || !ignoreFn(state, x, y)) &&
+					this.intersects(state, x, y))
 				{
 					return cell;
 				}
@@ -11961,8 +11964,13 @@ mxGraph.prototype.removeMouseListener = function(listener)
  * 
  * Sets the graphX and graphY properties if the given <mxMouseEvent> if
  * required and returned the event.
+ * 
+ * Parameters:
+ * 
+ * me - <mxMouseEvent> to be updated.
+ * evtName - Name of the mouse event.
  */
-mxGraph.prototype.updateMouseEvent = function(me)
+mxGraph.prototype.updateMouseEvent = function(me, evtName)
 {
 	if (me.graphX == null || me.graphY == null)
 	{
@@ -11970,6 +11978,17 @@ mxGraph.prototype.updateMouseEvent = function(me)
 		
 		me.graphX = pt.x - this.panDx;
 		me.graphY = pt.y - this.panDy;
+		
+		// Searches for rectangles using method if native hit detection is disabled on shape
+		if (me.getCell() == null && this.isMouseDown && evtName == mxEvent.MOUSE_MOVE)
+		{
+			me.state = this.view.getState(this.getCellAt(pt.x, pt.y, null, null, null, function(state)
+			{
+				return state.shape == null || state.shape.paintBackground != mxRectangleShape.prototype.paintBackground ||
+					mxUtils.getValue(state.style, mxConstants.STYLE_POINTER_EVENTS, '1') == '1' ||
+					(state.shape.fill != null && state.shape.fill != mxConstants.NONE);
+			}));
+		}
 	}
 	
 	return me;
@@ -12133,6 +12152,21 @@ mxGraph.prototype.isEventSourceIgnored = function(evtName, me)
 };
 
 /**
+ * Function: getEventState
+ * 
+ * Returns the <mxCellState> to be used when firing the mouse event for the
+ * given state. This implementation returns the given state.
+ * 
+ * Parameters:
+ * 
+ * <mxCellState> - State whose event source should be returned.
+ */
+mxGraph.prototype.getEventState = function(state)
+{
+	return state;
+};
+
+/**
  * Function: fireMouseEvent
  * 
  * Dispatches the given event in the graph event dispatch loop. Possible
@@ -12164,7 +12198,7 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 	}
 
 	// Updates the graph coordinates in the event
-	me = this.updateMouseEvent(me);
+	me = this.updateMouseEvent(me, evtName);
 
 	// Stops editing for all events other than from cellEditor
 	if (evtName == mxEvent.MOUSE_DOWN && this.isEditing() && !this.cellEditor.isEventSource(me.getEvent()))
@@ -12265,6 +12299,8 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 
 	if (!this.isEventIgnored(evtName, me, sender))
 	{
+		// Updates the event state via getEventState
+		me.state = this.getEventState(me.getState());
 		this.fireEvent(new mxEventObject(mxEvent.FIRE_MOUSE_EVENT, 'eventName', evtName, 'event', me));
 		
 		if ((mxClient.IS_OP || mxClient.IS_SF || mxClient.IS_GC ||

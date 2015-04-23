@@ -39,6 +39,7 @@ function mxMouseEvent(evt, state)
 {
 	this.evt = evt;
 	this.state = state;
+	this.sourceState = state;
 };
 
 /**
@@ -77,6 +78,14 @@ mxMouseEvent.prototype.graphY = null;
  * Holds the optional <mxCellState> associated with this event.
  */
 mxMouseEvent.prototype.state = null;
+
+/**
+ * Variable: sourceState
+ * 
+ * Holds the <mxCellState> that was passed to the constructor. This can be
+ * different from <state> depending on the result of <mxGraph.getEventState>.
+ */
+mxMouseEvent.prototype.sourceState = null;
 
 /**
  * Function: getEvent

@@ -862,6 +862,17 @@
 	STYLE_FILLCOLOR: 'fillColor',
 
 	/**
+	 * Variable: STYLE_POINTER_EVENTS
+	 * 
+	 * Specifies if pointer events should be fired on transparent backgrounds.
+	 * This style is currently only supported in <mxRectangleShape>. Default
+	 * is true. Value is <code>pointerEvents</code>. This is typically set to
+	 * false in groups where the transparent part should allow any underlying
+	 * cells to be clickable.
+	 */
+	STYLE_POINTER_EVENTS: 'pointerEvents',
+
+	/**
 	 * Variable: STYLE_SWIMLANE_FILLCOLOR
 	 * 
 	 * Defines the key for the fill color of the swimlane background. Possible

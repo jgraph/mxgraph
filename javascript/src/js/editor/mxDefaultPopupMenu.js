@@ -72,7 +72,9 @@ mxDefaultPopupMenu.prototype.config = null;
  * action - Name of the action to execute in enclosing editor.
  * icon - Optional icon (relative/absolute URL).
  * iconCls - Optional CSS class for the icon.
- * if - Optional name of condition that must be true(see below).
+ * if - Optional name of condition that must be true (see below).
+ * enabled-if - Optional name of condition that specifies if the menu item
+ * should be enabled.
  * name - Name of custom condition. Only for condition nodes.
  *
  * Conditions:
@@ -192,6 +194,8 @@ mxDefaultPopupMenu.prototype.addItems = function(editor, menu, cell, evt, condit
 				var action = item.getAttribute('action');
 				var icon = item.getAttribute('icon');
 				var iconCls = item.getAttribute('iconCls');
+				var enabledCond = item.getAttribute('enabled-if');
+				var enabled = enabledCond == null || conditions[enabledCond];
 				
 				if (addSeparator)
 				{
@@ -204,7 +208,7 @@ mxDefaultPopupMenu.prototype.addItems = function(editor, menu, cell, evt, condit
 					icon = this.imageBasePath + icon;
 				}
 				
-				var row = this.addAction(menu, editor, as, icon, funct, action, cell, parent, iconCls);
+				var row = this.addAction(menu, editor, as, icon, funct, action, cell, parent, iconCls, enabled);
 				this.addItems(editor, menu, cell, evt, conditions, item.firstChild, row);
 			}
 		}
@@ -235,8 +239,10 @@ mxDefaultPopupMenu.prototype.addItems = function(editor, menu, cell, evt, condit
  * cell - Optional <mxCell> to use as an argument for the action.
  * parent - DOM node that represents the parent menu item.
  * iconCls - Optional CSS class for the menu icon.
+ * enabled - Optional boolean that specifies if the menu item is enabled.
+ * Default is true.
  */
-mxDefaultPopupMenu.prototype.addAction = function(menu, editor, lab, icon, funct, action, cell, parent, iconCls)
+mxDefaultPopupMenu.prototype.addAction = function(menu, editor, lab, icon, funct, action, cell, parent, iconCls, enabled)
 {
 	var clickHandler = function(evt)
 	{
@@ -251,7 +257,7 @@ mxDefaultPopupMenu.prototype.addAction = function(menu, editor, lab, icon, funct
 		}
 	};
 	
-	return menu.addItem(lab, icon, clickHandler, parent, iconCls);
+	return menu.addItem(lab, icon, clickHandler, parent, iconCls, enabled);
 };
 
 /**

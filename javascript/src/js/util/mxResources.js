@@ -191,7 +191,8 @@ var mxResources =
 	 */
 	add: function(basename, lan)
 	{
-		lan = (lan != null) ? lan : mxClient.language.toLowerCase();
+		lan = (lan != null) ? lan : ((mxClient.language != null) ?
+			mxClient.language.toLowerCase() : mxConstants.NONE);
 		
 		if (lan != mxConstants.NONE)
 		{

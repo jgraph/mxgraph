@@ -795,7 +795,12 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 			}
 		}
 
-		me.getState().setCursor(cursor);
+		// Sets the cursor on the original source state under the mouse
+		// instead of the event source state which can be the parent
+		if (me.sourceState != null)
+		{
+			me.sourceState.setCursor(cursor);
+		}
 	}
 };
 

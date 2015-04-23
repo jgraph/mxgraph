@@ -57,6 +57,14 @@ mxCodecRegistry.register(function()
 	};
 
 	/**
+	 * Overidden to disable conversion of value to number.
+	 */
+	codec.isNumericAttribute = function(dec, attr, obj)
+	{
+		return attr.nodeName !== 'value' && mxObjectCodec.prototype.isNumericAttribute.apply(this, arguments);
+	};
+	
+	/**
 	 * Function: isExcluded
 	 *
 	 * Excludes user objects that are XML nodes.

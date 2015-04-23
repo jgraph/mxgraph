@@ -237,7 +237,10 @@ mxAbstractCanvas2D.prototype.save = function()
  */
 mxAbstractCanvas2D.prototype.restore = function()
 {
-	this.state = this.states.pop();
+	if (this.states.length > 0)
+	{
+		this.state = this.states.pop();
+	}
 };
 
 /**

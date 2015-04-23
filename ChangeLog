@@ -1,3 +1,54 @@
+23-APR-2015: 3.3.0.0
+
+- Adds orthogonalPerimeter for UML activation in grapheditor
+- Adds UML sequence diagram building blocks in grapheditor
+- Adds timer for replace shape and connect icons in grapheditor
+- Adds timer-based outline connect in grapheditor
+- Fixes possible NPE in mxGraphView.updateContainerStyle [JavaScript]
+- Adds shape search in grapheditor
+- Adds UML boundary, entity and control shapes and lifelines in grapheditor
+- Fixes image action if no cells are selected in grapheditor
+- Adds zoom buttons in scrollbars.html example [JavaScript]
+- Adds enabled-if attribute in default popup menu configuration [JavaScript]
+- Uses data URIs for various images in grapheditor
+- Removes optional attr argument in mxCodec.getElementById [Java,JavaScript,Php,Dotnet]
+- Removes mxUtils.findNodeByAttribute, selectSingleNode [Java,JavaScript,Php,Dotnet]
+- Adds support for functions in mxObjectIdentity [JavaScript]
+- Adds plus click handling for child cells in grapheditor
+- Adds support for composite style in grapheditor [JavaScript]
+- Disables numeric conversion for value in mxCellCodec [JavaScript]
+- Adds mxUtils.isInteger, used in mxObjectCodec.encodeObject [JavaScript]
+- Fixes shadow for transparent ellipses in Firefox [JavaScript]
+- Adds composite style, no longer selects editing cell in grapheditor
+- Adds mxGraph.getEventState, mxMouseEvent.sourceState [JavaScript]
+- Adds handle for hexagon shape in grapheditor
+- Fixes undo for text editing and insert labels in grapheditor
+- Uses Ctrl+Shift+Z for redo on Mac in grapheditor
+- Changes keyboard shortcut for autosize to Ctrl+Shift+Y in grapheditor
+- Adds mxKeyHandler.isEventIgnored hook [JavaScript]
+- Fixes undo behaviour for text editing with no changes in grapheditor
+- No longer calls getCellAt for Graph.dblClick in grapheditor
+- Bypasses mxShape.getLabelBounds for non centered labels [JavaScript]
+- Adds mxGraphView.getFixedTerminalPoint/getFloatingTerminalPoint hooks [JavaScript]
+- Fixes ignored aspect for routing stencil connections [JavaScript]
+- Adds UML frame shape and handle, participant style for lifeline in grapheditor
+- Adds support for recursiveResize style in grapheditor
+- Ignores pointer events for transparent groups in grapheditor
+- Fixes handling of keys for substrings in mxUtils.setStyle [JavaScript]
+- Fixes removing cells from selected parents in grapheditor
+- Adds mxConstants.STYLE_POINTER_EVENTS and support in mxRectangleShape.paintBackground [JavaScript]
+- Adds evtName argument in mxGraph.updateMouseEvent [JavaScript]
+- Adds optional ignoreFn argument in mxGraph.getCellAt [JavaScript]
+- Fixes return type in mxCell.isVertex/-Edge/-Connectable/-Visible/-Collapsed [JavaScript]
+- Fixes transition to unconnectable parent in mxConstraintHandler.update [JavaScript]
+- Removes checks for shape.content in mxCellRenderer.installListeners [JavaScript]
+- Fires UP/DOWN events after validation in mxCurrentRootChange.execute [JavaScript]
+- Fixes update of unchanged geometries in mxStackLayout [JavaScript]  
+- Fixes enabled state of navigation menu, renames navigation switch/removes from sidebar in grapheditor
+- Fixes possible NPE in mxResources.add [JavaScript]
+- Fixes possible NPE in mxAbstractCanvas2D.restore [JavaScript]
+- Hides inactive custom handles for edges if custom handle is active [JavaScript]
+
 13-MAR-2015: 3.2.0.0
 
 - Adds arcSize handle in grapheditor [JavaScript]

@@ -1030,14 +1030,14 @@ class mxUtils
 		
 		return $doc;
 	}
-	
+
 	/**
 	 * Function getXml
-	 * 
+	 *
 	 * Returns the XML of the given node as a string.
-	 * 
+	 *
 	 * Parameters:
-	 * 
+	 *
 	 * node - DOM node to return the XML for.
 	 * linefeed - Optional string that linefeeds are converted into. Default is
 	 * &#xa;
@@ -1106,27 +1106,6 @@ class mxUtils
 		return null;
 	}
 
-	/**
-	 * Function: selectSingleNode
-	 * 
-	 * Evaluates the XPath expression and returns the first node of the result.
-	 * 
-	 * Will find the first node with a label attribute that equals Hello,
-	 * World!
-	 * 
-	 * Parameters:
-	 * 
-	 * doc - XML document that contains all nodes.
-	 * xpath - String that represents the XPath expression.
-	 */
-	static function selectSingleNode($doc, $expr)
-	{
- 		$xpath = new DOMXPath($doc);
- 		$nodelist = $xpath->query($expr);
- 		
- 		return $nodelist->item(0);
-	}
-	
 	/**
 	 * Function: getTrueTypeFont
 	 * 

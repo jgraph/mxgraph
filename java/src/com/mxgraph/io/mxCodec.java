@@ -14,7 +14,6 @@ import com.mxgraph.model.mxCell;
 import com.mxgraph.model.mxCellPath;
 import com.mxgraph.model.mxICell;
 import com.mxgraph.util.mxDomUtils;
-import com.mxgraph.util.mxUtils;
 
 /**
  * XML codec for Java object graphs. In order to resolve forward references
@@ -173,30 +172,7 @@ public class mxCodec
 	 */
 	public Node getElementById(String id)
 	{
-		return getElementById(id, null);
-	}
-
-	/**
-	 * Returns the element with the given ID from document. The optional attr
-	 * argument specifies the name of the ID attribute. Default is "id". The
-	 * XPath expression used to find the element is //*[@attr='arg'] where attr
-	 * is the name of the ID attribute and arg is the given id.
-	 * 
-	 * Parameters:
-	 * 
-	 * id - String that contains the ID.
-	 * attr - Optional string for the attributename. Default is id.
-	 */
-	public Node getElementById(String id, String attr)
-	{
-		if (attr == null)
-		{
-			attr = "id";
-		}
-
-		String expr = "//*[@" + attr + "='" + id + "']";
-
-		return mxUtils.selectSingleNode(document, expr);
+		return document.getElementById(id);
 	}
 
 	/**

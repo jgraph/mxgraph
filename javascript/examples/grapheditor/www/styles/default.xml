@@ -65,6 +65,7 @@
 		<add as="fillColor" value="none"/>
 		<add as="strokeColor" value="none"/>
 		<add as="gradientColor" value="none"/>
+		<add as="pointerEvents" value="0"/>
 	</add>
 	<add as="ellipse">
 		<add as="shape" value="ellipse"/>

@@ -360,7 +360,10 @@ mxCellEditor.prototype.resize = function()
 				else if (this.bounds != null)
 				{
 					var bds = mxRectangle.fromRectangle(state);
-				 	bds = (state.shape != null) ? state.shape.getLabelBounds(bds) : bds;
+					var hpos = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_POSITION, mxConstants.ALIGN_CENTER);
+					var vpos = mxUtils.getValue(state.style, mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.ALIGN_MIDDLE);
+
+					bds = (state.shape != null && hpos == mxConstants.ALIGN_CENTER && vpos == mxConstants.ALIGN_MIDDLE) ? state.shape.getLabelBounds(bds) : bds;
 				 	
 				 	if (lw != null)
 				 	{
@@ -778,8 +781,10 @@ mxCellEditor.prototype.getEditorBounds = function(state)
 	 	result = new mxRectangle(state.x, state.y,
 	 		 Math.max(minWidth, state.width - spacingLeft - spacingRight),
 	 		 Math.max(minHeight, state.height - spacingTop - spacingBottom));
-	 	
-		result = (state.shape != null) ? state.shape.getLabelBounds(result) : result;
+		var hpos = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_POSITION, mxConstants.ALIGN_CENTER);
+		var vpos = mxUtils.getValue(state.style, mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.ALIGN_MIDDLE);
+		
+		result = (state.shape != null && hpos == mxConstants.ALIGN_CENTER && vpos == mxConstants.ALIGN_MIDDLE) ? state.shape.getLabelBounds(result) : result;
 	
 		if (isEdge)
 		{

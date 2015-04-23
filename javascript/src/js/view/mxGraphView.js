@@ -1301,6 +1301,23 @@ mxGraphView.prototype.updateFixedTerminalPoints = function(edge, source, target)
  */
 mxGraphView.prototype.updateFixedTerminalPoint = function(edge, terminal, source, constraint)
 {
+	edge.setAbsoluteTerminalPoint(this.getFixedTerminalPoint(edge, terminal, source, constraint), source);
+};
+
+/**
+ * Function: getFixedTerminalPoint
+ *
+ * Returns the fixed source or target terminal point for the given edge.
+ * 
+ * Parameters:
+ * 
+ * edge - <mxCellState> whose terminal point should be returned.
+ * terminal - <mxCellState> which represents the actual terminal.
+ * source - Boolean that specifies if the terminal is the source.
+ * constraint - <mxConnectionConstraint> that specifies the connection.
+ */
+mxGraphView.prototype.getFixedTerminalPoint = function(edge, terminal, source, constraint)
+{
 	var pt = null;
 	
 	if (constraint != null)
@@ -1322,8 +1339,33 @@ mxGraphView.prototype.updateFixedTerminalPoint = function(edge, terminal, source
 							 s * (tr.y + pt.y + orig.y));
 		}
 	}
+	
+	return pt;
+};
 
-	edge.setAbsoluteTerminalPoint(pt, source);
+/**
+ * Function: updateBoundsFromStencil
+ * 
+ * Updates the bounds of the given cell state to reflect the bounds of the stencil
+ * if it has a fixed aspect and returns the previous bounds as an <mxRectangle> if
+ * the bounds have been modified or null otherwise.
+ * 
+ * Parameters:
+ * 
+ * edge - <mxCellState> whose bounds should be updated.
+ */
+mxGraphView.prototype.updateBoundsFromStencil = function(state)
+{
+	var previous = null;
+	
+	if (state != null && state.shape != null && state.shape.stencil != null && state.shape.stencil.aspect == 'fixed')
+	{
+		previous = mxRectangle.fromRectangle(state);
+		var asp = state.shape.stencil.computeAspect(state.style, state.x, state.y, state.width, state.height);
+		state.setRect(asp.x, asp.y, state.shape.stencil.w0 * asp.width, state.shape.stencil.h0 * asp.height);
+	}
+	
+	return previous;
 };
 
 /**
@@ -1352,7 +1394,22 @@ mxGraphView.prototype.updatePoints = function(edge, points, source, target)
 			var src = this.getTerminalPort(edge, source, true);
 			var trg = this.getTerminalPort(edge, target, false);
 			
+			// Uses the stencil bounds for routing and restores after routing
+			var srcBounds = this.updateBoundsFromStencil(src);
+			var trgBounds = this.updateBoundsFromStencil(trg);
+
 			edgeStyle(edge, src, trg, points, pts);
+			
+			// Restores previous bounds
+			if (srcBounds != null)
+			{
+				src.setRect(srcBounds.x, srcBounds.y, srcBounds.width, srcBounds.height);
+			}
+			
+			if (trgBounds != null)
+			{
+				trg.setRect(trgBounds.x, trgBounds.y, trgBounds.width, trgBounds.height);
+			}
 		}
 		else if (points != null)
 		{
@@ -1467,6 +1524,24 @@ mxGraphView.prototype.updateFloatingTerminalPoints = function(state, source, tar
  */
 mxGraphView.prototype.updateFloatingTerminalPoint = function(edge, start, end, source)
 {
+	edge.setAbsoluteTerminalPoint(this.getFloatingTerminalPoint(edge, start, end, source), source);
+};
+
+/**
+ * Function: getFloatingTerminalPoint
+ * 
+ * Returns the floating terminal point for the given edge, start and end
+ * state, where start is the source if source is true.
+ * 
+ * Parameters:
+ * 
+ * edge - <mxCellState> whose terminal point should be returned.
+ * start - <mxCellState> for the terminal on "this" side of the edge.
+ * end - <mxCellState> for the terminal on the other side of the edge.
+ * source - Boolean indicating if start is the source terminal state.
+ */
+mxGraphView.prototype.getFloatingTerminalPoint = function(edge, start, end, source)
+{
 	start = this.getTerminalPort(edge, start, source);
 	var next = this.getNextPoint(edge, end, source);
 	
@@ -1494,7 +1569,7 @@ mxGraphView.prototype.updateFloatingTerminalPoint = function(edge, start, end, s
 		pt = mxUtils.getRotatedPoint(pt, cos, sin, center);
 	}
 	
-	edge.setAbsoluteTerminalPoint(pt, source);
+	return pt;
 };
 
 /**
@@ -2741,7 +2816,7 @@ mxGraphView.prototype.updateContainerStyle = function(container)
 	// Workaround for offset of container
 	var style = mxUtils.getCurrentStyle(container);
 	
-	if (style.position == 'static')
+	if (style != null && style.position == 'static')
 	{
 		container.style.position = 'relative';
 	}
@@ -2835,11 +2910,7 @@ mxCurrentRootChange.prototype.execute = function()
 	{
 		this.view.translate = new mxPoint(-translate.x, -translate.y);
 	}
-			
-	var name = (this.isUp) ? mxEvent.UP : mxEvent.DOWN;
-	this.view.fireEvent(new mxEventObject(name,
-		'root', this.view.currentRoot, 'previous', this.previous));
-	
+
 	if (this.isUp)
 	{
 		this.view.clear(this.view.currentRoot, true);
@@ -2850,5 +2921,8 @@ mxCurrentRootChange.prototype.execute = function()
 		this.view.refresh();
 	}
 	
+	var name = (this.isUp) ? mxEvent.UP : mxEvent.DOWN;
+	this.view.fireEvent(new mxEventObject(name,
+		'root', this.view.currentRoot, 'previous', this.previous));
 	this.isUp = !this.isUp;
 };

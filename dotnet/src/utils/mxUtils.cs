@@ -1352,17 +1352,6 @@ namespace com.mxgraph
 	    }
 
         /// <summary>
-        /// Returns a single node that matches the given XPath expression.
-        /// </summary>
-        /// <param name="doc">Document that contains the nodes.</param>
-        /// <param name="expression">XPath expression to be matched.</param>
-        /// <returns>Returns a single node matching the given expression.</returns>
-        public static XmlNode SelectSingleNode(XmlDocument doc, string expression)
-        {
-            return doc.SelectSingleNode(expression);
-        }
-
-        /// <summary>
         /// Evaluates a Java expression to a class member using mxCodecRegistry.
         /// The range of supported expressions is limited to static class
         /// members such as mxEdgeStyle.ElbowConnector.

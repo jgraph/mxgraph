@@ -118,11 +118,11 @@
 <background>
 <path>
 <move x="19.37" y="5.12"/>
-<arc rx="2.5" ry="5" x-axis-rotation="30" large-arc-flag="0" sweep-flag="1" x="24.37" y="0.12"/>
+<arc rx="6" ry="12" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="24.37" y="0.12"/>
 <line x="93.37" y="0.12"/>
 <arc rx="5" ry="4" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="98.37" y="5.12"/>
 <line x="79.37" y="55.12"/>
-<arc rx="2.5" ry="5" x-axis-rotation="30" large-arc-flag="0" sweep-flag="1" x="74.37" y="60.12"/>
+<arc rx="6" ry="12" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="74.37" y="60.12"/>
 <line x="4.37" y="60.12"/>
 <arc rx="5" ry="4" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="0.37" y="55.12"/>
 <close/>
@@ -162,7 +162,7 @@
 <stroke/>
 </foreground>
 </shape>
-<shape name="Decision" h="57.43" w="98" aspect="variable" strokewidth="inherit">
+<shape name="Decision" aspect="variable" strokewidth="inherit">
 <connections>
 <constraint x="0.5" y="0" perimeter="0" name="N"/>
 <constraint x="0.5" y="1" perimeter="0" name="S"/>
@@ -171,15 +171,10 @@
 </connections>
 <background>
 <path>
-<move x="51" y="0.71"/>
-<line x="97" y="26.71"/>
-<arc rx="2.5" ry="2.5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="97" y="30.71"/>
-<line x="51" y="56.71"/>
-<arc rx="4" ry="4" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="47" y="56.71"/>
-<line x="1" y="30.71"/>
-<arc rx="2.5" ry="2.5" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="1" y="26.71"/>
-<line x="47" y="0.71"/>
-<arc rx="4" ry="4" x-axis-rotation="0" large-arc-flag="0" sweep-flag="1" x="51" y="0.71"/>
+<move x="50" y="0"/>
+<line x="100" y="50"/>
+<line x="50" y="100"/>
+<line x="0" y="50"/>
 <close/>
 </path>
 </background>
@@ -718,7 +713,7 @@
 <fillstroke/>
 </foreground>
 </shape>
-<shape name="Process" h="60" w="98" aspect="variable" strokewidth="inherit">
+<shape name="Process" aspect="variable" strokewidth="inherit">
 <connections>
 <constraint x="0.5" y="0" perimeter="0" name="N"/>
 <constraint x="0.5" y="1" perimeter="0" name="S"/>
@@ -726,7 +721,7 @@
 <constraint x="1" y="0.5" perimeter="0" name="E"/>
 </connections>
 <background>
-<roundrect x="0" y="0" w="98" h="60" arcsize="6.717687074829931"/>
+<roundrect x="0" y="0" w="100" h="100" arcsize="6"/>
 </background>
 <foreground>
 <fillstroke/>

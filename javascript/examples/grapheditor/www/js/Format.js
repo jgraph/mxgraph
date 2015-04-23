@@ -217,7 +217,7 @@ Format.prototype.isGlassState = function(state)
 	var shape = mxUtils.getValue(state.style, mxConstants.STYLE_SHAPE, null);
 	
 	return (shape == 'label' || shape == 'rectangle' || shape == 'internalStorage' ||
-			shape == 'ext' || shape == 'swimlane');
+			shape == 'ext' || shape == 'umlLifeline' || shape == 'swimlane');
 };
 
 /**
@@ -232,7 +232,7 @@ Format.prototype.isRoundedState = function(state)
 			shape == 'ext' || shape == 'step' || shape == 'tee' || shape == 'process' || shape == 'link' ||
 			shape == 'rhombus' || shape == 'offPageConnector' || shape == 'loopLimit' || shape == 'hexagon' ||
 			shape == 'manualInput' || shape == 'curlyBracket' || shape == 'singleArrow' ||
-			shape == 'doubleArrow' || shape == 'flexArrow' || shape == 'card');
+			shape == 'doubleArrow' || shape == 'flexArrow' || shape == 'card' || shape == 'umlLifeline');
 };
 
 /**
@@ -316,7 +316,7 @@ Format.prototype.refresh = function()
 		// and the menu item in the format menu
 		var img = document.createElement('img');
 		img.setAttribute('border', '0');
-		img.setAttribute('src', IMAGE_PATH + '/close.png');
+		img.setAttribute('src', Dialog.prototype.closeImage);
 		img.setAttribute('title', mxResources.get('hide'));
 		img.style.position = 'absolute';
 		img.style.display = 'block';
@@ -1109,7 +1109,8 @@ BaseFormatPanel.prototype.addArrow = function(elt, height)
 	
 	arrow.style.height = height + 'px';
 	arrow.style.borderLeft = '1px solid #a0a0a0';
-	arrow.innerHTML = '<img border="0" src="' + IMAGE_PATH + '/dropdown.png" style="margin-bottom:4px;">';
+	arrow.innerHTML = '<img border="0" src="' + ((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAHBJREFUeNpidHB2ZyAGsACxDRBPIKCuA6TwCBB/h2rABu4A8SYmKCcXiP/iUFgAxL9gCi8A8SwsirZCMQMTkmANEH9E4v+CmsaArvAdyNFI/FlQ92EoBIE+qCRIUz168DBgsU4OqhinQpgHMABAgAEALY4XLIsJ20oAAAAASUVORK5CYII=' :
+		IMAGE_PATH + '/dropdown.png') + '" style="margin-bottom:4px;">';
 	mxUtils.setOpacity(arrow, 70);
 	
 	var symbol = elt.getElementsByTagName('div')[0];
@@ -1644,7 +1645,7 @@ ArrangePanel.prototype.addGeometry = function(container)
 	
 	var autosizeBtn = document.createElement('div');
 	autosizeBtn.className = 'geSprite geSprite-fit';
-	autosizeBtn.setAttribute('title', mxResources.get('autosize') + ' (Ctrl+Shift+Z)');
+	autosizeBtn.setAttribute('title', mxResources.get('autosize') + ' (Ctrl+Shift+Y)');
 	autosizeBtn.style.position = 'relative';
 	autosizeBtn.style.cursor = 'pointer';
 	autosizeBtn.style.marginTop = '-3px';
@@ -3941,31 +3942,7 @@ DiagramFormatPanel.prototype.addOptions = function(div)
 	{
 		graph.connectionHandler.setCreateTarget(checked);
 	}));
-	
-	// Navigation
-	div.appendChild(this.createOption(mxResources.get('navigation'), function()
-	{
-		return graph.foldingEnabled;
-	}, function(checked)
-	{
-		ui.setFoldingEnabled(checked);
-	},
-	{
-		install: function(apply)
-		{
-			this.listener = function()
-			{
-				apply(graph.foldingEnabled);
-			};
-			
-			ui.addListener('foldingEnabledChanged', this.listener);
-		},
-		destroy: function()
-		{
-			ui.removeListener(this.listener);
-		}
-	}));
-	
+
 	// Scrollbars
 	div.appendChild(this.createOption(mxResources.get('scrollbars'), function()
 	{
@@ -4182,32 +4159,20 @@ DiagramFormatPanel.prototype.addPaperSize = function(div)
 	portraitCheckBox.style.marginRight = '6px';
 	formatDiv.appendChild(portraitCheckBox);
 	
-	var span = document.createElement('span');
-	span.style.maxWidth = '100px';
-	mxUtils.write(span, mxResources.get('portrait'));
-	formatDiv.appendChild(span);
-	
-	mxEvent.addListener(span, 'click', function(evt)
-	{
-		portraitCheckBox.checked = true;
-		mxEvent.consume(evt);
-	});
-	
+	var portraitSpan = document.createElement('span');
+	portraitSpan.style.maxWidth = '100px';
+	mxUtils.write(portraitSpan, mxResources.get('portrait'));
+	formatDiv.appendChild(portraitSpan);
+
 	landscapeCheckBox.style.marginLeft = '10px';
 	landscapeCheckBox.style.marginRight = '6px';
 	formatDiv.appendChild(landscapeCheckBox);
 	
-	var span = document.createElement('span');
-	span.style.width = '100px';
-	mxUtils.write(span, mxResources.get('landscape'));
-	formatDiv.appendChild(span)
-	
-	mxEvent.addListener(span, 'click', function(evt)
-	{
-		landscapeCheckBox.checked = true;
-		mxEvent.consume(evt);
-	});
-	
+	var landscapeSpan = document.createElement('span');
+	landscapeSpan.style.width = '100px';
+	mxUtils.write(landscapeSpan, mxResources.get('landscape'));
+	formatDiv.appendChild(landscapeSpan)
+
 	var customDiv = document.createElement('div');
 	customDiv.style.marginLeft = '4px';
 	customDiv.style.width = '210px';
@@ -4337,6 +4302,20 @@ DiagramFormatPanel.prototype.addPaperSize = function(div)
 
 	this.addKeyHandler(widthInput, listener);
 	this.addKeyHandler(heightInput, listener);
+	
+	mxEvent.addListener(portraitSpan, 'click', function(evt)
+	{
+		portraitCheckBox.checked = true;
+		update();
+		mxEvent.consume(evt);
+	});
+	
+	mxEvent.addListener(landscapeSpan, 'click', function(evt)
+	{
+		landscapeCheckBox.checked = true;
+		update();
+		mxEvent.consume(evt);
+	});
 	
 	mxEvent.addListener(widthInput, 'blur', update);
 	mxEvent.addListener(widthInput, 'click', update);

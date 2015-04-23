@@ -314,6 +314,7 @@ mxStackLayout.prototype.execute = function(parent)
 			var tmp = 0;
 			var last = null;
 			var lastValue = 0;
+			var lastChild = null;
 			var childCount = model.getChildCount(parent);
 			
 			for (var i = 0; i < childCount; i++)
@@ -404,6 +405,7 @@ mxStackLayout.prototype.execute = function(parent)
 						}
 						
 						this.setChildGeometry(child, geo);
+						lastChild = child;
 						last = geo;
 						
 						if (horizontal)
@@ -417,13 +419,12 @@ mxStackLayout.prototype.execute = function(parent)
 					}
 				}
 			}
-			
-			if (this.resizeParent && pgeo != null && last != null &&
-				!this.graph.isCellCollapsed(parent))
+
+			if (this.resizeParent && pgeo != null && last != null && !this.graph.isCellCollapsed(parent))
 			{
 				this.updateParentGeometry(parent, pgeo, last);
 			}
-			else if (this.resizeLast && pgeo != null && last != null)
+			else if (this.resizeLast && pgeo != null && last != null && lastChild != null)
 			{
 				if (horizontal)
 				{
@@ -433,6 +434,8 @@ mxStackLayout.prototype.execute = function(parent)
 				{
 					last.height = pgeo.height - last.y - this.spacing - this.marginBottom;
 				}
+				
+				this.setChildGeometry(lastChild, last);
 			}
 		}
 		finally
@@ -452,7 +455,13 @@ mxStackLayout.prototype.execute = function(parent)
  */
 mxStackLayout.prototype.setChildGeometry = function(child, geo)
 {
-	this.graph.getModel().setGeometry(child, geo);
+	var geo2 = this.graph.getCellGeometry(child);
+	
+	if (geo2 == null || geo.x != geo2.x || geo.y != geo2.y ||
+		geo.width != geo2.width || geo.height != geo2.height)
+	{
+		this.graph.getModel().setGeometry(child, geo);
+	}
 };
 
 /**
@@ -468,7 +477,7 @@ mxStackLayout.prototype.updateParentGeometry = function(parent, pgeo, last)
 	var horizontal = this.isHorizontal();
 	var model = this.graph.getModel();	
 
-	pgeo = pgeo.clone();
+	var pgeo2 = pgeo.clone();
 	
 	if (horizontal)
 	{
@@ -476,11 +485,11 @@ mxStackLayout.prototype.updateParentGeometry = function(parent, pgeo, last)
 		
 		if (this.resizeParentMax)
 		{
-			pgeo.width = Math.max(pgeo.width, tmp);
+			pgeo2.width = Math.max(pgeo2.width, tmp);
 		}
 		else
 		{
-			pgeo.width = tmp;
+			pgeo2.width = tmp;
 		}
 	}
 	else
@@ -489,13 +498,17 @@ mxStackLayout.prototype.updateParentGeometry = function(parent, pgeo, last)
 		
 		if (this.resizeParentMax)
 		{
-			pgeo.height = Math.max(pgeo.height, tmp);
+			pgeo2.height = Math.max(pgeo2.height, tmp);
 		}
 		else
 		{
-			pgeo.height = tmp;
+			pgeo2.height = tmp;
 		}
 	}
 	
-	model.setGeometry(parent, pgeo);
+	if (pgeo.x != pgeo2.x || pgeo.y != pgeo2.y ||
+		pgeo.width != pgeo2.width || pgeo.height != pgeo2.height)
+	{
+		model.setGeometry(parent, pgeo2);
+	}
 };

@@ -43,10 +43,6 @@ import javax.imageio.ImageIO;
 import javax.swing.text.html.HTMLDocument;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -2379,31 +2375,6 @@ public class mxUtils
 			}
 
 			node = node.getNextSibling();
-		}
-
-		return null;
-	}
-
-	/**
-	 * Returns a single node that matches the given XPath expression.
-	 * 
-	 * @param doc
-	 *            Document that contains the nodes.
-	 * @param expression
-	 *            XPath expression to be matched.
-	 * @return Returns a single node matching the given expression.
-	 */
-	public static Node selectSingleNode(Document doc, String expression)
-	{
-		try
-		{
-			XPath xpath = XPathFactory.newInstance().newXPath();
-
-			return (Node) xpath.evaluate(expression, doc, XPathConstants.NODE);
-		}
-		catch (XPathExpressionException e)
-		{
-			// ignore
 		}
 
 		return null;

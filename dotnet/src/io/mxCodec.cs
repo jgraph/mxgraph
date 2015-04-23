@@ -143,28 +143,7 @@ namespace com.mxgraph
         /// <returns>Returns the element for the given ID.</returns>
         public XmlNode GetElementById(string id)
         {
-            return GetElementById(id, null);
-        }
-
-        /// <summary>
-        /// Returns the element with the given ID from document. The optional attr
-        /// argument specifies the name of the ID attribute. Default is id. The
-        /// XPath expression used to find the element is //*[\@id='arg'] where id
-        /// is the name of the ID attribute (attributeName) and arg is the given id.
-        /// </summary>
-        /// <param name="id">ID of the element to be returned.</param>
-        /// <param name="attributeName">Optional string for the attributename. Default is id.</param>
-        /// <returns>Returns the element for the given ID.</returns>
-        public XmlNode GetElementById(string id, string attributeName)
-        {
-            if (attributeName == null)
-            {
-                attributeName = "id";
-            }
-
-            string expr = "//*[@" + attributeName + "='" + id + "']";
-
-            return mxUtils.SelectSingleNode(document, expr);
+            return document.GetElementById(id);
         }
 
         /// <summary>

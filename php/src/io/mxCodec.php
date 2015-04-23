@@ -129,14 +129,10 @@ class mxCodec
 	 * Parameters:
 	 *
 	 * id - String that contains the ID.
-	 * attr - Optional string for the attributename.
-	 * Default is "id".
 	 */
-	function getElementById($id, $attr="id")
-	{		
-		$expr = "//*[@$attr='$id']";
-		
-		return mxUtils::selectSingleNode($this->document, $expr);
+	function getElementById($id)
+	{
+		return $this->document->getElementById($id);
 	}
 
 	/**

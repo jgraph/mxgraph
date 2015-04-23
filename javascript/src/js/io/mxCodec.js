@@ -166,7 +166,7 @@ mxCodec.prototype.putObject = function(id, obj)
 mxCodec.prototype.getObject = function(id)
 {
 	var obj = null;
-	
+
 	if (id != null)
 	{
 		obj = this.objects[id];
@@ -218,21 +218,23 @@ mxCodec.prototype.lookup = function(id)
 /**
  * Function: getElementById
  *
- * Returns the element with the given ID from <document>. The optional attr
- * argument specifies the name of the ID attribute. Default is "id". The
- * XPath expression used to find the element is //*[@attr='arg'] where attr is
- * the name of the ID attribute and arg is the given id.
+ * Returns the element with the given ID from <document>.
  *
  * Parameters:
  *
  * id - String that contains the ID.
- * attr - Optional string for the attributename. Default is "id".
  */
-mxCodec.prototype.getElementById = function(id, attr)
+mxCodec.prototype.getElementById = function(id)
 {
-	attr = (attr != null) ? attr : 'id';
-	
-	return mxUtils.findNodeByAttribute(this.document.documentElement, attr, id);
+	// Workaround for no result in all versions of IE for the native implementation
+	if (typeof this.document.getElementById === 'function' && !mxClient.IS_IE && document.documentMode == null)
+	{
+		return this.document.getElementById(id);
+	}
+	else
+	{
+		return mxUtils.findNode(this.document.documentElement, 'id', id);
+	}
 };
 
 /**

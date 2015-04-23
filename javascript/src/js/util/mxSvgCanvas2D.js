@@ -783,8 +783,9 @@ mxSvgCanvas2D.prototype.createShadow = function(node)
 {
 	var shadow = node.cloneNode(true);
 	var s = this.state;
-	
-	if (shadow.getAttribute('fill') != 'none')
+
+	// Firefox uses transparent for no fill in ellipses
+	if (shadow.getAttribute('fill') != 'none' && (!mxClient.IS_FF || shadow.getAttribute('fill') != 'transparent'))
 	{
 		shadow.setAttribute('fill', s.shadowColor);
 	}

@@ -80,9 +80,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a1910f4beb57b5515cfd5a16119d78de0"><td class="memItemLeft" align="right" valign="top">XmlNode&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxCodec.html#a1910f4beb57b5515cfd5a16119d78de0">GetElementById</a> (string id)</td></tr>
 <tr class="memdesc:a1910f4beb57b5515cfd5a16119d78de0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the element with the given ID from the document.  <a href="#a1910f4beb57b5515cfd5a16119d78de0">More...</a><br/></td></tr>
 <tr class="separator:a1910f4beb57b5515cfd5a16119d78de0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae5fbaf5134674b6fed89bbd36ad3259d"><td class="memItemLeft" align="right" valign="top">XmlNode&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxCodec.html#ae5fbaf5134674b6fed89bbd36ad3259d">GetElementById</a> (string id, string attributeName)</td></tr>
-<tr class="memdesc:ae5fbaf5134674b6fed89bbd36ad3259d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the element with the given ID from document. The optional attr argument specifies the name of the ID attribute. Default is id. The XPath expression used to find the element is //*[@id='arg'] where id is the name of the ID attribute (attributeName) and arg is the given id.  <a href="#ae5fbaf5134674b6fed89bbd36ad3259d">More...</a><br/></td></tr>
-<tr class="separator:ae5fbaf5134674b6fed89bbd36ad3259d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae259ea85ae98f767a6ebfb15468652ca"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxCodec.html#ae259ea85ae98f767a6ebfb15468652ca">GetId</a> (Object obj)</td></tr>
 <tr class="memdesc:ae259ea85ae98f767a6ebfb15468652ca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the ID of the specified object. This implementation calls reference first and if that returns null handles the object as an <a class="el" href="classcom_1_1mxgraph_1_1mxCell.html" title="Cells are the elements of the graph model. They represent the state of the groups, vertices and edges in a graph. ">mxCell</a> by returning their IDs using mxCell.getId. If no ID exists for the given cell, then an on-the-fly ID is generated using mxCellPath.create.  <a href="#ae259ea85ae98f767a6ebfb15468652ca">More...</a><br/></td></tr>
 <tr class="separator:ae259ea85ae98f767a6ebfb15468652ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -433,50 +430,6 @@ Properties</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">id</td><td>ID of the element to be returned.</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>Returns the element for the given ID.</dd></dl>
-
-</div>
-</div>
-<a class="anchor" id="ae5fbaf5134674b6fed89bbd36ad3259d"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">XmlNode com.mxgraph.mxCodec.GetElementById </td>
-          <td>(</td>
-          <td class="paramtype">string&#160;</td>
-          <td class="paramname"><em>id</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">string&#160;</td>
-          <td class="paramname"><em>attributeName</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Returns the element with the given ID from document. The optional attr argument specifies the name of the ID attribute. Default is id. The XPath expression used to find the element is //*[@id='arg'] where id is the name of the ID attribute (attributeName) and arg is the given id. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">id</td><td>ID of the element to be returned.</td></tr>
-    <tr><td class="paramname">attributeName</td><td>Optional string for the attributename. Default is id.</td></tr>
   </table>
   </dd>
 </dl>
@@ -885,7 +838,7 @@ Properties</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Mar 13 2015 04:36:28 for mxGraph by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Apr 23 2015 22:15:44 for mxGraph by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.6
 </small></address>

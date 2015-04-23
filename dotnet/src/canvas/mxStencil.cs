@@ -507,7 +507,7 @@ namespace com.mxgraph
 			    canvas.Text(x0 + GetDouble(node, "x") * sx,
 					    y0 + GetDouble(node, "y") * sy, 0, 0, str,
 					    node.GetAttribute("align"), node.GetAttribute("valign"),
-					    false, "", null, false, rotation);
+					    false, "", null, false, rotation, null);
 		    }
 		    else if (name.Equals("include-shape"))
 		    {

@@ -770,33 +770,21 @@ mxCellRenderer.prototype.installListeners = function(state)
 		{
 			if (this.isShapeEvent(state, evt))
 			{
-				// Redirects events from the "event-transparent" region of a
-				// swimlane to the graph. This is only required in HTML, SVG
-				// and VML do not fire mouse events on transparent backgrounds.
-				graph.fireMouseEvent(mxEvent.MOUSE_DOWN,
-					new mxMouseEvent(evt, (state.shape != null &&
-					mxEvent.getSource(evt) == state.shape.content) ?
-						null : state));
+				graph.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt, state));
 			}
 		}),
 		mxUtils.bind(this, function(evt)
 		{
 			if (this.isShapeEvent(state, evt))
 			{
-				graph.fireMouseEvent(mxEvent.MOUSE_MOVE,
-					new mxMouseEvent(evt, (state.shape != null &&
-					mxEvent.getSource(evt) == state.shape.content) ?
-						null : getState(evt)));
+				graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt, getState(evt)));
 			}
 		}),
 		mxUtils.bind(this, function(evt)
 		{
 			if (this.isShapeEvent(state, evt))
 			{
-				graph.fireMouseEvent(mxEvent.MOUSE_UP,
-					new mxMouseEvent(evt, (state.shape != null &&
-					mxEvent.getSource(evt) == state.shape.content) ?
-						null : getState(evt)));
+				graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt, getState(evt)));
 			}
 		})
 	);
@@ -956,7 +944,13 @@ mxCellRenderer.prototype.getLabelBounds = function(state)
 	// Shape can modify its label bounds
 	if (state.shape != null)
 	{
-		bounds = state.shape.getLabelBounds(bounds);
+		var hpos = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_POSITION, mxConstants.ALIGN_CENTER);
+		var vpos = mxUtils.getValue(state.style, mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.ALIGN_MIDDLE);
+		
+		if (hpos == mxConstants.ALIGN_CENTER && vpos == mxConstants.ALIGN_MIDDLE)
+		{
+			bounds = state.shape.getLabelBounds(bounds);
+		}
 	}
 	
 	// Label width style overrides actual label width

@@ -444,7 +444,7 @@ mxObjectCodec.prototype.encodeObject = function(enc, obj, node)
 		
     	if (value != null && !this.isExcluded(obj, name, value, true))
     	{
-    		if (mxUtils.isNumeric(name))
+    		if (mxUtils.isInteger(name))
     		{
     			name = null;
     		}

@@ -12,11 +12,18 @@ EditorUi = function(editor, container)
 	this.container = container || document.body;
 	var graph = this.editor.graph;
 
-	// Pre-fetches submenu image
-	new Image().src = mxPopupMenu.prototype.submenuImage;
+	// Pre-fetches submenu image or replaces with embedded image if supported
+	if (mxClient.IS_SVG)
+	{
+		mxPopupMenu.prototype.submenuImage = 'data:image/gif;base64,R0lGODlhCQAJAIAAAP///zMzMyH5BAEAAAAALAAAAAAJAAkAAAIPhI8WebHsHopSOVgb26AAADs=';
+	}
+	else
+	{
+		new Image().src = mxPopupMenu.prototype.submenuImage;
+	}
 
 	// Pre-fetches connect image
-	if (mxConnectionHandler.prototype.connectImage != null)
+	if (!mxClient.IS_SVG && mxConnectionHandler.prototype.connectImage != null)
 	{
 		new Image().src = mxConnectionHandler.prototype.connectImage.src;
 	}
@@ -1293,7 +1300,7 @@ EditorUi.prototype.updateDocumentTitle = function()
  */
 EditorUi.prototype.redo = function()
 {
-	if (this.editor.graph.cellEditor.isContentEditing())
+	if (this.editor.graph.isEditing())
 	{
 		document.execCommand('redo', false, null);
 	}
@@ -1308,21 +1315,22 @@ EditorUi.prototype.redo = function()
  * Returns the URL for a copy of this editor with no state.
  */
 EditorUi.prototype.undo = function()
-{
-	if (this.editor.graph.cellEditor.isContentEditing())
+{	
+	if (this.editor.graph.isEditing())
 	{
-		// Stops editing if undo doesn't change anything in the editing value
+		// Stops editing and executes undo on graph if undo doesn't change editing value
 		var value = this.editor.graph.cellEditor.getCurrentValue();
 		document.execCommand('undo', false, null);
-		
+
 		if (value == this.editor.graph.cellEditor.getCurrentValue())
 		{
-			this.editor.graph.stopEditing(false);
+			this.editor.graph.stopEditing(true);
+			this.editor.undoManager.undo();
 		}
 	}
 	else
 	{
-		this.editor.graph.stopEditing(false);
+		this.editor.graph.stopEditing(true);
 		this.editor.undoManager.undo();
 	}
 };
@@ -1332,7 +1340,7 @@ EditorUi.prototype.undo = function()
  */
 EditorUi.prototype.canRedo = function()
 {
-	return this.editor.graph.cellEditor.isContentEditing() || this.editor.undoManager.canRedo();
+	return this.editor.graph.isEditing() || this.editor.undoManager.canRedo();
 };
 
 /**
@@ -1340,7 +1348,7 @@ EditorUi.prototype.canRedo = function()
  */
 EditorUi.prototype.canUndo = function()
 {
-	return this.editor.graph.cellEditor.isContentEditing() || this.editor.undoManager.canUndo();
+	return this.editor.graph.isEditing() || this.editor.undoManager.canUndo();
 };
 
 /**
@@ -1618,7 +1626,7 @@ EditorUi.prototype.updateActionStates = function()
    			graph.getModel().isVertex(graph.getModel().getParent(graph.getSelectionCell())));
 
 	// Updates menu states
-	var menus = ['alignment', 'position', 'spacing', 'writingDirection', 'gradient', 'layout', 'fontFamily', 'fontSize', 'navigation'];
+	var menus = ['alignment', 'position', 'spacing', 'writingDirection', 'gradient', 'layout', 'fontFamily', 'fontSize'];
 
 	for (var i = 0; i < menus.length; i++)
 	{
@@ -1635,6 +1643,9 @@ EditorUi.prototype.updateActionStates = function()
     this.menus.get('lineend').setEnabled(edgeSelected);
     this.menus.get('linewidth').setEnabled(!graph.isSelectionEmpty());
     this.menus.get('direction').setEnabled(vertexSelected || (edgeSelected && state != null && graph.isLoop(state)));
+    this.menus.get('navigation').setEnabled(selected || graph.view.currentRoot != null);
+    this.actions.get('collapsible').setEnabled(vertexSelected && graph.getSelectionCount() == 1 &&
+    	(graph.isContainer(graph.getSelectionCell()) || graph.model.getChildCount(graph.getSelectionCell()) > 0));
     this.actions.get('home').setEnabled(graph.view.currentRoot != null);
     this.actions.get('exitGroup').setEnabled(graph.view.currentRoot != null);
     this.actions.get('enterGroup').setEnabled(graph.getSelectionCount() == 1 && graph.isValidRoot(graph.getSelectionCell()));
@@ -2401,6 +2412,14 @@ EditorUi.prototype.createKeyHandler = function(editor)
 	var graph = this.editor.graph;
 	var keyHandler = new mxKeyHandler(graph);
 	
+	var isEventIgnored = keyHandler.isEventIgnored;
+	keyHandler.isEventIgnored = function(evt)
+	{
+		// Handles undo via action
+		return (!this.isControlDown(evt) || mxEvent.isShiftDown(evt) || evt.keyCode != 90) &&
+			isEventIgnored.apply(this, arguments);
+	};
+	
 	// Routes command-key to control-key on Mac
 	keyHandler.isControlDown = function(evt)
 	{
@@ -2531,8 +2550,7 @@ EditorUi.prototype.createKeyHandler = function(editor)
 	keyHandler.bindAction(68, true, 'duplicate'); // Ctrl+D
 	keyHandler.bindAction(68, true, 'setAsDefaultStyle', true); // Ctrl+Shift+D   
 	keyHandler.bindAction(90, true, 'undo'); // Ctrl+Z
-	keyHandler.bindAction(90, true, 'autosize', true); // Ctrl+Shift+Z
-	keyHandler.bindAction(89, true, 'redo'); // Ctrl+Y
+	keyHandler.bindAction(89, true, 'autosize', true); // Ctrl+Shift+Y
 	keyHandler.bindAction(88, true, 'cut'); // Ctrl+X
 	keyHandler.bindAction(67, true, 'copy'); // Ctrl+C
 	keyHandler.bindAction(81, true, 'connectionPoints'); // Ctrl+Q
@@ -2548,6 +2566,15 @@ EditorUi.prototype.createKeyHandler = function(editor)
 	keyHandler.bindAction(85, true, 'ungroup'); // Ctrl+U
 	keyHandler.bindAction(112, false, 'about'); // F1
 	keyHandler.bindKey(113, function() { graph.startEditingAtCell(); }); // F2
-
+	
+	if (mxClient.IS_MAC)
+	{
+		keyHandler.bindAction(90, true, 'redo', true); // Ctrl+Shift+Z
+	}
+	else
+	{
+		keyHandler.bindAction(89, true, 'redo'); // Ctrl+Y
+	}
+	
 	return keyHandler;
 };
