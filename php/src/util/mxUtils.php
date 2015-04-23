@@ -1,7 +1,6 @@
 <?php
 /**
- * $Id: mxUtils.php,v 1.53 2012/12/21 10:47:50 gaudenz Exp $
- * Copyright (c) 2006-2010, Gaudenz Alder
+ * Copyright (c) 2006-2013, Gaudenz Alder
  */
 class mxUtils
 {
@@ -1107,27 +1106,6 @@ class mxUtils
 		return null;
 	}
 
-	/**
-	 * Function: selectSingleNode
-	 * 
-	 * Evaluates the XPath expression and returns the first node of the result.
-	 * 
-	 * Will find the first node with a label attribute that equals Hello,
-	 * World!
-	 * 
-	 * Parameters:
-	 * 
-	 * doc - XML document that contains all nodes.
-	 * xpath - String that represents the XPath expression.
-	 */
-	static function selectSingleNode($doc, $expr)
-	{
- 		$xpath = new DOMXPath($doc);
- 		$nodelist = $xpath->query($expr);
- 		
- 		return $nodelist->item(0);
-	}
-	
 	/**
 	 * Function: getTrueTypeFont
 	 * 

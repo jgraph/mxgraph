@@ -1,7 +1,6 @@
 <?php
 /**
- * $Id: mxCodec.php,v 1.16 2010/09/13 15:45:28 gaudenz Exp $
- * Copyright (c) 2006-2010, Gaudenz Alder
+ * Copyright (c) 2006-2013, Gaudenz Alder
  */
 class mxCodec
 {
@@ -130,14 +129,10 @@ class mxCodec
 	 * Parameters:
 	 *
 	 * id - String that contains the ID.
-	 * attr - Optional string for the attributename.
-	 * Default is "id".
 	 */
-	function getElementById($id, $attr="id")
-	{		
-		$expr = "//*[@$attr='$id']";
-		
-		return mxUtils::selectSingleNode($this->document, $expr);
+	function getElementById($id)
+	{
+		return $this->document->getElementById($id);
 	}
 
 	/**

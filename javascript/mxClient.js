@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.13.0.17.
+	 * Current version is 1.2.0.0.
 	 */
-	VERSION: '1.13.0.17',
+	VERSION: '1.2.0.0',
 
 	/**
 	 * Variable: IS_IE
@@ -926,45 +926,51 @@ var mxLog =
 	
 };
 /**
- * $Id: mxObjectIdentity.js,v 1.8 2010/01/02 09:45:14 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxObjectIdentity =
 {
 	/**
 	 * Class: mxObjectIdentity
 	 * 
-	 * Identity for JavaScript objects. This is implemented using a simple
-	 * incremeting counter which is stored in each object under <ID_NAME>.
+	 * Identity for JavaScript objects and functions. This is implemented using
+	 * a simple incrementing counter which is stored in each object under
+	 * <FIELD_NAME>.
 	 * 
 	 * The identity for an object does not change during its lifecycle.
 	 * 
 	 * Variable: FIELD_NAME
 	 * 
 	 * Name of the field to be used to store the object ID. Default is
-	 * '_mxObjectId'.
+	 * <code>mxObjectId</code>.
 	 */
 	FIELD_NAME: 'mxObjectId',
 
 	/**
 	 * Variable: counter
 	 * 
-	 * Current counter for objects.
+	 * Current counter.
 	 */
 	counter: 0,
 
 	/**
 	 * Function: get
 	 * 
-	 * Returns the object id for the given object.
+	 * Returns the ID for the given object or function.
 	 */
 	get: function(obj)
 	{
-		if (typeof(obj) == 'object' &&
-			obj[mxObjectIdentity.FIELD_NAME] == null)
+		if (obj[mxObjectIdentity.FIELD_NAME] == null)
 		{
-			var ctor = mxUtils.getFunctionName(obj.constructor);
-			obj[mxObjectIdentity.FIELD_NAME] = ctor+'#'+mxObjectIdentity.counter++;
+			if (typeof obj === 'object')
+			{
+				var ctor = mxUtils.getFunctionName(obj.constructor);
+				obj[mxObjectIdentity.FIELD_NAME] = ctor + '#' + mxObjectIdentity.counter++;
+			}
+			else if (typeof obj === 'function')
+			{
+				obj[mxObjectIdentity.FIELD_NAME] = 'Function#' + mxObjectIdentity.counter++;
+			}
 		}
 		
 		return obj[mxObjectIdentity.FIELD_NAME];
@@ -973,11 +979,11 @@ var mxObjectIdentity =
 	/**
 	 * Function: clear
 	 * 
-	 * Removes the object id from the given object.
+	 * Deletes the ID from the given object or function.
 	 */
 	clear: function(obj)
 	{
-		if (typeof(obj) == 'object')
+		if (typeof(obj) === 'object' || typeof obj === 'function')
 		{
 			delete obj[mxObjectIdentity.FIELD_NAME];
 		}
@@ -1881,8 +1887,7 @@ var mxEffects =
 
 };
 /**
- * $Id: mxUtils.js,v 1.306 2014/01/17 08:27:28 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxUtils =
 {
@@ -2102,11 +2107,14 @@ var mxUtils =
 	 */
 	findNode: function(node, attr, value)
 	{
-		var tmp = node.getAttribute(attr);
-		
-		if (tmp != null && tmp == value)
+		if (node.nodeType == mxConstants.NODETYPE_ELEMENT)
 		{
-			return node;
+			var tmp = node.getAttribute(attr);
+	
+			if (tmp != null && tmp == value)
+			{
+				return node;
+			}
 		}
 		
 		node = node.firstChild;
@@ -2125,84 +2133,6 @@ var mxUtils =
 		
 		return null;
 	},
-	
-	/**
-	 * Function: findNodeByAttribute
-	 * 
-	 * Returns the first node where the given attribute matches the given value.
-	 * 
-	 * Parameters:
-	 * 
-	 * node - Root node where the search should start.
-	 * attr - Name of the attribute to be checked.
-	 * value - Value of the attribute to match.
-	 */
-	findNodeByAttribute: function()
-	{
-		// Workaround for missing XPath support in IE9
-		if (document.documentMode >= 9)
-		{
-			return function(node, attr, value)
-			{
-				var result = null;
-
-				if (node != null)
-				{
-					if (node.nodeType == mxConstants.NODETYPE_ELEMENT && node.getAttribute(attr) == value)
-					{
-						result = node;
-					}
-					else
-					{
-						var child = node.firstChild;
-						
-						while (child != null && result == null)
-						{
-							result = mxUtils.findNodeByAttribute(child, attr, value);
-							child = child.nextSibling;
-						}
-					}
-				}
-		
-				return result;
-			};
-		}
-		else if (mxClient.IS_IE)
-		{
-			return function(node, attr, value)
-			{
-				if (node == null)
-				{
-					return null;
-				}
-				else
-				{
-					var expr = '//*[@' + attr + '=\'' + value + '\']';
-					
-					return node.ownerDocument.selectSingleNode(expr);
-				}
-			};
-		}
-		else
-		{
-			return function(node, attr, value)
-			{
-				if (node == null)
-				{
-					return null;
-				}
-				else
-				{
-					var result = node.ownerDocument.evaluate(
-							'//*[@' + attr + '=\'' + value + '\']',
-							node.ownerDocument, null,
-							XPathResult.ANY_TYPE, null);
-	
-					return result.iterateNext();
-				}
-			};
-		}
-	}(),
 
 	/**
 	 * Function: getFunctionName
@@ -2244,7 +2174,7 @@ var mxUtils =
 	/**
 	 * Function: indexOf
 	 * 
-	 * Returns the index of obj in array or -1 if the array does not contains
+	 * Returns the index of obj in array or -1 if the array does not contain
 	 * the given object.
 	 * 
 	 * Parameters:
@@ -4435,7 +4365,21 @@ var mxUtils =
 	{
 		return !isNaN(parseFloat(n)) && isFinite(n) && (typeof(n) != 'string' || n.toLowerCase().indexOf('0x') < 0);
 	},
-	
+
+	/**
+	 * Function: isInteger
+	 * 
+	 * Returns true if the given value is an valid integer number.
+	 * 
+	 * Parameters:
+	 * 
+	 * n - String representing the possibly numeric value.
+	 */
+	isInteger: function(n)
+	{
+		return String(parseInt(n)) === String(n);
+	},
+
 	/**
 	 * Function: mod
 	 * 
@@ -4487,7 +4431,7 @@ var mxUtils =
 	},
 	
 	/**
-	 * Function: ptSeqDistSq
+	 * Function: ptSegDistSq
 	 * 
 	 * Returns the square distance between a segment and a point.
 	 * 
@@ -4911,9 +4855,7 @@ var mxUtils =
 				{
 					if (cells[i] != null)
 					{
-						var style = mxUtils.setStyle(
-							model.getStyle(cells[i]),
-							key, value);
+						var style = mxUtils.setStyle(model.getStyle(cells[i]), key, value);
 						model.setStyle(cells[i], style);
 					}
 				}
@@ -4946,33 +4888,49 @@ var mxUtils =
 		{
 			if (isValue)
 			{
-				style = key+'='+value;
+				style = key + '=' + value + ';';
 			}
 		}
 		else
 		{
-			var index = style.indexOf(key+'=');
-			
-			if (index < 0)
+			if (style.substring(0, key.length + 1) == key + '=')
 			{
+				var next = style.indexOf(';');
+				
 				if (isValue)
 				{
-					var sep = (style.charAt(style.length-1) == ';') ? '' : ';';
-					style = style + sep + key+'='+value;
+					style = key + '=' + value + ((next < 0) ? ';' : style.substring(next));
+				}
+				else
+				{
+					style = (next < 0 || next == style.length - 1) ? '' : style.substring(next + 1);
 				}
 			}
 			else
 			{
-				var tmp = (isValue) ? (key + '=' + value) : '';
-				var cont = style.indexOf(';', index);
+				var index = style.indexOf(';' + key + '=');
 				
-				if (!isValue)
+				if (index < 0)
 				{
-					cont++;
+					if (isValue)
+					{
+						var sep = (style.charAt(style.length - 1) == ';') ? '' : ';';
+						style = style + sep + key + '=' + value + ';';
+					}
 				}
-				
-				style = style.substring(0, index) + tmp +
-					((cont > index) ? style.substring(cont) : '');
+				else
+				{
+					var next = style.indexOf(';', index + 1);
+					
+					if (isValue)
+					{
+						style = style.substring(0, index + 1) + key + '=' + value + ((next < 0) ? ';' : style.substring(next));
+					}
+					else
+					{
+						style = style.substring(0, index) + ((next < 0) ? ';' : style.substring(next));
+					}
+				}
 			}
 		}
 		
@@ -76763,7 +76721,7 @@ mxCodec.prototype.putObject = function(id, obj)
 mxCodec.prototype.getObject = function(id)
 {
 	var obj = null;
-	
+
 	if (id != null)
 	{
 		obj = this.objects[id];
@@ -76815,21 +76773,23 @@ mxCodec.prototype.lookup = function(id)
 /**
  * Function: getElementById
  *
- * Returns the element with the given ID from <document>. The optional attr
- * argument specifies the name of the ID attribute. Default is "id". The
- * XPath expression used to find the element is //*[@attr='arg'] where attr is
- * the name of the ID attribute and arg is the given id.
+ * Returns the element with the given ID from <document>.
  *
  * Parameters:
  *
  * id - String that contains the ID.
- * attr - Optional string for the attributename. Default is "id".
  */
-mxCodec.prototype.getElementById = function(id, attr)
+mxCodec.prototype.getElementById = function(id)
 {
-	attr = (attr != null) ? attr : 'id';
-	
-	return mxUtils.findNodeByAttribute(this.document.documentElement, attr, id);
+	// Workaround for no result in all versions of IE for the native implementation
+	if (typeof this.document.getElementById === 'function' && !mxClient.IS_IE && document.documentMode == null)
+	{
+		return this.document.getElementById(id);
+	}
+	else
+	{
+		return mxUtils.findNode(this.document.documentElement, 'id', id);
+	}
 };
 
 /**
@@ -76916,7 +76876,7 @@ mxCodec.prototype.encode = function(obj)
 	if (obj != null && obj.constructor != null)
 	{
 		var enc = mxCodecRegistry.getCodec(obj.constructor);
-
+		
 		if (enc != null)
 		{
 			node = enc.encode(this, obj);
@@ -77150,8 +77110,7 @@ mxCodec.prototype.setAttribute = function(node, attribute, value)
 	}
 };
 /**
- * $Id: mxObjectCodec.js,v 1.49 2010/12/01 09:19:58 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 /**
  * Class: mxObjectCodec
@@ -77323,6 +77282,8 @@ mxCodec.prototype.setAttribute = function(node, attribute, value)
  * JavaScript expressions, including function definitions, which are mapped to
  * functions on the resulting object.
  * 
+ * Expressions are only evaluated if <allowEval> is true.
+ * 
  * Constructor: mxObjectCodec
  *
  * Constructs a new codec for the specified template object.
@@ -77361,7 +77322,15 @@ function mxObjectCodec(template, exclude, idrefs, mapping)
 		this.reverse[this.mapping[i]] = i;
 	}
 };
-	
+
+/**
+ * Variable: allowEval
+ *
+ * Static global switch that specifies if expressions in arrays are allowed.
+ * Default is false. NOTE: Enabling this carries a possible security risk.
+ */
+mxObjectCodec.allowEval = false;
+
 /**
  * Variable: template
  *
@@ -77586,7 +77555,7 @@ mxObjectCodec.prototype.encodeObject = function(enc, obj, node)
 		
     	if (value != null && !this.isExcluded(obj, name, value, true))
     	{
-    		if (mxUtils.isNumeric(name))
+    		if (mxUtils.isInteger(name))
     		{
     			name = null;
     		}
@@ -77611,8 +77580,7 @@ mxObjectCodec.prototype.encodeObject = function(enc, obj, node)
  * value - Value of the property to be encoded.
  * node - XML node that contains the encoded object.
  */
-mxObjectCodec.prototype.encodeValue = function(enc, obj,
-	name, value, node)
+mxObjectCodec.prototype.encodeValue = function(enc, obj, name, value, node)
 {
 	if (value != null)
 	{
@@ -77634,8 +77602,7 @@ mxObjectCodec.prototype.encodeValue = function(enc, obj,
 		
 		// Checks if the value is a default value and
 		// the name is correct
-		if (name == null || enc.encodeDefaults ||
-			defaultValue != value)
+		if (name == null || enc.encodeDefaults || defaultValue != value)
 		{
 			name = this.getAttributeName(name);
 			this.writeAttribute(enc, obj, name, value, node);	
@@ -77649,16 +77616,15 @@ mxObjectCodec.prototype.encodeValue = function(enc, obj,
  * Writes the given value into node using <writePrimitiveAttribute>
  * or <writeComplexAttribute> depending on the type of the value.
  */
-mxObjectCodec.prototype.writeAttribute = function(enc, obj,
-	attr, value, node)
+mxObjectCodec.prototype.writeAttribute = function(enc, obj, name, value, node)
 {
 	if (typeof(value) != 'object' /* primitive type */)
 	{
-		this.writePrimitiveAttribute(enc, obj, attr, value, node);
+		this.writePrimitiveAttribute(enc, obj, name, value, node);
 	}
 	else /* complex type */
 	{
-		this.writeComplexAttribute(enc, obj, attr, value, node);
+		this.writeComplexAttribute(enc, obj, name, value, node);
 	}
 };
 
@@ -77667,19 +77633,17 @@ mxObjectCodec.prototype.writeAttribute = function(enc, obj,
  * 
  * Writes the given value as an attribute of the given node.
  */
-mxObjectCodec.prototype.writePrimitiveAttribute = function(enc, obj,
-	attr, value, node)
+mxObjectCodec.prototype.writePrimitiveAttribute = function(enc, obj, name, value, node)
 {
-	value = this.convertValueToXml(value);
+	value = this.convertAttributeToXml(enc, obj, name, value, node);
 	
-	if (attr == null)
+	if (name == null)
 	{
 		var child = enc.document.createElement('add');
 		
 		if (typeof(value) == 'function')
 		{
-    		child.appendChild(
-    			enc.document.createTextNode(value));
+    		child.appendChild(enc.document.createTextNode(value));
     	}
     	else
     	{
@@ -77690,7 +77654,7 @@ mxObjectCodec.prototype.writePrimitiveAttribute = function(enc, obj,
 	}
 	else if (typeof(value) != 'function')
 	{
-    	enc.setAttribute(node, attr, value);
+    	enc.setAttribute(node, name, value);
 	}		
 };
 	
@@ -77699,60 +77663,106 @@ mxObjectCodec.prototype.writePrimitiveAttribute = function(enc, obj,
  * 
  * Writes the given value as a child node of the given node.
  */
-mxObjectCodec.prototype.writeComplexAttribute = function(enc, obj,
-	attr, value, node)
+mxObjectCodec.prototype.writeComplexAttribute = function(enc, obj, name, value, node)
 {
 	var child = enc.encode(value);
 	
 	if (child != null)
 	{
-		if (attr != null)
+		if (name != null)
 		{
-    		child.setAttribute('as', attr);
+    		child.setAttribute('as', name);
     	}
     	
     	node.appendChild(child);
 	}
 	else
 	{
-		mxLog.warn('mxObjectCodec.encode: No node for ' +
-			this.getName() + '.' + attr + ': ' + value);
+		mxLog.warn('mxObjectCodec.encode: No node for ' + this.getName() + '.' + name + ': ' + value);
 	}
 };
 
 /**
- * Function: convertValueToXml
+ * Function: convertAttributeToXml
  * 
- * Converts true to "1" and false to "0". All other values are ignored.
+ * Converts true to "1" and false to "0" is <isBooleanAttribute> returns true.
+ * All other values are not converted.
+ * 
+ * Parameters:
+ *
+ * enc - <mxCodec> that controls the encoding process.
+ * obj - Objec to convert the attribute for.
+ * name - Name of the attribute to be converted.
+ * value - Value to be converted.
  */
-mxObjectCodec.prototype.convertValueToXml = function(value)
+mxObjectCodec.prototype.convertAttributeToXml = function(enc, obj, name, value)
 {
 	// Makes sure to encode boolean values as numeric values
-	if (typeof(value.length) == 'undefined' &&
-		(value == true ||
-		value == false))
-	{
-		// Checks if the value is true (do not use the
-		// value as is, because this would check if the
-		// value is not null, so 0 would be true!
+	if (this.isBooleanAttribute(enc, obj, name, value))
+	{	
+		// Checks if the value is true (do not use the value as is, because
+		// this would check if the value is not null, so 0 would be true)
 		value = (value == true) ? '1' : '0';
 	}
+	
 	return value;
 };
 
 /**
- * Function: convertValueFromXml
+ * Function: isBooleanAttribute
  * 
- * Converts booleans and numeric values to the respective types.
+ * Returns true if the given object attribute is a boolean value.
+ * 
+ * Parameters:
+ *
+ * enc - <mxCodec> that controls the encoding process.
+ * obj - Objec to convert the attribute for.
+ * name - Name of the attribute to be converted.
+ * value - Value of the attribute to be converted.
  */
-mxObjectCodec.prototype.convertValueFromXml = function(value)
+mxObjectCodec.prototype.isBooleanAttribute = function(enc, obj, name, value)
 {
-	if (mxUtils.isNumeric(value))
+	return (typeof(value.length) == 'undefined' && (value == true || value == false));
+};
+
+/**
+ * Function: convertAttributeFromXml
+ * 
+ * Converts booleans and numeric values to the respective types. Values are
+ * numeric if <isNumericAttribute> returns true.
+ * 
+ * Parameters:
+ *
+ * dec - <mxCodec> that controls the decoding process.
+ * attr - XML attribute to be converted.
+ * obj - Objec to convert the attribute for.
+ */
+mxObjectCodec.prototype.convertAttributeFromXml = function(dec, attr, obj)
+{
+	var value = attr.value;
+	
+	if (this.isNumericAttribute(dec, attr, obj))
 	{
 		value = parseFloat(value);
 	}
 	
 	return value;
+};
+
+/**
+ * Function: isNumericAttribute
+ * 
+ * Returns true if the given XML attribute is a numeric value.
+ * 
+ * Parameters:
+ *
+ * dec - <mxCodec> that controls the decoding process.
+ * attr - XML attribute to be converted.
+ * obj - Objec to convert the attribute for.
+ */
+mxObjectCodec.prototype.isNumericAttribute = function(dec, attr, obj)
+{
+	return mxUtils.isNumeric(attr.value);
 };
 
 /**
@@ -77873,6 +77883,12 @@ mxObjectCodec.prototype.decode = function(dec, node, into)
  * Function: decodeNode
  * 
  * Calls <decodeAttributes> and <decodeChildren> for the given node.
+ * 
+ * Parameters:
+ *
+ * dec - <mxCodec> that controls the decoding process.
+ * node - XML node to be decoded.
+ * obj - Objec to encode the node into.
  */	
 mxObjectCodec.prototype.decodeNode = function(dec, node, obj)
 {
@@ -77887,6 +77903,12 @@ mxObjectCodec.prototype.decodeNode = function(dec, node, obj)
  * Function: decodeAttributes
  * 
  * Decodes all attributes of the given node using <decodeAttribute>.
+ * 
+ * Parameters:
+ *
+ * dec - <mxCodec> that controls the decoding process.
+ * node - XML node to be decoded.
+ * obj - Objec to encode the node into.
  */	
 mxObjectCodec.prototype.decodeAttributes = function(dec, node, obj)
 {
@@ -77905,6 +77927,12 @@ mxObjectCodec.prototype.decodeAttributes = function(dec, node, obj)
  * Function: decodeAttribute
  * 
  * Reads the given attribute into the specified object.
+ * 
+ * Parameters:
+ *
+ * dec - <mxCodec> that controls the decoding process.
+ * attr - XML attribute to be decoded.
+ * obj - Objec to encode the attribute into.
  */	
 mxObjectCodec.prototype.decodeAttribute = function(dec, attr, obj)
 {
@@ -77916,7 +77944,7 @@ mxObjectCodec.prototype.decodeAttribute = function(dec, attr, obj)
 		// This may require an additional check on the obj to see if
 		// the existing field is a boolean value or uninitialized, in
 		// which case we may want to convert true and false to a string.
-		var value = this.convertValueFromXml(attr.nodeValue);
+		var value = this.convertAttributeFromXml(dec, attr, obj);
 		var fieldname = this.getFieldName(name);
 		
 		if (this.isReference(obj, fieldname, value, false))
@@ -77945,6 +77973,12 @@ mxObjectCodec.prototype.decodeAttribute = function(dec, attr, obj)
  * Function: decodeChildren
  * 
  * Decodec all children of the given node using <decodeChild>.
+ * 
+ * Parameters:
+ *
+ * dec - <mxCodec> that controls the decoding process.
+ * node - XML node to be decoded.
+ * obj - Objec to encode the node into.
  */	
 mxObjectCodec.prototype.decodeChildren = function(dec, node, obj)
 {
@@ -77968,13 +78002,18 @@ mxObjectCodec.prototype.decodeChildren = function(dec, node, obj)
  * Function: decodeChild
  * 
  * Reads the specified child into the given object.
+ * 
+ * Parameters:
+ *
+ * dec - <mxCodec> that controls the decoding process.
+ * child - XML child element to be decoded.
+ * obj - Objec to encode the node into.
  */	
 mxObjectCodec.prototype.decodeChild = function(dec, child, obj)
 {
 	var fieldname = this.getFieldName(child.getAttribute('as'));
 	
-	if (fieldname == null ||
-		!this.isExcluded(obj, fieldname, child, false))
+	if (fieldname == null || !this.isExcluded(obj, fieldname, child, false))
 	{
 		var template = this.getFieldTemplate(obj, fieldname, child);
 		var value = null;
@@ -77983,17 +78022,14 @@ mxObjectCodec.prototype.decodeChild = function(dec, child, obj)
 		{
 			value = child.getAttribute('value');
 			
-			if (value == null)
+			if (value == null && mxObjectCodec.allowEval)
 			{
 				value = mxUtils.eval(mxUtils.getTextContent(child));
-				//mxLog.debug('Decoded '+fieldname+' '+mxUtils.getTextContent(child));
 			}
 		}
 		else
 		{
 			value = dec.decode(child, template);
-			// mxLog.debug('Decoded '+node.nodeName+'.'+fieldname+'='+
-			//	((tmp != null) ? tmp.constructor.name : 'null'));
 		}
 
 		this.addObjectValue(obj, fieldname, value, template);
@@ -78176,6 +78212,14 @@ mxCodecRegistry.register(function()
 		return true;
 	};
 
+	/**
+	 * Overidden to disable conversion of value to number.
+	 */
+	codec.isNumericAttribute = function(dec, attr, obj)
+	{
+		return attr.nodeName !== 'value' && mxObjectCodec.prototype.isNumericAttribute.apply(this, arguments);
+	};
+	
 	/**
 	 * Function: isExcluded
 	 *

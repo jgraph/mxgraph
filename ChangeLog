@@ -1,3 +1,17 @@
+23-APR-2015: 1.2.0.0
+
+- Adds zoom buttons in scrollbars.html example [JavaScript]
+- Sets compliance level in java/build.xml to 1.6 [Java]
+- Disables numeric conversion for value in mxCellCodec [JavaScript]
+- Replaces mxObjectCodec.convertValueFromXml with convertAttributeFromXml [JavaScript]
+- Replaces mxObjectCodec.convertValueToXml with convertAttributeToXml [JavaScript]
+- Adds mxObjectCodec.allowEval, isBooleanAttribute, isNumericAttribute [JavaScript]
+- Removes optional attr argument in mxCodec.getElementById [Java,JavaScript,Php,Dotnet]
+- Removes mxUtils.findNodeByAttribute, selectSingleNode [Java,JavaScript,Php,Dotnet]
+- Adds support for functions in mxObjectIdentity [JavaScript]
+- Adds mxUtils.isInteger, used in mxObjectCodec.encodeObject [JavaScript]
+- Fixes handling of keys for substrings in mxUtils.setStyle [JavaScript]
+
 09-FEB-2015: 1.13.0.17
 
 - Uses capability check for mxClient.NO_FO [JavaScript]

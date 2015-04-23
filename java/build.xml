@@ -8,7 +8,7 @@
 <project name="mxgraph" default="all" basedir=".">
 
 	<property name="product.name"    value="mxGraph"/>
-	<property name="product.version" value="1.13.0.17"/>
+	<property name="product.version" value="1.2.0.0"/>
 	<property name="all.jar"         value="mxgraph-all.jar"/>
 	<property name="core.jar"        value="mxgraph-core.jar"/>
 	<property name="swing.jar"       value="mxgraph-swing.jar"/>
@@ -40,7 +40,7 @@
 
 <!-- ==================== Init ==================== -->
 
-	<target name="init" description="Initializes the build">
+	<target name="init" depends="clean" description="Initializes the build">
 		<tstamp/>
 		<mkdir dir="${basedir}/classes"/>
 		<mkdir dir="${basedir}/docs"/>
@@ -50,7 +50,7 @@
 <!-- ==================== Compile ==================== -->
 
 	<target name="compile" depends="init" description="Compiles the source tree">
-		<javac srcdir="${source.home}"
+		<javac target="1.6" source="1.6" srcdir="${source.home}"
 			debug="${compile.debug}"
 			deprecation="${compile.deprecation}"
 			optimize="${compile.optimize}"

@@ -1,43 +1,49 @@
 /**
- * $Id: mxObjectIdentity.js,v 1.8 2010/01/02 09:45:14 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxObjectIdentity =
 {
 	/**
 	 * Class: mxObjectIdentity
 	 * 
-	 * Identity for JavaScript objects. This is implemented using a simple
-	 * incremeting counter which is stored in each object under <ID_NAME>.
+	 * Identity for JavaScript objects and functions. This is implemented using
+	 * a simple incrementing counter which is stored in each object under
+	 * <FIELD_NAME>.
 	 * 
 	 * The identity for an object does not change during its lifecycle.
 	 * 
 	 * Variable: FIELD_NAME
 	 * 
 	 * Name of the field to be used to store the object ID. Default is
-	 * '_mxObjectId'.
+	 * <code>mxObjectId</code>.
 	 */
 	FIELD_NAME: 'mxObjectId',
 
 	/**
 	 * Variable: counter
 	 * 
-	 * Current counter for objects.
+	 * Current counter.
 	 */
 	counter: 0,
 
 	/**
 	 * Function: get
 	 * 
-	 * Returns the object id for the given object.
+	 * Returns the ID for the given object or function.
 	 */
 	get: function(obj)
 	{
-		if (typeof(obj) == 'object' &&
-			obj[mxObjectIdentity.FIELD_NAME] == null)
+		if (obj[mxObjectIdentity.FIELD_NAME] == null)
 		{
-			var ctor = mxUtils.getFunctionName(obj.constructor);
-			obj[mxObjectIdentity.FIELD_NAME] = ctor+'#'+mxObjectIdentity.counter++;
+			if (typeof obj === 'object')
+			{
+				var ctor = mxUtils.getFunctionName(obj.constructor);
+				obj[mxObjectIdentity.FIELD_NAME] = ctor + '#' + mxObjectIdentity.counter++;
+			}
+			else if (typeof obj === 'function')
+			{
+				obj[mxObjectIdentity.FIELD_NAME] = 'Function#' + mxObjectIdentity.counter++;
+			}
 		}
 		
 		return obj[mxObjectIdentity.FIELD_NAME];
@@ -46,11 +52,11 @@ var mxObjectIdentity =
 	/**
 	 * Function: clear
 	 * 
-	 * Removes the object id from the given object.
+	 * Deletes the ID from the given object or function.
 	 */
 	clear: function(obj)
 	{
-		if (typeof(obj) == 'object')
+		if (typeof(obj) === 'object' || typeof obj === 'function')
 		{
 			delete obj[mxObjectIdentity.FIELD_NAME];
 		}

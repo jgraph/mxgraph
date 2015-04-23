@@ -21,6 +21,7 @@
 			white-space: nowrap;
 			background: lightgray;
 			font-weight: bold;
+			pointer-events: none;
 		}
 		table.erd {
 			font-size: 10pt;
@@ -34,6 +35,9 @@
 		}
 		table.erd td {
 			border-color: black;
+		}
+		button {
+			position:absolute;
 		}
 	</style>
 	
@@ -60,6 +64,21 @@
 			}
 			else
 			{
+				// Workaround for table size zooming and event model
+				var mxTextCreateHtmlTable = mxText.prototype.createHtmlTable;
+				
+				mxText.prototype.createHtmlTable = function()
+				{
+					var table = mxTextCreateHtmlTable.apply(this, arguments);
+					
+					if (table != null)
+					{
+						table.style.pointerEvents = 'none';
+					}
+					
+					return table;
+				};
+
 				// If connect preview is not moved away then getCellAt is used to detect the cell under
 				// the mouse if the mouse is over the preview shape in IE (no event transparency), ie.
 				// the built-in hit-detection of the HTML document will not be used in this case. This is
@@ -84,6 +103,15 @@
 				// Defines an icon for creating new connections in the connection handler.
 				// This will automatically disable the highlighting of the source vertex.
 				mxConnectionHandler.prototype.connectImage = new mxImage('images/connector.gif', 16, 16);
+				
+				// Support for certain CSS styles in quirks mode
+				if (mxClient.IS_QUIRKS)
+				{
+					new mxDivResizer(container);
+				}
+				
+				// Disables the context menu
+				mxEvent.disableContextMenu(container);
 
 				// Overrides target perimeter point for connection previews
 				mxConnectionHandler.prototype.getTargetPerimeterPoint = function(state, me)
@@ -162,6 +190,8 @@
 				graph.setAllowDanglingEdges(false);
 				graph.setCellsEditable(false);
 				graph.setConnectable(true);
+				graph.setPanning(true);
+				graph.centerZoom = false;
 
 				// Override folding to allow for tables
 				graph.isCellFoldable = function(cell, collapse)
@@ -212,10 +242,20 @@
 							{
 								oh = div.previousSibling.firstChild.firstChild.firstChild.offsetHeight;
 							}
-	
+
+							// Workaround for zoom issues in IE11
+							if (document.documentMode == 11)
+							{
+								var td = state.text.node.getElementsByTagName('td')[0];
+								
+								state.text.node.style.left = Math.round(state.x) + 'px';
+								state.text.node.style.top = Math.round(state.y) + 'px';
+								td.style.zoom = s;
+							}
+							
+							div.style.top = oh + 'px';
 							div.style.width = (state.width / s) + 'px';
 							div.style.height = ((state.height / s) - oh) + 'px';
-							div.style.zoom = s;
 							
 							// Installs the handler for updating connected edges
 							if (div.scrollHandler == null)
@@ -285,16 +325,21 @@
 				{
 					var target = me.getSource();
 					target = this.updateRow(target);
-					
-					if (target != null && this.currentRow != null)
+
+					// Checks absolute coordinates as workaround for event processing on scaled tables
+					if (target != null && this.currentRow != null && (!mxClient.IS_SVG ||
+						mxUtils.contains(state, me.getEvent().pageX - container.offsetLeft,
+						me.getEvent().pageY - container.offsetTop)))
 					{
 						var div = target.parentNode.parentNode.parentNode;
+						var s = state.view.scale;
 
 						icons[0].node.style.visibility = 'visible';
 						icons[0].bounds.x = state.x + target.offsetLeft + Math.min(state.width,
-							target.offsetWidth) - this.icons[0].bounds.width - 2;
-						icons[0].bounds.y = state.y + target.offsetTop + target.offsetHeight / 2 -
-							this.icons[0].bounds.height / 2 - div.scrollTop + div.offsetTop;
+							target.offsetWidth * s) - this.icons[0].bounds.width - 2;
+						var offsetTop = parseInt(div.style.top);
+						icons[0].bounds.y = state.y - this.icons[0].bounds.height / 2 + (target.offsetTop +
+							target.offsetHeight / 2 - div.scrollTop + offsetTop) * s;
 						icons[0].redraw();
 
 						this.currentRowNode = target;
@@ -354,16 +399,16 @@
 					{
 						if (this.isCellCollapsed(cell))
 						{
-							return '<table width="100%" border="1" cellpadding="4" class="title">' +
-								'<tr><th colspan="2">Customers</th></tr>' +
-								'</table>';
+							return '<div><table width="100%" height="100%" border="1" cellpadding="4" class="title">' +
+								'<tr><th>Customers</th></tr>' +
+								'</table></div>';
 						}
 						else
 						{
 							return '<table width="100%" border="1" cellpadding="4" class="title">' +
 								'<tr><th colspan="2">Customers</th></tr>' +
 								'</table>'+
-								'<div style="overflow:auto;cursor:default;">'+
+								'<div style="overflow:auto;cursor:default;pointer-events:all;display:block;">'+
 								'<table width="100%" height="100%" border="1" cellpadding="4" class="erd">' +
 								'<tr><td>' +
 								'<img align="center" src="images/key.png"/>' +
@@ -427,6 +472,18 @@
 					// Updates the display
 					graph.getModel().endUpdate();
 				}
+				
+				var btn1 = mxUtils.button('+', function()
+				{
+					graph.zoomIn();
+				});
+				btn1.style.marginLeft = '20px';
+				
+				document.body.appendChild(btn1);
+				document.body.appendChild(mxUtils.button('-', function()
+				{
+					graph.zoomOut();
+				}));
 			}
 		};
 
@@ -467,7 +524,8 @@
 				}
 			
 				// Keeps vertical coordinate inside start
-				y = Math.min(start.y + start.height, Math.max(start.y + div.offsetTop, y));
+				var offsetTop = parseInt(div.style.top) * start.view.scale;
+				y = Math.min(start.y + start.height, Math.max(start.y + offsetTop, y));
 				
 				// Updates the vertical position of the nearest point if we're not
 				// dealing with a connection preview, in which case either the
@@ -541,10 +599,12 @@
 		// Defines global helper function to get y-coordinate for a given cell state and row
 		var getRowY = function(state, tr)
 		{
+			var s = state.view.scale;
 			var div = tr.parentNode.parentNode.parentNode;
-			var y = state.y + tr.offsetTop + tr.offsetHeight / 2 - div.scrollTop + div.offsetTop;
-			y = Math.min(state.y + state.height, Math.max(state.y + div.offsetTop, y));
-
+			var offsetTop = parseInt(div.style.top);
+			var y = state.y + (((document.documentMode == 8) ? 1 / s : 1) * tr.offsetTop + tr.offsetHeight / 2 - div.scrollTop + offsetTop) * s;
+			y = Math.min(state.y + state.height, Math.max(state.y + offsetTop * s, y));
+			
 			return y;
 		};
 	</script>
@@ -555,7 +615,7 @@
 
 	<!-- Creates a container for the graph with a grid wallpaper. Width, height and cursor in the style are for IE only -->
 	<div id="graphContainer"
-		style="cursor:default;height:100%;width:100%;position:absolute;top:0px;left:0px;bottom:0px;right:0px;background:url('editors/images/grid.gif')">
+		style="cursor:default;position:absolute;top:30px;left:0px;bottom:0px;right:0px;background:url('editors/images/grid.gif')">
 	</div>
 </body>
 </html>

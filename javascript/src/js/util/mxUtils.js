@@ -1,6 +1,5 @@
 /**
- * $Id: mxUtils.js,v 1.306 2014/01/17 08:27:28 gaudenz Exp $
- * Copyright (c) 2006-2010, JGraph Ltd
+ * Copyright (c) 2006-2013, JGraph Ltd
  */
 var mxUtils =
 {
@@ -220,11 +219,14 @@ var mxUtils =
 	 */
 	findNode: function(node, attr, value)
 	{
-		var tmp = node.getAttribute(attr);
-		
-		if (tmp != null && tmp == value)
+		if (node.nodeType == mxConstants.NODETYPE_ELEMENT)
 		{
-			return node;
+			var tmp = node.getAttribute(attr);
+	
+			if (tmp != null && tmp == value)
+			{
+				return node;
+			}
 		}
 		
 		node = node.firstChild;
@@ -243,84 +245,6 @@ var mxUtils =
 		
 		return null;
 	},
-	
-	/**
-	 * Function: findNodeByAttribute
-	 * 
-	 * Returns the first node where the given attribute matches the given value.
-	 * 
-	 * Parameters:
-	 * 
-	 * node - Root node where the search should start.
-	 * attr - Name of the attribute to be checked.
-	 * value - Value of the attribute to match.
-	 */
-	findNodeByAttribute: function()
-	{
-		// Workaround for missing XPath support in IE9
-		if (document.documentMode >= 9)
-		{
-			return function(node, attr, value)
-			{
-				var result = null;
-
-				if (node != null)
-				{
-					if (node.nodeType == mxConstants.NODETYPE_ELEMENT && node.getAttribute(attr) == value)
-					{
-						result = node;
-					}
-					else
-					{
-						var child = node.firstChild;
-						
-						while (child != null && result == null)
-						{
-							result = mxUtils.findNodeByAttribute(child, attr, value);
-							child = child.nextSibling;
-						}
-					}
-				}
-		
-				return result;
-			};
-		}
-		else if (mxClient.IS_IE)
-		{
-			return function(node, attr, value)
-			{
-				if (node == null)
-				{
-					return null;
-				}
-				else
-				{
-					var expr = '//*[@' + attr + '=\'' + value + '\']';
-					
-					return node.ownerDocument.selectSingleNode(expr);
-				}
-			};
-		}
-		else
-		{
-			return function(node, attr, value)
-			{
-				if (node == null)
-				{
-					return null;
-				}
-				else
-				{
-					var result = node.ownerDocument.evaluate(
-							'//*[@' + attr + '=\'' + value + '\']',
-							node.ownerDocument, null,
-							XPathResult.ANY_TYPE, null);
-	
-					return result.iterateNext();
-				}
-			};
-		}
-	}(),
 
 	/**
 	 * Function: getFunctionName
@@ -362,7 +286,7 @@ var mxUtils =
 	/**
 	 * Function: indexOf
 	 * 
-	 * Returns the index of obj in array or -1 if the array does not contains
+	 * Returns the index of obj in array or -1 if the array does not contain
 	 * the given object.
 	 * 
 	 * Parameters:
@@ -2553,7 +2477,21 @@ var mxUtils =
 	{
 		return !isNaN(parseFloat(n)) && isFinite(n) && (typeof(n) != 'string' || n.toLowerCase().indexOf('0x') < 0);
 	},
-	
+
+	/**
+	 * Function: isInteger
+	 * 
+	 * Returns true if the given value is an valid integer number.
+	 * 
+	 * Parameters:
+	 * 
+	 * n - String representing the possibly numeric value.
+	 */
+	isInteger: function(n)
+	{
+		return String(parseInt(n)) === String(n);
+	},
+
 	/**
 	 * Function: mod
 	 * 
@@ -2605,7 +2543,7 @@ var mxUtils =
 	},
 	
 	/**
-	 * Function: ptSeqDistSq
+	 * Function: ptSegDistSq
 	 * 
 	 * Returns the square distance between a segment and a point.
 	 * 
@@ -3029,9 +2967,7 @@ var mxUtils =
 				{
 					if (cells[i] != null)
 					{
-						var style = mxUtils.setStyle(
-							model.getStyle(cells[i]),
-							key, value);
+						var style = mxUtils.setStyle(model.getStyle(cells[i]), key, value);
 						model.setStyle(cells[i], style);
 					}
 				}
@@ -3064,33 +3000,49 @@ var mxUtils =
 		{
 			if (isValue)
 			{
-				style = key+'='+value;
+				style = key + '=' + value + ';';
 			}
 		}
 		else
 		{
-			var index = style.indexOf(key+'=');
-			
-			if (index < 0)
+			if (style.substring(0, key.length + 1) == key + '=')
 			{
+				var next = style.indexOf(';');
+				
 				if (isValue)
 				{
-					var sep = (style.charAt(style.length-1) == ';') ? '' : ';';
-					style = style + sep + key+'='+value;
+					style = key + '=' + value + ((next < 0) ? ';' : style.substring(next));
+				}
+				else
+				{
+					style = (next < 0 || next == style.length - 1) ? '' : style.substring(next + 1);
 				}
 			}
 			else
 			{
-				var tmp = (isValue) ? (key + '=' + value) : '';
-				var cont = style.indexOf(';', index);
+				var index = style.indexOf(';' + key + '=');
 				
-				if (!isValue)
+				if (index < 0)
 				{
-					cont++;
+					if (isValue)
+					{
+						var sep = (style.charAt(style.length - 1) == ';') ? '' : ';';
+						style = style + sep + key + '=' + value + ';';
+					}
 				}
-				
-				style = style.substring(0, index) + tmp +
-					((cont > index) ? style.substring(cont) : '');
+				else
+				{
+					var next = style.indexOf(';', index + 1);
+					
+					if (isValue)
+					{
+						style = style.substring(0, index + 1) + key + '=' + value + ((next < 0) ? ';' : style.substring(next));
+					}
+					else
+					{
+						style = style.substring(0, index) + ((next < 0) ? ';' : style.substring(next));
+					}
+				}
 			}
 		}
 		
