@@ -796,21 +796,28 @@ Editor.prototype.init = function()
 		
 		return cell;
 	};
-	
-	// Selection is delayed to mouseup if child selected
+
+	// Selection is delayed to mouseup if ancestor is selected
 	var graphHandlerIsDelayedSelection = mxGraphHandler.prototype.isDelayedSelection;
 	mxGraphHandler.prototype.isDelayedSelection = function(cell, me)
 	{
 		var result = graphHandlerIsDelayedSelection.apply(this, arguments);
-		var model = this.graph.getModel();
-		var psel = model.getParent(this.graph.getSelectionCell());
-		var parent = model.getParent(cell);
 		
-		if ((psel == null || (psel != cell && psel != parent)) &&
-			!this.graph.isCellSelected(cell) && model.isVertex(parent) &&
-			!this.graph.isValidRoot(parent))
+		if (!result)
 		{
-			result = true;
+			var model = this.graph.getModel();
+			var parent = model.getParent(cell);
+			
+			while (parent != null)
+			{
+				if (this.graph.isCellSelected(parent))
+				{
+					result = true;
+					break;
+				}
+				
+				parent = model.getParent(parent);
+			}
 		}
 		
 		return result;

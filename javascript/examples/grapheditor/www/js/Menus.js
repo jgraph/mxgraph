@@ -1028,7 +1028,7 @@ Menus.prototype.createPopupMenu = function(menu, cell, evt)
 	
 	if (graph.isSelectionEmpty())
 	{
-		this.addMenuItems(menu, ['undo', 'redo', '-', 'paste'], null, evt);	
+		this.addMenuItems(menu, ['undo', 'redo', '-', 'pasteHere'], null, evt);
 	}
 	else
 	{
@@ -1045,7 +1045,7 @@ Menus.prototype.createPopupMenu = function(menu, cell, evt)
 	
 	if (graph.getSelectionCount() > 0)
 	{
-		var cell = graph.getSelectionCell();
+		cell = graph.getSelectionCell();
 		var state = graph.view.getState(cell);
 		
 		if (state != null)

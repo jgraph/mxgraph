@@ -1,3 +1,21 @@
+19-MAY-2015: 3.3.0.1
+
+- Adds paste here action in contextmenu for grapheditor
+- Returns inserted cells in mxClipboard.paste [JavaScript]
+- Adds mxCodec.elements, addElement to cache mxCodec.getElementById [JavaScript]
+- No longer uses document.getElementById in mxCodec.getElementById [JavaScript]
+- Fixes moving and selection for parts and groups in grapheditor
+- Adds binary, timeout args in mxUtils.get, mxXmlRequest.send
+- Fixes composite drop connect offset in grapheditor
+- Removes old UML shapes with HTML labels in grapheditor
+- Adds timer for drop connect target switching in grapheditor
+- Adds mxCellEditor.applyValue hook [JavaScript]
+- Adds mxVertexHandler.moveLabel, resizeVertex, rotateVertex, updateLivePreview [JavaScript]
+- Adds extendcanvas.html example [JavaScript]
+- Fixes possible NPE in mxGraphView.transformControlPoint [JavaScript]
+- Fixes accidental loss of meta data in grapheditor
+- Fixes handling of clicks in layers dialog for Chrome dev channel in grapheditor
+
 23-APR-2015: 3.3.0.0
 
 - Adds orthogonalPerimeter for UML activation in grapheditor

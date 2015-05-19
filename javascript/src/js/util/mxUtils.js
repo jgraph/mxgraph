@@ -1288,10 +1288,23 @@ var mxUtils =
 	 * url - URL to get the data from.
 	 * onload - Optional function to execute for a successful response.
 	 * onerror - Optional function to execute on error.
+	 * binary - Optional boolean parameter that specifies if the request is
+	 * binary.
+	 * timeout - Optional timeout in ms before calling ontimeout.
+	 * ontimeout - Optional function to execute on timeout.
 	 */
-	get: function(url, onload, onerror)
+	get: function(url, onload, onerror, binary, timeout, ontimeout)
 	{
-		return new mxXmlRequest(url, null, 'GET').send(onload, onerror);
+		var req = new mxXmlRequest(url, null, 'GET');
+		
+		if (binary != null)
+		{
+			req.setBinary(binary);
+		}
+		
+		req.send(onload, onerror, timeout, ontimeout);
+		
+		return req;
 	},
 	
 	/**

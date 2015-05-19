@@ -781,7 +781,11 @@ mxShape.prototype.destroyCanvas = function(canvas)
 		for (var key in canvas.gradients)
 		{
 			var gradient = canvas.gradients[key];
-			gradient.mxRefCount = (gradient.mxRefCount || 0) + 1;
+			
+			if (gradient != null)
+			{
+				gradient.mxRefCount = (gradient.mxRefCount || 0) + 1;
+			}
 		}
 		
 		this.releaseSvgGradients(this.oldGradients);
@@ -1413,11 +1417,15 @@ mxShape.prototype.releaseSvgGradients = function(grads)
 		for (var key in grads)
 		{
 			var gradient = grads[key];
-			gradient.mxRefCount = (gradient.mxRefCount || 0) - 1;
 			
-			if (gradient.mxRefCount == 0 && gradient.parentNode != null)
+			if (gradient != null)
 			{
-				gradient.parentNode.removeChild(gradient);
+				gradient.mxRefCount = (gradient.mxRefCount || 0) - 1;
+				
+				if (gradient.mxRefCount == 0 && gradient.parentNode != null)
+				{
+					gradient.parentNode.removeChild(gradient);
+				}
 			}
 		}
 	}

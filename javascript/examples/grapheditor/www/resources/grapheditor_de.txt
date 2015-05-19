@@ -198,6 +198,7 @@ pageScale=Seitenskalierung
 pageSetup=Seite einrichten
 paperSize=Papiergrösse
 paste=Einfügen
+pasteHere=Hier einfügen
 pattern=Muster
 perimeter=Umfang
 plusTooltip=Klicken und ziehen um zu verbinden, klicken um zu klonen

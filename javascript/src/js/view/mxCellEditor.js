@@ -668,9 +668,9 @@ mxCellEditor.prototype.stopEditing = function(cancel)
 			this.textNode = null;
 		}
 		
-		if (!cancel && this.isModified())
+		if (!cancel)
 		{
-			this.graph.labelChanged(this.editingCell, this.getCurrentValue(), this.trigger);
+			this.applyValue();
 		}
 		
 		if (this.textDiv != null)
@@ -688,6 +688,20 @@ mxCellEditor.prototype.stopEditing = function(cancel)
 		{
 			this.textarea.parentNode.removeChild(this.textarea);
 		}
+	}
+};
+
+/**
+ * Function: applyValue
+ * 
+ * Called in <stopEditing> if cancel is false. This invokes
+ * <mxGraph.labelChanged> if <isModified> returns true.
+ */
+mxCellEditor.prototype.applyValue = function()
+{
+	if (this.isModified())
+	{
+		this.graph.labelChanged(this.editingCell, this.getCurrentValue(), this.trigger);
 	}
 };
 

@@ -198,6 +198,7 @@ pageScale=Page scale
 pageSetup=Page setup
 paperSize=Paper size
 paste=Paste
+pasteHere=Paste here
 pattern=Pattern
 perimeter=Perimeter
 plusTooltip=Click and drag to connect, click to clone

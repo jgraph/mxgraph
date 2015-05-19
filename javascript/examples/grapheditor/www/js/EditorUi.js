@@ -861,16 +861,20 @@ EditorUi.prototype.initClipboard = function()
 	var mxClipboardPaste = mxClipboard.paste;
 	mxClipboard.paste = function(graph)
 	{
+		var result = null;
+		
 		if (graph.cellEditor.isContentEditing())
 		{
 			document.execCommand('paste', false, null);
 		}
 		else
 		{
-			mxClipboardPaste.apply(this, arguments);
+			result = mxClipboardPaste.apply(this, arguments);
 		}
 		
 		updatePaste();
+		
+		return result;
 	};
 
 	// Overrides cell editor to update paste action state
@@ -1179,11 +1183,25 @@ EditorUi.prototype.initCanvas = function()
 			{
 				if (up)
 				{
-					graph.zoomIn();
+					if (mxEvent.isShiftDown(evt))
+					{
+						graph.zoomIn();
+					}
+					else
+					{
+						graph.fastZoom(graph.zoomFactor);
+					}
 				}
 				else
 				{
-					graph.zoomOut();
+					if (mxEvent.isShiftDown(evt))
+					{
+						graph.zoomOut();
+					}
+					else
+					{
+						graph.fastZoom(1 / graph.zoomFactor);
+					}
 				}
 				
 				if (resize != null)

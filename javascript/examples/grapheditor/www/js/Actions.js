@@ -82,6 +82,37 @@ Actions.prototype.init = function()
 	this.addAction('cut', function() { mxClipboard.cut(graph); }, null, 'sprite-cut', 'Ctrl+X');
 	this.addAction('copy', function() { mxClipboard.copy(graph); }, null, 'sprite-copy', 'Ctrl+C');
 	this.addAction('paste', function() { mxClipboard.paste(graph); }, false, 'sprite-paste', 'Ctrl+V');
+	this.addAction('pasteHere', function(evt)
+	{
+		graph.getModel().beginUpdate();
+		try
+		{
+			var cells = mxClipboard.paste(graph);
+			
+			if (cells != null)
+			{
+				var bb = graph.getBoundingBoxFromGeometry(cells);
+				
+				if (bb != null)
+				{
+					var t = graph.view.translate;
+					var s = graph.view.scale;
+					var dx = t.x;
+					var dy = t.y;
+					
+					var x = Math.round(graph.snap(graph.popupMenuHandler.triggerX / s - dx));
+					var y = Math.round(graph.snap(graph.popupMenuHandler.triggerY / s - dy));
+					
+					graph.cellsMoved(cells, x - bb.x, y - bb.y);
+				}
+			}
+		}
+		finally
+		{
+			graph.getModel().endUpdate();
+		}
+	});
+	
 	this.addAction('delete', function()
 	{
 		// Handles special case where delete is pressed while connecting
@@ -158,7 +189,7 @@ Actions.prototype.init = function()
 		
 		if (cell != null)
 		{
-			ui.showDialog(new MetadataDialog(ui, cell).container, 300, 320, true, true);
+			ui.showDialog(new MetadataDialog(ui, cell).container, 300, 320, true, false);
 		}
 	}, null, null, 'Ctrl+M');
 	this.addAction('editTooltip...', function()
@@ -390,11 +421,11 @@ Actions.prototype.init = function()
 	}, null, null, 'Ctrl+0');
 	this.addAction('zoomIn', function()
 	{
-		graph.zoomIn();
+		graph.fastZoom(graph.zoomFactor);
 	}, null, null, 'Ctrl +');
 	this.addAction('zoomOut', function()
 	{
-		graph.zoomOut();
+		graph.fastZoom(1 / graph.zoomFactor);
 	}, null, null, 'Ctrl -');
 	this.addAction('fitWindow', function() { graph.fit(); }, null, null, 'Ctrl+1');
 	this.addAction('fitPage', mxUtils.bind(this, function()

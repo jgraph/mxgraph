@@ -143,10 +143,12 @@ Graph = function(container, model, renderHint, stylesheet)
 		};
 		
 		// Handles parts of cells by checking if part=1 is in the style and returning the parent
+		// if the parent is not already in the list of cells
 		// LATER: Handle recursive parts
 		this.graphHandler.getCells = function(initialCell)
 		{
 		    var cells = mxGraphHandler.prototype.getCells.apply(this, arguments);
+		    var newCells = [];
 
 		    for (var i = 0; i < cells.length; i++)
 		    {
@@ -157,33 +159,44 @@ Graph = function(container, model, renderHint, stylesheet)
 				{
 			        var parent = this.graph.model.getParent(cells[i]);
 		
-			        if (this.graph.model.isVertex(parent))
+			        if (this.graph.model.isVertex(parent) && mxUtils.indexOf(cells, parent) < 0)
 			        {
-			            cells[i] = parent;
+			            newCells.push(parent);
 			        }
+				}
+				else
+				{
+					newCells.push(cells[i]);
 				}
 		    }
 
-		    return cells;
+		    return newCells;
 		};
 		
 		// Handles parts of cells when cloning the source for new connections
 		this.connectionHandler.createTargetVertex = function(evt, source)
 		{
-			var state = this.graph.view.getState(source);
-			var style = (state != null) ? state.style : this.graph.getCellStyle(source);
-	    	
-			if (mxUtils.getValue(style, 'part', false))
+			if (mxEvent.isControlDown(evt))
 			{
-		        var parent = this.graph.model.getParent(source);
-
-		        if (this.graph.model.isVertex(parent))
-		        {
-		        	source = parent;
-		        }
+				return null;
 			}
-			
-			return mxConnectionHandler.prototype.createTargetVertex.apply(this, arguments);
+			else
+			{
+				var state = this.graph.view.getState(source);
+				var style = (state != null) ? state.style : this.graph.getCellStyle(source);
+		    	
+				if (mxUtils.getValue(style, 'part', false))
+				{
+			        var parent = this.graph.model.getParent(source);
+	
+			        if (this.graph.model.isVertex(parent))
+			        {
+			        	source = parent;
+			        }
+				}
+				
+				return mxConnectionHandler.prototype.createTargetVertex.apply(this, arguments);
+			}
 		};
 		
 	    var rubberband = new mxRubberband(this);
@@ -220,7 +233,7 @@ Graph = function(container, model, renderHint, stylesheet)
 	    
 	    this.connectionHandler.isOutlineConnectEvent = function(me)
 	    {
-	    	return timeOnTarget > 1500 || ((mxEvent.isAltDown(me.getEvent()) || timeOnTarget > 500) &&
+	    	return timeOnTarget > 1500 || ((mxEvent.isAltDown(me.getEvent()) || timeOnTarget > 500) &&
 	    		connectionHandleIsOutlineConnectEvent.apply(this, arguments));
 	    };
 	    
@@ -596,6 +609,86 @@ Graph.prototype.getCellStyle = function(cell)
 	}
 	
 	return style;
+};
+
+/**
+ * 
+ */
+Graph.prototype.fastZoom = function(factor)
+{
+	if (urlParams['zoom'] == 'fast' && mxClient.IS_SVG)
+	{
+		// FIXME: Test for labels in graph container (NO_FO),
+		// container without scrollbars, fix for special cases
+		var c = this.view.getDrawPane().ownerSVGElement;
+
+		if (this.currentZoom == null)
+		{
+			this.currentZoom = factor;
+		}
+		else
+		{
+			this.currentZoom *= factor;
+		}
+		
+		if (this.previousTransform == null)
+		{
+			this.previousTransform = c.style.transform;
+			this.scrollWidth = this.container.scrollWidth;
+			this.scrollHeight = this.container.scrollHeight;
+			this.scrollTop = this.container.scrollTop;
+			this.scrollLeft = this.container.scrollLeft;
+			this.clientWidth = this.container.clientWidth;
+			this.clientHeight = this.container.clientHeight;
+		}
+
+		window.setTimeout(mxUtils.bind(this, function()
+		{
+			var dx = this.scrollWidth * (this.currentZoom - 1) / 2;
+			var dy = this.scrollHeight * (this.currentZoom - 1) / 2;
+			var t = this.previousTransform + 'translate(' + dx + 'px,' + dy + 'px)scale(' + this.currentZoom + ')';
+			c.style.transform = t;
+			this.view.backgroundPageShape.node.style.transform = t;
+			
+			if (this.centerZoom)
+			{
+				this.container.scrollTop = this.scrollTop * this.currentZoom - this.clientHeight * (1 - this.currentZoom) / 2;
+				this.container.scrollLeft = this.scrollLeft * this.currentZoom - this.clientWidth * (1 - this.currentZoom) / 2;
+			}
+			else
+			{
+				this.container.scrollTop = this.scrollTop * this.currentZoom;
+				this.container.scrollLeft = this.scrollLeft * this.currentZoom;
+			}
+		}), 0);
+		
+		if (this.delayedZoomAnimated != null)
+		{
+			window.clearTimeout(this.delayedZoomAnimated);
+		}
+		
+		this.delayedZoomAnimated = window.setTimeout(mxUtils.bind(this, function()
+		{
+			c.style.transform = this.previousTransform;
+			this.view.backgroundPageShape.node.style.transform = '';
+			this.container.scrollTop = this.scrollTop;
+			this.container.scrollLeft = this.scrollLeft;
+			this.zoom(this.currentZoom);
+			this.delayedZoomAnimated = null;
+			this.currentZoom = null;			
+			this.previousTransform = null;
+			this.scrollWidth = null;
+			this.scrollHeight = null;
+			this.scrollTop = null;
+			this.scrollLeft = null;
+			this.clientWidth = null;
+			this.clientHeight = null;
+		}), 300);
+	}
+	else
+	{
+		this.zoom(factor);
+	}
 };
 
 /**
@@ -1252,22 +1345,25 @@ if (typeof mxVertexHandler != 'undefined')
 	 */
 	Graph.prototype.dblClick = function(evt, cell)
 	{
-		var pt = mxUtils.convertPoint(this.container, mxEvent.getClientX(evt), mxEvent.getClientY(evt));
-
-		// Automatically adds new child cells to edges on double click
-		if (evt != null && !this.model.isVertex(cell))
+		if (this.isEnabled())
 		{
-			var state = (this.model.isEdge(cell)) ? this.view.getState(cell) : null;
-			
-			if (state == null || (state.text == null || state.text.node == null ||
-				(!mxUtils.contains(state.text.boundingBox, pt.x, pt.y) &&
-				!mxUtils.isAncestorNode(state.text.node, mxEvent.getSource(evt)))))
-			{
-				cell = this.addText(pt.x, pt.y, state);
-			}
-		}
+			var pt = mxUtils.convertPoint(this.container, mxEvent.getClientX(evt), mxEvent.getClientY(evt));
 	
-		mxGraph.prototype.dblClick.call(this, evt, cell);
+			// Automatically adds new child cells to edges on double click
+			if (evt != null && !this.model.isVertex(cell))
+			{
+				var state = (this.model.isEdge(cell)) ? this.view.getState(cell) : null;
+				
+				if (state == null || (state.text == null || state.text.node == null ||
+					(!mxUtils.contains(state.text.boundingBox, pt.x, pt.y) &&
+					!mxUtils.isAncestorNode(state.text.node, mxEvent.getSource(evt)))))
+				{
+					cell = this.addText(pt.x, pt.y, state);
+				}
+			}
+		
+			mxGraph.prototype.dblClick.call(this, evt, cell);
+		}
 	};
 	
 	/**
@@ -1519,14 +1615,17 @@ if (typeof mxVertexHandler != 'undefined')
 	 * @param {number} dx X-coordinate of the translation.
 	 * @param {number} dy Y-coordinate of the translation.
 	 */
-	Graph.prototype.getSvg = function(background, scale, border, nocrop, crisp)
+	Graph.prototype.getSvg = function(background, scale, border, nocrop, crisp, ignoreSelection, showText)
 	{
 		scale = (scale != null) ? scale : 1;
 		border = (border != null) ? border : 1;
 		crisp = (crisp != null) ? crisp : true;
-	
+		ignoreSelection = (ignoreSelection != null) ? ignoreSelection : true;
+		showText = (showText != null) ? showText : true;
+		
 		var imgExport = new mxImageExport();
-		var bounds = (nocrop) ? this.view.getBackgroundPageBounds() : this.getGraphBounds();
+		var bounds = (nocrop) ? this.view.getBackgroundPageBounds() : (ignoreSelection) ?
+				this.getGraphBounds() : this.view.getBounds(this.getSelectionCells());
 		var vs = this.view.scale;
 	
 		// Prepares SVG document that holds the output
@@ -1582,12 +1681,22 @@ if (typeof mxVertexHandler != 'undefined')
 		var svgCanvas = new mxSvgCanvas2D(node);
 		svgCanvas.translate(Math.floor((border / scale - bounds.x) / vs), Math.floor((border / scale - bounds.y) / vs));
 		svgCanvas.scale(scale / vs);
+		svgCanvas.textEnabled = showText;
 		
 		// Adds hyperlinks (experimental)
 		imgExport.getLinkForCellState = mxUtils.bind(this, function(state, canvas)
 		{
 			return this.getLinkForCell(state.cell);
 		});
+		
+		// Implements ignoreSelection flag
+		imgExport.drawCellState = function(state, canvas)
+		{
+			if (ignoreSelection || state.view.graph.isCellSelected(state.cell))
+			{
+				mxImageExport.prototype.drawCellState.apply(this, arguments);
+			}
+		};
 		
 		// Paints background image
 		var bgImg = this.backgroundImage;
@@ -2698,7 +2807,7 @@ if (typeof mxVertexHandler != 'undefined')
 		
 		mxEdgeHandler.prototype.isOutlineConnectEvent = function(me)
 		{
-			return timeOnTarget > 1500 || ((mxEvent.isAltDown(me.getEvent()) || timeOnTarget > 500) &&
+			return timeOnTarget > 1500 || ((mxEvent.isAltDown(me.getEvent()) || timeOnTarget > 500) &&
     			mxEdgeHandlerIsOutlineConnectEvent.apply(this, arguments));
 		};
 		

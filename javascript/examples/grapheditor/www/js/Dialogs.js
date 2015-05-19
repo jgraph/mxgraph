@@ -1773,9 +1773,6 @@ var MetadataDialog = function(ui, cell)
 	var newProp = document.createElement('div');
 	newProp.style.whiteSpace = 'nowrap';
 	newProp.style.marginTop = '6px';
-	
-	mxUtils.write(newProp, mxResources.get('addProperty') + ':');
-	mxUtils.br(newProp);
 
 	var nameInput = document.createElement('input');
 	nameInput.setAttribute('placeholder', mxResources.get('enterPropertyName'));
@@ -1784,25 +1781,9 @@ var MetadataDialog = function(ui, cell)
 	nameInput.style.marginLeft = '2px';
 
 	newProp.appendChild(nameInput);
-	mxUtils.write(newProp, ':');
-	
-	var valueInput = document.createElement('input');
-	valueInput.setAttribute('placeholder', mxResources.get('enterValue'));
-	valueInput.setAttribute('type', 'text');
-	valueInput.setAttribute('size', (mxClient.IS_QUIRKS) ? '18' : '22');
-	valueInput.style.marginLeft = '6px';
-
-	newProp.appendChild(valueInput);
-	
 	div.appendChild(newProp);
 	
-	var cancelBtn = mxUtils.button(mxResources.get('cancel'), function()
-	{
-		ui.hideDialog.apply(ui, arguments);
-	});
-	cancelBtn.className = 'geBtn';
-	
-	var applyBtn = mxUtils.button(mxResources.get('apply'), function()
+	var addBtn = mxUtils.button(mxResources.get('addProperty'), function()
 	{
 		if (nameInput.value.length > 0)
 		{
@@ -1816,7 +1797,6 @@ var MetadataDialog = function(ui, cell)
 					
 					if (idx >= 0 && texts[idx] != null)
 					{
-						texts[idx].value = valueInput.value;
 						texts[idx].focus();
 					}
 					else
@@ -1832,18 +1812,15 @@ var MetadataDialog = function(ui, cell)
 						}
 
 						names.push(name);
-						var text = form.addTextarea(name + ':', valueInput.value, 2);
+						var text = form.addTextarea(name + ':', '', 2);
 						text.style.width = '100%';
 						texts.push(text);
 						addRemoveButton(text, name);
 
 						text.focus();
 					}
-						
-					applyBtn.innerHTML = mxResources.get('apply');
 
 					nameInput.value = '';
-					valueInput.value = '';
 				}
 				catch (e)
 				{
@@ -1853,40 +1830,68 @@ var MetadataDialog = function(ui, cell)
 		}
 		else
 		{
-			try
+			mxUtils.alert(mxResources.get('invalidName'));
+		}
+	});
+	addBtn.setAttribute('disabled', 'disabled');
+	addBtn.style.marginLeft = '10px';
+	addBtn.style.width = '144px';
+	
+	newProp.appendChild(addBtn);
+	
+	var cancelBtn = mxUtils.button(mxResources.get('cancel'), function()
+	{
+		ui.hideDialog.apply(ui, arguments);
+	});
+	cancelBtn.className = 'geBtn';
+	
+	var applyBtn = mxUtils.button(mxResources.get('apply'), function()
+	{
+		try
+		{
+			ui.hideDialog.apply(ui, arguments);
+			
+			// Clones and updates the value
+			value = value.cloneNode(true);
+			
+			for (var i = 0; i < names.length; i++)
 			{
-				ui.hideDialog.apply(ui, arguments);
-				
-				// Clones and updates the value
-				value = value.cloneNode(true);
-				
-				for (var i = 0; i < names.length; i++)
+				if (texts[i] == null)
 				{
-					if (texts[i] == null)
-					{
-						value.removeAttribute(names[i]);
-					}
-					else
-					{
-						value.setAttribute(names[i], texts[i].value);
-					}
+					value.removeAttribute(names[i]);
 				}
-				
-				// Updates the value of the cell (undoable)
-				ui.editor.graph.getModel().setValue(cell, value);
+				else
+				{
+					value.setAttribute(names[i], texts[i].value);
+				}
 			}
-			catch (e)
-			{
-				mxUtils.alert(e);
-			}
+			
+			// Updates the value of the cell (undoable)
+			ui.editor.graph.getModel().setValue(cell, value);
+		}
+		catch (e)
+		{
+			mxUtils.alert(e);
 		}
 	});
 	applyBtn.className = 'geBtn gePrimaryBtn';
-
-	mxEvent.addListener(nameInput, 'change', function()
+	
+	function updateAddBtn()
 	{
-		applyBtn.innerHTML = mxResources.get((nameInput.value.length > 0) ? 'add' : 'apply');
-	});
+		if (nameInput.value.length > 0)
+		{
+			addBtn.removeAttribute('disabled');
+		}
+		else
+		{
+			addBtn.setAttribute('disabled', 'disabled');
+		}
+	};
+
+	mxEvent.addListener(nameInput, 'keyup', updateAddBtn);
+	
+	// Catches all changes that don't fire a keyup (such as paste via mouse)
+	mxEvent.addListener(nameInput, 'change', updateAddBtn);
 	
 	var buttons = document.createElement('div');
 	buttons.style.marginTop = '18px';
@@ -2019,7 +2024,6 @@ var LinkDialog = function(editorUi, initialValue, btnLabel, fn)
 
 	this.container = div;
 };
-
 
 /**
  * 
@@ -2188,7 +2192,6 @@ var OutlineWindow = function(editorUi, x, y, w, h)
 	}
 };
 
-
 /**
  * 
  */
@@ -2236,7 +2239,14 @@ var LayersWindow = function(editorUi, x, y, w, h)
 			inp.style.marginTop = '4px';
 			left.appendChild(inp);
 			
-			inp.value = graph.model.isVisible(child);
+			if (graph.model.isVisible(child))
+			{
+				inp.setAttribute('checked', 'checked');
+			}
+			else
+			{
+				inp.removeAttribute('checked');
+			}
 			
 			if (graph.model.isVisible(child))
 			{
@@ -2247,35 +2257,19 @@ var LayersWindow = function(editorUi, x, y, w, h)
 			{
 				ldiv.style.color = 'gray';
 			}
+
+			var handlingClick = false;
 			
-			if (mxClient.IS_SVG)
+			mxEvent.addListener(inp, 'click', function(evt)
 			{
-				mxEvent.addListener(inp, 'change', function(evt)
+				if (!handlingClick)
 				{
-					if (graph.isEnabled())
-					{
-						graph.model.setVisible(child, !graph.model.isVisible(child));
-					}
-				});
-				
-				if (!mxClient.IS_FF)
-				{
-					mxEvent.addListener(inp, 'click', function(evt)
-					{
-						mxEvent.consume(evt);
-					});
+					handlingClick = true;
+					graph.model.setVisible(child, !graph.model.isVisible(child));
+					mxEvent.consume(evt);
+					handlingClick = false;
 				}
-			}
-			else
-			{
-				mxEvent.addListener(inp, 'click', function(evt)
-				{
-					if (graph.isEnabled())
-					{
-						graph.model.setVisible(child, !graph.model.isVisible(child));
-					}
-				});
-			}
+			});
 
 			mxUtils.write(left, label);
 			ldiv.appendChild(left);
@@ -2418,7 +2412,7 @@ var LayersWindow = function(editorUi, x, y, w, h)
 			{
 				mxEvent.addListener(ldiv, 'click', function(evt)
 				{
-					if (graph.isEnabled())
+					if (graph.isEnabled() && !handlingClick)
 					{
 						graph.setDefaultParent(defaultParent);
 						graph.view.setCurrentRoot(null);

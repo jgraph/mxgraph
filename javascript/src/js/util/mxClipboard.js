@@ -191,7 +191,8 @@ var mxClipboard =
 	 * are no longer in the graph or invisible then the
 	 * cells are added to the graph's default or into the
 	 * swimlane under the cell's new location if one exists.
-	 * The cells are added to the graph using <mxGraph.importCells>.
+	 * The cells are added to the graph using <mxGraph.importCells>
+	 * and returned.
 	 * 
 	 * Parameters:
 	 * 
@@ -199,9 +200,11 @@ var mxClipboard =
 	 */
 	paste: function(graph)
 	{
+		var cells = null;
+		
 		if (!mxClipboard.isEmpty())
 		{
-			var cells = graph.getImportableCells(mxClipboard.getCells());
+			cells = graph.getImportableCells(mxClipboard.getCells());
 			var delta = mxClipboard.insertCount * mxClipboard.STEPSIZE;
 			var parent = graph.getDefaultParent();
 			cells = graph.importCells(cells, delta, delta, parent);
@@ -210,6 +213,8 @@ var mxClipboard =
 			mxClipboard.insertCount++;
 			graph.setSelectionCells(cells);
 		}
+		
+		return cells;
 	}
 
 };

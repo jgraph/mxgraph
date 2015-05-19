@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.3.0.0.
+	 * Current version is 3.3.0.1.
 	 */
-	VERSION: '3.3.0.0',
+	VERSION: '3.3.0.1',
 
 	/**
 	 * Variable: IS_IE
@@ -3260,10 +3260,23 @@ var mxUtils =
 	 * url - URL to get the data from.
 	 * onload - Optional function to execute for a successful response.
 	 * onerror - Optional function to execute on error.
+	 * binary - Optional boolean parameter that specifies if the request is
+	 * binary.
+	 * timeout - Optional timeout in ms before calling ontimeout.
+	 * ontimeout - Optional function to execute on timeout.
 	 */
-	get: function(url, onload, onerror)
+	get: function(url, onload, onerror, binary, timeout, ontimeout)
 	{
-		return new mxXmlRequest(url, null, 'GET').send(onload, onerror);
+		var req = new mxXmlRequest(url, null, 'GET');
+		
+		if (binary != null)
+		{
+			req.setBinary(binary);
+		}
+		
+		req.send(onload, onerror, timeout, ontimeout);
+		
+		return req;
 	},
 	
 	/**
@@ -10269,12 +10282,12 @@ mxXmlRequest.prototype.create = function()
 			return req;
 		};
 	}
-	else if (typeof(ActiveXObject) != "undefined")
+	else if (typeof(ActiveXObject) != 'undefined')
 	{
 		return function()
 		{
 			// TODO: Implement binary option
-			return new ActiveXObject("Microsoft.XMLHTTP");
+			return new ActiveXObject('Microsoft.XMLHTTP');
 		};
 	}
 }();
@@ -10289,8 +10302,10 @@ mxXmlRequest.prototype.create = function()
  * 
  * onload - Function to be invoked if a successful response was received.
  * onerror - Function to be called on any error.
+ * timeout - Optional timeout in ms before calling ontimeout.
+ * ontimeout - Optional function to execute on timeout.
  */
-mxXmlRequest.prototype.send = function(onload, onerror)
+mxXmlRequest.prototype.send = function(onload, onerror, timeout, ontimeout)
 {
 	this.request = this.create();
 	
@@ -10307,7 +10322,14 @@ mxXmlRequest.prototype.send = function(onload, onerror)
 				}
 			});
 		}
-
+		
+		if (!mxClient.IS_QUIRKS && (document.documentMode == null || document.documentMode > 10) &&
+			window.XMLHttpRequest && timeout != null && ontimeout != null)
+		{
+			this.request.timeout = timeout;
+			this.request.ontimeout = ontimeout;
+		}
+		
 		this.request.open(this.method, this.url, this.async,
 			this.username, this.password);
 		this.setRequestHeaders(this.request, this.params);
@@ -10615,7 +10637,8 @@ var mxClipboard =
 	 * are no longer in the graph or invisible then the
 	 * cells are added to the graph's default or into the
 	 * swimlane under the cell's new location if one exists.
-	 * The cells are added to the graph using <mxGraph.importCells>.
+	 * The cells are added to the graph using <mxGraph.importCells>
+	 * and returned.
 	 * 
 	 * Parameters:
 	 * 
@@ -10623,9 +10646,11 @@ var mxClipboard =
 	 */
 	paste: function(graph)
 	{
+		var cells = null;
+		
 		if (!mxClipboard.isEmpty())
 		{
-			var cells = graph.getImportableCells(mxClipboard.getCells());
+			cells = graph.getImportableCells(mxClipboard.getCells());
 			var delta = mxClipboard.insertCount * mxClipboard.STEPSIZE;
 			var parent = graph.getDefaultParent();
 			cells = graph.importCells(cells, delta, delta, parent);
@@ -10634,6 +10659,8 @@ var mxClipboard =
 			mxClipboard.insertCount++;
 			graph.setSelectionCells(cells);
 		}
+		
+		return cells;
 	}
 
 };
@@ -22346,7 +22373,11 @@ mxShape.prototype.destroyCanvas = function(canvas)
 		for (var key in canvas.gradients)
 		{
 			var gradient = canvas.gradients[key];
-			gradient.mxRefCount = (gradient.mxRefCount || 0) + 1;
+			
+			if (gradient != null)
+			{
+				gradient.mxRefCount = (gradient.mxRefCount || 0) + 1;
+			}
 		}
 		
 		this.releaseSvgGradients(this.oldGradients);
@@ -22978,11 +23009,15 @@ mxShape.prototype.releaseSvgGradients = function(grads)
 		for (var key in grads)
 		{
 			var gradient = grads[key];
-			gradient.mxRefCount = (gradient.mxRefCount || 0) - 1;
 			
-			if (gradient.mxRefCount == 0 && gradient.parentNode != null)
+			if (gradient != null)
 			{
-				gradient.parentNode.removeChild(gradient);
+				gradient.mxRefCount = (gradient.mxRefCount || 0) - 1;
+				
+				if (gradient.mxRefCount == 0 && gradient.parentNode != null)
+				{
+					gradient.parentNode.removeChild(gradient);
+				}
 			}
 		}
 	}
@@ -45054,9 +45089,9 @@ mxCellEditor.prototype.stopEditing = function(cancel)
 			this.textNode = null;
 		}
 		
-		if (!cancel && this.isModified())
+		if (!cancel)
 		{
-			this.graph.labelChanged(this.editingCell, this.getCurrentValue(), this.trigger);
+			this.applyValue();
 		}
 		
 		if (this.textDiv != null)
@@ -45074,6 +45109,20 @@ mxCellEditor.prototype.stopEditing = function(cancel)
 		{
 			this.textarea.parentNode.removeChild(this.textarea);
 		}
+	}
+};
+
+/**
+ * Function: applyValue
+ * 
+ * Called in <stopEditing> if cancel is false. This invokes
+ * <mxGraph.labelChanged> if <isModified> returns true.
+ */
+mxCellEditor.prototype.applyValue = function()
+{
+	if (this.isModified())
+	{
+		this.graph.labelChanged(this.editingCell, this.getCurrentValue(), this.trigger);
 	}
 };
 
@@ -49688,10 +49737,15 @@ mxGraphView.prototype.updatePoints = function(edge, points, source, target)
  */
 mxGraphView.prototype.transformControlPoint = function(state, pt)
 {
-	var orig = state.origin;
+	if (state != null && pt != null)
+	{
+		var orig = state.origin;
+		
+	    return new mxPoint(this.scale * (pt.x + this.translate.x + orig.x),
+	    	this.scale * (pt.y + this.translate.y + orig.y));
+	}
 	
-    return new mxPoint(this.scale * (pt.x + this.translate.x + orig.x),
-    	this.scale * (pt.y + this.translate.y + orig.y));
+	return null;
 };
 
 /**
@@ -72422,11 +72476,6 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 
 		if (!this.inTolerance)
 		{
-			var point = new mxPoint(me.getGraphX(), me.getGraphY());
-			var gridEnabled = this.graph.isGridEnabledEvent(me.getEvent());
-			var scale = this.graph.view.scale;
-			var tr = this.graph.view.translate;
-			
 			if (this.index <= mxEvent.CUSTOM_HANDLE)
 			{
 				if (this.customHandles != null)
@@ -72436,179 +72485,15 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 			}
 			else if (this.index == mxEvent.LABEL_HANDLE)
 			{
-				if (gridEnabled)
-				{
-					point.x = (this.graph.snap(point.x / scale - tr.x) + tr.x) * scale;
-					point.y = (this.graph.snap(point.y / scale - tr.y) + tr.y) * scale;
-				}
-	
-				this.moveSizerTo(this.sizers[this.sizers.length - 1], point.x, point.y);
+				this.moveLabel(me);
 			}
 			else if (this.index == mxEvent.ROTATION_HANDLE)
 			{
-				var dx = this.state.x + this.state.width / 2 - point.x;
-				var dy = this.state.y + this.state.height / 2 - point.y;
-				
-				this.currentAlpha = (dx != 0) ? Math.atan(dy / dx) * 180 / Math.PI + 90 : ((dy < 0) ? 180 : 0);
-				
-				if (dx > 0)
-				{
-					this.currentAlpha -= 180;
-				}
-	
-				// Rotation raster
-				if (this.rotationRaster && this.graph.isGridEnabledEvent(me.getEvent()))
-				{
-					var dx = point.x - this.state.getCenterX();
-					var dy = point.y - this.state.getCenterY();
-					var dist = Math.abs(Math.sqrt(dx * dx + dy * dy) - 20) * 3;
-					var raster = Math.max(1, 5 * Math.min(3, Math.max(0, Math.round(80 / Math.abs(dist)))));
-					
-					this.currentAlpha = Math.round(this.currentAlpha / raster) * raster;
-				}
-				else
-				{
-					this.currentAlpha = this.roundAngle(this.currentAlpha);
-				}
-	
-				this.selectionBorder.rotation = this.currentAlpha;
-				this.selectionBorder.redraw();
-								
-				if (this.livePreview)
-				{
-					this.redrawHandles();
-				}
+				this.rotateVertex(me);
 			}
 			else
 			{
-				var alpha = mxUtils.toRadians(this.state.style[mxConstants.STYLE_ROTATION] || '0');
-				var cos = Math.cos(-alpha);
-				var sin = Math.sin(-alpha);
-				
-				var ct = new mxPoint(this.state.getCenterX(), this.state.getCenterY());
-
-				var dx = point.x - this.startX;
-				var dy = point.y - this.startY;
-			
-				// Rotates vector for mouse gesture
-				var tx = cos * dx - sin * dy;
-				var ty = sin * dx + cos * dy;
-				
-				dx = tx;
-				dy = ty;
-
-				var geo = this.graph.getCellGeometry(this.state.cell);
-				this.unscaledBounds = this.union(geo, dx / scale, dy / scale,
-					this.index, gridEnabled, 1, new mxPoint(0, 0), this.isConstrainedEvent(me));
-				this.bounds = new mxRectangle(((this.parentState != null) ? this.parentState.x : tr.x * scale) +
-						(this.unscaledBounds.x) * scale, ((this.parentState != null) ? this.parentState.y : tr.y * scale) +
-						(this.unscaledBounds.y) * scale, this.unscaledBounds.width * scale, this.unscaledBounds.height * scale);
-
-				if (geo.relative && this.parentState != null)
-				{
-					this.bounds.x += this.state.x - this.parentState.x;
-					this.bounds.y += this.state.y - this.parentState.y;
-				}
-				
-				cos = Math.cos(alpha);
-				sin = Math.sin(alpha);
-				
-				var c2 = new mxPoint(this.bounds.getCenterX(), this.bounds.getCenterY());
-	
-				var dx = c2.x - ct.x;
-				var dy = c2.y - ct.y;
-				
-				var dx2 = cos * dx - sin * dy;
-				var dy2 = sin * dx + cos * dy;
-				
-				var dx3 = dx2 - dx;
-				var dy3 = dy2 - dy;
-				
-				var dx4 = this.bounds.x - this.state.x;
-				var dy4 = this.bounds.y - this.state.y;
-				
-				var dx5 = cos * dx4 - sin * dy4;
-				var dy5 = sin * dx4 + cos * dy4;
-				
-				this.bounds.x += dx3;
-				this.bounds.y += dy3;
-				
-				// Rounds unscaled bounds to int
-				this.unscaledBounds.x = this.roundLength(this.unscaledBounds.x + dx3 / scale);
-				this.unscaledBounds.y = this.roundLength(this.unscaledBounds.y + dy3 / scale);
-				this.unscaledBounds.width = this.roundLength(this.unscaledBounds.width);
-				this.unscaledBounds.height = this.roundLength(this.unscaledBounds.height);
-				
-				// Shifts the children according to parent offset
-				if (!this.graph.isCellCollapsed(this.state.cell) && (dx3 != 0 || dy3 != 0))
-				{
-					this.childOffsetX = this.state.x - this.bounds.x + dx5;
-					this.childOffsetY = this.state.y - this.bounds.y + dy5;
-				}
-				else
-				{
-					this.childOffsetX = 0;
-					this.childOffsetY = 0;
-				}
-				
-				// TODO: Apply child offset to children in live preview
-				if (this.livePreview)
-				{
-					// Saves current state
-					var tmp = new mxRectangle(this.state.x, this.state.y, this.state.width, this.state.height);
-					var orig = this.state.origin;
-
-					// Temporarily changes size and origin
-					this.state.x = this.bounds.x;
-					this.state.y = this.bounds.y;
-					this.state.origin = new mxPoint(this.state.x / scale - tr.x, this.state.y / scale - tr.y);
-					this.state.width = this.bounds.width;
-					this.state.height = this.bounds.height;
-					
-					// Redraws cell and handles
-					var off = this.state.absoluteOffset;
-					off = new mxPoint(off.x, off.y);
-
-					// Required to store and reset absolute offset for updating label position
-					this.state.absoluteOffset.x = 0;
-					this.state.absoluteOffset.y = 0;
-					var geo = this.graph.getCellGeometry(this.state.cell);				
-		
-					if (geo != null)
-					{
-						var offset = geo.offset || this.EMPTY_POINT;
-	
-						if (offset != null && !geo.relative)
-						{
-							this.state.absoluteOffset.x = this.state.view.scale * offset.x;
-							this.state.absoluteOffset.y = this.state.view.scale * offset.y;
-						}
-						
-						this.state.view.updateVertexLabelOffset(this.state);
-					}
-					
-					// Draws the live preview
-					this.state.view.graph.cellRenderer.redraw(this.state, true);
-					
-					// Redraws connected edges
-					this.state.view.invalidate(this.state.cell);
-					this.state.invalid = false;
-					this.state.view.validate();
-					this.redrawHandles();
-					
-					// Restores current state
-					this.state.x = tmp.x;
-					this.state.y = tmp.y;
-					this.state.width = tmp.width;
-					this.state.height = tmp.height;
-					this.state.origin = orig;
-					this.state.absoluteOffset = off;
-				}
-				
-				if (this.preview != null)
-				{
-					this.drawPreview();
-				}
+				this.resizeVertex(me);
 			}
 
 			this.updateHint(me);
@@ -72621,6 +72506,220 @@ mxVertexHandler.prototype.mouseMove = function(sender, me)
 	{
 		me.consume(false);
 	}
+};
+
+/**
+ * Function: rotateVertex
+ * 
+ * Rotates the vertex.
+ */
+mxVertexHandler.prototype.moveLabel = function(me)
+{
+	var point = new mxPoint(me.getGraphX(), me.getGraphY());
+	var tr = this.graph.view.translate;
+	var scale = this.graph.view.scale;
+	
+	if (this.graph.isGridEnabledEvent(me.getEvent()))
+	{
+		point.x = (this.graph.snap(point.x / scale - tr.x) + tr.x) * scale;
+		point.y = (this.graph.snap(point.y / scale - tr.y) + tr.y) * scale;
+	}
+
+	this.moveSizerTo(this.sizers[this.sizers.length - 1], point.x, point.y);
+};
+
+/**
+ * Function: rotateVertex
+ * 
+ * Rotates the vertex.
+ */
+mxVertexHandler.prototype.rotateVertex = function(me)
+{
+	var point = new mxPoint(me.getGraphX(), me.getGraphY());
+	var dx = this.state.x + this.state.width / 2 - point.x;
+	var dy = this.state.y + this.state.height / 2 - point.y;
+	this.currentAlpha = (dx != 0) ? Math.atan(dy / dx) * 180 / Math.PI + 90 : ((dy < 0) ? 180 : 0);
+	
+	if (dx > 0)
+	{
+		this.currentAlpha -= 180;
+	}
+
+	// Rotation raster
+	if (this.rotationRaster && this.graph.isGridEnabledEvent(me.getEvent()))
+	{
+		var dx = point.x - this.state.getCenterX();
+		var dy = point.y - this.state.getCenterY();
+		var dist = Math.abs(Math.sqrt(dx * dx + dy * dy) - 20) * 3;
+		var raster = Math.max(1, 5 * Math.min(3, Math.max(0, Math.round(80 / Math.abs(dist)))));
+		
+		this.currentAlpha = Math.round(this.currentAlpha / raster) * raster;
+	}
+	else
+	{
+		this.currentAlpha = this.roundAngle(this.currentAlpha);
+	}
+
+	this.selectionBorder.rotation = this.currentAlpha;
+	this.selectionBorder.redraw();
+					
+	if (this.livePreview)
+	{
+		this.redrawHandles();
+	}
+};
+
+/**
+ * Function: rotateVertex
+ * 
+ * Rotates the vertex.
+ */
+mxVertexHandler.prototype.resizeVertex = function(me)
+{
+	var ct = new mxPoint(this.state.getCenterX(), this.state.getCenterY());
+	var alpha = mxUtils.toRadians(this.state.style[mxConstants.STYLE_ROTATION] || '0');
+	var point = new mxPoint(me.getGraphX(), me.getGraphY());
+	var tr = this.graph.view.translate;
+	var scale = this.graph.view.scale;
+	var cos = Math.cos(-alpha);
+	var sin = Math.sin(-alpha);
+	
+	var dx = point.x - this.startX;
+	var dy = point.y - this.startY;
+
+	// Rotates vector for mouse gesture
+	var tx = cos * dx - sin * dy;
+	var ty = sin * dx + cos * dy;
+	
+	dx = tx;
+	dy = ty;
+
+	var geo = this.graph.getCellGeometry(this.state.cell);
+	this.unscaledBounds = this.union(geo, dx / scale, dy / scale, this.index,
+		this.graph.isGridEnabledEvent(me.getEvent()), 1,
+		new mxPoint(0, 0), this.isConstrainedEvent(me));
+	this.bounds = new mxRectangle(((this.parentState != null) ? this.parentState.x : tr.x * scale) +
+		(this.unscaledBounds.x) * scale, ((this.parentState != null) ? this.parentState.y : tr.y * scale) +
+		(this.unscaledBounds.y) * scale, this.unscaledBounds.width * scale, this.unscaledBounds.height * scale);
+
+	if (geo.relative && this.parentState != null)
+	{
+		this.bounds.x += this.state.x - this.parentState.x;
+		this.bounds.y += this.state.y - this.parentState.y;
+	}
+	
+	cos = Math.cos(alpha);
+	sin = Math.sin(alpha);
+	
+	var c2 = new mxPoint(this.bounds.getCenterX(), this.bounds.getCenterY());
+
+	var dx = c2.x - ct.x;
+	var dy = c2.y - ct.y;
+	
+	var dx2 = cos * dx - sin * dy;
+	var dy2 = sin * dx + cos * dy;
+	
+	var dx3 = dx2 - dx;
+	var dy3 = dy2 - dy;
+	
+	var dx4 = this.bounds.x - this.state.x;
+	var dy4 = this.bounds.y - this.state.y;
+	
+	var dx5 = cos * dx4 - sin * dy4;
+	var dy5 = sin * dx4 + cos * dy4;
+	
+	this.bounds.x += dx3;
+	this.bounds.y += dy3;
+	
+	// Rounds unscaled bounds to int
+	this.unscaledBounds.x = this.roundLength(this.unscaledBounds.x + dx3 / scale);
+	this.unscaledBounds.y = this.roundLength(this.unscaledBounds.y + dy3 / scale);
+	this.unscaledBounds.width = this.roundLength(this.unscaledBounds.width);
+	this.unscaledBounds.height = this.roundLength(this.unscaledBounds.height);
+	
+	// Shifts the children according to parent offset
+	if (!this.graph.isCellCollapsed(this.state.cell) && (dx3 != 0 || dy3 != 0))
+	{
+		this.childOffsetX = this.state.x - this.bounds.x + dx5;
+		this.childOffsetY = this.state.y - this.bounds.y + dy5;
+	}
+	else
+	{
+		this.childOffsetX = 0;
+		this.childOffsetY = 0;
+	}
+	
+	if (this.livePreview)
+	{
+		this.updateLivePreview(me);
+	}
+	
+	if (this.preview != null)
+	{
+		this.drawPreview();
+	}
+};
+
+/**
+ * Function: updateLivePreview
+ * 
+ * Repaints the live preview.
+ */
+mxVertexHandler.prototype.updateLivePreview = function(me)
+{
+	// TODO: Apply child offset to children in live preview
+	var scale = this.graph.view.scale;
+	var tr = this.graph.view.translate;
+	
+	// Saves current state
+	var tmp = new mxRectangle(this.state.x, this.state.y, this.state.width, this.state.height);
+	var orig = this.state.origin;
+
+	// Temporarily changes size and origin
+	this.state.x = this.bounds.x;
+	this.state.y = this.bounds.y;
+	this.state.origin = new mxPoint(this.state.x / scale - tr.x, this.state.y / scale - tr.y);
+	this.state.width = this.bounds.width;
+	this.state.height = this.bounds.height;
+	
+	// Redraws cell and handles
+	var off = this.state.absoluteOffset;
+	off = new mxPoint(off.x, off.y);
+
+	// Required to store and reset absolute offset for updating label position
+	this.state.absoluteOffset.x = 0;
+	this.state.absoluteOffset.y = 0;
+	var geo = this.graph.getCellGeometry(this.state.cell);				
+
+	if (geo != null)
+	{
+		var offset = geo.offset || this.EMPTY_POINT;
+
+		if (offset != null && !geo.relative)
+		{
+			this.state.absoluteOffset.x = this.state.view.scale * offset.x;
+			this.state.absoluteOffset.y = this.state.view.scale * offset.y;
+		}
+		
+		this.state.view.updateVertexLabelOffset(this.state);
+	}
+	
+	// Draws the live preview
+	this.state.view.graph.cellRenderer.redraw(this.state, true);
+	
+	// Redraws connected edges TODO: Include child edges
+	this.state.view.invalidate(this.state.cell);
+	this.state.invalid = false;
+	this.state.view.validate();
+	this.redrawHandles();
+	
+	// Restores current state
+	this.state.x = tmp.x;
+	this.state.y = tmp.y;
+	this.state.width = tmp.width;
+	this.state.height = tmp.height;
+	this.state.origin = orig;
+	this.state.absoluteOffset = off;
 };
 
 /**
@@ -81875,6 +81974,13 @@ mxCodec.prototype.document = null;
 mxCodec.prototype.objects = null;
 
 /**
+ * Variable: elements
+ * 
+ * Lookup table for resolving IDs to elements.
+ */
+mxCodec.prototype.elements = null;
+
+/**
  * Variable: encodeDefaults
  *
  * Specifies if default values should be encoded. Default is false.
@@ -81970,14 +82076,38 @@ mxCodec.prototype.lookup = function(id)
  */
 mxCodec.prototype.getElementById = function(id)
 {
-	// Workaround for no result in all versions of IE for the native implementation
-	if (typeof this.document.getElementById === 'function' && !mxClient.IS_IE && document.documentMode == null)
+	if (this.elements == null)
 	{
-		return this.document.getElementById(id);
+		this.elements = new Object();
+		this.addElement(this.document.documentElement);
 	}
-	else
+	
+	return this.elements[id];
+};
+
+/**
+ * Function: addElement
+ *
+ * Adds the given element to <elements> if it has an ID.
+ */
+mxCodec.prototype.addElement = function(node)
+{
+	if (node.nodeType == mxConstants.NODETYPE_ELEMENT)
 	{
-		return mxUtils.findNode(this.document.documentElement, 'id', id);
+		var id = node.getAttribute('id');
+		
+		if (id != null && this.elements[id] == null)
+		{
+			this.elements[id] = node;
+		}
+	}
+	
+	node = node.firstChild;
+	
+	while (node != null)
+	{
+		this.addElement(node);
+		node = node.nextSibling;
 	}
 };
 

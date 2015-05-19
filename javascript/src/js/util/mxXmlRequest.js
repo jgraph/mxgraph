@@ -293,12 +293,12 @@ mxXmlRequest.prototype.create = function()
 			return req;
 		};
 	}
-	else if (typeof(ActiveXObject) != "undefined")
+	else if (typeof(ActiveXObject) != 'undefined')
 	{
 		return function()
 		{
 			// TODO: Implement binary option
-			return new ActiveXObject("Microsoft.XMLHTTP");
+			return new ActiveXObject('Microsoft.XMLHTTP');
 		};
 	}
 }();
@@ -313,8 +313,10 @@ mxXmlRequest.prototype.create = function()
  * 
  * onload - Function to be invoked if a successful response was received.
  * onerror - Function to be called on any error.
+ * timeout - Optional timeout in ms before calling ontimeout.
+ * ontimeout - Optional function to execute on timeout.
  */
-mxXmlRequest.prototype.send = function(onload, onerror)
+mxXmlRequest.prototype.send = function(onload, onerror, timeout, ontimeout)
 {
 	this.request = this.create();
 	
@@ -331,7 +333,14 @@ mxXmlRequest.prototype.send = function(onload, onerror)
 				}
 			});
 		}
-
+		
+		if (!mxClient.IS_QUIRKS && (document.documentMode == null || document.documentMode > 10) &&
+			window.XMLHttpRequest && timeout != null && ontimeout != null)
+		{
+			this.request.timeout = timeout;
+			this.request.ontimeout = ontimeout;
+		}
+		
 		this.request.open(this.method, this.url, this.async,
 			this.username, this.password);
 		this.setRequestHeaders(this.request, this.params);

@@ -1437,10 +1437,15 @@ mxGraphView.prototype.updatePoints = function(edge, points, source, target)
  */
 mxGraphView.prototype.transformControlPoint = function(state, pt)
 {
-	var orig = state.origin;
+	if (state != null && pt != null)
+	{
+		var orig = state.origin;
+		
+	    return new mxPoint(this.scale * (pt.x + this.translate.x + orig.x),
+	    	this.scale * (pt.y + this.translate.y + orig.y));
+	}
 	
-    return new mxPoint(this.scale * (pt.x + this.translate.x + orig.x),
-    	this.scale * (pt.y + this.translate.y + orig.y));
+	return null;
 };
 
 /**
