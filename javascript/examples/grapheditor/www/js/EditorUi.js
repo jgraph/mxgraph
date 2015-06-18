@@ -102,6 +102,22 @@ EditorUi = function(editor, container)
 
 	// Contains the main graph instance inside the given panel
 	graph.init(this.diagramContainer);
+	
+	// Adds tooltip when mouse is over scrollbars to show right-click pan option
+	mxEvent.addListener(this.diagramContainer, 'mousemove', mxUtils.bind(this, function(evt)
+	{
+		var off = mxUtils.getOffset(this.diagramContainer);
+		
+		if (mxEvent.getClientX(evt) - off.x - this.diagramContainer.clientWidth > 0 ||
+			mxEvent.getClientY(evt) - off.y - this.diagramContainer.clientHeight > 0)
+		{
+			this.diagramContainer.setAttribute('title', mxResources.get('panTooltip'));
+		}
+		else
+		{
+			this.diagramContainer.removeAttribute('title');
+		}
+	}));
 
 	var textMode = false;
 	var nodes = null;
@@ -822,10 +838,12 @@ EditorUi.prototype.initClipboard = function()
 {
 	// Overrides clipboard to update paste action state
 	var paste = this.actions.get('paste');
+	var pasteHere = this.actions.get('pasteHere');
 	
 	var updatePaste = mxUtils.bind(this, function()
 	{
 		paste.setEnabled(this.editor.graph.cellEditor.isContentEditing() || !mxClipboard.isEmpty());
+		pasteHere.setEnabled(paste.isEnabled());
 	});
 	
 	var mxClipboardCut = mxClipboard.cut;
@@ -993,6 +1011,7 @@ EditorUi.prototype.initCanvas = function()
 				var s = graph.view.scale;
 				
 				// Normalizes the bounds
+				b = mxRectangle.fromRectangle(b);
 				b.x = b.x / s - tr.x;
 				b.y = b.y / s - tr.y;
 				b.width /= s;
@@ -1050,6 +1069,7 @@ EditorUi.prototype.initCanvas = function()
 		});
 		zoomInBtn.className = 'geSprite geSprite-zoomin';
 		zoomInBtn.setAttribute('title', mxResources.get('zoomIn'));
+		zoomInBtn.style.cursor = 'pointer';
 		zoomInBtn.style.outline = 'none';
 		zoomInBtn.style.border = 'none';
 		zoomInBtn.style.margin = '2px';
@@ -1062,6 +1082,7 @@ EditorUi.prototype.initCanvas = function()
 		});
 		zoomOutBtn.className = 'geSprite geSprite-zoomout';
 		zoomOutBtn.setAttribute('title', mxResources.get('zoomOut'));
+		zoomOutBtn.style.cursor = 'pointer';
 		zoomOutBtn.style.outline = 'none';
 		zoomOutBtn.style.border = 'none';
 		zoomOutBtn.style.margin = '2px';
@@ -1073,12 +1094,13 @@ EditorUi.prototype.initCanvas = function()
 		});
 		zoomActualBtn.className = 'geSprite geSprite-actualsize';
 		zoomActualBtn.setAttribute('title', mxResources.get('actualSize'));
+		zoomActualBtn.style.cursor = 'pointer';
 		zoomActualBtn.style.outline = 'none';
 		zoomActualBtn.style.border = 'none';
 		zoomActualBtn.style.margin = '2px';
 		
 		var tb = document.createElement('div');
-		tb.className = 'geToolbarContainer';
+		tb.className = 'geToolbarContainer geNoPrint';
 		tb.style.borderRight = '1px solid #e0e0e0';
 		tb.style.padding = '2px';
 		tb.style.left = '0px';
@@ -1089,6 +1111,26 @@ EditorUi.prototype.initCanvas = function()
 		tb.appendChild(zoomActualBtn);
 		
 		document.body.appendChild(tb);
+		
+		// Changes toolbar opacity on hover
+		if (!mxClient.IS_TOUCH)
+		{
+			mxEvent.addListener(tb, 'mouseenter', function(evt)
+			{
+				mxUtils.setOpacity(tb, 100);
+			});
+			
+			mxEvent.addListener(tb, 'mouseleave', function(evt)
+			{
+				mxUtils.setOpacity(tb, 20);
+			});
+			
+			mxUtils.setOpacity(tb, 20);
+		}
+		else
+		{
+			mxUtils.setOpacity(tb, 50);
+		}
 	}
 	else if (this.editor.extendCanvas)
 	{
@@ -1174,42 +1216,49 @@ EditorUi.prototype.initCanvas = function()
 			}
 		};
 	}
+	
+	// Accumulates the zoom factor while the rendering is taking place
+	// so that not the complete sequence of zoom steps must be painted
+	graph.updateZoomTimeout = null;
+	graph.cumulativeZoomFactor = 1;
+	
+	graph.lazyZoom = function(zoomIn)
+	{
+		if (this.updateZoomTimeout != null)
+		{
+			window.clearTimeout(this.updateZoomTimeout);
+		}
 
+		if (zoomIn)
+		{
+			this.cumulativeZoomFactor *= this.zoomFactor;
+		}
+		else
+		{
+			this.cumulativeZoomFactor /= this.zoomFactor;
+		}
+		
+		this.cumulativeZoomFactor = Math.round(this.view.scale * this.cumulativeZoomFactor * 100) / 100 / this.view.scale;
+		
+		this.updateZoomTimeout = window.setTimeout(mxUtils.bind(this, function()
+		{
+			this.zoom(this.cumulativeZoomFactor);					
+			this.cumulativeZoomFactor = 1;
+			this.updateZoomTimeout = null;
+			
+			if (resize != null)
+			{
+				resize(false);
+			}
+		}), 20);
+	};
+	
 	mxEvent.addMouseWheelListener(mxUtils.bind(this, function(evt, up)
 	{
-		if (mxEvent.isAltDown(evt) || graph.panningHandler.isActive())
+		if ((mxEvent.isAltDown(evt) || graph.panningHandler.isActive()) &&
+			(this.dialogs == null || this.dialogs.length == 0))
 		{
-			if (this.dialogs == null || this.dialogs.length == 0)
-			{
-				if (up)
-				{
-					if (mxEvent.isShiftDown(evt))
-					{
-						graph.zoomIn();
-					}
-					else
-					{
-						graph.fastZoom(graph.zoomFactor);
-					}
-				}
-				else
-				{
-					if (mxEvent.isShiftDown(evt))
-					{
-						graph.zoomOut();
-					}
-					else
-					{
-						graph.fastZoom(1 / graph.zoomFactor);
-					}
-				}
-				
-				if (resize != null)
-				{
-					resize(false);
-				}
-			}
-
+			graph.lazyZoom(up);
 			mxEvent.consume(evt);
 		}
 	}));
@@ -2384,7 +2433,7 @@ EditorUi.prototype.showImageDialog = function(title, value, fn, ignoreExisting)
 EditorUi.prototype.showLinkDialog = function(value, btnLabel, fn)
 {
 	var dlg = new LinkDialog(this, value, btnLabel, fn);
-	this.showDialog(dlg.container, 320, 90, true, true);
+	this.showDialog(dlg.container, 420, 90, true, true);
 	dlg.init();
 };
 
@@ -2543,7 +2592,7 @@ EditorUi.prototype.createKeyHandler = function(editor)
 	keyHandler.bindControlKey(13, function() { graph.setSelectionCells(graph.duplicateCells(graph.getSelectionCells(), false)); }); // Ctrl+Enter
 	keyHandler.bindKey(9, function() { graph.selectNextCell(); }); // Tab
 	keyHandler.bindShiftKey(9, function() { graph.selectPreviousCell(); }); // Shift+Tab
-	keyHandler.bindControlKey(9, function() { graph.selectParentCell(); }); // Ctrl++Tab
+	keyHandler.bindControlKey(9, function() { graph.selectParentCell(); }); // Ctrl+Tab
 	keyHandler.bindControlShiftKey(9, function() { graph.selectChildCell(); }); // Ctrl+Shift+Tab
 	keyHandler.bindAction(8, false, 'delete'); // Backspace
 	keyHandler.bindAction(46, false, 'delete'); // Delete
@@ -2583,6 +2632,7 @@ EditorUi.prototype.createKeyHandler = function(editor)
 	keyHandler.bindAction(80, true, 'formatPanel', true); // Ctrl+Shift+P
 	keyHandler.bindAction(85, true, 'ungroup'); // Ctrl+U
 	keyHandler.bindAction(112, false, 'about'); // F1
+	keyHandler.bindKey(13, function() { graph.startEditingAtCell(); }); // Enter
 	keyHandler.bindKey(113, function() { graph.startEditingAtCell(); }); // F2
 	
 	if (mxClient.IS_MAC)

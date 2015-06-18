@@ -682,8 +682,8 @@
 	 * Defines the key for the perimeter style. This is a function that defines
 	 * the perimeter around a particular shape. Possible values are the
 	 * functions defined in <mxPerimeter>. Alternatively, the constants in this
-	 * class that start with <code>PERIMETER_</code> may be used to access
-	 * perimeter styles in <mxStyleRegistry>. Value is <code>perimeter</code>.
+	 * class that start with "PERIMETER_" may be used to access
+	 * perimeter styles in <mxStyleRegistry>. Value is "perimeter".
 	 */
 	STYLE_PERIMETER: 'perimeter',
 	
@@ -693,7 +693,7 @@
 	 * Defines the ID of the cell that should be used for computing the
 	 * perimeter point of the source for an edge. This allows for graphically
 	 * connecting to a cell while keeping the actual terminal of the edge.
-	 * Value is <code>sourcePort</code>.
+	 * Value is "sourcePort".
 	 */
 	STYLE_SOURCE_PORT: 'sourcePort',
 	
@@ -703,7 +703,7 @@
 	 * Defines the ID of the cell that should be used for computing the
 	 * perimeter point of the target for an edge. This allows for graphically
 	 * connecting to a cell while keeping the actual terminal of the edge.
-	 * Value is <code>targetPort</code>.
+	 * Value is "targetPort".
 	 */
 	STYLE_TARGET_PORT: 'targetPort',
 
@@ -711,9 +711,9 @@
 	 * Variable: STYLE_PORT_CONSTRAINT
 	 * 
 	 * Defines the direction(s) that edges are allowed to connect to cells in.
-	 * Possible values are <code>DIRECTION_NORTH, DIRECTION_SOUTH, 
-	 * DIRECTION_EAST</code> and <code>DIRECTION_WEST</code>. Value is
-	 * <code>portConstraint</code>.
+	 * Possible values are "DIRECTION_NORTH, DIRECTION_SOUTH, 
+	 * DIRECTION_EAST" and "DIRECTION_WEST". Value is
+	 * "portConstraint".
 	 */
 	STYLE_PORT_CONSTRAINT: 'portConstraint',
 
@@ -723,7 +723,7 @@
 	 * Define whether port constraint directions are rotated with vertex
 	 * rotation. 0 (default) causes port constraints to remain absolute, 
 	 * relative to the graph, 1 causes the constraints to rotate with
-	 * the vertex. Value is <code>portConstraintRotation</code>.
+	 * the vertex. Value is "portConstraintRotation".
 	 */
 	STYLE_PORT_CONSTRAINT_ROTATION: 'portConstraintRotation',
 
@@ -731,7 +731,7 @@
 	 * Variable: STYLE_OPACITY
 	 * 
 	 * Defines the key for the opacity style. The type of the value is 
-	 * numeric and the possible range is 0-100. Value is <code>opacity</code>.
+	 * numeric and the possible range is 0-100. Value is "opacity".
 	 */
 	STYLE_OPACITY: 'opacity',
 
@@ -739,7 +739,7 @@
 	 * Variable: STYLE_TEXT_OPACITY
 	 * 
 	 * Defines the key for the text opacity style. The type of the value is 
-	 * numeric and the possible range is 0-100. Value is <code>textOpacity</code>.
+	 * numeric and the possible range is 0-100. Value is "textOpacity".
 	 */
 	STYLE_TEXT_OPACITY: 'textOpacity',
 
@@ -747,8 +747,8 @@
 	 * Variable: STYLE_TEXT_DIRECTION
 	 * 
 	 * Defines the key for the text direction style. Possible values are
-	 * <code>TEXT_DIRECTION_DEFAULT, TEXT_DIRECTION_AUTO, TEXT_DIRECTION_LTR</code>
-	 * and <code>TEXT_DIRECTION_RTL</code>. Value is <code>textDirection</code>.
+	 * "TEXT_DIRECTION_DEFAULT, TEXT_DIRECTION_AUTO, TEXT_DIRECTION_LTR"
+	 * and "TEXT_DIRECTION_RTL". Value is "textDirection".
 	 * The default value for the style is defined in <DEFAULT_TEXT_DIRECTION>.
 	 * It is used is no value is defined for this key in a given style. This is
 	 * an experimental style that is currently ignored in the backends.
@@ -765,7 +765,7 @@
 	 * the label so that it does not overlap the vertex bounds. A value of
 	 * 'fill' will use the vertex bounds and a value of 'width' will use the
 	 * the vertex width for the label. See <mxGraph.isLabelClipped>. Note that
-	 * the vertical alignment is ignored for overflow fill. Value is <code>overflow</code>.
+	 * the vertical alignment is ignored for overflow fill. Value is "overflow".
 	 */
 	STYLE_OVERFLOW: 'overflow',
 
@@ -776,7 +776,7 @@
 	 * computed so that the edge is vertical or horizontal if possible and
 	 * if the point is not at a fixed location. Default is false. This is
 	 * used in <mxGraph.isOrthogonal>, which also returns true if the edgeStyle
-	 * of the edge is an elbow or entity. Value is <code>orthogonal</code>.
+	 * of the edge is an elbow or entity. Value is "orthogonal".
 	 */
 	STYLE_ORTHOGONAL: 'orthogonal',
 
@@ -784,7 +784,7 @@
 	 * Variable: STYLE_EXIT_X
 	 * 
 	 * Defines the key for the horizontal relative coordinate connection point
-	 * of an edge with its source terminal. Value is <code>exitX</code>.
+	 * of an edge with its source terminal. Value is "exitX".
 	 */
 	STYLE_EXIT_X: 'exitX',
 
@@ -792,7 +792,7 @@
 	 * Variable: STYLE_EXIT_Y
 	 * 
 	 * Defines the key for the vertical relative coordinate connection point
-	 * of an edge with its source terminal. Value is <code>exitY</code>.
+	 * of an edge with its source terminal. Value is "exitY".
 	 */
 	STYLE_EXIT_Y: 'exitY',
 
@@ -801,7 +801,7 @@
 	 * 
 	 * Defines if the perimeter should be used to find the exact entry point
 	 * along the perimeter of the source. Possible values are 0 (false) and
-	 * 1 (true). Default is 1 (true). Value is <code>exitPerimeter</code>.
+	 * 1 (true). Default is 1 (true). Value is "exitPerimeter".
 	 */
 	STYLE_EXIT_PERIMETER: 'exitPerimeter',
 
@@ -809,7 +809,7 @@
 	 * Variable: STYLE_ENTRY_X
 	 * 
 	 * Defines the key for the horizontal relative coordinate connection point
-	 * of an edge with its target terminal. Value is <code>entryX</code>.
+	 * of an edge with its target terminal. Value is "entryX".
 	 */
 	STYLE_ENTRY_X: 'entryX',
 
@@ -817,7 +817,7 @@
 	 * Variable: STYLE_ENTRY_Y
 	 * 
 	 * Defines the key for the vertical relative coordinate connection point
-	 * of an edge with its target terminal. Value is <code>entryY</code>.
+	 * of an edge with its target terminal. Value is "entryY".
 	 */
 	STYLE_ENTRY_Y: 'entryY',
 
@@ -826,7 +826,7 @@
 	 * 
 	 * Defines if the perimeter should be used to find the exact entry point
 	 * along the perimeter of the target. Possible values are 0 (false) and
-	 * 1 (true). Default is 1 (true). Value is <code>entryPerimeter</code>.
+	 * 1 (true). Default is 1 (true). Value is "entryPerimeter".
 	 */
 	STYLE_ENTRY_PERIMETER: 'entryPerimeter',
 
@@ -839,7 +839,7 @@
 	 * 'nowrap' means the text will never wrap to the next line until a
 	 * linefeed is encountered. A value of 'wrap' means text will wrap when
 	 * necessary. This style is only used for HTML labels.
-	 * See <mxGraph.isWrapping>. Value is <code>whiteSpace</code>.
+	 * See <mxGraph.isWrapping>. Value is "whiteSpace".
 	 */
 	STYLE_WHITE_SPACE: 'whiteSpace',
 
@@ -847,7 +847,7 @@
 	 * Variable: STYLE_ROTATION
 	 * 
 	 * Defines the key for the rotation style. The type of the value is 
-	 * numeric and the possible range is 0-360. Value is <code>rotation</code>.
+	 * numeric and the possible range is 0-360. Value is "rotation".
 	 */
 	STYLE_ROTATION: 'rotation',
 
@@ -857,7 +857,7 @@
 	 * Defines the key for the fill color. Possible values are all HTML color
 	 * names or HEX codes, as well as special keywords such as 'swimlane,
 	 * 'inherit' or 'indicated' to use the color code of a related cell or the
-	 * indicator shape. Value is <code>fillColor</code>.
+	 * indicator shape. Value is "fillColor".
 	 */
 	STYLE_FILLCOLOR: 'fillColor',
 
@@ -866,7 +866,7 @@
 	 * 
 	 * Specifies if pointer events should be fired on transparent backgrounds.
 	 * This style is currently only supported in <mxRectangleShape>. Default
-	 * is true. Value is <code>pointerEvents</code>. This is typically set to
+	 * is true. Value is "pointerEvents". This is typically set to
 	 * false in groups where the transparent part should allow any underlying
 	 * cells to be clickable.
 	 */
@@ -877,7 +877,7 @@
 	 * 
 	 * Defines the key for the fill color of the swimlane background. Possible
 	 * values are all HTML color names or HEX codes. Default is no background.
-	 * Value is <code>swimlaneFillColor</code>.
+	 * Value is "swimlaneFillColor".
 	 */
 	STYLE_SWIMLANE_FILLCOLOR: 'swimlaneFillColor',
 
@@ -885,7 +885,7 @@
 	 * Variable: STYLE_MARGIN
 	 * 
 	 * Defines the key for the margin between the ellipses in the double ellipse shape.
-	 * Possible values are all positive numbers. Value is <code>margin</code>.
+	 * Possible values are all positive numbers. Value is "margin".
 	 */
 	STYLE_MARGIN: 'margin',
 
@@ -896,7 +896,7 @@
 	 * names or HEX codes, as well as special keywords such as 'swimlane,
 	 * 'inherit' or 'indicated' to use the color code of a related cell or the
 	 * indicator shape. This is ignored if no fill color is defined. Value is
-	 * <code>gradientColor</code>.
+	 * "gradientColor".
 	 */
 	STYLE_GRADIENTCOLOR: 'gradientColor',
 
@@ -910,7 +910,7 @@
 	 * <STYLE_FILLCOLOR> to the value of <STYLE_GRADIENTCOLOR>. Taking the
 	 * example of <DIRECTION_NORTH>, this means <STYLE_FILLCOLOR> color at the 
 	 * bottom of paint pattern and <STYLE_GRADIENTCOLOR> at top, with a
-	 * gradient in-between. Value is <code>gradientDirection</code>.
+	 * gradient in-between. Value is "gradientDirection".
 	 */
 	STYLE_GRADIENT_DIRECTION: 'gradientDirection',
 
@@ -920,7 +920,7 @@
 	 * Defines the key for the strokeColor style. Possible values are all HTML
 	 * color names or HEX codes, as well as special keywords such as 'swimlane,
 	 * 'inherit', 'indicated' to use the color code of a related cell or the
-	 * indicator shape or 'none' for no color. Value is <code>strokeColor</code>.
+	 * indicator shape or 'none' for no color. Value is "strokeColor".
 	 */
 	STYLE_STROKECOLOR: 'strokeColor',
 
@@ -929,7 +929,7 @@
 	 * 
 	 * Defines the key for the separatorColor style. Possible values are all
 	 * HTML color names or HEX codes. This style is only used for
-	 * <SHAPE_SWIMLANE> shapes. Value is <code>separatorColor</code>.
+	 * <SHAPE_SWIMLANE> shapes. Value is "separatorColor".
 	 */
 	STYLE_SEPARATORCOLOR: 'separatorColor',
 
@@ -939,7 +939,7 @@
 	 * Defines the key for the strokeWidth style. The type of the value is 
 	 * numeric and the possible range is any non-negative value larger or equal
 	 * to 1. The value defines the stroke width in pixels. Note: To hide a
-	 * stroke use strokeColor none. Value is <code>strokeWidth</code>.
+	 * stroke use strokeColor none. Value is "strokeWidth".
 	 */
 	STYLE_STROKEWIDTH: 'strokeWidth',
 
@@ -954,7 +954,7 @@
 	 * are aligned in the center of the label bounds. Note this value doesn't
 	 * affect the positioning of the overall label bounds relative to the
 	 * vertex, to move the label bounds horizontally, use
-	 * <STYLE_LABEL_POSITION>. Value is <code>align</code>.
+	 * <STYLE_LABEL_POSITION>. Value is "align".
 	 */
 	STYLE_ALIGN: 'align',
 
@@ -971,7 +971,7 @@
 	 * bounds and the bottom-most text label line and the bottom of the label
 	 * bounds. Note this value doesn't affect the positioning of the overall
 	 * label bounds relative to the vertex, to move the label bounds
-	 * vertically, use <STYLE_VERTICAL_LABEL_POSITION>. Value is <code>verticalAlign</code>.
+	 * vertically, use <STYLE_VERTICAL_LABEL_POSITION>. Value is "verticalAlign".
 	 */
 	STYLE_VERTICAL_ALIGN: 'verticalAlign',
 
@@ -979,7 +979,7 @@
 	 * Variable: STYLE_LABEL_WIDTH
 	 * 
 	 * Defines the key for the width of the label if the label position is not
-	 * center. Value is <code>labelWidth</code>.
+	 * center. Value is "labelWidth".
 	 */
 	STYLE_LABEL_WIDTH: 'labelWidth',
 
@@ -995,7 +995,7 @@
 	 * vertically aligned with the bounds of the vertex. Note this value
 	 * doesn't affect the positioning of label within the label bounds, to move
 	 * the label horizontally within the label bounds, use <STYLE_ALIGN>.
-	 * Value is <code>labelPosition</code>.
+	 * Value is "labelPosition".
 	 */
 	STYLE_LABEL_POSITION: 'labelPosition',
 
@@ -1011,7 +1011,7 @@
 	 * horizontally aligned with the bounds of the vertex. Note this value
 	 * doesn't affect the positioning of label within the label bounds, to move
 	 * the label vertically within the label bounds, use
-	 * <STYLE_VERTICAL_ALIGN>. Value is <code>verticalLabelPosition</code>.
+	 * <STYLE_VERTICAL_ALIGN>. Value is "verticalLabelPosition".
 	 */
 	STYLE_VERTICAL_LABEL_POSITION: 'verticalLabelPosition',
 	
@@ -1020,7 +1020,7 @@
 	 * 
 	 * Defines the key for the image aspect style. Possible values are 0 (do
 	 * not preserve aspect) or 1 (keep aspect). This is only used in
-	 * <mxImageShape>. Default is 1. Value is <code>imageAspect</code>.
+	 * <mxImageShape>. Default is 1. Value is "imageAspect".
 	 */
 	STYLE_IMAGE_ASPECT: 'imageAspect',
 
@@ -1030,7 +1030,7 @@
 	 * Defines the key for the align style. Possible values are <ALIGN_LEFT>,
 	 * <ALIGN_CENTER> and <ALIGN_RIGHT>. The value defines how any image in the
 	 * vertex label is aligned horizontally within the label bounds of a
-	 * <SHAPE_LABEL> shape. Value is <code>imageAlign</code>.
+	 * <SHAPE_LABEL> shape. Value is "imageAlign".
 	 */
 	STYLE_IMAGE_ALIGN: 'imageAlign',
 
@@ -1040,7 +1040,7 @@
 	 * Defines the key for the verticalAlign style. Possible values are
 	 * <ALIGN_TOP>, <ALIGN_MIDDLE> and <ALIGN_BOTTOM>. The value defines how
 	 * any image in the vertex label is aligned vertically within the label
-	 * bounds of a <SHAPE_LABEL> shape. Value is <code>imageVerticalAlign</code>.
+	 * bounds of a <SHAPE_LABEL> shape. Value is "imageVerticalAlign".
 	 */
 	STYLE_IMAGE_VERTICAL_ALIGN: 'imageVerticalAlign',
 
@@ -1049,7 +1049,7 @@
 	 * 
 	 * Defines the key for the glass style. Possible values are 0 (disabled) and
 	 * 1(enabled). The default value is 0. This is used in <mxLabel>. Value is
-	 * <code>glass</code>.
+	 * "glass".
 	 */
 	STYLE_GLASS: 'glass',
 
@@ -1061,7 +1061,7 @@
 	 * that is to be displayed within the label of a vertex. Data URLs should
 	 * use the following format: data:image/png,xyz where xyz is the base64
 	 * encoded data (without the "base64"-prefix). Note that Data URLs are only
-	 * supported in modern browsers. Value is <code>image</code>.
+	 * supported in modern browsers. Value is "image".
 	 */
 	STYLE_IMAGE: 'image',
 
@@ -1070,7 +1070,7 @@
 	 * 
 	 * Defines the key for the imageWidth style. The type of this value is
 	 * int, the value is the image width in pixels and must be greater than 0.
-	 * Value is <code>imageWidth</code>.
+	 * Value is "imageWidth".
 	 */
 	STYLE_IMAGE_WIDTH: 'imageWidth',
 
@@ -1079,7 +1079,7 @@
 	 * 
 	 * Defines the key for the imageHeight style. The type of this value is
 	 * int, the value is the image height in pixels and must be greater than 0.
-	 * Value is <code>imageHeight</code>.
+	 * Value is "imageHeight".
 	 */
 	STYLE_IMAGE_HEIGHT: 'imageHeight',
 
@@ -1088,7 +1088,7 @@
 	 * 
 	 * Defines the key for the image background color. This style is only used
 	 * in <mxImageShape>. Possible values are all HTML color names or HEX
-	 * codes. Value is <code>imageBackground</code>.
+	 * codes. Value is "imageBackground".
 	 */
 	STYLE_IMAGE_BACKGROUND: 'imageBackground',
 
@@ -1097,7 +1097,7 @@
 	 * 
 	 * Defines the key for the image border color. This style is only used in
 	 * <mxImageShape>. Possible values are all HTML color names or HEX codes.
-	 * Value is <code>imageBorder</code>.
+	 * Value is "imageBorder".
 	 */
 	STYLE_IMAGE_BORDER: 'imageBorder',
 
@@ -1106,7 +1106,7 @@
 	 * 
 	 * Defines the key for the horizontal image flip. This style is only used
 	 * in <mxImageShape>. Possible values are 0 and 1. Default is 0. Value is
-	 * <code>flipH</code>.
+	 * "flipH".
 	 */
 	STYLE_FLIPH: 'flipH',
 
@@ -1114,7 +1114,7 @@
 	 * Variable: STYLE_FLIPV
 	 * 
 	 * Defines the key for the vertical flip. Possible values are 0 and 1.
-	 * Default is 0. Value is <code>flipV</code>.
+	 * Default is 0. Value is "flipV".
 	 */
 	STYLE_FLIPV: 'flipV',
 
@@ -1123,7 +1123,7 @@
 	 * 
 	 * Defines the key for the noLabel style. If this is true then no label is
 	 * visible for a given cell. Possible values are true or false (1 or 0).
-	 * Default is false. Value is <code>noLabel</code>.
+	 * Default is false. Value is "noLabel".
 	 */
 	STYLE_NOLABEL: 'noLabel',
 
@@ -1132,7 +1132,7 @@
 	 * 
 	 * Defines the key for the noEdgeStyle style. If this is true then no edge
 	 * style is applied for a given edge. Possible values are true or false
-	 * (1 or 0). Default is false. Value is <code>noEdgeStyle</code>.
+	 * (1 or 0). Default is false. Value is "noEdgeStyle".
 	 */
 	STYLE_NOEDGESTYLE: 'noEdgeStyle',
 
@@ -1140,7 +1140,7 @@
 	 * Variable: STYLE_LABEL_BACKGROUNDCOLOR
 	 * 
 	 * Defines the key for the label background color. Possible values are all
-	 * HTML color names or HEX codes. Value is <code>labelBackgroundColor</code>.
+	 * HTML color names or HEX codes. Value is "labelBackgroundColor".
 	 */
 	STYLE_LABEL_BACKGROUNDCOLOR: 'labelBackgroundColor',
 
@@ -1148,7 +1148,7 @@
 	 * Variable: STYLE_LABEL_BORDERCOLOR
 	 * 
 	 * Defines the key for the label border color. Possible values are all
-	 * HTML color names or HEX codes. Value is <code>labelBorderColor</code>.
+	 * HTML color names or HEX codes. Value is "labelBorderColor".
 	 */
 	STYLE_LABEL_BORDERCOLOR: 'labelBorderColor',
 
@@ -1156,7 +1156,7 @@
 	 * Variable: STYLE_LABEL_PADDING
 	 * 
 	 * Defines the key for the label padding, ie. the space between the label
-	 * border and the label. Value is <code>labelPadding</code>.
+	 * border and the label. Value is "labelPadding".
 	 */
 	STYLE_LABEL_PADDING: 'labelPadding',
 
@@ -1166,7 +1166,7 @@
 	 * Defines the key for the indicator shape used within an <mxLabel>.
 	 * Possible values are all SHAPE_* constants or the names of any new
 	 * shapes. The indicatorShape has precedence over the indicatorImage.
-	 * Value is <code>indicatorShape</code>.
+	 * Value is "indicatorShape".
 	 */
 	STYLE_INDICATOR_SHAPE: 'indicatorShape',
 
@@ -1175,7 +1175,7 @@
 	 * 
 	 * Defines the key for the indicator image used within an <mxLabel>.
 	 * Possible values are all image URLs. The indicatorShape has
-	 * precedence over the indicatorImage. Value is <code>indicatorImage</code>.
+	 * precedence over the indicatorImage. Value is "indicatorImage".
 	 */
 	STYLE_INDICATOR_IMAGE: 'indicatorImage',
 
@@ -1185,7 +1185,7 @@
 	 * Defines the key for the indicatorColor style. Possible values are all
 	 * HTML color names or HEX codes, as well as the special 'swimlane' keyword
 	 * to refer to the color of the parent swimlane if one exists. Value is
-	 * <code>indicatorColor</code>.
+	 * "indicatorColor".
 	 */
 	STYLE_INDICATOR_COLOR: 'indicatorColor',
 
@@ -1193,7 +1193,7 @@
 	 * Variable: STYLE_INDICATOR_STROKECOLOR
 	 * 
 	 * Defines the key for the indicator stroke color in <mxLabel>.
-	 * Possible values are all color codes. Value is <code>indicatorStrokeColor</code>.
+	 * Possible values are all color codes. Value is "indicatorStrokeColor".
 	 */
 	STYLE_INDICATOR_STROKECOLOR: 'indicatorStrokeColor',
 
@@ -1202,7 +1202,7 @@
 	 * 
 	 * Defines the key for the indicatorGradientColor style. Possible values
 	 * are all HTML color names or HEX codes. This style is only supported in
-	 * <SHAPE_LABEL> shapes. Value is <code>indicatorGradientColor</code>.
+	 * <SHAPE_LABEL> shapes. Value is "indicatorGradientColor".
 	 */
 	STYLE_INDICATOR_GRADIENTCOLOR: 'indicatorGradientColor',
 
@@ -1211,7 +1211,7 @@
 	 * 
 	 * The defines the key for the spacing between the label and the
 	 * indicator in <mxLabel>. Possible values are in pixels. Value is
-	 * <code>indicatorSpacing</code>.
+	 * "indicatorSpacing".
 	 */
 	STYLE_INDICATOR_SPACING: 'indicatorSpacing',
 
@@ -1219,7 +1219,7 @@
 	 * Variable: STYLE_INDICATOR_WIDTH
 	 * 
 	 * Defines the key for the indicator width. Possible values start at 0 (in
-	 * pixels). Value is <code>indicatorWidth</code>.
+	 * pixels). Value is "indicatorWidth".
 	 */
 	STYLE_INDICATOR_WIDTH: 'indicatorWidth',
 
@@ -1227,7 +1227,7 @@
 	 * Variable: STYLE_INDICATOR_HEIGHT
 	 * 
 	 * Defines the key for the indicator height. Possible values start at 0 (in
-	 * pixels). Value is <code>indicatorHeight</code>.
+	 * pixels). Value is "indicatorHeight".
 	 */
 	STYLE_INDICATOR_HEIGHT: 'indicatorHeight',
 
@@ -1237,7 +1237,7 @@
 	 * Defines the key for the indicatorDirection style. The direction style is
 	 * used to specify the direction of certain shapes (eg. <mxTriangle>).
 	 * Possible values are <DIRECTION_EAST> (default), <DIRECTION_WEST>,
-	 * <DIRECTION_NORTH> and <DIRECTION_SOUTH>. Value is <code>indicatorDirection</code>.
+	 * <DIRECTION_NORTH> and <DIRECTION_SOUTH>. Value is "indicatorDirection".
 	 */
 	STYLE_INDICATOR_DIRECTION: 'indicatorDirection',
 
@@ -1245,7 +1245,7 @@
 	 * Variable: STYLE_SHADOW
 	 * 
 	 * Defines the key for the shadow style. The type of the value is Boolean.
-	 * Value is <code>shadow</code>.
+	 * Value is "shadow".
 	 */
 	STYLE_SHADOW: 'shadow',
 	
@@ -1254,7 +1254,7 @@
 	 * 
 	 * Defines the key for the segment style. The type of this value is float
 	 * and the value represents the size of the horizontal segment of the
-	 * entity relation style. Default is ENTITY_SEGMENT. Value is <code>segment</code>.
+	 * entity relation style. Default is ENTITY_SEGMENT. Value is "segment".
 	 */
 	STYLE_SEGMENT: 'segment',
 	
@@ -1263,7 +1263,7 @@
 	 *
 	 * Defines the key for the end arrow marker. Possible values are all
 	 * constants with an ARROW-prefix. This is only used in <mxConnector>.
-	 * Value is <code>endArrow</code>.
+	 * Value is "endArrow".
 	 *
 	 * Example:
 	 * (code)
@@ -1277,7 +1277,7 @@
 	 * 
 	 * Defines the key for the start arrow marker. Possible values are all
 	 * constants with an ARROW-prefix. This is only used in <mxConnector>.
-	 * See <STYLE_ENDARROW>. Value is <code>startArrow</code>.
+	 * See <STYLE_ENDARROW>. Value is "startArrow".
 	 */
 	STYLE_STARTARROW: 'startArrow',
 
@@ -1286,7 +1286,7 @@
 	 * 
 	 * Defines the key for the endSize style. The type of this value is numeric
 	 * and the value represents the size of the end marker in pixels. Value is
-	 * <code>endSize</code>.
+	 * "endSize".
 	 */
 	STYLE_ENDSIZE: 'endSize',
 
@@ -1296,7 +1296,7 @@
 	 * Defines the key for the startSize style. The type of this value is
 	 * numeric and the value represents the size of the start marker or the
 	 * size of the swimlane title region depending on the shape it is used for.
-	 * Value is <code>startSize</code>.
+	 * Value is "startSize".
 	 */
 	STYLE_STARTSIZE: 'startSize',
 
@@ -1305,7 +1305,7 @@
 	 * 
 	 * Defines the key for the swimlaneLine style. This style specifies whether
 	 * the line between the title regio of a swimlane should be visible. Use 0
-	 * for hidden or 1 (default) for visible. Value is <code>swimlaneLine</code>.
+	 * for hidden or 1 (default) for visible. Value is "swimlaneLine".
 	 */
 	STYLE_SWIMLANE_LINE: 'swimlaneLine',
 
@@ -1314,7 +1314,7 @@
 	 * 
 	 * Defines the key for the endFill style. Use 0 for no fill or 1 (default)
 	 * for fill. (This style is only exported via <mxImageExport>.) Value is
-	 * <code>endFill</code>.
+	 * "endFill".
 	 */
 	STYLE_ENDFILL: 'endFill',
 
@@ -1323,7 +1323,7 @@
 	 * 
 	 * Defines the key for the startFill style. Use 0 for no fill or 1 (default)
 	 * for fill. (This style is only exported via <mxImageExport>.) Value is
-	 * <code>startFill</code>.
+	 * "startFill".
 	 */
 	STYLE_STARTFILL: 'startFill',
 
@@ -1331,7 +1331,7 @@
 	 * Variable: STYLE_DASHED
 	 * 
 	 * Defines the key for the dashed style. Use 0 (default) for non-dashed or 1
-	 * for dashed. Value is <code>dashed</code>.
+	 * for dashed. Value is "dashed".
 	 */
 	STYLE_DASHED: 'dashed',
 
@@ -1343,7 +1343,7 @@
 	 * space between the dashes. The lengths are relative to the line width: a
 	 * length of "1" is equal to the line width. VML ignores this style and
 	 * uses dashStyle instead as defined in the VML specification. This style
-	 * is only used in the <mxConnector> shape. Value is <code>dashPattern</code>.
+	 * is only used in the <mxConnector> shape. Value is "dashPattern".
 	 */
 	STYLE_DASH_PATTERN: 'dashPattern',
 
@@ -1355,7 +1355,7 @@
 	 * segments are smoothed to a rounded finish. For vertices that have the
 	 * rectangle shape, this determines whether or not the rectangle is
 	 * rounded. Use 0 (default) for non-rounded or 1 for rounded. Value is
-	 * <code>rounded</code>.
+	 * "rounded".
 	 */
 	STYLE_ROUNDED: 'rounded',
 
@@ -1364,7 +1364,7 @@
 	 * 
 	 * Defines the key for the curved style. The type of this value is
 	 * Boolean. It is only applicable for connector shapes. Use 0 (default)
-	 * for non-curved or 1 for curved. Value is <code>curved</code>.
+	 * for non-curved or 1 for curved. Value is "curved".
 	 */
 	STYLE_CURVED: 'curved',
 
@@ -1376,7 +1376,7 @@
 	 * is not specified then RECTANGLE_ROUNDING_FACTOR * 100 is used. For
 	 * edges, this defines the absolute size of rounded corners in pixels. If
 	 * this values is not specified then LINE_ARCSIZE is used.
-	 * (This style is only exported via <mxImageExport>.) Value is <code>arcSize</code>.
+	 * (This style is only exported via <mxImageExport>.) Value is "arcSize".
 	 */
 	STYLE_ARCSIZE: 'arcSize',
 
@@ -1385,7 +1385,7 @@
 	 * 
 	 * An experimental style for edges. This style is currently not available
 	 * in the backends and is implemented differently for VML and SVG. The use
-	 * of this style is currently only recommended for VML. Value is <code>smooth</code>.
+	 * of this style is currently only recommended for VML. Value is "smooth".
 	 */
 	STYLE_SMOOTH: 'smooth',
 
@@ -1395,7 +1395,7 @@
 	 * Defines the key for the source perimeter spacing. The type of this value
 	 * is numeric. This is the distance between the source connection point of
 	 * an edge and the perimeter of the source vertex in pixels. This style
-	 * only applies to edges. Value is <code>sourcePerimeterSpacing</code>.
+	 * only applies to edges. Value is "sourcePerimeterSpacing".
 	 */
 	STYLE_SOURCE_PERIMETER_SPACING: 'sourcePerimeterSpacing',
 
@@ -1405,7 +1405,7 @@
 	 * Defines the key for the target perimeter spacing. The type of this value
 	 * is numeric. This is the distance between the target connection point of
 	 * an edge and the perimeter of the target vertex in pixels. This style
-	 * only applies to edges. Value is <code>targetPerimeterSpacing</code>.
+	 * only applies to edges. Value is "targetPerimeterSpacing".
 	 */
 	STYLE_TARGET_PERIMETER_SPACING: 'targetPerimeterSpacing',
 
@@ -1418,7 +1418,7 @@
 	 * terminate on the perimeter of the vertex). When used in an edge style,
 	 * this spacing applies to the source and target separately, if they
 	 * terminate in floating ports (on the perimeter of the vertex). Value is
-	 * <code>perimeterSpacing</code>.
+	 * "perimeterSpacing".
 	 */
 	STYLE_PERIMETER_SPACING: 'perimeterSpacing',
 
@@ -1427,7 +1427,7 @@
 	 * 
 	 * Defines the key for the spacing. The value represents the spacing, in
 	 * pixels, added to each side of a label in a vertex (style applies to
-	 * vertices only). Value is <code>spacing</code>.
+	 * vertices only). Value is "spacing".
 	 */
 	STYLE_SPACING: 'spacing',
 
@@ -1436,7 +1436,7 @@
 	 * 
 	 * Defines the key for the spacingTop style. The value represents the
 	 * spacing, in pixels, added to the top side of a label in a vertex (style
-	 * applies to vertices only). Value is <code>spacingTop</code>.
+	 * applies to vertices only). Value is "spacingTop".
 	 */
 	STYLE_SPACING_TOP: 'spacingTop',
 
@@ -1445,7 +1445,7 @@
 	 * 
 	 * Defines the key for the spacingLeft style. The value represents the
 	 * spacing, in pixels, added to the left side of a label in a vertex (style
-	 * applies to vertices only). Value is <code>spacingLeft</code>.
+	 * applies to vertices only). Value is "spacingLeft".
 	 */
 	STYLE_SPACING_LEFT: 'spacingLeft',
 
@@ -1454,7 +1454,7 @@
 	 * 
 	 * Defines the key for the spacingBottom style The value represents the
 	 * spacing, in pixels, added to the bottom side of a label in a vertex
-	 * (style applies to vertices only). Value is <code>spacingBottom</code>.
+	 * (style applies to vertices only). Value is "spacingBottom".
 	 */
 	STYLE_SPACING_BOTTOM: 'spacingBottom',
 
@@ -1463,7 +1463,7 @@
 	 * 
 	 * Defines the key for the spacingRight style The value represents the
 	 * spacing, in pixels, added to the right side of a label in a vertex (style
-	 * applies to vertices only). Value is <code>spacingRight</code>.
+	 * applies to vertices only). Value is "spacingRight".
 	 */
 	STYLE_SPACING_RIGHT: 'spacingRight',
 
@@ -1472,11 +1472,11 @@
 	 * 
 	 * Defines the key for the horizontal style. Possible values are
 	 * true or false. This value only applies to vertices. If the <STYLE_SHAPE>
-	 * is <code>SHAPE_SWIMLANE</code> a value of false indicates that the
+	 * is "SHAPE_SWIMLANE" a value of false indicates that the
 	 * swimlane should be drawn vertically, true indicates to draw it
 	 * horizontally. If the shape style does not indicate that this vertex is a
 	 * swimlane, this value affects only whether the label is drawn
-	 * horizontally or vertically. Value is <code>horizontal</code>.
+	 * horizontally or vertically. Value is "horizontal".
 	 */
 	STYLE_HORIZONTAL: 'horizontal',
 
@@ -1486,7 +1486,7 @@
 	 * Defines the key for the direction style. The direction style is used
 	 * to specify the direction of certain shapes (eg. <mxTriangle>).
 	 * Possible values are <DIRECTION_EAST> (default), <DIRECTION_WEST>,
-	 * <DIRECTION_NORTH> and <DIRECTION_SOUTH>. Value is <code>direction</code>.
+	 * <DIRECTION_NORTH> and <DIRECTION_SOUTH>. Value is "direction".
 	 */
 	STYLE_DIRECTION: 'direction',
 
@@ -1497,7 +1497,7 @@
 	 * <ELBOW_HORIZONTAL> and <ELBOW_VERTICAL>. Default is <ELBOW_HORIZONTAL>.
 	 * This defines how the three segment orthogonal edge style leaves its
 	 * terminal vertices. The vertical style leaves the terminal vertices at
-	 * the top and bottom sides. Value is <code>elbow</code>.
+	 * the top and bottom sides. Value is "elbow".
 	 */
 	STYLE_ELBOW: 'elbow',
 
@@ -1505,7 +1505,7 @@
 	 * Variable: STYLE_FONTCOLOR
 	 * 
 	 * Defines the key for the fontColor style. Possible values are all HTML
-	 * color names or HEX codes. Value is <code>fontColor</code>.
+	 * color names or HEX codes. Value is "fontColor".
 	 */
 	STYLE_FONTCOLOR: 'fontColor',
 
@@ -1522,7 +1522,7 @@
 	 * Variable: STYLE_FONTSIZE
 	 * 
 	 * Defines the key for the fontSize style (in points). The type of the value
-	 * is int. Value is <code>fontSize</code>.
+	 * is int. Value is "fontSize".
 	 */
 	STYLE_FONTSIZE: 'fontSize',
 
@@ -1531,7 +1531,7 @@
 	 * 
 	 * Defines the key for the fontStyle style. Values may be any logical AND
 	 * (sum) of <FONT_BOLD>, <FONT_ITALIC> and <FONT_UNDERLINE>.
-	 * The type of the value is int. Value is <code>fontStyle</code>.
+	 * The type of the value is int. Value is "fontStyle".
 	 */
 	STYLE_FONTSTYLE: 'fontStyle',
 	
@@ -1540,7 +1540,7 @@
 	 * 
 	 * Defines the key for the aspect style. Possible values are empty or fixed.
 	 * If fixed is used then the aspect ratio of the cell will be maintained
-	 * when resizing. Default is empty. Value is <code>aspect</code>.
+	 * when resizing. Default is empty. Value is "aspect".
 	 */
 	STYLE_ASPECT: 'aspect',
 
@@ -1550,7 +1550,7 @@
 	 * Defines the key for the autosize style. This specifies if a cell should be
 	 * resized automatically if the value has changed. Possible values are 0 or 1.
 	 * Default is 0. See <mxGraph.isAutoSizeCell>. This is normally combined with
-	 * <STYLE_RESIZABLE> to disable manual sizing. Value is <code>autosize</code>.
+	 * <STYLE_RESIZABLE> to disable manual sizing. Value is "autosize".
 	 */
 	STYLE_AUTOSIZE: 'autosize',
 
@@ -1559,7 +1559,7 @@
 	 * 
 	 * Defines the key for the foldable style. This specifies if a cell is foldable
 	 * using a folding icon. Possible values are 0 or 1. Default is 1. See
-	 * <mxGraph.isCellFoldable>. Value is <code>foldable</code>.
+	 * <mxGraph.isCellFoldable>. Value is "foldable".
 	 */
 	STYLE_FOLDABLE: 'foldable',
 
@@ -1568,7 +1568,7 @@
 	 * 
 	 * Defines the key for the editable style. This specifies if the value of
 	 * a cell can be edited using the in-place editor. Possible values are 0 or
-	 * 1. Default is 1. See <mxGraph.isCellEditable>. Value is <code>editable</code>.
+	 * 1. Default is 1. See <mxGraph.isCellEditable>. Value is "editable".
 	 */
 	STYLE_EDITABLE: 'editable',
 
@@ -1577,7 +1577,7 @@
 	 * 
 	 * Defines the key for the bendable style. This specifies if the control
 	 * points of an edge can be moved. Possible values are 0 or 1. Default is
-	 * 1. See <mxGraph.isCellBendable>. Value is <code>bendable</code>.
+	 * 1. See <mxGraph.isCellBendable>. Value is "bendable".
 	 */
 	STYLE_BENDABLE: 'bendable',
 
@@ -1586,7 +1586,7 @@
 	 * 
 	 * Defines the key for the movable style. This specifies if a cell can
 	 * be moved. Possible values are 0 or 1. Default is 1. See
-	 * <mxGraph.isCellMovable>. Value is <code>movable</code>.
+	 * <mxGraph.isCellMovable>. Value is "movable".
 	 */
 	STYLE_MOVABLE: 'movable',
 
@@ -1595,7 +1595,7 @@
 	 * 
 	 * Defines the key for the resizable style. This specifies if a cell can
 	 * be resized. Possible values are 0 or 1. Default is 1. See
-	 * <mxGraph.isCellResizable>. Value is <code>resizable</code>.
+	 * <mxGraph.isCellResizable>. Value is "resizable".
 	 */
 	STYLE_RESIZABLE: 'resizable',
 
@@ -1604,7 +1604,7 @@
 	 * 
 	 * Defines the key for the rotatable style. This specifies if a cell can
 	 * be rotated. Possible values are 0 or 1. Default is 1. See
-	 * <mxGraph.isCellRotatable>. Value is <code>rotatable</code>.
+	 * <mxGraph.isCellRotatable>. Value is "rotatable".
 	 */
 	STYLE_ROTATABLE: 'rotatable',
 
@@ -1613,7 +1613,7 @@
 	 * 
 	 * Defines the key for the cloneable style. This specifies if a cell can
 	 * be cloned. Possible values are 0 or 1. Default is 1. See
-	 * <mxGraph.isCellCloneable>. Value is <code>cloneable</code>.
+	 * <mxGraph.isCellCloneable>. Value is "cloneable".
 	 */
 	STYLE_CLONEABLE: 'cloneable',
 
@@ -1622,7 +1622,7 @@
 	 * 
 	 * Defines the key for the deletable style. This specifies if a cell can be
 	 * deleted. Possible values are 0 or 1. Default is 1. See
-	 * <mxGraph.isCellDeletable>. Value is <code>deletable</code>.
+	 * <mxGraph.isCellDeletable>. Value is "deletable".
 	 */
 	STYLE_DELETABLE: 'deletable',
 
@@ -1630,7 +1630,7 @@
 	 * Variable: STYLE_SHAPE
 	 * 
 	 * Defines the key for the shape. Possible values are all constants with
-	 * a SHAPE-prefix or any newly defined shape names. Value is <code>shape</code>.
+	 * a SHAPE-prefix or any newly defined shape names. Value is "shape".
 	 */
 	STYLE_SHAPE: 'shape',
 
@@ -1638,7 +1638,7 @@
 	 * Variable: STYLE_EDGE
 	 * 
 	 * Defines the key for the edge style. Possible values are the functions
-	 * defined in <mxEdgeStyle>. Value is <code>edgeStyle</code>.
+	 * defined in <mxEdgeStyle>. Value is "edgeStyle".
 	 */
 	STYLE_EDGE: 'edgeStyle',
 
@@ -1646,7 +1646,7 @@
 	 * Variable: STYLE_LOOP
 	 * 
 	 * Defines the key for the loop style. Possible values are the functions
-	 * defined in <mxEdgeStyle>. Value is <code>loopStyle</code>.
+	 * defined in <mxEdgeStyle>. Value is "loopStyle".
 	 */
 	STYLE_LOOP: 'loopStyle',
 
@@ -1656,7 +1656,7 @@
 	 * Defines the key for the horizontal routing center. Possible values are
 	 * between -0.5 and 0.5. This is the relative offset from the center used
 	 * for connecting edges. The type of this value is numeric. Value is
-	 * <code>routingCenterX</code>.
+	 * "routingCenterX".
 	 */
 	STYLE_ROUTING_CENTER_X: 'routingCenterX',
 
@@ -1666,7 +1666,7 @@
 	 * Defines the key for the vertical routing center. Possible values are
 	 * between -0.5 and 0.5. This is the relative offset from the center used
 	 * for connecting edges. The type of this value is numeric. Value is
-	 * <code>routingCenterY</code>.
+	 * "routingCenterY".
 	 */
 	STYLE_ROUTING_CENTER_Y: 'routingCenterY',
 

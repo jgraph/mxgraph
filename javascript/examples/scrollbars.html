@@ -1,5 +1,5 @@
 <!--
-  Copyright (c) 2006-2013, JGraph Ltd
+  Copyright (c) 2006-2015, JGraph Ltd
   
   Scrollbars example for mxGraph. This example demonstrates using
   a scrollable table with different sections in a cell label.
@@ -38,7 +38,6 @@
 			text-align: left;
 			color: black;
 		}
-		
 		button {
 			position:absolute;
 		}
@@ -70,6 +69,9 @@
 				// Must be disabled to compute positions inside the DOM tree of the cell label.
 				mxGraphView.prototype.optimizeVmlReflows = false;
 				
+				// Enables faster rendering and maintains scrollbar locations
+				mxText.prototype.cacheEnabled = true;
+				
 				// If connect preview is not moved away then getCellAt is used to detect the cell under
 				// the mouse if the mouse is over the preview shape in IE (no event transparency), ie.
 				// the built-in hit-detection of the HTML document will not be used in this case. This is
@@ -99,52 +101,6 @@
 				
 				// Disables the context menu
 				mxEvent.disableContextMenu(container);
-				
-				// Workaround for lost scrollbar state
-				var mxTextRedraw = mxText.prototype.redraw;
-				mxText.prototype.redraw = function()
-				{
-					var top = null;
-					var left = null;
-					
-					if (this.node != null)
-					{
-						var divs = this.node.getElementsByTagName('div');
-						
-						if (divs.length > 0)
-						{
-							var div = divs[0];
-							
-							if (div != null)
-							{
-								top = div.scrollTop;
-								left = div.scrollLeft;
-							}
-						}
-					}
-					
-					mxTextRedraw.apply(this, arguments);
-					
-					if (this.node != null && top != null && left != null)
-					{
-						var divs = this.node.getElementsByTagName('div');
-						
-						if (divs.length > 0)
-						{
-							var div = divs[0];
-							
-							if (div != null)
-							{
-								window.setTimeout(function()
-								{
-							 		div.scrollTop = top;
-							 		div.scrollLeft = left;
-								}, 0);
-							}
-						}
-					}
-				};
-				
 
 				// Overrides target perimeter point for connection previews
 				mxConnectionHandler.prototype.getTargetPerimeterPoint = function(state, me)
@@ -523,7 +479,7 @@
 				
 				if (mxUtils.isNode(edge.cell.value) && !this.graph.isCellCollapsed(start.cell))
 				{
-					var attr = (source) ? "sourceRow" : "targetRow";
+					var attr = (source) ? 'sourceRow' : 'targetRow';
 					var row = parseInt(edge.cell.value.getAttribute(attr));
 			
 					// HTML labels contain an outer table which is built-in

@@ -115,32 +115,27 @@ Actions.prototype.init = function()
 	
 	this.addAction('delete', function()
 	{
-		// Handles special case where delete is pressed while connecting
-		if (graph.connectionHandler.isConnecting())
+		// Cancels interactive operations
+		graph.escape();
+		
+		var cells = graph.getSelectionCells();
+		var parents = graph.model.getParents(cells);
+		graph.removeCells(cells);
+		
+		// Selects parents for easier editing of groups
+		if (parents != null)
 		{
-			graph.connectionHandler.reset();
-		}
-		else
-		{
-			var cells = graph.getSelectionCells();
-			var parents = graph.model.getParents(cells);
-			graph.removeCells(cells);
+			var select = [];
 			
-			// Selects parents for easier editing of groups
-			if (parents != null)
+			for (var i = 0; i < parents.length; i++)
 			{
-				var select = [];
-				
-				for (var i = 0; i < parents.length; i++)
+				if (graph.model.isVertex(parents[i]) || graph.model.isEdge(parents[i]))
 				{
-					if (graph.model.isVertex(parents[i]) || graph.model.isEdge(parents[i]))
-					{
-						select.push(parents[i]);
-					}
+					select.push(parents[i]);
 				}
-				
-				graph.setSelectionCells(select);
 			}
+			
+			graph.setSelectionCells(select);
 		}
 	}, null, null, 'Delete');
 	this.addAction('duplicate', function()
@@ -419,14 +414,8 @@ Actions.prototype.init = function()
 		graph.zoomTo(1);
 		ui.resetScrollbars();
 	}, null, null, 'Ctrl+0');
-	this.addAction('zoomIn', function()
-	{
-		graph.fastZoom(graph.zoomFactor);
-	}, null, null, 'Ctrl +');
-	this.addAction('zoomOut', function()
-	{
-		graph.fastZoom(1 / graph.zoomFactor);
-	}, null, null, 'Ctrl -');
+	this.addAction('zoomIn', function(evt) { graph.zoomIn(); }, null, null, 'Ctrl + / Alt+Scroll');
+	this.addAction('zoomOut', function(evt) { graph.zoomOut(); }, null, null, 'Ctrl - / Alt+Scroll');
 	this.addAction('fitWindow', function() { graph.fit(); }, null, null, 'Ctrl+1');
 	this.addAction('fitPage', mxUtils.bind(this, function()
 	{
@@ -533,7 +522,7 @@ Actions.prototype.init = function()
 	action.setToggleAction(true);
 	action.setSelectedCallback(function() { return graph.tooltipHandler.isEnabled(); });
 	
-	action = this.addAction('collapse-expand', function()
+	action = this.addAction('collapseExpand', function()
 	{
 		ui.setFoldingEnabled(!graph.foldingEnabled);
 	});
@@ -906,7 +895,7 @@ Actions.prototype.init = function()
 				}
 			});
 			
-			ui.showDialog(dlg.container, 320, 90, true, true);
+			ui.showDialog(dlg.container, 420, 90, true, true);
 			dlg.init();
 		}
 	}).isEnabled = isGraphEnabled;

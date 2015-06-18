@@ -150,8 +150,15 @@ mxUtils.extend(mxSvgCanvas2D, mxAbstractCanvas2D);
 	{
 		// Checks using a generic test text if the parsing actually works. This is a workaround
 		// for older browsers where the capability check returns true but the parsing fails.
-		var doc = new DOMParser().parseFromString('test text', 'text/html');
-		mxSvgCanvas2D.prototype.useDomParser = doc != null;
+		try
+		{
+			var doc = new DOMParser().parseFromString('test text', 'text/html');
+			mxSvgCanvas2D.prototype.useDomParser = doc != null;
+		}
+		catch (e)
+		{
+			mxSvgCanvas2D.prototype.useDomParser = false;
+		}
 	}
 })();
 
@@ -219,9 +226,9 @@ mxSvgCanvas2D.prototype.blockImagePointerEvents = false;
 /**
  * Variable: lineHeightCorrection
  * 
- * Correction factor for <mxConstants.LINE_HEIGHT> in HTML output. Default is 1.05.
+ * Correction factor for <mxConstants.LINE_HEIGHT> in HTML output. Default is 1.
  */
-mxSvgCanvas2D.prototype.lineHeightCorrection = 1.05;
+mxSvgCanvas2D.prototype.lineHeightCorrection = 1;
 
 /**
  * Variable: pointerEventsValue
@@ -1209,6 +1216,166 @@ mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, overflow
 };
 
 /**
+ * Updates existing DOM nodes for text rendering. LATER: Merge common parts with text function below.
+ */
+mxSvgCanvas2D.prototype.updateText = function(x, y, w, h, align, valign, wrap, overflow, clip, rotation, node)
+{
+	if (node != null && node.firstChild != null && node.firstChild.firstChild != null &&
+		node.firstChild.firstChild.firstChild != null)
+	{
+		// Uses outer group for opacity and transforms to
+		// fix rendering order in Chrome
+		var group = node.firstChild;
+		var fo = group.firstChild;
+		var div = fo.firstChild;
+
+		rotation = (rotation != null) ? rotation : 0;
+		
+		var s = this.state;
+		x += s.dx;
+		y += s.dy;
+		
+		if (clip)
+		{
+			div.style.maxHeight = Math.round(h) + 'px';
+			div.style.maxWidth = Math.round(w) + 'px';
+		}
+		else if (overflow == 'fill')
+		{
+			div.style.width = Math.round(w) + 'px';
+			div.style.height = Math.round(h) + 'px';
+		}
+		else if (overflow == 'width')
+		{
+			div.style.width = Math.round(w) + 'px';
+			
+			if (h > 0)
+			{
+				div.style.maxHeight = Math.round(h) + 'px';
+			}
+		}
+
+		if (wrap && w > 0)
+		{
+			div.style.width = Math.round(w) + 'px';
+		}
+		
+		// Code that depends on the size which is computed after
+		// the element was added to the DOM.
+		var ow = 0;
+		var oh = 0;
+		
+		// Padding avoids clipping on border and wrapping for differing font metrics on platforms
+		var padX = 2;
+		var padY = 2;
+
+		var sizeDiv = div;
+		
+		if (sizeDiv.firstChild != null && sizeDiv.firstChild.nodeName == 'DIV')
+		{
+			sizeDiv = sizeDiv.firstChild;
+		}
+		
+		var tmp = sizeDiv.offsetWidth;
+		ow = tmp + padX;
+
+		// Recomputes the height of the element for wrapped width
+		if (wrap && overflow != 'fill')
+		{
+			if (clip)
+			{
+				ow = Math.min(ow, w);
+			}
+			
+			div.style.width = ow + 'px';
+		}
+
+		ow = sizeDiv.offsetWidth + padX;
+		oh = sizeDiv.offsetHeight + 2;
+
+		if (clip)
+		{
+			oh = Math.min(oh, h);
+			ow = Math.min(ow, w);
+		}
+
+		if (overflow == 'fill')
+		{
+			w = Math.max(w, ow);
+			h = Math.max(h, oh);
+		}
+		else if (overflow == 'width')
+		{
+			w = Math.max(w, ow);
+			h = oh;
+		}
+		else
+		{
+			w = ow;
+			h = oh;
+		}
+
+		var dx = 0;
+		var dy = 0;
+
+		if (align == mxConstants.ALIGN_CENTER)
+		{
+			dx -= w / 2;
+		}
+		else if (align == mxConstants.ALIGN_RIGHT)
+		{
+			dx -= w;
+		}
+		
+		x += dx;
+		
+		// FIXME: LINE_HEIGHT not ideal for all text sizes, fix for export
+		if (valign == mxConstants.ALIGN_MIDDLE)
+		{
+			dy -= h / 2 - 2;
+		}
+		else if (valign == mxConstants.ALIGN_BOTTOM)
+		{
+			dy -= h - 3;
+		}
+		
+		// Workaround for rendering offsets
+		// TODO: Check if export needs these fixes, too
+		if (overflow != 'fill' && mxClient.IS_FF && mxClient.IS_WIN)
+		{
+			dy -= 2;
+		}
+		
+		y += dy;
+
+		var tr = (s.scale != 1) ? 'scale(' + s.scale + ')' : '';
+
+		if (s.rotation != 0 && this.rotateHtml)
+		{
+			tr += 'rotate(' + (s.rotation) + ',' + (w / 2) + ',' + (h / 2) + ')';
+			var pt = this.rotatePoint((x + w / 2) * s.scale, (y + h / 2) * s.scale,
+				s.rotation, s.rotationCx, s.rotationCy);
+			x = pt.x - w * s.scale / 2;
+			y = pt.y - h * s.scale / 2;
+		}
+		else
+		{
+			x *= s.scale;
+			y *= s.scale;
+		}
+
+		if (rotation != 0)
+		{
+			tr += 'rotate(' + (rotation) + ',' + (-dx) + ',' + (-dy) + ')';
+		}
+
+		group.setAttribute('transform', 'translate(' + Math.round(x) + ',' + Math.round(y) + ')' + tr);
+		fo.setAttribute('width', Math.round(Math.max(1, w)));
+		fo.setAttribute('height', Math.round(Math.max(1, h)));
+	}
+};
+
+/**
  * Function: text
  * 
  * Paints the given text. Possible values for format are empty string for plain
@@ -1236,7 +1403,7 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			}
 			else if (overflow == 'fill')
 			{
-				style += 'width:' + Math.round(w) + 'px;height:' + Math.round(h) + 'px;';
+				style += 'width:' + Math.round(w) + 'px;height:' + Math.round(h) + 'px;overflow:hidden;';
 			}
 			else if (overflow == 'width')
 			{
@@ -1426,7 +1593,7 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				ow = tmp + padX;
 
 				// Recomputes the height of the element for wrapped width
-				if (wrap)
+				if (wrap && overflow != 'fill')
 				{
 					if (clip)
 					{
@@ -1500,15 +1667,9 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			// Workaround for rendering offsets
 			// TODO: Check if export needs these fixes, too
 			//if (this.root.ownerDocument == document)
+			if (overflow != 'fill' && mxClient.IS_FF && mxClient.IS_WIN)
 			{
-				if (!mxClient.IS_OP && mxClient.IS_GC && mxClient.IS_MAC)
-				{
-					dy += 1;
-				}
-				else if (mxClient.IS_FF && mxClient.IS_WIN)
-				{
-					dy -= 1;
-				}
+				dy -= 2;
 			}
 			
 			y += dy;

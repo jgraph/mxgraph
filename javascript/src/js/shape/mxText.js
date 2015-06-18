@@ -165,6 +165,20 @@ mxText.prototype.ignoreStringSize = false;
 mxText.prototype.textWidthPadding = (document.documentMode == 8 && !mxClient.IS_EM) ? 4 : 3;
 
 /**
+ * Variable: lastValue
+ * 
+ * Contains the last rendered text value. Used for caching.
+ */
+mxText.prototype.lastValue = null;
+
+/**
+ * Variable: cacheEnabled
+ * 
+ * Specifies if caching for HTML labels should be enabled. Default is false.
+ */
+mxText.prototype.cacheEnabled = false;
+
+/**
  * Function: isParseVml
  * 
  * Text shapes do not contain VML markup and do not need to be parsed. This
@@ -203,8 +217,114 @@ mxText.prototype.getSvgScreenOffset = function()
  */
 mxText.prototype.checkBounds = function()
 {
-	return (this.bounds != null && !isNaN(this.bounds.x) && !isNaN(this.bounds.y) &&
+	return (!isNaN(this.scale) && isFinite(this.scale) && this.scale > 0 &&
+			this.bounds != null && !isNaN(this.bounds.x) && !isNaN(this.bounds.y) &&
 			!isNaN(this.bounds.width) && !isNaN(this.bounds.height));
+};
+
+/**
+ * Function: paint
+ * 
+ * Generic rendering code.
+ */
+mxText.prototype.paint = function(c, update)
+{
+	// Scale is passed-through to canvas
+	var s = this.scale;
+	var x = this.bounds.x / s;
+	var y = this.bounds.y / s;
+	var w = this.bounds.width / s;
+	var h = this.bounds.height / s;
+	
+	this.updateTransform(c, x, y, w, h);
+	this.configureCanvas(c, x, y, w, h);
+	
+	if (update)
+	{
+		c.updateText(x, y, w, h, this.align, this.valign, this.wrap, this.overflow,
+				this.clipped, this.getTextRotation(), this.node);
+	}
+	else
+	{
+		// Checks if text contains HTML markup
+		var realHtml = mxUtils.isNode(this.value) || this.dialect == mxConstants.DIALECT_STRICTHTML;
+		
+		// Always renders labels as HTML in VML
+		var fmt = (realHtml || c instanceof mxVmlCanvas2D) ? 'html' : '';
+		var val = this.value;
+		
+		if (!realHtml && fmt == 'html')
+		{
+			val =  mxUtils.htmlEntities(val, false);
+		}
+		
+		val = (!mxUtils.isNode(this.value) && this.replaceLinefeeds && fmt == 'html') ?
+			val.replace(/\n/g, '<br/>') : val;
+			
+		var dir = this.textDirection;
+	
+		if (dir == mxConstants.TEXT_DIRECTION_AUTO && !realHtml)
+		{
+			dir = this.getAutoDirection();
+		}
+		
+		if (dir != mxConstants.TEXT_DIRECTION_LTR && dir != mxConstants.TEXT_DIRECTION_RTL)
+		{
+			dir = null;
+		}
+	
+		c.text(x, y, w, h, val, this.align, this.valign, this.wrap, fmt, this.overflow,
+			this.clipped, this.getTextRotation(), dir);
+	}
+};
+
+/**
+ * Function: redraw
+ * 
+ * Renders the text using the given DOM nodes.
+ */
+mxText.prototype.redraw = function()
+{
+	if (this.visible && this.checkBounds() && this.cacheEnabled && this.lastValue == this.value &&
+		(mxUtils.isNode(this.value) || this.dialect == mxConstants.DIALECT_STRICTHTML))
+	{
+		if (this.node.nodeName == 'DIV' && (this.isHtmlAllowed() || !mxClient.IS_VML))
+		{
+			this.updateSize(this.node, (this.state == null || this.state.view.textDiv == null));
+
+			if (mxClient.IS_IE && (document.documentMode == null || document.documentMode <= 8))
+			{
+				this.updateHtmlFilter();
+			}
+			else
+			{
+				this.updateHtmlTransform();
+			}
+			
+			this.updateBoundingBox();
+		}
+		else
+		{
+			var canvas = this.createCanvas();
+			
+			if (canvas != null && canvas.updateText != null)
+			{
+				this.paint(canvas, true);
+				this.destroyCanvas(canvas);
+				this.updateBoundingBox();
+			}
+			else
+			{
+				// Fallback if canvas does not support updateText (VML)
+				mxShape.prototype.redraw.apply(this, arguments);
+			}
+		}
+	}
+	else
+	{
+		mxShape.prototype.redraw.apply(this, arguments);
+		this.lastValue = this.value;
+	}
 };
 
 /**
@@ -377,9 +497,12 @@ mxText.prototype.updateBoundingBox = function()
 				{
 					sizeDiv = sizeDiv.firstChild;
 				}
+
+				this.offsetWidth = sizeDiv.offsetWidth + this.textWidthPadding;
+				this.offsetHeight = sizeDiv.offsetHeight;
 				
-				ow = (sizeDiv.offsetWidth + this.textWidthPadding) * this.scale;
-				oh = sizeDiv.offsetHeight * this.scale;
+				ow = this.offsetWidth * this.scale;
+				oh = this.offsetHeight * this.scale;
 			}
 		}
 
@@ -479,54 +602,6 @@ mxText.prototype.updateVmlContainer = function()
 };
 
 /**
- * Function: paint
- * 
- * Generic rendering code.
- */
-mxText.prototype.paint = function(c)
-{
-	// Scale is passed-through to canvas
-	var s = this.scale;
-	var x = this.bounds.x / s;
-	var y = this.bounds.y / s;
-	var w = this.bounds.width / s;
-	var h = this.bounds.height / s;
-
-	this.updateTransform(c, x, y, w, h);
-	this.configureCanvas(c, x, y, w, h);
-	
-	// Checks if text contains HTML markup
-	var realHtml = mxUtils.isNode(this.value) || this.dialect == mxConstants.DIALECT_STRICTHTML;
-	
-	// Always renders labels as HTML in VML
-	var fmt = (realHtml || c instanceof mxVmlCanvas2D) ? 'html' : '';
-	var val = this.value;
-	
-	if (!realHtml && fmt == 'html')
-	{
-		val =  mxUtils.htmlEntities(val, false);
-	}
-	
-	val = (!mxUtils.isNode(this.value) && this.replaceLinefeeds && fmt == 'html') ?
-		val.replace(/\n/g, '<br/>') : val;
-		
-	var dir = this.textDirection;
-
-	if (dir == mxConstants.TEXT_DIRECTION_AUTO && !realHtml)
-	{
-		dir = this.getAutoDirection();
-	}
-	
-	if (dir != mxConstants.TEXT_DIRECTION_LTR && dir != mxConstants.TEXT_DIRECTION_RTL)
-	{
-		dir = null;
-	}
-		
-	c.text(x, y, w, h, val, this.align, this.valign, this.wrap, fmt, this.overflow,
-		this.clipped, this.getTextRotation(), dir);
-};
-
-/**
  * Function: redrawHtmlShape
  *
  * Updates the HTML node(s) to reflect the latest bounds and scale.
@@ -586,47 +661,50 @@ mxText.prototype.updateHtmlTransform = function()
 	// Workaround for rendering offsets
 	var dy = 0;
 	
-	if (document.documentMode >= 10 && this.valign != mxConstants.ALIGN_TOP)
+	if (this.overflow != 'fill')
 	{
-		dy += 1;
-	}
-	else if (document.documentMode == 9 && this.valign == mxConstants.ALIGN_BOTTOM)
-	{
-		dy += 1;
-	}
-	else if (mxClient.IS_MAC && !mxClient.IS_OP && mxClient.IS_GC)
-	{
-		if (mxClient.IS_MAC)
+		if (document.documentMode >= 10 && this.valign != mxConstants.ALIGN_TOP)
+		{
+			dy += 1;
+		}
+		else if (document.documentMode == 9 && this.valign == mxConstants.ALIGN_BOTTOM)
+		{
+			dy += 1;
+		}
+		else if (mxClient.IS_MAC && !mxClient.IS_OP && mxClient.IS_GC)
+		{
+			if (mxClient.IS_MAC)
+			{
+				if (this.valign == mxConstants.ALIGN_BOTTOM)
+				{
+					dy += 2;
+				}
+				else
+				{
+					dy += 1;
+				}
+			}
+			else if (this.valign == mxConstants.ALIGN_BOTTOM)
+			{
+				dy += 1;
+			}
+		}
+		else if (mxClient.IS_MAC && mxClient.IS_FF)
 		{
 			if (this.valign == mxConstants.ALIGN_BOTTOM)
 			{
 				dy += 2;
 			}
-			else
+			else if (this.valign == mxConstants.ALIGN_MIDDLE)
 			{
 				dy += 1;
 			}
 		}
-		else if (this.valign == mxConstants.ALIGN_BOTTOM)
+		else if (!mxClient.IS_MAC && (mxClient.IS_GC || mxClient.IS_FF) &&
+				this.valign == mxConstants.ALIGN_BOTTOM) // includes Opera
 		{
 			dy += 1;
 		}
-	}
-	else if (mxClient.IS_MAC && mxClient.IS_FF)
-	{
-		if (this.valign == mxConstants.ALIGN_BOTTOM)
-		{
-			dy += 2;
-		}
-		else if (this.valign == mxConstants.ALIGN_MIDDLE)
-		{
-			dy += 1;
-		}
-	}
-	else if (!mxClient.IS_MAC && (mxClient.IS_GC || mxClient.IS_FF) &&
-			this.valign == mxConstants.ALIGN_BOTTOM) // includes Opera
-	{
-		dy += 1;
 	}
 
 	style.left = Math.round(this.bounds.x) + 'px';
@@ -841,7 +919,7 @@ mxText.prototype.updateHtmlFilter = function()
 	// Workaround for rendering offsets
 	var dy = 0;
 	
-	if (mxClient.IS_QUIRKS)
+	if (this.overflow != 'fill' && mxClient.IS_QUIRKS)
 	{
 		if (this.valign == mxConstants.ALIGN_TOP)
 		{
@@ -1032,6 +1110,7 @@ mxText.prototype.updateSize = function(node, enableWrap)
 	}
 	else if (this.overflow == 'fill')
 	{
+		style.overflow = 'hidden';
 		style.width = w + 'px';
 		style.height = h + 'px';
 	}
@@ -1046,7 +1125,7 @@ mxText.prototype.updateSize = function(node, enableWrap)
 		style.whiteSpace = 'normal';
 		style.width = w + 'px';
 
-		if (enableWrap)
+		if (enableWrap && this.overflow != 'fill')
 		{
 			var sizeDiv = node;
 			
@@ -1062,7 +1141,7 @@ mxText.prototype.updateSize = function(node, enableWrap)
 				tmp = Math.min(tmp, w);
 			}
 			
-			style.width = tmp+ 'px';
+			style.width = tmp + 'px';
 		}
 	}
 	else

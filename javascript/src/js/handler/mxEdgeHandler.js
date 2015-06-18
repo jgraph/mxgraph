@@ -494,13 +494,29 @@ mxEdgeHandler.prototype.createMarker = function()
 				cell = null;
 			}
 		}
-
+		
+		// Uses connectable parent vertex if one exists
+		if (cell != null && !this.graph.isCellConnectable(cell))
+		{
+			var parent = this.graph.getModel().getParent(cell);
+			
+			if (this.graph.getModel().isVertex(parent) && this.graph.isCellConnectable(parent))
+			{
+				cell = parent;
+			}
+		}
+		
 		var model = self.graph.getModel();
 		
 		if ((this.graph.isSwimlane(cell) && this.graph.hitsSwimlaneContent(cell, point.x, point.y)) ||
 			(!self.isConnectableCell(cell)) ||
 			(cell == self.state.cell || (cell != null && !self.graph.connectableEdges && model.isEdge(cell))) ||
 			model.isAncestor(self.state.cell, cell))
+		{
+			cell = null;
+		}
+		
+		if (!this.graph.isCellConnectable(cell))
 		{
 			cell = null;
 		}

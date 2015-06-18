@@ -30,6 +30,9 @@ mxGraph.prototype.pageScale = 1;
 mxText.prototype.baseSpacingTop = 5;
 mxText.prototype.baseSpacingBottom = 1;
 
+// Enables caching for HTML labels
+mxText.prototype.cacheEnabled = true;
+
 /**
  * Adds custom stencils defined via shape=stencil(value) style. The value is a base64 encoded, compressed and
  * URL encoded XML definition of the shape according to the stencil definition language of mxGraph.
@@ -143,7 +146,8 @@ Graph = function(container, model, renderHint, stylesheet)
 		};
 		
 		// Handles parts of cells by checking if part=1 is in the style and returning the parent
-		// if the parent is not already in the list of cells
+		// if the parent is not already in the list of cells. container style is used to disable
+		// step into swimlanes and dropTarget style is used to disable acting as a drop target.
 		// LATER: Handle recursive parts
 		this.graphHandler.getCells = function(initialCell)
 		{
@@ -172,7 +176,7 @@ Graph = function(container, model, renderHint, stylesheet)
 
 		    return newCells;
 		};
-		
+
 		// Handles parts of cells when cloning the source for new connections
 		this.connectionHandler.createTargetVertex = function(evt, source)
 		{
@@ -612,86 +616,6 @@ Graph.prototype.getCellStyle = function(cell)
 };
 
 /**
- * 
- */
-Graph.prototype.fastZoom = function(factor)
-{
-	if (urlParams['zoom'] == 'fast' && mxClient.IS_SVG)
-	{
-		// FIXME: Test for labels in graph container (NO_FO),
-		// container without scrollbars, fix for special cases
-		var c = this.view.getDrawPane().ownerSVGElement;
-
-		if (this.currentZoom == null)
-		{
-			this.currentZoom = factor;
-		}
-		else
-		{
-			this.currentZoom *= factor;
-		}
-		
-		if (this.previousTransform == null)
-		{
-			this.previousTransform = c.style.transform;
-			this.scrollWidth = this.container.scrollWidth;
-			this.scrollHeight = this.container.scrollHeight;
-			this.scrollTop = this.container.scrollTop;
-			this.scrollLeft = this.container.scrollLeft;
-			this.clientWidth = this.container.clientWidth;
-			this.clientHeight = this.container.clientHeight;
-		}
-
-		window.setTimeout(mxUtils.bind(this, function()
-		{
-			var dx = this.scrollWidth * (this.currentZoom - 1) / 2;
-			var dy = this.scrollHeight * (this.currentZoom - 1) / 2;
-			var t = this.previousTransform + 'translate(' + dx + 'px,' + dy + 'px)scale(' + this.currentZoom + ')';
-			c.style.transform = t;
-			this.view.backgroundPageShape.node.style.transform = t;
-			
-			if (this.centerZoom)
-			{
-				this.container.scrollTop = this.scrollTop * this.currentZoom - this.clientHeight * (1 - this.currentZoom) / 2;
-				this.container.scrollLeft = this.scrollLeft * this.currentZoom - this.clientWidth * (1 - this.currentZoom) / 2;
-			}
-			else
-			{
-				this.container.scrollTop = this.scrollTop * this.currentZoom;
-				this.container.scrollLeft = this.scrollLeft * this.currentZoom;
-			}
-		}), 0);
-		
-		if (this.delayedZoomAnimated != null)
-		{
-			window.clearTimeout(this.delayedZoomAnimated);
-		}
-		
-		this.delayedZoomAnimated = window.setTimeout(mxUtils.bind(this, function()
-		{
-			c.style.transform = this.previousTransform;
-			this.view.backgroundPageShape.node.style.transform = '';
-			this.container.scrollTop = this.scrollTop;
-			this.container.scrollLeft = this.scrollLeft;
-			this.zoom(this.currentZoom);
-			this.delayedZoomAnimated = null;
-			this.currentZoom = null;			
-			this.previousTransform = null;
-			this.scrollWidth = null;
-			this.scrollHeight = null;
-			this.scrollTop = null;
-			this.scrollLeft = null;
-			this.clientWidth = null;
-			this.clientHeight = null;
-		}), 300);
-	}
-	else
-	{
-		this.zoom(factor);
-	}
-};
-
-/**
  * Disables alternate width persistence for stack layout parents
  */
 Graph.prototype.updateAlternateBounds = function(cell, geo, willCollapse)
@@ -894,6 +818,16 @@ Graph.prototype.isCellFoldable = function(cell)
 };
 
 /**
+ * Overridden to limit zoom to 20x.
+ */
+Graph.prototype.zoom = function(factor, center)
+{
+	factor = Math.min(this.view.scale * factor, 20) / this.view.scale;
+	
+	mxGraph.prototype.zoom.apply(this, arguments);
+};
+
+/**
  * These overrides only applied if  are only added if mxVertexHandler is defined (ie. not in embedded graph)
  */
 if (typeof mxVertexHandler != 'undefined')
@@ -1007,8 +941,9 @@ if (typeof mxVertexHandler != 'undefined')
 		var state = this.view.getState(cell);
 		var style = (state != null) ? state.style : this.getCellStyle(cell);
 	
-		return mxUtils.getValue(style, 'part', '0') != '1' &&
-			(this.isContainer(cell) || mxGraph.prototype.isValidDropTarget.apply(this, arguments));
+		return mxUtils.getValue(style, 'part', '0') != '1' && (this.isContainer(cell) ||
+			(mxGraph.prototype.isValidDropTarget.apply(this, arguments) &&
+			mxUtils.getValue(style, 'dropTarget', '1') != '0'));
 	};
 
 	/**
@@ -1440,17 +1375,23 @@ if (typeof mxVertexHandler != 'undefined')
 		model.beginUpdate();
 		try
 		{
+			var clones = this.cloneCells(cells, false);
+			
 			for (var i = 0; i < cells.length; i++)
 			{
 				var parent = model.getParent(cells[i]);
-				var child = this.moveCells([cells[i]], s, s, true, parent)[0]; 
+				var child = this.moveCells([clones[i]], s, s, false, parent)[0]; 
 				select.push(child);
 				
-				// Maintains child index by inserting after cloned in parent
-				if (!append)
+				if (append)
 				{
+					model.add(parent, clones[i]);
+				}
+				else
+				{
+					// Maintains child index by inserting after cloned in parent
 					var index = parent.getIndex(cells[i]);
-					model.add(parent, child, index + 1);
+					model.add(parent, clones[i], index + 1);
 				}
 			}
 		}
@@ -2303,11 +2244,13 @@ if (typeof mxVertexHandler != 'undefined')
 					style.fontWeight = this.textarea.style.fontWeight;
 					style.fontStyle = this.textarea.style.fontStyle;
 					style.textAlign = this.textarea.style.textAlign;
-					// FIXME: Use zoom, not font style for scaling (fix affected position)
-					//style.zoom = Math.round(state.view.scale * 100) + '%';
-					style.fontSize = this.textarea.style.fontSize;
 					style.textDecoration = this.textarea.style.textDecoration;
 					style.color = this.textarea.style.color;
+					style.fontSize = this.textarea.style.fontSize;
+
+					// TODO: Scale font sizes via transform
+					// style.fontSize = Math.round(parseInt(this.textarea.style.fontSize) / state.view.scale) + 'px';
+					// mxUtils.setPrefixedStyle(style, 'transform', 'scale(' + state.view.scale + ',' + state.view.scale + ')');
 					
 					var dir = this.textarea.getAttribute('dir');
 					
@@ -3181,7 +3124,35 @@ if (typeof mxVertexHandler != 'undefined')
 									
 									if (Math.abs(pt.x - mousePoint.x) < tol && Math.abs(pt.y - mousePoint.y) < tol)
 									{
-										this.graph.setSelectionCells(this.graph.duplicateCells([this.state.cell], false));
+										this.graph.model.beginUpdate();
+										try
+										{
+											var dup = this.graph.duplicateCells([this.state.cell], false)[0];
+											this.graph.setSelectionCell(dup);
+											var layout = null;
+
+											// Never connects children in stack layouts
+											if (this.graph.layoutManager != null)
+											{
+												layout = this.graph.layoutManager.getLayout(this.graph.model.getParent(dup));
+											}
+											
+											if (!mxEvent.isShiftDown(evt) && (layout == null || layout.constructor != mxStackLayout))
+											{
+												var geo = this.graph.getCellGeometry(dup);
+												geo.x = this.state.cell.geometry.x + this.state.cell.geometry.width + 80;
+												geo.y = this.state.cell.geometry.y;
+
+												var edge = this.graph.insertEdge(null, null, '', this.state.cell, dup, ui.createCurrentEdgeStyle());
+												this.graph.fireEvent(new mxEventObject('cellsInserted', 'cells', [edge]));
+											}
+										}
+										finally
+										{
+											this.graph.model.endUpdate();
+										}
+										
+										this.graph.isMouseDown = false;
 										mxEvent.consume(evt);
 									}
 									

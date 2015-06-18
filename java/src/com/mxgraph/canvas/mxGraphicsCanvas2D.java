@@ -352,15 +352,7 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	{
 		if (value != null && value.length() > 0)
 		{
-			String[] tokens = value.split(" ");
-			float[] dashpattern = new float[tokens.length];
-
-			for (int i = 0; i < tokens.length; i++)
-			{
-				dashpattern[i] = (float) (Float.parseFloat(tokens[i]));
-			}
-
-			state.dashPattern = dashpattern;
+			state.dashPattern = mxUtils.parseDashPattern(value);
 		}
 	}
 

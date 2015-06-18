@@ -672,7 +672,8 @@ mxCellRenderer.prototype.initControl = function(state, control, handleEvents, cl
 
 	var node = control.innerNode || control.node;
 	
-	if (clickHandler)
+	// Workaround for missing click event on iOS is to check tolerance below
+	if (clickHandler != null && !mxClient.IS_IOS)
 	{
 		if (graph.isEnabled())
 		{
@@ -684,9 +685,12 @@ mxCellRenderer.prototype.initControl = function(state, control, handleEvents, cl
 	
 	if (handleEvents)
 	{
+		var first = null;
+
 		mxEvent.addGestureListeners(node,
 			function (evt)
 			{
+				first = new mxPoint(mxEvent.getClientX(evt), mxEvent.getClientY(evt));
 				graph.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt, state));
 				mxEvent.consume(evt);
 			},
@@ -694,6 +698,25 @@ mxCellRenderer.prototype.initControl = function(state, control, handleEvents, cl
 			{
 				graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt, state));
 			});
+		
+		// Uses capture phase for event interception to stop bubble phase
+		if (clickHandler != null && mxClient.IS_IOS)
+		{
+			node.addEventListener('touchend', function(evt)
+			{
+				if (first != null)
+				{
+					var tol = graph.tolerance;
+					
+					if (Math.abs(first.x - mxEvent.getClientX(evt)) < tol &&
+						Math.abs(first.y - mxEvent.getClientY(evt)) < tol)
+					{
+						clickHandler.call(clickHandler, evt);
+						mxEvent.consume(evt);
+					}
+				}
+			}, true);
+		}
 	}
 	
 	return node;
@@ -1211,9 +1234,12 @@ mxCellRenderer.prototype.insertStateAfter = function(state, node, htmlNode)
 						canvas = canvas.parentNode;
 					}
 					
-					if (canvas != null && canvas.nextSibling != null && canvas.nextSibling != shapes[i].node)
+					if (canvas != null && canvas.nextSibling != null)
 					{
-						shapes[i].node.parentNode.insertBefore(shapes[i].node, canvas.nextSibling);
+						if (canvas.nextSibling != shapes[i].node)
+						{
+							shapes[i].node.parentNode.insertBefore(shapes[i].node, canvas.nextSibling);
+						}
 					}
 					else
 					{
@@ -1253,7 +1279,7 @@ mxCellRenderer.prototype.insertStateAfter = function(state, node, htmlNode)
  */
 mxCellRenderer.prototype.getShapesForState = function(state)
 {
-	return [state.shape, state.text];
+	return [state.shape, state.text, state.control];
 };
 
 /**

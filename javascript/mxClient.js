@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.3.0.1.
+	 * Current version is 3.3.1.0.
 	 */
-	VERSION: '3.3.0.1',
+	VERSION: '3.3.1.0',
 
 	/**
 	 * Variable: IS_IE
@@ -6639,8 +6639,8 @@ var mxUtils =
 	 * Defines the key for the perimeter style. This is a function that defines
 	 * the perimeter around a particular shape. Possible values are the
 	 * functions defined in <mxPerimeter>. Alternatively, the constants in this
-	 * class that start with <code>PERIMETER_</code> may be used to access
-	 * perimeter styles in <mxStyleRegistry>. Value is <code>perimeter</code>.
+	 * class that start with "PERIMETER_" may be used to access
+	 * perimeter styles in <mxStyleRegistry>. Value is "perimeter".
 	 */
 	STYLE_PERIMETER: 'perimeter',
 	
@@ -6650,7 +6650,7 @@ var mxUtils =
 	 * Defines the ID of the cell that should be used for computing the
 	 * perimeter point of the source for an edge. This allows for graphically
 	 * connecting to a cell while keeping the actual terminal of the edge.
-	 * Value is <code>sourcePort</code>.
+	 * Value is "sourcePort".
 	 */
 	STYLE_SOURCE_PORT: 'sourcePort',
 	
@@ -6660,7 +6660,7 @@ var mxUtils =
 	 * Defines the ID of the cell that should be used for computing the
 	 * perimeter point of the target for an edge. This allows for graphically
 	 * connecting to a cell while keeping the actual terminal of the edge.
-	 * Value is <code>targetPort</code>.
+	 * Value is "targetPort".
 	 */
 	STYLE_TARGET_PORT: 'targetPort',
 
@@ -6668,9 +6668,9 @@ var mxUtils =
 	 * Variable: STYLE_PORT_CONSTRAINT
 	 * 
 	 * Defines the direction(s) that edges are allowed to connect to cells in.
-	 * Possible values are <code>DIRECTION_NORTH, DIRECTION_SOUTH, 
-	 * DIRECTION_EAST</code> and <code>DIRECTION_WEST</code>. Value is
-	 * <code>portConstraint</code>.
+	 * Possible values are "DIRECTION_NORTH, DIRECTION_SOUTH, 
+	 * DIRECTION_EAST" and "DIRECTION_WEST". Value is
+	 * "portConstraint".
 	 */
 	STYLE_PORT_CONSTRAINT: 'portConstraint',
 
@@ -6680,7 +6680,7 @@ var mxUtils =
 	 * Define whether port constraint directions are rotated with vertex
 	 * rotation. 0 (default) causes port constraints to remain absolute, 
 	 * relative to the graph, 1 causes the constraints to rotate with
-	 * the vertex. Value is <code>portConstraintRotation</code>.
+	 * the vertex. Value is "portConstraintRotation".
 	 */
 	STYLE_PORT_CONSTRAINT_ROTATION: 'portConstraintRotation',
 
@@ -6688,7 +6688,7 @@ var mxUtils =
 	 * Variable: STYLE_OPACITY
 	 * 
 	 * Defines the key for the opacity style. The type of the value is 
-	 * numeric and the possible range is 0-100. Value is <code>opacity</code>.
+	 * numeric and the possible range is 0-100. Value is "opacity".
 	 */
 	STYLE_OPACITY: 'opacity',
 
@@ -6696,7 +6696,7 @@ var mxUtils =
 	 * Variable: STYLE_TEXT_OPACITY
 	 * 
 	 * Defines the key for the text opacity style. The type of the value is 
-	 * numeric and the possible range is 0-100. Value is <code>textOpacity</code>.
+	 * numeric and the possible range is 0-100. Value is "textOpacity".
 	 */
 	STYLE_TEXT_OPACITY: 'textOpacity',
 
@@ -6704,8 +6704,8 @@ var mxUtils =
 	 * Variable: STYLE_TEXT_DIRECTION
 	 * 
 	 * Defines the key for the text direction style. Possible values are
-	 * <code>TEXT_DIRECTION_DEFAULT, TEXT_DIRECTION_AUTO, TEXT_DIRECTION_LTR</code>
-	 * and <code>TEXT_DIRECTION_RTL</code>. Value is <code>textDirection</code>.
+	 * "TEXT_DIRECTION_DEFAULT, TEXT_DIRECTION_AUTO, TEXT_DIRECTION_LTR"
+	 * and "TEXT_DIRECTION_RTL". Value is "textDirection".
 	 * The default value for the style is defined in <DEFAULT_TEXT_DIRECTION>.
 	 * It is used is no value is defined for this key in a given style. This is
 	 * an experimental style that is currently ignored in the backends.
@@ -6722,7 +6722,7 @@ var mxUtils =
 	 * the label so that it does not overlap the vertex bounds. A value of
 	 * 'fill' will use the vertex bounds and a value of 'width' will use the
 	 * the vertex width for the label. See <mxGraph.isLabelClipped>. Note that
-	 * the vertical alignment is ignored for overflow fill. Value is <code>overflow</code>.
+	 * the vertical alignment is ignored for overflow fill. Value is "overflow".
 	 */
 	STYLE_OVERFLOW: 'overflow',
 
@@ -6733,7 +6733,7 @@ var mxUtils =
 	 * computed so that the edge is vertical or horizontal if possible and
 	 * if the point is not at a fixed location. Default is false. This is
 	 * used in <mxGraph.isOrthogonal>, which also returns true if the edgeStyle
-	 * of the edge is an elbow or entity. Value is <code>orthogonal</code>.
+	 * of the edge is an elbow or entity. Value is "orthogonal".
 	 */
 	STYLE_ORTHOGONAL: 'orthogonal',
 
@@ -6741,7 +6741,7 @@ var mxUtils =
 	 * Variable: STYLE_EXIT_X
 	 * 
 	 * Defines the key for the horizontal relative coordinate connection point
-	 * of an edge with its source terminal. Value is <code>exitX</code>.
+	 * of an edge with its source terminal. Value is "exitX".
 	 */
 	STYLE_EXIT_X: 'exitX',
 
@@ -6749,7 +6749,7 @@ var mxUtils =
 	 * Variable: STYLE_EXIT_Y
 	 * 
 	 * Defines the key for the vertical relative coordinate connection point
-	 * of an edge with its source terminal. Value is <code>exitY</code>.
+	 * of an edge with its source terminal. Value is "exitY".
 	 */
 	STYLE_EXIT_Y: 'exitY',
 
@@ -6758,7 +6758,7 @@ var mxUtils =
 	 * 
 	 * Defines if the perimeter should be used to find the exact entry point
 	 * along the perimeter of the source. Possible values are 0 (false) and
-	 * 1 (true). Default is 1 (true). Value is <code>exitPerimeter</code>.
+	 * 1 (true). Default is 1 (true). Value is "exitPerimeter".
 	 */
 	STYLE_EXIT_PERIMETER: 'exitPerimeter',
 
@@ -6766,7 +6766,7 @@ var mxUtils =
 	 * Variable: STYLE_ENTRY_X
 	 * 
 	 * Defines the key for the horizontal relative coordinate connection point
-	 * of an edge with its target terminal. Value is <code>entryX</code>.
+	 * of an edge with its target terminal. Value is "entryX".
 	 */
 	STYLE_ENTRY_X: 'entryX',
 
@@ -6774,7 +6774,7 @@ var mxUtils =
 	 * Variable: STYLE_ENTRY_Y
 	 * 
 	 * Defines the key for the vertical relative coordinate connection point
-	 * of an edge with its target terminal. Value is <code>entryY</code>.
+	 * of an edge with its target terminal. Value is "entryY".
 	 */
 	STYLE_ENTRY_Y: 'entryY',
 
@@ -6783,7 +6783,7 @@ var mxUtils =
 	 * 
 	 * Defines if the perimeter should be used to find the exact entry point
 	 * along the perimeter of the target. Possible values are 0 (false) and
-	 * 1 (true). Default is 1 (true). Value is <code>entryPerimeter</code>.
+	 * 1 (true). Default is 1 (true). Value is "entryPerimeter".
 	 */
 	STYLE_ENTRY_PERIMETER: 'entryPerimeter',
 
@@ -6796,7 +6796,7 @@ var mxUtils =
 	 * 'nowrap' means the text will never wrap to the next line until a
 	 * linefeed is encountered. A value of 'wrap' means text will wrap when
 	 * necessary. This style is only used for HTML labels.
-	 * See <mxGraph.isWrapping>. Value is <code>whiteSpace</code>.
+	 * See <mxGraph.isWrapping>. Value is "whiteSpace".
 	 */
 	STYLE_WHITE_SPACE: 'whiteSpace',
 
@@ -6804,7 +6804,7 @@ var mxUtils =
 	 * Variable: STYLE_ROTATION
 	 * 
 	 * Defines the key for the rotation style. The type of the value is 
-	 * numeric and the possible range is 0-360. Value is <code>rotation</code>.
+	 * numeric and the possible range is 0-360. Value is "rotation".
 	 */
 	STYLE_ROTATION: 'rotation',
 
@@ -6814,7 +6814,7 @@ var mxUtils =
 	 * Defines the key for the fill color. Possible values are all HTML color
 	 * names or HEX codes, as well as special keywords such as 'swimlane,
 	 * 'inherit' or 'indicated' to use the color code of a related cell or the
-	 * indicator shape. Value is <code>fillColor</code>.
+	 * indicator shape. Value is "fillColor".
 	 */
 	STYLE_FILLCOLOR: 'fillColor',
 
@@ -6823,7 +6823,7 @@ var mxUtils =
 	 * 
 	 * Specifies if pointer events should be fired on transparent backgrounds.
 	 * This style is currently only supported in <mxRectangleShape>. Default
-	 * is true. Value is <code>pointerEvents</code>. This is typically set to
+	 * is true. Value is "pointerEvents". This is typically set to
 	 * false in groups where the transparent part should allow any underlying
 	 * cells to be clickable.
 	 */
@@ -6834,7 +6834,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the fill color of the swimlane background. Possible
 	 * values are all HTML color names or HEX codes. Default is no background.
-	 * Value is <code>swimlaneFillColor</code>.
+	 * Value is "swimlaneFillColor".
 	 */
 	STYLE_SWIMLANE_FILLCOLOR: 'swimlaneFillColor',
 
@@ -6842,7 +6842,7 @@ var mxUtils =
 	 * Variable: STYLE_MARGIN
 	 * 
 	 * Defines the key for the margin between the ellipses in the double ellipse shape.
-	 * Possible values are all positive numbers. Value is <code>margin</code>.
+	 * Possible values are all positive numbers. Value is "margin".
 	 */
 	STYLE_MARGIN: 'margin',
 
@@ -6853,7 +6853,7 @@ var mxUtils =
 	 * names or HEX codes, as well as special keywords such as 'swimlane,
 	 * 'inherit' or 'indicated' to use the color code of a related cell or the
 	 * indicator shape. This is ignored if no fill color is defined. Value is
-	 * <code>gradientColor</code>.
+	 * "gradientColor".
 	 */
 	STYLE_GRADIENTCOLOR: 'gradientColor',
 
@@ -6867,7 +6867,7 @@ var mxUtils =
 	 * <STYLE_FILLCOLOR> to the value of <STYLE_GRADIENTCOLOR>. Taking the
 	 * example of <DIRECTION_NORTH>, this means <STYLE_FILLCOLOR> color at the 
 	 * bottom of paint pattern and <STYLE_GRADIENTCOLOR> at top, with a
-	 * gradient in-between. Value is <code>gradientDirection</code>.
+	 * gradient in-between. Value is "gradientDirection".
 	 */
 	STYLE_GRADIENT_DIRECTION: 'gradientDirection',
 
@@ -6877,7 +6877,7 @@ var mxUtils =
 	 * Defines the key for the strokeColor style. Possible values are all HTML
 	 * color names or HEX codes, as well as special keywords such as 'swimlane,
 	 * 'inherit', 'indicated' to use the color code of a related cell or the
-	 * indicator shape or 'none' for no color. Value is <code>strokeColor</code>.
+	 * indicator shape or 'none' for no color. Value is "strokeColor".
 	 */
 	STYLE_STROKECOLOR: 'strokeColor',
 
@@ -6886,7 +6886,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the separatorColor style. Possible values are all
 	 * HTML color names or HEX codes. This style is only used for
-	 * <SHAPE_SWIMLANE> shapes. Value is <code>separatorColor</code>.
+	 * <SHAPE_SWIMLANE> shapes. Value is "separatorColor".
 	 */
 	STYLE_SEPARATORCOLOR: 'separatorColor',
 
@@ -6896,7 +6896,7 @@ var mxUtils =
 	 * Defines the key for the strokeWidth style. The type of the value is 
 	 * numeric and the possible range is any non-negative value larger or equal
 	 * to 1. The value defines the stroke width in pixels. Note: To hide a
-	 * stroke use strokeColor none. Value is <code>strokeWidth</code>.
+	 * stroke use strokeColor none. Value is "strokeWidth".
 	 */
 	STYLE_STROKEWIDTH: 'strokeWidth',
 
@@ -6911,7 +6911,7 @@ var mxUtils =
 	 * are aligned in the center of the label bounds. Note this value doesn't
 	 * affect the positioning of the overall label bounds relative to the
 	 * vertex, to move the label bounds horizontally, use
-	 * <STYLE_LABEL_POSITION>. Value is <code>align</code>.
+	 * <STYLE_LABEL_POSITION>. Value is "align".
 	 */
 	STYLE_ALIGN: 'align',
 
@@ -6928,7 +6928,7 @@ var mxUtils =
 	 * bounds and the bottom-most text label line and the bottom of the label
 	 * bounds. Note this value doesn't affect the positioning of the overall
 	 * label bounds relative to the vertex, to move the label bounds
-	 * vertically, use <STYLE_VERTICAL_LABEL_POSITION>. Value is <code>verticalAlign</code>.
+	 * vertically, use <STYLE_VERTICAL_LABEL_POSITION>. Value is "verticalAlign".
 	 */
 	STYLE_VERTICAL_ALIGN: 'verticalAlign',
 
@@ -6936,7 +6936,7 @@ var mxUtils =
 	 * Variable: STYLE_LABEL_WIDTH
 	 * 
 	 * Defines the key for the width of the label if the label position is not
-	 * center. Value is <code>labelWidth</code>.
+	 * center. Value is "labelWidth".
 	 */
 	STYLE_LABEL_WIDTH: 'labelWidth',
 
@@ -6952,7 +6952,7 @@ var mxUtils =
 	 * vertically aligned with the bounds of the vertex. Note this value
 	 * doesn't affect the positioning of label within the label bounds, to move
 	 * the label horizontally within the label bounds, use <STYLE_ALIGN>.
-	 * Value is <code>labelPosition</code>.
+	 * Value is "labelPosition".
 	 */
 	STYLE_LABEL_POSITION: 'labelPosition',
 
@@ -6968,7 +6968,7 @@ var mxUtils =
 	 * horizontally aligned with the bounds of the vertex. Note this value
 	 * doesn't affect the positioning of label within the label bounds, to move
 	 * the label vertically within the label bounds, use
-	 * <STYLE_VERTICAL_ALIGN>. Value is <code>verticalLabelPosition</code>.
+	 * <STYLE_VERTICAL_ALIGN>. Value is "verticalLabelPosition".
 	 */
 	STYLE_VERTICAL_LABEL_POSITION: 'verticalLabelPosition',
 	
@@ -6977,7 +6977,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the image aspect style. Possible values are 0 (do
 	 * not preserve aspect) or 1 (keep aspect). This is only used in
-	 * <mxImageShape>. Default is 1. Value is <code>imageAspect</code>.
+	 * <mxImageShape>. Default is 1. Value is "imageAspect".
 	 */
 	STYLE_IMAGE_ASPECT: 'imageAspect',
 
@@ -6987,7 +6987,7 @@ var mxUtils =
 	 * Defines the key for the align style. Possible values are <ALIGN_LEFT>,
 	 * <ALIGN_CENTER> and <ALIGN_RIGHT>. The value defines how any image in the
 	 * vertex label is aligned horizontally within the label bounds of a
-	 * <SHAPE_LABEL> shape. Value is <code>imageAlign</code>.
+	 * <SHAPE_LABEL> shape. Value is "imageAlign".
 	 */
 	STYLE_IMAGE_ALIGN: 'imageAlign',
 
@@ -6997,7 +6997,7 @@ var mxUtils =
 	 * Defines the key for the verticalAlign style. Possible values are
 	 * <ALIGN_TOP>, <ALIGN_MIDDLE> and <ALIGN_BOTTOM>. The value defines how
 	 * any image in the vertex label is aligned vertically within the label
-	 * bounds of a <SHAPE_LABEL> shape. Value is <code>imageVerticalAlign</code>.
+	 * bounds of a <SHAPE_LABEL> shape. Value is "imageVerticalAlign".
 	 */
 	STYLE_IMAGE_VERTICAL_ALIGN: 'imageVerticalAlign',
 
@@ -7006,7 +7006,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the glass style. Possible values are 0 (disabled) and
 	 * 1(enabled). The default value is 0. This is used in <mxLabel>. Value is
-	 * <code>glass</code>.
+	 * "glass".
 	 */
 	STYLE_GLASS: 'glass',
 
@@ -7018,7 +7018,7 @@ var mxUtils =
 	 * that is to be displayed within the label of a vertex. Data URLs should
 	 * use the following format: data:image/png,xyz where xyz is the base64
 	 * encoded data (without the "base64"-prefix). Note that Data URLs are only
-	 * supported in modern browsers. Value is <code>image</code>.
+	 * supported in modern browsers. Value is "image".
 	 */
 	STYLE_IMAGE: 'image',
 
@@ -7027,7 +7027,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the imageWidth style. The type of this value is
 	 * int, the value is the image width in pixels and must be greater than 0.
-	 * Value is <code>imageWidth</code>.
+	 * Value is "imageWidth".
 	 */
 	STYLE_IMAGE_WIDTH: 'imageWidth',
 
@@ -7036,7 +7036,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the imageHeight style. The type of this value is
 	 * int, the value is the image height in pixels and must be greater than 0.
-	 * Value is <code>imageHeight</code>.
+	 * Value is "imageHeight".
 	 */
 	STYLE_IMAGE_HEIGHT: 'imageHeight',
 
@@ -7045,7 +7045,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the image background color. This style is only used
 	 * in <mxImageShape>. Possible values are all HTML color names or HEX
-	 * codes. Value is <code>imageBackground</code>.
+	 * codes. Value is "imageBackground".
 	 */
 	STYLE_IMAGE_BACKGROUND: 'imageBackground',
 
@@ -7054,7 +7054,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the image border color. This style is only used in
 	 * <mxImageShape>. Possible values are all HTML color names or HEX codes.
-	 * Value is <code>imageBorder</code>.
+	 * Value is "imageBorder".
 	 */
 	STYLE_IMAGE_BORDER: 'imageBorder',
 
@@ -7063,7 +7063,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the horizontal image flip. This style is only used
 	 * in <mxImageShape>. Possible values are 0 and 1. Default is 0. Value is
-	 * <code>flipH</code>.
+	 * "flipH".
 	 */
 	STYLE_FLIPH: 'flipH',
 
@@ -7071,7 +7071,7 @@ var mxUtils =
 	 * Variable: STYLE_FLIPV
 	 * 
 	 * Defines the key for the vertical flip. Possible values are 0 and 1.
-	 * Default is 0. Value is <code>flipV</code>.
+	 * Default is 0. Value is "flipV".
 	 */
 	STYLE_FLIPV: 'flipV',
 
@@ -7080,7 +7080,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the noLabel style. If this is true then no label is
 	 * visible for a given cell. Possible values are true or false (1 or 0).
-	 * Default is false. Value is <code>noLabel</code>.
+	 * Default is false. Value is "noLabel".
 	 */
 	STYLE_NOLABEL: 'noLabel',
 
@@ -7089,7 +7089,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the noEdgeStyle style. If this is true then no edge
 	 * style is applied for a given edge. Possible values are true or false
-	 * (1 or 0). Default is false. Value is <code>noEdgeStyle</code>.
+	 * (1 or 0). Default is false. Value is "noEdgeStyle".
 	 */
 	STYLE_NOEDGESTYLE: 'noEdgeStyle',
 
@@ -7097,7 +7097,7 @@ var mxUtils =
 	 * Variable: STYLE_LABEL_BACKGROUNDCOLOR
 	 * 
 	 * Defines the key for the label background color. Possible values are all
-	 * HTML color names or HEX codes. Value is <code>labelBackgroundColor</code>.
+	 * HTML color names or HEX codes. Value is "labelBackgroundColor".
 	 */
 	STYLE_LABEL_BACKGROUNDCOLOR: 'labelBackgroundColor',
 
@@ -7105,7 +7105,7 @@ var mxUtils =
 	 * Variable: STYLE_LABEL_BORDERCOLOR
 	 * 
 	 * Defines the key for the label border color. Possible values are all
-	 * HTML color names or HEX codes. Value is <code>labelBorderColor</code>.
+	 * HTML color names or HEX codes. Value is "labelBorderColor".
 	 */
 	STYLE_LABEL_BORDERCOLOR: 'labelBorderColor',
 
@@ -7113,7 +7113,7 @@ var mxUtils =
 	 * Variable: STYLE_LABEL_PADDING
 	 * 
 	 * Defines the key for the label padding, ie. the space between the label
-	 * border and the label. Value is <code>labelPadding</code>.
+	 * border and the label. Value is "labelPadding".
 	 */
 	STYLE_LABEL_PADDING: 'labelPadding',
 
@@ -7123,7 +7123,7 @@ var mxUtils =
 	 * Defines the key for the indicator shape used within an <mxLabel>.
 	 * Possible values are all SHAPE_* constants or the names of any new
 	 * shapes. The indicatorShape has precedence over the indicatorImage.
-	 * Value is <code>indicatorShape</code>.
+	 * Value is "indicatorShape".
 	 */
 	STYLE_INDICATOR_SHAPE: 'indicatorShape',
 
@@ -7132,7 +7132,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the indicator image used within an <mxLabel>.
 	 * Possible values are all image URLs. The indicatorShape has
-	 * precedence over the indicatorImage. Value is <code>indicatorImage</code>.
+	 * precedence over the indicatorImage. Value is "indicatorImage".
 	 */
 	STYLE_INDICATOR_IMAGE: 'indicatorImage',
 
@@ -7142,7 +7142,7 @@ var mxUtils =
 	 * Defines the key for the indicatorColor style. Possible values are all
 	 * HTML color names or HEX codes, as well as the special 'swimlane' keyword
 	 * to refer to the color of the parent swimlane if one exists. Value is
-	 * <code>indicatorColor</code>.
+	 * "indicatorColor".
 	 */
 	STYLE_INDICATOR_COLOR: 'indicatorColor',
 
@@ -7150,7 +7150,7 @@ var mxUtils =
 	 * Variable: STYLE_INDICATOR_STROKECOLOR
 	 * 
 	 * Defines the key for the indicator stroke color in <mxLabel>.
-	 * Possible values are all color codes. Value is <code>indicatorStrokeColor</code>.
+	 * Possible values are all color codes. Value is "indicatorStrokeColor".
 	 */
 	STYLE_INDICATOR_STROKECOLOR: 'indicatorStrokeColor',
 
@@ -7159,7 +7159,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the indicatorGradientColor style. Possible values
 	 * are all HTML color names or HEX codes. This style is only supported in
-	 * <SHAPE_LABEL> shapes. Value is <code>indicatorGradientColor</code>.
+	 * <SHAPE_LABEL> shapes. Value is "indicatorGradientColor".
 	 */
 	STYLE_INDICATOR_GRADIENTCOLOR: 'indicatorGradientColor',
 
@@ -7168,7 +7168,7 @@ var mxUtils =
 	 * 
 	 * The defines the key for the spacing between the label and the
 	 * indicator in <mxLabel>. Possible values are in pixels. Value is
-	 * <code>indicatorSpacing</code>.
+	 * "indicatorSpacing".
 	 */
 	STYLE_INDICATOR_SPACING: 'indicatorSpacing',
 
@@ -7176,7 +7176,7 @@ var mxUtils =
 	 * Variable: STYLE_INDICATOR_WIDTH
 	 * 
 	 * Defines the key for the indicator width. Possible values start at 0 (in
-	 * pixels). Value is <code>indicatorWidth</code>.
+	 * pixels). Value is "indicatorWidth".
 	 */
 	STYLE_INDICATOR_WIDTH: 'indicatorWidth',
 
@@ -7184,7 +7184,7 @@ var mxUtils =
 	 * Variable: STYLE_INDICATOR_HEIGHT
 	 * 
 	 * Defines the key for the indicator height. Possible values start at 0 (in
-	 * pixels). Value is <code>indicatorHeight</code>.
+	 * pixels). Value is "indicatorHeight".
 	 */
 	STYLE_INDICATOR_HEIGHT: 'indicatorHeight',
 
@@ -7194,7 +7194,7 @@ var mxUtils =
 	 * Defines the key for the indicatorDirection style. The direction style is
 	 * used to specify the direction of certain shapes (eg. <mxTriangle>).
 	 * Possible values are <DIRECTION_EAST> (default), <DIRECTION_WEST>,
-	 * <DIRECTION_NORTH> and <DIRECTION_SOUTH>. Value is <code>indicatorDirection</code>.
+	 * <DIRECTION_NORTH> and <DIRECTION_SOUTH>. Value is "indicatorDirection".
 	 */
 	STYLE_INDICATOR_DIRECTION: 'indicatorDirection',
 
@@ -7202,7 +7202,7 @@ var mxUtils =
 	 * Variable: STYLE_SHADOW
 	 * 
 	 * Defines the key for the shadow style. The type of the value is Boolean.
-	 * Value is <code>shadow</code>.
+	 * Value is "shadow".
 	 */
 	STYLE_SHADOW: 'shadow',
 	
@@ -7211,7 +7211,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the segment style. The type of this value is float
 	 * and the value represents the size of the horizontal segment of the
-	 * entity relation style. Default is ENTITY_SEGMENT. Value is <code>segment</code>.
+	 * entity relation style. Default is ENTITY_SEGMENT. Value is "segment".
 	 */
 	STYLE_SEGMENT: 'segment',
 	
@@ -7220,7 +7220,7 @@ var mxUtils =
 	 *
 	 * Defines the key for the end arrow marker. Possible values are all
 	 * constants with an ARROW-prefix. This is only used in <mxConnector>.
-	 * Value is <code>endArrow</code>.
+	 * Value is "endArrow".
 	 *
 	 * Example:
 	 * (code)
@@ -7234,7 +7234,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the start arrow marker. Possible values are all
 	 * constants with an ARROW-prefix. This is only used in <mxConnector>.
-	 * See <STYLE_ENDARROW>. Value is <code>startArrow</code>.
+	 * See <STYLE_ENDARROW>. Value is "startArrow".
 	 */
 	STYLE_STARTARROW: 'startArrow',
 
@@ -7243,7 +7243,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the endSize style. The type of this value is numeric
 	 * and the value represents the size of the end marker in pixels. Value is
-	 * <code>endSize</code>.
+	 * "endSize".
 	 */
 	STYLE_ENDSIZE: 'endSize',
 
@@ -7253,7 +7253,7 @@ var mxUtils =
 	 * Defines the key for the startSize style. The type of this value is
 	 * numeric and the value represents the size of the start marker or the
 	 * size of the swimlane title region depending on the shape it is used for.
-	 * Value is <code>startSize</code>.
+	 * Value is "startSize".
 	 */
 	STYLE_STARTSIZE: 'startSize',
 
@@ -7262,7 +7262,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the swimlaneLine style. This style specifies whether
 	 * the line between the title regio of a swimlane should be visible. Use 0
-	 * for hidden or 1 (default) for visible. Value is <code>swimlaneLine</code>.
+	 * for hidden or 1 (default) for visible. Value is "swimlaneLine".
 	 */
 	STYLE_SWIMLANE_LINE: 'swimlaneLine',
 
@@ -7271,7 +7271,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the endFill style. Use 0 for no fill or 1 (default)
 	 * for fill. (This style is only exported via <mxImageExport>.) Value is
-	 * <code>endFill</code>.
+	 * "endFill".
 	 */
 	STYLE_ENDFILL: 'endFill',
 
@@ -7280,7 +7280,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the startFill style. Use 0 for no fill or 1 (default)
 	 * for fill. (This style is only exported via <mxImageExport>.) Value is
-	 * <code>startFill</code>.
+	 * "startFill".
 	 */
 	STYLE_STARTFILL: 'startFill',
 
@@ -7288,7 +7288,7 @@ var mxUtils =
 	 * Variable: STYLE_DASHED
 	 * 
 	 * Defines the key for the dashed style. Use 0 (default) for non-dashed or 1
-	 * for dashed. Value is <code>dashed</code>.
+	 * for dashed. Value is "dashed".
 	 */
 	STYLE_DASHED: 'dashed',
 
@@ -7300,7 +7300,7 @@ var mxUtils =
 	 * space between the dashes. The lengths are relative to the line width: a
 	 * length of "1" is equal to the line width. VML ignores this style and
 	 * uses dashStyle instead as defined in the VML specification. This style
-	 * is only used in the <mxConnector> shape. Value is <code>dashPattern</code>.
+	 * is only used in the <mxConnector> shape. Value is "dashPattern".
 	 */
 	STYLE_DASH_PATTERN: 'dashPattern',
 
@@ -7312,7 +7312,7 @@ var mxUtils =
 	 * segments are smoothed to a rounded finish. For vertices that have the
 	 * rectangle shape, this determines whether or not the rectangle is
 	 * rounded. Use 0 (default) for non-rounded or 1 for rounded. Value is
-	 * <code>rounded</code>.
+	 * "rounded".
 	 */
 	STYLE_ROUNDED: 'rounded',
 
@@ -7321,7 +7321,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the curved style. The type of this value is
 	 * Boolean. It is only applicable for connector shapes. Use 0 (default)
-	 * for non-curved or 1 for curved. Value is <code>curved</code>.
+	 * for non-curved or 1 for curved. Value is "curved".
 	 */
 	STYLE_CURVED: 'curved',
 
@@ -7333,7 +7333,7 @@ var mxUtils =
 	 * is not specified then RECTANGLE_ROUNDING_FACTOR * 100 is used. For
 	 * edges, this defines the absolute size of rounded corners in pixels. If
 	 * this values is not specified then LINE_ARCSIZE is used.
-	 * (This style is only exported via <mxImageExport>.) Value is <code>arcSize</code>.
+	 * (This style is only exported via <mxImageExport>.) Value is "arcSize".
 	 */
 	STYLE_ARCSIZE: 'arcSize',
 
@@ -7342,7 +7342,7 @@ var mxUtils =
 	 * 
 	 * An experimental style for edges. This style is currently not available
 	 * in the backends and is implemented differently for VML and SVG. The use
-	 * of this style is currently only recommended for VML. Value is <code>smooth</code>.
+	 * of this style is currently only recommended for VML. Value is "smooth".
 	 */
 	STYLE_SMOOTH: 'smooth',
 
@@ -7352,7 +7352,7 @@ var mxUtils =
 	 * Defines the key for the source perimeter spacing. The type of this value
 	 * is numeric. This is the distance between the source connection point of
 	 * an edge and the perimeter of the source vertex in pixels. This style
-	 * only applies to edges. Value is <code>sourcePerimeterSpacing</code>.
+	 * only applies to edges. Value is "sourcePerimeterSpacing".
 	 */
 	STYLE_SOURCE_PERIMETER_SPACING: 'sourcePerimeterSpacing',
 
@@ -7362,7 +7362,7 @@ var mxUtils =
 	 * Defines the key for the target perimeter spacing. The type of this value
 	 * is numeric. This is the distance between the target connection point of
 	 * an edge and the perimeter of the target vertex in pixels. This style
-	 * only applies to edges. Value is <code>targetPerimeterSpacing</code>.
+	 * only applies to edges. Value is "targetPerimeterSpacing".
 	 */
 	STYLE_TARGET_PERIMETER_SPACING: 'targetPerimeterSpacing',
 
@@ -7375,7 +7375,7 @@ var mxUtils =
 	 * terminate on the perimeter of the vertex). When used in an edge style,
 	 * this spacing applies to the source and target separately, if they
 	 * terminate in floating ports (on the perimeter of the vertex). Value is
-	 * <code>perimeterSpacing</code>.
+	 * "perimeterSpacing".
 	 */
 	STYLE_PERIMETER_SPACING: 'perimeterSpacing',
 
@@ -7384,7 +7384,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the spacing. The value represents the spacing, in
 	 * pixels, added to each side of a label in a vertex (style applies to
-	 * vertices only). Value is <code>spacing</code>.
+	 * vertices only). Value is "spacing".
 	 */
 	STYLE_SPACING: 'spacing',
 
@@ -7393,7 +7393,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the spacingTop style. The value represents the
 	 * spacing, in pixels, added to the top side of a label in a vertex (style
-	 * applies to vertices only). Value is <code>spacingTop</code>.
+	 * applies to vertices only). Value is "spacingTop".
 	 */
 	STYLE_SPACING_TOP: 'spacingTop',
 
@@ -7402,7 +7402,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the spacingLeft style. The value represents the
 	 * spacing, in pixels, added to the left side of a label in a vertex (style
-	 * applies to vertices only). Value is <code>spacingLeft</code>.
+	 * applies to vertices only). Value is "spacingLeft".
 	 */
 	STYLE_SPACING_LEFT: 'spacingLeft',
 
@@ -7411,7 +7411,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the spacingBottom style The value represents the
 	 * spacing, in pixels, added to the bottom side of a label in a vertex
-	 * (style applies to vertices only). Value is <code>spacingBottom</code>.
+	 * (style applies to vertices only). Value is "spacingBottom".
 	 */
 	STYLE_SPACING_BOTTOM: 'spacingBottom',
 
@@ -7420,7 +7420,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the spacingRight style The value represents the
 	 * spacing, in pixels, added to the right side of a label in a vertex (style
-	 * applies to vertices only). Value is <code>spacingRight</code>.
+	 * applies to vertices only). Value is "spacingRight".
 	 */
 	STYLE_SPACING_RIGHT: 'spacingRight',
 
@@ -7429,11 +7429,11 @@ var mxUtils =
 	 * 
 	 * Defines the key for the horizontal style. Possible values are
 	 * true or false. This value only applies to vertices. If the <STYLE_SHAPE>
-	 * is <code>SHAPE_SWIMLANE</code> a value of false indicates that the
+	 * is "SHAPE_SWIMLANE" a value of false indicates that the
 	 * swimlane should be drawn vertically, true indicates to draw it
 	 * horizontally. If the shape style does not indicate that this vertex is a
 	 * swimlane, this value affects only whether the label is drawn
-	 * horizontally or vertically. Value is <code>horizontal</code>.
+	 * horizontally or vertically. Value is "horizontal".
 	 */
 	STYLE_HORIZONTAL: 'horizontal',
 
@@ -7443,7 +7443,7 @@ var mxUtils =
 	 * Defines the key for the direction style. The direction style is used
 	 * to specify the direction of certain shapes (eg. <mxTriangle>).
 	 * Possible values are <DIRECTION_EAST> (default), <DIRECTION_WEST>,
-	 * <DIRECTION_NORTH> and <DIRECTION_SOUTH>. Value is <code>direction</code>.
+	 * <DIRECTION_NORTH> and <DIRECTION_SOUTH>. Value is "direction".
 	 */
 	STYLE_DIRECTION: 'direction',
 
@@ -7454,7 +7454,7 @@ var mxUtils =
 	 * <ELBOW_HORIZONTAL> and <ELBOW_VERTICAL>. Default is <ELBOW_HORIZONTAL>.
 	 * This defines how the three segment orthogonal edge style leaves its
 	 * terminal vertices. The vertical style leaves the terminal vertices at
-	 * the top and bottom sides. Value is <code>elbow</code>.
+	 * the top and bottom sides. Value is "elbow".
 	 */
 	STYLE_ELBOW: 'elbow',
 
@@ -7462,7 +7462,7 @@ var mxUtils =
 	 * Variable: STYLE_FONTCOLOR
 	 * 
 	 * Defines the key for the fontColor style. Possible values are all HTML
-	 * color names or HEX codes. Value is <code>fontColor</code>.
+	 * color names or HEX codes. Value is "fontColor".
 	 */
 	STYLE_FONTCOLOR: 'fontColor',
 
@@ -7479,7 +7479,7 @@ var mxUtils =
 	 * Variable: STYLE_FONTSIZE
 	 * 
 	 * Defines the key for the fontSize style (in points). The type of the value
-	 * is int. Value is <code>fontSize</code>.
+	 * is int. Value is "fontSize".
 	 */
 	STYLE_FONTSIZE: 'fontSize',
 
@@ -7488,7 +7488,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the fontStyle style. Values may be any logical AND
 	 * (sum) of <FONT_BOLD>, <FONT_ITALIC> and <FONT_UNDERLINE>.
-	 * The type of the value is int. Value is <code>fontStyle</code>.
+	 * The type of the value is int. Value is "fontStyle".
 	 */
 	STYLE_FONTSTYLE: 'fontStyle',
 	
@@ -7497,7 +7497,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the aspect style. Possible values are empty or fixed.
 	 * If fixed is used then the aspect ratio of the cell will be maintained
-	 * when resizing. Default is empty. Value is <code>aspect</code>.
+	 * when resizing. Default is empty. Value is "aspect".
 	 */
 	STYLE_ASPECT: 'aspect',
 
@@ -7507,7 +7507,7 @@ var mxUtils =
 	 * Defines the key for the autosize style. This specifies if a cell should be
 	 * resized automatically if the value has changed. Possible values are 0 or 1.
 	 * Default is 0. See <mxGraph.isAutoSizeCell>. This is normally combined with
-	 * <STYLE_RESIZABLE> to disable manual sizing. Value is <code>autosize</code>.
+	 * <STYLE_RESIZABLE> to disable manual sizing. Value is "autosize".
 	 */
 	STYLE_AUTOSIZE: 'autosize',
 
@@ -7516,7 +7516,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the foldable style. This specifies if a cell is foldable
 	 * using a folding icon. Possible values are 0 or 1. Default is 1. See
-	 * <mxGraph.isCellFoldable>. Value is <code>foldable</code>.
+	 * <mxGraph.isCellFoldable>. Value is "foldable".
 	 */
 	STYLE_FOLDABLE: 'foldable',
 
@@ -7525,7 +7525,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the editable style. This specifies if the value of
 	 * a cell can be edited using the in-place editor. Possible values are 0 or
-	 * 1. Default is 1. See <mxGraph.isCellEditable>. Value is <code>editable</code>.
+	 * 1. Default is 1. See <mxGraph.isCellEditable>. Value is "editable".
 	 */
 	STYLE_EDITABLE: 'editable',
 
@@ -7534,7 +7534,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the bendable style. This specifies if the control
 	 * points of an edge can be moved. Possible values are 0 or 1. Default is
-	 * 1. See <mxGraph.isCellBendable>. Value is <code>bendable</code>.
+	 * 1. See <mxGraph.isCellBendable>. Value is "bendable".
 	 */
 	STYLE_BENDABLE: 'bendable',
 
@@ -7543,7 +7543,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the movable style. This specifies if a cell can
 	 * be moved. Possible values are 0 or 1. Default is 1. See
-	 * <mxGraph.isCellMovable>. Value is <code>movable</code>.
+	 * <mxGraph.isCellMovable>. Value is "movable".
 	 */
 	STYLE_MOVABLE: 'movable',
 
@@ -7552,7 +7552,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the resizable style. This specifies if a cell can
 	 * be resized. Possible values are 0 or 1. Default is 1. See
-	 * <mxGraph.isCellResizable>. Value is <code>resizable</code>.
+	 * <mxGraph.isCellResizable>. Value is "resizable".
 	 */
 	STYLE_RESIZABLE: 'resizable',
 
@@ -7561,7 +7561,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the rotatable style. This specifies if a cell can
 	 * be rotated. Possible values are 0 or 1. Default is 1. See
-	 * <mxGraph.isCellRotatable>. Value is <code>rotatable</code>.
+	 * <mxGraph.isCellRotatable>. Value is "rotatable".
 	 */
 	STYLE_ROTATABLE: 'rotatable',
 
@@ -7570,7 +7570,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the cloneable style. This specifies if a cell can
 	 * be cloned. Possible values are 0 or 1. Default is 1. See
-	 * <mxGraph.isCellCloneable>. Value is <code>cloneable</code>.
+	 * <mxGraph.isCellCloneable>. Value is "cloneable".
 	 */
 	STYLE_CLONEABLE: 'cloneable',
 
@@ -7579,7 +7579,7 @@ var mxUtils =
 	 * 
 	 * Defines the key for the deletable style. This specifies if a cell can be
 	 * deleted. Possible values are 0 or 1. Default is 1. See
-	 * <mxGraph.isCellDeletable>. Value is <code>deletable</code>.
+	 * <mxGraph.isCellDeletable>. Value is "deletable".
 	 */
 	STYLE_DELETABLE: 'deletable',
 
@@ -7587,7 +7587,7 @@ var mxUtils =
 	 * Variable: STYLE_SHAPE
 	 * 
 	 * Defines the key for the shape. Possible values are all constants with
-	 * a SHAPE-prefix or any newly defined shape names. Value is <code>shape</code>.
+	 * a SHAPE-prefix or any newly defined shape names. Value is "shape".
 	 */
 	STYLE_SHAPE: 'shape',
 
@@ -7595,7 +7595,7 @@ var mxUtils =
 	 * Variable: STYLE_EDGE
 	 * 
 	 * Defines the key for the edge style. Possible values are the functions
-	 * defined in <mxEdgeStyle>. Value is <code>edgeStyle</code>.
+	 * defined in <mxEdgeStyle>. Value is "edgeStyle".
 	 */
 	STYLE_EDGE: 'edgeStyle',
 
@@ -7603,7 +7603,7 @@ var mxUtils =
 	 * Variable: STYLE_LOOP
 	 * 
 	 * Defines the key for the loop style. Possible values are the functions
-	 * defined in <mxEdgeStyle>. Value is <code>loopStyle</code>.
+	 * defined in <mxEdgeStyle>. Value is "loopStyle".
 	 */
 	STYLE_LOOP: 'loopStyle',
 
@@ -7613,7 +7613,7 @@ var mxUtils =
 	 * Defines the key for the horizontal routing center. Possible values are
 	 * between -0.5 and 0.5. This is the relative offset from the center used
 	 * for connecting edges. The type of this value is numeric. Value is
-	 * <code>routingCenterX</code>.
+	 * "routingCenterX".
 	 */
 	STYLE_ROUTING_CENTER_X: 'routingCenterX',
 
@@ -7623,7 +7623,7 @@ var mxUtils =
 	 * Defines the key for the vertical routing center. Possible values are
 	 * between -0.5 and 0.5. This is the relative offset from the center used
 	 * for connecting edges. The type of this value is numeric. Value is
-	 * <code>routingCenterY</code>.
+	 * "routingCenterY".
 	 */
 	STYLE_ROUTING_CENTER_Y: 'routingCenterY',
 
@@ -10016,7 +10016,7 @@ var mxEvent =
  * 
  * var onerror = function(req)
  * {
- *   mxUtils.alert(req.getStatus());
+ *   mxUtils.alert('Error');
  * }
  * new mxXmlRequest(url, 'key=value').send(onload, onerror);
  * (end)
@@ -10322,14 +10322,7 @@ mxXmlRequest.prototype.send = function(onload, onerror, timeout, ontimeout)
 				}
 			});
 		}
-		
-		if (!mxClient.IS_QUIRKS && (document.documentMode == null || document.documentMode > 10) &&
-			window.XMLHttpRequest && timeout != null && ontimeout != null)
-		{
-			this.request.timeout = timeout;
-			this.request.ontimeout = ontimeout;
-		}
-		
+
 		this.request.open(this.method, this.url, this.async,
 			this.username, this.password);
 		this.setRequestHeaders(this.request, this.params);
@@ -10339,6 +10332,13 @@ mxXmlRequest.prototype.send = function(onload, onerror, timeout, ontimeout)
 			this.request.withCredentials = 'true';
 		}
 		
+		if (!mxClient.IS_QUIRKS && (document.documentMode == null || document.documentMode > 9) &&
+			window.XMLHttpRequest && timeout != null && ontimeout != null)
+		{
+			this.request.timeout = timeout;
+			this.request.ontimeout = ontimeout;
+		}
+				
 		this.request.send(this.params);
 	}
 };
@@ -17577,8 +17577,15 @@ mxUtils.extend(mxSvgCanvas2D, mxAbstractCanvas2D);
 	{
 		// Checks using a generic test text if the parsing actually works. This is a workaround
 		// for older browsers where the capability check returns true but the parsing fails.
-		var doc = new DOMParser().parseFromString('test text', 'text/html');
-		mxSvgCanvas2D.prototype.useDomParser = doc != null;
+		try
+		{
+			var doc = new DOMParser().parseFromString('test text', 'text/html');
+			mxSvgCanvas2D.prototype.useDomParser = doc != null;
+		}
+		catch (e)
+		{
+			mxSvgCanvas2D.prototype.useDomParser = false;
+		}
 	}
 })();
 
@@ -17646,9 +17653,9 @@ mxSvgCanvas2D.prototype.blockImagePointerEvents = false;
 /**
  * Variable: lineHeightCorrection
  * 
- * Correction factor for <mxConstants.LINE_HEIGHT> in HTML output. Default is 1.05.
+ * Correction factor for <mxConstants.LINE_HEIGHT> in HTML output. Default is 1.
  */
-mxSvgCanvas2D.prototype.lineHeightCorrection = 1.05;
+mxSvgCanvas2D.prototype.lineHeightCorrection = 1;
 
 /**
  * Variable: pointerEventsValue
@@ -18636,6 +18643,166 @@ mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, overflow
 };
 
 /**
+ * Updates existing DOM nodes for text rendering. LATER: Merge common parts with text function below.
+ */
+mxSvgCanvas2D.prototype.updateText = function(x, y, w, h, align, valign, wrap, overflow, clip, rotation, node)
+{
+	if (node != null && node.firstChild != null && node.firstChild.firstChild != null &&
+		node.firstChild.firstChild.firstChild != null)
+	{
+		// Uses outer group for opacity and transforms to
+		// fix rendering order in Chrome
+		var group = node.firstChild;
+		var fo = group.firstChild;
+		var div = fo.firstChild;
+
+		rotation = (rotation != null) ? rotation : 0;
+		
+		var s = this.state;
+		x += s.dx;
+		y += s.dy;
+		
+		if (clip)
+		{
+			div.style.maxHeight = Math.round(h) + 'px';
+			div.style.maxWidth = Math.round(w) + 'px';
+		}
+		else if (overflow == 'fill')
+		{
+			div.style.width = Math.round(w) + 'px';
+			div.style.height = Math.round(h) + 'px';
+		}
+		else if (overflow == 'width')
+		{
+			div.style.width = Math.round(w) + 'px';
+			
+			if (h > 0)
+			{
+				div.style.maxHeight = Math.round(h) + 'px';
+			}
+		}
+
+		if (wrap && w > 0)
+		{
+			div.style.width = Math.round(w) + 'px';
+		}
+		
+		// Code that depends on the size which is computed after
+		// the element was added to the DOM.
+		var ow = 0;
+		var oh = 0;
+		
+		// Padding avoids clipping on border and wrapping for differing font metrics on platforms
+		var padX = 2;
+		var padY = 2;
+
+		var sizeDiv = div;
+		
+		if (sizeDiv.firstChild != null && sizeDiv.firstChild.nodeName == 'DIV')
+		{
+			sizeDiv = sizeDiv.firstChild;
+		}
+		
+		var tmp = sizeDiv.offsetWidth;
+		ow = tmp + padX;
+
+		// Recomputes the height of the element for wrapped width
+		if (wrap && overflow != 'fill')
+		{
+			if (clip)
+			{
+				ow = Math.min(ow, w);
+			}
+			
+			div.style.width = ow + 'px';
+		}
+
+		ow = sizeDiv.offsetWidth + padX;
+		oh = sizeDiv.offsetHeight + 2;
+
+		if (clip)
+		{
+			oh = Math.min(oh, h);
+			ow = Math.min(ow, w);
+		}
+
+		if (overflow == 'fill')
+		{
+			w = Math.max(w, ow);
+			h = Math.max(h, oh);
+		}
+		else if (overflow == 'width')
+		{
+			w = Math.max(w, ow);
+			h = oh;
+		}
+		else
+		{
+			w = ow;
+			h = oh;
+		}
+
+		var dx = 0;
+		var dy = 0;
+
+		if (align == mxConstants.ALIGN_CENTER)
+		{
+			dx -= w / 2;
+		}
+		else if (align == mxConstants.ALIGN_RIGHT)
+		{
+			dx -= w;
+		}
+		
+		x += dx;
+		
+		// FIXME: LINE_HEIGHT not ideal for all text sizes, fix for export
+		if (valign == mxConstants.ALIGN_MIDDLE)
+		{
+			dy -= h / 2 - 2;
+		}
+		else if (valign == mxConstants.ALIGN_BOTTOM)
+		{
+			dy -= h - 3;
+		}
+		
+		// Workaround for rendering offsets
+		// TODO: Check if export needs these fixes, too
+		if (overflow != 'fill' && mxClient.IS_FF && mxClient.IS_WIN)
+		{
+			dy -= 2;
+		}
+		
+		y += dy;
+
+		var tr = (s.scale != 1) ? 'scale(' + s.scale + ')' : '';
+
+		if (s.rotation != 0 && this.rotateHtml)
+		{
+			tr += 'rotate(' + (s.rotation) + ',' + (w / 2) + ',' + (h / 2) + ')';
+			var pt = this.rotatePoint((x + w / 2) * s.scale, (y + h / 2) * s.scale,
+				s.rotation, s.rotationCx, s.rotationCy);
+			x = pt.x - w * s.scale / 2;
+			y = pt.y - h * s.scale / 2;
+		}
+		else
+		{
+			x *= s.scale;
+			y *= s.scale;
+		}
+
+		if (rotation != 0)
+		{
+			tr += 'rotate(' + (rotation) + ',' + (-dx) + ',' + (-dy) + ')';
+		}
+
+		group.setAttribute('transform', 'translate(' + Math.round(x) + ',' + Math.round(y) + ')' + tr);
+		fo.setAttribute('width', Math.round(Math.max(1, w)));
+		fo.setAttribute('height', Math.round(Math.max(1, h)));
+	}
+};
+
+/**
  * Function: text
  * 
  * Paints the given text. Possible values for format are empty string for plain
@@ -18663,7 +18830,7 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			}
 			else if (overflow == 'fill')
 			{
-				style += 'width:' + Math.round(w) + 'px;height:' + Math.round(h) + 'px;';
+				style += 'width:' + Math.round(w) + 'px;height:' + Math.round(h) + 'px;overflow:hidden;';
 			}
 			else if (overflow == 'width')
 			{
@@ -18853,7 +19020,7 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				ow = tmp + padX;
 
 				// Recomputes the height of the element for wrapped width
-				if (wrap)
+				if (wrap && overflow != 'fill')
 				{
 					if (clip)
 					{
@@ -18927,15 +19094,9 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			// Workaround for rendering offsets
 			// TODO: Check if export needs these fixes, too
 			//if (this.root.ownerDocument == document)
+			if (overflow != 'fill' && mxClient.IS_FF && mxClient.IS_WIN)
 			{
-				if (!mxClient.IS_OP && mxClient.IS_GC && mxClient.IS_MAC)
-				{
-					dy += 1;
-				}
-				else if (mxClient.IS_FF && mxClient.IS_WIN)
-				{
-					dy -= 1;
-				}
+				dy -= 2;
 			}
 			
 			y += dy;
@@ -20051,7 +20212,7 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				y += s.dy;
 				
 				// Workaround for rendering offsets
-				if (valign == mxConstants.ALIGN_TOP)
+				if (overflow != 'fill' && valign == mxConstants.ALIGN_TOP)
 				{
 					y -= 1;
 				}
@@ -20166,8 +20327,9 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			{
 				// KNOWN: Affects horizontal alignment in quirks
 				// but fill should only be used with align=left
-				div.style.width = w + 'px';
-				div.style.height = h + 'px';
+				div.style.overflow = 'hidden';
+				div.style.width = (w + 1) + 'px';
+				div.style.height = (h + 1) + 'px';
 			}
 			else if (overflow == 'width')
 			{
@@ -22034,7 +22196,8 @@ mxShape.prototype.getLabelBounds = function(rect)
  */
 mxShape.prototype.checkBounds = function()
 {
-	return (this.bounds != null && !isNaN(this.bounds.x) && !isNaN(this.bounds.y) &&
+	return (!isNaN(this.scale) && isFinite(this.scale) && this.scale > 0 &&
+			this.bounds != null && !isNaN(this.bounds.x) && !isNaN(this.bounds.y) &&
 			!isNaN(this.bounds.width) && !isNaN(this.bounds.height) &&
 			this.bounds.width > 0 && this.bounds.height > 0);
 };
@@ -24612,6 +24775,20 @@ mxText.prototype.ignoreStringSize = false;
 mxText.prototype.textWidthPadding = (document.documentMode == 8 && !mxClient.IS_EM) ? 4 : 3;
 
 /**
+ * Variable: lastValue
+ * 
+ * Contains the last rendered text value. Used for caching.
+ */
+mxText.prototype.lastValue = null;
+
+/**
+ * Variable: cacheEnabled
+ * 
+ * Specifies if caching for HTML labels should be enabled. Default is false.
+ */
+mxText.prototype.cacheEnabled = false;
+
+/**
  * Function: isParseVml
  * 
  * Text shapes do not contain VML markup and do not need to be parsed. This
@@ -24650,8 +24827,114 @@ mxText.prototype.getSvgScreenOffset = function()
  */
 mxText.prototype.checkBounds = function()
 {
-	return (this.bounds != null && !isNaN(this.bounds.x) && !isNaN(this.bounds.y) &&
+	return (!isNaN(this.scale) && isFinite(this.scale) && this.scale > 0 &&
+			this.bounds != null && !isNaN(this.bounds.x) && !isNaN(this.bounds.y) &&
 			!isNaN(this.bounds.width) && !isNaN(this.bounds.height));
+};
+
+/**
+ * Function: paint
+ * 
+ * Generic rendering code.
+ */
+mxText.prototype.paint = function(c, update)
+{
+	// Scale is passed-through to canvas
+	var s = this.scale;
+	var x = this.bounds.x / s;
+	var y = this.bounds.y / s;
+	var w = this.bounds.width / s;
+	var h = this.bounds.height / s;
+	
+	this.updateTransform(c, x, y, w, h);
+	this.configureCanvas(c, x, y, w, h);
+	
+	if (update)
+	{
+		c.updateText(x, y, w, h, this.align, this.valign, this.wrap, this.overflow,
+				this.clipped, this.getTextRotation(), this.node);
+	}
+	else
+	{
+		// Checks if text contains HTML markup
+		var realHtml = mxUtils.isNode(this.value) || this.dialect == mxConstants.DIALECT_STRICTHTML;
+		
+		// Always renders labels as HTML in VML
+		var fmt = (realHtml || c instanceof mxVmlCanvas2D) ? 'html' : '';
+		var val = this.value;
+		
+		if (!realHtml && fmt == 'html')
+		{
+			val =  mxUtils.htmlEntities(val, false);
+		}
+		
+		val = (!mxUtils.isNode(this.value) && this.replaceLinefeeds && fmt == 'html') ?
+			val.replace(/\n/g, '<br/>') : val;
+			
+		var dir = this.textDirection;
+	
+		if (dir == mxConstants.TEXT_DIRECTION_AUTO && !realHtml)
+		{
+			dir = this.getAutoDirection();
+		}
+		
+		if (dir != mxConstants.TEXT_DIRECTION_LTR && dir != mxConstants.TEXT_DIRECTION_RTL)
+		{
+			dir = null;
+		}
+	
+		c.text(x, y, w, h, val, this.align, this.valign, this.wrap, fmt, this.overflow,
+			this.clipped, this.getTextRotation(), dir);
+	}
+};
+
+/**
+ * Function: redraw
+ * 
+ * Renders the text using the given DOM nodes.
+ */
+mxText.prototype.redraw = function()
+{
+	if (this.visible && this.checkBounds() && this.cacheEnabled && this.lastValue == this.value &&
+		(mxUtils.isNode(this.value) || this.dialect == mxConstants.DIALECT_STRICTHTML))
+	{
+		if (this.node.nodeName == 'DIV' && (this.isHtmlAllowed() || !mxClient.IS_VML))
+		{
+			this.updateSize(this.node, (this.state == null || this.state.view.textDiv == null));
+
+			if (mxClient.IS_IE && (document.documentMode == null || document.documentMode <= 8))
+			{
+				this.updateHtmlFilter();
+			}
+			else
+			{
+				this.updateHtmlTransform();
+			}
+			
+			this.updateBoundingBox();
+		}
+		else
+		{
+			var canvas = this.createCanvas();
+			
+			if (canvas != null && canvas.updateText != null)
+			{
+				this.paint(canvas, true);
+				this.destroyCanvas(canvas);
+				this.updateBoundingBox();
+			}
+			else
+			{
+				// Fallback if canvas does not support updateText (VML)
+				mxShape.prototype.redraw.apply(this, arguments);
+			}
+		}
+	}
+	else
+	{
+		mxShape.prototype.redraw.apply(this, arguments);
+		this.lastValue = this.value;
+	}
 };
 
 /**
@@ -24824,9 +25107,12 @@ mxText.prototype.updateBoundingBox = function()
 				{
 					sizeDiv = sizeDiv.firstChild;
 				}
+
+				this.offsetWidth = sizeDiv.offsetWidth + this.textWidthPadding;
+				this.offsetHeight = sizeDiv.offsetHeight;
 				
-				ow = (sizeDiv.offsetWidth + this.textWidthPadding) * this.scale;
-				oh = sizeDiv.offsetHeight * this.scale;
+				ow = this.offsetWidth * this.scale;
+				oh = this.offsetHeight * this.scale;
 			}
 		}
 
@@ -24926,54 +25212,6 @@ mxText.prototype.updateVmlContainer = function()
 };
 
 /**
- * Function: paint
- * 
- * Generic rendering code.
- */
-mxText.prototype.paint = function(c)
-{
-	// Scale is passed-through to canvas
-	var s = this.scale;
-	var x = this.bounds.x / s;
-	var y = this.bounds.y / s;
-	var w = this.bounds.width / s;
-	var h = this.bounds.height / s;
-
-	this.updateTransform(c, x, y, w, h);
-	this.configureCanvas(c, x, y, w, h);
-	
-	// Checks if text contains HTML markup
-	var realHtml = mxUtils.isNode(this.value) || this.dialect == mxConstants.DIALECT_STRICTHTML;
-	
-	// Always renders labels as HTML in VML
-	var fmt = (realHtml || c instanceof mxVmlCanvas2D) ? 'html' : '';
-	var val = this.value;
-	
-	if (!realHtml && fmt == 'html')
-	{
-		val =  mxUtils.htmlEntities(val, false);
-	}
-	
-	val = (!mxUtils.isNode(this.value) && this.replaceLinefeeds && fmt == 'html') ?
-		val.replace(/\n/g, '<br/>') : val;
-		
-	var dir = this.textDirection;
-
-	if (dir == mxConstants.TEXT_DIRECTION_AUTO && !realHtml)
-	{
-		dir = this.getAutoDirection();
-	}
-	
-	if (dir != mxConstants.TEXT_DIRECTION_LTR && dir != mxConstants.TEXT_DIRECTION_RTL)
-	{
-		dir = null;
-	}
-		
-	c.text(x, y, w, h, val, this.align, this.valign, this.wrap, fmt, this.overflow,
-		this.clipped, this.getTextRotation(), dir);
-};
-
-/**
  * Function: redrawHtmlShape
  *
  * Updates the HTML node(s) to reflect the latest bounds and scale.
@@ -25033,47 +25271,50 @@ mxText.prototype.updateHtmlTransform = function()
 	// Workaround for rendering offsets
 	var dy = 0;
 	
-	if (document.documentMode >= 10 && this.valign != mxConstants.ALIGN_TOP)
+	if (this.overflow != 'fill')
 	{
-		dy += 1;
-	}
-	else if (document.documentMode == 9 && this.valign == mxConstants.ALIGN_BOTTOM)
-	{
-		dy += 1;
-	}
-	else if (mxClient.IS_MAC && !mxClient.IS_OP && mxClient.IS_GC)
-	{
-		if (mxClient.IS_MAC)
+		if (document.documentMode >= 10 && this.valign != mxConstants.ALIGN_TOP)
+		{
+			dy += 1;
+		}
+		else if (document.documentMode == 9 && this.valign == mxConstants.ALIGN_BOTTOM)
+		{
+			dy += 1;
+		}
+		else if (mxClient.IS_MAC && !mxClient.IS_OP && mxClient.IS_GC)
+		{
+			if (mxClient.IS_MAC)
+			{
+				if (this.valign == mxConstants.ALIGN_BOTTOM)
+				{
+					dy += 2;
+				}
+				else
+				{
+					dy += 1;
+				}
+			}
+			else if (this.valign == mxConstants.ALIGN_BOTTOM)
+			{
+				dy += 1;
+			}
+		}
+		else if (mxClient.IS_MAC && mxClient.IS_FF)
 		{
 			if (this.valign == mxConstants.ALIGN_BOTTOM)
 			{
 				dy += 2;
 			}
-			else
+			else if (this.valign == mxConstants.ALIGN_MIDDLE)
 			{
 				dy += 1;
 			}
 		}
-		else if (this.valign == mxConstants.ALIGN_BOTTOM)
+		else if (!mxClient.IS_MAC && (mxClient.IS_GC || mxClient.IS_FF) &&
+				this.valign == mxConstants.ALIGN_BOTTOM) // includes Opera
 		{
 			dy += 1;
 		}
-	}
-	else if (mxClient.IS_MAC && mxClient.IS_FF)
-	{
-		if (this.valign == mxConstants.ALIGN_BOTTOM)
-		{
-			dy += 2;
-		}
-		else if (this.valign == mxConstants.ALIGN_MIDDLE)
-		{
-			dy += 1;
-		}
-	}
-	else if (!mxClient.IS_MAC && (mxClient.IS_GC || mxClient.IS_FF) &&
-			this.valign == mxConstants.ALIGN_BOTTOM) // includes Opera
-	{
-		dy += 1;
 	}
 
 	style.left = Math.round(this.bounds.x) + 'px';
@@ -25288,7 +25529,7 @@ mxText.prototype.updateHtmlFilter = function()
 	// Workaround for rendering offsets
 	var dy = 0;
 	
-	if (mxClient.IS_QUIRKS)
+	if (this.overflow != 'fill' && mxClient.IS_QUIRKS)
 	{
 		if (this.valign == mxConstants.ALIGN_TOP)
 		{
@@ -25479,6 +25720,7 @@ mxText.prototype.updateSize = function(node, enableWrap)
 	}
 	else if (this.overflow == 'fill')
 	{
+		style.overflow = 'hidden';
 		style.width = w + 'px';
 		style.height = h + 'px';
 	}
@@ -25493,7 +25735,7 @@ mxText.prototype.updateSize = function(node, enableWrap)
 		style.whiteSpace = 'normal';
 		style.width = w + 'px';
 
-		if (enableWrap)
+		if (enableWrap && this.overflow != 'fill')
 		{
 			var sizeDiv = node;
 			
@@ -25509,7 +25751,7 @@ mxText.prototype.updateSize = function(node, enableWrap)
 				tmp = Math.min(tmp, w);
 			}
 			
-			style.width = tmp+ 'px';
+			style.width = tmp + 'px';
 		}
 	}
 	else
@@ -26656,7 +26898,7 @@ mxSwimlane.prototype.paintSwimlane = function(c, x, y, w, h, start, fill, swimla
 		c.lineTo(w, 0);
 		c.lineTo(w, start);
 		
-		if (swimlaneLine)
+		if (swimlaneLine || start >= h)
 		{
 			c.close();
 		}
@@ -26683,7 +26925,7 @@ mxSwimlane.prototype.paintSwimlane = function(c, x, y, w, h, start, fill, swimla
 		c.lineTo(0, h);
 		c.lineTo(start, h);
 		
-		if (swimlaneLine)
+		if (swimlaneLine || start >= w)
 		{
 			c.close();
 		}
@@ -26733,7 +26975,7 @@ mxSwimlane.prototype.paintRoundedSwimlane = function(c, x, y, w, h, start, r, fi
 		c.quadTo(0, 0, 0, r);
 		c.lineTo(0, start);
 		
-		if (swimlaneLine)
+		if (swimlaneLine || start >= h)
 		{
 			c.close();
 		}
@@ -26764,7 +27006,7 @@ mxSwimlane.prototype.paintRoundedSwimlane = function(c, x, y, w, h, start, r, fi
 		c.quadTo(0, h, r, h);
 		c.lineTo(start, h);
 		
-		if (swimlaneLine)
+		if (swimlaneLine || start >= w)
 		{
 			c.close();
 		}
@@ -27499,7 +27741,7 @@ mxStackLayout.prototype.moveCell = function(cell, x, y)
 						bounds.x + bounds.width / 2 :
 						bounds.y + bounds.height / 2;
 					
-					if (last < value && tmp > value)
+					if (last <= value && tmp > value)
 					{
 						break;
 					}
@@ -46021,7 +46263,8 @@ mxCellRenderer.prototype.initControl = function(state, control, handleEvents, cl
 
 	var node = control.innerNode || control.node;
 	
-	if (clickHandler)
+	// Workaround for missing click event on iOS is to check tolerance below
+	if (clickHandler != null && !mxClient.IS_IOS)
 	{
 		if (graph.isEnabled())
 		{
@@ -46033,9 +46276,12 @@ mxCellRenderer.prototype.initControl = function(state, control, handleEvents, cl
 	
 	if (handleEvents)
 	{
+		var first = null;
+
 		mxEvent.addGestureListeners(node,
 			function (evt)
 			{
+				first = new mxPoint(mxEvent.getClientX(evt), mxEvent.getClientY(evt));
 				graph.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt, state));
 				mxEvent.consume(evt);
 			},
@@ -46043,6 +46289,25 @@ mxCellRenderer.prototype.initControl = function(state, control, handleEvents, cl
 			{
 				graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt, state));
 			});
+		
+		// Uses capture phase for event interception to stop bubble phase
+		if (clickHandler != null && mxClient.IS_IOS)
+		{
+			node.addEventListener('touchend', function(evt)
+			{
+				if (first != null)
+				{
+					var tol = graph.tolerance;
+					
+					if (Math.abs(first.x - mxEvent.getClientX(evt)) < tol &&
+						Math.abs(first.y - mxEvent.getClientY(evt)) < tol)
+					{
+						clickHandler.call(clickHandler, evt);
+						mxEvent.consume(evt);
+					}
+				}
+			}, true);
+		}
 	}
 	
 	return node;
@@ -46560,9 +46825,12 @@ mxCellRenderer.prototype.insertStateAfter = function(state, node, htmlNode)
 						canvas = canvas.parentNode;
 					}
 					
-					if (canvas != null && canvas.nextSibling != null && canvas.nextSibling != shapes[i].node)
+					if (canvas != null && canvas.nextSibling != null)
 					{
-						shapes[i].node.parentNode.insertBefore(shapes[i].node, canvas.nextSibling);
+						if (canvas.nextSibling != shapes[i].node)
+						{
+							shapes[i].node.parentNode.insertBefore(shapes[i].node, canvas.nextSibling);
+						}
 					}
 					else
 					{
@@ -46602,7 +46870,7 @@ mxCellRenderer.prototype.insertStateAfter = function(state, node, htmlNode)
  */
 mxCellRenderer.prototype.getShapesForState = function(state)
 {
-	return [state.shape, state.text];
+	return [state.shape, state.text, state.control];
 };
 
 /**
@@ -46860,7 +47128,8 @@ var mxEdgeStyle =
 		{
 			var constraint = mxUtils.getPortConstraints(source, state, true, mxConstants.DIRECTION_MASK_NONE);
 			
-			if (constraint != mxConstants.DIRECTION_MASK_NONE)
+			if (constraint != mxConstants.DIRECTION_MASK_NONE && constraint != mxConstants.DIRECTION_MASK_WEST +
+				mxConstants.DIRECTION_MASK_EAST)
 			{
 				isSourceLeft = constraint == mxConstants.DIRECTION_MASK_WEST;
 			}
@@ -46894,8 +47163,9 @@ var mxEdgeStyle =
 		else if (target != null)
 	 	{
 			var constraint = mxUtils.getPortConstraints(target, state, false, mxConstants.DIRECTION_MASK_NONE);
-			
-			if (constraint != mxConstants.DIRECTION_MASK_NONE)
+
+			if (constraint != mxConstants.DIRECTION_MASK_NONE && constraint != mxConstants.DIRECTION_MASK_WEST +
+				mxConstants.DIRECTION_MASK_EAST)
 			{
 				isTargetLeft = constraint == mxConstants.DIRECTION_MASK_WEST;
 			}
@@ -47736,13 +48006,13 @@ var mxEdgeStyle =
 			if (rotation != 0)
 			{
 				var newRect = mxUtils.getBoundingBox(new mxRectangle(sourceX, sourceY, sourceWidth, sourceHeight), rotation);
-				sourceX = newRect.x;
+				sourceX = newRect.x; 
 				sourceY = newRect.y;
 				sourceWidth = newRect.width;
 				sourceHeight = newRect.height;
 			}
 		}
-		
+
 		if (target != null)
 		{
 			portConstraint[1] = mxUtils.getPortConstraints(target, state, false,
@@ -47758,7 +48028,18 @@ var mxEdgeStyle =
 				targetHeight = newRect.height;
 			}
 		}
-										
+
+		// Avoids floating point number errrors
+		sourceX = Math.round(sourceX * 10) / 10;
+		sourceY = Math.round(sourceY * 10) / 10;
+		sourceWidth = Math.round(sourceWidth * 10) / 10;
+		sourceHeight = Math.round(sourceHeight * 10) / 10;
+		
+		targetX = Math.round(targetX * 10) / 10;
+		targetY = Math.round(targetY * 10) / 10;
+		targetWidth = Math.round(targetWidth * 10) / 10;
+		targetHeight = Math.round(targetHeight * 10) / 10;
+		
 		var dir = [0, 0] ;
 
 		// Work out which faces of the vertices present against each other
@@ -47827,23 +48108,23 @@ var mxEdgeStyle =
 			if (currentTerm != null)
 			{
 				constraint[i][0] = (currentTerm.x - geo[i][0]) / geo[i][2];
-
-				if (constraint[i][0] < 0.01)
+				
+				if (Math.abs(currentTerm.x - geo[i][0]) <= 1)
 				{
 					dir[i] = mxConstants.DIRECTION_MASK_WEST;
 				}
-				else if (constraint[i][0] > 0.99)
+				else if (Math.abs(currentTerm.x - geo[i][0] - geo[i][2]) <= 1)
 				{
 					dir[i] = mxConstants.DIRECTION_MASK_EAST;
 				}
 
 				constraint[i][1] = (currentTerm.y - geo[i][1]) / geo[i][3];
 
-				if (constraint[i][1] < 0.01)
+				if (Math.abs(currentTerm.y - geo[i][1]) <= 1)
 				{
 					dir[i] = mxConstants.DIRECTION_MASK_NORTH;
 				}
-				else if (constraint[i][1] > 0.99)
+				else if (Math.abs(currentTerm.y - geo[i][1] - geo[i][3]) <= 1)
 				{
 					dir[i] = mxConstants.DIRECTION_MASK_SOUTH;
 				}
@@ -47943,6 +48224,7 @@ var mxEdgeStyle =
 				preferredOrderSet = true;
 			}
 		}
+		
 		if (preferredVertDist > scaledOrthBuffer * 2 && !preferredOrderSet)
 		{
 			prefOrdering[0][0] = vertPref[0];
@@ -47952,6 +48234,7 @@ var mxEdgeStyle =
 			preferredOrderSet = true;
 
 		}
+		
 		if (preferredHorizDist > scaledOrthBuffer * 2 && !preferredOrderSet)
 		{
 			prefOrdering[0][0] = horPref[0];
@@ -47986,10 +48269,12 @@ var mxEdgeStyle =
 			{
 				dirPref[i] = dirPref[i] << 8;
 			}
+			
 			if ((dirPref[i] & 0xF00) == 0)
 			{
 				dirPref[i] = (dirPref[i] & 0xF) | dirPref[i] >> 8;
 			}
+			
 			if ((dirPref[i] & 0xF0000) == 0)
 			{
 				dirPref[i] = (dirPref[i] & 0xFFFF)
@@ -48022,6 +48307,7 @@ var mxEdgeStyle =
 		{
 			sourceIndex += 4;
 		}
+		
 		if (targetIndex < 1)
 		{
 			targetIndex += 4;
@@ -48193,6 +48479,23 @@ var mxEdgeStyle =
 			}
 			
 			result.push(new mxPoint(Math.round(mxEdgeStyle.wayPoints1[i][0]), Math.round(mxEdgeStyle.wayPoints1[i][1])));
+		}
+		
+		// Removes duplicates
+		var index = 1;
+		
+		while (index < result.length)
+		{
+			if (result[index - 1] == null || result[index] == null ||
+				result[index - 1].x != result[index].x ||
+				result[index - 1].y != result[index].y)
+			{
+				index++;
+			}
+			else
+			{
+				result.splice(index, 1);
+			}
 		}
 	},
 	
@@ -49940,12 +50243,6 @@ mxGraphView.prototype.getPerimeterPoint = function(terminal, next, orthogonal, b
 			if (bounds.width > 0 || bounds.height > 0)
 			{
 				point = perimeter(bounds, terminal, next, orthogonal);
-				
-				if (point != null)
-				{
-					point.x = Math.round(point.x);
-					point.y = Math.round(point.y);
-				}
 			}
 		}
 		
@@ -50234,12 +50531,12 @@ mxGraphView.prototype.getPoint = function(state, geometry)
 	{
 		var gx = (geometry != null) ? geometry.x / 2 : 0;
 		var pointCount = state.absolutePoints.length;
-		var dist = (gx + 0.5) * state.length;
+		var dist = Math.round((gx + 0.5) * state.length);
 		var segment = state.segments[0];
 		var length = 0;				
 		var index = 1;
 
-		while (dist > length + segment && index < pointCount-1)
+		while (dist >= Math.round(length + segment) && index < pointCount - 1)
 		{
 			length += segment;
 			segment = state.segments[index++];
@@ -55296,12 +55593,12 @@ mxGraph.prototype.updateGroupBounds = function(cells, border, moveGroup, topBord
 						
 						if (moveGroup)
 						{
-							geo.x = geo.x + bounds.x - border - left - leftBorder;
-							geo.y = geo.y + bounds.y - border - top - topBorder;
+							geo.x = Math.round(geo.x + bounds.x - border - left - leftBorder);
+							geo.y = Math.round(geo.y + bounds.y - border - top - topBorder);
 						}
 						
-						geo.width = bounds.width + 2 * border + left + leftBorder + rightBorder;
-						geo.height = bounds.height + 2 * border + top + topBorder + bottomBorder;
+						geo.width = Math.round(bounds.width + 2 * border + left + leftBorder + rightBorder);
+						geo.height = Math.round(bounds.height + 2 * border + top + topBorder + bottomBorder);
 						
 						this.model.setGeometry(cells[i], geo);
 						this.moveCells(children, border + left - bounds.x + leftBorder,
@@ -59823,7 +60120,7 @@ mxGraph.prototype.getTooltip = function(state, node, x, y)
 			node.parentNode == state.control.node))
 		{
 			tip = this.collapseExpandResource;
-			tip = mxResources.get(tip) || tip;
+			tip = mxUtils.htmlEntities(mxResources.get(tip) || tip).replace(/\\n/g, '<br>');
 		}
 
 		if (tip == null && state.overlays != null)
@@ -65242,14 +65539,20 @@ mxLayoutManager.prototype.cellsMoved = function(cells, evt)
 			mxEvent.getClientX(evt), mxEvent.getClientY(evt));
 		var model = this.getGraph().getModel();
 		
-		// Checks if a layout exists to take care of the moving
+		// Checks if a layout exists to take care of the moving if the
+		// parent itself is not being moved
 		for (var i = 0; i < cells.length; i++)
 		{
-			var layout = this.getLayout(model.getParent(cells[i]));
-
-			if (layout != null)
+			var parent = model.getParent(cells[i]);
+			
+			if (mxUtils.indexOf(cells, parent) < 0)
 			{
-				layout.moveCell(cells[i], point.x, point.y);
+				var layout = this.getLayout(parent);
+	
+				if (layout != null)
+				{
+					layout.moveCell(cells[i], point.x, point.y);
+				}
 			}
 		}
 	}
@@ -69096,7 +69399,7 @@ mxConnectionHandler.prototype.createMarker = function()
 
 	// Overrides to return cell at location only if valid (so that
 	// there is no highlight for invalid cells)
-	marker.getCell = mxUtils.bind(this, function(me, cell)
+	marker.getCell = mxUtils.bind(this, function(me)
 	{
 		var cell = mxCellMarker.prototype.getCell.apply(marker, arguments);
 		var scale = this.graph.view.scale;
@@ -69108,6 +69411,17 @@ mxConnectionHandler.prototype.createMarker = function()
 		if (cell == null)
 		{
 			cell = this.getCellAt(point.x, point.y);
+		}
+		
+		// Uses connectable parent vertex if one exists
+		if (cell != null && !this.graph.isCellConnectable(cell))
+		{
+			var parent = this.graph.getModel().getParent(cell);
+			
+			if (this.graph.getModel().isVertex(parent) && this.graph.isCellConnectable(parent))
+			{
+				cell = parent;
+			}
 		}
 		
 		if ((this.graph.isSwimlane(cell) && this.graph.hitsSwimlaneContent(cell, point.x, point.y)) ||
@@ -70802,6 +71116,29 @@ mxConstraintHandler.prototype.isKeepFocusEvent = function(me)
 };
 
 /**
+ * Function: getCellForEvent
+ * 
+ * Returns the cell for the given event.
+ */
+mxConstraintHandler.prototype.getCellForEvent = function(me)
+{
+	var cell = me.getCell();
+	
+	// Uses connectable parent vertex if one exists
+	if (cell != null && !this.graph.isCellConnectable(cell))
+	{
+		var parent = this.graph.getModel().getParent(cell);
+		
+		if (this.graph.getModel().isVertex(parent) && this.graph.isCellConnectable(parent))
+		{
+			cell = parent;
+		}
+	}
+	
+	return cell;
+};
+
+/**
  * Function: update
  * 
  * Updates the state of this handler based on the given <mxMouseEvent>.
@@ -70813,14 +71150,15 @@ mxConstraintHandler.prototype.update = function(me, source)
 	{
 		var tol = this.getTolerance(me);
 		var mouse = new mxRectangle(me.getGraphX() - tol, me.getGraphY() - tol, 2 * tol, 2 * tol);
-		var cst = (me.getState() != null && !this.isStateIgnored(me.getState(), source) &&
-				this.graph.isCellConnectable(me.getCell())) ?
-				this.graph.getAllConnectionConstraints(me.getState(), source) : null;
+		var state = this.graph.view.getState(this.getCellForEvent(me));
+		var cst = (state != null && !this.isStateIgnored(state, source) &&
+				this.graph.isCellConnectable(state.cell)) ?
+				this.graph.getAllConnectionConstraints(state, source) : null;
 
 		// Keeps focus icons visible while over vertex bounds and no other cell under mouse or shift is pressed
 		if (!this.isKeepFocusEvent(me) && (this.currentFocusArea == null || this.currentFocus == null ||
-			(me.getState() != null && cst != null) || !this.graph.getModel().isVertex(this.currentFocus.cell) ||
-			!mxUtils.intersects(this.currentFocusArea, mouse)) && (me.getState() != this.currentFocus))
+			(state != null && cst != null) || !this.graph.getModel().isVertex(this.currentFocus.cell) ||
+			!mxUtils.intersects(this.currentFocusArea, mouse)) && (state != this.currentFocus))
 		{
 			this.currentFocusArea = null;
 			this.currentFocus = null;
@@ -70829,8 +71167,8 @@ mxConstraintHandler.prototype.update = function(me, source)
 			// Only uses cells which have constraints
 			if (this.constraints != null)
 			{
-				this.currentFocus = me.getState();
-				this.currentFocusArea = new mxRectangle(me.getState().x, me.getState().y, me.getState().width, me.getState().height);
+				this.currentFocus = state;
+				this.currentFocusArea = new mxRectangle(state.x, state.y, state.width, state.height);
 				
 				if (this.focusIcons != null)
 				{
@@ -70848,8 +71186,8 @@ mxConstraintHandler.prototype.update = function(me, source)
 				
 				for (var i = 0; i < this.constraints.length; i++)
 				{
-					var cp = this.graph.getConnectionPoint(me.getState(), this.constraints[i]);
-					var img = this.getImageForConstraint(me.getState(), this.constraints[i], cp);
+					var cp = this.graph.getConnectionPoint(state, this.constraints[i]);
+					var img = this.getImageForConstraint(state, this.constraints[i], cp);
 
 					var src = img.src;
 					var bounds = new mxRectangle(cp.x - img.width / 2,
@@ -70879,7 +71217,7 @@ mxConstraintHandler.prototype.update = function(me, source)
 
 					var getState = mxUtils.bind(this, function()
 					{
-						return (this.currentFocus != null) ? this.currentFocus : me.getState();
+						return (this.currentFocus != null) ? this.currentFocus : state;
 					});
 					
 					icon.redraw();
@@ -70904,7 +71242,7 @@ mxConstraintHandler.prototype.update = function(me, source)
 		var minDistSq = null;
 		
 		if (this.focusIcons != null && this.constraints != null &&
-			(me.getState() == null || this.currentFocus == me.getState()))
+			(state == null || this.currentFocus == state))
 		{
 			for (var i = 0; i < this.focusIcons.length; i++)
 			{
@@ -70939,7 +71277,7 @@ mxConstraintHandler.prototype.update = function(me, source)
 						
 						var getState = mxUtils.bind(this, function()
 						{
-							return (this.currentFocus != null) ? this.currentFocus : me.getState();
+							return (this.currentFocus != null) ? this.currentFocus : state;
 						});
 	
 						mxEvent.redirectMouseEvents(hl.node, this.graph, getState);
@@ -74006,13 +74344,29 @@ mxEdgeHandler.prototype.createMarker = function()
 				cell = null;
 			}
 		}
-
+		
+		// Uses connectable parent vertex if one exists
+		if (cell != null && !this.graph.isCellConnectable(cell))
+		{
+			var parent = this.graph.getModel().getParent(cell);
+			
+			if (this.graph.getModel().isVertex(parent) && this.graph.isCellConnectable(parent))
+			{
+				cell = parent;
+			}
+		}
+		
 		var model = self.graph.getModel();
 		
 		if ((this.graph.isSwimlane(cell) && this.graph.hitsSwimlaneContent(cell, point.x, point.y)) ||
 			(!self.isConnectableCell(cell)) ||
 			(cell == self.state.cell || (cell != null && !self.graph.connectableEdges && model.isEdge(cell))) ||
 			model.isAncestor(self.state.cell, cell))
+		{
+			cell = null;
+		}
+		
+		if (!this.graph.isCellConnectable(cell))
 		{
 			cell = null;
 		}

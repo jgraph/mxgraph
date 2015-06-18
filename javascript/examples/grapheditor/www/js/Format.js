@@ -1163,8 +1163,10 @@ BaseFormatPanel.prototype.addUnitInput = function(container, unit, right, width,
 /**
  * 
  */
-BaseFormatPanel.prototype.createRelativeOption = function(label, key)
+BaseFormatPanel.prototype.createRelativeOption = function(label, key, width)
 {
+	width = (width != null) ? width : 44;
+	
 	var graph = this.editorUi.editor.graph;
 	var div = this.createPanel();
 	div.style.paddingTop = '10px';
@@ -1192,7 +1194,7 @@ BaseFormatPanel.prototype.createRelativeOption = function(label, key)
 		mxEvent.consume(evt);
 	};
 
-	var input = this.addUnitInput(div, '%', 20, 44, update, 10, -15);
+	var input = this.addUnitInput(div, '%', 20, width, update, 10, -15);
 
 	var listener = mxUtils.bind(this, function(sender, evt, force)
 	{
@@ -1331,7 +1333,7 @@ ArrangePanel.prototype.init = function()
 	this.addGeometry(this.container);
 	this.addEdgeGeometry(this.container);
 	this.container.appendChild(this.addAngle(this.createPanel()));
-	
+
 	if (!ss.containsLabel)
 	{
 		this.container.appendChild(this.addFlip(this.createPanel()));
@@ -1384,51 +1386,87 @@ ArrangePanel.prototype.addGroupOps = function(div)
 	var graph = ui.editor.graph;
 	var cell = graph.getSelectionCell();
 	var count = 0;
+	
+	div.style.paddingTop = '8px';
+	div.style.paddingBottom = '6px';
 
 	if (graph.getSelectionCount() > 1)
 	{
-		var btn = mxUtils.button(mxResources.get('group'), function(evt)
+		btn = mxUtils.button(mxResources.get('group'), function(evt)
 		{
 			ui.actions.get('group').funct();
 		})
 		
 		btn.setAttribute('title', 'Ctrl+G');
 		btn.style.width = '202px';
+		btn.style.marginBottom = '2px';
 		div.appendChild(btn);
-		mxUtils.br(div);
 		count++;
 	}
 	else if (graph.getSelectionCount() == 1 && !graph.getModel().isEdge(cell) && !graph.isSwimlane(cell) &&
 			graph.getModel().getChildCount(cell) > 0)
 	{
-		var btn = mxUtils.button(mxResources.get('ungroup'), function(evt)
+		btn = mxUtils.button(mxResources.get('ungroup'), function(evt)
 		{
 			ui.actions.get('ungroup').funct();
 		})
 		
 		btn.setAttribute('title', 'Ctrl+Shift+G');
 		btn.style.width = '202px';
+		btn.style.marginBottom = '2px';
 		div.appendChild(btn);
-		mxUtils.br(div);
 		count++;
 	}
 	
 	if (graph.getSelectionCount() == 1 && graph.getModel().isVertex(cell) &&
    		graph.getModel().isVertex(graph.getModel().getParent(cell)))
 	{
-		var btn = mxUtils.button(mxResources.get('removeFromGroup'), function(evt)
+		if (count > 0)
+		{
+			mxUtils.br(div);
+		}
+		
+		btn = mxUtils.button(mxResources.get('removeFromGroup'), function(evt)
 		{
 			ui.actions.get('removeFromGroup').funct();
 		})
 		
-		if (count > 0)
-		{
-			btn.style.marginTop = '8px';
-		}
-		
 		btn.style.width = '202px';
+		btn.style.marginBottom = '2px';
 		div.appendChild(btn);
 		count++;
+	}
+	
+	if (graph.getSelectionCount() == 1)
+	{
+		if (count > 0)
+		{
+			mxUtils.br(div);
+		}
+		
+		btn = mxUtils.button(mxResources.get('editLink'), mxUtils.bind(this, function(evt)
+		{
+			this.editorUi.actions.get('editLink').funct();
+		}));
+		
+		btn.style.width = '202px';
+		btn.style.marginBottom = '2px';
+		div.appendChild(btn);
+		count++;
+		
+		if (graph.getModel().isEdge(graph.getSelectionCell()))
+		{
+			mxUtils.br(div);
+			btn = mxUtils.button(mxResources.get('clearWaypoints'), mxUtils.bind(this, function(evt)
+			{
+				this.editorUi.actions.get('clearWaypoints').funct();
+			}));
+			
+			btn.style.width = '202px';
+			btn.style.marginBottom = '2px';
+			div.appendChild(btn);
+			count++;
+		}
 	}
 	
 	if (count == 0)
@@ -1490,7 +1528,7 @@ ArrangePanel.prototype.addFlip = function(div)
 	var editor = ui.editor;
 	var graph = editor.graph;
 	div.style.paddingTop = '6px';
-	div.style.paddingBottom = '12px';
+	div.style.paddingBottom = '10px';
 
 	var span = document.createElement('div');
 	span.style.marginTop = '2px';
@@ -2300,7 +2338,7 @@ TextFormatPanel.prototype.addFont = function(container)
 		// Creates an element with arbitrary size 7
 		document.execCommand('fontSize', false, '7');
 		
-		// Changes the css font size of the first font element inside the in-place editor with size 3
+		// Changes the css font size of the first font element inside the in-place editor with size 7
 		// hopefully the above element that we've just created. LATER: Check for new element using
 		// previous result of getElementsByTagName (see other actions)
 		var elts = graph.cellEditor.text2.getElementsByTagName('font');
@@ -2965,7 +3003,7 @@ StyleFormatPanel.prototype.init = function()
 	}
 
 	this.container.appendChild(this.addStroke(this.createPanel()));
-	var opacityPanel = this.createRelativeOption(mxResources.get('opacity'), mxConstants.STYLE_OPACITY);
+	var opacityPanel = this.createRelativeOption(mxResources.get('opacity'), mxConstants.STYLE_OPACITY, 41);
 	opacityPanel.style.paddingTop = '8px';
 	opacityPanel.style.paddingBottom = '8px';
 	this.container.appendChild(opacityPanel);

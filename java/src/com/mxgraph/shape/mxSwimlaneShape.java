@@ -1,5 +1,6 @@
 package com.mxgraph.shape;
 
+import java.awt.Color;
 import java.awt.Rectangle;
 
 import com.mxgraph.canvas.mxGraphics2DCanvas;
@@ -31,6 +32,15 @@ public class mxSwimlaneShape extends mxBasicShape
 						.min(tmp.height, start)));
 			}
 
+			Color swimlaneFillColor = mxUtils.getColor(state.getStyle(), mxConstants.STYLE_SWIMLANE_FILLCOLOR);
+			
+			if (swimlaneFillColor != null)
+			{
+				canvas.getGraphics().setColor(swimlaneFillColor);
+				canvas.fillShape(new Rectangle(tmp.x, tmp.y + start, tmp.width,
+						tmp.height - start));
+			}
+			
 			if (configureGraphics(canvas, state, false))
 			{
 				canvas.getGraphics().drawRect(tmp.x, tmp.y, tmp.width,
@@ -46,7 +56,17 @@ public class mxSwimlaneShape extends mxBasicShape
 				canvas.fillShape(new Rectangle(tmp.x, tmp.y, Math.min(
 						tmp.width, start), tmp.height));
 			}
+			
 
+			Color swimlaneFillColor = mxUtils.getColor(state.getStyle(), mxConstants.STYLE_SWIMLANE_FILLCOLOR);
+			
+			if (swimlaneFillColor != null)
+			{
+				canvas.getGraphics().setColor(swimlaneFillColor);
+				canvas.fillShape(new Rectangle(tmp.x + start, tmp.y,
+						tmp.width - start, tmp.height));
+			}
+			
 			if (configureGraphics(canvas, state, false))
 			{
 				canvas.getGraphics().drawRect(tmp.x, tmp.y,

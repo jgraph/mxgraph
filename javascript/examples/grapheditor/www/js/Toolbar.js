@@ -32,7 +32,16 @@ Toolbar.prototype.unselectedBackground = 'none';
  */
 Toolbar.prototype.init = function()
 {
-	this.addItems(['undo', 'redo', 'delete', '-', 'actualSize', 'zoomIn', 'zoomOut', '-']);
+	var elts = this.addItems(['undo', 'redo', 'delete', '-', 'actualSize', 'zoomIn', 'zoomOut', '-']);
+	
+	// Adds keyboard shortcuts to tooltips
+	elts[0].setAttribute('title', mxResources.get('undo') + ' (Ctrl+Z)');
+	elts[1].setAttribute('title', mxResources.get('redo') + (mxClient.IS_MAC) ? ' (Ctrl+Shift+Z)' : ' (Ctrl+Y)');
+	elts[2].setAttribute('title', mxResources.get('delete') + ' (Delete)');
+	elts[4].setAttribute('title', mxResources.get('actualSize') + ' (Ctrl+0)');
+	elts[5].setAttribute('title', mxResources.get('zoomIn') + ' (Ctrl + / Alt+Scroll)');
+	elts[6].setAttribute('title', mxResources.get('zoomOut') + ' (Ctrl - / Alt+Scroll)');
+
 	this.fontMenu = this.addMenu(Menus.prototype.defaultFont, mxResources.get('fontFamily'), true, 'fontFamily');
 	this.fontMenu.style.whiteSpace = 'nowrap';
 	this.fontMenu.style.overflow = 'hidden';

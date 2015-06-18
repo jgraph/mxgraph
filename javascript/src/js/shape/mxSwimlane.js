@@ -228,7 +228,7 @@ mxSwimlane.prototype.paintSwimlane = function(c, x, y, w, h, start, fill, swimla
 		c.lineTo(w, 0);
 		c.lineTo(w, start);
 		
-		if (swimlaneLine)
+		if (swimlaneLine || start >= h)
 		{
 			c.close();
 		}
@@ -255,7 +255,7 @@ mxSwimlane.prototype.paintSwimlane = function(c, x, y, w, h, start, fill, swimla
 		c.lineTo(0, h);
 		c.lineTo(start, h);
 		
-		if (swimlaneLine)
+		if (swimlaneLine || start >= w)
 		{
 			c.close();
 		}
@@ -305,7 +305,7 @@ mxSwimlane.prototype.paintRoundedSwimlane = function(c, x, y, w, h, start, r, fi
 		c.quadTo(0, 0, 0, r);
 		c.lineTo(0, start);
 		
-		if (swimlaneLine)
+		if (swimlaneLine || start >= h)
 		{
 			c.close();
 		}
@@ -336,7 +336,7 @@ mxSwimlane.prototype.paintRoundedSwimlane = function(c, x, y, w, h, start, r, fi
 		c.quadTo(0, h, r, h);
 		c.lineTo(start, h);
 		
-		if (swimlaneLine)
+		if (swimlaneLine || start >= w)
 		{
 			c.close();
 		}

@@ -500,7 +500,7 @@ mxConnectionHandler.prototype.createMarker = function()
 
 	// Overrides to return cell at location only if valid (so that
 	// there is no highlight for invalid cells)
-	marker.getCell = mxUtils.bind(this, function(me, cell)
+	marker.getCell = mxUtils.bind(this, function(me)
 	{
 		var cell = mxCellMarker.prototype.getCell.apply(marker, arguments);
 		var scale = this.graph.view.scale;
@@ -512,6 +512,17 @@ mxConnectionHandler.prototype.createMarker = function()
 		if (cell == null)
 		{
 			cell = this.getCellAt(point.x, point.y);
+		}
+		
+		// Uses connectable parent vertex if one exists
+		if (cell != null && !this.graph.isCellConnectable(cell))
+		{
+			var parent = this.graph.getModel().getParent(cell);
+			
+			if (this.graph.getModel().isVertex(parent) && this.graph.isCellConnectable(parent))
+			{
+				cell = parent;
+			}
 		}
 		
 		if ((this.graph.isSwimlane(cell) && this.graph.hitsSwimlaneContent(cell, point.x, point.y)) ||

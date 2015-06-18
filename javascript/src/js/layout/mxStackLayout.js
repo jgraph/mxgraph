@@ -203,7 +203,7 @@ mxStackLayout.prototype.moveCell = function(cell, x, y)
 						bounds.x + bounds.width / 2 :
 						bounds.y + bounds.height / 2;
 					
-					if (last < value && tmp > value)
+					if (last <= value && tmp > value)
 					{
 						break;
 					}

@@ -681,7 +681,7 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				y += s.dy;
 				
 				// Workaround for rendering offsets
-				if (valign == mxConstants.ALIGN_TOP)
+				if (overflow != 'fill' && valign == mxConstants.ALIGN_TOP)
 				{
 					y -= 1;
 				}
@@ -796,8 +796,9 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			{
 				// KNOWN: Affects horizontal alignment in quirks
 				// but fill should only be used with align=left
-				div.style.width = w + 'px';
-				div.style.height = h + 'px';
+				div.style.overflow = 'hidden';
+				div.style.width = (w + 1) + 'px';
+				div.style.height = (h + 1) + 'px';
 			}
 			else if (overflow == 'width')
 			{

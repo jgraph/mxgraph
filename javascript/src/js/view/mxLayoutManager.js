@@ -260,14 +260,20 @@ mxLayoutManager.prototype.cellsMoved = function(cells, evt)
 			mxEvent.getClientX(evt), mxEvent.getClientY(evt));
 		var model = this.getGraph().getModel();
 		
-		// Checks if a layout exists to take care of the moving
+		// Checks if a layout exists to take care of the moving if the
+		// parent itself is not being moved
 		for (var i = 0; i < cells.length; i++)
 		{
-			var layout = this.getLayout(model.getParent(cells[i]));
-
-			if (layout != null)
+			var parent = model.getParent(cells[i]);
+			
+			if (mxUtils.indexOf(cells, parent) < 0)
 			{
-				layout.moveCell(cells[i], point.x, point.y);
+				var layout = this.getLayout(parent);
+	
+				if (layout != null)
+				{
+					layout.moveCell(cells[i], point.x, point.y);
+				}
 			}
 		}
 	}

@@ -128,18 +128,18 @@
 					var bounds = graph.getGraphBounds();
 					var vs = graph.view.scale;
 					
-		        	// New image export
+					// New image export
 					var xmlDoc = mxUtils.createXmlDocument();
 					var root = xmlDoc.createElement('output');
 					xmlDoc.appendChild(root);
 					
-				    // Renders graph. Offset will be multiplied with state's scale when painting state.
+					// Renders graph. Offset will be multiplied with state's scale when painting state.
 					var xmlCanvas = new mxXmlCanvas2D(root);
 					xmlCanvas.translate(Math.floor((b / scale - bounds.x) / vs), Math.floor((b / scale - bounds.y) / vs));
 					xmlCanvas.scale(scale / vs);
 					
-				    imgExport.drawState(graph.getView().getState(graph.model.root), xmlCanvas);
-				    
+					imgExport.drawState(graph.getView().getState(graph.model.root), xmlCanvas);
+
 					// Puts request data together
 					var w = Math.ceil(bounds.width * scale / vs + 2 * b);
 					var h = Math.ceil(bounds.height * scale / vs + 2 * b);

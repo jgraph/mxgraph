@@ -372,38 +372,113 @@ Menus.prototype.init = function()
 		menu.addSeparator(parent);
 		menu.addItem(mxResources.get('horizontalTree'), null, mxUtils.bind(this, function()
 		{
-			if (!graph.isSelectionEmpty())
+			var tmp = graph.getSelectionCell();
+			var roots = null;
+			
+			if (tmp == null || graph.getModel().getChildCount(tmp) == 0)
+			{
+				if (graph.getModel().getEdgeCount(tmp) == 0)
+				{
+					roots = graph.findTreeRoots(graph.getDefaultParent());
+				}
+			}
+			else
+			{
+				roots = graph.findTreeRoots(tmp);
+			}
+
+			if (roots != null && roots.length > 0)
+			{
+				tmp = roots[0];
+			}
+			
+			if (tmp != null)
 			{
 				var layout = new mxCompactTreeLayout(graph, true);
 				layout.edgeRouting = false;
 				layout.levelDistance = 30;
-	    		this.editorUi.executeLayout(function()
+	
+				this.editorUi.executeLayout(function()
 	    		{
-	    			layout.execute(graph.getDefaultParent(), graph.getSelectionCell());
+					layout.execute(graph.getDefaultParent(), tmp);
 	    		}, true);
 			}
 		}), parent);
 		menu.addItem(mxResources.get('verticalTree'), null, mxUtils.bind(this, function()
 		{
-			if (!graph.isSelectionEmpty())
+			var tmp = graph.getSelectionCell();
+			var roots = null;
+			
+			if (tmp == null || graph.getModel().getChildCount(tmp) == 0)
 			{
+				if (graph.getModel().getEdgeCount(tmp) == 0)
+				{
+					roots = graph.findTreeRoots(graph.getDefaultParent());
+				}
+			}
+			else
+			{
+				roots = graph.findTreeRoots(tmp);
+			}
+
+			if (roots != null && roots.length > 0)
+			{
+				tmp = roots[0];
+			}
+			
+			if (tmp != null)
+			{
+
 				var layout = new mxCompactTreeLayout(graph, false);
 				layout.edgeRouting = false;
 				layout.levelDistance = 30;
-	    		this.editorUi.executeLayout(function()
+				
+				this.editorUi.executeLayout(function()
 	    		{
-	    			layout.execute(graph.getDefaultParent(), graph.getSelectionCell());
+					layout.execute(graph.getDefaultParent(), tmp);
 	    		}, true);
 			}
 		}), parent);
 		menu.addItem(mxResources.get('radialTree'), null, mxUtils.bind(this, function()
 		{
-			if (!graph.isSelectionEmpty())
+			var tmp = graph.getSelectionCell();
+			var roots = null;
+			
+			if (tmp == null || graph.getModel().getChildCount(tmp) == 0)
+			{
+				if (graph.getModel().getEdgeCount(tmp) == 0)
+				{
+					roots = graph.findTreeRoots(graph.getDefaultParent());
+				}
+			}
+			else
+			{
+				roots = graph.findTreeRoots(tmp);
+			}
+
+			if (roots != null && roots.length > 0)
+			{
+				tmp = roots[0];
+			}
+			
+			if (tmp != null)
 			{
 				var layout = new mxRadialTreeLayout(graph, false);
+				layout.autoRadius = true;
+				
 	    		this.editorUi.executeLayout(function()
 	    		{
-	    			layout.execute(graph.getDefaultParent(), graph.getSelectionCell());
+	    			layout.execute(graph.getDefaultParent(), tmp);
+	    			
+	    			if (!graph.isSelectionEmpty())
+	    			{
+		    			tmp = graph.getModel().getParent(tmp);
+		    			
+		    			if (graph.getModel().isVertex(tmp))
+		    			{
+		    				graph.updateGroupBounds([tmp], graph.gridSize * 2, true);
+		    			}
+	    			}
 	    		}, true);
 			}
 		}), parent);
@@ -411,32 +486,22 @@ Menus.prototype.init = function()
 		menu.addItem(mxResources.get('organic'), null, mxUtils.bind(this, function()
 		{
 			var layout = new mxFastOrganicLayout(graph);
-			
-			// Tries to find good force constant by averaging cell width
-			var count = 0;
-			var sum = 0;
-			
-			for (var key in graph.getModel().cells)
-			{
-				var tmp = graph.getModel().getCell(key);
-				
-				if (graph.getModel().isVertex(tmp))
-				{
-					var geo = graph.getModel().getGeometry(tmp);
 
-					if (geo != null)
-					{
-						sum += geo.width;
-						count++;
-					}
-				}
-			}
-			
-			layout.forceConstant = (sum / count) * 1.1;
-			
     		this.editorUi.executeLayout(function()
     		{
-    			layout.execute(graph.getDefaultParent(), graph.getSelectionCell());
+    			var tmp = graph.getSelectionCell();
+    			
+    			if (tmp == null || graph.getModel().getChildCount(tmp) == 0)
+    			{
+    				tmp = graph.getDefaultParent();
+    			}
+    			
+    			layout.execute(tmp);
+    			
+    			if (graph.getModel().isVertex(tmp))
+    			{
+    				graph.updateGroupBounds([tmp], graph.gridSize * 2, true);
+    			}
     		}, true);
 		}), parent);
 		menu.addItem(mxResources.get('circle'), null, mxUtils.bind(this, function()
@@ -444,7 +509,19 @@ Menus.prototype.init = function()
 			var layout = new mxCircleLayout(graph);
     		this.editorUi.executeLayout(function()
     		{
-    			layout.execute(graph.getDefaultParent());
+    			var tmp = graph.getSelectionCell();
+    			
+    			if (tmp == null || graph.getModel().getChildCount(tmp) == 0)
+    			{
+    				tmp = graph.getDefaultParent();
+    			}
+    			
+    			layout.execute(tmp);
+    			
+    			if (graph.getModel().isVertex(tmp))
+    			{
+    				graph.updateGroupBounds([tmp], graph.gridSize * 2, true);
+    			}
     		}, true);
 		}), parent);
 	}))).isEnabled = isGraphEnabled;
@@ -503,7 +580,7 @@ Menus.prototype.init = function()
 	this.put('options', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
 		this.addMenuItems(menu, ['pageView', '-', 'grid', 'guides', '-', 'scrollbars', 'tooltips', '-',
- 		                         'connectionPoints', 'copyConnect', 'collapse-expand', '-', 'pageBackgroundColor', 'autosave']);
+ 		                         'connectionPoints', 'copyConnect', 'collapseExpand', '-', 'pageBackgroundColor', 'autosave']);
 	})));
 	this.put('help', new Menu(mxUtils.bind(this, function(menu, parent)
 	{

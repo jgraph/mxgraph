@@ -775,7 +775,7 @@ Editor.prototype.init = function()
 		return result;
 	};
 
-	// Selects descendants before children selection mode
+	// Selects ancestors before descendants
 	var graphHandlerGetInitialCellForEvent = mxGraphHandler.prototype.getInitialCellForEvent;
 	mxGraphHandler.prototype.getInitialCellForEvent = function(me)
 	{
@@ -847,7 +847,7 @@ Editor.prototype.init = function()
 				var model = this.graph.getModel();
 				var parent = model.getParent(cell);
 				
-				while (this.graph.isCellSelected(cell) && model.isVertex(parent) && !this.graph.isValidRoot(parent))
+				while (!this.graph.isCellSelected(parent) && model.isVertex(parent))
 				{
 					cell = parent;
 					parent = model.getParent(cell);

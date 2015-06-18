@@ -201,6 +201,7 @@ public class mxCellEditor implements mxICellEditor
 		// Creates the HTML editor
 		editorPane = new JEditorPane();
 		editorPane.setOpaque(false);
+		editorPane.setBackground(new Color(0,0,0,0));
 		editorPane.setContentType("text/html");
 
 		// Workaround for inserted linefeeds in HTML markup with

@@ -1,3 +1,50 @@
+18-JUN-2015: 3.3.1.0
+
+- Adds support for mxConstants.STYLE_SWIMLANE_FILLCOLOR [Java]
+- Fixes jetty positions for South and East direction hierarchical layout [Java]
+- mxLayoutManager no longer calls parent layout moveCells if selected [JavaScript] 
+- Enter key starts editing like F2 key in grapheditor
+- Click on sidebar stops editing in grapheditor
+- Fixes size of replace shape for touch devices in grapheditor
+- Uses (shift) click on plus icon to (connect and) clone in grapheditor
+- Uses move cursor for sidebar items in grapheditor
+- Fixes timeout handling for IE11 in mxXmlRequest [JavaScript]
+- Adds clipboard.html example [JavaScript]
+- Limits zoom to 20x in grapheditor
+- Sets initial state of general sidebar to expanded in grapheditor
+- Fixes delete action during interactive operation in grapheditor
+- Removes duplicate points mxEdgeStyle.OrthConnector [JavaScript]
+- Fixes rounding errors in mxGraphView.getPerimeterPoint [JavaScript]
+- Fixes rounding errors in mxEdgeStyle.OrthConnector [JavaScript]
+- Fixes routing tolerance in orthogonal connector [JavaScript]
+- Improves mousewheel zoom performance in grapheditor
+- Fixes possible NaN in mxShape, mxText for invalid scales [JavaScript]
+- Fixes DOM order, scrollbar state in scrollbars.html example [JavaScript]
+- Adds mxSvgCanvas2D.updateText for updating cached labels [JavaScript]
+- Adds mxText.prototype.cacheEnabled for HTML labels [JavaScript]
+- Reduces number of DOM updates in mxCellRenderer.insertStateAfter [JavaScript]
+- Adds folding icon in mxCellRenderer.getShapesForState [JavaScript]
+- Fixes edge cases in mxStackLayout.moveCell [JavaScript]
+- Adds PartialRectangleShape in grapheditor
+- Fixes lost connections for duplicate cells in grapheditor
+- Runs layouts for groups and finds tree roots in grapheditor
+- Adds rounding in mxGraph.updateGroupBounds [JavaScript]
+- Fixes moved edges labels when zoom is changed in mxGraphView.getPoint [JavaScript]
+- Disables HTML in collapse/expand tooltip [JavaScript]
+- Uses connectable parent in mxConnectionHandler, mxEdgeHandler, mxConstraintHandler [JavaScript]
+- Fixes handling of direction mask in ER edge style [JavaScript]
+- Adds collate and sort shape, schema rows in grapheditor
+- Drop on lifelines replaces participant shape in grapheditor
+- Adds support for dropTarget style in grapheditor
+- Adds clipping for labels with overflow=fill [JavaScript]
+- Fixes text size for overflow=fill in mxSvg-/VmlCanvas, mxText [JavaScript]
+- Sets value for mxSvgCanvas2D.lineHeightCorrection to 1 [JavaScript]
+- Safeguards capability check, fixes offsets in mxSvgCanvas2D [JavaScript]
+- Fixes handling of clicks on folding icon on iOS [JavaScript]
+- Fixes rectangle rendering for small, divider-less swimlanes [JavaScript]
+- Fixes paste here menu for chromeless mode in grapheditor
+- Makes toolbar for chromeless mode transparent in grapheditor
+
 19-MAY-2015: 3.3.0.1
 
 - Adds paste here action in contextmenu for grapheditor

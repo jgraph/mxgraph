@@ -199,6 +199,29 @@ mxConstraintHandler.prototype.isKeepFocusEvent = function(me)
 };
 
 /**
+ * Function: getCellForEvent
+ * 
+ * Returns the cell for the given event.
+ */
+mxConstraintHandler.prototype.getCellForEvent = function(me)
+{
+	var cell = me.getCell();
+	
+	// Uses connectable parent vertex if one exists
+	if (cell != null && !this.graph.isCellConnectable(cell))
+	{
+		var parent = this.graph.getModel().getParent(cell);
+		
+		if (this.graph.getModel().isVertex(parent) && this.graph.isCellConnectable(parent))
+		{
+			cell = parent;
+		}
+	}
+	
+	return cell;
+};
+
+/**
  * Function: update
  * 
  * Updates the state of this handler based on the given <mxMouseEvent>.
@@ -210,14 +233,15 @@ mxConstraintHandler.prototype.update = function(me, source)
 	{
 		var tol = this.getTolerance(me);
 		var mouse = new mxRectangle(me.getGraphX() - tol, me.getGraphY() - tol, 2 * tol, 2 * tol);
-		var cst = (me.getState() != null && !this.isStateIgnored(me.getState(), source) &&
-				this.graph.isCellConnectable(me.getCell())) ?
-				this.graph.getAllConnectionConstraints(me.getState(), source) : null;
+		var state = this.graph.view.getState(this.getCellForEvent(me));
+		var cst = (state != null && !this.isStateIgnored(state, source) &&
+				this.graph.isCellConnectable(state.cell)) ?
+				this.graph.getAllConnectionConstraints(state, source) : null;
 
 		// Keeps focus icons visible while over vertex bounds and no other cell under mouse or shift is pressed
 		if (!this.isKeepFocusEvent(me) && (this.currentFocusArea == null || this.currentFocus == null ||
-			(me.getState() != null && cst != null) || !this.graph.getModel().isVertex(this.currentFocus.cell) ||
-			!mxUtils.intersects(this.currentFocusArea, mouse)) && (me.getState() != this.currentFocus))
+			(state != null && cst != null) || !this.graph.getModel().isVertex(this.currentFocus.cell) ||
+			!mxUtils.intersects(this.currentFocusArea, mouse)) && (state != this.currentFocus))
 		{
 			this.currentFocusArea = null;
 			this.currentFocus = null;
@@ -226,8 +250,8 @@ mxConstraintHandler.prototype.update = function(me, source)
 			// Only uses cells which have constraints
 			if (this.constraints != null)
 			{
-				this.currentFocus = me.getState();
-				this.currentFocusArea = new mxRectangle(me.getState().x, me.getState().y, me.getState().width, me.getState().height);
+				this.currentFocus = state;
+				this.currentFocusArea = new mxRectangle(state.x, state.y, state.width, state.height);
 				
 				if (this.focusIcons != null)
 				{
@@ -245,8 +269,8 @@ mxConstraintHandler.prototype.update = function(me, source)
 				
 				for (var i = 0; i < this.constraints.length; i++)
 				{
-					var cp = this.graph.getConnectionPoint(me.getState(), this.constraints[i]);
-					var img = this.getImageForConstraint(me.getState(), this.constraints[i], cp);
+					var cp = this.graph.getConnectionPoint(state, this.constraints[i]);
+					var img = this.getImageForConstraint(state, this.constraints[i], cp);
 
 					var src = img.src;
 					var bounds = new mxRectangle(cp.x - img.width / 2,
@@ -276,7 +300,7 @@ mxConstraintHandler.prototype.update = function(me, source)
 
 					var getState = mxUtils.bind(this, function()
 					{
-						return (this.currentFocus != null) ? this.currentFocus : me.getState();
+						return (this.currentFocus != null) ? this.currentFocus : state;
 					});
 					
 					icon.redraw();
@@ -301,7 +325,7 @@ mxConstraintHandler.prototype.update = function(me, source)
 		var minDistSq = null;
 		
 		if (this.focusIcons != null && this.constraints != null &&
-			(me.getState() == null || this.currentFocus == me.getState()))
+			(state == null || this.currentFocus == state))
 		{
 			for (var i = 0; i < this.focusIcons.length; i++)
 			{
@@ -336,7 +360,7 @@ mxConstraintHandler.prototype.update = function(me, source)
 						
 						var getState = mxUtils.bind(this, function()
 						{
-							return (this.currentFocus != null) ? this.currentFocus : me.getState();
+							return (this.currentFocus != null) ? this.currentFocus : state;
 						});
 	
 						mxEvent.redirectMouseEvents(hl.node, this.graph, getState);

@@ -442,7 +442,8 @@ mxShape.prototype.getLabelBounds = function(rect)
  */
 mxShape.prototype.checkBounds = function()
 {
-	return (this.bounds != null && !isNaN(this.bounds.x) && !isNaN(this.bounds.y) &&
+	return (!isNaN(this.scale) && isFinite(this.scale) && this.scale > 0 &&
+			this.bounds != null && !isNaN(this.bounds.x) && !isNaN(this.bounds.y) &&
 			!isNaN(this.bounds.width) && !isNaN(this.bounds.height) &&
 			this.bounds.width > 0 && this.bounds.height > 0);
 };

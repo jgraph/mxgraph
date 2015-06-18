@@ -4063,12 +4063,12 @@ mxGraph.prototype.updateGroupBounds = function(cells, border, moveGroup, topBord
 						
 						if (moveGroup)
 						{
-							geo.x = geo.x + bounds.x - border - left - leftBorder;
-							geo.y = geo.y + bounds.y - border - top - topBorder;
+							geo.x = Math.round(geo.x + bounds.x - border - left - leftBorder);
+							geo.y = Math.round(geo.y + bounds.y - border - top - topBorder);
 						}
 						
-						geo.width = bounds.width + 2 * border + left + leftBorder + rightBorder;
-						geo.height = bounds.height + 2 * border + top + topBorder + bottomBorder;
+						geo.width = Math.round(bounds.width + 2 * border + left + leftBorder + rightBorder);
+						geo.height = Math.round(bounds.height + 2 * border + top + topBorder + bottomBorder);
 						
 						this.model.setGeometry(cells[i], geo);
 						this.moveCells(children, border + left - bounds.x + leftBorder,
@@ -8590,7 +8590,7 @@ mxGraph.prototype.getTooltip = function(state, node, x, y)
 			node.parentNode == state.control.node))
 		{
 			tip = this.collapseExpandResource;
-			tip = mxResources.get(tip) || tip;
+			tip = mxUtils.htmlEntities(mxResources.get(tip) || tip).replace(/\\n/g, '<br>');
 		}
 
 		if (tip == null && state.overlays != null)

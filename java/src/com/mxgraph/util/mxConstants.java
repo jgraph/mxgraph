@@ -346,6 +346,14 @@ public class mxConstants
 	public static String STYLE_ROTATION = "rotation";
 
 	/**
+	 * Defines the key for the fill color of the swimlane background.
+	 * The value is a string expression supported by mxUtils.parseColor.
+	 * 
+	 * @see com.mxgraph.util.mxUtils#parseColor(String)
+	 */
+	public static String STYLE_SWIMLANE_FILLCOLOR = "swimlaneFillColor";
+
+	/**
 	 * Defines the key for the fillColor style. The value is a string
 	 * expression supported by mxUtils.parseColor.
 	 * 
