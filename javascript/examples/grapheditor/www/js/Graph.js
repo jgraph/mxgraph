@@ -30,9 +30,6 @@ mxGraph.prototype.pageScale = 1;
 mxText.prototype.baseSpacingTop = 5;
 mxText.prototype.baseSpacingBottom = 1;
 
-// Enables caching for HTML labels
-mxText.prototype.cacheEnabled = true;
-
 /**
  * Adds custom stencils defined via shape=stencil(value) style. The value is a base64 encoded, compressed and
  * URL encoded XML definition of the shape according to the stencil definition language of mxGraph.

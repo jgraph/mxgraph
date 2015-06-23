@@ -694,6 +694,13 @@ public class mxConstants
 	public static String STYLE_STARTSIZE = "startSize";
 
 	/**
+	 * Defines the key for the swimlaneLine style. This style specifies whether
+	 * the line between the title regio of a swimlane should be visible. Use 0
+	 * for hidden or 1 (default) for visible. Value is "swimlaneLine".
+	 */
+	public static String STYLE_SWIMLANE_LINE = "swimlaneLine";
+	
+	/**
 	 * Defines the key for the endFill style. Use 0 for no fill or 1
 	 * (default) for fill. (This style is only exported via <mxImageExport>.)
 	 */
@@ -732,6 +739,16 @@ public class mxConstants
 	 * rectangle is rounded.
 	 */
 	public static String STYLE_ROUNDED = "rounded";
+
+	/**
+	 * Defines the rounding factor for a rounded rectangle in percent (without
+	 * the percent sign). Possible values are between 0 and 100. If this value
+	 * is not specified then RECTANGLE_ROUNDING_FACTOR * 100 is used. For
+	 * edges, this defines the absolute size of rounded corners in pixels. If
+	 * this values is not specified then LINE_ARCSIZE is used.
+	 * (This style is only exported via <mxImageExport>.) Value is "arcSize".
+	 */
+	public static String STYLE_ARCSIZE = "arcSize";
 
 	/**
 	 * Defines the key for the source perimeter spacing. The type of this value

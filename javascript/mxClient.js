@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.3.1.0.
+	 * Current version is 3.3.1.1.
 	 */
-	VERSION: '3.3.1.0',
+	VERSION: '3.3.1.1',
 
 	/**
 	 * Variable: IS_IE
@@ -24784,9 +24784,9 @@ mxText.prototype.lastValue = null;
 /**
  * Variable: cacheEnabled
  * 
- * Specifies if caching for HTML labels should be enabled. Default is false.
+ * Specifies if caching for HTML labels should be enabled. Default is true.
  */
-mxText.prototype.cacheEnabled = false;
+mxText.prototype.cacheEnabled = true;
 
 /**
  * Function: isParseVml
@@ -42643,7 +42643,7 @@ var mxPerimeter =
  * 
  * (code)
  * var oldRenderPage = mxPrintPreview.prototype.renderPage;
- * mxPrintPreview.prototype.renderPage = function(w, h)
+ * mxPrintPreview.prototype.renderPage = function(w, h, x, y, content, pageNumber)
  * {
  *   var div = oldRenderPage.apply(this, arguments);
  *   
@@ -42659,9 +42659,9 @@ var mxPerimeter =
  * };
  * (end)
  * 
- * For adding page numbers to the graph output pages, implement a counter in
- * the above code or override <addGraphFragment> instead, where div corresponds
- * to div.firstChild in the above code.
+ * The pageNumber argument contains the number of the current page, starting at
+ * 1. To display a header on the first page only, check pageNumber and add a
+ * vertical offset in the constructor call for the height of the header.
  * 
  * Page Format:
  * 
@@ -43099,7 +43099,7 @@ mxPrintPreview.prototype.open = function(css)
 						{
 							this.insertBackgroundImage(div, -dx, -dy);
 						}
-					}));
+					}), pageNum);
 
 					// Gives the page a unique ID for later accessing the page
 					div.setAttribute('id', 'mxPage-'+pageNum);
@@ -43248,10 +43248,13 @@ mxPrintPreview.prototype.createPageSelector = function(vpages, hpages)
  * 
  * w - Width of the page in pixels.
  * h - Height of the page in pixels.
+ * dx - Optional horizontal page offset in pixels (used internally).
+ * dy - Optional vertical page offset in pixels (used internally).
  * content - Callback that adds the HTML content to the inner div of a page.
  * Takes the inner div as the argument.
+ * pageNumber - Integer representing the page number.
  */
-mxPrintPreview.prototype.renderPage = function(w, h, dx, dy, content)
+mxPrintPreview.prototype.renderPage = function(w, h, dx, dy, content, pageNumber)
 {
 	var doc = this.wnd.document;
 	var div = document.createElement('div');

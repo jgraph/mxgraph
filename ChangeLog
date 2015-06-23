@@ -1,3 +1,13 @@
+23-JUN-2015: 3.3.1.1
+
+- Adds support for mxConstants.STYLE_SWIMLANE_FILLCOLOR [Php,Dotnet]
+- Replaces swimlane rendering code to match JavaScript output [Java]
+- Adds mxConstants.STYLE_SWIMLANE_LINE, STYLE_ARCSIZE for swimlanes [Java]
+- Adds mxCodec.elements, addElement to cache mxCodec.getElementById [Java,Php,Dotnet]
+- No longer uses document.getElementById in mxCodec.getElementById [Java,Php,Dotnet]
+- Adds pageNumber in mxPrintPreview.renderPage [JavaScript]
+- Changes default for mxText.prototype.cacheEnabled to true [JavaScript]
+
 18-JUN-2015: 3.3.1.0
 
 - Adds support for mxConstants.STYLE_SWIMLANE_FILLCOLOR [Java]

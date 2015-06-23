@@ -49,6 +49,7 @@
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-static-methods">Static Public Member Functions</a> &#124;
+<a href="#pro-methods">Protected Member Functions</a> &#124;
 <a href="#pro-attribs">Protected Attributes</a> &#124;
 <a href="#properties">Properties</a> &#124;
 <a href="classcom_1_1mxgraph_1_1mxCodec-members.html">List of all members</a>  </div>
@@ -111,6 +112,12 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memdesc:a799403c766d5a6c12525fb0278c50e74"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the attribute on the specified node to value. This is a helper method that makes sure the attribute and value arguments are not null.  <a href="#a799403c766d5a6c12525fb0278c50e74">More...</a><br/></td></tr>
 <tr class="separator:a799403c766d5a6c12525fb0278c50e74"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
+Protected Member Functions</h2></td></tr>
+<tr class="memitem:ae6bbe6707e3a49bf948be41572871e52"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxCodec.html#ae6bbe6707e3a49bf948be41572871e52">AddElement</a> (XmlNode node)</td></tr>
+<tr class="memdesc:ae6bbe6707e3a49bf948be41572871e52"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds the given element to &lt;elements&gt; if it has an ID.  <a href="#ae6bbe6707e3a49bf948be41572871e52">More...</a><br/></td></tr>
+<tr class="separator:ae6bbe6707e3a49bf948be41572871e52"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
 <tr class="memitem:aad8ec158a71d86cd392af0f7dc519b63"><td class="memItemLeft" align="right" valign="top">XmlDocument&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxCodec.html#aad8ec158a71d86cd392af0f7dc519b63">document</a></td></tr>
@@ -119,6 +126,9 @@ Protected Attributes</h2></td></tr>
 <tr class="memitem:a04522d7a38095efb6263bd10518fc6cc"><td class="memItemLeft" align="right" valign="top">Dictionary&lt; string, object &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxCodec.html#a04522d7a38095efb6263bd10518fc6cc">objects</a> = new Dictionary&lt;string, Object&gt;()</td></tr>
 <tr class="memdesc:a04522d7a38095efb6263bd10518fc6cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maps from IDs to objects.  <a href="#a04522d7a38095efb6263bd10518fc6cc">More...</a><br/></td></tr>
 <tr class="separator:a04522d7a38095efb6263bd10518fc6cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6c80fd7a3130d830317a255b41758f30"><td class="memItemLeft" align="right" valign="top">Dictionary&lt; string, XmlNode &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxCodec.html#a6c80fd7a3130d830317a255b41758f30">elements</a> = null</td></tr>
+<tr class="memdesc:a6c80fd7a3130d830317a255b41758f30"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maps from IDs to elements.  <a href="#a6c80fd7a3130d830317a255b41758f30">More...</a><br/></td></tr>
+<tr class="separator:a6c80fd7a3130d830317a255b41758f30"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a32a5c223e9e716534ee445271ca770ff"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxCodec.html#a32a5c223e9e716534ee445271ca770ff">encodeDefaults</a> = false</td></tr>
 <tr class="memdesc:a32a5c223e9e716534ee445271ca770ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies if default values should be encoded. Default is false.  <a href="#a32a5c223e9e716534ee445271ca770ff">More...</a><br/></td></tr>
 <tr class="separator:a32a5c223e9e716534ee445271ca770ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -196,6 +206,38 @@ Properties</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a class="anchor" id="ae6bbe6707e3a49bf948be41572871e52"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void com.mxgraph.mxCodec.AddElement </td>
+          <td>(</td>
+          <td class="paramtype">XmlNode&#160;</td>
+          <td class="paramname"><em>node</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Adds the given element to &lt;elements&gt; if it has an ID. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">node</td><td>Node to be added.</td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a class="anchor" id="aa0ad136f46f6a2b29360bd1537ff30fc"></a>
 <div class="memitem">
 <div class="memproto">
@@ -718,6 +760,28 @@ Properties</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a6c80fd7a3130d830317a255b41758f30"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Dictionary&lt;string, XmlNode&gt; com.mxgraph.mxCodec.elements = null</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Maps from IDs to elements. </p>
+
+</div>
+</div>
 <a class="anchor" id="a32a5c223e9e716534ee445271ca770ff"></a>
 <div class="memitem">
 <div class="memproto">
@@ -838,7 +902,7 @@ Properties</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Jun 18 2015 17:21:26 for mxGraph by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Jun 23 2015 09:45:47 for mxGraph by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.6
 </small></address>

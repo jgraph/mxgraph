@@ -271,6 +271,12 @@ namespace com.mxgraph
 	    public static string STYLE_FILLCOLOR = "fillColor";
 
         /// <summary>
+        /// Defines the key for the swimlaneFillColor style. The value is a string
+        /// expression supported by ColorTranslator.FromHtml.
+        /// </summary>
+        public static string STYLE_SWIMLANE_FILLCOLOR = "swimlaneFillColor";
+
+        /// <summary>
         /// Defines the key for the gradientColor style. The value is a string
         /// expression supported by ColorTranslator.FromHtml. This is ignored
         /// if no fill color is defined.

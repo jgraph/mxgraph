@@ -342,6 +342,15 @@ class mxConstants
 	 * indicator shape.
 	 */
 	public static $STYLE_FILLCOLOR = "fillColor";
+	
+	/**
+	 * Variable: STYLE_SWIMLANE_FILLCOLOR
+	 *
+	 * Defines the key for the fill color of the swimlane background. Possible
+	 * values are all HTML color names or HEX codes. Default is no background.
+	 * Value is "swimlaneFillColor".
+	 */
+	public static $STYLE_SWIMLANE_FILLCOLOR = "swimlaneFillColor";
 
 	/**
 	 * Variable: STYLE_GRADIENTCOLOR
@@ -692,6 +701,15 @@ class mxConstants
 	 */
 	public static $STYLE_STARTSIZE = "startSize";
 
+	/**
+	 * Variable: STYLE_SWIMLANE_LINE
+	 *
+	 * Defines the key for the swimlaneLine style. This style specifies whether
+	 * the line between the title regio of a swimlane should be visible. Use 0
+	 * for hidden or 1 (default) for visible. Value is "swimlaneLine".
+	 */
+	public static $STYLE_SWIMLANE_LINE = "swimlaneLine";
+	
 	/**
 	 * Variable: STYLE_DASHED
 	 *

@@ -174,9 +174,9 @@ mxText.prototype.lastValue = null;
 /**
  * Variable: cacheEnabled
  * 
- * Specifies if caching for HTML labels should be enabled. Default is false.
+ * Specifies if caching for HTML labels should be enabled. Default is true.
  */
-mxText.prototype.cacheEnabled = false;
+mxText.prototype.cacheEnabled = true;
 
 /**
  * Function: isParseVml

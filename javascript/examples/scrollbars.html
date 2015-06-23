@@ -68,10 +68,7 @@
 			{
 				// Must be disabled to compute positions inside the DOM tree of the cell label.
 				mxGraphView.prototype.optimizeVmlReflows = false;
-				
-				// Enables faster rendering and maintains scrollbar locations
-				mxText.prototype.cacheEnabled = true;
-				
+
 				// If connect preview is not moved away then getCellAt is used to detect the cell under
 				// the mouse if the mouse is over the preview shape in IE (no event transparency), ie.
 				// the built-in hit-detection of the HTML document will not be used in this case. This is

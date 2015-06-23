@@ -262,15 +262,16 @@ class mxGdCanvas
 
                     // Removes some styles to draw the content area
 				$cloned = array_slice($style, 0);
-				unset($cloned[mxConstants::$STYLE_FILLCOLOR]);
+				$cloned[mxConstants::$STYLE_FILLCOLOR] = $cloned[mxConstants::$STYLE_SWIMLANE_FILLCOLOR];
+				unset($cloned[mxConstants::$STYLE_GRADIENTCOLOR]);
 				unset($cloned[mxConstants::$STYLE_ROUNDED]);
 
 				// TODO: Clone style, remove fill and rounded and take into account
 				// the label orientation
 				//if (mxUtils::getValue($style, mxConstants::$STYLE_HORIZONTAL, true))
 				{
-					$this->drawShape($x, $y, $w, min($h, $start), $style);
 					$this->drawShape($x, $y, $w, $h, $cloned);
+					$this->drawShape($x, $y, $w, min($h, $start), $style);
 				}
 			}
 		}
@@ -960,7 +961,7 @@ class mxGdCanvas
 	 */
 	function drawText($string, $x, $y, $w, $h, $style)
 	{
-		if ($string != null && strlen($string) > 0)
+		if (gettype($string) == "string" && strlen($string) > 0)
 		{
 			// Draws the label background and border
 			$bg = mxUtils::getValue($style, mxConstants::$STYLE_LABEL_BACKGROUNDCOLOR);

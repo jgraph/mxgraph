@@ -137,18 +137,21 @@ namespace com.mxgraph
 
                     // Removes some styles to draw the content area
                     Dictionary<string, Object> cloned = new Dictionary<string, Object>(style);
-                    cloned.Remove(mxConstants.STYLE_FILLCOLOR);
+                    cloned[mxConstants.STYLE_FILLCOLOR] = cloned[mxConstants.STYLE_SWIMLANE_FILLCOLOR];
+                    cloned.Remove(mxConstants.STYLE_GRADIENTCOLOR);
                     cloned.Remove(mxConstants.STYLE_ROUNDED);
+                    Dictionary<string, Object> cloned2 = new Dictionary<string, Object>(style);
+                    cloned2.Remove(mxConstants.STYLE_ROUNDED);
 
                     if (mxUtils.IsTrue(style, mxConstants.STYLE_HORIZONTAL, true))
                     {
-                        DrawShape(x, y, w, Math.Min(h, start), style);
                         DrawShape(x, y + start, w, h - start, cloned);
+                        DrawShape(x, y, w, Math.Min(h, start), cloned2);
                     }
                     else
                     {
-                        DrawShape(x, y, Math.Min(w, start), h, style);
                         DrawShape(x + start, y, w - start, h, cloned);
+                        DrawShape(x, y, Math.Min(w, start), h, cloned2);
                     }
                 }
             }

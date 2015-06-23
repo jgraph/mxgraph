@@ -24,6 +24,13 @@ class mxCodec
 	 * Maps from IDs to objects.
 	 */
 	var $objects = array();
+
+	/**
+	 * Variable: elements
+	 *
+	 * Maps from IDs to elements.
+	 */
+	var $elements = null;
 	
 	/**
 	 * Variable: encodeDefaults
@@ -119,12 +126,7 @@ class mxCodec
 	/**
 	 * Function: getElementById
 	 *
-	 * Returns the element with the given ID from
-	 * <document>. The optional attr argument specifies
-	 * the name of the ID attribute. Default is "id".
-	 * The XPath expression used to find the element is
-	 * //*[@attr='arg'] where attr is the name of the
-	 * ID attribute and arg is the given id.
+	 * Returns the element with the given ID from <document>.
 	 *
 	 * Parameters:
 	 *
@@ -132,7 +134,39 @@ class mxCodec
 	 */
 	function getElementById($id)
 	{
-		return $this->document->getElementById($id);
+		if ($this->elements == null)
+		{
+			$this->elements = array();
+			$this->addElement($this->document->documentElement);
+		}
+	
+		return $this->elements[$id];
+	}
+	
+	/**
+	 * Function: addElement
+	 *
+	 * Adds the given element to <elements> if it has an ID.
+	 */
+	function addElement($node)
+	{
+		if ($node instanceof DOMElement)
+		{
+			$id = $node->getAttribute("id");
+			
+			if ($id != null && $this->elements[$id] == null)
+			{
+				$this->elements[$id] = $node;
+			}
+		}
+		
+		$node = $node->firstChild;
+		
+		while ($node != null)
+		{
+			$this->addElement($node);
+			$node = $node->nextSibling;
+		}
 	}
 
 	/**

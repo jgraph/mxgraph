@@ -34,6 +34,11 @@ public class mxCodec
 	protected Map<String, Object> objects = new Hashtable<String, Object>();
 
 	/**
+	 * Maps from IDs to elements.
+	 */
+	protected Map<String, Node> elements = null;
+
+	/**
 	 * Specifies if default values should be encoded. Default is false.
 	 */
 	protected boolean encodeDefaults = false;
@@ -172,7 +177,37 @@ public class mxCodec
 	 */
 	public Node getElementById(String id)
 	{
-		return document.getElementById(id);
+		if (elements == null)
+		{
+			elements = new Hashtable<String, Node>();
+			addElement(document.getDocumentElement());
+		}
+		
+		return elements.get(id);
+	}
+	
+	/**
+	 * Adds the given element to <elements> if it has an ID.
+	 */
+	protected void addElement(Node node)
+	{
+		if (node instanceof Element)
+		{
+			String id = ((Element) node).getAttribute("id");
+			
+			if (id != null && !elements.containsKey(id))
+			{
+				elements.put(id,  node);
+			}
+		}
+		
+		node = node.getFirstChild();
+		
+		while (node != null)
+		{
+			addElement(node);
+			node = node.getNextSibling();
+		}
 	}
 
 	/**

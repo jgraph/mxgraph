@@ -25,6 +25,11 @@ namespace com.mxgraph
         protected Dictionary<string, object> objects = new Dictionary<string, Object>();
 
         /// <summary>
+        /// Maps from IDs to elements.
+        /// </summary>
+        protected Dictionary<string, XmlNode> elements = null;
+
+        /// <summary>
         /// Specifies if default values should be encoded. Default is false.
         /// </summary>
         protected bool encodeDefaults = false;
@@ -143,8 +148,39 @@ namespace com.mxgraph
         /// <returns>Returns the element for the given ID.</returns>
         public XmlNode GetElementById(string id)
         {
-            return document.GetElementById(id);
+            if (elements == null)
+            {
+                elements = new Dictionary<string, XmlNode>();
+                AddElement(document.DocumentElement);
+            }
+
+            return elements[id];
         }
+
+        /// <summary>
+        /// Adds the given element to <elements> if it has an ID.
+        /// </summary>
+        /// <param name="node">Node to be added.</param>
+        protected void AddElement(XmlNode node)
+	    {
+		    if (node is XmlElement)
+		    {
+                string id = ((XmlElement)node).GetAttribute("id");
+			
+			    if (id != null && !elements.ContainsKey(id))
+			    {
+                    elements[id] = node;
+			    }
+		    }
+		
+		    node = node.FirstChild;
+		
+		    while (node != null)
+		    {
+			    AddElement(node);
+                node = node.NextSibling;
+		    }
+	    }
 
         /// <summary>
         /// Returns the ID of the specified object. This implementation calls
