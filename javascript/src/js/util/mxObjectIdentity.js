@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 var mxObjectIdentity =
 {
@@ -29,24 +30,30 @@ var mxObjectIdentity =
 	/**
 	 * Function: get
 	 * 
-	 * Returns the ID for the given object or function.
+	 * Returns the ID for the given object or function or null if no object
+	 * is specified.
 	 */
 	get: function(obj)
 	{
-		if (obj[mxObjectIdentity.FIELD_NAME] == null)
+		if (obj != null)
 		{
-			if (typeof obj === 'object')
+			if (obj[mxObjectIdentity.FIELD_NAME] == null)
 			{
-				var ctor = mxUtils.getFunctionName(obj.constructor);
-				obj[mxObjectIdentity.FIELD_NAME] = ctor + '#' + mxObjectIdentity.counter++;
+				if (typeof obj === 'object')
+				{
+					var ctor = mxUtils.getFunctionName(obj.constructor);
+					obj[mxObjectIdentity.FIELD_NAME] = ctor + '#' + mxObjectIdentity.counter++;
+				}
+				else if (typeof obj === 'function')
+				{
+					obj[mxObjectIdentity.FIELD_NAME] = 'Function#' + mxObjectIdentity.counter++;
+				}
 			}
-			else if (typeof obj === 'function')
-			{
-				obj[mxObjectIdentity.FIELD_NAME] = 'Function#' + mxObjectIdentity.counter++;
-			}
+			
+			return obj[mxObjectIdentity.FIELD_NAME];
 		}
 		
-		return obj[mxObjectIdentity.FIELD_NAME];
+		return null;
 	},
 
 	/**

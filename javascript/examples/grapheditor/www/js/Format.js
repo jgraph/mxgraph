@@ -324,7 +324,7 @@ Format.prototype.refresh = function()
 		img.style.top = '8px';
 		img.style.cursor = 'pointer';
 		img.style.marginTop = '1px';
-		img.style.marginRight = '16px';
+		img.style.marginRight = '17px';
 		img.style.border = '1px solid transparent';
 		img.style.padding = '1px';
 		img.style.opacity = 0.5;
@@ -821,7 +821,7 @@ BaseFormatPanel.prototype.createOption = function(label, isCheckedFn, setChecked
 /**
  * The string 'null' means use null in values.
  */
-BaseFormatPanel.prototype.createCellOption = function(label, key, defaultValue, enabledValue, disabledValue, fn, action)
+BaseFormatPanel.prototype.createCellOption = function(label, key, defaultValue, enabledValue, disabledValue, fn, action, stopEditing)
 {
 	enabledValue = (enabledValue != null) ? ((enabledValue == 'null') ? null : enabledValue) : '1';
 	disabledValue = (disabledValue != null) ? ((disabledValue == 'null') ? null : disabledValue) : '0';
@@ -843,6 +843,11 @@ BaseFormatPanel.prototype.createCellOption = function(label, key, defaultValue, 
 		return null;
 	}, function(checked)
 	{
+		if (stopEditing)
+		{
+			graph.stopEditing();
+		}
+		
 		if (action != null)
 		{
 			action.funct();
@@ -1411,7 +1416,7 @@ ArrangePanel.prototype.addGroupOps = function(div)
 			ui.actions.get('ungroup').funct();
 		})
 		
-		btn.setAttribute('title', 'Ctrl+Shift+G');
+		btn.setAttribute('title', 'Ctrl+Shift+U');
 		btn.style.width = '202px';
 		btn.style.marginBottom = '2px';
 		div.appendChild(btn);
@@ -1857,7 +1862,7 @@ ArrangePanel.prototype.addGeometryHandler = function(input, fn)
 	{
 		if (input.value != '')
 		{
-			var value = parseInt(input.value);
+			var value = parseFloat(input.value);
 
 			if (value != initialValue)
 			{
@@ -2074,6 +2079,9 @@ TextFormatPanel.prototype.addFont = function(container)
 	var stylePanel2 = stylePanel.cloneNode(false);
 	stylePanel2.style.marginLeft = '-3px';
 	var fontStyleItems = this.editorUi.toolbar.addItems(['bold', 'italic', 'underline'], stylePanel2, true);
+	fontStyleItems[0].setAttribute('title', mxResources.get('bold') + ' (' + this.editorUi.actions.get('bold').shortcut + ')');
+	fontStyleItems[1].setAttribute('title', mxResources.get('italic') + ' (' + this.editorUi.actions.get('italic').shortcut + ')');
+	fontStyleItems[2].setAttribute('title', mxResources.get('underline') + ' (' + this.editorUi.actions.get('underline').shortcut + ')');
 	
 	var verticalItem = this.editorUi.toolbar.addItems(['vertical'], stylePanel2, true)[0];
 	
@@ -2168,12 +2176,12 @@ TextFormatPanel.prototype.addFont = function(container)
 		
 		var tmp = stylePanel3.cloneNode(false);
 		tmp.style.paddingTop = '4px';
-		var btns = [this.editorUi.toolbar.addButton('geSprite-orderedlist', mxResources.get('numberelist'),
+		var btns = [this.editorUi.toolbar.addButton('geSprite-orderedlist', mxResources.get('numberedList'),
 				function()
 				{
 					document.execCommand('insertorderedlist', false, null);
 				}, tmp),
-			this.editorUi.toolbar.addButton('geSprite-unorderedlist', mxResources.get('bulletedlist'),
+			this.editorUi.toolbar.addButton('geSprite-unorderedlist', mxResources.get('bulletedList'),
 				function()
 				{
 					document.execCommand('insertunorderedlist', false, null);
@@ -2226,12 +2234,16 @@ TextFormatPanel.prototype.addFont = function(container)
 	positionSelect.style.width = '97px';
 	positionSelect.style.marginTop = '-2px';
 	
-	var directions = ['center', 'top', 'right', 'bottom', 'left'];
-	var lset = {'center': [mxConstants.ALIGN_CENTER, mxConstants.ALIGN_MIDDLE, mxConstants.ALIGN_CENTER, mxConstants.ALIGN_MIDDLE],
+	var directions = ['topLeft', 'top', 'topRight', 'left', 'center', 'right', 'bottomLeft', 'bottom', 'bottomRight'];
+	var lset = {'topLeft': [mxConstants.ALIGN_LEFT, mxConstants.ALIGN_TOP, mxConstants.ALIGN_RIGHT, mxConstants.ALIGN_BOTTOM],
 			'top': [mxConstants.ALIGN_CENTER, mxConstants.ALIGN_TOP, mxConstants.ALIGN_CENTER, mxConstants.ALIGN_BOTTOM],
+			'topRight': [mxConstants.ALIGN_RIGHT, mxConstants.ALIGN_TOP, mxConstants.ALIGN_LEFT, mxConstants.ALIGN_BOTTOM],
+			'left': [mxConstants.ALIGN_LEFT, mxConstants.ALIGN_MIDDLE, mxConstants.ALIGN_RIGHT, mxConstants.ALIGN_MIDDLE],
+			'center': [mxConstants.ALIGN_CENTER, mxConstants.ALIGN_MIDDLE, mxConstants.ALIGN_CENTER, mxConstants.ALIGN_MIDDLE],
 			'right': [mxConstants.ALIGN_RIGHT, mxConstants.ALIGN_MIDDLE, mxConstants.ALIGN_LEFT, mxConstants.ALIGN_MIDDLE],
+			'bottomLeft': [mxConstants.ALIGN_LEFT, mxConstants.ALIGN_BOTTOM, mxConstants.ALIGN_RIGHT, mxConstants.ALIGN_TOP],
 			'bottom': [mxConstants.ALIGN_CENTER, mxConstants.ALIGN_BOTTOM, mxConstants.ALIGN_CENTER, mxConstants.ALIGN_TOP],
-			'left': [mxConstants.ALIGN_LEFT, mxConstants.ALIGN_MIDDLE, mxConstants.ALIGN_RIGHT, mxConstants.ALIGN_MIDDLE]};
+			'bottomRight': [mxConstants.ALIGN_RIGHT, mxConstants.ALIGN_BOTTOM, mxConstants.ALIGN_LEFT, mxConstants.ALIGN_TOP]};
 
 	for (var i = 0; i < directions.length; i++)
 	{
@@ -2341,7 +2353,7 @@ TextFormatPanel.prototype.addFont = function(container)
 		// Changes the css font size of the first font element inside the in-place editor with size 7
 		// hopefully the above element that we've just created. LATER: Check for new element using
 		// previous result of getElementsByTagName (see other actions)
-		var elts = graph.cellEditor.text2.getElementsByTagName('font');
+		var elts = graph.cellEditor.textarea.getElementsByTagName('font');
 		
 		for (var i = 0; i < elts.length; i++)
 		{
@@ -2441,7 +2453,7 @@ TextFormatPanel.prototype.addFont = function(container)
 	extraPanel.style.paddingBottom = '4px';
 	
 	// LATER: Fix toggle using '' instead of 'null'
-	var wwOpt = this.createCellOption(mxResources.get('wordWrap'), mxConstants.STYLE_WHITE_SPACE, null, 'wrap', 'null');
+	var wwOpt = this.createCellOption(mxResources.get('wordWrap'), mxConstants.STYLE_WHITE_SPACE, null, 'wrap', 'null', null, null, true);
 	wwOpt.style.fontWeight = 'bold';
 	
 	// Word wrap in edge labels only supported via labelWidth style
@@ -2513,8 +2525,8 @@ TextFormatPanel.prototype.addFont = function(container)
 	{
 		var insertPanel = stylePanel.cloneNode(false);
 		insertPanel.style.paddingLeft = '0px';
-		var inserBtns = this.editorUi.toolbar.addItems(['link', 'image'], insertPanel, true);
-		
+		var insertBtns = this.editorUi.toolbar.addItems(['link', 'image'], insertPanel, true);
+
 		var btns = [
 		        this.editorUi.toolbar.addButton('geSprite-horizontalrule', mxResources.get('insertHorizontalRule'),
 				function()
@@ -2525,7 +2537,7 @@ TextFormatPanel.prototype.addFont = function(container)
 				{
 					this.editorUi.menus.addInsertTableItem(menu);
 				}))];
-		this.styleButtons(inserBtns);
+		this.styleButtons(insertBtns);
 		this.styleButtons(btns);
 		
 		var wrapper2 = this.createPanel();
@@ -2547,49 +2559,91 @@ TextFormatPanel.prototype.addFont = function(container)
 		        this.editorUi.toolbar.addButton('geSprite-insertcolumnbefore', mxResources.get('insertColumnBefore'),
 				function()
 				{
-		        	if (currentTable != null)
-		        	{
-		        		graph.selectNode(graph.insertColumn(currentTable, (tableCell != null) ? tableCell.cellIndex : 0));
-		        	}
+					try
+					{
+			        	if (currentTable != null)
+			        	{
+			        		graph.selectNode(graph.insertColumn(currentTable, (tableCell != null) ? tableCell.cellIndex : 0));
+			        	}
+					}
+					catch (e)
+					{
+						alert(e);
+					}
 				}, tablePanel),
 				this.editorUi.toolbar.addButton('geSprite-insertcolumnafter', mxResources.get('insertColumnAfter'),
 				function()
 				{
-					if (currentTable != null)
-		        	{
-						graph.selectNode(graph.insertColumn(currentTable, (tableCell != null) ? tableCell.cellIndex + 1 : -1));
-		        	}
+					try
+					{
+						if (currentTable != null)
+			        	{
+							graph.selectNode(graph.insertColumn(currentTable, (tableCell != null) ? tableCell.cellIndex + 1 : -1));
+			        	}
+					}
+					catch (e)
+					{
+						alert(e);
+					}
 				}, tablePanel),
 				this.editorUi.toolbar.addButton('geSprite-deletecolumn', mxResources.get('deleteColumn'),
 				function()
 				{
-					if (currentTable != null && tableCell != null)
+					try
 					{
-						graph.deleteColumn(currentTable, tableCell.cellIndex);
+						if (currentTable != null && tableCell != null)
+						{
+							graph.deleteColumn(currentTable, tableCell.cellIndex);
+						}
+					}
+					catch (e)
+					{
+						alert(e);
 					}
 				}, tablePanel),
 				this.editorUi.toolbar.addButton('geSprite-insertrowbefore', mxResources.get('insertRowBefore'),
 				function()
 				{
-					if (currentTable != null && tableRow != null)
+					try
 					{
-						graph.selectNode(graph.insertRow(currentTable, tableRow.sectionRowIndex));
+						if (currentTable != null && tableRow != null)
+						{
+							graph.selectNode(graph.insertRow(currentTable, tableRow.sectionRowIndex));
+						}
+					}
+					catch (e)
+					{
+						alert(e);
 					}
 				}, tablePanel),
 				this.editorUi.toolbar.addButton('geSprite-insertrowafter', mxResources.get('insertRowAfter'),
 				function()
 				{
-					if (currentTable != null && tableRow != null)
+					try
 					{
-						graph.selectNode(graph.insertRow(currentTable, tableRow.sectionRowIndex + 1));
+						if (currentTable != null && tableRow != null)
+						{
+							graph.selectNode(graph.insertRow(currentTable, tableRow.sectionRowIndex + 1));
+						}
+					}
+					catch (e)
+					{
+						alert(e);
 					}
 				}, tablePanel),
 				this.editorUi.toolbar.addButton('geSprite-deleterow', mxResources.get('deleteRow'),
 				function()
 				{
-					if (currentTable != null && tableRow != null)
+					try
 					{
-						graph.deleteRow(currentTable, tableRow.sectionRowIndex);
+						if (currentTable != null && tableRow != null)
+						{
+							graph.deleteRow(currentTable, tableRow.sectionRowIndex);
+						}
+					}
+					catch (e)
+					{
+						alert(e);
 					}
 				}, tablePanel)];
 		this.styleButtons(btns);
@@ -2767,13 +2821,29 @@ TextFormatPanel.prototype.addFont = function(container)
 		var pos = mxUtils.getValue(ss.style, mxConstants.STYLE_LABEL_POSITION, mxConstants.ALIGN_CENTER);
 		var vpos =  mxUtils.getValue(ss.style, mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.ALIGN_MIDDLE);
 		
-		if (vpos == mxConstants.ALIGN_TOP)
+		if (pos == mxConstants.ALIGN_LEFT && vpos == mxConstants.ALIGN_TOP)
+		{
+			positionSelect.value = 'topLeft';
+		}
+		else if (pos == mxConstants.ALIGN_CENTER && vpos == mxConstants.ALIGN_TOP)
 		{
 			positionSelect.value = 'top';
 		}
-		else if (vpos == mxConstants.ALIGN_BOTTOM)
+		else if (pos == mxConstants.ALIGN_RIGHT && vpos == mxConstants.ALIGN_TOP)
+		{
+			positionSelect.value = 'topRight';
+		}
+		else if (pos == mxConstants.ALIGN_LEFT && vpos == mxConstants.ALIGN_BOTTOM)
+		{
+			positionSelect.value = 'bottomLeft';
+		}
+		else if (pos == mxConstants.ALIGN_CENTER && vpos == mxConstants.ALIGN_BOTTOM)
 		{
 			positionSelect.value = 'bottom';
+		}
+		else if (pos == mxConstants.ALIGN_RIGHT && vpos == mxConstants.ALIGN_BOTTOM)
+		{
+			positionSelect.value = 'bottomRight';
 		}
 		else if (pos == mxConstants.ALIGN_LEFT)
 		{
@@ -2875,17 +2945,17 @@ TextFormatPanel.prototype.addFont = function(container)
 					{
 						var css = mxUtils.getCurrentStyle(node);
 						
-						setSelected(fontStyleItems[0], css.fontWeight == 'bold' || graph.getParentByName(node, 'B', graph.cellEditor.text2) != null);
-						setSelected(fontStyleItems[1], css.fontStyle == 'italic' || graph.getParentByName(node, 'I', graph.cellEditor.text2) != null);
-						setSelected(fontStyleItems[2], graph.getParentByName(node, 'U', graph.cellEditor.text2) != null);
+						setSelected(fontStyleItems[0], css.fontWeight == 'bold' || graph.getParentByName(node, 'B', graph.cellEditor.textarea) != null);
+						setSelected(fontStyleItems[1], css.fontStyle == 'italic' || graph.getParentByName(node, 'I', graph.cellEditor.textarea) != null);
+						setSelected(fontStyleItems[2], graph.getParentByName(node, 'U', graph.cellEditor.textarea) != null);
 						setSelected(left, css.textAlign == 'left');
 						setSelected(center, css.textAlign == 'center');
 						setSelected(right, css.textAlign == 'right');
 						setSelected(full, css.textAlign == 'justify');
-						setSelected(sup, graph.getParentByName(node, 'SUP', graph.cellEditor.text2) != null);
-						setSelected(sub, graph.getParentByName(node, 'SUB', graph.cellEditor.text2) != null);
+						setSelected(sup, graph.getParentByName(node, 'SUP', graph.cellEditor.textarea) != null);
+						setSelected(sub, graph.getParentByName(node, 'SUB', graph.cellEditor.textarea) != null);
 						
-						currentTable = graph.getParentByName(node, 'TABLE', graph.cellEditor.text2);
+						currentTable = graph.getParentByName(node, 'TABLE', graph.cellEditor.textarea);
 						tableRow = (currentTable == null) ? null : graph.getParentByName(node, 'TR', currentTable);
 						tableCell = (currentTable == null) ? null : graph.getParentByName(node, 'TD', currentTable);
 						tableWrapper.style.display = (currentTable != null) ? '' : 'none';
@@ -2962,13 +3032,13 @@ TextFormatPanel.prototype.addFont = function(container)
 			}
 		};
 		
-		mxEvent.addListener(graph.cellEditor.text2, 'input', updateCssHandler)
-		mxEvent.addListener(graph.cellEditor.text2, 'touchend', updateCssHandler);
-		mxEvent.addListener(graph.cellEditor.text2, 'mouseup', updateCssHandler);
-		mxEvent.addListener(graph.cellEditor.text2, 'keyup', updateCssHandler);
+		mxEvent.addListener(graph.cellEditor.textarea, 'input', updateCssHandler)
+		mxEvent.addListener(graph.cellEditor.textarea, 'touchend', updateCssHandler);
+		mxEvent.addListener(graph.cellEditor.textarea, 'mouseup', updateCssHandler);
+		mxEvent.addListener(graph.cellEditor.textarea, 'keyup', updateCssHandler);
 		this.listeners.push({destroy: function()
 		{
-			// No need to remove listener since text2 is destroyed after edit
+			// No need to remove listener since textarea is destroyed after edit
 		}});
 		updateCssHandler();
 	}
@@ -3709,9 +3779,9 @@ StyleFormatPanel.prototype.addStroke = function(container)
 		};
 		
 		var sourceDiv = updateArrow(mxUtils.getValue(ss.style, mxConstants.STYLE_STARTARROW, null),
-				mxUtils.getValue(ss.style, 'startFill', '0'), lineStart, 'start');
+				mxUtils.getValue(ss.style, 'startFill', '1'), lineStart, 'start');
 		var targetDiv = updateArrow(mxUtils.getValue(ss.style, mxConstants.STYLE_ENDARROW, null),
-				mxUtils.getValue(ss.style, 'endFill', '0'), lineEnd, 'end');
+				mxUtils.getValue(ss.style, 'endFill', '1'), lineEnd, 'end');
 
 		// Special cases for markers
 		if (ss.style.shape == 'arrow')
@@ -3913,6 +3983,11 @@ DiagramFormatPanel = function(format, editorUi, container)
 mxUtils.extend(DiagramFormatPanel, BaseFormatPanel);
 
 /**
+ * Specifies if the background image option should be shown. Default is true.
+ */
+DiagramFormatPanel.prototype.showBackgroundImageOption = true;
+
+/**
  * Adds the label menu items to the given menu and parent.
  */
 DiagramFormatPanel.prototype.init = function()
@@ -3922,9 +3997,12 @@ DiagramFormatPanel.prototype.init = function()
 	var graph = editor.graph;
 
 	this.container.appendChild(this.addOptions(this.createPanel()));
-	this.container.appendChild(this.addDocumentProperties(this.createPanel()));
-	this.container.appendChild(this.addPaperSize(this.createPanel()));
-	this.container.appendChild(this.addStyleOps(this.createPanel()));
+
+	if (graph.isEnabled())
+	{
+		this.container.appendChild(this.addPaperSize(this.createPanel()));
+		this.container.appendChild(this.addStyleOps(this.createPanel()));
+	}
 };
 
 /**
@@ -3940,70 +4018,117 @@ DiagramFormatPanel.prototype.addOptions = function(div)
 	this.addGridOption(div);
 
 	// Guides
-	div.appendChild(this.createOption(mxResources.get('guides'), function()
+	if (graph.isEnabled())
 	{
-		return graph.graphHandler.guidesEnabled;
+		div.appendChild(this.createOption(mxResources.get('guides'), function()
+		{
+			return graph.graphHandler.guidesEnabled;
+		}, function(checked)
+		{
+			ui.actions.get('guides').funct();
+		},
+		{
+			install: function(apply)
+			{
+				this.listener = function()
+				{
+					apply(graph.graphHandler.guidesEnabled);
+				};
+				
+				ui.addListener('guidesEnabledChanged', this.listener);
+			},
+			destroy: function()
+			{
+				ui.removeListener(this.listener);
+			}
+		}));
+	
+		// Connection points
+		div.appendChild(this.createOption(mxResources.get('connectionPoints'), function()
+		{
+			return graph.connectionHandler.isEnabled();
+		}, function(checked)
+		{
+			graph.setConnectable(checked);
+		}));
+	}
+	
+	div.appendChild(this.createOption(mxResources.get('pageView'), function()
+	{
+		return graph.pageVisible;
 	}, function(checked)
 	{
-		ui.actions.get('guides').funct();
+		ui.actions.get('pageView').funct();
 	},
 	{
 		install: function(apply)
 		{
 			this.listener = function()
 			{
-				apply(graph.graphHandler.guidesEnabled);
+				apply(graph.pageVisible);
 			};
 			
-			ui.addListener('guidesEnabledChanged', this.listener);
+			ui.addListener('pageViewChanged', this.listener);
 		},
 		destroy: function()
 		{
 			ui.removeListener(this.listener);
 		}
 	}));
-
-	// Connection points
-	div.appendChild(this.createOption(mxResources.get('connectionPoints'), function()
+	
+	// Background
+	if (graph.isEnabled())
 	{
-		return graph.connectionHandler.isEnabled();
-	}, function(checked)
-	{
-		graph.setConnectable(checked);
-	}));
-
-	// Copy connect
-	div.appendChild(this.createOption(mxResources.get('copyConnect'), function()
-	{
-		return graph.connectionHandler.isCreateTarget();
-	}, function(checked)
-	{
-		graph.connectionHandler.setCreateTarget(checked);
-	}));
-
-	// Scrollbars
-	div.appendChild(this.createOption(mxResources.get('scrollbars'), function()
-	{
-		return ui.hasScrollbars();
-	}, function(checked)
-	{
-		ui.setScrollbars(checked);
-	},
-	{
-		install: function(apply)
+		var bg = this.createColorOption(mxResources.get('background'), function()
 		{
-			this.listener = function()
+			return graph.background;
+		}, function(color)
+		{
+			ui.setBackgroundColor(color);
+		}, '#ffffff',
+		{
+			install: function(apply)
 			{
-				apply(ui.hasScrollbars());
-			};
-			
-			ui.addListener('scrollbarsChanged', this.listener);
-		},
-		destroy: function()
+				this.listener = function()
+				{
+					apply(graph.background);
+				};
+				
+				ui.addListener('backgroundColorChanged', this.listener);
+			},
+			destroy: function()
+			{
+				ui.removeListener(this.listener);
+			}
+		});
+		
+		if (this.showBackgroundImageOption)
 		{
-			ui.removeListener(this.listener);
+			var btn = mxUtils.button(mxResources.get('image'), function(evt)
+			{
+				var dlg = new BackgroundImageDialog(ui, function(image)
+				{
+					ui.setBackgroundImage(image);
+				});
+				ui.showDialog(dlg.container, 360, 200, true, true);
+				dlg.init();
+				
+				mxEvent.consume(evt);
+			})
+		
+			btn.style.position = 'absolute';
+			btn.className = 'geColorBtn';
+			btn.style.marginTop = '-4px';
+			btn.style.paddingBottom = (document.documentMode == 11 || mxClient.IS_MT) ? '0px' : '2px';
+			btn.style.height = '22px';
+			btn.style.right = (mxClient.IS_QUIRKS) ? '52px' : '72px';
+			btn.style.width = '56px';
+		
+			bg.appendChild(btn);
 		}
-	}));
+		
+		div.appendChild(bg);
+	}
 	
 	return div;
 };
@@ -4099,67 +4224,12 @@ DiagramFormatPanel.prototype.addGridOption = function(container)
  */
 DiagramFormatPanel.prototype.addDocumentProperties = function(div)
 {
+	// Hook for subclassers
 	var ui = this.editorUi;
 	var editor = ui.editor;
 	var graph = editor.graph;
 	
-	div.appendChild(this.createTitle(mxResources.get('documentProperties')));
-
-	// Page view
-	// LATER: Add pageViewChanged event
-	div.appendChild(this.createOption(mxResources.get('pageView'), function()
-	{
-		return graph.pageVisible;
-	}, function(checked)
-	{
-		ui.actions.get('pageView').funct();
-	}));
-	
-	var bg = this.createColorOption(mxResources.get('background'), function()
-	{
-		return graph.background;
-	}, function(color)
-	{
-		ui.setBackgroundColor(color);
-	}, '#ffffff',
-	{
-		install: function(apply)
-		{
-			this.listener = function()
-			{
-				apply(graph.background);
-			};
-			
-			ui.addListener('backgroundColorChanged', this.listener);
-		},
-		destroy: function()
-		{
-			ui.removeListener(this.listener);
-		}
-	});
-	
-	var btn = mxUtils.button(mxResources.get('image'), function(evt)
-	{
-		var dlg = new BackgroundImageDialog(ui, function(image)
-		{
-			ui.setBackgroundImage(image);
-		});
-		ui.showDialog(dlg.container, 360, 200, true, true);
-		dlg.init();
-		
-		mxEvent.consume(evt);
-	})
-
-	btn.style.position = 'absolute';
-	btn.className = 'geColorBtn';
-	btn.style.marginTop = '-4px';
-	btn.style.paddingBottom = (document.documentMode == 11 || mxClient.IS_MT) ? '0px' : '2px';
-	btn.style.height = '22px';
-	btn.style.right = (mxClient.IS_QUIRKS) ? '52px' : '72px';
-	btn.style.width = '56px';
-
-	bg.appendChild(btn);
-	div.appendChild(bg);
+	div.appendChild(this.createTitle(mxResources.get('options')));
 
 	return div;
 };

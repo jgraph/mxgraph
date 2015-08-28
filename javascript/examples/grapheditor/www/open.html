@@ -114,7 +114,10 @@
 				}
 				
 				// Sorts the array by filename (key)
-				keys.sort();
+				keys.sort(function (a, b)
+				{
+				    return a.toLowerCase().localeCompare(b.toLowerCase());
+				});
 				
 				for (var i = 0; i < keys.length; i++)
 				{

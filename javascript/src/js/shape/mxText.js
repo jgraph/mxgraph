@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxText
@@ -258,6 +259,12 @@ mxText.prototype.paint = function(c, update)
 			val =  mxUtils.htmlEntities(val, false);
 		}
 		
+		if (fmt == 'html' && !mxUtils.isNode(this.value))
+		{
+			val = mxUtils.replaceTrailingNewlines(val, '<div><br></div>');			
+		}
+		
+		// Handles trailing newlines to make sure they are visible in rendering output
 		val = (!mxUtils.isNode(this.value) && this.replaceLinefeeds && fmt == 'html') ?
 			val.replace(/\n/g, '<br/>') : val;
 			
@@ -740,7 +747,9 @@ mxText.prototype.updateInnerHtml = function(elt)
 			// LATER: Can be cached in updateValue
 			val = mxUtils.htmlEntities(val, false);
 		}
-
+		
+		// Handles trailing newlines to make sure they are visible in rendering output
+		val = mxUtils.replaceTrailingNewlines(val, '<div>&nbsp;</div>');
 		val = (this.replaceLinefeeds) ? val.replace(/\n/g, '<br/>') : val;
 		val = '<div style="display:inline-block;_display:inline;">' + val + '</div>';
 		
@@ -823,7 +832,6 @@ mxText.prototype.updateHtmlFilter = function()
 	else if (sizeDiv.firstChild != null && sizeDiv.firstChild.nodeName == 'DIV')
 	{
 		sizeDiv = sizeDiv.firstChild;
-		
 		oh = sizeDiv.offsetHeight;
 	}
 
@@ -961,6 +969,8 @@ mxText.prototype.updateValue = function()
 			val = mxUtils.htmlEntities(val, false);
 		}
 		
+		// Handles trailing newlines to make sure they are visible in rendering output
+		val = mxUtils.replaceTrailingNewlines(val, '<div><br></div>');
 		val = (this.replaceLinefeeds) ? val.replace(/\n/g, '<br/>') : val;
 		var bg = (this.background != null && this.background != mxConstants.NONE) ? this.background : null;
 		var bd = (this.border != null && this.border != mxConstants.NONE) ? this.border : null;

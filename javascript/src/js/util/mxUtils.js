@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 var mxUtils =
 {
@@ -571,8 +572,10 @@ var mxUtils =
 			return function(xml)
 			{
 				var result = mxUtils.createXmlDocument();
-				
-				result.async = 'false';
+				result.async = false;
+				// Workaround for parsing errors with SVG DTD
+				result.validateOnParse = false;
+				result.resolveExternals = false;
 				result.loadXML(xml);
 				
 				return result;
@@ -790,6 +793,79 @@ var mxUtils =
 		return xml;
 	},
 	
+	/**
+	 * Function: extractTextWithWhitespace
+	 * 
+	 * Returns the text content of the specified node.
+	 * 
+	 * Parameters:
+	 * 
+	 * elems - DOM nodes to return the text for.
+	 */
+	extractTextWithWhitespace: function(elems)
+	{
+		// Converts newlines in plain text to breaks in HTML
+		// to match the plain text output
+	    var ignoreBr = false;
+	    var ret = [];
+	    
+	    for (var i = 0; elems[i]; i++)
+	    {
+	        var elem = elems[i];
+
+	        // Get the text from text nodes and CDATA nodes
+	        if (elem.nodeType === 3 || elem.nodeType === 4)
+	        {
+	        	// Workaround for last empty element in IE 11
+	        	if (document.documentMode == 11 && i == elems.length - 1 && elem.nodeValue.length == 0)
+        		{
+        			break;
+        		}
+	        	
+	        	ret.push(elem.nodeValue + '\n');
+	            ignoreBr = true;
+
+	        // Traverse everything else, except comment nodes
+	        }
+	        else if (elem.nodeType !== 8)
+	        {
+	        	// Best effort normalization translates BR (except after text) and empty P (in IE) to line breaks
+	        	if ((((mxClient.IS_IE || mxClient.IS_IE11) && elem.nodeName == 'P' && elem.innerHTML.length == 0)) ||
+	        		(!ignoreBr && elem.nodeName == 'BR') || (elem.nodeName == 'DIV' && elem.innerHTML == '<br>'))
+	        	{
+	        		ret.push('\n');
+	        	}
+	        	else
+	        	{	 
+	        		ret.push(mxUtils.extractTextWithWhitespace(elem.childNodes));
+	        	}
+
+		        ignoreBr = false;
+	        }
+	    }
+
+	    return ret.join('');
+	},
+	
+	/**
+	 * Function: replaceTrailingNewlines
+	 * 
+	 * Replaces each trailing newline with the given pattern.
+	 */
+	replaceTrailingNewlines: function(str, pattern)
+	{
+		// LATER: Check is this can be done with a regular expression
+		var postfix = '';
+		
+		while (str.length > 0 && str.charAt(str.length - 1) == '\n')
+		{
+			str = str.substring(0, str.length - 1);
+			postfix += pattern;
+		}
+		
+		return str + postfix;
+	},
+
 	/**
 	 * Function: getTextContent
 	 * 
@@ -3546,7 +3622,7 @@ var mxUtils =
 			{
 				try
 				{
-					html += document.styleSheets(i).cssText;
+					html += document.styleSheets[i].cssText;
 				}
 				catch (e)
 				{

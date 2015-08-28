@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 var mxPerimeter =
 {
@@ -13,7 +14,7 @@ var mxPerimeter =
 	 * Example:
 	 * 
 	 * (code)
-	 * <add as="perimeter">mxPerimeter.RightAngleRectanglePerimeter</add>
+	 * <add as="perimeter">mxPerimeter.RectanglePerimeter</add>
 	 * (end)
 	 * 
 	 * Or programmatically:

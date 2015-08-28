@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxFastOrganicLayout
@@ -259,7 +260,7 @@ mxFastOrganicLayout.prototype.execute = function(parent)
 		this.cellLocation[i] = [];
 		
 		// Set up the mapping from array indices to cells
-		var id = mxCellPath.create(vertex);
+		var id = mxObjectIdentity.get(vertex);
 		this.indices[id] = i;
 		var bounds = this.getVertexBounds(vertex);
 
@@ -310,7 +311,7 @@ mxFastOrganicLayout.prototype.execute = function(parent)
 			    }
 
 				// Looks the cell up in the indices dictionary
-				var id = mxCellPath.create(cells[j]);
+				var id = mxObjectIdentity.get(cells[j]);
 				var index = this.indices[id];
 
 				// Check the connected cell in part of the vertex list to be

@@ -3,7 +3,7 @@
  */
 // Specifies if local storage should be used (eg. on the iPad which has no filesystem)
 var useLocalStorage = typeof(Storage) != 'undefined' && mxClient.IS_IOS;
-var fileSupport = window.File != null && window.FileReader != null && window.FileList != null;
+var fileSupport = window.File != null && window.FileReader != null && window.FileList != null && urlParams['filesupport'] != '0';
 
 // Workaround for allowing target="_blank" in HTML sanitizer
 // see https://code.google.com/p/google-caja/issues/detail?can=2&q=&colspec=ID%20Type%20Status%20Priority%20Owner%20Summary&groupby=&sort=&id=1296
@@ -40,6 +40,29 @@ catch (e)
 {
 	// ignore
 }
+
+/**
+ * Sets global constants.
+ */
+// Changes default colors
+mxConstants.SHADOWCOLOR = '#d0d0d0';
+mxGraph.prototype.pageBreakColor = '#c0c0c0';
+mxGraph.prototype.pageScale = 1;
+
+//Matches label positions of mxGraph 1.x
+mxText.prototype.baseSpacingTop = 5;
+mxText.prototype.baseSpacingBottom = 1;
+
+//Adds stylesheet for IE6
+if (mxClient.IS_IE6)
+{
+	mxClient.link('stylesheet', CSS_PATH + '/grapheditor-ie6.css');
+}
+
+//Adds required resources (disables loading of fallback properties, this can only
+//be used if we know that all keys are defined in the language specific file)
+mxResources.loadDefaultBundle = false;
+mxResources.add(RESOURCE_BASE);
 
 /**
  * Editor constructor executed on page load.
@@ -166,6 +189,11 @@ Editor.prototype.initialTopSpacing = 0;
  * Specifies the app name. Default is document.title.
  */
 Editor.prototype.appName = document.title;
+
+/**
+ * Initializes the environment.
+ */
+Editor.prototype.init = function() { };
 
 /**
  * Sets the XML node for the current diagram.
@@ -427,98 +455,135 @@ Editor.prototype.setFilename = function(value)
 };
 
 /**
- * Initializes the environment.
+ * Creates and returns a new undo manager.
  */
-Editor.prototype.init = function()
+Editor.prototype.createUndoManager = function()
 {
-	// Adds stylesheet for IE6
-	if (mxClient.IS_IE6)
+	var graph = this.graph;
+	var undoMgr = new mxUndoManager();
+
+	this.undoListener = function(sender, evt)
 	{
-		mxClient.link('stylesheet', CSS_PATH + '/grapheditor-ie6.css');
-	}
-
-	// Adds required resources (disables loading of fallback properties, this can only
-	// be used if we know that all keys are defined in the language specific file)
-	mxResources.loadDefaultBundle = false;
-	mxResources.add(RESOURCE_BASE);
-
-	// Makes the connection hotspot smaller
-	mxConstants.DEFAULT_HOTSPOT = 0.3;
-
-	var mxConnectionHandlerCreateMarker = mxConnectionHandler.prototype.createMarker;
-	mxConnectionHandler.prototype.createMarker = function()
+		undoMgr.undoableEditHappened(evt.getProperty('edit'));
+	};
+	
+    // Installs the command history
+	var listener = mxUtils.bind(this, function(sender, evt)
 	{
-		var marker = mxConnectionHandlerCreateMarker.apply(this, arguments);
+		this.undoListener.apply(this, arguments);
+	});
+	
+	graph.getModel().addListener(mxEvent.UNDO, listener);
+	graph.getView().addListener(mxEvent.UNDO, listener);
+
+	// Keeps the selection in sync with the history
+	var undoHandler = function(sender, evt)
+	{
+		var cand = graph.getSelectionCellsForChanges(evt.getProperty('edit').changes);
+		var model = graph.getModel();
+		var cells = [];
 		
-		// Overrides to ignore hotspot only for target terminal
-		marker.intersects = mxUtils.bind(this, function(state, evt)
+		for (var i = 0; i < cand.length; i++)
 		{
-			if (this.isConnecting())
+			if ((model.isVertex(cand[i]) || model.isEdge(cand[i])) && graph.view.getState(cand[i]) != null)
 			{
-				return true;
+				cells.push(cand[i]);
 			}
-			
-			return mxCellMarker.prototype.intersects.apply(marker, arguments);
-		});
-		
-		return marker;
-	};
-
-	// Changes border color of background page shape
-	mxGraphView.prototype.createBackgroundPageShape = function(bounds)
-	{
-		var bg = (this.graph.background == null || this.graph.background == 'none') ? '#ffffff' : this.graph.background;
-		
-		return new mxRectangleShape(bounds, bg, '#cacaca');
-	};
-
-	// Fits the number of background pages to the graph
-	mxGraphView.prototype.getBackgroundPageBounds = function()
-	{
-		var gb = this.getGraphBounds();
-		
-		// Computes unscaled, untranslated graph bounds
-		var x = (gb.width > 0) ? gb.x / this.scale - this.translate.x : 0;
-		var y = (gb.height > 0) ? gb.y / this.scale - this.translate.y : 0;
-		var w = gb.width / this.scale;
-		var h = gb.height / this.scale;
-		
-		var fmt = this.graph.pageFormat;
-		var ps = this.graph.pageScale;
-
-		var pw = fmt.width * ps;
-		var ph = fmt.height * ps;
-
-		var x0 = Math.floor(Math.min(0, x) / pw);
-		var y0 = Math.floor(Math.min(0, y) / ph);
-		var xe = Math.ceil(Math.max(1, x + w) / pw);
-		var ye = Math.ceil(Math.max(1, y + h) / ph);
-		
-		var rows = xe - x0;
-		var cols = ye - y0;
-
-		var bounds = new mxRectangle(this.scale * (this.translate.x + x0 * pw), this.scale *
-				(this.translate.y + y0 * ph), this.scale * rows * pw, this.scale * cols * ph);
-		
-		return bounds;
-	};
-	
-	// Add panning for background page in VML
-	var graphPanGraph = mxGraph.prototype.panGraph;
-	mxGraph.prototype.panGraph = function(dx, dy)
-	{
-		graphPanGraph.apply(this, arguments);
-		
-		if ((this.dialect != mxConstants.DIALECT_SVG && this.view.backgroundPageShape != null) &&
-			(!this.useScrollbarsForPanning || !mxUtils.hasScrollbars(this.container)))
-		{
-			this.view.backgroundPageShape.node.style.marginLeft = dx + 'px';
-			this.view.backgroundPageShape.node.style.marginTop = dy + 'px';
 		}
+		
+		graph.setSelectionCells(cells);
 	};
-
-	var editor = this;
 	
+	undoMgr.addListener(mxEvent.UNDO, undoHandler);
+	undoMgr.addListener(mxEvent.REDO, undoHandler);
+
+	return undoMgr;
+};
+
+/**
+ * Adds basic stencil set (no namespace).
+ */
+Editor.prototype.initStencilRegistry = function() { };
+
+/**
+ * Creates and returns a new undo manager.
+ */
+Editor.prototype.destroy = function()
+{
+	if (this.graph != null)
+	{
+		this.graph.destroy();
+		this.graph = null;
+	}
+};
+
+/**
+ * Class for asynchronously opening a new window and loading a file at the same
+ * time. This acts as a bridge between the open dialog and the new editor.
+ */
+OpenFile = function(done)
+{
+	this.producer = null;
+	this.consumer = null;
+	this.done = done;
+};
+
+/**
+ * Registers the editor from the new window.
+ */
+OpenFile.prototype.setConsumer = function(value)
+{
+	this.consumer = value;
+	this.execute();
+};
+
+/**
+ * Sets the data from the loaded file.
+ */
+OpenFile.prototype.setData = function(value, filename)
+{
+	this.data = value;
+	this.filename = filename;
+	this.execute();
+};
+
+/**
+ * Displays an error message.
+ */
+OpenFile.prototype.error = function(msg)
+{
+	this.cancel(true);
+	mxUtils.alert(msg);
+};
+
+/**
+ * Consumes the data.
+ */
+OpenFile.prototype.execute = function()
+{
+	if (this.consumer != null && this.data != null)
+	{
+		this.cancel(false);
+		this.consumer(this.data, this.filename);
+	}
+};
+
+/**
+ * Cancels the operation.
+ */
+OpenFile.prototype.cancel = function(cancel)
+{
+	if (this.done != null)
+	{
+		this.done((cancel != null) ? cancel : true);
+	}
+};
+
+/**
+ * Static overrides
+ */
+(function()
+{
 	// Uses HTML for background pages (to support grid background image)
 	mxGraphView.prototype.validateBackground = function()
 	{
@@ -618,7 +683,7 @@ Editor.prototype.init = function()
 			}
 			
 			this.backgroundPageShape.node.style.backgroundImage = (this.graph.isGridEnabled()) ?
-					'url(' + editor.gridImage + ')' : 'none';
+					'url(' + Editor.prototype.gridImage + ')' : 'none';
 		}
 		else if (this.backgroundPageShape != null)
 		{
@@ -726,12 +791,6 @@ Editor.prototype.init = function()
 		}
 	};
 	
-	// Enables snapping to off-grid terminals for edge waypoints
-	mxEdgeHandler.prototype.snapToTerminals = true;
-
-	// Enables guides
-	mxGraphHandler.prototype.guidesEnabled = true;
-
 	// Disables removing relative children from parents
 	var mxGraphHandlerShouldRemoveCellsFromParent = mxGraphHandler.prototype.shouldRemoveCellsFromParent;
 	mxGraphHandler.prototype.shouldRemoveCellsFromParent = function(parent, cells, evt)
@@ -751,15 +810,83 @@ Editor.prototype.init = function()
 		
 		return mxGraphHandlerShouldRemoveCellsFromParent.apply(this, arguments);
 	};
-	
-	// Alt-move disables guides
-	mxGuide.prototype.isEnabledForEvent = function(evt)
+
+	// Overrides to ignore hotspot only for target terminal
+	var mxConnectionHandlerCreateMarker = mxConnectionHandler.prototype.createMarker;
+	mxConnectionHandler.prototype.createMarker = function()
 	{
-		return !mxEvent.isAltDown(evt);
+		var marker = mxConnectionHandlerCreateMarker.apply(this, arguments);
+		
+		marker.intersects = mxUtils.bind(this, function(state, evt)
+		{
+			if (this.isConnecting())
+			{
+				return true;
+			}
+			
+			return mxCellMarker.prototype.intersects.apply(marker, arguments);
+		});
+		
+		return marker;
+	};
+
+	// Changes border color of background page shape
+	mxGraphView.prototype.createBackgroundPageShape = function(bounds)
+	{
+		var bg = (this.graph.background == null || this.graph.background == 'none') ? '#ffffff' : this.graph.background;
+		
+		return new mxRectangleShape(bounds, bg, '#cacaca');
+	};
+
+	// Fits the number of background pages to the graph
+	mxGraphView.prototype.getBackgroundPageBounds = function()
+	{
+		var gb = this.getGraphBounds();
+		
+		// Computes unscaled, untranslated graph bounds
+		var x = (gb.width > 0) ? gb.x / this.scale - this.translate.x : 0;
+		var y = (gb.height > 0) ? gb.y / this.scale - this.translate.y : 0;
+		var w = gb.width / this.scale;
+		var h = gb.height / this.scale;
+		
+		var fmt = this.graph.pageFormat;
+		var ps = this.graph.pageScale;
+
+		var pw = fmt.width * ps;
+		var ph = fmt.height * ps;
+
+		var x0 = Math.floor(Math.min(0, x) / pw);
+		var y0 = Math.floor(Math.min(0, y) / ph);
+		var xe = Math.ceil(Math.max(1, x + w) / pw);
+		var ye = Math.ceil(Math.max(1, y + h) / ph);
+		
+		var rows = xe - x0;
+		var cols = ye - y0;
+
+		var bounds = new mxRectangle(this.scale * (this.translate.x + x0 * pw), this.scale *
+				(this.translate.y + y0 * ph), this.scale * rows * pw, this.scale * cols * ph);
+		
+		return bounds;
 	};
 	
-	// Consumes click events for disabled menu items
-	mxPopupMenuAddItem = mxPopupMenu.prototype.addItem;
+	// Add panning for background page in VML
+	var graphPanGraph = mxGraph.prototype.panGraph;
+	mxGraph.prototype.panGraph = function(dx, dy)
+	{
+		graphPanGraph.apply(this, arguments);
+		
+		if ((this.dialect != mxConstants.DIALECT_SVG && this.view.backgroundPageShape != null) &&
+			(!this.useScrollbarsForPanning || !mxUtils.hasScrollbars(this.container)))
+		{
+			this.view.backgroundPageShape.node.style.marginLeft = dx + 'px';
+			this.view.backgroundPageShape.node.style.marginTop = dy + 'px';
+		}
+	};
+
+	/**
+	 * Consumes click events for disabled menu items.
+	 */
+	var mxPopupMenuAddItem = mxPopupMenu.prototype.addItem;
 	mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, enabled)
 	{
 		var result = mxPopupMenuAddItem.apply(this, arguments);
@@ -796,7 +923,7 @@ Editor.prototype.init = function()
 		
 		return cell;
 	};
-
+	
 	// Selection is delayed to mouseup if ancestor is selected
 	var graphHandlerIsDelayedSelection = mxGraphHandler.prototype.isDelayedSelection;
 	mxGraphHandler.prototype.isDelayedSelection = function(cell, me)
@@ -877,64 +1004,47 @@ Editor.prototype.init = function()
 		
 		return cell;
 	};
-};
+})();
 
-/**
- * Creates and returns a new undo manager.
- */
-Editor.prototype.createUndoManager = function()
-{
-	var graph = this.graph;
-	var undoMgr = new mxUndoManager();
-
-	this.undoListener = function(sender, evt)
-	{
-		undoMgr.undoableEditHappened(evt.getProperty('edit'));
-	};
-	
-    // Installs the command history
-	var listener = mxUtils.bind(this, function(sender, evt)
-	{
-		this.undoListener.apply(this, arguments);
-	});
-	
-	graph.getModel().addListener(mxEvent.UNDO, listener);
-	graph.getView().addListener(mxEvent.UNDO, listener);
-
-	// Keeps the selection in sync with the history
-	var undoHandler = function(sender, evt)
-	{
-		var cand = graph.getSelectionCellsForChanges(evt.getProperty('edit').changes);
-		var model = graph.getModel();
-		var cells = [];
-		
-		for (var i = 0; i < cand.length; i++)
-		{
-			if ((model.isVertex(cand[i]) || model.isEdge(cand[i])) && graph.view.getState(cand[i]) != null)
-			{
-				cells.push(cand[i]);
-			}
-		}
-		
-		graph.setSelectionCells(cells);
-	};
-	
-	undoMgr.addListener(mxEvent.UNDO, undoHandler);
-	undoMgr.addListener(mxEvent.REDO, undoHandler);
-
-	return undoMgr;
-};
-
-/**
- * Adds basic stencil set (no namespace).
- */
-Editor.prototype.initStencilRegistry = function() { };
-
-/**
- * Overrides stencil registry for dynamic loading of stencils.
- */
 (function()
 {
+	/**
+	 * Adds custom stencils defined via shape=stencil(value) style. The value is a base64 encoded, compressed and
+	 * URL encoded XML definition of the shape according to the stencil definition language of mxGraph.
+	 */
+	var mxCellRendererCreateShape = mxCellRenderer.prototype.createShape;
+	mxCellRenderer.prototype.createShape = function(state)
+	{
+		if (state.style != null && typeof(Zlib) !== 'undefined')
+		{
+	    	var shape = mxUtils.getValue(state.style, mxConstants.STYLE_SHAPE, null);
+
+	    	// Extracts and decodes stencil XML if shape has the form shape=stencil(value)
+	    	if (shape != null && shape.substring(0, 8) == 'stencil(')
+	    	{
+	    		try
+	    		{
+	    			var stencil = shape.substring(8, shape.length - 1);
+	    			var doc = mxUtils.parseXml(decodeURIComponent(RawDeflate.inflate((window.atob) ? atob(stencil) : Base64.decode(stencil, true))));
+	    			
+	    			return new mxShape(new mxStencil(doc.documentElement));
+	    		}
+	    		catch (e)
+	    		{
+	    			if (window.console != null)
+	    			{
+	    				console.log('Error in shape: ' + e);
+	    			}
+	    		}
+	    	}
+		}
+		
+		return mxCellRendererCreateShape.apply(this, arguments);
+	};
+
+	/**
+	 * Overrides stencil registry for dynamic loading of stencils.
+	 */
 	/**
 	 * Maps from library names to an array of Javascript filenames,
 	 * which are synchronously loaded. Currently only stencil files
@@ -980,11 +1090,21 @@ Editor.prototype.initStencilRegistry = function() { };
 							}
 							else if (fname.toLowerCase().substring(fname.length - 3, fname.length) == '.js')
 							{
-								var req = mxUtils.load(fname);
-								
-								if (req != null)
+								try
 								{
-									eval.call(window, req.getText());
+									var req = mxUtils.load(fname);
+									
+									if (req != null)
+									{
+										eval.call(window, req.getText());
+									}
+								}
+								catch (e)
+								{
+									if (window.console != null)
+									{
+										console.log('error in getStencil:', fname);
+									}
 								}
 							}
 							else
@@ -1049,10 +1169,20 @@ Editor.prototype.initStencilRegistry = function() { };
 			
 			if (xmlDoc == null)
 			{
-				var req = mxUtils.load(stencilFile);
-				xmlDoc = req.getXml();
-				mxStencilRegistry.packages[stencilFile] = xmlDoc;
-				install = true;
+				try
+				{
+					var req = mxUtils.load(stencilFile);
+					xmlDoc = req.getXml();
+					mxStencilRegistry.packages[stencilFile] = xmlDoc;
+					install = true;
+				}
+				catch (e)
+				{
+					if (window.console != null)
+					{
+						console.log('error in loadStencilSet:', stencilFile);
+					}
+				}
 			}
 		
 			if (xmlDoc != null && xmlDoc.documentElement != null)
@@ -1108,65 +1238,3 @@ Editor.prototype.initStencilRegistry = function() { };
 		}
 	};
 })();
-
-/**
- * Class for asynchronously opening a new window and loading a file at the same
- * time. This acts as a bridge between the open dialog and the new editor.
- */
-OpenFile = function(done)
-{
-	this.producer = null;
-	this.consumer = null;
-	this.done = done;
-};
-
-/**
- * Registers the editor from the new window.
- */
-OpenFile.prototype.setConsumer = function(value)
-{
-	this.consumer = value;
-	this.execute();
-};
-
-/**
- * Sets the data from the loaded file.
- */
-OpenFile.prototype.setData = function(value, filename)
-{
-	this.data = value;
-	this.filename = filename;
-	this.execute();
-};
-
-/**
- * Displays an error message.
- */
-OpenFile.prototype.error = function(msg)
-{
-	this.cancel(true);
-	mxUtils.alert(msg);
-};
-
-/**
- * Consumes the data.
- */
-OpenFile.prototype.execute = function()
-{
-	if (this.consumer != null && this.data != null)
-	{
-		this.cancel(false);
-		this.consumer(this.data, this.filename);
-	}
-};
-
-/**
- * Cancels the operation.
- */
-OpenFile.prototype.cancel = function(cancel)
-{
-	if (this.done != null)
-	{
-		this.done((cancel != null) ? cancel : true);
-	}
-};

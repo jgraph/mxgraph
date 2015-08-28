@@ -24,19 +24,23 @@ function Sidebar(editorUi, container)
 	this.graph.container.style.visibility = 'hidden';
 	this.graph.container.style.position = 'absolute';
 	document.body.appendChild(this.graph.container);
-
-	mxEvent.addListener(document, (mxClient.IS_POINTER) ? 'MSPointerUp' : 'mouseup', mxUtils.bind(this, function()
+	
+	this.pointerUpHandler = mxUtils.bind(this, function()
 	{
 		this.showTooltips = true;
-	}));
+	});
 
-	mxEvent.addListener(document, (mxClient.IS_POINTER) ? 'MSPointerDown' : 'mousedown', mxUtils.bind(this, function()
+	mxEvent.addListener(document, (mxClient.IS_POINTER) ? 'MSPointerUp' : 'mouseup', this.pointerUpHandler);
+
+	this.pointerDownHandler = mxUtils.bind(this, function()
 	{
 		this.showTooltips = false;
 		this.hideTooltip();
-	}));
-
-	mxEvent.addListener(document, (mxClient.IS_POINTER) ? 'MSPointerMove' : 'mousemove', mxUtils.bind(this, function(evt)
+	});
+	
+	mxEvent.addListener(document, (mxClient.IS_POINTER) ? 'MSPointerDown' : 'mousedown', this.pointerDownHandler);
+	
+	this.pointerMoveHandler = mxUtils.bind(this, function(evt)
 	{
 		var src = mxEvent.getSource(evt);
 		
@@ -51,16 +55,20 @@ function Sidebar(editorUi, container)
 		}
 		
 		this.hideTooltip();
-	}));
+	});
+
+	mxEvent.addListener(document, (mxClient.IS_POINTER) ? 'MSPointerMove' : 'mousemove', this.pointerMoveHandler);
 
 	// Handles mouse leaving the window
-	mxEvent.addListener(document, (mxClient.IS_POINTER) ? 'MSPointerOut' : 'mouseout', mxUtils.bind(this, function(evt)
+	this.pointerOutHandler = mxUtils.bind(this, function(evt)
 	{
 		if (evt.toElement == null && evt.relatedTarget == null)
 		{
 			this.hideTooltip();
 		}
-	}));
+	});
+	
+	mxEvent.addListener(document, (mxClient.IS_POINTER) ? 'MSPointerOut' : 'mouseout', this.pointerOutHandler);
 
 	// Enables tooltips after scroll
 	mxEvent.addListener(container, 'scroll', mxUtils.bind(this, function()
@@ -86,6 +94,7 @@ Sidebar.prototype.init = function()
 	
 	this.addSearchPalette(true);
 	this.addGeneralPalette(true);
+	this.addMiscPalette(false);
 	this.addAdvancedPalette(false);
 	this.addStencilPalette('basic', mxResources.get('basic'), dir + '/basic.xml',
 		';whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2');
@@ -134,6 +143,11 @@ Sidebar.prototype.tooltipBorder = 16;
  * Specifies the delay for the tooltip. Default is 300 ms.
  */
 Sidebar.prototype.tooltipDelay = 300;
+
+/**
+ * Specifies the delay for the drop target icons. Default is 200 ms.
+ */
+Sidebar.prototype.dropTargetDelay = 200;
 
 /**
  * Specifies the URL of the gear image.
@@ -325,9 +339,9 @@ Sidebar.prototype.showTooltip = function(elt, cells, w, h, title, showLabel)
 				this.tooltip.style.height = height + 'px';
 				var x0 = -Math.min(0, Math.round(bounds.x - this.tooltipBorder));
 				var y0 = -Math.min(0, Math.round(bounds.y - this.tooltipBorder));
-
-				var left = this.container.clientWidth + this.editorUi.splitSize + 3;
-				var top = Math.max(0, (this.container.offsetTop + elt.offsetTop - this.container.scrollTop - height / 2 + 16));
+				
+				var left = this.container.clientWidth + this.editorUi.splitSize + 3 + this.editorUi.container.offsetLeft;
+				var top = Math.max(0, (this.editorUi.container.offsetTop + this.container.offsetTop + elt.offsetTop - this.container.scrollTop - height / 2 + 16));
 				
 				if (mxClient.IS_SVG)
 				{
@@ -551,7 +565,7 @@ Sidebar.prototype.addSearchPalette = function(expand)
 	inner.style.backgroundColor = 'transparent';
 	inner.style.borderColor = 'transparent';
 	inner.style.padding = '4px';
-	inner.style.marginRight = '4px';
+	inner.style.marginRight = '8px';
 	inner.style.whiteSpace = 'nowrap';
 	inner.style.textOverflow = 'clip';
 	inner.style.cursor = 'default';
@@ -568,20 +582,16 @@ Sidebar.prototype.addSearchPalette = function(expand)
 	input.setAttribute('type', 'text');
 	input.style.border = 'solid 1px #d5d5d5';
 	input.style.width = '100%';
+	input.style.outline = 'none';
 	input.style.padding = '4px';
 	input.style.backgroundImage = 'url(\'' + Dialog.prototype.clearImage + '\')';
 	input.style.backgroundRepeat = 'no-repeat';
 	input.style.backgroundPosition = '100% 50%';
-	input.style.paddingRight = '10px';
+	input.style.paddingRight = '14px';
 	input.style.marginTop = '6px';
 	input.style.marginLeft = '2px';
 	input.style.marginBottom = '2px';
 	inner.appendChild(input);
-	
-	if (document.documentMode == 8)
-	{
-		input.style.boxSizing = 'border-box';
-	}
 
 	var cross = document.createElement('div');
 	cross.setAttribute('title', mxResources.get('reset'));
@@ -606,6 +616,23 @@ Sidebar.prototype.addSearchPalette = function(expand)
 		find();
 		input.focus();
 	});
+	
+	
+	if (document.documentMode == 8)
+	{
+		input.style.boxSizing = 'border-box';
+
+		// Workaround for no mouse events on cross in IE8 standards
+		mxEvent.addListener(input, 'click', function(evt)
+		{
+			var x = mxEvent.getClientX(evt);
+			
+			if (x > input.clientWidth - 8)
+			{
+				cross.click();
+			}
+		});
+	}
 
 	inner.appendChild(cross);
 	div.appendChild(inner);
@@ -838,18 +865,14 @@ Sidebar.prototype.addGeneralPalette = function(expand)
 	var fns = [
 	 	this.createVertexTemplateEntry('whiteSpace=wrap;html=1;', 120, 60, '', 'Rectangle', null, null, 'rect rectangle box'),
 	 	this.createVertexTemplateEntry('rounded=1;whiteSpace=wrap;html=1;', 120, 60, '', 'Rounded Rectangle', null, null, 'rounded rect rectangle box'),
- 		this.createVertexTemplateEntry('ellipse;whiteSpace=wrap;html=1;', 80, 80, '', 'Circle', null, null, 'circle oval ellipse state'),
+ 		this.createVertexTemplateEntry('ellipse;whiteSpace=wrap;html=1;', 120, 80, '', 'Ellipse', null, null, 'circle oval ellipse state'),
 	 	// Explicit strokecolor/fillcolor=none is a workaround to maintain transparent background regardless of current style
  		this.createVertexTemplateEntry('text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;overflow=hidden;',
  			40, 20, 'Text', 'Text', null, null, 'text textbox textarea label'),
  		this.createVertexTemplateEntry('shape=ext;double=1;whiteSpace=wrap;html=1;', 120, 60, '', 'Double Rectangle', null, null, 'rect rectangle box double'),
 	 	this.createVertexTemplateEntry('shape=ext;double=1;rounded=1;whiteSpace=wrap;html=1;', 120, 60, '', 'Double Rounded Rectangle', null, null, 'rounded rect rectangle box double'),
-	 	this.createVertexTemplateEntry('ellipse;shape=doubleEllipse;whiteSpace=wrap;html=1;', 80, 80, '', 'Double Ellipse', null, null, 'circle oval ellipse start end state double'),
+	 	this.createVertexTemplateEntry('ellipse;shape=doubleEllipse;whiteSpace=wrap;html=1;', 120, 80, '', 'Double Ellipse', null, null, 'circle oval ellipse start end state double'),
 	 	this.createVertexTemplateEntry('rhombus;whiteSpace=wrap;html=1;', 80, 80, '', 'Rhombus', null, null, 'if condition decision conditional question test'),
-	 	this.createVertexTemplateEntry('shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;', 30, 60, 'Actor', 'Actor', false),
-	 	this.createVertexTemplateEntry('shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;', 20, 120, '', 'Curly Bracket'),
-	 	this.createVertexTemplateEntry('line;html=1;', 160, 10, '', 'Horizontal Line'),
-	 	this.createVertexTemplateEntry('line;direction=south;html=1;', 10, 160, '', 'Vertical Line'),
 	 	this.createVertexTemplateEntry('shape=parallelogram;whiteSpace=wrap;html=1;', 120, 60, '', 'Parallelogram'),
 	 	this.createVertexTemplateEntry('triangle;whiteSpace=wrap;html=1;', 60, 80, '', 'Triangle', null, null, 'triangle logic inverter buffer'),
 	 	this.createVertexTemplateEntry('shape=cylinder;whiteSpace=wrap;html=1;', 60, 80, '', 'Cylinder', null, null, 'cylinder data database'),
@@ -863,21 +886,72 @@ Sidebar.prototype.addGeneralPalette = function(expand)
 	 	this.createVertexTemplateEntry('shape=trapezoid;whiteSpace=wrap;html=1;', 120, 60, '', 'Trapezoid'),
 	 	this.createVertexTemplateEntry('shape=tape;whiteSpace=wrap;html=1;', 120, 100, '', 'Tape'),
 	 	this.createVertexTemplateEntry('shape=note;whiteSpace=wrap;html=1;', 80, 100, '', 'Note'),
-	 	this.createVertexTemplateEntry('shape=folder;whiteSpace=wrap;html=1;', 120, 120, '', 'Folder'),
-	 	this.createVertexTemplateEntry('shape=message;whiteSpace=wrap;html=1;', 60, 40, '', 'Message'),
-	 	this.createVertexTemplateEntry('shape=card;whiteSpace=wrap;html=1;', 80, 100, '', 'Card'),
+	    this.createVertexTemplateEntry('shape=card;whiteSpace=wrap;html=1;', 80, 100, '', 'Card'),
+	 	this.createEdgeTemplateEntry('endArrow=classic;html=1;', 50, 50, '', 'Connection'),
+	 	this.createEdgeTemplateEntry('endArrow=classic;startArrow=classic;html=1;', 50, 50, '', 'Connection')
+	 ];
+
+	this.addPaletteFunctions('general', mxResources.get('general'), (expand != null) ? expand : true, fns);
+};
+
+/**
+ * Adds the general palette to the sidebar.
+ */
+Sidebar.prototype.addMiscPalette = function(expand)
+{
+	var fns = [
+   	 	this.createVertexTemplateEntry('text;html=1;fontSize=24;fontStyle=1;verticalAlign=middle;align=center;', 100, 40, 'Title', 'Title', null, null, 'text heading title'),
 	 	this.createVertexTemplateEntry('text;html=1;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;', 190, 120,
-	 			'<h1>Heading</h1><p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>',
-	 			'Textbox', null, null, 'text textbox textarea'),
+			'<h1>Heading</h1><p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>',
+			'Textbox', null, null, 'text textbox textarea'),
 	 	this.createVertexTemplateEntry('text;html=1;whiteSpace=wrap;verticalAlign=middle;overflow=hidden;', 100, 80,
-	 			'<ul><li>Value 1</li><li>Value 2</li><li>Value 3</li></ul>', 'Unordered List'),
+ 			'<ul><li>Value 1</li><li>Value 2</li><li>Value 3</li></ul>', 'Unordered List'),
 	 	this.createVertexTemplateEntry('text;html=1;whiteSpace=wrap;verticalAlign=middle;overflow=hidden;', 100, 80,
-	 			'<ol><li>Value 1</li><li>Value 2</li><li>Value 3</li></ol>', 'Ordered List'),
-	 	this.createVertexTemplateEntry('shape=image;html=1;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=1;aspect=fixed;image=' + this.gearImage, 52, 61, '', 'Image', false, null, 'fixed image icon symbol'),
+ 			'<ol><li>Value 1</li><li>Value 2</li><li>Value 3</li></ol>', 'Ordered List'),
+	 	this.createVertexTemplateEntry('text;html=1;fillColor=#ffffff;overflow=fill;rounded=0;', 280, 160,
+ 			'<table border="1" width="100%" height="100%" cellpadding="4" style="width:100%;height:100%;border-collapse:collapse;">' +
+ 			'<tr style="background-color:#A7C942;color:#ffffff;border:1px solid #98bf21;"><th align="left">Title 1</th><th align="left">Title 2</th><th align="left">Title 3</th></tr>' +
+ 			'<tr style="border:1px solid #98bf21;"><td>Value 1</td><td>Value 2</td><td>Value 3</td></tr>' +
+ 			'<tr style="background-color:#EAF2D3;border:1px solid #98bf21;"><td>Value 4</td><td>Value 5</td><td>Value 6</td></tr>' +
+ 			'<tr style="border:1px solid #98bf21;"><td>Value 7</td><td>Value 8</td><td>Value 9</td></tr>' +
+ 			'<tr style="background-color:#EAF2D3;border:1px solid #98bf21;"><td>Value 10</td><td>Value 11</td><td>Value 12</td></tr></table>', 'Table 1'),
+		this.createVertexTemplateEntry('text;html=1;strokeColor=#c0c0c0;overflow=fill;', 180, 140,
+ 			'<table border="0" width="100%" height="100%" style="width:100%;height:100%;border-collapse:collapse;">' +
+ 			'<tr><td align="center">Value 1</td><td align="center">Value 2</td><td align="center">Value 3</td></tr>' +
+ 			'<tr><td align="center">Value 4</td><td align="center">Value 5</td><td align="center">Value 6</td></tr>' +
+ 			'<tr><td align="center">Value 7</td><td align="center">Value 8</td><td align="center">Value 9</td></tr></table>', 'Table 2'),
+	 	this.createVertexTemplateEntry('text;html=1;overflow=fill;', 180, 140,
+ 			'<table border="1" width="100%" height="100%" style="width:100%;height:100%;border-collapse:collapse;">' +
+ 			'<tr><td align="center">Value 1</td><td align="center">Value 2</td><td align="center">Value 3</td></tr>' +
+ 			'<tr><td align="center">Value 4</td><td align="center">Value 5</td><td align="center">Value 6</td></tr>' +
+ 			'<tr><td align="center">Value 7</td><td align="center">Value 8</td><td align="center">Value 9</td></tr></table>', 'Table 3'),
+	 	this.createVertexTemplateEntry('text;html=1;overflow=fill;', 160, 140,
+ 			'<table border="1" width="100%" height="100%" cellpadding="4" style="width:100%;height:100%;border-collapse:collapse;">' +
+ 			'<tr><th align="center"><b>Title</b></th></tr>' +
+ 			'<tr><td align="center">Section 1.1\nSection 1.2\nSection 1.3</td></tr>' +
+ 			'<tr><td align="center">Section 2.1\nSection 2.2\nSection 2.3</td></tr></table>', 'Table 4'),
+	 	this.addEntry('link hyperlink', mxUtils.bind(this, function()
+	 	{
+	 		var cell = new mxCell('Link', new mxGeometry(0, 0, 60, 40), 'text;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fontColor=#0000EE;fontStyle=4;');
+	 		cell.vertex = true;
+	 		this.graph.setLinkForCell(cell, 'https://www.draw.io');
+
+	 		return this.createVertexTemplateFromCells([cell], cell.geometry.width, cell.geometry.height, 'Link');
+	 	})),
+        this.createVertexTemplateEntry('shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;', 30, 60, 'Actor', 'Actor', false),
+	 	this.createVertexTemplateEntry('line;html=1;', 160, 10, '', 'Horizontal Line'),
+	 	this.createVertexTemplateEntry('line;direction=south;html=1;', 10, 160, '', 'Vertical Line'),
+	 	this.createVertexTemplateEntry('shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;', 20, 120, '', 'Curly Bracket'),
+	 	this.createVertexTemplateEntry('shape=image;html=1;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=1;aspect=fixed;image=' + this.gearImage, 52, 61, '', 'Image (Fixed Aspect)', false, null, 'fixed image icon symbol'),
+	 	this.createVertexTemplateEntry('shape=image;html=1;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=0;image=' + this.gearImage, 50, 60, '', 'Image (Variable Aspect)', false, null, 'strechted image icon symbol'),
+	 	this.createVertexTemplateEntry('icon;html=1;image=' + this.gearImage, 60, 60, 'Icon', 'Icon', false, null, 'icon image symbol'),
+	 	this.createVertexTemplateEntry('label;whiteSpace=wrap;html=1;image=' + this.gearImage, 140, 60, 'Label', 'Label 1', null, null, 'label image icon symbol'),
+	 	this.createVertexTemplateEntry('label;whiteSpace=wrap;html=1;align=center;verticalAlign=bottom;spacingLeft=0;spacingBottom=4;imageAlign=center;imageVerticalAlign=top;image=' + this.gearImage, 120, 80, 'Label', 'Label 2', null, null, 'label image icon symbol'),
+	    this.createEdgeTemplateEntry('shape=flexArrow;endArrow=classic;html=1;fillColor=#ffffff;', 50, 50, '', 'Arrow'),
+	    this.createEdgeTemplateEntry('shape=flexArrow;endArrow=classic;startArrow=classic;html=1;fillColor=#ffffff;', 50, 50, '', 'Arrow'),
 	 	this.createEdgeTemplateEntry('endArrow=none;html=1;dashed=1;dashPattern=1 4;', 50, 50, '', 'Dotted Line'),
 	 	this.createEdgeTemplateEntry('endArrow=none;dashed=1;html=1;', 50, 50, '', 'Dashed Line'),
 	 	this.createEdgeTemplateEntry('endArrow=none;html=1;', 50, 50, '', 'Line'),
-	 	this.createEdgeTemplateEntry('endArrow=classic;html=1;', 50, 50, '', 'Connection'),
 	 	this.createEdgeTemplateEntry('edgeStyle=segmentEdgeStyle;endArrow=classic;html=1;', 50, 50, '', 'Manual Line'),
 	 	this.createEdgeTemplateEntry('edgeStyle=elbowEdgeStyle;elbow=horizontal;endArrow=classic;html=1;', 50, 50, '', 'Horizontal Elbow'),
 	 	this.createEdgeTemplateEntry('edgeStyle=elbowEdgeStyle;elbow=vertical;endArrow=classic;html=1;', 50, 50, '', 'Vertical Elbow'),
@@ -892,15 +966,11 @@ Sidebar.prototype.addGeneralPalette = function(expand)
 			
 		    return this.createEdgeTemplateFromCells([cell], cell.geometry.width, cell.geometry.height, 'Curve');
 	 	})),
-	 	this.createEdgeTemplateEntry('endArrow=classic;startArrow=classic;html=1;', 50, 50, '', 'Connection'),
-	 	this.createEdgeTemplateEntry('shape=link;html=1;', 50, 50, '', 'Link'),
-	 	this.createEdgeTemplateEntry('shape=flexArrow;endArrow=classic;html=1;', 50, 50, '', 'Arrow'),
-	 	this.createEdgeTemplateEntry('shape=flexArrow;endArrow=classic;startArrow=classic;html=1;', 50, 50, '', 'Arrow')
-	];
+	 	this.createEdgeTemplateEntry('shape=link;html=1;', 50, 50, '', 'Link')
+	 ];
 
-	this.addPaletteFunctions('general', mxResources.get('general'), (expand != null) ? expand : true, fns);
+	this.addPaletteFunctions('misc', mxResources.get('misc'), (expand != null) ? expand : true, fns);
 };
-
 /**
  * Adds the container palette to the sidebar.
  */
@@ -922,30 +992,7 @@ Sidebar.prototype.createAdvancedShapes = function()
 	field.vertex = true;
 
 	return [
-		this.createVertexTemplateEntry('text;html=1;strokeColor=#c0c0c0;overflow=fill;', 180, 180,
-	 			'<table border="0" width="100%" height="100%" style="width:100%;height:100%;border-collapse:collapse;">' +
-	 			'<tr><td align="center">Value 1</td><td align="center">Value 2</td><td align="center">Value 3</td></tr>' +
-	 			'<tr><td align="center">Value 4</td><td align="center">Value 5</td><td align="center">Value 6</td></tr>' +
-	 			'<tr><td align="center">Value 7</td><td align="center">Value 8</td><td align="center">Value 9</td></tr></table>', 'Table 1'),
-	 	this.createVertexTemplateEntry('text;html=1;overflow=fill;', 180, 180,
-	 			'<table border="1" width="100%" height="100%" style="width:100%;height:100%;border-collapse:collapse;">' +
-	 			'<tr><td align="center">Value 1</td><td align="center">Value 2</td><td align="center">Value 3</td></tr>' +
-	 			'<tr><td align="center">Value 4</td><td align="center">Value 5</td><td align="center">Value 6</td></tr>' +
-	 			'<tr><td align="center">Value 7</td><td align="center">Value 8</td><td align="center">Value 9</td></tr></table>', 'Table 2'),
-	 	this.createVertexTemplateEntry('text;html=1;overflow=fill;', 160, 180,
-	 			'<table border="1" width="100%" height="100%" cellpadding="4" style="width:100%;height:100%;border-collapse:collapse;">' +
-	 			'<tr><th align="center"><b>Title</b></th></tr>' +
-	 			'<tr><td align="center">Section 1.1\nSection 1.2\nSection 1.3</td></tr>' +
-	 			'<tr><td align="center">Section 2.1\nSection 2.2\nSection 2.3</td></tr></table>', 'Table 3'),
-	 	this.addEntry('link hyperlink', mxUtils.bind(this, function()
-	 	{
-	 		var cell = new mxCell('Link', new mxGeometry(0, 0, 60, 40), 'text;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fontColor=#0000EE;fontStyle=4;');
-	 		cell.vertex = true;
-	 		this.graph.setLinkForCell(cell, 'https://www.draw.io');
-
-	 		return this.createVertexTemplateFromCells([cell], cell.geometry.width, cell.geometry.height, 'Link');
-	 	})),
-	 	this.createVertexTemplateEntry('shape=image;html=1;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=0;image=' + this.gearImage, 50, 60, '', 'Stretched Image', false, null, 'strechted image icon symbol'),
+	    this.createVertexTemplateEntry('shape=image;html=1;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=0;image=' + this.gearImage, 50, 60, '', 'Stretched Image', false, null, 'strechted image icon symbol'),
 	 	this.createVertexTemplateEntry('icon;html=1;image=' + this.gearImage, 60, 60, 'Icon', 'Icon', false, null, 'icon image symbol'),
 	 	this.createVertexTemplateEntry('label;whiteSpace=wrap;html=1;image=' + this.gearImage, 140, 60, 'Label', 'Label 1', null, null, 'label image icon symbol'),
 	 	this.createVertexTemplateEntry('label;whiteSpace=wrap;html=1;align=center;verticalAlign=bottom;spacingLeft=0;spacingBottom=4;imageAlign=center;imageVerticalAlign=top;image=' + this.gearImage, 120, 80, 'Label', 'Label 2', null, null, 'label image icon symbol'),
@@ -1385,7 +1432,7 @@ Sidebar.prototype.addUmlPalette = function(expand)
 	 	this.createEdgeTemplateEntry('endArrow=block;startArrow=block;endFill=1;startFill=1;html=1;', 160, 0, '', 'Association 2', null, 'uml association')
 	];
 	
-	this.addPaletteFunctions('uml', 'UML', expand || false, fns);
+	this.addPaletteFunctions('uml', mxResources.get('uml'), expand || false, fns);
 };
 
 /**
@@ -1576,7 +1623,7 @@ Sidebar.prototype.createTitle = function(label)
 {
 	var elt = document.createElement('a');
 	elt.setAttribute('href', 'javascript:void(0);');
-	elt.setAttribute('title', label);
+	elt.setAttribute('title', mxResources.get('sidebarTooltip'));
 	elt.className = 'geTitle';
 	mxUtils.write(elt, label);
 
@@ -1809,54 +1856,57 @@ Sidebar.prototype.createDropHandler = function(cells, allowSplit)
 				{
 					target = null;
 				}
-
-				graph.model.beginUpdate();
-				try
+				
+				if (!graph.isCellLocked(target || graph.getDefaultParent()))
 				{
-					x = Math.round(x);
-					y = Math.round(y);
-					
-					// Splits the target edge or inserts into target group
-					if (allowSplit && graph.isSplitEnabled() && graph.isSplitTarget(target, cells, evt))
+					graph.model.beginUpdate();
+					try
 					{
-						graph.splitEdge(target, cells, null, x, y);
-						select = cells;
-					}
-					else if (cells.length > 0)
-					{
-						select = graph.importCells(cells, x, y, target);
-					}
-					
-					// Executes parent layout hooks for position/order
-					if (graph.layoutManager != null)
-					{
-						var layout = graph.layoutManager.getLayout(target);
+						x = Math.round(x);
+						y = Math.round(y);
 						
-						if (layout != null)
+						// Splits the target edge or inserts into target group
+						if (allowSplit && graph.isSplitEnabled() && graph.isSplitTarget(target, cells, evt))
 						{
-							var s = graph.view.scale;
-							var tr = graph.view.translate;
-							var tx = (x + tr.x) * s;
-							var ty = (y + tr.y) * s;
+							graph.splitEdge(target, cells, null, x, y);
+							select = cells;
+						}
+						else if (cells.length > 0)
+						{
+							select = graph.importCells(cells, x, y, target);
+						}
+						
+						// Executes parent layout hooks for position/order
+						if (graph.layoutManager != null)
+						{
+							var layout = graph.layoutManager.getLayout(target);
 							
-							for (var i = 0; i < select.length; i++)
+							if (layout != null)
 							{
-								layout.moveCell(select[i], tx, ty);
+								var s = graph.view.scale;
+								var tr = graph.view.translate;
+								var tx = (x + tr.x) * s;
+								var ty = (y + tr.y) * s;
+								
+								for (var i = 0; i < select.length; i++)
+								{
+									layout.moveCell(select[i], tx, ty);
+								}
 							}
 						}
+	
+						graph.fireEvent(new mxEventObject('cellsInserted', 'cells', select));
 					}
-
-					graph.fireEvent(new mxEventObject('cellsInserted', 'cells', select));
-				}
-				finally
-				{
-					graph.model.endUpdate();
-				}
-
-				if (select != null && select.length > 0)
-				{
-					graph.scrollCellToVisible(select[0]);
-					graph.setSelectionCells(select);
+					finally
+					{
+						graph.model.endUpdate();
+					}
+	
+					if (select != null && select.length > 0)
+					{
+						graph.scrollCellToVisible(select[0]);
+						graph.setSelectionCells(select);
+					}
 				}
 			}
 			
@@ -1984,7 +2034,7 @@ Sidebar.prototype.dropAndConnect = function(source, targets, direction, dropCell
 				graph.cellsMoved(targets, dx, dy, null, null, true);
 				tmp = targets.slice();
 				targets.push(graph.insertEdge(null, null, '', source, targets[dropCellIndex],
-					this.editorUi.createCurrentEdgeStyle()));
+					graph.createCurrentEdgeStyle()));
 			}
 			
 			graph.fireEvent(new mxEventObject('cellsInserted', 'cells', targets));
@@ -2220,7 +2270,7 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
 	};
 
 	// Workaround for event redirection via image tag in quirks and IE8
-	function createArrow(img)
+	function createArrow(img, tooltip)
 	{
 		var arrow = null;
 		
@@ -2252,6 +2302,11 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
 			arrow.style.height = img.height + 'px';
 		}
 		
+		if (tooltip != null)
+		{
+			arrow.setAttribute('title', tooltip);
+		}
+		
 		mxUtils.setOpacity(arrow, (img == this.refreshTarget) ? 30 : 20);
 		arrow.style.position = 'absolute';
 		arrow.style.cursor = 'crosshair';
@@ -2264,11 +2319,11 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
 	var currentStyleTarget = null;
 	var activeTarget = false;
 	
-	var arrowUp = createArrow(this.triangleUp);
-	var arrowRight = createArrow(this.triangleRight);
-	var arrowDown = createArrow(this.triangleDown);
-	var arrowLeft = createArrow(this.triangleLeft);
-	var styleTarget = createArrow(this.refreshTarget);
+	var arrowUp = createArrow(this.triangleUp, mxResources.get('connect'));
+	var arrowRight = createArrow(this.triangleRight, mxResources.get('connect'));
+	var arrowDown = createArrow(this.triangleDown, mxResources.get('connect'));
+	var arrowLeft = createArrow(this.triangleLeft, mxResources.get('connect'));
+	var styleTarget = createArrow(this.refreshTarget, mxResources.get('replace'));
 	// Workaround for actual parentNode not being updated in old IE
 	var styleTargetParent = null;
 	var roundSource = createArrow(this.roundDrop);
@@ -2299,6 +2354,12 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
 	dragSource.createPreviewElement = function(graph)
 	{
 		var elt = dsCreatePreviewElement.apply(this, arguments);
+		
+		// Pass-through events required to tooltip on replace shape
+		if (mxClient.IS_SVG)
+		{
+			elt.style.pointerEvents = 'none';
+		}
 		
 		this.previewElementWidth = elt.style.width;
 		this.previewElementHeight = elt.style.height;
@@ -2376,6 +2437,7 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
 	};
 	
 	var startTime = new Date().getTime();
+	var connectorImgBounds = null;
 	var timeOnTarget = 0;
 	var prev = null;
 	
@@ -2400,29 +2462,69 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
 			}
 		}
 		
+		// Ignores locked cells
+		if (graph.isCellLocked(cell))
+		{
+			cell = null;
+		}
+		
 		var state = graph.view.getState(cell);
 		activeArrow = null;
 		var bbox = null;
-		
+
 		// Time on target
 		if (prev != state)
 		{
 			prev = state;
 			startTime = new Date().getTime();
 			timeOnTarget = 0;
+
+			if (this.updateThread != null)
+			{
+				window.clearTimeout(this.updateThread);
+			}
+			
+			if (state != null)
+			{
+				this.updateThread = window.setTimeout(function()
+				{
+					if (activeArrow == null)
+					{
+						prev = state;
+						dragSource.getDropTarget(graph, x, y, evt);
+					}
+				}, this.dropTargetDelay + 10);
+			}
 		}
 		else
 		{
 			timeOnTarget = new Date().getTime() - startTime;
 		}
 		
-		// Shift means disabled, delayed on cells with children, shows after 300ms, hides after 2500ms
+		// Shows drop target icons on selection cell if connector handler is under the mouse
+		var connectorHit = connectorImgBounds != null && mxUtils.contains(connectorImgBounds, x, y);
+		
+		if (connectorHit || (currentStyleTarget == null && activeArrow == null && graph.getSelectionCount() == 1))
+		{
+			var handler = graph.selectionCellsHandler.getHandler(graph.getSelectionCell());
+			
+			if (handler != null && (mxEvent.getSource(evt) == handler.connectorImg || connectorHit))
+			{
+				var s = handler.connectorImg.style;
+				connectorImgBounds = new mxRectangle(parseInt(s.left), parseInt(s.top), parseInt(s.width), parseInt(s.height));
+				cell = graph.getSelectionCell();
+				state = graph.view.getState(cell);
+				timeOnTarget = this.dropTargetDelay + 10;
+			}
+		}
+		
+		// Shift means disabled, delayed on cells with children, shows after this.dropTargetDelay, hides after 2500ms
 		if (timeOnTarget < 2500 && state != null && !mxEvent.isShiftDown(evt) &&
 			// If shape is equal or target has no stroke then add long delay except for images
 			(((mxUtils.getValue(state.style, mxConstants.STYLE_SHAPE) != mxUtils.getValue(sourceCellStyle, mxConstants.STYLE_SHAPE) &&
 			mxUtils.getValue(state.style, mxConstants.STYLE_STROKECOLOR, mxConstants.NONE) != mxConstants.NONE) ||
 			mxUtils.getValue(sourceCellStyle, mxConstants.STYLE_SHAPE) == 'image') ||
-			timeOnTarget > 1500 || graph.model.isEdge(state.cell)) && (timeOnTarget > 300) && 
+			timeOnTarget > 1500 || graph.model.isEdge(state.cell)) && (timeOnTarget > this.dropTargetDelay) && 
 			((graph.model.isVertex(state.cell) && firstVertex != null) ||
 			(graph.model.isEdge(state.cell) && graph.model.isEdge(cells[0]))))
 		{
@@ -2535,14 +2637,14 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
 			((graph.model.isEdge(cell) && firstVertex != null) ||
 			(graph.model.isVertex(cell) && graph.isCellConnectable(cell)));
 		
-		// Drop arrows shown after 300ms, hidden after 5 secs, switches arrows after 500ms
+		// Drop arrows shown after this.dropTargetDelay, hidden after 5 secs, switches arrows after 500ms
 		if ((currentTargetState != null && timeOnTarget >= 5000) ||
 			(currentTargetState != state &&
 			(bbox == null || !mxUtils.contains(bbox, x, y) ||
 			(timeOnTarget > 500 && activeArrow == null && validTarget))))
 		{
 			activeTarget = false;
-			currentTargetState = ((timeOnTarget < 5000 && timeOnTarget > 300) || graph.model.isEdge(cell)) ? state : null;
+			currentTargetState = ((timeOnTarget < 5000 && timeOnTarget > this.dropTargetDelay) || graph.model.isEdge(cell)) ? state : null;
 
 			if (currentTargetState != null && validTarget)
 			{
@@ -2619,6 +2721,7 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
 			}
 			else
 			{
+				connectorImgBounds = null;
 				var elts = [roundSource, roundTarget, arrowUp, arrowRight, arrowDown, arrowLeft];
 				
 				for (var i = 0; i < elts.length; i++)
@@ -2652,6 +2755,7 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
 			
 			if (graph.view.currentRoot == target || (!graph.isValidRoot(target) &&
 				graph.getModel().getChildCount(target) == 0) ||
+				(graph.isCellLocked(target)) ||
 				(model.isEdge(target) && !graph.isSplitEnabled()))
 			{
 				target = null;
@@ -2706,11 +2810,8 @@ Sidebar.prototype.itemClicked = function(cells, ds, evt, elt)
 	}
 	else
 	{
-		var gs = graph.getGridSize();
-		var dx = graph.container.scrollLeft / graph.view.scale - graph.view.translate.x;
-		var dy = graph.container.scrollTop / graph.view.scale - graph.view.translate.y;
-	
-		ds.drop(graph, evt, null, graph.snap(dx + gs), graph.snap(dy + gs));
+		var pt = graph.getInsertPoint();
+		ds.drop(graph, evt, null, pt.x, pt.y);
 	}
 };
 
@@ -2840,7 +2941,7 @@ Sidebar.prototype.addPalette = function(id, title, expanded, onInit)
 	
 	var div = document.createElement('div');
 	div.className = 'geSidebar';
-	
+
 	if (expanded)
 	{
 		onInit(div);
@@ -2882,7 +2983,7 @@ Sidebar.prototype.addFoldingHandler = function(title, content, funct)
 	
 	title.style.backgroundRepeat = 'no-repeat';
 	title.style.backgroundPosition = '0% 50%';
-	
+
 	mxEvent.addListener(title, 'click', mxUtils.bind(this, function(evt)
 	{
 		if (content.style.display == 'none')
@@ -2893,6 +2994,7 @@ Sidebar.prototype.addFoldingHandler = function(title, content, funct)
 				
 				if (funct != null)
 				{
+
 					// Wait cursor does not show up on Mac
 					title.style.cursor = 'wait';
 					var prev = title.innerHTML;
@@ -3046,5 +3148,46 @@ Sidebar.prototype.addStencilPalette = function(id, title, stencilFile, style, ig
 				}
 			}), true);
 	    }));
+	}
+};
+
+/**
+ * Adds the given stencil palette.
+ */
+Sidebar.prototype.destroy = function()
+{
+	if (this.graph != null)
+	{
+		if (this.graph.container != null && this.graph.container.parentNode != null)
+		{
+			this.graph.container.parentNode.removeChild(this.graph.container);
+		}
+		
+		this.graph.destroy();
+		this.graph = null;
+	}
+	
+	if (this.pointerUpHandler != null)
+	{
+		mxEvent.removeListener(document, (mxClient.IS_POINTER) ? 'MSPointerUp' : 'mouseup', this.pointerUpHandler);
+		this.pointerUpHandler = null;
+	}
+
+	if (this.pointerDownHandler != null)
+	{
+		mxEvent.removeListener(document, (mxClient.IS_POINTER) ? 'MSPointerDown' : 'mousedown', this.pointerDownHandler);
+		this.pointerDownHandler = null;
+	}
+	
+	if (this.pointerMoveHandler != null)
+	{
+		mxEvent.removeListener(document, (mxClient.IS_POINTER) ? 'MSPointerMove' : 'mousemove', this.pointerMoveHandler);
+		this.pointerMoveHandler = null;
+	}
+	
+	if (this.pointerOutHandler != null)
+	{
+		mxEvent.removeListener(document, (mxClient.IS_POINTER) ? 'MSPointerOut' : 'mouseout', this.pointerOutHandler);
+		this.pointerOutHandler = null;
 	}
 };

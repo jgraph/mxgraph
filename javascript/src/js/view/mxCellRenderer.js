@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxCellRenderer
@@ -1311,9 +1312,9 @@ mxCellRenderer.prototype.redraw = function(state, force, rendering)
 };
 
 /**
- * Function: redrawLabel
+ * Function: redrawShape
  * 
- * Redraws the label for the given cell state.
+ * Redraws the shape for the given cell state.
  * 
  * Parameters:
  * 

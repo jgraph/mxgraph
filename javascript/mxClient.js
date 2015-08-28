@@ -1,9 +1,9 @@
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 var mxClient =
 {
-
 	/**
 	 * Class: mxClient
 	 *
@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.3.1.1.
+	 * Current version is 3.4.0.0.
 	 */
-	VERSION: '3.3.1.1',
+	VERSION: '3.4.0.0',
 
 	/**
 	 * Variable: IS_IE
@@ -80,7 +80,8 @@ var mxClient =
 	 * True if the current browser is Netscape (including Firefox).
 	 */
   	IS_NS: navigator.userAgent.indexOf('Mozilla/') >= 0 &&
-  		navigator.userAgent.indexOf('MSIE') < 0,
+  		navigator.userAgent.indexOf('MSIE') < 0 &&
+  		navigator.userAgent.indexOf('Edge/') < 0,
 
 	/**
 	 * Variable: IS_OP
@@ -110,7 +111,8 @@ var mxClient =
 	 * True if the current browser is Safari.
 	 */
   	IS_SF: navigator.userAgent.indexOf('AppleWebKit/') >= 0 &&
-  		navigator.userAgent.indexOf('Chrome/') < 0,
+  		navigator.userAgent.indexOf('Chrome/') < 0 &&
+  		navigator.userAgent.indexOf('Edge/') < 0,
   	
 	/**
 	 * Variable: IS_IOS
@@ -124,7 +126,8 @@ var mxClient =
 	 *
 	 * True if the current browser is Google Chrome.
 	 */
-  	IS_GC: navigator.userAgent.indexOf('Chrome/') >= 0,
+  	IS_GC: navigator.userAgent.indexOf('Chrome/') >= 0 &&
+		navigator.userAgent.indexOf('Edge/') < 0,
 		
 	/**
 	 * Variable: IS_FF
@@ -583,7 +586,8 @@ if (mxClient.IS_VML)
 }
 
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 var mxLog =
 {
@@ -993,7 +997,8 @@ var mxLog =
 	
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 var mxObjectIdentity =
 {
@@ -1023,24 +1028,30 @@ var mxObjectIdentity =
 	/**
 	 * Function: get
 	 * 
-	 * Returns the ID for the given object or function.
+	 * Returns the ID for the given object or function or null if no object
+	 * is specified.
 	 */
 	get: function(obj)
 	{
-		if (obj[mxObjectIdentity.FIELD_NAME] == null)
+		if (obj != null)
 		{
-			if (typeof obj === 'object')
+			if (obj[mxObjectIdentity.FIELD_NAME] == null)
 			{
-				var ctor = mxUtils.getFunctionName(obj.constructor);
-				obj[mxObjectIdentity.FIELD_NAME] = ctor + '#' + mxObjectIdentity.counter++;
+				if (typeof obj === 'object')
+				{
+					var ctor = mxUtils.getFunctionName(obj.constructor);
+					obj[mxObjectIdentity.FIELD_NAME] = ctor + '#' + mxObjectIdentity.counter++;
+				}
+				else if (typeof obj === 'function')
+				{
+					obj[mxObjectIdentity.FIELD_NAME] = 'Function#' + mxObjectIdentity.counter++;
+				}
 			}
-			else if (typeof obj === 'function')
-			{
-				obj[mxObjectIdentity.FIELD_NAME] = 'Function#' + mxObjectIdentity.counter++;
-			}
+			
+			return obj[mxObjectIdentity.FIELD_NAME];
 		}
 		
-		return obj[mxObjectIdentity.FIELD_NAME];
+		return null;
 	},
 
 	/**
@@ -1058,7 +1069,8 @@ var mxObjectIdentity =
 
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxDictionary
@@ -1187,7 +1199,8 @@ mxDictionary.prototype.visit = function(visitor)
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 var mxResources =
 {
@@ -1552,7 +1565,8 @@ var mxResources =
 
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxPoint
@@ -1605,7 +1619,8 @@ mxPoint.prototype.clone = function()
 	return mxUtils.clone(this);
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxRectangle
@@ -1761,7 +1776,8 @@ mxRectangle.fromRectangle = function(rect)
 	return new mxRectangle(rect.x, rect.y, rect.width, rect.height);
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 var mxEffects =
 {
@@ -1971,7 +1987,8 @@ var mxEffects =
 
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 var mxUtils =
 {
@@ -2543,8 +2560,10 @@ var mxUtils =
 			return function(xml)
 			{
 				var result = mxUtils.createXmlDocument();
-				
-				result.async = 'false';
+				result.async = false;
+				// Workaround for parsing errors with SVG DTD
+				result.validateOnParse = false;
+				result.resolveExternals = false;
 				result.loadXML(xml);
 				
 				return result;
@@ -2762,6 +2781,79 @@ var mxUtils =
 		return xml;
 	},
 	
+	/**
+	 * Function: extractTextWithWhitespace
+	 * 
+	 * Returns the text content of the specified node.
+	 * 
+	 * Parameters:
+	 * 
+	 * elems - DOM nodes to return the text for.
+	 */
+	extractTextWithWhitespace: function(elems)
+	{
+		// Converts newlines in plain text to breaks in HTML
+		// to match the plain text output
+	    var ignoreBr = false;
+	    var ret = [];
+	    
+	    for (var i = 0; elems[i]; i++)
+	    {
+	        var elem = elems[i];
+
+	        // Get the text from text nodes and CDATA nodes
+	        if (elem.nodeType === 3 || elem.nodeType === 4)
+	        {
+	        	// Workaround for last empty element in IE 11
+	        	if (document.documentMode == 11 && i == elems.length - 1 && elem.nodeValue.length == 0)
+        		{
+        			break;
+        		}
+	        	
+	        	ret.push(elem.nodeValue + '\n');
+	            ignoreBr = true;
+
+	        // Traverse everything else, except comment nodes
+	        }
+	        else if (elem.nodeType !== 8)
+	        {
+	        	// Best effort normalization translates BR (except after text) and empty P (in IE) to line breaks
+	        	if ((((mxClient.IS_IE || mxClient.IS_IE11) && elem.nodeName == 'P' && elem.innerHTML.length == 0)) ||
+	        		(!ignoreBr && elem.nodeName == 'BR') || (elem.nodeName == 'DIV' && elem.innerHTML == '<br>'))
+	        	{
+	        		ret.push('\n');
+	        	}
+	        	else
+	        	{	 
+	        		ret.push(mxUtils.extractTextWithWhitespace(elem.childNodes));
+	        	}
+
+		        ignoreBr = false;
+	        }
+	    }
+
+	    return ret.join('');
+	},
+	
+	/**
+	 * Function: replaceTrailingNewlines
+	 * 
+	 * Replaces each trailing newline with the given pattern.
+	 */
+	replaceTrailingNewlines: function(str, pattern)
+	{
+		// LATER: Check is this can be done with a regular expression
+		var postfix = '';
+		
+		while (str.length > 0 && str.charAt(str.length - 1) == '\n')
+		{
+			str = str.substring(0, str.length - 1);
+			postfix += pattern;
+		}
+		
+		return str + postfix;
+	},
+
 	/**
 	 * Function: getTextContent
 	 * 
@@ -5518,7 +5610,7 @@ var mxUtils =
 			{
 				try
 				{
-					html += document.styleSheets(i).cssText;
+					html += document.styleSheets[i].cssText;
 				}
 				catch (e)
 				{
@@ -5956,7 +6048,8 @@ var mxUtils =
 
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
  var mxConstants =
  {
@@ -8074,7 +8167,8 @@ var mxUtils =
 
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxEventObject
@@ -8184,7 +8278,8 @@ mxEventObject.prototype.consume = function()
 	this.consumed = true;
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxMouseEvent
@@ -8427,7 +8522,8 @@ mxMouseEvent.prototype.consume = function(preventDefault)
 	this.consumed = true;
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxEventSource
@@ -8615,7 +8711,8 @@ mxEventSource.prototype.fireEvent = function(evt, sender)
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 var mxEvent =
 {
@@ -9988,7 +10085,8 @@ var mxEvent =
 
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxXmlRequest
@@ -10445,7 +10543,8 @@ mxXmlRequest.prototype.simulate = function(doc, target)
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 var mxClipboard =
 {
@@ -10665,7 +10764,8 @@ var mxClipboard =
 
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxWindow
@@ -11786,7 +11886,8 @@ mxWindow.prototype.destroy = function()
 	this.contentWrapper = null;
 };
 /**
- * Copyright (c) 2006-2013, Gaudenz Alder, David Benson
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxForm
@@ -11987,7 +12088,8 @@ mxForm.prototype.addField = function(name, input)
 	return input;
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxImage
@@ -12026,7 +12128,8 @@ mxImage.prototype.width = null;
  */
 mxImage.prototype.height = null;
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxDivResizer
@@ -12176,7 +12279,8 @@ mxDivResizer.prototype.getDocumentHeight = function()
 	return document.body.clientHeight;
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxDragSource
@@ -12852,7 +12956,8 @@ mxDragSource.prototype.drop = function(graph, evt, dropTarget, x, y)
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxToolbar
@@ -13378,7 +13483,8 @@ mxToolbar.prototype.destroy = function ()
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxUndoableEdit
@@ -13590,7 +13696,8 @@ mxUndoableEdit.prototype.redo = function()
 	this.notify();
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxUndoManager
@@ -13818,7 +13925,8 @@ mxUndoManager.prototype.trim = function()
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  *
@@ -13968,7 +14076,8 @@ mxUrlConverter.prototype.convert = function(url)
 	return url;
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxPanningManager
@@ -14229,7 +14338,8 @@ mxPanningManager.prototype.handleMouseOut = true;
  */
 mxPanningManager.prototype.border = 0;
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxPopupMenu
@@ -14830,7 +14940,8 @@ mxPopupMenu.prototype.destroy = function()
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxAutoSaveManager
@@ -15042,7 +15153,8 @@ mxAutoSaveManager.prototype.destroy = function()
 	this.setGraph(null);
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  *
@@ -15133,7 +15245,8 @@ mxAnimation.prototype.stopAnimation = function()
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  *
@@ -15380,7 +15493,8 @@ mxMorphing.prototype.getOriginForCell = function(cell)
 	return result;
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxImageBundle
@@ -15482,7 +15596,8 @@ mxImageBundle.prototype.getImage = function(key)
 	return result;
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxImageExport
@@ -15656,7 +15771,8 @@ mxImageExport.prototype.drawOverlays = function(state, canvas)
 };
 
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxAbstractCanvas2D
@@ -16263,7 +16379,8 @@ mxAbstractCanvas2D.prototype.close = function(x1, y1, x2, y2, x3, y3)
  */
 mxAbstractCanvas2D.prototype.end = function() { };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxXmlCanvas2D
@@ -17426,7 +17543,8 @@ mxXmlCanvas2D.prototype.fillAndStroke = function()
 	this.root.appendChild(this.createElement('fillstroke'));
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxSvgCanvas2D
@@ -19530,7 +19648,8 @@ mxSvgCanvas2D.prototype.fillAndStroke = function()
 	this.addNode(true, true);
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  *
@@ -20623,7 +20742,8 @@ mxVmlCanvas2D.prototype.fillAndStroke = function()
 	this.addNode(true, true);
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxGuide
@@ -21002,7 +21122,8 @@ mxGuide.prototype.destroy = function()
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxStencil
@@ -21753,7 +21874,8 @@ mxStencil.prototype.drawNode = function(canvas, shape, node, aspect, disableShad
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxShape
@@ -23211,7 +23333,8 @@ mxShape.prototype.destroy = function()
 	this.oldGradients = null;
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  * 
  * Code to add stencils.
  * 
@@ -23263,7 +23386,8 @@ var mxStencilRegistry =
 
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 var mxMarker =
 {
@@ -23455,7 +23579,8 @@ var mxMarker =
 	mxMarker.addMarker('diamondThin', diamond);
 })();
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxActor
@@ -23540,7 +23665,8 @@ mxActor.prototype.redrawPath = function(c, x, y, w, h)
 	c.close();
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxCloud
@@ -23594,7 +23720,8 @@ mxCloud.prototype.redrawPath = function(c, x, y, w, h)
 	c.close();
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxRectangleShape
@@ -23699,7 +23826,8 @@ mxRectangleShape.prototype.paintForeground = function(c, x, y, w, h)
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxEllipse
@@ -23746,7 +23874,8 @@ mxEllipse.prototype.paintVertexShape = function(c, x, y, w, h)
 	c.fillAndStroke();
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxDoubleEllipse
@@ -23859,7 +23988,8 @@ mxDoubleEllipse.prototype.getLabelBounds = function(rect)
 	return new mxRectangle(rect.x + margin, rect.y + margin, rect.width - 2 * margin, rect.height - 2 * margin);
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxRhombus
@@ -23912,7 +24042,8 @@ mxRhombus.prototype.paintVertexShape = function(c, x, y, w, h)
 	c.fillAndStroke();
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxPolyline
@@ -24038,7 +24169,8 @@ mxPolyline.prototype.paintCurvedLine = function(c, pts)
 	c.stroke();
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxArrow
@@ -24153,6 +24285,7 @@ mxArrow.prototype.paintEdgeShape = function(c, pts)
 };
 /**
  * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxArrowConnector
@@ -24351,84 +24484,91 @@ mxArrowConnector.prototype.paintEdgeShape = function(c, pts)
 
 		dist1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
 		
-		nx1 = dx1 / dist1;
-		ny1 = dy1 / dist1;
-		
-		var tmp1 = nx * nx1 + ny * ny1;
-		tmp = Math.max(Math.sqrt((tmp1 + 1) / 2), 0.04);
-		
-		// Work out the normal orthogonal to the line through the control point and the edge sides intersection
-		nx2 = (nx + nx1);
-		ny2 = (ny + ny1);
-
-		var dist2 = Math.sqrt(nx2 * nx2 + ny2 * ny2);
-		nx2 = nx2 / dist2;
-		ny2 = ny2 / dist2;
-		
-		// Higher strokewidths require a larger minimum bend, 0.35 covers all but the most extreme cases
-		var strokeWidthFactor = Math.max(tmp, Math.min(this.strokewidth / 200 + 0.04, 0.35));
-		var angleFactor = (pos != 0 && isRounded) ? Math.max(0.1, strokeWidthFactor) : Math.max(tmp, 0.06);
-		
-		var outX = pts[i+1].x + ny2 * edgeWidth / 2 / angleFactor;
-		var outY = pts[i+1].y - nx2 * edgeWidth / 2 / angleFactor;
-		var inX = pts[i+1].x - ny2 * edgeWidth / 2 / angleFactor;
-		var inY = pts[i+1].y + nx2 * edgeWidth / 2 / angleFactor;
-		
-		if (pos == 0 || !isRounded)
+		if (dist1 != 0)
 		{
-			// If the two segments are aligned, or if we're not drawing curved sections between segments
-			// just draw straight to the intersection point
-			c.lineTo(outX, outY);
+			nx1 = dx1 / dist1;
+			ny1 = dy1 / dist1;
 			
-			(function(x, y)
-			{
-				fns.push(function()
-				{
-					c.lineTo(x, y);
-				});
-			})(inX, inY);
-		}
-		else if (pos == -1)
-		{
-			var c1x = inX + ny * edgeWidth;
-			var c1y = inY - nx * edgeWidth;
-			var c2x = inX + ny1 * edgeWidth;
-			var c2y = inY - nx1 * edgeWidth;
-			c.lineTo(c1x, c1y);
-			c.quadTo(outX, outY, c2x, c2y);
+			var tmp1 = nx * nx1 + ny * ny1;
+			tmp = Math.max(Math.sqrt((tmp1 + 1) / 2), 0.04);
 			
-			(function(x, y)
-			{
-				fns.push(function()
-				{
-					c.lineTo(x, y);
-				});
-			})(inX, inY);
-		}
-		else
-		{
-			c.lineTo(outX, outY);
+			// Work out the normal orthogonal to the line through the control point and the edge sides intersection
+			nx2 = (nx + nx1);
+			ny2 = (ny + ny1);
+	
+			var dist2 = Math.sqrt(nx2 * nx2 + ny2 * ny2);
 			
-			(function(x, y)
+			if (dist2 != 0)
 			{
-				var c1x = outX - ny * edgeWidth;
-				var c1y = outY + nx * edgeWidth;
-				var c2x = outX - ny1 * edgeWidth;
-				var c2y = outY + nx1 * edgeWidth;
+				nx2 = nx2 / dist2;
+				ny2 = ny2 / dist2;
 				
-				fns.push(function()
+				// Higher strokewidths require a larger minimum bend, 0.35 covers all but the most extreme cases
+				var strokeWidthFactor = Math.max(tmp, Math.min(this.strokewidth / 200 + 0.04, 0.35));
+				var angleFactor = (pos != 0 && isRounded) ? Math.max(0.1, strokeWidthFactor) : Math.max(tmp, 0.06);
+
+				var outX = pts[i+1].x + ny2 * edgeWidth / 2 / angleFactor;
+				var outY = pts[i+1].y - nx2 * edgeWidth / 2 / angleFactor;
+				var inX = pts[i+1].x - ny2 * edgeWidth / 2 / angleFactor;
+				var inY = pts[i+1].y + nx2 * edgeWidth / 2 / angleFactor;
+				
+				if (pos == 0 || !isRounded)
 				{
-					c.quadTo(x, y, c1x, c1y);
-				});
-				fns.push(function()
+					// If the two segments are aligned, or if we're not drawing curved sections between segments
+					// just draw straight to the intersection point
+					c.lineTo(outX, outY);
+					
+					(function(x, y)
+					{
+						fns.push(function()
+						{
+							c.lineTo(x, y);
+						});
+					})(inX, inY);
+				}
+				else if (pos == -1)
 				{
-					c.lineTo(c2x, c2y);
-				});
-			})(inX, inY);
+					var c1x = inX + ny * edgeWidth;
+					var c1y = inY - nx * edgeWidth;
+					var c2x = inX + ny1 * edgeWidth;
+					var c2y = inY - nx1 * edgeWidth;
+					c.lineTo(c1x, c1y);
+					c.quadTo(outX, outY, c2x, c2y);
+					
+					(function(x, y)
+					{
+						fns.push(function()
+						{
+							c.lineTo(x, y);
+						});
+					})(inX, inY);
+				}
+				else
+				{
+					c.lineTo(outX, outY);
+					
+					(function(x, y)
+					{
+						var c1x = outX - ny * edgeWidth;
+						var c1y = outY + nx * edgeWidth;
+						var c2x = outX - ny1 * edgeWidth;
+						var c2y = outY + nx1 * edgeWidth;
+						
+						fns.push(function()
+						{
+							c.quadTo(x, y, c1x, c1y);
+						});
+						fns.push(function()
+						{
+							c.lineTo(c2x, c2y);
+						});
+					})(inX, inY);
+				}
+				
+				nx = nx1;
+				ny = ny1;
+			}
 		}
-		
-		nx = nx1;
-		ny = ny1;
 	}
 	
 	orthx = edgeWidth * ny1;
@@ -24609,7 +24749,8 @@ mxArrowConnector.prototype.isMarkerEnd = function()
 	return (mxUtils.getValue(this.style, mxConstants.STYLE_ENDARROW, mxConstants.NONE) != mxConstants.NONE);
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxText
@@ -24868,6 +25009,12 @@ mxText.prototype.paint = function(c, update)
 			val =  mxUtils.htmlEntities(val, false);
 		}
 		
+		if (fmt == 'html' && !mxUtils.isNode(this.value))
+		{
+			val = mxUtils.replaceTrailingNewlines(val, '<div><br></div>');			
+		}
+		
+		// Handles trailing newlines to make sure they are visible in rendering output
 		val = (!mxUtils.isNode(this.value) && this.replaceLinefeeds && fmt == 'html') ?
 			val.replace(/\n/g, '<br/>') : val;
 			
@@ -25350,7 +25497,9 @@ mxText.prototype.updateInnerHtml = function(elt)
 			// LATER: Can be cached in updateValue
 			val = mxUtils.htmlEntities(val, false);
 		}
-
+		
+		// Handles trailing newlines to make sure they are visible in rendering output
+		val = mxUtils.replaceTrailingNewlines(val, '<div>&nbsp;</div>');
 		val = (this.replaceLinefeeds) ? val.replace(/\n/g, '<br/>') : val;
 		val = '<div style="display:inline-block;_display:inline;">' + val + '</div>';
 		
@@ -25433,7 +25582,6 @@ mxText.prototype.updateHtmlFilter = function()
 	else if (sizeDiv.firstChild != null && sizeDiv.firstChild.nodeName == 'DIV')
 	{
 		sizeDiv = sizeDiv.firstChild;
-		
 		oh = sizeDiv.offsetHeight;
 	}
 
@@ -25571,6 +25719,8 @@ mxText.prototype.updateValue = function()
 			val = mxUtils.htmlEntities(val, false);
 		}
 		
+		// Handles trailing newlines to make sure they are visible in rendering output
+		val = mxUtils.replaceTrailingNewlines(val, '<div><br></div>');
 		val = (this.replaceLinefeeds) ? val.replace(/\n/g, '<br/>') : val;
 		var bg = (this.background != null && this.background != mxConstants.NONE) ? this.background : null;
 		var bd = (this.border != null && this.border != mxConstants.NONE) ? this.border : null;
@@ -25809,7 +25959,8 @@ mxText.prototype.getSpacing = function()
 	return new mxPoint(dx, dy);
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxTriangle
@@ -25841,7 +25992,8 @@ mxTriangle.prototype.redrawPath = function(c, x, y, w, h)
 	this.addPoints(c, [new mxPoint(0, 0), new mxPoint(w, 0.5 * h), new mxPoint(0, h)], this.isRounded, arcSize, true);
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxHexagon
@@ -25874,7 +26026,8 @@ mxHexagon.prototype.redrawPath = function(c, x, y, w, h)
 	                   new mxPoint(0.25 * w, h), new mxPoint(0, 0.5 * h)], this.isRounded, arcSize, true);
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxLine
@@ -25924,7 +26077,8 @@ mxLine.prototype.paintVertexShape = function(c, x, y, w, h)
 	c.stroke();
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxImageShape
@@ -26104,6 +26258,7 @@ mxImageShape.prototype.redrawHtmlShape = function()
 		// VML image supports PNG in IE6
 		var useVml = mxClient.IS_IE6 || ((document.documentMode == null || document.documentMode <= 8) && this.rotation != 0);
 		var img = document.createElement((useVml) ? mxClient.VML_PREFIX + ':image' : 'img');
+		img.setAttribute('border', '0');
 		img.style.position = 'absolute';
 		img.src = this.image;
 
@@ -26155,7 +26310,8 @@ mxImageShape.prototype.redrawHtmlShape = function()
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxLabel
@@ -26429,7 +26585,8 @@ mxLabel.prototype.redrawHtmlShape = function()
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxCylinder
@@ -26533,7 +26690,8 @@ mxCylinder.prototype.redrawPath = function(c, x, y, w, h, isForeground)
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxConnector
@@ -26669,7 +26827,8 @@ mxConnector.prototype.augmentBoundingBox = function(bbox)
 	bbox.grow(Math.ceil(size * this.scale));
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxSwimlane
@@ -27076,7 +27235,8 @@ mxSwimlane.prototype.getImageBounds = function(x, y, w, h)
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxGraphLayout
@@ -27219,19 +27379,18 @@ mxGraphLayout.prototype.getConstraint = function(key, cell, edge, source)
  * edge as arguments. The traversal stops if the function returns false.
  * edge - Optional <mxCell> that represents the incoming edge. This is
  * null for the first step of the traversal.
- * visited - Optional array of cell paths for the visited cells.
+ * visited - Optional <mxDictionary> of cell paths for the visited cells.
  */
 mxGraphLayout.traverse = function(vertex, directed, func, edge, visited)
 {
 	if (func != null && vertex != null)
 	{
 		directed = (directed != null) ? directed : true;
-		visited = visited || [];
-		var id = mxCellPath.create(vertex);
+		visited = visited || new mxDictionary();
 		
-		if (visited[id] == null)
+		if (!visited.get(vertex))
 		{
-			visited[id] = vertex;
+			visited.put(vertex, true);
 			var result = func(vertex, edge);
 			
 			if (result == null || result)
@@ -27537,7 +27696,8 @@ mxGraphLayout.prototype.arrangeGroups = function(cells, border, topBorder, right
 	return this.graph.updateGroupBounds(cells, border, true, topBorder, rightBorder, bottomBorder, leftBorder);
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxStackLayout
@@ -28051,7 +28211,8 @@ mxStackLayout.prototype.updateParentGeometry = function(parent, pgeo, last)
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxPartitionLayout
@@ -28290,7 +28451,8 @@ mxPartitionLayout.prototype.execute = function(parent)
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxCompactTreeLayout
@@ -29492,7 +29654,8 @@ WeightedCellSorter.prototype.compare = function(a, b)
 	}
 };
 /**
- * Copyright (c) 2006-2014, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxRadialTreeLayout
@@ -29546,16 +29709,16 @@ mxRadialTreeLayout.prototype.rooty = 0;
 /**
  * Variable: levelDistance
  *
- * Holds the levelDistance. Default is 10.
+ * Holds the levelDistance. Default is 120.
  */
-mxRadialTreeLayout.prototype.levelDistance = 10;
+mxRadialTreeLayout.prototype.levelDistance = 120;
 
 /**
  * Variable: nodeDistance
  *
- * Holds the nodeDistance. Default is 20.
+ * Holds the nodeDistance. Default is 10.
  */
-mxRadialTreeLayout.prototype.nodeDistance = 20;
+mxRadialTreeLayout.prototype.nodeDistance = 10;
 
 /**
  * Variable: autoRadius
@@ -29650,8 +29813,6 @@ mxRadialTreeLayout.prototype.execute = function(parent, root)
 	
 	this.useBoundingBox = false;
 	this.edgeRouting = false;
-	this.levelDistance = 120;
-	this.nodeDistance = 10;
 	//this.horizontal = false;
 
 	mxCompactTreeLayout.prototype.execute.apply(this, arguments);
@@ -29810,7 +29971,8 @@ mxRadialTreeLayout.prototype.calcRowDims = function(row, rowNum)
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxFastOrganicLayout
@@ -30070,7 +30232,7 @@ mxFastOrganicLayout.prototype.execute = function(parent)
 		this.cellLocation[i] = [];
 		
 		// Set up the mapping from array indices to cells
-		var id = mxCellPath.create(vertex);
+		var id = mxObjectIdentity.get(vertex);
 		this.indices[id] = i;
 		var bounds = this.getVertexBounds(vertex);
 
@@ -30121,7 +30283,7 @@ mxFastOrganicLayout.prototype.execute = function(parent)
 			    }
 
 				// Looks the cell up in the indices dictionary
-				var id = mxCellPath.create(cells[j]);
+				var id = mxObjectIdentity.get(cells[j]);
 				var index = this.indices[id];
 
 				// Check the connected cell in part of the vertex list to be
@@ -30400,7 +30562,8 @@ mxFastOrganicLayout.prototype.reduceTemperature = function()
 	this.temperature = this.initialTemp * (1.0 - this.iteration / this.maxIterations);
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxCircleLayout
@@ -30602,7 +30765,8 @@ mxCircleLayout.prototype.circle = function(vertices, r, left, top)
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxParallelEdgeLayout
@@ -30744,8 +30908,8 @@ mxParallelEdgeLayout.prototype.getEdgeId = function(edge)
 
 	if (src != null && trg != null)
 	{
-		src = mxCellPath.create(src);
-		trg = mxCellPath.create(trg);
+		src = mxObjectIdentity.get(src);
+		trg = mxObjectIdentity.get(trg);
 		
 		return (src > trg) ? trg + '-' + src : src + '-' + trg;
 	}
@@ -30826,7 +30990,8 @@ mxParallelEdgeLayout.prototype.route = function(edge, x, y)
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxCompositeLayout
@@ -30926,7 +31091,8 @@ mxCompositeLayout.prototype.execute = function(parent)
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxEdgeLabelLayout
@@ -31090,7 +31256,8 @@ mxEdgeLabelLayout.prototype.avoid = function(edge, vertex)
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxGraphAbstractHierarchyCell
@@ -31295,7 +31462,8 @@ mxGraphAbstractHierarchyCell.prototype.setY = function(layer, value)
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxGraphHierarchyNode
@@ -31514,7 +31682,8 @@ mxGraphHierarchyNode.prototype.getCoreCell = function()
 	return this.cell;
 };
 /**
- * Copyright (c) 2006-2014, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxGraphHierarchyEdge
@@ -31700,7 +31869,8 @@ mxGraphHierarchyEdge.prototype.getCoreCell = function()
 	return null;
 };
 /**
- * Copyright (c) 2006-2014, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxGraphHierarchyModel
@@ -32380,7 +32550,8 @@ mxGraphHierarchyModel.prototype.extendedDfs = function(parent, root, connectingE
 	}
 };
 /**
- * Copyright (c) 2006-2012, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxSwimlaneModel
@@ -33185,7 +33356,8 @@ mxSwimlaneModel.prototype.extendedDfs = function(parent, root, connectingEdge, v
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxHierarchicalLayoutStage
@@ -33209,7 +33381,8 @@ function mxHierarchicalLayoutStage() { };
  */
 mxHierarchicalLayoutStage.prototype.execute = function(parent) { };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxMedianHybridCrossingReduction
@@ -33883,7 +34056,8 @@ MedianCellSorter.prototype.compare = function(a, b)
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxMinimumCycleRemover
@@ -33990,7 +34164,8 @@ mxMinimumCycleRemover.prototype.execute = function(parent)
 	}, unseenNodes, true, seenNodesCopy);
 };
 /**
- * Copyright (c) 2005-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxCoordinateAssignment
@@ -35819,7 +35994,8 @@ WeightedCellSorter.prototype.compare = function(a, b)
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxSwimlaneOrdering
@@ -35914,7 +36090,8 @@ mxSwimlaneOrdering.prototype.execute = function(parent)
 	}, rootsArray, true, null);
 };
 /**
- * Copyright (c) 2005-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxHierarchicalLayout
@@ -36759,7 +36936,8 @@ mxHierarchicalLayout.prototype.placementStage = function(initialX, parent)
 	return placementStage.limitX + this.interHierarchySpacing;
 };
 /**
- * Copyright (c) 2005-2012, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxSwimlaneLayout
@@ -37610,7 +37788,8 @@ mxSwimlaneLayout.prototype.placementStage = function(initialX, parent)
 	return placementStage.limitX + this.interHierarchySpacing;
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxGraphModel
@@ -39101,7 +39280,13 @@ mxGraphModel.prototype.getOpposites = function(edges, terminal, sources, targets
  */
 mxGraphModel.prototype.getTopmostCells = function(cells)
 {
+	var dict = new mxDictionary();
 	var tmp = [];
+	
+	for (var i = 0; i < cells.length; i++)
+	{
+		dict.put(cells[i], true);
+	}
 	
 	for (var i = 0; i < cells.length; i++)
 	{
@@ -39111,7 +39296,7 @@ mxGraphModel.prototype.getTopmostCells = function(cells)
 		
 		while (parent != null)
 		{
-			if (mxUtils.indexOf(cells, parent) >= 0)
+			if (dict.get(parent))
 			{
 				topmost = false;
 				break;
@@ -39715,21 +39900,16 @@ mxGraphModel.prototype.getParents = function(cells)
 	
 	if (cells != null)
 	{
-		var hash = new Object();
+		var dict = new mxDictionary();
 		
 		for (var i = 0; i < cells.length; i++)
 		{
 			var parent = this.getParent(cells[i]);
 			
-			if (parent != null)
+			if (parent != null && !dict.get(parent))
 			{
-				var id = mxCellPath.create(parent);
-				
-				if (hash[id] == null)
-				{
-					hash[id] = parent;
-					parents.push(parent);
-				}
+				dict.put(parent, true);
+				parents.push(parent);
 			}
 		}
 	}
@@ -40266,7 +40446,8 @@ mxCellAttributeChange.prototype.execute = function()
 	this.previous = tmp;
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxCell
@@ -41071,7 +41252,8 @@ mxCell.prototype.cloneValue = function()
 	return value;
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxGeometry
@@ -41485,7 +41667,8 @@ mxGeometry.prototype.equals = function(obj)
 		((this.offset == null && obj.offset == null) || (this.offset != null && this.offset.equals(obj.offset)));
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 var mxCellPath =
 {
@@ -41647,7 +41830,8 @@ var mxCellPath =
 
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 var mxPerimeter =
 {
@@ -41661,7 +41845,7 @@ var mxPerimeter =
 	 * Example:
 	 * 
 	 * (code)
-	 * <add as="perimeter">mxPerimeter.RightAngleRectanglePerimeter</add>
+	 * <add as="perimeter">mxPerimeter.RectanglePerimeter</add>
 	 * (end)
 	 * 
 	 * Or programmatically:
@@ -42567,7 +42751,8 @@ var mxPerimeter =
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxPrintPreview
@@ -43568,7 +43753,8 @@ mxPrintPreview.prototype.close = function()
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxStylesheet
@@ -43833,7 +44019,8 @@ mxStylesheet.prototype.getCellStyle = function(name, defaultStyle)
 	return style;
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxCellState
@@ -43992,7 +44179,7 @@ mxCellState.prototype.text = null;
  * border - Optional border to be added around the perimeter bounds.
  * bounds - Optional <mxRectangle> to be used as the initial bounds.
  */
-mxCellState.prototype.getPerimeterBounds = function (border, bounds)
+mxCellState.prototype.getPerimeterBounds = function(border, bounds)
 {
 	border = border || 0;
 	bounds = (bounds != null) ? bounds : new mxRectangle(this.x, this.y, this.width, this.height);
@@ -44026,7 +44213,7 @@ mxCellState.prototype.getPerimeterBounds = function (border, bounds)
  * isSource - Boolean that specifies if the first or last point should
  * be assigned.
  */
-mxCellState.prototype.setAbsoluteTerminalPoint = function (point, isSource)
+mxCellState.prototype.setAbsoluteTerminalPoint = function(point, isSource)
 {
 	if (isSource)
 	{
@@ -44068,7 +44255,7 @@ mxCellState.prototype.setAbsoluteTerminalPoint = function (point, isSource)
  * 
  * Sets the given cursor on the shape and text shape.
  */
-mxCellState.prototype.setCursor = function (cursor)
+mxCellState.prototype.setCursor = function(cursor)
 {
 	if (this.shape != null)
 	{
@@ -44091,7 +44278,7 @@ mxCellState.prototype.setCursor = function (cursor)
  * source - Boolean that specifies if the source or target cell should be
  * returned.
  */
-mxCellState.prototype.getVisibleTerminal = function (source)
+mxCellState.prototype.getVisibleTerminal = function(source)
 {
 	var tmp = this.getVisibleTerminalState(source);
 	
@@ -44108,7 +44295,7 @@ mxCellState.prototype.getVisibleTerminal = function (source)
  * source - Boolean that specifies if the source or target state should be
  * returned.
  */
-mxCellState.prototype.getVisibleTerminalState = function (source)
+mxCellState.prototype.getVisibleTerminalState = function(source)
 {
 	return (source) ? this.visibleSourceState : this.visibleTargetState;
 };
@@ -44123,7 +44310,7 @@ mxCellState.prototype.getVisibleTerminalState = function (source)
  * terminalState - <mxCellState> that represents the terminal.
  * source - Boolean that specifies if the source or target state should be set.
  */
-mxCellState.prototype.setVisibleTerminalState = function (terminalState, source)
+mxCellState.prototype.setVisibleTerminalState = function(terminalState, source)
 {
 	if (source)
 	{
@@ -44140,7 +44327,7 @@ mxCellState.prototype.setVisibleTerminalState = function (terminalState, source)
  * 
  * Returns the unscaled, untranslated bounds.
  */
-mxCellState.prototype.getCellBounds = function ()
+mxCellState.prototype.getCellBounds = function()
 {
 	return this.cellBounds;
 };
@@ -44152,7 +44339,7 @@ mxCellState.prototype.getCellBounds = function ()
  * <getCellBounds> but with a 90 degree rotation if the shape's
  * isPaintBoundsInverted returns true.
  */
-mxCellState.prototype.getPaintBounds = function ()
+mxCellState.prototype.getPaintBounds = function()
 {
 	return this.paintBounds;
 };
@@ -44180,7 +44367,7 @@ mxCellState.prototype.updateCachedBounds = function()
  * 
  * Destroys the state and all associated resources.
  */
-mxCellState.prototype.destroy = function ()
+mxCellState.prototype.destroy = function()
 {
 	this.view.graph.cellRenderer.destroy(this);
 };
@@ -44231,7 +44418,8 @@ mxCellState.prototype.clone = function()
 	return clone;
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxGraphSelectionModel
@@ -44665,7 +44853,8 @@ mxSelectionChange.prototype.execute = function()
 			'added', this.added, 'removed', this.removed));
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxCellEditor
@@ -44771,6 +44960,18 @@ mxSelectionChange.prototype.execute = function()
 function mxCellEditor(graph)
 {
 	this.graph = graph;
+	
+	// Stops editing after zoom changes
+	this.zoomHandler = mxUtils.bind(this, function()
+	{
+		if (this.graph.isEditing())
+		{
+			this.resize();
+		}
+	});
+	
+	this.graph.view.addListener(mxEvent.SCALE, this.zoomHandler);
+	this.graph.view.addListener(mxEvent.SCALE_AND_TRANSLATE, this.zoomHandler);
 };
 
 /**
@@ -44783,7 +44984,7 @@ mxCellEditor.prototype.graph = null;
 /**
  * Variable: textarea
  *
- * Holds the input textarea. Note that this may be null before the first
+ * Holds the DIV that is used for text editing. Note that this may be null before the first
  * edit. Instantiated in <init>.
  */
 mxCellEditor.prototype.textarea = null;
@@ -44828,12 +45029,13 @@ mxCellEditor.prototype.selectText = true;
 /**
  * Variable: emptyLabelText
  * 
- * Text to be displayed for empty labels. Default is ''. This can be set
- * to eg. "[Type Here]" to easier visualize editing of empty labels. The
- * value is only displayed before the first keystroke and is never used
- * as the actual editing value.
+ * Text to be displayed for empty labels. Default is '' or '<br>' in Firefox as
+ * a workaround for the missing cursor bug for empty content editable. This can
+ * be set to eg. "[Type Here]" to easier visualize editing of empty labels. The
+ * value is only displayed before the first keystroke and is never used as the
+ * actual editing value.
  */
-mxCellEditor.prototype.emptyLabelText = '';
+mxCellEditor.prototype.emptyLabelText = (mxClient.IS_FF) ? '<br>' : '';
 
 /**
  * Variable: textNode
@@ -44857,6 +45059,28 @@ mxCellEditor.prototype.zIndex = 5;
 mxCellEditor.prototype.minResize = new mxRectangle(0, 20);
 
 /**
+ * Variable: wordWrapPadding
+ * 
+ * Correction factor for word wrapping width. Default is 2 in quirks, 0 in IE
+ * 11 and 1 in all other browsers and modes.
+ */
+mxCellEditor.prototype.wordWrapPadding = (mxClient.IS_QUIRKS) ? 2 : (!mxClient.IS_IE11) ? 1 : 0;
+
+/**
+ * Variable: blurEnabled
+ *
+ * If <focusLost> should be called if <textarea> loses the focus. Default is false.
+ */
+mxCellEditor.prototype.blurEnabled = false;
+
+/**
+ * Variable: initialValue
+ * 
+ * Holds the initial editing value to check if the current value was modified.
+ */
+mxCellEditor.prototype.initialValue = null;
+
+/**
  * Function: init
  *
  * Creates the <textarea> and installs the event listeners. The key handler
@@ -44864,41 +45088,77 @@ mxCellEditor.prototype.minResize = new mxRectangle(0, 20);
  */
 mxCellEditor.prototype.init = function ()
 {
-	this.textarea = document.createElement('textarea');
-
-	this.textarea.className = 'mxCellEditor';
-	this.textarea.style.position = 'absolute';
-	this.textarea.style.overflow = 'visible';
-
-	this.textarea.setAttribute('cols', '20');
-	this.textarea.setAttribute('rows', '4');
-
-	if (mxClient.IS_NS)
-	{
-		this.textarea.style.resize = 'none';
-	}
+	this.textarea = document.createElement('div');
+	this.textarea.className = 'mxCellEditor mxPlainTextEditor';
+	this.textarea.contentEditable = true;
 	
 	this.installListeners(this.textarea);
+};
+
+/**
+ * Function: applyValue
+ * 
+ * Called in <stopEditing> if cancel is false to invoke <mxGraph.labelChanged>.
+ */
+mxCellEditor.prototype.applyValue = function(state, value)
+{
+	this.graph.labelChanged(state.cell, value, this.trigger);
+};
+
+/**
+ * Function: getInitialValue
+ * 
+ * Gets the initial editing value for the given cell.
+ */
+mxCellEditor.prototype.getInitialValue = function(state, trigger)
+{
+	var result = mxUtils.htmlEntities(this.graph.getEditingValue(state.cell, trigger), false);
+	
+    // Workaround for trailing line breaks being ignored in the editor
+	if (!mxClient.IS_QUIRKS && document.documentMode != 8 && document.documentMode != 9 &&
+		document.documentMode != 10)
+	{
+		result = mxUtils.replaceTrailingNewlines(result, '<div><br></div>');
+	}
+    
+    return result.replace(/\n/g, '<br>');
+};
+
+/**
+ * Function: getCurrentValue
+ * 
+ * Returns the current editing value.
+ */
+mxCellEditor.prototype.getCurrentValue = function(state)
+{
+	var result = mxUtils.extractTextWithWhitespace(this.textarea.childNodes);
+	
+    // Strips trailing line break
+    if (result.length > 0 && result.charAt(result.length - 1) == '\n')
+    {
+    	result = result.substring(0, result.length - 1);
+    }
+	
+	return result;
 };
 
 /**
  * Function: installListeners
  * 
  * Installs listeners for focus, change and standard key event handling.
- * NOTE: This code requires support for a value property in elt.
  */
 mxCellEditor.prototype.installListeners = function(elt)
 {
+	// Applies value if focus is lost
 	mxEvent.addListener(elt, 'blur', mxUtils.bind(this, function(evt)
 	{
-		this.focusLost(evt);
-	}));
-	
-	mxEvent.addListener(elt, 'change', mxUtils.bind(this, function(evt)
-	{
-		this.setModified(true);
+		if (this.blurEnabled)
+		{
+			this.focusLost(evt);
+		}
 	}));
 
+	// Updates modified state and handles placeholder text
 	mxEvent.addListener(elt, 'keydown', mxUtils.bind(this, function(evt)
 	{
 		if (!mxEvent.isConsumed(evt))
@@ -44913,18 +45173,6 @@ mxCellEditor.prototype.installListeners = function(elt)
 				this.graph.stopEditing(true);
 				mxEvent.consume(evt);
 			}
-			else
-			{
-				// Clears the initial empty label on the first keystroke
-				if (this.clearOnChange && elt.value == this.getEmptyLabelText())
-				{
-					this.clearOnChange = false;
-					elt.value = '';
-				}
-				
-				// Updates the modified flag for storing the value
-				this.setModified(true);
-			}
 		}
 	}));
 
@@ -44936,22 +45184,87 @@ mxCellEditor.prototype.installListeners = function(elt)
 			this.stopEditing(true);
 		}
 	});
-	
+
 	this.graph.getModel().addListener(mxEvent.CHANGE, this.changeHandler);
 	
-	// Adds automatic resizing of the textbox while typing
-	// Use input event in all browsers and IE >= 9 (but not IE11) for resize
-	var evtName = (!mxClient.IS_IE11 && (!mxClient.IS_IE || document.documentMode >= 9)) ? 'input' : 'keypress';
-	mxEvent.addListener(elt, evtName, mxUtils.bind(this, function(evt)
+	// Keypress only fires if printable key was pressed and handles removing the empty placeholder
+	var keypressHandler = mxUtils.bind(this, function(evt)
 	{
-		if (this.autoSize && !mxEvent.isConsumed(evt))
+		if (this.editingCell != null)
 		{
-			setTimeout(mxUtils.bind(this, function()
+			// Clears the initial empty label on the first keystroke
+			// and workaround for FF which fires keypress for delete and backspace
+			if (this.clearOnChange && elt.innerHTML == this.getEmptyLabelText() &&
+				(!mxClient.IS_FF || (evt.keyCode != 8 /* Backspace */ && evt.keyCode != 46 /* Delete */)))
 			{
+				this.clearOnChange = false;
+				elt.innerHTML = '';
+			}
+		}
+	});
+
+	mxEvent.addListener(elt, 'keypress', keypressHandler);
+	mxEvent.addListener(elt, 'paste', keypressHandler);
+	
+	// Handler for updating the empty label text value after a change
+	var keyupHandler = mxUtils.bind(this, function(evt)
+	{
+		if (this.editingCell != null)
+		{
+			// Uses an optional text value for sempty labels which is cleared
+			// when the first keystroke appears. This makes it easier to see
+			// that a label is being edited even if the label is empty.
+			// In Safari and FF, an empty text is represented by <BR> which isn't enough to force a valid size
+			if (this.textarea.innerHTML.length == 0 || this.textarea.innerHTML == '<br>')
+			{
+				this.textarea.innerHTML = this.getEmptyLabelText();
+				this.clearOnChange = this.textarea.innerHTML.length > 0;
+			}
+			else
+			{
+				this.clearOnChange = false;
+			}
+		}
+	});
+
+	mxEvent.addListener(elt, (!mxClient.IS_IE11 && !mxClient.IS_IE) ? 'input' : 'keyup', keyupHandler);
+	mxEvent.addListener(elt, 'cut', keyupHandler);
+	mxEvent.addListener(elt, 'paste', keyupHandler);
+
+	// Adds automatic resizing of the textbox while typing using input, keyup and/or DOM change events
+	var evtName = (!mxClient.IS_IE11 && !mxClient.IS_IE) ? 'input' : 'keydown';
+	
+	var resizeHandler = mxUtils.bind(this, function(evt)
+	{
+		if (this.editingCell != null && this.autoSize && !mxEvent.isConsumed(evt))
+		{
+			// Asynchronous is needed for keydown and shows better results for input events overall
+			// (ie non-blocking and cases where the offsetWidth/-Height was wrong at this time)
+			if (this.resizeThread != null)
+			{
+				window.clearTimeout(this.resizeThread);
+			}
+			
+			this.resizeThread = window.setTimeout(mxUtils.bind(this, function()
+			{
+				this.resizeThread = null;
 				this.resize();
 			}), 0);
 		}
-	}));
+	});
+	
+	mxEvent.addListener(elt, evtName, resizeHandler);
+
+	if (document.documentMode >= 9)
+	{
+		mxEvent.addListener(elt, 'DOMNodeRemoved', resizeHandler);
+		mxEvent.addListener(elt, 'DOMNodeInserted', resizeHandler);
+	}
+	else
+	{
+		mxEvent.addListener(elt, 'cut', resizeHandler);
+		mxEvent.addListener(elt, 'paste', resizeHandler);
+	}
 };
 
 /**
@@ -44985,155 +45298,193 @@ mxCellEditor.prototype.isEventSource = function(evt)
  */
 mxCellEditor.prototype.resize = function()
 {
-	if (this.textDiv != null)
+	var state = this.graph.getView().getState(this.editingCell);
+	
+	if (state == null)
 	{
-		var state = this.graph.getView().getState(this.editingCell);
+		this.stopEditing(true);
+	}
+	else
+	{
+		var isEdge = this.graph.getModel().isEdge(state.cell);
+ 		var scale = this.graph.getView().scale;
+ 		var m = null;
 		
-		if (state == null)
+		if (!this.autoSize || (state.style[mxConstants.STYLE_OVERFLOW] == 'fill'))
 		{
-			this.stopEditing(true);
+			// Specifies the bounds of the editor box
+			this.bounds = this.getEditorBounds(state);
+			this.textarea.style.width = Math.round(this.bounds.width / scale) + 'px';
+			this.textarea.style.height = Math.round(this.bounds.height / scale) + 'px';
+			
+			// FIXME: Offset when scaled
+			if (document.documentMode == 8)
+			{
+				this.textarea.style.left = Math.round(this.bounds.x) + 'px';
+				this.textarea.style.top = Math.round(this.bounds.y) + 'px';
+			}
+			else if (mxClient.IS_QUIRKS)
+			{
+				this.textarea.style.left = Math.round(this.bounds.x) + 'px';
+				this.textarea.style.top = Math.round(this.bounds.y) + 'px';
+			}
+			else
+			{
+				this.textarea.style.left = Math.max(0, Math.round(this.bounds.x + 1)) + 'px';
+				this.textarea.style.top = Math.max(0, Math.round(this.bounds.y + 1)) + 'px';
+			}
+			
+			// Installs native word wrapping and avoids word wrap for empty label placeholder
+			if (this.graph.isWrapping(state.cell) && (this.bounds.width >= 2 || this.bounds.height >= 2) &&
+				this.textarea.innerHTML != this.getEmptyLabelText())
+			{
+				this.textarea.style.whiteSpace = 'normal';
+				
+				if (state.style[mxConstants.STYLE_OVERFLOW] != 'fill')
+				{
+					this.textarea.style.width = Math.round(this.bounds.width / scale) + this.wordWrapPadding + 'px';
+				}
+			}
+			else
+			{
+				this.textarea.style.whiteSpace = 'nowrap';
+				
+				if (state.style[mxConstants.STYLE_OVERFLOW] != 'fill')
+				{
+					this.textarea.style.width = '';
+				}
+			}
 		}
 		else
-		{
-			var isEdge = this.graph.getModel().isEdge(state.cell);
+	 	{
+	 		var lw = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_WIDTH, null);
+			m = (state.text != null) ? state.text.margin : null;
+			
+			if (m == null)
+			{
+				m = mxUtils.getAlignmentAsPoint(mxUtils.getValue(state.style, mxConstants.STYLE_ALIGN, mxConstants.ALIGN_CENTER),
+						mxUtils.getValue(state.style, mxConstants.STYLE_VERTICAL_ALIGN, mxConstants.ALIGN_MIDDLE));
+			}
+			
+	 		if (isEdge)
+			{
+				this.bounds = new mxRectangle(state.absoluteOffset.x, state.absoluteOffset.y, 0, 0);
+				
+				if (lw != null)
+			 	{
+					var tmp = (parseFloat(lw) + 2) * scale;
+					this.bounds.width = tmp;
+					this.bounds.x += m.x * tmp;
+			 	}
+			}
+			else
+			{
+				var bds = mxRectangle.fromRectangle(state);
+				var hpos = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_POSITION, mxConstants.ALIGN_CENTER);
+				var vpos = mxUtils.getValue(state.style, mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.ALIGN_MIDDLE);
 
-		 	if (isEdge || state.style[mxConstants.STYLE_OVERFLOW] != 'fill')
-		 	{
-		 		var scale = this.graph.getView().scale;
-		 		var lw = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_WIDTH, null);
-				var m = (state.text != null) ? state.text.margin : null;
-				
-				if (m == null)
-				{
-					m = mxUtils.getAlignmentAsPoint(mxUtils.getValue(state.style, mxConstants.STYLE_ALIGN, mxConstants.ALIGN_CENTER),
-							mxUtils.getValue(state.style, mxConstants.STYLE_VERTICAL_ALIGN, mxConstants.ALIGN_MIDDLE));
-				}
-				
-		 		if (isEdge)
-				{
-					this.bounds.x = state.absoluteOffset.x;
-					this.bounds.y = state.absoluteOffset.y;
-					this.bounds.width = 0;
-					this.bounds.height = 0;
+				bds = (state.shape != null && hpos == mxConstants.ALIGN_CENTER && vpos == mxConstants.ALIGN_MIDDLE) ? state.shape.getLabelBounds(bds) : bds;
+			 	
+			 	if (lw != null)
+			 	{
+			 		bds.width = parseFloat(lw) * scale;
+			 	}
+			 	
+			 	if (!state.view.graph.cellRenderer.legacySpacing || state.style[mxConstants.STYLE_OVERFLOW] != 'width')
+			 	{
+					var spacing = parseInt(state.style[mxConstants.STYLE_SPACING] || 2) * scale;
+					var spacingTop = (parseInt(state.style[mxConstants.STYLE_SPACING_TOP] || 0) + mxText.prototype.baseSpacingTop) * scale + spacing;
+					var spacingRight = (parseInt(state.style[mxConstants.STYLE_SPACING_RIGHT] || 0) + mxText.prototype.baseSpacingRight) * scale + spacing;
+					var spacingBottom = (parseInt(state.style[mxConstants.STYLE_SPACING_BOTTOM] || 0) + mxText.prototype.baseSpacingBottom) * scale + spacing;
+					var spacingLeft = (parseInt(state.style[mxConstants.STYLE_SPACING_LEFT] || 0) + mxText.prototype.baseSpacingLeft) * scale + spacing;
 					
-					if (lw != null)
-				 	{
-						var tmp = (parseFloat(lw) + 2) * scale;
-						this.bounds.width = tmp;
-						this.bounds.x += m.x * tmp;
-				 	}
-				}
-				else if (this.bounds != null)
-				{
-					var bds = mxRectangle.fromRectangle(state);
 					var hpos = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_POSITION, mxConstants.ALIGN_CENTER);
 					var vpos = mxUtils.getValue(state.style, mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.ALIGN_MIDDLE);
 
-					bds = (state.shape != null && hpos == mxConstants.ALIGN_CENTER && vpos == mxConstants.ALIGN_MIDDLE) ? state.shape.getLabelBounds(bds) : bds;
-				 	
-				 	if (lw != null)
-				 	{
-				 		bds.width = parseFloat(lw) * scale;
-				 	}
-				 	
-				 	if (!state.view.graph.cellRenderer.legacySpacing || state.style[mxConstants.STYLE_OVERFLOW] != 'width')
-				 	{
-						var spacing = parseInt(state.style[mxConstants.STYLE_SPACING] || 2) * scale;
-						var spacingTop = (parseInt(state.style[mxConstants.STYLE_SPACING_TOP] || 0) + mxText.prototype.baseSpacingTop) * scale + spacing;
-						var spacingRight = (parseInt(state.style[mxConstants.STYLE_SPACING_RIGHT] || 0) + mxText.prototype.baseSpacingRight) * scale + spacing;
-						var spacingBottom = (parseInt(state.style[mxConstants.STYLE_SPACING_BOTTOM] || 0) + mxText.prototype.baseSpacingBottom) * scale + spacing;
-						var spacingLeft = (parseInt(state.style[mxConstants.STYLE_SPACING_LEFT] || 0) + mxText.prototype.baseSpacingLeft) * scale + spacing;
-						
-						var hpos = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_POSITION, mxConstants.ALIGN_CENTER);
-						var vpos = mxUtils.getValue(state.style, mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.ALIGN_MIDDLE);
+					bds = new mxRectangle(bds.x + spacingLeft, bds.y + spacingTop,
+						bds.width - ((hpos == mxConstants.ALIGN_CENTER && lw == null) ? (spacingLeft + spacingRight) : 0),
+						bds.height - ((vpos == mxConstants.ALIGN_MIDDLE) ? (spacingTop + spacingBottom) : 0));
+			 	}
 
-						bds = new mxRectangle(bds.x + spacingLeft, bds.y + spacingTop,
-							bds.width - ((hpos == mxConstants.ALIGN_CENTER && lw == null) ? (spacingLeft + spacingRight) : 0),
-							bds.height - ((vpos == mxConstants.ALIGN_MIDDLE) ? (spacingTop + spacingBottom) : 0));
-				 	}
+				this.bounds = new mxRectangle(bds.x + state.absoluteOffset.x, bds.y + state.absoluteOffset.y, bds.width, bds.height);
+			}
 
-					// +2/-1 is used to match the box model workarounds in the rendering code
-					this.bounds.x = bds.x + state.absoluteOffset.x - 1;
-					this.bounds.y = bds.y + state.absoluteOffset.y;
-					this.bounds.width = bds.width + 2;
-					this.bounds.height = bds.height;
-				}
+			// Needed for word wrap inside text blocks with oversize lines to match the final result where
+	 		// the width of the longest line is used as the reference for text alignment in the cell
+	 		// TODO: Fix word wrapping preview for edge labels in helloworld.html
+			if (this.graph.isWrapping(state.cell) && (this.bounds.width >= 2 || this.bounds.height >= 2) &&
+				this.textarea.innerHTML != this.getEmptyLabelText())
+			{
+				this.textarea.style.whiteSpace = 'normal';
 				
-				// Measures string using a hidden div
-				var wrap = this.graph.isWrapping(state.cell) && (this.bounds.width >= 2 || this.bounds.height >= 2);
+		 		// Forces automatic reflow if text is removed from an oversize label and normal word wrap
+				var tmp = Math.round(this.bounds.width / ((document.documentMode == 8) ? scale : scale)) + this.wordWrapPadding;
+				this.textarea.style.width = tmp + 'px';
 				
-				if (wrap)
+				if (this.textarea.scrollWidth > tmp)
 				{
-					this.textDiv.style.whiteSpace = 'normal';
-					
-					// Simulating maxWidth by checking the offsetWidth and setting the width if that is
-					// larger doesn't solve the problem of HR taking up the width of the page instead
-					// of the text around it, so there is no need to simulate maxWidth in quirks mode.
-					if (mxClient.IS_QUIRKS)
-					{
-						this.textDiv.style.width = Math.ceil(this.bounds.width) + 'px';
-					}
-					else
-					{
-						this.textDiv.style.maxWidth = Math.ceil(this.bounds.width) + 'px';
-					}
+					this.textarea.style.width = this.textarea.scrollWidth + 'px';
 				}
-				
-				var value = this.getCurrentHtmlValue();
-				this.textDiv.innerHTML = (value.length > 0) ? value : '&nbsp;';
-				var size = mxUtils.getValue(state.style, mxConstants.STYLE_FONTSIZE, mxConstants.DEFAULT_FONTSIZE) * scale;
-				var ow = this.textDiv.offsetWidth + size;
-				var oh = this.textDiv.offsetHeight + 16;
+			}
+			else
+			{
+				// KNOWN: Trailing cursor in IE9 quirks mode is not visible
+				this.textarea.style.whiteSpace = 'nowrap';
+				this.textarea.style.width = '';
+			}
+			
+			// LATER: Keep in visible area, add fine tuning for pixel precision
+			// Workaround for wrong measuring in IE8 standards
+			if (document.documentMode == 8)
+			{
+				this.textarea.style.zoom = '1';
+				this.textarea.style.height = 'auto';
+			}
+			
+			var ow = this.textarea.scrollWidth;
+			var oh = this.textarea.scrollHeight;
+			
+			// TODO: Update CSS width and height if smaller than minResize or remove minResize
+			if (this.minResize != null)
+			{
+				//ow = Math.max(ow, this.minResize.width);
+				//oh = Math.max(oh, this.minResize.height);
+			}
+			
+			// LATER: Keep in visible area, add fine tuning for pixel precision
+			if (document.documentMode == 8)
+			{
+				// LATER: Scaled wrapping and position is wrong in IE8
+				this.textarea.style.left = Math.max(0, Math.ceil((this.bounds.x - m.x * (this.bounds.width - (ow + 1) * scale) + ow * (scale - 1) * 0 + (m.x + 0.5) * 2) / scale)) + 'px';
+				this.textarea.style.top = Math.max(0, Math.ceil((this.bounds.y - m.y * (this.bounds.height - (oh + 0.5) * scale) + oh * (scale - 1) * 0 + Math.abs(m.y + 0.5) * 1) / scale)) + 'px';
+				// Workaround for wrong event handling width and height
+				this.textarea.style.width = Math.round(ow * scale) + 'px';
+				this.textarea.style.height = Math.round(oh * scale) + 'px';
+			}
+			else if (mxClient.IS_QUIRKS)
+			{			
+				this.textarea.style.left = Math.max(0, Math.ceil(this.bounds.x - m.x * (this.bounds.width - (ow + 1) * scale) + ow * (scale - 1) * 0 + (m.x + 0.5) * 2)) + 'px';
+				this.textarea.style.top = Math.max(0, Math.ceil(this.bounds.y - m.y * (this.bounds.height - (oh + 0.5) * scale) + oh * (scale - 1) * 0 + Math.abs(m.y + 0.5) * 1)) + 'px';
+			}
+			else
+			{			
+				this.textarea.style.left = Math.max(0, Math.round(this.bounds.x - m.x * (this.bounds.width - 2)) + 1) + 'px';
+				this.textarea.style.top = Math.max(0, Math.round(this.bounds.y - m.y * (this.bounds.height - 4) + ((m.y == -1) ? 3 : 0)) + 1) + 'px';
+			}
+	 	}
 
-				if (this.minResize != null)
-				{
-					ow = Math.max(ow, this.minResize.width);
-					oh = Math.max(oh, this.minResize.height);
-				}
-
-				if (wrap)
-				{
-					ow = Math.min(this.bounds.width, ow);
-				}
-								
-				// LATER: Keep in visible area
-				this.textarea.style.left = Math.max(0, Math.ceil(this.bounds.x - m.x * (this.bounds.width - ow - 3))) + 'px';
-
-				if (isEdge)
-				{
-					this.textarea.style.top = Math.max(0, Math.round(this.bounds.y - m.y * this.bounds.height + m.y * oh - m.y * 4) + 6) + 'px';
-				}
-				else
-				{
-
-					this.textarea.style.top = Math.max(0, Math.floor(this.bounds.y - m.y * (this.bounds.height - oh + size * 0.1 + 8))) + 'px';
-				}
-
-				this.textarea.style.width = Math.ceil(ow + this.textarea.offsetWidth - this.textarea.clientWidth) + 'px';
-				this.textarea.style.height = Math.ceil(oh) + 'px';
-		 	}
+		if (mxClient.IS_VML)
+		{
+			this.textarea.style.zoom = scale;
+		}
+		else
+		{
+			mxUtils.setPrefixedStyle(this.textarea.style, 'transformOrigin', '0px 0px');
+			mxUtils.setPrefixedStyle(this.textarea.style, 'transform',
+				'scale(' + scale + ',' + scale + ')' + ((m == null) ? '' :
+				' translate(' + (m.x * 100) + '%,' + (m.y * 100) + '%)'));
 		}
 	}
-};
-
-/**
- * Function: isModified
- * 
- * Returns <modified>.
- */
-mxCellEditor.prototype.isModified = function()
-{
-	return this.modified;
-};
-
-/**
- * Function: setModified
- * 
- * Sets <modified> to the specified boolean value.
- */
-mxCellEditor.prototype.setModified = function(value)
-{
-	this.modified = value;
 };
 
 /**
@@ -45164,24 +45515,19 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 		this.init();
 	}
 	
+	if (this.graph.tooltipHandler != null)
+	{
+		this.graph.tooltipHandler.hideTooltip();
+	}
+	
 	this.stopEditing(true);
 	var state = this.graph.getView().getState(cell);
 	
 	if (state != null)
 	{
-		this.editingCell = cell;
-		this.trigger = trigger;
-		this.textNode = null;
-
-		if (state.text != null && this.isHideLabel(state))
-		{
-			this.textNode = state.text.node;
-			this.textNode.style.visibility = 'hidden';
-		}
-		
 		// Configures the style of the in-place editor
 		var scale = this.graph.getView().scale;
-		var size = mxUtils.getValue(state.style, mxConstants.STYLE_FONTSIZE, mxConstants.DEFAULT_FONTSIZE) * scale;
+		var size = mxUtils.getValue(state.style, mxConstants.STYLE_FONTSIZE, mxConstants.DEFAULT_FONTSIZE);
 		var family = mxUtils.getValue(state.style, mxConstants.STYLE_FONTFAMILY, mxConstants.DEFAULT_FONTFAMILY);
 		var color = mxUtils.getValue(state.style, mxConstants.STYLE_FONTCOLOR, 'black');
 		var align = mxUtils.getValue(state.style, mxConstants.STYLE_ALIGN, mxConstants.ALIGN_LEFT);
@@ -45193,16 +45539,15 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 				mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE;
 		
 		this.textarea.style.lineHeight = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(size * mxConstants.LINE_HEIGHT) + 'px' : mxConstants.LINE_HEIGHT;
+		this.textarea.style.fontSize = Math.round(size) + 'px';
 		this.textarea.style.textDecoration = (uline) ? 'underline' : '';
 		this.textarea.style.fontWeight = (bold) ? 'bold' : 'normal';
 		this.textarea.style.fontStyle = (italic) ? 'italic' : '';
-		this.textarea.style.fontSize = Math.round(size) + 'px';
 		this.textarea.style.fontFamily = family;
 		this.textarea.style.textAlign = align;
-		this.textarea.style.overflow = 'auto';
+		this.textarea.style.zIndex = this.zIndex;
 		this.textarea.style.outline = 'none';
 		this.textarea.style.color = color;
-		this.textarea.style.lineHeight = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(size * mxConstants.LINE_HEIGHT) + 'px' : mxConstants.LINE_HEIGHT;
 		
 		var dir = this.textDirection = mxUtils.getValue(state.style, mxConstants.STYLE_TEXT_DIRECTION, mxConstants.DEFAULT_TEXT_DIRECTION);
 		
@@ -45223,57 +45568,57 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 		{
 			this.textarea.removeAttribute('dir');
 		}
-		
-		// Specifies the bounds of the editor box
-		var bounds = this.getEditorBounds(state);
-		this.bounds = bounds;
 
-		this.textarea.style.left = bounds.x + 'px';
-		this.textarea.style.top = bounds.y + 'px';
-		this.textarea.style.width = bounds.width + 'px';
-		this.textarea.style.height = bounds.height + 'px';
-		this.textarea.style.zIndex = this.zIndex;
-
-		var value = this.getInitialValue(state, trigger);
+		// Sets the initial editing value
+		this.textarea.innerHTML = this.getInitialValue(state, trigger) || '';
+		this.initialValue = this.textarea.innerHTML;
 
 		// Uses an optional text value for empty labels which is cleared
 		// when the first keystroke appears. This makes it easier to see
 		// that a label is being edited even if the label is empty.
-		if (value == null || value.length == 0)
+		if (this.textarea.innerHTML.length == 0 || this.textarea.innerHTML == '<br>')
 		{
-			value = this.getEmptyLabelText();
-			this.clearOnChange = value.length > 0;
+			this.textarea.innerHTML = this.getEmptyLabelText();
+			this.clearOnChange = true;
 		}
 		else
 		{
-			this.clearOnChange = false;
+			this.clearOnChange = this.textarea.innerHTML == this.getEmptyLabelText();
 		}
-		
-		this.setModified(false);		
-		this.textarea.value = value;
+
 		this.graph.container.appendChild(this.textarea);
 		
-		if (this.textarea.style.display != 'none')
+		// Update this after firing all potential events that could update the cleanOnChange flag
+		this.editingCell = cell;
+		this.trigger = trigger;
+		this.textNode = null;
+
+		if (state.text != null && this.isHideLabel(state))
 		{
-			if (this.autoSize)
+			this.textNode = state.text.node;
+			this.textNode.style.visibility = 'hidden';
+		}
+
+		// Workaround for initial offsetHeight not ready for heading in markup
+		if (this.autoSize && (this.graph.model.isEdge(state.cell) || state.style[mxConstants.STYLE_OVERFLOW] != 'fill'))
+		{
+			window.setTimeout(mxUtils.bind(this, function()
 			{
-				this.textDiv = this.createTextDiv();
-				document.body.appendChild(this.textDiv);
 				this.resize();
-			}
-			
+			}), 0);
+		}
+		
+		this.resize();
+		
+		if (this.textarea != null)
+		{
+			// Prefers blinking cursor over no selected text if empty
 			this.textarea.focus();
 			
-			if (this.isSelectText() && this.textarea.value.length > 0)
+			if (this.isSelectText() && this.textarea.innerHTML.length > 0 &&
+				(this.textarea.innerHTML != this.getEmptyLabelText() || !this.clearOnChange))
 			{
-				if (mxClient.IS_IOS)
-				{
-					document.execCommand('selectAll');
-				}
-				else
-				{
-					this.textarea.select();
-				}
+				document.execCommand('selectAll', false, null);
 			}
 		}
 	}
@@ -45287,34 +45632,6 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 mxCellEditor.prototype.isSelectText = function()
 {
 	return this.selectText;
-};
-
-/**
- * Function: createTextDiv
- *
- * Creates the textDiv used for measuring text.
- */
-mxCellEditor.prototype.createTextDiv = function()
-{
-	var div = document.createElement('div');
-	var style = div.style;
-	style.position = 'absolute';
-	style.whiteSpace = 'nowrap';
-	style.visibility = 'hidden';
-	style.padding = '0px';
-	style.margin = '0px';
-	style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
-	style.zoom = '1';
-	style.verticalAlign = 'top';
-	style.lineHeight = this.textarea.style.lineHeight;
-	style.fontSize = this.textarea.style.fontSize;
-	style.fontFamily = this.textarea.style.fontFamily;
-	style.fontWeight = this.textarea.style.fontWeight;
-	style.textAlign = this.textarea.style.textAlign;
-	style.fontStyle = this.textarea.style.fontStyle;
-	style.textDecoration = this.textarea.style.textDecoration;
-	
-	return div;
 };
 
 /**
@@ -45333,18 +45650,11 @@ mxCellEditor.prototype.stopEditing = function(cancel)
 			this.textNode.style.visibility = 'visible';
 			this.textNode = null;
 		}
-		
-		if (!cancel)
-		{
-			this.applyValue();
-		}
-		
-		if (this.textDiv != null)
-		{
-			document.body.removeChild(this.textDiv);
-			this.textDiv = null;
-		}
-		
+
+		var state = (!cancel) ? this.graph.view.getState(this.editingCell) : null;
+
+		var initial = this.initialValue;
+		this.initialValue = null;
 		this.editingCell = null;
 		this.trigger = null;
 		this.bounds = null;
@@ -45354,58 +45664,23 @@ mxCellEditor.prototype.stopEditing = function(cancel)
 		{
 			this.textarea.parentNode.removeChild(this.textarea);
 		}
+		
+		if (this.clearOnChange && this.textarea.innerHTML == this.getEmptyLabelText())
+		{
+			this.textarea.innerHTML = '';
+			this.clearOnChange = false;
+		}
+		
+		if (state != null && this.textarea.innerHTML != initial)
+		{
+			var value = this.getCurrentValue(state);
+			
+			if (value != null)
+			{
+				this.applyValue(state, value);
+			}
+		}
 	}
-};
-
-/**
- * Function: applyValue
- * 
- * Called in <stopEditing> if cancel is false. This invokes
- * <mxGraph.labelChanged> if <isModified> returns true.
- */
-mxCellEditor.prototype.applyValue = function()
-{
-	if (this.isModified())
-	{
-		this.graph.labelChanged(this.editingCell, this.getCurrentValue(), this.trigger);
-	}
-};
-
-/**
- * Function: getInitialValue
- * 
- * Gets the initial editing value for the given cell.
- */
-mxCellEditor.prototype.getInitialValue = function(state, trigger)
-{
-	 return this.graph.getEditingValue(state.cell, trigger);
-};
-
-/**
- * Function: getCurrentValue
- * 
- * Returns the current editing value.
- */
-mxCellEditor.prototype.getCurrentValue = function()
-{
-	 return this.textarea.value.replace(/\r/g, '');
-};
-
-/**
- * Function: getCurrentHtmlValue
- * 
- * Returns the current value as HTML to measure the text size.
- */
-mxCellEditor.prototype.getCurrentHtmlValue = function()
-{
-	var value = this.getCurrentValue();
-	
-	if (value.charAt(value.length - 1) == '\n' || value == '')
-	{
-		value += '&nbsp;';
-	}
-
-	return mxUtils.htmlEntities(value, false).replace(/\n/g, '<br/>');
 };
 
 /**
@@ -45590,10 +45865,17 @@ mxCellEditor.prototype.destroy = function ()
 			this.graph.getModel().removeListener(this.changeHandler);
 			this.changeHandler = null;
 		}
+		
+		if (this.zoomHandler)
+		{
+			this.graph.view.removeListener(this.zoomHandler);
+			this.zoomHandler = null;
+		}
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxCellRenderer
@@ -46905,9 +47187,9 @@ mxCellRenderer.prototype.redraw = function(state, force, rendering)
 };
 
 /**
- * Function: redrawLabel
+ * Function: redrawShape
  * 
- * Redraws the label for the given cell state.
+ * Redraws the shape for the given cell state.
  * 
  * Parameters:
  * 
@@ -47012,7 +47294,8 @@ mxCellRenderer.prototype.destroy = function(state)
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 var mxEdgeStyle =
 {
@@ -47643,14 +47926,24 @@ var mxEdgeStyle =
 		// Adds the waypoints
 		if (hints != null && hints.length > 0)
 		{
-			// Converts all hints
+			// Converts all hints and removes nulls
 			var newHints = [];
 			
 			for (var i = 0; i < hints.length; i++)
 			{
-				newHints[i] = state.view.transformControlPoint(state, hints[i]);
-				newHints[i].x = Math.round(newHints[i].x);
-				newHints[i].y = Math.round(newHints[i].y);
+				var tmp = state.view.transformControlPoint(state, hints[i]);
+				
+				if (tmp != null)
+				{
+					tmp.x = Math.round(tmp.x);
+					tmp.y = Math.round(tmp.y);
+					newHints.push(tmp);
+				}
+			}
+			
+			if (newHints.length == 0)
+			{
+				return;
 			}
 			
 			hints = newHints;
@@ -48204,8 +48497,8 @@ var mxEdgeStyle =
 			prefOrdering[i][1] = horPref[i];
 		}
 
-		if (preferredVertDist > scaledOrthBuffer * 2
-				&& preferredHorizDist > scaledOrthBuffer * 2)
+		if (preferredVertDist > 0
+				&& preferredHorizDist > 0)
 		{
 			// Possibility of two segment edge connection
 			if (((horPref[0] & portConstraint[0]) > 0)
@@ -48228,7 +48521,7 @@ var mxEdgeStyle =
 			}
 		}
 		
-		if (preferredVertDist > scaledOrthBuffer * 2 && !preferredOrderSet)
+		if (preferredVertDist > 0 && !preferredOrderSet)
 		{
 			prefOrdering[0][0] = vertPref[0];
 			prefOrdering[0][1] = horPref[0];
@@ -48238,7 +48531,7 @@ var mxEdgeStyle =
 
 		}
 		
-		if (preferredHorizDist > scaledOrthBuffer * 2 && !preferredOrderSet)
+		if (preferredHorizDist > 0 && !preferredOrderSet)
 		{
 			prefOrdering[0][0] = horPref[0];
 			prefOrdering[0][1] = vertPref[0];
@@ -48535,7 +48828,8 @@ var mxEdgeStyle =
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 var mxStyleRegistry =
 {
@@ -48605,7 +48899,8 @@ mxStyleRegistry.putValue(mxConstants.PERIMETER_RHOMBUS, mxPerimeter.RhombusPerim
 mxStyleRegistry.putValue(mxConstants.PERIMETER_TRIANGLE, mxPerimeter.TrianglePerimeter);
 mxStyleRegistry.putValue(mxConstants.PERIMETER_HEXAGON, mxPerimeter.HexagonPerimeter);
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxGraphView
@@ -51532,7 +51827,8 @@ mxCurrentRootChange.prototype.execute = function()
 	this.isUp = !this.isUp;
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxGraph
@@ -55643,14 +55939,13 @@ mxGraph.prototype.cloneCells = function(cells, allowInvalidEdges)
 	
 	if (cells != null)
 	{
-		// Creates a hashtable for cell lookups
-		var hash = new Object();
+		// Creates a dictionary for fast lookups
+		var dict = new mxDictionary();
 		var tmp = [];
 		
 		for (var i = 0; i < cells.length; i++)
 		{
-			var id = mxCellPath.create(cells[i]);
-			hash[id] = cells[i];
+			dict.put(cells[i], true);
 			tmp.push(cells[i]);
 		}
 		
@@ -55689,12 +55984,10 @@ mxGraph.prototype.cloneCells = function(cells, allowInvalidEdges)
 								
 								// Checks if the source is cloned or sets the terminal point
 								var src = this.model.getTerminal(cells[i], true);
-								var srcId = mxCellPath.create(src);
 								
-								while (src != null && hash[srcId] == null)
+								while (src != null && !dict.get(src))
 								{
 									src = this.model.getParent(src);
-									srcId = mxCellPath.create(src);
 								}
 								
 								if (src == null)
@@ -55706,12 +55999,10 @@ mxGraph.prototype.cloneCells = function(cells, allowInvalidEdges)
 								
 								// Checks if the target is cloned or sets the terminal point
 								var trg = this.model.getTerminal(cells[i], false);
-								var trgId = mxCellPath.create(trg);
 								
-								while (trg != null && hash[trgId] == null)
+								while (trg != null && !dict.get(trg))
 								{
 									trg = this.model.getParent(trg);
-									trgId = mxCellPath.create(trg);
 								}
 								
 								if (trg == null)
@@ -56159,24 +56450,21 @@ mxGraph.prototype.cellsRemoved = function(cells)
 		try
 		{
 			// Creates hashtable for faster lookup
-			var hash = new Object();
+			var dict = new mxDictionary();
 			
 			for (var i = 0; i < cells.length; i++)
 			{
-				var id = mxCellPath.create(cells[i]);
-				hash[id] = cells[i];
+				dict.put(cells[i], true);
 			}
 			
 			for (var i = 0; i < cells.length; i++)
 			{
 				// Disconnects edges which are not in cells
-				var edges = this.getConnections(cells[i]);
+				var edges = this.getAllEdges([cells[i]]);
 				
 				for (var j = 0; j < edges.length; j++)
 				{
-					var id = mxCellPath.create(edges[j]);
-					
-					if (hash[id] == null)
+					if (!dict.get(edges[j]))
 					{
 						var geo = this.model.getGeometry(edges[j]);
 
@@ -56186,11 +56474,24 @@ mxGraph.prototype.cellsRemoved = function(cells)
 									
 							if (state != null)
 							{
+								// Checks which side of the edge is being disconnected
+								var tmp = state.getVisibleTerminal(true);
+								var source = false;
+								
+								while (tmp != null)
+								{
+									if (cells[i] == tmp)
+									{
+										source = true;
+										break;
+									}
+									
+									tmp = this.model.getParent(tmp);
+								}
+								
 								geo = geo.clone();
-								var source = state.getVisibleTerminal(true) == cells[i];
 								var pts = state.absolutePoints;
 								var n = (source) ? 0 : pts.length - 1;
-
 								geo.setTerminalPoint(
 										new mxPoint(pts[n].x / scale - tr.x,
 											pts[n].y / scale - tr.y), source);
@@ -57109,7 +57410,7 @@ mxGraph.prototype.scaleCell = function(cell, dx, dy, recurse)
 		var style = (state != null) ? state.style : this.getCellStyle(cell);
 		
 		geo = geo.clone();
-		geo.scale(dx, dy, state.style[mxConstants.STYLE_ASPECT] == 'fixed');
+		geo.scale(dx, dy, style[mxConstants.STYLE_ASPECT] == 'fixed');
 		
 		if (this.model.isVertex(cell))
 		{
@@ -57206,9 +57507,54 @@ mxGraph.prototype.moveCells = function(cells, dx, dy, clone, target, evt)
 	
 	if (cells != null && (dx != 0 || dy != 0 || clone || target != null))
 	{
+		// Removes descandants with ancestors in cells to avoid multiple moving
+		cells = this.model.getTopmostCells(cells);
+
 		this.model.beginUpdate();
 		try
 		{
+			// Faster cell lookups to remove relative edge labels with selected
+			// terminals to avoid explicit and implicit move at same time
+			var dict = new mxDictionary();
+			
+			for (var i = 0; i < cells.length; i++)
+			{
+				dict.put(cells[i], true);
+			}
+			
+			var isSelected = mxUtils.bind(this, function(cell)
+			{
+				while (cell != null)
+				{
+					if (dict.get(cell))
+					{
+						return true;
+					}
+					
+					cell = this.model.getParent(cell);
+				}
+				
+				return false;
+			});
+			
+			// Removes relative edge labels with selected terminals
+			var checked = [];
+			
+			for (var i = 0; i < cells.length; i++)
+			{
+				var geo = this.getCellGeometry(cells[i]);
+				var parent = this.model.getParent(cells[i]);
+		
+				if ((geo == null || !geo.relative) || !this.model.isEdge(parent) ||
+					(!isSelected(this.model.getTerminal(parent, true)) &&
+					!isSelected(this.model.getTerminal(parent, false))))
+				{
+					checked.push(cells[i]);
+				}
+			}
+
+			cells = checked;
+			
 			if (clone)
 			{
 				cells = this.cloneCells(cells, this.isCloneInvalidEdges());
@@ -57268,9 +57614,6 @@ mxGraph.prototype.cellsMoved = function(cells, dx, dy, disconnect, constrain, ex
 	{
 		extend = (extend != null) ? extend : false;
 
-		// Removes descandants with ancestors in cells to avoid multiple moving
-		cells = this.model.getTopmostCells(cells);
-		
 		this.model.beginUpdate();
 		try
 		{
@@ -57583,13 +57926,12 @@ mxGraph.prototype.resetEdges = function(cells)
 {
 	if (cells != null)
 	{
-		// Prepares a hashtable for faster cell lookups
-		var hash = new Object();
+		// Prepares faster cells lookup
+		var dict = new mxDictionary();
 		
 		for (var i = 0; i < cells.length; i++)
 		{
-			var id = mxCellPath.create(cells[i]);
-			hash[id] = cells[i];
+			dict.put(cells[i], true);
 		}
 		
 		this.model.beginUpdate();
@@ -57608,11 +57950,8 @@ mxGraph.prototype.resetEdges = function(cells)
 						var source = (state != null) ? state.getVisibleTerminal(true) : this.view.getVisibleTerminal(edges[j], true);
 						var target = (state != null) ? state.getVisibleTerminal(false) : this.view.getVisibleTerminal(edges[j], false);
 						
-						var sourceId = mxCellPath.create(source);
-						var targetId = mxCellPath.create(target);
-						
 						// Checks if one of the terminals is not in the given array
-						if (hash[sourceId] == null || hash[targetId] == null)
+						if (!dict.get(source) || !dict.get(target))
 						{
 							this.resetEdge(edges[j]);
 						}
@@ -58120,15 +58459,14 @@ mxGraph.prototype.disconnectGraph = function(cells)
 			var scale = this.view.scale;
 			var tr = this.view.translate;
 			
-			// Prepares a hashtable for faster cell lookups
-			var hash = new Object();
+			// Fast lookup for finding cells in array
+			var dict = new mxDictionary();
 			
 			for (var i = 0; i < cells.length; i++)
 			{
-				var id = mxCellPath.create(cells[i]);
-				hash[id] = cells[i];
+				dict.put(cells[i], true);
 			}
-
+			
 			for (var i = 0; i < cells.length; i++)
 			{
 				if (this.model.isEdge(cells[i]))
@@ -58154,12 +58492,9 @@ mxGraph.prototype.disconnectGraph = function(cells)
 							
 							if (src != null && this.isCellDisconnectable(cells[i], src, true))
 							{
-								var srcId = mxCellPath.create(src);
-								
-								while (src != null && hash[srcId] == null)
+								while (src != null && !dict.get(src))
 								{
 									src = this.model.getParent(src);
-									srcId = mxCellPath.create(src);
 								}
 								
 								if (src == null)
@@ -58175,12 +58510,9 @@ mxGraph.prototype.disconnectGraph = function(cells)
 							
 							if (trg != null && this.isCellDisconnectable(cells[i], trg, false))
 							{
-								var trgId = mxCellPath.create(trg);
-								
-								while (trg != null && hash[trgId] == null)
+								while (trg != null && !dict.get(trg))
 								{
 									trg = this.model.getParent(trg);
-									trgId = mxCellPath.create(trg);
 								}
 								
 								if (trg == null)
@@ -59115,67 +59447,70 @@ mxGraph.prototype.fit = function(border, keepOrigin)
 		var h1 = this.container.clientHeight - sb;
 
 		var bounds = this.view.getGraphBounds();
-
-		if (keepOrigin && bounds.x != null && bounds.y != null)
-		{
-			bounds.width += bounds.x;
-			bounds.height += bounds.y;
-			bounds.x = 0;
-			bounds.y = 0;
-		}
 		
-		var s = this.view.scale;
-		var w2 = bounds.width / s;
-		var h2 = bounds.height / s;
-		
-		// Fits to the size of the background image if required
-		if (this.backgroundImage != null)
+		if (bounds.width > 0 && bounds.height > 0)
 		{
-			w2 = Math.max(w2, this.backgroundImage.width - bounds.x / s);
-			h2 = Math.max(h2, this.backgroundImage.height - bounds.y / s);
-		}
-		
-		var b = (keepOrigin) ? border : 2 * border;
-		var s2 = Math.floor(Math.min(w1 / (w2 + b), h1 / (h2 + b)) * 100) / 100;
-		
-		if (this.minFitScale != null)
-		{
-			s2 = Math.max(s2, this.minFitScale);
-		}
-		
-		if (this.maxFitScale != null)
-		{
-			s2 = Math.min(s2, this.maxFitScale);
-		}
-
-		if (!keepOrigin)
-		{
-			if (!mxUtils.hasScrollbars(this.container))
+			if (keepOrigin && bounds.x != null && bounds.y != null)
 			{
-				var x0 = (bounds.x != null) ? Math.floor(this.view.translate.x - bounds.x / s + border + 1) : border;
-				var y0 = (bounds.y != null) ? Math.floor(this.view.translate.y - bounds.y / s + border + 1) : border;
-
-				this.view.scaleAndTranslate(s2, x0, y0);
+				bounds.width += bounds.x;
+				bounds.height += bounds.y;
+				bounds.x = 0;
+				bounds.y = 0;
 			}
-			else
+			
+			var s = this.view.scale;
+			var w2 = bounds.width / s;
+			var h2 = bounds.height / s;
+			
+			// Fits to the size of the background image if required
+			if (this.backgroundImage != null)
+			{
+				w2 = Math.max(w2, this.backgroundImage.width - bounds.x / s);
+				h2 = Math.max(h2, this.backgroundImage.height - bounds.y / s);
+			}
+			
+			var b = (keepOrigin) ? border : 2 * border;
+			var s2 = Math.floor(Math.min(w1 / (w2 + b), h1 / (h2 + b)) * 100) / 100;
+			
+			if (this.minFitScale != null)
+			{
+				s2 = Math.max(s2, this.minFitScale);
+			}
+			
+			if (this.maxFitScale != null)
+			{
+				s2 = Math.min(s2, this.maxFitScale);
+			}
+	
+			if (!keepOrigin)
+			{
+				if (!mxUtils.hasScrollbars(this.container))
+				{
+					var x0 = (bounds.x != null) ? Math.floor(this.view.translate.x - bounds.x / s + border + 1) : border;
+					var y0 = (bounds.y != null) ? Math.floor(this.view.translate.y - bounds.y / s + border + 1) : border;
+	
+					this.view.scaleAndTranslate(s2, x0, y0);
+				}
+				else
+				{
+					this.view.setScale(s2);
+					var b2 = this.getGraphBounds();
+					
+					if (b2.x != null)
+					{
+						this.container.scrollLeft = b2.x;
+					}
+					
+					if (b2.y != null)
+					{
+						this.container.scrollTop = b2.y;
+					}
+				}
+			}
+			else if (this.view.scale != s2)
 			{
 				this.view.setScale(s2);
-				var b2 = this.getGraphBounds();
-				
-				if (b2.x != null)
-				{
-					this.container.scrollLeft = b2.x;
-				}
-				
-				if (b2.y != null)
-				{
-					this.container.scrollTop = b2.y;
-				}
 			}
-		}
-		else if (this.view.scale != s2)
-		{
-			this.view.setScale(s2);
 		}
 	}
 	
@@ -62538,9 +62873,8 @@ mxGraph.prototype.getOpposites = function(edges, terminal, sources, targets)
 	
 	var terminals = [];
 	
-	// Implements set semantic on the terminals array using a string
-	// representation of each cell in an associative array lookup
-	var hash = new Object();
+	// Fast lookup to avoid duplicates in terminals array
+	var dict = new mxDictionary();
 	
 	if (edges != null)
 	{
@@ -62553,28 +62887,22 @@ mxGraph.prototype.getOpposites = function(edges, terminal, sources, targets)
 			
 			// Checks if the terminal is the source of the edge and if the
 			// target should be stored in the result
-			if (source == terminal && target != null &&
-				target != terminal && targets)
+			if (source == terminal && target != null && target != terminal && targets)
 			{
-				var id = mxCellPath.create(target);
-				
-				if (hash[id] == null)
+				if (!dict.get(target))
 				{
-					hash[id] = target;
+					dict.put(target, true);
 					terminals.push(target);
 				}
 			}
 			
 			// Checks if the terminal is the taget of the edge and if the
 			// source should be stored in the result
-			else if (target == terminal && source != null &&
-					source != terminal && sources)
+			else if (target == terminal && source != null && source != terminal && sources)
 			{
-				var id = mxCellPath.create(source);
-				
-				if (hash[id] == null)
+				if (!dict.get(source))
 				{
-					hash[id] = source;
+					dict.put(source, true);
 					terminals.push(source);
 				}
 			}
@@ -62884,19 +63212,18 @@ mxGraph.prototype.findTreeRoots = function(parent, isolate, invert)
  * edge as arguments. The traversal stops if the function returns false.
  * edge - Optional <mxCell> that represents the incoming edge. This is
  * null for the first step of the traversal.
- * visited - Optional array of cell paths for the visited cells.
+ * visited - Optional <mxDictionary> from cells to true for the visited cells.
  */
 mxGraph.prototype.traverse = function(vertex, directed, func, edge, visited)
 {
 	if (func != null && vertex != null)
 	{
 		directed = (directed != null) ? directed : true;
-		visited = visited || [];
-		var id = mxCellPath.create(vertex);
+		visited = visited || new mxDictionary();
 		
-		if (visited[id] == null)
+		if (!visited.get(vertex))
 		{
-			visited[id] = vertex;
+			visited.put(vertex, true);
 			var result = func(vertex, edge);
 			
 			if (result == null || result)
@@ -64040,7 +64367,8 @@ mxGraph.prototype.destroy = function()
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxCellOverlay
@@ -64272,7 +64600,8 @@ mxCellOverlay.prototype.toString = function()
 	return this.tooltip;
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxOutline
@@ -65025,7 +65354,8 @@ mxOutline.prototype.destroy = function()
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxMultiplicity
@@ -65281,7 +65611,8 @@ mxMultiplicity.prototype.checkType = function(graph, value, type, attr, attrValu
 	return false;
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxLayoutManager
@@ -65568,8 +65899,8 @@ mxLayoutManager.prototype.cellsMoved = function(cells, evt)
  */
 mxLayoutManager.prototype.getCellsForChanges = function(changes)
 {
+	var dict = new mxDictionary();
 	var result = [];
-	var hash = new Object();
 	
 	for (var i = 0; i < changes.length; i++)
 	{
@@ -65585,15 +65916,10 @@ mxLayoutManager.prototype.getCellsForChanges = function(changes)
 			
 			for (var j = 0; j < cells.length; j++)
 			{
-				if (cells[j] != null)
+				if (cells[j] != null && !dict.get(cells[j]))
 				{
-					var id = mxCellPath.create(cells[j]);
-					
-					if (hash[id] == null)
-					{
-						hash[id] = cells[j];
-						result.push(cells[j]);
-					}
+					dict.put(cells[j], true);
+					result.push(cells[j]);
 				}
 			}
 		}
@@ -65694,7 +66020,8 @@ mxLayoutManager.prototype.destroy = function()
 	this.setGraph(null);
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxSwimlaneManager
@@ -66143,7 +66470,8 @@ mxSwimlaneManager.prototype.destroy = function()
 	this.setGraph(null);
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxTemporaryCellStates
@@ -66250,7 +66578,8 @@ mxTemporaryCellStates.prototype.destroy = function()
 	this.view.validateCellState = this.oldValidateCellState;
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  *
@@ -66452,7 +66781,8 @@ mxCellStatePreview.prototype.addEdges = function(state)
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxConnectionConstraint
@@ -66493,7 +66823,8 @@ mxConnectionConstraint.prototype.point = null;
  */
 mxConnectionConstraint.prototype.perimeter = null;
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxGraphHandler
@@ -67530,7 +67861,8 @@ mxGraphHandler.prototype.destroy = function()
 	this.removeHint();
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxPanningHandler
@@ -67990,7 +68322,8 @@ mxPanningHandler.prototype.destroy = function()
 	this.graph.removeListener(this.gestureHandler);
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxPopupMenuHandler
@@ -68207,7 +68540,8 @@ mxPopupMenuHandler.prototype.destroy = function()
 	mxPopupMenu.prototype.destroy.apply(this);
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxCellMarker
@@ -68636,7 +68970,8 @@ mxCellMarker.prototype.destroy = function()
 	this.highlight.destroy();
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxSelectionCellsHandler
@@ -68901,7 +69236,8 @@ mxSelectionCellsHandler.prototype.destroy = function()
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxConnectionHandler
@@ -69296,8 +69632,12 @@ mxConnectionHandler.prototype.setEnabled = function(enabled)
  * Function: isCreateTarget
  * 
  * Returns <createTarget>.
+ *
+ * Parameters:
+ *
+ * evt - Current active native pointer event.
  */
-mxConnectionHandler.prototype.isCreateTarget = function()
+mxConnectionHandler.prototype.isCreateTarget = function(evt)
 {
 	return this.createTarget;
 };
@@ -69446,7 +69786,7 @@ mxConnectionHandler.prototype.createMarker = function()
 						cell = null;
 						
 						// Enables create target inside groups
-						if (this.isCreateTarget())
+						if (this.isCreateTarget(me.getEvent()))
 						{
 							this.error = null;
 						}
@@ -69458,7 +69798,7 @@ mxConnectionHandler.prototype.createMarker = function()
 				cell = null;
 			}
 		}
-		else if (this.isConnecting() && !this.isCreateTarget() &&
+		else if (this.isConnecting() && !this.isCreateTarget(me.getEvent()) &&
 				!this.graph.allowDanglingEdges)
 		{
 			this.error = '';
@@ -69913,7 +70253,7 @@ mxConnectionHandler.prototype.isOutlineConnectEvent = function(me)
  */
 mxConnectionHandler.prototype.updateCurrentState = function(me, point)
 {
-	this.constraintHandler.update(me, this.first == null);
+	this.constraintHandler.update(me, this.first == null, false);
 	
 	if (this.constraintHandler.currentFocus != null && this.constraintHandler.currentConstraint != null)
 	{
@@ -70098,37 +70438,7 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 			// Uses edge state to compute the terminal points
 			if (this.edgeState != null)
 			{
-				this.edgeState.absolutePoints = [null, (this.currentState != null) ? null : current];
-				this.graph.view.updateFixedTerminalPoint(this.edgeState, this.previous, true, this.sourceConstraint);
-				
-				if (this.currentState != null)
-				{
-					if (constraint == null)
-					{
-						constraint = this.graph.getConnectionConstraint(this.edgeState, this.previous, false);
-					}
-					
-					this.edgeState.setAbsoluteTerminalPoint(null, false);
-					this.graph.view.updateFixedTerminalPoint(this.edgeState, this.currentState, false, constraint);
-				}
-				
-				// Scales and translates the waypoints to the model
-				var realPoints = null;
-				
-				if (this.waypoints != null)
-				{
-					realPoints = [];
-					
-					for (var i = 0; i < this.waypoints.length; i++)
-					{
-						var pt = this.waypoints[i].clone();
-						this.convertWaypoint(pt);
-						realPoints[i] = pt;
-					}
-				}
-				
-				this.graph.view.updatePoints(this.edgeState, realPoints, this.previous, this.currentState);
-				this.graph.view.updateFloatingTerminalPoints(this.edgeState, this.previous, this.currentState);
+				this.updateEdgeState(current, constraint);
 				current = this.edgeState.absolutePoints[this.edgeState.absolutePoints.length - 1];
 				pt2 = this.edgeState.absolutePoints[0];
 			}
@@ -70288,6 +70598,46 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 	{
 		this.constraintHandler.reset();
 	}
+};
+
+/**
+ * Function: updateEdgeState
+ * 
+ * Updates <edgeState>.
+ */
+mxConnectionHandler.prototype.updateEdgeState = function(current, constraint)
+{
+	this.edgeState.absolutePoints = [null, (this.currentState != null) ? null : current];
+	this.graph.view.updateFixedTerminalPoint(this.edgeState, this.previous, true, this.sourceConstraint);
+	
+	if (this.currentState != null)
+	{
+		if (constraint == null)
+		{
+			constraint = this.graph.getConnectionConstraint(this.edgeState, this.previous, false);
+		}
+		
+		this.edgeState.setAbsoluteTerminalPoint(null, false);
+		this.graph.view.updateFixedTerminalPoint(this.edgeState, this.currentState, false, constraint);
+	}
+	
+	// Scales and translates the waypoints to the model
+	var realPoints = null;
+	
+	if (this.waypoints != null)
+	{
+		realPoints = [];
+		
+		for (var i = 0; i < this.waypoints.length; i++)
+		{
+			var pt = this.waypoints[i].clone();
+			this.convertWaypoint(pt);
+			realPoints[i] = pt;
+		}
+	}
+	
+	this.graph.view.updatePoints(this.edgeState, realPoints, this.previous, this.currentState);
+	this.graph.view.updateFloatingTerminalPoints(this.edgeState, this.previous, this.currentState);
 };
 
 /**
@@ -70587,7 +70937,7 @@ mxConnectionHandler.prototype.getEdgeWidth = function(valid)
  */
 mxConnectionHandler.prototype.connect = function(source, target, evt, dropTarget)
 {
-	if (target != null || this.isCreateTarget() || this.graph.allowDanglingEdges)
+	if (target != null || this.isCreateTarget(evt) || this.graph.allowDanglingEdges)
 	{
 		// Uses the common parent of source and target or
 		// the default parent to insert the edge
@@ -70598,7 +70948,7 @@ mxConnectionHandler.prototype.connect = function(source, target, evt, dropTarget
 		model.beginUpdate();
 		try
 		{
-			if (source != null && target == null && this.isCreateTarget())
+			if (source != null && target == null && this.isCreateTarget(evt))
 			{
 				target = this.createTargetVertex(evt, source);
 				
@@ -70919,7 +71269,8 @@ mxConnectionHandler.prototype.destroy = function()
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxConstraintHandler
@@ -71147,7 +71498,7 @@ mxConstraintHandler.prototype.getCellForEvent = function(me)
  * Updates the state of this handler based on the given <mxMouseEvent>.
  * Source is a boolean indicating if the cell is a source or target.
  */
-mxConstraintHandler.prototype.update = function(me, source)
+mxConstraintHandler.prototype.update = function(me, source, existingEdge)
 {
 	if (this.isEnabled() && !this.isEventIgnored(me))
 	{
@@ -71253,7 +71604,8 @@ mxConstraintHandler.prototype.update = function(me, source)
 				var dy = me.getGraphY() - this.focusIcons[i].bounds.getCenterY();
 				var tmp = dx * dx + dy * dy;
 				
-				if (mxUtils.intersects(this.focusIcons[i].bounds, mouse) && (minDistSq == null || tmp < minDistSq))
+				if (this.intersects(this.focusIcons[i], mouse, source, existingEdge) &&
+					(minDistSq == null || tmp < minDistSq))
 				{
 					this.currentConstraint = this.constraints[i];
 					this.currentPoint = this.focusPoints[i];
@@ -71308,6 +71660,16 @@ mxConstraintHandler.prototype.update = function(me, source)
 };
 
 /**
+ * Function: intersects
+ * 
+ * Returns true if the given icon intersects the given point.
+ */
+mxConstraintHandler.prototype.intersects = function(icon, point, source, existingEdge)
+{
+	return mxUtils.intersects(icon.bounds, point);
+};
+
+/**
  * Function: destroy
  * 
  * Destroy this handler.
@@ -71317,7 +71679,8 @@ mxConstraintHandler.prototype.destroy = function()
 	this.reset();
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxRubberband
@@ -71696,7 +72059,8 @@ mxRubberband.prototype.destroy = function()
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxHandle
@@ -72045,7 +72409,8 @@ mxHandle.prototype.destroy = function()
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxVertexHandler
@@ -73852,7 +74217,8 @@ mxVertexHandler.prototype.destroy = function()
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxEdgeHandler
@@ -74944,7 +75310,7 @@ mxEdgeHandler.prototype.getPointForEvent = function(me)
  */
 mxEdgeHandler.prototype.getPreviewTerminalState = function(me)
 {
-	this.constraintHandler.update(me, this.isSource);
+	this.constraintHandler.update(me, this.isSource, true);
 	
 	if (this.constraintHandler.currentFocus != null && this.constraintHandler.currentConstraint != null)
 	{
@@ -76174,7 +76540,8 @@ mxEdgeHandler.prototype.destroy = function()
 	this.removeHint();
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxElbowEdgeHandler
@@ -76408,7 +76775,8 @@ mxElbowEdgeHandler.prototype.redrawInnerBends = function(p0, pe)
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 function mxEdgeSegmentHandler(state)
 {
@@ -76813,7 +77181,8 @@ mxEdgeSegmentHandler.prototype.redrawInnerBends = function(p0, pe)
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxKeyHandler
@@ -77075,7 +77444,7 @@ mxKeyHandler.prototype.isControlDown = function(evt)
  */
 mxKeyHandler.prototype.getFunction = function(evt)
 {
-	if (evt != null)
+	if (evt != null && !mxEvent.isAltDown(evt))
 	{
 		if (this.isControlDown(evt))
 		{
@@ -77223,7 +77592,8 @@ mxKeyHandler.prototype.destroy = function()
 	this.target = null;
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxTooltipHandler
@@ -77558,7 +77928,8 @@ mxTooltipHandler.prototype.destroy = function()
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxCellTracker
@@ -77705,7 +78076,8 @@ mxCellTracker.prototype.destroy = function()
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxCellHighlight
@@ -77957,7 +78329,8 @@ mxCellHighlight.prototype.destroy = function()
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxDefaultKeyHandler
@@ -78082,7 +78455,8 @@ mxDefaultKeyHandler.prototype.destroy = function ()
 	this.handler = null;
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxDefaultPopupMenu
@@ -78387,7 +78761,8 @@ mxDefaultPopupMenu.prototype.createConditions = function(editor, cell, evt)
 	return conditions;
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxDefaultToolbar
@@ -78950,7 +79325,8 @@ mxDefaultToolbar.prototype.destroy = function ()
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxEditor
@@ -82063,7 +82439,8 @@ mxEditor.prototype.destroy = function ()
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 var mxCodecRegistry =
 {
@@ -82199,7 +82576,8 @@ var mxCodecRegistry =
 
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxCodec
@@ -82786,7 +83164,8 @@ mxCodec.prototype.setAttribute = function(node, attribute, value)
 	}
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxObjectCodec
@@ -83845,7 +84224,8 @@ mxObjectCodec.prototype.afterDecode = function(dec, node, obj)
 	return obj;
 };
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 mxCodecRegistry.register(function()
 {
@@ -84033,7 +84413,8 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 mxCodecRegistry.register(function()
 {
@@ -84112,7 +84493,8 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 mxCodecRegistry.register(function()
 {
@@ -84194,7 +84576,8 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 mxCodecRegistry.register(function()
 {
@@ -84342,7 +84725,8 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 mxCodecRegistry.register(function()
 {
@@ -84383,7 +84767,8 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxGenericChangeCodec
@@ -84446,7 +84831,8 @@ mxCodecRegistry.register(mxGenericChangeCodec(new mxCollapseChange(), 'collapsed
 mxCodecRegistry.register(mxGenericChangeCodec(new mxVisibleChange(), 'visible'));
 mxCodecRegistry.register(mxGenericChangeCodec(new mxCellAttributeChange(), 'value'));
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 mxCodecRegistry.register(function()
 {
@@ -84473,7 +84859,8 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 mxCodecRegistry.register(function()
 {
@@ -84669,7 +85056,8 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxStylesheetCodec
@@ -84885,7 +85273,8 @@ var mxStylesheetCodec = mxCodecRegistry.register(function()
  */
 mxStylesheetCodec.allowEval = true;
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 mxCodecRegistry.register(function()
 {
@@ -84972,7 +85361,8 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxDefaultToolbarCodec
@@ -85283,7 +85673,8 @@ var mxDefaultToolbarCodec = mxCodecRegistry.register(function()
  */
 mxDefaultToolbarCodec.allowEval = true;
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 mxCodecRegistry.register(function()
 {
@@ -85336,7 +85727,8 @@ mxCodecRegistry.register(function()
 
 }());
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 mxCodecRegistry.register(function()
 {

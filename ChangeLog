@@ -1,3 +1,46 @@
+28-JUN-2015: 3.4.0.0
+
+- Uses CSS transforms in mxCellEditor.resize [JavaScript]
+- Adds create and destroy for grapheditor instances
+- Fixes global mousewheel handling in grapheditor
+- Fixes short, straight orthogonal connector case [JavaScript]
+- Uses dictionary in mxGraphModel.getTopmostCells [JavaScript]
+- Implements sets of cells using mxObjectIdentity [JavaScript]
+- Fixes possible NPE in mxObjectIdenity.get [JavaScript]
+- Ignores relative edges labels with selected terminals in mxGraph.moveCells [JavaScript]
+- Moves logic for ignoring descendants to mxGraph.moveCells [JavaScript]
+- Adds mxConstraintHandler.intersects, updateEdgeState hooks [JavaScript]
+- Fixes possible NPE In mxGraph.scaleCell [JavaScript]
+- Sets mxClient.IS_NS, IS_SF and IS_GC to false in Microsoft Edge [JavaScript]
+- Disposes Graphics instance in mxGraphicsCanvas2D.restore [Java]
+- Fixes mxGraph.cellsRemoved for recursive delete with no edges [Java,JavaScript]
+- Fixes repaint for zoom while editing label in grapheditor
+- Fixes font size in format panel for zoomed text in grapheditor
+- Adds ctrl+connect to copy source terminal in grapheditor
+- Adds ctrl+delete to delete shape with connections in grapheditor
+- Deletes shapes and connections separately in grapheditor
+- Changes plus icon to arrow icon in grapheditor
+- Adds rounded to copy style and default style in grapheditor
+- Adds ctrl+mouse wheel zoom on Windows and Linux in grapheditor
+- mxKeyHandler ignores key events with alt key pressed [JavaScript]
+- Adds event argument in mxConnectionHandler.isCreateTarget [JavaScript]
+- Adds mxPlainTextEditor CSS class in common.css [JavaScript]
+- Fixes possible NaN in mxArrowConnector [JavaScript]
+- mxCellEditor ignores focus lost, adds blurEnabled switch [JavaScript]
+- Fixes stylesheets access in mxUtils.show [JavaScript]
+- Adds mxUtils.extractTextWithWhitespace [JavaScript]
+- Fixes rendering of trailing newline in HTML labels [JavaScript]
+- Removes mxCellEditor.modified and accessors, adds initialValue [JavaScript]
+- Uses div and contentEditable for text editing in mxCellEditor [JavaScript]
+- Fixes parsing of decimal values in mxSaxOutputHandler [Dotnet]
+- Fixes possible border for older browsers in mxImageShape [JavaScript]
+- Fixes possible NPE in mxEdgeStyle.SegmentConnector [JavaScript]
+- Ignores doctype, validation in mxUtils.parseXml for IE<=9 [JavaScript]
+- Rearranges menus, removes toolbar items in grapheditor
+- Adds locking for layers, updates dialog in grapheditor
+- Fixes possible division by zero in mxGraph.fit [JavaScript]
+- Adds space+drag for panning, handles tab while editing in grapheditor
+
 23-JUN-2015: 3.3.1.1
 
 - Adds support for mxConstants.STYLE_SWIMLANE_FILLCOLOR [Php,Dotnet]

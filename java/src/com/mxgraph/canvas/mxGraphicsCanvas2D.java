@@ -232,6 +232,7 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	 */
 	public void restore()
 	{
+		state.g.dispose();
 		state = stack.pop();
 	}
 

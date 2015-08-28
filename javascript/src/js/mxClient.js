@@ -1,9 +1,9 @@
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 var mxClient =
 {
-
 	/**
 	 * Class: mxClient
 	 *
@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.3.1.1.
+	 * Current version is 3.4.0.0.
 	 */
-	VERSION: '3.3.1.1',
+	VERSION: '3.4.0.0',
 
 	/**
 	 * Variable: IS_IE
@@ -80,7 +80,8 @@ var mxClient =
 	 * True if the current browser is Netscape (including Firefox).
 	 */
   	IS_NS: navigator.userAgent.indexOf('Mozilla/') >= 0 &&
-  		navigator.userAgent.indexOf('MSIE') < 0,
+  		navigator.userAgent.indexOf('MSIE') < 0 &&
+  		navigator.userAgent.indexOf('Edge/') < 0,
 
 	/**
 	 * Variable: IS_OP
@@ -110,7 +111,8 @@ var mxClient =
 	 * True if the current browser is Safari.
 	 */
   	IS_SF: navigator.userAgent.indexOf('AppleWebKit/') >= 0 &&
-  		navigator.userAgent.indexOf('Chrome/') < 0,
+  		navigator.userAgent.indexOf('Chrome/') < 0 &&
+  		navigator.userAgent.indexOf('Edge/') < 0,
   	
 	/**
 	 * Variable: IS_IOS
@@ -124,7 +126,8 @@ var mxClient =
 	 *
 	 * True if the current browser is Google Chrome.
 	 */
-  	IS_GC: navigator.userAgent.indexOf('Chrome/') >= 0,
+  	IS_GC: navigator.userAgent.indexOf('Chrome/') >= 0 &&
+		navigator.userAgent.indexOf('Edge/') < 0,
 		
 	/**
 	 * Variable: IS_FF

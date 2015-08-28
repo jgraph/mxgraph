@@ -6,7 +6,6 @@ package com.mxgraph.examples.web;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URLDecoder;
-import java.util.zip.GZIPOutputStream;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -43,11 +42,7 @@ public class EchoServlet extends HttpServlet
 			String filename = request.getParameter("filename");
 			String xml = request.getParameter("xml");
 
-			if (filename != null)
-			{
-				filename = URLDecoder.decode(filename, "UTF-8");
-			}
-			else
+			if (filename == null)
 			{
 				filename = "export";
 			}
@@ -79,15 +74,6 @@ public class EchoServlet extends HttpServlet
 				response.setStatus(HttpServletResponse.SC_OK);
 
 				OutputStream out = response.getOutputStream();
-				String encoding = request.getHeader("Accept-Encoding");
-
-				// Supports GZIP content encoding
-				if (encoding != null && encoding.indexOf("gzip") >= 0)
-				{
-					response.setHeader("Content-Encoding", "gzip");
-					out = new GZIPOutputStream(out);
-				}
-
 				out.write(xml.getBytes("UTF-8"));
 				out.flush();
 				out.close();

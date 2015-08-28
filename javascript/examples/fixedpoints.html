@@ -31,10 +31,76 @@
 			}
 			else
 			{
+				// Snaps to fixed points
+				mxConstraintHandler.prototype.intersects = function(icon, point, source, existingEdge)
+				{
+					return (!source || existingEdge) || mxUtils.intersects(icon.bounds, point);
+				};
+				
+				// Special case: Snaps source of new connections to fixed points
+				// Without a connect preview in connectionHandler.createEdgeState mouseMove
+				// and getSourcePerimeterPoint should be overriden by setting sourceConstraint
+				// sourceConstraint to null in mouseMove and updating it and returning the
+				// nearest point (cp) in getSourcePerimeterPoint (see below)
+				var mxConnectionHandlerUpdateEdgeState = mxConnectionHandler.prototype.updateEdgeState;
+				mxConnectionHandler.prototype.updateEdgeState = function(pt, constraint)
+				{
+					if (pt != null && this.previous != null)
+					{
+				        var constraints = this.graph.getAllConnectionConstraints(this.previous);
+				        var nearestConstraint = null;
+				        var dist = null;
+				   
+				        for (var i = 0; i < constraints.length; i++)
+				        {
+				            var cp = this.graph.getConnectionPoint(this.previous, constraints[i]);
+				           
+				            if (cp != null)
+				            {
+				                var tmp = (cp.x - pt.x) * (cp.x - pt.x) + (cp.y - pt.y) * (cp.y - pt.y);
+				           
+				                if (dist == null || tmp < dist)
+				                {
+				                	nearestConstraint = constraints[i];
+				                    dist = tmp;
+				                }
+				            }
+				        }
+				       
+				        if (nearestConstraint != null)
+				        {
+				        	this.sourceConstraint = nearestConstraint;
+				        }
+				        
+				        // In case the edge style must be changed during the preview:
+				        // this.edgeState.style['edgeStyle'] = 'orthogonalEdgeStyle';
+				        // And to use the new edge style in the new edge inserted into the graph,
+				        // update the cell style as follows:
+				        //this.edgeState.cell.style = mxUtils.setStyle(this.edgeState.cell.style, 'edgeStyle', this.edgeState.style['edgeStyle']);
+					}
+				
+					mxConnectionHandlerUpdateEdgeState.apply(this, arguments);
+				};
+
 				// Creates the graph inside the given container
 				var graph = new mxGraph(container);
 				graph.setConnectable(true);
 
+				//graph.connectionHandler.connectImage = new mxImage('images/connector.gif', 16, 16);
+
+				// Disables floating connections (only use with no connect image)
+				if (graph.connectionHandler.connectImage == null)
+				{
+					graph.connectionHandler.isConnectableCell = function(cell)
+					{
+					   return false;
+					};
+					mxEdgeHandler.prototype.isConnectableCell = function(cell)
+					{
+						return graph.connectionHandler.isConnectableCell(cell);
+					};
+				}
+				
 				graph.getAllConnectionConstraints = function(terminal)
 				{
 					if (terminal != null && this.model.isVertex(terminal.cell))
@@ -52,24 +118,14 @@
 					return null;
 				};
 				
-				// Connect preview for elbow edges
+				// Connect preview
 				graph.connectionHandler.createEdgeState = function(me)
 				{
-					var edge = graph.createEdge(null, null, null, null, null, 'edgeStyle=elbowEdgeStyle');
+					var edge = graph.createEdge(null, null, null, null, null, 'edgeStyle=orthogonalEdgeStyle');
 					
 					return new mxCellState(this.graph.view, edge, this.graph.getCellStyle(edge));
 				};
 
-				// Disables floating connections
-				graph.connectionHandler.isConnectableCell = function(cell)
-				{
-				   return false;
-				};
-				mxEdgeHandler.prototype.isConnectableCell = function(cell)
-				{
-					return graph.connectionHandler.isConnectableCell(cell);
-				};
-				
 				// Enables rubberband selection
 				new mxRubberband(graph);
 				
@@ -99,6 +155,62 @@
 					graph.getModel().endUpdate();
 				}
 			}
+			
+			// Use this code to snap the source point for new connections without a connect preview,
+			// ie. without an overridden graph.connectionHandler.createEdgeState
+			/*
+			var mxConnectionHandlerMouseMove = mxConnectionHandler.prototype.mouseMove;
+			mxConnectionHandler.prototype.mouseMove = function(sender, me)
+			{
+			    this.sourceConstraint = null;
+			   
+			    mxConnectionHandlerMouseMove.apply(this, arguments);
+			};
+
+			var mxConnectionHandlerGetSourcePerimeterPoint = mxConnectionHandler.prototype.getSourcePerimeterPoint;
+			mxConnectionHandler.prototype.getSourcePerimeterPoint = function(state, pt, me)
+			{
+			    var result = null;
+			   
+			    if (this.previous != null && pt != null)
+			    {
+			        var constraints = this.graph.getAllConnectionConstraints(this.previous);
+			        var nearestConstraint = null;
+			        var nearest = null;
+			        var dist = null;
+			  
+			        for (var i = 0; i < constraints.length; i++)
+			        {
+			            var cp = this.graph.getConnectionPoint(this.previous, constraints[i]);
+			          
+			            if (cp != null)
+			            {
+			                var tmp = (cp.x - pt.x) * (cp.x - pt.x) + (cp.y - pt.y) * (cp.y - pt.y);
+			          
+			                if (dist == null || tmp < dist)
+			                {
+			                    nearestConstraint = constraints[i];
+			                    nearest = cp;
+			                    dist = tmp;
+			                }
+			            }
+			        }
+			      
+			        if (nearestConstraint != null)
+			        {
+			            this.sourceConstraint = nearestConstraint;
+			            result = nearest;
+			        }
+			    }
+			   
+			    if (result == null)
+			    {
+			        result = mxConnectionHandlerGetSourcePerimeterPoint.apply(this, arguments);
+			    }
+			   
+			    return result;
+			};
+			*/
 		};
 	</script>
 </head>

@@ -6,12 +6,22 @@ div.mxRubberband {
 	border-color: #0000FF;
 	background: #0077FF;
 }
-textarea.mxCellEditor {
+.mxCellEditor {
 	background: url('../images/transparent.gif');
+	border-color: transparent;
 	border-style: solid;
-	border-color: black;
+	position: absolute;
+	overflow: visible;
+	word-wrap: normal;
 	border-width: 0;
-	overflow: auto;
+	min-width: 1px;
+	resize: none;
+	padding: 0px;
+	margin: 0px;
+}
+.mxPlainTextEditor * {
+	padding: 0px;
+	margin: 0px;
 }
 div.mxWindow {
 	-webkit-box-shadow: 3px 3px 12px #C0C0C0;

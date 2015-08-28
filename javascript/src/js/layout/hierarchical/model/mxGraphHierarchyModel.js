@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2006-2014, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxGraphHierarchyModel

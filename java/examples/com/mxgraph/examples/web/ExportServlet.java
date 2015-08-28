@@ -126,11 +126,6 @@ public class ExportServlet extends HttpServlet
 		String xml = getRequestXml(request);
 
 		Color bg = (tmp != null) ? mxUtils.parseColor(tmp) : null;
-		
-		if (fname != null)
-		{
-			fname = URLDecoder.decode(fname, "UTF-8");
-		}
 
 		// Checks parameters
 		if (w > 0 && h > 0 && w * h < Constants.MAX_AREA && format != null && xml != null && xml.length() > 0)
@@ -202,7 +197,7 @@ public class ExportServlet extends HttpServlet
 			if (fname != null)
 			{
 				response.setContentType("application/x-unknown");
-				response.setHeader("Content-Disposition", "attachment; filename=\"" + fname + "\"");
+				response.setHeader("Content-Disposition", "attachment; filename=\"" + fname + "\"; filename*=UTF-8''" + fname);
 			}
 			else if (format != null)
 			{
@@ -227,7 +222,7 @@ public class ExportServlet extends HttpServlet
 
 		if (fname != null)
 		{
-			response.setHeader("Content-Disposition", "attachment; filename=\"" + fname + "\"");
+			response.setHeader("Content-Disposition", "attachment; filename=\"" + fname + "\"; filename*=UTF-8''" + fname);
 		}
 
 		// Fixes PDF offset
@@ -246,6 +241,8 @@ public class ExportServlet extends HttpServlet
 		renderXml(xml, gc);
 		gc.getGraphics().dispose();
 		document.close();
+		writer.flush();
+		writer.close();
 	}
 
 	/**

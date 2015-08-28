@@ -1,34 +1,4 @@
 var indexSectionsWithContent = {
-   "Events": {
-      "Symbols": false,
-      "Numbers": false,
-      "A": true,
-      "B": true,
-      "C": true,
-      "D": true,
-      "E": true,
-      "F": true,
-      "G": true,
-      "H": true,
-      "I": false,
-      "J": false,
-      "K": false,
-      "L": true,
-      "M": true,
-      "N": true,
-      "O": true,
-      "P": true,
-      "Q": false,
-      "R": true,
-      "S": true,
-      "T": true,
-      "U": true,
-      "V": false,
-      "W": false,
-      "X": false,
-      "Y": false,
-      "Z": false
-      },
    "General": {
       "Symbols": false,
       "Numbers": false,
@@ -89,6 +59,36 @@ var indexSectionsWithContent = {
       "Y": false,
       "Z": true
       },
+   "Events": {
+      "Symbols": false,
+      "Numbers": false,
+      "A": true,
+      "B": true,
+      "C": true,
+      "D": true,
+      "E": true,
+      "F": true,
+      "G": true,
+      "H": true,
+      "I": false,
+      "J": false,
+      "K": false,
+      "L": true,
+      "M": true,
+      "N": true,
+      "O": true,
+      "P": true,
+      "Q": false,
+      "R": true,
+      "S": true,
+      "T": true,
+      "U": true,
+      "V": false,
+      "W": false,
+      "X": false,
+      "Y": false,
+      "Z": false
+      },
    "Variables": {
       "Symbols": false,
       "Numbers": false,
@@ -119,7 +119,7 @@ var indexSectionsWithContent = {
       "Y": true,
       "Z": true
       },
-   "Classes": {
+   "Cookies": {
       "Symbols": false,
       "Numbers": false,
       "A": false,
@@ -144,7 +144,7 @@ var indexSectionsWithContent = {
       "T": false,
       "U": false,
       "V": false,
-      "W": true,
+      "W": false,
       "X": false,
       "Y": false,
       "Z": false
@@ -179,7 +179,7 @@ var indexSectionsWithContent = {
       "Y": false,
       "Z": false
       },
-   "Cookies": {
+   "Classes": {
       "Symbols": false,
       "Numbers": false,
       "A": false,
@@ -204,7 +204,7 @@ var indexSectionsWithContent = {
       "T": false,
       "U": false,
       "V": false,
-      "W": false,
+      "W": true,
       "X": false,
       "Y": false,
       "Z": false

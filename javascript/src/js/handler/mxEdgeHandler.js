@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxEdgeHandler
@@ -1091,7 +1092,7 @@ mxEdgeHandler.prototype.getPointForEvent = function(me)
  */
 mxEdgeHandler.prototype.getPreviewTerminalState = function(me)
 {
-	this.constraintHandler.update(me, this.isSource);
+	this.constraintHandler.update(me, this.isSource, true);
 	
 	if (this.constraintHandler.currentFocus != null && this.constraintHandler.currentConstraint != null)
 	{

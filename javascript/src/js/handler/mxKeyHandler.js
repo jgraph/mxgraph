@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxKeyHandler
@@ -261,7 +262,7 @@ mxKeyHandler.prototype.isControlDown = function(evt)
  */
 mxKeyHandler.prototype.getFunction = function(evt)
 {
-	if (evt != null)
+	if (evt != null && !mxEvent.isAltDown(evt))
 	{
 		if (this.isControlDown(evt))
 		{

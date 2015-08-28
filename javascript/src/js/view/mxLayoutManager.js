@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxLayoutManager
@@ -286,8 +287,8 @@ mxLayoutManager.prototype.cellsMoved = function(cells, evt)
  */
 mxLayoutManager.prototype.getCellsForChanges = function(changes)
 {
+	var dict = new mxDictionary();
 	var result = [];
-	var hash = new Object();
 	
 	for (var i = 0; i < changes.length; i++)
 	{
@@ -303,15 +304,10 @@ mxLayoutManager.prototype.getCellsForChanges = function(changes)
 			
 			for (var j = 0; j < cells.length; j++)
 			{
-				if (cells[j] != null)
+				if (cells[j] != null && !dict.get(cells[j]))
 				{
-					var id = mxCellPath.create(cells[j]);
-					
-					if (hash[id] == null)
-					{
-						hash[id] = cells[j];
-						result.push(cells[j]);
-					}
+					dict.put(cells[j], true);
+					result.push(cells[j]);
 				}
 			}
 		}

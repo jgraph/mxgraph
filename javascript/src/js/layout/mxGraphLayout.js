@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxGraphLayout
@@ -142,19 +143,18 @@ mxGraphLayout.prototype.getConstraint = function(key, cell, edge, source)
  * edge as arguments. The traversal stops if the function returns false.
  * edge - Optional <mxCell> that represents the incoming edge. This is
  * null for the first step of the traversal.
- * visited - Optional array of cell paths for the visited cells.
+ * visited - Optional <mxDictionary> of cell paths for the visited cells.
  */
 mxGraphLayout.traverse = function(vertex, directed, func, edge, visited)
 {
 	if (func != null && vertex != null)
 	{
 		directed = (directed != null) ? directed : true;
-		visited = visited || [];
-		var id = mxCellPath.create(vertex);
+		visited = visited || new mxDictionary();
 		
-		if (visited[id] == null)
+		if (!visited.get(vertex))
 		{
-			visited[id] = vertex;
+			visited.put(vertex, true);
 			var result = func(vertex, edge);
 			
 			if (result == null || result)

@@ -30,6 +30,11 @@ Menus.prototype.defaultFontSize = '12';
 /**
  * Sets the default font size.
  */
+Menus.prototype.defaultMenuItems = ['file', 'edit', 'view', 'arrange', 'extras', 'help'];
+
+/**
+ * Sets the default font size.
+ */
 Menus.prototype.checkmarkImage = (mxClient.IS_SVG) ? 'data:image/gif;base64,R0lGODlhFQAVAMQfAGxsbHx8fIqKioaGhvb29nJycvr6+sDAwJqamltbW5OTk+np6YGBgeTk5Ly8vJiYmP39/fLy8qWlpa6ursjIyOLi4vj4+N/f3+3t7fT09LCwsHZ2dubm5r6+vmZmZv///yH/C1hNUCBEYXRhWE1QPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS4wLWMwNjAgNjEuMTM0Nzc3LCAyMDEwLzAyLzEyLTE3OjMyOjAwICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIiB4bWxuczpzdFJlZj0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlUmVmIyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IFdpbmRvd3MiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OEY4NTZERTQ5QUFBMTFFMUE5MTVDOTM5MUZGMTE3M0QiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6OEY4NTZERTU5QUFBMTFFMUE5MTVDOTM5MUZGMTE3M0QiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo4Rjg1NkRFMjlBQUExMUUxQTkxNUM5MzkxRkYxMTczRCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo4Rjg1NkRFMzlBQUExMUUxQTkxNUM5MzkxRkYxMTczRCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PgH//v38+/r5+Pf29fTz8vHw7+7t7Ovq6ejn5uXk4+Lh4N/e3dzb2tnY19bV1NPS0dDPzs3My8rJyMfGxcTDwsHAv769vLu6ubi3trW0s7KxsK+urayrqqmop6alpKOioaCfnp2cm5qZmJeWlZSTkpGQj46NjIuKiYiHhoWEg4KBgH9+fXx7enl4d3Z1dHNycXBvbm1sa2ppaGdmZWRjYmFgX15dXFtaWVhXVlVUU1JRUE9OTUxLSklIR0ZFRENCQUA/Pj08Ozo5ODc2NTQzMjEwLy4tLCsqKSgnJiUkIyIhIB8eHRwbGhkYFxYVFBMSERAPDg0MCwoJCAcGBQQDAgEAACH5BAEAAB8ALAAAAAAVABUAAAVI4CeOZGmeaKqubKtylktSgCOLRyLd3+QJEJnh4VHcMoOfYQXQLBcBD4PA6ngGlIInEHEhPOANRkaIFhq8SuHCE1Hb8Lh8LgsBADs=' :
 	IMAGE_PATH + '/checkmark.gif';
 
@@ -97,7 +102,7 @@ Menus.prototype.init = function()
 			return menu.addItem(label, null, mxUtils.bind(this, function()
 			{
 				// TODO: Check if visible
-				graph.cellEditor.text2.focus();
+				graph.cellEditor.textarea.focus();
 	      		document.execCommand('formatBlock', false, '<' + tag + '>');
 			}), parent);
 		};
@@ -128,7 +133,7 @@ Menus.prototype.init = function()
 				// Changes the css font size of the first font element inside the in-place editor with size 3
 				// hopefully the above element that we've just created. LATER: Check for new element using
 				// previous result of getElementsByTagName (see other actions)
-				var elts = graph.cellEditor.text2.getElementsByTagName('font');
+				var elts = graph.cellEditor.textarea.getElementsByTagName('font');
 				
 				for (var i = 0; i < elts.length; i++)
 				{
@@ -171,162 +176,6 @@ Menus.prototype.init = function()
 		{
 			this.customFontSizes.push(newValue);
 		}));
-	})));
-	this.put('linewidth', new Menu(mxUtils.bind(this, function(menu, parent)
-	{
-		var sizes = [1, 2, 3, 4, 8, 12, 16, 24];
-		
-		for (var i = 0; i < sizes.length; i++)
-		{
-			this.styleChange(menu, sizes[i] + 'px', [mxConstants.STYLE_STROKEWIDTH], [sizes[i]], null, parent);
-		}
-		
-		menu.addSeparator(parent);
-		this.promptChange(menu, mxResources.get('custom') + '...', '(px)', '1', mxConstants.STYLE_STROKEWIDTH, parent);
-	})));
-	this.put('connection', new Menu(mxUtils.bind(this, function(menu, parent)
-	{
-		this.edgeStyleChange(menu, mxResources.get('line'), [mxConstants.STYLE_SHAPE, 'width'], [null, null], null, parent, true);
-		this.edgeStyleChange(menu, mxResources.get('link'), [mxConstants.STYLE_SHAPE, 'width'], ['link', null], null, parent, true);
-		this.edgeStyleChange(menu, mxResources.get('arrow'), [mxConstants.STYLE_SHAPE, 'width'], ['flexArrow', null], null, parent, true);
-		this.edgeStyleChange(menu, mxResources.get('simpleArrow'), [mxConstants.STYLE_SHAPE, 'width'], ['arrow', null], null, parent, true);
-	})));
-	this.put('waypoints', new Menu(mxUtils.bind(this, function(menu, parent)
-	{
-		this.edgeStyleChange(menu, mxResources.get('straight'), [mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, mxConstants.STYLE_NOEDGESTYLE], [null, null, null], null, parent, true);
-		this.edgeStyleChange(menu, mxResources.get('orthogonal'), [mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, mxConstants.STYLE_NOEDGESTYLE], ['orthogonalEdgeStyle', null, null], null, parent, true);
-		this.edgeStyleChange(menu, mxResources.get('curved'), [mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, mxConstants.STYLE_NOEDGESTYLE], ['orthogonalEdgeStyle', '1', null], null, parent, true);
-		this.edgeStyleChange(menu, mxResources.get('entityRelation'), [mxConstants.STYLE_EDGE, mxConstants.STYLE_CURVED, mxConstants.STYLE_NOEDGESTYLE], ['entityRelationEdgeStyle', null, null], null, parent, true);
-	})));
-	this.put('lineend', new Menu(mxUtils.bind(this, function(menu, parent)
-	{
-		this.styleChange(menu, mxResources.get('classic'), [mxConstants.STYLE_ENDARROW], [mxConstants.ARROW_CLASSIC], null, parent);
-		this.styleChange(menu, mxResources.get('openArrow'), [mxConstants.STYLE_ENDARROW], [mxConstants.ARROW_OPEN], null, parent);
-		this.styleChange(menu, mxResources.get('block') , [mxConstants.STYLE_ENDARROW], [mxConstants.ARROW_BLOCK], null, parent);
-		menu.addSeparator(parent);
-		this.styleChange(menu, mxResources.get('oval'), [mxConstants.STYLE_ENDARROW], [mxConstants.ARROW_OVAL], null, parent);
-		this.styleChange(menu, mxResources.get('diamond'), [mxConstants.STYLE_ENDARROW], [mxConstants.ARROW_DIAMOND], null, parent);
-		this.styleChange(menu, mxResources.get('diamondThin'), [mxConstants.STYLE_ENDARROW], [mxConstants.ARROW_DIAMOND_THIN], null, parent);
-		menu.addSeparator(parent);
-		this.styleChange(menu, mxResources.get('none'), [mxConstants.STYLE_ENDARROW], [mxConstants.NONE], null, parent);
-		menu.addSeparator(parent);
-		menu.addItem(mxResources.get('transparent'), null, function() { graph.toggleCellStyles('endFill', true); }, parent, null, true);
-		menu.addSeparator(parent);
-		this.promptChange(menu, mxResources.get('targetSpacing') + '...', '(px)', '0', mxConstants.STYLE_TARGET_PERIMETER_SPACING, parent);
-		this.promptChange(menu, mxResources.get('size') + '...', '(px)', mxConstants.DEFAULT_MARKERSIZE, mxConstants.STYLE_ENDSIZE, parent);
-	})));
-	this.put('linestart', new Menu(mxUtils.bind(this, function(menu, parent)
-	{
-		this.styleChange(menu, mxResources.get('classic'), [mxConstants.STYLE_STARTARROW], [mxConstants.ARROW_CLASSIC], null, parent);
-		this.styleChange(menu, mxResources.get('openArrow'), [mxConstants.STYLE_STARTARROW], [mxConstants.ARROW_OPEN], null, parent);
-		this.styleChange(menu, mxResources.get('block'), [mxConstants.STYLE_STARTARROW], [mxConstants.ARROW_BLOCK], null, parent);
-		menu.addSeparator(parent);
-		this.styleChange(menu, mxResources.get('oval'), [mxConstants.STYLE_STARTARROW], [mxConstants.ARROW_OVAL], null, parent);
-		this.styleChange(menu, mxResources.get('diamond'), [mxConstants.STYLE_STARTARROW], [mxConstants.ARROW_DIAMOND], null, parent);
-		this.styleChange(menu, mxResources.get('diamondThin'), [mxConstants.STYLE_STARTARROW], [mxConstants.ARROW_DIAMOND_THIN], null, parent);
-		menu.addSeparator(parent);
-		this.styleChange(menu, mxResources.get('none'), [mxConstants.STYLE_STARTARROW], [mxConstants.NONE], null, parent);
-		menu.addSeparator(parent);
-		menu.addItem(mxResources.get('transparent'), null, function() { graph.toggleCellStyles('startFill', true); }, parent, null, true);
-		menu.addSeparator(parent);
-		this.promptChange(menu, mxResources.get('sourceSpacing') + '...', '(px)', '0', mxConstants.STYLE_SOURCE_PERIMETER_SPACING, parent);
-		this.promptChange(menu, mxResources.get('size') + '...', '(px)', mxConstants.DEFAULT_MARKERSIZE, mxConstants.STYLE_STARTSIZE, parent);
-	})));
-	this.put('spacing', new Menu(mxUtils.bind(this, function(menu, parent)
-	{
-		// Uses shadow action and line menu to analyze selection
-		var vertexSelected = this.editorUi.actions.get('shadow').enabled;
-		
-		if (vertexSelected || menu.showDisabled)
-		{
-			this.promptChange(menu, mxResources.get('top'), '(px)', '0', mxConstants.STYLE_SPACING_TOP, parent, vertexSelected);
-			this.promptChange(menu, mxResources.get('right'), '(px)', '0', mxConstants.STYLE_SPACING_RIGHT, parent, vertexSelected);
-			this.promptChange(menu, mxResources.get('bottom'), '(px)', '0', mxConstants.STYLE_SPACING_BOTTOM, parent, vertexSelected);
-			this.promptChange(menu, mxResources.get('left'), '(px)', '0', mxConstants.STYLE_SPACING_LEFT, parent, vertexSelected);
-			menu.addSeparator(parent);
-			this.promptChange(menu, mxResources.get('global'), '(px)', '0', mxConstants.STYLE_SPACING, parent, vertexSelected);
-			this.promptChange(menu, mxResources.get('perimeter'), '(px)', '0', mxConstants.STYLE_PERIMETER_SPACING, parent, vertexSelected);
-		}
-	})));
-	this.put('format', new Menu(mxUtils.bind(this, function(menu, parent)
-	{
-		this.addMenuItems(menu, ['fillColor'], parent);
-		this.addSubmenu('gradient', menu, parent);
-		this.addMenuItems(menu, ['image', '-', 'shadow'], parent);
-		this.promptChange(menu, mxResources.get('opacity'), '(%)', '100', mxConstants.STYLE_OPACITY, parent, this.editorUi.actions.get('fillColor').enabled);
-		this.addMenuItems(menu, ['-', 'solid', 'dashed', 'dotted', '-', 'sharp', 'rounded', 'curved', '-', 'strokeColor'], parent);
-		this.addSubmenu('linewidth', menu, parent);
-		this.addMenuItems(menu, ['-'], parent);
-		this.addSubmenu('connection', menu, parent);
-		this.addSubmenu('waypoints', menu, parent);
-		this.addMenuItems(menu, ['-'], parent);
-		this.addSubmenu('linestart', menu, parent);
-		this.addSubmenu('lineend', menu, parent);
-		this.addMenuItems(menu, ['-', 'setAsDefaultStyle', 'clearDefaultStyle'], parent);
-	})));
-	this.put('gradient', new Menu(mxUtils.bind(this, function(menu, parent)
-	{
-		this.addMenuItems(menu, ['gradientColor', '-'], parent);
-		this.styleChange(menu, mxResources.get('north'), [mxConstants.STYLE_GRADIENT_DIRECTION], [mxConstants.DIRECTION_NORTH], null, parent);
-		this.styleChange(menu, mxResources.get('east'), [mxConstants.STYLE_GRADIENT_DIRECTION], [mxConstants.DIRECTION_EAST], null, parent);
-		this.styleChange(menu, mxResources.get('south'), [mxConstants.STYLE_GRADIENT_DIRECTION], [mxConstants.DIRECTION_SOUTH], null, parent);
-		this.styleChange(menu, mxResources.get('west'), [mxConstants.STYLE_GRADIENT_DIRECTION], [mxConstants.DIRECTION_WEST], null, parent);
-	})));
-	this.put('text', new Menu(mxUtils.bind(this, function(menu, parent)
-	{
-		var enabled = this.editorUi.actions.get('fontColor').enabled;
-		menu.addSeparator(parent);
-		this.addMenuItem(menu, 'fontColor', parent);
-		this.addMenuItems(menu, ['backgroundColor', 'borderColor', '-'], parent);
-		this.addSubmenu('fontFamily', menu, parent);
-		this.addSubmenu('fontSize', menu, parent);
-		this.addMenuItems(menu, ['-', 'bold', 'italic', 'underline', '-'], parent);
-	    this.addSubmenu('alignment', menu, parent);
-	    this.addSubmenu('position', menu, parent);
-		this.addSubmenu('spacing', menu, parent);
-		menu.addSeparator(parent);
-		this.addSubmenu('writingDirection', menu, parent);
-		this.addMenuItem(menu, 'formattedText', parent);
-		this.addMenuItem(menu, 'wordWrap', parent);
-		menu.addSeparator(parent);
-		this.promptChange(menu, mxResources.get('textOpacity'), '(%)', '100', mxConstants.STYLE_TEXT_OPACITY, parent, enabled);
-		menu.addItem(mxResources.get('hide'), null, function() { graph.toggleCellStyles(mxConstants.STYLE_NOLABEL, false); }, parent, null, enabled);
-	})));
-	this.put('alignment', new Menu(mxUtils.bind(this, function(menu, parent)
-	{
-		this.styleChange(menu, mxResources.get('leftAlign'), [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_LEFT], null, parent,
-				function() { document.execCommand('justifyleft', false, null); });
-		this.styleChange(menu, mxResources.get('center'), [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_CENTER], null, parent,
-				function() { document.execCommand('justifycenter', false, null); });
-		this.styleChange(menu, mxResources.get('rightAlign'), [mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_RIGHT], null, parent,
-				function() { document.execCommand('justifyright', false, null); });
-		menu.addSeparator(parent);
-		this.styleChange(menu, mxResources.get('topAlign'), [mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_TOP], null, parent);
-		this.styleChange(menu, mxResources.get('middle'), [mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_MIDDLE], null, parent);
-		this.styleChange(menu, mxResources.get('bottomAlign'), [mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_BOTTOM], null, parent);
-		menu.addSeparator(parent);
-		var enabled = this.get('text').enabled;
-		menu.addItem(mxResources.get('vertical'), null, function() { graph.toggleCellStyles(mxConstants.STYLE_HORIZONTAL, true); }, parent, null, enabled);
-	})));
-	this.put('position', new Menu(mxUtils.bind(this, function(menu, parent)
-	{
-		this.styleChange(menu, mxResources.get('top'), [mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.STYLE_LABEL_POSITION, mxConstants.STYLE_ALIGN, mxConstants.STYLE_VERTICAL_ALIGN],
-			[mxConstants.ALIGN_TOP, mxConstants.ALIGN_CENTER, mxConstants.ALIGN_CENTER, mxConstants.ALIGN_BOTTOM], null, parent);
-		this.styleChange(menu, mxResources.get('right'), [mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.STYLE_LABEL_POSITION, mxConstants.STYLE_ALIGN, mxConstants.STYLE_VERTICAL_ALIGN],
-			[mxConstants.ALIGN_MIDDLE, mxConstants.ALIGN_RIGHT, mxConstants.ALIGN_LEFT, mxConstants.ALIGN_MIDDLE], null, parent);
-		this.styleChange(menu, mxResources.get('bottom'), [mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.STYLE_LABEL_POSITION, mxConstants.STYLE_ALIGN, mxConstants.STYLE_VERTICAL_ALIGN],
-			[mxConstants.ALIGN_BOTTOM, mxConstants.ALIGN_CENTER, mxConstants.ALIGN_CENTER, mxConstants.ALIGN_TOP], null, parent);
-		this.styleChange(menu, mxResources.get('left'), [mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.STYLE_LABEL_POSITION, mxConstants.STYLE_ALIGN, mxConstants.STYLE_VERTICAL_ALIGN],
-			[mxConstants.ALIGN_MIDDLE, mxConstants.ALIGN_LEFT, mxConstants.ALIGN_RIGHT, mxConstants.ALIGN_MIDDLE], null, parent);
-		menu.addSeparator(parent);
-		this.styleChange(menu, mxResources.get('center'), [mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.STYLE_LABEL_POSITION, mxConstants.STYLE_ALIGN, mxConstants.STYLE_VERTICAL_ALIGN],
-			[mxConstants.ALIGN_MIDDLE, mxConstants.ALIGN_CENTER, mxConstants.ALIGN_CENTER, mxConstants.ALIGN_MIDDLE], null, parent);
-	})));
-	this.put('writingDirection', new Menu(mxUtils.bind(this, function(menu, parent)
-	{
-		this.styleChange(menu, mxResources.get('automatic'), [mxConstants.STYLE_TEXT_DIRECTION], [null], null, parent);
-		this.styleChange(menu, mxResources.get('leftToRight'), [mxConstants.STYLE_TEXT_DIRECTION], [mxConstants.TEXT_DIRECTION_LTR], null, parent);
-		this.styleChange(menu, mxResources.get('rightToLeft'), [mxConstants.STYLE_TEXT_DIRECTION], [mxConstants.TEXT_DIRECTION_RTL], null, parent);
 	})));
 	this.put('direction', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -464,6 +313,7 @@ Menus.prototype.init = function()
 			if (tmp != null)
 			{
 				var layout = new mxRadialTreeLayout(graph, false);
+				layout.levelDistance = 60;
 				layout.autoRadius = true;
 				
 	    		this.editorUi.executeLayout(function()
@@ -524,7 +374,7 @@ Menus.prototype.init = function()
     			}
     		}, true);
 		}), parent);
-	}))).isEnabled = isGraphEnabled;
+	})));
 	this.put('navigation', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
 		this.addMenuItems(menu, ['home', '-', 'exitGroup', 'enterGroup', '-', 'expand', 'collapse', '-', 'collapsible'], parent);
@@ -547,12 +397,26 @@ Menus.prototype.init = function()
 		this.addMenuItems(menu, ['insertLink'], parent);
 		this.addMenuItem(menu, 'image', parent).firstChild.nextSibling.innerHTML = mxResources.get('insertImage');
 	})));
-
 	this.put('view', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
-		this.addMenuItems(menu, ['outline', 'layers'].concat((this.editorUi.format != null) ? ['formatPanel'] : []), parent);
-		menu.addSeparator();
-		var scales = [0.25, 0.5, 0.75, 1, 1.5, 2, 4];
+		this.addMenuItems(menu, ((this.editorUi.format != null) ? ['formatPanel'] : []).
+			concat(['outline', 'layers', '-', 'pageView', 'scrollbars', 'tooltips', '-',
+			        'grid', 'guides', 'connectionPoints', '-', 'actualSize', 'zoomIn', 'zoomOut'], parent));
+	})));
+	// Two special dropdowns that are only used in the toolbar
+	this.put('viewPanels', new Menu(mxUtils.bind(this, function(menu, parent)
+	{
+		if (this.editorUi.format != null)
+		{
+			this.addMenuItems(menu, ['formatPanel'], parent);
+		}
+		
+		this.addMenuItems(menu, ['outline', 'layers'], parent);
+	})));
+	this.put('viewZoom', new Menu(mxUtils.bind(this, function(menu, parent)
+	{
+		this.addMenuItems(menu, ['actualSize', '-'], parent);
+		var scales = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4];
 		
 		for (var i = 0; i < scales.length; i++)
 		{
@@ -564,23 +428,22 @@ Menus.prototype.init = function()
 				}, parent);
 			})(scales[i]);
 		}
-		
-		this.addMenuItems(menu, ['-', 'actualSize', 'zoomIn', 'zoomOut', '-', 'fitWindow', 'fitPageWidth', 'fitPage', 'fitTwoPages', '-', 'customZoom'], parent);
+
+		this.addMenuItems(menu, ['-', 'fitWindow', 'fitPageWidth', 'fitPage', 'fitTwoPages', '-', 'customZoom'], parent);
 	})));
 	this.put('file', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
-		this.addMenuItems(menu, ['new', 'open', '-', 'save', 'saveAs', '-', 'import', 'export', '-', 'editFile', '-', 'pageSetup', 'print'], parent);
+		this.addMenuItems(menu, ['new', 'open', '-', 'save', 'saveAs', '-', 'import', 'export', '-', 'pageSetup', 'print'], parent);
 	})));
 	this.put('edit', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
 		this.addMenuItems(menu, ['undo', 'redo', '-', 'cut', 'copy', 'paste', 'delete', '-', 'duplicate', '-',
-		                         'editData', 'editTooltip', 'editStyle', '-', 'editLink', 'openLink', '-', 'selectVertices',
+		                         'editMetadata', 'editTooltip', 'editStyle', '-', 'editLink', 'openLink', '-', 'selectVertices',
 		                         'selectEdges', 'selectAll', '-', 'lockUnlock']);
 	})));
-	this.put('options', new Menu(mxUtils.bind(this, function(menu, parent)
+	this.put('extras', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
-		this.addMenuItems(menu, ['pageView', '-', 'grid', 'guides', '-', 'scrollbars', 'tooltips', '-',
- 		                         'connectionPoints', 'copyConnect', 'collapseExpand', '-', 'pageBackgroundColor', 'autosave']);
+		this.addMenuItems(menu, ['copyConnect', 'collapseExpand', '-', 'pageBackgroundColor', 'autosave', '-', 'editFile']);
 	})));
 	this.put('help', new Menu(mxUtils.bind(this, function(menu, parent)
 	{
@@ -673,7 +536,7 @@ Menus.prototype.addInsertTableItem = function(menu)
 			
 			// To find the new link, we create a list of all existing links first
     		// LATER: Refactor for reuse with code for finding inserted image below
-			var tmp = graph.cellEditor.text2.getElementsByTagName('table');
+			var tmp = graph.cellEditor.textarea.getElementsByTagName('table');
 			var oldTables = [];
 			
 			for (var i = 0; i < tmp.length; i++)
@@ -686,7 +549,7 @@ Menus.prototype.addInsertTableItem = function(menu)
 			graph.pasteHtmlAtCaret(createTable(row2.sectionRowIndex + 1, td.cellIndex + 1));
 			
 			// Moves cursor to first table cell
-			var newTables = graph.cellEditor.text2.getElementsByTagName('table');
+			var newTables = graph.cellEditor.textarea.getElementsByTagName('table');
 			
 			if (newTables.length == oldTables.length + 1)
 			{
@@ -1113,22 +976,25 @@ Menus.prototype.createPopupMenu = function(menu, cell, evt)
 
 	}
 
-	if (graph.getSelectionCount() == 1)
-	{
-		this.addMenuItems(menu, ['setAsDefaultStyle'], null, evt);
-	}
-	
-	menu.addSeparator();
-	
 	if (graph.getSelectionCount() > 0)
 	{
+		if (graph.getSelectionCount() == 1)
+		{
+			this.addMenuItems(menu, ['setAsDefaultStyle'], null, evt);
+		}
+		
+		menu.addSeparator();
+		
 		cell = graph.getSelectionCell();
 		var state = graph.view.getState(cell);
 		
 		if (state != null)
 		{
-			this.addMenuItems(menu, ['toFront', 'toBack', '-'], null, evt);
-	
+			if (graph.getSelectionCount() == 1)
+			{
+				this.addMenuItems(menu, ['toFront', 'toBack', '-'], null, evt);
+			}
+
 			if (graph.getModel().isEdge(cell) && mxUtils.getValue(state.style, mxConstants.STYLE_EDGE, null) != 'entityRelationEdgeStyle' &&
 				mxUtils.getValue(state.style, mxConstants.STYLE_SHAPE, null) != 'arrow')
 			{
@@ -1197,7 +1063,7 @@ Menus.prototype.createPopupMenu = function(menu, cell, evt)
 Menus.prototype.createMenubar = function(container)
 {
 	var menubar = new Menubar(this.editorUi, container);
-	var menus = ['file', 'edit', 'view', 'format', 'text', 'arrange', 'options', 'help'];
+	var menus = this.defaultMenuItems;
 	
 	for (var i = 0; i < menus.length; i++)
 	{
@@ -1246,13 +1112,15 @@ function Menubar(editorUi, container)
 	this.container = container;
 	
 	// Global handler to hide the current menu
-	mxEvent.addGestureListeners(document, mxUtils.bind(this, function(evt)
+	this.gestureHandler = mxUtils.bind(this, function(evt)
 	{
 		if (this.currentMenu != null && mxEvent.getSource(evt) != this.currentMenu.div)
 		{
 			this.hideMenu();
 		}
-	}));
+	});
+	
+	mxEvent.addGestureListeners(document, this.gestureHandler);
 };
 
 /**
@@ -1341,6 +1209,18 @@ Menubar.prototype.addMenuHandler = function(elt, funct)
 			clickHandler(evt);
 			show = true;
 		}));
+	}
+};
+
+/**
+ * Creates the keyboard event handler for the current graph and history.
+ */
+Menubar.prototype.destroy = function()
+{
+	if (this.gestureHandler != null)
+	{
+		mxEvent.removeGestureListeners(document, this.gestureHandler);
+		this.gestureHandler = null;
 	}
 };
 

@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxConnectionHandler
@@ -394,8 +395,12 @@ mxConnectionHandler.prototype.setEnabled = function(enabled)
  * Function: isCreateTarget
  * 
  * Returns <createTarget>.
+ *
+ * Parameters:
+ *
+ * evt - Current active native pointer event.
  */
-mxConnectionHandler.prototype.isCreateTarget = function()
+mxConnectionHandler.prototype.isCreateTarget = function(evt)
 {
 	return this.createTarget;
 };
@@ -544,7 +549,7 @@ mxConnectionHandler.prototype.createMarker = function()
 						cell = null;
 						
 						// Enables create target inside groups
-						if (this.isCreateTarget())
+						if (this.isCreateTarget(me.getEvent()))
 						{
 							this.error = null;
 						}
@@ -556,7 +561,7 @@ mxConnectionHandler.prototype.createMarker = function()
 				cell = null;
 			}
 		}
-		else if (this.isConnecting() && !this.isCreateTarget() &&
+		else if (this.isConnecting() && !this.isCreateTarget(me.getEvent()) &&
 				!this.graph.allowDanglingEdges)
 		{
 			this.error = '';
@@ -1011,7 +1016,7 @@ mxConnectionHandler.prototype.isOutlineConnectEvent = function(me)
  */
 mxConnectionHandler.prototype.updateCurrentState = function(me, point)
 {
-	this.constraintHandler.update(me, this.first == null);
+	this.constraintHandler.update(me, this.first == null, false);
 	
 	if (this.constraintHandler.currentFocus != null && this.constraintHandler.currentConstraint != null)
 	{
@@ -1196,37 +1201,7 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 			// Uses edge state to compute the terminal points
 			if (this.edgeState != null)
 			{
-				this.edgeState.absolutePoints = [null, (this.currentState != null) ? null : current];
-				this.graph.view.updateFixedTerminalPoint(this.edgeState, this.previous, true, this.sourceConstraint);
-				
-				if (this.currentState != null)
-				{
-					if (constraint == null)
-					{
-						constraint = this.graph.getConnectionConstraint(this.edgeState, this.previous, false);
-					}
-					
-					this.edgeState.setAbsoluteTerminalPoint(null, false);
-					this.graph.view.updateFixedTerminalPoint(this.edgeState, this.currentState, false, constraint);
-				}
-				
-				// Scales and translates the waypoints to the model
-				var realPoints = null;
-				
-				if (this.waypoints != null)
-				{
-					realPoints = [];
-					
-					for (var i = 0; i < this.waypoints.length; i++)
-					{
-						var pt = this.waypoints[i].clone();
-						this.convertWaypoint(pt);
-						realPoints[i] = pt;
-					}
-				}
-				
-				this.graph.view.updatePoints(this.edgeState, realPoints, this.previous, this.currentState);
-				this.graph.view.updateFloatingTerminalPoints(this.edgeState, this.previous, this.currentState);
+				this.updateEdgeState(current, constraint);
 				current = this.edgeState.absolutePoints[this.edgeState.absolutePoints.length - 1];
 				pt2 = this.edgeState.absolutePoints[0];
 			}
@@ -1386,6 +1361,46 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 	{
 		this.constraintHandler.reset();
 	}
+};
+
+/**
+ * Function: updateEdgeState
+ * 
+ * Updates <edgeState>.
+ */
+mxConnectionHandler.prototype.updateEdgeState = function(current, constraint)
+{
+	this.edgeState.absolutePoints = [null, (this.currentState != null) ? null : current];
+	this.graph.view.updateFixedTerminalPoint(this.edgeState, this.previous, true, this.sourceConstraint);
+	
+	if (this.currentState != null)
+	{
+		if (constraint == null)
+		{
+			constraint = this.graph.getConnectionConstraint(this.edgeState, this.previous, false);
+		}
+		
+		this.edgeState.setAbsoluteTerminalPoint(null, false);
+		this.graph.view.updateFixedTerminalPoint(this.edgeState, this.currentState, false, constraint);
+	}
+	
+	// Scales and translates the waypoints to the model
+	var realPoints = null;
+	
+	if (this.waypoints != null)
+	{
+		realPoints = [];
+		
+		for (var i = 0; i < this.waypoints.length; i++)
+		{
+			var pt = this.waypoints[i].clone();
+			this.convertWaypoint(pt);
+			realPoints[i] = pt;
+		}
+	}
+	
+	this.graph.view.updatePoints(this.edgeState, realPoints, this.previous, this.currentState);
+	this.graph.view.updateFloatingTerminalPoints(this.edgeState, this.previous, this.currentState);
 };
 
 /**
@@ -1685,7 +1700,7 @@ mxConnectionHandler.prototype.getEdgeWidth = function(valid)
  */
 mxConnectionHandler.prototype.connect = function(source, target, evt, dropTarget)
 {
-	if (target != null || this.isCreateTarget() || this.graph.allowDanglingEdges)
+	if (target != null || this.isCreateTarget(evt) || this.graph.allowDanglingEdges)
 	{
 		// Uses the common parent of source and target or
 		// the default parent to insert the edge
@@ -1696,7 +1711,7 @@ mxConnectionHandler.prototype.connect = function(source, target, evt, dropTarget
 		model.beginUpdate();
 		try
 		{
-			if (source != null && target == null && this.isCreateTarget())
+			if (source != null && target == null && this.isCreateTarget(evt))
 			{
 				target = this.createTargetVertex(evt, source);
 				

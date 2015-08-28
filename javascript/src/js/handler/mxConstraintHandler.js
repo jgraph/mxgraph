@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2006-2013, JGraph Ltd
+ * Copyright (c) 2006-2015, JGraph Ltd
+ * Copyright (c) 2006-2015, Gaudenz Alder
  */
 /**
  * Class: mxConstraintHandler
@@ -227,7 +228,7 @@ mxConstraintHandler.prototype.getCellForEvent = function(me)
  * Updates the state of this handler based on the given <mxMouseEvent>.
  * Source is a boolean indicating if the cell is a source or target.
  */
-mxConstraintHandler.prototype.update = function(me, source)
+mxConstraintHandler.prototype.update = function(me, source, existingEdge)
 {
 	if (this.isEnabled() && !this.isEventIgnored(me))
 	{
@@ -333,7 +334,8 @@ mxConstraintHandler.prototype.update = function(me, source)
 				var dy = me.getGraphY() - this.focusIcons[i].bounds.getCenterY();
 				var tmp = dx * dx + dy * dy;
 				
-				if (mxUtils.intersects(this.focusIcons[i].bounds, mouse) && (minDistSq == null || tmp < minDistSq))
+				if (this.intersects(this.focusIcons[i], mouse, source, existingEdge) &&
+					(minDistSq == null || tmp < minDistSq))
 				{
 					this.currentConstraint = this.constraints[i];
 					this.currentPoint = this.focusPoints[i];
@@ -385,6 +387,16 @@ mxConstraintHandler.prototype.update = function(me, source)
 		this.currentFocus = null;
 		this.currentPoint = null;
 	}
+};
+
+/**
+ * Function: intersects
+ * 
+ * Returns true if the given icon intersects the given point.
+ */
+mxConstraintHandler.prototype.intersects = function(icon, point, source, existingEdge)
+{
+	return mxUtils.intersects(icon.bounds, point);
 };
 
 /**

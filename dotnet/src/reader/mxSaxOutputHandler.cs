@@ -109,7 +109,7 @@ namespace com.mxgraph
         {
             if (atts.ContainsKey(key))
             {
-                defaultValue = double.Parse(atts[key]);
+                defaultValue = double.Parse(atts[key], System.Globalization.CultureInfo.InvariantCulture);
             }
 
             return defaultValue;
