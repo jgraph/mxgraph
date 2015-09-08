@@ -1,3 +1,14 @@
+08-SEP-2015: 1.14.0.2
+
+- Fixes incremental version number for last major version 1.2 -> 1.14
+- Fixes jetty positions for South and East direction hierarchical layout [Java]
+- Fixes table layout in scrollbars.html example [JavaScript]
+
+19-MAY-2015: 1.2.0.1
+
+- Adds mxCodec.elements, addElement to cache mxCodec.getElementById [JavaScript]
+- No longer uses document.getElementById in mxCodec.getElementById [JavaScript]
+
 23-APR-2015: 1.2.0.0
 
 - Adds zoom buttons in scrollbars.html example [JavaScript]

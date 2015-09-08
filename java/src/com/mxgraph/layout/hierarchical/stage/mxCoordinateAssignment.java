@@ -1,6 +1,5 @@
 /**
- * $Id: mxCoordinateAssignment.java,v 1.18 2013/04/26 21:35:11 david Exp $
- * Copyright (c) 2005-2012, JGraph Ltd
+ * Copyright (c) 2005-2015, JGraph Ltd
  */
 
 package com.mxgraph.layout.hierarchical.stage;
@@ -1277,7 +1276,7 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 		for (int i = 0; i < model.ranks.size(); i++)
 		{
 			rankTopY[i] = Double.MAX_VALUE;
-			rankBottomY[i] = 0.0;
+			rankBottomY[i] = -Double.MAX_VALUE;
 		}
 
 		Set<Object> parentsChanged = null;
@@ -1538,6 +1537,7 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 			double[] jettys = jettyPositions.get(edge);
 			
 			Object source = edge.isReversed() ? edge.target.cell : edge.source.cell;
+			boolean layoutReversed = this.orientation == SwingConstants.EAST || this.orientation == SwingConstants.SOUTH;
 
 			while (parallelEdges.hasNext())
 			{
@@ -1564,12 +1564,14 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 				if (jettys != null)
 				{
 					int arrayOffset = reversed ? 2 : 0;
-					double y = reversed ? rankTopY[minRank] : rankBottomY[maxRank];
+					double y = reversed ?
+									(layoutReversed ? this.rankBottomY[minRank] : this.rankTopY[minRank]) :
+											(layoutReversed ? this.rankTopY[maxRank] : this.rankBottomY[maxRank]);
 					double jetty = jettys[parallelEdgeCount * 4 + 1 + arrayOffset];
 					
 					// If the edge is reversed invert the y position within the channel,
 					// unless it is a single length edge
-					if (reversed)
+					if (reversed != layoutReversed)
 					{
 						jetty = -jetty;
 					}
@@ -1647,10 +1649,12 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 				if (jettys != null)
 				{
 					int arrayOffset = reversed ? 2 : 0;
-					double rankY = reversed ? rankBottomY[maxRank] : rankTopY[minRank];
+					double rankY = reversed ?
+										(layoutReversed ? this.rankTopY[maxRank] : this.rankBottomY[maxRank]) :
+												(layoutReversed ? this.rankBottomY[minRank] : this.rankTopY[minRank]);
 					double jetty = jettys[parallelEdgeCount * 4 + 3 - arrayOffset];
 					
-					if (reversed)
+					if (reversed != layoutReversed)
 					{
 						jetty = -jetty;
 					}
@@ -1813,7 +1817,6 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 
 			return 0;
 		}
-
 	}
 
 	/**

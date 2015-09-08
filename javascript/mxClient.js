@@ -21,9 +21,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 1.2.0.0.
+	 * Current version is 1.14.0.2.
 	 */
-	VERSION: '1.2.0.0',
+	VERSION: '1.14.0.2',
 
 	/**
 	 * Variable: IS_IE
@@ -76686,6 +76686,13 @@ mxCodec.prototype.document = null;
 mxCodec.prototype.objects = null;
 
 /**
+ * Variable: elements
+ * 
+ * Lookup table for resolving IDs to elements.
+ */
+mxCodec.prototype.elements = null;
+
+/**
  * Variable: encodeDefaults
  *
  * Specifies if default values should be encoded. Default is false.
@@ -76781,14 +76788,38 @@ mxCodec.prototype.lookup = function(id)
  */
 mxCodec.prototype.getElementById = function(id)
 {
-	// Workaround for no result in all versions of IE for the native implementation
-	if (typeof this.document.getElementById === 'function' && !mxClient.IS_IE && document.documentMode == null)
+	if (this.elements == null)
 	{
-		return this.document.getElementById(id);
+		this.elements = new Object();
+		this.addElement(this.document.documentElement);
 	}
-	else
+	
+	return this.elements[id];
+};
+
+/**
+ * Function: addElement
+ *
+ * Adds the given element to <elements> if it has an ID.
+ */
+mxCodec.prototype.addElement = function(node)
+{
+	if (node.nodeType == mxConstants.NODETYPE_ELEMENT)
 	{
-		return mxUtils.findNode(this.document.documentElement, 'id', id);
+		var id = node.getAttribute('id');
+		
+		if (id != null && this.elements[id] == null)
+		{
+			this.elements[id] = node;
+		}
+	}
+	
+	node = node.firstChild;
+	
+	while (node != null)
+	{
+		this.addElement(node);
+		node = node.nextSibling;
 	}
 };
 
