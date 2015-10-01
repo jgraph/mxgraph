@@ -26,6 +26,12 @@ function mxDragSource(element, dropHandler)
 		this.mouseDown(evt);
 	}));
 	
+	// Prevents native drag and drop
+	mxEvent.addListener(element, 'dragstart', function(evt)
+	{
+		mxEvent.consume(evt);
+	});
+	
 	this.eventConsumer = function(sender, evt)
 	{
 		var evtName = evt.getProperty('eventName');
@@ -326,10 +332,6 @@ mxDragSource.prototype.mouseDown = function(evt)
 			this.eventSource = mxEvent.getSource(evt);
 			mxEvent.addGestureListeners(this.eventSource, null, this.mouseMoveHandler, this.mouseUpHandler);
 		}
-		
-		// Prevents default action (native DnD for images in FF 10)
-		// but does not stop event propagation
-		mxEvent.consume(evt, true, false);
 	}
 };
 

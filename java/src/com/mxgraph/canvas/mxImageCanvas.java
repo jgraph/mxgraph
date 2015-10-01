@@ -42,6 +42,15 @@ public class mxImageCanvas implements mxICanvas
 	public mxImageCanvas(mxGraphics2DCanvas canvas, int width, int height,
 			Color background, boolean antiAlias)
 	{
+		this(canvas, width, height, background, antiAlias, true);
+	}
+	
+	/**
+	 * 
+	 */
+	public mxImageCanvas(mxGraphics2DCanvas canvas, int width, int height,
+			Color background, boolean antiAlias, boolean textAntiAlias)
+	{
 		this.canvas = canvas;
 		previousGraphics = canvas.getGraphics();
 		image = mxUtils.createBufferedImage(width, height, background);
@@ -49,7 +58,7 @@ public class mxImageCanvas implements mxICanvas
 		if (image != null)
 		{
 			Graphics2D g = image.createGraphics();
-			mxUtils.setAntiAlias(g, antiAlias, true);
+			mxUtils.setAntiAlias(g, antiAlias, textAntiAlias);
 			canvas.setGraphics(g);
 		}
 	}

@@ -1,4 +1,36 @@
-28-JUN-2015: 3.4.0.0
+01-OCT-2015: 3.4.0.1
+
+- Adds mxGuide.setVisible [JavaScript]
+- Adds mxConstants.STYLE_RESIZE_WIDTH/HEIGHT resize styles [JavaScript]
+- Fixes handling of movable and resizable in mxGraph.scaleCell [JavaScript]
+- Fixes in-place change for input in mxCellCodec.beforeDecode [JavaScript]
+- Fixes URL references for Chrome Apps in mxSvgCanvas [JavaScript]
+- Adds stroke width for native bbox in mxShape.updateBoundingBox [JavaScript]
+- Adds mxGraph.getBoundingBox, mxPrintPreview.backgroundColor [JavaScript]
+- Adds targetWindow argument in mxPrintPreview.open [JavaScript]
+- Fixes consumed mouse event in mxDragSource.mouseDown [JavaScript]
+- Fixes mxEvent.isLeft/Middle/RightMouseButton [JavaScript]
+- Fixes scale of preferred page size in mxGraph.sizeDidChange [JavaScript]
+- Fixes HTML entities in XHTML for SVG export in IE9/10 [JavaScript]
+- Fixes mxGraph.cellsRemoved for loops, terminals in groups [JavaScript]
+- Fixes mxGraph.fireMouseEvent for mouseUp on scrollbars in IE11 [JavaScript]
+- Fixes possible NaN for scale in mxOutline [JavaScript]
+- mxGraph.isEventIgnored no longer returns true while editing [JavaScript]
+- Replaces connect handle with hover icons in grapheditor
+- Adds mxVertexHandler.getHandlePadding hook [JavaScript]
+- Renames actual size to reset view in grapheditor
+- mxGraph.isEventIgnored no longer returns true while editing [JavaScript]
+- Adds mxCellEditor.getBackgroundColor hook [JavaScript]
+- Adds mxShape.useSvgBoundingBox switch, uses getBBox in SVG [JavaScript]
+- Fixes mxUtils.extractTextWithWhitespace for text sequence [JavaScript]
+- Adds Shift+Click to toggle selection state in grapheditor
+- Adds optional textAntiAlias argument in mxImageCanvas c'tor [Java]
+- Adds optional type argument in mxUtils.createBufferedImage [Java]
+- Adds cx, cy args in mxGraph.center [JavaScript]
+- Avoids output of invisible nodes in mxSvgCanvas2D [JavaScript]
+- Adds margin, fixes scrollbars in mxGraph.fit [JavaScript]
+
+28-AUG-2015: 3.4.0.0
 
 - Uses CSS transforms in mxCellEditor.resize [JavaScript]
 - Adds create and destroy for grapheditor instances

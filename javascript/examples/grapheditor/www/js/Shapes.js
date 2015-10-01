@@ -1581,47 +1581,42 @@
 			c.setStrokeColor(this.stroke);
 			c.rect(x, y, w, h);
 			c.fill();
-			c.begin();
-			c.moveTo(x, y);
 			
 			if (mxUtils.getValue(this.style, 'top', '1') == '1')
 			{
+				c.begin();
+				c.moveTo(x, y);
 				c.lineTo(x + w, y);
-			}
-			else
-			{
-				c.moveTo(x + w, y);
+				c.end();
+				c.stroke();
 			}
 			
 			if (mxUtils.getValue(this.style, 'right', '1') == '1')
 			{
+				c.begin();
+				c.moveTo(x + w, y);
 				c.lineTo(x + w, y + h);
-			}
-			else
-			{
-				c.moveTo(x + w, y + h);
+				c.end();
+				c.stroke();
 			}
 			
 			if (mxUtils.getValue(this.style, 'bottom', '1') == '1')
 			{
+				c.begin();
+				c.moveTo(x + w, y + h);
 				c.lineTo(x, y + h);
-			}
-			else
-			{
-				c.moveTo(x, y + h);
+				c.end();
+				c.stroke();
 			}
 			
 			if (mxUtils.getValue(this.style, 'left', '1') == '1')
 			{
+				c.begin();
+				c.moveTo(x, y + h);
 				c.lineTo(x, y);
+				c.end();
+				c.stroke();
 			}
-			else
-			{
-				c.moveTo(x, y);
-			}
-
-			c.end();
-			c.stroke();
 		}
 	};
 

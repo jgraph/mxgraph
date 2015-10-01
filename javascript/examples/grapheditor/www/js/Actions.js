@@ -70,7 +70,9 @@ Actions.prototype.init = function()
 	this.addAction('export...', function() { ui.showDialog(new ExportDialog(ui).container, 300, 210, true, true); });
 	this.addAction('editFile...', function()
 	{
-		ui.showDialog(new EditFileDialog(ui).container, 620, 420, true, true);
+		var dlg = new EditFileDialog(ui);
+		ui.showDialog(dlg.container, 620, 420, true, true);
+		dlg.init();
 	}).isEnabled = isGraphEnabled;
 	this.addAction('pageSetup...', function() { ui.showDialog(new PageSetupDialog(ui).container, 320, 120, true, true); }).isEnabled = isGraphEnabled;
 	this.addAction('print...', function() { ui.showDialog(new PrintDialog(ui).container, 300, 140, true, true); }, null, 'sprite-print', 'Ctrl+P');
@@ -126,25 +128,28 @@ Actions.prototype.init = function()
 	{
 		// Cancels interactive operations
 		graph.escape();
+		var cells = graph.getDeletableCells(graph.getSelectionCells());
 		
-		var cells = graph.getSelectionCells();
-		var parents = graph.model.getParents(cells);
-		graph.removeCells(cells, includeEdges);
-		
-		// Selects parents for easier editing of groups
-		if (parents != null)
+		if (cells != null && cells.length > 0)
 		{
-			var select = [];
+			var parents = graph.model.getParents(cells);
+			graph.removeCells(cells, includeEdges);
 			
-			for (var i = 0; i < parents.length; i++)
+			// Selects parents for easier editing of groups
+			if (parents != null)
 			{
-				if (graph.model.isVertex(parents[i]) || graph.model.isEdge(parents[i]))
+				var select = [];
+				
+				for (var i = 0; i < parents.length; i++)
 				{
-					select.push(parents[i]);
+					if (graph.model.isVertex(parents[i]) || graph.model.isEdge(parents[i]))
+					{
+						select.push(parents[i]);
+					}
 				}
+				
+				graph.setSelectionCells(select);
 			}
-			
-			graph.setSelectionCells(select);
 		}
 	};
 	
@@ -164,21 +169,27 @@ Actions.prototype.init = function()
 	{
 		graph.setSelectionCells(graph.turnShapes(graph.getSelectionCells()));
 	}, null, null, 'Ctrl+R');
-	this.addAction('selectVertices', function() { graph.selectVertices(); }, null, null, 'Ctrl+Shift+A');
+	this.addAction('selectVertices', function() { graph.selectVertices(); }, null, null, 'Ctrl+Shift+I');
 	this.addAction('selectEdges', function() { graph.selectEdges(); }, null, null, 'Ctrl+Shift+E');
 	this.addAction('selectAll', function() { graph.selectAll(); }, null, null, 'Ctrl+A');
+	this.addAction('selectNone', function() { graph.clearSelection(); }, null, null, 'Ctrl+Shift+A');
 	this.addAction('lockUnlock', function()
 	{
-		graph.getModel().beginUpdate();
-		try
+		if (!graph.isSelectionEmpty())
 		{
-			graph.toggleCellStyles(mxConstants.STYLE_RESIZABLE, 1);
-			graph.toggleCellStyles(mxConstants.STYLE_MOVABLE, 1);
-			graph.toggleCellStyles(mxConstants.STYLE_ROTATABLE, 1);
-		}
-		finally
-		{
-			graph.getModel().endUpdate();
+			graph.getModel().beginUpdate();
+			try
+			{
+				var defaultValue = graph.isCellMovable(graph.getSelectionCell()) ? 1 : 0;
+				graph.toggleCellStyles(mxConstants.STYLE_MOVABLE, defaultValue);
+				graph.toggleCellStyles(mxConstants.STYLE_RESIZABLE, defaultValue);
+				graph.toggleCellStyles(mxConstants.STYLE_ROTATABLE, defaultValue);
+				graph.toggleCellStyles(mxConstants.STYLE_DELETABLE, defaultValue);
+			}
+			finally
+			{
+				graph.getModel().endUpdate();
+			}
 		}
 	}, null, null, 'Ctrl+L');
 
@@ -340,7 +351,20 @@ Actions.prototype.init = function()
 					}
 					else
 					{
-						graph.updateCellSize(cell);
+						var state = graph.view.getState(cell);
+						var geo = graph.getCellGeometry(cell);
+
+						if (graph.getModel().isVertex(cell) && state != null && state.text != null &&
+							geo != null && graph.isWrapping(cell))
+						{
+							geo = geo.clone();
+							geo.height = state.text.boundingBox.height / graph.view.scale;
+							graph.getModel().setGeometry(cell, geo);
+						}
+						else
+						{
+							graph.updateCellSize(cell);
+						}
 					}
 				}
 			}
@@ -437,7 +461,7 @@ Actions.prototype.init = function()
 		dlg.init();
 	});
 	// View actions
-	this.addAction('actualSize', function()
+	this.addAction('resetView', function()
 	{
 		graph.zoomTo(1);
 		ui.resetScrollbars();
@@ -610,9 +634,10 @@ Actions.prototype.init = function()
 			ui.setBackgroundColor(color);
 		});
 	}));
-	action = this.addAction('connectionPoints', function()
+	action = this.addAction('connect', function()
 	{
 		graph.setConnectable(!graph.connectionHandler.isEnabled());
+		ui.fireEvent(new mxEventObject('connectChanged'));
 	}, null, null, 'Ctrl+Q');
 	action.setToggleAction(true);
 	action.setSelectedCallback(function() { return graph.connectionHandler.isEnabled(); });
@@ -626,7 +651,7 @@ Actions.prototype.init = function()
 	action.isEnabled = isGraphEnabled;
 	action = this.addAction('autosave', function()
 	{
-		ui.editor.autosave = !ui.editor.autosave;
+		ui.editor.setAutosave(!ui.editor.autosave);
 	});
 	action.setToggleAction(true);
 	action.setSelectedCallback(function() { return ui.editor.autosave; });

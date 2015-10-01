@@ -938,7 +938,7 @@ Sidebar.prototype.addMiscPalette = function(expand)
 
 	 		return this.createVertexTemplateFromCells([cell], cell.geometry.width, cell.geometry.height, 'Link');
 	 	})),
-        this.createVertexTemplateEntry('shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;', 30, 60, 'Actor', 'Actor', false),
+        this.createVertexTemplateEntry('shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;', 30, 60, 'Actor', 'Actor', false, null, 'user person human'),
 	 	this.createVertexTemplateEntry('line;html=1;', 160, 10, '', 'Horizontal Line'),
 	 	this.createVertexTemplateEntry('line;direction=south;html=1;', 10, 160, '', 'Vertical Line'),
 	 	this.createVertexTemplateEntry('shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;', 20, 120, '', 'Curly Bracket'),
@@ -1011,7 +1011,7 @@ Sidebar.prototype.createAdvancedShapes = function()
 	 	this.createVertexTemplateEntry('shape=singleArrow;direction=south;whiteSpace=wrap;html=1;', 60, 100, '', 'Arrow Down'),
 	 	this.createVertexTemplateEntry('shape=doubleArrow;whiteSpace=wrap;html=1;', 100, 60, '', 'Double Arrow'),
 	 	this.createVertexTemplateEntry('shape=doubleArrow;direction=south;whiteSpace=wrap;html=1;', 60, 100, '', 'Double Arrow Vertical', null, null, 'double arrow'),
-	 	this.createVertexTemplateEntry('shape=actor;whiteSpace=wrap;html=1;', 40, 60, '', 'User'),
+	 	this.createVertexTemplateEntry('shape=actor;whiteSpace=wrap;html=1;', 40, 60, '', 'User', null, null, 'user person human'),
 	 	this.createVertexTemplateEntry('shape=cross;whiteSpace=wrap;html=1;', 80, 80, '', 'Cross'),
 	 	this.createVertexTemplateEntry('shape=corner;whiteSpace=wrap;html=1;', 80, 80, '', 'Corner'),
 	 	this.createVertexTemplateEntry('shape=tee;whiteSpace=wrap;html=1;', 80, 80, '', 'Tee'),
@@ -2091,7 +2091,7 @@ Sidebar.prototype.getDropAndConnectGeometry = function(source, target, direction
 				geo.y = (state.y - view.translate.y) / view.scale;
 			}
 			
-			var length = Math.min(80, geo.height);
+			var length = graph.defaultEdgeLength;
 			
 			// Maintains edge length
 			if (graph.model.isEdge(target) && geo2.getTerminalPoint(true) != null && geo2.getTerminalPoint(false) != null)
@@ -2205,7 +2205,8 @@ Sidebar.prototype.getDropAndConnectGeometry = function(source, target, direction
 Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
 {
 	// Checks if the cells contain any vertices
-	var graph = this.editorUi.editor.graph;
+	var ui = this.editorUi;
+	var graph = ui.editor.graph;
 	var freeSourceEdge = null;
 	var firstVertex = null;
 	var sidebar = this;
@@ -2244,6 +2245,11 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
 		else
 		{
 			dropHandler.apply(this, arguments);
+		}
+		
+		if (this.editorUi.hoverIcons != null && mxEvent.isTouchEvent(evt))
+		{
+			this.editorUi.hoverIcons.update(graph.view.getState(graph.getSelectionCell()));
 		}
 	}),
 	preview, 0, 0, this.editorUi.editor.graph.autoscroll, true, true);
@@ -2328,20 +2334,22 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
 	var styleTargetParent = null;
 	var roundSource = createArrow(this.roundDrop);
 	var roundTarget = createArrow(this.roundDrop);
-	var arrowSpacing = 4;
 	var direction = mxConstants.DIRECTION_NORTH;
 	var activeArrow = null;
 	
 	function checkArrow(x, y, bounds, arrow)
 	{
-		if (mxUtils.contains(bounds, x, y))
+		if (arrow.parentNode != null)
 		{
-			mxUtils.setOpacity(arrow, 100);
-			activeArrow = arrow;
-		}
-		else
-		{
-			mxUtils.setOpacity(arrow, (arrow == styleTarget) ? 30 : 20);
+			if (mxUtils.contains(bounds, x, y))
+			{
+				mxUtils.setOpacity(arrow, 100);
+				activeArrow = arrow;
+			}
+			else
+			{
+				mxUtils.setOpacity(arrow, (arrow == styleTarget) ? 30 : 20);
+			}
 		}
 		
 		return bounds;
@@ -2367,10 +2375,33 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
 		return elt;
 	};
 	
+	// Shows/hides hover icons
+	var dragEnter = dragSource.dragEnter;
+	dragSource.dragEnter = function(graph, evt)
+	{
+		if (ui.hoverIcons != null)
+		{
+			ui.hoverIcons.setDisplay('none');
+		}
+		
+		dragEnter.apply(this, arguments);
+	};
+	
+	var dragExit = dragSource.dragExit;
+	dragSource.dragExit = function(graph, evt)
+	{
+		if (ui.hoverIcons != null)
+		{
+			ui.hoverIcons.setDisplay('');
+		}
+		
+		dragExit.apply(this, arguments);
+	};
+	
 	dragSource.dragOver = function(graph, evt)
 	{
 		mxDragSource.prototype.dragOver.apply(this, arguments);
-		
+
 		if (this.currentGuide != null && activeArrow != null)
 		{
 			this.currentGuide.hide();
@@ -2437,7 +2468,6 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
 	};
 	
 	var startTime = new Date().getTime();
-	var connectorImgBounds = null;
 	var timeOnTarget = 0;
 	var prev = null;
 	
@@ -2500,24 +2530,7 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
 		{
 			timeOnTarget = new Date().getTime() - startTime;
 		}
-		
-		// Shows drop target icons on selection cell if connector handler is under the mouse
-		var connectorHit = connectorImgBounds != null && mxUtils.contains(connectorImgBounds, x, y);
-		
-		if (connectorHit || (currentStyleTarget == null && activeArrow == null && graph.getSelectionCount() == 1))
-		{
-			var handler = graph.selectionCellsHandler.getHandler(graph.getSelectionCell());
-			
-			if (handler != null && (mxEvent.getSource(evt) == handler.connectorImg || connectorHit))
-			{
-				var s = handler.connectorImg.style;
-				connectorImgBounds = new mxRectangle(parseInt(s.left), parseInt(s.top), parseInt(s.width), parseInt(s.height));
-				cell = graph.getSelectionCell();
-				state = graph.view.getState(cell);
-				timeOnTarget = this.dropTargetDelay + 10;
-			}
-		}
-		
+
 		// Shift means disabled, delayed on cells with children, shows after this.dropTargetDelay, hides after 2500ms
 		if (timeOnTarget < 2500 && state != null && !mxEvent.isShiftDown(evt) &&
 			// If shape is equal or target has no stroke then add long delay except for images
@@ -2593,15 +2606,44 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
 			}
 			else
 			{
+				var bds = mxRectangle.fromRectangle(currentTargetState);
+				
+				// Uses outer bounding box to take rotation into account
+				if (currentTargetState.shape != null && currentTargetState.shape.boundingBox != null)
+				{
+					bds = mxRectangle.fromRectangle(currentTargetState.shape.boundingBox);
+				}
+
+				bds.grow(this.graph.tolerance);
+				bds.grow(HoverIcons.prototype.arrowSpacing);
+				
+				var handler = this.graph.selectionCellsHandler.getHandler(currentTargetState.cell);
+				
+				if (handler != null)
+				{
+					bds.x -= handler.horizontalOffset / 2;
+					bds.y -= handler.verticalOffset / 2;
+					bds.width += handler.horizontalOffset;
+					bds.height += handler.verticalOffset;
+					
+					// Adds bounding box of rotation handle to avoid overlap
+					if (handler.rotationShape != null && handler.rotationShape.node != null &&
+						handler.rotationShape.node.style.visibility != 'hidden' &&
+						handler.rotationShape.node.style.display != 'none' &&
+						handler.rotationShape.boundingBox != null)
+					{
+						bds.add(handler.rotationShape.boundingBox);
+					}
+				}
+				
 				bbox.add(checkArrow(x, y, new mxRectangle(currentTargetState.getCenterX() - this.triangleUp.width / 2,
-					currentTargetState.y - this.triangleUp.height - arrowSpacing, this.triangleUp.width, this.triangleUp.height), arrowUp));
-				bbox.add(checkArrow(x, y, new mxRectangle(currentTargetState.x + currentTargetState.width + arrowSpacing,
+					bds.y - this.triangleUp.height, this.triangleUp.width, this.triangleUp.height), arrowUp));
+				bbox.add(checkArrow(x, y, new mxRectangle(bds.x + bds.width,
 					currentTargetState.getCenterY() - this.triangleRight.height / 2,
 					this.triangleRight.width, this.triangleRight.height), arrowRight));
 				bbox.add(checkArrow(x, y, new mxRectangle(currentTargetState.getCenterX() - this.triangleDown.width / 2,
-						currentTargetState.y + currentTargetState.height + arrowSpacing,
-						this.triangleDown.width, this.triangleDown.height), arrowDown));
-				bbox.add(checkArrow(x, y, new mxRectangle(currentTargetState.x - this.triangleLeft.width - arrowSpacing,
+						bds.y + bds.height, this.triangleDown.width, this.triangleDown.height), arrowDown));
+				bbox.add(checkArrow(x, y, new mxRectangle(bds.x - this.triangleLeft.width,
 						currentTargetState.getCenterY() - this.triangleLeft.height / 2,
 						this.triangleLeft.width, this.triangleLeft.height), arrowLeft));
 			}
@@ -2688,21 +2730,55 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
 				}
 				else
 				{
-					arrowUp.style.left = Math.floor(state.getCenterX() - this.triangleUp.width / 2) + 'px';
-					arrowUp.style.top = Math.floor(state.y - this.triangleUp.height - arrowSpacing) + 'px';
+					var bds = mxRectangle.fromRectangle(state);
 					
-					arrowRight.style.left = Math.floor(state.x + state.width + arrowSpacing) + 'px';
+					// Uses outer bounding box to take rotation into account
+					if (state.shape != null && state.shape.boundingBox != null)
+					{
+						bds = mxRectangle.fromRectangle(state.shape.boundingBox);
+					}
+
+					bds.grow(this.graph.tolerance);
+					bds.grow(HoverIcons.prototype.arrowSpacing);
+					
+					var handler = this.graph.selectionCellsHandler.getHandler(state.cell);
+					
+					if (handler != null)
+					{
+						bds.x -= handler.horizontalOffset / 2;
+						bds.y -= handler.verticalOffset / 2;
+						bds.width += handler.horizontalOffset;
+						bds.height += handler.verticalOffset;
+						
+						// Adds bounding box of rotation handle to avoid overlap
+						if (handler.rotationShape != null && handler.rotationShape.node != null &&
+							handler.rotationShape.node.style.visibility != 'hidden' &&
+							handler.rotationShape.node.style.display != 'none' &&
+							handler.rotationShape.boundingBox != null)
+						{
+							bds.add(handler.rotationShape.boundingBox);
+						}
+					}
+					
+					arrowUp.style.left = Math.floor(state.getCenterX() - this.triangleUp.width / 2) + 'px';
+					arrowUp.style.top = Math.floor(bds.y - this.triangleUp.height) + 'px';
+					
+					arrowRight.style.left = Math.floor(bds.x + bds.width) + 'px';
 					arrowRight.style.top = Math.floor(state.getCenterY() - this.triangleRight.height / 2) + 'px';
 					
 					arrowDown.style.left = arrowUp.style.left
-					arrowDown.style.top = Math.floor(state.y + state.height + arrowSpacing) + 'px';
+					arrowDown.style.top = Math.floor(bds.y + bds.height) + 'px';
 					
-					arrowLeft.style.left = Math.floor(state.x - this.triangleLeft.width - arrowSpacing) + 'px';
+					arrowLeft.style.left = Math.floor(bds.x - this.triangleLeft.width) + 'px';
 					arrowLeft.style.top = arrowRight.style.top;
 					
-					graph.container.appendChild(arrowUp);
+					if (state.style['portConstraint'] != 'eastwest')
+					{
+						graph.container.appendChild(arrowUp);
+						graph.container.appendChild(arrowDown);
+					}
+
 					graph.container.appendChild(arrowRight);
-					graph.container.appendChild(arrowDown);
 					graph.container.appendChild(arrowLeft);
 				}
 				
@@ -2721,7 +2797,6 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
 			}
 			else
 			{
-				connectorImgBounds = null;
 				var elts = [roundSource, roundTarget, arrowUp, arrowRight, arrowDown, arrowLeft];
 				
 				for (var i = 0; i < elts.length; i++)
@@ -2801,17 +2876,23 @@ Sidebar.prototype.itemClicked = function(cells, ds, evt, elt)
 {
 	var graph = this.editorUi.editor.graph;
 	
-	if (mxEvent.isAltDown(evt))
+	if (mxEvent.isAltDown(evt) || mxEvent.isShiftDown(evt))
 	{
 		if (!graph.isSelectionEmpty())
 		{
-			graph.setSelectionCells(this.updateShapes(cells[0], graph.getSelectionCells()));
+			this.updateShapes(cells[0], graph.getSelectionCells());
+			graph.scrollCellToVisible(graph.getSelectionCell());
 		}
 	}
 	else
 	{
 		var pt = graph.getInsertPoint();
 		ds.drop(graph, evt, null, pt.x, pt.y);
+		
+		if (this.editorUi.hoverIcons != null && mxEvent.isTouchEvent(evt))
+		{
+			this.editorUi.hoverIcons.update(graph.view.getState(graph.getSelectionCell()));
+		}
 	}
 };
 

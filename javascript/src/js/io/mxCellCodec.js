@@ -112,7 +112,7 @@ mxCodecRegistry.register(function()
 	 */
 	codec.beforeDecode = function(dec, node, obj)
 	{
-		var inner = node;
+		var inner = node.cloneNode(true);
 		var classname = this.getName();
 		
 		if (node.nodeName != classname)

@@ -242,6 +242,13 @@ mxPrintPreview.prototype.printControls = false;
 mxPrintPreview.prototype.printBackgroundImage = false;
 
 /**
+ * Variable: backgroundColor
+ * 
+ * Holds the color value for the page background color. Default is #ffffff.
+ */
+mxPrintPreview.prototype.backgroundColor = '#ffffff';
+
+/**
  * Variable: borderColor
  * 
  * Holds the color value for the page border.
@@ -269,6 +276,13 @@ mxPrintPreview.prototype.pageSelector = null;
  * Reference to the preview window.
  */
 mxPrintPreview.prototype.wnd = null;
+
+/**
+ * Variable: targetWindow
+ * 
+ * Assign any window here to redirect the rendering in <open>.
+ */
+mxPrintPreview.prototype.targetWindow = null;
 
 /**
  * Variable: pageCount
@@ -324,8 +338,10 @@ mxPrintPreview.prototype.getDoctype = function()
  * Parameters:
  * 
  * css - Optional CSS string to be used in the head section.
+ * targetWindow - Optional window that should be used for rendering. If
+ * this is specified then no HEAD tag, CSS and BODY tag will be written.
  */
-mxPrintPreview.prototype.open = function(css)
+mxPrintPreview.prototype.open = function(css, targetWindow)
 {
 	// Closing the window while the page is being rendered may cause an
 	// exception in IE. This and any other exceptions are simply ignored.
@@ -355,33 +371,37 @@ mxPrintPreview.prototype.open = function(css)
 		
 		if (this.wnd == null)
 		{
-			this.wnd = window.open();
+			this.wnd = (targetWindow != null) ? targetWindow : window.open();
 			var doc = this.wnd.document;
-			var dt = this.getDoctype();
 			
-			if (dt != null && dt.length > 0)
+			if (targetWindow == null)
 			{
-				doc.writeln(dt);
-			}
-			
-			if (mxClient.IS_VML)
-			{
-				doc.writeln('<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">');
-			}
-			else
-			{
-				if (document.compatMode === 'CSS1Compat')
+				var dt = this.getDoctype();
+				
+				if (dt != null && dt.length > 0)
 				{
-					doc.writeln('<!DOCTYPE html>');
+					doc.writeln(dt);
 				}
 				
-				doc.writeln('<html>');
+				if (mxClient.IS_VML)
+				{
+					doc.writeln('<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">');
+				}
+				else
+				{
+					if (document.compatMode === 'CSS1Compat')
+					{
+						doc.writeln('<!DOCTYPE html>');
+					}
+					
+					doc.writeln('<html>');
+				}
+				
+				doc.writeln('<head>');
+				this.writeHead(doc, css);
+				doc.writeln('</head>');
+				doc.writeln('<body class="mxPage">');
 			}
-			
-			doc.writeln('<head>');
-			this.writeHead(doc, css);
-			doc.writeln('</head>');
-			doc.writeln('<body class="mxPage">');
 
 			// Computes the horizontal and vertical page count
 			var bounds = this.graph.getGraphBounds().clone();
@@ -444,7 +464,7 @@ mxPrintPreview.prototype.open = function(css)
 				}
 			});
 			
-			function addPage(div, addBreak)
+			var addPage = mxUtils.bind(this, function(div, addBreak)
 			{
 				// Border of the DIV (aka page) inside the document
 				if (this.borderColor != null)
@@ -456,7 +476,7 @@ mxPrintPreview.prototype.open = function(css)
 				
 				// Needs to be assigned directly because IE doesn't support
 				// child selectors, eg. body > div { background: white; }
-				div.style.background = 'white';
+				div.style.background = this.backgroundColor;
 				
 				if (addBreak)
 				{
@@ -486,13 +506,13 @@ mxPrintPreview.prototype.open = function(css)
 					doc.body.appendChild(div);
 				}
 
-				if (addBreak)
+				if (addBreak && targetWindow == null)
 				{
 					var hr = doc.createElement('hr');
 					hr.className = 'mxPageBreak';
 					doc.body.appendChild(hr);
 				}
-			};
+			});
 			
 			var cov = this.getCoverPages(this.pageFormat.width, this.pageFormat.height);
 			
@@ -549,15 +569,18 @@ mxPrintPreview.prototype.open = function(css)
 				}
 			}
 
-			doc.writeln('</body>');
-			doc.writeln('</html>');
-			doc.close();
-			
-			// Marks the printing complete for async handling
-			writePageSelector();
-			
-			// Removes all event handlers in the print output
-			mxEvent.release(doc.body);
+			if (targetWindow == null)
+			{
+				doc.writeln('</body>');
+				doc.writeln('</html>');
+				doc.close();
+				
+				// Marks the printing complete for async handling
+				writePageSelector();
+				
+				// Removes all event handlers in the print output
+				mxEvent.release(doc.body);
+			}
 		}
 		
 		this.wnd.focus();
@@ -569,6 +592,8 @@ mxPrintPreview.prototype.open = function(css)
 		{
 			div.parentNode.removeChild(div);
 		}
+		
+		console.log('e', e);
 	}
 	finally
 	{

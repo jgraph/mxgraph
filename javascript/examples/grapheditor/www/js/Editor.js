@@ -45,7 +45,8 @@ catch (e)
  * Sets global constants.
  */
 // Changes default colors
-mxConstants.SHADOWCOLOR = '#d0d0d0';
+mxConstants.SHADOWCOLOR = '#000000';
+mxConstants.SHADOW_OPACITY = 0.25;
 mxGraph.prototype.pageBreakColor = '#c0c0c0';
 mxGraph.prototype.pageScale = 1;
 
@@ -186,6 +187,11 @@ Editor.prototype.autosave = true;
 Editor.prototype.initialTopSpacing = 0;
 
 /**
+ * 
+ */
+Editor.prototype.defaultGraphBackground = '#ffffff';
+
+/**
  * Specifies the app name. Default is document.title.
  */
 Editor.prototype.appName = document.title;
@@ -194,6 +200,15 @@ Editor.prototype.appName = document.title;
  * Initializes the environment.
  */
 Editor.prototype.init = function() { };
+
+/**
+ * Sets the XML node for the current diagram.
+ */
+Editor.prototype.setAutosave = function(value)
+{
+	this.autosave = value;
+	this.fireEvent(new mxEventObject('autosaveChanged'));
+};
 
 /**
  * Sets the XML node for the current diagram.
@@ -217,7 +232,7 @@ Editor.prototype.resetGraph = function()
 	this.graph.pageVisible = this.defaultPageVisible;
 	this.graph.pageBreaksVisible = this.graph.pageVisible; 
 	this.graph.preferPageSize = this.graph.pageBreaksVisible;
-	this.graph.background = null;
+	this.graph.background = this.defaultGraphBackground;
 	this.graph.pageScale = mxGraph.prototype.pageScale;
 	this.graph.pageFormat = mxGraph.prototype.pageFormat;
 	this.updateGraphComponents();
@@ -295,7 +310,7 @@ Editor.prototype.setGraphXml = function(node)
 				}
 				else
 				{
-					this.graph.background = null;
+					this.graph.background = this.defaultGraphBackground;
 				}
 		
 				this.updateGraphComponents();
@@ -340,10 +355,20 @@ Editor.prototype.setGraphXml = function(node)
 /**
  * Returns the XML node that represents the current diagram.
  */
-Editor.prototype.getGraphXml = function()
+Editor.prototype.getGraphXml = function(ignoreSelection)
 {
-	var enc = new mxCodec(mxUtils.createXmlDocument());
-	var node = enc.encode(this.graph.getModel());
+	ignoreSelection = (ignoreSelection != null) ? ignoreSelection : true;
+	var node = null;
+	
+	if (ignoreSelection)
+	{
+		var enc = new mxCodec(mxUtils.createXmlDocument());
+		node = enc.encode(this.graph.getModel());
+	}
+	else
+	{
+		node = this.graph.encodeCells(this.graph.getSelectionCells());
+	}
 
 	if (this.graph.view.translate.x != 0 || this.graph.view.translate.y != 0)
 	{
@@ -620,54 +645,66 @@ OpenFile.prototype.cancel = function(cancel)
 
 			if (this.backgroundPageShape == null)
 			{
-				this.backgroundPageShape = this.createBackgroundPageShape(bounds);
-				this.backgroundPageShape.scale = 1;
+				// Finds first child of type element
+				var firstChild = this.graph.container.firstChild;
 				
-				// Shadow filter causes problems in outline window in quirks mode. IE8 standards
-				// also has known rendering issues inside mxWindow but not using shadow is worse.
-				this.backgroundPageShape.isShadow = !mxClient.IS_QUIRKS;
-				this.backgroundPageShape.dialect = mxConstants.DIALECT_STRICTHTML;
-				this.backgroundPageShape.init(this.graph.container);
+				while (firstChild != null && firstChild.nodeType != mxConstants.NODETYPE_ELEMENT)
+				{
+					firstChild = firstChild.nextSibling;
+				}
+				
+				if (firstChild != null)
+				{
+					this.backgroundPageShape = this.createBackgroundPageShape(bounds);
+					this.backgroundPageShape.scale = 1;
+					
+					// Shadow filter causes problems in outline window in quirks mode. IE8 standards
+					// also has known rendering issues inside mxWindow but not using shadow is worse.
+					this.backgroundPageShape.isShadow = !mxClient.IS_QUIRKS;
+					this.backgroundPageShape.dialect = mxConstants.DIALECT_STRICTHTML;
+					this.backgroundPageShape.init(this.graph.container);
 
-				// Required for the browser to render the background page in correct order
-				this.graph.container.firstChild.style.position = 'absolute';
-				this.graph.container.insertBefore(this.backgroundPageShape.node, this.graph.container.firstChild);
-				this.backgroundPageShape.redraw();
-				
-				this.backgroundPageShape.node.className = 'geBackgroundPage';
-				
-				// Adds listener for double click handling on background
-				mxEvent.addListener(this.backgroundPageShape.node, 'dblclick',
-					mxUtils.bind(this, function(evt)
-					{
-						this.graph.dblClick(evt);
-					})
-				);
-				
-				// Adds basic listeners for graph event dispatching outside of the
-				// container and finishing the handling of a single gesture
-				mxEvent.addGestureListeners(this.backgroundPageShape.node,
-					mxUtils.bind(this, function(evt)
-					{
-						this.graph.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt));
-					}),
-					mxUtils.bind(this, function(evt)
-					{
-						// Hides the tooltip if mouse is outside container
-						if (this.graph.tooltipHandler != null && this.graph.tooltipHandler.isHideOnHover())
+					// Required for the browser to render the background page in correct order
+					firstChild.style.position = 'absolute';
+					this.graph.container.insertBefore(this.backgroundPageShape.node, firstChild);
+					this.backgroundPageShape.redraw();
+					
+					this.backgroundPageShape.node.className = 'geBackgroundPage';
+					
+					// Adds listener for double click handling on background
+					mxEvent.addListener(this.backgroundPageShape.node, 'dblclick',
+						mxUtils.bind(this, function(evt)
 						{
-							this.graph.tooltipHandler.hide();
-						}
-						
-						if (this.graph.isMouseDown && !mxEvent.isConsumed(evt))
+							this.graph.dblClick(evt);
+						})
+					);
+					
+					// Adds basic listeners for graph event dispatching outside of the
+					// container and finishing the handling of a single gesture
+					mxEvent.addGestureListeners(this.backgroundPageShape.node,
+						mxUtils.bind(this, function(evt)
 						{
-							this.graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt));
-						}
-					}),
-					mxUtils.bind(this, function(evt)
-					{
-						this.graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt));
-					}));
+							this.graph.fireMouseEvent(mxEvent.MOUSE_DOWN, new mxMouseEvent(evt));
+						}),
+						mxUtils.bind(this, function(evt)
+						{
+							// Hides the tooltip if mouse is outside container
+							if (this.graph.tooltipHandler != null && this.graph.tooltipHandler.isHideOnHover())
+							{
+								this.graph.tooltipHandler.hide();
+							}
+							
+							if (this.graph.isMouseDown && !mxEvent.isConsumed(evt))
+							{
+								this.graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt));
+							}
+						}),
+						mxUtils.bind(this, function(evt)
+						{
+							this.graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt));
+						})
+					);
+				}
 			}
 			else
 			{
@@ -937,7 +974,7 @@ OpenFile.prototype.cancel = function(cancel)
 			
 			while (parent != null)
 			{
-				if (this.graph.isCellSelected(parent))
+				if (this.graph.isCellSelected(parent) && model.isVertex(parent))
 				{
 					result = true;
 					break;

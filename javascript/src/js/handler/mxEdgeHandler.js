@@ -630,10 +630,12 @@ mxEdgeHandler.prototype.validateConnection = function(source, target)
 	{
 		for (var i = 1; i < this.abspoints.length; i++)
 		{
-			var bend = this.createHandleShape(i);
-			this.initBend(bend);
-			bend.setCursor(mxConstants.CURSOR_VIRTUAL_BEND_HANDLE);
-			bends.push(bend);
+			(mxUtils.bind(this, function(bend)
+			{
+				this.initBend(bend);
+				bend.setCursor(mxConstants.CURSOR_VIRTUAL_BEND_HANDLE);
+				bends.push(bend);
+			}))(this.createHandleShape(i));
 		}
 	}
 

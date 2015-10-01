@@ -348,14 +348,24 @@ mxGuide.prototype.move = function(bounds, delta, gridEnabled)
  */
 mxGuide.prototype.hide = function()
 {
+	this.setVisible(false);
+};
+
+/**
+ * Function: setVisible
+ * 
+ * Shows or hides the current guides.
+ */
+mxGuide.prototype.setVisible = function(visible)
+{
 	if (this.guideX != null)
 	{
-		this.guideX.node.style.visibility = 'hidden';
+		this.guideX.node.style.visibility = (visible) ? 'visible' : 'hidden';
 	}
 	
 	if (this.guideY != null)
 	{
-		this.guideY.node.style.visibility = 'hidden';
+		this.guideY.node.style.visibility = (visible) ? 'visible' : 'hidden';
 	}
 };
 

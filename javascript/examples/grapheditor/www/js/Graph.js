@@ -7,7 +7,6 @@
  * in turn will create the container for the graph. Hence, the container is
  * assigned later in EditorUi.
  */
-// Makes the shadow brighter
 /**
  * Defines graph class.
  */
@@ -26,6 +25,200 @@ Graph = function(container, model, renderHint, stylesheet)
 		
 		return style['html'] == '1' || style[mxConstants.STYLE_WHITE_SPACE] == 'wrap';
 	};
+	
+
+	// Implements a listener for hover and click handling on edges
+	if (this.edgeMode)
+	{
+		var start = {
+			point: null,
+			event: null,
+			state: null,
+			handle: null
+		};
+		
+		// Uses this event to process mouseDown to check the selection state before it is changed
+		this.addListener(mxEvent.FIRE_MOUSE_EVENT, mxUtils.bind(this, function(sender, evt)
+		{
+			if (evt.getProperty('eventName') == 'mouseDown')
+			{
+				var me = evt.getProperty('event');
+				
+				if (!mxEvent.isControlDown(me.getEvent()) && !mxEvent.isShiftDown(me.getEvent()))
+		    	{
+			    	var state = me.getState();
+		
+			    	if (state != null)
+			    	{
+			    		// Checks if state was removed in call to stopEditing above
+			    		if (this.model.isEdge(state.cell))
+			    		{
+			    			start.point = new mxPoint(me.getGraphX(), me.getGraphY());
+			    			start.state = state;
+			    			start.event = me;
+			    			
+			    			var handler = this.selectionCellsHandler.getHandler(state.cell);
+
+			    			if (handler != null && handler.bends != null && handler.bends.length > 0)
+			    			{
+			    				start.handle = handler.getHandleForEvent(me);
+			    			}
+			    		}
+			    	}
+		    	}
+			}
+		}));
+		
+		this.addMouseListener(
+		{
+			mouseDown: function() {},
+		    mouseMove: mxUtils.bind(this, function(sender, me)
+		    {
+		    	if (!mxEvent.isControlDown(me.getEvent()) && !mxEvent.isShiftDown(me.getEvent()))
+		    	{
+		    		var tol = this.tolerance;
+	
+			    	if (start.point != null && start.state != null && start.event != null)
+			    	{
+			    		var state = start.state;
+			    		
+			    		if (Math.abs(start.point.x - me.getGraphX()) > tol ||
+			    			Math.abs(start.point.y - me.getGraphY()) > tol)
+			    		{
+			    			var handler = this.selectionCellsHandler.getHandler(state.cell);
+			    			
+			    			if (handler != null && handler.bends != null && handler.bends.length > 0)
+			    			{
+			    				var handle = handler.getHandleForEvent(start.event);
+			    				var edgeStyle = this.view.getEdgeStyle(state);
+			    				var entity = edgeStyle == mxEdgeStyle.EntityRelation;
+			    				
+	    						if (!entity || handle == 0 || handle == handler.bends.length - 1)
+	    						{
+				    				// Source or target handle or connected for direct handle access or orthogonal line
+				    				// with just two points where the central handle is moved regardless of mouse position
+				    				if (handle == 0 || state.visibleSourceState != null ||
+				    					handle == handler.bends.length - 1 || state.visibleTargetState != null)
+				    				{
+				    					if (!entity)
+				    					{
+						    				var orth = edgeStyle == mxEdgeStyle.EntityRelation || edgeStyle == mxEdgeStyle.OrthConnector;
+					    					var pts = state.absolutePoints;
+				    						
+					    					if (orth && pts != null)
+					    					{
+					    						// Does not use handles if they were not initially visible
+					    						handle = start.handle;
+
+					    						if (handle == null)
+					    						{
+						    						// Checks if edge has no bends
+						    						var nobends = pts.length == 2 || (pts.length == 3 &&
+						    								((Math.round(pts[0].x - pts[1].x) == 0 && Math.round(pts[1].x - pts[2].x) == 0) ||
+						    								(Math.round(pts[0].y - pts[1].y) == 0 && Math.round(pts[1].y - pts[2].y) == 0)));
+						    						
+					    							if (nobends)
+							    					{
+								    					// Moves central handle for straight orthogonal edges
+							    						handle = 2;
+							    					}
+							    					else
+								    				{
+									    				// Finds and moves vertical or horizontal segment
+								    					handle = mxUtils.findNearestSegment(state, start.point.x, start.point.y) + 1;
+								    				}
+					    						}
+					    					}
+							    			
+						    				// Creates a new waypoint and starts moving it
+						    				if (handle == null)
+						    				{
+						    					handle = mxEvent.VIRTUAL_HANDLE;
+						    				}
+				    					}
+					    				
+				    					handler.start(me.getGraphX(), me.getGraphX(), handle);
+				    					start.state = null;
+				    					start.event = null;
+				    					start.point = null;
+				    					start.handle = null;
+				    					me.consume();
+	
+				    					// Removes preview rectangle in graph handler
+				    					this.graphHandler.reset();
+				    				}
+	    						}
+	    						else if (entity && (state.visibleSourceState != null || state.visibleTargetState != null))
+	    						{
+	    							// Disables moves on entity to make it consistent
+			    					this.graphHandler.reset();
+	    							me.consume();
+	    						}
+			    			}
+			    		}
+			    	}
+			    	else
+			    	{
+			    		// Updates cursor for unselected edges under the mouse
+				    	var state = me.getState();
+				    	
+				    	if (state != null)
+				    	{
+				    		// Checks if state was removed in call to stopEditing above
+				    		if (this.model.isEdge(state.cell))
+				    		{
+				    			var cursor = null;
+			    				var pts = state.absolutePoints;
+			    				
+			    				if (pts != null)
+			    				{
+			    					var box = new mxRectangle(me.getGraphX(), me.getGraphY());
+			    					box.grow(mxEdgeHandler.prototype.handleImage.width / 2);
+			    					
+			    					if (mxUtils.contains(box, pts[0].x, pts[0].y) || mxUtils.contains(box, pts[pts.length - 1].x, pts[pts.length - 1].y))
+			    					{
+			    						cursor = 'pointer';
+			    					}
+			    					else if (state.visibleSourceState != null || state.visibleTargetState != null)
+			    					{
+			    						var tmp = this.view.getEdgeStyle(state);
+			    						cursor = 'crosshair';
+			    						
+			    						if (tmp == mxEdgeStyle.EntityRelation)
+			    						{
+			    							// Moving is not allowed for entity relation
+			    							cursor = 'default';
+			    						}
+			    						else if (this.isOrthogonal(state))
+						    			{
+						    				var idx = mxUtils.findNearestSegment(state, me.getGraphX(), me.getGraphY());
+						    				
+						    				if (idx < pts.length - 1 && idx >= 0)
+						    				{
+					    						cursor = (Math.round(pts[idx].x - pts[idx + 1].x) == 0) ? 'col-resize' : 'row-resize';
+						    				}
+						    			}
+			    					}
+			    				}
+			    				
+			    				if (cursor != null)
+			    				{
+			    					state.setCursor(cursor);
+			    				}
+				    		}
+				    	}
+			    	}
+		    	}
+		    }),
+		    mouseUp: mxUtils.bind(this, function(sender, me)
+		    {
+				start.state = null;
+				start.event = null;
+				start.point = null;
+				start.handle = null;
+		    })
+		});
+	}
 	
 	// HTML entities are displayed as plain text in wrapped plain text labels
 	this.cellRenderer.getLabelValue = function(state)
@@ -66,12 +259,10 @@ Graph = function(container, model, renderHint, stylesheet)
 		// Disables cloning of connection sources by default
 		this.connectionHandler.setCreateTarget(false);
 		
-		// Disables built-in connection starts except shift is pressed when hovering the cell
+		// Disables built-in connection starts
 		this.connectionHandler.isValidSource = function(cell, me)
 		{
-			return mxConnectionHandler.prototype.isValidSource.apply(this, arguments) &&
-				((urlParams['connect'] != '2' && urlParams['connect'] != null) ||
-				(!this.graph.isCellSelected(cell) && mxEvent.isControlDown(me.getEvent())));
+			return false;
 		};
 
 		// Sets the style to be used when an elbow edge is double clicked
@@ -179,6 +370,13 @@ Graph = function(container, model, renderHint, stylesheet)
 	    		connectionHandleIsOutlineConnectEvent.apply(this, arguments));
 	    };
 	    
+	    // Adds shift+click to toggle selection state
+	    var isToggleEvent = this.isToggleEvent;
+	    this.isToggleEvent = function(evt)
+	    {
+	    	return isToggleEvent.apply(this, arguments) || mxEvent.isShiftDown(evt);
+	    };
+	    
 	    // Workaround for Firefox where first mouse down is received
 	    // after tap and hold if scrollbars are visible, which means
 	    // start rubberband immediately if no cell is under mouse.
@@ -191,14 +389,17 @@ Graph = function(container, model, renderHint, stylesheet)
 	    };
 	    
 	    // Shows hand cursor while panning
+	    var prevCursor = null;
+	    
 		this.panningHandler.addListener(mxEvent.PAN_START, mxUtils.bind(this, function()
 		{
+			prevCursor = this.container.style.cursor;
 			this.container.style.cursor = 'move';
 		}));
 			
 		this.panningHandler.addListener(mxEvent.PAN_END, mxUtils.bind(this, function()
 		{
-			this.container.style.cursor = 'default';
+			this.container.style.cursor = prevCursor;
 		}));
 
 		this.popupMenuHandler.autoExpand = true;
@@ -212,7 +413,7 @@ Graph = function(container, model, renderHint, stylesheet)
 		var click = this.click;
 		this.click = function(me)
 		{
-			if (!this.isEnabled())
+			if (!this.isEnabled() && !me.isConsumed())
 			{
 				var cell = me.getCell();
 				
@@ -445,13 +646,30 @@ Graph.prototype.maxFitScale = null;
 Graph.prototype.linkTarget = '_blank';
 
 /**
+ * Sets the default target for all links in cells.
+ */
+Graph.prototype.defaultEdgeLength = 100;
+
+/**
+ * Allows all values in fit.
+ */
+Graph.prototype.edgeMode = false;
+
+/**
  * Installs child layout styles.
  */
 Graph.prototype.init = function()
 {
 	mxGraph.prototype.init.apply(this, arguments);
-	var graph = this;
 
+	this.initLayoutManager();
+};
+
+/**
+ * Installs automatic layout via styles
+ */
+Graph.prototype.initLayoutManager = function()
+{
 	this.layoutManager = new mxLayoutManager(this);
 
 	this.layoutManager.getLayout = function(cell)
@@ -514,11 +732,166 @@ Graph.prototype.init = function()
 Graph.prototype.sanitizeHtml = function(value)
 {
 	// Uses https://code.google.com/p/google-caja/wiki/JsHtmlSanitizer
-	// TODO: Add MathML to whitelisted tags
+	// TODO: Add MathML to whitelisted tags, add data URIs for images
 	function urlX(url) { if(/^https?:\/\//.test(url)) { return url }}
     function idX(id) { return id }
 	
 	return html_sanitize(value, urlX, idX);
+};
+
+/**
+ * Adds a connection to the given vertex.
+ */
+Graph.prototype.connectVertex = function(source, direction, length, evt)
+{
+	var pt = new mxPoint(source.geometry.x, source.geometry.y);
+		
+	if (direction == mxConstants.DIRECTION_NORTH)
+	{
+		pt.x += source.geometry.width / 2;
+		pt.y -= length ;
+	}
+	else if (direction == mxConstants.DIRECTION_SOUTH)
+	{
+		pt.x += source.geometry.width / 2;
+		pt.y += source.geometry.height + length;
+	}
+	else if (direction == mxConstants.DIRECTION_WEST)
+	{
+		pt.x -= length;
+		pt.y += source.geometry.height / 2;
+	}
+	else
+	{
+		pt.x += source.geometry.width + length;
+		pt.y += source.geometry.height / 2;
+	}
+
+	var parentState = this.view.getState(this.model.getParent(source));
+	var s = this.view.scale;
+	var t = this.view.translate;
+	var dx = t.x * s;
+	var dy = t.y * s;
+	
+	if (this.model.isVertex(parentState.cell))
+	{
+		dx = parentState.x;
+		dy = parentState.y;
+	}
+
+	// Checks actual end point of edge for target cell
+	var target = (mxEvent.isControlDown(evt)) ? null : this.getCellAt(dx + pt.x * s, dy + pt.y * s);
+	
+	if (this.model.isAncestor(target, source))
+	{
+		target = null;
+	}
+	
+	// Checks if source and target intersect
+	if (target != null)
+	{
+		var sourceState = this.view.getState(source);
+		var targetState = this.view.getState(target);
+		
+		if (sourceState != null && targetState != null && mxUtils.intersects(sourceState, targetState))
+		{
+			target = null;
+		}
+	}
+	
+	var duplicate = !mxEvent.isShiftDown(evt);
+	
+	if (duplicate)
+	{
+		if (direction == mxConstants.DIRECTION_NORTH)
+		{
+			pt.y -= source.geometry.height / 2;
+		}
+		else if (direction == mxConstants.DIRECTION_SOUTH)
+		{
+			pt.y += source.geometry.height / 2;
+		}
+		else if (direction == mxConstants.DIRECTION_WEST)
+		{
+			pt.x -= source.geometry.width / 2;
+		}
+		else
+		{
+			pt.x += source.geometry.width / 2;
+		}
+	}
+
+	// Uses connectable parent vertex if one exists
+	if (target != null && !this.isCellConnectable(target))
+	{
+		var parent = this.getModel().getParent(target);
+		
+		if (this.getModel().isVertex(parent) && this.isCellConnectable(parent))
+		{
+			target = parent;
+		}
+	}
+	
+	if (target == source || this.model.isEdge(target) || !this.isCellConnectable(target))
+	{
+		target = null;
+	}
+	
+	var result = [];
+	
+	this.model.beginUpdate();
+	try
+	{
+		var realTarget = target;
+		
+		if (realTarget == null && duplicate)
+		{
+			realTarget = this.duplicateCells([source], false)[0];
+			
+			var geo = this.getCellGeometry(realTarget);
+			geo.x = pt.x - geo.width / 2;
+			geo.y = pt.y - geo.height / 2;
+		}
+		
+		// Never connects children in stack layouts
+		var layout = null;
+
+		if (this.layoutManager != null)
+		{
+			layout = this.layoutManager.getLayout(this.model.getParent(source));
+		}
+		
+		var edge = ((mxEvent.isControlDown(evt) && duplicate) || (layout != null && layout.constructor == mxStackLayout)) ? null :
+			this.insertEdge(this.model.getParent(source), null, '', source, realTarget, this.createCurrentEdgeStyle());
+		
+		if (edge != null)
+		{
+			// Uses elbow edges with vertical or horizontal direction
+//			var elbowValue = (direction == mxConstants.DIRECTION_NORTH || direction == mxConstants.DIRECTION_SOUTH) ? 'vertical' : 'horizontal';
+//			edge.style = mxUtils.setStyle(edge.style, 'edgeStyle', 'elbowEdgeStyle');
+//			edge.style = mxUtils.setStyle(edge.style, 'elbow', elbowValue);
+			
+			result.push(edge);
+		}
+		
+		if (target == null && realTarget != null)
+		{
+			result.push(realTarget);
+		}
+		
+		if (realTarget == null && edge != null)
+		{
+			edge.geometry.setTerminalPoint(pt, false);
+		}
+		
+		this.fireEvent(new mxEventObject('cellsInserted', 'cells', result));
+	}
+	finally
+	{
+		this.model.endUpdate();
+	}
+	
+	return result;
 };
 
 /**
@@ -763,6 +1136,17 @@ Graph.prototype.isContainer = function(cell)
 };
 
 /**
+ * Adds a connectable style.
+ */
+Graph.prototype.isCellConnectable = function(cell)
+{
+	var state = this.view.getState(cell);
+	var style = (state != null) ? state.style : this.getCellStyle(cell);
+	
+	return (style['connectable'] != null) ? style['connectable']  != '0' : mxGraph.prototype.isCellConnectable.apply(this, arguments);
+};
+
+/**
  * Function: selectAll
  * 
  * Selects all children of the given parent cell or the children of the
@@ -848,6 +1232,24 @@ Graph.prototype.isCellFoldable = function(cell)
 };
 
 /**
+ * Stops all interactions and clears the selection.
+ */
+Graph.prototype.reset = function()
+{
+	if (this.isEditing())
+	{
+		this.stopEditing(true);
+	}
+	
+	this.escape();
+					
+	if (!this.isSelectionEmpty())
+	{
+		this.clearSelection();
+	}
+};
+
+/**
  * Overridden to limit zoom to 160x.
  */
 Graph.prototype.zoom = function(factor, center)
@@ -855,6 +1257,707 @@ Graph.prototype.zoom = function(factor, center)
 	factor = Math.min(this.view.scale * factor, 160) / this.view.scale;
 	
 	mxGraph.prototype.zoom.apply(this, arguments);
+};
+
+/**
+ * Hover icons are used for hover, vertex handler and drag from sidebar.
+ */
+HoverIcons = function(graph)
+{
+	this.graph = graph;
+	this.init();
+};
+
+/**
+ * Up arrow.
+ */
+HoverIcons.prototype.arrowSpacing = 6;
+
+/**
+ * Delay to switch to another state of overlapping bbox. Default is 500ms.
+ */
+HoverIcons.prototype.updateDelay = 500;
+
+/**
+ * Up arrow.
+ */
+HoverIcons.prototype.currentState = null;
+
+/**
+ * Up arrow.
+ */
+HoverIcons.prototype.activeArrow = null;
+
+/**
+ * Up arrow.
+ */
+HoverIcons.prototype.triangleUp = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAYAAACpSkzOAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NDA3RjREMDM0NTVCMTFFNEIxOTZFRjE3NzRENjQ0RjIiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6NDA3RjREMDQ0NTVCMTFFNEIxOTZFRjE3NzRENjQ0RjIiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo0MDdGNEQwMTQ1NUIxMUU0QjE5NkVGMTc3NEQ2NDRGMiIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo0MDdGNEQwMjQ1NUIxMUU0QjE5NkVGMTc3NEQ2NDRGMiIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PpFdYkUAAAEsSURBVHjaYvz//z8DPQATA50AC+P6D6Tq0QViHiA+TpJFZDhuMhDzA7EhLYMuEIjtgdgAiJNJ0cjIsO49sWo5gfgqECtC+S+AWBWIv1DbR0VIloCABBA3UttHIENvQxMBMvgFxNpAfIdaPurFYgkIsAFxF7WCzgyIowgkEA9qWDSZSB8zU2JRMtRHhIAWEKeRmxh4oAlAgsh4fAdN7u9I9VEFCZaAgBAQt5DqIxVo5mQjseT4C8R6QHyNWB91kWEJAzRBTCA26JygSZZc4IpNPxMWF01moBxghAi6RWnQpEopAMVxPq7EIARNzkJUqlS/QJP7C3QftVDRElg+bEH3ESi4LhEqRsgEoJr4AhNSeUYLS0BgJqzNACrLRIH4Mo0sAtXM9ozDrl0HEGAAOt00sQRg5yAAAAAASUVORK5CYII=' :
+	IMAGE_PATH + '/triangle-up.png', 26, 26);
+
+/**
+ * Right arrow.
+ */
+HoverIcons.prototype.triangleRight = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAYAAACpSkzOAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6RkQ3OEM2Nzg0NTVBMTFFNEIxOTZFRjE3NzRENjQ0RjIiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6RkQ3OEM2Nzk0NTVBMTFFNEIxOTZFRjE3NzRENjQ0RjIiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpGRDc4QzY3NjQ1NUExMUU0QjE5NkVGMTc3NEQ2NDRGMiIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpGRDc4QzY3NzQ1NUExMUU0QjE5NkVGMTc3NEQ2NDRGMiIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PmADGesAAAE2SURBVHjatJaxSgNBFEU3iQhCQEllK1hFItjsB1jYr6WtgigIAcFGwSafIBaipa1pBRG0Eq0koI1+QCqxSCXIekbug2UhGJN5Fw7Dzi4c5s283a3keZ6EVLqfKcNTEjl5Nvc7Vgtz53ALzcQh1dL1KvTgFBqeopAa7MCbxpqXyNLQynpaqZvI0tTeXcGip8iSwQt0oO4pCpmGQ+3fpqfIMq92eITUU2RJJbuU3E1k2VA5Q1lnPEWJDkhHBybzFFkW1Ap30PIUWWaLbeAh6sMWrMCDTU5FFHzBCRzDoHwzlqgLB/A+7IFJRa+wD9deDfsBu7A8imScFX3DGRxJNnL+I7qBtsrl8pkIG7wOa+NK/hINdJKWdKomyrDSXWgf+rGarCwK/3Xb8Bz7dVEU7cG914vvR4ABAGCSNhcpqHjLAAAAAElFTkSuQmCC':
+	IMAGE_PATH + '/triangle-right.png', 26, 26);
+
+/**
+ * Down arrow.
+ */
+HoverIcons.prototype.triangleDown = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAYAAACpSkzOAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6RkQ3OEM2N0M0NTVBMTFFNEIxOTZFRjE3NzRENjQ0RjIiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6RkQ3OEM2N0Q0NTVBMTFFNEIxOTZFRjE3NzRENjQ0RjIiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpGRDc4QzY3QTQ1NUExMUU0QjE5NkVGMTc3NEQ2NDRGMiIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpGRDc4QzY3QjQ1NUExMUU0QjE5NkVGMTc3NEQ2NDRGMiIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PuktDIwAAAE0SURBVHjaYvz//z8DPQATA50AC+P6D/ZAejKN7UlhARIHgfg7EJvRyJJ9QHwKFnTpNLLkLxDnIsfRBSCeSwOLZgHxNRCDkWHde5igBBDfBmIeKlnyDohVoTRKqnsBxE1U9E0NzBJ0H4EAGxBfBWIVCi0BBZceNI6w5qNfQFxGBd/kIluCK8OuB+LdFFiyHpqkiSoZCtBdRCTAGSJMeMJ4FhkWdQPxHWwS6IkBGQhBk7sQkZa8gCbnL6QWqu+gSZSU5PyF3NIbnrMJgFOEShYmIsqqYiKTM8X10Q5oksUFlkF9RJWKrwyadNHBFyJ9TLRFoCQ7BYt4BzS1EQT4kjc64IEmdwko/z4Qa0MrTaq2Gb6gJfdiYi0h1UcwcB6IPwKxA0mNEzKKmSx8GROnj4Zduw4gwAC3tEnG5i1iXgAAAABJRU5ErkJggg==' :
+	IMAGE_PATH + '/triangle-down.png', 26, 26);
+
+/**
+ * Left arrow.
+ */
+HoverIcons.prototype.triangleLeft = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAYAAACpSkzOAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NDA3RjRDRkY0NTVCMTFFNEIxOTZFRjE3NzRENjQ0RjIiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6NDA3RjREMDA0NTVCMTFFNEIxOTZFRjE3NzRENjQ0RjIiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpGRDc4QzY3RTQ1NUExMUU0QjE5NkVGMTc3NEQ2NDRGMiIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo0MDdGNENGRTQ1NUIxMUU0QjE5NkVGMTc3NEQ2NDRGMiIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PquyPQ0AAAE+SURBVHjatJaxSgNBFEU3KoKQQqzyAdoohFSKlQERbGNrqVik8QeCVdIIgpVBMK2lW9oF0qYRFFMJtlZBQRAEWc/AHVklxE123oUDm+zA4b03s0whSZLIpRC/RgbZSmqLPfcwF9mkApewAGX3x0xgQQmu4A7W0y9CVTQPx3ACxVELQohqcArL4xblEa3COexkWTzNjJbgAu6zSiataBaOoCnZRMkq2oUztWuq/Nc6N+AbuM0jGScqqoJH7arcGdW6A82hFPIkp0Wb2k0Vi29SunXv8Gb07fsleoAq7MGzpcgnhjVoqEozkcsHtGAFri1FPi+wDxvQtxT59CU7lNxM5NNRO11bPy1F/hg0tGFiS5HPk47CNgwsRT5dXUDqMLQUuXxBW/Nr67eJyGeoysqqNPgt6G8Gmt3PletbgAEAmkYzZ9MOuCsAAAAASUVORK5CYII=' :
+	IMAGE_PATH + '/triangle-left.png', 26, 26);
+
+/**
+ * Round target.
+ */
+HoverIcons.prototype.roundDrop = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAYAAACpSkzOAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6RTgxRjYzRTU1MDRFMTFFNEExQ0VFNDQwNDhGNzg2RDkiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6RTgxRjYzRTY1MDRFMTFFNEExQ0VFNDQwNDhGNzg2RDkiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpFODFGNjNFMzUwNEUxMUU0QTFDRUU0NDA0OEY3ODZEOSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpFODFGNjNFNDUwNEUxMUU0QTFDRUU0NDA0OEY3ODZEOSIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PuJ657wAAAE0SURBVHjaYvz//z8DPQATA50AC4zBuP4DLjXaQOwMxJZArAfE8lDxh0B8CYiPA/FeIL6KTfP/QAFUi7AABSBOAOJoIFbBIq8FxRFAfAeIlwLxAiB+gNdHaMABiIuB2IfIkAE5pB6IjYG4F4gPEBNHIEtaSLAEGfhA9ToQskgB6hNrCuLdGmqGAj6LEsj0CTafJeCySBsa8dQC0VAzMSxyxpG6yAUqUDMxLLKkQT61xGaRHg0s0sNmkTwNLJKne1mHbNFDGpj/EJtFl2hg0SVsFh2ngUXHsVm0F1oKUwvcgZqJYdFVaFFPLbAUuY5CT3Wg+mQLFSzZAjULZ6H6AFqfHKXAkqNQMx4Qqo9AlVYNmT7bAtV7gNga9gDURWfxVOXoEY+3KmeENbdo3ThhHHbtOoAAAwDmEETshQ0fBAAAAABJRU5ErkJggg==' :
+	IMAGE_PATH + '/round-drop.png', 26, 26);
+
+/**
+ * Refresh target.
+ */
+HoverIcons.prototype.refreshTarget = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAmCAYAAACoPemuAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NDQxNERDRTU1QjY1MTFFNDkzNTRFQTVEMTdGMTdBQjciIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6NDQxNERDRTY1QjY1MTFFNDkzNTRFQTVEMTdGMTdBQjciPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo0NDE0RENFMzVCNjUxMUU0OTM1NEVBNUQxN0YxN0FCNyIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo0NDE0RENFNDVCNjUxMUU0OTM1NEVBNUQxN0YxN0FCNyIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PsvuX50AAANaSURBVHja7FjRZ1tRGD9ZJ1NCyIQSwrivI4Q8hCpjlFDyFEoYfSp9Ko1QWnmo0If+BSXkIfo0QirTMUpeGo2EPfWllFYjZMLKLDJn53d3biU337m5J223bPbxk5t7v+/c3/2+73znO8fDOWezKM/YjMpz68Lj8ejY+QTeCCwLxOS9qPxtyN+6wAeBTwJ31CCO0cJDjXBGBN4LfIepSwykTUT1bgpuib0SONIgo8KRHOtRiCFcvUcgZeGrHPNBxLIyFPyRgTGz0xLbegJCdmzpElue5KlAIMDX19d5uVzm5+fnfDAYmMA17uEZdOx2Yvb/sHlu2S0xwymn5ufneTab5b1ej08S6EAXNrDd2dnhiUTim21MvMtwQ6yiIrWwsMDPzs64rsBmf3/fvM7n89TYlUnEllSkQqEQv7q64g+Vk5MTVXosORErU0Zer5f0FEIlw2N6MxwO82QyaXql2+2SxDqdjopYWUUsqEp45IldqtWq6UWVh/1+P7+8vCTJ4QMUJSRIEXuneoH96w8PDyeWAnhSJfCqwm6NIlaklFdXV0cGhRcQ2mlJQXK5nMq2YPEZbnteU1U2lUqN/D84OGD9fl+5fgnSrFarsUwmw0qlEru4uBjTicViTk3Cr27HSnxR+Doyz0ZE1CAWiUTusbu7y9rttlZv5fP5WDQavYfIMba4uEipfhF8XtqJoZXx/uH+sC/4vPg7OljZZQbsCmLtYzc3N6zRaJhotVrmfx0xDINtbm6athYUeXpHdbBNaqZUKpWxWXV7e2vex+xaWVnhc3NzjrPUXgexyCt0m67LBV7uJMITjqRE4o8tZeg8FPpFitgapYxiOC0poFgsji1jKNo6BZZckrAGUtJsNk1vqAihCBcKhTE7hNWhqw2qFnGy5UFOUYJVIJ1OjzSE+BCEilon0URavRmBqnbbQ00AXbm+vnZc9O1tj72OnQoc2+cwygRkb2+P1et17ZoEm3g87lRmjgWZ00kbXkNuse6/Bu2wlegIxfb2tuvWGroO4bO2c4bbzUh60mxDXm1sbJhhxkQYnhS4h2fUZoRAWnf7lv8N27f8P7Xhnekjgpk+VKGOoQbsiY+hhhtF3YO7twIJ+ULvUGv+GQ2fQEvWxI/THNx5/p/BaspPAQYAqStgiSQwCDoAAAAASUVORK5CYII=' :
+	IMAGE_PATH + '/refresh.png', 38, 38);
+
+/**
+ * 
+ */
+HoverIcons.prototype.init = function()
+{
+	this.arrowUp = this.createArrow(this.triangleUp, mxResources.get('plusTooltip'));
+	this.arrowRight = this.createArrow(this.triangleRight, mxResources.get('plusTooltip'));
+	this.arrowDown = this.createArrow(this.triangleDown, mxResources.get('plusTooltip'));
+	this.arrowLeft = this.createArrow(this.triangleLeft, mxResources.get('plusTooltip'));
+
+	this.elts = [this.arrowUp, this.arrowRight, this.arrowDown, this.arrowLeft];
+
+	this.repaintHandler = mxUtils.bind(this, function()
+	{
+		this.repaint();
+	});
+
+	this.graph.selectionModel.addListener(mxEvent.CHANGE, this.repaintHandler);
+	this.graph.model.addListener(mxEvent.CHANGE, this.repaintHandler);
+	this.graph.view.addListener(mxEvent.SCALE_AND_TRANSLATE, this.repaintHandler);
+	this.graph.view.addListener(mxEvent.TRANSLATE, this.repaintHandler);
+	this.graph.view.addListener(mxEvent.SCALE, this.repaintHandler);
+	this.graph.view.addListener(mxEvent.DOWN, this.repaintHandler);
+	this.graph.view.addListener(mxEvent.UP, this.repaintHandler);
+	
+	// Resets the mouse point on escape
+	this.graph.addListener(mxEvent.ESCAPE, mxUtils.bind(this, function()
+	{
+		this.mouseDownPoint = null;
+	}));
+
+	// Removes hover icons if mouse leaves the container
+	mxEvent.addListener(this.graph.container, 'mouseleave',  mxUtils.bind(this, function(evt)
+	{
+		// Workaround for IE11 firing mouseleave for touch in diagram
+		if (evt.relatedTarget != null && mxEvent.getSource(evt) == this.graph.container)
+		{
+			this.setDisplay('none');
+		}
+	}));
+	
+	// Resets current state after update of selection state for touch events
+	var graphClick = this.graph.click;
+	this.graph.click = mxUtils.bind(this, function(me)
+	{
+		graphClick.apply(this.graph, arguments);
+		
+		if (this.currentState != null && !this.graph.isCellSelected(this.currentState.cell) &&
+			mxEvent.isTouchEvent(me.getEvent()) && !this.graph.model.isVertex(me.getCell()))
+		{
+			this.reset();
+		}
+	});
+	
+	// Implements a listener for hover and click handling
+	this.graph.addMouseListener(
+	{
+	    mouseDown: mxUtils.bind(this, function(sender, me)
+	    {
+	    	var evt = me.getEvent();
+	    	
+	    	if (this.isResetEvent(evt))
+	    	{
+	    		this.reset();
+	    	}
+	    	else if (!this.isActive())
+	    	{
+	    		var state = this.getState(me.getState());
+	    		
+	    		if (state != null || !mxEvent.isTouchEvent(evt))
+	    		{
+	    			this.update(state);
+	    		}
+	    	}
+	    	
+	    	this.setDisplay('none');
+	    }),
+	    mouseMove: mxUtils.bind(this, function(sender, me)
+	    {
+	    	var evt = me.getEvent();
+	    	
+	    	if (this.isResetEvent(evt))
+	    	{
+	    		this.reset();
+	    	}
+	    	else if (!this.graph.isMouseDown && !mxEvent.isTouchEvent(evt))
+	    	{
+	    		this.update(this.getState(me.getState()), me.getGraphX(), me.getGraphY());
+	    	}
+	    }),
+	    mouseUp: mxUtils.bind(this, function(sender, me)
+	    {
+	    	var evt = me.getEvent();
+	    	
+	    	if (this.isResetEvent(evt))
+	    	{
+	    		this.reset();
+	    	}
+	    	else if (this.isActive() && this.mouseDownPoint != null &&
+	    		Math.abs(me.getGraphX() - this.mouseDownPoint.x) < this.graph.tolerance &&
+		    	Math.abs(me.getGraphY() - this.mouseDownPoint.y) < this.graph.tolerance)
+	    	{
+	    		// Executes click event on highlighted arrow
+    			this.click(this.currentState, this.getDirection(), me);
+	    	}
+	    	else if (this.isActive())
+	    	{
+	    		// Selects target vertex after drag and clone if not only new edge was inserted
+	    		if (this.graph.getSelectionCount() != 1 || !this.graph.model.isEdge(this.graph.getSelectionCell()))
+	    		{
+	    			this.update(this.getState(this.graph.view.getState(this.graph.getCellAt(me.getGraphX(), me.getGraphY()))));
+	    		}
+	    		else
+	    		{
+	    			this.reset();
+	    		}
+	    	}
+	    	else if (mxEvent.isTouchEvent(evt) || (this.bbox != null && mxUtils.contains(this.bbox, me.getGraphX(), me.getGraphY())))
+	    	{
+	    		// Shows existing hover icons if inside bounding box
+	    		this.setDisplay('');
+	    		this.repaint();
+	    	}
+	    	else if (!mxEvent.isTouchEvent(evt))
+	    	{
+	    		this.reset();
+	    	}
+	    	
+	    	this.resetActiveArrow();
+	    })
+	});
+};
+
+/**
+ * 
+ */
+HoverIcons.prototype.isResetEvent = function(evt, allowShift)
+{
+	return mxEvent.isAltDown(evt) || (this.activeArrow == null && mxEvent.isShiftDown(evt)) ||
+		mxEvent.isMetaDown(evt) || (mxEvent.isPopupTrigger(evt) && !mxEvent.isControlDown(evt));
+};
+
+/**
+ * 
+ */
+HoverIcons.prototype.createArrow = function(img, tooltip)
+{
+	var arrow = null;
+	
+	if (mxClient.IS_IE && !mxClient.IS_SVG)
+	{
+		// Workaround for PNG images in IE6
+		if (mxClient.IS_IE6 && document.compatMode != 'CSS1Compat')
+		{
+			arrow = document.createElement(mxClient.VML_PREFIX + ':image');
+			arrow.setAttribute('src', img.src);
+			arrow.style.borderStyle = 'none';
+		}
+		else
+		{
+			arrow = document.createElement('div');
+			arrow.style.backgroundImage = 'url(' + img.src + ')';
+			arrow.style.backgroundPosition = 'center';
+			arrow.style.backgroundRepeat = 'no-repeat';
+		}
+		
+		arrow.style.width = (img.width + 4) + 'px';
+		arrow.style.height = (img.height + 4) + 'px';
+		arrow.style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
+	}
+	else
+	{
+		arrow = mxUtils.createImage(img.src);
+		arrow.style.width = img.width + 'px';
+		arrow.style.height = img.height + 'px';
+	}
+	
+	if (tooltip != null)
+	{
+		arrow.setAttribute('title', tooltip);
+	}
+	
+	arrow.style.position = 'absolute';
+	arrow.style.cursor = 'crosshair';
+
+	mxEvent.addGestureListeners(arrow, mxUtils.bind(this, function(evt)
+	{
+		if (this.currentState != null && !this.isResetEvent(evt))
+		{
+			this.mouseDownPoint = mxUtils.convertPoint(this.graph.container,
+					mxEvent.getClientX(evt), mxEvent.getClientY(evt));
+			this.drag(evt, this.mouseDownPoint.x, this.mouseDownPoint.y);
+			this.activeArrow = arrow;
+			this.setDisplay('none');
+			mxEvent.consume(evt);
+		}
+	}));
+	
+	// Captures mouse events as events on graph
+	mxEvent.redirectMouseEvents(arrow, this.graph, this.currentState);
+	
+	mxEvent.addListener(arrow, 'mouseenter', mxUtils.bind(this, function(evt)
+	{
+		// Workaround for Firefox firing mouseenter on touchend
+		if (mxEvent.isMouseEvent(evt))
+		{
+	    	if (this.activeArrow != null && this.activeArrow != arrow)
+	    	{
+	    		mxUtils.setOpacity(this.activeArrow, 20);
+	    	}
+
+			this.graph.connectionHandler.constraintHandler.reset();
+			mxUtils.setOpacity(arrow, 100);
+			this.activeArrow = arrow;
+		}
+	}));
+	
+	mxEvent.addListener(arrow, 'mouseleave', mxUtils.bind(this, function(evt)
+	{
+		// Workaround for IE11 firing this event on touch
+		if (!this.graph.isMouseDown)
+		{
+			this.resetActiveArrow();
+		}
+	}));
+	
+	return arrow;
+};
+
+/**
+ * 
+ */
+HoverIcons.prototype.resetActiveArrow = function()
+{
+	if (this.activeArrow != null)
+	{
+		mxUtils.setOpacity(this.activeArrow, 20);
+		this.activeArrow = null;
+	}
+};
+
+/**
+ * 
+ */
+HoverIcons.prototype.getDirection = function()
+{
+	var dir = mxConstants.DIRECTION_EAST;
+
+	if (this.activeArrow == this.arrowUp)
+	{
+		dir = mxConstants.DIRECTION_NORTH;
+	}
+	else if (this.activeArrow == this.arrowDown)
+	{
+		dir = mxConstants.DIRECTION_SOUTH;
+	}
+	else if (this.activeArrow == this.arrowLeft)
+	{
+		dir = mxConstants.DIRECTION_WEST;
+	}
+		
+	return dir;
+};
+
+/**
+ * 
+ */
+HoverIcons.prototype.visitNodes = function(visitor)
+{
+	for (var i = 0; i < this.elts.length; i++)
+	{
+		if (this.elts[i] != null)
+		{
+			visitor(this.elts[i]);
+		}
+	}
+};
+
+/**
+ * 
+ */
+HoverIcons.prototype.removeNodes = function()
+{
+	this.visitNodes(function(elt)
+	{
+		if (elt.parentNode != null)
+		{
+			elt.parentNode.removeChild(elt);
+		}
+	});
+};
+
+/**
+ *
+ */
+HoverIcons.prototype.setDisplay = function(display)
+{
+	this.visitNodes(function(elt)
+	{
+		elt.style.display = display;
+	});
+};
+
+/**
+ *
+ */
+HoverIcons.prototype.isActive = function()
+{
+	return this.activeArrow != null && this.currentState != null;
+};
+
+/**
+ *
+ */
+HoverIcons.prototype.drag = function(evt, x, y)
+{
+	this.graph.popupMenuHandler.hideMenu();
+	this.graph.stopEditing(false);
+
+	// Checks if state was removed in call to stopEditing above
+	if (this.currentState != null)
+	{
+		this.graph.connectionHandler.start(this.currentState, x, y);
+		this.graph.isMouseTrigger = mxEvent.isMouseEvent(evt);
+		this.graph.isMouseDown = true;
+		
+		// Hides handles for selection cell
+		var handler = this.graph.selectionCellsHandler.getHandler(this.currentState.cell);
+		
+		if (handler != null)
+		{
+			handler.setHandlesVisible(false);
+		}
+		
+		// Uses elbow edges with vertical or horizontal direction
+//		var direction = this.getDirection();
+//		var elbowValue = (direction == mxConstants.DIRECTION_NORTH || direction == mxConstants.DIRECTION_SOUTH) ? 'vertical' : 'horizontal';
+//		
+//		var es = this.graph.connectionHandler.edgeState;
+//		es.style['edgeStyle'] = 'elbowEdgeStyle';
+//		es.style['elbow'] = elbowValue;
+//		es.cell.style = mxUtils.setStyle(es.cell.style, 'edgeStyle', es.style['edgeStyle']);
+//		es.cell.style = mxUtils.setStyle(es.cell.style, 'elbow', es.style['elbow']);
+	}
+};
+
+/**
+ *
+ */
+HoverIcons.prototype.click = function(state, dir, me)
+{
+	var evt = me.getEvent();
+	var x = me.getGraphX();
+	var y = me.getGraphY();
+	
+	var tmp = this.graph.view.getState(this.graph.getCellAt(x, y));
+	
+	if (tmp != null && this.graph.model.isEdge(tmp.cell) && !mxEvent.isControlDown(evt) &&
+		(tmp.getVisibleTerminalState(true) == state || tmp.getVisibleTerminalState(false) == state))
+	{
+		this.graph.setSelectionCell(tmp.cell);
+		this.reset();
+	}
+	else if (state != null)
+	{
+		var cells = this.graph.connectVertex(state.cell, dir, this.graph.defaultEdgeLength, evt);
+		
+		// Selects only target vertex if one exists
+		if (cells.length == 2 && this.graph.model.isVertex(cells[1]))
+		{
+			this.graph.setSelectionCell(cells[1]);
+			
+			// Adds hover icons to new target vertex for touch devices
+			if (mxEvent.isTouchEvent(evt))
+			{
+				this.update(this.getState(this.graph.view.getState(cells[1])));
+			}
+			else
+			{
+				// Hides hover icons after click with mouse
+				this.reset();
+			}
+			
+			this.graph.scrollCellToVisible(cells[1]);
+		}
+		else
+		{
+			this.graph.setSelectionCells(cells);
+		}
+	}
+	
+	me.consume();
+};
+
+/**
+ * 
+ */
+HoverIcons.prototype.reset = function()
+{
+	if (this.updateThread != null)
+	{
+		window.clearTimeout(this.updateThread);
+	}
+
+	this.mouseDownPoint = null;
+	this.currentState = null;
+	this.activeArrow = null;
+	this.removeNodes();
+	this.bbox = null;
+};
+
+/**
+ * 
+ */
+HoverIcons.prototype.repaint = function()
+{
+	this.bbox = null;
+	
+	if (this.currentState != null)
+	{
+		// Checks if cell was deleted
+		this.currentState = this.getState(this.currentState);
+		
+		// Cell was deleted	
+		if (this.currentState != null &&
+			this.graph.model.isVertex(this.currentState.cell) &&
+			this.graph.isCellConnectable(this.currentState.cell))
+		{
+			var bds = mxRectangle.fromRectangle(this.currentState);
+			
+			// Uses outer bounding box to take rotation into account
+			if (this.currentState.shape != null && this.currentState.shape.boundingBox != null)
+			{
+				bds = mxRectangle.fromRectangle(this.currentState.shape.boundingBox);
+			}
+
+			bds.grow(this.graph.tolerance);
+			bds.grow(this.arrowSpacing);
+			
+			var handler = this.graph.selectionCellsHandler.getHandler(this.currentState.cell);
+			
+			if (handler != null)
+			{
+				bds.x -= handler.horizontalOffset / 2;
+				bds.y -= handler.verticalOffset / 2;
+				bds.width += handler.horizontalOffset;
+				bds.height += handler.verticalOffset;
+				
+				// Adds bounding box of rotation handle to avoid overlap
+				if (handler.rotationShape != null && handler.rotationShape.node != null &&
+					handler.rotationShape.node.style.visibility != 'hidden' &&
+					handler.rotationShape.node.style.display != 'none' &&
+					handler.rotationShape.boundingBox != null)
+				{
+					bds.add(handler.rotationShape.boundingBox);
+				}
+			}
+			
+			this.arrowUp.style.left = Math.round(this.currentState.getCenterX() - this.triangleUp.width / 2) + 'px';
+			this.arrowUp.style.top = Math.round(bds.y - this.triangleUp.height) + 'px';
+			mxUtils.setOpacity(this.arrowUp, 20);
+			
+			this.arrowRight.style.left = Math.round(bds.x + bds.width) + 'px';
+			this.arrowRight.style.top = Math.round(this.currentState.getCenterY() - this.triangleRight.height / 2) + 'px';
+			mxUtils.setOpacity(this.arrowRight, 20);
+			
+			this.arrowDown.style.left = this.arrowUp.style.left
+			this.arrowDown.style.top = Math.round(bds.y + bds.height) + 'px';
+			mxUtils.setOpacity(this.arrowDown, 20);
+			
+			this.arrowLeft.style.left = Math.round(bds.x - this.triangleLeft.width) + 'px';
+			this.arrowLeft.style.top = this.arrowRight.style.top;
+			mxUtils.setOpacity(this.arrowLeft, 20);
+		}
+		else
+		{
+			this.reset();
+		}
+		
+		// Updates bounding box
+		if (this.currentState != null)
+		{
+			this.bbox = this.computeBoundingBox();
+			
+			// Adds tolerance for hover
+			if (this.bbox != null)
+			{
+				this.bbox.grow(10);
+			}
+		}
+	}
+};
+
+/**
+ * 
+ */
+HoverIcons.prototype.computeBoundingBox = function()
+{
+	var bbox = (!this.graph.model.isEdge(this.currentState.cell)) ? mxRectangle.fromRectangle(this.currentState) : null;
+	
+	this.visitNodes(function(elt)
+	{
+		if (elt.parentNode != null)
+		{
+			var tmp = new mxRectangle(elt.offsetLeft, elt.offsetTop, elt.offsetWidth, elt.offsetHeight);
+			
+			if (bbox == null)
+			{
+				bbox = tmp;
+			}
+			else
+			{
+				bbox.add(tmp);
+			}
+		}
+	});
+	
+	return bbox;
+};
+
+/**
+ * 
+ */
+HoverIcons.prototype.getState = function(state)
+{
+	if (state != null)
+	{
+		var cell = state.cell;
+
+		// Uses connectable parent vertex if child is not connectable
+		if (this.graph.getModel().isVertex(cell) && !this.graph.isCellConnectable(cell))
+		{
+			var parent = this.graph.getModel().getParent(cell);
+			
+			if (this.graph.getModel().isVertex(parent) && this.graph.isCellConnectable(parent))
+			{
+				cell = parent;
+			}
+		}
+		
+		// Ignores locked cells and edges
+		if (this.graph.isCellLocked(cell) || this.graph.model.isEdge(cell))
+		{
+			cell = null;
+		}
+		
+		state = this.graph.view.getState(cell);
+	}
+	
+	return state;
+};
+
+/**
+ * 
+ */
+HoverIcons.prototype.update = function(state, x, y)
+{
+	if (!this.graph.connectionHandler.isEnabled())
+	{
+		this.reset();
+	}
+	else
+	{
+		var timeOnTarget = null;
+		
+		// Time on target
+		if (this.prev != state || this.isActive())
+		{
+			this.startTime = new Date().getTime();
+			this.prev = state;
+			timeOnTarget = 0;
+	
+			if (this.updateThread != null)
+			{
+				window.clearTimeout(this.updateThread);
+			}
+			
+			if (state != null)
+			{
+				// Starts timer to update current state with no mouse events
+				this.updateThread = window.setTimeout(mxUtils.bind(this, function()
+				{
+					if (!this.isActive() && !this.graph.isMouseDown)
+					{
+						this.prev = state;
+						this.update(state, x, y);
+					}
+				}), this.updateDelay + 10);
+			}
+		}
+		else if (this.startTime != null)
+		{
+			timeOnTarget = new Date().getTime() - this.startTime;
+		}
+		
+		this.setDisplay('');
+		
+		if (this.currentState != state && ((timeOnTarget > this.updateDelay && state != null) ||
+			this.bbox == null || x == null || y == null || !mxUtils.contains(this.bbox, x, y)))
+		{
+			if (state != null && this.graph.isEnabled())
+			{
+				this.removeNodes();
+				this.setCurrentState(state);
+				this.repaint();
+				
+				// Resets connection points on other focused cells
+				if (this.graph.connectionHandler.constraintHandler.currentFocus != state)
+				{
+					this.graph.connectionHandler.constraintHandler.reset();
+				}
+			}
+			else
+			{
+				this.reset();
+			}
+		}
+	}
+};
+
+/**
+ * 
+ */
+HoverIcons.prototype.setCurrentState = function(state)
+{
+	if (state.style['portConstraint'] != 'eastwest')
+	{
+		this.graph.container.appendChild(this.arrowUp);
+		this.graph.container.appendChild(this.arrowDown);
+	}
+
+	this.graph.container.appendChild(this.arrowRight);
+	this.graph.container.appendChild(this.arrowLeft);
+	this.currentState = state;
 };
 
 /**
@@ -899,15 +2002,20 @@ if (typeof mxVertexHandler != 'undefined')
 		};
 		
 		/**
-		 * Adapter function to redirect current edge style via graph for use in handlers.
+		 * Contains the default style for edges.
 		 */
 		Graph.prototype.defaultEdgeStyle = {'edgeStyle': 'orthogonalEdgeStyle', 'rounded': '0', 'html': '1'};
 		
 		/**
-		 * Adapter function to redirect current edge style via graph for use in handlers.
+		 * Contains the current style for edges.
 		 */
 		Graph.prototype.currentEdgeStyle = Graph.prototype.defaultEdgeStyle;
 		
+		/**
+		 * Contains the current style for vertices.
+		 */
+		Graph.prototype.currentVertexStyle = {};
+
 		/**
 		 * Returns the current edge style as a string.
 		 */
@@ -1719,6 +2827,46 @@ if (typeof mxVertexHandler != 'undefined')
 		 * @param {number} dx X-coordinate of the translation.
 		 * @param {number} dy Y-coordinate of the translation.
 		 */
+		Graph.prototype.encodeCells = function(cells)
+		{
+			var clones = this.cloneCells(cells);
+			
+			// Checks for orphaned relative children and makes absolute
+			for (var i = 0; i < clones.length; i++)
+			{
+				var state = this.view.getState(cells[i]);
+				
+				if (state != null)
+				{
+					var geo = this.getCellGeometry(clones[i]);
+					
+					if (geo != null && geo.relative)
+					{
+						geo.relative = false;
+						geo.x = state.x / state.view.scale - state.view.translate.x;
+						geo.y = state.y / state.view.scale - state.view.translate.y;
+					}
+				}
+			}
+			
+			var codec = new mxCodec();
+			var model = new mxGraphModel();
+			var parent = model.getChildAt(model.getRoot(), 0);
+			
+			for (var i = 0; i < cells.length; i++)
+			{
+				model.add(parent, clones[i]);
+			}
+
+			return codec.encode(model);
+		};
+		
+		/**
+		 * Translates this point by the given vector.
+		 * 
+		 * @param {number} dx X-coordinate of the translation.
+		 * @param {number} dy Y-coordinate of the translation.
+		 */
 		Graph.prototype.getSvg = function(background, scale, border, nocrop, crisp, ignoreSelection, showText)
 		{
 			scale = (scale != null) ? scale : 1;
@@ -1729,7 +2877,7 @@ if (typeof mxVertexHandler != 'undefined')
 			
 			var imgExport = new mxImageExport();
 			var bounds = (nocrop) ? this.view.getBackgroundPageBounds() : (ignoreSelection) ?
-					this.getGraphBounds() : this.view.getBounds(this.getSelectionCells());
+					this.getGraphBounds() : this.getBoundingBox(this.getSelectionCells());
 			var vs = this.view.scale;
 		
 			// Prepares SVG document that holds the output
@@ -1760,8 +2908,9 @@ if (typeof mxVertexHandler != 'undefined')
 				root.setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:xlink', mxConstants.NS_XLINK);
 			}
 			
-			root.setAttribute('width', (Math.ceil(bounds.width * scale / vs) + 2 * border) + 'px');
-			root.setAttribute('height', (Math.ceil(bounds.height * scale / vs) + 2 * border) + 'px');
+			var s = scale / vs;
+			root.setAttribute('width', (Math.ceil(bounds.width * s) + 2 * border) + 'px');
+			root.setAttribute('height', (Math.ceil(bounds.height * s) + 2 * border) + 'px');
 			root.setAttribute('version', '1.1');
 			
 		    // Adds group for anti-aliasing via transform
@@ -1784,7 +2933,24 @@ if (typeof mxVertexHandler != 'undefined')
 		    // Renders graph. Offset will be multiplied with state's scale when painting state.
 			var svgCanvas = new mxSvgCanvas2D(node);
 			svgCanvas.translate(Math.floor((border / scale - bounds.x) / vs), Math.floor((border / scale - bounds.y) / vs));
-			svgCanvas.scale(scale / vs);
+			
+			// Paints background image
+			var bgImg = this.backgroundImage;
+			
+			if (bgImg != null)
+			{
+				var s2 = vs / scale;
+				var tr = this.view.translate;
+				var tmp = new mxRectangle(tr.x * s2, tr.y * s2, bgImg.width * s2, bgImg.height * s2);
+				
+				// Checks if visible
+				if (mxUtils.intersects(bounds, tmp))
+				{
+					svgCanvas.image(tr.x, tr.y, bgImg.width, bgImg.height, bgImg.src, true);
+				}
+			}
+			
+			svgCanvas.scale(s);
 			svgCanvas.textEnabled = showText;
 			
 			// Adds hyperlinks (experimental)
@@ -1801,16 +2967,7 @@ if (typeof mxVertexHandler != 'undefined')
 					mxImageExport.prototype.drawCellState.apply(this, arguments);
 				}
 			};
-			
-			// Paints background image
-			var bgImg = this.backgroundImage;
-			
-			if (bgImg != null)
-			{
-				var tr = this.view.translate;
-				svgCanvas.image(tr.x, tr.y, bgImg.width * vs / scale, bgImg.height * vs / scale, bgImg.src, false);
-			}
-			
+
 			imgExport.drawState(this.getView().getState(this.model.root), svgCanvas);
 		
 			return root;
@@ -1889,7 +3046,7 @@ if (typeof mxVertexHandler != 'undefined')
 		    {
 		        var originalRange = sel.createRange();
 		        originalRange.collapse(true);
-		        range = sel.createRange();
+		        var range = sel.createRange();
 		        range.setEndPoint('StartToStart', originalRange);
 		        range.select();
 		    }
@@ -2261,11 +3418,119 @@ if (typeof mxVertexHandler != 'undefined')
 				this.textarea.style.outline = 'none';
 				this.textarea.style.border = '';
 			}
-		};
-	
+		}
+
 		/**
 		 * HTML in-place editor
 		 */
+		var cellEditorInstallListeners = mxCellEditor.prototype.installListeners;
+		mxCellEditor.prototype.installListeners = function(elt)
+		{
+			cellEditorInstallListeners.apply(this, arguments);
+
+			// Adds a reference from the clone to the original node, recursively
+			function reference(node, clone)
+			{
+				clone.originalNode = node;
+				
+				node = node.firstChild;
+				var child = clone.firstChild;
+				
+				while (node != null && child != null)
+				{
+					reference(node, child);
+					node = node.nextSibling;
+					child = child.nextSibling;
+				}
+				
+				return clone;
+			};
+			
+			// Checks the given node for new nodes, recursively
+			function checkNode(node, clone)
+			{
+				if (clone.originalNode != node)
+				{
+					cleanNode(node);
+				}
+				else
+				{
+					node = node.firstChild;
+					clone = clone.firstChild;
+					
+					while (node != null)
+					{
+						var nextNode = node.nextSibling;
+						
+						if (clone == null)
+						{
+							cleanNode(node);
+						}
+						else
+						{
+							checkNode(node, clone);
+							clone = clone.nextSibling;
+						}
+
+						node = nextNode;
+					}
+				}
+			};
+
+			// Removes unused DOM nodes and attributes, recursively
+			function cleanNode(node)
+			{
+				var child = node.firstChild;
+				
+				while (child != null)
+				{
+					var next = child.nextSibling;
+					cleanNode(child);
+					child = next;
+				}
+				
+				if ((node.nodeType != 1 || (node.nodeName !== 'BR' && node.firstChild == null)) &&
+					(node.nodeType != 3 || mxUtils.trim(mxUtils.getTextContent(node)).length == 0))
+				{
+					node.parentNode.removeChild(node);
+				}
+				else
+				{
+					// Removes linefeeds
+					if (node.nodeType == 3)
+					{
+						mxUtils.setTextContent(node, mxUtils.getTextContent(node).replace(/\n|\r/g, ''));
+					}
+
+					// Removes CSS classes and styles (for Word and Excel)
+					if (node.nodeType == 1)
+					{
+						node.removeAttribute('style');
+						node.removeAttribute('class');
+						node.removeAttribute('width');
+						node.removeAttribute('cellpadding');
+						node.removeAttribute('cellspacing');
+						node.removeAttribute('border');
+					}
+				}
+			};
+			
+			// Handles paste from Word, Excel etc by removing styles, classnames and unused nodes
+			// LATER: Fix undo/redo for paste
+			if (!mxClient.IS_QUIRKS && document.documentMode !== 7 && document.documentMode !== 8)
+			{
+				mxEvent.addListener(this.textarea, 'paste', mxUtils.bind(this, function(evt)
+				{
+					var clone = reference(this.textarea, this.textarea.cloneNode(true));
+	
+					window.setTimeout(mxUtils.bind(this, function()
+					{
+						checkNode(this.textarea, clone);
+					}), 0);
+				}));
+			}
+		};
+		
 		mxCellEditor.prototype.toggleViewMode = function()
 		{
 			var state = this.graph.view.getState(this.editingCell);
@@ -2500,23 +3765,6 @@ if (typeof mxVertexHandler != 'undefined')
 		var mxCellEditorStopEditing = mxCellEditor.prototype.stopEditing;
 		mxCellEditor.prototype.stopEditing = function(cancel)
 		{
-			// Shows handles on selected cell
-			if (this.currentStateHandle != null)
-			{
-				if (this.currentStateHandle.setHandlesVisible != null)
-				{
-					this.currentStateHandle.setHandlesVisible(true);
-					
-					if (this.currentStateHandle.selectionBorder != null)
-					{
-						this.currentStateHandle.selectionBorder.node.style.display = '';
-					}
-				}
-				
-				this.currentStateHandle.redrawHandles();
-				this.currentStateHandle = null;
-			}
-			
 			// Restores default view mode before applying value
 			if (this.codeViewMode)
 			{
@@ -2545,11 +3793,11 @@ if (typeof mxVertexHandler != 'undefined')
 			try
 			{
 				mxCellEditorApplyValue.apply(this, arguments);
-	
-				var parent = this.graph.getModel().getParent(state.cell);
-				var geo = this.graph.getCellGeometry(state.cell);
 				
-				if (mxUtils.trim(value || '') == '' && geo != null && this.graph.getModel().isEdge(parent) && geo.relative)
+				var stroke = mxUtils.getValue(state.style, mxConstants.STYLE_STROKECOLOR, mxConstants.NONE);
+				var fill = mxUtils.getValue(state.style, mxConstants.STYLE_FILLCOLOR, mxConstants.NONE);
+				
+				if (mxUtils.trim(value || '') == '' && stroke == mxConstants.NONE && fill == mxConstants.NONE)
 				{
 					this.graph.removeCells([state.cell], false);
 				}
@@ -2558,6 +3806,27 @@ if (typeof mxVertexHandler != 'undefined')
 			{
 				this.graph.getModel().endUpdate();
 			}
+		};
+
+		/**
+		 * Returns the background color to be used for the editing box. This returns
+		 * the label background for edge labels and null for all other cases.
+		 */
+		mxCellEditor.prototype.getBackgroundColor = function(state)
+		{
+			var color = null;
+			
+			if (this.graph.getModel().isEdge(state.cell) || this.graph.getModel().isEdge(this.graph.getModel().getParent(state.cell)))
+			{
+				var color = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, null);
+				
+				if (color == mxConstants.NONE)
+				{
+					color = null;
+				}
+			}
+			
+			return color;
 		};
 		
 		mxCellEditor.prototype.getMinimumSize = function(state)
@@ -2727,8 +3996,6 @@ if (typeof mxVertexHandler != 'undefined')
 		/**
 		 * Defines the handles for the UI. Uses data-URIs to speed-up loading time where supported.
 		 */
-		var connectHandle = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAYAAACpSkzOAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6RjQ3OTk0QjMyRDcyMTFFNThGQThGNDVBMjNBMjFDMzkiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6RjQ3OTk0QjQyRDcyMTFFNThGQThGNDVBMjNBMjFDMzkiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDoyRjA0N0I2MjJENzExMUU1OEZBOEY0NUEyM0EyMUMzOSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpGNDc5OTRCMjJENzIxMUU1OEZBOEY0NUEyM0EyMUMzOSIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PjIf+MgAAATlSURBVHjanFZraFxFFD735u4ru3ls0yZG26ShgmJoKK1J2vhIYzBgRdtIURHyw1hQUH9IxIgI2h8iCEUF/1RRlNQYCsYfCTHVhiTtNolpZCEStqSC22xIsrs1bDfu7t37Gs/cO3Ozxs1DBw73zpk555vzmHNGgJ0NYatFgmNLYUHYUoHASMz5ijmgVLmxgfKCUiBxC4ACJAeSG8nb1dVVOTc3dyoSibwWDofPBIPBJzo7O8vpGtvjpDICGztxkciECpF2LS0tvZtOpwNkk5FKpcYXFxffwL1+JuPgllPj8nk1F6RoaGjoKCqZ5ApljZDZO4SMRA0SuG2QUJIQRV8HxMOM9vf3H0ZZH9Nhg20MMl2QkFwjIyNHWlpahtADnuUMwLcRHX5aNSBjCJYEsSSLUeLEbhGe3ytCmQtA1/XY+Pj46dbW1iDuyCJp9BC5ycBj4hoeHq5ra2sbw0Xn1ZgBZ+dVkA1Lc+6p0Ck2p0QS4Ox9EhwpEylYcmBg4LH29vYQLilIOt0u5FhDfevNZDI/u93uw6PLOrwTUtjxrbPYbhD42WgMrF8JmR894ICmCgnQjVe8Xu8pXEkzMJKbuo5oNPomBbm1ZsD7s2kwFA1JZ6QBUXWT1nmGNc/qoMgavDcrQzxjQGFh4aOYIJ0sFAXcEtui4uLiVjr5KpSBVFYDDZVrWUaKRRWSAYeK0fmKykgDXbVoNaPChRuyqdDv97czL5nXxQbq6empQmsaklkDBiNpSwFVrmr2P6UyicD5piI4f8wHh0oEm8/p4h8pyGiEWvVQd3e3nxtjAzU1NR2jP7NRBWQ8GbdEzzJAmc0V3RR4cI8Dvmwuhc8fKUFA0d6/ltHg5p+Kuaejo6OeY0jcNJ/PV00ZS0nFUoZRvvFS1bZFsKHCCQ2Pl8H0chY+C96B6ZUsrCQ1qKtwQVFRURW/QhIXMAzDPAZ6BgOr8tTa8dDxCmiYGApaJbJMxSzV+brE8pdgWkcpY5dbMF1AR9XH8/xu2ilef48bvn92n82ZwHh+8ssqTEXS9p7dHisiiURikd8PbpExNTU1UVNTA3V3Y7lC16n0gpB/NwpNcZjfa7dScC4Qh0kOQCwnlEgi3F/hMVl9fX0zvKrzSk2lfXjRhj0eT/2rvWG4+Pta3oJY7XfC3hInXAv/ldeFLx8shQ+eqQL0UAAz7ylkpej5eNZRVBWL6BU6ef14OYiY1oqyTtmsavr/5koaRucT1pzx+ZpL1+GV5nLutksUgIcmtwTRiuuVZXnU5XId7A2swJkfFsymRWC91hHg1Viw6x23+7vn9sPJ+j20BE1hCXqSWaNSQ8ScbknRZWxub1PGCw/fBV+c3AeijlUbY5bBjEqr9GuYZP4jP41WudGSC6erTRCqdGZm5i1WvXWeDHnbBCZGc2Nj4wBl/hZOwrmBBfgmlID1HmGJutHaF+tKoevp/XCgstDkjo2NtWKLuc6AVN4mNjY+s1XQxoenOoFuDPHGtnRbJj9ej5GvL0dI7+giuRyMk1giazc+DP6vgUDgOJVlOv7R+PJ12QIeL6SyeDz+Kfp8ZrNWjgDTsVjsQ7qXyTjztXJhm9ePxFLfMTg4eG9tbe1RTP9KFFYQfHliYmIS69kCC7jKYmKwxxD5P88tkVkqbPPcIps9t4T/+HjcuJ/s5BFJgf4WYABCtxGuxIZ90gAAAABJRU5ErkJggg==' :
-			IMAGE_PATH + '/handle-connect.png', 26, 26);
 		var mainHandle = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAARCAYAAAA7bUf6AAAACXBIWXMAAAsTAAALEwEAmpwYAAABLUlEQVQ4y61US4rCQBBNeojiRrLSnbMOWWU3V1FPouARcgc9hyLOCSSbYZw5gRCIkM9KbevJaycS4zCOBY+iq6pf1y+xrNtiE6oEY/tVzMUXgSNoCJrUDu3qHpldutwSuIKOoEvt0m7I7DoCvNj2fb8XRdEojuN5lmVraJxhh59xFSLFF9phGL7lef6hRb63R73aHM8aAjv8JHJ47yqLlud5r0VRbHa51sPZQVuT/QU4ww4/4ljaJRubrC5SxouD6TWBQV/sEIkbs0eOIVGssSO1L5D6LQID+BHHZjdMSYpj7KZpun7/uk8CP5rNqTXLJP/OpNyTMWruP9CTP08nCILKdCp7gkCzJ8vPnz2BvW5PKhuLjJBykiQLaWIEjTP3o3Zjn/LtPO0rfvh/cgKu7z6wtPPltQAAAABJRU5ErkJggg==' :
 			IMAGE_PATH + '/handle-main.png', 17, 17);
 		var fixedHandle = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAARCAYAAAA7bUf6AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NkE1NkU4Njk2QjI1MTFFNEFDMjFGQTcyODkzNTc3NkYiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6NkE1NkU4NkE2QjI1MTFFNEFDMjFGQTcyODkzNTc3NkYiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo2QTU2RTg2NzZCMjUxMUU0QUMyMUZBNzI4OTM1Nzc2RiIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo2QTU2RTg2ODZCMjUxMUU0QUMyMUZBNzI4OTM1Nzc2RiIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pmuk6K8AAAGBSURBVHjarFRBSsNQEM3/atNs6qLowixcKELoqjuXoqfQeoF6BMEj9BCC1YIXcCGlV8hGLNZlBKWlCk1JSs13Xvw/nca6UDrwmMzMy8tk/iTCWmwi52Eq53+QeWwg2bXSSNi1WiRibgRWCTahwEQmhJgw1WJGML2BC6wQnEqlsuH7fr3f7zdHo9EdPGLkUdc8mX8TJNYIpUajsR+G4YMie3pNVKebpB6GPOrgab7kr5F24Hne9ng87r6HStUuP5V1Mc2AGHnUwWMdCck6sVut1onjOHtnt4nV7M0fAuI65VEnXk3PTFq5Eyi4rnvUe1PW9fO3QOdUzvkbyqNOvEM2dMEHK2zbLr98zJ5+cJWkAvDGUC8Wi2X28Gww6bnHcTzYWp+JGAHTCQz1KIoGfFckCyZBELR3N4V1vCOyTrhHHnXw9N5kQn8+nWq1Onc6C/cERLMn7cfZniD/257wbjDxEjqiDT0fDof3tLE+PGK9HyXNy7pYyrez9K/43/+TLwEGAMb7AY6w980DAAAAAElFTkSuQmCC' :
@@ -2737,48 +4004,36 @@ if (typeof mxVertexHandler != 'undefined')
 			IMAGE_PATH + '/handle-secondary.png', 17, 17);
 		var rotationHandle = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAAVCAYAAACkCdXRAAAACXBIWXMAAAsTAAALEwEAmpwYAAAKT2lDQ1BQaG90b3Nob3AgSUNDIHByb2ZpbGUAAHjanVNnVFPpFj333vRCS4iAlEtvUhUIIFJCi4AUkSYqIQkQSoghodkVUcERRUUEG8igiAOOjoCMFVEsDIoK2AfkIaKOg6OIisr74Xuja9a89+bN/rXXPues852zzwfACAyWSDNRNYAMqUIeEeCDx8TG4eQuQIEKJHAAEAizZCFz/SMBAPh+PDwrIsAHvgABeNMLCADATZvAMByH/w/qQplcAYCEAcB0kThLCIAUAEB6jkKmAEBGAYCdmCZTAKAEAGDLY2LjAFAtAGAnf+bTAICd+Jl7AQBblCEVAaCRACATZYhEAGg7AKzPVopFAFgwABRmS8Q5ANgtADBJV2ZIALC3AMDOEAuyAAgMADBRiIUpAAR7AGDIIyN4AISZABRG8lc88SuuEOcqAAB4mbI8uSQ5RYFbCC1xB1dXLh4ozkkXKxQ2YQJhmkAuwnmZGTKBNA/g88wAAKCRFRHgg/P9eM4Ors7ONo62Dl8t6r8G/yJiYuP+5c+rcEAAAOF0ftH+LC+zGoA7BoBt/qIl7gRoXgugdfeLZrIPQLUAoOnaV/Nw+H48PEWhkLnZ2eXk5NhKxEJbYcpXff5nwl/AV/1s+X48/Pf14L7iJIEyXYFHBPjgwsz0TKUcz5IJhGLc5o9H/LcL//wd0yLESWK5WCoU41EScY5EmozzMqUiiUKSKcUl0v9k4t8s+wM+3zUAsGo+AXuRLahdYwP2SycQWHTA4vcAAPK7b8HUKAgDgGiD4c93/+8//UegJQCAZkmScQAAXkQkLlTKsz/HCAAARKCBKrBBG/TBGCzABhzBBdzBC/xgNoRCJMTCQhBCCmSAHHJgKayCQiiGzbAdKmAv1EAdNMBRaIaTcA4uwlW4Dj1wD/phCJ7BKLyBCQRByAgTYSHaiAFiilgjjggXmYX4IcFIBBKLJCDJiBRRIkuRNUgxUopUIFVIHfI9cgI5h1xGupE7yAAygvyGvEcxlIGyUT3UDLVDuag3GoRGogvQZHQxmo8WoJvQcrQaPYw2oefQq2gP2o8+Q8cwwOgYBzPEbDAuxsNCsTgsCZNjy7EirAyrxhqwVqwDu4n1Y8+xdwQSgUXACTYEd0IgYR5BSFhMWE7YSKggHCQ0EdoJNwkDhFHCJyKTqEu0JroR+cQYYjIxh1hILCPWEo8TLxB7iEPENyQSiUMyJ7mQAkmxpFTSEtJG0m5SI+ksqZs0SBojk8naZGuyBzmULCAryIXkneTD5DPkG+Qh8lsKnWJAcaT4U+IoUspqShnlEOU05QZlmDJBVaOaUt2ooVQRNY9aQq2htlKvUYeoEzR1mjnNgxZJS6WtopXTGmgXaPdpr+h0uhHdlR5Ol9BX0svpR+iX6AP0dwwNhhWDx4hnKBmbGAcYZxl3GK+YTKYZ04sZx1QwNzHrmOeZD5lvVVgqtip8FZHKCpVKlSaVGyovVKmqpqreqgtV81XLVI+pXlN9rkZVM1PjqQnUlqtVqp1Q61MbU2epO6iHqmeob1Q/pH5Z/YkGWcNMw09DpFGgsV/jvMYgC2MZs3gsIWsNq4Z1gTXEJrHN2Xx2KruY/R27iz2qqaE5QzNKM1ezUvOUZj8H45hx+Jx0TgnnKKeX836K3hTvKeIpG6Y0TLkxZVxrqpaXllirSKtRq0frvTau7aedpr1Fu1n7gQ5Bx0onXCdHZ4/OBZ3nU9lT3acKpxZNPTr1ri6qa6UbobtEd79up+6Ynr5egJ5Mb6feeb3n+hx9L/1U/W36p/VHDFgGswwkBtsMzhg8xTVxbzwdL8fb8VFDXcNAQ6VhlWGX4YSRudE8o9VGjUYPjGnGXOMk423GbcajJgYmISZLTepN7ppSTbmmKaY7TDtMx83MzaLN1pk1mz0x1zLnm+eb15vft2BaeFostqi2uGVJsuRaplnutrxuhVo5WaVYVVpds0atna0l1rutu6cRp7lOk06rntZnw7Dxtsm2qbcZsOXYBtuutm22fWFnYhdnt8Wuw+6TvZN9un2N/T0HDYfZDqsdWh1+c7RyFDpWOt6azpzuP33F9JbpL2dYzxDP2DPjthPLKcRpnVOb00dnF2e5c4PziIuJS4LLLpc+Lpsbxt3IveRKdPVxXeF60vWdm7Obwu2o26/uNu5p7ofcn8w0nymeWTNz0MPIQ+BR5dE/C5+VMGvfrH5PQ0+BZ7XnIy9jL5FXrdewt6V3qvdh7xc+9j5yn+M+4zw33jLeWV/MN8C3yLfLT8Nvnl+F30N/I/9k/3r/0QCngCUBZwOJgUGBWwL7+Hp8Ib+OPzrbZfay2e1BjKC5QRVBj4KtguXBrSFoyOyQrSH355jOkc5pDoVQfujW0Adh5mGLw34MJ4WHhVeGP45wiFga0TGXNXfR3ENz30T6RJZE3ptnMU85ry1KNSo+qi5qPNo3ujS6P8YuZlnM1VidWElsSxw5LiquNm5svt/87fOH4p3iC+N7F5gvyF1weaHOwvSFpxapLhIsOpZATIhOOJTwQRAqqBaMJfITdyWOCnnCHcJnIi/RNtGI2ENcKh5O8kgqTXqS7JG8NXkkxTOlLOW5hCepkLxMDUzdmzqeFpp2IG0yPTq9MYOSkZBxQqohTZO2Z+pn5mZ2y6xlhbL+xW6Lty8elQfJa7OQrAVZLQq2QqboVFoo1yoHsmdlV2a/zYnKOZarnivN7cyzytuQN5zvn//tEsIS4ZK2pYZLVy0dWOa9rGo5sjxxedsK4xUFK4ZWBqw8uIq2Km3VT6vtV5eufr0mek1rgV7ByoLBtQFr6wtVCuWFfevc1+1dT1gvWd+1YfqGnRs+FYmKrhTbF5cVf9go3HjlG4dvyr+Z3JS0qavEuWTPZtJm6ebeLZ5bDpaql+aXDm4N2dq0Dd9WtO319kXbL5fNKNu7g7ZDuaO/PLi8ZafJzs07P1SkVPRU+lQ27tLdtWHX+G7R7ht7vPY07NXbW7z3/T7JvttVAVVN1WbVZftJ+7P3P66Jqun4lvttXa1ObXHtxwPSA/0HIw6217nU1R3SPVRSj9Yr60cOxx++/p3vdy0NNg1VjZzG4iNwRHnk6fcJ3/ceDTradox7rOEH0x92HWcdL2pCmvKaRptTmvtbYlu6T8w+0dbq3nr8R9sfD5w0PFl5SvNUyWna6YLTk2fyz4ydlZ19fi753GDborZ752PO32oPb++6EHTh0kX/i+c7vDvOXPK4dPKy2+UTV7hXmq86X23qdOo8/pPTT8e7nLuarrlca7nuer21e2b36RueN87d9L158Rb/1tWeOT3dvfN6b/fF9/XfFt1+cif9zsu72Xcn7q28T7xf9EDtQdlD3YfVP1v+3Njv3H9qwHeg89HcR/cGhYPP/pH1jw9DBY+Zj8uGDYbrnjg+OTniP3L96fynQ89kzyaeF/6i/suuFxYvfvjV69fO0ZjRoZfyl5O/bXyl/erA6xmv28bCxh6+yXgzMV70VvvtwXfcdx3vo98PT+R8IH8o/2j5sfVT0Kf7kxmTk/8EA5jz/GMzLdsAAAAgY0hSTQAAeiUAAICDAAD5/wAAgOkAAHUwAADqYAAAOpgAABdvkl/FRgAAA6ZJREFUeNqM001IY1cUB/D/fYmm2sbR2lC1zYlgoRG6MpEyBlpxM9iFIGKFIm3s0lCKjOByhCLZCFqLBF1YFVJdSRbdFHRhBbULtRuFVBTzYRpJgo2mY5OX5N9Fo2TG+eiFA/dd3vvd8+65ByTxshARTdf1JySp6/oTEdFe9T5eg5lIcnBwkCSZyWS+exX40oyur68/KxaLf5Okw+H4X+A9JBaLfUySZ2dnnJqaosPhIAACeC34DJRKpb7IZrMcHx+nwWCgUopGo/EOKwf9fn/1CzERUevr6+9ls1mOjIwQAH0+H4PBIKPR6D2ofAQCgToRUeVYJUkuLy8TANfW1kiS8/PzCy84Mw4MDBAAZ2dnmc/nub+/X0MSEBF1cHDwMJVKsaGhgV6vl+l0mqOjo1+KyKfl1dze3l4NBoM/PZ+diFSLiIKIGBOJxA9bW1sEwNXVVSaTyQMRaRaRxrOzs+9J8ujoaE5EPhQRq67rcZ/PRwD0+/3Udf03EdEgIqZisZibnJykwWDg4eEhd3Z2xkXELCJvPpdBrYjUiEhL+Xo4HH4sIhUaAKNSqiIcDsNkMqG+vh6RSOQQQM7tdhsAQCkFAHC73UUATxcWFqypVApmsxnDw8OwWq2TADQNgAYAFosF+XweyWQSdru9BUBxcXFRB/4rEgDcPouIIx6P4+bmBi0tLSCpAzBqAIqnp6c/dnZ2IpfLYXNzE62traMADACKNputpr+/v8lms9UAKAAwiMjXe3t7KBQKqKurQy6Xi6K0i2l6evpROp1mbW0t29vbGY/Hb8/IVIqq2zlJXl1dsaOjg2azmefn5wwEAl+JSBVExCgi75PkzMwMlVJsbGxkIpFgPp8PX15ePopEIs3JZPITXdf/iEajbGpqolKKExMT1HWdHo/nIxGpgIgoEXnQ3d39kCTHxsYIgC6Xi3NzcwyHw8xkMozFYlxaWmJbWxuVUuzt7WUul6PX6/1cRN4WEe2uA0SkaWVl5XGpRVhdXU0A1DSNlZWVdz3qdDrZ09PDWCzG4+Pjn0XEWvp9KJKw2WwKwBsA3gHQHAqFfr24uMDGxgZ2d3cRiUQAAHa7HU6nE319fTg5Ofmlq6vrGwB/AngaCoWK6rbsNptNA1AJoA7Aux6Pp3NoaMhjsVg+QNmIRqO/u1yubwFEASRKUAEA7rASqABUAKgC8KAUb5XWCOAfAFcA/gJwDSB7C93DylCtdM8qABhLc5TumV6KQigUeubjfwcAHkQJ94ndWeYAAAAASUVORK5CYII=' :
 			IMAGE_PATH + '/handle-rotate.png', 19, 21);
-		var triangleUp = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAYAAACpSkzOAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NDA3RjREMDM0NTVCMTFFNEIxOTZFRjE3NzRENjQ0RjIiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6NDA3RjREMDQ0NTVCMTFFNEIxOTZFRjE3NzRENjQ0RjIiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo0MDdGNEQwMTQ1NUIxMUU0QjE5NkVGMTc3NEQ2NDRGMiIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo0MDdGNEQwMjQ1NUIxMUU0QjE5NkVGMTc3NEQ2NDRGMiIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PpFdYkUAAAEsSURBVHjaYvz//z8DPQATA50AC+P6D6Tq0QViHiA+TpJFZDhuMhDzA7EhLYMuEIjtgdgAiJNJ0cjIsO49sWo5gfgqECtC+S+AWBWIv1DbR0VIloCABBA3UttHIENvQxMBMvgFxNpAfIdaPurFYgkIsAFxF7WCzgyIowgkEA9qWDSZSB8zU2JRMtRHhIAWEKeRmxh4oAlAgsh4fAdN7u9I9VEFCZaAgBAQt5DqIxVo5mQjseT4C8R6QHyNWB91kWEJAzRBTCA26JygSZZc4IpNPxMWF01moBxghAi6RWnQpEopAMVxPq7EIARNzkJUqlS/QJP7C3QftVDRElg+bEH3ESi4LhEqRsgEoJr4AhNSeUYLS0BgJqzNACrLRIH4Mo0sAtXM9ozDrl0HEGAAOt00sQRg5yAAAAAASUVORK5CYII=' :
-			IMAGE_PATH + '/triangle-up.png', 26, 26);
-		var triangleRight = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAYAAACpSkzOAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6RkQ3OEM2Nzg0NTVBMTFFNEIxOTZFRjE3NzRENjQ0RjIiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6RkQ3OEM2Nzk0NTVBMTFFNEIxOTZFRjE3NzRENjQ0RjIiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpGRDc4QzY3NjQ1NUExMUU0QjE5NkVGMTc3NEQ2NDRGMiIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpGRDc4QzY3NzQ1NUExMUU0QjE5NkVGMTc3NEQ2NDRGMiIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PmADGesAAAE2SURBVHjatJaxSgNBFEU3iQhCQEllK1hFItjsB1jYr6WtgigIAcFGwSafIBaipa1pBRG0Eq0koI1+QCqxSCXIekbug2UhGJN5Fw7Dzi4c5s283a3keZ6EVLqfKcNTEjl5Nvc7Vgtz53ALzcQh1dL1KvTgFBqeopAa7MCbxpqXyNLQynpaqZvI0tTeXcGip8iSwQt0oO4pCpmGQ+3fpqfIMq92eITUU2RJJbuU3E1k2VA5Q1lnPEWJDkhHBybzFFkW1Ap30PIUWWaLbeAh6sMWrMCDTU5FFHzBCRzDoHwzlqgLB/A+7IFJRa+wD9deDfsBu7A8imScFX3DGRxJNnL+I7qBtsrl8pkIG7wOa+NK/hINdJKWdKomyrDSXWgf+rGarCwK/3Xb8Bz7dVEU7cG914vvR4ABAGCSNhcpqHjLAAAAAElFTkSuQmCC':
-			IMAGE_PATH + '/triangle-right.png', 26, 26);
-		var triangleDown = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAYAAACpSkzOAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6RkQ3OEM2N0M0NTVBMTFFNEIxOTZFRjE3NzRENjQ0RjIiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6RkQ3OEM2N0Q0NTVBMTFFNEIxOTZFRjE3NzRENjQ0RjIiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpGRDc4QzY3QTQ1NUExMUU0QjE5NkVGMTc3NEQ2NDRGMiIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpGRDc4QzY3QjQ1NUExMUU0QjE5NkVGMTc3NEQ2NDRGMiIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PuktDIwAAAE0SURBVHjaYvz//z8DPQATA50AC+P6D/ZAejKN7UlhARIHgfg7EJvRyJJ9QHwKFnTpNLLkLxDnIsfRBSCeSwOLZgHxNRCDkWHde5igBBDfBmIeKlnyDohVoTRKqnsBxE1U9E0NzBJ0H4EAGxBfBWIVCi0BBZceNI6w5qNfQFxGBd/kIluCK8OuB+LdFFiyHpqkiSoZCtBdRCTAGSJMeMJ4FhkWdQPxHWwS6IkBGQhBk7sQkZa8gCbnL6QWqu+gSZSU5PyF3NIbnrMJgFOEShYmIsqqYiKTM8X10Q5oksUFlkF9RJWKrwyadNHBFyJ9TLRFoCQ7BYt4BzS1EQT4kjc64IEmdwko/z4Qa0MrTaq2Gb6gJfdiYi0h1UcwcB6IPwKxA0mNEzKKmSx8GROnj4Zduw4gwAC3tEnG5i1iXgAAAABJRU5ErkJggg==' :
-			IMAGE_PATH + '/triangle-down.png', 26, 26);
-		var triangleLeft = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAYAAACpSkzOAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NDA3RjRDRkY0NTVCMTFFNEIxOTZFRjE3NzRENjQ0RjIiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6NDA3RjREMDA0NTVCMTFFNEIxOTZFRjE3NzRENjQ0RjIiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpGRDc4QzY3RTQ1NUExMUU0QjE5NkVGMTc3NEQ2NDRGMiIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo0MDdGNENGRTQ1NUIxMUU0QjE5NkVGMTc3NEQ2NDRGMiIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PquyPQ0AAAE+SURBVHjatJaxSgNBFEU3KoKQQqzyAdoohFSKlQERbGNrqVik8QeCVdIIgpVBMK2lW9oF0qYRFFMJtlZBQRAEWc/AHVklxE123oUDm+zA4b03s0whSZLIpRC/RgbZSmqLPfcwF9mkApewAGX3x0xgQQmu4A7W0y9CVTQPx3ACxVELQohqcArL4xblEa3COexkWTzNjJbgAu6zSiataBaOoCnZRMkq2oUztWuq/Nc6N+AbuM0jGScqqoJH7arcGdW6A82hFPIkp0Wb2k0Vi29SunXv8Gb07fsleoAq7MGzpcgnhjVoqEozkcsHtGAFri1FPi+wDxvQtxT59CU7lNxM5NNRO11bPy1F/hg0tGFiS5HPk47CNgwsRT5dXUDqMLQUuXxBW/Nr67eJyGeoysqqNPgt6G8Gmt3PletbgAEAmkYzZ9MOuCsAAAAASUVORK5CYII=' :
-			IMAGE_PATH + '/triangle-left.png', 26, 26);
-		var refreshTarget = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAmCAYAAACoPemuAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NDQxNERDRTU1QjY1MTFFNDkzNTRFQTVEMTdGMTdBQjciIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6NDQxNERDRTY1QjY1MTFFNDkzNTRFQTVEMTdGMTdBQjciPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo0NDE0RENFMzVCNjUxMUU0OTM1NEVBNUQxN0YxN0FCNyIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo0NDE0RENFNDVCNjUxMUU0OTM1NEVBNUQxN0YxN0FCNyIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PsvuX50AAANaSURBVHja7FjRZ1tRGD9ZJ1NCyIQSwrivI4Q8hCpjlFDyFEoYfSp9Ko1QWnmo0If+BSXkIfo0QirTMUpeGo2EPfWllFYjZMLKLDJn53d3biU337m5J223bPbxk5t7v+/c3/2+73znO8fDOWezKM/YjMpz68Lj8ejY+QTeCCwLxOS9qPxtyN+6wAeBTwJ31CCO0cJDjXBGBN4LfIepSwykTUT1bgpuib0SONIgo8KRHOtRiCFcvUcgZeGrHPNBxLIyFPyRgTGz0xLbegJCdmzpElue5KlAIMDX19d5uVzm5+fnfDAYmMA17uEZdOx2Yvb/sHlu2S0xwymn5ufneTab5b1ej08S6EAXNrDd2dnhiUTim21MvMtwQ6yiIrWwsMDPzs64rsBmf3/fvM7n89TYlUnEllSkQqEQv7q64g+Vk5MTVXosORErU0Zer5f0FEIlw2N6MxwO82QyaXql2+2SxDqdjopYWUUsqEp45IldqtWq6UWVh/1+P7+8vCTJ4QMUJSRIEXuneoH96w8PDyeWAnhSJfCqwm6NIlaklFdXV0cGhRcQ2mlJQXK5nMq2YPEZbnteU1U2lUqN/D84OGD9fl+5fgnSrFarsUwmw0qlEru4uBjTicViTk3Cr27HSnxR+Doyz0ZE1CAWiUTusbu7y9rttlZv5fP5WDQavYfIMba4uEipfhF8XtqJoZXx/uH+sC/4vPg7OljZZQbsCmLtYzc3N6zRaJhotVrmfx0xDINtbm6athYUeXpHdbBNaqZUKpWxWXV7e2vex+xaWVnhc3NzjrPUXgexyCt0m67LBV7uJMITjqRE4o8tZeg8FPpFitgapYxiOC0poFgsji1jKNo6BZZckrAGUtJsNk1vqAihCBcKhTE7hNWhqw2qFnGy5UFOUYJVIJ1OjzSE+BCEilon0URavRmBqnbbQ00AXbm+vnZc9O1tj72OnQoc2+cwygRkb2+P1et17ZoEm3g87lRmjgWZ00kbXkNuse6/Bu2wlegIxfb2tuvWGroO4bO2c4bbzUh60mxDXm1sbJhhxkQYnhS4h2fUZoRAWnf7lv8N27f8P7Xhnekjgpk+VKGOoQbsiY+hhhtF3YO7twIJ+ULvUGv+GQ2fQEvWxI/THNx5/p/BaspPAQYAqStgiSQwCDoAAAAASUVORK5CYII=' :
-			IMAGE_PATH + '/refresh.png', 38, 38);
-		var roundDrop = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAYAAACpSkzOAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6RTgxRjYzRTU1MDRFMTFFNEExQ0VFNDQwNDhGNzg2RDkiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6RTgxRjYzRTY1MDRFMTFFNEExQ0VFNDQwNDhGNzg2RDkiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpFODFGNjNFMzUwNEUxMUU0QTFDRUU0NDA0OEY3ODZEOSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpFODFGNjNFNDUwNEUxMUU0QTFDRUU0NDA0OEY3ODZEOSIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PuJ657wAAAE0SURBVHjaYvz//z8DPQATA50AC4zBuP4DLjXaQOwMxJZArAfE8lDxh0B8CYiPA/FeIL6KTfP/QAFUi7AABSBOAOJoIFbBIq8FxRFAfAeIlwLxAiB+gNdHaMABiIuB2IfIkAE5pB6IjYG4F4gPEBNHIEtaSLAEGfhA9ToQskgB6hNrCuLdGmqGAj6LEsj0CTafJeCySBsa8dQC0VAzMSxyxpG6yAUqUDMxLLKkQT61xGaRHg0s0sNmkTwNLJKne1mHbNFDGpj/EJtFl2hg0SVsFh2ngUXHsVm0F1oKUwvcgZqJYdFVaFFPLbAUuY5CT3Wg+mQLFSzZAjULZ6H6AFqfHKXAkqNQMx4Qqo9AlVYNmT7bAtV7gNga9gDURWfxVOXoEY+3KmeENbdo3ThhHHbtOoAAAwDmEETshQ0fBAAAAABJRU5ErkJggg==' :
-			IMAGE_PATH + '/round-drop.png', 26, 26);
-		
-		// Pre-fetches images (only needed for non data-uris)
-		if (!mxClient.IS_SVG)
-		{
-			new Image().src = connectHandle.src;
-			new Image().src = mainHandle.src;
-			new Image().src = fixedHandle.src;
-			new Image().src = secondaryHandle.src;
-			new Image().src = rotationHandle.src;
-			new Image().src = triangleUp.src;
-			new Image().src = triangleRight.src;
-			new Image().src = triangleDown.src;
-			new Image().src = triangleLeft.src;
-			new Image().src = roundDrop.src;
-		}
-		
-		mxConnectionHandler.prototype.connectImage = connectHandle;
+
 		mxVertexHandler.prototype.handleImage = mainHandle;
 		mxVertexHandler.prototype.secondaryHandleImage = secondaryHandle;
 		mxEdgeHandler.prototype.handleImage = mainHandle;
 		mxEdgeHandler.prototype.fixedHandleImage = fixedHandle;
 		mxEdgeHandler.prototype.labelHandleImage = secondaryHandle;
 		mxOutline.prototype.sizerImage = mainHandle;
-		Sidebar.prototype.triangleUp = triangleUp;
-		Sidebar.prototype.triangleRight = triangleRight;
-		Sidebar.prototype.triangleDown = triangleDown;
-		Sidebar.prototype.triangleLeft = triangleLeft;
-		Sidebar.prototype.refreshTarget = refreshTarget;
-		Sidebar.prototype.roundDrop = roundDrop;
-	
+		Sidebar.prototype.triangleUp = HoverIcons.prototype.triangleUp;
+		Sidebar.prototype.triangleRight = HoverIcons.prototype.triangleRight;
+		Sidebar.prototype.triangleDown = HoverIcons.prototype.triangleDown;
+		Sidebar.prototype.triangleLeft = HoverIcons.prototype.triangleLeft;
+		Sidebar.prototype.refreshTarget = HoverIcons.prototype.refreshTarget;
+		Sidebar.prototype.roundDrop = HoverIcons.prototype.roundDrop;
+
+		// Pre-fetches images (only needed for non data-uris)
+		if (!mxClient.IS_SVG)
+		{
+			new Image().src = mainHandle.src;
+			new Image().src = fixedHandle.src;
+			new Image().src = secondaryHandle.src;
+			new Image().src = rotationHandle.src;
+			
+			new Image().src = HoverIcons.prototype.triangleUp.src;
+			new Image().src = HoverIcons.prototype.triangleRight.src;
+			new Image().src = HoverIcons.prototype.triangleDown.src;
+			new Image().src = HoverIcons.prototype.triangleLeft.src;
+			new Image().src = HoverIcons.prototype.refreshTarget.src;
+			new Image().src = HoverIcons.prototype.roundDrop.src;
+		}
+		
 		// Adds rotation handle and live preview
 		mxVertexHandler.prototype.rotationEnabled = true;
 		mxVertexHandler.prototype.manageSizers = true;
@@ -2998,7 +4253,7 @@ if (typeof mxVertexHandler != 'undefined')
 				mxVertexHandlerMouseDown.apply(this, arguments);
 			}
 		};
-		
+
 		// Shows rotation handle for edge labels.
 		mxVertexHandler.prototype.isRotationHandleVisible = function()
 		{
@@ -3019,16 +4274,6 @@ if (typeof mxVertexHandler != 'undefined')
 			
 			if (this.graph.graphHandler.first != null)
 			{
-				if (this.linkHint != null)
-				{
-					this.linkHint.style.display = 'none';
-				}
-				
-				if (this.connectorImg != null)
-				{
-					this.connectorImg.style.display = 'none';
-				}
-				
 				if (this.rotationShape != null && this.rotationShape.node != null)
 				{
 					this.rotationShape.node.style.display = 'none';
@@ -3037,19 +4282,9 @@ if (typeof mxVertexHandler != 'undefined')
 		};
 		
 		var vertexHandlerMouseUp = mxVertexHandler.prototype.mouseUp;
-		mxVertexHandler.prototype.mouseUp = function()
+		mxVertexHandler.prototype.mouseUp = function(sender, me)
 		{
 			vertexHandlerMouseUp.apply(this, arguments);
-			
-			if (this.connectorImg != null)
-			{
-				this.connectorImg.style.display = (this.graph.getSelectionCount() == 1) ? '' : 'none';
-			}
-			
-			if (this.linkHint != null)
-			{
-				this.linkHint.style.display = (this.graph.getSelectionCount() == 1) ? '' : 'none';
-			}
 			
 			// Shows rotation handle only if one vertex is selected
 			if (this.rotationShape != null && this.rotationShape.node != null)
@@ -3071,16 +4306,6 @@ if (typeof mxVertexHandler != 'undefined')
 			
 			var update = mxUtils.bind(this, function()
 			{
-				if (this.connectorImg != null)
-				{
-					this.connectorImg.style.display = (this.graph.getSelectionCount() == 1) ? '' : 'none';
-				}
-				
-				if (this.linkHint != null)
-				{
-					this.linkHint.style.display = (this.graph.getSelectionCount() == 1) ? '' : 'none';
-				}
-	
 				// Shows rotation handle only if one vertex is selected
 				if (this.rotationShape != null && this.rotationShape.node != null)
 				{
@@ -3109,135 +4334,6 @@ if (typeof mxVertexHandler != 'undefined')
 			});
 			
 			this.graph.getModel().addListener(mxEvent.CHANGE, this.changeHandler);
-	
-			if (this.graph.isEnabled() && (touchStyle || urlParams['connect'] == null || urlParams['connect'] == '2'))
-			{
-				// Only show connector image on one cell and do not show on containers
-				if (showConnectorImg && this.graph.isCellConnectable(this.state.cell))
-				{
-					// Workaround for event redirection via image tag in quirks and IE8
-					if (mxClient.IS_IE && !mxClient.IS_SVG)
-					{
-						// Workaround for PNG images in IE6
-						if (mxClient.IS_IE6 && document.compatMode != 'CSS1Compat')
-						{
-							this.connectorImg = document.createElement(mxClient.VML_PREFIX + ':image');
-							this.connectorImg.setAttribute('src', connectHandle.src);
-							this.connectorImg.style.borderStyle = 'none';
-						}
-						else
-						{
-							this.connectorImg = document.createElement('div');
-							this.connectorImg.style.backgroundImage = 'url(' + connectHandle.src + ')';
-							this.connectorImg.style.backgroundPosition = 'center';
-							this.connectorImg.style.backgroundRepeat = 'no-repeat';
-						}
-						
-						this.connectorImg.style.width = (connectHandle.width + 4) + 'px';
-						this.connectorImg.style.height = (connectHandle.height + 4) + 'px';
-						this.connectorImg.style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
-					}
-					else
-					{
-						this.connectorImg = mxUtils.createImage(connectHandle.src);
-						
-						if (touchStyle)
-						{
-							this.connectorImg.style.width = '29px';
-							this.connectorImg.style.height = '29px';
-						}
-						else
-						{
-							this.connectorImg.style.width = connectHandle.width + 'px';
-							this.connectorImg.style.height = connectHandle.height + 'px';
-						}
-					}
-					
-					this.connectorImg.style.cursor = 'crosshair';
-					this.connectorImg.style.position = 'absolute';
-					this.connectorImg.setAttribute('title', mxResources.get('plusTooltip'));
-					
-					if (!(mxClient.IS_TOUCH || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0))
-					{
-						mxEvent.redirectMouseEvents(this.connectorImg, this.graph, this.state);
-					}
-					
-					var mousePoint = null;
-					
-					// Starts connecting on touch/mouse down
-					mxEvent.addGestureListeners(this.connectorImg,
-						mxUtils.bind(this, function(evt)
-						{
-							// FIXME: Use native event in isForceRubberband, isForcePanningEvent
-							// Note: Even if control is a popup trigger in this case it should initiate a drag for copy on connect
-							if (mxEvent.isControlDown(evt) || (!mxEvent.isAltDown(evt) && !mxEvent.isPopupTrigger(evt)))
-							{
-								this.graph.popupMenuHandler.hideMenu();
-								this.graph.stopEditing(false);
-								
-								mousePoint = mxUtils.convertPoint(this.graph.container,
-										mxEvent.getClientX(evt), mxEvent.getClientY(evt));
-								this.graph.connectionHandler.start(this.state, mousePoint.x, mousePoint.y);
-								this.graph.isMouseTrigger = mxEvent.isMouseEvent(evt);
-								this.graph.isMouseDown = true;
-								
-								mxEvent.consume(evt);
-							}
-						}),
-						null,
-						mxUtils.bind(this, function(evt)
-						{
-							if (mousePoint != null)
-							{
-								var pt = mxUtils.convertPoint(this.graph.container,
-										mxEvent.getClientX(evt), mxEvent.getClientY(evt));
-								var tol = this.graph.tolerance;
-								
-								// Handles single click
-								if (Math.abs(pt.x - mousePoint.x) < tol && Math.abs(pt.y - mousePoint.y) < tol)
-								{
-									this.graph.model.beginUpdate();
-									try
-									{
-										var dup = this.graph.duplicateCells([this.state.cell], false)[0];
-										this.graph.setSelectionCell(dup);
-										var layout = null;
-	
-										// Never connects children in stack layouts
-										if (this.graph.layoutManager != null)
-										{
-											layout = this.graph.layoutManager.getLayout(this.graph.model.getParent(dup));
-										}
-										
-										if (!mxEvent.isShiftDown(evt) && (layout == null || layout.constructor != mxStackLayout))
-										{
-											var geo = this.graph.getCellGeometry(dup);
-											geo.x = this.state.cell.geometry.x + this.state.cell.geometry.width + 80;
-											geo.y = this.state.cell.geometry.y;
-	
-											var edge = this.graph.insertEdge(null, null, '', this.state.cell, dup, this.graph.createCurrentEdgeStyle());
-											this.graph.fireEvent(new mxEventObject('cellsInserted', 'cells', [edge]));
-										}
-									}
-									finally
-									{
-										this.graph.model.endUpdate();
-									}
-									
-									this.graph.isMouseDown = false;
-									mxEvent.consume(evt);
-								}
-								
-								mousePoint = null;
-							}
-						})
-					);
-	
-					this.graph.container.appendChild(this.connectorImg);
-					redraw = true;
-				}
-			}
-			
 			var link = this.graph.getLinkForCell(this.state.cell);
 			this.updateLinkHint(link);
 			
@@ -3390,40 +4486,7 @@ if (typeof mxVertexHandler != 'undefined')
 		mxVertexHandler.prototype.redrawHandles = function()
 		{
 			vertexHandlerRedrawHandles.apply(this);
-	
-			if (this.state != null && this.connectorImg != null)
-			{
-				var pt = new mxPoint();
-				var s = this.state;
-				
-				// Top right for single-sizer
-				if (mxVertexHandler.prototype.singleSizer)
-				{
-					pt.x = s.x + s.width - this.connectorImg.offsetWidth / 2;
-					pt.y = s.y - this.connectorImg.offsetHeight / 2;
-				}
-				else
-				{
-					var dx = (this.handleImage != null) ? this.handleImage.width : mxConstants.HANDLE_SIZE;
-					pt.x = s.x + s.width + (dx + this.horizontalOffset + this.tolerance + this.connectorImg.offsetWidth) / 2;
-					pt.y = s.y + s.height / 2;
-				}
-				
-				var alpha = mxUtils.toRadians(mxUtils.getValue(s.style, mxConstants.STYLE_ROTATION, 0));
-				
-				if (alpha != 0)
-				{
-					var cos = Math.cos(alpha);
-					var sin = Math.sin(alpha);
-					
-					var ct = new mxPoint(s.getCenterX(), s.getCenterY());
-					pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
-				}
-				
-				this.connectorImg.style.left = Math.round(pt.x - this.connectorImg.offsetWidth / 2) + 'px';
-				this.connectorImg.style.top = Math.round(pt.y - this.connectorImg.offsetHeight / 2 + 1) + 'px';
-			}
-			
+
 			if (this.state != null && this.linkHint != null)
 			{
 				var c = new mxPoint(this.state.getCenterX(), this.state.getCenterY());
@@ -3441,22 +4504,7 @@ if (typeof mxVertexHandler != 'undefined')
 						6 + this.state.view.graph.tolerance) + 'px';
 			}
 		};
-		
-		var vertexHandlerSetHandlesVisible = mxVertexHandler.prototype.setHandlesVisible;
-		mxVertexHandler.prototype.setHandlesVisible = function(visible)
-		{
-			vertexHandlerSetHandlesVisible.apply(this, arguments);
-			
-			if (this.connectorImg != null)
-			{
-				this.connectorImg.style.visibility = (visible) ? '' : 'hidden';
-			}
-			
-			if (this.linkHint != null)
-			{
-				this.linkHint.style.visibility = (visible) ? '' : 'hidden';
-			}
-		};
+
 		
 		var vertexHandlerReset = mxVertexHandler.prototype.reset;
 		mxVertexHandler.prototype.reset = function()
@@ -3467,16 +4515,6 @@ if (typeof mxVertexHandler != 'undefined')
 			if (this.rotationShape != null && this.rotationShape.node != null)
 			{
 				this.rotationShape.node.style.display = (this.graph.getSelectionCount() == 1) ? '' : 'none';
-			}
-			
-			if (this.connectorImg != null)
-			{
-				this.connectorImg.style.visibility = '';
-			}
-			
-			if (this.linkHint != null)
-			{
-				this.linkHint.style.visibility = '';
 			}
 		};
 	
@@ -3490,13 +4528,7 @@ if (typeof mxVertexHandler != 'undefined')
 				this.linkHint.parentNode.removeChild(this.linkHint);
 				this.linkHint = null;
 			}
-	
-			if (this.connectorImg != null)
-			{
-				this.connectorImg.parentNode.removeChild(this.connectorImg);
-				this.connectorImg = null;
-			}
-			
+
 			if (this.selectionHandler != null)
 			{
 				this.graph.getSelectionModel().removeListener(this.selectionHandler);

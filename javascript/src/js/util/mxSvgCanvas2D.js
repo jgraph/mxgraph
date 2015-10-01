@@ -607,8 +607,14 @@ mxSvgCanvas2D.prototype.addNode = function(filled, stroked)
 			node.setAttribute('pointer-events', 'none');
 		}
 		
-		// LATER: Update existing DOM for performance
-		this.root.appendChild(node);
+		// Removes invisible nodes from output if they don't handle events
+		if ((node.nodeName != 'rect' && node.nodeName != 'path' && node.nodeName != 'ellipse') ||
+			(node.getAttribute('fill') != 'none' && node.getAttribute('fill') != 'transparent') ||
+			node.getAttribute('stroke') != 'none' || node.getAttribute('pointer-events') != 'none')
+		{
+			// LATER: Update existing DOM for performance		
+			this.root.appendChild(node);
+		}
 	}
 };
 
@@ -631,8 +637,9 @@ mxSvgCanvas2D.prototype.updateFill = function()
 		if (s.gradientColor != null)
 		{
 			var id = this.getSvgGradient(s.fillColor, s.gradientColor, s.fillAlpha, s.gradientAlpha, s.gradientDirection);
-
-			if (!mxClient.IS_IE && this.root.ownerDocument == document)
+			var chromeApp = window.chrome != null && chrome.app != null && chrome.app.runtime != null;
+			
+			if (!chromeApp && !mxClient.IS_IE && this.root.ownerDocument == document)
 			{
 				// Workaround for potential base tag and brackets must be escaped
 				var base = this.getBaseUrl().replace(/([\(\)])/g, '\\$1');
@@ -1086,6 +1093,25 @@ mxSvgCanvas2D.prototype.convertHtml = function(val)
 				val = val.substring(0, val.length - 7);
 			}
 		}
+	}
+	else if (document.implementation != null && document.implementation.createDocument != null)
+	{
+		var xd = document.implementation.createDocument('http://www.w3.org/1999/xhtml', 'html', null);
+		var xb = xd.createElement('body');
+		xd.documentElement.appendChild(xb);
+		
+		var div = document.createElement('div');
+		div.innerHTML = val;
+		var child = div.firstChild;
+		
+		while (child != null)
+		{
+			var next = child.nextSibling;
+			xb.appendChild(xd.adoptNode(child));
+			child = next;
+		}
+		
+		return xb.innerHTML;
 	}
 	else
 	{
@@ -1824,7 +1850,9 @@ mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 			this.root.appendChild(c);
 		}
 		
-		if (!mxClient.IS_IE && this.root.ownerDocument == document)
+		var chromeApp = window.chrome != null && chrome.app != null && chrome.app.runtime != null;
+		
+		if (!chromeApp && !mxClient.IS_IE && this.root.ownerDocument == document)
 		{
 			// Workaround for potential base tag
 			var base = this.getBaseUrl().replace(/([\(\)])/g, '\\$1');

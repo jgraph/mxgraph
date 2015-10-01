@@ -136,6 +136,13 @@ mxOutline.prototype.updateOnPan = false;
 mxOutline.prototype.sizerImage = null;
 
 /**
+ * Variable: minScale
+ * 
+ * Minimum scale to be used. Default is 0.001.
+ */
+mxOutline.prototype.minScale = 0.0001;
+
+/**
  * Variable: suspended
  * 
  * Optional boolean flag to suspend updates. Default is false. This flag will
@@ -452,8 +459,8 @@ mxOutline.prototype.update = function(revalidate)
 		var availableHeight = Math.max(0, this.outline.container.clientHeight - this.border);
 		
 		var outlineScale = Math.min(availableWidth / completeWidth, availableHeight / completeHeight);
-		var scale = Math.floor(outlineScale * 100) / 100;
-		
+		var scale = (isNaN(outlineScale)) ? this.minScale : Math.max(this.minScale, outlineScale);
+
 		if (scale > 0)
 		{
 			if (this.outline.getView().scale != scale)
@@ -703,7 +710,7 @@ mxOutline.prototype.mouseUp = function(sender, me)
 				// Applies the new zoom
 				var w = this.selectionBorder.bounds.width;
 				var scale = this.source.getView().scale;
-				this.source.zoomTo(scale - (dx * scale) / w, false);
+				this.source.zoomTo(Math.max(this.minScale, scale - (dx * scale) / w), false);
 			}
 
 			this.update();

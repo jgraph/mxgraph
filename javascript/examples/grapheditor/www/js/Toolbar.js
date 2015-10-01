@@ -76,7 +76,7 @@ Toolbar.prototype.init = function()
 	elts[1].setAttribute('title', mxResources.get('zoomOut') + ' (' + this.editorUi.actions.get('zoomOut').shortcut + ')');
 
 	// Updates the label if the scale changes
-	this.editorUi.editor.graph.view.addListener(mxEvent.EVENT_SCALE, mxUtils.bind(this, function()
+	var updateZoom = mxUtils.bind(this, function()
 	{
 		viewMenu.innerHTML = Math.round(this.editorUi.editor.graph.view.scale * 100) + '%' +
 			this.dropdownImageHtml;
@@ -86,16 +86,16 @@ Toolbar.prototype.init = function()
 			viewMenu.getElementsByTagName('img')[0].style.right = '1px';
 			viewMenu.getElementsByTagName('img')[0].style.top = '5px';
 		}
-	}));
+	});
+	
+	this.editorUi.editor.graph.view.addListener(mxEvent.EVENT_SCALE, updateZoom);
+	this.editorUi.editor.addListener('resetGraphView', updateZoom);
 
-	var elts = this.addItems(['-', 'undo', 'redo', '-', 'delete', '-', 'toFront', 'toBack', '-', 'fillColor', 'strokeColor', '-', 'shadow']);
+	var elts = this.addItems(['-', 'undo', 'redo', '-', 'delete', '-', 'toFront', 'toBack', '-', 'fillColor', 'strokeColor', 'shadow', '-']);
 	elts[1].setAttribute('title', mxResources.get('undo') + ' (' + this.editorUi.actions.get('undo').shortcut + ')');
 	elts[2].setAttribute('title', mxResources.get('redo') + ' (' + this.editorUi.actions.get('redo').shortcut + ')');
 	elts[4].setAttribute('title', mxResources.get('delete') + ' (' + this.editorUi.actions.get('delete').shortcut + ')');
 
-	this.addItem('geSprite-rounded', 'toggleRounded').setAttribute('title', mxResources.get('rounded'));
-	this.addSeparator();
-	
 	this.edgeShapeMenu = this.addMenuFunction('', mxResources.get('connection'), false, mxUtils.bind(this, function(menu)
 	{
 		this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_SHAPE, 'width'], [null, null], 'geIcon geSprite geSprite-connection', null, true).setAttribute('title', mxResources.get('line'));

@@ -1183,8 +1183,9 @@ BaseFormatPanel.prototype.createRelativeOption = function(label, key, width)
 	{
 		var value = parseInt(input.value);
 		value = Math.min(100, Math.max(0, (isNaN(value)) ? 100 : value));
+		var state = graph.view.getState(graph.getSelectionCell());
 		
-		if (value != mxUtils.getValue(graph.view.getState(graph.getSelectionCell()).style, key, 100))
+		if (state != null && value != mxUtils.getValue(state.style, key, 100))
 		{
 			// Removes entry in style (assumes 100 is default for relative values)
 			if (value == 100)
@@ -1390,6 +1391,7 @@ ArrangePanel.prototype.addGroupOps = function(div)
 	var ui = this.editorUi;
 	var graph = ui.editor.graph;
 	var cell = graph.getSelectionCell();
+	var ss = this.format.getSelectionState();
 	var count = 0;
 	
 	div.style.paddingTop = '8px';
@@ -1441,6 +1443,19 @@ ArrangePanel.prototype.addGroupOps = function(div)
 		div.appendChild(btn);
 		count++;
 	}
+	else if (ss.edges.length > 0)
+	{
+		mxUtils.br(div);
+		btn = mxUtils.button(mxResources.get('clearWaypoints'), mxUtils.bind(this, function(evt)
+		{
+			this.editorUi.actions.get('clearWaypoints').funct();
+		}));
+		
+		btn.style.width = '202px';
+		btn.style.marginBottom = '2px';
+		div.appendChild(btn);
+		count++;
+	}
 	
 	if (graph.getSelectionCount() == 1)
 	{
@@ -1458,20 +1473,6 @@ ArrangePanel.prototype.addGroupOps = function(div)
 		btn.style.marginBottom = '2px';
 		div.appendChild(btn);
 		count++;
-		
-		if (graph.getModel().isEdge(graph.getSelectionCell()))
-		{
-			mxUtils.br(div);
-			btn = mxUtils.button(mxResources.get('clearWaypoints'), mxUtils.bind(this, function(evt)
-			{
-				this.editorUi.actions.get('clearWaypoints').funct();
-			}));
-			
-			btn.style.width = '202px';
-			btn.style.marginBottom = '2px';
-			div.appendChild(btn);
-			count++;
-		}
 	}
 	
 	if (count == 0)
@@ -2457,7 +2458,7 @@ TextFormatPanel.prototype.addFont = function(container)
 	wwOpt.style.fontWeight = 'bold';
 	
 	// Word wrap in edge labels only supported via labelWidth style
-	if (!ss.containsLabel)
+	if (!ss.containsLabel && ss.edges.length == 0)
 	{
 		extraPanel.appendChild(wwOpt);
 	}
@@ -4044,12 +4045,27 @@ DiagramFormatPanel.prototype.addOptions = function(div)
 		}));
 	
 		// Connection points
-		div.appendChild(this.createOption(mxResources.get('connectionPoints'), function()
+		div.appendChild(this.createOption(mxResources.get('connect'), function()
 		{
 			return graph.connectionHandler.isEnabled();
 		}, function(checked)
 		{
-			graph.setConnectable(checked);
+			ui.actions.get('connect').funct();
+		},
+		{
+			install: function(apply)
+			{
+				this.listener = function()
+				{
+					apply(graph.connectionHandler.isEnabled());
+				};
+				
+				ui.addListener('connectChanged', this.listener);
+			},
+			destroy: function()
+			{
+				ui.removeListener(this.listener);
+			}
 		}));
 	}
 	
@@ -4315,6 +4331,8 @@ DiagramFormatPanel.prototype.addPaperSize = function(div)
 		paperSizeSelect.appendChild(paperSizeOption);
 	}
 	
+	var customSize = false;
+	
 	function listener(sender, evt, force)
 	{
 		if (force || (widthInput != document.activeElement && heightInput != document.activeElement))
@@ -4325,7 +4343,16 @@ DiagramFormatPanel.prototype.addPaperSize = function(div)
 			{
 				var f = formats[i];
 	
-				if (f.format != null)
+				// Special case where custom was chosen
+				if (customSize)
+				{
+					if (f.key == 'custom')
+					{
+						paperSizeSelect.value = f.key;
+						customSize = false;
+					}
+				}
+				else if (f.format != null)
 				{
 					if (graph.pageFormat.width == f.format.width && graph.pageFormat.height == f.format.height)
 					{
@@ -4431,8 +4458,19 @@ DiagramFormatPanel.prototype.addPaperSize = function(div)
 	mxEvent.addListener(heightInput, 'click', update);
 	mxEvent.addListener(landscapeCheckBox, 'change', update);
 	mxEvent.addListener(portraitCheckBox, 'change', update);
-	mxEvent.addListener(paperSizeSelect, 'change', update);
+	mxEvent.addListener(paperSizeSelect, 'change', function()
+	{
+		// Handles special case where custom was chosen
+		customSize = paperSizeSelect.value == 'custom';
+		update();
+	});
+	
 	ui.addListener('pageFormatChanged', listener);
+	this.listeners.push({destroy: function() { ui.removeListener(listener); }});
+	
+	graph.getModel().addListener(mxEvent.CHANGE, listener);
+	this.listeners.push({destroy: function() { graph.getModel().removeListener(listener); }});
+	
 	update();
 	
 	return div;

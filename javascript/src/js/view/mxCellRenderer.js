@@ -490,8 +490,7 @@ mxCellRenderer.prototype.createCellOverlays = function(state)
 			
 			if (shape == null)
 			{
-				var tmp = new mxImageShape(new mxRectangle(),
-					overlays[i].image.src);
+				var tmp = new mxImageShape(new mxRectangle(), overlays[i].image.src);
 				tmp.dialect = state.view.graph.dialect;
 				tmp.preserveImageAspect = false;
 				tmp.overlay = overlays[i];

@@ -640,7 +640,7 @@ var mxUtils =
 			}
 			else
 			{
-				result.push(indent + '<'+node.nodeName);
+				result.push(indent + '<' + node.nodeName);
 				
 				// Creates the string with the node attributes
 				// and converts all HTML entities in the values
@@ -651,8 +651,7 @@ var mxUtils =
 					for (var i = 0; i < attrs.length; i++)
 					{
 						var val = mxUtils.htmlEntities(attrs[i].value);
-						result.push(' ' + attrs[i].nodeName +
-							'="' + val + '"');
+						result.push(' ' + attrs[i].nodeName + '="' + val + '"');
 					}
 				}
 
@@ -667,12 +666,11 @@ var mxUtils =
 					
 					while (tmp != null)
 					{
-						result.push(mxUtils.getPrettyXml(
-							tmp, tab, indent + tab));
+						result.push(mxUtils.getPrettyXml(tmp, tab, indent + tab));
 						tmp = tmp.nextSibling;
 					}
 					
-					result.push(indent + '</'+node.nodeName+'>\n');
+					result.push(indent + '</'+node.nodeName + '>\n');
 				}
 				else
 				{
@@ -822,7 +820,8 @@ var mxUtils =
         			break;
         		}
 	        	
-	        	ret.push(elem.nodeValue + '\n');
+	        	// Only inserts a newline if the next element is not another text element
+	        	ret.push(elem.nodeValue + ((elem.nextSibling == null || elem.nextSibling.nodeType != 3) ? '\n' : ''));
 	            ignoreBr = true;
 
 	        // Traverse everything else, except comment nodes

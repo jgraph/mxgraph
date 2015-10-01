@@ -644,6 +644,17 @@ mxCellEditor.prototype.focusLost = function()
 };
 
 /**
+ * Function: getBackgroundColor
+ * 
+ * Returns the background color for the in-place editor. This implementation
+ * always returns null.
+ */
+mxCellEditor.prototype.getBackgroundColor = function(state)
+{
+	return null;
+};
+
+/**
  * Function: startEditing
  *
  * Starts the editor for the given cell.
@@ -685,13 +696,14 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 				mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE;
 		
 		this.textarea.style.lineHeight = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(size * mxConstants.LINE_HEIGHT) + 'px' : mxConstants.LINE_HEIGHT;
-		this.textarea.style.fontSize = Math.round(size) + 'px';
+		this.textarea.style.backgroundColor = this.getBackgroundColor(state);
 		this.textarea.style.textDecoration = (uline) ? 'underline' : '';
 		this.textarea.style.fontWeight = (bold) ? 'bold' : 'normal';
 		this.textarea.style.fontStyle = (italic) ? 'italic' : '';
+		this.textarea.style.fontSize = Math.round(size) + 'px';
+		this.textarea.style.zIndex = this.zIndex;
 		this.textarea.style.fontFamily = family;
 		this.textarea.style.textAlign = align;
-		this.textarea.style.zIndex = this.zIndex;
 		this.textarea.style.outline = 'none';
 		this.textarea.style.color = color;
 		

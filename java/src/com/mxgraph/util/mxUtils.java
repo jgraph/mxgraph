@@ -1933,7 +1933,7 @@ public class mxUtils
 			g.setComposite(AlphaComposite.SrcOver);
 		}
 	}
-
+	
 	/**
 	 * Creates a buffered image for the given parameters. If there is not enough
 	 * memory to create the image then a OutOfMemoryError is thrown.
@@ -1941,12 +1941,21 @@ public class mxUtils
 	public static BufferedImage createBufferedImage(int w, int h,
 			Color background)
 	{
+		return mxUtils.createBufferedImage(w, h, background, (background != null) ? BufferedImage.TYPE_INT_RGB
+				: BufferedImage.TYPE_INT_ARGB);
+	}
+	
+	/**
+	 * Creates a buffered image for the given parameters. If there is not enough
+	 * memory to create the image then a OutOfMemoryError is thrown.
+	 */
+	public static BufferedImage createBufferedImage(int w, int h,
+			Color background, int type)
+	{
 		BufferedImage result = null;
 
 		if (w > 0 && h > 0)
 		{
-			int type = (background != null) ? BufferedImage.TYPE_INT_RGB
-					: BufferedImage.TYPE_INT_ARGB;
 			result = new BufferedImage(w, h, type);
 
 			// Clears background

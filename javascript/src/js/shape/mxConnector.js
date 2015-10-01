@@ -133,5 +133,5 @@ mxConnector.prototype.augmentBoundingBox = function(bbox)
 		size = Math.max(size, mxUtils.getNumber(this.style, mxConstants.STYLE_ENDSIZE, mxConstants.DEFAULT_MARKERSIZE)) + 1;
 	}
 	
-	bbox.grow(Math.ceil(size * this.scale));
+	bbox.grow(size * this.scale);
 };

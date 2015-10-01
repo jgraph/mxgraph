@@ -193,12 +193,17 @@
 								{
 									var parent = model.getChildAt(model.getRoot(), i);
 									
-									// Adds cells to existing layers
+									// Adds cells to existing layers if not locked
 									if (targetChildCount > i)
 									{
-										var children = model.getChildren(parent);
-										var target = graph.model.getChildAt(graph.model.getRoot(), i);
-										cells = cells.concat(graph.importCells(children, dx, dy, target));
+										// Inserts into active layer if only one layer is being pasted
+										var target = (childCount == 1) ? graph.getDefaultParent() : graph.model.getChildAt(graph.model.getRoot(), i);
+										
+										if (!graph.isCellLocked(target))
+										{								
+											var children = model.getChildren(parent);
+											cells = cells.concat(graph.importCells(children, dx, dy, target));
+										}
 									}
 									else
 									{
@@ -218,7 +223,7 @@
 					}
 					catch (e)
 					{
-						this.handleError(e, mxResources.get('invalidOrMissingFile'));
+						alert(e);
 						throw e;
 					}
 					

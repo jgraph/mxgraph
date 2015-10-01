@@ -168,8 +168,8 @@ var OpenDialog = function()
 	// Adds padding as a workaround for box model in older IE versions
 	var dx = (mxClient.IS_VML && (document.documentMode == null || document.documentMode < 8)) ? 20 : 0;
 	
-	iframe.setAttribute('width', (320 + dx) + 'px');
-	iframe.setAttribute('height', (220 + dx) + 'px');
+	iframe.setAttribute('width', (((useLocalStorage) ? 640 : 320) + dx) + 'px');
+	iframe.setAttribute('height', (((useLocalStorage) ? 480 : 220) + dx) + 'px');
 	iframe.setAttribute('src', OPEN_FORM);
 	
 	this.container = iframe;
@@ -743,8 +743,11 @@ var PrintDialog = function(editorUi)
 		if (isNaN(printScale))
 		{
 			printScale = 1;
-			pageScaleInput.value = '100 %';
+			pageScaleInput.value = '100%';
 		}
+		
+		// Workaround to match available paper size
+		printScale *= 0.75;
 
 		var pf = graph.pageFormat || mxConstants.PAGE_FORMAT_A4_PORTRAIT;
 		var scale = 1 / graph.pageScale;
@@ -872,6 +875,15 @@ PrintDialog.createPrintPreview = function(graph, scale, pf, border, x0, y0, auto
 	preview.title = mxResources.get('preview');
 	preview.printBackgroundImage = true;
 	preview.autoOrigin = autoOrigin;
+	
+	var bg = graph.background;
+	
+	if (bg == null || bg == '' || bg == mxConstants.NONE)
+	{
+		bg = '#ffffff';
+	}
+	
+	preview.backgroundColor = bg;
 	
 	return preview;
 };
@@ -1130,6 +1142,8 @@ var EditFileDialog = function(editorUi)
 	var div = document.createElement('div');
 	div.style.textAlign = 'right';
 	var textarea = document.createElement('textarea');
+	textarea.setAttribute('wrap', 'off');
+	textarea.style.overflow = 'auto';
 	textarea.style.resize = 'none';
 	textarea.style.width = '600px';
 	textarea.style.height = '370px';
@@ -1137,6 +1151,11 @@ var EditFileDialog = function(editorUi)
 	
 	textarea.value = mxUtils.getPrettyXml(editorUi.editor.getGraphXml());
 	div.appendChild(textarea);
+	
+	this.init = function()
+	{
+		textarea.focus();
+	};
 	
 	// Enables dropping files
 	if (fileSupport)
@@ -1198,7 +1217,13 @@ var EditFileDialog = function(editorUi)
 	var newOption = document.createElement('option');
 	newOption.setAttribute('value', 'new');
 	mxUtils.write(newOption, mxResources.get('openInNewWindow'));
-	select.appendChild(newOption);
+	
+	var chromeApp = window.chrome != null && chrome.app != null && chrome.app.runtime != null;
+	
+	if (!chromeApp)
+	{
+		select.appendChild(newOption);
+	}
 
 	var importOption = document.createElement('option');
 	importOption.setAttribute('value', 'import');
@@ -1211,6 +1236,7 @@ var EditFileDialog = function(editorUi)
 	{
 		// Removes all illegal control characters before parsing
 		var data = editorUi.editor.graph.zapGremlins(mxUtils.trim(textarea.value));
+		var error = null;
 		
 		if (select.value == 'new')
 		{
@@ -1225,28 +1251,51 @@ var EditFileDialog = function(editorUi)
 		}
 		else if (select.value == 'replace')
 		{
+			editorUi.editor.graph.model.beginUpdate();
 			try
 			{
-				var doc = mxUtils.parseXml(data); 
-				editorUi.editor.setGraphXml(doc.documentElement);
+				editorUi.editor.setGraphXml(mxUtils.parseXml(data).documentElement);
+				// LATER: Why is hideDialog between begin-/endUpdate faster?
 				editorUi.hideDialog();
 			}
 			catch (e)
 			{
-				mxUtils.alert(e.message);
+				error = e;
+			}
+			finally
+			{
+				editorUi.editor.graph.model.endUpdate();				
 			}
 		}
 		else if (select.value == 'import')
 		{
-			var doc = mxUtils.parseXml(data);
-			var model = new mxGraphModel();
-			var codec = new mxCodec(doc);
-			codec.decode(doc.documentElement, model);
+			editorUi.editor.graph.model.beginUpdate();
+			try
+			{
+				var doc = mxUtils.parseXml(data);
+				var model = new mxGraphModel();
+				var codec = new mxCodec(doc);
+				codec.decode(doc.documentElement, model);
+				
+				var children = model.getChildren(model.getChildAt(model.getRoot(), 0));
+				editorUi.editor.graph.setSelectionCells(editorUi.editor.graph.importCells(children));
+				
+				// LATER: Why is hideDialog between begin-/endUpdate faster?
+				editorUi.hideDialog();
+			}
+			catch (e)
+			{
+				error = e;
+			}
+			finally
+			{
+				editorUi.editor.graph.model.endUpdate();				
+			}
+		}
 			
-			var children = model.getChildren(model.getChildAt(model.getRoot(), 0));
-			editorUi.editor.graph.setSelectionCells(editorUi.editor.graph.importCells(children));
-			
-			editorUi.hideDialog();
+		if (error != null)
+		{
+			mxUtils.alert(error.message);
 		}
 	});
 	okBtn.className = 'geBtn gePrimaryBtn';

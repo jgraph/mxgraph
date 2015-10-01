@@ -1479,6 +1479,28 @@ mxVertexHandler.prototype.redraw = function()
 };
 
 /**
+ * Returns the padding to be used for drawing handles for the current <bounds>.
+ */
+mxVertexHandler.prototype.getHandlePadding = function()
+{
+	// KNOWN: Tolerance depends on event type (eg. 0 for mouse events)
+	var result = new mxPoint(0, 0);
+	var tol = this.tolerance;
+
+	if (this.sizers != null && this.sizers.length > 0 && this.sizers[0] != null &&
+		(this.bounds.width < 2 * this.sizers[0].bounds.width + 2 * tol ||
+		this.bounds.height < 2 * this.sizers[0].bounds.height + 2 * tol))
+	{
+		tol /= 2;
+		
+		result.x = this.sizers[0].bounds.width + tol;
+		result.y = this.sizers[0].bounds.height + tol;
+	}
+	
+	return result;
+};
+
+/**
  * Function: redrawHandles
  * 
  * Redraws the handles. To hide certain handles the following code can be used.
@@ -1498,25 +1520,24 @@ mxVertexHandler.prototype.redraw = function()
  */
 mxVertexHandler.prototype.redrawHandles = function()
 {
+	var tol = this.tolerance;
 	this.horizontalOffset = 0;
 	this.verticalOffset = 0;
 	var s = this.bounds;
 
-	if (this.sizers != null && this.sizers.length > 0)
+	if (this.sizers != null && this.sizers.length > 0 && this.sizers[0] != null)
 	{
 		if (this.index == null && this.manageSizers && this.sizers.length >= 8)
 		{
 			// KNOWN: Tolerance depends on event type (eg. 0 for mouse events)
-			var tol = this.tolerance;
-
-			if (s.width < 2 * this.sizers[0].bounds.width + 2 * tol ||
-				s.height < 2 * this.sizers[0].bounds.height + 2 * tol)
+			var padding = this.getHandlePadding();
+			this.horizontalOffset = padding.x;
+			this.verticalOffset = padding.y;
+			
+			if (this.horizontalOffset != 0 || this.verticalOffset != 0)
 			{
 				s = new mxRectangle(s.x, s.y, s.width, s.height);
-				tol /= 2;
-				
-				this.horizontalOffset = this.sizers[0].bounds.width + tol;
-				this.verticalOffset = this.sizers[0].bounds.height + tol;
+
 				s.x -= this.horizontalOffset / 2;
 				s.width += this.horizontalOffset;
 				s.y -= this.verticalOffset / 2;

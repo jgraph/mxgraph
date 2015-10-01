@@ -482,7 +482,22 @@ var mxEvent =
 	 */
 	isLeftMouseButton: function(evt)
 	{
-		return evt.button == ((mxClient.IS_IE && (typeof(document.documentMode) === 'undefined' || document.documentMode < 9)) ? 1 : 0);
+		// Special case for mousemove and mousedown we check the buttons
+		// if it exists because which is 0 even if no button is pressed
+		if ('buttons' in evt && (evt.type == 'mousedown' || evt.type == 'mousemove'))
+		{
+			return evt.buttons == 1;
+		}
+		else if ('which' in evt)
+		{
+	        return evt.which === 1;
+	    }
+		else
+		{
+	        return evt.button === 1;
+	    }
+		
+		return false;
 	},
 	
 	/**
@@ -494,7 +509,16 @@ var mxEvent =
 	 */
 	isMiddleMouseButton: function(evt)
 	{
-		return evt.button == ((mxClient.IS_IE && (typeof(document.documentMode) === 'undefined' || document.documentMode < 9)) ? 4 : 1);
+		if ('which' in evt)
+		{
+	        return evt.which === 2;
+	    }
+		else
+		{
+	        return evt.button === 4;
+	    }
+		
+		return false;
 	},
 	
 	/**
@@ -506,7 +530,16 @@ var mxEvent =
 	 */
 	isRightMouseButton: function(evt)
 	{
-		return evt.button == 2;
+		if ('which' in evt)
+		{
+	        return evt.which === 3;
+	    }
+		else
+		{
+	        return evt.button === 2;
+	    }
+		
+		return false;
 	},
 
 	/**

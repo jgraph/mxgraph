@@ -2912,8 +2912,8 @@ mxGraph.prototype.sizeDidChange = function()
 			
 			if (size != null)
 			{
-				width = size.width;
-				height = size.height;
+				width = size.width * this.view.scale;
+				height = size.height * this.view.scale;
 			}
 		}
 		
@@ -2929,7 +2929,7 @@ mxGraph.prototype.sizeDidChange = function()
 		if (this.dialect == mxConstants.DIALECT_SVG)
 		{
 			var root = this.view.getDrawPane().ownerSVGElement;
-
+			
 			root.style.minWidth = Math.max(1, width) + 'px';
 			root.style.minHeight = Math.max(1, height) + 'px';
 			root.style.width = '100%';
@@ -2949,7 +2949,7 @@ mxGraph.prototype.sizeDidChange = function()
 			}
 		}
 		
-		this.updatePageBreaks(this.pageBreaksVisible, width - 1, height - 1);
+		this.updatePageBreaks(this.pageBreaksVisible, width, height);
 	}
 
 	this.fireEvent(new mxEventObject(mxEvent.SIZE, 'bounds', bounds));
@@ -3018,6 +3018,8 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 	var ps = scale * this.pageScale;
 	var bounds = new mxRectangle(scale * tr.x, scale * tr.y,
 			fmt.width * ps, fmt.height * ps);
+	width /= scale;
+	height /= scale;
 	
 	// Does not show page breaks if the scale is too small
 	visible = visible && Math.min(bounds.width, bounds.height) > this.minPageBreakDist;
@@ -3028,8 +3030,8 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 	bounds.x = mxUtils.mod(bounds.x, bounds.width);
 	bounds.y = mxUtils.mod(bounds.y, bounds.height);
 	
-	var horizontalCount = (visible) ? Math.ceil((width - bounds.x) / bounds.width) : 0;
-	var verticalCount = (visible) ? Math.ceil((height - bounds.y) / bounds.height) : 0;
+	var horizontalCount = (visible) ? Math.round((width - bounds.x) / bounds.width) + 1 : 0;
+	var verticalCount = (visible) ? Math.round((height - bounds.y) / bounds.height) + 1 : 0;
 	var right = width;
 	var bottom = height;
 	
@@ -3038,76 +3040,54 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 		this.horizontalPageBreaks = [];
 	}
 
-	if (this.horizontalPageBreaks != null)
-	{
-		for (var i = 0; i <= horizontalCount; i++)
-		{
-			var pts = [new mxPoint(bounds.x + i * bounds.width, 1),
-			           new mxPoint(bounds.x + i * bounds.width, bottom)];
-			
-			if (this.horizontalPageBreaks[i] != null)
-			{
-				this.horizontalPageBreaks[i].points = pts;
-				this.horizontalPageBreaks[i].redraw();
-			}
-			else
-			{
-				var pageBreak = new mxPolyline(pts, this.pageBreakColor);
-				pageBreak.dialect = this.dialect;
-				pageBreak.pointerEvents = false;
-				pageBreak.isDashed = this.pageBreakDashed;
-				pageBreak.init(this.view.backgroundPane);
-				pageBreak.redraw();
-				
-				this.horizontalPageBreaks[i] = pageBreak;
-			}
-		}
-		
-		for (var i = horizontalCount; i < this.horizontalPageBreaks.length; i++)
-		{
-			this.horizontalPageBreaks[i].destroy();
-		}
-		
-		this.horizontalPageBreaks.splice(horizontalCount, this.horizontalPageBreaks.length - horizontalCount);
-	}
-	
 	if (this.verticalPageBreaks == null && verticalCount > 0)
 	{
 		this.verticalPageBreaks = [];
 	}
 	
-	if (this.verticalPageBreaks != null)
+	var drawPageBreaks = mxUtils.bind(this, function(breaks)
 	{
-		for (var i = 0; i <= verticalCount; i++)
+		if (breaks != null)
 		{
-			var pts = [new mxPoint(1, bounds.y + i * bounds.height),
-			           new mxPoint(right, bounds.y + i * bounds.height)];
+			var count = (breaks == this.horizontalPageBreaks) ? horizontalCount : verticalCount; 
 			
-			if (this.verticalPageBreaks[i] != null)
+			for (var i = 0; i <= count; i++)
 			{
-				this.verticalPageBreaks[i].points = pts;
-				this.verticalPageBreaks[i].redraw();
+				var pts = (breaks == this.horizontalPageBreaks) ?
+						[new mxPoint(bounds.x + i * bounds.width, 1),
+				         new mxPoint(bounds.x + i * bounds.width, bottom)] :
+				        [new mxPoint(1, bounds.y + i * bounds.height),
+				         new mxPoint(right, bounds.y + i * bounds.height)];
+
+				if (breaks[i] != null)
+				{
+					breaks[i].points = pts;
+					breaks[i].redraw();
+				}
+				else
+				{
+					var pageBreak = new mxPolyline(pts, this.pageBreakColor);
+					pageBreak.dialect = this.dialect;
+					pageBreak.pointerEvents = false;
+					pageBreak.isDashed = this.pageBreakDashed;
+					pageBreak.init(this.view.backgroundPane);
+					pageBreak.redraw();
+					
+					breaks[i] = pageBreak;
+				}
 			}
-			else
+			
+			for (var i = count; i < breaks.length; i++)
 			{
-				var pageBreak = new mxPolyline(pts, this.pageBreakColor);
-				pageBreak.dialect = this.dialect;
-				pageBreak.pointerEvents = false;
-				pageBreak.isDashed = this.pageBreakDashed;
-				pageBreak.init(this.view.backgroundPane);
-				pageBreak.redraw();
+				breaks[i].destroy();
+			}
+			
+			breaks.splice(count, breaks.length - count);
+		}
+	});
 	
-				this.verticalPageBreaks[i] = pageBreak;
-			}
-		}
-		
-		for (var i = verticalCount; i < this.verticalPageBreaks.length; i++)
-		{
-			this.verticalPageBreaks[i].destroy();
-		}
-		
-		this.verticalPageBreaks.splice(verticalCount, this.verticalPageBreaks.length - verticalCount);
-	}
+	drawPageBreaks(this.horizontalPageBreaks);
+	drawPageBreaks(this.verticalPageBreaks);
 };
 
 /**
@@ -4088,6 +4068,46 @@ mxGraph.prototype.updateGroupBounds = function(cells, border, moveGroup, topBord
 };
 
 /**
+ * Function: getBoundingBox
+ * 
+ * Returns the bounding box for the given array of <mxCells>. The bounding box for
+ * each cell and its descendants is computed using <mxGraphView.getBoundingBox>.
+ *
+ * Parameters:
+ *
+ * cells - Array of <mxCells> whose bounding box should be returned.
+ */
+mxGraph.prototype.getBoundingBox = function(cells)
+{
+	var result = null;
+	
+	if (cells != null && cells.length > 0)
+	{
+		for (var i = 0; i < cells.length; i++)
+		{
+			if (this.model.isVertex(cells[i]) || this.model.isEdge(cells[i]))
+			{
+				var bbox = this.view.getBoundingBox(this.view.getState(cells[i]), true);
+			
+				if (bbox != null)
+				{
+					if (result == null)
+					{
+						result = mxRectangle.fromRectangle(bbox);
+					}
+					else
+					{
+						result.add(bbox);
+					}
+				}
+			}
+		}
+	}
+	
+	return result;
+};
+
+/**
  * Group: Cell cloning, insertion and removal
  */
 
@@ -4634,43 +4654,60 @@ mxGraph.prototype.cellsRemoved = function(cells)
 				// Disconnects edges which are not in cells
 				var edges = this.getAllEdges([cells[i]]);
 				
-				for (var j = 0; j < edges.length; j++)
+				var disconnectTerminal = mxUtils.bind(this, function(edge, source)
 				{
-					if (!dict.get(edges[j]))
-					{
-						var geo = this.model.getGeometry(edges[j]);
+					var geo = this.model.getGeometry(edge);
 
-						if (geo != null)
-						{
-							var state = this.view.getState(edges[j]);
-									
-							if (state != null)
-							{
-								// Checks which side of the edge is being disconnected
-								var tmp = state.getVisibleTerminal(true);
-								var source = false;
+					if (geo != null)
+					{
+						var state = this.view.getState(edge);
 								
-								while (tmp != null)
+						if (state != null)
+						{
+							// Checks which side of the edge is being disconnected
+							var tmp = state.getVisibleTerminal(source);
+							var connected = false;
+							
+							while (tmp != null)
+							{
+								if (cells[i] == tmp)
 								{
-									if (cells[i] == tmp)
-									{
-										source = true;
-										break;
-									}
-									
-									tmp = this.model.getParent(tmp);
+									connected = true;
+									break;
+								}
+								
+								tmp = this.model.getParent(tmp);
+							}
+							
+							if (connected)
+							{
+								var dx = tr.x;
+								var dy = tr.y;
+								var parentState = this.view.getState(this.model.getParent(edge));
+								
+								if (parentState != null && this.model.isVertex(parentState.cell))
+								{
+									dx = parentState.x / scale;
+									dy = parentState.y / scale;
 								}
 								
 								geo = geo.clone();
 								var pts = state.absolutePoints;
 								var n = (source) ? 0 : pts.length - 1;
-								geo.setTerminalPoint(
-										new mxPoint(pts[n].x / scale - tr.x,
-											pts[n].y / scale - tr.y), source);
+								geo.setTerminalPoint(new mxPoint(pts[n].x / scale - dx, pts[n].y / scale - dy), source);
 								this.model.setTerminal(edges[j], null, source);
 								this.model.setGeometry(edges[j], geo);
 							}
 						}
+					}
+				});
+				
+				for (var j = 0; j < edges.length; j++)
+				{
+					if (!dict.get(edges[j]))
+					{
+						disconnectTerminal(edges[j], true);
+						disconnectTerminal(edges[j], false);
 					}
 				}
 
@@ -5576,14 +5613,51 @@ mxGraph.prototype.scaleCell = function(cell, dx, dy, recurse)
 {
 	var geo = this.model.getGeometry(cell);
 	
-	if (geo != null && this.isCellMovable(cell) && this.isCellResizable(cell))
+	if (geo != null)
 	{
 		var state = this.view.getState(cell);
 		var style = (state != null) ? state.style : this.getCellStyle(cell);
 		
 		geo = geo.clone();
+		
+		// Stores values for restoring based on style
+		var x = geo.x;
+		var y = geo.y
+		var w = geo.width;
+		var h = geo.height;
+		
 		geo.scale(dx, dy, style[mxConstants.STYLE_ASPECT] == 'fixed');
 		
+		if (style[mxConstants.STYLE_RESIZE_WIDTH] == '1')
+		{
+			geo.width = w * dx;
+		}
+		else if (style[mxConstants.STYLE_RESIZE_WIDTH] == '0')
+		{
+			geo.width = w;
+		}
+		
+		if (style[mxConstants.STYLE_RESIZE_HEIGHT] == '1')
+		{
+			geo.height = h * dy;
+		}
+		else if (style[mxConstants.STYLE_RESIZE_HEIGHT] == '0')
+		{
+			geo.height = h;
+		}
+		
+		if (!this.isCellMovable(cell))
+		{
+			geo.x = x;
+			geo.y = y;
+		}
+		
+		if (!this.isCellResizable(cell))
+		{
+			geo.width = w;
+			geo.height = h;
+		}
+
 		if (this.model.isVertex(cell))
 		{
 			this.cellResized(cell, geo, true, recurse);
@@ -7378,11 +7452,15 @@ mxGraph.prototype.zoomTo = function(scale, center)
  * horizontally. Default is true.
  * vertical - Optional boolean that specifies if the graph should be centered
  * vertically. Default is true.
+ * cx - Optional float that specifies the horizontal center. Default is 0.5.
+ * cy - Optional float that specifies the vertical center. Default is 0.5.
  */
-mxGraph.prototype.center = function(horizontal, vertical)
+mxGraph.prototype.center = function(horizontal, vertical, cx, cy)
 {
 	horizontal = (horizontal != null) ? horizontal : true;
 	vertical = (vertical != null) ? vertical : true;
+	cx = (cx != null) ? cx : 0.5;
+	cy = (cy != null) ? cy : 0.5;
 	
 	var hasScrollbars = mxUtils.hasScrollbars(this.container);
 	var cw = this.container.clientWidth;
@@ -7397,8 +7475,8 @@ mxGraph.prototype.center = function(horizontal, vertical)
 	
 	if (!hasScrollbars)
 	{
-		this.view.setTranslate((horizontal) ? Math.floor(t.x - bounds.x / s + dx / (2 * s)) : t.x,
-				(vertical) ? Math.floor(t.y - bounds.y / s + dy / (2 * s)) : t.y);
+		this.view.setTranslate((horizontal) ? Math.floor(t.x - bounds.x / s + dx * cx * s) : t.x,
+				(vertical) ? Math.floor(t.y - bounds.y / s + dy * cy * s) : t.y);
 	}
 	else
 	{
@@ -7606,13 +7684,15 @@ mxGraph.prototype.zoomToRect = function(rect)
  * border - Optional number that specifies the border. Default is 0.
  * keepOrigin - Optional boolean that specifies if the translate should be
  * changed. Default is false.
+ * margin - Optional margin in pixels. Default is 1.
  */
-mxGraph.prototype.fit = function(border, keepOrigin)
+mxGraph.prototype.fit = function(border, keepOrigin, margin)
 {
 	if (this.container != null)
 	{
 		border = (border != null) ? border : 0;
 		keepOrigin = (keepOrigin != null) ? keepOrigin : false;
+		margin = (margin != null) ? margin : 1;
 		
 		var sb = (document.documentMode >= 9) ? 4 : 0;
 		var w1 = this.container.clientWidth - sb;
@@ -7630,6 +7710,7 @@ mxGraph.prototype.fit = function(border, keepOrigin)
 				bounds.y = 0;
 			}
 			
+			// LATER: Use unscaled bounding boxes to fix rounding errors
 			var s = this.view.scale;
 			var w2 = bounds.width / s;
 			var h2 = bounds.height / s;
@@ -7641,7 +7722,7 @@ mxGraph.prototype.fit = function(border, keepOrigin)
 				h2 = Math.max(h2, this.backgroundImage.height - bounds.y / s);
 			}
 			
-			var b = (keepOrigin) ? border : 2 * border;
+			var b = ((keepOrigin) ? border : 2 * border) + margin;
 			var s2 = Math.floor(Math.min(w1 / (w2 + b), h1 / (h2 + b)) * 100) / 100;
 			
 			if (this.minFitScale != null)
@@ -7658,8 +7739,8 @@ mxGraph.prototype.fit = function(border, keepOrigin)
 			{
 				if (!mxUtils.hasScrollbars(this.container))
 				{
-					var x0 = (bounds.x != null) ? Math.floor(this.view.translate.x - bounds.x / s + border + 1) : border;
-					var y0 = (bounds.y != null) ? Math.floor(this.view.translate.y - bounds.y / s + border + 1) : border;
+					var x0 = (bounds.x != null) ? Math.floor(this.view.translate.x - bounds.x / s + border / s2 + margin / 2) : border;
+					var y0 = (bounds.y != null) ? Math.floor(this.view.translate.y - bounds.y / s + border / s2 + margin / 2) : border;
 	
 					this.view.scaleAndTranslate(s2, x0, y0);
 				}
@@ -7685,7 +7766,7 @@ mxGraph.prototype.fit = function(border, keepOrigin)
 			}
 		}
 	}
-	
+
 	return this.view.scale;
 };
 
@@ -12051,7 +12132,7 @@ mxGraph.prototype.getStateForTouchEvent = function(evt)
 mxGraph.prototype.isEventIgnored = function(evtName, me, sender)
 {
 	var mouseEvent = mxEvent.isMouseEvent(me.getEvent());
-	var result = this.isEditing();
+	var result = false;
 
 	// Drops events that are fired more than once
 	if (me.getEvent() == this.lastEvent)
@@ -12335,7 +12416,7 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 		me.state = this.getEventState(me.getState());
 		this.fireEvent(new mxEventObject(mxEvent.FIRE_MOUSE_EVENT, 'eventName', evtName, 'event', me));
 		
-		if ((mxClient.IS_OP || mxClient.IS_SF || mxClient.IS_GC ||
+		if ((mxClient.IS_OP || mxClient.IS_SF || mxClient.IS_GC || mxClient.IS_IE11 ||
 			(mxClient.IS_IE && mxClient.IS_SVG) || me.getEvent().target != this.container))
 		{
 			if (evtName == mxEvent.MOUSE_MOVE && this.isMouseDown && this.autoScroll && !mxEvent.isMultiTouchEvent(me.getEvent))
