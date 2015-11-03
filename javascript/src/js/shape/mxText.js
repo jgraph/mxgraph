@@ -242,6 +242,13 @@ mxText.prototype.paint = function(c, update)
 	
 	if (update)
 	{
+		var unscaledWidth = (this.state != null) ? this.state.unscaledWidth : null;
+		
+		if (this.node.firstChild != null && this.lastUnscaledWidth != unscaledWidth)
+		{
+			c.invalidateCachedOffsetSize(this.node);
+		}
+		
 		c.updateText(x, y, w, h, this.align, this.valign, this.wrap, this.overflow,
 				this.clipped, this.getTextRotation(), this.node);
 	}
@@ -283,6 +290,9 @@ mxText.prototype.paint = function(c, update)
 		c.text(x, y, w, h, val, this.align, this.valign, this.wrap, fmt, this.overflow,
 			this.clipped, this.getTextRotation(), dir);
 	}
+	
+	// Needs to invalidate the cached offset widths if the geometry changes
+	this.lastUnscaledWidth = (this.state != null) ? this.state.unscaledWidth : null;
 };
 
 /**
@@ -314,7 +324,8 @@ mxText.prototype.redraw = function()
 		{
 			var canvas = this.createCanvas();
 			
-			if (canvas != null && canvas.updateText != null)
+			if (canvas != null && canvas.updateText != null &&
+				canvas.invalidateCachedOffsetSize != null)
 			{
 				this.paint(canvas, true);
 				this.destroyCanvas(canvas);
@@ -337,7 +348,7 @@ mxText.prototype.redraw = function()
 /**
  * Function: apply
  * 
- * Extends mxShape to updat the text styles.
+ * Extends mxShape to update the text styles.
  *
  * Parameters:
  *

@@ -1,3 +1,30 @@
+01-OCT-2015: 3.4.0.2
+
+- Fixes drawing of page breaks in mxGraph.updatePageBreaks [JavaScript]
+- Fixes firing of translate event in mxGraph.scrollCellToVisible [JavaScript]
+- Adds mxPrintPreview.marginTop and marginBottom [JavaScript]
+- Fixes handling of existing waypoints in mxGraph.splitEdge [JavaScript]
+- Adds mxConstants.VML_SHADOWCOLOR, mxGuide.getGuideColor hook [JavaScript]
+- Adds mxClient.IS_EDGE, fixes mxPrintPreview for Edge [JavaScript]
+- Adds mxCellState.setState for restoring state [JavaScript]
+- Adds mxCellRenderer.redrawLabelShape hook [JavaScript]
+- Fixes possible NPE in mxCellRenderer.insertStateAfter [JavaScript]
+- Fixes clipping for edges with hidden terminals in mxPrintPreview [JavaScript]
+- Fixes mxEdgeSegmentHandler.connect for changed parent [JavaScript]
+- Adds constituent.html example [JavaScript]
+- Adds mxResources.replacePlaceholders helper method [JavaScript]
+- Adds mxConnectionHandler.isInsertBefore, insertBeforeSource [JavaScript]
+- Fixes tolerance for rounding errors in mxEdgeStyle.SegmentConnector [JavaScript]
+- Changes mxConstants.HANDLE_SIZE default value to 6 [JavaScript]
+- Fixes index for virtual handle in mxEdgeHandler.createHandleShape [JavaScript]
+- Fixes 1px offset for image handles with uneven size [JavaScript]
+- Fixes cursor for terminal handle in mxEdgeSegment/ElbowEdgeHandler [JavaScript]
+- Fixes handling of escape for inactive mxVertexHandler [JavaScript]
+- Adds mxCellState.unscaledWidth for cache invalidation [JavaScript]
+- Adds mxSvgCanvas2D.cacheOffsetSize, invalidateCachedOffsetSize [JavaScript]
+- Adds clipping for faster mxPrintPreview [JavaScript]
+- Limits use of getBBox in mxShape to mxArrow/Connector [JavaScript]
+
 01-OCT-2015: 3.4.0.1
 
 - Adds mxGuide.setVisible [JavaScript]

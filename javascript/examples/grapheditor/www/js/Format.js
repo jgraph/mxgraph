@@ -40,6 +40,10 @@ Format.prototype.init = function()
 	{
 		this.clearSelectionState();
 	}));
+	graph.addListener(mxEvent.ROOT, mxUtils.bind(this, function()
+	{
+		this.refresh();
+	}));
 	
 	this.refresh();
 };
@@ -88,7 +92,7 @@ Format.prototype.initSelectionState = function()
 {
 	return {vertices: [], edges: [], x: null, y: null, width: null, height: null, style: {},
 		containsImage: false, containsLabel: false, fill: true, glass: true, rounded: true,
-		image: true, shadow: true};
+		autoSize: false, image: true, shadow: true};
 };
 
 /**
@@ -171,6 +175,7 @@ Format.prototype.updateSelectionStateForCell = function(result, cell, cells)
 	
 	if (state != null)
 	{
+		result.autoSize = result.autoSize || this.isAutoSizeState(state);
 		result.glass = result.glass && this.isGlassState(state);
 		result.rounded = result.rounded && this.isRoundedState(state);
 		result.image = result.image && this.isImageState(state);
@@ -233,6 +238,14 @@ Format.prototype.isRoundedState = function(state)
 			shape == 'rhombus' || shape == 'offPageConnector' || shape == 'loopLimit' || shape == 'hexagon' ||
 			shape == 'manualInput' || shape == 'curlyBracket' || shape == 'singleArrow' ||
 			shape == 'doubleArrow' || shape == 'flexArrow' || shape == 'card' || shape == 'umlLifeline');
+};
+
+/**
+ * Returns information about the current selection.
+ */
+Format.prototype.isAutoSizeState = function(state)
+{
+	return mxUtils.getValue(state.style, mxConstants.STYLE_AUTOSIZE, null) == '1';
 };
 
 /**
@@ -555,7 +568,43 @@ BaseFormatPanel.prototype.installInputHandler = function(input, key, defaultValu
 				graph.stopEditing(true);
 			}
 			
-			graph.setCellStyles(key, value, graph.getSelectionCells());
+			graph.getModel().beginUpdate();
+			try
+			{
+				graph.setCellStyles(key, value, graph.getSelectionCells());
+				
+				// Handles special case for fontSize where HTML labels are parsed and updated
+				if (key == mxConstants.STYLE_FONTSIZE)
+				{
+					var cells = graph.getSelectionCells();
+					
+					for (var i = 0; i < cells.length; i++)
+					{
+						var cell = cells[i];
+							
+						// Changes font tags inside HTML labels
+						if (graph.isHtmlLabel(cell))
+						{
+							var div = document.createElement('div');
+							div.innerHTML = graph.convertValueToString(cell);
+							var elts = div.getElementsByTagName('font');
+							
+							for (var j = 0; j < elts.length; j++)
+							{
+								elts[j].removeAttribute('size');
+								elts[j].style.fontSize = value + 'px';
+							}
+							
+							graph.cellLabelChanged(cell, div.innerHTML)
+						}
+					}
+				}
+			}
+			finally
+			{
+				graph.getModel().endUpdate();
+			}
+			
 			ui.fireEvent(new mxEventObject('styleChanged', 'keys', [key],
 					'values', [value], 'cells', graph.getSelectionCells()));
 		}
@@ -616,7 +665,7 @@ BaseFormatPanel.prototype.createTitle = function(title)
 /**
  * 
  */
-BaseFormatPanel.prototype.createStepper = function(input, update, step, height, disableFocus)
+BaseFormatPanel.prototype.createStepper = function(input, update, step, height, disableFocus, defaultValue)
 {
 	step = (step != null) ? step : 1;
 	height = (height != null) ? height : 8;
@@ -653,7 +702,7 @@ BaseFormatPanel.prototype.createStepper = function(input, update, step, height, 
 	{
 		if (input.value == '')
 		{
-			input.value = '2';
+			input.value = defaultValue || '2';
 		}
 		
 		var val = parseInt(input.value);
@@ -675,7 +724,7 @@ BaseFormatPanel.prototype.createStepper = function(input, update, step, height, 
 	{
 		if (input.value == '')
 		{
-			input.value = '0';
+			input.value = defaultValue || '0';
 		}
 		
 		var val = parseInt(input.value);
@@ -1464,6 +1513,18 @@ ArrangePanel.prototype.addGroupOps = function(div)
 			mxUtils.br(div);
 		}
 		
+		btn = mxUtils.button(mxResources.get('editMetadata'), mxUtils.bind(this, function(evt)
+		{
+			this.editorUi.actions.get('editMetadata').funct();
+		}));
+		
+		btn.style.width = '202px';
+		btn.style.marginBottom = '2px';
+		div.appendChild(btn);
+		count++;
+
+		mxUtils.br(div);
+
 		btn = mxUtils.button(mxResources.get('editLink'), mxUtils.bind(this, function(evt)
 		{
 			this.editorUi.actions.get('editLink').funct();
@@ -2348,12 +2409,12 @@ TextFormatPanel.prototype.addFont = function(container)
 	var inputUpdate = this.installInputHandler(input, mxConstants.STYLE_FONTSIZE, Menus.prototype.defaultFontSize, 1, 999, ' pt',
 	function(fontsize)
 	{
-		// Creates an element with arbitrary size 7
+		// Creates an element with arbitrary size 7 and replaces the size below
 		document.execCommand('fontSize', false, '7');
 		
-		// Changes the css font size of the first font element inside the in-place editor with size 7
-		// hopefully the above element that we've just created. LATER: Check for new element using
-		// previous result of getElementsByTagName (see other actions)
+		// Changes the css font size of each font element inside the in-place editor with size 7.
+		// This is based on the assumption that font size="7" isn't used in the markup.
+		// LATER: If this assumption is invalid we can mark those elements when editing starts.
 		var elts = graph.cellEditor.textarea.getElementsByTagName('font');
 		
 		for (var i = 0; i < elts.length; i++)
@@ -2362,13 +2423,18 @@ TextFormatPanel.prototype.addFont = function(container)
 			{
 				elts[i].removeAttribute('size');
 				elts[i].style.fontSize = fontsize + 'px';
-				
-				break;
 			}
 		}
+		
+		// Overrides fontSize in input with the one just assigned as a workaround
+		// for potential fontSize values of parent elements that don't match
+		window.setTimeout(function()
+		{
+			input.value = fontsize + ' pt';
+		}, 0);
 	});
 	
-	var stepper = this.createStepper(input, inputUpdate, 1, 10, true);
+	var stepper = this.createStepper(input, inputUpdate, 1, 10, true, Menus.prototype.defaultFontSize);
 	stepper.style.display = input.style.display;
 	stepper.style.marginTop = '4px';
 	
@@ -2458,7 +2524,7 @@ TextFormatPanel.prototype.addFont = function(container)
 	wwOpt.style.fontWeight = 'bold';
 	
 	// Word wrap in edge labels only supported via labelWidth style
-	if (!ss.containsLabel && ss.edges.length == 0)
+	if (!ss.containsLabel && !ss.autoSize && ss.edges.length == 0)
 	{
 		extraPanel.appendChild(wwOpt);
 	}
@@ -4043,11 +4109,11 @@ DiagramFormatPanel.prototype.addOptions = function(div)
 				ui.removeListener(this.listener);
 			}
 		}));
-	
-		// Connection points
+		
+		// Connect
 		div.appendChild(this.createOption(mxResources.get('connect'), function()
 		{
-			return graph.connectionHandler.isEnabled();
+			return ui.hoverIcons.enabled;
 		}, function(checked)
 		{
 			ui.actions.get('connect').funct();
@@ -4057,10 +4123,34 @@ DiagramFormatPanel.prototype.addOptions = function(div)
 			{
 				this.listener = function()
 				{
-					apply(graph.connectionHandler.isEnabled());
+					apply(ui.hoverIcons.enabled);
 				};
 				
 				ui.addListener('connectChanged', this.listener);
+			},
+			destroy: function()
+			{
+				ui.removeListener(this.listener);
+			}
+		}));
+		
+		// Connection points
+		div.appendChild(this.createOption(mxResources.get('connectionPoints'), function()
+		{
+			return graph.connectionHandler.isEnabled();
+		}, function(checked)
+		{
+			ui.actions.get('connectionPoints').funct();
+		},
+		{
+			install: function(apply)
+			{
+				this.listener = function()
+				{
+					apply(graph.connectionHandler.isEnabled());
+				};
+				
+				ui.addListener('connectionPointsChanged', this.listener);
 			},
 			destroy: function()
 			{
@@ -4312,7 +4402,7 @@ DiagramFormatPanel.prototype.addPaperSize = function(div)
 	heightInput.setAttribute('size', '6');
 	heightInput.setAttribute('value', graph.pageFormat.height);
 	customDiv.appendChild(heightInput);
-	mxUtils.write(customDiv, ' Pixel');
+	mxUtils.write(customDiv, ' pt');
 
 	formatDiv.style.display = 'none';
 	customDiv.style.display = 'none';
@@ -4481,7 +4571,18 @@ DiagramFormatPanel.prototype.addPaperSize = function(div)
  */
 DiagramFormatPanel.prototype.addStyleOps = function(div)
 {
-	var btn = mxUtils.button(mxResources.get('clearDefaultStyle'), mxUtils.bind(this, function(evt)
+	var btn = mxUtils.button(mxResources.get('editMetadata'), mxUtils.bind(this, function(evt)
+	{
+		this.editorUi.actions.get('editMetadata').funct();
+	}));
+	
+	btn.style.width = '202px';
+	btn.style.marginBottom = '2px';
+	div.appendChild(btn);
+
+	mxUtils.br(div);
+	
+	btn = mxUtils.button(mxResources.get('clearDefaultStyle'), mxUtils.bind(this, function(evt)
 	{
 		this.editorUi.actions.get('clearDefaultStyle').funct();
 	}));

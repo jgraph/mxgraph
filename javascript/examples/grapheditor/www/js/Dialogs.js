@@ -214,7 +214,7 @@ var ColorDialog = function(editorUi, color, apply, cancelFn)
 
 	var center = document.createElement('center');
 	
-	function addPresets(presets, rowLength)
+	function addPresets(presets, rowLength, defaultColor)
 	{
 		rowLength = (rowLength != null) ? rowLength : 12;
 		var table = document.createElement('table');
@@ -241,6 +241,11 @@ var ColorDialog = function(editorUi, color, apply, cancelFn)
 					td.style.width = '16px';
 					td.style.height = '16px';
 					
+					if (clr == null)
+					{
+						clr = defaultColor;
+					}
+					
 					if (clr == 'none')
 					{
 						td.style.background = 'url(\'' + Dialog.prototype.noColorImage + '\')';
@@ -251,19 +256,24 @@ var ColorDialog = function(editorUi, color, apply, cancelFn)
 					}
 					
 					tr.appendChild(td);
-					
-					mxEvent.addListener(td, 'click', function()
+
+					if (clr != null)
 					{
-						if (clr == 'none')
+						td.style.cursor = 'pointer';
+						
+						mxEvent.addListener(td, 'click', function()
 						{
-							picker.fromString('ffffff');
-							input.value = 'none';
-						}
-						else
-						{
-							picker.fromString(clr);
-						}
-					});
+							if (clr == 'none')
+							{
+								picker.fromString('ffffff');
+								input.value = 'none';
+							}
+							else
+							{
+								picker.fromString(clr);
+							}
+						});
+					}
 				})(presets[row * rowLength + i]);
 			}
 			
@@ -278,6 +288,10 @@ var ColorDialog = function(editorUi, color, apply, cancelFn)
 	div.appendChild(input);
 	mxUtils.br(div);
 	
+	// Adds recent colors
+	var table = addPresets((ColorDialog.recentColors.length == 0) ? ['FFFFFF'] : ColorDialog.recentColors, 12, 'FFFFFF');
+	table.style.marginBottom = '8px';
+		
 	// Adds presets
 	var table = addPresets(['E6D0DE', 'CDA2BE', 'B5739D', 'E1D5E7', 'C3ABD0', 'A680B8', 'D4E1F5', 'A9C4EB', '7EA6E0', 'D5E8D4', '9AC7BF', '67AB9F', 'D5E8D4', 'B9E0A5', '97D077', 'FFF2CC', 'FFE599', 'FFD966', 'FFF4C3', 'FFCE9F', 'FFB570', 'F8CECC', 'F19C99', 'EA6B66'], 12);
 	table.style.marginBottom = '8px';
@@ -311,12 +325,13 @@ var ColorDialog = function(editorUi, color, apply, cancelFn)
 	var applyBtn = mxUtils.button(mxResources.get('apply'), function()
 	{
 		var color = input.value;
+		ColorDialog.addRecentColor(color, 12);
 		
 		if (color != 'none')
 		{
 			color = '#' + color;
 		}
-		
+
 		applyFunction(color);
 		editorUi.hideDialog();
 	});
@@ -384,6 +399,28 @@ ColorDialog.prototype.createApplyFunction = function()
 			graph.getModel().endUpdate();
 		}
 	});
+};
+
+/**
+ * 
+ */
+ColorDialog.recentColors = [];
+
+/**
+ * Adds recent color for later use.
+ */
+ColorDialog.addRecentColor = function(color, max)
+{
+	if (color != null)
+	{
+		mxUtils.remove(color, ColorDialog.recentColors);
+		ColorDialog.recentColors.splice(0, 0, color);
+		
+		if (ColorDialog.recentColors.length > max)
+		{
+			ColorDialog.recentColors.pop();
+		}
+	}
 };
 
 /**
@@ -561,7 +598,7 @@ var PageSetupDialog = function(editorUi)
 	heightInput.setAttribute('size', '6');
 	heightInput.setAttribute('value', graph.pageFormat.height);
 	td.appendChild(heightInput);
-	mxUtils.write(td, ' Pixel');
+	mxUtils.write(td, ' pt');
 	
 	customRow.appendChild(td);
 	customRow.style.height = '60px';
@@ -739,6 +776,7 @@ var PrintDialog = function(editorUi)
 	function preview(print)
 	{
 		var printScale = parseInt(pageScaleInput.value) / 100;
+		var autoOrigin = pageCountCheckBox.checked;
 		
 		if (isNaN(printScale))
 		{
@@ -746,13 +784,13 @@ var PrintDialog = function(editorUi)
 			pageScaleInput.value = '100%';
 		}
 		
-		// Workaround to match available paper size
+		// Workaround to match available paper size in actual print output
 		printScale *= 0.75;
 
 		var pf = graph.pageFormat || mxConstants.PAGE_FORMAT_A4_PORTRAIT;
 		var scale = 1 / graph.pageScale;
 		
-		if (pageCountCheckBox.checked)
+		if (autoOrigin)
 		{
     		var pageCount = parseInt(pageCountInput.value);
 			
@@ -764,49 +802,26 @@ var PrintDialog = function(editorUi)
 
 		// Negative coordinates are cropped or shifted if page visible
 		var gb = graph.getGraphBounds();
-		var autoOrigin = pageCountCheckBox.checked;
 		var border = 0;
 		var x0 = 0;
 		var y0 = 0;
-		
-		// Computes unscaled, untranslated graph bounds
-		var x = (gb.width > 0) ? Math.ceil(gb.x / graph.view.scale - graph.view.translate.x) : 0;
-		var y = (gb.height > 0) ? Math.ceil(gb.y / graph.view.scale - graph.view.translate.y) : 0;
-
-		if (x < 0 || y < 0)
-		{
-			autoOrigin = true;
-			
-			if (graph.pageVisible)
-			{
-				var ps = graph.pageScale;
-				var pw = pf.width * ps;
-				var ph = pf.height * ps;
-
-				// FIXME: Offset for page layout with x/y != 0
-				x0 = (x > 0) ? x : pf.width * -Math.floor(Math.min(0, x) / pw) + Math.min(0, x) / graph.pageScale;
-				y0 = (y > 0) ? y : pf.height * -Math.floor(Math.min(0, y) / ph) + Math.min(0, y) / graph.pageScale;
-			}
-			else
-			{
-				x0 = 10;
-				y0 = 10;
-			}
-		}
 
 		// Applies print scale
 		pf = mxRectangle.fromRectangle(pf);
-		pf.width = Math.round(pf.width * printScale);
-		pf.height = Math.round(pf.height * printScale);
+		pf.width = Math.ceil(pf.width * printScale);
+		pf.height = Math.ceil(pf.height * printScale);
 		scale *= printScale;
 		
 		// Starts at first visible page
-		if (graph.pageVisible)
+		if (!autoOrigin && graph.pageVisible)
 		{
 			var layout = graph.getPageLayout();
-			
-			x0 -= Math.max(layout.x, 0) * pf.width;
-			y0 -= Math.max(layout.y, 0) * pf.height;
+			x0 -= layout.x * pf.width;
+			y0 -= layout.y * pf.height;
+		}
+		else
+		{
+			autoOrigin = true;
 		}
 		
 		return PrintDialog.showPreview(PrintDialog.createPrintPreview(graph, scale, pf, border, x0, y0, autoOrigin, print), print);
@@ -875,7 +890,6 @@ PrintDialog.createPrintPreview = function(graph, scale, pf, border, x0, y0, auto
 	preview.title = mxResources.get('preview');
 	preview.printBackgroundImage = true;
 	preview.autoOrigin = autoOrigin;
-	
 	var bg = graph.background;
 	
 	if (bg == null || bg == '' || bg == mxConstants.NONE)
@@ -1680,10 +1694,12 @@ var ExportDialog = function(editorUi)
 					editorUi.hideDialog();
 					var data = decodeURIComponent(param.substring(param.indexOf('=') + 1));
 					ExportDialog.saveRequest(data, name, format,
-						function(newTitle)
+						function(newTitle, base64)
 						{
-							return new mxXmlRequest(EXPORT_URL, 'filename=' + encodeURIComponent(newTitle) +
-								'&format=' + format + bg + '&w=' + w + '&h=' + h + '&border=' + b + '&' + param);
+							// Base64 not used in this example
+							return new mxXmlRequest(EXPORT_URL, 'format=' + format + '&base64=' + (base64 || '0') +
+								((newTitle != null) ? '&filename=' + encodeURIComponent(newTitle) : '') +
+								bg + '&w=' + w + '&h=' + h + '&border=' + b + '&' + param);
 						});
 				}
 				else
@@ -1768,11 +1784,12 @@ ExportDialog.getExportParameter = function(ui, format)
 var MetadataDialog = function(ui, cell)
 {
 	var div = document.createElement('div');
+	var graph = ui.editor.graph;
 
 	div.style.height = '310px';
 	div.style.overflow = 'auto';
 	
-	var value = ui.editor.graph.getModel().getValue(cell);
+	var value = graph.getModel().getValue(cell);
 	
 	// Converts the value to an XML node
 	if (!mxUtils.isNode(value))
@@ -1855,7 +1872,7 @@ var MetadataDialog = function(ui, cell)
 
 	for (var i = 0; i < attrs.length; i++)
 	{
-		if (attrs[i].nodeName != 'label')
+		if (attrs[i].nodeName != 'label' && attrs[i].nodeName != 'placeholders')
 		{
 			addTextArea(count, attrs[i].nodeName, attrs[i].nodeValue);
 			count++;
@@ -1883,7 +1900,7 @@ var MetadataDialog = function(ui, cell)
 		{
 			var name = nameInput.value;
 			
-			if (name != null && name.length > 0 && name != 'label')
+			if (name != null && name.length > 0 && name != 'label' && name != 'placeholders')
 			{
 				try
 				{
@@ -1927,12 +1944,24 @@ var MetadataDialog = function(ui, cell)
 			mxUtils.alert(mxResources.get('invalidName'));
 		}
 	});
+	
+	this.init = function()
+	{
+		if (texts.length > 0)
+		{
+			texts[0].focus();
+		}
+		else
+		{
+			nameInput.focus();
+		}
+	};
+	
 	addBtn.setAttribute('disabled', 'disabled');
 	addBtn.style.marginLeft = '10px';
 	addBtn.style.width = '144px';
-	
 	newProp.appendChild(addBtn);
-	
+
 	var cancelBtn = mxUtils.button(mxResources.get('cancel'), function()
 	{
 		ui.hideDialog.apply(ui, arguments);
@@ -1961,7 +1990,7 @@ var MetadataDialog = function(ui, cell)
 			}
 			
 			// Updates the value of the cell (undoable)
-			ui.editor.graph.getModel().setValue(cell, value);
+			graph.getModel().setValue(cell, value);
 		}
 		catch (e)
 		{
@@ -1990,7 +2019,50 @@ var MetadataDialog = function(ui, cell)
 	var buttons = document.createElement('div');
 	buttons.style.marginTop = '18px';
 	buttons.style.textAlign = 'right';
-
+	
+	if (ui.editor.graph.getModel().isVertex(cell) || ui.editor.graph.getModel().isEdge(cell))
+	{
+		var replace = document.createElement('span');
+		replace.style.marginRight = '10px';
+		var input = document.createElement('input');
+		input.setAttribute('type', 'checkbox');
+		input.style.marginRight = '6px';
+		
+		if (value.getAttribute('placeholders') == '1')
+		{
+			input.setAttribute('checked', 'checked');
+			input.defaultChecked = true;
+		}
+	
+		mxEvent.addListener(input, 'click', function()
+		{
+			if (value.getAttribute('placeholders') == '1')
+			{
+				value.removeAttribute('placeholders');
+			}
+			else
+			{
+				value.setAttribute('placeholders', '1');
+			}
+		});
+		
+		replace.appendChild(input);
+		mxUtils.write(replace, mxResources.get('placeholders'));
+		
+		if (MetadataDialog.placeholderHelpLink != null)
+		{
+			var link = document.createElement('a');
+			link.setAttribute('href', MetadataDialog.placeholderHelpLink);
+			link.setAttribute('target', '_blank');
+			link.style.marginLeft = '6px';
+			mxUtils.write(link, '?');
+			
+			replace.appendChild(link);
+		}
+		
+		buttons.appendChild(replace);
+	}
+	
 	if (ui.editor.cancelFirst)
 	{
 		buttons.appendChild(cancelBtn);
@@ -2005,6 +2077,11 @@ var MetadataDialog = function(ui, cell)
 	div.appendChild(buttons);
 	this.container = div;
 };
+
+/**
+ * Optional help link.
+ */
+MetadataDialog.placeholderHelpLink = null;
 
 /**
  * Constructs a new link dialog.

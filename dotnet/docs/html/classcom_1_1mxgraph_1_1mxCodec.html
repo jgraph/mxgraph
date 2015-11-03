@@ -58,7 +58,7 @@
 </div><!--header-->
 <div class="contents">
 
-<p>XML codec for .NET object graphs. In order to resolve forward references when reading files the XML document that contains the data must be passed to the constructor.  
+<p>XML codec for .NET object graphs. In order to resolve forward references when reading files the XML document that contains the data must be passed to the constructor. Here is an example for parsing an existing XML document into a graph model:  
  <a href="classcom_1_1mxgraph_1_1mxCodec.html#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
@@ -146,7 +146,8 @@ Properties</h2></td></tr>
 <tr class="separator:ad5808ca1e07460f138eb34b3ae244e27"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>XML codec for .NET object graphs. In order to resolve forward references when reading files the XML document that contains the data must be passed to the constructor. </p>
+<div class="textblock"><p>XML codec for .NET object graphs. In order to resolve forward references when reading files the XML document that contains the data must be passed to the constructor. Here is an example for parsing an existing XML document into a graph model: </p>
+<p><a class="el" href="classcom_1_1mxgraph_1_1mxCodec.html" title="XML codec for .NET object graphs. In order to resolve forward references when reading files the XML d...">mxCodec</a> codec = new mxCodec(doc); <a class="el" href="classcom_1_1mxgraph_1_1mxGraph.html" title="Implements a graph object that allows to create diagrams from a graph model and stylesheet. ">mxGraph</a> graph = new mxGraph(); codec.Decode(doc.DocumentElement, graph.Model); </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="a07e453ed963ab7bc07639091b9e371cb"></a>
 <div class="memitem">
@@ -902,7 +903,7 @@ Properties</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Oct 1 2015 12:32:49 for mxGraph by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Nov 3 2015 18:33:39 for mxGraph by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.6
 </small></address>

@@ -185,6 +185,7 @@ Actions.prototype.init = function()
 				graph.toggleCellStyles(mxConstants.STYLE_RESIZABLE, defaultValue);
 				graph.toggleCellStyles(mxConstants.STYLE_ROTATABLE, defaultValue);
 				graph.toggleCellStyles(mxConstants.STYLE_DELETABLE, defaultValue);
+				graph.toggleCellStyles('connectable', defaultValue);
 			}
 			finally
 			{
@@ -203,8 +204,28 @@ Actions.prototype.init = function()
 	// Arrange actions
 	this.addAction('toFront', function() { graph.orderCells(false); }, null, null, 'Ctrl+Shift+F');
 	this.addAction('toBack', function() { graph.orderCells(true); }, null, null, 'Ctrl+Shift+B');
-	this.addAction('group', function() { graph.setSelectionCell(graph.groupCells(null, 0)); }, null, null, 'Ctrl+G');
-	this.addAction('ungroup', function() { graph.setSelectionCells(graph.ungroupCells()); }, null, null, 'Ctrl+Shift+U');
+	this.addAction('group', function()
+	{
+		if (graph.getSelectionCount() == 1)
+		{
+			graph.setCellStyles('container', '1');
+		}
+		else
+		{
+			graph.setSelectionCell(graph.groupCells(null, 0));
+		}
+	}, null, null, 'Ctrl+G');
+	this.addAction('ungroup', function()
+	{
+		if (graph.getSelectionCount() == 1 && graph.getModel().getChildCount(graph.getSelectionCell()) == 0)
+		{
+			graph.setCellStyles('container', '0');
+		}
+		else
+		{
+			graph.setSelectionCells(graph.ungroupCells());
+		}
+	}, null, null, 'Ctrl+Shift+U');
 	this.addAction('removeFromGroup', function() { graph.removeCellsFromParent(); });
 	// Adds action
 	this.addAction('editMetadata...', function()
@@ -213,7 +234,9 @@ Actions.prototype.init = function()
 		
 		if (cell != null)
 		{
-			ui.showDialog(new MetadataDialog(ui, cell).container, 300, 320, true, false);
+			var dlg = new MetadataDialog(ui, cell);
+			ui.showDialog(dlg.container, 320, 320, true, false);
+			dlg.init();
 		}
 	}, null, null, 'Ctrl+M');
 	this.addAction('editTooltip...', function()
@@ -290,35 +313,42 @@ Actions.prototype.init = function()
 				{
 		    		graph.cellEditor.restoreSelection(selState);
 
-					if (value != null && value.length > 0)
-					{
-						// To find the new link, we create a list of all existing links first
-						var tmp = graph.cellEditor.textarea.getElementsByTagName('a');
-						var oldLinks = [];
-						
-						for (var i = 0; i < tmp.length; i++)
-						{
-							oldLinks.push(tmp[i]);
-						}
-
-						// LATER: Fix inserting link/image in IE8/quirks after focus lost
-						document.execCommand('createlink', false, mxUtils.trim(value));
-
-						// Adds target="_blank" for the new link
-						var newLinks = graph.cellEditor.textarea.getElementsByTagName('a');
-						
-						if (newLinks.length == oldLinks.length + 1)
-						{
-							// Inverse order in favor of appended links
-							for (var i = newLinks.length - 1; i >= 0; i--)
+		    		if (value != null)
+		    		{
+		    			if (value.length == 0)
+		    			{
+		    				document.execCommand('unlink', false);
+		    			}
+		    			else
+		    			{
+							// To find the new link, we create a list of all existing links first
+							var tmp = graph.cellEditor.textarea.getElementsByTagName('a');
+							var oldLinks = [];
+							
+							for (var i = 0; i < tmp.length; i++)
 							{
-								if (i == 0 || newLinks[i] != oldLinks[i - 1])
+								oldLinks.push(tmp[i]);
+							}
+	
+							// LATER: Fix inserting link/image in IE8/quirks after focus lost
+							document.execCommand('createlink', false, mxUtils.trim(value));
+	
+							// Adds target="_blank" for the new link
+							var newLinks = graph.cellEditor.textarea.getElementsByTagName('a');
+							
+							if (newLinks.length == oldLinks.length + 1)
+							{
+								// Inverse order in favor of appended links
+								for (var i = newLinks.length - 1; i >= 0; i--)
 								{
-									newLinks[i].setAttribute('target', '_blank');
-									break;
+									if (i == 0 || newLinks[i] != oldLinks[i - 1])
+									{
+										newLinks[i].setAttribute('target', '_blank');
+										break;
+									}
 								}
 							}
-						}
+		    			}
 					}
 				}));
 			}
@@ -486,8 +516,8 @@ Actions.prototype.init = function()
 		if (mxUtils.hasScrollbars(graph.container))
 		{
 			var pad = graph.getPagePadding();
-			graph.container.scrollTop = pad.y;
-			graph.container.scrollLeft = Math.min(pad.x, (graph.container.scrollWidth - graph.container.clientWidth) / 2);
+			graph.container.scrollTop = pad.y * graph.view.scale;
+			graph.container.scrollLeft = Math.min(pad.x * graph.view.scale, (graph.container.scrollWidth - graph.container.clientWidth) / 2);
 		}
 	}), null, null, 'Ctrl+3');
 	this.addAction('fitTwoPages', mxUtils.bind(this, function()
@@ -529,7 +559,8 @@ Actions.prototype.init = function()
 		if (mxUtils.hasScrollbars(graph.container))
 		{
 			var pad = graph.getPagePadding();
-			graph.container.scrollLeft = Math.min(pad.x, (graph.container.scrollWidth - graph.container.clientWidth) / 2);
+			graph.container.scrollLeft = Math.min(pad.x * graph.view.scale,
+				(graph.container.scrollWidth - graph.container.clientWidth) / 2);
 		}
 	}), null, null, 'Ctrl+2');
 	this.put('customZoom', new Action(mxResources.get('custom') + '...', mxUtils.bind(this, function()
@@ -636,9 +667,16 @@ Actions.prototype.init = function()
 	}));
 	action = this.addAction('connect', function()
 	{
-		graph.setConnectable(!graph.connectionHandler.isEnabled());
+		ui.hoverIcons.enabled = !ui.hoverIcons.enabled;
 		ui.fireEvent(new mxEventObject('connectChanged'));
 	}, null, null, 'Ctrl+Q');
+	action.setToggleAction(true);
+	action.setSelectedCallback(function() { return ui.hoverIcons.enabled; });
+	action = this.addAction('connectionPoints', function()
+	{
+		graph.setConnectable(!graph.connectionHandler.isEnabled());
+		ui.fireEvent(new mxEventObject('connectionPointsChanged'));
+	}, null, null, 'Ctrl+Shift+Q');
 	action.setToggleAction(true);
 	action.setSelectedCallback(function() { return graph.connectionHandler.isEnabled(); });
 	action = this.addAction('copyConnect', function()

@@ -401,7 +401,8 @@ Menus.prototype.init = function()
 	{
 		this.addMenuItems(menu, ((this.editorUi.format != null) ? ['formatPanel'] : []).
 			concat(['outline', 'layers', '-', 'pageView', 'scrollbars', 'tooltips', '-',
-			        'grid', 'guides', 'connect', '-', 'resetView', 'zoomIn', 'zoomOut'], parent));
+			        'grid', 'guides', 'connect', 'connectionPoints', '-',
+			        'resetView', 'zoomIn', 'zoomOut'], parent));
 	})));
 	// Two special dropdowns that are only used in the toolbar
 	this.put('viewPanels', new Menu(mxUtils.bind(this, function(menu, parent)
@@ -830,6 +831,7 @@ Menus.prototype.pickColor = function(key, cmd, defaultValue)
 	
 	if (cmd != null && graph.cellEditor.isContentEditing())
 	{
+		// Saves and restores text selection for in-place editor
 		var selState = graph.cellEditor.saveSelection();
 		
 		var dlg = new ColorDialog(this.editorUi, defaultValue || '000000', mxUtils.bind(this, function(color)
@@ -840,7 +842,7 @@ Menus.prototype.pickColor = function(key, cmd, defaultValue)
 		{
 			graph.cellEditor.restoreSelection(selState);
 		});
-		this.editorUi.showDialog(dlg.container, 220, 400, true, true);
+		this.editorUi.showDialog(dlg.container, 220, 430, true, true);
 		dlg.init();
 	}
 	else
@@ -870,7 +872,7 @@ Menus.prototype.pickColor = function(key, cmd, defaultValue)
 			this.colorDialog.picker.fromString(color);
 		}
 	
-		this.editorUi.showDialog(this.colorDialog.container, 220, 400, true, true);
+		this.editorUi.showDialog(this.colorDialog.container, 220, 430, true, true);
 		this.colorDialog.init();
 	}
 };
@@ -1040,7 +1042,7 @@ Menus.prototype.createPopupMenu = function(menu, cell, evt)
 			if (graph.getSelectionCount() == 1)
 			{
 				menu.addSeparator();
-				this.addMenuItems(menu, ['editLink'], null, evt);
+				this.addMenuItems(menu, ['editMetadata', 'editLink'], null, evt);
 
 				// Shows edit image action if there is an image in the style
 				if (graph.getModel().isVertex(cell) && mxUtils.getValue(state.style, mxConstants.STYLE_IMAGE, null) != null)

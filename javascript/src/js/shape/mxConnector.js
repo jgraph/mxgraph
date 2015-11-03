@@ -35,6 +35,18 @@ function mxConnector(points, stroke, strokewidth)
 mxUtils.extend(mxConnector, mxPolyline);
 
 /**
+ * Function: updateBoundingBox
+ *
+ * Updates the <boundingBox> for this shape using <createBoundingBox> and
+ * <augmentBoundingBox> and stores the result in <boundingBox>.
+ */
+mxConnector.prototype.updateBoundingBox = function()
+{
+	this.useSvgBoundingBox = this.style != null && this.style[mxConstants.STYLE_CURVED] == 1;
+	mxShape.prototype.updateBoundingBox.apply(this, arguments);
+};
+
+/**
  * Function: paintEdgeShape
  * 
  * Paints the line shape.

@@ -1998,7 +1998,7 @@ mxGraph.prototype.processChange = function(change)
 	// the selection if the root changes.
 	if (change instanceof mxRootChange)
 	{
-		this.clearSelection();			
+		this.clearSelection();
 		this.removeStateForCell(change.previous);
 		
 		if (this.resetViewOnRootChange)
@@ -3016,24 +3016,22 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 	var tr = this.view.translate;
 	var fmt = this.pageFormat;
 	var ps = scale * this.pageScale;
-	var bounds = new mxRectangle(scale * tr.x, scale * tr.y,
-			fmt.width * ps, fmt.height * ps);
-	width /= scale;
-	height /= scale;
+	var bounds = new mxRectangle(0, 0, fmt.width * ps, fmt.height * ps);
+
+	var gb = mxRectangle.fromRectangle(this.getGraphBounds());
+	bounds.x = Math.floor((gb.x - tr.x * scale) / bounds.width) * bounds.width + tr.x * scale;
+	bounds.y = Math.floor((gb.y - tr.y * scale) / bounds.height) * bounds.height + tr.y * scale;
+	
+	gb.width = Math.ceil((gb.width + (gb.x - bounds.x)) / bounds.width) * bounds.width;
+	gb.height = Math.ceil((gb.height + (gb.y - bounds.y)) / bounds.height) * bounds.height;
 	
 	// Does not show page breaks if the scale is too small
 	visible = visible && Math.min(bounds.width, bounds.height) > this.minPageBreakDist;
 
-	// Draws page breaks independent of translate. To ignore
-	// the translate set bounds.x/y = 0. Note that modulo
-	// in JavaScript has a bug, so use mxUtils instead.
-	bounds.x = mxUtils.mod(bounds.x, bounds.width);
-	bounds.y = mxUtils.mod(bounds.y, bounds.height);
-	
-	var horizontalCount = (visible) ? Math.round((width - bounds.x) / bounds.width) + 1 : 0;
-	var verticalCount = (visible) ? Math.round((height - bounds.y) / bounds.height) + 1 : 0;
-	var right = width;
-	var bottom = height;
+	var horizontalCount = (visible) ? Math.ceil(gb.width / bounds.width) + 1 : 0;
+	var verticalCount = (visible) ? Math.ceil(gb.height / bounds.height) + 1 : 0;
+	var right = (horizontalCount - 1) * bounds.width;
+	var bottom = (verticalCount - 1) * bounds.height;
 	
 	if (this.horizontalPageBreaks == null && horizontalCount > 0)
 	{
@@ -3054,10 +3052,10 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 			for (var i = 0; i <= count; i++)
 			{
 				var pts = (breaks == this.horizontalPageBreaks) ?
-						[new mxPoint(bounds.x + i * bounds.width, 1),
-				         new mxPoint(bounds.x + i * bounds.width, bottom)] :
-				        [new mxPoint(1, bounds.y + i * bounds.height),
-				         new mxPoint(right, bounds.y + i * bounds.height)];
+						[new mxPoint(bounds.x + i * bounds.width, bounds.y),
+				         new mxPoint(bounds.x + i * bounds.width, bounds.y + bottom)] :
+				        [new mxPoint(bounds.x, bounds.y + i * bounds.height),
+				         new mxPoint(bounds.x + right, bounds.y + i * bounds.height)];
 
 				if (breaks[i] != null)
 				{
@@ -4543,10 +4541,7 @@ mxGraph.prototype.cellsAdded = function(cells, parent, index, source, target, ab
 /**
  * Function: autoSizeCell
  * 
- * Removes the given cells from the graph including all connected edges if
- * includeEdges is true. The change is carried out using <cellsRemoved>.
- * This method fires <mxEvent.REMOVE_CELLS> while the transaction is in
- * progress. The removed cells are returned as an array.
+ * Resizes the specified cell to just fit around the its label and/or children
  * 
  * Parameters:
  * 
@@ -4743,11 +4738,6 @@ mxGraph.prototype.splitEdge = function(edge, cells, newEdge, dx, dy)
 {
 	dx = dx || 0;
 	dy = dy || 0;
-	
-	if (newEdge == null)
-	{
-		newEdge = this.cloneCells([edge])[0];
-	}
 
 	var parent = this.model.getParent(edge);
 	var source = this.model.getTerminal(edge, true);
@@ -4755,6 +4745,33 @@ mxGraph.prototype.splitEdge = function(edge, cells, newEdge, dx, dy)
 	this.model.beginUpdate();
 	try
 	{
+		
+		if (newEdge == null)
+		{
+			newEdge = this.cloneCells([edge])[0];
+
+			// Removes waypoints before/after new cell
+			var state = this.view.getState(edge);
+			var geo = this.getCellGeometry(newEdge);
+			
+			if (geo != null && geo.points != null && state != null)
+			{
+				var t = this.view.translate;
+				var s = this.view.scale;
+				var idx = mxUtils.findNearestSegment(state, (dx + t.x) * s, (dy + t.y) * s);
+				geo.points = geo.points.slice(0, idx);
+								
+				geo = this.getCellGeometry(edge);
+				
+				if (geo != null && geo.points != null)
+				{
+					geo = geo.clone();
+					geo.points = geo.points.slice(idx);
+					this.model.setGeometry(edge, geo);
+				}
+			}
+		}
+		
 		this.cellsMoved(cells, dx, dy, false, false);
 		this.cellsAdded(cells, parent, this.model.getChildCount(parent), null, null,
 				true);
@@ -7811,11 +7828,16 @@ mxGraph.prototype.scrollCellToVisible = function(cell, center)
 			bounds.y = bounds.getCenterY() - h / 2;
 			bounds.height = h;
 		}
+		
+		var tr = new mxPoint(this.view.translate.x, this.view.translate.y);
 
 		if (this.scrollRectToVisible(bounds))
 		{
 			// Triggers an update via the view's event source
-			this.view.setTranslate(this.view.translate.x, this.view.translate.y);
+			var tr2 = new mxPoint(this.view.translate.x, this.view.translate.y);
+			this.view.translate.x = tr.x;
+			this.view.translate.y = tr.y;
+			this.view.setTranslate(tr2.x, tr2.y);
 		}
 	}
 };

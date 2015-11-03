@@ -322,45 +322,60 @@ var mxResources =
 		}
 		
 		// Replaces the placeholders with the values in the array
-		if (value != null &&
-			params != null)
+		if (value != null && params != null)
 		{
-			var result = [];
-			var index = null;
-			
-			for (var i = 0; i < value.length; i++)
-			{
-				var c = value.charAt(i);
-
-				if (c == '{')
-				{
-					index = '';
-				}
-				else if (index != null && 	c == '}')
-				{
-					index = parseInt(index)-1;
-					
-					if (index >= 0 && index < params.length)
-					{
-						result.push(params[index]);
-					}
-					
-					index = null;
-				}
-				else if (index != null)
-				{
-					index += c;
-				}
-				else
-				{
-					result.push(c);
-				}
-			}
-			
-			value = result.join('');
+			value = mxResources.replacePlaceholders(value, params);
 		}
 		
 		return value;
+	},
+
+	/**
+	 * Function: replacePlaceholders
+	 * 
+	 * Replaces the given placeholders with the given parameters.
+	 * 
+	 * Parameters:
+	 * 
+	 * value - String that contains the placeholders.
+	 * params - Array of the values for the placeholders of the form {1}...{n}
+	 * to be replaced with in the resulting string.
+	 */
+	replacePlaceholders: function(value, params)
+	{
+		var result = [];
+		var index = null;
+		
+		for (var i = 0; i < value.length; i++)
+		{
+			var c = value.charAt(i);
+
+			if (c == '{')
+			{
+				index = '';
+			}
+			else if (index != null && 	c == '}')
+			{
+				index = parseInt(index)-1;
+				
+				if (index >= 0 && index < params.length)
+				{
+					result.push(params[index]);
+				}
+				
+				index = null;
+			}
+			else if (index != null)
+			{
+				index += c;
+			}
+			else
+			{
+				result.push(c);
+			}
+		}
+		
+		return result.join('');
 	}
 
 };

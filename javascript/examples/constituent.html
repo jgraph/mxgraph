@@ -1,0 +1,111 @@
+<!--
+  Copyright (c) 2006-2013, JGraph Ltd
+  
+  Consistuent example for mxGraph. This example demonstrates using
+  cells as parts of other cells.
+-->
+<html>
+<head>
+	<title>Consistuent example for mxGraph</title>
+
+	<!-- Sets the basepath for the library if not in same directory -->
+	<script type="text/javascript">
+		mxBasePath = '../src';
+	</script>
+
+	<!-- Loads and initializes the library -->
+	<script type="text/javascript" src="../src/js/mxClient.js"></script>
+
+	<!-- Example code -->
+	<script type="text/javascript">
+		
+		/**
+		 * Redirects start drag to parent.
+		 */
+		var graphHandlerGetInitialCellForEvent = mxGraphHandler.prototype.getInitialCellForEvent;
+		mxGraphHandler.prototype.getInitialCellForEvent = function(me)
+		{
+			var cell = graphHandlerGetInitialCellForEvent.apply(this, arguments);
+			
+			if (this.graph.isPart(cell))
+			{
+				cell = this.graph.getModel().getParent(cell)
+			}
+			
+			return cell;
+		};
+
+		// Program starts here. Creates a sample graph in the
+		// DOM node with the specified ID. This function is invoked
+		// from the onLoad event handler of the document (see below).
+		function main(container)
+		{
+			// Checks if the browser is supported
+			if (!mxClient.isBrowserSupported())
+			{
+				// Displays an error message if the browser is not supported.
+				mxUtils.error('Browser is not supported!', 200, false);
+			}
+			else
+			{
+				// Disables the built-in context menu
+				mxEvent.disableContextMenu(container);
+				
+				// Creates the graph inside the given container
+				var graph = new mxGraph(container);
+				graph.foldingEnabled = false;
+				graph.recursiveResize = true;
+				
+				// Helper method to mark parts with constituent=1 in the style
+				graph.isPart = function(cell)
+				{
+					var state = this.view.getState(cell);
+					var style = (state != null) ? state.style : this.getCellStyle(cell);
+
+					return style['constituent'] == '1';
+				};
+				
+				// Redirects selection to parent
+				graph.selectCellForEvent = function(cell)
+				{
+					if (this.isPart(cell))
+					{
+						cell = this.model.getParent(cell);
+					}
+					
+					mxGraph.prototype.selectCellForEvent.apply(this, arguments);
+				};
+				
+				// Enables rubberband selection
+				new mxRubberband(graph);
+				
+				// Gets the default parent for inserting new cells. This
+				// is normally the first child of the root (ie. layer 0).
+				var parent = graph.getDefaultParent();
+								
+				// Adds cells to the model in a single step
+				graph.getModel().beginUpdate();
+				try
+				{
+					var v1 = graph.insertVertex(parent, null, '', 20, 20, 120, 70);
+					var v2 = graph.insertVertex(v1, null, 'Constituent', 20, 20, 80, 30, 'constituent=1;');
+				}
+				finally
+				{
+					// Updates the display
+					graph.getModel().endUpdate();
+				}
+			}
+		};
+	</script>
+</head>
+
+<!-- Page passes the container for the graph to the program -->
+<body onload="main(document.getElementById('graphContainer'))">
+
+	<!-- Creates a container for the graph with a grid wallpaper -->
+	<div id="graphContainer"
+		style="position:relative;overflow:hidden;width:321px;height:241px;background:url('editors/images/grid.gif');cursor:default;">
+	</div>
+</body>
+</html>

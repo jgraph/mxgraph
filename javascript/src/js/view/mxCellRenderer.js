@@ -872,10 +872,23 @@ mxCellRenderer.prototype.redrawLabel = function(state, forced)
 			state.text.scale = this.getTextScale(state);
 			state.text.isWrapping = wrapping;
 			state.text.isClipping = clipping;
-			
-			state.text.redraw();
+			this.redrawLabelShape(state.text);
 		}
 	}
+};
+
+/**
+ * Function: redrawLabelShape
+ * 
+ * Called to invoked redraw on the given text shape.
+ * 
+ * Parameters:
+ * 
+ * shape - <mxText> shape to be redrawn.
+ */
+mxCellRenderer.prototype.redrawLabelShape = function(shape)
+{
+	shape.redraw();
 };
 
 /**
@@ -1206,7 +1219,7 @@ mxCellRenderer.prototype.insertStateAfter = function(state, node, htmlNode)
 	
 	for (var i = 0; i < shapes.length; i++)
 	{
-		if (shapes[i] != null)
+		if (shapes[i] != null && shapes[i].node != null)
 		{
 			var html = shapes[i].node.parentNode != state.view.getDrawPane();
 			var temp = (html) ? htmlNode : node;

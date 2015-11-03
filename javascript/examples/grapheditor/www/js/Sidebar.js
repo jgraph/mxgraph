@@ -117,12 +117,12 @@ Sidebar.prototype.init = function()
 /**
  * Sets the default font size.
  */
-Sidebar.prototype.collapsedImage = (!mxClient.IS_SVG) ? IMAGE_PATH + '/collapsed.gif' : 'data:image/gif;base64,R0lGODlhDQANAJEAAAAAAP///9XV1f///yH5BAEAAAMALAAAAAANAA0AAAIUnI+pa8Io3BtRsmoVfnXGSYHiCBYAOw==';
+Sidebar.prototype.collapsedImage = (!mxClient.IS_SVG) ? IMAGE_PATH + '/collapsed.gif' : 'data:image/gif;base64,R0lGODlhDQANAIABAJmZmf///yH/C1hNUCBEYXRhWE1QPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS4wLWMwNjAgNjEuMTM0Nzc3LCAyMDEwLzAyLzEyLTE3OjMyOjAwICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIiB4bWxuczpzdFJlZj0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlUmVmIyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozNUQyRTJFNjZGNUYxMUU1QjZEOThCNDYxMDQ2MzNCQiIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozNUQyRTJFNzZGNUYxMUU1QjZEOThCNDYxMDQ2MzNCQiI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOjFERjc3MEUxNkY1RjExRTVCNkQ5OEI0NjEwNDYzM0JCIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjFERjc3MEUyNkY1RjExRTVCNkQ5OEI0NjEwNDYzM0JCIi8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+Af/+/fz7+vn49/b19PPy8fDv7u3s6+rp6Ofm5eTj4uHg397d3Nva2djX1tXU09LR0M/OzczLysnIx8bFxMPCwcC/vr28u7q5uLe2tbSzsrGwr66trKuqqainpqWko6KhoJ+enZybmpmYl5aVlJOSkZCPjo2Mi4qJiIeGhYSDgoGAf359fHt6eXh3dnV0c3JxcG9ubWxramloZ2ZlZGNiYWBfXl1cW1pZWFdWVVRTUlFQT05NTEtKSUhHRkVEQ0JBQD8+PTw7Ojk4NzY1NDMyMTAvLi0sKyopKCcmJSQjIiEgHx4dHBsaGRgXFhUUExIREA8ODQwLCgkIBwYFBAMCAQAAIfkEAQAAAQAsAAAAAA0ADQAAAhSMj6lrwAjcC1GyahV+dcZJgeIIFgA7';
 
 /**
  * Sets the default font size.
  */
-Sidebar.prototype.expandedImage = (!mxClient.IS_SVG) ? IMAGE_PATH + '/expanded.gif' : 'data:image/gif;base64,R0lGODlhDQANAJEAAAAAAP///9XV1f///yH5BAEAAAMALAAAAAANAA0AAAIRnI+py90CI1RyLums27z7VgAAOw==';
+Sidebar.prototype.expandedImage = (!mxClient.IS_SVG) ? IMAGE_PATH + '/expanded.gif' : 'data:image/gif;base64,R0lGODlhDQANAIABAJmZmf///yH/C1hNUCBEYXRhWE1QPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS4wLWMwNjAgNjEuMTM0Nzc3LCAyMDEwLzAyLzEyLTE3OjMyOjAwICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIiB4bWxuczpzdFJlZj0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlUmVmIyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDoxREY3NzBERjZGNUYxMUU1QjZEOThCNDYxMDQ2MzNCQiIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDoxREY3NzBFMDZGNUYxMUU1QjZEOThCNDYxMDQ2MzNCQiI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOjFERjc3MERENkY1RjExRTVCNkQ5OEI0NjEwNDYzM0JCIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjFERjc3MERFNkY1RjExRTVCNkQ5OEI0NjEwNDYzM0JCIi8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+Af/+/fz7+vn49/b19PPy8fDv7u3s6+rp6Ofm5eTj4uHg397d3Nva2djX1tXU09LR0M/OzczLysnIx8bFxMPCwcC/vr28u7q5uLe2tbSzsrGwr66trKuqqainpqWko6KhoJ+enZybmpmYl5aVlJOSkZCPjo2Mi4qJiIeGhYSDgoGAf359fHt6eXh3dnV0c3JxcG9ubWxramloZ2ZlZGNiYWBfXl1cW1pZWFdWVVRTUlFQT05NTEtKSUhHRkVEQ0JBQD8+PTw7Ojk4NzY1NDMyMTAvLi0sKyopKCcmJSQjIiEgHx4dHBsaGRgXFhUUExIREA8ODQwLCgkIBwYFBAMCAQAAIfkEAQAAAQAsAAAAAA0ADQAAAhGMj6nL3QAjVHIu6azbvPtWAAA7';
 
 /**
  * Sets the default font size.
@@ -483,6 +483,10 @@ Sidebar.prototype.searchEntries = function(searchTerms, count, page, success, er
 							}
 						}
 					}
+				}
+				else
+				{
+					results = [];
 				}
 				
 				dict = tmpDict;
@@ -872,11 +876,11 @@ Sidebar.prototype.addGeneralPalette = function(expand)
  		this.createVertexTemplateEntry('shape=ext;double=1;whiteSpace=wrap;html=1;', 120, 60, '', 'Double Rectangle', null, null, 'rect rectangle box double'),
 	 	this.createVertexTemplateEntry('shape=ext;double=1;rounded=1;whiteSpace=wrap;html=1;', 120, 60, '', 'Double Rounded Rectangle', null, null, 'rounded rect rectangle box double'),
 	 	this.createVertexTemplateEntry('ellipse;shape=doubleEllipse;whiteSpace=wrap;html=1;', 120, 80, '', 'Double Ellipse', null, null, 'circle oval ellipse start end state double'),
-	 	this.createVertexTemplateEntry('rhombus;whiteSpace=wrap;html=1;', 80, 80, '', 'Rhombus', null, null, 'if condition decision conditional question test'),
+	 	this.createVertexTemplateEntry('rhombus;whiteSpace=wrap;html=1;', 80, 80, '', 'Rhombus', null, null, 'rhombus if condition decision conditional question test'),
 	 	this.createVertexTemplateEntry('shape=parallelogram;whiteSpace=wrap;html=1;', 120, 60, '', 'Parallelogram'),
 	 	this.createVertexTemplateEntry('triangle;whiteSpace=wrap;html=1;', 60, 80, '', 'Triangle', null, null, 'triangle logic inverter buffer'),
 	 	this.createVertexTemplateEntry('shape=cylinder;whiteSpace=wrap;html=1;', 60, 80, '', 'Cylinder', null, null, 'cylinder data database'),
-	 	this.createVertexTemplateEntry('shape=hexagon;perimeter=hexagonPerimeter;whiteSpace=wrap;html=1;', 120, 80, '', 'Hexagon'),
+	 	this.createVertexTemplateEntry('shape=hexagon;perimeter=hexagonPerimeter;whiteSpace=wrap;html=1;', 120, 80, '', 'Hexagon', null, null, 'hexagon preparation'),
 	 	this.createVertexTemplateEntry('shape=process;whiteSpace=wrap;html=1;', 120, 60, '', 'Process', null, null, 'process task'),
 	 	this.createVertexTemplateEntry('ellipse;shape=cloud;whiteSpace=wrap;html=1;', 120, 80, '', 'Cloud', null, null, 'cloud network'),
 	 	this.createVertexTemplateEntry('shape=document;whiteSpace=wrap;html=1;', 120, 80, '', 'Document'),
@@ -938,12 +942,31 @@ Sidebar.prototype.addMiscPalette = function(expand)
 
 	 		return this.createVertexTemplateFromCells([cell], cell.geometry.width, cell.geometry.height, 'Link');
 	 	})),
-        this.createVertexTemplateEntry('shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;', 30, 60, 'Actor', 'Actor', false, null, 'user person human'),
+	 	this.addEntry('timestamp date time text label', mxUtils.bind(this, function()
+	 	{
+	 		var cell = new mxCell('%date{ddd mmm dd yyyy HH:MM:ss}%', new mxGeometry(0, 0, 160, 20), 'text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;overflow=hidden;');
+	 		cell.vertex = true;
+	 		this.graph.setAttributeForCell(cell, 'placeholders', '1');
+
+	 		return this.createVertexTemplateFromCells([cell], cell.geometry.width, cell.geometry.height, 'Timestamp');
+	 	})),
+	 	this.addEntry('variable placeholder metadata hello world text label', mxUtils.bind(this, function()
+	 	{
+	 		var cell = new mxCell('%name% Text', new mxGeometry(0, 0, 80, 20), 'text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;overflow=hidden;');
+	 		cell.vertex = true;
+	 		this.graph.setAttributeForCell(cell, 'placeholders', '1');
+	 		this.graph.setAttributeForCell(cell, 'name', 'Variable');
+
+	 		return this.createVertexTemplateFromCells([cell], cell.geometry.width, cell.geometry.height, 'Variable');
+	 	})),
+	 	this.createVertexTemplateEntry('shape=umlActor;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;html=1;', 30, 60, 'Actor', 'Actor', false, null, 'user person human'),
 	 	this.createVertexTemplateEntry('line;html=1;', 160, 10, '', 'Horizontal Line'),
 	 	this.createVertexTemplateEntry('line;direction=south;html=1;', 10, 160, '', 'Vertical Line'),
+	 	this.createVertexTemplateEntry('line;html=1;perimeter=backbonePerimeter;points=[];', 160, 10, '', 'Horizontal Backbone', false, null, 'network'),
+	 	this.createVertexTemplateEntry('line;direction=south;html=1;perimeter=backbonePerimeter;points=[];', 10, 160, '', 'Vertical Backbone', false, null, 'network'),
 	 	this.createVertexTemplateEntry('shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;', 20, 120, '', 'Curly Bracket'),
-	 	this.createVertexTemplateEntry('shape=image;html=1;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=1;aspect=fixed;image=' + this.gearImage, 52, 61, '', 'Image (Fixed Aspect)', false, null, 'fixed image icon symbol'),
-	 	this.createVertexTemplateEntry('shape=image;html=1;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=0;image=' + this.gearImage, 50, 60, '', 'Image (Variable Aspect)', false, null, 'strechted image icon symbol'),
+	 	this.createVertexTemplateEntry('shape=image;html=1;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;imageAspect=1;aspect=fixed;image=' + this.gearImage, 52, 61, '', 'Image (Fixed Aspect)', false, null, 'fixed image icon symbol'),
+	 	this.createVertexTemplateEntry('shape=image;html=1;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;imageAspect=0;image=' + this.gearImage, 50, 60, '', 'Image (Variable Aspect)', false, null, 'strechted image icon symbol'),
 	 	this.createVertexTemplateEntry('icon;html=1;image=' + this.gearImage, 60, 60, 'Icon', 'Icon', false, null, 'icon image symbol'),
 	 	this.createVertexTemplateEntry('label;whiteSpace=wrap;html=1;image=' + this.gearImage, 140, 60, 'Label', 'Label 1', null, null, 'label image icon symbol'),
 	 	this.createVertexTemplateEntry('label;whiteSpace=wrap;html=1;align=center;verticalAlign=bottom;spacingLeft=0;spacingBottom=4;imageAlign=center;imageVerticalAlign=top;image=' + this.gearImage, 120, 80, 'Label', 'Label 2', null, null, 'label image icon symbol'),
@@ -992,7 +1015,7 @@ Sidebar.prototype.createAdvancedShapes = function()
 	field.vertex = true;
 
 	return [
-	    this.createVertexTemplateEntry('shape=image;html=1;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=0;image=' + this.gearImage, 50, 60, '', 'Stretched Image', false, null, 'strechted image icon symbol'),
+	    this.createVertexTemplateEntry('shape=image;html=1;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;imageAspect=0;image=' + this.gearImage, 50, 60, '', 'Stretched Image', false, null, 'strechted image icon symbol'),
 	 	this.createVertexTemplateEntry('icon;html=1;image=' + this.gearImage, 60, 60, 'Icon', 'Icon', false, null, 'icon image symbol'),
 	 	this.createVertexTemplateEntry('label;whiteSpace=wrap;html=1;image=' + this.gearImage, 140, 60, 'Label', 'Label 1', null, null, 'label image icon symbol'),
 	 	this.createVertexTemplateEntry('label;whiteSpace=wrap;html=1;align=center;verticalAlign=bottom;spacingLeft=0;spacingBottom=4;imageAlign=center;imageVerticalAlign=top;image=' + this.gearImage, 120, 80, 'Label', 'Label 2', null, null, 'label image icon symbol'),
@@ -1149,15 +1172,16 @@ Sidebar.prototype.addUmlPalette = function(expand)
 			'<p style="margin:0px;margin-left:8px;">field1 = value1<br/>field2 = value2<br>field3 = value3</p>', 'Object',
 			null, null, dt + 'object instance'),
 		this.createVertexTemplateEntry('verticalAlign=top;align=left;overflow=fill;html=1;',180, 90,
-			'<div style="box-sizing:border-box;width:100%;background:#e4e4e4;padding:2px;">Tablename</div><table style="width:100%;font-size:1em;" ' +
-			'cellpadding="0" cellspacing="0"><tr><td>PK</td><td style="padding:2px;">uniqueId</td></tr><tr><td>FK1</td><td style="padding:2px;">' +
-			'foreignKey</td></tr><tr><td></td><td style="padding:2px;">fieldname</td></tr></table>', 'Entity', null, null, 'er entity table'),
+			'<div style="box-sizing:border-box;width:100%;background:#e4e4e4;padding:2px;">Tablename</div>' +
+			'<table style="width:100%;font-size:1em;" cellpadding="2" cellspacing="0">' +
+			'<tr><td>PK</td><td>uniqueId</td></tr><tr><td>FK1</td><td>' +
+			'foreignKey</td></tr><tr><td></td><td>fieldname</td></tr></table>', 'Entity', null, null, 'er entity table'),
 		this.createVertexTemplateEntry('shape=lollipop;direction=south;html=1;', 30, 10, '', 'Provided Interface', null, null, dt + 'provided interface'),
 		this.createVertexTemplateEntry('shape=requires;direction=north;html=1;', 30, 20, '', 'Required Interface', null, null, dt + 'required interface'),
 		this.createVertexTemplateEntry('shape=umlBoundary;whiteSpace=wrap;html=1;', 100, 80, 'Boundary Object', 'Boundary Object', null, null, 'uml boundary object'),
 		this.createVertexTemplateEntry('ellipse;shape=umlEntity;whiteSpace=wrap;html=1;', 80, 80, 'Entity Object', 'Entity Object', null, null, 'uml entity object'),
 		this.createVertexTemplateEntry('ellipse;shape=umlControl;whiteSpace=wrap;html=1;', 70, 80, 'Control Object', 'Control Object', null, null, 'uml control object'),
-		this.createVertexTemplateEntry('shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;', 30, 60, 'Actor', 'Actor', false, null, 'uml actor'),
+		this.createVertexTemplateEntry('shape=umlActor;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;html=1;', 30, 60, 'Actor', 'Actor', false, null, 'uml actor'),
 		this.createVertexTemplateEntry('ellipse;whiteSpace=wrap;html=1;', 140, 70, 'Use Case', 'Use Case', null, null, 'uml use case usecase'),
 		this.addEntry('uml activity state start', function()
 		{
@@ -1518,7 +1542,7 @@ Sidebar.prototype.addBpmnPalette = function(dir, expand)
 			var cell = new mxCell('Process', new mxGeometry(0, 0, 120, 80), 'html=1;whiteSpace=wrap;rounded=1;');
 			cell.vertex = true;
 
-			var cell1 = new mxCell('', new mxGeometry(1, 1, 30, 30), 'shape=mxgraph.bpmn.timer_start;perimeter=ellipsePerimeter;html=1;');
+			var cell1 = new mxCell('', new mxGeometry(1, 1, 30, 30), 'shape=mxgraph.bpmn.timer_start;perimeter=ellipsePerimeter;html=1;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;');
 			cell1.vertex = true;
 			cell1.geometry.relative = true;
 			cell1.geometry.offset = new mxPoint(-40, -15);
@@ -1531,7 +1555,7 @@ Sidebar.prototype.addBpmnPalette = function(dir, expand)
 			var cell = new mxCell('Process', new mxGeometry(0, 0, 120, 80), 'html=1;whiteSpace=wrap;rounded=1;');
 			cell.vertex = true;
 
-			var cell1 = new mxCell('', new mxGeometry(1, 0, 30, 30), 'shape=mxgraph.bpmn.timer_start;perimeter=ellipsePerimeter;html=1;');
+			var cell1 = new mxCell('', new mxGeometry(1, 0, 30, 30), 'shape=mxgraph.bpmn.timer_start;perimeter=ellipsePerimeter;html=1;labelPosition=right;labelBackgroundColor=#ffffff;align=left;');
 			cell1.vertex = true;
 			cell1.geometry.relative = true;
 			cell1.geometry.offset = new mxPoint(-15, 10);
@@ -1706,7 +1730,7 @@ Sidebar.prototype.createThumb = function(cells, width, height, parent, title, sh
 /**
  * Creates and returns a new palette item for the given image.
  */
-Sidebar.prototype.createItem = function(cells, title, showLabel, showTitle, width, height)
+Sidebar.prototype.createItem = function(cells, title, showLabel, showTitle, width, height, allowCellsInserted)
 {
 	var elt = document.createElement('a');
 	elt.setAttribute('href', 'javascript:void(0);');
@@ -1728,8 +1752,8 @@ Sidebar.prototype.createItem = function(cells, title, showLabel, showTitle, widt
 	
 	if (cells.length > 1 || cells[0].vertex)
 	{
-		var ds = this.createDragSource(elt, this.createDropHandler(cells, this.editorUi.editor.
-				graph.isSplitEnabled()), this.createDragPreview(width, height), cells);
+		var ds = this.createDragSource(elt, this.createDropHandler(cells, true, allowCellsInserted,
+			bounds), this.createDragPreview(width, height), cells, bounds);
 		this.addClickHandler(elt, ds, cells);
 	
 		// Uses guides for vertices only if enabled in graph
@@ -1740,8 +1764,8 @@ Sidebar.prototype.createItem = function(cells, title, showLabel, showTitle, widt
 	}
 	else if (cells[0] != null && cells[0].edge)
 	{
-		var ds = this.createDragSource(elt, this.createDropHandler(cells, false),
-			this.createDragPreview(width, height), cells);
+		var ds = this.createDragSource(elt, this.createDropHandler(cells, false, allowCellsInserted,
+			bounds), this.createDragPreview(width, height), cells, bounds);
 		this.addClickHandler(elt, ds, cells);
 	}
 	
@@ -1837,8 +1861,10 @@ Sidebar.prototype.updateShapes = function(source, targets)
 /**
  * Creates a drop handler for inserting the given cells.
  */
-Sidebar.prototype.createDropHandler = function(cells, allowSplit)
+Sidebar.prototype.createDropHandler = function(cells, allowSplit, allowCellsInserted, bounds)
 {
+	allowCellsInserted = (allowCellsInserted != null) ? allowCellsInserted : true;
+	
 	return mxUtils.bind(this, function(graph, evt, target, x, y)
 	{
 		if (graph.isEnabled())
@@ -1866,10 +1892,12 @@ Sidebar.prototype.createDropHandler = function(cells, allowSplit)
 						y = Math.round(y);
 						
 						// Splits the target edge or inserts into target group
-						if (allowSplit && graph.isSplitEnabled() && graph.isSplitTarget(target, cells, evt))
+						if (allowSplit && graph.isSplitTarget(target, cells, evt))
 						{
-							graph.splitEdge(target, cells, null, x, y);
-							select = cells;
+							var clones = graph.cloneCells(cells);
+							graph.splitEdge(target, clones, null,
+								x - bounds.width / 2, y - bounds.height / 2);
+							select = clones;
 						}
 						else if (cells.length > 0)
 						{
@@ -1895,7 +1923,10 @@ Sidebar.prototype.createDropHandler = function(cells, allowSplit)
 							}
 						}
 	
-						graph.fireEvent(new mxEventObject('cellsInserted', 'cells', select));
+						if (allowCellsInserted)
+						{
+							graph.fireEvent(new mxEventObject('cellsInserted', 'cells', select));
+						}
 					}
 					finally
 					{
@@ -2137,7 +2168,8 @@ Sidebar.prototype.getDropAndConnectGeometry = function(source, target, direction
 			{
 				// Try match size or ignore if width or height < 45 which
 				// is considered special enough to be ignored here
-				if (!keepSize && geo2.width > 45 && geo2.height > 45)
+				if (!keepSize && geo2.width > 45 && geo2.height > 45 &&
+					geo.width > 45 && geo.height > 45)
 				{
 					geo2.width = geo2.width * (geo.height / geo2.height);
 					geo2.height = geo.height;
@@ -2202,7 +2234,7 @@ Sidebar.prototype.getDropAndConnectGeometry = function(source, target, direction
 /**
  * Creates a drag source for the given element.
  */
-Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
+Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells, bounds)
 {
 	// Checks if the cells contain any vertices
 	var ui = this.editorUi;
@@ -2231,6 +2263,11 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
 	
 	var dragSource = mxUtils.makeDraggable(elt, this.editorUi.editor.graph, mxUtils.bind(this, function(graph, evt, target, x, y)
 	{
+		if (this.updateThread != null)
+		{
+			window.clearTimeout(this.updateThread);
+		}
+		
 		if (cells != null && currentStyleTarget != null && activeArrow == styleTarget)
 		{
 			var tmp = graph.isCellSelected(currentStyleTarget.cell) ? graph.getSelectionCells() : [currentStyleTarget.cell];
@@ -2409,6 +2446,8 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
 
 		if (this.previewElement != null)
 		{
+			var view = graph.view;
+			
 			if (currentStyleTarget != null && activeArrow == styleTarget)
 			{
 				this.previewElement.style.display = (graph.model.isEdge(currentStyleTarget.cell)) ? 'none' : '';
@@ -2420,7 +2459,6 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
 			}
 			else if (currentTargetState != null && activeArrow != null)
 			{
-				var view = graph.view;
 				var index = (graph.model.isEdge(currentTargetState.cell) || freeSourceEdge == null) ? firstVertex : freeSourceEdge;
 				var geo = sidebar.getDropAndConnectGeometry(currentTargetState.cell, cells[index], direction, cells);
 				var geo2 = (!graph.model.isEdge(currentTargetState.cell)) ? graph.getCellGeometry(currentTargetState.cell) : null;
@@ -2438,7 +2476,7 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
 				
 				var dx2 = geo3.x;
 				var dy2 = geo3.y;
-				
+
 				// Ignores geometry of edges
 				if (graph.model.isEdge(cells[index]))
 				{
@@ -2457,6 +2495,15 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
 				}
 				
 				this.previewElement.style.display = '';
+			}
+			else if (dragSource.currentHighlight.state != null &&
+				graph.model.isEdge(dragSource.currentHighlight.state.cell))
+			{
+				// Centers drop cells when splitting edges
+				this.previewElement.style.left = Math.round(parseInt(this.previewElement.style.left) -
+					bounds.width * view.scale / 2) + 'px';
+				this.previewElement.style.top = Math.round(parseInt(this.previewElement.style.top) -
+					bounds.height * view.scale / 2) + 'px';
 			}
 			else
 			{
@@ -2815,25 +2862,27 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells)
 		}
 		
 		// Handles drop target
-		var target = ((!mxEvent.isAltDown(evt) || mxEvent.isShiftDown(evt)) && !(currentStyleTarget != null && activeArrow == styleTarget)) ?
-				mxDragSource.prototype.getDropTarget.apply(this, arguments) : null;
-				
+		var target = ((!mxEvent.isAltDown(evt) || mxEvent.isShiftDown(evt)) &&
+			!(currentStyleTarget != null && activeArrow == styleTarget)) ?
+			mxDragSource.prototype.getDropTarget.apply(this, arguments) : null;
+		var model = graph.getModel();
+		
 		if (target != null)
 		{
-			// Selects parent group as drop target
-			var model = graph.getModel();
-
-			while (target != null && !graph.isValidDropTarget(target, cells, evt) && model.isVertex(model.getParent(target)))
+			if (activeArrow != null || !graph.isSplitTarget(target, cells, evt))
 			{
-				target = model.getParent(target);
-			}
-			
-			if (graph.view.currentRoot == target || (!graph.isValidRoot(target) &&
-				graph.getModel().getChildCount(target) == 0) ||
-				(graph.isCellLocked(target)) ||
-				(model.isEdge(target) && !graph.isSplitEnabled()))
-			{
-				target = null;
+				// Selects parent group as drop target
+				while (target != null && !graph.isValidDropTarget(target, cells, evt) && model.isVertex(model.getParent(target)))
+				{
+					target = model.getParent(target);
+				}
+				
+				if (graph.view.currentRoot == target || (!graph.isValidRoot(target) &&
+					graph.getModel().getChildCount(target) == 0) ||
+					graph.isCellLocked(target) || model.isEdge(target))
+				{
+					target = null;
+				}
 			}
 		}
 		
@@ -2947,39 +2996,39 @@ Sidebar.prototype.createVertexTemplateEntry = function(style, width, height, val
 /**
  * Creates a drop handler for inserting the given cells.
  */
-Sidebar.prototype.createVertexTemplate = function(style, width, height, value, title, showLabel, showTitle)
+Sidebar.prototype.createVertexTemplate = function(style, width, height, value, title, showLabel, showTitle, allowCellsInserted)
 {
 	var cells = [new mxCell((value != null) ? value : '', new mxGeometry(0, 0, width, height), style)];
 	cells[0].vertex = true;
 	
-	return this.createVertexTemplateFromCells(cells, width, height, title, showLabel, showTitle);
+	return this.createVertexTemplateFromCells(cells, width, height, title, showLabel, showTitle, allowCellsInserted);
 };
 
 /**
  * Creates a drop handler for inserting the given cells.
  */
-Sidebar.prototype.createVertexTemplateFromCells = function(cells, width, height, title, showLabel, showTitle)
+Sidebar.prototype.createVertexTemplateFromCells = function(cells, width, height, title, showLabel, showTitle, allowCellsInserted)
 {
-	return this.createItem(cells, title, showLabel, showTitle, width, height);
+	return this.createItem(cells, title, showLabel, showTitle, width, height, allowCellsInserted);
 };
 
 /**
  * 
  */
-Sidebar.prototype.createEdgeTemplateEntry = function(style, width, height, value, title, showLabel, tags)
+Sidebar.prototype.createEdgeTemplateEntry = function(style, width, height, value, title, showLabel, tags, allowCellsInserted)
 {
 	tags = (tags != null && tags.length > 0) ? tags : title.toLowerCase();
 	
  	return this.addEntry(tags, mxUtils.bind(this, function()
  	{
- 		return this.createEdgeTemplate(style, width, height, value, title, showLabel);
+ 		return this.createEdgeTemplate(style, width, height, value, title, showLabel, allowCellsInserted);
  	}));
 };
 
 /**
  * Creates a drop handler for inserting the given cells.
  */
-Sidebar.prototype.createEdgeTemplate = function(style, width, height, value, title, showLabel)
+Sidebar.prototype.createEdgeTemplate = function(style, width, height, value, title, showLabel, allowCellsInserted)
 {
 	var cell = new mxCell((value != null) ? value : '', new mxGeometry(0, 0, width, height), style);
 	cell.geometry.setTerminalPoint(new mxPoint(0, height), true);
@@ -2987,15 +3036,15 @@ Sidebar.prototype.createEdgeTemplate = function(style, width, height, value, tit
 	cell.geometry.relative = true;
 	cell.edge = true;
 	
-	return this.createEdgeTemplateFromCells([cell], width, height, title, showLabel);
+	return this.createEdgeTemplateFromCells([cell], width, height, title, showLabel, allowCellsInserted);
 };
 
 /**
  * Creates a drop handler for inserting the given cells.
  */
-Sidebar.prototype.createEdgeTemplateFromCells = function(cells, width, height, title, showLabel)
+Sidebar.prototype.createEdgeTemplateFromCells = function(cells, width, height, title, showLabel, allowCellsInserted)
 {	
-	return this.createItem(cells, title, showLabel, true, width, height);
+	return this.createItem(cells, title, showLabel, true, width, height, allowCellsInserted);
 };
 
 /**
@@ -3022,6 +3071,19 @@ Sidebar.prototype.addPalette = function(id, title, expanded, onInit)
 	
 	var div = document.createElement('div');
 	div.className = 'geSidebar';
+	
+	// Shows tooltip if mouse over background
+	mxEvent.addListener(div, 'mousemove', mxUtils.bind(this, function(evt)
+	{
+		if (mxEvent.getSource(evt) == div)
+		{
+			div.setAttribute('title', mxResources.get('sidebarTooltip'));
+		}
+		else
+		{
+			div.removeAttribute('title');
+		}
+	}));
 
 	if (expanded)
 	{
@@ -3144,7 +3206,7 @@ Sidebar.prototype.addImagePalette = function(id, title, prefix, postfix, items, 
 				tmpTags = item.substring((slash >= 0) ? slash + 1 : 0, (dot >= 0) ? dot : item.length).replace(/[-_]/g, ' ');
 			}
 			
-			fns.push(this.createVertexTemplateEntry('image;html=1;image=' + prefix + item + postfix, 80, 80,
+			fns.push(this.createVertexTemplateEntry('image;html=1;labelBackgroundColor=#ffffff;image=' + prefix + item + postfix, 80, 80,
 				'', title, title != null, null, this.filterTags(tmpTags)));
 		}))(items[i], (titles != null) ? titles[i] : null, (tags != null) ? tags[items[i]] : null);
 	}
@@ -3153,7 +3215,7 @@ Sidebar.prototype.addImagePalette = function(id, title, prefix, postfix, items, 
 };
 
 /**
- * Creates the array of tags for the given stencil. Duplicates are allowed and fill be filtered out later.
+ * Creates the array of tags for the given stencil. Duplicates are allowed and will be filtered out later.
  */
 Sidebar.prototype.getTagsForStencil = function(packageName, stencilName, moreTags)
 {

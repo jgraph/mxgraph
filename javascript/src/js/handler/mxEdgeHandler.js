@@ -635,7 +635,7 @@ mxEdgeHandler.prototype.validateConnection = function(source, target)
 				this.initBend(bend);
 				bend.setCursor(mxConstants.CURSOR_VIRTUAL_BEND_HANDLE);
 				bends.push(bend);
-			}))(this.createHandleShape(i));
+			}))(this.createHandleShape());
 		}
 	}
 
@@ -674,6 +674,7 @@ mxEdgeHandler.prototype.isHandleVisible = function(index)
  * null for special cases, such as when called from
  * <mxElbowEdgeHandler.createVirtualBend>. Only images and rectangles should be
  * returned if support for HTML labels with not foreign objects is required.
+ * Index if null for virtual handles.
  */
 mxEdgeHandler.prototype.createHandleShape = function(index)
 {
@@ -1994,8 +1995,8 @@ mxEdgeHandler.prototype.redrawHandles = function()
 		var y0 = p0.y;
 		
 		b = this.bends[0].bounds;
-		this.bends[0].bounds = new mxRectangle(Math.round(x0 - b.width / 2),
-				Math.round(y0 - b.height / 2), b.width, b.height);
+		this.bends[0].bounds = new mxRectangle(Math.floor(x0 - b.width / 2),
+				Math.floor(y0 - b.height / 2), b.width, b.height);
 		this.bends[0].fill = this.getHandleFillColor(0);
 		this.bends[0].redraw();
 		
@@ -2010,8 +2011,8 @@ mxEdgeHandler.prototype.redrawHandles = function()
 		
 		var bn = this.bends.length - 1;
 		b = this.bends[bn].bounds;
-		this.bends[bn].bounds = new mxRectangle(Math.round(xn - b.width / 2),
-				Math.round(yn - b.height / 2), b.width, b.height);
+		this.bends[bn].bounds = new mxRectangle(Math.floor(xn - b.width / 2),
+				Math.floor(yn - b.height / 2), b.width, b.height);
 		this.bends[bn].fill = this.getHandleFillColor(bn);
 		this.bends[bn].redraw();
 				
@@ -2035,8 +2036,8 @@ mxEdgeHandler.prototype.redrawHandles = function()
 				var b = this.virtualBends[i];
 				var x = last.x + (pt.x - last.x) / 2;
 				var y = last.y + (pt.y - last.y) / 2;
-				b.bounds = new mxRectangle(Math.round(x - b.bounds.width / 2),
-						Math.round(y - b.bounds.height / 2), b.bounds.width, b.bounds.height);
+				b.bounds = new mxRectangle(Math.floor(x - b.bounds.width / 2),
+						Math.floor(y - b.bounds.height / 2), b.bounds.width, b.bounds.height);
 				b.redraw();
 				mxUtils.setOpacity(b.node, this.virtualBendOpacity);
 				last = pt;

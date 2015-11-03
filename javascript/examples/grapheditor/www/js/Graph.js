@@ -26,7 +26,6 @@ Graph = function(container, model, renderHint, stylesheet)
 		return style['html'] == '1' || style[mxConstants.STYLE_WHITE_SPACE] == 'wrap';
 	};
 	
-
 	// Implements a listener for hover and click handling on edges
 	if (this.edgeMode)
 	{
@@ -57,12 +56,20 @@ Graph = function(container, model, renderHint, stylesheet)
 			    			start.state = state;
 			    			start.event = me;
 			    			
-			    			var handler = this.selectionCellsHandler.getHandler(state.cell);
-
-			    			if (handler != null && handler.bends != null && handler.bends.length > 0)
-			    			{
-			    				start.handle = handler.getHandleForEvent(me);
-			    			}
+	    					if (state.text != null && state.text.boundingBox != null &&
+	    						mxUtils.contains(state.text.boundingBox, me.getGraphX(), me.getGraphY()))
+	    					{
+	    						start.handle = mxEvent.LABEL_HANDLE;
+	    					}
+	    					else
+	    					{
+				    			var handler = this.selectionCellsHandler.getHandler(state.cell);
+	
+				    			if (handler != null && handler.bends != null && handler.bends.length > 0)
+				    			{
+				    				start.handle = handler.getHandleForEvent(me);
+				    			}
+	    					}
 			    		}
 			    	}
 		    	}
@@ -93,40 +100,56 @@ Graph = function(container, model, renderHint, stylesheet)
 			    				var edgeStyle = this.view.getEdgeStyle(state);
 			    				var entity = edgeStyle == mxEdgeStyle.EntityRelation;
 			    				
-	    						if (!entity || handle == 0 || handle == handler.bends.length - 1)
+	    						if (!entity || handle == 0 || handle == handler.bends.length - 1 || handle == mxEvent.LABEL_HANDLE)
 	    						{
 				    				// Source or target handle or connected for direct handle access or orthogonal line
 				    				// with just two points where the central handle is moved regardless of mouse position
-				    				if (handle == 0 || state.visibleSourceState != null ||
+				    				if (handle == mxEvent.LABEL_HANDLE || handle == 0 || state.visibleSourceState != null ||
 				    					handle == handler.bends.length - 1 || state.visibleTargetState != null)
 				    				{
-				    					if (!entity)
+				    					if (!entity && handle != mxEvent.LABEL_HANDLE)
 				    					{
-						    				var orth = edgeStyle == mxEdgeStyle.EntityRelation || edgeStyle == mxEdgeStyle.OrthConnector;
 					    					var pts = state.absolutePoints;
 				    						
-					    					if (orth && pts != null)
+					    					// Handles special case of orthogonal edge styles
+					    					if (edgeStyle == mxEdgeStyle.OrthConnector && pts != null)
 					    					{
 					    						// Does not use handles if they were not initially visible
 					    						handle = start.handle;
 
 					    						if (handle == null)
 					    						{
-						    						// Checks if edge has no bends
-						    						var nobends = pts.length == 2 || (pts.length == 3 &&
-						    								((Math.round(pts[0].x - pts[1].x) == 0 && Math.round(pts[1].x - pts[2].x) == 0) ||
-						    								(Math.round(pts[0].y - pts[1].y) == 0 && Math.round(pts[1].y - pts[2].y) == 0)));
-						    						
-					    							if (nobends)
-							    					{
-								    					// Moves central handle for straight orthogonal edges
-							    						handle = 2;
-							    					}
-							    					else
-								    				{
-									    				// Finds and moves vertical or horizontal segment
-								    					handle = mxUtils.findNearestSegment(state, start.point.x, start.point.y) + 1;
-								    				}
+							    					var box = new mxRectangle(start.point.x, start.point.y);
+							    					box.grow(mxEdgeHandler.prototype.handleImage.width / 2);
+							    					
+					    							if (mxUtils.contains(box, pts[0].x, pts[0].y))
+					    							{
+						    							// Moves source terminal handle
+					    								handle = 0;
+					    							}
+					    							else if (mxUtils.contains(box, pts[pts.length - 1].x, pts[pts.length - 1].y))
+					    							{
+					    								// Moves target terminal handle
+					    								handle = handler.bends.length - 1;
+					    							}
+					    							else
+					    							{
+							    						// Checks if edge has no bends
+							    						var nobends = pts.length == 2 || (pts.length == 3 &&
+							    								((Math.round(pts[0].x - pts[1].x) == 0 && Math.round(pts[1].x - pts[2].x) == 0) ||
+							    								(Math.round(pts[0].y - pts[1].y) == 0 && Math.round(pts[1].y - pts[2].y) == 0)));
+							    						
+						    							if (nobends)
+								    					{
+									    					// Moves central handle for straight orthogonal edges
+								    						handle = 2;
+								    					}
+								    					else
+									    				{
+										    				// Finds and moves vertical or horizontal segment
+									    					handle = mxUtils.findNearestSegment(state, start.point.x, start.point.y) + 1;
+									    				}
+					    							}
 					    						}
 					    					}
 							    			
@@ -175,27 +198,30 @@ Graph = function(container, model, renderHint, stylesheet)
 			    					var box = new mxRectangle(me.getGraphX(), me.getGraphY());
 			    					box.grow(mxEdgeHandler.prototype.handleImage.width / 2);
 			    					
-			    					if (mxUtils.contains(box, pts[0].x, pts[0].y) || mxUtils.contains(box, pts[pts.length - 1].x, pts[pts.length - 1].y))
+			    					if (state.text != null && state.text.boundingBox != null &&
+			    						mxUtils.contains(state.text.boundingBox, me.getGraphX(), me.getGraphY()))
+			    					{
+			    						cursor = 'move';
+			    					}
+			    					else if (mxUtils.contains(box, pts[0].x, pts[0].y) ||
+			    						mxUtils.contains(box, pts[pts.length - 1].x, pts[pts.length - 1].y))
 			    					{
 			    						cursor = 'pointer';
 			    					}
 			    					else if (state.visibleSourceState != null || state.visibleTargetState != null)
 			    					{
+		    							// Moving is not allowed for entity relation but still indicate hover state
 			    						var tmp = this.view.getEdgeStyle(state);
 			    						cursor = 'crosshair';
 			    						
-			    						if (tmp == mxEdgeStyle.EntityRelation)
-			    						{
-			    							// Moving is not allowed for entity relation
-			    							cursor = 'default';
-			    						}
-			    						else if (this.isOrthogonal(state))
+			    						if (tmp != mxEdgeStyle.EntityRelation && this.isOrthogonal(state))
 						    			{
 						    				var idx = mxUtils.findNearestSegment(state, me.getGraphX(), me.getGraphY());
 						    				
 						    				if (idx < pts.length - 1 && idx >= 0)
 						    				{
-					    						cursor = (Math.round(pts[idx].x - pts[idx + 1].x) == 0) ? 'col-resize' : 'row-resize';
+					    						cursor = (Math.round(pts[idx].x - pts[idx + 1].x) == 0) ?
+					    							'col-resize' : 'row-resize';
 						    				}
 						    			}
 			    					}
@@ -258,6 +284,7 @@ Graph = function(container, model, renderHint, stylesheet)
 
 		// Disables cloning of connection sources by default
 		this.connectionHandler.setCreateTarget(false);
+		this.connectionHandler.insertBeforeSource = true;
 		
 		// Disables built-in connection starts
 		this.connectionHandler.isValidSource = function(cell, me)
@@ -273,6 +300,51 @@ Graph = function(container, model, renderHint, stylesheet)
 			this.loadStylesheet();
 		}
 		
+		// Adds page centers to the guides for moving cells
+		var graphHandlerGetGuideStates = this.graphHandler.getGuideStates;
+		this.graphHandler.getGuideStates = function()
+		{
+			var result = graphHandlerGetGuideStates.apply(this, arguments);
+			
+			// Create virtual cell state for page centers
+			if (this.graph.pageVisible)
+			{
+				var guides = [];
+				
+				var pf = this.graph.pageFormat;
+				var ps = this.graph.pageScale;
+				var pw = pf.width * ps;
+				var ph = pf.height * ps;
+				var t = this.graph.view.translate;
+				var s = this.graph.view.scale;
+
+				var layout = this.graph.getPageLayout();
+				
+				for (var i = 0; i < layout.width; i++)
+				{
+					guides.push(new mxRectangle(((layout.x + i) * pw + t.x) * s,
+						(layout.y * ph + t.y) * s, pw * s, ph * s));
+				}
+				
+				for (var j = 0; j < layout.height; j++)
+				{
+					guides.push(new mxRectangle((layout.x * pw + t.x) * s,
+						((layout.y + j) * ph + t.y) * s, pw * s, ph * s));
+				}
+				
+				// Page center guides have predence over normal guides
+				result = guides.concat(result);
+			}
+			
+			return result;
+		};
+
+		// Overrdes color for virtual guides for page centers
+		mxGuide.prototype.getGuideColor = function(state, horizontal)
+		{
+			return (state.cell == null) ? '#ffa500' /* orange */ : mxConstants.GUIDE_COLOR;
+		};
+
 		// Changes color of move preview for black backgrounds
 		this.graphHandler.createPreviewShape = function(bounds)
 		{
@@ -529,9 +601,6 @@ Graph = function(container, model, renderHint, stylesheet)
 			
 			return graphHandlerShouldRemoveCellsFromParent.apply(this, arguments);
 		};
-		
-		// Splitting edges is disabled
-		this.setSplitEnabled(false);
 
 		// Unlocks all cells
 		this.isCellLocked = function(cell)
@@ -656,9 +725,14 @@ Graph.prototype.defaultEdgeLength = 100;
 Graph.prototype.edgeMode = false;
 
 /**
+ * Specifies the regular expression for matching placeholders.
+ */
+Graph.prototype.placeholderPattern = new RegExp('%(date\{.*\}|[^%^\{^\}]+)%', 'g');
+
+/**
  * Installs child layout styles.
  */
-Graph.prototype.init = function()
+Graph.prototype.init = function(container)
 {
 	mxGraph.prototype.init.apply(this, arguments);
 
@@ -740,11 +814,267 @@ Graph.prototype.sanitizeHtml = function(value)
 };
 
 /**
+ * Adds support for placeholders in labels.
+ */
+Graph.prototype.isReplacePlaceholders = function(cell)
+{
+	return cell.value != null && typeof(cell.value) == 'object' &&
+		cell.value.getAttribute('placeholders') == '1';
+};
+
+/**
+ * Adds support for placeholders in labels.
+ */
+Graph.prototype.isSplitTarget = function(target, cells, evt)
+{
+	return !mxEvent.isShiftDown(evt) && mxGraph.prototype.isSplitTarget.apply(this, arguments);
+};
+
+/**
+ * Adds support for placeholders in labels.
+ */
+Graph.prototype.getLabel = function(cell)
+{
+	var result = mxGraph.prototype.getLabel.apply(this, arguments);
+	
+	if (result != null && this.isReplacePlaceholders(cell))
+	{
+		result = this.replacePlaceholders(cell, result);
+	}
+	
+	return result;
+};
+
+/**
+ * Private helper method.
+ */
+Graph.prototype.getGlobalVariable = function(name)
+{
+	var val = null;
+	
+	if (name == 'date')
+	{
+		val = new Date().toLocaleDateString();
+	}
+	else if (name == 'time')
+	{
+		val = new Date().toLocaleTimeString();
+	}
+	else if (name == 'timestamp')
+	{
+		val = new Date().toLocaleString();
+	}
+	else if (name.substring(0, 5) == 'date{')
+	{
+		var fmt = name.substring(5, name.length - 1);
+		val = this.formatDate(new Date(), fmt);
+	}
+
+	return val;
+};
+
+/**
+ * Formats a date, see http://blog.stevenlevithan.com/archives/date-time-format
+ */
+Graph.prototype.formatDate = function(date, mask, utc)
+{
+	// LATER: Cache regexs
+	if (this.dateFormatCache == null)
+	{
+		this.dateFormatCache = {
+			i18n: {
+			    dayNames: [
+			        "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat",
+			        "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+			    ],
+			    monthNames: [
+			        "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+			        "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
+			    ]
+			},
+			
+			masks: {
+			    "default":      "ddd mmm dd yyyy HH:MM:ss",
+			    shortDate:      "m/d/yy",
+			    mediumDate:     "mmm d, yyyy",
+			    longDate:       "mmmm d, yyyy",
+			    fullDate:       "dddd, mmmm d, yyyy",
+			    shortTime:      "h:MM TT",
+			    mediumTime:     "h:MM:ss TT",
+			    longTime:       "h:MM:ss TT Z",
+			    isoDate:        "yyyy-mm-dd",
+			    isoTime:        "HH:MM:ss",
+			    isoDateTime:    "yyyy-mm-dd'T'HH:MM:ss",
+			    isoUtcDateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss'Z'"
+			}
+		};
+	}
+    
+    var dF = this.dateFormatCache;
+	var token = /d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g,
+    	timezone = /\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[-+]\d{4})?)\b/g,
+    	timezoneClip = /[^-+\dA-Z]/g,
+    	pad = function (val, len) {
+			val = String(val);
+			len = len || 2;
+			while (val.length < len) val = "0" + val;
+			return val;
+		};
+
+    // You can't provide utc if you skip other args (use the "UTC:" mask prefix)
+    if (arguments.length == 1 && Object.prototype.toString.call(date) == "[object String]" && !/\d/.test(date)) {
+        mask = date;
+        date = undefined;
+    }
+
+    // Passing date through Date applies Date.parse, if necessary
+    date = date ? new Date(date) : new Date;
+    if (isNaN(date)) throw SyntaxError("invalid date");
+
+    mask = String(dF.masks[mask] || mask || dF.masks["default"]);
+
+    // Allow setting the utc argument via the mask
+    if (mask.slice(0, 4) == "UTC:") {
+        mask = mask.slice(4);
+        utc = true;
+    }
+
+    var _ = utc ? "getUTC" : "get",
+        d = date[_ + "Date"](),
+        D = date[_ + "Day"](),
+        m = date[_ + "Month"](),
+        y = date[_ + "FullYear"](),
+        H = date[_ + "Hours"](),
+        M = date[_ + "Minutes"](),
+        s = date[_ + "Seconds"](),
+        L = date[_ + "Milliseconds"](),
+        o = utc ? 0 : date.getTimezoneOffset(),
+        flags = {
+            d:    d,
+            dd:   pad(d),
+            ddd:  dF.i18n.dayNames[D],
+            dddd: dF.i18n.dayNames[D + 7],
+            m:    m + 1,
+            mm:   pad(m + 1),
+            mmm:  dF.i18n.monthNames[m],
+            mmmm: dF.i18n.monthNames[m + 12],
+            yy:   String(y).slice(2),
+            yyyy: y,
+            h:    H % 12 || 12,
+            hh:   pad(H % 12 || 12),
+            H:    H,
+            HH:   pad(H),
+            M:    M,
+            MM:   pad(M),
+            s:    s,
+            ss:   pad(s),
+            l:    pad(L, 3),
+            L:    pad(L > 99 ? Math.round(L / 10) : L),
+            t:    H < 12 ? "a"  : "p",
+            tt:   H < 12 ? "am" : "pm",
+            T:    H < 12 ? "A"  : "P",
+            TT:   H < 12 ? "AM" : "PM",
+            Z:    utc ? "UTC" : (String(date).match(timezone) || [""]).pop().replace(timezoneClip, ""),
+            o:    (o > 0 ? "-" : "+") + pad(Math.floor(Math.abs(o) / 60) * 100 + Math.abs(o) % 60, 4),
+            S:    ["th", "st", "nd", "rd"][d % 10 > 3 ? 0 : (d % 100 - d % 10 != 10) * d % 10]
+        };
+
+    return mask.replace(token, function ($0)
+    {
+        return $0 in flags ? flags[$0] : $0.slice(1, $0.length - 1);
+    });
+};
+
+/**
+ * Private helper method.
+ */
+Graph.prototype.replacePlaceholders = function(cell, str)
+{
+	var result = [];
+	var last = 0;
+	
+	while (match = this.placeholderPattern.exec(str))
+	{
+		var val = match[0];
+		
+		if (val.length > 2 && val != '%label%' && val != '%tooltip%')
+		{
+			var tmp = null;
+
+			if (match.index > last && str.charAt(match.index - 1) == '%')
+			{
+				tmp = val.substring(1);
+			}
+			else
+			{
+				var name = val.substring(1, val.length - 1);
+				var current = cell;
+				
+				while (tmp == null && current != null)
+				{
+					if (current.value != null && typeof(current.value) == 'object')
+					{
+						tmp = current.value.getAttribute(name);
+					}
+					
+					current = this.model.getParent(current);
+				}
+				
+				if (tmp == null)
+				{
+					tmp = this.getGlobalVariable(name);
+				}
+			}
+
+			result.push(str.substring(last, match.index) + (tmp || val));
+			last = match.index + val.length;
+		}
+	}
+	
+	result.push(str.substring(last));
+
+	return result.join('');
+};
+
+/**
+ * Selects cells for connect vertex return value.
+ */
+Graph.prototype.selectCellsForConnectVertex = function(cells, evt, hoverIcons)
+{
+	// Selects only target vertex if one exists
+	if (cells.length == 2 && this.model.isVertex(cells[1]))
+	{
+		this.setSelectionCell(cells[1]);
+		
+		if (hoverIcons != null)
+		{
+			// Adds hover icons to new target vertex for touch devices
+			if (mxEvent.isTouchEvent(evt))
+			{
+				hoverIcons.update(hoverIcons.getState(this.view.getState(cells[1])));
+			}
+			else
+			{
+				// Hides hover icons after click with mouse
+				hoverIcons.reset();
+			}
+		}
+		
+		this.scrollCellToVisible(cells[1]);
+	}
+	else
+	{
+		this.setSelectionCells(cells);
+	}
+};
+
+/**
  * Adds a connection to the given vertex.
  */
 Graph.prototype.connectVertex = function(source, direction, length, evt)
 {
-	var pt = new mxPoint(source.geometry.x, source.geometry.y);
+	var pt = (source.geometry.relative) ? new mxPoint(source.parent.geometry.width * source.geometry.x,
+			source.parent.geometry.height * source.geometry.y) : new mxPoint(source.geometry.x, source.geometry.y);
 		
 	if (direction == mxConstants.DIRECTION_NORTH)
 	{
@@ -779,12 +1109,33 @@ Graph.prototype.connectVertex = function(source, direction, length, evt)
 		dy = parentState.y;
 	}
 
+	// Workaround for relative child cells
+	if (this.model.isVertex(source.parent) && source.geometry.relative)
+	{
+		pt.x += source.parent.geometry.x;
+		pt.y += source.parent.geometry.y;
+	}
+	
 	// Checks actual end point of edge for target cell
 	var target = (mxEvent.isControlDown(evt)) ? null : this.getCellAt(dx + pt.x * s, dy + pt.y * s);
 	
 	if (this.model.isAncestor(target, source))
 	{
 		target = null;
+	}
+	
+	// Checks if target or ancestor is locked
+	var temp = target;
+	
+	while (temp != null)
+	{
+		if (this.isCellLocked(temp))
+		{
+			target = null;
+			break;
+		}
+		
+		temp = this.model.getParent(temp);
 	}
 	
 	// Checks if source and target intersect
@@ -846,7 +1197,31 @@ Graph.prototype.connectVertex = function(source, direction, length, evt)
 		
 		if (realTarget == null && duplicate)
 		{
-			realTarget = this.duplicateCells([source], false)[0];
+			// Handles relative children
+			var cellToClone = source;
+			var geo = this.getCellGeometry(source);
+			
+			while (geo != null && geo.relative)
+			{
+				cellToClone = this.getModel().getParent(cellToClone);
+				geo = this.getCellGeometry(cellToClone);
+			}
+			
+			// Handle consistuents for cloning
+			var state = this.view.getState(cellToClone);
+			var style = (state != null) ? state.style : this.getCellStyle(cellToClone);
+	    	
+			if (mxUtils.getValue(style, 'part', false))
+			{
+		        var tmpParent = this.model.getParent(cellToClone);
+
+		        if (this.model.isVertex(tmpParent))
+		        {
+		        	cellToClone = tmpParent;
+		        }
+			}
+			
+			realTarget = this.duplicateCells([cellToClone], false)[0];
 			
 			var geo = this.getCellGeometry(realTarget);
 			geo.x = pt.x - geo.width / 2;
@@ -861,8 +1236,35 @@ Graph.prototype.connectVertex = function(source, direction, length, evt)
 			layout = this.layoutManager.getLayout(this.model.getParent(source));
 		}
 		
-		var edge = ((mxEvent.isControlDown(evt) && duplicate) || (layout != null && layout.constructor == mxStackLayout)) ? null :
+		var edge = ((mxEvent.isControlDown(evt) && duplicate) || (target == null && layout != null && layout.constructor == mxStackLayout)) ? null :
 			this.insertEdge(this.model.getParent(source), null, '', source, realTarget, this.createCurrentEdgeStyle());
+
+		// Inserts edge before source
+		if (edge != null && this.connectionHandler.insertBeforeSource)
+		{
+			var index = null;
+			var tmp = source;
+			
+			while (tmp.parent != null && tmp.geometry != null &&
+				tmp.geometry.relative && tmp.parent != edge.parent)
+			{
+				tmp = this.model.getParent(tmp);
+			}
+		
+			if (tmp != null && tmp.parent != null && tmp.parent == edge.parent)
+			{
+				var index = tmp.parent.getIndex(tmp);
+				tmp.parent.insert(edge, index);
+			}
+		}
+		
+		// Special case: Click on west icon puts clone before cell
+		if (target == null && realTarget != null && layout != null && source.parent != null &&
+			layout.constructor == mxStackLayout && direction == mxConstants.DIRECTION_WEST)
+		{
+			var index = source.parent.getIndex(source);
+			source.parent.insert(realTarget, index);
+		}
 		
 		if (edge != null)
 		{
@@ -870,7 +1272,6 @@ Graph.prototype.connectVertex = function(source, direction, length, evt)
 //			var elbowValue = (direction == mxConstants.DIRECTION_NORTH || direction == mxConstants.DIRECTION_SOUTH) ? 'vertical' : 'horizontal';
 //			edge.style = mxUtils.setStyle(edge.style, 'edgeStyle', 'elbowEdgeStyle');
 //			edge.style = mxUtils.setStyle(edge.style, 'elbow', elbowValue);
-			
 			result.push(edge);
 		}
 		
@@ -884,7 +1285,10 @@ Graph.prototype.connectVertex = function(source, direction, length, evt)
 			edge.geometry.setTerminalPoint(pt, false);
 		}
 		
-		this.fireEvent(new mxEventObject('cellsInserted', 'cells', result));
+		if (edge != null)
+		{
+			this.fireEvent(new mxEventObject('cellsInserted', 'cells', [edge]));
+		}
 	}
 	finally
 	{
@@ -1143,7 +1547,8 @@ Graph.prototype.isCellConnectable = function(cell)
 	var state = this.view.getState(cell);
 	var style = (state != null) ? state.style : this.getCellStyle(cell);
 	
-	return (style['connectable'] != null) ? style['connectable']  != '0' : mxGraph.prototype.isCellConnectable.apply(this, arguments);
+	return (style['connectable'] != null) ? style['connectable']  != '0' :
+		mxGraph.prototype.isCellConnectable.apply(this, arguments);
 };
 
 /**
@@ -1271,6 +1676,11 @@ HoverIcons = function(graph)
 /**
  * Up arrow.
  */
+HoverIcons.prototype.enabled = true;
+
+/**
+ * Up arrow.
+ */
 HoverIcons.prototype.arrowSpacing = 6;
 
 /**
@@ -1378,11 +1788,16 @@ HoverIcons.prototype.init = function()
 		}
 	});
 	
+	// Checks if connection handler was active in mouse move
+	// as workaround for possible double connection inserted
+	var connectionHandlerActive = false;
+	
 	// Implements a listener for hover and click handling
 	this.graph.addMouseListener(
 	{
 	    mouseDown: mxUtils.bind(this, function(sender, me)
 	    {
+	    	connectionHandlerActive = false;
 	    	var evt = me.getEvent();
 	    	
 	    	if (this.isResetEvent(evt))
@@ -1413,6 +1828,11 @@ HoverIcons.prototype.init = function()
 	    	{
 	    		this.update(this.getState(me.getState()), me.getGraphX(), me.getGraphY());
 	    	}
+	    	
+	    	if (this.graph.connectionHandler != null && this.graph.connectionHandler.shape != null)
+	    	{
+	    		connectionHandlerActive = true;
+	    	}
 	    }),
 	    mouseUp: mxUtils.bind(this, function(sender, me)
 	    {
@@ -1427,7 +1847,10 @@ HoverIcons.prototype.init = function()
 		    	Math.abs(me.getGraphY() - this.mouseDownPoint.y) < this.graph.tolerance)
 	    	{
 	    		// Executes click event on highlighted arrow
-    			this.click(this.currentState, this.getDirection(), me);
+	    		if (!connectionHandlerActive)
+	    		{
+	    			this.click(this.currentState, this.getDirection(), me);
+	    		}
 	    	}
 	    	else if (this.isActive())
 	    	{
@@ -1452,6 +1875,7 @@ HoverIcons.prototype.init = function()
 	    		this.reset();
 	    	}
 	    	
+	    	connectionHandlerActive = false;
 	    	this.resetActiveArrow();
 	    })
 	});
@@ -1690,6 +2114,7 @@ HoverIcons.prototype.click = function(state, dir, me)
 	else if (state != null)
 	{
 		var cells = this.graph.connectVertex(state.cell, dir, this.graph.defaultEdgeLength, evt);
+		this.graph.selectCellsForConnectVertex(cells, evt, this);
 		
 		// Selects only target vertex if one exists
 		if (cells.length == 2 && this.graph.model.isVertex(cells[1]))
@@ -1881,7 +2306,7 @@ HoverIcons.prototype.getState = function(state)
  */
 HoverIcons.prototype.update = function(state, x, y)
 {
-	if (!this.graph.connectionHandler.isEnabled())
+	if (!this.enabled)
 	{
 		this.reset();
 	}
@@ -2219,11 +2644,16 @@ if (typeof mxVertexHandler != 'undefined')
 				
 				if (tmp != null)
 				{
+					if (tmp != null && this.isReplacePlaceholders(cell))
+					{
+						tmp = this.replacePlaceholders(cell, tmp);
+					}
+					
 					tip = this.sanitizeHtml(tmp);
 				}
 				else
 				{
-					var ignored = ['label', 'tooltip'];
+					var ignored = ['label', 'tooltip', 'placeholders'];
 					var attrs = cell.value.attributes;
 					
 					// Hides links in edit mode
@@ -2407,6 +2837,33 @@ if (typeof mxVertexHandler != 'undefined')
 			}
 			
 			return select;
+		};
+		
+		/**
+		 * Updates the child cells with placeholders if metadata of a cell has changed.
+		 */
+		Graph.prototype.processChange = function(change)
+		{
+			mxGraph.prototype.processChange.apply(this, arguments);
+			
+			if (change instanceof mxValueChange && change.cell.value != null &&
+				typeof(change.cell.value) == 'object')
+			{
+				// Invalidates all descendants with placeholders
+				var desc = this.model.getDescendants(change.cell);
+				
+				// LATER: Check if only label or tooltip have changed
+				if (desc.length > 0)
+				{
+					for (var i = 0; i < desc.length; i++)
+					{
+						if (this.isReplacePlaceholders(desc[i]))
+						{
+							this.view.invalidate(desc[i], false, false);
+						}
+					}
+				}
+			}
 		};
 		
 		/**
@@ -2617,7 +3074,9 @@ if (typeof mxVertexHandler != 'undefined')
 			try
 			{
 				this.addCells([label], (state != null) ? state.cell : null);
-				this.fireEvent(new mxEventObject('cellsInserted', 'cells', [label]));
+				this.fireEvent(new mxEventObject('textInserted', 'cells', [label]));
+				// Updates size of text after possible change of style via event
+				this.autoSizeCell(label);
 			}
 			finally
 			{
@@ -2819,6 +3278,16 @@ if (typeof mxVertexHandler != 'undefined')
 			}
 			
 			return cells;
+		};
+		
+		/**
+		 * Adds meta-drag an Mac.
+		 * @param evt
+		 * @returns
+		 */
+		Graph.prototype.isCloneEvent = function(evt)
+		{
+			return (mxClient.IS_MAC && mxEvent.isMetaDown(evt)) || mxEvent.isControlDown(evt);
 		};
 		
 		/**
@@ -4000,6 +4469,8 @@ if (typeof mxVertexHandler != 'undefined')
 			IMAGE_PATH + '/handle-main.png', 17, 17);
 		var fixedHandle = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAARCAYAAAA7bUf6AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NkE1NkU4Njk2QjI1MTFFNEFDMjFGQTcyODkzNTc3NkYiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6NkE1NkU4NkE2QjI1MTFFNEFDMjFGQTcyODkzNTc3NkYiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo2QTU2RTg2NzZCMjUxMUU0QUMyMUZBNzI4OTM1Nzc2RiIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo2QTU2RTg2ODZCMjUxMUU0QUMyMUZBNzI4OTM1Nzc2RiIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pmuk6K8AAAGBSURBVHjarFRBSsNQEM3/atNs6qLowixcKELoqjuXoqfQeoF6BMEj9BCC1YIXcCGlV8hGLNZlBKWlCk1JSs13Xvw/nca6UDrwmMzMy8tk/iTCWmwi52Eq53+QeWwg2bXSSNi1WiRibgRWCTahwEQmhJgw1WJGML2BC6wQnEqlsuH7fr3f7zdHo9EdPGLkUdc8mX8TJNYIpUajsR+G4YMie3pNVKebpB6GPOrgab7kr5F24Hne9ng87r6HStUuP5V1Mc2AGHnUwWMdCck6sVut1onjOHtnt4nV7M0fAuI65VEnXk3PTFq5Eyi4rnvUe1PW9fO3QOdUzvkbyqNOvEM2dMEHK2zbLr98zJ5+cJWkAvDGUC8Wi2X28Gww6bnHcTzYWp+JGAHTCQz1KIoGfFckCyZBELR3N4V1vCOyTrhHHnXw9N5kQn8+nWq1Onc6C/cERLMn7cfZniD/257wbjDxEjqiDT0fDof3tLE+PGK9HyXNy7pYyrez9K/43/+TLwEGAMb7AY6w980DAAAAAElFTkSuQmCC' :
 			IMAGE_PATH + '/handle-fixed.png', 17, 17);
+		var terminalHandle = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAARCAYAAAA7bUf6AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6MEMzRUVERTk2NzU1MTFFNTg5NjNEMjREQ0FFNENFQzgiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6MEMzRUVERUE2NzU1MTFFNTg5NjNEMjREQ0FFNENFQzgiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDowQzNFRURFNzY3NTUxMUU1ODk2M0QyNERDQUU0Q0VDOCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDowQzNFRURFODY3NTUxMUU1ODk2M0QyNERDQUU0Q0VDOCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Poj8AGUAAAF6SURBVHjarFTBSsNAEM2u2jSXeCh6sAcPilB6ys2j6Fdo/YH6CYKf0I8QrBb8AQ9S+gu5iMV6jKC0VCEJTalZ54VNnMR4ULrwmJ2Zt5PZmdkIo3yJgsRSBfmDzPUUku2VRsz2qixIehBYJZiECgsyJ0SEhQ6WBkwO8AArBKvZbG64rtsej8dd3/fvIKHDDr/myeJNYFgj2J1OZz8IggdF6+k1VoNhnEgs2OEHT/Mlv0aSQaPR2A7DcPgeKNW6/FTGxSIDdNjhB49lJCTLxOz1eieWZe2d3cZGd5RvAvQ22eEnXkvXTBqFDlTq9frR6E0Z18+qtO83ZIefeIes6IIXVpimWXv5yB8cnMqcDn+1Wq2xj2eFSfoeRdFkaz0f5OAqzunwz2azCZ8VyZS553n93U1hHO+I0uvADj94em6yQH/ujuM4ue6UzgmI6Zz0H7/nBPbf5oRng4rbyIgm9Hw6nd7TxLqQ0PV82JqXZbGUt7P0V/zv/8mXAAMASSz1f9Cd7ycAAAAASUVORK5CYII=' :
+			IMAGE_PATH + '/handle-terminal.png', 17, 17);
 		var secondaryHandle = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAARCAYAAAA7bUf6AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6MEJBMUVERjNEMkZDMTFFM0I0Qzc5RkE1RTc2NjI0OUIiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6MEJBMUVERjREMkZDMTFFM0I0Qzc5RkE1RTc2NjI0OUIiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDowQkExRURGMUQyRkMxMUUzQjRDNzlGQTVFNzY2MjQ5QiIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDowQkExRURGMkQyRkMxMUUzQjRDNzlGQTVFNzY2MjQ5QiIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PvXDOj4AAAFqSURBVHjarFTNToNAEN5FLeiBmDRe7MGLF4IXbp71KapP4CPoO/QdvKiv4ME0PkAvJI2J0SueIHgAAk3b7XxkwSlgE38mmSwz8+3HsPMtUnSbbKww1VhbYB5XbrBnpX3JnlUXSbURvk1ukvcYyYy8IJ9rsoqw3MAJtsh3Xdc98H3/KgzDuyRJHrEiRh51jTOaX4LEDrk9Go1O0zR9UWTL9E0to+dyhSGPOnAab/DPKDtwHOcoy7LXz1SpxeRSzW9F7YiRRx041pGsSMC6Ty1f442LycUawRfRsOyIcDfA632ST6A3GAzOVfYu1PS+c+5q+iBQJ9wZO3TJD1aaptkX+YfYaFS3LKvPXl4fTDn3oigiYR1uJqF6nucR14rBglkQBGO5dyzkybBbxpRHHTitm5rox9PxPK81nZZOAKx1Eo5rnSD/nU54NzhxGx1hjHEcP5FifayItT5sjVvTyJ/vzr/f4l//T1YCDAC4VAdLL1OIRAAAAABJRU5ErkJggg==' :
 			IMAGE_PATH + '/handle-secondary.png', 17, 17);
 		var rotationHandle = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,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' :
@@ -4008,6 +4479,7 @@ if (typeof mxVertexHandler != 'undefined')
 		mxVertexHandler.prototype.handleImage = mainHandle;
 		mxVertexHandler.prototype.secondaryHandleImage = secondaryHandle;
 		mxEdgeHandler.prototype.handleImage = mainHandle;
+		mxEdgeHandler.prototype.terminalHandleImage = terminalHandle;
 		mxEdgeHandler.prototype.fixedHandleImage = fixedHandle;
 		mxEdgeHandler.prototype.labelHandleImage = secondaryHandle;
 		mxOutline.prototype.sizerImage = mainHandle;
@@ -4023,6 +4495,7 @@ if (typeof mxVertexHandler != 'undefined')
 		{
 			new Image().src = mainHandle.src;
 			new Image().src = fixedHandle.src;
+			new Image().src = terminalHandle.src;
 			new Image().src = secondaryHandle.src;
 			new Image().src = rotationHandle.src;
 			
@@ -4154,14 +4627,16 @@ if (typeof mxVertexHandler != 'undefined')
 		};
 	
 		// Shows secondary handle for fixed connection points
-		mxEdgeHandler.prototype.createHandleShape = function(index)
+		mxEdgeHandler.prototype.createHandleShape = function(index, virtual)
 		{
-			var source = index == 0;
-			var c = (index == 0 || index >= this.state.absolutePoints.length - 1) ?
-				this.graph.getConnectionConstraint(this.state, this.state.getVisibleTerminalState(source), source) : null;
+			var source = index != null && index == 0;
+			var terminalState = this.state.getVisibleTerminalState(source);
+			var c = (index != null && (index == 0 || index >= this.state.absolutePoints.length - 1)) ?
+				this.graph.getConnectionConstraint(this.state, terminalState, source) : null;
 			var pt = (c != null) ? this.graph.getConnectionPoint(this.state.getVisibleTerminalState(source), c) : null;
-			var img = (pt != null) ? this.fixedHandleImage : this.handleImage;
-	
+			var img = (pt != null) ? this.fixedHandleImage : ((c != null && terminalState != null) ?
+				this.terminalHandleImage : this.handleImage);
+			
 			if (img != null)
 			{
 				var shape = new mxImageShape(new mxRectangle(0, 0, img.width, img.height), img.src);
@@ -4350,7 +4825,7 @@ if (typeof mxVertexHandler != 'undefined')
 	
 		mxVertexHandler.prototype.updateLinkHint = function(link)
 		{
-			if (link == null)
+			if (link == null || this.graph.getSelectionCount() > 1)
 			{
 				if (this.linkHint != null)
 				{

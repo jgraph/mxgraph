@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.4.0.1.
+	 * Current version is 3.4.0.2.
 	 */
-	VERSION: '3.4.0.1',
+	VERSION: '3.4.0.2',
 
 	/**
 	 * Variable: IS_IE
@@ -45,6 +45,13 @@ var mxClient =
 	 * True if the current browser is Internet Explorer 11.x.
 	 */
 	IS_IE11: !!navigator.userAgent.match(/Trident\/7\./),
+
+	/**
+	 * Variable: IS_EDGE
+	 *
+	 * True if the current browser is Microsoft Edge.
+	 */
+	IS_EDGE: navigator.userAgent.match(/Edge\//),
 
 	/**
 	 * Variable: IS_QUIRKS

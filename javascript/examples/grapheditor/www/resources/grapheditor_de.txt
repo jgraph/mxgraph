@@ -214,6 +214,7 @@ paste=Einfügen
 pasteHere=Hier einfügen
 pattern=Muster
 perimeter=Umfang
+placeholders=Platzhalter
 plusTooltip=Klicken zum Verbinden und Klonen (Ctrl-Taste gedrückt halten zum Klonen, Shift+Klick zum Verbinden). Ziehen zum verbinden (Ctrl-Taste gedrückt halten zum Klonen).
 portrait=Hochformat
 position=Position

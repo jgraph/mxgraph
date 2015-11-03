@@ -1054,6 +1054,7 @@ mxGraphView.prototype.updateCellState = function(state)
 			state.x = this.scale * (this.translate.x + state.origin.x);
 			state.y = this.scale * (this.translate.y + state.origin.y);
 			state.width = this.scale * geo.width;
+			state.unscaledWidth = geo.width;
 			state.height = this.scale * geo.height;
 			
 			if (model.isVertex(state.cell))

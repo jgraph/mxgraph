@@ -29,12 +29,6 @@ function mxElbowEdgeHandler(state)
 mxUtils.extend(mxElbowEdgeHandler, mxEdgeHandler);
 
 /**
- * Extends mxEdgeHandler.
- */
-mxElbowEdgeHandler.prototype = new mxEdgeHandler();
-mxElbowEdgeHandler.prototype.constructor = mxElbowEdgeHandler;
-
-/**
  * Specifies if a double click on the middle handle should call
  * <mxGraph.flipEdge>. Default is true.
  */
@@ -63,7 +57,7 @@ mxElbowEdgeHandler.prototype.doubleClickOrientationResource =
 	// Source
 	var bend = this.createHandleShape(0);
 	this.initBend(bend);
-	bend.setCursor(mxConstants.CURSOR_BEND_HANDLE);
+	bend.setCursor(mxConstants.CURSOR_TERMINAL_HANDLE);
 	bends.push(bend);
 
 	// Virtual
@@ -80,7 +74,7 @@ mxElbowEdgeHandler.prototype.doubleClickOrientationResource =
 	// Target
 	bend = this.createHandleShape(2);
 	this.initBend(bend);
-	bend.setCursor(mxConstants.CURSOR_BEND_HANDLE);
+	bend.setCursor(mxConstants.CURSOR_TERMINAL_HANDLE);
 	bends.push(bend);
 	
 	return bends;
@@ -222,7 +216,7 @@ mxElbowEdgeHandler.prototype.redrawInnerBends = function(p0, pe)
 	{
 		w = mxConstants.HANDLE_SIZE + 3;
 		h = mxConstants.HANDLE_SIZE + 3;
-		bounds = new mxRectangle(Math.round(pt.x - w / 2), Math.round(pt.y - h / 2), w, h);
+		bounds = new mxRectangle(Math.floor(pt.x - w / 2), Math.floor(pt.y - h / 2), w, h);
 	}
 
 	this.bends[1].bounds = bounds;

@@ -27,7 +27,7 @@ function mxVertexHandler(state)
 		// Handles escape keystrokes
 		this.escapeHandler = mxUtils.bind(this, function(sender, evt)
 		{
-			if (this.livePreview)
+			if (this.livePreview && this.index != null)
 			{
 				// Redraws the live preview
 				this.state.view.graph.cellRenderer.redraw(this.state, true);
@@ -478,8 +478,8 @@ mxVertexHandler.prototype.moveSizerTo = function(shape, x, y)
 {
 	if (shape != null)
 	{
-		shape.bounds.x = Math.round(x - shape.bounds.width / 2);
-		shape.bounds.y = Math.round(y - shape.bounds.height / 2);
+		shape.bounds.x = Math.floor(x - shape.bounds.width / 2);
+		shape.bounds.y = Math.floor(y - shape.bounds.height / 2);
 		
 		// Fixes visible inactive handles in VML
 		if (shape.node != null && shape.node.style.display != 'none')
@@ -968,8 +968,7 @@ mxVertexHandler.prototype.updateLivePreview = function(me)
 	var tr = this.graph.view.translate;
 	
 	// Saves current state
-	var tmp = new mxRectangle(this.state.x, this.state.y, this.state.width, this.state.height);
-	var orig = this.state.origin;
+	var tempState = this.state.clone();
 
 	// Temporarily changes size and origin
 	this.state.x = this.bounds.x;
@@ -977,6 +976,9 @@ mxVertexHandler.prototype.updateLivePreview = function(me)
 	this.state.origin = new mxPoint(this.state.x / scale - tr.x, this.state.y / scale - tr.y);
 	this.state.width = this.bounds.width;
 	this.state.height = this.bounds.height;
+	
+	// Needed to force update of text bounds
+	this.state.unscaledWidth = this.bounds.width / scale;
 	
 	// Redraws cell and handles
 	var off = this.state.absoluteOffset;
@@ -1010,12 +1012,7 @@ mxVertexHandler.prototype.updateLivePreview = function(me)
 	this.redrawHandles();
 	
 	// Restores current state
-	this.state.x = tmp.x;
-	this.state.y = tmp.y;
-	this.state.width = tmp.width;
-	this.state.height = tmp.height;
-	this.state.origin = orig;
-	this.state.absoluteOffset = off;
+	this.state.setState(tempState);
 };
 
 /**

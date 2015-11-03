@@ -593,7 +593,8 @@ var mxEdgeStyle =
 	{
 		// Creates array of all way- and terminalpoints
 		var pts = state.absolutePoints;
-		var tol = Math.max(1, 2 * state.view.scale);
+		var tol = Math.max(1, state.view.scale);
+		
 		// Whether the first segment outgoing from the source end is horizontal
 		var lastPushed = (result.length > 0) ? result[0] : null;
 		var horizontal = true;
@@ -602,7 +603,7 @@ var mxEdgeStyle =
 		// Adds waypoints only if outside of tolerance
 		function pushPoint(pt)
 		{
-			if (lastPushed == null || Math.abs(lastPushed.x - pt.x) > tol || Math.abs(lastPushed.y - pt.y) > tol)
+			if (lastPushed == null || Math.abs(lastPushed.x - pt.x) >= tol || Math.abs(lastPushed.y - pt.y) >= tol)
 			{
 				result.push(pt);
 				lastPushed = pt;
@@ -656,12 +657,12 @@ var mxEdgeStyle =
 			// Aligns source and target hint to fixed points
 			if (pt != null && hints[0] != null)
 			{
-				if (Math.abs(hints[0].x - pt.x) <= tol)
+				if (Math.abs(hints[0].x - pt.x) < tol)
 				{
 					hints[0].x = pt.x;
 				}
 				
-				if (Math.abs(hints[0].y - pt.y) <= tol)
+				if (Math.abs(hints[0].y - pt.y) < tol)
 				{
 					hints[0].y = pt.y;
 				}
@@ -671,12 +672,12 @@ var mxEdgeStyle =
 			
 			if (pe != null && hints[hints.length - 1] != null)
 			{
-				if (Math.abs(hints[hints.length - 1].x - pe.x) <= tol)
+				if (Math.abs(hints[hints.length - 1].x - pe.x) < tol)
 				{
 					hints[hints.length - 1].x = pe.x;
 				}
 				
-				if (Math.abs(hints[hints.length - 1].y - pe.y) <= tol)
+				if (Math.abs(hints[hints.length - 1].y - pe.y) < tol)
 				{
 					hints[hints.length - 1].y = pe.y;
 				}
@@ -860,20 +861,20 @@ var mxEdgeStyle =
 		
 		// Removes last point if inside tolerance with end point
 		if (pe != null && result[result.length - 1] != null &&
-			Math.abs(pe.x - result[result.length - 1].x) <= tol &&
-			Math.abs(pe.y - result[result.length - 1].y) <= tol)
+			Math.abs(pe.x - result[result.length - 1].x) < tol &&
+			Math.abs(pe.y - result[result.length - 1].y) < tol)
 		{
 			result.splice(result.length - 1, 1);
 			
 			// Lines up second last point in result with end point
 			if (result[result.length - 1] != null)
 			{
-				if (Math.abs(result[result.length - 1].x - pe.x) <= tol)
+				if (Math.abs(result[result.length - 1].x - pe.x) < tol)
 				{
 					result[result.length - 1].x = pe.x;
 				}
 				
-				if (Math.abs(result[result.length - 1].y - pe.y) <= tol)
+				if (Math.abs(result[result.length - 1].y - pe.y) < tol)
 				{
 					result[result.length - 1].y = pe.y;
 				}

@@ -306,6 +306,7 @@ mxGuide.prototype.move = function(bounds, delta, gridEnabled)
 				this.guideX.points = [new mxPoint(valueX, -this.graph.panDy), new mxPoint(valueX, c.scrollHeight - 3 - this.graph.panDy)];
 			}
 			
+			this.guideX.stroke = this.getGuideColor(stateX, true);
 			this.guideX.node.style.visibility = 'visible';
 			this.guideX.redraw();
 		}
@@ -331,6 +332,7 @@ mxGuide.prototype.move = function(bounds, delta, gridEnabled)
 				this.guideY.points = [new mxPoint(-this.graph.panDx, valueY), new mxPoint(c.scrollWidth - 3 - this.graph.panDx, valueY)];
 			}
 			
+			this.guideY.stroke = this.getGuideColor(stateY, false);
 			this.guideY.node.style.visibility = 'visible';
 			this.guideY.redraw();
 		}
@@ -339,6 +341,16 @@ mxGuide.prototype.move = function(bounds, delta, gridEnabled)
 	}
 	
 	return delta;
+};
+
+/**
+ * Function: hide
+ * 
+ * Hides all current guides.
+ */
+mxGuide.prototype.getGuideColor = function(state, horizontal)
+{
+	return mxConstants.GUIDE_COLOR;
 };
 
 /**

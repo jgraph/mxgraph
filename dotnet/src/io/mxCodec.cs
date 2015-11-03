@@ -9,7 +9,12 @@ namespace com.mxgraph
     /// <summary>
     /// XML codec for .NET object graphs. In order to resolve forward references
     /// when reading files the XML document that contains the data must be passed
-    /// to the constructor.
+    /// to the constructor. Here is an example for parsing an existing XML document
+    /// into a graph model:
+    /// 
+    /// mxCodec codec = new mxCodec(doc);
+    /// mxGraph graph = new mxGraph();
+    /// codec.Decode(doc.DocumentElement, graph.Model);
     /// </summary>
     public class mxCodec
     {

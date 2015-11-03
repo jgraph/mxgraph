@@ -214,6 +214,7 @@ paste=Paste
 pasteHere=Paste Here
 pattern=Pattern
 perimeter=Perimeter
+placeholders=Placeholders
 plusTooltip=Click to connect and clone (ctrl+click to clone, shift+click to connect). Drag to connect (ctrl+drag to clone).
 portrait=Portrait
 position=Position

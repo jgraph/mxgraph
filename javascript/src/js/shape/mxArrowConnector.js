@@ -49,6 +49,14 @@ function mxArrowConnector(points, fill, stroke, strokewidth, arrowWidth, spacing
 mxUtils.extend(mxArrowConnector, mxShape);
 
 /**
+ * Variable: useSvgBoundingBox
+ * 
+ * Allows to use the SVG bounding box in SVG. Default is false for performance
+ * reasons.
+ */
+mxArrowConnector.prototype.useSvgBoundingBox = true;
+
+/**
  * Overrides apply to get smooth transition from default start- and endsize.
  */
 mxArrowConnector.prototype.apply = function(state)

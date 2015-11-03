@@ -118,6 +118,14 @@
 	SHADOWCOLOR: 'gray',
 
 	/**
+	 * Variable: VML_SHADOWCOLOR
+	 * 
+	 * Used for shadow color in filters where transparency is not supported
+	 * (Microsoft Internet Explorer). Default is gray.
+	 */
+	VML_SHADOWCOLOR: 'gray',
+
+	/**
 	 * Variable: SHADOW_OFFSET_X
 	 * 
 	 * Specifies the x-offset of the shadow. Default is 2.
@@ -452,9 +460,9 @@
 	/**
 	 * Variable: HANDLE_SIZE
 	 * 
-	 * Defines the default size for handles. Default is 7.
+	 * Defines the default size for handles. Default is 6.
 	 */
-	HANDLE_SIZE: 7,
+	HANDLE_SIZE: 6,
 
 	/**
 	 * Variable: LABEL_HANDLE_SIZE
