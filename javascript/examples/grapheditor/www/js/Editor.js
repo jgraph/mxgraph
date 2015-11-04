@@ -250,6 +250,7 @@ Editor.prototype.readGraphState = function(node)
 	this.graph.graphHandler.guidesEnabled = node.getAttribute('guides') != '0';
 	this.graph.setTooltips(node.getAttribute('tooltips') != '0');
 	this.graph.setConnectable(node.getAttribute('connect') != '0');
+	this.graph.connectionArrowsEnabled = node.getAttribute('arrows') != '0';
 	this.graph.foldingEnabled = node.getAttribute('fold') != '0';
 
 	if (this.chromeless && this.graph.foldingEnabled)
@@ -388,7 +389,8 @@ Editor.prototype.getGraphXml = function(ignoreSelection)
 	node.setAttribute('gridSize', this.graph.gridSize);
 	node.setAttribute('guides', (this.graph.graphHandler.guidesEnabled) ? '1' : '0');
 	node.setAttribute('tooltips', (this.graph.tooltipHandler.isEnabled()) ? '1' : '0');
-	node.setAttribute('connect', (this.graph.connectionHandler.isEnabled()) ? '1' : '0');	
+	node.setAttribute('connect', (this.graph.connectionHandler.isEnabled()) ? '1' : '0');
+	node.setAttribute('arrows', (this.graph.connectionArrowsEnabled) ? '1' : '0');
 	node.setAttribute('fold', (this.graph.foldingEnabled) ? '1' : '0');
 	node.setAttribute('page', (this.graph.pageVisible) ? '1' : '0');
 	node.setAttribute('pageScale', this.graph.pageScale);

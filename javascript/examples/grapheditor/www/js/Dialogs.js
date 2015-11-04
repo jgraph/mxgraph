@@ -483,11 +483,13 @@ var PageSetupDialog = function(editorUi)
 	var portraitCheckBox = document.createElement('input');
 	portraitCheckBox.setAttribute('name', 'format');
 	portraitCheckBox.setAttribute('type', 'radio');
+	portraitCheckBox.setAttribute('value', 'portrait');
 	
 	var landscapeCheckBox = document.createElement('input');
 	landscapeCheckBox.setAttribute('name', 'format');
 	landscapeCheckBox.setAttribute('type', 'radio');
-
+	landscapeCheckBox.setAttribute('value', 'landscape');
+	
 	var formatRow = document.createElement('tr');
 	formatRow.style.display = 'none';
 	
@@ -499,7 +501,7 @@ var PageSetupDialog = function(editorUi)
 	var detected = false;
 	var pf = new Object();
 	var formats = PageSetupDialog.getFormats();
-	
+
 	for (var i = 0; i < formats.length; i++)
 	{
 		var f = formats[i];
@@ -524,20 +526,19 @@ var PageSetupDialog = function(editorUi)
 			{
 				paperSizeOption.setAttribute('selected', 'selected');
 				landscapeCheckBox.setAttribute('checked', 'checked');
-				landscapeCheckBox.defaultChecked = true;
+				portraitCheckBox.defaultChecked = true;
 				formatRow.style.display = '';
 				detected = true;
 			}
 		}
+		// Selects custom format which is last in list
+		else if (!detected)
+		{
+			paperSizeOption.setAttribute('selected', 'selected');
+			customRow.style.display = '';
+		}
 	}
-
-	// Selects custom format which is last in list
-	if (!detected)
-	{
-		paperSizeOption.setAttribute('selected', 'selected');
-		customRow.style.display = '';
-	}
-
+	
 	td = document.createElement('td');
 	td.style.fontSize = '10pt';
 	td.appendChild(paperSizeSelect);
@@ -546,13 +547,13 @@ var PageSetupDialog = function(editorUi)
 	tbody.appendChild(row);
 	
 	formatRow = document.createElement('tr');
-	formatRow.style.height = '60px';
+	formatRow.style.height = '40px';
 	td = document.createElement('td');
 	formatRow.appendChild(td);
 
 	td = document.createElement('td');
 	td.style.fontSize = '10pt';
-
+	
 	td.appendChild(portraitCheckBox);
 	var span = document.createElement('span');
 	mxUtils.write(span, ' ' + mxResources.get('portrait'));
@@ -601,7 +602,7 @@ var PageSetupDialog = function(editorUi)
 	mxUtils.write(td, ' pt');
 	
 	customRow.appendChild(td);
-	customRow.style.height = '60px';
+	customRow.style.height = formatRow.style.height;
 	tbody.appendChild(customRow);
 	
 	var updateInputs = function()
@@ -626,10 +627,124 @@ var PageSetupDialog = function(editorUi)
 	updateInputs();
 	
 	row = document.createElement('tr');
+	
+	td = document.createElement('td');
+	mxUtils.write(td, mxResources.get('background') + ':');
+	
+	row.appendChild(td);
+	
+	td = document.createElement('td');
+	td.style.whiteSpace = 'nowrap';
+	
+	var backgroundInput = document.createElement('input');
+	backgroundInput.setAttribute('type', 'text');
+	var backgroundButton = document.createElement('button');
+	
+	backgroundButton.style.width = '18px';
+	backgroundButton.style.height = '18px';
+	backgroundButton.style.marginRight = '20px';
+	backgroundButton.style.backgroundPosition = 'center center';
+	backgroundButton.style.backgroundRepeat = 'no-repeat';
+	
+	var newBackgroundColor = graph.background;
+	
+	function updateBackgroundColor()
+	{
+		if (newBackgroundColor == null || newBackgroundColor == mxConstants.NONE)
+		{
+			backgroundButton.style.backgroundColor = '';
+			backgroundButton.style.backgroundImage = 'url(\'' + Dialog.prototype.noColorImage + '\')';
+		}
+		else
+		{
+			backgroundButton.style.backgroundColor = newBackgroundColor;
+			backgroundButton.style.backgroundImage = '';
+		}
+	};
+	
+	updateBackgroundColor();
+
+	mxEvent.addListener(backgroundButton, 'click', function(evt)
+	{
+		editorUi.pickColor(newBackgroundColor || 'none', function(color)
+		{
+			newBackgroundColor = color;
+			updateBackgroundColor();
+		});
+		mxEvent.consume(evt);
+	});
+	
+	td.appendChild(backgroundButton);
+	
+	mxUtils.write(td, mxResources.get('gridSize') + ':');
+	
+	var gridSizeInput = document.createElement('input');
+	gridSizeInput.setAttribute('type', 'number');
+	gridSizeInput.setAttribute('min', '0');
+	gridSizeInput.style.width = '40px';
+	gridSizeInput.style.marginLeft = '6px';
+	
+	gridSizeInput.value = graph.getGridSize();
+	td.appendChild(gridSizeInput);
+	
+	row.appendChild(td);
+	tbody.appendChild(row);
+	
+	row = document.createElement('tr');
+	td = document.createElement('td');
+	
+	mxUtils.write(td, mxResources.get('image') + ':');
+	
+	row.appendChild(td);
+	td = document.createElement('td');
+	
+	var changeImageLink = document.createElement('a');
+	changeImageLink.style.textDecoration = 'underline';
+	changeImageLink.style.cursor = 'pointer';
+	changeImageLink.style.color = '#a0a0a0';
+	
+	var newBackgroundImage = graph.backgroundImage;
+	
+	function updateBackgroundImage()
+	{
+		if (newBackgroundImage == null)
+		{
+			changeImageLink.removeAttribute('title');
+			changeImageLink.style.fontSize = '';
+			changeImageLink.innerHTML = mxResources.get('change') + '...';
+		}
+		else
+		{
+			changeImageLink.setAttribute('title', newBackgroundImage.src);
+			changeImageLink.style.fontSize = '11px';
+			changeImageLink.innerHTML = newBackgroundImage.src.substring(0, 42) + '...';
+		}
+	};
+	
+	mxEvent.addListener(changeImageLink, 'click', function(evt)
+	{
+		editorUi.showBackgroundImageDialog(function(image)
+		{
+			newBackgroundImage = image;
+			updateBackgroundImage();
+		});
+		
+		mxEvent.consume(evt);
+	});
+	
+	updateBackgroundImage();
+
+	td.appendChild(changeImageLink);
+	
+	row.appendChild(td);
+	tbody.appendChild(row);
+	
+	row = document.createElement('tr');
 	td = document.createElement('td');
 	td.colSpan = 2;
+	td.style.paddingTop = '16px';
 	td.setAttribute('align', 'right');
-	
+
 	var cancelBtn = mxUtils.button(mxResources.get('cancel'), function()
 	{
 		editorUi.hideDialog();
@@ -657,21 +772,35 @@ var PageSetupDialog = function(editorUi)
 		{
 			size = new mxRectangle(0, 0, size.height, size.width);
 		}
-		
+
 		editorUi.setPageFormat(size);
+		
+		if (graph.background != newBackgroundColor)
+		{
+			editorUi.setBackgroundColor(newBackgroundColor);
+		}
+		
+		if (graph.backgroundImage !== newBackgroundImage)
+		{
+			editorUi.setBackgroundImage(newBackgroundImage);
+		}
+		
+		if (graph.gridSize !== gridSizeInput.value)
+		{
+			graph.gridSize = parseFloat(gridSizeInput.value);
+		}
 	});
 	applyBtn.className = 'geBtn gePrimaryBtn';
 	td.appendChild(applyBtn);
-	
+
 	if (!editorUi.editor.cancelFirst)
 	{
 		td.appendChild(cancelBtn);
 	}
-
+	
 	row.appendChild(td);
 	tbody.appendChild(row);
 	
-	tbody.appendChild(row);
 	table.appendChild(tbody);
 	this.container = table;
 };
@@ -1151,7 +1280,7 @@ var TextareaDialog = function(editorUi, title, url, fn, cancelFn, cancelTitle, w
 /**
  * Constructs a new edit file dialog.
  */
-var EditFileDialog = function(editorUi)
+var EditDiagramDialog = function(editorUi)
 {
 	var div = document.createElement('div');
 	div.style.textAlign = 'right';
@@ -1781,7 +1910,7 @@ ExportDialog.getExportParameter = function(ui, format)
 /**
  * Constructs a new metadata dialog.
  */
-var MetadataDialog = function(ui, cell)
+var EditDataDialog = function(ui, cell)
 {
 	var div = document.createElement('div');
 	var graph = ui.editor.graph;
@@ -2049,12 +2178,14 @@ var MetadataDialog = function(ui, cell)
 		replace.appendChild(input);
 		mxUtils.write(replace, mxResources.get('placeholders'));
 		
-		if (MetadataDialog.placeholderHelpLink != null)
+		if (EditDataDialog.placeholderHelpLink != null)
 		{
 			var link = document.createElement('a');
-			link.setAttribute('href', MetadataDialog.placeholderHelpLink);
+			link.setAttribute('href', EditDataDialog.placeholderHelpLink);
+			link.setAttribute('title', mxResources.get('help'));
 			link.setAttribute('target', '_blank');
-			link.style.marginLeft = '6px';
+			link.style.marginLeft = '10px';
+			link.style.cursor = 'pointer';
 			mxUtils.write(link, '?');
 			
 			replace.appendChild(link);
@@ -2081,7 +2212,7 @@ var MetadataDialog = function(ui, cell)
 /**
  * Optional help link.
  */
-MetadataDialog.placeholderHelpLink = null;
+EditDataDialog.placeholderHelpLink = null;
 
 /**
  * Constructs a new link dialog.

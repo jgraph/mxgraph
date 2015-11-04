@@ -68,13 +68,13 @@ Actions.prototype.init = function()
 	this.addAction('save', function() { ui.saveFile(false); }, null, null, 'Ctrl+S').isEnabled = isGraphEnabled;
 	this.addAction('saveAs...', function() { ui.saveFile(true); }, null, null, 'Ctrl+Shift+S').isEnabled = isGraphEnabled;
 	this.addAction('export...', function() { ui.showDialog(new ExportDialog(ui).container, 300, 210, true, true); });
-	this.addAction('editFile...', function()
+	this.addAction('editDiagram...', function()
 	{
-		var dlg = new EditFileDialog(ui);
+		var dlg = new EditDiagramDialog(ui);
 		ui.showDialog(dlg.container, 620, 420, true, true);
 		dlg.init();
 	}).isEnabled = isGraphEnabled;
-	this.addAction('pageSetup...', function() { ui.showDialog(new PageSetupDialog(ui).container, 320, 120, true, true); }).isEnabled = isGraphEnabled;
+	this.addAction('pageSetup...', function() { ui.showDialog(new PageSetupDialog(ui).container, 320, 220, true, true); }).isEnabled = isGraphEnabled;
 	this.addAction('print...', function() { ui.showDialog(new PrintDialog(ui).container, 300, 140, true, true); }, null, 'sprite-print', 'Ctrl+P');
 	this.addAction('preview', function() { mxUtils.show(graph, null, 10, 10); });
 	
@@ -228,13 +228,13 @@ Actions.prototype.init = function()
 	}, null, null, 'Ctrl+Shift+U');
 	this.addAction('removeFromGroup', function() { graph.removeCellsFromParent(); });
 	// Adds action
-	this.addAction('editMetadata...', function()
+	this.addAction('editData...', function()
 	{
 		var cell = graph.getSelectionCell() || graph.getModel().getRoot();
 		
 		if (cell != null)
 		{
-			var dlg = new MetadataDialog(ui, cell);
+			var dlg = new EditDataDialog(ui, cell);
 			ui.showDialog(dlg.container, 320, 320, true, false);
 			dlg.init();
 		}
@@ -665,13 +665,13 @@ Actions.prototype.init = function()
 			ui.setBackgroundColor(color);
 		});
 	}));
-	action = this.addAction('connect', function()
+	action = this.addAction('connectionArrows', function()
 	{
-		ui.hoverIcons.enabled = !ui.hoverIcons.enabled;
-		ui.fireEvent(new mxEventObject('connectChanged'));
+		graph.connectionArrowsEnabled = !graph.connectionArrowsEnabled;
+		ui.fireEvent(new mxEventObject('connectionArrowsChanged'));
 	}, null, null, 'Ctrl+Q');
 	action.setToggleAction(true);
-	action.setSelectedCallback(function() { return ui.hoverIcons.enabled; });
+	action.setSelectedCallback(function() { return graph.connectionArrowsEnabled; });
 	action = this.addAction('connectionPoints', function()
 	{
 		graph.setConnectable(!graph.connectionHandler.isEnabled());

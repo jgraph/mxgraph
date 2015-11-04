@@ -1023,6 +1023,11 @@ EditorUi.prototype.init = function()
 	this.updateActionStates();
 	this.initClipboard();
 	this.initCanvas();
+	
+	if (this.format != null)
+	{
+		this.format.init();
+	}
 };
 
 /**
@@ -2753,6 +2758,50 @@ EditorUi.prototype.showLinkDialog = function(value, btnLabel, fn)
 };
 
 /**
+ * Hides the current menu.
+ */
+EditorUi.prototype.showBackgroundImageDialog = function(apply)
+{
+	apply = (apply != null) ? apply : mxUtils.bind(this, function(image)
+	{
+		this.setBackgroundImage(image);
+	});
+	var newValue = mxUtils.prompt(mxResources.get('backgroundImage'), '');
+	
+	if (newValue != null && newValue.length > 0)
+	{
+		var img = new Image();
+		
+		img.onload = function()
+		{
+			apply(new mxImage(newValue, img.width, img.height));
+		};
+		img.onerror = function()
+		{
+			apply(null);
+			mxUtils.alert(mxResources.get('fileNotFound'));
+		};
+		
+		img.src = newValue;
+	}
+	else
+	{
+		apply(null);
+	}
+};
+
+/**
+ * Loads the stylesheet for this graph.
+ */
+EditorUi.prototype.setBackgroundImage = function(image)
+{
+	this.editor.graph.setBackgroundImage(image);
+	this.editor.graph.view.validateBackgroundImage();
+
+	this.fireEvent(new mxEventObject('backgroundImageChanged'));
+};
+
+/**
  * Creates the keyboard event handler for the current graph and history.
  */
 EditorUi.prototype.confirm = function(msg, okFn, cancelFn)
@@ -3061,11 +3110,11 @@ EditorUi.prototype.createKeyHandler = function(editor)
 	keyHandler.bindAction(89, true, 'autosize', true); // Ctrl+Shift+Y
 	keyHandler.bindAction(88, true, 'cut'); // Ctrl+X
 	keyHandler.bindAction(67, true, 'copy'); // Ctrl+C
-	keyHandler.bindAction(81, true, 'connect'); // Ctrl+Q
+	keyHandler.bindAction(81, true, 'connectionArrows'); // Ctrl+Q
 	keyHandler.bindAction(81, true, 'connectionPoints', true); // Ctrl+Shift+Q
 	keyHandler.bindAction(86, true, 'paste'); // Ctrl+V
 	keyHandler.bindAction(71, true, 'group'); // Ctrl+G
-	keyHandler.bindAction(77, true, 'editMetadata'); // Ctrl+M
+	keyHandler.bindAction(77, true, 'editData'); // Ctrl+M
 	keyHandler.bindAction(71, true, 'grid', true); // Ctrl+Shift+G
 	keyHandler.bindAction(73, true, 'italic'); // Ctrl+I
 	keyHandler.bindAction(76, true, 'lockUnlock'); // Ctrl+L

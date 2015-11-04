@@ -725,6 +725,11 @@ Graph.prototype.defaultEdgeLength = 100;
 Graph.prototype.edgeMode = false;
 
 /**
+ * Allows all values in fit.
+ */
+Graph.prototype.connectionArrowsEnabled = true;
+
+/**
  * Specifies the regular expression for matching placeholders.
  */
 Graph.prototype.placeholderPattern = new RegExp('%(date\{.*\}|[^%^\{^\}]+)%', 'g');
@@ -1676,11 +1681,6 @@ HoverIcons = function(graph)
 /**
  * Up arrow.
  */
-HoverIcons.prototype.enabled = true;
-
-/**
- * Up arrow.
- */
 HoverIcons.prototype.arrowSpacing = 6;
 
 /**
@@ -2306,7 +2306,7 @@ HoverIcons.prototype.getState = function(state)
  */
 HoverIcons.prototype.update = function(state, x, y)
 {
-	if (!this.enabled)
+	if (!this.graph.connectionArrowsEnabled)
 	{
 		this.reset();
 	}
@@ -3343,12 +3343,18 @@ if (typeof mxVertexHandler != 'undefined')
 			crisp = (crisp != null) ? crisp : true;
 			ignoreSelection = (ignoreSelection != null) ? ignoreSelection : true;
 			showText = (showText != null) ? showText : true;
-			
-			var imgExport = new mxImageExport();
+
 			var bounds = (nocrop) ? this.view.getBackgroundPageBounds() : (ignoreSelection) ?
 					this.getGraphBounds() : this.getBoundingBox(this.getSelectionCells());
+
+			if (bounds == null || bounds.width == 0 || bounds.height == 0)
+			{
+				throw Error(mxResources.get('drawingEmpty'));	
+			}
+			
+			var imgExport = new mxImageExport();
 			var vs = this.view.scale;
-		
+			
 			// Prepares SVG document that holds the output
 			var svgDoc = mxUtils.createXmlDocument();
 			var root = (svgDoc.createElementNS != null) ?

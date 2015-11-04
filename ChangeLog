@@ -1,3 +1,8 @@
+04-NOV-2015: 3.4.0.3
+
+- Fixes init sequence for format panel
+- Fixes NPE in grapheditor example
+
 03-NOV-2015: 3.4.0.2
 
 - Fixes drawing of page breaks in mxGraph.updatePageBreaks [JavaScript]

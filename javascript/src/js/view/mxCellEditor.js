@@ -591,11 +591,11 @@ mxCellEditor.prototype.resize = function()
 			var oh = this.textarea.scrollHeight;
 			
 			// TODO: Update CSS width and height if smaller than minResize or remove minResize
-			if (this.minResize != null)
-			{
-				//ow = Math.max(ow, this.minResize.width);
-				//oh = Math.max(oh, this.minResize.height);
-			}
+			//if (this.minResize != null)
+			//{
+			//	ow = Math.max(ow, this.minResize.width);
+			//	oh = Math.max(oh, this.minResize.height);
+			//}
 			
 			// LATER: Keep in visible area, add fine tuning for pixel precision
 			if (document.documentMode == 8)

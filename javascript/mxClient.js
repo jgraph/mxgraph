@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.4.0.2.
+	 * Current version is 3.4.0.3.
 	 */
-	VERSION: '3.4.0.2',
+	VERSION: '3.4.0.3',
 
 	/**
 	 * Variable: IS_IE
@@ -9259,8 +9259,6 @@ var mxEvent =
 		{
 	        return evt.button === 1;
 	    }
-		
-		return false;
 	},
 	
 	/**
@@ -9280,8 +9278,6 @@ var mxEvent =
 		{
 	        return evt.button === 4;
 	    }
-		
-		return false;
 	},
 	
 	/**
@@ -9301,8 +9297,6 @@ var mxEvent =
 		{
 	        return evt.button === 2;
 	    }
-		
-		return false;
 	},
 
 	/**
@@ -45796,11 +45790,11 @@ mxCellEditor.prototype.resize = function()
 			var oh = this.textarea.scrollHeight;
 			
 			// TODO: Update CSS width and height if smaller than minResize or remove minResize
-			if (this.minResize != null)
-			{
-				//ow = Math.max(ow, this.minResize.width);
-				//oh = Math.max(oh, this.minResize.height);
-			}
+			//if (this.minResize != null)
+			//{
+			//	ow = Math.max(ow, this.minResize.width);
+			//	oh = Math.max(oh, this.minResize.height);
+			//}
 			
 			// LATER: Keep in visible area, add fine tuning for pixel precision
 			if (document.documentMode == 8)

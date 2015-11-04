@@ -496,8 +496,6 @@ var mxEvent =
 		{
 	        return evt.button === 1;
 	    }
-		
-		return false;
 	},
 	
 	/**
@@ -517,8 +515,6 @@ var mxEvent =
 		{
 	        return evt.button === 4;
 	    }
-		
-		return false;
 	},
 	
 	/**
@@ -538,8 +534,6 @@ var mxEvent =
 		{
 	        return evt.button === 2;
 	    }
-		
-		return false;
 	},
 
 	/**
