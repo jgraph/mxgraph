@@ -275,6 +275,21 @@
 	 * Default is 3.
 	 */
 	HIGHLIGHT_STROKEWIDTH: 3,
+
+	/**
+	 * Variable: CONSTRAINT_HIGHLIGHT_SIZE
+	 * 
+	 * Size of the constraint highlight (in px). Default is 2.
+	 */
+	HIGHLIGHT_SIZE: 2,
+	
+	/**
+	 * Variable: HIGHLIGHT_OPACITY
+	 * 
+	 * Opacity (in %) used for the highlights (including outline).
+	 * Default is 100.
+	 */
+	HIGHLIGHT_OPACITY: 100,
 	
 	/**
 	 * Variable: CURSOR_MOVABLE_VERTEX
@@ -774,7 +789,9 @@
 	 * the label so that it does not overlap the vertex bounds. A value of
 	 * 'fill' will use the vertex bounds and a value of 'width' will use the
 	 * the vertex width for the label. See <mxGraph.isLabelClipped>. Note that
-	 * the vertical alignment is ignored for overflow fill. Value is "overflow".
+	 * the vertical alignment is ignored for overflow fill and for horizontal
+	 * alignment, left should be used to avoid pixel offsets in Internet Explorer
+	 * 11 and earlier or if foreignObjects are disabled. Value is "overflow".
 	 */
 	STYLE_OVERFLOW: 'overflow',
 
@@ -1858,6 +1875,13 @@
 	ARROW_CLASSIC: 'classic',
 
 	/**
+	 * Variable: ARROW_CLASSIC_THIN
+	 * 
+	 * Constant for thin classic arrow markers.
+	 */
+	ARROW_CLASSIC_THIN: 'classicThin',
+
+	/**
 	 * Variable: ARROW_BLOCK
 	 * 
 	 * Constant for block arrow markers.
@@ -1865,11 +1889,25 @@
 	ARROW_BLOCK: 'block',
 
 	/**
+	 * Variable: ARROW_BLOCK_THIN
+	 * 
+	 * Constant for thin block arrow markers.
+	 */
+	ARROW_BLOCK_THIN: 'blockThin',
+
+	/**
 	 * Variable: ARROW_OPEN
 	 * 
 	 * Constant for open arrow markers.
 	 */
 	ARROW_OPEN: 'open',
+
+	/**
+	 * Variable: ARROW_OPEN_THIN
+	 * 
+	 * Constant for thin open arrow markers.
+	 */
+	ARROW_OPEN_THIN: 'openThin',
 
 	/**
 	 * Variable: ARROW_OVAL
@@ -1886,9 +1924,9 @@
 	ARROW_DIAMOND: 'diamond',
 
 	/**
-	 * Variable: ARROW_DIAMOND
+	 * Variable: ARROW_DIAMOND_THIN
 	 * 
-	 * Constant for diamond arrow markers.
+	 * Constant for thin diamond arrow markers.
 	 */
 	ARROW_DIAMOND_THIN: 'diamondThin',
 

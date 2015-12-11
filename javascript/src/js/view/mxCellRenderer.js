@@ -956,13 +956,14 @@ mxCellRenderer.prototype.getLabelBounds = function(state)
 		
 		if (sc != mxConstants.NONE && sc != '')
 		{
-			var s = parseFloat(mxUtils.getValue(state.style, mxConstants.STYLE_STROKEWIDTH, 1)) * scale / 2;
-			var s2 = 2 * s + 0.5;
-
-			bounds.x += s;
-			bounds.y += s;
-			bounds.width -= s2;
-			bounds.height -= s2;
+			var s = parseFloat(mxUtils.getValue(state.style, mxConstants.STYLE_STROKEWIDTH, 1)) * scale;
+			var dx = 1 + Math.floor((s - 1) / 2);
+			var dh = Math.floor(s + 1);
+			
+			bounds.x += dx;
+			bounds.y += dx;
+			bounds.width -= dh;
+			bounds.height -= dh;
 		}
 	}
 
@@ -1018,8 +1019,8 @@ mxCellRenderer.prototype.getLabelBounds = function(state)
  */
 mxCellRenderer.prototype.rotateLabelBounds = function(state, bounds)
 {
-	bounds.x -= state.text.margin.x * bounds.width;
 	bounds.y -= state.text.margin.y * bounds.height;
+	bounds.x -= state.text.margin.x * bounds.width;
 	
 	if (!this.legacySpacing || (state.style[mxConstants.STYLE_OVERFLOW] != 'fill' && state.style[mxConstants.STYLE_OVERFLOW] != 'width'))
 	{

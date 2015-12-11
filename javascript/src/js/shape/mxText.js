@@ -675,58 +675,10 @@ mxText.prototype.updateHtmlTransform = function()
 		mxUtils.setPrefixedStyle(style, 'transform', 'scale(' + this.scale + ')' +
 			'translate(' + (dx * 100) + '%' + ',' + (dy * 100) + '%)');
 	}
-	
-	// Workaround for rendering offsets
-	var dy = 0;
-	
-	if (this.overflow != 'fill')
-	{
-		if (document.documentMode >= 10 && this.valign != mxConstants.ALIGN_TOP)
-		{
-			dy += 1;
-		}
-		else if (document.documentMode == 9 && this.valign == mxConstants.ALIGN_BOTTOM)
-		{
-			dy += 1;
-		}
-		else if (mxClient.IS_MAC && !mxClient.IS_OP && mxClient.IS_GC)
-		{
-			if (mxClient.IS_MAC)
-			{
-				if (this.valign == mxConstants.ALIGN_BOTTOM)
-				{
-					dy += 2;
-				}
-				else
-				{
-					dy += 1;
-				}
-			}
-			else if (this.valign == mxConstants.ALIGN_BOTTOM)
-			{
-				dy += 1;
-			}
-		}
-		else if (mxClient.IS_MAC && mxClient.IS_FF)
-		{
-			if (this.valign == mxConstants.ALIGN_BOTTOM)
-			{
-				dy += 2;
-			}
-			else if (this.valign == mxConstants.ALIGN_MIDDLE)
-			{
-				dy += 1;
-			}
-		}
-		else if (!mxClient.IS_MAC && (mxClient.IS_GC || mxClient.IS_FF) &&
-				this.valign == mxConstants.ALIGN_BOTTOM) // includes Opera
-		{
-			dy += 1;
-		}
-	}
 
-	style.left = Math.round(this.bounds.x) + 'px';
-	style.top = Math.round(this.bounds.y + dy) + 'px';
+	style.left = Math.round(this.bounds.x - Math.ceil(dx * ((this.overflow != 'fill' &&
+		this.overflow != 'width') ? 3 : 1))) + 'px';
+	style.top = Math.round(this.bounds.y - dy * ((this.overflow != 'fill') ? 3 : 1)) + 'px';
 	
 	if (this.opacity < 100)
 	{
@@ -852,13 +804,25 @@ mxText.prototype.updateHtmlFilter = function()
 	{
 		oh = Math.min(oh, this.bounds.height);
 	}
+
+	var w = this.bounds.width / s;
+	var h = this.bounds.height / s;
+
+	// Handles special case for live preview with no wrapper DIV and no textDiv
+	if (this.overflow == 'fill')
+	{
+		oh = h;
+		ow = w;
+	}
+	else if (this.overflow == 'width')
+	{
+		oh = sizeDiv.scrollHeight;
+		ow = w;
+	}
 	
 	// Stores for later use
 	this.offsetWidth = ow;
 	this.offsetHeight = oh;
-	
-	var w = this.bounds.width / s;
-	var h = this.bounds.height / s;
 	
 	// Simulates max-height CSS in quirks mode
 	if (mxClient.IS_QUIRKS && (this.clipped || (this.overflow == 'width' && h > 0)))
@@ -1109,8 +1073,8 @@ mxText.prototype.updateFont = function(node)
  */
 mxText.prototype.updateSize = function(node, enableWrap)
 {
-	var w = Math.round(this.bounds.width / this.scale);
-	var h = Math.round(this.bounds.height / this.scale);
+	var w = Math.max(0, Math.round(this.bounds.width / this.scale));
+	var h = Math.max(0, Math.round(this.bounds.height / this.scale));
 	var style = node.style;
 	
 	// NOTE: Do not use maxWidth here because wrapping will
@@ -1131,14 +1095,15 @@ mxText.prototype.updateSize = function(node, enableWrap)
 	}
 	else if (this.overflow == 'fill')
 	{
+		style.width = (w + 1) + 'px';
+		style.height = (h + 1) + 'px';
 		style.overflow = 'hidden';
-		style.width = w + 'px';
-		style.height = h + 'px';
 	}
 	else if (this.overflow == 'width')
 	{
-		style.width = w + 'px';
-		style.maxHeight = h + 'px';
+		style.width = (w + 1) + 'px';
+		style.maxHeight = (h + 1) + 'px';
+		style.overflow = 'hidden';
 	}
 	
 	if (this.wrap && w > 0)
@@ -1146,7 +1111,7 @@ mxText.prototype.updateSize = function(node, enableWrap)
 		style.whiteSpace = 'normal';
 		style.width = w + 'px';
 
-		if (enableWrap && this.overflow != 'fill')
+		if (enableWrap && this.overflow != 'fill' && this.overflow != 'width')
 		{
 			var sizeDiv = node;
 			

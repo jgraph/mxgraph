@@ -599,11 +599,7 @@ Toolbar.prototype.createTextToolbar = function()
  */
 Toolbar.prototype.hideMenu = function()
 {
-	if (this.currentMenu != null)
-	{
-		this.currentMenu.hideMenu();
-		this.currentMenu.destroy();
-	}
+	this.editorUi.hideCurrentMenu();
 };
 
 /**
@@ -845,8 +841,7 @@ Toolbar.prototype.addMenuHandler = function(elt, showLabels, funct, showAll)
 				
 				var offset = mxUtils.getOffset(elt);
 				menu.popup(offset.x, offset.y + elt.offsetHeight, null, evt);
-				this.currentMenu = menu;
-				this.currentElt = elt;
+				this.editorUi.setCurrentMenu(menu, elt);
 				
 				// Extends destroy to reset global state
 				menu.addListener(mxEvent.EVENT_HIDE, mxUtils.bind(this, function()

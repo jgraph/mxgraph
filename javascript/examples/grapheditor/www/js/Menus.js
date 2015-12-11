@@ -1112,17 +1112,6 @@ function Menubar(editorUi, container)
 {
 	this.editorUi = editorUi;
 	this.container = container;
-	
-	// Global handler to hide the current menu
-	this.gestureHandler = mxUtils.bind(this, function(evt)
-	{
-		if (this.currentMenu != null && mxEvent.getSource(evt) != this.currentMenu.div)
-		{
-			this.hideMenu();
-		}
-	});
-	
-	mxEvent.addGestureListeners(document, this.gestureHandler);
 };
 
 /**
@@ -1130,10 +1119,7 @@ function Menubar(editorUi, container)
  */
 Menubar.prototype.hideMenu = function()
 {
-	if (this.currentMenu != null)
-	{
-		this.currentMenu.hideMenu();
-	}
+	this.editorUi.hideCurrentMenu();
 };
 
 /**
@@ -1176,15 +1162,13 @@ Menubar.prototype.addMenuHandler = function(elt, funct)
 				menu.hideMenu = mxUtils.bind(this, function()
 				{
 					mxPopupMenu.prototype.hideMenu.apply(menu, arguments);
+					this.editorUi.resetCurrentMenu();
 					menu.destroy();
-					this.currentMenu = null;
-					this.currentElt = null;
 				});
 
 				var offset = mxUtils.getOffset(elt);
 				menu.popup(offset.x, offset.y + elt.offsetHeight, null, evt);
-				this.currentMenu = menu;
-				this.currentElt = elt;
+				this.editorUi.setCurrentMenu(menu, elt);
 			}
 			
 			mxEvent.consume(evt);
@@ -1193,9 +1177,9 @@ Menubar.prototype.addMenuHandler = function(elt, funct)
 		// Shows menu automatically while in expanded state
 		mxEvent.addListener(elt, 'mousemove', mxUtils.bind(this, function(evt)
 		{
-			if (this.currentMenu != null && this.currentElt != elt)
+			if (this.editorUi.currentMenu != null && this.editorUi.currentMenuElt != elt)
 			{
-				this.hideMenu();
+				this.editorUi.hideCurrentMenu();
 				clickHandler(evt);
 			}
 		}));
@@ -1219,11 +1203,7 @@ Menubar.prototype.addMenuHandler = function(elt, funct)
  */
 Menubar.prototype.destroy = function()
 {
-	if (this.gestureHandler != null)
-	{
-		mxEvent.removeGestureListeners(document, this.gestureHandler);
-		this.gestureHandler = null;
-	}
+	// do nothing
 };
 
 /**

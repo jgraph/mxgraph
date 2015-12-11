@@ -138,7 +138,7 @@ EditorUi = function(editor, container)
 	};
 	
 	// Creates hover icons
-	this.hoverIcons = new HoverIcons(graph);
+	this.hoverIcons = this.createHoverIcons();
 	
 	// Adds tooltip when mouse is over scrollbars to show space-drag panning option
 	mxEvent.addListener(this.diagramContainer, 'mousemove', mxUtils.bind(this, function(evt)
@@ -465,24 +465,7 @@ EditorUi = function(editor, container)
 		// Updates UI
 		this.fireEvent(new mxEventObject('styleChanged', 'keys', [], 'values', [], 'cells', []));
 	};
-	
-	// Constructs the style for the initial edge type defined in the initial value for the currentEdgeStyle
-	// This function is overridden below as soon as any style is set in the app.
-	var initialEdgeCellStyle = '';
-	
-	for (var key in graph.currentEdgeStyle)
-	{
-		initialEdgeCellStyle += key + '=' + graph.currentEdgeStyle[key] + ';';
-	}
-	
-	// Uses the default edge style for connect preview
-	graph.connectionHandler.createEdgeState = function(me)
-	{
-		var edge = graph.createEdge(null, null, null, null, null, initialEdgeCellStyle);
-		
-		return new mxCellState(graph.view, edge, graph.getCellStyle(edge));
-    };
-	
+
 	// Keys that should be ignored if the cell has a value (known: new default for all cells is html=1 so
     // for the html key this effecticely only works for edges inserted via the connection handler)
 	var valueStyles = ['fontFamily', 'fontSize', 'fontColor'];
@@ -631,16 +614,6 @@ EditorUi = function(editor, container)
 		insertHandler(cells);
 	});
 
-	// Uses current edge style for connect preview
-	// NOTE: Do not use "this" in here as it points to the UI
-	graph.connectionHandler.createEdgeState = mxUtils.bind(this, function(me)
-	{
-		var style = graph.createCurrentEdgeStyle();
-		var edge = graph.createEdge(null, null, null, null, null, style);
-		
-		return new mxCellState(graph.view, edge, graph.getCellStyle(edge));
-	});
-	
 	this.addListener('styleChanged', mxUtils.bind(this, function(sender, evt)
 	{
 		// Checks if edges and/or vertices were modified
@@ -842,6 +815,17 @@ EditorUi = function(editor, container)
 			graph.getModel().setVisible(parent, true);
 		}
 	});
+	
+	// Global handler to hide the current menu
+	this.gestureHandler = mxUtils.bind(this, function(evt)
+	{
+		if (this.currentMenu != null && mxEvent.getSource(evt) != this.currentMenu.div)
+		{
+			this.hideCurrentMenu();
+		}
+	});
+	
+	mxEvent.addGestureListeners(document, this.gestureHandler);
 
 	// Updates the editor UI after the window has been resized or the orientation changes
 	// Timeout is workaround for old IE versions which have a delay for DOM client sizes.
@@ -1048,13 +1032,25 @@ EditorUi.prototype.getCssClassForMarker = function(prefix, shape, marker, fill)
 		{
 			result = (fill == '1') ? 'geSprite geSprite-' + prefix + 'classic' : 'geSprite geSprite-' + prefix + 'classictrans';
 		}
+		else if (marker == mxConstants.ARROW_CLASSIC_THIN)
+		{
+			result = (fill == '1') ? 'geSprite geSprite-' + prefix + 'classicthin' : 'geSprite geSprite-' + prefix + 'classicthintrans';
+		}
 		else if (marker == mxConstants.ARROW_OPEN)
 		{
 			result = 'geSprite geSprite-' + prefix + 'open';
 		}
+		else if (marker == mxConstants.ARROW_OPEN_THIN)
+		{
+			result = 'geSprite geSprite-' + prefix + 'openthin';
+		}
 		else if (marker == mxConstants.ARROW_BLOCK)
 		{
 			result = (fill == '1') ? 'geSprite geSprite-' + prefix + 'block' : 'geSprite geSprite-' + prefix + 'blocktrans';
+		}
+		else if (marker == mxConstants.ARROW_BLOCK_THIN)
+		{
+			result = (fill == '1') ? 'geSprite geSprite-' + prefix + 'blockthin' : 'geSprite geSprite-' + prefix + 'blockthintrans';
 		}
 		else if (marker == mxConstants.ARROW_OVAL)
 		{
@@ -1067,6 +1063,50 @@ EditorUi.prototype.getCssClassForMarker = function(prefix, shape, marker, fill)
 		else if (marker == mxConstants.ARROW_DIAMOND_THIN)
 		{
 			result = (fill == '1') ? 'geSprite geSprite-' + prefix + 'thindiamond' : 'geSprite geSprite-' + prefix + 'thindiamondtrans';
+		}
+		else if (marker == 'openAsync')
+		{
+			result = 'geSprite geSprite-' + prefix + 'openasync';
+		}
+		else if (marker == 'dash')
+		{
+			result = 'geSprite geSprite-' + prefix + 'dash';
+		}
+		else if (marker == 'cross')
+		{
+			result = 'geSprite geSprite-' + prefix + 'cross';
+		}
+		else if (marker == 'async')
+		{
+			result = (fill == '1') ? 'geSprite geSprite-' + prefix + 'async' : 'geSprite geSprite-' + prefix + 'asynctrans';
+		}
+		else if (marker == 'circle' || marker == 'circlePlus')
+		{
+			result = (fill == '1' || marker == 'circle') ? 'geSprite geSprite-' + prefix + 'circle' : 'geSprite geSprite-' + prefix + 'circleplus';
+		}
+		else if (marker == 'ERone')
+		{
+			result = 'geSprite geSprite-' + prefix + 'erone';
+		}
+		else if (marker == 'ERmandOne')
+		{
+			result = 'geSprite geSprite-' + prefix + 'eronetoone';
+		}
+		else if (marker == 'ERmany')
+		{
+			result = 'geSprite geSprite-' + prefix + 'ermany';
+		}
+		else if (marker == 'ERoneToMany')
+		{
+			result = 'geSprite geSprite-' + prefix + 'eronetomany';
+		}
+		else if (marker == 'ERzeroToOne')
+		{
+			result = 'geSprite geSprite-' + prefix + 'eroneopt';
+		}
+		else if (marker == 'ERzeroToMany')
+		{
+			result = 'geSprite geSprite-' + prefix + 'ermanyopt';
 		}
 		else
 		{
@@ -1610,6 +1650,36 @@ EditorUi.prototype.open = function()
 };
 
 /**
+ * Sets the current menu and element.
+ */
+EditorUi.prototype.setCurrentMenu = function(menu, elt)
+{
+	this.currentMenuElt = elt;
+	this.currentMenu = menu;
+};
+
+/**
+ * Resets the current menu and element.
+ */
+EditorUi.prototype.resetCurrentMenu = function()
+{
+	this.currentMenuElt = null;
+	this.currentMenu = null;
+};
+
+/**
+ * Hides and destroys the current menu.
+ */
+EditorUi.prototype.hideCurrentMenu = function(menu, elt)
+{
+	if (this.currentMenu != null)
+	{
+		this.currentMenu.hideMenu();
+		this.resetCurrentMenu();
+	}
+};
+
+/**
  * Updates the document title.
  */
 EditorUi.prototype.updateDocumentTitle = function()
@@ -1622,6 +1692,14 @@ EditorUi.prototype.updateDocumentTitle = function()
 	}
 	
 	document.title = title;
+};
+
+/**
+ * Updates the document title.
+ */
+EditorUi.prototype.createHoverIcons = function()
+{
+	return new HoverIcons(this.editor.graph);
 };
 
 /**
@@ -3191,6 +3269,12 @@ EditorUi.prototype.destroy = function()
 	{
 		mxEvent.removeListener(window, 'resize', this.resizeHandler);
 		this.resizeHandler = null;
+	}
+	
+	if (this.gestureHandler != null)
+	{
+		mxEvent.removeGestureListeners(document, this.gestureHandler);
+		this.gestureHandler = null;
 	}
 	
 	if (this.orientationChangeHandler != null)

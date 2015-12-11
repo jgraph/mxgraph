@@ -974,7 +974,12 @@
 	mxPerimeter.BackbonePerimeter = function (bounds, vertex, next, orthogonal)
 	{
 		var sw = (parseFloat(vertex.style[mxConstants.STYLE_STROKEWIDTH] || 1) * vertex.view.scale / 2) - 1;
-
+		
+		if (vertex.style['backboneSize'] != null)
+		{
+			sw += (parseFloat(vertex.style['backboneSize']) * vertex.view.scale / 2) - 1;
+		}
+		
 		if (vertex.style[mxConstants.STYLE_DIRECTION] == 'south' ||
 			vertex.style[mxConstants.STYLE_DIRECTION] == 'north')
 		{
@@ -1770,20 +1775,210 @@
 	mxCellRenderer.prototype.defaultShapes['display'] = DisplayShape;
 
 	// Registers and defines the custom marker
-	mxMarker.addMarker('dash', function(canvas, shape, type, pe, unitX, unitY, size, source, sw, filled)
+	mxMarker.addMarker('dash', function(c, shape, type, pe, unitX, unitY, size, source, sw, filled)
 	{
 		var nx = unitX * (size + sw + 1);
 		var ny = unitY * (size + sw + 1);
 
 		return function()
 		{
-			canvas.begin();
-			canvas.moveTo(pe.x - nx / 2 - ny / 2, pe.y - ny / 2 + nx / 2);
-			canvas.lineTo(pe.x + ny / 2 - 3 * nx / 2, pe.y - 3 * ny / 2 - nx / 2);
-			canvas.stroke();
+			c.begin();
+			c.moveTo(pe.x - nx / 2 - ny / 2, pe.y - ny / 2 + nx / 2);
+			c.lineTo(pe.x + ny / 2 - 3 * nx / 2, pe.y - 3 * ny / 2 - nx / 2);
+			c.stroke();
 		};
 	});
 
+	// Registers and defines the custom marker
+	mxMarker.addMarker('cross', function(c, shape, type, pe, unitX, unitY, size, source, sw, filled)
+	{
+		var nx = unitX * (size + sw + 1);
+		var ny = unitY * (size + sw + 1);
+
+		return function()
+		{
+			c.begin();
+			c.moveTo(pe.x - nx / 2 - ny / 2, pe.y - ny / 2 + nx / 2);
+			c.lineTo(pe.x + ny / 2 - 3 * nx / 2, pe.y - 3 * ny / 2 - nx / 2);
+			c.moveTo(pe.x - nx / 2 + ny / 2, pe.y - ny / 2 - nx / 2);
+			c.lineTo(pe.x - ny / 2 - 3 * nx / 2, pe.y - 3 * ny / 2 + nx / 2);
+			c.stroke();
+		};
+	});
+	
+	function circleMarker(c, shape, type, pe, unitX, unitY, size, source, sw, filled)
+	{
+		var a = size / 2;
+		var size = size + sw;
+
+		var pt = pe.clone();
+		
+		pe.x -= unitX * (2 * size + sw);
+		pe.y -= unitY * (2 * size + sw);
+		
+		unitX = unitX * (size + sw);
+		unitY = unitY * (size + sw);
+
+		return function()
+		{
+			c.ellipse(pt.x - unitX - size, pt.y - unitY - size, 2 * size, 2 * size);
+			
+			if (filled)
+			{
+				c.fillAndStroke();
+			}
+			else
+			{
+				c.stroke();
+			}
+		};
+	};
+	
+	mxMarker.addMarker('circle', circleMarker);
+	mxMarker.addMarker('circlePlus', function(c, shape, type, pe, unitX, unitY, size, source, sw, filled)
+	{
+		var pt = pe.clone();
+		var fn = circleMarker.apply(this, arguments);
+		var nx = unitX * (size + 2 * sw); // (size + sw + 1);
+		var ny = unitY * (size + 2 * sw); //(size + sw + 1);
+
+		return function()
+		{
+			fn.apply(this, arguments);
+
+			c.begin();
+			c.moveTo(pt.x - unitX * (sw), pt.y - unitY * (sw));
+			c.lineTo(pt.x - 2 * nx + unitX * (sw), pt.y - 2 * ny + unitY * (sw));
+			c.moveTo(pt.x - nx - ny + unitY * sw, pt.y - ny + nx - unitX * sw);
+			c.lineTo(pt.x + ny - nx - unitY * sw, pt.y - ny - nx + unitX * sw);
+			c.stroke();
+		};
+	});
+	
+	mxMarker.addMarker('async', function(c, shape, type, pe, unitX, unitY, size, source, sw, filled)
+	{
+		// The angle of the forward facing arrow sides against the x axis is
+		// 26.565 degrees, 1/sin(26.565) = 2.236 / 2 = 1.118 ( / 2 allows for
+		// only half the strokewidth is processed ).
+		var endOffsetX = unitX * sw * 1.118;
+		var endOffsetY = unitY * sw * 1.118;
+		
+		unitX = unitX * (size + sw);
+		unitY = unitY * (size + sw);
+
+		var pt = pe.clone();
+		pt.x -= endOffsetX;
+		pt.y -= endOffsetY;
+		
+		var f = 1;
+		pe.x += -unitX * f - endOffsetX;
+		pe.y += -unitY * f - endOffsetY;
+		
+		return function()
+		{
+			c.begin();
+			c.moveTo(pt.x, pt.y);
+			
+			if (source)
+			{
+				c.lineTo(pt.x - unitX - unitY / 2, pt.y - unitY + unitX / 2);
+			}
+			else
+			{
+				c.lineTo(pt.x + unitY / 2 - unitX, pt.y - unitY - unitX / 2);
+			}
+			
+			c.lineTo(pt.x - unitX, pt.y - unitY);
+			c.close();
+
+			if (filled)
+			{
+				c.fillAndStroke();
+			}
+			else
+			{
+				c.stroke();
+			}
+		};
+	});
+	
+	function createOpenAsyncArrow(widthFactor)
+	{
+		widthFactor = (widthFactor != null) ? widthFactor : 2;
+		
+		return function(c, shape, type, pe, unitX, unitY, size, source, sw, filled)
+		{
+			unitX = unitX * (size + sw);
+			unitY = unitY * (size + sw);
+			
+			var pt = pe.clone();
+
+			return function()
+			{
+				c.begin();
+				c.moveTo(pt.x, pt.y);
+				
+				if (source)
+				{
+					c.lineTo(pt.x - unitX - unitY / widthFactor, pt.y - unitY + unitX / widthFactor);
+				}
+				else
+				{
+					c.lineTo(pt.x + unitY / widthFactor - unitX, pt.y - unitY - unitX / widthFactor);
+				}
+				
+				c.stroke();
+			};
+		}
+	};
+	
+	mxMarker.addMarker('openAsync', createOpenAsyncArrow(2));
+	
+	function arrow(canvas, shape, type, pe, unitX, unitY, size, source, sw, filled)
+	{
+		// The angle of the forward facing arrow sides against the x axis is
+		// 26.565 degrees, 1/sin(26.565) = 2.236 / 2 = 1.118 ( / 2 allows for
+		// only half the strokewidth is processed ).
+		var endOffsetX = unitX * sw * 1.118;
+		var endOffsetY = unitY * sw * 1.118;
+		
+		unitX = unitX * (size + sw);
+		unitY = unitY * (size + sw);
+
+		var pt = pe.clone();
+		pt.x -= endOffsetX;
+		pt.y -= endOffsetY;
+		
+		var f = (type != mxConstants.ARROW_CLASSIC && type != mxConstants.ARROW_CLASSIC_THIN) ? 1 : 3 / 4;
+		pe.x += -unitX * f - endOffsetX;
+		pe.y += -unitY * f - endOffsetY;
+		
+		return function()
+		{
+			canvas.begin();
+			canvas.moveTo(pt.x, pt.y);
+			canvas.lineTo(pt.x - unitX - unitY / widthFactor, pt.y - unitY + unitX / widthFactor);
+		
+			if (type == mxConstants.ARROW_CLASSIC || type == mxConstants.ARROW_CLASSIC_THIN)
+			{
+				canvas.lineTo(pt.x - unitX * 3 / 4, pt.y - unitY * 3 / 4);
+			}
+		
+			canvas.lineTo(pt.x + unitY / widthFactor - unitX, pt.y - unitY - unitX / widthFactor);
+			canvas.close();
+
+			if (filled)
+			{
+				canvas.fillAndStroke();
+			}
+			else
+			{
+				canvas.stroke();
+			}
+		};
+	}
+	
+	
 	// Handlers are only added if mxVertexHandler is defined (ie. not in embedded graph)
 	if (typeof mxVertexHandler !== 'undefined')
 	{
@@ -2407,6 +2602,10 @@
 			'trapezoid': createTrapezoidHandleFunction(0.5),
 			'parallelogram': createTrapezoidHandleFunction(1)
 		};
+		
+		// Exposes custom handles
+		EditorUi.createHandle = createHandle;
+		EditorUi.handleFactory = handleFactory;
 
 		mxVertexHandler.prototype.createCustomHandles = function()
 		{

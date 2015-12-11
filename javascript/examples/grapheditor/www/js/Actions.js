@@ -567,9 +567,11 @@ Actions.prototype.init = function()
 	{
 		var dlg = new FilenameDialog(this.editorUi, parseInt(graph.getView().getScale() * 100), mxResources.get('apply'), mxUtils.bind(this, function(newValue)
 		{
-			if (newValue != null && newValue.length > 0)
+			var val = parseInt(newValue);
+			
+			if (!isNaN(val) && val > 0)
 			{
-				graph.zoomTo(parseInt(newValue) / 100);
+				graph.zoomTo(val / 100);
 			}
 		}), mxResources.get('enterValue') + ' (%)');
 		this.editorUi.showDialog(dlg.container, 300, 80, true, true);
@@ -1158,9 +1160,6 @@ Actions.prototype.init = function()
 		
 		ui.fireEvent(new mxEventObject('outline'));
 	}), null, null, 'Ctrl+Shift+O');
-	
-	action.setToggleAction(true);
-	action.setSelectedCallback(function() { return graph.scrollbars; });
 	
 	action.setToggleAction(true);
 	action.setSelectedCallback(mxUtils.bind(this, function() { return this.outlineWindow != null && this.outlineWindow.window.isVisible(); }));

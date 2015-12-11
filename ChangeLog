@@ -1,3 +1,27 @@
+11-DEC-2015: 3.4.1.0
+
+- mxCellTracker.mouseUp no longer invokes reset [JavaScript]
+- Adds mxConstants.ARROW_BLOCK/OPEN/CLASSIC_THIN and markers [JavaScript]
+- Fixes mxConstraintHandler.setFocus for disabled state [JavaScript]
+- Adds mxKeyHandler.isEnabledForEvent hook [JavaScript]
+- Fixes inconsistent text rendering in quirks/IE8 [JavaScript]
+- Adds clipping for overflow=width style [JavaScript]
+- Fixes label positions for some overflows and alignments [JavaScript] 
+- Moves call to stopEditing to end of mxGraph.fireMouseEvent [JavaScript] 
+- Fixes cached label width for vertical resize in mxVertexHandler [JavaScript]
+- Adds jsondata.html example [JavaScript]
+- Removes duplicates in mxGraph.removeCells return value [JavaScript]
+- Adds mxUtils.removeDuplicates [JavaScript]
+- Fixes redraw and update of word wrapping during mouse event in mxHandle [JavaScript]
+- Fixes hit detection for grid, outline in mxConnectionHandler, mxEdgeHandler [JavaScript]
+- Uses graph tolerance, adds mxCellHighlight.isHighlightAt [JavaScript]
+- Adds mxConnectionHandler.livePreview, cursor and mxConstraintHandler.setFocus [JavaScript]
+- Adds optional point argument in mxConstraintHandler.getCellForEvent [JavaScript]
+- Fixes mxUtils.getFunctionName for normal strings [JavaScript]
+- Adds mxConstraintHandler.createHighlightShape hook [JavaScript]
+- Adds mxConstants.HIGHLIGHT_SIZE, HIGHLIGHT_OPACITY [JavaScript]
+- Fixes text size for hidden containers in mxSvgCanvas2D [JavaScript]
+
 04-NOV-2015: 3.4.0.3
 
 - Fixes init sequence for format panel

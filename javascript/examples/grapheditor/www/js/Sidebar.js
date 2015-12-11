@@ -1087,6 +1087,7 @@ Sidebar.prototype.addUmlPalette = function(expand)
 	
 	var fns = [
    		this.createVertexTemplateEntry('html=1;', 110, 50, 'Object', 'Object', null, null, dt + 'object instance'),
+   		this.createVertexTemplateEntry('html=1;spacingTop=-14;', 110, 50, '&laquo;Annotation&raquo;<br><b>Description</b>', 'Annotated Object', null, null, dt + 'object instance annotated annotation'),
 	 	this.addEntry(dt + 'object instance', function()
 		{
 			var cell = new mxCell('Classname', new mxGeometry(0, 0, 160, 90),
@@ -1136,7 +1137,7 @@ Sidebar.prototype.addUmlPalette = function(expand)
 			80, 26, 'Title', 'Title', null, null, dt + 'title label'),
 		this.addEntry(dt + 'component', function()
 		{
-		    var cell = new mxCell('&lt;&lt;component&gt;&gt;<br/><b>Component</b>', new mxGeometry(0, 0, 180, 90), 'overflow=fill;html=1;');
+		    var cell = new mxCell('&laquo;Annotation&raquo;<br/><b>Component</b>', new mxGeometry(0, 0, 180, 90), 'overflow=fill;html=1;');
 		    cell.vertex = true;
 		    
 			var symbol = new mxCell('', new mxGeometry(1, 0, 20, 20), 'shape=component;jettyWidth=8;jettyHeight=4;');
@@ -1354,7 +1355,8 @@ Sidebar.prototype.addUmlPalette = function(expand)
 			return sb.createVertexTemplateFromCells([cell, edge1, edge2], 10, 60, 'Callback');
 		}),
 		this.createVertexTemplateEntry('html=1;points=[];perimeter=orthogonalPerimeter;', 10, 80, '', 'Activation', null, null, 'uml sequence activation'),
-	 	this.createEdgeTemplateEntry('html=1;verticalAlign=bottom;startArrow=oval;endArrow=block;startSize=8;', 60, 0, 'dispatch', 'Found Message', null, 'uml sequence message call invoke dispatch'),
+	 	this.createEdgeTemplateEntry('html=1;verticalAlign=bottom;startArrow=oval;startFill=1;endArrow=block;startSize=8;', 60, 0, 'dispatch', 'Found Message 1', null, 'uml sequence message call invoke dispatch'),
+	 	this.createEdgeTemplateEntry('html=1;verticalAlign=bottom;startArrow=circle;startFill=1;endArrow=open;startSize=6;endSize=8;', 80, 0, 'dispatch', 'Found Message 2', null, 'uml sequence message call invoke dispatch'),
 	 	this.createEdgeTemplateEntry('html=1;verticalAlign=bottom;endArrow=block;', 80, 0, 'dispatch', 'Message', null, 'uml sequence message call invoke dispatch'),
 		this.addEntry('uml sequence return message', function()
 		{
@@ -1453,7 +1455,9 @@ Sidebar.prototype.addUmlPalette = function(expand)
 		}),
 		this.createEdgeTemplateEntry('endArrow=open;endSize=12;dashed=1;html=1;', 160, 0, 'Use', 'Dependency', null, 'uml dependency use'),
 		this.createEdgeTemplateEntry('endArrow=block;endSize=16;endFill=0;html=1;', 160, 0, 'Extends', 'Generalization', null, 'uml generalization extend'),
-	 	this.createEdgeTemplateEntry('endArrow=block;startArrow=block;endFill=1;startFill=1;html=1;', 160, 0, '', 'Association 2', null, 'uml association')
+	 	this.createEdgeTemplateEntry('endArrow=block;startArrow=block;endFill=1;startFill=1;html=1;', 160, 0, '', 'Association 2', null, 'uml association'),
+	 	this.createEdgeTemplateEntry('endArrow=open;startArrow=circlePlus;endFill=0;startFill=0;endSize=8;html=1;', 160, 0, '', 'Inner Class', null, 'inner class'),
+	 	this.createEdgeTemplateEntry('endArrow=open;startArrow=cross;endFill=0;startFill=0;endSize=8;startSize=10;html=1;', 160, 0, '', 'Terminate', null, 'terminate')
 	];
 	
 	this.addPaletteFunctions('uml', mxResources.get('uml'), expand || false, fns);

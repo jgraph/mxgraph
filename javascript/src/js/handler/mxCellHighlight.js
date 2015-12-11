@@ -24,6 +24,7 @@ function mxCellHighlight(graph, highlightColor, strokeWidth, dashed)
 		this.highlightColor = (highlightColor != null) ? highlightColor : mxConstants.DEFAULT_VALID_COLOR;
 		this.strokeWidth = (strokeWidth != null) ? strokeWidth : mxConstants.HIGHLIGHT_STROKEWIDTH;
 		this.dashed = (dashed != null) ? dashed : false;
+		this.opacity = mxConstants.HIGHLIGHT_OPACITY;
 
 		// Updates the marker if the graph changes
 		this.repaintHandler = mxUtils.bind(this, function()
@@ -143,6 +144,7 @@ mxCellHighlight.prototype.createShape = function()
 {
 	var shape = this.graph.cellRenderer.createShape(this.state);
 	
+	shape.svgStrokeTolerance = this.graph.tolerance;
 	shape.scale = this.state.view.scale;
 	shape.outline = true;
 	shape.points = this.state.absolutePoints;
@@ -150,6 +152,7 @@ mxCellHighlight.prototype.createShape = function()
 	shape.strokewidth = this.strokeWidth / this.state.view.scale / this.state.view.scale;
 	shape.arrowStrokewidth = this.strokeWidth;
 	shape.stroke = this.highlightColor;
+	shape.opacity = this.opacity;
 	shape.isDashed = this.dashed;
 	shape.isShadow = false;
 	
@@ -195,7 +198,25 @@ mxCellHighlight.prototype.repaint = function()
 		{
 			this.shape.setCursor(this.state.shape.getCursor());
 		}
-
+		
+		// Workaround for event transparency in VML with transparent color
+		// is to use a non-transparent color with near zero opacity
+		if (mxClient.IS_QUIRKS || document.documentMode == 8)
+		{
+			if (this.shape.stroke == 'transparent')
+			{
+				// KNOWN: Quirks mode does not seem to catch events if
+				// we do not force an update of the DOM via a change such
+				// as mxLog.debug. Since IE6 is EOL we do not add a fix.
+				this.shape.stroke = 'white';
+				this.shape.opacity = 1;
+			}
+			else
+			{
+				this.shape.opacity = this.opacity;
+			}
+		}
+		
 		this.shape.redraw();
 	}
 };
@@ -232,6 +253,35 @@ mxCellHighlight.prototype.highlight = function(state)
 			this.drawHighlight();
 		}
 	}
+};
+
+/**
+ * Function: isHighlightAt
+ * 
+ * Returns true if this highlight is at the given position.
+ */
+mxCellHighlight.prototype.isHighlightAt = function(x, y)
+{
+	var hit = false;
+	
+	// Quirks mode is currently not supported as it used a different coordinate system
+	if (this.shape != null && document.elementFromPoint != null && !mxClient.IS_QUIRKS)
+	{
+		var elt = document.elementFromPoint(x, y);
+
+		while (elt != null)
+		{
+			if (elt == this.shape.node)
+			{
+				hit = true;
+				break;
+			}
+			
+			elt = elt.parentNode;
+		}
+	}
+	
+	return hit;
 };
 
 /**

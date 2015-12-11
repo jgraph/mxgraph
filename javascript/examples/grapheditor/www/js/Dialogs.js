@@ -787,7 +787,7 @@ var PageSetupDialog = function(editorUi)
 		
 		if (graph.gridSize !== gridSizeInput.value)
 		{
-			graph.gridSize = parseFloat(gridSizeInput.value);
+			graph.setGridSize(parseFloat(gridSizeInput.value));
 		}
 	});
 	applyBtn.className = 'geBtn gePrimaryBtn';
@@ -814,6 +814,7 @@ PageSetupDialog.getFormats = function()
 	        {key: 'a4', title: 'A4 (210 mm x 297 mm)', format: mxConstants.PAGE_FORMAT_A4_PORTRAIT},
 	        {key: 'a5', title: 'A5 (148 mm x 210 mm)', format: new mxRectangle(0, 0, 584, 826)},
 	        {key: 'letter', title: 'US-Letter (8,5" x 11")', format: mxConstants.PAGE_FORMAT_LETTER_PORTRAIT},
+	        {key: 'legal', title: 'US-Legal (8,5" x 14")', format: new mxRectangle(0, 0, 850, 1400)},
 	        {key: 'tabloid', title: 'US-Tabloid (279 mm x 432 mm)', format: new mxRectangle(0, 0, 1100, 1700)},
 	        {key: 'custom', title: mxResources.get('custom'), format: null}];
 };

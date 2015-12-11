@@ -124,10 +124,7 @@ mxCellTracker.prototype.mouseMove = function(sender, me)
  * 
  * Handles the event by reseting the highlight.
  */
-mxCellTracker.prototype.mouseUp = function(sender, me)
-{
-	this.reset();
-};
+mxCellTracker.prototype.mouseUp = function(sender, me) { };
 
 /**
  * Function: destroy

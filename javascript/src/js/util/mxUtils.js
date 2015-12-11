@@ -279,16 +279,18 @@ var mxUtils =
 			}
 			else
 			{
-				var tmp = f.toString();
-				var idx1 = 9;
+				str = mxUtils.trim(f.toString());
 				
-				while (tmp.charAt(idx1) == ' ')
+				if (/^function\s/.test(str))
 				{
-					idx1++;
+					str = mxUtils.ltrim(str.substring(9));
+					var idx2 = str.indexOf('(');
+					
+					if (idx2 > 0)
+					{
+						str = str.substring(0, idx2);
+					}
 				}
-				
-				var idx2 = tmp.indexOf('(', idx1);
-				str = tmp.substring(idx1, idx2);
 			}
 		}
 		
@@ -1654,6 +1656,28 @@ var mxUtils =
 		}
 		
 		return true;
+	},
+	
+	/**
+	 * Function: removeDuplicates
+	 * 
+	 * Removes all duplicates from the given array.
+	 */
+	removeDuplicates: function(arr)
+	{
+		var dict = new mxDictionary();
+		var result = [];
+		
+		for (var i = 0; i < arr.length; i++)
+		{
+			if (!dict.get(arr[i]))
+			{
+				result.push(arr[i]);
+				dict.put(arr[i], true);
+			}
+		}
+
+		return result;
 	},
 	
 	/**

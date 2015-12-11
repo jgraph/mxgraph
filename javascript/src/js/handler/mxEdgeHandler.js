@@ -483,17 +483,11 @@ mxEdgeHandler.prototype.createMarker = function()
 	marker.getCell = function(me)
 	{
 		var cell = mxCellMarker.prototype.getCell.apply(this, arguments);
-		var point = self.getPointForEvent(me);
 
-		// Checks for cell under mouse
-		if (cell == self.state.cell || cell == null)
+		// Checks for cell at preview point (with grid)
+		if ((cell == self.state.cell || cell == null) && self.currentPoint != null)
 		{
-			cell = self.getCellAt(point.x, point.y);
-			
-			if (self.state.cell == cell)
-			{
-				cell = null;
-			}
+			cell = self.graph.getCellAt(self.currentPoint.x, self.currentPoint.y);
 		}
 		
 		// Uses connectable parent vertex if one exists
@@ -509,9 +503,10 @@ mxEdgeHandler.prototype.createMarker = function()
 		
 		var model = self.graph.getModel();
 		
-		if ((this.graph.isSwimlane(cell) && this.graph.hitsSwimlaneContent(cell, point.x, point.y)) ||
-			(!self.isConnectableCell(cell)) ||
-			(cell == self.state.cell || (cell != null && !self.graph.connectableEdges && model.isEdge(cell))) ||
+		if ((this.graph.isSwimlane(cell) && self.currentPoint != null &&
+			this.graph.hitsSwimlaneContent(cell, self.currentPoint.x, self.currentPoint.y)) ||
+			(!self.isConnectableCell(cell)) || (cell == self.state.cell ||
+			(cell != null && !self.graph.connectableEdges && model.isEdge(cell))) ||
 			model.isAncestor(self.state.cell, cell))
 		{
 			cell = null;
@@ -1018,7 +1013,8 @@ mxEdgeHandler.prototype.getPointForEvent = function(me)
 {
 	var view = this.graph.getView();
 	var scale = view.scale;
-	var point = new mxPoint(this.roundLength(me.getGraphX() / scale) * scale, this.roundLength(me.getGraphY() / scale) * scale);
+	var point = new mxPoint(this.roundLength(me.getGraphX() / scale) * scale,
+		this.roundLength(me.getGraphY() / scale) * scale);
 	
 	var tt = this.getSnapToTerminalTolerance();
 	var overrideX = false;
@@ -1095,14 +1091,26 @@ mxEdgeHandler.prototype.getPointForEvent = function(me)
  */
 mxEdgeHandler.prototype.getPreviewTerminalState = function(me)
 {
-	this.constraintHandler.update(me, this.isSource, true);
+	this.constraintHandler.update(me, this.isSource, true, me.isSource(this.marker.highlight.shape) ? null : this.currentPoint);
 	
 	if (this.constraintHandler.currentFocus != null && this.constraintHandler.currentConstraint != null)
 	{
-		// KNOWN: Hit detection on cell shape if highlight of constraint is hidden because at that
-		// point the perimeter highlight is not yet visible and can't be used for hit detection.
-		// This results in flickering for the first move after hiding the constraint highlight.
-		this.marker.reset();
+		// Handles special case where grid is large and connection point is at actual point in which
+		// case the outline is not followed as long as we're < gridSize / 2 away from that point
+		if (this.marker.highlight != null && this.marker.highlight.state != null &&
+			this.marker.highlight.state.cell == this.constraintHandler.currentFocus.cell)
+		{
+			// Direct repaint needed if cell already highlighted
+			if (this.marker.highlight.shape.stroke != 'transparent')
+			{
+				this.marker.highlight.shape.stroke = 'transparent';
+				this.marker.highlight.repaint();
+			}
+		}
+		else
+		{
+			this.marker.markCell(this.constraintHandler.currentFocus.cell, 'transparent');
+		}
 		
 		var model = this.graph.getModel();
 		var other = this.graph.view.getTerminalPort(this.state,
@@ -1130,7 +1138,7 @@ mxEdgeHandler.prototype.getPreviewTerminalState = function(me)
 	else
 	{
 		this.marker.process(me);
-		
+
 		return this.marker.getValidState();
 	}
 };
@@ -1266,8 +1274,25 @@ mxEdgeHandler.prototype.getPreviewPoints = function(pt, me)
  */
 mxEdgeHandler.prototype.isOutlineConnectEvent = function(me)
 {
+	var offset = mxUtils.getOffset(this.graph.container);
+	var evt = me.getEvent();
+	
+	var clientX = mxEvent.getClientX(evt);
+	var clientY = mxEvent.getClientY(evt);
+	
+	var doc = document.documentElement;
+	var left = (window.pageXOffset || doc.scrollLeft) - (doc.clientLeft || 0);
+	var top = (window.pageYOffset || doc.scrollTop)  - (doc.clientTop || 0);
+	
+	var gridX = this.currentPoint.x - this.graph.container.scrollLeft + offset.x - left;
+	var gridY = this.currentPoint.y - this.graph.container.scrollTop + offset.y - top;
+
 	return this.outlineConnect && !mxEvent.isShiftDown(me.getEvent()) &&
-		(me.isSource(this.marker.highlight.shape) || mxEvent.isAltDown(me.getEvent()));
+		(me.isSource(this.marker.highlight.shape) ||
+		(mxEvent.isAltDown(me.getEvent()) && me.getState() != null) ||
+		this.marker.highlight.isHighlightAt(clientX, clientY) ||
+		((gridX != clientX || gridY != clientY) && me.getState() == null &&
+		this.marker.highlight.isHighlightAt(gridX, gridY)));
 };
 
 /**
@@ -1275,7 +1300,7 @@ mxEdgeHandler.prototype.isOutlineConnectEvent = function(me)
  * 
  * Updates the given preview state taking into account the state of the constraint handler.
  */
-mxEdgeHandler.prototype.updatePreviewState = function(edge, point, terminalState, me)
+mxEdgeHandler.prototype.updatePreviewState = function(edge, point, terminalState, me, outline)
 {
 	// Computes the points for the edge style and terminals
 	var sourceState = (this.isSource) ? terminalState : this.state.getVisibleTerminalState(true);
@@ -1285,14 +1310,21 @@ mxEdgeHandler.prototype.updatePreviewState = function(edge, point, terminalState
 	var targetConstraint = this.graph.getConnectionConstraint(edge, targetState, false);
 
 	var constraint = this.constraintHandler.currentConstraint;
-	
-	if (constraint == null)
+
+	if (constraint == null && outline)
 	{
-		if (terminalState != null && this.isOutlineConnectEvent(me))
+		if (terminalState != null)
 		{
+			// Handles special case where mouse is on outline away from actual end point
+			// in which case the grid is ignored and mouse point is used instead
+			if (me.isSource(this.marker.highlight.shape))
+			{
+				point = new mxPoint(me.getGraphX(), me.getGraphY());
+			}
+			
 			constraint = this.graph.getOutlineConstraint(point, terminalState, me);
+			this.constraintHandler.setFocus(me, terminalState, this.isSource);
 			this.constraintHandler.currentConstraint = constraint;
-			this.constraintHandler.currentFocus = terminalState;
 			this.constraintHandler.currentPoint = point;
 		}
 		else
@@ -1301,23 +1333,23 @@ mxEdgeHandler.prototype.updatePreviewState = function(edge, point, terminalState
 		}
 	}
 	
-	if (this.outlineConnect)
+	if (this.outlineConnect && this.marker.highlight != null && this.marker.highlight.shape != null)
 	{
-		if (this.marker.highlight != null && this.marker.highlight.shape != null)
+		var s = this.graph.view.scale;
+		
+		if (this.constraintHandler.currentConstraint != null &&
+			this.constraintHandler.currentFocus != null)
 		{
-			if (this.constraintHandler.currentConstraint != null &&
-				this.constraintHandler.currentFocus != null)
-			{
-				this.marker.highlight.shape.stroke = mxConstants.OUTLINE_HIGHLIGHT_COLOR;
-				this.marker.highlight.shape.strokewidth = mxConstants.OUTLINE_HIGHLIGHT_STROKEWIDTH / this.state.view.scale / this.state.view.scale;
-				this.marker.highlight.repaint();
-			}
-			else if (this.marker.hasValidState())
-			{
-				this.marker.highlight.shape.stroke = mxConstants.DEFAULT_VALID_COLOR;
-				this.marker.highlight.shape.strokewidth = mxConstants.HIGHLIGHT_STROKEWIDTH / this.state.view.scale / this.state.view.scale;
-				this.marker.highlight.repaint();
-			}
+			this.marker.highlight.shape.stroke = (outline) ? mxConstants.OUTLINE_HIGHLIGHT_COLOR : 'transparent';
+			this.marker.highlight.shape.strokewidth = mxConstants.OUTLINE_HIGHLIGHT_STROKEWIDTH / s / s;
+			this.marker.highlight.repaint();
+		}
+		else if (this.marker.hasValidState())
+		{
+			this.marker.highlight.shape.stroke = (this.marker.getValidState() == me.getState()) ?
+				mxConstants.DEFAULT_VALID_COLOR : 'transparent';
+			this.marker.highlight.shape.strokewidth = mxConstants.HIGHLIGHT_STROKEWIDTH / s / s;
+			this.marker.highlight.repaint();
 		}
 	}
 	
@@ -1366,18 +1398,19 @@ mxEdgeHandler.prototype.mouseMove = function(sender, me)
 {
 	if (this.index != null && this.marker != null)
 	{
-		var point = this.getPointForEvent(me);
+		this.currentPoint = this.getPointForEvent(me);
 		this.error = null;
 		
+		// Uses the current point from the constraint handler if available
 		if (mxEvent.isShiftDown(me.getEvent()) && this.snapPoint != null)
 		{
-			if (Math.abs(this.snapPoint.x - point.x) < Math.abs(this.snapPoint.y - point.y))
+			if (Math.abs(this.snapPoint.x - this.currentPoint.x) < Math.abs(this.snapPoint.y - this.currentPoint.y))
 			{
-				point.x = this.snapPoint.x;
+				this.currentPoint.x = this.snapPoint.x;
 			}
 			else
 			{
-				point.y = this.snapPoint.y;
+				this.currentPoint.y = this.snapPoint.y;
 			}
 		}
 		
@@ -1390,15 +1423,39 @@ mxEdgeHandler.prototype.mouseMove = function(sender, me)
 		}
 		else if (this.isLabel)
 		{
-			this.label.x = point.x;
-			this.label.y = point.y;
+			this.label.x = this.currentPoint.x;
+			this.label.y = this.currentPoint.y;
 		}
 		else
 		{
-			this.points = this.getPreviewPoints(point, me);
+			this.points = this.getPreviewPoints(this.currentPoint, me);
 			var terminalState = (this.isSource || this.isTarget) ? this.getPreviewTerminalState(me) : null;
-			var clone = this.clonePreviewState(point, (terminalState != null) ? terminalState.cell : null);
-			this.updatePreviewState(clone, point, terminalState, me);
+
+			if (this.constraintHandler.currentConstraint != null &&
+				this.constraintHandler.currentFocus != null &&
+				this.constraintHandler.currentPoint != null)
+			{
+				this.currentPoint = this.constraintHandler.currentPoint.clone();
+			}
+			else if (this.outlineConnect)
+			{
+				// Need to check outline before cloning terminal state
+				var outline = (this.isSource || this.isTarget) ? this.isOutlineConnectEvent(me) : false
+						
+				if (outline)
+				{
+					terminalState = this.marker.highlight.state;
+				}
+				else if (terminalState != null && terminalState != me.getState() && this.marker.highlight.shape != null)
+				{
+					this.marker.highlight.shape.stroke = 'transparent';
+					this.marker.highlight.repaint();
+					terminalState = null;
+				}
+			}
+			
+			var clone = this.clonePreviewState(this.currentPoint, (terminalState != null) ? terminalState.cell : null);
+			this.updatePreviewState(clone, this.currentPoint, terminalState, me, outline);
 
 			// Sets the color of the preview to valid or invalid, updates the
 			// points of the preview and redraws
@@ -1407,9 +1464,12 @@ mxEdgeHandler.prototype.mouseMove = function(sender, me)
 			this.abspoints = clone.absolutePoints;
 			this.active = true;
 		}
-		
+
+		// This should go before calling isOutlineConnectEvent above. As a workaround
+		// we add an offset of gridSize to the hint to avoid problem with hit detection
+		// in highlight.isHighlightAt (which uses comonentFromPoint)
+		this.updateHint(me, this.currentPoint);
 		this.drawPreview();
-		this.updateHint(me, point);
 		mxEvent.consume(me.getEvent());
 		me.consume();
 	}
@@ -1479,7 +1539,10 @@ mxEdgeHandler.prototype.mouseUp = function(sender, me)
 					terminal = this.constraintHandler.currentFocus.cell;
 				}
 				
-				if (terminal == null && this.marker.hasValidState())
+				if (terminal == null && this.marker.hasValidState() && this.marker.highlight != null &&
+					this.marker.highlight.shape != null &&
+					this.marker.highlight.shape.stroke != 'transparent' &&
+					this.marker.highlight.shape.stroke != 'white')
 				{
 					terminal = this.marker.validState.cell;
 				}

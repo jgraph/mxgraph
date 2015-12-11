@@ -613,7 +613,7 @@ mxCellEditor.prototype.resize = function()
 				this.textarea.style.top = Math.max(0, Math.ceil(this.bounds.y - m.y * (this.bounds.height - (oh + 0.5) * scale) + oh * (scale - 1) * 0 + Math.abs(m.y + 0.5) * 1)) + 'px';
 			}
 			else
-			{			
+			{
 				this.textarea.style.left = Math.max(0, Math.round(this.bounds.x - m.x * (this.bounds.width - 2)) + 1) + 'px';
 				this.textarea.style.top = Math.max(0, Math.round(this.bounds.y - m.y * (this.bounds.height - 4) + ((m.y == -1) ? 3 : 0)) + 1) + 'px';
 			}
@@ -770,13 +770,21 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 		
 		if (this.textarea != null)
 		{
-			// Prefers blinking cursor over no selected text if empty
-			this.textarea.focus();
-			
-			if (this.isSelectText() && this.textarea.innerHTML.length > 0 &&
-				(this.textarea.innerHTML != this.getEmptyLabelText() || !this.clearOnChange))
+			// Workaround for NS_ERROR_FAILURE in FF
+			try
 			{
-				document.execCommand('selectAll', false, null);
+				// Prefers blinking cursor over no selected text if empty
+				this.textarea.focus();
+				
+				if (this.isSelectText() && this.textarea.innerHTML.length > 0 &&
+					(this.textarea.innerHTML != this.getEmptyLabelText() || !this.clearOnChange))
+				{
+					document.execCommand('selectAll', false, null);
+				}
+			}
+			catch (e)
+			{
+				// ignore
 			}
 		}
 	}

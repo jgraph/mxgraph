@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.4.0.3.
+	 * Current version is 3.4.1.0.
 	 */
-	VERSION: '3.4.0.3',
+	VERSION: '3.4.1.0',
 
 	/**
 	 * Variable: IS_IE
@@ -2289,16 +2289,18 @@ var mxUtils =
 			}
 			else
 			{
-				var tmp = f.toString();
-				var idx1 = 9;
+				str = mxUtils.trim(f.toString());
 				
-				while (tmp.charAt(idx1) == ' ')
+				if (/^function\s/.test(str))
 				{
-					idx1++;
+					str = mxUtils.ltrim(str.substring(9));
+					var idx2 = str.indexOf('(');
+					
+					if (idx2 > 0)
+					{
+						str = str.substring(0, idx2);
+					}
 				}
-				
-				var idx2 = tmp.indexOf('(', idx1);
-				str = tmp.substring(idx1, idx2);
 			}
 		}
 		
@@ -3664,6 +3666,28 @@ var mxUtils =
 		}
 		
 		return true;
+	},
+	
+	/**
+	 * Function: removeDuplicates
+	 * 
+	 * Removes all duplicates from the given array.
+	 */
+	removeDuplicates: function(arr)
+	{
+		var dict = new mxDictionary();
+		var result = [];
+		
+		for (var i = 0; i < arr.length; i++)
+		{
+			if (!dict.get(arr[i]))
+			{
+				result.push(arr[i]);
+				dict.put(arr[i], true);
+			}
+		}
+
+		return result;
 	},
 	
 	/**
@@ -6345,6 +6369,21 @@ var mxUtils =
 	 * Default is 3.
 	 */
 	HIGHLIGHT_STROKEWIDTH: 3,
+
+	/**
+	 * Variable: CONSTRAINT_HIGHLIGHT_SIZE
+	 * 
+	 * Size of the constraint highlight (in px). Default is 2.
+	 */
+	HIGHLIGHT_SIZE: 2,
+	
+	/**
+	 * Variable: HIGHLIGHT_OPACITY
+	 * 
+	 * Opacity (in %) used for the highlights (including outline).
+	 * Default is 100.
+	 */
+	HIGHLIGHT_OPACITY: 100,
 	
 	/**
 	 * Variable: CURSOR_MOVABLE_VERTEX
@@ -6844,7 +6883,9 @@ var mxUtils =
 	 * the label so that it does not overlap the vertex bounds. A value of
 	 * 'fill' will use the vertex bounds and a value of 'width' will use the
 	 * the vertex width for the label. See <mxGraph.isLabelClipped>. Note that
-	 * the vertical alignment is ignored for overflow fill. Value is "overflow".
+	 * the vertical alignment is ignored for overflow fill and for horizontal
+	 * alignment, left should be used to avoid pixel offsets in Internet Explorer
+	 * 11 and earlier or if foreignObjects are disabled. Value is "overflow".
 	 */
 	STYLE_OVERFLOW: 'overflow',
 
@@ -7928,6 +7969,13 @@ var mxUtils =
 	ARROW_CLASSIC: 'classic',
 
 	/**
+	 * Variable: ARROW_CLASSIC_THIN
+	 * 
+	 * Constant for thin classic arrow markers.
+	 */
+	ARROW_CLASSIC_THIN: 'classicThin',
+
+	/**
 	 * Variable: ARROW_BLOCK
 	 * 
 	 * Constant for block arrow markers.
@@ -7935,11 +7983,25 @@ var mxUtils =
 	ARROW_BLOCK: 'block',
 
 	/**
+	 * Variable: ARROW_BLOCK_THIN
+	 * 
+	 * Constant for thin block arrow markers.
+	 */
+	ARROW_BLOCK_THIN: 'blockThin',
+
+	/**
 	 * Variable: ARROW_OPEN
 	 * 
 	 * Constant for open arrow markers.
 	 */
 	ARROW_OPEN: 'open',
+
+	/**
+	 * Variable: ARROW_OPEN_THIN
+	 * 
+	 * Constant for thin open arrow markers.
+	 */
+	ARROW_OPEN_THIN: 'openThin',
 
 	/**
 	 * Variable: ARROW_OVAL
@@ -7956,9 +8018,9 @@ var mxUtils =
 	ARROW_DIAMOND: 'diamond',
 
 	/**
-	 * Variable: ARROW_DIAMOND
+	 * Variable: ARROW_DIAMOND_THIN
 	 * 
-	 * Constant for diamond arrow markers.
+	 * Constant for thin diamond arrow markers.
 	 */
 	ARROW_DIAMOND_THIN: 'diamondThin',
 
@@ -18911,12 +18973,12 @@ mxSvgCanvas2D.prototype.updateText = function(x, y, w, h, align, valign, wrap, o
 		}
 		else if (overflow == 'fill')
 		{
-			div.style.width = Math.round(w) + 'px';
-			div.style.height = Math.round(h) + 'px';
+			div.style.width = Math.round(w + 1) + 'px';
+			div.style.height = Math.round(h + 1) + 'px';
 		}
 		else if (overflow == 'width')
 		{
-			div.style.width = Math.round(w) + 'px';
+			div.style.width = Math.round(w + 1) + 'px';
 			
 			if (h > 0)
 			{
@@ -18926,7 +18988,7 @@ mxSvgCanvas2D.prototype.updateText = function(x, y, w, h, align, valign, wrap, o
 
 		if (wrap && w > 0)
 		{
-			div.style.width = Math.round(w) + 'px';
+			div.style.width = Math.round(w + 1) + 'px';
 		}
 		
 		// Code that depends on the size which is computed after
@@ -18962,7 +19024,7 @@ mxSvgCanvas2D.prototype.updateText = function(x, y, w, h, align, valign, wrap, o
 		ow = ((group.mxCachedFinalOffsetWidth != null) ? group.mxCachedFinalOffsetWidth :
 			sizeDiv.offsetWidth) + padX;
 		oh = ((group.mxCachedFinalOffsetHeight != null) ? group.mxCachedFinalOffsetHeight :
-			sizeDiv.offsetHeight) + 2;
+			sizeDiv.offsetHeight) - 2;
 
 		if (clip)
 		{
@@ -18970,17 +19032,11 @@ mxSvgCanvas2D.prototype.updateText = function(x, y, w, h, align, valign, wrap, o
 			ow = Math.min(ow, w);
 		}
 
-		if (overflow == 'fill')
+		if (overflow == 'width')
 		{
-			w = Math.max(w, ow);
-			h = Math.max(h, oh);
-		}
-		else if (overflow == 'width')
-		{
-			w = Math.max(w, ow);
 			h = oh;
 		}
-		else
+		else if (overflow != 'fill')
 		{
 			w = ow;
 			h = oh;
@@ -19003,11 +19059,11 @@ mxSvgCanvas2D.prototype.updateText = function(x, y, w, h, align, valign, wrap, o
 		// FIXME: LINE_HEIGHT not ideal for all text sizes, fix for export
 		if (valign == mxConstants.ALIGN_MIDDLE)
 		{
-			dy -= h / 2 - 2;
+			dy -= h / 2;
 		}
 		else if (valign == mxConstants.ALIGN_BOTTOM)
 		{
-			dy -= h - 3;
+			dy -= h;
 		}
 		
 		// Workaround for rendering offsets
@@ -19074,21 +19130,21 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			}
 			else if (overflow == 'fill')
 			{
-				style += 'width:' + Math.round(w) + 'px;height:' + Math.round(h) + 'px;overflow:hidden;';
+				style += 'width:' + Math.round(w + 1) + 'px;height:' + Math.round(h + 1) + 'px;overflow:hidden;';
 			}
 			else if (overflow == 'width')
 			{
-				style += 'width:' + Math.round(w) + 'px;';
+				style += 'width:' + Math.round(w + 1) + 'px;';
 				
 				if (h > 0)
 				{
-					style += 'max-height:' + Math.round(h) + 'px;';
+					style += 'max-height:' + Math.round(h) + 'px;overflow:hidden;';
 				}
 			}
 
 			if (wrap && w > 0)
 			{
-				style += 'width:' + Math.round(w) + 'px;white-space:normal;';
+				style += 'width:' + Math.round(w + 1) + 'px;white-space:normal;';
 			}
 			else
 			{
@@ -19105,6 +19161,7 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			}
 
 			var fo = this.createElement('foreignObject');
+			fo.setAttribute('style', 'overflow:visible;');
 			fo.setAttribute('pointer-events', 'all');
 			
 			var div = this.createDiv(str, align, valign, style, overflow);
@@ -19167,28 +19224,17 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 					// For export, if no wrapping occurs, we add a large padding to make
 					// sure there is no wrapping even if the text metrics are different.
 					// This adds support for text metrics on different operating systems.
-					if (!clip && this.root.ownerDocument != document)
+					// Disables wrapping if text is not wrapped for given width
+					if (!clip && wrap && w > 0 && this.root.ownerDocument != document && overflow != 'fill')
 					{
 						var ws = clone.style.whiteSpace;
-						clone.style.whiteSpace = 'nowrap';
+						div.style.whiteSpace = 'nowrap';
 						
-						// Checks if wrapped width is equal to non-wrapped width (ie no wrapping)
-						if (tmp == div2.offsetWidth)
+						if (tmp < div2.offsetWidth)
 						{
-							padX += this.fontMetricsPadding;
+							clone.style.whiteSpace = ws;
 						}
-						else if (document.documentMode == 8 || document.documentMode == 9)
-						{
-							padDx = -2;
-						}
-						
-						// Restores the previous white space
-						// This is expensive!
-						clone.style.whiteSpace = ws;
 					}
-					
-					// Required to update the height of the text box after wrapping width is known
-					tmp = tmp + padX;
 					
 					if (clip)
 					{
@@ -19223,12 +19269,9 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			}
 			else
 			{
-				// Workaround for export and Firefox where sizes are not reported or updated correctly
-				// when inside a foreignObject (Opera has same bug but it cannot be fixed for all cases
-				// using this workaround so foreignObject is disabled).
-				if (this.root.ownerDocument != document || mxClient.IS_FF)
+				// Uses document for text measuring during export
+				if (this.root.ownerDocument != document)
 				{
-					// Getting size via local document for export
 					div.style.visibility = 'hidden';
 					document.body.appendChild(div);
 				}
@@ -19246,30 +19289,37 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				
 				var tmp = sizeDiv.offsetWidth;
 				
+				// Workaround for text measuring in hidden containers
+				if (tmp == 0 && div.parentNode == fo)
+				{
+					div.style.visibility = 'hidden';
+					document.body.appendChild(div);
+					
+					tmp = sizeDiv.offsetWidth;
+				}
+				
 				if (this.cacheOffsetSize)
 				{
 					group.mxCachedOffsetWidth = tmp;
 				}
 				
-				// For export, if no wrapping occurs, we add a large padding to make
-				// sure there is no wrapping even if the text metrics are different.
-				if (!clip && wrap && w > 0 && this.root.ownerDocument != document)
+				// Disables wrapping if text is not wrapped for given width
+				if (!clip && wrap && w > 0 && this.root.ownerDocument != document &&
+					overflow != 'fill' && overflow != 'width')
 				{
 					var ws = div.style.whiteSpace;
 					div.style.whiteSpace = 'nowrap';
 					
-					if (tmp == sizeDiv.offsetWidth)
+					if (tmp < sizeDiv.offsetWidth)
 					{
-						padX += this.fontMetricsPadding;
+						div.style.whiteSpace = ws;
 					}
-					
-					div.style.whiteSpace = ws;
 				}
 
-				ow = tmp + padX;
+				ow = tmp + padX - 1;
 
 				// Recomputes the height of the element for wrapped width
-				if (wrap && overflow != 'fill')
+				if (wrap && overflow != 'fill' && overflow != 'width')
 				{
 					if (clip)
 					{
@@ -19288,8 +19338,7 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 					group.mxCachedFinalOffsetHeight = oh;
 				}
 
-				ow += padX;
-				oh += 2;
+				oh -= padY;
 				
 				if (div.parentNode != fo)
 				{
@@ -19304,17 +19353,11 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				ow = Math.min(ow, w);
 			}
 
-			if (overflow == 'fill')
+			if (overflow == 'width')
 			{
-				w = Math.max(w, ow);
-				h = Math.max(h, oh);
-			}
-			else if (overflow == 'width')
-			{
-				w = Math.max(w, ow);
 				h = oh;
 			}
-			else
+			else if (overflow != 'fill')
 			{
 				w = ow;
 				h = oh;
@@ -19342,11 +19385,11 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			// FIXME: LINE_HEIGHT not ideal for all text sizes, fix for export
 			if (valign == mxConstants.ALIGN_MIDDLE)
 			{
-				dy -= h / 2 - 2;
+				dy -= h / 2;
 			}
 			else if (valign == mxConstants.ALIGN_BOTTOM)
 			{
-				dy -= h - 3;
+				dy -= h;
 			}
 			
 			// Workaround for rendering offsets
@@ -20589,20 +20632,16 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				// KNOWN: Affects horizontal alignment in quirks
 				// but fill should only be used with align=left
 				div.style.overflow = 'hidden';
-				div.style.width = (w + 1) + 'px';
-				div.style.height = (h + 1) + 'px';
+				div.style.width = (Math.max(0, w) + 1) + 'px';
+				div.style.height = (Math.max(0, h) + 1) + 'px';
 			}
 			else if (overflow == 'width')
 			{
 				// KNOWN: Affects horizontal alignment in quirks
 				// but fill should only be used with align=left
-				div.style.width = w + 'px';
-				
-				if (h > 0)
-				{
-					// LATER: Check if quirks mode need special handling
-					div.style.maxHeight = Math.round(h) + 'px';
-				}
+				div.style.overflow = 'hidden';
+				div.style.width = (Math.max(0, w) + 1) + 'px';
+				div.style.maxHeight = (Math.max(0, h) + 1) + 'px';
 			}
 			
 			if (this.rotateHtml && rot != 0)
@@ -23629,80 +23668,95 @@ var mxMarker =
  */
 (function()
 {
-	function arrow(canvas, shape, type, pe, unitX, unitY, size, source, sw, filled)
+	function createArrow(widthFactor)
 	{
-		// The angle of the forward facing arrow sides against the x axis is
-		// 26.565 degrees, 1/sin(26.565) = 2.236 / 2 = 1.118 ( / 2 allows for
-		// only half the strokewidth is processed ).
-		var endOffsetX = unitX * sw * 1.118;
-		var endOffsetY = unitY * sw * 1.118;
+		widthFactor = (widthFactor != null) ? widthFactor : 2;
 		
-		unitX = unitX * (size + sw);
-		unitY = unitY * (size + sw);
-
-		var pt = pe.clone();
-		pt.x -= endOffsetX;
-		pt.y -= endOffsetY;
-		
-		var f = (type != mxConstants.ARROW_CLASSIC) ? 1 : 3 / 4;
-		pe.x += -unitX * f - endOffsetX;
-		pe.y += -unitY * f - endOffsetY;
-
-		return function()
+		return function(canvas, shape, type, pe, unitX, unitY, size, source, sw, filled)
 		{
-			canvas.begin();
-			canvas.moveTo(pt.x, pt.y);
-			canvas.lineTo(pt.x - unitX - unitY / 2, pt.y - unitY + unitX / 2);
-		
-			if (type == mxConstants.ARROW_CLASSIC)
+			// The angle of the forward facing arrow sides against the x axis is
+			// 26.565 degrees, 1/sin(26.565) = 2.236 / 2 = 1.118 ( / 2 allows for
+			// only half the strokewidth is processed ).
+			var endOffsetX = unitX * sw * 1.118;
+			var endOffsetY = unitY * sw * 1.118;
+			
+			unitX = unitX * (size + sw);
+			unitY = unitY * (size + sw);
+	
+			var pt = pe.clone();
+			pt.x -= endOffsetX;
+			pt.y -= endOffsetY;
+			
+			var f = (type != mxConstants.ARROW_CLASSIC && type != mxConstants.ARROW_CLASSIC_THIN) ? 1 : 3 / 4;
+			pe.x += -unitX * f - endOffsetX;
+			pe.y += -unitY * f - endOffsetY;
+			
+			return function()
 			{
-				canvas.lineTo(pt.x - unitX * 3 / 4, pt.y - unitY * 3 / 4);
-			}
+				canvas.begin();
+				canvas.moveTo(pt.x, pt.y);
+				canvas.lineTo(pt.x - unitX - unitY / widthFactor, pt.y - unitY + unitX / widthFactor);
+			
+				if (type == mxConstants.ARROW_CLASSIC || type == mxConstants.ARROW_CLASSIC_THIN)
+				{
+					canvas.lineTo(pt.x - unitX * 3 / 4, pt.y - unitY * 3 / 4);
+				}
+			
+				canvas.lineTo(pt.x + unitY / widthFactor - unitX, pt.y - unitY - unitX / widthFactor);
+				canvas.close();
+	
+				if (filled)
+				{
+					canvas.fillAndStroke();
+				}
+				else
+				{
+					canvas.stroke();
+				}
+			};
+		}
+	};
+	
+	mxMarker.addMarker('classic', createArrow(2));
+	mxMarker.addMarker('classicThin', createArrow(3));
+	mxMarker.addMarker('block', createArrow(2));
+	mxMarker.addMarker('blockThin', createArrow(3));
+	
+	function createOpenArrow(widthFactor)
+	{
+		widthFactor = (widthFactor != null) ? widthFactor : 2;
 		
-			canvas.lineTo(pt.x + unitY / 2 - unitX, pt.y - unitY - unitX / 2);
-			canvas.close();
+		return function(canvas, shape, type, pe, unitX, unitY, size, source, sw, filled)
+		{
+			// The angle of the forward facing arrow sides against the x axis is
+			// 26.565 degrees, 1/sin(26.565) = 2.236 / 2 = 1.118 ( / 2 allows for
+			// only half the strokewidth is processed ).
+			var endOffsetX = unitX * sw * 1.118;
+			var endOffsetY = unitY * sw * 1.118;
+			
+			unitX = unitX * (size + sw);
+			unitY = unitY * (size + sw);
+			
+			var pt = pe.clone();
+			pt.x -= endOffsetX;
+			pt.y -= endOffsetY;
+			
+			pe.x += -endOffsetX * 2;
+			pe.y += -endOffsetY * 2;
 
-			if (filled)
+			return function()
 			{
-				canvas.fillAndStroke();
-			}
-			else
-			{
+				canvas.begin();
+				canvas.moveTo(pt.x - unitX - unitY / widthFactor, pt.y - unitY + unitX / widthFactor);
+				canvas.lineTo(pt.x, pt.y);
+				canvas.lineTo(pt.x + unitY / widthFactor - unitX, pt.y - unitY - unitX / widthFactor);
 				canvas.stroke();
-			}
-		};
-	}
+			};
+		}
+	};
 	
-	mxMarker.addMarker('classic', arrow);
-	mxMarker.addMarker('block', arrow);
-	
-	mxMarker.addMarker('open', function(canvas, shape, type, pe, unitX, unitY, size, source, sw, filled)
-	{
-		// The angle of the forward facing arrow sides against the x axis is
-		// 26.565 degrees, 1/sin(26.565) = 2.236 / 2 = 1.118 ( / 2 allows for
-		// only half the strokewidth is processed ).
-		var endOffsetX = unitX * sw * 1.118;
-		var endOffsetY = unitY * sw * 1.118;
-		
-		unitX = unitX * (size + sw);
-		unitY = unitY * (size + sw);
-		
-		var pt = pe.clone();
-		pt.x -= endOffsetX;
-		pt.y -= endOffsetY;
-		
-		pe.x += -endOffsetX * 2;
-		pe.y += -endOffsetY * 2;
-
-		return function()
-		{
-			canvas.begin();
-			canvas.moveTo(pt.x - unitX - unitY / 2, pt.y - unitY + unitX / 2);
-			canvas.lineTo(pt.x, pt.y);
-			canvas.lineTo(pt.x + unitY / 2 - unitX, pt.y - unitY - unitX / 2);
-			canvas.stroke();
-		};
-	});
+	mxMarker.addMarker('open', createOpenArrow(2));
+	mxMarker.addMarker('openThin', createOpenArrow(3));
 	
 	mxMarker.addMarker('oval', function(canvas, shape, type, pe, unitX, unitY, size, source, sw, filled)
 	{
@@ -25629,58 +25683,10 @@ mxText.prototype.updateHtmlTransform = function()
 		mxUtils.setPrefixedStyle(style, 'transform', 'scale(' + this.scale + ')' +
 			'translate(' + (dx * 100) + '%' + ',' + (dy * 100) + '%)');
 	}
-	
-	// Workaround for rendering offsets
-	var dy = 0;
-	
-	if (this.overflow != 'fill')
-	{
-		if (document.documentMode >= 10 && this.valign != mxConstants.ALIGN_TOP)
-		{
-			dy += 1;
-		}
-		else if (document.documentMode == 9 && this.valign == mxConstants.ALIGN_BOTTOM)
-		{
-			dy += 1;
-		}
-		else if (mxClient.IS_MAC && !mxClient.IS_OP && mxClient.IS_GC)
-		{
-			if (mxClient.IS_MAC)
-			{
-				if (this.valign == mxConstants.ALIGN_BOTTOM)
-				{
-					dy += 2;
-				}
-				else
-				{
-					dy += 1;
-				}
-			}
-			else if (this.valign == mxConstants.ALIGN_BOTTOM)
-			{
-				dy += 1;
-			}
-		}
-		else if (mxClient.IS_MAC && mxClient.IS_FF)
-		{
-			if (this.valign == mxConstants.ALIGN_BOTTOM)
-			{
-				dy += 2;
-			}
-			else if (this.valign == mxConstants.ALIGN_MIDDLE)
-			{
-				dy += 1;
-			}
-		}
-		else if (!mxClient.IS_MAC && (mxClient.IS_GC || mxClient.IS_FF) &&
-				this.valign == mxConstants.ALIGN_BOTTOM) // includes Opera
-		{
-			dy += 1;
-		}
-	}
 
-	style.left = Math.round(this.bounds.x) + 'px';
-	style.top = Math.round(this.bounds.y + dy) + 'px';
+	style.left = Math.round(this.bounds.x - Math.ceil(dx * ((this.overflow != 'fill' &&
+		this.overflow != 'width') ? 3 : 1))) + 'px';
+	style.top = Math.round(this.bounds.y - dy * ((this.overflow != 'fill') ? 3 : 1)) + 'px';
 	
 	if (this.opacity < 100)
 	{
@@ -25806,13 +25812,25 @@ mxText.prototype.updateHtmlFilter = function()
 	{
 		oh = Math.min(oh, this.bounds.height);
 	}
+
+	var w = this.bounds.width / s;
+	var h = this.bounds.height / s;
+
+	// Handles special case for live preview with no wrapper DIV and no textDiv
+	if (this.overflow == 'fill')
+	{
+		oh = h;
+		ow = w;
+	}
+	else if (this.overflow == 'width')
+	{
+		oh = sizeDiv.scrollHeight;
+		ow = w;
+	}
 	
 	// Stores for later use
 	this.offsetWidth = ow;
 	this.offsetHeight = oh;
-	
-	var w = this.bounds.width / s;
-	var h = this.bounds.height / s;
 	
 	// Simulates max-height CSS in quirks mode
 	if (mxClient.IS_QUIRKS && (this.clipped || (this.overflow == 'width' && h > 0)))
@@ -26063,8 +26081,8 @@ mxText.prototype.updateFont = function(node)
  */
 mxText.prototype.updateSize = function(node, enableWrap)
 {
-	var w = Math.round(this.bounds.width / this.scale);
-	var h = Math.round(this.bounds.height / this.scale);
+	var w = Math.max(0, Math.round(this.bounds.width / this.scale));
+	var h = Math.max(0, Math.round(this.bounds.height / this.scale));
 	var style = node.style;
 	
 	// NOTE: Do not use maxWidth here because wrapping will
@@ -26085,14 +26103,15 @@ mxText.prototype.updateSize = function(node, enableWrap)
 	}
 	else if (this.overflow == 'fill')
 	{
+		style.width = (w + 1) + 'px';
+		style.height = (h + 1) + 'px';
 		style.overflow = 'hidden';
-		style.width = w + 'px';
-		style.height = h + 'px';
 	}
 	else if (this.overflow == 'width')
 	{
-		style.width = w + 'px';
-		style.maxHeight = h + 'px';
+		style.width = (w + 1) + 'px';
+		style.maxHeight = (h + 1) + 'px';
+		style.overflow = 'hidden';
 	}
 	
 	if (this.wrap && w > 0)
@@ -26100,7 +26119,7 @@ mxText.prototype.updateSize = function(node, enableWrap)
 		style.whiteSpace = 'normal';
 		style.width = w + 'px';
 
-		if (enableWrap && this.overflow != 'fill')
+		if (enableWrap && this.overflow != 'fill' && this.overflow != 'width')
 		{
 			var sizeDiv = node;
 			
@@ -45812,7 +45831,7 @@ mxCellEditor.prototype.resize = function()
 				this.textarea.style.top = Math.max(0, Math.ceil(this.bounds.y - m.y * (this.bounds.height - (oh + 0.5) * scale) + oh * (scale - 1) * 0 + Math.abs(m.y + 0.5) * 1)) + 'px';
 			}
 			else
-			{			
+			{
 				this.textarea.style.left = Math.max(0, Math.round(this.bounds.x - m.x * (this.bounds.width - 2)) + 1) + 'px';
 				this.textarea.style.top = Math.max(0, Math.round(this.bounds.y - m.y * (this.bounds.height - 4) + ((m.y == -1) ? 3 : 0)) + 1) + 'px';
 			}
@@ -45969,13 +45988,21 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 		
 		if (this.textarea != null)
 		{
-			// Prefers blinking cursor over no selected text if empty
-			this.textarea.focus();
-			
-			if (this.isSelectText() && this.textarea.innerHTML.length > 0 &&
-				(this.textarea.innerHTML != this.getEmptyLabelText() || !this.clearOnChange))
+			// Workaround for NS_ERROR_FAILURE in FF
+			try
 			{
-				document.execCommand('selectAll', false, null);
+				// Prefers blinking cursor over no selected text if empty
+				this.textarea.focus();
+				
+				if (this.isSelectText() && this.textarea.innerHTML.length > 0 &&
+					(this.textarea.innerHTML != this.getEmptyLabelText() || !this.clearOnChange))
+				{
+					document.execCommand('selectAll', false, null);
+				}
+			}
+			catch (e)
+			{
+				// ignore
 			}
 		}
 	}
@@ -47188,13 +47215,14 @@ mxCellRenderer.prototype.getLabelBounds = function(state)
 		
 		if (sc != mxConstants.NONE && sc != '')
 		{
-			var s = parseFloat(mxUtils.getValue(state.style, mxConstants.STYLE_STROKEWIDTH, 1)) * scale / 2;
-			var s2 = 2 * s + 0.5;
-
-			bounds.x += s;
-			bounds.y += s;
-			bounds.width -= s2;
-			bounds.height -= s2;
+			var s = parseFloat(mxUtils.getValue(state.style, mxConstants.STYLE_STROKEWIDTH, 1)) * scale;
+			var dx = 1 + Math.floor((s - 1) / 2);
+			var dh = Math.floor(s + 1);
+			
+			bounds.x += dx;
+			bounds.y += dx;
+			bounds.width -= dh;
+			bounds.height -= dh;
 		}
 	}
 
@@ -47250,8 +47278,8 @@ mxCellRenderer.prototype.getLabelBounds = function(state)
  */
 mxCellRenderer.prototype.rotateLabelBounds = function(state, bounds)
 {
-	bounds.x -= state.text.margin.x * bounds.width;
 	bounds.y -= state.text.margin.y * bounds.height;
+	bounds.x -= state.text.margin.x * bounds.width;
 	
 	if (!this.legacySpacing || (state.style[mxConstants.STYLE_OVERFLOW] != 'fill' && state.style[mxConstants.STYLE_OVERFLOW] != 'width'))
 	{
@@ -53036,7 +53064,7 @@ mxGraph.prototype.portsEnabled = true;
 /**
  * Variable: nativeDoubleClickEnabled
  * 
- * Specifies if native double click events should be deteced. Default is true.
+ * Specifies if native double click events should be detected. Default is true.
  */
 mxGraph.prototype.nativeDblClickEnabled = true;
 
@@ -57282,10 +57310,9 @@ mxGraph.prototype.updateAlternateBounds = function(cell, geo, willCollapse)
  */
 mxGraph.prototype.addAllEdges = function(cells)
 {
-	var allCells = cells.slice(); // FIXME: Required?
-	allCells = allCells.concat(this.getAllEdges(cells));
+	var allCells = cells.slice();
 	
-	return allCells;
+	return mxUtils.removeDuplicates(allCells.concat(this.getAllEdges(cells)));
 };
 
 /**
@@ -64534,12 +64561,6 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 	// Updates the graph coordinates in the event
 	me = this.updateMouseEvent(me, evtName);
 
-	// Stops editing for all events other than from cellEditor
-	if (evtName == mxEvent.MOUSE_DOWN && this.isEditing() && !this.cellEditor.isEventSource(me.getEvent()))
-	{
-		this.stopEditing(!this.isInvokesStopCellEditing());
-	}
-
 	// Detects and processes double taps for touch-based devices which do not have native double click events
 	// or where detection of double click is not always possible (quirks, IE10+). Note that this can only handle
 	// double clicks on cells because the sequence of events in IE prevents detection on the background, it fires
@@ -64719,7 +64740,13 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 				Math.abs(this.initialTouchX - me.getGraphX()) < this.tolerance &&
 				Math.abs(this.initialTouchY - me.getGraphY()) < this.tolerance;
 		}
-		
+
+		// Stops editing for all events other than from cellEditor
+		if (evtName == mxEvent.MOUSE_DOWN && this.isEditing() && !this.cellEditor.isEventSource(me.getEvent()))
+		{
+			this.stopEditing(!this.isInvokesStopCellEditing());
+		}
+
 		this.consumeMouseEvent(evtName, me, sender);
 	}
 };
@@ -70085,6 +70112,21 @@ mxConnectionHandler.prototype.movePreviewAway = mxClient.IS_VML;
 mxConnectionHandler.prototype.outlineConnect = false;
 
 /**
+ * Variable: livePreview
+ * 
+ * Specifies if the actual shape of the edge state should be used for the preview.
+ * Default is false. (Ignored if no edge state is created in <createEdgeState>.)
+ */
+mxConnectionHandler.prototype.livePreview = false;
+
+/**
+ * Variable: cursor
+ * 
+ * Specifies the cursor to be used while the handler is active. Default is null.
+ */
+mxConnectionHandler.prototype.cursor = null;
+
+/**
  * Variable: insertBeforeSource
  * 
  * Specifies if new edges should be inserted before the source vertex in the
@@ -70169,7 +70211,9 @@ mxConnectionHandler.prototype.setCreateTarget = function(value)
 mxConnectionHandler.prototype.createShape = function()
 {
 	// Creates the edge preview
-	var shape = new mxPolyline([], mxConstants.INVALID_COLOR);
+	var shape = (this.livePreview && this.edgeState != null) ?
+		this.graph.cellRenderer.createShape(this.edgeState) :
+		new mxPolyline([], mxConstants.INVALID_COLOR);
 	shape.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
 		mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
 	shape.pointerEvents = false;
@@ -70254,15 +70298,12 @@ mxConnectionHandler.prototype.createMarker = function()
 	marker.getCell = mxUtils.bind(this, function(me)
 	{
 		var cell = mxCellMarker.prototype.getCell.apply(marker, arguments);
-		var scale = this.graph.view.scale;
-		var point = new mxPoint(this.graph.snap(me.getGraphX() / scale) * scale,
-				this.graph.snap(me.getGraphY() / scale) * scale);
 		this.error = null;
 		
-		// Checks for cell under mouse
-		if (cell == null)
+		// Checks for cell at preview point (with grid)
+		if (cell == null && this.currentPoint != null)
 		{
-			cell = this.getCellAt(point.x, point.y);
+			cell = this.graph.getCellAt(this.currentPoint.x, this.currentPoint.y);
 		}
 		
 		// Uses connectable parent vertex if one exists
@@ -70276,7 +70317,8 @@ mxConnectionHandler.prototype.createMarker = function()
 			}
 		}
 		
-		if ((this.graph.isSwimlane(cell) && this.graph.hitsSwimlaneContent(cell, point.x, point.y)) ||
+		if ((this.graph.isSwimlane(cell) && this.currentPoint != null &&
+			this.graph.hitsSwimlaneContent(cell, this.currentPoint.x, this.currentPoint.y)) ||
 			!this.isConnectableCell(cell))
 		{
 			cell = null;
@@ -70368,18 +70410,8 @@ mxConnectionHandler.prototype.start = function(state, x, y, edgeState)
 	this.marker.currentColor = this.marker.validColor;
 	this.marker.markedState = state;
 	this.marker.mark();
-	
-	this.fireEvent(new mxEventObject(mxEvent.START, 'state', this.previous));
-};
 
-/**
- * Function: getCellAt
- * 
- * Creates and returns the <mxCellMarker> used in <marker>.
- */
-mxConnectionHandler.prototype.getCellAt = function(x, y)
-{
-	return (!this.outlineConnect) ? this.graph.getCellAt(x, y) : null;
+	this.fireEvent(new mxEventObject(mxEvent.START, 'state', this.previous));
 };
 
 /**
@@ -70750,8 +70782,25 @@ mxConnectionHandler.prototype.createEdgeState = function(me)
  */
 mxConnectionHandler.prototype.isOutlineConnectEvent = function(me)
 {
+	var offset = mxUtils.getOffset(this.graph.container);
+	var evt = me.getEvent();
+	
+	var clientX = mxEvent.getClientX(evt);
+	var clientY = mxEvent.getClientY(evt);
+	
+	var doc = document.documentElement;
+	var left = (window.pageXOffset || doc.scrollLeft) - (doc.clientLeft || 0);
+	var top = (window.pageYOffset || doc.scrollTop)  - (doc.clientTop || 0);
+	
+	var gridX = this.currentPoint.x - this.graph.container.scrollLeft + offset.x - left;
+	var gridY = this.currentPoint.y - this.graph.container.scrollTop + offset.y - top;
+
 	return this.outlineConnect && !mxEvent.isShiftDown(me.getEvent()) &&
-		(me.isSource(this.marker.highlight.shape) || mxEvent.isAltDown(me.getEvent()));
+		(me.isSource(this.marker.highlight.shape) ||
+		(mxEvent.isAltDown(me.getEvent()) && me.getState() != null) ||
+		this.marker.highlight.isHighlightAt(clientX, clientY) ||
+		((gridX != clientX || gridY != clientY) && me.getState() == null &&
+		this.marker.highlight.isHighlightAt(gridX, gridY)));
 };
 
 /**
@@ -70762,12 +70811,28 @@ mxConnectionHandler.prototype.isOutlineConnectEvent = function(me)
  */
 mxConnectionHandler.prototype.updateCurrentState = function(me, point)
 {
-	this.constraintHandler.update(me, this.first == null, false);
+	this.constraintHandler.update(me, this.first == null, false, (this.first == null ||
+		me.isSource(this.marker.highlight.shape)) ? null : point);
 	
 	if (this.constraintHandler.currentFocus != null && this.constraintHandler.currentConstraint != null)
 	{
-		this.marker.reset();
-		
+		// Handles special case where grid is large and connection point is at actual point in which
+		// case the outline is not followed as long as we're < gridSize / 2 away from that point
+		if (this.marker.highlight != null && this.marker.highlight.state != null &&
+			this.marker.highlight.state.cell == this.constraintHandler.currentFocus.cell)
+		{
+			// Direct repaint needed if cell already highlighted
+			if (this.marker.highlight.shape.stroke != 'transparent')
+			{
+				this.marker.highlight.shape.stroke = 'transparent';
+				this.marker.highlight.repaint();
+			}
+		}
+		else
+		{
+			this.marker.markCell(this.constraintHandler.currentFocus.cell, 'transparent');
+		}
+
 		// Updates validation state
 		if (this.previous != null)
 		{
@@ -70787,32 +70852,53 @@ mxConnectionHandler.prototype.updateCurrentState = function(me, point)
 	{
 		this.marker.process(me);
 		this.currentState = this.marker.getValidState();
+		var outline = this.isOutlineConnectEvent(me);
 		
-		if (this.currentState != null && this.isOutlineConnectEvent(me))
+		if (this.currentState != null && outline)
 		{
+			// Handles special case where mouse is on outline away from actual end point
+			// in which case the grid is ignored and mouse point is used instead
+			if (me.isSource(this.marker.highlight.shape))
+			{
+				point = new mxPoint(me.getGraphX(), me.getGraphY());
+			}
+			
 			var constraint = this.graph.getOutlineConstraint(point, this.currentState, me);
+			this.constraintHandler.setFocus(me, this.currentState, false);
 			this.constraintHandler.currentConstraint = constraint;
-			this.constraintHandler.currentFocus = this.currentState;
 			this.constraintHandler.currentPoint = point;
 		}
-	}
 
-	if (this.outlineConnect)
-	{
-		if (this.marker.highlight != null && this.marker.highlight.shape != null)
+		if (this.outlineConnect)
 		{
-			if (this.constraintHandler.currentConstraint != null &&
-				this.constraintHandler.currentFocus != null)
+			if (this.marker.highlight != null && this.marker.highlight.shape != null)
 			{
-				this.marker.highlight.shape.stroke = mxConstants.OUTLINE_HIGHLIGHT_COLOR;;
-				this.marker.highlight.shape.strokewidth = mxConstants.OUTLINE_HIGHLIGHT_STROKEWIDTH / this.graph.view.scale / this.graph.view.scale;
-				this.marker.highlight.repaint();
-			}
-			else if (this.marker.hasValidState())
-			{
-				this.marker.highlight.shape.stroke = mxConstants.DEFAULT_VALID_COLOR;
-				this.marker.highlight.shape.strokewidth = mxConstants.HIGHLIGHT_STROKEWIDTH / this.graph.view.scale / this.graph.view.scale;
-				this.marker.highlight.repaint();
+				var s = this.graph.view.scale;
+				
+				if (this.constraintHandler.currentConstraint != null &&
+					this.constraintHandler.currentFocus != null)
+				{
+					this.marker.highlight.shape.stroke = mxConstants.OUTLINE_HIGHLIGHT_COLOR;
+					this.marker.highlight.shape.strokewidth = mxConstants.OUTLINE_HIGHLIGHT_STROKEWIDTH / s / s;
+					this.marker.highlight.repaint();
+				} 
+				else if (this.marker.hasValidState())
+				{
+					// Handles special case where actual end point of edge and current mouse point
+					// are not equal (due to grid snapping) and there is no hit on shape or highlight
+					if (this.marker.getValidState() != me.getState())
+					{
+						this.marker.highlight.shape.stroke = 'transparent';
+						this.currentState = null;
+					}
+					else
+					{
+						this.marker.highlight.shape.stroke = mxConstants.DEFAULT_VALID_COLOR;
+					}
+	
+					this.marker.highlight.shape.strokewidth = mxConstants.HIGHLIGHT_STROKEWIDTH / s / s;
+					this.marker.highlight.repaint();
+				}
 			}
 		}
 	}
@@ -70840,12 +70926,12 @@ mxConnectionHandler.prototype.convertWaypoint = function(point)
  */
 mxConnectionHandler.prototype.snapToPreview = function(me, point)
 {
-	if (!mxEvent.isAltDown(me.getEvent()) && this.shape != null &&
-		this.shape.points != null && this.shape.points.length > 0)
+	if (!mxEvent.isAltDown(me.getEvent()) && this.previous != null)
 	{
 		var tol = this.graph.gridSize * this.graph.view.scale / 2;	
-		var tmp = this.shape.points[0];
-		
+		var tmp = (this.sourceConstraint != null) ? this.first :
+			new mxPoint(this.previous.getCenterX(), this.previous.getCenterY());
+
 		if (Math.abs(tmp.x - me.getGraphX()) < tol)
 		{
 			point.x = tmp.x;
@@ -70988,7 +71074,7 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 			{
 				var tmp = pt2; 
 				
-				if (this.edgeState != null && this.edgeState.absolutePoints.length > 2)
+				if (this.edgeState != null && this.edgeState.absolutePoints.length >= 2)
 				{
 					var tmp2 = this.edgeState.absolutePoints[this.edgeState.absolutePoints.length - 2];
 					
@@ -71007,9 +71093,15 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 				{
 					return;
 				}
-						
+
+				// Stores old point to reuse when creating edge
+				this.originalPoint = current.clone();
 				current.x -= dx * 4 / len;
 				current.y -= dy * 4 / len;
+			}
+			else
+			{
+				this.originalPoint = null;
 			}
 			
 			// Creates the preview shape (lazy)
@@ -71053,6 +71145,12 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 				}
 				
 				this.drawPreview();
+			}
+			
+			// Makes sure endpoint of edge is visible during connect
+			if (this.cursor != null)
+			{
+				this.graph.container.style.cursor = this.cursor;
 			}
 			
 			mxEvent.consume(me.getEvent());
@@ -71322,9 +71420,9 @@ mxConnectionHandler.prototype.mouseUp = function(sender, me)
 				target = this.constraintHandler.currentFocus.cell;
 			}
 			
-			if (target == null && this.marker.hasValidState())
+			if (target == null && this.currentState != null)
 			{
-				target = this.marker.validState.cell;
+				target = this.currentState.cell;
 			}
 			
 			this.connect(source, target, me.getEvent(), me.getCell());
@@ -71370,9 +71468,17 @@ mxConnectionHandler.prototype.reset = function()
 		this.shape = null;
 	}
 	
+	// Resets the cursor on the container
+	if (this.cursor != null)
+	{
+		this.graph.container.style.cursor = '';
+	}
+	
 	this.destroyIcons();
 	this.marker.reset();
 	this.constraintHandler.reset();
+	this.originalPoint = null;
+	this.currentPoint = null;
 	this.edgeState = null;
 	this.previous = null;
 	this.error = null;
@@ -71391,11 +71497,25 @@ mxConnectionHandler.prototype.reset = function()
  */
 mxConnectionHandler.prototype.drawPreview = function()
 {
-	var valid = this.error == null;
-	this.shape.strokewidth = this.getEdgeWidth(valid);
-	var color = this.getEdgeColor(valid);
-	this.shape.stroke = color;
+	this.updatePreview(this.error == null);
 	this.shape.redraw();
+};
+
+/**
+ * Function: getEdgeColor
+ * 
+ * Returns the color used to draw the preview edge. This returns green if
+ * there is no edge validation error and red otherwise.
+ * 
+ * Parameters:
+ * 
+ * valid - Boolean indicating if the color for a valid edge should be
+ * returned.
+ */
+mxConnectionHandler.prototype.updatePreview = function(valid)
+{
+	this.shape.strokewidth = this.getEdgeWidth(valid);
+	this.shape.stroke = this.getEdgeColor(valid);
 };
 
 /**
@@ -71578,7 +71698,9 @@ mxConnectionHandler.prototype.connect = function(source, target, evt, dropTarget
 				{
 					var t = this.graph.view.translate;
 					var s = this.graph.view.scale;
-					var pt = new mxPoint(this.currentPoint.x / s - t.x, this.currentPoint.y / s - t.y);
+					var pt = (this.originalPoint != null) ?
+							new mxPoint(this.originalPoint.x / s - t.x, this.originalPoint.y / s - t.y) :
+						new mxPoint(this.currentPoint.x / s - t.x, this.currentPoint.y / s - t.y);
 					pt.x -= this.graph.panDx / this.graph.view.scale;
 					pt.y -= this.graph.panDy / this.graph.view.scale;
 					geo.setTerminalPoint(pt, false);
@@ -71823,6 +71945,18 @@ mxConnectionHandler.prototype.destroy = function()
 function mxConstraintHandler(graph)
 {
 	this.graph = graph;
+	
+	// Adds a graph model listener to update the current focus on changes
+	this.resetHandler = mxUtils.bind(this, function(sender, evt)
+	{
+		if (this.currentFocus != null && this.graph.view.getState(this.currentFocus.cell) == null)
+		{
+			this.reset();
+		}
+	});
+	
+	this.graph.model.addListener(mxEvent.CHANGE, this.resetHandler);
+	this.graph.addListener(mxEvent.ROOT, this.resetHandler);
 };
 
 /**
@@ -72004,9 +72138,15 @@ mxConstraintHandler.prototype.isKeepFocusEvent = function(me)
  * 
  * Returns the cell for the given event.
  */
-mxConstraintHandler.prototype.getCellForEvent = function(me)
+mxConstraintHandler.prototype.getCellForEvent = function(me, point)
 {
 	var cell = me.getCell();
+	
+	// Gets cell under actual point if different from event location
+	if (cell == null && point != null && (me.getGraphX() != point.x || me.getGraphY() != point.y))
+	{
+		cell = this.graph.getCellAt(point.x, point.y);
+	}
 	
 	// Uses connectable parent vertex if one exists
 	if (cell != null && !this.graph.isCellConnectable(cell))
@@ -72028,97 +72168,36 @@ mxConstraintHandler.prototype.getCellForEvent = function(me)
  * Updates the state of this handler based on the given <mxMouseEvent>.
  * Source is a boolean indicating if the cell is a source or target.
  */
-mxConstraintHandler.prototype.update = function(me, source, existingEdge)
+mxConstraintHandler.prototype.update = function(me, source, existingEdge, point)
 {
 	if (this.isEnabled() && !this.isEventIgnored(me))
 	{
+		// Lazy installation of mouseleave handler
+		if (this.mouseleaveHandler == null && this.graph.container != null)
+		{
+			this.mouseleaveHandler = mxUtils.bind(this, function()
+			{
+				this.reset();
+			});
+
+			mxEvent.addListener(this.graph.container, 'mouseleave', this.resetHandler);	
+		}
+		
 		var tol = this.getTolerance(me);
+		var x = (point != null) ? point.x : me.getGraphX();
+		var y = (point != null) ? point.y : me.getGraphY();
+		var grid = new mxRectangle(x - tol, y - tol, 2 * tol, 2 * tol);
 		var mouse = new mxRectangle(me.getGraphX() - tol, me.getGraphY() - tol, 2 * tol, 2 * tol);
-		var state = this.graph.view.getState(this.getCellForEvent(me));
-		var cst = (state != null && !this.isStateIgnored(state, source) &&
-				this.graph.isCellConnectable(state.cell)) ?
-				this.graph.getAllConnectionConstraints(state, source) : null;
+		var state = this.graph.view.getState(this.getCellForEvent(me, point));
 
 		// Keeps focus icons visible while over vertex bounds and no other cell under mouse or shift is pressed
 		if (!this.isKeepFocusEvent(me) && (this.currentFocusArea == null || this.currentFocus == null ||
-			(state != null && cst != null) || !this.graph.getModel().isVertex(this.currentFocus.cell) ||
+			(state != null) || !this.graph.getModel().isVertex(this.currentFocus.cell) ||
 			!mxUtils.intersects(this.currentFocusArea, mouse)) && (state != this.currentFocus))
 		{
 			this.currentFocusArea = null;
 			this.currentFocus = null;
-			this.constraints = cst;
-			
-			// Only uses cells which have constraints
-			if (this.constraints != null)
-			{
-				this.currentFocus = state;
-				this.currentFocusArea = new mxRectangle(state.x, state.y, state.width, state.height);
-				
-				if (this.focusIcons != null)
-				{
-					for (var i = 0; i < this.focusIcons.length; i++)
-					{
-						this.focusIcons[i].destroy();
-					}
-					
-					this.focusIcons = null;
-					this.focusPoints = null;
-				}
-				
-				this.focusIcons = [];
-				this.focusPoints = [];
-				
-				for (var i = 0; i < this.constraints.length; i++)
-				{
-					var cp = this.graph.getConnectionPoint(state, this.constraints[i]);
-					var img = this.getImageForConstraint(state, this.constraints[i], cp);
-
-					var src = img.src;
-					var bounds = new mxRectangle(cp.x - img.width / 2,
-						cp.y - img.height / 2, img.width, img.height);
-					var icon = new mxImageShape(bounds, src);
-					icon.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
-							mxConstants.DIALECT_MIXEDHTML : mxConstants.DIALECT_SVG;
-					icon.preserveImageAspect = false;
-					icon.init(this.graph.getView().getDecoratorPane());
-					
-					// Fixes lost event tracking for images in quirks / IE8 standards
-					if (mxClient.IS_QUIRKS || document.documentMode == 8)
-					{
-						mxEvent.addListener(icon.node, 'dragstart', function(evt)
-						{
-							mxEvent.consume(evt);
-							
-							return false;
-						});
-					}
-					
-					// Move the icon behind all other overlays
-					if (icon.node.previousSibling != null)
-					{
-						icon.node.parentNode.insertBefore(icon.node, icon.node.parentNode.firstChild);
-					}
-
-					var getState = mxUtils.bind(this, function()
-					{
-						return (this.currentFocus != null) ? this.currentFocus : state;
-					});
-					
-					icon.redraw();
-
-					mxEvent.redirectMouseEvents(icon.node, this.graph, getState);
-					this.currentFocusArea.add(icon.bounds);
-					this.focusIcons.push(icon);
-					this.focusPoints.push(cp);
-				}
-				
-				this.currentFocusArea.grow(tol);
-			}
-			else
-			{
-				this.destroyIcons();
-				this.destroyFocusHighlight();
-			}
+			this.setFocus(me, state, source);
 		}
 
 		this.currentConstraint = null;
@@ -72128,13 +72207,17 @@ mxConstraintHandler.prototype.update = function(me, source, existingEdge)
 		if (this.focusIcons != null && this.constraints != null &&
 			(state == null || this.currentFocus == state))
 		{
+			var cx = mouse.getCenterX();
+			var cy = mouse.getCenterY();
+			
 			for (var i = 0; i < this.focusIcons.length; i++)
 			{
-				var dx = me.getGraphX() - this.focusIcons[i].bounds.getCenterX();
-				var dy = me.getGraphY() - this.focusIcons[i].bounds.getCenterY();
+				var dx = cx - this.focusIcons[i].bounds.getCenterX();
+				var dy = cy - this.focusIcons[i].bounds.getCenterY();
 				var tmp = dx * dx + dy * dy;
 				
-				if (this.intersects(this.focusIcons[i], mouse, source, existingEdge) &&
+				if ((this.intersects(this.focusIcons[i], mouse, source, existingEdge) || (point != null &&
+					this.intersects(this.focusIcons[i], grid, source, existingEdge))) &&
 					(minDistSq == null || tmp < minDistSq))
 				{
 					this.currentConstraint = this.constraints[i];
@@ -72142,21 +72225,22 @@ mxConstraintHandler.prototype.update = function(me, source, existingEdge)
 					minDistSq = tmp;
 					
 					var tmp = this.focusIcons[i].bounds.clone();
-					tmp.grow((mxClient.IS_IE) ? 3 : 2);
+					tmp.grow(mxConstants.HIGHLIGHT_SIZE);
 					
 					if (mxClient.IS_IE)
 					{
+						tmp.grow(1);
 						tmp.width -= 1;
 						tmp.height -= 1;
 					}
 					
 					if (this.focusHighlight == null)
 					{
-						var hl = new mxRectangleShape(tmp, null, this.highlightColor, 3);
-						hl.pointerEvents = false;
-						
+						var hl = this.createHighlightShape();
 						hl.dialect = (this.graph.dialect == mxConstants.DIALECT_SVG) ?
 								mxConstants.DIALECT_SVG : mxConstants.DIALECT_VML;
+						hl.pointerEvents = false;
+
 						hl.init(this.graph.getView().getOverlayPane());
 						this.focusHighlight = hl;
 						
@@ -72167,11 +72251,9 @@ mxConstraintHandler.prototype.update = function(me, source, existingEdge)
 	
 						mxEvent.redirectMouseEvents(hl.node, this.graph, getState);
 					}
-					else
-					{
-						this.focusHighlight.bounds = tmp;
-						this.focusHighlight.redraw();
-					}
+
+					this.focusHighlight.bounds = tmp;
+					this.focusHighlight.redraw();
 				}
 			}
 		}
@@ -72190,13 +72272,114 @@ mxConstraintHandler.prototype.update = function(me, source, existingEdge)
 };
 
 /**
- * Function: intersects
+ * Function: setFocus
+ * 
+ * Transfers the focus to the given state as a source or target terminal. If
+ * the handler is not enabled then the outline is painted, but the constraints
+ * are ignored.
+ */
+mxConstraintHandler.prototype.setFocus = function(me, state, source)
+{
+	this.constraints = (state != null && !this.isStateIgnored(state, source) &&
+		this.graph.isCellConnectable(state.cell)) ? ((this.isEnabled()) ?
+		this.graph.getAllConnectionConstraints(state, source) : []) : null;
+
+	// Only uses cells which have constraints
+	if (this.constraints != null)
+	{
+		this.currentFocus = state;
+		this.currentFocusArea = new mxRectangle(state.x, state.y, state.width, state.height);
+		
+		if (this.focusIcons != null)
+		{
+			for (var i = 0; i < this.focusIcons.length; i++)
+			{
+				this.focusIcons[i].destroy();
+			}
+			
+			this.focusIcons = null;
+			this.focusPoints = null;
+		}
+		
+		this.focusPoints = [];
+		this.focusIcons = [];
+		
+		for (var i = 0; i < this.constraints.length; i++)
+		{
+			var cp = this.graph.getConnectionPoint(state, this.constraints[i]);
+			var img = this.getImageForConstraint(state, this.constraints[i], cp);
+
+			var src = img.src;
+			var bounds = new mxRectangle(cp.x - img.width / 2,
+				cp.y - img.height / 2, img.width, img.height);
+			var icon = new mxImageShape(bounds, src);
+			icon.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
+					mxConstants.DIALECT_MIXEDHTML : mxConstants.DIALECT_SVG;
+			icon.preserveImageAspect = false;
+			icon.init(this.graph.getView().getDecoratorPane());
+			
+			// Fixes lost event tracking for images in quirks / IE8 standards
+			if (mxClient.IS_QUIRKS || document.documentMode == 8)
+			{
+				mxEvent.addListener(icon.node, 'dragstart', function(evt)
+				{
+					mxEvent.consume(evt);
+					
+					return false;
+				});
+			}
+			
+			// Move the icon behind all other overlays
+			if (icon.node.previousSibling != null)
+			{
+				icon.node.parentNode.insertBefore(icon.node, icon.node.parentNode.firstChild);
+			}
+
+			var getState = mxUtils.bind(this, function()
+			{
+				return (this.currentFocus != null) ? this.currentFocus : state;
+			});
+			
+			icon.redraw();
+
+			mxEvent.redirectMouseEvents(icon.node, this.graph, getState);
+			this.currentFocusArea.add(icon.bounds);
+			this.focusIcons.push(icon);
+			this.focusPoints.push(cp);
+		}
+		
+		this.currentFocusArea.grow(this.getTolerance(me));
+	}
+	else
+	{
+		this.destroyIcons();
+		this.destroyFocusHighlight();
+	}
+};
+
+/**
+ * Function: createHighlightShape
+ * 
+ * Create the shape used to paint the highlight.
  * 
  * Returns true if the given icon intersects the given point.
  */
-mxConstraintHandler.prototype.intersects = function(icon, point, source, existingEdge)
+mxConstraintHandler.prototype.createHighlightShape = function()
 {
-	return mxUtils.intersects(icon.bounds, point);
+	var hl = new mxRectangleShape(null, this.highlightColor, this.highlightColor, mxConstants.HIGHLIGHT_STROKEWIDTH);
+	hl.opacity = mxConstants.HIGHLIGHT_OPACITY;
+	
+	return hl;
+};
+
+/**
+ * Function: intersects
+ * 
+ * Returns true if the given icon intersects the given rectangle.
+ */
+mxConstraintHandler.prototype.intersects = function(icon, mouse, source, existingEdge)
+{
+	return mxUtils.intersects(icon.bounds, mouse);
 };
 
 /**
@@ -72207,6 +72390,19 @@ mxConstraintHandler.prototype.intersects = function(icon, point, source, existin
 mxConstraintHandler.prototype.destroy = function()
 {
 	this.reset();
+	
+	if (this.resetHandler != null)
+	{
+		this.graph.model.removeListener(this.resetHandler);
+		this.graph.removeListener(this.resetHandler);
+		this.resetHandler = null;
+	}
+	
+	if (this.mouseleaveHandler != null && this.graph.container != null)
+	{
+		mxEvent.removeListener(this.graph.container, 'mouseleave', this.mouseleaveHandler);
+		this.mouseleaveHandler = null;
+	}
 };
 /**
  * Copyright (c) 2006-2015, JGraph Ltd
@@ -72827,6 +73023,8 @@ mxHandle.prototype.redraw = function()
 			this.shape.bounds.x = Math.floor((pt.x + tr.x) * scale - this.shape.bounds.width / 2);
 			this.shape.bounds.y = Math.floor((pt.y + tr.y) * scale - this.shape.bounds.height / 2);
 			
+			// Needed to force update of text bounds
+			this.state.unscaledWidth = null;
 			this.shape.redraw();
 		}
 	}
@@ -73918,7 +74116,7 @@ mxVertexHandler.prototype.updateLivePreview = function(me)
 	this.state.height = this.bounds.height;
 	
 	// Needed to force update of text bounds
-	this.state.unscaledWidth = this.bounds.width / scale;
+	this.state.unscaledWidth = null;
 	
 	// Redraws cell and handles
 	var off = this.state.absoluteOffset;
@@ -75249,17 +75447,11 @@ mxEdgeHandler.prototype.createMarker = function()
 	marker.getCell = function(me)
 	{
 		var cell = mxCellMarker.prototype.getCell.apply(this, arguments);
-		var point = self.getPointForEvent(me);
 
-		// Checks for cell under mouse
-		if (cell == self.state.cell || cell == null)
+		// Checks for cell at preview point (with grid)
+		if ((cell == self.state.cell || cell == null) && self.currentPoint != null)
 		{
-			cell = self.getCellAt(point.x, point.y);
-			
-			if (self.state.cell == cell)
-			{
-				cell = null;
-			}
+			cell = self.graph.getCellAt(self.currentPoint.x, self.currentPoint.y);
 		}
 		
 		// Uses connectable parent vertex if one exists
@@ -75275,9 +75467,10 @@ mxEdgeHandler.prototype.createMarker = function()
 		
 		var model = self.graph.getModel();
 		
-		if ((this.graph.isSwimlane(cell) && this.graph.hitsSwimlaneContent(cell, point.x, point.y)) ||
-			(!self.isConnectableCell(cell)) ||
-			(cell == self.state.cell || (cell != null && !self.graph.connectableEdges && model.isEdge(cell))) ||
+		if ((this.graph.isSwimlane(cell) && self.currentPoint != null &&
+			this.graph.hitsSwimlaneContent(cell, self.currentPoint.x, self.currentPoint.y)) ||
+			(!self.isConnectableCell(cell)) || (cell == self.state.cell ||
+			(cell != null && !self.graph.connectableEdges && model.isEdge(cell))) ||
 			model.isAncestor(self.state.cell, cell))
 		{
 			cell = null;
@@ -75784,7 +75977,8 @@ mxEdgeHandler.prototype.getPointForEvent = function(me)
 {
 	var view = this.graph.getView();
 	var scale = view.scale;
-	var point = new mxPoint(this.roundLength(me.getGraphX() / scale) * scale, this.roundLength(me.getGraphY() / scale) * scale);
+	var point = new mxPoint(this.roundLength(me.getGraphX() / scale) * scale,
+		this.roundLength(me.getGraphY() / scale) * scale);
 	
 	var tt = this.getSnapToTerminalTolerance();
 	var overrideX = false;
@@ -75861,14 +76055,26 @@ mxEdgeHandler.prototype.getPointForEvent = function(me)
  */
 mxEdgeHandler.prototype.getPreviewTerminalState = function(me)
 {
-	this.constraintHandler.update(me, this.isSource, true);
+	this.constraintHandler.update(me, this.isSource, true, me.isSource(this.marker.highlight.shape) ? null : this.currentPoint);
 	
 	if (this.constraintHandler.currentFocus != null && this.constraintHandler.currentConstraint != null)
 	{
-		// KNOWN: Hit detection on cell shape if highlight of constraint is hidden because at that
-		// point the perimeter highlight is not yet visible and can't be used for hit detection.
-		// This results in flickering for the first move after hiding the constraint highlight.
-		this.marker.reset();
+		// Handles special case where grid is large and connection point is at actual point in which
+		// case the outline is not followed as long as we're < gridSize / 2 away from that point
+		if (this.marker.highlight != null && this.marker.highlight.state != null &&
+			this.marker.highlight.state.cell == this.constraintHandler.currentFocus.cell)
+		{
+			// Direct repaint needed if cell already highlighted
+			if (this.marker.highlight.shape.stroke != 'transparent')
+			{
+				this.marker.highlight.shape.stroke = 'transparent';
+				this.marker.highlight.repaint();
+			}
+		}
+		else
+		{
+			this.marker.markCell(this.constraintHandler.currentFocus.cell, 'transparent');
+		}
 		
 		var model = this.graph.getModel();
 		var other = this.graph.view.getTerminalPort(this.state,
@@ -75896,7 +76102,7 @@ mxEdgeHandler.prototype.getPreviewTerminalState = function(me)
 	else
 	{
 		this.marker.process(me);
-		
+
 		return this.marker.getValidState();
 	}
 };
@@ -76032,8 +76238,25 @@ mxEdgeHandler.prototype.getPreviewPoints = function(pt, me)
  */
 mxEdgeHandler.prototype.isOutlineConnectEvent = function(me)
 {
+	var offset = mxUtils.getOffset(this.graph.container);
+	var evt = me.getEvent();
+	
+	var clientX = mxEvent.getClientX(evt);
+	var clientY = mxEvent.getClientY(evt);
+	
+	var doc = document.documentElement;
+	var left = (window.pageXOffset || doc.scrollLeft) - (doc.clientLeft || 0);
+	var top = (window.pageYOffset || doc.scrollTop)  - (doc.clientTop || 0);
+	
+	var gridX = this.currentPoint.x - this.graph.container.scrollLeft + offset.x - left;
+	var gridY = this.currentPoint.y - this.graph.container.scrollTop + offset.y - top;
+
 	return this.outlineConnect && !mxEvent.isShiftDown(me.getEvent()) &&
-		(me.isSource(this.marker.highlight.shape) || mxEvent.isAltDown(me.getEvent()));
+		(me.isSource(this.marker.highlight.shape) ||
+		(mxEvent.isAltDown(me.getEvent()) && me.getState() != null) ||
+		this.marker.highlight.isHighlightAt(clientX, clientY) ||
+		((gridX != clientX || gridY != clientY) && me.getState() == null &&
+		this.marker.highlight.isHighlightAt(gridX, gridY)));
 };
 
 /**
@@ -76041,7 +76264,7 @@ mxEdgeHandler.prototype.isOutlineConnectEvent = function(me)
  * 
  * Updates the given preview state taking into account the state of the constraint handler.
  */
-mxEdgeHandler.prototype.updatePreviewState = function(edge, point, terminalState, me)
+mxEdgeHandler.prototype.updatePreviewState = function(edge, point, terminalState, me, outline)
 {
 	// Computes the points for the edge style and terminals
 	var sourceState = (this.isSource) ? terminalState : this.state.getVisibleTerminalState(true);
@@ -76051,14 +76274,21 @@ mxEdgeHandler.prototype.updatePreviewState = function(edge, point, terminalState
 	var targetConstraint = this.graph.getConnectionConstraint(edge, targetState, false);
 
 	var constraint = this.constraintHandler.currentConstraint;
-	
-	if (constraint == null)
+
+	if (constraint == null && outline)
 	{
-		if (terminalState != null && this.isOutlineConnectEvent(me))
+		if (terminalState != null)
 		{
+			// Handles special case where mouse is on outline away from actual end point
+			// in which case the grid is ignored and mouse point is used instead
+			if (me.isSource(this.marker.highlight.shape))
+			{
+				point = new mxPoint(me.getGraphX(), me.getGraphY());
+			}
+			
 			constraint = this.graph.getOutlineConstraint(point, terminalState, me);
+			this.constraintHandler.setFocus(me, terminalState, this.isSource);
 			this.constraintHandler.currentConstraint = constraint;
-			this.constraintHandler.currentFocus = terminalState;
 			this.constraintHandler.currentPoint = point;
 		}
 		else
@@ -76067,23 +76297,23 @@ mxEdgeHandler.prototype.updatePreviewState = function(edge, point, terminalState
 		}
 	}
 	
-	if (this.outlineConnect)
+	if (this.outlineConnect && this.marker.highlight != null && this.marker.highlight.shape != null)
 	{
-		if (this.marker.highlight != null && this.marker.highlight.shape != null)
+		var s = this.graph.view.scale;
+		
+		if (this.constraintHandler.currentConstraint != null &&
+			this.constraintHandler.currentFocus != null)
 		{
-			if (this.constraintHandler.currentConstraint != null &&
-				this.constraintHandler.currentFocus != null)
-			{
-				this.marker.highlight.shape.stroke = mxConstants.OUTLINE_HIGHLIGHT_COLOR;
-				this.marker.highlight.shape.strokewidth = mxConstants.OUTLINE_HIGHLIGHT_STROKEWIDTH / this.state.view.scale / this.state.view.scale;
-				this.marker.highlight.repaint();
-			}
-			else if (this.marker.hasValidState())
-			{
-				this.marker.highlight.shape.stroke = mxConstants.DEFAULT_VALID_COLOR;
-				this.marker.highlight.shape.strokewidth = mxConstants.HIGHLIGHT_STROKEWIDTH / this.state.view.scale / this.state.view.scale;
-				this.marker.highlight.repaint();
-			}
+			this.marker.highlight.shape.stroke = (outline) ? mxConstants.OUTLINE_HIGHLIGHT_COLOR : 'transparent';
+			this.marker.highlight.shape.strokewidth = mxConstants.OUTLINE_HIGHLIGHT_STROKEWIDTH / s / s;
+			this.marker.highlight.repaint();
+		}
+		else if (this.marker.hasValidState())
+		{
+			this.marker.highlight.shape.stroke = (this.marker.getValidState() == me.getState()) ?
+				mxConstants.DEFAULT_VALID_COLOR : 'transparent';
+			this.marker.highlight.shape.strokewidth = mxConstants.HIGHLIGHT_STROKEWIDTH / s / s;
+			this.marker.highlight.repaint();
 		}
 	}
 	
@@ -76132,18 +76362,19 @@ mxEdgeHandler.prototype.mouseMove = function(sender, me)
 {
 	if (this.index != null && this.marker != null)
 	{
-		var point = this.getPointForEvent(me);
+		this.currentPoint = this.getPointForEvent(me);
 		this.error = null;
 		
+		// Uses the current point from the constraint handler if available
 		if (mxEvent.isShiftDown(me.getEvent()) && this.snapPoint != null)
 		{
-			if (Math.abs(this.snapPoint.x - point.x) < Math.abs(this.snapPoint.y - point.y))
+			if (Math.abs(this.snapPoint.x - this.currentPoint.x) < Math.abs(this.snapPoint.y - this.currentPoint.y))
 			{
-				point.x = this.snapPoint.x;
+				this.currentPoint.x = this.snapPoint.x;
 			}
 			else
 			{
-				point.y = this.snapPoint.y;
+				this.currentPoint.y = this.snapPoint.y;
 			}
 		}
 		
@@ -76156,15 +76387,39 @@ mxEdgeHandler.prototype.mouseMove = function(sender, me)
 		}
 		else if (this.isLabel)
 		{
-			this.label.x = point.x;
-			this.label.y = point.y;
+			this.label.x = this.currentPoint.x;
+			this.label.y = this.currentPoint.y;
 		}
 		else
 		{
-			this.points = this.getPreviewPoints(point, me);
+			this.points = this.getPreviewPoints(this.currentPoint, me);
 			var terminalState = (this.isSource || this.isTarget) ? this.getPreviewTerminalState(me) : null;
-			var clone = this.clonePreviewState(point, (terminalState != null) ? terminalState.cell : null);
-			this.updatePreviewState(clone, point, terminalState, me);
+
+			if (this.constraintHandler.currentConstraint != null &&
+				this.constraintHandler.currentFocus != null &&
+				this.constraintHandler.currentPoint != null)
+			{
+				this.currentPoint = this.constraintHandler.currentPoint.clone();
+			}
+			else if (this.outlineConnect)
+			{
+				// Need to check outline before cloning terminal state
+				var outline = (this.isSource || this.isTarget) ? this.isOutlineConnectEvent(me) : false
+						
+				if (outline)
+				{
+					terminalState = this.marker.highlight.state;
+				}
+				else if (terminalState != null && terminalState != me.getState() && this.marker.highlight.shape != null)
+				{
+					this.marker.highlight.shape.stroke = 'transparent';
+					this.marker.highlight.repaint();
+					terminalState = null;
+				}
+			}
+			
+			var clone = this.clonePreviewState(this.currentPoint, (terminalState != null) ? terminalState.cell : null);
+			this.updatePreviewState(clone, this.currentPoint, terminalState, me, outline);
 
 			// Sets the color of the preview to valid or invalid, updates the
 			// points of the preview and redraws
@@ -76173,9 +76428,12 @@ mxEdgeHandler.prototype.mouseMove = function(sender, me)
 			this.abspoints = clone.absolutePoints;
 			this.active = true;
 		}
-		
+
+		// This should go before calling isOutlineConnectEvent above. As a workaround
+		// we add an offset of gridSize to the hint to avoid problem with hit detection
+		// in highlight.isHighlightAt (which uses comonentFromPoint)
+		this.updateHint(me, this.currentPoint);
 		this.drawPreview();
-		this.updateHint(me, point);
 		mxEvent.consume(me.getEvent());
 		me.consume();
 	}
@@ -76245,7 +76503,10 @@ mxEdgeHandler.prototype.mouseUp = function(sender, me)
 					terminal = this.constraintHandler.currentFocus.cell;
 				}
 				
-				if (terminal == null && this.marker.hasValidState())
+				if (terminal == null && this.marker.hasValidState() && this.marker.highlight != null &&
+					this.marker.highlight.shape != null &&
+					this.marker.highlight.shape.stroke != 'transparent' &&
+					this.marker.highlight.shape.stroke != 'white')
 				{
 					terminal = this.marker.validState.cell;
 				}
@@ -78044,11 +78305,10 @@ mxKeyHandler.prototype.isGraphEvent = function(evt)
 /**
  * Function: keyDown
  * 
- * Handles the event by invoking the function bound to the respective
- * keystroke if <mxGraph.isEnabled>, <isEnabled> and <isGraphEvent> all
- * return true for the given event and <mxGraph.isEditing> returns false.
- * If the graph is editing only the <enter> and <escape> cases are handled
- * by calling the respective hooks.
+ * Handles the event by invoking the function bound to the respective keystroke
+ * if <isEnabledForEvent> returns true for the given event and if
+ * <isEventIgnored> returns false, except for escape for which
+ * <isEventIgnored> is not invoked.
  * 
  * Parameters:
  * 
@@ -78056,8 +78316,7 @@ mxKeyHandler.prototype.isGraphEvent = function(evt)
  */
 mxKeyHandler.prototype.keyDown = function(evt)
 {
-	if (this.graph.isEnabled() && !mxEvent.isConsumed(evt) &&
-		this.isGraphEvent(evt) && this.isEnabled())
+	if (this.isEnabledForEvent(evt))
 	{
 		// Cancels the editing if escape is pressed
 		if (evt.keyCode == 27 /* Escape */)
@@ -78077,6 +78336,25 @@ mxKeyHandler.prototype.keyDown = function(evt)
 			}
 		}
 	}
+};
+
+/**
+ * Function: isEnabledForEvent
+ * 
+ * Returns true if the given event should be handled. <isEventIgnored> is
+ * called later if the event is not an escape key stroke, in which case
+ * <escape> is called. This implementation returns true if <isEnabled>
+ * returns true for both, this handler and <graph>, if the event is not
+ * consumed and if <isGraphEvent> returns true.
+ * 
+ * Parameters:
+ * 
+ * evt - Key event that represents the keystroke.
+ */
+mxKeyHandler.prototype.isEnabledForEvent = function(evt)
+{
+	return (this.graph.isEnabled() && !mxEvent.isConsumed(evt) &&
+		this.isGraphEvent(evt) && this.isEnabled());
 };
 
 /**
@@ -78593,10 +78871,7 @@ mxCellTracker.prototype.mouseMove = function(sender, me)
  * 
  * Handles the event by reseting the highlight.
  */
-mxCellTracker.prototype.mouseUp = function(sender, me)
-{
-	this.reset();
-};
+mxCellTracker.prototype.mouseUp = function(sender, me) { };
 
 /**
  * Function: destroy
@@ -78641,6 +78916,7 @@ function mxCellHighlight(graph, highlightColor, strokeWidth, dashed)
 		this.highlightColor = (highlightColor != null) ? highlightColor : mxConstants.DEFAULT_VALID_COLOR;
 		this.strokeWidth = (strokeWidth != null) ? strokeWidth : mxConstants.HIGHLIGHT_STROKEWIDTH;
 		this.dashed = (dashed != null) ? dashed : false;
+		this.opacity = mxConstants.HIGHLIGHT_OPACITY;
 
 		// Updates the marker if the graph changes
 		this.repaintHandler = mxUtils.bind(this, function()
@@ -78760,6 +79036,7 @@ mxCellHighlight.prototype.createShape = function()
 {
 	var shape = this.graph.cellRenderer.createShape(this.state);
 	
+	shape.svgStrokeTolerance = this.graph.tolerance;
 	shape.scale = this.state.view.scale;
 	shape.outline = true;
 	shape.points = this.state.absolutePoints;
@@ -78767,6 +79044,7 @@ mxCellHighlight.prototype.createShape = function()
 	shape.strokewidth = this.strokeWidth / this.state.view.scale / this.state.view.scale;
 	shape.arrowStrokewidth = this.strokeWidth;
 	shape.stroke = this.highlightColor;
+	shape.opacity = this.opacity;
 	shape.isDashed = this.dashed;
 	shape.isShadow = false;
 	
@@ -78812,7 +79090,25 @@ mxCellHighlight.prototype.repaint = function()
 		{
 			this.shape.setCursor(this.state.shape.getCursor());
 		}
-
+		
+		// Workaround for event transparency in VML with transparent color
+		// is to use a non-transparent color with near zero opacity
+		if (mxClient.IS_QUIRKS || document.documentMode == 8)
+		{
+			if (this.shape.stroke == 'transparent')
+			{
+				// KNOWN: Quirks mode does not seem to catch events if
+				// we do not force an update of the DOM via a change such
+				// as mxLog.debug. Since IE6 is EOL we do not add a fix.
+				this.shape.stroke = 'white';
+				this.shape.opacity = 1;
+			}
+			else
+			{
+				this.shape.opacity = this.opacity;
+			}
+		}
+		
 		this.shape.redraw();
 	}
 };
@@ -78849,6 +79145,35 @@ mxCellHighlight.prototype.highlight = function(state)
 			this.drawHighlight();
 		}
 	}
+};
+
+/**
+ * Function: isHighlightAt
+ * 
+ * Returns true if this highlight is at the given position.
+ */
+mxCellHighlight.prototype.isHighlightAt = function(x, y)
+{
+	var hit = false;
+	
+	// Quirks mode is currently not supported as it used a different coordinate system
+	if (this.shape != null && document.elementFromPoint != null && !mxClient.IS_QUIRKS)
+	{
+		var elt = document.elementFromPoint(x, y);
+
+		while (elt != null)
+		{
+			if (elt == this.shape.node)
+			{
+				hit = true;
+				break;
+			}
+			
+			elt = elt.parentNode;
+		}
+	}
+	
+	return hit;
 };
 
 /**

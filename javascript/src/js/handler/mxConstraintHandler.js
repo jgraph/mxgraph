@@ -23,6 +23,18 @@
 function mxConstraintHandler(graph)
 {
 	this.graph = graph;
+	
+	// Adds a graph model listener to update the current focus on changes
+	this.resetHandler = mxUtils.bind(this, function(sender, evt)
+	{
+		if (this.currentFocus != null && this.graph.view.getState(this.currentFocus.cell) == null)
+		{
+			this.reset();
+		}
+	});
+	
+	this.graph.model.addListener(mxEvent.CHANGE, this.resetHandler);
+	this.graph.addListener(mxEvent.ROOT, this.resetHandler);
 };
 
 /**
@@ -204,9 +216,15 @@ mxConstraintHandler.prototype.isKeepFocusEvent = function(me)
  * 
  * Returns the cell for the given event.
  */
-mxConstraintHandler.prototype.getCellForEvent = function(me)
+mxConstraintHandler.prototype.getCellForEvent = function(me, point)
 {
 	var cell = me.getCell();
+	
+	// Gets cell under actual point if different from event location
+	if (cell == null && point != null && (me.getGraphX() != point.x || me.getGraphY() != point.y))
+	{
+		cell = this.graph.getCellAt(point.x, point.y);
+	}
 	
 	// Uses connectable parent vertex if one exists
 	if (cell != null && !this.graph.isCellConnectable(cell))
@@ -228,97 +246,36 @@ mxConstraintHandler.prototype.getCellForEvent = function(me)
  * Updates the state of this handler based on the given <mxMouseEvent>.
  * Source is a boolean indicating if the cell is a source or target.
  */
-mxConstraintHandler.prototype.update = function(me, source, existingEdge)
+mxConstraintHandler.prototype.update = function(me, source, existingEdge, point)
 {
 	if (this.isEnabled() && !this.isEventIgnored(me))
 	{
+		// Lazy installation of mouseleave handler
+		if (this.mouseleaveHandler == null && this.graph.container != null)
+		{
+			this.mouseleaveHandler = mxUtils.bind(this, function()
+			{
+				this.reset();
+			});
+
+			mxEvent.addListener(this.graph.container, 'mouseleave', this.resetHandler);	
+		}
+		
 		var tol = this.getTolerance(me);
+		var x = (point != null) ? point.x : me.getGraphX();
+		var y = (point != null) ? point.y : me.getGraphY();
+		var grid = new mxRectangle(x - tol, y - tol, 2 * tol, 2 * tol);
 		var mouse = new mxRectangle(me.getGraphX() - tol, me.getGraphY() - tol, 2 * tol, 2 * tol);
-		var state = this.graph.view.getState(this.getCellForEvent(me));
-		var cst = (state != null && !this.isStateIgnored(state, source) &&
-				this.graph.isCellConnectable(state.cell)) ?
-				this.graph.getAllConnectionConstraints(state, source) : null;
+		var state = this.graph.view.getState(this.getCellForEvent(me, point));
 
 		// Keeps focus icons visible while over vertex bounds and no other cell under mouse or shift is pressed
 		if (!this.isKeepFocusEvent(me) && (this.currentFocusArea == null || this.currentFocus == null ||
-			(state != null && cst != null) || !this.graph.getModel().isVertex(this.currentFocus.cell) ||
+			(state != null) || !this.graph.getModel().isVertex(this.currentFocus.cell) ||
 			!mxUtils.intersects(this.currentFocusArea, mouse)) && (state != this.currentFocus))
 		{
 			this.currentFocusArea = null;
 			this.currentFocus = null;
-			this.constraints = cst;
-			
-			// Only uses cells which have constraints
-			if (this.constraints != null)
-			{
-				this.currentFocus = state;
-				this.currentFocusArea = new mxRectangle(state.x, state.y, state.width, state.height);
-				
-				if (this.focusIcons != null)
-				{
-					for (var i = 0; i < this.focusIcons.length; i++)
-					{
-						this.focusIcons[i].destroy();
-					}
-					
-					this.focusIcons = null;
-					this.focusPoints = null;
-				}
-				
-				this.focusIcons = [];
-				this.focusPoints = [];
-				
-				for (var i = 0; i < this.constraints.length; i++)
-				{
-					var cp = this.graph.getConnectionPoint(state, this.constraints[i]);
-					var img = this.getImageForConstraint(state, this.constraints[i], cp);
-
-					var src = img.src;
-					var bounds = new mxRectangle(cp.x - img.width / 2,
-						cp.y - img.height / 2, img.width, img.height);
-					var icon = new mxImageShape(bounds, src);
-					icon.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
-							mxConstants.DIALECT_MIXEDHTML : mxConstants.DIALECT_SVG;
-					icon.preserveImageAspect = false;
-					icon.init(this.graph.getView().getDecoratorPane());
-					
-					// Fixes lost event tracking for images in quirks / IE8 standards
-					if (mxClient.IS_QUIRKS || document.documentMode == 8)
-					{
-						mxEvent.addListener(icon.node, 'dragstart', function(evt)
-						{
-							mxEvent.consume(evt);
-							
-							return false;
-						});
-					}
-					
-					// Move the icon behind all other overlays
-					if (icon.node.previousSibling != null)
-					{
-						icon.node.parentNode.insertBefore(icon.node, icon.node.parentNode.firstChild);
-					}
-
-					var getState = mxUtils.bind(this, function()
-					{
-						return (this.currentFocus != null) ? this.currentFocus : state;
-					});
-					
-					icon.redraw();
-
-					mxEvent.redirectMouseEvents(icon.node, this.graph, getState);
-					this.currentFocusArea.add(icon.bounds);
-					this.focusIcons.push(icon);
-					this.focusPoints.push(cp);
-				}
-				
-				this.currentFocusArea.grow(tol);
-			}
-			else
-			{
-				this.destroyIcons();
-				this.destroyFocusHighlight();
-			}
+			this.setFocus(me, state, source);
 		}
 
 		this.currentConstraint = null;
@@ -328,13 +285,17 @@ mxConstraintHandler.prototype.update = function(me, source, existingEdge)
 		if (this.focusIcons != null && this.constraints != null &&
 			(state == null || this.currentFocus == state))
 		{
+			var cx = mouse.getCenterX();
+			var cy = mouse.getCenterY();
+			
 			for (var i = 0; i < this.focusIcons.length; i++)
 			{
-				var dx = me.getGraphX() - this.focusIcons[i].bounds.getCenterX();
-				var dy = me.getGraphY() - this.focusIcons[i].bounds.getCenterY();
+				var dx = cx - this.focusIcons[i].bounds.getCenterX();
+				var dy = cy - this.focusIcons[i].bounds.getCenterY();
 				var tmp = dx * dx + dy * dy;
 				
-				if (this.intersects(this.focusIcons[i], mouse, source, existingEdge) &&
+				if ((this.intersects(this.focusIcons[i], mouse, source, existingEdge) || (point != null &&
+					this.intersects(this.focusIcons[i], grid, source, existingEdge))) &&
 					(minDistSq == null || tmp < minDistSq))
 				{
 					this.currentConstraint = this.constraints[i];
@@ -342,21 +303,22 @@ mxConstraintHandler.prototype.update = function(me, source, existingEdge)
 					minDistSq = tmp;
 					
 					var tmp = this.focusIcons[i].bounds.clone();
-					tmp.grow((mxClient.IS_IE) ? 3 : 2);
+					tmp.grow(mxConstants.HIGHLIGHT_SIZE);
 					
 					if (mxClient.IS_IE)
 					{
+						tmp.grow(1);
 						tmp.width -= 1;
 						tmp.height -= 1;
 					}
 					
 					if (this.focusHighlight == null)
 					{
-						var hl = new mxRectangleShape(tmp, null, this.highlightColor, 3);
-						hl.pointerEvents = false;
-						
+						var hl = this.createHighlightShape();
 						hl.dialect = (this.graph.dialect == mxConstants.DIALECT_SVG) ?
 								mxConstants.DIALECT_SVG : mxConstants.DIALECT_VML;
+						hl.pointerEvents = false;
+
 						hl.init(this.graph.getView().getOverlayPane());
 						this.focusHighlight = hl;
 						
@@ -367,11 +329,9 @@ mxConstraintHandler.prototype.update = function(me, source, existingEdge)
 	
 						mxEvent.redirectMouseEvents(hl.node, this.graph, getState);
 					}
-					else
-					{
-						this.focusHighlight.bounds = tmp;
-						this.focusHighlight.redraw();
-					}
+
+					this.focusHighlight.bounds = tmp;
+					this.focusHighlight.redraw();
 				}
 			}
 		}
@@ -390,13 +350,114 @@ mxConstraintHandler.prototype.update = function(me, source, existingEdge)
 };
 
 /**
- * Function: intersects
+ * Function: setFocus
+ * 
+ * Transfers the focus to the given state as a source or target terminal. If
+ * the handler is not enabled then the outline is painted, but the constraints
+ * are ignored.
+ */
+mxConstraintHandler.prototype.setFocus = function(me, state, source)
+{
+	this.constraints = (state != null && !this.isStateIgnored(state, source) &&
+		this.graph.isCellConnectable(state.cell)) ? ((this.isEnabled()) ?
+		this.graph.getAllConnectionConstraints(state, source) : []) : null;
+
+	// Only uses cells which have constraints
+	if (this.constraints != null)
+	{
+		this.currentFocus = state;
+		this.currentFocusArea = new mxRectangle(state.x, state.y, state.width, state.height);
+		
+		if (this.focusIcons != null)
+		{
+			for (var i = 0; i < this.focusIcons.length; i++)
+			{
+				this.focusIcons[i].destroy();
+			}
+			
+			this.focusIcons = null;
+			this.focusPoints = null;
+		}
+		
+		this.focusPoints = [];
+		this.focusIcons = [];
+		
+		for (var i = 0; i < this.constraints.length; i++)
+		{
+			var cp = this.graph.getConnectionPoint(state, this.constraints[i]);
+			var img = this.getImageForConstraint(state, this.constraints[i], cp);
+
+			var src = img.src;
+			var bounds = new mxRectangle(cp.x - img.width / 2,
+				cp.y - img.height / 2, img.width, img.height);
+			var icon = new mxImageShape(bounds, src);
+			icon.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
+					mxConstants.DIALECT_MIXEDHTML : mxConstants.DIALECT_SVG;
+			icon.preserveImageAspect = false;
+			icon.init(this.graph.getView().getDecoratorPane());
+			
+			// Fixes lost event tracking for images in quirks / IE8 standards
+			if (mxClient.IS_QUIRKS || document.documentMode == 8)
+			{
+				mxEvent.addListener(icon.node, 'dragstart', function(evt)
+				{
+					mxEvent.consume(evt);
+					
+					return false;
+				});
+			}
+			
+			// Move the icon behind all other overlays
+			if (icon.node.previousSibling != null)
+			{
+				icon.node.parentNode.insertBefore(icon.node, icon.node.parentNode.firstChild);
+			}
+
+			var getState = mxUtils.bind(this, function()
+			{
+				return (this.currentFocus != null) ? this.currentFocus : state;
+			});
+			
+			icon.redraw();
+
+			mxEvent.redirectMouseEvents(icon.node, this.graph, getState);
+			this.currentFocusArea.add(icon.bounds);
+			this.focusIcons.push(icon);
+			this.focusPoints.push(cp);
+		}
+		
+		this.currentFocusArea.grow(this.getTolerance(me));
+	}
+	else
+	{
+		this.destroyIcons();
+		this.destroyFocusHighlight();
+	}
+};
+
+/**
+ * Function: createHighlightShape
+ * 
+ * Create the shape used to paint the highlight.
  * 
  * Returns true if the given icon intersects the given point.
  */
-mxConstraintHandler.prototype.intersects = function(icon, point, source, existingEdge)
+mxConstraintHandler.prototype.createHighlightShape = function()
 {
-	return mxUtils.intersects(icon.bounds, point);
+	var hl = new mxRectangleShape(null, this.highlightColor, this.highlightColor, mxConstants.HIGHLIGHT_STROKEWIDTH);
+	hl.opacity = mxConstants.HIGHLIGHT_OPACITY;
+	
+	return hl;
+};
+
+/**
+ * Function: intersects
+ * 
+ * Returns true if the given icon intersects the given rectangle.
+ */
+mxConstraintHandler.prototype.intersects = function(icon, mouse, source, existingEdge)
+{
+	return mxUtils.intersects(icon.bounds, mouse);
 };
 
 /**
@@ -407,4 +468,17 @@ mxConstraintHandler.prototype.intersects = function(icon, point, source, existin
 mxConstraintHandler.prototype.destroy = function()
 {
 	this.reset();
+	
+	if (this.resetHandler != null)
+	{
+		this.graph.model.removeListener(this.resetHandler);
+		this.graph.removeListener(this.resetHandler);
+		this.resetHandler = null;
+	}
+	
+	if (this.mouseleaveHandler != null && this.graph.container != null)
+	{
+		mxEvent.removeListener(this.graph.container, 'mouseleave', this.mouseleaveHandler);
+		this.mouseleaveHandler = null;
+	}
 };

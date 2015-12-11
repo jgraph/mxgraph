@@ -322,11 +322,10 @@ mxKeyHandler.prototype.isGraphEvent = function(evt)
 /**
  * Function: keyDown
  * 
- * Handles the event by invoking the function bound to the respective
- * keystroke if <mxGraph.isEnabled>, <isEnabled> and <isGraphEvent> all
- * return true for the given event and <mxGraph.isEditing> returns false.
- * If the graph is editing only the <enter> and <escape> cases are handled
- * by calling the respective hooks.
+ * Handles the event by invoking the function bound to the respective keystroke
+ * if <isEnabledForEvent> returns true for the given event and if
+ * <isEventIgnored> returns false, except for escape for which
+ * <isEventIgnored> is not invoked.
  * 
  * Parameters:
  * 
@@ -334,8 +333,7 @@ mxKeyHandler.prototype.isGraphEvent = function(evt)
  */
 mxKeyHandler.prototype.keyDown = function(evt)
 {
-	if (this.graph.isEnabled() && !mxEvent.isConsumed(evt) &&
-		this.isGraphEvent(evt) && this.isEnabled())
+	if (this.isEnabledForEvent(evt))
 	{
 		// Cancels the editing if escape is pressed
 		if (evt.keyCode == 27 /* Escape */)
@@ -355,6 +353,25 @@ mxKeyHandler.prototype.keyDown = function(evt)
 			}
 		}
 	}
+};
+
+/**
+ * Function: isEnabledForEvent
+ * 
+ * Returns true if the given event should be handled. <isEventIgnored> is
+ * called later if the event is not an escape key stroke, in which case
+ * <escape> is called. This implementation returns true if <isEnabled>
+ * returns true for both, this handler and <graph>, if the event is not
+ * consumed and if <isGraphEvent> returns true.
+ * 
+ * Parameters:
+ * 
+ * evt - Key event that represents the keystroke.
+ */
+mxKeyHandler.prototype.isEnabledForEvent = function(evt)
+{
+	return (this.graph.isEnabled() && !mxEvent.isConsumed(evt) &&
+		this.isGraphEvent(evt) && this.isEnabled());
 };
 
 /**

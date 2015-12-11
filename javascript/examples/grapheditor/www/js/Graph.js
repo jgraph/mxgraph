@@ -89,9 +89,15 @@ Graph = function(container, model, renderHint, stylesheet)
 			    	{
 			    		var state = start.state;
 			    		
-			    		if (Math.abs(start.point.x - me.getGraphX()) > tol ||
-			    			Math.abs(start.point.y - me.getGraphY()) > tol)
+			    		if (Math.abs(start.point.x - me.getGraphX()) > tol * this.view.scale ||
+			    			Math.abs(start.point.y - me.getGraphY()) > tol * this.view.scale)
 			    		{
+			    			// Lazy selection for edges inside groups
+			    			if (!this.isCellSelected(state.cell))
+			    			{
+			    				this.setSelectionCell(state.cell);
+			    			}
+			    			
 			    			var handler = this.selectionCellsHandler.getHandler(state.cell);
 			    			
 			    			if (handler != null && handler.bends != null && handler.bends.length > 0)
@@ -111,8 +117,10 @@ Graph = function(container, model, renderHint, stylesheet)
 				    					{
 					    					var pts = state.absolutePoints;
 				    						
-					    					// Handles special case of orthogonal edge styles
-					    					if (edgeStyle == mxEdgeStyle.OrthConnector && pts != null)
+					    					// Default case where handles are at corner points handles
+					    					// drag of corner as drag of existing point
+					    					if (pts != null && ((edgeStyle == null && handle == null) ||
+					    						edgeStyle == mxEdgeStyle.OrthConnector))
 					    					{
 					    						// Does not use handles if they were not initially visible
 					    						handle = start.handle;
@@ -135,9 +143,9 @@ Graph = function(container, model, renderHint, stylesheet)
 					    							else
 					    							{
 							    						// Checks if edge has no bends
-							    						var nobends = pts.length == 2 || (pts.length == 3 &&
-							    								((Math.round(pts[0].x - pts[1].x) == 0 && Math.round(pts[1].x - pts[2].x) == 0) ||
-							    								(Math.round(pts[0].y - pts[1].y) == 0 && Math.round(pts[1].y - pts[2].y) == 0)));
+							    						var nobends = edgeStyle != null && (pts.length == 2 || (pts.length == 3 &&
+						    								((Math.round(pts[0].x - pts[1].x) == 0 && Math.round(pts[1].x - pts[2].x) == 0) ||
+						    								(Math.round(pts[0].y - pts[1].y) == 0 && Math.round(pts[1].y - pts[2].y) == 0))));
 							    						
 						    							if (nobends)
 								    					{
@@ -147,7 +155,18 @@ Graph = function(container, model, renderHint, stylesheet)
 								    					else
 									    				{
 										    				// Finds and moves vertical or horizontal segment
-									    					handle = mxUtils.findNearestSegment(state, start.point.x, start.point.y) + 1;
+									    					handle = mxUtils.findNearestSegment(state, start.point.x, start.point.y);
+									    					
+									    					// Converts segment to virtual handle index
+									    					if (edgeStyle == null)
+									    					{
+									    						handle = mxEvent.VIRTUAL_HANDLE - handle;
+									    					}
+									    					// Maps segment to handle
+									    					else
+									    					{
+									    						handle += 1;
+									    					}
 									    				}
 					    							}
 					    						}
@@ -433,13 +452,13 @@ Graph = function(container, model, renderHint, stylesheet)
 	    	}
 	    };
 
-	    // Activates outline connect after 500ms or if alt is pressed
+	    // Activates outline connect after 1500ms with touch event or if alt is pressed inside the shape
 	    var connectionHandleIsOutlineConnectEvent = this.connectionHandler.isOutlineConnectEvent;
 	    
 	    this.connectionHandler.isOutlineConnectEvent = function(me)
 	    {
-	    	return timeOnTarget > 1500 || ((mxEvent.isAltDown(me.getEvent()) || timeOnTarget > 500) &&
-	    		connectionHandleIsOutlineConnectEvent.apply(this, arguments));
+	    	return (this.currentState && me.getState() == this.currentState && timeOnTarget > 2000) ||
+	    		connectionHandleIsOutlineConnectEvent.apply(this, arguments);
 	    };
 	    
 	    // Adds shift+click to toggle selection state
@@ -848,6 +867,15 @@ Graph.prototype.getLabel = function(cell)
 	}
 	
 	return result;
+};
+
+/**
+ * Adds event if grid size is changed.
+ */
+mxGraph.prototype.setGridSize = function(value)
+{
+	this.gridSize = value;
+	this.fireEvent(new mxEventObject('gridSizeChanged'));
 };
 
 /**
@@ -1684,9 +1712,14 @@ HoverIcons = function(graph)
 HoverIcons.prototype.arrowSpacing = 6;
 
 /**
- * Delay to switch to another state of overlapping bbox. Default is 500ms.
+ * Delay to switch to another state for overlapping bbox. Default is 500ms.
  */
 HoverIcons.prototype.updateDelay = 500;
+
+/**
+ * Delay to switch between states. Default is 300ms.
+ */
+HoverIcons.prototype.activationDelay = 300;
 
 /**
  * Up arrow.
@@ -1701,26 +1734,37 @@ HoverIcons.prototype.activeArrow = null;
 /**
  * Up arrow.
  */
-HoverIcons.prototype.triangleUp = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAYAAACpSkzOAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NDA3RjREMDM0NTVCMTFFNEIxOTZFRjE3NzRENjQ0RjIiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6NDA3RjREMDQ0NTVCMTFFNEIxOTZFRjE3NzRENjQ0RjIiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo0MDdGNEQwMTQ1NUIxMUU0QjE5NkVGMTc3NEQ2NDRGMiIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo0MDdGNEQwMjQ1NUIxMUU0QjE5NkVGMTc3NEQ2NDRGMiIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PpFdYkUAAAEsSURBVHjaYvz//z8DPQATA50AC+P6D6Tq0QViHiA+TpJFZDhuMhDzA7EhLYMuEIjtgdgAiJNJ0cjIsO49sWo5gfgqECtC+S+AWBWIv1DbR0VIloCABBA3UttHIENvQxMBMvgFxNpAfIdaPurFYgkIsAFxF7WCzgyIowgkEA9qWDSZSB8zU2JRMtRHhIAWEKeRmxh4oAlAgsh4fAdN7u9I9VEFCZaAgBAQt5DqIxVo5mQjseT4C8R6QHyNWB91kWEJAzRBTCA26JygSZZc4IpNPxMWF01moBxghAi6RWnQpEopAMVxPq7EIARNzkJUqlS/QJP7C3QftVDRElg+bEH3ESi4LhEqRsgEoJr4AhNSeUYLS0BgJqzNACrLRIH4Mo0sAtXM9ozDrl0HEGAAOt00sQRg5yAAAAAASUVORK5CYII=' :
-	IMAGE_PATH + '/triangle-up.png', 26, 26);
+HoverIcons.prototype.inactiveOpacity = 15;
+
+/**
+ * Whether to hide arrows that collide with vertices.
+ * LATER: Add keyboard override, touch support.
+ */
+HoverIcons.prototype.checkCollisions = true;
+
+/**
+ * Up arrow.
+ */
+HoverIcons.prototype.triangleUp = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAOCAYAAAAxDQxDAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6N0ZBN0E3M0U5NjZGMTFFNTg5NTRDNzQwMTgwNDlEQzQiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6N0ZBN0E3M0Y5NjZGMTFFNTg5NTRDNzQwMTgwNDlEQzQiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo3RkE3QTczQzk2NkYxMUU1ODk1NEM3NDAxODA0OURDNCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo3RkE3QTczRDk2NkYxMUU1ODk1NEM3NDAxODA0OURDNCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pj625P8AAACySURBVHjaYmRY956BROABxF+A+AgpmpjIsGQjEO8CYidaWeQHtYQNiDmBeAspljGRYMlqqCUwALPMg1oWhWCxBNmyjVCHUGQRyJKlOCyBATaoQ/zItSgciFcQsATdshBSLYqC+oSZhMTCBnVYFLEWgRQuItESGGCG6o0iZFECBZagW5aAyyKQxBwKLUG2bD4Qp6FblAyVoIYlyGAmzDIWKGMmA+0AyGw2RjIKVbIAQIABAFJRHSSk2rPoAAAAAElFTkSuQmCC' :
+	IMAGE_PATH + '/triangle-up.png', 26, 14);
 
 /**
  * Right arrow.
  */
-HoverIcons.prototype.triangleRight = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAYAAACpSkzOAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6RkQ3OEM2Nzg0NTVBMTFFNEIxOTZFRjE3NzRENjQ0RjIiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6RkQ3OEM2Nzk0NTVBMTFFNEIxOTZFRjE3NzRENjQ0RjIiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpGRDc4QzY3NjQ1NUExMUU0QjE5NkVGMTc3NEQ2NDRGMiIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpGRDc4QzY3NzQ1NUExMUU0QjE5NkVGMTc3NEQ2NDRGMiIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PmADGesAAAE2SURBVHjatJaxSgNBFEU3iQhCQEllK1hFItjsB1jYr6WtgigIAcFGwSafIBaipa1pBRG0Eq0koI1+QCqxSCXIekbug2UhGJN5Fw7Dzi4c5s283a3keZ6EVLqfKcNTEjl5Nvc7Vgtz53ALzcQh1dL1KvTgFBqeopAa7MCbxpqXyNLQynpaqZvI0tTeXcGip8iSwQt0oO4pCpmGQ+3fpqfIMq92eITUU2RJJbuU3E1k2VA5Q1lnPEWJDkhHBybzFFkW1Ap30PIUWWaLbeAh6sMWrMCDTU5FFHzBCRzDoHwzlqgLB/A+7IFJRa+wD9deDfsBu7A8imScFX3DGRxJNnL+I7qBtsrl8pkIG7wOa+NK/hINdJKWdKomyrDSXWgf+rGarCwK/3Xb8Bz7dVEU7cG914vvR4ABAGCSNhcpqHjLAAAAAElFTkSuQmCC':
-	IMAGE_PATH + '/triangle-right.png', 26, 26);
+HoverIcons.prototype.triangleRight = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAaCAYAAACHD21cAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NThDQzc5RTU5NjZGMTFFNTg5NTRDNzQwMTgwNDlEQzQiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6NThDQzc5RTY5NjZGMTFFNTg5NTRDNzQwMTgwNDlEQzQiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo1OENDNzlFMzk2NkYxMUU1ODk1NEM3NDAxODA0OURDNCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo1OENDNzlFNDk2NkYxMUU1ODk1NEM3NDAxODA0OURDNCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PrHdKTUAAADDSURBVHjanNTBCgFRFIfxMeTZyEKkiBSRxbwREZGiNFZKWSnvY6OUUv6n7ilZaL459XVXv6a5c+cWovQeaSZqFoGJwzpVozzQZq4GeSDCv7AYcJ9Cx0vVpdDxWrUpdLxVLQr/4jjDBpYDblDoeKdqFDpOHRP4jSsU2rzVg8KnqqpbDFFdXck7vlRTXciuOjqT72ioo07k5Nju9dSRnFVHB/J3GBqqPf0fx2pDbwBDK3Ln2MdN1CLraSiFNcn6JJ+PAAMAbnMl1tyDPD8AAAAASUVORK5CYII=':
+	IMAGE_PATH + '/triangle-right.png', 14, 26);
 
 /**
  * Down arrow.
  */
-HoverIcons.prototype.triangleDown = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAYAAACpSkzOAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6RkQ3OEM2N0M0NTVBMTFFNEIxOTZFRjE3NzRENjQ0RjIiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6RkQ3OEM2N0Q0NTVBMTFFNEIxOTZFRjE3NzRENjQ0RjIiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpGRDc4QzY3QTQ1NUExMUU0QjE5NkVGMTc3NEQ2NDRGMiIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpGRDc4QzY3QjQ1NUExMUU0QjE5NkVGMTc3NEQ2NDRGMiIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PuktDIwAAAE0SURBVHjaYvz//z8DPQATA50AC+P6D/ZAejKN7UlhARIHgfg7EJvRyJJ9QHwKFnTpNLLkLxDnIsfRBSCeSwOLZgHxNRCDkWHde5igBBDfBmIeKlnyDohVoTRKqnsBxE1U9E0NzBJ0H4EAGxBfBWIVCi0BBZceNI6w5qNfQFxGBd/kIluCK8OuB+LdFFiyHpqkiSoZCtBdRCTAGSJMeMJ4FhkWdQPxHWwS6IkBGQhBk7sQkZa8gCbnL6QWqu+gSZSU5PyF3NIbnrMJgFOEShYmIsqqYiKTM8X10Q5oksUFlkF9RJWKrwyadNHBFyJ9TLRFoCQ7BYt4BzS1EQT4kjc64IEmdwko/z4Qa0MrTaq2Gb6gJfdiYi0h1UcwcB6IPwKxA0mNEzKKmSx8GROnj4Zduw4gwAC3tEnG5i1iXgAAAABJRU5ErkJggg==' :
-	IMAGE_PATH + '/triangle-down.png', 26, 26);
+HoverIcons.prototype.triangleDown = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAOCAYAAAAxDQxDAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NThDQzc5RTk5NjZGMTFFNTg5NTRDNzQwMTgwNDlEQzQiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6NThDQzc5RUE5NjZGMTFFNTg5NTRDNzQwMTgwNDlEQzQiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo1OENDNzlFNzk2NkYxMUU1ODk1NEM3NDAxODA0OURDNCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo1OENDNzlFODk2NkYxMUU1ODk1NEM3NDAxODA0OURDNCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pv9xyy0AAADESURBVHjaYmRY956BHoAJiHOA+D+NcRrIoilAnEVDz6QD8SwWKGc6EP8F4plUtiQRiBfAgg4GZkEl/lLBgr/IlqBbxACViKPQMgxLQIAFi8JlUHoREDOTYUkckhkMuHyEbFkEEP8i0ZJobJbgswgE1gBxKJGW/YI6bCW+fIQPbCLCsl9Qn6whlGEZiLDMH4i/47AklJAlxFoEAjuA2AfNMpglm4gtgogF+5As+wX15SZiNbOQmHxBlrkBMQ/Ul0QDgAADAC8qRII7g4RyAAAAAElFTkSuQmCC' :
+	IMAGE_PATH + '/triangle-down.png', 26, 14);
 
 /**
  * Left arrow.
  */
-HoverIcons.prototype.triangleLeft = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAYAAACpSkzOAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NDA3RjRDRkY0NTVCMTFFNEIxOTZFRjE3NzRENjQ0RjIiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6NDA3RjREMDA0NTVCMTFFNEIxOTZFRjE3NzRENjQ0RjIiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpGRDc4QzY3RTQ1NUExMUU0QjE5NkVGMTc3NEQ2NDRGMiIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo0MDdGNENGRTQ1NUIxMUU0QjE5NkVGMTc3NEQ2NDRGMiIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PquyPQ0AAAE+SURBVHjatJaxSgNBFEU3KoKQQqzyAdoohFSKlQERbGNrqVik8QeCVdIIgpVBMK2lW9oF0qYRFFMJtlZBQRAEWc/AHVklxE123oUDm+zA4b03s0whSZLIpRC/RgbZSmqLPfcwF9mkApewAGX3x0xgQQmu4A7W0y9CVTQPx3ACxVELQohqcArL4xblEa3COexkWTzNjJbgAu6zSiataBaOoCnZRMkq2oUztWuq/Nc6N+AbuM0jGScqqoJH7arcGdW6A82hFPIkp0Wb2k0Vi29SunXv8Gb07fsleoAq7MGzpcgnhjVoqEozkcsHtGAFri1FPi+wDxvQtxT59CU7lNxM5NNRO11bPy1F/hg0tGFiS5HPk47CNgwsRT5dXUDqMLQUuXxBW/Nr67eJyGeoysqqNPgt6G8Gmt3PletbgAEAmkYzZ9MOuCsAAAAASUVORK5CYII=' :
-	IMAGE_PATH + '/triangle-left.png', 26, 26);
+HoverIcons.prototype.triangleLeft = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAaCAYAAACHD21cAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6N0ZBN0E3M0E5NjZGMTFFNTg5NTRDNzQwMTgwNDlEQzQiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6N0ZBN0E3M0I5NjZGMTFFNTg5NTRDNzQwMTgwNDlEQzQiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo1OENDNzlFQjk2NkYxMUU1ODk1NEM3NDAxODA0OURDNCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo1OENDNzlFQzk2NkYxMUU1ODk1NEM3NDAxODA0OURDNCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pi1fu2cAAADXSURBVHjalNTRB8JQFMfxVROxPyl6iuipRJFS2kv/TU89lY0piyw9pP6r3iP6He7Ndd3de87haxMfd+1ua0TVOxLOCuVNIdqiHZ1I4AbtUUsC6fIO6jzhwoWB/hOCU5Tpy+PCCTq5kA+OfKgODlGJ2r7/YMMBqkLIhn0uMmEP3VGH+zQQ7KKnBGmY+O6eD77QGH2kkOYhxeZdJTzjYnsfb2jOwbHjt6s6ltJHTmNa+SuFNBe0rMOh9/GM1i7M+QIUKLVxzNy2XB0zyYomTqUr6jnqLfoJMADoxSMHt6pxsAAAAABJRU5ErkJggg==' :
+	IMAGE_PATH + '/triangle-left.png', 14, 26);
 
 /**
  * Round target.
@@ -1758,6 +1802,7 @@ HoverIcons.prototype.init = function()
 	this.graph.view.addListener(mxEvent.SCALE, this.repaintHandler);
 	this.graph.view.addListener(mxEvent.DOWN, this.repaintHandler);
 	this.graph.view.addListener(mxEvent.UP, this.repaintHandler);
+	this.graph.addListener(mxEvent.ROOT, this.repaintHandler);
 	
 	// Resets the mouse point on escape
 	this.graph.addListener(mxEvent.ESCAPE, mxUtils.bind(this, function()
@@ -1956,7 +2001,7 @@ HoverIcons.prototype.createArrow = function(img, tooltip)
 		{
 	    	if (this.activeArrow != null && this.activeArrow != arrow)
 	    	{
-	    		mxUtils.setOpacity(this.activeArrow, 20);
+	    		mxUtils.setOpacity(this.activeArrow, this.inactiveOpacity);
 	    	}
 
 			this.graph.connectionHandler.constraintHandler.reset();
@@ -1984,7 +2029,7 @@ HoverIcons.prototype.resetActiveArrow = function()
 {
 	if (this.activeArrow != null)
 	{
-		mxUtils.setOpacity(this.activeArrow, 20);
+		mxUtils.setOpacity(this.activeArrow, this.inactiveOpacity);
 		this.activeArrow = null;
 	}
 };
@@ -2146,9 +2191,11 @@ HoverIcons.prototype.click = function(state, dir, me)
 /**
  * 
  */
-HoverIcons.prototype.reset = function()
+HoverIcons.prototype.reset = function(clearTimeout)
 {
-	if (this.updateThread != null)
+	clearTimeout = (clearTimeout == null) ? true : clearTimeout;
+	
+	if (clearTimeout && this.updateThread != null)
 	{
 		window.clearTimeout(this.updateThread);
 	}
@@ -2209,19 +2256,78 @@ HoverIcons.prototype.repaint = function()
 			
 			this.arrowUp.style.left = Math.round(this.currentState.getCenterX() - this.triangleUp.width / 2) + 'px';
 			this.arrowUp.style.top = Math.round(bds.y - this.triangleUp.height) + 'px';
-			mxUtils.setOpacity(this.arrowUp, 20);
+			mxUtils.setOpacity(this.arrowUp, this.inactiveOpacity);
 			
 			this.arrowRight.style.left = Math.round(bds.x + bds.width) + 'px';
 			this.arrowRight.style.top = Math.round(this.currentState.getCenterY() - this.triangleRight.height / 2) + 'px';
-			mxUtils.setOpacity(this.arrowRight, 20);
+			mxUtils.setOpacity(this.arrowRight, this.inactiveOpacity);
 			
 			this.arrowDown.style.left = this.arrowUp.style.left
 			this.arrowDown.style.top = Math.round(bds.y + bds.height) + 'px';
-			mxUtils.setOpacity(this.arrowDown, 20);
+			mxUtils.setOpacity(this.arrowDown, this.inactiveOpacity);
 			
 			this.arrowLeft.style.left = Math.round(bds.x - this.triangleLeft.width) + 'px';
 			this.arrowLeft.style.top = this.arrowRight.style.top;
-			mxUtils.setOpacity(this.arrowLeft, 20);
+			mxUtils.setOpacity(this.arrowLeft, this.inactiveOpacity);
+			
+			if (this.checkCollisions)
+			{
+				var tmp = this.graph.getCellAt(bds.x + bds.width +
+						this.triangleRight.width / 2, this.currentState.getCenterY());
+				
+				// Checks right arrow
+				if (tmp != null && !this.graph.model.isAncestor(tmp, this.currentState.cell))
+				{
+					this.arrowRight.style.visibility = 'hidden';
+				}
+				else
+				{
+					this.arrowRight.style.visibility = 'visible';
+				}
+
+				// Checks left arrow
+				tmp = this.graph.getCellAt(bds.x - this.triangleLeft.width / 2, this.currentState.getCenterY()); 
+				
+				if (tmp != null && !this.graph.model.isAncestor(tmp, this.currentState.cell))
+				{
+					this.arrowLeft.style.visibility = 'hidden';
+				}
+				else
+				{
+					this.arrowLeft.style.visibility = 'visible';
+				}
+
+				// Checks top arrow
+				tmp = this.graph.getCellAt(this.currentState.getCenterX(), bds.y - this.triangleUp.height / 2); 
+				
+				if (tmp != null && !this.graph.model.isAncestor(tmp, this.currentState.cell))
+				{
+					this.arrowUp.style.visibility = 'hidden';
+				}
+				else
+				{
+					this.arrowUp.style.visibility = 'visible';
+				}
+
+				// Checks bottom arrow
+				tmp = this.graph.getCellAt(this.currentState.getCenterX(), bds.y + bds.height + this.triangleDown.height / 2); 
+				
+				if (tmp != null && !this.graph.model.isAncestor(tmp, this.currentState.cell))
+				{
+					this.arrowDown.style.visibility = 'hidden';
+				}
+				else
+				{
+					this.arrowDown.style.visibility = 'visible';
+				}
+			}
+			else
+			{
+				this.arrowLeft.style.visibility = 'visible';
+				this.arrowRight.style.visibility = 'visible';
+				this.arrowUp.style.visibility = 'visible';
+				this.arrowDown.style.visibility = 'visible';
+			}
 		}
 		else
 		{
@@ -2346,24 +2452,32 @@ HoverIcons.prototype.update = function(state, x, y)
 		
 		this.setDisplay('');
 		
-		if (this.currentState != state && ((timeOnTarget > this.updateDelay && state != null) ||
-			this.bbox == null || x == null || y == null || !mxUtils.contains(this.bbox, x, y)))
+		if (this.currentState != null && this.currentState != state && timeOnTarget < this.activationDelay &&
+			this.bbox != null && !mxUtils.contains(this.bbox, x, y))
 		{
-			if (state != null && this.graph.isEnabled())
+			this.reset(false);
+		}
+		else if (this.currentState != null || timeOnTarget > this.activationDelay)
+		{
+			if (this.currentState != state && ((timeOnTarget > this.updateDelay && state != null) ||
+				this.bbox == null || x == null || y == null || !mxUtils.contains(this.bbox, x, y)))
 			{
-				this.removeNodes();
-				this.setCurrentState(state);
-				this.repaint();
-				
-				// Resets connection points on other focused cells
-				if (this.graph.connectionHandler.constraintHandler.currentFocus != state)
+				if (state != null && this.graph.isEnabled())
 				{
-					this.graph.connectionHandler.constraintHandler.reset();
+					this.removeNodes();
+					this.setCurrentState(state);
+					this.repaint();
+					
+					// Resets connection points on other focused cells
+					if (this.graph.connectionHandler.constraintHandler.currentFocus != state)
+					{
+						this.graph.connectionHandler.constraintHandler.reset();
+					}
 				}
-			}
-			else
-			{
-				this.reset();
+				else
+				{
+					this.reset();
+				}
 			}
 		}
 	}
@@ -2404,7 +2518,8 @@ if (typeof mxVertexHandler != 'undefined')
 		mxConstants.DEFAULT_VALID_COLOR = '#00a8ff';
 		mxConstants.LABEL_HANDLE_FILLCOLOR = '#cee7ff';
 		mxConstants.GUIDE_COLOR = '#0088cf';
-		mxConstants.DEFAULT_HOTSPOT = 0.3;
+		mxConstants.HIGHLIGHT_OPACITY = 30;
+		mxConstants.HIGHLIGHT_SIZE = 8;
 		
 		//Enables snapping to off-grid terminals for edge waypoints
 		mxEdgeHandler.prototype.snapToTerminals = true;
@@ -2424,6 +2539,61 @@ if (typeof mxVertexHandler != 'undefined')
 		mxConnectionHandler.prototype.isCreateTarget = function(evt)
 		{
 			return mxEvent.isControlDown(evt) || mxConnectionHandlerCreateTarget.apply(this, arguments);
+		};
+
+		// Overrides highlight shape for connection points
+		mxConstraintHandler.prototype.createHighlightShape = function()
+		{
+			var hl = new mxEllipse(null, this.highlightColor, this.highlightColor, 0);
+			hl.opacity = mxConstants.HIGHLIGHT_OPACITY;
+			
+			return hl;
+		};
+		
+		// Overrides edge preview to use current edge shape and default style
+		mxConnectionHandler.prototype.livePreview = true;
+		mxConnectionHandler.prototype.cursor = 'crosshair';
+		
+		// Uses current edge style for connect preview
+		mxConnectionHandler.prototype.createEdgeState = function(me)
+		{
+			var style = this.graph.createCurrentEdgeStyle();
+			var edge = this.graph.createEdge(null, null, null, null, null, style);
+			
+			return new mxCellState(this.graph.view, edge, this.graph.getCellStyle(edge));
+		};
+		
+		mxConnectionHandler.prototype.updatePreview = function(valid)
+		{
+			this.shape.scale = this.graph.view.scale;
+			this.shape.style = this.graph.getCellStyle(this.edgeState.cell);
+			// Cell style contains only part of the current edge style
+			for (var key in this.graph.currentEdgeStyle)
+			{
+				this.shape.style[key] = this.graph.currentEdgeStyle[key];
+			}
+			this.shape.strokewidth = this.graph.currentEdgeStyle[mxConstants.STYLE_STROKEWIDTH] || 1;
+			this.shape.isDashed = this.graph.currentEdgeStyle[mxConstants.STYLE_DASHED] == '1';
+			this.shape.stroke = this.graph.currentEdgeStyle[mxConstants.STYLE_STROKECOLOR] || 'black';
+		};
+		
+		// Overrides connection handler to ignore edges instead of not allowing connections
+		var mxConnectionHandlerCreateMarker = mxConnectionHandler.prototype.createMarker;
+		mxConnectionHandler.prototype.createMarker = function()
+		{
+			var marker = mxConnectionHandlerCreateMarker.apply(this, arguments);
+		
+			var markerGetCell = marker.getCell;
+			marker.getCell = mxUtils.bind(this, function(me)
+			{
+				var result = markerGetCell.apply(this, arguments);
+			
+				this.error = null;
+				
+				return result;
+			});
+			
+			return marker;
 		};
 		
 		/**
@@ -3347,7 +3517,7 @@ if (typeof mxVertexHandler != 'undefined')
 			var bounds = (nocrop) ? this.view.getBackgroundPageBounds() : (ignoreSelection) ?
 					this.getGraphBounds() : this.getBoundingBox(this.getSelectionCells());
 
-			if (bounds == null || bounds.width == 0 || bounds.height == 0)
+			if (bounds == null)
 			{
 				throw Error(mxResources.get('drawingEmpty'));	
 			}
@@ -4371,6 +4541,28 @@ if (typeof mxVertexHandler != 'undefined')
 				mxUtils.getValue(state.style, 'recursiveResize', '1') == '1' &&
 				mxUtils.getValue(state.style, 'childLayout', null) == null;
 		};
+		
+		var vertexHandlerGetHandlePadding = mxVertexHandler.prototype.getHandlePadding;
+		mxVertexHandler.prototype.getHandlePadding = function()
+		{
+			var result = new mxPoint(0, 0);
+			var tol = this.tolerance;
+			
+			if (this.graph.cellEditor.getEditingCell() == this.state.cell && 
+				this.sizers != null && this.sizers.length > 0 && this.sizers[0] != null)
+			{
+				tol /= 2;
+				
+				result.x = this.sizers[0].bounds.width + tol;
+				result.y = this.sizers[0].bounds.height + tol;
+			}
+			else
+			{
+				result = vertexHandlerGetHandlePadding.apply(this, arguments);
+			}
+			
+			return result;
+		};
 	
 		/**
 		 * Updates the hint for the current operation.
@@ -4447,7 +4639,7 @@ if (typeof mxVertexHandler != 'undefined')
 			}
 			
 			this.hint.style.left = Math.round(me.getGraphX() - this.hint.clientWidth / 2) + 'px';
-			this.hint.style.top = (me.getGraphY() + 12) + 'px';
+			this.hint.style.top = (Math.max(me.getGraphY(), point.y) + this.state.view.graph.gridSize) + 'px';
 			
 			if (this.hideEdgeHintThread != null)
 			{
@@ -4622,8 +4814,8 @@ if (typeof mxVertexHandler != 'undefined')
 		
 		mxEdgeHandler.prototype.isOutlineConnectEvent = function(me)
 		{
-			return timeOnTarget > 1500 || ((mxEvent.isAltDown(me.getEvent()) || timeOnTarget > 500) &&
-				mxEdgeHandlerIsOutlineConnectEvent.apply(this, arguments));
+			return (this.currentTerminalState != null && me.getState() == this.currentTerminalState &&
+				timeOnTarget > 2000) || mxEdgeHandlerIsOutlineConnectEvent.apply(this, arguments);
 		};
 		
 		// Disables custom handles if shift is pressed
@@ -4815,6 +5007,15 @@ if (typeof mxVertexHandler != 'undefined')
 			});
 			
 			this.graph.getModel().addListener(mxEvent.CHANGE, this.changeHandler);
+			
+			// Repaint needed when editing stops and no change event is fired
+			this.editingHandler = mxUtils.bind(this, function(sender, evt)
+			{
+				this.redrawHandles();
+			});
+			
+			this.graph.addListener(mxEvent.EDITING_STOPPED, this.editingHandler);
+
 			var link = this.graph.getLinkForCell(this.state.cell);
 			this.updateLinkHint(link);
 			
@@ -5020,6 +5221,12 @@ if (typeof mxVertexHandler != 'undefined')
 			{
 				this.graph.getModel().removeListener(this.changeHandler);
 				this.changeHandler = null;
+			}
+			
+			if  (this.editingHandler != null)
+			{
+				this.graph.removeListener(this.editingHandler);
+				this.editingHandler = null;
 			}
 		};
 		

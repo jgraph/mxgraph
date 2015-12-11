@@ -798,20 +798,16 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				// KNOWN: Affects horizontal alignment in quirks
 				// but fill should only be used with align=left
 				div.style.overflow = 'hidden';
-				div.style.width = (w + 1) + 'px';
-				div.style.height = (h + 1) + 'px';
+				div.style.width = (Math.max(0, w) + 1) + 'px';
+				div.style.height = (Math.max(0, h) + 1) + 'px';
 			}
 			else if (overflow == 'width')
 			{
 				// KNOWN: Affects horizontal alignment in quirks
 				// but fill should only be used with align=left
-				div.style.width = w + 'px';
-				
-				if (h > 0)
-				{
-					// LATER: Check if quirks mode need special handling
-					div.style.maxHeight = Math.round(h) + 'px';
-				}
+				div.style.overflow = 'hidden';
+				div.style.width = (Math.max(0, w) + 1) + 'px';
+				div.style.maxHeight = (Math.max(0, h) + 1) + 'px';
 			}
 			
 			if (this.rotateHtml && rot != 0)
