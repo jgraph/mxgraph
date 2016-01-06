@@ -14,7 +14,10 @@ function Toolbar(editorUi, container)
 	// Global handler to hide the current menu
 	this.gestureHandler = mxUtils.bind(this, function(evt)
 	{
-		this.hideMenu();
+		if (this.editorUi.currentMenu != null && mxEvent.getSource(evt) != this.editorUi.currentMenu.div)
+		{
+			this.hideMenu();
+		}
 	});
 
 	mxEvent.addGestureListeners(document, this.gestureHandler);
@@ -842,6 +845,12 @@ Toolbar.prototype.addMenuHandler = function(elt, showLabels, funct, showAll)
 				var offset = mxUtils.getOffset(elt);
 				menu.popup(offset.x, offset.y + elt.offsetHeight, null, evt);
 				this.editorUi.setCurrentMenu(menu, elt);
+				
+				// Workaround for scrollbar hiding menu items
+				if (!showLabels && menu.div.scrollHeight > menu.div.clientHeight)
+				{
+					menu.div.style.width = '40px';
+				}
 				
 				// Extends destroy to reset global state
 				menu.addListener(mxEvent.EVENT_HIDE, mxUtils.bind(this, function()

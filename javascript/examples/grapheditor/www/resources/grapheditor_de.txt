@@ -250,6 +250,7 @@ saveAs=Speichern unter
 saved=Gespeichert
 scrollbars=Scrollbars
 search=Suchen
+searchShapes=Formen suchen
 selectAll=Alles markieren
 selectEdges=Kanten markieren
 selectFont=Schriftart wählen

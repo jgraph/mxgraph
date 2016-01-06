@@ -230,28 +230,15 @@ var mxEdgeStyle =
 		var p0 = pts[0];
 		var pe = pts[pts.length-1];
 		
-		if (p0 != null && pe != null)
+		if (p0 != null && pe != null && points != null && points.length > 0)
 		{
-			// TODO: Implement loop routing for different edge styles
-			/*var edgeStyle = !mxUtils.getValue(state.style,
-					mxConstants.STYLE_NOEDGESTYLE, false) ?
-							state.style[mxConstants.STYLE_EDGE] :
-								null;
-			
-			if (edgeStyle != null && edgeStyle != '')
+			for (var i = 0; i < points.length; i++)
 			{
-				
+				var pt = points[i];
+				pt = state.view.transformControlPoint(state, pt);
+				result.push(new mxPoint(pt.x, pt.y));
 			}
-			else */if (points != null && points.length > 0)
-			{
-				for (var i = 0; i < points.length; i++)
-				{
-					var pt = points[i];
-					pt = state.view.transformControlPoint(state, pt);
-					result.push(new mxPoint(pt.x, pt.y));
-				}
-			}
-			
+
 			return;
 		}							
 		
@@ -948,6 +935,31 @@ var mxEdgeStyle =
 
 	VERTEX_MASK: 3072,
 	// mxEdgeStyle.SOURCE_MASK | mxEdgeStyle.TARGET_MASK,
+	
+	getJettySize: function(state, source, target, points, isSource)
+	{
+		var value = mxUtils.getValue(state.style, (isSource) ? mxConstants.STYLE_SOURCE_JETTY_SIZE :
+			mxConstants.STYLE_TARGET_JETTY_SIZE, mxUtils.getValue(state.style,
+					mxConstants.STYLE_JETTY_SIZE, mxEdgeStyle.orthBuffer));
+		
+		if (value == 'auto')
+		{
+			// Computes the automatic jetty size
+			var type = mxUtils.getValue(state.style, (isSource) ? mxConstants.STYLE_STARTARROW : mxConstants.STYLE_ENDARROW, mxConstants.NONE);
+			
+			if (type != mxConstants.NONE)
+			{
+				var size = mxUtils.getNumber(state.style, (isSource) ? mxConstants.STYLE_STARTSIZE : mxConstants.STYLE_ENDSIZE, mxConstants.DEFAULT_MARKERSIZE);
+				value = Math.max(2, Math.ceil((size + mxEdgeStyle.orthBuffer) / mxEdgeStyle.orthBuffer)) * mxEdgeStyle.orthBuffer;
+			}
+			else
+			{
+				value = 2 * mxEdgeStyle.orthBuffer;
+			}
+		}
+		
+		return value;
+	},
 
 	/**
 	 * Function: OrthConnector
@@ -971,13 +983,6 @@ var mxEdgeStyle =
 		var sourceEdge = source == null ? false : graph.getModel().isEdge(source.cell);
 		var targetEdge = target == null ? false : graph.getModel().isEdge(target.cell);
 
-		if (mxEdgeStyle.orthPointsFallback && (points != null && points.length > 0) || (sourceEdge) || (targetEdge))
-		{
-			mxEdgeStyle.SegmentConnector(state, source, target, points, result);
-			
-			return;
-		}
-
 		var pts = state.absolutePoints;
 		var p0 = pts[0];
 		var pe = pts[pts.length-1];
@@ -992,7 +997,36 @@ var mxEdgeStyle =
 		var targetWidth = target != null ? target.width : 0;
 		var targetHeight = target != null ? target.height : 0;
 
-		var scaledOrthBuffer = state.view.scale * mxEdgeStyle.orthBuffer;
+		var scaledSourceBuffer = state.view.scale * mxEdgeStyle.getJettySize(state, source, target, points, true);
+		var scaledTargetBuffer = state.view.scale * mxEdgeStyle.getJettySize(state, source, target, points, false);
+		
+		// Workaround for loop routing within buffer zone
+		if (source != null && target == source)
+		{
+			scaledTargetBuffer = Math.max(scaledSourceBuffer, scaledTargetBuffer);
+			scaledSourceBuffer = scaledTargetBuffer;
+		}
+		
+		var totalBuffer = scaledTargetBuffer + scaledSourceBuffer;
+		var tooShort = false;
+		
+		// Checks minimum distance for fixed points and falls back to segment connector
+		if (p0 != null && pe != null)
+		{
+			var dx = pe.x - p0.x;
+			var dy = pe.y - p0.y;
+			
+			tooShort = dx * dx + dy * dy < totalBuffer * totalBuffer;
+		}
+
+		if (tooShort || (mxEdgeStyle.orthPointsFallback && (points != null &&
+			points.length > 0)) || sourceEdge || targetEdge)
+		{
+			mxEdgeStyle.SegmentConnector(state, source, target, points, result);
+			
+			return;
+		}
+
 		// Determine the side(s) of the source and target vertices
 		// that the edge may connect to
 		// portConstraint [source, target]
@@ -1031,7 +1065,7 @@ var mxEdgeStyle =
 			}
 		}
 
-		// Avoids floating point number errrors
+		// Avoids floating point number errors
 		sourceX = Math.round(sourceX * 10) / 10;
 		sourceY = Math.round(sourceY * 10) / 10;
 		sourceWidth = Math.round(sourceWidth * 10) / 10;
@@ -1042,7 +1076,7 @@ var mxEdgeStyle =
 		targetWidth = Math.round(targetWidth * 10) / 10;
 		targetHeight = Math.round(targetHeight * 10) / 10;
 		
-		var dir = [0, 0] ;
+		var dir = [0, 0];
 
 		// Work out which faces of the vertices present against each other
 		// in a way that would allow a 3-segment connection if port constraints
@@ -1050,13 +1084,14 @@ var mxEdgeStyle =
 		// geo -> [source, target] [x, y, width, height]
 		var geo = [ [sourceX, sourceY, sourceWidth, sourceHeight] ,
 		            [targetX, targetY, targetWidth, targetHeight] ];
+		var buffer = [scaledSourceBuffer, scaledTargetBuffer];
 
 		for (var i = 0; i < 2; i++)
 		{
-			mxEdgeStyle.limits[i][1] = geo[i][0] - scaledOrthBuffer;
-			mxEdgeStyle.limits[i][2] = geo[i][1] - scaledOrthBuffer;
-			mxEdgeStyle.limits[i][4] = geo[i][0] + geo[i][2] + scaledOrthBuffer;
-			mxEdgeStyle.limits[i][8] = geo[i][1] + geo[i][3] + scaledOrthBuffer;
+			mxEdgeStyle.limits[i][1] = geo[i][0] - buffer[i];
+			mxEdgeStyle.limits[i][2] = geo[i][1] - buffer[i];
+			mxEdgeStyle.limits[i][4] = geo[i][0] + geo[i][2] + buffer[i];
+			mxEdgeStyle.limits[i][8] = geo[i][1] + geo[i][3] + buffer[i];
 		}
 		
 		// Work out which quad the target is in
@@ -1145,14 +1180,10 @@ var mxEdgeStyle =
 		var sourceBottomDist = geo[1][1] - (geo[0][1] + geo[0][3]);
 		var sourceRightDist = geo[1][0] - (geo[0][0] + geo[0][2]);
 
-		mxEdgeStyle.vertexSeperations[1] = Math.max(
-				sourceLeftDist - 2 * scaledOrthBuffer, 0);
-		mxEdgeStyle.vertexSeperations[2] = Math.max(sourceTopDist - 2 * scaledOrthBuffer,
-				0);
-		mxEdgeStyle.vertexSeperations[4] = Math.max(sourceBottomDist - 2
-				* scaledOrthBuffer, 0);
-		mxEdgeStyle.vertexSeperations[3] = Math.max(sourceRightDist - 2
-				* scaledOrthBuffer, 0);
+		mxEdgeStyle.vertexSeperations[1] = Math.max(sourceLeftDist - totalBuffer, 0);
+		mxEdgeStyle.vertexSeperations[2] = Math.max(sourceTopDist - totalBuffer, 0);
+		mxEdgeStyle.vertexSeperations[4] = Math.max(sourceBottomDist - totalBuffer, 0);
+		mxEdgeStyle.vertexSeperations[3] = Math.max(sourceRightDist - totalBuffer, 0);
 				
 		//==============================================================
 		// Start of source and target direction determination
@@ -1323,20 +1354,20 @@ var mxEdgeStyle =
 		switch (dir[0])
 		{
 			case mxConstants.DIRECTION_MASK_WEST:
-				mxEdgeStyle.wayPoints1[0][0] -= scaledOrthBuffer;
+				mxEdgeStyle.wayPoints1[0][0] -= scaledSourceBuffer;
 				mxEdgeStyle.wayPoints1[0][1] += constraint[0][1] * geo[0][3];
 				break;
 			case mxConstants.DIRECTION_MASK_SOUTH:
 				mxEdgeStyle.wayPoints1[0][0] += constraint[0][0] * geo[0][2];
-				mxEdgeStyle.wayPoints1[0][1] += geo[0][3] + scaledOrthBuffer;
+				mxEdgeStyle.wayPoints1[0][1] += geo[0][3] + scaledSourceBuffer;
 				break;
 			case mxConstants.DIRECTION_MASK_EAST:
-				mxEdgeStyle.wayPoints1[0][0] += geo[0][2] + scaledOrthBuffer;
+				mxEdgeStyle.wayPoints1[0][0] += geo[0][2] + scaledSourceBuffer;
 				mxEdgeStyle.wayPoints1[0][1] += constraint[0][1] * geo[0][3];
 				break;
 			case mxConstants.DIRECTION_MASK_NORTH:
 				mxEdgeStyle.wayPoints1[0][0] += constraint[0][0] * geo[0][2];
-				mxEdgeStyle.wayPoints1[0][1] -= scaledOrthBuffer;
+				mxEdgeStyle.wayPoints1[0][1] -= scaledSourceBuffer;
 				break;
 		}
 
@@ -1464,7 +1495,7 @@ var mxEdgeStyle =
 				// same direction as jetty/approach. If so,
 				// check the number of points is consistent
 				// with the relative orientation of source and target
-				// jettys. Same orientation requires an even
+				// jx. Same orientation requires an even
 				// number of turns (points), different requires
 				// odd.
 				var targetOrientation = (dir[1] & (mxConstants.DIRECTION_MASK_EAST | mxConstants.DIRECTION_MASK_WEST)) > 0 ? 0

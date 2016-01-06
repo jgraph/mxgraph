@@ -1451,6 +1451,27 @@ mxGraphView.prototype.transformControlPoint = function(state, pt)
 };
 
 /**
+ * Function: isLoopStyleEnabled
+ * 
+ * Returns true if the given edge should be routed with <mxGraph.defaultLoopStyle>
+ * or the <mxConstants.STYLE_LOOP> defined for the given edge. This implementation
+ * returns true if the given edge is a loop and does not 
+ */
+mxGraphView.prototype.isLoopStyleEnabled = function(edge, points, source, target)
+{
+	var sc = this.graph.getConnectionConstraint(edge, source, true);
+	var tc = this.graph.getConnectionConstraint(edge, target, false);
+	
+	if (!mxUtils.getValue(edge.style, mxConstants.STYLE_ORTHOGONAL_LOOP, false) ||
+		(sc == null || sc.point == null) && (tc == null || tc.point == null))
+	{
+		return source != null && source == target;
+	}
+	
+	return false;
+};
+
+/**
  * Function: getEdgeStyle
  * 
  * Returns the edge style function to be used to render the given edge
@@ -1458,13 +1479,10 @@ mxGraphView.prototype.transformControlPoint = function(state, pt)
  */
 mxGraphView.prototype.getEdgeStyle = function(edge, points, source, target)
 {
-	var edgeStyle = (source != null && source == target) ?
-			mxUtils.getValue(edge.style, mxConstants.STYLE_LOOP,
-					this.graph.defaultLoopStyle) :
-						(!mxUtils.getValue(edge.style,
-								mxConstants.STYLE_NOEDGESTYLE, false) ?
-										edge.style[mxConstants.STYLE_EDGE] :
-											null);
+	var edgeStyle = this.isLoopStyleEnabled(edge, points, source, target) ?
+		mxUtils.getValue(edge.style, mxConstants.STYLE_LOOP, this.graph.defaultLoopStyle) :
+		(!mxUtils.getValue(edge.style, mxConstants.STYLE_NOEDGESTYLE, false) ?
+		edge.style[mxConstants.STYLE_EDGE] : null);
 
 	// Converts string values to objects
 	if (typeof(edgeStyle) == "string")

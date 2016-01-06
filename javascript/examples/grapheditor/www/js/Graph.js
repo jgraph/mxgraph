@@ -1717,9 +1717,9 @@ HoverIcons.prototype.arrowSpacing = 6;
 HoverIcons.prototype.updateDelay = 500;
 
 /**
- * Delay to switch between states. Default is 300ms.
+ * Delay to switch between states. Default is 200ms.
  */
-HoverIcons.prototype.activationDelay = 300;
+HoverIcons.prototype.activationDelay = 200;
 
 /**
  * Up arrow.
@@ -2559,22 +2559,31 @@ if (typeof mxVertexHandler != 'undefined')
 		{
 			var style = this.graph.createCurrentEdgeStyle();
 			var edge = this.graph.createEdge(null, null, null, null, null, style);
+			var state = new mxCellState(this.graph.view, edge, this.graph.getCellStyle(edge));
 			
-			return new mxCellState(this.graph.view, edge, this.graph.getCellStyle(edge));
-		};
-		
-		mxConnectionHandler.prototype.updatePreview = function(valid)
-		{
-			this.shape.scale = this.graph.view.scale;
-			this.shape.style = this.graph.getCellStyle(this.edgeState.cell);
-			// Cell style contains only part of the current edge style
 			for (var key in this.graph.currentEdgeStyle)
 			{
-				this.shape.style[key] = this.graph.currentEdgeStyle[key];
+				state.style[key] = this.graph.currentEdgeStyle[key];
 			}
-			this.shape.strokewidth = this.graph.currentEdgeStyle[mxConstants.STYLE_STROKEWIDTH] || 1;
-			this.shape.isDashed = this.graph.currentEdgeStyle[mxConstants.STYLE_DASHED] == '1';
-			this.shape.stroke = this.graph.currentEdgeStyle[mxConstants.STYLE_STROKECOLOR] || 'black';
+			
+			return state;
+		};
+
+		// Overrides dashed state with current edge style
+		var connectionHandlerCreateShape = mxConnectionHandler.prototype.createShape;
+		mxConnectionHandler.prototype.createShape = function()
+		{
+			var shape = connectionHandlerCreateShape.apply(this, arguments);
+			
+			shape.isDashed = this.graph.currentEdgeStyle[mxConstants.STYLE_DASHED] == '1';
+			
+			return shape;
+		}
+		
+		// Overrides live preview to keep current style
+		mxConnectionHandler.prototype.updatePreview = function(valid)
+		{
+			// do not change color of preview
 		};
 		
 		// Overrides connection handler to ignore edges instead of not allowing connections
@@ -2599,7 +2608,8 @@ if (typeof mxVertexHandler != 'undefined')
 		/**
 		 * Contains the default style for edges.
 		 */
-		Graph.prototype.defaultEdgeStyle = {'edgeStyle': 'orthogonalEdgeStyle', 'rounded': '0', 'html': '1'};
+		Graph.prototype.defaultEdgeStyle = {'edgeStyle': 'orthogonalEdgeStyle', 'rounded': '0', 'html': '1',
+			'jettySize': 'auto', 'orthogonalLoop': '1'};
 		
 		/**
 		 * Contains the current style for edges.
@@ -4439,12 +4449,15 @@ if (typeof mxVertexHandler != 'undefined')
 			{
 				mxCellEditorApplyValue.apply(this, arguments);
 				
-				var stroke = mxUtils.getValue(state.style, mxConstants.STYLE_STROKECOLOR, mxConstants.NONE);
-				var fill = mxUtils.getValue(state.style, mxConstants.STYLE_FILLCOLOR, mxConstants.NONE);
-				
-				if (mxUtils.trim(value || '') == '' && stroke == mxConstants.NONE && fill == mxConstants.NONE)
+				if (this.graph.isCellDeletable(state.cell))
 				{
-					this.graph.removeCells([state.cell], false);
+					var stroke = mxUtils.getValue(state.style, mxConstants.STYLE_STROKECOLOR, mxConstants.NONE);
+					var fill = mxUtils.getValue(state.style, mxConstants.STYLE_FILLCOLOR, mxConstants.NONE);
+					
+					if (mxUtils.trim(value || '') == '' && stroke == mxConstants.NONE && fill == mxConstants.NONE)
+					{
+						this.graph.removeCells([state.cell], false);
+					}
 				}
 			}
 			finally

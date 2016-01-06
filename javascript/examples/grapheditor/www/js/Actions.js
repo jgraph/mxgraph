@@ -75,7 +75,7 @@ Actions.prototype.init = function()
 		dlg.init();
 	}).isEnabled = isGraphEnabled;
 	this.addAction('pageSetup...', function() { ui.showDialog(new PageSetupDialog(ui).container, 320, 220, true, true); }).isEnabled = isGraphEnabled;
-	this.addAction('print...', function() { ui.showDialog(new PrintDialog(ui).container, 300, 140, true, true); }, null, 'sprite-print', 'Ctrl+P');
+	this.addAction('print...', function() { ui.showDialog(new PrintDialog(ui).container, 300, 180, true, true); }, null, 'sprite-print', 'Ctrl+P');
 	this.addAction('preview', function() { mxUtils.show(graph, null, 10, 10); });
 	
 	// Edit actions
@@ -185,6 +185,7 @@ Actions.prototype.init = function()
 				graph.toggleCellStyles(mxConstants.STYLE_RESIZABLE, defaultValue);
 				graph.toggleCellStyles(mxConstants.STYLE_ROTATABLE, defaultValue);
 				graph.toggleCellStyles(mxConstants.STYLE_DELETABLE, defaultValue);
+				graph.toggleCellStyles(mxConstants.STYLE_EDITABLE, defaultValue);
 				graph.toggleCellStyles('connectable', defaultValue);
 			}
 			finally
@@ -573,7 +574,7 @@ Actions.prototype.init = function()
 			{
 				graph.zoomTo(val / 100);
 			}
-		}), mxResources.get('enterValue') + ' (%)');
+		}), mxResources.get('zoom') + ' (%)');
 		this.editorUi.showDialog(dlg.container, 300, 80, true, true);
 		dlg.init();
 	}), null, null, 'Ctrl+5'));

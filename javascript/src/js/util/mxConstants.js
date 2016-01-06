@@ -1691,12 +1691,50 @@
 	STYLE_EDGE: 'edgeStyle',
 
 	/**
+	 * Variable: STYLE_JETTY_SIZE
+	 * 
+	 * Defines the key for the jetty size in <mxEdgeStyle.OrthConnector>.
+	 * Default is 10. Possible values are all numeric values or "auto".
+	 * Value is "jettySize".
+	 */
+	STYLE_JETTY_SIZE: 'jettySize',
+
+	/**
+	 * Variable: STYLE_SOURCE_JETTY_SIZE
+	 * 
+	 * Defines the key for the jetty size in <mxEdgeStyle.OrthConnector>.
+	 * Default is 10. Possible values are numeric values or "auto". This has
+	 * precedence over <STYLE_JETTY_SIZE>. Value is "sourceJettySize".
+	 */
+	STYLE_SOURCE_JETTY_SIZE: 'sourceJettySize',
+
+	/**
+	 * Variable: targetJettySize
+	 * 
+	 * Defines the key for the jetty size in <mxEdgeStyle.OrthConnector>.
+	 * Default is 10. Possible values are numeric values or "auto". This has
+	 * precedence over <STYLE_JETTY_SIZE>. Value is "targetJettySize".
+	 */
+	STYLE_TARGET_JETTY_SIZE: 'targetJettySize',
+
+	/**
 	 * Variable: STYLE_LOOP
 	 * 
 	 * Defines the key for the loop style. Possible values are the functions
 	 * defined in <mxEdgeStyle>. Value is "loopStyle".
 	 */
 	STYLE_LOOP: 'loopStyle',
+
+	/**
+	 * Variable: STYLE_ORTHOGONAL_LOOP
+	 * 
+	 * Defines the key for the orthogonal loop style. Possible values are 0 and
+	 * 1. Default is 0. Value is "orthogonalLoop". Use this style to specify
+	 * if loops should be routed using an orthogonal router. Currently, this
+	 * uses <mxEdgeStyle.OrthConnector> but will be replaced with a dedicated
+	 * orthogonal loop router in later releases.
+	 */
+	STYLE_ORTHOGONAL_LOOP: 'orthogonalLoop',
 
 	/**
 	 * Variable: STYLE_ROUTING_CENTER_X

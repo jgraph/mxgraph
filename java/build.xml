@@ -7,7 +7,7 @@
 <project name="mxgraph" default="all" basedir=".">
 
 	<property name="product.name"    value="mxGraph"/>
-	<property name="product.version" value="3.4.1.0"/>
+	<property name="product.version" value="3.4.1.1"/>
 	<property name="all.jar"         value="mxgraph-all.jar"/>
 	<property name="core.jar"        value="mxgraph-core.jar"/>
 	<property name="swing.jar"       value="mxgraph-swing.jar"/>

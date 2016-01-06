@@ -417,7 +417,7 @@ mxConnectionHandler.prototype.setEnabled = function(enabled)
 /**
  * Function: isInsertBefore
  * 
- * Returns <insertBeforeSource>.
+ * Returns <insertBeforeSource> for non-loops and false for loops.
  *
  * Parameters:
  * 
@@ -430,7 +430,7 @@ mxConnectionHandler.prototype.setEnabled = function(enabled)
  */
 mxConnectionHandler.prototype.isInsertBefore = function(edge, source, target, evt, dropTarget)
 {
-	return this.insertBeforeSource;
+	return this.insertBeforeSource && source != target;
 };
 
 /**
@@ -470,6 +470,7 @@ mxConnectionHandler.prototype.createShape = function()
 		new mxPolyline([], mxConstants.INVALID_COLOR);
 	shape.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
 		mxConstants.DIALECT_VML : mxConstants.DIALECT_SVG;
+	shape.scale = this.graph.view.scale;
 	shape.pointerEvents = false;
 	shape.isDashed = true;
 	shape.init(this.graph.getView().getOverlayPane());
@@ -1468,6 +1469,24 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
  */
 mxConnectionHandler.prototype.updateEdgeState = function(current, constraint)
 {
+	// TODO: Use generic method for writing constraint to style
+	if (this.sourceConstraint != null && this.sourceConstraint.point != null)
+	{
+		this.edgeState.style[mxConstants.STYLE_EXIT_X] = this.sourceConstraint.point.x;
+		this.edgeState.style[mxConstants.STYLE_EXIT_Y] = this.sourceConstraint.point.y;
+	}
+
+	if (constraint != null && constraint.point != null)
+	{
+		this.edgeState.style[mxConstants.STYLE_ENTRY_X] = constraint.point.x;
+		this.edgeState.style[mxConstants.STYLE_ENTRY_Y] = constraint.point.y;
+	}
+	else
+	{
+		delete this.edgeState.style[mxConstants.STYLE_ENTRY_X];
+		delete this.edgeState.style[mxConstants.STYLE_ENTRY_Y];
+	}
+	
 	this.edgeState.absolutePoints = [null, (this.currentState != null) ? null : current];
 	this.graph.view.updateFixedTerminalPoint(this.edgeState, this.previous, true, this.sourceConstraint);
 	

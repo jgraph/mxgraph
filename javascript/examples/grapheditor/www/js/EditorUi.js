@@ -471,10 +471,10 @@ EditorUi = function(editor, container)
 	var valueStyles = ['fontFamily', 'fontSize', 'fontColor'];
 	
 	// Keys that always update the current edge style regardless of selection
-	var alwaysEdgeStyles = ['edgeStyle', 'startArrow', 'startFill', 'startSize', 'endArrow', 'endFill', 'endSize'];
+	var alwaysEdgeStyles = ['edgeStyle', 'startArrow', 'startFill', 'startSize', 'endArrow', 'endFill', 'endSize', 'jettySize', 'orthogonalLoop'];
 	
 	// Keys that are ignored together (if one appears all are ignored)
-	var keyGroups = [['startArrow', 'startFill', 'startSize', 'endArrow', 'endFill', 'endSize'],
+	var keyGroups = [['startArrow', 'startFill', 'startSize', 'endArrow', 'endFill', 'endSize', 'jettySize', 'orthogonalLoop'],
 	                 ['strokeColor', 'strokeWidth'],
 	                 ['fillColor', 'gradientColor'],
 	                 valueStyles,
@@ -1545,8 +1545,10 @@ EditorUi.prototype.initCanvas = function()
 	
 	mxEvent.addMouseWheelListener(mxUtils.bind(this, function(evt, up)
 	{
-		if ((mxEvent.isAltDown(evt) || (mxEvent.isControlDown(evt)) || graph.panningHandler.isActive()) &&
-			(this.dialogs == null || this.dialogs.length == 0))
+		// Ctrl+wheel (or pinch on touchpad) is a native browser zoom event is OS X
+		// LATER: Add support for zoom via pinch on trackpad for Chrome in OS X
+		if ((mxEvent.isAltDown(evt) || (mxEvent.isControlDown(evt) && !mxClient.IS_MAC) ||
+			graph.panningHandler.isActive()) && (this.dialogs == null || this.dialogs.length == 0))
 		{
 			var source = mxEvent.getSource(evt);
 			
@@ -2176,7 +2178,7 @@ EditorUi.prototype.refresh = function()
 		{
 			this.tabContainer.style.width = this.diagramContainer.style.width;
 			this.tabContainer.style.bottom = (this.footerHeight + off) + 'px';
-			diagramHeight -= parseInt(this.tabContainer.style.height);
+			diagramHeight -= this.tabContainer.clientHeight;
 		}
 		
 		this.diagramContainer.style.height = diagramHeight + 'px';
@@ -2609,7 +2611,19 @@ EditorUi.prototype.extractGraphModelFromHtml = function(data)
  */
 EditorUi.prototype.isCompatibleString = function(data)
 {
-	return data.substring(0, 13) == '<mxGraphModel';
+	try
+	{
+		var doc = mxUtils.parseXml(data);
+		var node = this.editor.extractGraphModel(doc.documentElement);
+		
+		return node != null;
+	}
+	catch (e)
+	{
+		// ignore
+	}
+	
+	return false;
 };
 
 /**

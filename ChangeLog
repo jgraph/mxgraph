@@ -1,3 +1,10 @@
+06-JAN-2016: 3.4.1.1
+
+- Fixes preview for fixed points in mxConnectionHandler, mxEdgeHandler [JavaScript]
+- Adds mxGraphView.isLoopStyleEnabled, mxEdgeStyle.getJettySize [JavaScript]
+- Adds mxConstants.STYLE_ORTHOGONAL_LOOP for orthogonal loop routing [JavaScript]
+- Adds mxConstants.STYLE_(SOURCE/TARGET_)JETTY_SIZE for orthogonal router [JavaScript]
+
 11-DEC-2015: 3.4.1.0
 
 - mxCellTracker.mouseUp no longer invokes reset [JavaScript]

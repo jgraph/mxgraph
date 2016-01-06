@@ -228,6 +228,9 @@
 	background:transparent;
 	border-bottom:none;
 }
+.geSidebarContainer button {
+	text-overflow:ellipsis;
+}
 .geToolbar {
 	padding:1px 0px 0px 6px;
 	border-top:1px solid #e0e0e0;

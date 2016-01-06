@@ -1362,6 +1362,20 @@ mxEdgeHandler.prototype.updatePreviewState = function(edge, point, terminalState
 		targetConstraint = constraint;
 	}
 	
+	if (this.isSource || this.isTarget)
+	{
+		if (constraint != null && constraint.point != null)
+		{
+			edge.style[(this.isSource) ? mxConstants.STYLE_EXIT_X : mxConstants.STYLE_ENTRY_X] = constraint.point.x;
+			edge.style[(this.isSource) ? mxConstants.STYLE_EXIT_Y : mxConstants.STYLE_ENTRY_Y] = constraint.point.y;
+		}
+		else
+		{
+			delete edge.style[(this.isSource) ? mxConstants.STYLE_EXIT_X : mxConstants.STYLE_ENTRY_X];
+			delete edge.style[(this.isSource) ? mxConstants.STYLE_EXIT_Y : mxConstants.STYLE_ENTRY_Y];
+		}
+	}
+	
 	edge.setVisibleTerminalState(sourceState, true);
 	edge.setVisibleTerminalState(targetState, false);
 	

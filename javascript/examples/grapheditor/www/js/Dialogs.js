@@ -831,13 +831,40 @@ var PrintDialog = function(editorUi)
 	table.style.width = '100%';
 	table.style.height = '100%';
 	var tbody = document.createElement('tbody');
-
+	
 	row = document.createElement('tr');
+	
+	var onePageCheckBox = document.createElement('input');
+	onePageCheckBox.setAttribute('type', 'checkbox');
+	td = document.createElement('td');
+	td.setAttribute('colspan', '2');
+	td.style.fontSize = '10pt';
+	td.appendChild(onePageCheckBox);
+	
+	var span = document.createElement('span');
+	mxUtils.write(span, ' ' + mxResources.get('fitPage'));
+	td.appendChild(span);
+	
+	mxEvent.addListener(span, 'click', function(evt)
+	{
+		onePageCheckBox.checked = !onePageCheckBox.checked;
+		pageCountCheckBox.checked = !onePageCheckBox.checked;
+		mxEvent.consume(evt);
+	});
+	
+	mxEvent.addListener(onePageCheckBox, 'change', function()
+	{
+		pageCountCheckBox.checked = !onePageCheckBox.checked;
+	});
+	
+	row.appendChild(td);
+	tbody.appendChild(row);
+
+	row = row.cloneNode(false);
 	
 	var pageCountCheckBox = document.createElement('input');
 	pageCountCheckBox.setAttribute('type', 'checkbox');
 	td = document.createElement('td');
-	td.style.paddingRight = '10px';
 	td.style.fontSize = '10pt';
 	td.appendChild(pageCountCheckBox);
 	
@@ -848,6 +875,7 @@ var PrintDialog = function(editorUi)
 	mxEvent.addListener(span, 'click', function(evt)
 	{
 		pageCountCheckBox.checked = !pageCountCheckBox.checked;
+		onePageCheckBox.checked = !pageCountCheckBox.checked;
 		mxEvent.consume(evt);
 	});
 	
@@ -878,12 +906,14 @@ var PrintDialog = function(editorUi)
 		{
 			pageCountInput.setAttribute('disabled', 'disabled');
 		}
+
+		onePageCheckBox.checked = !pageCountCheckBox.checked;
 	});
 
-	row = document.createElement('tr');
+	row = row.cloneNode(false);
+	
 	td = document.createElement('td');
 	mxUtils.write(td, mxResources.get('pageScale') + ':');
-	td.style.paddingLeft = '20px';
 	row.appendChild(td);
 	
 	td = document.createElement('td');
@@ -899,14 +929,14 @@ var PrintDialog = function(editorUi)
 	row = document.createElement('tr');
 	td = document.createElement('td');
 	td.colSpan = 2;
-	td.style.paddingTop = '32px';
+	td.style.paddingTop = '20px';
 	td.setAttribute('align', 'right');
 	
 	// Overall scale for print-out to account for print borders in dialogs etc
 	function preview(print)
 	{
+		var autoOrigin = onePageCheckBox.checked || pageCountCheckBox.checked;
 		var printScale = parseInt(pageScaleInput.value) / 100;
-		var autoOrigin = pageCountCheckBox.checked;
 		
 		if (isNaN(printScale))
 		{
@@ -922,7 +952,7 @@ var PrintDialog = function(editorUi)
 		
 		if (autoOrigin)
 		{
-    		var pageCount = parseInt(pageCountInput.value);
+    		var pageCount = (onePageCheckBox.checked) ? 1 : parseInt(pageCountInput.value);
 			
 			if (!isNaN(pageCount))
 			{

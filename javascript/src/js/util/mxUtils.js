@@ -2460,9 +2460,8 @@ var mxUtils =
 	/**
 	 * Function: ltrim
 	 * 
-	 * Strips all whitespaces from the beginning of the string.
-	 * Without the second parameter, Javascript function will trim these
-	 * characters:
+	 * Strips all whitespaces from the beginning of the string. Without the
+	 * second parameter, this will trim these characters:
 	 * 
 	 * - " " (ASCII 32 (0x20)), an ordinary space
 	 * - "\t" (ASCII 9 (0x09)), a tab
@@ -2481,9 +2480,8 @@ var mxUtils =
 	/**
 	 * Function: rtrim
 	 * 
-	 * Strips all whitespaces from the end of the string.
-	 * Without the second parameter, Javascript function will trim these
-	 * characters:
+	 * Strips all whitespaces from the end of the string. Without the second
+	 * parameter, this will trim these characters:
 	 * 
 	 * - " " (ASCII 32 (0x20)), an ordinary space
 	 * - "\t" (ASCII 9 (0x09)), a tab

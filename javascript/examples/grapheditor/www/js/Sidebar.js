@@ -130,6 +130,11 @@ Sidebar.prototype.expandedImage = (!mxClient.IS_SVG) ? IMAGE_PATH + '/expanded.g
 Sidebar.prototype.tooltipImage = (!mxClient.IS_SVG) ? IMAGE_PATH + '/tooltip.png' : 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAbCAMAAAB7jU7LAAAACVBMVEX///+ZmZn///9Y2COLAAAAA3RSTlP//wDXyg1BAAAAOElEQVR42mXQMQ4AMAgDsWv//+iutcJmIQSk+9dJpVKpVCqVSqVSqZTdncWzF8/NeP7FkxWenPEDOnUBiL3jWx0AAAAASUVORK5CYII=';
 
 /**
+ * 
+ */
+Sidebar.prototype.searchImage = (!mxClient.IS_SVG) ? IMAGE_PATH + '/search.png' : 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAAEaSURBVHjabNGxS5VxFIfxz71XaWuQUJCG/gCHhgTD9VpEETg4aMOlQRp0EoezObgcd220KQiXmpretTAHQRBdojlQEJyukPdt+b1ywfvAGc7wnHP4nlZd1yKijQW8xzNc4Su+ZOYfQ3T6/f4YNvEJYzjELXp4VVXVz263+7cR2niBxAFeZ2YPi3iHR/gYERPDwhpOsd6sz8x/mfkNG3iOlWFhFj8y89J9KvzGXER0GuEaD42mgwHqUtoljbcRsTBCeINpfM/MgZLKPpaxFxGbOCqDXmILN7hoJrTKH+axhxmcYRxP0MIDnOBDZv5q1XUNIuJxifJp+UNV7t7BFM6xeic0RMQ4Bpl5W/ol7GISx/eEUUTECrbx+f8A8xhiZht9zsgAAAAASUVORK5CYII=';
+
+/**
  * Specifies if tooltips should be visible. Default is true.
  */
 Sidebar.prototype.enableTooltips = true;
@@ -551,14 +556,21 @@ Sidebar.prototype.cloneCell = function(cell, value)
  */
 Sidebar.prototype.addSearchPalette = function(expand)
 {
-	var elt = this.createTitle(mxResources.get('search'));
+	var elt = this.createTitle('');
 	this.container.appendChild(elt);
+	
+	// Workaround for important padding in Atlas UI
+	elt.style.cssText = 'padding:0px !important;';
+	elt.style.height = '0px';
 	
 	var div = document.createElement('div');
 	div.className = 'geSidebar';
+	div.style.boxSizing = 'border-box';
 	div.style.overflow = 'hidden';
 	div.style.width = '100%';
-	div.style.padding = '0px';
+	div.style.padding = (uiTheme == 'atlas') ? '6px' : '8px';
+	div.style.paddingTop = '14px';
+	div.style.paddingBottom = '0px';
 
 	if (!expand)
 	{
@@ -566,92 +578,61 @@ Sidebar.prototype.addSearchPalette = function(expand)
 	}
 	
 	var inner = document.createElement('div');
-	inner.style.backgroundColor = 'transparent';
-	inner.style.borderColor = 'transparent';
-	inner.style.padding = '4px';
-	inner.style.marginRight = '8px';
 	inner.style.whiteSpace = 'nowrap';
 	inner.style.textOverflow = 'clip';
+	inner.style.paddingBottom = '8px';
 	inner.style.cursor = 'default';
-	
-	if (!mxClient.IS_VML)
-	{
-		inner.style.paddingRight = '20px';
-	}
 
-	var searchResource = mxResources.get('search');
-	
 	var input = document.createElement('input');
-	input.setAttribute('placeholder', searchResource);
+	input.setAttribute('placeholder', mxResources.get('searchShapes'));
 	input.setAttribute('type', 'text');
+	input.style.fontSize = '12px';
+	input.style.overflow = 'hidden';
+	input.style.boxSizing = 'border-box';
 	input.style.border = 'solid 1px #d5d5d5';
+	input.style.borderRadius = '4px';
 	input.style.width = '100%';
 	input.style.outline = 'none';
-	input.style.padding = '4px';
-	input.style.backgroundImage = 'url(\'' + Dialog.prototype.clearImage + '\')';
-	input.style.backgroundRepeat = 'no-repeat';
-	input.style.backgroundPosition = '100% 50%';
-	input.style.paddingRight = '14px';
-	input.style.marginTop = '6px';
-	input.style.marginLeft = '2px';
-	input.style.marginBottom = '2px';
+	input.style.padding = '6px';
 	inner.appendChild(input);
 
-	var cross = document.createElement('div');
-	cross.setAttribute('title', mxResources.get('reset'));
+	var cross = document.createElement('img');
+	cross.setAttribute('src', Sidebar.prototype.searchImage);
 	cross.style.position = 'relative';
-	cross.style.left = '-14px';
-	cross.style.width = '14px';
-	cross.style.height = '18px';
-	cross.style.cursor = 'pointer';
-
-	// Workaround for inline-block not supported in IE
-	cross.style.display = (mxClient.IS_VML) ? 'inline' : 'inline-block';
-	cross.style.top = ((mxClient.IS_VML) ? 0 : 4) + 'px';
+	cross.style.left = '-18px';
 	
+	if (mxClient.IS_QUIRKS)
+	{
+		input.style.height = '28px';
+		cross.style.top = '-4px';
+	}
+	else
+	{
+		cross.style.top = '2px';
+	}
+
 	// Needed to block event transparency in IE
 	cross.style.background = 'url(\'' + this.editorUi.editor.transparentImage + '\')';
 	
 	var find;
 
-	mxEvent.addListener(cross, 'click', function()
-	{
-		input.value = '';
-		find();
-		input.focus();
-	});
-	
-	
-	if (document.documentMode == 8)
-	{
-		input.style.boxSizing = 'border-box';
-
-		// Workaround for no mouse events on cross in IE8 standards
-		mxEvent.addListener(input, 'click', function(evt)
-		{
-			var x = mxEvent.getClientX(evt);
-			
-			if (x > input.clientWidth - 8)
-			{
-				cross.click();
-			}
-		});
-	}
-
 	inner.appendChild(cross);
 	div.appendChild(inner);
 
 	var center = document.createElement('center');
-	var button = mxUtils.button(searchResource, function()
+	var button = mxUtils.button(mxResources.get('moreResults'), function()
 	{
 		find();
 	});
-	button.setAttribute('disabled', 'true');
+	button.style.display = 'none';
+	
 	// Workaround for inherited line-height in quirks mode
 	button.style.lineHeight = 'normal';
-	center.style.paddingTop = '8px';
-	center.style.paddingBottom = '14px';
-
+	button.style.marginTop = '4px';
+	button.style.marginBottom = '8px';
+	center.style.paddingTop = '4px';
+	center.style.paddingBottom = '8px';
+	
 	center.appendChild(button);
 	div.appendChild(center);
 	
@@ -689,102 +670,102 @@ Sidebar.prototype.addSearchPalette = function(expand)
 		count = 4 * Math.max(1, Math.floor(this.container.clientWidth / (this.thumbWidth + 10)));
 		this.hideTooltip();
 		
-		if (button.getAttribute('disabled') != 'true')
+		if (input.value != '' && !complete)
 		{
-			if (input.value != '' && !complete)
+			if (center.parentNode != null)
 			{
-				if (center.parentNode != null)
+				if (searchTerm != input.value)
 				{
-					if (searchTerm != input.value)
-					{
-						clearDiv();
-						searchTerm = input.value;
-						hash = new Object();
-						complete = false;
-						page = 0;
-					}
+					clearDiv();
+					searchTerm = input.value;
+					hash = new Object();
+					complete = false;
+					page = 0;
+				}
+				
+				if (!active)
+				{
+					button.setAttribute('disabled', 'true');
+					button.style.display = '';
+					button.style.cursor = 'wait';
+					button.innerHTML = mxResources.get('loading') + '...';
+					active = true;
 					
-					if (!active)
+					// Ignores old results
+					var current = new Object();
+					this.currentSearch = current;
+					
+					this.searchEntries(searchTerm, count, page, mxUtils.bind(this, function(results, len, more)
 					{
-						button.style.cursor = 'wait';
-						button.innerHTML = mxResources.get('loading') + '...';
-						active = true;
-						
-						// Ignores old results
-						var current = new Object();
-						this.currentSearch = current;
-						
-						this.searchEntries(searchTerm, count, page, mxUtils.bind(this, function(results, len, more)
+						if (this.currentSearch == current)
 						{
-							if (this.currentSearch == current)
+							results = (results != null) ? results : [];
+							active = false;
+							page++;
+							center.parentNode.removeChild(center);
+							
+							for (var i = 0; i < results.length; i++)
 							{
-								results = (results != null) ? results : [];
-								active = false;
-								page++;
-								center.parentNode.removeChild(center);
+								var elt = results[i]();
 								
-								for (var i = 0; i < results.length; i++)
+								// Avoids duplicates in results
+								if (hash[elt.innerHTML] == null)
 								{
-									var elt = results[i]();
-									
-									// Avoids duplicates in results
-									if (hash[elt.innerHTML] == null)
-									{
-										hash[elt.innerHTML] = '1';
-										div.appendChild(results[i]());
-									}
+									hash[elt.innerHTML] = '1';
+									div.appendChild(results[i]());
 								}
-								
-								if (more)
-								{
-									button.innerHTML = mxResources.get('moreResults');
-								}
-								else
-								{
-									button.innerHTML = mxResources.get('reset');
-									complete = true;
-								}
-								
-								button.style.cursor = '';
-								
-								if (results.length == 0 && page == 1)
-								{
-									var err = document.createElement('div');
-									err.className = 'geTitle';
-									err.style.backgroundColor = 'transparent';
-									err.style.borderColor = 'transparent';
-									err.style.color = 'gray';
-									err.style.padding = '0px';
-									err.style.margin = '0px 8px 0px 8px';
-									err.style.paddingTop = '6px';
-									err.style.textAlign = 'center';
-									err.style.cursor = 'default';
-									
-									mxUtils.write(err, mxResources.get('noResultsFor', [searchTerm]));
-									div.appendChild(err);
-								}
-								
-								div.appendChild(center);
 							}
-						}), mxUtils.bind(this, function()
-						{
-							// TODO: Error handling
+							
+							if (more)
+							{
+								button.removeAttribute('disabled');
+								button.innerHTML = mxResources.get('moreResults');
+							}
+							else
+							{
+								button.innerHTML = mxResources.get('reset');
+								button.style.display = 'none';
+								complete = true;
+							}
+							
 							button.style.cursor = '';
-						}));
-					}
+							
+							if (results.length == 0 && page == 1)
+							{
+								var err = document.createElement('div');
+								err.className = 'geTitle';
+								err.style.backgroundColor = 'transparent';
+								err.style.borderColor = 'transparent';
+								err.style.color = 'gray';
+								err.style.padding = '0px';
+								err.style.margin = '0px 8px 0px 8px';
+								err.style.paddingTop = '6px';
+								err.style.textAlign = 'center';
+								err.style.cursor = 'default';
+								
+								mxUtils.write(err, mxResources.get('noResultsFor', [searchTerm]));
+								div.appendChild(err);
+							}
+							
+							div.appendChild(center);
+						}
+					}), mxUtils.bind(this, function()
+					{
+						// TODO: Error handling
+						button.style.cursor = '';
+					}));
 				}
 			}
-			else
-			{
-				clearDiv();
-				input.value = '';
-				searchTerm = '';
-				hash = new Object();
-				button.innerHTML = searchResource;
-				button.setAttribute('disabled', 'true');
-				complete = false;
-				input.focus();
-			}
+		}
+		else
+		{
+			clearDiv();
+			input.value = '';
+			searchTerm = '';
+			hash = new Object();
+			button.style.display = 'none';
+			complete = false;
+			input.focus();
 		}
 	});
 	
@@ -796,33 +777,53 @@ Sidebar.prototype.addSearchPalette = function(expand)
 		}
 	}));
 	
+	mxEvent.addListener(input, 'focus', function()
+	{
+		input.style.paddingRight = '';
+		cross.style.display = 'none';
+	});
+	
+	mxEvent.addListener(input, 'blur', function()
+	{
+		input.style.paddingRight = '20px';
+		cross.style.display = '';
+	});
+
+	input.style.paddingRight = '20px';
+	
 	mxEvent.addListener(input, 'keyup', mxUtils.bind(this, function(evt)
 	{
 		if (input.value == '')
 		{
 			complete = true;
-			find();
-			complete = false;
-			button.setAttribute('disabled', 'true');
+			button.style.display = 'none';
 		}
 		else if (input.value != searchTerm)
 		{
-			button.removeAttribute('disabled');
-			button.innerHTML = searchResource;
+			button.style.display = 'none';
 			complete = false;
 		}
 		else if (!active)
 		{
 			if (complete)
 			{
-				button.removeAttribute('disabled');
-				button.innerHTML = mxResources.get('reset');
+				button.style.display = 'none';
 			}
 			else
 			{
-				button.removeAttribute('disabled');
-				button.innerHTML = mxResources.get('moreResults');
+				button.style.display = '';
 			}
+		}
+		
+		if (!complete || input.value == '')
+		{
+			cross.setAttribute('title', mxResources.get('search'));
+			cross.setAttribute('src', Sidebar.prototype.searchImage);
+		}
+		else
+		{
+			cross.setAttribute('title', mxResources.get('reset'));
+			cross.setAttribute('src', Dialog.prototype.clearImage);
 		}
 	}));
 
@@ -959,7 +960,7 @@ Sidebar.prototype.addMiscPalette = function(expand)
 
 	 		return this.createVertexTemplateFromCells([cell], cell.geometry.width, cell.geometry.height, 'Variable');
 	 	})),
-	 	this.createVertexTemplateEntry('shape=umlActor;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;html=1;', 30, 60, 'Actor', 'Actor', false, null, 'user person human'),
+	 	this.createVertexTemplateEntry('shape=umlActor;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;html=1;', 30, 60, 'Actor', 'Actor', false, null, 'user person human stickman'),
 	 	this.createVertexTemplateEntry('line;html=1;', 160, 10, '', 'Horizontal Line'),
 	 	this.createVertexTemplateEntry('line;direction=south;html=1;', 10, 160, '', 'Vertical Line'),
 	 	this.createVertexTemplateEntry('line;html=1;perimeter=backbonePerimeter;points=[];', 160, 10, '', 'Horizontal Backbone', false, null, 'network'),
@@ -2288,7 +2289,7 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells, 
 			dropHandler.apply(this, arguments);
 		}
 		
-		if (this.editorUi.hoverIcons != null && mxEvent.isTouchEvent(evt))
+		if (this.editorUi.hoverIcons != null)
 		{
 			this.editorUi.hoverIcons.update(graph.view.getState(graph.getSelectionCell()));
 		}

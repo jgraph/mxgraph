@@ -11960,9 +11960,13 @@ mxGraph.prototype.createHandler = function(state)
 	{
 		if (this.model.isEdge(state.cell))
 		{
-			var style = this.view.getEdgeStyle(state);
+			var source = state.getVisibleTerminalState(true);
+			var target = state.getVisibleTerminalState(false);
+			var geo = this.getCellGeometry(state.cell);
 			
-			if (this.isLoop(state) ||
+			var style = this.view.getEdgeStyle(state, (geo != null) ? geo.points : null, source, target);
+			
+			if (style == mxEdgeStyle.Loop ||
 				style == mxEdgeStyle.ElbowConnector ||
 				style == mxEdgeStyle.SideToSide ||
 				style == mxEdgeStyle.TopToBottom)

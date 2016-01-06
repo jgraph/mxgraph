@@ -250,6 +250,7 @@ saveAs=Save as
 saved=Saved
 scrollbars=Scrollbars
 search=Search
+searchShapes=Search Shapes
 selectAll=Select All
 selectEdges=Select Edges
 selectFont=Select a Font
