@@ -1,3 +1,7 @@
+08-JAN-2016: 3.4.1.2
+
+- Fixes inconsistent loop routing for fixed connection points [JavaScript]
+
 06-JAN-2016: 3.4.1.1
 
 - Fixes preview for fixed points in mxConnectionHandler, mxEdgeHandler [JavaScript]

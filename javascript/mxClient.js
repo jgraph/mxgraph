@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.4.1.1.
+	 * Current version is 3.4.1.2.
 	 */
-	VERSION: '3.4.1.1',
+	VERSION: '3.4.1.2',
 
 	/**
 	 * Variable: IS_IE
@@ -47957,18 +47957,21 @@ var mxEdgeStyle =
 		
 		var p0 = pts[0];
 		var pe = pts[pts.length-1];
-		
-		if (p0 != null && pe != null && points != null && points.length > 0)
+
+		if (p0 != null && pe != null)
 		{
-			for (var i = 0; i < points.length; i++)
+			if (points != null && points.length > 0)
 			{
-				var pt = points[i];
-				pt = state.view.transformControlPoint(state, pt);
-				result.push(new mxPoint(pt.x, pt.y));
+				for (var i = 0; i < points.length; i++)
+				{
+					var pt = points[i];
+					pt = state.view.transformControlPoint(state, pt);
+					result.push(new mxPoint(pt.x, pt.y));
+				}
 			}
 
 			return;
-		}							
+		}
 		
 		if (source != null)
 		{
@@ -50828,7 +50831,7 @@ mxGraphView.prototype.isLoopStyleEnabled = function(edge, points, source, target
 	var tc = this.graph.getConnectionConstraint(edge, target, false);
 	
 	if (!mxUtils.getValue(edge.style, mxConstants.STYLE_ORTHOGONAL_LOOP, false) ||
-		(sc == null || sc.point == null) && (tc == null || tc.point == null))
+		((sc == null || sc.point == null) && (tc == null || tc.point == null)))
 	{
 		return source != null && source == target;
 	}
@@ -50839,8 +50842,7 @@ mxGraphView.prototype.isLoopStyleEnabled = function(edge, points, source, target
 /**
  * Function: getEdgeStyle
  * 
- * Returns the edge style function to be used to render the given edge
- * state.
+ * Returns the edge style function to be used to render the given edge state.
  */
 mxGraphView.prototype.getEdgeStyle = function(edge, points, source, target)
 {

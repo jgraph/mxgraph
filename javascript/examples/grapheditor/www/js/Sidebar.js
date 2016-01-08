@@ -1088,7 +1088,7 @@ Sidebar.prototype.addUmlPalette = function(expand)
 	
 	var fns = [
    		this.createVertexTemplateEntry('html=1;', 110, 50, 'Object', 'Object', null, null, dt + 'object instance'),
-   		this.createVertexTemplateEntry('html=1;spacingTop=-14;', 110, 50, '&laquo;Annotation&raquo;<br><b>Description</b>', 'Annotated Object', null, null, dt + 'object instance annotated annotation'),
+   		this.createVertexTemplateEntry('html=1;', 110, 50, '&laquo;interface&raquo;<br><b>Name</b>', 'Interface', null, null, dt + 'interface object instance annotated annotation'),
 	 	this.addEntry(dt + 'object instance', function()
 		{
 			var cell = new mxCell('Classname', new mxGeometry(0, 0, 160, 90),
@@ -1102,14 +1102,14 @@ Sidebar.prototype.addUmlPalette = function(expand)
 		}),
 		this.addEntry(dt + 'section subsection', function()
 		{
-			var cell = new mxCell('Section', new mxGeometry(0, 0, 140, 110),
+			var cell = new mxCell('Classname', new mxGeometry(0, 0, 140, 110),
 		    	'swimlane;html=1;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;swimlaneFillColor=#ffffff;');
 			cell.vertex = true;
 			cell.insert(field.clone());
 			cell.insert(field.clone());
 			cell.insert(field.clone());
 			
-			return sb.createVertexTemplateFromCells([cell], cell.geometry.width, cell.geometry.height, 'Section');
+			return sb.createVertexTemplateFromCells([cell], cell.geometry.width, cell.geometry.height, 'Class 2');
 		}),
 		this.addEntry(dt + 'item member method function variable field attribute label', function()
 		{

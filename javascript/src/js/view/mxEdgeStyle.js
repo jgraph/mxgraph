@@ -229,18 +229,21 @@ var mxEdgeStyle =
 		
 		var p0 = pts[0];
 		var pe = pts[pts.length-1];
-		
-		if (p0 != null && pe != null && points != null && points.length > 0)
+
+		if (p0 != null && pe != null)
 		{
-			for (var i = 0; i < points.length; i++)
+			if (points != null && points.length > 0)
 			{
-				var pt = points[i];
-				pt = state.view.transformControlPoint(state, pt);
-				result.push(new mxPoint(pt.x, pt.y));
+				for (var i = 0; i < points.length; i++)
+				{
+					var pt = points[i];
+					pt = state.view.transformControlPoint(state, pt);
+					result.push(new mxPoint(pt.x, pt.y));
+				}
 			}
 
 			return;
-		}							
+		}
 		
 		if (source != null)
 		{

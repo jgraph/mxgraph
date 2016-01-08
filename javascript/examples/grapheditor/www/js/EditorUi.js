@@ -356,7 +356,11 @@ EditorUi = function(editor, container)
 		graph.view.canvas.style.backgroundImage = bgImg;
 	}
     
-    graph.container.focus();
+	// Workaround for page scroll if embedded via iframe
+	if (window.self === window.top)
+	{
+		graph.container.focus();
+	}
 
    	// Keeps graph container focused on mouse down
    	var graphFireMouseEvent = graph.fireMouseEvent;

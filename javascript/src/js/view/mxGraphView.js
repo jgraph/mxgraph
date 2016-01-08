@@ -1463,7 +1463,7 @@ mxGraphView.prototype.isLoopStyleEnabled = function(edge, points, source, target
 	var tc = this.graph.getConnectionConstraint(edge, target, false);
 	
 	if (!mxUtils.getValue(edge.style, mxConstants.STYLE_ORTHOGONAL_LOOP, false) ||
-		(sc == null || sc.point == null) && (tc == null || tc.point == null))
+		((sc == null || sc.point == null) && (tc == null || tc.point == null)))
 	{
 		return source != null && source == target;
 	}
@@ -1474,8 +1474,7 @@ mxGraphView.prototype.isLoopStyleEnabled = function(edge, points, source, target
 /**
  * Function: getEdgeStyle
  * 
- * Returns the edge style function to be used to render the given edge
- * state.
+ * Returns the edge style function to be used to render the given edge state.
  */
 mxGraphView.prototype.getEdgeStyle = function(edge, points, source, target)
 {
