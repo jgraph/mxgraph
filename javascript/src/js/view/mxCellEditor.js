@@ -9,8 +9,10 @@
  * <mxGraph.invokesStopCellEditing>, <mxGraph.enterStopsCellEditing> and
  * <mxGraph.escapeEnabled>. If <mxGraph.enterStopsCellEditing> is true then
  * ctrl-enter or shift-enter can be used to create a linefeed. The F2 and
- * escape keys can always be used to stop editing. To customize the location
- * of the textbox in the graph, override <getEditorBounds> as follows:
+ * escape keys can always be used to stop editing.
+ * 
+ * To customize the location of the textbox in the graph, override
+ * <getEditorBounds> as follows:
  * 
  * (code)
  * graph.cellEditor.getEditorBounds = function(state)
@@ -26,6 +28,9 @@
  *   return result;
  * };
  * (end)
+ * 
+ * Note that this hook is only called if <autoSize> is false. If <autoSize> is true,
+ * then <mxShape.getLabelBounds> is used to compute the current bounds of the textbox.
  * 
  * The textarea uses the mxCellEditor CSS class. You can modify this class in
  * your custom CSS. Note: You should modify the CSS after loading the client

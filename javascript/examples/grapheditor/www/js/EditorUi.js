@@ -2089,8 +2089,10 @@ EditorUi.prototype.updateActionStates = function()
 /**
  * Refreshes the viewport.
  */
-EditorUi.prototype.refresh = function()
+EditorUi.prototype.refresh = function(sizeDidChange)
 {
+	sizeDidChange = (sizeDidChange != null) ? sizeDidChange : true;
+	
 	var quirks = mxClient.IS_IE && (document.documentMode == null || document.documentMode == 5);
 	var w = this.container.clientWidth;
 	var h = this.container.clientHeight;
@@ -2210,7 +2212,10 @@ EditorUi.prototype.refresh = function()
 		this.diagramContainer.style.bottom = (this.footerHeight + off + th) + 'px';
 	}
 	
-	this.editor.graph.sizeDidChange();
+	if (sizeDidChange)
+	{
+		this.editor.graph.sizeDidChange();
+	}
 };
 
 /**

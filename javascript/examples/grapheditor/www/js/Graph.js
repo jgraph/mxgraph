@@ -457,8 +457,9 @@ Graph = function(container, model, renderHint, stylesheet)
 	    
 	    this.connectionHandler.isOutlineConnectEvent = function(me)
 	    {
-	    	return (this.currentState && me.getState() == this.currentState && timeOnTarget > 2000) ||
-	    		connectionHandleIsOutlineConnectEvent.apply(this, arguments);
+	    	return (this.currentState != null && me.getState() == this.currentState && timeOnTarget > 2000) ||
+	    		((this.currentState == null || mxUtils.getValue(this.currentState.style, 'outlineConnect', '1') != '0') &&
+	    		connectionHandleIsOutlineConnectEvent.apply(this, arguments));
 	    };
 	    
 	    // Adds shift+click to toggle selection state
@@ -1698,6 +1699,64 @@ Graph.prototype.zoom = function(factor, center)
 };
 
 /**
+ * Overrides tooltips to show custom tooltip or metadata.
+ */
+Graph.prototype.getTooltipForCell = function(cell)
+{
+	var tip = '';
+	
+	if (mxUtils.isNode(cell.value))
+	{
+		var tmp = cell.value.getAttribute('tooltip');
+		
+		if (tmp != null)
+		{
+			if (tmp != null && this.isReplacePlaceholders(cell))
+			{
+				tmp = this.replacePlaceholders(cell, tmp);
+			}
+			
+			tip = this.sanitizeHtml(tmp);
+		}
+		else
+		{
+			var ignored = ['label', 'tooltip', 'placeholders'];
+			var attrs = cell.value.attributes;
+			
+			// Hides links in edit mode
+			if (this.isEnabled())
+			{
+				ignored.push('link');
+			}
+			
+			for (var i = 0; i < attrs.length; i++)
+			{
+				if (mxUtils.indexOf(ignored, attrs[i].nodeName) < 0 && attrs[i].nodeValue.length > 0)
+				{
+					// Hides link key in read mode
+					if (attrs[i].nodeName == 'link')
+					{
+						tip += mxUtils.htmlEntities(attrs[i].nodeValue) + '\n';
+					}
+					else
+					{
+						var key = attrs[i].nodeName.substring(0, 1).toUpperCase() + attrs[i].nodeName.substring(1);
+						tip += key + ': ' + mxUtils.htmlEntities(attrs[i].nodeValue) + '\n';
+					}
+				}
+			}
+			
+			if (tip.length > 0)
+			{
+				tip = tip.substring(0, tip.length - 1);
+			}
+		}
+	}
+	
+	return tip;
+};
+
+/**
  * Hover icons are used for hover, vertex handler and drag from sidebar.
  */
 HoverIcons = function(graph)
@@ -2810,57 +2869,7 @@ if (typeof mxVertexHandler != 'undefined')
 			
 			return result;
 		};
-	
-		/**
-		 * Overrides tooltips to show custom tooltip or metadata.
-		 */
-		Graph.prototype.getTooltipForCell = function(cell)
-		{
-			var tip = '';
-			
-			if (mxUtils.isNode(cell.value))
-			{
-				var tmp = cell.value.getAttribute('tooltip');
-				
-				if (tmp != null)
-				{
-					if (tmp != null && this.isReplacePlaceholders(cell))
-					{
-						tmp = this.replacePlaceholders(cell, tmp);
-					}
-					
-					tip = this.sanitizeHtml(tmp);
-				}
-				else
-				{
-					var ignored = ['label', 'tooltip', 'placeholders'];
-					var attrs = cell.value.attributes;
-					
-					// Hides links in edit mode
-					if (this.isEnabled())
-					{
-						ignored.push('link');
-					}
-					
-					for (var i = 0; i < attrs.length; i++)
-					{
-						if (mxUtils.indexOf(ignored, attrs[i].nodeName) < 0 && attrs[i].nodeValue.length > 0)
-						{
-							var key = attrs[i].nodeName.substring(0, 1).toUpperCase() + attrs[i].nodeName.substring(1);
-							tip += key + ': ' + mxUtils.htmlEntities(attrs[i].nodeValue) + '\n';
-						}
-					}
-					
-					if (tip.length > 0)
-					{
-						tip = tip.substring(0, tip.length - 1);
-					}
-				}
-			}
-			
-			return tip;
-		};
-		
+
 		/**
 		 * Overrides autosize to add a border.
 		 */
@@ -4827,8 +4836,9 @@ if (typeof mxVertexHandler != 'undefined')
 		
 		mxEdgeHandler.prototype.isOutlineConnectEvent = function(me)
 		{
-			return (this.currentTerminalState != null && me.getState() == this.currentTerminalState &&
-				timeOnTarget > 2000) || mxEdgeHandlerIsOutlineConnectEvent.apply(this, arguments);
+			return (this.currentTerminalState != null && me.getState() == this.currentTerminalState && timeOnTarget > 2000) ||
+				((this.currentTerminalState == null || mxUtils.getValue(this.currentTerminalState.style, 'outlineConnect', '1') != '0') &&
+				mxEdgeHandlerIsOutlineConnectEvent.apply(this, arguments));
 		};
 		
 		// Disables custom handles if shift is pressed

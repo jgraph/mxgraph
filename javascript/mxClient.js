@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.4.1.2.
+	 * Current version is 3.4.1.3.
 	 */
-	VERSION: '3.4.1.2',
+	VERSION: '3.4.1.3',
 
 	/**
 	 * Variable: IS_IE
@@ -45263,8 +45263,10 @@ mxSelectionChange.prototype.execute = function()
  * <mxGraph.invokesStopCellEditing>, <mxGraph.enterStopsCellEditing> and
  * <mxGraph.escapeEnabled>. If <mxGraph.enterStopsCellEditing> is true then
  * ctrl-enter or shift-enter can be used to create a linefeed. The F2 and
- * escape keys can always be used to stop editing. To customize the location
- * of the textbox in the graph, override <getEditorBounds> as follows:
+ * escape keys can always be used to stop editing.
+ * 
+ * To customize the location of the textbox in the graph, override
+ * <getEditorBounds> as follows:
  * 
  * (code)
  * graph.cellEditor.getEditorBounds = function(state)
@@ -45280,6 +45282,9 @@ mxSelectionChange.prototype.execute = function()
  *   return result;
  * };
  * (end)
+ * 
+ * Note that this hook is only called if <autoSize> is false. If <autoSize> is true,
+ * then <mxShape.getLabelBounds> is used to compute the current bounds of the textbox.
  * 
  * The textarea uses the mxCellEditor CSS class. You can modify this class in
  * your custom CSS. Note: You should modify the CSS after loading the client
@@ -53543,18 +53548,39 @@ mxGraph.prototype.autoSizeCellsOnAdd = false;
  * container has scrollbars. Default is true.
  * 
  * If you need this to work without scrollbars then set <ignoreScrollbars> to
- * true. 
+ * true. Please consult the <ignoreScrollbars> for details. In general, with
+ * no scrollbars, the use of <allowAutoPanning> is recommended.
  */
 mxGraph.prototype.autoScroll = true;
 
 /**
+ * Variable: ignoreScrollbars
+ * 
+ * Specifies if the graph should automatically scroll regardless of the
+ * scrollbars. This will scroll the container using positive values for
+ * scroll positions (ie usually only rightwards and downwards). To avoid
+ * possible conflicts with panning, set <translateToScrollPosition> to true.
+ */
+mxGraph.prototype.ignoreScrollbars = false;
+
+/**
+ * Variable: translateToScrollPosition
+ * 
+ * Specifies if the graph should automatically convert the current scroll
+ * position to a translate in the graph view when a mouseUp event is received.
+ * This can be used to avoid conflicts when using <autoScroll> and
+ * <ignoreScrollbars> with no scrollbars in the container.
+ */
+mxGraph.prototype.translateToScrollPosition = false;
+
+/**
  * Variable: timerAutoScroll
  * 
- * Specifies if timer-based autoscrolling should be used via mxPanningManager.
- * Note that this disables the code in <scrollPointToVisible> and uses code in
- * mxPanningManager instead. Note that <autoExtend> is disabled if this is
- * true and that this should only be used with a scroll buffer or when
- * scollbars are visible and scrollable in all directions. Default is false.
+ * Specifies if autoscrolling should be carried out via mxPanningManager even
+ * if the container has scrollbars. This disables <scrollPointToVisible> and
+ * uses <mxPanningManager> instead. If this is true then <autoExtend> is
+ * disabled. It should only be used with a scroll buffer or when scollbars
+ * are visible and scrollable in all directions. Default is false.
  */
 mxGraph.prototype.timerAutoScroll = false;
 
@@ -53562,17 +53588,11 @@ mxGraph.prototype.timerAutoScroll = false;
  * Variable: allowAutoPanning
  * 
  * Specifies if panning via <panGraph> should be allowed to implement autoscroll
- * if no scrollbars are available in <scrollPointToVisible>. Default is false.
+ * if no scrollbars are available in <scrollPointToVisible>. To enable panning
+ * inside the container, near the edge, set <mxPanningManager.border> to a
+ * positive value. Default is false.
  */
 mxGraph.prototype.allowAutoPanning = false;
-
-/**
- * Variable: ignoreScrollbars
- * 
- * Specifies if the graph should automatically scroll regardless of the
- * scrollbars. 
- */
-mxGraph.prototype.ignoreScrollbars = false;
 
 /**
  * Variable: autoExtend
@@ -55161,13 +55181,17 @@ mxGraph.prototype.getBorderSizes = function()
 		return result;
 	}
 	
-	var style = mxUtils.getCurrentStyle(this.container);
 	var result = new mxRectangle();
-	result.x = parseBorder(style.borderLeftWidth) + parseInt(style.paddingLeft || 0);
-	result.y = parseBorder(style.borderTopWidth) + parseInt(style.paddingTop || 0);
-	result.width = parseBorder(style.borderRightWidth) + parseInt(style.paddingRight || 0);
-	result.height = parseBorder(style.borderBottomWidth) + parseInt(style.paddingBottom || 0);
-
+	var style = mxUtils.getCurrentStyle(this.container);
+	
+	if (style != null)
+	{
+		result.x = parseBorder(style.borderLeftWidth) + parseInt(style.paddingLeft || 0);
+		result.y = parseBorder(style.borderTopWidth) + parseInt(style.paddingTop || 0);
+		result.width = parseBorder(style.borderRightWidth) + parseInt(style.paddingRight || 0);
+		result.height = parseBorder(style.borderBottomWidth) + parseInt(style.paddingBottom || 0);
+	}
+	
 	return result;
 };
 
@@ -64756,6 +64780,15 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 			{
 				this.scrollPointToVisible(me.getGraphX(), me.getGraphY(), this.autoExtend);
 			}
+			else if (evtName == mxEvent.MOUSE_UP && this.ignoreScrollbars && this.translateToScrollPosition &&
+					(this.container.scrollLeft != 0 || this.container.scrollTop != 0))
+			{
+				var s = this.view.scale;
+				var tr = this.view.translate;
+				this.view.setTranslate(tr.x - this.container.scrollLeft / s, tr.y - this.container.scrollTop / s);
+				this.container.scrollLeft = 0;
+				this.container.scrollTop = 0;
+			}
 			
 			if (this.mouseListeners != null)
 			{
@@ -72392,7 +72425,7 @@ mxConstraintHandler.prototype.setFocus = function(me, state, source)
 {
 	this.constraints = (state != null && !this.isStateIgnored(state, source) &&
 		this.graph.isCellConnectable(state.cell)) ? ((this.isEnabled()) ?
-		this.graph.getAllConnectionConstraints(state, source) : []) : null;
+		(this.graph.getAllConnectionConstraints(state, source) || []) : []) : null;
 
 	// Only uses cells which have constraints
 	if (this.constraints != null)
@@ -84968,6 +85001,23 @@ mxObjectCodec.prototype.decodeAttributes = function(dec, node, obj)
 };
 
 /**
+ * Function: isIgnoredAttribute
+ * 
+ * Returns true if the given attribute should be ignored. This implementation
+ * returns true if the attribute name is "as" or "id".
+ * 
+ * Parameters:
+ *
+ * dec - <mxCodec> that controls the decoding process.
+ * attr - XML attribute to be decoded.
+ * obj - Objec to encode the attribute into.
+ */	
+mxObjectCodec.prototype.isIgnoredAttribute = function(dec, attr, obj)
+{
+	return attr.nodeName == 'as' || attr.nodeName == 'id';
+};
+
+/**
  * Function: decodeAttribute
  * 
  * Reads the given attribute into the specified object.
@@ -84980,10 +85030,10 @@ mxObjectCodec.prototype.decodeAttributes = function(dec, node, obj)
  */	
 mxObjectCodec.prototype.decodeAttribute = function(dec, attr, obj)
 {
-	var name = attr.nodeName;
-	
-	if (name != 'as' && name != 'id')
+	if (!this.isIgnoredAttribute(dec, attr, obj))
 	{
+		var name = attr.nodeName;
+		
 		// Converts the string true and false to their boolean values.
 		// This may require an additional check on the obj to see if
 		// the existing field is a boolean value or uninitialized, in

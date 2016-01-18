@@ -327,7 +327,7 @@ var ColorDialog = function(editorUi, color, apply, cancelFn)
 		var color = input.value;
 		ColorDialog.addRecentColor(color, 12);
 		
-		if (color != 'none')
+		if (color != 'none' && color.charAt(0) != '#')
 		{
 			color = '#' + color;
 		}
@@ -1065,7 +1065,7 @@ PrintDialog.createPrintPreview = function(graph, scale, pf, border, x0, y0, auto
 /**
  * Constructs a new filename dialog.
  */
-var FilenameDialog = function(editorUi, filename, buttonText, fn, label, validateFn)
+var FilenameDialog = function(editorUi, filename, buttonText, fn, label, validateFn, content)
 {
 	var row, td;
 	
@@ -1167,7 +1167,17 @@ var FilenameDialog = function(editorUi, filename, buttonText, fn, label, validat
 	row.appendChild(td);
 	
 	tbody.appendChild(row);
-
+	
+	if (content != null)
+	{
+		row = document.createElement('tr');
+		td = document.createElement('td');
+		td.colSpan = 2;
+		td.appendChild(content);
+		row.appendChild(td);
+		tbody.appendChild(row);
+	}
+	
 	row = document.createElement('tr');
 	td = document.createElement('td');
 	td.colSpan = 2;
@@ -1203,9 +1213,8 @@ var FilenameDialog = function(editorUi, filename, buttonText, fn, label, validat
 
 	row.appendChild(td);
 	tbody.appendChild(row);
-	
-	tbody.appendChild(row);
 	table.appendChild(tbody);
+	
 	this.container = table;
 };
 

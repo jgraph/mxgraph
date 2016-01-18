@@ -360,7 +360,7 @@ mxConstraintHandler.prototype.setFocus = function(me, state, source)
 {
 	this.constraints = (state != null && !this.isStateIgnored(state, source) &&
 		this.graph.isCellConnectable(state.cell)) ? ((this.isEnabled()) ?
-		this.graph.getAllConnectionConstraints(state, source) : []) : null;
+		(this.graph.getAllConnectionConstraints(state, source) || []) : []) : null;
 
 	// Only uses cells which have constraints
 	if (this.constraints != null)

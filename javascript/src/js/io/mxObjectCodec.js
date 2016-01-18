@@ -814,6 +814,23 @@ mxObjectCodec.prototype.decodeAttributes = function(dec, node, obj)
 };
 
 /**
+ * Function: isIgnoredAttribute
+ * 
+ * Returns true if the given attribute should be ignored. This implementation
+ * returns true if the attribute name is "as" or "id".
+ * 
+ * Parameters:
+ *
+ * dec - <mxCodec> that controls the decoding process.
+ * attr - XML attribute to be decoded.
+ * obj - Objec to encode the attribute into.
+ */	
+mxObjectCodec.prototype.isIgnoredAttribute = function(dec, attr, obj)
+{
+	return attr.nodeName == 'as' || attr.nodeName == 'id';
+};
+
+/**
  * Function: decodeAttribute
  * 
  * Reads the given attribute into the specified object.
@@ -826,10 +843,10 @@ mxObjectCodec.prototype.decodeAttributes = function(dec, node, obj)
  */	
 mxObjectCodec.prototype.decodeAttribute = function(dec, attr, obj)
 {
-	var name = attr.nodeName;
-	
-	if (name != 'as' && name != 'id')
+	if (!this.isIgnoredAttribute(dec, attr, obj))
 	{
+		var name = attr.nodeName;
+		
 		// Converts the string true and false to their boolean values.
 		// This may require an additional check on the obj to see if
 		// the existing field is a boolean value or uninitialized, in
