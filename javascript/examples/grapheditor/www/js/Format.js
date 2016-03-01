@@ -1413,7 +1413,7 @@ ArrangePanel.prototype.addLayerOps = function(div)
 		ui.actions.get('toFront').funct();
 	})
 	
-	btn.setAttribute('title', 'Ctrl+Shift+F');
+	btn.setAttribute('title', mxResources.get('toFront') + ' (' + this.editorUi.actions.get('toFront').shortcut + ')');
 	btn.style.width = '100px';
 	btn.style.marginRight = '2px';
 	div.appendChild(btn);
@@ -1423,7 +1423,7 @@ ArrangePanel.prototype.addLayerOps = function(div)
 		ui.actions.get('toBack').funct();
 	})
 	
-	btn.setAttribute('title', 'Ctrl+Shift+B');
+	btn.setAttribute('title', mxResources.get('toBack') + ' (' + this.editorUi.actions.get('toBack').shortcut + ')');
 	btn.style.width = '100px';
 	div.appendChild(btn);
 	
@@ -1451,7 +1451,7 @@ ArrangePanel.prototype.addGroupOps = function(div)
 			ui.actions.get('group').funct();
 		})
 		
-		btn.setAttribute('title', 'Ctrl+G');
+		btn.setAttribute('title', mxResources.get('group') + ' (' + this.editorUi.actions.get('group').shortcut + ')');
 		btn.style.width = '202px';
 		btn.style.marginBottom = '2px';
 		div.appendChild(btn);
@@ -1465,7 +1465,7 @@ ArrangePanel.prototype.addGroupOps = function(div)
 			ui.actions.get('ungroup').funct();
 		})
 		
-		btn.setAttribute('title', 'Ctrl+Shift+U');
+		btn.setAttribute('title', mxResources.get('ungroup') + ' (' + this.editorUi.actions.get('ungroup').shortcut + ')');
 		btn.style.width = '202px';
 		btn.style.marginBottom = '2px';
 		div.appendChild(btn);
@@ -1485,6 +1485,7 @@ ArrangePanel.prototype.addGroupOps = function(div)
 			ui.actions.get('removeFromGroup').funct();
 		})
 		
+		btn.setAttribute('title', mxResources.get('removeFromGroup'));
 		btn.style.width = '202px';
 		btn.style.marginBottom = '2px';
 		div.appendChild(btn);
@@ -1502,6 +1503,7 @@ ArrangePanel.prototype.addGroupOps = function(div)
 			this.editorUi.actions.get('clearWaypoints').funct();
 		}));
 		
+		btn.setAttribute('title', mxResources.get('clearWaypoints'));
 		btn.style.width = '202px';
 		btn.style.marginBottom = '2px';
 		div.appendChild(btn);
@@ -1521,6 +1523,7 @@ ArrangePanel.prototype.addGroupOps = function(div)
 			this.editorUi.actions.get('editData').funct();
 		}));
 		
+		btn.setAttribute('title', mxResources.get('editData') + ' (' + this.editorUi.actions.get('editData').shortcut + ')');
 		btn.style.width = '100px';
 		btn.style.marginBottom = '2px';
 		div.appendChild(btn);
@@ -1531,6 +1534,7 @@ ArrangePanel.prototype.addGroupOps = function(div)
 			this.editorUi.actions.get('editLink').funct();
 		}));
 		
+		btn.setAttribute('title', mxResources.get('editLink'));
 		btn.style.width = '100px';
 		btn.style.marginLeft = '2px';
 		btn.style.marginBottom = '2px';
@@ -1611,6 +1615,7 @@ ArrangePanel.prototype.addFlip = function(div)
 		graph.toggleCellStyles(mxConstants.STYLE_FLIPH, false);
 	})
 	
+	btn.setAttribute('title', mxResources.get('horizontal'));
 	btn.style.width = '100px';
 	btn.style.marginRight = '2px';
 	div.appendChild(btn);
@@ -1620,6 +1625,7 @@ ArrangePanel.prototype.addFlip = function(div)
 		graph.toggleCellStyles(mxConstants.STYLE_FLIPV, false);
 	})
 	
+	btn.setAttribute('title', mxResources.get('vertical'));
 	btn.style.width = '100px';
 	div.appendChild(btn);
 	
@@ -1644,6 +1650,7 @@ ArrangePanel.prototype.addDistribute = function(div)
 		graph.distributeCells(true);
 	})
 	
+	btn.setAttribute('title', mxResources.get('horizontal'));
 	btn.style.width = '100px';
 	btn.style.marginRight = '2px';
 	div.appendChild(btn);
@@ -1653,6 +1660,7 @@ ArrangePanel.prototype.addDistribute = function(div)
 		graph.distributeCells(false);
 	})
 	
+	btn.setAttribute('title', mxResources.get('vertical'));
 	btn.style.width = '100px';
 	div.appendChild(btn);
 	
@@ -1692,7 +1700,7 @@ ArrangePanel.prototype.addAngle = function(div)
 			ui.actions.get('turn').funct();
 		})
 		
-		btn.setAttribute('title', 'Ctrl+R');
+		btn.setAttribute('title', mxResources.get('turn') + ' (' + this.editorUi.actions.get('turn').shortcut + ')');
 		btn.style.position = 'absolute';
 		btn.style.marginTop = '-2px';
 		btn.style.right = '20px';
@@ -1752,7 +1760,7 @@ ArrangePanel.prototype.addGeometry = function(container)
 	
 	var autosizeBtn = document.createElement('div');
 	autosizeBtn.className = 'geSprite geSprite-fit';
-	autosizeBtn.setAttribute('title', mxResources.get('autosize') + ' (Ctrl+Shift+Y)');
+	autosizeBtn.setAttribute('title', mxResources.get('autosize') + ' (' + this.editorUi.actions.get('autosize').shortcut + ')');
 	autosizeBtn.style.position = 'relative';
 	autosizeBtn.style.cursor = 'pointer';
 	autosizeBtn.style.marginTop = '-3px';
@@ -3215,7 +3223,7 @@ StyleFormatPanel.prototype.addEditOps = function(div)
 			this.editorUi.actions.get('editStyle').funct();
 		}));
 		
-		btn.setAttribute('title', 'Ctrl+E');
+		btn.setAttribute('title', mxResources.get('editStyle') + ' (' + this.editorUi.actions.get('editStyle').shortcut + ')');
 		btn.style.width = '202px';
 		btn.style.marginBottom = '2px';
 		
@@ -3229,6 +3237,7 @@ StyleFormatPanel.prototype.addEditOps = function(div)
 			this.editorUi.actions.get('image').funct();
 		}));
 		
+		btn2.setAttribute('title', mxResources.get('editImage'));
 		btn2.style.marginBottom = '2px';
 		
 		if (btn == null)
@@ -4114,7 +4123,7 @@ StyleFormatPanel.prototype.addStyleOps = function(div)
 		this.editorUi.actions.get('setAsDefaultStyle').funct();
 	}));
 	
-	btn.setAttribute('title', 'Ctrl+Shift+D');
+	btn.setAttribute('title', mxResources.get('setAsDefaultStyle') + ' (' + this.editorUi.actions.get('setAsDefaultStyle').shortcut + ')');
 	btn.style.width = '202px';
 	div.appendChild(btn);
 
@@ -4397,7 +4406,6 @@ DiagramFormatPanel.prototype.addGridOption = function(container)
 	}, function(checked)
 	{
 		graph.setGridEnabled(checked);
-		ui.editor.updateGraphComponents();
 		ui.fireEvent(new mxEventObject('gridEnabledChanged'));
 	},
 	{
@@ -4671,6 +4679,7 @@ DiagramFormatPanel.prototype.addStyleOps = function(div)
 		this.editorUi.actions.get('editData').funct();
 	}));
 	
+	btn.setAttribute('title', mxResources.get('editData') + ' (' + this.editorUi.actions.get('editData').shortcut + ')');
 	btn.style.width = '202px';
 	btn.style.marginBottom = '2px';
 	div.appendChild(btn);
@@ -4682,7 +4691,7 @@ DiagramFormatPanel.prototype.addStyleOps = function(div)
 		this.editorUi.actions.get('clearDefaultStyle').funct();
 	}));
 	
-	btn.setAttribute('title', 'Ctrl+Shift+R');
+	btn.setAttribute('title', mxResources.get('clearDefaultStyle') + ' (' + this.editorUi.actions.get('clearDefaultStyle').shortcut + ')');
 	btn.style.width = '202px';
 	div.appendChild(btn);
 

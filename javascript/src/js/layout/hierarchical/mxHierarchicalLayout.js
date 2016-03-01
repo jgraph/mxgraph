@@ -62,7 +62,7 @@ mxHierarchicalLayout.prototype.resizeParent = false;
  * top, left corner stays the same before and after execution of
  * the layout. Default is false for backwards compatibility.
  */
-mxCompactTreeLayout.prototype.maintainParentLocation = false;
+mxHierarchicalLayout.prototype.maintainParentLocation = false;
 
 /**
  * Variable: moveParent

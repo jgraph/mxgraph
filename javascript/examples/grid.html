@@ -58,7 +58,7 @@
 						var ctx = canvas.getContext('2d');
 						
 						// Modify event filtering to accept canvas as container
-						mxGraphViewIsContainerEvent = mxGraphView.prototype.isContainerEvent;
+						var mxGraphViewIsContainerEvent = mxGraphView.prototype.isContainerEvent;
 						mxGraphView.prototype.isContainerEvent = function(evt)
 						{
 							return mxGraphViewIsContainerEvent.apply(this, arguments) ||
@@ -162,7 +162,7 @@
 						container.style.backgroundImage = 'url(\'editors/images/grid.gif\')';
 					}
 					
-					mxGraphViewValidateBackground = mxGraphView.prototype.validateBackground;
+					var mxGraphViewValidateBackground = mxGraphView.prototype.validateBackground;
 					mxGraphView.prototype.validateBackground = function()
 					{
 						mxGraphViewValidateBackground.apply(this, arguments);

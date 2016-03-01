@@ -1,6 +1,6 @@
 /**
- * Copyright (c) 2006-2015, JGraph Ltd
- * Copyright (c) 2006-2015, Gaudenz Alder
+ * Copyright (c) 2006-2016, JGraph Ltd
+ * Copyright (c) 2006-2016, Gaudenz Alder
  */
 /**
  * Class: mxSwimlaneModel
@@ -35,8 +35,8 @@ function mxSwimlaneModel(layout, vertices, roots, parent, tightenToSource)
 
 	// map of cells to internal cell needed for second run through
 	// to setup the sink of edges correctly
-	this.vertexMapper = new Object();
-	this.edgeMapper = new Object();
+	this.vertexMapper = new mxDictionary();
+	this.edgeMapper = new mxDictionary();
 	this.maxRank = 0;
 	var internalVertices = [];
 
@@ -69,16 +69,18 @@ function mxSwimlaneModel(layout, vertices, roots, parent, tightenToSource)
 				var realEdge = realEdges[0];
 				var targetCell = layout.getVisibleTerminal(
 						realEdge, false);
-				var targetCellId = mxCellPath.create(targetCell);
-				var internalTargetCell = this.vertexMapper[targetCellId];
+				var internalTargetCell = this.vertexMapper.get(targetCell);
 
 				if (internalVertices[i] == internalTargetCell)
 				{
-					// The real edge is reversed relative to the internal edge
+					// If there are parallel edges going between two vertices and not all are in the same direction
+					// you can have navigated across one direction when doing the cycle reversal that isn't the same
+					// direction as the first real edge in the array above. When that happens the if above catches
+					// that and we correct the target cell before continuing.
+					// This branch only detects this single case
 					targetCell = layout.getVisibleTerminal(
 							realEdge, true);
-					targetCellId = mxCellPath.create(targetCell);
-					internalTargetCell = this.vertexMapper[targetCellId];
+					internalTargetCell = this.vertexMapper.get(targetCell);
 				}
 
 				if (internalTargetCell != null
@@ -163,6 +165,14 @@ mxSwimlaneModel.prototype.dfsCount = 0;
 mxSwimlaneModel.prototype.SOURCESCANSTARTRANK = 100000000;
 
 /**
+ * Variable: tightenToSource
+ *
+ * Whether or not to tighten the assigned ranks of vertices up towards
+ * the source cells.
+ */
+mxGraphHierarchyModel.prototype.tightenToSource = false;
+
+/**
  * Variable: ranksPerGroup
  *
  * An array of the number of ranks within each swimlane
@@ -191,8 +201,7 @@ mxSwimlaneModel.prototype.createInternalCells = function(layout, vertices, inter
 	for (var i = 0; i < vertices.length; i++)
 	{
 		internalVertices[i] = new mxGraphHierarchyNode(vertices[i]);
-		var vertexId = mxCellPath.create(vertices[i]);
-		this.vertexMapper[vertexId] = internalVertices[i];
+		this.vertexMapper.put(vertices[i], internalVertices[i]);
 		internalVertices[i].swimlaneIndex = -1;
 
 		for (var ii = 0; ii < swimlanes.length; ii++)
@@ -237,11 +246,10 @@ mxSwimlaneModel.prototype.createInternalCells = function(layout, vertices, inter
 						cell, false);
 				var directedEdges = layout.getEdgesBetween(vertices[i],
 						cell, true);
-				var edgeId = mxCellPath.create(undirectedEdges[0]);
 				
 				if (undirectedEdges != null &&
 						undirectedEdges.length > 0 &&
-						this.edgeMapper[edgeId] == null &&
+						this.edgeMapper.get(undirectedEdges[0]) == null &&
 						directedEdges.length * 2 >= undirectedEdges.length)
 				{
 					var internalEdge = new mxGraphHierarchyEdge(undirectedEdges);
@@ -249,8 +257,7 @@ mxSwimlaneModel.prototype.createInternalCells = function(layout, vertices, inter
 					for (var k = 0; k < undirectedEdges.length; k++)
 					{
 						var edge = undirectedEdges[k];
-						edgeId = mxCellPath.create(edge);
-						this.edgeMapper[edgeId] = internalEdge;
+						this.edgeMapper.put(edge, internalEdge);
 
 						// Resets all point on the edge and disables the edge style
 						// without deleting it from the cell style
@@ -296,8 +303,7 @@ mxSwimlaneModel.prototype.initialRank = function()
 	{
 		for (var i = 0; i < this.roots.length; i++)
 		{
-			var vertexId = mxCellPath.create(this.roots[i]);
-			var internalNode = this.vertexMapper[vertexId];
+			var internalNode = this.vertexMapper.get(this.roots[i]);
 			this.maxChainDfs(null, internalNode, null, seen, 0);
 
 			if (internalNode != null)
@@ -327,12 +333,12 @@ mxSwimlaneModel.prototype.initialRank = function()
 	
 	this.maxRank = upperRank[0];
 
-	for (var key in this.vertexMapper)
+	var internalNodes = this.vertexMapper.getValues();
+	
+	for (var i=0; i < internalNodes.length; i++)
 	{
-		var internalNode = this.vertexMapper[key];
-
 		// Mark the node as not having had a layer assigned
-		internalNode.temp[0] = -1;
+		internalNodes[i].temp[0] = -1;
 	}
 
 	var startNodesCopy = startNodes.slice();
@@ -547,8 +553,7 @@ mxSwimlaneModel.prototype.fixRanks = function()
 		for (var i = 0; i < oldRootsArray.length; i++)
 		{
 			var cell = oldRootsArray[i];
-			var cellId = mxCellPath.create(cell);
-			var internalNode = this.vertexMapper[cellId];
+			var internalNode = this.vertexMapper.get(cell);
 			rootsArray[i] = internalNode;
 		}
 	}
@@ -557,11 +562,6 @@ mxSwimlaneModel.prototype.fixRanks = function()
 	{
 		if (seen == 0 && node.maxRank < 0 && node.minRank < 0)
 		{
-			if (rankList[node.temp[0]] == null)
-			{
-				mxLog.show();
-			}
-
 			rankList[node.temp[0]].push(node);
 			node.maxRank = node.temp[0];
 			node.minRank = node.temp[0];
@@ -663,7 +663,7 @@ mxSwimlaneModel.prototype.dfs = function(parent, root, connectingEdge, visitor, 
 {
 	if (root != null)
 	{
-		var rootId = mxCellPath.create(root.cell);
+		var rootId = root.id;
 
 		if (seen[rootId] == null)
 		{
@@ -752,7 +752,7 @@ mxSwimlaneModel.prototype.extendedDfs = function(parent, root, connectingEdge, v
 			}
 		}
 
-		var rootId = mxCellPath.create(root.cell);
+		var rootId = root.id;
 
 		if (seen[rootId] == null)
 		{
@@ -769,11 +769,6 @@ mxSwimlaneModel.prototype.extendedDfs = function(parent, root, connectingEdge, v
 				var internalEdge = outgoingEdges[i];
 				var targetNode = internalEdge.target;
 				
-				if (targetNode == null)
-				{
-					mxLog.show();
-				}
-
 				// Only navigate in source->target direction within the same
 				// swimlane, or from a lower index swimlane to a higher one
 				if (root.swimlaneIndex <= targetNode.swimlaneIndex)

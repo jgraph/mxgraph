@@ -202,6 +202,20 @@ mxSvgCanvas2D.prototype.foEnabled = true;
 mxSvgCanvas2D.prototype.foAltText = '[Object]';
 
 /**
+ * Variable: foOffset
+ * 
+ * Offset to be used for foreignObjects.
+ */
+mxSvgCanvas2D.prototype.foOffset = 0;
+
+/**
+ * Variable: textOffset
+ * 
+ * Offset to be used for text elements.
+ */
+mxSvgCanvas2D.prototype.textOffset = 0;
+
+/**
  * Variable: strokeTolerance
  * 
  * Adds transparent paths for strokes.
@@ -1542,7 +1556,7 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 					if (!clip && wrap && w > 0 && this.root.ownerDocument != document && overflow != 'fill')
 					{
 						var ws = clone.style.whiteSpace;
-						div.style.whiteSpace = 'nowrap';
+						div2.style.whiteSpace = 'nowrap';
 						
 						if (tmp < div2.offsetWidth)
 						{
@@ -1737,7 +1751,8 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				tr += 'rotate(' + (rotation) + ',' + (-dx) + ',' + (-dy) + ')';
 			}
 
-			group.setAttribute('transform', 'translate(' + Math.round(x) + ',' + Math.round(y) + ')' + tr);
+			group.setAttribute('transform', 'translate(' + (Math.round(x) + this.foOffset) + ',' +
+				(Math.round(y) + this.foOffset) + ')' + tr);
 			fo.setAttribute('width', Math.round(Math.max(1, w)));
 			fo.setAttribute('height', Math.round(Math.max(1, h)));
 			
@@ -1943,8 +1958,8 @@ mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 		{
 			var text = this.createElement('text');
 			// LATER: Match horizontal HTML alignment
-			text.setAttribute('x', this.format(x * s.scale));
-			text.setAttribute('y', this.format(cy * s.scale));
+			text.setAttribute('x', this.format(x * s.scale) + this.textOffset);
+			text.setAttribute('y', this.format(cy * s.scale) + this.textOffset);
 			
 			mxUtils.write(text, lines[i]);
 			node.appendChild(text);

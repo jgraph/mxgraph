@@ -1,3 +1,26 @@
+01-MAR-2016: 3.5.0.0
+
+- Ctrl+Shift+Drag added for create/remove space in grapheditor [JavaScript]
+- Adds mxPrintPreview.writePostfix hook [JavaScript]
+- Adds mxSvgCanvas2D.foOffset, textOffset [JavaScript]
+- Adds mapping argument for mxGraph.importCells, moveCells, cloneCells [JavaScript]
+- Adds mxClient.IS_CHROMEAPP [JavaScript]
+- Uses getBoundingClientRect in mxUtils.getOffset [JavaScript]
+- Fixes text size for hidden containers in mxText [JavaScript]
+- Fixes valid data URIs in mxGraph.postProcessCellStyle [JavaScript]
+- Fixes bounding box for special cases of empty strings [JavaScript]
+- Fixes label rendering for schema example in IE10/11 [JavaScript]
+- Adds mxUtils.getAll asynchronous request barrier [JavaScript]
+- Adds asynchronous loading for resources in grapheditor [JavaScript]
+- Adds mxResources.loadResources, callback argument in add [JavaScript]
+- Changes type of mxClient.IS_EDGE to boolean [JavaScript]
+- Adds mxVertexHandler.isCenteredEvent hook [JavaScript]
+- Adds enabled parameter in mxGraph.fit [JavaScript]
+- Fixes mxGraph.center for scales other than 1 [JavaScript]
+- Removes vendor prefix for MS pointer events [JavaScript]
+- Adds mxGraph.removeCellsAfterUngroup hook [JavaScript]
+- Fixes autopanning acceleration in mxPanningManager [JavaScript]
+
 18-JAN-2016: 3.4.1.3
 
 - Adds mxGraph.translateToScrollPosition switch [JavaScript]

@@ -18,7 +18,6 @@
 		<add as="fontFamily" value="Helvetica"/>
 		<add as="align" value="center"/>
 		<add as="verticalAlign" value="middle"/>
-		<add as="labelBackgroundColor" value="#ffffff"/>
 		<add as="rounded" value="1"/>
 		<add as="strokeColor" value="#000000"/>
 		<add as="fontColor" value="#000000"/>

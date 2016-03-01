@@ -34,6 +34,7 @@ function mxConstraintHandler(graph)
 	});
 	
 	this.graph.model.addListener(mxEvent.CHANGE, this.resetHandler);
+	this.graph.view.addListener(mxEvent.SCALE, this.resetHandler);
 	this.graph.addListener(mxEvent.ROOT, this.resetHandler);
 };
 
@@ -472,6 +473,7 @@ mxConstraintHandler.prototype.destroy = function()
 	if (this.resetHandler != null)
 	{
 		this.graph.model.removeListener(this.resetHandler);
+		this.graph.view.removeListener(this.resetHandler);
 		this.graph.removeListener(this.resetHandler);
 		this.resetHandler = null;
 	}

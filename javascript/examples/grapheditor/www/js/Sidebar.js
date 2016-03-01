@@ -16,6 +16,7 @@ function Sidebar(editorUi, container)
 	this.graph.resetViewOnRootChange = false;
 	this.graph.foldingEnabled = false;
 	this.graph.setConnectable(false);
+	this.graph.gridEnabled = false;
 	this.graph.autoScroll = false;
 	this.graph.setTooltips(false);
 	this.graph.setEnabled(false);
@@ -23,6 +24,16 @@ function Sidebar(editorUi, container)
 	// Container must be in the DOM for correct HTML rendering
 	this.graph.container.style.visibility = 'hidden';
 	this.graph.container.style.position = 'absolute';
+	this.graph.container.style.overflow = 'hidden';
+	this.graph.container.style.height = '1px';
+	this.graph.container.style.width = '1px';
+	
+	// Workaround for blank output in IE11-
+	if (!mxClient.IS_IE && !mxClient.IS_IE11)
+	{
+		this.graph.container.style.display = 'none';
+	}
+
 	document.body.appendChild(this.graph.container);
 	
 	this.pointerUpHandler = mxUtils.bind(this, function()
@@ -30,7 +41,7 @@ function Sidebar(editorUi, container)
 		this.showTooltips = true;
 	});
 
-	mxEvent.addListener(document, (mxClient.IS_POINTER) ? 'MSPointerUp' : 'mouseup', this.pointerUpHandler);
+	mxEvent.addListener(document, (mxClient.IS_POINTER) ? 'pointerup' : 'mouseup', this.pointerUpHandler);
 
 	this.pointerDownHandler = mxUtils.bind(this, function()
 	{
@@ -38,7 +49,7 @@ function Sidebar(editorUi, container)
 		this.hideTooltip();
 	});
 	
-	mxEvent.addListener(document, (mxClient.IS_POINTER) ? 'MSPointerDown' : 'mousedown', this.pointerDownHandler);
+	mxEvent.addListener(document, (mxClient.IS_POINTER) ? 'pointerdown' : 'mousedown', this.pointerDownHandler);
 	
 	this.pointerMoveHandler = mxUtils.bind(this, function(evt)
 	{
@@ -57,7 +68,7 @@ function Sidebar(editorUi, container)
 		this.hideTooltip();
 	});
 
-	mxEvent.addListener(document, (mxClient.IS_POINTER) ? 'MSPointerMove' : 'mousemove', this.pointerMoveHandler);
+	mxEvent.addListener(document, (mxClient.IS_POINTER) ? 'pointermove' : 'mousemove', this.pointerMoveHandler);
 
 	// Handles mouse leaving the window
 	this.pointerOutHandler = mxUtils.bind(this, function(evt)
@@ -68,7 +79,7 @@ function Sidebar(editorUi, container)
 		}
 	});
 	
-	mxEvent.addListener(document, (mxClient.IS_POINTER) ? 'MSPointerOut' : 'mouseout', this.pointerOutHandler);
+	mxEvent.addListener(document, (mxClient.IS_POINTER) ? 'pointerout' : 'mouseout', this.pointerOutHandler);
 
 	// Enables tooltips after scroll
 	mxEvent.addListener(container, 'scroll', mxUtils.bind(this, function()
@@ -238,6 +249,7 @@ Sidebar.prototype.showTooltip = function(elt, cells, w, h, title, showLabel)
 					this.graph2 = new Graph(this.tooltip, null, null, this.editorUi.editor.graph.getStylesheet());
 					this.graph2.resetViewOnRootChange = false;
 					this.graph2.foldingEnabled = false;
+					this.graph2.gridEnabled = false;
 					this.graph2.autoScroll = false;
 					this.graph2.setTooltips(false);
 					this.graph2.setConnectable(false);
@@ -557,12 +569,9 @@ Sidebar.prototype.cloneCell = function(cell, value)
 Sidebar.prototype.addSearchPalette = function(expand)
 {
 	var elt = document.createElement('div');
+	elt.style.visibility = 'hidden';
 	this.container.appendChild(elt);
-	
-	// Workaround for important padding in Atlas UI
-	elt.style.cssText = 'padding:0px !important;';
-	elt.style.height = '0px';
-	
+		
 	var div = document.createElement('div');
 	div.className = 'geSidebar';
 	div.style.boxSizing = 'border-box';
@@ -1647,16 +1656,30 @@ Sidebar.prototype.createTitle = function(label)
 /**
  * Creates a thumbnail for the given cells.
  */
-Sidebar.prototype.createThumb = function(cells, width, height, parent, title, showLabel, showTitle)
+Sidebar.prototype.createThumb = function(cells, width, height, parent, title, showLabel, showTitle, realWidth, realHeight)
 {
 	this.graph.labelsVisible = (showLabel == null || showLabel);
-	this.graph.view.scaleAndTranslate(1, 0, 0);
-	this.graph.addCells(cells);
-	var bounds = this.graph.getGraphBounds();
-	var s = Math.floor(Math.min((width - 2 * this.thumbBorder) / bounds.width, (height - 2 * this.thumbBorder)
-		/ bounds.height) * 100) / 100;
-	this.graph.view.scaleAndTranslate(s, Math.floor((width - bounds.width * s) / 2 / s - bounds.x),
-			Math.floor((height - bounds.height * s) / 2 / s - bounds.y));
+	var fo = mxClient.NO_FO;
+	mxClient.NO_FO = Editor.prototype.originalNoForeignObject;
+	
+	// Paints faster by using the known width and height
+	if (false && realWidth != null && realHeight != null)
+	{
+		var s = Math.floor(Math.min((width - 2 * this.thumbBorder) / realWidth, (height - 2 * this.thumbBorder) / realHeight) * 100) / 100;
+		this.graph.view.scaleAndTranslate(s, Math.floor((width - realWidth * s) / 2 / s), Math.floor((height - realHeight * s) / 2 / s));
+		this.graph.addCells(cells);
+	}
+	else
+	{
+		this.graph.view.scaleAndTranslate(1, 0, 0);
+		this.graph.addCells(cells);
+		var bounds = this.graph.getGraphBounds();
+		var s = Math.floor(Math.min((width - 2 * this.thumbBorder) / bounds.width, (height - 2 * this.thumbBorder)
+			/ bounds.height) * 100) / 100;
+		this.graph.view.scaleAndTranslate(s, Math.floor((width - bounds.width * s) / 2 / s - bounds.x),
+				Math.floor((height - bounds.height * s) / 2 / s - bounds.y));
+	}
+	
 	var node = null;
 	
 	// For supporting HTML labels in IE9 standards mode the container is cloned instead
@@ -1672,6 +1695,7 @@ Sidebar.prototype.createThumb = function(cells, width, height, parent, title, sh
 	}
 	
 	this.graph.getModel().clear();
+	mxClient.NO_FO = fo;
 	
 	// Catch-all event handling
 	if (mxClient.IS_IE6)
@@ -1737,7 +1761,7 @@ Sidebar.prototype.createItem = function(cells, title, showLabel, showTitle, widt
 		mxEvent.consume(evt);
 	});
 
-	this.createThumb(cells, this.thumbWidth, this.thumbHeight, elt, title, showLabel, showTitle);
+	this.createThumb(cells, this.thumbWidth, this.thumbHeight, elt, title, showLabel, showTitle, width, height);
 	var bounds = new mxRectangle(0, 0, width, height);
 	
 	if (cells.length > 1 || cells[0].vertex)
@@ -3062,6 +3086,12 @@ Sidebar.prototype.addPalette = function(id, title, expanded, onInit)
 	var div = document.createElement('div');
 	div.className = 'geSidebar';
 	
+	// Disables built-in pan and zoom in IE10 and later
+	if (mxClient.IS_POINTER)
+	{
+		div.style.touchAction = 'none';
+	}
+	
 	// Shows tooltip if mouse over background
 	mxEvent.addListener(div, 'mousemove', mxUtils.bind(this, function(evt)
 	{
@@ -3127,7 +3157,6 @@ Sidebar.prototype.addFoldingHandler = function(title, content, funct)
 				
 				if (funct != null)
 				{
-
 					// Wait cursor does not show up on Mac
 					title.style.cursor = 'wait';
 					var prev = title.innerHTML;
@@ -3135,15 +3164,26 @@ Sidebar.prototype.addFoldingHandler = function(title, content, funct)
 					
 					window.setTimeout(function()
 					{
+						var fo = mxClient.NO_FO;
+						mxClient.NO_FO = Editor.prototype.originalNoForeignObject;
 						funct(content);
+						mxClient.NO_FO = fo;
+						content.style.display = 'block';
 						title.style.cursor = '';
 						title.innerHTML = prev;
 					}, 0);
 				}
+				else
+				{
+					content.style.display = 'block';
+				}
+			}
+			else
+			{
+				content.style.display = 'block';
 			}
 			
 			title.style.backgroundImage = 'url(\'' + this.expandedImage + '\')';
-			content.style.display = 'block';
 		}
 		else
 		{
@@ -3254,7 +3294,7 @@ Sidebar.prototype.addStencilPalette = function(id, title, stencilFile, style, ig
 					Math.round(w * scale), Math.round(h * scale), '', stencilName.replace(/_/g, ' '), null, null,
 					this.filterTags(tmp.join(' '))));
 			}
-		}), true);
+		}), true, true);
 
 		this.addPaletteFunctions(id, title, false, fns);
 	}
@@ -3302,25 +3342,25 @@ Sidebar.prototype.destroy = function()
 	
 	if (this.pointerUpHandler != null)
 	{
-		mxEvent.removeListener(document, (mxClient.IS_POINTER) ? 'MSPointerUp' : 'mouseup', this.pointerUpHandler);
+		mxEvent.removeListener(document, (mxClient.IS_POINTER) ? 'pointerup' : 'mouseup', this.pointerUpHandler);
 		this.pointerUpHandler = null;
 	}
 
 	if (this.pointerDownHandler != null)
 	{
-		mxEvent.removeListener(document, (mxClient.IS_POINTER) ? 'MSPointerDown' : 'mousedown', this.pointerDownHandler);
+		mxEvent.removeListener(document, (mxClient.IS_POINTER) ? 'pointerdown' : 'mousedown', this.pointerDownHandler);
 		this.pointerDownHandler = null;
 	}
 	
 	if (this.pointerMoveHandler != null)
 	{
-		mxEvent.removeListener(document, (mxClient.IS_POINTER) ? 'MSPointerMove' : 'mousemove', this.pointerMoveHandler);
+		mxEvent.removeListener(document, (mxClient.IS_POINTER) ? 'pointermove' : 'mousemove', this.pointerMoveHandler);
 		this.pointerMoveHandler = null;
 	}
 	
 	if (this.pointerOutHandler != null)
 	{
-		mxEvent.removeListener(document, (mxClient.IS_POINTER) ? 'MSPointerOut' : 'mouseout', this.pointerOutHandler);
+		mxEvent.removeListener(document, (mxClient.IS_POINTER) ? 'pointerout' : 'mouseout', this.pointerOutHandler);
 		this.pointerOutHandler = null;
 	}
 };

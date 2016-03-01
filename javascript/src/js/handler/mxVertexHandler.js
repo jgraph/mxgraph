@@ -282,6 +282,16 @@ mxVertexHandler.prototype.isConstrainedEvent = function(me)
 };
 
 /**
+ * Function: isCenteredEvent
+ * 
+ * Returns true if the aspect ratio if the cell should be maintained.
+ */
+mxVertexHandler.prototype.isCenteredEvent = function(state, me)
+{
+	return false;
+};
+
+/**
  * Function: createCustomHandles
  * 
  * Returns an array of custom handles. This implementation returns null.
@@ -893,7 +903,9 @@ mxVertexHandler.prototype.resizeVertex = function(me)
 	var geo = this.graph.getCellGeometry(this.state.cell);
 	this.unscaledBounds = this.union(geo, dx / scale, dy / scale, this.index,
 		this.graph.isGridEnabledEvent(me.getEvent()), 1,
-		new mxPoint(0, 0), this.isConstrainedEvent(me));
+		new mxPoint(0, 0), this.isConstrainedEvent(me),
+		this.isCenteredEvent(this.state, me));
+	
 	this.bounds = new mxRectangle(((this.parentState != null) ? this.parentState.x : tr.x * scale) +
 		(this.unscaledBounds.x) * scale, ((this.parentState != null) ? this.parentState.y : tr.y * scale) +
 		(this.unscaledBounds.y) * scale, this.unscaledBounds.width * scale, this.unscaledBounds.height * scale);
@@ -1342,7 +1354,7 @@ mxVertexHandler.prototype.moveChildren = function(cell, dx, dy)
  * };
  * (end)
  */
-mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, scale, tr, constrained)
+mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, scale, tr, constrained, centered)
 {
 	if (this.singleSizer)
 	{
@@ -1362,10 +1374,15 @@ mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, s
 	}
 	else
 	{
+		var w0 = bounds.width;
+		var h0 = bounds.height;
 		var left = bounds.x - tr.x * scale;
-		var right = left + bounds.width;
+		var right = left + w0;
 		var top = bounds.y - tr.y * scale;
-		var bottom = top + bounds.height;
+		var bottom = top + h0;
+		
+		var cx = left + w0 / 2;
+		var cy = top + h0 / 2;
 		
 		if (index > 4 /* Bottom Row */)
 		{
@@ -1407,7 +1424,7 @@ mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, s
 		
 		var width = right - left;
 		var height = bottom - top;
-		
+
 		if (constrained)
 		{
 			var geo = this.graph.getCellGeometry(this.state.cell);
@@ -1432,7 +1449,21 @@ mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, s
 				}
 			}
 		}
-		
+
+		if (centered)
+		{
+			width += (width - w0);
+			height += (height - h0);
+			
+			var cdx = cx - (left + width / 2);
+			var cdy = cy - (top + height / 2);
+
+			left += cdx;
+			top += cdy;
+			right += cdx;
+			bottom += cdy;
+		}
+
 		// Flips over left side
 		if (width < 0)
 		{

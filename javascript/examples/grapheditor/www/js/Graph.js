@@ -10,9 +10,10 @@
 /**
  * Defines graph class.
  */
-Graph = function(container, model, renderHint, stylesheet)
+Graph = function(container, model, renderHint, stylesheet, themes)
 {
 	mxGraph.call(this, container, model, renderHint, stylesheet);
+	this.themes = themes;
 
     // Adds support for HTML labels via style. Note: Currently, only the Java
     // backend supports HTML labels but CSS support is limited to the following:
@@ -81,7 +82,8 @@ Graph = function(container, model, renderHint, stylesheet)
 			mouseDown: function() {},
 		    mouseMove: mxUtils.bind(this, function(sender, me)
 		    {
-		    	if (!mxEvent.isControlDown(me.getEvent()) && !mxEvent.isShiftDown(me.getEvent()))
+		    	if (!this.panningHandler.isActive() && !mxEvent.isControlDown(me.getEvent()) &&
+		    		!mxEvent.isShiftDown(me.getEvent()))
 		    	{
 		    		var tol = this.tolerance;
 	
@@ -358,7 +360,7 @@ Graph = function(container, model, renderHint, stylesheet)
 			return result;
 		};
 
-		// Overrdes color for virtual guides for page centers
+		// Overrides color for virtual guides for page centers
 		mxGuide.prototype.getGuideColor = function(state, horizontal)
 		{
 			return (state.cell == null) ? '#ffa500' /* orange */ : mxConstants.GUIDE_COLOR;
@@ -367,7 +369,7 @@ Graph = function(container, model, renderHint, stylesheet)
 		// Changes color of move preview for black backgrounds
 		this.graphHandler.createPreviewShape = function(bounds)
 		{
-			this.previewColor = (this.graph.background == '#000000') ? 'white' : mxGraphHandler.prototype.previewColor;
+			this.previewColor = (this.graph.background == '#000000') ? '#ffffff' : mxGraphHandler.prototype.previewColor;
 			
 			return mxGraphHandler.prototype.createPreviewShape.apply(this, arguments);
 		};
@@ -640,6 +642,27 @@ Graph = function(container, model, renderHint, stylesheet)
 			return false;
 		};
 		
+		var tapAndHoldSelection = null;
+		
+		// Uses this event to process mouseDown to check the selection state before it is changed
+		this.addListener(mxEvent.FIRE_MOUSE_EVENT, mxUtils.bind(this, function(sender, evt)
+		{
+			if (evt.getProperty('eventName') == 'mouseDown')
+			{
+				var me = evt.getProperty('event');
+				var state = me.getState();
+				
+				if (state != null && !this.isSelectionEmpty() && !this.isCellSelected(state.cell))
+				{
+					tapAndHoldSelection = this.getSelectionCells();
+				}
+				else
+				{
+					tapAndHoldSelection = null;
+				}
+			}
+		}));
+		
 		// Tap and hold on background starts rubberband for multiple selected
 		// cells the cell associated with the event is deselected
 		this.addListener(mxEvent.TAP_AND_HOLD, mxUtils.bind(this, function(sender, evt)
@@ -655,12 +678,17 @@ Graph = function(container, model, renderHint, stylesheet)
 							mxEvent.getClientX(me), mxEvent.getClientY(me));
 					rubberband.start(pt.x, pt.y);
 				}
+				else if (tapAndHoldSelection != null)
+				{
+					this.addSelectionCells(tapAndHoldSelection);
+				}
 				else if (this.getSelectionCount() > 1 && this.isCellSelected(cell))
 				{
 					this.removeSelectionCell(cell);
 				}
 				
 				// Blocks further processing of the event
+				tapAndHoldSelection = null;
 				evt.consume();
 			}
 		}));
@@ -735,6 +763,11 @@ Graph.prototype.maxFitScale = null;
 Graph.prototype.linkTarget = '_blank';
 
 /**
+ * Overrides the background color and paints a transparent background.
+ */
+Graph.prototype.transparentBackground = true;
+
+/**
  * Sets the default target for all links in cells.
  */
 Graph.prototype.defaultEdgeLength = 100;
@@ -753,6 +786,11 @@ Graph.prototype.connectionArrowsEnabled = true;
  * Specifies the regular expression for matching placeholders.
  */
 Graph.prototype.placeholderPattern = new RegExp('%(date\{.*\}|[^%^\{^\}]+)%', 'g');
+
+/**
+ * Specifies the default name for the theme. Default is 'default'.
+ */
+Graph.prototype.defaultThemeName = 'default';
 
 /**
  * Installs child layout styles.
@@ -836,6 +874,31 @@ Graph.prototype.sanitizeHtml = function(value)
     function idX(id) { return id }
 	
 	return html_sanitize(value, urlX, idX);
+};
+
+/**
+ * Revalidates all cells with placeholders in the current graph model.
+ */
+Graph.prototype.updatePlaceholders = function()
+{
+	var model = this.model;
+	var validate = false;
+	
+	for (var key in this.model.cells)
+	{
+		var cell = this.model.cells[key];
+		
+		if (this.isReplacePlaceholders(cell))
+		{
+			this.view.invalidate(cell, false, false);
+			validate = true;
+		}
+	}
+	
+	if (validate)
+	{
+		this.view.validate();
+	}
 };
 
 /**
@@ -1776,9 +1839,9 @@ HoverIcons.prototype.arrowSpacing = 6;
 HoverIcons.prototype.updateDelay = 500;
 
 /**
- * Delay to switch between states. Default is 200ms.
+ * Delay to switch between states. Default is 140ms.
  */
-HoverIcons.prototype.activationDelay = 200;
+HoverIcons.prototype.activationDelay = 140;
 
 /**
  * Up arrow.
@@ -2496,7 +2559,8 @@ HoverIcons.prototype.update = function(state, x, y)
 				// Starts timer to update current state with no mouse events
 				this.updateThread = window.setTimeout(mxUtils.bind(this, function()
 				{
-					if (!this.isActive() && !this.graph.isMouseDown)
+					if (!this.isActive() && !this.graph.isMouseDown &&
+						!this.graph.panningHandler.isActive())
 					{
 						this.prev = state;
 						this.update(state, x, y);
@@ -2733,9 +2797,15 @@ if (typeof mxVertexHandler != 'undefined')
 		 */
 		Graph.prototype.loadStylesheet = function()
 		{
-		    var node = mxUtils.load(STYLE_PATH + '/default.xml').getDocumentElement();
-			var dec = new mxCodec(node.ownerDocument);
-			dec.decode(node, this.getStylesheet());
+			var node = (this.themes != null) ?
+				this.themes[this.defaultThemeName] :
+				mxUtils.load(STYLE_PATH + '/default.xml').getDocumentElement();
+			
+			if (node != null)
+			{
+				var dec = new mxCodec(node.ownerDocument);
+				dec.decode(node, this.getStylesheet());
+			}
 		};
 		
 		/**
@@ -3071,6 +3141,37 @@ if (typeof mxVertexHandler != 'undefined')
 			}
 			
 			mxGraph.prototype.cellLabelChanged.apply(this, arguments);
+		};
+		
+		/**
+		 * Overrides ungroup to check if group should be removed.
+		 */
+		Graph.prototype.removeCellsAfterUngroup = function(cells)
+		{
+			var cellsToRemove = [];
+			
+			for (var i = 0; i < cells.length; i++)
+			{
+				if (this.isCellDeletable(cells[i]))
+				{
+					var state = this.view.getState(cells[i]);
+					
+					if (state != null)
+					{
+						var stroke = mxUtils.getValue(state.style, mxConstants.STYLE_STROKECOLOR, mxConstants.NONE);
+						var fill = mxUtils.getValue(state.style, mxConstants.STYLE_FILLCOLOR, mxConstants.NONE);
+						
+						if (stroke == mxConstants.NONE && fill == mxConstants.NONE)
+						{
+							cellsToRemove.push(cells[i]);
+						}
+					}
+				}
+			}
+			
+			cells = cellsToRemove;
+			
+			mxGraph.prototype.removeCellsAfterUngroup.apply(this, arguments);
 		};
 		
 		/**
@@ -3595,8 +3696,54 @@ if (typeof mxVertexHandler != 'undefined')
 			}
 		
 		    // Renders graph. Offset will be multiplied with state's scale when painting state.
+			// TextOffset only seems to affect FF output but used everywhere for consistency.
 			var svgCanvas = new mxSvgCanvas2D(node);
+			svgCanvas.foOffset = (crisp) ? -0.5 : 0;
+			svgCanvas.textOffset = (crisp) ? -0.5 : 0;
 			svgCanvas.translate(Math.floor((border / scale - bounds.x) / vs), Math.floor((border / scale - bounds.y) / vs));
+
+			// Adds simple text fallback for viewers with no support for foreignObjects
+			var createAlternateContent = svgCanvas.createAlternateContent;
+			svgCanvas.createAlternateContent = function(fo, x, y, w, h, str, align, valign, wrap, format, overflow, clip, rotation)
+			{
+				var s = this.state;
+				
+				// Assumes a max character width of 0.2em
+				if (this.foAltText != null && (w == 0 ||( s.fontSize != 0 && str.length < (w * 5) / s.fontSize)))
+				{
+					var alt = this.createElement('text');
+					alt.setAttribute('x', Math.round(w / 2));
+					alt.setAttribute('y', Math.round((h + s.fontSize) / 2));
+					alt.setAttribute('fill', s.fontColor || 'black');
+					alt.setAttribute('text-anchor', 'middle');
+					alt.setAttribute('font-size', Math.round(s.fontSize) + 'px');
+					alt.setAttribute('font-family', s.fontFamily);
+					
+					if ((s.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
+					{
+						alt.setAttribute('font-weight', 'bold');
+					}
+					
+					if ((s.fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
+					{
+						alt.setAttribute('font-style', 'italic');
+					}
+					
+					if ((s.fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
+					{
+						alt.setAttribute('text-decoration', 'underline');
+					}
+					
+					mxUtils.write(alt, str);
+					
+					return alt;
+				}
+				else
+				{
+					return createAlternateContent.apply(this, arguments);
+				}
+			};
+			
 			
 			// Paints background image
 			var bgImg = this.backgroundImage;
@@ -4564,6 +4711,19 @@ if (typeof mxVertexHandler != 'undefined')
 				mxUtils.getValue(state.style, 'childLayout', null) == null;
 		};
 		
+		/**
+		 * Enables centered resize events.
+		 */
+		mxVertexHandler.prototype.isCenteredEvent = function(state, me)
+		{
+			return (!(!this.graph.isSwimlane(state.cell) && this.graph.model.getChildCount(state.cell) > 0 &&
+					!this.graph.isCellCollapsed(state.cell) &&
+					mxUtils.getValue(state.style, 'recursiveResize', '1') == '1' &&
+					mxUtils.getValue(state.style, 'childLayout', null) == null) &&
+					mxEvent.isControlDown(me.getEvent())) ||
+				mxEvent.isMetaDown(me.getEvent());
+		};
+		
 		var vertexHandlerGetHandlePadding = mxVertexHandler.prototype.getHandlePadding;
 		mxVertexHandler.prototype.getHandlePadding = function()
 		{
@@ -4807,6 +4967,214 @@ if (typeof mxVertexHandler != 'undefined')
 				}
 			};
 		}
+		else
+		{
+			// Removes ctrl+shift as panning trigger for space splitting
+			mxPanningHandler.prototype.isPanningTrigger = function(me)
+			{
+				var evt = me.getEvent();
+				
+				return (this.useLeftButtonForPanning && me.getState() == null &&
+						mxEvent.isLeftMouseButton(evt)) || (mxEvent.isControlDown(evt) &&
+						!mxEvent.isShiftDown(evt)) || (this.usePopupTrigger && mxEvent.isPopupTrigger(evt));
+			};
+		}
+
+		// Overrides/extends rubberband for space handling with Ctrl+Shift(+Alt) drag
+		mxRubberband.prototype.isSpaceEvent = function(me)
+		{
+			return this.graph.isEnabled() && !this.graph.isCellLocked(this.graph.getDefaultParent()) &&
+				mxEvent.isControlDown(me.getEvent()) && mxEvent.isShiftDown(me.getEvent());
+		};
+		
+		// Handles moving of cells in both half panes
+		mxRubberband.prototype.mouseUp = function(sender, me)
+		{
+			var execute = this.div != null && this.div.style.display != 'none';
+
+			var x0 = null;
+			var y0 = null;
+			var dx = null;
+			var dy = null;
+
+			if (this.first != null && this.currentX != null && this.currentY != null)
+			{
+				x0 = this.first.x;
+				y0 = this.first.y;
+				dx = (this.currentX - x0) / this.graph.view.scale;
+				dy = (this.currentY - y0) / this.graph.view.scale;
+
+				if (!mxEvent.isAltDown(me.getEvent()))
+				{
+					dx = this.graph.snap(dx);
+					dy = this.graph.snap(dy);
+				}
+			}
+			
+			this.reset();
+			
+			if (execute)
+			{
+				if (this.isSpaceEvent(me))
+				{
+					this.graph.model.beginUpdate();
+					try
+					{
+						var right = this.graph.getCellsBeyond(x0, y0, this.graph.getDefaultParent(), true, false);
+						var bottom = this.graph.getCellsBeyond(x0, y0, this.graph.getDefaultParent(), false, true);
+						
+						for (var i = 0; i < right.length; i++)
+						{
+							if (this.graph.isCellMovable(right[i]))
+							{
+								var tmp = this.graph.view.getState(right[i]);
+								var geo = this.graph.getCellGeometry(right[i]);
+								
+								if (tmp != null && geo != null)
+								{
+									geo = geo.clone();
+									geo.translate(dx, 0);
+									this.graph.model.setGeometry(right[i], geo);
+								}
+							}
+						}
+						
+						for (var i = 0; i < bottom.length; i++)
+						{
+							if (this.graph.isCellMovable(bottom[i]))
+							{
+								var tmp = this.graph.view.getState(bottom[i]);
+								var geo = this.graph.getCellGeometry(bottom[i]);
+								
+								if (tmp != null && geo != null)
+								{
+									geo = geo.clone();
+									geo.translate(0, dy);
+									this.graph.model.setGeometry(bottom[i], geo);
+								}
+							}
+						}
+					}
+					catch (e)
+					{
+						console.log(e);
+					}
+					finally
+					{
+						this.graph.model.endUpdate();
+					}
+				}
+				else
+				{
+					var rect = new mxRectangle(this.x, this.y, this.width, this.height);
+					this.graph.selectRegion(rect, me.getEvent());
+				}
+				
+				me.consume();
+			}
+		};
+		
+		// Handles preview for creating/removing space in diagram
+		mxRubberband.prototype.mouseMove = function(sender, me)
+		{
+			if (!me.isConsumed() && this.first != null)
+			{
+				var origin = mxUtils.getScrollOrigin(this.graph.container);
+				var offset = mxUtils.getOffset(this.graph.container);
+				origin.x -= offset.x;
+				origin.y -= offset.y;
+				var x = me.getX() + origin.x;
+				var y = me.getY() + origin.y;
+				var dx = this.first.x - x;
+				var dy = this.first.y - y;
+				var tol = this.graph.tolerance;
+				
+				if (this.div != null || Math.abs(dx) > tol ||  Math.abs(dy) > tol)
+				{
+					if (this.div == null)
+					{
+						this.div = this.createShape();
+					}
+					
+					// Clears selection while rubberbanding. This is required because
+					// the event is not consumed in mouseDown.
+					mxUtils.clearSelection();
+					this.update(x, y);
+					
+					if (this.isSpaceEvent(me))
+					{
+						// TODO: Check locked state
+						var right = this.x + this.width;
+						var bottom = this.y + this.height;
+						var scale = this.graph.view.scale;
+						
+						if (!mxEvent.isAltDown(me.getEvent()))
+						{
+							this.width = this.graph.snap(this.width / scale) * scale;
+							this.height = this.graph.snap(this.height / scale) * scale;
+							
+							if (this.x < this.first.x)
+							{
+								this.x = right - this.width;
+							}
+							
+							if (this.y < this.first.y)
+							{
+								this.y = bottom - this.height;
+							}
+						}
+						
+						this.div.style.left = this.x + 'px';
+						this.div.style.top = (origin.y + offset.y) + 'px';
+						this.div.style.width = Math.max(1, this.width) + 'px';
+						this.div.style.height = Math.max(1, this.graph.container.clientHeight) + 'px';
+						this.div.style.backgroundColor = 'white';
+						this.div.style.borderWidth = '0px 1px 0px 1px';
+						this.div.style.borderStyle = 'dashed';
+						
+						if (this.secondDiv == null)
+						{
+							this.secondDiv = this.div.cloneNode(true);
+							this.div.parentNode.appendChild(this.secondDiv);
+						}
+						
+						this.secondDiv.style.left = (origin.x + offset.x) + 'px';
+						this.secondDiv.style.top = this.y + 'px';
+						this.secondDiv.style.width = Math.max(1, this.graph.container.clientWidth) + 'px';
+						this.secondDiv.style.height = Math.max(1, this.height) + 'px';
+						this.secondDiv.style.borderWidth = '1px 0px 1px 0px';
+					}
+					else
+					{
+						// Hides second div and restores style
+						this.div.style.backgroundColor = '';
+						this.div.style.borderWidth = '';
+						this.div.style.borderStyle = '';
+						
+						if (this.secondDiv != null)
+						{
+							this.secondDiv.parentNode.removeChild(this.secondDiv);
+							this.secondDiv = null;
+						}
+					}
+
+					me.consume();
+				}
+			}
+		};
+		
+		// Removes preview
+		var mxRubberbandReset = mxRubberband.prototype.reset;
+		mxRubberband.prototype.reset = function()
+		{
+			if (this.secondDiv != null)
+			{
+				this.secondDiv.parentNode.removeChild(this.secondDiv);
+				this.secondDiv = null;
+			}
+			
+			mxRubberbandReset.apply(this, arguments);
+		};
 		
 	    // Timer-based activation of outline connect in connection handler
 	    var startTime = new Date().getTime();

@@ -1,6 +1,6 @@
 /**
- * Copyright (c) 2006-2015, JGraph Ltd
- * Copyright (c) 2006-2015, Gaudenz Alder
+ * Copyright (c) 2006-2016, JGraph Ltd
+ * Copyright (c) 2006-2016, Gaudenz Alder
  */
 var mxResources =
 {
@@ -50,6 +50,12 @@ var mxResources =
 	 * 
 	 * See <resourcesEncoded> to disable this. If you disable this, make sure that
 	 * your files are UTF-8 encoded.
+	 * 
+	 * Asynchronous loading
+	 * 
+	 * By default, the core adds two resource files synchronously at load time.
+	 * To load these files asynchronously, set <mxLoadResources> to false
+	 * before loading mxClient.js and use <mxResources.loadResources> instead.
 	 * 
 	 * Variable: resources
 	 * 
@@ -177,9 +183,9 @@ var mxResources =
 	/**
 	 * Function: add
 	 * 
-	 * Adds the default and current language properties
-	 * file for the specified basename. Existing keys
-	 * are overridden as new files are added.
+	 * Adds the default and current language properties file for the specified
+	 * basename. Existing keys are overridden as new files are added. If no
+	 * callback is used then the request is synchronous.
 	 *
 	 * Example:
 	 * 
@@ -189,52 +195,95 @@ var mxResources =
 	 * (code)
 	 * mxResources.add('resources/editor');
 	 * (end)
+	 * 
+	 * Parameters:
+	 * 
+	 * basename - The basename for which the file should be loaded.
+	 * lan - The language for which the file should be loaded.
+	 * callback - Optional callback for asynchronous loading.
 	 */
-	add: function(basename, lan)
+	add: function(basename, lan, callback)
 	{
 		lan = (lan != null) ? lan : ((mxClient.language != null) ?
 			mxClient.language.toLowerCase() : mxConstants.NONE);
 		
 		if (lan != mxConstants.NONE)
 		{
-			// Loads the common language file (no extension)
 			var defaultBundle = mxResources.getDefaultBundle(basename, lan);
+			var specialBundle = mxResources.getSpecialBundle(basename, lan);
+			
+			var loadSpecialBundle = function()
+			{
+				if (specialBundle != null)
+				{
+					if (callback)
+					{
+						mxUtils.get(specialBundle, function(req)
+						{
+							mxResources.parse(req.getText());
+							loadSpecialBundle();
+						}, function()
+						{
+							callback();
+						});
+					}
+					else
+					{
+						try
+						{
+					   		var req = mxUtils.load(specialBundle);
+					   		
+					   		if (req.isReady())
+					   		{
+					 	   		mxResources.parse(req.getText());
+					   		}
+				   		}
+				   		catch (e)
+				   		{
+				   			// ignore
+					   	}
+					}
+				}
+				else if (callback != null)
+				{
+					callback();
+				}
+			}
 			
 			if (defaultBundle != null)
 			{
-				try
+				if (callback)
 				{
-			   		var req = mxUtils.load(defaultBundle);
-			   		
-			   		if (req.isReady())
-			   		{
-			 	   		mxResources.parse(req.getText());
-			   		}
-			  	}
-			  	catch (e)
-			  	{
-			  		// ignore
-			  	}
+					mxUtils.get(defaultBundle, function(req)
+					{
+						mxResources.parse(req.getText());
+						loadSpecialBundle();
+					}, function()
+					{
+						loadSpecialBundle();
+					});
+				}
+				else
+				{
+					try
+					{
+				   		var req = mxUtils.load(defaultBundle);
+				   		
+				   		if (req.isReady())
+				   		{
+				 	   		mxResources.parse(req.getText());
+				   		}
+				  	}
+				  	catch (e)
+				  	{
+				  		// ignore
+				  	}
+				}
 			}
-	
-			// Overlays the language specific file (_lan-extension)
-			var specialBundle = mxResources.getSpecialBundle(basename, lan);
-			
-			if (specialBundle != null)
+			else
 			{
-				try
-				{
-			   		var req = mxUtils.load(specialBundle);
-			   		
-			   		if (req.isReady())
-			   		{
-			 	   		mxResources.parse(req.getText());
-			   		}
-		   		}
-		   		catch (e)
-		   		{
-		   			// ignore
-			   	}
+				// Overlays the language specific file (_lan-extension)
+				loadSpecialBundle();
 			}
 		}
 	},
@@ -376,6 +425,24 @@ var mxResources =
 		}
 		
 		return result.join('');
+	},
+
+	/**
+	 * Function: loadResources
+	 * 
+	 * Loads all required resources asynchronously. Use this to load the graph and
+	 * editor resources if <mxLoadResources> is false.
+	 * 
+	 * Parameters:
+	 * 
+	 * callback - Callback function for asynchronous loading.
+	 */
+	loadResources: function(callback)
+	{
+		mxResources.add(mxClient.basePath+'/resources/editor', null, function()
+		{
+			mxResources.add(mxClient.basePath+'/resources/graph', null, callback);
+		});
 	}
 
 };

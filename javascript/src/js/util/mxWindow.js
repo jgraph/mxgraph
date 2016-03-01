@@ -321,7 +321,7 @@ mxWindow.prototype.init = function(x, y, width, height, style)
 	// Disables built-in pan and zoom in IE10 and later
 	if (mxClient.IS_POINTER)
 	{
-		this.div.style.msTouchAction = 'none';
+		this.div.style.touchAction = 'none';
 	}
 	
 	// Workaround for table size problems in FF
@@ -542,7 +542,7 @@ mxWindow.prototype.setResizable = function(resizable)
 			
 			var start = mxUtils.bind(this, function(evt)
 			{
-				// LATER: msPointerDown starting on border of resize does start
+				// LATER: pointerdown starting on border of resize does start
 				// the drag operation but does not fire consecutive events via
 				// one of the listeners below (does pan instead).
 				// Workaround: document.body.style.msTouchAction = 'none'
@@ -921,7 +921,7 @@ mxWindow.prototype.installMoveHandler = function()
 	// Disables built-in pan and zoom in IE10 and later
 	if (mxClient.IS_POINTER)
 	{
-		this.title.style.msTouchAction = 'none';
+		this.title.style.touchAction = 'none';
 	}
 };
 

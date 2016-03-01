@@ -2842,7 +2842,7 @@ mxGraphView.prototype.updateContainerStyle = function(container)
 	// Disables built-in pan and zoom in IE10 and later
 	if (mxClient.IS_POINTER)
 	{
-		container.style.msTouchAction = 'none';
+		container.style.touchAction = 'none';
 	}
 };
 

@@ -409,61 +409,7 @@
 					}
 				});
 
-				// Defines a new export action
-				editor.addAction('createGears', function(editor, cell)
-				{
-					var sql = createSql(graph);
-					
-					if (sql.length > 0)
-					{
-						loadGoogleGears();
-	
-						try
-						{					
-							var db = google.gears.factory.create('beta.database', '1.0');
-							var name = mxUtils.prompt('Enter name of new database', 'MyDatabase');
-							
-							if (name != null)
-							{						
-								db.open(name);
-		
-								// Checks if database is empty
-								var rs = db.execute('SELECT * FROM sqlite_master');
-								
-								if (rs.isValidRow())
-								{
-									if (mxUtils.confirm(name+' exists. Do you want to continue? This will replace existing tables.') == 0)
-									{
-										return;
-									}
-								}
-	
-								try
-								{
-									db.execute(sql);
-									mxUtils.alert(name+' successfully created');
-								}
-								catch (e)
-								{
-									mxUtils.alert('SQL Error: '+e.message);
-								}
-							}
-						}
-						catch (e)
-						{
-							mxUtils.alert('Google Gears is not available: '+e.message);
-						}
-					}
-					else
-					{
-						mxUtils.alert('Schema is empty');
-					}
-				});
-
 				addToolbarButton(editor, toolbar, 'showSql', 'Show SQL', 'images/export1.png');
-				addToolbarButton(editor, toolbar, 'createGears', 'Create in Google Gears', 'images/export1.png');
-
-				toolbar.appendChild(spacer.cloneNode(true));
 
 				// Defines export XML action
 				editor.addAction('export', function(editor, cell)
@@ -903,51 +849,6 @@
 			}
 
 			return sql.join('');
-		};
-		
-		function loadGoogleGears()
-		{
-			// We are already defined. Hooray!
-			if (window.google && google.gears) {
-			  return;
-			}
-			
-			var factory = null;
-			
-			// Firefox
-			if (typeof GearsFactory != 'undefined') {
-			  factory = new GearsFactory();
-			} else {
-			  // IE
-			  try {
-			    factory = new ActiveXObject('Gears.Factory');
-			  } catch (e) {
-			    // Safari
-			    if (navigator.mimeTypes["application/x-googlegears"]) {
-			      factory = document.createElement("object");
-			      factory.style.display = "none";
-			      factory.width = 0;
-			      factory.height = 0;
-			      factory.type = "application/x-googlegears";
-			      document.documentElement.appendChild(factory);
-			    }
-			  }
-			}
-			
-		 	// *Do not* define any objects if Gears is not installed. This mimics the
-			// behavior of Gears defining the objects in the future.
-			if (!factory) {
-			  return;
-			}
-			
-			// Now set up the objects, being careful not to overwrite anything.
-			if (!window.google) {
-			  window.google = {};
-			}
-			
-			if (!google.gears) {
-			  google.gears = {factory: factory};
-			}
 		};
 		
 		// Defines the column user object

@@ -1083,10 +1083,10 @@
 	 * Variable: STYLE_IMAGE
 	 * 
 	 * Defines the key for the image style. Possible values are any image URL,
-	 * the type of the value is String. This is the path to the image to image
-	 * that is to be displayed within the label of a vertex. Data URLs should
-	 * use the following format: data:image/png,xyz where xyz is the base64
-	 * encoded data (without the "base64"-prefix). Note that Data URLs are only
+	 * the type of the value is String. This is the path to the image that is
+	 * to be displayed within the label of a vertex. Data URLs should use the
+	 * following format: data:image/png,xyz where xyz is the base64 encoded
+	 * data (without the "base64"-prefix). Note that Data URLs are only
 	 * supported in modern browsers. Value is "image".
 	 */
 	STYLE_IMAGE: 'image',

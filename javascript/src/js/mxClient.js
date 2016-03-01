@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.4.1.3.
+	 * Current version is 3.5.0.0.
 	 */
-	VERSION: '3.4.1.3',
+	VERSION: '3.5.0.0',
 
 	/**
 	 * Variable: IS_IE
@@ -51,7 +51,7 @@ var mxClient =
 	 *
 	 * True if the current browser is Microsoft Edge.
 	 */
-	IS_EDGE: navigator.userAgent.match(/Edge\//),
+	IS_EDGE: !!navigator.userAgent.match(/Edge\//),
 
 	/**
 	 * Variable: IS_QUIRKS
@@ -135,6 +135,13 @@ var mxClient =
 	 */
   	IS_GC: navigator.userAgent.indexOf('Chrome/') >= 0 &&
 		navigator.userAgent.indexOf('Edge/') < 0,
+	
+	/**
+	 * Variable: IS_CHROMEAPP
+	 *
+	 * True if the this is running inside a Chrome App.
+	 */
+  	IS_CHROMEAPP: window.chrome != null && chrome.app != null && chrome.app.runtime != null,
 		
 	/**
 	 * Variable: IS_FF
@@ -218,9 +225,9 @@ var mxClient =
 	/**
 	 * Variable: IS_POINTER
 	 * 
-	 * True if this device supports MS pointer events.
+	 * True if this device supports Microsoft pointer events.
 	 */
-  	IS_POINTER: (window.navigator.msPointerEnabled != null) ? window.navigator.msPointerEnabled : false,
+  	IS_POINTER: (window.navigator.pointerEnabled != null) ? window.navigator.pointerEnabled : false,
 
 	/**
 	 * Variable: IS_LOCAL

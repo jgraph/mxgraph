@@ -1383,6 +1383,66 @@ var mxUtils =
 		
 		return req;
 	},
+
+	/**
+	 * Function: getAll
+	 * 
+	 * Loads the URLs in the given array *asynchronously* and invokes the given function
+	 * if all requests returned with a valid 2xx status. The error handler is invoked
+	 * once on the first error or invalid response.
+	 *
+	 * Parameters:
+	 * 
+	 * urls - Array of URLs to be loaded.
+	 * onload - Callback with array of <mxXmlRequests>.
+	 * onerror - Optional function to execute on error.
+	 */
+	getAll: function(urls, onload, onerror)
+	{
+		var remain = urls.length;
+		var result = [];
+		var errors = 0;
+		var err = function()
+		{
+			if (errors == 0 && onerror != null)
+			{
+				onerror();
+			}
+
+			errors++;
+		};
+		
+		for (var i = 0; i < urls.length; i++)
+		{
+			(function(url, index)
+			{
+				mxUtils.get(url, function(req)
+				{
+					var status = req.getStatus();
+					
+					if (status < 200 || status > 299)
+					{
+						err();
+					}
+					else
+					{
+						result[index] = req;
+						remain--;
+						
+						if (remain == 0)
+						{
+							onload(result);
+						}
+					}
+				}, err);
+			})(urls[i], i);
+		}
+		
+		if (remain == 0)
+		{
+			onload(result);			
+		}
+	},
 	
 	/**
 	 * Function: post
@@ -2369,13 +2429,13 @@ var mxUtils =
 			offsetLeft += offset.x;
 			offsetTop += offset.y;
 		}
-
-		while (container.offsetParent)
+		
+		var r = container.getBoundingClientRect();
+		
+		if (r != null)
 		{
-			offsetLeft += container.offsetLeft;
-			offsetTop += container.offsetTop;
-			
-			container = container.offsetParent;
+			offsetLeft += r.left;
+			offsetTop += r.top;
 		}
 		
 		return new mxPoint(offsetLeft, offsetTop);

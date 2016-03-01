@@ -43,6 +43,18 @@
 				var editor = new mxEditor(node);
 				mxObjectCodec.allowEval = false;
 				
+				// Adds active border for panning inside the container
+				editor.graph.createPanningManager = function()
+				{
+					var pm = new mxPanningManager(this);
+					pm.border = 30;
+					
+					return pm;
+				};
+				
+				editor.graph.allowAutoPanning = true;
+				editor.graph.timerAutoScroll = true;
+				
 				// Updates the window title after opening new files
 				var title = document.title;
 				var funct = function(sender)

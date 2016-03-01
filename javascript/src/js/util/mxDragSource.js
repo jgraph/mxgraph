@@ -587,8 +587,8 @@ mxDragSource.prototype.dragOver = function(graph, evt)
 {
 	var offset = mxUtils.getOffset(graph.container);
 	var origin = mxUtils.getScrollOrigin(graph.container);
-	var x = mxEvent.getClientX(evt) - offset.x + origin.x;
-	var y = mxEvent.getClientY(evt) - offset.y + origin.y;
+	var x = mxEvent.getClientX(evt) - offset.x + origin.x - graph.panDx;
+	var y = mxEvent.getClientY(evt) - offset.y + origin.y - graph.panDy;
 
 	if (graph.autoScroll && (this.autoscroll == null || this.autoscroll))
 	{

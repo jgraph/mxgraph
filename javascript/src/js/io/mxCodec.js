@@ -35,7 +35,7 @@
  * (code)
  * var doc = mxUtils.parseXml(xmlString);
  * var codec = new mxCodec(doc);
- * decoder.decode(doc.documentElement, graph.getModel());
+ * codec.decode(doc.documentElement, graph.getModel());
  * (end)
  * 
  * Example:

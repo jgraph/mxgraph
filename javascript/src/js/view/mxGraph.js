@@ -1666,8 +1666,8 @@ mxGraph.prototype.collapseExpandResource = (mxClient.language != 'none') ? 'coll
  * 
  * container - DOM node that will contain the graph display.
  */
- mxGraph.prototype.init = function(container)
- {
+mxGraph.prototype.init = function(container)
+{
 	this.container = container;
 	
 	// Initializes the in-place editor
@@ -2639,7 +2639,8 @@ mxGraph.prototype.click = function(me)
  * graph.addListener(mxEvent.DOUBLE_CLICK, function(sender, evt)
  * {
  *   var cell = evt.getProperty('cell');
- *   // do something with the cell...
+ *   // do something with the cell and consume the
+ *   // event to prevent in-place editing from start
  * });
  * (end) 
  * 
@@ -3190,7 +3191,8 @@ mxGraph.prototype.postProcessCellStyle = function(style)
 			{
 				var comma = image.indexOf(',');
 				
-				if (comma > 0)
+				// Adds base64 encoding prefix if needed
+				if (comma > 0 && image.substring(comma - 7, comma + 1) != ';base64,')
 				{
 					image = image.substring(0, comma) + ';base64,'
 						+ image.substring(comma + 1);
@@ -3949,7 +3951,7 @@ mxGraph.prototype.ungroupCells = function(cells)
 				}
 			}
 
-			this.cellsRemoved(this.addAllEdges(cells));
+			this.removeCellsAfterUngroup(cells);
 			this.fireEvent(new mxEventObject(mxEvent.UNGROUP_CELLS, 'cells', cells));
 		}
 		finally
@@ -3959,6 +3961,20 @@ mxGraph.prototype.ungroupCells = function(cells)
 	}
 	
 	return result;
+};
+
+/**
+ * Function: removeCellsAfterUngroup
+ * 
+ * Hook to remove the groups after <ungroupCells>.
+ * 
+ * Parameters:
+ * 
+ * cells - Array of <mxCells> that were ungrouped.
+ */
+mxGraph.prototype.removeCellsAfterUngroup = function(cells)
+{
+	this.cellsRemoved(this.addAllEdges(cells));
 };
 
 /**
@@ -4140,8 +4156,9 @@ mxGraph.prototype.getBoundingBox = function(cells)
  * cells - Array of <mxCells> to be cloned.
  * allowInvalidEdges - Optional boolean that specifies if invalid edges
  * should be cloned. Default is true.
+ * mapping - Optional mapping for existing clones.
  */
-mxGraph.prototype.cloneCells = function(cells, allowInvalidEdges)
+mxGraph.prototype.cloneCells = function(cells, allowInvalidEdges, mapping)
 {
 	allowInvalidEdges = (allowInvalidEdges != null) ? allowInvalidEdges : true;
 	var clones = null;
@@ -4162,7 +4179,7 @@ mxGraph.prototype.cloneCells = function(cells, allowInvalidEdges)
 		{
 			var scale = this.view.scale;
 			var trans = this.view.translate;
-			clones = this.model.cloneCells(cells, true);
+			clones = this.model.cloneCells(cells, true, mapping);
 		
 			for (var i = 0; i < cells.length; i++)
 			{
@@ -5750,10 +5767,19 @@ mxGraph.prototype.extendParent = function(cell)
  * Clones and inserts the given cells into the graph using the move
  * method and returns the inserted cells. This shortcut is used if
  * cells are inserted via datatransfer.
+ * 
+ * Parameters:
+ * 
+ * cells - Array of <mxCells> to be imported.
+ * dx - Integer that specifies the x-coordinate of the vector. Default is 0.
+ * dy - Integer that specifies the y-coordinate of the vector. Default is 0.
+ * target - <mxCell> that represents the new parent of the cells.
+ * evt - Mouseevent that triggered the invocation.
+ * mapping - Optional mapping for existing clones.
  */
-mxGraph.prototype.importCells = function(cells, dx, dy, target, evt)
+mxGraph.prototype.importCells = function(cells, dx, dy, target, evt, mapping)
 {	
-	return this.moveCells(cells, dx, dy, true, target, evt);
+	return this.moveCells(cells, dx, dy, true, target, evt, mapping);
 };
 
 /**
@@ -5779,8 +5805,9 @@ mxGraph.prototype.importCells = function(cells, dx, dy, target, evt)
  * clone - Boolean indicating if the cells should be cloned. Default is false.
  * target - <mxCell> that represents the new parent of the cells.
  * evt - Mouseevent that triggered the invocation.
+ * mapping - Optional mapping for existing clones.
  */
-mxGraph.prototype.moveCells = function(cells, dx, dy, clone, target, evt)
+mxGraph.prototype.moveCells = function(cells, dx, dy, clone, target, evt, mapping)
 {
 	dx = (dx != null) ? dx : 0;
 	dy = (dy != null) ? dy : 0;
@@ -5838,7 +5865,7 @@ mxGraph.prototype.moveCells = function(cells, dx, dy, clone, target, evt)
 			
 			if (clone)
 			{
-				cells = this.cloneCells(cells, this.isCloneInvalidEdges());
+				cells = this.cloneCells(cells, this.isCloneInvalidEdges(), mapping);
 
 				if (target == null)
 				{
@@ -7510,8 +7537,8 @@ mxGraph.prototype.center = function(horizontal, vertical, cx, cy)
 	
 	if (!hasScrollbars)
 	{
-		this.view.setTranslate((horizontal) ? Math.floor(t.x - bounds.x / s + dx * cx * s) : t.x,
-				(vertical) ? Math.floor(t.y - bounds.y / s + dy * cy * s) : t.y);
+		this.view.setTranslate((horizontal) ? Math.floor(t.x - bounds.x * s + dx * cx / s) : t.x,
+			(vertical) ? Math.floor(t.y - bounds.y * s + dy * cy / s) : t.y);
 	}
 	else
 	{
@@ -7714,17 +7741,39 @@ mxGraph.prototype.zoomToRect = function(rect)
  * graph.refresh();
  * (end)
  * 
+ * To fit and center the graph, the following code can be used.
+ * 
+ * (code)
+ * var margin = 2;
+ * var max = 3;
+ * 
+ * var bounds = graph.getGraphBounds();
+ * var cw = graph.container.clientWidth - margin;
+ * var ch = graph.container.clientHeight - margin;
+ * var w = bounds.width / graph.view.scale;
+ * var h = bounds.height / graph.view.scale;
+ * var s = Math.min(max, Math.min(cw / w, ch / h));
+ * 
+ * graph.view.scaleAndTranslate(s,
+ *   (margin + cw - w * s) / (2 * s) - bounds.x / graph.view.scale,
+ *   (margin + ch - h * s) / (2 * s) - bounds.y / graph.view.scale);
+ * (end)
+ * 
  * Parameters:
  * 
  * border - Optional number that specifies the border. Default is 0.
  * keepOrigin - Optional boolean that specifies if the translate should be
  * changed. Default is false.
  * margin - Optional margin in pixels. Default is 1.
+ * enabled - Optional boolean that specifies if the scale should be set or
+ * just returned. Default is true.
  */
-mxGraph.prototype.fit = function(border, keepOrigin, margin)
+mxGraph.prototype.fit = function(border, keepOrigin, margin, enabled)
 {
 	if (this.container != null)
 	{
+		enabled = (enabled != null) ? enabled : true;
+		
 		border = (border != null) ? border : 0;
 		keepOrigin = (keepOrigin != null) ? keepOrigin : false;
 		margin = (margin != null) ? margin : 1;
@@ -7770,34 +7819,41 @@ mxGraph.prototype.fit = function(border, keepOrigin, margin)
 				s2 = Math.min(s2, this.maxFitScale);
 			}
 	
-			if (!keepOrigin)
+			if (enabled)
 			{
-				if (!mxUtils.hasScrollbars(this.container))
+				if (!keepOrigin)
 				{
-					var x0 = (bounds.x != null) ? Math.floor(this.view.translate.x - bounds.x / s + border / s2 + margin / 2) : border;
-					var y0 = (bounds.y != null) ? Math.floor(this.view.translate.y - bounds.y / s + border / s2 + margin / 2) : border;
-	
-					this.view.scaleAndTranslate(s2, x0, y0);
+					if (!mxUtils.hasScrollbars(this.container))
+					{
+						var x0 = (bounds.x != null) ? Math.floor(this.view.translate.x - bounds.x / s + border / s2 + margin / 2) : border;
+						var y0 = (bounds.y != null) ? Math.floor(this.view.translate.y - bounds.y / s + border / s2 + margin / 2) : border;
+		
+						this.view.scaleAndTranslate(s2, x0, y0);
+					}
+					else
+					{
+						this.view.setScale(s2);
+						var b2 = this.getGraphBounds();
+						
+						if (b2.x != null)
+						{
+							this.container.scrollLeft = b2.x;
+						}
+						
+						if (b2.y != null)
+						{
+							this.container.scrollTop = b2.y;
+						}
+					}
 				}
-				else
+				else if (this.view.scale != s2)
 				{
 					this.view.setScale(s2);
-					var b2 = this.getGraphBounds();
-					
-					if (b2.x != null)
-					{
-						this.container.scrollLeft = b2.x;
-					}
-					
-					if (b2.y != null)
-					{
-						this.container.scrollTop = b2.y;
-					}
 				}
 			}
-			else if (this.view.scale != s2)
+			else
 			{
-				this.view.setScale(s2);
+				return s2;
 			}
 		}
 	}

@@ -145,7 +145,7 @@ var mxEvent =
 	 * Function: addGestureListeners
 	 * 
 	 * Adds the given listeners for touch, mouse and/or pointer events. If
-	 * <mxClient.IS_POINTER> is true then MSPointerEvents will be registered,
+	 * <mxClient.IS_POINTER> is true then pointer events will be registered,
 	 * else the respective mouse events will be registered. If <mxClient.IS_POINTER>
 	 * is false and <mxClient.IS_TOUCH> is true then the respective touch events
 	 * will be registered as well as the mouse events.
@@ -154,17 +154,17 @@ var mxEvent =
 	{
 		if (startListener != null)
 		{
-			mxEvent.addListener(node, (mxClient.IS_POINTER) ? 'MSPointerDown' : 'mousedown', startListener);
+			mxEvent.addListener(node, (mxClient.IS_POINTER) ? 'pointerdown' : 'mousedown', startListener);
 		}
 		
 		if (moveListener != null)
 		{
-			mxEvent.addListener(node, (mxClient.IS_POINTER) ? 'MSPointerMove' : 'mousemove', moveListener);
+			mxEvent.addListener(node, (mxClient.IS_POINTER) ? 'pointermove' : 'mousemove', moveListener);
 		}
 		
 		if (endListener != null)
 		{
-			mxEvent.addListener(node, (mxClient.IS_POINTER) ? 'MSPointerUp' : 'mouseup', endListener);
+			mxEvent.addListener(node, (mxClient.IS_POINTER) ? 'pointerup' : 'mouseup', endListener);
 		}
 		
 		if (!mxClient.IS_POINTER && mxClient.IS_TOUCH)
@@ -196,17 +196,17 @@ var mxEvent =
 	{
 		if (startListener != null)
 		{
-			mxEvent.removeListener(node, (mxClient.IS_POINTER) ? 'MSPointerDown' : 'mousedown', startListener);
+			mxEvent.removeListener(node, (mxClient.IS_POINTER) ? 'pointerdown' : 'mousedown', startListener);
 		}
 		
 		if (moveListener != null)
 		{
-			mxEvent.removeListener(node, (mxClient.IS_POINTER) ? 'MSPointerMove' : 'mousemove', moveListener);
+			mxEvent.removeListener(node, (mxClient.IS_POINTER) ? 'pointermove' : 'mousemove', moveListener);
 		}
 		
 		if (endListener != null)
 		{
-			mxEvent.removeListener(node, (mxClient.IS_POINTER) ? 'MSPointerUp' : 'mouseup', endListener);
+			mxEvent.removeListener(node, (mxClient.IS_POINTER) ? 'pointerup' : 'mouseup', endListener);
 		}
 		
 		if (!mxClient.IS_POINTER && mxClient.IS_TOUCH)

@@ -1222,7 +1222,8 @@ mxCellRenderer.prototype.insertStateAfter = function(state, node, htmlNode)
 	{
 		if (shapes[i] != null && shapes[i].node != null)
 		{
-			var html = shapes[i].node.parentNode != state.view.getDrawPane();
+			var html = shapes[i].node.parentNode != state.view.getDrawPane() &&
+				shapes[i].node.parentNode != state.view.getOverlayPane();
 			var temp = (html) ? htmlNode : node;
 			
 			if (temp != null && temp.nextSibling != shapes[i].node)

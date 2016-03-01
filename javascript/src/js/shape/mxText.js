@@ -434,11 +434,15 @@ mxText.prototype.updateBoundingBox = function()
 					// Workaround for bounding box of empty string
 					if (typeof(this.value) == 'string' && mxUtils.trim(this.value) == 0)
 					{
+						this.boundingBox = null;
+						
 						return;
 					}
 					
 					if (b.width == 0 && b.height == 0)
 					{
+						this.boundingBox = null;
+						
 						return;
 					}
 					
@@ -1120,7 +1124,20 @@ mxText.prototype.updateSize = function(node, enableWrap)
 				sizeDiv = sizeDiv.firstChild;
 			}
 			
-			var tmp = sizeDiv.offsetWidth + 3;
+			var tmp = sizeDiv.offsetWidth;
+			
+			// Workaround for text measuring in hidden containers
+			if (tmp == 0)
+			{
+				var prev = node.parentNode;
+				node.style.visibility = 'hidden';
+				document.body.appendChild(node);
+				tmp = sizeDiv.offsetWidth;
+				node.style.visibility = '';
+				prev.appendChild(node);
+			}
+
+			tmp += 3;
 			
 			if (this.clipped)
 			{

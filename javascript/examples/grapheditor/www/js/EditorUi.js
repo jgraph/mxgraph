@@ -159,11 +159,20 @@ EditorUi = function(editor, container)
    	// Escape key hides dialogs, adds space+drag panning
 	var spaceKeyPressed = false;
 	
+	// Overrides hovericons to disable while space key is pressed
+	var hoverIconsIsResetEvent = this.hoverIcons.isResetEvent;
+	
+	this.hoverIcons.isResetEvent = function(evt, allowShift)
+	{
+		return spaceKeyPressed || hoverIconsIsResetEvent.apply(this, arguments);
+	};
+	
 	this.keydownHandler = mxUtils.bind(this, function(evt)
 	{
 		if (evt.which == 32 /* Space */)
 		{
 			spaceKeyPressed = true;
+			this.hoverIcons.reset();
 			graph.container.style.cursor = 'move';
 			
 			// Disables scroll after space keystroke with scrollbars
@@ -340,21 +349,6 @@ EditorUi = function(editor, container)
     // Enables scrollbars and sets cursor style for the container
 	graph.container.setAttribute('tabindex', '0');
    	graph.container.style.cursor = 'default';
-    graph.container.style.backgroundImage = 'url(' + editor.gridImage + ')';
-    graph.container.style.backgroundPosition = '-1px -1px';
-
-	var noBackground = (mxClient.IS_IE && document.documentMode >= 9) ? 'url(' + this.editor.transparentImage + ')' : 'none';
-	graph.container.style.backgroundImage = noBackground;
-	var bgImg = (!graph.pageVisible && graph.isGridEnabled()) ? 'url(' + this.editor.gridImage + ')' : noBackground;
-	
-	if (graph.view.canvas.ownerSVGElement != null)
-	{
-		graph.view.canvas.ownerSVGElement.style.backgroundImage = bgImg;
-	}
-	else
-	{
-		graph.view.canvas.style.backgroundImage = bgImg;
-	}
     
 	// Workaround for page scroll if embedded via iframe
 	if (window.self === window.top)
@@ -651,56 +645,60 @@ EditorUi = function(editor, container)
 		{
 			var common = mxUtils.indexOf(valueStyles, keys[i]) >= 0;
 			
-			// Special case: Edge style and shape
-			if (mxUtils.indexOf(connectStyles, keys[i]) >= 0)
+			// Ignores transparent stroke colors
+			if (keys[i] != 'strokeColor' || (values[i] != null && values[i] != 'none'))
 			{
-				if (edge || mxUtils.indexOf(alwaysEdgeStyles, keys[i]) >= 0)
+				// Special case: Edge style and shape
+				if (mxUtils.indexOf(connectStyles, keys[i]) >= 0)
 				{
-					if (values[i] == null)
+					if (edge || mxUtils.indexOf(alwaysEdgeStyles, keys[i]) >= 0)
 					{
-						delete graph.currentEdgeStyle[keys[i]];
+						if (values[i] == null)
+						{
+							delete graph.currentEdgeStyle[keys[i]];
+						}
+						else
+						{
+							graph.currentEdgeStyle[keys[i]] = values[i];
+						}
 					}
-					else
+					// Uses style for vertex if defined in styles
+					else if (vertex && mxUtils.indexOf(styles, keys[i]) >= 0)
 					{
-						graph.currentEdgeStyle[keys[i]] = values[i];
+						if (values[i] == null)
+						{
+							delete graph.currentVertexStyle[keys[i]];
+						}
+						else
+						{
+							graph.currentVertexStyle[keys[i]] = values[i];
+						}
 					}
 				}
-				// Uses style for vertex if defined in styles
-				else if (vertex && mxUtils.indexOf(styles, keys[i]) >= 0)
+				else if (mxUtils.indexOf(styles, keys[i]) >= 0)
 				{
-					if (values[i] == null)
+					if (vertex || common)
 					{
-						delete graph.currentVertexStyle[keys[i]];
+						if (values[i] == null)
+						{
+							delete graph.currentVertexStyle[keys[i]];
+						}
+						else
+						{
+							graph.currentVertexStyle[keys[i]] = values[i];
+						}
 					}
-					else
+					
+					if (edge || common || mxUtils.indexOf(alwaysEdgeStyles, keys[i]) >= 0)
 					{
-						graph.currentVertexStyle[keys[i]] = values[i];
-					}
-				}
-			}
-			else if (mxUtils.indexOf(styles, keys[i]) >= 0)
-			{
-				if (vertex || common)
-				{
-					if (values[i] == null)
-					{
-						delete graph.currentVertexStyle[keys[i]];
-					}
-					else
-					{
-						graph.currentVertexStyle[keys[i]] = values[i];
-					}
-				}
-				
-				if (edge || common || mxUtils.indexOf(alwaysEdgeStyles, keys[i]) >= 0)
-				{
-					if (values[i] == null)
-					{
-						delete graph.currentEdgeStyle[keys[i]];
-					}
-					else
-					{
-						graph.currentEdgeStyle[keys[i]] = values[i];
+						if (values[i] == null)
+						{
+							delete graph.currentEdgeStyle[keys[i]];
+						}
+						else
+						{
+							graph.currentEdgeStyle[keys[i]] = values[i];
+						}
 					}
 				}
 			}
@@ -870,6 +868,30 @@ EditorUi = function(editor, container)
 	{
 		this.resetScrollbars();
 	}));
+	
+	/**
+	 * Repaints the grid.
+	 */
+	this.addListener('gridEnabledChanged', mxUtils.bind(this, function()
+	{
+		graph.view.validateBackground();
+	}));
+	
+	this.addListener('backgroundColorChanged', mxUtils.bind(this, function()
+	{
+		graph.view.validateBackground();
+	}));
+
+	/**
+	 * Repaints the grid.
+	 */
+	graph.addListener('gridSizeChanged', mxUtils.bind(this, function()
+	{
+		if (graph.isGridEnabled())
+		{
+			graph.view.validateBackground();
+		}
+	}));
 
    	// Resets UI, updates action and menu states
    	this.editor.resetGraph();
@@ -958,13 +980,13 @@ EditorUi.prototype.init = function()
 	mxEvent.addListener(graph.container, 'keypress', mxUtils.bind(this, function(evt)
 	{
 		// KNOWN: Focus does not work if label is empty in quirks mode
-		if (!graph.isEditing() && !graph.isSelectionEmpty() && evt.which !== 0 &&
+		if (this.isImmediateEditingEvent(evt) && !graph.isEditing() && !graph.isSelectionEmpty() && evt.which !== 0 &&
 			!mxEvent.isAltDown(evt) && !mxEvent.isControlDown(evt) && !mxEvent.isMetaDown(evt))
 		{
 			graph.escape();
 			graph.startEditing();
 
-			// Workaround for FF where char is lost of cursor is placed before char
+			// Workaround for FF where char is lost if cursor is placed before char
 			if (mxClient.IS_FF)
 			{
 				var ce = graph.cellEditor;
@@ -1016,6 +1038,14 @@ EditorUi.prototype.init = function()
 	{
 		this.format.init();
 	}
+};
+
+/**
+ * Returns true if the given event should start editing. This implementation returns true.
+ */
+EditorUi.prototype.isImmediateEditingEvent = function(evt)
+{
+	return true;
 };
 
 /**
@@ -1497,11 +1527,12 @@ EditorUi.prototype.initCanvas = function()
 					// SHOULD MOVE TRANSLATE/SCALE TO VIEW.
 					var tx = graph.view.translate.x;
 					var ty = graph.view.translate.y;
-
 					graph.view.setTranslate(dx, dy);
-					graph.container.scrollLeft += (dx - tx) * graph.view.scale;
-					graph.container.scrollTop += (dy - ty) * graph.view.scale;
-
+					
+					// LATER: Fix rounding errors for small zoom
+					graph.container.scrollLeft += Math.round((dx - tx) * graph.view.scale);
+					graph.container.scrollTop += Math.round((dy - ty) * graph.view.scale);
+					
 					this.autoTranslate = false;
 					return;
 				}
@@ -1914,7 +1945,7 @@ EditorUi.prototype.resetScrollbars = function()
 EditorUi.prototype.setBackgroundColor = function(value)
 {
 	this.editor.graph.background = value;
-	this.editor.updateGraphComponents();
+	this.editor.graph.view.validateBackground();
 
 	this.fireEvent(new mxEventObject('backgroundColorChanged'));
 };
@@ -1943,7 +1974,6 @@ EditorUi.prototype.setPageFormat = function(value)
 	}
 	else
 	{
-		this.editor.updateGraphComponents();
 		this.editor.graph.view.validateBackground();
 		this.editor.graph.sizeDidChange();
 	}
@@ -2049,14 +2079,14 @@ EditorUi.prototype.updateActionStates = function()
 	this.actions.get('wordWrap').setEnabled(vertexSelected);
 	this.actions.get('autosize').setEnabled(vertexSelected);
 	this.actions.get('collapsible').setEnabled(vertexSelected);
-	this.actions.get('group').setEnabled(graph.getSelectionCount() > 1 ||
-		(oneVertexSelected || !graph.isContainer(graph.getSelectionCell())));
    	var oneVertexSelected = vertexSelected && graph.getSelectionCount() == 1;
+	this.actions.get('group').setEnabled(graph.getSelectionCount() > 1 ||
+		(oneVertexSelected && !graph.isContainer(graph.getSelectionCell())));
 	this.actions.get('ungroup').setEnabled(graph.getSelectionCount() == 1 &&
 		(graph.getModel().getChildCount(graph.getSelectionCell()) > 0 ||
 		(oneVertexSelected && graph.isContainer(graph.getSelectionCell()))));
    	this.actions.get('removeFromGroup').setEnabled(oneVertexSelected &&
-   			graph.getModel().isVertex(graph.getModel().getParent(graph.getSelectionCell())));
+   		graph.getModel().isVertex(graph.getModel().getParent(graph.getSelectionCell())));
 
 	// Updates menu states
    	var state = graph.view.getState(graph.getSelectionCell());
@@ -2071,13 +2101,16 @@ EditorUi.prototype.updateActionStates = function()
     this.actions.get('collapse').setEnabled(foldable);
     this.actions.get('editLink').setEnabled(graph.getSelectionCount() == 1);
     this.actions.get('openLink').setEnabled(graph.getSelectionCount() == 1 &&
-    		graph.getLinkForCell(graph.getSelectionCell()) != null);
+    	graph.getLinkForCell(graph.getSelectionCell()) != null);
     this.actions.get('guides').setEnabled(graph.isEnabled());
     this.actions.get('grid').setEnabled(graph.isEnabled());
 
     var unlocked = graph.isEnabled() && !graph.isCellLocked(graph.getDefaultParent());
     this.menus.get('layout').setEnabled(unlocked);
     this.menus.get('insert').setEnabled(unlocked);
+    this.menus.get('direction').setEnabled(unlocked && vertexSelected);
+    this.menus.get('align').setEnabled(unlocked && vertexSelected && graph.getSelectionCount() > 1);
+    this.menus.get('distribute').setEnabled(unlocked && vertexSelected && graph.getSelectionCount() > 1);
     this.actions.get('selectVertices').setEnabled(unlocked);
     this.actions.get('selectEdges').setEnabled(unlocked);
     this.actions.get('selectAll').setEnabled(unlocked);
@@ -2444,7 +2477,7 @@ EditorUi.prototype.addSplitHandler = function(elt, horizontal, dx, onChange)
 	// Disables built-in pan and zoom in IE10 and later
 	if (mxClient.IS_POINTER)
 	{
-		elt.style.msTouchAction = 'none';
+		elt.style.touchAction = 'none';
 	}
 	
 	var getValue = mxUtils.bind(this, function()
@@ -2932,6 +2965,11 @@ EditorUi.prototype.createOutline = function(wnd)
 	{
 		outline.update();
 	});
+	
+	this.addListener('pageFormatChanged', function()
+	{
+		outline.update();
+	});
 
 	return outline;
 };
@@ -3147,7 +3185,7 @@ EditorUi.prototype.createKeyHandler = function(editor)
 	};
 
 	// Ignores enter keystroke. Remove this line if you want the
-	// enter keystroke to stop editing.
+	// enter keystroke to stop editing. N, W, T are reserved.
 	keyHandler.enter = function() {};
 	keyHandler.bindControlKey(36, function() { graph.foldCells(true); }); // Ctrl+Home
 	keyHandler.bindControlKey(35, function() { graph.foldCells(false); }); // Ctrl+End
@@ -3179,18 +3217,11 @@ EditorUi.prototype.createKeyHandler = function(editor)
 	keyHandler.bindAction(8, true, 'deleteAll'); // Backspace
 	keyHandler.bindAction(46, false, 'delete'); // Delete
 	keyHandler.bindAction(46, true, 'deleteAll'); // Ctrl+Delete
-	keyHandler.bindAction(48, true, 'resetView'); // Ctrl+0
-	keyHandler.bindAction(96, true, 'resetView'); // Ctrl+0 (Num)
-	keyHandler.bindAction(49, true, 'fitWindow'); // Ctrl+1
-	keyHandler.bindAction(97, true, 'fitWindow'); // Ctrl+1 (Num)
-	keyHandler.bindAction(50, true, 'fitPageWidth'); // Ctrl+2
-	keyHandler.bindAction(98, true, 'fitPageWidth'); // Ctrl+2 (Num)
-	keyHandler.bindAction(51, true, 'fitPage'); // Ctrl+3
-	keyHandler.bindAction(99, true, 'fitPage'); // Ctrl+3 (Num)
-	keyHandler.bindAction(52, true, 'fitTwoPages'); // Ctrl+4
-	keyHandler.bindAction(100, true, 'fitTwoPages'); // Ctrl+4 (Num)
-	keyHandler.bindAction(53, true, 'customZoom'); // Ctrl+5
-	keyHandler.bindAction(101, true, 'customZoom'); // Ctrl+5 (Num)
+	keyHandler.bindAction(72, true, 'resetView'); // Ctrl+H
+	keyHandler.bindAction(72, true, 'fitWindow', true); // Ctrl+Shift+H
+	keyHandler.bindAction(74, true, 'fitPage'); // Ctrl+J
+	keyHandler.bindAction(74, true, 'fitTwoPages', true); // Ctrl+Shift+J
+	keyHandler.bindAction(48, true, 'customZoom'); // Ctrl+0
 	keyHandler.bindAction(82, true, 'turn'); // Ctrl+R
 	keyHandler.bindAction(82, true, 'clearDefaultStyle', true); // Ctrl+Shift+R
 	keyHandler.bindAction(83, true, 'save'); // Ctrl+S

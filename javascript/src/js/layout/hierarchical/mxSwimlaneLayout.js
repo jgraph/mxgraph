@@ -70,6 +70,15 @@ mxSwimlaneLayout.prototype.dummyVertexWidth = 50;
 mxSwimlaneLayout.prototype.resizeParent = false;
 
 /**
+ * Variable: maintainParentLocation
+ * 
+ * Specifies if the parent location should be maintained, so that the
+ * top, left corner stays the same before and after execution of
+ * the layout. Default is false for backwards compatibility.
+ */
+mxSwimlaneLayout.prototype.maintainParentLocation = false;
+
+/**
  * Variable: moveParent
  * 
  * Specifies if the parent should be moved if <resizeParent> is enabled.
@@ -171,6 +180,27 @@ mxSwimlaneLayout.prototype.model = null;
 mxSwimlaneLayout.prototype.edgesCache = null;
 
 /**
+ * Variable: edgesSet
+ * 
+ * A cache of edges whose source terminal is the key
+ */
+mxHierarchicalLayout.prototype.edgeSourceTermCache = null;
+
+/**
+ * Variable: edgesSet
+ * 
+ * A cache of edges whose source terminal is the key
+ */
+mxHierarchicalLayout.prototype.edgesTargetTermCache = null;
+
+/**
+ * Variable: edgeStyle
+ * 
+ * The style to apply between cell layers to edge segments
+ */
+mxHierarchicalLayout.prototype.edgeStyle = mxHierarchicalEdgeStyle.POLYLINE;
+
+/**
  * Function: getModel
  * 
  * Returns the internal <mxSwimlaneModel> for this layout algorithm.
@@ -194,8 +224,10 @@ mxSwimlaneLayout.prototype.execute = function(parent, swimlanes)
 {
 	this.parent = parent;
 	var model = this.graph.model;
-	this.edgesCache = new Object();
-	
+	this.edgesCache = new mxDictionary();
+	this.edgeSourceTermCache = new mxDictionary();
+	this.edgesTargetTermCache = new mxDictionary();
+
 	// If the roots are set and the parent is set, only
 	// use the roots that are some dependent of the that
 	// parent.
@@ -212,6 +244,21 @@ mxSwimlaneLayout.prototype.execute = function(parent, swimlanes)
 	if (parent == null)
 	{
 		parent = model.getParent(swimlanes[0]);
+	}
+
+	//  Maintaining parent location
+	this.parentX = null;
+	this.parentY = null;
+	
+	if (parent != this.root && model.isVertex(parent) != null && this.maintainParentLocation)
+	{
+		var geo = this.graph.getCellGeometry(parent);
+		
+		if (geo != null)
+		{
+			this.parentX = geo.x;
+			this.parentY = geo.y;
+		}
 	}
 
 	this.swimlanes = swimlanes;
@@ -239,6 +286,20 @@ mxSwimlaneLayout.prototype.execute = function(parent, swimlanes)
 			this.graph.updateGroupBounds([parent], this.parentBorder, this.moveParent);
 		}
 		
+		// Maintaining parent location
+		if (this.parentX != null && this.parentY != null)
+		{
+			var geo = this.graph.getCellGeometry(parent);
+			
+			if (geo != null)
+			{
+				geo = geo.clone();
+				geo.x = this.parentX;
+				geo.y = this.parentY;
+				model.setGeometry(parent, geo);
+			}
+		}
+
 		this.graph.removeCells(this.dummyVertices);
 	}
 	finally
@@ -421,11 +482,11 @@ mxSwimlaneLayout.prototype.findRoots = function(parent, vertices)
  */
 mxSwimlaneLayout.prototype.getEdges = function(cell)
 {
-	var cellID = mxCellPath.create(cell);
+	var cachedEdges = this.edgesCache.get(cell);
 	
-	if (this.edgesCache[cellID] != null)
+	if (cachedEdges != null)
 	{
-		return this.edgesCache[cellID];
+		return cachedEdges;
 	}
 
 	var model = this.graph.model;
@@ -463,7 +524,7 @@ mxSwimlaneLayout.prototype.getEdges = function(cell)
 		}
 	}
 
-	this.edgesCache[cellID] = result;
+	this.edgesCache.put(cell, result);
 
 	return result;
 };
@@ -480,15 +541,39 @@ mxSwimlaneLayout.prototype.getEdges = function(cell)
  */
 mxSwimlaneLayout.prototype.getVisibleTerminal = function(edge, source)
 {
+	var terminalCache = this.edgesTargetTermCache;
+	
+	if (source)
+	{
+		terminalCache = this.edgeSourceTermCache;
+	}
+
+	var term = terminalCache.get(edge);
+
+	if (term != null)
+	{
+		return term;
+	}
+
 	var state = this.graph.view.getState(edge);
 	
 	var terminal = (state != null) ? state.getVisibleTerminal(source) : this.graph.view.getVisibleTerminal(edge, source);
 	
-	if (this.isPort(terminal))
+	if (terminal == null)
 	{
-		terminal = this.graph.model.getParent(terminal);
+		terminal = (state != null) ? state.getVisibleTerminal(source) : this.graph.view.getVisibleTerminal(edge, source);
 	}
-	
+
+	if (terminal != null)
+	{
+		if (this.isPort(terminal))
+		{
+			terminal = this.graph.model.getParent(terminal);
+		}
+		
+		terminalCache.put(edge, terminal);
+	}
+
 	return terminal;
 };
 
@@ -613,7 +698,7 @@ mxSwimlaneLayout.prototype.filterDescendants = function(cell, result)
 
 	if (model.isVertex(cell) && cell != this.parent && model.getParent(cell) != this.parent && this.graph.isCellVisible(cell))
 	{
-		result[mxCellPath.create(cell)] = cell;
+		result[mxObjectIdentity.get(cell)] = cell;
 	}
 
 	if (this.traverseAncestors || cell == this.parent
@@ -714,7 +799,7 @@ mxSwimlaneLayout.prototype.traverse = function(vertex, directed, edge, allVertic
 		// Has this vertex been seen before in any traversal
 		// And if the filled vertex set is populated, only 
 		// process vertices in that it contains
-		var vertexID = mxCellPath.create(vertex);
+		var vertexID = mxObjectIdentity.get(vertex);
 		
 		if ((allVertices[vertexID] == null)
 				&& (filledVertexSet == null ? true : filledVertexSet[vertexID] != null))

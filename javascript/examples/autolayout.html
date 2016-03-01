@@ -38,16 +38,16 @@
 				{
 					mxCellRendererInstallCellOverlayListeners.apply(this, arguments);
 
-					mxEvent.addListener(shape.node, (mxClient.IS_POINTER) ? 'MSPointerDown' : 'mousedown', function (evt)
+					mxEvent.addListener(shape.node, (mxClient.IS_POINTER) ? 'pointerdown' : 'mousedown', function (evt)
 					{
-						overlay.fireEvent(new mxEventObject('pointerDown', 'event', evt, 'state', state));
+						overlay.fireEvent(new mxEventObject('pointerdown', 'event', evt, 'state', state));
 					});
 					
 					if (!mxClient.IS_POINTER && mxClient.IS_TOUCH)
 					{
 						mxEvent.addListener(shape.node, 'touchstart', function (evt)
 						{
-							overlay.fireEvent(new mxEventObject('pointerDown', 'event', evt, 'state', state));
+							overlay.fireEvent(new mxEventObject('pointerdown', 'event', evt, 'state', state));
 						});
 					}
 				};
@@ -94,7 +94,7 @@
 					});
 					
 					// Special CMS event
-					overlay.addListener('pointerDown', function(sender, eo)
+					overlay.addListener('pointerdown', function(sender, eo)
 					{
 						var evt2 = eo.getProperty('event');
 						var state = eo.getProperty('state');

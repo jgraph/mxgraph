@@ -277,6 +277,16 @@ mxAbstractCanvas2D.prototype.translate = function(dx, dy)
 };
 
 /**
+ * Function: rotate
+ * 
+ * Rotates the current state.
+ */
+mxAbstractCanvas2D.prototype.rotate = function(theta, flipH, flipV, cx, cy)
+{
+	// nop
+};
+
+/**
  * Function: setAlpha
  * 
  * Sets the current alpha.

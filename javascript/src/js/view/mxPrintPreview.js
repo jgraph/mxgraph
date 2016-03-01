@@ -199,14 +199,14 @@ mxPrintPreview.prototype.border = 0;
 /**
  * Variable: marginTop
  * 
- * The margin at the top of the page. Default is 0.
+ * The margin at the top of the page (number). Default is 0.
  */
 mxPrintPreview.prototype.marginTop = 0;
 
 /**
  * Variable: marginBottom
  * 
- * The margin at the bottom of the page. Default is 0.
+ * The margin at the bottom of the page (number). Default is 0.
  */
 mxPrintPreview.prototype.marginBottom = 0;
 
@@ -588,6 +588,7 @@ mxPrintPreview.prototype.open = function(css, targetWindow)
 
 			if (targetWindow == null)
 			{
+				this.writePostfix(doc);
 				doc.writeln('</body>');
 				doc.writeln('</html>');
 				doc.close();
@@ -665,6 +666,16 @@ mxPrintPreview.prototype.writeHead = function(doc, css)
 	}
 	
 	doc.writeln('</style>');
+};
+
+/**
+ * Function: writePostfix
+ * 
+ * Called before closing the body of the page. This implementation is empty.
+ */
+mxPrintPreview.prototype.writePostfix = function(doc)
+{
+	// empty
 };
 
 /**

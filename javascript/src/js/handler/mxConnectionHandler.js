@@ -505,7 +505,7 @@ mxConnectionHandler.prototype.init = function()
 			this.redrawIcons(this.icons, this.iconState);
 			this.constraintHandler.reset();
 		}
-		else
+		else if (this.previous != null && this.graph.view.getState(this.previous.cell) == null)
 		{
 			this.reset();
 		}
