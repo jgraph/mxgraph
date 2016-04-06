@@ -194,6 +194,27 @@ mxSelectionCellsHandler.prototype.refresh = function()
 };
 
 /**
+ * Function: updateHandler
+ * 
+ * Updates the handler for the given shape if one exists.
+ */
+mxSelectionCellsHandler.prototype.updateHandler = function(state)
+{
+	var handler = this.handlers.remove(state.cell);
+	
+	if (handler != null)
+	{
+		handler.destroy();
+		handler = this.graph.createHandler(state);
+		
+		if (handler != null)
+		{
+			this.handlers.put(state.cell, handler);
+		}
+	}
+};
+
+/**
  * Function: mouseDown
  * 
  * Redirects the given event to the handlers.

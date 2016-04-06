@@ -1,3 +1,4 @@
+// $Id: mxICanvas2D.cs,v 1.3 2013/05/23 10:29:42 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Drawing;
@@ -162,6 +163,22 @@ namespace com.mxgraph
         }
 
         /// <summary>
+        /// Default value 1.
+        /// </summary>
+        double FillAlpha
+        {
+            set;
+        }
+
+        /// <summary>
+        /// Default value 1.
+        /// </summary>
+        double StrokeAlpha
+        {
+            set;
+        }
+
+        /// <summary>
         /// Default value {@link mxConstants#NONE}.
         /// </summary>
         string FillColor
@@ -231,7 +248,7 @@ namespace com.mxgraph
         // plain text and html for HTML markup.
         /// </summary>
         void Text(double x, double y, double w, double h, string str, string align, string valign,
-                bool wrap, string format, string overflow, bool clip, double rotation, string dir);
+                bool wrap, string format, string overflow, bool clip, double rotation);
 
         /// <summary>
         /// Begins a new path.

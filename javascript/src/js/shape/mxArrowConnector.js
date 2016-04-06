@@ -38,7 +38,7 @@ function mxArrowConnector(points, fill, stroke, strokewidth, arrowWidth, spacing
 	this.stroke = stroke;
 	this.strokewidth = (strokewidth != null) ? strokewidth : 1;
 	this.arrowWidth = (arrowWidth != null) ? arrowWidth : mxConstants.ARROW_WIDTH;
-	this.spacing = (spacing != null) ? spacing : mxConstants.ARROW_SPACING;
+	this.arrowSpacing = (spacing != null) ? spacing : mxConstants.ARROW_SPACING;
 	this.startSize = mxConstants.ARROW_SIZE / 5;
 	this.endSize = mxConstants.ARROW_SIZE / 5;
 };
@@ -55,6 +55,18 @@ mxUtils.extend(mxArrowConnector, mxShape);
  * reasons.
  */
 mxArrowConnector.prototype.useSvgBoundingBox = true;
+
+/**
+ * Variable: resetStyles
+ * 
+ * Overrides mxShape to reset spacing.
+ */
+mxArrowConnector.prototype.resetStyles = function()
+{
+	mxShape.prototype.resetStyles.apply(this, arguments);
+	
+	this.arrowSpacing = mxConstants.ARROW_SPACING;
+};
 
 /**
  * Overrides apply to get smooth transition from default start- and endsize.
@@ -115,7 +127,7 @@ mxArrowConnector.prototype.paintEdgeShape = function(c, pts)
 	var openEnded = this.isOpenEnded();
 	var markerStart = this.isMarkerStart();
 	var markerEnd = this.isMarkerEnd();
-	var spacing = (openEnded) ? 0 : this.spacing + strokeWidth / 2;
+	var spacing = (openEnded) ? 0 : this.arrowSpacing + strokeWidth / 2;
 	var startSize = this.startSize + strokeWidth;
 	var endSize = this.endSize + strokeWidth;
 	var isRounded = this.isArrowRounded();

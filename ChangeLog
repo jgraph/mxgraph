@@ -1,3 +1,23 @@
+06-APR-2016: 3.5.1.0
+
+- Fixes vertex label moving with live preview [JavaScript]
+- Adds argument in mxGraph.createEdgeHandler [JavaScript]
+- Updates handler after style change of cell [JavaScript]
+- Resets text shape state before using new style [JavaScript]
+- Fixes gradients for certain URLs in IE11/Edge [JavaScript]
+- Adds comic style and shapes in grapheditor [JavaScript]
+- Fixes 1 pixel offset for move preview [JavaScript]
+- Adds mxSelectionCellsHandler.updateHandler [JavaScript]
+- Changes default for mxConstants.ARROW_SPACING to 0 [JavaScript]
+- Fixes chart.js output in jquery.html example [JavaScript]
+- mxCellRenderer.redrawShape creates new shape if needed [JavaScript]
+- mxStyleChange no longer requires a new mxCellState [JavaScript]
+- Avoids unnecessary text repaints in mxCellRenderer [JavaScript]
+- Adds mxShape.initStyles, resetStyles, mxText.resetStyles [JavaScript]
+- Fixes mxUtils.equalEntries for new properties in second argument [JavaScript]
+- Adds export for strokeAlpha and fillAlpha in .NET backend [Dotnet]
+- Fixes export of strokeAlpha and fillAlpha in Java backend [Java]
+
 01-MAR-2016: 3.5.0.0
 
 - Ctrl+Shift+Drag added for create/remove space in grapheditor [JavaScript]

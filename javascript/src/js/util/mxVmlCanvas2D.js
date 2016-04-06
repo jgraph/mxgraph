@@ -255,12 +255,12 @@ mxVmlCanvas2D.prototype.createFill = function()
 
 		// LATER: Fix outer bounding box for rotated shapes used in VML.
 		fill.angle = mxUtils.mod(angle, 360);
-		fill.opacity = (s.alpha * s.fillAlpha * 100) + '%';
+		fill.opacity = (s.alpha * s.gradientFillAlpha * 100) + '%';
 		fill.setAttribute(mxClient.OFFICE_PREFIX + ':opacity2', (s.alpha * s.gradientAlpha * 100) + '%');
 	}
-	else if (s.alpha < 1)
+	else if (s.alpha < 1 || s.fillAlpha < 1)
 	{
-		fill.opacity = (s.alpha * 100) + '%';			
+		fill.opacity = (s.alpha * s.fillAlpha * 100) + '%';			
 	}
 	
 	return fill;
@@ -278,9 +278,9 @@ mxVmlCanvas2D.prototype.createStroke = function()
 	stroke.joinstyle = s.lineJoin || 'miter';
 	stroke.miterlimit = s.miterLimit || '10';
 	
-	if (s.alpha < 1)
+	if (s.alpha < 1 || s.strokeAlpha < 1)
 	{
-		stroke.opacity = (s.alpha * 100) + '%';
+		stroke.opacity = (s.alpha * s.strokeAlpha * 100) + '%';
 	}
 	
 	if (s.dashed)
@@ -571,11 +571,11 @@ mxVmlCanvas2D.prototype.image = function(x, y, w, h, src, aspect, flipH, flipV)
 		node.style.flip = 'y';
 	}
 	
-	if (this.state.alpha < 1)
+	if (this.state.alpha < 1 || this.state.fillAlpha < 1)
 	{
 		// KNOWN: Borders around transparent images in IE<9. Using fill.opacity
 		// fixes this problem by adding a white background in all IE versions.
-		node.style.filter += 'alpha(opacity=' + (this.state.alpha * 100) + ')';
+		node.style.filter += 'alpha(opacity=' + (this.state.alpha * this.state.fillAlpha * 100) + ')';
 	}
 
 	this.root.appendChild(node);

@@ -854,27 +854,80 @@ mxCellRenderer.prototype.redrawLabel = function(state, forced)
 	if (state.text != null)
 	{
 		var graph = state.view.graph;
+
+		// Forced is true if the style has changed, so to get the updated
+		// result in getLabelBounds we apply the new style to the shape
+		if (forced)
+		{
+			// Checks if a full repaint is needed
+			if (state.text.lastValue != null && this.isTextShapeInvalid(state, state.text))
+			{
+				// Forces a full repaint
+				state.text.lastValue = null;
+			}
+			
+			state.text.resetStyles();
+			state.text.apply(state);
+		}
+		
+		var bounds = this.getLabelBounds(state);
 		var wrapping = graph.isWrapping(state.cell);
 		var clipping = graph.isLabelClipped(state.cell);
-		var bounds = this.getLabelBounds(state);
-		
 		var isForceHtml = (state.view.graph.isHtmlLabel(state.cell) || (value != null && mxUtils.isNode(value)));
 		var dialect = (isForceHtml) ? mxConstants.DIALECT_STRICTHTML : state.view.graph.dialect;
 
 		// Text is a special case where change of dialect is possible at runtime
+		var overflow = state.style[mxConstants.STYLE_OVERFLOW] || 'visible';
+		
 		if (forced || state.text.value != value || state.text.isWrapping != wrapping ||
-			state.text.isClipping != clipping || state.text.scale != state.view.scale ||
-			state.text.dialect != dialect || !state.text.bounds.equals(bounds))
+			state.text.overflow != overflow || state.text.isClipping != clipping ||
+			state.text.scale != this.getTextScale(state) || state.text.dialect != dialect ||
+			!state.text.bounds.equals(bounds))
 		{
 			state.text.dialect = dialect;
 			state.text.value = value;
 			state.text.bounds = bounds;
 			state.text.scale = this.getTextScale(state);
-			state.text.isWrapping = wrapping;
-			state.text.isClipping = clipping;
+			state.text.wrap = wrapping;
+			state.text.clipped = clipping;
+			state.text.overflow = overflow;
 			this.redrawLabelShape(state.text);
 		}
 	}
+};
+
+/**
+ * Function: isTextShapeInvalid
+ * 
+ * Returns true if the style for the text shape has changed.
+ * 
+ * Parameters:
+ * 
+ * state - <mxCellState> whose label should be checked.
+ * shape - <mxText> shape to be checked.
+ */
+mxCellRenderer.prototype.isTextShapeInvalid = function(state, shape)
+{
+	function check(property, stylename, defaultValue)
+	{
+		return shape[property] != (state.style[stylename] || defaultValue);
+	};
+
+	return check('fontStyle', mxConstants.STYLE_FONTSTYLE, mxConstants.DEFAULT_FONTSTYLE) ||
+		check('family', mxConstants.STYLE_FONTFAMILY, mxConstants.DEFAULT_FONTFAMILY) ||
+		check('size', mxConstants.STYLE_FONTSIZE, mxConstants.DEFAULT_FONTSIZE) ||
+		check('color', mxConstants.STYLE_FONTCOLOR, 'black') ||
+		check('align', mxConstants.STYLE_ALIGN, '') ||
+		check('valign', mxConstants.STYLE_VERTICAL_ALIGN, '') ||
+		check('spacing', mxConstants.STYLE_SPACING, 2) ||
+		check('spacingTop', mxConstants.STYLE_SPACING_TOP, 2) ||
+		check('spacingRight', mxConstants.STYLE_SPACING_RIGHT, 2) ||
+		check('spacingBottom', mxConstants.STYLE_SPACING_BOTTOM, 2) ||
+		check('spacingLeft', mxConstants.STYLE_SPACING_LEFT, 2) ||
+		check('horizontal', mxConstants.STYLE_HORIZONTAL, true) ||
+		check('background', mxConstants.STYLE_LABEL_BACKGROUNDCOLOR) ||
+		check('border', mxConstants.STYLE_LABEL_BORDERCOLOR) ||
+		check('textDirection', mxConstants.STYLE_TEXT_DIRECTION, mxConstants.DEFAULT_TEXT_DIRECTION);
 };
 
 /**
@@ -1336,27 +1389,49 @@ mxCellRenderer.prototype.redraw = function(state, force, rendering)
  */
 mxCellRenderer.prototype.redrawShape = function(state, force, rendering)
 {
+	var model = state.view.graph.model;
 	var shapeChanged = false;
 
-	if (state.shape != null)
+	// Forces creation of new shape if shape style has changed
+	if (state.shape != null && state.shape.style != null && state.style != null &&
+		state.shape.style[mxConstants.STYLE_SHAPE] != state.style[mxConstants.STYLE_SHAPE])
 	{
-		// Lazy initialization
-		if (state.shape.node == null)
+		state.shape.destroy();
+		state.shape = null;
+	}
+	
+	if (state.shape == null && state.view.graph.container != null &&
+		state.cell != state.view.currentRoot &&
+		(model.isVertex(state.cell) || model.isEdge(state.cell)))
+	{
+		state.shape = this.createShape(state);
+		
+		if (state.shape != null)
 		{
+			state.shape.antiAlias = this.antiAlias;
+	
 			this.createIndicatorShape(state);
 			this.initializeShape(state);
 			this.createCellOverlays(state);
 			this.installListeners(state);
+			
+			// Forces a refresh of the handler of one exists
+			state.view.graph.selectionCellsHandler.updateHandler(state);
 		}
-		
+	}
+	else if (state.shape != null && !mxUtils.equalEntries(state.shape.style, state.style))
+	{
+		state.shape.resetStyles();
+		this.configureShape(state);
+		// LATER: Ignore update for realtime to fix reset of current gesture
+		state.view.graph.selectionCellsHandler.updateHandler(state);
+		force = true;
+	}
+
+	if (state.shape != null)
+	{
 		// Handles changes of the collapse icon
 		this.createControl(state);
-
-		if (!mxUtils.equalEntries(state.shape.style, state.style))
-		{
-			this.configureShape(state);
-			force = true;
-		}
 		
 		// Redraws the cell if required, ignores changes to bounds if points are
 		// defined as the bounds are updated for the given points inside the shape

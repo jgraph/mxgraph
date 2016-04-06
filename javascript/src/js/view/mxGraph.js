@@ -2084,7 +2084,12 @@ mxGraph.prototype.processChange = function(change)
 	else if (change instanceof mxStyleChange)
 	{
 		this.view.invalidate(change.cell, true, true);
-		this.view.removeState(change.cell);
+		var state = this.view.getState(change.cell);
+		
+		if (state != null)
+		{	
+			state.style = null;
+		}
 	}
 	
 	// Removes the state from the cache by default
@@ -12039,24 +12044,8 @@ mxGraph.prototype.createHandler = function(state)
 			var target = state.getVisibleTerminalState(false);
 			var geo = this.getCellGeometry(state.cell);
 			
-			var style = this.view.getEdgeStyle(state, (geo != null) ? geo.points : null, source, target);
-			
-			if (style == mxEdgeStyle.Loop ||
-				style == mxEdgeStyle.ElbowConnector ||
-				style == mxEdgeStyle.SideToSide ||
-				style == mxEdgeStyle.TopToBottom)
-			{
-				result = this.createElbowEdgeHandler(state);
-			}
-			else if (style == mxEdgeStyle.SegmentConnector || 
-					 style == mxEdgeStyle.OrthConnector)
-			{
-				result = this.createEdgeSegmentHandler(state);
-			}
-			else
-			{
-				result = this.createEdgeHandler(state);
-			}
+			var edgeStyle = this.view.getEdgeStyle(state, (geo != null) ? geo.points : null, source, target);
+			result = this.createEdgeHandler(state, edgeStyle);
 		}
 		else
 		{
@@ -12090,9 +12079,28 @@ mxGraph.prototype.createVertexHandler = function(state)
  * 
  * state - <mxCellState> to create the handler for.
  */
-mxGraph.prototype.createEdgeHandler = function(state)
+mxGraph.prototype.createEdgeHandler = function(state, edgeStyle)
 {
-	return new mxEdgeHandler(state);
+	var result = null;
+	
+	if (edgeStyle == mxEdgeStyle.Loop ||
+		edgeStyle == mxEdgeStyle.ElbowConnector ||
+		edgeStyle == mxEdgeStyle.SideToSide ||
+		edgeStyle == mxEdgeStyle.TopToBottom)
+	{
+		result = this.createElbowEdgeHandler(state);
+	}
+	else if (edgeStyle == mxEdgeStyle.SegmentConnector || 
+			edgeStyle == mxEdgeStyle.OrthConnector)
+	{
+		result = this.createEdgeSegmentHandler(state);
+	}
+	else
+	{
+		result = new mxEdgeHandler(state);
+	}
+	
+	return result;
 };
 
 /**

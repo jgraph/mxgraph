@@ -56,6 +56,7 @@ clipart=Clipart
 collapse=Collapse
 collapseExpand=Collapse/Expand
 collapsible=Collapsible
+comic=Comic
 connect=Connect
 connection=Connection
 connectionPoints=Connection points

@@ -73,7 +73,7 @@ Actions.prototype.init = function()
 		var dlg = new EditDiagramDialog(ui);
 		ui.showDialog(dlg.container, 620, 420, true, true);
 		dlg.init();
-	}).isEnabled = isGraphEnabled;
+	});
 	this.addAction('pageSetup...', function() { ui.showDialog(new PageSetupDialog(ui).container, 320, 220, true, true); }).isEnabled = isGraphEnabled;
 	this.addAction('print...', function() { ui.showDialog(new PrintDialog(ui).container, 300, 180, true, true); }, null, 'sprite-print', 'Ctrl+P');
 	this.addAction('preview', function() { mxUtils.show(graph, null, 10, 10); });
@@ -511,7 +511,7 @@ Actions.prototype.init = function()
 		var ps = graph.pageScale;
 		var cw = graph.container.clientWidth - 10;
 		var ch = graph.container.clientHeight - 10;
-		var scale = Math.floor(100 * Math.min(cw / fmt.width / ps, ch / fmt.height / ps)) / 100;
+		var scale = Math.floor(20 * Math.min(cw / fmt.width / ps, ch / fmt.height / ps)) / 20;
 		graph.zoomTo(scale);
 		
 		if (mxUtils.hasScrollbars(graph.container))
@@ -533,7 +533,7 @@ Actions.prototype.init = function()
 		var cw = graph.container.clientWidth - 10;
 		var ch = graph.container.clientHeight - 10;
 		
-		var scale = Math.floor(100 * Math.min(cw / (2 * fmt.width) / ps, ch / fmt.height / ps)) / 100;
+		var scale = Math.floor(20 * Math.min(cw / (2 * fmt.width) / ps, ch / fmt.height / ps)) / 20;
 		graph.zoomTo(scale);
 		
 		if (mxUtils.hasScrollbars(graph.container))
@@ -554,7 +554,7 @@ Actions.prototype.init = function()
 		var ps = graph.pageScale;
 		var cw = graph.container.clientWidth - 10;
 
-		var scale = Math.floor(100 * cw / fmt.width / ps) / 100;
+		var scale = Math.floor(20 * cw / fmt.width / ps) / 20;
 		graph.zoomTo(scale);
 		
 		if (mxUtils.hasScrollbars(graph.container))
@@ -1094,7 +1094,15 @@ Actions.prototype.init = function()
 			        	}
 					}
 	    		}
-			}, graph.cellEditor.isContentEditing());
+			}, graph.cellEditor.isContentEditing(), !graph.cellEditor.isContentEditing());
+		}
+	}).isEnabled = isGraphEnabled;
+	this.addAction('insertImage...', function()
+	{
+		if (graph.isEnabled() && !graph.isCellLocked(graph.getDefaultParent()))
+		{
+			graph.clearSelection();
+			ui.actions.get('image').funct();
 		}
 	}).isEnabled = isGraphEnabled;
 	action = this.addAction('layers', mxUtils.bind(this, function()

@@ -62,6 +62,9 @@ mxGraphView.prototype.gridSteps = 4;
 mxGraphView.prototype.gridColor = (urlParams['gridcolor'] || '#e0e0e0').toLowerCase();
 mxGraphView.prototype.minGridSize = 4;
 
+// Alternative text for unsupported foreignObjects
+mxSvgCanvas2D.prototype.foAltText = '[Not supported by viewer]';
+
 //Adds stylesheet for IE6
 if (mxClient.IS_IE6)
 {
@@ -71,13 +74,13 @@ if (mxClient.IS_IE6)
 /**
  * Editor constructor executed on page load.
  */
-Editor = function(chromeless, themes)
+Editor = function(chromeless, themes, model)
 {
 	mxEventSource.call(this);
 	this.chromeless = (chromeless != null) ? chromeless : this.chromeless;
 	this.init();
 	this.initStencilRegistry();
-	this.graph = this.createGraph(themes);
+	this.graph = this.createGraph(themes, model);
 	this.undoManager = this.createUndoManager();
 	this.status = '';
 
@@ -126,17 +129,6 @@ mxUtils.extend(Editor, mxEventSource);
  * Stores initial state of mxClient.NO_FO.
  */
 Editor.prototype.originalNoForeignObject = mxClient.NO_FO;
-
-/**
- * Scrollbars are enabled on non-touch devices (not including Firefox because touch events
- * cannot be detected in Firefox, see above).
- */
-Editor.prototype.defaultScrollbars = !mxClient.IS_IOS;
-
-/**
- * Specifies if the page should be visible for new files. Default is true.
- */
-Editor.prototype.defaultPageVisible = true;
 
 /**
  * Specifies the image URL to be used for the transparent background.
@@ -189,11 +181,6 @@ Editor.prototype.autosave = true;
 Editor.prototype.initialTopSpacing = 0;
 
 /**
- * 
- */
-Editor.prototype.defaultGraphBackground = '#ffffff';
-
-/**
  * Specifies the app name. Default is document.title.
  */
 Editor.prototype.appName = document.title;
@@ -215,9 +202,9 @@ Editor.prototype.setAutosave = function(value)
 /**
  * Sets the XML node for the current diagram.
  */
-Editor.prototype.createGraph = function(themes)
+Editor.prototype.createGraph = function(themes, model)
 {
-	var graph = new Graph(null, null, null, null, themes);
+	var graph = new Graph(null, model, null, null, themes);
 	graph.transparentBackground = false;
 	
 	return graph;
@@ -233,11 +220,11 @@ Editor.prototype.resetGraph = function()
 	this.graph.setTooltips(true);
 	this.graph.setConnectable(true);
 	this.graph.foldingEnabled = true;
-	this.graph.scrollbars = this.defaultScrollbars;
-	this.graph.pageVisible = this.defaultPageVisible;
+	this.graph.scrollbars = this.graph.defaultScrollbars;
+	this.graph.pageVisible = this.graph.defaultPageVisible;
 	this.graph.pageBreaksVisible = this.graph.pageVisible; 
 	this.graph.preferPageSize = this.graph.pageBreaksVisible;
-	this.graph.background = this.defaultGraphBackground;
+	this.graph.background = this.graph.defaultGraphBackground;
 	this.graph.pageScale = mxGraph.prototype.pageScale;
 	this.graph.pageFormat = mxGraph.prototype.pageFormat;
 	this.updateGraphComponents();
@@ -285,15 +272,16 @@ Editor.prototype.readGraphState = function(node)
 	}
 	
 	var pv = node.getAttribute('page');
-	
+
 	if (pv != null)
 	{
-		this.graph.pageVisible = (pv == '1');
+		this.graph.pageVisible = (pv != '0');
 	}
 	else
 	{
-		this.graph.pageVisible = this.defaultPageVisible;
+		this.graph.pageVisible = this.graph.defaultPageVisible;
 	}
+
 	
 	this.graph.pageBreaksVisible = this.graph.pageVisible; 
 	this.graph.preferPageSize = this.graph.pageBreaksVisible;
@@ -315,7 +303,7 @@ Editor.prototype.readGraphState = function(node)
 	}
 	else
 	{
-		this.graph.background = this.defaultGraphBackground;
+		this.graph.background = this.graph.defaultGraphBackground;
 	}
 };
 
@@ -1112,40 +1100,6 @@ OpenFile.prototype.cancel = function(cancel)
 		}
 		
 		return cell;
-	};
-
-	/**
-	 * Adds custom stencils defined via shape=stencil(value) style. The value is a base64 encoded, compressed and
-	 * URL encoded XML definition of the shape according to the stencil definition language of mxGraph.
-	 */
-	var mxCellRendererCreateShape = mxCellRenderer.prototype.createShape;
-	mxCellRenderer.prototype.createShape = function(state)
-	{
-		if (state.style != null && typeof(Zlib) !== 'undefined')
-		{
-	    	var shape = mxUtils.getValue(state.style, mxConstants.STYLE_SHAPE, null);
-
-	    	// Extracts and decodes stencil XML if shape has the form shape=stencil(value)
-	    	if (shape != null && shape.substring(0, 8) == 'stencil(')
-	    	{
-	    		try
-	    		{
-	    			var stencil = shape.substring(8, shape.length - 1);
-	    			var doc = mxUtils.parseXml(decodeURIComponent(RawDeflate.inflate((window.atob) ? atob(stencil) : Base64.decode(stencil, true))));
-	    			
-	    			return new mxShape(new mxStencil(doc.documentElement));
-	    		}
-	    		catch (e)
-	    		{
-	    			if (window.console != null)
-	    			{
-	    				console.log('Error in shape: ' + e);
-	    			}
-	    		}
-	    	}
-		}
-		
-		return mxCellRendererCreateShape.apply(this, arguments);
 	};
 
 	/**

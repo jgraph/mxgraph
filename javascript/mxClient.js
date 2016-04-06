@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.5.0.0.
+	 * Current version is 3.5.1.0.
 	 */
-	VERSION: '3.5.0.0',
+	VERSION: '3.5.1.0',
 
 	/**
 	 * Variable: IS_IE
@@ -3773,13 +3773,13 @@ var mxUtils =
 	/**
 	 * Function: equalEntries
 	 * 
-	 * Returns true if all entries of the given objects are equal. Values with
-	 * with Number.NaN are equal to Number.NaN and unequal to any other value.
+	 * Returns true if all properties of the given objects are equal. Values
+	 * with NaN are equal to NaN and unequal to any other value.
 	 * 
 	 * Parameters:
 	 * 
-	 * a - <mxRectangle> to be compared.
-	 * b - <mxRectangle> to be compared.
+	 * a - First object to be compared.
+	 * b - Second object to be compared.
 	 */
 	equalEntries: function(a, b)
 	{
@@ -3790,8 +3790,18 @@ var mxUtils =
 		}
 		else if (a != null && b != null)
 		{
+			// Counts keys in b to check if all values have been compared
+			var count = 0;
+			
+			for (var key in b)
+			{
+				count++;
+			}
+			
 			for (var key in a)
 			{
+				count--
+				
 				if ((!mxUtils.isNaN(a[key]) || !mxUtils.isNaN(b[key])) && a[key] != b[key])
 				{
 					return false;
@@ -3799,7 +3809,7 @@ var mxUtils =
 			}
 		}
 		
-		return true;
+		return count == 0;
 	},
 	
 	/**
@@ -6868,10 +6878,9 @@ var mxUtils =
 	/**
 	 * Variable: ARROW_SPACING
 	 * 
-	 * Defines the spacing between the arrow shape and its terminals. Default
-	 * is 10.
+	 * Defines the spacing between the arrow shape and its terminals. Default is 0.
 	 */
-	ARROW_SPACING: 10,
+	ARROW_SPACING: 0,
 
 	/**
 	 * Variable: ARROW_WIDTH
@@ -6984,6 +6993,22 @@ var mxUtils =
 	 * numeric and the possible range is 0-100. Value is "opacity".
 	 */
 	STYLE_OPACITY: 'opacity',
+
+	/**
+	 * Variable: STYLE_FILL_OPACITY
+	 * 
+	 * Defines the key for the fill opacity style. The type of the value is 
+	 * numeric and the possible range is 0-100. Value is "fillOpacity".
+	 */
+	STYLE_FILL_OPACITY: 'fillOpacity',
+
+	/**
+	 * Variable: STYLE_STROKE_OPACITY
+	 * 
+	 * Defines the key for the stroke opacity style. The type of the value is 
+	 * numeric and the possible range is 0-100. Value is "strokeOpacity".
+	 */
+	STYLE_STROKE_OPACITY: 'strokeOpacity',
 
 	/**
 	 * Variable: STYLE_TEXT_OPACITY
@@ -16225,8 +16250,10 @@ mxAbstractCanvas2D.prototype.createState = function()
 		dy: 0,
 		scale: 1,
 		alpha: 1,
-		fillColor: null,
 		fillAlpha: 1,
+		strokeAlpha: 1,
+		fillColor: null,
+		gradientFillAlpha: 1,
 		gradientColor: null,
 		gradientAlpha: 1,
 		gradientDirection: null,
@@ -16381,6 +16408,26 @@ mxAbstractCanvas2D.prototype.setAlpha = function(value)
 };
 
 /**
+ * Function: setFillAlpha
+ * 
+ * Sets the current solid fill alpha.
+ */
+mxAbstractCanvas2D.prototype.setFillAlpha = function(value)
+{
+	this.state.fillAlpha = value;
+};
+
+/**
+ * Function: setStrokeAlpha
+ * 
+ * Sets the current stroke alpha.
+ */
+mxAbstractCanvas2D.prototype.setStrokeAlpha = function(value)
+{
+	this.state.strokeAlpha = value;
+};
+
+/**
  * Function: setFillColor
  * 
  * Sets the current fill color.
@@ -16405,7 +16452,7 @@ mxAbstractCanvas2D.prototype.setGradient = function(color1, color2, x, y, w, h, 
 {
 	var s = this.state;
 	s.fillColor = color1;
-	s.fillAlpha = (alpha1 != null) ? alpha1 : 1;
+	s.gradientFillAlpha = (alpha1 != null) ? alpha1 : 1;
 	s.gradientColor = color2;
 	s.gradientAlpha = (alpha2 != null) ? alpha2 : 1;
 	s.gradientDirection = direction;
@@ -16712,8 +16759,9 @@ mxAbstractCanvas2D.prototype.end = function() { };
  * 
  * - <save>, <restore>
  * - <scale>, <translate>, <rotate>
- * - <setAlpha>, <setFillColor>, <setGradient>, <setStrokeColor>, <setStrokeWidth>,
- *   <setDashed>, <setDashPattern>, <setLineCap>, <setLineJoin>, <setMiterLimit>
+ * - <setAlpha>, <setFillAlpha>, <setStrokeAlpha>, <setFillColor>, <setGradient>,
+ *   <setStrokeColor>, <setStrokeWidth>, <setDashed>, <setDashPattern>, <setLineCap>, 
+ *   <setLineJoin>, <setMiterLimit>
  * - <setFontColor>, <setFontBackgroundColor>, <setFontBorderColor>, <setFontSize>,
  *   <setFontFamily>, <setFontStyle>
  * - <setShadow>, <setShadowColor>, <setShadowAlpha>, <setShadowOffset>
@@ -16858,19 +16906,9 @@ mxXmlCanvas2D.prototype.restore = function()
  */
 mxXmlCanvas2D.prototype.scale = function(value)
 {
-	if (this.compressed)
-	{
-		if (this.state.scale == value)
-		{
-			return;
-		}
-		
-		mxAbstractCanvas2D.prototype.setAlpha.apply(this, arguments);
-	}
-	
-	var elem = this.createElement('scale');
-	elem.setAttribute('scale', value);
-	this.root.appendChild(elem);
+        var elem = this.createElement('scale');
+        elem.setAttribute('scale', value);
+        this.root.appendChild(elem);
 };
 
 /**
@@ -16943,6 +16981,60 @@ mxXmlCanvas2D.prototype.setAlpha = function(value)
 	}
 	
 	var elem = this.createElement('alpha');
+	elem.setAttribute('alpha', this.format(value));
+	this.root.appendChild(elem);
+};
+
+/**
+ * Function: setFillAlpha
+ * 
+ * Sets the current fill alpha.
+ * 
+ * Parameters:
+ * 
+ * value - Number that represents the new fill alpha. Possible values are between
+ * 1 (opaque) and 0 (transparent).
+ */
+mxXmlCanvas2D.prototype.setFillAlpha = function(value)
+{
+	if (this.compressed)
+	{
+		if (this.state.fillAlpha == value)
+		{
+			return;
+		}
+		
+		mxAbstractCanvas2D.prototype.setFillAlpha.apply(this, arguments);
+	}
+	
+	var elem = this.createElement('fillalpha');
+	elem.setAttribute('alpha', this.format(value));
+	this.root.appendChild(elem);
+};
+
+/**
+ * Function: setStrokeAlpha
+ * 
+ * Sets the current stroke alpha.
+ * 
+ * Parameters:
+ * 
+ * value - Number that represents the new stroke alpha. Possible values are between
+ * 1 (opaque) and 0 (transparent).
+ */
+mxXmlCanvas2D.prototype.setStrokeAlpha = function(value)
+{
+	if (this.compressed)
+	{
+		if (this.state.strokeAlpha == value)
+		{
+			return;
+		}
+		
+		mxAbstractCanvas2D.prototype.setStrokeAlpha.apply(this, arguments);
+	}
+	
+	var elem = this.createElement('strokealpha');
 	elem.setAttribute('alpha', this.format(value));
 	this.root.appendChild(elem);
 };
@@ -18515,19 +18607,19 @@ mxSvgCanvas2D.prototype.updateFill = function()
 {
 	var s = this.state;
 	
-	if (s.alpha < 1)
+	if (s.alpha < 1 || s.fillAlpha < 1)
 	{
-		this.node.setAttribute('fill-opacity', s.alpha);
+		this.node.setAttribute('fill-opacity', s.alpha * s.fillAlpha);
 	}
 	
 	if (s.fillColor != null)
 	{
 		if (s.gradientColor != null)
 		{
-			var id = this.getSvgGradient(s.fillColor, s.gradientColor, s.fillAlpha, s.gradientAlpha, s.gradientDirection);
-			var chromeApp = window.chrome != null && chrome.app != null && chrome.app.runtime != null;
+			var id = this.getSvgGradient(s.fillColor, s.gradientColor, s.gradientFillAlpha, s.gradientAlpha, s.gradientDirection);
 			
-			if (!chromeApp && !mxClient.IS_IE && this.root.ownerDocument == document)
+			if (!mxClient.IS_CHROME_APP && !mxClient.IS_IE && !mxClient.IS_IE11 &&
+				!mxClient.IS_EDGE && this.root.ownerDocument == document)
 			{
 				// Workaround for potential base tag and brackets must be escaped
 				var base = this.getBaseUrl().replace(/([\(\)])/g, '\\$1');
@@ -18566,9 +18658,9 @@ mxSvgCanvas2D.prototype.updateStroke = function()
 
 	this.node.setAttribute('stroke', s.strokeColor.toLowerCase());
 	
-	if (s.alpha < 1)
+	if (s.alpha < 1 || s.strokeAlpha < 1)
 	{
-		this.node.setAttribute('stroke-opacity', s.alpha);
+		this.node.setAttribute('stroke-opacity', s.alpha * s.strokeAlpha);
 	}
 	
 	var sw = this.getCurrentStrokeWidth();
@@ -18895,9 +18987,9 @@ mxSvgCanvas2D.prototype.image = function(x, y, w, h, src, aspect, flipH, flipV)
 		node.setAttribute('preserveAspectRatio', 'none');
 	}
 
-	if (s.alpha < 1)
+	if (s.alpha < 1 || s.fillAlpha < 1)
 	{
-		node.setAttribute('opacity', s.alpha);
+		node.setAttribute('opacity', s.alpha * s.fillAlpha);
 	}
 	
 	var tr = this.state.transform || '';
@@ -19746,9 +19838,8 @@ mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 			this.root.appendChild(c);
 		}
 		
-		var chromeApp = window.chrome != null && chrome.app != null && chrome.app.runtime != null;
-		
-		if (!chromeApp && !mxClient.IS_IE && this.root.ownerDocument == document)
+		if (!mxClient.IS_CHROME_APP && !mxClient.IS_IE && !mxClient.IS_IE11 &&
+			!mxClient.IS_EDGE && this.root.ownerDocument == document)
 		{
 			// Workaround for potential base tag
 			var base = this.getBaseUrl().replace(/([\(\)])/g, '\\$1');
@@ -20284,12 +20375,12 @@ mxVmlCanvas2D.prototype.createFill = function()
 
 		// LATER: Fix outer bounding box for rotated shapes used in VML.
 		fill.angle = mxUtils.mod(angle, 360);
-		fill.opacity = (s.alpha * s.fillAlpha * 100) + '%';
+		fill.opacity = (s.alpha * s.gradientFillAlpha * 100) + '%';
 		fill.setAttribute(mxClient.OFFICE_PREFIX + ':opacity2', (s.alpha * s.gradientAlpha * 100) + '%');
 	}
-	else if (s.alpha < 1)
+	else if (s.alpha < 1 || s.fillAlpha < 1)
 	{
-		fill.opacity = (s.alpha * 100) + '%';			
+		fill.opacity = (s.alpha * s.fillAlpha * 100) + '%';			
 	}
 	
 	return fill;
@@ -20307,9 +20398,9 @@ mxVmlCanvas2D.prototype.createStroke = function()
 	stroke.joinstyle = s.lineJoin || 'miter';
 	stroke.miterlimit = s.miterLimit || '10';
 	
-	if (s.alpha < 1)
+	if (s.alpha < 1 || s.strokeAlpha < 1)
 	{
-		stroke.opacity = (s.alpha * 100) + '%';
+		stroke.opacity = (s.alpha * s.strokeAlpha * 100) + '%';
 	}
 	
 	if (s.dashed)
@@ -20600,11 +20691,11 @@ mxVmlCanvas2D.prototype.image = function(x, y, w, h, src, aspect, flipH, flipV)
 		node.style.flip = 'y';
 	}
 	
-	if (this.state.alpha < 1)
+	if (this.state.alpha < 1 || this.state.fillAlpha < 1)
 	{
 		// KNOWN: Borders around transparent images in IE<9. Using fill.opacity
 		// fixes this problem by adding a white background in all IE versions.
-		node.style.filter += 'alpha(opacity=' + (this.state.alpha * 100) + ')';
+		node.style.filter += 'alpha(opacity=' + (this.state.alpha * this.state.fillAlpha * 100) + ')';
 	}
 
 	this.root.appendChild(node);
@@ -22336,13 +22427,7 @@ mxStencil.prototype.drawNode = function(canvas, shape, node, aspect, disableShad
 function mxShape(stencil)
 {
 	this.stencil = stencil;
-	
-	// Sets some defaults
-	this.strokewidth = 1;
-	this.rotation = 0;
-	this.opacity = 100;
-	this.flipH = false;
-	this.flipV = false;
+	this.initStyles();
 };
 
 /**
@@ -22508,6 +22593,22 @@ mxShape.prototype.init = function(container)
 			container.appendChild(this.node);
 		}
 	}
+};
+
+/**
+ * Function: initStyles
+ *
+ * Sets the styles to their default values.
+ */
+mxShape.prototype.initStyles = function(container)
+{
+	this.strokewidth = 1;
+	this.rotation = 0;
+	this.opacity = 100;
+	this.fillOpacity = 100;
+	this.strokeOpacity = 100;
+	this.flipH = false;
+	this.flipV = false;
 };
 
 /**
@@ -23177,6 +23278,8 @@ mxShape.prototype.configureCanvas = function(c, x, y, w, h)
 	}
 
 	c.setAlpha(this.opacity / 100);
+	c.setFillAlpha(this.fillOpacity / 100);
+	c.setStrokeAlpha(this.strokeOpacity / 100);
 
 	// Sets alpha, colors and gradients
 	if (this.isShadow != null)
@@ -23400,6 +23503,32 @@ mxShape.prototype.addPoints = function(c, pts, rounded, arcSize, close)
 };
 
 /**
+ * Function: resetStyles
+ * 
+ * Resets all styles.
+ */
+mxShape.prototype.resetStyles = function()
+{
+	this.initStyles();
+
+	this.spacing = 0;
+	
+	delete this.fill;
+	delete this.gradient;
+	delete this.gradientDirection;
+	delete this.stroke;
+	delete this.startSize;
+	delete this.endSize;
+	delete this.startArrow;
+	delete this.endArrow;
+	delete this.direction;
+	delete this.isShadow;
+	delete this.isDashed;
+	delete this.isRounded;
+	delete this.glass;
+};
+
+/**
  * Function: apply
  * 
  * Applies the style of the given <mxCellState> to the shape. This
@@ -23409,6 +23538,8 @@ mxShape.prototype.addPoints = function(c, pts, rounded, arcSize, close)
  * - <mxConstants.STYLE_GRADIENTCOLOR> => gradient
  * - <mxConstants.STYLE_GRADIENT_DIRECTION> => gradientDirection
  * - <mxConstants.STYLE_OPACITY> => opacity
+ * - <mxConstants.STYLE_FILL_OPACITY> => fillOpacity
+ * - <mxConstants.STYLE_STROKE_OPACITY> => strokeOpacity
  * - <mxConstants.STYLE_STROKECOLOR> => stroke
  * - <mxConstants.STYLE_STROKEWIDTH> => strokewidth
  * - <mxConstants.STYLE_SHADOW> => isShadow
@@ -23443,6 +23574,8 @@ mxShape.prototype.apply = function(state)
 		this.gradient = mxUtils.getValue(this.style, mxConstants.STYLE_GRADIENTCOLOR, this.gradient);
 		this.gradientDirection = mxUtils.getValue(this.style, mxConstants.STYLE_GRADIENT_DIRECTION, this.gradientDirection);
 		this.opacity = mxUtils.getValue(this.style, mxConstants.STYLE_OPACITY, this.opacity);
+		this.fillOpacity = mxUtils.getValue(this.style, mxConstants.STYLE_FILL_OPACITY, this.fillOpacity);
+		this.strokeOpacity = mxUtils.getValue(this.style, mxConstants.STYLE_STROKE_OPACITY, this.strokeOpacity);
 		this.stroke = mxUtils.getValue(this.style, mxConstants.STYLE_STROKECOLOR, this.stroke);
 		this.strokewidth = mxUtils.getNumber(this.style, mxConstants.STYLE_STROKEWIDTH, this.strokewidth);
 		// Arrow stroke width is used to compute the arrow heads size in mxConnector
@@ -24768,7 +24901,7 @@ function mxArrowConnector(points, fill, stroke, strokewidth, arrowWidth, spacing
 	this.stroke = stroke;
 	this.strokewidth = (strokewidth != null) ? strokewidth : 1;
 	this.arrowWidth = (arrowWidth != null) ? arrowWidth : mxConstants.ARROW_WIDTH;
-	this.spacing = (spacing != null) ? spacing : mxConstants.ARROW_SPACING;
+	this.arrowSpacing = (spacing != null) ? spacing : mxConstants.ARROW_SPACING;
 	this.startSize = mxConstants.ARROW_SIZE / 5;
 	this.endSize = mxConstants.ARROW_SIZE / 5;
 };
@@ -24785,6 +24918,18 @@ mxUtils.extend(mxArrowConnector, mxShape);
  * reasons.
  */
 mxArrowConnector.prototype.useSvgBoundingBox = true;
+
+/**
+ * Variable: resetStyles
+ * 
+ * Overrides mxShape to reset spacing.
+ */
+mxArrowConnector.prototype.resetStyles = function()
+{
+	mxShape.prototype.resetStyles.apply(this, arguments);
+	
+	this.arrowSpacing = mxConstants.ARROW_SPACING;
+};
 
 /**
  * Overrides apply to get smooth transition from default start- and endsize.
@@ -24845,7 +24990,7 @@ mxArrowConnector.prototype.paintEdgeShape = function(c, pts)
 	var openEnded = this.isOpenEnded();
 	var markerStart = this.isMarkerStart();
 	var markerEnd = this.isMarkerEnd();
-	var spacing = (openEnded) ? 0 : this.spacing + strokeWidth / 2;
+	var spacing = (openEnded) ? 0 : this.arrowSpacing + strokeWidth / 2;
 	var startSize = this.startSize + strokeWidth;
 	var endSize = this.endSize + strokeWidth;
 	var isRounded = this.isArrowRounded();
@@ -25546,6 +25691,32 @@ mxText.prototype.redraw = function()
 		mxShape.prototype.redraw.apply(this, arguments);
 		this.lastValue = this.value;
 	}
+};
+
+/**
+ * Function: resetStyles
+ * 
+ * Resets all styles.
+ */
+mxText.prototype.resetStyles = function()
+{
+	mxShape.prototype.resetStyles.apply(this, arguments);
+	
+	this.color = 'black';
+	this.align = '';
+	this.valign = '';
+	this.family = mxConstants.DEFAULT_FONTFAMILY;
+	this.size = mxConstants.DEFAULT_FONTSIZE;
+	this.fontStyle = mxConstants.DEFAULT_FONTSTYLE;
+	this.spacingTop = this.spacing;
+	this.spacingRight = this.spacing;
+	this.spacingBottom = this.spacing;
+	this.spacingLeft = this.spacing;
+	this.horizontal = true;
+	delete this.background;
+	delete this.border;
+	this.textDirection = mxConstants.DEFAULT_TEXT_DIRECTION;
+	delete this.margin;
 };
 
 /**
@@ -45117,6 +45288,7 @@ mxCellState.prototype.destroy = function()
  * Fires after the selection changes by executing an <mxSelectionChange>. The
  * <code>added</code> and <code>removed</code> properties contain arrays of
  * cells that have been added to or removed from the selection, respectively.
+ * The names are inverted due to historic reasons. This cannot be changed.
  * 
  * Constructor: mxGraphSelectionModel
  *
@@ -47421,27 +47593,80 @@ mxCellRenderer.prototype.redrawLabel = function(state, forced)
 	if (state.text != null)
 	{
 		var graph = state.view.graph;
+
+		// Forced is true if the style has changed, so to get the updated
+		// result in getLabelBounds we apply the new style to the shape
+		if (forced)
+		{
+			// Checks if a full repaint is needed
+			if (state.text.lastValue != null && this.isTextShapeInvalid(state, state.text))
+			{
+				// Forces a full repaint
+				state.text.lastValue = null;
+			}
+			
+			state.text.resetStyles();
+			state.text.apply(state);
+		}
+		
+		var bounds = this.getLabelBounds(state);
 		var wrapping = graph.isWrapping(state.cell);
 		var clipping = graph.isLabelClipped(state.cell);
-		var bounds = this.getLabelBounds(state);
-		
 		var isForceHtml = (state.view.graph.isHtmlLabel(state.cell) || (value != null && mxUtils.isNode(value)));
 		var dialect = (isForceHtml) ? mxConstants.DIALECT_STRICTHTML : state.view.graph.dialect;
 
 		// Text is a special case where change of dialect is possible at runtime
+		var overflow = state.style[mxConstants.STYLE_OVERFLOW] || 'visible';
+		
 		if (forced || state.text.value != value || state.text.isWrapping != wrapping ||
-			state.text.isClipping != clipping || state.text.scale != state.view.scale ||
-			state.text.dialect != dialect || !state.text.bounds.equals(bounds))
+			state.text.overflow != overflow || state.text.isClipping != clipping ||
+			state.text.scale != this.getTextScale(state) || state.text.dialect != dialect ||
+			!state.text.bounds.equals(bounds))
 		{
 			state.text.dialect = dialect;
 			state.text.value = value;
 			state.text.bounds = bounds;
 			state.text.scale = this.getTextScale(state);
-			state.text.isWrapping = wrapping;
-			state.text.isClipping = clipping;
+			state.text.wrap = wrapping;
+			state.text.clipped = clipping;
+			state.text.overflow = overflow;
 			this.redrawLabelShape(state.text);
 		}
 	}
+};
+
+/**
+ * Function: isTextShapeInvalid
+ * 
+ * Returns true if the style for the text shape has changed.
+ * 
+ * Parameters:
+ * 
+ * state - <mxCellState> whose label should be checked.
+ * shape - <mxText> shape to be checked.
+ */
+mxCellRenderer.prototype.isTextShapeInvalid = function(state, shape)
+{
+	function check(property, stylename, defaultValue)
+	{
+		return shape[property] != (state.style[stylename] || defaultValue);
+	};
+
+	return check('fontStyle', mxConstants.STYLE_FONTSTYLE, mxConstants.DEFAULT_FONTSTYLE) ||
+		check('family', mxConstants.STYLE_FONTFAMILY, mxConstants.DEFAULT_FONTFAMILY) ||
+		check('size', mxConstants.STYLE_FONTSIZE, mxConstants.DEFAULT_FONTSIZE) ||
+		check('color', mxConstants.STYLE_FONTCOLOR, 'black') ||
+		check('align', mxConstants.STYLE_ALIGN, '') ||
+		check('valign', mxConstants.STYLE_VERTICAL_ALIGN, '') ||
+		check('spacing', mxConstants.STYLE_SPACING, 2) ||
+		check('spacingTop', mxConstants.STYLE_SPACING_TOP, 2) ||
+		check('spacingRight', mxConstants.STYLE_SPACING_RIGHT, 2) ||
+		check('spacingBottom', mxConstants.STYLE_SPACING_BOTTOM, 2) ||
+		check('spacingLeft', mxConstants.STYLE_SPACING_LEFT, 2) ||
+		check('horizontal', mxConstants.STYLE_HORIZONTAL, true) ||
+		check('background', mxConstants.STYLE_LABEL_BACKGROUNDCOLOR) ||
+		check('border', mxConstants.STYLE_LABEL_BORDERCOLOR) ||
+		check('textDirection', mxConstants.STYLE_TEXT_DIRECTION, mxConstants.DEFAULT_TEXT_DIRECTION);
 };
 
 /**
@@ -47903,27 +48128,49 @@ mxCellRenderer.prototype.redraw = function(state, force, rendering)
  */
 mxCellRenderer.prototype.redrawShape = function(state, force, rendering)
 {
+	var model = state.view.graph.model;
 	var shapeChanged = false;
 
-	if (state.shape != null)
+	// Forces creation of new shape if shape style has changed
+	if (state.shape != null && state.shape.style != null && state.style != null &&
+		state.shape.style[mxConstants.STYLE_SHAPE] != state.style[mxConstants.STYLE_SHAPE])
 	{
-		// Lazy initialization
-		if (state.shape.node == null)
+		state.shape.destroy();
+		state.shape = null;
+	}
+	
+	if (state.shape == null && state.view.graph.container != null &&
+		state.cell != state.view.currentRoot &&
+		(model.isVertex(state.cell) || model.isEdge(state.cell)))
+	{
+		state.shape = this.createShape(state);
+		
+		if (state.shape != null)
 		{
+			state.shape.antiAlias = this.antiAlias;
+	
 			this.createIndicatorShape(state);
 			this.initializeShape(state);
 			this.createCellOverlays(state);
 			this.installListeners(state);
+			
+			// Forces a refresh of the handler of one exists
+			state.view.graph.selectionCellsHandler.updateHandler(state);
 		}
-		
+	}
+	else if (state.shape != null && !mxUtils.equalEntries(state.shape.style, state.style))
+	{
+		state.shape.resetStyles();
+		this.configureShape(state);
+		// LATER: Ignore update for realtime to fix reset of current gesture
+		state.view.graph.selectionCellsHandler.updateHandler(state);
+		force = true;
+	}
+
+	if (state.shape != null)
+	{
 		// Handles changes of the collapse icon
 		this.createControl(state);
-
-		if (!mxUtils.equalEntries(state.shape.style, state.style))
-		{
-			this.configureShape(state);
-			force = true;
-		}
 		
 		// Redraws the cell if required, ignores changes to bounds if points are
 		// defined as the bounds are updated for the given points inside the shape
@@ -50581,6 +50828,11 @@ mxGraphView.prototype.validateCellState = function(cell, recurse)
 			{
 				state.invalid = false;
 				
+				if (state.style == null)
+				{
+					state.style = this.graph.getCellStyle(state.cell);
+				}
+				
 				if (cell != this.currentRoot)
 				{
 					this.validateCellState(model.getParent(cell), false);
@@ -50600,8 +50852,6 @@ mxGraphView.prototype.validateCellState = function(cell, recurse)
 
 			if (recurse)
 			{
-				state.updateCachedBounds();
-				
 				// Updates order in DOM if recursively traversing
 				if (state.shape != null)
 				{
@@ -50709,6 +50959,8 @@ mxGraphView.prototype.updateCellState = function(state)
 			}
 		}
 	}
+
+	state.updateCachedBounds();
 };
 
 /**
@@ -51987,17 +52239,7 @@ mxGraphView.prototype.removeState = function(cell)
  */
 mxGraphView.prototype.createState = function(cell)
 {
-	var state = new mxCellState(this, cell, this.graph.getCellStyle(cell));
-	var model = this.graph.getModel();
-
-	if (state.view.graph.container != null && state.cell != state.view.currentRoot &&
-		(model.isVertex(state.cell) || model.isEdge(state.cell)))
-	{
-		state.shape = this.graph.cellRenderer.createShape(state);
-		state.shape.antiAlias = this.graph.cellRenderer.antiAlias;
-	}
-	
-	return state;
+	return new mxCellState(this, cell, this.graph.getCellStyle(cell));
 };
 
 /**
@@ -54671,7 +54913,12 @@ mxGraph.prototype.processChange = function(change)
 	else if (change instanceof mxStyleChange)
 	{
 		this.view.invalidate(change.cell, true, true);
-		this.view.removeState(change.cell);
+		var state = this.view.getState(change.cell);
+		
+		if (state != null)
+		{	
+			state.style = null;
+		}
 	}
 	
 	// Removes the state from the cache by default
@@ -64626,24 +64873,8 @@ mxGraph.prototype.createHandler = function(state)
 			var target = state.getVisibleTerminalState(false);
 			var geo = this.getCellGeometry(state.cell);
 			
-			var style = this.view.getEdgeStyle(state, (geo != null) ? geo.points : null, source, target);
-			
-			if (style == mxEdgeStyle.Loop ||
-				style == mxEdgeStyle.ElbowConnector ||
-				style == mxEdgeStyle.SideToSide ||
-				style == mxEdgeStyle.TopToBottom)
-			{
-				result = this.createElbowEdgeHandler(state);
-			}
-			else if (style == mxEdgeStyle.SegmentConnector || 
-					 style == mxEdgeStyle.OrthConnector)
-			{
-				result = this.createEdgeSegmentHandler(state);
-			}
-			else
-			{
-				result = this.createEdgeHandler(state);
-			}
+			var edgeStyle = this.view.getEdgeStyle(state, (geo != null) ? geo.points : null, source, target);
+			result = this.createEdgeHandler(state, edgeStyle);
 		}
 		else
 		{
@@ -64677,9 +64908,28 @@ mxGraph.prototype.createVertexHandler = function(state)
  * 
  * state - <mxCellState> to create the handler for.
  */
-mxGraph.prototype.createEdgeHandler = function(state)
+mxGraph.prototype.createEdgeHandler = function(state, edgeStyle)
 {
-	return new mxEdgeHandler(state);
+	var result = null;
+	
+	if (edgeStyle == mxEdgeStyle.Loop ||
+		edgeStyle == mxEdgeStyle.ElbowConnector ||
+		edgeStyle == mxEdgeStyle.SideToSide ||
+		edgeStyle == mxEdgeStyle.TopToBottom)
+	{
+		result = this.createElbowEdgeHandler(state);
+	}
+	else if (edgeStyle == mxEdgeStyle.SegmentConnector || 
+			edgeStyle == mxEdgeStyle.OrthConnector)
+	{
+		result = this.createEdgeSegmentHandler(state);
+	}
+	else
+	{
+		result = new mxEdgeHandler(state);
+	}
+	
+	return result;
 };
 
 /**
@@ -68218,9 +68468,12 @@ mxGraphHandler.prototype.getPreviewBounds = function(cells)
 		}
 		else
 		{
-			bounds.x = Math.floor(bounds.x);
+			bounds.x = Math.round(bounds.x);
 			bounds.width = Math.ceil(bounds.width);
 		}
+		
+		var tr = this.graph.view.translate;
+		var s = this.graph.view.scale;
 		
 		if (bounds.height < this.minimumSize)
 		{
@@ -68230,7 +68483,7 @@ mxGraphHandler.prototype.getPreviewBounds = function(cells)
 		}
 		else
 		{
-			bounds.y = Math.floor(bounds.y);
+			bounds.y = Math.round(bounds.y);
 			bounds.height = Math.ceil(bounds.height);
 		}
 	}
@@ -70119,6 +70372,27 @@ mxSelectionCellsHandler.prototype.refresh = function()
 		this.fireEvent(new mxEventObject(mxEvent.REMOVE, 'state', handler.state));
 		handler.destroy();
 	}));
+};
+
+/**
+ * Function: updateHandler
+ * 
+ * Updates the handler for the given shape if one exists.
+ */
+mxSelectionCellsHandler.prototype.updateHandler = function(state)
+{
+	var handler = this.handlers.remove(state.cell);
+	
+	if (handler != null)
+	{
+		handler.destroy();
+		handler = this.graph.createHandler(state);
+		
+		if (handler != null)
+		{
+			this.handlers.put(state.cell, handler);
+		}
+	}
 };
 
 /**
@@ -74260,6 +74534,10 @@ mxVertexHandler.prototype.start = function(x, y, index)
 		{
 			this.rotationShape.node.style.display = '';
 		}
+		else if (index == mxEvent.LABEL_HANDLE)
+		{
+			this.labelShape.node.style.display = '';
+		}
 		else if (this.sizers != null && this.sizers[index] != null)
 		{
 			this.sizers[index].node.style.display = '';
@@ -74438,7 +74716,8 @@ mxVertexHandler.prototype.moveLabel = function(me)
 		point.y = (this.graph.snap(point.y / scale - tr.y) + tr.y) * scale;
 	}
 
-	this.moveSizerTo(this.sizers[this.sizers.length - 1], point.x, point.y);
+	var index = (this.rotationShape != null) ? this.sizers.length - 2 : this.sizers.length - 1;
+	this.moveSizerTo(this.sizers[index], point.x, point.y);
 };
 
 /**
@@ -75437,8 +75716,12 @@ mxVertexHandler.prototype.destroy = function()
 		this.parentHighlight = null;
 	}
 	
-	this.selectionBorder.destroy();
-	this.selectionBorder = null;
+	if (this.selectionBorder != null)
+	{
+		this.selectionBorder.destroy();
+		this.selectionBorder = null;
+	}
+	
 	this.labelShape = null;
 	this.removeHint();
 

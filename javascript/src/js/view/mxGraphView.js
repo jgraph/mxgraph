@@ -940,6 +940,11 @@ mxGraphView.prototype.validateCellState = function(cell, recurse)
 			{
 				state.invalid = false;
 				
+				if (state.style == null)
+				{
+					state.style = this.graph.getCellStyle(state.cell);
+				}
+				
 				if (cell != this.currentRoot)
 				{
 					this.validateCellState(model.getParent(cell), false);
@@ -959,8 +964,6 @@ mxGraphView.prototype.validateCellState = function(cell, recurse)
 
 			if (recurse)
 			{
-				state.updateCachedBounds();
-				
 				// Updates order in DOM if recursively traversing
 				if (state.shape != null)
 				{
@@ -1068,6 +1071,8 @@ mxGraphView.prototype.updateCellState = function(state)
 			}
 		}
 	}
+
+	state.updateCachedBounds();
 };
 
 /**
@@ -2346,17 +2351,7 @@ mxGraphView.prototype.removeState = function(cell)
  */
 mxGraphView.prototype.createState = function(cell)
 {
-	var state = new mxCellState(this, cell, this.graph.getCellStyle(cell));
-	var model = this.graph.getModel();
-
-	if (state.view.graph.container != null && state.cell != state.view.currentRoot &&
-		(model.isVertex(state.cell) || model.isEdge(state.cell)))
-	{
-		state.shape = this.graph.cellRenderer.createShape(state);
-		state.shape.antiAlias = this.graph.cellRenderer.antiAlias;
-	}
-	
-	return state;
+	return new mxCellState(this, cell, this.graph.getCellStyle(cell));
 };
 
 /**

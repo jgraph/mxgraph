@@ -158,6 +158,22 @@ public interface mxICanvas2D
 	void setAlpha(double value);
 
 	/**
+	 * Default value 1. This method may add rendering overhead and should be
+	 * used with care.
+	 * 
+	 * @param value
+	 */
+	void setFillAlpha(double value);
+	
+	/**
+	 * Default value 1. This method may add rendering overhead and should be
+	 * used with care.
+	 * 
+	 * @param value
+	 */
+	void setStrokeAlpha(double value);
+
+	/**
 	 * Default value {@link mxConstants#NONE}.
 	 * 
 	 * @param value Hex representation of the color or {@link mxConstants#NONE}.

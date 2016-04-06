@@ -43,6 +43,68 @@
 
 	mxCellRenderer.prototype.defaultShapes['cube'] = CubeShape;
 	
+	var tan30 = Math.tan(mxUtils.toRadians(30));
+	var tan30Dx = (0.5 - tan30) / 2;
+	
+	// Cube Shape, supports size style
+	function IsoRectangleShape()
+	{
+		mxActor.call(this);
+	};
+	mxUtils.extend(IsoRectangleShape, mxActor);
+	IsoRectangleShape.prototype.size = 20;
+	IsoRectangleShape.prototype.redrawPath = function(path, x, y, w, h)
+	{
+		var m = Math.min(w, h / tan30);
+
+		path.translate((w - m) / 2, (h - m) / 2 + m / 4);
+		path.moveTo(0, 0.25 * m);
+		path.lineTo(0.5 * m, m * tan30Dx);
+		path.lineTo(m, 0.25 * m);
+		path.lineTo(0.5 * m, (0.5 - tan30Dx) * m);
+		path.lineTo(0, 0.25 * m);
+		path.close();
+		path.end();
+	};
+
+	mxCellRenderer.prototype.defaultShapes['isoRectangle'] = IsoRectangleShape;
+
+	// Cube Shape, supports size style
+	function IsoCubeShape()
+	{
+		mxCylinder.call(this);
+	};
+	mxUtils.extend(IsoCubeShape, mxCylinder);
+	IsoCubeShape.prototype.size = 20;
+	IsoCubeShape.prototype.redrawPath = function(path, x, y, w, h, isForeground)
+	{
+		var m = Math.min(w, h / (0.5 + tan30));
+
+		if (isForeground)
+		{
+			path.moveTo(0, 0.25 * m);
+			path.lineTo(0.5 * m, (0.5 - tan30Dx) * m);
+			path.lineTo(m, 0.25 * m);
+			path.moveTo(0.5 * m, (0.5 - tan30Dx) * m);
+			path.lineTo(0.5 * m, (1 - tan30Dx) * m);
+			path.end();
+		}
+		else
+		{
+			path.translate((w - m) / 2, (h - m) / 2);
+			path.moveTo(0, 0.25 * m);
+			path.lineTo(0.5 * m, m * tan30Dx);
+			path.lineTo(m, 0.25 * m);
+			path.lineTo(m, 0.75 * m);
+			path.lineTo(0.5 * m, (1 - tan30Dx) * m);
+			path.lineTo(0, 0.75 * m);
+			path.close();
+			path.end();
+		}
+	};
+
+	mxCellRenderer.prototype.defaultShapes['isoCube'] = IsoCubeShape;
+	
 	// DataStore Shape, supports size style
 	function DataStoreShape()
 	{
@@ -386,6 +448,254 @@
 
 	mxCellRenderer.prototype.defaultShapes['parallelMarker'] = ParallelMarkerShape;
 
+	/**
+	 * Adds handJiggle style (jiggle=n sets jiggle)
+	 */
+	function HandJiggle(canvas, defaultVariation)
+	{
+		this.canvas = canvas;
+		
+		// Avoids "spikes" in the output
+		this.canvas.setLineJoin('round');
+		this.canvas.setLineCap('round');
+		
+		this.defaultVariation = defaultVariation;
+		
+		this.originalLineTo = this.canvas.lineTo;
+		this.canvas.lineTo = mxUtils.bind(this, HandJiggle.prototype.lineTo);
+		
+		this.originalMoveTo = this.canvas.moveTo;
+		this.canvas.moveTo = mxUtils.bind(this, HandJiggle.prototype.moveTo);
+		
+		this.originalClose = this.canvas.close;
+		this.canvas.close = mxUtils.bind(this, HandJiggle.prototype.close);
+		
+		this.originalQuadTo = this.canvas.quadTo;
+		this.canvas.quadTo = mxUtils.bind(this, HandJiggle.prototype.quadTo);
+		
+		this.originalCurveTo = this.canvas.curveTo;
+		this.canvas.curveTo = mxUtils.bind(this, HandJiggle.prototype.curveTo);
+		
+		this.originalArcTo = this.canvas.arcTo;
+		this.canvas.arcTo = mxUtils.bind(this, HandJiggle.prototype.arcTo);
+	};
+	
+	HandJiggle.prototype.moveTo = function(endX, endY)
+	{
+		this.originalMoveTo.apply(this.canvas, arguments);
+		this.lastX = endX;
+		this.lastY = endY;
+		this.firstX = endX;
+		this.firstY = endY;
+	};
+	
+	HandJiggle.prototype.close = function()
+	{
+		if (this.firstX != null && this.firstY != null)
+		{
+			this.lineTo(this.firstX, this.firstY);
+			this.originalClose.apply(this.canvas, arguments);
+		}
+		
+		this.originalClose.apply(this.canvas, arguments);
+	};
+	
+	HandJiggle.prototype.quadTo = function(x1, y1, x2, y2)
+	{
+		this.originalQuadTo.apply(this.canvas, arguments);
+		this.lastX = x2;
+		this.lastY = y2;
+	};
+	
+	HandJiggle.prototype.curveTo = function(x1, y1, x2, y2, x3, y3)
+	{
+		this.originalCurveTo.apply(this.canvas, arguments);
+		this.lastX = x3;
+		this.lastY = y3;
+	};
+	
+	HandJiggle.prototype.arcTo = function(rx, ry, angle, largeArcFlag, sweepFlag, x, y)
+	{
+		this.originalArcTo.apply(this.canvas, arguments);
+		this.lastX = x;
+		this.lastY = y;
+	};
+
+	HandJiggle.prototype.lineTo = function(endX, endY)
+	{
+		// LATER: Check why this.canvas.lastX cannot be used
+		if (this.lastX != null && this.lastY != null)
+		{
+			var dx = Math.abs(endX - this.lastX);
+			var dy = Math.abs(endY - this.lastY);
+			var dist = Math.sqrt(dx * dx + dy * dy);
+			
+			if (dist < 2)
+			{
+				this.originalLineTo.apply(this.canvas, arguments);
+				this.lastX = endX;
+				this.lastY = endY;
+				
+				return;
+			}
+	
+			var segs = Math.round(dist / 10);
+			var variation = this.defaultVariation;
+			
+			if (segs < 5)
+			{
+				segs = 5;
+				variation /= 3;
+			}
+			
+			function sign(x)
+			{
+			    return typeof x === 'number' ? x ? x < 0 ? -1 : 1 : x === x ? 0 : NaN : NaN;
+			}
+	
+			var stepX = sign(endX - this.lastX) * dx / segs;
+			var stepY = sign(endY - this.lastY) * dy / segs;
+	
+			var fx = dx / dist;
+			var fy = dy / dist;
+	
+			for (var s = 0; s < segs; s++)
+			{
+				var x = stepX * s + this.lastX;
+				var y = stepY * s + this.lastY;
+	
+				var offset = (Math.random() - 0.5) * variation;
+				this.originalLineTo.call(this.canvas, x - offset * fy, y - offset * fx);
+			}
+			
+			this.originalLineTo.call(this.canvas, endX, endY);
+			this.lastX = endX;
+			this.lastY = endY;
+		}
+		else
+		{
+			this.originalLineTo.apply(this.canvas, arguments);
+			this.lastX = endX;
+			this.lastY = endY;
+		}
+	};
+	
+	HandJiggle.prototype.destroy = function()
+	{
+		 this.canvas.lineTo = this.originalLineTo;
+		 this.canvas.moveTo = this.originalMoveTo;
+		 this.canvas.close = this.originalClose;
+		 this.canvas.quadTo = this.originalQuadTo;
+		 this.canvas.curveTo = this.originalCurveTo;
+		 this.canvas.arcTo = this.originalArcTo;
+	};
+	
+	// Installs hand jiggle in all shapes
+	var mxShapePaint0 = mxShape.prototype.paint;
+	mxShape.prototype.defaultJiggle = 1.5;
+	mxShape.prototype.paint = function(c)
+	{
+		if (this.style != null && mxUtils.getValue(this.style, 'comic', false) && c.handHiggle == null)
+		{
+			c.handJiggle = new HandJiggle(c, mxUtils.getValue(this.style, 'jiggle', this.defaultJiggle));
+		}
+		
+		mxShapePaint0.apply(this, arguments);
+		
+		if (c.handJiggle != null)
+		{
+			c.handJiggle.destroy();
+			delete c.handJiggle;
+		}
+	};
+	
+	// Sets default jiggle for diamond
+	mxRhombus.prototype.defaultJiggle = 2;
+
+	/**
+	 * Overrides to avoid call to rect
+	 */
+	var mxRectangleShapeIsHtmlAllowed0 = mxRectangleShape.prototype.isHtmlAllowed;
+	mxRectangleShape.prototype.isHtmlAllowed = function()
+	{
+		return (this.style == null || !mxUtils.getValue(this.style, 'comic', false)) &&
+			mxRectangleShapeIsHtmlAllowed0.apply(this, arguments);
+	};
+	
+	var mxRectangleShapePaintBackground0 = mxRectangleShape.prototype.paintBackground;
+	mxRectangleShape.prototype.paintBackground = function(c, x, y, w, h)
+	{
+		if (c.handJiggle == null)
+		{
+			mxRectangleShapePaintBackground0.apply(this, arguments);
+		}
+		else
+		{
+			var events = true;
+			
+			if (this.style != null)
+			{
+				events = mxUtils.getValue(this.style, mxConstants.STYLE_POINTER_EVENTS, '1') == '1';		
+			}
+			
+			if (events || (this.fill != null && this.fill != mxConstants.NONE) ||
+				(this.stroke != null && this.stroke != mxConstants.NONE))
+			{
+				if (!events && (this.fill == null || this.fill == mxConstants.NONE))
+				{
+					c.pointerEvents = false;
+				}
+				
+				c.begin();
+				
+				if (this.isRounded)
+				{
+					var f = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE,
+						mxConstants.RECTANGLE_ROUNDING_FACTOR * 100) / 100;
+					var r = Math.min(w * f, h * f);
+					c.moveTo(x + r, y);
+					c.lineTo(x + w - r, y);
+					c.quadTo(x + w, y, x + w, y + r);
+					c.lineTo(x + w, y + h - r);
+					c.quadTo(x + w, y + h, x + w - r, y + h);
+					c.lineTo(x + r, y + h);
+					c.quadTo(x, y + h, x, y + h - r);
+					c.lineTo(x, y + r);
+					c.quadTo(x, y, x + r, y);
+				}
+				else
+				{
+					
+					c.moveTo(x, y);
+					c.lineTo(x + w, y);
+					c.lineTo(x + w, y + h);
+					c.lineTo(x, y + h);
+					c.lineTo(x, y);
+				}
+				
+				// LATER: Check if close is needed here
+				c.close();
+				c.end();
+				
+				c.fillAndStroke();
+			}			
+		}
+	};
+
+	/**
+	 * Disables glass effect with hand jiggle.
+	 */
+	var mxRectangleShapePaintForeground0 = mxRectangleShape.prototype.paintForeground;
+	mxRectangleShape.prototype.paintForeground = function(c, x, y, w, h)
+	{
+		if (c.handJiggle == null)
+		{
+			mxRectangleShapePaintForeground0.apply(this, arguments);
+		}
+	};
+
+	// End of hand jiggle integration
+	
 	// Process Shape
 	function ProcessShape()
 	{
@@ -2604,8 +2914,11 @@
 		};
 		
 		// Exposes custom handles
-		EditorUi.createHandle = createHandle;
-		EditorUi.handleFactory = handleFactory;
+		if (window.EditorUi != null)
+		{
+			EditorUi.createHandle = createHandle;
+			EditorUi.handleFactory = handleFactory;
+		}
 
 		mxVertexHandler.prototype.createCustomHandles = function()
 		{
@@ -2643,7 +2956,136 @@
 			return null;
 		}
 	}
+	
+	
+	
+	 
+	 var isoHVector = new mxPoint(1, 0);
+	 var isoVVector = new mxPoint(1, 0);
+		
+	 var alpha1 = mxUtils.toRadians(-30);
+		
+	 var cos1 = Math.cos(alpha1);
+	 var sin1 = Math.sin(alpha1);
 
+	 isoHVector = mxUtils.getRotatedPoint(isoHVector, cos1, sin1);
+
+	 var alpha2 = mxUtils.toRadians(-150);
+	 
+	 var cos2 = Math.cos(alpha2);
+	 var sin2 = Math.sin(alpha2);
+
+	 isoVVector = mxUtils.getRotatedPoint(isoVVector, cos2, sin2);
+	
+	 mxEdgeStyle.IsometricConnector = function (state, source, target, points, result)
+	 {
+		var view = state.view;
+		var pt = (points != null && points.length > 0) ? points[0] : null;
+		var pts = state.absolutePoints;
+		var p0 = pts[0];
+		var pe = pts[pts.length-1];
+		
+		if (pt != null)
+		{
+			pt = view.transformControlPoint(state, pt);
+		}
+		
+		if (p0 == null)
+		{
+			if (source != null)
+			{
+				p0 = new mxPoint(source.getCenterX(), source.getCenterY());
+			}
+		}
+		
+		if (pe == null)
+		{
+			if (target != null)
+			{
+				pe = new mxPoint(target.getCenterX(), target.getCenterY());
+			}
+		}		
+		
+		var a1 = isoHVector.x;
+		var a2 = isoHVector.y;
+		
+		var b1 = isoVVector.x;
+		var b2 = isoVVector.y;
+		
+		var elbow = mxUtils.getValue(state.style, 'elbow', 'horizontal') == 'horizontal';
+		
+		if (pe != null && p0 != null)
+		{
+			var last = p0;
+			
+			function isoLineTo(x, y, ignoreFirst)
+			{
+				var c1 = x - last.x;
+				var c2 = y - last.y;
+
+				// Solves for isometric base vectors
+				var h = (b2 * c1 - b1 * c2) / (a1 * b2 - a2 * b1);
+				var v = (a2 * c1 - a1 * c2) / (a2 * b1 - a1 * b2);
+				
+				if (elbow)
+				{
+					if (ignoreFirst)
+					{
+						last = new mxPoint(last.x + a1 * h, last.y + a2 * h);
+						result.push(last);
+					}
+	
+					last = new mxPoint(last.x + b1 * v, last.y + b2 * v);
+					result.push(last);
+				}
+				else
+				{
+					if (ignoreFirst)
+					{
+						last = new mxPoint(last.x + b1 * v, last.y + b2 * v);
+						result.push(last);
+					}
+
+					last = new mxPoint(last.x + a1 * h, last.y + a2 * h);
+					result.push(last);
+				}
+			};
+
+			if (pt == null)
+			{
+				pt = new mxPoint(p0.x + (pe.x - p0.x) / 2, p0.y + (pe.y - p0.y) / 2);
+			}
+			
+			isoLineTo(pt.x, pt.y, true);
+			isoLineTo(pe.x, pe.y, false);
+		}
+	 };
+
+	 mxStyleRegistry.putValue('isometricEdgeStyle', mxEdgeStyle.IsometricConnector);
+	
+	 var graphCreateEdgeHandler = Graph.prototype.createEdgeHandler;
+	 Graph.prototype.createEdgeHandler = function(state, edgeStyle)
+	 {
+	 	if (edgeStyle == mxEdgeStyle.IsometricConnector)
+	 	{
+	 		var handler = new mxElbowEdgeHandler(state);
+	 		handler.snapToTerminals = false;
+	 		
+	 		return handler;
+	 	}
+	 	
+	 	return graphCreateEdgeHandler.apply(this, arguments);
+	 };
+
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	IsoRectangleShape.prototype.constraints = [];
+	IsoCubeShape.prototype.constraints = [];
 	mxRectangleShape.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0.25, 0), true),
 	                                          new mxConnectionConstraint(new mxPoint(0.5, 0), true),
 	                                          new mxConnectionConstraint(new mxPoint(0.75, 0), true),

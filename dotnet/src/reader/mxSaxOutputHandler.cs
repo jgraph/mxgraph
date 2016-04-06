@@ -109,7 +109,7 @@ namespace com.mxgraph
         {
             if (atts.ContainsKey(key))
             {
-                defaultValue = double.Parse(atts[key], System.Globalization.CultureInfo.InvariantCulture);
+                defaultValue = double.Parse(atts[key]);
             }
 
             return defaultValue;
@@ -246,6 +246,16 @@ namespace com.mxgraph
                 canvas.Alpha = GetDouble(atts, "alpha");
 		    };
 
+            handlers["strokealpha"] = delegate(Dictionary<string, string> atts)
+            {
+                canvas.StrokeAlpha = GetDouble(atts, "alpha");
+            };
+
+            handlers["fillalpha"] = delegate(Dictionary<string, string> atts)
+            {
+                canvas.FillAlpha = GetDouble(atts, "alpha");
+            };
+
             handlers["fillcolor"] = delegate(Dictionary<string, string> atts)
 		    {
 			    canvas.FillColor = GetString(atts, "color");
@@ -314,8 +324,7 @@ namespace com.mxgraph
                     GetString(atts, "str"), GetString(atts, "align"),
                     GetString(atts, "valign"), IsTrue(atts, "wrap"),
                     GetString(atts, "format"), GetString(atts, "overflow"),
-                    IsTrue(atts, "clip"), GetDouble(atts, "rotation"),
-                    GetString(atts, "dir"));
+                    IsTrue(atts, "clip"), GetDouble(atts, "rotation"));
 		    };
 
             handlers["begin"] = delegate(Dictionary<string, string> atts)

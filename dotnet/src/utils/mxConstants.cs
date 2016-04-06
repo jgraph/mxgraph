@@ -188,6 +188,16 @@ namespace com.mxgraph
 	    public static string STYLE_OPACITY = "opacity";
 
         /// <summary>
+        /// Defines the key for the text fill opacity style (0-100).
+        /// </summary>
+        public static string STYLE_FILL_OPACITY = "fillOpacity";
+        
+        /// <summary>
+        /// Defines the key for the stroke opacity style (0-100).
+        /// </summary>
+        public static string STYLE_STROKE_OPACITY = "strokeOpacity";
+        
+        /// <summary>
         /// Defines the key for the text opacity style (0-100).
         /// </summary>
         public static string STYLE_TEXT_OPACITY = "textOpacity";

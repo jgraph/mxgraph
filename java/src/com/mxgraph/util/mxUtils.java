@@ -1679,6 +1679,15 @@ public class mxUtils
 	{
 		return mxHtmlColor.hexString(color);
 	}
+	
+	/**
+	 * Shortcut for parseColor with no transparency.
+	 */
+	public static Color parseColor(String colorString)
+			throws NumberFormatException
+	{
+		return mxHtmlColor.parseColor(colorString);
+	}
 
 	/**
 	 * Convert a string representing a 24/32bit hex color value into a Color
@@ -1694,11 +1703,11 @@ public class mxUtils
 	 *                if the specified string cannot be interpreted as a
 	 *                hexidecimal integer
 	 */
-	public static Color parseColor(String colorString)
+	public static Color parseColor(String colorString, double alpha)
 			throws NumberFormatException
 	{
-		return mxHtmlColor.parseColor(colorString);
-	}
+		return mxHtmlColor.parseColor(colorString, alpha);
+	};
 
 	/**
 	 * Returns a hex representation for the given color.
@@ -1825,13 +1834,14 @@ public class mxUtils
 			MessageDigest md5 = MessageDigest.getInstance("MD5");
 			md5.update(text.getBytes());
 			Formatter f = new Formatter(result);
-
 			byte[] digest = md5.digest();
 
 			for (int i = 0; i < digest.length; i++)
 			{
 				f.format("%02x", new Object[] { new Byte(digest[i]) });
 			}
+			
+			f.close();
 		}
 		catch (NoSuchAlgorithmException ex)
 		{

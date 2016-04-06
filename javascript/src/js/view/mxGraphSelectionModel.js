@@ -31,6 +31,7 @@
  * Fires after the selection changes by executing an <mxSelectionChange>. The
  * <code>added</code> and <code>removed</code> properties contain arrays of
  * cells that have been added to or removed from the selection, respectively.
+ * The names are inverted due to historic reasons. This cannot be changed.
  * 
  * Constructor: mxGraphSelectionModel
  *

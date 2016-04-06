@@ -91,7 +91,7 @@ Format.prototype.initSelectionState = function()
 {
 	return {vertices: [], edges: [], x: null, y: null, width: null, height: null, style: {},
 		containsImage: false, containsLabel: false, fill: true, glass: true, rounded: true,
-		autoSize: false, image: true, shadow: true};
+		comic: true, autoSize: false, image: true, shadow: true};
 };
 
 /**
@@ -177,6 +177,7 @@ Format.prototype.updateSelectionStateForCell = function(result, cell, cells)
 		result.autoSize = result.autoSize || this.isAutoSizeState(state);
 		result.glass = result.glass && this.isGlassState(state);
 		result.rounded = result.rounded && this.isRoundedState(state);
+		result.comic = result.comic && this.isComicState(state);
 		result.image = result.image && this.isImageState(state);
 		result.shadow = result.shadow && this.isShadowState(state);
 		result.fill = result.fill && this.isFillState(state);
@@ -238,6 +239,20 @@ Format.prototype.isRoundedState = function(state)
 			shape == 'rhombus' || shape == 'offPageConnector' || shape == 'loopLimit' || shape == 'hexagon' ||
 			shape == 'manualInput' || shape == 'curlyBracket' || shape == 'singleArrow' ||
 			shape == 'doubleArrow' || shape == 'flexArrow' || shape == 'card' || shape == 'umlLifeline');
+};
+
+/**
+ * Returns information about the current selection.
+ */
+Format.prototype.isComicState = function(state)
+{
+	var shape = mxUtils.getValue(state.style, mxConstants.STYLE_SHAPE, null);
+	
+	return mxUtils.indexOf(['label', 'rectangle', 'internalStorage', 'corner', 'parallelogram', 'note', 'collate',
+	                        'swimlane', 'triangle', 'trapezoid', 'ext', 'step', 'tee', 'process', 'link', 'rhombus',
+	                        'offPageConnector', 'loopLimit', 'hexagon', 'manualInput', 'singleArrow', 'doubleArrow',
+	                        'flexArrow', 'card', 'umlLifeline', 'connector', 'folder', 'component', 'sortShape',
+	                        'cross', 'umlFrame', 'cube', 'isoCube', 'isoRectangle'], shape) >= 0;
 };
 
 /**
@@ -3065,85 +3080,88 @@ TextFormatPanel.prototype.addFont = function(container)
 					{
 						var css = mxUtils.getCurrentStyle(node);
 						
-						setSelected(fontStyleItems[0], css.fontWeight == 'bold' || graph.getParentByName(node, 'B', graph.cellEditor.textarea) != null);
-						setSelected(fontStyleItems[1], css.fontStyle == 'italic' || graph.getParentByName(node, 'I', graph.cellEditor.textarea) != null);
-						setSelected(fontStyleItems[2], graph.getParentByName(node, 'U', graph.cellEditor.textarea) != null);
-						setSelected(left, css.textAlign == 'left');
-						setSelected(center, css.textAlign == 'center');
-						setSelected(right, css.textAlign == 'right');
-						setSelected(full, css.textAlign == 'justify');
-						setSelected(sup, graph.getParentByName(node, 'SUP', graph.cellEditor.textarea) != null);
-						setSelected(sub, graph.getParentByName(node, 'SUB', graph.cellEditor.textarea) != null);
-						
-						currentTable = graph.getParentByName(node, 'TABLE', graph.cellEditor.textarea);
-						tableRow = (currentTable == null) ? null : graph.getParentByName(node, 'TR', currentTable);
-						tableCell = (currentTable == null) ? null : graph.getParentByName(node, 'TD', currentTable);
-						tableWrapper.style.display = (currentTable != null) ? '' : 'none';
-						
-						if (document.activeElement != input)
+						if (css != null)
 						{
-							input.value = parseInt(css.fontSize) + ' pt';
-						}
-						
-						// Converts rgb(r,g,b) values
-						var color = css.color.replace(
-							    /\brgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/g,
-							    function($0, $1, $2, $3) {
-							        return "#" + ("0"+Number($1).toString(16)).substr(-2) + ("0"+Number($2).toString(16)).substr(-2) + ("0"+Number($3).toString(16)).substr(-2);
-							    });
-						var color2 = css.backgroundColor.replace(
-							    /\brgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/g,
-							    function($0, $1, $2, $3) {
-							        return "#" + ("0"+Number($1).toString(16)).substr(-2) + ("0"+Number($2).toString(16)).substr(-2) + ("0"+Number($3).toString(16)).substr(-2);
-							    });
-						
-						// Updates the color picker for the current font
-						if (fontColorApply != null)
-						{
-							if (color.charAt(0) == '#')
+							setSelected(fontStyleItems[0], css.fontWeight == 'bold' || graph.getParentByName(node, 'B', graph.cellEditor.textarea) != null);
+							setSelected(fontStyleItems[1], css.fontStyle == 'italic' || graph.getParentByName(node, 'I', graph.cellEditor.textarea) != null);
+							setSelected(fontStyleItems[2], graph.getParentByName(node, 'U', graph.cellEditor.textarea) != null);
+							setSelected(left, css.textAlign == 'left');
+							setSelected(center, css.textAlign == 'center');
+							setSelected(right, css.textAlign == 'right');
+							setSelected(full, css.textAlign == 'justify');
+							setSelected(sup, graph.getParentByName(node, 'SUP', graph.cellEditor.textarea) != null);
+							setSelected(sub, graph.getParentByName(node, 'SUB', graph.cellEditor.textarea) != null);
+							
+							currentTable = graph.getParentByName(node, 'TABLE', graph.cellEditor.textarea);
+							tableRow = (currentTable == null) ? null : graph.getParentByName(node, 'TR', currentTable);
+							tableCell = (currentTable == null) ? null : graph.getParentByName(node, 'TD', currentTable);
+							tableWrapper.style.display = (currentTable != null) ? '' : 'none';
+							
+							if (document.activeElement != input)
 							{
-								currentFontColor = color;
-							}
-							else
-							{
-								currentFontColor = '#000000';
+								input.value = parseInt(css.fontSize) + ' pt';
 							}
 							
-							fontColorApply(currentFontColor, true);
-						}
-						
-						if (bgColorApply != null)
-						{
-							if (color2.charAt(0) == '#')
-							{
-								currentBgColor = color2;
-							}
-							else
-							{
-								currentBgColor = null;
-							}
+							// Converts rgb(r,g,b) values
+							var color = css.color.replace(
+								    /\brgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/g,
+								    function($0, $1, $2, $3) {
+								        return "#" + ("0"+Number($1).toString(16)).substr(-2) + ("0"+Number($2).toString(16)).substr(-2) + ("0"+Number($3).toString(16)).substr(-2);
+								    });
+							var color2 = css.backgroundColor.replace(
+								    /\brgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/g,
+								    function($0, $1, $2, $3) {
+								        return "#" + ("0"+Number($1).toString(16)).substr(-2) + ("0"+Number($2).toString(16)).substr(-2) + ("0"+Number($3).toString(16)).substr(-2);
+								    });
 							
-							bgColorApply(currentBgColor, true);
-						}
-						
-						// Workaround for firstChild is null or not an object
-						// in the log which seems to be IE8- only / 29.01.15
-						if (fontMenu.firstChild != null)
-						{
-							// Strips leading and trailing quotes
-							var ff = css.fontFamily;
-							
-							if (ff.charAt(0) == '\'')
+							// Updates the color picker for the current font
+							if (fontColorApply != null)
 							{
-								ff = ff.substring(1);
+								if (color.charAt(0) == '#')
+								{
+									currentFontColor = color;
+								}
+								else
+								{
+									currentFontColor = '#000000';
+								}
+								
+								fontColorApply(currentFontColor, true);
 							}
 							
-							if (ff.charAt(ff.length - 1) == '\'')
+							if (bgColorApply != null)
 							{
-								ff = ff.substring(0, ff.length - 1);
+								if (color2.charAt(0) == '#')
+								{
+									currentBgColor = color2;
+								}
+								else
+								{
+									currentBgColor = null;
+								}
+								
+								bgColorApply(currentBgColor, true);
 							}
 							
-							fontMenu.firstChild.nodeValue = ff;
+							// Workaround for firstChild is null or not an object
+							// in the log which seems to be IE8- only / 29.01.15
+							if (fontMenu.firstChild != null)
+							{
+								// Strips leading and trailing quotes
+								var ff = css.fontFamily;
+								
+								if (ff.charAt(0) == '\'')
+								{
+									ff = ff.substring(1);
+								}
+								
+								if (ff.charAt(ff.length - 1) == '\'')
+								{
+									ff = ff.substring(0, ff.length - 1);
+								}
+								
+								fontMenu.firstChild.nodeValue = ff;
+							}
 						}
 					}
 					
@@ -3470,8 +3488,10 @@ StyleFormatPanel.prototype.addStroke = function(container)
 	var pattern = this.editorUi.toolbar.addMenuFunctionInContainer(stylePanel, 'geSprite-orthogonal', mxResources.get('pattern'), false, mxUtils.bind(this, function(menu)
 	{
 		addItem(menu, 75, 'solid', [mxConstants.STYLE_DASHED, mxConstants.STYLE_DASH_PATTERN], [null, null]).setAttribute('title', mxResources.get('solid'));
-		addItem(menu, 75, 'dashed', [mxConstants.STYLE_DASHED, mxConstants.STYLE_DASH_PATTERN], ['1', null]).setAttribute('title', mxResources.get('dashed'));
-		addItem(menu, 75, 'dotted', [mxConstants.STYLE_DASHED, mxConstants.STYLE_DASH_PATTERN], ['1', '1 4']).setAttribute('title', mxResources.get('dotted'));
+		addItem(menu, 75, 'dashed', [mxConstants.STYLE_DASHED, mxConstants.STYLE_DASH_PATTERN], ['1', null]).setAttribute('title', mxResources.get('dashed') + ' (default)');
+		addItem(menu, 75, 'dotted', [mxConstants.STYLE_DASHED, mxConstants.STYLE_DASH_PATTERN], ['1', '1 1']).setAttribute('title', mxResources.get('dotted') + ' (1)');
+		addItem(menu, 75, 'dotted', [mxConstants.STYLE_DASHED, mxConstants.STYLE_DASH_PATTERN], ['1', '1 2']).setAttribute('title', mxResources.get('dotted') + ' (2)');
+		addItem(menu, 75, 'dotted', [mxConstants.STYLE_DASHED, mxConstants.STYLE_DASH_PATTERN], ['1', '1 4']).setAttribute('title', mxResources.get('dotted') + ' (3)');
 	}));
 	
 	var altStylePanel = stylePanel.cloneNode(false);
@@ -3488,7 +3508,9 @@ StyleFormatPanel.prototype.addStroke = function(container)
 	{
 		addItem(menu, 33, 'solid', [mxConstants.STYLE_DASHED, mxConstants.STYLE_DASH_PATTERN], [null, null]).setAttribute('title', mxResources.get('solid'));
 		addItem(menu, 33, 'dashed', [mxConstants.STYLE_DASHED, mxConstants.STYLE_DASH_PATTERN], ['1', null]).setAttribute('title', mxResources.get('dashed'));
-		addItem(menu, 33, 'dotted', [mxConstants.STYLE_DASHED, mxConstants.STYLE_DASH_PATTERN], ['1', '1 4']).setAttribute('title', mxResources.get('dotted'));
+		addItem(menu, 33, 'dotted', [mxConstants.STYLE_DASHED, mxConstants.STYLE_DASH_PATTERN], ['1', '1 1']).setAttribute('title', mxResources.get('dotted') + ' (1)');
+		addItem(menu, 33, 'dotted', [mxConstants.STYLE_DASHED, mxConstants.STYLE_DASH_PATTERN], ['1', '1 2']).setAttribute('title', mxResources.get('dotted') + ' (2)');
+		addItem(menu, 33, 'dotted', [mxConstants.STYLE_DASHED, mxConstants.STYLE_DASH_PATTERN], ['1', '1 4']).setAttribute('title', mxResources.get('dotted') + ' (3)');
 	}));
 	
 	var stylePanel2 = stylePanel.cloneNode(false);
@@ -4081,7 +4103,7 @@ StyleFormatPanel.prototype.addEffects = function(div)
 		{
 			addOption(mxResources.get('rounded'), mxConstants.STYLE_ROUNDED, 0);
 		}
-
+		
 		if (ss.style.shape == 'swimlane')
 		{
 			addOption(mxResources.get('divider'), 'swimlaneLine', 1);
@@ -4095,6 +4117,11 @@ StyleFormatPanel.prototype.addEffects = function(div)
 		if (ss.glass)
 		{
 			addOption(mxResources.get('glass'), mxConstants.STYLE_GLASS, 0);
+		}
+
+		if (ss.comic)
+		{
+			addOption(mxResources.get('comic'), 'comic', 0);
 		}
 		
 		if (count == 0)
@@ -4379,7 +4406,7 @@ DiagramFormatPanel.prototype.addGridOption = function(container)
 	function update(evt)
 	{
 		var value = parseInt(input.value);
-		value = Math.max(0, (isNaN(value)) ? 10 : value);
+		value = Math.max(1, (isNaN(value)) ? 10 : value);
 		
 		if (value != graph.getGridSize())
 		{

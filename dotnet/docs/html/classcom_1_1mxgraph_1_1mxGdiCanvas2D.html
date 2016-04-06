@@ -110,8 +110,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a1f4bdd89121fc399ef9aaee7efb678dd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGdiCanvas2D.html#a1f4bdd89121fc399ef9aaee7efb678dd">Image</a> (double x, double y, double w, double h, String src, bool aspect, bool flipH, bool flipV)</td></tr>
 <tr class="memdesc:a1f4bdd89121fc399ef9aaee7efb678dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws an image.  <a href="#a1f4bdd89121fc399ef9aaee7efb678dd">More...</a><br/></td></tr>
 <tr class="separator:a1f4bdd89121fc399ef9aaee7efb678dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4494a3a0f11bd456b48fff8ccd585b5d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGdiCanvas2D.html#a4494a3a0f11bd456b48fff8ccd585b5d">Text</a> (double x, double y, double w, double h, string str, string align, string valign, bool wrap, string format, string overflow, bool clip, double rotation, string dir)</td></tr>
-<tr class="separator:a4494a3a0f11bd456b48fff8ccd585b5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a56ff4fad53efea561a7d9c06eb870b7b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGdiCanvas2D.html#a56ff4fad53efea561a7d9c06eb870b7b">Text</a> (double x, double y, double w, double h, string str, string align, string valign, bool wrap, string format, string overflow, bool clip, double rotation)</td></tr>
+<tr class="separator:a56ff4fad53efea561a7d9c06eb870b7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a010db2efe1770074cc4def5f3a47a734"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGdiCanvas2D.html#a010db2efe1770074cc4def5f3a47a734">Begin</a> ()</td></tr>
 <tr class="separator:a010db2efe1770074cc4def5f3a47a734"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a909bb3cbbea1652b7b4b3d2e1b722100"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGdiCanvas2D.html#a909bb3cbbea1652b7b4b3d2e1b722100">MoveTo</a> (double x, double y)</td></tr>
@@ -149,6 +149,9 @@ Protected Member Functions</h2></td></tr>
 <tr class="memitem:ad2eabc64cfb68ac7bfeb82039f0891b7"><td class="memItemLeft" align="right" valign="top">Color&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGdiCanvas2D.html#ad2eabc64cfb68ac7bfeb82039f0891b7">ParseColor</a> (string hex)</td></tr>
 <tr class="memdesc:ad2eabc64cfb68ac7bfeb82039f0891b7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper method that uses <a class="el" href="">mxUtils#parseColor(String)</a>. Subclassers  <a href="#ad2eabc64cfb68ac7bfeb82039f0891b7">More...</a><br/></td></tr>
 <tr class="separator:ad2eabc64cfb68ac7bfeb82039f0891b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad6dd229191a9c880393c349d1258005b"><td class="memItemLeft" align="right" valign="top">Color&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGdiCanvas2D.html#ad6dd229191a9c880393c349d1258005b">ParseColor</a> (string hex, double alpha)</td></tr>
+<tr class="memdesc:ad6dd229191a9c880393c349d1258005b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper method that uses <a class="el" href="">mxUtils#parseColor(String)</a>. Subclassers  <a href="#ad6dd229191a9c880393c349d1258005b">More...</a><br/></td></tr>
+<tr class="separator:ad6dd229191a9c880393c349d1258005b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a545ca08f89bc3b30a51a9a1e2293c233"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGdiCanvas2D.html#a545ca08f89bc3b30a51a9a1e2293c233">DrawImage</a> (<a class="el" href="classcom_1_1mxgraph_1_1mxGdiCanvas2D.html#a1f4bdd89121fc399ef9aaee7efb678dd">Image</a> image, Rectangle bounds)</td></tr>
 <tr class="memdesc:a545ca08f89bc3b30a51a9a1e2293c233"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implements the call to the graphics API.  <a href="#a545ca08f89bc3b30a51a9a1e2293c233">More...</a><br/></td></tr>
 <tr class="separator:a545ca08f89bc3b30a51a9a1e2293c233"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -258,6 +261,12 @@ Properties</h2></td></tr>
 <tr class="memitem:a4ef49d57fa12764083f987ca32d13d6e"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGdiCanvas2D.html#a4ef49d57fa12764083f987ca32d13d6e">Alpha</a><code> [set]</code></td></tr>
 <tr class="memdesc:a4ef49d57fa12764083f987ca32d13d6e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the given alpha.  <a href="#a4ef49d57fa12764083f987ca32d13d6e">More...</a><br/></td></tr>
 <tr class="separator:a4ef49d57fa12764083f987ca32d13d6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a77a722b092d9649d62dbe809aa6a378c"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGdiCanvas2D.html#a77a722b092d9649d62dbe809aa6a378c">StrokeAlpha</a><code> [set]</code></td></tr>
+<tr class="memdesc:a77a722b092d9649d62dbe809aa6a378c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the given alpha.  <a href="#a77a722b092d9649d62dbe809aa6a378c">More...</a><br/></td></tr>
+<tr class="separator:a77a722b092d9649d62dbe809aa6a378c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad3fed7f0ba188bb75a8da096a3de55cf"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGdiCanvas2D.html#ad3fed7f0ba188bb75a8da096a3de55cf">FillAlpha</a><code> [set]</code></td></tr>
+<tr class="memdesc:ad3fed7f0ba188bb75a8da096a3de55cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the given alpha.  <a href="#ad3fed7f0ba188bb75a8da096a3de55cf">More...</a><br/></td></tr>
+<tr class="separator:ad3fed7f0ba188bb75a8da096a3de55cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a088edb66bed6448341b4add4aa67d523"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1mxgraph_1_1mxGdiCanvas2D.html#a088edb66bed6448341b4add4aa67d523">FillColor</a><code> [set]</code></td></tr>
 <tr class="memdesc:a088edb66bed6448341b4add4aa67d523"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the given fillcolor.  <a href="#a088edb66bed6448341b4add4aa67d523">More...</a><br/></td></tr>
 <tr class="separator:a088edb66bed6448341b4add4aa67d523"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -313,6 +322,12 @@ Properties</h2></td></tr>
 <tr class="memitem:a48894d4235ffc2fd63ebdadabaf35a79 inherit properties_interfacecom_1_1mxgraph_1_1mxICanvas2D"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a48894d4235ffc2fd63ebdadabaf35a79">Alpha</a><code> [set]</code></td></tr>
 <tr class="memdesc:a48894d4235ffc2fd63ebdadabaf35a79 inherit properties_interfacecom_1_1mxgraph_1_1mxICanvas2D"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default value 1. This method may add rendering overhead and should be used with care.  <a href="#a48894d4235ffc2fd63ebdadabaf35a79">More...</a><br/></td></tr>
 <tr class="separator:a48894d4235ffc2fd63ebdadabaf35a79 inherit properties_interfacecom_1_1mxgraph_1_1mxICanvas2D"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3c21965ef98d00380e7fc27757478514 inherit properties_interfacecom_1_1mxgraph_1_1mxICanvas2D"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a3c21965ef98d00380e7fc27757478514">FillAlpha</a><code> [set]</code></td></tr>
+<tr class="memdesc:a3c21965ef98d00380e7fc27757478514 inherit properties_interfacecom_1_1mxgraph_1_1mxICanvas2D"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default value 1.  <a href="#a3c21965ef98d00380e7fc27757478514">More...</a><br/></td></tr>
+<tr class="separator:a3c21965ef98d00380e7fc27757478514 inherit properties_interfacecom_1_1mxgraph_1_1mxICanvas2D"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a43ad7c702166606c4d25e742b69d407d inherit properties_interfacecom_1_1mxgraph_1_1mxICanvas2D"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a43ad7c702166606c4d25e742b69d407d">StrokeAlpha</a><code> [set]</code></td></tr>
+<tr class="memdesc:a43ad7c702166606c4d25e742b69d407d inherit properties_interfacecom_1_1mxgraph_1_1mxICanvas2D"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default value 1.  <a href="#a43ad7c702166606c4d25e742b69d407d">More...</a><br/></td></tr>
+<tr class="separator:a43ad7c702166606c4d25e742b69d407d inherit properties_interfacecom_1_1mxgraph_1_1mxICanvas2D"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a44737751e4df400227a799e7bbd00bac inherit properties_interfacecom_1_1mxgraph_1_1mxICanvas2D"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a44737751e4df400227a799e7bbd00bac">FillColor</a><code> [set]</code></td></tr>
 <tr class="memdesc:a44737751e4df400227a799e7bbd00bac inherit properties_interfacecom_1_1mxgraph_1_1mxICanvas2D"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default value <a class="el" href="classcom_1_1mxgraph_1_1mxConstants.html#a3c2389aa5ac4ef2c05f01beb97498cf3">mxConstants#NONE</a>.  <a href="#a44737751e4df400227a799e7bbd00bac">More...</a><br/></td></tr>
 <tr class="separator:a44737751e4df400227a799e7bbd00bac inherit properties_interfacecom_1_1mxgraph_1_1mxICanvas2D"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1169,6 +1184,43 @@ Properties</h2></td></tr>
 <p>Helper method that uses <a class="el" href="">mxUtils#parseColor(String)</a>. Subclassers </p>
 <p>can override this to implement caching for frequently used colors. </p>
 
+</div>
+</div>
+<a class="anchor" id="ad6dd229191a9c880393c349d1258005b"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Color com.mxgraph.mxGdiCanvas2D.ParseColor </td>
+          <td>(</td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>hex</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>alpha</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Helper method that uses <a class="el" href="">mxUtils#parseColor(String)</a>. Subclassers </p>
+<p>can override this to implement caching for frequently used colors. </p>
+
 <p>References <a class="el" href="classcom_1_1mxgraph_1_1mxConstants.html#a3c2389aa5ac4ef2c05f01beb97498cf3">com.mxgraph.mxConstants.NONE</a>.</p>
 
 </div>
@@ -1629,7 +1681,7 @@ Properties</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a4494a3a0f11bd456b48fff8ccd585b5d"></a>
+<a class="anchor" id="a56ff4fad53efea561a7d9c06eb870b7b"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -1706,13 +1758,7 @@ Properties</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>rotation</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">string&#160;</td>
-          <td class="paramname"><em>dir</em>&#160;</td>
+          <td class="paramname"><em>rotation</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1730,7 +1776,7 @@ Properties</h2></td></tr>
 <p></p>
 <p>Draws the given text. </p>
 
-<p>Implements <a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a5e19c6af68e6d2376bd63457685b3586">com.mxgraph.mxICanvas2D</a>.</p>
+<p>Implements <a class="el" href="interfacecom_1_1mxgraph_1_1mxICanvas2D.html#a0184c390798c6c00233668c6b123c650">com.mxgraph.mxICanvas2D</a>.</p>
 
 </div>
 </div>
@@ -2168,6 +2214,28 @@ Properties</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="ad3fed7f0ba188bb75a8da096a3de55cf"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">double com.mxgraph.mxGdiCanvas2D.FillAlpha</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">set</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Sets the given alpha. </p>
+
+</div>
+</div>
 <a class="anchor" id="a088edb66bed6448341b4add4aa67d523"></a>
 <div class="memitem">
 <div class="memproto">
@@ -2454,6 +2522,28 @@ Properties</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a77a722b092d9649d62dbe809aa6a378c"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">double com.mxgraph.mxGdiCanvas2D.StrokeAlpha</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">set</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Sets the given alpha. </p>
+
+</div>
+</div>
 <a class="anchor" id="af536ce6a4f0f0bc604eab60bf992d91e"></a>
 <div class="memitem">
 <div class="memproto">
@@ -2505,7 +2595,7 @@ Properties</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Mar 1 2016 10:14:12 for mxGraph by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Apr 6 2016 10:08:07 for mxGraph by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.6
 </small></address>

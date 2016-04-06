@@ -649,19 +649,19 @@ mxSvgCanvas2D.prototype.updateFill = function()
 {
 	var s = this.state;
 	
-	if (s.alpha < 1)
+	if (s.alpha < 1 || s.fillAlpha < 1)
 	{
-		this.node.setAttribute('fill-opacity', s.alpha);
+		this.node.setAttribute('fill-opacity', s.alpha * s.fillAlpha);
 	}
 	
 	if (s.fillColor != null)
 	{
 		if (s.gradientColor != null)
 		{
-			var id = this.getSvgGradient(s.fillColor, s.gradientColor, s.fillAlpha, s.gradientAlpha, s.gradientDirection);
-			var chromeApp = window.chrome != null && chrome.app != null && chrome.app.runtime != null;
+			var id = this.getSvgGradient(s.fillColor, s.gradientColor, s.gradientFillAlpha, s.gradientAlpha, s.gradientDirection);
 			
-			if (!chromeApp && !mxClient.IS_IE && this.root.ownerDocument == document)
+			if (!mxClient.IS_CHROME_APP && !mxClient.IS_IE && !mxClient.IS_IE11 &&
+				!mxClient.IS_EDGE && this.root.ownerDocument == document)
 			{
 				// Workaround for potential base tag and brackets must be escaped
 				var base = this.getBaseUrl().replace(/([\(\)])/g, '\\$1');
@@ -700,9 +700,9 @@ mxSvgCanvas2D.prototype.updateStroke = function()
 
 	this.node.setAttribute('stroke', s.strokeColor.toLowerCase());
 	
-	if (s.alpha < 1)
+	if (s.alpha < 1 || s.strokeAlpha < 1)
 	{
-		this.node.setAttribute('stroke-opacity', s.alpha);
+		this.node.setAttribute('stroke-opacity', s.alpha * s.strokeAlpha);
 	}
 	
 	var sw = this.getCurrentStrokeWidth();
@@ -1029,9 +1029,9 @@ mxSvgCanvas2D.prototype.image = function(x, y, w, h, src, aspect, flipH, flipV)
 		node.setAttribute('preserveAspectRatio', 'none');
 	}
 
-	if (s.alpha < 1)
+	if (s.alpha < 1 || s.fillAlpha < 1)
 	{
-		node.setAttribute('opacity', s.alpha);
+		node.setAttribute('opacity', s.alpha * s.fillAlpha);
 	}
 	
 	var tr = this.state.transform || '';
@@ -1880,9 +1880,8 @@ mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 			this.root.appendChild(c);
 		}
 		
-		var chromeApp = window.chrome != null && chrome.app != null && chrome.app.runtime != null;
-		
-		if (!chromeApp && !mxClient.IS_IE && this.root.ownerDocument == document)
+		if (!mxClient.IS_CHROME_APP && !mxClient.IS_IE && !mxClient.IS_IE11 &&
+			!mxClient.IS_EDGE && this.root.ownerDocument == document)
 		{
 			// Workaround for potential base tag
 			var base = this.getBaseUrl().replace(/([\(\)])/g, '\\$1');

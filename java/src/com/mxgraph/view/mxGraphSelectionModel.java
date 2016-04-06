@@ -34,6 +34,9 @@ import com.mxgraph.util.mxUndoableEdit.mxUndoableChange;
  * mxSelectionChange. The <code>added</code> and <code>removed</code>
  * properties contain Collections of cells that have been added to or removed
  * from the selection, respectively.
+ * 
+ * NOTE: Due to a historic bug that cannot be changed at this point the
+ * names of the properties are "reversed".
  *  
  * To add a change listener to the graph selection model:
  * 

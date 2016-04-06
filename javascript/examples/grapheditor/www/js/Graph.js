@@ -763,6 +763,22 @@ Graph.prototype.maxFitScale = null;
 Graph.prototype.linkTarget = '_blank';
 
 /**
+ * Scrollbars are enabled on non-touch devices (not including Firefox because touch events
+ * cannot be detected in Firefox, see above).
+ */
+Graph.prototype.defaultScrollbars = !mxClient.IS_IOS;
+
+/**
+ * Specifies if the page should be visible for new files. Default is true.
+ */
+Graph.prototype.defaultPageVisible = true;
+
+/**
+ * 
+ */
+Graph.prototype.defaultGraphBackground = '#ffffff';
+
+/**
  * Overrides the background color and paints a transparent background.
  */
 Graph.prototype.transparentBackground = true;
@@ -869,8 +885,9 @@ Graph.prototype.initLayoutManager = function()
 Graph.prototype.sanitizeHtml = function(value)
 {
 	// Uses https://code.google.com/p/google-caja/wiki/JsHtmlSanitizer
-	// TODO: Add MathML to whitelisted tags, add data URIs for images
-	function urlX(url) { if(/^https?:\/\//.test(url)) { return url }}
+	// NOTE: Original minimized sanitizer was modified to support data URIs for images
+	// TODO: Add MathML to whitelisted tags
+	function urlX(url) { if(/(^https?:|^mailto:\/\/|^data:image\/)/.test(url)) { return url }}
     function idX(id) { return id }
 	
 	return html_sanitize(value, urlX, idX);
@@ -931,6 +948,20 @@ Graph.prototype.getLabel = function(cell)
 	}
 	
 	return result;
+};
+
+/**
+ * Adds labelMovable style.
+ */
+Graph.prototype.isLabelMovable = function(cell)
+{
+	var state = this.view.getState(cell);
+	var style = (state != null) ? state.style : this.getCellStyle(cell);
+	
+	return !this.isCellLocked(cell) &&
+		((this.model.isEdge(cell) && this.edgeLabelsMovable) ||
+		(this.model.isVertex(cell) && (this.vertexLabelsMovable ||
+		mxUtils.getValue(style, 'labelMovable', '0') == '1')));
 };
 
 /**
@@ -1105,16 +1136,21 @@ Graph.prototype.replacePlaceholders = function(cell, str)
 			else
 			{
 				var name = val.substring(1, val.length - 1);
-				var current = cell;
 				
-				while (tmp == null && current != null)
+				// Workaround for invalid char for getting attribute in older versions of IE
+				if (name.indexOf('{') < 0)
 				{
-					if (current.value != null && typeof(current.value) == 'object')
-					{
-						tmp = current.value.getAttribute(name);
-					}
+					var current = cell;
 					
-					current = this.model.getParent(current);
+					while (tmp == null && current != null)
+					{
+						if (current.value != null && typeof(current.value) == 'object')
+						{
+							tmp = current.value.getAttribute(name);
+						}
+						
+						current = this.model.getParent(current);
+					}
 				}
 				
 				if (tmp == null)
@@ -1752,13 +1788,53 @@ Graph.prototype.reset = function()
 };
 
 /**
- * Overridden to limit zoom to 160x.
+ * Overridden to limit zoom to 1% - 16.000%.
  */
 Graph.prototype.zoom = function(factor, center)
 {
-	factor = Math.min(this.view.scale * factor, 160) / this.view.scale;
+	factor = Math.max(0.01, Math.min(this.view.scale * factor, 160)) / this.view.scale;
 	
 	mxGraph.prototype.zoom.apply(this, arguments);
+};
+
+/**
+ * Function: zoomIn
+ * 
+ * Zooms into the graph by <zoomFactor>.
+ */
+Graph.prototype.zoomIn = function()
+{
+	// Switches to 1% zoom steps below 15%
+	if (this.view.scale < 0.15)
+	{
+		this.zoom((this.view.scale + 0.01) / this.view.scale);
+	}
+	else
+	{
+		// Uses to 5% zoom steps for better grid rendering in webkit
+		// and to avoid rounding errors for zoom steps
+		this.zoom((Math.round(this.view.scale * this.zoomFactor * 20) / 20) / this.view.scale);
+	}
+};
+
+/**
+ * Function: zoomOut
+ * 
+ * Zooms out of the graph by <zoomFactor>.
+ */
+Graph.prototype.zoomOut = function()
+{
+	// Switches to 1% zoom steps below 15%
+	if (this.view.scale <= 0.15)
+	{
+		this.zoom((this.view.scale - 0.01) / this.view.scale);
+	}
+	else
+	{
+		// Uses to 5% zoom steps for better grid rendering in webkit
+		// and to avoid rounding errors for zoom steps
+		this.zoom((Math.round(this.view.scale * (1 / this.zoomFactor) * 20) / 20) / this.view.scale);
+	}
 };
 
 /**
@@ -2620,6 +2696,43 @@ HoverIcons.prototype.setCurrentState = function(state)
 	this.graph.container.appendChild(this.arrowRight);
 	this.graph.container.appendChild(this.arrowLeft);
 	this.currentState = state;
+};
+
+/**
+ * Adds custom stencils defined via shape=stencil(value) style. The value is a base64 encoded, compressed and
+ * URL encoded XML definition of the shape according to the stencil definition language of mxGraph.
+ * 
+ * Needs to be in this file to make sure its part of the embed client code. Also the check for ZLib is
+ * different than for the Editor code.
+ */
+var mxCellRendererCreateShape = mxCellRenderer.prototype.createShape;
+mxCellRenderer.prototype.createShape = function(state)
+{
+	if (state.style != null && typeof(RawDeflate) !== 'undefined' && typeof RawDeflate.inflate === 'function')
+	{
+    	var shape = mxUtils.getValue(state.style, mxConstants.STYLE_SHAPE, null);
+
+    	// Extracts and decodes stencil XML if shape has the form shape=stencil(value)
+    	if (shape != null && shape.substring(0, 8) == 'stencil(')
+    	{
+    		try
+    		{
+    			var stencil = shape.substring(8, shape.length - 1);
+    			var doc = mxUtils.parseXml(decodeURIComponent(RawDeflate.inflate((window.atob) ? atob(stencil) : Base64.decode(stencil, true))));
+    			
+    			return new mxShape(new mxStencil(doc.documentElement));
+    		}
+    		catch (e)
+    		{
+    			if (window.console != null)
+    			{
+    				console.log('Error in shape: ' + e);
+    			}
+    		}
+    	}
+	}
+	
+	return mxCellRendererCreateShape.apply(this, arguments);
 };
 
 /**
@@ -3707,9 +3820,9 @@ if (typeof mxVertexHandler != 'undefined')
 			svgCanvas.createAlternateContent = function(fo, x, y, w, h, str, align, valign, wrap, format, overflow, clip, rotation)
 			{
 				var s = this.state;
-				
+
 				// Assumes a max character width of 0.2em
-				if (this.foAltText != null && (w == 0 ||( s.fontSize != 0 && str.length < (w * 5) / s.fontSize)))
+				if (this.foAltText != null && (w == 0 || (s.fontSize != 0 && str.length < (w * 5) / s.fontSize)))
 				{
 					var alt = this.createElement('text');
 					alt.setAttribute('x', Math.round(w / 2));
@@ -4863,12 +4976,16 @@ if (typeof mxVertexHandler != 'undefined')
 		mxEdgeHandler.prototype.fixedHandleImage = fixedHandle;
 		mxEdgeHandler.prototype.labelHandleImage = secondaryHandle;
 		mxOutline.prototype.sizerImage = mainHandle;
-		Sidebar.prototype.triangleUp = HoverIcons.prototype.triangleUp;
-		Sidebar.prototype.triangleRight = HoverIcons.prototype.triangleRight;
-		Sidebar.prototype.triangleDown = HoverIcons.prototype.triangleDown;
-		Sidebar.prototype.triangleLeft = HoverIcons.prototype.triangleLeft;
-		Sidebar.prototype.refreshTarget = HoverIcons.prototype.refreshTarget;
-		Sidebar.prototype.roundDrop = HoverIcons.prototype.roundDrop;
+		
+		if (window.Sidebar != null)
+		{
+			Sidebar.prototype.triangleUp = HoverIcons.prototype.triangleUp;
+			Sidebar.prototype.triangleRight = HoverIcons.prototype.triangleRight;
+			Sidebar.prototype.triangleDown = HoverIcons.prototype.triangleDown;
+			Sidebar.prototype.triangleLeft = HoverIcons.prototype.triangleLeft;
+			Sidebar.prototype.refreshTarget = HoverIcons.prototype.refreshTarget;
+			Sidebar.prototype.roundDrop = HoverIcons.prototype.roundDrop;
+		}
 
 		// Pre-fetches images (only needed for non data-uris)
 		if (!mxClient.IS_SVG)
@@ -5220,7 +5337,8 @@ if (typeof mxVertexHandler != 'undefined')
 		{
 			var source = index != null && index == 0;
 			var terminalState = this.state.getVisibleTerminalState(source);
-			var c = (index != null && (index == 0 || index >= this.state.absolutePoints.length - 1)) ?
+			var c = (index != null && (index == 0 || index >= this.state.absolutePoints.length - 1 ||
+				(this.constructor == mxElbowEdgeHandler && index == 2))) ?
 				this.graph.getConnectionConstraint(this.state, terminalState, source) : null;
 			var pt = (c != null) ? this.graph.getConnectionPoint(this.state.getVisibleTerminalState(source), c) : null;
 			var img = (pt != null) ? this.fixedHandleImage : ((c != null && terminalState != null) ?
@@ -5252,6 +5370,7 @@ if (typeof mxVertexHandler != 'undefined')
 		mxVertexHandler.prototype.createSizerShape = function(bounds, index, fillColor)
 		{
 			this.handleImage = (index == mxEvent.ROTATION_HANDLE) ? rotationHandle : (index == mxEvent.LABEL_HANDLE) ? this.secondaryHandleImage : this.handleImage;
+			
 			return vertexHandlerCreateSizerShape.apply(this, arguments);
 		};
 		

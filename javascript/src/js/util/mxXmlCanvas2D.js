@@ -10,8 +10,9 @@
  * 
  * - <save>, <restore>
  * - <scale>, <translate>, <rotate>
- * - <setAlpha>, <setFillColor>, <setGradient>, <setStrokeColor>, <setStrokeWidth>,
- *   <setDashed>, <setDashPattern>, <setLineCap>, <setLineJoin>, <setMiterLimit>
+ * - <setAlpha>, <setFillAlpha>, <setStrokeAlpha>, <setFillColor>, <setGradient>,
+ *   <setStrokeColor>, <setStrokeWidth>, <setDashed>, <setDashPattern>, <setLineCap>, 
+ *   <setLineJoin>, <setMiterLimit>
  * - <setFontColor>, <setFontBackgroundColor>, <setFontBorderColor>, <setFontSize>,
  *   <setFontFamily>, <setFontStyle>
  * - <setShadow>, <setShadowColor>, <setShadowAlpha>, <setShadowOffset>
@@ -156,19 +157,9 @@ mxXmlCanvas2D.prototype.restore = function()
  */
 mxXmlCanvas2D.prototype.scale = function(value)
 {
-	if (this.compressed)
-	{
-		if (this.state.scale == value)
-		{
-			return;
-		}
-		
-		mxAbstractCanvas2D.prototype.setAlpha.apply(this, arguments);
-	}
-	
-	var elem = this.createElement('scale');
-	elem.setAttribute('scale', value);
-	this.root.appendChild(elem);
+        var elem = this.createElement('scale');
+        elem.setAttribute('scale', value);
+        this.root.appendChild(elem);
 };
 
 /**
@@ -241,6 +232,60 @@ mxXmlCanvas2D.prototype.setAlpha = function(value)
 	}
 	
 	var elem = this.createElement('alpha');
+	elem.setAttribute('alpha', this.format(value));
+	this.root.appendChild(elem);
+};
+
+/**
+ * Function: setFillAlpha
+ * 
+ * Sets the current fill alpha.
+ * 
+ * Parameters:
+ * 
+ * value - Number that represents the new fill alpha. Possible values are between
+ * 1 (opaque) and 0 (transparent).
+ */
+mxXmlCanvas2D.prototype.setFillAlpha = function(value)
+{
+	if (this.compressed)
+	{
+		if (this.state.fillAlpha == value)
+		{
+			return;
+		}
+		
+		mxAbstractCanvas2D.prototype.setFillAlpha.apply(this, arguments);
+	}
+	
+	var elem = this.createElement('fillalpha');
+	elem.setAttribute('alpha', this.format(value));
+	this.root.appendChild(elem);
+};
+
+/**
+ * Function: setStrokeAlpha
+ * 
+ * Sets the current stroke alpha.
+ * 
+ * Parameters:
+ * 
+ * value - Number that represents the new stroke alpha. Possible values are between
+ * 1 (opaque) and 0 (transparent).
+ */
+mxXmlCanvas2D.prototype.setStrokeAlpha = function(value)
+{
+	if (this.compressed)
+	{
+		if (this.state.strokeAlpha == value)
+		{
+			return;
+		}
+		
+		mxAbstractCanvas2D.prototype.setStrokeAlpha.apply(this, arguments);
+	}
+	
+	var elem = this.createElement('strokealpha');
 	elem.setAttribute('alpha', this.format(value));
 	this.root.appendChild(elem);
 };

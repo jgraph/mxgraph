@@ -63,13 +63,7 @@
 function mxShape(stencil)
 {
 	this.stencil = stencil;
-	
-	// Sets some defaults
-	this.strokewidth = 1;
-	this.rotation = 0;
-	this.opacity = 100;
-	this.flipH = false;
-	this.flipV = false;
+	this.initStyles();
 };
 
 /**
@@ -235,6 +229,22 @@ mxShape.prototype.init = function(container)
 			container.appendChild(this.node);
 		}
 	}
+};
+
+/**
+ * Function: initStyles
+ *
+ * Sets the styles to their default values.
+ */
+mxShape.prototype.initStyles = function(container)
+{
+	this.strokewidth = 1;
+	this.rotation = 0;
+	this.opacity = 100;
+	this.fillOpacity = 100;
+	this.strokeOpacity = 100;
+	this.flipH = false;
+	this.flipV = false;
 };
 
 /**
@@ -904,6 +914,8 @@ mxShape.prototype.configureCanvas = function(c, x, y, w, h)
 	}
 
 	c.setAlpha(this.opacity / 100);
+	c.setFillAlpha(this.fillOpacity / 100);
+	c.setStrokeAlpha(this.strokeOpacity / 100);
 
 	// Sets alpha, colors and gradients
 	if (this.isShadow != null)
@@ -1127,6 +1139,32 @@ mxShape.prototype.addPoints = function(c, pts, rounded, arcSize, close)
 };
 
 /**
+ * Function: resetStyles
+ * 
+ * Resets all styles.
+ */
+mxShape.prototype.resetStyles = function()
+{
+	this.initStyles();
+
+	this.spacing = 0;
+	
+	delete this.fill;
+	delete this.gradient;
+	delete this.gradientDirection;
+	delete this.stroke;
+	delete this.startSize;
+	delete this.endSize;
+	delete this.startArrow;
+	delete this.endArrow;
+	delete this.direction;
+	delete this.isShadow;
+	delete this.isDashed;
+	delete this.isRounded;
+	delete this.glass;
+};
+
+/**
  * Function: apply
  * 
  * Applies the style of the given <mxCellState> to the shape. This
@@ -1136,6 +1174,8 @@ mxShape.prototype.addPoints = function(c, pts, rounded, arcSize, close)
  * - <mxConstants.STYLE_GRADIENTCOLOR> => gradient
  * - <mxConstants.STYLE_GRADIENT_DIRECTION> => gradientDirection
  * - <mxConstants.STYLE_OPACITY> => opacity
+ * - <mxConstants.STYLE_FILL_OPACITY> => fillOpacity
+ * - <mxConstants.STYLE_STROKE_OPACITY> => strokeOpacity
  * - <mxConstants.STYLE_STROKECOLOR> => stroke
  * - <mxConstants.STYLE_STROKEWIDTH> => strokewidth
  * - <mxConstants.STYLE_SHADOW> => isShadow
@@ -1170,6 +1210,8 @@ mxShape.prototype.apply = function(state)
 		this.gradient = mxUtils.getValue(this.style, mxConstants.STYLE_GRADIENTCOLOR, this.gradient);
 		this.gradientDirection = mxUtils.getValue(this.style, mxConstants.STYLE_GRADIENT_DIRECTION, this.gradientDirection);
 		this.opacity = mxUtils.getValue(this.style, mxConstants.STYLE_OPACITY, this.opacity);
+		this.fillOpacity = mxUtils.getValue(this.style, mxConstants.STYLE_FILL_OPACITY, this.fillOpacity);
+		this.strokeOpacity = mxUtils.getValue(this.style, mxConstants.STYLE_STROKE_OPACITY, this.strokeOpacity);
 		this.stroke = mxUtils.getValue(this.style, mxConstants.STYLE_STROKECOLOR, this.stroke);
 		this.strokewidth = mxUtils.getNumber(this.style, mxConstants.STYLE_STROKEWIDTH, this.strokewidth);
 		// Arrow stroke width is used to compute the arrow heads size in mxConnector

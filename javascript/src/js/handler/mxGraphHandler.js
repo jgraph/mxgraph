@@ -438,9 +438,12 @@ mxGraphHandler.prototype.getPreviewBounds = function(cells)
 		}
 		else
 		{
-			bounds.x = Math.floor(bounds.x);
+			bounds.x = Math.round(bounds.x);
 			bounds.width = Math.ceil(bounds.width);
 		}
+		
+		var tr = this.graph.view.translate;
+		var s = this.graph.view.scale;
 		
 		if (bounds.height < this.minimumSize)
 		{
@@ -450,7 +453,7 @@ mxGraphHandler.prototype.getPreviewBounds = function(cells)
 		}
 		else
 		{
-			bounds.y = Math.floor(bounds.y);
+			bounds.y = Math.round(bounds.y);
 			bounds.height = Math.ceil(bounds.height);
 		}
 	}

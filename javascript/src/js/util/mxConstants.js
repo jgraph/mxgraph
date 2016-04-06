@@ -642,10 +642,9 @@
 	/**
 	 * Variable: ARROW_SPACING
 	 * 
-	 * Defines the spacing between the arrow shape and its terminals. Default
-	 * is 10.
+	 * Defines the spacing between the arrow shape and its terminals. Default is 0.
 	 */
-	ARROW_SPACING: 10,
+	ARROW_SPACING: 0,
 
 	/**
 	 * Variable: ARROW_WIDTH
@@ -758,6 +757,22 @@
 	 * numeric and the possible range is 0-100. Value is "opacity".
 	 */
 	STYLE_OPACITY: 'opacity',
+
+	/**
+	 * Variable: STYLE_FILL_OPACITY
+	 * 
+	 * Defines the key for the fill opacity style. The type of the value is 
+	 * numeric and the possible range is 0-100. Value is "fillOpacity".
+	 */
+	STYLE_FILL_OPACITY: 'fillOpacity',
+
+	/**
+	 * Variable: STYLE_STROKE_OPACITY
+	 * 
+	 * Defines the key for the stroke opacity style. The type of the value is 
+	 * numeric and the possible range is 0-100. Value is "strokeOpacity".
+	 */
+	STYLE_STROKE_OPACITY: 'strokeOpacity',
 
 	/**
 	 * Variable: STYLE_TEXT_OPACITY

@@ -1689,13 +1689,13 @@ var mxUtils =
 	/**
 	 * Function: equalEntries
 	 * 
-	 * Returns true if all entries of the given objects are equal. Values with
-	 * with Number.NaN are equal to Number.NaN and unequal to any other value.
+	 * Returns true if all properties of the given objects are equal. Values
+	 * with NaN are equal to NaN and unequal to any other value.
 	 * 
 	 * Parameters:
 	 * 
-	 * a - <mxRectangle> to be compared.
-	 * b - <mxRectangle> to be compared.
+	 * a - First object to be compared.
+	 * b - Second object to be compared.
 	 */
 	equalEntries: function(a, b)
 	{
@@ -1706,8 +1706,18 @@ var mxUtils =
 		}
 		else if (a != null && b != null)
 		{
+			// Counts keys in b to check if all values have been compared
+			var count = 0;
+			
+			for (var key in b)
+			{
+				count++;
+			}
+			
 			for (var key in a)
 			{
+				count--
+				
 				if ((!mxUtils.isNaN(a[key]) || !mxUtils.isNaN(b[key])) && a[key] != b[key])
 				{
 					return false;
@@ -1715,7 +1725,7 @@ var mxUtils =
 			}
 		}
 		
-		return true;
+		return count == 0;
 	},
 	
 	/**

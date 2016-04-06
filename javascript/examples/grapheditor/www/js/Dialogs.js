@@ -1403,10 +1403,13 @@ var EditDiagramDialog = function(editorUi)
 	select.style.width = '180px';
 	select.className = 'geBtn';
 
-	var replaceOption = document.createElement('option');
-	replaceOption.setAttribute('value', 'replace');
-	mxUtils.write(replaceOption, mxResources.get('replaceExistingDrawing'));
-	select.appendChild(replaceOption);
+	if (editorUi.editor.graph.isEnabled())
+	{
+		var replaceOption = document.createElement('option');
+		replaceOption.setAttribute('value', 'replace');
+		mxUtils.write(replaceOption, mxResources.get('replaceExistingDrawing'));
+		select.appendChild(replaceOption);
+	}
 
 	var newOption = document.createElement('option');
 	newOption.setAttribute('value', 'new');
@@ -1419,11 +1422,14 @@ var EditDiagramDialog = function(editorUi)
 		select.appendChild(newOption);
 	}
 
-	var importOption = document.createElement('option');
-	importOption.setAttribute('value', 'import');
-	mxUtils.write(importOption, mxResources.get('addToExistingDrawing'));
-	select.appendChild(importOption);
-	
+	if (editorUi.editor.graph.isEnabled())
+	{
+		var importOption = document.createElement('option');
+		importOption.setAttribute('value', 'import');
+		mxUtils.write(importOption, mxResources.get('addToExistingDrawing'));
+		select.appendChild(importOption);
+	}
+
 	div.appendChild(select);
 
 	var okBtn = mxUtils.button(mxResources.get('ok'), function()

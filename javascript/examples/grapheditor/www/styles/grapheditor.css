@@ -317,13 +317,6 @@ div.mxWindow .geButton {
 	border-top:1px solid #e5e5e5;
 	overflow:auto;
 }
-.geFormatContainer {
-	background:whiteSmoke;
-	overflow:hidden;
-	position:absolute;
-	border-top:1px solid #e5e5e5;
-	overflow:auto;
-}
 .geSidebar {
 	background:whiteSmoke;
 	border-bottom:1px solid #e5e5e5;

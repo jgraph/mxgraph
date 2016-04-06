@@ -141,8 +141,10 @@ mxAbstractCanvas2D.prototype.createState = function()
 		dy: 0,
 		scale: 1,
 		alpha: 1,
-		fillColor: null,
 		fillAlpha: 1,
+		strokeAlpha: 1,
+		fillColor: null,
+		gradientFillAlpha: 1,
 		gradientColor: null,
 		gradientAlpha: 1,
 		gradientDirection: null,
@@ -297,6 +299,26 @@ mxAbstractCanvas2D.prototype.setAlpha = function(value)
 };
 
 /**
+ * Function: setFillAlpha
+ * 
+ * Sets the current solid fill alpha.
+ */
+mxAbstractCanvas2D.prototype.setFillAlpha = function(value)
+{
+	this.state.fillAlpha = value;
+};
+
+/**
+ * Function: setStrokeAlpha
+ * 
+ * Sets the current stroke alpha.
+ */
+mxAbstractCanvas2D.prototype.setStrokeAlpha = function(value)
+{
+	this.state.strokeAlpha = value;
+};
+
+/**
  * Function: setFillColor
  * 
  * Sets the current fill color.
@@ -321,7 +343,7 @@ mxAbstractCanvas2D.prototype.setGradient = function(color1, color2, x, y, w, h, 
 {
 	var s = this.state;
 	s.fillColor = color1;
-	s.fillAlpha = (alpha1 != null) ? alpha1 : 1;
+	s.gradientFillAlpha = (alpha1 != null) ? alpha1 : 1;
 	s.gradientColor = color2;
 	s.gradientAlpha = (alpha2 != null) ? alpha2 : 1;
 	s.gradientDirection = direction;

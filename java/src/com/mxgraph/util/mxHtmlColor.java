@@ -47,6 +47,14 @@ public class mxHtmlColor
 	}
 
 	/**
+	 * Shortcut for parseColor with no transparency.
+	 */
+	public static Color parseColor(String str) throws NumberFormatException
+	{
+		return parseColor(str, 1);
+	};
+	
+	/**
 	 * Convert a string representing a 24/32bit hex color value into a Color
 	 * object. All 147 CSS color names and none are also supported. None returns
 	 * null.
@@ -60,7 +68,7 @@ public class mxHtmlColor
 	 *                if the specified string cannot be interpreted as a
 	 *                hexidecimal integer
 	 */
-	public static Color parseColor(String str) throws NumberFormatException
+	public static Color parseColor(String str, double alpha) throws NumberFormatException
 	{
 		if (str == null || str.equals(mxConstants.NONE))
 		{
@@ -98,8 +106,8 @@ public class mxHtmlColor
 			{
 				tmp = tmp.substring(1);
 			}
-
-			value = (int) Long.parseLong(tmp, 16);
+			
+			value = (int) (Long.parseLong(tmp, 16) | (((int) (alpha * 255)) << 24));
 		}
 		catch (NumberFormatException nfe)
 		{
@@ -113,7 +121,7 @@ public class mxHtmlColor
 			}
 		}
 
-		return new Color(value);
+		return (alpha < 1) ? new Color(value, true) : new Color(value);
 	}
 
 	protected static Color parseRgb(String rgbString)

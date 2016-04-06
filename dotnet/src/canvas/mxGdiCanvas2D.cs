@@ -1,3 +1,4 @@
+// $Id: mxGdiCanvas2D.cs,v 1.12 2013/05/23 10:29:42 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Drawing;
@@ -390,6 +391,29 @@ namespace com.mxgraph
             }
 	    }
 
+        /// <summary>
+        /// Sets the given alpha.
+        /// </summary>
+        public double StrokeAlpha
+        {
+            set
+            {
+                state.strokeAlpha = value;
+            }
+        }
+
+        /// <summary>
+        /// Sets the given alpha.
+        /// </summary>
+        public double FillAlpha
+        {
+            set
+            {
+                state.fillAlpha = value;
+                state.brush = new SolidBrush(ParseColor(state.fillColorValue, state.fillAlpha));
+            }
+        }
+
 	    /// <summary>
 	    /// Sets the given fillcolor.
 	    /// </summary>
@@ -397,7 +421,8 @@ namespace com.mxgraph
         {
             set
             {
-                state.brush = new SolidBrush(ParseColor(value));
+                state.fillColorValue = value;
+                state.brush = new SolidBrush(ParseColor(state.fillColorValue, state.fillAlpha));
             }
 	    }
 
@@ -509,14 +534,23 @@ namespace com.mxgraph
             state.brush = new LinearGradientBrush(new RectangleF((float) x, (float) y,
                 (float) w, (float) h), c1, c2, mode);
 	    }
+        
+	    /// <summary>
+	    /// Helper method that uses {@link mxUtils#parseColor(String)}. Subclassers
+        /// can override this to implement caching for frequently used colors.
+	    /// </summary>
+        protected Color ParseColor(string hex)
+        {
+            return ParseColor(hex, 1);
+        }
 
 	    /// <summary>
 	    /// Helper method that uses {@link mxUtils#parseColor(String)}. Subclassers
         /// can override this to implement caching for frequently used colors.
 	    /// </summary>
-	    protected Color ParseColor(string hex)
+	    protected Color ParseColor(string hex, double alpha)
 	    {
-            if (hex == null || hex.Equals(mxConstants.NONE))
+            if (hex == null || alpha == 0 || hex.Equals(mxConstants.NONE))
             {
                 // TODO: Return null
                 return Color.Transparent;
@@ -525,7 +559,7 @@ namespace com.mxgraph
             Color color = ColorTranslator.FromHtml(hex);
 
             // Poor man's setAlpha
-            color = Color.FromArgb((int) (state.alpha * 255), color.R, color.G, color.B);
+            color = Color.FromArgb((int) (alpha * state.alpha * 255), color.R, color.G, color.B);
 
             return color;
 	    }
@@ -684,7 +718,7 @@ namespace com.mxgraph
         /// Draws the given text.
 	    /// </summary>
 	    public void Text(double x, double y, double w, double h, string str, string align, string valign,
-                bool wrap, string format, string overflow, bool clip, double rotation, string dir)
+                bool wrap, string format, string overflow, bool clip, double rotation)
 	    {
             bool htmlFormat = format != null && format.Equals("html");
 
@@ -1025,7 +1059,7 @@ namespace com.mxgraph
                 {
                     if (state.strokeColor == null)
                     {
-                        state.strokeColor = ParseColor(state.strokeColorValue);
+                        state.strokeColor = ParseColor(state.strokeColorValue, state.strokeAlpha);
                     }
                 }
 
@@ -1200,6 +1234,16 @@ namespace com.mxgraph
 		    /// </summary>
 		    internal double alpha = 1;
 
+            /// <summary>
+            /// 
+            /// </summary>
+            internal double fillAlpha = 1;
+
+            /// <summary>
+            /// 
+            /// </summary>
+            internal double strokeAlpha = 1;
+
 		    /// <summary>
 		    /// 
 		    /// </summary>
@@ -1294,6 +1338,11 @@ namespace com.mxgraph
             /// 
             /// </summary>
 		    internal Color? strokeColor;
+
+            /// <summary>
+            /// 
+            /// </summary>
+            internal string fillColorValue = mxConstants.NONE;
 
             /// <summary>
             /// 

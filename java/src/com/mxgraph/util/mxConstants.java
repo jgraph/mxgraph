@@ -265,6 +265,18 @@ public class mxConstants
 	public static String STYLE_OPACITY = "opacity";
 
 	/**
+	 * Defines the key for the fill opacity style. The type of the value is 
+	 * <code>float</code> and the possible range is 0-100.
+	 */
+	public static String STYLE_FILL_OPACITY = "fillOpacity";
+
+	/**
+	 * Defines the key for the stroke opacity style. The type of the value is 
+	 * <code>float</code> and the possible range is 0-100.
+	 */
+	public static String STYLE_STROKE_OPACITY = "strokeOpacity";
+
+	/**
 	 * Defines the key for the text opacity style. The type of the value is 
 	 * <code>float</code> and the possible range is 0-100.
 	 */
