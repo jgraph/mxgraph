@@ -934,7 +934,7 @@ mxCellRenderer.prototype.isTextShapeInvalid = function(state, shape)
 		check('horizontal', mxConstants.STYLE_HORIZONTAL, true) ||
 		check('background', mxConstants.STYLE_LABEL_BACKGROUNDCOLOR) ||
 		check('border', mxConstants.STYLE_LABEL_BORDERCOLOR) ||
-		check('opacity', mxConstants.STYLE_TEXT_OPACITY, 100)
+		check('opacity', mxConstants.STYLE_TEXT_OPACITY, 100) ||
 		check('textDirection', mxConstants.STYLE_TEXT_DIRECTION, mxConstants.DEFAULT_TEXT_DIRECTION);
 };
 
