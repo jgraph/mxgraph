@@ -998,15 +998,18 @@ var PrintDialog = function(editorUi)
 		td.appendChild(cancelBtn);
 	}
 	
-	var previewBtn = mxUtils.button(mxResources.get('preview'), function()
+	if (!mxClient.IS_CHROMEAPP)
 	{
-		editorUi.hideDialog();
-		preview(false);
-	});
-	previewBtn.className = 'geBtn';
-	td.appendChild(previewBtn);
+		var previewBtn = mxUtils.button(mxResources.get('preview'), function()
+		{
+			editorUi.hideDialog();
+			preview(false);
+		});
+		previewBtn.className = 'geBtn';
+		td.appendChild(previewBtn);
+	}
 	
-	var printBtn = mxUtils.button(mxResources.get('print'), function()
+	var printBtn = mxUtils.button(mxResources.get((mxClient.IS_CHROMEAPP) ? 'ok' : 'print'), function()
 	{
 		editorUi.hideDialog();
 		preview(true);

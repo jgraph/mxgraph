@@ -868,6 +868,9 @@ mxCellRenderer.prototype.redrawLabel = function(state, forced)
 			
 			state.text.resetStyles();
 			state.text.apply(state);
+			
+			// Special case opacity which is taken from textOpacity style for text
+			state.text.opacity = mxUtils.getValue(state.style, mxConstants.STYLE_TEXT_OPACITY, 100);
 		}
 		
 		var bounds = this.getLabelBounds(state);
@@ -891,7 +894,11 @@ mxCellRenderer.prototype.redrawLabel = function(state, forced)
 			state.text.wrap = wrapping;
 			state.text.clipped = clipping;
 			state.text.overflow = overflow;
+			
+			// Preserves visible state
+			var vis = state.text.node.style.visibility;
 			this.redrawLabelShape(state.text);
+			state.text.node.style.visibility = vis;
 		}
 	}
 };
@@ -927,6 +934,7 @@ mxCellRenderer.prototype.isTextShapeInvalid = function(state, shape)
 		check('horizontal', mxConstants.STYLE_HORIZONTAL, true) ||
 		check('background', mxConstants.STYLE_LABEL_BACKGROUNDCOLOR) ||
 		check('border', mxConstants.STYLE_LABEL_BORDERCOLOR) ||
+		check('opacity', mxConstants.STYLE_TEXT_OPACITY, 100)
 		check('textDirection', mxConstants.STYLE_TEXT_DIRECTION, mxConstants.DEFAULT_TEXT_DIRECTION);
 };
 

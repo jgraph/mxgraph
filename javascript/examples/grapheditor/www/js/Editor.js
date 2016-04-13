@@ -55,6 +55,9 @@ mxGraph.prototype.pageScale = 1;
 mxText.prototype.baseSpacingTop = 5;
 mxText.prototype.baseSpacingBottom = 1;
 
+// Keeps edges between relative child cells inside parent
+mxGraphModel.prototype.ignoreRelativeEdgeParent = false;
+
 // Defines grid properties
 mxGraphView.prototype.gridImage = (mxClient.IS_SVG) ? 'data:image/gif;base64,R0lGODlhCgAKAJEAAAAAAP///8zMzP///yH5BAEAAAMALAAAAAAKAAoAAAIJ1I6py+0Po2wFADs=' :
 	IMAGE_PATH + '/grid.gif';

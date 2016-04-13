@@ -109,7 +109,7 @@ namespace com.mxgraph
         {
             if (atts.ContainsKey(key))
             {
-                defaultValue = double.Parse(atts[key]);
+                defaultValue = double.Parse(atts[key], System.Globalization.CultureInfo.InvariantCulture);
             }
 
             return defaultValue;
@@ -324,7 +324,8 @@ namespace com.mxgraph
                     GetString(atts, "str"), GetString(atts, "align"),
                     GetString(atts, "valign"), IsTrue(atts, "wrap"),
                     GetString(atts, "format"), GetString(atts, "overflow"),
-                    IsTrue(atts, "clip"), GetDouble(atts, "rotation"));
+                    IsTrue(atts, "clip"), GetDouble(atts, "rotation"),
+                    GetString(atts, "dir"));
 		    };
 
             handlers["begin"] = delegate(Dictionary<string, string> atts)

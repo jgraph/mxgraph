@@ -144,7 +144,7 @@ mxGuide.prototype.move = function(bounds, delta, gridEnabled)
 		var center = b.getCenterX();
 		var top = b.y;
 		var bottom = b.y + b.height;
-		var middle =  b.getCenterY();
+		var middle = b.getCenterY();
 	
 		// Snaps the left, center and right to the given x-coordinate
 		function snapX(x, state)

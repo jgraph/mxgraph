@@ -1,4 +1,3 @@
-// $Id: mxICanvas2D.cs,v 1.3 2013/05/23 10:29:42 gaudenz Exp $
 // Copyright (c) 2007-2008, Gaudenz Alder
 using System;
 using System.Drawing;
@@ -248,7 +247,7 @@ namespace com.mxgraph
         // plain text and html for HTML markup.
         /// </summary>
         void Text(double x, double y, double w, double h, string str, string align, string valign,
-                bool wrap, string format, string overflow, bool clip, double rotation);
+                bool wrap, string format, string overflow, bool clip, double rotation, string dir);
 
         /// <summary>
         /// Begins a new path.

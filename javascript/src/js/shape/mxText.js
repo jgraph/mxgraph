@@ -341,7 +341,15 @@ mxText.prototype.redraw = function()
 	else
 	{
 		mxShape.prototype.redraw.apply(this, arguments);
-		this.lastValue = this.value;
+		
+		if (mxUtils.isNode(this.value) || this.dialect == mxConstants.DIALECT_STRICTHTML)
+		{
+			this.lastValue = this.value;
+		}
+		else
+		{
+			this.lastValue = null;
+		}
 	}
 };
 
@@ -360,10 +368,11 @@ mxText.prototype.resetStyles = function()
 	this.family = mxConstants.DEFAULT_FONTFAMILY;
 	this.size = mxConstants.DEFAULT_FONTSIZE;
 	this.fontStyle = mxConstants.DEFAULT_FONTSTYLE;
-	this.spacingTop = this.spacing;
-	this.spacingRight = this.spacing;
-	this.spacingBottom = this.spacing;
-	this.spacingLeft = this.spacing;
+	this.spacing = 2;
+	this.spacingTop = 0;
+	this.spacingRight = 0;
+	this.spacingBottom = 0;
+	this.spacingLeft = 0;
 	this.horizontal = true;
 	delete this.background;
 	delete this.border;
@@ -392,10 +401,11 @@ mxText.prototype.apply = function(state)
 		this.color = mxUtils.getValue(this.style, mxConstants.STYLE_FONTCOLOR, this.color);
 		this.align = mxUtils.getValue(this.style, mxConstants.STYLE_ALIGN, this.align);
 		this.valign = mxUtils.getValue(this.style, mxConstants.STYLE_VERTICAL_ALIGN, this.valign);
-		this.spacingTop = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_TOP, this.spacingTop);
-		this.spacingRight = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_RIGHT, this.spacingRight);
-		this.spacingBottom = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_BOTTOM, this.spacingBottom);
-		this.spacingLeft = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_LEFT, this.spacingLeft);
+		this.spacing = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING, this.spacing);
+		this.spacingTop = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_TOP, this.spacingTop) + this.spacing;
+		this.spacingRight = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_RIGHT, this.spacingRight) + this.spacing;
+		this.spacingBottom = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_BOTTOM, this.spacingBottom) + this.spacing;
+		this.spacingLeft = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_LEFT, this.spacingLeft) + this.spacing;
 		this.horizontal = mxUtils.getValue(this.style, mxConstants.STYLE_HORIZONTAL, this.horizontal);
 		this.background = mxUtils.getValue(this.style, mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, this.background);
 		this.border = mxUtils.getValue(this.style, mxConstants.STYLE_LABEL_BORDERCOLOR, this.border);
@@ -583,6 +593,10 @@ mxText.prototype.updateBoundingBox = function()
 				this.boundingBox.width = bbox.width;
 				this.boundingBox.height = bbox.height;
 			}
+		}
+		else
+		{
+			this.unrotatedBoundingBox = null;
 		}
 	}
 };

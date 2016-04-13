@@ -362,6 +362,10 @@ mxGraphHandler.prototype.mouseDown = function(sender, me)
 			{
 				this.start(cell, me.getX(), me.getY());
 			}
+			else if (this.delayedSelection)
+			{
+				this.cell = cell;
+			}
 
 			this.cellWasClicked = true;
 			me.consume();

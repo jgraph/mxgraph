@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.5.1.0.
+	 * Current version is 3.5.1.1.
 	 */
-	VERSION: '3.5.1.0',
+	VERSION: '3.5.1.1',
 
 	/**
 	 * Variable: IS_IE
@@ -21354,7 +21354,7 @@ mxGuide.prototype.move = function(bounds, delta, gridEnabled)
 		var center = b.getCenterX();
 		var top = b.y;
 		var bottom = b.y + b.height;
-		var middle =  b.getCenterY();
+		var middle = b.getCenterY();
 	
 		// Snaps the left, center and right to the given x-coordinate
 		function snapX(x, state)
@@ -25689,7 +25689,15 @@ mxText.prototype.redraw = function()
 	else
 	{
 		mxShape.prototype.redraw.apply(this, arguments);
-		this.lastValue = this.value;
+		
+		if (mxUtils.isNode(this.value) || this.dialect == mxConstants.DIALECT_STRICTHTML)
+		{
+			this.lastValue = this.value;
+		}
+		else
+		{
+			this.lastValue = null;
+		}
 	}
 };
 
@@ -25708,10 +25716,11 @@ mxText.prototype.resetStyles = function()
 	this.family = mxConstants.DEFAULT_FONTFAMILY;
 	this.size = mxConstants.DEFAULT_FONTSIZE;
 	this.fontStyle = mxConstants.DEFAULT_FONTSTYLE;
-	this.spacingTop = this.spacing;
-	this.spacingRight = this.spacing;
-	this.spacingBottom = this.spacing;
-	this.spacingLeft = this.spacing;
+	this.spacing = 2;
+	this.spacingTop = 0;
+	this.spacingRight = 0;
+	this.spacingBottom = 0;
+	this.spacingLeft = 0;
 	this.horizontal = true;
 	delete this.background;
 	delete this.border;
@@ -25740,10 +25749,11 @@ mxText.prototype.apply = function(state)
 		this.color = mxUtils.getValue(this.style, mxConstants.STYLE_FONTCOLOR, this.color);
 		this.align = mxUtils.getValue(this.style, mxConstants.STYLE_ALIGN, this.align);
 		this.valign = mxUtils.getValue(this.style, mxConstants.STYLE_VERTICAL_ALIGN, this.valign);
-		this.spacingTop = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_TOP, this.spacingTop);
-		this.spacingRight = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_RIGHT, this.spacingRight);
-		this.spacingBottom = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_BOTTOM, this.spacingBottom);
-		this.spacingLeft = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_LEFT, this.spacingLeft);
+		this.spacing = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING, this.spacing);
+		this.spacingTop = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_TOP, this.spacingTop) + this.spacing;
+		this.spacingRight = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_RIGHT, this.spacingRight) + this.spacing;
+		this.spacingBottom = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_BOTTOM, this.spacingBottom) + this.spacing;
+		this.spacingLeft = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING_LEFT, this.spacingLeft) + this.spacing;
 		this.horizontal = mxUtils.getValue(this.style, mxConstants.STYLE_HORIZONTAL, this.horizontal);
 		this.background = mxUtils.getValue(this.style, mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, this.background);
 		this.border = mxUtils.getValue(this.style, mxConstants.STYLE_LABEL_BORDERCOLOR, this.border);
@@ -25931,6 +25941,10 @@ mxText.prototype.updateBoundingBox = function()
 				this.boundingBox.width = bbox.width;
 				this.boundingBox.height = bbox.height;
 			}
+		}
+		else
+		{
+			this.unrotatedBoundingBox = null;
 		}
 	}
 };
@@ -38736,6 +38750,14 @@ mxGraphModel.prototype.cells = null;
 mxGraphModel.prototype.maintainEdgeParent = true;
 
 /**
+ * Variable: ignoreRelativeEdgeParent
+ * 
+ * Specifies if relative edge parents should be ignored for finding the nearest
+ * common ancestors of an edge's terminals. Default is true.
+ */
+mxGraphModel.prototype.ignoreRelativeEdgeParent = true;
+
+/**
  * Variable: createIds
  * 
  * Specifies if the model should automatically create Ids for new cells.
@@ -39290,8 +39312,9 @@ mxGraphModel.prototype.updateEdgeParent = function(edge, root)
 	}
 	
 	// Uses the first non-relative descendants of the target terminal
-	while (target != null && !this.isEdge(target) &&
-		target.geometry != null && target.geometry.relative)
+	while (target != null && this.ignoreRelativeEdgeParent &&
+		!this.isEdge(target) && target.geometry != null && 
+		target.geometry.relative)
 	{
 		target = this.getParent(target);
 	}
@@ -47607,6 +47630,9 @@ mxCellRenderer.prototype.redrawLabel = function(state, forced)
 			
 			state.text.resetStyles();
 			state.text.apply(state);
+			
+			// Special case opacity which is taken from textOpacity style for text
+			state.text.opacity = mxUtils.getValue(state.style, mxConstants.STYLE_TEXT_OPACITY, 100);
 		}
 		
 		var bounds = this.getLabelBounds(state);
@@ -47630,7 +47656,11 @@ mxCellRenderer.prototype.redrawLabel = function(state, forced)
 			state.text.wrap = wrapping;
 			state.text.clipped = clipping;
 			state.text.overflow = overflow;
+			
+			// Preserves visible state
+			var vis = state.text.node.style.visibility;
 			this.redrawLabelShape(state.text);
+			state.text.node.style.visibility = vis;
 		}
 	}
 };
@@ -47666,6 +47696,7 @@ mxCellRenderer.prototype.isTextShapeInvalid = function(state, shape)
 		check('horizontal', mxConstants.STYLE_HORIZONTAL, true) ||
 		check('background', mxConstants.STYLE_LABEL_BACKGROUNDCOLOR) ||
 		check('border', mxConstants.STYLE_LABEL_BORDERCOLOR) ||
+		check('opacity', mxConstants.STYLE_TEXT_OPACITY, 100)
 		check('textDirection', mxConstants.STYLE_TEXT_DIRECTION, mxConstants.DEFAULT_TEXT_DIRECTION);
 };
 
@@ -68391,6 +68422,10 @@ mxGraphHandler.prototype.mouseDown = function(sender, me)
 				(this.graph.isCloneEvent(me.getEvent()) && this.graph.isCellsCloneable())))
 			{
 				this.start(cell, me.getX(), me.getY());
+			}
+			else if (this.delayedSelection)
+			{
+				this.cell = cell;
 			}
 
 			this.cellWasClicked = true;

@@ -34,7 +34,8 @@ Graph = function(container, model, renderHint, stylesheet, themes)
 			point: null,
 			event: null,
 			state: null,
-			handle: null
+			handle: null,
+			selected: false
 		};
 		
 		// Uses this event to process mouseDown to check the selection state before it is changed
@@ -54,6 +55,7 @@ Graph = function(container, model, renderHint, stylesheet, themes)
 			    		if (this.model.isEdge(state.cell))
 			    		{
 			    			start.point = new mxPoint(me.getGraphX(), me.getGraphY());
+			    			start.selected = this.isCellSelected(state.cell);
 			    			start.state = state;
 			    			start.event = me;
 			    			
@@ -77,13 +79,15 @@ Graph = function(container, model, renderHint, stylesheet, themes)
 			}
 		}));
 		
+		var mouseDown = null;
+		
 		this.addMouseListener(
 		{
-			mouseDown: function() {},
+			mouseDown: function(sender, me) {},
 		    mouseMove: mxUtils.bind(this, function(sender, me)
 		    {
 		    	if (!this.panningHandler.isActive() && !mxEvent.isControlDown(me.getEvent()) &&
-		    		!mxEvent.isShiftDown(me.getEvent()))
+		    		!mxEvent.isShiftDown(me.getEvent()) && !mxEvent.isAltDown(me.getEvent()))
 		    	{
 		    		var tol = this.tolerance;
 	
@@ -107,6 +111,13 @@ Graph = function(container, model, renderHint, stylesheet, themes)
 			    				var handle = handler.getHandleForEvent(start.event);
 			    				var edgeStyle = this.view.getEdgeStyle(state);
 			    				var entity = edgeStyle == mxEdgeStyle.EntityRelation;
+			    				
+			    				// Handles special case where label was clicked on unselected edge in which
+			    				// case the label will be moved regardless of the handle that is returned
+			    				if (!start.selected && start.handle == mxEvent.LABEL_HANDLE)
+			    				{
+			    					handle = start.handle;
+			    				}
 			    				
 	    						if (!entity || handle == 0 || handle == handler.bends.length - 1 || handle == mxEvent.LABEL_HANDLE)
 	    						{
@@ -186,6 +197,7 @@ Graph = function(container, model, renderHint, stylesheet, themes)
 				    					start.event = null;
 				    					start.point = null;
 				    					start.handle = null;
+				    					start.selected = false;
 				    					me.consume();
 	
 				    					// Removes preview rectangle in graph handler
@@ -786,7 +798,7 @@ Graph.prototype.transparentBackground = true;
 /**
  * Sets the default target for all links in cells.
  */
-Graph.prototype.defaultEdgeLength = 100;
+Graph.prototype.defaultEdgeLength = 80;
 
 /**
  * Allows all values in fit.
@@ -886,8 +898,8 @@ Graph.prototype.sanitizeHtml = function(value)
 {
 	// Uses https://code.google.com/p/google-caja/wiki/JsHtmlSanitizer
 	// NOTE: Original minimized sanitizer was modified to support data URIs for images
-	// TODO: Add MathML to whitelisted tags
-	function urlX(url) { if(/(^https?:|^mailto:\/\/|^data:image\/)/.test(url)) { return url }}
+	// LATER: Add MathML to whitelisted tags
+	function urlX(url) { if(/(^https?:|^mailto:\/\/|^data:image\/|^#)/.test(url)) { return url }}
     function idX(id) { return id }
 	
 	return html_sanitize(value, urlX, idX);
@@ -2878,6 +2890,11 @@ if (typeof mxVertexHandler != 'undefined')
 			{
 				style += 'rounded=' + this.currentEdgeStyle['rounded'] + ';';
 			}
+
+			if (this.currentEdgeStyle['comic'] != null)
+			{
+				style += 'comic=' + this.currentEdgeStyle['comic'] + ';';
+			}
 			
 			// Special logic for custom property of elbowEdgeStyle
 			if (this.currentEdgeStyle['edgeStyle'] == 'elbowEdgeStyle' && this.currentEdgeStyle['elbow'] != null)
@@ -3446,7 +3463,7 @@ if (typeof mxVertexHandler != 'undefined')
 			
 			if (state != null)
 			{
-				label.style += ';align=center;verticalAlign=middle;labelBackgroundColor=#ffffff;'
+				label.style += 'align=center;verticalAlign=middle;labelBackgroundColor=#ffffff;'
 				label.geometry.relative = true;
 				label.connectable = false;
 				
@@ -3739,6 +3756,25 @@ if (typeof mxVertexHandler != 'undefined')
 		 * @param {number} dx X-coordinate of the translation.
 		 * @param {number} dy Y-coordinate of the translation.
 		 */
+		Graph.prototype.createSvgImageExport = function()
+		{
+			var exp = new mxImageExport();
+			
+			// Adds hyperlinks (experimental)
+			exp.getLinkForCellState = mxUtils.bind(this, function(state, canvas)
+			{
+				return this.getLinkForCell(state.cell);
+			});
+
+			return exp;
+		};
+		
+		/**
+		 * Translates this point by the given vector.
+		 * 
+		 * @param {number} dx X-coordinate of the translation.
+		 * @param {number} dy Y-coordinate of the translation.
+		 */
 		Graph.prototype.getSvg = function(background, scale, border, nocrop, crisp, ignoreSelection, showText)
 		{
 			scale = (scale != null) ? scale : 1;
@@ -3755,7 +3791,18 @@ if (typeof mxVertexHandler != 'undefined')
 				throw Error(mxResources.get('drawingEmpty'));	
 			}
 			
-			var imgExport = new mxImageExport();
+			var imgExport = this.createSvgImageExport();
+			var imgExportDrawCellState = imgExport.drawCellState;
+			
+			// Implements ignoreSelection flag
+			imgExport.drawCellState = function(state, canvas)
+			{
+				if (ignoreSelection || state.view.graph.isCellSelected(state.cell))
+				{
+					imgExportDrawCellState.apply(this, arguments);
+				}
+			};
+
 			var vs = this.view.scale;
 			
 			// Prepares SVG document that holds the output
@@ -3857,7 +3904,6 @@ if (typeof mxVertexHandler != 'undefined')
 				}
 			};
 			
-			
 			// Paints background image
 			var bgImg = this.backgroundImage;
 			
@@ -3876,21 +3922,6 @@ if (typeof mxVertexHandler != 'undefined')
 			
 			svgCanvas.scale(s);
 			svgCanvas.textEnabled = showText;
-			
-			// Adds hyperlinks (experimental)
-			imgExport.getLinkForCellState = mxUtils.bind(this, function(state, canvas)
-			{
-				return this.getLinkForCell(state.cell);
-			});
-			
-			// Implements ignoreSelection flag
-			imgExport.drawCellState = function(state, canvas)
-			{
-				if (ignoreSelection || state.view.graph.isCellSelected(state.cell))
-				{
-					mxImageExport.prototype.drawCellState.apply(this, arguments);
-				}
-			};
 
 			imgExport.drawState(this.getView().getState(this.model.root), svgCanvas);
 		
@@ -5451,7 +5482,9 @@ if (typeof mxVertexHandler != 'undefined')
 		};
 		
 		var vertexHandlerMouseMove = mxVertexHandler.prototype.mouseMove;
-		mxVertexHandler.prototype.mouseMove = function()
+	
+		// Workaround for "isConsumed not defined" in MS Edge is to use arguments
+		mxVertexHandler.prototype.mouseMove = function(sender, me)
 		{
 			vertexHandlerMouseMove.apply(this, arguments);
 			
@@ -5711,7 +5744,7 @@ if (typeof mxVertexHandler != 'undefined')
 		};
 	
 		var vertexHandlerDestroy = mxVertexHandler.prototype.destroy;
-		mxVertexHandler.prototype.destroy = function(sender, me)
+		mxVertexHandler.prototype.destroy = function()
 		{
 			vertexHandlerDestroy.apply(this, arguments);
 			
@@ -5777,7 +5810,7 @@ if (typeof mxVertexHandler != 'undefined')
 		};
 		
 		var edgeHandlerDestroy = 	mxEdgeHandler.prototype.destroy;
-		mxEdgeHandler.prototype.destroy = function(sender, me)
+		mxEdgeHandler.prototype.destroy = function()
 		{
 			edgeHandlerDestroy.apply(this, arguments);
 			

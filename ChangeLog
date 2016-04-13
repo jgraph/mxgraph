@@ -1,3 +1,12 @@
+- Preserves visible state of text node during update [JavaScript]
+- Fixes cache invalidation for plain text labels [JavaScript]
+- Fixes textOpacity not updated after change [JavaScript]
+- Fixes spacing in mxText shape, reset of spacing [JavaScript]
+- Fixes compile errors in Dotnet project [Dotnet]
+- Adds mxGraphModel.ignoreRelativeEdgeParent switch [JavaScript]
+- Fixes reset of mxText.unrotatedBoundingBox [JavaScript]
+- Fixes delayed selection of non-movable child cells [JavaScript]
+
 06-APR-2016: 3.5.1.0
 
 - Fixes vertex label moving with live preview [JavaScript]

@@ -595,7 +595,8 @@
 	mxShape.prototype.defaultJiggle = 1.5;
 	mxShape.prototype.paint = function(c)
 	{
-		if (this.style != null && mxUtils.getValue(this.style, 'comic', false) && c.handHiggle == null)
+		// NOTE: getValue does not return a boolean value so !('0') would return true here and below
+		if (this.style != null && mxUtils.getValue(this.style, 'comic', '0') != '0' && c.handHiggle == null)
 		{
 			c.handJiggle = new HandJiggle(c, mxUtils.getValue(this.style, 'jiggle', this.defaultJiggle));
 		}
@@ -618,7 +619,7 @@
 	var mxRectangleShapeIsHtmlAllowed0 = mxRectangleShape.prototype.isHtmlAllowed;
 	mxRectangleShape.prototype.isHtmlAllowed = function()
 	{
-		return (this.style == null || !mxUtils.getValue(this.style, 'comic', false)) &&
+		return (this.style == null || mxUtils.getValue(this.style, 'comic', '0') == '0') &&
 			mxRectangleShapeIsHtmlAllowed0.apply(this, arguments);
 	};
 	

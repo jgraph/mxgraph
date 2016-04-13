@@ -238,6 +238,14 @@ mxGraphModel.prototype.cells = null;
 mxGraphModel.prototype.maintainEdgeParent = true;
 
 /**
+ * Variable: ignoreRelativeEdgeParent
+ * 
+ * Specifies if relative edge parents should be ignored for finding the nearest
+ * common ancestors of an edge's terminals. Default is true.
+ */
+mxGraphModel.prototype.ignoreRelativeEdgeParent = true;
+
+/**
  * Variable: createIds
  * 
  * Specifies if the model should automatically create Ids for new cells.
@@ -792,8 +800,9 @@ mxGraphModel.prototype.updateEdgeParent = function(edge, root)
 	}
 	
 	// Uses the first non-relative descendants of the target terminal
-	while (target != null && !this.isEdge(target) &&
-		target.geometry != null && target.geometry.relative)
+	while (target != null && this.ignoreRelativeEdgeParent &&
+		!this.isEdge(target) && target.geometry != null && 
+		target.geometry.relative)
 	{
 		target = this.getParent(target);
 	}

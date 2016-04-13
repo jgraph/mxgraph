@@ -631,7 +631,7 @@ BaseFormatPanel.prototype.installInputHandler = function(input, key, defaultValu
 	if (textEditFallback && graph.cellEditor.isContentEditing())
 	{
 		// KNOWN: Arrow up/down clear selection text in quirks/IE 8
-		// Text size via arrow button limites to 16 in IE11. Why?
+		// Text size via arrow button limits to 16 in IE11. Why?
 		mxEvent.addListener(input, 'mousedown', function()
 		{
 			selState = graph.cellEditor.saveSelection();
@@ -1207,7 +1207,7 @@ BaseFormatPanel.prototype.addArrow = function(elt, height)
 /**
  * 
  */
-BaseFormatPanel.prototype.addUnitInput = function(container, unit, right, width, update, step, marginTop)
+BaseFormatPanel.prototype.addUnitInput = function(container, unit, right, width, update, step, marginTop, disableFocus)
 {
 	marginTop = (marginTop != null) ? marginTop : 0;
 	
@@ -1219,7 +1219,7 @@ BaseFormatPanel.prototype.addUnitInput = function(container, unit, right, width,
 	input.style.width = width + 'px';
 	container.appendChild(input);
 	
-	var stepper = this.createStepper(input, update, step);
+	var stepper = this.createStepper(input, update, step, null, disableFocus);
 	stepper.style.marginTop = (marginTop - 2) + 'px';
 	stepper.style.right = right + 'px';
 	container.appendChild(stepper);
@@ -1230,7 +1230,7 @@ BaseFormatPanel.prototype.addUnitInput = function(container, unit, right, width,
 /**
  * 
  */
-BaseFormatPanel.prototype.createRelativeOption = function(label, key, width)
+BaseFormatPanel.prototype.createRelativeOption = function(label, key, width, handler, init)
 {
 	width = (width != null) ? width : 44;
 	
@@ -1243,58 +1243,74 @@ BaseFormatPanel.prototype.createRelativeOption = function(label, key, width)
 	
 	function update(evt)
 	{
-		var value = parseInt(input.value);
-		value = Math.min(100, Math.max(0, (isNaN(value)) ? 100 : value));
-		var state = graph.view.getState(graph.getSelectionCell());
-		
-		if (state != null && value != mxUtils.getValue(state.style, key, 100))
+		if (handler != null)
 		{
-			// Removes entry in style (assumes 100 is default for relative values)
-			if (value == 100)
-			{
-				value = null;
-			}
-			
-			graph.setCellStyles(key, value, graph.getSelectionCells());
+			handler(input);
 		}
-
-		input.value = ((value != null) ? value : '100') + ' %';
+		else
+		{
+			var value = parseInt(input.value);
+			value = Math.min(100, Math.max(0, (isNaN(value)) ? 100 : value));
+			var state = graph.view.getState(graph.getSelectionCell());
+			
+			if (state != null && value != mxUtils.getValue(state.style, key, 100))
+			{
+				// Removes entry in style (assumes 100 is default for relative values)
+				if (value == 100)
+				{
+					value = null;
+				}
+				
+				graph.setCellStyles(key, value, graph.getSelectionCells());
+			}
+	
+			input.value = ((value != null) ? value : '100') + ' %';
+		}
+		
 		mxEvent.consume(evt);
 	};
 
-	var input = this.addUnitInput(div, '%', 20, width, update, 10, -15);
+	var input = this.addUnitInput(div, '%', 20, width, update, 10, -15, handler != null);
 
-	var listener = mxUtils.bind(this, function(sender, evt, force)
+	if (key != null)
 	{
-		if (force || input != document.activeElement)
+		var listener = mxUtils.bind(this, function(sender, evt, force)
 		{
-			var ss = this.format.getSelectionState();
-			var tmp = parseInt(mxUtils.getValue(ss.style, key, 100));
-			input.value = (isNaN(tmp)) ? '' : tmp + ' %';
-		}
-	});
-	
-	mxEvent.addListener(input, 'keydown', function(e)
-	{
-		if (e.keyCode == 13)
+			if (force || input != document.activeElement)
+			{
+				var ss = this.format.getSelectionState();
+				var tmp = parseInt(mxUtils.getValue(ss.style, key, 100));
+				input.value = (isNaN(tmp)) ? '' : tmp + ' %';
+			}
+		});
+		
+		mxEvent.addListener(input, 'keydown', function(e)
 		{
-			graph.container.focus();
-			mxEvent.consume(e);
-		}
-		else if (e.keyCode == 27)
-		{
-			listener(null, null, true);
-			graph.container.focus();
-			mxEvent.consume(e);
-		}
-	});
-	
-	graph.getModel().addListener(mxEvent.CHANGE, listener);
-	this.listeners.push({destroy: function() { graph.getModel().removeListener(listener); }});
-	listener();
+			if (e.keyCode == 13)
+			{
+				graph.container.focus();
+				mxEvent.consume(e);
+			}
+			else if (e.keyCode == 27)
+			{
+				listener(null, null, true);
+				graph.container.focus();
+				mxEvent.consume(e);
+			}
+		});
+		
+		graph.getModel().addListener(mxEvent.CHANGE, listener);
+		this.listeners.push({destroy: function() { graph.getModel().removeListener(listener); }});
+		listener();
+	}
 
 	mxEvent.addListener(input, 'blur', update);
 	mxEvent.addListener(input, 'change', update);
+	
+	if (init != null)
+	{
+		init(input);
+	}
 
 	return div;
 };
@@ -2430,76 +2446,38 @@ TextFormatPanel.prototype.addFont = function(container)
 	input.style.width = '46px';
 	input.style.height = (mxClient.IS_QUIRKS) ? '21px' : '17px';
 	stylePanel2.appendChild(input);
-	var currentFontSize = null;
+	
+	// Workaround for font size 4 if no text is selected is update font size below
+	// after first character was entered (as the font element is lazy created)
+	var pendingFontSize = null;
 
 	var inputUpdate = this.installInputHandler(input, mxConstants.STYLE_FONTSIZE, Menus.prototype.defaultFontSize, 1, 999, ' pt',
 	function(fontsize)
 	{
-		currentFontSize = fontsize;
+		pendingFontSize = fontsize;
+
+		// Workaround for can't set font size in px is to change font size afterwards
+		document.execCommand('fontSize', false, '4');
+		var elts = graph.cellEditor.textarea.getElementsByTagName('font');
 		
-		// Creates an element with arbitrary size 7 and replaces the size below
-		document.execCommand('fontSize', false, '7');
-		
-		// Changes the css font size of each font element inside the in-place editor with size 7.
-		// This is based on the assumption that font size="7" isn't used in the markup.
-		// LATER: If this assumption is invalid we can mark those elements when editing starts.
-		var replaceSize = mxUtils.bind(this, function()
+		for (var i = 0; i < elts.length; i++)
 		{
-			var elts = graph.cellEditor.textarea.getElementsByTagName('font');
-			var found = false;
-			
-			for (var i = 0; i < elts.length; i++)
+			if (elts[i].getAttribute('size') == '4')
 			{
-				if (elts[i].getAttribute('size') == '7')
+				elts[i].removeAttribute('size');
+				elts[i].style.fontSize = pendingFontSize + 'px';
+	
+				// Overrides fontSize in input with the one just assigned as a workaround
+				// for potential fontSize values of parent elements that don't match
+				window.setTimeout(function()
 				{
-					elts[i].removeAttribute('size');
-					elts[i].style.fontSize = currentFontSize + 'px';
-					found = true;
-				}
+					input.value = pendingFontSize + ' pt';
+					pendingFontSize = null;
+				}, 0);
+				
+				break;
 			}
-			
-			// Overrides fontSize in input with the one just assigned as a workaround
-			// for potential fontSize values of parent elements that don't match
-			window.setTimeout(function()
-			{
-				input.value = currentFontSize + ' pt';
-			}, 0);
-			
-			//console.log('replaceSize', graph.cellEditor.textarea.innerHTML, found);
-			
-			return found;
-		});
-		
-		// Workaround for no selection in which case the font element is inserted
-		// after the first character insertion so we need to listen to this and
-		// execute the above action again, until we found the font element.
-		replaceSize();
-		
-//		if (!replaceSize() && this.replaceSizeWrapper == null)
-//		{
-//			// TODO: Fix DRAW-133
-//			console.log('not replaced');
-//			
-//			this.replaceSizeWrapper = mxUtils.bind(this, function()
-//			{
-//				window.setTimeout(mxUtils.bind(this, function()
-//				{
-//					if (replaceSize())
-//					{
-//						console.log('removing listener');
-//						
-//						mxEvent.removeListener(graph.cellEditor.textarea, 'DOMNodeInserted', this.replaceSizeWrapper);
-//						this.replaceSizeWrapper = null;
-//					}
-//				}), 0);
-//			});
-//			
-//			mxEvent.addListener(graph.cellEditor.textarea, 'DOMNodeInserted', this.replaceSizeWrapper);
-//		}
-//		else
-//		{
-//			console.log('listener already installed');
-//		}
+		}
 	});
 	
 	var stepper = this.createStepper(input, inputUpdate, 1, 10, true, Menus.prototype.defaultFontSize);
@@ -2658,6 +2636,64 @@ TextFormatPanel.prototype.addFont = function(container)
 	}
 	else
 	{
+		var selState = null;
+		var lineHeightInput = null;
+		
+		container.appendChild(this.createRelativeOption(mxResources.get('lineheight'), null, null, function(input)
+		{
+			var value = (input.value == '') ? 120 : parseInt(input.value);
+			value = Math.max(120, (isNaN(value)) ? 120 : value);
+
+			if (selState != null)
+			{
+				graph.cellEditor.restoreSelection(selState);
+				selState = null;
+			}
+			
+			var selectedElement = graph.getSelectedElement();
+			var node = selectedElement;
+			
+			while (node != null && node.nodeType != mxConstants.NODETYPE_ELEMENT)
+			{
+				node = node.parentNode;
+			}
+			
+			if (node == graph.cellEditor.textarea && graph.cellEditor.textarea.firstChild != null)
+			{
+				if (graph.cellEditor.textarea.firstChild.nodeName != 'FONT')
+				{
+					graph.cellEditor.textarea.innerHTML = '<font>' + graph.cellEditor.textarea.innerHTML + '</font>';
+				}
+				
+				node = graph.cellEditor.textarea.firstChild;
+			}
+			
+			if (node != null && node != graph.cellEditor.textarea)
+			{
+				node.style.lineHeight = value + '%';
+			}
+			
+			input.value = value + ' %';
+		}, function(input)
+		{
+			// Used in CSS handler to update current value
+			lineHeightInput = input;
+			
+			// KNOWN: Arrow up/down clear selection text in quirks/IE 8
+			// Text size via arrow button limits to 16 in IE11. Why?
+			mxEvent.addListener(input, 'mousedown', function()
+			{
+				selState = graph.cellEditor.saveSelection();
+			});
+			
+			mxEvent.addListener(input, 'touchstart', function()
+			{
+				selState = graph.cellEditor.saveSelection();
+			});
+			
+			input.value = '120 %';
+		}));
+		
 		var insertPanel = stylePanel.cloneNode(false);
 		insertPanel.style.paddingLeft = '0px';
 		var insertBtns = this.editorUi.toolbar.addItems(['link', 'image'], insertPanel, true);
@@ -3099,7 +3135,32 @@ TextFormatPanel.prototype.addFont = function(container)
 							
 							if (document.activeElement != input)
 							{
-								input.value = parseInt(css.fontSize) + ' pt';
+								if (node.nodeName == 'FONT' && node.getAttribute('size') == '4' &&
+									pendingFontSize != null)
+								{
+									node.removeAttribute('size');
+									node.style.fontSize = pendingFontSize + 'px';
+									pendingFontSize = null;
+								}
+								else
+								{
+									input.value = parseInt(css.fontSize) + ' pt';
+								}
+								
+								var tmp = node.style.lineHeight || css.lineHeight;
+								var lh = parseFloat(tmp);
+								
+								if (tmp.substring(tmp.length - 2) == 'px')
+								{
+									lh = lh / parseInt(css.fontSize);
+								}
+								
+								if (tmp.substring(tmp.length - 1) != '%')
+								{
+									lh *= 100; 
+								}
+								
+								lineHeightInput.value = lh + ' %';
 							}
 							
 							// Converts rgb(r,g,b) values
