@@ -1240,6 +1240,7 @@ OpenFile.prototype.cancel = function(cancel)
 						{
 							xmlDoc = req.getXml();
 							mxStencilRegistry.packages[stencilFile] = xmlDoc;
+							install = true;
 							
 							if (xmlDoc != null && xmlDoc.documentElement != null)
 							{

@@ -1199,7 +1199,7 @@ var FilenameDialog = function(editorUi, filename, buttonText, fn, label, validat
 		td.appendChild(cancelBtn);
 	}
 	
-	if (!editorUi.isOffline() && helpLink != null)
+	if (helpLink != null)
 	{
 		var helpBtn = mxUtils.button(mxResources.get('help'), function()
 		{

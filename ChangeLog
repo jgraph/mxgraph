@@ -1,3 +1,8 @@
+15-APR-2016: 3.5.1.2
+
+- Fixes lazy shape loading in grapheditor [JavaScript]
+- Fixes isOffline is not a function in grapheditor [JavaScript]
+
 13-APR-2016: 3.5.1.1
 
 - Preserves visible state of text node during update [JavaScript]
