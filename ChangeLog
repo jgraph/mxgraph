@@ -1,3 +1,29 @@
+09-MAY-2016: 3.5.1.3
+
+- Enables floating point numbers for font sizes, removes rounding [JavaScript]
+- Fixes inconsistent results in mxGraph.fit, doResizeContainer [JavaScript]
+- Changes default border for mxGraph.fit to this.border [JavaScript]
+- Adds updateContainerStyle in mxGraphView for older browsers [JavaScript]
+- Moves Editor.init hook to after c'tor in grapheditor [JavaScript]
+- Adds mxGraph.isIgnoreTerminalEvent hook [JavaScript]
+- Adds mxCellRenderer.forceControlClickHandler switch [JavaScript]
+- Fires mouseup event for click on folding icon, fixes blurred rendering [JavaScript]
+- Fixes ignored scaled for border in mxGraph.sizeDidChange [JavaScript]
+- Changes default for margin in mxGraph.fit to 0 [JavaScript]
+- Fixes possible NPE in mxConnectionHandler.reset [JavaScript]
+- Adds mxConstants.WORD_WRAP global switch for word wrapping [JavaScript]
+- Changes type of mxStencilRegistry.stencils from array to object [JavaScript]
+- Fixes drawing of edges connected to hidden layers [JavaScript]
+- Sets state invalid in mxGraphView.removeState [JavaScript]
+- Adds mxUtils.parseCssNumber, fixes mxGraph.getBorderSizes for quirks [JavaScript]
+- Adds ignoreWidth/-Height arguments in mxGraph.fit [JavaScript]
+- Adds padding, border and margin in mxGraph.fit [JavaScript]
+- Adds mxUtils.forEach helper function [JavaScript]
+- Remove stylesheet for IE6 in grapheditor [JavaScript]
+- Removes tapAndHoldStartsConnection, showConnectorImg in grapheditor [JavaScript]
+- Moves useLocalStorage, counter to Editor in grapheditor [JavaScript]
+- Moves fileSupport, touchStyle to Graph in grapheditor [JavaScript]
+
 15-APR-2016: 3.5.1.2
 
 - Fixes lazy shape loading in grapheditor [JavaScript]

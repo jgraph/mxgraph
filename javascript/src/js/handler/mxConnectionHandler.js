@@ -1105,8 +1105,17 @@ mxConnectionHandler.prototype.updateCurrentState = function(me, point)
 	}
 	else
 	{
-		this.marker.process(me);
-		this.currentState = this.marker.getValidState();
+		if (this.graph.isIgnoreTerminalEvent(me.getEvent()))
+		{
+			this.marker.reset();
+			this.currentState = null;
+		}
+		else
+		{
+			this.marker.process(me);
+			this.currentState = this.marker.getValidState();
+		}
+
 		var outline = this.isOutlineConnectEvent(me);
 		
 		if (this.currentState != null && outline)
@@ -1249,7 +1258,7 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 				constraint = this.constraintHandler.currentConstraint;
 				current = this.constraintHandler.currentPoint.clone();
 			}
-			else if (this.previous != null && mxEvent.isShiftDown(me.getEvent()))
+			else if (this.previous != null && !this.graph.isIgnoreTerminalEvent(me.getEvent()) && mxEvent.isShiftDown(me.getEvent()))
 			{
 				if (Math.abs(this.previous.getCenterX() - point.x) < Math.abs(this.previous.getCenterY() - point.y))
 				{
@@ -1742,7 +1751,7 @@ mxConnectionHandler.prototype.reset = function()
 	}
 	
 	// Resets the cursor on the container
-	if (this.cursor != null)
+	if (this.cursor != null && this.graph.container != null)
 	{
 		this.graph.container.style.cursor = '';
 	}
@@ -1850,7 +1859,7 @@ mxConnectionHandler.prototype.connect = function(source, target, evt, dropTarget
 		model.beginUpdate();
 		try
 		{
-			if (source != null && target == null && this.isCreateTarget(evt))
+			if (source != null && target == null && !this.graph.isIgnoreTerminalEvent(evt) && this.isCreateTarget(evt))
 			{
 				target = this.createTargetVertex(evt, source);
 				

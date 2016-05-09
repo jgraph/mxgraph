@@ -7,26 +7,6 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" type="text/css" href="styles/grapheditor.css">
 	<script type="text/javascript">
-		// Public global variables
-		var MAX_REQUEST_SIZE = 10485760;
-		var MAX_AREA = 10000 * 10000;
-	
-		// URLs for save and export
-		var EXPORT_URL = '/export';
-		var SAVE_URL = '/save';
-		var OPEN_URL = '/open';
-		var RESOURCES_PATH = 'resources';
-		var RESOURCE_BASE = RESOURCES_PATH + '/grapheditor';
-		var STENCIL_PATH = 'stencils';
-		var IMAGE_PATH = 'images';
-		var STYLE_PATH = 'styles';
-		var CSS_PATH = 'styles';
-		var OPEN_FORM = 'open.html';
-	
-		// Specifies connection mode for touch devices (at least one should be true)
-		var tapAndHoldStartsConnection = false;
-		var showConnectorImg = true;
-
 		// Parses URL parameters. Supported parameters are:
 		// - lang=xy: Specifies the language of the user interface.
 		// - touch=1: Enables a touch-style user interface.
@@ -54,19 +34,8 @@
 			
 			return result;
 		})(window.location.href);
-
-		// Sets the base path, the UI language via URL param and configures the
-		// supported languages to avoid 404s. The loading of all core language
-		// resources is disabled as all required resources are in grapheditor.
-		// properties. Note that in this example the loading of two resource
-		// files (the special bundle and the default bundle) is disabled to
-		// save a GET request. This requires that all resources be present in
-		// each properties file since only one file is loaded.
-		mxLoadResources = false;
-		mxBasePath = '../../../src';
-		mxLanguage = urlParams['lang'];
-		mxLanguages = ['de'];
 	</script>
+	<script type="text/javascript" src="js/Init.js"></script>
 	<script type="text/javascript" src="jscolor/jscolor.js"></script>
 	<script type="text/javascript" src="sanitizer/sanitizer.min.js"></script>
 	<script type="text/javascript" src="../../../src/js/mxClient.js"></script>
@@ -94,13 +63,13 @@
 				this.actions.get('export').setEnabled(false);
 
 				// Updates action states which require a backend
-				if (!useLocalStorage)
+				if (!Editor.useLocalStorage)
 				{
 					mxUtils.post(OPEN_URL, '', mxUtils.bind(this, function(req)
 					{
 						var enabled = req.getStatus() != 404;
-						this.actions.get('open').setEnabled(enabled || fileSupport);
-						this.actions.get('import').setEnabled(enabled || fileSupport);
+						this.actions.get('open').setEnabled(enabled || Graph.fileSupport);
+						this.actions.get('import').setEnabled(enabled || Graph.fileSupport);
 						this.actions.get('save').setEnabled(enabled);
 						this.actions.get('saveAs').setEnabled(enabled);
 						this.actions.get('export').setEnabled(enabled);

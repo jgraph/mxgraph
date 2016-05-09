@@ -1135,11 +1135,17 @@ mxEdgeHandler.prototype.getPreviewTerminalState = function(me)
 		
 		return result;
 	}
-	else
+	else if (!this.graph.isIgnoreTerminalEvent(me.getEvent()))
 	{
 		this.marker.process(me);
 
 		return this.marker.getValidState();
+	}
+	else
+	{
+		this.marker.reset();
+		
+		return null;
 	}
 };
 
@@ -1416,7 +1422,7 @@ mxEdgeHandler.prototype.mouseMove = function(sender, me)
 		this.error = null;
 		
 		// Uses the current point from the constraint handler if available
-		if (mxEvent.isShiftDown(me.getEvent()) && this.snapPoint != null)
+		if (!this.graph.isIgnoreTerminalEvent(me.getEvent()) && mxEvent.isShiftDown(me.getEvent()) && this.snapPoint != null)
 		{
 			if (Math.abs(this.snapPoint.x - this.currentPoint.x) < Math.abs(this.snapPoint.y - this.currentPoint.y))
 			{
@@ -1510,8 +1516,8 @@ mxEdgeHandler.prototype.mouseUp = function(sender, me)
 		// Ignores event if mouse has not been moved
 		if (me.getX() != this.startX || me.getY() != this.startY)
 		{
-			var clone = this.graph.isCloneEvent(me.getEvent()) && this.cloneEnabled &&
-				this.graph.isCellsCloneable();
+			var clone = !this.graph.isIgnoreTerminalEvent(me.getEvent()) && this.graph.isCloneEvent(me.getEvent()) &&
+				this.cloneEnabled && this.graph.isCellsCloneable();
 			
 			// Displays the reason for not carriying out the change
 			// if there is an error message with non-zero length

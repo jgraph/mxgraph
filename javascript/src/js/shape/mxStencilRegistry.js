@@ -28,7 +28,7 @@ var mxStencilRegistry =
 	 * A singleton class that provides a registry for stencils and the methods
 	 * for painting those stencils onto a canvas or into a DOM.
 	 */
-	stencils: [],
+	stencils: {},
 	
 	/**
 	 * Function: addStencil

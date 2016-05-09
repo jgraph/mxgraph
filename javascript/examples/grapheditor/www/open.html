@@ -40,7 +40,7 @@
 		
 		// Checks for support of the File API for local file access
 		// except for Visio files where the parse is on the server
-		if (window.parent.fileSupport && form.upfile.files.length > 0)
+		if (window.parent.Graph.fileSupport && form.upfile.files.length > 0)
 		{
 			handleFiles(form.upfile.files);
 			
@@ -94,7 +94,7 @@
 
 	function main()
 	{
-		if (window.parent.useLocalStorage)
+		if (window.parent.Editor.useLocalStorage)
 		{
 			document.body.innerHTML = '';
 			var div = document.createElement('div');

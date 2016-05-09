@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.5.1.2.
+	 * Current version is 3.5.1.3.
 	 */
-	VERSION: '3.5.1.2',
+	VERSION: '3.5.1.3',
 
 	/**
 	 * Variable: IS_IE
@@ -2186,6 +2186,37 @@ var mxUtils =
 			};
 		}
 	}(),
+	
+	/**
+	 * Function: parseCssNumber
+	 * 
+	 * Parses the given CSS numeric value adding handling for the values thin,
+	 * medium and thick (2, 4 and 6).
+	 */
+	parseCssNumber: function(value)
+	{
+		if (value == 'thin')
+		{
+			value = '2';
+		}
+		else if (value == 'medium')
+		{
+			value = '4';
+		}
+		else if (value == 'thick')
+		{
+			value = '6';
+		}
+		
+		value = parseFloat(value);
+		
+		if (isNaN(value))
+		{
+			value = 0;
+		}
+		
+		return value;
+	},
 
 	/**
 	 * Function: setPrefixedStyle
@@ -2406,6 +2437,30 @@ var mxUtils =
 		}
 		
 		return -1;
+	},
+
+	/**
+	 * Function: forEach
+	 * 
+	 * Calls the given function for each element of the given array and returns
+	 * the array.
+	 * 
+	 * Parameters:
+	 * 
+	 * array - Array that contains the elements.
+	 * fn - Function to be called for each object.
+	 */
+	forEach: function(array, fn)
+	{
+		if (array != null && fn != null)
+		{
+			for (var i = 0; i < array.length; i++)
+			{
+				fn(array[i]);
+			}
+		}
+		
+		return array;
 	},
 
 	/**
@@ -6808,6 +6863,15 @@ var mxUtils =
 	 * Defines the default line height for text labels. Default is 1.2.
 	 */
 	LINE_HEIGHT: 1.2,
+
+	/**
+	 * Variable: WORD_WRAP
+	 * 
+	 * Defines the CSS value for the word-wrap property. Default is "normal".
+	 * Change this to "break-word" to allow long words to be able to be broken
+	 * and wrap onto the next line.
+	 */
+	WORD_WRAP: 'normal',
 
 	/**
 	 * Variable: ABSOLUTE_LINE_HEIGHT
@@ -18323,7 +18387,7 @@ mxSvgCanvas2D.prototype.createAlternateContent = function(fo, x, y, w, h, str, a
 		alt.setAttribute('y', Math.round((h + s.fontSize) / 2));
 		alt.setAttribute('fill', s.fontColor || 'black');
 		alt.setAttribute('text-anchor', 'middle');
-		alt.setAttribute('font-size', Math.round(s.fontSize) + 'px');
+		alt.setAttribute('font-size', s.fontSize + 'px');
 		alt.setAttribute('font-family', s.fontFamily);
 		
 		if ((s.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
@@ -19123,10 +19187,10 @@ mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, overflow
 	var s = this.state;
 
 	// Inline block for rendering HTML background over SVG in Safari
-	var lh = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(s.fontSize * mxConstants.LINE_HEIGHT) + 'px' :
+	var lh = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? (s.fontSize * mxConstants.LINE_HEIGHT) + 'px' :
 		(mxConstants.LINE_HEIGHT * this.lineHeightCorrection);
 	
-	style = 'display:inline-block;font-size:' + Math.round(s.fontSize) + 'px;font-family:' + s.fontFamily +
+	style = 'display:inline-block;font-size:' + s.fontSize + 'px;font-family:' + s.fontFamily +
 		';color:' + s.fontColor + ';line-height:' + lh + ';' + style;
 
 	if ((s.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
@@ -19430,7 +19494,8 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 
 			if (wrap && w > 0)
 			{
-				style += 'width:' + Math.round(w + 1) + 'px;white-space:normal;';
+				style += 'width:' + Math.round(w + 1) + 'px;white-space:normal;word-wrap:' +
+					mxConstants.WORD_WRAP + ';';
 			}
 			else
 			{
@@ -19488,6 +19553,7 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				// Inner DIV is needed for text measuring
 				var div2 = document.createElement('div');
 				div2.style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
+				div2.style.wordWrap = mxConstants.WORD_WRAP;
 				div2.innerHTML = (mxUtils.isNode(str)) ? str.outerHTML : str;
 				clone.appendChild(div2);
 
@@ -19571,6 +19637,11 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				if (sizeDiv.firstChild != null && sizeDiv.firstChild.nodeName == 'DIV')
 				{
 					sizeDiv = sizeDiv.firstChild;
+					
+					if (wrap && div.style.wordWrap == 'break-word')
+					{
+						sizeDiv.style.width = '100%';
+					}
 				}
 				
 				var tmp = sizeDiv.offsetWidth;
@@ -19783,7 +19854,7 @@ mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 {
 	rotation = (rotation != null) ? rotation : 0;
 	var s = this.state;
-	var size = Math.round(s.fontSize);
+	var size = s.fontSize;
 	var node = this.createElement('g');
 	var tr = s.transform || '';
 	this.updateFont(node);
@@ -19864,7 +19935,7 @@ mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 	
 	if (!this.styleEnabled || size != mxConstants.DEFAULT_FONTSIZE)
 	{
-		node.setAttribute('font-size', Math.round(size * s.scale) + 'px');
+		node.setAttribute('font-size', (size * s.scale) + 'px');
 	}
 	
 	if (tr.length > 0)
@@ -20017,8 +20088,8 @@ mxSvgCanvas2D.prototype.addTextBackground = function(node, str, x, y, w, h, alig
 			var div = document.createElement('div');
 
 			// Wrapping and clipping can be ignored here
-			div.style.lineHeight = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(s.fontSize * mxConstants.LINE_HEIGHT) + 'px' : mxConstants.LINE_HEIGHT;
-			div.style.fontSize = Math.round(s.fontSize) + 'px';
+			div.style.lineHeight = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? (s.fontSize * mxConstants.LINE_HEIGHT) + 'px' : mxConstants.LINE_HEIGHT;
+			div.style.fontSize = s.fontSize + 'px';
 			div.style.fontFamily = s.fontFamily;
 			div.style.whiteSpace = 'nowrap';
 			div.style.position = 'absolute';
@@ -20748,12 +20819,12 @@ mxVmlCanvas2D.prototype.createDiv = function(str, align, valign, overflow)
 	
 	var style = div.style;
 
-	style.fontSize = Math.round(state.fontSize / this.vmlScale) + 'px';
+	style.fontSize = (state.fontSize / this.vmlScale) + 'px';
 	style.fontFamily = state.fontFamily;
 	style.color = state.fontColor;
 	style.verticalAlign = 'top';
 	style.textAlign = align || 'left';
-	style.lineHeight = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(state.fontSize * mxConstants.LINE_HEIGHT / this.vmlScale) + 'px' : mxConstants.LINE_HEIGHT;
+	style.lineHeight = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? (state.fontSize * mxConstants.LINE_HEIGHT / this.vmlScale) + 'px' : mxConstants.LINE_HEIGHT;
 
 	if ((state.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
 	{
@@ -20850,7 +20921,19 @@ mxVmlCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 					div.style.width = Math.round(w) + 'px';
 				}
 				
+				div.style.wordWrap = mxConstants.WORD_WRAP;
 				div.style.whiteSpace = 'normal';
+				
+				// LATER: Check if other cases need to be handled
+				if (div.style.wordWrap == 'break-word')
+				{
+					var tmp = div;
+					
+					if (tmp.firstChild != null && tmp.firstChild.nodeName == 'DIV')
+					{
+						tmp.firstChild.style.width = '100%';
+					}
+				}
 			}
 			else
 			{
@@ -21123,7 +21206,7 @@ mxVmlCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 	tp.on = 'true';
 	
 	// Scale via fontsize instead of node.style.zoom for correct offsets in IE8
-	var size = Math.round(s.fontSize * s.scale / this.vmlScale);
+	var size = s.fontSize * s.scale / this.vmlScale;
 	tp.style.fontSize = size + 'px';
 	
 	// Bold
@@ -23925,7 +24008,7 @@ var mxStencilRegistry =
 	 * A singleton class that provides a registry for stencils and the methods
 	 * for painting those stencils onto a canvas or into a DOM.
 	 */
-	stencils: [],
+	stencils: {},
 	
 	/**
 	 * Function: addStencil
@@ -25858,7 +25941,7 @@ mxText.prototype.updateBoundingBox = function()
 					this.updateFont(td);
 					this.updateSize(td, false);
 					this.updateInnerHtml(td);
-					
+
 					node = td;
 				}
 				
@@ -25870,33 +25953,37 @@ mxText.prototype.updateBoundingBox = function()
 	
 					if (this.wrap && w > 0)
 					{
-						node.whiteSpace = 'normal';
+						node.style.wordWrap = mxConstants.WORD_WRAP;
+						node.style.whiteSpace = 'normal';
 
-						// Innermost DIV is used for measuring text
-						var divs = sizeDiv.getElementsByTagName('div');
-						
-						if (divs.length > 0)
+						if (node.style.wordWrap != 'break-word')
 						{
-							sizeDiv = divs[divs.length - 1];
-						}
-						
-						ow = sizeDiv.offsetWidth + 2;
-						divs = this.node.getElementsByTagName('div');
-						
-						if (this.clipped)
-						{
-							ow = Math.min(w, ow);
-						}
-						
-						// Second last DIV width must be updated in DOM tree
-						if (divs.length > 1)
-						{
-							divs[divs.length - 2].style.width = ow + 'px';
+							// Innermost DIV is used for measuring text
+							var divs = sizeDiv.getElementsByTagName('div');
+							
+							if (divs.length > 0)
+							{
+								sizeDiv = divs[divs.length - 1];
+							}
+							
+							ow = sizeDiv.offsetWidth + 2;
+							divs = this.node.getElementsByTagName('div');
+							
+							if (this.clipped)
+							{
+								ow = Math.min(w, ow);
+							}
+							
+							// Second last DIV width must be updated in DOM tree
+							if (divs.length > 1)
+							{
+								divs[divs.length - 2].style.width = ow + 'px';
+							}
 						}
 					}
 					else
 					{
-						node.whiteSpace = 'nowrap';
+						node.style.whiteSpace = 'nowrap';
 					}
 				}
 				else if (sizeDiv.firstChild != null && sizeDiv.firstChild.nodeName == 'DIV')
@@ -26148,7 +26235,8 @@ mxText.prototype.updateHtmlFilter = function()
 
 		if (this.wrap && w > 0)
 		{
-			td.whiteSpace = 'normal';
+			td.style.whiteSpace = 'normal';
+			td.style.wordWrap = mxConstants.WORD_WRAP;
 			ow = w;
 			
 			if (this.clipped)
@@ -26160,7 +26248,7 @@ mxText.prototype.updateHtmlFilter = function()
 		}
 		else
 		{
-			td.whiteSpace = 'nowrap';
+			td.style.whiteSpace = 'nowrap';
 		}
 		
 		sizeDiv = td;
@@ -26168,6 +26256,11 @@ mxText.prototype.updateHtmlFilter = function()
 		if (sizeDiv.firstChild != null && sizeDiv.firstChild.nodeName == 'DIV')
 		{
 			sizeDiv = sizeDiv.firstChild;
+			
+			if (this.wrap && td.style.wordWrap == 'break-word')
+			{
+				sizeDiv.style.width = '100%';
+			}
 		}
 
 		// Required to update the height of the text box after wrapping width is known 
@@ -26371,7 +26464,8 @@ mxText.prototype.updateValue = function()
 			// Wrapper DIV for background, zoom needed for inline in quirks
 			// and to measure wrapped font sizes in all browsers
 			// FIXME: Background size in quirks mode for wrapped text
-			var lh = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(this.size * mxConstants.LINE_HEIGHT) + 'px' : mxConstants.LINE_HEIGHT;
+			var lh = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? (this.size * mxConstants.LINE_HEIGHT) + 'px' :
+				mxConstants.LINE_HEIGHT;
 			val = '<div style="zoom:1;' + css + 'display:inline-block;_display:inline;text-decoration:inherit;' +
 				'padding-bottom:1px;padding-right:1px;line-height:' + lh + '">' + val + '</div>';
 		}
@@ -26411,8 +26505,8 @@ mxText.prototype.updateFont = function(node)
 {
 	var style = node.style;
 	
-	style.lineHeight = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(this.size * mxConstants.LINE_HEIGHT) + 'px' : mxConstants.LINE_HEIGHT;
-	style.fontSize = Math.round(this.size) + 'px';
+	style.lineHeight = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? (this.size * mxConstants.LINE_HEIGHT) + 'px' : mxConstants.LINE_HEIGHT;
+	style.fontSize = this.size + 'px';
 	style.fontFamily = this.family;
 	style.verticalAlign = 'top';
 	style.color = this.color;
@@ -26500,6 +26594,7 @@ mxText.prototype.updateSize = function(node, enableWrap)
 	
 	if (this.wrap && w > 0)
 	{
+		style.wordWrap = mxConstants.WORD_WRAP;
 		style.whiteSpace = 'normal';
 		style.width = w + 'px';
 
@@ -26510,6 +26605,11 @@ mxText.prototype.updateSize = function(node, enableWrap)
 			if (sizeDiv.firstChild != null && sizeDiv.firstChild.nodeName == 'DIV')
 			{
 				sizeDiv = sizeDiv.firstChild;
+				
+				if (node.style.wordWrap == 'break-word')
+				{
+					sizeDiv.style.width = '100%';
+				}
 			}
 			
 			var tmp = sizeDiv.offsetWidth;
@@ -26762,7 +26862,7 @@ mxImageShape.prototype.preserveImageAspect = true;
  */
 mxImageShape.prototype.getSvgScreenOffset = function()
 {
-	return (!mxClient.IS_IE) ? 0.5 : 0;
+	return 0;
 };
 
 /**
@@ -46205,6 +46305,7 @@ mxCellEditor.prototype.resize = function()
 			if (this.graph.isWrapping(state.cell) && (this.bounds.width >= 2 || this.bounds.height >= 2) &&
 				this.textarea.innerHTML != this.getEmptyLabelText())
 			{
+				this.textarea.style.wordWrap = mxConstants.WORD_WRAP;
 				this.textarea.style.whiteSpace = 'normal';
 				
 				if (state.style[mxConstants.STYLE_OVERFLOW] != 'fill')
@@ -46282,6 +46383,7 @@ mxCellEditor.prototype.resize = function()
 			if (this.graph.isWrapping(state.cell) && (this.bounds.width >= 2 || this.bounds.height >= 2) &&
 				this.textarea.innerHTML != this.getEmptyLabelText())
 			{
+				this.textarea.style.wordWrap = mxConstants.WORD_WRAP;
 				this.textarea.style.whiteSpace = 'normal';
 				
 		 		// Forces automatic reflow if text is removed from an oversize label and normal word wrap
@@ -46850,6 +46952,14 @@ mxCellRenderer.prototype.defaultShapes = new Object();
 mxCellRenderer.prototype.antiAlias = true;
 
 /**
+ * Variable: forceControlClickHandler
+ * 
+ * Specifies if the enabled state of the graph should be ignored in the control
+ * click handler (to allow folding in disabled graphs). Default is false.
+ */
+mxCellRenderer.prototype.forceControlClickHandler = false;
+
+/**
  * Function: registerShape
  * 
  * Registers the given constructor under the specified key in this instance
@@ -47388,15 +47498,15 @@ mxCellRenderer.prototype.createControlClickHandler = function(state)
 {
 	var graph = state.view.graph;
 	
-	return function (evt)
+	return mxUtils.bind(this, function (evt)
 	{
-		if (graph.isEnabled())
+		if (this.forceControlClickHandler || graph.isEnabled())
 		{
 			var collapse = !graph.isCellCollapsed(state.cell);
 			graph.foldCells(collapse, false, [state.cell], null, evt);
 			mxEvent.consume(evt);
 		}
-	};
+	});
 };
 
 /**
@@ -47459,6 +47569,11 @@ mxCellRenderer.prototype.initControl = function(state, control, handleEvents, cl
 			function (evt)
 			{
 				graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt, state));
+			},
+			function (evt)
+			{
+				graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt, state));
+				mxEvent.consume(evt);
 			});
 		
 		// Uses capture phase for event interception to stop bubble phase
@@ -50875,13 +50990,13 @@ mxGraphView.prototype.validateCellState = function(cell, recurse)
 				this.updateCellState(state);
 				
 				// Repaint happens immediately after the cell is validated
-				if (cell != this.currentRoot)
+				if (cell != this.currentRoot && !state.invalid)
 				{
 					this.graph.cellRenderer.redraw(state, false, this.isRendering());
 				}
 			}
 
-			if (recurse)
+			if (recurse && !state.invalid)
 			{
 				// Updates order in DOM if recursively traversing
 				if (state.shape != null)
@@ -52251,6 +52366,7 @@ mxGraphView.prototype.removeState = function(cell)
 		if (state != null)
 		{
 			this.graph.cellRenderer.destroy(state);
+			state.invalid = true;
 			state.destroy();
 		}
 	}
@@ -52569,6 +52685,7 @@ mxGraphView.prototype.createHtml = function()
 		this.canvas.appendChild(this.decoratorPane);
 
 		container.appendChild(this.canvas);
+		this.updateContainerStyle(container);
 		
 		// Implements minWidth/minHeight in quirks mode
 		if (mxClient.IS_QUIRKS)
@@ -54947,7 +55064,7 @@ mxGraph.prototype.processChange = function(change)
 		var state = this.view.getState(change.cell);
 		
 		if (state != null)
-		{	
+		{
 			state.style = null;
 		}
 	}
@@ -55698,50 +55815,17 @@ mxGraph.prototype.createPanningManager = function()
  */
 mxGraph.prototype.getBorderSizes = function()
 {
-	// Helper function to handle string values for border widths (approx)
-	function parseBorder(value)
-	{
-		var result = 0;
-		
-		if (value == 'thin')
-		{
-			result = 2;
-		}
-		else if (value == 'medium')
-		{
-			result = 4;
-		}
-		else if (value == 'thick')
-		{
-			result = 6;
-		}
-		else
-		{
-			result = parseInt(value);
-		}
-		
-		if (isNaN(result))
-		{
-			result = 0;
-		}
-		
-		return result;
-	}
+	var css = mxUtils.getCurrentStyle(this.container);
 	
-	var result = new mxRectangle();
-	var style = mxUtils.getCurrentStyle(this.container);
-	
-	if (style != null)
-	{
-		result.x = parseBorder(style.borderLeftWidth) + parseInt(style.paddingLeft || 0);
-		result.y = parseBorder(style.borderTopWidth) + parseInt(style.paddingTop || 0);
-		result.width = parseBorder(style.borderRightWidth) + parseInt(style.paddingRight || 0);
-		result.height = parseBorder(style.borderBottomWidth) + parseInt(style.paddingBottom || 0);
-	}
-	
-	return result;
+	return new mxRectangle(mxUtils.parseCssNumber(css.paddingLeft) +
+			((css.borderLeftStyle != 'none') ? mxUtils.parseCssNumber(css.borderLeftWidth) : 0),
+		mxUtils.parseCssNumber(css.paddingTop) +
+			((css.borderTopStyle != 'none') ? mxUtils.parseCssNumber(css.borderTopWidth) : 0),
+		mxUtils.parseCssNumber(css.paddingRight) +
+			((css.borderRightStyle != 'none') ? mxUtils.parseCssNumber(css.borderRightWidth) : 0),
+		mxUtils.parseCssNumber(css.paddingBottom) +
+			((css.borderBottomStyle != 'none') ? mxUtils.parseCssNumber(css.borderBottomWidth) : 0));
 };
-
 
 /**
  * Function: getPreferredPageSize
@@ -55763,6 +55847,151 @@ mxGraph.prototype.getPreferredPageSize = function(bounds, width, height)
 };
 
 /**
+ * Function: fit
+ *
+ * Scales the graph such that the complete diagram fits into <container> and
+ * returns the current scale in the view. To fit an initial graph prior to
+ * rendering, set <mxGraphView.rendering> to false prior to changing the model
+ * and execute the following after changing the model.
+ * 
+ * (code)
+ * graph.fit();
+ * graph.view.rendering = true;
+ * graph.refresh();
+ * (end)
+ * 
+ * To fit and center the graph, the following code can be used.
+ * 
+ * (code)
+ * var margin = 2;
+ * var max = 3;
+ * 
+ * var bounds = graph.getGraphBounds();
+ * var cw = graph.container.clientWidth - margin;
+ * var ch = graph.container.clientHeight - margin;
+ * var w = bounds.width / graph.view.scale;
+ * var h = bounds.height / graph.view.scale;
+ * var s = Math.min(max, Math.min(cw / w, ch / h));
+ * 
+ * graph.view.scaleAndTranslate(s,
+ *   (margin + cw - w * s) / (2 * s) - bounds.x / graph.view.scale,
+ *   (margin + ch - h * s) / (2 * s) - bounds.y / graph.view.scale);
+ * (end)
+ * 
+ * Parameters:
+ * 
+ * border - Optional number that specifies the border. Default is <border>.
+ * keepOrigin - Optional boolean that specifies if the translate should be
+ * changed. Default is false.
+ * margin - Optional margin in pixels. Default is 0.
+ * enabled - Optional boolean that specifies if the scale should be set or
+ * just returned. Default is true.
+ * ignoreWidth - Optional boolean that specifies if the width should be
+ * ignored. Default is false.
+ * ignoreHeight - Optional boolean that specifies if the height should be
+ * ignored. Default is false.
+ */
+mxGraph.prototype.fit = function(border, keepOrigin, margin, enabled, ignoreWidth, ignoreHeight)
+{
+	if (this.container != null)
+	{
+		border = (border != null) ? border : this.getBorder();
+		keepOrigin = (keepOrigin != null) ? keepOrigin : false;
+		margin = (margin != null) ? margin : 0;
+		enabled = (enabled != null) ? enabled : true;
+		ignoreWidth = (ignoreWidth != null) ? ignoreWidth : false;
+		ignoreHeight = (ignoreHeight != null) ? ignoreHeight : false;
+		
+		// Adds spacing and border from css
+		var cssBorder = this.getBorderSizes();
+		var w1 = this.container.offsetWidth - cssBorder.x - cssBorder.width - 1;
+		var h1 = this.container.offsetHeight - cssBorder.y - cssBorder.height - 1;
+		var bounds = this.view.getGraphBounds();
+		
+		if (bounds.width > 0 && bounds.height > 0)
+		{
+			if (keepOrigin && bounds.x != null && bounds.y != null)
+			{
+				bounds = bounds.clone();
+				bounds.width += bounds.x;
+				bounds.height += bounds.y;
+				bounds.x = 0;
+				bounds.y = 0;
+			}
+			
+			// LATER: Use unscaled bounding boxes to fix rounding errors
+			var s = this.view.scale;
+			var w2 = bounds.width / s;
+			var h2 = bounds.height / s;
+			
+			// Fits to the size of the background image if required
+			if (this.backgroundImage != null)
+			{
+				w2 = Math.max(w2, this.backgroundImage.width - bounds.x / s);
+				h2 = Math.max(h2, this.backgroundImage.height - bounds.y / s);
+			}
+			
+			var b = ((keepOrigin) ? border : 2 * border) + margin;
+
+			w1 -= b;
+			h1 -= b;
+			
+			var s2 = (((ignoreWidth) ? h1 / h2 : (ignoreHeight) ? w1 / w2 :
+				Math.min(w1 / w2, h1 / h2)));
+			
+			if (this.minFitScale != null)
+			{
+				s2 = Math.max(s2, this.minFitScale);
+			}
+			
+			if (this.maxFitScale != null)
+			{
+				s2 = Math.min(s2, this.maxFitScale);
+			}
+	
+			if (enabled)
+			{
+				if (!keepOrigin)
+				{
+					if (!mxUtils.hasScrollbars(this.container))
+					{
+						var x0 = (bounds.x != null) ? Math.floor(this.view.translate.x - bounds.x / s + border / s2 + margin / 2) : border;
+						var y0 = (bounds.y != null) ? Math.floor(this.view.translate.y - bounds.y / s + border / s2 + margin / 2) : border;
+
+						this.view.scaleAndTranslate(s2, x0, y0);
+					}
+					else
+					{
+						this.view.setScale(s2);
+						var b2 = this.getGraphBounds();
+						
+						if (b2.x != null)
+						{
+							this.container.scrollLeft = b2.x;
+						}
+						
+						if (b2.y != null)
+						{
+							this.container.scrollTop = b2.y;
+						}
+					}
+				}
+				else if (this.view.scale != s2)
+				{
+					this.view.setScale(s2);
+				}
+			}
+			else
+			{
+				return s2;
+			}
+		}
+	}
+
+	return this.view.scale;
+};
+
+/**
  * Function: sizeDidChange
  * 
  * Called when the size of the graph has changed. This implementation fires
@@ -55772,13 +56001,13 @@ mxGraph.prototype.getPreferredPageSize = function(bounds, width, height)
 mxGraph.prototype.sizeDidChange = function()
 {
 	var bounds = this.getGraphBounds();
-
+	
 	if (this.container != null)
 	{
 		var border = this.getBorder();
 		
-		var width = Math.max(0, bounds.x + bounds.width + 1 + border);
-		var height = Math.max(0, bounds.y + bounds.height + 1 + border);
+		var width = Math.max(0, bounds.x + bounds.width + border);
+		var height = Math.max(0, bounds.y + bounds.height + border);
 		
 		if (this.minimumContainerSize != null)
 		{
@@ -55808,8 +56037,8 @@ mxGraph.prototype.sizeDidChange = function()
 			height = Math.max(height, this.minimumGraphSize.height * this.view.scale);
 		}
 
-		width = Math.ceil(width - 1);
-		height = Math.ceil(height - 1);
+		width = Math.ceil(width);
+		height = Math.ceil(height);
 
 		if (this.dialect == mxConstants.DIALECT_SVG)
 		{
@@ -55847,33 +56076,6 @@ mxGraph.prototype.sizeDidChange = function()
  */
 mxGraph.prototype.doResizeContainer = function(width, height)
 {
-	// Sets container size for different box models
-	if (document.documentMode >= 9)
-	{
-		width += 3;
-		height += 5;
-	}
-	else if (mxClient.IS_IE)
-	{
-		if (mxClient.IS_QUIRKS)
-		{
-			var borders = this.getBorderSizes();
-			
-			// max(2, ...) required for native IE8 in quirks mode
-			width += Math.max(2, borders.x + borders.width + 1);
-			height += Math.max(2, borders.y + borders.height + 1);
-		} 
-		else
-		{
-			width += 1;
-			height += 1;
-		}
-	}
-	else
-	{
-		height += 1;
-	}
-	
 	if (this.maximumContainerSize != null)
 	{
 		width = Math.min(this.maximumContainerSize.width, width);
@@ -60593,140 +60795,6 @@ mxGraph.prototype.zoomToRect = function(rect)
 };
 
 /**
- * Function: fit
- *
- * Scales the graph such that the complete diagram fits into <container> and
- * returns the current scale in the view. To fit an initial graph prior to
- * rendering, set <mxGraphView.rendering> to false prior to changing the model
- * and execute the following after changing the model.
- * 
- * (code)
- * graph.fit();
- * graph.view.rendering = true;
- * graph.refresh();
- * (end)
- * 
- * To fit and center the graph, the following code can be used.
- * 
- * (code)
- * var margin = 2;
- * var max = 3;
- * 
- * var bounds = graph.getGraphBounds();
- * var cw = graph.container.clientWidth - margin;
- * var ch = graph.container.clientHeight - margin;
- * var w = bounds.width / graph.view.scale;
- * var h = bounds.height / graph.view.scale;
- * var s = Math.min(max, Math.min(cw / w, ch / h));
- * 
- * graph.view.scaleAndTranslate(s,
- *   (margin + cw - w * s) / (2 * s) - bounds.x / graph.view.scale,
- *   (margin + ch - h * s) / (2 * s) - bounds.y / graph.view.scale);
- * (end)
- * 
- * Parameters:
- * 
- * border - Optional number that specifies the border. Default is 0.
- * keepOrigin - Optional boolean that specifies if the translate should be
- * changed. Default is false.
- * margin - Optional margin in pixels. Default is 1.
- * enabled - Optional boolean that specifies if the scale should be set or
- * just returned. Default is true.
- */
-mxGraph.prototype.fit = function(border, keepOrigin, margin, enabled)
-{
-	if (this.container != null)
-	{
-		enabled = (enabled != null) ? enabled : true;
-		
-		border = (border != null) ? border : 0;
-		keepOrigin = (keepOrigin != null) ? keepOrigin : false;
-		margin = (margin != null) ? margin : 1;
-		
-		var sb = (document.documentMode >= 9) ? 4 : 0;
-		var w1 = this.container.clientWidth - sb;
-		var h1 = this.container.clientHeight - sb;
-
-		var bounds = this.view.getGraphBounds();
-		
-		if (bounds.width > 0 && bounds.height > 0)
-		{
-			if (keepOrigin && bounds.x != null && bounds.y != null)
-			{
-				bounds.width += bounds.x;
-				bounds.height += bounds.y;
-				bounds.x = 0;
-				bounds.y = 0;
-			}
-			
-			// LATER: Use unscaled bounding boxes to fix rounding errors
-			var s = this.view.scale;
-			var w2 = bounds.width / s;
-			var h2 = bounds.height / s;
-			
-			// Fits to the size of the background image if required
-			if (this.backgroundImage != null)
-			{
-				w2 = Math.max(w2, this.backgroundImage.width - bounds.x / s);
-				h2 = Math.max(h2, this.backgroundImage.height - bounds.y / s);
-			}
-			
-			var b = ((keepOrigin) ? border : 2 * border) + margin;
-			var s2 = Math.floor(Math.min(w1 / (w2 + b), h1 / (h2 + b)) * 100) / 100;
-			
-			if (this.minFitScale != null)
-			{
-				s2 = Math.max(s2, this.minFitScale);
-			}
-			
-			if (this.maxFitScale != null)
-			{
-				s2 = Math.min(s2, this.maxFitScale);
-			}
-	
-			if (enabled)
-			{
-				if (!keepOrigin)
-				{
-					if (!mxUtils.hasScrollbars(this.container))
-					{
-						var x0 = (bounds.x != null) ? Math.floor(this.view.translate.x - bounds.x / s + border / s2 + margin / 2) : border;
-						var y0 = (bounds.y != null) ? Math.floor(this.view.translate.y - bounds.y / s + border / s2 + margin / 2) : border;
-		
-						this.view.scaleAndTranslate(s2, x0, y0);
-					}
-					else
-					{
-						this.view.setScale(s2);
-						var b2 = this.getGraphBounds();
-						
-						if (b2.x != null)
-						{
-							this.container.scrollLeft = b2.x;
-						}
-						
-						if (b2.y != null)
-						{
-							this.container.scrollTop = b2.y;
-						}
-					}
-				}
-				else if (this.view.scale != s2)
-				{
-					this.view.setScale(s2);
-				}
-			}
-			else
-			{
-				return s2;
-			}
-		}
-	}
-
-	return this.view.scale;
-};
-
-/**
  * Function: scrollCellToVisible
  * 
  * Pans the graph so that it shows the given cell. Optionally the cell may
@@ -61054,6 +61122,17 @@ mxGraph.prototype.isGridEnabledEvent = function(evt)
 mxGraph.prototype.isConstrainedEvent = function(evt)
 {
 	return mxEvent.isShiftDown(evt);
+};
+
+/**
+ * Function: isIgnoreTerminalEvent
+ * 
+ * Returns true if the given mouse event should not allow any connections to be
+ * made. This implementation returns false.
+ */
+mxGraph.prototype.isIgnoreTerminalEvent = function(evt)
+{
+	return false;
 };
 
 /**
@@ -69389,7 +69468,8 @@ mxPanningHandler.prototype.isPanningTrigger = function(me)
  * Function: isForcePanningEvent
  * 
  * Returns true if the given <mxMouseEvent> should start panning. This
- * implementation always returns false.
+ * implementation always returns true if <ignoreCell> is true or for
+ * multi touch events.
  */
 mxPanningHandler.prototype.isForcePanningEvent = function(me)
 {
@@ -71608,8 +71688,17 @@ mxConnectionHandler.prototype.updateCurrentState = function(me, point)
 	}
 	else
 	{
-		this.marker.process(me);
-		this.currentState = this.marker.getValidState();
+		if (this.graph.isIgnoreTerminalEvent(me.getEvent()))
+		{
+			this.marker.reset();
+			this.currentState = null;
+		}
+		else
+		{
+			this.marker.process(me);
+			this.currentState = this.marker.getValidState();
+		}
+
 		var outline = this.isOutlineConnectEvent(me);
 		
 		if (this.currentState != null && outline)
@@ -71752,7 +71841,7 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 				constraint = this.constraintHandler.currentConstraint;
 				current = this.constraintHandler.currentPoint.clone();
 			}
-			else if (this.previous != null && mxEvent.isShiftDown(me.getEvent()))
+			else if (this.previous != null && !this.graph.isIgnoreTerminalEvent(me.getEvent()) && mxEvent.isShiftDown(me.getEvent()))
 			{
 				if (Math.abs(this.previous.getCenterX() - point.x) < Math.abs(this.previous.getCenterY() - point.y))
 				{
@@ -72245,7 +72334,7 @@ mxConnectionHandler.prototype.reset = function()
 	}
 	
 	// Resets the cursor on the container
-	if (this.cursor != null)
+	if (this.cursor != null && this.graph.container != null)
 	{
 		this.graph.container.style.cursor = '';
 	}
@@ -72353,7 +72442,7 @@ mxConnectionHandler.prototype.connect = function(source, target, evt, dropTarget
 		model.beginUpdate();
 		try
 		{
-			if (source != null && target == null && this.isCreateTarget(evt))
+			if (source != null && target == null && !this.graph.isIgnoreTerminalEvent(evt) && this.isCreateTarget(evt))
 			{
 				target = this.createTargetVertex(evt, source);
 				
@@ -73087,8 +73176,8 @@ mxConstraintHandler.prototype.setFocus = function(me, state, source)
 			var img = this.getImageForConstraint(state, this.constraints[i], cp);
 
 			var src = img.src;
-			var bounds = new mxRectangle(cp.x - img.width / 2,
-				cp.y - img.height / 2, img.width, img.height);
+			var bounds = new mxRectangle(Math.round(cp.x - img.width / 2),
+				Math.round(cp.y - img.height / 2), img.width, img.height);
 			var icon = new mxImageShape(bounds, src);
 			icon.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
 					mxConstants.DIALECT_MIXEDHTML : mxConstants.DIALECT_SVG;
@@ -76917,11 +77006,17 @@ mxEdgeHandler.prototype.getPreviewTerminalState = function(me)
 		
 		return result;
 	}
-	else
+	else if (!this.graph.isIgnoreTerminalEvent(me.getEvent()))
 	{
 		this.marker.process(me);
 
 		return this.marker.getValidState();
+	}
+	else
+	{
+		this.marker.reset();
+		
+		return null;
 	}
 };
 
@@ -77198,7 +77293,7 @@ mxEdgeHandler.prototype.mouseMove = function(sender, me)
 		this.error = null;
 		
 		// Uses the current point from the constraint handler if available
-		if (mxEvent.isShiftDown(me.getEvent()) && this.snapPoint != null)
+		if (!this.graph.isIgnoreTerminalEvent(me.getEvent()) && mxEvent.isShiftDown(me.getEvent()) && this.snapPoint != null)
 		{
 			if (Math.abs(this.snapPoint.x - this.currentPoint.x) < Math.abs(this.snapPoint.y - this.currentPoint.y))
 			{
@@ -77292,8 +77387,8 @@ mxEdgeHandler.prototype.mouseUp = function(sender, me)
 		// Ignores event if mouse has not been moved
 		if (me.getX() != this.startX || me.getY() != this.startY)
 		{
-			var clone = this.graph.isCloneEvent(me.getEvent()) && this.cloneEnabled &&
-				this.graph.isCellsCloneable();
+			var clone = !this.graph.isIgnoreTerminalEvent(me.getEvent()) && this.graph.isCloneEvent(me.getEvent()) &&
+				this.cloneEnabled && this.graph.isCellsCloneable();
 			
 			// Displays the reason for not carriying out the change
 			// if there is an error message with non-zero length

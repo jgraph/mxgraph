@@ -1,6 +1,42 @@
 /**
  * Copyright (c) 2006-2012, JGraph Ltd
  */
+// Workaround for allowing target="_blank" in HTML sanitizer
+// see https://code.google.com/p/google-caja/issues/detail?can=2&q=&colspec=ID%20Type%20Status%20Priority%20Owner%20Summary&groupby=&sort=&id=1296
+if (typeof html4 !== 'undefined')
+{
+	html4.ATTRIBS["a::target"] = 0;
+}
+
+/**
+ * Sets global constants.
+ */
+// Changes default colors
+mxConstants.SHADOW_OPACITY = 0.25;
+mxConstants.SHADOWCOLOR = '#000000';
+mxConstants.VML_SHADOWCOLOR = '#d0d0d0';
+mxGraph.prototype.pageBreakColor = '#c0c0c0';
+mxGraph.prototype.pageScale = 1;
+
+// Matches label positions of mxGraph 1.x
+mxText.prototype.baseSpacingTop = 5;
+mxText.prototype.baseSpacingBottom = 1;
+
+// Keeps edges between relative child cells inside parent
+mxGraphModel.prototype.ignoreRelativeEdgeParent = false;
+
+// Defines grid properties
+mxGraphView.prototype.gridImage = (mxClient.IS_SVG) ? 'data:image/gif;base64,R0lGODlhCgAKAJEAAAAAAP///8zMzP///yH5BAEAAAMALAAAAAAKAAoAAAIJ1I6py+0Po2wFADs=' :
+	IMAGE_PATH + '/grid.gif';
+mxGraphView.prototype.gridSteps = 4;
+mxGraphView.prototype.minGridSize = 4;
+
+// UrlParams is null in embed mode
+mxGraphView.prototype.gridColor = '#e0e0e0';
+
+// Alternative text for unsupported foreignObjects
+mxSvgCanvas2D.prototype.foAltText = '[Not supported by viewer]';
+
 /**
  * Constructs a new graph instance. Note that the constructor does not take a
  * container because the graph instance is needed for creating the UI, which
@@ -13,7 +49,8 @@
 Graph = function(container, model, renderHint, stylesheet, themes)
 {
 	mxGraph.call(this, container, model, renderHint, stylesheet);
-	this.themes = themes;
+	
+	this.themes = themes || this.defaultThemes;
 
     // Adds support for HTML labels via style. Note: Currently, only the Java
     // backend supports HTML labels but CSS support is limited to the following:
@@ -41,7 +78,7 @@ Graph = function(container, model, renderHint, stylesheet, themes)
 		// Uses this event to process mouseDown to check the selection state before it is changed
 		this.addListener(mxEvent.FIRE_MOUSE_EVENT, mxUtils.bind(this, function(sender, evt)
 		{
-			if (evt.getProperty('eventName') == 'mouseDown')
+			if (evt.getProperty('eventName') == 'mouseDown' && this.isEnabled())
 			{
 				var me = evt.getProperty('event');
 				
@@ -86,7 +123,7 @@ Graph = function(container, model, renderHint, stylesheet, themes)
 			mouseDown: function(sender, me) {},
 		    mouseMove: mxUtils.bind(this, function(sender, me)
 		    {
-		    	if (!this.panningHandler.isActive() && !mxEvent.isControlDown(me.getEvent()) &&
+		    	if (this.isEnabled() && !this.panningHandler.isActive() && !mxEvent.isControlDown(me.getEvent()) &&
 		    		!mxEvent.isShiftDown(me.getEvent()) && !mxEvent.isAltDown(me.getEvent()))
 		    	{
 		    		var tol = this.tolerance;
@@ -499,13 +536,19 @@ Graph = function(container, model, renderHint, stylesheet, themes)
 	    
 		this.panningHandler.addListener(mxEvent.PAN_START, mxUtils.bind(this, function()
 		{
-			prevCursor = this.container.style.cursor;
-			this.container.style.cursor = 'move';
+			if (this.isEnabled())
+			{
+				prevCursor = this.container.style.cursor;
+				this.container.style.cursor = 'move';
+			}
 		}));
 			
 		this.panningHandler.addListener(mxEvent.PAN_END, mxUtils.bind(this, function()
 		{
-			this.container.style.cursor = prevCursor;
+			if (this.isEnabled())
+			{
+				this.container.style.cursor = prevCursor;
+			}
 		}));
 
 		this.popupMenuHandler.autoExpand = true;
@@ -733,7 +776,7 @@ Graph = function(container, model, renderHint, stylesheet, themes)
 		}));
 		
 		// Initializes touch interface
-		if (touchStyle)
+		if (Graph.touchStyle)
 		{
 			this.initTouch();
 		}
@@ -755,6 +798,18 @@ Graph = function(container, model, renderHint, stylesheet, themes)
 		};
 	}
 };
+
+/**
+ * Specifies if the touch UI should be used (cannot detect touch in FF so always on for Windows/Linux)
+ */
+Graph.touchStyle = mxClient.IS_TOUCH || (mxClient.IS_FF && mxClient.IS_WIN) || navigator.maxTouchPoints > 0 ||
+	navigator.msMaxTouchPoints > 0 || window.urlParams == null || urlParams['touch'] == '1';
+
+/**
+ * Shortcut for capability check.
+ */
+Graph.fileSupport = window.File != null && window.FileReader != null && window.FileList != null &&
+	(window.urlParams == null || urlParams['filesupport'] != '0');
 
 // Graph inherits from mxGraph
 mxUtils.extend(Graph, mxGraph);
@@ -784,6 +839,12 @@ Graph.prototype.defaultScrollbars = !mxClient.IS_IOS;
  * Specifies if the page should be visible for new files. Default is true.
  */
 Graph.prototype.defaultPageVisible = true;
+
+/**
+ * Specifies if the app should run in chromeless mode. Default is false.
+ * This default is only used if the contructor argument is null.
+ */
+Graph.prototype.lightbox = false;
 
 /**
  * 
@@ -819,6 +880,11 @@ Graph.prototype.placeholderPattern = new RegExp('%(date\{.*\}|[^%^\{^\}]+)%', 'g
  * Specifies the default name for the theme. Default is 'default'.
  */
 Graph.prototype.defaultThemeName = 'default';
+
+/**
+ * Specifies the default name for the theme. Default is 'default'.
+ */
+Graph.prototype.defaultThemes = {};
 
 /**
  * Installs child layout styles.
@@ -937,6 +1003,14 @@ Graph.prototype.isReplacePlaceholders = function(cell)
 {
 	return cell.value != null && typeof(cell.value) == 'object' &&
 		cell.value.getAttribute('placeholders') == '1';
+};
+
+/**
+ * Adds ctrl+shift+connect to disable connections.
+ */
+Graph.prototype.isIgnoreTerminalEvent = function(evt)
+{
+	return mxEvent.isShiftDown(evt) && mxEvent.isControlDown(evt);
 };
 
 /**
@@ -1123,6 +1197,61 @@ Graph.prototype.formatDate = function(date, mask, utc)
     {
         return $0 in flags ? flags[$0] : $0.slice(1, $0.length - 1);
     });
+};
+
+/**
+ * 
+ */
+Graph.prototype.createLayersDialog = function()
+{
+	var div = document.createElement('div');
+	div.style.position = 'absolute';
+	
+	var model = this.getModel();
+	var childCount = model.getChildCount(model.root);
+	
+	for (var i = 0; i < childCount; i++)
+	{
+		(function(layer)
+		{
+			var span = document.createElement('div');
+			span.style.overflow = 'hidden';
+			span.style.textOverflow = 'ellipsis';
+			span.style.padding = '2px';
+			span.style.whiteSpace = 'nowrap';
+
+			var cb = document.createElement('input');
+			cb.setAttribute('type', 'checkbox');
+			
+			if (model.isVisible(layer))
+			{
+				cb.setAttribute('checked', 'checked');
+				cb.defaultChecked = true;
+			}
+			
+			span.appendChild(cb);
+			var title = layer.value || (mxResources.get('background') || 'Background');
+			span.setAttribute('title', title);
+			mxUtils.write(span, title);
+			div.appendChild(span);
+			
+			mxEvent.addListener(cb, 'click', function()
+			{
+				if (cb.getAttribute('checked') != null)
+				{
+					cb.removeAttribute('checked');
+				}
+				else
+				{
+					cb.setAttribute('checked', 'checked');
+				}
+				
+				model.setVisible(layer, cb.checked);
+			});
+		}(model.getChildAt(model.root, i)));
+	}
+	
+	return div;
 };
 
 /**
@@ -1463,7 +1592,16 @@ Graph.prototype.getLinkForCell = function(cell)
 {
 	if (cell.value != null && typeof(cell.value) == 'object')
 	{
-		return cell.value.getAttribute('link');
+		var link = cell.value.getAttribute('link');
+		
+		// Removes links with leading javascript: protocol
+		// TODO: Check more possible attack vectors
+		if (link != null && link.toLowerCase().substring(0, 11) == 'javascript:')
+		{
+			link = link.substring(11);
+		}
+		
+		return link;
 	}
 	
 	return null;
@@ -1522,6 +1660,14 @@ Graph.prototype.updateAlternateBounds = function(cell, geo, willCollapse)
 /**
  * Adds Shift+collapse/expand and size management for folding inside stack
  */
+Graph.prototype.isMoveCellsEvent = function(evt)
+{
+	return mxEvent.isShiftDown(evt);
+};
+
+/**
+ * Adds Shift+collapse/expand and size management for folding inside stack
+ */
 Graph.prototype.foldCells = function(collapse, recurse, cells, checkFoldable, evt)
 {
 	recurse = (recurse != null) ? recurse : false;
@@ -1560,7 +1706,7 @@ Graph.prototype.foldCells = function(collapse, recurse, cells, checkFoldable, ev
 							if (layout == null)
 							{
 								// Moves cells to the right and down after collapse/expand
-								if (evt != null && mxEvent.isShiftDown(evt))
+								if (evt != null && this.isMoveCellsEvent(evt))
 								{
 									this.moveSiblings(state, parent, dx, dy);
 								} 
@@ -1905,6 +2051,28 @@ Graph.prototype.getTooltipForCell = function(cell)
 	}
 	
 	return tip;
+};
+
+/**
+ * Removes all illegal control characters with ASCII code <32 except TAB, LF
+ * and CR.
+ */
+Graph.prototype.zapGremlins = function(text)
+{
+	var checked = [];
+	
+	for (var i = 0; i < text.length; i++)
+	{
+		var code = text.charCodeAt(i);
+		
+		// Removes all control chars except TAB, LF and CR
+		if (code >= 32 || code == 9 || code == 10 || code == 13)
+		{
+			checked.push(text.charAt(i));
+		}
+	}
+	
+	return checked.join('');
 };
 
 /**
@@ -2482,11 +2650,23 @@ HoverIcons.prototype.repaint = function()
 			
 			if (this.checkCollisions)
 			{
-				var tmp = this.graph.getCellAt(bds.x + bds.width +
+				var right = this.graph.getCellAt(bds.x + bds.width +
 						this.triangleRight.width / 2, this.currentState.getCenterY());
+				var left = this.graph.getCellAt(bds.x - this.triangleLeft.width / 2, this.currentState.getCenterY()); 
+				var top = this.graph.getCellAt(this.currentState.getCenterX(), bds.y - this.triangleUp.height / 2); 
+				var bottom = this.graph.getCellAt(this.currentState.getCenterX(), bds.y + bds.height + this.triangleDown.height / 2); 
+
+				// Shows hover icons large cell is behind all directions of current cell
+				if (right != null && right == left && left == top && top == bottom)
+				{
+					right = null;
+					left = null;
+					top = null;
+					bottom = null;
+				}
 				
 				// Checks right arrow
-				if (tmp != null && !this.graph.model.isAncestor(tmp, this.currentState.cell))
+				if (right != null && !this.graph.model.isAncestor(right, this.currentState.cell))
 				{
 					this.arrowRight.style.visibility = 'hidden';
 				}
@@ -2496,9 +2676,7 @@ HoverIcons.prototype.repaint = function()
 				}
 
 				// Checks left arrow
-				tmp = this.graph.getCellAt(bds.x - this.triangleLeft.width / 2, this.currentState.getCenterY()); 
-				
-				if (tmp != null && !this.graph.model.isAncestor(tmp, this.currentState.cell))
+				if (left != null && !this.graph.model.isAncestor(left, this.currentState.cell))
 				{
 					this.arrowLeft.style.visibility = 'hidden';
 				}
@@ -2508,9 +2686,7 @@ HoverIcons.prototype.repaint = function()
 				}
 
 				// Checks top arrow
-				tmp = this.graph.getCellAt(this.currentState.getCenterX(), bds.y - this.triangleUp.height / 2); 
-				
-				if (tmp != null && !this.graph.model.isAncestor(tmp, this.currentState.cell))
+				if (top != null && !this.graph.model.isAncestor(top, this.currentState.cell))
 				{
 					this.arrowUp.style.visibility = 'hidden';
 				}
@@ -2520,9 +2696,7 @@ HoverIcons.prototype.repaint = function()
 				}
 
 				// Checks bottom arrow
-				tmp = this.graph.getCellAt(this.currentState.getCenterX(), bds.y + bds.height + this.triangleDown.height / 2); 
-				
-				if (tmp != null && !this.graph.model.isAncestor(tmp, this.currentState.cell))
+				if (bottom != null && !this.graph.model.isAncestor(bottom, this.currentState.cell))
 				{
 					this.arrowDown.style.visibility = 'hidden';
 				}
@@ -2748,6 +2922,255 @@ mxCellRenderer.prototype.createShape = function(state)
 };
 
 /**
+ * Overrides stencil registry for dynamic loading of stencils.
+ */
+/**
+ * Maps from library names to an array of Javascript filenames,
+ * which are synchronously loaded. Currently only stencil files
+ * (.xml) and JS files (.js) are supported.
+ * IMPORTANT: For embedded diagrams to work entries must also
+ * be added in EmbedServlet.java.
+ */
+mxStencilRegistry.libraries = {};
+
+/**
+ * Global switch to disable dynamic loading.
+ */
+mxStencilRegistry.dynamicLoading = true;
+
+/**
+ * Stores all package names that have been dynamically loaded.
+ * Each package is only loaded once.
+ */
+mxStencilRegistry.packages = [];
+
+// Extends the default stencil registry to add dynamic loading
+mxStencilRegistry.getStencil = function(name)
+{
+	var result = mxStencilRegistry.stencils[name];
+	
+	if (result == null && mxCellRenderer.prototype.defaultShapes[name] == null && mxStencilRegistry.dynamicLoading)
+	{
+		var basename = mxStencilRegistry.getBasenameForStencil(name);
+		
+		// Loads stencil files and tries again
+		if (basename != null)
+		{
+			var libs = mxStencilRegistry.libraries[basename];
+
+			if (libs != null)
+			{
+				if (mxStencilRegistry.packages[basename] == null)
+				{
+					mxStencilRegistry.packages[basename] = 1;
+					
+					for (var i = 0; i < libs.length; i++)
+					{
+						var fname = libs[i];
+						
+						if (fname.toLowerCase().substring(fname.length - 4, fname.length) == '.xml')
+						{
+							mxStencilRegistry.loadStencilSet(fname, null);
+						}
+						else if (fname.toLowerCase().substring(fname.length - 3, fname.length) == '.js')
+						{
+							try
+							{
+								var req = mxUtils.load(fname);
+								
+								if (req != null && req.getStatus() == 200)
+								{
+									eval.call(window, req.getText());
+								}
+							}
+							catch (e)
+							{
+								if (window.console != null)
+								{
+									console.log('error in getStencil:', fname, e);
+								}
+							}
+						}
+						else
+						{
+							// FIXME: This does not yet work as the loading is triggered after
+							// the shape was used in the graph, at which point the keys have
+							// typically been translated in the calling method.
+							//mxResources.add(fname);
+						}
+					}
+				}
+			}
+			else
+			{
+				// Replaces '_-_' with '_'
+				basename = basename.replace('_-_', '_');
+				mxStencilRegistry.loadStencilSet(STENCIL_PATH + '/' + basename + '.xml', null);
+			}
+			
+			result = mxStencilRegistry.stencils[name];
+		}
+	}
+	
+	return result;
+};
+
+// Returns the basename for the given stencil or null if no file must be
+// loaded to render the given stencil.
+mxStencilRegistry.getBasenameForStencil = function(name)
+{
+	var tmp = null;
+	
+	if (name != null)
+	{
+		var parts = name.split('.');
+		
+		if (parts.length > 0 && parts[0] == 'mxgraph')
+		{
+			tmp = parts[1];
+			
+			for (var i = 2; i < parts.length - 1; i++)
+			{
+				tmp += '/' + parts[i];
+			}
+		}
+	}
+
+	return tmp;
+};
+
+// Loads the given stencil set
+mxStencilRegistry.loadStencilSet = function(stencilFile, postStencilLoad, force, async)
+{
+	force = (force != null) ? force : false;
+	
+	// Uses additional cache for detecting previous load attempts
+	var xmlDoc = mxStencilRegistry.packages[stencilFile];
+	
+	if (force || xmlDoc == null)
+	{
+		var install = false;
+		
+		if (xmlDoc == null)
+		{
+			try
+			{
+				if (async)
+				{
+					var req = mxUtils.get(stencilFile, mxUtils.bind(this, function(req)
+					{
+						if (req.getStatus() == 200)
+						{
+							xmlDoc = req.getXml();
+							mxStencilRegistry.packages[stencilFile] = xmlDoc;
+							install = true;
+							
+							if (xmlDoc != null && xmlDoc.documentElement != null)
+							{
+								mxStencilRegistry.parseStencilSet(xmlDoc.documentElement, postStencilLoad, install);
+							}
+						}
+					}));
+				
+					return;
+				}
+				else
+				{
+					var req = mxUtils.load(stencilFile);
+					xmlDoc = req.getXml();
+					mxStencilRegistry.packages[stencilFile] = xmlDoc;
+					install = true;
+				}
+			}
+			catch (e)
+			{
+				if (window.console != null)
+				{
+					console.log('error in loadStencilSet:', stencilFile, e);
+				}
+			}
+		}
+	
+		if (xmlDoc != null && xmlDoc.documentElement != null)
+		{
+			mxStencilRegistry.parseStencilSet(xmlDoc.documentElement, postStencilLoad, install);
+		}
+	}
+};
+
+// Takes array of strings
+mxStencilRegistry.parseStencilSets = function(stencils)
+{
+	for (var i = 0; i < stencils.length; i++)
+	{
+		mxStencilRegistry.parseStencilSet(mxUtils.parseXml(stencils[i]).documentElement);
+	}
+};
+
+// Parses the given stencil set
+mxStencilRegistry.parseStencilSet = function(root, postStencilLoad, install)
+{
+	if (root.nodeName == 'stencils')
+	{
+		var shapes = root.firstChild;
+		
+		while (shapes != null)
+		{
+			if (shapes.nodeName == 'shapes')
+			{
+				mxStencilRegistry.parseStencilSet(shapes, postStencilLoad, install);
+			}
+			
+			shapes = shapes.nextSibling;
+		}
+	}
+	else
+	{
+		install = (install != null) ? install : true;
+		var shape = root.firstChild;
+		var packageName = '';
+		var name = root.getAttribute('name');
+		
+		if (name != null)
+		{
+			packageName = name + '.';
+		}
+		
+		while (shape != null)
+		{
+			if (shape.nodeType == mxConstants.NODETYPE_ELEMENT)
+			{
+				name = shape.getAttribute('name');
+				
+				if (name != null)
+				{
+					packageName = packageName.toLowerCase();
+					var stencilName = name.replace(/ /g,"_");
+						
+					if (install)
+					{
+						mxStencilRegistry.addStencil(packageName + stencilName.toLowerCase(), new mxStencil(shape));
+					}
+	
+					if (postStencilLoad != null)
+					{
+						var w = shape.getAttribute('w');
+						var h = shape.getAttribute('h');
+						
+						w = (w == null) ? 80 : parseInt(w, 10);
+						h = (h == null) ? 80 : parseInt(h, 10);
+	
+						postStencilLoad(packageName, stencilName, name, w, h);
+					}
+				}
+			}
+			
+			shape = shape.nextSibling;
+		}
+	}
+};
+
+/**
  * These overrides are only added if mxVertexHandler is defined (ie. not in embedded graph)
  */
 if (typeof mxVertexHandler != 'undefined')
@@ -2927,8 +3350,8 @@ if (typeof mxVertexHandler != 'undefined')
 		 */
 		Graph.prototype.loadStylesheet = function()
 		{
-			var node = (this.themes != null) ?
-				this.themes[this.defaultThemeName] :
+			var node = (this.themes != null) ? this.themes[this.defaultThemeName] :
+				(!mxStyleRegistry.dynamicLoading) ? null :
 				mxUtils.load(STYLE_PATH + '/default.xml').getDocumentElement();
 			
 			if (node != null)
@@ -3092,29 +3515,7 @@ if (typeof mxVertexHandler != 'undefined')
 			
 			return result;
 		}
-		
-		/**
-		 * Removes all illegal control characters with ASCII code <32 except TAB, LF
-		 * and CR.
-		 */
-		Graph.prototype.zapGremlins = function(text)
-		{
-			var checked = [];
-			
-			for (var i = 0; i < text.length; i++)
-			{
-				var code = text.charCodeAt(i);
-				
-				// Removes all control chars except TAB, LF and CR
-				if (code >= 32 || code == 9 || code == 10 || code == 13)
-				{
-					checked.push(text.charAt(i));
-				}
-			}
-			
-			return checked.join('');
-		};
-		
+
 		/**
 		 * Turns the given cells and returns the changed cells.
 		 */
@@ -4163,7 +4564,7 @@ if (typeof mxVertexHandler != 'undefined')
 					}
 				}
 				
-				if (me.getState() == null)
+				if (me.getState() == null && this.isEnabled())
 				{
 					this.container.style.cursor = 'default';
 				}
@@ -4199,8 +4600,9 @@ if (typeof mxVertexHandler != 'undefined')
 			// selecting parent for selected children in groups before this check can be made.
 			this.popupMenuHandler.mouseUp = mxUtils.bind(this, function(sender, me)
 			{
-				this.popupMenuHandler.popupTrigger = !this.isEditing() && (this.popupMenuHandler.popupTrigger ||
-					(!menuShowing && !mxEvent.isMouseEvent(me.getEvent()) &&
+				this.popupMenuHandler.popupTrigger = !this.isEditing() && this.isEnabled() &&
+					(me.getState() == null || !me.isSource(me.getState().control)) &&
+					(this.popupMenuHandler.popupTrigger || (!menuShowing && !mxEvent.isMouseEvent(me.getEvent()) &&
 					((selectionEmpty && me.getCell() == null && this.isSelectionEmpty()) ||
 					(cellSelected && this.isCellSelected(me.getCell())))));
 				mxPopupMenuHandler.prototype.mouseUp.apply(this.popupMenuHandler, arguments);
@@ -5072,7 +5474,7 @@ if (typeof mxVertexHandler != 'undefined')
 		/**
 		 * Implements touch style
 		 */
-		if (touchStyle)
+		if (Graph.touchStyle)
 		{
 			// Larger tolerance for real touch devices
 			if (mxClient.IS_TOUCH || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0)
@@ -5122,9 +5524,10 @@ if (typeof mxVertexHandler != 'undefined')
 			{
 				var evt = me.getEvent();
 				
-				return (this.useLeftButtonForPanning && me.getState() == null &&
-						mxEvent.isLeftMouseButton(evt)) || (mxEvent.isControlDown(evt) &&
-						!mxEvent.isShiftDown(evt)) || (this.usePopupTrigger && mxEvent.isPopupTrigger(evt));
+				return (mxEvent.isLeftMouseButton(evt) && ((this.useLeftButtonForPanning &&
+						me.getState() == null) || (mxEvent.isControlDown(evt) &&
+						!mxEvent.isShiftDown(evt)))) || (this.usePopupTrigger &&
+						mxEvent.isPopupTrigger(evt));
 			};
 		}
 
@@ -5205,7 +5608,10 @@ if (typeof mxVertexHandler != 'undefined')
 					}
 					catch (e)
 					{
-						console.log(e);
+		    			if (window.console != null)
+		    			{
+		    				console.log('Error in rubberband: ' + e);
+		    			}
 					}
 					finally
 					{

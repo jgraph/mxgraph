@@ -10,10 +10,6 @@
 		var IMAGE_PATH = 'images';
 		var STYLE_PATH = 'styles';
 	
-		// Specifies connection mode for touch devices (at least one should be true)
-		var tapAndHoldStartsConnection = false;
-		var showConnectorImg = true;
-
 		var urlParams = (function(url)
 		{
 			var result = new Object();
@@ -44,12 +40,11 @@
 		// files (the special bundle and the default bundle) is disabled to
 		// save a GET request. This requires that all resources be present in
 		// each properties file since only one file is loaded.
-		mxLoadResources = false;
-		mxBasePath = '../../../src';
+		var mxLoadResources = false;
+		var mxBasePath = '../../../src';
 	</script>
 	<script type="text/javascript" src="sanitizer/sanitizer.min.js"></script>
 	<script type="text/javascript" src="../../../src/js/mxClient.js"></script>
-	<script type="text/javascript" src="js/Editor.js"></script>
 	<script type="text/javascript" src="js/Graph.js"></script>
 	<script type="text/javascript" src="js/Shapes.js"></script>
 </head>

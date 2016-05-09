@@ -956,13 +956,13 @@ mxGraphView.prototype.validateCellState = function(cell, recurse)
 				this.updateCellState(state);
 				
 				// Repaint happens immediately after the cell is validated
-				if (cell != this.currentRoot)
+				if (cell != this.currentRoot && !state.invalid)
 				{
 					this.graph.cellRenderer.redraw(state, false, this.isRendering());
 				}
 			}
 
-			if (recurse)
+			if (recurse && !state.invalid)
 			{
 				// Updates order in DOM if recursively traversing
 				if (state.shape != null)
@@ -2332,6 +2332,7 @@ mxGraphView.prototype.removeState = function(cell)
 		if (state != null)
 		{
 			this.graph.cellRenderer.destroy(state);
+			state.invalid = true;
 			state.destroy();
 		}
 	}
@@ -2650,6 +2651,7 @@ mxGraphView.prototype.createHtml = function()
 		this.canvas.appendChild(this.decoratorPane);
 
 		container.appendChild(this.canvas);
+		this.updateContainerStyle(container);
 		
 		// Implements minWidth/minHeight in quirks mode
 		if (mxClient.IS_QUIRKS)

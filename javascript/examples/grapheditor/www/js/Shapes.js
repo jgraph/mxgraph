@@ -2915,11 +2915,8 @@
 		};
 		
 		// Exposes custom handles
-		if (window.EditorUi != null)
-		{
-			EditorUi.createHandle = createHandle;
-			EditorUi.handleFactory = handleFactory;
-		}
+		Graph.createHandle = createHandle;
+		Graph.handleFactory = handleFactory;
 
 		mxVertexHandler.prototype.createCustomHandles = function()
 		{
@@ -2957,9 +2954,12 @@
 			return null;
 		}
 	}
-	
-	
-	
+	else
+	{
+		// Dummy entries to avoid NPE in embed mode
+		Graph.createHandle = function() {};
+		Graph.handleFactory = {};
+	}
 	 
 	 var isoHVector = new mxPoint(1, 0);
 	 var isoVVector = new mxPoint(1, 0);
@@ -3078,13 +3078,7 @@
 	 	return graphCreateEdgeHandler.apply(this, arguments);
 	 };
 
-	 
-	 
-	 
-	 
-	 
-	 
-	 
+	// Defines connection points for all shapes
 	IsoRectangleShape.prototype.constraints = [];
 	IsoCubeShape.prototype.constraints = [];
 	mxRectangleShape.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0.25, 0), true),

@@ -2087,7 +2087,7 @@ mxGraph.prototype.processChange = function(change)
 		var state = this.view.getState(change.cell);
 		
 		if (state != null)
-		{	
+		{
 			state.style = null;
 		}
 	}
@@ -2838,50 +2838,17 @@ mxGraph.prototype.createPanningManager = function()
  */
 mxGraph.prototype.getBorderSizes = function()
 {
-	// Helper function to handle string values for border widths (approx)
-	function parseBorder(value)
-	{
-		var result = 0;
-		
-		if (value == 'thin')
-		{
-			result = 2;
-		}
-		else if (value == 'medium')
-		{
-			result = 4;
-		}
-		else if (value == 'thick')
-		{
-			result = 6;
-		}
-		else
-		{
-			result = parseInt(value);
-		}
-		
-		if (isNaN(result))
-		{
-			result = 0;
-		}
-		
-		return result;
-	}
+	var css = mxUtils.getCurrentStyle(this.container);
 	
-	var result = new mxRectangle();
-	var style = mxUtils.getCurrentStyle(this.container);
-	
-	if (style != null)
-	{
-		result.x = parseBorder(style.borderLeftWidth) + parseInt(style.paddingLeft || 0);
-		result.y = parseBorder(style.borderTopWidth) + parseInt(style.paddingTop || 0);
-		result.width = parseBorder(style.borderRightWidth) + parseInt(style.paddingRight || 0);
-		result.height = parseBorder(style.borderBottomWidth) + parseInt(style.paddingBottom || 0);
-	}
-	
-	return result;
+	return new mxRectangle(mxUtils.parseCssNumber(css.paddingLeft) +
+			((css.borderLeftStyle != 'none') ? mxUtils.parseCssNumber(css.borderLeftWidth) : 0),
+		mxUtils.parseCssNumber(css.paddingTop) +
+			((css.borderTopStyle != 'none') ? mxUtils.parseCssNumber(css.borderTopWidth) : 0),
+		mxUtils.parseCssNumber(css.paddingRight) +
+			((css.borderRightStyle != 'none') ? mxUtils.parseCssNumber(css.borderRightWidth) : 0),
+		mxUtils.parseCssNumber(css.paddingBottom) +
+			((css.borderBottomStyle != 'none') ? mxUtils.parseCssNumber(css.borderBottomWidth) : 0));
 };
-
 
 /**
  * Function: getPreferredPageSize
@@ -2903,6 +2870,151 @@ mxGraph.prototype.getPreferredPageSize = function(bounds, width, height)
 };
 
 /**
+ * Function: fit
+ *
+ * Scales the graph such that the complete diagram fits into <container> and
+ * returns the current scale in the view. To fit an initial graph prior to
+ * rendering, set <mxGraphView.rendering> to false prior to changing the model
+ * and execute the following after changing the model.
+ * 
+ * (code)
+ * graph.fit();
+ * graph.view.rendering = true;
+ * graph.refresh();
+ * (end)
+ * 
+ * To fit and center the graph, the following code can be used.
+ * 
+ * (code)
+ * var margin = 2;
+ * var max = 3;
+ * 
+ * var bounds = graph.getGraphBounds();
+ * var cw = graph.container.clientWidth - margin;
+ * var ch = graph.container.clientHeight - margin;
+ * var w = bounds.width / graph.view.scale;
+ * var h = bounds.height / graph.view.scale;
+ * var s = Math.min(max, Math.min(cw / w, ch / h));
+ * 
+ * graph.view.scaleAndTranslate(s,
+ *   (margin + cw - w * s) / (2 * s) - bounds.x / graph.view.scale,
+ *   (margin + ch - h * s) / (2 * s) - bounds.y / graph.view.scale);
+ * (end)
+ * 
+ * Parameters:
+ * 
+ * border - Optional number that specifies the border. Default is <border>.
+ * keepOrigin - Optional boolean that specifies if the translate should be
+ * changed. Default is false.
+ * margin - Optional margin in pixels. Default is 0.
+ * enabled - Optional boolean that specifies if the scale should be set or
+ * just returned. Default is true.
+ * ignoreWidth - Optional boolean that specifies if the width should be
+ * ignored. Default is false.
+ * ignoreHeight - Optional boolean that specifies if the height should be
+ * ignored. Default is false.
+ */
+mxGraph.prototype.fit = function(border, keepOrigin, margin, enabled, ignoreWidth, ignoreHeight)
+{
+	if (this.container != null)
+	{
+		border = (border != null) ? border : this.getBorder();
+		keepOrigin = (keepOrigin != null) ? keepOrigin : false;
+		margin = (margin != null) ? margin : 0;
+		enabled = (enabled != null) ? enabled : true;
+		ignoreWidth = (ignoreWidth != null) ? ignoreWidth : false;
+		ignoreHeight = (ignoreHeight != null) ? ignoreHeight : false;
+		
+		// Adds spacing and border from css
+		var cssBorder = this.getBorderSizes();
+		var w1 = this.container.offsetWidth - cssBorder.x - cssBorder.width - 1;
+		var h1 = this.container.offsetHeight - cssBorder.y - cssBorder.height - 1;
+		var bounds = this.view.getGraphBounds();
+		
+		if (bounds.width > 0 && bounds.height > 0)
+		{
+			if (keepOrigin && bounds.x != null && bounds.y != null)
+			{
+				bounds = bounds.clone();
+				bounds.width += bounds.x;
+				bounds.height += bounds.y;
+				bounds.x = 0;
+				bounds.y = 0;
+			}
+			
+			// LATER: Use unscaled bounding boxes to fix rounding errors
+			var s = this.view.scale;
+			var w2 = bounds.width / s;
+			var h2 = bounds.height / s;
+			
+			// Fits to the size of the background image if required
+			if (this.backgroundImage != null)
+			{
+				w2 = Math.max(w2, this.backgroundImage.width - bounds.x / s);
+				h2 = Math.max(h2, this.backgroundImage.height - bounds.y / s);
+			}
+			
+			var b = ((keepOrigin) ? border : 2 * border) + margin;
+
+			w1 -= b;
+			h1 -= b;
+			
+			var s2 = (((ignoreWidth) ? h1 / h2 : (ignoreHeight) ? w1 / w2 :
+				Math.min(w1 / w2, h1 / h2)));
+			
+			if (this.minFitScale != null)
+			{
+				s2 = Math.max(s2, this.minFitScale);
+			}
+			
+			if (this.maxFitScale != null)
+			{
+				s2 = Math.min(s2, this.maxFitScale);
+			}
+	
+			if (enabled)
+			{
+				if (!keepOrigin)
+				{
+					if (!mxUtils.hasScrollbars(this.container))
+					{
+						var x0 = (bounds.x != null) ? Math.floor(this.view.translate.x - bounds.x / s + border / s2 + margin / 2) : border;
+						var y0 = (bounds.y != null) ? Math.floor(this.view.translate.y - bounds.y / s + border / s2 + margin / 2) : border;
+
+						this.view.scaleAndTranslate(s2, x0, y0);
+					}
+					else
+					{
+						this.view.setScale(s2);
+						var b2 = this.getGraphBounds();
+						
+						if (b2.x != null)
+						{
+							this.container.scrollLeft = b2.x;
+						}
+						
+						if (b2.y != null)
+						{
+							this.container.scrollTop = b2.y;
+						}
+					}
+				}
+				else if (this.view.scale != s2)
+				{
+					this.view.setScale(s2);
+				}
+			}
+			else
+			{
+				return s2;
+			}
+		}
+	}
+
+	return this.view.scale;
+};
+
+/**
  * Function: sizeDidChange
  * 
  * Called when the size of the graph has changed. This implementation fires
@@ -2912,13 +3024,13 @@ mxGraph.prototype.getPreferredPageSize = function(bounds, width, height)
 mxGraph.prototype.sizeDidChange = function()
 {
 	var bounds = this.getGraphBounds();
-
+	
 	if (this.container != null)
 	{
 		var border = this.getBorder();
 		
-		var width = Math.max(0, bounds.x + bounds.width + 1 + border);
-		var height = Math.max(0, bounds.y + bounds.height + 1 + border);
+		var width = Math.max(0, bounds.x + bounds.width + border);
+		var height = Math.max(0, bounds.y + bounds.height + border);
 		
 		if (this.minimumContainerSize != null)
 		{
@@ -2948,8 +3060,8 @@ mxGraph.prototype.sizeDidChange = function()
 			height = Math.max(height, this.minimumGraphSize.height * this.view.scale);
 		}
 
-		width = Math.ceil(width - 1);
-		height = Math.ceil(height - 1);
+		width = Math.ceil(width);
+		height = Math.ceil(height);
 
 		if (this.dialect == mxConstants.DIALECT_SVG)
 		{
@@ -2987,33 +3099,6 @@ mxGraph.prototype.sizeDidChange = function()
  */
 mxGraph.prototype.doResizeContainer = function(width, height)
 {
-	// Sets container size for different box models
-	if (document.documentMode >= 9)
-	{
-		width += 3;
-		height += 5;
-	}
-	else if (mxClient.IS_IE)
-	{
-		if (mxClient.IS_QUIRKS)
-		{
-			var borders = this.getBorderSizes();
-			
-			// max(2, ...) required for native IE8 in quirks mode
-			width += Math.max(2, borders.x + borders.width + 1);
-			height += Math.max(2, borders.y + borders.height + 1);
-		} 
-		else
-		{
-			width += 1;
-			height += 1;
-		}
-	}
-	else
-	{
-		height += 1;
-	}
-	
 	if (this.maximumContainerSize != null)
 	{
 		width = Math.min(this.maximumContainerSize.width, width);
@@ -7733,140 +7818,6 @@ mxGraph.prototype.zoomToRect = function(rect)
 };
 
 /**
- * Function: fit
- *
- * Scales the graph such that the complete diagram fits into <container> and
- * returns the current scale in the view. To fit an initial graph prior to
- * rendering, set <mxGraphView.rendering> to false prior to changing the model
- * and execute the following after changing the model.
- * 
- * (code)
- * graph.fit();
- * graph.view.rendering = true;
- * graph.refresh();
- * (end)
- * 
- * To fit and center the graph, the following code can be used.
- * 
- * (code)
- * var margin = 2;
- * var max = 3;
- * 
- * var bounds = graph.getGraphBounds();
- * var cw = graph.container.clientWidth - margin;
- * var ch = graph.container.clientHeight - margin;
- * var w = bounds.width / graph.view.scale;
- * var h = bounds.height / graph.view.scale;
- * var s = Math.min(max, Math.min(cw / w, ch / h));
- * 
- * graph.view.scaleAndTranslate(s,
- *   (margin + cw - w * s) / (2 * s) - bounds.x / graph.view.scale,
- *   (margin + ch - h * s) / (2 * s) - bounds.y / graph.view.scale);
- * (end)
- * 
- * Parameters:
- * 
- * border - Optional number that specifies the border. Default is 0.
- * keepOrigin - Optional boolean that specifies if the translate should be
- * changed. Default is false.
- * margin - Optional margin in pixels. Default is 1.
- * enabled - Optional boolean that specifies if the scale should be set or
- * just returned. Default is true.
- */
-mxGraph.prototype.fit = function(border, keepOrigin, margin, enabled)
-{
-	if (this.container != null)
-	{
-		enabled = (enabled != null) ? enabled : true;
-		
-		border = (border != null) ? border : 0;
-		keepOrigin = (keepOrigin != null) ? keepOrigin : false;
-		margin = (margin != null) ? margin : 1;
-		
-		var sb = (document.documentMode >= 9) ? 4 : 0;
-		var w1 = this.container.clientWidth - sb;
-		var h1 = this.container.clientHeight - sb;
-
-		var bounds = this.view.getGraphBounds();
-		
-		if (bounds.width > 0 && bounds.height > 0)
-		{
-			if (keepOrigin && bounds.x != null && bounds.y != null)
-			{
-				bounds.width += bounds.x;
-				bounds.height += bounds.y;
-				bounds.x = 0;
-				bounds.y = 0;
-			}
-			
-			// LATER: Use unscaled bounding boxes to fix rounding errors
-			var s = this.view.scale;
-			var w2 = bounds.width / s;
-			var h2 = bounds.height / s;
-			
-			// Fits to the size of the background image if required
-			if (this.backgroundImage != null)
-			{
-				w2 = Math.max(w2, this.backgroundImage.width - bounds.x / s);
-				h2 = Math.max(h2, this.backgroundImage.height - bounds.y / s);
-			}
-			
-			var b = ((keepOrigin) ? border : 2 * border) + margin;
-			var s2 = Math.floor(Math.min(w1 / (w2 + b), h1 / (h2 + b)) * 100) / 100;
-			
-			if (this.minFitScale != null)
-			{
-				s2 = Math.max(s2, this.minFitScale);
-			}
-			
-			if (this.maxFitScale != null)
-			{
-				s2 = Math.min(s2, this.maxFitScale);
-			}
-	
-			if (enabled)
-			{
-				if (!keepOrigin)
-				{
-					if (!mxUtils.hasScrollbars(this.container))
-					{
-						var x0 = (bounds.x != null) ? Math.floor(this.view.translate.x - bounds.x / s + border / s2 + margin / 2) : border;
-						var y0 = (bounds.y != null) ? Math.floor(this.view.translate.y - bounds.y / s + border / s2 + margin / 2) : border;
-		
-						this.view.scaleAndTranslate(s2, x0, y0);
-					}
-					else
-					{
-						this.view.setScale(s2);
-						var b2 = this.getGraphBounds();
-						
-						if (b2.x != null)
-						{
-							this.container.scrollLeft = b2.x;
-						}
-						
-						if (b2.y != null)
-						{
-							this.container.scrollTop = b2.y;
-						}
-					}
-				}
-				else if (this.view.scale != s2)
-				{
-					this.view.setScale(s2);
-				}
-			}
-			else
-			{
-				return s2;
-			}
-		}
-	}
-
-	return this.view.scale;
-};
-
-/**
  * Function: scrollCellToVisible
  * 
  * Pans the graph so that it shows the given cell. Optionally the cell may
@@ -8194,6 +8145,17 @@ mxGraph.prototype.isGridEnabledEvent = function(evt)
 mxGraph.prototype.isConstrainedEvent = function(evt)
 {
 	return mxEvent.isShiftDown(evt);
+};
+
+/**
+ * Function: isIgnoreTerminalEvent
+ * 
+ * Returns true if the given mouse event should not allow any connections to be
+ * made. This implementation returns false.
+ */
+mxGraph.prototype.isIgnoreTerminalEvent = function(evt)
+{
+	return false;
 };
 
 /**

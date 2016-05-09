@@ -282,7 +282,8 @@ mxPanningHandler.prototype.isPanningTrigger = function(me)
  * Function: isForcePanningEvent
  * 
  * Returns true if the given <mxMouseEvent> should start panning. This
- * implementation always returns false.
+ * implementation always returns true if <ignoreCell> is true or for
+ * multi touch events.
  */
 mxPanningHandler.prototype.isForcePanningEvent = function(me)
 {

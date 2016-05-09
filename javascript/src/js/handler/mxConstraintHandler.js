@@ -389,8 +389,8 @@ mxConstraintHandler.prototype.setFocus = function(me, state, source)
 			var img = this.getImageForConstraint(state, this.constraints[i], cp);
 
 			var src = img.src;
-			var bounds = new mxRectangle(cp.x - img.width / 2,
-				cp.y - img.height / 2, img.width, img.height);
+			var bounds = new mxRectangle(Math.round(cp.x - img.width / 2),
+				Math.round(cp.y - img.height / 2), img.width, img.height);
 			var icon = new mxImageShape(bounds, src);
 			icon.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
 					mxConstants.DIALECT_MIXEDHTML : mxConstants.DIALECT_SVG;

@@ -510,7 +510,7 @@ mxText.prototype.updateBoundingBox = function()
 					this.updateFont(td);
 					this.updateSize(td, false);
 					this.updateInnerHtml(td);
-					
+
 					node = td;
 				}
 				
@@ -522,33 +522,37 @@ mxText.prototype.updateBoundingBox = function()
 	
 					if (this.wrap && w > 0)
 					{
-						node.whiteSpace = 'normal';
+						node.style.wordWrap = mxConstants.WORD_WRAP;
+						node.style.whiteSpace = 'normal';
 
-						// Innermost DIV is used for measuring text
-						var divs = sizeDiv.getElementsByTagName('div');
-						
-						if (divs.length > 0)
+						if (node.style.wordWrap != 'break-word')
 						{
-							sizeDiv = divs[divs.length - 1];
-						}
-						
-						ow = sizeDiv.offsetWidth + 2;
-						divs = this.node.getElementsByTagName('div');
-						
-						if (this.clipped)
-						{
-							ow = Math.min(w, ow);
-						}
-						
-						// Second last DIV width must be updated in DOM tree
-						if (divs.length > 1)
-						{
-							divs[divs.length - 2].style.width = ow + 'px';
+							// Innermost DIV is used for measuring text
+							var divs = sizeDiv.getElementsByTagName('div');
+							
+							if (divs.length > 0)
+							{
+								sizeDiv = divs[divs.length - 1];
+							}
+							
+							ow = sizeDiv.offsetWidth + 2;
+							divs = this.node.getElementsByTagName('div');
+							
+							if (this.clipped)
+							{
+								ow = Math.min(w, ow);
+							}
+							
+							// Second last DIV width must be updated in DOM tree
+							if (divs.length > 1)
+							{
+								divs[divs.length - 2].style.width = ow + 'px';
+							}
 						}
 					}
 					else
 					{
-						node.whiteSpace = 'nowrap';
+						node.style.whiteSpace = 'nowrap';
 					}
 				}
 				else if (sizeDiv.firstChild != null && sizeDiv.firstChild.nodeName == 'DIV')
@@ -800,7 +804,8 @@ mxText.prototype.updateHtmlFilter = function()
 
 		if (this.wrap && w > 0)
 		{
-			td.whiteSpace = 'normal';
+			td.style.whiteSpace = 'normal';
+			td.style.wordWrap = mxConstants.WORD_WRAP;
 			ow = w;
 			
 			if (this.clipped)
@@ -812,7 +817,7 @@ mxText.prototype.updateHtmlFilter = function()
 		}
 		else
 		{
-			td.whiteSpace = 'nowrap';
+			td.style.whiteSpace = 'nowrap';
 		}
 		
 		sizeDiv = td;
@@ -820,6 +825,11 @@ mxText.prototype.updateHtmlFilter = function()
 		if (sizeDiv.firstChild != null && sizeDiv.firstChild.nodeName == 'DIV')
 		{
 			sizeDiv = sizeDiv.firstChild;
+			
+			if (this.wrap && td.style.wordWrap == 'break-word')
+			{
+				sizeDiv.style.width = '100%';
+			}
 		}
 
 		// Required to update the height of the text box after wrapping width is known 
@@ -1023,7 +1033,8 @@ mxText.prototype.updateValue = function()
 			// Wrapper DIV for background, zoom needed for inline in quirks
 			// and to measure wrapped font sizes in all browsers
 			// FIXME: Background size in quirks mode for wrapped text
-			var lh = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(this.size * mxConstants.LINE_HEIGHT) + 'px' : mxConstants.LINE_HEIGHT;
+			var lh = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? (this.size * mxConstants.LINE_HEIGHT) + 'px' :
+				mxConstants.LINE_HEIGHT;
 			val = '<div style="zoom:1;' + css + 'display:inline-block;_display:inline;text-decoration:inherit;' +
 				'padding-bottom:1px;padding-right:1px;line-height:' + lh + '">' + val + '</div>';
 		}
@@ -1063,8 +1074,8 @@ mxText.prototype.updateFont = function(node)
 {
 	var style = node.style;
 	
-	style.lineHeight = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(this.size * mxConstants.LINE_HEIGHT) + 'px' : mxConstants.LINE_HEIGHT;
-	style.fontSize = Math.round(this.size) + 'px';
+	style.lineHeight = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? (this.size * mxConstants.LINE_HEIGHT) + 'px' : mxConstants.LINE_HEIGHT;
+	style.fontSize = this.size + 'px';
 	style.fontFamily = this.family;
 	style.verticalAlign = 'top';
 	style.color = this.color;
@@ -1152,6 +1163,7 @@ mxText.prototype.updateSize = function(node, enableWrap)
 	
 	if (this.wrap && w > 0)
 	{
+		style.wordWrap = mxConstants.WORD_WRAP;
 		style.whiteSpace = 'normal';
 		style.width = w + 'px';
 
@@ -1162,6 +1174,11 @@ mxText.prototype.updateSize = function(node, enableWrap)
 			if (sizeDiv.firstChild != null && sizeDiv.firstChild.nodeName == 'DIV')
 			{
 				sizeDiv = sizeDiv.firstChild;
+				
+				if (node.style.wordWrap == 'break-word')
+				{
+					sizeDiv.style.width = '100%';
+				}
 			}
 			
 			var tmp = sizeDiv.offsetWidth;

@@ -168,8 +168,8 @@ var OpenDialog = function()
 	// Adds padding as a workaround for box model in older IE versions
 	var dx = (mxClient.IS_VML && (document.documentMode == null || document.documentMode < 8)) ? 20 : 0;
 	
-	iframe.setAttribute('width', (((useLocalStorage) ? 640 : 320) + dx) + 'px');
-	iframe.setAttribute('height', (((useLocalStorage) ? 480 : 220) + dx) + 'px');
+	iframe.setAttribute('width', (((Editor.useLocalStorage) ? 640 : 320) + dx) + 'px');
+	iframe.setAttribute('height', (((Editor.useLocalStorage) ? 480 : 220) + dx) + 'px');
 	iframe.setAttribute('src', OPEN_FORM);
 	
 	this.container = iframe;
@@ -1113,7 +1113,7 @@ var FilenameDialog = function(editorUi, filename, buttonText, fn, label, validat
 		}
 		
 		// Installs drag and drop handler for links
-		if (fileSupport)
+		if (Graph.fileSupport)
 		{
 			// Setup the dnd listeners
 			var dlg = table.parentNode;
@@ -1355,7 +1355,7 @@ var EditDiagramDialog = function(editorUi)
 	};
 	
 	// Enables dropping files
-	if (fileSupport)
+	if (Graph.fileSupport)
 	{
 		function handleDrop(evt)
 		{

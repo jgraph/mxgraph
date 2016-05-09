@@ -365,7 +365,7 @@ mxSvgCanvas2D.prototype.createAlternateContent = function(fo, x, y, w, h, str, a
 		alt.setAttribute('y', Math.round((h + s.fontSize) / 2));
 		alt.setAttribute('fill', s.fontColor || 'black');
 		alt.setAttribute('text-anchor', 'middle');
-		alt.setAttribute('font-size', Math.round(s.fontSize) + 'px');
+		alt.setAttribute('font-size', s.fontSize + 'px');
 		alt.setAttribute('font-family', s.fontFamily);
 		
 		if ((s.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
@@ -1165,10 +1165,10 @@ mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, overflow
 	var s = this.state;
 
 	// Inline block for rendering HTML background over SVG in Safari
-	var lh = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(s.fontSize * mxConstants.LINE_HEIGHT) + 'px' :
+	var lh = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? (s.fontSize * mxConstants.LINE_HEIGHT) + 'px' :
 		(mxConstants.LINE_HEIGHT * this.lineHeightCorrection);
 	
-	style = 'display:inline-block;font-size:' + Math.round(s.fontSize) + 'px;font-family:' + s.fontFamily +
+	style = 'display:inline-block;font-size:' + s.fontSize + 'px;font-family:' + s.fontFamily +
 		';color:' + s.fontColor + ';line-height:' + lh + ';' + style;
 
 	if ((s.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
@@ -1472,7 +1472,8 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 
 			if (wrap && w > 0)
 			{
-				style += 'width:' + Math.round(w + 1) + 'px;white-space:normal;';
+				style += 'width:' + Math.round(w + 1) + 'px;white-space:normal;word-wrap:' +
+					mxConstants.WORD_WRAP + ';';
 			}
 			else
 			{
@@ -1530,6 +1531,7 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				// Inner DIV is needed for text measuring
 				var div2 = document.createElement('div');
 				div2.style.display = (mxClient.IS_QUIRKS) ? 'inline' : 'inline-block';
+				div2.style.wordWrap = mxConstants.WORD_WRAP;
 				div2.innerHTML = (mxUtils.isNode(str)) ? str.outerHTML : str;
 				clone.appendChild(div2);
 
@@ -1613,6 +1615,11 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 				if (sizeDiv.firstChild != null && sizeDiv.firstChild.nodeName == 'DIV')
 				{
 					sizeDiv = sizeDiv.firstChild;
+					
+					if (wrap && div.style.wordWrap == 'break-word')
+					{
+						sizeDiv.style.width = '100%';
+					}
 				}
 				
 				var tmp = sizeDiv.offsetWidth;
@@ -1825,7 +1832,7 @@ mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 {
 	rotation = (rotation != null) ? rotation : 0;
 	var s = this.state;
-	var size = Math.round(s.fontSize);
+	var size = s.fontSize;
 	var node = this.createElement('g');
 	var tr = s.transform || '';
 	this.updateFont(node);
@@ -1906,7 +1913,7 @@ mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 	
 	if (!this.styleEnabled || size != mxConstants.DEFAULT_FONTSIZE)
 	{
-		node.setAttribute('font-size', Math.round(size * s.scale) + 'px');
+		node.setAttribute('font-size', (size * s.scale) + 'px');
 	}
 	
 	if (tr.length > 0)
@@ -2059,8 +2066,8 @@ mxSvgCanvas2D.prototype.addTextBackground = function(node, str, x, y, w, h, alig
 			var div = document.createElement('div');
 
 			// Wrapping and clipping can be ignored here
-			div.style.lineHeight = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(s.fontSize * mxConstants.LINE_HEIGHT) + 'px' : mxConstants.LINE_HEIGHT;
-			div.style.fontSize = Math.round(s.fontSize) + 'px';
+			div.style.lineHeight = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? (s.fontSize * mxConstants.LINE_HEIGHT) + 'px' : mxConstants.LINE_HEIGHT;
+			div.style.fontSize = s.fontSize + 'px';
 			div.style.fontFamily = s.fontFamily;
 			div.style.whiteSpace = 'nowrap';
 			div.style.position = 'absolute';

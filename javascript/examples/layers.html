@@ -75,38 +75,12 @@
 
 				document.body.appendChild(mxUtils.button('Layer 0', function()
 				{
-					model.beginUpdate();
-					try
-					{
-						var visible = model.isVisible(layer0);
-						model.setVisible(layer0, !visible);
-	
-						// Forces a complete refresh to hide the edges in other
-						// layers which are connected to children of this layer
-						graph.view.invalidate();
-					}
-					finally
-					{
-						model.endUpdate();
-					}
+					model.setVisible(layer0, !model.isVisible(layer0));
 				}));
 				
 				document.body.appendChild(mxUtils.button('Layer 1', function()
 				{
-					model.beginUpdate();
-					try
-					{
-						var visible = model.isVisible(layer1);
-						model.setVisible(layer1, !visible);
-						
-						// Forces a complete refresh to hide the edges in other
-						// layers which are connected to children of this layer
-						graph.view.invalidate();
-					}
-					finally
-					{
-						model.endUpdate();
-					}
+					model.setVisible(layer1, !model.isVisible(layer1));
 				}));
 			}
 		};

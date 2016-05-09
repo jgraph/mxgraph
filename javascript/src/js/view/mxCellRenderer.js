@@ -88,6 +88,14 @@ mxCellRenderer.prototype.defaultShapes = new Object();
 mxCellRenderer.prototype.antiAlias = true;
 
 /**
+ * Variable: forceControlClickHandler
+ * 
+ * Specifies if the enabled state of the graph should be ignored in the control
+ * click handler (to allow folding in disabled graphs). Default is false.
+ */
+mxCellRenderer.prototype.forceControlClickHandler = false;
+
+/**
  * Function: registerShape
  * 
  * Registers the given constructor under the specified key in this instance
@@ -626,15 +634,15 @@ mxCellRenderer.prototype.createControlClickHandler = function(state)
 {
 	var graph = state.view.graph;
 	
-	return function (evt)
+	return mxUtils.bind(this, function (evt)
 	{
-		if (graph.isEnabled())
+		if (this.forceControlClickHandler || graph.isEnabled())
 		{
 			var collapse = !graph.isCellCollapsed(state.cell);
 			graph.foldCells(collapse, false, [state.cell], null, evt);
 			mxEvent.consume(evt);
 		}
-	};
+	});
 };
 
 /**
@@ -697,6 +705,11 @@ mxCellRenderer.prototype.initControl = function(state, control, handleEvents, cl
 			function (evt)
 			{
 				graph.fireMouseEvent(mxEvent.MOUSE_MOVE, new mxMouseEvent(evt, state));
+			},
+			function (evt)
+			{
+				graph.fireMouseEvent(mxEvent.MOUSE_UP, new mxMouseEvent(evt, state));
+				mxEvent.consume(evt);
 			});
 		
 		// Uses capture phase for event interception to stop bubble phase

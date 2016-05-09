@@ -53,7 +53,7 @@ mxImageShape.prototype.preserveImageAspect = true;
  */
 mxImageShape.prototype.getSvgScreenOffset = function()
 {
-	return (!mxClient.IS_IE) ? 0.5 : 0;
+	return 0;
 };
 
 /**

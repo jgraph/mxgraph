@@ -2478,7 +2478,7 @@ TextFormatPanel.prototype.addFont = function(container)
 				break;
 			}
 		}
-	});
+	}, true);
 	
 	var stepper = this.createStepper(input, inputUpdate, 1, 10, true, Menus.prototype.defaultFontSize);
 	stepper.style.display = input.style.display;

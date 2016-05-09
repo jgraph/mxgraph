@@ -489,6 +489,7 @@ mxCellEditor.prototype.resize = function()
 			if (this.graph.isWrapping(state.cell) && (this.bounds.width >= 2 || this.bounds.height >= 2) &&
 				this.textarea.innerHTML != this.getEmptyLabelText())
 			{
+				this.textarea.style.wordWrap = mxConstants.WORD_WRAP;
 				this.textarea.style.whiteSpace = 'normal';
 				
 				if (state.style[mxConstants.STYLE_OVERFLOW] != 'fill')
@@ -566,6 +567,7 @@ mxCellEditor.prototype.resize = function()
 			if (this.graph.isWrapping(state.cell) && (this.bounds.width >= 2 || this.bounds.height >= 2) &&
 				this.textarea.innerHTML != this.getEmptyLabelText())
 			{
+				this.textarea.style.wordWrap = mxConstants.WORD_WRAP;
 				this.textarea.style.whiteSpace = 'normal';
 				
 		 		// Forces automatic reflow if text is removed from an oversize label and normal word wrap

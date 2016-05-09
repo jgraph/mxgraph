@@ -1,95 +1,21 @@
 /**
  * Copyright (c) 2006-2012, JGraph Ltd
  */
-// Specifies if local storage should be used (eg. on the iPad which has no filesystem)
-var useLocalStorage = typeof(Storage) != 'undefined' && mxClient.IS_IOS;
-var fileSupport = window.File != null && window.FileReader != null && window.FileList != null && urlParams['filesupport'] != '0';
-
-// Workaround for allowing target="_blank" in HTML sanitizer
-// see https://code.google.com/p/google-caja/issues/detail?can=2&q=&colspec=ID%20Type%20Status%20Priority%20Owner%20Summary&groupby=&sort=&id=1296
-if (typeof html4 !== 'undefined')
-{
-	html4.ATTRIBS["a::target"] = 0;
-}
-
-// Specifies if the touch UI should be used (cannot detect touch in FF so always on for Windows/Linux)
-var touchStyle = mxClient.IS_TOUCH || (mxClient.IS_FF && mxClient.IS_WIN) || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0 || urlParams['touch'] == '1';
-
-// Counts open editor tabs (must be global for cross-window access)
-var counter = 0;
-
-// Cross-domain window access is not allowed in FF, so if we
-// were opened from another domain then this will fail. 
-try
-{
-	var op = window;
-	
-	while (op.opener != null && !isNaN(op.opener.counter))
-	{
-		op = op.opener;
-	}
-	
-	// Increments the counter in the first opener in the chain
-	if (op != null)
-	{
-		op.counter++;
-		counter = op.counter;
-	}
-}
-catch (e)
-{
-	// ignore
-}
-
-/**
- * Sets global constants.
- */
-// Changes default colors
-mxConstants.SHADOW_OPACITY = 0.25;
-mxConstants.SHADOWCOLOR = '#000000';
-mxConstants.VML_SHADOWCOLOR = '#d0d0d0';
-mxGraph.prototype.pageBreakColor = '#c0c0c0';
-mxGraph.prototype.pageScale = 1;
-
-// Matches label positions of mxGraph 1.x
-mxText.prototype.baseSpacingTop = 5;
-mxText.prototype.baseSpacingBottom = 1;
-
-// Keeps edges between relative child cells inside parent
-mxGraphModel.prototype.ignoreRelativeEdgeParent = false;
-
-// Defines grid properties
-mxGraphView.prototype.gridImage = (mxClient.IS_SVG) ? 'data:image/gif;base64,R0lGODlhCgAKAJEAAAAAAP///8zMzP///yH5BAEAAAMALAAAAAAKAAoAAAIJ1I6py+0Po2wFADs=' :
-	IMAGE_PATH + '/grid.gif';
-mxGraphView.prototype.gridSteps = 4;
-mxGraphView.prototype.gridColor = (urlParams['gridcolor'] || '#e0e0e0').toLowerCase();
-mxGraphView.prototype.minGridSize = 4;
-
-// Alternative text for unsupported foreignObjects
-mxSvgCanvas2D.prototype.foAltText = '[Not supported by viewer]';
-
-//Adds stylesheet for IE6
-if (mxClient.IS_IE6)
-{
-	mxClient.link('stylesheet', CSS_PATH + '/grapheditor-ie6.css');
-}
-
 /**
  * Editor constructor executed on page load.
  */
-Editor = function(chromeless, themes, model)
+Editor = function(chromeless, themes, model, graph)
 {
 	mxEventSource.call(this);
 	this.chromeless = (chromeless != null) ? chromeless : this.chromeless;
-	this.init();
 	this.initStencilRegistry();
-	this.graph = this.createGraph(themes, model);
+	this.graph = graph || this.createGraph(themes, model);
 	this.undoManager = this.createUndoManager();
 	this.status = '';
 
 	this.getOrCreateFilename = function()
 	{
-		return this.filename || mxResources.get('drawing', [counter]) + '.xml';
+		return this.filename || mxResources.get('drawing', [Editor.pageCounter]) + '.xml';
 	};
 	
 	this.getFilename = function()
@@ -123,7 +49,100 @@ Editor = function(chromeless, themes, model)
 
 	// Sets persistent graph state defaults
 	this.graph.resetViewOnRootChange = false;
+	this.init();
 };
+
+/**
+ * Counts open editor tabs (must be global for cross-window access)
+ */
+Editor.pageCounter = 0;
+
+// Cross-domain window access is not allowed in FF, so if we
+// were opened from another domain then this will fail.
+(function()
+{
+	try
+	{
+		var op = window;
+		
+		while (op.opener != null && typeof op.opener.Editor !== 'undefined' &&
+			!isNaN(op.opener.Editor.pageCounter))
+		{
+			op = op.opener;
+		}
+		
+		// Increments the counter in the first opener in the chain
+		if (op != null)
+		{
+			op.Editor.pageCounter++;
+			Editor.pageCounter = op.Editor.pageCounter;
+		}
+	}
+	catch (e)
+	{
+		// ignore
+	}
+})();
+
+/**
+ * Specifies if local storage should be used (eg. on the iPad which has no filesystem)
+ */
+Editor.useLocalStorage = typeof(Storage) != 'undefined' && mxClient.IS_IOS;
+
+/**
+ * Images below are for lightbox and embedding toolbars.
+ */
+Editor.maximizeImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABUAAAAVBAMAAABbObilAAAAElBMVEUAAAAAAAAAAAAAAAAAAAAAAADgKxmiAAAABXRSTlMA758vX1Pw3BoAAABJSURBVAjXY8AJQkODGBhUQ0MhbAUGBiYY24CBgRnGFmZgMISwgwwDGRhEhVVBbAVmEQYGRwMmBjIAQi/CTIRd6G5AuA3dzYQBAHj0EFdHkvV4AAAAAElFTkSuQmCC';
+
+/**
+ * Specifies the image URL to be used for the transparent background.
+ */
+Editor.zoomOutImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABUAAAAVBAMAAABbObilAAAAElBMVEUAAAAAAAAsLCxxcXEhISFgYGChjTUxAAAAAXRSTlMAQObYZgAAAEdJREFUCNdjIAMwCQrB2YKCggJQJqMwA7MglK1owMBgqABVApITgLJZXFxgbIQ4Qj3CHIT5ggoIe5kgNkM1KSDYKBKqxPkDAPo5BAZBE54hAAAAAElFTkSuQmCC';
+
+/**
+ * Specifies the image URL to be used for the transparent background.
+ */
+Editor.zoomInImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABUAAAAVBAMAAABbObilAAAAElBMVEUAAAAAAAAsLCwhISFxcXFgYGBavKaoAAAAAXRSTlMAQObYZgAAAElJREFUCNdjIAMwCQrB2YKCggJQJqMIA4sglK3owMzgqABVwsDMwCgAZTMbG8PYCHGEeoQ5CPMFFRD2MkFshmpSQLBRJFSJ8wcAEqcEM2uhl2MAAAAASUVORK5CYII=';
+
+/**
+ * Specifies the image URL to be used for the transparent background.
+ */
+Editor.zoomFitImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABUAAAAVBAMAAABbObilAAAAD1BMVEUAAAAAAAAwMDBwcHBgYGC1xl09AAAAAXRSTlMAQObYZgAAAEFJREFUCNdjIAMwCQrB2YKCggJQJqMwA7MglK1owMBgqABVApITwMdGqEeYgzBfUAFhLxPEZqgmBQQbRUKFOH8AAK5OA3lA+FFOAAAAAElFTkSuQmCC';
+
+/**
+ * Specifies the image URL to be used for the transparent background.
+ */
+Editor.layersImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABUAAAAVCAMAAACeyVWkAAAAaVBMVEUAAAAgICAICAgdHR0PDw8WFhYICAgLCwsXFxcvLy8ODg4uLi4iIiIqKiokJCQYGBgKCgonJycFBQUCAgIqKiocHBwcHBwODg4eHh4cHBwnJycJCQkUFBQqKiojIyMuLi4ZGRkgICAEBATOWYXAAAAAGnRSTlMAD7+fnz8/H7/ff18/77+vr5+fn39/b28fH2xSoKsAAACQSURBVBjTrYxJEsMgDARZZMAY73sgCcn/HxnhKtnk7j6oRq0psfuoyndZ/SuODkHPLzfVT6KeyPePnJ7KrnkRjWMXTn4SMnN8mXe2SSM3ts8L/ZUxxrbAULSYJJULE0Iw9pjpenoICcgcX61mGgTgtCv9Be99pzCoDhNQWQnchD1mup5++CYGcoQexajZbfwAj/0MD8ZOaUgAAAAASUVORK5CYII=';
+
+/**
+ * Specifies the image URL to be used for the transparent background.
+ */
+Editor.zoomOutLargeImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEUAAAD////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////2N2iNAAAALXRSTlMA+vTcKMM96GRBHwXxi0YaX1HLrKWhiHpWEOnOr52Vb2xKSDcT19PKv5l/Ngdk8+viAAABJklEQVQ4y4WT2XaDMAxEvWD2nSSUNEnTJN3r//+9Sj7ILAY6L0ijC4ONYVZRpo6cByrz2YKSUGorGTpz71lPVHvT+avoB5wIkU/mxk8veceSuNoLg44IzziXjvpih72wKQnm8yc2UoiP/LAd8jQfe2Xf4Pq+2EyYIvv9wbzHHCgwxDdlBtWZOdqDfTCVgqpygQpsZaojVAVc9UjQxnAJDIBhiQv84tq3gMQCAVTxVoSibXJf8tMuc7e1TB/DCmejBNg/w1Y3c+AM5vv4w7xM59/oXamrHaLVqPQ+OTCnmMZxgz0SdL5zji0/ld6j88qGa5KIiBB6WeJGKfUKwSMKLuXgvl1TW0tm5R9UQL/efSDYsnzxD8CinhBsTTdugJatKpJwf8v+ADb8QmvW7AeAAAAAAElFTkSuQmCC';
+
+/**
+ * Specifies the image URL to be used for the transparent background.
+ */
+Editor.zoomInLargeImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEUAAAD////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////2N2iNAAAALXRSTlMA+vTcKMM96GRBHwXxi0YaX1HLrKWhiHpWEOnOr52Vb2xKSDcT19PKv5l/Ngdk8+viAAABKElEQVQ4y4WT6WKCMBCENwkBwn2oFKvWqr3L+79es4EkQIDOH2d3Pxk2ABiJlB8JCXjqw4LikHVGLHTm3nM3UeVN5690GBBN0GwyV/3kkrUQR+WeKnREeKpzaXWd77CmJiXGfPIEI4V4yQ9TIW/ntlcMBe731Vts9w5TWG8F5j3mQI4hvrKpdGeYA7CX9qAcl650gVJartxRuhyHVghF8idQAIbFLvCLu28BsQEC6aKtCK6Pyb3JT7PmbmtNH8Ny56CotD/2qOs5cJbuffxgXmCib+xddVU5RNOhkvvkhTlFehzVWCOh3++MYElOhfdovaImnRYVmqDdsuhNp1QrBBE6uGC2+3ZNjGdg5B94oD+9uyVgWT79BwAxEBTWdOu3bWBVgsn/N/AHUD9IC01Oe40AAAAASUVORK5CYII=';
+
+/**
+ * Specifies the image URL to be used for the transparent background.
+ */
+Editor.actualSizeLargeImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEUAAAD////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////2N2iNAAAALXRSTlMA+vTcKMM96GRBHwXxi0YaX1HLrKWhiHpWEOnOr52Vb2xKSDcT19PKv5l/Ngdk8+viAAABIUlEQVQ4y4WT2XqDIBCFBxDc9yTWNEnTJN3r+79eGT4BEbXnaubMr8dBBaM450dCQp4LWFAascGIRd48eB4cNYE7f6XjgGiCFs5c+dml6CFN6j1V6IQIlHPpdV/usKcmJcV88gQTRXjLD9Mhb+fWq8YG9/uCmTCFjeeDeY85UGKIUGUuqzN42kv7oCouq9oHamlzVR1lVfpAIu1QVRiW+sAv7r4FpAYIZZVsRXB9TP5Dfpo1d1trCgzz1iiptH/sUbdz4CzN9+mLeXHn3+hdddd4RDegsrvzwZwSs2GLPRJidAqCLTlVwaMPqpYMWjTWBB2WRW86pVkhSKyDK2bdt2tmagZG4sBD/evdLQHLEvQfAOKRoLCmG1FAB6uKmby+gz+REDn7O5+EwQAAAABJRU5ErkJggg==';
+
+/**
+ * Specifies the image URL to be used for the transparent background.
+ */
+Editor.layersLargeImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAmVBMVEUAAAD////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////+/v7///+bnZkkAAAAMnRSTlMABPr8ByiD88KsTi/rvJb272mjeUA1CuPe1M/KjVxYHxMP6KZ0S9nYzGRGGRaznpGIbzaGUf0AAAHESURBVDjLbZLZYoIwEEVDgLCjbKIgAlqXqt3m/z+uNwu1rcyDhjl3ktnYL7OY254C0VX3yWFZfzDrOClbbgKxi0YDHjwl4jbnRkXxJS/C1YP3DbBhD1n7Ex4uaAqdVDb3yJ/4J/3nJD2to/ngQz/DfUvzMp4JJ5sSCaF5oXmemgQDfDxzbi+Kq4sU+vNcuAmx94JtyOP2DD4Epz2asWSCz4Z/4fECxyNj9zC9xNLHcdPEO+awDKeSaUu0W4twZQiO2hYVisTR3RCtK/c1X6t4xMEpiGqXqVntEBLolkZZsKY4QtwH6jzq67dEHlJysB1aNOD3XT7n1UkasQN59L4yC2RELMDSeCRtz3yV22Ub3ozIUTknYx8JWqDdQxbUes98cR2kZtUSveF/bAhcedwEWmlxIkpZUy4XOCb6VBjjxHvbwo/1lBAHHi2JCr0NI570QhyHq/DhJoE2lLgyA4RVe6KmZ47O/3b86MCP0HWa73A8/C3SUc5Qc1ajt6fgpXJ+RGpMvDSchepZDOOQRcZVIKcK90x2D7etqtI+56+u6n3sPriO6nfphitR4+O2m3EbM7lh3me1FM1o+LMI887rN+s3/wZdTFlpNVJiOAAAAABJRU5ErkJggg==';
+
+/**
+ * Specifies the image URL to be used for the transparent background.
+ */
+Editor.closeLargeImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAUVBMVEUAAAD///////////////////////////////////////////////////////////////////////////////////////////////////////8IN+deAAAAGnRSTlMAuvAIg/dDM/QlOeuFhj0S5s4vKgzjxJRQNiLSey0AAADNSURBVDjLfZLbEoMgDEQjRRRs1XqX///QNmOHJSnjPkHOGR7IEmeoGtJZstnwjqbRfIsmgEdtPCqe9Ynz7ZSc07rE2QiSc+qv8TvjRXA2PDUm3dpe82iJhOEUfxJJo3aCv+jKmRmH4lcCjCjeh9GWOdL/GZZkXH3PYYDrHBnfc4D/RVZf5sjoC1was+Y6HQxwaUxFvq/a0Pv343VCTxfBSRiB+ab3M3eiQZXmMNBJ3Y8pGRZtYQ7DgHMXJEdPLTaN/qBjzJOBc3nmNcbsA16bMR0oLqf+AAAAAElFTkSuQmCC';
+
+/**
+ * Specifies the image URL to be used for the transparent background.
+ */
+Editor.editLargeImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgAgMAAAAOFJJnAAAACVBMVEUAAAD///////9zeKVjAAAAAnRSTlMAgJsrThgAAABcSURBVBjThc6xDcAgDATAd8MQTEPW8TRUmYCGnzLRYyOlIV+dZFtvkICTFGqiJEzAG0/Uje9oL+e5Vu4F5yUYJxxqGKhQZ0eBvmgwYQLQaARKD1hbiPyDR0QOeAC31EyNe5X/kAAAAABJRU5ErkJggg==';
 
 // Editor inherits from mxEventSource
 mxUtils.extend(Editor, mxEventSource);
@@ -189,6 +208,16 @@ Editor.prototype.initialTopSpacing = 0;
 Editor.prototype.appName = document.title;
 
 /**
+ * 
+ */
+Editor.prototype.editBlankUrl = window.location.protocol + '//' + window.location.host + '/?client=1';
+
+/**
+ * 
+ */
+Editor.prototype.editBlankFallbackUrl = window.location.protocol + '//' + window.location.host + '/?create=drawdata&splash=0';
+
+/**
  * Initializes the environment.
  */
 Editor.prototype.init = function() { };
@@ -200,6 +229,45 @@ Editor.prototype.setAutosave = function(value)
 {
 	this.autosave = value;
 	this.fireEvent(new mxEventObject('autosaveChanged'));
+};
+
+/**
+ * 
+ */
+Editor.prototype.getEditBlankXml = function()
+{
+	return mxUtils.getXml(this.getGraphXml());
+};
+
+/**
+ * 
+ */
+Editor.prototype.editAsNew = function(xml, title)
+{
+	var p = (title != null) ? '&title=' + encodeURIComponent(title) : '';
+	
+	if (typeof window.postMessage !== 'undefined' && (document.documentMode == null || document.documentMode >= 10))
+	{
+		var wnd = null;
+		
+		var receive = mxUtils.bind(this, function(evt)
+		{
+			if (evt.data == 'ready' && evt.source == wnd)
+			{
+				wnd.postMessage(xml, '*');
+				mxEvent.removeListener(window, 'message', receive);
+			}
+		});
+		
+		mxEvent.addListener(window, 'message', receive);
+		wnd = window.open(this.editBlankUrl + p);
+	}
+	else
+	{
+		// Data is pulled from global variable after tab loads
+		window.drawdata = xml;
+		window.open(this.editBlankFallbackUrl + p);
+	}
 };
 
 /**
@@ -250,6 +318,7 @@ Editor.prototype.readGraphState = function(node)
 	if (this.chromeless && this.graph.foldingEnabled)
 	{
 		this.graph.foldingEnabled = urlParams['nav'] == '1';
+		this.graph.cellRenderer.forceControlClickHandler = this.graph.foldingEnabled;
 	}
 	
 	var ps = node.getAttribute('pageScale');
@@ -262,29 +331,24 @@ Editor.prototype.readGraphState = function(node)
 	{
 		this.graph.pageScale = mxGraph.prototype.pageScale;
 	}
-	
-	var gc = node.getAttribute('gridColor');
-	
-	if (gc != null)
+
+	if (!this.graph.lightbox)
 	{
-		this.graph.view.gridColor = gc.toLowerCase();
+		var pv = node.getAttribute('page');
+	
+		if (pv != null)
+		{
+			this.graph.pageVisible = (pv != '0');
+		}
+		else
+		{
+			this.graph.pageVisible = this.graph.defaultPageVisible;
+		}
 	}
 	else
 	{
-		this.graph.view.gridColor = mxGraphView.prototype.gridColor;
+		this.graph.pageVisible = false;
 	}
-	
-	var pv = node.getAttribute('page');
-
-	if (pv != null)
-	{
-		this.graph.pageVisible = (pv != '0');
-	}
-	else
-	{
-		this.graph.pageVisible = this.graph.defaultPageVisible;
-	}
-
 	
 	this.graph.pageBreaksVisible = this.graph.pageVisible; 
 	this.graph.preferPageSize = this.graph.pageBreaksVisible;
@@ -403,11 +467,6 @@ Editor.prototype.getGraphXml = function(ignoreSelection)
 	node.setAttribute('pageWidth', this.graph.pageFormat.width);
 	node.setAttribute('pageHeight', this.graph.pageFormat.height);
 
-	if (this.graph.view.gridColor != mxGraphView.prototype.gridColor)
-	{
-		node.setAttribute('gridColor', this.graph.view.gridColor);
-	}
-	
 	if (this.graph.background != null)
 	{
 		node.setAttribute('background', this.graph.background);
@@ -1105,218 +1164,4 @@ OpenFile.prototype.cancel = function(cancel)
 		return cell;
 	};
 
-	/**
-	 * Overrides stencil registry for dynamic loading of stencils.
-	 */
-	/**
-	 * Maps from library names to an array of Javascript filenames,
-	 * which are synchronously loaded. Currently only stencil files
-	 * (.xml) and JS files (.js) are supported.
-	 * IMPORTANT: For embedded diagrams to work entries must also
-	 * be added in EmbedServlet.java.
-	 */
-	mxStencilRegistry.libraries = {};
-
-	/**
-	 * Stores all package names that have been dynamically loaded.
-	 * Each package is only loaded once.
-	 */
-	mxStencilRegistry.packages = [];
-	
-	// Extends the default stencil registry to add dynamic loading
-	mxStencilRegistry.getStencil = function(name)
-	{
-		var result = mxStencilRegistry.stencils[name];
-		
-		if (result == null && mxCellRenderer.prototype.defaultShapes[name] == null)
-		{
-			var basename = mxStencilRegistry.getBasenameForStencil(name);
-			
-			// Loads stencil files and tries again
-			if (basename != null)
-			{
-				var libs = mxStencilRegistry.libraries[basename];
-
-				if (libs != null)
-				{
-					if (mxStencilRegistry.packages[basename] == null)
-					{
-						mxStencilRegistry.packages[basename] = 1;
-						
-						for (var i = 0; i < libs.length; i++)
-						{
-							var fname = libs[i];
-							
-							if (fname.toLowerCase().substring(fname.length - 4, fname.length) == '.xml')
-							{
-								mxStencilRegistry.loadStencilSet(fname, null);
-							}
-							else if (fname.toLowerCase().substring(fname.length - 3, fname.length) == '.js')
-							{
-								try
-								{
-									var req = mxUtils.load(fname);
-									
-									if (req != null)
-									{
-										eval.call(window, req.getText());
-									}
-								}
-								catch (e)
-								{
-									if (window.console != null)
-									{
-										console.log('error in getStencil:', fname, e);
-									}
-								}
-							}
-							else
-							{
-								// FIXME: This does not yet work as the loading is triggered after
-								// the shape was used in the graph, at which point the keys have
-								// typically been translated in the calling method.
-								//mxResources.add(fname);
-							}
-						}
-					}
-				}
-				else
-				{
-					// Replaces '_-_' with '_'
-					basename = basename.replace('_-_', '_');
-					mxStencilRegistry.loadStencilSet(STENCIL_PATH + '/' + basename + '.xml', null);
-				}
-				
-				result = mxStencilRegistry.stencils[name];
-			}
-		}
-		
-		return result;
-	};
-	
-	// Returns the basename for the given stencil or null if no file must be
-	// loaded to render the given stencil.
-	mxStencilRegistry.getBasenameForStencil = function(name)
-	{
-		var tmp = null;
-		
-		if (name != null)
-		{
-			var parts = name.split('.');
-			
-			if (parts.length > 0 && parts[0] == 'mxgraph')
-			{
-				tmp = parts[1];
-				
-				for (var i = 2; i < parts.length - 1; i++)
-				{
-					tmp += '/' + parts[i];
-				}
-			}
-		}
-
-		return tmp;
-	};
-
-	// Loads the given stencil set
-	mxStencilRegistry.loadStencilSet = function(stencilFile, postStencilLoad, force, async)
-	{
-		force = (force != null) ? force : false;
-		
-		// Uses additional cache for detecting previous load attempts
-		var xmlDoc = mxStencilRegistry.packages[stencilFile];
-		
-		if (force || xmlDoc == null)
-		{
-			var install = false;
-			
-			if (xmlDoc == null)
-			{
-				try
-				{
-					if (async)
-					{
-						var req = mxUtils.get(stencilFile, mxUtils.bind(this, function(req)
-						{
-							xmlDoc = req.getXml();
-							mxStencilRegistry.packages[stencilFile] = xmlDoc;
-							install = true;
-							
-							if (xmlDoc != null && xmlDoc.documentElement != null)
-							{
-								mxStencilRegistry.parseStencilSet(xmlDoc.documentElement, postStencilLoad, install);
-							}
-						}));
-					
-						return;
-					}
-					else
-					{
-						var req = mxUtils.load(stencilFile);
-						xmlDoc = req.getXml();
-						mxStencilRegistry.packages[stencilFile] = xmlDoc;
-						install = true;
-					}
-				}
-				catch (e)
-				{
-					if (window.console != null)
-					{
-						console.log('error in loadStencilSet:', stencilFile);
-					}
-				}
-			}
-		
-			if (xmlDoc != null && xmlDoc.documentElement != null)
-			{
-				mxStencilRegistry.parseStencilSet(xmlDoc.documentElement, postStencilLoad, install);
-			}
-		}
-	};
-	
-	// Parses the given stencil set
-	mxStencilRegistry.parseStencilSet = function(root, postStencilLoad, install)
-	{
-		install = (install != null) ? install : true;
-		var shape = root.firstChild;
-		var packageName = '';
-		var name = root.getAttribute('name');
-		
-		if (name != null)
-		{
-			packageName = name + '.';
-		}
-		
-		while (shape != null)
-		{
-			if (shape.nodeType == mxConstants.NODETYPE_ELEMENT)
-			{
-				name = shape.getAttribute('name');
-				
-				if (name != null)
-				{
-					packageName = packageName.toLowerCase();
-					var stencilName = name.replace(/ /g,"_");
-						
-					if (install)
-					{
-						mxStencilRegistry.addStencil(packageName + stencilName.toLowerCase(), new mxStencil(shape));
-					}
-	
-					if (postStencilLoad != null)
-					{
-						var w = shape.getAttribute('w');
-						var h = shape.getAttribute('h');
-						
-						w = (w == null) ? 80 : parseInt(w, 10);
-						h = (h == null) ? 80 : parseInt(h, 10);
-
-						postStencilLoad(packageName, stencilName, name, w, h);
-					}
-				}
-			}
-			
-			shape = shape.nextSibling;
-		}
-	};
 })();
