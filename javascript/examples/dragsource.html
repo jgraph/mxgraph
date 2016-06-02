@@ -114,7 +114,7 @@
 					cell.vertex = true;
 					var cells = graph.importCells([cell], x, y, target);
 
-					if (cells != null && cells > 0)
+					if (cells != null && cells.length > 0)
 					{
 						graph.scrollCellToVisible(cells[0]);
 						graph.setSelectionCells(cells);

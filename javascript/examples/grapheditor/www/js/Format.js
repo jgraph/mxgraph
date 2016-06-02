@@ -3144,7 +3144,7 @@ TextFormatPanel.prototype.addFont = function(container)
 								}
 								else
 								{
-									input.value = parseInt(css.fontSize) + ' pt';
+									input.value = parseFloat(css.fontSize) + ' pt';
 								}
 								
 								var tmp = node.style.lineHeight || css.lineHeight;
@@ -3152,7 +3152,7 @@ TextFormatPanel.prototype.addFont = function(container)
 								
 								if (tmp.substring(tmp.length - 2) == 'px')
 								{
-									lh = lh / parseInt(css.fontSize);
+									lh = lh / parseFloat(css.fontSize);
 								}
 								
 								if (tmp.substring(tmp.length - 1) != '%')

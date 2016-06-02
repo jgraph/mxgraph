@@ -476,7 +476,7 @@ mxAbstractCanvas2D.prototype.setFontBorderColor = function(value)
  */
 mxAbstractCanvas2D.prototype.setFontSize = function(value)
 {
-	this.state.fontSize = value;
+	this.state.fontSize = parseFloat(value);
 };
 
 /**

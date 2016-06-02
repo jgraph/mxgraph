@@ -1133,11 +1133,7 @@ Actions.prototype.init = function()
 	action.setSelectedCallback(mxUtils.bind(this, function() { return this.layersWindow != null && this.layersWindow.window.isVisible(); }));
 	action = this.addAction('formatPanel', mxUtils.bind(this, function()
 	{
-		ui.formatWidth = (ui.formatWidth > 0) ? 0 : 240;
-		ui.formatContainer.style.display = (ui.formatWidth > 0) ? '' : 'none';
-		ui.refresh();
-		ui.format.refresh();
-		ui.fireEvent(new mxEventObject('formatWidthChanged'));
+		ui.toggleFormatPanel();
 	}), null, null, 'Ctrl+Shift+P');
 	action.setToggleAction(true);
 	action.setSelectedCallback(mxUtils.bind(this, function() { return ui.formatWidth > 0; }));

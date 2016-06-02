@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.5.1.3.
+	 * Current version is 3.5.1.4.
 	 */
-	VERSION: '3.5.1.3',
+	VERSION: '3.5.1.4',
 
 	/**
 	 * Variable: IS_IE
@@ -16649,7 +16649,7 @@ mxAbstractCanvas2D.prototype.setFontBorderColor = function(value)
  */
 mxAbstractCanvas2D.prototype.setFontSize = function(value)
 {
-	this.state.fontSize = value;
+	this.state.fontSize = parseFloat(value);
 };
 
 /**
@@ -22092,27 +22092,27 @@ mxStencil.prototype.drawShape = function(canvas, shape, x, y, w, h)
 	// (start, segment, end blocks), pluggable markers, how to implement
 	// swimlanes (title area) with this API, add icon, horizontal/vertical
 	// label, indicator for all shapes, rotation
-	this.drawChildren(canvas, shape, x, y, w, h, this.bgNode, false);
-	this.drawChildren(canvas, shape, x, y, w, h, this.fgNode, true);
+	var direction = mxUtils.getValue(shape.style, mxConstants.STYLE_DIRECTION, null);
+	var aspect = this.computeAspect(shape.style, x, y, w, h, direction);
+	var minScale = Math.min(aspect.width, aspect.height);
+	var sw = (this.strokewidth == 'inherit') ?
+			Number(mxUtils.getNumber(shape.style, mxConstants.STYLE_STROKEWIDTH, 1)) :
+			Number(this.strokewidth) * minScale;
+	canvas.setStrokeWidth(sw);
+
+	this.drawChildren(canvas, shape, x, y, w, h, this.bgNode, aspect, false);
+	this.drawChildren(canvas, shape, x, y, w, h, this.fgNode, aspect, true);
 };
 
 /**
- * Function: drawShape
+ * Function: drawChildren
  *
  * Draws this stencil inside the given bounds.
  */
-mxStencil.prototype.drawChildren = function(canvas, shape, x, y, w, h, node, disableShadow)
+mxStencil.prototype.drawChildren = function(canvas, shape, x, y, w, h, node, aspect, disableShadow)
 {
 	if (node != null && w > 0 && h > 0)
 	{
-		var direction = mxUtils.getValue(shape.style, mxConstants.STYLE_DIRECTION, null);
-		var aspect = this.computeAspect(shape.style, x, y, w, h, direction);
-		var minScale = Math.min(aspect.width, aspect.height);
-		var sw = (this.strokewidth == 'inherit') ?
-				Number(mxUtils.getNumber(shape.style, mxConstants.STYLE_STROKEWIDTH, 1)) :
-				Number(this.strokewidth) * minScale;
-		canvas.setStrokeWidth(sw);
-
 		var tmp = node.firstChild;
 		
 		while (tmp != null)

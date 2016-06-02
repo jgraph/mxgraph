@@ -1545,10 +1545,8 @@ EditorUi.prototype.initCanvas = function()
 			this.chromelessToolbar.style.display = '';
 			mxUtils.setOpacity(this.chromelessToolbar, opacity || 30);
 		});
-		
-		var model = graph.getModel();
-		
-		if (urlParams['layers'] == '1' && model.getChildCount(model.root) > 0)
+
+		if (urlParams['layers'] == '1')
 		{
 			this.layersDialog = null;
 			
@@ -1577,6 +1575,7 @@ EditorUi.prototype.initCanvas = function()
 					this.layersDialog.style.width = '160px';
 					this.layersDialog.style.padding = '4px 2px 4px 2px';
 					this.layersDialog.style.color = '#ffffff';
+					mxUtils.setOpacity(this.layersDialog, 70);
 					this.layersDialog.style.left = r.left + 'px';
 					this.layersDialog.style.bottom = parseInt(this.chromelessToolbar.style.bottom) +
 						this.chromelessToolbar.offsetHeight + 4 + 'px';
@@ -1586,6 +1585,14 @@ EditorUi.prototype.initCanvas = function()
 				
 				mxEvent.consume(evt);
 			}), Editor.layersLargeImage, mxResources.get('layers') || 'Layers');
+			
+			// Shows/hides layers button depending on content
+			var model = graph.getModel();
+
+			model.addListener(mxEvent.CHANGE, function()
+			{
+				 layersButton.style.display = (model.getChildCount(model.root) > 1) ? '' : 'none';
+			});
 		}
 
 		if (this.editor.editButtonLink != null)
@@ -1625,12 +1632,19 @@ EditorUi.prototype.initCanvas = function()
 		this.chromelessToolbar.style.display = 'none';
 		graph.container.appendChild(this.chromelessToolbar);
 		this.chromelessToolbar.style.marginLeft = -(btnCount * 24 + 10) + 'px';
-
+		
+		// Installs handling of hightligh and handling links to relative links and anchors
+		this.addChromelessClickHandler();
+		
 		mxEvent.addListener(graph.container, (mxClient.IS_POINTER) ? 'pointermove' : 'mousemove', mxUtils.bind(this, function(evt)
 		{
 			if (!mxEvent.isTouchEvent(evt))
 			{
-				fadeIn(30);
+				if (!mxEvent.isShiftDown(evt))
+				{
+					fadeIn(30);
+				}
+				
 				fadeOut();
 			}
 		}));
@@ -1642,12 +1656,27 @@ EditorUi.prototype.initCanvas = function()
 		
 		mxEvent.addListener(this.chromelessToolbar, 'mouseenter', mxUtils.bind(this, function(evt)
 		{
-			fadeIn(100);
+			if (!mxEvent.isShiftDown(evt))
+			{
+				fadeIn(100);
+			}
+			else
+			{
+				fadeOut();
+			}
 		}));
 
 		mxEvent.addListener(this.chromelessToolbar, 'mousemove',  mxUtils.bind(this, function(evt)
 		{
-			fadeIn(100);
+			if (!mxEvent.isShiftDown(evt))
+			{
+				fadeIn(100);
+			}
+			else
+			{
+				fadeOut();
+			}
+			
 			mxEvent.consume(evt);
 		}));
 
@@ -1859,6 +1888,34 @@ EditorUi.prototype.initCanvas = function()
 			}
 		}
 	}));
+};
+
+/**
+ * 
+ */
+EditorUi.prototype.addChromelessClickHandler = function()
+{
+	var hl = urlParams['highlight'];
+	
+	// Adds leading # for highlight color code
+	if (hl != null && hl.length > 0)
+	{
+		hl = '#' + hl;
+	}
+
+	this.editor.graph.addClickHandler(hl);
+};
+
+/**
+ * 
+ */
+EditorUi.prototype.toggleFormatPanel = function(forceHide)
+{
+	this.formatWidth = (forceHide || this.formatWidth > 0) ? 0 : 240;
+	this.formatContainer.style.display = (forceHide || this.formatWidth > 0) ? '' : 'none';
+	this.refresh();
+	this.format.refresh();
+	this.fireEvent(new mxEventObject('formatWidthChanged'));
 };
 
 /**

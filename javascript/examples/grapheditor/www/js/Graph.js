@@ -51,7 +51,30 @@ Graph = function(container, model, renderHint, stylesheet, themes)
 	mxGraph.call(this, container, model, renderHint, stylesheet);
 	
 	this.themes = themes || this.defaultThemes;
+	
+	// Sets the base domain URL and domain path URL for relative links.
+	var b = this.baseUrl;
+	var p = b.indexOf('//');
+	this.domainUrl = '';
+	this.domainPathUrl = '';
+	
+	if (p > 0)
+	{
+		var d = b.indexOf('/', p + 2);
 
+		if (d > 0)
+		{
+			this.domainUrl = b.substring(0, d);
+		}
+		
+		d = b.lastIndexOf('/');
+		
+		if (d > 0)
+		{
+			this.domainPathUrl = b.substring(0, d + 1);
+		}
+	}
+	
     // Adds support for HTML labels via style. Note: Currently, only the Java
     // backend supports HTML labels but CSS support is limited to the following:
     // http://docs.oracle.com/javase/6/docs/api/index.html?javax/swing/text/html/CSS.html
@@ -887,6 +910,11 @@ Graph.prototype.defaultThemeName = 'default';
 Graph.prototype.defaultThemes = {};
 
 /**
+ * Base URL for relative links.
+ */
+Graph.prototype.baseUrl = (window.location != window.parent.location) ? document.referrer : document.location.toString();
+
+/**
  * Installs child layout styles.
  */
 Graph.prototype.init = function(container)
@@ -965,7 +993,7 @@ Graph.prototype.sanitizeHtml = function(value)
 	// Uses https://code.google.com/p/google-caja/wiki/JsHtmlSanitizer
 	// NOTE: Original minimized sanitizer was modified to support data URIs for images
 	// LATER: Add MathML to whitelisted tags
-	function urlX(url) { if(/(^https?:|^mailto:\/\/|^data:image\/|^#)/.test(url)) { return url }}
+	function urlX(url) { if(/(^https?:|^mailto:|^data:image\/|^#)/.test(url)) { return url }}
     function idX(id) { return id }
 	
 	return html_sanitize(value, urlX, idX);
@@ -3905,6 +3933,277 @@ if (typeof mxVertexHandler != 'undefined')
 			}
 			
 			return label;
+		};
+		
+
+		/**
+		 * 
+		 */
+		Graph.prototype.getAbsoluteUrl = function(url)
+		{
+			if (url != null && this.isRelativeUrl(url))
+			{
+				if (url.charAt(0) == '/')
+				{
+					url = this.domainUrl + url;
+				}
+				else
+				{
+					url = this.domainPathUrl + url;
+				}
+			}
+			
+			return url;
+		};
+
+		/**
+		 * Hook for links to open in same window. Default returns true for anchors,
+		 * links to same domain or if target == 'self' in the config.
+		 */
+		Graph.prototype.isBlankLink = function(href)
+		{
+			var dom = this.domainUrl;
+			
+			return urlParams['target'] != 'self' && href != null && href.charAt(0) != '#' &&
+				href.substring(0, dom.length) != dom && !this.isRelativeUrl(href);
+		};
+
+		/**
+		 * 
+		 */
+		Graph.prototype.isRelativeUrl = function(url)
+		{
+			return !(new RegExp('^(?:[a-z]+:)?//', 'i').test(url)) && url.substring(0, 10) != 'data:image' &&
+				url.substring(0, 7) != 'mailto:';
+		};
+
+		/**
+		 * Adds event handler for links and lightbox.
+		 */
+		Graph.prototype.addClickHandler = function(highlight, beforeClick, onClick)
+		{
+			// Hides lightbox before executing links on same page
+			var checkLinks = mxUtils.bind(this, function()
+			{
+				var links = this.container.getElementsByTagName('a');
+				
+				if (links != null)
+				{
+					for (var i = 0; i < links.length; i++)
+					{
+						var href = links[i].getAttribute('href');
+						
+						if (href != null && !this.isBlankLink(href))
+						{
+							if (window != window.top)
+							{
+								links[i].setAttribute('target', '_top');
+								
+								if (href.charAt('#'))
+								{
+									links[i].setAttribute('href', this.baseUrl + href);
+								}
+								else
+								{
+									links[i].setAttribute('href', this.getAbsoluteUrl(href));
+								}
+							}
+							else if (links[i].getAttribute('target') == '_blank')
+							{
+								links[i].removeAttribute('target');
+							}
+
+			    			if (beforeClick != null)
+			    			{
+			    				mxEvent.addListener(links[i], 'click', beforeClick);
+			    			}
+						}
+					}
+				}
+			});
+			
+			this.model.addListener(mxEvent.CHANGE, checkLinks);
+			checkLinks();
+			
+			var cursor = this.container.style.cursor;
+			var tol = this.getTolerance();
+			var graph = this;
+
+			var mouseListener =
+			{
+			    currentState: null,
+			    currentLink: null,
+			    highlight: (highlight != null && highlight != '' && highlight != mxConstants.NONE) ?
+			    	new mxCellHighlight(graph, highlight, 4) : null,
+			    startX: 0,
+			    startY: 0,
+			    scrollLeft: 0,
+			    scrollTop: 0,
+			    updateCurrentState: function(me)
+			    {
+			    	var tmp = graph.view.getState(me.getCell());
+					
+			      	if (tmp != this.currentState)
+			      	{
+			        	if (this.currentState != null)
+			        	{
+			          		this.clear();
+			        	}
+			        
+		        		this.currentState = tmp;
+			        
+			        	if (this.currentState != null)
+			        	{
+			          		this.activate(this.currentState);
+			        	}
+			      	}
+			    },
+			    mouseDown: function(sender, me)
+			    {
+			    	this.startX = me.getGraphX();
+			    	this.startY = me.getGraphY();
+				    this.scrollLeft = graph.container.scrollLeft;
+				    this.scrollTop = graph.container.scrollTop;
+				    
+		    		if (this.currentLink == null && graph.container.style.overflow == 'auto')
+		    		{
+		    			graph.container.style.cursor = 'move';
+		    		}
+		    		
+		    		this.updateCurrentState(me);
+			    },
+			    mouseMove: function(sender, me)
+			    {
+			    	if (graph.isMouseDown)
+			    	{
+			    		if (this.currentLink != null)
+			    		{
+					    	var dx = Math.abs(this.startX - me.getGraphX());
+					    	var dy = Math.abs(this.startY - me.getGraphY());
+					    	
+					    	if (dx > tol || dy > tol)
+					    	{
+					    		this.clear();
+					    	}
+			    		}
+			    	}
+			    	else
+			    	{
+			    		if (me.getSource().nodeName.toLowerCase() == 'a')
+			    		{
+			    			this.clear();
+			    		}
+			    		else
+			    		{
+					    	if (this.currentState != null && (me.getState() == this.currentState || me.getState() == null) &&
+					    		graph.intersects(this.currentState, me.getGraphX(), me.getGraphY()))
+					    	{
+				    			return;
+					    	}
+					    	
+					    	this.updateCurrentState(me);
+			    		}
+			    	}
+			    },
+			    mouseUp: function(sender, me)
+			    {
+			    	var source = me.getSource();
+			    	var tmp = this.currentLink;
+			    	this.clear();
+			    	
+			    	// Ignores clicks on links and collapse/expand icon
+			    	if (source.nodeName.toLowerCase() != 'a' && !me.isConsumed() &&
+			    		(me.getState() == null || !me.isSource(me.getState().control)) &&
+			    		(mxEvent.isLeftMouseButton(me.getEvent()) || mxEvent.isTouchEvent(me.getEvent())))
+			    	{
+				    	if (tmp != null) 
+				    	{
+				    		if (!graph.isBlankLink(tmp))
+				    		{
+				    			if (beforeClick != null)
+				    			{
+				    				beforeClick(me.getEvent());
+				    			}
+				    			
+				    			if (tmp.charAt(0) == '#')
+				    			{
+				    				if (window != window.top)
+						    		{
+				    					window.open(graph.baseUrl + tmp, '_top');
+						    		}
+				    				else
+				    				{
+				    					window.location.hash = tmp;
+				    				}
+				    			}
+				    			else
+					    		{
+			    					if (window != window.top)
+						    		{
+				    					window.open(graph.getAbsoluteUrl(tmp), '_top');
+						    		}
+				    				else
+				    				{
+				    					window.location = tmp;
+				    				}
+				    			}
+				    		}
+				    		else
+				    		{
+				    			window.open(tmp);
+				    		}
+				    		
+				    		me.consume();
+				    	}
+				    	else if (onClick != null && !me.isConsumed() &&
+			    			(Math.abs(this.scrollLeft - graph.container.scrollLeft) < tol &&
+			        		Math.abs(this.scrollTop - graph.container.scrollTop) < tol) &&
+			        		(Math.abs(this.startX - me.getGraphX()) < tol &&
+			        		Math.abs(this.startY - me.getGraphY()) < tol))
+			        	{
+				    		onClick(me.getEvent());
+			    		}
+			    	}
+			    },
+			    activate: function(state)
+			    {
+			    	this.currentLink = graph.getLinkForCell(state.cell);
+			    	
+			    	if (this.currentLink != null)
+			    	{
+			    		graph.container.style.cursor = 'pointer';
+
+			    		if (this.highlight != null)
+			    		{
+			    			this.highlight.highlight(state);
+			    		}
+				    }
+			    },
+			    clear: function()
+			    {
+			    	if (graph.container != null)
+			    	{
+			    		graph.container.style.cursor = cursor;
+			    	}
+			    	
+			    	this.currentState = null;
+			    	this.currentLink = null;
+			    	
+			    	if (this.highlight != null)
+			    	{
+			    		this.highlight.hide();
+			    	}
+			    }
+			};
+
+			// Ignores built-in click handling
+			graph.click = function(me) {};
+			graph.addMouseListener(mouseListener);
+			
+			mxEvent.addListener(document, 'mouseleave', function(evt)
+			{
+				mouseListener.clear();
+			});
 		};
 		
 		/**

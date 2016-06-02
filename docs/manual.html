@@ -9,7 +9,7 @@
 <h1>mxGraph User Manual &ndash; JavaScript Client</h1>
 <br/>
 <br/>
-<p>mxGraph Version 3.5.1.3 &ndash; 09. May 2016</p>
+<p>mxGraph Version 3.5.1.4 &ndash; 02. June 2016</p>
 <p>Copyright (c) JGraph Ltd 2006-2016</p>
 <br/>
 <p>All rights reserved. No part of this publication may be
@@ -415,59 +415,7 @@ complete package for your JavaScript development needs, there are a
 number of vendors providing the individual components you need to
 produce JavaScript applications effectively.</p>
 
-<h3><a name="ajax"></a>AJAX</h3>
-
-<p><a href="http://en.wikipedia.org/wiki/AJAX">AJAX</a> is a very
-fashionable term applied freely to make JavaScript applications sound
-more modern. The idea of AJAX was originally to enable communication
-with a server without leaving the client browser hanging in a loop
-waiting for the response. Strictly speaking, the basic functioning of
-mxGraph involves no AJAX. All of the interaction and model changes are
-applied on the client in JavaScript.</p>
-
-<p>Alternative approaches to display interaction diagrams have been
-taken that use the AJAX approach, but be weary of the AJAX term to suggest
-that the solution is technological more advanced. Going back to the
-server for interaction changes, in particular, cause serious delays in
-updating the UI, often making the application unusable.</p>
-
 <h3><a name="js_frameworks"></a>Third-Party JavaScript Frameworks</h3>
-
-<h4><a name="GWT"></a>Google Web Toolkit</h4>
-
-<p>Given the apparent complexity from a desktop developer's point of
-view, a common approach is to use the <a
-	href="http://code.google.com/webtoolkit/">Google Web Toolkit (GWT)</a>.
-GWT provides many commonly required web application features by
-translating Java into JavaScript. This JavaScript can be deployed just
-as natively written JavaScript is. GWT also provides the option to
-obfuscate the resulting JavaScript. (See later section on obfuscation in
-this chapter).</p>
-
-<p>The key advantages of GWT are:</p>
-
-<ul>
-	<li>Reuses Java developer knowledge,</li>
-	<li>Allows debugger of the Java source,</li>
-	<li>Resolves cross-browser issues,</li>
-	<li>Native code can be interleaved with Java,</li>
-	<li>Certain compile-time errors can be detected before execution.</li>
-</ul>
-
-<p>The key disadvantages of GWT are:</p>
-
-<ul>
-	<li>Commercial support is not available from the developers,</li>
-	<li>The higher the level of abstraction, the more difficult it is
-	to implement features that go against the architecture and to debug
-	when things go wrong,</li>
-	<li>It's use may deter from learning and understanding JavaScript,
-	which is ultimately necessary to implement certain new features.</li>
-</ul>
-
-<p>In summary, consider GWT for simpler projects, but be careful of
-placing to much emphasis on it as a tool that avoids having to learn
-JavaScript properly.</p>
 
 <h4><a name="native_js_frameworks"></a>Native JavaScript Frameworks
 and Libraries</h4>
@@ -656,19 +604,6 @@ var graph = new MyGraph(container);
 
 <h3><a name="general_javascript"></a>General JavaScript Development</h3>
 
-<h4><a name="development_environments"></a>JavaScript Development
-Environments</h4>
-<p>Please refer to the <a
-	href="http://extjs.com/learn/Manual:Resources#IDEs">ExtJS manual
-entry</a> on the subject.</p>
-
-<h4><a name="debugging_javascript"></a>Debugging JavaScript</h4>
-<p>Please refer to the <a
-	href="http://en.wikipedia.org/wiki/JavaScript#Debugging">wikipedia
-entry</a>, or to the <a
-	href="http://extjs.com/learn/Manual:Resources#Various_debugging_tools">ExtJS
-manual entry</a>, for information on the subject.</p>
-
 <h4><a name="javascript_obfuscation"></a>JavaScript Obfuscation</h4>
 <p>By default, when you deliver JavaScript to a browser client, you
 deliver the entire source to that JavaScript. That JavaScript is then
@@ -686,12 +621,10 @@ and I/O would need to understand the obfuscation at both communication
 ends.</p>
 
 <h4><a name="namespaces"></a>Namespaces</h4>
-<p>The concept of namespaces does not exist in JavaScript, so take
+<p>The concept of namespaces does not exist in standised JavaScript, so take
 great care when creating new class names. In mxGraph, all of the classes
 begin with the prefix &ldquo;mx-&rdquo;, to avoid clashes or overriding
-prototypes unintentionally. Prior to starting your application it is
-worth creating a prefix particular to your application that you append
-to all of the your classes to create a manual &ldquo;namespace&rdquo;.</p>
+prototypes unintentionally.
 
 <br/>
 <h2><a name="hello_world"></a>Hello World!</h2>
