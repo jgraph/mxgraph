@@ -432,7 +432,7 @@ mxVertexHandler.prototype.createSizer = function(cursor, index, size, fillColor)
 	
 	if (!this.isSizerVisible(index))
 	{
-		sizer.node.style.visibility = 'hidden';
+		sizer.visible = false;
 	}
 	
 	return sizer;
@@ -911,6 +911,78 @@ mxVertexHandler.prototype.resizeVertex = function(me)
 		new mxPoint(0, 0), this.isConstrainedEvent(me),
 		this.isCenteredEvent(this.state, me));
 	
+	// Keeps vertex within maximum graph or parent bounds
+	if (!geo.relative)
+	{
+		var max = this.graph.getMaximumGraphBounds();
+		
+		// Handles child cells
+		if (max != null && this.parentState != null)
+		{
+			max = mxRectangle.fromRectangle(max);
+			
+			max.x -= (this.parentState.x - tr.x * scale) / scale;
+			max.y -= (this.parentState.y - tr.y * scale) / scale;
+		}
+		
+		if (this.graph.isConstrainChild(this.state.cell))
+		{
+			var tmp = this.graph.getCellContainmentArea(this.state.cell);
+			
+			if (tmp != null)
+			{
+				var overlap = this.graph.getOverlap(this.state.cell);
+				
+				if (overlap > 0)
+				{
+					tmp = mxRectangle.fromRectangle(tmp);
+					
+					tmp.x -= tmp.width * overlap;
+					tmp.y -= tmp.height * overlap;
+					tmp.width += 2 * tmp.width * overlap;
+					tmp.height += 2 * tmp.height * overlap;
+				}
+				
+				if (max == null)
+				{
+					max = tmp;
+				}
+				else
+				{
+					max = mxRectangle.fromRectangle(max);
+					max.intersect(tmp);
+				}
+			}
+		}
+	
+		if (max != null)
+		{
+			if (this.unscaledBounds.x < max.x)
+			{
+				this.unscaledBounds.width -= max.x - this.unscaledBounds.x;
+				this.unscaledBounds.x = max.x;
+			}
+			
+			if (this.unscaledBounds.y < max.y)
+			{
+				this.unscaledBounds.height -= max.y - this.unscaledBounds.y;
+				this.unscaledBounds.y = max.y;
+			}
+			
+			if (this.unscaledBounds.x + this.unscaledBounds.width > max.x + max.width)
+			{
+				this.unscaledBounds.width -= this.unscaledBounds.x +
+					this.unscaledBounds.width - max.x - max.width;
+			}
+			
+			if (this.unscaledBounds.y + this.unscaledBounds.height > max.y + max.height)
+			{
+				this.unscaledBounds.height -= this.unscaledBounds.y +
+					this.unscaledBounds.height - max.y - max.height;
+			}
+		}
+	}
+	
 	this.bounds = new mxRectangle(((this.parentState != null) ? this.parentState.x : tr.x * scale) +
 		(this.unscaledBounds.x) * scale, ((this.parentState != null) ? this.parentState.y : tr.y * scale) +
 		(this.unscaledBounds.y) * scale, this.unscaledBounds.width * scale, this.unscaledBounds.height * scale);
@@ -920,7 +992,7 @@ mxVertexHandler.prototype.resizeVertex = function(me)
 		this.bounds.x += this.state.x - this.parentState.x;
 		this.bounds.y += this.state.y - this.parentState.y;
 	}
-	
+
 	cos = Math.cos(alpha);
 	sin = Math.sin(alpha);
 	

@@ -69,6 +69,24 @@
  * };
  * (end)
  * 
+ * Padding:
+ * 
+ * To add a padding to the page in the preview (but not the print output), use
+ * the following code:
+ * 
+ * (code)
+ * preview.writeHead = function(doc)
+ * {
+ *   writeHead.apply(this, arguments);
+ *   
+ *   doc.writeln('<style type="text/css">');
+ *   doc.writeln('@media screen {');
+ *   doc.writeln('  body > div { padding-top:30px;padding-left:40px;box-sizing:content-box; }');
+ *   doc.writeln('}');
+ *   doc.writeln('</style>');
+ * };
+ * (end)
+ * 
  * Headers:
  * 
  * Apart from setting the title argument in the mxPrintPreview constructor you

@@ -637,6 +637,8 @@ mxSvgCanvas2D.prototype.addNode = function(filled, stroked)
 			// LATER: Update existing DOM for performance		
 			this.root.appendChild(node);
 		}
+		
+		this.node = null;
 	}
 };
 

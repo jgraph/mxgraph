@@ -1,3 +1,24 @@
+20-JUN-2016: 3.5.1.5
+
+- Adds padding for pages in print preview in grapheditor example
+- Moves getEditBlankXml to EditorUi in grapheditor example
+- Makes mxGraph.constrainChildrenOnResize default, removes switch
+- Adds mxRectangle.intersect, mxGraph.constrainRelativeChildren
+- Fixes handling of bounding box in mxGraph.constrainChild
+- Fixes ignored constraints in mxVertexHandler.resizeVertex
+- Consumes event for mxEdgeHandler.addPoint
+- Adds rounding for middle segment in elbow edge styles
+- Fixes synchronous loading of special bundle in mxResources
+- Fixes resources loading with callback in mxResources
+- Adds elbow and isometric edge styles in grapheditor example
+- Adds View, Page scale in grapheditor example
+- Uses letter paper size in US, Canada and Mexico in grapheditor example
+- Fixes synchronous request warning in grapheditor example
+- Fixes overriden mxVertexHandler.isSizerVisible
+- Fixes horizontal/vertical flip in mxText
+- Fixes mxSvgCanvas2D state after addNode with no shape
+- Fixes folding icon in tree.html example
+
 02-JUN-2016: 3.5.1.4
 
 - Fixes possible string concatenation for font size in mxAbstractCanvas [JavaScript]
@@ -16,7 +37,7 @@
 - Fixes ignored scaled for border in mxGraph.sizeDidChange [JavaScript]
 - Changes default for margin in mxGraph.fit to 0 [JavaScript]
 - Fixes possible NPE in mxConnectionHandler.reset [JavaScript]
-- Adds mxConstants.WORD_WRAP global switch for word wrapping [JavaScript]
+- Adds mxConstants.WORD_WRAP global switch for word wrapping [JavaScript]
 - Changes type of mxStencilRegistry.stencils from array to object [JavaScript]
 - Fixes drawing of edges connected to hidden layers [JavaScript]
 - Sets state invalid in mxGraphView.removeState [JavaScript]
@@ -73,7 +94,7 @@
 - Adds mapping argument for mxGraph.importCells, moveCells, cloneCells [JavaScript]
 - Adds mxClient.IS_CHROMEAPP [JavaScript]
 - Uses getBoundingClientRect in mxUtils.getOffset [JavaScript]
-- Fixes text size for hidden containers in mxText [JavaScript]
+- Fixes text size for hidden containers in mxText [JavaScript]
 - Fixes valid data URIs in mxGraph.postProcessCellStyle [JavaScript]
 - Fixes bounding box for special cases of empty strings [JavaScript]
 - Fixes label rendering for schema example in IE10/11 [JavaScript]
@@ -130,7 +151,7 @@
 - Fixes mxUtils.getFunctionName for normal strings [JavaScript]
 - Adds mxConstraintHandler.createHighlightShape hook [JavaScript]
 - Adds mxConstants.HIGHLIGHT_SIZE, HIGHLIGHT_OPACITY [JavaScript]
-- Fixes text size for hidden containers in mxSvgCanvas2D [JavaScript]
+- Fixes text size for hidden containers in mxSvgCanvas2D [JavaScript]
 
 04-NOV-2015: 3.4.0.3
 
@@ -181,7 +202,6 @@
 - Fixes mxGraph.cellsRemoved for loops, terminals in groups [JavaScript]
 - Fixes mxGraph.fireMouseEvent for mouseUp on scrollbars in IE11 [JavaScript]
 - Fixes possible NaN for scale in mxOutline [JavaScript]
-- mxGraph.isEventIgnored no longer returns true while editing [JavaScript]
 - Replaces connect handle with hover icons in grapheditor
 - Adds mxVertexHandler.getHandlePadding hook [JavaScript]
 - Renames actual size to reset view in grapheditor

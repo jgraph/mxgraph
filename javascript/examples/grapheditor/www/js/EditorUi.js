@@ -727,6 +727,16 @@ EditorUi = function(editor, container, lightbox)
 				{
 					edgeStyleDiv.className = 'geSprite geSprite-entity';
 				}
+				else if (graph.currentEdgeStyle['edgeStyle'] == 'elbowEdgeStyle')
+				{
+					edgeStyleDiv.className = 'geSprite geSprite-' + ((graph.currentEdgeStyle['elbow'] == 'vertical') ?
+						'verticalelbow' : 'horizontalelbow');
+				}
+				else if (graph.currentEdgeStyle['edgeStyle'] == 'isometricEdgeStyle')
+				{
+					edgeStyleDiv.className = 'geSprite geSprite-' + ((graph.currentEdgeStyle['elbow'] == 'vertical') ?
+						'verticalisometric' : 'horizontalisometric');
+				}
 				else
 				{
 					edgeStyleDiv.className = 'geSprite geSprite-orthogonal';
@@ -1580,6 +1590,10 @@ EditorUi.prototype.initCanvas = function()
 					this.layersDialog.style.bottom = parseInt(this.chromelessToolbar.style.bottom) +
 						this.chromelessToolbar.offsetHeight + 4 + 'px';
 					
+					// Puts the dialog on top of the container z-index
+					var style = mxUtils.getCurrentStyle(this.editor.graph.container);
+					this.layersDialog.style.zIndex = style.zIndex;
+					
 					document.body.appendChild(this.layersDialog);
 				}
 				
@@ -1601,7 +1615,7 @@ EditorUi.prototype.initCanvas = function()
 			{
 				if (this.editor.editButtonLink == '_blank')
 				{
-					this.editor.editAsNew(this.editor.getEditBlankXml(), null, true);
+					this.editor.editAsNew(this.getEditBlankXml(), null, true);
 				}
 				else
 				{
@@ -2139,6 +2153,14 @@ EditorUi.prototype.canUndo = function()
 };
 
 /**
+ * 
+ */
+EditorUi.prototype.getEditBlankXml = function()
+{
+	return mxUtils.getXml(this.getGraphXml());
+};
+
+/**
  * Returns the URL for a copy of this editor with no state.
  */
 EditorUi.prototype.getUrl = function(pathname)
@@ -2305,6 +2327,26 @@ EditorUi.prototype.setPageFormat = function(value)
 	}
 
 	this.fireEvent(new mxEventObject('pageFormatChanged'));
+};
+
+/**
+ * Loads the stylesheet for this graph.
+ */
+EditorUi.prototype.setPageScale = function(value)
+{
+	this.editor.graph.pageScale = value;
+	
+	if (!this.editor.graph.pageVisible)
+	{
+		this.actions.get('pageView').funct();
+	}
+	else
+	{
+		this.editor.graph.view.validateBackground();
+		this.editor.graph.sizeDidChange();
+	}
+
+	this.fireEvent(new mxEventObject('pageScaleChanged'));
 };
 
 /**

@@ -18,6 +18,24 @@ mxConstants.VML_SHADOWCOLOR = '#d0d0d0';
 mxGraph.prototype.pageBreakColor = '#c0c0c0';
 mxGraph.prototype.pageScale = 1;
 
+// Letter page format is default in US, Canada and Mexico
+(function()
+{
+	try
+	{
+		if (navigator != null && navigator.language != null)
+		{
+			var lang = navigator.language.toLowerCase();
+			mxGraph.prototype.pageFormat = (lang === 'en-us' || lang === 'en-ca' || lang === 'es-mx') ?
+				mxConstants.PAGE_FORMAT_LETTER_PORTRAIT : mxConstants.PAGE_FORMAT_A4_PORTRAIT;
+		}
+	}
+	catch (e)
+	{
+		// ignore
+	}
+})();
+
 // Matches label positions of mxGraph 1.x
 mxText.prototype.baseSpacingTop = 5;
 mxText.prototype.baseSpacingBottom = 1;
@@ -370,6 +388,7 @@ Graph = function(container, model, renderHint, stylesheet, themes)
 		this.allowAutoPanning = true;
 		this.resetEdgesOnConnect = false;
 		this.constrainChildren = false;
+		this.constrainRelativeChildren = true;
 		
 		// Do not scroll after moving cells
 		this.graphHandler.scrollOnMove = false;
@@ -2061,7 +2080,7 @@ Graph.prototype.getTooltipForCell = function(cell)
 					// Hides link key in read mode
 					if (attrs[i].nodeName == 'link')
 					{
-						tip += mxUtils.htmlEntities(attrs[i].nodeValue) + '\n';
+						tip += mxUtils.htmlEntities(this.getLinkUrl(attrs[i].nodeValue)) + '\n';
 					}
 					else
 					{
@@ -3463,13 +3482,32 @@ if (typeof mxVertexHandler != 'undefined')
 				}
 			}
 		};
-	
+
 		/**
 		 * Disables drill-down for non-swimlanes.
 		 */
 		Graph.prototype.isValidRoot = function(cell)
 		{
-			return this.isContainer(cell);
+			// Counts non-relative children
+			var childCount = this.model.getChildCount(cell);
+			var realChildCount = 0;
+			
+			for (var i = 0; i < childCount; i++)
+			{
+				var child = this.model.getChildAt(cell, i);
+				
+				if (this.model.isVertex(child))
+				{
+					var geometry = this.getCellGeometry(child);
+					
+					if (geometry != null && !geometry.relative)
+					{
+						realChildCount++;
+					}
+				}
+			}
+			
+			return realChildCount > 0 || this.isContainer(cell);
 		};
 		
 		/**
@@ -3934,7 +3972,16 @@ if (typeof mxVertexHandler != 'undefined')
 			
 			return label;
 		};
-		
+
+		/**
+		 * Returns the link to be used for the given URL when clicking on a cell
+		 * where the the link is not a blank link and the diagram is not inside
+		 * and iframe.
+		 */
+		Graph.prototype.getLinkUrl = function(url)
+		{
+			return url;
+		};
 
 		/**
 		 * 
@@ -4167,7 +4214,7 @@ if (typeof mxVertexHandler != 'undefined')
 			    },
 			    activate: function(state)
 			    {
-			    	this.currentLink = graph.getLinkForCell(state.cell);
+			    	this.currentLink = graph.getLinkUrl(graph.getLinkForCell(state.cell));
 			    	
 			    	if (this.currentLink != null)
 			    	{
@@ -6313,7 +6360,7 @@ if (typeof mxVertexHandler != 'undefined')
 				}
 				
 				var a = document.createElement('a');
-				a.setAttribute('href', link);
+				a.setAttribute('href', this.graph.getLinkUrl(link));
 				a.setAttribute('title', link);
 				
 				if (this.graph.linkTarget != null)

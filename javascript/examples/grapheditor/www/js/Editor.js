@@ -92,6 +92,12 @@ Editor.useLocalStorage = typeof(Storage) != 'undefined' && mxClient.IS_IOS;
 /**
  * Images below are for lightbox and embedding toolbars.
  */
+Editor.helpImage = (mxClient.IS_SVG) ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAXVBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC5BxTwAAAAH3RSTlMAlUF8boNQIE0LBgOgkGlHNSwqFIx/dGVUOjApmV9ezNACSAAAAIVJREFUGNNtjNsOgzAMQ5NeoVcKDAZs+//PXLKI8YKlWvaRU7jXuFpb9qsbdK05XILUiE8JHQox1Pv3OgFUzf1AGqWqUg+QBwLF0YAeegBlCNgRWOpB5vUfTCmeoHQ/wNdy0jLH/cM+b+wLTw4n/7ACEmHVVy8h6qy8V7MNcGowWpsNbvUFcGUEdSi1s/oAAAAASUVORK5CYII=' :
+	IMAGE_PATH + '/help.png';
+
+/**
+ * Images below are for lightbox and embedding toolbars.
+ */
 Editor.maximizeImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABUAAAAVBAMAAABbObilAAAAElBMVEUAAAAAAAAAAAAAAAAAAAAAAADgKxmiAAAABXRSTlMA758vX1Pw3BoAAABJSURBVAjXY8AJQkODGBhUQ0MhbAUGBiYY24CBgRnGFmZgMISwgwwDGRhEhVVBbAVmEQYGRwMmBjIAQi/CTIRd6G5AuA3dzYQBAHj0EFdHkvV4AAAAAElFTkSuQmCC';
 
 /**
@@ -229,14 +235,6 @@ Editor.prototype.setAutosave = function(value)
 {
 	this.autosave = value;
 	this.fireEvent(new mxEventObject('autosaveChanged'));
-};
-
-/**
- * 
- */
-Editor.prototype.getEditBlankXml = function()
-{
-	return mxUtils.getXml(this.getGraphXml());
 };
 
 /**
@@ -1071,7 +1069,7 @@ OpenFile.prototype.cancel = function(cancel)
 		if (psel == null || (psel != cell && psel != parent))
 		{
 			while (!this.graph.isCellSelected(cell) && !this.graph.isCellSelected(parent) &&
-				model.isVertex(parent) && !this.graph.isValidRoot(parent))
+				model.isVertex(parent) && !this.graph.isContainer(parent))
 			{
 				cell = parent;
 				parent = this.graph.getModel().getParent(cell);
@@ -1151,7 +1149,7 @@ OpenFile.prototype.cancel = function(cancel)
 		var model = this.graph.getModel();
 		var parent = model.getParent(cell);
 		
-		while (model.isVertex(parent) && !this.graph.isValidRoot(parent))
+		while (model.isVertex(parent) && !this.graph.isContainer(parent))
 		{
 			if (this.graph.isCellSelected(parent))
 			{

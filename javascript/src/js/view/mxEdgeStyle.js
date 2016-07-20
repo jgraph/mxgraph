@@ -426,7 +426,7 @@ var mxEdgeStyle =
 			var r = Math.min(source.x + source.width,
 							 target.x + target.width);
 	
-			var x = (pt != null) ? pt.x : r + (l - r) / 2;
+			var x = (pt != null) ? pt.x : Math.round(r + (l - r) / 2);
 	
 			var y1 = view.getRoutingCenterY(source);
 			var y2 = view.getRoutingCenterY(target);
@@ -526,7 +526,7 @@ var mxEdgeStyle =
 				x = pt.x;
 			}
 			
-			var y = (pt != null) ? pt.y : b + (t - b) / 2;
+			var y = (pt != null) ? pt.y : Math.round(b + (t - b) / 2);
 			
 			if (!mxUtils.contains(target, x, y) &&
 				!mxUtils.contains(source, x, y))

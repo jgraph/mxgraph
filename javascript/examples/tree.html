@@ -120,6 +120,9 @@
 			
 				// Creates the graph inside the given container
 				var graph = new mxGraph(container);
+				
+				// Avoids overlap of edges and collapse icons
+				graph.keepEdgesInBackground = true;
 
 				// Set some stylesheet options for the visual appearance
 				var style = graph.getStylesheet().getDefaultVertexStyle();

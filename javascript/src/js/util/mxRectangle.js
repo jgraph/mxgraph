@@ -96,6 +96,28 @@ mxRectangle.prototype.add = function(rect)
 };
 
 /**
+ * Function: intersect
+ * 
+ * Changes this rectangle to where it overlaps with the given rectangle.
+ */
+mxRectangle.prototype.intersect = function(rect)
+{
+	if (rect != null)
+	{
+		var r1 = this.x + this.width;
+		var r2 = rect.x + rect.width;
+		
+		var b1 = this.y + this.height;
+		var b2 = rect.y + rect.height;
+		
+		this.x = Math.max(this.x, rect.x);
+		this.y = Math.max(this.y, rect.y);
+		this.width = Math.min(r1, r2) - this.x;
+		this.height = Math.min(b1, b2) - this.y;
+	}
+};
+
+/**
  * Function: grow
  *
  * Grows the rectangle by the given amount, that is, this method subtracts

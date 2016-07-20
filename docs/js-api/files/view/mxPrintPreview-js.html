@@ -42,6 +42,15 @@ preview.writeHead = function(doc, css)
 {
   writeHead.apply(this, arguments);
   doc.writeln('&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;style.css&quot;&gt;');
+};</pre></blockquote><h4 class=CHeading>Padding</h4><p>To add a padding to the page in the preview (but not the print output), use the following code:</p><blockquote><pre class="prettyprint">preview.writeHead = function(doc)
+{
+  writeHead.apply(this, arguments);
+
+  doc.writeln('&lt;style type=&quot;text/css&quot;&gt;');
+  doc.writeln('@media screen {');
+  doc.writeln('  body &gt; div { padding-top:30px;padding-left:40px;box-sizing:content-box; }');
+  doc.writeln('}');
+  doc.writeln('&lt;/style&gt;');
 };</pre></blockquote><h4 class=CHeading>Headers</h4><p>Apart from setting the title argument in the mxPrintPreview constructor you can override <a href="#mxPrintPreview.renderPage" class=LFunction id=link43 onMouseOver="ShowTip(event, 'tt28', 'link43')" onMouseOut="HideTip('tt28')">renderPage</a> as follows to add a header to any page:</p><blockquote><pre class="prettyprint">var oldRenderPage = mxPrintPreview.prototype.renderPage;
 mxPrintPreview.prototype.renderPage = function(w, h, x, y, content, pageNumber)
 {

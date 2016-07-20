@@ -194,9 +194,9 @@ public class mxGraph extends mxEventSource
 
 	/**
 	 * Holds the version number of this release. Current version
-	 * is 3.5.1.4.
+	 * is 3.5.1.5.
 	 */
-	public static final String VERSION = "3.5.1.4";
+	public static final String VERSION = "3.5.1.5";
 
 	/**
 	 * 
@@ -2232,12 +2232,13 @@ public class mxGraph extends mxEventSource
 	}
 
 	/**
-	 * Returns the clones for the given cells. If the terminal of an edge is
-	 * not in the given array, then the respective end is assigned a terminal
-	 * point and the terminal is removed. If a cloned edge is invalid and
-	 * allowInvalidEdges is false, then a null pointer will be at this position
-	 * in the returned array. Use getCloneableCells on the input array to only
-	 * clone the cells where isCellCloneable returns true.
+	 * Returns the clones for the given cells. The clones are created
+	 * recursively using <mxGraphModel.cloneCells>. If the terminal of an edge
+	 * is not in the given array, then the respective end is assigned a
+	 * terminal point and the terminal is removed. If a cloned edge is invalid
+	 * and allowInvalidEdges is false, then a null pointer will be at this
+	 * position in the returned array. Use getCloneableCells on the input array
+	 * to only clone the cells where isCellCloneable returns true.
 	 * 
 	 * @param cells Array of mxCells to be cloned.
 	 * @return Returns the clones of the given cells.

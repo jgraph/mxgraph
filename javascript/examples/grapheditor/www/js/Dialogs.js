@@ -810,12 +810,12 @@ var PageSetupDialog = function(editorUi)
  */
 PageSetupDialog.getFormats = function()
 {
-	return [{key: 'a3', title: 'A3 (297 mm x 420 mm)', format: new mxRectangle(0, 0, 1169, 1652)},
-	        {key: 'a4', title: 'A4 (210 mm x 297 mm)', format: mxConstants.PAGE_FORMAT_A4_PORTRAIT},
-	        {key: 'a5', title: 'A5 (148 mm x 210 mm)', format: new mxRectangle(0, 0, 584, 826)},
-	        {key: 'letter', title: 'US-Letter (8,5" x 11")', format: mxConstants.PAGE_FORMAT_LETTER_PORTRAIT},
+	return [{key: 'letter', title: 'US-Letter (8,5" x 11")', format: mxConstants.PAGE_FORMAT_LETTER_PORTRAIT},
 	        {key: 'legal', title: 'US-Legal (8,5" x 14")', format: new mxRectangle(0, 0, 850, 1400)},
 	        {key: 'tabloid', title: 'US-Tabloid (279 mm x 432 mm)', format: new mxRectangle(0, 0, 1100, 1700)},
+	        {key: 'a3', title: 'A3 (297 mm x 420 mm)', format: new mxRectangle(0, 0, 1169, 1652)},
+	        {key: 'a4', title: 'A4 (210 mm x 297 mm)', format: mxConstants.PAGE_FORMAT_A4_PORTRAIT},
+	        {key: 'a5', title: 'A5 (148 mm x 210 mm)', format: new mxRectangle(0, 0, 584, 826)},
 	        {key: 'custom', title: mxResources.get('custom'), format: null}];
 };
 
@@ -823,6 +823,14 @@ PageSetupDialog.getFormats = function()
  * Constructs a new print dialog.
  */
 var PrintDialog = function(editorUi)
+{
+	this.create(editorUi);
+};
+
+/**
+ * Constructs a new print dialog.
+ */
+PrintDialog.prototype.create = function(editorUi)
 {
 	var graph = editorUi.editor.graph;
 	var row, td;
@@ -1061,6 +1069,20 @@ PrintDialog.createPrintPreview = function(graph, scale, pf, border, x0, y0, auto
 	}
 	
 	preview.backgroundColor = bg;
+	
+	var writeHead = preview.writeHead;
+	
+	// Adds a border in the preview
+	preview.writeHead = function(doc)
+	{
+		writeHead.apply(this, arguments);
+		
+		doc.writeln('<style type="text/css">');
+		doc.writeln('@media screen {');
+		doc.writeln('  body > div { padding:30px;box-sizing:content-box; }');
+		doc.writeln('}');
+		doc.writeln('</style>');
+	};
 	
 	return preview;
 };
@@ -2246,7 +2268,13 @@ var EditDataDialog = function(ui, cell)
 			link.setAttribute('target', '_blank');
 			link.style.marginLeft = '10px';
 			link.style.cursor = 'pointer';
-			mxUtils.write(link, '?');
+			
+			var icon = document.createElement('img');
+			icon.setAttribute('border', '0');
+			icon.setAttribute('valign', 'middle');
+			icon.style.marginTop = '-4px';
+			icon.setAttribute('src', Editor.helpImage);
+			link.appendChild(icon);
 			
 			replace.appendChild(link);
 		}

@@ -882,6 +882,7 @@ mxEdgeHandler.prototype.mouseDown = function(sender, me)
 	if (this.addEnabled && handle == null && this.isAddPointEvent(me.getEvent()))
 	{
 		this.addPoint(this.state, me.getEvent());
+		me.consume();
 	}
 	else if (handle != null && !me.isConsumed() && this.graph.isEnabled())
 	{

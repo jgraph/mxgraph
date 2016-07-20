@@ -412,6 +412,9 @@ mxText.prototype.apply = function(state)
 		this.textDirection = mxUtils.getValue(this.style, mxConstants.STYLE_TEXT_DIRECTION, mxConstants.DEFAULT_TEXT_DIRECTION);
 		this.updateMargin();
 	}
+	
+	this.flipV = null;
+	this.flipH = null;
 };
 
 /**

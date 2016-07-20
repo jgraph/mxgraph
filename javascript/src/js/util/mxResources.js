@@ -221,7 +221,7 @@ var mxResources =
 						mxUtils.get(specialBundle, function(req)
 						{
 							mxResources.parse(req.getText());
-							loadSpecialBundle();
+							callback();
 						}, function()
 						{
 							callback();
@@ -273,6 +273,8 @@ var mxResources =
 				   		{
 				 	   		mxResources.parse(req.getText());
 				   		}
+				   		
+				   		loadSpecialBundle();
 				  	}
 				  	catch (e)
 				  	{
