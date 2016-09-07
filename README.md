@@ -17,6 +17,8 @@ In the root folder there is an index.html file that contains links to all resour
 Support
 =======
 
+The is a [mxgraph tag on Stack Overflow](http://stackoverflow.com/questions/tagged/mxgraph) that we try to keep answered. Please ensure your questions adhere to the [SO guidelines](http://stackoverflow.com/help/on-topic), otherwise it will be closed.
+
 If you have a support question and you have purchased mxGraph license(s), please use the contact mechanism described in your purchase receipt email.
 
 If you are evaluating mxGraph commercially, please [contact us](https://www.jgraph.com/contact.html) and we'll arrange support during your evaluation.
