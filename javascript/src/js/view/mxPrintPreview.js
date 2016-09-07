@@ -324,6 +324,15 @@ mxPrintPreview.prototype.targetWindow = null;
 mxPrintPreview.prototype.pageCount = 0;
 
 /**
+ * Variable: clipping
+ * 
+ * Specifies is clipping should be used to avoid creating too many cell states
+ * in large diagrams. The bounding box of the cells in the original diagram is
+ * used if this is enabled. Default is true.
+ */
+mxPrintPreview.prototype.clipping = true;
+
+/**
  * Function: getWindow
  * 
  * Returns <wnd>.
@@ -932,32 +941,35 @@ mxPrintPreview.prototype.addGraphFragment = function(dx, dy, scale, pageNumber, 
 	var s = view.scale;
 	
 	// Gets the transformed clip for intersection check below
-	var tempClip = new mxRectangle((clip.x + translate.x) * s, (clip.y + translate.y) * s,
-			clip.width * s / scale, clip.height * s / scale);
-	
-	// Checks clipping rectangle for speedup
-	// Must create terminal states for edge clipping even if terminal outside of clip
-	this.graph.cellRenderer.redraw = function(state, force, rendering)
+	if (this.clipping)
 	{
-		if (state != null)
+		var tempClip = new mxRectangle((clip.x + translate.x) * s, (clip.y + translate.y) * s,
+				clip.width * s / scale, clip.height * s / scale);
+		
+		// Checks clipping rectangle for speedup
+		// Must create terminal states for edge clipping even if terminal outside of clip
+		this.graph.cellRenderer.redraw = function(state, force, rendering)
 		{
-			// Gets original state from graph to find bounding box
-			var orig = states.get(state.cell);
-			
-			if (orig != null)
+			if (state != null)
 			{
-				var bbox = view.getBoundingBox(orig, false);
+				// Gets original state from graph to find bounding box
+				var orig = states.get(state.cell);
 				
-				// Steps rendering if outside clip for speedup
-				if (bbox != null && !mxUtils.intersects(tempClip, bbox))
+				if (orig != null)
 				{
-					return;
+					var bbox = view.getBoundingBox(orig, false);
+					
+					// Stops rendering if outside clip for speedup
+					if (bbox != null && !mxUtils.intersects(tempClip, bbox))
+					{
+						return;
+					}
 				}
 			}
-		}
-		
-		redraw.apply(this, arguments);
-	};
+			
+			redraw.apply(this, arguments);
+		};
+	}
 	
 	var temp = null;
 	

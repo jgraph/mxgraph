@@ -1826,6 +1826,8 @@ EditorUi.prototype.initCanvas = function()
 	graph.updateZoomTimeout = null;
 	graph.cumulativeZoomFactor = 1;
 	
+	var cursorPosition = null;
+
 	graph.lazyZoom = function(zoomIn)
 	{
 		if (this.updateZoomTimeout != null)
@@ -1869,13 +1871,25 @@ EditorUi.prototype.initCanvas = function()
 		this.updateZoomTimeout = window.setTimeout(mxUtils.bind(this, function()
 		{
 			this.zoom(this.cumulativeZoomFactor);					
-			this.cumulativeZoomFactor = 1;
-			this.updateZoomTimeout = null;
 			
 			if (resize != null)
 			{
 				resize(false);
 			}
+			
+			// Zooms to mouse position if scrollbars enabled
+			if (cursorPosition != null && mxUtils.hasScrollbars(graph.container))
+			{
+				var offset = mxUtils.getOffset(graph.container);
+				var dx = graph.container.offsetWidth / 2 - cursorPosition.x + offset.x;
+				var dy = graph.container.offsetHeight / 2 - cursorPosition.y + offset.y;
+				
+				graph.container.scrollLeft -= dx * (this.cumulativeZoomFactor - 1);
+				graph.container.scrollTop -= dy * (this.cumulativeZoomFactor - 1);
+			}
+			
+			this.cumulativeZoomFactor = 1;
+			this.updateZoomTimeout = null;
 		}), 20);
 	};
 	
@@ -1892,9 +1906,10 @@ EditorUi.prototype.initCanvas = function()
 			{
 				if (source == graph.container)
 				{
+					cursorPosition = new mxPoint(mxEvent.getClientX(evt), mxEvent.getClientY(evt));
 					graph.lazyZoom(up);
 					mxEvent.consume(evt);
-					
+			
 					return;
 				}
 				
@@ -3358,16 +3373,17 @@ EditorUi.prototype.createOutline = function(wnd)
  */
 EditorUi.prototype.createKeyHandler = function(editor)
 {
+	var editorUi = this;
 	var graph = this.editor.graph;
 	var keyHandler = new mxKeyHandler(graph);
 
 	var isEventIgnored = keyHandler.isEventIgnored;
 	keyHandler.isEventIgnored = function(evt)
 	{
-		// Handles undo/redo via action and allows ctrl+b/u/i only if editing value is HTML (except for FF and Safari)
-		return (!this.isControlDown(evt) || mxEvent.isShiftDown(evt) || (evt.keyCode != 90 && evt.keyCode != 89)) &&
-			((evt.keyCode != 66 && evt.keyCode != 73 && evt.keyCode != 85) || !this.isControlDown(evt) ||
-			(this.graph.cellEditor.isContentEditing() && !mxClient.IS_FF && !mxClient.IS_SF)) &&
+		// Handles undo/redo/ctrl+./, via action and allows ctrl+b/u/i only if editing value is HTML (except for FF and Safari)
+		return (!this.isControlDown(evt) || mxEvent.isShiftDown(evt) || (evt.keyCode != 90 && evt.keyCode != 89 &&
+			evt.keyCode != 188 && evt.keyCode != 190)) && ((evt.keyCode != 66 && evt.keyCode != 73 && evt.keyCode != 85) ||
+			!this.isControlDown(evt) || (this.graph.cellEditor.isContentEditing() && !mxClient.IS_FF && !mxClient.IS_SF)) &&
 			isEventIgnored.apply(this, arguments);
 	};
 	
@@ -3382,7 +3398,70 @@ EditorUi.prototype.createKeyHandler = function(editor)
 	{
 		return mxEvent.isControlDown(evt) || (mxClient.IS_MAC && evt.metaKey);
 	};
+
+	// Overridden to handle special alt+shift+cursor keyboard shortcuts
+	var directions = {37: mxConstants.DIRECTION_WEST, 38: mxConstants.DIRECTION_NORTH,
+			39: mxConstants.DIRECTION_EAST, 40: mxConstants.DIRECTION_SOUTH};
 	
+	var keyHandlerGetFunction = keyHandler.getFunction;
+
+	mxKeyHandler.prototype.getFunction = function(evt)
+	{
+		if (directions[evt.keyCode] != null)
+		{
+			var cell = graph.getSelectionCell();
+			
+			if (graph.model.isVertex(cell))
+			{
+				if (mxEvent.isShiftDown(evt) && mxEvent.isAltDown(evt))
+				{
+					return function()
+					{
+						var cells = graph.connectVertex(cell, directions[evt.keyCode], graph.defaultEdgeLength, evt, true);
+		
+						if (cells != null && cells.length > 0)
+						{
+							if (cells.length == 1 && graph.model.isEdge(cells[0]))
+							{
+								graph.setSelectionCell(graph.model.getTerminal(cells[0], false));
+							}
+							else
+							{
+								graph.setSelectionCell(cells[cells.length - 1]);
+							}
+							
+							if (editorUi.hoverIcons != null)
+							{
+								editorUi.hoverIcons.update(graph.view.getState(graph.getSelectionCell()));
+							}
+						}
+					};
+				}
+				else
+				{
+					// Avoids consuming event if no vertex is selected by returning null below
+					// Cursor keys move and resize (ctrl) cells
+					if (this.isControlDown(evt))
+					{
+						return function()
+						{
+							nudge(evt.keyCode, (mxEvent.isShiftDown(evt)) ? graph.gridSize : null, true);
+						};
+					}
+					else
+					{
+						return function()
+						{
+							nudge(evt.keyCode, (mxEvent.isShiftDown(evt)) ? graph.gridSize : null);
+						};
+					}
+				}
+			}
+		}
+
+		return keyHandlerGetFunction.apply(this, arguments);
+	};
+
 	var queue = [];
 	var thread = null;
 	
@@ -3587,22 +3666,6 @@ EditorUi.prototype.createKeyHandler = function(editor)
 	{
 		keyHandler.bindControlKey(36, function() { if (graph.isEnabled()) { graph.foldCells(true); }}); // Ctrl+Home
 		keyHandler.bindControlKey(35, function() { if (graph.isEnabled()) { graph.foldCells(false); }}); // Ctrl+End
-		keyHandler.bindKey(37, function() { nudge(37); }); // Left arrow
-		keyHandler.bindKey(38, function() { nudge(38); }); // Up arrow
-		keyHandler.bindKey(39, function() { nudge(39); }); // Right arrow
-		keyHandler.bindKey(40, function() { nudge(40); }); // Down arrow
-		keyHandler.bindShiftKey(37, function() { nudge(37, graph.gridSize); }); // Shift+Left arrow
-		keyHandler.bindShiftKey(38, function() { nudge(38, graph.gridSize); }); // Shift+Up arrow
-		keyHandler.bindShiftKey(39, function() { nudge(39, graph.gridSize); }); // Shift+Right arrow
-		keyHandler.bindShiftKey(40, function() { nudge(40, graph.gridSize); }); // Shift+Down arrow
-		keyHandler.bindControlKey(37, function() { nudge(37, null, true); }); // Ctrl+Left arrow
-		keyHandler.bindControlKey(38, function() { nudge(38, null, true); }); // Ctrl+Up arrow
-		keyHandler.bindControlKey(39, function() { nudge(39, null, true); }); // Ctrl+Right arrow
-		keyHandler.bindControlKey(40, function() { nudge(40, null, true); }); // Ctrl+Down arrow
-		keyHandler.bindControlShiftKey(37, function() { nudge(37, graph.gridSize, true); }); // Ctrl+Left arrow
-		keyHandler.bindControlShiftKey(38, function() { nudge(38, graph.gridSize, true); }); // Ctrl+Shift+Up arrow
-		keyHandler.bindControlShiftKey(39, function() { nudge(39, graph.gridSize, true); }); // Ctrl+Shift+Right arrow
-		keyHandler.bindControlShiftKey(40, function() { nudge(40, graph.gridSize, true); }); // Ctrl+Shift+Down arrow
 		keyHandler.bindControlKey(13, function() { if (graph.isEnabled()) { graph.setSelectionCells(graph.duplicateCells(graph.getSelectionCells(), false)); }}); // Ctrl+Enter
 		keyHandler.bindShiftKey(9, function() { if (graph.isEnabled()) { graph.selectPreviousCell(); }}); // Shift+Tab
 		keyHandler.bindControlKey(9, function() { if (graph.isEnabled()) { graph.selectParentCell(); }}); // Ctrl+Tab
@@ -3646,11 +3709,13 @@ EditorUi.prototype.createKeyHandler = function(editor)
 		keyHandler.bindAction(80, true, 'formatPanel', true); // Ctrl+Shift+P
 		keyHandler.bindAction(85, true, 'underline'); // Ctrl+U
 		keyHandler.bindAction(85, true, 'ungroup', true); // Ctrl+Shift+U
+		keyHandler.bindAction(190, true, 'superscript'); // Ctrl+.
+		keyHandler.bindAction(188, true, 'subscript'); // Ctrl+,
 		keyHandler.bindKey(13, function() { if (graph.isEnabled()) { graph.startEditingAtCell(); }}); // Enter
 		keyHandler.bindKey(113, function() { if (graph.isEnabled()) { graph.startEditingAtCell(); }}); // F2
 	}
 	
-	if (mxClient.IS_MAC)
+	if (!mxClient.IS_WIN)
 	{
 		keyHandler.bindAction(90, true, 'redo', true); // Ctrl+Shift+Z
 	}

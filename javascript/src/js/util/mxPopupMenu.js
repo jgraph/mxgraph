@@ -358,6 +358,17 @@ mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, e
 };
 
 /**
+ * Adds a checkmark to the given menuitem.
+ */
+mxPopupMenu.prototype.addCheckmark = function(item, img)
+{
+	var td = item.firstChild.nextSibling;
+	td.style.backgroundImage = 'url(\'' + img + '\')';
+	td.style.backgroundRepeat = 'no-repeat';
+	td.style.backgroundPosition = '2px 50%';
+};
+
+/**
  * Function: createSubmenu
  * 
  * Creates the nodes required to add submenu items inside the given parent

@@ -1,11 +1,11 @@
 package com.mxgraph.canvas;
 
-import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.util.Hashtable;
 import java.util.Map;
 
 import com.mxgraph.util.mxConstants;
+import com.mxgraph.util.mxPoint;
 import com.mxgraph.util.mxUtils;
 
 public abstract class mxBasicCanvas implements mxICanvas
@@ -31,7 +31,7 @@ public abstract class mxBasicCanvas implements mxICanvas
 	/**
 	 * Specifies the current translation. Default is (0,0).
 	 */
-	protected Point translate = new Point();
+	protected mxPoint translate = new mxPoint();
 
 	/**
 	 * Specifies the current scale. Default is 1.
@@ -51,15 +51,15 @@ public abstract class mxBasicCanvas implements mxICanvas
 	/**
 	 * Sets the current translate.
 	 */
-	public void setTranslate(int dx, int dy)
+	public void setTranslate(double dx, double dy)
 	{
-		translate = new Point(dx, dy);
+		translate = new mxPoint(dx, dy);
 	}
 
 	/**
 	 * Returns the current translate.
 	 */
-	public Point getTranslate()
+	public mxPoint getTranslate()
 	{
 		return translate;
 	}

@@ -8363,8 +8363,9 @@ mxGraph.prototype.validateEdge = function(edge, source, target)
  * Validates the graph by validating each descendant of the given cell or
  * the root of the model. Context is an object that contains the validation
  * state for the complete validation run. The validation errors are
- * attached to their cells using <setCellWarning>. This function returns true
- * if no validation errors exist in the graph.
+ * attached to their cells using <setCellWarning>. Returns null in the case of
+ * successful validation or an array of strings (warnings) in the case of
+ * failed validations.
  * 
  * Paramters:
  * 
@@ -11889,16 +11890,21 @@ mxGraph.prototype.selectCell = function(isNext, isParent, isChild)
  * 
  * parent - Optional <mxCell> whose children should be selected.
  * Default is <defaultParent>.
+ * descendants - Optional boolean specifying whether all descendants should be
+ * selected. Default is false.
  */
-mxGraph.prototype.selectAll = function(parent)
+mxGraph.prototype.selectAll = function(parent, descendants)
 {
 	parent = parent || this.getDefaultParent();
 	
-	var children = this.model.getChildren(parent);
-	
-	if (children != null)
+	var cells = (descendants) ? this.model.filterDescendants(function(cell)
 	{
-		this.setSelectionCells(children);
+		return cell != parent;
+	}, parent) : this.model.getChildren(parent);
+	
+	if (cells != null)
+	{
+		this.setSelectionCells(cells);
 	}
 };
 
@@ -11944,7 +11950,8 @@ mxGraph.prototype.selectCells = function(vertices, edges, parent)
 	var filter = mxUtils.bind(this, function(cell)
 	{
 		return this.view.getState(cell) != null &&
-			((this.model.getChildCount(cell) == 0 && this.model.isVertex(cell) && vertices) ||
+			((this.model.getChildCount(cell) == 0 && this.model.isVertex(cell) && vertices
+			&& !this.model.isEdge(this.model.getParent(cell))) ||
 			(this.model.isEdge(cell) && edges));
 	});
 	

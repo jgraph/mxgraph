@@ -189,6 +189,15 @@ mxCellEditor.prototype.selectText = true;
 mxCellEditor.prototype.emptyLabelText = (mxClient.IS_FF) ? '<br>' : '';
 
 /**
+ * Variable: escapeCancelsEditing
+ * 
+ * If true, pressing the escape key will stop editing and not accept the new
+ * value. Change this to false to accept the new value on escape, and cancel
+ * editing on Shift+Escape instead. Default is true.
+ */
+mxCellEditor.prototype.escapeCancelsEditing = true;
+
+/**
  * Variable: textNode
  * 
  * Reference to the label DOM node that has been hidden.
@@ -321,7 +330,7 @@ mxCellEditor.prototype.installListeners = function(elt)
 			}
 			else if (evt.keyCode == 27 /* Escape */)
 			{
-				this.graph.stopEditing(true);
+				this.graph.stopEditing(this.escapeCancelsEditing || mxEvent.isShiftDown(evt));
 				mxEvent.consume(evt);
 			}
 		}
@@ -469,12 +478,7 @@ mxCellEditor.prototype.resize = function()
 			this.textarea.style.height = Math.round(this.bounds.height / scale) + 'px';
 			
 			// FIXME: Offset when scaled
-			if (document.documentMode == 8)
-			{
-				this.textarea.style.left = Math.round(this.bounds.x) + 'px';
-				this.textarea.style.top = Math.round(this.bounds.y) + 'px';
-			}
-			else if (mxClient.IS_QUIRKS)
+			if (document.documentMode == 8 || mxClient.IS_QUIRKS)
 			{
 				this.textarea.style.left = Math.round(this.bounds.x) + 'px';
 				this.textarea.style.top = Math.round(this.bounds.y) + 'px';

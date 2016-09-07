@@ -41,7 +41,8 @@ public class CustomCanvas extends JFrame
 				// the preview image when cells are dragged)
 				if (getModel().isVertex(state.getCell())
 						&& canvas instanceof mxImageCanvas
-						&& ((mxImageCanvas) canvas).getGraphicsCanvas() instanceof SwingCanvas)
+						&& ((mxImageCanvas) canvas)
+								.getGraphicsCanvas() instanceof SwingCanvas)
 				{
 					((SwingCanvas) ((mxImageCanvas) canvas).getGraphicsCanvas())
 							.drawVertex(state, label);
@@ -67,8 +68,8 @@ public class CustomCanvas extends JFrame
 
 			Object v1 = graph.insertVertex(parent, null, "Hello", 20, 20, 80,
 					30);
-			Object v2 = graph.insertVertex(parent, null, "World!", 240, 150,
-					80, 30);
+			Object v2 = graph.insertVertex(parent, null, "World!", 240, 150, 80,
+					30);
 			graph.insertEdge(parent, null, "Edge", v1, v2);
 		}
 		finally
@@ -107,11 +108,11 @@ public class CustomCanvas extends JFrame
 		{
 			this.graphComponent = graphComponent;
 
-			vertexRenderer.setBorder(BorderFactory
-					.createBevelBorder(BevelBorder.RAISED));
+			vertexRenderer.setBorder(
+					BorderFactory.createBevelBorder(BevelBorder.RAISED));
 			vertexRenderer.setHorizontalAlignment(JLabel.CENTER);
-			vertexRenderer.setBackground(graphComponent.getBackground()
-					.darker());
+			vertexRenderer
+					.setBackground(graphComponent.getBackground().darker());
 			vertexRenderer.setOpaque(true);
 		}
 
@@ -121,9 +122,9 @@ public class CustomCanvas extends JFrame
 			// TODO: Configure other properties...
 
 			rendererPane.paintComponent(g, vertexRenderer, graphComponent,
-					(int) state.getX() + translate.x, (int) state.getY()
-							+ translate.y, (int) state.getWidth(),
-					(int) state.getHeight(), true);
+					(int) (state.getX() + translate.getX()),
+					(int) (state.getY() + translate.getY()),
+					(int) state.getWidth(), (int) state.getHeight(), true);
 		}
 
 	}

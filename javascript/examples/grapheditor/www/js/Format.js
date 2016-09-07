@@ -2266,14 +2266,14 @@ TextFormatPanel.prototype.addFont = function(container)
 				document.execCommand('justifyfull', false, null);
 			}, stylePanel3);
 		this.styleButtons([full,
-       		sup = this.editorUi.toolbar.addButton('geSprite-superscript', mxResources.get('superscript'),
-			function()
-			{
-				document.execCommand('superscript', false, null);
-			}, stylePanel3), sub = this.editorUi.toolbar.addButton('geSprite-subscript', mxResources.get('subscript'),
+       		sub = this.editorUi.toolbar.addButton('geSprite-subscript', mxResources.get('subscript') + ' (Ctrl+,)',
 			function()
 			{
 				document.execCommand('subscript', false, null);
+			}, stylePanel3), sup = this.editorUi.toolbar.addButton('geSprite-superscript', mxResources.get('superscript') + ' (Ctrl+.)',
+			function()
+			{
+				document.execCommand('superscript', false, null);
 			}, stylePanel3)]);
 		full.style.marginRight = '9px';
 		

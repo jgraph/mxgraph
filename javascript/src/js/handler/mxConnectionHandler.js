@@ -1,6 +1,6 @@
 /**
- * Copyright (c) 2006-2015, JGraph Ltd
- * Copyright (c) 2006-2015, Gaudenz Alder
+ * Copyright (c) 2006-2016, JGraph Ltd
+ * Copyright (c) 2006-2016, Gaudenz Alder
  */
 /**
  * Class: mxConnectionHandler
@@ -44,7 +44,7 @@
  * new default edge.
  * 
  * The handler uses a "highlight-paradigm" for indicating if a cell is being
- * used as a source or target terminal, as seen in MS Visio and other products.
+ * used as a source or target terminal, as seen in other diagramming products.
  * In order to allow both, moving and connecting cells at the same time,
  * <mxConstants.DEFAULT_HOTSPOT> is used in the handler to determine the hotspot
  * of a cell, that is, the region of the cell which is used to trigger a new

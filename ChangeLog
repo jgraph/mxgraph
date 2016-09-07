@@ -1,3 +1,26 @@
+07-SEP-2016: 3.6.0.0
+
+- Adds Alt+Shift+Cursor to connect and clone in grapheditor
+- Adds placeholders for custom shape text in grapheditor
+- Moves Editor.(de)compress to Graph in grapheditor
+- Ctrl+A selects all cells recursively in grapheditor
+- Adds optional boolean argument in mxGraph.selectAll
+- Enables relative links for labels in grapheditor
+- Fixes use of Navigator.pointerEnabled in mxClient.IS_POINTER
+- Adds mxCellEditor.escapeCancelsEditing, uses false in grapheditor
+- Fixes bounds for zoomed markup in-place editor in grapheditor example
+- Ignores scale in mxGuide.getGuideTolerance
+- Removes clipping for general text in grapheditor example
+- Adds mxPrintPreview.prototype.clipping switch
+- Adds Ant tasks for running Java examples [Java]
+- Wheel zooms to mouse cursor in grapheditor example
+- Ignores edge childs for vertices in mxGraph.selectCells
+- Adds support for placeholder metadata
+- Adds mxPopupMenu.addCheckmark
+- Changes signature for mxICanvas.get/setTranslate [Java]
+- Uses Ctrl+Shift+Z for redo on Linux in grapheditor example
+- Adds Ctrl+,/. for subscript/superscript in grapheditor example
+
 20-JUN-2016: 3.5.1.5
 
 - Adds padding for pages in print preview in grapheditor example

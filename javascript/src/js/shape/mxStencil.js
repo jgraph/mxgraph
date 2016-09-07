@@ -158,6 +158,10 @@
  * - "align-shape", 0 or 1, if 0 ignore the rotation of the shape when setting
  * the text rotation. Optional, default is 1.
  * 
+ * If <allowEval> is true, then the text content of the this element can define
+ * a function which is invoked with the shape as the only argument and returns
+ * the value for the text element (ignored if the str attribute is not null).
+ * 
  * Images:
  * 
  * *image* elements can either be external URLs, or data URIs, where supported
@@ -168,6 +172,10 @@
  * - "w", "h", required decimals. The width and height of the image.
  * - "flipH" and "flipV", optional 0 or 1. Whether to flip the image along the
  * horizontal/vertical axis. Default is 0 for both.
+ * 
+ * If <allowEval> is true, then the text content of the this element can define
+ * a function which is invoked with the shape as the only argument and returns
+ * the value for the image source (ignored if the src attribute is not null).
  * 
  * Sub-shapes:
  * 
@@ -341,9 +349,9 @@ mxStencil.prototype.parseConstraint = function(node)
  * is used as a key to <mxResources.get> if the localized attribute in the text
  * node is 1 or if <defaultLocalized> is true.
  */
-mxStencil.prototype.evaluateTextAttribute = function(node, attribute, state)
+mxStencil.prototype.evaluateTextAttribute = function(node, attribute, shape)
 {
-	var result = this.evaluateAttribute(node, attribute, state);
+	var result = this.evaluateAttribute(node, attribute, shape);
 	var loc = node.getAttribute('localized');
 	
 	if ((mxStencil.defaultLocalized && loc == null) || loc == '1')
@@ -359,7 +367,7 @@ mxStencil.prototype.evaluateTextAttribute = function(node, attribute, state)
  *
  * Gets the attribute for the given name from the given node. If the attribute
  * does not exist then the text content of the node is evaluated and if it is
- * a function it is invoked with <state> as the only argument and the return
+ * a function it is invoked with <shape> as the only argument and the return
  * value is used as the attribute value to be returned.
  */
 mxStencil.prototype.evaluateAttribute = function(node, attribute, shape)

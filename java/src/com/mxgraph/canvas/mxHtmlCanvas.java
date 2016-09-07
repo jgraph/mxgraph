@@ -93,13 +93,13 @@ public class mxHtmlCanvas extends mxBasicCanvas
 			List<mxPoint> pts = state.getAbsolutePoints();
 
 			// Transpose all points by cloning into a new array
-			pts = mxUtils.translatePoints(pts, translate.x, translate.y);
+			pts = mxUtils.translatePoints(pts, translate.getX(), translate.getY());
 			drawLine(pts, style);
 		}
 		else
 		{
-			int x = (int) state.getX() + translate.x;
-			int y = (int) state.getY() + translate.y;
+			int x = (int) (state.getX() + translate.getX());
+			int y = (int) (state.getY() + translate.getY());
 			int w = (int) state.getWidth();
 			int h = (int) state.getHeight();
 
@@ -147,8 +147,8 @@ public class mxHtmlCanvas extends mxBasicCanvas
 
 		if (drawLabels && bounds != null)
 		{
-			int x = (int) bounds.getX() + translate.x;
-			int y = (int) bounds.getY() + translate.y;
+			int x = (int) (bounds.getX() + translate.getY());
+			int y = (int) (bounds.getY() + translate.getY());
 			int w = (int) bounds.getWidth();
 			int h = (int) bounds.getHeight();
 			Map<String, Object> style = state.getStyle();

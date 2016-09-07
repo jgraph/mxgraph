@@ -6,11 +6,12 @@
 {
 
 	/**
-	 * Constructs a new application (note that this returns an mxEditor
-	 * instance).
+	 * Constructs a new application (returns an mxEditor instance)
 	 */
 	function mxApplication(config)
 	{
+		var editor = null;
+		
 		var hideSplash = function()
 		{
 			// Fades-out the splash screen
@@ -40,7 +41,7 @@
 			{
 				mxObjectCodec.allowEval = true;
 				var node = mxUtils.load(config).getDocumentElement();
-				var editor = new mxEditor(node);
+				editor = new mxEditor(node);
 				mxObjectCodec.allowEval = false;
 				
 				// Adds active border for panning inside the container
@@ -81,10 +82,10 @@
 			hideSplash();
 
 			// Shows an error message if the editor cannot start
-			mxUtils.alert('Cannot start application: '+e.message);
+			mxUtils.alert('Cannot start application: ' + e.message);
 			throw e; // for debugging
 		}
-								
+
 		return editor;
 	}
 

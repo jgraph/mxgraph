@@ -5,9 +5,9 @@ package com.mxgraph.canvas;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Point;
 import java.awt.image.BufferedImage;
 
+import com.mxgraph.util.mxPoint;
 import com.mxgraph.util.mxUtils;
 import com.mxgraph.view.mxCellState;
 
@@ -106,7 +106,7 @@ public class mxImageCanvas implements mxICanvas
 	/**
 	 * 
 	 */
-	public Point getTranslate()
+	public mxPoint getTranslate()
 	{
 		return canvas.getTranslate();
 	}
@@ -122,7 +122,7 @@ public class mxImageCanvas implements mxICanvas
 	/**
 	 * 
 	 */
-	public void setTranslate(int dx, int dy)
+	public void setTranslate(double dx, double dy)
 	{
 		canvas.setTranslate(dx, dy);
 	}

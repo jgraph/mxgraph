@@ -451,6 +451,9 @@ Graph = function(container, model, renderHint, stylesheet, themes)
 			return result;
 		};
 
+		// Overrides zIndex for dragElement
+		mxDragSource.prototype.dragElementZIndex = mxPopupMenu.prototype.zIndex;
+		
 		// Overrides color for virtual guides for page centers
 		mxGuide.prototype.getGuideColor = function(state, horizontal)
 		{
@@ -1012,8 +1015,16 @@ Graph.prototype.sanitizeHtml = function(value)
 	// Uses https://code.google.com/p/google-caja/wiki/JsHtmlSanitizer
 	// NOTE: Original minimized sanitizer was modified to support data URIs for images
 	// LATER: Add MathML to whitelisted tags
-	function urlX(url) { if(/(^https?:|^mailto:|^data:image\/|^#)/.test(url)) { return url }}
-    function idX(id) { return id }
+	function urlX(link)
+	{
+		if (link != null && link.toString().toLowerCase().substring(0, 11) !== 'javascript:')
+		{
+			return link;
+		}
+		
+		return null;
+	};
+    function idX(id) { return id };
 	
 	return html_sanitize(value, urlX, idX);
 };
@@ -1075,7 +1086,7 @@ Graph.prototype.getLabel = function(cell)
 {
 	var result = mxGraph.prototype.getLabel.apply(this, arguments);
 	
-	if (result != null && this.isReplacePlaceholders(cell))
+	if (result != null && this.isReplacePlaceholders(cell) && cell.getAttribute('placeholder') == null)
 	{
 		result = this.replacePlaceholders(cell, result);
 	}
@@ -1392,7 +1403,7 @@ Graph.prototype.selectCellsForConnectVertex = function(cells, evt, hoverIcons)
 /**
  * Adds a connection to the given vertex.
  */
-Graph.prototype.connectVertex = function(source, direction, length, evt)
+Graph.prototype.connectVertex = function(source, direction, length, evt, forceClone)
 {
 	var pt = (source.geometry.relative) ? new mxPoint(source.parent.geometry.width * source.geometry.x,
 			source.parent.geometry.height * source.geometry.y) : new mxPoint(source.geometry.x, source.geometry.y);
@@ -1438,7 +1449,7 @@ Graph.prototype.connectVertex = function(source, direction, length, evt)
 	}
 	
 	// Checks actual end point of edge for target cell
-	var target = (mxEvent.isControlDown(evt)) ? null : this.getCellAt(dx + pt.x * s, dy + pt.y * s);
+	var target = (mxEvent.isControlDown(evt) && !forceClone) ? null : this.getCellAt(dx + pt.x * s, dy + pt.y * s);
 	
 	if (this.model.isAncestor(target, source))
 	{
@@ -1471,7 +1482,7 @@ Graph.prototype.connectVertex = function(source, direction, length, evt)
 		}
 	}
 	
-	var duplicate = !mxEvent.isShiftDown(evt);
+	var duplicate = !mxEvent.isShiftDown(evt) || forceClone;
 	
 	if (duplicate)
 	{
@@ -1626,7 +1637,14 @@ Graph.prototype.convertValueToString = function(cell)
 {
 	if (cell.value != null && typeof(cell.value) == 'object')
 	{
-		return cell.value.getAttribute('label');
+		if (this.isReplacePlaceholders(cell) && cell.getAttribute('placeholder') != null)
+		{
+			return this.getModel().getRoot().getAttribute(cell.getAttribute('placeholder')) || '';
+		}
+		else
+		{	
+			return cell.value.getAttribute('label');
+		}
 	}
 	
 	return mxGraph.prototype.convertValueToString.apply(this, arguments);
@@ -1643,7 +1661,7 @@ Graph.prototype.getLinkForCell = function(cell)
 		
 		// Removes links with leading javascript: protocol
 		// TODO: Check more possible attack vectors
-		if (link != null && link.toLowerCase().substring(0, 11) == 'javascript:')
+		if (link != null && link.toLowerCase().substring(0, 11) === 'javascript:')
 		{
 			link = link.substring(11);
 		}
@@ -2084,8 +2102,7 @@ Graph.prototype.getTooltipForCell = function(cell)
 					}
 					else
 					{
-						var key = attrs[i].nodeName.substring(0, 1).toUpperCase() + attrs[i].nodeName.substring(1);
-						tip += key + ': ' + mxUtils.htmlEntities(attrs[i].nodeValue) + '\n';
+						tip += attrs[i].nodeName + ': ' + mxUtils.htmlEntities(attrs[i].nodeValue) + '\n';
 					}
 				}
 			}
@@ -2098,6 +2115,71 @@ Graph.prototype.getTooltipForCell = function(cell)
 	}
 	
 	return tip;
+};
+
+/**
+ * Turns the given string into an array.
+ */
+Graph.prototype.stringToBytes = function(str)
+{
+	var arr = new Array(str.length);
+
+    for (var i = 0; i < str.length; i++)
+    {
+        arr[i] = str.charCodeAt(i);
+    }
+    
+    return arr;
+};
+
+/**
+ * Turns the given array into a string.
+ */
+Graph.prototype.bytesToString = function(arr)
+{
+	var result = new Array(arr.length);
+
+    for (var i = 0; i < arr.length; i++)
+    {
+    	result[i] = String.fromCharCode(arr[i]);
+    }
+    
+    return result.join('');
+};
+
+/**
+ * Returns a base64 encoded version of the compressed string.
+ */
+Graph.prototype.compress = function(data)
+{
+	if (data == null || data.length == 0 || typeof(pako) === 'undefined')
+	{
+		return data;
+	}
+	else
+	{
+   		var tmp = this.bytesToString(pako.deflateRaw(encodeURIComponent(data)));
+   		
+   		return (window.btoa) ? btoa(tmp) : Base64.encode(tmp, true);
+	}
+};
+
+/**
+ * Returns a decompressed version of the base64 encoded string.
+ */
+Graph.prototype.decompress = function(data)
+{
+   	if (data == null || data.length == 0 || typeof(pako) === 'undefined')
+	{
+		return data;
+	}
+	else
+	{
+		var tmp = (window.atob) ? atob(data) : Base64.decode(data, true);
+		
+		return this.zapGremlins(decodeURIComponent(
+			this.bytesToString(pako.inflateRaw(tmp))));
+	}
 };
 
 /**
@@ -2932,41 +3014,62 @@ HoverIcons.prototype.setCurrentState = function(state)
 };
 
 /**
- * Adds custom stencils defined via shape=stencil(value) style. The value is a base64 encoded, compressed and
- * URL encoded XML definition of the shape according to the stencil definition language of mxGraph.
- * 
- * Needs to be in this file to make sure its part of the embed client code. Also the check for ZLib is
- * different than for the Editor code.
+ * Adds support for placeholders in text elements of shapes.
  */
-var mxCellRendererCreateShape = mxCellRenderer.prototype.createShape;
-mxCellRenderer.prototype.createShape = function(state)
+(function()
 {
-	if (state.style != null && typeof(RawDeflate) !== 'undefined' && typeof RawDeflate.inflate === 'function')
-	{
-    	var shape = mxUtils.getValue(state.style, mxConstants.STYLE_SHAPE, null);
-
-    	// Extracts and decodes stencil XML if shape has the form shape=stencil(value)
-    	if (shape != null && shape.substring(0, 8) == 'stencil(')
-    	{
-    		try
-    		{
-    			var stencil = shape.substring(8, shape.length - 1);
-    			var doc = mxUtils.parseXml(decodeURIComponent(RawDeflate.inflate((window.atob) ? atob(stencil) : Base64.decode(stencil, true))));
-    			
-    			return new mxShape(new mxStencil(doc.documentElement));
-    		}
-    		catch (e)
-    		{
-    			if (window.console != null)
-    			{
-    				console.log('Error in shape: ' + e);
-    			}
-    		}
-    	}
-	}
+	var mxStencilEvaluateTextAttribute = mxStencil.prototype.evaluateTextAttribute;
 	
-	return mxCellRendererCreateShape.apply(this, arguments);
-};
+	mxStencil.prototype.evaluateTextAttribute = function(node, attribute, shape)
+	{
+		var result = mxStencilEvaluateTextAttribute.apply(this, arguments);
+		var placeholders = node.getAttribute('placeholders');
+		
+		if (placeholders == '1' && shape.state != null)
+		{
+			result = shape.state.view.graph.replacePlaceholders(shape.state.cell, result);
+		}
+		
+		return result;
+	};
+		
+	/**
+	 * Adds custom stencils defined via shape=stencil(value) style. The value is a base64 encoded, compressed and
+	 * URL encoded XML definition of the shape according to the stencil definition language of mxGraph.
+	 * 
+	 * Needs to be in this file to make sure its part of the embed client code. Also the check for ZLib is
+	 * different than for the Editor code.
+	 */
+	var mxCellRendererCreateShape = mxCellRenderer.prototype.createShape;
+	mxCellRenderer.prototype.createShape = function(state)
+	{
+		if (state.style != null && typeof(pako) !== 'undefined')
+		{
+	    	var shape = mxUtils.getValue(state.style, mxConstants.STYLE_SHAPE, null);
+	
+	    	// Extracts and decodes stencil XML if shape has the form shape=stencil(value)
+	    	if (shape != null && shape.substring(0, 8) == 'stencil(')
+	    	{
+	    		try
+	    		{
+	    			var stencil = shape.substring(8, shape.length - 1);
+	    			var doc = mxUtils.parseXml(state.view.graph.decompress(stencil));
+	    			
+	    			return new mxShape(new mxStencil(doc.documentElement));
+	    		}
+	    		catch (e)
+	    		{
+	    			if (window.console != null)
+	    			{
+	    				console.log('Error in shape: ' + e);
+	    			}
+	    		}
+	    	}
+		}
+		
+		return mxCellRendererCreateShape.apply(this, arguments);
+	};
+})();
 
 /**
  * Overrides stencil registry for dynamic loading of stencils.
@@ -3729,15 +3832,32 @@ if (typeof mxVertexHandler != 'undefined')
 		{
 			// Removes all illegal control characters in user input
 			value = this.zapGremlins(value);
-			
-			if (cell.value != null && typeof(cell.value) == 'object')
-			{
-				var tmp = cell.value.cloneNode(true);
-				tmp.setAttribute('label', value);
-				value = tmp;
+
+			this.model.beginUpdate();
+			try
+			{			
+				if (cell.value != null && typeof cell.value == 'object')
+				{
+					var tmp = cell.value.cloneNode(true);
+					tmp.setAttribute('label', value);
+					
+					if (this.isReplacePlaceholders(cell) &&
+						tmp.getAttribute('placeholder') != null)
+					{
+						// LATER: Handle delete, name change
+						this.setAttributeForCell(this.getModel().getRoot(),
+							tmp.getAttribute('placeholder'), value);
+					}
+					
+					value = tmp;
+				}
+
+				mxGraph.prototype.cellLabelChanged.apply(this, arguments);
 			}
-			
-			mxGraph.prototype.cellLabelChanged.apply(this, arguments);
+			finally
+			{
+				this.model.endUpdate();
+			}
 		};
 		
 		/**
@@ -5060,6 +5180,8 @@ if (typeof mxVertexHandler != 'undefined')
 		/**
 		 * HTML in-place editor
 		 */
+		mxCellEditor.prototype.escapeCancelsEditing = false;
+		
 		var mxCellEditorStartEditing = mxCellEditor.prototype.startEditing;
 		mxCellEditor.prototype.startEditing = function(cell, trigger)
 		{
@@ -5385,22 +5507,8 @@ if (typeof mxVertexHandler != 'undefined')
 					this.bounds.width = parseInt(this.textarea.style.width) * scale;
 				}
 								
-				// FIXME: Offset when scaled
-				if (document.documentMode == 8)
-				{
-					this.textarea.style.left = Math.round(this.bounds.x) + 'px';
-					this.textarea.style.top = Math.round(this.bounds.y) + 'px';
-				}
-				else if (mxClient.IS_QUIRKS)
-				{
-					this.textarea.style.left = Math.round(this.bounds.x) + 'px';
-					this.textarea.style.top = Math.round(this.bounds.y) + 'px';
-				}
-				else
-				{
-					this.textarea.style.left = Math.round(this.bounds.x - 0.5 * this.bounds.width * (1 - scale) / scale) + 'px';
-					this.textarea.style.top = Math.round(this.bounds.y - 0.5 * this.bounds.height * (1 - scale) / scale) + 'px';
-				}
+				this.textarea.style.left = Math.round(this.bounds.x) + 'px';
+				this.textarea.style.top = Math.round(this.bounds.y) + 'px';
 	
 				if (mxClient.IS_VML)
 				{
@@ -6026,8 +6134,8 @@ if (typeof mxVertexHandler != 'undefined')
 						
 						this.div.style.left = this.x + 'px';
 						this.div.style.top = (origin.y + offset.y) + 'px';
-						this.div.style.width = Math.max(1, this.width) + 'px';
-						this.div.style.height = Math.max(1, this.graph.container.clientHeight) + 'px';
+						this.div.style.width = Math.max(0, this.width) + 'px';
+						this.div.style.height = Math.max(0, this.graph.container.clientHeight) + 'px';
 						this.div.style.backgroundColor = 'white';
 						this.div.style.borderWidth = '0px 1px 0px 1px';
 						this.div.style.borderStyle = 'dashed';
@@ -6040,8 +6148,8 @@ if (typeof mxVertexHandler != 'undefined')
 						
 						this.secondDiv.style.left = (origin.x + offset.x) + 'px';
 						this.secondDiv.style.top = this.y + 'px';
-						this.secondDiv.style.width = Math.max(1, this.graph.container.clientWidth) + 'px';
-						this.secondDiv.style.height = Math.max(1, this.height) + 'px';
+						this.secondDiv.style.width = Math.max(0, this.graph.container.clientWidth) + 'px';
+						this.secondDiv.style.height = Math.max(0, this.height) + 'px';
 						this.secondDiv.style.borderWidth = '1px 0px 1px 0px';
 					}
 					else

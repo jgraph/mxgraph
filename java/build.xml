@@ -1,5 +1,5 @@
 <!--
- Copyright (c) 2008-2015 JGraph Ltd.
+ Copyright (c) 2008-2016 JGraph Ltd.
 -->
 
 <!-- ===================== Project Properties =========================== -->
@@ -7,7 +7,7 @@
 <project name="mxgraph" default="all" basedir=".">
 
 	<property name="product.name"    value="mxGraph"/>
-	<property name="product.version" value="3.5.1.5"/>
+	<property name="product.version" value="3.6.0.0"/>
 	<property name="all.jar"         value="mxgraph-all.jar"/>
 	<property name="core.jar"        value="mxgraph-core.jar"/>
 	<property name="swing.jar"       value="mxgraph-swing.jar"/>
@@ -16,6 +16,7 @@
 
 	<property name="source.home"    value="${basedir}/src"/>
 	<property name="example.home"   value="${basedir}/examples"/>
+	<property name="grapheditor.home" value="${basedir}/../javascript/examples/grapheditor/java/src"/>
 	<property name="test.home"      value="${basedir}/test"/>
 
 <!-- ==================== Compilation Options ==================== -->
@@ -33,6 +34,7 @@
 
 	<target name="clean" description="Deletes all generated files and directories">
 		<delete dir="${basedir}/classes"/>
+		<delete dir="${basedir}/example-classes"/>
 		<delete dir="${basedir}/docs"/>
 		<delete dir="${basedir}/lib"/>
 	</target>
@@ -42,6 +44,7 @@
 	<target name="init" depends="clean" description="Initializes the build">
 		<tstamp/>
 		<mkdir dir="${basedir}/classes"/>
+		<mkdir dir="${basedir}/example-classes"/>
 		<mkdir dir="${basedir}/docs"/>
 		<mkdir dir="${basedir}/lib"/>
 	</target>
@@ -128,6 +131,62 @@
 			</fileset>
 		</jar>
 		<delete dir="${basedir}/classes"/>
+	</target>
+
+<!-- ==================== compile-examples ==================== -->
+
+	<target name="compile-examples" depends="compile" description="Compiles the examples">
+		<javac target="1.6" source="1.6"
+			debug="${compile.debug}"
+			deprecation="${compile.deprecation}"
+			optimize="${compile.optimize}"
+			destdir="${basedir}/example-classes">
+			<src path="${example.home}"/>
+			<src path="${grapheditor.home}"/>
+			<classpath>
+				<pathelement path="${basedir}/classes"/>
+				<pathelement path="${basedir}/example-classes"/>
+				<pathelement location="${basedir}/jars/iText-2.1.7_mx-1.0.jar"/>
+				<pathelement location="${basedir}/jars/jetty-6.1.1.jar"/>
+				<pathelement location="${basedir}/jars/jetty-util-6.1.1.jar"/>
+				<pathelement location="${basedir}/jars/servlet-api-2.5-6.1.1.jar"/>
+			</classpath>
+		</javac>
+		<copy todir="${basedir}/example-classes">
+		  <fileset dir="${example.home}">
+		    <exclude name="**/*.java"/>
+		  </fileset>
+		</copy>
+	</target>
+
+<!-- ==================== web-example ==================== -->
+	
+	<target name="web-example" depends="compile-examples" description="Runs the web example">
+		<java classname="com.mxgraph.examples.web.Main" dir="${basedir}/.." fork="true">
+			<classpath>
+				<pathelement path="${basedir}/classes"/>
+				<pathelement path="${basedir}/example-classes"/>
+				<pathelement location="${basedir}/jars/iText-2.1.7_mx-1.0.jar"/>
+				<pathelement location="${basedir}/jars/jetty-6.1.1.jar"/>
+				<pathelement location="${basedir}/jars/jetty-util-6.1.1.jar"/>
+				<pathelement location="${basedir}/jars/servlet-api-2.5-6.1.1.jar"/>
+			</classpath>
+		</java>
+	</target>
+
+<!-- ==================== grapheditor ==================== -->
+	
+	<target name="grapheditor" depends="compile-examples" description="Runs the grapheditor example">
+		<java classname="com.mxgraph.examples.web.GraphEditor" dir="${basedir}/.." fork="true">
+			<classpath>
+				<pathelement path="${basedir}/classes"/>
+				<pathelement path="${basedir}/example-classes"/>
+				<pathelement location="${basedir}/jars/iText-2.1.7_mx-1.0.jar"/>
+				<pathelement location="${basedir}/jars/jetty-6.1.1.jar"/>
+				<pathelement location="${basedir}/jars/jetty-util-6.1.1.jar"/>
+				<pathelement location="${basedir}/jars/servlet-api-2.5-6.1.1.jar"/>
+			</classpath>
+		</java>
 	</target>
 
 </project>

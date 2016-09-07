@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.5.1.5.
+	 * Current version is 3.6.0.0.
 	 */
-	VERSION: '3.5.1.5',
+	VERSION: '3.6.0.0',
 
 	/**
 	 * Variable: IS_IE
@@ -227,7 +227,7 @@ var mxClient =
 	 * 
 	 * True if this device supports Microsoft pointer events.
 	 */
-  	IS_POINTER: (window.navigator.pointerEnabled != null) ? window.navigator.pointerEnabled : false,
+  	IS_POINTER: window.PointerEvent != null,
 
 	/**
 	 * Variable: IS_LOCAL

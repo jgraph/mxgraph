@@ -170,7 +170,7 @@ var mxLog =
 				w = document.body.clientWidth;
 			}
 
-			mxLog.window = new mxWindow(title, table, Math.max(0, w-320), Math.max(0, h-210), 300, 160);
+			mxLog.window = new mxWindow(title, table, Math.max(0, w - 320), Math.max(0, h - 210), 300, 160);
 			mxLog.window.setMaximizable(true);
 			mxLog.window.setScrollable(false);
 			mxLog.window.setResizable(true);
@@ -186,7 +186,7 @@ var mxLog =
 				
 				var resizeHandler = function(sender, evt)
 				{
-					mxLog.textarea.style.height = Math.max(0, elt.offsetHeight - 70)+'px';
+					mxLog.textarea.style.height = Math.max(0, elt.offsetHeight - 70) + 'px';
 				}; 
 				
 				mxLog.window.addListener(mxEvent.RESIZE_END, resizeHandler);
@@ -232,6 +232,7 @@ var mxLog =
 		{
 			return mxLog.window.isVisible();
 		}
+		
 		return false;
 	},
 	

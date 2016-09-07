@@ -6,7 +6,6 @@ package com.mxgraph.swing.handler;
 import java.awt.AlphaComposite;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 
@@ -260,7 +259,7 @@ public class mxConnectPreview extends mxEventSource
 			}
 
 			Graphics2D previousGraphics = canvas.getGraphics();
-			Point previousTranslate = canvas.getTranslate();
+			mxPoint previousTranslate = canvas.getTranslate();
 			double previousScale = canvas.getScale();
 
 			try
@@ -274,7 +273,7 @@ public class mxConnectPreview extends mxEventSource
 			finally
 			{
 				canvas.setScale(previousScale);
-				canvas.setTranslate(previousTranslate.x, previousTranslate.y);
+				canvas.setTranslate(previousTranslate.getX(), previousTranslate.getY());
 				canvas.setGraphics(previousGraphics);
 			}
 		}

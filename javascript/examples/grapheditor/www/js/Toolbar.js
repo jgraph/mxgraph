@@ -341,23 +341,21 @@ Toolbar.prototype.createTextToolbar = function()
 	
 	var formatMenu = this.addMenuFunction('', mxResources.get('format'), false, mxUtils.bind(this, function(menu)
 	{
-		elt = menu.addItem('', null, mxUtils.bind(this, function()
-		{
-			document.execCommand('superscript', false, null);
-		}), null, 'geIcon geSprite geSprite-superscript');
-		elt.setAttribute('title', mxResources.get('superscript'));
-		
-		elt = menu.addItem('', null, mxUtils.bind(this, function()
-		{
-			document.execCommand('subscript', false, null);
-		}), null, 'geIcon geSprite geSprite-subscript');
-		elt.setAttribute('title', mxResources.get('subscript'));
+		elt = menu.addItem('', null, this.editorUi.actions.get('subscript').funct,
+			null, 'geIcon geSprite geSprite-subscript');
+		elt.setAttribute('title', mxResources.get('subscript') + ' (Ctrl+,)');
+
+		elt = menu.addItem('', null, this.editorUi.actions.get('superscript').funct,
+			null, 'geIcon geSprite geSprite-superscript');
+		elt.setAttribute('title', mxResources.get('superscript') + ' (Ctrl+.)');
 
 		// KNOWN: IE+FF don't return keyboard focus after color dialog (calling focus doesn't help)
-		elt = menu.addItem('', null, this.editorUi.actions.get('fontColor').funct, null, 'geIcon geSprite geSprite-fontcolor');
+		elt = menu.addItem('', null, this.editorUi.actions.get('fontColor').funct,
+			null, 'geIcon geSprite geSprite-fontcolor');
 		elt.setAttribute('title', mxResources.get('fontColor'));
 		
-		elt = menu.addItem('', null, this.editorUi.actions.get('backgroundColor').funct, null, 'geIcon geSprite geSprite-fontbackground');
+		elt = menu.addItem('', null, this.editorUi.actions.get('backgroundColor').funct,
+			null, 'geIcon geSprite geSprite-fontbackground');
 		elt.setAttribute('title', mxResources.get('backgroundColor'));
 		
 		elt = menu.addItem('', null, mxUtils.bind(this, function()
@@ -370,7 +368,8 @@ Toolbar.prototype.createTextToolbar = function()
 	formatMenu.style.position = 'relative';
 	formatMenu.style.whiteSpace = 'nowrap';
 	formatMenu.style.overflow = 'hidden';
-	formatMenu.innerHTML = '<div class="geSprite geSprite-superscript" style="margin-left:-2px;"></div>' + this.dropdownImageHtml;
+	formatMenu.innerHTML = '<div class="geSprite geSprite-dots" style="margin-left:-2px;"></div>' +
+		this.dropdownImageHtml;
 	formatMenu.style.width = (mxClient.IS_QUIRKS) ? '50px' : '30px';
 
 	if (EditorUi.compactUi)

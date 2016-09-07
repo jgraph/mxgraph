@@ -391,30 +391,19 @@ div.mxWindow .geButton {
 	margin:0 auto;
 }
 .geFooterContainer td {
-	padding:11px 30px 11px 30px;
 	border-left:1px solid #c0c0c0;
 	border-right:1px solid #c0c0c0;
-	white-space:nowrap;
 }
 .geFooterContainer td:hover {
-	background-color: #d3d3d3;
+	background-color: #b3b3b3;
 }
-.geFooterContainer>div>img {
-	opacity:0.5;
-	background:#e5e5e5;
-	border:1px solid transparent;
-	cusor:pointer;
-	margin-top:3px;
-	margin-right:6px;
-	position:absolute;
-	right:4px;
-	top:12px;
-	padding:1px;
-	cursor:pointer;
-}
-.geFooterContainer>div>img:hover {
-	opacity: 1;
-	border: 1px solid gray;
+.geFooterContainer a {
+	display:block;
+	box-sizing:border-box;
+	width:100%;
+	height:100%;
+	padding:11px 42px 11px 42px;
+	white-space:nowrap;
 }
 .geHsplit {
 	cursor:col-resize;

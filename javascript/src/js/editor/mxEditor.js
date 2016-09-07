@@ -373,7 +373,7 @@ function mxEditor(config)
 		// Assigns the swimlaneIndicatorColorAttribute on the graph
 		this.graph.swimlaneIndicatorColorAttribute = this.cycleAttributeName;
 
-		// Checks ifthe <onInit> hook has been set		
+		// Checks if the <onInit> hook has been set
 		if (this.onInit != null)
 		{
 			// Invokes the <onInit> hook

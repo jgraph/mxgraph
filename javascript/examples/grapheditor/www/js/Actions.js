@@ -83,7 +83,7 @@ Actions.prototype.init = function()
 	
 	// Edit actions
 	this.addAction('undo', function() { ui.undo(); }, null, 'sprite-undo', 'Ctrl+Z');
-	this.addAction('redo', function() { ui.redo(); }, null, 'sprite-redo', (mxClient.IS_MAC) ? 'Ctrl+Shift+Z' : 'Ctrl+Y');
+	this.addAction('redo', function() { ui.redo(); }, null, 'sprite-redo', (!mxClient.IS_WIN) ? 'Ctrl+Shift+Z' : 'Ctrl+Y');
 	this.addAction('cut', function() { mxClipboard.cut(graph); }, null, 'sprite-cut', 'Ctrl+X');
 	this.addAction('copy', function() { mxClipboard.copy(graph); }, null, 'sprite-copy', 'Ctrl+C');
 	this.addAction('paste', function()
@@ -174,7 +174,7 @@ Actions.prototype.init = function()
 	}, null, null, 'Ctrl+R');
 	this.addAction('selectVertices', function() { graph.selectVertices(); }, null, null, 'Ctrl+Shift+I');
 	this.addAction('selectEdges', function() { graph.selectEdges(); }, null, null, 'Ctrl+Shift+E');
-	this.addAction('selectAll', function() { graph.selectAll(); }, null, null, 'Ctrl+A');
+	this.addAction('selectAll', function() { graph.selectAll(null, true); }, null, null, 'Ctrl+A');
 	this.addAction('selectNone', function() { graph.clearSelection(); }, null, null, 'Ctrl+Shift+A');
 	this.addAction('lockUnlock', function()
 	{
@@ -1041,6 +1041,20 @@ Actions.prototype.init = function()
 			}
 		}
 	});
+	action = this.addAction('subscript', mxUtils.bind(this, function()
+	{
+	    if (graph.cellEditor.isContentEditing())
+	    {
+			document.execCommand('subscript', false, null);
+		}
+	}), null, null, 'Ctrl+,');
+	action = this.addAction('superscript', mxUtils.bind(this, function()
+	{
+	    if (graph.cellEditor.isContentEditing())
+	    {
+			document.execCommand('superscript', false, null);
+		}
+	}), null, null, 'Ctrl+.');
 	this.addAction('image...', function()
 	{
 		if (graph.isEnabled() && !graph.isCellLocked(graph.getDefaultParent()))

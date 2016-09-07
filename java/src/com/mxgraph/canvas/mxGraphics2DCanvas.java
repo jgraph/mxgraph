@@ -593,7 +593,7 @@ public class mxGraphics2DCanvas extends mxBasicCanvas
 		Graphics2D temporaryGraphics = (Graphics2D) g.create();
 
 		// Applies the default translate
-		temporaryGraphics.translate(translate.x, translate.y);
+		temporaryGraphics.translate(translate.getX(), translate.getY());
 
 		// Applies the rotation on the graphics object
 		if (bounds != null)

@@ -3,8 +3,7 @@
  */
 package com.mxgraph.canvas;
 
-import java.awt.Point;
-
+import com.mxgraph.util.mxPoint;
 import com.mxgraph.view.mxCellState;
 
 /**
@@ -16,14 +15,14 @@ public interface mxICanvas
 	/**
 	 * Sets the translation for the following drawing requests.
 	 */
-	void setTranslate(int x, int y);
+	void setTranslate(double x, double y);
 
 	/**
 	 * Returns the current translation.
 	 * 
 	 * @return Returns the current translation.
 	 */
-	Point getTranslate();
+	mxPoint getTranslate();
 
 	/**
 	 * Sets the scale for the following drawing requests.

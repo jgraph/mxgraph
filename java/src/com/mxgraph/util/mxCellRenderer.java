@@ -4,7 +4,6 @@
 package com.mxgraph.util;
 
 import java.awt.Color;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 
@@ -78,7 +77,7 @@ public class mxCellRenderer
 				if (canvas != null)
 				{
 					double previousScale = canvas.getScale();
-					Point previousTranslate = canvas.getTranslate();
+					mxPoint previousTranslate = canvas.getTranslate();
 
 					try
 					{
@@ -93,8 +92,8 @@ public class mxCellRenderer
 					finally
 					{
 						canvas.setScale(previousScale);
-						canvas.setTranslate(previousTranslate.x,
-								previousTranslate.y);
+						canvas.setTranslate(previousTranslate.getX(),
+								previousTranslate.getY());
 					}
 				}
 			}

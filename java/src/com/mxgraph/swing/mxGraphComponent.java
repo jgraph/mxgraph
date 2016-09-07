@@ -1881,7 +1881,7 @@ public class mxGraphComponent extends JScrollPane implements Printable
 
 		if (parent != null)
 		{
-			Point previousTranslate = canvas.getTranslate();
+			mxPoint previousTranslate = canvas.getTranslate();
 			double previousScale = canvas.getScale();
 
 			try
@@ -1922,7 +1922,7 @@ public class mxGraphComponent extends JScrollPane implements Printable
 			finally
 			{
 				canvas.setScale(previousScale);
-				canvas.setTranslate(previousTranslate.x, previousTranslate.y);
+				canvas.setTranslate((int) previousTranslate.getX(), (int) previousTranslate.getY());
 			}
 		}
 
@@ -1999,7 +1999,7 @@ public class mxGraphComponent extends JScrollPane implements Printable
 
 			if (parent != null)
 			{
-				Point previousTranslate = canvas.getTranslate();
+				mxPoint previousTranslate = canvas.getTranslate();
 				double previousScale = canvas.getScale();
 
 				try
@@ -2034,8 +2034,8 @@ public class mxGraphComponent extends JScrollPane implements Printable
 				finally
 				{
 					canvas.setScale(previousScale);
-					canvas.setTranslate(previousTranslate.x,
-							previousTranslate.y);
+					canvas.setTranslate(previousTranslate.getX(),
+							previousTranslate.getY());
 				}
 			}
 		}
@@ -4282,7 +4282,7 @@ public class mxGraphComponent extends JScrollPane implements Printable
 		{
 			Graphics2D previousGraphics = canvas.getGraphics();
 			boolean previousDrawLabels = canvas.isDrawLabels();
-			Point previousTranslate = canvas.getTranslate();
+			mxPoint previousTranslate = canvas.getTranslate();
 			double previousScale = canvas.getScale();
 
 			try
@@ -4298,7 +4298,7 @@ public class mxGraphComponent extends JScrollPane implements Printable
 			finally
 			{
 				canvas.setScale(previousScale);
-				canvas.setTranslate(previousTranslate.x, previousTranslate.y);
+				canvas.setTranslate(previousTranslate.getX(), previousTranslate.getY());
 				canvas.setDrawLabels(previousDrawLabels);
 				canvas.setGraphics(previousGraphics);
 			}

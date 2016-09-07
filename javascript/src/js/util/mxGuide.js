@@ -83,12 +83,11 @@ mxGuide.prototype.isEnabledForEvent = function(evt)
 /**
  * Function: getGuideTolerance
  * 
- * Returns the tolerance for the guides. Default value is
- * gridSize * scale / 2.
+ * Returns the tolerance for the guides. Default value is gridSize / 2.
  */
 mxGuide.prototype.getGuideTolerance = function()
 {
-	return this.graph.gridSize * this.graph.view.scale / 2;
+	return this.graph.gridSize / 2;
 };
 
 /**

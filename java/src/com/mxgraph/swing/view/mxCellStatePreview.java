@@ -7,7 +7,6 @@ import java.awt.AlphaComposite;
 import java.awt.Composite;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Point;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -460,7 +459,7 @@ public class mxCellStatePreview
 			}
 
 			Graphics2D previousGraphics = canvas.getGraphics();
-			Point previousTranslate = canvas.getTranslate();
+			mxPoint previousTranslate = canvas.getTranslate();
 			double previousScale = canvas.getScale();
 
 			try
@@ -474,7 +473,7 @@ public class mxCellStatePreview
 			finally
 			{
 				canvas.setScale(previousScale);
-				canvas.setTranslate(previousTranslate.x, previousTranslate.y);
+				canvas.setTranslate(previousTranslate.getX(), previousTranslate.getY());
 				canvas.setGraphics(previousGraphics);
 			}
 		}

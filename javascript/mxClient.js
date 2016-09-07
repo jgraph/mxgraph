@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.5.1.5.
+	 * Current version is 3.6.0.0.
 	 */
-	VERSION: '3.5.1.5',
+	VERSION: '3.6.0.0',
 
 	/**
 	 * Variable: IS_IE
@@ -227,7 +227,7 @@ var mxClient =
 	 * 
 	 * True if this device supports Microsoft pointer events.
 	 */
-  	IS_POINTER: (window.navigator.pointerEnabled != null) ? window.navigator.pointerEnabled : false,
+  	IS_POINTER: window.PointerEvent != null,
 
 	/**
 	 * Variable: IS_LOCAL
@@ -771,7 +771,7 @@ var mxLog =
 				w = document.body.clientWidth;
 			}
 
-			mxLog.window = new mxWindow(title, table, Math.max(0, w-320), Math.max(0, h-210), 300, 160);
+			mxLog.window = new mxWindow(title, table, Math.max(0, w - 320), Math.max(0, h - 210), 300, 160);
 			mxLog.window.setMaximizable(true);
 			mxLog.window.setScrollable(false);
 			mxLog.window.setResizable(true);
@@ -787,7 +787,7 @@ var mxLog =
 				
 				var resizeHandler = function(sender, evt)
 				{
-					mxLog.textarea.style.height = Math.max(0, elt.offsetHeight - 70)+'px';
+					mxLog.textarea.style.height = Math.max(0, elt.offsetHeight - 70) + 'px';
 				}; 
 				
 				mxLog.window.addListener(mxEvent.RESIZE_END, resizeHandler);
@@ -833,6 +833,7 @@ var mxLog =
 		{
 			return mxLog.window.isVisible();
 		}
+		
 		return false;
 	},
 	
@@ -15122,6 +15123,17 @@ mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, e
 };
 
 /**
+ * Adds a checkmark to the given menuitem.
+ */
+mxPopupMenu.prototype.addCheckmark = function(item, img)
+{
+	var td = item.firstChild.nextSibling;
+	td.style.backgroundImage = 'url(\'' + img + '\')';
+	td.style.backgroundRepeat = 'no-repeat';
+	td.style.backgroundPosition = '2px 50%';
+};
+
+/**
  * Function: createSubmenu
  * 
  * Creates the nodes required to add submenu items inside the given parent
@@ -21402,12 +21414,11 @@ mxGuide.prototype.isEnabledForEvent = function(evt)
 /**
  * Function: getGuideTolerance
  * 
- * Returns the tolerance for the guides. Default value is
- * gridSize * scale / 2.
+ * Returns the tolerance for the guides. Default value is gridSize / 2.
  */
 mxGuide.prototype.getGuideTolerance = function()
 {
-	return this.graph.gridSize * this.graph.view.scale / 2;
+	return this.graph.gridSize / 2;
 };
 
 /**
@@ -21879,6 +21890,10 @@ mxGuide.prototype.destroy = function()
  * - "align-shape", 0 or 1, if 0 ignore the rotation of the shape when setting
  * the text rotation. Optional, default is 1.
  * 
+ * If <allowEval> is true, then the text content of the this element can define
+ * a function which is invoked with the shape as the only argument and returns
+ * the value for the text element (ignored if the str attribute is not null).
+ * 
  * Images:
  * 
  * *image* elements can either be external URLs, or data URIs, where supported
@@ -21889,6 +21904,10 @@ mxGuide.prototype.destroy = function()
  * - "w", "h", required decimals. The width and height of the image.
  * - "flipH" and "flipV", optional 0 or 1. Whether to flip the image along the
  * horizontal/vertical axis. Default is 0 for both.
+ * 
+ * If <allowEval> is true, then the text content of the this element can define
+ * a function which is invoked with the shape as the only argument and returns
+ * the value for the image source (ignored if the src attribute is not null).
  * 
  * Sub-shapes:
  * 
@@ -22062,9 +22081,9 @@ mxStencil.prototype.parseConstraint = function(node)
  * is used as a key to <mxResources.get> if the localized attribute in the text
  * node is 1 or if <defaultLocalized> is true.
  */
-mxStencil.prototype.evaluateTextAttribute = function(node, attribute, state)
+mxStencil.prototype.evaluateTextAttribute = function(node, attribute, shape)
 {
-	var result = this.evaluateAttribute(node, attribute, state);
+	var result = this.evaluateAttribute(node, attribute, shape);
 	var loc = node.getAttribute('localized');
 	
 	if ((mxStencil.defaultLocalized && loc == null) || loc == '1')
@@ -22080,7 +22099,7 @@ mxStencil.prototype.evaluateTextAttribute = function(node, attribute, state)
  *
  * Gets the attribute for the given name from the given node. If the attribute
  * does not exist then the text content of the node is evaluated and if it is
- * a function it is invoked with <state> as the only argument and the return
+ * a function it is invoked with <shape> as the only argument and the return
  * value is used as the attribute value to be returned.
  */
 mxStencil.prototype.evaluateAttribute = function(node, attribute, shape)
@@ -43937,6 +43956,15 @@ mxPrintPreview.prototype.targetWindow = null;
 mxPrintPreview.prototype.pageCount = 0;
 
 /**
+ * Variable: clipping
+ * 
+ * Specifies is clipping should be used to avoid creating too many cell states
+ * in large diagrams. The bounding box of the cells in the original diagram is
+ * used if this is enabled. Default is true.
+ */
+mxPrintPreview.prototype.clipping = true;
+
+/**
  * Function: getWindow
  * 
  * Returns <wnd>.
@@ -44545,32 +44573,35 @@ mxPrintPreview.prototype.addGraphFragment = function(dx, dy, scale, pageNumber, 
 	var s = view.scale;
 	
 	// Gets the transformed clip for intersection check below
-	var tempClip = new mxRectangle((clip.x + translate.x) * s, (clip.y + translate.y) * s,
-			clip.width * s / scale, clip.height * s / scale);
-	
-	// Checks clipping rectangle for speedup
-	// Must create terminal states for edge clipping even if terminal outside of clip
-	this.graph.cellRenderer.redraw = function(state, force, rendering)
+	if (this.clipping)
 	{
-		if (state != null)
+		var tempClip = new mxRectangle((clip.x + translate.x) * s, (clip.y + translate.y) * s,
+				clip.width * s / scale, clip.height * s / scale);
+		
+		// Checks clipping rectangle for speedup
+		// Must create terminal states for edge clipping even if terminal outside of clip
+		this.graph.cellRenderer.redraw = function(state, force, rendering)
 		{
-			// Gets original state from graph to find bounding box
-			var orig = states.get(state.cell);
-			
-			if (orig != null)
+			if (state != null)
 			{
-				var bbox = view.getBoundingBox(orig, false);
+				// Gets original state from graph to find bounding box
+				var orig = states.get(state.cell);
 				
-				// Steps rendering if outside clip for speedup
-				if (bbox != null && !mxUtils.intersects(tempClip, bbox))
+				if (orig != null)
 				{
-					return;
+					var bbox = view.getBoundingBox(orig, false);
+					
+					// Stops rendering if outside clip for speedup
+					if (bbox != null && !mxUtils.intersects(tempClip, bbox))
+					{
+						return;
+					}
 				}
 			}
-		}
-		
-		redraw.apply(this, arguments);
-	};
+			
+			redraw.apply(this, arguments);
+		};
+	}
 	
 	var temp = null;
 	
@@ -46052,6 +46083,15 @@ mxCellEditor.prototype.selectText = true;
 mxCellEditor.prototype.emptyLabelText = (mxClient.IS_FF) ? '<br>' : '';
 
 /**
+ * Variable: escapeCancelsEditing
+ * 
+ * If true, pressing the escape key will stop editing and not accept the new
+ * value. Change this to false to accept the new value on escape, and cancel
+ * editing on Shift+Escape instead. Default is true.
+ */
+mxCellEditor.prototype.escapeCancelsEditing = true;
+
+/**
  * Variable: textNode
  * 
  * Reference to the label DOM node that has been hidden.
@@ -46184,7 +46224,7 @@ mxCellEditor.prototype.installListeners = function(elt)
 			}
 			else if (evt.keyCode == 27 /* Escape */)
 			{
-				this.graph.stopEditing(true);
+				this.graph.stopEditing(this.escapeCancelsEditing || mxEvent.isShiftDown(evt));
 				mxEvent.consume(evt);
 			}
 		}
@@ -46332,12 +46372,7 @@ mxCellEditor.prototype.resize = function()
 			this.textarea.style.height = Math.round(this.bounds.height / scale) + 'px';
 			
 			// FIXME: Offset when scaled
-			if (document.documentMode == 8)
-			{
-				this.textarea.style.left = Math.round(this.bounds.x) + 'px';
-				this.textarea.style.top = Math.round(this.bounds.y) + 'px';
-			}
-			else if (mxClient.IS_QUIRKS)
+			if (document.documentMode == 8 || mxClient.IS_QUIRKS)
 			{
 				this.textarea.style.left = Math.round(this.bounds.x) + 'px';
 				this.textarea.style.top = Math.round(this.bounds.y) + 'px';
@@ -61387,8 +61422,9 @@ mxGraph.prototype.validateEdge = function(edge, source, target)
  * Validates the graph by validating each descendant of the given cell or
  * the root of the model. Context is an object that contains the validation
  * state for the complete validation run. The validation errors are
- * attached to their cells using <setCellWarning>. This function returns true
- * if no validation errors exist in the graph.
+ * attached to their cells using <setCellWarning>. Returns null in the case of
+ * successful validation or an array of strings (warnings) in the case of
+ * failed validations.
  * 
  * Paramters:
  * 
@@ -64913,16 +64949,21 @@ mxGraph.prototype.selectCell = function(isNext, isParent, isChild)
  * 
  * parent - Optional <mxCell> whose children should be selected.
  * Default is <defaultParent>.
+ * descendants - Optional boolean specifying whether all descendants should be
+ * selected. Default is false.
  */
-mxGraph.prototype.selectAll = function(parent)
+mxGraph.prototype.selectAll = function(parent, descendants)
 {
 	parent = parent || this.getDefaultParent();
 	
-	var children = this.model.getChildren(parent);
-	
-	if (children != null)
+	var cells = (descendants) ? this.model.filterDescendants(function(cell)
 	{
-		this.setSelectionCells(children);
+		return cell != parent;
+	}, parent) : this.model.getChildren(parent);
+	
+	if (cells != null)
+	{
+		this.setSelectionCells(cells);
 	}
 };
 
@@ -64968,7 +65009,8 @@ mxGraph.prototype.selectCells = function(vertices, edges, parent)
 	var filter = mxUtils.bind(this, function(cell)
 	{
 		return this.view.getState(cell) != null &&
-			((this.model.getChildCount(cell) == 0 && this.model.isVertex(cell) && vertices) ||
+			((this.model.getChildCount(cell) == 0 && this.model.isVertex(cell) && vertices
+			&& !this.model.isEdge(this.model.getParent(cell))) ||
 			(this.model.isEdge(cell) && edges));
 	});
 	
@@ -70659,8 +70701,8 @@ mxSelectionCellsHandler.prototype.destroy = function()
 	}
 };
 /**
- * Copyright (c) 2006-2015, JGraph Ltd
- * Copyright (c) 2006-2015, Gaudenz Alder
+ * Copyright (c) 2006-2016, JGraph Ltd
+ * Copyright (c) 2006-2016, Gaudenz Alder
  */
 /**
  * Class: mxConnectionHandler
@@ -70704,7 +70746,7 @@ mxSelectionCellsHandler.prototype.destroy = function()
  * new default edge.
  * 
  * The handler uses a "highlight-paradigm" for indicating if a cell is being
- * used as a source or target terminal, as seen in MS Visio and other products.
+ * used as a source or target terminal, as seen in other diagramming products.
  * In order to allow both, moving and connecting cells at the same time,
  * <mxConstants.DEFAULT_HOTSPOT> is used in the handler to determine the hotspot
  * of a cell, that is, the region of the cell which is used to trigger a new
@@ -81641,7 +81683,7 @@ function mxEditor(config)
 		// Assigns the swimlaneIndicatorColorAttribute on the graph
 		this.graph.swimlaneIndicatorColorAttribute = this.cycleAttributeName;
 
-		// Checks ifthe <onInit> hook has been set		
+		// Checks if the <onInit> hook has been set
 		if (this.onInit != null)
 		{
 			// Invokes the <onInit> hook

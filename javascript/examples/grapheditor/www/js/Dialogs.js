@@ -1046,7 +1046,24 @@ PrintDialog.showPreview = function(preview, print)
 	
 	if (print && result != null)
 	{
-		result.print();
+		var print = function()
+		{
+			result.focus();
+			result.print();
+			result.close();
+		};
+		
+		// Workaround for Google Chrome which needs a bit of a
+		// delay in order to render the SVG contents
+		// Needs testing in production
+		if (mxClient.IS_GC)
+		{
+			window.setTimeout(print, 500);
+		}
+		else
+		{
+			print();
+		}
 	}
 	
 	return result;
@@ -1090,8 +1107,9 @@ PrintDialog.createPrintPreview = function(graph, scale, pf, border, x0, y0, auto
 /**
  * Constructs a new filename dialog.
  */
-var FilenameDialog = function(editorUi, filename, buttonText, fn, label, validateFn, content, helpLink)
+var FilenameDialog = function(editorUi, filename, buttonText, fn, label, validateFn, content, helpLink, closeOnBtn)
 {
+	closeOnBtn = (closeOnBtn != null) ? closeOnBtn : true;
 	var row, td;
 	
 	var table = document.createElement('table');
@@ -1115,7 +1133,11 @@ var FilenameDialog = function(editorUi, filename, buttonText, fn, label, validat
 	{
 		if (validateFn == null || validateFn(nameInput.value))
 		{
-			editorUi.hideDialog();
+			if (closeOnBtn)
+			{
+				editorUi.hideDialog();
+			}
+			
 			fn(nameInput.value);
 		}
 	});
@@ -1123,6 +1145,11 @@ var FilenameDialog = function(editorUi, filename, buttonText, fn, label, validat
 	
 	this.init = function()
 	{
+		if (label == null && content != null)
+		{
+			return;
+		}
+		
 		nameInput.focus();
 		
 		if (mxClient.IS_FF || document.documentMode >= 5 || mxClient.IS_QUIRKS)
@@ -1191,7 +1218,10 @@ var FilenameDialog = function(editorUi, filename, buttonText, fn, label, validat
 	td.appendChild(nameInput);
 	row.appendChild(td);
 	
-	tbody.appendChild(row);
+	if (label != null || content == null)
+	{
+		tbody.appendChild(row);
+	}
 	
 	if (content != null)
 	{
@@ -2267,7 +2297,7 @@ var EditDataDialog = function(ui, cell)
 			link.setAttribute('title', mxResources.get('help'));
 			link.setAttribute('target', '_blank');
 			link.style.marginLeft = '10px';
-			link.style.cursor = 'pointer';
+			link.style.cursor = 'help';
 			
 			var icon = document.createElement('img');
 			icon.setAttribute('border', '0');

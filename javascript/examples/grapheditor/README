@@ -1,2 +1,5 @@
-Run com.mxgraph.examples.web.GraphEditor in javascript/examples/grapheditor/java/src and point your browser to
+Run com.mxgraph.examples.web.GraphEditor in javascript/examples/grapheditor/java/src
+(in Eclipse) or execute "ant grapheditor-example" in the java directory (using Ant)
+and point your browser to:
+
 http://localhost:8080/javascript/examples/grapheditor/www/index.html
