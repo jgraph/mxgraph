@@ -7,8 +7,6 @@ mxGraph supports IE 9+, Chrome 30+, Firefox 31+, Safari versions actively patche
 
 mxGraph uses no third-party software, it requires no plugins and can be integrated in virtually any framework. Also provided is server-side functionality in Java and .NET for persistence (open and save) functionality, as well as server-side image generation.
 
-mxGraph is dual licensed under either the GPL v3 or the [mxGraph Commerical License](https://www.jgraph.com/Licenses/JGraph_Software_Licence.pdf). To use the commercial license, you must license from [JGraph](https://www.jgraph.com/purchase-mxgraph.html) for payment.
-
 Getting Started
 ===============
 
@@ -18,7 +16,3 @@ Support
 =======
 
 The is a [mxgraph tag on Stack Overflow](http://stackoverflow.com/questions/tagged/mxgraph) that we try to keep answered. Please ensure your questions adhere to the [SO guidelines](http://stackoverflow.com/help/on-topic), otherwise it will be closed.
-
-If you have a support question and you have purchased mxGraph license(s), please use the contact mechanism described in your purchase receipt email.
-
-If you are evaluating mxGraph commercially, please [contact us](https://www.jgraph.com/contact.html) and we'll arrange support during your evaluation.
