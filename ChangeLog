@@ -1,3 +1,31 @@
+16-JAN-2017: 3.7.0.0
+
+- mxXmlRequest.simulate no longer adds form to DOM in Webkit
+- Adds workaround for repaint issues in mxWindow
+- Adds mxGraphHandler.consumeMouseEvent hook
+- Removes word wrap in mxLog for performance reasons
+- Fixes mxClient.IS_POINTER for Chrome on Mac
+- Fixes bounding box for rotated text
+- Fixes default alignment in mxText.resetStyles
+- Uses UTF-8 charset in mxClient.link
+- Adds fallback for missing function in mxCell.hasAttribute
+- Fixes trailing page break after appendices in mxPrintPreview
+- Resets default parent if root changes in mxGraph.processChange
+- Fixes version format in package.json in mxgraph-js repo
+- Fixes initial scrollbars for hidden content in grapheditor
+- Adds mxRubberband.isActive, execute
+- Adds mxPrintPreview.appendGraph, addPageBreak, closeDocument
+- Adds optional name for mxConnectionConstraint
+- Fixes handling of terminal points in mxGraph.getBoundingBoxFromGeometry
+- Fixes vertical-/horizontalPageBreaks in mxGraph instance
+- Uses minimum of 1 page for empty graphs with preferPageSize
+- Adds crisp rendering, fixes scrollbars in IE for page breaks
+- Fixes scaled return value in mxGraph.getPreferredPageSize
+- Adds snapToPoint custom attribute in grapheditor
+- Adds mxCell.hasAttribute, scope for placeholder in grapheditor
+- Adds Alt+(Shift+)Tab for select parent/child in grapheditor
+- Resets undo history after editing in mxCellEditor
+
 07-SEP-2016: 3.6.0.0
 
 - Adds Alt+Shift+Cursor to connect and clone in grapheditor

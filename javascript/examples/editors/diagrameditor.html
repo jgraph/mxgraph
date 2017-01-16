@@ -30,10 +30,10 @@
 		var mxLanguage = urlParams['lang'];
 	</script>
 	<script type="text/javascript" src="../../src/js/mxClient.js"></script>
-	<script type="text/javascript" src="js/mxApplication.js"></script>
+	<script type="text/javascript" src="js/app.js"></script>
 	<script type="text/javascript">
 		// Program starts here. The document.onLoad executes the
-		// mxApplication constructor with a given configuration.
+		// createEditor function with a given configuration.
 		// In the config file, the mxEditor.onInit method is
 		// overridden to invoke this global function as the
 		// last step in the editor constructor.
@@ -304,7 +304,7 @@
 		window.onbeforeunload = function() { return mxResources.get('changesLost'); };
 	</script>
 </head>
-<body onload="mxApplication('config/diagrameditor.xml');">
+<body onload="createEditor('config/diagrameditor.xml');">
 	<div id="page">
 		<div id="header">
 			<div id="headerimg" style="overflow:hidden;">

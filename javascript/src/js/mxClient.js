@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.6.0.0.
+	 * Current version is 3.7.0.0.
 	 */
-	VERSION: '3.6.0.0',
+	VERSION: '3.7.0.0',
 
 	/**
 	 * Variable: IS_IE
@@ -225,9 +225,9 @@ var mxClient =
 	/**
 	 * Variable: IS_POINTER
 	 * 
-	 * True if this device supports Microsoft pointer events.
+	 * True if this device supports Microsoft pointer events (always false on Macs).
 	 */
-  	IS_POINTER: window.PointerEvent != null,
+  	IS_POINTER: window.PointerEvent != null && !(navigator.appVersion.indexOf('Mac') > 0),
 
 	/**
 	 * Variable: IS_LOCAL
@@ -283,7 +283,7 @@ var mxClient =
 		// Workaround for Operation Aborted in IE6 if base tag is used in head
 		if (mxClient.IS_IE6)
 		{
-			doc.write('<link rel="'+rel+'" href="'+href+'" charset="ISO-8859-1" type="text/css"/>');
+			doc.write('<link rel="' + rel + '" href="' + href + '" charset="UTF-8" type="text/css"/>');
 		}
 		else
 		{	
@@ -291,7 +291,7 @@ var mxClient =
 			
 			link.setAttribute('rel', rel);
 			link.setAttribute('href', href);
-			link.setAttribute('charset', 'ISO-8859-1');
+			link.setAttribute('charset', 'UTF-8');
 			link.setAttribute('type', 'text/css');
 			
 			var head = doc.getElementsByTagName('head')[0];

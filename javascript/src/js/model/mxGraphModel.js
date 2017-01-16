@@ -361,7 +361,7 @@ mxGraphModel.prototype.getCell = function(id)
 /**
  * Function: filterCells
  * 
- * Returns the cells from the given array where the fiven filter function
+ * Returns the cells from the given array where the given filter function
  * returns true.
  */
 mxGraphModel.prototype.filterCells = function(cells, filter)

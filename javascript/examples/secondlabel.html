@@ -31,7 +31,7 @@
 			mxRectangleShapePaintForeground = mxRectangleShape.prototype.paintForeground;
 			mxRectangleShape.prototype.paintForeground = function(c, x, y, w, h)
 			{
-				if (this.state != null)
+				if (this.state != null && this.state.cell.geometry != null && !this.state.cell.geometry.relative)
 				{
 					c.setFontColor('#a0a0a0');
 					c.text(x + 2, y, 0, 0, this.state.cell.id, 'left', 'top');
@@ -88,12 +88,12 @@
 				};
 
 				// Creates the shape for the shape number and puts it into the draw pane
-				var createState = mxGraphView.prototype.createState;
-				mxGraphView.prototype.createState = function(cell)
+				var redrawShape = graph.cellRenderer.redrawShape;
+				graph.cellRenderer.redrawShape = function(state, force, rendering)
 				{
-					var state = createState.apply(this, arguments);
-					
-					if (secondLabelVisible && state.cell.geometry != null && !state.cell.geometry.relative)
+					var result = redrawShape.apply(this, arguments);
+
+					if (result && secondLabelVisible && state.cell.geometry != null && !state.cell.geometry.relative)
 					{
 						var secondLabel = graph.getSecondLabel(state.cell);
 	
@@ -113,20 +113,11 @@
 							state.secondLabel.dialect = state.shape.dialect;
 							state.secondLabel.dialect = mxConstants.DIALECT_STRICTHTML;
 							state.secondLabel.wrap = true;
-							this.graph.cellRenderer.initializeLabel(state, state.secondLabel);
+							graph.cellRenderer.initializeLabel(state, state.secondLabel);
 						}
 					}
 					
-					return state;
-				};
-
-				// Redraws the shape number after the cell has been moved/resized
-				var redraw = graph.cellRenderer.redraw;
-				graph.cellRenderer.redraw = function(state)
-				{
-					redraw.apply(this, arguments);
-					
-					if (state.shape != null && state.secondLabel != null)
+					if (state.secondLabel != null)
 					{
 						var scale = graph.getView().getScale();
 						var bounds = new mxRectangle(state.x + state.width - 8 * scale, state.y + 8 * scale, 35, 0);
@@ -136,6 +127,8 @@
 						state.secondLabel.bounds = bounds;
 						state.secondLabel.redraw();
 					}
+					
+					return result;
 				};
 
 				// Destroys the shape number

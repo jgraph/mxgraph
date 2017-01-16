@@ -1,12 +1,12 @@
 /**
- * Copyright (c) 2006-2015, JGraph Ltd
- * Copyright (c) 2006-2015, Gaudenz Alder
+ * Copyright (c) 2006-2016, JGraph Ltd
+ * Copyright (c) 2006-2016, Gaudenz Alder
  */
 /**
  * Class: mxRubberband
  * 
  * Event handler that selects rectangular regions. This is not built-into
- * <mxGraph>. To enable rubberband selection in a graph, ssssssssuse the following code.
+ * <mxGraph>. To enable rubberband selection in a graph, use the following code.
  * 
  * Example:
  * 
@@ -275,6 +275,16 @@ mxRubberband.prototype.createShape = function()
 };
 
 /**
+ * Function: isActive
+ * 
+ * Returns true if this handler is active.
+ */
+mxRubberband.prototype.isActive = function(sender, me)
+{
+	return this.div != null && this.div.style.display != 'none';
+};
+
+/**
  * Function: mouseUp
  * 
  * Handles the event by selecting the region of the rubberband using
@@ -282,15 +292,26 @@ mxRubberband.prototype.createShape = function()
  */
 mxRubberband.prototype.mouseUp = function(sender, me)
 {
-	var execute = this.div != null && this.div.style.display != 'none';
+	var active = this.isActive();
 	this.reset();
-
-	if (execute)
+	
+	if (active)
 	{
-		var rect = new mxRectangle(this.x, this.y, this.width, this.height);
-		this.graph.selectRegion(rect, me.getEvent());
+		this.execute(me.getEvent());
 		me.consume();
 	}
+};
+
+/**
+ * Function: execute
+ * 
+ * Resets the state of this handler and selects the current region
+ * for the given event.
+ */
+mxRubberband.prototype.execute = function(evt)
+{
+	var rect = new mxRectangle(this.x, this.y, this.width, this.height);
+	this.graph.selectRegion(rect, evt);
 };
 
 /**

@@ -288,7 +288,7 @@ mxRadialTreeLayout.prototype.calcRowDims = function(row, rowNum)
 
 	for (var i = 0; i < row.length; i++)
 	{
-		var child = row[i].child;
+		var child = row[i] != null ? row[i].child : null;
 
 		while (child != null)
 		{

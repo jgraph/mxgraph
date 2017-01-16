@@ -522,8 +522,7 @@ mxShape.prototype.redrawShape = function()
 /**
  * Function: createCanvas
  * 
- * Destroys the given canvas which was used for drawing. This implementation
- * increments the reference counts on all shared gradients used in the canvas.
+ * Creates a new canvas for drawing this shape. May return null.
  */
 mxShape.prototype.createCanvas = function()
 {
@@ -540,7 +539,7 @@ mxShape.prototype.createCanvas = function()
 		canvas = this.createVmlCanvas();
 	}
 	
-	if (this.outline)
+	if (canvas != null && this.outline)
 	{
 		canvas.setStrokeWidth(this.strokewidth);
 		canvas.setStrokeColor(this.stroke);

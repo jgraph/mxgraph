@@ -879,7 +879,7 @@ mxObjectCodec.prototype.decodeAttribute = function(dec, attr, obj)
 /**
  * Function: decodeChildren
  * 
- * Decodec all children of the given node using <decodeChild>.
+ * Decodes all children of the given node using <decodeChild>.
  * 
  * Parameters:
  *

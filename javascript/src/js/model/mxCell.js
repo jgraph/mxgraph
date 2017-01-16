@@ -723,6 +723,25 @@ mxCell.prototype.removeFromTerminal = function(isSource)
 };
 
 /**
+ * Function: hasAttribute
+ * 
+ * Returns true if the user object is an XML node that contains the given
+ * attribute.
+ * 
+ * Parameters:
+ * 
+ * name - Name of the attribute.
+ */
+mxCell.prototype.hasAttribute = function(name)
+{
+	var userObject = this.getValue();
+	
+	return (userObject != null &&
+		userObject.nodeType == mxConstants.NODETYPE_ELEMENT && userObject.hasAttribute) ?
+		userObject.hasAttribute(name) : userObject.getAttribute(name) != null;
+};
+
+/**
  * Function: getAttribute
  *
  * Returns the specified attribute from the user object if it is an XML

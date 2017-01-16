@@ -882,8 +882,8 @@ mxCellRenderer.prototype.redrawLabel = function(state, forced)
 			state.text.resetStyles();
 			state.text.apply(state);
 			
-			// Special case opacity which is taken from textOpacity style for text
-			state.text.opacity = mxUtils.getValue(state.style, mxConstants.STYLE_TEXT_OPACITY, 100);
+			// Special case where value is obtained via hook in graph
+			state.text.valign = graph.getVerticalAlign(state);
 		}
 		
 		var bounds = this.getLabelBounds(state);

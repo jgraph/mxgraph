@@ -441,15 +441,26 @@ mxXmlRequest.prototype.simulate = function(doc, target)
 			}
 			
 			var textarea = doc.createElement('textarea');
+			textarea.setAttribute('wrap', 'off');
 			textarea.setAttribute('name', name);
 			mxUtils.write(textarea, value);
 			form.appendChild(textarea);
 		}
 	}
 	
-	doc.body.appendChild(form);
+	// Webkit does not need the form in the DOM for submit to work
+	// which reduces the rendering time for very large textareas
+	if (!mxClient.IS_SF && !mxClient.IS_GC)
+	{	
+		doc.body.appendChild(form);
+	}
+	
 	form.submit();
-	doc.body.removeChild(form);
+	
+	if (form.parentNode != null)
+	{
+		form.parentNode.removeChild(form);
+	}
 
 	if (old != null)
 	{		

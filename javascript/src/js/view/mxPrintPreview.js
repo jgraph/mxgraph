@@ -37,19 +37,19 @@
  * 
  * preview.getCoverPages = function(w, h)
  * {
- *   return [this.renderPage(w, h, mxUtils.bind(this, function(div)
+ *   return [this.renderPage(w, h, 0, 0, mxUtils.bind(this, function(div)
  *   {
  *     div.innerHTML = '<div style="position:relative;margin:4px;">Cover Page</p>'
  *   }))];
- * }
+ * };
  * 
  * preview.getAppendices = function(w, h)
  * {
- *   return [this.renderPage(w, h, mxUtils.bind(this, function(div)
+ *   return [this.renderPage(w, h, 0, 0, mxUtils.bind(this, function(div)
  *   {
  *     div.innerHTML = '<div style="position:relative;margin:4px;">Appendix</p>'
  *   }))];
- * }
+ * };
  * 
  * preview.open();
  * (end)
@@ -177,7 +177,7 @@ function mxPrintPreview(graph, scale, pageFormat, border, x0, y0, borderColor, t
 	this.graph = graph;
 	this.scale = (scale != null) ? scale : 1 / graph.pageScale;
 	this.border = (border != null) ? border : 0;
-	this.pageFormat = (pageFormat != null) ? pageFormat : graph.pageFormat;
+	this.pageFormat = mxRectangle.fromRectangle((pageFormat != null) ? pageFormat : graph.pageFormat);
 	this.title = (title != null) ? title : 'Printer-friendly version';
 	this.x0 = (x0 != null) ? x0 : 0;
 	this.y0 = (y0 != null) ? y0 : 0;
@@ -371,6 +371,26 @@ mxPrintPreview.prototype.getDoctype = function()
 };
 
 /**
+ * Function: appendGraph
+ * 
+ * Adds the given graph to the existing print preview.
+ * 
+ * Parameters:
+ * 
+ * css - Optional CSS string to be used in the head section.
+ * targetWindow - Optional window that should be used for rendering. If
+ * this is specified then no HEAD tag, CSS and BODY tag will be written.
+ */
+mxPrintPreview.prototype.appendGraph = function(graph, scale, x0, y0, forcePageBreaks, keepOpen)
+{
+	this.graph = graph;
+	this.scale = (scale != null) ? scale : 1 / graph.pageScale;
+	this.x0 = x0;
+	this.y0 = y0;
+	this.open(null, null, forcePageBreaks, keepOpen);
+};
+
+/**
  * Function: open
  * 
  * Shows the print preview window. The window is created here if it does
@@ -382,13 +402,13 @@ mxPrintPreview.prototype.getDoctype = function()
  * targetWindow - Optional window that should be used for rendering. If
  * this is specified then no HEAD tag, CSS and BODY tag will be written.
  */
-mxPrintPreview.prototype.open = function(css, targetWindow)
+mxPrintPreview.prototype.open = function(css, targetWindow, forcePageBreaks, keepOpen)
 {
 	// Closing the window while the page is being rendered may cause an
 	// exception in IE. This and any other exceptions are simply ignored.
 	var previousInitializeOverlay = this.graph.cellRenderer.initializeOverlay;
 	var div = null;
-
+	
 	try
 	{
 		// Temporarily overrides the method to redirect rendering of overlays
@@ -410,222 +430,217 @@ mxPrintPreview.prototype.open = function(css, targetWindow)
 			};
 		}
 		
+		this.wnd = (targetWindow != null) ? targetWindow : this.wnd;
+		var isNewWindow = false;
+		
 		if (this.wnd == null)
 		{
-			this.wnd = (targetWindow != null) ? targetWindow : window.open();
-			var doc = this.wnd.document;
-			
-			if (targetWindow == null)
-			{
-				var dt = this.getDoctype();
-				
-				if (dt != null && dt.length > 0)
-				{
-					doc.writeln(dt);
-				}
-				
-				if (mxClient.IS_VML)
-				{
-					doc.writeln('<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">');
-				}
-				else
-				{
-					if (document.compatMode === 'CSS1Compat')
-					{
-						doc.writeln('<!DOCTYPE html>');
-					}
-					
-					doc.writeln('<html>');
-				}
-				
-				doc.writeln('<head>');
-				this.writeHead(doc, css);
-				doc.writeln('</head>');
-				doc.writeln('<body class="mxPage">');
-			}
-
-			// Computes the horizontal and vertical page count
-			var bounds = this.graph.getGraphBounds().clone();
-			var currentScale = this.graph.getView().getScale();
-			var sc = currentScale / this.scale;
-			var tr = this.graph.getView().getTranslate();
-			
-			// Uses the absolute origin with no offset for all printing
-			if (!this.autoOrigin)
-			{
-				this.x0 -= tr.x * this.scale;
-				this.y0 -= tr.y * this.scale;
-				bounds.width += bounds.x;
-				bounds.height += bounds.y;
-				bounds.x = 0;
-				bounds.y = 0;
-				this.border = 0;
-			}
-			
-			// Store the available page area
-			var availableWidth = this.pageFormat.width - (this.border * 2);
-			var availableHeight = this.pageFormat.height - (this.border * 2);
+			isNewWindow = true;
+			this.wnd = window.open();
+		}
 		
-			// Adds margins to page format
-			this.pageFormat.height += this.marginTop + this.marginBottom;
-
-			// Compute the unscaled, untranslated bounds to find
-			// the number of vertical and horizontal pages
-			bounds.width /= sc;
-			bounds.height /= sc;
-
-			var hpages = Math.max(1, Math.ceil((bounds.width + this.x0) / availableWidth));
-			var vpages = Math.max(1, Math.ceil((bounds.height + this.y0) / availableHeight));
-			this.pageCount = hpages * vpages;
+		var doc = this.wnd.document;
+		
+		if (isNewWindow)
+		{
+			var dt = this.getDoctype();
 			
-			var writePageSelector = mxUtils.bind(this, function()
+			if (dt != null && dt.length > 0)
 			{
-				if (this.pageSelector && (vpages > 1 || hpages > 1))
+				doc.writeln(dt);
+			}
+			
+			if (mxClient.IS_VML)
+			{
+				doc.writeln('<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">');
+			}
+			else
+			{
+				if (document.compatMode === 'CSS1Compat')
 				{
-					var table = this.createPageSelector(vpages, hpages);
-					doc.body.appendChild(table);
+					doc.writeln('<!DOCTYPE html>');
+				}
+				
+				doc.writeln('<html>');
+			}
+			
+			doc.writeln('<head>');
+			this.writeHead(doc, css);
+			doc.writeln('</head>');
+			doc.writeln('<body class="mxPage">');
+		}
+
+		// Computes the horizontal and vertical page count
+		var bounds = this.graph.getGraphBounds().clone();
+		var currentScale = this.graph.getView().getScale();
+		var sc = currentScale / this.scale;
+		var tr = this.graph.getView().getTranslate();
+		
+		// Uses the absolute origin with no offset for all printing
+		if (!this.autoOrigin)
+		{
+			this.x0 -= tr.x * this.scale;
+			this.y0 -= tr.y * this.scale;
+			bounds.width += bounds.x;
+			bounds.height += bounds.y;
+			bounds.x = 0;
+			bounds.y = 0;
+			this.border = 0;
+		}
+		
+		// Store the available page area
+		var availableWidth = this.pageFormat.width - (this.border * 2);
+		var availableHeight = this.pageFormat.height - (this.border * 2);
+	
+		// Adds margins to page format
+		this.pageFormat.height += this.marginTop + this.marginBottom;
+
+		// Compute the unscaled, untranslated bounds to find
+		// the number of vertical and horizontal pages
+		bounds.width /= sc;
+		bounds.height /= sc;
+
+		var hpages = Math.max(1, Math.ceil((bounds.width + this.x0) / availableWidth));
+		var vpages = Math.max(1, Math.ceil((bounds.height + this.y0) / availableHeight));
+		this.pageCount = hpages * vpages;
+		
+		var writePageSelector = mxUtils.bind(this, function()
+		{
+			if (this.pageSelector && (vpages > 1 || hpages > 1))
+			{
+				var table = this.createPageSelector(vpages, hpages);
+				doc.body.appendChild(table);
+				
+				// Implements position: fixed in IE quirks mode
+				if (mxClient.IS_IE && doc.documentMode == null || doc.documentMode == 5 || doc.documentMode == 8 || doc.documentMode == 7)
+				{
+					table.style.position = 'absolute';
 					
-					// Implements position: fixed in IE quirks mode
-					if (mxClient.IS_IE && doc.documentMode == null || doc.documentMode == 5 || doc.documentMode == 8 || doc.documentMode == 7)
+					var update = function()
 					{
-						table.style.position = 'absolute';
-						
-						var update = function()
-						{
-							table.style.top = ((doc.body.scrollTop || doc.documentElement.scrollTop) + 10) + 'px';
-						};
-						
-						mxEvent.addListener(this.wnd, 'scroll', function(evt)
-						{
-							update();
-						});
-						
-						mxEvent.addListener(this.wnd, 'resize', function(evt)
-						{
-							update();
-						});
+						table.style.top = ((doc.body.scrollTop || doc.documentElement.scrollTop) + 10) + 'px';
+					};
+					
+					mxEvent.addListener(this.wnd, 'scroll', function(evt)
+					{
+						update();
+					});
+					
+					mxEvent.addListener(this.wnd, 'resize', function(evt)
+					{
+						update();
+					});
+				}
+			}
+		});
+		
+		var addPage = mxUtils.bind(this, function(div, addBreak)
+		{
+			// Border of the DIV (aka page) inside the document
+			if (this.borderColor != null)
+			{
+				div.style.borderColor = this.borderColor;
+				div.style.borderStyle = 'solid';
+				div.style.borderWidth = '1px';
+			}
+			
+			// Needs to be assigned directly because IE doesn't support
+			// child selectors, eg. body > div { background: white; }
+			div.style.background = this.backgroundColor;
+			
+			if (forcePageBreaks || addBreak)
+			{
+				div.style.pageBreakAfter = 'always';
+			}
+
+			// NOTE: We are dealing with cross-window DOM here, which
+			// is a problem in IE, so we copy the HTML markup instead.
+			// The underlying problem is that the graph display markup
+			// creation (in mxShape, mxGraphView) is hardwired to using
+			// document.createElement and hence we must use this document
+			// to create the complete page and then copy it over to the
+			// new window.document. This can be fixed later by using the
+			// ownerDocument of the container in mxShape and mxGraphView.
+			if (mxClient.IS_IE || document.documentMode >= 11 || mxClient.IS_EDGE)
+			{
+				// For some obscure reason, removing the DIV from the
+				// parent before fetching its outerHTML has missing
+				// fillcolor properties and fill children, so the div
+				// must be removed afterwards to keep the fillcolors.
+				doc.writeln(div.outerHTML);
+				div.parentNode.removeChild(div);
+			}
+			else
+			{
+				div.parentNode.removeChild(div);
+				doc.body.appendChild(div);
+			}
+
+			if (forcePageBreaks || addBreak)
+			{
+				this.addPageBreak(doc);
+			}
+		});
+		
+		var cov = this.getCoverPages(this.pageFormat.width, this.pageFormat.height);
+		
+		if (cov != null)
+		{
+			for (var i = 0; i < cov.length; i++)
+			{
+				addPage(cov[i], true);
+			}
+		}
+		
+		var apx = this.getAppendices(this.pageFormat.width, this.pageFormat.height);
+		
+		// Appends each page to the page output for printing, making
+		// sure there will be a page break after each page (ie. div)
+		for (var i = 0; i < vpages; i++)
+		{
+			var dy = i * availableHeight / this.scale - this.y0 / this.scale +
+					(bounds.y - tr.y * currentScale) / currentScale;
+			
+			for (var j = 0; j < hpages; j++)
+			{
+				if (this.wnd == null)
+				{
+					return null;
+				}
+				
+				var dx = j * availableWidth / this.scale - this.x0 / this.scale +
+						(bounds.x - tr.x * currentScale) / currentScale;
+				var pageNum = i * hpages + j + 1;
+				var clip = new mxRectangle(dx, dy, availableWidth, availableHeight);
+				div = this.renderPage(this.pageFormat.width, this.pageFormat.height, 0, 0, mxUtils.bind(this, function(div)
+				{
+					this.addGraphFragment(-dx, -dy, this.scale, pageNum, div, clip);
+					
+					if (this.printBackgroundImage)
+					{
+						this.insertBackgroundImage(div, -dx, -dy);
 					}
-				}
-			});
-			
-			var addPage = mxUtils.bind(this, function(div, addBreak)
-			{
-				// Border of the DIV (aka page) inside the document
-				if (this.borderColor != null)
-				{
-					div.style.borderColor = this.borderColor;
-					div.style.borderStyle = 'solid';
-					div.style.borderWidth = '1px';
-				}
-				
-				// Needs to be assigned directly because IE doesn't support
-				// child selectors, eg. body > div { background: white; }
-				div.style.background = this.backgroundColor;
-				
-				if (addBreak)
-				{
-					div.style.pageBreakAfter = 'always';
-				}
+				}), pageNum);
 
-				// NOTE: We are dealing with cross-window DOM here, which
-				// is a problem in IE, so we copy the HTML markup instead.
-				// The underlying problem is that the graph display markup
-				// creation (in mxShape, mxGraphView) is hardwired to using
-				// document.createElement and hence we must use this document
-				// to create the complete page and then copy it over to the
-				// new window.document. This can be fixed later by using the
-				// ownerDocument of the container in mxShape and mxGraphView.
-				if (mxClient.IS_IE || document.documentMode >= 11 || mxClient.IS_EDGE)
-				{
-					// For some obscure reason, removing the DIV from the
-					// parent before fetching its outerHTML has missing
-					// fillcolor properties and fill children, so the div
-					// must be removed afterwards to keep the fillcolors.
-					doc.writeln(div.outerHTML);
-					div.parentNode.removeChild(div);
-				}
-				else
-				{
-					div.parentNode.removeChild(div);
-					doc.body.appendChild(div);
-				}
+				// Gives the page a unique ID for later accessing the page
+				div.setAttribute('id', 'mxPage-'+pageNum);
 
-				if (addBreak && targetWindow == null)
-				{
-					var hr = doc.createElement('hr');
-					hr.className = 'mxPageBreak';
-					doc.body.appendChild(hr);
-				}
-			});
-			
-			var cov = this.getCoverPages(this.pageFormat.width, this.pageFormat.height);
-			
-			if (cov != null)
-			{
-				for (var i = 0; i < cov.length; i++)
-				{
-					addPage(cov[i], true);
-				}
+				addPage(div, apx != null || i < vpages - 1 || j < hpages - 1);
 			}
-			
-			var apx = this.getAppendices(this.pageFormat.width, this.pageFormat.height);
-			
-			// Appends each page to the page output for printing, making
-			// sure there will be a page break after each page (ie. div)
-			for (var i = 0; i < vpages; i++)
-			{
-				var dy = i * availableHeight / this.scale - this.y0 / this.scale +
-						(bounds.y - tr.y * currentScale) / currentScale;
-				
-				for (var j = 0; j < hpages; j++)
-				{
-					if (this.wnd == null)
-					{
-						return null;
-					}
-					
-					var dx = j * availableWidth / this.scale - this.x0 / this.scale +
-							(bounds.x - tr.x * currentScale) / currentScale;
-					var pageNum = i * hpages + j + 1;
-					var clip = new mxRectangle(dx, dy, availableWidth, availableHeight);
-					div = this.renderPage(this.pageFormat.width, this.pageFormat.height, 0, 0, mxUtils.bind(this, function(div)
-					{
-						this.addGraphFragment(-dx, -dy, this.scale, pageNum, div, clip);
-						
-						if (this.printBackgroundImage)
-						{
-							this.insertBackgroundImage(div, -dx, -dy);
-						}
-					}), pageNum);
+		}
 
-					// Gives the page a unique ID for later accessing the page
-					div.setAttribute('id', 'mxPage-'+pageNum);
-					
-					addPage(div, apx != null || i < vpages - 1 || j < hpages - 1);
-				}
-			}
-
-			if (apx != null)
+		if (apx != null)
+		{
+			for (var i = 0; i < apx.length; i++)
 			{
-				for (var i = 0; i < apx.length; i++)
-				{
-					addPage(apx[i], i < apx.length);
-				}
+				addPage(apx[i], i < apx.length - 1);
 			}
+		}
 
-			if (targetWindow == null)
-			{
-				this.writePostfix(doc);
-				doc.writeln('</body>');
-				doc.writeln('</html>');
-				doc.close();
-				
-				// Marks the printing complete for async handling
-				writePageSelector();
-				
-				// Removes all event handlers in the print output
-				mxEvent.release(doc.body);
-			}
+		if (isNewWindow && !keepOpen)
+		{
+			this.closeDocument();
+			writePageSelector();
 		}
 		
 		this.wnd.focus();
@@ -637,8 +652,6 @@ mxPrintPreview.prototype.open = function(css, targetWindow)
 		{
 			div.parentNode.removeChild(div);
 		}
-		
-		console.log('e', e);
 	}
 	finally
 	{
@@ -646,6 +659,39 @@ mxPrintPreview.prototype.open = function(css, targetWindow)
 	}
 
 	return this.wnd;
+};
+
+/**
+ * Function: addPageBreak
+ * 
+ * Adds a page break to the given document.
+ */
+mxPrintPreview.prototype.addPageBreak = function(doc)
+{
+	var hr = doc.createElement('hr');
+	hr.className = 'mxPageBreak';
+	doc.body.appendChild(hr);
+};
+
+/**
+ * Function: closeDocument
+ * 
+ * Writes the closing tags for body and page after calling <writePostfix>.
+ */
+mxPrintPreview.prototype.closeDocument = function()
+{
+	if (this.wnd != null && this.wnd.document != null)
+	{
+		var doc = this.wnd.document;
+		
+		this.writePostfix(doc);
+		doc.writeln('</body>');
+		doc.writeln('</html>');
+		doc.close();
+		
+		// Removes all event handlers in the print output
+		mxEvent.release(doc.body);
+	}
 };
 
 /**

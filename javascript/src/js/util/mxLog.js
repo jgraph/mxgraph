@@ -71,6 +71,7 @@ var mxLog =
 				
 			// Adds the actual console as a textarea
 			mxLog.textarea = document.createElement('textarea');
+			mxLog.textarea.setAttribute('wrap', 'off');
 			mxLog.textarea.setAttribute('readOnly', 'true');
 			mxLog.textarea.style.height = '100%';
 			mxLog.textarea.style.resize = 'none';

@@ -37,9 +37,14 @@ Editor = function(chromeless, themes, model, graph)
 	};
 
 	// Updates modified state if graph changes
-	this.graphChangeListener = function() 
+	this.graphChangeListener = function(sender, eventObject) 
 	{
-		this.setModified(true);
+		var edit = (eventObject != null) ? eventObject.getProperty('edit') : null;
+				
+		if (edit == null || !edit.ignoreEdit)
+		{
+			this.setModified(true);
+		}
 	};
 	
 	this.graph.getModel().addListener(mxEvent.CHANGE, mxUtils.bind(this, function()
@@ -129,6 +134,16 @@ Editor.layersImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABUAAAAVCAMA
 /**
  * Specifies the image URL to be used for the transparent background.
  */
+Editor.previousImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABmJLR0QA/wD/AP+gvaeTAAAAh0lEQVQ4je3UsQnCUBCA4U8hpa1NsoEjpHQJS0dxADdwEMuMIJkgA1hYChbGQgMi+JC8q4L/AB/vDu7x74cWWEZhJU44RmA1zujR5GIbXF9YNrjD/Q0bDRY4fEBZ4P4LlgTnCbAf84pUM8/9hY08tMUtEoQ1LpEgrNBFglChFXR6Q6GfwwR6AGKJMF74Vtt3AAAAAElFTkSuQmCC';
+
+/**
+ * Specifies the image URL to be used for the transparent background.
+ */
+Editor.nextImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABmJLR0QA/wD/AP+gvaeTAAAAi0lEQVQ4jeXUIQ7CUAwA0MeGxWI2yylwnALJUdBcgYvM7QYLmjOQIAkIPmJZghiIvypoUtX0tfnJL38X5ZfaEgUeUcManFBHgS0SLlhHggk3bCPBhCf2keCQR8wjwYTDp6YiZxJmOU1jGw7vGALescuBxsArNlOwd/CM1VSM/ut1qCIw+uOwiMJ+OF4CQzBCXm3hyAAAAABJRU5ErkJggg==';
+
+/**
+ * Specifies the image URL to be used for the transparent background.
+ */
 Editor.zoomOutLargeImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEUAAAD////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////2N2iNAAAALXRSTlMA+vTcKMM96GRBHwXxi0YaX1HLrKWhiHpWEOnOr52Vb2xKSDcT19PKv5l/Ngdk8+viAAABJklEQVQ4y4WT2XaDMAxEvWD2nSSUNEnTJN3r//+9Sj7ILAY6L0ijC4ONYVZRpo6cByrz2YKSUGorGTpz71lPVHvT+avoB5wIkU/mxk8veceSuNoLg44IzziXjvpih72wKQnm8yc2UoiP/LAd8jQfe2Xf4Pq+2EyYIvv9wbzHHCgwxDdlBtWZOdqDfTCVgqpygQpsZaojVAVc9UjQxnAJDIBhiQv84tq3gMQCAVTxVoSibXJf8tMuc7e1TB/DCmejBNg/w1Y3c+AM5vv4w7xM59/oXamrHaLVqPQ+OTCnmMZxgz0SdL5zji0/ld6j88qGa5KIiBB6WeJGKfUKwSMKLuXgvl1TW0tm5R9UQL/efSDYsnzxD8CinhBsTTdugJatKpJwf8v+ADb8QmvW7AeAAAAAAElFTkSuQmCC';
 
 /**
@@ -155,6 +170,16 @@ Editor.closeLargeImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAg
  * Specifies the image URL to be used for the transparent background.
  */
 Editor.editLargeImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgAgMAAAAOFJJnAAAACVBMVEUAAAD///////9zeKVjAAAAAnRSTlMAgJsrThgAAABcSURBVBjThc6xDcAgDATAd8MQTEPW8TRUmYCGnzLRYyOlIV+dZFtvkICTFGqiJEzAG0/Uje9oL+e5Vu4F5yUYJxxqGKhQZ0eBvmgwYQLQaARKD1hbiPyDR0QOeAC31EyNe5X/kAAAAABJRU5ErkJggg==';
+
+/**
+ * Specifies the image URL to be used for the transparent background.
+ */
+Editor.previousLargeImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAPFBMVEUAAAD////////////////////////////////////////////////////////////////////////////YSWgTAAAAE3RSTlMA7fci493c0MW8uJ6CZks4MxQHEZL6ewAAAFZJREFUOMvdkskRgDAMA4lDwg2B7b9XOlge/KKvdsa25KFb5XlRvxXC/DNBEv8IFNjBgGdDgXtFgTyhwDXiQAUHCvwa4Uv6mR6UR+1led2mVonvl+tML45qCQNQLIx7AAAAAElFTkSuQmCC';
+
+/**
+ * Specifies the image URL to be used for the transparent background.
+ */
+Editor.nextLargeImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAPFBMVEUAAAD////////////////////////////////////////////////////////////////////////////YSWgTAAAAE3RSTlMA7fci493c0MW8uJ6CZks4MxQHEZL6ewAAAFRJREFUOMvd0skRgCAQBVEFwQ0V7fxzNQP6wI05v6pZ/kyj1b7FNgik2gQzzLcAwiUAigHOTwDHK4A1CmB5BJANJG1hQ9qafYcqFlZP3IFc9eVGrR+iIgkDQRUXIAAAAABJRU5ErkJggg==';
 
 // Editor inherits from mxEventSource
 mxUtils.extend(Editor, mxEventSource);
@@ -246,6 +271,14 @@ Editor.prototype.setAutosave = function(value)
 /**
  * 
  */
+Editor.prototype.getEditBlankUrl = function(params, fallback)
+{
+	return ((fallback) ? this.editBlankFallbackUrl : this.editBlankUrl) + params;
+}
+
+/**
+ * 
+ */
 Editor.prototype.editAsNew = function(xml, title)
 {
 	var p = (title != null) ? '&title=' + encodeURIComponent(title) : '';
@@ -264,13 +297,13 @@ Editor.prototype.editAsNew = function(xml, title)
 		});
 		
 		mxEvent.addListener(window, 'message', receive);
-		wnd = window.open(this.editBlankUrl + p);
+		wnd = window.open(this.getEditBlankUrl(p, false));
 	}
 	else
 	{
 		// Data is pulled from global variable after tab loads
 		window.drawdata = xml;
-		window.open(this.editBlankFallbackUrl + p);
+		window.open(this.getEditBlankUrl(p, true));
 	}
 };
 
@@ -872,8 +905,8 @@ OpenFile.prototype.cancel = function(cancel)
 		// Does not show page breaks if the scale is too small
 		visible = visible && Math.min(bounds.width, bounds.height) > this.minPageBreakDist;
 
-		var horizontalCount = (visible) ? Math.ceil(width / bounds.width) - 1 : 0;
-		var verticalCount = (visible) ? Math.ceil(height / bounds.height) - 1 : 0;
+		var horizontalCount = (visible) ? Math.ceil(height / bounds.height) - 1 : 0;
+		var verticalCount = (visible) ? Math.ceil(width / bounds.width) - 1 : 0;
 		var right = bounds2.x + width;
 		var bottom = bounds2.y + height;
 
@@ -881,77 +914,55 @@ OpenFile.prototype.cancel = function(cancel)
 		{
 			this.horizontalPageBreaks = [];
 		}
-
-		if (this.horizontalPageBreaks != null)
-		{
-			for (var i = 0; i <= horizontalCount; i++)
-			{
-				var pts = [new mxPoint(bounds2.x + (i + 1) * bounds.width, bounds2.y),
-				           new mxPoint(bounds2.x + (i + 1) * bounds.width, bottom)];
-				
-				if (this.horizontalPageBreaks[i] != null)
-				{
-					this.horizontalPageBreaks[i].points = pts;
-					this.horizontalPageBreaks[i].redraw();
-				}
-				else
-				{
-					var pageBreak = new mxPolyline(pts, this.pageBreakColor);
-					pageBreak.dialect = this.dialect;
-					pageBreak.isDashed = this.pageBreakDashed;
-					pageBreak.pointerEvents = false;
-					pageBreak.init(this.view.backgroundPane);
-					pageBreak.redraw();
-					
-					this.horizontalPageBreaks[i] = pageBreak;
-				}
-			}
-			
-			for (var i = horizontalCount; i < this.horizontalPageBreaks.length; i++)
-			{
-				this.horizontalPageBreaks[i].destroy();
-			}
-			
-			this.horizontalPageBreaks.splice(horizontalCount, this.horizontalPageBreaks.length - horizontalCount);
-		}
 		
 		if (this.verticalPageBreaks == null && verticalCount > 0)
 		{
 			this.verticalPageBreaks = [];
 		}
-		
-		if (this.verticalPageBreaks != null)
+			
+		var drawPageBreaks = mxUtils.bind(this, function(breaks)
 		{
-			for (var i = 0; i <= verticalCount; i++)
+			if (breaks != null)
 			{
-				var pts = [new mxPoint(bounds2.x, bounds2.y + (i + 1) * bounds.height),
-				           new mxPoint(right, bounds2.y + (i + 1) * bounds.height)];
+				var count = (breaks == this.horizontalPageBreaks) ? horizontalCount : verticalCount; 
 				
-				if (this.verticalPageBreaks[i] != null)
+				for (var i = 0; i <= count; i++)
 				{
-					this.verticalPageBreaks[i].points = pts;
-					this.verticalPageBreaks[i].redraw();
+					var pts = (breaks == this.horizontalPageBreaks) ?
+						[new mxPoint(Math.round(bounds2.x), Math.round(bounds2.y + (i + 1) * bounds.height)),
+						 new mxPoint(Math.round(right), Math.round(bounds2.y + (i + 1) * bounds.height))] :
+						[new mxPoint(Math.round(bounds2.x + (i + 1) * bounds.width), Math.round(bounds2.y)),
+						 new mxPoint(Math.round(bounds2.x + (i + 1) * bounds.width), Math.round(bottom))];
+					
+					if (breaks[i] != null)
+					{
+						breaks[i].points = pts;
+						breaks[i].redraw();
+					}
+					else
+					{
+						var pageBreak = new mxPolyline(pts, this.pageBreakColor);
+						pageBreak.dialect = this.dialect;
+						pageBreak.isDashed = this.pageBreakDashed;
+						pageBreak.pointerEvents = false;
+						pageBreak.init(this.view.backgroundPane);
+						pageBreak.redraw();
+						
+						breaks[i] = pageBreak;
+					}
 				}
-				else
+				
+				for (var i = count; i < breaks.length; i++)
 				{
-					var pageBreak = new mxPolyline(pts, this.pageBreakColor);
-					pageBreak.dialect = this.dialect;
-					pageBreak.isDashed = this.pageBreakDashed;
-					pageBreak.pointerEvents = false;
-					pageBreak.init(this.view.backgroundPane);
-					pageBreak.redraw();
-		
-					this.verticalPageBreaks[i] = pageBreak;
+					breaks[i].destroy();
 				}
+				
+				breaks.splice(count, breaks.length - count);
 			}
+		});
 			
-			for (var i = verticalCount; i < this.verticalPageBreaks.length; i++)
-			{
-				this.verticalPageBreaks[i].destroy();
-			}
-			
-			this.verticalPageBreaks.splice(verticalCount, this.verticalPageBreaks.length - verticalCount);
-		}
+		drawPageBreaks(this.horizontalPageBreaks);
+		drawPageBreaks(this.verticalPageBreaks);
 	};
 	
 	// Disables removing relative children from parents

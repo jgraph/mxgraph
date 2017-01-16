@@ -351,6 +351,14 @@ mxWindow.prototype.init = function(x, y, width, height, style)
 	
 	this.title = document.createElement('td');
 	this.title.className = style + 'Title';
+	
+	this.buttons = document.createElement('div');
+	this.buttons.style.position = 'absolute';
+	this.buttons.style.display = 'inline-block';
+	this.buttons.style.right = '4px';
+	this.buttons.style.top = '5px';
+	this.title.appendChild(this.buttons);
+	
 	tr.appendChild(this.title);
 	tbody.appendChild(tr);
 	
@@ -419,6 +427,7 @@ mxWindow.prototype.setTitle = function(title)
 	}
 	
 	mxUtils.write(this.title, title || '');
+	this.title.appendChild(this.buttons);
 };
 
 /**
@@ -658,13 +667,12 @@ mxWindow.prototype.installMinimizeHandler = function()
 	this.minimize = document.createElement('img');
 	
 	this.minimize.setAttribute('src', this.minimizeImage);
-	this.minimize.setAttribute('align', 'right');
 	this.minimize.setAttribute('title', 'Minimize');
 	this.minimize.style.cursor = 'pointer';
-	this.minimize.style.marginRight = '1px';
+	this.minimize.style.marginLeft = '2px';
 	this.minimize.style.display = 'none';
 	
-	this.title.appendChild(this.minimize);
+	this.buttons.appendChild(this.minimize);
 	
 	var minimized = false;
 	var maxDisplay = null;
@@ -765,20 +773,20 @@ mxWindow.prototype.installMaximizeHandler = function()
 	this.maximize = document.createElement('img');
 	
 	this.maximize.setAttribute('src', this.maximizeImage);
-	this.maximize.setAttribute('align', 'right');
 	this.maximize.setAttribute('title', 'Maximize');
 	this.maximize.style.cursor = 'default';
-	this.maximize.style.marginLeft = '1px';
+	this.maximize.style.marginLeft = '2px';
 	this.maximize.style.cursor = 'pointer';
 	this.maximize.style.display = 'none';
 	
-	this.title.appendChild(this.maximize);
+	this.buttons.appendChild(this.maximize);
 	
 	var maximized = false;
 	var x = null;
 	var y = null;
 	var height = null;
 	var width = null;
+	var minDisplay = null;
 
 	var funct = mxUtils.bind(this, function(evt)
 	{
@@ -793,7 +801,8 @@ mxWindow.prototype.installMaximizeHandler = function()
 				this.maximize.setAttribute('src', this.normalizeImage);
 				this.maximize.setAttribute('title', 'Normalize');
 				this.contentWrapper.style.display = '';
-				this.minimize.style.visibility = 'hidden';
+				minDisplay = this.minimize.style.display;
+				this.minimize.style.display = 'none';
 				
 				// Saves window state
 				x = parseInt(this.div.style.left);
@@ -839,7 +848,7 @@ mxWindow.prototype.installMaximizeHandler = function()
 				this.maximize.setAttribute('src', this.maximizeImage);
 				this.maximize.setAttribute('title', 'Maximize');
 				this.contentWrapper.style.display = '';
-				this.minimize.style.visibility = '';
+				this.minimize.style.display = minDisplay;
 
 				// Restores window state
 				this.div.style.left = x+'px';
@@ -967,13 +976,12 @@ mxWindow.prototype.installCloseHandler = function()
 	this.closeImg = document.createElement('img');
 	
 	this.closeImg.setAttribute('src', this.closeImage);
-	this.closeImg.setAttribute('align', 'right');
 	this.closeImg.setAttribute('title', 'Close');
 	this.closeImg.style.marginLeft = '2px';
 	this.closeImg.style.cursor = 'pointer';
 	this.closeImg.style.display = 'none';
 	
-	this.title.insertBefore(this.closeImg, this.title.firstChild);
+	this.buttons.appendChild(this.closeImg);
 
 	mxEvent.addGestureListeners(this.closeImg,
 		mxUtils.bind(this, function(evt)

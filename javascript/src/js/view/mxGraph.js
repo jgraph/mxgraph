@@ -1709,7 +1709,8 @@ mxGraph.prototype.init = function(container)
 	// mode if no initial graph displayed or no label for shape defined
 	if (document.documentMode == 8)
 	{
-		container.insertAdjacentHTML('beforeend', '<v:group style="DISPLAY: none;"></v:group>');
+		container.insertAdjacentHTML('beforeend', '<' + mxClient.VML_PREFIX + ':group' +
+			' style="DISPLAY: none;"></' + mxClient.VML_PREFIX + ':group>');
 	}
 };
 
@@ -2014,6 +2015,7 @@ mxGraph.prototype.processChange = function(change)
 	if (change instanceof mxRootChange)
 	{
 		this.clearSelection();
+		this.setDefaultParent(null);
 		this.removeStateForCell(change.previous);
 		
 		if (this.resetViewOnRootChange)
@@ -2860,13 +2862,13 @@ mxGraph.prototype.getPreferredPageSize = function(bounds, width, height)
 	var scale = this.view.scale;
 	var tr = this.view.translate;
 	var fmt = this.pageFormat;
-	var ps = scale * this.pageScale;
-	var page = new mxRectangle(0, 0, fmt.width * ps, fmt.height * ps);
+	var ps = this.pageScale;
+	var page = new mxRectangle(0, 0, Math.ceil(fmt.width * ps), Math.ceil(fmt.height * ps));
 	
 	var hCount = (this.pageBreaksVisible) ? Math.ceil(width / page.width) : 1;
 	var vCount = (this.pageBreaksVisible) ? Math.ceil(height / page.height) : 1;
 	
-	return new mxRectangle(0, 0, hCount * page.width + 2 + tr.x / scale, vCount * page.height + 2 + tr.y / scale);
+	return new mxRectangle(0, 0, hCount * page.width + 2 + tr.x, vCount * page.height + 2 + tr.y);
 };
 
 /**
@@ -3045,7 +3047,7 @@ mxGraph.prototype.sizeDidChange = function()
 
 		if (this.preferPageSize || (!mxClient.IS_IE && this.pageVisible))
 		{
-			var size = this.getPreferredPageSize(bounds, width, height);
+			var size = this.getPreferredPageSize(bounds, Math.max(1, width), Math.max(1, height));
 			
 			if (size != null)
 			{
@@ -3076,7 +3078,7 @@ mxGraph.prototype.sizeDidChange = function()
 		{
 			if (mxClient.IS_QUIRKS)
 			{
-				// Quirks mode has no minWidth/minHeight support
+				// Quirks mode does not support minWidth/-Height
 				this.view.updateHtmlCanvasSize(Math.max(1, width), Math.max(1, height));
 			}
 			else
@@ -3129,6 +3131,9 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 	var bounds = new mxRectangle(0, 0, fmt.width * ps, fmt.height * ps);
 
 	var gb = mxRectangle.fromRectangle(this.getGraphBounds());
+	gb.width = Math.max(1, gb.width);
+	gb.height = Math.max(1, gb.height);
+	
 	bounds.x = Math.floor((gb.x - tr.x * scale) / bounds.width) * bounds.width + tr.x * scale;
 	bounds.y = Math.floor((gb.y - tr.y * scale) / bounds.height) * bounds.height + tr.y * scale;
 	
@@ -3138,10 +3143,10 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 	// Does not show page breaks if the scale is too small
 	visible = visible && Math.min(bounds.width, bounds.height) > this.minPageBreakDist;
 
-	var horizontalCount = (visible) ? Math.ceil(gb.width / bounds.width) + 1 : 0;
-	var verticalCount = (visible) ? Math.ceil(gb.height / bounds.height) + 1 : 0;
-	var right = (horizontalCount - 1) * bounds.width;
-	var bottom = (verticalCount - 1) * bounds.height;
+	var horizontalCount = (visible) ? Math.ceil(gb.height / bounds.height) + 1 : 0;
+	var verticalCount = (visible) ? Math.ceil(gb.width / bounds.width) + 1 : 0;
+	var right = (verticalCount - 1) * bounds.width;
+	var bottom = (horizontalCount - 1) * bounds.height;
 	
 	if (this.horizontalPageBreaks == null && horizontalCount > 0)
 	{
@@ -3162,10 +3167,10 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 			for (var i = 0; i <= count; i++)
 			{
 				var pts = (breaks == this.horizontalPageBreaks) ?
-						[new mxPoint(bounds.x + i * bounds.width, bounds.y),
-				         new mxPoint(bounds.x + i * bounds.width, bounds.y + bottom)] :
-				        [new mxPoint(bounds.x, bounds.y + i * bounds.height),
-				         new mxPoint(bounds.x + right, bounds.y + i * bounds.height)];
+					[new mxPoint(Math.round(bounds.x), Math.round(bounds.y + i * bounds.height)),
+			         new mxPoint(Math.round(bounds.x + right), Math.round(bounds.y + i * bounds.height))] :
+			        [new mxPoint(Math.round(bounds.x + i * bounds.width), Math.round(bounds.y)),
+			         new mxPoint(Math.round(bounds.x + i * bounds.width), Math.round(bounds.y + bottom))];
 
 				if (breaks[i] != null)
 				{
@@ -7304,30 +7309,37 @@ mxGraph.prototype.getBoundingBoxFromGeometry = function(cells, includeEdges)
 					
 					if (this.model.isEdge(cells[i]))
 					{
+						var addPoint = function(pt)
+						{
+							if (pt != null)
+							{
+								if (tmp == null)
+								{
+									tmp = new mxRectangle(pt.x, pt.y, 0, 0);
+								}
+								else
+								{
+									tmp.add(new mxRectangle(pt.x, pt.y, 0, 0));
+								}
+							}
+						};
+						
+						addPoint(geo.getTerminalPoint(true));
+						addPoint(geo.getTerminalPoint(false));
+												
 						var pts = geo.points;
 						
 						if (pts != null && pts.length > 0)
 						{
 							var tmp = new mxRectangle(pts[0].x, pts[0].y, 0, 0);
-							
-							var addPoint = function(pt)
-							{
-								if (pt != null)
-								{
-									tmp.add(new mxRectangle(pt.x, pt.y, 0, 0));
-								}
-							};
-							
+
 							for (var j = 1; j < pts.length; j++)
 							{
 								addPoint(pts[j]);
 							}
-							
-							addPoint(geo.getTerminalPoint(true));
-							addPoint(geo.getTerminalPoint(false));
-							
-							bbox = tmp;
 						}
+						
+						bbox = tmp;
 					}
 					else
 					{
@@ -8976,8 +8988,7 @@ mxGraph.prototype.getVerticalAlign = function(state)
 {
 	return (state != null && state.style != null) ?
 		(state.style[mxConstants.STYLE_VERTICAL_ALIGN] ||
-		mxConstants.ALIGN_MIDDLE ):
-		null;
+		mxConstants.ALIGN_MIDDLE) : null;
 };
 
 /**
@@ -12622,7 +12633,7 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 /**
  * Function: consumeMouseEvent
  * 
- * Destroys the graph and all its resources.
+ * Consumes the given <mxMouseEvent> if it's a touchStart event.
  */
 mxGraph.prototype.consumeMouseEvent = function(evtName, me, sender)
 {

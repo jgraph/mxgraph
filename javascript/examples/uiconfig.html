@@ -32,6 +32,8 @@
 			}
 			else
 			{
+				mxLog.show();
+				
 				// Creates the graph inside the given container. The
 				// editor is used to create certain functionality for the
 				// graph, such as the rubberband selection, but most parts
@@ -50,7 +52,9 @@
 				// Keep in mind that the as-attributes of the add-items in the
 				// toolbar and popupmenu sections refer to keys in mxResources.
 				var config = mxUtils.load('uiconfig.xml').getDocumentElement();
+				mxObjectCodec.allowEval = true;
 				editor.configure(config);
+				mxObjectCodec.allowEval = false;
 
 				// Enables new connections in the graph
 				editor.graph.setConnectable(true);
@@ -58,9 +62,12 @@
 				// Creates the second toolbar programmatically
 				var container = document.getElementById('toolbar');
 				var toolbar = new mxDefaultToolbar(container, editor);
-				//Use eg. mxResources.get("delete") to translate tooltip
-				toolbar.addItem("Show XML", "images/icons48/gear.png", "myFirstAction");
-				toolbar.addItem("Delete", "images/icons48/keys.png", "delete");
+				
+				// Use eg. mxResources.get("delete") to translate tooltip
+				toolbar.addItem('Show XML', 'images/icons48/gear.png', 'myFirstAction');
+				toolbar.addItem('Delete', 'images/icons48/keys.png', 'delete');
+				
+				console.log('editor', editor);
 			}
 		}
 	</script>

@@ -8,7 +8,7 @@
 	/**
 	 * Constructs a new application (returns an mxEditor instance)
 	 */
-	function mxApplication(config)
+	function createEditor(config)
 	{
 		var editor = null;
 		

@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.6.0.0.
+	 * Current version is 3.7.0.0.
 	 */
-	VERSION: '3.6.0.0',
+	VERSION: '3.7.0.0',
 
 	/**
 	 * Variable: IS_IE
@@ -225,9 +225,9 @@ var mxClient =
 	/**
 	 * Variable: IS_POINTER
 	 * 
-	 * True if this device supports Microsoft pointer events.
+	 * True if this device supports Microsoft pointer events (always false on Macs).
 	 */
-  	IS_POINTER: window.PointerEvent != null,
+  	IS_POINTER: window.PointerEvent != null && !(navigator.appVersion.indexOf('Mac') > 0),
 
 	/**
 	 * Variable: IS_LOCAL
@@ -283,7 +283,7 @@ var mxClient =
 		// Workaround for Operation Aborted in IE6 if base tag is used in head
 		if (mxClient.IS_IE6)
 		{
-			doc.write('<link rel="'+rel+'" href="'+href+'" charset="ISO-8859-1" type="text/css"/>');
+			doc.write('<link rel="' + rel + '" href="' + href + '" charset="UTF-8" type="text/css"/>');
 		}
 		else
 		{	
@@ -291,7 +291,7 @@ var mxClient =
 			
 			link.setAttribute('rel', rel);
 			link.setAttribute('href', href);
-			link.setAttribute('charset', 'ISO-8859-1');
+			link.setAttribute('charset', 'UTF-8');
 			link.setAttribute('type', 'text/css');
 			
 			var head = doc.getElementsByTagName('head')[0];
@@ -672,6 +672,7 @@ var mxLog =
 				
 			// Adds the actual console as a textarea
 			mxLog.textarea = document.createElement('textarea');
+			mxLog.textarea.setAttribute('wrap', 'off');
 			mxLog.textarea.setAttribute('readOnly', 'true');
 			mxLog.textarea.style.height = '100%';
 			mxLog.textarea.style.resize = 'none';
@@ -10951,15 +10952,26 @@ mxXmlRequest.prototype.simulate = function(doc, target)
 			}
 			
 			var textarea = doc.createElement('textarea');
+			textarea.setAttribute('wrap', 'off');
 			textarea.setAttribute('name', name);
 			mxUtils.write(textarea, value);
 			form.appendChild(textarea);
 		}
 	}
 	
-	doc.body.appendChild(form);
+	// Webkit does not need the form in the DOM for submit to work
+	// which reduces the rendering time for very large textareas
+	if (!mxClient.IS_SF && !mxClient.IS_GC)
+	{	
+		doc.body.appendChild(form);
+	}
+	
 	form.submit();
-	doc.body.removeChild(form);
+	
+	if (form.parentNode != null)
+	{
+		form.parentNode.removeChild(form);
+	}
 
 	if (old != null)
 	{		
@@ -11540,6 +11552,14 @@ mxWindow.prototype.init = function(x, y, width, height, style)
 	
 	this.title = document.createElement('td');
 	this.title.className = style + 'Title';
+	
+	this.buttons = document.createElement('div');
+	this.buttons.style.position = 'absolute';
+	this.buttons.style.display = 'inline-block';
+	this.buttons.style.right = '4px';
+	this.buttons.style.top = '5px';
+	this.title.appendChild(this.buttons);
+	
 	tr.appendChild(this.title);
 	tbody.appendChild(tr);
 	
@@ -11608,6 +11628,7 @@ mxWindow.prototype.setTitle = function(title)
 	}
 	
 	mxUtils.write(this.title, title || '');
+	this.title.appendChild(this.buttons);
 };
 
 /**
@@ -11847,13 +11868,12 @@ mxWindow.prototype.installMinimizeHandler = function()
 	this.minimize = document.createElement('img');
 	
 	this.minimize.setAttribute('src', this.minimizeImage);
-	this.minimize.setAttribute('align', 'right');
 	this.minimize.setAttribute('title', 'Minimize');
 	this.minimize.style.cursor = 'pointer';
-	this.minimize.style.marginRight = '1px';
+	this.minimize.style.marginLeft = '2px';
 	this.minimize.style.display = 'none';
 	
-	this.title.appendChild(this.minimize);
+	this.buttons.appendChild(this.minimize);
 	
 	var minimized = false;
 	var maxDisplay = null;
@@ -11954,20 +11974,20 @@ mxWindow.prototype.installMaximizeHandler = function()
 	this.maximize = document.createElement('img');
 	
 	this.maximize.setAttribute('src', this.maximizeImage);
-	this.maximize.setAttribute('align', 'right');
 	this.maximize.setAttribute('title', 'Maximize');
 	this.maximize.style.cursor = 'default';
-	this.maximize.style.marginLeft = '1px';
+	this.maximize.style.marginLeft = '2px';
 	this.maximize.style.cursor = 'pointer';
 	this.maximize.style.display = 'none';
 	
-	this.title.appendChild(this.maximize);
+	this.buttons.appendChild(this.maximize);
 	
 	var maximized = false;
 	var x = null;
 	var y = null;
 	var height = null;
 	var width = null;
+	var minDisplay = null;
 
 	var funct = mxUtils.bind(this, function(evt)
 	{
@@ -11982,7 +12002,8 @@ mxWindow.prototype.installMaximizeHandler = function()
 				this.maximize.setAttribute('src', this.normalizeImage);
 				this.maximize.setAttribute('title', 'Normalize');
 				this.contentWrapper.style.display = '';
-				this.minimize.style.visibility = 'hidden';
+				minDisplay = this.minimize.style.display;
+				this.minimize.style.display = 'none';
 				
 				// Saves window state
 				x = parseInt(this.div.style.left);
@@ -12028,7 +12049,7 @@ mxWindow.prototype.installMaximizeHandler = function()
 				this.maximize.setAttribute('src', this.maximizeImage);
 				this.maximize.setAttribute('title', 'Maximize');
 				this.contentWrapper.style.display = '';
-				this.minimize.style.visibility = '';
+				this.minimize.style.display = minDisplay;
 
 				// Restores window state
 				this.div.style.left = x+'px';
@@ -12156,13 +12177,12 @@ mxWindow.prototype.installCloseHandler = function()
 	this.closeImg = document.createElement('img');
 	
 	this.closeImg.setAttribute('src', this.closeImage);
-	this.closeImg.setAttribute('align', 'right');
 	this.closeImg.setAttribute('title', 'Close');
 	this.closeImg.style.marginLeft = '2px';
 	this.closeImg.style.cursor = 'pointer';
 	this.closeImg.style.display = 'none';
 	
-	this.title.insertBefore(this.closeImg, this.title.firstChild);
+	this.buttons.appendChild(this.closeImg);
 
 	mxEvent.addGestureListeners(this.closeImg,
 		mxUtils.bind(this, function(evt)
@@ -22070,8 +22090,9 @@ mxStencil.prototype.parseConstraint = function(node)
 	var x = Number(node.getAttribute('x'));
 	var y = Number(node.getAttribute('y'));
 	var perimeter = node.getAttribute('perimeter') == '1';
+	var name = node.getAttribute('name');
 	
-	return new mxConnectionConstraint(new mxPoint(x, y), perimeter);
+	return new mxConnectionConstraint(new mxPoint(x, y), perimeter, name);
 };
 
 /**
@@ -23014,8 +23035,7 @@ mxShape.prototype.redrawShape = function()
 /**
  * Function: createCanvas
  * 
- * Destroys the given canvas which was used for drawing. This implementation
- * increments the reference counts on all shared gradients used in the canvas.
+ * Creates a new canvas for drawing this shape. May return null.
  */
 mxShape.prototype.createCanvas = function()
 {
@@ -23032,7 +23052,7 @@ mxShape.prototype.createCanvas = function()
 		canvas = this.createVmlCanvas();
 	}
 	
-	if (this.outline)
+	if (canvas != null && this.outline)
 	{
 		canvas.setStrokeWidth(this.strokewidth);
 		canvas.setStrokeColor(this.stroke);
@@ -25541,8 +25561,8 @@ function mxText(value, bounds, align, valign, color,
 	this.value = value;
 	this.bounds = bounds;
 	this.color = (color != null) ? color : 'black';
-	this.align = (align != null) ? align : '';
-	this.valign = (valign != null) ? valign : '';
+	this.align = (align != null) ? align : mxConstants.ALIGN_CENTER;
+	this.valign = (valign != null) ? valign : mxConstants.ALIGN_MIDDLE;
 	this.family = (family != null) ? family : mxConstants.DEFAULT_FONTFAMILY;
 	this.size = (size != null) ? size : mxConstants.DEFAULT_FONTSIZE;
 	this.fontStyle = (fontStyle != null) ? fontStyle : mxConstants.DEFAULT_FONTSTYLE;
@@ -25839,8 +25859,8 @@ mxText.prototype.resetStyles = function()
 	mxShape.prototype.resetStyles.apply(this, arguments);
 	
 	this.color = 'black';
-	this.align = '';
-	this.valign = '';
+	this.align = mxConstants.ALIGN_CENTER;
+	this.valign = mxConstants.ALIGN_MIDDLE;
 	this.family = mxConstants.DEFAULT_FONTFAMILY;
 	this.size = mxConstants.DEFAULT_FONTSIZE;
 	this.fontStyle = mxConstants.DEFAULT_FONTSTYLE;
@@ -25886,6 +25906,7 @@ mxText.prototype.apply = function(state)
 		this.background = mxUtils.getValue(this.style, mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, this.background);
 		this.border = mxUtils.getValue(this.style, mxConstants.STYLE_LABEL_BORDERCOLOR, this.border);
 		this.textDirection = mxUtils.getValue(this.style, mxConstants.STYLE_TEXT_DIRECTION, mxConstants.DEFAULT_TEXT_DIRECTION);
+		this.opacity = mxUtils.getValue(this.style, mxConstants.STYLE_TEXT_OPACITY, 100);
 		this.updateMargin();
 	}
 	
@@ -25950,19 +25971,17 @@ mxText.prototype.updateBoundingBox = function()
 					if (typeof(this.value) == 'string' && mxUtils.trim(this.value) == 0)
 					{
 						this.boundingBox = null;
-						
-						return;
 					}
-					
-					if (b.width == 0 && b.height == 0)
+					else if (b.width == 0 && b.height == 0)
 					{
 						this.boundingBox = null;
-						
-						return;
+					}
+					else
+					{
+						this.boundingBox = new mxRectangle(b.x, b.y, b.width, b.height);
 					}
 					
-					this.boundingBox = new mxRectangle(b.x, b.y, b.width, b.height);
-					rot = 0;
+					return;
 				}
 				catch (e)
 				{
@@ -26048,37 +26067,36 @@ mxText.prototype.updateBoundingBox = function()
 		}
 
 		if (ow != null && oh != null)
-		{
-			var x0 = this.bounds.x + this.margin.x * ow;
-			var y0 = this.bounds.y + this.margin.y * oh;
-			
-			this.boundingBox = new mxRectangle(x0, y0, ow, oh);
+		{	
+			this.boundingBox = new mxRectangle(this.bounds.x,
+				this.bounds.y, ow, oh);
 		}
-	}
-	else
-	{
-		this.boundingBox.x += this.margin.x * this.boundingBox.width;
-		this.boundingBox.y += this.margin.y * this.boundingBox.height;		
 	}
 
 	if (this.boundingBox != null)
 	{
 		if (rot != 0)
 		{
+			// Accounts for pre-rotated x and y
+			var bbox = mxUtils.getBoundingBox(new mxRectangle(
+				this.margin.x * this.boundingBox.width,
+				this.margin.y * this.boundingBox.height,
+				this.boundingBox.width, this.boundingBox.height),
+				rot, new mxPoint(0, 0));
+			
 			this.unrotatedBoundingBox = mxRectangle.fromRectangle(this.boundingBox);
-			var bbox = mxUtils.getBoundingBox(this.boundingBox, rot);
+			this.unrotatedBoundingBox.x += this.margin.x * this.unrotatedBoundingBox.width;
+			this.unrotatedBoundingBox.y += this.margin.y * this.unrotatedBoundingBox.height;
 			
-			this.boundingBox.x = bbox.x;
-			this.boundingBox.y = bbox.y;
-			
-			if (!mxClient.IS_QUIRKS)
-			{
-				this.boundingBox.width = bbox.width;
-				this.boundingBox.height = bbox.height;
-			}
+			this.boundingBox.x += bbox.x;
+			this.boundingBox.y += bbox.y;
+			this.boundingBox.width = bbox.width;
+			this.boundingBox.height = bbox.height;
 		}
 		else
 		{
+			this.boundingBox.x += this.margin.x * this.boundingBox.width;
+			this.boundingBox.y += this.margin.y * this.boundingBox.height;
 			this.unrotatedBoundingBox = null;
 		}
 	}
@@ -30734,7 +30752,7 @@ mxRadialTreeLayout.prototype.calcRowDims = function(row, rowNum)
 
 	for (var i = 0; i < row.length; i++)
 	{
-		var child = row[i].child;
+		var child = row[i] != null ? row[i].child : null;
 
 		while (child != null)
 		{
@@ -39021,7 +39039,7 @@ mxGraphModel.prototype.getCell = function(id)
 /**
  * Function: filterCells
  * 
- * Returns the cells from the given array where the fiven filter function
+ * Returns the cells from the given array where the given filter function
  * returns true.
  */
 mxGraphModel.prototype.filterCells = function(cells, filter)
@@ -42050,6 +42068,25 @@ mxCell.prototype.removeFromTerminal = function(isSource)
 };
 
 /**
+ * Function: hasAttribute
+ * 
+ * Returns true if the user object is an XML node that contains the given
+ * attribute.
+ * 
+ * Parameters:
+ * 
+ * name - Name of the attribute.
+ */
+mxCell.prototype.hasAttribute = function(name)
+{
+	var userObject = this.getValue();
+	
+	return (userObject != null &&
+		userObject.nodeType == mxConstants.NODETYPE_ELEMENT && userObject.hasAttribute) ?
+		userObject.hasAttribute(name) : userObject.getAttribute(name) != null;
+};
+
+/**
  * Function: getAttribute
  *
  * Returns the specified attribute from the user object if it is an XML
@@ -43669,19 +43706,19 @@ var mxPerimeter =
  * 
  * preview.getCoverPages = function(w, h)
  * {
- *   return [this.renderPage(w, h, mxUtils.bind(this, function(div)
+ *   return [this.renderPage(w, h, 0, 0, mxUtils.bind(this, function(div)
  *   {
  *     div.innerHTML = '<div style="position:relative;margin:4px;">Cover Page</p>'
  *   }))];
- * }
+ * };
  * 
  * preview.getAppendices = function(w, h)
  * {
- *   return [this.renderPage(w, h, mxUtils.bind(this, function(div)
+ *   return [this.renderPage(w, h, 0, 0, mxUtils.bind(this, function(div)
  *   {
  *     div.innerHTML = '<div style="position:relative;margin:4px;">Appendix</p>'
  *   }))];
- * }
+ * };
  * 
  * preview.open();
  * (end)
@@ -43809,7 +43846,7 @@ function mxPrintPreview(graph, scale, pageFormat, border, x0, y0, borderColor, t
 	this.graph = graph;
 	this.scale = (scale != null) ? scale : 1 / graph.pageScale;
 	this.border = (border != null) ? border : 0;
-	this.pageFormat = (pageFormat != null) ? pageFormat : graph.pageFormat;
+	this.pageFormat = mxRectangle.fromRectangle((pageFormat != null) ? pageFormat : graph.pageFormat);
 	this.title = (title != null) ? title : 'Printer-friendly version';
 	this.x0 = (x0 != null) ? x0 : 0;
 	this.y0 = (y0 != null) ? y0 : 0;
@@ -44003,6 +44040,26 @@ mxPrintPreview.prototype.getDoctype = function()
 };
 
 /**
+ * Function: appendGraph
+ * 
+ * Adds the given graph to the existing print preview.
+ * 
+ * Parameters:
+ * 
+ * css - Optional CSS string to be used in the head section.
+ * targetWindow - Optional window that should be used for rendering. If
+ * this is specified then no HEAD tag, CSS and BODY tag will be written.
+ */
+mxPrintPreview.prototype.appendGraph = function(graph, scale, x0, y0, forcePageBreaks, keepOpen)
+{
+	this.graph = graph;
+	this.scale = (scale != null) ? scale : 1 / graph.pageScale;
+	this.x0 = x0;
+	this.y0 = y0;
+	this.open(null, null, forcePageBreaks, keepOpen);
+};
+
+/**
  * Function: open
  * 
  * Shows the print preview window. The window is created here if it does
@@ -44014,13 +44071,13 @@ mxPrintPreview.prototype.getDoctype = function()
  * targetWindow - Optional window that should be used for rendering. If
  * this is specified then no HEAD tag, CSS and BODY tag will be written.
  */
-mxPrintPreview.prototype.open = function(css, targetWindow)
+mxPrintPreview.prototype.open = function(css, targetWindow, forcePageBreaks, keepOpen)
 {
 	// Closing the window while the page is being rendered may cause an
 	// exception in IE. This and any other exceptions are simply ignored.
 	var previousInitializeOverlay = this.graph.cellRenderer.initializeOverlay;
 	var div = null;
-
+	
 	try
 	{
 		// Temporarily overrides the method to redirect rendering of overlays
@@ -44042,222 +44099,217 @@ mxPrintPreview.prototype.open = function(css, targetWindow)
 			};
 		}
 		
+		this.wnd = (targetWindow != null) ? targetWindow : this.wnd;
+		var isNewWindow = false;
+		
 		if (this.wnd == null)
 		{
-			this.wnd = (targetWindow != null) ? targetWindow : window.open();
-			var doc = this.wnd.document;
-			
-			if (targetWindow == null)
-			{
-				var dt = this.getDoctype();
-				
-				if (dt != null && dt.length > 0)
-				{
-					doc.writeln(dt);
-				}
-				
-				if (mxClient.IS_VML)
-				{
-					doc.writeln('<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">');
-				}
-				else
-				{
-					if (document.compatMode === 'CSS1Compat')
-					{
-						doc.writeln('<!DOCTYPE html>');
-					}
-					
-					doc.writeln('<html>');
-				}
-				
-				doc.writeln('<head>');
-				this.writeHead(doc, css);
-				doc.writeln('</head>');
-				doc.writeln('<body class="mxPage">');
-			}
-
-			// Computes the horizontal and vertical page count
-			var bounds = this.graph.getGraphBounds().clone();
-			var currentScale = this.graph.getView().getScale();
-			var sc = currentScale / this.scale;
-			var tr = this.graph.getView().getTranslate();
-			
-			// Uses the absolute origin with no offset for all printing
-			if (!this.autoOrigin)
-			{
-				this.x0 -= tr.x * this.scale;
-				this.y0 -= tr.y * this.scale;
-				bounds.width += bounds.x;
-				bounds.height += bounds.y;
-				bounds.x = 0;
-				bounds.y = 0;
-				this.border = 0;
-			}
-			
-			// Store the available page area
-			var availableWidth = this.pageFormat.width - (this.border * 2);
-			var availableHeight = this.pageFormat.height - (this.border * 2);
+			isNewWindow = true;
+			this.wnd = window.open();
+		}
 		
-			// Adds margins to page format
-			this.pageFormat.height += this.marginTop + this.marginBottom;
-
-			// Compute the unscaled, untranslated bounds to find
-			// the number of vertical and horizontal pages
-			bounds.width /= sc;
-			bounds.height /= sc;
-
-			var hpages = Math.max(1, Math.ceil((bounds.width + this.x0) / availableWidth));
-			var vpages = Math.max(1, Math.ceil((bounds.height + this.y0) / availableHeight));
-			this.pageCount = hpages * vpages;
+		var doc = this.wnd.document;
+		
+		if (isNewWindow)
+		{
+			var dt = this.getDoctype();
 			
-			var writePageSelector = mxUtils.bind(this, function()
+			if (dt != null && dt.length > 0)
 			{
-				if (this.pageSelector && (vpages > 1 || hpages > 1))
+				doc.writeln(dt);
+			}
+			
+			if (mxClient.IS_VML)
+			{
+				doc.writeln('<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">');
+			}
+			else
+			{
+				if (document.compatMode === 'CSS1Compat')
 				{
-					var table = this.createPageSelector(vpages, hpages);
-					doc.body.appendChild(table);
+					doc.writeln('<!DOCTYPE html>');
+				}
+				
+				doc.writeln('<html>');
+			}
+			
+			doc.writeln('<head>');
+			this.writeHead(doc, css);
+			doc.writeln('</head>');
+			doc.writeln('<body class="mxPage">');
+		}
+
+		// Computes the horizontal and vertical page count
+		var bounds = this.graph.getGraphBounds().clone();
+		var currentScale = this.graph.getView().getScale();
+		var sc = currentScale / this.scale;
+		var tr = this.graph.getView().getTranslate();
+		
+		// Uses the absolute origin with no offset for all printing
+		if (!this.autoOrigin)
+		{
+			this.x0 -= tr.x * this.scale;
+			this.y0 -= tr.y * this.scale;
+			bounds.width += bounds.x;
+			bounds.height += bounds.y;
+			bounds.x = 0;
+			bounds.y = 0;
+			this.border = 0;
+		}
+		
+		// Store the available page area
+		var availableWidth = this.pageFormat.width - (this.border * 2);
+		var availableHeight = this.pageFormat.height - (this.border * 2);
+	
+		// Adds margins to page format
+		this.pageFormat.height += this.marginTop + this.marginBottom;
+
+		// Compute the unscaled, untranslated bounds to find
+		// the number of vertical and horizontal pages
+		bounds.width /= sc;
+		bounds.height /= sc;
+
+		var hpages = Math.max(1, Math.ceil((bounds.width + this.x0) / availableWidth));
+		var vpages = Math.max(1, Math.ceil((bounds.height + this.y0) / availableHeight));
+		this.pageCount = hpages * vpages;
+		
+		var writePageSelector = mxUtils.bind(this, function()
+		{
+			if (this.pageSelector && (vpages > 1 || hpages > 1))
+			{
+				var table = this.createPageSelector(vpages, hpages);
+				doc.body.appendChild(table);
+				
+				// Implements position: fixed in IE quirks mode
+				if (mxClient.IS_IE && doc.documentMode == null || doc.documentMode == 5 || doc.documentMode == 8 || doc.documentMode == 7)
+				{
+					table.style.position = 'absolute';
 					
-					// Implements position: fixed in IE quirks mode
-					if (mxClient.IS_IE && doc.documentMode == null || doc.documentMode == 5 || doc.documentMode == 8 || doc.documentMode == 7)
+					var update = function()
 					{
-						table.style.position = 'absolute';
-						
-						var update = function()
-						{
-							table.style.top = ((doc.body.scrollTop || doc.documentElement.scrollTop) + 10) + 'px';
-						};
-						
-						mxEvent.addListener(this.wnd, 'scroll', function(evt)
-						{
-							update();
-						});
-						
-						mxEvent.addListener(this.wnd, 'resize', function(evt)
-						{
-							update();
-						});
+						table.style.top = ((doc.body.scrollTop || doc.documentElement.scrollTop) + 10) + 'px';
+					};
+					
+					mxEvent.addListener(this.wnd, 'scroll', function(evt)
+					{
+						update();
+					});
+					
+					mxEvent.addListener(this.wnd, 'resize', function(evt)
+					{
+						update();
+					});
+				}
+			}
+		});
+		
+		var addPage = mxUtils.bind(this, function(div, addBreak)
+		{
+			// Border of the DIV (aka page) inside the document
+			if (this.borderColor != null)
+			{
+				div.style.borderColor = this.borderColor;
+				div.style.borderStyle = 'solid';
+				div.style.borderWidth = '1px';
+			}
+			
+			// Needs to be assigned directly because IE doesn't support
+			// child selectors, eg. body > div { background: white; }
+			div.style.background = this.backgroundColor;
+			
+			if (forcePageBreaks || addBreak)
+			{
+				div.style.pageBreakAfter = 'always';
+			}
+
+			// NOTE: We are dealing with cross-window DOM here, which
+			// is a problem in IE, so we copy the HTML markup instead.
+			// The underlying problem is that the graph display markup
+			// creation (in mxShape, mxGraphView) is hardwired to using
+			// document.createElement and hence we must use this document
+			// to create the complete page and then copy it over to the
+			// new window.document. This can be fixed later by using the
+			// ownerDocument of the container in mxShape and mxGraphView.
+			if (mxClient.IS_IE || document.documentMode >= 11 || mxClient.IS_EDGE)
+			{
+				// For some obscure reason, removing the DIV from the
+				// parent before fetching its outerHTML has missing
+				// fillcolor properties and fill children, so the div
+				// must be removed afterwards to keep the fillcolors.
+				doc.writeln(div.outerHTML);
+				div.parentNode.removeChild(div);
+			}
+			else
+			{
+				div.parentNode.removeChild(div);
+				doc.body.appendChild(div);
+			}
+
+			if (forcePageBreaks || addBreak)
+			{
+				this.addPageBreak(doc);
+			}
+		});
+		
+		var cov = this.getCoverPages(this.pageFormat.width, this.pageFormat.height);
+		
+		if (cov != null)
+		{
+			for (var i = 0; i < cov.length; i++)
+			{
+				addPage(cov[i], true);
+			}
+		}
+		
+		var apx = this.getAppendices(this.pageFormat.width, this.pageFormat.height);
+		
+		// Appends each page to the page output for printing, making
+		// sure there will be a page break after each page (ie. div)
+		for (var i = 0; i < vpages; i++)
+		{
+			var dy = i * availableHeight / this.scale - this.y0 / this.scale +
+					(bounds.y - tr.y * currentScale) / currentScale;
+			
+			for (var j = 0; j < hpages; j++)
+			{
+				if (this.wnd == null)
+				{
+					return null;
+				}
+				
+				var dx = j * availableWidth / this.scale - this.x0 / this.scale +
+						(bounds.x - tr.x * currentScale) / currentScale;
+				var pageNum = i * hpages + j + 1;
+				var clip = new mxRectangle(dx, dy, availableWidth, availableHeight);
+				div = this.renderPage(this.pageFormat.width, this.pageFormat.height, 0, 0, mxUtils.bind(this, function(div)
+				{
+					this.addGraphFragment(-dx, -dy, this.scale, pageNum, div, clip);
+					
+					if (this.printBackgroundImage)
+					{
+						this.insertBackgroundImage(div, -dx, -dy);
 					}
-				}
-			});
-			
-			var addPage = mxUtils.bind(this, function(div, addBreak)
-			{
-				// Border of the DIV (aka page) inside the document
-				if (this.borderColor != null)
-				{
-					div.style.borderColor = this.borderColor;
-					div.style.borderStyle = 'solid';
-					div.style.borderWidth = '1px';
-				}
-				
-				// Needs to be assigned directly because IE doesn't support
-				// child selectors, eg. body > div { background: white; }
-				div.style.background = this.backgroundColor;
-				
-				if (addBreak)
-				{
-					div.style.pageBreakAfter = 'always';
-				}
+				}), pageNum);
 
-				// NOTE: We are dealing with cross-window DOM here, which
-				// is a problem in IE, so we copy the HTML markup instead.
-				// The underlying problem is that the graph display markup
-				// creation (in mxShape, mxGraphView) is hardwired to using
-				// document.createElement and hence we must use this document
-				// to create the complete page and then copy it over to the
-				// new window.document. This can be fixed later by using the
-				// ownerDocument of the container in mxShape and mxGraphView.
-				if (mxClient.IS_IE || document.documentMode >= 11 || mxClient.IS_EDGE)
-				{
-					// For some obscure reason, removing the DIV from the
-					// parent before fetching its outerHTML has missing
-					// fillcolor properties and fill children, so the div
-					// must be removed afterwards to keep the fillcolors.
-					doc.writeln(div.outerHTML);
-					div.parentNode.removeChild(div);
-				}
-				else
-				{
-					div.parentNode.removeChild(div);
-					doc.body.appendChild(div);
-				}
+				// Gives the page a unique ID for later accessing the page
+				div.setAttribute('id', 'mxPage-'+pageNum);
 
-				if (addBreak && targetWindow == null)
-				{
-					var hr = doc.createElement('hr');
-					hr.className = 'mxPageBreak';
-					doc.body.appendChild(hr);
-				}
-			});
-			
-			var cov = this.getCoverPages(this.pageFormat.width, this.pageFormat.height);
-			
-			if (cov != null)
-			{
-				for (var i = 0; i < cov.length; i++)
-				{
-					addPage(cov[i], true);
-				}
+				addPage(div, apx != null || i < vpages - 1 || j < hpages - 1);
 			}
-			
-			var apx = this.getAppendices(this.pageFormat.width, this.pageFormat.height);
-			
-			// Appends each page to the page output for printing, making
-			// sure there will be a page break after each page (ie. div)
-			for (var i = 0; i < vpages; i++)
-			{
-				var dy = i * availableHeight / this.scale - this.y0 / this.scale +
-						(bounds.y - tr.y * currentScale) / currentScale;
-				
-				for (var j = 0; j < hpages; j++)
-				{
-					if (this.wnd == null)
-					{
-						return null;
-					}
-					
-					var dx = j * availableWidth / this.scale - this.x0 / this.scale +
-							(bounds.x - tr.x * currentScale) / currentScale;
-					var pageNum = i * hpages + j + 1;
-					var clip = new mxRectangle(dx, dy, availableWidth, availableHeight);
-					div = this.renderPage(this.pageFormat.width, this.pageFormat.height, 0, 0, mxUtils.bind(this, function(div)
-					{
-						this.addGraphFragment(-dx, -dy, this.scale, pageNum, div, clip);
-						
-						if (this.printBackgroundImage)
-						{
-							this.insertBackgroundImage(div, -dx, -dy);
-						}
-					}), pageNum);
+		}
 
-					// Gives the page a unique ID for later accessing the page
-					div.setAttribute('id', 'mxPage-'+pageNum);
-					
-					addPage(div, apx != null || i < vpages - 1 || j < hpages - 1);
-				}
-			}
-
-			if (apx != null)
+		if (apx != null)
+		{
+			for (var i = 0; i < apx.length; i++)
 			{
-				for (var i = 0; i < apx.length; i++)
-				{
-					addPage(apx[i], i < apx.length);
-				}
+				addPage(apx[i], i < apx.length - 1);
 			}
+		}
 
-			if (targetWindow == null)
-			{
-				this.writePostfix(doc);
-				doc.writeln('</body>');
-				doc.writeln('</html>');
-				doc.close();
-				
-				// Marks the printing complete for async handling
-				writePageSelector();
-				
-				// Removes all event handlers in the print output
-				mxEvent.release(doc.body);
-			}
+		if (isNewWindow && !keepOpen)
+		{
+			this.closeDocument();
+			writePageSelector();
 		}
 		
 		this.wnd.focus();
@@ -44269,8 +44321,6 @@ mxPrintPreview.prototype.open = function(css, targetWindow)
 		{
 			div.parentNode.removeChild(div);
 		}
-		
-		console.log('e', e);
 	}
 	finally
 	{
@@ -44278,6 +44328,39 @@ mxPrintPreview.prototype.open = function(css, targetWindow)
 	}
 
 	return this.wnd;
+};
+
+/**
+ * Function: addPageBreak
+ * 
+ * Adds a page break to the given document.
+ */
+mxPrintPreview.prototype.addPageBreak = function(doc)
+{
+	var hr = doc.createElement('hr');
+	hr.className = 'mxPageBreak';
+	doc.body.appendChild(hr);
+};
+
+/**
+ * Function: closeDocument
+ * 
+ * Writes the closing tags for body and page after calling <writePostfix>.
+ */
+mxPrintPreview.prototype.closeDocument = function()
+{
+	if (this.wnd != null && this.wnd.document != null)
+	{
+		var doc = this.wnd.document;
+		
+		this.writePostfix(doc);
+		doc.writeln('</body>');
+		doc.writeln('</html>');
+		doc.close();
+		
+		// Removes all event handlers in the print output
+		mxEvent.release(doc.body);
+	}
 };
 
 /**
@@ -46017,6 +46100,17 @@ function mxCellEditor(graph)
 	
 	this.graph.view.addListener(mxEvent.SCALE, this.zoomHandler);
 	this.graph.view.addListener(mxEvent.SCALE_AND_TRANSLATE, this.zoomHandler);
+	
+	// Adds handling of deleted cells while editing
+	this.changeHandler = mxUtils.bind(this, function(sender)
+	{
+		if (this.editingCell != null && this.graph.getView().getState(this.editingCell) == null)
+		{
+			this.stopEditing(true);
+		}
+	});
+
+	this.graph.getModel().addListener(mxEvent.CHANGE, this.changeHandler);
 };
 
 /**
@@ -46146,6 +46240,12 @@ mxCellEditor.prototype.init = function ()
 	this.textarea.className = 'mxCellEditor mxPlainTextEditor';
 	this.textarea.contentEditable = true;
 	
+	// Workaround for selection outside of DIV if height is 0
+	if (mxClient.IS_GC)
+	{
+		this.textarea.style.minHeight = '1em';
+	}
+	
 	this.installListeners(this.textarea);
 };
 
@@ -46230,17 +46330,6 @@ mxCellEditor.prototype.installListeners = function(elt)
 		}
 	}));
 
-	// Adds handling of deleted cells while editing
-	this.changeHandler = mxUtils.bind(this, function(sender)
-	{
-		if (this.editingCell != null && this.graph.getView().getState(this.editingCell) == null)
-		{
-			this.stopEditing(true);
-		}
-	});
-
-	this.graph.getModel().addListener(mxEvent.CHANGE, this.changeHandler);
-	
 	// Keypress only fires if printable key was pressed and handles removing the empty placeholder
 	var keypressHandler = mxUtils.bind(this, function(evt)
 	{
@@ -46358,7 +46447,7 @@ mxCellEditor.prototype.resize = function()
 	{
 		this.stopEditing(true);
 	}
-	else
+	else if (this.textarea != null)
 	{
 		var isEdge = this.graph.getModel().isEdge(state.cell);
  		var scale = this.graph.getView().scale;
@@ -46571,7 +46660,9 @@ mxCellEditor.prototype.getBackgroundColor = function(state)
  */
 mxCellEditor.prototype.startEditing = function(cell, trigger)
 {
-	// Lazy instantiates textarea to save memory in IE
+	this.stopEditing(true);
+	
+	// Creates new textarea instance
 	if (this.textarea == null)
 	{
 		this.init();
@@ -46582,7 +46673,6 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 		this.graph.tooltipHandler.hideTooltip();
 	}
 	
-	this.stopEditing(true);
 	var state = this.graph.getView().getState(cell);
 	
 	if (state != null)
@@ -46673,24 +46763,21 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 		
 		this.resize();
 		
-		if (this.textarea != null)
+		// Workaround for NS_ERROR_FAILURE in FF
+		try
 		{
-			// Workaround for NS_ERROR_FAILURE in FF
-			try
+			// Prefers blinking cursor over no selected text if empty
+			this.textarea.focus();
+			
+			if (this.isSelectText() && this.textarea.innerHTML.length > 0 &&
+				(this.textarea.innerHTML != this.getEmptyLabelText() || !this.clearOnChange))
 			{
-				// Prefers blinking cursor over no selected text if empty
-				this.textarea.focus();
-				
-				if (this.isSelectText() && this.textarea.innerHTML.length > 0 &&
-					(this.textarea.innerHTML != this.getEmptyLabelText() || !this.clearOnChange))
-				{
-					document.execCommand('selectAll', false, null);
-				}
+				document.execCommand('selectAll', false, null);
 			}
-			catch (e)
-			{
-				// ignore
-			}
+		}
+		catch (e)
+		{
+			// ignore
 		}
 	}
 };
@@ -46751,6 +46838,10 @@ mxCellEditor.prototype.stopEditing = function(cancel)
 				this.applyValue(state, value);
 			}
 		}
+		
+		// Forces new instance on next edit for undo history reset
+		mxEvent.release(this.textarea);
+		this.textarea = null;
 	}
 };
 
@@ -46930,18 +47021,19 @@ mxCellEditor.prototype.destroy = function ()
 		}
 		
 		this.textarea = null;
-		
-		if (this.changeHandler != null)
-		{
-			this.graph.getModel().removeListener(this.changeHandler);
-			this.changeHandler = null;
-		}
-		
-		if (this.zoomHandler)
-		{
-			this.graph.view.removeListener(this.zoomHandler);
-			this.zoomHandler = null;
-		}
+
+	}
+			
+	if (this.changeHandler != null)
+	{
+		this.graph.getModel().removeListener(this.changeHandler);
+		this.changeHandler = null;
+	}
+
+	if (this.zoomHandler)
+	{
+		this.graph.view.removeListener(this.zoomHandler);
+		this.zoomHandler = null;
 	}
 };
 /**
@@ -47828,8 +47920,8 @@ mxCellRenderer.prototype.redrawLabel = function(state, forced)
 			state.text.resetStyles();
 			state.text.apply(state);
 			
-			// Special case opacity which is taken from textOpacity style for text
-			state.text.opacity = mxUtils.getValue(state.style, mxConstants.STYLE_TEXT_OPACITY, 100);
+			// Special case where value is obtained via hook in graph
+			state.text.valign = graph.getVerticalAlign(state);
 		}
 		
 		var bounds = this.getLabelBounds(state);
@@ -50275,6 +50367,13 @@ mxGraphView.prototype.scale = 1;
  * empty <mxPoint>.
  */
 mxGraphView.prototype.translate = null;
+
+/**
+ * Variable: states
+ * 
+ * <mxDictionary> that maps from cell IDs to <mxCellStates>.
+ */
+mxGraphView.prototype.states = null;
 
 /**
  * Variable: updateStyle
@@ -52752,6 +52851,7 @@ mxGraphView.prototype.createHtml = function()
 	if (container != null)
 	{
 		this.canvas = this.createHtmlPane('100%', '100%');
+		this.canvas.style.overflow = 'hidden';
 	
 		// Uses minimal size for inner DIVs on Canvas. This is required
 		// for correct event processing in IE. If we have an overlapping
@@ -52858,6 +52958,7 @@ mxGraphView.prototype.createVml = function()
 		var width = container.offsetWidth;
 		var height = container.offsetHeight;
 		this.canvas = this.createVmlPane(width, height);
+		this.canvas.style.overflow = 'hidden';
 		
 		this.backgroundPane = this.createVmlPane(width, height);
 		this.drawPane = this.createVmlPane(width, height);
@@ -52888,10 +52989,10 @@ mxGraphView.prototype.createVmlPane = function(width, height)
 	pane.style.left = '0px';
 	pane.style.top = '0px';
 
-	pane.style.width = width+'px';
-	pane.style.height = height+'px';
+	pane.style.width = width + 'px';
+	pane.style.height = height + 'px';
 
-	pane.setAttribute('coordsize', width+','+height);
+	pane.setAttribute('coordsize', width + ',' + height);
 	pane.setAttribute('coordorigin', '0,0');
 	
 	return pane;
@@ -52929,6 +53030,12 @@ mxGraphView.prototype.createSvg = function()
 	// in order for the container DIV to not show scrollbars.
 	root.style.display = 'block';
 	root.appendChild(this.canvas);
+	
+	// Workaround for scrollbars in IE11 and below
+	if (mxClient.IS_IE || mxClient.IS_IE11)
+	{
+		root.style.overflow = 'hidden';
+	}
 
 	if (container != null)
 	{
@@ -54768,7 +54875,8 @@ mxGraph.prototype.init = function(container)
 	// mode if no initial graph displayed or no label for shape defined
 	if (document.documentMode == 8)
 	{
-		container.insertAdjacentHTML('beforeend', '<v:group style="DISPLAY: none;"></v:group>');
+		container.insertAdjacentHTML('beforeend', '<' + mxClient.VML_PREFIX + ':group' +
+			' style="DISPLAY: none;"></' + mxClient.VML_PREFIX + ':group>');
 	}
 };
 
@@ -55073,6 +55181,7 @@ mxGraph.prototype.processChange = function(change)
 	if (change instanceof mxRootChange)
 	{
 		this.clearSelection();
+		this.setDefaultParent(null);
 		this.removeStateForCell(change.previous);
 		
 		if (this.resetViewOnRootChange)
@@ -55919,13 +56028,13 @@ mxGraph.prototype.getPreferredPageSize = function(bounds, width, height)
 	var scale = this.view.scale;
 	var tr = this.view.translate;
 	var fmt = this.pageFormat;
-	var ps = scale * this.pageScale;
-	var page = new mxRectangle(0, 0, fmt.width * ps, fmt.height * ps);
+	var ps = this.pageScale;
+	var page = new mxRectangle(0, 0, Math.ceil(fmt.width * ps), Math.ceil(fmt.height * ps));
 	
 	var hCount = (this.pageBreaksVisible) ? Math.ceil(width / page.width) : 1;
 	var vCount = (this.pageBreaksVisible) ? Math.ceil(height / page.height) : 1;
 	
-	return new mxRectangle(0, 0, hCount * page.width + 2 + tr.x / scale, vCount * page.height + 2 + tr.y / scale);
+	return new mxRectangle(0, 0, hCount * page.width + 2 + tr.x, vCount * page.height + 2 + tr.y);
 };
 
 /**
@@ -56104,7 +56213,7 @@ mxGraph.prototype.sizeDidChange = function()
 
 		if (this.preferPageSize || (!mxClient.IS_IE && this.pageVisible))
 		{
-			var size = this.getPreferredPageSize(bounds, width, height);
+			var size = this.getPreferredPageSize(bounds, Math.max(1, width), Math.max(1, height));
 			
 			if (size != null)
 			{
@@ -56135,7 +56244,7 @@ mxGraph.prototype.sizeDidChange = function()
 		{
 			if (mxClient.IS_QUIRKS)
 			{
-				// Quirks mode has no minWidth/minHeight support
+				// Quirks mode does not support minWidth/-Height
 				this.view.updateHtmlCanvasSize(Math.max(1, width), Math.max(1, height));
 			}
 			else
@@ -56188,6 +56297,9 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 	var bounds = new mxRectangle(0, 0, fmt.width * ps, fmt.height * ps);
 
 	var gb = mxRectangle.fromRectangle(this.getGraphBounds());
+	gb.width = Math.max(1, gb.width);
+	gb.height = Math.max(1, gb.height);
+	
 	bounds.x = Math.floor((gb.x - tr.x * scale) / bounds.width) * bounds.width + tr.x * scale;
 	bounds.y = Math.floor((gb.y - tr.y * scale) / bounds.height) * bounds.height + tr.y * scale;
 	
@@ -56197,10 +56309,10 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 	// Does not show page breaks if the scale is too small
 	visible = visible && Math.min(bounds.width, bounds.height) > this.minPageBreakDist;
 
-	var horizontalCount = (visible) ? Math.ceil(gb.width / bounds.width) + 1 : 0;
-	var verticalCount = (visible) ? Math.ceil(gb.height / bounds.height) + 1 : 0;
-	var right = (horizontalCount - 1) * bounds.width;
-	var bottom = (verticalCount - 1) * bounds.height;
+	var horizontalCount = (visible) ? Math.ceil(gb.height / bounds.height) + 1 : 0;
+	var verticalCount = (visible) ? Math.ceil(gb.width / bounds.width) + 1 : 0;
+	var right = (verticalCount - 1) * bounds.width;
+	var bottom = (horizontalCount - 1) * bounds.height;
 	
 	if (this.horizontalPageBreaks == null && horizontalCount > 0)
 	{
@@ -56221,10 +56333,10 @@ mxGraph.prototype.updatePageBreaks = function(visible, width, height)
 			for (var i = 0; i <= count; i++)
 			{
 				var pts = (breaks == this.horizontalPageBreaks) ?
-						[new mxPoint(bounds.x + i * bounds.width, bounds.y),
-				         new mxPoint(bounds.x + i * bounds.width, bounds.y + bottom)] :
-				        [new mxPoint(bounds.x, bounds.y + i * bounds.height),
-				         new mxPoint(bounds.x + right, bounds.y + i * bounds.height)];
+					[new mxPoint(Math.round(bounds.x), Math.round(bounds.y + i * bounds.height)),
+			         new mxPoint(Math.round(bounds.x + right), Math.round(bounds.y + i * bounds.height))] :
+			        [new mxPoint(Math.round(bounds.x + i * bounds.width), Math.round(bounds.y)),
+			         new mxPoint(Math.round(bounds.x + i * bounds.width), Math.round(bounds.y + bottom))];
 
 				if (breaks[i] != null)
 				{
@@ -60363,30 +60475,37 @@ mxGraph.prototype.getBoundingBoxFromGeometry = function(cells, includeEdges)
 					
 					if (this.model.isEdge(cells[i]))
 					{
+						var addPoint = function(pt)
+						{
+							if (pt != null)
+							{
+								if (tmp == null)
+								{
+									tmp = new mxRectangle(pt.x, pt.y, 0, 0);
+								}
+								else
+								{
+									tmp.add(new mxRectangle(pt.x, pt.y, 0, 0));
+								}
+							}
+						};
+						
+						addPoint(geo.getTerminalPoint(true));
+						addPoint(geo.getTerminalPoint(false));
+												
 						var pts = geo.points;
 						
 						if (pts != null && pts.length > 0)
 						{
 							var tmp = new mxRectangle(pts[0].x, pts[0].y, 0, 0);
-							
-							var addPoint = function(pt)
-							{
-								if (pt != null)
-								{
-									tmp.add(new mxRectangle(pt.x, pt.y, 0, 0));
-								}
-							};
-							
+
 							for (var j = 1; j < pts.length; j++)
 							{
 								addPoint(pts[j]);
 							}
-							
-							addPoint(geo.getTerminalPoint(true));
-							addPoint(geo.getTerminalPoint(false));
-							
-							bbox = tmp;
 						}
+						
+						bbox = tmp;
 					}
 					else
 					{
@@ -62035,8 +62154,7 @@ mxGraph.prototype.getVerticalAlign = function(state)
 {
 	return (state != null && state.style != null) ?
 		(state.style[mxConstants.STYLE_VERTICAL_ALIGN] ||
-		mxConstants.ALIGN_MIDDLE ):
-		null;
+		mxConstants.ALIGN_MIDDLE) : null;
 };
 
 /**
@@ -65681,7 +65799,7 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 /**
  * Function: consumeMouseEvent
  * 
- * Destroys the graph and all its resources.
+ * Consumes the given <mxMouseEvent> if it's a touchStart event.
  */
 mxGraph.prototype.consumeMouseEvent = function(evtName, me, sender)
 {
@@ -68237,10 +68355,11 @@ mxCellStatePreview.prototype.addEdges = function(state)
  * perimeter - Optional boolean that specifies if the fixed point should be
  * projected onto the perimeter of the terminal. Default is true.
  */
-function mxConnectionConstraint(point, perimeter)
+function mxConnectionConstraint(point, perimeter, name)
 {
 	this.point = point;
 	this.perimeter = (perimeter != null) ? perimeter : true;
+	this.name = name;
 };
 
 /**
@@ -68257,6 +68376,13 @@ mxConnectionConstraint.prototype.point = null;
  * of the terminal.
  */
 mxConnectionConstraint.prototype.perimeter = null;
+
+/**
+ * Variable: name
+ * 
+ * Optional string that specifies the name of the constraint.
+ */
+mxConnectionConstraint.prototype.name = null;
 /**
  * Copyright (c) 2006-2015, JGraph Ltd
  * Copyright (c) 2006-2015, Gaudenz Alder
@@ -68589,6 +68715,30 @@ mxGraphHandler.prototype.isDelayedSelection = function(cell, me)
 };
 
 /**
+ * Function: consumeMouseEvent
+ * 
+ * Consumes the given mouse event. NOTE: This may be used to enable click
+ * events for links in labels on iOS as follows as consuming the initial
+ * touchStart disables firing the subsequent click evnent on the link.
+ * 
+ * <code>
+ * mxGraphHandler.prototype.consumeMouseEvent = function(evtName, me)
+ * {
+ *   var source = mxEvent.getSource(me.getEvent());
+ *   
+ *   if (!mxEvent.isTouchEvent(me.getEvent()) || source.nodeName != 'A')
+ *   {
+ *     me.consume();
+ *   }
+ * }
+ * </code>
+ */
+mxGraphHandler.prototype.consumeMouseEvent = function(evtName, me)
+{
+	me.consume();
+};
+
+/**
  * Function: mouseDown
  * 
  * Handles the event by selecing the given cell and creating a handle for
@@ -68627,7 +68777,7 @@ mxGraphHandler.prototype.mouseDown = function(sender, me)
 			}
 
 			this.cellWasClicked = true;
-			me.consume();
+			this.consumeMouseEvent(mxEvent.MOUSE_DOWN, me);
 		}
 	}
 };
@@ -69039,7 +69189,7 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 		}
 
 		this.updateHint(me);
-		me.consume();
+		this.consumeMouseEvent(mxEvent.MOUSE_MOVE, me);
 		
 		// Cancels the bubbling of events to the container so
 		// that the droptarget is not reset due to an mouseMove
@@ -69152,7 +69302,7 @@ mxGraphHandler.prototype.mouseUp = function(sender, me)
 	// Consumes the event if a cell was initially clicked
 	if (this.cellWasClicked)
 	{
-		me.consume();
+		this.consumeMouseEvent(mxEvent.MOUSE_UP, me);
 	}
 
 	this.reset();
@@ -69202,19 +69352,23 @@ mxGraphHandler.prototype.shouldRemoveCellsFromParent = function(parent, cells, e
 	if (this.graph.getModel().isVertex(parent))
 	{
 		var pState = this.graph.getView().getState(parent);
-		var pt = mxUtils.convertPoint(this.graph.container,
-			mxEvent.getClientX(evt), mxEvent.getClientY(evt));
-		var alpha = mxUtils.toRadians(mxUtils.getValue(pState.style, mxConstants.STYLE_ROTATION) || 0);
 		
-		if (alpha != 0)
+		if (pState != null)
 		{
-			var cos = Math.cos(-alpha);
-			var sin = Math.sin(-alpha);
-			var cx = new mxPoint(pState.getCenterX(), pState.getCenterY());
-			pt = mxUtils.getRotatedPoint(pt, cos, sin, cx);
-		}
+			var pt = mxUtils.convertPoint(this.graph.container,
+				mxEvent.getClientX(evt), mxEvent.getClientY(evt));
+			var alpha = mxUtils.toRadians(mxUtils.getValue(pState.style, mxConstants.STYLE_ROTATION) || 0);
+			
+			if (alpha != 0)
+			{
+				var cos = Math.cos(-alpha);
+				var sin = Math.sin(-alpha);
+				var cx = new mxPoint(pState.getCenterX(), pState.getCenterY());
+				pt = mxUtils.getRotatedPoint(pt, cos, sin, cx);
+			}
 		
-		return pState != null && !mxUtils.contains(pState, pt.x, pt.y);
+			return !mxUtils.contains(pState, pt.x, pt.y);
+		}
 	}
 	
 	return false;
@@ -73391,14 +73545,14 @@ mxConstraintHandler.prototype.destroy = function()
 	}
 };
 /**
- * Copyright (c) 2006-2015, JGraph Ltd
- * Copyright (c) 2006-2015, Gaudenz Alder
+ * Copyright (c) 2006-2016, JGraph Ltd
+ * Copyright (c) 2006-2016, Gaudenz Alder
  */
 /**
  * Class: mxRubberband
  * 
  * Event handler that selects rectangular regions. This is not built-into
- * <mxGraph>. To enable rubberband selection in a graph, ssssssssuse the following code.
+ * <mxGraph>. To enable rubberband selection in a graph, use the following code.
  * 
  * Example:
  * 
@@ -73667,6 +73821,16 @@ mxRubberband.prototype.createShape = function()
 };
 
 /**
+ * Function: isActive
+ * 
+ * Returns true if this handler is active.
+ */
+mxRubberband.prototype.isActive = function(sender, me)
+{
+	return this.div != null && this.div.style.display != 'none';
+};
+
+/**
  * Function: mouseUp
  * 
  * Handles the event by selecting the region of the rubberband using
@@ -73674,15 +73838,26 @@ mxRubberband.prototype.createShape = function()
  */
 mxRubberband.prototype.mouseUp = function(sender, me)
 {
-	var execute = this.div != null && this.div.style.display != 'none';
+	var active = this.isActive();
 	this.reset();
-
-	if (execute)
+	
+	if (active)
 	{
-		var rect = new mxRectangle(this.x, this.y, this.width, this.height);
-		this.graph.selectRegion(rect, me.getEvent());
+		this.execute(me.getEvent());
 		me.consume();
 	}
+};
+
+/**
+ * Function: execute
+ * 
+ * Resets the state of this handler and selects the current region
+ * for the given event.
+ */
+mxRubberband.prototype.execute = function(evt)
+{
+	var rect = new mxRectangle(this.x, this.y, this.width, this.height);
+	this.graph.selectRegion(rect, evt);
 };
 
 /**
@@ -74408,7 +74583,7 @@ mxVertexHandler.prototype.isConstrainedEvent = function(me)
 /**
  * Function: isCenteredEvent
  * 
- * Returns true if the aspect ratio if the cell should be maintained.
+ * Returns true if the center of the vertex should be maintained during the resize.
  */
 mxVertexHandler.prototype.isCenteredEvent = function(state, me)
 {
@@ -84797,6 +84972,14 @@ mxCodec.prototype.getElementById = function(id)
 {
 	if (this.elements == null)
 	{
+		// Throws custom error for cases where a reference should be resolved
+		// in an empty document. This happens if an XML node is decoded without
+		// passing the owner document to the codec constructor.
+		if (this.document.documentElement == null)
+		{
+			throw new Error('mxCodec constructor needs document parameter');
+		}
+		
 		this.elements = new Object();
 		this.addElement(this.document.documentElement);
 	}
@@ -86028,7 +86211,7 @@ mxObjectCodec.prototype.decodeAttribute = function(dec, attr, obj)
 /**
  * Function: decodeChildren
  * 
- * Decodec all children of the given node using <decodeChild>.
+ * Decodes all children of the given node using <decodeChild>.
  * 
  * Parameters:
  *
@@ -87799,7 +87982,7 @@ mxCodecRegistry.register(function()
 	 * (code)
 	 * <ui>
 	 *   <stylesheet name="css/process.css"/>
-	 *   <resource basename="resources/mxApplication"/>
+	 *   <resource basename="resources/app"/>
 	 *   <add as="graph" element="graph"
 	 *     style="left:70px;right:20px;top:20px;bottom:40px"/>
 	 *   <add as="status" element="status"/>

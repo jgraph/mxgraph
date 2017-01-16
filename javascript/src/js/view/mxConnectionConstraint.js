@@ -20,10 +20,11 @@
  * perimeter - Optional boolean that specifies if the fixed point should be
  * projected onto the perimeter of the terminal. Default is true.
  */
-function mxConnectionConstraint(point, perimeter)
+function mxConnectionConstraint(point, perimeter, name)
 {
 	this.point = point;
 	this.perimeter = (perimeter != null) ? perimeter : true;
+	this.name = name;
 };
 
 /**
@@ -40,3 +41,10 @@ mxConnectionConstraint.prototype.point = null;
  * of the terminal.
  */
 mxConnectionConstraint.prototype.perimeter = null;
+
+/**
+ * Variable: name
+ * 
+ * Optional string that specifies the name of the constraint.
+ */
+mxConnectionConstraint.prototype.name = null;

@@ -338,8 +338,9 @@ mxStencil.prototype.parseConstraint = function(node)
 	var x = Number(node.getAttribute('x'));
 	var y = Number(node.getAttribute('y'));
 	var perimeter = node.getAttribute('perimeter') == '1';
+	var name = node.getAttribute('name');
 	
-	return new mxConnectionConstraint(new mxPoint(x, y), perimeter);
+	return new mxConnectionConstraint(new mxPoint(x, y), perimeter, name);
 };
 
 /**

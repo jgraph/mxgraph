@@ -30,7 +30,7 @@ public class mxRectangleShape extends mxBasicShape
 			int y = tmp.y;
 			int w = tmp.width;
 			int h = tmp.height;
-			int radius = getArcSize(w, h);
+			int radius = getArcSize(state, w, h);
 
 			boolean shadow = hasShadow(canvas, state);
 			int shadowOffsetX = (shadow) ? mxConstants.SHADOW_OFFSETX : 0;
@@ -84,37 +84,15 @@ public class mxRectangleShape extends mxBasicShape
 	}
 
 	/**
-	 * Computes the arc size for the given dimension.
-	 * 
-	 * @param w Width of the rectangle.
-	 * @param h Height of the rectangle.
-	 * @return Returns the arc size for the given dimension.
+	 * Helper method to configure the given wrapper canvas.
 	 */
-	public int getArcSize(int w, int h)
+	protected int getArcSize(mxCellState state, double w, double h)
 	{
-		int arcSize;
+		double f = mxUtils.getDouble(state.getStyle(),
+				mxConstants.STYLE_ARCSIZE,
+				mxConstants.RECTANGLE_ROUNDING_FACTOR * 100) / 100;
 
-		if (w <= h)
-		{
-			arcSize = (int) Math.round(h
-					* mxConstants.RECTANGLE_ROUNDING_FACTOR);
-
-			if (arcSize > (w / 2))
-			{
-				arcSize = w / 2;
-			}
-		}
-		else
-		{
-			arcSize = (int) Math.round(w
-					* mxConstants.RECTANGLE_ROUNDING_FACTOR);
-
-			if (arcSize > (h / 2))
-			{
-				arcSize = h / 2;
-			}
-		}
-		return arcSize;
+		return (int) (Math.min(w,  h) * f * 2);
 	}
 
 }

@@ -161,6 +161,13 @@ mxGraphView.prototype.scale = 1;
 mxGraphView.prototype.translate = null;
 
 /**
+ * Variable: states
+ * 
+ * <mxDictionary> that maps from cell IDs to <mxCellStates>.
+ */
+mxGraphView.prototype.states = null;
+
+/**
  * Variable: updateStyle
  * 
  * Specifies if the style should be updated in each validation step. If this
@@ -2636,6 +2643,7 @@ mxGraphView.prototype.createHtml = function()
 	if (container != null)
 	{
 		this.canvas = this.createHtmlPane('100%', '100%');
+		this.canvas.style.overflow = 'hidden';
 	
 		// Uses minimal size for inner DIVs on Canvas. This is required
 		// for correct event processing in IE. If we have an overlapping
@@ -2742,6 +2750,7 @@ mxGraphView.prototype.createVml = function()
 		var width = container.offsetWidth;
 		var height = container.offsetHeight;
 		this.canvas = this.createVmlPane(width, height);
+		this.canvas.style.overflow = 'hidden';
 		
 		this.backgroundPane = this.createVmlPane(width, height);
 		this.drawPane = this.createVmlPane(width, height);
@@ -2772,10 +2781,10 @@ mxGraphView.prototype.createVmlPane = function(width, height)
 	pane.style.left = '0px';
 	pane.style.top = '0px';
 
-	pane.style.width = width+'px';
-	pane.style.height = height+'px';
+	pane.style.width = width + 'px';
+	pane.style.height = height + 'px';
 
-	pane.setAttribute('coordsize', width+','+height);
+	pane.setAttribute('coordsize', width + ',' + height);
 	pane.setAttribute('coordorigin', '0,0');
 	
 	return pane;
@@ -2813,6 +2822,12 @@ mxGraphView.prototype.createSvg = function()
 	// in order for the container DIV to not show scrollbars.
 	root.style.display = 'block';
 	root.appendChild(this.canvas);
+	
+	// Workaround for scrollbars in IE11 and below
+	if (mxClient.IS_IE || mxClient.IS_IE11)
+	{
+		root.style.overflow = 'hidden';
+	}
 
 	if (container != null)
 	{

@@ -70,7 +70,7 @@ mxCodecRegistry.register(function()
 	 * (code)
 	 * <ui>
 	 *   <stylesheet name="css/process.css"/>
-	 *   <resource basename="resources/mxApplication"/>
+	 *   <resource basename="resources/app"/>
 	 *   <add as="graph" element="graph"
 	 *     style="left:70px;right:20px;top:20px;bottom:40px"/>
 	 *   <add as="status" element="status"/>
