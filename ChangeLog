@@ -1,3 +1,9 @@
+29-JAN-2017: 3.7.0.1
+
+- Fixes mxXmlRequest.simulate in Webkit
+- Adds HTML_SCALE, HTML_UNIT in mxGraphicsCanvas2D
+- Fixes repaint in mxConstraintHandler
+
 16-JAN-2017: 3.7.0.0
 
 - mxXmlRequest.simulate no longer adds form to DOM in Webkit

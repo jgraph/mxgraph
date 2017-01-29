@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2012, JGraph Ltd
+ * Copyright (c) 2011-2017, JGraph Ltd
  */
 package com.mxgraph.examples.web;
 
@@ -25,10 +25,9 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
-import com.lowagie.text.Document;
-import com.lowagie.text.DocumentException;
-import com.lowagie.text.Rectangle;
-import com.lowagie.text.pdf.PdfWriter;
+import com.mxpdf.text.Document;
+import com.mxpdf.text.DocumentException;
+import com.mxpdf.text.pdf.PdfWriter;
 import com.mxgraph.canvas.mxGraphicsCanvas2D;
 import com.mxgraph.canvas.mxICanvas2D;
 import com.mxgraph.reader.mxSaxOutputHandler;
@@ -229,7 +228,7 @@ public class ExportServlet extends HttpServlet
 		w += 1;
 		h += 1;
 
-		Document document = new Document(new Rectangle(w, h));
+		Document document = new Document(new com.mxpdf.text.Rectangle(w, h));
 		PdfWriter writer = PdfWriter.getInstance(document, response.getOutputStream());
 		document.open();
 
@@ -244,7 +243,7 @@ public class ExportServlet extends HttpServlet
 		writer.flush();
 		writer.close();
 	}
-
+	
 	/**
 	 * Renders the XML to the given canvas.
 	 */

@@ -22,6 +22,15 @@ public class GraphEditor
 	public static int PORT = 8080;
 
 	/**
+	 * Uncomment this for better font size rendering in px units within labels.
+	 */
+	static
+	{
+//		mxGraphicsCanvas2D.HTML_SCALE = 0.75;
+//		mxGraphicsCanvas2D.HTML_UNIT = "px";
+	}
+
+	/**
 	 * Point your browser to http://localhost:8080/javascript/examples/grapheditor/www/index.html
 	 */
 	public static void main(String[] args) throws Exception

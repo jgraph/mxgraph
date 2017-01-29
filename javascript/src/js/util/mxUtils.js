@@ -781,7 +781,7 @@ var mxUtils =
 	 */
 	htmlEntities: function(s, newline)
 	{
-		s = s || '';
+		s = String(s || '');
 		
 		s = s.replace(/&/g,'&amp;'); // 38 26
 		s = s.replace(/"/g,'&quot;'); // 34 22

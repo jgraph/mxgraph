@@ -448,13 +448,7 @@ mxXmlRequest.prototype.simulate = function(doc, target)
 		}
 	}
 	
-	// Webkit does not need the form in the DOM for submit to work
-	// which reduces the rendering time for very large textareas
-	if (!mxClient.IS_SF && !mxClient.IS_GC)
-	{	
-		doc.body.appendChild(form);
-	}
-	
+	doc.body.appendChild(form);
 	form.submit();
 	
 	if (form.parentNode != null)

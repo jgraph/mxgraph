@@ -59,9 +59,19 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 
 	/**
 	 * Specifies the additional pixels when computing the text width for HTML labels.
-	 * Default is 2.
+	 * Default is 5.
 	 */
-	public static int JAVA_TEXT_WIDTH_DELTA = 2;
+	public static int JAVA_TEXT_WIDTH_DELTA = 6;
+
+	/**
+	 * Scale for rendering HTML output. Default is 1.
+	 */
+	public static double HTML_SCALE = 1;
+
+	/**
+	 * Unit to be used for HTML labels. Default is "pt".
+	 */
+	public static String HTML_UNIT = "pt";
 
 	/**
 	 * Specifies the size of the cache used to store parsed colors
@@ -275,7 +285,8 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	/**
 	 * 
 	 */
-	public void rotate(double theta, boolean flipH, boolean flipV, double cx, double cy)
+	public void rotate(double theta, boolean flipH, boolean flipV, double cx,
+			double cy)
 	{
 		cx += state.dx;
 		cy += state.dy;
@@ -327,7 +338,8 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	public void setStrokeColor(String value)
 	{
 		// Lazy and cached instantiation strategy for all stroke properties
-		if (state.strokeColorValue == null || !state.strokeColorValue.equals(value))
+		if (state.strokeColorValue == null
+				|| !state.strokeColorValue.equals(value))
 		{
 			state.strokeColorValue = value;
 			state.strokeColor = null;
@@ -418,7 +430,8 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	 */
 	public void setFontBackgroundColor(String value)
 	{
-		if (state.fontBackgroundColorValue == null || !state.fontBackgroundColorValue.equals(value))
+		if (state.fontBackgroundColorValue == null
+				|| !state.fontBackgroundColorValue.equals(value))
 		{
 			state.fontBackgroundColorValue = value;
 			state.fontBackgroundColor = null;
@@ -430,7 +443,8 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	 */
 	public void setFontBorderColor(String value)
 	{
-		if (state.fontBorderColorValue == null || !state.fontBorderColorValue.equals(value))
+		if (state.fontBorderColorValue == null
+				|| !state.fontBorderColorValue.equals(value))
 		{
 			state.fontBorderColorValue = value;
 			state.fontBorderColor = null;
@@ -466,7 +480,8 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	{
 		if (state.alpha != value)
 		{
-			state.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) (value)));
+			state.g.setComposite(AlphaComposite
+					.getInstance(AlphaComposite.SRC_OVER, (float) (value)));
 			state.alpha = value;
 		}
 	}
@@ -513,8 +528,8 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	/**
 	 * 
 	 */
-	public void setGradient(String color1, String color2, double x, double y, double w, double h, String direction, double alpha1,
-			double alpha2)
+	public void setGradient(String color1, String color2, double x, double y,
+			double w, double h, String direction, double alpha1, double alpha2)
 	{
 		// LATER: Add lazy instantiation and check if paint already created
 		float x1 = (float) ((state.dx + x) * state.scale);
@@ -524,7 +539,8 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 		h *= state.scale;
 		w *= state.scale;
 
-		if (direction == null || direction.length() == 0 || direction.equals(mxConstants.DIRECTION_SOUTH))
+		if (direction == null || direction.length() == 0
+				|| direction.equals(mxConstants.DIRECTION_SOUTH))
 		{
 			y2 = (float) (y1 + h);
 		}
@@ -545,18 +561,20 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 
 		if (alpha1 != 1)
 		{
-			c1 = new Color(c1.getRed(), c1.getGreen(), c1.getBlue(), (int) (alpha1 * 255));
+			c1 = new Color(c1.getRed(), c1.getGreen(), c1.getBlue(),
+					(int) (alpha1 * 255));
 		}
 
 		Color c2 = parseColor(color2);
 
 		if (alpha2 != 1)
 		{
-			c2 = new Color(c2.getRed(), c2.getGreen(), c2.getBlue(), (int) (alpha2 * 255));
+			c2 = new Color(c2.getRed(), c2.getGreen(), c2.getBlue(),
+					(int) (alpha2 * 255));
 		}
 
 		state.gradientPaint = new GradientPaint(x1, y1, c1, x2, y2, c2, true);
-		
+
 		// Resets fill color
 		state.fillColorValue = null;
 	}
@@ -568,7 +586,7 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	{
 		return parseColor(hex, 1);
 	};
-	
+
 	/**
 	 * Helper method that uses {@link mxUtils#parseColor(String)}.
 	 */
@@ -591,14 +609,16 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	public void rect(double x, double y, double w, double h)
 	{
 		currentPath = new GeneralPath();
-		currentPath.append(new Rectangle2D.Double((state.dx + x) * state.scale, (state.dy + y) * state.scale, w * state.scale, h
-				* state.scale), false);
+		currentPath.append(new Rectangle2D.Double((state.dx + x) * state.scale,
+				(state.dy + y) * state.scale, w * state.scale, h * state.scale),
+				false);
 	}
 
 	/**
 	 * Implements a rounded rectangle using a path.
 	 */
-	public void roundrect(double x, double y, double w, double h, double dx, double dy)
+	public void roundrect(double x, double y, double w, double h, double dx,
+			double dy)
 	{
 		// LATER: Use arc here or quad in VML/SVG for exact match
 		begin();
@@ -619,14 +639,16 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	public void ellipse(double x, double y, double w, double h)
 	{
 		currentPath = new GeneralPath();
-		currentPath.append(new Ellipse2D.Double((state.dx + x) * state.scale, (state.dy + y) * state.scale, w * state.scale, h
-				* state.scale), false);
+		currentPath.append(new Ellipse2D.Double((state.dx + x) * state.scale,
+				(state.dy + y) * state.scale, w * state.scale, h * state.scale),
+				false);
 	}
 
 	/**
 	 * 
 	 */
-	public void image(double x, double y, double w, double h, String src, boolean aspect, boolean flipH, boolean flipV)
+	public void image(double x, double y, double w, double h, String src,
+			boolean aspect, boolean flipH, boolean flipV)
 	{
 		if (src != null && w > 0 && h > 0)
 		{
@@ -639,7 +661,10 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 
 				if (img != null)
 				{
-					drawImage(createImageGraphics(bounds.x, bounds.y, bounds.width, bounds.height, flipH, flipV), img, bounds.x, bounds.y);
+					drawImage(
+							createImageGraphics(bounds.x, bounds.y,
+									bounds.width, bounds.height, flipH, flipV),
+							img, bounds.x, bounds.y);
 				}
 			}
 		}
@@ -664,7 +689,8 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	/**
 	 * 
 	 */
-	protected final Rectangle getImageBounds(Image img, double x, double y, double w, double h, boolean aspect)
+	protected final Rectangle getImageBounds(Image img, double x, double y,
+			double w, double h, boolean aspect)
 	{
 		x = (state.dx + x) * state.scale;
 		y = (state.dy + y) * state.scale;
@@ -719,14 +745,15 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	/**
 	 * Creates a graphic instance for rendering an image.
 	 */
-	protected final Graphics2D createImageGraphics(double x, double y, double w, double h, boolean flipH, boolean flipV)
+	protected final Graphics2D createImageGraphics(double x, double y, double w,
+			double h, boolean flipH, boolean flipV)
 	{
 		Graphics2D g2 = state.g;
 
 		if (flipH || flipV)
 		{
 			g2 = (Graphics2D) g2.create();
-			
+
 			if (flipV && flipH)
 			{
 				g2.rotate(Math.toRadians(180), x + w / 2, y + h / 2);
@@ -743,13 +770,13 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 					sx = -1;
 					dx = (int) (-w - 2 * x);
 				}
-	
+
 				if (flipV)
 				{
 					sy = -1;
 					dy = (int) (-h - 2 * y);
 				}
-	
+
 				g2.scale(sx, sy);
 				g2.translate(dx, dy);
 			}
@@ -761,29 +788,39 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	/**
 	 * Creates a HTML document around the given markup.
 	 */
-	protected String createHtmlDocument(String text, String align, String valign, int w, int h, boolean wrap, String overflow, boolean clip)
+	protected String createHtmlDocument(String text, String align,
+			String valign, int w, int h, boolean wrap, String overflow,
+			boolean clip)
 	{
 		StringBuffer css = new StringBuffer();
 		css.append("display:inline;");
 		css.append("font-family:" + state.fontFamily + ";");
-		css.append("font-size:" + Math.round(state.fontSize) + " pt;");
+		css.append("font-size:" + Math.round(state.fontSize) + HTML_UNIT
+				+ ";");
 		css.append("color:" + state.fontColorValue + ";");
 		// KNOWN: Line-height ignored in JLabel
-		css.append("line-height:" + ((mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(state.fontSize * mxConstants.LINE_HEIGHT) + " pt" : mxConstants.LINE_HEIGHT) + ";");
-		
+		css.append("line-height:"
+				+ ((mxConstants.ABSOLUTE_LINE_HEIGHT)
+						? Math.round(state.fontSize * mxConstants.LINE_HEIGHT)
+								+ " " + HTML_UNIT
+						: mxConstants.LINE_HEIGHT)
+				+ ";");
+
 		boolean setWidth = false;
-		
+
 		if ((state.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
 		{
 			css.append("font-weight:bold;");
 		}
 
-		if ((state.fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
+		if ((state.fontStyle
+				& mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
 		{
 			css.append("font-style:italic;");
 		}
 
-		if ((state.fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
+		if ((state.fontStyle
+				& mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
 		{
 			css.append("text-decoration:underline;");
 		}
@@ -802,7 +839,8 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 
 		if (state.fontBackgroundColorValue != null)
 		{
-			css.append("background-color:" + state.fontBackgroundColorValue + ";");
+			css.append(
+					"background-color:" + state.fontBackgroundColorValue + ";");
 		}
 
 		// KNOWN: Border ignored in JLabel
@@ -821,16 +859,17 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 		{
 			if (overflow.equals("fill"))
 			{
-				css.append("height:" + Math.round(h) + "pt;");
+				css.append("height:" + Math.round(h) + HTML_UNIT + ";");
 				setWidth = true;
 			}
 			else if (overflow.equals("width"))
 			{
 				setWidth = true;
-	
+
 				if (h > 0)
 				{
-					css.append("height:" + Math.round(h) + "pt;");
+					css.append(
+							"height:" + Math.round(h) + HTML_UNIT + ";");
 				}
 			}
 		}
@@ -852,9 +891,9 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 
 		if (setWidth && w > 0)
 		{
-			css.append("width:" + Math.round(w) + "pt;");
+			css.append("width:" + Math.round(w) + HTML_UNIT + ";");
 		}
-		
+
 		return createHtmlDocument(text, css.toString());
 	}
 
@@ -913,7 +952,8 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	/**
 	 * Draws the given HTML text.
 	 */
-	protected void htmlText(double x, double y, double w, double h, String str, String align, String valign, boolean wrap, String format,
+	protected void htmlText(double x, double y, double w, double h, String str,
+			String align, String valign, boolean wrap, String format,
 			String overflow, boolean clip, double rotation)
 	{
 		x += state.dx;
@@ -925,39 +965,42 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 		{
 			// Use native scaling for HTML
 			AffineTransform previous = state.g.getTransform();
-			state.g.scale(state.scale, state.scale);
+			state.g.scale(state.scale * HTML_SCALE, state.scale * HTML_SCALE);
 			double rad = rotation * (Math.PI / 180);
 			state.g.rotate(rad, x, y);
 
-			// Renders the scaled text with a correction factor of
-			// PX_PER_PIXEL for px in HTML vs pixels in the bitmap
+			// Renders the scaled text with a correction factor
+			// HTML_SCALE for the given HTML_UNIT
 			boolean widthFill = false;
 			boolean fill = false;
-			
+
 			String original = str;
-			
+
 			if (overflow != null)
 			{
 				widthFill = overflow.equals("width");
 				fill = overflow.equals("fill");
 			}
-			
-			str = createHtmlDocument(str, align, valign, (widthFill || fill) ?
-					(int) Math.round(w) : 0, (fill) ?
-					(int) Math.round(h) : 0, wrap, overflow, clip);
+
+			str = createHtmlDocument(str, align, valign,
+					(widthFill || fill) ? (int) Math.round(w) : 0,
+					(fill) ? (int) Math.round(h) : 0, wrap, overflow, clip);
 			textRenderer.setText(str);
 			Dimension pref = textRenderer.getPreferredSize();
 			int prefWidth = pref.width;
 			int prefHeight = pref.height;
-			 
+
 			// Poor man's max-width
 			// TODO: Is this still needed?
-			if (((clip || wrap) && prefWidth > w && w > 0) || (clip && prefHeight > h && h > 0))
+			if (((clip || wrap) && prefWidth > w / HTML_SCALE && w > 0)
+					|| (clip && prefHeight > h / HTML_SCALE && h > 0))
 			{
 				// TextWidthDelta is workaround for inconsistent word wrapping in Java
-				int cw = (int) Math.round(w + ((wrap) ? JAVA_TEXT_WIDTH_DELTA : 0));
+				int cw = (int) Math
+						.round((w) + ((wrap) ? JAVA_TEXT_WIDTH_DELTA : 0));
 				int ch = (int) Math.round(h);
-				str = createHtmlDocument(original, align, valign, cw, ch, wrap, overflow, clip);
+				str = createHtmlDocument(original, align, valign, cw, ch, wrap,
+						overflow, clip);
 				textRenderer.setText(str);
 
 				pref = textRenderer.getPreferredSize();
@@ -968,47 +1011,50 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 			// Matches HTML output
 			if (clip && w > 0 && h > 0)
 			{
-				prefWidth = Math.min(pref.width, (int) w);
-				prefHeight = Math.min(prefHeight, (int) h);
-				h = prefHeight;
+				prefWidth = Math.min(pref.width, (int) (w / HTML_SCALE));
+				prefHeight = Math.min(prefHeight, (int) (h / HTML_SCALE));
+				h = prefHeight * HTML_SCALE;
 			}
 			else if (!clip && wrap && w > 0 && h > 0)
 			{
 				prefWidth = pref.width;
-				w = Math.max(pref.width, (int) w);
-				h = prefHeight;
-				prefHeight = Math.max(prefHeight, (int) h);
+				w = Math.max(pref.width, (int) (w / HTML_SCALE));
+				h = prefHeight * HTML_SCALE;
+				prefHeight = Math.max(prefHeight, (int) (h / HTML_SCALE));
 			}
 			else if (!clip && !wrap)
 			{
-				if (w > 0 && w < prefWidth)
+				if (w > 0 && w / HTML_SCALE < prefWidth)
 				{
-					w = prefWidth;
+					w = prefWidth * HTML_SCALE;
 				}
-				
-				if (h > 0 && h < prefHeight)
+
+				if (h > 0 && h / HTML_SCALE < prefHeight)
 				{
-					h = prefHeight;
+					h = prefHeight * HTML_SCALE;
 				}
 			}
-			
+
 			Point2D margin = getMargin(align, valign);
-			x += margin.getX() * prefWidth;
-			y += margin.getY() * prefHeight;
+			x += margin.getX() * prefWidth * HTML_SCALE;
+			y += margin.getY() * prefHeight * HTML_SCALE;
 
 			if (w == 0)
 			{
-				w = prefWidth;
+				w = prefWidth * HTML_SCALE;
 			}
 
 			if (h == 0)
 			{
-				h = prefHeight;
+				h = prefHeight * HTML_SCALE;
 			}
 
-			rendererPane.paintComponent(state.g, textRenderer, rendererPane, (int) Math.round(x), (int) Math.round(y), (int) Math.round(w),
-					(int) Math.round(h), true);
-			
+			rendererPane.paintComponent(state.g, textRenderer, rendererPane,
+					(int) Math.round(x / HTML_SCALE),
+					(int) Math.round(y / HTML_SCALE),
+					(int) Math.round(w / HTML_SCALE),
+					(int) Math.round(h / HTML_SCALE), true);
+
 			state.g.setTransform(previous);
 		}
 	}
@@ -1016,31 +1062,36 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	/**
 	 * Draws the given text.
 	 */
-	public void text(double x, double y, double w, double h, String str, String align, String valign, boolean wrap, String format,
-			String overflow, boolean clip, double rotation, String textDirection)
+	public void text(double x, double y, double w, double h, String str,
+			String align, String valign, boolean wrap, String format,
+			String overflow, boolean clip, double rotation,
+			String textDirection)
 	{
 		// TODO: Add support for text direction
 		if (format != null && format.equals("html"))
 		{
-			htmlText(x, y, w, h, str, align, valign, wrap, format, overflow, clip, rotation);
+			htmlText(x, y, w, h, str, align, valign, wrap, format, overflow,
+					clip, rotation);
 		}
 		else
 		{
-			plainText(x, y, w, h, str, align, valign, wrap, format, overflow, clip, rotation);
+			plainText(x, y, w, h, str, align, valign, wrap, format, overflow,
+					clip, rotation);
 		}
 	}
 
 	/**
 	 * Draws the given text.
 	 */
-	public void plainText(double x, double y, double w, double h, String str, String align, String valign, boolean wrap, String format,
+	public void plainText(double x, double y, double w, double h, String str,
+			String align, String valign, boolean wrap, String format,
 			String overflow, boolean clip, double rotation)
 	{
 		if (state.fontColor == null)
 		{
 			state.fontColor = parseColor(state.fontColorValue);
 		}
-		
+
 		if (state.fontColor != null)
 		{
 			x = (state.dx + x) * state.scale;
@@ -1049,26 +1100,28 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 			h *= state.scale;
 
 			// Font-metrics needed below this line
-			Graphics2D g2 = createTextGraphics(x, y, w, h, rotation, clip, align, valign);
+			Graphics2D g2 = createTextGraphics(x, y, w, h, rotation, clip,
+					align, valign);
 			FontMetrics fm = g2.getFontMetrics();
 			String[] lines = str.split("\n");
-			
+
 			int[] stringWidths = new int[lines.length];
 			int textWidth = 0;
-			
+
 			for (int i = 0; i < lines.length; i++)
 			{
 				stringWidths[i] = fm.stringWidth(lines[i]);
 				textWidth = Math.max(textWidth, stringWidths[i]);
 			}
 
-			int textHeight = (int) Math.round(lines.length * (fm.getFont().getSize() * mxConstants.LINE_HEIGHT));
-			
+			int textHeight = (int) Math.round(lines.length
+					* (fm.getFont().getSize() * mxConstants.LINE_HEIGHT));
+
 			if (clip && textHeight > h && h > 0)
 			{
 				textHeight = (int) h;
 			}
-			
+
 			Point2D margin = getMargin(align, valign);
 			x += margin.getX() * textWidth;
 			y += margin.getY() * textHeight;
@@ -1077,30 +1130,34 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 			{
 				if (state.fontBackgroundColor == null)
 				{
-					state.fontBackgroundColor = parseColor(state.fontBackgroundColorValue);
+					state.fontBackgroundColor = parseColor(
+							state.fontBackgroundColorValue);
 				}
-				
+
 				if (state.fontBackgroundColor != null)
 				{
 					g2.setColor(state.fontBackgroundColor);
-					g2.fillRect((int) Math.round(x), (int) Math.round(y - 1), textWidth + 1, textHeight + 2);
+					g2.fillRect((int) Math.round(x), (int) Math.round(y - 1),
+							textWidth + 1, textHeight + 2);
 				}
 			}
-			
+
 			if (state.fontBorderColorValue != null)
 			{
 				if (state.fontBorderColor == null)
 				{
-					state.fontBorderColor = parseColor(state.fontBorderColorValue);
+					state.fontBorderColor = parseColor(
+							state.fontBorderColorValue);
 				}
-				
+
 				if (state.fontBorderColor != null)
 				{
 					g2.setColor(state.fontBorderColor);
-					g2.drawRect((int) Math.round(x), (int) Math.round(y - 1), textWidth + 1, textHeight + 2);
+					g2.drawRect((int) Math.round(x), (int) Math.round(y - 1),
+							textWidth + 1, textHeight + 2);
 				}
 			}
-			
+
 			g2.setColor(state.fontColor);
 			y += fm.getHeight() - fm.getDescent() - (margin.getY() + 0.5);
 
@@ -1123,21 +1180,26 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 				// Adds support for underlined text via attributed character iterator
 				if (!lines[i].isEmpty())
 				{
-					if ((state.fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
+					if ((state.fontStyle
+							& mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
 					{
 						AttributedString as = new AttributedString(lines[i]);
 						as.addAttribute(TextAttribute.FONT, g2.getFont());
-						as.addAttribute(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
-	
-						g2.drawString(as.getIterator(), (int) Math.round(x + dx), (int) Math.round(y));
+						as.addAttribute(TextAttribute.UNDERLINE,
+								TextAttribute.UNDERLINE_ON);
+
+						g2.drawString(as.getIterator(),
+								(int) Math.round(x + dx), (int) Math.round(y));
 					}
 					else
 					{
-						g2.drawString(lines[i], (int) Math.round(x + dx), (int) Math.round(y));
+						g2.drawString(lines[i], (int) Math.round(x + dx),
+								(int) Math.round(y));
 					}
 				}
 
-				y += (int) Math.round(fm.getFont().getSize() * mxConstants.LINE_HEIGHT);
+				y += (int) Math.round(
+						fm.getFont().getSize() * mxConstants.LINE_HEIGHT);
 			}
 		}
 	}
@@ -1146,7 +1208,9 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	 * Returns a new graphics instance with the correct color and font for
 	 * text rendering.
 	 */
-	protected final Graphics2D createTextGraphics(double x, double y, double w, double h, double rotation, boolean clip, String align, String valign)
+	protected final Graphics2D createTextGraphics(double x, double y, double w,
+			double h, double rotation, boolean clip, String align,
+			String valign)
 	{
 		Graphics2D g2 = state.g;
 		updateFont();
@@ -1158,18 +1222,18 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 			double rad = rotation * (Math.PI / 180);
 			g2.rotate(rad, x, y);
 		}
-		
+
 		if (clip && w > 0 && h > 0)
 		{
 			if (g2 == state.g)
 			{
 				g2 = (Graphics2D) state.g.create();
 			}
-			
+
 			Point2D margin = getMargin(align, valign);
 			x += margin.getX() * w;
 			y += margin.getY() * h;
-			
+
 			g2.clip(new Rectangle2D.Double(x, y, w, h));
 		}
 
@@ -1191,7 +1255,8 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	{
 		if (currentPath != null)
 		{
-			currentPath.moveTo((float) ((state.dx + x) * state.scale), (float) ((state.dy + y) * state.scale));
+			currentPath.moveTo((float) ((state.dx + x) * state.scale),
+					(float) ((state.dy + y) * state.scale));
 		}
 	}
 
@@ -1202,7 +1267,8 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	{
 		if (currentPath != null)
 		{
-			currentPath.lineTo((float) ((state.dx + x) * state.scale), (float) ((state.dy + y) * state.scale));
+			currentPath.lineTo((float) ((state.dx + x) * state.scale),
+					(float) ((state.dy + y) * state.scale));
 		}
 	}
 
@@ -1213,21 +1279,27 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	{
 		if (currentPath != null)
 		{
-			currentPath.quadTo((float) ((state.dx + x1) * state.scale), (float) ((state.dy + y1) * state.scale),
-					(float) ((state.dx + x2) * state.scale), (float) ((state.dy + y2) * state.scale));
+			currentPath.quadTo((float) ((state.dx + x1) * state.scale),
+					(float) ((state.dy + y1) * state.scale),
+					(float) ((state.dx + x2) * state.scale),
+					(float) ((state.dy + y2) * state.scale));
 		}
 	}
 
 	/**
 	 * 
 	 */
-	public void curveTo(double x1, double y1, double x2, double y2, double x3, double y3)
+	public void curveTo(double x1, double y1, double x2, double y2, double x3,
+			double y3)
 	{
 		if (currentPath != null)
 		{
-			currentPath.curveTo((float) ((state.dx + x1) * state.scale), (float) ((state.dy + y1) * state.scale),
-					(float) ((state.dx + x2) * state.scale), (float) ((state.dy + y2) * state.scale),
-					(float) ((state.dx + x3) * state.scale), (float) ((state.dy + y3) * state.scale));
+			currentPath.curveTo((float) ((state.dx + x1) * state.scale),
+					(float) ((state.dy + y1) * state.scale),
+					(float) ((state.dx + x2) * state.scale),
+					(float) ((state.dy + y2) * state.scale),
+					(float) ((state.dx + x3) * state.scale),
+					(float) ((state.dy + y3) * state.scale));
 		}
 	}
 
@@ -1277,7 +1349,8 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 			{
 				if (state.strokeColor == null)
 				{
-					state.strokeColor = parseColor(state.strokeColorValue, state.strokeAlpha);
+					state.strokeColor = parseColor(state.strokeColorValue,
+							state.strokeAlpha);
 				}
 
 				if (state.strokeColor != null)
@@ -1290,7 +1363,8 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 			{
 				if (state.gradientPaint == null && state.fillColor == null)
 				{
-					state.fillColor = parseColor(state.fillColorValue, state.fillAlpha);
+					state.fillColor = parseColor(state.fillColorValue,
+							state.fillAlpha);
 				}
 			}
 
@@ -1324,7 +1398,7 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 			}
 		}
 	}
-	
+
 	/**
 	 * 
 	 */
@@ -1363,9 +1437,11 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 			double alpha = state.alpha * state.shadowAlpha;
 
 			Composite comp = state.g.getComposite();
-			state.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) (alpha)));
+			state.g.setComposite(AlphaComposite
+					.getInstance(AlphaComposite.SRC_OVER, (float) (alpha)));
 
-			if (filled && (state.gradientPaint != null || state.fillColor != null))
+			if (filled
+					&& (state.gradientPaint != null || state.fillColor != null))
 			{
 				state.g.fill(currentPath);
 			}
@@ -1420,10 +1496,15 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	protected void updateFont()
 	{
 		int size = (int) Math.round(state.fontSize * state.scale);
-		int style = ((state.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD) ? Font.BOLD : Font.PLAIN;
-		style += ((state.fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC) ? Font.ITALIC : Font.PLAIN;
+		int style = ((state.fontStyle
+				& mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD) ? Font.BOLD
+						: Font.PLAIN;
+		style += ((state.fontStyle
+				& mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
+						? Font.ITALIC : Font.PLAIN;
 
-		if (lastFont == null || !lastFontFamily.equals(state.fontFamily) || size != lastFontSize || style != lastFontStyle)
+		if (lastFont == null || !lastFontFamily.equals(state.fontFamily)
+				|| size != lastFontSize || style != lastFontStyle)
 		{
 			lastFont = createFont(state.fontFamily, style, size);
 			lastFontFamily = state.fontFamily;
@@ -1492,8 +1573,10 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 
 		float miterlimit = (float) state.miterLimit;
 
-		if (lastStroke == null || lastStrokeWidth != sw || lastCap != cap || lastJoin != join || lastMiterLimit != miterlimit
-				|| lastDashed != state.dashed || (state.dashed && lastDashPattern != state.dashPattern))
+		if (lastStroke == null || lastStrokeWidth != sw || lastCap != cap
+				|| lastJoin != join || lastMiterLimit != miterlimit
+				|| lastDashed != state.dashed
+				|| (state.dashed && lastDashPattern != state.dashPattern))
 		{
 			float[] dash = null;
 
@@ -1533,7 +1616,7 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 		 * 
 		 */
 		protected double fillAlpha = 1;
-		
+
 		/**
 		 * 
 		 */

@@ -31,6 +31,10 @@ function mxConstraintHandler(graph)
 		{
 			this.reset();
 		}
+		else
+		{
+			this.redraw();
+		}
 	});
 	
 	this.graph.model.addListener(mxEvent.CHANGE, this.resetHandler);
@@ -348,6 +352,36 @@ mxConstraintHandler.prototype.update = function(me, source, existingEdge, point)
 		this.currentFocus = null;
 		this.currentPoint = null;
 	}
+};
+
+/**
+ * Function: redraw
+ * 
+ * Transfers the focus to the given state as a source or target terminal. If
+ * the handler is not enabled then the outline is painted, but the constraints
+ * are ignored.
+ */
+mxConstraintHandler.prototype.redraw = function()
+{
+	if (this.currentFocus != null && this.constraints != null && this.focusIcons != null)
+	{
+		var state = this.graph.view.getState(this.currentFocus.cell);
+		this.currentFocus = state;
+		this.currentFocusArea = new mxRectangle(state.x, state.y, state.width, state.height);
+		
+		for (var i = 0; i < this.constraints.length; i++)
+		{
+			var cp = this.graph.getConnectionPoint(state, this.constraints[i]);
+			var img = this.getImageForConstraint(state, this.constraints[i], cp);
+
+			var bounds = new mxRectangle(Math.round(cp.x - img.width / 2),
+				Math.round(cp.y - img.height / 2), img.width, img.height);
+			this.focusIcons[i].bounds = bounds;
+			this.focusIcons[i].redraw();
+			this.currentFocusArea.add(this.focusIcons[i].bounds);
+			this.focusPoints[i] = cp;
+		}
+	}	
 };
 
 /**

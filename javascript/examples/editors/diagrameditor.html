@@ -141,7 +141,6 @@
 					textNode.style.display = 'none';
 
 					// Moves the focus back to the graph
-					textNode.blur();
 					editor.graph.container.focus();
 				}
 			};
@@ -322,7 +321,7 @@
 					<!-- Toolbar Here -->				
 				</td>
 				<td valign="top" style="border-width:1px;border-style:solid;border-color:black;">
-					<div id="graph" style="position:relative;height:480px;width:684px;overflow:hidden;cursor:default;">
+					<div id="graph" tabindex="-1" style="position:relative;height:480px;width:684px;overflow:hidden;cursor:default;">
 						<!-- Graph Here -->
 						<center id="splash" style="padding-top:230px;">
 							<img src="images/loading.gif">
