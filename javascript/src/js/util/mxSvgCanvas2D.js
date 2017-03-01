@@ -216,6 +216,13 @@ mxSvgCanvas2D.prototype.foOffset = 0;
 mxSvgCanvas2D.prototype.textOffset = 0;
 
 /**
+ * Variable: imageOffset
+ * 
+ * Offset to be used for image elements.
+ */
+mxSvgCanvas2D.prototype.imageOffset = 0;
+
+/**
  * Variable: strokeTolerance
  * 
  * Adds transparent paths for strokes.
@@ -1011,8 +1018,8 @@ mxSvgCanvas2D.prototype.image = function(x, y, w, h, src, aspect, flipH, flipV)
 	y += s.dy;
 	
 	var node = this.createElement('image');
-	node.setAttribute('x', this.format(x * s.scale));
-	node.setAttribute('y', this.format(y * s.scale));
+	node.setAttribute('x', this.format(x * s.scale) + this.imageOffset);
+	node.setAttribute('y', this.format(y * s.scale) + this.imageOffset);
 	node.setAttribute('width', this.format(w * s.scale));
 	node.setAttribute('height', this.format(h * s.scale));
 	

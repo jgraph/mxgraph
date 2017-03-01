@@ -116,7 +116,7 @@ class mxConstants
 	/**
 	 * Variable: DEFAULT_FONTSIZE
 	 * 
-	 * Defines the default size for all fonts in points. Default is 11.
+	 * Defines the default size (in px). Default is 11.
 	 */
 	public static $DEFAULT_FONTSIZE = 11;
 
@@ -858,7 +858,7 @@ class mxConstants
 	/**
 	 * Variable: STYLE_FONTSIZE
 	 *
-	 * Defines the key for the fontSize style (in points). The type of the value
+	 * Defines the key for the fontSize style (in px). The type of the value
 	 * is int.
 	 */
 	public static $STYLE_FONTSIZE = "fontSize";

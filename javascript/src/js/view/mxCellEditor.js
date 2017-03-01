@@ -308,15 +308,7 @@ mxCellEditor.prototype.getInitialValue = function(state, trigger)
  */
 mxCellEditor.prototype.getCurrentValue = function(state)
 {
-	var result = mxUtils.extractTextWithWhitespace(this.textarea.childNodes);
-	
-    // Strips trailing line break
-    if (result.length > 0 && result.charAt(result.length - 1) == '\n')
-    {
-    	result = result.substring(0, result.length - 1);
-    }
-	
-	return result;
+	return mxUtils.extractTextWithWhitespace(this.textarea.childNodes);
 };
 
 /**
@@ -854,6 +846,7 @@ mxCellEditor.prototype.stopEditing = function(cancel)
 		
 		if (state != null && this.textarea.innerHTML != initial)
 		{
+			this.prepareTextarea();
 			var value = this.getCurrentValue(state);
 			
 			if (value != null)
@@ -865,6 +858,21 @@ mxCellEditor.prototype.stopEditing = function(cancel)
 		// Forces new instance on next edit for undo history reset
 		mxEvent.release(this.textarea);
 		this.textarea = null;
+	}
+};
+
+/**
+ * Function: prepareTextarea
+ * 
+ * Prepares the textarea for getting its value in <stopEditing>.
+ * This implementation removes the extra trailing linefeed in Firefox.
+ */
+mxCellEditor.prototype.prepareTextarea = function()
+{
+	if (mxClient.IS_FF && this.textarea.lastChild != null &&
+		this.textarea.lastChild.nodeName == 'BR')
+	{
+		this.textarea.removeChild(this.textarea.lastChild);
 	}
 };
 

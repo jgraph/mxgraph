@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.7.0.1.
+	 * Current version is 3.7.1.
 	 */
-	VERSION: '3.7.0.1',
+	VERSION: '3.7.1',
 
 	/**
 	 * Variable: IS_IE
@@ -2969,50 +2969,57 @@ var mxUtils =
 	 */
 	extractTextWithWhitespace: function(elems)
 	{
-		// Converts newlines in plain text to breaks in HTML
-		// to match the plain text output
-	    var ignoreBr = false;
-	    var ret = [];
+	    // Known block elements for handling linefeeds (list is not complete)
+		var blocks = ['BLOCKQUOTE', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'OL', 'P', 'PRE', 'TABLE', 'UL'];
+		var ret = [];
+		
+		function doExtract(elts)
+		{
+			// Single break should be ignored
+			if (elts.length == 1 && (elts[0].nodeName == 'BR' ||
+				elts[0].innerHTML == '\n'))
+			{
+				return;
+			}
+			
+		    for (var i = 0; i < elts.length; i++)
+		    {
+		        var elem = elts[i];
+
+				// DIV with a br or linefeed forces a linefeed
+				if (elem.nodeName == 'BR' || elem.innerHTML == '\n' ||
+					((elts.length == 1 || i == 0) && (elem.nodeName == 'DIV' &&
+					elem.innerHTML.toLowerCase() == '<br>')))
+		    	{
+	    			ret.push('\n');
+		    	}
+				else
+				{
+			        if (elem.nodeType === 3 || elem.nodeType === 4)
+			        {
+			        	if (elem.nodeValue.length > 0)
+			        	{
+			        		ret.push(elem.nodeValue);
+			        	}
+			        }
+			        else if (elem.nodeType !== 8 && elem.childNodes.length > 0)
+					{
+						doExtract(elem.childNodes);
+					}
+			        
+	        		if (i < elts.length - 1 && mxUtils.indexOf(blocks, elts[i + 1].nodeName) >= 0)
+	        		{
+	        			ret.push('\n');		
+	        		}
+				}
+		    }
+		};
+		
+		doExtract(elems);
 	    
-	    for (var i = 0; elems[i]; i++)
-	    {
-	        var elem = elems[i];
-
-	        // Get the text from text nodes and CDATA nodes
-	        if (elem.nodeType === 3 || elem.nodeType === 4)
-	        {
-	        	// Workaround for last empty element in IE 11
-	        	if (document.documentMode == 11 && i == elems.length - 1 && elem.nodeValue.length == 0)
-        		{
-        			break;
-        		}
-	        	
-	        	// Only inserts a newline if the next element is not another text element
-	        	ret.push(elem.nodeValue + ((elem.nextSibling == null || elem.nextSibling.nodeType != 3) ? '\n' : ''));
-	            ignoreBr = true;
-
-	        // Traverse everything else, except comment nodes
-	        }
-	        else if (elem.nodeType !== 8)
-	        {
-	        	// Best effort normalization translates BR (except after text) and empty P (in IE) to line breaks
-	        	if ((((mxClient.IS_IE || mxClient.IS_IE11) && elem.nodeName == 'P' && elem.innerHTML.length == 0)) ||
-	        		(!ignoreBr && elem.nodeName == 'BR') || (elem.nodeName == 'DIV' && elem.innerHTML == '<br>'))
-	        	{
-	        		ret.push('\n');
-	        	}
-	        	else
-	        	{	 
-	        		ret.push(mxUtils.extractTextWithWhitespace(elem.childNodes));
-	        	}
-
-		        ignoreBr = false;
-	        }
-	    }
-
 	    return ret.join('');
 	},
-	
+
 	/**
 	 * Function: replaceTrailingNewlines
 	 * 
@@ -4598,7 +4605,19 @@ var mxUtils =
 		var offsetLeft = 0;
 		var offsetTop = 0;
 		
-		if (scrollOffset != null && scrollOffset)
+		// Ignores document scroll origin for fixed elements
+		var fixed = false;
+		var node = container;
+		var b = document.body;
+		var d = document.documentElement;
+
+		while (node != null && node != b && node != d && !fixed)
+		{
+			fixed = fixed || mxUtils.getCurrentStyle(node).position == 'fixed';
+			node = node.parentNode;
+		}
+		
+		if (!scrollOffset && !fixed)
 		{
 			var offset = mxUtils.getDocumentScrollOrigin(container.ownerDocument);
 			offsetLeft += offset.x;
@@ -4646,10 +4665,12 @@ var mxUtils =
 	 */
 	getScrollOrigin: function(node)
 	{
-		var b = document.body;
-		var d = document.documentElement;
-		var result = mxUtils.getDocumentScrollOrigin((node != null) ? node.ownerDocument : document);
-		
+		var doc = (node != null) ? node.ownerDocument : document;
+		var b = doc.body;
+		var d = doc.documentElement;
+		var result = new mxPoint();
+		var fixed = false;
+
 		while (node != null && node != b && node != d)
 		{
 			if (!isNaN(node.scrollLeft) && !isNaN(node.scrollTop))
@@ -4657,13 +4678,22 @@ var mxUtils =
 				result.x += node.scrollLeft;
 				result.y += node.scrollTop;
 			}
-			
+
+			fixed = fixed || mxUtils.getCurrentStyle(node).position == 'fixed';
 			node = node.parentNode;
+		}
+
+		if (!fixed)
+		{
+			var origin = mxUtils.getDocumentScrollOrigin(doc);
+
+			result.x += origin.x;
+			result.y += origin.y;
 		}
 		
 		return result;
 	},
-	
+
 	/**
 	 * Function: convertPoint
 	 * 
@@ -6862,15 +6892,14 @@ var mxUtils =
 	/**
 	 * Variable: DEFAULT_FONTFAMILY
 	 * 
-	 * Defines the default family for all fonts in points. Default is
-	 * Arial,Helvetica.
+	 * Defines the default family for all fonts. Default is Arial,Helvetica.
 	 */
 	DEFAULT_FONTFAMILY: 'Arial,Helvetica',
 
 	/**
 	 * Variable: DEFAULT_FONTSIZE
 	 * 
-	 * Defines the default size for all fonts in points. Default is 11.
+	 * Defines the default size (in px). Default is 11.
 	 */
 	DEFAULT_FONTSIZE: 11,
 
@@ -7888,7 +7917,7 @@ var mxUtils =
 	/**
 	 * Variable: STYLE_FONTSIZE
 	 * 
-	 * Defines the key for the fontSize style (in points). The type of the value
+	 * Defines the key for the fontSize style (in px). The type of the value
 	 * is int. Value is "fontSize".
 	 */
 	STYLE_FONTSIZE: 'fontSize',
@@ -10479,13 +10508,6 @@ var mxEvent =
 	 * Specifies the event name for escape.
 	 */
 	ESCAPE: 'escape',
-
-	/**
-	 * Variable: CLICK
-	 *
-	 * Specifies the event name for click.
-	 */
-	CLICK: 'click',
 
 	/**
 	 * Variable: DOUBLE_CLICK
@@ -18288,6 +18310,13 @@ mxSvgCanvas2D.prototype.foOffset = 0;
 mxSvgCanvas2D.prototype.textOffset = 0;
 
 /**
+ * Variable: imageOffset
+ * 
+ * Offset to be used for image elements.
+ */
+mxSvgCanvas2D.prototype.imageOffset = 0;
+
+/**
  * Variable: strokeTolerance
  * 
  * Adds transparent paths for strokes.
@@ -19083,8 +19112,8 @@ mxSvgCanvas2D.prototype.image = function(x, y, w, h, src, aspect, flipH, flipV)
 	y += s.dy;
 	
 	var node = this.createElement('image');
-	node.setAttribute('x', this.format(x * s.scale));
-	node.setAttribute('y', this.format(y * s.scale));
+	node.setAttribute('x', this.format(x * s.scale) + this.imageOffset);
+	node.setAttribute('y', this.format(y * s.scale) + this.imageOffset);
 	node.setAttribute('width', this.format(w * s.scale));
 	node.setAttribute('height', this.format(h * s.scale));
 	
@@ -46279,15 +46308,7 @@ mxCellEditor.prototype.getInitialValue = function(state, trigger)
  */
 mxCellEditor.prototype.getCurrentValue = function(state)
 {
-	var result = mxUtils.extractTextWithWhitespace(this.textarea.childNodes);
-	
-    // Strips trailing line break
-    if (result.length > 0 && result.charAt(result.length - 1) == '\n')
-    {
-    	result = result.substring(0, result.length - 1);
-    }
-	
-	return result;
+	return mxUtils.extractTextWithWhitespace(this.textarea.childNodes);
 };
 
 /**
@@ -46825,6 +46846,7 @@ mxCellEditor.prototype.stopEditing = function(cancel)
 		
 		if (state != null && this.textarea.innerHTML != initial)
 		{
+			this.prepareTextarea();
 			var value = this.getCurrentValue(state);
 			
 			if (value != null)
@@ -46836,6 +46858,21 @@ mxCellEditor.prototype.stopEditing = function(cancel)
 		// Forces new instance on next edit for undo history reset
 		mxEvent.release(this.textarea);
 		this.textarea = null;
+	}
+};
+
+/**
+ * Function: prepareTextarea
+ * 
+ * Prepares the textarea for getting its value in <stopEditing>.
+ * This implementation removes the extra trailing linefeed in Firefox.
+ */
+mxCellEditor.prototype.prepareTextarea = function()
+{
+	if (mxClient.IS_FF && this.textarea.lastChild != null &&
+		this.textarea.lastChild.nodeName == 'BR')
+	{
+		this.textarea.removeChild(this.textarea.lastChild);
 	}
 };
 
@@ -57041,12 +57078,12 @@ mxGraph.prototype.groupCells = function(group, border, cells)
 
 			// Adds the group into the parent
 			var index = this.model.getChildCount(parent);
-			this.cellsAdded([group], parent, index, null, null, false);
+			this.cellsAdded([group], parent, index, null, null, false, false, false);
 
 			// Adds the children into the group and moves
 			index = this.model.getChildCount(group);
-			this.cellsAdded(cells, group, index, null, null, false, false);
-			this.cellsMoved(cells, -bounds.x, -bounds.y, false, true);
+			this.cellsAdded(cells, group, index, null, null, false, false, false);
+			this.cellsMoved(cells, -bounds.x, -bounds.y, false, false, false);
 
 			// Resizes the group
 			this.cellsResized([group], [bounds], false);
@@ -57730,7 +57767,7 @@ mxGraph.prototype.addCells = function(cells, parent, index, source, target)
  * Adds the specified cells to the given parent. This method fires
  * <mxEvent.CELLS_ADDED> while the transaction is in progress.
  */
-mxGraph.prototype.cellsAdded = function(cells, parent, index, source, target, absolute, constrain)
+mxGraph.prototype.cellsAdded = function(cells, parent, index, source, target, absolute, constrain, extend)
 {
 	if (cells != null && parent != null && index != null)
 	{
@@ -57794,7 +57831,8 @@ mxGraph.prototype.cellsAdded = function(cells, parent, index, source, target, ab
 					}
 
 					// Extends the parent or constrains the child
-					if (this.isExtendParentsOnAdd(cells[i]) && this.isExtendParent(cells[i]))
+					if ((extend == null || extend) &&
+						this.isExtendParentsOnAdd(cells[i]) && this.isExtendParent(cells[i]))
 					{
 						this.extendParent(cells[i]);
 					}
@@ -60484,8 +60522,15 @@ mxGraph.prototype.getBoundingBoxFromGeometry = function(cells, includeEdges)
 							}
 						};
 						
-						addPoint(geo.getTerminalPoint(true));
-						addPoint(geo.getTerminalPoint(false));
+						if (this.model.getTerminal(cells[i], true) == null)
+						{
+							addPoint(geo.getTerminalPoint(true));
+						}
+						
+						if (this.model.getTerminal(cells[i], false) == null)
+						{
+							addPoint(geo.getTerminalPoint(false));
+						}
 												
 						var pts = geo.points;
 						
@@ -61643,20 +61688,20 @@ mxGraph.prototype.getCellValidationError = function(cell)
 			var rule = this.multiplicities[i];
 			
 			if (rule.source && mxUtils.isNode(value, rule.type,
-				rule.attr, rule.value) && ((rule.max == 0 && outCount > 0) ||
-				(rule.min == 1 && outCount == 0) || (rule.max == 1 && outCount > 1)))
+				rule.attr, rule.value) && (outCount > rule.max ||
+				outCount < rule.min))
 			{
 				error += rule.countError + '\n';
 			}
 			else if (!rule.source && mxUtils.isNode(value, rule.type,
-					rule.attr, rule.value) && ((rule.max == 0 && inCount > 0) ||
-					(rule.min == 1 && inCount == 0) || (rule.max == 1 && inCount > 1)))	
+					rule.attr, rule.value) && (inCount > rule.max ||
+					inCount < rule.min))
 			{
 				error += rule.countError + '\n';
 			}
 		}
 	}
-	
+
 	return (error.length > 0) ? error : null;
 };
 

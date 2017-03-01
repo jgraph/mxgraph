@@ -944,9 +944,9 @@ PageSetupDialog.getFormats = function()
 /**
  * Constructs a new print dialog.
  */
-var PrintDialog = function(editorUi)
+var PrintDialog = function(editorUi, title)
 {
-	this.create(editorUi);
+	this.create(editorUi, title);
 };
 
 /**
@@ -1231,7 +1231,7 @@ PrintDialog.createPrintPreview = function(graph, scale, pf, border, x0, y0, auto
 /**
  * Constructs a new filename dialog.
  */
-var FilenameDialog = function(editorUi, filename, buttonText, fn, label, validateFn, content, helpLink, closeOnBtn)
+var FilenameDialog = function(editorUi, filename, buttonText, fn, label, validateFn, content, helpLink, closeOnBtn, cancelFn)
 {
 	closeOnBtn = (closeOnBtn != null) ? closeOnBtn : true;
 	var row, td;
@@ -1243,6 +1243,7 @@ var FilenameDialog = function(editorUi, filename, buttonText, fn, label, validat
 	row = document.createElement('tr');
 	
 	td = document.createElement('td');
+	td.style.whiteSpace = 'nowrap';
 	td.style.fontSize = '10pt';
 	td.style.width = '120px';
 	mxUtils.write(td, (label || mxResources.get('filename')) + ':');
@@ -1251,6 +1252,7 @@ var FilenameDialog = function(editorUi, filename, buttonText, fn, label, validat
 	
 	var nameInput = document.createElement('input');
 	nameInput.setAttribute('value', filename || '');
+	nameInput.style.marginLeft = '4px';
 	nameInput.style.width = '180px';
 	
 	var genericBtn = mxUtils.button(buttonText, function()
@@ -1367,6 +1369,11 @@ var FilenameDialog = function(editorUi, filename, buttonText, fn, label, validat
 	var cancelBtn = mxUtils.button(mxResources.get('cancel'), function()
 	{
 		editorUi.hideDialog();
+		
+		if (cancelFn != null)
+		{
+			cancelFn();
+		}
 	});
 	cancelBtn.className = 'geBtn';
 	
@@ -1411,7 +1418,7 @@ var FilenameDialog = function(editorUi, filename, buttonText, fn, label, validat
 /**
  * Constructs a new textarea dialog.
  */
-var TextareaDialog = function(editorUi, title, url, fn, cancelFn, cancelTitle, w, h, addButtons, noHide)
+var TextareaDialog = function(editorUi, title, url, fn, cancelFn, cancelTitle, w, h, addButtons, noHide, noWrap, applyTitle)
 {
 	w = (w != null) ? w : 300;
 	h = (h != null) ? h : 120;
@@ -1435,6 +1442,12 @@ var TextareaDialog = function(editorUi, title, url, fn, cancelFn, cancelTitle, w
 	td = document.createElement('td');
 
 	var nameInput = document.createElement('textarea');
+	
+	if (noWrap)
+	{
+		nameInput.setAttribute('wrap', 'off');
+	}
+	
 	mxUtils.write(nameInput, url || '');
 	nameInput.style.resize = 'none';
 	nameInput.style.width = w + 'px';
@@ -1482,7 +1495,7 @@ var TextareaDialog = function(editorUi, title, url, fn, cancelFn, cancelTitle, w
 	
 	if (fn != null)
 	{
-		var genericBtn = mxUtils.button(mxResources.get('apply'), function()
+		var genericBtn = mxUtils.button(applyTitle || mxResources.get('apply'), function()
 		{
 			if (!noHide)
 			{
@@ -1864,7 +1877,7 @@ var ExportDialog = function(editorUi)
 	
 	var borderInput = document.createElement('input');
 	borderInput.setAttribute('type', 'number');
-	borderInput.setAttribute('value', '0');
+	borderInput.setAttribute('value', ExportDialog.lastBorderValue);
 	borderInput.style.width = '180px';
 
 	td = document.createElement('td');
@@ -2025,6 +2038,7 @@ var ExportDialog = function(editorUi)
 				bg = '#ffffff';
 			}
 			
+			ExportDialog.lastBorderValue = b;
 			ExportDialog.exportFile(editorUi, name, format, bg, s, b);
 		}
 	}));
@@ -2052,6 +2066,11 @@ var ExportDialog = function(editorUi)
 	table.appendChild(tbody);
 	this.container = table;
 };
+
+/**
+ * Remembers last value for border.
+ */
+ExportDialog.lastBorderValue = 0;
 
 /**
  * Global switches for the export dialog.

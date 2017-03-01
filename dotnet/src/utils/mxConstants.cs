@@ -53,7 +53,7 @@ namespace com.mxgraph
         public static String DEFAULT_FONTFAMILY = "Arial";
 
         /// <summary>
-        /// Default size for fonts. Value is 11.
+        /// Default size for fonts (in px). Value is 11.
         /// </summary>
         public static float DEFAULT_FONTSIZE = 11;
 
@@ -709,7 +709,7 @@ namespace com.mxgraph
 	    public static string STYLE_FONTFAMILY = "fontFamily";
 
         /// <summary>
-        /// Defines the key for the fontSize style (in points). The type of the value
+        /// Defines the key for the fontSize style (in px). The type of the value
         /// is <i>int</i>.
         /// </summary>
 	    public static string STYLE_FONTSIZE = "fontSize";

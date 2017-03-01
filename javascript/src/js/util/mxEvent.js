@@ -1371,13 +1371,6 @@ var mxEvent =
 	ESCAPE: 'escape',
 
 	/**
-	 * Variable: CLICK
-	 *
-	 * Specifies the event name for click.
-	 */
-	CLICK: 'click',
-
-	/**
 	 * Variable: DOUBLE_CLICK
 	 *
 	 * Specifies the event name for doubleClick.

@@ -545,15 +545,14 @@
 	/**
 	 * Variable: DEFAULT_FONTFAMILY
 	 * 
-	 * Defines the default family for all fonts in points. Default is
-	 * Arial,Helvetica.
+	 * Defines the default family for all fonts. Default is Arial,Helvetica.
 	 */
 	DEFAULT_FONTFAMILY: 'Arial,Helvetica',
 
 	/**
 	 * Variable: DEFAULT_FONTSIZE
 	 * 
-	 * Defines the default size for all fonts in points. Default is 11.
+	 * Defines the default size (in px). Default is 11.
 	 */
 	DEFAULT_FONTSIZE: 11,
 
@@ -1571,7 +1570,7 @@
 	/**
 	 * Variable: STYLE_FONTSIZE
 	 * 
-	 * Defines the key for the fontSize style (in points). The type of the value
+	 * Defines the key for the fontSize style (in px). The type of the value
 	 * is int. Value is "fontSize".
 	 */
 	STYLE_FONTSIZE: 'fontSize',

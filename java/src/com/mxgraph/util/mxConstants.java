@@ -71,7 +71,7 @@ public class mxConstants
 	public static String DEFAULT_FONTFAMILY = "Dialog";
 
 	/**
-	 * Defines the default font size. Default is 11.
+	 * Defines the default font size (in px). Default is 11.
 	 */
 	public static int DEFAULT_FONTSIZE = 11;
 
@@ -869,7 +869,7 @@ public class mxConstants
 	public static String STYLE_FONTFAMILY = "fontFamily";
 
 	/**
-	 * Defines the key for the fontSize style (in points). The type of the value
+	 * Defines the key for the fontSize style (in px). The type of the value
 	 * is <code>int</code>.
 	 */
 	public static String STYLE_FONTSIZE = "fontSize";

@@ -1,3 +1,15 @@
+01-MAR-2017: 3.7.1
+
+- Uses semantic versioning
+- Fixes mxUtils.getOffset and getScrollOrigin for fixed elements
+- Adds handling for general case in mxGraph.getCellValidationError
+- Ignores connected terminals in mxGraph.getBoundingBoxFromGeometry
+- Adds mxCellEditor.prepareTextarea for linefeeds in FF
+- Fixes linefeeds in mxUtils.extractTextWithWhitespace
+- Adds mxSvgCanvas2D.imageOffset option
+- Refactors link handling in grapheditor
+- Fixes extendParent order for mxGraph.groupCells
+
 29-JAN-2017: 3.7.0.1
 
 - Fixes mxXmlRequest.simulate in Webkit
