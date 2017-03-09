@@ -3,13 +3,15 @@
   "version": "3.7.1",
   "main": "./javascript/dist/build.js",
   "scripts": {
-    "install": "grunt build"
+    "postinstall": "grunt build"
   },
   "dependencies": {
     "grunt": "^1.0.1",
     "grunt-contrib-concat": "^1.0.1",
     "grunt-contrib-copy": "^1.0.0",
     "grunt-webpack": "^2.0.1",
+    "load-grunt-parent-tasks": "^0.1.1",
+    "load-grunt-tasks": "^3.5.2",
     "webpack": "^2.2.1"
   }
 }

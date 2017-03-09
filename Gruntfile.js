@@ -1,5 +1,6 @@
 var path = require("path"),
     fs = require("fs"),
+    parentFolderName = path.basename(path.resolve('..')),
     mxClientContent,
     deps;
 
@@ -88,9 +89,7 @@ module.exports = function (grunt) {
     },
   });
 
-  grunt.loadNpmTasks('grunt-contrib-copy');
-  grunt.loadNpmTasks('grunt-webpack');
-  grunt.loadNpmTasks('grunt-contrib-concat');
+  require(parentFolderName === "node_modules" ? "load-grunt-parent-tasks" : "load-grunt-tasks")(grunt);
   grunt.registerTask("default", [
     "copy",
     "concat",
