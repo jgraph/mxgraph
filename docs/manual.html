@@ -59,8 +59,8 @@ individual features of the library.</p>
 <p>Developers integrating the library in their application should
 read the section
 &ldquo;Pre-requisites&rdquo; below. Given that mxGraph is a component
-part of your application, you must understand how JavaScript web 
-applications are constructed at an architectural level, and how to program 
+part of your application, you must understand how JavaScript web
+applications are constructed at an architectural level, and how to program
 both in JavaScript, as well as any server-side languages used.</p>
 
 <p>mxGraph mainly comprises one JavaScript
@@ -117,7 +117,7 @@ application to invoke the library's functionality.</p>
 
 <p>mxGraph uses JavaScript for the client-side functionality on the
 browser. The JavaScript code in turn uses the underlying vector graphics
-language on the active browser to render the displayed diagram, currently SVG 
+language on the active browser to render the displayed diagram, currently SVG
 for all supported browsers. mxGraph also includes the feature to render entirely
 using html, this limits the range of functionality available, but is
 suitable for more simple diagrams.</p>
@@ -131,8 +131,8 @@ browsers and adapts to the inconsistencies behind the scenes.</p>
 
 <h2><a name="mxgraph_licensing"></a>mxGraph Licensing</h2>
 
-<p>The JavaScript client of mxGraph is licensed under the 
-<a href="https://www.apache.org/licenses/LICENSE-2.0"> Apache  
+<p>The JavaScript client of mxGraph is licensed under the
+<a href="https://www.apache.org/licenses/LICENSE-2.0"> Apache
 2.0 license</a> For detailed licensing questions you are always advised to
 consult a legal professional.</p>
 
@@ -272,8 +272,8 @@ abstracts the description of the visual component into one API.</p>
 	<li>Navigate to the <a
 		href="http://www.jgraph.com/mxdownload.html">evaluation download
 	request page</a>.</li>
-	<li>Please note that we require a commercial or organizational email 
-	address to process your request. We're not able to sell mxGraph to 
+	<li>Please note that we require a commercial or organizational email
+	address to process your request. We're not able to sell mxGraph to
 	individuals.</li>
 	<li>When you receive the download details, unzip to your preferred
 	location.</li>
@@ -383,6 +383,30 @@ directories in the installation root.</p>
 
 <p><em>Table: Project Directory Structure</em></p>
 <br/>
+
+<h3><a name="npm"></a>npm</h3>
+
+<p>mxGraph is also available via the npm package manager. To use mxGraph as
+	a depedency, use <code>npm install</code>:</p>
+
+<pre>npm install mxgraph --save</pre>
+
+<p>The module can be loaded using <code>require()</code>. This returns a
+	factory function that accepts an object of options. Options such as
+	<code>mxBasePath</code> must be provided to the factory function, rather
+	than specified as global variables.</p>
+
+<pre>var mxgraph = require("mxgraph")({
+  mxImageBasePath: "./src/images",
+  mxBasePath: "./src"
+})</pre>
+
+<p>The factory function returns a 'namespace object' that provides access to
+	all objects of the mxGraph package. For example, the <code>mxEvent</code>
+	object is available at <code>mxgraph.mxEvent</code>.</p>
+
+<pre>var mxEvent = mxgraph.mxEvent;
+mxEvent.disableContextMenu(container);</pre>
 
 <h2><a name="web_applications"></a>JavaScript and Web Applications</h2>
 
