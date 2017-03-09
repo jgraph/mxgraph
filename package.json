@@ -1,0 +1,15 @@
+{
+  "name": "mxgraph",
+  "version": "3.7.1",
+  "main": "./javascript/dist/build.js",
+  "scripts": {
+    "install": "grunt build"
+  },
+  "dependencies": {
+    "grunt": "^1.0.1",
+    "grunt-contrib-concat": "^1.0.1",
+    "grunt-contrib-copy": "^1.0.0",
+    "grunt-webpack": "^2.0.1",
+    "webpack": "^2.2.1"
+  }
+}
