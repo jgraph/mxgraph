@@ -5,6 +5,8 @@ mxGraph is a fully client side JavaScript diagramming library that uses SVG and 
 
 If you want to build something like draw.io, [GraphEditor](https://jgraph.github.io/mxgraph/javascript/examples/grapheditor/www/index.html) is the best example to use as a base.
 
+The npm build is [here](https://www.npmjs.com/package/mxgraph).
+
 mxGraph supports IE 11, Chrome 32+, Firefox 38+, Safari 7.1.x, 8.0.x, 9.1.x and 10.0.x, Opera 20+, Native Android browser 5.1.x+, the default browser in the current and previous major iOS versions (e.g. 10.x and 9.x) and Edge 23+.
 
 mxGraph uses no third-party software, it requires no plugins and can be integrated in virtually any framework. Also provided is server-side functionality in Java and .NET for persistence (open and save) functionality, as well as server-side image generation.
