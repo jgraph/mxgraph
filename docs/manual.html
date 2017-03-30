@@ -384,6 +384,30 @@ directories in the installation root.</p>
 <p><em>Table: Project Directory Structure</em></p>
 <br/>
 
+<h3><a name="npm"></a>npm</h3>
+
+<p>mxGraph is also available via the npm package manager. To use mxGraph as
+	a depedency, use <code>npm install</code>:</p>
+
+<pre>npm install mxgraph --save</pre>
+
+<p>The module can be loaded using <code>require()</code>. This returns a
+	factory function that accepts an object of options. Options such as
+	<code>mxBasePath</code> must be provided to the factory function, rather
+	than specified as global variables.</p>
+
+<pre>var mxgraph = require("mxgraph")({
+  mxImageBasePath: "./src/images",
+  mxBasePath: "./src"
+})</pre>
+
+<p>The factory function returns a 'namespace object' that provides access to
+	all objects of the mxGraph package. For example, the <code>mxEvent</code>
+	object is available at <code>mxgraph.mxEvent</code>.</p>
+
+<pre>var mxEvent = mxgraph.mxEvent;
+mxEvent.disableContextMenu(container);</pre>
+
 <h2><a name="web_applications"></a>JavaScript and Web Applications</h2>
 
 <p>Web applications, specifically the use of JavaScript to attempt

@@ -1,0 +1,4 @@
+node_modules
+javascript/dist
+.jshintrc
+javascript/examples/**/dist
