@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2007, Gaudenz Alder
+ * Copyright (c) 2007-2017, Gaudenz Alder
+ * Copyright (c) 2007-2017, JGraph Ltd
  */
 package com.mxgraph.analysis;
 
@@ -29,6 +30,9 @@ public class mxFibonacciHeap
 
 	/**
 	 * Returns the node that represents element.
+	 * @param element the element whose node to find
+	 * @param create whether to create 
+	 * @return the node representing the specified element
 	 */
 	public Node getNode(Object element, boolean create)
 	{
@@ -45,6 +49,7 @@ public class mxFibonacciHeap
 
 	/**
 	 * Returns true if the queue is empty.
+	 * @return whether the queue is empty
 	 */
 	public boolean isEmpty()
 	{

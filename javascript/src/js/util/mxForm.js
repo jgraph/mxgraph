@@ -85,13 +85,13 @@ mxForm.prototype.addButtons = function(okFunct, cancelFunct)
 /**
  * Function: addText
  * 
- * Adds a textfield for the given name and value and returns the textfield.
+ * Adds an input for the given name, type and value and returns it.
  */
-mxForm.prototype.addText = function(name, value)
+mxForm.prototype.addText = function(name, value, type)
 {
 	var input = document.createElement('input');
 	
-	input.setAttribute('type', 'text');
+	input.setAttribute('type', type || 'text');
 	input.value = value;
 	
 	return this.addField(name, input);

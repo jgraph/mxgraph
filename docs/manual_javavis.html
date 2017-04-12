@@ -9,8 +9,8 @@
 <h1>JGraphX (JGraph 6) User Manual</h1>
 <br/>
 <br/>
-<p>JGraphX Version 3.7.1 &ndash; 01. March 2017</p>
-<p>Copyright (c) JGraph Ltd 2006-2016</p>
+<p>JGraphX Version 3.7.2 &ndash; 12. April 2017</p>
+<p>Copyright (c) JGraph Ltd 2006-2017</p>
 <br/>
 <p>All rights reserved. No part of this publication may be
 reproduced, stored in a retrieval system, or transmitted in any form or
@@ -37,8 +37,8 @@ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.</p>
 <div id="toc"></div>
 
 <br/>
-<h1><a name="Introduction"></a>Introduction</h1>
-<h2><a name="mxGraph_Products"></a>Product Family Introduction</h2>
+<h1><a id="Introduction"></a>Introduction</h1>
+<h2><a id="mxGraph_Products"></a>Product Family Introduction</h2>
 
 <p>mxGraph is a product family of libraries, written in a variety of
 technologies, that provide features aimed at applications that display
@@ -82,7 +82,7 @@ part of your application, you must understand how applications are
 constructed in that technology and how to program in the language(s) of
 that technology.</p>
 
-<h2><a name="Which_Version"></a>Which Version of mxGraph to use?</h2>
+<h2><a id="Which_Version"></a>Which Version of mxGraph to use?</h2>
 
 <p>When deciding which of the technology implementations of mxGraph
 to use, often the choice is determined by the technology of the
@@ -98,7 +98,7 @@ allow other users to view and edit processes and
 automatically execute the process on the server using business logic
 associated with the visual information.</p>
 
-<h3><a name="JavaScript"></a>JavaScript</h3>
+<h3><a id="JavaScript"></a>JavaScript</h3>
 
 <p>The JavaScript version of mxGraph mainly comprises one JavaScript
 file that contains all of the mxGraph functionality. This is loaded into
@@ -139,7 +139,7 @@ JavaScript enabled web browser.</p>
 application requirements usually provides a clearly advantage to using
 one of these technologies.</p>
 
-<h2><a name="Java_Library"></a>JGraphX - Java Swing Library</h2>
+<h2><a id="Java_Library"></a>JGraphX - Java Swing Library</h2>
 
 <p>This user manual is for the Java Swing library version of
 mxGraph. This version is called JGraphX, the reason for this being the
@@ -163,7 +163,7 @@ unless otherwise specified. The package name of JGraphX is com.mxgraph.* and the
 main class mxGraph, in common with the other flavours of mxGraph.</p>
 </div>
 
-<h2><a name="mxgraph_applications"></a>What Applications can
+<h2><a id="mxgraph_applications"></a>What Applications can
 JGraphX be used for?</h2>
 
 <p>Example applications for a graph visualization library include:
@@ -174,7 +174,7 @@ electronic circuits, VLSI, CAD, financial and social networks, data
 mining, biochemistry, ecological cycles, entity and cause-effect
 relationships and organisational charts.</p>
 
-<h2><a name="mxgraph_licensing"></a>JGraphX Licensing</h2>
+<h2><a id="mxgraph_licensing"></a>JGraphX Licensing</h2>
 
 <p>JGraphX is licensed under the modern, 3 clause
 <a href="http://en.wikipedia.org/wiki/BSD_licenses">BSD license</a>. The
@@ -185,7 +185,7 @@ cannot understand it, do not use the software.</p>
 <p>For detailed licensing questions you are always advised to
 consult a legal professional.</p>
 
-<h2><a name="what_graph"></a>What is a Graph?</h2>
+<h2><a id="what_graph"></a>What is a Graph?</h2>
 
 <p>Graph visualization is based on the mathematical theory of
 networks, graph theory. If you're seeking JavaScript bar <em>charts</em>,
@@ -206,7 +206,7 @@ edges, vertices or groups.</p>
 useful background when dealing with graphs, they are listed in the
 Appendices if of interest to you.</p>
 
-<h3><a name="graph_visualization"></a>Graph Visualization</h3>
+<h3><a id="graph_visualization"></a>Graph Visualization</h3>
 
 <p>Visualization is the process of creating a useful visual
 representation of a graph. The scope of visualization functionality is
@@ -221,7 +221,7 @@ labels.</p>
 <em>Graph Visualization of a transport system. (c) Tourizm Maps
 2003, http://www.world-maps.co.uk</em></p>
 <br/>
-<h3><a name="graph_interaction"></a>Graph Interaction</h3>
+<h3><a id="graph_interaction"></a>Graph Interaction</h3>
 
 <p>Interaction is the way in which an application using JGraphX can
 alter the graph model through the web application GUI. JGraphX supports
@@ -233,7 +233,7 @@ flexibility of how interaction can be programmed.</p>
 <p><img src="images/mx_man_graph_interaction.png" /><br/>
 <em>Selection shading while selecting an area through mouse drag</em></p>
 <br/>
-<h3><a name="graph_layouts"></a>Graph Layouts</h3>
+<h3><a id="graph_layouts"></a>Graph Layouts</h3>
 
 <p>Graph cells can be drawn anywhere in a simple application,
 including on top of one another. Certain applications need to present
@@ -257,7 +257,7 @@ apply the layout when editing is complete.</p>
 layouts which will fit most layout needs. See the later section on using
 the layouts for more information.</p>
 
-<h3><a name="graph_analysis"></a>Graph Analysis</h3>
+<h3><a id="graph_analysis"></a>Graph Analysis</h3>
 
 <p>Analysis of graphs involves the application of algorithms
 determining certain details about the graph structure, for example,
@@ -273,9 +273,9 @@ writing.</p>
 <em>Shortest Path Analysis</em></p>
 <br/>
 
-<h2><a name="about_manual"></a>About this Manual</h2>
+<h2><a id="about_manual"></a>About this Manual</h2>
 
-<h3><a name="pre_requisites"></a>Pre-requisites for JGraphX</h3>
+<h3><a id="pre_requisites"></a>Pre-requisites for JGraphX</h3>
 
 <p>To benefit fully from this manual you will need to have a reasonable
 understanding of Java and at least a high-level overview of Swing. If you
@@ -284,7 +284,7 @@ many good books on the subject available. A useful free introduction
 is the <a href="http://java.sun.com/docs/books/tutorial/">Sun Java Tutorial.</a>
 </p>
 
-<h3><a name="Getting_help"></a>Getting Additional help</h3>
+<h3><a id="Getting_help"></a>Getting Additional help</h3>
 
 <p>There is a <a href="http://stackoverflow.com/questions/tagged/jgraphx">
 'jgraphx' tag on Stackoverflow</a>, but please ensure you understand the 
@@ -293,16 +293,16 @@ on SO you must 1) have a question , 2) that question be programming related
 and 3) use the 'jgraphx' tag.</p>
 <br/>
 
-<h1><a name="Getting_Started"></a>Getting Started</h1>
+<h1><a id="Getting_Started"></a>Getting Started</h1>
 
-<h2><a name="JGraphX_site"></a>The JGraphX Web Site</h2>
+<h2><a id="JGraphX_site"></a>The JGraphX Web Site</h2>
 
 <p>To start, navigate to the <a
 	href="http://www.jgraph.com/jgraph.html">JGraphX project on Github</a>. The
 README on this page answers the high level FAQ type questions about the project.
 </p>
 
-<h3><a name="project_structure"></a>Project structure and build
+<h3><a id="project_structure"></a>Project structure and build
 options</h3>
 
 <p>Once you have the project source locally you will be presented with a number 
@@ -361,9 +361,9 @@ of files and directories in the root of the install.</p>
 <p><em>Table: Project Directory Structure</em></p>
 <br/>
 
-<h2><a name="jgraphx_architecture"></a>Core JGraphX architecture</h2>
+<h2><a id="jgraphx_architecture"></a>Core JGraphX architecture</h2>
 
-<h3><a name="jgraphx_model"></a>The JGraphX Model</h3>
+<h3><a id="jgraphx_model"></a>The JGraphX Model</h3>
 
 <p>The mxGraph model is the core model that describes the structure
 of the graph, the class is called mxGraphModel and is found within the
@@ -446,7 +446,7 @@ debugging.</p>
 <p>Ignore the reference to the parent cell for now, that will be
 explained later in this chapter.</p>
 
-<h3><a name="transaction_model"></a>The Transaction Model</h3>
+<h3><a id="transaction_model"></a>The Transaction Model</h3>
 
 <p>The sub-transaction in the blue block above refers to the fact
 that transactions can be nested. That is, there is a counter in the
@@ -486,7 +486,7 @@ graph change has occurred. The change event contains complete
 information as to what has altered (see later section on <strong>Events</strong>
 for more details).</p>
 
-<h4><a name="model_change_methods"></a>The Model Change Methods</h4>
+<h4><a id="model_change_methods"></a>The Model Change Methods</h4>
 
 <p>Below is a list of the methods that alter the graph model and
 should be placed, directly or indirectly, with the scope of an update:</p>
@@ -520,7 +520,7 @@ common place in the architecture where these attributes can be set on a
 global basis. Remember, this is a graph <em>visualization</em> library,
 the visualization part is the core functionality.</p>
 
-<h5><a name="inserting_cells"></a>Inserting Cells</h5>
+<h5><a id="inserting_cells"></a>Inserting Cells</h5>
 
 <p>The three graph cells created in the <CODE>HelloWorld</CODE>
 application are two vertices and one edge connecting the vertices. If
@@ -593,7 +593,7 @@ and target parameters define the vertices to which the edge is
 connected. Note that the source and target vertices should already have
 been inserted into the model.</p>
 
-<h3><a name="mxcell"></a>mxCell</h3>
+<h3><a id="mxcell"></a>mxCell</h3>
 
 <p>mxCell is the cell object for both vertices and edges. mxCell
 duplicates many of the methods available in the model. The key
@@ -608,7 +608,7 @@ you encounter a specific problem with this mechanism.</p>
 constructor, a value (user object), a geometry and a style. We will now
 explore these 3 concepts before returning to the cell.</p>
 
-<h4><a name="styles"></a>Styles</h4>
+<h4><a id="styles"></a>Styles</h4>
 
 <p>The concept of styles and stylesheets in conceptually similar to
 CSS stylesheets. Open up the
@@ -634,7 +634,7 @@ look back to the helloworld example, no style was passed into the
 optional style parameter of insertVertex or insertEdge. In this case the
 default style would be used for those cells.</p>
 
-<h5><a name="setting_cell_style"></a>Setting the Style of a Cell</h5>
+<h5><a id="setting_cell_style"></a>Setting the Style of a Cell</h5>
 
 <p>If you wanted to specify a style other than the default for a
 cell, you must pass that new style either to the cell when it is created
@@ -696,7 +696,7 @@ and the default style for that cell type.
 </ul>
 </div>
 
-<h5><a name="new_global_style"></a>Creating a New Global Style</h5>
+<h5><a id="new_global_style"></a>Creating a New Global Style</h5>
 <p>To create the ROUNDED global style described above, you can
 follow this template to create a style and register it with
 mxStyleSheet:</p>
@@ -710,7 +710,7 @@ style.put(mxConstants.STYLE_FONTCOLOR, "#774400");
 stylesheet.putCellStyle("ROUNDED", style);
 </pre>
 
-<h4><a name="geometry"></a>Geometry</h4>
+<h4><a id="geometry"></a>Geometry</h4>
 
 <p>In the helloworld example you can see the position and size of the
 vertices passed into the insertVertex method. The coordinate system in
@@ -734,7 +734,7 @@ points is sometimes referred to as <strong>edge routing</strong>.</p>
 <p>There are two more important additional concepts in geometry,
 relative positioning and offsets</p>
 
-<h5><a name="relative_positioning"></a>Relative Positioning</h5>
+<h5><a id="relative_positioning"></a>Relative Positioning</h5>
 
 <p>By default, the x and y position of a vertex is the offset of the
 top left point of the bounding rectangle of the parent to the top left
@@ -791,7 +791,7 @@ methods in mxGraph, they enable easy changing of the default
 behaviour. You should try to use the mxGraph class API as much as
 possible to provide this benefit in your applications.</p>
 
-<h5><a name="offsets"></a>Offsets</h5>
+<h5><a id="offsets"></a>Offsets</h5>
 
 <p>The offset field in mxGeometry is an absolute x,y offset applied
 to the cell <strong>label</strong>. In the case of edge labels, the
@@ -810,7 +810,7 @@ in the bounds array, within a begin/end update call.</li>
 </ul>
 </div>
 
-<h4><a name="user_objects"></a>User Objects</h4>
+<h4><a id="user_objects"></a>User Objects</h4>
 
 <p>The User object is what gives JGraphX diagrams a context, it
 stores the business logic associated with a visual cell. In the
@@ -863,7 +863,7 @@ receives the visual and business logic from a sever, may allow editing
 of both, then transmits both back to the server for persistence and/or
 execution.</p>
 
-<h4><a name="cell_types"></a>Cell Types</h4>
+<h4><a id="cell_types"></a>Cell Types</h4>
 <p>As described previously, mxGraph is the primary API for using
 this library and the same concept applies to cells. One basic state of
 the cell not exposed on the graph is whether a cell is a vertex or an
@@ -879,7 +879,7 @@ changing the type. Also, be aware that the geometry object variable
 means different things to vertices and edges. Generally, it is not
 recommended to change a cell type at runtime.</p>
 
-<h3><a name="group_structure"></a>Group Structure</h3>
+<h3><a id="group_structure"></a>Group Structure</h3>
 <p>Grouping, within JGraphX, is the concept of logically associating
 cells with one another. This is commonly referred to as the concept of
 sub-graphs in many graph toolkits. Grouping involves one or more
@@ -931,7 +931,7 @@ requirement of additional cells. We include it below for correctness,
 but in later group diagrams it will be omitted.</p>
 
 
-<p><a name="ill_mx_man_hello_struct"><img src="images/mx_man_hello_struct.png"
+<p><a id="ill_mx_man_hello_struct"><img src="images/mx_man_hello_struct.png"
 	WIDTH=441 HEIGHT=241 BORDER=0></a><br/>
 <em>The group structure of the helloworld example</em></p>
 <br/>
@@ -975,7 +975,7 @@ occurs within a begin/end update.</li>
 </ul>
 </div>
 
-<h3><a name="complexity_management"></a>Complexity Management</h3>
+<h3><a id="complexity_management"></a>Complexity Management</h3>
 
 <p>There are two primary reasons to control the number of cells
 displayed at any one time. The first is performance, drawing more and
@@ -985,7 +985,7 @@ a certain amount of information. All of the concepts associated with
 grouping, listed above, can be used to reduce the complexity of
 information on the screen for the user.</p>
 
-<h4><a name="folding"></a>Folding</h4>
+<h4><a id="folding"></a>Folding</h4>
 
 <p>Folding is the collective term we use for expanding and
 collapsing groups. We say a cell is folded by making it's child vertices
@@ -1054,7 +1054,7 @@ the user, each one representing their children cells logically. You
 might then provide a mechanism to zoom into a group, which expands it in
 the process. You might also provide drill-down/step-up, explained next.</p>
 
-<h4><a name="sub_graph_drilling"></a>Sub-Graphs, Drill-Down /
+<h4><a id="sub_graph_drilling"></a>Sub-Graphs, Drill-Down /
 Step-Up</h4>
 
 <p>Sometimes, as an alternative to expand/collapse, or possibly in
@@ -1110,7 +1110,7 @@ children of that parent appear in the display as the complete graph.</p>
 which invokes mxGraph.exitGroup, brings you back to the original 3
 vertex top level graph.</p>
 
-<h4><a name="layer_filter"></a>Layering and Filtering</h4>
+<h4><a id="layer_filter"></a>Layering and Filtering</h4>
 
 <p>In JGraphX, like many graphical applications, there is the
 concept of z-order. That is, the order of objects as you look into the
@@ -1166,18 +1166,18 @@ operation.</p>
 
 <br/>
 
-<h1><a name="Visual_Customization"></a>Visual Customization</h1>
+<h1><a id="Visual_Customization"></a>Visual Customization</h1>
 
-<h2><a name="Core_visual_custom"></a>Core JGraphX Visuals</h2>
+<h2><a id="Core_visual_custom"></a>Core JGraphX Visuals</h2>
 
 <p>Within the core JGraphX library, by that we mean we exclude the editor
 functionality, which provides application level features, there are a number
 of mechanisms to define the appearance of cells. These split into vertex
 customizations and edge customizations</p>
 
-<h3><a name="custom_vertices"></a>Customizing Vertices</h3>
+<h3><a id="custom_vertices"></a>Customizing Vertices</h3>
 
-<h4><a name="stencils"></a>Stencils</h4>
+<h4><a id="stencils"></a>Stencils</h4>
 
 <p>Stencils are sets of pre-defined vector shapes that can be added at run-time
 to JGraphX without the requirement to programmatically define how they are

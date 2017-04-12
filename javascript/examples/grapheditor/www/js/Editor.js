@@ -69,9 +69,11 @@ Editor.pageCounter = 0;
 	try
 	{
 		var op = window;
-		
+
 		while (op.opener != null && typeof op.opener.Editor !== 'undefined' &&
-			!isNaN(op.opener.Editor.pageCounter))
+			!isNaN(op.opener.Editor.pageCounter) &&	
+			// Workaround for possible infinite loop in FF https://drawio.atlassian.net/browse/DS-795
+			op.opener != op)
 		{
 			op = op.opener;
 		}
@@ -492,7 +494,8 @@ Editor.prototype.getGraphXml = function(ignoreSelection)
 	}
 	else
 	{
-		node = this.graph.encodeCells(this.graph.getSelectionCells());
+		node = this.graph.encodeCells(mxUtils.sortCells(this.graph.model.getTopmostCells(
+			this.graph.getSelectionCells())));
 	}
 
 	if (this.graph.view.translate.x != 0 || this.graph.view.translate.y != 0)
@@ -625,6 +628,7 @@ OpenFile = function(done)
 	this.producer = null;
 	this.consumer = null;
 	this.done = done;
+	this.args = null;
 };
 
 /**
@@ -639,10 +643,9 @@ OpenFile.prototype.setConsumer = function(value)
 /**
  * Sets the data from the loaded file.
  */
-OpenFile.prototype.setData = function(value, filename)
+OpenFile.prototype.setData = function()
 {
-	this.data = value;
-	this.filename = filename;
+	this.args = arguments;
 	this.execute();
 };
 
@@ -660,10 +663,10 @@ OpenFile.prototype.error = function(msg)
  */
 OpenFile.prototype.execute = function()
 {
-	if (this.consumer != null && this.data != null)
+	if (this.consumer != null && this.args != null)
 	{
 		this.cancel(false);
-		this.consumer(this.data, this.filename);
+		this.consumer.apply(this, this.args);
 	}
 };
 

@@ -4883,6 +4883,10 @@ mxGraph.prototype.splitEdge = function(edge, cells, newEdge, dx, dy)
 		{
 			newEdge = this.cloneCells([edge])[0];
 
+			// Removes start arrow of original and end arrow of clone
+			this.setCellStyles(mxConstants.STYLE_ENDARROW, mxConstants.NONE, [newEdge]);
+			this.setCellStyles(mxConstants.STYLE_STARTARROW, mxConstants.NONE, [edge]);
+			
 			// Removes waypoints before/after new cell
 			var state = this.view.getState(edge);
 			var geo = this.getCellGeometry(newEdge);

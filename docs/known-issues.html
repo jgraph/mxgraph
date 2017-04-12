@@ -10,7 +10,7 @@
 <h2>Table Of Contents</h2>
 <div id="toc"></div>
 <br/>
-<h2><a name="Doctypes"></a>Doctypes</h2>
+<h2><a id="Doctypes"></a>Doctypes</h2>
 <p>
 	VML in IE should only be used in quirks mode. You can use any DOCTYPE in the page
 	and force IE into quirks mode by using the following first two lines in HTML:
@@ -39,12 +39,12 @@
 	and <a href="http://stackoverflow.com/questions/941100/can-html-comments-appear-before-the-doctype-declaration">this</a>
 	for details.
 </p>
-<h2><a name="IE8"></a>Support for IE8 standards mode</h2>
+<h2><a id="IE8"></a>Support for IE8 standards mode</h2>
 <p>
 	Experimental support for IE8 standards mode is available. The use of quirks mode or
 	IE7 standards mode is recommended for performance reasons.
 </p>
-<h2><a name="IE9"></a>Support for SVG in Microsoft Internet Explorer 9</h2>
+<h2><a id="IE9"></a>Support for SVG in Microsoft Internet Explorer 9</h2>
 <p>
 	Please use the following meta tag to enable SVG in IE9:
 </p>
@@ -55,7 +55,7 @@
 	Note that <code>IE=5</code> is required for IE versions prior to 9 to render VML. To use
 	IE7 standards mode <code>IE=5</code> can be replaced with <code>IE=7</code>.
 </p>
-<h2><a name="Focus"></a>Focus</h2>
+<h2><a id="Focus"></a>Focus</h2>
 <p>
 	Firefox and Webkit do not allow to programmatically focus DIVs by default. Since
 	this affects handling of key events, here is a workaround to allow the
@@ -83,7 +83,7 @@ if (mxClient.IS_NS)
 	using outline:none CSS property. Also note that the focus is transferred normally
 	if the DIV receives a double click, the above solution is just for single-clicks.
 </p>
-<h2><a name="TransparentHtmlLabels"></a>Opacity style in HTML labels</h2>
+<h2><a id="TransparentHtmlLabels"></a>Opacity style in HTML labels</h2>
 <p>
 	There is a problem in Webkit (Chrome, Safari) where HTML labels with
 	opacities other than 1 inside foreignObjects are not rendered at the
@@ -96,7 +96,7 @@ graph.insertVertex(parent, null, '<span style="background:yellow;">Hello</span>'
 	For different CSS opacities inside the label, try using 
 	<code>mxClient.NO_FO = true</code> before rendering the graph.
 </p>
-<h2><a name="Chrome5LocalFiles"></a>Local XHR in Chrome</h2>
+<h2><a id="Chrome5LocalFiles"></a>Local XHR in Chrome</h2>
 <p>
 	Chrome does not load files from the local filesystem via XHR by default.
 	This affects the loading of resources if examples are viewed via the file://
@@ -107,13 +107,13 @@ graph.insertVertex(parent, null, '<span style="background:yellow;">Hello</span>'
  	See security section for 5.0.335.0 release
 	<a href="http://googlechromereleases.blogspot.com/">here</a>.
 </p>
-<h2><a name="ClippedLabels"></a>Clipped labels</h2>
+<h2><a id="ClippedLabels"></a>Clipped labels</h2>
 <p>
 	For clipped labels (overflow:hidden or mxGraph.isLabelClipped returns true)
 	it is possible that event handling remains as if the label was unclipped.
 	There are several browsers and versions that show this behaviour.
 </p>
-<h2><a name="LocalFiles"></a>Scrollable labels in Webkit</h2>
+<h2><a id="LocalFiles"></a>Scrollable labels in Webkit</h2>
 <p>
 	For labels that contain HTML markup with scrollbars in Webkit (Safari and
 	Chrome) you should disable the use of foreignObject to make sure the HTML
@@ -125,7 +125,7 @@ graph.insertVertex(parent, null, '<span style="background:yellow;">Hello</span>'
 <p>
 	<a href="http://code.google.com/p/chromium/issues/detail?id=35545">Bug Report</a>
 </p>
-<h2><a name="LocalFiles"></a>Local Files</h2>
+<h2><a id="LocalFiles"></a>Local Files</h2>
 <p>
 	For enabling the functionality in mxUtils.save and mxUtils.open for reading
 	and writing local files, the security settings for the page need to be
@@ -150,7 +150,7 @@ graph.insertVertex(parent, null, '<span style="background:yellow;">Hello</span>'
 	problem.) This is only required for local file access and not for
 	production software deployed on a webserver.
 </p>
-<h2><a name="Rotation"></a>Rotation</h2>
+<h2><a id="Rotation"></a>Rotation</h2>
 <p>
 	Support for rotation is limited to the shape display. Text labels, handles,
 	selection bounds and perimeter points are currently not rotated. Support
@@ -158,14 +158,14 @@ graph.insertVertex(parent, null, '<span style="background:yellow;">Hello</span>'
 	mxGraphics2DCanvas in Java and the mxGdiCanvas in C#. PHP does not
 	currently support rotation in GD.
 </p>
-<h2><a name="EventOrder"></a>Order of Events in IE</h2>
+<h2><a id="EventOrder"></a>Order of Events in IE</h2>
 <p>
 	When adding listeners for DOM events using mxEvent in IE, which in turn
 	uses attachEvent, then the order in which listeners are invoked for a
 	specific event is not as listeners have been added. This is a known bug.
 	There is no workaround for this problem.
 </p>
-<h2><a name="Printing"></a>Printing</h2>
+<h2><a id="Printing"></a>Printing</h2>
 <p>
 	Printing does not work in Firefox 1.5 (bug 314707). However, it works in
 	Firefox 2.0 and later. In Internet Explorer 6 on Windows XP (no
@@ -180,7 +180,7 @@ graph.insertVertex(parent, null, '<span style="background:yellow;">Hello</span>'
 	is cropped when printed. Please use mxPrintPreview for printing across
 	multiple pages.
 </p>
-<h2><a name="Statusbar"></a>Statusbar</h2>
+<h2><a id="Statusbar"></a>Statusbar</h2>
 <p>
 	The status bar is used to display information while the DOM is being
 	updated. Therefore, it is not possible to display this information in the
@@ -197,7 +197,7 @@ graph.insertVertex(parent, null, '<span style="background:yellow;">Hello</span>'
 	configuration setting via about:config, dom.disable_window_status_change to
 	false.
 </p>
-<h2><a name="AccessDenied"></a>Access Denied in IE</h2>
+<h2><a id="AccessDenied"></a>Access Denied in IE</h2>
 <p>
 	The latest version of IE does no longer allow to read files from the local
 	filesystem. This means that all files must be loaded from a webserver, or
@@ -210,7 +210,7 @@ graph.insertVertex(parent, null, '<span style="background:yellow;">Hello</span>'
 	used for development. In production, the page containing the client and
 	all files should be loaded from a webserver via HTTP.
 </p>
-<h2><a name="FontRendering"></a>Font Rendering</h2>
+<h2><a id="FontRendering"></a>Font Rendering</h2>
 <p>
 	In Firefox (including 2.0), the fonts are sometimes cropped at the end of a
 	line (some pixels missing). On the Mac, the text sometimes completely
@@ -221,7 +221,7 @@ graph.insertVertex(parent, null, '<span style="background:yellow;">Hello</span>'
 <p>
 	<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=368879">Bug Report</a>
 </p>
-<h3><a name="LabelBoundingBox"></a>Label Bounding Box</h3>
+<h3><a id="LabelBoundingBox"></a>Label Bounding Box</h3>
 <p>
 	In Firefox, the SVG-function getBBox for vertex- and edgelabels is one step
 	behind zoom. This means, the bounding box for overlapping labels and the
@@ -229,7 +229,7 @@ graph.insertVertex(parent, null, '<span style="background:yellow;">Hello</span>'
 	after zooming. The display can be updated by panning the graph at least 1
 	pixel.
 </p>
-<h2><a name="Linefeeds"></a>Linefeeds</h2>
+<h2><a id="Linefeeds"></a>Linefeeds</h2>
 <p>
 	Linefeeds are converted into &amp;#xa; at encoding time. However, in shared
 	diagram sessions the linefeeds (\n) are kept. When sending such XML back to
@@ -240,7 +240,7 @@ graph.insertVertex(parent, null, '<span style="background:yellow;">Hello</span>'
 	mxUtils.getXml(node, linefeed) method. The optional linefeed argument is
 	the string to be used for encoding linefeeds and defaults to &amp;#xa;.
 </p>
-<h2><a name="RunSlowly"></a>Scripts Run Slowly Error in IE</h2>
+<h2><a id="RunSlowly"></a>Scripts Run Slowly Error in IE</h2>
 <p>
 	This error (<i>A script on this page is causing internet explorer to run
 	slowly</i>) in IE (all supported versions including IE 7) is triggered by
@@ -257,7 +257,7 @@ graph.insertVertex(parent, null, '<span style="background:yellow;">Hello</span>'
 	and reboot. Warning: According to the Knowledge Base article, "serious
 	problems might occur if you modify the registry".
 </p>
-<h2><a name="BodyBorder"></a>Body, HTML Borders</h2>
+<h2><a id="BodyBorder"></a>Body, HTML Borders</h2>
 <p>
 	When using a style definition for the body or HTML element that makes the
 	border invisible, such as none or 0px for the border-width, then there is a
@@ -268,7 +268,7 @@ graph.insertVertex(parent, null, '<span style="background:yellow;">Hello</span>'
 	elements are the default setting and the bug does not occur if the border
 	is set to something visible, such as 1px solid black.
 </p>
-<h2><a name="HtmlLabels"></a>HTML Labels</h2>
+<h2><a id="HtmlLabels"></a>HTML Labels</h2>
 <p>
 	HTML labels are supported in SVG browsers via the mxGraph.htmlLabels
 	switch. mxGraph.isHtmlLabel(mxCell) may be overridden to return individual
@@ -285,7 +285,7 @@ dispatch loop.</li>
 <li>In SVG-based browsers, the labels appear on top of all SVG in a separate
 layer.</li>
 </ul>
-<h2><a name="SvgContainer"></a>SVG Container</h2>
+<h2><a id="SvgContainer"></a>SVG Container</h2>
 <p>
 	In Firefox, the size of the SVG element is updated to be the size of the
 	graph whenever the graph changes. However, since there is no resize event
@@ -295,7 +295,7 @@ layer.</li>
 	without updating the SVG element's size, then the SVG element (and hence
 	the drawing area) will appear smaller than the container of the graph.
 </p>
-<h2><a name="Opera"></a>Opera</h2>
+<h2><a id="Opera"></a>Opera</h2>
 <p>
 	Support for Opera 9 is currently experimental. There are several known
 	issues, such as no context menu, cropping in SVG canvas, ignored
@@ -303,26 +303,26 @@ layer.</li>
 	displaying the context menu in Opera (and on Mac), hold down the shift key
 	while clicking the (left) mouse button.
 </p>
-<h2><a name="Safari"></a>Safari</h2>
+<h2><a id="Safari"></a>Safari</h2>
 <p>
 	For the context menu to appear in Safari on the Mac, hold down the shift
 	key while clicking the (left) mouse button. Safari does not provide the
 	beforeunload event. Also, vertical labels are not working in Safari on the
 	Mac.
 </p>
-<h2><a name="Webkit"></a>Webkit (Safari and Google Chrome)</h2>
+<h2><a id="Webkit"></a>Webkit (Safari and Google Chrome)</h2>
 <p>
     For some container positions there are artifacts in Safari and Google
     Chrome when repainting dynamic SVG elements (eg. highlights and previews).
     This is due to a bug in the Webkit repaint code. Also, the value for text
     opacity is currently ignored in Webkit.
 </p>
-<h2><a name="PHPStroke"></a>PHP and strokewidths</h2>
+<h2><a id="PHPStroke"></a>PHP and strokewidths</h2>
 <p>
     The strokewidth is currently ignored in some GD implementations, as the
     imagesetthickness function is not working properly.
 </p>
-<h2><a name="XDomXHR"></a>Cross-domain AJAX</h2>
+<h2><a id="XDomXHR"></a>Cross-domain AJAX</h2>
 <p>
 	Cross-domain AJAX requests are generally not allowed, so make sure all
 	requests are kept within the same domain of the page that contains the
@@ -352,7 +352,7 @@ layer.</li>
 	from a different domain (evaluation). This problem goes away when using
 	HTTP.
 </p>
-<h2><a name="AndroidStockBrowser"></a>Android stock browser virtual keyboard</h2>
+<h2><a id="AndroidStockBrowser"></a>Android stock browser virtual keyboard</h2>
 <p>
 	In Chrome 18 Mobile a bug prevents the keyboard from appearing after a double
 	tap event. Another tap on the selected text can be used as a workaround. The
@@ -361,6 +361,6 @@ layer.</li>
 	handles.
 </p>
 <hr size="1">
-&copy; 2006-2016 by JGraph Ltd.
+&copy; 2006-2017 by JGraph Ltd.
 </body>
 </html>

@@ -1,6 +1,6 @@
 /**
- * Copyright (c) 2006-2015, JGraph Ltd
- * Copyright (c) 2006-2015, Gaudenz Alder
+ * Copyright (c) 2006-2017, JGraph Ltd
+ * Copyright (c) 2006-2017, Gaudenz Alder
  */
 var mxClient =
 {
@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.7.1.
+	 * Current version is 3.7.2.
 	 */
-	VERSION: '3.7.1',
+	VERSION: '3.7.2',
 
 	/**
 	 * Variable: IS_IE
@@ -4613,7 +4613,13 @@ var mxUtils =
 
 		while (node != null && node != b && node != d && !fixed)
 		{
-			fixed = fixed || mxUtils.getCurrentStyle(node).position == 'fixed';
+			var style = mxUtils.getCurrentStyle(node);
+			
+			if (style != null)
+			{
+				fixed = fixed || style.position == 'fixed';
+			}
+			
 			node = node.parentNode;
 		}
 		
@@ -4678,8 +4684,14 @@ var mxUtils =
 				result.x += node.scrollLeft;
 				result.y += node.scrollTop;
 			}
+			
+			var style = mxUtils.getCurrentStyle(node);
+			
+			if (style != null)
+			{
+				fixed = fixed || style.position == 'fixed';
+			}
 
-			fixed = fixed || mxUtils.getCurrentStyle(node).position == 'fixed';
 			node = node.parentNode;
 		}
 
@@ -12432,13 +12444,13 @@ mxForm.prototype.addButtons = function(okFunct, cancelFunct)
 /**
  * Function: addText
  * 
- * Adds a textfield for the given name and value and returns the textfield.
+ * Adds an input for the given name, type and value and returns it.
  */
-mxForm.prototype.addText = function(name, value)
+mxForm.prototype.addText = function(name, value, type)
 {
 	var input = document.createElement('input');
 	
-	input.setAttribute('type', 'text');
+	input.setAttribute('type', type || 'text');
 	input.value = value;
 	
 	return this.addField(name, input);
@@ -21794,7 +21806,7 @@ mxGuide.prototype.destroy = function()
  * Variable causes the ratio to match that of the geometry of the current vertex.
  * - "strokewidth", optional string. Either an integer or the string "inherit".
  * "inherit" indicates that the strokeWidth of the cell is only changed on scaling,
- * not on resizing.
+ * not on resizing. Default is "1".
  * If numeric values are used, the strokeWidth of the cell is changed on both
  * scaling and resizing and the value defines the multiple that is applied to
  * the width.
@@ -21824,7 +21836,7 @@ mxGuide.prototype.destroy = function()
  * line tracing of the outside of the shape, but not always.
  * 
  * Any stroke, fill or fillstroke of a background must be the first element of the
- * foreground element, they must not used within *background*. If the background
+ * foreground element, they must not be used within *background*. If the background
  * is empty, this is not required.
  * 
  * Because the background cannot have any fill or stroke, it can contain only one
@@ -21859,7 +21871,7 @@ mxGuide.prototype.destroy = function()
  * and 0.0 for fully transparent.
  * 
  * *strokewidth* defines the integer thickness of drawing elements rendered by
- * stroking.
+ * stroking. Use fixed="1" to apply the value as-is, without scaling.
  * 
  * *dashed* is "1" for dashing enabled and "0" for disabled.
  * 
@@ -23749,8 +23761,6 @@ mxShape.prototype.apply = function(state)
 		this.strokeOpacity = mxUtils.getValue(this.style, mxConstants.STYLE_STROKE_OPACITY, this.strokeOpacity);
 		this.stroke = mxUtils.getValue(this.style, mxConstants.STYLE_STROKECOLOR, this.stroke);
 		this.strokewidth = mxUtils.getNumber(this.style, mxConstants.STYLE_STROKEWIDTH, this.strokewidth);
-		// Arrow stroke width is used to compute the arrow heads size in mxConnector
-		this.arrowStrokewidth = mxUtils.getNumber(this.style, mxConstants.STYLE_STROKEWIDTH, this.strokewidth);
 		this.spacing = mxUtils.getValue(this.style, mxConstants.STYLE_SPACING, this.spacing);
 		this.startSize = mxUtils.getNumber(this.style, mxConstants.STYLE_STARTSIZE, this.startSize);
 		this.endSize = mxUtils.getNumber(this.style, mxConstants.STYLE_ENDSIZE, this.endSize);
@@ -27628,7 +27638,7 @@ mxConnector.prototype.createMarker = function(c, pts, source)
 		// orthogonal vectors describing the direction of the marker
 		var filled = this.style[(source) ? mxConstants.STYLE_STARTFILL : mxConstants.STYLE_ENDFILL] != 0;
 		
-		result = mxMarker.createMarker(c, this, type, pe, unitX, unitY, size, source, this.arrowStrokewidth, filled);
+		result = mxMarker.createMarker(c, this, type, pe, unitX, unitY, size, source, this.strokewidth, filled);
 	}
 	
 	return result;
@@ -27945,6 +27955,8 @@ mxSwimlane.prototype.paintSwimlane = function(c, x, y, w, h, start, fill, swimla
  */
 mxSwimlane.prototype.paintRoundedSwimlane = function(c, x, y, w, h, start, r, fill, swimlaneLine)
 {
+	r = Math.min(h - start, Math.min(start, r));
+	
 	if (fill != mxConstants.NONE)
 	{
 		c.save();
@@ -44253,7 +44265,7 @@ mxPrintPreview.prototype.open = function(css, targetWindow, forcePageBreaks, kee
 			// to create the complete page and then copy it over to the
 			// new window.document. This can be fixed later by using the
 			// ownerDocument of the container in mxShape and mxGraphView.
-			if (mxClient.IS_IE || document.documentMode >= 11 || mxClient.IS_EDGE)
+			if (isNewWindow && (mxClient.IS_IE || document.documentMode >= 11 || mxClient.IS_EDGE))
 			{
 				// For some obscure reason, removing the DIV from the
 				// parent before fetching its outerHTML has missing
@@ -58080,6 +58092,10 @@ mxGraph.prototype.splitEdge = function(edge, cells, newEdge, dx, dy)
 		{
 			newEdge = this.cloneCells([edge])[0];
 
+			// Removes start arrow of original and end arrow of clone
+			this.setCellStyles(mxConstants.STYLE_ENDARROW, mxConstants.NONE, [newEdge]);
+			this.setCellStyles(mxConstants.STYLE_STARTARROW, mxConstants.NONE, [edge]);
+			
 			// Removes waypoints before/after new cell
 			var state = this.view.getState(edge);
 			var geo = this.getCellGeometry(newEdge);
@@ -78592,7 +78608,6 @@ mxEdgeHandler.prototype.drawPreview = function()
 		this.shape.isDashed = this.isSelectionDashed();
 		this.shape.stroke = this.getSelectionColor();
 		this.shape.strokewidth = this.getSelectionStrokeWidth() / this.shape.scale / this.shape.scale;
-		this.shape.arrowStrokewidth = this.getSelectionStrokeWidth();
 		this.shape.isShadow = false;
 		this.shape.redraw();
 	}
@@ -80409,7 +80424,6 @@ mxCellHighlight.prototype.createShape = function()
 	shape.points = this.state.absolutePoints;
 	shape.apply(this.state);
 	shape.strokewidth = this.strokeWidth / this.state.view.scale / this.state.view.scale;
-	shape.arrowStrokewidth = this.strokeWidth;
 	shape.stroke = this.highlightColor;
 	shape.opacity = this.opacity;
 	shape.isDashed = this.dashed;

@@ -1,3 +1,17 @@
+12-APR-2017: 3.7.2
+
+- Adds checks for swimlane rendering boundary cases
+- Fixes cloned start/end arrow in mxGraph.splitEdge
+- Removes mxShape.arrowStrokewidth, fixes mxCellHighlight for arrows
+- Adds automatic NPM release
+- Adds optional type argument in mxForm.addText
+- Fixes selection of removed parents in grapheditor
+- Fixes Graph.distributeCells for child cells in groups
+- Fixes Graph.encodeCells for children of selected parents
+- Fixes possible NPE in mxUtils.getOffset/getScrollOrigin
+- Fixes dashed and strokewidth tag in stencils for Java
+- Fixes markup for same window for IE in mxPrintPreview
+
 01-MAR-2017: 3.7.1
 
 - Uses semantic versioning

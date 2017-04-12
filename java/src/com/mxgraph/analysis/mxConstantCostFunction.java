@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2007, Gaudenz Alder
+ * Copyright (c) 2007-2017, Gaudenz Alder
+ * Copyright (c) 2007-2017, JGraph Ltd
  */
 package com.mxgraph.analysis;
 
@@ -18,7 +19,7 @@ public class mxConstantCostFunction implements mxICostFunction
 
 	/**
 	 * 
-	 * @param cost
+	 * @param cost the cost value for this function
 	 */
 	public mxConstantCostFunction(double cost)
 	{

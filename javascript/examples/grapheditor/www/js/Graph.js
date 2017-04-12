@@ -4749,10 +4749,10 @@ if (typeof mxVertexHandler != 'undefined')
 		};
 		
 		/**
-		 * Function: alignCells
+		 * Function: distributeCells
 		 * 
-		 * Aligns the given cells vertically or horizontally according to the given
-		 * alignment using the optional parameter as the coordinate.
+		 * Distribuets the centers of the given cells equally along the available
+		 * horizontal or vertical space.
 		 * 
 		 * Parameters:
 		 * 
@@ -4810,20 +4810,21 @@ if (typeof mxVertexHandler != 'undefined')
 						
 						for (var i = 1; i < vertices.length - 1; i++)
 						{
+							var pstate = this.view.getState(this.model.getParent(vertices[i].cell));
 							var geo = this.getCellGeometry(vertices[i].cell);
 							t0 += dt;
 							
-							if (geo != null)
+							if (geo != null && pstate != null)
 							{
 								geo = geo.clone();
 								
 								if (horizontal)
 								{
-									geo.x = Math.round(t0 - geo.width / 2);
+									geo.x = Math.round(t0 - geo.width / 2) - pstate.origin.x;
 								}
 								else
 								{
-									geo.y = Math.round(t0 - geo.height / 2);
+									geo.y = Math.round(t0 - geo.height / 2) - pstate.origin.y;
 								}
 								
 								this.getModel().setGeometry(vertices[i].cell, geo);
@@ -4860,6 +4861,14 @@ if (typeof mxVertexHandler != 'undefined')
 		{
 			var clones = this.cloneCells(cells);
 			
+			// Creates a dictionary for fast lookups
+			var dict = new mxDictionary();
+			
+			for (var i = 0; i < cells.length; i++)
+			{
+				dict.put(cells[i], true);
+			}
+			
 			// Checks for orphaned relative children and makes absolute
 			for (var i = 0; i < clones.length; i++)
 			{
@@ -4869,7 +4878,8 @@ if (typeof mxVertexHandler != 'undefined')
 				{
 					var geo = this.getCellGeometry(clones[i]);
 					
-					if (geo != null && geo.relative)
+					if (geo != null && geo.relative && !this.model.isEdge(cells[i]) &&
+						!dict.get(this.model.getParent(cells[i])))
 					{
 						geo.relative = false;
 						geo.x = state.x / state.view.scale - state.view.translate.x;
@@ -4962,8 +4972,8 @@ if (typeof mxVertexHandler != 'undefined')
 			}
 			
 			var s = scale / vs;
-			root.setAttribute('width', (Math.ceil(bounds.width * s) + 2 * border) + 'px');
-			root.setAttribute('height', (Math.ceil(bounds.height * s) + 2 * border) + 'px');
+			root.setAttribute('width', Math.max(1, Math.ceil(bounds.width * s) + 2 * border) + 'px');
+			root.setAttribute('height', Math.max(1, Math.ceil(bounds.height * s) + 2 * border) + 'px');
 			root.setAttribute('version', '1.1');
 			
 		    // Adds group for anti-aliasing via transform

@@ -7,6 +7,7 @@ containsValidationErrors=Contains validation errors
 done=Done
 doubleClickOrientation=Doubleclick to Change Orientation
 error=Error
+errorSavingFile=Error saving file
 ok=OK
 updatingDocument=Updating Document. Please wait...
 updatingSelection=Updating Selection. Please wait...

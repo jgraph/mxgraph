@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012, JGraph Ltd
+ * Copyright (c) 2012-2017, JGraph Ltd
  */
 package com.mxgraph.analysis;
 
@@ -103,7 +103,7 @@ public class mxAnalysisGraph
 
 	/**
 	 * 
-	 * @param parent
+	 * @param parent the cell whose children will be return
 	 * @return all vertices of the given <b>parent</b>
 	 */
 	public Object[] getChildVertices(Object parent)
@@ -113,7 +113,7 @@ public class mxAnalysisGraph
 
 	/**
 	 * 
-	 * @param parent
+	 * @param parent the cell whose child edges will be return
 	 * @return all edges of the given <b>parent</b>
 	 */
 	public Object[] getChildEdges(Object parent)
@@ -123,15 +123,22 @@ public class mxAnalysisGraph
 
 	/**
 	 * 
-	 * @param edge
-	 * @param isSource
-	 * @return
+	 * @param edge the whose terminal is being sought
+	 * @param isSource whether the source terminal is being sought
+	 * @return the terminal as specified
 	 */
 	public Object getTerminal(Object edge, boolean isSource)
 	{
 		return graph.getModel().getTerminal(edge, isSource);
 	};
 
+	/**
+	 * 
+	 * @param parent
+	 * @param vertices
+	 * @param edges
+	 * @return
+	 */
 	public Object[] getChildCells(Object parent, boolean vertices, boolean edges)
 	{
 		return graph.getChildCells(parent, vertices, edges);

@@ -2282,7 +2282,6 @@ mxEdgeHandler.prototype.drawPreview = function()
 		this.shape.isDashed = this.isSelectionDashed();
 		this.shape.stroke = this.getSelectionColor();
 		this.shape.strokewidth = this.getSelectionStrokeWidth() / this.shape.scale / this.shape.scale;
-		this.shape.arrowStrokewidth = this.getSelectionStrokeWidth();
 		this.shape.isShadow = false;
 		this.shape.redraw();
 	}

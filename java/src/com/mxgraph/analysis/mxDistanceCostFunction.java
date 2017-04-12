@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2007-2009, JGraph Ltd
+ * Copyright (c) 2007-2017, JGraph Ltd
  */
 package com.mxgraph.analysis;
 

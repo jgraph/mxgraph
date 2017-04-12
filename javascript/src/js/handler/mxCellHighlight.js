@@ -150,7 +150,6 @@ mxCellHighlight.prototype.createShape = function()
 	shape.points = this.state.absolutePoints;
 	shape.apply(this.state);
 	shape.strokewidth = this.strokeWidth / this.state.view.scale / this.state.view.scale;
-	shape.arrowStrokewidth = this.strokeWidth;
 	shape.stroke = this.highlightColor;
 	shape.opacity = this.opacity;
 	shape.isDashed = this.dashed;

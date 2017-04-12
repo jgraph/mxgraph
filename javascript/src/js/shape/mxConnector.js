@@ -117,7 +117,7 @@ mxConnector.prototype.createMarker = function(c, pts, source)
 		// orthogonal vectors describing the direction of the marker
 		var filled = this.style[(source) ? mxConstants.STYLE_STARTFILL : mxConstants.STYLE_ENDFILL] != 0;
 		
-		result = mxMarker.createMarker(c, this, type, pe, unitX, unitY, size, source, this.arrowStrokewidth, filled);
+		result = mxMarker.createMarker(c, this, type, pe, unitX, unitY, size, source, this.strokewidth, filled);
 	}
 	
 	return result;

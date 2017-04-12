@@ -285,6 +285,8 @@ mxSwimlane.prototype.paintSwimlane = function(c, x, y, w, h, start, fill, swimla
  */
 mxSwimlane.prototype.paintRoundedSwimlane = function(c, x, y, w, h, start, r, fill, swimlaneLine)
 {
+	r = Math.min(h - start, Math.min(start, r));
+	
 	if (fill != mxConstants.NONE)
 	{
 		c.save();

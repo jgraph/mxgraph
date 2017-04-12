@@ -2503,7 +2503,13 @@ var mxUtils =
 
 		while (node != null && node != b && node != d && !fixed)
 		{
-			fixed = fixed || mxUtils.getCurrentStyle(node).position == 'fixed';
+			var style = mxUtils.getCurrentStyle(node);
+			
+			if (style != null)
+			{
+				fixed = fixed || style.position == 'fixed';
+			}
+			
 			node = node.parentNode;
 		}
 		
@@ -2568,8 +2574,14 @@ var mxUtils =
 				result.x += node.scrollLeft;
 				result.y += node.scrollTop;
 			}
+			
+			var style = mxUtils.getCurrentStyle(node);
+			
+			if (style != null)
+			{
+				fixed = fixed || style.position == 'fixed';
+			}
 
-			fixed = fixed || mxUtils.getCurrentStyle(node).position == 'fixed';
 			node = node.parentNode;
 		}
 

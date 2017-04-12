@@ -1,6 +1,6 @@
 /**
- * Copyright (c) 2006-2015, JGraph Ltd
- * Copyright (c) 2006-2015, Gaudenz Alder
+ * Copyright (c) 2006-2017, JGraph Ltd
+ * Copyright (c) 2006-2017, Gaudenz Alder
  */
 var mxClient =
 {
@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.7.1.
+	 * Current version is 3.7.2.
 	 */
-	VERSION: '3.7.1',
+	VERSION: '3.7.2',
 
 	/**
 	 * Variable: IS_IE
@@ -599,9 +599,12 @@ if (mxClient.IS_VML)
 	}
 }
 
+// PREPROCESSOR-REMOVE-START
 // If script is loaded via CommonJS, do not write <script> tags to the page
 // for dependencies. These are already included in the build.
-if (!(typeof module === 'object' && module.exports)) {
+if (!(typeof module === 'object' && module.exports))
+{
+// PREPROCESSOR-REMOVE-END
 	mxClient.include(mxClient.basePath+'/js/util/mxLog.js');
 	mxClient.include(mxClient.basePath+'/js/util/mxObjectIdentity.js');
 	mxClient.include(mxClient.basePath+'/js/util/mxDictionary.js');
@@ -742,4 +745,6 @@ if (!(typeof module === 'object' && module.exports)) {
 	mxClient.include(mxClient.basePath+'/js/io/mxDefaultToolbarCodec.js');
 	mxClient.include(mxClient.basePath+'/js/io/mxDefaultPopupMenuCodec.js');
 	mxClient.include(mxClient.basePath+'/js/io/mxEditorCodec.js');
+// PREPROCESSOR-REMOVE-START
 }
+// PREPROCESSOR-REMOVE-END

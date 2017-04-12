@@ -561,7 +561,7 @@ mxPrintPreview.prototype.open = function(css, targetWindow, forcePageBreaks, kee
 			// to create the complete page and then copy it over to the
 			// new window.document. This can be fixed later by using the
 			// ownerDocument of the container in mxShape and mxGraphView.
-			if (mxClient.IS_IE || document.documentMode >= 11 || mxClient.IS_EDGE)
+			if (isNewWindow && (mxClient.IS_IE || document.documentMode >= 11 || mxClient.IS_EDGE))
 			{
 				// For some obscure reason, removing the DIV from the
 				// parent before fetching its outerHTML has missing

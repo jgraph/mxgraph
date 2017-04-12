@@ -19,7 +19,7 @@
  * Variable causes the ratio to match that of the geometry of the current vertex.
  * - "strokewidth", optional string. Either an integer or the string "inherit".
  * "inherit" indicates that the strokeWidth of the cell is only changed on scaling,
- * not on resizing.
+ * not on resizing. Default is "1".
  * If numeric values are used, the strokeWidth of the cell is changed on both
  * scaling and resizing and the value defines the multiple that is applied to
  * the width.
@@ -49,7 +49,7 @@
  * line tracing of the outside of the shape, but not always.
  * 
  * Any stroke, fill or fillstroke of a background must be the first element of the
- * foreground element, they must not used within *background*. If the background
+ * foreground element, they must not be used within *background*. If the background
  * is empty, this is not required.
  * 
  * Because the background cannot have any fill or stroke, it can contain only one
@@ -84,7 +84,7 @@
  * and 0.0 for fully transparent.
  * 
  * *strokewidth* defines the integer thickness of drawing elements rendered by
- * stroking.
+ * stroking. Use fixed="1" to apply the value as-is, without scaling.
  * 
  * *dashed* is "1" for dashing enabled and "0" for disabled.
  * 

@@ -1528,7 +1528,7 @@ ArrangePanel.prototype.addGroupOps = function(div)
 		div.appendChild(btn);
 		count++;
 	}
-	else if (ss.edges.length > 0)
+	else if (graph.getSelectionCount() > 0)
 	{
 		if (count > 0)
 		{
@@ -1540,7 +1540,7 @@ ArrangePanel.prototype.addGroupOps = function(div)
 			this.editorUi.actions.get('clearWaypoints').funct();
 		}));
 		
-		btn.setAttribute('title', mxResources.get('clearWaypoints'));
+		btn.setAttribute('title', mxResources.get('clearWaypoints') + ' (' + this.editorUi.actions.get('clearWaypoints').shortcut + ')');
 		btn.style.width = '202px';
 		btn.style.marginBottom = '2px';
 		div.appendChild(btn);
@@ -3730,7 +3730,9 @@ StyleFormatPanel.prototype.addStroke = function(container)
 	{
 		if (ss.style.shape == 'connector' || ss.style.shape == 'flexArrow')
 		{
-			this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.NONE, 0], 'geIcon geSprite geSprite-noarrow', null, false).setAttribute('title', mxResources.get('none'));
+			var item = this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.NONE, 0], 'geIcon', null, false);
+			item.setAttribute('title', mxResources.get('none'));
+			item.firstChild.firstChild.innerHTML = '<font style="font-size:10px;">' + mxUtils.htmlEntities(mxResources.get('none')) + '</font>';
 
 			if (ss.style.shape == 'connector')
 			{
@@ -3776,8 +3778,10 @@ StyleFormatPanel.prototype.addStroke = function(container)
 	{
 		if (ss.style.shape == 'connector' || ss.style.shape == 'flexArrow')
 		{
-			this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.NONE, 0], 'geIcon geSprite geSprite-noarrow', null, false).setAttribute('title', mxResources.get('none'));
-	
+			var item = this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.NONE, 0], 'geIcon', null, false);
+			item.setAttribute('title', mxResources.get('none'));
+			item.firstChild.firstChild.innerHTML = '<font style="font-size:10px;">' + mxUtils.htmlEntities(mxResources.get('none')) + '</font>';
+			
 			if (ss.style.shape == 'connector')
 			{
 				this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_CLASSIC, 1], 'geIcon geSprite geSprite-endclassic', null, false).setAttribute('title', mxResources.get('classic'));
@@ -4076,6 +4080,16 @@ StyleFormatPanel.prototype.addStroke = function(container)
 			var markerDiv = elt.getElementsByTagName('div')[0];
 			
 			markerDiv.className = ui.getCssClassForMarker(prefix, ss.style.shape, marker, fill);
+			
+			if (markerDiv.className == 'geSprite geSprite-noarrow')
+			{
+				markerDiv.innerHTML = mxUtils.htmlEntities(mxResources.get('none'));
+				markerDiv.style.backgroundImage = 'none';
+				markerDiv.style.verticalAlign = 'top';
+				markerDiv.style.marginTop = '5px';
+				markerDiv.style.fontSize = '10px';
+				markerDiv.nextSibling.style.marginTop = '0px';
+			}
 			
 			return markerDiv;
 		};
