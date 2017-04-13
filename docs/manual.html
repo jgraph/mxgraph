@@ -854,9 +854,9 @@ model. In the HelloWorld example we saw this code:</p>
 graph.getModel().beginUpdate();
 try
 {
-   var v1 = graph.addVertex(parent, null, 'Hello,', 20, 20, 80, 30);
-   var v2 = graph.addVertex(parent, null, 'World!', 200, 150, 80, 30);
-   var e1 = graph.addEdge(parent, null, '', v1, v2);
+   var v1 = graph.insertVertex(parent, null, 'Hello,', 20, 20, 80, 30);
+   var v2 = graph.insertVertex(parent, null, 'World!', 200, 150, 80, 30);
+   var e1 = graph.insertEdge(parent, null, '', v1, v2);
 }
 finally
 {
