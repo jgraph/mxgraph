@@ -1,3 +1,7 @@
+27-JUN-2017: 3.7.4
+
+- Fixes mxXmlUtils.parseXml null return value
+
 27-JUN-2017: 3.7.3
 
 - Fixes horizontal/vertical flip for perimeter projections

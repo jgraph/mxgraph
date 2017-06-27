@@ -76,7 +76,7 @@ public class mxXmlUtils
 	{
 		try
 		{
-			getDocumentBuilder().parse(new InputSource(new StringReader(xml)));
+			return getDocumentBuilder().parse(new InputSource(new StringReader(xml)));
 		}
 		catch (Exception e)
 		{
