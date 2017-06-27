@@ -29,4 +29,4 @@ mxGraph is licensed under the Apache 2.0 license. We do not sell any other licen
 History
 =======
 
-We created mxGraph in 2005 as a commercial project and it ran through to 2016 that way. Our USP was the support for non-SVG browsers, when that advantage expired we moved onto commercial activity around draw.io. mxGraph is pretty much feature complete, production tested in many large enterprises and stable for many years. We actively fix bug and make minor improvements since it comprises the base of our draw.io stack.
+We created mxGraph in 2005 as a commercial project and it ran through to 2016 that way. Our USP was the support for non-SVG browsers, when that advantage expired we moved onto commercial activity around draw.io. mxGraph is pretty much feature complete, production tested in many large enterprises and stable for many years. We actively fix bugs and make minor improvements since it comprises the base of our draw.io stack.
