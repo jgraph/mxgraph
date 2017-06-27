@@ -1,5 +1,5 @@
 <!--
- Copyright (c) 2008-2016 JGraph Ltd.
+ Copyright (c) 2008-2017 JGraph Ltd.
 -->
 
 <!-- ===================== Project Properties =========================== -->
@@ -7,7 +7,7 @@
 <project name="mxgraph" default="all" basedir=".">
 
 	<property name="product.name"    value="mxGraph"/>
-	<property name="product.version" value="3.7.2"/>
+	<property name="product.version" value="3.7.3"/>
 	<property name="all.jar"         value="mxgraph-all.jar"/>
 	<property name="core.jar"        value="mxgraph-core.jar"/>
 	<property name="swing.jar"       value="mxgraph-swing.jar"/>
@@ -52,7 +52,7 @@
 <!-- ==================== Compile ==================== -->
 
 	<target name="compile" depends="init" description="Compiles the source tree">
-		<javac target="1.6" source="1.6" srcdir="${source.home}"
+		<javac target="1.7" source="1.7" srcdir="${source.home}"
 			debug="${compile.debug}"
 			deprecation="${compile.deprecation}"
 			optimize="${compile.optimize}"
@@ -76,9 +76,9 @@
 				 windowtitle="${product.name} ${product.version} API Specification"
 				 doctitle="${product.name} ${product.version} API Specification">
 			<header><![CDATA[<p><b>${product.name} ${product.version}</b></p>]]></header>
-			<bottom><![CDATA[<font size=1>Copyright (c) 2010 <a href="http://www.mxgraph.com/"
-				target="_blank">Gaudenz Alder, David Benson</a>. All rights reserved.</font>]]></bottom>
-			<link href="http://download.oracle.com/javase/1.5.0/docs/api/"/>
+			<bottom><![CDATA[<font size=1>Copyright (c) 2010-2017 <a href="http://www.jgraph.com/"
+				target="_blank">Gaudenz Alder, JGraph Ltd</a>. All rights reserved.</font>]]></bottom>
+			<link href="http://docs.oracle.com/javase/7/docs/api/"/>
 		</javadoc>
 	</target>
 
@@ -136,7 +136,7 @@
 <!-- ==================== compile-examples ==================== -->
 
 	<target name="compile-examples" depends="compile" description="Compiles the examples">
-		<javac target="1.6" source="1.6"
+		<javac target="1.7" source="1.7"
 			debug="${compile.debug}"
 			deprecation="${compile.deprecation}"
 			optimize="${compile.optimize}"

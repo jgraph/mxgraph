@@ -13,6 +13,7 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.font.FontRenderContext;
+import java.awt.font.TextAttribute;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
@@ -24,12 +25,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Formatter;
 import java.util.Iterator;
@@ -48,6 +51,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
 
 import com.mxgraph.io.mxCodecRegistry;
 import com.mxgraph.model.mxCellPath;
@@ -1669,7 +1673,10 @@ public class mxUtils
 		swingFontStyle += ((fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC) ? Font.ITALIC
 				: Font.PLAIN;
 
-		return new Font(fontFamily, swingFontStyle, (int) (fontSize * scale));
+		Map<TextAttribute, Integer> fontAttributes = (fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE ?
+				Collections.singletonMap(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON) : null;
+		
+		return new Font(fontFamily, swingFontStyle, (int) (fontSize * scale)).deriveFont(fontAttributes);
 	}
 
 	/**
@@ -2342,7 +2349,7 @@ public class mxUtils
 	}
 
 	/**
-	 * Returns a new DOM document for the given URI.
+	 * Returns a new DOM document for the given URI. External entities and DTDs are ignored.
 	 * 
 	 * @param uri
 	 *            URI to parse into the document.
@@ -2352,16 +2359,13 @@ public class mxUtils
 	{
 		try
 		{
-			DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory
-					.newInstance();
-			DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-			return docBuilder.parse(uri);
+			mxXmlUtils.getDocumentBuilder().parse(uri);
 		}
 		catch (Exception e)
 		{
 			e.printStackTrace();
 		}
-
+		
 		return null;
 	}
 

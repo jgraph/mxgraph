@@ -1598,6 +1598,30 @@
 
 	mxCellRenderer.prototype.defaultShapes['corner'] = CornerShape;
 
+	// Crossbar shape
+	function CrossbarShape()
+	{
+		mxActor.call(this);
+	};
+	mxUtils.extend(CrossbarShape, mxActor);
+	
+	CrossbarShape.prototype.redrawPath = function(c, x, y, w, h)
+	{
+		c.moveTo(0, 0);
+		c.lineTo(0, h);
+		c.end();
+		
+		c.moveTo(w, 0);
+		c.lineTo(w, h);
+		c.end();
+		
+		c.moveTo(0, h / 2);
+		c.lineTo(w, h / 2);
+		c.end();
+	};
+
+	mxCellRenderer.prototype.defaultShapes['crossbar'] = CrossbarShape;
+
 	// Internal storage
 	function TeeShape()
 	{
@@ -2927,8 +2951,9 @@
 				//if (this.graph.isCellResizable(this.state.cell) || this.graph.isCellMovable(this.state.cell))
 				{
 					var name = this.state.style['shape'];
-					
-					if (this.state.view.graph.cellRenderer.defaultShapes[name] == null)
+
+					if (this.state.view.graph.cellRenderer.defaultShapes[name] == null &&
+						mxStencilRegistry.getStencil(name) == null)
 					{
 						name = mxConstants.SHAPE_RECTANGLE;
 					}
@@ -2951,7 +2976,8 @@
 			{
 				var name = this.state.style['shape'];
 				
-				if (this.state.view.graph.cellRenderer.defaultShapes[name] == null)
+				if (this.state.view.graph.cellRenderer.defaultShapes[name] == null &&
+					mxStencilRegistry.getStencil(name) == null)
 				{
 					name = mxConstants.SHAPE_CONNECTOR;
 				}
@@ -3252,6 +3278,16 @@
 	mxArrow.prototype.constraints = null;
 	TeeShape.prototype.constraints = null;
 	CornerShape.prototype.constraints = null;
+	CrossbarShape.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0, 0), false),
+        new mxConnectionConstraint(new mxPoint(0, 0.5), false),
+        new mxConnectionConstraint(new mxPoint(0, 1), false),
+        new mxConnectionConstraint(new mxPoint(0.25, 0.5), false),
+        new mxConnectionConstraint(new mxPoint(0.5, 0.5), false),
+        new mxConnectionConstraint(new mxPoint(0.75, 0.5), false),
+        new mxConnectionConstraint(new mxPoint(1, 0), false),
+        new mxConnectionConstraint(new mxPoint(1, 0.5), false),
+        new mxConnectionConstraint(new mxPoint(1, 1), false)];
+
 	SingleArrowShape.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0, 0.5), false),
 	                                    new mxConnectionConstraint(new mxPoint(1, 0.5), false)];
 	DoubleArrowShape.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0, 0.5), false),

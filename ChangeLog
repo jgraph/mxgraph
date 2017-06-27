@@ -1,3 +1,23 @@
+27-JUN-2017: 3.7.3
+
+- Fixes horizontal/vertical flip for perimeter projections
+- Changes mxConstants.PAGE_FORMAT_A4_PORTRAIT/LANDSCAPE width/height to 827
+- Disables external XML entities in all backends
+- Fixes ignored underline in mxUtils.getFont
+- Resets tooltip content in mxTooltipHandler.hideTooltip
+- Fixes custom handle visible during resize with strict HTML
+- Fixes custom handle text flow preview with strict HTML
+- Fixes reset of inactive mxHandles in mxVertexHandler.reset
+- Adds mxConstants.STYLE_SOURCE/TARGET_PORT_CONSTRAINT styles
+- Fixes cache invalidation for custom handle reset
+- Fixes submenu showing with negative x-coordinate
+- Adds optional inverse argument for mxGraph.traverse
+- Fixes possible String type for spacing in mxText
+- Adds mxForceIncludes global config variable
+- Fixes mxCellHighlight for scaled arrows
+- Removes fix for cloned start/end arrow when splitting edge
+- Fixes touch events in Chrome for hiding modal dialogs
+
 12-APR-2017: 3.7.2
 
 - Adds checks for swimlane rendering boundary cases

@@ -1286,12 +1286,16 @@ namespace com.mxgraph
         }
 
         /// <summary>
-        /// Returns a new, empty DOM document.
+        /// Returns a new, empty DOM document. External entities and DTDs are ignored.
         /// </summary>
         /// <returns>Returns a new DOM document.</returns>
         public static XmlDocument CreateDocument()
         {
-            return new XmlDocument();
+            XmlDocument document = new XmlDocument();
+
+            document.XmlResolver = null;
+
+            return document;
         }
 
         /// <summary>

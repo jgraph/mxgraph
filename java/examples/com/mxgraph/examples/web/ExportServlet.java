@@ -250,6 +250,9 @@ public class ExportServlet extends HttpServlet
 	protected void renderXml(String xml, mxICanvas2D canvas) throws SAXException, ParserConfigurationException, IOException
 	{
 		XMLReader reader = parserFactory.newSAXParser().getXMLReader();
+		reader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+		reader.setFeature("http://xml.org/sax/features/external-general-entities", false);
+		reader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
 		reader.setContentHandler(new mxSaxOutputHandler(canvas));
 		reader.parse(new InputSource(new StringReader(xml)));
 	}

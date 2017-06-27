@@ -249,7 +249,7 @@ Format.prototype.isComicState = function(state)
 	                        'swimlane', 'triangle', 'trapezoid', 'ext', 'step', 'tee', 'process', 'link', 'rhombus',
 	                        'offPageConnector', 'loopLimit', 'hexagon', 'manualInput', 'singleArrow', 'doubleArrow',
 	                        'flexArrow', 'card', 'umlLifeline', 'connector', 'folder', 'component', 'sortShape',
-	                        'cross', 'umlFrame', 'cube', 'isoCube', 'isoRectangle'], shape) >= 0;
+	                        'cross', 'umlFrame', 'cube', 'isoCube', 'isoRectangle', 'partialRectangle'], shape) >= 0;
 };
 
 /**
@@ -2684,7 +2684,7 @@ TextFormatPanel.prototype.addFont = function(container)
 		container.appendChild(this.createRelativeOption(mxResources.get('lineheight'), null, null, function(input)
 		{
 			var value = (input.value == '') ? 120 : parseInt(input.value);
-			value = Math.max(120, (isNaN(value)) ? 120 : value);
+			value = Math.max(0, (isNaN(value)) ? 120 : value);
 
 			if (selState != null)
 			{
@@ -2702,9 +2702,9 @@ TextFormatPanel.prototype.addFont = function(container)
 			
 			if (node != null && node == graph.cellEditor.textarea && graph.cellEditor.textarea.firstChild != null)
 			{
-				if (graph.cellEditor.textarea.firstChild.nodeName != 'FONT')
+				if (graph.cellEditor.textarea.firstChild.nodeName != 'P')
 				{
-					graph.cellEditor.textarea.innerHTML = '<font>' + graph.cellEditor.textarea.innerHTML + '</font>';
+					graph.cellEditor.textarea.innerHTML = '<p>' + graph.cellEditor.textarea.innerHTML + '</p>';
 				}
 				
 				node = graph.cellEditor.textarea.firstChild;
@@ -4685,7 +4685,6 @@ DiagramFormatPanel.prototype.addPaperSize = function(div)
 	
 	this.addKeyHandler(accessor.widthInput, function()
 	{
-		console.log('here', graph.pageFormat);
 		accessor.set(graph.pageFormat);
 	});
 -	this.addKeyHandler(accessor.heightInput, function()

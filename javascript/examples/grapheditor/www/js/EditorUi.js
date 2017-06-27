@@ -428,7 +428,7 @@ EditorUi = function(editor, container, lightbox)
 	this.clearDefaultStyle = function()
 	{
 		graph.currentEdgeStyle = graph.defaultEdgeStyle;
-		graph.currentVertexStyle = {};
+		graph.currentVertexStyle = graph.defaultVertexStyle;
 		
 		// Updates UI
 		this.fireEvent(new mxEventObject('styleChanged', 'keys', [], 'values', [], 'cells', []));
@@ -460,7 +460,10 @@ EditorUi = function(editor, container, lightbox)
 	
 	for (var i = 0; i < connectStyles.length; i++)
 	{
-		styles.push(connectStyles[i]);
+		if (mxUtils.indexOf(styles, connectStyles[i]) < 0)
+		{
+			styles.push(connectStyles[i]);
+		}
 	}
 
 	// Implements a global current style for edges and vertices that is applied to new cells
@@ -931,7 +934,7 @@ EditorUi.prototype.editButtonLink = null;
  * Specifies the position of the horizontal split bar. Default is 204 or 120 for
  * screen widths <= 500px.
  */
-EditorUi.prototype.hsplitPosition = (screen.width <= 500) ? 116 : 208;
+EditorUi.prototype.hsplitPosition = (screen.width <= 640) ? ((screen.width <= 360) ? 62 : 116) : 208;
 
 /**
  * Specifies if animations are allowed in <executeLayout>. Default is true.
@@ -950,46 +953,11 @@ EditorUi.prototype.init = function()
 		
 	mxEvent.addListener(graph.container, 'keydown', mxUtils.bind(this, function(evt)
 	{
-		// Tab selects next cell
-		if (evt.which == 9 && graph.isEnabled() && !mxEvent.isAltDown(evt))
-		{
-			if (graph.isEditing())
-			{
-				graph.stopEditing(false);
-			}
-			else
-			{
-				graph.selectCell(!mxEvent.isShiftDown(evt));
-			}
-			
-			mxEvent.consume(evt);
-		}
+		this.onKeyDown(evt);
 	}));
-	
 	mxEvent.addListener(graph.container, 'keypress', mxUtils.bind(this, function(evt)
 	{
-		// KNOWN: Focus does not work if label is empty in quirks mode
-		if (this.isImmediateEditingEvent(evt) && !graph.isEditing() && !graph.isSelectionEmpty() && evt.which !== 0 &&
-			!mxEvent.isAltDown(evt) && !mxEvent.isControlDown(evt) && !mxEvent.isMetaDown(evt))
-		{
-			graph.escape();
-			graph.startEditing();
-
-			// Workaround for FF where char is lost if cursor is placed before char
-			if (mxClient.IS_FF)
-			{
-				var ce = graph.cellEditor;
-				ce.textarea.innerHTML = String.fromCharCode(evt.which);
-
-				// Moves cursor to end of textarea
-				var range = document.createRange();
-				range.selectNodeContents(ce.textarea);
-				range.collapse(false);
-				var sel = window.getSelection();
-				sel.removeAllRanges();
-				sel.addRange(range);
-			}
-		}
+		this.onKeyPress(evt);
 	}));
 
 	// Updates action states
@@ -1026,6 +994,60 @@ EditorUi.prototype.init = function()
 	if (this.format != null)
 	{
 		this.format.init();
+	}
+};
+
+/**
+ * Returns true if the given event should start editing. This implementation returns true.
+ */
+EditorUi.prototype.onKeyDown = function(evt)
+{
+	var graph = this.editor.graph;
+	
+	// Tab selects next cell
+	if (evt.which == 9 && graph.isEnabled() && !mxEvent.isAltDown(evt))
+	{
+		if (graph.isEditing())
+		{
+			graph.stopEditing(false);
+		}
+		else
+		{
+			graph.selectCell(!mxEvent.isShiftDown(evt));
+		}
+		
+		mxEvent.consume(evt);
+	}
+};
+
+/**
+ * Returns true if the given event should start editing. This implementation returns true.
+ */
+EditorUi.prototype.onKeyPress = function(evt)
+{
+	var graph = this.editor.graph;
+	
+	// KNOWN: Focus does not work if label is empty in quirks mode
+	if (this.isImmediateEditingEvent(evt) && !graph.isEditing() && !graph.isSelectionEmpty() && evt.which !== 0 &&
+		!mxEvent.isAltDown(evt) && !mxEvent.isControlDown(evt) && !mxEvent.isMetaDown(evt))
+	{
+		graph.escape();
+		graph.startEditing();
+
+		// Workaround for FF where char is lost if cursor is placed before char
+		if (mxClient.IS_FF)
+		{
+			var ce = graph.cellEditor;
+			ce.textarea.innerHTML = String.fromCharCode(evt.which);
+
+			// Moves cursor to end of textarea
+			var range = document.createRange();
+			range.selectNodeContents(ce.textarea);
+			range.collapse(false);
+			var sel = window.getSelection();
+			sel.removeAllRanges();
+			sel.addRange(range);
+		}
 	}
 };
 
@@ -1283,7 +1305,7 @@ EditorUi.prototype.initCanvas = function()
 	
 	if (this.editor.chromeless)
 	{
-		resize = mxUtils.bind(this, function(autoscale)
+		resize = mxUtils.bind(this, function(autoscale, maxScale)
 	   	{
 			if (graph.container != null)
 			{
@@ -1310,7 +1332,7 @@ EditorUi.prototype.initCanvas = function()
 				var cw = graph.container.offsetWidth - sb;
 				var ch = graph.container.offsetHeight - sb;
 				
-				var ns = (autoscale) ? Math.max(0.3, Math.min(1, cw / b.width)) : s;
+				var ns = (autoscale) ? Math.max(0.3, Math.min(maxScale || 1, cw / b.width)) : s;
 				var dx = Math.max((cw - ns * b.width) / 2, 0) / ns;
 				var dy = Math.max((ch - ns * b.height) / 4, 0) / ns;
 				
@@ -1355,8 +1377,12 @@ EditorUi.prototype.initCanvas = function()
 		this.chromelessToolbar.style.backgroundColor = '#000000';
 		this.chromelessToolbar.style.padding = '10px 10px 8px 10px';
 		this.chromelessToolbar.style.left = '50%';
-		mxUtils.setPrefixedStyle(this.chromelessToolbar.style, 'borderRadius', '20px');
-		mxUtils.setPrefixedStyle(this.chromelessToolbar.style, 'transition', 'opacity 600ms ease-in-out');
+		
+		if (!mxClient.IS_VML)
+		{
+			mxUtils.setPrefixedStyle(this.chromelessToolbar.style, 'borderRadius', '20px');
+			mxUtils.setPrefixedStyle(this.chromelessToolbar.style, 'transition', 'opacity 600ms ease-in-out');
+		}
 		
 		var updateChromelessToolbarPosition = mxUtils.bind(this, function()
 		{
@@ -1399,7 +1425,7 @@ EditorUi.prototype.initCanvas = function()
 		{
 			this.actions.get('previousPage').funct();
 			mxEvent.consume(evt);
-		}), Editor.previousLargeImage, mxResources.get('previousPage') || 'Previous Page');
+		}), Editor.previousLargeImage, mxResources.get('previousPage'));
 		
 		
 		var pageInfo = document.createElement('div');
@@ -1414,7 +1440,7 @@ EditorUi.prototype.initCanvas = function()
 		{
 			this.actions.get('nextPage').funct();
 			mxEvent.consume(evt);
-		}), Editor.nextLargeImage, mxResources.get('nextPage') || 'Next Page');
+		}), Editor.nextLargeImage, mxResources.get('nextPage'));
 		
 		var updatePageInfo = mxUtils.bind(this, function()
 		{
@@ -1455,13 +1481,13 @@ EditorUi.prototype.initCanvas = function()
 		{
 			this.actions.get('zoomOut').funct();
 			mxEvent.consume(evt);
-		}), Editor.zoomOutLargeImage, (mxResources.get('zoomOut') || 'Zoom Out') + ' (Alt+Mousewheel)');
+		}), Editor.zoomOutLargeImage, mxResources.get('zoomOut') + ' (Alt+Mousewheel)');
 		
 		addButton(mxUtils.bind(this, function(evt)
 		{
 			this.actions.get('zoomIn').funct();
 			mxEvent.consume(evt);
-		}), Editor.zoomInLargeImage, (mxResources.get('zoomIn') || 'Zoom In') + ' (Alt+Mousewheel)');
+		}), Editor.zoomInLargeImage, mxResources.get('zoomIn') + ' (Alt+Mousewheel)');
 		
 		addButton(mxUtils.bind(this, function(evt)
 		{
@@ -1484,7 +1510,7 @@ EditorUi.prototype.initCanvas = function()
 			}
 			
 			mxEvent.consume(evt);
-		}), Editor.actualSizeLargeImage, mxResources.get('fit') || 'Fit');
+		}), Editor.actualSizeLargeImage, mxResources.get('fit'));
 
 		// Changes toolbar opacity on hover
 		var fadeThread = null;
@@ -1578,7 +1604,7 @@ EditorUi.prototype.initCanvas = function()
 				}
 				
 				mxEvent.consume(evt);
-			}), Editor.layersLargeImage, mxResources.get('layers') || 'Layers');
+			}), Editor.layersLargeImage, mxResources.get('layers'));
 			
 			// Shows/hides layers button depending on content
 			var model = graph.getModel();
@@ -1588,7 +1614,13 @@ EditorUi.prototype.initCanvas = function()
 				 layersButton.style.display = (model.getChildCount(model.root) > 1) ? '' : 'none';
 			});
 		}
-
+		
+		addButton(mxUtils.bind(this, function(evt)
+		{
+			this.actions.get('print').funct();
+			mxEvent.consume(evt);
+		}), Editor.printLargeImage, mxResources.get('print'));
+		
 		if (this.editor.editButtonLink != null)
 		{
 			addButton(mxUtils.bind(this, function(evt)
@@ -1603,9 +1635,9 @@ EditorUi.prototype.initCanvas = function()
 				}
 				
 				mxEvent.consume(evt);
-			}), Editor.editLargeImage, mxResources.get('openInNewWindow') || 'Open in New Window');
+			}), Editor.editLargeImage, mxResources.get('openInNewWindow'));
 		}
-		
+
 		if (graph.lightbox && this.container != document.body)
 		{
 			addButton(mxUtils.bind(this, function(evt)
@@ -1619,14 +1651,14 @@ EditorUi.prototype.initCanvas = function()
 					this.destroy();
 					mxEvent.consume(evt);
 				}
-			}), Editor.closeLargeImage, (mxResources.get('close') || 'Close') + ' (Escape)');
+			}), Editor.closeLargeImage, mxResources.get('close') + ' (Escape)');
 		}
 
 		// Initial state invisible
 		this.chromelessToolbar.style.display = 'none';
+		mxUtils.setPrefixedStyle(this.chromelessToolbar.style, 'transform', 'translate(-50%,0)');
 		graph.container.appendChild(this.chromelessToolbar);
-		this.chromelessToolbar.style.marginLeft = -(btnCount * 24 + 10) + 'px';
-		
+
 		// Installs handling of hightligh and handling links to relative links and anchors
 		this.addChromelessClickHandler();
 		
@@ -2868,6 +2900,12 @@ EditorUi.prototype.createStatusContainer = function()
 {
 	var container = document.createElement('a');
 	container.className = 'geItem geStatus';
+	
+	if (screen.width < 420)
+	{
+		container.style.maxWidth = Math.max(20, screen.width - 320) + 'px';
+		container.style.overflow = 'hidden';
+	}
 	
 	return container;
 };

@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.7.2.
+	 * Current version is 3.7.3.
 	 */
-	VERSION: '3.7.2',
+	VERSION: '3.7.3',
 
 	/**
 	 * Variable: IS_IE
@@ -354,6 +354,25 @@ if (typeof(mxLoadResources) == 'undefined')
 }
 
 /**
+ * Variable: mxForceIncludes
+ * 
+ * Optional global config variable to force loading the JavaScript files in
+ * development mode. Default is undefined. NOTE: This is a global variable,
+ * not a variable of mxClient.
+ *
+ * (code)
+ * <script type="text/javascript">
+ * 		var mxLoadResources = true;
+ * </script>
+ * <script type="text/javascript" src="/path/to/core/directory/js/mxClient.js"></script>
+ * (end)
+ */
+if (typeof(mxForceIncludes) == 'undefined')
+{
+	mxForceIncludes = false;
+}
+
+/**
  * Variable: mxResourceExtension
  * 
  * Optional global config variable to specify the extension of resource files.
@@ -602,7 +621,7 @@ if (mxClient.IS_VML)
 // PREPROCESSOR-REMOVE-START
 // If script is loaded via CommonJS, do not write <script> tags to the page
 // for dependencies. These are already included in the build.
-if (!(typeof module === 'object' && module.exports))
+if (mxForceIncludes || !(typeof module === 'object' && module.exports != null))
 {
 // PREPROCESSOR-REMOVE-END
 	mxClient.include(mxClient.basePath+'/js/util/mxLog.js');

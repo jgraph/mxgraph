@@ -1091,36 +1091,44 @@ Menus.prototype.createMenubar = function(container)
 				menu.funct.apply(this, arguments);
 			}));
 			
-			if (elt != null)
-			{
-				menu.addListener('stateChanged', function()
-				{
-					elt.enabled = menu.enabled;
-					
-					if (!menu.enabled)
-					{
-						elt.className = 'geItem mxDisabled';
-						
-						if (document.documentMode == 8)
-						{
-							elt.style.color = '#c3c3c3';
-						}
-					}
-					else
-					{
-						elt.className = 'geItem';
-						
-						if (document.documentMode == 8)
-						{
-							elt.style.color = '';
-						}
-					}
-				});
-			}
+			this.menuCreated(menu, elt);
 		}))(this.get(menus[i]));
 	}
 
 	return menubar;
+};
+
+/**
+ * Creates the keyboard event handler for the current graph and history.
+ */
+Menus.prototype.menuCreated = function(menu, elt)
+{
+	if (elt != null)
+	{
+		menu.addListener('stateChanged', function()
+		{
+			elt.enabled = menu.enabled;
+			
+			if (!menu.enabled)
+			{
+				elt.className = 'geItem mxDisabled';
+				
+				if (document.documentMode == 8)
+				{
+					elt.style.color = '#c3c3c3';
+				}
+			}
+			else
+			{
+				elt.className = 'geItem';
+				
+				if (document.documentMode == 8)
+				{
+					elt.style.color = '';
+				}
+			}
+		});
+	}
 };
 
 /**

@@ -3,9 +3,6 @@
  */
 package com.mxgraph.util;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -14,6 +11,7 @@ import org.w3c.dom.Element;
  */
 public class mxDomUtils
 {
+
 	/**
 	 * Returns a new, empty DOM document.
 	 * 
@@ -21,22 +19,7 @@ public class mxDomUtils
 	 */
 	public static Document createDocument()
 	{
-		Document result = null;
-
-		try
-		{
-			DocumentBuilderFactory factory = DocumentBuilderFactory
-					.newInstance();
-			DocumentBuilder parser = factory.newDocumentBuilder();
-
-			result = parser.newDocument();
-		}
-		catch (Exception e)
-		{
-			System.out.println(e.getMessage());
-		}
-
-		return result;
+		return mxXmlUtils.getDocumentBuilder().newDocument();
 	}
 
 	/**
@@ -79,8 +62,8 @@ public class mxDomUtils
 
 		Element style = document.createElement("style");
 		style.setAttribute("type", "text/css");
-		style.appendChild(document
-				.createTextNode("<!-- v\\:* {behavior: url(#default#VML);} -->"));
+		style.appendChild(document.createTextNode(
+				"<!-- v\\:* {behavior: url(#default#VML);} -->"));
 
 		head.appendChild(style);
 		root.appendChild(head);

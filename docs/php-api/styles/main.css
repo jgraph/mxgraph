@@ -779,29 +779,29 @@ blockquote {
 
 .prettyprint .kwd { color: #800000; }  /* keywords */
 
-    .prettyprint .PDefaultValue .kwd,
-    .prettyprint .PDefaultValuePrefix .kwd,
-    .prettyprint .PTypePrefix .kwd {
+    .prettyprint.PDefaultValue .kwd,
+    .prettyprint.PDefaultValuePrefix .kwd,
+    .prettyprint.PTypePrefix .kwd {
         color: #C88F8F;
         }
 
 .prettyprint .com { color: #008000; }  /* comments */
 
-    .prettyprint .PDefaultValue .com,
-    .prettyprint .PDefaultValuePrefix .com,
-    .prettyprint .PTypePrefix .com {
+    .prettyprint.PDefaultValue .com,
+    .prettyprint.PDefaultValuePrefix .com,
+    .prettyprint.PTypePrefix .com {
         color: #8FC88F;
         }
 
 .prettyprint .str { color: #0000B0; }  /* strings */
 .prettyprint .lit { color: #0000B0; }  /* literals */
 
-    .prettyprint .PDefaultValue .str,
-    .prettyprint .PDefaultValuePrefix .str,
-    .prettyprint .PTypePrefix .str,
-    .prettyprint .PDefaultValue .lit,
-    .prettyprint .PDefaultValuePrefix .lit,
-    .prettyprint .PTypePrefix .lit {
+    .prettyprint.PDefaultValue .str,
+    .prettyprint.PDefaultValuePrefix .str,
+    .prettyprint.PTypePrefix .str,
+    .prettyprint.PDefaultValue .lit,
+    .prettyprint.PDefaultValuePrefix .lit,
+    .prettyprint.PTypePrefix .lit {
         color: #8F8FC0;
         }
 
@@ -809,15 +809,15 @@ blockquote {
 .prettyprint .pun { color: #000000; }  /* punctuation */
 .prettyprint .pln { color: #000000; }  /* punctuation */
 
-    .prettyprint .PDefaultValue .typ,
-    .prettyprint .PDefaultValuePrefix .typ,
-    .prettyprint .PTypePrefix .typ,
-    .prettyprint .PDefaultValue .pun,
-    .prettyprint .PDefaultValuePrefix .pun,
-    .prettyprint .PTypePrefix .pun,
-    .prettyprint .PDefaultValue .pln,
-    .prettyprint .PDefaultValuePrefix .pln,
-    .prettyprint .PTypePrefix .pln {
+    .prettyprint.PDefaultValue .typ,
+    .prettyprint.PDefaultValuePrefix .typ,
+    .prettyprint.PTypePrefix .typ,
+    .prettyprint.PDefaultValue .pun,
+    .prettyprint.PDefaultValuePrefix .pun,
+    .prettyprint.PTypePrefix .pun,
+    .prettyprint.PDefaultValue .pln,
+    .prettyprint.PDefaultValuePrefix .pln,
+    .prettyprint.PTypePrefix .pln {
         color: #8F8F8F;
         }
 

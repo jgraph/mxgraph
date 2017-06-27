@@ -1345,7 +1345,7 @@ window['_pr_isIE6'] = function () {
     var codeSegments = [
         document.getElementsByTagName('pre'),
         document.getElementsByTagName('code'),
-        document.getElementsByTagName('table'),  /* ND Change: Add tables to support prototypes. */
+        document.getElementsByTagName('td'),  /* ND Change: Add tables to support prototypes. */
         document.getElementsByTagName('xmp') ];
     var elements = [];
     for (var i = 0; i < codeSegments.length; ++i) {
@@ -1384,7 +1384,7 @@ window['_pr_isIE6'] = function () {
           var nested = false;
           for (var p = cs.parentNode; p; p = p.parentNode) {
             if ((p.tagName === 'pre' || p.tagName === 'code' ||
-                 p.tagName === 'xmp' || p.tagName === 'table') &&  /* ND Change: Add tables to support prototypes */
+                 p.tagName === 'xmp' || p.tagName === 'td') &&  /* ND Change: Add tables to support prototypes */
                 p.className && p.className.indexOf('prettyprint') >= 0) {
               nested = true;
               break;
