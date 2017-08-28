@@ -2273,7 +2273,98 @@ var mxUtils =
 		
 		return index;
 	},
-	
+
+	/**
+	 * Function: getDirectedBounds
+	 * 
+	 * Adds the given margins to the given rectangle and rotates and flips the
+	 * rectangle according to the respective styles in style.
+	 */
+	getDirectedBounds: function (rect, m, style, flipH, flipV)
+	{
+		var d = mxUtils.getValue(style, mxConstants.STYLE_DIRECTION, mxConstants.DIRECTION_EAST);
+		flipH = (flipH != null) ? flipH : mxUtils.getValue(style, mxConstants.STYLE_FLIPH, false);
+		flipV = (flipV != null) ? flipV : mxUtils.getValue(style, mxConstants.STYLE_FLIPV, false);
+
+		m.x = Math.round(Math.max(0, Math.min(rect.width, m.x)));
+		m.y = Math.round(Math.max(0, Math.min(rect.height, m.y)));
+		m.width = Math.round(Math.max(0, Math.min(rect.width, m.width)));
+		m.height = Math.round(Math.max(0, Math.min(rect.height, m.height)));
+		
+		if ((flipV && (d == mxConstants.DIRECTION_SOUTH || d == mxConstants.DIRECTION_NORTH)) ||
+			(flipH && (d == mxConstants.DIRECTION_EAST || d == mxConstants.DIRECTION_WEST)))
+		{
+			var tmp = m.x;
+			m.x = m.width;
+			m.width = tmp;
+		}
+			
+		if ((flipH && (d == mxConstants.DIRECTION_SOUTH || d == mxConstants.DIRECTION_NORTH)) ||
+			(flipV && (d == mxConstants.DIRECTION_EAST || d == mxConstants.DIRECTION_WEST)))
+		{
+			var tmp = m.y;
+			m.y = m.height;
+			m.height = tmp;
+		}
+		
+		var m2 = mxRectangle.fromRectangle(m);
+		
+		if (d == mxConstants.DIRECTION_SOUTH)
+		{
+			m2.y = m.x;
+			m2.x = m.height;
+			m2.width = m.y;
+			m2.height = m.width;
+		}
+		else if (d == mxConstants.DIRECTION_WEST)
+		{
+			m2.y = m.height;
+			m2.x = m.width;
+			m2.width = m.x;
+			m2.height = m.y;
+		}
+		else if (d == mxConstants.DIRECTION_NORTH)
+		{
+			m2.y = m.width;
+			m2.x = m.y;
+			m2.width = m.height;
+			m2.height = m.x;
+		}
+		
+		return new mxRectangle(rect.x + m2.x, rect.y + m2.y, rect.width - m2.width - m2.x, rect.height - m2.height - m2.y);
+	},
+
+	/**
+	 * Function: getPerimeterPoint
+	 * 
+	 * Returns the intersection between the polygon defined by the array of
+	 * points and the line between center and point.
+	 */
+	getPerimeterPoint: function (pts, center, point)
+	{
+		var min = null;
+		
+		for (var i = 0; i < pts.length - 1; i++)
+		{
+			var pt = mxUtils.intersection(pts[i].x, pts[i].y, pts[i + 1].x, pts[i + 1].y,
+				center.x, center.y, point.x, point.y);
+			
+			if (pt != null)
+			{
+				var dx = point.x - pt.x;
+				var dy = point.y - pt.y;
+				var ip = {p: pt, distSq: dy * dy + dx * dx};
+				
+				if (ip != null && (min == null || min.distSq > ip.distSq))
+				{
+					min = ip;
+				}
+			}
+		}
+		
+		return (min != null) ? min.p : null;
+	},
+
 	/**
 	 * Function: rectangleIntersectsSegment
 	 * 
@@ -2560,9 +2651,20 @@ var mxUtils =
 	 * Function: getScrollOrigin
 	 * 
 	 * Returns the top, left corner of the viewrect as an <mxPoint>.
+	 * 
+	 * Parameters:
+	 * 
+	 * node - DOM node whose scroll origin should be returned.
+	 * includeAncestors - Whether the scroll origin of the ancestors should be
+	 * included. Default is false.
+	 * includeDocument - Whether the scroll origin of the document should be
+	 * included. Default is true.
 	 */
-	getScrollOrigin: function(node)
+	getScrollOrigin: function(node, includeAncestors, includeDocument)
 	{
+		includeAncestors = (includeAncestors != null) ? includeAncestors : false;
+		includeDocument = (includeDocument != null) ? includeDocument : true;
+		
 		var doc = (node != null) ? node.ownerDocument : document;
 		var b = doc.body;
 		var d = doc.documentElement;
@@ -2584,10 +2686,10 @@ var mxUtils =
 				fixed = fixed || style.position == 'fixed';
 			}
 
-			node = node.parentNode;
+			node = (includeAncestors) ? node.parentNode : null;
 		}
 
-		if (!fixed)
+		if (!fixed && includeDocument)
 		{
 			var origin = mxUtils.getDocumentScrollOrigin(doc);
 
@@ -2617,7 +2719,7 @@ var mxUtils =
 	 */
 	convertPoint: function(container, x, y)
 	{
-		var origin = mxUtils.getScrollOrigin(container);
+		var origin = mxUtils.getScrollOrigin(container, false);
 		var offset = mxUtils.getOffset(container);
 
 		offset.x -= origin.x;
@@ -2643,7 +2745,7 @@ var mxUtils =
 	{
 		chars = chars || "\\s";
 		
-		return str.replace(new RegExp("^[" + chars + "]+", "g"), "");
+		return (str != null) ? str.replace(new RegExp("^[" + chars + "]+", "g"), "") : null;
 	},
 	
 	/**
@@ -2663,7 +2765,7 @@ var mxUtils =
 	{
 		chars = chars || "\\s";
 		
-		return str.replace(new RegExp("[" + chars + "]+$", "g"), "");
+		return (str != null) ? str.replace(new RegExp("[" + chars + "]+$", "g"), "") : null;
 	},
 	
 	/**
@@ -2744,9 +2846,9 @@ var mxUtils =
 	 */
 	intersection: function (x0, y0, x1, y1, x2, y2, x3, y3)
 	{
-		var denom = ((y3 - y2)*(x1 - x0)) - ((x3 - x2)*(y1 - y0));
-		var nume_a = ((x3 - x2)*(y0 - y2)) - ((y3 - y2)*(x0 - x2));
-		var nume_b = ((x1 - x0)*(y0 - y2)) - ((y1 - y0)*(x0 - x2));
+		var denom = ((y3 - y2) * (x1 - x0)) - ((x3 - x2) * (y1 - y0));
+		var nume_a = ((x3 - x2) * (y0 - y2)) - ((y3 - y2) * (x0 - x2));
+		var nume_b = ((x1 - x0) * (y0 - y2)) - ((y1 - y0) * (x0 - x2));
 
 		var ua = nume_a / denom;
 		var ub = nume_b / denom;
@@ -2754,10 +2856,10 @@ var mxUtils =
 		if(ua >= 0.0 && ua <= 1.0 && ub >= 0.0 && ub <= 1.0)
 		{
 			// Get the intersection point
-			var intersectionX = x0 + ua*(x1 - x0);
-			var intersectionY = y0 + ua*(y1 - y0);
+			var x = x0 + ua * (x1 - x0);
+			var y = y0 + ua * (y1 - y0);
 			
-			return new mxPoint(intersectionX, intersectionY);
+			return new mxPoint(x, y);
 		}
 		
 		// No intersection

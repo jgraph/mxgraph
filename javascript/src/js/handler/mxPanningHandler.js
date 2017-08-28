@@ -73,7 +73,7 @@ function mxPanningHandler(graph)
 						this.mouseDownEvent = null;
 					}
 				}
-				else if (evt.type == 'gestureend' && this.initialScale == null)
+				else if (evt.type == 'gestureend' && this.initialScale != null)
 				{
 					this.initialScale = null;
 				}

@@ -370,7 +370,7 @@ mxCellMarker.prototype.getMarkerColor = function(evt, state, isValid)
 mxCellMarker.prototype.getState = function(me)
 {
 	var view = this.graph.getView();
-	cell = this.getCell(me);
+	var cell = this.getCell(me);
 	var state = this.getStateToMark(view.getState(cell));
 
 	return (state != null && this.intersects(state, me)) ? state : null;

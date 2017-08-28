@@ -356,11 +356,11 @@ Toolbar.prototype.createTextToolbar = function()
 	{
 		elt = menu.addItem('', null, this.editorUi.actions.get('subscript').funct,
 			null, 'geIcon geSprite geSprite-subscript');
-		elt.setAttribute('title', mxResources.get('subscript') + ' (Ctrl+,)');
+		elt.setAttribute('title', mxResources.get('subscript') + ' (' + Editor.ctrlKey + '+,)');
 
 		elt = menu.addItem('', null, this.editorUi.actions.get('superscript').funct,
 			null, 'geIcon geSprite geSprite-superscript');
-		elt.setAttribute('title', mxResources.get('superscript') + ' (Ctrl+.)');
+		elt.setAttribute('title', mxResources.get('superscript') + ' (' + Editor.ctrlKey + '+.)');
 
 		// KNOWN: IE+FF don't return keyboard focus after color dialog (calling focus doesn't help)
 		elt = menu.addItem('', null, this.editorUi.actions.get('fontColor').funct,
@@ -908,6 +908,13 @@ Toolbar.prototype.addMenuHandler = function(elt, showLabels, funct, showAll)
 				{
 					menu.div.style.width = '40px';
 				}
+				
+				menu.hideMenu = mxUtils.bind(this, function()
+				{
+					mxPopupMenu.prototype.hideMenu.apply(menu, arguments);
+					this.editorUi.resetCurrentMenu();
+					menu.destroy();
+				});
 				
 				// Extends destroy to reset global state
 				menu.addListener(mxEvent.EVENT_HIDE, mxUtils.bind(this, function()

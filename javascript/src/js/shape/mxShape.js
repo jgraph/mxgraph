@@ -439,7 +439,6 @@ mxShape.prototype.updateBoundsFromPoints = function()
 			}
 		}
 	}
-	
 };
 
 /**
@@ -451,7 +450,58 @@ mxShape.prototype.updateBoundsFromPoints = function()
  */
 mxShape.prototype.getLabelBounds = function(rect)
 {
+	var d = mxUtils.getValue(this.style, mxConstants.STYLE_DIRECTION, mxConstants.DIRECTION_EAST);
+	var bounds = rect;
+	
+	// Normalizes argument for getLabelMargins hook
+	if (d != mxConstants.DIRECTION_SOUTH && d != mxConstants.DIRECTION_NORTH &&
+		this.state != null && this.state.text != null &&
+		this.state.text.isPaintBoundsInverted())
+	{
+		bounds = bounds.clone();
+		var tmp = bounds.width;
+		bounds.width = bounds.height;
+		bounds.height = tmp;
+	}
+		
+	var m = this.getLabelMargins(bounds);
+	
+	if (m != null)
+	{
+		var flipH = mxUtils.getValue(this.style, mxConstants.STYLE_FLIPH, false) == '1';
+		var flipV = mxUtils.getValue(this.style, mxConstants.STYLE_FLIPV, false) == '1';
+		
+		// Handles special case for vertical labels
+		if (this.state != null && this.state.text != null &&
+			this.state.text.isPaintBoundsInverted())
+		{
+			var tmp = m.x;
+			m.x = m.height;
+			m.height = m.width;
+			m.width = m.y;
+			m.y = tmp;
+
+			tmp = flipH;
+			flipH = flipV;
+			flipV = tmp;
+		}
+		
+		return mxUtils.getDirectedBounds(rect, m, this.style, flipH, flipV);
+	}
+	
 	return rect;
+};
+
+/**
+ * Function: getLabelMargins
+ * 
+ * Returns the scaled top, left, bottom and right margin to be used for
+ * computing the label bounds as an <mxRectangle>, where the bottom and right
+ * margin are defined in the width and height of the rectangle, respectively.
+ */
+mxShape.prototype.getLabelMargins= function(rect)
+{
+	return null;
 };
 
 /**
@@ -925,7 +975,8 @@ mxShape.prototype.configureCanvas = function(c, x, y, w, h)
 	// Dash pattern
 	if (this.isDashed != null)
 	{
-		c.setDashed(this.isDashed);
+		c.setDashed(this.isDashed, (this.style != null) ?
+			mxUtils.getValue(this.style, mxConstants.STYLE_FIX_DASH, false) == 1 : false);
 	}
 
 	if (dash != null)
@@ -1010,9 +1061,21 @@ mxShape.prototype.paintEdgeShape = function(c, pts) { };
  */
 mxShape.prototype.getArcSize = function(w, h)
 {
-	var f = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE,
-		mxConstants.RECTANGLE_ROUNDING_FACTOR * 100) / 100;
-	return Math.min(w * f, h * f);
+	var r = 0;
+	
+	if (mxUtils.getValue(this.style, mxConstants.STYLE_ABSOLUTE_ARCSIZE, 0) == '1')
+	{
+		r = Math.min(w / 2, Math.min(h / 2, mxUtils.getValue(this.style,
+			mxConstants.STYLE_ARCSIZE, mxConstants.LINE_ARCSIZE) / 2));
+	}
+	else
+	{
+		var f = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE,
+			mxConstants.RECTANGLE_ROUNDING_FACTOR * 100) / 100;
+		r = Math.min(w * f, h * f);
+	}
+	
+	return r;
 };
 
 /**
@@ -1055,85 +1118,96 @@ mxShape.prototype.paintGlassEffect = function(c, x, y, w, h, arc)
  * 
  * Paints the given points with rounded corners.
  */
-mxShape.prototype.addPoints = function(c, pts, rounded, arcSize, close)
+mxShape.prototype.addPoints = function(c, pts, rounded, arcSize, close, exclude, initialMove)
 {
-	var pe = pts[pts.length - 1];
-	
-	// Adds virtual waypoint in the center between start and end point
-	if (close && rounded)
+	if (pts != null && pts.length > 0)
 	{
-		pts = pts.slice();
-		var p0 = pts[0];
-		var wp = new mxPoint(pe.x + (p0.x - pe.x) / 2, pe.y + (p0.y - pe.y) / 2);
-		pts.splice(0, 0, wp);
-	}
-
-	var pt = pts[0];
-	var i = 1;
-
-	// Draws the line segments
-	c.moveTo(pt.x, pt.y);
-	
-	while (i < ((close) ? pts.length : pts.length - 1))
-	{
-		var tmp = pts[mxUtils.mod(i, pts.length)];
-		var dx = pt.x - tmp.x;
-		var dy = pt.y - tmp.y;
-
-		if (rounded && (dx != 0 || dy != 0))
+		initialMove = (initialMove != null) ? initialMove : true;
+		var pe = pts[pts.length - 1];
+		
+		// Adds virtual waypoint in the center between start and end point
+		if (close && rounded)
 		{
-			// Draws a line from the last point to the current
-			// point with a spacing of size off the current point
-			// into direction of the last point
-			var dist = Math.sqrt(dx * dx + dy * dy);
-			var nx1 = dx * Math.min(arcSize, dist / 2) / dist;
-			var ny1 = dy * Math.min(arcSize, dist / 2) / dist;
-
-			var x1 = tmp.x + nx1;
-			var y1 = tmp.y + ny1;
-			c.lineTo(x1, y1);
-
-			// Draws a curve from the last point to the current
-			// point with a spacing of size off the current point
-			// into direction of the next point
-			var next = pts[mxUtils.mod(i + 1, pts.length)];
-			
-			// Uses next non-overlapping point
-			while (i < pts.length - 2 && Math.round(next.x - tmp.x) == 0 && Math.round(next.y - tmp.y) == 0)
-			{
-				next = pts[mxUtils.mod(i + 2, pts.length)];
-				i++;
-			}
-			
-			dx = next.x - tmp.x;
-			dy = next.y - tmp.y;
-
-			dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
-			var nx2 = dx * Math.min(arcSize, dist / 2) / dist;
-			var ny2 = dy * Math.min(arcSize, dist / 2) / dist;
-
-			var x2 = tmp.x + nx2;
-			var y2 = tmp.y + ny2;
-
-			c.quadTo(tmp.x, tmp.y, x2, y2);
-			tmp = new mxPoint(x2, y2);
+			pts = pts.slice();
+			var p0 = pts[0];
+			var wp = new mxPoint(pe.x + (p0.x - pe.x) / 2, pe.y + (p0.y - pe.y) / 2);
+			pts.splice(0, 0, wp);
+		}
+	
+		var pt = pts[0];
+		var i = 1;
+	
+		// Draws the line segments
+		if (initialMove)
+		{
+			c.moveTo(pt.x, pt.y);
 		}
 		else
 		{
-			c.lineTo(tmp.x, tmp.y);
+			c.lineTo(pt.x, pt.y);
 		}
-
-		pt = tmp;
-		i++;
-	}
-
-	if (close)
-	{
-		c.close();
-	}
-	else
-	{
-		c.lineTo(pe.x, pe.y);	
+		
+		while (i < ((close) ? pts.length : pts.length - 1))
+		{
+			var tmp = pts[mxUtils.mod(i, pts.length)];
+			var dx = pt.x - tmp.x;
+			var dy = pt.y - tmp.y;
+	
+			if (rounded && (dx != 0 || dy != 0) && (exclude == null || mxUtils.indexOf(exclude, i - 1) < 0))
+			{
+				// Draws a line from the last point to the current
+				// point with a spacing of size off the current point
+				// into direction of the last point
+				var dist = Math.sqrt(dx * dx + dy * dy);
+				var nx1 = dx * Math.min(arcSize, dist / 2) / dist;
+				var ny1 = dy * Math.min(arcSize, dist / 2) / dist;
+	
+				var x1 = tmp.x + nx1;
+				var y1 = tmp.y + ny1;
+				c.lineTo(x1, y1);
+	
+				// Draws a curve from the last point to the current
+				// point with a spacing of size off the current point
+				// into direction of the next point
+				var next = pts[mxUtils.mod(i + 1, pts.length)];
+				
+				// Uses next non-overlapping point
+				while (i < pts.length - 2 && Math.round(next.x - tmp.x) == 0 && Math.round(next.y - tmp.y) == 0)
+				{
+					next = pts[mxUtils.mod(i + 2, pts.length)];
+					i++;
+				}
+				
+				dx = next.x - tmp.x;
+				dy = next.y - tmp.y;
+	
+				dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+				var nx2 = dx * Math.min(arcSize, dist / 2) / dist;
+				var ny2 = dy * Math.min(arcSize, dist / 2) / dist;
+	
+				var x2 = tmp.x + nx2;
+				var y2 = tmp.y + ny2;
+	
+				c.quadTo(tmp.x, tmp.y, x2, y2);
+				tmp = new mxPoint(x2, y2);
+			}
+			else
+			{
+				c.lineTo(tmp.x, tmp.y);
+			}
+	
+			pt = tmp;
+			i++;
+		}
+	
+		if (close)
+		{
+			c.close();
+		}
+		else
+		{
+			c.lineTo(pe.x, pe.y);
+		}
 	}
 };
 

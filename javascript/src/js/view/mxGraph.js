@@ -2588,6 +2588,24 @@ mxGraph.prototype.click = function(me)
 	{
 		if (cell != null)
 		{
+			if (this.isTransparentClickEvent(evt))
+			{
+				var active = false;
+				
+				var tmp = this.getCellAt(me.graphX, me.graphY, null, null, null, mxUtils.bind(this, function(state)
+				{
+					var selected = this.isCellSelected(state.cell);
+					active = active || selected;
+					
+					return !active || selected;
+				}));
+				
+				if (tmp != null)
+				{
+					cell = tmp;
+				}
+			}
+			
 			this.selectCellForEvent(cell, evt);
 		}
 		else
@@ -6705,29 +6723,28 @@ mxGraph.prototype.getConnectionPoint = function(vertex, constraint)
 		else
 		{
 			r2 += r1;
-		}
-		
-		// LATER: Add flip support for image shapes
-		if (this.getModel().isVertex(vertex.cell))
-		{
-			var flipH = vertex.style[mxConstants.STYLE_FLIPH] == 1;
-			var flipV = vertex.style[mxConstants.STYLE_FLIPV] == 1;
 			
-			// Legacy support for stencilFlipH/V
-			if (vertex.shape != null && vertex.shape.stencil != null)
+			if (this.getModel().isVertex(vertex.cell))
 			{
-				flipH = (mxUtils.getValue(vertex.style, 'stencilFlipH', 0) == 1) || flipH;
-				flipV = (mxUtils.getValue(vertex.style, 'stencilFlipV', 0) == 1) || flipV;
-			}
-
-			if (flipH)
-			{
-				point.x = 2 * bounds.getCenterX() - point.x;
-			}
-			
-			if (flipV)
-			{
-				point.y = 2 * bounds.getCenterY() - point.y;
+				var flipH = vertex.style[mxConstants.STYLE_FLIPH] == 1;
+				var flipV = vertex.style[mxConstants.STYLE_FLIPV] == 1;
+				
+				// Legacy support for stencilFlipH/V
+				if (vertex.shape != null && vertex.shape.stencil != null)
+				{
+					flipH = (mxUtils.getValue(vertex.style, 'stencilFlipH', 0) == 1) || flipH;
+					flipV = (mxUtils.getValue(vertex.style, 'stencilFlipV', 0) == 1) || flipV;
+				}
+				
+				if (flipH)
+				{
+					point.x = 2 * bounds.getCenterX() - point.x;
+				}
+				
+				if (flipV)
+				{
+					point.y = 2 * bounds.getCenterY() - point.y;
+				}
 			}
 		}
 
@@ -8143,6 +8160,18 @@ mxGraph.prototype.isLoop = function(state)
 mxGraph.prototype.isCloneEvent = function(evt)
 {
 	return mxEvent.isControlDown(evt);
+};
+
+/**
+ * Function: isTransparentClickEvent
+ * 
+ * Hook for implementing click-through behaviour on selected cells. If this
+ * returns true the cell behind the selected cell will be selected. This
+ * implementation returns false;
+ */
+mxGraph.prototype.isTransparentClickEvent = function(evt)
+{
+	return false;
 };
 
 /**
@@ -10403,7 +10432,7 @@ mxGraph.prototype.setExtendParentsOnAdd = function(value)
 /**
  * Function: isExtendParentsOnMove
  * 
- * Returns <extendParentsOnAdd>.
+ * Returns <extendParentsOnMove>.
  */
 mxGraph.prototype.isExtendParentsOnMove = function()
 {
@@ -10413,7 +10442,7 @@ mxGraph.prototype.isExtendParentsOnMove = function()
 /**
  * Function: setExtendParentsOnMove
  * 
- * Sets <extendParentsOnAdd>.
+ * Sets <extendParentsOnMove>.
  * 
  * Parameters:
  * 
@@ -12266,7 +12295,7 @@ mxGraph.prototype.isEventIgnored = function(evtName, me, sender)
 	{
 		result = true;
 	}
-	else if (mxClient.IS_TOUCH && evtName == mxEvent.MOUSE_DOWN && !mouseEvent)
+	else if (mxClient.IS_TOUCH && evtName == mxEvent.MOUSE_DOWN && !mouseEvent && !mxEvent.isPenEvent(me.getEvent()))
 	{
 		this.eventSource = me.getSource();
 
@@ -12427,10 +12456,10 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 	// two mouse ups, one of which without a cell but no mousedown for the second click which means we cannot
 	// detect which mouseup(s) are part of the first click, ie we do not know when the first click ends.
 	if ((!this.nativeDblClickEnabled && !mxEvent.isPopupTrigger(me.getEvent())) || (this.doubleTapEnabled &&
-		mxClient.IS_TOUCH && mxEvent.isTouchEvent(me.getEvent())))
+		mxClient.IS_TOUCH && (mxEvent.isTouchEvent(me.getEvent()) || mxEvent.isPenEvent(me.getEvent()))))
 	{
 		var currentTime = new Date().getTime();
-
+		
 		// NOTE: Second mouseDown for double click missing in quirks mode
 		if ((!mxClient.IS_QUIRKS && evtName == mxEvent.MOUSE_DOWN) || (mxClient.IS_QUIRKS && evtName == mxEvent.MOUSE_UP && !this.fireDoubleClick))
 		{
@@ -12496,7 +12525,8 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 			this.isMouseDown = false;
 			
 			// Workaround for Chrome/Safari not firing native double click events for double touch on background
-			var valid = (cell != null) || (mxEvent.isTouchEvent(me.getEvent()) && (mxClient.IS_GC || mxClient.IS_SF));
+			var valid = (cell != null) || ((mxEvent.isTouchEvent(me.getEvent()) || mxEvent.isPenEvent(me.getEvent())) &&
+				(mxClient.IS_GC || mxClient.IS_SF));
 			
 			if (valid && Math.abs(this.lastTouchX - me.getX()) < this.doubleTapTolerance &&
 				Math.abs(this.lastTouchY - me.getY()) < this.doubleTapTolerance)
@@ -12572,8 +12602,8 @@ mxGraph.prototype.fireMouseEvent = function(evtName, me, sender)
 		}
 		
 		// Detects tapAndHold events using a timer
-		if (mxEvent.isTouchEvent(me.getEvent()) && evtName == mxEvent.MOUSE_DOWN &&
-			this.tapAndHoldEnabled && !this.tapAndHoldInProgress)
+		if ((mxEvent.isTouchEvent(me.getEvent()) || mxEvent.isPenEvent(me.getEvent())) &&
+			evtName == mxEvent.MOUSE_DOWN && this.tapAndHoldEnabled && !this.tapAndHoldInProgress)
 		{
 			this.tapAndHoldInProgress = true;
 			this.initialTouchX = me.getGraphX();

@@ -79,6 +79,13 @@ public interface mxICanvas2D
 	void setDashed(boolean value);
 
 	/**
+	 * Sets the dashed state. This should default to false if unset.
+	 * 
+	 * @param value Boolean representing the dashed state.
+	 */
+	void setDashed(boolean value, boolean fixDash);
+
+	/**
 	 * Sets the dash pattern. This should default to "3 3" if unset.
 	 * 
 	 * @param value Space separated list of floats representing the dash

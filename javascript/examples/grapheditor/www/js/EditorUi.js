@@ -320,7 +320,14 @@ EditorUi = function(editor, container, lightbox)
 	// Workaround for page scroll if embedded via iframe
 	if (window.self === window.top && graph.container.parentNode != null)
 	{
-		graph.container.focus();
+		try
+		{
+			graph.container.focus();
+		}
+		catch (e)
+		{
+			// ignores error in old versions of IE
+		}
 	}
 
    	// Keeps graph container focused on mouse down
@@ -364,7 +371,7 @@ EditorUi = function(editor, container, lightbox)
 	
 	// Stores the current style and assigns it to new cells
 	var styles = ['rounded', 'shadow', 'glass', 'dashed', 'dashPattern', 'comic', 'labelBackgroundColor'];
-	var connectStyles = ['shape', 'edgeStyle', 'curved', 'rounded', 'elbow', 'comic'];
+	var connectStyles = ['shape', 'edgeStyle', 'curved', 'rounded', 'elbow', 'comic', 'jumpStyle', 'jumpSize'];
 	
 	// Note: Everything that is not in styles is ignored (styles is augmented below)
 	this.setDefaultStyle = function(cell)
@@ -427,8 +434,8 @@ EditorUi = function(editor, container, lightbox)
 	
 	this.clearDefaultStyle = function()
 	{
-		graph.currentEdgeStyle = graph.defaultEdgeStyle;
-		graph.currentVertexStyle = graph.defaultVertexStyle;
+		graph.currentEdgeStyle = mxUtils.clone(graph.defaultEdgeStyle);
+		graph.currentVertexStyle = mxUtils.clone(graph.defaultVertexStyle);
 		
 		// Updates UI
 		this.fireEvent(new mxEventObject('styleChanged', 'keys', [], 'values', [], 'cells', []));
@@ -439,7 +446,8 @@ EditorUi = function(editor, container, lightbox)
 	var valueStyles = ['fontFamily', 'fontSize', 'fontColor'];
 	
 	// Keys that always update the current edge style regardless of selection
-	var alwaysEdgeStyles = ['edgeStyle', 'startArrow', 'startFill', 'startSize', 'endArrow', 'endFill', 'endSize', 'jettySize', 'orthogonalLoop'];
+	var alwaysEdgeStyles = ['edgeStyle', 'startArrow', 'startFill', 'startSize', 'endArrow',
+		'endFill', 'endSize', 'jettySize', 'orthogonalLoop'];
 	
 	// Keys that are ignored together (if one appears all are ignored)
 	var keyGroups = [['startArrow', 'startFill', 'startSize', 'endArrow', 'endFill', 'endSize', 'jettySize', 'orthogonalLoop'],
@@ -931,10 +939,10 @@ EditorUi.prototype.sidebarFooterHeight = 34;
 EditorUi.prototype.editButtonLink = null;
 
 /**
- * Specifies the position of the horizontal split bar. Default is 204 or 120 for
- * screen widths <= 500px.
+ * Specifies the position of the horizontal split bar. Default is 208 or 118 for
+ * screen widths <= 640px.
  */
-EditorUi.prototype.hsplitPosition = (screen.width <= 640) ? ((screen.width <= 360) ? 62 : 116) : 208;
+EditorUi.prototype.hsplitPosition = (screen.width <= 640) ? 118 : 208;
 
 /**
  * Specifies if animations are allowed in <executeLayout>. Default is true.
@@ -1637,8 +1645,8 @@ EditorUi.prototype.initCanvas = function()
 				mxEvent.consume(evt);
 			}), Editor.editLargeImage, mxResources.get('openInNewWindow'));
 		}
-
-		if (graph.lightbox && this.container != document.body)
+		
+		if (graph.lightbox && (urlParams['close'] == '1' || this.container != document.body))
 		{
 			addButton(mxUtils.bind(this, function(evt)
 			{
@@ -2395,6 +2403,55 @@ EditorUi.prototype.setPageVisible = function(value)
 	}
 	
 	this.fireEvent(new mxEventObject('pageViewChanged'));
+};
+
+/**
+ * Change types
+ */
+function ChangePageSetup(ui, color, image, format)
+{
+	this.ui = ui;
+	this.previousColor = color;
+	this.previousImage = image;
+	this.previousFormat = format;
+	
+	// Needed since null are valid values for color and image
+	this.ignoreColor = false;
+	this.ignoreImage = false;
+}
+
+/**
+ * Implementation of the undoable page rename.
+ */
+ChangePageSetup.prototype.execute = function()
+{
+	var graph = this.ui.editor.graph;
+	
+	if (!this.ignoreColor)
+	{
+		var tmp = graph.background;
+		this.ui.setBackgroundColor(this.previousColor);
+		this.previousColor = tmp;
+	}
+	
+	if (!this.ignoreImage)
+	{
+		var tmp = graph.backgroundImage;
+		this.ui.setBackgroundImage(this.previousImage);
+		this.previousImage = tmp;
+	}
+	
+	if (this.previousFormat != null)
+	{
+		var tmp = graph.pageFormat;
+		
+		if (this.previousFormat.width != tmp.width ||
+			this.previousFormat.height != tmp.height)
+		{
+			this.ui.setPageFormat(this.previousFormat);
+			this.previousFormat = tmp;
+		}
+	}
 };
 
 /**
@@ -3390,8 +3447,12 @@ EditorUi.prototype.showBackgroundImageDialog = function(apply)
 {
 	apply = (apply != null) ? apply : mxUtils.bind(this, function(image)
 	{
-		this.setBackgroundImage(image);
+		var change = new ChangeGraphBackground(this, null, image);
+		change.ignoreColor = true;
+		
+		this.editor.graph.model.execute(change);
 	});
+	
 	var newValue = mxUtils.prompt(mxResources.get('backgroundImage'), '');
 	
 	if (newValue != null && newValue.length > 0)
@@ -3643,14 +3704,17 @@ EditorUi.prototype.createKeyHandler = function(editor)
 	var keyHandlerGetFunction = keyHandler.getFunction;
 
 	// Alt+Shift+Keycode mapping to action
-	var altShiftActions = {67: this.actions.get('clearWaypoints')}; // Alt+Shift+C
+	var altShiftActions = {67: this.actions.get('clearWaypoints'), // Alt+Shift+C
+						  65: this.actions.get('connectionArrows'), // Alt+Shift+A
+						  80: this.actions.get('connectionPoints') // Alt+Shift+P
+	};
 	
 	mxKeyHandler.prototype.getFunction = function(evt)
 	{
 		if (graph.isEnabled())
 		{
 			// TODO: Add alt modified state in core API, here are some specific cases
-			if (!graph.isSelectionEmpty() && mxEvent.isShiftDown(evt) && mxEvent.isAltDown(evt))
+			if (mxEvent.isShiftDown(evt) && mxEvent.isAltDown(evt))
 			{
 				var action = altShiftActions[evt.keyCode];
 
@@ -3827,8 +3891,6 @@ EditorUi.prototype.createKeyHandler = function(editor)
 		keyHandler.bindAction(89, true, 'autosize', true); // Ctrl+Shift+Y
 		keyHandler.bindAction(88, true, 'cut'); // Ctrl+X
 		keyHandler.bindAction(67, true, 'copy'); // Ctrl+C
-		keyHandler.bindAction(81, true, 'connectionArrows'); // Ctrl+Q
-		keyHandler.bindAction(81, true, 'connectionPoints', true); // Ctrl+Shift+Q
 		keyHandler.bindAction(86, true, 'paste'); // Ctrl+V
 		keyHandler.bindAction(71, true, 'group'); // Ctrl+G
 		keyHandler.bindAction(77, true, 'editData'); // Ctrl+M

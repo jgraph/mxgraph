@@ -1,3 +1,19 @@
+28-AUG-2017: 3.7.5
+
+- Adds line jumps in grapheditor example
+- Adds mxCellRenderer.isShapeInvalid hook
+- Adds mxConstants.STYLE_ABSOLUTE_ARCSIZE for rectangles
+- Calls updateCachedBounds in mxGraphView.validateCellState
+- Adds mxShape.getLabelMargins, exclude argument in addPoints
+- Adds mxUtils.getDirectedBounds and getPerimeterPoint
+- Handles flipH/-V in mxGraphView.getPerimeterPoint
+- Fixes pen events for Chrome on Windows
+- Adds fixDash style, mxEvent.isPenEvent
+- Fixes possible NPE in mxUtils.ltrim and rtrim
+- mxUtils.getScrollOrigin ignores ancestors by default
+- Adds optional arguments in mxUtils.getScrollOrigin
+- Adds mxGraph.isTransparentClickEvent hook
+
 27-JUN-2017: 3.7.4
 
 - Fixes mxXmlUtils.parseXml null return value

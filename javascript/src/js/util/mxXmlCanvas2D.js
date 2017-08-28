@@ -440,8 +440,10 @@ mxXmlCanvas2D.prototype.setStrokeWidth = function(value)
  * Parameters:
  * 
  * value - Boolean that specifies if dashed lines should be enabled.
+ * value - Boolean that specifies if the stroke width should be ignored
+ * for the dash pattern. Default is false.
  */
-mxXmlCanvas2D.prototype.setDashed = function(value)
+mxXmlCanvas2D.prototype.setDashed = function(value, fixDash)
 {
 	if (this.compressed)
 	{
@@ -455,6 +457,12 @@ mxXmlCanvas2D.prototype.setDashed = function(value)
 	
 	var elem = this.createElement('dashed');
 	elem.setAttribute('dashed', (value) ? '1' : '0');
+	
+	if (fixDash != null)
+	{
+		elem.setAttribute('fixDash', (fixDash) ? '1' : '0');
+	}
+	
 	this.root.appendChild(elem);
 };
 

@@ -189,6 +189,7 @@ namespace com.mxgraph
             handlers["dashed"] = delegate(Dictionary<string, string> atts)
 		    {
 			    canvas.Dashed = IsTrue(atts, "dashed");
+                canvas.FixDash = IsTrue(atts, "fixDash", false);
 		    };
 
             handlers["dashpattern"] = delegate(Dictionary<string, string> atts)

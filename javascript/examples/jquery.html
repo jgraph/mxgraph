@@ -17,7 +17,7 @@
 	<script type="text/javascript" src="../src/js/mxClient.js"></script>
 	
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-    <script type="text/javascript" src="https://www.chartjs.org/assets/Chart.js"></script>
+    <script type="text/javascript" src="https://www.chartjs.org/dist/2.6.0/Chart.bundle.js"></script>
 
 	<!-- Example code -->
 	<script type="text/javascript">
@@ -46,25 +46,88 @@
 				// Adds custom HTML labels
 				graph.setHtmlLabels(true);
 				
-				var data = {
-					labels : ['January','February','March','April','May','June','July'],
-					datasets : [
-						{
-							fillColor : 'rgba(220,220,220,0.5)',
-							strokeColor : 'rgba(220,220,220,1)',
-							pointColor : 'rgba(220,220,220,1)',
-							pointStrokeColor : '#fff',
-							data : [65,59,90,81,56,55,40]
-						},
-						{
-							fillColor : 'rgba(151,187,205,0.5)',
-							strokeColor : 'rgba(151,187,205,1)',
-							pointColor : 'rgba(151,187,205,1)',
-							pointStrokeColor : '#fff',
-							data : [28,48,40,19,96,27,100]
-						}
-					]
+				var chartColors = {
+					red: 'rgb(255, 99, 132)',
+					orange: 'rgb(255, 159, 64)',
+					yellow: 'rgb(255, 205, 86)',
+					green: 'rgb(75, 192, 192)',
+					blue: 'rgb(54, 162, 235)',
+					purple: 'rgb(153, 102, 255)',
+					grey: 'rgb(201, 203, 207)'
 				};
+				
+				var randomScalingFactor = function()
+				{
+					return (Math.random() > 0.5 ? 1.0 : -1.0) * Math.round(Math.random() * 100);
+				};
+				
+				var MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+		        var config = {
+		            type: 'line',
+		            data: {
+		                labels: ["January", "February", "March", "April", "May", "June", "July"],
+		                datasets: [{
+		                    label: "My First dataset",
+		                    backgroundColor: chartColors.red,
+		                    borderColor: chartColors.red,
+		                    data: [
+		                        randomScalingFactor(),
+		                        randomScalingFactor(),
+		                        randomScalingFactor(),
+		                        randomScalingFactor(),
+		                        randomScalingFactor(),
+		                        randomScalingFactor(),
+		                        randomScalingFactor()
+		                    ],
+		                    fill: false,
+		                }, {
+		                    label: "My Second dataset",
+		                    fill: false,
+		                    backgroundColor: chartColors.blue,
+		                    borderColor: chartColors.blue,
+		                    data: [
+		                        randomScalingFactor(),
+		                        randomScalingFactor(),
+		                        randomScalingFactor(),
+		                        randomScalingFactor(),
+		                        randomScalingFactor(),
+		                        randomScalingFactor(),
+		                        randomScalingFactor()
+		                    ],
+		                }]
+		            },
+		            options: {
+		                responsive: true,
+		                title:{
+		                    display:true,
+		                    text:'Chart.js Line Chart'
+		                },
+		                tooltips: {
+		                    mode: 'index',
+		                    intersect: false,
+		                },
+		                hover: {
+		                    mode: 'nearest',
+		                    intersect: true
+		                },
+		                scales: {
+		                    xAxes: [{
+		                        display: true,
+		                        scaleLabel: {
+		                            display: true,
+		                            labelString: 'Month'
+		                        }
+		                    }],
+		                    yAxes: [{
+		                        display: true,
+		                        scaleLabel: {
+		                            display: true,
+		                            labelString: 'Value'
+		                        }
+		                    }]
+		                }
+		            }
+		        };
 			
 				// Returns canvas with dynamic chart for vertex labels
 				var graphConvertValueToString = graph.convertValueToString;
@@ -80,7 +143,7 @@
 						document.body.appendChild(node);
 						
 						var ctx = node.getContext("2d");
-						new Chart(ctx).Line(data);
+						new Chart(ctx, config);
 						
 						return node;
 					}
@@ -99,9 +162,9 @@
 				graph.getModel().beginUpdate();
 				try
 				{
-					var v1 = graph.insertVertex(parent, null, 'Hello,', 20, 20, 220, 180,
+					var v1 = graph.insertVertex(parent, null, 'Hello,', 20, 20, 300, 240,
 						'overflow=fill;fillColor=none;fontColor=#000000;');
-					var v2 = graph.insertVertex(parent, null, 'Hello,', 380, 240, 220, 180,
+					var v2 = graph.insertVertex(parent, null, 'Hello,', 480, 320, 300, 240,
 						'overflow=fill;fillColor=none;fontColor=#000000;');
 					var e1 = graph.insertEdge(parent, null, '', v1, v2);
 				}
@@ -129,7 +192,7 @@
 
 	<!-- Creates a container for the graph with a grid wallpaper -->
 	<div id="graphContainer"
-		style="position:relative;overflow:hidden;width:621px;height:461px;cursor:default;border:1px solid gray;">
+		style="position:relative;overflow:hidden;width:821px;height:661px;cursor:default;border:1px solid gray;">
 	</div>
 
 </body>

@@ -152,6 +152,7 @@ mxAbstractCanvas2D.prototype.createState = function()
 		strokeWidth: 1,
 		dashed: false,
 		dashPattern: '3 3',
+		fixDash: false,
 		lineCap: 'flat',
 		lineJoin: 'miter',
 		miterLimit: 10,
@@ -379,9 +380,10 @@ mxAbstractCanvas2D.prototype.setStrokeWidth = function(value)
  * 
  * Enables or disables dashed lines.
  */
-mxAbstractCanvas2D.prototype.setDashed = function(value)
+mxAbstractCanvas2D.prototype.setDashed = function(value, fixDash)
 {
 	this.state.dashed = value;
+	this.state.fixDash = fixDash;
 };
 
 /**

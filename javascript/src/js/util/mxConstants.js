@@ -1415,6 +1415,15 @@
 	STYLE_DASH_PATTERN: 'dashPattern',
 
 	/**
+	 * Variable: STYLE_FIX_DASH
+	 * 
+	 * Defines the key for the fixDash style. Use 0 (default) for dash patterns
+	 * that depend on the linewidth and 1 for dash patterns that ignore the
+	 * line width. Value is "fixDash".
+	 */
+	STYLE_FIX_DASH: 'fixDash',
+
+	/**
 	 * Variable: STYLE_ROUNDED
 	 * 
 	 * Defines the key for the rounded style. The type of this value is
@@ -1448,13 +1457,13 @@
 	STYLE_ARCSIZE: 'arcSize',
 
 	/**
-	 * Variable: STYLE_SMOOTH
+	 * Variable: STYLE_ABSOLUTE_ARCSIZE
 	 * 
-	 * An experimental style for edges. This style is currently not available
-	 * in the backends and is implemented differently for VML and SVG. The use
-	 * of this style is currently only recommended for VML. Value is "smooth".
+	 * Defines the key for the absolute arc size style. This specifies if
+	 * arcSize for rectangles is abolute or relative. Possible values are 1
+	 * and 0 (default). Value is "absoluteArcSize".
 	 */
-	STYLE_SMOOTH: 'smooth',
+	STYLE_ABSOLUTE_ARCSIZE: 'absoluteArcSize',
 
 	/**
 	 * Variable: STYLE_SOURCE_PERIMETER_SPACING
@@ -1670,7 +1679,7 @@
 	 * Variable: STYLE_RESIZE_WIDTH
 	 * 
 	 * Defines the key for the resizeWidth style. This specifies if a cell's
-	 * width if resize if the parent is resized. If this is 1 then the width
+	 * width is resized if the parent is resized. If this is 1 then the width
 	 * will be resized even if the cell's geometry is relative. If this is 0
 	 * then the cell's width will not be resized. Default is not defined. Value
 	 * is "resizeWidth".

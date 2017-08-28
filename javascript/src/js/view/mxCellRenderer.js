@@ -1469,9 +1469,7 @@ mxCellRenderer.prototype.redrawShape = function(state, force, rendering)
 		
 		// Redraws the cell if required, ignores changes to bounds if points are
 		// defined as the bounds are updated for the given points inside the shape
-		if (force || state.shape.bounds == null || state.shape.scale != state.view.scale ||
-			(state.absolutePoints == null && !state.shape.bounds.equals(state)) ||
-			(state.absolutePoints != null && !mxUtils.equalPoints(state.shape.points, state.absolutePoints)))
+		if (force || this.isShapeInvalid(state, state.shape))
 		{
 			if (state.absolutePoints != null)
 			{
@@ -1500,6 +1498,18 @@ mxCellRenderer.prototype.redrawShape = function(state, force, rendering)
 	}
 
 	return shapeChanged;
+};
+
+/**
+ * Function: isShapeInvalid
+ * 
+ * Returns true if the given shape must be repainted.
+ */
+mxCellRenderer.prototype.isShapeInvalid = function(state, shape)
+{
+	return shape.bounds == null || shape.scale != state.view.scale ||
+		(state.absolutePoints == null && !shape.bounds.equals(state)) ||
+		(state.absolutePoints != null && !mxUtils.equalPoints(shape.points, state.absolutePoints))
 };
 
 /**

@@ -88,7 +88,7 @@ Format.prototype.initSelectionState = function()
 {
 	return {vertices: [], edges: [], x: null, y: null, width: null, height: null, style: {},
 		containsImage: false, containsLabel: false, fill: true, glass: true, rounded: true,
-		comic: true, autoSize: false, image: true, shadow: true};
+		comic: true, autoSize: false, image: true, shadow: true, lineJumps: true};
 };
 
 /**
@@ -174,6 +174,7 @@ Format.prototype.updateSelectionStateForCell = function(result, cell, cells)
 		result.autoSize = result.autoSize || this.isAutoSizeState(state);
 		result.glass = result.glass && this.isGlassState(state);
 		result.rounded = result.rounded && this.isRoundedState(state);
+		result.lineJumps = result.lineJumps && this.isLineJumpState(state);
 		result.comic = result.comic && this.isComicState(state);
 		result.image = result.image && this.isImageState(state);
 		result.shadow = result.shadow && this.isShadowState(state);
@@ -208,6 +209,7 @@ Format.prototype.isFillState = function(state)
 {
 	return state.view.graph.model.isVertex(state.cell) ||
 		mxUtils.getValue(state.style, mxConstants.STYLE_SHAPE, null) == 'arrow' ||
+		mxUtils.getValue(state.style, mxConstants.STYLE_SHAPE, null) == 'filledEdge' ||
 		mxUtils.getValue(state.style, mxConstants.STYLE_SHAPE, null) == 'flexArrow';
 };
 
@@ -234,8 +236,18 @@ Format.prototype.isRoundedState = function(state)
 			shape == 'parallelogram' || shape == 'swimlane' || shape == 'triangle' || shape == 'trapezoid' ||
 			shape == 'ext' || shape == 'step' || shape == 'tee' || shape == 'process' || shape == 'link' ||
 			shape == 'rhombus' || shape == 'offPageConnector' || shape == 'loopLimit' || shape == 'hexagon' ||
-			shape == 'manualInput' || shape == 'curlyBracket' || shape == 'singleArrow' ||
+			shape == 'manualInput' || shape == 'curlyBracket' || shape == 'singleArrow' || shape == 'callout' ||
 			shape == 'doubleArrow' || shape == 'flexArrow' || shape == 'card' || shape == 'umlLifeline');
+};
+
+/**
+ * Returns information about the current selection.
+ */
+Format.prototype.isLineJumpState = function(state)
+{
+	var shape = mxUtils.getValue(state.style, mxConstants.STYLE_SHAPE, null);
+	
+	return shape == 'connector' || shape == 'filledEdge';
 };
 
 /**
@@ -248,7 +260,7 @@ Format.prototype.isComicState = function(state)
 	return mxUtils.indexOf(['label', 'rectangle', 'internalStorage', 'corner', 'parallelogram', 'note', 'collate',
 	                        'swimlane', 'triangle', 'trapezoid', 'ext', 'step', 'tee', 'process', 'link', 'rhombus',
 	                        'offPageConnector', 'loopLimit', 'hexagon', 'manualInput', 'singleArrow', 'doubleArrow',
-	                        'flexArrow', 'card', 'umlLifeline', 'connector', 'folder', 'component', 'sortShape',
+	                        'flexArrow', 'filledEdge', 'card', 'umlLifeline', 'connector', 'folder', 'component', 'sortShape',
 	                        'cross', 'umlFrame', 'cube', 'isoCube', 'isoRectangle', 'partialRectangle'], shape) >= 0;
 };
 
@@ -2308,11 +2320,13 @@ TextFormatPanel.prototype.addFont = function(container)
 				document.execCommand('justifyfull', false, null);
 			}, stylePanel3);
 		this.styleButtons([full,
-       		sub = this.editorUi.toolbar.addButton('geSprite-subscript', mxResources.get('subscript') + ' (Ctrl+,)',
+       		sub = this.editorUi.toolbar.addButton('geSprite-subscript',
+       			mxResources.get('subscript') + ' (' + Editor.ctrlKey + '+,)',
 			function()
 			{
 				document.execCommand('subscript', false, null);
-			}, stylePanel3), sup = this.editorUi.toolbar.addButton('geSprite-superscript', mxResources.get('superscript') + ' (Ctrl+.)',
+			}, stylePanel3), sup = this.editorUi.toolbar.addButton('geSprite-superscript',
+				mxResources.get('superscript') + ' (' + Editor.ctrlKey + '+.)',
 			function()
 			{
 				document.execCommand('superscript', false, null);
@@ -3156,6 +3170,13 @@ TextFormatPanel.prototype.addFont = function(container)
 					
 					if (node != null)
 					{
+						// Workaround for commonAncestor on range in IE11 returning parent of common ancestor
+						if (node == graph.cellEditor.textarea && graph.cellEditor.textarea.children.length == 1 &&
+							graph.cellEditor.textarea.firstChild.nodeType == mxConstants.NODETYPE_ELEMENT)
+						{
+							node = graph.cellEditor.textarea.firstChild;
+						}
+						
 						var css = mxUtils.getCurrentStyle(node);
 						
 						if (css != null)
@@ -3262,6 +3283,16 @@ TextFormatPanel.prototype.addFont = function(container)
 								{
 									ff = ff.substring(0, ff.length - 1);
 								}
+
+								if (ff.charAt(0) == '"')
+								{
+									ff = ff.substring(1);
+								}
+								
+								if (ff.charAt(ff.length - 1) == '"')
+								{
+									ff = ff.substring(0, ff.length - 1);
+								}
 								
 								fontMenu.firstChild.nodeValue = ff;
 							}
@@ -3314,6 +3345,7 @@ StyleFormatPanel.prototype.init = function()
 	}
 
 	this.container.appendChild(this.addStroke(this.createPanel()));
+	this.container.appendChild(this.addLineJumps(this.createPanel()));
 	var opacityPanel = this.createRelativeOption(mxResources.get('opacity'), mxConstants.STYLE_OPACITY, 41);
 	opacityPanel.style.paddingTop = '8px';
 	opacityPanel.style.paddingBottom = '8px';
@@ -3452,7 +3484,7 @@ StyleFormatPanel.prototype.addFill = function(container)
 		
 		var fillColor = mxUtils.getValue(ss.style, mxConstants.STYLE_FILLCOLOR, null);
 
-		if (!ss.fill || ss.containsImage || fillColor == null || fillColor == mxConstants.NONE)
+		if (!ss.fill || ss.containsImage || fillColor == null || fillColor == mxConstants.NONE || ss.style.shape == 'filledEdge')
 		{
 			gradientPanel.style.display = 'none';
 		}
@@ -3977,7 +4009,7 @@ StyleFormatPanel.prototype.addStroke = function(container)
 			altInput.value = (isNaN(tmp)) ? '' : tmp + ' pt';
 		}
 		
-		styleSelect.style.visibility = (ss.style.shape == 'connector') ? '' : 'hidden';
+		styleSelect.style.visibility = (ss.style.shape == 'connector' || ss.style.shape == 'filledEdge') ? '' : 'hidden';
 		
 		if (mxUtils.getValue(ss.style, mxConstants.STYLE_CURVED, null) == '1')
 		{
@@ -4172,6 +4204,107 @@ StyleFormatPanel.prototype.addStroke = function(container)
 	this.listeners.push({destroy: function() { graph.getModel().removeListener(listener); }});
 	listener();
 
+	return container;
+};
+
+/**
+ * Adds UI for configuring line jumps.
+ */
+StyleFormatPanel.prototype.addLineJumps = function(container)
+{
+	var ss = this.format.getSelectionState();
+	
+	if (Graph.lineJumpsEnabled && ss.edges.length > 0 &&
+		ss.vertices.length == 0 && ss.lineJumps)
+	{
+		container.style.padding = '8px 0px 24px 18px';
+		
+		var ui = this.editorUi;
+		var editor = ui.editor;
+		var graph = editor.graph;
+		
+		var span = document.createElement('div');
+		span.style.position = 'absolute';
+		span.style.fontWeight = 'bold';
+		span.style.width = '80px';
+		
+		mxUtils.write(span, mxResources.get('lineJumps'));
+		container.appendChild(span);
+		
+		var styleSelect = document.createElement('select');
+		styleSelect.style.position = 'absolute';
+		styleSelect.style.marginTop = '-2px';
+		styleSelect.style.right = '76px';
+		styleSelect.style.width = '62px';
+
+		var styles = ['none', 'arc', 'gap', 'sharp'];
+
+		for (var i = 0; i < styles.length; i++)
+		{
+			var styleOption = document.createElement('option');
+			styleOption.setAttribute('value', styles[i]);
+			mxUtils.write(styleOption, mxResources.get(styles[i]));
+			styleSelect.appendChild(styleOption);
+		}
+		
+		mxEvent.addListener(styleSelect, 'change', function(evt)
+		{
+			graph.getModel().beginUpdate();
+			try
+			{
+				graph.setCellStyles('jumpStyle', styleSelect.value, graph.getSelectionCells());
+				ui.fireEvent(new mxEventObject('styleChanged', 'keys', ['jumpStyle'],
+					'values', [styleSelect.value], 'cells', graph.getSelectionCells()));
+			}
+			finally
+			{
+				graph.getModel().endUpdate();
+			}
+			
+			mxEvent.consume(evt);
+		});
+		
+		// Stops events from bubbling to color option event handler
+		mxEvent.addListener(styleSelect, 'click', function(evt)
+		{
+			mxEvent.consume(evt);
+		});
+		
+		container.appendChild(styleSelect);
+		
+		var jumpSizeUpdate;
+		
+		var jumpSize = this.addUnitInput(container, 'pt', 22, 33, function()
+		{
+			jumpSizeUpdate.apply(this, arguments);
+		});
+		
+		jumpSizeUpdate = this.installInputHandler(jumpSize, 'jumpSize',
+			Graph.defaultJumpSize, 0, 999, ' pt');
+		
+		var listener = mxUtils.bind(this, function(sender, evt, force)
+		{
+			ss = this.format.getSelectionState();
+			styleSelect.value = mxUtils.getValue(ss.style, 'jumpStyle', 'none');
+
+			if (force || document.activeElement != jumpSize)
+			{
+				var tmp = parseInt(mxUtils.getValue(ss.style, 'jumpSize', Graph.defaultJumpSize));
+				jumpSize.value = (isNaN(tmp)) ? '' : tmp  + ' pt';
+			}
+		});
+
+		this.addKeyHandler(jumpSize, listener);
+
+		graph.getModel().addListener(mxEvent.CHANGE, listener);
+		this.listeners.push({destroy: function() { graph.getModel().removeListener(listener); }});
+		listener();
+	}
+	else
+	{
+		container.style.display = 'none';
+	}
+	
 	return container;
 };
 
@@ -4397,7 +4530,10 @@ DiagramFormatPanel.prototype.addView = function(div)
 			return graph.background;
 		}, function(color)
 		{
-			ui.setBackgroundColor(color);
+			var change = new ChangePageSetup(ui, color);
+			change.ignoreImage = true;
+			
+			graph.model.execute(change);
 		}, '#ffffff',
 		{
 			install: function(apply)
@@ -4677,9 +4813,14 @@ DiagramFormatPanel.prototype.addPaperSize = function(div)
 
 	var accessor = PageSetupDialog.addPageFormatPanel(div, 'formatpanel', graph.pageFormat, function(pageFormat)
 	{
-		if (graph.pageFormat == null || graph.pageFormat.width != pageFormat.width || graph.pageFormat.height != pageFormat.height)
+		if (graph.pageFormat == null || graph.pageFormat.width != pageFormat.width ||
+			graph.pageFormat.height != pageFormat.height)
 		{
-			ui.setPageFormat(pageFormat);
+			var change = new ChangePageSetup(ui, null, null, pageFormat);
+			change.ignoreColor = true;
+			change.ignoreImage = true;
+			
+			graph.model.execute(change);
 		}
 	});
 	

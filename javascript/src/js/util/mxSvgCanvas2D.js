@@ -728,7 +728,8 @@ mxSvgCanvas2D.prototype.updateStroke = function()
 	
 	if (s.dashed)
 	{
-		this.node.setAttribute('stroke-dasharray', this.createDashPattern(s.strokeWidth * s.scale));
+		this.node.setAttribute('stroke-dasharray', this.createDashPattern(
+			((s.fixDash) ? 1 : s.strokeWidth) * s.scale));
 	}
 };
 

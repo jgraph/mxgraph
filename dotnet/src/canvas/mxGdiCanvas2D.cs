@@ -220,17 +220,24 @@ namespace com.mxgraph
         {
             set
             {
-                // Lazy and cached instantiation strategy for all stroke properties
-		        if (value != state.dashed)
-		        {
-			        state.dashed = value;
-		        }
+		        state.dashed = value;
             }
         }
 
-	    /// <summary>
-	    /// Sets the dashpattern.
-	    /// </summary>
+        /// <summary>
+        /// Specifies if lines are dashed.
+        /// </summary>
+        public bool FixDash
+        {
+            set
+            {
+                state.fixDash = value;
+            }
+        }
+
+        /// <summary>
+        /// Sets the dashpattern.
+        /// </summary>
         public string DashPattern
         {
             set
@@ -1216,7 +1223,7 @@ namespace com.mxgraph
 
                     for (int i = 0; i < dash.Length; i++)
                     {
-                        dash[i] = (float)(state.dashPattern[i] * state.strokeWidth);
+                        dash[i] = (float)(state.dashPattern[i] * ((state.fixDash) ? 1 : state.strokeWidth));
                     }
 
                     state.pen.DashPattern = dash;
@@ -1358,6 +1365,11 @@ namespace com.mxgraph
             /// 
             /// </summary>
 		    internal bool dashed = false;
+
+            /// <summary>
+            /// 
+            /// </summary>
+            internal bool fixDash = false;
 
             /// <summary>
             /// 

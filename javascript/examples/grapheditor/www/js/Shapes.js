@@ -40,7 +40,18 @@
 			path.end();
 		}
 	};
-
+	CubeShape.prototype.getLabelMargins = function(rect)
+	{
+		if (mxUtils.getValue(this.style, 'boundedLbl', false))
+		{
+			var s = parseFloat(mxUtils.getValue(this.style, 'size', this.size)) * this.scale;
+			
+			return new mxRectangle(s, s, 0, 0);
+		}
+		
+		return null;
+	};
+	
 	mxCellRenderer.prototype.defaultShapes['cube'] = CubeShape;
 	
 	var tan30 = Math.tan(mxUtils.toRadians(30));
@@ -162,35 +173,11 @@
 			c.close();
 		}
 	};
-	DataStoreShape.prototype.getLabelBounds = function(rect)
+	DataStoreShape.prototype.getLabelMargins = function(rect)
 	{
-		var dy = 2.5 * Math.min(rect.height / 2, Math.round(rect.height / 8) + this.strokewidth - 1);
-
-		if ((!this.flipV && (this.direction == null || this.direction == mxConstants.DIRECTION_EAST) ||
-			(this.flipV && this.direction == mxConstants.DIRECTION_WEST)))
-		{
-			rect.y += dy;
-			rect.height -= dy;
-		}
-		else if ((!this.flipV && this.direction == mxConstants.DIRECTION_SOUTH) ||
-				((this.flipV && this.direction == mxConstants.DIRECTION_NORTH)))
-		{
-			rect.width -= dy;
-		}
-		else if ((!this.flipV && this.direction == mxConstants.DIRECTION_WEST) ||
-				(this.flipV && (this.direction == null || this.direction == mxConstants.DIRECTION_EAST)))
-		{
-			rect.height -= dy;
-		}
-		else if ((!this.flipV && this.direction == mxConstants.DIRECTION_NORTH) ||
-				(this.flipV && this.direction == mxConstants.DIRECTION_SOUTH))
-		{
-			rect.x += dy;
-			rect.width -= dy;
-		}
-		
-		return rect;
-	};
+		return new mxRectangle(0, 2.5 * Math.min(rect.height / 2, Math.round(rect.height / 8) +
+			this.strokewidth - 1) * this.scale, 0, 0);
+	}
 
 	mxCellRenderer.prototype.defaultShapes['datastore'] = DataStoreShape;
 
@@ -345,7 +332,34 @@
 		c.close();
 		c.end();
 	};
-
+	
+	TapeShape.prototype.getLabelBounds = function(rect)
+	{
+		if (mxUtils.getValue(this.style, 'boundedLbl', false))
+		{
+			var size = mxUtils.getValue(this.style, 'size', this.size);			
+			var w = rect.width;
+			var h = rect.height;
+			
+			if (this.direction == null ||
+					this.direction == mxConstants.DIRECTION_EAST ||
+					this.direction == mxConstants.DIRECTION_WEST)
+			{
+				var dy = h * size;
+				
+				return new mxRectangle(rect.x, rect.y + dy, w, h - 2 * dy);
+			}
+			else
+			{
+				var dx = w * size;
+				
+				return new mxRectangle(rect.x + dx, rect.y, w - 2 * dx, h);
+			}
+		}
+		
+		return rect;
+	};
+	
 	mxCellRenderer.prototype.defaultShapes['tape'] = TapeShape;
 
 	// Document shape
@@ -355,6 +369,16 @@
 	};
 	mxUtils.extend(DocumentShape, mxActor);
 	DocumentShape.prototype.size = 0.3;
+	DocumentShape.prototype.getLabelMargins = function(rect)
+	{
+		if (mxUtils.getValue(this.style, 'boundedLbl', false))
+		{
+			return new mxRectangle(0, 0, 0, parseFloat(mxUtils.getValue(
+				this.style, 'size', this.size)) * rect.height);
+		}
+		
+		return null;
+	};
 	DocumentShape.prototype.redrawPath = function(c, x, y, w, h)
 	{
 		var dy = h * Math.max(0, Math.min(1, parseFloat(mxUtils.getValue(this.style, 'size', this.size))));
@@ -371,6 +395,16 @@
 	};
 
 	mxCellRenderer.prototype.defaultShapes['document'] = DocumentShape;
+	
+	mxCylinder.prototype.getLabelMargins = function(rect)
+	{
+		if (mxUtils.getValue(this.style, 'boundedLbl', false))
+		{
+			return new mxRectangle(0, Math.min(this.maxHeight * this.scale, rect.height * 0.3), 0, 0);
+		}
+		
+		return null;
+	};
 
 	// Parallelogram shape
 	function ParallelogramShape()
@@ -651,9 +685,20 @@
 				
 				if (this.isRounded)
 				{
-					var f = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE,
-						mxConstants.RECTANGLE_ROUNDING_FACTOR * 100) / 100;
-					var r = Math.min(w * f, h * f);
+					var r = 0;
+					
+					if (mxUtils.getValue(this.style, mxConstants.STYLE_ABSOLUTE_ARCSIZE, 0) == '1')
+					{
+						r = Math.min(w / 2, Math.min(h / 2, mxUtils.getValue(this.style,
+							mxConstants.STYLE_ARCSIZE, mxConstants.LINE_ARCSIZE) / 2));
+					}
+					else
+					{
+						var f = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE,
+							mxConstants.RECTANGLE_ROUNDING_FACTOR * 100) / 100;
+						r = Math.min(w * f, h * f);
+					}
+					
 					c.moveTo(x + r, y);
 					c.lineTo(x + w - r, y);
 					c.quadTo(x + w, y, x + w, y + r);
@@ -759,6 +804,37 @@
 
 	mxCellRenderer.prototype.defaultShapes['process'] = ProcessShape;
 
+	// Callout shape
+	function CalloutShape()
+	{
+		mxActor.call(this);
+	};
+	mxUtils.extend(CalloutShape, mxHexagon);
+	CalloutShape.prototype.size = 30;
+	CalloutShape.prototype.position = 0.5;
+	CalloutShape.prototype.position2 = 0.5;
+	CalloutShape.prototype.base = 20;
+	CalloutShape.prototype.getLabelMargins = function()
+	{
+		return new mxRectangle(0, 0, 0, parseFloat(mxUtils.getValue(
+			this.style, 'size', this.size)) * this.scale);
+	};
+	CalloutShape.prototype.redrawPath = function(c, x, y, w, h)
+	{
+		var arcSize = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, mxConstants.LINE_ARCSIZE) / 2;
+		var s = Math.max(0, Math.min(h, parseFloat(mxUtils.getValue(this.style, 'size', this.size))));
+		var dx = w * Math.max(0, Math.min(1, parseFloat(mxUtils.getValue(this.style, 'position', this.position))));
+		var dx2 = w * Math.max(0, Math.min(1, parseFloat(mxUtils.getValue(this.style, 'position2', this.position2))));
+		var base = Math.max(0, Math.min(w, parseFloat(mxUtils.getValue(this.style, 'base', this.base))));
+		
+		this.addPoints(c, [new mxPoint(0, 0), new mxPoint(w, 0), new mxPoint(w, h - s),
+			new mxPoint(Math.min(w, dx + base), h - s), new mxPoint(dx2, h),
+			new mxPoint(Math.max(0, dx), h - s), new mxPoint(0, h - s)],
+			this.isRounded, arcSize, true, [4]);
+	};
+
+	mxCellRenderer.prototype.defaultShapes['callout'] = CalloutShape;
+
 	// Step shape
 	function StepShape()
 	{
@@ -826,9 +902,11 @@
 	{
 		if (this.style['double'] == 1)
 		{
-			var margin = (Math.max(2, this.strokewidth + 1) * 2 + parseFloat(this.style[mxConstants.STYLE_MARGIN] || 0)) * this.scale;
+			var margin = (Math.max(2, this.strokewidth + 1) * 2 + parseFloat(
+				this.style[mxConstants.STYLE_MARGIN] || 0)) * this.scale;
 		
-			return new mxRectangle(rect.x + margin, rect.y + margin, rect.width - 2 * margin, rect.height - 2 * margin);
+			return new mxRectangle(rect.x + margin, rect.y + margin,
+				rect.width - 2 * margin, rect.height - 2 * margin);
 		}
 		
 		return rect;
@@ -839,7 +917,8 @@
 
 		if (!this.outline && this.style['double'] == 1)
 		{
-			var margin = Math.max(2, this.strokewidth + 1) * 2 + parseFloat(this.style[mxConstants.STYLE_MARGIN] || 0);
+			var margin = Math.max(2, this.strokewidth + 1) * 2 +
+				parseFloat(this.style[mxConstants.STYLE_MARGIN] || 0);
 			x += margin;
 			y += margin;
 			w -= 2 * margin;
@@ -870,9 +949,11 @@
 	{
 		if (this.style['double'] == 1)
 		{
-			var margin = (Math.max(2, this.strokewidth + 1) + parseFloat(this.style[mxConstants.STYLE_MARGIN] || 0)) * this.scale;
+			var margin = (Math.max(2, this.strokewidth + 1) + parseFloat(
+				this.style[mxConstants.STYLE_MARGIN] || 0)) * this.scale;
 		
-			return new mxRectangle(rect.x + margin, rect.y + margin, rect.width - 2 * margin, rect.height - 2 * margin);
+			return new mxRectangle(rect.x + margin, rect.y + margin,
+				rect.width - 2 * margin, rect.height - 2 * margin);
 		}
 		
 		return rect;
@@ -915,11 +996,14 @@
 					var width = this.style['symbol' + counter + 'Width'];
 					var height = this.style['symbol' + counter + 'Height'];
 					var spacing = this.style['symbol' + counter + 'Spacing'] || 0;
+					var vspacing = this.style['symbol' + counter + 'VSpacing'] || spacing;
 					var arcspacing = this.style['symbol' + counter + 'ArcSpacing'];
 					
 					if (arcspacing != null)
 					{
-						spacing += this.getArcSize(w + this.strokewidth, h + this.strokewidth) * arcspacing;
+						var arcSize = this.getArcSize(w + this.strokewidth, h + this.strokewidth) * arcspacing;
+						spacing += arcSize;
+						vspacing += arcSize;
 					}
 					
 					var x2 = x;
@@ -944,11 +1028,11 @@
 					}
 					else if (valign == mxConstants.ALIGN_BOTTOM)
 					{
-						y2 += h - height - spacing;
+						y2 += h - height - vspacing;
 					}
 					else
 					{
-						y2 += spacing;
+						y2 += vspacing;
 					}
 					
 					c.save();
@@ -1042,9 +1126,9 @@
 		mxShape.call(this);
 	};
 	mxUtils.extend(UmlBoundaryShape, mxShape);
-	UmlBoundaryShape.prototype.getLabelBounds = function(rect)
+	UmlBoundaryShape.prototype.getLabelMargins = function(rect)
 	{
-		return new mxRectangle(rect.x + rect.width / 6, rect.y, rect.width * 5 / 6, rect.height);
+		return new mxRectangle(rect.width / 6, 0, 0, 0);
 	};
 	UmlBoundaryShape.prototype.paintBackground = function(c, x, y, w, h)
 	{
@@ -1163,7 +1247,8 @@
 	};
 	UmlLifeline.prototype.getLabelBounds = function(rect)
 	{
-		var size = Math.max(0, Math.min(rect.height, parseFloat(mxUtils.getValue(this.style, 'size', this.size)) * this.scale));
+		var size = Math.max(0, Math.min(rect.height, parseFloat(
+			mxUtils.getValue(this.style, 'size', this.size)) * this.scale));
 		
 		return new mxRectangle(rect.x, rect.y, rect.width, size);
 	};
@@ -1217,12 +1302,11 @@
 	UmlFrame.prototype.width = 60;
 	UmlFrame.prototype.height = 30;
 	UmlFrame.prototype.corner = 10;
-	UmlFrame.prototype.getLabelBounds = function(rect)
+	UmlFrame.prototype.getLabelMargins = function(rect)
 	{
-		var w = Math.max(0, Math.min(rect.width, parseFloat(mxUtils.getValue(this.style, 'width', this.width)) * this.scale));
-		var h = Math.max(0, Math.min(rect.height, parseFloat(mxUtils.getValue(this.style, 'height', this.height)) * this.scale));
-		
-		return new mxRectangle(rect.x, rect.y, w, h);
+		return new mxRectangle(0, 0,
+			rect.width - (parseFloat(mxUtils.getValue(this.style, 'width', this.width) * this.scale)),
+			rect.height - (parseFloat(mxUtils.getValue(this.style, 'height', this.height) * this.scale)));
 	};
 	UmlFrame.prototype.paintBackground = function(c, x, y, w, h)
 	{
@@ -1317,6 +1401,271 @@
 	};
 	
 	mxStyleRegistry.putValue('backbonePerimeter', mxPerimeter.BackbonePerimeter);
+
+	// Callout Perimeter
+	mxPerimeter.CalloutPerimeter = function (bounds, vertex, next, orthogonal)
+	{
+		return mxPerimeter.RectanglePerimeter(mxUtils.getDirectedBounds(bounds, new mxRectangle(0, 0, 0,
+			Math.max(0, Math.min(bounds.height, parseFloat(mxUtils.getValue(vertex.style, 'size',
+			CalloutShape.prototype.size)) * vertex.view.scale))),
+			vertex.style), vertex, next, orthogonal);
+	};
+	
+	mxStyleRegistry.putValue('calloutPerimeter', mxPerimeter.CalloutPerimeter);
+	
+	// Parallelogram Perimeter
+	mxPerimeter.ParallelogramPerimeter = function (bounds, vertex, next, orthogonal)
+	{
+		var size = ParallelogramShape.prototype.size;
+		
+		if (vertex != null)
+		{
+			size = mxUtils.getValue(vertex.style, 'size', size);
+		}
+		
+		var x = bounds.x;
+		var y = bounds.y;
+		var w = bounds.width;
+		var h = bounds.height;
+
+		var direction = (vertex != null) ? mxUtils.getValue(
+			vertex.style, mxConstants.STYLE_DIRECTION,
+			mxConstants.DIRECTION_EAST) : mxConstants.DIRECTION_EAST;
+		var vertical = direction == mxConstants.DIRECTION_NORTH ||
+			direction == mxConstants.DIRECTION_SOUTH;
+		var points;
+		
+		if (vertical)
+		{
+			var dy = h * Math.max(0, Math.min(1, size));
+			points = [new mxPoint(x, y), new mxPoint(x + w, y + dy),
+						new mxPoint(x + w, y + h), new mxPoint(x, y + h - dy), new mxPoint(x, y)];
+		}
+		else
+		{
+			var dx = w * Math.max(0, Math.min(1, size));
+			points = [new mxPoint(x + dx, y), new mxPoint(x + w, y),
+							new mxPoint(x + w - dx, y + h), new mxPoint(x, y + h), new mxPoint(x + dx, y)];
+		}	
+		
+		var cx = bounds.getCenterX();
+		var cy = bounds.getCenterY();
+		
+		var p1 = new mxPoint(cx, cy);
+		
+		if (orthogonal)
+		{
+			if (next.x < x || next.x > x + w)
+			{
+				p1.y = next.y;
+			}
+			else
+			{
+				p1.x = next.x;
+			}
+		}
+		
+		return mxUtils.getPerimeterPoint(points, p1, next);
+	};
+	
+	mxStyleRegistry.putValue('parallelogramPerimeter', mxPerimeter.ParallelogramPerimeter);
+	
+	// Trapezoid Perimeter
+	mxPerimeter.TrapezoidPerimeter = function (bounds, vertex, next, orthogonal)
+	{
+		var size = TrapezoidShape.prototype.size;
+		
+		if (vertex != null)
+		{
+			size = mxUtils.getValue(vertex.style, 'size', size);
+		}
+		
+		var x = bounds.x;
+		var y = bounds.y;
+		var w = bounds.width;
+		var h = bounds.height;
+
+		var direction = (vertex != null) ? mxUtils.getValue(
+				vertex.style, mxConstants.STYLE_DIRECTION,
+				mxConstants.DIRECTION_EAST) : mxConstants.DIRECTION_EAST;
+		var points;
+		
+		if (direction == mxConstants.DIRECTION_EAST)
+		{
+			var dx = w * Math.max(0, Math.min(1, size));
+			points = [new mxPoint(x + dx, y), new mxPoint(x + w - dx, y),
+						new mxPoint(x + w, y + h), new mxPoint(x, y + h), new mxPoint(x + dx, y)];
+		}
+		else if (direction == mxConstants.DIRECTION_WEST)
+		{
+			var dx = w * Math.max(0, Math.min(1, size));
+			points = [new mxPoint(x, y), new mxPoint(x + w, y),
+						new mxPoint(x + w - dx, y + h), new mxPoint(x + dx, y + h), new mxPoint(x, y)];
+		}
+		else if (direction == mxConstants.DIRECTION_NORTH)
+		{
+			var dy = h * Math.max(0, Math.min(1, size));
+			points = [new mxPoint(x, y + dy), new mxPoint(x + w, y),
+						new mxPoint(x + w, y + h), new mxPoint(x, y + h - dy), new mxPoint(x, y + dy)];
+		}
+		else
+		{
+			var dy = h * Math.max(0, Math.min(1, size));
+			points = [new mxPoint(x, y), new mxPoint(x + w, y + dy),
+						new mxPoint(x + w, y + h - dy), new mxPoint(x, y + h), new mxPoint(x, y)];
+		}		
+
+		var cx = bounds.getCenterX();
+		var cy = bounds.getCenterY();
+		
+		var p1 = new mxPoint(cx, cy);
+		
+		if (orthogonal)
+		{
+			if (next.x < x || next.x > x + w)
+			{
+				p1.y = next.y;
+			}
+			else
+			{
+				p1.x = next.x;
+			}
+		}
+
+		return mxUtils.getPerimeterPoint(points, p1, next);
+	};
+	
+	mxStyleRegistry.putValue('trapezoidPerimeter', mxPerimeter.TrapezoidPerimeter);
+	
+	// Step Perimeter
+	mxPerimeter.StepPerimeter = function (bounds, vertex, next, orthogonal)
+	{
+		var size = StepShape.prototype.size;
+		
+		if (vertex != null)
+		{
+			size = mxUtils.getValue(vertex.style, 'size', size);
+		}
+		
+		var x = bounds.x;
+		var y = bounds.y;
+		var w = bounds.width;
+		var h = bounds.height;
+
+		var cx = bounds.getCenterX();
+		var cy = bounds.getCenterY();
+		
+		var direction = (vertex != null) ? mxUtils.getValue(
+				vertex.style, mxConstants.STYLE_DIRECTION,
+				mxConstants.DIRECTION_EAST) : mxConstants.DIRECTION_EAST;
+		var points;
+		
+		if (direction == mxConstants.DIRECTION_EAST)
+		{
+			var dx = w * Math.max(0, Math.min(1, size));
+			points = [new mxPoint(x, y), new mxPoint(x + w - dx, y), new mxPoint(x + w, cy),
+							new mxPoint(x + w - dx, y + h), new mxPoint(x, y + h),
+							new mxPoint(x + dx, cy), new mxPoint(x, y)];
+		}
+		else if (direction == mxConstants.DIRECTION_WEST)
+		{
+			var dx = w * Math.max(0, Math.min(1, size));
+			points = [new mxPoint(x + dx, y), new mxPoint(x + w, y), new mxPoint(x + w - dx, cy),
+							new mxPoint(x + w, y + h), new mxPoint(x + dx, y + h),
+							new mxPoint(x, cy), new mxPoint(x + dx, y)];
+		}
+		else if (direction == mxConstants.DIRECTION_NORTH)
+		{
+			var dy = h * Math.max(0, Math.min(1, size));
+			points = [new mxPoint(x, y + dy), new mxPoint(cx, y), new mxPoint(x + w, y + dy),
+							new mxPoint(x + w, y + h), new mxPoint(cx, y + h - dy),
+							new mxPoint(x, y + h), new mxPoint(x, y + dy)];
+		}
+		else
+		{
+			var dy = h * Math.max(0, Math.min(1, size));
+			points = [new mxPoint(x, y), new mxPoint(cx, y + dy), new mxPoint(x + w, y),
+							new mxPoint(x + w, y + h - dy), new mxPoint(cx, y + h),
+							new mxPoint(x, y + h - dy), new mxPoint(x, y)];
+		}		
+		
+		var p1 = new mxPoint(cx, cy);
+		
+		if (orthogonal)
+		{
+			if (next.x < x || next.x > x + w)
+			{
+				p1.y = next.y;
+			}
+			else
+			{
+				p1.x = next.x;
+			}
+		}
+		
+		return mxUtils.getPerimeterPoint(points, p1, next);
+	};
+	
+	mxStyleRegistry.putValue('stepPerimeter', mxPerimeter.StepPerimeter);
+	
+	// Hexagon Perimeter 2 (keep existing one)
+	mxPerimeter.HexagonPerimeter2 = function (bounds, vertex, next, orthogonal)
+	{
+		var size = HexagonShape.prototype.size;
+		
+		if (vertex != null)
+		{
+			size = mxUtils.getValue(vertex.style, 'size', size);
+		}
+		
+		var x = bounds.x;
+		var y = bounds.y;
+		var w = bounds.width;
+		var h = bounds.height;
+
+		var cx = bounds.getCenterX();
+		var cy = bounds.getCenterY();
+		
+		var direction = (vertex != null) ? mxUtils.getValue(
+			vertex.style, mxConstants.STYLE_DIRECTION,
+			mxConstants.DIRECTION_EAST) : mxConstants.DIRECTION_EAST;
+		var vertical = direction == mxConstants.DIRECTION_NORTH ||
+			direction == mxConstants.DIRECTION_SOUTH;
+		var points;
+		
+		if (vertical)
+		{
+			var dy = h * Math.max(0, Math.min(1, size));
+			points = [new mxPoint(cx, y), new mxPoint(x + w, y + dy), new mxPoint(x + w, y + h - dy),
+							new mxPoint(cx, y + h), new mxPoint(x, y + h - dy),
+							new mxPoint(x, y + dy), new mxPoint(cx, y)];
+		}
+		else
+		{
+			var dx = w * Math.max(0, Math.min(1, size));
+			points = [new mxPoint(x + dx, y), new mxPoint(x + w - dx, y), new mxPoint(x + w, cy),
+						new mxPoint(x + w - dx, y + h), new mxPoint(x + dx, y + h),
+						new mxPoint(x, cy), new mxPoint(x + dx, y)];
+		}		
+
+		var p1 = new mxPoint(cx, cy);
+		
+		if (orthogonal)
+		{
+			if (next.x < x || next.x > x + w)
+			{
+				p1.y = next.y;
+			}
+			else
+			{
+				p1.x = next.x;
+			}
+		}
+		
+		return mxUtils.getPerimeterPoint(points, p1, next);
+	};
+	
+	mxStyleRegistry.putValue('hexagonPerimeter2', mxPerimeter.HexagonPerimeter2);
 	
 	// Lollipop Shape
 	function LollipopShape()
@@ -2108,7 +2457,41 @@
 	};
 
 	mxCellRenderer.prototype.defaultShapes['display'] = DisplayShape;
+	
+	// FilledEdge shape
+	function FilledEdge()
+	{
+		mxConnector.call(this);
+	};
+	mxUtils.extend(FilledEdge, mxConnector);
+	
+	FilledEdge.prototype.origPaintEdgeShape = FilledEdge.prototype.paintEdgeShape;
+	FilledEdge.prototype.paintEdgeShape = function(c, pts, rounded)
+	{
+		//paintEdgeShape reset dashed to false
+		var dashed = c.state.dashed;
+		var fixDash = c.state.fixDash; 
+		
+		FilledEdge.prototype.origPaintEdgeShape.apply(this, arguments);
+		if (c.state.strokeWidth >= 3)
+		{
+			var fillClr = mxUtils.getValue(this.style, 'fillColor', null);
+			
+			if (fillClr != null)
+			{
+				c.setStrokeColor(fillClr);
+				c.setStrokeWidth(c.state.strokeWidth - 2);
+				c.setDashed(dashed, fixDash);
+			
+				FilledEdge.prototype.origPaintEdgeShape.apply(this, arguments);		
+			}
+		}
+	};
 
+	// Registers the link shape
+	mxCellRenderer.prototype.defaultShapes['filledEdge'] = FilledEdge;
+
+	
 	// Registers and defines the custom marker
 	mxMarker.addMarker('dash', function(c, shape, type, pe, unitX, unitY, size, source, sw, filled)
 	{
@@ -2313,11 +2696,10 @@
 		};
 	}
 	
-	
 	// Handlers are only added if mxVertexHandler is defined (ie. not in embedded graph)
 	if (typeof mxVertexHandler !== 'undefined')
 	{
-		function createHandle(state, keys, getPositionFn, setPositionFn, ignoreGrid)
+		function createHandle(state, keys, getPositionFn, setPositionFn, ignoreGrid, redrawEdges)
 		{
 			var handle = new mxHandle(state, null, mxVertexHandler.prototype.secondaryHandleImage);
 			
@@ -2328,10 +2710,25 @@
 					this.copyStyle(keys[i]);
 				}
 			};
-
+			
 			handle.getPosition = getPositionFn;
 			handle.setPosition = setPositionFn;
 			handle.ignoreGrid = (ignoreGrid != null) ? ignoreGrid : true;
+			
+			// Overridden to update connected edges
+			if (redrawEdges)
+			{
+				var positionChanged = handle.positionChanged;
+				
+				handle.positionChanged = function()
+				{
+					positionChanged.apply(this, arguments);
+					
+					// Redraws connected edges TODO: Include child edges
+					state.view.invalidate(this.state.cell);
+					state.view.validate();
+				};
+			}
 			
 			return handle;
 		};
@@ -2340,17 +2737,35 @@
 		{
 			return createHandle(state, [mxConstants.STYLE_ARCSIZE], function(bounds)
 			{
-				var arcSize = Math.max(0, parseFloat(mxUtils.getValue(state.style,
-					mxConstants.STYLE_ARCSIZE, mxConstants.RECTANGLE_ROUNDING_FACTOR * 100))) / 100;
 				var tmp = (yOffset != null) ? yOffset : bounds.height / 8;
 				
-				return new mxPoint(bounds.x + bounds.width - Math.min(Math.max(bounds.width / 2, bounds.height / 2),
-					Math.min(bounds.width, bounds.height) * arcSize), bounds.y + tmp);
+				if (mxUtils.getValue(state.style, mxConstants.STYLE_ABSOLUTE_ARCSIZE, 0) == '1')
+				{
+					var arcSize = mxUtils.getValue(state.style, mxConstants.STYLE_ARCSIZE, mxConstants.LINE_ARCSIZE) / 2;
+					
+					return new mxPoint(bounds.x + bounds.width - Math.min(bounds.width / 2, arcSize), bounds.y + tmp);
+				}
+				else
+				{
+					var arcSize = Math.max(0, parseFloat(mxUtils.getValue(state.style,
+						mxConstants.STYLE_ARCSIZE, mxConstants.RECTANGLE_ROUNDING_FACTOR * 100))) / 100;
+					
+					return new mxPoint(bounds.x + bounds.width - Math.min(Math.max(bounds.width / 2, bounds.height / 2),
+						Math.min(bounds.width, bounds.height) * arcSize), bounds.y + tmp);
+				}
 			}, function(bounds, pt, me)
 			{
-				var f = Math.min(50, Math.max(0, (bounds.width - pt.x + bounds.x) * 100 /
-					Math.min(bounds.width, bounds.height)));
-				this.state.style[mxConstants.STYLE_ARCSIZE] = Math.round(f);
+				if (mxUtils.getValue(state.style, mxConstants.STYLE_ABSOLUTE_ARCSIZE, 0) == '1')
+				{
+					this.state.style[mxConstants.STYLE_ARCSIZE] = Math.round(Math.max(0, Math.min(bounds.width,
+						(bounds.x + bounds.width - pt.x) * 2)));
+				}
+				else
+				{
+					var f = Math.min(50, Math.max(0, (bounds.width - pt.x + bounds.x) * 100 /
+						Math.min(bounds.width, bounds.height)));
+					this.state.style[mxConstants.STYLE_ARCSIZE] = Math.round(f);
+				}
 			});
 		}
 
@@ -2381,7 +2796,7 @@
 				}, function(bounds, pt)
 				{
 					this.state.style['size'] = Math.max(0, Math.min(max, (pt.x - bounds.x) / (bounds.width * 0.75)));
-				})];
+				}, null, true)];
 				
 				if (mxUtils.getValue(state.style, mxConstants.STYLE_ROUNDED, false))
 				{
@@ -2392,7 +2807,7 @@
 			};
 		};
 		
-		function createDisplayHandleFunction(defaultValue, allowArcHandle, max)
+		function createDisplayHandleFunction(defaultValue, allowArcHandle, max, redrawEdges)
 		{
 			max = (max != null) ? max : 1;
 			
@@ -2406,7 +2821,7 @@
 				}, function(bounds, pt)
 				{
 					this.state.style['size'] = Math.max(0, Math.min(max, (pt.x - bounds.x) / bounds.width));
-				})];
+				}, null, redrawEdges)];
 				
 				if (allowArcHandle && mxUtils.getValue(state.style, mxConstants.STYLE_ROUNDED, false))
 				{
@@ -2727,11 +3142,6 @@
 					this.state.style['height'] = Math.round(Math.max(UmlFrame.prototype.corner * 1.5, Math.min(bounds.height, pt.y - bounds.y)));
 				}, false)];
 				
-				if (mxUtils.getValue(state.style, mxConstants.STYLE_ROUNDED, false))
-				{
-					handles.push(createArcHandle(state));
-				}
-				
 				return handles;
 			},
 			'process': function(state)
@@ -2812,6 +3222,49 @@
 				{
 					this.state.style['size'] = Math.max(0, Math.min(1, (bounds.x + bounds.width - pt.x) / bounds.width));
 				})];
+			},
+			'callout': function(state)
+			{
+				var handles = [createHandle(state, ['size', 'position'], function(bounds)
+				{
+					var size = Math.max(0, Math.min(bounds.height, mxUtils.getValue(this.state.style, 'size', CalloutShape.prototype.size)));
+					var position = Math.max(0, Math.min(1, mxUtils.getValue(this.state.style, 'position', CalloutShape.prototype.position)));
+					var base = Math.max(0, Math.min(bounds.width, mxUtils.getValue(this.state.style, 'base', CalloutShape.prototype.base)));
+					
+					return new mxPoint(bounds.x + position * bounds.width, bounds.y + bounds.height - size);
+				}, function(bounds, pt)
+				{
+					var base = Math.max(0, Math.min(bounds.width, mxUtils.getValue(this.state.style, 'base', CalloutShape.prototype.base)));
+					this.state.style['size'] = Math.round(Math.max(0, Math.min(bounds.height, bounds.y + bounds.height - pt.y)));
+					this.state.style['position'] = Math.round(Math.max(0, Math.min(1, (pt.x - bounds.x) / bounds.width)) * 100) / 100;
+				}), createHandle(state, ['position2'], function(bounds)
+				{
+					var position2 = Math.max(0, Math.min(1, mxUtils.getValue(this.state.style, 'position2', CalloutShape.prototype.position2)));
+
+					return new mxPoint(bounds.x + position2 * bounds.width, bounds.y + bounds.height);
+				}, function(bounds, pt)
+				{
+					this.state.style['position2'] = Math.round(Math.max(0, Math.min(1, (pt.x - bounds.x) / bounds.width)) * 100) / 100;
+				}), createHandle(state, ['base'], function(bounds)
+				{
+					var size = Math.max(0, Math.min(bounds.height, mxUtils.getValue(this.state.style, 'size', CalloutShape.prototype.size)));
+					var position = Math.max(0, Math.min(1, mxUtils.getValue(this.state.style, 'position', CalloutShape.prototype.position)));
+					var base = Math.max(0, Math.min(bounds.width, mxUtils.getValue(this.state.style, 'base', CalloutShape.prototype.base)));
+					
+					return new mxPoint(bounds.x + Math.min(bounds.width, position * bounds.width + base), bounds.y + bounds.height - size);
+				}, function(bounds, pt)
+				{
+					var position = Math.max(0, Math.min(1, mxUtils.getValue(this.state.style, 'position', CalloutShape.prototype.position)));
+
+					this.state.style['base'] = Math.round(Math.max(0, Math.min(bounds.width, pt.x - bounds.x - position * bounds.width)));
+				})];
+				
+				if (mxUtils.getValue(state.style, mxConstants.STYLE_ROUNDED, false))
+				{
+					handles.push(createArcHandle(state));
+				}
+				
+				return handles;
 			},
 			'internalStorage': function(state)
 			{
@@ -2926,8 +3379,8 @@
 					this.state.style['size'] = Math.max(0, Math.min(1, (bounds.y + bounds.height - pt.y) / bounds.height));
 				})];
 			},
-			'step': createDisplayHandleFunction(StepShape.prototype.size, true),
-			'hexagon': createDisplayHandleFunction(HexagonShape.prototype.size, true, 0.5),
+			'step': createDisplayHandleFunction(StepShape.prototype.size, true, null, true),
+			'hexagon': createDisplayHandleFunction(HexagonShape.prototype.size, true, 0.5, true),
 			'curlyBracket': createDisplayHandleFunction(CurlyBracketShape.prototype.size, false),
 			'display': createDisplayHandleFunction(DisplayShape.prototype.size, false),
 			'cube': createCubeHandleFunction(1, CubeShape.prototype.size, false),
@@ -3120,6 +3573,7 @@
 	// Defines connection points for all shapes
 	IsoRectangleShape.prototype.constraints = [];
 	IsoCubeShape.prototype.constraints = [];
+	CalloutShape.prototype.constraints = [];
 	mxRectangleShape.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0.25, 0), true),
 	                                          new mxConnectionConstraint(new mxPoint(0.5, 0), true),
 	                                          new mxConnectionConstraint(new mxPoint(0.75, 0), true),
@@ -3212,19 +3666,18 @@
 		                                new mxConnectionConstraint(new mxPoint(1, 0.65), false),
 										new mxConnectionConstraint(new mxPoint(0.25, 1), false),
 										new mxConnectionConstraint(new mxPoint(0.75, 0), false)];
-	// TODO: Relative ports
 	StepShape.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0.25, 0), true),
-                                       new mxConnectionConstraint(new mxPoint(0.5, 0), true),
-                                       new mxConnectionConstraint(new mxPoint(0.75, 0), true),
-                                       new mxConnectionConstraint(new mxPoint(0.25, 1), true),
-  	        	            		 	new mxConnectionConstraint(new mxPoint(0.5, 1), true),
-  	        	            		 	new mxConnectionConstraint(new mxPoint(0.75, 1), true),
-	                                   new mxConnectionConstraint(new mxPoint(0.1, 0.25), false),
-	                                   new mxConnectionConstraint(new mxPoint(0.2, 0.5), false),
-	                                   new mxConnectionConstraint(new mxPoint(0.1, 0.75), false),
-	                                   new mxConnectionConstraint(new mxPoint(0.9, 0.25), false),
-		                                new mxConnectionConstraint(new mxPoint(1, 0.5), false),
-		                                new mxConnectionConstraint(new mxPoint(0.9, 0.75), false)];
+									new mxConnectionConstraint(new mxPoint(0.5, 0), true),
+									new mxConnectionConstraint(new mxPoint(0.75, 0), true),
+									new mxConnectionConstraint(new mxPoint(0.25, 1), true),
+									new mxConnectionConstraint(new mxPoint(0.5, 1), true),
+									new mxConnectionConstraint(new mxPoint(0.75, 1), true),
+									new mxConnectionConstraint(new mxPoint(0.1, 0.25), true),
+									new mxConnectionConstraint(new mxPoint(0.2, 0.5), true),
+									new mxConnectionConstraint(new mxPoint(0.1, 0.75), true),
+									new mxConnectionConstraint(new mxPoint(0.9, 0.25), true),
+									new mxConnectionConstraint(new mxPoint(1, 0.5), true),
+									new mxConnectionConstraint(new mxPoint(0.9, 0.75), true)];
 	mxLine.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0, 0.5), false),
 	                                new mxConnectionConstraint(new mxPoint(0.25, 0.5), false),
 	                                new mxConnectionConstraint(new mxPoint(0.75, 0.5), false),
@@ -3242,13 +3695,13 @@
 	mxHexagon.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0.375, 0), true),
 	                                    new mxConnectionConstraint(new mxPoint(0.5, 0), true),
 	                                   new mxConnectionConstraint(new mxPoint(0.625, 0), true),
-	                                   new mxConnectionConstraint(new mxPoint(0.125, 0.25), false),
+	                                   new mxConnectionConstraint(new mxPoint(0.125, 0.25), true),
 	                                   new mxConnectionConstraint(new mxPoint(0, 0.5), true),
-	                                   new mxConnectionConstraint(new mxPoint(0.125, 0.75), false),
-	                                   new mxConnectionConstraint(new mxPoint(0.875, 0.25), false),
+	                                   new mxConnectionConstraint(new mxPoint(0.125, 0.75), true),
+	                                   new mxConnectionConstraint(new mxPoint(0.875, 0.25), true),
 	                                   new mxConnectionConstraint(new mxPoint(0, 0.5), true),
 	                                   new mxConnectionConstraint(new mxPoint(1, 0.5), true),
-	                                   new mxConnectionConstraint(new mxPoint(0.875, 0.75), false),
+	                                   new mxConnectionConstraint(new mxPoint(0.875, 0.75), true),
 	                                   new mxConnectionConstraint(new mxPoint(0.375, 1), true),
 	                                    new mxConnectionConstraint(new mxPoint(0.5, 1), true),
 	                                   new mxConnectionConstraint(new mxPoint(0.625, 1), true)];

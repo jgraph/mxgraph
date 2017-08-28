@@ -164,7 +164,10 @@ public class mxDomOutputParser
 		{
 			public void parseElement(Element elt)
 			{
-				canvas.setDashed(elt.getAttribute("dashed").equals("1"));
+				String temp = elt.getAttribute("fixDash");
+				boolean fixDash = temp != null && temp.equals("1");
+				
+				canvas.setDashed(elt.getAttribute("dashed").equals("1"), fixDash);
 			}
 		});
 

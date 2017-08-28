@@ -73,6 +73,14 @@ namespace com.mxgraph
         }
 
         /// <summary>
+        /// Sets the dashed state. This should default to false if unset.
+        /// </summary>
+        bool FixDash
+        {
+            set;
+        }
+
+        /// <summary>
         /// Sets the dash pattern. This should default to "3 3" if unset.
         /// </summary>
         string DashPattern
