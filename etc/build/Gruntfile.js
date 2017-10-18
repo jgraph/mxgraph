@@ -4,19 +4,19 @@ var path = require("path"),
     mxClientContent,
     deps;
 
-// To get the dependencies for the project, read the filenames by matching
-// mxClient.include([...]) in mxClient.js. This is not perfect, but the list is
-// required in mxClient.js for compatibility.
-mxClientContent = fs.readFileSync(
-  path.join(__dirname, "./javascript/src/js/mxClient.js"),
-  "utf8"
-);
-deps = mxClientContent.match(/mxClient\.include\([^"']+["'](.*?)["']/gi).map(function (str) {
-  return "." + str.match(/mxClient\.include\([^"']+["'](.*?)["']/)[1];
-});
-deps = ["./js/mxClient.js"].concat(deps.slice(0));
-
 module.exports = function (grunt) {
+    // To get the dependencies for the project, read the filenames by matching
+    // mxClient.include([...]) in mxClient.js. This is not perfect, but the list is
+    // required in mxClient.js for compatibility.
+    mxClientContent = fs.readFileSync(
+        path.join(process.cwd(), "./javascript/src/js/mxClient.js"),
+        "utf8"
+    );
+    deps = mxClientContent.match(/mxClient\.include\([^"']+["'](.*?)["']/gi).map(function (str) {
+        return "." + str.match(/mxClient\.include\([^"']+["'](.*?)["']/)[1];
+    });
+    deps = ["./js/mxClient.js"].concat(deps.slice(0));
+
   grunt.initConfig({
     copy: {
       main: {
@@ -73,7 +73,7 @@ module.exports = function (grunt) {
       examples: {
         entry: "./javascript/examples/webpack/src/anchors.js",
         output: {
-            path: path.resolve(__dirname, "./javascript/examples/webpack/dist"),
+            path: path.resolve(process.cwd(), "./javascript/examples/webpack/dist"),
           filename: "anchors.js"
         }
       }

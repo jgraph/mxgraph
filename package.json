@@ -2,18 +2,18 @@
   "_args": [
     [
       {
-        "raw": "mxgraph@^3.7.4",
+        "raw": "mxgraph@^3.7.5",
         "scope": null,
         "escapedName": "mxgraph",
         "name": "mxgraph",
-        "rawSpec": "^3.7.4",
-        "spec": ">=3.7.4 <4.0.0",
+        "rawSpec": "^3.7.5",
+        "spec": ">=3.7.5 <4.0.0",
         "type": "range"
       },
       "/Users/nic/source/cartographer-web"
     ]
   ],
-  "_from": "mxgraph@>=3.7.4 <4.0.0",
+  "_from": "mxgraph@>=3.7.5 <4.0.0",
   "_id": "mxgraph@3.7.4",
   "_inCache": true,
   "_location": "/mxgraph",
@@ -29,12 +29,12 @@
   "_npmVersion": "3.5.2",
   "_phantomChildren": {},
   "_requested": {
-    "raw": "mxgraph@^3.7.4",
+    "raw": "mxgraph@^3.7.5",
     "scope": null,
     "escapedName": "mxgraph",
     "name": "mxgraph",
-    "rawSpec": "^3.7.4",
-    "spec": ">=3.7.4 <4.0.0",
+    "rawSpec": "^3.7.5",
+    "spec": ">=3.7.5 <4.0.0",
     "type": "range"
   },
   "_requiredBy": [
@@ -44,7 +44,7 @@
   "_resolved": "https://registry.npmjs.org/mxgraph/-/mxgraph-3.7.4.tgz",
   "_shasum": "1066f63fa63a8647dcdb0f1d8ccdbc191e6ed452",
   "_shrinkwrap": null,
-  "_spec": "mxgraph@^3.7.4",
+  "_spec": "mxgraph@^3.7.5",
   "_where": "/Users/nic/source/cartographer-web",
   "author": {
     "name": "JGraph Ltd",
@@ -90,7 +90,7 @@
     "url": "git+https://github.com/jgraph/mxgraph.git"
   },
   "scripts": {
-    "postinstall": "grunt build"
+    "postinstall": "grunt build --base \"$(npm prefix)\" --gruntfile etc/build/Gruntfile.js"
   },
-  "version": "3.7.4"
+  "version": "3.7.5"
 }
