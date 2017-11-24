@@ -567,4 +567,27 @@ public class mxCellState extends mxRectangle
 		return clone;
 	}
 
+	@Override
+	public String toString()
+	{
+		StringBuilder builder = new StringBuilder(64);
+		builder.append(getClass().getSimpleName());
+		builder.append(" [");
+		builder.append("cell=");
+		builder.append(cell);
+		builder.append(", label=");
+		builder.append(label);
+		builder.append(", x=");
+		builder.append(x);
+		builder.append(", y=");
+		builder.append(y);
+		builder.append(", width=");
+		builder.append(width);
+		builder.append(", height=");
+		builder.append(height);
+		builder.append("]");
+		
+		return builder.toString();
+	}
+
 }

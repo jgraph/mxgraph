@@ -122,8 +122,6 @@ mxHandle.prototype.positionChanged = function()
 		this.state.shape.apply(this.state);
 	}
 	
-	// Needed to force update of text bounds
-	this.state.unscaledWidth = null;
 	this.graph.cellRenderer.redraw(this.state, true);
 };
 

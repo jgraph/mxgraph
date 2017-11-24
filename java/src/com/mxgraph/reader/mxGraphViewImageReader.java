@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.xml.sax.InputSource;
@@ -270,9 +269,13 @@ public class mxGraphViewImageReader extends mxGraphViewReader
 			throws ParserConfigurationException, SAXException, IOException
 	{
 		BufferedImage result = null;
-		SAXParser parser = SAXParserFactory.newInstance().newSAXParser();
-		XMLReader reader = parser.getXMLReader();
-
+		
+		XMLReader reader = SAXParserFactory.newInstance().newSAXParser().getXMLReader();
+		reader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+		reader.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+		reader.setFeature("http://xml.org/sax/features/external-general-entities", false);
+		reader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+		
 		reader.setContentHandler(viewReader);
 		reader.parse(inputSource);
 

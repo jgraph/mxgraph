@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.7.5.
+	 * Current version is 3.7.6.
 	 */
-	VERSION: '3.7.5',
+	VERSION: '3.7.6',
 
 	/**
 	 * Variable: IS_IE
@@ -19613,7 +19613,7 @@ mxSvgCanvas2D.prototype.updateText = function(x, y, w, h, align, valign, wrap, o
 		var oh = 0;
 		
 		// Padding avoids clipping on border and wrapping for differing font metrics on platforms
-		var padX = 2;
+		var padX = 0;
 		var padY = 2;
 
 		var sizeDiv = div;
@@ -19634,14 +19634,22 @@ mxSvgCanvas2D.prototype.updateText = function(x, y, w, h, align, valign, wrap, o
 				ow = Math.min(ow, w);
 			}
 			
-			div.style.width = ow + 'px';
+			div.style.width = Math.round(ow + 1) + 'px';
+		}
+
+		ow = (group.mxCachedFinalOffsetWidth != null) ? group.mxCachedFinalOffsetWidth : sizeDiv.offsetWidth;
+		oh = (group.mxCachedFinalOffsetHeight != null) ? group.mxCachedFinalOffsetHeight : sizeDiv.offsetHeight;
+		
+		if (this.cacheOffsetSize)
+		{
+			group.mxCachedOffsetWidth = tmp;
+			group.mxCachedFinalOffsetWidth = ow;
+			group.mxCachedFinalOffsetHeight = oh;
 		}
 		
-		ow = ((group.mxCachedFinalOffsetWidth != null) ? group.mxCachedFinalOffsetWidth :
-			sizeDiv.offsetWidth) + padX;
-		oh = ((group.mxCachedFinalOffsetHeight != null) ? group.mxCachedFinalOffsetHeight :
-			sizeDiv.offsetHeight) - 2;
-
+		ow += padX;
+		oh -= 2;
+		
 		if (clip)
 		{
 			oh = Math.min(oh, h);
@@ -19837,7 +19845,7 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 					var tmp = div2.offsetWidth;
 					
 					// Workaround for adding padding twice in IE8/IE9 standards mode if label is wrapped
-					var padDx = 0;
+					padDx = 0;
 					
 					// For export, if no wrapping occurs, we add a large padding to make
 					// sure there is no wrapping even if the text metrics are different.
@@ -28152,6 +28160,11 @@ mxSwimlane.prototype.paintSwimlane = function(c, x, y, w, h, start, fill, swimla
 
 	c.begin();
 	
+	if (start == 0)
+	{
+		start = h;
+	}
+	
 	if (this.isHorizontal())
 	{
 		c.moveTo(0, start);
@@ -29071,7 +29084,7 @@ mxStackLayout.prototype.execute = function(parent)
 				pgeo.width - this.marginLeft - this.marginRight;
 		}
 		
-		fillValue -= 2 * this.spacing + 2 * this.border;
+		fillValue -= 2 * this.border;
 		var x0 = this.x0 + this.border + this.marginLeft;
 		var y0 = this.y0 + this.border + this.marginTop;
 		
@@ -29283,7 +29296,7 @@ mxStackLayout.prototype.updateParentGeometry = function(parent, pgeo, last)
 	
 	if (horizontal)
 	{
-		var tmp = last.x + last.width + this.spacing + this.marginRight;
+		var tmp = last.x + last.width + this.marginRight + this.border;
 		
 		if (this.resizeParentMax)
 		{
@@ -29296,7 +29309,7 @@ mxStackLayout.prototype.updateParentGeometry = function(parent, pgeo, last)
 	}
 	else
 	{
-		var tmp = last.y + last.height + this.spacing + this.marginBottom;
+		var tmp = last.y + last.height + this.marginBottom + this.border;
 		
 		if (this.resizeParentMax)
 		{
@@ -43963,8 +43976,8 @@ var mxPerimeter =
 	}
 };
 /**
- * Copyright (c) 2006-2015, JGraph Ltd
- * Copyright (c) 2006-2015, Gaudenz Alder
+ * Copyright (c) 2006-2017, JGraph Ltd
+ * Copyright (c) 2006-2017, Gaudenz Alder
  */
 /**
  * Class: mxPrintPreview
@@ -44988,7 +45001,10 @@ mxPrintPreview.prototype.addGraphFragment = function(dx, dy, scale, pageNumber, 
 		// Creates the temporary cell states in the view and
 		// draws them onto the temporary DOM nodes in the view
 		var cells = [this.getRoot()];
-		temp = new mxTemporaryCellStates(view, scale, cells);
+		temp = new mxTemporaryCellStates(view, scale, cells, null, mxUtils.bind(this, function(state)
+		{
+			return this.getLinkForCellState(state);
+		}));
 	}
 	finally
 	{
@@ -45060,6 +45076,16 @@ mxPrintPreview.prototype.addGraphFragment = function(dx, dy, scale, pageNumber, 
 		temp.destroy();
 		view.setEventsEnabled(eventsEnabled);
 	}
+};
+
+/**
+ * Function: getLinkForCellState
+ * 
+ * Returns the link for the given cell state. This returns null.
+ */
+mxPrintPreview.prototype.getLinkForCellState = function(state)
+{
+	return this.graph.getLinkForCell(state.cell);
 };
 
 /**
@@ -47340,8 +47366,8 @@ mxCellEditor.prototype.destroy = function ()
 	}
 };
 /**
- * Copyright (c) 2006-2015, JGraph Ltd
- * Copyright (c) 2006-2015, Gaudenz Alder
+ * Copyright (c) 2006-2017, JGraph Ltd
+ * Copyright (c) 2006-2017, Gaudenz Alder
  */
 /**
  * Class: mxCellRenderer
@@ -47611,6 +47637,32 @@ mxCellRenderer.prototype.postConfigureShape = function(state)
 };
 
 /**
+ * Function: checkPlaceholderStyles
+ * 
+ * Resolves special keywords 'inherit', 'indicated' and 'swimlane' and sets
+ * the respective color on the shape.
+ */
+mxCellRenderer.prototype.checkPlaceholderStyles = function(state)
+{
+	// LATER: Check if the color has actually changed
+	if (state.style != null)
+	{
+		var values = ['inherit', 'swimlane', 'indicated'];
+		var styles = [mxConstants.STYLE_FILLCOLOR, mxConstants.STYLE_STROKECOLOR, mxConstants.STYLE_GRADIENTCOLOR];
+		
+		for (var i = 0; i < styles.length; i++)
+		{
+			if (mxUtils.indexOf(values, state.style[styles[i]]) >= 0)
+			{
+				return true;
+			}
+		}
+	}
+	
+	return false;
+};
+
+/**
  * Function: resolveColor
  * 
  * Resolves special keywords 'inherit', 'indicated' and 'swimlane' and sets
@@ -47628,6 +47680,8 @@ mxCellRenderer.prototype.resolveColor = function(state, field, key)
 	}
 	else if (value == 'swimlane')
 	{
+		state.shape[field] = (key == mxConstants.STYLE_STROKECOLOR) ? '#000000' : '#ffffff';
+		
 		if (graph.model.getTerminal(state.cell, false) != null)
 		{
 			referenced = graph.model.getTerminal(state.cell, false);
@@ -48193,7 +48247,20 @@ mxCellRenderer.prototype.installListeners = function(state)
  */
 mxCellRenderer.prototype.redrawLabel = function(state, forced)
 {
+	var graph = state.view.graph;
 	var value = this.getLabelValue(state);
+	var wrapping = graph.isWrapping(state.cell);
+	var clipping = graph.isLabelClipped(state.cell);
+	var isForceHtml = (state.view.graph.isHtmlLabel(state.cell) || (value != null && mxUtils.isNode(value)));
+	var dialect = (isForceHtml) ? mxConstants.DIALECT_STRICTHTML : state.view.graph.dialect;
+	var overflow = state.style[mxConstants.STYLE_OVERFLOW] || 'visible';
+
+	if (state.text != null && (state.text.wrap != wrapping || state.text.clipped != clipping ||
+		state.text.overflow != overflow || state.text.dialect != dialect))
+	{
+		state.text.destroy();
+		state.text = null;
+	}
 	
 	if (state.text == null && value != null && (mxUtils.isNode(value) || value.length > 0))
 	{
@@ -48207,13 +48274,10 @@ mxCellRenderer.prototype.redrawLabel = function(state, forced)
 
 	if (state.text != null)
 	{
-		var graph = state.view.graph;
-
 		// Forced is true if the style has changed, so to get the updated
 		// result in getLabelBounds we apply the new style to the shape
 		if (forced)
 		{
-
 			// Checks if a full repaint is needed
 			if (state.text.lastValue != null && this.isTextShapeInvalid(state, state.text))
 			{
@@ -48229,23 +48293,25 @@ mxCellRenderer.prototype.redrawLabel = function(state, forced)
 		}
 		
 		var bounds = this.getLabelBounds(state);
-		var wrapping = graph.isWrapping(state.cell);
-		var clipping = graph.isLabelClipped(state.cell);
-		var isForceHtml = (state.view.graph.isHtmlLabel(state.cell) || (value != null && mxUtils.isNode(value)));
-		var dialect = (isForceHtml) ? mxConstants.DIALECT_STRICTHTML : state.view.graph.dialect;
-
-		// Text is a special case where change of dialect is possible at runtime
-		var overflow = state.style[mxConstants.STYLE_OVERFLOW] || 'visible';
+		var nextScale = this.getTextScale(state);
 		
 		if (forced || state.text.value != value || state.text.isWrapping != wrapping ||
 			state.text.overflow != overflow || state.text.isClipping != clipping ||
-			state.text.scale != this.getTextScale(state) || state.text.dialect != dialect ||
+			state.text.scale != nextScale || state.text.dialect != dialect ||
 			!state.text.bounds.equals(bounds))
 		{
+			// Forces an update of the text bounding box
+			if (state.text.bounds.width != 0 && state.unscaledWidth != null &&
+				Math.round((state.text.bounds.width /
+				state.text.scale * nextScale) - bounds.width) != 0)
+			{
+				state.unscaledWidth = null;
+			}
+			
 			state.text.dialect = dialect;
 			state.text.value = value;
 			state.text.bounds = bounds;
-			state.text.scale = this.getTextScale(state);
+			state.text.scale = nextScale;
 			state.text.wrap = wrapping;
 			state.text.clipped = clipping;
 			state.text.overflow = overflow;
@@ -48790,11 +48856,12 @@ mxCellRenderer.prototype.redrawShape = function(state, force, rendering)
 			this.createCellOverlays(state);
 			this.installListeners(state);
 			
-			// Forces a refresh of the handler of one exists
+			// Forces a refresh of the handler if one exists
 			state.view.graph.selectionCellsHandler.updateHandler(state);
 		}
 	}
-	else if (state.shape != null && !mxUtils.equalEntries(state.shape.style, state.style))
+	else if (!force && state.shape != null && (!mxUtils.equalEntries(state.shape.style,
+		state.style) || this.checkPlaceholderStyles(state)))
 	{
 		state.shape.resetStyles();
 		this.configureShape(state);
@@ -48827,7 +48894,7 @@ mxCellRenderer.prototype.redrawShape = function(state, force, rendering)
 			
 			if (rendering == null || rendering)
 			{
-				state.shape.redraw();
+				this.doRedrawShape(state);
 			}
 			else
 			{
@@ -48839,6 +48906,16 @@ mxCellRenderer.prototype.redrawShape = function(state, force, rendering)
 	}
 
 	return shapeChanged;
+};
+
+/**
+ * Function: doRedrawShape
+ * 
+ * Invokes redraw on the shape of the given state.
+ */
+mxCellRenderer.prototype.doRedrawShape = function(state)
+{
+	state.shape.redraw();
 };
 
 /**
@@ -56468,8 +56545,9 @@ mxGraph.prototype.getPreferredPageSize = function(bounds, width, height)
  * ignored. Default is false.
  * ignoreHeight - Optional boolean that specifies if the height should be
  * ignored. Default is false.
+ * maxHeight - Optional maximum height.
  */
-mxGraph.prototype.fit = function(border, keepOrigin, margin, enabled, ignoreWidth, ignoreHeight)
+mxGraph.prototype.fit = function(border, keepOrigin, margin, enabled, ignoreWidth, ignoreHeight, maxHeight)
 {
 	if (this.container != null)
 	{
@@ -56483,7 +56561,7 @@ mxGraph.prototype.fit = function(border, keepOrigin, margin, enabled, ignoreWidt
 		// Adds spacing and border from css
 		var cssBorder = this.getBorderSizes();
 		var w1 = this.container.offsetWidth - cssBorder.x - cssBorder.width - 1;
-		var h1 = this.container.offsetHeight - cssBorder.y - cssBorder.height - 1;
+		var h1 = (maxHeight != null) ? maxHeight : this.container.offsetHeight - cssBorder.y - cssBorder.height - 1;
 		var bounds = this.view.getGraphBounds();
 		
 		if (bounds.width > 0 && bounds.height > 0)
@@ -68412,21 +68490,15 @@ mxSwimlaneManager.prototype.destroy = function()
 	this.setGraph(null);
 };
 /**
- * Copyright (c) 2006-2015, JGraph Ltd
- * Copyright (c) 2006-2015, Gaudenz Alder
+ * Copyright (c) 2006-2017, JGraph Ltd
+ * Copyright (c) 2006-2017, Gaudenz Alder
  */
 /**
  * Class: mxTemporaryCellStates
- *
- * Extends <mxPoint> to implement a 2-dimensional rectangle with double
- * precision coordinates.
  * 
- * Constructor: mxRectangle
- *
- * Constructs a new rectangle for the optional parameters. If no parameters
- * are given then the respective default values are used.
+ * Creates a temporary set of cell states.
  */
-function mxTemporaryCellStates(view, scale, cells, isCellVisibleFn)
+function mxTemporaryCellStates(view, scale, cells, isCellVisibleFn, getLinkForCellState)
 {
 	scale = (scale != null) ? scale : 1;
 	this.view = view;
@@ -68436,10 +68508,40 @@ function mxTemporaryCellStates(view, scale, cells, isCellVisibleFn)
 	this.oldBounds = view.getGraphBounds();
 	this.oldStates = view.getStates();
 	this.oldScale = view.getScale();
-	
-	// Overrides validateCellState to ignore invisible cells
+	this.oldDoRedrawShape = view.graph.cellRenderer.doRedrawShape;
+
 	var self = this;
-	
+
+	// Overrides doRedrawShape and paint shape to add links on shapes
+	if (getLinkForCellState != null)
+	{
+		view.graph.cellRenderer.doRedrawShape = function(state)
+		{
+			var oldPaint = state.shape.paint;
+			
+			state.shape.paint = function(c)
+			{
+				var link = getLinkForCellState(state);
+				
+				if (link != null)
+				{
+					c.setLink(link);
+				}
+				
+				oldPaint.apply(this, arguments);
+				
+				if (link != null)
+				{
+					c.setLink(null);
+				}
+			};
+			
+			self.oldDoRedrawShape.apply(view.graph.cellRenderer, arguments);
+			state.shape.paint = oldPaint;
+		};
+	}
+
+	// Overrides validateCellState to ignore invisible cells
 	view.validateCellState = function(cell, resurse)
 	{
 		if (cell == null || isCellVisibleFn == null || isCellVisibleFn(cell))
@@ -68518,6 +68620,7 @@ mxTemporaryCellStates.prototype.destroy = function()
 	this.view.setStates(this.oldStates);
 	this.view.setGraphBounds(this.oldBounds);
 	this.view.validateCellState = this.oldValidateCellState;
+	this.view.graph.cellRenderer.doRedrawShape = this.oldDoRedrawShape;
 };
 /**
  * Copyright (c) 2006-2015, JGraph Ltd
@@ -73487,6 +73590,8 @@ function mxConstraintHandler(graph)
 	});
 	
 	this.graph.model.addListener(mxEvent.CHANGE, this.resetHandler);
+	this.graph.view.addListener(mxEvent.SCALE_AND_TRANSLATE, this.resetHandler);
+	this.graph.view.addListener(mxEvent.TRANSLATE, this.resetHandler);
 	this.graph.view.addListener(mxEvent.SCALE, this.resetHandler);
 	this.graph.addListener(mxEvent.ROOT, this.resetHandler);
 };
@@ -73757,14 +73862,9 @@ mxConstraintHandler.prototype.update = function(me, source, existingEdge, point)
 					minDistSq = tmp;
 					
 					var tmp = this.focusIcons[i].bounds.clone();
-					tmp.grow(mxConstants.HIGHLIGHT_SIZE);
-					
-					if (mxClient.IS_IE)
-					{
-						tmp.grow(1);
-						tmp.width -= 1;
-						tmp.height -= 1;
-					}
+					tmp.grow(mxConstants.HIGHLIGHT_SIZE + 1);
+					tmp.width -= 1;
+					tmp.height -= 1;
 					
 					if (this.focusHighlight == null)
 					{
@@ -74492,8 +74592,6 @@ mxHandle.prototype.positionChanged = function()
 		this.state.shape.apply(this.state);
 	}
 	
-	// Needed to force update of text bounds
-	this.state.unscaledWidth = null;
 	this.graph.cellRenderer.redraw(this.state, true);
 };
 

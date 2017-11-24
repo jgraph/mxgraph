@@ -18,6 +18,16 @@ Format.prototype.labelIndex = 0;
 Format.prototype.currentIndex = 0;
 
 /**
+ * Returns information about the current selection.
+ */
+Format.prototype.showCloseButton = true;
+
+/**
+ * Background color for inactive tabs.
+ */
+Format.prototype.inactiveTabBackgroundColor = '#d7d7d7';
+
+/**
  * Adds the label menu items to the given menu and parent.
  */
 Format.prototype.init = function()
@@ -351,26 +361,29 @@ Format.prototype.refresh = function()
 		// Adds button to hide the format panel since
 		// people don't seem to find the toolbar button
 		// and the menu item in the format menu
-		var img = document.createElement('img');
-		img.setAttribute('border', '0');
-		img.setAttribute('src', Dialog.prototype.closeImage);
-		img.setAttribute('title', mxResources.get('hide'));
-		img.style.position = 'absolute';
-		img.style.display = 'block';
-		img.style.right = '0px';
-		img.style.top = '8px';
-		img.style.cursor = 'pointer';
-		img.style.marginTop = '1px';
-		img.style.marginRight = '17px';
-		img.style.border = '1px solid transparent';
-		img.style.padding = '1px';
-		img.style.opacity = 0.5;
-		label.appendChild(img)
-		
-		mxEvent.addListener(img, 'click', function()
+		if (this.showCloseButton)
 		{
-			ui.actions.get('formatPanel').funct();
-		});
+			var img = document.createElement('img');
+			img.setAttribute('border', '0');
+			img.setAttribute('src', Dialog.prototype.closeImage);
+			img.setAttribute('title', mxResources.get('hide'));
+			img.style.position = 'absolute';
+			img.style.display = 'block';
+			img.style.right = '0px';
+			img.style.top = '8px';
+			img.style.cursor = 'pointer';
+			img.style.marginTop = '1px';
+			img.style.marginRight = '17px';
+			img.style.border = '1px solid transparent';
+			img.style.padding = '1px';
+			img.style.opacity = 0.5;
+			label.appendChild(img)
+			
+			mxEvent.addListener(img, 'click', function()
+			{
+				ui.actions.get('formatPanel').funct();
+			});
+		}
 		
 		div.appendChild(label);
 		this.panels.push(new DiagramFormatPanel(this, ui, div));
@@ -404,7 +417,7 @@ Format.prototype.refresh = function()
 					
 					if (currentLabel != null)
 					{
-						currentLabel.style.backgroundColor = '#d7d7d7';
+						currentLabel.style.backgroundColor = this.inactiveTabBackgroundColor;
 						currentLabel.style.borderBottomWidth = '1px';
 					}
 	
@@ -436,7 +449,7 @@ Format.prototype.refresh = function()
 		
 		var idx = 0;
 
-		label.style.backgroundColor = '#d7d7d7';
+		label.style.backgroundColor = this.inactiveTabBackgroundColor;
 		label.style.borderLeftWidth = '1px';
 		label.style.width = (containsLabel) ? '50%' : '33.3%';
 		label.style.width = (containsLabel) ? '50%' : '33.3%';
@@ -444,8 +457,8 @@ Format.prototype.refresh = function()
 		var label3 = label2.cloneNode(false);
 
 		// Workaround for ignored background in IE
-		label2.style.backgroundColor = '#d7d7d7';
-		label3.style.backgroundColor = '#d7d7d7';
+		label2.style.backgroundColor = this.inactiveTabBackgroundColor;
+		label3.style.backgroundColor = this.inactiveTabBackgroundColor;
 		
 		// Style
 		if (containsLabel)
@@ -1010,7 +1023,7 @@ BaseFormatPanel.prototype.createColorOption = function(label, getColorFn, setCol
 				((color != null && color != mxConstants.NONE) ? color : defaultColor) + ';"></div>';
 			
 			// Fine-tuning in Firefox, quirks mode and IE8 standards
-			if (mxClient.IS_MT || mxClient.IS_QUIRKS || document.documentMode == 8)
+			if (mxClient.IS_QUIRKS || document.documentMode == 8)
 			{
 				btn.firstChild.style.margin = '0px';
 			}
@@ -2207,6 +2220,12 @@ TextFormatPanel.prototype.addFont = function(container)
 		var arrow = cssMenu.getElementsByTagName('div')[0];
 		arrow.style.cssFloat = 'right';
 		container.appendChild(cssPanel);
+		
+		// Workaround for offset in FF
+		if (mxClient.IS_FF)
+		{
+			cssMenu.getElementsByTagName('div')[0].style.marginTop = '-18px';
+		}
 	}
 	
 	container.appendChild(stylePanel);
@@ -4437,6 +4456,11 @@ DiagramFormatPanel = function(format, editorUi, container)
 mxUtils.extend(DiagramFormatPanel, BaseFormatPanel);
 
 /**
+ * Switch to disable page view.
+ */
+DiagramFormatPanel.showPageView = true;
+
+/**
  * Specifies if the background image option should be shown. Default is true.
  */
 DiagramFormatPanel.prototype.showBackgroundImageOption = true;
@@ -4476,53 +4500,32 @@ DiagramFormatPanel.prototype.addView = function(div)
 
 	if (graph.isEnabled())
 	{
-		// Guides
-		div.appendChild(this.createOption(mxResources.get('guides'), function()
-		{
-			return graph.graphHandler.guidesEnabled;
-		}, function(checked)
-		{
-			ui.actions.get('guides').funct();
-		},
-		{
-			install: function(apply)
-			{
-				this.listener = function()
-				{
-					apply(graph.graphHandler.guidesEnabled);
-				};
-				
-				ui.addListener('guidesEnabledChanged', this.listener);
-			},
-			destroy: function()
-			{
-				ui.removeListener(this.listener);
-			}
-		}));
-		
 		// Page View
-		div.appendChild(this.createOption(mxResources.get('pageView'), function()
+		if (DiagramFormatPanel.showPageView)
 		{
-			return graph.pageVisible;
-		}, function(checked)
-		{
-			ui.actions.get('pageView').funct();
-		},
-		{
-			install: function(apply)
+			div.appendChild(this.createOption(mxResources.get('pageView'), function()
 			{
-				this.listener = function()
-				{
-					apply(graph.pageVisible);
-				};
-				
-				ui.addListener('pageViewChanged', this.listener);
+				return graph.pageVisible;
+			}, function(checked)
+			{
+				ui.actions.get('pageView').funct();
 			},
-			destroy: function()
 			{
-				ui.removeListener(this.listener);
-			}
-		}));
+				install: function(apply)
+				{
+					this.listener = function()
+					{
+						apply(graph.pageVisible);
+					};
+					
+					ui.addListener('pageViewChanged', this.listener);
+				},
+				destroy: function()
+				{
+					ui.removeListener(this.listener);
+				}
+			}));
+		}
 		
 		// Background
 		var bg = this.createColorOption(mxResources.get('background'), function()
@@ -4630,6 +4633,30 @@ DiagramFormatPanel.prototype.addOptions = function(div)
 				};
 				
 				ui.addListener('connectionPointsChanged', this.listener);
+			},
+			destroy: function()
+			{
+				ui.removeListener(this.listener);
+			}
+		}));
+
+		// Guides
+		div.appendChild(this.createOption(mxResources.get('guides'), function()
+		{
+			return graph.graphHandler.guidesEnabled;
+		}, function(checked)
+		{
+			ui.actions.get('guides').funct();
+		},
+		{
+			install: function(apply)
+			{
+				this.listener = function()
+				{
+					apply(graph.graphHandler.guidesEnabled);
+				};
+				
+				ui.addListener('guidesEnabledChanged', this.listener);
 			},
 			destroy: function()
 			{

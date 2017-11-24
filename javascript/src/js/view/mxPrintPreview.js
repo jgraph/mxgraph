@@ -1,6 +1,6 @@
 /**
- * Copyright (c) 2006-2015, JGraph Ltd
- * Copyright (c) 2006-2015, Gaudenz Alder
+ * Copyright (c) 2006-2017, JGraph Ltd
+ * Copyright (c) 2006-2017, Gaudenz Alder
  */
 /**
  * Class: mxPrintPreview
@@ -1024,7 +1024,10 @@ mxPrintPreview.prototype.addGraphFragment = function(dx, dy, scale, pageNumber, 
 		// Creates the temporary cell states in the view and
 		// draws them onto the temporary DOM nodes in the view
 		var cells = [this.getRoot()];
-		temp = new mxTemporaryCellStates(view, scale, cells);
+		temp = new mxTemporaryCellStates(view, scale, cells, null, mxUtils.bind(this, function(state)
+		{
+			return this.getLinkForCellState(state);
+		}));
 	}
 	finally
 	{
@@ -1096,6 +1099,16 @@ mxPrintPreview.prototype.addGraphFragment = function(dx, dy, scale, pageNumber, 
 		temp.destroy();
 		view.setEventsEnabled(eventsEnabled);
 	}
+};
+
+/**
+ * Function: getLinkForCellState
+ * 
+ * Returns the link for the given cell state. This returns null.
+ */
+mxPrintPreview.prototype.getLinkForCellState = function(state)
+{
+	return this.graph.getLinkForCell(state.cell);
 };
 
 /**

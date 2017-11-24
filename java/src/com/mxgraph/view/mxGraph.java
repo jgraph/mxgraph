@@ -194,9 +194,9 @@ public class mxGraph extends mxEventSource
 
 	/**
 	 * Holds the version number of this release. Current version
-	 * is 3.7.5.
+	 * is 3.7.6.
 	 */
-	public static final String VERSION = "3.7.5";
+	public static final String VERSION = "3.7.6";
 
 	/**
 	 * 
@@ -8050,6 +8050,21 @@ public class mxGraph extends mxEventSource
 			PropertyChangeListener listener)
 	{
 		changeSupport.removePropertyChangeListener(propertyName, listener);
+	}
+
+	@Override
+	public String toString()
+	{
+		StringBuilder builder = new StringBuilder();
+		builder.append(getClass().getSimpleName());
+		builder.append(" [");
+		builder.append("model=");
+		builder.append(model);
+		builder.append(", view=");
+		builder.append(view);
+		builder.append("]");
+		
+		return builder.toString();
 	}
 
 	/**

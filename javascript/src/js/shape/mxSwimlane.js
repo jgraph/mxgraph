@@ -222,6 +222,11 @@ mxSwimlane.prototype.paintSwimlane = function(c, x, y, w, h, start, fill, swimla
 
 	c.begin();
 	
+	if (start == 0)
+	{
+		start = h;
+	}
+	
 	if (this.isHorizontal())
 	{
 		c.moveTo(0, start);

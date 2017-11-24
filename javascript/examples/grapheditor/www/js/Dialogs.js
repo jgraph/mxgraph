@@ -412,7 +412,7 @@ var FilenameDialog = function(editorUi, filename, buttonText, fn, label, validat
 		
 		nameInput.focus();
 		
-		if (mxClient.IS_FF || document.documentMode >= 5 || mxClient.IS_QUIRKS)
+		if (mxClient.IS_GC || mxClient.IS_FF || document.documentMode >= 5 || mxClient.IS_QUIRKS)
 		{
 			nameInput.select();
 		}
@@ -1713,7 +1713,7 @@ var LinkDialog = function(editorUi, initialValue, btnLabel, fn)
 	{
 		linkInput.focus();
 		
-		if (mxClient.IS_FF || document.documentMode >= 5 || mxClient.IS_QUIRKS)
+		if (mxClient.IS_GC || mxClient.IS_FF || document.documentMode >= 5 || mxClient.IS_QUIRKS)
 		{
 			linkInput.select();
 		}
@@ -2228,12 +2228,11 @@ var LayersWindow = function(editorUi, x, y, w, h)
 			btn.setAttribute('draggable', 'false');
 			btn.setAttribute('align', 'top');
 			btn.setAttribute('border', '0');
-			btn.style.cursor = 'pointer';
 			btn.style.padding = '4px';
 			btn.setAttribute('title', mxResources.get('lockUnlock'));
 
 			var state = graph.view.getState(child);
-    		var style = (state != null) ? state.style : graph.getCellStyle(child);
+    			var style = (state != null) ? state.style : graph.getCellStyle(child);
 
 			if (mxUtils.getValue(style, 'locked', '0') == '1')
 			{
@@ -2244,16 +2243,22 @@ var LayersWindow = function(editorUi, x, y, w, h)
 				btn.setAttribute('src', Dialog.prototype.unlockedImage);
 			}
 			
+			if (graph.isEnabled())
+			{
+				btn.style.cursor = 'pointer';
+			}
+			
 			mxEvent.addListener(btn, 'click', function(evt)
 			{
 				if (graph.isEnabled())
 				{
 					var value = null;
+					
 					graph.getModel().beginUpdate();
 					try
 					{
-			    		value = (mxUtils.getValue(style, 'locked', '0') == '1') ? null : '1';
-			    		graph.setCellStyles('locked', value, [child]);
+				    		value = (mxUtils.getValue(style, 'locked', '0') == '1') ? null : '1';
+				    		graph.setCellStyles('locked', value, [child]);
 					}
 					finally
 					{
@@ -2279,11 +2284,6 @@ var LayersWindow = function(editorUi, x, y, w, h)
 			inp.style.marginTop = '4px';
 			left.appendChild(inp);
 			
-			if (!graph.isEnabled())
-			{
-				inp.setAttribute('disabled', 'disabled');
-			}
-
 			if (graph.model.isVisible(child))
 			{
 				inp.setAttribute('checked', 'checked');
@@ -2292,11 +2292,8 @@ var LayersWindow = function(editorUi, x, y, w, h)
 
 			mxEvent.addListener(inp, 'click', function(evt)
 			{
-				if (graph.isEnabled())
-				{
-					graph.model.setVisible(child, !graph.model.isVisible(child));
-					mxEvent.consume(evt);
-				}
+				graph.model.setVisible(child, !graph.model.isVisible(child));
+				mxEvent.consume(evt);
 			});
 
 			mxUtils.write(left, label);
@@ -2395,7 +2392,7 @@ var LayersWindow = function(editorUi, x, y, w, h)
 			if (graph.getDefaultParent() == child)
 			{
 				ldiv.style.background = '#e6eff8';
-				ldiv.style.fontWeight = 'bold';
+				ldiv.style.fontWeight = (graph.isEnabled()) ? 'bold' : '';
 				selectionLayer = child;
 			}
 			else

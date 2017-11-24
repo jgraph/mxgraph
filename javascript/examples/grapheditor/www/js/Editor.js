@@ -4,12 +4,13 @@
 /**
  * Editor constructor executed on page load.
  */
-Editor = function(chromeless, themes, model, graph)
+Editor = function(chromeless, themes, model, graph, editable)
 {
 	mxEventSource.call(this);
 	this.chromeless = (chromeless != null) ? chromeless : this.chromeless;
 	this.initStencilRegistry();
 	this.graph = graph || this.createGraph(themes, model);
+	this.editable = (editable != null) ? editable : !chromeless;
 	this.undoManager = this.createUndoManager();
 	this.status = '';
 
@@ -261,12 +262,7 @@ Editor.prototype.appName = document.title;
 /**
  * 
  */
-Editor.prototype.editBlankUrl = window.location.protocol + '//' + window.location.host + '/?client=1';
-
-/**
- * 
- */
-Editor.prototype.editBlankFallbackUrl = window.location.protocol + '//' + window.location.host + '/?create=drawdata&splash=0';
+Editor.prototype.editBlankUrl = window.location.protocol + '//' + window.location.host + '/';
 
 /**
  * Initializes the environment.
@@ -285,9 +281,9 @@ Editor.prototype.setAutosave = function(value)
 /**
  * 
  */
-Editor.prototype.getEditBlankUrl = function(params, fallback)
+Editor.prototype.getEditBlankUrl = function(params)
 {
-	return ((fallback) ? this.editBlankFallbackUrl : this.editBlankUrl) + params;
+	return this.editBlankUrl + params;
 }
 
 /**
@@ -295,29 +291,35 @@ Editor.prototype.getEditBlankUrl = function(params, fallback)
  */
 Editor.prototype.editAsNew = function(xml, title)
 {
-	var p = (title != null) ? '&title=' + encodeURIComponent(title) : '';
+	var p = (title != null) ? '?title=' + encodeURIComponent(title) : '';
 	
-	if (typeof window.postMessage !== 'undefined' && (document.documentMode == null || document.documentMode >= 10))
+	if (this.editorWindow != null && !this.editorWindow.closed)
 	{
-		var wnd = null;
-		
-		var receive = mxUtils.bind(this, function(evt)
-		{
-			if (evt.data == 'ready' && evt.source == wnd)
-			{
-				wnd.postMessage(xml, '*');
-				mxEvent.removeListener(window, 'message', receive);
-			}
-		});
-		
-		mxEvent.addListener(window, 'message', receive);
-		wnd = window.open(this.getEditBlankUrl(p, false));
+		this.editorWindow.focus();
 	}
 	else
 	{
-		// Data is pulled from global variable after tab loads
-		window.drawdata = xml;
-		window.open(this.getEditBlankUrl(p, true));
+		if (typeof window.postMessage !== 'undefined' && (document.documentMode == null || document.documentMode >= 10))
+		{
+			if (this.editorWindow == null)
+			{
+				mxEvent.addListener(window, 'message', mxUtils.bind(this, function(evt)
+				{
+					if (evt.data == 'ready' && evt.source == this.editorWindow)
+					{
+						this.editorWindow.postMessage(xml, '*');
+					}
+				}));
+			}
+
+			this.editorWindow = window.open(this.getEditBlankUrl(p +
+				((p.length > 0) ? '&' : '?') + 'client=1'));
+		}
+		else
+		{
+			this.editorWindow = window.open(this.getEditBlankUrl(p) +
+				'#R' + encodeURIComponent(xml));
+		}
 	}
 };
 
@@ -767,6 +769,10 @@ function Dialog(editorUi, elt, w, h, modal, closable, onClose)
 	}
 	
 	var div = editorUi.createDiv('geDialog');
+	var pos = this.getPosition(left, top, w, h);
+	left = pos.x;
+	top = pos.y;
+	
 	div.style.width = w + 'px';
 	div.style.height = h + 'px';
 	div.style.left = left + 'px';
@@ -808,13 +814,15 @@ function Dialog(editorUi, elt, w, h, modal, closable, onClose)
 		
 		left = Math.max(1, Math.round((document.body.clientWidth - w - 64) / 2));
 		top = Math.max(1, Math.round((dh - h - editorUi.footerHeight) / 3));
-	
-		div.style.left = left + 'px';
-		div.style.top = top + 'px';
-		
 		w = Math.min(w0, document.body.scrollWidth - 64);
 		h = Math.min(h0, dh - 64);
 		
+		var pos = this.getPosition(left, top, w, h);
+		left = pos.x;
+		top = pos.y;
+		
+		div.style.left = left + 'px';
+		div.style.top = top + 'px';
 		div.style.width = w + 'px';
 		div.style.height = h + 'px';
 		
@@ -876,6 +884,14 @@ Dialog.prototype.unlockedImage = (!mxClient.IS_SVG) ? IMAGE_PATH + '/unlocked.pn
  * Removes the dialog from the DOM.
  */
 Dialog.prototype.bgOpacity = 80;
+
+/**
+ * Removes the dialog from the DOM.
+ */
+Dialog.prototype.getPosition = function(left, top)
+{
+	return new mxPoint(left, top);
+};
 
 /**
  * Removes the dialog from the DOM.
@@ -1452,14 +1468,12 @@ PageSetupDialog.addPageFormatPanel = function(div, namePostfix, pageFormat, page
 	
 	var widthInput = document.createElement('input');
 	widthInput.setAttribute('size', '7');
-	widthInput.setAttribute('value', pageFormat.width);
 	widthInput.style.textAlign = 'right';
 	customDiv.appendChild(widthInput);
 	mxUtils.write(customDiv, ' in x ');
 	
 	var heightInput = document.createElement('input');
 	heightInput.setAttribute('size', '7');
-	heightInput.setAttribute('value', pageFormat.height);
 	heightInput.style.textAlign = 'right';
 	customDiv.appendChild(heightInput);
 	mxUtils.write(customDiv, ' in');
@@ -1561,7 +1575,7 @@ PageSetupDialog.addPageFormatPanel = function(div, namePostfix, pageFormat, page
 			if (!detected)
 			{
 				widthInput.value = pageFormat.width / 100;
-				heightInput.value =pageFormat.height / 100;
+				heightInput.value = pageFormat.height / 100;
 				paperSizeOption.setAttribute('selected', 'selected');
 				portraitCheckBox.setAttribute('checked', 'checked');
 				portraitCheckBox.defaultChecked = true;
@@ -1601,7 +1615,17 @@ PageSetupDialog.addPageFormatPanel = function(div, namePostfix, pageFormat, page
 			formatDiv.style.display = 'none';
 			customDiv.style.display = '';
 		}
+		
+		if (isNaN(parseFloat(widthInput.value)))
+		{
+			widthInput.value = pageFormat.width / 100;
+		}
 
+		if (isNaN(parseFloat(heightInput.value)))
+		{
+			heightInput.value = pageFormat.height / 100;
+		}
+		
 		var newPageFormat = new mxRectangle(0, 0,
 			Math.floor(parseFloat(widthInput.value) * 100),
 			Math.floor(parseFloat(heightInput.value) * 100));

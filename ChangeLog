@@ -1,3 +1,13 @@
+24-NOV-2017: 3.7.6
+
+- Adds toString methods in some classes in Java
+- Fixes text flow after shape change, text size cache
+- Fixes return value of mxUtils.loadDocument in Java
+- Resets constraint handler after translate
+- Adds mxCellRenderer.checkPlaceholderStyles
+- Adds links on shapes in mxPrintPreview
+- Adds mxCellRenderer.doRedrawShape
+
 28-AUG-2017: 3.7.5
 
 - Adds line jumps in grapheditor example

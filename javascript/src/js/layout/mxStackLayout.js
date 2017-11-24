@@ -270,7 +270,7 @@ mxStackLayout.prototype.execute = function(parent)
 				pgeo.width - this.marginLeft - this.marginRight;
 		}
 		
-		fillValue -= 2 * this.spacing + 2 * this.border;
+		fillValue -= 2 * this.border;
 		var x0 = this.x0 + this.border + this.marginLeft;
 		var y0 = this.y0 + this.border + this.marginTop;
 		
@@ -482,7 +482,7 @@ mxStackLayout.prototype.updateParentGeometry = function(parent, pgeo, last)
 	
 	if (horizontal)
 	{
-		var tmp = last.x + last.width + this.spacing + this.marginRight;
+		var tmp = last.x + last.width + this.marginRight + this.border;
 		
 		if (this.resizeParentMax)
 		{
@@ -495,7 +495,7 @@ mxStackLayout.prototype.updateParentGeometry = function(parent, pgeo, last)
 	}
 	else
 	{
-		var tmp = last.y + last.height + this.spacing + this.marginBottom;
+		var tmp = last.y + last.height + this.marginBottom + this.border;
 		
 		if (this.resizeParentMax)
 		{

@@ -2359,7 +2359,7 @@ public class mxUtils
 	{
 		try
 		{
-			mxXmlUtils.getDocumentBuilder().parse(uri);
+			return mxXmlUtils.getDocumentBuilder().parse(uri);
 		}
 		catch (Exception e)
 		{

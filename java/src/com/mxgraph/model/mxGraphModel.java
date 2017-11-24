@@ -1704,7 +1704,45 @@ public class mxGraphModel extends mxEventSource implements mxIGraphModel,
 
 		return result.toArray();
 	}
-
+	
+	@Override
+	public String toString()
+	{
+		StringBuilder builder = new StringBuilder();
+		builder.append(getClass().getSimpleName());
+		builder.append(" [");
+		builder.append("root=");
+		builder.append(root);
+		builder.append(", cells=");
+		
+		if (cells != null)
+		{
+			builder.append("<");
+			builder.append(cells.size());
+			builder.append(" entries>");
+		}
+		else
+		{
+			builder.append("null");
+		}
+		
+		builder.append(", maintainEdgeParent=");
+		builder.append(maintainEdgeParent);
+		builder.append(", createIds=");
+		builder.append(createIds);
+		builder.append(", nextId=");
+		builder.append(nextId);
+		builder.append(", currentEdit=");
+		builder.append(currentEdit);
+		builder.append(", updateLevel=");
+		builder.append(updateLevel);
+		builder.append(", endingUpdate=");
+		builder.append(endingUpdate);
+		builder.append("]");
+		
+		return builder.toString();
+	}
+	
 	//
 	// Visitor patterns
 	//

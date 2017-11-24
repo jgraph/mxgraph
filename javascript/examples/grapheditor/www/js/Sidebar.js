@@ -221,6 +221,14 @@ Sidebar.prototype.defaultImageHeight = 80;
 /**
  * Adds all palettes to the sidebar.
  */
+Sidebar.prototype.getTooltipOffset = function()
+{
+	return new mxPoint(0, 0);
+};
+
+/**
+ * Adds all palettes to the sidebar.
+ */
 Sidebar.prototype.showTooltip = function(elt, cells, w, h, title, showLabel)
 {
 	if (this.enableTooltips && this.showTooltips)
@@ -360,11 +368,11 @@ Sidebar.prototype.showTooltip = function(elt, cells, w, h, title, showLabel)
 				
 				var b = document.body;
 				var d = document.documentElement;
+				var off = this.getTooltipOffset();
 				var bottom = Math.max(b.clientHeight || 0, d.clientHeight);
-
-				var left = this.container.clientWidth + this.editorUi.splitSize + 3 + this.editorUi.container.offsetLeft;
+				var left = this.container.clientWidth + this.editorUi.splitSize + 3 + this.editorUi.container.offsetLeft + off.x;
 				var top = Math.min(bottom - height - 20 /*status bar*/, Math.max(0, (this.editorUi.container.offsetTop +
-					this.container.offsetTop + elt.offsetTop - this.container.scrollTop - height / 2 + 16)));
+					this.container.offsetTop + elt.offsetTop - this.container.scrollTop - height / 2 + 16))) + off.y;
 
 				if (mxClient.IS_SVG)
 				{
@@ -919,9 +927,9 @@ Sidebar.prototype.addGeneralPalette = function(expand)
 	 	this.createVertexTemplateEntry('rounded=0;whiteSpace=wrap;html=1;', 120, 60, '', 'Rectangle', null, null, 'rect rectangle box'),
 	 	this.createVertexTemplateEntry('rounded=1;whiteSpace=wrap;html=1;', 120, 60, '', 'Rounded Rectangle', null, null, 'rounded rect rectangle box'),
 	 	// Explicit strokecolor/fillcolor=none is a workaround to maintain transparent background regardless of current style
-	 	this.createVertexTemplateEntry('text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;',
+	 	this.createVertexTemplateEntry('text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;',
  			40, 20, 'Text', 'Text', null, null, 'text textbox textarea label'),
-	 	this.createVertexTemplateEntry('text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;', 190, 120,
+	 	this.createVertexTemplateEntry('text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;', 190, 120,
 			'<h1>Heading</h1><p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>',
 			'Textbox', null, null, 'text textbox textarea'),
 		this.createVertexTemplateEntry('shape=ext;double=1;rounded=0;whiteSpace=wrap;html=1;', 120, 60, '', 'Double Rectangle', null, null, 'rect rectangle box double'),
@@ -1730,6 +1738,9 @@ Sidebar.prototype.addBpmnPalette = function(dir, expand)
 	 	this.createVertexTemplateEntry('shape=mxgraph.bpmn.business_rule_task;html=1;', 14, 14, '', 'Business Rule Task', null, null, this.getTagsForStencil('mxgraph.bpmn', 'business_rule_task').join(' ')),
 	 	this.createVertexTemplateEntry('shape=mxgraph.bpmn.service_task;html=1;', 14, 14, '', 'Service Task', null, null, this.getTagsForStencil('mxgraph.bpmn', 'service_task').join(' ')),
 	 	this.createVertexTemplateEntry('shape=mxgraph.bpmn.script_task;html=1;', 14, 14, '', 'Script Task', null, null, this.getTagsForStencil('mxgraph.bpmn', 'script_task').join(' ')),
+		this.createVertexTemplateEntry('html=1;shape=mxgraph.flowchart.annotation_2;align=left;', 50, 100, '', 'Annotation', null, null, this.getTagsForStencil('bpmn', 'annotation_1', 'bpmn business process model ').join(' ')),
+		this.createVertexTemplateEntry('rounded=1;arcSize=10;dashed=1;strokeColor=#000000;fillColor=none;gradientColor=none;dashPattern=8 3 1 3;strokeWidth=2;',
+				 200, 200, '', 'Group', null, null, this.getTagsForStencil('bpmn', 'group', 'bpmn business process model ').join(' ')),
 	 	this.createEdgeTemplateEntry('endArrow=block;endFill=1;endSize=6;html=1;', 100, 0, '', 'Sequence Flow', null, 'bpmn sequence flow'),
 	 	this.createEdgeTemplateEntry('startArrow=dash;startSize=8;endArrow=block;endFill=1;endSize=6;html=1;', 100, 0, '', 'Default Flow', null, 'bpmn default flow'),
 	 	this.createEdgeTemplateEntry('startArrow=diamondThin;startFill=0;startSize=14;endArrow=block;endFill=1;endSize=6;html=1;', 100, 0, '', 'Conditional Flow', null, 'bpmn conditional flow'),
@@ -2177,8 +2188,10 @@ Sidebar.prototype.dropAndConnect = function(source, targets, direction, dropCell
 				{
 					// Adds parent offset to other nodes
 					var tmpState = graph.view.getState(targetParent);
-					var offset = new mxPoint((tmpState.x / graph.view.scale - graph.view.translate.x),
-							(tmpState.y / graph.view.scale - graph.view.translate.y));
+					var offset = (tmpState.cell != graph.view.currentRoot) ?
+						new mxPoint((tmpState.x / graph.view.scale - graph.view.translate.x),
+						(tmpState.y / graph.view.scale - graph.view.translate.y)) : new mxPoint(0, 0);
+
 					graph.cellsMoved(targets, offset.x, offset.y, null, null, true);
 				}
 			}
@@ -2595,9 +2608,10 @@ Sidebar.prototype.createDragSource = function(elt, dropHandler, preview, cells, 
 				var dx = view.translate.x * view.scale;
 				var dy = view.translate.y * view.scale;
 				
-				if (geo2 != null && !geo2.relative && graph.model.isVertex(parent))
+				if (geo2 != null && !geo2.relative && graph.model.isVertex(parent) && parent != view.currentRoot)
 				{
 					var pState = view.getState(parent);
+					
 					dx = pState.x;
 					dy = pState.y;
 				}

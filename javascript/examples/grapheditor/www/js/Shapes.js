@@ -773,8 +773,8 @@
 				inset = Math.max(inset, Math.min(w * f, h * f));
 			}
 			
-			r.x += inset;
-			r.width -= 2 * inset;
+			r.x += Math.round(inset);
+			r.width -= Math.round(2 * inset);
 			
 			return r;
 		}
@@ -792,6 +792,9 @@
 			inset = Math.max(inset, Math.min(w * f, h * f));
 		}
 		
+		// Crisp rendering of inner lines
+		inset = Math.round(inset);
+		
 		c.begin();
 		c.moveTo(x + inset, y);
 		c.lineTo(x + inset, y + h);
@@ -803,6 +806,22 @@
 	};
 
 	mxCellRenderer.prototype.defaultShapes['process'] = ProcessShape;
+	
+	// Transparent Shape
+	function TransparentShape()
+	{
+		mxRectangleShape.call(this);
+	};
+	mxUtils.extend(TransparentShape, mxRectangleShape);
+	TransparentShape.prototype.paintBackground = function(c, x, y, w, h)
+	{
+		c.setFillColor(mxConstants.NONE);
+		c.rect(x, y, w, h);
+		c.fill();
+	};
+	TransparentShape.prototype.paintForeground = function(c, x, y, w, h) 	{ };
+
+	mxCellRenderer.prototype.defaultShapes['transparent'] = TransparentShape;
 
 	// Callout shape
 	function CalloutShape()
@@ -842,9 +861,12 @@
 	};
 	mxUtils.extend(StepShape, mxActor);
 	StepShape.prototype.size = 0.2;
+	StepShape.prototype.fixedSize = 20;
 	StepShape.prototype.redrawPath = function(c, x, y, w, h)
 	{
-		var s =  w * Math.max(0, Math.min(1, parseFloat(mxUtils.getValue(this.style, 'size', this.size))));
+		var fixed = mxUtils.getValue(this.style, 'fixedSize', '0') != '0';
+		var s = (fixed) ? Math.max(0, Math.min(w, parseFloat(mxUtils.getValue(this.style, 'size', this.fixedSize)))) :
+			w * Math.max(0, Math.min(1, parseFloat(mxUtils.getValue(this.style, 'size', this.size))));
 		var arcSize = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, mxConstants.LINE_ARCSIZE) / 2;
 		this.addPoints(c, [new mxPoint(0, 0), new mxPoint(w - s, 0), new mxPoint(w, h / 2), new mxPoint(w - s, h),
 		                   new mxPoint(0, h), new mxPoint(s, h / 2)], this.isRounded, arcSize, true);
@@ -1540,7 +1562,8 @@
 	// Step Perimeter
 	mxPerimeter.StepPerimeter = function (bounds, vertex, next, orthogonal)
 	{
-		var size = StepShape.prototype.size;
+		var fixed = mxUtils.getValue(vertex.style, 'fixedSize', '0') != '0';
+		var size = (fixed) ? StepShape.prototype.fixedSize : StepShape.prototype.size;
 		
 		if (vertex != null)
 		{
@@ -1562,28 +1585,28 @@
 		
 		if (direction == mxConstants.DIRECTION_EAST)
 		{
-			var dx = w * Math.max(0, Math.min(1, size));
+			var dx = (fixed) ? Math.max(0, Math.min(w, size)) : w * Math.max(0, Math.min(1, size));
 			points = [new mxPoint(x, y), new mxPoint(x + w - dx, y), new mxPoint(x + w, cy),
 							new mxPoint(x + w - dx, y + h), new mxPoint(x, y + h),
 							new mxPoint(x + dx, cy), new mxPoint(x, y)];
 		}
 		else if (direction == mxConstants.DIRECTION_WEST)
 		{
-			var dx = w * Math.max(0, Math.min(1, size));
+			var dx = (fixed) ? Math.max(0, Math.min(w, size)) : w * Math.max(0, Math.min(1, size));
 			points = [new mxPoint(x + dx, y), new mxPoint(x + w, y), new mxPoint(x + w - dx, cy),
 							new mxPoint(x + w, y + h), new mxPoint(x + dx, y + h),
 							new mxPoint(x, cy), new mxPoint(x + dx, y)];
 		}
 		else if (direction == mxConstants.DIRECTION_NORTH)
 		{
-			var dy = h * Math.max(0, Math.min(1, size));
+			var dy = (fixed) ? Math.max(0, Math.min(h, size)) : h * Math.max(0, Math.min(1, size));
 			points = [new mxPoint(x, y + dy), new mxPoint(cx, y), new mxPoint(x + w, y + dy),
 							new mxPoint(x + w, y + h), new mxPoint(cx, y + h - dy),
 							new mxPoint(x, y + h), new mxPoint(x, y + dy)];
 		}
 		else
 		{
-			var dy = h * Math.max(0, Math.min(1, size));
+			var dy = (fixed) ? Math.max(0, Math.min(h, size)) : h * Math.max(0, Math.min(1, size));
 			points = [new mxPoint(x, y), new mxPoint(cx, y + dy), new mxPoint(x + w, y),
 							new mxPoint(x + w, y + h - dy), new mxPoint(cx, y + h),
 							new mxPoint(x, y + h - dy), new mxPoint(x, y)];
@@ -2309,42 +2332,44 @@
 			c.setStrokeColor(this.stroke);
 			c.rect(x, y, w, h);
 			c.fill();
+
+			c.begin();
+			c.moveTo(x, y);
 			
 			if (mxUtils.getValue(this.style, 'top', '1') == '1')
 			{
-				c.begin();
-				c.moveTo(x, y);
 				c.lineTo(x + w, y);
-				c.end();
-				c.stroke();
+			}
+			else
+			{
+				c.moveTo(x + w, y);
 			}
 			
 			if (mxUtils.getValue(this.style, 'right', '1') == '1')
 			{
-				c.begin();
-				c.moveTo(x + w, y);
 				c.lineTo(x + w, y + h);
-				c.end();
-				c.stroke();
+			}
+			else
+			{
+				c.moveTo(x + w, y + h);
 			}
 			
 			if (mxUtils.getValue(this.style, 'bottom', '1') == '1')
 			{
-				c.begin();
-				c.moveTo(x + w, y + h);
 				c.lineTo(x, y + h);
-				c.end();
-				c.stroke();
+			}
+			else
+			{
+				c.moveTo(x, y + h);
 			}
 			
 			if (mxUtils.getValue(this.style, 'left', '1') == '1')
 			{
-				c.begin();
-				c.moveTo(x, y + h);
-				c.lineTo(x, y);
-				c.end();
-				c.stroke();
+				c.lineTo(x, y - this.strokewidth / 2);
 			}
+						
+			c.end();
+			c.stroke();
 		}
 	};
 
@@ -2491,7 +2516,6 @@
 	// Registers the link shape
 	mxCellRenderer.prototype.defaultShapes['filledEdge'] = FilledEdge;
 
-	
 	// Registers and defines the custom marker
 	mxMarker.addMarker('dash', function(c, shape, type, pe, unitX, unitY, size, source, sw, filled)
 	{
@@ -2807,7 +2831,7 @@
 			};
 		};
 		
-		function createDisplayHandleFunction(defaultValue, allowArcHandle, max, redrawEdges)
+		function createDisplayHandleFunction(defaultValue, allowArcHandle, max, redrawEdges, fixedDefaultValue)
 		{
 			max = (max != null) ? max : 1;
 			
@@ -2815,12 +2839,15 @@
 			{
 				var handles = [createHandle(state, ['size'], function(bounds)
 				{
-					var size = parseFloat(mxUtils.getValue(this.state.style, 'size', defaultValue));
+					var fixed = (fixedDefaultValue != null) ? mxUtils.getValue(this.state.style, 'fixedSize', '0') != '0' : null;
+					var size = parseFloat(mxUtils.getValue(this.state.style, 'size', (fixed) ? fixedDefaultValue : defaultValue));
 	
-					return new mxPoint(bounds.x + size * bounds.width, bounds.getCenterY());
+					return new mxPoint(bounds.x + Math.max(0, Math.min(bounds.width, size * ((fixed) ? 1 : bounds.width))), bounds.getCenterY());
 				}, function(bounds, pt)
 				{
-					this.state.style['size'] = Math.max(0, Math.min(max, (pt.x - bounds.x) / bounds.width));
+					var fixed = (fixedDefaultValue != null) ? mxUtils.getValue(this.state.style, 'fixedSize', '0') != '0' : null;
+					
+					this.state.style['size'] = (fixed) ? (pt.x - bounds.x) : Math.max(0, Math.min(max, (pt.x - bounds.x) / bounds.width));
 				}, null, redrawEdges)];
 				
 				if (allowArcHandle && mxUtils.getValue(state.style, mxConstants.STYLE_ROUNDED, false))
@@ -3379,7 +3406,7 @@
 					this.state.style['size'] = Math.max(0, Math.min(1, (bounds.y + bounds.height - pt.y) / bounds.height));
 				})];
 			},
-			'step': createDisplayHandleFunction(StepShape.prototype.size, true, null, true),
+			'step': createDisplayHandleFunction(StepShape.prototype.size, true, null, true, StepShape.prototype.fixedSize),
 			'hexagon': createDisplayHandleFunction(HexagonShape.prototype.size, true, 0.5, true),
 			'curlyBracket': createDisplayHandleFunction(CurlyBracketShape.prototype.size, false),
 			'display': createDisplayHandleFunction(DisplayShape.prototype.size, false),
