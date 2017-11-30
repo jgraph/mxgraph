@@ -60,7 +60,7 @@
 			}
 		};
 		
-		mxCellRenderer.prototype.defaultShapes['treenode'] = TreeNodeShape;
+		mxCellRenderer.registerShape('treenode', TreeNodeShape);
 
 		// Defines a custom perimeter for the nodes in the tree
 		mxGraphView.prototype.updateFloatingTerminalPoint = function(edge, start, end, source)

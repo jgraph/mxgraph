@@ -113,7 +113,7 @@
 				};
 
 				// Replaces existing actor shape
-				mxCellRenderer.prototype.defaultShapes['customShape'] = CustomShape;
+				mxCellRenderer.registerShape('customShape', CustomShape);
 				
 				// Loads the stencils into the registry
 				var req = mxUtils.load('stencils.xml');

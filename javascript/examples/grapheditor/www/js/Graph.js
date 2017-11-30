@@ -1566,6 +1566,7 @@ Graph.prototype.replacePlaceholders = function(cell, str)
 {
 	var result = [];
 	var last = 0;
+	var math = [];
 	
 	while (match = this.placeholderPattern.exec(str))
 	{
@@ -3861,7 +3862,7 @@ mxStencilRegistry.getStencil = function(name)
 {
 	var result = mxStencilRegistry.stencils[name];
 	
-	if (result == null && mxCellRenderer.prototype.defaultShapes[name] == null && mxStencilRegistry.dynamicLoading)
+	if (result == null && mxCellRenderer.defaultShapes[name] == null && mxStencilRegistry.dynamicLoading)
 	{
 		var basename = mxStencilRegistry.getBasenameForStencil(name);
 		
@@ -6020,7 +6021,7 @@ if (typeof mxVertexHandler != 'undefined')
 		{
 		    if (window.getSelection)
 		    {
-		        sel = window.getSelection();
+		        var sel = window.getSelection();
 		        
 		        if (sel.getRangeAt && sel.rangeCount)
 		        {

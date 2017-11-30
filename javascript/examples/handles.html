@@ -60,7 +60,7 @@
 			}
 		};
 
-		mxCellRenderer.prototype.defaultShapes['myShape'] = MyShape;
+		mxCellRenderer.registerShape('myShape', MyShape);
 		
 		mxVertexHandler.prototype.createCustomHandles = function()
 		{

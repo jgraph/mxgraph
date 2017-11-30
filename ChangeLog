@@ -1,3 +1,9 @@
+30-NOV-2017: 3.8.0
+
+- Moves mxCellRenderer.prototype.defaultShapes to mxCellRenderer
+- Fixes handling of touch events in mxGraph.isEventIgnored
+- Adds mxSelectionCellsHandler.isHandlerActive hook
+
 24-NOV-2017: 3.7.6
 
 - Adds toString methods in some classes in Java

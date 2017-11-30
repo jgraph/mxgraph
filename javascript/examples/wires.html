@@ -786,7 +786,7 @@ for storing references to ports.)
 			}
 		};
 
-		mxCellRenderer.prototype.defaultShapes['resistor'] = ResistorShape;
+		mxCellRenderer.registerShape('resistor', ResistorShape);
 	</script>
 <!--  
 	Imlements a custom resistor shape. Direction currently ignored here.

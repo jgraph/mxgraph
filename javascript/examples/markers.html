@@ -75,7 +75,7 @@
 				};
 
 				// Registers the message shape
-				mxCellRenderer.prototype.defaultShapes['message'] = MessageShape;
+				mxCellRenderer.registerShape('message', MessageShape);
 				
 				// Defines custom edge shape
 				function LinkShape()
@@ -126,7 +126,7 @@
 				};
 
 				// Registers the link shape
-				mxCellRenderer.prototype.defaultShapes['link'] = LinkShape;
+				mxCellRenderer.registerShape('link', LinkShape);
 
 				// Creates the graph
 				var graph = new mxGraph(container);

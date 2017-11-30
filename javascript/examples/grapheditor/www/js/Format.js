@@ -1502,6 +1502,7 @@ ArrangePanel.prototype.addGroupOps = function(div)
 	var cell = graph.getSelectionCell();
 	var ss = this.format.getSelectionState();
 	var count = 0;
+	var btn = null;
 	
 	div.style.paddingTop = '8px';
 	div.style.paddingBottom = '6px';
@@ -2112,7 +2113,7 @@ ArrangePanel.prototype.addEdgeGeometry = function(container)
 		var value = parseInt(width.value);
 		value = Math.min(999, Math.max(1, (isNaN(value)) ? 1 : value));
 		
-		if (value != mxUtils.getValue(rect.style, 'width', mxCellRenderer.prototype.defaultShapes['flexArrow'].prototype.defaultWidth))
+		if (value != mxUtils.getValue(rect.style, 'width', mxCellRenderer.defaultShapes['flexArrow'].prototype.defaultWidth))
 		{
 			graph.setCellStyles('width', value, graph.getSelectionCells());
 			ui.fireEvent(new mxEventObject('styleChanged', 'keys', ['width'],
@@ -2139,7 +2140,7 @@ ArrangePanel.prototype.addEdgeGeometry = function(container)
 			if (force || document.activeElement != width)
 			{
 				var value = mxUtils.getValue(rect.style, 'width',
-					mxCellRenderer.prototype.defaultShapes['flexArrow'].prototype.defaultWidth);
+					mxCellRenderer.defaultShapes['flexArrow'].prototype.defaultWidth);
 				width.value = value + ' pt';
 			}
 		}
