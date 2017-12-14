@@ -17,7 +17,7 @@
   },
   "main": "./javascript/dist/build.js",
   "scripts": {
-    "postinstall": "grunt build"
+    "postinstall": "grunt build --base \"$(npm prefix)\" --gruntfile etc/build/Gruntfile.js"
   },
   "dependencies": {
     "grunt": "^1.0.1",
