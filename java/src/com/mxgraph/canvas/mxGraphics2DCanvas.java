@@ -18,6 +18,8 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.CellRendererPane;
 
@@ -55,6 +57,9 @@ import com.mxgraph.view.mxCellState;
  */
 public class mxGraphics2DCanvas extends mxBasicCanvas
 {
+
+	private static final Logger log = Logger.getLogger(mxGraphics2DCanvas.class.getName());
+
 	/**
 	 * 
 	 */
@@ -139,7 +144,7 @@ public class mxGraphics2DCanvas extends mxBasicCanvas
 		}
 		catch (Exception e)
 		{
-			// ignore
+			log.log(Level.WARNING, "Failed to initialize renderer pane", e);
 		}
 	}
 

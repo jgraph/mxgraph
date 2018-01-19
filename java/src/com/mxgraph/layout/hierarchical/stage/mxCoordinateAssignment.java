@@ -16,7 +16,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.SwingConstants;
@@ -39,6 +38,8 @@ import com.mxgraph.view.mxGraph;
  */
 public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 {
+
+	private static final Logger log = Logger.getLogger(mxCoordinateAssignment.class.getName());
 
 	enum HierarchicalEdgeStyle
 	{
@@ -190,10 +191,6 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 	 */
 	protected mxGraphAbstractHierarchyCell[][] previousLayerConnectedCache;
 
-	/** The logger for this class */
-	private static Logger logger = Logger
-			.getLogger("com.jgraph.layout.hierarchical.JGraphCoordinateAssignment");
-
 	/**
 	 * Creates a coordinate assignment.
 	 * 
@@ -216,7 +213,6 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 		this.orientation = orientation;
 		this.initialX = initialX;
 		this.parallelEdgeSpacing = parallelEdgeSpacing;
-		setLoggerLevel(Level.OFF);
 	}
 
 	/**
@@ -226,11 +222,14 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 	{
 		mxGraphHierarchyModel model = layout.getModel();
 
-		System.out.println("======Coord assignment debug=======");
+		log.fine("======Coord assignment debug=======");
 
 		for (int j = 0; j < model.ranks.size(); j++)
 		{
-			System.out.print("Rank " + j + " : " );
+			StringBuilder msg = new StringBuilder();
+			msg.append("Rank ");
+			msg.append(j);
+			msg.append(" : ");
 			mxGraphHierarchyRank rank = model.ranks
 					.get(new Integer(j));
 			Iterator<mxGraphAbstractHierarchyCell> iter = rank
@@ -239,12 +238,13 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 			while (iter.hasNext())
 			{
 				mxGraphAbstractHierarchyCell cell = iter.next();
-				System.out.print(cell.getX(j) + "  ");
+				msg.append(cell.getX(j));
+				msg.append("  ");
 			}
-			System.out.println();
+			log.fine(msg.toString());
 		}
 		
-		System.out.println("====================================");
+		log.fine("====================================");
 	}
 	
 	/**
@@ -889,7 +889,7 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 				}
 				else
 				{
-					logger.info("edge.edges is null");
+					log.finer("edge.edges is null");
 				}
 
 				cell.width = (numEdges - 1) * parallelEdgeSpacing;
@@ -905,7 +905,7 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 
 		if (boundsWarning == true)
 		{
-			logger.info("At least one cell has no bounds");
+			log.warning("At least one cell has no bounds");
 		}
 	}
 
@@ -985,7 +985,7 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 					}
 					else
 					{
-						logger.info("edge.edges is null");
+						log.finer("edge.edges is null");
 					}
 
 					cell.width = (numEdges - 1) * parallelEdgeSpacing;
@@ -1009,7 +1009,7 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 
 			if (boundsWarning == true)
 			{
-				logger.info("At least one cell has no bounds");
+				log.warning("At least one cell has no bounds");
 			}
 
 			rankY[rankValue] = y;
@@ -1640,7 +1640,7 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 					limitX = Math.max(limitX, positionX);
 
 					//					double currentY = (rankTopY[currentRank] + rankBottomY[currentRank]) / 2.0;
-					//					System.out.println("topChannelY = " + topChannelY + " , "
+					//					log.fine("topChannelY = " + topChannelY + " , "
 					//							+ "exact Y = " + edge.y[j]);
 					currentRank += loopDelta;
 				}
@@ -1714,7 +1714,7 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 
 //		if (cell.minRank == -1)
 //		{
-//			System.out.println("invalid rank, never set");
+//			log.warning("invalid rank, never set");
 //		}
 
 		rankTopY[cell.minRank] = Math.min(rankTopY[cell.minRank], positionY);
@@ -1913,21 +1913,4 @@ public class mxCoordinateAssignment implements mxHierarchicalLayoutStage
 		this.fineTuning = fineTuning;
 	}
 
-	/**
-	 * Sets the logging level of this class
-	 * 
-	 * @param level
-	 *            the logging level to set
-	 */
-	public void setLoggerLevel(Level level)
-	{
-		try
-		{
-			logger.setLevel(level);
-		}
-		catch (SecurityException e)
-		{
-			// Probably running in an applet
-		}
-	}
 }

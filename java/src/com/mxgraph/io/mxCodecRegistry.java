@@ -8,6 +8,8 @@ import java.util.Collection;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.mxgraph.model.mxGraphModel.mxCollapseChange;
 import com.mxgraph.model.mxGraphModel.mxGeometryChange;
@@ -21,6 +23,8 @@ import com.mxgraph.model.mxGraphModel.mxVisibleChange;
  */
 public class mxCodecRegistry
 {
+
+	private static final Logger log = Logger.getLogger(mxCodecRegistry.class.getName());
 
 	/**
 	 * Maps from constructor names to codecs.
@@ -126,8 +130,12 @@ public class mxCodecRegistry
 				}
 				catch (Exception e)
 				{
-					// ignore
+					log.log(Level.SEVERE, "Failed to create and register a codec for the name: " + name, e);
 				}
+			}
+			else
+			{
+				log.severe("Failed to create codec for " + name);
 			}
 		}
 
@@ -169,11 +177,12 @@ public class mxCodecRegistry
 				}
 				catch (Exception e)
 				{
-					// ignore
+					log.log(Level.SEVERE, "Failed to construct class instance for " + name, e);
 				}
 			}
 		}
 
+		log.severe("Failed to construct instance for " + name);
 		return null;
 	}
 
@@ -191,23 +200,25 @@ public class mxCodecRegistry
 		}
 		catch (Exception e)
 		{
-			// ignore
+			log.log(Level.FINEST, "Failed to get a class object for " + name, e);
 		}
 
 		for (int i = 0; i < packages.size(); i++)
 		{
+			String s = packages.get(i);
+			String nameWithPackage = s + "." + name;
+
 			try
 			{
-				String s = packages.get(i);
-
-				return Class.forName(s + "." + name);
+				return Class.forName(nameWithPackage);
 			}
 			catch (Exception e)
 			{
-				// ignore
+				log.log(Level.FINEST, "Failed to get a class object for " + nameWithPackage, e);
 			}
 		}
 
+		log.severe("Class " + name + " not found");
 		return null;
 	}
 

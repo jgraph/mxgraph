@@ -23,6 +23,8 @@ import java.text.AttributedString;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Stack;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.CellRendererPane;
 import javax.swing.JLabel;
@@ -50,6 +52,8 @@ import com.mxgraph.util.mxUtils;
  */
 public class mxGraphicsCanvas2D implements mxICanvas2D
 {
+
+	private static final Logger log = Logger.getLogger(mxGraphicsCanvas2D.class.getName());
 
 	/**
 	 * Specifies the image scaling quality. Default is Image.SCALE_SMOOTH.
@@ -196,7 +200,7 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 		}
 		catch (Exception e)
 		{
-			// ignore
+			log.log(Level.WARNING, "Failed to initialize renderer pane", e);
 		}
 	}
 
@@ -252,7 +256,7 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 	}
 
 	/**
-	 * Returns a clone of thec given state.
+	 * Returns a clone of the given state.
 	 */
 	protected CanvasState cloneState(CanvasState state)
 	{
@@ -262,7 +266,7 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 		}
 		catch (CloneNotSupportedException e)
 		{
-			e.printStackTrace();
+			log.log(Level.SEVERE, "Failed to clone the state", e);
 		}
 
 		return null;

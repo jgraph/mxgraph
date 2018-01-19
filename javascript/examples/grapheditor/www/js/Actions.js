@@ -99,15 +99,33 @@ Actions.prototype.init = function()
 				
 				if (cells != null)
 				{
-					var bb = graph.getBoundingBoxFromGeometry(cells);
+					var includeEdges = true;
+					
+					for (var i = 0; i < cells.length && includeEdges; i++)
+					{
+						includeEdges = includeEdges && graph.model.isEdge(cells[i]);
+					}
+
+					var t = graph.view.translate;
+					var s = graph.view.scale;
+					var dx = t.x;
+					var dy = t.y;
+					var bb = null;
+					
+					if (cells.length == 1 && includeEdges)
+					{
+						var geo = graph.getCellGeometry(cells[0]);
+						
+						if (geo != null)
+						{
+							bb = geo.getTerminalPoint(true);
+						}
+					}
+
+					bb = (bb != null) ? bb : graph.getBoundingBoxFromGeometry(cells, includeEdges);
 					
 					if (bb != null)
 					{
-						var t = graph.view.translate;
-						var s = graph.view.scale;
-						var dx = t.x;
-						var dy = t.y;
-						
 						var x = Math.round(graph.snap(graph.popupMenuHandler.triggerX / s - dx));
 						var y = Math.round(graph.snap(graph.popupMenuHandler.triggerY / s - dy));
 						
@@ -197,11 +215,11 @@ Actions.prototype.init = function()
 
 	// Navigation actions
 	this.addAction('home', function() { graph.home(); }, null, null, 'Home');
-	this.addAction('exitGroup', function() { graph.exitGroup(); }, null, null, Editor.ctrlKey + '+Shift+Page Up');
-	this.addAction('enterGroup', function() { graph.enterGroup(); }, null, null, Editor.ctrlKey + '+Shift+Page Down');
-	this.addAction('expand', function() { graph.foldCells(false); }, null, null, Editor.ctrlKey + '+Page Down');
-	this.addAction('collapse', function() { graph.foldCells(true); }, null, null, Editor.ctrlKey + '+Page Up');
-
+	this.addAction('exitGroup', function() { graph.exitGroup(); }, null, null, Editor.ctrlKey + '+Shift+Home');
+	this.addAction('enterGroup', function() { graph.enterGroup(); }, null, null, Editor.ctrlKey + '+Shift+End');
+	this.addAction('collapse', function() { graph.foldCells(true); }, null, null, Editor.ctrlKey + '+Home');
+	this.addAction('expand', function() { graph.foldCells(false); }, null, null, Editor.ctrlKey + '+End');
+	
 	// Arrange actions
 	this.addAction('toFront', function() { graph.orderCells(false); }, null, null, Editor.ctrlKey + '+Shift+F');
 	this.addAction('toBack', function() { graph.orderCells(true); }, null, null, Editor.ctrlKey + '+Shift+B');
@@ -674,7 +692,12 @@ Actions.prototype.init = function()
 	
 	action = this.addAction('collapseExpand', function()
 	{
-		ui.setFoldingEnabled(!graph.foldingEnabled);
+		var change = new ChangePageSetup(ui);
+		change.ignoreColor = true;
+		change.ignoreImage = true;
+		change.foldingEnabled = !graph.foldingEnabled;
+		
+		graph.model.execute(change);
 	});
 	action.setToggleAction(true);
 	action.setSelectedCallback(function() { return graph.foldingEnabled; });

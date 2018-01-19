@@ -5,6 +5,8 @@ package com.mxgraph.util;
 
 import java.awt.Color;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 /**
@@ -12,6 +14,8 @@ import java.util.regex.Pattern;
  */
 public class mxHtmlColor
 {
+
+	private static final Logger log = Logger.getLogger(mxHtmlColor.class.getName());
 
 	/**
 	 * HTML color lookup table. Supports the 147 CSS color names.
@@ -118,6 +122,7 @@ public class mxHtmlColor
 			catch (NumberFormatException e)
 			{
 				// ignores exception and returns black
+				log.log(Level.SEVERE, "Failed to parse color value", e);
 			}
 		}
 

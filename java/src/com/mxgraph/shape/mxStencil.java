@@ -4,6 +4,8 @@
 package com.mxgraph.shape;
 
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -22,6 +24,9 @@ import com.mxgraph.view.mxCellState;
  */
 public class mxStencil implements mxIShape
 {
+
+	private static final Logger log = Logger.getLogger(mxStencil.class.getName());
+
 	/**
 	 * Holds the top-level node of the stencil definition.
 	 */
@@ -614,7 +619,7 @@ public class mxStencil implements mxIShape
 			}
 			catch (NumberFormatException e)
 			{
-				// ignore
+				log.log(Level.SEVERE, "Invalid value for attribute " + attribute + " in " + elt.getTagName(), e);
 			}
 		}
 
@@ -645,7 +650,7 @@ public class mxStencil implements mxIShape
 			}
 			catch (NumberFormatException e)
 			{
-				// ignore
+				log.log(Level.SEVERE, "Invalid value for attribute " + attribute + " in " + elt.getTagName(), e);
 			}
 		}
 

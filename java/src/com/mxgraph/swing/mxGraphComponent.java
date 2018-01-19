@@ -35,6 +35,8 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoundedRangeModel;
@@ -119,6 +121,8 @@ import com.mxgraph.view.mxTemporaryCellStates;
  */
 public class mxGraphComponent extends JScrollPane implements Printable
 {
+
+	private static final Logger log = Logger.getLogger(mxGraphComponent.class.getName());
 
 	/**
 	 * 
@@ -3901,7 +3905,7 @@ public class mxGraphComponent extends JScrollPane implements Printable
 		}
 		catch (OutOfMemoryError error)
 		{
-			// ignore
+			log.log(Level.SEVERE, "Failed to create a triple buffer", error);
 		}
 	}
 

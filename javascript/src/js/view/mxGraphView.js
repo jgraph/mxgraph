@@ -1477,8 +1477,9 @@ mxGraphView.prototype.isLoopStyleEnabled = function(edge, points, source, target
 	var sc = this.graph.getConnectionConstraint(edge, source, true);
 	var tc = this.graph.getConnectionConstraint(edge, target, false);
 	
-	if (!mxUtils.getValue(edge.style, mxConstants.STYLE_ORTHOGONAL_LOOP, false) ||
-		((sc == null || sc.point == null) && (tc == null || tc.point == null)))
+	if ((points == null || points.length < 2) &&
+		(!mxUtils.getValue(edge.style, mxConstants.STYLE_ORTHOGONAL_LOOP, false) ||
+		((sc == null || sc.point == null) && (tc == null || tc.point == null))))
 	{
 		return source != null && source == target;
 	}

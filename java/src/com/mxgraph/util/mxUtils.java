@@ -25,7 +25,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -41,17 +40,16 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.Stack;
 import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
 import javax.swing.text.html.HTMLDocument;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
-import org.xml.sax.InputSource;
 
 import com.mxgraph.io.mxCodecRegistry;
 import com.mxgraph.model.mxCellPath;
@@ -64,6 +62,8 @@ import com.mxgraph.view.mxCellState;
  */
 public class mxUtils
 {
+
+	private static final Logger log = Logger.getLogger(mxUtils.class.getName());
 
 	/**
 	 * True if the machine is a Mac.
@@ -93,7 +93,7 @@ public class mxUtils
 		}
 		catch (Exception e)
 		{
-			// ignore
+			log.log(Level.WARNING, "Failed to initialize font graphics", e);
 		}
 	}
 
@@ -1007,6 +1007,7 @@ public class mxUtils
 		}
 		catch (Exception e)
 		{
+			log.log(Level.SEVERE, "Failed to compute intersection", e);
 			// FIXME: Getting clipbounds sometimes throws an NPE
 		}
 
@@ -1852,7 +1853,7 @@ public class mxUtils
 		}
 		catch (NoSuchAlgorithmException ex)
 		{
-			ex.printStackTrace();
+			log.log(Level.SEVERE, "Failed to compute MD5 hash", ex);
 		}
 
 		return result.toString();
@@ -2006,9 +2007,9 @@ public class mxUtils
 					ByteArrayInputStream is = new ByteArrayInputStream(data);
 					img = ImageIO.read(is);
 				}
-				catch (Exception e1)
+				catch (Exception e)
 				{
-					// ignore
+					log.log(Level.SEVERE, "Failed to load a data URI image", e);
 				}
 			}
 			else
@@ -2032,8 +2033,12 @@ public class mxUtils
 					}
 					catch (Exception e1)
 					{
-						e1.printStackTrace();
+						log.log(Level.SEVERE, "Failed to read the image from " + realUrl, e1);
 					}
+				}
+				else
+				{
+					log.log(Level.SEVERE, "Failed to load image from " + url);
 				}
 			}
 		}
@@ -2363,7 +2368,7 @@ public class mxUtils
 		}
 		catch (Exception e)
 		{
-			e.printStackTrace();
+			log.log(Level.SEVERE, "Failed to load the document from " + uri, e);
 		}
 		
 		return null;
@@ -2405,7 +2410,7 @@ public class mxUtils
 				}
 				catch (Exception e)
 				{
-					// ignore
+					log.log(Level.SEVERE, "Failed to eval expression: " + expression, e);
 				}
 			}
 		}

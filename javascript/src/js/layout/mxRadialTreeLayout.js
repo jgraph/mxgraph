@@ -293,7 +293,7 @@ mxRadialTreeLayout.prototype.calcRowDims = function(row, rowNum)
 		while (child != null)
 		{
 			var cell = child.cell;
-			vertexBounds = this.getVertexBounds(cell);
+			var vertexBounds = this.getVertexBounds(cell);
 			
 			this.rowMinX[rowNum] = Math.min(vertexBounds.x, this.rowMinX[rowNum]);
 			this.rowMaxX[rowNum] = Math.max(vertexBounds.x + vertexBounds.width, this.rowMaxX[rowNum]);
@@ -305,6 +305,7 @@ mxRadialTreeLayout.prototype.calcRowDims = function(row, rowNum)
 			{
 				rowHasChildren = true;
 			}
+			
 			this.row[rowNum].push(child);
 			child = child.next;
 		}

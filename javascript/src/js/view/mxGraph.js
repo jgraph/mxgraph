@@ -5105,7 +5105,7 @@ mxGraph.prototype.cellsFolded = function(cells, collapse, recurse, checkFoldable
 					if (recurse)
 					{
 						var children = this.model.getChildren(cells[i]);
-						this.foldCells(children, collapse, recurse);
+						this.cellsFolded(children, collapse, recurse);
 					}
 					
 					this.constrainChild(cells[i]);

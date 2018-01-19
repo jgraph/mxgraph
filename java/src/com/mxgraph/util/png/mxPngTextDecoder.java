@@ -9,6 +9,8 @@ import java.io.DataInputStream;
 import java.io.InputStream;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
@@ -17,6 +19,8 @@ import java.util.zip.InflaterInputStream;
  */
 public class mxPngTextDecoder
 {
+	private static final Logger log = Logger.getLogger(mxPngTextDecoder.class.getName());
+
 	/**
 	 * 
 	 */
@@ -50,8 +54,7 @@ public class mxPngTextDecoder
 		}
 		catch (Exception e)
 		{
-			e.printStackTrace();
-			throw new RuntimeException("PNGImageDecoder1");
+			throw new RuntimeException("PNGImageDecoder1", e);
 		}
 
 		do
@@ -100,13 +103,13 @@ public class mxPngTextDecoder
 					}
 					catch (Exception e)
 					{
-						e.printStackTrace();
+						log.log(Level.SEVERE, "Failed to decode PNG text", e);
 					}
 				}
 			}
 			catch (Exception e)
 			{
-				e.printStackTrace();
+				log.log(Level.SEVERE, "Failed to decode PNG text", e);
 				return null;
 			}
 		}

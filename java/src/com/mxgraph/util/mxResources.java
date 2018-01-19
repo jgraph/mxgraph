@@ -9,9 +9,13 @@ import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class mxResources
 {
+
+	private static final Logger log = Logger.getLogger(mxResources.class.getName());
 
 	/**
 	 * Ordered list of the inserted resource bundles.
@@ -156,12 +160,13 @@ public class mxResources
 			{
 				return it.next().getString(key);
 			}
-			catch (MissingResourceException mrex)
+			catch (MissingResourceException e)
 			{
-				// continue
+				// continue looking in other bundles
 			}
 		}
 
+		log.severe("Resource " + key + " not found in any bundle");
 		return null;
 	}
 

@@ -5,9 +5,12 @@ package com.mxgraph.util;
 
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -24,6 +27,9 @@ import org.xml.sax.InputSource;
  */
 public class mxXmlUtils
 {
+
+	private static final Logger log = Logger.getLogger(mxXmlUtils.class.getName());
+
 	/**
 	 * 
 	 */
@@ -47,9 +53,9 @@ public class mxXmlUtils
 				dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
 				dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
 			}
-			catch (Throwable e)
+			catch (ParserConfigurationException e)
 			{
-				// ignores abstract method errors
+				log.log(Level.SEVERE, "Failed to set feature", e);
 			}
 
 			try
@@ -58,7 +64,7 @@ public class mxXmlUtils
 			}
 			catch (Exception e)
 			{
-				e.printStackTrace();
+				log.log(Level.SEVERE, "Failed to construct a document builder", e);
 			}
 		}
 		
@@ -80,7 +86,7 @@ public class mxXmlUtils
 		}
 		catch (Exception e)
 		{
-			e.printStackTrace();
+			log.log(Level.SEVERE, "Failed to parse XML", e);
 		}
 		
 		return null;
@@ -109,7 +115,7 @@ public class mxXmlUtils
 		}
 		catch (Exception e)
 		{
-			// ignore
+			log.log(Level.SEVERE, "Failed to convert XML object to string", e);
 		}
 
 		return "";

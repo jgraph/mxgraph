@@ -1,6 +1,6 @@
 /**
- * Copyright (c) 2006-2015, JGraph Ltd
- * Copyright (c) 2006-2015, Gaudenz Alder
+ * Copyright (c) 2006-2018, JGraph Ltd
+ * Copyright (c) 2006-2018, Gaudenz Alder
  */
 /**
  * Class: mxGraphModel
@@ -556,7 +556,8 @@ mxGraphModel.prototype.isLayer = function(cell)
 /**
  * Function: isAncestor
  * 
- * Returns true if the given parent is an ancestor of the given child.
+ * Returns true if the given parent is an ancestor of the given child. Note 
+ * returns true if child == parent.
  *
  * Parameters:
  * 

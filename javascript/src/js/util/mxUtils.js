@@ -693,7 +693,12 @@ var mxUtils =
 			
 			if (node.nodeType == mxConstants.NODETYPE_TEXT)
 			{
-				result.push(node.value);
+				var value =  mxUtils.trim(mxUtils.getTextContent(node));
+				
+				if (value.length > 0)
+				{
+					result.push(indent + mxUtils.htmlEntities(value) + '\n');
+				}
 			}
 			else
 			{

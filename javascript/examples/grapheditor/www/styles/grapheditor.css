@@ -24,6 +24,12 @@
 	position:absolute;
 	cursor:default;
 }
+.geFormatContainer {
+	background-color:whiteSmoke;
+	overflow-x: hidden !important;
+	overflow-y: auto !important;
+	font-size:12px;
+}
 .geDiagramContainer {
 	background-color:#ffffff;
 	outline:none;

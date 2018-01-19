@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -40,6 +42,9 @@ import org.w3c.dom.NodeList;
  */
 public class mxStencilShape extends mxBasicShape
 {
+
+	private static final Logger log = Logger.getLogger(mxStencilShape.class.getName());
+
 	public mxStencilShape()
 	{
 		super();
@@ -503,7 +508,7 @@ public class mxStencilShape extends mxBasicShape
 				}
 				catch (Exception e)
 				{
-					// TODO log something useful
+					log.log(Level.SEVERE, "Failed to create SVG element", e);
 				}
 
 				return rectShape;

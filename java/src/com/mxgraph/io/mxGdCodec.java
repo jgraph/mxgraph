@@ -3,12 +3,14 @@
  */
 package com.mxgraph.io;
 
-import com.mxgraph.model.mxGraphModel;
-import com.mxgraph.view.mxGraph;
-
 import java.io.BufferedReader;
 import java.io.StringReader;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import com.mxgraph.model.mxGraphModel;
+import com.mxgraph.view.mxGraph;
 
 /**
  * Parses a GD .txt file and imports it in the given graph.<br/>
@@ -17,6 +19,8 @@ import java.util.HashMap;
  */
 public class mxGdCodec
 {
+	private static final Logger log = Logger.getLogger(mxGdCodec.class.getName());
+
 	/**
 	 * Represents the different states in the parse of a file.
 	 */
@@ -144,7 +148,7 @@ public class mxGdCodec
 		
 		catch (Exception e)
 		{
-			e.printStackTrace();
+			log.log(Level.SEVERE, "Failed to decode", e);
 		}
 		finally
 		{

@@ -4,6 +4,8 @@
 package com.mxgraph.analysis;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.mxgraph.costfunction.mxCostFunction;
 import com.mxgraph.costfunction.mxDoubleValCostFunction;
@@ -21,6 +23,9 @@ import com.mxgraph.view.mxGraphView;
  */
 public class mxGraphGenerator
 {
+
+	private static final Logger log = Logger.getLogger(mxGraphGenerator.class.getName());
+
 	// cost function class that implements mxICostFunction
 	//	private mxGeneratorFunction generatorFunction = new mxGeneratorRandomFunction(0,1,2);
 	//	private mxGeneratorFunction generatorFunction = new mxGeneratorConstFunction(1.5);
@@ -1167,7 +1172,7 @@ public class mxGraphGenerator
 		}
 		catch (StructuralException e)
 		{
-			System.out.println(e);
+			log.log(Level.SEVERE, "Failed to generate a random tree graph", e);
 		}
 
 		try
@@ -1176,7 +1181,7 @@ public class mxGraphGenerator
 		}
 		catch (StructuralException e)
 		{
-			System.out.println(e);
+			log.log(Level.SEVERE, "Failed to generate a random tree graph", e);
 		}
 	};
 

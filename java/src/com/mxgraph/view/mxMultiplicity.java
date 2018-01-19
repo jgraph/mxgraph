@@ -2,6 +2,8 @@ package com.mxgraph.view;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.w3c.dom.Element;
 
@@ -10,6 +12,8 @@ import com.mxgraph.util.mxUtils;
 
 public class mxMultiplicity
 {
+
+	private static final Logger log = Logger.getLogger(mxMultiplicity.class.getName());
 
 	/**
 	 * Defines the type of the source or target terminal. The type is a string
@@ -231,7 +235,7 @@ public class mxMultiplicity
 		}
 		catch (NumberFormatException e)
 		{
-			// ignore
+			log.log(Level.SEVERE, "Failed to parse max value " + max, e);
 		}
 
 		return 0;

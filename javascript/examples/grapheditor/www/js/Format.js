@@ -514,6 +514,11 @@ BaseFormatPanel = function(format, editorUi, container)
 };
 
 /**
+ * 
+ */
+BaseFormatPanel.prototype.buttonBackgroundColor = 'white';
+
+/**
  * Adds the given color option.
  */
 BaseFormatPanel.prototype.getSelectionState = function()
@@ -656,12 +661,18 @@ BaseFormatPanel.prototype.installInputHandler = function(input, key, defaultValu
 		// Text size via arrow button limits to 16 in IE11. Why?
 		mxEvent.addListener(input, 'mousedown', function()
 		{
-			selState = graph.cellEditor.saveSelection();
+			if (document.activeElement == graph.cellEditor.textarea)
+			{
+				selState = graph.cellEditor.saveSelection();
+			}
 		});
 		
 		mxEvent.addListener(input, 'touchstart', function()
 		{
-			selState = graph.cellEditor.saveSelection();
+			if (document.activeElement == graph.cellEditor.textarea)
+			{
+				selState = graph.cellEditor.saveSelection();
+			}
 		});
 	}
 	
@@ -1220,7 +1231,7 @@ BaseFormatPanel.prototype.addArrow = function(elt, height)
 
 	mxUtils.setOpacity(elt, 100);
 	elt.style.border = '1px solid #a0a0a0';
-	elt.style.backgroundColor = 'white';
+	elt.style.backgroundColor = this.buttonBackgroundColor;
 	elt.style.backgroundImage = 'none';
 	elt.style.width = 'auto';
 	elt.className += ' geColorBtn';
@@ -2079,6 +2090,68 @@ ArrangePanel.prototype.addGeometryHandler = function(input, fn)
 	return update;
 };
 
+ArrangePanel.prototype.addEdgeGeometryHandler = function(input, fn)
+{
+    var ui = this.editorUi;
+    var graph = ui.editor.graph;
+    var initialValue = null;
+
+    function update(evt)
+    {
+        if (input.value != '')
+        {
+            var value = parseFloat(input.value);
+
+            if (isNaN(value))
+            {
+                input.value = initialValue + ' pt';
+            }
+            else if (value != initialValue)
+            {
+                graph.getModel().beginUpdate();
+                try
+                {
+                    var cells = graph.getSelectionCells();
+
+                    for (var i = 0; i < cells.length; i++)
+                    {
+                        if (graph.getModel().isEdge(cells[i]))
+                        {
+                            var geo = graph.getCellGeometry(cells[i]);
+
+                            if (geo != null)
+                            {
+                                geo = geo.clone();
+                                fn(geo, value);
+
+                                graph.getModel().setGeometry(cells[i], geo);
+                            }
+                        }
+                    }
+                }
+                finally
+                {
+                    graph.getModel().endUpdate();
+                }
+
+                initialValue = value;
+                input.value = value + ' pt';
+            }
+        }
+
+        mxEvent.consume(evt);
+    };
+
+    mxEvent.addListener(input, 'blur', update);
+    mxEvent.addListener(input, 'change', update);
+    mxEvent.addListener(input, 'focus', function()
+    {
+        initialValue = input.value;
+    });
+
+    return update;
+};
+
 /**
  * 
  */
@@ -2098,7 +2171,7 @@ ArrangePanel.prototype.addEdgeGeometry = function(container)
 	mxUtils.write(span, mxResources.get('width'));
 	div.appendChild(span);
 
-	var widthUpdate, leftUpdate, topUpdate;
+	var widthUpdate, xtUpdate, ytUpdate, xsUpdate, ysUpdate;
 	var width = this.addUnitInput(div, 'pt', 20, 44, function()
 	{
 		widthUpdate.apply(this, arguments);
@@ -2128,10 +2201,65 @@ ArrangePanel.prototype.addEdgeGeometry = function(container)
 	mxEvent.addListener(width, 'change', widthUpdate);
 
 	container.appendChild(div);
-	
+
+	var divs = this.createPanel();
+	divs.style.paddingBottom = '30px';
+
+	var span = document.createElement('div');
+	span.style.position = 'absolute';
+	span.style.width = '70px';
+	span.style.marginTop = '0px';
+	span.style.fontWeight = 'bold';
+	mxUtils.write(span, 'Start');
+	divs.appendChild(span);
+
+	var xs = this.addUnitInput(divs, 'pt', 84, 44, function()
+	{
+		xsUpdate.apply(this, arguments);
+	});
+	var ys = this.addUnitInput(divs, 'pt', 20, 44, function()
+	{
+		ysUpdate.apply(this, arguments);
+	});
+
+	mxUtils.br(divs);
+	this.addLabel(divs, mxResources.get('left'), 84);
+	this.addLabel(divs, mxResources.get('top'), 20);
+	container.appendChild(divs);
+	this.addKeyHandler(xs, listener);
+	this.addKeyHandler(ys, listener);
+
+	var divt = this.createPanel();
+	divt.style.paddingBottom = '30px';
+
+	var span = document.createElement('div');
+	span.style.position = 'absolute';
+	span.style.width = '70px';
+	span.style.marginTop = '0px';
+	span.style.fontWeight = 'bold';
+	mxUtils.write(span, 'End');
+	divt.appendChild(span);
+
+	var xt = this.addUnitInput(divt, 'pt', 84, 44, function()
+	{
+		xtUpdate.apply(this, arguments);
+	});
+	var yt = this.addUnitInput(divt, 'pt', 20, 44, function()
+	{
+		ytUpdate.apply(this, arguments);
+	});
+
+	mxUtils.br(divt);
+	this.addLabel(divt, mxResources.get('left'), 84);
+	this.addLabel(divt, mxResources.get('top'), 20);
+	container.appendChild(divt);
+	this.addKeyHandler(xt, listener);
+	this.addKeyHandler(yt, listener);
+
 	var listener = mxUtils.bind(this, function(sender, evt, force)
 	{
 		rect = this.format.getSelectionState();
+		var cell = graph.getSelectionCell();
 		
 		if (rect.style.shape == 'link' || rect.style.shape == 'flexArrow')
 		{
@@ -2148,6 +2276,56 @@ ArrangePanel.prototype.addEdgeGeometry = function(container)
 		{
 			div.style.display = 'none';
 		}
+
+		if (graph.getSelectionCount() == 1 && graph.model.isEdge(cell))
+		{
+			var geo = graph.model.getGeometry(cell);
+			
+			if (geo.sourcePoint != null && graph.model.getTerminal(cell, true) == null)
+			{
+				xs.value = geo.sourcePoint.x;
+				ys.value = geo.sourcePoint.y;
+			}
+			else
+			{
+				divs.style.display = 'none';
+			}
+			
+			if (geo.targetPoint != null && graph.model.getTerminal(cell, false) == null)
+			{
+				xt.value = geo.targetPoint.x;
+				yt.value = geo.targetPoint.y;
+			}
+			else
+			{
+				divt.style.display = 'none';
+			}
+		}
+		else
+		{
+			divs.style.display = 'none';
+			divt.style.display = 'none';
+		}
+	});
+
+	xsUpdate = this.addEdgeGeometryHandler(xs, function(geo, value)
+	{
+		geo.sourcePoint.x = value;
+	});
+
+	ysUpdate = this.addEdgeGeometryHandler(ys, function(geo, value)
+	{
+		geo.sourcePoint.y = value;
+	});
+
+	xtUpdate = this.addEdgeGeometryHandler(xt, function(geo, value)
+	{
+		geo.targetPoint.x = value;
+	});
+
+	ytUpdate = this.addEdgeGeometryHandler(yt, function(geo, value)
+	{
+		geo.targetPoint.y = value;
 	});
 
 	graph.getModel().addListener(mxEvent.CHANGE, listener);
@@ -2528,30 +2706,94 @@ TextFormatPanel.prototype.addFont = function(container)
 	var pendingFontSize = null;
 
 	var inputUpdate = this.installInputHandler(input, mxConstants.STYLE_FONTSIZE, Menus.prototype.defaultFontSize, 1, 999, ' pt',
-	function(fontsize)
+	function(fontSize)
 	{
-		pendingFontSize = fontsize;
-
-		// Workaround for can't set font size in px is to change font size afterwards
-		document.execCommand('fontSize', false, '4');
-		var elts = graph.cellEditor.textarea.getElementsByTagName('font');
-		
-		for (var i = 0; i < elts.length; i++)
+		// IE does not support containsNode
+		// KNOWN: Fixes font size issues but bypasses undo
+		if (window.getSelection && !mxClient.IS_IE && !mxClient.IS_IE11)
 		{
-			if (elts[i].getAttribute('size') == '4')
+			var selection = window.getSelection();
+			var container = (selection.rangeCount > 0) ? selection.getRangeAt(0).commonAncestorContainer :
+				graph.cellEditor.textarea;
+
+			function updateSize(elt, ignoreContains)
 			{
-				elts[i].removeAttribute('size');
-				elts[i].style.fontSize = pendingFontSize + 'px';
-	
-				// Overrides fontSize in input with the one just assigned as a workaround
-				// for potential fontSize values of parent elements that don't match
-				window.setTimeout(function()
+				if (elt != graph.cellEditor.textarea && (ignoreContains || selection.containsNode(elt, true)))
 				{
-					input.value = pendingFontSize + ' pt';
-					pendingFontSize = null;
-				}, 0);
+					if (elt.nodeName == 'FONT')
+					{
+						elt.removeAttribute('size');
+						elt.style.fontSize = fontSize + 'px';
+					}
+					else
+					{
+						var css = mxUtils.getCurrentStyle(elt);
+						
+						if (css.fontSize != fontSize + 'px')
+						{
+							if (mxUtils.getCurrentStyle(elt.parentNode).fontSize != fontSize + 'px')
+							{
+								elt.style.fontSize = fontSize + 'px';
+							}
+							else
+							{
+								elt.style.fontSize = '';
+							}
+						}
+					}
+				}
+			};
+			
+			// Wraps text node or mixed selection with leading text in a font element
+			if (container == graph.cellEditor.textarea ||
+				container.nodeType != mxConstants.NODETYPE_ELEMENT)
+			{
+				document.execCommand('fontSize', false, '1');
+			}
+
+			if (container != graph.cellEditor.textarea)
+			{
+				container = container.parentNode;
+			}
+			
+			if (container.nodeType == mxConstants.NODETYPE_ELEMENT)
+			{
+				var elts = container.getElementsByTagName('*');
+				updateSize(container);
 				
-				break;
+				for (var i = 0; i < elts.length; i++)
+				{
+					updateSize(elts[i]);
+				}
+			}
+
+			input.value = fontSize + ' pt';
+		}
+		else
+		{
+			pendingFontSize = fontSize;
+			
+			// Workaround for can't set font size in px is to change font size afterwards
+			document.execCommand('fontSize', false, '4');
+			var elts = graph.cellEditor.textarea.getElementsByTagName('font');
+			
+			for (var i = 0; i < elts.length; i++)
+			{
+				if (elts[i].getAttribute('size') == '4')
+				{
+					elts[i].removeAttribute('size');
+					elts[i].style.fontSize = pendingFontSize + 'px';
+		
+					// Overrides fontSize in input with the one just assigned as a workaround
+					// for potential fontSize values of parent elements that don't match
+					window.setTimeout(function()
+					{
+						input.value = pendingFontSize + ' pt';
+						pendingFontSize = null;
+					}, 0);
+					
+					break;
+				}
 			}
 		}
 	}, true);
@@ -2759,12 +3001,18 @@ TextFormatPanel.prototype.addFont = function(container)
 			// Text size via arrow button limits to 16 in IE11. Why?
 			mxEvent.addListener(input, 'mousedown', function()
 			{
-				selState = graph.cellEditor.saveSelection();
+				if (document.activeElement == graph.cellEditor.textarea)
+				{
+					selState = graph.cellEditor.saveSelection();
+				}
 			});
 			
 			mxEvent.addListener(input, 'touchstart', function()
 			{
-				selState = graph.cellEditor.saveSelection();
+				if (document.activeElement == graph.cellEditor.textarea)
+				{
+					selState = graph.cellEditor.saveSelection();
+				}
 			});
 			
 			input.value = '120 %';
@@ -3182,12 +3430,12 @@ TextFormatPanel.prototype.addFont = function(container)
 				{
 					var selectedElement = graph.getSelectedElement();
 					var node = selectedElement;
-					
+
 					while (node != null && node.nodeType != mxConstants.NODETYPE_ELEMENT)
 					{
 						node = node.parentNode;
 					}
-					
+
 					if (node != null)
 					{
 						// Workaround for commonAncestor on range in IE11 returning parent of common ancestor
@@ -3197,7 +3445,59 @@ TextFormatPanel.prototype.addFont = function(container)
 							node = graph.cellEditor.textarea.firstChild;
 						}
 						
+						function getRelativeLineHeight(fontSize, lineHeight, elt)
+						{
+							if (elt.style.lineHeight.substring(elt.style.lineHeight.length - 1) == '%')
+							{
+								return parseInt(elt.style.lineHeight) / 100;
+							}
+							else
+							{
+								return (lineHeight.substring(lineHeight.length - 2) == 'px') ?
+										parseFloat(lineHeight) / fontSize : parseInt(lineHeight);
+							}
+						};
+						
+						function getAbsoluteFontSize(fontSize)
+						{
+							if (fontSize.substring(fontSize.length - 2) == 'px')
+							{
+								return parseFloat(fontSize);
+							}
+							else
+							{
+								return mxConstants.DEFAULT_FONTSIZE;
+							}
+						}
+						
+						//var realCss = mxUtils.getCurrentStyle(selectedElement);
 						var css = mxUtils.getCurrentStyle(node);
+						var fontSize = getAbsoluteFontSize(css.fontSize);
+						var lineHeight = getRelativeLineHeight(fontSize, css.lineHeight, node);
+
+						// Finds common font size
+						var elts = node.getElementsByTagName('*');
+
+						// IE does not support containsNode
+						if (elts.length > 0 && window.getSelection && !mxClient.IS_IE && !mxClient.IS_IE11)
+						{
+							var selection = window.getSelection();
+
+							for (var i = 0; i < elts.length; i++)
+							{
+								if (selection.containsNode(elts[i], true))
+								{
+									temp = mxUtils.getCurrentStyle(elts[i]);
+									fontSize = Math.max(getAbsoluteFontSize(temp.fontSize), fontSize);
+									var lh = getRelativeLineHeight(fontSize, temp.lineHeight, elts[i]);
+									
+									if (lh != lineHeight || isNaN(lh))
+									{
+										lineHeight = '';
+									}
+								}
+							}
+						}
 						
 						if (css != null)
 						{
@@ -3222,28 +3522,24 @@ TextFormatPanel.prototype.addFont = function(container)
 									pendingFontSize != null)
 								{
 									node.removeAttribute('size');
-									node.style.fontSize = pendingFontSize + 'px';
+									node.style.fontSize = pendingFontSize + ' pt';
 									pendingFontSize = null;
 								}
 								else
 								{
-									input.value = parseFloat(css.fontSize) + ' pt';
+									input.value = (isNaN(fontSize)) ? '' : fontSize + ' pt';
 								}
 								
-								var tmp = node.style.lineHeight || css.lineHeight;
-								var lh = parseFloat(tmp);
+								var lh = parseFloat(lineHeight);
 								
-								if (tmp.substring(tmp.length - 2) == 'px')
+								if (!isNaN(lh))
 								{
-									lh = lh / parseFloat(css.fontSize);
+									lineHeightInput.value = Math.round(lh * 100) + ' %';
 								}
-								
-								if (tmp.substring(tmp.length - 1) != '%')
+								else
 								{
-									lh *= 100; 
+									lineHeightInput.value = '100 %';
 								}
-								
-								lineHeightInput.value = lh + ' %';
 							}
 							
 							// Converts rgb(r,g,b) values
@@ -3348,6 +3644,11 @@ StyleFormatPanel = function(format, editorUi, container)
 };
 
 mxUtils.extend(StyleFormatPanel, BaseFormatPanel);
+
+/**
+ * 
+ */
+StyleFormatPanel.prototype.defaultStrokeColor = 'black';
 
 /**
  * Adds the label menu items to the given menu and parent.
@@ -3631,7 +3932,7 @@ StyleFormatPanel.prototype.addStroke = function(container)
 		var pat = document.createElement('div');
 		pat.style.width = width + 'px';
 		pat.style.height = '1px';
-		pat.style.borderBottom = '1px ' + cssName + ' black';
+		pat.style.borderBottom = '1px ' + cssName + ' ' + this.defaultStrokeColor;
 		pat.style.paddingTop = '6px';
 
 		item.firstChild.firstChild.style.padding = '0px 4px 0px 4px';
@@ -3780,13 +4081,13 @@ StyleFormatPanel.prototype.addStroke = function(container)
 
 	var lineStart = this.editorUi.toolbar.addMenuFunctionInContainer(stylePanel2, 'geSprite-startclassic', mxResources.get('linestart'), false, mxUtils.bind(this, function(menu)
 	{
-		if (ss.style.shape == 'connector' || ss.style.shape == 'flexArrow')
+		if (ss.style.shape == 'connector' || ss.style.shape == 'flexArrow' || ss.style.shape == 'filledEdge')
 		{
 			var item = this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.NONE, 0], 'geIcon', null, false);
 			item.setAttribute('title', mxResources.get('none'));
 			item.firstChild.firstChild.innerHTML = '<font style="font-size:10px;">' + mxUtils.htmlEntities(mxResources.get('none')) + '</font>';
 
-			if (ss.style.shape == 'connector')
+			if (ss.style.shape == 'connector' || ss.style.shape == 'filledEdge')
 			{
 				this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.ARROW_CLASSIC, 1], 'geIcon geSprite geSprite-startclassic', null, false).setAttribute('title', mxResources.get('classic'));
 				this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_STARTARROW, 'startFill'], [mxConstants.ARROW_CLASSIC_THIN, 1], 'geIcon geSprite geSprite-startclassicthin', null, false);
@@ -3828,13 +4129,13 @@ StyleFormatPanel.prototype.addStroke = function(container)
 
 	var lineEnd = this.editorUi.toolbar.addMenuFunctionInContainer(stylePanel2, 'geSprite-endclassic', mxResources.get('lineend'), false, mxUtils.bind(this, function(menu)
 	{
-		if (ss.style.shape == 'connector' || ss.style.shape == 'flexArrow')
+		if (ss.style.shape == 'connector' || ss.style.shape == 'flexArrow' || ss.style.shape == 'filledEdge')
 		{
 			var item = this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.NONE, 0], 'geIcon', null, false);
 			item.setAttribute('title', mxResources.get('none'));
 			item.firstChild.firstChild.innerHTML = '<font style="font-size:10px;">' + mxUtils.htmlEntities(mxResources.get('none')) + '</font>';
 			
-			if (ss.style.shape == 'connector')
+			if (ss.style.shape == 'connector' || ss.style.shape == 'filledEdge')
 			{
 				this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_CLASSIC, 1], 'geIcon geSprite geSprite-endclassic', null, false).setAttribute('title', mxResources.get('classic'));
 				this.editorUi.menus.edgeStyleChange(menu, '', [mxConstants.STYLE_ENDARROW, 'endFill'], [mxConstants.ARROW_CLASSIC_THIN, 1], 'geIcon geSprite geSprite-endclassicthin', null, false);
@@ -4165,7 +4466,7 @@ StyleFormatPanel.prototype.addStroke = function(container)
 
 		mxUtils.setOpacity(edgeStyle, (ss.style.shape == 'arrow') ? 30 : 100);			
 		
-		if (ss.style.shape != 'connector' && ss.style.shape != 'flexArrow')
+		if (ss.style.shape != 'connector' && ss.style.shape != 'flexArrow' && ss.style.shape != 'filledEdge')
 		{
 			mxUtils.setOpacity(lineStart, 30);
 			mxUtils.setOpacity(lineEnd, 30);
@@ -4856,7 +5157,7 @@ DiagramFormatPanel.prototype.addPaperSize = function(div)
 	{
 		accessor.set(graph.pageFormat);
 	});
--	this.addKeyHandler(accessor.heightInput, function()
+	this.addKeyHandler(accessor.heightInput, function()
 	{
 		accessor.set(graph.pageFormat);	
 	});

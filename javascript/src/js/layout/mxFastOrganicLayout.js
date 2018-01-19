@@ -373,8 +373,8 @@ mxFastOrganicLayout.prototype.execute = function(parent)
 					this.cellLocation[i][0] -= bounds.width / 2.0;
 					this.cellLocation[i][1] -= bounds.height / 2.0;
 					
-					var x = this.graph.snap(this.cellLocation[i][0]);
-					var y = this.graph.snap(this.cellLocation[i][1]);
+					var x = this.graph.snap(Math.round(this.cellLocation[i][0]));
+					var y = this.graph.snap(Math.round(this.cellLocation[i][1]));
 					
 					this.setVertexLocation(vertex, x, y);
 					

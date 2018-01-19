@@ -397,26 +397,18 @@ var mxEvent =
 	 *
 	 * Disables the context menu for the given element.
 	 */
-	disableContextMenu: function()
+	disableContextMenu: function(element)
 	{
-		if (mxClient.IS_IE && (typeof(document.documentMode) === 'undefined' || document.documentMode < 9))
+		mxEvent.addListener(element, 'contextmenu', function(evt)
 		{
-			return function(element)
+			if (evt.preventDefault)
 			{
-				mxEvent.addListener(element, 'contextmenu', function()
-				{
-					return false;
-				});
-			};
-		}
-		else
-		{
-			return function(element)
-			{
-				element.setAttribute('oncontextmenu', 'return false;');
-			};		
-		}
-	}(),
+				evt.preventDefault();
+			}
+			
+			return false;
+		});
+	},
 	
 	/**
 	 * Function: getSource

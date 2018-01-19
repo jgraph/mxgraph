@@ -22,6 +22,8 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.JComponent;
 import javax.swing.JScrollBar;
@@ -39,6 +41,8 @@ import com.mxgraph.view.mxGraphView;
  */
 public class mxGraphOutline extends JComponent
 {
+
+	private static final Logger log = Logger.getLogger(mxGraphOutline.class.getName());
 
 	/**
 	 * 
@@ -468,7 +472,7 @@ public class mxGraphOutline extends JComponent
 		}
 		catch (OutOfMemoryError error)
 		{
-			// ignore
+			log.log(Level.SEVERE, "Failed to create a triple buffer", error);
 		}
 	}
 

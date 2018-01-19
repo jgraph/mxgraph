@@ -14,13 +14,7 @@ function Sidebar(editorUi, container)
 	this.graph = editorUi.createTemporaryGraph(this.editorUi.editor.graph.getStylesheet());
 	this.graph.cellRenderer.antiAlias = false;
 	this.graph.foldingEnabled = false;
-
-	// Workaround for blank output in IE11-
-	if (!mxClient.IS_IE && !mxClient.IS_IE11)
-	{
-		this.graph.container.style.display = 'none';
-	}
-
+	this.graph.container.style.visibility = 'hidden';
 	document.body.appendChild(this.graph.container);
 	
 	this.pointerUpHandler = mxUtils.bind(this, function()
@@ -130,6 +124,11 @@ Sidebar.prototype.tooltipImage = (!mxClient.IS_SVG) ? IMAGE_PATH + '/tooltip.png
  * 
  */
 Sidebar.prototype.searchImage = (!mxClient.IS_SVG) ? IMAGE_PATH + '/search.png' : 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAAEaSURBVHjabNGxS5VxFIfxz71XaWuQUJCG/gCHhgTD9VpEETg4aMOlQRp0EoezObgcd220KQiXmpretTAHQRBdojlQEJyukPdt+b1ywfvAGc7wnHP4nlZd1yKijQW8xzNc4Su+ZOYfQ3T6/f4YNvEJYzjELXp4VVXVz263+7cR2niBxAFeZ2YPi3iHR/gYERPDwhpOsd6sz8x/mfkNG3iOlWFhFj8y89J9KvzGXER0GuEaD42mgwHqUtoljbcRsTBCeINpfM/MgZLKPpaxFxGbOCqDXmILN7hoJrTKH+axhxmcYRxP0MIDnOBDZv5q1XUNIuJxifJp+UNV7t7BFM6xeic0RMQ4Bpl5W/ol7GISx/eEUUTECrbx+f8A8xhiZht9zsgAAAAASUVORK5CYII=';
+
+/**
+ * 
+ */
+Sidebar.prototype.dragPreviewBorder = '1px dashed black';
 
 /**
  * Specifies if tooltips should be visible. Default is true.
@@ -817,6 +816,7 @@ Sidebar.prototype.addSearchPalette = function(expand)
 		if (evt.keyCode == 13 /* Enter */)
 		{
 			find();
+			mxEvent.consume(evt);
 		}
 	}));
 	
@@ -1799,7 +1799,6 @@ Sidebar.prototype.createThumb = function(cells, width, height, parent, title, sh
 			(height - 2 * this.thumbBorder) / bounds.height) * 100) / 100;
 	this.graph.view.scaleAndTranslate(s, Math.floor((width - bounds.width * s) / 2 / s - bounds.x),
 			Math.floor((height - bounds.height * s) / 2 / s - bounds.y));
-	
 	var node = null;
 	
 	// For supporting HTML labels in IE9 standards mode the container is cloned instead
@@ -1812,6 +1811,12 @@ Sidebar.prototype.createThumb = function(cells, width, height, parent, title, sh
 	{
 		node = this.graph.container.cloneNode(false);
 		node.innerHTML = this.graph.container.innerHTML;
+		
+		// Workaround for clipping in older IE versions
+		if (mxClient.IS_QUIRKS || document.documentMode == 8)
+		{
+			node.firstChild.style.overflow = 'visible';
+		}
 	}
 	
 	this.graph.getModel().clear();
@@ -2093,7 +2098,7 @@ Sidebar.prototype.createDropHandler = function(cells, allowSplit, allowCellsInse
 Sidebar.prototype.createDragPreview = function(width, height)
 {
 	var elt = document.createElement('div');
-	elt.style.border = '1px dashed black';
+	elt.style.border = this.dragPreviewBorder;
 	elt.style.width = width + 'px';
 	elt.style.height = height + 'px';
 	
@@ -3264,19 +3269,6 @@ Sidebar.prototype.addPalette = function(id, title, expanded, onInit)
 	{
 		div.style.touchAction = 'none';
 	}
-	
-	// Shows tooltip if mouse over background
-	mxEvent.addListener(div, 'mousemove', mxUtils.bind(this, function(evt)
-	{
-		if (mxEvent.getSource(evt) == div)
-		{
-			div.setAttribute('title', mxResources.get('sidebarTooltip'));
-		}
-		else
-		{
-			div.removeAttribute('title');
-		}
-	}));
 
 	if (expanded)
 	{
@@ -3297,7 +3289,7 @@ Sidebar.prototype.addPalette = function(id, title, expanded, onInit)
     // Keeps references to the DOM nodes
     if (id != null)
     {
-    	this.palettes[id] = [elt, outer];
+    		this.palettes[id] = [elt, outer];
     }
     
     return div;

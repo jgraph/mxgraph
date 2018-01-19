@@ -12,6 +12,8 @@ import java.net.URL;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -30,6 +32,8 @@ import com.mxgraph.view.mxCellState;
  */
 public class mxSvgCanvas extends mxBasicCanvas
 {
+
+	private static final Logger log = Logger.getLogger(mxSvgCanvas.class.getName());
 
 	/**
 	 * Holds the HTML document that represents the canvas.
@@ -360,7 +364,7 @@ public class mxSvgCanvas extends mxBasicCanvas
 				}
 				catch (IOException e)
 				{
-					// ignore
+					log.log(Level.SEVERE, "Failed to create image data URL", e);
 				}
 			}
 

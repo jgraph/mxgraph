@@ -20,6 +20,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.w3c.dom.Element;
 
@@ -177,6 +179,8 @@ import com.mxgraph.util.mxUtils;
 public class mxGraph extends mxEventSource
 {
 
+	private static final Logger log = Logger.getLogger(mxGraph.class.getName());
+
 	/**
 	 * Adds required resources.
 	 */
@@ -188,15 +192,15 @@ public class mxGraph extends mxEventSource
 		}
 		catch (Exception e)
 		{
-			// ignore
+			log.log(Level.SEVERE, "Failed to add the resource bundle", e);
 		}
 	}
 
 	/**
 	 * Holds the version number of this release. Current version
-	 * is 3.8.0.
+	 * is 3.9.0.
 	 */
-	public static final String VERSION = "3.8.0";
+	public static final String VERSION = "3.9.0";
 
 	/**
 	 * 
@@ -8068,11 +8072,11 @@ public class mxGraph extends mxEventSource
 	}
 
 	/**
-	 * Prints the version number on the console. 
+	 * Logs the version number on the console. 
 	 */
 	public static void main(String[] args)
 	{
-		System.out.println("mxGraph version \"" + VERSION + "\"");
+		log.info("mxGraph version \"" + VERSION + "\"");
 	}
 
 }

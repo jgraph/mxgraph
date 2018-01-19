@@ -5,6 +5,8 @@ package com.mxgraph.util;
 
 import java.awt.Font;
 import java.awt.Rectangle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
@@ -15,6 +17,8 @@ import javax.swing.SwingConstants;
  */
 public class mxLightweightLabel extends JLabel
 {
+
+	private static final Logger log = Logger.getLogger(mxLightweightLabel.class.getName());
 
 	/**
 	 * 
@@ -37,7 +41,7 @@ public class mxLightweightLabel extends JLabel
 		}
 		catch (Exception e)
 		{
-			// ignore
+			log.log(Level.SEVERE, "Failed to initialize the shared instance", e);
 		}
 	}
 

@@ -1,3 +1,18 @@
+19-JAN-2017: 3.9.0
+
+- Add layout.isAncestor where child == parent returns false
+- Removes duplicate WeightedCellSorter
+- Fixes recursion in mxGraph.cellsFolded
+- Adds mxRubberband.fadeOut switch
+- Fixes ignored node values in mxUtils.getPrettyXml 
+- Adds editing for edge terminal points
+- Fixes redraw after remove change in mxEdgeHandler
+- Adds loggers, fixes silent fail cases
+- Fixes inline handler in mxEvent.disableContextMenu
+- Fixes mxPanningHandler for mouse up over scrollbar
+- Float loop router ignored for more than 1 point
+- Adds mxVertexHandler.getRotationHandlePosition
+
 30-NOV-2017: 3.8.0
 
 - Moves mxCellRenderer.prototype.defaultShapes to mxCellRenderer

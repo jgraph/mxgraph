@@ -37,7 +37,13 @@ function mxEdgeHandler(state)
 		// Handles escape keystrokes
 		this.escapeHandler = mxUtils.bind(this, function(sender, evt)
 		{
+			var dirty = this.index != null;
 			this.reset();
+			
+			if (dirty)
+			{
+				this.graph.cellRenderer.redraw(this.state, false, state.view.isRendering());
+			}
 		});
 		
 		this.state.view.graph.addListener(mxEvent.ESCAPE, this.escapeHandler);
@@ -1629,15 +1635,20 @@ mxEdgeHandler.prototype.mouseUp = function(sender, me)
  */
 mxEdgeHandler.prototype.reset = function()
 {
+	if (this.active)
+	{
+		this.refresh();
+	}
+	
 	this.error = null;
 	this.index = null;
 	this.label = null;
 	this.points = null;
 	this.snapPoint = null;
-	this.active = false;
 	this.isLabel = false;
 	this.isSource = false;
 	this.isTarget = false;
+	this.active = false;
 	
 	if (this.livePreview && this.sizers != null)
 	{

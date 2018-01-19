@@ -1776,7 +1776,7 @@ mxVertexHandler.prototype.redrawHandles = function()
 		var sin = Math.sin(alpha);
 		
 		var ct = new mxPoint(this.state.getCenterX(), this.state.getCenterY());
-		var pt = mxUtils.getRotatedPoint(new mxPoint(s.x + s.width / 2, s.y + this.rotationHandleVSpacing), cos, sin, ct);
+		var pt = mxUtils.getRotatedPoint(this.getRotationHandlePosition(), cos, sin, ct);
 
 		if (this.rotationShape.node != null)
 		{
@@ -1808,6 +1808,16 @@ mxVertexHandler.prototype.redrawHandles = function()
 	}
 
 	this.updateParentHighlight();
+};
+
+/**
+ * Function: getRotationHandlePosition
+ * 
+ * Returns an <mxPoint> that defines the rotation handle position.
+ */
+mxVertexHandler.prototype.getRotationHandlePosition = function()
+{
+	return new mxPoint(this.bounds.x + this.bounds.width / 2, this.bounds.y + this.rotationHandleVSpacing)
 };
 
 /**

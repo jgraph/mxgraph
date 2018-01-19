@@ -8,6 +8,8 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
@@ -30,6 +32,7 @@ public class mxGraphTransferHandler extends TransferHandler
 	 * 
 	 */
 	private static final long serialVersionUID = -6443287704811197675L;
+	private static final Logger log = Logger.getLogger(mxGraphTransferHandler.class.getName());
 
 	/**
 	 * Boolean that specifies if an image of the cells should be created for
@@ -341,7 +344,7 @@ public class mxGraphTransferHandler extends TransferHandler
 			}
 			catch (Exception ex)
 			{
-				ex.printStackTrace();
+				log.log(Level.SEVERE, "Failed to import data", ex);
 			}
 		}
 
@@ -418,7 +421,7 @@ public class mxGraphTransferHandler extends TransferHandler
 		}
 		catch (Exception e)
 		{
-			e.printStackTrace();
+			log.log(Level.SEVERE, "Failed to import graph", e);
 		}
 
 		return result;

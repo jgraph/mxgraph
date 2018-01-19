@@ -66,6 +66,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
+import java.util.logging.Logger;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 
@@ -335,6 +336,8 @@ class IDATOutputStream extends FilterOutputStream
 public class mxPngImageEncoder
 {
 
+	private static final Logger log = Logger.getLogger(mxPngImageEncoder.class.getName());
+
 	private static final int PNG_COLOR_GRAY = 0;
 
 	private static final int PNG_COLOR_RGB = 2;
@@ -581,12 +584,12 @@ public class mxPngImageEncoder
 		// image's bounds...
 		Raster ras = image.getData(new Rectangle(image.getMinX(), image
 				.getMinY(), image.getWidth(), image.getHeight()));
-		// System.out.println("Image: [" +
+		// log.fine("Image: [" +
 		//                    image.getMinY()  + ", " +
 		//                    image.getMinX()  + ", " +
 		//                    image.getWidth()  + ", " +
 		//                    image.getHeight() + "]");
-		// System.out.println("Ras: [" +
+		// log.fine("Ras: [" +
 		//                    ras.getMinX()  + ", " +
 		//                    ras.getMinY()  + ", " +
 		//                    ras.getWidth()  + ", " +
@@ -880,7 +883,7 @@ public class mxPngImageEncoder
 		{
 			ChunkStream cs = new ChunkStream("sPLT");
 
-			System.out.println("sPLT not supported yet.");
+			log.severe("sPLT not supported yet.");
 
 			cs.writeToStream(dataOutput);
 			cs.close();

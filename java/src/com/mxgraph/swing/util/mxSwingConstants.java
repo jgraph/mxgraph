@@ -10,12 +10,17 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
 import java.awt.image.BufferedImage;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 
 public class mxSwingConstants
 {
+
+	private static final Logger log = Logger.getLogger(mxSwingConstants.class.getName());
+
 	/**
 	 * Contains an empty image of size 1, 1.
 	 */
@@ -30,6 +35,7 @@ public class mxSwingConstants
 		}
 		catch (Exception e)
 		{
+			log.log(Level.FINE, "Failed to initialize EMPTY_IMAGE", e);
 			// Occurs when running on GAE, BufferedImage is a
 			// blacklisted class
 			mxSwingConstants.EMPTY_IMAGE = null;
@@ -115,6 +121,7 @@ public class mxSwingConstants
 		}
 		catch (Exception e)
 		{
+			log.log(Level.FINE, "Failed to initialize color constants", e);
 			// Occurs when running on GAE, Color is a
 			// blacklisted class
 			mxSwingConstants.SHADOW_COLOR = null;

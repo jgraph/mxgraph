@@ -1,6 +1,6 @@
 /**
- * Copyright (c) 2006-2015, JGraph Ltd
- * Copyright (c) 2006-2015, Gaudenz Alder
+ * Copyright (c) 2006-2018, JGraph Ltd
+ * Copyright (c) 2006-2018, Gaudenz Alder
  */
 /**
  * Class: mxHierarchicalLayout
@@ -146,7 +146,7 @@ mxHierarchicalLayout.prototype.disableEdgeStyle = true;
  * 
  * Whether or not to drill into child cells and layout in reverse
  * group order. This also cause the layout to navigate edges whose 
- * terminal vertices  * have different parents but are in the same 
+ * terminal vertices have different parents but are in the same 
  * ancestry chain
  */
 mxHierarchicalLayout.prototype.traverseAncestors = true;
@@ -411,9 +411,10 @@ mxHierarchicalLayout.prototype.getEdges = function(cell)
 		var source = this.getVisibleTerminal(edges[i], true);
 		var target = this.getVisibleTerminal(edges[i], false);
 		
-		if ((source == target) || ((source != target) && ((target == cell && (this.parent == null || this.graph.isValidAncestor(source, this.parent, this.traverseAncestors))) ||
-			(source == cell && (this.parent == null ||
-					this.graph.isValidAncestor(target, this.parent, this.traverseAncestors))))))
+		if ((source == target) ||
+				((source != target) &&
+						((target == cell && (this.parent == null || this.isAncestor(this.parent, source, this.traverseAncestors))) ||
+						 	(source == cell && (this.parent == null || this.isAncestor(this.parent, target, this.traverseAncestors))))))
 		{
 			result.push(edges[i]);
 		}

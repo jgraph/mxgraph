@@ -14,6 +14,8 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -31,6 +33,8 @@ import com.mxgraph.util.mxUtils;
 @SuppressWarnings("unchecked")
 public class mxObjectCodec
 {
+
+	private static final Logger log = Logger.getLogger(mxObjectCodec.class.getName());
 
 	/**
 	 * Immutable empty set.
@@ -224,13 +228,11 @@ public class mxObjectCodec
 		}
 		catch (InstantiationException e)
 		{
-			// ignore
-			e.printStackTrace();
+			log.log(Level.SEVERE, "Failed to clone the template", e);
 		}
 		catch (IllegalAccessException e)
 		{
-			// ignore
-			e.printStackTrace();
+			log.log(Level.SEVERE, "Failed to clone the template", e);
 		}
 
 		return obj;
@@ -309,7 +311,7 @@ public class mxObjectCodec
 	 * </ul>
 	 * 
 	 * If no ID exists for a variable in {@link #idrefs} or if an object cannot be
-	 * encoded, a warning is printed to System.err.
+	 * encoded, a warning is logged.
 	 * 
 	 * @param enc Codec that controls the encoding process.
 	 * @param obj Object to be encoded.
@@ -438,7 +440,7 @@ public class mxObjectCodec
 
 				if (tmp == null)
 				{
-					System.err.println("mxObjectCodec.encode: No ID for "
+					log.severe("mxObjectCodec.encode: No ID for "
 							+ getName() + "." + fieldname + "=" + value);
 					return; // exit
 				}
@@ -534,7 +536,7 @@ public class mxObjectCodec
 		}
 		else
 		{
-			System.err.println("mxObjectCodec.encode: No node for " + getName()
+			log.severe("mxObjectCodec.encode: No node for " + getName()
 					+ "." + attr + ": " + value);
 		}
 	}
@@ -691,12 +693,13 @@ public class mxObjectCodec
 			}
 			catch (Exception e)
 			{
-				// ignore
+				log.log(Level.FINEST, "Failed to get field " + fieldname + " in class " + type, e);
 			}
 
 			type = type.getSuperclass();
 		}
 
+		log.severe("Field " + fieldname + " not found in " + obj);
 		return null;
 	}
 
@@ -737,9 +740,9 @@ public class mxObjectCodec
 							new Class[] { field.getType() });
 				}
 			}
-			catch (Exception e1)
+			catch (Exception e)
 			{
-				// ignore
+				log.log(Level.SEVERE, "Failed to get method " + name + " from " + obj, e);
 			}
 
 			// Adds accessor to cache
@@ -754,6 +757,18 @@ public class mxObjectCodec
 			}
 		}
 
+		if (method == null)
+		{
+			// this should be considered an error in the scope of this method, but the
+			// calling code already depends on this method failing softly to filter
+			// non-serializable properties, so it gets called for static fields
+			// (mxCell.serialVersionUID), non-transient-but-probably-should-be fields
+			// (mxCell.children, mxCell.edges)
+			// the proper fix is to rewrite the whole thing to use Introspector, like
+			// encodeFields already intends, so for now let's just log at a lower level
+			if (log.isLoggable(Level.FINER))
+				log.finer("Failed to find accessor for " + field + " in " + obj);
+		}
 		return method;
 	}
 
@@ -777,7 +792,7 @@ public class mxObjectCodec
 			}
 			catch (Exception e)
 			{
-				// ignore
+				log.log(Level.FINEST, "Failed to get method " + methodname + " in class " + type, e);
 			}
 
 			type = type.getSuperclass();
@@ -817,7 +832,7 @@ public class mxObjectCodec
 			}
 			catch (Exception e)
 			{
-				// ignore
+				log.log(Level.SEVERE, "Failed to get value from field " + fieldname + " in " + obj, e);
 			}
 		}
 
@@ -842,9 +857,9 @@ public class mxObjectCodec
 					value = method.invoke(obj, (Object[]) null);
 				}
 			}
-			catch (Exception e2)
+			catch (Exception e)
 			{
-				// ignore
+				log.log(Level.SEVERE, "Failed to get value from field " + field + " in " + obj, e);
 			}
 		}
 
@@ -888,7 +903,7 @@ public class mxObjectCodec
 		}
 		catch (Exception e)
 		{
-			// ignore
+			log.log(Level.SEVERE, "Failed to set value \"" + value + "\" to field " + fieldname + " in " + obj, e);
 		}
 	}
 
@@ -920,13 +935,13 @@ public class mxObjectCodec
 					method.invoke(obj, new Object[] { value });
 				}
 			}
-			catch (Exception e2)
+			catch (Exception e)
 			{
-				System.err.println("setFieldValue: " + e2 + " on "
+				log.log(Level.SEVERE, "setFieldValue: " + e + " on "
 						+ obj.getClass().getSimpleName() + "."
 						+ field.getName() + " ("
 						+ field.getType().getSimpleName() + ") = " + value
-						+ " (" + value.getClass().getSimpleName() + ")");
+						+ " (" + value.getClass().getSimpleName() + ")", e);
 			}
 		}
 	}
@@ -1088,7 +1103,7 @@ public class mxObjectCodec
 
 				if (tmp == null)
 				{
-					System.err.println("mxObjectCodec.decode: No object for "
+					log.severe("mxObjectCodec.decode: No object for "
 							+ getName() + "." + fieldname + "=" + value);
 					return; // exit
 				}
@@ -1146,7 +1161,7 @@ public class mxObjectCodec
 			else
 			{
 				value = dec.decode(child, template);
-				// System.out.println("Decoded " + child.getNodeName() + "."
+				// log.fine("Decoded " + child.getNodeName() + "."
 				// + fieldname + "=" + value);
 			}
 
@@ -1242,7 +1257,7 @@ public class mxObjectCodec
 				}
 				catch (Exception e)
 				{
-					System.err.println("Cannot process include: " + name);
+					log.log(Level.SEVERE, "Cannot process include: " + name, e);
 				}
 			}
 

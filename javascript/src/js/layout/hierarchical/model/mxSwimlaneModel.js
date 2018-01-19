@@ -1,6 +1,6 @@
 /**
- * Copyright (c) 2006-2016, JGraph Ltd
- * Copyright (c) 2006-2016, Gaudenz Alder
+ * Copyright (c) 2006-2018, JGraph Ltd
+ * Copyright (c) 2006-2018, Gaudenz Alder
  */
 /**
  * Class: mxSwimlaneModel
@@ -170,7 +170,7 @@ mxSwimlaneModel.prototype.SOURCESCANSTARTRANK = 100000000;
  * Whether or not to tighten the assigned ranks of vertices up towards
  * the source cells.
  */
-mxGraphHierarchyModel.prototype.tightenToSource = false;
+mxSwimlaneModel.prototype.tightenToSource = false;
 
 /**
  * Variable: ranksPerGroup

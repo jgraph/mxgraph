@@ -889,10 +889,12 @@ Graph.defaultJumpSize = 6;
  */
 Graph.createSvgImage = function(w, h, data)
 {
-    return new mxImage('data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(
+	var tmp = unescape(encodeURIComponent(
         '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">' +
         '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="' + w + 'px" height="' + h + 'px" ' +
-        'version="1.1">' + data + '</svg>'))), w, h)
+        'version="1.1">' + data + '</svg>'));
+
+    return new mxImage('data:image/svg+xml;base64,' + ((window.btoa) ? btoa(tmp) : Base64.encode(tmp, true)), w, h)
 };
 
 /**
@@ -937,6 +939,16 @@ Graph.prototype.defaultPageVisible = true;
  * This default is only used if the contructor argument is null.
  */
 Graph.prototype.lightbox = false;
+
+/**
+ * 
+ */
+Graph.prototype.defaultPageBackgroundColor = '#ffffff';
+
+/**
+ * 
+ */
+Graph.prototype.defaultPageBorderColor = '#ffffff';
 
 /**
  * 
@@ -2594,31 +2606,31 @@ HoverIcons.prototype.checkCollisions = true;
  * Up arrow.
  */
 HoverIcons.prototype.triangleUp = (!mxClient.IS_SVG) ? new mxImage(IMAGE_PATH + '/triangle-up.png', 26, 14) :
-	Graph.createSvgImage(26, 14, '<path d="m 1 14 L 13 1 L 26 14 z" stroke="#fff" fill="rgb(41, 182, 242)"/>');
+	Graph.createSvgImage(26, 14, '<path d="m 1 14 L 13 1 L 26 14 z" stroke="#fff" fill="#007dfc"/>');
 
 /**
  * Right arrow.
  */
 HoverIcons.prototype.triangleRight = (!mxClient.IS_SVG) ? new mxImage(IMAGE_PATH + '/triangle-right.png', 14, 26) :
-	Graph.createSvgImage(14, 26, '<path d="m 1 1 L 14 13 L 1 26 z" stroke="#fff" fill="rgb(41, 182, 242)"/>');
+	Graph.createSvgImage(14, 26, '<path d="m 1 1 L 14 13 L 1 26 z" stroke="#fff" fill="#007dfc"/>');
 
 /**
  * Down arrow.
  */
 HoverIcons.prototype.triangleDown = (!mxClient.IS_SVG) ? new mxImage(IMAGE_PATH + '/triangle-down.png', 26, 14) :
-	Graph.createSvgImage(26, 14, '<path d="m 1 1 L 13 14 L 26 1 z" stroke="#fff" fill="rgb(41, 182, 242)"/>');
+	Graph.createSvgImage(26, 14, '<path d="m 1 1 L 13 14 L 26 1 z" stroke="#fff" fill="#007dfc"/>');
 
 /**
  * Left arrow.
  */
 HoverIcons.prototype.triangleLeft = (!mxClient.IS_SVG) ? new mxImage(IMAGE_PATH + '/triangle-left.png', 14, 26) :
-	Graph.createSvgImage(14, 26, '<path d="m 14 1 L 1 13 L 14 26 z" stroke="#fff" fill="rgb(41, 182, 242)"/>');
+	Graph.createSvgImage(14, 26, '<path d="m 14 1 L 1 13 L 14 26 z" stroke="#fff" fill="#007dfc"/>');
 
 /**
  * Round target.
  */
 HoverIcons.prototype.roundDrop = (!mxClient.IS_SVG) ? new mxImage(IMAGE_PATH + '/round-drop.png', 26, 26) :
-	Graph.createSvgImage(26, 26, '<circle cx="13" cy="13" r="12" stroke="#fff" fill="rgb(41, 182, 242)"/>');
+	Graph.createSvgImage(26, 26, '<circle cx="13" cy="13" r="12" stroke="#fff" fill="#007dfc"/>');
 
 /**
  * Refresh target.
@@ -4115,13 +4127,16 @@ if (typeof mxVertexHandler != 'undefined')
 		mxConstants.HIGHLIGHT_OPACITY = 30;
 		mxConstants.HIGHLIGHT_SIZE = 8;
 		
-		//Enables snapping to off-grid terminals for edge waypoints
+		// Enables snapping to off-grid terminals for edge waypoints
 		mxEdgeHandler.prototype.snapToTerminals = true;
 	
-		//Enables guides
+		// Enables guides
 		mxGraphHandler.prototype.guidesEnabled = true;
 	
-		//Alt-move disables guides
+		// Enables fading of rubberband
+		mxRubberband.prototype.fadeOut = true;
+		
+		// Alt-move disables guides
 		mxGuide.prototype.isEnabledForEvent = function(evt)
 		{
 			return !mxEvent.isAltDown(evt);
@@ -4715,6 +4730,67 @@ if (typeof mxVertexHandler != 'undefined')
 			{
 				this.model.endUpdate();
 			}
+		};
+
+		/**
+		 * Removes transparent empty groups if all children are removed.
+		 */
+		Graph.prototype.cellsRemoved = function(cells)
+		{
+			if (cells != null)
+			{
+				var dict = new mxDictionary();
+				
+				for (var i = 0; i < cells.length; i++)
+				{
+					dict.put(cells[i], true);
+				}
+				
+				// LATER: Recurse up the cell hierarchy
+				var parents = [];
+				
+				for (var i = 0; i < cells.length; i++)
+				{
+					var parent = this.model.getParent(cells[i]);
+
+					if (parent != null && !dict.get(parent))
+					{
+						dict.put(parent, true);
+						parents.push(parent);
+					}
+				}
+				
+				for (var i = 0; i < parents.length; i++)
+				{
+					var state = this.view.getState(parents[i]);
+					
+					if (state != null && this.isCellDeletable(state.cell))
+					{
+						var stroke = mxUtils.getValue(state.style, mxConstants.STYLE_STROKECOLOR, mxConstants.NONE);
+						var fill = mxUtils.getValue(state.style, mxConstants.STYLE_FILLCOLOR, mxConstants.NONE);
+						
+						if (stroke == mxConstants.NONE && fill == mxConstants.NONE)
+						{
+							var allChildren = true;
+							
+							for (var j = 0; j < this.model.getChildCount(state.cell) && allChildren; j++)
+							{
+								if (!dict.get(this.model.getChildAt(state.cell, j)))
+								{
+									allChildren = false;
+								}
+							}
+							
+							if (allChildren)
+							{
+								cells.push(state.cell);
+							}
+						}
+					}
+				}
+			}
+			
+			mxGraph.prototype.cellsRemoved.apply(this, arguments);
 		};
 		
 		/**
@@ -6789,24 +6865,16 @@ if (typeof mxVertexHandler != 'undefined')
 			this.hint.style.left = Math.round(me.getGraphX() - this.hint.clientWidth / 2) + 'px';
 			this.hint.style.top = (Math.max(me.getGraphY(), point.y) + this.state.view.graph.gridSize) + 'px';
 			
-			if (this.hideEdgeHintThread != null)
+			if (this.linkHint != null)
 			{
-				window.clearTimeout(this.hideEdgeHintThread);
+				this.linkHint.style.display = 'none';
 			}
-			
-			this.hideEdgeHintThread = window.setTimeout(mxUtils.bind(this, function()
-			{
-				if (this.hint != null)
-				{
-					this.hint.style.visibility = 'hidden';
-				}
-			}), 500);
 		};
 	
 		/**
 		 * Updates the hint for the current operation.
 		 */
-		mxEdgeHandler.prototype.removeHint = mxGraphHandler.prototype.removeHint;
+		mxEdgeHandler.prototype.removeHint = mxVertexHandler.prototype.removeHint;
 	
 		/**
 		 * Defines the handles for the UI. Uses data-URIs to speed-up loading time where supported.
@@ -7463,6 +7531,22 @@ if (typeof mxVertexHandler != 'undefined')
 							this.graph.editLink();
 							mxEvent.consume(evt);
 						}));
+						
+						var removeLink = document.createElement('img');
+						removeLink.setAttribute('src', Dialog.prototype.clearImage);
+						removeLink.setAttribute('title', mxResources.get('removeIt', [mxResources.get('link')]));
+						removeLink.setAttribute('width', '13');
+						removeLink.setAttribute('height', '10');
+						removeLink.style.marginLeft = '4px';
+						removeLink.style.marginBottom = '-1px';
+						removeLink.style.cursor = 'pointer';
+						this.linkHint.appendChild(removeLink);
+						
+						mxEvent.addListener(removeLink, 'click', mxUtils.bind(this, function(evt)
+						{
+							this.graph.setLinkForCell(this.state.cell, null);
+							mxEvent.consume(evt);
+						}));
 					}
 				}
 
@@ -7648,7 +7732,7 @@ if (typeof mxVertexHandler != 'undefined')
 			}
 		};
 	
-		var edgeHandlerReset = 	mxEdgeHandler.prototype.reset;
+		var edgeHandlerReset = mxEdgeHandler.prototype.reset;
 		mxEdgeHandler.prototype.reset = function()
 		{
 			edgeHandlerReset.apply(this, arguments);
@@ -7659,7 +7743,7 @@ if (typeof mxVertexHandler != 'undefined')
 			}
 		};
 		
-		var edgeHandlerDestroy = 	mxEdgeHandler.prototype.destroy;
+		var edgeHandlerDestroy = mxEdgeHandler.prototype.destroy;
 		mxEdgeHandler.prototype.destroy = function()
 		{
 			edgeHandlerDestroy.apply(this, arguments);

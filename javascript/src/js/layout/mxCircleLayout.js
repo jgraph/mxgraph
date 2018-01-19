@@ -146,7 +146,7 @@ mxCircleLayout.prototype.execute = function(parent)
 
 			    if (this.disableEdgeStyle)
 			    {
-			    	this.setEdgeStyleEnabled(cell, false);
+			    		this.setEdgeStyleEnabled(cell, false);
 			    }
 			}
 		}
@@ -196,8 +196,8 @@ mxCircleLayout.prototype.circle = function(vertices, r, left, top)
 		if (this.isVertexMovable(vertices[i]))
 		{
 			this.setVertexLocation(vertices[i],
-				left + r + r * Math.sin(i*phi),
-				top + r + r * Math.cos(i*phi));
+				Math.round(left + r + r * Math.sin(i * phi)),
+				Math.round(top + r + r * Math.cos(i * phi)));
 		}
 	}
 };

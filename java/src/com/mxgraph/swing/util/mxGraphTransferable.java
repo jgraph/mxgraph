@@ -14,6 +14,8 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.Serializable;
 import java.io.StringReader;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -32,6 +34,7 @@ public class mxGraphTransferable implements Transferable, UIResource,
 	 * 
 	 */
 	private static final long serialVersionUID = 5123819419918087664L;
+	private static final Logger log = Logger.getLogger(mxGraphTransferable.class.getName());
 
 	/**
 	 * Global switch to disable image support in transferables. Set this to false as a workaround
@@ -518,10 +521,9 @@ public class mxGraphTransferable implements Transferable, UIResource,
 			imageFlavors[0] = DataFlavor.imageFlavor;
 			imageFlavors[1] = new DataFlavor("image/png");
 		}
-		catch (ClassNotFoundException cle)
+		catch (ClassNotFoundException e)
 		{
-			System.err
-					.println("error initializing javax.swing.plaf.basic.BasicTranserable");
+			log.log(Level.SEVERE, "Error initializing flavors", e);
 		}
 
 		try
@@ -529,9 +531,9 @@ public class mxGraphTransferable implements Transferable, UIResource,
 			dataFlavor = new DataFlavor(DataFlavor.javaSerializedObjectMimeType
 					+ "; class=com.mxgraph.swing.util.mxGraphTransferable");
 		}
-		catch (ClassNotFoundException cnfe)
+		catch (ClassNotFoundException e)
 		{
-			// do nothing
+			log.log(Level.SEVERE, "Error initializing dataFlavor", e);
 		}
 	}
 

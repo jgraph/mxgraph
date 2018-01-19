@@ -5,6 +5,8 @@ package com.mxgraph.io;
 
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -22,6 +24,8 @@ import com.mxgraph.util.mxDomUtils;
  */
 public class mxCodec
 {
+
+	private static final Logger log = Logger.getLogger(mxCodec.class.getName());
 
 	/**
 	 * Holds the owner document of the codec.
@@ -287,7 +291,7 @@ public class mxCodec
 				}
 				else
 				{
-					System.err.println("No codec for " + name);
+					log.severe("No codec for " + name);
 				}
 			}
 		}
@@ -340,9 +344,7 @@ public class mxCodec
 			}
 			catch (Exception e)
 			{
-				System.err.println("Cannot decode " + node.getNodeName() + ": "
-						+ e.getMessage());
-				e.printStackTrace();
+				log.log(Level.SEVERE, "Cannot decode " + node.getNodeName(), e);
 			}
 		}
 

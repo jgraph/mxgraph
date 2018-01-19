@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.8.0.
+	 * Current version is 3.9.0.
 	 */
-	VERSION: '3.8.0',
+	VERSION: '3.9.0',
 
 	/**
 	 * Variable: IS_IE
@@ -2822,7 +2822,12 @@ var mxUtils =
 			
 			if (node.nodeType == mxConstants.NODETYPE_TEXT)
 			{
-				result.push(node.value);
+				var value =  mxUtils.trim(mxUtils.getTextContent(node));
+				
+				if (value.length > 0)
+				{
+					result.push(indent + mxUtils.htmlEntities(value) + '\n');
+				}
 			}
 			else
 			{
@@ -9698,26 +9703,18 @@ var mxEvent =
 	 *
 	 * Disables the context menu for the given element.
 	 */
-	disableContextMenu: function()
+	disableContextMenu: function(element)
 	{
-		if (mxClient.IS_IE && (typeof(document.documentMode) === 'undefined' || document.documentMode < 9))
+		mxEvent.addListener(element, 'contextmenu', function(evt)
 		{
-			return function(element)
+			if (evt.preventDefault)
 			{
-				mxEvent.addListener(element, 'contextmenu', function()
-				{
-					return false;
-				});
-			};
-		}
-		else
-		{
-			return function(element)
-			{
-				element.setAttribute('oncontextmenu', 'return false;');
-			};		
-		}
-	}(),
+				evt.preventDefault();
+			}
+			
+			return false;
+		});
+	},
 	
 	/**
 	 * Function: getSource
@@ -14749,22 +14746,24 @@ function mxPanningManager(graph)
 	
 	graph.addMouseListener(this.mouseListener);
 	
-	// Stops scrolling on every mouseup anywhere in the document
-	mxEvent.addListener(document, 'mouseup', mxUtils.bind(this, function()
+	this.mouseUpListener = mxUtils.bind(this, function()
 	{
-    	if (this.active)
-    	{
-    		this.stop();
-    	}
-	}));
+	    	if (this.active)
+	    	{
+	    		this.stop();
+	    	}
+	});
+	
+	// Stops scrolling on every mouseup anywhere in the document
+	mxEvent.addListener(document, 'mouseup', this.mouseUpListener);
 	
 	var createThread = mxUtils.bind(this, function()
 	{
-    	this.scrollbars = mxUtils.hasScrollbars(graph.container);
-    	this.scrollLeft = graph.container.scrollLeft;
-    	this.scrollTop = graph.container.scrollTop;
-
-    	return window.setInterval(mxUtils.bind(this, function()
+	    	this.scrollbars = mxUtils.hasScrollbars(graph.container);
+	    	this.scrollLeft = graph.container.scrollLeft;
+	    	this.scrollTop = graph.container.scrollTop;
+	
+	    	return window.setInterval(mxUtils.bind(this, function()
 		{
 			this.tdx -= this.dx;
 			this.tdy -= this.dy;
@@ -14943,6 +14942,7 @@ function mxPanningManager(graph)
 	this.destroy = function()
 	{
 		graph.removeMouseListener(this.mouseListener);
+		mxEvent.removeListener(document, 'mouseup', this.mouseUpListener);
 	};
 };
 
@@ -28352,8 +28352,8 @@ mxSwimlane.prototype.getImageBounds = function(x, y, w, h)
 	}
 };
 /**
- * Copyright (c) 2006-2015, JGraph Ltd
- * Copyright (c) 2006-2015, Gaudenz Alder
+ * Copyright (c) 2006-2018, JGraph Ltd
+ * Copyright (c) 2006-2018, Gaudenz Alder
  */
 /**
  * Class: mxGraphLayout
@@ -28531,6 +28531,37 @@ mxGraphLayout.traverse = function(vertex, directed, func, edge, visited)
 			}
 		}
 	}
+};
+
+/**
+ * Function: isAncestor
+ * 
+ * Returns true if the given parent is an ancestor of the given child.
+ *
+ * Parameters:
+ * 
+ * parent - <mxCell> that specifies the parent.
+ * child - <mxCell> that specifies the child.
+ * traverseAncestors - boolean whether to 
+ */
+mxGraphLayout.prototype.isAncestor = function(parent, child, traverseAncestors)
+{
+	if (!traverseAncestors)
+	{
+		return (this.graph.model.getParent(cell) == parent);
+	}	
+	
+	if (child == parent)
+	{
+		return false;
+	}
+
+	while (child != null && child != parent)
+	{
+		child = this.graph.model.getParent(child);
+	}
+	
+	return child == parent;
 };
 
 /**
@@ -28811,6 +28842,93 @@ mxGraphLayout.prototype.getVertexBounds = function(cell)
 mxGraphLayout.prototype.arrangeGroups = function(cells, border, topBorder, rightBorder, bottomBorder, leftBorder)
 {
 	return this.graph.updateGroupBounds(cells, border, true, topBorder, rightBorder, bottomBorder, leftBorder);
+};
+
+/**
+ * Class: WeightedCellSorter
+ * 
+ * A utility class used to track cells whilst sorting occurs on the weighted
+ * sum of their connected edges. Does not violate (x.compareTo(y)==0) ==
+ * (x.equals(y))
+ *
+ * Constructor: WeightedCellSorter
+ * 
+ * Constructs a new weighted cell sorted for the given cell and weight.
+ */
+function WeightedCellSorter(cell, weightedValue)
+{
+	this.cell = cell;
+	this.weightedValue = weightedValue;
+};
+
+/**
+ * Variable: weightedValue
+ * 
+ * The weighted value of the cell stored.
+ */
+WeightedCellSorter.prototype.weightedValue = 0;
+
+/**
+ * Variable: nudge
+ * 
+ * Whether or not to flip equal weight values.
+ */
+WeightedCellSorter.prototype.nudge = false;
+
+/**
+ * Variable: visited
+ * 
+ * Whether or not this cell has been visited in the current assignment.
+ */
+WeightedCellSorter.prototype.visited = false;
+
+/**
+ * Variable: rankIndex
+ * 
+ * The index this cell is in the model rank.
+ */
+WeightedCellSorter.prototype.rankIndex = null;
+
+/**
+ * Variable: cell
+ * 
+ * The cell whose median value is being calculated.
+ */
+WeightedCellSorter.prototype.cell = null;
+
+/**
+ * Function: compare
+ * 
+ * Compares two WeightedCellSorters.
+ */
+WeightedCellSorter.prototype.compare = function(a, b)
+{
+	if (a != null && b != null)
+	{
+		if (b.weightedValue > a.weightedValue)
+		{
+			return -1;
+		}
+		else if (b.weightedValue < a.weightedValue)
+		{
+			return 1;
+		}
+		else
+		{
+			if (b.nudge)
+			{
+				return -1;
+			}
+			else
+			{
+				return 1;
+			}
+		}
+	}
+	else
+	{
+		return 0;
+	}
 };
 /**
  * Copyright (c) 2006-2015, JGraph Ltd
@@ -29568,8 +29686,8 @@ mxPartitionLayout.prototype.execute = function(parent)
 	}
 };
 /**
- * Copyright (c) 2006-2015, JGraph Ltd
- * Copyright (c) 2006-2015, Gaudenz Alder
+ * Copyright (c) 2006-2018, JGraph Ltd
+ * Copyright (c) 2006-2018, Gaudenz Alder
  */
 /**
  * Class: mxCompactTreeLayout
@@ -30683,93 +30801,6 @@ mxCompactTreeLayout.prototype.processNodeOutgoing = function(node)
 		maxYOffset = Math.max(maxYOffset, currentYOffset);
 	}
 };
-
-/**
- * Class: WeightedCellSorter
- * 
- * A utility class used to track cells whilst sorting occurs on the weighted
- * sum of their connected edges. Does not violate (x.compareTo(y)==0) ==
- * (x.equals(y))
- *
- * Constructor: WeightedCellSorter
- * 
- * Constructs a new weighted cell sorted for the given cell and weight.
- */
-function WeightedCellSorter(cell, weightedValue)
-{
-	this.cell = cell;
-	this.weightedValue = weightedValue;
-};
-
-/**
- * Variable: weightedValue
- * 
- * The weighted value of the cell stored.
- */
-WeightedCellSorter.prototype.weightedValue = 0;
-
-/**
- * Variable: nudge
- * 
- * Whether or not to flip equal weight values.
- */
-WeightedCellSorter.prototype.nudge = false;
-
-/**
- * Variable: visited
- * 
- * Whether or not this cell has been visited in the current assignment.
- */
-WeightedCellSorter.prototype.visited = false;
-
-/**
- * Variable: rankIndex
- * 
- * The index this cell is in the model rank.
- */
-WeightedCellSorter.prototype.rankIndex = null;
-
-/**
- * Variable: cell
- * 
- * The cell whose median value is being calculated.
- */
-WeightedCellSorter.prototype.cell = null;
-
-/**
- * Function: compare
- * 
- * Compares two WeightedCellSorters.
- */
-WeightedCellSorter.prototype.compare = function(a, b)
-{
-	if (a != null && b != null)
-	{
-		if (b.weightedValue > a.weightedValue)
-		{
-			return 1;
-		}
-		else if (b.weightedValue < a.weightedValue)
-		{
-			return -1;
-		}
-		else
-		{
-			if (b.nudge)
-			{
-				return 1;
-			}
-			else
-			{
-				return -1;
-			}
-		}
-	}
-	else
-	{
-		return 0;
-	}
-};
 /**
  * Copyright (c) 2006-2015, JGraph Ltd
  * Copyright (c) 2006-2015, Gaudenz Alder
@@ -31065,7 +31096,7 @@ mxRadialTreeLayout.prototype.calcRowDims = function(row, rowNum)
 		while (child != null)
 		{
 			var cell = child.cell;
-			vertexBounds = this.getVertexBounds(cell);
+			var vertexBounds = this.getVertexBounds(cell);
 			
 			this.rowMinX[rowNum] = Math.min(vertexBounds.x, this.rowMinX[rowNum]);
 			this.rowMaxX[rowNum] = Math.max(vertexBounds.x + vertexBounds.width, this.rowMaxX[rowNum]);
@@ -31077,6 +31108,7 @@ mxRadialTreeLayout.prototype.calcRowDims = function(row, rowNum)
 			{
 				rowHasChildren = true;
 			}
+			
 			this.row[rowNum].push(child);
 			child = child.next;
 		}
@@ -31462,8 +31494,8 @@ mxFastOrganicLayout.prototype.execute = function(parent)
 					this.cellLocation[i][0] -= bounds.width / 2.0;
 					this.cellLocation[i][1] -= bounds.height / 2.0;
 					
-					var x = this.graph.snap(this.cellLocation[i][0]);
-					var y = this.graph.snap(this.cellLocation[i][1]);
+					var x = this.graph.snap(Math.round(this.cellLocation[i][0]));
+					var y = this.graph.snap(Math.round(this.cellLocation[i][1]));
 					
 					this.setVertexLocation(vertex, x, y);
 					
@@ -31826,7 +31858,7 @@ mxCircleLayout.prototype.execute = function(parent)
 
 			    if (this.disableEdgeStyle)
 			    {
-			    	this.setEdgeStyleEnabled(cell, false);
+			    		this.setEdgeStyleEnabled(cell, false);
 			    }
 			}
 		}
@@ -31876,8 +31908,8 @@ mxCircleLayout.prototype.circle = function(vertices, r, left, top)
 		if (this.isVertexMovable(vertices[i]))
 		{
 			this.setVertexLocation(vertices[i],
-				left + r + r * Math.sin(i*phi),
-				top + r + r * Math.cos(i*phi));
+				Math.round(left + r + r * Math.sin(i * phi)),
+				Math.round(top + r + r * Math.cos(i * phi)));
 		}
 	}
 };
@@ -33667,8 +33699,8 @@ mxGraphHierarchyModel.prototype.extendedDfs = function(parent, root, connectingE
 	}
 };
 /**
- * Copyright (c) 2006-2016, JGraph Ltd
- * Copyright (c) 2006-2016, Gaudenz Alder
+ * Copyright (c) 2006-2018, JGraph Ltd
+ * Copyright (c) 2006-2018, Gaudenz Alder
  */
 /**
  * Class: mxSwimlaneModel
@@ -33838,7 +33870,7 @@ mxSwimlaneModel.prototype.SOURCESCANSTARTRANK = 100000000;
  * Whether or not to tighten the assigned ranks of vertices up towards
  * the source cells.
  */
-mxGraphHierarchyModel.prototype.tightenToSource = false;
+mxSwimlaneModel.prototype.tightenToSource = false;
 
 /**
  * Variable: ranksPerGroup
@@ -35276,8 +35308,8 @@ mxMinimumCycleRemover.prototype.execute = function(parent)
 	}, unseenNodes, true, seenNodesCopy);
 };
 /**
- * Copyright (c) 2006-2015, JGraph Ltd
- * Copyright (c) 2006-2015, Gaudenz Alder
+ * Copyright (c) 2006-2018, JGraph Ltd
+ * Copyright (c) 2006-2018, Gaudenz Alder
  */
 /**
  * Class: mxCoordinateAssignment
@@ -37018,93 +37050,6 @@ mxCoordinateAssignment.prototype.processReversedEdge = function(graph, model)
 {
 	// hook for subclassers
 };
-
-/**
- * Class: WeightedCellSorter
- * 
- * A utility class used to track cells whilst sorting occurs on the weighted
- * sum of their connected edges. Does not violate (x.compareTo(y)==0) ==
- * (x.equals(y))
- *
- * Constructor: WeightedCellSorter
- * 
- * Constructs a new weighted cell sorted for the given cell and weight.
- */
-function WeightedCellSorter(cell, weightedValue)
-{
-	this.cell = cell;
-	this.weightedValue = weightedValue;
-};
-
-/**
- * Variable: weightedValue
- * 
- * The weighted value of the cell stored.
- */
-WeightedCellSorter.prototype.weightedValue = 0;
-
-/**
- * Variable: nudge
- * 
- * Whether or not to flip equal weight values.
- */
-WeightedCellSorter.prototype.nudge = false;
-
-/**
- * Variable: visited
- * 
- * Whether or not this cell has been visited in the current assignment.
- */
-WeightedCellSorter.prototype.visited = false;
-
-/**
- * Variable: rankIndex
- * 
- * The index this cell is in the model rank.
- */
-WeightedCellSorter.prototype.rankIndex = null;
-
-/**
- * Variable: cell
- * 
- * The cell whose median value is being calculated.
- */
-WeightedCellSorter.prototype.cell = null;
-
-/**
- * Function: compare
- * 
- * Compares two WeightedCellSorters.
- */
-WeightedCellSorter.prototype.compare = function(a, b)
-{
-	if (a != null && b != null)
-	{
-		if (b.weightedValue > a.weightedValue)
-		{
-			return -1;
-		}
-		else if (b.weightedValue < a.weightedValue)
-		{
-			return 1;
-		}
-		else
-		{
-			if (b.nudge)
-			{
-				return -1;
-			}
-			else
-			{
-				return 1;
-			}
-		}
-	}
-	else
-	{
-		return 0;
-	}
-};
 /**
  * Copyright (c) 2006-2015, JGraph Ltd
  * Copyright (c) 2006-2015, Gaudenz Alder
@@ -37202,8 +37147,8 @@ mxSwimlaneOrdering.prototype.execute = function(parent)
 	}, rootsArray, true, null);
 };
 /**
- * Copyright (c) 2006-2015, JGraph Ltd
- * Copyright (c) 2006-2015, Gaudenz Alder
+ * Copyright (c) 2006-2018, JGraph Ltd
+ * Copyright (c) 2006-2018, Gaudenz Alder
  */
 /**
  * Class: mxHierarchicalLayout
@@ -37349,7 +37294,7 @@ mxHierarchicalLayout.prototype.disableEdgeStyle = true;
  * 
  * Whether or not to drill into child cells and layout in reverse
  * group order. This also cause the layout to navigate edges whose 
- * terminal vertices  * have different parents but are in the same 
+ * terminal vertices have different parents but are in the same 
  * ancestry chain
  */
 mxHierarchicalLayout.prototype.traverseAncestors = true;
@@ -37614,9 +37559,10 @@ mxHierarchicalLayout.prototype.getEdges = function(cell)
 		var source = this.getVisibleTerminal(edges[i], true);
 		var target = this.getVisibleTerminal(edges[i], false);
 		
-		if ((source == target) || ((source != target) && ((target == cell && (this.parent == null || this.graph.isValidAncestor(source, this.parent, this.traverseAncestors))) ||
-			(source == cell && (this.parent == null ||
-					this.graph.isValidAncestor(target, this.parent, this.traverseAncestors))))))
+		if ((source == target) ||
+				((source != target) &&
+						((target == cell && (this.parent == null || this.isAncestor(this.parent, source, this.traverseAncestors))) ||
+						 	(source == cell && (this.parent == null || this.isAncestor(this.parent, target, this.traverseAncestors))))))
 		{
 			result.push(edges[i]);
 		}
@@ -38985,8 +38931,8 @@ mxSwimlaneLayout.prototype.placementStage = function(initialX, parent)
 	return placementStage.limitX + this.interHierarchySpacing;
 };
 /**
- * Copyright (c) 2006-2015, JGraph Ltd
- * Copyright (c) 2006-2015, Gaudenz Alder
+ * Copyright (c) 2006-2018, JGraph Ltd
+ * Copyright (c) 2006-2018, Gaudenz Alder
  */
 /**
  * Class: mxGraphModel
@@ -39542,7 +39488,8 @@ mxGraphModel.prototype.isLayer = function(cell)
 /**
  * Function: isAncestor
  * 
- * Returns true if the given parent is an ancestor of the given child.
+ * Returns true if the given parent is an ancestor of the given child. Note 
+ * returns true if child == parent.
  *
  * Parameters:
  * 
@@ -52088,8 +52035,9 @@ mxGraphView.prototype.isLoopStyleEnabled = function(edge, points, source, target
 	var sc = this.graph.getConnectionConstraint(edge, source, true);
 	var tc = this.graph.getConnectionConstraint(edge, target, false);
 	
-	if (!mxUtils.getValue(edge.style, mxConstants.STYLE_ORTHOGONAL_LOOP, false) ||
-		((sc == null || sc.point == null) && (tc == null || tc.point == null)))
+	if ((points == null || points.length < 2) &&
+		(!mxUtils.getValue(edge.style, mxConstants.STYLE_ORTHOGONAL_LOOP, false) ||
+		((sc == null || sc.point == null) && (tc == null || tc.point == null))))
 	{
 		return source != null && source == target;
 	}
@@ -58717,7 +58665,7 @@ mxGraph.prototype.cellsFolded = function(cells, collapse, recurse, checkFoldable
 					if (recurse)
 					{
 						var children = this.model.getChildren(cells[i]);
-						this.foldCells(children, collapse, recurse);
+						this.cellsFolded(children, collapse, recurse);
 					}
 					
 					this.constrainChild(cells[i]);
@@ -69885,6 +69833,9 @@ mxGraphHandler.prototype.moveCells = function(cells, dx, dy, clone, target, evt)
 		target = this.graph.getDefaultParent();
 	}
 	
+	// Cloning into locked cells is not allowed
+	clone = clone && !this.graph.isCellLocked(target || this.graph.getDefaultParent());
+	
 	// Passes all selected cells in order to correctly clone or move into
 	// the target cell. The method checks for each cell if its movable.
 	cells = this.graph.moveCells(cells, dx - this.graph.panDx / this.graph.view.scale,
@@ -70053,6 +70004,17 @@ function mxPanningHandler(graph)
 		});
 		
 		this.graph.addListener(mxEvent.GESTURE, this.gestureHandler);
+		
+		this.mouseUpListener = mxUtils.bind(this, function()
+		{
+		    	if (this.active)
+		    	{
+		    		this.reset();
+		    	}
+		});
+		
+		// Stops scrolling on every mouseup anywhere in the document
+		mxEvent.addListener(document, 'mouseup', this.mouseUpListener);
 	}
 };
 
@@ -70383,6 +70345,17 @@ mxPanningHandler.prototype.mouseUp = function(sender, me)
 		this.fireEvent(new mxEventObject(mxEvent.PAN_END, 'event', me));
 	}
 	
+	this.reset();
+};
+
+/**
+ * Function: mouseUp
+ * 
+ * Handles the event by setting the translation on the view or showing the
+ * popupmenu.
+ */
+mxPanningHandler.prototype.reset = function()
+{
 	this.panningTrigger = false;
 	this.mouseDownEvent = null;
 	this.active = false;
@@ -70410,6 +70383,7 @@ mxPanningHandler.prototype.destroy = function()
 	this.graph.removeMouseListener(this);
 	this.graph.removeListener(this.forcePanningHandler);
 	this.graph.removeListener(this.gestureHandler);
+	mxEvent.removeListener(document, 'mouseup', this.mouseUpListener);
 };
 /**
  * Copyright (c) 2006-2015, JGraph Ltd
@@ -74200,6 +74174,13 @@ mxRubberband.prototype.currentX = 0;
 mxRubberband.prototype.currentY = 0;
 
 /**
+ * Variable: fadeOut
+ * 
+ * Optional fade out effect. Default is false.
+ */
+mxRubberband.prototype.fadeOut = false;
+
+/**
  * Function: isEnabled
  * 
  * Returns true if events are handled. This implementation returns
@@ -74349,8 +74330,14 @@ mxRubberband.prototype.createShape = function()
 	}
 
 	this.graph.container.appendChild(this.sharedDiv);
+	var result = this.sharedDiv;
+	
+	if (mxClient.IS_SVG && (!mxClient.IS_IE || document.documentMode >= 10) && this.fadeOut)
+	{
+		this.sharedDiv = null;
+	}
 		
-	return this.sharedDiv;
+	return result;
 };
 
 /**
@@ -74402,7 +74389,22 @@ mxRubberband.prototype.reset = function()
 {
 	if (this.div != null)
 	{
-		this.div.parentNode.removeChild(this.div);
+		if (mxClient.IS_SVG && (!mxClient.IS_IE || document.documentMode >= 10) && this.fadeOut)
+		{
+			var temp = this.div;
+			mxUtils.setPrefixedStyle(temp.style, 'transition', 'all 0.2s linear');
+			temp.style.pointerEvents = 'none';
+			temp.style.opacity = 0;
+		    
+		    window.setTimeout(function()
+		    	{
+		    		temp.parentNode.removeChild(temp);
+		    	}, 200);	
+		}
+		else
+		{
+			this.div.parentNode.removeChild(this.div);
+		}
 	}
 
 	mxEvent.removeGestureListeners(document, null, this.dragHandler, this.dropHandler);
@@ -76607,7 +76609,7 @@ mxVertexHandler.prototype.redrawHandles = function()
 		var sin = Math.sin(alpha);
 		
 		var ct = new mxPoint(this.state.getCenterX(), this.state.getCenterY());
-		var pt = mxUtils.getRotatedPoint(new mxPoint(s.x + s.width / 2, s.y + this.rotationHandleVSpacing), cos, sin, ct);
+		var pt = mxUtils.getRotatedPoint(this.getRotationHandlePosition(), cos, sin, ct);
 
 		if (this.rotationShape.node != null)
 		{
@@ -76639,6 +76641,16 @@ mxVertexHandler.prototype.redrawHandles = function()
 	}
 
 	this.updateParentHighlight();
+};
+
+/**
+ * Function: getRotationHandlePosition
+ * 
+ * Returns an <mxPoint> that defines the rotation handle position.
+ */
+mxVertexHandler.prototype.getRotationHandlePosition = function()
+{
+	return new mxPoint(this.bounds.x + this.bounds.width / 2, this.bounds.y + this.rotationHandleVSpacing)
 };
 
 /**
@@ -76818,7 +76830,13 @@ function mxEdgeHandler(state)
 		// Handles escape keystrokes
 		this.escapeHandler = mxUtils.bind(this, function(sender, evt)
 		{
+			var dirty = this.index != null;
 			this.reset();
+			
+			if (dirty)
+			{
+				this.graph.cellRenderer.redraw(this.state, false, state.view.isRendering());
+			}
 		});
 		
 		this.state.view.graph.addListener(mxEvent.ESCAPE, this.escapeHandler);
@@ -78410,15 +78428,20 @@ mxEdgeHandler.prototype.mouseUp = function(sender, me)
  */
 mxEdgeHandler.prototype.reset = function()
 {
+	if (this.active)
+	{
+		this.refresh();
+	}
+	
 	this.error = null;
 	this.index = null;
 	this.label = null;
 	this.points = null;
 	this.snapPoint = null;
-	this.active = false;
 	this.isLabel = false;
 	this.isSource = false;
 	this.isTarget = false;
+	this.active = false;
 	
 	if (this.livePreview && this.sizers != null)
 	{
