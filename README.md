@@ -3,11 +3,15 @@ mxgraph
 
 mxGraph is a fully client side JavaScript diagramming library that uses SVG and HTML for rendering. [draw.io](https://www.draw.io) is an example that extends the functionality of this library. The [sources to draw.io](https://github.com/jgraph/draw.io) are also available.
 
-Note this is the release repo. The development repo is on [Bitbucket](https://bitbucket.org/jgraph/mxgraph2). 
+Note this is the release repo. The development repo is on [Bitbucket](https://bitbucket.org/jgraph/mxgraph2). Submit PRs there.
 
 If you want to build something like draw.io, [GraphEditor](https://jgraph.github.io/mxgraph/javascript/examples/grapheditor/www/index.html) is the best example to use as a base.
 
-The npm build is [here](https://www.npmjs.com/package/mxgraph).
+The npm build is [here](https://www.npmjs.com/package/mxgraph), but it's not supported. We don't use NPM, nor care about it. Do not submit issues complaining about it being broken, they will be closed. You are welcome to submit PRs to fix any issues.
+
+mxGraph is a 12+ year old project, we won't bend it to fit the latest fad framework, module system, other. They'll all be dead in 2 years and require a re-write, so don't bother submitting issues asking for fadX to be supported.
+
+That said, if you insist on wasting your time on fadX, mxGraph is open source, we encourage you to fork and replace this project (in fact we challenge you to). So far there's [monsterGraph](https://github.com/stalkerg/monstergraph) (which looks dead) and [jjgraph](https://github.com/jonjomckay/jjgraph).
 
 mxGraph supports IE 11, Chrome 32+, Firefox 38+, Safari 7.1.x, 8.0.x, 9.1.x and 10.0.x, Opera 20+, Native Android browser 5.1.x+, the default browser in the current and previous major iOS versions (e.g. 10.x and 9.x) and Edge 23+.
 
@@ -21,9 +25,7 @@ In the root folder there is an index.html file that contains links to all resour
 Support
 =======
 
-There is a [mxgraph tag on Stack Overflow](http://stackoverflow.com/questions/tagged/mxgraph) that we try to keep answered. Please ensure your questions adhere to the [SO guidelines](http://stackoverflow.com/help/on-topic), otherwise it will be closed.
-
-We do not provide commercial support. If you are looking for a commercially supported diagramming library, we recommend [yFiles HTML](https://www.yworks.com/products/yfiles-for-html). Their layouting and routing algorithms, in particular, are the best out there.
+There is a [mxgraph tag on Stack Overflow](http://stackoverflow.com/questions/tagged/mxgraph). Please ensure your questions adhere to the [SO guidelines](http://stackoverflow.com/help/on-topic), otherwise it will be closed.
 
 License
 =======
