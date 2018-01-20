@@ -13,7 +13,7 @@ mxGraph is a 12+ year old project, we won't bend it to fit the latest fad framew
 
 That said, if you insist on wasting your time on fadX, mxGraph is open source, we encourage you to fork and replace this project (in fact we challenge you to). So far there's [monsterGraph](https://github.com/stalkerg/monstergraph) (which looks dead) and [jjgraph](https://github.com/jonjomckay/jjgraph).
 
-mxGraph supports IE 11, Chrome 32+, Firefox 38+, Safari 7.1.x, 8.0.x, 9.1.x and 10.0.x, Opera 20+, Native Android browser 5.1.x+, the default browser in the current and previous major iOS versions (e.g. 10.x and 9.x) and Edge 23+.
+mxGraph supports IE 11, Chrome 43+, Firefox 45+, Safari 9.1.x, 10.1.x and 11.0.x, Opera 30+, Native Android browser 5.1.x+, the default browser in the current and previous major iOS versions (e.g. 11.x and 10.x) and Edge 31+.
 
 mxGraph uses no third-party software, it requires no plugins and can be integrated in virtually any framework.
 
