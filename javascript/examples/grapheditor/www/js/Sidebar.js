@@ -3099,13 +3099,10 @@ Sidebar.prototype.itemClicked = function(cells, ds, evt, elt)
 		}
 	}
 	// Shift+Click updates shape
-	else if (mxEvent.isShiftDown(evt))
+	else if (mxEvent.isShiftDown(evt) && !graph.isSelectionEmpty())
 	{
-		if (!graph.isSelectionEmpty())
-		{
-			this.updateShapes(cells[0], graph.getSelectionCells());
-			graph.scrollCellToVisible(graph.getSelectionCell());
-		}
+		this.updateShapes(cells[0], graph.getSelectionCells());
+		graph.scrollCellToVisible(graph.getSelectionCell());
 	}
 	else
 	{

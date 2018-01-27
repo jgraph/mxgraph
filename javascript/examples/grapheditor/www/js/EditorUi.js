@@ -803,21 +803,21 @@ EditorUi = function(editor, container, lightbox)
 		{
 			var ff = graph.currentVertexStyle['fontFamily'] || 'Helvetica';
 			var fs = String(graph.currentVertexStyle['fontSize'] || '12');
-	    	var state = graph.getView().getState(graph.getSelectionCell());
-	    	
-	    	if (state != null)
-	    	{
-	    		ff = state.style[mxConstants.STYLE_FONTFAMILY] || ff;
-	    		fs = state.style[mxConstants.STYLE_FONTSIZE] || fs;
-	    		
-	    		if (ff.length > 10)
-	    		{
-	    			ff = ff.substring(0, 8) + '...';
-	    		}
-	    	}
-	    	
-	    	this.toolbar.setFontName(ff);
-	    	this.toolbar.setFontSize(fs);
+		    	var state = graph.getView().getState(graph.getSelectionCell());
+		    	
+		    	if (state != null)
+		    	{
+		    		ff = state.style[mxConstants.STYLE_FONTFAMILY] || ff;
+		    		fs = state.style[mxConstants.STYLE_FONTSIZE] || fs;
+		    		
+		    		if (ff.length > 10)
+		    		{
+		    			ff = ff.substring(0, 8) + '...';
+		    		}
+		    	}
+		    	
+		    	this.toolbar.setFontName(ff);
+		    	this.toolbar.setFontSize(fs);
 		});
 		
 	    graph.getSelectionModel().addListener(mxEvent.CHANGE, update);
@@ -3247,7 +3247,7 @@ EditorUi.prototype.addSplitHandler = function(elt, horizontal, dx, onChange)
 /**
  * Displays a print dialog.
  */
-EditorUi.prototype.showDialog = function(elt, w, h, modal, closable, onClose)
+EditorUi.prototype.showDialog = function(elt, w, h, modal, closable, onClose, noScroll)
 {
 	this.editor.graph.tooltipHandler.hideTooltip();
 	
@@ -3256,7 +3256,7 @@ EditorUi.prototype.showDialog = function(elt, w, h, modal, closable, onClose)
 		this.dialogs = [];
 	}
 	
-	this.dialog = new Dialog(this, elt, w, h, modal, closable, onClose);
+	this.dialog = new Dialog(this, elt, w, h, modal, closable, onClose, noScroll);
 	this.dialogs.push(this.dialog);
 };
 

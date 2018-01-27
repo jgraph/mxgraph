@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.9.0.
+	 * Current version is 3.9.1.
 	 */
-	VERSION: '3.9.0',
+	VERSION: '3.9.1',
 
 	/**
 	 * Variable: IS_IE
@@ -238,6 +238,13 @@ var mxClient =
   			  document.location.href.indexOf('https://') < 0,
 
 	/**
+	 * Variable: defaultBundles
+	 * 
+	 * Contains the base names of the default bundles if mxLoadResources is false.
+	 */
+  	defaultBundles: [],
+
+	/**
 	 * Function: isBrowserSupported
 	 *
 	 * Returns true if the current browser is supported, that is, if
@@ -300,6 +307,34 @@ var mxClient =
 	},
 	
 	/**
+	 * Function: loadResources
+	 * 
+	 * Helper method to load the default bundles if mxLoadResources is false.
+	 * 
+	 * Parameters:
+	 * 
+	 * fn - Function to call after all resources have been loaded.
+	 * lan - Optional string to pass to <mxResources.add>.
+	 */
+	loadResources: function(fn, lan)
+	{
+		var pending = mxClient.defaultBundles.length;
+		
+		function callback()
+		{
+			if (--pending == 0)
+			{
+				fn();
+			}
+		}
+		
+		for (var i = 0; i < mxClient.defaultBundles.length; i++)
+		{
+			mxResources.add(mxClient.defaultBundles[i], lan, callback);
+		}
+	},
+	
+	/**
 	 * Function: include
 	 *
 	 * Dynamically adds a script node to the document header.
@@ -331,7 +366,6 @@ var mxClient =
 			}
 		}
 	}
-
 };
 
 /**
@@ -339,7 +373,8 @@ var mxClient =
  * 
  * Optional global config variable to toggle loading of the two resource files
  * in <mxGraph> and <mxEditor>. Default is true. NOTE: This is a global variable,
- * not a variable of mxClient.
+ * not a variable of mxClient. If this is false, you can use <mxClient.loadResources>
+ * with its callback to load the default bundles asynchronously.
  *
  * (code)
  * <script type="text/javascript">

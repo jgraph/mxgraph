@@ -198,9 +198,9 @@ public class mxGraph extends mxEventSource
 
 	/**
 	 * Holds the version number of this release. Current version
-	 * is 3.9.0.
+	 * is 3.9.1.
 	 */
-	public static final String VERSION = "3.9.0";
+	public static final String VERSION = "3.9.1";
 
 	/**
 	 * 
