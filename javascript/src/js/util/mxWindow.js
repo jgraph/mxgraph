@@ -541,7 +541,7 @@ mxWindow.prototype.setResizable = function(resizable)
 			this.resize.style.bottom = '2px';
 			this.resize.style.right = '2px';
 
-			this.resize.setAttribute('src', mxClient.imageBasePath + '/resize.gif');
+			this.resize.setAttribute('src', this.resizeImage);
 			this.resize.style.cursor = 'nw-resize';
 			
 			var startX = null;
