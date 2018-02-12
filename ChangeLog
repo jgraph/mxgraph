@@ -1,11 +1,11 @@
-27-JAN-2017: 3.9.1
+27-JAN-2018: 3.9.1
 
 - Adds resources.html example
 - Adds mxCellEditor.isCancelEditingKeyEvent
 - Adds mxClient.loadResources
 - Adds mxGraph.getLinkForCell hook
 
-19-JAN-2017: 3.9.0
+19-JAN-2018: 3.9.0
 
 - Add layout.isAncestor where child == parent returns false
 - Removes duplicate WeightedCellSorter
