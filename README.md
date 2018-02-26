@@ -1,17 +1,15 @@
 mxgraph
 =======
 
+Plug : We're looking for [senior JavaScript engineers](https://about.draw.io/draw-io-jobs/) with at least 10 years commercial software experience.
+
 mxGraph is a fully client side JavaScript diagramming library that uses SVG and HTML for rendering. [draw.io](https://www.draw.io) is an example that extends the functionality of this library. The [sources to draw.io](https://github.com/jgraph/draw.io) are also available.
 
 Note this is the release repo. The development repo is on [Bitbucket](https://bitbucket.org/jgraph/mxgraph2). Submit PRs there.
 
 If you want to build something like draw.io, [GraphEditor](https://jgraph.github.io/mxgraph/javascript/examples/grapheditor/www/index.html) is the best example to use as a base.
 
-The npm build is [here](https://www.npmjs.com/package/mxgraph), but it's not supported. We don't use NPM, nor care about it. Do not submit issues complaining about it being broken, they will be closed. You are welcome to submit PRs to fix any issues.
-
-mxGraph is a 12+ year old project, we won't bend it to fit the latest fad framework, module system, other. They'll all be dead in 2 years and require a re-write, so don't bother submitting issues asking for fadX to be supported.
-
-That said, if you insist on wasting your time on fadX, mxGraph is open source, we encourage you to fork and replace this project (in fact we challenge you to). So far there's [monsterGraph](https://github.com/stalkerg/monstergraph) (which looks dead) and [jjgraph](https://github.com/jonjomckay/jjgraph).
+The npm build is [here](https://www.npmjs.com/package/mxgraph)
 
 mxGraph supports IE 11, Chrome 43+, Firefox 45+, Safari 9.1.x, 10.1.x and 11.0.x, Opera 30+, Native Android browser 5.1.x+, the default browser in the current and previous major iOS versions (e.g. 11.x and 10.x) and Edge 31+.
 
