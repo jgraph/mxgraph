@@ -198,9 +198,9 @@ public class mxGraph extends mxEventSource
 
 	/**
 	 * Holds the version number of this release. Current version
-	 * is 3.9.1.
+	 * is 3.9.2.
 	 */
-	public static final String VERSION = "3.9.1";
+	public static final String VERSION = "3.9.2";
 
 	/**
 	 * 
@@ -4204,21 +4204,108 @@ public class mxGraph extends mxEventSource
 	 * @param constraint Connection constraint that represents the connection point
 	 * constraint as returned by getConnectionConstraint.
 	 */
-	public mxPoint getConnectionPoint(mxCellState vertex,
-			mxConnectionConstraint constraint)
+	public mxPoint getConnectionPoint(mxCellState vertex, mxConnectionConstraint constraint)
 	{
 		mxPoint point = null;
 
 		if (vertex != null && constraint.point != null)
 		{
-			point = new mxPoint(vertex.getX() + constraint.getPoint().getX()
-					* vertex.getWidth(), vertex.getY()
-					+ constraint.getPoint().getY() * vertex.getHeight());
-		}
+			mxRectangle bounds = this.view.getPerimeterBounds(vertex, 0);
+			mxPoint cx = new mxPoint(bounds.getCenterX(), bounds.getCenterY());
+			String direction = mxUtils.getString(vertex.getStyle(), mxConstants.STYLE_DIRECTION);
+			
+			double r1 = 0;
+			
+			// Bounds need to be rotated by 90 degrees for further computation
+			if (direction != null)
+			{
+				if (direction.equals(mxConstants.DIRECTION_NORTH))
+				{
+					r1 += 270;
+				}
+				else if (direction.equals(mxConstants.DIRECTION_WEST))
+				{
+					r1 += 180;
+				}
+				else if (direction.equals(mxConstants.DIRECTION_SOUTH))
+				{
+					r1 += 90;
+				}
 
-		if (point != null && constraint.perimeter)
+				// Bounds need to be rotated by 90 degrees for further computation
+				if (direction == mxConstants.DIRECTION_NORTH || direction == mxConstants.DIRECTION_SOUTH)
+				{
+					bounds.rotate90();
+				}
+			}
+			
+			point =	new mxPoint(bounds.getX() + constraint.point.getX() * bounds.getWidth(), bounds.getY() + constraint.point.getY() * bounds.getHeight());
+			
+			// Rotation for direction before projection on perimeter
+			double r2 = mxUtils.getDouble(vertex.getStyle(), mxConstants.STYLE_ROTATION);
+			
+			if (constraint.perimeter)
+			{
+				if (r1 != 0)
+				{
+					// Only 90 degrees steps possible here so no trig needed
+					double cos = 0;
+					double sin = 0;
+					
+					if (r1 == 90)
+					{
+						sin = 1;
+					}
+					else if (r1 == 180)
+					{
+						cos = -1;
+					}
+					else if (r1 == 270)
+					{
+						sin = -1;
+					}
+					
+			        point = mxUtils.getRotatedPoint(point, cos, sin, cx);
+				}
+		
+				point = this.view.getPerimeterPoint(vertex, point, false);
+			}
+			else
+			{
+				r2 += r1;
+				
+				if (this.getModel().isVertex(vertex.cell))
+				{
+					boolean flipH = mxUtils.getString(vertex.getStyle(), mxConstants.STYLE_FLIPH).equals(1);
+					boolean flipV = mxUtils.getString(vertex.getStyle(), mxConstants.STYLE_FLIPV).equals(1);
+					
+					if (flipH)
+					{
+						point.setX(2 * bounds.getCenterX() - point.getX());
+					}
+					
+					if (flipV)
+					{
+						point.setY(2 * bounds.getCenterY() - point.getY());
+					}
+				}
+
+			}
+			// Generic rotation after projection on perimeter
+			if (r2 != 0 && point != null)
+			{
+				double rad = Math.toRadians(2);
+				double cos = Math.cos(rad);
+				double sin = Math.sin(rad);
+				
+				point = mxUtils.getRotatedPoint(point, cos, sin, cx);
+			}
+		}
+			
+		if (point != null)
 		{
-			point = view.getPerimeterPoint(vertex, point, false);
+			point.setX(Math.round(point.getX()));
+			point.setY(Math.round(point.getY()));
 		}
 
 		return point;

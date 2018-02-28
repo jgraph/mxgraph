@@ -177,7 +177,7 @@ Editor.closeLargeImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAg
 /**
  * Specifies the image URL to be used for the transparent background.
  */
-Editor.editLargeImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgAgMAAAAOFJJnAAAACVBMVEUAAAD///////9zeKVjAAAAAnRSTlMAgJsrThgAAABcSURBVBjThc6xDcAgDATAd8MQTEPW8TRUmYCGnzLRYyOlIV+dZFtvkICTFGqiJEzAG0/Uje9oL+e5Vu4F5yUYJxxqGKhQZ0eBvmgwYQLQaARKD1hbiPyDR0QOeAC31EyNe5X/kAAAAABJRU5ErkJggg==';
+Editor.editLargeImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAgVBMVEUAAAD///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////9d3yJTAAAAKnRSTlMA+hzi3nRQWyXzkm0h2j3u54gzEgSXjlYoTBgJxL2loGpAOS3Jt7Wxm35Ga7gRAAAA6UlEQVQ4y63Q2XaCMBSF4Q0JBasoQ5DJqbXjfv8HbCK2BZNwo/8FXHx7rcMC7lQu0iX8qU/qtvAWCpoqH8dYzS0SwaV5eK/UAf8X9pd2CWKzuF5Jrftp1owXwnIGLUaL3PYndOHf4kNNXWrXK/m7CHunk7K8LE6YtBpcknwG9GKxnroY+ylBXcx4xKyx/u/EuXi509cP9V7OO1oyHnzrdFTcqLG/4ibBA5pIMr/4xvKzuQDkVy9wW8SgBFD6HDvuzMvrZcC9QlkfMzI7w64m+b4PqBMNHB05lH21PVxJo2/fBXxV4hB38PcD+5AkI4FuETsAAAAASUVORK5CYII=';
 
 /**
  * Specifies the image URL to be used for the transparent background.
@@ -1578,9 +1578,8 @@ PageSetupDialog.addPageFormatPanel = function(div, namePostfix, pageFormat, page
 			{
 				widthInput.value = pageFormat.width / 100;
 				heightInput.value = pageFormat.height / 100;
-				paperSizeOption.setAttribute('selected', 'selected');
 				portraitCheckBox.setAttribute('checked', 'checked');
-				portraitCheckBox.defaultChecked = true;
+				paperSizeSelect.value = 'custom';
 				formatDiv.style.display = 'none';
 				customDiv.style.display = '';
 			}
@@ -1591,6 +1590,7 @@ PageSetupDialog.addPageFormatPanel = function(div, namePostfix, pageFormat, page
 			}
 		}
 	};
+	
 	listener();
 
 	div.appendChild(paperSizeSelect);
@@ -1601,7 +1601,7 @@ PageSetupDialog.addPageFormatPanel = function(div, namePostfix, pageFormat, page
 	
 	var currentPageFormat = pageFormat;
 	
-	var update = function()
+	var update = function(evt, selectChanged)
 	{
 		var f = pf[paperSizeSelect.value];
 		
@@ -1637,10 +1637,13 @@ PageSetupDialog.addPageFormatPanel = function(div, namePostfix, pageFormat, page
 			newPageFormat = new mxRectangle(0, 0, newPageFormat.height, newPageFormat.width);
 		}
 		
-		if (newPageFormat.width != currentPageFormat.width || newPageFormat.height != currentPageFormat.height)
+		// Initial select of custom should not update page format to avoid update of combo
+		if ((!selectChanged || !customSize) && (newPageFormat.width != currentPageFormat.width ||
+			newPageFormat.height != currentPageFormat.height))
 		{
 			currentPageFormat = newPageFormat;
 			
+			// Updates page format and reloads format panel
 			if (pageFormatListener != null)
 			{
 				pageFormatListener(currentPageFormat);
@@ -1651,14 +1654,14 @@ PageSetupDialog.addPageFormatPanel = function(div, namePostfix, pageFormat, page
 	mxEvent.addListener(portraitSpan, 'click', function(evt)
 	{
 		portraitCheckBox.checked = true;
-		update();
+		update(evt);
 		mxEvent.consume(evt);
 	});
 	
 	mxEvent.addListener(landscapeSpan, 'click', function(evt)
 	{
 		landscapeCheckBox.checked = true;
-		update();
+		update(evt);
 		mxEvent.consume(evt);
 	});
 	
@@ -1668,11 +1671,11 @@ PageSetupDialog.addPageFormatPanel = function(div, namePostfix, pageFormat, page
 	mxEvent.addListener(heightInput, 'click', update);
 	mxEvent.addListener(landscapeCheckBox, 'change', update);
 	mxEvent.addListener(portraitCheckBox, 'change', update);
-	mxEvent.addListener(paperSizeSelect, 'change', function()
+	mxEvent.addListener(paperSizeSelect, 'change', function(evt)
 	{
 		// Handles special case where custom was chosen
 		customSize = paperSizeSelect.value == 'custom';
-		update();
+		update(evt, true);
 	});
 	
 	update();

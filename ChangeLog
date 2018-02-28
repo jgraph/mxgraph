@@ -1,3 +1,14 @@
+28-FEB-2018: 3.9.2
+
+- Adds supercall to fire execute event in mxMorphing
+- Allows for 0.5px steps in mxGraphHandler.roundLength
+- Fixes possible inconsistency in mxChildChangeCodec
+- Clears selection after editing in mxCellEditor
+- Hides special handles while editing in mxVertexHandler
+- Handles file protocol in mxUrlConverter
+- mxCellEditor handles SVG with absolute position
+- Fixes cloning of edges in mxEdgeHandler
+
 27-JAN-2018: 3.9.1
 
 - Adds resources.html example

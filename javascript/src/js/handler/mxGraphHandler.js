@@ -661,7 +661,7 @@ mxGraphHandler.prototype.removeHint = function() { };
  */
 mxGraphHandler.prototype.roundLength = function(length)
 {
-	return Math.round(length);
+	return Math.round(length * 2) / 2;
 };
 
 /**

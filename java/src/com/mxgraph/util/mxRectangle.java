@@ -240,6 +240,19 @@ public class mxRectangle extends mxPoint
 
 		return new Rectangle(ix, iy, iw, ih);
 	}
+	
+	/**
+	 * Rotates this rectangle by 90 degree around its center point.
+	 */
+	public void rotate90()
+	{
+		double t = (this.width - this.height) / 2;
+		this.x += t;
+		this.y -= t;
+		double tmp = this.width;
+		this.width = this.height;
+		this.height = tmp;
+	};
 
 	/**
 	 * Returns true if the given object equals this rectangle.

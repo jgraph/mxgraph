@@ -1,0 +1,236 @@
+<!--
+  Copyright (c) 2006-2013, JGraph Ltd
+  
+  Events example for mxGraph. This example demonstrates creating
+  a graph container and using the mxDivResizer to update the size,
+  interaction on the graph, including marquee selection, custom 
+  tooltips, context menu handling and changing the default menu
+  opacity. It also demonstrates how to use an edgestyle in the 
+  default stylesheet, and handle the doubleclick on the adjustment
+  point. See also: overlays.html for click event handling.
+-->
+<html>
+<head>
+	<title>Events example for mxGraph</title>
+
+	<!-- Sets the basepath for the library if not in same directory -->
+	<script type="text/javascript">
+		mxBasePath = '../../src';
+	</script>
+
+	<!-- Loads maps library -->
+	<link rel="stylesheet" href="leaflet.css" />
+	<script src="leaflet-src.js"></script>
+	<!-- Loads and initializes the library -->
+	<script type="text/javascript" src="../../src/js/mxClient.js"></script>
+
+	<!-- Example code -->
+	<script type="text/javascript">
+		// Program starts here. Creates a sample graph in the dynamically
+		// created DOM node called container which is created below.
+		function main()
+		{
+			// Sets the image to be used for creating new connections
+			mxConnectionHandler.prototype.connectImage = new mxImage('../images/green-dot.gif', 14, 14);
+			
+			// Checks if browser is supported
+			if (!mxClient.isBrowserSupported())
+			{
+				// Displays an error message if the browser is
+				// not supported.
+				mxUtils.error('Browser is not supported!', 200, false);
+			}
+			else
+			{
+				var container = document.createElement('div');
+				container.style.position = 'absolute';
+				container.style.overflow = 'hidden';
+				container.style.left = '0px';
+				container.style.top = '29px';
+				container.style.right = '0px';
+				container.style.bottom = '0px';
+				//container.style.background = 'url("../editors/images/grid.gif")';
+				//TODO how to control map zIndex?
+				container.style.zIndex = '400';
+
+				// Disables built-in context menu
+				mxEvent.disableContextMenu(container);
+
+				// Workaround for Internet Explorer ignoring certain styles
+				if (mxClient.IS_QUIRKS)
+				{
+					document.body.style.overflow = 'hidden';
+					new mxDivResizer(container);
+				}
+
+				document.body.appendChild(container);
+			
+				// Creates the graph inside the DOM node.
+				// Optionally you can enable panning, tooltips and connections
+				// using graph.setPanning(), setTooltips() & setConnectable().
+				// To enable rubberband selection and basic keyboard events,
+				// use new mxRubberband(graph) and new mxKeyHandler(graph).
+				var graph = new mxGraph(container);
+
+				// Enables tooltips, new connections and panning
+				graph.setPanning(true);
+				graph.setTooltips(true);
+				graph.setConnectable(true);
+				
+				// Automatically handle parallel edges
+ 				var layout = new mxParallelEdgeLayout(graph);
+ 				var layoutMgr = new mxLayoutManager(graph);
+ 				
+ 				layoutMgr.getLayout = function(cell)
+				{
+					if (cell.getChildCount() > 0)
+					{
+						return layout;
+					}
+				};
+				
+				// Enables rubberband (marquee) selection and a handler
+				// for basic keystrokes (eg. return, escape during editing).
+				var rubberband = new mxRubberband(graph);
+				var keyHandler = new mxKeyHandler(graph);
+
+				// Changes the default style for edges "in-place" and assigns
+				// an alternate edge style which is applied in mxGraph.flip
+				// when the user double clicks on the adjustment control point
+				// of the edge. The ElbowConnector edge style switches to TopToBottom
+				// if the horizontal style is true.
+				var style = graph.getStylesheet().getDefaultEdgeStyle();
+				style[mxConstants.STYLE_ROUNDED] = true;
+				style[mxConstants.STYLE_EDGE] = mxEdgeStyle.ElbowConnector;
+		
+				graph.alternateEdgeStyle = 'elbow=vertical';
+
+				// Installs a custom tooltip for cells
+				graph.getTooltipForCell = function(cell)
+				{
+					return 'Doubleclick and right- or shiftclick';
+				}
+				
+				// Installs a popupmenu handler using local function (see below).
+				graph.popupMenuHandler.factoryMethod = function(menu, cell, evt)
+				{
+					return createPopupMenu(graph, menu, cell, evt);
+				};
+				
+				// Gets the default parent for inserting new cells. This
+				// is normally the first child of the root (ie. layer 0).
+				var parent = graph.getDefaultParent();
+								
+				// Adds cells to the model in a single step
+				graph.getModel().beginUpdate();
+				try
+				{
+					var v1 = graph.insertVertex(parent, null, 'Doubleclick', 400, 200, 80, 30);
+					var v2 = graph.insertVertex(parent, null, 'Right-/Shiftclick', 600, 450, 120, 30);
+					var v3 = graph.insertVertex(parent, null, 'Connect/Reconnect', 600, 200, 120, 30);
+					var v4 = graph.insertVertex(parent, null, 'Control-Drag', 400, 350, 100, 30);
+					var e1 = graph.insertEdge(parent, null, 'Tooltips', v1, v2);
+					var e2 = graph.insertEdge(parent, null, '', v2, v3);
+				}
+				finally
+				{
+					// Updates the display
+					graph.getModel().endUpdate();
+				}
+			}
+			
+			var map = L.map('map',
+				{
+					attributionControl: false,
+					zoomControl: false,
+					trackResize: false,
+					keyboard: false,
+					scrollWheelZoom: false,
+					tap: false,
+					zoomDelta: 0.1,
+					zoomSnap: 0
+				}	
+			).setView([51.505, -0.09], 13);
+
+			L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+			   // attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+				zIndex: 1
+			}).addTo(map);
+
+			
+			var zoomPanListener = function(view, evt) {
+				var tr = evt.getProperty('translate');
+				var oldTr = evt.getProperty('previousTranslate');
+
+				var sc = evt.getProperty('scale');
+				var oldSc = evt.getProperty('previousScale');
+				
+				var s = view.scale;
+
+				if (sc != null)
+				{
+					//setTimeout(function(){
+						//map.zoomIn((sc - oldSc));
+					//}, 500);
+					//map.setZoomAround([0,0], map.getZoom() + (sc - oldSc));
+				//	console.log(map.getPixelOrigin());
+					//map.setZoom(map.getZoom() + (sc - oldSc) * 1);
+					map.setZoom(map.getScaleZoom(sc, 13)); //13 is the initial zoom level equivalent to 100%
+					
+				//	console.log(map.getZoomScale(13), map.getZoomScale(map.getZoom(), map.getZoom() + (sc - oldSc) * 1), map.getScaleZoom(sc, map.getZoom()), map.getZoom(), sc, s);
+				//	console.log(map.getPixelOrigin());
+				}
+				else if (tr != null) 
+				{
+					map.panBy([(oldTr.x - tr.x) * s, (oldTr.y - tr.y) * s]);
+				}
+			}; 
+			
+			graph.view.addListener(mxEvent.SCALE_AND_TRANSLATE, zoomPanListener);
+			graph.view.addListener(mxEvent.TRANSLATE, zoomPanListener);
+			graph.view.addListener(mxEvent.SCALE, zoomPanListener);
+
+			document.getElementById('zoomIn').addEventListener("click", function(){
+				graph.zoomIn();
+			});
+			
+			document.getElementById('zoomOut').addEventListener("click", function(){
+				graph.zoomOut();
+			});
+		/*	L.marker([51.5, -0.09]).addTo(map)
+			    .bindPopup('A pretty CSS3 popup.<br> Easily customizable.')
+			    .openPopup();*/
+		};
+		
+		// Function to create the entries in the popupmenu
+		function createPopupMenu(graph, menu, cell, evt)
+		{
+			if (cell != null)
+			{
+				menu.addItem('Cell Item', '../editors/images/image.gif', function()
+				{
+					mxUtils.alert('MenuItem1');
+				});
+			}
+			else
+			{
+				menu.addItem('No-Cell Item', '../editors/images/image.gif', function()
+				{
+					mxUtils.alert('MenuItem2');
+				});
+			}
+			menu.addSeparator();
+			menu.addItem('MenuItem3', '../../src/images/warning.gif', function()
+			{
+				mxUtils.alert('MenuItem3: '+graph.getSelectionCount()+' selected');
+			});
+		};
+	</script>
+</head>
+
+<!-- Calls the main function after the page has loaded. Container is dynamically created. -->
+<body onload="main();">
+	<button id="zoomIn">Zoom In</button> <button id="zoomOut">Zoom Out</button>
+	<div id="map" style="width:100%;height:100%"></div>
+</body>
+</html>

@@ -125,6 +125,17 @@ EditorUi = function(editor, container, lightbox)
 	// Contains the main graph instance inside the given panel
 	graph.init(this.diagramContainer);
 
+    // Improves line wrapping for in-place editor
+    if (mxClient.IS_SVG && graph.view.getDrawPane() != null)
+    {
+        var root = graph.view.getDrawPane().ownerSVGElement;
+        
+        if (root != null)
+        {
+            root.style.position = 'absolute';
+        }
+    }
+    
 	// Creates hover icons
 	this.hoverIcons = this.createHoverIcons();
 	
@@ -1710,7 +1721,7 @@ EditorUi.prototype.initCanvas = function()
 					}
 					
 					mxEvent.consume(evt);
-				}), Editor.editLargeImage, mxResources.get('openInNewWindow'));
+				}), Editor.editLargeImage, mxResources.get('edit'));
 			}
 			
 			if (graph.lightbox && (urlParams['close'] == '1' || this.container != document.body))
@@ -3297,7 +3308,7 @@ EditorUi.prototype.pickColor = function(color, apply)
 	{
 		graph.cellEditor.restoreSelection(selState);
 	});
-	this.showDialog(dlg.container, 220, 430, true, false);
+	this.showDialog(dlg.container, 230, 430, true, false);
 	dlg.init();
 };
 

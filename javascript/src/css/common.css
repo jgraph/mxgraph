@@ -10,6 +10,7 @@ div.mxRubberband {
 	background: url('../images/transparent.gif');
 	border-color: transparent;
 	border-style: solid;
+	display: inline-block;
 	position: absolute;
 	overflow: visible;
 	word-wrap: normal;

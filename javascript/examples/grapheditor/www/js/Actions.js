@@ -261,7 +261,7 @@ Actions.prototype.init = function()
 		if (cell != null)
 		{
 			var dlg = new EditDataDialog(ui, cell);
-			ui.showDialog(dlg.container, 320, 320, true, false);
+			ui.showDialog(dlg.container, 320, 320, true, false, null, false);
 			dlg.init();
 		}
 	}, null, null, Editor.ctrlKey + '+M');
@@ -785,7 +785,54 @@ Actions.prototype.init = function()
 			else
 			{
 				graph.stopEditing(false);
-				graph.toggleCellStyleFlags(mxConstants.STYLE_FONTSTYLE, style);
+				
+				graph.getModel().beginUpdate();
+				try
+				{
+					graph.toggleCellStyleFlags(mxConstants.STYLE_FONTSTYLE, style);
+					
+					// Removes bold and italic tags and CSS styles inside labels
+					if ((style & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
+					{
+						graph.updateLabelElements(graph.getSelectionCells(), function(elt)
+						{
+							elt.style.fontWeight = null;
+							
+							if (elt.nodeName == 'B')
+							{
+								graph.replaceElement(elt);
+							}
+						});
+					}
+					else if ((style & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
+					{
+						graph.updateLabelElements(graph.getSelectionCells(), function(elt)
+						{
+							elt.style.fontStyle = null;
+							
+							if (elt.nodeName == 'I')
+							{
+								graph.replaceElement(elt);
+							}
+						});
+					}
+					else if ((style & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
+					{
+						graph.updateLabelElements(graph.getSelectionCells(), function(elt)
+						{
+							elt.style.textDecoration = null;
+							
+							if (elt.nodeName == 'U')
+							{
+								graph.replaceElement(elt);
+							}
+						});
+					}
+				}
+				finally
+				{
+					graph.getModel().endUpdate();
+				}
 			}
 		}, null, null, shortcut);
 	});

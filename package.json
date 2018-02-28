@@ -1,7 +1,7 @@
 {
   "name": "mxgraph",
   "description": "mxGraph is a fully client side JavaScript diagramming library that uses SVG and HTML for rendering.",
-  "version": "3.9.1",
+  "version": "3.9.2",
   "homepage": "https://github.com/jgraph/mxgraph",
   "author": {
     "name": "JGraph Ltd",
@@ -17,9 +17,9 @@
   },
   "main": "./javascript/dist/build.js",
   "scripts": {
-    "prepublish": "grunt build --base ./ --gruntfile etc/build/Gruntfile.js"
+    "prepare": "grunt build --base ./ --gruntfile etc/build/Gruntfile.js"
   },
-  "dependencies": {
+  "devDependencies": {
     "grunt": "^1.0.1",
     "grunt-contrib-concat": "^1.0.1",
     "grunt-contrib-copy": "^1.0.0",

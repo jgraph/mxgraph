@@ -618,37 +618,20 @@ BaseFormatPanel.prototype.installInputHandler = function(input, key, defaultValu
 				// Handles special case for fontSize where HTML labels are parsed and updated
 				if (key == mxConstants.STYLE_FONTSIZE)
 				{
-					var cells = graph.getSelectionCells();
-					
-					for (var i = 0; i < cells.length; i++)
+					graph.updateLabelElements(graph.getSelectionCells(), function(elt)
 					{
-						var cell = cells[i];
-							
-						// Changes font tags inside HTML labels
-						if (graph.isHtmlLabel(cell))
-						{
-							var div = document.createElement('div');
-							div.innerHTML = graph.convertValueToString(cell);
-							var elts = div.getElementsByTagName('font');
-							
-							for (var j = 0; j < elts.length; j++)
-							{
-								elts[j].removeAttribute('size');
-								elts[j].style.fontSize = value + 'px';
-							}
-							
-							graph.cellLabelChanged(cell, div.innerHTML)
-						}
-					}
+						elt.style.fontSize = value + 'px';
+						elt.removeAttribute('size');
+					});
 				}
+				
+				ui.fireEvent(new mxEventObject('styleChanged', 'keys', [key],
+						'values', [value], 'cells', graph.getSelectionCells()));
 			}
 			finally
 			{
 				graph.getModel().endUpdate();
 			}
-			
-			ui.fireEvent(new mxEventObject('styleChanged', 'keys', [key],
-					'values', [value], 'cells', graph.getSelectionCells()));
 		}
 		
 		input.value = value + unit;
@@ -893,15 +876,20 @@ BaseFormatPanel.prototype.createOption = function(label, isCheckedFn, setChecked
 
 	mxEvent.addListener(div, 'click', function(evt)
 	{
-		// Toggles checkbox state for click on label
-		var source = mxEvent.getSource(evt);
-		
-		if (source == div || source == span)
+		if (cb.getAttribute('disabled') != 'disabled')
 		{
-			cb.checked = !cb.checked;
+			// Toggles checkbox state for click on label
+			var source = mxEvent.getSource(evt);
+			
+			if (source == div || source == span)
+			{
+				cb.checked = !cb.checked;
+			}
+			
+			apply(cb.checked);
 		}
 		
-		apply(cb.checked);
+		mxEvent.consume(evt);
 	});
 	
 	apply(value);
@@ -1024,7 +1012,7 @@ BaseFormatPanel.prototype.createColorOption = function(label, getColorFn, setCol
 
 	var btn = null;
 
-	var apply = function(color, disableUpdate)
+	var apply = function(color, disableUpdate, forceUpdate)
 	{
 		if (!applying)
 		{
@@ -1059,12 +1047,12 @@ BaseFormatPanel.prototype.createColorOption = function(label, getColorFn, setCol
 				callbackFn(color);
 			}
 
-			if (!disableUpdate && (hideCheckbox || value != color))
+			if (!disableUpdate)
 			{
 				value = color;
 				
 				// Checks if the color value needs to be updated in the model
-				if (hideCheckbox || getColorFn() != value)
+				if (forceUpdate || hideCheckbox || getColorFn() != value)
 				{
 					setColorFn(value);
 				}
@@ -1076,7 +1064,10 @@ BaseFormatPanel.prototype.createColorOption = function(label, getColorFn, setCol
 
 	btn = mxUtils.button('', mxUtils.bind(this, function(evt)
 	{
-		this.editorUi.pickColor(value, apply);
+		this.editorUi.pickColor(value, function(color)
+		{
+			apply(color, null, true);
+		});
 		mxEvent.consume(evt);
 	}));
 	
@@ -2843,7 +2834,13 @@ TextFormatPanel.prototype.addFont = function(container)
 	{
 		install: function(apply) { bgColorApply = apply; },
 		destroy: function() { bgColorApply = null; }
-	}, null, true) : this.createCellColorOption(mxResources.get('backgroundColor'), mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, '#ffffff');
+	}, null, true) : this.createCellColorOption(mxResources.get('backgroundColor'), mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, '#ffffff', null, function(color)
+	{
+		graph.updateLabelElements(graph.getSelectionCells(), function(elt)
+		{
+			elt.style.backgroundColor = null;
+		});
+	});
 	bgPanel.style.fontWeight = 'bold';
 
 	var borderPanel = this.createCellColorOption(mxResources.get('borderColor'), mxConstants.STYLE_LABEL_BORDERCOLOR, '#000000');
@@ -2881,6 +2878,12 @@ TextFormatPanel.prototype.addFont = function(container)
 		{
 			graph.setCellStyles(mxConstants.STYLE_NOLABEL, null, graph.getSelectionCells());
 		}
+
+		graph.updateLabelElements(graph.getSelectionCells(), function(elt)
+		{
+			elt.removeAttribute('color');
+			elt.style.color = null;
+		});
 	});
 	panel.style.fontWeight = 'bold';
 	
@@ -3041,7 +3044,7 @@ TextFormatPanel.prototype.addFont = function(container)
 		        this.editorUi.toolbar.addButton('geSprite-horizontalrule', mxResources.get('insertHorizontalRule'),
 				function()
 				{
-					document.execCommand('inserthorizontalrule', false, null);
+					document.execCommand('inserthorizontalrule', false);
 				}, insertPanel),				
 				this.editorUi.toolbar.addMenuFunctionInContainer(insertPanel, 'geSprite-table', mxResources.get('table'), false, mxUtils.bind(this, function(menu)
 				{
@@ -3071,10 +3074,10 @@ TextFormatPanel.prototype.addFont = function(container)
 				{
 					try
 					{
-			        	if (currentTable != null)
-			        	{
-			        		graph.selectNode(graph.insertColumn(currentTable, (tableCell != null) ? tableCell.cellIndex : 0));
-			        	}
+				        	if (currentTable != null)
+				        	{
+				        		graph.selectNode(graph.insertColumn(currentTable, (tableCell != null) ? tableCell.cellIndex : 0));
+				        	}
 					}
 					catch (e)
 					{
@@ -3087,9 +3090,9 @@ TextFormatPanel.prototype.addFont = function(container)
 					try
 					{
 						if (currentTable != null)
-			        	{
-							graph.selectNode(graph.insertColumn(currentTable, (tableCell != null) ? tableCell.cellIndex + 1 : -1));
-			        	}
+				        	{
+								graph.selectNode(graph.insertColumn(currentTable, (tableCell != null) ? tableCell.cellIndex + 1 : -1));
+				        	}
 					}
 					catch (e)
 					{
@@ -3842,13 +3845,32 @@ StyleFormatPanel.prototype.addFill = function(container)
 	
 	container.appendChild(fillPanel);
 	container.appendChild(gradientPanel);
+	
+	// Adds custom colors
+	var custom = this.getCustomColors();
+	
+	for (var i = 0; i < custom.length; i++)
+	{
+		container.appendChild(this.createCellColorOption(custom[i].title, custom[i].key, custom[i].defaultValue));
+	}
+	
+	return container;
+};
 
+/**
+ * Adds the label menu items to the given menu and parent.
+ */
+StyleFormatPanel.prototype.getCustomColors = function()
+{
+	var ss = this.format.getSelectionState();
+	var result = [];
+	
 	if (ss.style.shape == 'swimlane')
 	{
-		container.appendChild(this.createCellColorOption(mxResources.get('laneColor'), 'swimlaneFillColor', '#ffffff'));
+		result.push({title: mxResources.get('laneColor'), key: 'swimlaneFillColor', defaultValue: '#ffffff'});
 	}
-
-	return container;
+	
+	return result;
 };
 
 /**
@@ -4206,14 +4228,14 @@ StyleFormatPanel.prototype.addStroke = function(container)
 	var solid = document.createElement('div');
 	solid.style.width = '85px';
 	solid.style.height = '1px';
-	solid.style.borderBottom = '1px solid black';
+	solid.style.borderBottom = '1px solid ' + this.defaultStrokeColor;
 	solid.style.marginBottom = '9px';
 	symbol.appendChild(solid);
 	
 	var altSolid = document.createElement('div');
 	altSolid.style.width = '23px';
 	altSolid.style.height = '1px';
-	altSolid.style.borderBottom = '1px solid black';
+	altSolid.style.borderBottom = '1px solid ' + this.defaultStrokeColor;
 	altSolid.style.marginBottom = '9px';
 	altSymbol.appendChild(altSolid);
 
@@ -4360,16 +4382,16 @@ StyleFormatPanel.prototype.addStroke = function(container)
 		{
 			if (mxUtils.getValue(ss.style, mxConstants.STYLE_DASH_PATTERN, null) == null)
 			{
-				solid.style.borderBottom = '1px dashed black';
+				solid.style.borderBottom = '1px dashed ' + this.defaultStrokeColor;
 			}
 			else
 			{
-				solid.style.borderBottom = '1px dotted black';
+				solid.style.borderBottom = '1px dotted ' + this.defaultStrokeColor;
 			}
 		}
 		else
 		{
-			solid.style.borderBottom = '1px solid black';
+			solid.style.borderBottom = '1px solid ' + this.defaultStrokeColor;
 		}
 		
 		altSolid.style.borderBottom = solid.style.borderBottom;
@@ -4456,6 +4478,8 @@ StyleFormatPanel.prototype.addStroke = function(container)
 				markerDiv.style.verticalAlign = 'top';
 				markerDiv.style.marginTop = '5px';
 				markerDiv.style.fontSize = '10px';
+				markerDiv.style.filter = 'none';
+				markerDiv.style.color = this.defaultStrokeColor;
 				markerDiv.nextSibling.style.marginTop = '0px';
 			}
 			

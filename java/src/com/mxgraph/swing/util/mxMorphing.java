@@ -142,6 +142,7 @@ public class mxMorphing extends mxAnimation
 	 */
 	public void updateAnimation()
 	{
+		super.updateAnimation();
 		preview = new mxCellStatePreview(graphComponent, false);
 
 		if (cells != null)

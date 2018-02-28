@@ -2859,6 +2859,9 @@ mxGraphView.prototype.createSvg = function()
 	this.canvas.appendChild(this.decoratorPane);
 	
 	var root = document.createElementNS(mxConstants.NS_SVG, 'svg');
+//	root.style.position = 'relative';
+//	root.style.left = '0px';
+//	root.style.top = '0px';
 	root.style.width = '100%';
 	root.style.height = '100%';
 	
