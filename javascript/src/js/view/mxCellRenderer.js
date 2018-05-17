@@ -88,6 +88,13 @@ mxCellRenderer.prototype.legacySpacing = true;
 mxCellRenderer.prototype.antiAlias = true;
 
 /**
+ * Variable: minSvgStrokeWidth
+ * 
+ * Minimum stroke width for SVG output.
+ */
+mxCellRenderer.prototype.minSvgStrokeWidth = 1;
+
+/**
  * Variable: forceControlClickHandler
  * 
  * Specifies if the enabled state of the graph should be ignored in the control
@@ -1482,6 +1489,7 @@ mxCellRenderer.prototype.redrawShape = function(state, force, rendering)
 		
 		if (state.shape != null)
 		{
+			state.shape.minSvgStrokeWidth = this.minSvgStrokeWidth;
 			state.shape.antiAlias = this.antiAlias;
 	
 			this.createIndicatorShape(state);

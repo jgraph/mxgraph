@@ -621,13 +621,15 @@ Graph = function(container, model, renderHint, stylesheet, themes)
 			return mxEvent.isMouseEvent(me.getEvent());
 		};
 	
-		// Enables links if graph is "disabled" (ie. read-only)
+		// Handles links if graph is read-only or cell is locked
 		var click = this.click;
 		this.click = function(me)
 		{
-			if (!this.isEnabled() && !me.isConsumed())
+			var locked = me.state == null && me.sourceState != null && this.isCellLocked(me.sourceState.cell);
+			
+			if ((!this.isEnabled() || locked) && !me.isConsumed())
 			{
-				var cell = me.getCell();
+				var cell = (locked) ? me.sourceState.cell : me.getCell();
 				
 				if (cell != null)
 				{
@@ -635,7 +637,14 @@ Graph = function(container, model, renderHint, stylesheet, themes)
 					
 					if (link != null)
 					{
-						window.open(link);
+						if (this.isPageLink(link))
+						{
+							this.pageLinkClicked(cell, link);
+						}
+						else
+						{
+							this.openLink(link);
+						}
 					}
 				}
 			}
@@ -644,13 +653,28 @@ Graph = function(container, model, renderHint, stylesheet, themes)
 				return click.apply(this, arguments);
 			}
 		};
+
+		// Redirects tooltips for locked cells
+		this.tooltipHandler.getStateForEvent = function(me)
+		{
+			return me.sourceState;
+		};
+		
+		// Redirects cursor for locked cells
+		var getCursorForMouseEvent = this.getCursorForMouseEvent; 
+		this.getCursorForMouseEvent = function(me)
+		{
+			var locked = me.state == null && me.sourceState != null && this.isCellLocked(me.sourceState.cell);
+			
+			return this.getCursorForCell((locked) ? me.sourceState.cell : me.getCell());
+		};
 		
 		// Shows pointer cursor for clickable cells with links
 		// ie. if the graph is disabled and cells cannot be selected
 		var getCursorForCell = this.getCursorForCell;
 		this.getCursorForCell = function(cell)
 		{
-			if (!this.isEnabled())
+			if (!this.isEnabled() || this.isCellLocked(cell))
 			{
 				var link = this.getLinkForCell(cell);
 				
@@ -658,11 +682,13 @@ Graph = function(container, model, renderHint, stylesheet, themes)
 				{
 					return 'pointer';
 				}
+				else if (this.isCellLocked(cell))
+				{
+					return 'default';
+				}
 			}
-			else
-			{
-				return getCursorForCell.apply(this, arguments);
-			}
+
+			return getCursorForCell.apply(this, arguments);
 		};
 		
 		// Changes rubberband selection to be recursive
@@ -852,7 +878,7 @@ Graph = function(container, model, renderHint, stylesheet, themes)
 		{
 			me = graphUpdateMouseEvent.apply(this, arguments);
 			
-			if (this.isCellLocked(me.getCell()))
+			if (me.state != null && this.isCellLocked(me.getCell()))
 			{
 				me.state = null;
 			}
@@ -1010,6 +1036,11 @@ Graph.prototype.defaultThemes = {};
 Graph.prototype.baseUrl = ((window != window.top) ? document.referrer : document.location.toString()).split('#')[0];
 
 /**
+ * Specifies if the label should be edited after an insert.
+ */
+Graph.prototype.editAfterInsert = false;
+
+/**
  * Installs child layout styles.
  */
 Graph.prototype.init = function(container)
@@ -1069,11 +1100,11 @@ Graph.prototype.init = function(container)
 };
 
 /**
- * Adds support for page links.
+ * Sets the XML node for the current diagram.
  */
-Graph.prototype.isPageLink = function(href)
+Graph.prototype.isLightboxView = function()
 {
-	return false;
+	return this.lightbox;
 };
 
 /**
@@ -1083,39 +1114,71 @@ Graph.prototype.labelLinkClicked = function(state, elt, evt)
 {
 	var href = elt.getAttribute('href');
 	
-	if (href != null && !this.isPageLink(href))
+	if (href != null && !this.isPageLink(href) && (mxEvent.isLeftMouseButton(evt) &&
+		!mxEvent.isPopupTrigger(evt)) || mxEvent.isTouchEvent(evt))
 	{
-		if (!this.isEnabled())
+		if (!this.isEnabled() || this.isCellLocked(state.cell))
 		{
-			var target = state.view.graph.isBlankLink(href) ?
-				state.view.graph.linkTarget : '_top';
-			href = state.view.graph.getAbsoluteUrl(href);
-	
-			// Workaround for blocking in same iframe
-			if (target == '_self' && window != window.top)
-			{
-				window.location.href = href;
-			}
-			else
-			{
-				// Avoids page reload for anchors (workaround for IE but used everywhere)
-				if (href.substring(0, this.baseUrl.length) == this.baseUrl &&
-					href.charAt(this.baseUrl.length) == '#' &&
-					target == '_top' && window == window.top)
-				{
-					window.location.hash = href.split('#')[1];
-				}
-				else if ((mxEvent.isLeftMouseButton(evt) &&
-					!mxEvent.isPopupTrigger(evt)) ||
-			    		mxEvent.isTouchEvent(evt))
-				{
-					window.open(href, target);
-				}
-			}
+			var target = this.isBlankLink(href) ? this.linkTarget : '_top';
+			this.openLink(this.getAbsoluteUrl(href), target);
 		}
 		
 		mxEvent.consume(evt);
 	}
+};
+
+/**
+ * Returns the size of the page format scaled with the page size.
+ */
+Graph.prototype.openLink = function(href, target)
+{
+	var result = window;
+	
+	// Workaround for blocking in same iframe
+	if (target == '_self' && window != window.top)
+	{
+		window.location.href = href;
+	}
+	else
+	{
+		// Avoids page reload for anchors (workaround for IE but used everywhere)
+		if (href.substring(0, this.baseUrl.length) == this.baseUrl &&
+			href.charAt(this.baseUrl.length) == '#' &&
+			target == '_top' && window == window.top)
+		{
+			var hash = href.split('#')[1];
+
+			// Forces navigation if on same hash
+			if (window.location.hash == '#' + hash)
+			{
+				window.location.hash = '';
+			}
+			
+			window.location.hash = hash;
+		}
+		else
+		{
+			result = window.open(href, target);
+		}
+	}
+	
+	return result;
+};
+
+/**
+ * Adds support for page links.
+ */
+Graph.prototype.isPageLink = function(href)
+{
+	return false;
+};
+
+/**
+ * Adds support for page links.
+ */
+Graph.prototype.pageLinkClicked = function(cell, href)
+{
+	this.fireEvent(new mxEventObject('pageLinkClicked', 'cell', cell, 'href', href));
 };
 
 /**
@@ -1309,6 +1372,17 @@ Graph.prototype.isReplacePlaceholders = function(cell)
 {
 	return cell.value != null && typeof(cell.value) == 'object' &&
 		cell.value.getAttribute('placeholders') == '1';
+};
+
+/**
+ * Returns true if the given mouse wheel event should be used for zooming. This
+ * is invoked if no dialogs are showing and returns true if Alt or Control
+ * (except macOS) is pressed or if the panning handler is active.
+ */
+Graph.prototype.isZoomWheelEvent = function(evt)
+{
+	return mxEvent.isAltDown(evt) || (mxEvent.isControlDown(evt) && !mxClient.IS_MAC) ||
+		(this.panningHandler != null && this.panningHandler.isActive());
 };
 
 /**
@@ -1577,54 +1651,58 @@ Graph.prototype.createLayersDialog = function()
 Graph.prototype.replacePlaceholders = function(cell, str)
 {
 	var result = [];
-	var last = 0;
-	var math = [];
 	
-	while (match = this.placeholderPattern.exec(str))
+	if (str != null)
 	{
-		var val = match[0];
+		var last = 0;
+		var math = [];
 		
-		if (val.length > 2 && val != '%label%' && val != '%tooltip%')
+		while (match = this.placeholderPattern.exec(str))
 		{
-			var tmp = null;
-
-			if (match.index > last && str.charAt(match.index - 1) == '%')
+			var val = match[0];
+			
+			if (val.length > 2 && val != '%label%' && val != '%tooltip%')
 			{
-				tmp = val.substring(1);
-			}
-			else
-			{
-				var name = val.substring(1, val.length - 1);
-				
-				// Workaround for invalid char for getting attribute in older versions of IE
-				if (name.indexOf('{') < 0)
+				var tmp = null;
+	
+				if (match.index > last && str.charAt(match.index - 1) == '%')
 				{
-					var current = cell;
+					tmp = val.substring(1);
+				}
+				else
+				{
+					var name = val.substring(1, val.length - 1);
 					
-					while (tmp == null && current != null)
+					// Workaround for invalid char for getting attribute in older versions of IE
+					if (name.indexOf('{') < 0)
 					{
-						if (current.value != null && typeof(current.value) == 'object')
-						{
-							tmp = (current.hasAttribute(name)) ? ((current.getAttribute(name) != null) ?
-									current.getAttribute(name) : '') : null;
-						}
+						var current = cell;
 						
-						current = this.model.getParent(current);
+						while (tmp == null && current != null)
+						{
+							if (current.value != null && typeof(current.value) == 'object')
+							{
+								tmp = (current.hasAttribute(name)) ? ((current.getAttribute(name) != null) ?
+										current.getAttribute(name) : '') : null;
+							}
+							
+							current = this.model.getParent(current);
+						}
+					}
+					
+					if (tmp == null)
+					{
+						tmp = this.getGlobalVariable(name);
 					}
 				}
-				
-				if (tmp == null)
-				{
-					tmp = this.getGlobalVariable(name);
-				}
-			}
-
-			result.push(str.substring(last, match.index) + ((tmp != null) ? tmp : val));
-			last = match.index + val.length;
-		}
-	}
 	
-	result.push(str.substring(last));
+				result.push(str.substring(last, match.index) + ((tmp != null) ? tmp : val));
+				last = match.index + val.length;
+			}
+		}
+		
+		result.push(str.substring(last));
+	}	
 
 	return result.join('');
 };
@@ -1873,6 +1951,7 @@ Graph.prototype.connectVertex = function(source, direction, length, evt, forceCl
 //			var elbowValue = (direction == mxConstants.DIRECTION_NORTH || direction == mxConstants.DIRECTION_SOUTH) ? 'vertical' : 'horizontal';
 //			edge.style = mxUtils.setStyle(edge.style, 'edgeStyle', 'elbowEdgeStyle');
 //			edge.style = mxUtils.setStyle(edge.style, 'elbow', elbowValue);
+//			edge.style = mxUtils.setStyle(edge.style, 'sourcePortConstraint', direction);
 			result.push(edge);
 		}
 		
@@ -3006,6 +3085,9 @@ HoverIcons.prototype.drag = function(evt, x, y)
 		
 		// Uses elbow edges with vertical or horizontal direction
 //		var direction = this.getDirection();
+//		var es = this.graph.connectionHandler.edgeState;
+//		es.cell.style = mxUtils.setStyle(es.cell.style, 'sourcePortConstraint', direction);
+//		es.style['sourcePortConstraint'] = direction;
 //		var elbowValue = (direction == mxConstants.DIRECTION_NORTH || direction == mxConstants.DIRECTION_SOUTH) ? 'vertical' : 'horizontal';
 //		
 //		var es = this.graph.connectionHandler.edgeState;
@@ -3522,7 +3604,7 @@ HoverIcons.prototype.setCurrentState = function(state)
 						var state2 = this.validEdges[e];
 						var pts2 = state2.absolutePoints;
 						
-						if (pts2 != null && mxUtils.intersects(state, state2))
+						if (pts2 != null && mxUtils.intersects(state, state2) && state2.style['noJump'] != '1')
 						{
 							// Compares each segment of the edge with the current segment
 							for (var j = 0; j < pts2.length - 1; j++)
@@ -5048,9 +5130,9 @@ if (typeof mxVertexHandler != 'undefined')
 			
 			// Places at same x-coord and 2 grid sizes below existing graph
 			var x = this.snap(Math.round(Math.max(pt.x, bds.x / view.scale - view.translate.x +
-				((bds.width == 0) ? this.gridSize : 0))));
+				((bds.width == 0) ? 2 * this.gridSize : 0))));
 			var y = this.snap(Math.round(Math.max(pt.y, (bds.y + bds.height) / view.scale - view.translate.y +
-				((bds.height == 0) ? 1 : 2) * this.gridSize)));
+				2 * this.gridSize)));
 			
 			return new mxPoint(x, y);
 		};
@@ -5168,9 +5250,9 @@ if (typeof mxVertexHandler != 'undefined')
 							links[i].setAttribute('href', href);
 							
 							if (beforeClick != null)
-			    				{
+			    			{
 								mxEvent.addGestureListeners(links[i], null, null, beforeClick);
-			    				}
+			    			}
 						}
 					}
 				}
@@ -5195,20 +5277,31 @@ if (typeof mxVertexHandler != 'undefined')
 			    scrollTop: 0,
 			    updateCurrentState: function(me)
 			    {
-			    	var tmp = graph.view.getState(me.getCell());
-					
+			    	var tmp = me.sourceState;
+			    	
+			    	// Gets topmost intersecting cell with link
+			    	if (tmp == null || graph.getLinkForCell(tmp.cell) == null)
+			    	{
+			    		var cell = graph.getCellAt(me.getGraphX(), me.getGraphY(), null, null, null, function(state, x, y)
+	    				{
+			    			return graph.getLinkForCell(state.cell) == null;
+	    				});
+			    		
+			    		tmp = graph.view.getState(cell);
+			    	}
+			    	
 			      	if (tmp != this.currentState)
 			      	{
 			        	if (this.currentState != null)
 			        	{
-			          		this.clear();
+				          	this.clear();
 			        	}
-			        
-		        		this.currentState = tmp;
-			        
+				        
+			        	this.currentState = tmp;
+				        
 			        	if (this.currentState != null)
 			        	{
-			          		this.activate(this.currentState);
+				          	this.activate(this.currentState);
 			        	}
 			      	}
 			    },
@@ -5257,7 +5350,12 @@ if (typeof mxVertexHandler != 'undefined')
 			    		}
 			    		else
 			    		{
-					    	if (this.currentState != null && (me.getState() == this.currentState || me.getState() == null) &&
+				    		if (graph.tooltipHandler != null && this.currentLink != null && this.currentState != null)
+				    		{
+				    			graph.tooltipHandler.reset(me, true, this.currentState);
+				    		}
+				    		
+					    	if (this.currentState != null && (me.getState() == this.currentState || me.sourceState == null) &&
 					    		graph.intersects(this.currentState, me.getGraphX(), me.getGraphY()))
 					    	{
 				    			return;
@@ -5269,7 +5367,6 @@ if (typeof mxVertexHandler != 'undefined')
 			    },
 			    mouseUp: function(sender, me)
 			    {
-			    	
 			    	var source = me.getSource();
 			    	var evt = me.getEvent();
 			    	
@@ -5285,12 +5382,11 @@ if (typeof mxVertexHandler != 'undefined')
 			    	if (linkNode == null &&
 			    		(((Math.abs(this.scrollLeft - graph.container.scrollLeft) < tol &&
 			        	Math.abs(this.scrollTop - graph.container.scrollTop) < tol) &&
-			    		(me.getState() == null || !me.isSource(me.getState().control))) &&
-			    		((mxEvent.isLeftMouseButton(evt) &&
-					!mxEvent.isPopupTrigger(evt)) ||
-			    		mxEvent.isTouchEvent(evt))))
+			    		(me.sourceState == null || !me.isSource(me.sourceState.control))) &&
+			    		(((mxEvent.isLeftMouseButton(evt) || mxEvent.isMiddleMouseButton(evt)) &&
+			    		!mxEvent.isPopupTrigger(evt)) || mxEvent.isTouchEvent(evt))))
 			    	{
-				    	if (this.currentLink != null) 
+				    	if (this.currentLink != null)
 				    	{
 				    		var blank = graph.isBlankLink(this.currentLink);
 				    		
@@ -5302,28 +5398,9 @@ if (typeof mxVertexHandler != 'undefined')
 				    		
 				    		if (!mxEvent.isConsumed(evt))
 				    		{
-					    		var target = (blank) ? graph.linkTarget : '_top';
-					    		
-					    		// Workaround for blocking in same iframe
-							if (target == '_self' && window != window.top)
-							{
-								window.location.href = this.currentLink;
-							}
-							else
-							{
-								// Avoids page reload for anchors (workaround for IE but used everywhere)
-								if (this.currentLink.substring(0, graph.baseUrl.length) == graph.baseUrl &&
-									this.currentLink.charAt(graph.baseUrl.length) == '#' &&
-									target == '_top' && window == window.top)
-								{
-									window.location.hash = this.currentLink.split('#')[1];
-								}
-								else
-								{
-									window.open(this.currentLink, target);
-								}
-							}
-					    		
+					    		var target = (mxEvent.isMiddleMouseButton(evt)) ? '_blank' :
+					    			((blank) ? graph.linkTarget : '_top');
+					    		graph.openLink(this.currentLink, target);
 					    		me.consume();
 				    		}
 				    	}
@@ -5367,6 +5444,11 @@ if (typeof mxVertexHandler != 'undefined')
 			    	{
 			    		this.highlight.hide();
 			    	}
+			    	
+			    	if (graph.tooltipHandler != null)
+		    		{
+		    			graph.tooltipHandler.hide();
+		    		}
 			    }
 			};
 
@@ -5402,7 +5484,7 @@ if (typeof mxVertexHandler != 'undefined')
 				for (var i = 0; i < cells.length; i++)
 				{
 					var parent = model.getParent(cells[i]);
-					var child = this.moveCells([clones[i]], s, s, false, parent)[0]; 
+					var child = this.moveCells([clones[i]], s, s, false)[0];
 					select.push(child);
 					
 					if (append)
@@ -5411,7 +5493,7 @@ if (typeof mxVertexHandler != 'undefined')
 					}
 					else
 					{
-						// Maintains child index by inserting after cloned in parent
+						// Maintains child index by inserting after clone in parent
 						var index = parent.getIndex(cells[i]);
 						model.add(parent, clones[i], index + 1);
 					}
@@ -5676,7 +5758,7 @@ if (typeof mxVertexHandler != 'undefined')
 		 * @param {number} dx X-coordinate of the translation.
 		 * @param {number} dy Y-coordinate of the translation.
 		 */
-		Graph.prototype.getSvg = function(background, scale, border, nocrop, crisp, ignoreSelection, showText)
+		Graph.prototype.getSvg = function(background, scale, border, nocrop, crisp, ignoreSelection, showText, imgExport)
 		{
 			scale = (scale != null) ? scale : 1;
 			border = (border != null) ? border : 0;
@@ -5824,7 +5906,7 @@ if (typeof mxVertexHandler != 'undefined')
 			svgCanvas.scale(s);
 			svgCanvas.textEnabled = showText;
 			
-			var imgExport = this.createSvgImageExport();
+			imgExport = (imgExport != null) ? imgExport : this.createSvgImageExport();
 			var imgExportDrawCellState = imgExport.drawCellState;
 			
 			// Implements ignoreSelection flag

@@ -1114,6 +1114,11 @@ mxConnectionHandler.prototype.updateCurrentState = function(me, point)
 		{
 			this.marker.process(me);
 			this.currentState = this.marker.getValidState();
+			
+			if (this.currentState != null && this.graph.isCellLocked(this.currentState.cell))
+			{
+				this.currentState = null;
+			}
 		}
 
 		var outline = this.isOutlineConnectEvent(me);

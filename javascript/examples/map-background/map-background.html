@@ -49,9 +49,6 @@
 				container.style.top = '29px';
 				container.style.right = '0px';
 				container.style.bottom = '0px';
-				//container.style.background = 'url("../editors/images/grid.gif")';
-				//TODO how to control map zIndex?
-				container.style.zIndex = '400';
 
 				// Disables built-in context menu
 				mxEvent.disableContextMenu(container);
@@ -138,7 +135,8 @@
 					graph.getModel().endUpdate();
 				}
 			}
-			
+
+			var map100Zoom = 13;
 			var map = L.map('map',
 				{
 					attributionControl: false,
@@ -150,12 +148,9 @@
 					zoomDelta: 0.1,
 					zoomSnap: 0
 				}	
-			).setView([51.505, -0.09], 13);
+			).setView([51.505, -0.09], map100Zoom);
 
-			L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-			   // attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-				zIndex: 1
-			}).addTo(map);
+			L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
 
 			
 			var zoomPanListener = function(view, evt) {
@@ -169,16 +164,7 @@
 
 				if (sc != null)
 				{
-					//setTimeout(function(){
-						//map.zoomIn((sc - oldSc));
-					//}, 500);
-					//map.setZoomAround([0,0], map.getZoom() + (sc - oldSc));
-				//	console.log(map.getPixelOrigin());
-					//map.setZoom(map.getZoom() + (sc - oldSc) * 1);
-					map.setZoom(map.getScaleZoom(sc, 13)); //13 is the initial zoom level equivalent to 100%
-					
-				//	console.log(map.getZoomScale(13), map.getZoomScale(map.getZoom(), map.getZoom() + (sc - oldSc) * 1), map.getScaleZoom(sc, map.getZoom()), map.getZoom(), sc, s);
-				//	console.log(map.getPixelOrigin());
+					map.setZoom(map.getScaleZoom(sc, map100Zoom)); //map100Zoom is the initial zoom level equivalent to 100% (used in map initialization)
 				}
 				else if (tr != null) 
 				{
@@ -197,9 +183,6 @@
 			document.getElementById('zoomOut').addEventListener("click", function(){
 				graph.zoomOut();
 			});
-		/*	L.marker([51.5, -0.09]).addTo(map)
-			    .bindPopup('A pretty CSS3 popup.<br> Easily customizable.')
-			    .openPopup();*/
 		};
 		
 		// Function to create the entries in the popupmenu
@@ -231,6 +214,6 @@
 <!-- Calls the main function after the page has loaded. Container is dynamically created. -->
 <body onload="main();">
 	<button id="zoomIn">Zoom In</button> <button id="zoomOut">Zoom Out</button>
-	<div id="map" style="width:100%;height:100%"></div>
+	<div id="map" style="width:100%;height:100%;z-index:-1"></div>
 </body>
 </html>

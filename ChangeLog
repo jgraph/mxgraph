@@ -1,3 +1,13 @@
+17-MAY-2018: 3.9.4
+
+- Adds optional state argument in mxTooltipHandler.reset
+- Adds mxDragSource.checkEventSource, getElementForEvent
+- Adds mxCellRenderer.minSvgStrokeWidth
+- Fixes use of innerText in mxUtils.getTextContent
+- Adds mxTooltipHandler.getStateForEvent hook
+- Adds tolerance for straight edge detection
+- Uses Object for mxResources.resources
+
 05-MAR-2018: 3.9.3
 
 - Fixes post is not a function

@@ -51,6 +51,11 @@ Format.prototype.init = function()
 		this.refresh();
 	}));
 	
+	editor.addListener('autosaveChanged', mxUtils.bind(this, function()
+	{
+		this.refresh();
+	}));
+	
 	this.refresh();
 };
 
@@ -256,8 +261,9 @@ Format.prototype.isRoundedState = function(state)
 Format.prototype.isLineJumpState = function(state)
 {
 	var shape = mxUtils.getValue(state.style, mxConstants.STYLE_SHAPE, null);
+	var curved = mxUtils.getValue(state.style, mxConstants.STYLE_CURVED, false);
 	
-	return shape == 'connector' || shape == 'filledEdge';
+	return !curved && (shape == 'connector' || shape == 'filledEdge');
 };
 
 /**
@@ -888,8 +894,6 @@ BaseFormatPanel.prototype.createOption = function(label, isCheckedFn, setChecked
 			
 			apply(cb.checked);
 		}
-		
-		mxEvent.consume(evt);
 	});
 	
 	apply(value);
@@ -1270,7 +1274,7 @@ BaseFormatPanel.prototype.createRelativeOption = function(label, key, width, han
 	mxUtils.write(div, label);
 	div.style.fontWeight = 'bold';
 	
-	function update(evt)
+	var update = mxUtils.bind(this, function(evt)
 	{
 		if (handler != null)
 		{
@@ -1291,13 +1295,15 @@ BaseFormatPanel.prototype.createRelativeOption = function(label, key, width, han
 				}
 				
 				graph.setCellStyles(key, value, graph.getSelectionCells());
+				this.editorUi.fireEvent(new mxEventObject('styleChanged', 'keys', [key],
+					'values', [value], 'cells', graph.getSelectionCells()));
 			}
 	
 			input.value = ((value != null) ? value : '100') + ' %';
 		}
 		
 		mxEvent.consume(evt);
-	};
+	});
 
 	var input = this.addUnitInput(div, '%', 20, width, update, 10, -15, handler != null);
 
@@ -2733,7 +2739,8 @@ TextFormatPanel.prototype.addFont = function(container)
 
 			function updateSize(elt, ignoreContains)
 			{
-				if (elt != graph.cellEditor.textarea && (ignoreContains || selection.containsNode(elt, true)))
+				if (elt != graph.cellEditor.textarea && graph.cellEditor.textarea.contains(elt) &&
+					(ignoreContains || selection.containsNode(elt, true)))
 				{
 					if (elt.nodeName == 'FONT')
 					{
@@ -2784,30 +2791,66 @@ TextFormatPanel.prototype.addFont = function(container)
 
 			input.value = fontSize + ' pt';
 		}
-		else
+		else if (window.getSelection || document.selection)
 		{
-			pendingFontSize = fontSize;
+			// Checks selection
+			var par = null;
 			
-			// Workaround for can't set font size in px is to change font size afterwards
-			document.execCommand('fontSize', false, '4');
-			var elts = graph.cellEditor.textarea.getElementsByTagName('font');
-			
-			for (var i = 0; i < elts.length; i++)
+			if (document.selection)
 			{
-				if (elts[i].getAttribute('size') == '4')
+				par = document.selection.createRange().parentElement();
+			}
+			else
+			{
+				var selection = window.getSelection();
+				
+				if (selection.rangeCount > 0)
 				{
-					elts[i].removeAttribute('size');
-					elts[i].style.fontSize = pendingFontSize + 'px';
-		
-					// Overrides fontSize in input with the one just assigned as a workaround
-					// for potential fontSize values of parent elements that don't match
-					window.setTimeout(function()
+					par = selection.getRangeAt(0).commonAncestorContainer;
+				}
+			}
+			
+			// Node.contains does not work for text nodes in IE11
+			function isOrContains(container, node)
+			{
+			    while (node != null)
+			    {
+			        if (node === container)
+			        {
+			            return true;
+			        }
+			        
+			        node = node.parentNode;
+			    }
+			    
+			    return false;
+			};
+			
+			if (par != null && isOrContains(graph.cellEditor.textarea, par))
+			{
+				pendingFontSize = fontSize;
+				
+				// Workaround for can't set font size in px is to change font size afterwards
+				document.execCommand('fontSize', false, '4');
+				var elts = graph.cellEditor.textarea.getElementsByTagName('font');
+				
+				for (var i = 0; i < elts.length; i++)
+				{
+					if (elts[i].getAttribute('size') == '4')
 					{
-						input.value = pendingFontSize + ' pt';
-						pendingFontSize = null;
-					}, 0);
-					
-					break;
+						elts[i].removeAttribute('size');
+						elts[i].style.fontSize = pendingFontSize + 'px';
+			
+						// Overrides fontSize in input with the one just assigned as a workaround
+						// for potential fontSize values of parent elements that don't match
+						window.setTimeout(function()
+						{
+							input.value = pendingFontSize + ' pt';
+							pendingFontSize = null;
+						}, 0);
+						
+						break;
+					}
 				}
 			}
 		}
@@ -5085,7 +5128,6 @@ DiagramFormatPanel.prototype.addGridOption = function(container)
 			if (color == mxConstants.NONE)
 			{
 				graph.setGridEnabled(false);
-				ui.fireEvent(new mxEventObject('gridEnabledChanged'));
 			}
 			else
 			{
@@ -5095,6 +5137,7 @@ DiagramFormatPanel.prototype.addGridOption = function(container)
 
 			input.style.display = (graph.isGridEnabled()) ? '' : 'none';
 			stepper.style.display = input.style.display;
+			ui.fireEvent(new mxEventObject('gridEnabledChanged'));
 		}, '#e0e0e0',
 		{
 			install: function(apply)
