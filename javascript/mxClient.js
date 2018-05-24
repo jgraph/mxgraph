@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.9.4.
+	 * Current version is 3.9.5.
 	 */
-	VERSION: '3.9.4',
+	VERSION: '3.9.5',
 
 	/**
 	 * Variable: IS_IE
@@ -13514,7 +13514,7 @@ mxDragSource.prototype.dragEnter = function(graph, evt)
 	graph.isMouseTrigger = mxEvent.isMouseEvent(evt);
 	this.previewElement = this.createPreviewElement(graph);
 	
-	if (this.checkEventSource && mxClient.IS_SVG)
+	if (this.previewElement != null && this.checkEventSource && mxClient.IS_SVG)
 	{
 		this.previewElement.style.pointerEvents = 'none';
 	}

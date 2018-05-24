@@ -559,7 +559,7 @@ mxDragSource.prototype.dragEnter = function(graph, evt)
 	graph.isMouseTrigger = mxEvent.isMouseEvent(evt);
 	this.previewElement = this.createPreviewElement(graph);
 	
-	if (this.checkEventSource && mxClient.IS_SVG)
+	if (this.previewElement != null && this.checkEventSource && mxClient.IS_SVG)
 	{
 		this.previewElement.style.pointerEvents = 'none';
 	}

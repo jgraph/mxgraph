@@ -1,3 +1,7 @@
+24-MAY-2018: 3.9.5
+
+- Fixes possible NPE in mxDragSource.dragEnter
+
 17-MAY-2018: 3.9.4
 
 - Adds optional state argument in mxTooltipHandler.reset
