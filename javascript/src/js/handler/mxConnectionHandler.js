@@ -1115,7 +1115,7 @@ mxConnectionHandler.prototype.updateCurrentState = function(me, point)
 			this.marker.process(me);
 			this.currentState = this.marker.getValidState();
 			
-			if (this.currentState != null && this.graph.isCellLocked(this.currentState.cell))
+			if (this.currentState != null && !this.isCellEnabled(this.currentState.cell))
 			{
 				this.currentState = null;
 			}
@@ -1171,6 +1171,16 @@ mxConnectionHandler.prototype.updateCurrentState = function(me, point)
 			}
 		}
 	}
+};
+
+/**
+ * Function: isCellEnabled
+ * 
+ * Returns true if the given cell does not allow new connections to be created.
+ */
+mxConnectionHandler.prototype.isCellEnabled = function(cell)
+{
+	return true;
 };
 
 /**

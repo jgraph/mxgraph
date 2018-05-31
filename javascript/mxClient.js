@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.9.5.
+	 * Current version is 3.9.6.
 	 */
-	VERSION: '3.9.5',
+	VERSION: '3.9.6',
 
 	/**
 	 * Variable: IS_IE
@@ -23700,6 +23700,27 @@ mxShape.prototype.destroyCanvas = function(canvas)
  */
 mxShape.prototype.paint = function(c)
 {
+	var strokeDrawn = false;
+	
+	if (c != null && this.outline)
+	{
+		var stroke = c.stroke;
+		
+		c.stroke = function()
+		{
+			strokeDrawn = true;
+			stroke.apply(this, arguments);
+		};
+
+		var fillAndStroke = c.fillAndStroke;
+		
+		c.fillAndStroke = function()
+		{
+			strokeDrawn = true;
+			fillAndStroke.apply(this, arguments);
+		};
+	}
+
 	// Scale is passed-through to canvas
 	var s = this.scale;
 	var x = this.bounds.x / s;
@@ -23776,6 +23797,13 @@ mxShape.prototype.paint = function(c)
 	if (bg != null && c.state != null && c.state.transform != null)
 	{
 		bg.setAttribute('transform', c.state.transform);
+	}
+	
+	// Draws highlight rectangle if no stroke was used
+	if (c != null && this.outline && !strokeDrawn)
+	{
+		c.rect(x, y, w, h);
+		c.stroke();
 	}
 };
 
@@ -72695,7 +72723,7 @@ mxConnectionHandler.prototype.updateCurrentState = function(me, point)
 			this.marker.process(me);
 			this.currentState = this.marker.getValidState();
 			
-			if (this.currentState != null && this.graph.isCellLocked(this.currentState.cell))
+			if (this.currentState != null && !this.isCellEnabled(this.currentState.cell))
 			{
 				this.currentState = null;
 			}
@@ -72751,6 +72779,16 @@ mxConnectionHandler.prototype.updateCurrentState = function(me, point)
 			}
 		}
 	}
+};
+
+/**
+ * Function: isCellEnabled
+ * 
+ * Returns true if the given cell does not allow new connections to be created.
+ */
+mxConnectionHandler.prototype.isCellEnabled = function(cell)
+{
+	return true;
 };
 
 /**

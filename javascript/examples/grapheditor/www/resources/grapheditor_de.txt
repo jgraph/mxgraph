@@ -39,6 +39,7 @@ basic=Einfach
 block=Block
 blockquote=Zitat
 bold=Fett
+border=Rahmen
 borderWidth=Rahmenbreite
 borderColor=Rahmenfarbe
 bottom=Unten

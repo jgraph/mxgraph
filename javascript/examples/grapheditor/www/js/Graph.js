@@ -3858,20 +3858,23 @@ HoverIcons.prototype.setCurrentState = function(state)
 	        var nearest = null;
 	        var dist = null;
 	    
-	        for (var i = 0; i < constraints.length; i++)
+	        if (constraints != null)
 	        {
-	            var cp = this.graph.getConnectionPoint(start, constraints[i]);
-	            
-	            if (cp != null)
-	            {
-	                var tmp = (cp.x - pt.x) * (cp.x - pt.x) + (cp.y - pt.y) * (cp.y - pt.y);
-	            
-	                if (dist == null || tmp < dist)
-	                {
-	                    nearest = cp;
-	                    dist = tmp;
-	                }
-	            }
+		        for (var i = 0; i < constraints.length; i++)
+		        {
+		            var cp = this.graph.getConnectionPoint(start, constraints[i]);
+		            
+		            if (cp != null)
+		            {
+		                var tmp = (cp.x - pt.x) * (cp.x - pt.x) + (cp.y - pt.y) * (cp.y - pt.y);
+		            
+		                if (dist == null || tmp < dist)
+		                {
+		                    nearest = cp;
+		                    dist = tmp;
+		                }
+		            }
+		        }
 	        }
 	        
 	        if (nearest != null)
@@ -4314,7 +4317,18 @@ if (typeof mxVertexHandler != 'undefined')
 			
 			return marker;
 		};
-		
+
+		/**
+		 * Function: isCellLocked
+		 * 
+		 * Returns true if the given cell does not allow new connections to be created.
+		 * This implementation returns false.
+		 */
+		mxConnectionHandler.prototype.isCellEnabled = function(cell)
+		{
+			return !this.graph.isCellLocked(cell);
+		};
+
 		/**
 		 * 
 		 */
@@ -7690,7 +7704,7 @@ if (typeof mxVertexHandler != 'undefined')
 					if (this.graph.isEnabled() && typeof this.graph.editLink === 'function')
 					{
 						var changeLink = document.createElement('img');
-						changeLink.setAttribute('src', IMAGE_PATH + '/edit.gif');
+						changeLink.setAttribute('src', Editor.editImage);
 						changeLink.setAttribute('title', mxResources.get('editLink'));
 						changeLink.setAttribute('width', '11');
 						changeLink.setAttribute('height', '11');

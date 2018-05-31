@@ -39,6 +39,7 @@ basic=Basic
 block=Block
 blockquote=Blockquote
 bold=Bold
+border=Border
 borderWidth=Borderwidth
 borderColor=Border Color
 bottom=Bottom
