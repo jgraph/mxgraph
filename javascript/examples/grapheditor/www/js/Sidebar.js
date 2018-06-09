@@ -989,6 +989,9 @@ Sidebar.prototype.addBasicPalette = function(dir)
  */
 Sidebar.prototype.addMiscPalette = function(expand)
 {
+	// Avoids having to bind all functions to "this"
+	var sb = this;
+	
 	var lineTags = 'line lines connector connectors connection connections arrow arrows '
 	
 	var fns = [
