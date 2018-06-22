@@ -6671,7 +6671,8 @@ mxGraph.prototype.getConnectionPoint = function(vertex, constraint)
 		var r1 = 0;
 		
 		// Bounds need to be rotated by 90 degrees for further computation
-		if (direction != null)
+		if (direction != null && mxUtils.getValue(vertex.style,
+			mxConstants.STYLE_ANCHOR_POINT_DIRECTION, 1) == 1)
 		{
 			if (direction == mxConstants.DIRECTION_NORTH)
 			{
@@ -6687,7 +6688,8 @@ mxGraph.prototype.getConnectionPoint = function(vertex, constraint)
 			}
 
 			// Bounds need to be rotated by 90 degrees for further computation
-			if (direction == mxConstants.DIRECTION_NORTH || direction == mxConstants.DIRECTION_SOUTH)
+			if (direction == mxConstants.DIRECTION_NORTH ||
+				direction == mxConstants.DIRECTION_SOUTH)
 			{
 				bounds.rotate90();
 			}
@@ -9299,7 +9301,7 @@ mxGraph.prototype.isCellsLocked = function()
 };
 
 /**
- * Function: setLocked
+ * Function: setCellsLocked
  * 
  * Sets if any cell may be moved, sized, bended, disconnected, edited or
  * selected.

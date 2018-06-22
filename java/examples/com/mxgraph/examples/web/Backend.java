@@ -40,7 +40,7 @@ public class Backend extends HttpServlet
 	{
 		response.setContentType("text/xml;charset=UTF-8");
 		response.setHeader("Pragma", "no-cache"); // HTTP 1.0
-		response.setHeader("Cache-control", "private, no-cache, no-store");
+		response.setHeader("Cache-Control", "no-store");
 		response.setHeader("Expires", "0");
 
 		response.getWriter().println(createGraph(request));

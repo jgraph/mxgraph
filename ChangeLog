@@ -1,3 +1,11 @@
+22-JUN-2018: 3.9.7
+
+- Adds mxCylinder.getCylinderSize
+- Adds mxConstants.STYLE_ANCHOR_POINT_DIRECTION
+- Fixes mxGraphicsCanvas2D rotated text with HTML_SCALE [Java]
+- Adds webkit-print-color-adjust in mxPrintPreview
+- Adds mxConstants.STYLE_BACKGROUND_OUTLINE
+
 31-MAY-2018: 3.9.6
 
 - Adds mxConnectionHandler.isCellEnabled

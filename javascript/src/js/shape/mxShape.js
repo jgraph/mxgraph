@@ -1066,8 +1066,13 @@ mxShape.prototype.updateTransform = function(c, x, y, w, h)
 mxShape.prototype.paintVertexShape = function(c, x, y, w, h)
 {
 	this.paintBackground(c, x, y, w, h);
-	c.setShadow(false);
-	this.paintForeground(c, x, y, w, h);
+	
+	if (!this.outline || this.style == null || mxUtils.getValue(
+		this.style, mxConstants.STYLE_BACKGROUND_OUTLINE, 0) == 0)
+	{
+		c.setShadow(false);
+		this.paintForeground(c, x, y, w, h);
+	}
 };
 
 /**

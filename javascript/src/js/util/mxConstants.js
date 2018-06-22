@@ -1567,6 +1567,17 @@
 	STYLE_DIRECTION: 'direction',
 
 	/**
+	 * Variable: STYLE_ANCHOR_POINT_DIRECTION
+	 * 
+	 * Defines the key for the anchorPointDirection style. The defines if the
+	 * direction style should be taken into account when computing the fixed
+	 * point location for connected edges. Default is 1 (yes). Set this to 0
+	 * to ignore the direction style for fixed connection points. Value is
+	 * "anchorPointDirection".
+	 */
+	STYLE_ANCHOR_POINT_DIRECTION: 'anchorPointDirection',
+
+	/**
 	 * Variable: STYLE_ELBOW
 	 * 
 	 * Defines the key for the elbow style. Possible values are
@@ -1647,6 +1658,15 @@
 	 * 1. Default is 1. See <mxGraph.isCellEditable>. Value is "editable".
 	 */
 	STYLE_EDITABLE: 'editable',
+
+	/**
+	 * Variable: STYLE_BACKGROUND_OUTLINE
+	 * 
+	 * Defines the key for the backgroundOutline style. This specifies if a
+	 * only the background of a cell should be painted when it is highlighted.
+	 * Possible values are 0 or 1. Default is 0. Value is "backgroundOutline".
+	 */
+	STYLE_BACKGROUND_OUTLINE: 'backgroundOutline',
 
 	/**
 	 * Variable: STYLE_BENDABLE

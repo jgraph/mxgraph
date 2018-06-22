@@ -980,9 +980,9 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 		{
 			// Use native scaling for HTML
 			AffineTransform previous = state.g.getTransform();
-			state.g.scale(state.scale * HTML_SCALE, state.scale * HTML_SCALE);
 			double rad = rotation * (Math.PI / 180);
 			state.g.rotate(rad, x, y);
+			state.g.scale(state.scale * HTML_SCALE, state.scale * HTML_SCALE);
 
 			// Renders the scaled text with a correction factor
 			// HTML_SCALE for the given HTML_UNIT

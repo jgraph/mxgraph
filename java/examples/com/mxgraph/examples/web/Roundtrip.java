@@ -148,7 +148,7 @@ public class Roundtrip extends HttpServlet
 
 			// Makes sure there is no caching on the client side
 			response.setHeader("Pragma", "no-cache"); // HTTP 1.0
-			response.setHeader("Cache-control", "private, no-cache, no-store");
+			response.setHeader("Cache-Control", "no-store");
 			response.setHeader("Expires", "0");
 			response.setStatus(HttpServletResponse.SC_OK);
 

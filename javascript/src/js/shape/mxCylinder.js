@@ -65,11 +65,24 @@ mxCylinder.prototype.paintVertexShape = function(c, x, y, w, h)
 	this.redrawPath(c, x, y, w, h, false);
 	c.fillAndStroke();
 	
-	c.setShadow(false);
-	
-	c.begin();
-	this.redrawPath(c, x, y, w, h, true);
-	c.stroke();
+	if (!this.outline || this.style == null || mxUtils.getValue(
+		this.style, mxConstants.STYLE_BACKGROUND_OUTLINE, 0) == 0)
+	{
+		c.setShadow(false);
+		c.begin();
+		this.redrawPath(c, x, y, w, h, true);
+		c.stroke();
+	}
+};
+
+/**
+ * Function: redrawPath
+ *
+ * Draws the path for this shape.
+ */
+mxCylinder.prototype.getCylinderSize = function(x, y, w, h)
+{
+	return Math.min(this.maxHeight, Math.round(h / 5));
 };
 
 /**
@@ -79,7 +92,7 @@ mxCylinder.prototype.paintVertexShape = function(c, x, y, w, h)
  */
 mxCylinder.prototype.redrawPath = function(c, x, y, w, h, isForeground)
 {
-	var dy = Math.min(this.maxHeight, Math.round(h / 5));
+	var dy = this.getCylinderSize(x, y, w, h);
 	
 	if ((isForeground && this.fill != null) || (!isForeground && this.fill == null))
 	{

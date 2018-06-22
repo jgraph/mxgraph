@@ -719,6 +719,7 @@ mxPrintPreview.prototype.writeHead = function(doc, css)
 	// Removes horizontal rules and page selector from print output
 	doc.writeln('<style type="text/css">');
 	doc.writeln('@media print {');
+	doc.writeln('  * { -webkit-print-color-adjust: exact; }');
 	doc.writeln('  table.mxPageSelector { display: none; }');
 	doc.writeln('  hr.mxPageBreak { display: none; }');
 	doc.writeln('}');

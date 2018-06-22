@@ -15,9 +15,9 @@ index.html
 java/
 javascript/debug/
 javascript/devel/
-javascript/examples/*
+javascript/examples/
 javascript/index.html
-javascript/src/
+javascript/src/js/
 mxgraph-dotnet.*suo
 php/
 pom.xml
