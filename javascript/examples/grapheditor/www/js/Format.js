@@ -28,6 +28,16 @@ Format.prototype.showCloseButton = true;
 Format.prototype.inactiveTabBackgroundColor = '#d7d7d7';
 
 /**
+ * Background color for inactive tabs.
+ */
+Format.prototype.roundableShapes = ['label', 'rectangle', 'internalStorage', 'corner',
+	'parallelogram', 'swimlane', 'triangle', 'trapezoid',
+	'ext', 'step', 'tee', 'process', 'link',
+	'rhombus', 'offPageConnector', 'loopLimit', 'hexagon',
+	'manualInput', 'curlyBracket', 'singleArrow', 'callout',
+	'doubleArrow', 'flexArrow', 'card', 'umlLifeline'];
+
+/**
  * Adds the label menu items to the given menu and parent.
  */
 Format.prototype.init = function()
@@ -245,14 +255,9 @@ Format.prototype.isGlassState = function(state)
  */
 Format.prototype.isRoundedState = function(state)
 {
-	var shape = mxUtils.getValue(state.style, mxConstants.STYLE_SHAPE, null);
-	
-	return (shape == 'label' || shape == 'rectangle' || shape == 'internalStorage' || shape == 'corner' ||
-			shape == 'parallelogram' || shape == 'swimlane' || shape == 'triangle' || shape == 'trapezoid' ||
-			shape == 'ext' || shape == 'step' || shape == 'tee' || shape == 'process' || shape == 'link' ||
-			shape == 'rhombus' || shape == 'offPageConnector' || shape == 'loopLimit' || shape == 'hexagon' ||
-			shape == 'manualInput' || shape == 'curlyBracket' || shape == 'singleArrow' || shape == 'callout' ||
-			shape == 'doubleArrow' || shape == 'flexArrow' || shape == 'card' || shape == 'umlLifeline');
+	return (state.shape != null) ? state.shape.isRoundable() :
+		mxUtils.indexOf(this.roundableShapes, mxUtils.getValue(state.style,
+		mxConstants.STYLE_SHAPE, null)) >= 0;
 };
 
 /**
@@ -3164,37 +3169,37 @@ TextFormatPanel.prototype.addFont = function(container)
 		
 		var btns = [
 		        this.editorUi.toolbar.addButton('geSprite-insertcolumnbefore', mxResources.get('insertColumnBefore'),
-				function()
+	     		mxUtils.bind(this, function()
 				{
 					try
 					{
-				        	if (currentTable != null)
-				        	{
-				        		graph.selectNode(graph.insertColumn(currentTable, (tableCell != null) ? tableCell.cellIndex : 0));
-				        	}
+				       	if (currentTable != null)
+				       	{
+				       		graph.selectNode(graph.insertColumn(currentTable, (tableCell != null) ? tableCell.cellIndex : 0));
+				       	}
 					}
 					catch (e)
 					{
-						alert(e);
+						this.editorUi.handleError(e);
 					}
-				}, tablePanel),
+				}), tablePanel),
 				this.editorUi.toolbar.addButton('geSprite-insertcolumnafter', mxResources.get('insertColumnAfter'),
-				function()
+				mxUtils.bind(this, function()
 				{
 					try
 					{
 						if (currentTable != null)
-				        	{
-								graph.selectNode(graph.insertColumn(currentTable, (tableCell != null) ? tableCell.cellIndex + 1 : -1));
-				        	}
+				       	{
+							graph.selectNode(graph.insertColumn(currentTable, (tableCell != null) ? tableCell.cellIndex + 1 : -1));
+				       	}
 					}
 					catch (e)
 					{
-						alert(e);
+						this.editorUi.handleError(e);
 					}
-				}, tablePanel),
+				}), tablePanel),
 				this.editorUi.toolbar.addButton('geSprite-deletecolumn', mxResources.get('deleteColumn'),
-				function()
+				mxUtils.bind(this, function()
 				{
 					try
 					{
@@ -3205,11 +3210,11 @@ TextFormatPanel.prototype.addFont = function(container)
 					}
 					catch (e)
 					{
-						alert(e);
+						this.editorUi.handleError(e);
 					}
-				}, tablePanel),
+				}), tablePanel),
 				this.editorUi.toolbar.addButton('geSprite-insertrowbefore', mxResources.get('insertRowBefore'),
-				function()
+				mxUtils.bind(this, function()
 				{
 					try
 					{
@@ -3220,11 +3225,11 @@ TextFormatPanel.prototype.addFont = function(container)
 					}
 					catch (e)
 					{
-						alert(e);
+						this.editorUi.handleError(e);
 					}
-				}, tablePanel),
+				}), tablePanel),
 				this.editorUi.toolbar.addButton('geSprite-insertrowafter', mxResources.get('insertRowAfter'),
-				function()
+				mxUtils.bind(this, function()
 				{
 					try
 					{
@@ -3235,11 +3240,11 @@ TextFormatPanel.prototype.addFont = function(container)
 					}
 					catch (e)
 					{
-						alert(e);
+						this.editorUi.handleError(e);
 					}
-				}, tablePanel),
+				}), tablePanel),
 				this.editorUi.toolbar.addButton('geSprite-deleterow', mxResources.get('deleteRow'),
-				function()
+				mxUtils.bind(this, function()
 				{
 					try
 					{
@@ -3250,9 +3255,9 @@ TextFormatPanel.prototype.addFont = function(container)
 					}
 					catch (e)
 					{
-						alert(e);
+						this.editorUi.handleError(e);
 					}
-				}, tablePanel)];
+				}), tablePanel)];
 		this.styleButtons(btns);
 		btns[2].style.marginRight = '9px';
 		

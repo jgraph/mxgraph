@@ -104,6 +104,16 @@ mxRectangleShape.prototype.paintBackground = function(c, x, y, w, h)
 };
 
 /**
+ * Function: isRoundable
+ * 
+ * Adds roundable support.
+ */
+mxRectangleShape.prototype.isRoundable = function(c, x, y, w, h)
+{
+	return true;
+};
+
+/**
  * Function: paintForeground
  * 
  * Generic background painting implementation.

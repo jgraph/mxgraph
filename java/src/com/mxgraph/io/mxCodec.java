@@ -291,7 +291,7 @@ public class mxCodec
 				}
 				else
 				{
-					log.severe("No codec for " + name);
+					log.log(Level.FINEST, "No codec for " + name);
 				}
 			}
 		}
@@ -344,7 +344,7 @@ public class mxCodec
 			}
 			catch (Exception e)
 			{
-				log.log(Level.SEVERE, "Cannot decode " + node.getNodeName(), e);
+				log.log(Level.FINEST, "Cannot decode " + node.getNodeName(), e);
 			}
 		}
 

@@ -118,6 +118,16 @@ mxImageShape.prototype.createHtml = function()
 };
 
 /**
+ * Function: isRoundable
+ * 
+ * Disables inherited roundable support.
+ */
+mxImageShape.prototype.isRoundable = function(c, x, y, w, h)
+{
+	return false;
+};
+
+/**
  * Function: paintVertexShape
  * 
  * Generic background painting implementation.

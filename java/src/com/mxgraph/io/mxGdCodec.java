@@ -148,7 +148,7 @@ public class mxGdCodec
 		
 		catch (Exception e)
 		{
-			log.log(Level.SEVERE, "Failed to decode", e);
+			log.log(Level.FINEST, "Failed to decode", e);
 		}
 		finally
 		{

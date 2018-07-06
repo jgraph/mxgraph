@@ -316,8 +316,7 @@ mxGraphView.prototype.scaleAndTranslate = function(scale, dx, dy)
 
 		if (this.isEventsEnabled())
 		{
-			this.revalidate();
-			this.graph.sizeDidChange();
+			this.viewStateChanged();
 		}
 	}
 	
@@ -356,8 +355,7 @@ mxGraphView.prototype.setScale = function(value)
 
 		if (this.isEventsEnabled())
 		{
-			this.revalidate();
-			this.graph.sizeDidChange();
+			this.viewStateChanged();
 		}
 	}
 	
@@ -398,13 +396,23 @@ mxGraphView.prototype.setTranslate = function(dx, dy)
 
 		if (this.isEventsEnabled())
 		{
-			this.revalidate();
-			this.graph.sizeDidChange();
+			this.viewStateChanged();
 		}
 	}
 	
 	this.fireEvent(new mxEventObject(mxEvent.TRANSLATE,
 		'translate', this.translate, 'previousTranslate', previousTranslate));
+};
+
+/**
+ * Function: viewStateChanged
+ * 
+ * Invoked after <scale> and/or <translate> has changed.
+ */
+mxGraphView.prototype.viewStateChanged = function()
+{
+	this.revalidate();
+	this.graph.sizeDidChange();
 };
 
 /**

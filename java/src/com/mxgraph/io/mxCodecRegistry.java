@@ -130,12 +130,12 @@ public class mxCodecRegistry
 				}
 				catch (Exception e)
 				{
-					log.log(Level.SEVERE, "Failed to create and register a codec for the name: " + name, e);
+					log.log(Level.FINEST, "Failed to create and register a codec for the name: " + name, e);
 				}
 			}
 			else
 			{
-				log.severe("Failed to create codec for " + name);
+				log.log(Level.FINEST, "Failed to create codec for " + name);
 			}
 		}
 
@@ -177,12 +177,13 @@ public class mxCodecRegistry
 				}
 				catch (Exception e)
 				{
-					log.log(Level.SEVERE, "Failed to construct class instance for " + name, e);
+					log.log(Level.FINEST, "Failed to construct class instance for " + name, e);
 				}
 			}
 		}
 
-		log.severe("Failed to construct instance for " + name);
+		log.log(Level.FINEST, "Failed to construct instance for " + name);
+
 		return null;
 	}
 

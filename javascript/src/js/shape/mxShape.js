@@ -611,6 +611,7 @@ mxShape.prototype.createCanvas = function()
 		canvas.setFillColor = function() {};
 		canvas.setGradient = function() {};
 		canvas.setDashed = function() {};
+		canvas.text = function() {};
 	}
 
 	return canvas;
@@ -1407,6 +1408,16 @@ mxShape.prototype.setCursor = function(cursor)
 mxShape.prototype.getCursor = function()
 {
 	return this.cursor;
+};
+
+/**
+ * Function: isRoundable
+ * 
+ * Hook for subclassers.
+ */
+mxShape.prototype.isRoundable = function()
+{
+	return false;
 };
 
 /**

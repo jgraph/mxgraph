@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.9.7.
+	 * Current version is 3.9.8.
 	 */
-	VERSION: '3.9.7',
+	VERSION: '3.9.8',
 
 	/**
 	 * Variable: IS_IE
@@ -11076,6 +11076,8 @@ mxXmlRequest.prototype.create = function()
  * 
  * Send the <request> to the target URL using the specified functions to
  * process the response asychronously.
+ * 
+ * Note: Due to technical limitations, onerror is currently ignored.
  * 
  * Parameters:
  * 
@@ -23458,6 +23460,7 @@ mxShape.prototype.createCanvas = function()
 		canvas.setFillColor = function() {};
 		canvas.setGradient = function() {};
 		canvas.setDashed = function() {};
+		canvas.text = function() {};
 	}
 
 	return canvas;
@@ -24257,6 +24260,16 @@ mxShape.prototype.getCursor = function()
 };
 
 /**
+ * Function: isRoundable
+ * 
+ * Hook for subclassers.
+ */
+mxShape.prototype.isRoundable = function()
+{
+	return false;
+};
+
+/**
  * Function: updateBoundingBox
  *
  * Updates the <boundingBox> for this shape using <createBoundingBox> and
@@ -24996,6 +25009,16 @@ mxRectangleShape.prototype.paintBackground = function(c, x, y, w, h)
 			
 		c.fillAndStroke();
 	}
+};
+
+/**
+ * Function: isRoundable
+ * 
+ * Adds roundable support.
+ */
+mxRectangleShape.prototype.isRoundable = function(c, x, y, w, h)
+{
+	return true;
 };
 
 /**
@@ -27451,6 +27474,16 @@ mxImageShape.prototype.createHtml = function()
 	node.style.position = 'absolute';
 
 	return node;
+};
+
+/**
+ * Function: isRoundable
+ * 
+ * Disables inherited roundable support.
+ */
+mxImageShape.prototype.isRoundable = function(c, x, y, w, h)
+{
+	return false;
 };
 
 /**
@@ -51171,8 +51204,7 @@ mxGraphView.prototype.scaleAndTranslate = function(scale, dx, dy)
 
 		if (this.isEventsEnabled())
 		{
-			this.revalidate();
-			this.graph.sizeDidChange();
+			this.viewStateChanged();
 		}
 	}
 	
@@ -51211,8 +51243,7 @@ mxGraphView.prototype.setScale = function(value)
 
 		if (this.isEventsEnabled())
 		{
-			this.revalidate();
-			this.graph.sizeDidChange();
+			this.viewStateChanged();
 		}
 	}
 	
@@ -51253,13 +51284,23 @@ mxGraphView.prototype.setTranslate = function(dx, dy)
 
 		if (this.isEventsEnabled())
 		{
-			this.revalidate();
-			this.graph.sizeDidChange();
+			this.viewStateChanged();
 		}
 	}
 	
 	this.fireEvent(new mxEventObject(mxEvent.TRANSLATE,
 		'translate', this.translate, 'previousTranslate', previousTranslate));
+};
+
+/**
+ * Function: viewStateChanged
+ * 
+ * Invoked after <scale> and/or <translate> has changed.
+ */
+mxGraphView.prototype.viewStateChanged = function()
+{
+	this.revalidate();
+	this.graph.sizeDidChange();
 };
 
 /**

@@ -1,3 +1,8 @@
+06-JUN-2018: 3.9.8
+
+- Fixes incorrect logging level in codecs
+- Adds mxShape.isRoundable
+
 22-JUN-2018: 3.9.7
 
 - Adds mxCylinder.getCylinderSize
