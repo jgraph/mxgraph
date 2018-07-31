@@ -23,6 +23,8 @@ Support
 
 There is a [mxgraph tag on Stack Overflow](http://stackoverflow.com/questions/tagged/mxgraph). Please ensure your questions adhere to the [SO guidelines](http://stackoverflow.com/help/on-topic), otherwise it will be closed.
 
+We do not provide commercial support. If you are looking for a commercially supported diagramming library, we recommend [yFiles HTML](https://www.yworks.com/products/yfiles-for-html). Their layouting and routing algorithms, in particular, are the best out there.
+
 License
 =======
 
