@@ -6519,8 +6519,8 @@ mxGraph.prototype.getOutlineConstraint = function(point, terminalState, me)
 		
 		point = new mxPoint((point.x - bounds.x) * sx - dx + bounds.x, (point.y - bounds.y) * sy - dy + bounds.y);
 		
-		var x = Math.round((point.x - bounds.x) * 1000 / bounds.width) / 1000;
-		var y = Math.round((point.y - bounds.y) * 1000 / bounds.height) / 1000;
+		var x = (bounds.width == 0) ? 0 : Math.round((point.x - bounds.x) * 1000 / bounds.width) / 1000;
+		var y = (bounds.height == 0) ? 0 : Math.round((point.y - bounds.y) * 1000 / bounds.height) / 1000;
 		
 		return new mxConnectionConstraint(new mxPoint(x, y), false);
 	}

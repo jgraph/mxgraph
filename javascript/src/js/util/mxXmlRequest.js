@@ -332,7 +332,7 @@ mxXmlRequest.prototype.send = function(onload, onerror, timeout, ontimeout)
 				if (this.isReady())
 				{
 					onload(this);
-					this.onreadystatechaange = null;
+					this.request.onreadystatechaange = null;
 				}
 			});
 		}

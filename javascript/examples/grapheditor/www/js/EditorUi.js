@@ -14,9 +14,6 @@ EditorUi = function(editor, container, lightbox)
 	
 	var graph = this.editor.graph;
 	graph.lightbox = lightbox;
-	graph.useCssTransforms =
-		this.editor.isChromelessView() &&
-		graph.isCssTransformsSupported();
 
 	// Faster scrollwheel zoom is possible with CSS transforms
 	if (graph.useCssTransforms)
@@ -1538,6 +1535,7 @@ EditorUi.prototype.initCanvas = function()
 			pageInfo.style.verticalAlign = 'top';
 			pageInfo.style.fontFamily = 'Helvetica,Arial';
 			pageInfo.style.marginTop = '8px';
+			pageInfo.style.fontSize = '14px';
 			pageInfo.style.color = '#ffffff';
 			this.chromelessToolbar.appendChild(pageInfo);
 			

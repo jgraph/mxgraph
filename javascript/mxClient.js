@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.9.8.
+	 * Current version is 3.9.9.
 	 */
-	VERSION: '3.9.8',
+	VERSION: '3.9.9',
 
 	/**
 	 * Variable: IS_IE
@@ -347,24 +347,6 @@ var mxClient =
 	include: function(src)
 	{
 		document.write('<script src="'+src+'"></script>');
-	},
-	
-	/**
-	 * Function: dispose
-	 * 
-	 * Frees up memory in IE by resolving cyclic dependencies between the DOM
-	 * and the JavaScript objects.
-	 */
-	dispose: function()
-	{
-		// Cleans all objects where listeners have been added
-		for (var i = 0; i < mxEvent.objects.length; i++)
-		{
-			if (mxEvent.objects[i].mxListenerList != null)
-			{
-				mxEvent.removeAllListeners(mxEvent.objects[i]);
-			}
-		}
 	}
 };
 
@@ -647,9 +629,6 @@ if (mxClient.IS_VML)
 	    {
 	    	mxClient.link('stylesheet', mxClient.basePath + '/css/explorer.css');
 	    }
-	
-		// Cleans up resources when the application terminates
-		window.attachEvent('onunload', mxClient.dispose);
 	}
 }
 
@@ -9386,23 +9365,14 @@ var mxEvent =
 	 * <removeAllListeners> function is provided to remove all listeners that
 	 * have been added using <addListener>. The function should be invoked when
 	 * the last reference is removed in the JavaScript code, typically when the
-	 * referenced DOM node is removed from the DOM, and helps to reduce memory
-	 * leaks in IE6.
+	 * referenced DOM node is removed from the DOM.
+	 *
+	 * Function: addListener
 	 * 
-	 * Variable: objects
-	 * 
-	 * Contains all objects where any listener was added using <addListener>.
-	 * This is used to reduce memory leaks in IE, see <mxClient.dispose>.
+	 * Binds the function to the specified event on the given element. Use
+	 * <mxUtils.bind> in order to bind the "this" keyword inside the function
+	 * to a given execution scope.
 	 */
-	objects: [],
-
-	 /**
-	  * Function: addListener
-	  * 
-	  * Binds the function to the specified event on the given element. Use
-	  * <mxUtils.bind> in order to bind the "this" keyword inside the function
-	  * to a given execution scope.
-	  */
 	addListener: function()
 	{
 		var updateListenerList = function(element, eventName, funct)
@@ -9410,7 +9380,6 @@ var mxEvent =
 			if (element.mxListenerList == null)
 			{
 				element.mxListenerList = [];
-				mxEvent.objects.push(element);
 			}
 			
 			var entry = {name: eventName, f: funct};
@@ -9462,13 +9431,6 @@ var mxEvent =
 				if (element.mxListenerList.length == 0)
 				{
 					element.mxListenerList = null;
-					
-					var idx = mxUtils.indexOf(mxEvent.objects, element);
-					
-					if (idx >= 0)
-					{
-						mxEvent.objects.splice(idx, 1);
-					}
 				}
 			}
 		};
@@ -11099,7 +11061,7 @@ mxXmlRequest.prototype.send = function(onload, onerror, timeout, ontimeout)
 				if (this.isReady())
 				{
 					onload(this);
-					this.onreadystatechaange = null;
+					this.request.onreadystatechaange = null;
 				}
 			});
 		}
@@ -25234,6 +25196,16 @@ function mxRhombus(bounds, fill, stroke, strokewidth)
 mxUtils.extend(mxRhombus, mxShape);
 
 /**
+ * Function: isRoundable
+ * 
+ * Adds roundable support.
+ */
+mxRhombus.prototype.isRoundable = function()
+{
+	return true;
+};
+
+/**
  * Function: paintVertexShape
  * 
  * Generic painting implementation.
@@ -27263,6 +27235,16 @@ function mxTriangle()
 mxUtils.extend(mxTriangle, mxActor);
 
 /**
+ * Function: isRoundable
+ * 
+ * Adds roundable support.
+ */
+mxTriangle.prototype.isRoundable = function()
+{
+	return true;
+};
+
+/**
  * Function: redrawPath
  *
  * Draws the path for this shape.
@@ -28194,6 +28176,16 @@ mxUtils.extend(mxSwimlane, mxShape);
 mxSwimlane.prototype.imageSize = 16;
 
 /**
+ * Function: isRoundable
+ * 
+ * Adds roundable support.
+ */
+mxSwimlane.prototype.isRoundable = function(c, x, y, w, h)
+{
+	return true;
+};
+
+/**
  * Function: getGradientBounds
  * 
  * Returns the bounding box for the gradient box for this shape.
@@ -28358,8 +28350,7 @@ mxSwimlane.prototype.paintSwimlane = function(c, x, y, w, h, start, fill, swimla
 	{
 		c.save();
 		c.setFillColor(fill);
-		c.rect(0, 0, w, h);
-		c.fillAndStroke();
+		mxRectangleShape.prototype.paintBackground.call(this, c, 0, 0, w, h);
 		c.restore();
 		c.setShadow(false);
 	}
@@ -28440,8 +28431,7 @@ mxSwimlane.prototype.paintRoundedSwimlane = function(c, x, y, w, h, start, r, fi
 	{
 		c.save();
 		c.setFillColor(fill);
-		c.roundrect(0, 0, w, h, r, r);
-		c.fillAndStroke();
+		mxRectangleShape.prototype.paintBackground.call(this, c, 0, 0, w, h);
 		c.restore();
 		c.setShadow(false);
 	}
@@ -44729,6 +44719,14 @@ mxPrintPreview.prototype.open = function(css, targetWindow, forcePageBreaks, kee
 				doc.writeln(div.outerHTML);
 				div.parentNode.removeChild(div);
 			}
+			else if (mxClient.IS_IE || document.documentMode >= 11 || mxClient.IS_EDGE)
+			{
+				var clone = doc.createElement('div');
+				clone.innerHTML = div.outerHTML;
+				clone = clone.getElementsByTagName('div')[0];
+				doc.body.appendChild(clone);
+				div.parentNode.removeChild(div);
+			}
 			else
 			{
 				div.parentNode.removeChild(div);
@@ -45119,6 +45117,20 @@ mxPrintPreview.prototype.addGraphFragment = function(dx, dy, scale, pageNumber, 
 	if (this.graph.dialect == mxConstants.DIALECT_SVG)
 	{
 		view.createSvg();
+		
+		// Uses CSS transform for scaling
+		if (!mxClient.NO_FO)
+		{
+			var g = view.getDrawPane().parentNode;
+			var prev = g.getAttribute('transform');
+			g.setAttribute('transformOrigin', '0 0');
+			g.setAttribute('transform', 'scale(' + scale + ',' + scale + ')' +
+				'translate(' + dx + ',' + dy + ')');
+			
+			scale = 1;
+			dx = 0;
+			dy = 0;
+		}
 	}
 	else if (this.graph.dialect == mxConstants.DIALECT_VML)
 	{
@@ -45145,7 +45157,7 @@ mxPrintPreview.prototype.addGraphFragment = function(dx, dy, scale, pageNumber, 
 	var redraw = this.graph.cellRenderer.redraw;
 	var states = view.states;
 	var s = view.scale;
-	
+
 	// Gets the transformed clip for intersection check below
 	if (this.clipping)
 	{
@@ -45168,7 +45180,7 @@ mxPrintPreview.prototype.addGraphFragment = function(dx, dy, scale, pageNumber, 
 					// Stops rendering if outside clip for speedup
 					if (bbox != null && !mxUtils.intersects(tempClip, bbox))
 					{
-						return;
+						//return;
 					}
 				}
 			}
@@ -53755,9 +53767,8 @@ mxGraphView.prototype.createSvg = function()
 	this.canvas.appendChild(this.decoratorPane);
 	
 	var root = document.createElementNS(mxConstants.NS_SVG, 'svg');
-//	root.style.position = 'relative';
-//	root.style.left = '0px';
-//	root.style.top = '0px';
+	root.style.left = '0px';
+	root.style.top = '0px';
 	root.style.width = '100%';
 	root.style.height = '100%';
 	
@@ -60420,8 +60431,8 @@ mxGraph.prototype.getOutlineConstraint = function(point, terminalState, me)
 		
 		point = new mxPoint((point.x - bounds.x) * sx - dx + bounds.x, (point.y - bounds.y) * sy - dy + bounds.y);
 		
-		var x = Math.round((point.x - bounds.x) * 1000 / bounds.width) / 1000;
-		var y = Math.round((point.y - bounds.y) * 1000 / bounds.height) / 1000;
+		var x = (bounds.width == 0) ? 0 : Math.round((point.x - bounds.x) * 1000 / bounds.width) / 1000;
+		var y = (bounds.height == 0) ? 0 : Math.round((point.y - bounds.y) * 1000 / bounds.height) / 1000;
 		
 		return new mxConnectionConstraint(new mxPoint(x, y), false);
 	}
@@ -72950,7 +72961,10 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 		this.snapToPreview(me, point);
 		this.currentPoint = point;
 		
-		if (this.first != null || (this.isEnabled() && this.graph.isEnabled()))
+		if ((this.first != null || (this.isEnabled() && this.graph.isEnabled())) &&
+			(this.shape != null || this.first == null ||
+			Math.abs(me.getGraphX() - this.first.x) > this.graph.tolerance ||
+			Math.abs(me.getGraphY() - this.first.y) > this.graph.tolerance))
 		{
 			this.updateCurrentState(me, point);
 		}
@@ -72968,9 +72982,11 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 				constraint = this.constraintHandler.currentConstraint;
 				current = this.constraintHandler.currentPoint.clone();
 			}
-			else if (this.previous != null && !this.graph.isIgnoreTerminalEvent(me.getEvent()) && mxEvent.isShiftDown(me.getEvent()))
+			else if (this.previous != null && !this.graph.isIgnoreTerminalEvent(me.getEvent()) &&
+				mxEvent.isShiftDown(me.getEvent()))
 			{
-				if (Math.abs(this.previous.getCenterX() - point.x) < Math.abs(this.previous.getCenterY() - point.y))
+				if (Math.abs(this.previous.getCenterX() - point.x) <
+					Math.abs(this.previous.getCenterY() - point.y))
 				{
 					point.x = this.previous.getCenterX();
 				}
@@ -73081,8 +73097,8 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 			// Creates the preview shape (lazy)
 			if (this.shape == null)
 			{
-				var dx = Math.abs(point.x - this.first.x);
-				var dy = Math.abs(point.y - this.first.y);
+				var dx = Math.abs(me.getGraphX() - this.first.x);
+				var dy = Math.abs(me.getGraphY() - this.first.y);
 
 				if (dx > this.graph.tolerance || dy > this.graph.tolerance)
 				{
@@ -73384,6 +73400,19 @@ mxConnectionHandler.prototype.addWaypointForEvent = function(me)
 };
 
 /**
+ * Function: checkConstraints
+ * 
+ * Returns true if the connection for the given constraints is valid. This
+ * implementation returns true if the constraints are not pointing to the
+ * same fixed connection point.
+ */
+mxConnectionHandler.prototype.checkConstraints = function(c1, c2)
+{
+	return (c1 == null || c2 == null || c1.point == null || c2.point == null ||
+		!c1.point.equals(c2.point) || c1.perimeter != c2.perimeter);
+};
+
+/**
  * Function: mouseUp
  * 
  * Handles the event by inserting the new connection.
@@ -73400,8 +73429,11 @@ mxConnectionHandler.prototype.mouseUp = function(sender, me)
 			return;
 		}
 		
-		// Inserts the edge if no validation error exists
-		if (this.error == null)
+		var c1 = this.sourceConstraint;
+		var c2 = this.constraintHandler.currentConstraint;
+		
+		// Inserts the edge if no validation error exists and if constraints differ
+		if (this.error == null && this.checkConstraints(c1, c2))
 		{
 			var source = (this.previous != null) ? this.previous.cell : null;
 			var target = null;
@@ -73425,12 +73457,12 @@ mxConnectionHandler.prototype.mouseUp = function(sender, me)
 			if (this.previous != null && this.marker.validState != null &&
 				this.previous.cell == this.marker.validState.cell)
 			{
-				this.graph.selectCellForEvent(this.marker.source, evt);
+				this.graph.selectCellForEvent(this.marker.source, me.getEvent());
 			}
 			
 			// Displays the error message if it is not an empty string,
 			// for empty error messages, the event is silently dropped
-			if (this.error.length > 0)
+			if (this.error != null && this.error.length > 0)
 			{
 				this.graph.validationAlert(this.error);
 			}
@@ -73656,8 +73688,7 @@ mxConnectionHandler.prototype.connect = function(source, target, evt, dropTarget
 
 					if (tmp != null && tmp.parent != null && tmp.parent == edge.parent)
 					{
-						var index = tmp.parent.getIndex(tmp);
-						tmp.parent.insert(edge, index);
+						model.add(parent, edge, tmp.parent.getIndex(tmp));
 					}
 				}
 				

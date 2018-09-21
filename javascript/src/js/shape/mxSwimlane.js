@@ -50,6 +50,16 @@ mxUtils.extend(mxSwimlane, mxShape);
 mxSwimlane.prototype.imageSize = 16;
 
 /**
+ * Function: isRoundable
+ * 
+ * Adds roundable support.
+ */
+mxSwimlane.prototype.isRoundable = function(c, x, y, w, h)
+{
+	return true;
+};
+
+/**
  * Function: getGradientBounds
  * 
  * Returns the bounding box for the gradient box for this shape.
@@ -214,8 +224,7 @@ mxSwimlane.prototype.paintSwimlane = function(c, x, y, w, h, start, fill, swimla
 	{
 		c.save();
 		c.setFillColor(fill);
-		c.rect(0, 0, w, h);
-		c.fillAndStroke();
+		mxRectangleShape.prototype.paintBackground.call(this, c, 0, 0, w, h);
 		c.restore();
 		c.setShadow(false);
 	}
@@ -296,8 +305,7 @@ mxSwimlane.prototype.paintRoundedSwimlane = function(c, x, y, w, h, start, r, fi
 	{
 		c.save();
 		c.setFillColor(fill);
-		c.roundrect(0, 0, w, h, r, r);
-		c.fillAndStroke();
+		mxRectangleShape.prototype.paintBackground.call(this, c, 0, 0, w, h);
 		c.restore();
 		c.setShadow(false);
 	}

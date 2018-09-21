@@ -699,7 +699,7 @@ public class mxObjectCodec
 			type = type.getSuperclass();
 		}
 
-		log.severe("Field " + fieldname + " not found in " + obj);
+		log.log(Level.FINEST, "Field " + fieldname + " not found in " + obj);
 		return null;
 	}
 

@@ -1050,6 +1050,11 @@ Graph.prototype.baseUrl = (urlParams['base'] != null) ?
 Graph.prototype.editAfterInsert = false;
 
 /**
+ * Defines the built-in properties to be ignored in tooltips.
+ */
+Graph.prototype.builtInProperties = ['label', 'tooltip', 'placeholders', 'placeholder'];
+
+/**
  * Installs child layout styles.
  */
 Graph.prototype.init = function(container)
@@ -1311,77 +1316,61 @@ Graph.prototype.init = function(container)
 		
 		if (temp != null)
 		{
-			var g = this.view.getDrawPane().parentNode;
-			var prev = g.getAttribute('transform');
-			g.setAttribute('transformOrigin', '0 0');
-			g.setAttribute('transform', 'scale(' + this.currentScale + ',' + this.currentScale + ')' +
-				'translate(' + this.currentTranslate.x + ',' + this.currentTranslate.y + ')');
-
-			// Applies workarounds only if translate has changed
-			if (prev != g.getAttribute('transform'))
+			var g = temp.parentNode;
+			
+			if (!this.useCssTransforms)
 			{
-				try
+				g.removeAttribute('transformOrigin');
+				g.removeAttribute('transform');
+			}
+			else
+			{
+				var prev = g.getAttribute('transform');
+				g.setAttribute('transformOrigin', '0 0');
+				g.setAttribute('transform', 'scale(' + this.currentScale + ',' + this.currentScale + ')' +
+					'translate(' + this.currentTranslate.x + ',' + this.currentTranslate.y + ')');
+	
+				// Applies workarounds only if translate has changed
+				if (prev != g.getAttribute('transform'))
 				{
-					// Applies transform to labels outside of the SVG DOM
-					// Excluded via isCssTransformsSupported
-//					if (mxClient.NO_FO)
-//					{
-//						var transform = 'scale(' + this.currentScale + ')' + 'translate(' +
-//							this.currentTranslate.x + 'px,' + this.currentTranslate.y + 'px)';
-//							
-//						this.view.states.visit(mxUtils.bind(this, function(cell, state)
-//						{
-//							if (state.text != null && state.text.node != null)
-//							{
-//								// Stores initial CSS transform that is used for the label alignment
-//								if (state.text.originalTransform == null)
-//								{
-//									state.text.originalTransform = state.text.node.style.transform;
-//								}
-//								
-//								state.text.node.style.transform = transform + state.text.originalTransform;
-//							}
-//						}));
-//					}
-					// Workaround for https://bugs.webkit.org/show_bug.cgi?id=93358 in WebKit
-					// Adding an absolute position DIV before the SVG seems to mitigate the problem.
-					if (mxClient.IS_GC)
+					try
 					{
-						if (this.mathEnabled && (this.webKitForceRepaintNode == null ||
-							this.webKitForceRepaintNode.parentNode == null) &&
-							this.container.firstChild.nodeName == 'svg')
+						// Applies transform to labels outside of the SVG DOM
+						// Excluded via isCssTransformsSupported
+	//					if (mxClient.NO_FO)
+	//					{
+	//						var transform = 'scale(' + this.currentScale + ')' + 'translate(' +
+	//							this.currentTranslate.x + 'px,' + this.currentTranslate.y + 'px)';
+	//							
+	//						this.view.states.visit(mxUtils.bind(this, function(cell, state)
+	//						{
+	//							if (state.text != null && state.text.node != null)
+	//							{
+	//								// Stores initial CSS transform that is used for the label alignment
+	//								if (state.text.originalTransform == null)
+	//								{
+	//									state.text.originalTransform = state.text.node.style.transform;
+	//								}
+	//								
+	//								state.text.node.style.transform = transform + state.text.originalTransform;
+	//							}
+	//						}));
+	//					}
+						// Workaround for https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/4320441/
+						if (mxClient.IS_EDGE)
 						{
-							this.webKitForceRepaintNode = document.createElement('div');
-							this.webKitForceRepaintNode.style.cssText = 'position:absolute;';
-							g.ownerSVGElement.parentNode.insertBefore(this.webKitForceRepaintNode, g.ownerSVGElement);
-						}
-						else if (this.webKitForceRepaintNode != null && (!this.mathEnabled ||
-								(this.container.firstChild.nodeName != 'svg' &&
-								this.container.firstChild != this.webKitForceRepaintNode)))
-						{
-							if (this.webKitForceRepaintNode.parentNode != null)
-							{
-								this.webKitForceRepaintNode.parentNode.removeChild(this.webKitForceRepaintNode);
-							}
-							
-							this.webKitForceRepaintNode = null;
+							// Recommended workaround is to do this on all
+							// foreignObjects, but this seems to be faster
+							var val = g.style.display;
+							g.style.display = 'none';
+							g.getBBox();
+							g.style.display = val;
 						}
 					}
-					// Workaround for https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/4320441/
-					else if (mxClient.IS_EDGE)
+					catch (e)
 					{
-						// Recommended workaround is to do this on all
-						// foreignObjects, but this seems to be faster
-						var val = g.style.display;
-						g.style.display = 'none';
-						g.getBBox();
-						g.style.display = val;
+						// ignore
 					}
-				}
-				catch (e)
-				{
-					// ignore
-					console.log('err', e);
 				}
 			}
 		}
@@ -1466,7 +1455,7 @@ Graph.prototype.labelLinkClicked = function(state, elt, evt)
 /**
  * Returns the size of the page format scaled with the page size.
  */
-Graph.prototype.openLink = function(href, target)
+Graph.prototype.openLink = function(href, target, allowOpener)
 {
 	var result = window;
 	
@@ -1495,6 +1484,11 @@ Graph.prototype.openLink = function(href, target)
 		else
 		{
 			result = window.open(href, target);
+			
+			if (result != null && !allowOpener)
+			{
+				result.opener = null;
+			}
 		}
 	}
 	
@@ -1522,8 +1516,7 @@ Graph.prototype.isCustomLink = function(href)
  */
 Graph.prototype.customLinkClicked = function(link)
 {
-	console.log('customLinkClicked not implemented');
-	// Hook for subclassers
+	return false;
 };
 
 /**
@@ -2001,7 +1994,6 @@ Graph.prototype.replacePlaceholders = function(cell, str)
 	if (str != null)
 	{
 		var last = 0;
-		var math = [];
 		
 		while (match = this.placeholderPattern.exec(str))
 		{
@@ -2048,7 +2040,7 @@ Graph.prototype.replacePlaceholders = function(cell, str)
 		}
 		
 		result.push(str.substring(last));
-	}	
+	}
 
 	return result.join('');
 };
@@ -2389,7 +2381,7 @@ Graph.prototype.convertValueToString = function(cell)
 		}
 		else
 		{	
-			return cell.value.getAttribute('label');
+			return cell.value.getAttribute('label') || '';
 		}
 	}
 	
@@ -2841,7 +2833,7 @@ Graph.prototype.getTooltipForCell = function(cell)
 		}
 		else
 		{
-			var ignored = ['label', 'tooltip', 'placeholders', 'placeholder'];
+			var ignored = this.builtInProperties;
 			var attrs = cell.value.attributes;
 			var temp = [];
 
@@ -2999,7 +2991,7 @@ HoverIcons = function(graph)
 /**
  * Up arrow.
  */
-HoverIcons.prototype.arrowSpacing = 6;
+HoverIcons.prototype.arrowSpacing = 2;
 
 /**
  * Delay to switch to another state for overlapping bbox. Default is 500ms.
@@ -3040,32 +3032,42 @@ HoverIcons.prototype.checkCollisions = true;
 /**
  * Up arrow.
  */
+HoverIcons.prototype.arrowFill = '#29b6f2';
+
+/**
+ * Up arrow.
+ */
 HoverIcons.prototype.triangleUp = (!mxClient.IS_SVG) ? new mxImage(IMAGE_PATH + '/triangle-up.png', 26, 14) :
-	Graph.createSvgImage(26, 14, '<path d="m 1 14 L 13 1 L 26 14 z" stroke="#fff" fill="#007dfc"/>');
+	Graph.createSvgImage(18, 28, '<path d="m 6 26 L 12 26 L 12 12 L 18 12 L 9 1 L 1 12 L 6 12 z" ' +
+	'stroke="#fff" fill="' + HoverIcons.prototype.arrowFill + '"/>');
 
 /**
  * Right arrow.
  */
 HoverIcons.prototype.triangleRight = (!mxClient.IS_SVG) ? new mxImage(IMAGE_PATH + '/triangle-right.png', 14, 26) :
-	Graph.createSvgImage(14, 26, '<path d="m 1 1 L 14 13 L 1 26 z" stroke="#fff" fill="#007dfc"/>');
+	Graph.createSvgImage(26, 18, '<path d="m 1 6 L 14 6 L 14 1 L 26 9 L 14 18 L 14 12 L 1 12 z" ' +
+	'stroke="#fff" fill="' + HoverIcons.prototype.arrowFill + '"/>');
 
 /**
  * Down arrow.
  */
 HoverIcons.prototype.triangleDown = (!mxClient.IS_SVG) ? new mxImage(IMAGE_PATH + '/triangle-down.png', 26, 14) :
-	Graph.createSvgImage(26, 14, '<path d="m 1 1 L 13 14 L 26 1 z" stroke="#fff" fill="#007dfc"/>');
+	Graph.createSvgImage(18, 26, '<path d="m 6 1 L 6 14 L 1 14 L 9 26 L 18 14 L 12 14 L 12 1 z" ' +
+	'stroke="#fff" fill="' + HoverIcons.prototype.arrowFill + '"/>');
 
 /**
  * Left arrow.
  */
 HoverIcons.prototype.triangleLeft = (!mxClient.IS_SVG) ? new mxImage(IMAGE_PATH + '/triangle-left.png', 14, 26) :
-	Graph.createSvgImage(14, 26, '<path d="m 14 1 L 1 13 L 14 26 z" stroke="#fff" fill="#007dfc"/>');
+	Graph.createSvgImage(28, 18, '<path d="m 1 9 L 12 1 L 12 6 L 26 6 L 26 12 L 12 12 L 12 18 z" ' +
+	'stroke="#fff" fill="' + HoverIcons.prototype.arrowFill + '"/>');
 
 /**
  * Round target.
  */
 HoverIcons.prototype.roundDrop = (!mxClient.IS_SVG) ? new mxImage(IMAGE_PATH + '/round-drop.png', 26, 26) :
-	Graph.createSvgImage(26, 26, '<circle cx="13" cy="13" r="12" stroke="#fff" fill="#007dfc"/>');
+	Graph.createSvgImage(26, 26, '<circle cx="13" cy="13" r="12" ' +
+	'stroke="#fff" fill="' + HoverIcons.prototype.arrowFill + '"/>');
 
 /**
  * Refresh target.
@@ -3177,10 +3179,12 @@ HoverIcons.prototype.init = function()
 	    	}
 	    	else if (!this.graph.isMouseDown && !mxEvent.isTouchEvent(evt))
 	    	{
-	    		this.update(this.getState(me.getState()), me.getGraphX(), me.getGraphY());
+	    		this.update(this.getState(me.getState()),
+	    			me.getGraphX(), me.getGraphY());
 	    	}
 	    	
-	    	if (this.graph.connectionHandler != null && this.graph.connectionHandler.shape != null)
+	    	if (this.graph.connectionHandler != null &&
+	    		this.graph.connectionHandler.shape != null)
 	    	{
 	    		connectionHandlerActive = true;
 	    	}
@@ -3188,34 +3192,34 @@ HoverIcons.prototype.init = function()
 	    mouseUp: mxUtils.bind(this, function(sender, me)
 	    {
 	    	var evt = me.getEvent();
+	    	var pt = mxUtils.convertPoint(this.graph.container,
+				mxEvent.getClientX(evt), mxEvent.getClientY(evt))
 	    	
 	    	if (this.isResetEvent(evt))
 	    	{
 	    		this.reset();
 	    	}
-	    	else if (this.isActive() && this.mouseDownPoint != null &&
-	    		Math.abs(me.getGraphX() - this.mouseDownPoint.x) < this.graph.tolerance &&
-		    	Math.abs(me.getGraphY() - this.mouseDownPoint.y) < this.graph.tolerance)
+	    	else if (this.isActive() && !connectionHandlerActive &&
+	    		this.mouseDownPoint != null)
 	    	{
-	    		// Executes click event on highlighted arrow
-	    		if (!connectionHandlerActive)
-	    		{
-	    			this.click(this.currentState, this.getDirection(), me);
-	    		}
+    			this.click(this.currentState, this.getDirection(), me);
 	    	}
 	    	else if (this.isActive())
 	    	{
 	    		// Selects target vertex after drag and clone if not only new edge was inserted
-	    		if (this.graph.getSelectionCount() != 1 || !this.graph.model.isEdge(this.graph.getSelectionCell()))
+	    		if (this.graph.getSelectionCount() != 1 || !this.graph.model.isEdge(
+	    			this.graph.getSelectionCell()))
 	    		{
-	    			this.update(this.getState(this.graph.view.getState(this.graph.getCellAt(me.getGraphX(), me.getGraphY()))));
+	    			this.update(this.getState(this.graph.view.getState(
+	    				this.graph.getCellAt(me.getGraphX(), me.getGraphY()))));
 	    		}
 	    		else
 	    		{
 	    			this.reset();
 	    		}
 	    	}
-	    	else if (mxEvent.isTouchEvent(evt) || (this.bbox != null && mxUtils.contains(this.bbox, me.getGraphX(), me.getGraphY())))
+	    	else if (mxEvent.isTouchEvent(evt) || (this.bbox != null &&
+	    		mxUtils.contains(this.bbox, me.getGraphX(), me.getGraphY())))
 	    	{
 	    		// Shows existing hover icons if inside bounding box
 	    		this.setDisplay('');
@@ -4568,7 +4572,7 @@ if (typeof mxVertexHandler != 'undefined')
 	(function()
 	{
 		// Sets colors for handles
-		mxConstants.HANDLE_FILLCOLOR = '#99ccff';
+		mxConstants.HANDLE_FILLCOLOR = '#29b6f2';
 		mxConstants.HANDLE_STROKECOLOR = '#0088cf';
 		mxConstants.VERTEX_SELECTION_COLOR = '#00a8ff';
 		mxConstants.OUTLINE_COLOR = '#00a8ff';
@@ -4580,7 +4584,7 @@ if (typeof mxVertexHandler != 'undefined')
 		mxConstants.LABEL_HANDLE_FILLCOLOR = '#cee7ff';
 		mxConstants.GUIDE_COLOR = '#0088cf';
 		mxConstants.HIGHLIGHT_OPACITY = 30;
-		mxConstants.HIGHLIGHT_SIZE = 8;
+	    mxConstants.HIGHLIGHT_SIZE = 5;
 		
 		// Enables snapping to off-grid terminals for edge waypoints
 		mxEdgeHandler.prototype.snapToTerminals = true;
@@ -5125,6 +5129,29 @@ if (typeof mxVertexHandler != 'undefined')
 		};
 		
 		/**
+		 * Returns true if the given stencil contains any placeholder text.
+		 */
+		Graph.prototype.stencilHasPlaceholders = function(stencil)
+		{
+			if (stencil != null && stencil.fgNode != null)
+			{
+				var node = stencil.fgNode.firstChild;
+				
+				while (node != null)
+				{
+					if (node.nodeName == 'text' && node.getAttribute('placeholders') == '1')
+					{
+						return true;
+					}
+					
+					node = node.nextSibling;
+				}
+			}
+			
+			return false;
+		};
+		
+		/**
 		 * Updates the child cells with placeholders if metadata of a cell has changed.
 		 */
 		Graph.prototype.processChange = function(change)
@@ -5142,7 +5169,14 @@ if (typeof mxVertexHandler != 'undefined')
 				{
 					for (var i = 0; i < desc.length; i++)
 					{
-						if (this.isReplacePlaceholders(desc[i]))
+						var state = this.view.getState(desc[i]);
+						
+						if (state != null && state.shape != null && state.shape.stencil != null &&
+							this.stencilHasPlaceholders(state.shape.stencil))
+						{
+							this.removeStateForCell(desc[i]);
+						}
+						else if (this.isReplacePlaceholders(desc[i]))
 						{
 							this.view.invalidate(desc[i], false, false);
 						}
@@ -5612,6 +5646,7 @@ if (typeof mxVertexHandler != 'undefined')
 						
 						if (href != null)
 						{
+							links[i].setAttribute('rel', 'nofollow noopener noreferrer');
 							links[i].setAttribute('href', href);
 							
 							if (beforeClick != null)
@@ -5922,6 +5957,52 @@ if (typeof mxVertexHandler != 'undefined')
 			if (value.length == 0)
 			{
 				document.execCommand('unlink', false);
+			}
+			else if (mxClient.IS_FF)
+			{
+				// Workaround for Firefox that adds a new link and removes
+				// the href from the inner link if its parent is a span is
+				// to remove all inner links inside the new outer link
+				var tmp = this.cellEditor.textarea.getElementsByTagName('a');
+				var oldLinks = [];
+				
+				for (var i = 0; i < tmp.length; i++)
+				{
+					oldLinks.push(tmp[i]);
+				}
+				
+				document.execCommand('createlink', false, mxUtils.trim(value));
+				
+				// Finds the new link element
+				var newLinks = this.cellEditor.textarea.getElementsByTagName('a');
+				
+				if (newLinks.length == oldLinks.length + 1)
+				{
+					// Inverse order in favor of appended links
+					for (var i = newLinks.length - 1; i >= 0; i--)
+					{
+						if (newLinks[i] != oldLinks[i - 1])
+						{
+							// Removes all inner links from the new link and
+							// moves the children to the inner link parent
+							var tmp = newLinks[i].getElementsByTagName('a');
+							
+							while (tmp.length > 0)
+							{
+								var parent = tmp[0].parentNode;
+								
+								while (tmp[0].firstChild != null)
+								{
+									parent.insertBefore(tmp[0].firstChild, tmp[0]);
+								}
+								
+								parent.removeChild(tmp[0]);
+							}
+							
+							break;
+						}
+					}
+				}
 			}
 			else
 			{
@@ -6421,7 +6502,7 @@ if (typeof mxVertexHandler != 'undefined')
 			for (var i = 0; i < cells.length; i++)
 			{
 				var colspan = cells[i].getAttribute('colspan');
-				cols = (colspan != null) ? parseInt(colspan) : 1;
+				cols += (colspan != null) ? parseInt(colspan) : 1;
 			}
 			
 			var row = bd.insertRow(index);
@@ -6537,15 +6618,37 @@ if (typeof mxVertexHandler != 'undefined')
 		 */
 		Graph.prototype.createLinkForHint = function(link, label)
 		{
-			label = (label != null) ? label : link;
+			link = (link != null) ? link : 'javascript:void(0);';
+
+			if (label == null || label.length == 0)
+			{
+				if (this.isCustomLink(link))
+				{
+					label = this.getLinkTitle(link);
+				}
+				else
+				{
+					label = link;
+				}
+			}
+
+			// Helper function to shorten strings
+			function short(str, max)
+			{
+				if (str.length > max)
+				{
+					str = str.substring(0, Math.round(max / 2)) + '...' +
+						str.substring(str.length - Math.round(max / 4));
+				}
+				
+				return str;
+			};
 			
 			var a = document.createElement('a');
+			a.setAttribute('rel', 'nofollow noopener noreferrer');
 			a.setAttribute('href', this.getAbsoluteUrl(link));
-			
-			if (link != null && !this.isCustomLink(link))
-			{
-				a.setAttribute('title', link);
-			}
+			a.setAttribute('title', short((this.isCustomLink(link)) ?
+				this.getLinkTitle(link) : link, 80));
 			
 			if (this.linkTarget != null)
 			{
@@ -6553,16 +6656,17 @@ if (typeof mxVertexHandler != 'undefined')
 			}
 			
 			// Adds shortened label to link
-			var max = 40;
-			var head = 26;
-			var tail = 10;
+			mxUtils.write(a, short(label, 40));
 			
-			if (label.length > max)
+			// Handles custom links
+			if (this.isCustomLink(link))
 			{
-				label = label.substring(0, head) + '...' + label.substring(label.length - tail);
+				mxEvent.addListener(a, 'click', mxUtils.bind(this, function(evt)
+				{
+					this.customLinkClicked(link);
+					mxEvent.consume(evt);
+				}));
 			}
-
-			mxUtils.write(a, label);
 			
 			return a;
 		};
@@ -7455,19 +7559,19 @@ if (typeof mxVertexHandler != 'undefined')
 		 */
 		// TODO: Increase handle padding
 		HoverIcons.prototype.mainHandle = (!mxClient.IS_SVG) ? new mxImage(IMAGE_PATH + '/handle-main.png', 17, 17) :
-			Graph.createSvgImage(18, 18, '<circle cx="9" cy="9" r="5" stroke="#fff" fill="#007dfc" stroke-width="1"/>');
+			Graph.createSvgImage(18, 18, '<circle cx="9" cy="9" r="5" stroke="#fff" fill="' + HoverIcons.prototype.arrowFill + '" stroke-width="1"/>');
 		HoverIcons.prototype.secondaryHandle = (!mxClient.IS_SVG) ? new mxImage(IMAGE_PATH + '/handle-secondary.png', 17, 17) :
 			Graph.createSvgImage(16, 16, '<path d="m 8 3 L 13 8 L 8 13 L 3 8 z" stroke="#fff" fill="#fca000"/>');
 		HoverIcons.prototype.fixedHandle = (!mxClient.IS_SVG) ? new mxImage(IMAGE_PATH + '/handle-fixed.png', 17, 17) :
-			Graph.createSvgImage(18, 18, '<circle cx="9" cy="9" r="5" stroke="#fff" fill="#007dfc" stroke-width="1"/><path d="m 7 7 L 11 11 M 7 11 L 11 7" stroke="#fff"/>');
+			Graph.createSvgImage(18, 18, '<circle cx="9" cy="9" r="5" stroke="#fff" fill="' + HoverIcons.prototype.arrowFill + '" stroke-width="1"/><path d="m 7 7 L 11 11 M 7 11 L 11 7" stroke="#fff"/>');
 		HoverIcons.prototype.terminalHandle = (!mxClient.IS_SVG) ? new mxImage(IMAGE_PATH + '/handle-terminal.png', 17, 17) :
-			Graph.createSvgImage(18, 18, '<circle cx="9" cy="9" r="5" stroke="#fff" fill="#007dfc" stroke-width="1"/><circle cx="9" cy="9" r="2" stroke="#fff" fill="transparent"/>');
+			Graph.createSvgImage(18, 18, '<circle cx="9" cy="9" r="5" stroke="#fff" fill="' + HoverIcons.prototype.arrowFill + '" stroke-width="1"/><circle cx="9" cy="9" r="2" stroke="#fff" fill="transparent"/>');
 		HoverIcons.prototype.rotationHandle = new mxImage((mxClient.IS_SVG) ? 'data:image/png;base64,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' :
 			IMAGE_PATH + '/handle-rotate.png', 19, 21);
 		
 		if (mxClient.IS_SVG)
 		{
-			mxConstraintHandler.prototype.pointImage = Graph.createSvgImage(5, 5, '<path d="m 0 0 L 5 5 M 0 5 L 5 0" stroke="#007dfc"/>');
+			mxConstraintHandler.prototype.pointImage = Graph.createSvgImage(5, 5, '<path d="m 0 0 L 5 5 M 0 5 L 5 0" stroke="' + HoverIcons.prototype.arrowFill + '"/>');
 		}
 		
 		mxVertexHandler.prototype.handleImage = HoverIcons.prototype.mainHandle;
@@ -8074,7 +8178,6 @@ if (typeof mxVertexHandler != 'undefined')
 				{
 					this.linkHint = createHint();
 					this.linkHint.style.padding = '6px 8px 6px 8px';
-					this.linkHint.style.fontSize = '90%';
 					this.linkHint.style.opacity = '1';
 					this.linkHint.style.filter = '';
 					
@@ -8131,8 +8234,8 @@ if (typeof mxVertexHandler != 'undefined')
 						var div = document.createElement('div');
 						div.style.marginTop = (link != null || i > 0) ? '6px' : '0px';
 						div.appendChild(this.graph.createLinkForHint(
-								links[i].getAttribute('href'),
-								mxUtils.getTextContent(links[i])));
+							links[i].getAttribute('href'),
+							mxUtils.getTextContent(links[i])));
 						
 						this.linkHint.appendChild(div);
 					}

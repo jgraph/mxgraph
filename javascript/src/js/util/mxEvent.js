@@ -17,23 +17,14 @@ var mxEvent =
 	 * <removeAllListeners> function is provided to remove all listeners that
 	 * have been added using <addListener>. The function should be invoked when
 	 * the last reference is removed in the JavaScript code, typically when the
-	 * referenced DOM node is removed from the DOM, and helps to reduce memory
-	 * leaks in IE6.
+	 * referenced DOM node is removed from the DOM.
+	 *
+	 * Function: addListener
 	 * 
-	 * Variable: objects
-	 * 
-	 * Contains all objects where any listener was added using <addListener>.
-	 * This is used to reduce memory leaks in IE, see <mxClient.dispose>.
+	 * Binds the function to the specified event on the given element. Use
+	 * <mxUtils.bind> in order to bind the "this" keyword inside the function
+	 * to a given execution scope.
 	 */
-	objects: [],
-
-	 /**
-	  * Function: addListener
-	  * 
-	  * Binds the function to the specified event on the given element. Use
-	  * <mxUtils.bind> in order to bind the "this" keyword inside the function
-	  * to a given execution scope.
-	  */
 	addListener: function()
 	{
 		var updateListenerList = function(element, eventName, funct)
@@ -41,7 +32,6 @@ var mxEvent =
 			if (element.mxListenerList == null)
 			{
 				element.mxListenerList = [];
-				mxEvent.objects.push(element);
 			}
 			
 			var entry = {name: eventName, f: funct};
@@ -93,13 +83,6 @@ var mxEvent =
 				if (element.mxListenerList.length == 0)
 				{
 					element.mxListenerList = null;
-					
-					var idx = mxUtils.indexOf(mxEvent.objects, element);
-					
-					if (idx >= 0)
-					{
-						mxEvent.objects.splice(idx, 1);
-					}
 				}
 			}
 		};

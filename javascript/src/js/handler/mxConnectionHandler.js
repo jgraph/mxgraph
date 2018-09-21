@@ -1255,7 +1255,10 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 		this.snapToPreview(me, point);
 		this.currentPoint = point;
 		
-		if (this.first != null || (this.isEnabled() && this.graph.isEnabled()))
+		if ((this.first != null || (this.isEnabled() && this.graph.isEnabled())) &&
+			(this.shape != null || this.first == null ||
+			Math.abs(me.getGraphX() - this.first.x) > this.graph.tolerance ||
+			Math.abs(me.getGraphY() - this.first.y) > this.graph.tolerance))
 		{
 			this.updateCurrentState(me, point);
 		}
@@ -1273,9 +1276,11 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 				constraint = this.constraintHandler.currentConstraint;
 				current = this.constraintHandler.currentPoint.clone();
 			}
-			else if (this.previous != null && !this.graph.isIgnoreTerminalEvent(me.getEvent()) && mxEvent.isShiftDown(me.getEvent()))
+			else if (this.previous != null && !this.graph.isIgnoreTerminalEvent(me.getEvent()) &&
+				mxEvent.isShiftDown(me.getEvent()))
 			{
-				if (Math.abs(this.previous.getCenterX() - point.x) < Math.abs(this.previous.getCenterY() - point.y))
+				if (Math.abs(this.previous.getCenterX() - point.x) <
+					Math.abs(this.previous.getCenterY() - point.y))
 				{
 					point.x = this.previous.getCenterX();
 				}
@@ -1386,8 +1391,8 @@ mxConnectionHandler.prototype.mouseMove = function(sender, me)
 			// Creates the preview shape (lazy)
 			if (this.shape == null)
 			{
-				var dx = Math.abs(point.x - this.first.x);
-				var dy = Math.abs(point.y - this.first.y);
+				var dx = Math.abs(me.getGraphX() - this.first.x);
+				var dy = Math.abs(me.getGraphY() - this.first.y);
 
 				if (dx > this.graph.tolerance || dy > this.graph.tolerance)
 				{
@@ -1689,6 +1694,19 @@ mxConnectionHandler.prototype.addWaypointForEvent = function(me)
 };
 
 /**
+ * Function: checkConstraints
+ * 
+ * Returns true if the connection for the given constraints is valid. This
+ * implementation returns true if the constraints are not pointing to the
+ * same fixed connection point.
+ */
+mxConnectionHandler.prototype.checkConstraints = function(c1, c2)
+{
+	return (c1 == null || c2 == null || c1.point == null || c2.point == null ||
+		!c1.point.equals(c2.point) || c1.perimeter != c2.perimeter);
+};
+
+/**
  * Function: mouseUp
  * 
  * Handles the event by inserting the new connection.
@@ -1705,8 +1723,11 @@ mxConnectionHandler.prototype.mouseUp = function(sender, me)
 			return;
 		}
 		
-		// Inserts the edge if no validation error exists
-		if (this.error == null)
+		var c1 = this.sourceConstraint;
+		var c2 = this.constraintHandler.currentConstraint;
+		
+		// Inserts the edge if no validation error exists and if constraints differ
+		if (this.error == null && this.checkConstraints(c1, c2))
 		{
 			var source = (this.previous != null) ? this.previous.cell : null;
 			var target = null;
@@ -1730,12 +1751,12 @@ mxConnectionHandler.prototype.mouseUp = function(sender, me)
 			if (this.previous != null && this.marker.validState != null &&
 				this.previous.cell == this.marker.validState.cell)
 			{
-				this.graph.selectCellForEvent(this.marker.source, evt);
+				this.graph.selectCellForEvent(this.marker.source, me.getEvent());
 			}
 			
 			// Displays the error message if it is not an empty string,
 			// for empty error messages, the event is silently dropped
-			if (this.error.length > 0)
+			if (this.error != null && this.error.length > 0)
 			{
 				this.graph.validationAlert(this.error);
 			}
@@ -1961,8 +1982,7 @@ mxConnectionHandler.prototype.connect = function(source, target, evt, dropTarget
 
 					if (tmp != null && tmp.parent != null && tmp.parent == edge.parent)
 					{
-						var index = tmp.parent.getIndex(tmp);
-						tmp.parent.insert(edge, index);
+						model.add(parent, edge, tmp.parent.getIndex(tmp));
 					}
 				}
 				
