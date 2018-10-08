@@ -193,6 +193,7 @@ mxSwimlane.prototype.paintVertexShape = function(c, x, y, w, h)
 	else
 	{
 		r = this.getArcSize(w, h, start);
+		r = Math.min(((this.isHorizontal()) ? h : w) - start, Math.min(start, r));
 		this.paintRoundedSwimlane(c, x, y, w, h, start, r, fill, swimlaneLine);
 	}
 	
@@ -220,21 +221,7 @@ mxSwimlane.prototype.paintVertexShape = function(c, x, y, w, h)
  */
 mxSwimlane.prototype.paintSwimlane = function(c, x, y, w, h, start, fill, swimlaneLine)
 {
-	if (fill != mxConstants.NONE)
-	{
-		c.save();
-		c.setFillColor(fill);
-		mxRectangleShape.prototype.paintBackground.call(this, c, 0, 0, w, h);
-		c.restore();
-		c.setShadow(false);
-	}
-
 	c.begin();
-	
-	if (start == 0)
-	{
-		start = h;
-	}
 	
 	if (this.isHorizontal())
 	{
@@ -242,25 +229,33 @@ mxSwimlane.prototype.paintSwimlane = function(c, x, y, w, h, start, fill, swimla
 		c.lineTo(0, 0);
 		c.lineTo(w, 0);
 		c.lineTo(w, start);
-		
-		if (swimlaneLine || start >= h)
-		{
-			c.close();
-		}
-		
 		c.fillAndStroke();
-		
-		// Transparent content area
-		if (start < h && fill == mxConstants.NONE)
+
+		if (start < h)
 		{
-			c.pointerEvents = false;
+			if (fill == mxConstants.NONE)
+			{
+				c.pointerEvents = false;
+			}
+			else
+			{
+				c.setFillColor(fill);
+			}
 			
 			c.begin();
 			c.moveTo(0, start);
 			c.lineTo(0, h);
 			c.lineTo(w, h);
 			c.lineTo(w, start);
-			c.stroke();
+			
+			if (fill == mxConstants.NONE)
+			{
+				c.stroke();
+			}
+			else
+			{
+				c.fillAndStroke();
+			}
 		}
 	}
 	else
@@ -269,26 +264,39 @@ mxSwimlane.prototype.paintSwimlane = function(c, x, y, w, h, start, fill, swimla
 		c.lineTo(0, 0);
 		c.lineTo(0, h);
 		c.lineTo(start, h);
-		
-		if (swimlaneLine || start >= w)
-		{
-			c.close();
-		}
-		
 		c.fillAndStroke();
 		
-		// Transparent content area
-		if (start < w && fill == mxConstants.NONE)
+		if (start < w)
 		{
-			c.pointerEvents = false;
+			if (fill == mxConstants.NONE)
+			{
+				c.pointerEvents = false;
+			}
+			else
+			{
+				c.setFillColor(fill);
+			}
 			
 			c.begin();
 			c.moveTo(start, 0);
 			c.lineTo(w, 0);
 			c.lineTo(w, h);
 			c.lineTo(start, h);
-			c.stroke();
+			
+			if (fill == mxConstants.NONE)
+			{
+				c.stroke();
+			}
+			else
+			{
+				c.fillAndStroke();
+			}
 		}
+	}
+	
+	if (swimlaneLine)
+	{
+		this.paintDivider(c, x, y, w, h, start, fill == mxConstants.NONE);
 	}
 };
 
@@ -299,19 +307,8 @@ mxSwimlane.prototype.paintSwimlane = function(c, x, y, w, h, start, fill, swimla
  */
 mxSwimlane.prototype.paintRoundedSwimlane = function(c, x, y, w, h, start, r, fill, swimlaneLine)
 {
-	r = Math.min(h - start, Math.min(start, r));
-	
-	if (fill != mxConstants.NONE)
-	{
-		c.save();
-		c.setFillColor(fill);
-		mxRectangleShape.prototype.paintBackground.call(this, c, 0, 0, w, h);
-		c.restore();
-		c.setShadow(false);
-	}
-	
 	c.begin();
-	
+
 	if (this.isHorizontal())
 	{
 		c.moveTo(w, start);
@@ -320,18 +317,18 @@ mxSwimlane.prototype.paintRoundedSwimlane = function(c, x, y, w, h, start, r, fi
 		c.lineTo(Math.min(w / 2, r), 0);
 		c.quadTo(0, 0, 0, r);
 		c.lineTo(0, start);
-		
-		if (swimlaneLine || start >= h)
-		{
-			c.close();
-		}
-	
 		c.fillAndStroke();
 		
-		// Transparent content area
-		if (start < h && fill == mxConstants.NONE)
+		if (start < h)
 		{
-			c.pointerEvents = false;
+			if (fill == mxConstants.NONE)
+			{
+				c.pointerEvents = false;
+			}
+			else
+			{
+				c.setFillColor(fill);
+			}
 			
 			c.begin();
 			c.moveTo(0, start);
@@ -340,7 +337,15 @@ mxSwimlane.prototype.paintRoundedSwimlane = function(c, x, y, w, h, start, r, fi
 			c.lineTo(w - Math.min(w / 2, r), h);
 			c.quadTo(w, h, w, h - r);
 			c.lineTo(w, start);
-			c.stroke();
+			
+			if (fill == mxConstants.NONE)
+			{
+				c.stroke();
+			}
+			else
+			{
+				c.fillAndStroke();
+			}
 		}
 	}
 	else
@@ -351,18 +356,18 @@ mxSwimlane.prototype.paintRoundedSwimlane = function(c, x, y, w, h, start, r, fi
 		c.lineTo(0, h - Math.min(h / 2, r));
 		c.quadTo(0, h, r, h);
 		c.lineTo(start, h);
-		
-		if (swimlaneLine || start >= w)
-		{
-			c.close();
-		}
-	
 		c.fillAndStroke();
-		
-		// Transparent content area
-		if (start < w && fill == mxConstants.NONE)
+
+		if (start < w)
 		{
-			c.pointerEvents = false;
+			if (fill == mxConstants.NONE)
+			{
+				c.pointerEvents = false;
+			}
+			else
+			{
+				c.setFillColor(fill);
+			}
 			
 			c.begin();
 			c.moveTo(start, h);
@@ -371,15 +376,56 @@ mxSwimlane.prototype.paintRoundedSwimlane = function(c, x, y, w, h, start, r, fi
 			c.lineTo(w, Math.min(h / 2, r));
 			c.quadTo(w, 0, w - r, 0);
 			c.lineTo(start, 0);
-			c.stroke();
+			
+			if (fill == mxConstants.NONE)
+			{
+				c.stroke();
+			}
+			else
+			{
+				c.fillAndStroke();
+			}
 		}
+	}
+
+	if (swimlaneLine)
+	{
+		this.paintDivider(c, x, y, w, h, start, fill == mxConstants.NONE);
 	}
 };
 
 /**
- * Function: paintSwimlane
+ * Function: paintDivider
  *
- * Paints the swimlane vertex shape.
+ * Paints the divider between swimlane title and content area.
+ */
+mxSwimlane.prototype.paintDivider = function(c, x, y, w, h, start, shadow)
+{
+	if (!shadow)
+	{
+		c.setShadow(false);
+	}
+
+	c.begin();
+	
+	if (this.isHorizontal())
+	{
+		c.moveTo(0, start);
+		c.lineTo(w, start);
+	}
+	else
+	{
+		c.moveTo(start, 0);
+		c.lineTo(start, h);
+	}
+
+	c.stroke();
+};
+
+/**
+ * Function: paintSeparator
+ *
+ * Paints the vertical or horizontal separator line between swimlanes.
  */
 mxSwimlane.prototype.paintSeparator = function(c, x, y, w, h, start, color)
 {
