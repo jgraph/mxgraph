@@ -156,7 +156,7 @@ public class mxCellRenderer
 
 				});
 
-		return canvas.getDocument();
+		return (canvas != null) ? canvas.getDocument() : null;
 	}
 
 	/**
@@ -176,7 +176,7 @@ public class mxCellRenderer
 
 				});
 
-		return canvas.getDocument();
+		return (canvas != null) ? canvas.getDocument() : null;
 	}
 
 	/**
@@ -195,7 +195,7 @@ public class mxCellRenderer
 
 				});
 
-		return canvas.getDocument();
+		return (canvas != null) ? canvas.getDocument() : null;
 	}
 
 	/**

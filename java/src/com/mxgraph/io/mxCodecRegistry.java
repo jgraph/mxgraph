@@ -219,7 +219,7 @@ public class mxCodecRegistry
 			}
 		}
 
-		log.severe("Class " + name + " not found");
+		log.log(Level.FINEST, "Class " + name + " not found");
 		return null;
 	}
 

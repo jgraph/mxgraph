@@ -236,16 +236,12 @@ mxCodec.prototype.getElementById = function(id)
 {
 	if (this.elements == null)
 	{
-		// Throws custom error for cases where a reference should be resolved
-		// in an empty document. This happens if an XML node is decoded without
-		// passing the owner document to the codec constructor.
-		if (this.document.documentElement == null)
-		{
-			throw new Error('mxCodec constructor needs document parameter');
-		}
-		
 		this.elements = new Object();
-		this.addElement(this.document.documentElement);
+		
+		if (this.document.documentElement != null)
+		{
+			this.addElement(this.document.documentElement);
+		}
 	}
 	
 	return this.elements[id];

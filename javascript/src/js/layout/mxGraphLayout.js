@@ -195,7 +195,7 @@ mxGraphLayout.prototype.isAncestor = function(parent, child, traverseAncestors)
 {
 	if (!traverseAncestors)
 	{
-		return (this.graph.model.getParent(cell) == parent);
+		return (this.graph.model.getParent(child) == parent);
 	}	
 	
 	if (child == parent)

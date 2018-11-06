@@ -1,3 +1,11 @@
+06-NOV-2018: 3.9.11
+
+- Fixes use of undefined variable in mxGraphLayout.isAncestor
+- Fixes lookup for clones in mxGraphModel.cloneCells
+- Improved handling for numeric values in mxObjectCodec
+- Removes ctor error in mxCodec.getElementById
+- Adds boolean clone argument in mxGuide.move
+
 08-OCT-2018: 3.9.10
 
 - Fixes swimlane rendering for certain arc sizes

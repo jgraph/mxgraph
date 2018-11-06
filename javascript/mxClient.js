@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 3.9.10.
+	 * Current version is 3.9.11.
 	 */
-	VERSION: '3.9.10',
+	VERSION: '3.9.11',
 
 	/**
 	 * Variable: IS_IE
@@ -13603,7 +13603,7 @@ mxDragSource.prototype.dragOver = function(graph, evt)
 			var h = parseInt(this.previewElement.style.height);
 			var bounds = new mxRectangle(0, 0, w, h);
 			var delta = new mxPoint(x, y);
-			delta = this.currentGuide.move(bounds, delta, gridEnabled);
+			delta = this.currentGuide.move(bounds, delta, gridEnabled, true);
 			hideGuide = false;
 			x = delta.x;
 			y = delta.y;
@@ -21758,7 +21758,7 @@ mxGuide.prototype.createGuideShape = function(horizontal)
  * 
  * Moves the <bounds> by the given <mxPoint> and returnt the snapped point.
  */
-mxGuide.prototype.move = function(bounds, delta, gridEnabled)
+mxGuide.prototype.move = function(bounds, delta, gridEnabled, clone)
 {
 	if (this.states != null && (this.horizontal || this.vertical) && bounds != null && delta != null)
 	{
@@ -28790,7 +28790,7 @@ mxGraphLayout.prototype.isAncestor = function(parent, child, traverseAncestors)
 {
 	if (!traverseAncestors)
 	{
-		return (this.graph.model.getParent(cell) == parent);
+		return (this.graph.model.getParent(child) == parent);
 	}	
 	
 	if (child == parent)
@@ -41391,20 +41391,25 @@ mxGraphModel.prototype.cloneCells = function(cells, includeChildren, mapping)
  */
 mxGraphModel.prototype.cloneCellImpl = function(cell, mapping, includeChildren)
 {
-	var clone = this.cellCloned(cell);
+	var ident = mxObjectIdentity.get(cell);
+	var clone = mapping[ident];
 	
 	// Stores the clone in the lookup table
-	mapping[mxObjectIdentity.get(cell)] = clone;
-	
-	if (includeChildren)
+	if (clone == null)
 	{
-		var childCount = this.getChildCount(cell);
-		
-		for (var i = 0; i < childCount; i++)
+		clone = this.cellCloned(cell);
+		mapping[ident] = clone;
+
+		if (includeChildren)
 		{
-			var cloneChild = this.cloneCellImpl(
-				this.getChildAt(cell, i), mapping, true);
-			clone.insert(cloneChild);
+			var childCount = this.getChildCount(cell);
+			
+			for (var i = 0; i < childCount; i++)
+			{
+				var cloneChild = this.cloneCellImpl(
+					this.getChildAt(cell, i), mapping, true);
+				clone.insert(cloneChild);
+			}
 		}
 	}
 	
@@ -69948,12 +69953,13 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 				this.shape = this.createPreviewShape(this.bounds);
 			}
 			
+			var clone = graph.isCloneEvent(me.getEvent()) && graph.isCellsCloneable() && this.isCloneEnabled();
 			var gridEnabled = graph.isGridEnabledEvent(me.getEvent());
 			var hideGuide = true;
 			
 			if (this.guide != null && this.useGuidesForEvent(me))
 			{
-				delta = this.guide.move(this.bounds, new mxPoint(dx, dy), gridEnabled);
+				delta = this.guide.move(this.bounds, new mxPoint(dx, dy), gridEnabled, clone);
 				hideGuide = false;
 				dx = delta.x;
 				dy = delta.y;
@@ -69996,8 +70002,6 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 			var target = null;
 			var cell = me.getCell();
 
-			var clone = graph.isCloneEvent(me.getEvent()) && graph.isCellsCloneable() && this.isCloneEnabled();
-			
 			if (graph.isDropEnabled() && this.highlightEnabled)
 			{
 				// Contains a call to getCellAt to find the cell under the mouse
@@ -71075,7 +71079,7 @@ function mxCellMarker(graph, validColor, invalidColor, hotspot)
 	{
 		this.graph = graph;
 		this.validColor = (validColor != null) ? validColor : mxConstants.DEFAULT_VALID_COLOR;
-		this.invalidColor = (validColor != null) ? invalidColor : mxConstants.DEFAULT_INVALID_COLOR;
+		this.invalidColor = (invalidColor != null) ? invalidColor : mxConstants.DEFAULT_INVALID_COLOR;
 		this.hotspot = (hotspot != null) ? hotspot : mxConstants.DEFAULT_HOTSPOT;
 		
 		this.highlight = new mxCellHighlight(graph);
@@ -86068,16 +86072,12 @@ mxCodec.prototype.getElementById = function(id)
 {
 	if (this.elements == null)
 	{
-		// Throws custom error for cases where a reference should be resolved
-		// in an empty document. This happens if an XML node is decoded without
-		// passing the owner document to the codec constructor.
-		if (this.document.documentElement == null)
-		{
-			throw new Error('mxCodec constructor needs document parameter');
-		}
-		
 		this.elements = new Object();
-		this.addElement(this.document.documentElement);
+		
+		if (this.document.documentElement != null)
+		{
+			this.addElement(this.document.documentElement);
+		}
 	}
 	
 	return this.elements[id];
@@ -87062,6 +87062,11 @@ mxObjectCodec.prototype.convertAttributeFromXml = function(dec, attr, obj)
 	if (this.isNumericAttribute(dec, attr, obj))
 	{
 		value = parseFloat(value);
+		
+		if (isNaN(value))
+		{
+			value = 0;
+		}
 	}
 	
 	return value;
@@ -87070,7 +87075,7 @@ mxObjectCodec.prototype.convertAttributeFromXml = function(dec, attr, obj)
 /**
  * Function: isNumericAttribute
  * 
- * Returns true if the given XML attribute is a numeric value.
+ * Returns true if the given XML attribute is or should be a numeric value.
  * 
  * Parameters:
  *
@@ -87080,7 +87085,15 @@ mxObjectCodec.prototype.convertAttributeFromXml = function(dec, attr, obj)
  */
 mxObjectCodec.prototype.isNumericAttribute = function(dec, attr, obj)
 {
-	return mxUtils.isNumeric(attr.value);
+	// Handles known numeric attributes for generic objects
+	var result = (obj.constructor == mxGeometry &&
+		(attr.name == 'x' || attr.name == 'y' ||
+		attr.name == 'width' || attr.name == 'height')) ||
+		(obj.constructor == mxPoint &&
+		(attr.name == 'x' || attr.name == 'y')) ||
+		mxUtils.isNumeric(attr.value);
+	
+	return result;
 };
 
 /**
