@@ -1,4 +1,4 @@
-14-NOV-2018: 3.9.12
+14-DEC-2018: 3.9.12
 
 - Fixes mxGraph.getSelectionCellsForChanges
 - Fixes duplicate clones in mxGraphModel.cloneCellImpl
