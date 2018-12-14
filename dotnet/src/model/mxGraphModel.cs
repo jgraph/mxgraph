@@ -188,19 +188,24 @@ namespace com.mxgraph
 	    {
 		    if (cell is mxICell)
 		    {
-			    mxICell mxc = (mxICell) ((mxICell) cell).Clone();
-			    mapping[cell] = mxc;
-
-			    if (includeChildren)
-			    {
-				    int childCount = GetChildCount(cell);
-
-				    for (int i = 0; i < childCount; i++)
+		    	mxICell mxc = (mxICell) mapping[cell];
+		    	
+		    	if (mxc == null)
+		    	{
+					mxc = (mxICell) ((mxICell) cell).Clone();
+				    mapping[cell] = mxc;
+	
+				    if (includeChildren)
 				    {
-					    Object clone = CloneCell(GetChildAt(cell, i), mapping, true);
-					    mxc.Insert((mxICell) clone);
+					    int childCount = GetChildCount(cell);
+	
+					    for (int i = 0; i < childCount; i++)
+					    {
+						    Object clone = CloneCell(GetChildAt(cell, i), mapping, true);
+						    mxc.Insert((mxICell) clone);
+					    }
 				    }
-			    }
+				}
 
 			    return mxc;
 		    }

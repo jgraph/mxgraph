@@ -337,20 +337,25 @@ public class mxGraphModel extends mxEventSource implements mxIGraphModel,
 	{
 		if (cell instanceof mxICell)
 		{
-			mxICell mxc = (mxICell) ((mxICell) cell).clone();
-			mapping.put(cell, mxc);
-
-			if (includeChildren)
-			{
-				int childCount = getChildCount(cell);
-
-				for (int i = 0; i < childCount; i++)
+			mxICell mxc = (mxICell) mapping.get(cell);
+			
+			if (mxc == null)
+			{			
+				mxc = (mxICell) ((mxICell) cell).clone();
+				mapping.put(cell, mxc);
+	
+				if (includeChildren)
 				{
-					Object clone = cloneCell(getChildAt(cell, i), mapping, true);
-					mxc.insert((mxICell) clone);
+					int childCount = getChildCount(cell);
+	
+					for (int i = 0; i < childCount; i++)
+					{
+						Object clone = cloneCell(getChildAt(cell, i), mapping, true);
+						mxc.insert((mxICell) clone);
+					}
 				}
 			}
-
+			
 			return mxc;
 		}
 

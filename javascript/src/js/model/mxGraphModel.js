@@ -630,8 +630,7 @@ mxGraphModel.prototype.add = function(parent, child, index)
 		this.execute(new mxChildChange(this, parent, child, index));
 
 		// Maintains the edges parents by moving the edges
-		// into the nearest common ancestor of its
-		// terminals
+		// into the nearest common ancestor of its terminals
 		if (this.maintainEdgeParent && parentChanged)
 		{
 			this.updateEdgeParents(child);
@@ -2220,7 +2219,6 @@ mxGraphModel.prototype.cloneCellImpl = function(cell, mapping, includeChildren)
 	var ident = mxObjectIdentity.get(cell);
 	var clone = mapping[ident];
 	
-	// Stores the clone in the lookup table
 	if (clone == null)
 	{
 		clone = this.cellCloned(cell);

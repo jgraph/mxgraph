@@ -1,3 +1,14 @@
+14-NOV-2018: 3.9.12
+
+- Fixes mxGraph.getSelectionCellsForChanges
+- Fixes duplicate clones in mxGraphModel.cloneCellImpl
+- Fixes invalidation bug in mxGraph.processChange
+- Adds mxGraph.cloneCell helper function
+- Fixes possible NPE in mxEdgeSegmentHandler.start
+- Ignores errors in mxEvent.release, mxPrintPreview.closeDocument
+- Adds keepPosition in mxGraph.cloneCells
+- Updates move preview during remote changes
+
 06-NOV-2018: 3.9.11
 
 - Fixes use of undefined variable in mxGraphLayout.isAncestor

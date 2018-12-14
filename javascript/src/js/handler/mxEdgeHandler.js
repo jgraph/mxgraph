@@ -1598,7 +1598,7 @@ mxEdgeHandler.prototype.mouseUp = function(sender, me)
 						if (clone)
 						{
 							var geo = model.getGeometry(edge);
-							var clone = this.graph.cloneCells([edge])[0];
+							var clone = this.graph.cloneCell(edge);
 							model.add(parent, clone, model.getChildCount(parent));
 							
 							if (geo != null)
@@ -1890,7 +1890,7 @@ mxEdgeHandler.prototype.changeTerminalPoint = function(edge, point, isSource, cl
 		{
 			var parent = model.getParent(edge);
 			var terminal = model.getTerminal(edge, !isSource);
-			edge = this.graph.cloneCells([edge])[0];
+			edge = this.graph.cloneCell(edge);
 			model.add(parent, edge, model.getChildCount(parent));
 			model.setTerminal(edge, terminal, !isSource);
 		}
@@ -1929,7 +1929,7 @@ mxEdgeHandler.prototype.changePoints = function(edge, points, clone)
 			var parent = model.getParent(edge);
 			var source = model.getTerminal(edge, true);
 			var target = model.getTerminal(edge, false);
-			edge = this.graph.cloneCells([edge])[0];
+			edge = this.graph.cloneCell(edge);
 			model.add(parent, edge, model.getChildCount(parent));
 			model.setTerminal(edge, source, true);
 			model.setTerminal(edge, target, false);

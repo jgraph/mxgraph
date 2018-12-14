@@ -234,21 +234,24 @@ class mxGraphModel extends mxEventSource
 	 */
 	function cloneCellImpl($cell, $mapping, $includeChildren)
 	{
-		$clne = $this->cellCloned($cell);
+		$ident = mxCellPath::create($cell);
+		$clne = $mapping[$ident];
 		
-		// Stores the clone in the lookup under the
-		// cell path for the original cell
-		$mapping[mxCellPath::create($cell)] = $clne;
-		
-		if ($includeChildren)
+		if ($clne == null)
 		{
-			$childCount = $this->getChildCount($cell);
-
-			for ($i = 0; $i < $childCount; $i++)
+			$clne = $this->cellCloned($cell);
+			$mapping[$ident] = $clne;	
+		
+			if ($includeChildren)
 			{
-				$child = $this->getChildAt($cell, $i);
-				$cloneChild = $this->cloneCellImpl($child, $mapping, true);
-				$clne->insert($cloneChild);
+				$childCount = $this->getChildCount($cell);
+	
+				for ($i = 0; $i < $childCount; $i++)
+				{
+					$child = $this->getChildAt($cell, $i);
+					$cloneChild = $this->cloneCellImpl($child, $mapping, true);
+					$clne->insert($cloneChild);
+				}
 			}
 		}
 		
