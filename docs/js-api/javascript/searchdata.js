@@ -1,35 +1,5 @@
 var indexSectionsWithContent = {
-   "Files": {
-      "Symbols": false,
-      "Numbers": false,
-      "A": true,
-      "B": false,
-      "C": false,
-      "D": false,
-      "E": false,
-      "F": false,
-      "G": false,
-      "H": false,
-      "I": false,
-      "J": false,
-      "K": false,
-      "L": false,
-      "M": true,
-      "N": false,
-      "O": false,
-      "P": false,
-      "Q": false,
-      "R": false,
-      "S": false,
-      "T": false,
-      "U": false,
-      "V": false,
-      "W": false,
-      "X": false,
-      "Y": false,
-      "Z": false
-      },
-   "Variables": {
+   "General": {
       "Symbols": false,
       "Numbers": false,
       "A": true,
@@ -119,10 +89,10 @@ var indexSectionsWithContent = {
       "Y": false,
       "Z": true
       },
-   "Classes": {
+   "Files": {
       "Symbols": false,
       "Numbers": false,
-      "A": false,
+      "A": true,
       "B": false,
       "C": false,
       "D": false,
@@ -144,7 +114,7 @@ var indexSectionsWithContent = {
       "T": false,
       "U": false,
       "V": false,
-      "W": true,
+      "W": false,
       "X": false,
       "Y": false,
       "Z": false
@@ -179,7 +149,7 @@ var indexSectionsWithContent = {
       "Y": false,
       "Z": false
       },
-   "General": {
+   "Variables": {
       "Symbols": false,
       "Numbers": false,
       "A": true,
@@ -208,5 +178,35 @@ var indexSectionsWithContent = {
       "X": true,
       "Y": true,
       "Z": true
+      },
+   "Classes": {
+      "Symbols": false,
+      "Numbers": false,
+      "A": false,
+      "B": false,
+      "C": false,
+      "D": false,
+      "E": false,
+      "F": false,
+      "G": false,
+      "H": false,
+      "I": false,
+      "J": false,
+      "K": false,
+      "L": false,
+      "M": true,
+      "N": false,
+      "O": false,
+      "P": false,
+      "Q": false,
+      "R": false,
+      "S": false,
+      "T": false,
+      "U": false,
+      "V": false,
+      "W": true,
+      "X": false,
+      "Y": false,
+      "Z": false
       }
    }

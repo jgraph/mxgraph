@@ -60,6 +60,13 @@ mxGuide.prototype.guideX = null;
 mxGuide.prototype.guideY = null;
 
 /**
+ * Variable: rounded
+ *
+ * Specifies if rounded coordinates should be used. Default is false.
+ */
+mxGuide.prototype.rounded = false;
+
+/**
  * Function: setStates
  * 
  * Sets the <mxCellStates> that should be used for alignment.
@@ -193,7 +200,7 @@ mxGuide.prototype.move = function(bounds, delta, gridEnabled, clone)
 		};
 		
 		// Snaps the top, middle or bottom to the given y-coordinate
-		function snapY(y)
+		function snapY(y, state)
 		{
 			y += this.graph.panDy;
 			var override = false;
@@ -335,11 +342,32 @@ mxGuide.prototype.move = function(bounds, delta, gridEnabled, clone)
 			this.guideY.node.style.visibility = 'visible';
 			this.guideY.redraw();
 		}
-		
-		delta = new mxPoint(dx, dy);
+
+		delta = this.getDelta(bounds, stateX, dx, stateY, dy)
 	}
 	
 	return delta;
+};
+
+/**
+ * Function: hide
+ * 
+ * Hides all current guides.
+ */
+mxGuide.prototype.getDelta = function(bounds, stateX, dx, stateY, dy)
+{
+	// Round to pixels for virtual states (eg. page guides)
+	if (this.rounded || (stateX != null && stateX.cell == null))
+	{
+		dx = Math.floor(bounds.x + dx) - bounds.x;
+	}
+
+	if (this.rounded || (stateY != null && stateY.cell == null))
+	{
+		dy = Math.floor(bounds.y + dy) - bounds.y;
+	}
+	
+	return new mxPoint(dx, dy);
 };
 
 /**

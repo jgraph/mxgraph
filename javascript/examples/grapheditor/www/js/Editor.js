@@ -195,6 +195,21 @@ Editor.previousLargeImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAA
 Editor.nextLargeImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAPFBMVEUAAAD////////////////////////////////////////////////////////////////////////////YSWgTAAAAE3RSTlMA7fci493c0MW8uJ6CZks4MxQHEZL6ewAAAFRJREFUOMvd0skRgCAQBVEFwQ0V7fxzNQP6wI05v6pZ/kyj1b7FNgik2gQzzLcAwiUAigHOTwDHK4A1CmB5BJANJG1hQ9qafYcqFlZP3IFc9eVGrR+iIgkDQRUXIAAAAABJRU5ErkJggg==';
 
 /**
+ * Specifies the image to be used for the refresh button.
+ */
+Editor.refreshLargeImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAolBMVEUAAAD///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////8ELnaCAAAANXRSTlMABfyE2QKU+dfNyyDyoVYKwnTv7N+6rntsYlFNQjEqEw316uSzf2c1JB3GvqebiVw6GAjQB4DQr10AAAE7SURBVDjLvZLXcoMwEABPIgRCx3TT3A3udqL//7UgAdGRcR4yk8k+idsdmgS/QyWEqD/axS2JDV33zlnzLHIzQ2MDq9OeJ3m8l76KKENYlxrmM/b65Ys1+8YxnTEZFIEY0vVhszFWfUGZDJpQTDznTgAe5k4XhQxILB7ruzBQn+kkyDXuHfRtjoYDEvH7J9Lz98dBZXXL94X0Ofco2PFlChKbjVzEdakoSlKjoNoqPYkJ/wUZAYwc+PpLj1Ei7+jdoBWlwQZoJv2H1w3CWgRvo7dd9DP5btgwCWz0M02+oVoxCcIWeY9PNmR6B++m9prMxYEISpCBYBlfy9bc745is7UUULAem1Ww7FfalsiA2uaJsgmWP3pQI9q9/yMLkaaHAp2fxhHff/cNq7dBdHXhGW7l+Mo2zU0Cf8knJ2xA0oJ8enwAAAAASUVORK5CYII='; 
+
+/**
+ * Specifies the image to be used for the back button.
+ */
+Editor.backLargeImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAclBMVEUAAAD////////////////+/v7////////////////////////////////////////////+/v7///////////////////////////////////////////////////////////////////////////////8vKLfTAAAAJXRSTlMACh7h9gby3NLIwzwZ55uVJgH57b+8tbCljYV1RRMQ46FrTzQw+vtxOQAAAJ5JREFUOMuF00cWgzAQA1DRDQFCbwFSdf8rZpdVrNH2z3tuMv7mldZQ2WN2yi8x+TT8JvyTkqvwpiKvwsOIrA1fWr+XGTklfj8dOQR+D3KyUF6QufBkJN0hfCazEv6sZBRCJDUcPasGKpu1RLtYE8lkHAPBQLoTsK/SfAyRw5FjAuhCzC2MSj0gJ+66lHatgXdKboD9tfREB5m9/+3iC9jHDYvsGNcUAAAAAElFTkSuQmCC';
+
+/**
+ * Specifies the image to be used for the back button.
+ */
+Editor.fullscreenLargeImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAllBMVEUAAAD////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////AJcWoAAAAMXRSTlMA+wIFxPWPCIb446tnUxmsoIykgxTe29jQnpKBe2MNsZhVTR/KyLuWbFhEPjUq7L9z+bQj+gAAAWxJREFUOMttk4l2gkAMRTODCO4FtQgIbnWpS9v8/881iZFh8R51NO8GJ+gAjMN8zuTRFSw04cIOHQcqFHH6oaQFGxf0jeBjEgB8Y52TpW9Ag4zB5QICWOtHrgwGuFZBcw+gPP0MFS7+iiD5inOmDIQS9sZgTwUzwEzyxhxHVEEU7NdDUXsqUPtqjIgR2IZSCT4upzSeIeOdcMHnfDsx3giPoezfU6MrQGB5//SckLEG2xYscK4GfnUFqaix39zrwooaOD/cXoYuvHKQIc7pzd3HVPusp6t2FAW/RmjMonbl8vwHDeZo/GkleJC7e+p5XA/rAq1X/V10wKag04rBpa2/d0LL4OYYceOEtsG5jyMntI1wS+N1BGcQBl/CoLoPOl9ABrW/BP53e1bwSJHHlkIVchJwmHwyyfJ4kIvEnKtwkxNSEct83KSChT7WiWgDZ3ccZ0BM4tloJow2YUAtifNT3njnyD+y/pMsnP4DN3Y4yl1Gyk0AAAAASUVORK5CYII=';
+
+/**
  * Specifies the image URL to be used for the transparent background.
  */
 Editor.ctrlKey = (mxClient.IS_MAC) ? 'Cmd' : 'Ctrl';
@@ -274,6 +289,11 @@ Editor.prototype.appName = document.title;
  * 
  */
 Editor.prototype.editBlankUrl = window.location.protocol + '//' + window.location.host + '/';
+
+/**
+ * Default value for the graph container overflow style.
+ */
+Editor.prototype.defaultGraphOverflow = 'hidden';
 
 /**
  * Initializes the environment.
@@ -575,7 +595,7 @@ Editor.prototype.updateGraphComponents = function()
 	if (graph.container != null)
 	{
 		graph.view.validateBackground();
-		graph.container.style.overflow = (graph.scrollbars) ? 'auto' : 'hidden';
+		graph.container.style.overflow = (graph.scrollbars) ? 'auto' : this.defaultGraphOverflow;
 		
 		this.fireEvent(new mxEventObject('updateGraphComponents'));
 	}
@@ -725,7 +745,7 @@ OpenFile.prototype.cancel = function(cancel)
 /**
  * Basic dialogs that are available in the viewer (print dialog).
  */
-function Dialog(editorUi, elt, w, h, modal, closable, onClose, noScroll, transparent)
+function Dialog(editorUi, elt, w, h, modal, closable, onClose, noScroll, transparent, onResize)
 {
 	var dx = 0;
 	
@@ -743,9 +763,9 @@ function Dialog(editorUi, elt, w, h, modal, closable, onClose, noScroll, transpa
 	var h0 = h;
 	
 	// clientHeight check is attempted fix for print dialog offset in viewer lightbox
-	var dh = (document.documentElement.clientHeight > 0) ? document.documentElement.clientHeight :
-		Math.max(document.body.clientHeight || 0, document.documentElement.clientHeight);
-	var left = Math.max(1, Math.round((document.body.clientWidth - w - 64) / 2));
+	var ds = mxUtils.getDocumentSize();
+	var dh = ds.height;
+	var left = Math.max(1, Math.round((ds.width - w - 64) / 2));
 	var top = Math.max(1, Math.round((dh - h - editorUi.footerHeight) / 3));
 	
 	// Keeps window size inside available space
@@ -754,7 +774,7 @@ function Dialog(editorUi, elt, w, h, modal, closable, onClose, noScroll, transpa
 		elt.style.maxHeight = '100%';
 	}
 	
-	w = Math.min(w, document.body.scrollWidth - 64);
+	w = (document.body != null) ? Math.min(w, document.body.scrollWidth - 64) : w;
 	h = Math.min(h, dh - 64);
 	
 	// Increments zIndex to put subdialogs and background over existing dialogs and background
@@ -838,12 +858,24 @@ function Dialog(editorUi, elt, w, h, modal, closable, onClose, noScroll, transpa
 	
 	this.resizeListener = mxUtils.bind(this, function()
 	{
-		dh = Math.max(document.body.clientHeight, document.documentElement.clientHeight);
+		if (onResize != null)
+		{
+			var newWH = onResize();
+			
+			if (newWH != null)
+			{
+				w0 = w = newWH.w;
+				h0 = h = newWH.h;
+			}
+		}
+		
+		var ds = mxUtils.getDocumentSize();
+		dh = ds.height;
 		this.bg.style.height = dh + 'px';
 		
-		left = Math.max(1, Math.round((document.body.clientWidth - w - 64) / 2));
+		left = Math.max(1, Math.round((ds.width - w - 64) / 2));
 		top = Math.max(1, Math.round((dh - h - editorUi.footerHeight) / 3));
-		w = Math.min(w0, document.body.scrollWidth - 64);
+		w = (document.body != null) ? Math.min(w0, document.body.scrollWidth - 64) : w0;
 		h = Math.min(h0, dh - 64);
 		
 		var pos = this.getPosition(left, top, w, h);
@@ -927,11 +959,15 @@ Dialog.prototype.getPosition = function(left, top)
 /**
  * Removes the dialog from the DOM.
  */
-Dialog.prototype.close = function(cancel)
+Dialog.prototype.close = function(cancel, isEsc)
 {
 	if (this.onDialogClose != null)
 	{
-		this.onDialogClose(cancel);
+		if (this.onDialogClose(cancel, isEsc) == false)
+		{
+			return false;
+		}
+		
 		this.onDialogClose = null;
 	}
 	
@@ -1179,26 +1215,33 @@ PrintDialog.prototype.create = function(editorUi)
  */
 PrintDialog.printPreview = function(preview)
 {
-	if (preview.wnd != null)
+	try
 	{
-		var printFn = function()
+		if (preview.wnd != null)
 		{
-			preview.wnd.focus();
-			preview.wnd.print();
-			preview.wnd.close();
-		};
-		
-		// Workaround for Google Chrome which needs a bit of a
-		// delay in order to render the SVG contents
-		// Needs testing in production
-		if (mxClient.IS_GC)
-		{
-			window.setTimeout(printFn, 500);
+			var printFn = function()
+			{
+				preview.wnd.focus();
+				preview.wnd.print();
+				preview.wnd.close();
+			};
+			
+			// Workaround for Google Chrome which needs a bit of a
+			// delay in order to render the SVG contents
+			// Needs testing in production
+			if (mxClient.IS_GC)
+			{
+				window.setTimeout(printFn, 500);
+			}
+			else
+			{
+				printFn();
+			}
 		}
-		else
-		{
-			printFn();
-		}
+	}
+	catch (e)
+	{
+		// ignores possible Access Denied
 	}
 };
 

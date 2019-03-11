@@ -1,3 +1,22 @@
+11-MAR-2018: 4.0.0
+
+- mxClient.IS_SVG is true for all non-VML browsers
+- Adds mxCellState.invalidStyle
+- Removes mxGraph.EMPTY_ARRAY
+- Fixes events for transparent unclosed SVG paths
+- Adds mxGuide.rounded, getDelta
+- Disables drag and drop for text in mxCellEditor
+- Adds mxUtils.getDocumentSize
+- Handles self references and duplicates in mxCodec
+- Make navigation steps significant in undo history
+- Fixes terminal point after disconnect with navigation
+- Adds invisible connected edges in mxGraph.removeCells
+- Ignores current root in mxGraphView.getVisibleTerminal
+- Adds mxGraph.updateSelection
+- Fixes edit replay for mxChildChange
+- Removes mxGraph.getRemovedCellsForChanges
+- Fixes possible type errors in mxSvgCanvas
+
 14-DEC-2018: 3.9.12
 
 - Fixes mxGraph.getSelectionCellsForChanges
