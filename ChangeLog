@@ -1,4 +1,4 @@
-11-MAR-2018: 4.0.0
+11-MAR-2019: 4.0.0
 
 - mxClient.IS_SVG is true for all non-VML browsers
 - Adds mxCellState.invalidStyle
