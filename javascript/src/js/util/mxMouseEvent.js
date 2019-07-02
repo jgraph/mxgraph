@@ -225,7 +225,7 @@ mxMouseEvent.prototype.isConsumed = function()
  */
 mxMouseEvent.prototype.consume = function(preventDefault)
 {
-	preventDefault = (preventDefault != null) ? preventDefault : true;
+	preventDefault = (preventDefault != null) ? preventDefault : mxEvent.isMouseEvent(this.evt);
 	
 	if (preventDefault && this.evt.preventDefault)
 	{

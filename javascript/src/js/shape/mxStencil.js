@@ -203,6 +203,11 @@ function mxStencil(desc)
 };
 
 /**
+ * Extends mxShape.
+ */
+mxUtils.extend(mxStencil, mxShape);
+
+/**
  * Variable: defaultLocalized
  * 
  * Static global variable that specifies the default value for the localized
@@ -414,6 +419,15 @@ mxStencil.prototype.drawShape = function(canvas, shape, x, y, w, h)
 			Number(this.strokewidth) * minScale;
 	canvas.setStrokeWidth(sw);
 
+	// Draws a transparent rectangle for catching events
+	if (shape.style != null && mxUtils.getValue(shape.style, mxConstants.STYLE_POINTER_EVENTS, '0') == '1')
+	{
+		canvas.setStrokeColor(mxConstants.NONE);
+		canvas.rect(x, y, w, h);
+		canvas.stroke();
+		canvas.setStrokeColor(shape.stroke);
+	}
+
 	this.drawChildren(canvas, shape, x, y, w, h, this.bgNode, aspect, false, true);
 	this.drawChildren(canvas, shape, x, y, w, h, this.fgNode, aspect, true,
 		!shape.outline || shape.style == null || mxUtils.getValue(
@@ -524,18 +538,83 @@ mxStencil.prototype.drawNode = function(canvas, shape, node, aspect, disableShad
 		if (name == 'path')
 		{
 			canvas.begin();
-	
-			// Renders the elements inside the given path
-			var childNode = node.firstChild;
 			
-			while (childNode != null)
+			var parseRegularly = true;
+			
+			if (node.getAttribute('rounded') == '1')
 			{
-				if (childNode.nodeType == mxConstants.NODETYPE_ELEMENT)
-				{
-					this.drawNode(canvas, shape, childNode, aspect, disableShadow, paint);
-				}
+				parseRegularly = false;
 				
-				childNode = childNode.nextSibling;
+				var arcSize = Number(node.getAttribute('arcSize'));
+				var pointCount = 0;
+				var segs = [];
+				
+				// Renders the elements inside the given path
+				var childNode = node.firstChild;
+				
+				while (childNode != null)
+				{
+					if (childNode.nodeType == mxConstants.NODETYPE_ELEMENT)
+					{
+						var childName = childNode.nodeName;
+						
+						if (childName == 'move' || childName == 'line')
+						{
+							if (childName == 'move' || segs.length == 0)
+							{
+								segs.push([]);
+							}
+							
+							segs[segs.length - 1].push(new mxPoint(x0 + Number(childNode.getAttribute('x')) * sx,
+								y0 + Number(childNode.getAttribute('y')) * sy));
+							pointCount++;
+						}
+						else
+						{
+							//We only support move and line for rounded corners
+							parseRegularly = true;
+							break;
+						}
+					}
+					
+					childNode = childNode.nextSibling;
+				}
+
+				if (!parseRegularly && pointCount > 0)
+				{
+					for (var i = 0; i < segs.length; i++)
+					{
+						var close = false, ps = segs[i][0], pe = segs[i][segs[i].length - 1];
+						
+						if (ps.x == pe.x && ps.y == pe.y) 
+						{
+							segs[i].pop();
+							close = true;
+						}
+						
+						this.addPoints(canvas, segs[i], true, arcSize, close);
+					}
+				}
+				else
+				{
+					parseRegularly = true;
+				}
+			}
+			
+			if (parseRegularly)
+			{
+				// Renders the elements inside the given path
+				var childNode = node.firstChild;
+				
+				while (childNode != null)
+				{
+					if (childNode.nodeType == mxConstants.NODETYPE_ELEMENT)
+					{
+						this.drawNode(canvas, shape, childNode, aspect, disableShadow, paint);
+					}
+					
+					childNode = childNode.nextSibling;
+				}
 			}
 		}
 		else if (name == 'close')

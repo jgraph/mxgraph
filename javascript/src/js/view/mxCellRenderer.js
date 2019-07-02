@@ -978,6 +978,8 @@ mxCellRenderer.prototype.isTextShapeInvalid = function(state, shape)
 {
 	function check(property, stylename, defaultValue)
 	{
+		var result = false;
+		
 		// Workaround for spacing added to directional spacing
 		if (stylename == 'spacingTop' || stylename == 'spacingRight' ||
 			stylename == 'spacingBottom' || stylename == 'spacingLeft')

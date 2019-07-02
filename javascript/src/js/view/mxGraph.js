@@ -3107,10 +3107,13 @@ mxGraph.prototype.sizeDidChange = function()
 		{
 			var root = this.view.getDrawPane().ownerSVGElement;
 			
-			root.style.minWidth = Math.max(1, width) + 'px';
-			root.style.minHeight = Math.max(1, height) + 'px';
-			root.style.width = '100%';
-			root.style.height = '100%';
+			if (root != null)
+			{
+				root.style.minWidth = Math.max(1, width) + 'px';
+				root.style.minHeight = Math.max(1, height) + 'px';
+				root.style.width = '100%';
+				root.style.height = '100%';
+			}
 		}
 		else
 		{
@@ -4373,7 +4376,7 @@ mxGraph.prototype.cloneCells = function(cells, allowInvalidEdges, mapping, keepP
 										src = this.model.getParent(src);
 									}
 									
-									if (src == null)
+									if (src == null && pts[0] != null)
 									{
 										g.setTerminalPoint(
 											new mxPoint(pts[0].x / scale - trans.x,
@@ -4387,10 +4390,11 @@ mxGraph.prototype.cloneCells = function(cells, allowInvalidEdges, mapping, keepP
 									{
 										trg = this.model.getParent(trg);
 									}
+
+									var n = pts.length - 1;
 									
-									if (trg == null)
+									if (trg == null && pts[n] != null)
 									{
-										var n = pts.length - 1;
 										g.setTerminalPoint(
 											new mxPoint(pts[n].x / scale - trans.x,
 												pts[n].y / scale - trans.y), false);

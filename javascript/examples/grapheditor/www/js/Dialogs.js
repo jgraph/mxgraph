@@ -204,10 +204,9 @@ var ColorDialog = function(editorUi, color, apply, cancelFn)
 	var applyBtn = mxUtils.button(mxResources.get('apply'), function()
 	{
 		var color = input.value;
-		// https://stackoverflow.com/questions/8027423/how-to-check-if-a-string-is-a-valid-hex-color-representation/8027444
-		var colorValid  = /(^#?[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(color);
 		
-		if (colorValid)
+		// Blocks any non-alphabetic chars in colors
+		if (/(^#?[a-zA-Z0-9]*$)/.test(color))
 		{
 			ColorDialog.addRecentColor(color, 12);
 			
@@ -216,10 +215,13 @@ var ColorDialog = function(editorUi, color, apply, cancelFn)
 				color = '#' + color;
 			}
 
-			applyFunction(color);			
+			applyFunction(color);
+			editorUi.hideDialog();
 		}
-
-		editorUi.hideDialog();
+		else
+		{
+			editorUi.handleError({message: mxResources.get('invalidInput')});	
+		}
 	});
 	applyBtn.className = 'geBtn gePrimaryBtn';
 	buttons.appendChild(applyBtn);
@@ -1504,12 +1506,11 @@ var EditDataDialog = function(ui, cell)
 
 	if (id != null)
 	{	
-		var text = document.createElement('input');
-		text.style.width = '420px';
+		var text = document.createElement('div');
+		text.style.width = '100%';
+		text.style.fontSize = '11px';
 		text.style.textAlign = 'center';
-		text.setAttribute('type', 'text');
-		text.setAttribute('readOnly', 'true');
-		text.setAttribute('value', id);
+		mxUtils.write(text, id);
 		
 		form.addField(mxResources.get('id') + ':', text);
 	}
@@ -1936,6 +1937,7 @@ var OutlineWindow = function(editorUi, x, y, w, h)
 	
 	this.window.addListener(mxEvent.SHOW, mxUtils.bind(this, function()
 	{
+		this.window.fit();
 		outline.suspended = false;
 		outline.outline.refresh();
 		outline.update();
@@ -2616,6 +2618,11 @@ var LayersWindow = function(editorUi, x, y, w, h)
 	this.window.setResizable(true);
 	this.window.setClosable(true);
 	this.window.setVisible(true);
+
+	this.window.addListener(mxEvent.SHOW, mxUtils.bind(this, function()
+	{
+		this.window.fit();
+	}));
 	
 	// Make refresh available via instance
 	this.refreshLayers = refresh;

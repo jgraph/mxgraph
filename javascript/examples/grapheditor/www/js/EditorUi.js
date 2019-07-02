@@ -418,59 +418,66 @@ EditorUi = function(editor, container, lightbox)
 	// Note: Everything that is not in styles is ignored (styles is augmented below)
 	this.setDefaultStyle = function(cell)
 	{
-		var state = graph.view.getState(cell);
-		
-		if (state != null)
+		try
 		{
-			// Ignores default styles
-			var clone = cell.clone();
-			clone.style = ''
-			var defaultStyle = graph.getCellStyle(clone);
-			var values = [];
-			var keys = [];
-
-			for (var key in state.style)
+			var state = graph.view.getState(cell);
+			
+			if (state != null)
 			{
-				if (defaultStyle[key] != state.style[key])
+				// Ignores default styles
+				var clone = cell.clone();
+				clone.style = ''
+				var defaultStyle = graph.getCellStyle(clone);
+				var values = [];
+				var keys = [];
+	
+				for (var key in state.style)
 				{
-					values.push(state.style[key]);
-					keys.push(key);
+					if (defaultStyle[key] != state.style[key])
+					{
+						values.push(state.style[key]);
+						keys.push(key);
+					}
 				}
+				
+				// Handles special case for value "none"
+				var cellStyle = graph.getModel().getStyle(state.cell);
+				var tokens = (cellStyle != null) ? cellStyle.split(';') : [];
+				
+				for (var i = 0; i < tokens.length; i++)
+				{
+					var tmp = tokens[i];
+			 		var pos = tmp.indexOf('=');
+			 					 		
+			 		if (pos >= 0)
+			 		{
+			 			var key = tmp.substring(0, pos);
+			 			var value = tmp.substring(pos + 1);
+			 			
+			 			if (defaultStyle[key] != null && value == 'none')
+			 			{
+			 				values.push(value);
+			 				keys.push(key);
+			 			}
+			 		}
+				}
+	
+				// Resets current style
+				if (graph.getModel().isEdge(state.cell))
+				{
+					graph.currentEdgeStyle = {};
+				}
+				else
+				{
+					graph.currentVertexStyle = {}
+				}
+	
+				this.fireEvent(new mxEventObject('styleChanged', 'keys', keys, 'values', values, 'cells', [state.cell]));
 			}
-			
-			// Handles special case for value "none"
-			var cellStyle = graph.getModel().getStyle(state.cell);
-			var tokens = (cellStyle != null) ? cellStyle.split(';') : [];
-			
-			for (var i = 0; i < tokens.length; i++)
-			{
-				var tmp = tokens[i];
-		 		var pos = tmp.indexOf('=');
-		 					 		
-		 		if (pos >= 0)
-		 		{
-		 			var key = tmp.substring(0, pos);
-		 			var value = tmp.substring(pos + 1);
-		 			
-		 			if (defaultStyle[key] != null && value == 'none')
-		 			{
-		 				values.push(value);
-		 				keys.push(key);
-		 			}
-		 		}
-			}
-
-			// Resets current style
-			if (graph.getModel().isEdge(state.cell))
-			{
-				graph.currentEdgeStyle = {};
-			}
-			else
-			{
-				graph.currentVertexStyle = {}
-			}
-
-			this.fireEvent(new mxEventObject('styleChanged', 'keys', keys, 'values', values, 'cells', [state.cell]));
+		}
+		catch (e)
+		{
+			this.handleError(e);
 		}
 	};
 	
@@ -606,7 +613,6 @@ EditorUi = function(editor, container, lightbox)
 							if (!edge || mxUtils.indexOf(connectStyles, key) < 0)
 							{
 								newStyle = mxUtils.setStyle(newStyle, key, styleValue);
-								console.log('here', key, styleValue);
 							}
 						}
 					}
@@ -1997,6 +2003,11 @@ EditorUi.prototype.initCanvas = function()
 
 				graphSizeDidChange.apply(this, arguments);
 			}
+			else
+			{
+				// Fires event but does not invoke superclass
+				this.fireEvent(new mxEventObject(mxEvent.SIZE, 'bounds', this.getGraphBounds()));
+			}
 		};
 	}
 	
@@ -2099,13 +2110,13 @@ EditorUi.prototype.initCanvas = function()
 					graph.lazyZoom(up);
 					mxEvent.consume(evt);
 			
-					return;
+					return false;
 				}
 				
 				source = source.parentNode;
 			}
 		}
-	}));
+	}), graph.container);
 };
 
 /**
@@ -3339,6 +3350,52 @@ EditorUi.prototype.addSplitHandler = function(elt, horizontal, dx, onChange)
 	{
 		mxEvent.removeGestureListeners(document, null, moveHandler, dropHandler);
 	});	
+};
+
+/**
+ * Translates this point by the given vector.
+ * 
+ * @param {number} dx X-coordinate of the translation.
+ * @param {number} dy Y-coordinate of the translation.
+ */
+EditorUi.prototype.handleError = function(resp, title, fn, invokeFnOnClose, notFoundMessage)
+{
+	var e = (resp != null && resp.error != null) ? resp.error : resp;
+
+	if (e != null || title != null)
+	{
+		var msg = mxUtils.htmlEntities(mxResources.get('unknownError'));
+		var btn = mxResources.get('ok');
+		title = (title != null) ? title : mxResources.get('error');
+		
+		if (e != null && e.message != null)
+		{
+			msg = mxUtils.htmlEntities(e.message);
+		}
+
+		this.showError(title, msg, btn, fn, null, null, null, null, null,
+			null, null, null, (invokeFnOnClose) ? fn : null);
+	}
+	else if (fn != null)
+	{
+		fn();
+	}
+};
+
+/**
+ * Translates this point by the given vector.
+ * 
+ * @param {number} dx X-coordinate of the translation.
+ * @param {number} dy Y-coordinate of the translation.
+ */
+EditorUi.prototype.showError = function(title, msg, btn, fn, retry, btn2, fn2, btn3, fn3, w, h, hide, onClose)
+{
+	var height = (msg != null && msg.length > 120) ? 180 : 150;
+	var dlg = new ErrorDialog(this, title, msg, btn || mxResources.get('ok'),
+		fn, retry, btn2, fn2, hide, btn3, fn3);
+	this.showDialog(dlg.container, w || 340, h || ((msg != null && msg.length > 120) ?
+		180 : 150), true, false, onClose);
+	dlg.init();
 };
 
 /**

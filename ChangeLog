@@ -1,3 +1,14 @@
+02-JUL-2019: 4.0.1
+
+- Forces quotes around font names in CSS and SVG
+- No longer prevents default for pen/touch events in mxMouseEvent
+- Adds validation of color codes
+- Fixes handling of Infinity in mxObjectCodec
+- Add target for Chrome in mxEvent.addMouseWheelListener
+- Removes scroll handler in mxOutline.destroy
+- Adds mxStackLayout.allowGaps and gridSize
+- Fixes possible NPE in mxGraph.sizeDidChange
+
 11-MAR-2019: 4.0.0
 
 - mxClient.IS_SVG is true for all non-VML browsers

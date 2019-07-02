@@ -170,6 +170,7 @@ insertImage=Bild einfügen
 insertLink=Link einfügen
 insertRowBefore=Zeile oberhalb einfügen
 insertRowAfter=Zeile unterhalb einfügen
+invalidInput=Ungültige Eingabe
 invalidName=Ungültiger Name
 invalidOrMissingFile=Ungültige oder fehlende Datei
 isometric=Isometrisch

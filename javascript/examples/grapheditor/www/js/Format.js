@@ -1034,9 +1034,8 @@ BaseFormatPanel.prototype.createColorOption = function(label, getColorFn, setCol
 	mxUtils.write(span, label);
 	div.appendChild(span);
 	
-	var applying = false;
 	var value = getColorFn();
-
+	var applying = false;
 	var btn = null;
 
 	var apply = function(color, disableUpdate, forceUpdate)
@@ -1044,9 +1043,11 @@ BaseFormatPanel.prototype.createColorOption = function(label, getColorFn, setCol
 		if (!applying)
 		{
 			applying = true;
+			color = (/(^#?[a-zA-Z0-9]*$)/.test(color)) ? color : defaultColor;
 			btn.innerHTML = '<div style="width:' + ((mxClient.IS_QUIRKS) ? '30' : '36') +
 				'px;height:12px;margin:3px;border:1px solid black;background-color:' +
-				((color != null && color != mxConstants.NONE) ? color : defaultColor) + ';"></div>';
+				mxUtils.htmlEntities((color != null && color != mxConstants.NONE) ?
+				color : defaultColor) + ';"></div>';
 			
 			// Fine-tuning in Firefox, quirks mode and IE8 standards
 			if (mxClient.IS_QUIRKS || document.documentMode == 8)
@@ -1492,6 +1493,20 @@ ArrangePanel.prototype.init = function()
 	}
 	
 	this.container.appendChild(this.addGroupOps(this.createPanel()));
+
+	if (ss.containsLabel)
+	{
+		// Adds functions from hidden style format panel
+		var span = document.createElement('div');
+		span.style.width = '100%';
+		span.style.marginTop = '0px';
+		span.style.fontWeight = 'bold';
+		span.style.padding = '10px 0 0 18px';
+		mxUtils.write(span, mxResources.get('style'));
+		this.container.appendChild(span);
+			
+		new StyleFormatPanel(this.format, this.editorUi, this.container);
+	}
 };
 
 /**
@@ -2982,7 +2997,65 @@ TextFormatPanel.prototype.addFont = function(container)
 		return currentFontColor;
 	}, function(color)
 	{
-		document.execCommand('forecolor', false, (color != mxConstants.NONE) ? color : 'transparent');
+		if (mxClient.IS_FF)
+		{
+			// Workaround for Firefox that adds the font element around
+			// anchor elements which ignore inherited colors is to move
+			// the font element inside anchor elements
+			var tmp = graph.cellEditor.textarea.getElementsByTagName('font');
+			var oldFonts = [];
+
+			for (var i = 0; i < tmp.length; i++)
+			{
+				oldFonts.push(
+				{
+					node: tmp[i],
+					color: tmp[i].getAttribute('color')
+				});
+			}
+
+			document.execCommand('forecolor', false, (color != mxConstants.NONE) ?
+				color : 'transparent');
+
+			// Finds the new or changed font element
+			var newFonts = graph.cellEditor.textarea.getElementsByTagName('font');
+
+			for (var i = 0; i < newFonts.length; i++)
+			{
+				if (i >= oldFonts.length || newFonts[i] != oldFonts[i].node ||
+					(newFonts[i] == oldFonts[i].node &&
+						newFonts[i].getAttribute('color') != oldFonts[i].color))
+				{
+					var child = newFonts[i].firstChild;
+
+					// Moves the font element to inside the anchor element and adopts all children
+					if (child != null && child.nodeName == 'A' && child.nextSibling ==
+						null &&
+						child.firstChild != null)
+					{
+						var parent = newFonts[i].parentNode;
+						parent.insertBefore(child, newFonts[i]);
+						var tmp = child.firstChild;
+
+						while (tmp != null)
+						{
+							var next = tmp.nextSibling;
+							newFonts[i].appendChild(tmp);
+							tmp = next;
+						}
+
+						child.appendChild(newFonts[i]);
+					}
+
+					break;
+				}
+			}
+		}
+		else
+		{
+			document.execCommand('forecolor', false, (color != mxConstants.NONE) ?
+				color : 'transparent');
+		}
 	}, '#000000',
 	{
 		install: function(apply) { fontColorApply = apply; },
@@ -3442,7 +3515,7 @@ TextFormatPanel.prototype.addFont = function(container)
 		setSelected(fontStyleItems[0], (fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD);
 		setSelected(fontStyleItems[1], (fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC);
 		setSelected(fontStyleItems[2], (fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE);
-		fontMenu.firstChild.nodeValue = mxUtils.htmlEntities(mxUtils.getValue(ss.style, mxConstants.STYLE_FONTFAMILY, Menus.prototype.defaultFont));
+		fontMenu.firstChild.nodeValue = mxUtils.getValue(ss.style, mxConstants.STYLE_FONTFAMILY, Menus.prototype.defaultFont);
 
 		setSelected(verticalItem, mxUtils.getValue(ss.style, mxConstants.STYLE_HORIZONTAL, '1') == '0');
 		
@@ -3868,24 +3941,28 @@ StyleFormatPanel.prototype.init = function()
 	var graph = editor.graph;
 	var ss = this.format.getSelectionState();
 	
-	if (ss.containsImage && ss.vertices.length == 1 && ss.style.shape == 'image' &&
-		ss.style.image != null && ss.style.image.substring(0, 19) == 'data:image/svg+xml;')
+	if (!ss.containsLabel)
 	{
-		this.container.appendChild(this.addSvgStyles(this.createPanel()));
+		if (ss.containsImage && ss.vertices.length == 1 && ss.style.shape == 'image' &&
+			ss.style.image != null && ss.style.image.substring(0, 19) == 'data:image/svg+xml;')
+		{
+			this.container.appendChild(this.addSvgStyles(this.createPanel()));
+		}
+		
+		if (!ss.containsImage || ss.style.shape == 'image')
+		{
+			this.container.appendChild(this.addFill(this.createPanel()));
+		}
+	
+		this.container.appendChild(this.addStroke(this.createPanel()));
+		this.container.appendChild(this.addLineJumps(this.createPanel()));
+		var opacityPanel = this.createRelativeOption(mxResources.get('opacity'), mxConstants.STYLE_OPACITY, 41);
+		opacityPanel.style.paddingTop = '8px';
+		opacityPanel.style.paddingBottom = '8px';
+		this.container.appendChild(opacityPanel);
+		this.container.appendChild(this.addEffects(this.createPanel()));
 	}
 	
-	if (!ss.containsImage || ss.style.shape == 'image')
-	{
-		this.container.appendChild(this.addFill(this.createPanel()));
-	}
-
-	this.container.appendChild(this.addStroke(this.createPanel()));
-	this.container.appendChild(this.addLineJumps(this.createPanel()));
-	var opacityPanel = this.createRelativeOption(mxResources.get('opacity'), mxConstants.STYLE_OPACITY, 41);
-	opacityPanel.style.paddingTop = '8px';
-	opacityPanel.style.paddingBottom = '8px';
-	this.container.appendChild(opacityPanel);
-	this.container.appendChild(this.addEffects(this.createPanel()));
 	var opsPanel = this.addEditOps(this.createPanel());
 	
 	if (opsPanel.firstChild != null)

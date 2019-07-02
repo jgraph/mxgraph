@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 4.0.0.
+	 * Current version is 4.0.1.
 	 */
-	VERSION: '4.0.0',
+	VERSION: '4.0.1',
 
 	/**
 	 * Variable: IS_IE
@@ -273,8 +273,9 @@ var mxClient =
 	 * rel - String that represents the rel attribute of the link node.
 	 * href - String that represents the href attribute of the link node.
 	 * doc - Optional parent document of the link node.
+	 * id - unique id for the link element to check if it already exists
 	 */
-	link: function(rel, href, doc)
+	link: function(rel, href, doc, id)
 	{
 		doc = doc || document;
 
@@ -291,6 +292,11 @@ var mxClient =
 			link.setAttribute('href', href);
 			link.setAttribute('charset', 'UTF-8');
 			link.setAttribute('type', 'text/css');
+			
+			if (id)
+			{
+				link.setAttribute('id', id);
+			}
 			
 			var head = doc.getElementsByTagName('head')[0];
 	   		head.appendChild(link);
@@ -665,8 +671,8 @@ if (mxForceIncludes || !(typeof module === 'object' && module.exports != null))
 	mxClient.include(mxClient.basePath+'/js/util/mxSvgCanvas2D.js');
 	mxClient.include(mxClient.basePath+'/js/util/mxVmlCanvas2D.js');
 	mxClient.include(mxClient.basePath+'/js/util/mxGuide.js');
-	mxClient.include(mxClient.basePath+'/js/shape/mxStencil.js');
 	mxClient.include(mxClient.basePath+'/js/shape/mxShape.js');
+	mxClient.include(mxClient.basePath+'/js/shape/mxStencil.js');
 	mxClient.include(mxClient.basePath+'/js/shape/mxStencilRegistry.js');
 	mxClient.include(mxClient.basePath+'/js/shape/mxMarker.js');
 	mxClient.include(mxClient.basePath+'/js/shape/mxActor.js');

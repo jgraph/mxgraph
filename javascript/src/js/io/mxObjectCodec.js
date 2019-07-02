@@ -635,7 +635,7 @@ mxObjectCodec.prototype.convertAttributeFromXml = function(dec, attr, obj)
 	{
 		value = parseFloat(value);
 		
-		if (isNaN(value))
+		if (isNaN(value) || !isFinite(value))
 		{
 			value = 0;
 		}

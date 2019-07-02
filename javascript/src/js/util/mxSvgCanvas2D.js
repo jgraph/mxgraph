@@ -380,7 +380,8 @@ mxSvgCanvas2D.prototype.createAlternateContent = function(fo, x, y, w, h, str, a
 		alt.setAttribute('fill', s.fontColor || 'black');
 		alt.setAttribute('text-anchor', 'middle');
 		alt.setAttribute('font-size', s.fontSize + 'px');
-		alt.setAttribute('font-family', s.fontFamily);
+		// Quotes are workaround for font name "m+"
+		alt.setAttribute('font-family', '\'' + s.fontFamily + '\'');
 		
 		if ((s.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
 		{
@@ -1177,7 +1178,7 @@ mxSvgCanvas2D.prototype.convertHtml = function(val)
  * 
  * Private helper function to create SVG elements
  */
-mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, overflow)
+mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, overflow, whiteSpace)
 {
 	var s = this.state;
 
@@ -1185,8 +1186,9 @@ mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, overflow
 	var lh = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? (s.fontSize * mxConstants.LINE_HEIGHT) + 'px' :
 		(mxConstants.LINE_HEIGHT * this.lineHeightCorrection);
 	
-	style = 'display:inline-block;font-size:' + s.fontSize + 'px;font-family:' + s.fontFamily +
-		';color:' + s.fontColor + ';line-height:' + lh + ';' + style;
+	// Quotes are workaround for font name "m+"
+	style = 'display:inline-block;font-size:' + s.fontSize + 'px;font-family:"' + s.fontFamily +
+		'";color:' + s.fontColor + ';line-height:' + lh + ';' + style;
 
 	if ((s.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
 	{
@@ -1223,7 +1225,7 @@ mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, overflow
 	{
 		css += 'border:1px solid ' + s.fontBorderColor + ';';
 	}
-	
+
 	var val = str;
 	
 	if (!mxUtils.isNode(val))
@@ -1232,6 +1234,13 @@ mxSvgCanvas2D.prototype.createDiv = function(str, align, valign, style, overflow
 		
 		if (overflow != 'fill' && overflow != 'width')
 		{
+			// Workaround for no wrapping in HTML canvas for image
+			// export if the inner HTML contains a DIV with width
+			if (whiteSpace != null)
+			{
+				css += 'white-space:' + whiteSpace + ';';
+			}
+			
 			// Inner div always needed to measure wrapped text
 			val = '<div xmlns="http://www.w3.org/1999/xhtml" style="display:inline-block;text-align:inherit;text-decoration:inherit;' + css + '">' + val + '</div>';
 		}
@@ -1518,7 +1527,7 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 			fo.setAttribute('style', 'overflow:visible;');
 			fo.setAttribute('pointer-events', 'all');
 			
-			var div = this.createDiv(str, align, valign, style, overflow);
+			var div = this.createDiv(str, align, valign, style, overflow, (wrap && w > 0) ? 'normal' : null);
 			
 			// Ignores invalid XHTML labels
 			if (div == null)
@@ -2017,7 +2026,7 @@ mxSvgCanvas2D.prototype.updateFont = function(node)
 	
 	if (!this.styleEnabled || s.fontFamily != mxConstants.DEFAULT_FONTFAMILY)
 	{
-		node.setAttribute('font-family', s.fontFamily);
+		node.setAttribute('font-family', '\'' + s.fontFamily + '\'');
 	}
 
 	if ((s.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
@@ -2093,7 +2102,8 @@ mxSvgCanvas2D.prototype.addTextBackground = function(node, str, x, y, w, h, alig
 			// Wrapping and clipping can be ignored here
 			div.style.lineHeight = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? (s.fontSize * mxConstants.LINE_HEIGHT) + 'px' : mxConstants.LINE_HEIGHT;
 			div.style.fontSize = s.fontSize + 'px';
-			div.style.fontFamily = s.fontFamily;
+			// Quotes are workaround for font name "m+"
+			div.style.fontFamily = '"' + s.fontFamily + '"';
 			div.style.whiteSpace = 'nowrap';
 			div.style.position = 'absolute';
 			div.style.visibility = 'hidden';
