@@ -3,7 +3,7 @@ mxgraph
 
 mxGraph is a fully client side JavaScript diagramming library that uses SVG and HTML for rendering. [draw.io](https://www.draw.io) is an example that extends the functionality of this library. The [sources to draw.io](https://github.com/jgraph/draw.io) are also available.
 
-Note this is the release repo. The development repo is on [Bitbucket](https://bitbucket.org/jgraph/mxgraph2), but we cannot work out how to submit PRs there, so send them here and we'll merge if review approves.
+Note this is the release repo, only each release is pushed here. The development repo is https://github.com/jgraph/mxgraph2,  submit PRs and issues there.
 
 If you want to build something like draw.io, [GraphEditor](https://jgraph.github.io/mxgraph/javascript/examples/grapheditor/www/index.html) is the best example to use as a base.
 
@@ -22,8 +22,6 @@ Support
 =======
 
 There is a [mxgraph tag on Stack Overflow](http://stackoverflow.com/questions/tagged/mxgraph). Please ensure your questions adhere to the [SO guidelines](http://stackoverflow.com/help/on-topic), otherwise it will be closed.
-
-We do not provide commercial support. If you are looking for a commercially supported diagramming library, we recommend [yFiles HTML](https://www.yworks.com/products/yfiles-for-html). Their layouting and routing algorithms, in particular, are the best out there.
 
 License
 =======
