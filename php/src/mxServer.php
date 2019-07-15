@@ -4,15 +4,15 @@
  *
  * Class: mxServer
  *
- * Bootstrapping for the PHP backend. This is version 4.0.1
+ * Bootstrapping for the PHP backend. This is version 4.0.2
  * of mxGraph.
  *
  * Variable: MXGRAPH-VERSION
  *
  * Constant that holds the current mxGraph version. The current version
- * is 4.0.1.
+ * is 4.0.2.
  */
-define("MXGRAPH-VERSION", "4.0.1");
+define("MXGRAPH-VERSION", "4.0.2");
 
 // Disables external entities in XML
 libxml_disable_entity_loader(true);

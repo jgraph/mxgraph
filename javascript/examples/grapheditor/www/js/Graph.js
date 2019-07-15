@@ -45,6 +45,15 @@ if (!Date.prototype.toISOString)
     }());
 }
 
+// Shim for Date.now()
+if (!Date.now)
+{
+	Date.now = function()
+	{
+		return new Date().getTime();
+	};
+}
+
 // Changes default colors
 mxConstants.SHADOW_OPACITY = 0.25;
 mxConstants.SHADOWCOLOR = '#000000';
@@ -982,7 +991,8 @@ Graph.zapGremlins = function(text)
 		var code = text.charCodeAt(i);
 		
 		// Removes all control chars except TAB, LF and CR
-		if ((code >= 32 || code == 9 || code == 10 || code == 13) && code != 0xFFFF)
+		if ((code >= 32 || code == 9 || code == 10 || code == 13) &&
+			code != 0xFFFF && code != 0xFFFE)
 		{
 			checked.push(text.charAt(i));
 		}
@@ -2944,9 +2954,10 @@ Graph.prototype.isCellFoldable = function(cell)
 	var state = this.view.getState(cell);
 	var style = (state != null) ? state.style : this.getCellStyle(cell);
 	
-	return this.foldingEnabled && !this.isCellLocked(cell) &&
+	return this.foldingEnabled && (style['treeFolding'] == '1' ||
+		(!this.isCellLocked(cell) &&
 		((this.isContainer(cell) && style['collapsible'] != '0') ||
-		(!this.isContainer(cell) && style['collapsible'] == '1'));
+		(!this.isContainer(cell) && style['collapsible'] == '1'))));
 };
 
 /**
@@ -4470,7 +4481,7 @@ HoverIcons.prototype.setCurrentState = function(state)
 	    	var shape = mxUtils.getValue(state.style, mxConstants.STYLE_SHAPE, null);
 	
 	    	// Extracts and decodes stencil XML if shape has the form shape=stencil(value)
-	    	if (shape != null && shape.substring(0, 8) == 'stencil(')
+	    	if (shape != null && typeof shape === 'string' && shape.substring(0, 8) == 'stencil(')
 	    	{
 	    		try
 	    		{
@@ -4601,7 +4612,7 @@ mxStencilRegistry.getBasenameForStencil = function(name)
 {
 	var tmp = null;
 	
-	if (name != null)
+	if (name != null && typeof name === 'string')
 	{
 		var parts = name.split('.');
 		
@@ -4787,6 +4798,9 @@ if (typeof mxVertexHandler != 'undefined')
 	
 		// Enables guides
 		mxGraphHandler.prototype.guidesEnabled = true;
+		
+		// Removes parents where all child cells are moved out
+		mxGraphHandler.prototype.removeEmptyParents = true;
 	
 		// Enables fading of rubberband
 		mxRubberband.prototype.fadeOut = true;
@@ -5428,6 +5442,19 @@ if (typeof mxVertexHandler != 'undefined')
 			
 			span.innerHTML = elt.innerHTML;
 			elt.parentNode.replaceChild(span, elt);
+		};
+
+		/**
+		 * 
+		 */
+		Graph.prototype.processElements = function(elt, fn)
+		{
+			var elts = elt.getElementsByTagName('*');
+			
+			for (var i = 0; i < elts.length; i++)
+			{
+				fn(elts[i]);
+			}
 		};
 		
 		/**
@@ -6695,6 +6722,29 @@ if (typeof mxVertexHandler != 'undefined')
 		};
 		
 		/**
+		 * Returns the first ancestor of the current selection with the given name.
+		 */
+		Graph.prototype.getParentByNames = function(node, names, stopAt)
+		{
+			while (node != null)
+			{
+				if (mxUtils.indexOf(names, node.nodeName) >= 0)
+				{
+					return node;
+				}
+		
+				if (node == stopAt)
+				{
+					return null;
+				}
+				
+				node = node.parentNode;
+			}
+			
+			return node;
+		};
+		
+		/**
 		 * Selects the given node.
 		 */
 		Graph.prototype.selectNode = function(node)
@@ -7003,7 +7053,41 @@ if (typeof mxVertexHandler != 'undefined')
 			
 			return state != null && state.style['html'] == 1;
 		};
-	
+
+		/**
+		 * Returns true if all selected text is inside a table element.
+		 */
+		mxCellEditor.prototype.isTableSelected = function()
+		{
+			return this.graph.getParentByName(
+				this.graph.getSelectedElement(),
+				'TABLE', this.textarea) != null;
+		};
+		
+		/**
+		 * Sets the alignment of the current selected cell. This sets the
+		 * alignment in the cell style, removes all alignment within the
+		 * text and invokes the built-in alignment function.
+		 * 
+		 * Only the built-in function is invoked if shift is pressed or
+		 * if table cells are selected and shift is not pressed.
+		 */
+		mxCellEditor.prototype.alignText = function(align, evt)
+		{
+			if (!this.isTableSelected() == (evt == null || !mxEvent.isShiftDown(evt)))
+			{
+				this.graph.cellEditor.setAlign(align);
+				
+				this.graph.processElements(this.textarea, function(elt)
+				{
+					elt.removeAttribute('align');
+					elt.style.textAlign = null;
+				});
+			}
+			
+			document.execCommand('justify' + align.toLowerCase(), false, null);
+		};
+		
 		/**
 		 * Creates the keyboard event handler for the current graph and history.
 		 */
@@ -7102,7 +7186,7 @@ if (typeof mxVertexHandler != 'undefined')
 			
 			return guide;
 		};
-	
+		
 		/**
 		 * HTML in-place editor
 		 */
@@ -7272,7 +7356,13 @@ if (typeof mxVertexHandler != 'undefined')
 	
 					window.setTimeout(mxUtils.bind(this, function()
 					{
-						checkNode(this.textarea, clone);
+						// Paste from Word or Excel
+						if (this.textarea != null &&
+							(this.textarea.innerHTML.indexOf('<o:OfficeDocumentSettings>') >= 0 ||
+							this.textarea.innerHTML.indexOf('<!--[if !mso]>') >= 0))
+						{
+							checkNode(this.textarea, clone);
+						}
 					}), 0);
 				}));
 			}
@@ -7555,23 +7645,26 @@ if (typeof mxVertexHandler != 'undefined')
 				this.graph.getModel().endUpdate();
 			}
 		};
-
+		
 		/**
 		 * Returns the background color to be used for the editing box. This returns
 		 * the label background for edge labels and null for all other cases.
 		 */
 		mxCellEditor.prototype.getBackgroundColor = function(state)
 		{
-			var color = null;
-			
-			if (this.graph.getModel().isEdge(state.cell) || this.graph.getModel().isEdge(this.graph.getModel().getParent(state.cell)))
+			var color = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, null);
+
+			if ((color == null || color == mxConstants.NONE) &&
+				(state.cell.geometry != null && state.cell.geometry.width > 0) &&
+				(mxUtils.getValue(state.style, mxConstants.STYLE_ROTATION, 0) != 0 ||
+				mxUtils.getValue(state.style, mxConstants.STYLE_HORIZONTAL, 1) == 0))
 			{
-				var color = mxUtils.getValue(state.style, mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, null);
-				
-				if (color == mxConstants.NONE)
-				{
-					color = null;
-				}
+				color = mxUtils.getValue(state.style, mxConstants.STYLE_FILLCOLOR, null);
+			}
+
+			if (color == mxConstants.NONE)
+			{
+				color = null;
 			}
 			
 			return color;

@@ -2558,21 +2558,21 @@ TextFormatPanel.prototype.addFont = function(container)
 	
 	var left = this.editorUi.toolbar.addButton('geSprite-left', mxResources.get('left'),
 		(graph.cellEditor.isContentEditing()) ?
-		function()
+		function(evt)
 		{
-			document.execCommand('justifyleft', false, null);
+			graph.cellEditor.alignText(mxConstants.ALIGN_LEFT, evt);
 		} : callFn(this.editorUi.menus.createStyleChangeFunction([mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_LEFT])), stylePanel3);
 	var center = this.editorUi.toolbar.addButton('geSprite-center', mxResources.get('center'),
 		(graph.cellEditor.isContentEditing()) ?
-		function()
+		function(evt)
 		{
-			document.execCommand('justifycenter', false, null);
+			graph.cellEditor.alignText(mxConstants.ALIGN_CENTER, evt);
 		} : callFn(this.editorUi.menus.createStyleChangeFunction([mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_CENTER])), stylePanel3);
 	var right = this.editorUi.toolbar.addButton('geSprite-right', mxResources.get('right'),
 		(graph.cellEditor.isContentEditing()) ?
-		function()
+		function(evt)
 		{
-			document.execCommand('justifyright', false, null);
+			graph.cellEditor.alignText(mxConstants.ALIGN_RIGHT, evt);
 		} : callFn(this.editorUi.menus.createStyleChangeFunction([mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_RIGHT])), stylePanel3);
 
 	this.styleButtons([left, center, right]);
@@ -2625,8 +2625,14 @@ TextFormatPanel.prototype.addFont = function(container)
 		full = this.editorUi.toolbar.addButton('geSprite-justifyfull', mxResources.get('block'),
 			function()
 			{
-				document.execCommand('justifyfull', false, null);
+				if (full.style.opacity == 1)
+				{
+					document.execCommand('justifyfull', false, null);
+				}
 			}, stylePanel3);
+		full.style.marginRight = '9px';
+		full.style.opacity = 1;
+
 		this.styleButtons([full,
        		sub = this.editorUi.toolbar.addButton('geSprite-subscript',
        			mxResources.get('subscript') + ' (' + Editor.ctrlKey + '+,)',
@@ -2639,7 +2645,6 @@ TextFormatPanel.prototype.addFont = function(container)
 			{
 				document.execCommand('superscript', false, null);
 			}, stylePanel3)]);
-		full.style.marginRight = '9px';
 		
 		var tmp = stylePanel3.cloneNode(false);
 		tmp.style.paddingTop = '4px';
@@ -2833,7 +2838,8 @@ TextFormatPanel.prototype.addFont = function(container)
 
 			function updateSize(elt, ignoreContains)
 			{
-				if (elt != graph.cellEditor.textarea && graph.cellEditor.textarea.contains(elt) &&
+				if (graph.cellEditor.textarea != null && elt != graph.cellEditor.textarea &&
+					graph.cellEditor.textarea.contains(elt) &&
 					(ignoreContains || selection.containsNode(elt, true)))
 				{
 					if (elt.nodeName == 'FONT')
@@ -3208,7 +3214,8 @@ TextFormatPanel.prototype.addFont = function(container)
 				node = graph.cellEditor.textarea.firstChild;
 			}
 			
-			if (node != null && node != graph.cellEditor.textarea && graph.cellEditor.textarea.contains(node))
+			if (node != null && graph.cellEditor.textarea != null && node != graph.cellEditor.textarea &&
+				graph.cellEditor.textarea.contains(node))
 			{
 				node.style.lineHeight = value + '%';
 			}
@@ -3383,7 +3390,7 @@ TextFormatPanel.prototype.addFont = function(container)
 		
 		var btns = [
 		        this.editorUi.toolbar.addButton('geSprite-strokecolor', mxResources.get('borderColor'),
-				mxUtils.bind(this, function()
+				mxUtils.bind(this, function(evt)
 				{
 					if (currentTable != null)
 					{
@@ -3395,23 +3402,30 @@ TextFormatPanel.prototype.addFont = function(container)
 							    });
 						this.editorUi.pickColor(color, function(newColor)
 						{
+							var targetElt = (tableCell != null && (evt == null || !mxEvent.isShiftDown(evt))) ? tableCell : currentTable;
+							
+							graph.processElements(targetElt, function(elt)
+							{
+								elt.style.border = null;
+							});
+							
 							if (newColor == null || newColor == mxConstants.NONE)
 							{
-								currentTable.removeAttribute('border');
-								currentTable.style.border = '';
-								currentTable.style.borderCollapse = '';
+								targetElt.removeAttribute('border');
+								targetElt.style.border = '';
+								targetElt.style.borderCollapse = '';
 							}
 							else
 							{
-								currentTable.setAttribute('border', '1');
-								currentTable.style.border = '1px solid ' + newColor;
-								currentTable.style.borderCollapse = 'collapse';
+								targetElt.setAttribute('border', '1');
+								targetElt.style.border = '1px solid ' + newColor;
+								targetElt.style.borderCollapse = 'collapse';
 							}
 						});
 					}
 				}), tablePanel2),
 				this.editorUi.toolbar.addButton('geSprite-fillcolor', mxResources.get('backgroundColor'),
-				mxUtils.bind(this, function()
+				mxUtils.bind(this, function(evt)
 				{
 					// Converts rgb(r,g,b) values
 					if (currentTable != null)
@@ -3423,13 +3437,20 @@ TextFormatPanel.prototype.addFont = function(container)
 							    });
 						this.editorUi.pickColor(color, function(newColor)
 						{
+							var targetElt = (tableCell != null && (evt == null || !mxEvent.isShiftDown(evt))) ? tableCell : currentTable;
+							
+							graph.processElements(targetElt, function(elt)
+							{
+								elt.style.backgroundColor = null;
+							});
+							
 							if (newColor == null || newColor == mxConstants.NONE)
 							{
-								currentTable.style.backgroundColor = '';
+								targetElt.style.backgroundColor = '';
 							}
 							else
 							{
-								currentTable.style.backgroundColor = newColor;
+								targetElt.style.backgroundColor = newColor;
 							}
 						});
 					}
@@ -3536,7 +3557,7 @@ TextFormatPanel.prototype.addFont = function(container)
 		setSelected(bottom, valign == mxConstants.ALIGN_BOTTOM);
 		
 		var pos = mxUtils.getValue(ss.style, mxConstants.STYLE_LABEL_POSITION, mxConstants.ALIGN_CENTER);
-		var vpos =  mxUtils.getValue(ss.style, mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.ALIGN_MIDDLE);
+		var vpos = mxUtils.getValue(ss.style, mxConstants.STYLE_VERTICAL_LABEL_POSITION, mxConstants.ALIGN_MIDDLE);
 		
 		if (pos == mxConstants.ALIGN_LEFT && vpos == mxConstants.ALIGN_TOP)
 		{
@@ -3673,7 +3694,7 @@ TextFormatPanel.prototype.addFont = function(container)
 							{
 								var lineHeight = css.lineHeight
 								
-								if (elt.style.lineHeight.substring(elt.style.lineHeight.length - 1) == '%')
+								if (elt.style.lineHeight != null && elt.style.lineHeight.substring(elt.style.lineHeight.length - 1) == '%')
 								{
 									return parseInt(elt.style.lineHeight) / 100;
 								}
@@ -3780,16 +3801,34 @@ TextFormatPanel.prototype.addFont = function(container)
 							setSelected(fontStyleItems[1], css.fontStyle == 'italic' ||
 								hasParentOrOnlyChild('I') || hasParentOrOnlyChild('EM'));
 							setSelected(fontStyleItems[2], hasParentOrOnlyChild('U'));
-							setSelected(left, isEqualOrPrefixed(css.textAlign, 'left'));
-							setSelected(center, isEqualOrPrefixed(css.textAlign, 'center'));
-							setSelected(right, isEqualOrPrefixed(css.textAlign, 'right'));
 							setSelected(full, isEqualOrPrefixed(css.textAlign, 'justify'));
 							setSelected(sup, hasParentOrOnlyChild('SUP'));
 							setSelected(sub, hasParentOrOnlyChild('SUB'));
 							
+							if (!graph.cellEditor.isTableSelected())
+							{
+								var align = graph.cellEditor.align || mxUtils.getValue(ss.style, mxConstants.STYLE_ALIGN, mxConstants.ALIGN_CENTER);
+								setSelected(left, align == mxConstants.ALIGN_LEFT);
+								setSelected(center, align == mxConstants.ALIGN_CENTER);
+								setSelected(right, align == mxConstants.ALIGN_RIGHT);
+								
+								setSelected(full, false);
+								full.style.opacity = 0.2;
+								full.style.cursor = 'default';
+							}
+							else
+							{
+								setSelected(left, isEqualOrPrefixed(css.textAlign, 'left'));
+								setSelected(center, isEqualOrPrefixed(css.textAlign, 'center'));
+								setSelected(right, isEqualOrPrefixed(css.textAlign, 'right'));
+								
+								full.style.opacity = 1;
+								full.style.cursor = '';
+							}
+							
 							currentTable = graph.getParentByName(node, 'TABLE', graph.cellEditor.textarea);
 							tableRow = (currentTable == null) ? null : graph.getParentByName(node, 'TR', currentTable);
-							tableCell = (currentTable == null) ? null : graph.getParentByName(node, 'TD', currentTable);
+							tableCell = (currentTable == null) ? null : graph.getParentByNames(node, ['TD', 'TH'], currentTable);
 							tableWrapper.style.display = (currentTable != null) ? '' : 'none';
 							
 							if (document.activeElement != input)

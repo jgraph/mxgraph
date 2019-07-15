@@ -83,6 +83,12 @@
  * *alpha* defines the degree of transparency used between 1.0 for fully opaque
  * and 0.0 for fully transparent.
  * 
+ * *fillalpha* defines the degree of fill transparency used between 1.0 for fully
+ * opaque and 0.0 for fully transparent.
+ * 
+ * *strokealpha* defines the degree of stroke transparency used between 1.0 for
+ * fully opaque and 0.0 for fully transparent.
+ * 
  * *strokewidth* defines the integer thickness of drawing elements rendered by
  * stroking. Use fixed="1" to apply the value as-is, without scaling.
  * 
@@ -816,6 +822,14 @@ mxStencil.prototype.drawNode = function(canvas, shape, node, aspect, disableShad
 			canvas.setFillColor(node.getAttribute('color'));
 		}
 		else if (name == 'alpha')
+		{
+			canvas.setAlpha(node.getAttribute('alpha'));
+		}
+		else if (name == 'fillalpha')
+		{
+			canvas.setAlpha(node.getAttribute('alpha'));
+		}
+		else if (name == 'strokealpha')
 		{
 			canvas.setAlpha(node.getAttribute('alpha'));
 		}
