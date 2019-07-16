@@ -2,6 +2,7 @@
 
 - Adds mxCellEditor.setAlign for block alignment changes
 - Adds validation for label background and border colors
+    Credit to to Kaung Htet Aung of Grab for disclosure
 
 02-JUL-2019: 4.0.1
 
