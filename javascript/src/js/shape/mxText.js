@@ -1079,8 +1079,7 @@ mxText.prototype.updateFont = function(node)
 	
 	style.lineHeight = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? (this.size * mxConstants.LINE_HEIGHT) + 'px' : mxConstants.LINE_HEIGHT;
 	style.fontSize = this.size + 'px';
-	// Quotes are workaround for font name "m+"
-	style.fontFamily = '"' + this.family + '"';
+	style.fontFamily = this.family;
 	style.verticalAlign = 'top';
 	style.color = this.color;
 	

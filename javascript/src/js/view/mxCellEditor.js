@@ -801,8 +801,7 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 		this.textarea.style.fontStyle = (italic) ? 'italic' : '';
 		this.textarea.style.fontSize = Math.round(size) + 'px';
 		this.textarea.style.zIndex = this.zIndex;
-		// Quotes are workaround for font name "m+"
-		this.textarea.style.fontFamily = '"' + family + '"';
+		this.textarea.style.fontFamily = family;
 		this.textarea.style.textAlign = align;
 		this.textarea.style.outline = 'none';
 		this.textarea.style.color = color;

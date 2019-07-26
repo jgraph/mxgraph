@@ -1,8 +1,14 @@
+26-JUL-2019: 4.0.3
+
+- Reverts forcing quotes around font names in CSS and SVG
+- Ignores hidden cells in mxGraph.selectAll
+- Adds mxClient.IS_CHROMEOS
+
 15-JUL-2019: 4.0.2
 
 - Adds mxCellEditor.setAlign for block alignment changes
 - Adds validation for label background and border colors
-    Credit to to Kaung Htet Aung of Grab for disclosure
+- Adds mxGraphHandler.removeEmptyParents
 
 02-JUL-2019: 4.0.1
 

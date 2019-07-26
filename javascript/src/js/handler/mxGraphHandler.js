@@ -1114,8 +1114,6 @@ mxGraphHandler.prototype.shouldRemoveParent = function(parent)
 {
 	var state = this.graph.view.getState(parent);
 	
-	console.log('state', state, this.graph.model.getChildCount(state.cell));
-	
 	if (state != null && (this.graph.model.isEdge(state.cell) || this.graph.model.isVertex(state.cell)) &&
 		this.graph.isCellDeletable(state.cell) && this.graph.model.getChildCount(state.cell) == 0)
 	{

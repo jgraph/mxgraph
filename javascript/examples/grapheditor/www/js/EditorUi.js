@@ -3390,18 +3390,17 @@ EditorUi.prototype.handleError = function(resp, title, fn, invokeFnOnClose, notF
  */
 EditorUi.prototype.showError = function(title, msg, btn, fn, retry, btn2, fn2, btn3, fn3, w, h, hide, onClose)
 {
-	var height = (msg != null && msg.length > 120) ? 180 : 150;
 	var dlg = new ErrorDialog(this, title, msg, btn || mxResources.get('ok'),
 		fn, retry, btn2, fn2, hide, btn3, fn3);
-	this.showDialog(dlg.container, w || 340, h || ((msg != null && msg.length > 120) ?
-		180 : 150), true, false, onClose);
+	var lines = Math.ceil((msg != null) ? msg.length / 50 : 1);
+	this.showDialog(dlg.container, w || 340, h || (100 + lines * 20), true, false, onClose);
 	dlg.init();
 };
 
 /**
  * Displays a print dialog.
  */
-EditorUi.prototype.showDialog = function(elt, w, h, modal, closable, onClose, noScroll, trasparent, onResize, ignoreBgClick)
+EditorUi.prototype.showDialog = function(elt, w, h, modal, closable, onClose, noScroll, transparent, onResize, ignoreBgClick)
 {
 	this.editor.graph.tooltipHandler.hideTooltip();
 	
@@ -3410,7 +3409,7 @@ EditorUi.prototype.showDialog = function(elt, w, h, modal, closable, onClose, no
 		this.dialogs = [];
 	}
 	
-	this.dialog = new Dialog(this, elt, w, h, modal, closable, onClose, noScroll, trasparent, onResize, ignoreBgClick);
+	this.dialog = new Dialog(this, elt, w, h, modal, closable, onClose, noScroll, transparent, onResize, ignoreBgClick);
 	this.dialogs.push(this.dialog);
 };
 
