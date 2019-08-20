@@ -5,6 +5,8 @@ mxGraph is a fully client side JavaScript diagramming library that uses SVG and 
 
 Note this is the release repo, only each release is pushed here. The development repo is https://github.com/jgraph/mxgraph2,  submit PRs and issues there.
 
+The PHP model was deprecated after release 4.0.3 and the archive can be found [here](https://github.com/jgraph/mxgraph-php).
+
 If you want to build something like draw.io, [GraphEditor](https://jgraph.github.io/mxgraph/javascript/examples/grapheditor/www/index.html) is the best example to use as a base.
 
 The npm build is [here](https://www.npmjs.com/package/mxgraph)
