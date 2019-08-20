@@ -725,7 +725,7 @@ BaseFormatPanel.prototype.createTitle = function(title)
 /**
  * 
  */
-BaseFormatPanel.prototype.createStepper = function(input, update, step, height, disableFocus, defaultValue)
+BaseFormatPanel.prototype.createStepper = function(input, update, step, height, disableFocus, defaultValue, isFloat)
 {
 	step = (step != null) ? step : 1;
 	height = (height != null) ? height : 8;
@@ -765,7 +765,7 @@ BaseFormatPanel.prototype.createStepper = function(input, update, step, height, 
 			input.value = defaultValue || '2';
 		}
 		
-		var val = parseInt(input.value);
+		var val = isFloat? parseFloat(input.value) : parseInt(input.value);
 		
 		if (!isNaN(val))
 		{
@@ -787,7 +787,7 @@ BaseFormatPanel.prototype.createStepper = function(input, update, step, height, 
 			input.value = defaultValue || '0';
 		}
 		
-		var val = parseInt(input.value);
+		var val = isFloat? parseFloat(input.value) : parseInt(input.value);
 		
 		if (!isNaN(val))
 		{
@@ -1264,7 +1264,7 @@ BaseFormatPanel.prototype.addArrow = function(elt, height)
 /**
  * 
  */
-BaseFormatPanel.prototype.addUnitInput = function(container, unit, right, width, update, step, marginTop, disableFocus)
+BaseFormatPanel.prototype.addUnitInput = function(container, unit, right, width, update, step, marginTop, disableFocus, isFloat)
 {
 	marginTop = (marginTop != null) ? marginTop : 0;
 	
@@ -1276,7 +1276,7 @@ BaseFormatPanel.prototype.addUnitInput = function(container, unit, right, width,
 	input.style.width = width + 'px';
 	container.appendChild(input);
 	
-	var stepper = this.createStepper(input, update, step, null, disableFocus);
+	var stepper = this.createStepper(input, update, step, null, disableFocus, null, isFloat);
 	stepper.style.marginTop = (marginTop - 2) + 'px';
 	stepper.style.right = right + 'px';
 	container.appendChild(stepper);
@@ -1909,11 +1909,67 @@ ArrangePanel.prototype.addAngle = function(div)
 	return div;
 };
 
+BaseFormatPanel.prototype.getUnit = function()
+{
+	var unit = this.editorUi.editor.graph.view.unit;
+	
+	switch(unit)
+	{
+		case mxConstants.POINTS:
+			return 'pt';
+		case mxConstants.INCHES:
+			return '"';
+		case mxConstants.MILLIMETERS:
+			return 'mm';
+	}
+};
+
+BaseFormatPanel.prototype.inUnit = function(pixels)
+{
+	return this.editorUi.editor.graph.view.formatUnitText(pixels);
+};
+
+BaseFormatPanel.prototype.fromUnit = function(value)
+{
+	var unit = this.editorUi.editor.graph.view.unit;
+	
+	switch(unit)
+	{
+		case mxConstants.POINTS:
+			return value;
+		case mxConstants.INCHES:
+			return value * mxConstants.PIXELS_PER_INCH;
+		case mxConstants.MILLIMETERS:
+			return value * mxConstants.PIXELS_PER_MM;
+	}
+};
+
+BaseFormatPanel.prototype.isFloatUnit = function()
+{
+	return this.editorUi.editor.graph.view.unit != mxConstants.POINTS;
+};
+
+BaseFormatPanel.prototype.getUnitStep = function()
+{
+	var unit = this.editorUi.editor.graph.view.unit;
+	
+	switch(unit)
+	{
+		case mxConstants.POINTS:
+			return 1;
+		case mxConstants.INCHES:
+			return 0.1;
+		case mxConstants.MILLIMETERS:
+			return 0.5;
+	}
+};
+
 /**
  * 
  */
 ArrangePanel.prototype.addGeometry = function(container)
 {
+	var panel = this;
 	var ui = this.editorUi;
 	var graph = ui.editor.graph;
 	var rect = this.format.getSelectionState();
@@ -1930,14 +1986,14 @@ ArrangePanel.prototype.addGeometry = function(container)
 	div.appendChild(span);
 
 	var widthUpdate, heightUpdate, leftUpdate, topUpdate;
-	var width = this.addUnitInput(div, 'pt', 84, 44, function()
+	var width = this.addUnitInput(div, this.getUnit(), 84, 44, function()
 	{
 		widthUpdate.apply(this, arguments);
-	});
-	var height = this.addUnitInput(div, 'pt', 20, 44, function()
+	}, this.getUnitStep(), null, null, this.isFloatUnit());
+	var height = this.addUnitInput(div, this.getUnit(), 20, 44, function()
 	{
 		heightUpdate.apply(this, arguments);
-	});
+	}, this.getUnitStep(), null, null, this.isFloatUnit());
 	
 	var autosizeBtn = document.createElement('div');
 	autosizeBtn.className = 'geSprite geSprite-fit';
@@ -1988,7 +2044,7 @@ ArrangePanel.prototype.addGeometry = function(container)
 	{
 		if (geo.width > 0)
 		{
-			var value = Math.max(1, value);
+			var value = Math.max(1, panel.fromUnit(value));
 			
 			if (constrainCheckbox.checked)
 			{
@@ -2002,7 +2058,7 @@ ArrangePanel.prototype.addGeometry = function(container)
 	{
 		if (geo.height > 0)
 		{
-			var value = Math.max(1, value);
+			var value = Math.max(1, panel.fromUnit(value));
 			
 			if (constrainCheckbox.checked)
 			{
@@ -2026,14 +2082,14 @@ ArrangePanel.prototype.addGeometry = function(container)
 	mxUtils.write(span, mxResources.get('position'));
 	div2.appendChild(span);
 	
-	var left = this.addUnitInput(div2, 'pt', 84, 44, function()
+	var left = this.addUnitInput(div2, this.getUnit(), 84, 44, function()
 	{
 		leftUpdate.apply(this, arguments);
-	});
-	var top = this.addUnitInput(div2, 'pt', 20, 44, function()
+	}, this.getUnitStep(), null, null, this.isFloatUnit());
+	var top = this.addUnitInput(div2, this.getUnit(), 20, 44, function()
 	{
 		topUpdate.apply(this, arguments);
-	});
+	}, this.getUnitStep(), null, null, this.isFloatUnit());
 
 	mxUtils.br(div2);
 	this.addLabel(div2, mxResources.get('left'), 84);
@@ -2050,12 +2106,12 @@ ArrangePanel.prototype.addGeometry = function(container)
 			
 			if (force || document.activeElement != width)
 			{
-				width.value = rect.width + ((rect.width == '') ? '' : ' pt');
+				width.value = this.inUnit(rect.width) + ((rect.width == '') ? '' : ' ' + this.getUnit());
 			}
 			
 			if (force || document.activeElement != height)
 			{
-				height.value = rect.height + ((rect.height == '') ? '' : ' pt');
+				height.value = this.inUnit(rect.height) + ((rect.height == '') ? '' : ' ' + this.getUnit());
 			}
 		}
 		else
@@ -2070,12 +2126,12 @@ ArrangePanel.prototype.addGeometry = function(container)
 			
 			if (force || document.activeElement != left)
 			{
-				left.value = rect.x  + ((rect.x == '') ? '' : ' pt');
+				left.value = this.inUnit(rect.x)  + ((rect.x == '') ? '' : ' ' + this.getUnit());
 			}
 			
 			if (force || document.activeElement != top)
 			{
-				top.value = rect.y + ((rect.y == '') ? '' : ' pt');
+				top.value = this.inUnit(rect.y) + ((rect.y == '') ? '' : ' ' + this.getUnit());
 			}
 		}
 		else
@@ -2093,6 +2149,8 @@ ArrangePanel.prototype.addGeometry = function(container)
 	
 	leftUpdate = this.addGeometryHandler(left, function(geo, value)
 	{
+		value = panel.fromUnit(value);
+		
 		if (geo.relative)
 		{
 			geo.offset.x = value;
@@ -2104,6 +2162,8 @@ ArrangePanel.prototype.addGeometry = function(container)
 	});
 	topUpdate = this.addGeometryHandler(top, function(geo, value)
 	{
+		value = panel.fromUnit(value);
+		
 		if (geo.relative)
 		{
 			geo.offset.y = value;
@@ -2125,6 +2185,7 @@ ArrangePanel.prototype.addGeometryHandler = function(input, fn)
 	var ui = this.editorUi;
 	var graph = ui.editor.graph;
 	var initialValue = null;
+	var panel = this;
 	
 	function update(evt)
 	{
@@ -2134,7 +2195,7 @@ ArrangePanel.prototype.addGeometryHandler = function(input, fn)
 
 			if (isNaN(value)) 
 			{
-				input.value = initialValue + ' pt';
+				input.value = initialValue + ' ' + panel.getUnit();
 			}
 			else if (value != initialValue)
 			{
@@ -2165,7 +2226,7 @@ ArrangePanel.prototype.addGeometryHandler = function(input, fn)
 				}
 				
 				initialValue = value;
-				input.value = value + ' pt';
+				input.value = value + ' ' + panel.getUnit();
 			}
 		}
 		
@@ -2491,12 +2552,6 @@ TextFormatPanel.prototype.addFont = function(container)
 		var arrow = cssMenu.getElementsByTagName('div')[0];
 		arrow.style.cssFloat = 'right';
 		container.appendChild(cssPanel);
-		
-		// Workaround for offset in FF
-		if (mxClient.IS_FF)
-		{
-			cssMenu.getElementsByTagName('div')[0].style.marginTop = '-18px';
-		}
 	}
 	
 	container.appendChild(stylePanel);
@@ -2517,12 +2572,6 @@ TextFormatPanel.prototype.addFont = function(container)
 	this.addArrow(fontMenu);
 	fontMenu.style.width = '192px';
 	fontMenu.style.height = '15px';
-	
-	// Workaround for offset in FF
-	if (mxClient.IS_FF)
-	{
-		fontMenu.getElementsByTagName('div')[0].style.marginTop = '-18px';
-	}
 	
 	var stylePanel2 = stylePanel.cloneNode(false);
 	stylePanel2.style.marginLeft = '-3px';
@@ -2645,6 +2694,7 @@ TextFormatPanel.prototype.addFont = function(container)
 			{
 				document.execCommand('superscript', false, null);
 			}, stylePanel3)]);
+		sub.style.marginLeft = '9px';
 		
 		var tmp = stylePanel3.cloneNode(false);
 		tmp.style.paddingTop = '4px';
@@ -3801,29 +3851,34 @@ TextFormatPanel.prototype.addFont = function(container)
 							setSelected(fontStyleItems[1], css.fontStyle == 'italic' ||
 								hasParentOrOnlyChild('I') || hasParentOrOnlyChild('EM'));
 							setSelected(fontStyleItems[2], hasParentOrOnlyChild('U'));
-							setSelected(full, isEqualOrPrefixed(css.textAlign, 'justify'));
 							setSelected(sup, hasParentOrOnlyChild('SUP'));
 							setSelected(sub, hasParentOrOnlyChild('SUB'));
 							
 							if (!graph.cellEditor.isTableSelected())
 							{
 								var align = graph.cellEditor.align || mxUtils.getValue(ss.style, mxConstants.STYLE_ALIGN, mxConstants.ALIGN_CENTER);
-								setSelected(left, align == mxConstants.ALIGN_LEFT);
-								setSelected(center, align == mxConstants.ALIGN_CENTER);
-								setSelected(right, align == mxConstants.ALIGN_RIGHT);
-								
-								setSelected(full, false);
-								full.style.opacity = 0.2;
-								full.style.cursor = 'default';
+
+								if (isEqualOrPrefixed(css.textAlign, 'justify'))
+								{
+									setSelected(full, isEqualOrPrefixed(css.textAlign, 'justify'));
+									setSelected(left, false);
+									setSelected(center, false);
+									setSelected(right, false);
+								}
+								else
+								{
+									setSelected(full, false);
+									setSelected(left, align == mxConstants.ALIGN_LEFT);
+									setSelected(center, align == mxConstants.ALIGN_CENTER);
+									setSelected(right, align == mxConstants.ALIGN_RIGHT);
+								}
 							}
 							else
 							{
+								setSelected(full, isEqualOrPrefixed(css.textAlign, 'justify'));
 								setSelected(left, isEqualOrPrefixed(css.textAlign, 'left'));
 								setSelected(center, isEqualOrPrefixed(css.textAlign, 'center'));
 								setSelected(right, isEqualOrPrefixed(css.textAlign, 'right'));
-								
-								full.style.opacity = 1;
-								full.style.cursor = '';
 							}
 							
 							currentTable = graph.getParentByName(node, 'TABLE', graph.cellEditor.textarea);
@@ -5458,6 +5513,7 @@ DiagramFormatPanel.prototype.addOptions = function(div)
  */
 DiagramFormatPanel.prototype.addGridOption = function(container)
 {
+	var fPanel = this;
 	var ui = this.editorUi;
 	var graph = ui.editor.graph;
 	
@@ -5465,9 +5521,9 @@ DiagramFormatPanel.prototype.addGridOption = function(container)
 	input.style.position = 'absolute';
 	input.style.textAlign = 'right';
 	input.style.width = '38px';
-	input.value = graph.getGridSize() + ' pt';
+	input.value = this.inUnit(graph.getGridSize()) + ' ' + this.getUnit(); 
 	
-	var stepper = this.createStepper(input, update);
+	var stepper = this.createStepper(input, update, this.getUnitStep(), null, null, null, this.isFloatUnit());
 	input.style.display = (graph.isGridEnabled()) ? '' : 'none';
 	stepper.style.display = input.style.display;
 
@@ -5488,20 +5544,29 @@ DiagramFormatPanel.prototype.addGridOption = function(container)
 	
 	function update(evt)
 	{
-		var value = parseInt(input.value);
-		value = Math.max(1, (isNaN(value)) ? 10 : value);
+		var value = fPanel.isFloatUnit()? parseFloat(input.value) : parseInt(input.value);
+		value = fPanel.fromUnit(Math.max(fPanel.inUnit(1), (isNaN(value)) ? fPanel.inUnit(10) : value));
 		
 		if (value != graph.getGridSize())
 		{
 			graph.setGridSize(value)
 		}
 
-		input.value = value + ' pt';
+		input.value = fPanel.inUnit(value) + ' ' + fPanel.getUnit();
 		mxEvent.consume(evt);
 	};
 
 	mxEvent.addListener(input, 'blur', update);
 	mxEvent.addListener(input, 'change', update);
+	
+	var unitChangeListener = function(sender, evt)
+	{
+		input.value = fPanel.inUnit(graph.getGridSize()) + ' ' + fPanel.getUnit();
+		fPanel.format.refresh();
+	};
+	
+	graph.view.addListener('unitChanged', unitChangeListener);
+	this.listeners.push({destroy: function() { graph.view.removeListener(unitChangeListener); }});
 	
 	if (mxClient.IS_SVG)
 	{

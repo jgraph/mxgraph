@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 4.0.3.
+	 * Current version is 4.0.4.
 	 */
-	VERSION: '4.0.3',
+	VERSION: '4.0.4',
 
 	/**
 	 * Variable: IS_IE
@@ -8860,7 +8860,6 @@ var mxUtils =
 	 * for the STYLE_PERIMETER style.
 	 */
 	PERIMETER_TRIANGLE: 'trianglePerimeter'
-
 };
 /**
  * Copyright (c) 2006-2015, JGraph Ltd
@@ -19094,7 +19093,7 @@ mxSvgCanvas2D.prototype.updateFill = function()
 			var id = this.getSvgGradient(String(s.fillColor), String(s.gradientColor),
 				s.gradientFillAlpha, s.gradientAlpha, s.gradientDirection);
 			
-			if (!mxClient.IS_CHROME_APP && !mxClient.IS_IE && !mxClient.IS_IE11 &&
+			if (!mxClient.IS_CHROMEAPP && !mxClient.IS_IE && !mxClient.IS_IE11 &&
 				!mxClient.IS_EDGE && this.root.ownerDocument == document)
 			{
 				// Workaround for potential base tag and brackets must be escaped
@@ -20341,7 +20340,7 @@ mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 			this.root.appendChild(c);
 		}
 		
-		if (!mxClient.IS_CHROME_APP && !mxClient.IS_IE && !mxClient.IS_IE11 &&
+		if (!mxClient.IS_CHROMEAPP && !mxClient.IS_IE && !mxClient.IS_IE11 &&
 			!mxClient.IS_EDGE && this.root.ownerDocument == document)
 		{
 			// Workaround for potential base tag
@@ -89072,7 +89071,7 @@ var mxStylesheetCodec = mxCodecRegistry.register(function()
 		
 		if (type == 'function')
 		{
-			value = mxStyleRegistry.getName(style[j]);
+			value = mxStyleRegistry.getName(value);
 		}
 		else if (type == 'object')
 		{

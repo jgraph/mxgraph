@@ -55,6 +55,18 @@ if (!Date.now)
 }
 
 // Changes default colors
+/**
+ * Measurements Units
+ */
+mxConstants.POINTS = 1;
+mxConstants.MILLIMETERS = 2;
+mxConstants.INCHES = 3;
+/**
+ * This ratio is with page scale 1
+ */
+mxConstants.PIXELS_PER_MM = 3.937;
+mxConstants.PIXELS_PER_INCH = 100;
+
 mxConstants.SHADOW_OPACITY = 0.25;
 mxConstants.SHADOWCOLOR = '#000000';
 mxConstants.VML_SHADOWCOLOR = '#d0d0d0';
@@ -94,6 +106,19 @@ mxGraphView.prototype.minGridSize = 4;
 
 // UrlParams is null in embed mode
 mxGraphView.prototype.gridColor = '#e0e0e0';
+
+//Units
+mxGraphView.prototype.unit = mxConstants.POINTS;
+
+mxGraphView.prototype.setUnit = function(unit) 
+{
+	if (this.unit != unit)
+	{
+	    this.unit = unit;
+	    
+	    this.fireEvent(new mxEventObject('unitChanged', 'unit', unit));
+	}
+};
 
 // Alternative text for unsupported foreignObjects
 mxSvgCanvas2D.prototype.foAltText = '[Not supported by viewer]';
@@ -3928,7 +3953,8 @@ HoverIcons.prototype.getState = function(state)
  */
 HoverIcons.prototype.update = function(state, x, y)
 {
-	if (!this.graph.connectionArrowsEnabled)
+	if (!this.graph.connectionArrowsEnabled || (state != null &&
+		mxUtils.getValue(state.style, 'allowArrows', '1') == '0'))
 	{
 		this.reset();
 	}
@@ -7715,6 +7741,28 @@ if (typeof mxVertexHandler != 'undefined')
 		};
 		
 		/**
+		 * Format pixels in the given unit
+		 */
+		function formatHintText(pixels, unit) 
+		{
+		    switch(unit) 
+		    {
+		        case mxConstants.POINTS:
+		            return pixels;
+		        case mxConstants.MILLIMETERS:
+		            return (pixels / mxConstants.PIXELS_PER_MM).toFixed(1);
+		        case mxConstants.INCHES:
+		            return (pixels / mxConstants.PIXELS_PER_INCH).toFixed(2);
+		    }
+		};
+		
+		
+		mxGraphView.prototype.formatUnitText = function(pixels) 
+		{
+			return pixels? formatHintText(pixels, this.unit) : pixels;
+		};
+		
+		/**
 		 * Updates the hint for the current operation.
 		 */
 		mxGraphHandler.prototype.updateHint = function(me)
@@ -7731,8 +7779,9 @@ if (typeof mxVertexHandler != 'undefined')
 				var s = this.graph.view.scale;
 				var x = this.roundLength((this.bounds.x + this.currentDx) / s - t.x);
 				var y = this.roundLength((this.bounds.y + this.currentDy) / s - t.y);
+				var unit = this.graph.view.unit;
 				
-				this.hint.innerHTML = x + ', ' + y;
+				this.hint.innerHTML = formatHintText(x, unit) + ', ' + formatHintText(y, unit);
 	
 				this.hint.style.left = (this.shape.bounds.x + Math.round((this.shape.bounds.width - this.hint.clientWidth) / 2)) + 'px';
 				this.hint.style.top = (this.shape.bounds.y + this.shape.bounds.height + 12) + 'px';
@@ -7817,7 +7866,9 @@ if (typeof mxVertexHandler != 'undefined')
 				else
 				{
 					var s = this.state.view.scale;
-					this.hint.innerHTML = this.roundLength(this.bounds.width / s) + ' x ' + this.roundLength(this.bounds.height / s);
+					var unit = this.state.view.unit;
+					this.hint.innerHTML = formatHintText(this.roundLength(this.bounds.width / s), unit) + ' x ' + 
+											formatHintText(this.roundLength(this.bounds.height / s), unit);
 				}
 				
 				var rot = (this.currentAlpha != null) ? this.currentAlpha : this.state.style[mxConstants.STYLE_ROTATION] || '0';
@@ -7866,8 +7917,9 @@ if (typeof mxVertexHandler != 'undefined')
 			var s = this.graph.view.scale;
 			var x = this.roundLength(point.x / s - t.x);
 			var y = this.roundLength(point.y / s - t.y);
+			var unit = this.graph.view.unit;
 			
-			this.hint.innerHTML = x + ', ' + y;
+			this.hint.innerHTML = formatHintText(x, unit) + ', ' + formatHintText(y, unit);
 			this.hint.style.visibility = 'visible';
 			
 			if (this.isSource || this.isTarget)

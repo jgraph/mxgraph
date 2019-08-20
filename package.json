@@ -1,7 +1,7 @@
 {
   "name": "mxgraph",
   "description": "mxGraph is a fully client side JavaScript diagramming library that uses SVG and HTML for rendering.",
-  "version": "4.0.3",
+  "version": "4.0.4",
   "homepage": "https://github.com/jgraph/mxgraph",
   "author": {
     "name": "JGraph Ltd",

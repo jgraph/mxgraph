@@ -87,6 +87,7 @@ distribute=Distribute
 divider=Divider
 documentProperties=Document Properties
 dotted=Dotted
+dpi=DPI
 drawing=Drawing{1}
 drawingEmpty=Drawing is empty
 drawingTooLarge=Drawing is too large

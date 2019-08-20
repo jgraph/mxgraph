@@ -1,3 +1,8 @@
+20-JUL-2019: 4.0.4
+
+- Moved PHP code to own repo
+- Adds DPI support in advanced dialog
+
 26-JUL-2019: 4.0.3
 
 - Reverts forcing quotes around font names in CSS and SVG
