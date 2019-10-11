@@ -1,9 +1,9 @@
 mxGraph
 =======
 
-mxGraph is a fully client side JavaScript diagramming library that uses SVG and HTML for rendering. [draw.io](https://www.draw.io) is our production-grade example that demonstrates extending the functionality of this library and how to deploy it in a secure, scalable amnner. The [sources to draw.io](https://github.com/jgraph/draw.io) are also available.
+mxGraph is a fully client side JavaScript diagramming library that uses SVG and HTML for rendering. [draw.io](https://www.draw.io) is our production-grade example that demonstrates extending the functionality of this library and how to deploy it in a secure, scalable manner. The [sources to draw.io](https://github.com/jgraph/draw.io) are also available.
 
-Note this is the release repo, only each release is pushed here. The development repo is https://github.com/jgraph/mxgraph2,  submit PRs and issues there.
+Note this is the release repo, only each release is pushed here. The development repo is https://github.com/jgraph/mxgraph2,  submit PRs there.
 
 The PHP model was deprecated after release 4.0.3 and the archive can be found [here](https://github.com/jgraph/mxgraph-php).
 
@@ -27,7 +27,7 @@ There is a [mxgraph tag on Stack Overflow](http://stackoverflow.com/questions/ta
 
 You may post on the issues tracker on this Github project, but we expect a similar degree of input from you as Stack Overflow expects. i.e. "Please help me debug this", not "Write/Research/Architect this for me".
 
-We do not provide commercial support. If you are not experienced in using a non-trivial vanilla JavaScript library in a web application, you will struggle using mxGraph. Writing "I am new to JavaScript" followed by "Write/Research/Architect this for me" will mean you get no answer, like everyone else. Find someone with the appropriate skillset for the task and pay/beg them to do it. We write this so your expectations of whether we might help at set before picking the project, not to be offensive.
+We do not provide commercial support. If you are not experienced in using a non-trivial vanilla JavaScript library in a web application, you will struggle using mxGraph. Writing "I am new to JavaScript" followed by "Write/Research/Architect this for me" will mean you get no answer, like everyone else. Find someone with the appropriate skillset for the task and pay/beg them to do it. We write this so your expectations of whether we might help are set before picking the project, not to be offensive.
 
 License
 =======
