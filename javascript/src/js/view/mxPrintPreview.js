@@ -1,6 +1,6 @@
 /**
- * Copyright (c) 2006-2017, JGraph Ltd
- * Copyright (c) 2006-2017, Gaudenz Alder
+ * Copyright (c) 2006-2019, JGraph Ltd
+ * Copyright (c) 2006-2017, draw.io AG
  */
 /**
  * Class: mxPrintPreview
@@ -156,10 +156,10 @@
  * 
  * graph - <mxGraph> to be previewed.
  * scale - Optional scale of the output. Default is 1 / <mxGraph.pageScale>.
+ * pageFormat - <mxRectangle> that specifies the page format (in pixels).
  * border - Border in pixels along each side of every page. Note that the
  * actual print function in the browser will add another border for
  * printing.
- * pageFormat - <mxRectangle> that specifies the page format (in pixels).
  * This should match the page format of the printer. Default uses the
  * <mxGraph.pageFormat> of the given graph.
  * x0 - Optional left offset of the output. Default is 0.

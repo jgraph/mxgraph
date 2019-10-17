@@ -41,9 +41,9 @@
  * });
  * (end)
  * 
- * Constructor: mxCompactTreeLayout
+ * Constructor: mxParallelEdgeLayout
  * 
- * Constructs a new fast organic layout for the specified graph.
+ * Constructs a new parallel edge layout for the specified graph.
  */
 function mxParallelEdgeLayout(graph)
 {

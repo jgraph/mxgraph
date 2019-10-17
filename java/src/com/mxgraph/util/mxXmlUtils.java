@@ -33,42 +33,42 @@ public class mxXmlUtils
 	/**
 	 * 
 	 */
-	private static DocumentBuilder documentBuilder = null;
+	private static DocumentBuilderFactory documentBuilderFactory = null;
 	
 	/**
 	 * 
 	 */
 	public static DocumentBuilder getDocumentBuilder()
 	{
-		if (documentBuilder == null)
+		if (documentBuilderFactory == null)
 		{
-			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-			dbf.setExpandEntityReferences(false);
-			dbf.setXIncludeAware(false);
-			dbf.setValidating(false);
+			documentBuilderFactory = DocumentBuilderFactory.newInstance();
+			documentBuilderFactory.setExpandEntityReferences(false);
+			documentBuilderFactory.setXIncludeAware(false);
+			documentBuilderFactory.setValidating(false);
 
 			try
 			{
-				dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-				dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-				dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
+				documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+				documentBuilderFactory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+				documentBuilderFactory.setFeature("http://xml.org/sax/features/external-general-entities", false);
 			}
 			catch (ParserConfigurationException e)
 			{
 				log.log(Level.SEVERE, "Failed to set feature", e);
 			}
+		}
 
-			try
-			{
-				documentBuilder = dbf.newDocumentBuilder();
-			}
-			catch (Exception e)
-			{
-				log.log(Level.SEVERE, "Failed to construct a document builder", e);
-			}
+		try
+		{
+			return documentBuilderFactory.newDocumentBuilder();
+		}
+		catch (Exception e)
+		{
+			log.log(Level.SEVERE, "Failed to construct a document builder", e);
 		}
 		
-		return documentBuilder;
+		return null;
 	}
 	
 	/**

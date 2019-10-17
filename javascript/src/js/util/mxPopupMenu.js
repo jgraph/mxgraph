@@ -54,7 +54,7 @@ mxPopupMenu.prototype.submenuImage = mxClient.imageBasePath + '/submenu.gif';
 /**
  * Variable: zIndex
  * 
- * Specifies the zIndex for the popupmenu and its shadow. Default is 1006.
+ * Specifies the zIndex for the popupmenu and its shadow. Default is 10006.
  */
 mxPopupMenu.prototype.zIndex = 10006;
 

@@ -104,7 +104,7 @@ mxStackLayout.prototype.marginBottom = 0;
  * Variable: keepFirstLocation
  * 
  * Boolean indicating if the location of the first cell should be
- * kept, that is, it will not be moved to x0 or y0.
+ * kept, that is, it will not be moved to x0 or y0. Default is false.
  */
 mxStackLayout.prototype.keepFirstLocation = false;
 

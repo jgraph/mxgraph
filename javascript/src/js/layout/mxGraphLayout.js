@@ -6,7 +6,7 @@
  * Class: mxGraphLayout
  * 
  * Base class for all layout algorithms in mxGraph. Main public functions are
- * <move> for handling a moved cell within a layouted parent, and <execute> for
+ * <moveCell> for handling a moved cell within a layouted parent, and <execute> for
  * running the layout on a given parent cell.
  *
  * Known Subclasses:

@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 4.0.4.
+	 * Current version is 4.0.5.
 	 */
-	VERSION: '4.0.4',
+	VERSION: '4.0.5',
 
 	/**
 	 * Variable: IS_IE
@@ -3942,6 +3942,9 @@ var mxUtils =
 	 */
 	equalEntries: function(a, b)
 	{
+		// Counts keys in b to check if all values have been compared
+		var count = 0;
+
 		if ((a == null && b != null) || (a != null && b == null) ||
 			(a != null && b != null && a.length != b.length))
 		{
@@ -3949,9 +3952,6 @@ var mxUtils =
 		}
 		else if (a != null && b != null)
 		{
-			// Counts keys in b to check if all values have been compared
-			var count = 0;
-			
 			for (var key in b)
 			{
 				count++;
@@ -15167,7 +15167,7 @@ mxPopupMenu.prototype.submenuImage = mxClient.imageBasePath + '/submenu.gif';
 /**
  * Variable: zIndex
  * 
- * Specifies the zIndex for the popupmenu and its shadow. Default is 1006.
+ * Specifies the zIndex for the popupmenu and its shadow. Default is 10006.
  */
 mxPopupMenu.prototype.zIndex = 10006;
 
@@ -19944,7 +19944,7 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 
 			var fo = this.createElement('foreignObject');
 			fo.setAttribute('style', 'overflow:visible;');
-			fo.setAttribute('pointer-events', 'all');
+			fo.setAttribute('pointer-events', (this.pointerEvents) ? this.pointerEventsValue : 'none');
 			
 			var div = this.createDiv(str, align, valign, style, overflow, (wrap && w > 0) ? 'normal' : null);
 			
@@ -21841,6 +21841,16 @@ mxGuide.prototype.createGuideShape = function(horizontal)
 };
 
 /**
+ * Function: isStateIgnored
+ * 
+ * Returns true if the given state should be ignored.
+ */
+mxGuide.prototype.isStateIgnored = function(state)
+{
+	return false;
+};
+
+/**
  * Function: move
  * 
  * Moves the <bounds> by the given <mxPoint> and returnt the snapped point.
@@ -21974,7 +21984,7 @@ mxGuide.prototype.move = function(bounds, delta, gridEnabled, clone)
 		{
 			var state =  this.states[i];
 			
-			if (state != null)
+			if (state != null && !this.isStateIgnored(state))
 			{
 				// Align x
 				if (this.horizontal)
@@ -28807,7 +28817,7 @@ mxSwimlane.prototype.getImageBounds = function(x, y, w, h)
  * Class: mxGraphLayout
  * 
  * Base class for all layout algorithms in mxGraph. Main public functions are
- * <move> for handling a moved cell within a layouted parent, and <execute> for
+ * <moveCell> for handling a moved cell within a layouted parent, and <execute> for
  * running the layout on a given parent cell.
  *
  * Known Subclasses:
@@ -29484,7 +29494,7 @@ mxStackLayout.prototype.marginBottom = 0;
  * Variable: keepFirstLocation
  * 
  * Boolean indicating if the location of the first cell should be
- * kept, that is, it will not be moved to x0 or y0.
+ * kept, that is, it will not be moved to x0 or y0. Default is false.
  */
 mxStackLayout.prototype.keepFirstLocation = false;
 
@@ -32485,9 +32495,9 @@ mxCircleLayout.prototype.circle = function(vertices, r, left, top)
  * });
  * (end)
  * 
- * Constructor: mxCompactTreeLayout
+ * Constructor: mxParallelEdgeLayout
  * 
- * Constructs a new fast organic layout for the specified graph.
+ * Constructs a new parallel edge layout for the specified graph.
  */
 function mxParallelEdgeLayout(graph)
 {
@@ -32945,12 +32955,6 @@ mxEdgeLabelLayout.prototype.avoid = function(edge, vertex)
  * Constructor: mxGraphAbstractHierarchyCell
  *
  * Constructs a new hierarchical layout algorithm.
- *
- * Arguments:
- * 
- * graph - Reference to the enclosing <mxGraph>.
- * deterministic - Optional boolean that specifies if this layout should be
- * deterministic. Default is true.
  */
 function mxGraphAbstractHierarchyCell()
 {
@@ -32990,14 +32994,14 @@ mxGraphAbstractHierarchyCell.prototype.y = null;
 /**
  * Variable: width
  * 
- * The width of this cell
+ * The width of this cell. Default is 0.
  */
 mxGraphAbstractHierarchyCell.prototype.width = 0;
 
 /**
  * Variable: height
  * 
- * The height of this cell
+ * The height of this cell. Default is 0.
  */
 mxGraphAbstractHierarchyCell.prototype.height = 0;
 
@@ -35892,7 +35896,7 @@ mxCoordinateAssignment.prototype.intraCellSpacing = 30;
 /**
  * Variable: interRankCellSpacing
  * 
- * The minimum distance between cells on adjacent ranks. Default is 10.
+ * The minimum distance between cells on adjacent ranks. Default is 100.
  */
 mxCoordinateAssignment.prototype.interRankCellSpacing = 100;
 
@@ -35914,21 +35918,21 @@ mxCoordinateAssignment.prototype.maxIterations = 8;
 /**
  * Variable: prefHozEdgeSep
  * 
- * The preferred horizontal distance between edges exiting a vertex
+ * The preferred horizontal distance between edges exiting a vertex Default is 5.
  */
 mxCoordinateAssignment.prototype.prefHozEdgeSep = 5;
 
 /**
  * Variable: prefVertEdgeOff
  * 
- * The preferred vertical offset between edges exiting a vertex
+ * The preferred vertical offset between edges exiting a vertex Default is 2.
  */
 mxCoordinateAssignment.prototype.prefVertEdgeOff = 2;
 
 /**
  * Variable: minEdgeJetty
  * 
- * The minimum distance for an edge jetty from a vertex
+ * The minimum distance for an edge jetty from a vertex Default is 12.
  */
 mxCoordinateAssignment.prototype.minEdgeJetty = 12;
 
@@ -35936,7 +35940,7 @@ mxCoordinateAssignment.prototype.minEdgeJetty = 12;
  * Variable: channelBuffer
  * 
  * The size of the vertical buffer in the center of inter-rank channels
- * where edge control points should not be placed
+ * where edge control points should not be placed Default is 4.
  */
 mxCoordinateAssignment.prototype.channelBuffer = 4;
 
@@ -36049,7 +36053,7 @@ mxCoordinateAssignment.prototype.previousLayerConnectedCache = null;
 /**
  * Variable: groupPadding
  * 
- * Padding added to resized parents
+ * Padding added to resized parents Default is 10.
  */
 mxCoordinateAssignment.prototype.groupPadding = 10;
 
@@ -37767,7 +37771,7 @@ mxHierarchicalLayout.prototype.intraCellSpacing = 30;
 /**
  * Variable: interRankCellSpacing
  * 
- * The spacing buffer added between cell on adjacent layers. Default is 50.
+ * The spacing buffer added between cell on adjacent layers. Default is 100.
  */
 mxHierarchicalLayout.prototype.interRankCellSpacing = 100;
 
@@ -37781,7 +37785,8 @@ mxHierarchicalLayout.prototype.interHierarchySpacing = 60;
 /**
  * Variable: parallelEdgeSpacing
  * 
- * The distance between each parallel edge on each ranks for long edges
+ * The distance between each parallel edge on each ranks for long edges.
+ * Default is 10.
  */
 mxHierarchicalLayout.prototype.parallelEdgeSpacing = 10;
 
@@ -37806,7 +37811,7 @@ mxHierarchicalLayout.prototype.fineTuning = true;
  * Variable: tightenToSource
  * 
  * Whether or not to tighten the assigned ranks of vertices up towards
- * the source cells.
+ * the source cells. Default is true.
  */
 mxHierarchicalLayout.prototype.tightenToSource = true;
 
@@ -37824,7 +37829,7 @@ mxHierarchicalLayout.prototype.disableEdgeStyle = true;
  * Whether or not to drill into child cells and layout in reverse
  * group order. This also cause the layout to navigate edges whose 
  * terminal vertices have different parents but are in the same 
- * ancestry chain
+ * ancestry chain. Default is true.
  */
 mxHierarchicalLayout.prototype.traverseAncestors = true;
 
@@ -37859,7 +37864,8 @@ mxHierarchicalLayout.prototype.edgesTargetTermCache = null;
 /**
  * Variable: edgeStyle
  * 
- * The style to apply between cell layers to edge segments
+ * The style to apply between cell layers to edge segments.
+ * Default is <mxHierarchicalEdgeStyle.POLYLINE>.
  */
 mxHierarchicalLayout.prototype.edgeStyle = mxHierarchicalEdgeStyle.POLYLINE;
 
@@ -38573,14 +38579,6 @@ mxSwimlaneLayout.prototype.roots = null;
 mxSwimlaneLayout.prototype.swimlanes = null;
 
 /**
- * Variable: dummyVertices
- * 
- * Holds an array of <mxCell> of dummy vertices inserted during the layout
- * to pad out empty swimlanes
- */
-mxSwimlaneLayout.prototype.dummyVertices = null;
-
-/**
  * Variable: dummyVertexWidth
  * 
  * The cell width of any dummy vertices inserted
@@ -38616,7 +38614,7 @@ mxSwimlaneLayout.prototype.moveParent = false;
  * Variable: parentBorder
  * 
  * The border to be added around the children if the parent is to be
- * resized using <resizeParent>. Default is 0.
+ * resized using <resizeParent>. Default is 30.
  */
 mxSwimlaneLayout.prototype.parentBorder = 30;
 
@@ -38630,7 +38628,7 @@ mxSwimlaneLayout.prototype.intraCellSpacing = 30;
 /**
  * Variable: interRankCellSpacing
  * 
- * The spacing buffer added between cell on adjacent layers. Default is 50.
+ * The spacing buffer added between cell on adjacent layers. Default is 100.
  */
 mxSwimlaneLayout.prototype.interRankCellSpacing = 100;
 
@@ -38644,7 +38642,8 @@ mxSwimlaneLayout.prototype.interHierarchySpacing = 60;
 /**
  * Variable: parallelEdgeSpacing
  * 
- * The distance between each parallel edge on each ranks for long edges
+ * The distance between each parallel edge on each ranks for long edges.
+ * Default is 10.
  */
 mxSwimlaneLayout.prototype.parallelEdgeSpacing = 10;
 
@@ -38665,11 +38664,10 @@ mxSwimlaneLayout.prototype.orientation = mxConstants.DIRECTION_NORTH;
 mxSwimlaneLayout.prototype.fineTuning = true;
 
 /**
- * 
  * Variable: tightenToSource
  * 
  * Whether or not to tighten the assigned ranks of vertices up towards
- * the source cells.
+ * the source cells. Default is true.
  */
 mxSwimlaneLayout.prototype.tightenToSource = true;
 
@@ -38686,8 +38684,8 @@ mxSwimlaneLayout.prototype.disableEdgeStyle = true;
  * 
  * Whether or not to drill into child cells and layout in reverse
  * group order. This also cause the layout to navigate edges whose 
- * terminal vertices  * have different parents but are in the same 
- * ancestry chain
+ * terminal vertices have different parents but are in the same
+ * ancestry chain. Default is true.
  */
 mxSwimlaneLayout.prototype.traverseAncestors = true;
 
@@ -38722,7 +38720,8 @@ mxHierarchicalLayout.prototype.edgesTargetTermCache = null;
 /**
  * Variable: edgeStyle
  * 
- * The style to apply between cell layers to edge segments
+ * The style to apply between cell layers to edge segments.
+ * Default is <mxHierarchicalEdgeStyle.POLYLINE>.
  */
 mxHierarchicalLayout.prototype.edgeStyle = mxHierarchicalEdgeStyle.POLYLINE;
 
@@ -38788,7 +38787,7 @@ mxSwimlaneLayout.prototype.execute = function(parent, swimlanes)
 	}
 
 	this.swimlanes = swimlanes;
-	this.dummyVertices = [];
+	var dummyVertices = [];
 	// Check the swimlanes all have vertices
 	// in them
 	for (var i = 0; i < swimlanes.length; i++)
@@ -38798,7 +38797,7 @@ mxSwimlaneLayout.prototype.execute = function(parent, swimlanes)
 		if (children == null || children.length == 0)
 		{
 			var vertex = this.graph.insertVertex(swimlanes[i], null, null, 0, 0, this.dummyVertexWidth, 0);
-			this.dummyVertices.push(vertex);
+			dummyVertices.push(vertex);
 		}
 	}
 	
@@ -38826,7 +38825,7 @@ mxSwimlaneLayout.prototype.execute = function(parent, swimlanes)
 			}
 		}
 
-		this.graph.removeCells(this.dummyVertices);
+		this.graph.removeCells(dummyVertices);
 	}
 	finally
 	{
@@ -38906,15 +38905,18 @@ mxSwimlaneLayout.prototype.updateGroupBounds = function()
 			var newGeo = geo.clone();
 			
 			var leftGroupBorder = (i == 0) ? this.parentBorder : this.interRankCellSpacing/2;
-			newGeo.x += childBounds[i].x - size.width - leftGroupBorder;
-			newGeo.y = newGeo.y + layoutBounds.y - geo.y - this.parentBorder;
+			var w = size.width + leftGroupBorder;
+			var x = childBounds[i].x - w;
+			var y = layoutBounds.y - this.parentBorder;
+
+			newGeo.x += x;
+			newGeo.y = y;
 			
-			newGeo.width = childBounds[i].width + size.width + this.interRankCellSpacing/2 + leftGroupBorder;
+			newGeo.width = childBounds[i].width + w + this.interRankCellSpacing/2;
 			newGeo.height = layoutBounds.height + size.height + 2 * this.parentBorder;
 			
 			this.graph.model.setGeometry(lane, newGeo);
-			this.graph.moveCells(children, -childBounds[i].x + size.width + leftGroupBorder, 
-					geo.y - layoutBounds.y + this.parentBorder);
+			this.graph.moveCells(children, -x, geo.y - y);
 		}
 	}
 };
@@ -39115,7 +39117,7 @@ mxSwimlaneLayout.prototype.run = function(parent)
 {
 	// Separate out unconnected hierarchies
 	var hierarchyVertices = [];
-	var allVertexSet = [];
+	var allVertexSet = Object();
 
 	if (this.swimlanes != null && this.swimlanes.length > 0 && parent != null)
 	{
@@ -39210,7 +39212,7 @@ mxSwimlaneLayout.prototype.run = function(parent)
 	this.layeringStage();
 	
 	this.crossingStage(parent);
-	initialX = this.placementStage(0, parent);
+	this.placementStage(0, parent);
 };
 
 /**
@@ -44488,8 +44490,8 @@ var mxPerimeter =
 	}
 };
 /**
- * Copyright (c) 2006-2017, JGraph Ltd
- * Copyright (c) 2006-2017, Gaudenz Alder
+ * Copyright (c) 2006-2019, JGraph Ltd
+ * Copyright (c) 2006-2017, draw.io AG
  */
 /**
  * Class: mxPrintPreview
@@ -44645,10 +44647,10 @@ var mxPerimeter =
  * 
  * graph - <mxGraph> to be previewed.
  * scale - Optional scale of the output. Default is 1 / <mxGraph.pageScale>.
+ * pageFormat - <mxRectangle> that specifies the page format (in pixels).
  * border - Border in pixels along each side of every page. Note that the
  * actual print function in the browser will add another border for
  * printing.
- * pageFormat - <mxRectangle> that specifies the page format (in pixels).
  * This should match the page format of the printer. Default uses the
  * <mxGraph.pageFormat> of the given graph.
  * x0 - Optional left offset of the output. Default is 0.
@@ -46724,12 +46726,12 @@ mxGraphSelectionModel.prototype.removeCells = function(cells)
 /**
  * Function: changeSelection
  *
- * Inner callback to add the specified <mxCell> to the selection. No event
- * is fired in this implementation.
+ * Adds/removes the specified arrays of <mxCell> to/from the selection.
  * 
- * Paramters:
+ * Parameters:
  * 
- * cell - <mxCell> to add to the selection.
+ * added - Array of <mxCell> to add to the selection.
+ * remove - Array of <mxCell> to remove from the selection.
  */
 mxGraphSelectionModel.prototype.changeSelection = function(added, removed)
 {
@@ -50516,8 +50518,8 @@ var mxEdgeStyle =
 		
 		// Removes last point if inside tolerance with end point
 		if (pe != null && result[result.length - 1] != null &&
-			Math.abs(pe.x - result[result.length - 1].x) < tol &&
-			Math.abs(pe.y - result[result.length - 1].y) < tol)
+			Math.abs(pe.x - result[result.length - 1].x) <= tol &&
+			Math.abs(pe.y - result[result.length - 1].y) <= tol)
 		{
 			result.splice(result.length - 1, 1);
 			
@@ -50947,7 +50949,7 @@ var mxEdgeStyle =
 
 		// The source and target prefs are now an ordered list of
 		// the preferred port selections
-		// It the list can contain gaps, compact it
+		// If the list contains gaps, compact it
 
 		for (var i = 0; i < 2; i++)
 		{
@@ -57390,8 +57392,8 @@ mxGraph.prototype.sizeDidChange = function()
 	{
 		var border = this.getBorder();
 		
-		var width = Math.max(0, bounds.x + bounds.width + 2 * border * this.view.scale);
-		var height = Math.max(0, bounds.y + bounds.height + 2 * border * this.view.scale);
+		var width = Math.max(0, bounds.x + bounds.width + border);
+		var height = Math.max(0, bounds.y + bounds.height + border);
 		
 		if (this.minimumContainerSize != null)
 		{
@@ -59768,6 +59770,29 @@ mxGraph.prototype.cellSizeUpdated = function(cell, ignoreChildren)
 				}
 				else
 				{
+					var state = this.view.getState(cell) || this.view.createState(cell);
+					var align = (state.style[mxConstants.STYLE_ALIGN] || mxConstants.ALIGN_CENTER);
+					
+					if (align == mxConstants.ALIGN_RIGHT)
+					{
+						geo.x += geo.width - size.width;
+					}
+					else if (align == mxConstants.ALIGN_CENTER)
+					{
+						geo.x += Math.round((geo.width - size.width) / 2);
+					}
+
+					var valign = this.getVerticalAlign(state);
+					
+					if (valign == mxConstants.ALIGN_BOTTOM)
+					{
+						geo.y += geo.height - size.height;
+					}
+					else if (valign == mxConstants.ALIGN_MIDDLE)
+					{
+						geo.y += Math.round((geo.height - size.height) / 2);
+					}
+
 					geo.width = size.width;
 					geo.height = size.height;
 				}
@@ -62087,8 +62112,9 @@ mxGraph.prototype.center = function(horizontal, vertical, cx, cy)
 	cy = (cy != null) ? cy : 0.5;
 	
 	var hasScrollbars = mxUtils.hasScrollbars(this.container);
-	var cw = this.container.clientWidth;
-	var ch = this.container.clientHeight;
+	var padding = 2 * this.getBorder();
+	var cw = this.container.clientWidth - padding;
+	var ch = this.container.clientHeight - padding;
 	var bounds = this.getGraphBounds();
 
 	var t = this.view.translate;
@@ -67583,7 +67609,7 @@ mxOutline.prototype.sizerImage = null;
 /**
  * Variable: minScale
  * 
- * Minimum scale to be used. Default is 0.001.
+ * Minimum scale to be used. Default is 0.0001.
  */
 mxOutline.prototype.minScale = 0.0001;
 
@@ -69756,7 +69782,7 @@ function mxGraphHandler(graph)
 	// Repaints the handler after autoscroll
 	this.panHandler = mxUtils.bind(this, function()
 	{
-		this.updatePreviewShape();
+		this.updatePreview();
 		this.updateHint();
 	});
 	
@@ -69779,7 +69805,17 @@ function mxGraphHandler(graph)
 			{
 				this.bounds = this.graph.getView().getBounds(this.cells);
 				this.pBounds = this.getPreviewBounds(this.cells);
-				this.updatePreviewShape();
+				this.updatePreview(true);
+				
+				// Resets handlers after they have been refreshed
+				window.setTimeout(mxUtils.bind(this, function()
+				{
+					if (this.livePreviewUsed)
+					{
+						this.setHandlesVisibleForCells(this.cells, false);
+						this.updatePreview();
+					}
+				}), 0);
 			}
 			catch (e)
 			{
@@ -69959,6 +69995,14 @@ mxGraphHandler.prototype.scaleGrid = false;
  * Specifies if the bounding box should allow for rotation. Default is true.
  */
 mxGraphHandler.prototype.rotationEnabled = true;
+
+/**
+ * Variable: maxLivePreview
+ * 
+ * Maximum number of cells for which live preview should be used. Default is 0
+ * which means no live preview.
+ */
+mxGraphHandler.prototype.maxLivePreview = 0;
 
 /**
  * Function: isEnabled
@@ -70346,11 +70390,67 @@ mxGraphHandler.prototype.start = function(cell, x, y)
 	this.cells = this.getCells(this.cell);
 	this.bounds = this.graph.getView().getBounds(this.cells);
 	this.pBounds = this.getPreviewBounds(this.cells);
-
+	this.allCells = new mxDictionary();
+	this.cloning = false;
+	this.cellCount = 0;
+	
+	for (var i = 0; i < this.cells.length; i++)
+	{
+		this.cellCount += this.addStates(this.cells[i], this.allCells);
+	}
+	
 	if (this.guidesEnabled)
 	{
 		this.guide = new mxGuide(this.graph, this.getGuideStates());
+		var parent = this.graph.model.getParent(cell);
+		var ignore = this.graph.model.getChildCount(parent) < 2;
+		
+		this.guide.isStateIgnored = mxUtils.bind(this, function(state)
+		{
+			var p = this.graph.model.getParent(state.cell);
+			
+			return (!this.cloning && this.isCellMoving(state.cell)) ||
+				(state.cell != (this.target || parent) && !ignore &&
+				(this.target == null || this.graph.model.getChildCount(
+				this.target) >= 2) && p != (this.target || parent));  
+		});
 	}
+};
+
+/**
+ * Function: addStates
+ * 
+ * Adds the states for the given cell recursively to the given dictionary.
+ */
+mxGraphHandler.prototype.addStates = function(cell, dict)
+{
+	var state = this.graph.view.getState(cell);
+	var count = 0;
+	
+	if (state != null && dict.get(cell) == null)
+	{
+		dict.put(cell, state);
+		count++;
+		
+		var childCount = this.graph.model.getChildCount(cell);
+		
+		for (var i = 0; i < childCount; i++)
+		{
+			count += this.addStates(this.graph.model.getChildAt(cell, i), dict);
+		}
+	}
+	
+	return count;
+};
+
+/**
+ * Function: isCellMoving
+ * 
+ * Returns true if the given cell is currently being moved.
+ */
+mxGraphHandler.prototype.isCellMoving = function(cell)
+{
+	return this.allCells.get(cell) != null;
 };
 
 /**
@@ -70444,7 +70544,7 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 		var dy = delta.y;
 		var tol = graph.tolerance;
 
-		if (this.shape != null || Math.abs(dx) > tol || Math.abs(dy) > tol)
+		if (this.shape != null || this.livePreviewActive || Math.abs(dx) > tol || Math.abs(dy) > tol)
 		{
 			// Highlight is used for highlighting drop targets
 			if (this.highlight == null)
@@ -70452,57 +70552,16 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 				this.highlight = new mxCellHighlight(this.graph,
 					mxConstants.DROP_TARGET_COLOR, 3);
 			}
-			
-			if (this.shape == null)
-			{
-				this.shape = this.createPreviewShape(this.bounds);
-			}
-			
+
 			var clone = graph.isCloneEvent(me.getEvent()) && graph.isCellsCloneable() && this.isCloneEnabled();
 			var gridEnabled = graph.isGridEnabledEvent(me.getEvent());
 			var hideGuide = true;
+			this.cloning = clone;
 			
-			if (this.guide != null && this.useGuidesForEvent(me))
-			{
-				delta = this.guide.move(this.bounds, new mxPoint(dx, dy), gridEnabled, clone);
-				hideGuide = false;
-				dx = delta.x;
-				dy = delta.y;
-			}
-			else if (gridEnabled)
-			{
-				var trx = graph.getView().translate;
-				var scale = graph.getView().scale;				
-				
-				var tx = this.bounds.x - (graph.snap(this.bounds.x / scale - trx.x) + trx.x) * scale;
-				var ty = this.bounds.y - (graph.snap(this.bounds.y / scale - trx.y) + trx.y) * scale;
-				var v = this.snap(new mxPoint(dx, dy));
 			
-				dx = v.x - tx;
-				dy = v.y - ty;
-			}
 			
-			if (this.guide != null && hideGuide)
-			{
-				this.guide.hide();
-			}
-
-			// Constrained movement if shift key is pressed
-			if (graph.isConstrainedEvent(me.getEvent()))
-			{
-				if (Math.abs(dx) > Math.abs(dy))
-				{
-					dy = 0;
-				}
-				else
-				{
-					dx = 0;
-				}
-			}
-
-			this.currentDx = dx;
-			this.currentDy = dy;
-			this.updatePreviewShape();
+			
+			
 
 			var target = null;
 			var cell = me.getCell();
@@ -70555,6 +70614,67 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 			{
 				this.highlight.hide();
 			}
+			
+			
+			
+			
+			if (this.livePreviewActive && clone)
+			{
+				this.resetLivePreview();
+				this.livePreviewActive = false;
+			}
+			else if (this.maxLivePreview >= this.cellCount && !this.livePreviewActive && mxClient.IS_SVG)
+			{
+				this.setHandlesVisibleForCells(this.cells, false);
+				this.livePreviewActive = true;
+				this.livePreviewUsed = true;
+			}
+			else if (!this.livePreviewUsed && this.shape == null)
+			{
+				this.shape = this.createPreviewShape(this.bounds);
+			}
+			
+			if (this.guide != null && this.useGuidesForEvent(me))
+			{
+				delta = this.guide.move(this.bounds, new mxPoint(dx, dy), gridEnabled, clone);
+				hideGuide = false;
+				dx = delta.x;
+				dy = delta.y;
+			}
+			else if (gridEnabled)
+			{
+				var trx = graph.getView().translate;
+				var scale = graph.getView().scale;				
+				
+				var tx = this.bounds.x - (graph.snap(this.bounds.x / scale - trx.x) + trx.x) * scale;
+				var ty = this.bounds.y - (graph.snap(this.bounds.y / scale - trx.y) + trx.y) * scale;
+				var v = this.snap(new mxPoint(dx, dy));
+			
+				dx = v.x - tx;
+				dy = v.y - ty;
+			}
+			
+			if (this.guide != null && hideGuide)
+			{
+				this.guide.hide();
+			}
+
+			// Constrained movement if shift key is pressed
+			if (graph.isConstrainedEvent(me.getEvent()))
+			{
+				if (Math.abs(dx) > Math.abs(dy))
+				{
+					dy = 0;
+				}
+				else
+				{
+					dx = 0;
+				}
+			}
+
+			this.currentDx = dx;
+			this.currentDy = dy;
+			this.updatePreview();
 		}
 
 		this.updateHint(me);
@@ -70592,6 +70712,27 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 };
 
 /**
+ * Function: updatePreview
+ * 
+ * Updates the bounds of the preview shape.
+ */
+mxGraphHandler.prototype.updatePreview = function(remote)
+{
+	if (this.livePreviewUsed && !remote)
+	{
+		if (this.cells != null)
+		{
+			this.updateLivePreview(this.currentDx - this.graph.panDx,
+				this.currentDy - this.graph.panDy);
+		}
+	}
+	else
+	{
+		this.updatePreviewShape();
+	}
+};
+
+/**
  * Function: updatePreviewShape
  * 
  * Updates the bounds of the preview shape.
@@ -70603,6 +70744,260 @@ mxGraphHandler.prototype.updatePreviewShape = function()
 		this.shape.bounds = new mxRectangle(Math.round(this.pBounds.x + this.currentDx - this.graph.panDx),
 				Math.round(this.pBounds.y + this.currentDy - this.graph.panDy), this.pBounds.width, this.pBounds.height);
 		this.shape.redraw();
+	}
+};
+
+/**
+ * Function: updateLivePreview
+ * 
+ * Updates the bounds of the preview shape.
+ */
+mxGraphHandler.prototype.updateLivePreview = function(dx, dy)
+{
+	var states = [];
+	
+	if (this.allCells != null)
+	{
+		this.allCells.visit(mxUtils.bind(this, function(key, state)
+		{
+			// Saves current state
+			var tempState = state.clone();
+			states.push([state, tempState]);
+
+			// Makes transparent for events to detect drop targets
+			if (state.shape != null)
+			{
+				if (state.shape.originalPointerEvents == null)
+				{
+					state.shape.originalPointerEvents = state.shape.pointerEvents;
+				}
+				
+				state.shape.pointerEvents = false;
+
+				if (state.text != null && state.text.node != null)
+				{
+					var node = state.text.node;
+					
+					if (node.firstChild != null && node.firstChild.firstChild != null &&
+						node.firstChild.firstChild.nodeName == 'foreignObject')
+					{
+						node.firstChild.firstChild.setAttribute('pointer-events', 'none');
+					}
+					else if (node.ownerSVGElement != null)
+					{
+						node.setAttribute('pointer-events', 'none');
+					}
+					else
+					{
+						node.style.pointerEvents = 'none';
+					}
+				}
+			}
+
+			// Temporarily changes position
+			if (this.graph.model.isVertex(state.cell))
+			{
+				state.x += dx;
+				state.y += dy;
+
+				// Draws the live preview
+				if (!this.cloning)
+				{
+					state.view.graph.cellRenderer.redraw(state, true);
+					
+					// Forces redraw of connected edges after all states
+					// have been updated but avoids update of state
+					state.view.invalidate(state.cell);
+					state.invalid = false;
+				}
+				
+				// Hides folding icon
+				if (state.control != null && state.control.node != null)
+				{
+					state.control.node.style.visibility = 'hidden';
+				}
+			}
+		}));
+	}
+
+	// Redraws connected edges
+	var s = this.graph.view.scale;
+	
+	for (var i = 0; i < states.length; i++)
+	{
+		var state = states[i][0];
+		
+		if (this.graph.model.isEdge(state.cell))
+		{
+			var geometry = this.graph.getCellGeometry(state.cell);
+			var points = [];
+			
+			if (geometry != null && geometry.points != null)
+			{
+				for (var j = 0; j < geometry.points.length; j++)
+				{
+					if (geometry.points[j] != null)
+					{
+						points.push(new mxPoint(
+							geometry.points[j].x + dx / s,
+							geometry.points[j].y + dy / s));
+					}
+				}
+			}
+
+			var source = state.visibleSourceState;
+			var target = state.visibleTargetState;
+			var pts = states[i][1].absolutePoints;
+			
+			if (source == null || !this.isCellMoving(source.cell))
+			{
+				var pt0 = pts[0];
+				state.setAbsoluteTerminalPoint(new mxPoint(pt0.x + dx, pt0.y + dy), true);
+				source = null;
+			}
+			else
+			{
+				state.view.updateFixedTerminalPoint(state, source, true,
+					this.graph.getConnectionConstraint(state, source, true));
+			}
+			
+			if (target == null || !this.isCellMoving(target.cell))
+			{
+				var ptn = pts[pts.length - 1];
+				state.setAbsoluteTerminalPoint(new mxPoint(ptn.x + dx, ptn.y + dy), false);
+				target = null;
+			}
+			else
+			{
+				state.view.updateFixedTerminalPoint(state, target, false,
+					this.graph.getConnectionConstraint(state, target, false));
+			}
+			
+			state.view.updatePoints(state, points, source, target);
+			state.view.updateFloatingTerminalPoints(state, source, target);
+			state.invalid = false;
+					
+			// Draws the live preview but avoids update of state
+			if (!this.cloning)
+			{
+				state.view.graph.cellRenderer.redraw(state, true);
+			}
+		}
+	}
+
+	this.graph.view.validate();
+	this.redrawHandles(states);
+	this.resetPreviewStates(states);
+};
+
+/**
+ * Function: redrawHandles
+ * 
+ * Redraws the preview shape for the given states array.
+ */
+mxGraphHandler.prototype.redrawHandles = function(states)
+{
+	for (var i = 0; i < states.length; i++)
+	{
+		var handler = this.graph.selectionCellsHandler.getHandler(states[i][0].cell);
+		
+		if (handler != null)
+		{
+			handler.redraw(true);
+		}
+	}
+};
+
+/**
+ * Function: resetPreviewStates
+ * 
+ * Resets the given preview states array.
+ */
+mxGraphHandler.prototype.resetPreviewStates = function(states)
+{
+	for (var i = 0; i < states.length; i++)
+	{
+		states[i][0].setState(states[i][1]);
+	}
+};
+
+/**
+ * Function: resetLivePreview
+ * 
+ * Resets the livew preview.
+ */
+mxGraphHandler.prototype.resetLivePreview = function()
+{
+	if (this.allCells != null)
+	{
+		this.allCells.visit(mxUtils.bind(this, function(key, state)
+		{
+			// Restores event handling
+			if (state.shape != null && state.shape.originalPointerEvents != null)
+			{
+				state.shape.pointerEvents = state.shape.originalPointerEvents;
+				state.shape.originalPointerEvents = null;
+				
+				// Forces a repaint event if not moved
+				state.shape.bounds = null;
+
+				if (state.text != null && state.text.node != null)
+				{
+					var node = state.text.node;
+					
+					if (node.firstChild != null && node.firstChild.firstChild != null &&
+						node.firstChild.firstChild.nodeName == 'foreignObject')
+					{
+						node.firstChild.firstChild.setAttribute('pointer-events', 'all');
+					}
+					else if (node.ownerSVGElement != null)
+					{
+						node.removeAttribute('pointer-events');
+					}
+					else
+					{
+						node.style.pointerEvents = '';
+					}
+				}
+			}
+
+			// Shows folding icon
+			if (state.control != null && state.control.node != null)
+			{
+				state.control.node.style.visibility = '';
+			}
+			
+			// Forces repaint of state and connected edges
+			state.view.invalidate(state.cell);
+		}));
+
+		// Repaints all invalid states
+		this.graph.view.validate();
+	}
+};
+
+/**
+ * Function: reset
+ * 
+ * Resets the state of this handler.
+ */
+mxGraphHandler.prototype.setHandlesVisibleForCells = function(cells, visible)
+{
+	for (var i = 0; i < cells.length; i++)
+	{
+		var cell = cells[i];
+
+		var handler = this.graph.selectionCellsHandler.getHandler(cell);
+		
+		if (handler != null)
+		{
+			handler.setHandlesVisible(visible);
+			
+			if (visible)
+			{
+				handler.redraw();
+			}
+		}
 	}
 };
 
@@ -70632,11 +71027,15 @@ mxGraphHandler.prototype.mouseUp = function(sender, me)
 {
 	if (!me.isConsumed())
 	{
-		var graph = this.graph;
+		if (this.livePreviewUsed)
+		{
+			this.resetLivePreview();
+		}
 		
-		if (this.cell != null && this.first != null && this.shape != null &&
+		if (this.cell != null && this.first != null && (this.shape != null || this.livePreviewUsed) &&
 			this.currentDx != null && this.currentDy != null)
 		{
+			var graph = this.graph;
 			var cell = me.getCell();
 			
 			if (this.connectOnDrop && this.target == null && cell != null && graph.getModel().isVertex(cell) &&
@@ -70697,17 +71096,29 @@ mxGraphHandler.prototype.selectDelayed = function(me)
  */
 mxGraphHandler.prototype.reset = function()
 {
+	if (this.livePreviewUsed)
+	{
+		this.resetLivePreview();
+		this.setHandlesVisibleForCells(this.cells, true);
+	}
+	
 	this.destroyShapes();
 	this.removeHint();
-	
-	this.cellWasClicked = false;
+
 	this.delayedSelection = false;
+	this.livePreviewActive = null;
+	this.livePreviewUsed = null;
+	this.cellWasClicked = false;
 	this.currentDx = null;
 	this.currentDy = null;
+	this.cellCount = null;
+	this.cloning = false;
+	this.allCells = null;
 	this.guides = null;
-	this.first = null;
-	this.cell = null;
 	this.target = null;
+	this.first = null;
+	this.cells = null;
+	this.cell = null;
 };
 
 /**
@@ -75573,9 +75984,9 @@ mxHandle.prototype.cursor = 'default';
 mxHandle.prototype.image = null;
 
 /**
- * Variable: image
+ * Variable: ignoreGrid
  * 
- * Specifies the <mxImage> to be used to render the handle. Default is null.
+ * Default is false.
  */
 mxHandle.prototype.ignoreGrid = false;
 
@@ -76493,6 +76904,7 @@ mxVertexHandler.prototype.start = function(x, y, index)
 {
 	if (this.selectionBorder != null)
 	{
+		this.livePreviewActive = this.livePreview && this.graph.model.getChildCount(this.state.cell) == 0;
 		this.inTolerance = true;
 		this.childOffsetX = 0;
 		this.childOffsetY = 0;
@@ -76513,7 +76925,7 @@ mxVertexHandler.prototype.start = function(x, y, index)
 		this.selectionBorder.node.style.display = (index == mxEvent.ROTATION_HANDLE) ? 'inline' : 'none';
 		
 		// Creates the border that represents the new bounds
-		if (!this.livePreview || this.isLivePreviewBorder())
+		if (!this.livePreviewActive || this.isLivePreviewBorder())
 		{
 			this.preview = this.createSelectionShape(this.bounds);
 			
@@ -76532,7 +76944,7 @@ mxVertexHandler.prototype.start = function(x, y, index)
 		}
 		
 		// Prepares the handles for live preview
-		if (this.livePreview)
+		if (this.livePreviewActive)
 		{
 			this.hideSizers();
 			
@@ -76763,7 +77175,7 @@ mxVertexHandler.prototype.rotateVertex = function(me)
 	this.selectionBorder.rotation = this.currentAlpha;
 	this.selectionBorder.redraw();
 					
-	if (this.livePreview)
+	if (this.livePreviewActive)
 	{
 		this.redrawHandles();
 	}
@@ -76923,7 +77335,7 @@ mxVertexHandler.prototype.resizeVertex = function(me)
 		this.childOffsetY = 0;
 	}
 	
-	if (this.livePreview)
+	if (this.livePreviewActive)
 	{
 		this.updateLivePreview(me);
 	}
@@ -76988,6 +77400,12 @@ mxVertexHandler.prototype.updateLivePreview = function(me)
 	this.state.invalid = false;
 	this.state.view.validate();
 	this.redrawHandles();
+	
+	// Hides folding icon
+	if (this.state.control != null && this.state.control.node != null)
+	{
+		this.state.control.node.style.visibility = 'hidden';
+	}
 	
 	// Restores current state
 	this.state.setState(tempState);
@@ -77167,7 +77585,7 @@ mxVertexHandler.prototype.reset = function()
 		this.preview = null;
 	}
 
-	if (this.livePreview && this.sizers != null)
+	if (this.livePreviewActive && this.sizers != null)
 	{
 		for (var i = 0; i < this.sizers.length; i++)
 		{
@@ -77175,6 +77593,12 @@ mxVertexHandler.prototype.reset = function()
 			{
 				this.sizers[i].node.style.display = '';
 			}
+		}
+		
+		// Shows folding icon
+		if (this.state.control != null && this.state.control.node != null)
+		{
+			this.state.control.node.style.visibility = '';
 		}
 	}
 
@@ -77208,6 +77632,7 @@ mxVertexHandler.prototype.reset = function()
 	this.redrawHandles();
 	this.edgeHandlers = null;
 	this.unscaledBounds = null;
+	this.livePreviewActive = null;
 };
 
 /**
@@ -77474,13 +77899,16 @@ mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, s
  * 
  * Redraws the handles and the preview.
  */
-mxVertexHandler.prototype.redraw = function()
+mxVertexHandler.prototype.redraw = function(ignoreHandles)
 {
 	this.selectionBounds = this.getSelectionBounds(this.state);
 	this.bounds = new mxRectangle(this.selectionBounds.x, this.selectionBounds.y, this.selectionBounds.width, this.selectionBounds.height);
-	
-	this.redrawHandles();
 	this.drawPreview();
+
+	if (!ignoreHandles)
+	{
+		this.redrawHandles();
+	}
 };
 
 /**
@@ -79920,11 +80348,9 @@ mxEdgeHandler.prototype.getHandleFillColor = function(index)
  * 
  * Redraws the preview, and the bends- and label control points.
  */
-mxEdgeHandler.prototype.redraw = function()
+mxEdgeHandler.prototype.redraw = function(ignoreHandles)
 {
 	this.abspoints = this.state.absolutePoints.slice();
-	this.redrawHandles();
-	
 	var g = this.graph.getModel().getGeometry(this.state.cell);
 	var pts = g.points;
 
@@ -79948,6 +80374,11 @@ mxEdgeHandler.prototype.redraw = function()
 	}
 
 	this.drawPreview();
+	
+	if (!ignoreHandles)
+	{
+		this.redrawHandles();
+	}
 };
 
 /**
@@ -80377,6 +80808,7 @@ mxElbowEdgeHandler.prototype.doubleClickOrientationResource =
 			mxEvent.consume(evt);
 		}
 	})));
+	
 	this.points.push(new mxPoint(0,0));
 
 	// Target
@@ -82705,7 +83137,7 @@ mxDefaultToolbar.prototype.spacing = 4;
 mxDefaultToolbar.prototype.connectOnDrop = false;
 
 /**
- * Variable: init
+ * Function: init
  * 
  * Constructs the <toolbar> for the given container and installs a listener
  * that updates the <mxEditor.insertFunction> on <editor> if an item is
@@ -83618,7 +84050,7 @@ mxEditor.prototype.lastSavedResource = (mxClient.language != 'none') ? 'lastSave
  * 
  * Specifies the resource key for the current file info. If the resource for
  * this key does not exist then the value is used as the error message.
- * Default is 'lastSaved'.
+ * Default is 'currentFile'.
  */
 mxEditor.prototype.currentFileResource = (mxClient.language != 'none') ? 'currentFile' : '';
 	
@@ -83741,7 +84173,7 @@ mxEditor.prototype.actions = null;
  * Variable: dblClickAction
  *
  * Specifies the name of the action to be executed
- * when a cell is double clicked. Default is edit.
+ * when a cell is double clicked. Default is 'edit'.
  * 
  * To handle a singleclick, use the following code.
  * 
@@ -83867,7 +84299,7 @@ mxEditor.prototype.linefeed = '&#xa;';
  * Variable: postParameterName
  *
  * Specifies if the name of the post parameter that contains the diagram
- * data in a post request to the server. Default is xml.
+ * data in a post request to the server. Default is 'xml'.
  */
 mxEditor.prototype.postParameterName = 'xml';
 
@@ -83985,7 +84417,7 @@ mxEditor.prototype.cycleAttributeIndex = 0;
  * Variable: cycleAttributeName
  * 
  * Name of the attribute to be assigned a <cycleAttributeValues>
- * when inserting new swimlanes. Default is fillColor.
+ * when inserting new swimlanes. Default is 'fillColor'.
  */
 mxEditor.prototype.cycleAttributeName = 'fillColor';
 

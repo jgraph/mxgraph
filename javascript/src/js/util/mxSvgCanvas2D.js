@@ -1527,7 +1527,7 @@ mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, fo
 
 			var fo = this.createElement('foreignObject');
 			fo.setAttribute('style', 'overflow:visible;');
-			fo.setAttribute('pointer-events', 'all');
+			fo.setAttribute('pointer-events', (this.pointerEvents) ? this.pointerEventsValue : 'none');
 			
 			var div = this.createDiv(str, align, valign, style, overflow, (wrap && w > 0) ? 'normal' : null);
 			

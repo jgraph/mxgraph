@@ -138,7 +138,7 @@ mxOutline.prototype.sizerImage = null;
 /**
  * Variable: minScale
  * 
- * Minimum scale to be used. Default is 0.001.
+ * Minimum scale to be used. Default is 0.0001.
  */
 mxOutline.prototype.minScale = 0.0001;
 

@@ -446,6 +446,47 @@ Sidebar.prototype.addDataEntry = function(tags, width, height, title, data)
 };
 
 /**
+ * Adds the give entries to the search index.
+ */
+Sidebar.prototype.addEntries = function(images)
+{
+	for (var i = 0; i < images.length; i++)
+	{
+		(mxUtils.bind(this, function(img)
+		{
+			var data = img.data;
+			
+			if (data != null && img.title != null)
+			{
+				this.addEntry(img.title, mxUtils.bind(this, function()
+				{
+					data = this.editorUi.convertDataUri(data);
+					var s = 'shape=image;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=0;';
+					
+					if (img.aspect == 'fixed')
+					{
+						s += 'aspect=fixed;'
+					}
+					
+					return this.createVertexTemplate(s + 'image=' +
+						data, img.w, img.h, '', img.title || '', false, false, true)
+				}));
+			}
+			else if (img.xml != null && img.title != null)
+			{
+				this.addEntry(img.title, mxUtils.bind(this, function()
+				{
+					var cells = this.editorUi.stringToCells(Graph.decompress(img.xml));
+
+					return this.createVertexTemplateFromCells(
+						cells, img.w, img.h, img.title || '', true, false, true);
+				}));
+			}
+		}))(images[i]);
+	}
+};
+
+/**
  * Hides the current tooltip.
  */
 Sidebar.prototype.addEntry = function(tags, fn)
@@ -639,6 +680,7 @@ Sidebar.prototype.addSearchPalette = function(expand)
 	input.style.width = '100%';
 	input.style.outline = 'none';
 	input.style.padding = '6px';
+	input.style.paddingRight = '20px';
 	inner.appendChild(input);
 
 	var cross = document.createElement('img');
@@ -764,6 +806,12 @@ Sidebar.prototype.addSearchPalette = function(expand)
 							active = false;
 							page++;
 							this.insertSearchHint(div, searchTerm, count, page, results, len, more, terms);
+							
+							// Allows to repeat the search
+							if (results.length == 0 && page == 1)
+							{
+								searchTerm = '';
+							}
 
 							if (center.parentNode != null)
 							{
@@ -832,18 +880,6 @@ Sidebar.prototype.addSearchPalette = function(expand)
 			mxEvent.consume(evt);
 		}
 	}));
-	
-	mxEvent.addListener(input, 'focus', function()
-	{
-		input.style.paddingRight = '';
-	});
-	
-	mxEvent.addListener(input, 'blur', function()
-	{
-		input.style.paddingRight = '20px';
-	});
-
-	input.style.paddingRight = '20px';
 	
 	mxEvent.addListener(input, 'keyup', mxUtils.bind(this, function(evt)
 	{
@@ -1336,9 +1372,9 @@ Sidebar.prototype.addUmlPalette = function(expand)
 			
 			return sb.createVertexTemplateFromCells([cell.clone()], cell.geometry.width, cell.geometry.height, 'Interface 2');
 		}),
-		this.createVertexTemplateEntry('shape=providedRequiredInterface;html=1;verticalLabelPosition=bottom;', 20, 20, '', 'Provided/Required Interface', null, null, 'uml provided required interface lollipop'),
-		this.createVertexTemplateEntry('shape=requiredInterface;html=1;verticalLabelPosition=bottom;', 10, 20, '', 'Required Interface', null, null, 'uml required interface lollipop'),
-		this.addEntry('uml lollipop provided required interface', function()
+		this.createVertexTemplateEntry('shape=providedRequiredInterface;html=1;verticalLabelPosition=bottom;', 20, 20, '', 'Provided/Required Interface', null, null, 'uml provided required interface lollipop notation'),
+		this.createVertexTemplateEntry('shape=requiredInterface;html=1;verticalLabelPosition=bottom;', 10, 20, '', 'Required Interface', null, null, 'uml required interface lollipop notation'),
+		this.addEntry('uml lollipop notation provided required interface', function()
 		{
 			return sb.createVertexTemplateFromData('zVTBrptADPyavVYEkt4b0uQd3pMq5dD2uAUD27dgZJwE8vX1spsQlETtpVWRIjFjex3PmFVJWvc70m31hjlYlXxWSUqI7N/qPgVrVRyZXCUbFceR/FS8fRJdjNGo1QQN/0lB7AuO2h7AM57oeLCBIDw0Obj8SCVrJK6wxEbbV8RWyIWQP4F52Juzq9AHRqEqrm2IQpN/IsKTwAYb8MzWWBuO9B0hL2E2BGsqIQyxvJ9rzApD7QBrYBokhcBqNsf5UbrzsLzmXUu/oJET42jwGat5QYcHyiDkTDLKy03TiRrFfSx08m+FrrQtUkOZvZdbFKThmwMfVhf4fQ43/W3uZriiPPT+KKhjwnf4anKuQv//wsg+NPJ7/9d9Xf7eVykwbeeMOFWGYd/qzEVO8tHP/Suw4a2ujXV/+gXsEdhkOgSC8os44BQt0tggicZHeG1N2QiXibhAV48epRayEDd8MT7Ct06TUaXVWq027tCuhcx5VZjebeeaoDNn/WMcb/p+j0AM/dNr6InLl4Lgzylsk6OCgRWYsuI592gNZh5OhgmcblPv7+1l+ws=',
 				40, 10, 'Lollipop Notation');
@@ -1770,7 +1806,7 @@ Sidebar.prototype.addBpmnPalette = function(dir, expand)
 	 	this.createVertexTemplateEntry('shape=mxgraph.bpmn.business_rule_task;html=1;outlineConnect=0;', 14, 14, '', 'Business Rule Task', null, null, this.getTagsForStencil('mxgraph.bpmn', 'business_rule_task').join(' ')),
 	 	this.createVertexTemplateEntry('shape=mxgraph.bpmn.service_task;html=1;outlineConnect=0;', 14, 14, '', 'Service Task', null, null, this.getTagsForStencil('mxgraph.bpmn', 'service_task').join(' ')),
 	 	this.createVertexTemplateEntry('shape=mxgraph.bpmn.script_task;html=1;outlineConnect=0;', 14, 14, '', 'Script Task', null, null, this.getTagsForStencil('mxgraph.bpmn', 'script_task').join(' ')),
-		this.createVertexTemplateEntry('html=1;shape=mxgraph.flowchart.annotation_2;align=left;', 50, 100, '', 'Annotation', null, null, this.getTagsForStencil('bpmn', 'annotation_1', 'bpmn business process model ').join(' ')),
+		this.createVertexTemplateEntry('html=1;shape=mxgraph.flowchart.annotation_2;align=left;labelPosition=right;', 50, 100, '', 'Annotation', null, null, this.getTagsForStencil('bpmn', 'annotation_1', 'bpmn business process model ').join(' ')),
 		this.createVertexTemplateEntry('rounded=1;arcSize=10;dashed=1;strokeColor=#000000;fillColor=none;gradientColor=none;dashPattern=8 3 1 3;strokeWidth=2;',
 				 200, 200, '', 'Group', null, null, this.getTagsForStencil('bpmn', 'group', 'bpmn business process model ').join(' ')),
 	 	this.createEdgeTemplateEntry('endArrow=block;endFill=1;endSize=6;html=1;', 100, 0, '', 'Sequence Flow', null, 'bpmn sequence flow'),

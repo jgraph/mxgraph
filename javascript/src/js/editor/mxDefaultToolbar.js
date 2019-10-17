@@ -88,7 +88,7 @@ mxDefaultToolbar.prototype.spacing = 4;
 mxDefaultToolbar.prototype.connectOnDrop = false;
 
 /**
- * Variable: init
+ * Function: init
  * 
  * Constructs the <toolbar> for the given container and installs a listener
  * that updates the <mxEditor.insertFunction> on <editor> if an item is

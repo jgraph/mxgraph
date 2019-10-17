@@ -54,7 +54,7 @@ mxCoordinateAssignment.prototype.intraCellSpacing = 30;
 /**
  * Variable: interRankCellSpacing
  * 
- * The minimum distance between cells on adjacent ranks. Default is 10.
+ * The minimum distance between cells on adjacent ranks. Default is 100.
  */
 mxCoordinateAssignment.prototype.interRankCellSpacing = 100;
 
@@ -76,21 +76,21 @@ mxCoordinateAssignment.prototype.maxIterations = 8;
 /**
  * Variable: prefHozEdgeSep
  * 
- * The preferred horizontal distance between edges exiting a vertex
+ * The preferred horizontal distance between edges exiting a vertex Default is 5.
  */
 mxCoordinateAssignment.prototype.prefHozEdgeSep = 5;
 
 /**
  * Variable: prefVertEdgeOff
  * 
- * The preferred vertical offset between edges exiting a vertex
+ * The preferred vertical offset between edges exiting a vertex Default is 2.
  */
 mxCoordinateAssignment.prototype.prefVertEdgeOff = 2;
 
 /**
  * Variable: minEdgeJetty
  * 
- * The minimum distance for an edge jetty from a vertex
+ * The minimum distance for an edge jetty from a vertex Default is 12.
  */
 mxCoordinateAssignment.prototype.minEdgeJetty = 12;
 
@@ -98,7 +98,7 @@ mxCoordinateAssignment.prototype.minEdgeJetty = 12;
  * Variable: channelBuffer
  * 
  * The size of the vertical buffer in the center of inter-rank channels
- * where edge control points should not be placed
+ * where edge control points should not be placed Default is 4.
  */
 mxCoordinateAssignment.prototype.channelBuffer = 4;
 
@@ -211,7 +211,7 @@ mxCoordinateAssignment.prototype.previousLayerConnectedCache = null;
 /**
  * Variable: groupPadding
  * 
- * Padding added to resized parents
+ * Padding added to resized parents Default is 10.
  */
 mxCoordinateAssignment.prototype.groupPadding = 10;
 

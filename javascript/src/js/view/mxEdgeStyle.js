@@ -851,8 +851,8 @@ var mxEdgeStyle =
 		
 		// Removes last point if inside tolerance with end point
 		if (pe != null && result[result.length - 1] != null &&
-			Math.abs(pe.x - result[result.length - 1].x) < tol &&
-			Math.abs(pe.y - result[result.length - 1].y) < tol)
+			Math.abs(pe.x - result[result.length - 1].x) <= tol &&
+			Math.abs(pe.y - result[result.length - 1].y) <= tol)
 		{
 			result.splice(result.length - 1, 1);
 			
@@ -1282,7 +1282,7 @@ var mxEdgeStyle =
 
 		// The source and target prefs are now an ordered list of
 		// the preferred port selections
-		// It the list can contain gaps, compact it
+		// If the list contains gaps, compact it
 
 		for (var i = 0; i < 2; i++)
 		{

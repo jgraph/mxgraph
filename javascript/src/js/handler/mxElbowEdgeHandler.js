@@ -69,6 +69,7 @@ mxElbowEdgeHandler.prototype.doubleClickOrientationResource =
 			mxEvent.consume(evt);
 		}
 	})));
+	
 	this.points.push(new mxPoint(0,0));
 
 	// Target

@@ -2064,11 +2064,9 @@ mxEdgeHandler.prototype.getHandleFillColor = function(index)
  * 
  * Redraws the preview, and the bends- and label control points.
  */
-mxEdgeHandler.prototype.redraw = function()
+mxEdgeHandler.prototype.redraw = function(ignoreHandles)
 {
 	this.abspoints = this.state.absolutePoints.slice();
-	this.redrawHandles();
-	
 	var g = this.graph.getModel().getGeometry(this.state.cell);
 	var pts = g.points;
 
@@ -2092,6 +2090,11 @@ mxEdgeHandler.prototype.redraw = function()
 	}
 
 	this.drawPreview();
+	
+	if (!ignoreHandles)
+	{
+		this.redrawHandles();
+	}
 };
 
 /**

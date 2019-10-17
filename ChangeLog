@@ -1,3 +1,13 @@
+17-OCT-2019: 4.0.5
+
+- Fixes border handling in mxGraph.fit, center and sizeDidChange
+- Makes mxXmlUtils.getDocumentBuilder thread-safe [382]
+- Fixes ignored alignment in mxGraph.cellSizeUpdated
+- Adds optional argument in redraw for handlers
+- Disables resize live preview for groups
+- Adds mxGraphHandler.maxLivePreview
+- Adds mxGuide.isStateIgnored hook
+
 20-JUL-2019: 4.0.4
 
 - Moved PHP code to own repo

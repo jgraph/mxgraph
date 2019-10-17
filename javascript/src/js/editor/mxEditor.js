@@ -437,7 +437,7 @@ mxEditor.prototype.lastSavedResource = (mxClient.language != 'none') ? 'lastSave
  * 
  * Specifies the resource key for the current file info. If the resource for
  * this key does not exist then the value is used as the error message.
- * Default is 'lastSaved'.
+ * Default is 'currentFile'.
  */
 mxEditor.prototype.currentFileResource = (mxClient.language != 'none') ? 'currentFile' : '';
 	
@@ -560,7 +560,7 @@ mxEditor.prototype.actions = null;
  * Variable: dblClickAction
  *
  * Specifies the name of the action to be executed
- * when a cell is double clicked. Default is edit.
+ * when a cell is double clicked. Default is 'edit'.
  * 
  * To handle a singleclick, use the following code.
  * 
@@ -686,7 +686,7 @@ mxEditor.prototype.linefeed = '&#xa;';
  * Variable: postParameterName
  *
  * Specifies if the name of the post parameter that contains the diagram
- * data in a post request to the server. Default is xml.
+ * data in a post request to the server. Default is 'xml'.
  */
 mxEditor.prototype.postParameterName = 'xml';
 
@@ -804,7 +804,7 @@ mxEditor.prototype.cycleAttributeIndex = 0;
  * Variable: cycleAttributeName
  * 
  * Name of the attribute to be assigned a <cycleAttributeValues>
- * when inserting new swimlanes. Default is fillColor.
+ * when inserting new swimlanes. Default is 'fillColor'.
  */
 mxEditor.prototype.cycleAttributeName = 'fillColor';
 
