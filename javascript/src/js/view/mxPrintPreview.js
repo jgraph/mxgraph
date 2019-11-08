@@ -971,6 +971,7 @@ mxPrintPreview.prototype.addGraphFragment = function(dx, dy, scale, pageNumber, 
 	var backgroundPane = view.getBackgroundPane();
 	var drawPane = view.getDrawPane();
 	var overlayPane = view.getOverlayPane();
+	var realScale = scale;
 
 	if (this.graph.dialect == mxConstants.DIALECT_SVG)
 	{
@@ -1020,8 +1021,8 @@ mxPrintPreview.prototype.addGraphFragment = function(dx, dy, scale, pageNumber, 
 	if (this.clipping)
 	{
 		var tempClip = new mxRectangle((clip.x + translate.x) * s, (clip.y + translate.y) * s,
-				clip.width * s / scale, clip.height * s / scale);
-		
+				clip.width * s / realScale, clip.height * s / realScale);
+
 		// Checks clipping rectangle for speedup
 		// Must create terminal states for edge clipping even if terminal outside of clip
 		this.graph.cellRenderer.redraw = function(state, force, rendering)
@@ -1038,7 +1039,7 @@ mxPrintPreview.prototype.addGraphFragment = function(dx, dy, scale, pageNumber, 
 					// Stops rendering if outside clip for speedup
 					if (bbox != null && !mxUtils.intersects(tempClip, bbox))
 					{
-						//return;
+						return;
 					}
 				}
 			}

@@ -180,7 +180,7 @@ EditorUi = function(editor, container, lightbox)
 		
 		this.keydownHandler = mxUtils.bind(this, function(evt)
 		{
-			if (evt.which == 32 /* Space */)
+			if (evt.which == 32 /* Space */ && !graph.isEditing())
 			{
 				spaceKeyPressed = true;
 				this.hoverIcons.reset();
@@ -4142,7 +4142,8 @@ EditorUi.prototype.createKeyHandler = function(editor)
 			}
 			else if (directions[evt.keyCode] != null && !graph.isSelectionEmpty())
 			{
-				if (mxEvent.isShiftDown(evt) && mxEvent.isAltDown(evt))
+				// On macOS, Control+Cursor is used by Expose so allow for Alt+Control to resize
+				if (!this.isControlDown(evt) && mxEvent.isShiftDown(evt) && mxEvent.isAltDown(evt))
 				{
 					if (graph.model.isVertex(graph.getSelectionCell()))
 					{

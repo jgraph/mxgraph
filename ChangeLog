@@ -1,3 +1,11 @@
+08-NOV-2019: 4.0.6
+
+- New vagrant build system
+- Fixes ignored direction for horizontal/vertical flip in mxGraph.getConnectionPoint
+- Consumes iOS touch events by default in mxMouseEvent.consume
+- Fixes handling of empty strings in mxCell.getAttribute
+- Restores clipping in mxPrintPreview
+
 17-OCT-2019: 4.0.5
 
 - Fixes border handling in mxGraph.fit, center and sizeDidChange

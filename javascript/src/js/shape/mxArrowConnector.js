@@ -225,7 +225,7 @@ mxArrowConnector.prototype.paintEdgeShape = function(c, pts)
 			ny1 = dy1 / dist1;
 			
 			var tmp1 = nx * nx1 + ny * ny1;
-			tmp = Math.max(Math.sqrt((tmp1 + 1) / 2), 0.04);
+			var tmp = Math.max(Math.sqrt((tmp1 + 1) / 2), 0.04);
 			
 			// Work out the normal orthogonal to the line through the control point and the edge sides intersection
 			nx2 = (nx + nx1);
