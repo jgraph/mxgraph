@@ -29,6 +29,8 @@ You may post on the issues tracker on this Github project, but we expect a simil
 
 We do not provide commercial support. If you are not experienced in using a non-trivial vanilla JavaScript library in a web application, you will struggle using mxGraph. Writing "I am new to JavaScript" followed by "Write/Research/Architect this for me" will mean you get no answer, like everyone else. Find someone with the appropriate skillset for the task and pay/beg them to do it. We write this so your expectations of whether we might help are set before picking the project, not to be offensive.
 
+We do not support the .NET and Java rendering functionality at all, the source code is just included in the repo for completeness. Non JavaScript rendering questions will be closed and pointed at this README.
+
 License
 =======
 
