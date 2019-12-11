@@ -4,36 +4,36 @@
  */
 /**
  * Class: mxGeometry
- * 
+ *
  * Extends <mxRectangle> to represent the geometry of a cell.
- * 
+ *
  * For vertices, the geometry consists of the x- and y-location, and the width
  * and height. For edges, the geometry consists of the optional terminal- and
  * control points. The terminal points are only required if an edge is
- * unconnected, and are stored in the sourcePoint> and <targetPoint>
+ * unconnected, and are stored in the <sourcePoint> and <targetPoint>
  * variables, respectively.
- * 
+ *
  * Example:
- * 
+ *
  * If an edge is unconnected, that is, it has no source or target terminal,
  * then a geometry with terminal points for a new edge can be defined as
  * follows.
- * 
+ *
  * (code)
  * geometry.setTerminalPoint(new mxPoint(x1, y1), true);
  * geometry.points = [new mxPoint(x2, y2)];
  * geometry.setTerminalPoint(new mxPoint(x3, y3), false);
  * (end)
- * 
+ *
  * Control points are used regardless of the connected state of an edge and may
  * be ignored or interpreted differently depending on the edge's <mxEdgeStyle>.
- * 
+ *
  * To disable automatic reset of control points after a cell has been moved or
  * resized, the the <mxGraph.resizeEdgesOnMove> and
  * <mxGraph.resetEdgesOnResize> may be used.
  *
  * Edge Labels:
- * 
+ *
  * Using the x- and y-coordinates of a cell's geometry, it is possible to
  * position the label on edges on a specific location on the actual edge shape
  * as it appears on the screen. The x-coordinate of an edge's geometry is used
@@ -42,29 +42,29 @@
  * edge's geometry is used to describe the absolute, orthogonal distance in
  * pixels from that point. In addition, the <mxGeometry.offset> is used as an
  * absolute offset vector from the resulting point.
- * 
+ *
  * This coordinate system is applied if <relative> is true, otherwise the
  * offset defines the absolute vector from the edge's center point to the
  * label and the values for <x> and <y> are ignored.
- * 
+ *
  * The width and height parameter for edge geometries can be used to set the
  * label width and height (eg. for word wrapping).
- * 
+ *
  * Ports:
- * 
+ *
  * The term "port" refers to a relatively positioned, connectable child cell,
  * which is used to specify the connection between the parent and another cell
  * in the graph. Ports are typically modeled as vertices with relative
  * geometries.
- * 
+ *
  * Offsets:
- * 
+ *
  * The <offset> field is interpreted in 3 different ways, depending on the cell
  * and the geometry. For edges, the offset defines the absolute offset for the
  * edge label. For relative geometries, the offset defines the absolute offset
  * for the origin (top, left corner) of the vertex, otherwise the offset
  * defines the absolute offset for the label inside the vertex or group.
- * 
+ *
  * Constructor: mxGeometry
  *
  * Constructs a new object to describe the size and location of a vertex or
@@ -83,7 +83,7 @@ mxGeometry.prototype.constructor = mxGeometry;
 
 /**
  * Variable: TRANSLATE_CONTROL_POINTS
- * 
+ *
  * Global switch to translate the points in translate. Default is true.
  */
 mxGeometry.prototype.TRANSLATE_CONTROL_POINTS = true;
@@ -143,18 +143,18 @@ mxGeometry.prototype.offset = null;
  * the edge label relative to the edge as rendered on the display. For
  * vertices, this specifies the relative location inside the bounds of the
  * parent cell.
- * 
+ *
  * If this is false, then the coordinates are relative to the origin of the
  * parent cell or, for edges, the edge label position is relative to the
  * center of the edge as rendered on screen.
- * 
+ *
  * Default is false.
  */
 mxGeometry.prototype.relative = false;
 
 /**
  * Function: swap
- * 
+ *
  * Swaps the x, y, width and height with the values stored in
  * <alternateBounds> and puts the previous values into <alternateBounds> as
  * a rectangle. This operation is carried-out in-place, that is, using the
@@ -181,12 +181,12 @@ mxGeometry.prototype.swap = function()
 
 /**
  * Function: getTerminalPoint
- * 
+ *
  * Returns the <mxPoint> representing the source or target point of this
  * edge. This is only used if the edge has no source or target vertex.
- * 
+ *
  * Parameters:
- * 
+ *
  * isSource - Boolean that specifies if the source or target point
  * should be returned.
  */
@@ -197,12 +197,12 @@ mxGeometry.prototype.getTerminalPoint = function(isSource)
 
 /**
  * Function: setTerminalPoint
- * 
+ *
  * Sets the <sourcePoint> or <targetPoint> to the given <mxPoint> and
  * returns the new point.
- * 
+ *
  * Parameters:
- * 
+ *
  * point - Point to be used as the new source or target point.
  * isSource - Boolean that specifies if the source or target point
  * should be set.
@@ -217,20 +217,20 @@ mxGeometry.prototype.setTerminalPoint = function(point, isSource)
 	{
 		this.targetPoint = point;
 	}
-	
+
 	return point;
 };
 
 /**
  * Function: rotate
- * 
+ *
  * Rotates the geometry by the given angle around the given center. That is,
  * <x> and <y> of the geometry, the <sourcePoint>, <targetPoint> and all
  * <points> are translated by the given amount. <x> and <y> are only
  * translated if <relative> is false.
- * 
+ *
  * Parameters:
- * 
+ *
  * angle - Number that specifies the rotation angle in degrees.
  * cx - <mxPoint> that specifies the center of the rotation.
  */
@@ -239,13 +239,13 @@ mxGeometry.prototype.rotate = function(angle, cx)
 	var rad = mxUtils.toRadians(angle);
 	var cos = Math.cos(rad);
 	var sin = Math.sin(rad);
-	
+
 	// Rotates the geometry
 	if (!this.relative)
 	{
 		var ct = new mxPoint(this.getCenterX(), this.getCenterY());
 		var pt = mxUtils.getRotatedPoint(ct, cos, sin, cx);
-		
+
 		this.x = Math.round(pt.x - this.width / 2);
 		this.y = Math.round(pt.y - this.height / 2);
 	}
@@ -257,15 +257,15 @@ mxGeometry.prototype.rotate = function(angle, cx)
 		this.sourcePoint.x = Math.round(pt.x);
 		this.sourcePoint.y = Math.round(pt.y);
 	}
-	
+
 	// Translates the target point
 	if (this.targetPoint != null)
 	{
 		var pt = mxUtils.getRotatedPoint(this.targetPoint, cos, sin, cx);
 		this.targetPoint.x = Math.round(pt.x);
-		this.targetPoint.y = Math.round(pt.y);	
+		this.targetPoint.y = Math.round(pt.y);
 	}
-	
+
 	// Translate the control points
 	if (this.points != null)
 	{
@@ -283,15 +283,15 @@ mxGeometry.prototype.rotate = function(angle, cx)
 
 /**
  * Function: translate
- * 
+ *
  * Translates the geometry by the specified amount. That is, <x> and <y> of the
  * geometry, the <sourcePoint>, <targetPoint> and all <points> are translated
  * by the given amount. <x> and <y> are only translated if <relative> is false.
  * If <TRANSLATE_CONTROL_POINTS> is false, then <points> are not modified by
  * this function.
- * 
+ *
  * Parameters:
- * 
+ *
  * dx - Number that specifies the x-coordinate of the translation.
  * dy - Number that specifies the y-coordinate of the translation.
  */
@@ -299,7 +299,7 @@ mxGeometry.prototype.translate = function(dx, dy)
 {
 	dx = parseFloat(dx);
 	dy = parseFloat(dy);
-	
+
 	// Translates the geometry
 	if (!this.relative)
 	{
@@ -313,12 +313,12 @@ mxGeometry.prototype.translate = function(dx, dy)
 		this.sourcePoint.x = parseFloat(this.sourcePoint.x) + dx;
 		this.sourcePoint.y = parseFloat(this.sourcePoint.y) + dy;
 	}
-	
+
 	// Translates the target point
 	if (this.targetPoint != null)
 	{
 		this.targetPoint.x = parseFloat(this.targetPoint.x) + dx;
-		this.targetPoint.y = parseFloat(this.targetPoint.y) + dy;		
+		this.targetPoint.y = parseFloat(this.targetPoint.y) + dy;
 	}
 
 	// Translate the control points
@@ -337,15 +337,15 @@ mxGeometry.prototype.translate = function(dx, dy)
 
 /**
  * Function: scale
- * 
+ *
  * Scales the geometry by the given amount. That is, <x> and <y> of the
  * geometry, the <sourcePoint>, <targetPoint> and all <points> are scaled
  * by the given amount. <x>, <y>, <width> and <height> are only scaled if
  * <relative> is false. If <fixedAspect> is true, then the smaller value
  * is used to scale the width and the height.
- * 
+ *
  * Parameters:
- * 
+ *
  * sx - Number that specifies the horizontal scale factor.
  * sy - Number that specifies the vertical scale factor.
  * fixedAspect - Optional boolean to keep the aspect ratio fixed.
@@ -361,12 +361,12 @@ mxGeometry.prototype.scale = function(sx, sy, fixedAspect)
 		this.sourcePoint.x = parseFloat(this.sourcePoint.x) * sx;
 		this.sourcePoint.y = parseFloat(this.sourcePoint.y) * sy;
 	}
-	
+
 	// Translates the target point
 	if (this.targetPoint != null)
 	{
 		this.targetPoint.x = parseFloat(this.targetPoint.x) * sx;
-		this.targetPoint.y = parseFloat(this.targetPoint.y) * sy;		
+		this.targetPoint.y = parseFloat(this.targetPoint.y) * sy;
 	}
 
 	// Translate the control points
@@ -381,7 +381,7 @@ mxGeometry.prototype.scale = function(sx, sy, fixedAspect)
 			}
 		}
 	}
-	
+
 	// Translates the geometry
 	if (!this.relative)
 	{
@@ -392,7 +392,7 @@ mxGeometry.prototype.scale = function(sx, sy, fixedAspect)
 		{
 			sy = sx = Math.min(sx, sy);
 		}
-		
+
 		this.width = parseFloat(this.width) * sx;
 		this.height = parseFloat(this.height) * sy;
 	}
@@ -400,7 +400,7 @@ mxGeometry.prototype.scale = function(sx, sy, fixedAspect)
 
 /**
  * Function: equals
- * 
+ *
  * Returns true if the given object equals this geometry.
  */
 mxGeometry.prototype.equals = function(obj)
