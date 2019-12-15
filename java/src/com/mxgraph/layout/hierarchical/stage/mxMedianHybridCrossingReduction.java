@@ -11,13 +11,7 @@
 
 package com.mxgraph.layout.hierarchical.stage;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.mxgraph.layout.hierarchical.mxHierarchicalLayout;
 import com.mxgraph.layout.hierarchical.model.mxGraphAbstractHierarchyCell;
@@ -199,73 +193,75 @@ public class mxMedianHybridCrossingReduction implements
 	protected int calculateRankCrossing(int i, mxGraphHierarchyModel model)
 	{
 		int totalCrossings = 0;
-		mxGraphHierarchyRank rank = model.ranks.get(new Integer(i));
-		mxGraphHierarchyRank previousRank = model.ranks.get(new Integer(i - 1));
+		mxGraphHierarchyRank rank = model.ranks.get(i);
+		mxGraphHierarchyRank previousRank = model.ranks.get(i - 1);
 
-		// Create an array of connections between these two levels
-		int currentRankSize = rank.size();
-		int previousRankSize = previousRank.size();
-		int[][] connections = new int[currentRankSize][previousRankSize];
+		Map<Integer, List<Integer>> tmpIndices = new TreeMap<>();
 
-		// Iterate over the top rank and fill in the connection information
-		Iterator<mxGraphAbstractHierarchyCell> iter = rank.iterator();
-
-		while (iter.hasNext())
+		for (mxGraphAbstractHierarchyCell node : rank)
 		{
-			mxGraphAbstractHierarchyCell cell = iter.next();
-			int rankPosition = cell.getGeneralPurposeVariable(i);
-			Collection<mxGraphAbstractHierarchyCell> connectedCells = cell
-					.getPreviousLayerConnectedCells(i);
-			Iterator<mxGraphAbstractHierarchyCell> iter2 = connectedCells
-					.iterator();
+			int rankPosition = node.getGeneralPurposeVariable(i);
+			List<mxGraphAbstractHierarchyCell> connectedCells = node.getPreviousLayerConnectedCells(i);
+			List<Integer> nodeIndices = new ArrayList<>();
 
-			while (iter2.hasNext())
+			for (mxGraphAbstractHierarchyCell connectedCell : connectedCells)
 			{
-				mxGraphAbstractHierarchyCell connectedCell = iter2.next();
-				int otherCellRankPosition = connectedCell
-						.getGeneralPurposeVariable(i - 1);
-				connections[rankPosition][otherCellRankPosition] = 201207;
+				int otherCellRankPosition = connectedCell.getGeneralPurposeVariable(i - 1);
+				nodeIndices.add(otherCellRankPosition);
 			}
-		}
 
-		// Iterate through the connection matrix, crossing edges are
-		// indicated by other connected edges with a greater rank position
-		// on one rank and lower position on the other
-		for (int j = 0; j < currentRankSize; j++)
-		{
-			for (int k = 0; k < previousRankSize; k++)
+			Collections.sort(nodeIndices, new Comparator<Integer>()
 			{
-				if (connections[j][k] == 201207)
+				@Override
+				public int compare(Integer o1, Integer o2)
 				{
-					// Draw a grid of connections, crossings are top right
-					// and lower left from this crossing pair
-					for (int j2 = j + 1; j2 < currentRankSize; j2++)
-					{
-						for (int k2 = 0; k2 < k; k2++)
-						{
-							if (connections[j2][k2] == 201207)
-							{
-								totalCrossings++;
-							}
-						}
-					}
-
-					for (int j2 = 0; j2 < j; j2++)
-					{
-						for (int k2 = k + 1; k2 < previousRankSize; k2++)
-						{
-							if (connections[j2][k2] == 201207)
-							{
-								totalCrossings++;
-							}
-						}
-					}
-
+					return o1 - o2;
 				}
+			});
+
+			tmpIndices.put(rankPosition, nodeIndices);
+		}
+
+		List<Integer> indices = new ArrayList<>();
+
+		for (List<Integer> tmpIndex : tmpIndices.values())
+		{
+			indices.addAll(tmpIndex);
+		}
+
+
+		long firstIndex = 1;
+		while (firstIndex < previousRank.size())
+		{
+			firstIndex <<= 1;
+		}
+
+		long treeSize = 2 * firstIndex - 1;
+		firstIndex -= 1;
+
+		Map<Long, Integer> tree = new HashMap<>();
+		for (long j = 0; j < treeSize; j++)
+		{
+			tree.put(j, 0);
+		}
+
+		for (Integer index : indices)
+		{
+			long treeIndex = index + firstIndex;
+			tree.put(treeIndex, tree.get(treeIndex) + 1);
+
+			while (treeIndex > 0)
+			{
+				if (treeIndex % 2 != 0)
+				{
+					totalCrossings += tree.get(treeIndex + 1);
+				}
+				treeIndex = (treeIndex - 1) >> 1;
+				tree.put(treeIndex, tree.get(treeIndex) + 1);
 			}
 		}
 
-		return totalCrossings / 2;
+		return totalCrossings;
 	}
 
 	/**
