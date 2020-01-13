@@ -10,14 +10,12 @@ build.sh
 classes
 docs/
 dotnet/
-etc/
 index.html
 java/
 javascript/debug/
 javascript/devel/
 javascript/examples/
 javascript/index.html
-javascript/src/js/
 mxgraph-dotnet.*suo
 php/
 pom.xml
