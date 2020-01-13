@@ -10,7 +10,6 @@ build.sh
 classes
 docs/
 dotnet/
-etc/
 index.html
 java/
 javascript/debug/
