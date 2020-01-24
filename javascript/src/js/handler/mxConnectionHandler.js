@@ -1097,7 +1097,9 @@ mxConnectionHandler.prototype.updateCurrentState = function(me, point)
 			{
 				this.currentState = this.constraintHandler.currentFocus;
 			}
-			else
+					
+			if (this.error != null || (this.currentState != null &&
+				!this.isCellEnabled(this.currentState.cell)))
 			{
 				this.constraintHandler.reset();
 			}
@@ -1114,11 +1116,13 @@ mxConnectionHandler.prototype.updateCurrentState = function(me, point)
 		{
 			this.marker.process(me);
 			this.currentState = this.marker.getValidState();
+		}
 			
-			if (this.currentState != null && !this.isCellEnabled(this.currentState.cell))
-			{
-				this.currentState = null;
-			}
+		if (this.currentState != null && !this.isCellEnabled(this.currentState.cell))
+		{
+			this.constraintHandler.reset();
+			this.marker.reset();
+			this.currentState = null;
 		}
 
 		var outline = this.isOutlineConnectEvent(me);
@@ -1176,7 +1180,8 @@ mxConnectionHandler.prototype.updateCurrentState = function(me, point)
 /**
  * Function: isCellEnabled
  * 
- * Returns true if the given cell does not allow new connections to be created.
+ * Returns true if the given cell allows new connections to be created. This implementation
+ * always returns true.
  */
 mxConnectionHandler.prototype.isCellEnabled = function(cell)
 {

@@ -743,7 +743,12 @@ mxCellEditor.prototype.isLegacyEditor = function()
 			
 			if (root != null)
 			{
-				absoluteRoot = mxUtils.getCurrentStyle(root).position == 'absolute';
+				var css = mxUtils.getCurrentStyle(root);
+				
+				if (css != null)
+				{				
+					absoluteRoot = css.position == 'absolute';
+				}
 			}
 		}
 		
@@ -791,12 +796,23 @@ mxCellEditor.prototype.startEditing = function(cell, trigger)
 				mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD;
 		var italic = (mxUtils.getValue(state.style, mxConstants.STYLE_FONTSTYLE, 0) &
 				mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC;
-		var uline = (mxUtils.getValue(state.style, mxConstants.STYLE_FONTSTYLE, 0) &
-				mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE;
+		var txtDecor = [];
+		
+		if ((mxUtils.getValue(state.style, mxConstants.STYLE_FONTSTYLE, 0) &
+				mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
+		{
+			txtDecor.push('underline');
+		}
+		
+		if ((mxUtils.getValue(state.style, mxConstants.STYLE_FONTSTYLE, 0) &
+				mxConstants.FONT_STRIKETHROUGH) == mxConstants.FONT_STRIKETHROUGH)
+		{
+			txtDecor.push('line-through');
+		}
 		
 		this.textarea.style.lineHeight = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? Math.round(size * mxConstants.LINE_HEIGHT) + 'px' : mxConstants.LINE_HEIGHT;
 		this.textarea.style.backgroundColor = this.getBackgroundColor(state);
-		this.textarea.style.textDecoration = (uline) ? 'underline' : '';
+		this.textarea.style.textDecoration = txtDecor.join(' ');
 		this.textarea.style.fontWeight = (bold) ? 'bold' : 'normal';
 		this.textarea.style.fontStyle = (italic) ? 'italic' : '';
 		this.textarea.style.fontSize = Math.round(size) + 'px';

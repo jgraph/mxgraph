@@ -360,6 +360,17 @@ mxEdgeHandler.prototype.isVirtualBendsEnabled = function(evt)
 };
 
 /**
+ * Function: isCellEnabled
+ * 
+ * Returns true if the given cell allows new connections to be created. This implementation
+ * always returns true.
+ */
+mxEdgeHandler.prototype.isCellEnabled = function(cell)
+{
+	return true;
+};
+
+/**
  * Function: isAddPointEvent
  * 
  * Returns true if the given event is a trigger to add a new point. This
@@ -783,7 +794,8 @@ mxEdgeHandler.prototype.getHandleForEvent = function(me)
 
 	function checkShape(shape)
 	{
-		if (shape != null && shape.node.style.display != 'none' && shape.node.style.visibility != 'hidden' &&
+		if (shape != null && shape.node != null && shape.node.style.display != 'none' &&
+			shape.node.style.visibility != 'hidden' &&
 			(me.isSource(shape) || (hit != null && mxUtils.intersects(shape.bounds, hit))))
 		{
 			var dx = me.getGraphX() - shape.bounds.getCenterX();
@@ -1135,7 +1147,9 @@ mxEdgeHandler.prototype.getPreviewTerminalState = function(me)
 		{
 			result = this.constraintHandler.currentFocus;
 		}
-		else
+		
+		if (this.error != null || (result != null &&
+			!this.isCellEnabled(result.cell)))
 		{
 			this.constraintHandler.reset();
 		}
@@ -1147,8 +1161,9 @@ mxEdgeHandler.prototype.getPreviewTerminalState = function(me)
 		this.marker.process(me);
 		var state = this.marker.getValidState();
 		
-		if (state != null && this.graph.isCellLocked(state.cell))
+		if (state != null && !this.isCellEnabled(state.cell))
 		{
+			this.constraintHandler.reset();
 			this.marker.reset();
 		}
 		
@@ -1487,7 +1502,7 @@ mxEdgeHandler.prototype.mouseMove = function(sender, me)
 				}
 			}
 			
-			if (terminalState != null && this.graph.isCellLocked(terminalState.cell))
+			if (terminalState != null && !this.isCellEnabled(terminalState.cell))
 			{
 				terminalState = null;
 				this.marker.reset();
@@ -2068,27 +2083,31 @@ mxEdgeHandler.prototype.redraw = function(ignoreHandles)
 {
 	this.abspoints = this.state.absolutePoints.slice();
 	var g = this.graph.getModel().getGeometry(this.state.cell);
-	var pts = g.points;
-
-	if (this.bends != null && this.bends.length > 0)
+	
+	if (g != null)
 	{
-		if (pts != null)
+		var pts = g.points;
+	
+		if (this.bends != null && this.bends.length > 0)
 		{
-			if (this.points == null)
+			if (pts != null)
 			{
-				this.points = [];
-			}
-			
-			for (var i = 1; i < this.bends.length - 1; i++)
-			{
-				if (this.bends[i] != null && this.abspoints[i] != null)
+				if (this.points == null)
 				{
-					this.points[i - 1] = pts[i - 1];
+					this.points = [];
+				}
+				
+				for (var i = 1; i < this.bends.length - 1; i++)
+				{
+					if (this.bends[i] != null && this.abspoints[i] != null)
+					{
+						this.points[i - 1] = pts[i - 1];
+					}
 				}
 			}
 		}
 	}
-
+	
 	this.drawPreview();
 	
 	if (!ignoreHandles)
@@ -2316,14 +2335,19 @@ mxEdgeHandler.prototype.drawPreview = function()
 	{
 		var b = this.labelShape.bounds;
 		var bounds = new mxRectangle(Math.round(this.label.x - b.width / 2),
-				Math.round(this.label.y - b.height / 2), b.width, b.height);
-		this.labelShape.bounds = bounds;
-		this.labelShape.redraw();
+			Math.round(this.label.y - b.height / 2), b.width, b.height);
+		
+		if (!this.labelShape.bounds.equals(bounds))
+		{
+			this.labelShape.bounds = bounds;
+			this.labelShape.redraw();
+		}
 	}
-	else if (this.shape != null)
+	
+	if (this.shape != null && !mxUtils.equalPoints(this.shape.points, this.abspoints))
 	{
 		this.shape.apply(this.state);
-		this.shape.points = this.abspoints;
+		this.shape.points = this.abspoints.slice();
 		this.shape.scale = this.state.view.scale;
 		this.shape.isDashed = this.isSelectionDashed();
 		this.shape.stroke = this.getSelectionColor();
@@ -2348,11 +2372,6 @@ mxEdgeHandler.prototype.refresh = function()
 	this.abspoints = this.getSelectionPoints(this.state);
 	this.points = [];
 
-	if (this.shape != null)
-	{
-		this.shape.points = this.abspoints;
-	}
-	
 	if (this.bends != null)
 	{
 		this.destroyBends(this.bends);

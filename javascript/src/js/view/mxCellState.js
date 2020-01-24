@@ -163,6 +163,13 @@ mxCellState.prototype.text = null;
 mxCellState.prototype.unscaledWidth = null;
 
 /**
+ * Variable: unscaledHeight
+ * 
+ * Holds the unscaled height of the state.
+ */
+mxCellState.prototype.unscaledHeight = null;
+
+/**
  * Function: getPerimeterBounds
  * 
  * Returns the <mxRectangle> that should be used as the perimeter of the
@@ -378,6 +385,7 @@ mxCellState.prototype.setState = function(state)
 	this.width = state.width;
 	this.height = state.height;
 	this.unscaledWidth = state.unscaledWidth;
+	this.unscaledHeight = state.unscaledHeight;
 };
 
 /**
@@ -423,6 +431,7 @@ mxCellState.prototype.clone = function()
 	clone.width = this.width;
 	clone.height = this.height;
 	clone.unscaledWidth = this.unscaledWidth;
+	clone.unscaledHeight = this.unscaledHeight;
 	
 	return clone;
 };

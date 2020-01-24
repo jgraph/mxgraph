@@ -834,12 +834,25 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 			css.append("font-style:italic;");
 		}
 
+		String txtDecor = "";
+		
 		if ((state.fontStyle
 				& mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
-		{
-			css.append("text-decoration:underline;");
-		}
+	    {
+			txtDecor = "underline";
+	    }
+	    
+	    if ((state.fontStyle
+				& mxConstants.FONT_STRIKETHROUGH) == mxConstants.FONT_STRIKETHROUGH)
+	    {
+	    	txtDecor += " line-through";
+	    }
 
+	    if (txtDecor.length() > 0)
+	    {
+	    	css.append("text-decoration: " + txtDecor + ";");
+	    }
+	    
 		if (align != null)
 		{
 			if (align.equals(mxConstants.ALIGN_CENTER))
@@ -1195,14 +1208,28 @@ public class mxGraphicsCanvas2D implements mxICanvas2D
 				// Adds support for underlined text via attributed character iterator
 				if (!lines[i].isEmpty())
 				{
-					if ((state.fontStyle
-							& mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
+					boolean isUnderline = (state.fontStyle
+							& mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE;
+					boolean isStrikethrough = (state.fontStyle
+							& mxConstants.FONT_STRIKETHROUGH) == mxConstants.FONT_STRIKETHROUGH;
+					
+					if (isUnderline || isStrikethrough)
 					{
 						AttributedString as = new AttributedString(lines[i]);
 						as.addAttribute(TextAttribute.FONT, g2.getFont());
-						as.addAttribute(TextAttribute.UNDERLINE,
+						
+						if (isUnderline)
+						{
+							as.addAttribute(TextAttribute.UNDERLINE,
 								TextAttribute.UNDERLINE_ON);
-
+						}
+						
+						if (isStrikethrough)
+						{
+							as.addAttribute(TextAttribute.STRIKETHROUGH,
+								TextAttribute.STRIKETHROUGH_ON);
+						}
+						
 						g2.drawString(as.getIterator(),
 								(int) Math.round(x + dx), (int) Math.round(y));
 					}

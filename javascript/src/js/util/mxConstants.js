@@ -1883,6 +1883,13 @@
 	FONT_UNDERLINE: 4,
 
 	/**
+	 * Variable: FONT_STRIKETHROUGH
+	 * 
+	 * Constant for strikthrough fonts. Default is 8.
+	 */
+	FONT_STRIKETHROUGH: 8,
+	
+	/**
 	 * Variable: SHAPE_RECTANGLE
 	 * 
 	 * Name under which <mxRectangleShape> is registered in <mxCellRenderer>.

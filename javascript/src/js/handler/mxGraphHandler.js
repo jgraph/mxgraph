@@ -30,8 +30,11 @@ function mxGraphHandler(graph)
 	// Repaints the handler after autoscroll
 	this.panHandler = mxUtils.bind(this, function()
 	{
-		this.updatePreview();
-		this.updateHint();
+		if (!this.suspended)
+		{
+			this.updatePreview();
+			this.updateHint();
+		}
 	});
 	
 	this.graph.addListener(mxEvent.PAN, this.panHandler);
@@ -47,7 +50,7 @@ function mxGraphHandler(graph)
 	// Updates the preview box for remote changes
 	this.refreshHandler = mxUtils.bind(this, function(sender, evt)
 	{
-		if (this.first != null)
+		if (this.first != null && !this.suspended)
 		{
 			try
 			{
@@ -60,7 +63,7 @@ function mxGraphHandler(graph)
 				{
 					if (this.livePreviewUsed)
 					{
-						this.setHandlesVisibleForCells(this.cells, false);
+						this.setHandlesVisibleForCells(this.graph.getSelectionCells(), false);
 						this.updatePreview();
 					}
 				}), 0);
@@ -639,11 +642,11 @@ mxGraphHandler.prototype.createPreviewShape = function(bounds)
  * 
  * Starts the handling of the mouse gesture.
  */
-mxGraphHandler.prototype.start = function(cell, x, y)
+mxGraphHandler.prototype.start = function(cell, x, y, cells)
 {
 	this.cell = cell;
 	this.first = mxUtils.convertPoint(this.graph.container, x, y);
-	this.cells = this.getCells(this.cell);
+	this.cells = (cells != null) ? cells : this.getCells(this.cell);
 	this.bounds = this.graph.getView().getBounds(this.cells);
 	this.pBounds = this.getPreviewBounds(this.cells);
 	this.allCells = new mxDictionary();
@@ -661,6 +664,20 @@ mxGraphHandler.prototype.start = function(cell, x, y)
 		var parent = this.graph.model.getParent(cell);
 		var ignore = this.graph.model.getChildCount(parent) < 2;
 		
+		// Uses connected states as guides
+		var connected = new mxDictionary();
+		var opps = this.graph.getOpposites(this.graph.getEdges(this.cell), this.cell);
+		
+		for (var i = 0; i < opps.length; i++)
+		{
+			var state = this.graph.view.getState(opps[i]);
+			
+			if (state != null && !connected.get(state))
+			{
+				connected.put(state, true);
+			}
+		}
+
 		this.guide.isStateIgnored = mxUtils.bind(this, function(state)
 		{
 			var p = this.graph.model.getParent(state.cell);
@@ -668,6 +685,7 @@ mxGraphHandler.prototype.start = function(cell, x, y)
 			return state.cell != null && ((!this.cloning &&
 				this.isCellMoving(state.cell)) ||
 				(state.cell != (this.target || parent) && !ignore &&
+				!connected.get(state) &&
 				(this.target == null || this.graph.model.getChildCount(
 				this.target) >= 2) && p != (this.target || parent)));  
 		});
@@ -746,10 +764,9 @@ mxGraphHandler.prototype.snap = function(vector)
 mxGraphHandler.prototype.getDelta = function(me)
 {
 	var point = mxUtils.convertPoint(this.graph.container, me.getX(), me.getY());
-	var s = this.graph.view.scale;
 	
-	return new mxPoint(this.roundLength((point.x - this.first.x - this.graph.panDx) / s) * s,
-		this.roundLength((point.y - this.first.y - this.graph.panDy) / s) * s);
+	return new mxPoint(point.x - this.first.x - this.graph.panDx,
+		point.y - this.first.y - this.graph.panDy);
 };
 
 /**
@@ -769,11 +786,13 @@ mxGraphHandler.prototype.removeHint = function() { };
 /**
  * Function: roundLength
  * 
- * Hook for rounding the unscaled vector. This uses Math.round.
+ * Hook for rounding the unscaled vector. Allows for half steps in the raster so
+ * numbers coming in should be rounded if no half steps are allowed (ie for non
+ * aligned standard moving where pixel steps should be preferred).
  */
 mxGraphHandler.prototype.roundLength = function(length)
 {
-	return Math.round(length * 2) / 2;
+	return Math.round(length * 100) / 100;
 };
 
 /**
@@ -787,7 +806,7 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 	var graph = this.graph;
 
 	if (!me.isConsumed() && graph.isMouseDown && this.cell != null &&
-		this.first != null && this.bounds != null)
+		this.first != null && this.bounds != null && !this.suspended)
 	{
 		// Stops moving if a multi touch event is received
 		if (mxEvent.isMultiTouchEvent(me.getEvent()))
@@ -797,11 +816,9 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 		}
 		
 		var delta = this.getDelta(me);
-		var dx = delta.x;
-		var dy = delta.y;
 		var tol = graph.tolerance;
 
-		if (this.shape != null || this.livePreviewActive || Math.abs(dx) > tol || Math.abs(dy) > tol)
+		if (this.shape != null || this.livePreviewActive || Math.abs(delta.x) > tol || Math.abs(delta.y) > tol)
 		{
 			// Highlight is used for highlighting drop targets
 			if (this.highlight == null)
@@ -873,9 +890,12 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 			}
 			else if (this.maxLivePreview >= this.cellCount && !this.livePreviewActive && this.allowLivePreview)
 			{
-				this.setHandlesVisibleForCells(this.cells, false);
-				this.livePreviewActive = true;
-				this.livePreviewUsed = true;
+				if (!clone || !this.livePreviewActive)
+				{
+					this.setHandlesVisibleForCells(this.graph.getSelectionCells(), false);
+					this.livePreviewActive = true;
+					this.livePreviewUsed = true;
+				}
 			}
 			else if (!this.livePreviewUsed && this.shape == null)
 			{
@@ -884,22 +904,12 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 			
 			if (this.guide != null && this.useGuidesForEvent(me))
 			{
-				delta = this.guide.move(this.bounds, new mxPoint(dx, dy), gridEnabled, clone);
+				delta = this.guide.move(this.bounds, delta, gridEnabled, clone);
 				hideGuide = false;
-				dx = delta.x;
-				dy = delta.y;
 			}
-			else if (gridEnabled)
+			else
 			{
-				var trx = graph.getView().translate;
-				var scale = graph.getView().scale;				
-				
-				var tx = this.bounds.x - (graph.snap(this.bounds.x / scale - trx.x) + trx.x) * scale;
-				var ty = this.bounds.y - (graph.snap(this.bounds.y / scale - trx.y) + trx.y) * scale;
-				var v = this.snap(new mxPoint(dx, dy));
-				
-				dx = v.x - tx;
-				dy = v.y - ty;
+				delta = this.graph.snapDelta(delta, this.bounds, !gridEnabled, false, false);
 			}
 			
 			if (this.guide != null && hideGuide)
@@ -910,19 +920,22 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 			// Constrained movement if shift key is pressed
 			if (graph.isConstrainedEvent(me.getEvent()))
 			{
-				if (Math.abs(dx) > Math.abs(dy))
+				if (Math.abs(delta.x) > Math.abs(delta.y))
 				{
-					dy = 0;
+					delta.y = 0;
 				}
 				else
 				{
-					dx = 0;
+					delta.x = 0;
 				}
 			}
 
-			this.currentDx = dx;
-			this.currentDy = dy;
-			this.updatePreview();
+			if (this.currentDx != delta.x || this.currentDy != delta.y)
+			{
+				this.currentDx = delta.x;
+				this.currentDy = delta.y;
+				this.updatePreview();
+			}
 		}
 
 		this.updateHint(me);
@@ -934,7 +947,7 @@ mxGraphHandler.prototype.mouseMove = function(sender, me)
 		mxEvent.consume(me.getEvent());
 	}
 	else if ((this.isMoveEnabled() || this.isCloneEnabled()) && this.updateCursor && !me.isConsumed() &&
-		(me.getState() != null || me.sourceState != null) && !graph.isMouseDown)
+			(me.getState() != null || me.sourceState != null) && !graph.isMouseDown)
 	{
 		var cursor = graph.getCursorForMouseEvent(me);
 		
@@ -1001,140 +1014,135 @@ mxGraphHandler.prototype.updatePreviewShape = function()
  */
 mxGraphHandler.prototype.updateLivePreview = function(dx, dy)
 {
-	var states = [];
-	
-	if (this.allCells != null)
+	if (!this.suspended)
 	{
-		this.allCells.visit(mxUtils.bind(this, function(key, state)
+		var states = [];
+		
+		if (this.allCells != null)
 		{
-			// Saves current state
-			var tempState = state.clone();
-			states.push([state, tempState]);
-
-			// Makes transparent for events to detect drop targets
-			if (state.shape != null)
+			this.allCells.visit(mxUtils.bind(this, function(key, state)
 			{
-				if (state.shape.originalPointerEvents == null)
+				// Saves current state
+				var tempState = state.clone();
+				states.push([state, tempState]);
+	
+				// Makes transparent for events to detect drop targets
+				if (state.shape != null)
 				{
-					state.shape.originalPointerEvents = state.shape.pointerEvents;
+					if (state.shape.originalPointerEvents == null)
+					{
+						state.shape.originalPointerEvents = state.shape.pointerEvents;
+					}
+					
+					state.shape.pointerEvents = false;
+	
+					if (state.text != null)
+					{
+						if (state.text.originalPointerEvents == null)
+						{
+							state.text.originalPointerEvents = state.text.pointerEvents;
+						}
+					
+						state.text.pointerEvents = false;
+					}
+				}
+	
+				// Temporarily changes position
+				if (this.graph.model.isVertex(state.cell))
+				{
+					state.x += dx;
+					state.y += dy;
+					
+					// Draws the live preview
+					if (!this.cloning)
+					{
+						state.view.graph.cellRenderer.redraw(state, true);
+						
+						// Forces redraw of connected edges after all states
+						// have been updated but avoids update of state
+						state.view.invalidate(state.cell);
+						state.invalid = false;
+						
+						// Hides folding icon
+						if (state.control != null && state.control.node != null)
+						{
+							state.control.node.style.visibility = 'hidden';
+						}
+					}
+				}
+			}));
+		}
+	
+		// Redraws connected edges
+		var s = this.graph.view.scale;
+		
+		for (var i = 0; i < states.length; i++)
+		{
+			var state = states[i][0];
+			
+			if (this.graph.model.isEdge(state.cell))
+			{
+				var geometry = this.graph.getCellGeometry(state.cell);
+				var points = [];
+				
+				if (geometry != null && geometry.points != null)
+				{
+					for (var j = 0; j < geometry.points.length; j++)
+					{
+						if (geometry.points[j] != null)
+						{
+							points.push(new mxPoint(
+								geometry.points[j].x + dx / s,
+								geometry.points[j].y + dy / s));
+						}
+					}
+				}
+	
+				var source = state.visibleSourceState;
+				var target = state.visibleTargetState;
+				var pts = states[i][1].absolutePoints;
+				
+				if (source == null || !this.isCellMoving(source.cell))
+				{
+					var pt0 = pts[0];
+					state.setAbsoluteTerminalPoint(new mxPoint(pt0.x + dx, pt0.y + dy), true);
+					source = null;
+				}
+				else
+				{
+					state.view.updateFixedTerminalPoint(state, source, true,
+						this.graph.getConnectionConstraint(state, source, true));
 				}
 				
-				state.shape.pointerEvents = false;
-
-				if (state.text != null && state.text.node != null)
+				if (target == null || !this.isCellMoving(target.cell))
 				{
-					var node = state.text.node;
-					
-					if (node.firstChild != null && node.firstChild.firstChild != null &&
-						node.firstChild.firstChild.nodeName == 'foreignObject')
-					{
-						node.firstChild.firstChild.setAttribute('pointer-events', 'none');
-					}
-					else if (node.ownerSVGElement != null)
-					{
-						node.setAttribute('pointer-events', 'none');
-					}
-					else
-					{
-						node.style.pointerEvents = 'none';
-					}
+					var ptn = pts[pts.length - 1];
+					state.setAbsoluteTerminalPoint(new mxPoint(ptn.x + dx, ptn.y + dy), false);
+					target = null;
 				}
-			}
+				else
+				{
+					state.view.updateFixedTerminalPoint(state, target, false,
+						this.graph.getConnectionConstraint(state, target, false));
+				}
+				
+				state.view.updatePoints(state, points, source, target);
+				state.view.updateFloatingTerminalPoints(state, source, target);
+				state.view.updateEdgeLabelOffset(state);
+				state.invalid = false;
 
-			// Temporarily changes position
-			if (this.graph.model.isVertex(state.cell))
-			{
-				state.x += dx;
-				state.y += dy;
-
-				// Draws the live preview
+				// Draws the live preview but avoids update of state
 				if (!this.cloning)
 				{
 					state.view.graph.cellRenderer.redraw(state, true);
-					
-					// Forces redraw of connected edges after all states
-					// have been updated but avoids update of state
-					state.view.invalidate(state.cell);
-					state.invalid = false;
 				}
-				
-				// Hides folding icon
-				if (state.control != null && state.control.node != null)
-				{
-					state.control.node.style.visibility = 'hidden';
-				}
-			}
-		}));
-	}
-
-	// Redraws connected edges
-	var s = this.graph.view.scale;
-	
-	for (var i = 0; i < states.length; i++)
-	{
-		var state = states[i][0];
-		
-		if (this.graph.model.isEdge(state.cell))
-		{
-			var geometry = this.graph.getCellGeometry(state.cell);
-			var points = [];
-			
-			if (geometry != null && geometry.points != null)
-			{
-				for (var j = 0; j < geometry.points.length; j++)
-				{
-					if (geometry.points[j] != null)
-					{
-						points.push(new mxPoint(
-							geometry.points[j].x + dx / s,
-							geometry.points[j].y + dy / s));
-					}
-				}
-			}
-
-			var source = state.visibleSourceState;
-			var target = state.visibleTargetState;
-			var pts = states[i][1].absolutePoints;
-			
-			if (source == null || !this.isCellMoving(source.cell))
-			{
-				var pt0 = pts[0];
-				state.setAbsoluteTerminalPoint(new mxPoint(pt0.x + dx, pt0.y + dy), true);
-				source = null;
-			}
-			else
-			{
-				state.view.updateFixedTerminalPoint(state, source, true,
-					this.graph.getConnectionConstraint(state, source, true));
-			}
-			
-			if (target == null || !this.isCellMoving(target.cell))
-			{
-				var ptn = pts[pts.length - 1];
-				state.setAbsoluteTerminalPoint(new mxPoint(ptn.x + dx, ptn.y + dy), false);
-				target = null;
-			}
-			else
-			{
-				state.view.updateFixedTerminalPoint(state, target, false,
-					this.graph.getConnectionConstraint(state, target, false));
-			}
-			
-			state.view.updatePoints(state, points, source, target);
-			state.view.updateFloatingTerminalPoints(state, source, target);
-			state.invalid = false;
-					
-			// Draws the live preview but avoids update of state
-			if (!this.cloning)
-			{
-				state.view.graph.cellRenderer.redraw(state, true);
 			}
 		}
+	
+		this.graph.view.validate();
+		this.redrawHandles(states);
+		this.resetPreviewStates(states);
 	}
-
-	this.graph.view.validate();
-	this.redrawHandles(states);
-	this.resetPreviewStates(states);
 };
 
 /**
@@ -1169,6 +1177,62 @@ mxGraphHandler.prototype.resetPreviewStates = function(states)
 };
 
 /**
+ * Function: suspend
+ * 
+ * Suspends the livew preview.
+ */
+mxGraphHandler.prototype.suspend = function()
+{
+	if (!this.suspended)
+	{
+		if (this.livePreviewUsed)
+		{
+			this.updateLivePreview(0, 0);
+		}
+		
+		if (this.shape != null)
+		{
+			this.shape.node.style.visibility = 'hidden';
+		} 
+	
+		if (this.guide != null)
+		{
+			this.guide.setVisible(false);
+		}
+		
+		this.suspended = true;
+	}
+};
+
+/**
+ * Function: resume
+ * 
+ * Suspends the livew preview.
+ */
+mxGraphHandler.prototype.resume = function()
+{
+	if (this.suspended)
+	{
+		this.suspended = null;
+		
+		if (this.livePreviewUsed)
+		{
+			this.livePreviewActive = true;
+		}
+		
+		if (this.shape != null)
+		{
+			this.shape.node.style.visibility = 'visible';
+		}
+		
+		if (this.guide != null)
+		{
+			this.guide.setVisible(true);
+		}
+	}
+};
+
+/**
  * Function: resetLivePreview
  * 
  * Resets the livew preview.
@@ -1185,31 +1249,16 @@ mxGraphHandler.prototype.resetLivePreview = function()
 				state.shape.pointerEvents = state.shape.originalPointerEvents;
 				state.shape.originalPointerEvents = null;
 				
-				// Forces a repaint event if not moved
-				state.shape.bounds = null;
-
-				if (state.text != null && state.text.node != null)
+				if (state.text != null)
 				{
-					var node = state.text.node;
-					
-					if (node.firstChild != null && node.firstChild.firstChild != null &&
-						node.firstChild.firstChild.nodeName == 'foreignObject')
-					{
-						node.firstChild.firstChild.setAttribute('pointer-events', 'all');
-					}
-					else if (node.ownerSVGElement != null)
-					{
-						node.removeAttribute('pointer-events');
-					}
-					else
-					{
-						node.style.pointerEvents = '';
-					}
+					state.text.pointerEvents = state.text.originalPointerEvents;
+					state.text.originalPointerEvents = null;
 				}
 			}
 
 			// Shows folding icon
-			if (state.control != null && state.control.node != null)
+			if (state.control != null && state.control.node != null &&
+				state.control.node.style.visibility == 'hidden')
 			{
 				state.control.node.style.visibility = '';
 			}
@@ -1346,7 +1395,7 @@ mxGraphHandler.prototype.reset = function()
 	if (this.livePreviewUsed)
 	{
 		this.resetLivePreview();
-		this.setHandlesVisibleForCells(this.cells, true);
+		this.setHandlesVisibleForCells(this.graph.getSelectionCells(), true);
 	}
 	
 	this.destroyShapes();
@@ -1356,11 +1405,13 @@ mxGraphHandler.prototype.reset = function()
 	this.livePreviewActive = null;
 	this.livePreviewUsed = null;
 	this.cellWasClicked = false;
+	this.suspended = null;
 	this.currentDx = null;
 	this.currentDy = null;
 	this.cellCount = null;
 	this.cloning = false;
 	this.allCells = null;
+	this.pBounds = null;
 	this.guides = null;
 	this.target = null;
 	this.first = null;
@@ -1489,24 +1540,17 @@ mxGraphHandler.prototype.moveCells = function(cells, dx, dy, clone, target, evt)
 };
 
 /**
- * Function: moveCells
+ * Function: shouldRemoveParent
  * 
- * Moves the given cells by the specified amount.
+ * Returns true if the given parent should be removed after removal of child cells.
  */
 mxGraphHandler.prototype.shouldRemoveParent = function(parent)
 {
 	var state = this.graph.view.getState(parent);
 	
-	if (state != null && (this.graph.model.isEdge(state.cell) || this.graph.model.isVertex(state.cell)) &&
-		this.graph.isCellDeletable(state.cell) && this.graph.model.getChildCount(state.cell) == 0)
-	{
-		var stroke = mxUtils.getValue(state.style, mxConstants.STYLE_STROKECOLOR, mxConstants.NONE);
-		var fill = mxUtils.getValue(state.style, mxConstants.STYLE_FILLCOLOR, mxConstants.NONE);
-		
-		return stroke == mxConstants.NONE && fill == mxConstants.NONE;
-	}
-	
-	return false;
+	return state != null && (this.graph.model.isEdge(state.cell) || this.graph.model.isVertex(state.cell)) &&
+		this.graph.isCellDeletable(state.cell) && this.graph.model.getChildCount(state.cell) == 0 &&
+		this.graph.isTransparentState(state);
 };
 
 /**

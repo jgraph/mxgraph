@@ -229,7 +229,8 @@ mxVertexHandler.prototype.init = function()
 				this.graph.isLabelMovable(this.state.cell))
 			{
 				// Marks this as the label handle for getHandleForEvent
-				this.labelShape = this.createSizer(mxConstants.CURSOR_LABEL_HANDLE, mxEvent.LABEL_HANDLE, mxConstants.LABEL_HANDLE_SIZE, mxConstants.LABEL_HANDLE_FILLCOLOR);
+				this.labelShape = this.createSizer(mxConstants.CURSOR_LABEL_HANDLE, mxEvent.LABEL_HANDLE,
+					mxConstants.LABEL_HANDLE_SIZE, mxConstants.LABEL_HANDLE_FILLCOLOR);
 				this.sizers.push(this.labelShape);
 			}
 		}
@@ -647,6 +648,18 @@ mxVertexHandler.prototype.start = function(x, y, index)
 			}
 		}
 		
+		if (index == mxEvent.ROTATION_HANDLE)
+		{
+			// With the rotation handle in a corner, need the angle and distance
+			var pos = this.getRotationHandlePosition();
+			
+			var dx = pos.x - this.state.getCenterX();
+			var dy = pos.y - this.state.getCenterY();
+			
+			this.startAngle = (dx != 0) ? Math.atan(dy / dx) * 180 / Math.PI + 90 : ((dy < 0) ? 180 : 0);
+			this.startDist = Math.sqrt(dx * dx + dy * dy);
+		}
+
 		// Prepares the handles for live preview
 		if (this.livePreviewActive)
 		{
@@ -773,7 +786,7 @@ mxVertexHandler.prototype.roundAngle = function(angle)
  */
 mxVertexHandler.prototype.roundLength = function(length)
 {
-	return Math.round(length);
+	return Math.round(length * 100) / 100;
 };
 
 /**
@@ -860,14 +873,28 @@ mxVertexHandler.prototype.rotateVertex = function(me)
 	{
 		this.currentAlpha -= 180;
 	}
-
+	
+	this.currentAlpha -= this.startAngle;
+	
 	// Rotation raster
 	if (this.rotationRaster && this.graph.isGridEnabledEvent(me.getEvent()))
 	{
 		var dx = point.x - this.state.getCenterX();
 		var dy = point.y - this.state.getCenterY();
-		var dist = Math.abs(Math.sqrt(dx * dx + dy * dy) - 20) * 3;
-		var raster = Math.max(1, 5 * Math.min(3, Math.max(0, Math.round(80 / Math.abs(dist)))));
+		var dist = Math.sqrt(dx * dx + dy * dy);
+		
+		if (dist - this.startDist < 2)
+		{
+			raster = 15;
+		}
+		else if (dist - this.startDist < 25)
+		{
+			raster = 5;
+		}
+		else
+		{
+			raster = 1;
+		}
 		
 		this.currentAlpha = Math.round(this.currentAlpha / raster) * raster;
 	}
@@ -988,6 +1015,7 @@ mxVertexHandler.prototype.resizeVertex = function(me)
 		}
 	}
 	
+	var old = this.bounds;
 	this.bounds = new mxRectangle(((this.parentState != null) ? this.parentState.x : tr.x * scale) +
 		(this.unscaledBounds.x) * scale, ((this.parentState != null) ? this.parentState.y : tr.y * scale) +
 		(this.unscaledBounds.y) * scale, this.unscaledBounds.width * scale, this.unscaledBounds.height * scale);
@@ -1038,15 +1066,18 @@ mxVertexHandler.prototype.resizeVertex = function(me)
 		this.childOffsetX = 0;
 		this.childOffsetY = 0;
 	}
-	
-	if (this.livePreviewActive)
-	{
-		this.updateLivePreview(me);
-	}
-	
-	if (this.preview != null)
-	{
-		this.drawPreview();
+			
+	if (!old.equals(this.bounds))
+	{	
+		if (this.livePreviewActive)
+		{
+			this.updateLivePreview(me);
+		}
+		
+		if (this.preview != null)
+		{
+			this.drawPreview();
+		}
 	}
 };
 
@@ -1070,9 +1101,6 @@ mxVertexHandler.prototype.updateLivePreview = function(me)
 	this.state.origin = new mxPoint(this.state.x / scale - tr.x, this.state.y / scale - tr.y);
 	this.state.width = this.bounds.width;
 	this.state.height = this.bounds.height;
-	
-	// Needed to force update of text bounds
-	this.state.unscaledWidth = null;
 	
 	// Redraws cell and handles
 	var off = this.state.absoluteOffset;
@@ -1353,20 +1381,25 @@ mxVertexHandler.prototype.resizeCell = function(cell, dx, dy, index, gridEnabled
 	{
 		if (index == mxEvent.LABEL_HANDLE)
 		{
+			var alpha = -mxUtils.toRadians(this.state.style[mxConstants.STYLE_ROTATION] || '0');
+			var cos = Math.cos(alpha);
+			var sin = Math.sin(alpha);
 			var scale = this.graph.view.scale;
-			dx = Math.round((this.labelShape.bounds.getCenterX() - this.startX) / scale);
-			dy = Math.round((this.labelShape.bounds.getCenterY() - this.startY) / scale);
-			
+			var pt = mxUtils.getRotatedPoint(new mxPoint(
+				Math.round((this.labelShape.bounds.getCenterX() - this.startX) / scale),
+				Math.round((this.labelShape.bounds.getCenterY() - this.startY) / scale)),
+				cos, sin);
+
 			geo = geo.clone();
 			
 			if (geo.offset == null)
 			{
-				geo.offset = new mxPoint(dx, dy);
+				geo.offset = pt;
 			}
 			else
 			{
-				geo.offset.x += dx;
-				geo.offset.y += dy;
+				geo.offset.x += pt.x;
+				geo.offset.y += pt.y;
 			}
 			
 			this.graph.model.setGeometry(cell, geo);
@@ -1462,6 +1495,8 @@ mxVertexHandler.prototype.moveChildren = function(cell, dx, dy)
  */
 mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, scale, tr, constrained, centered)
 {
+	gridEnabled = (gridEnabled != null) ? gridEnabled && this.graph.gridEnabled : this.graph.gridEnabled;
+	
 	if (this.singleSizer)
 	{
 		var x = bounds.x + bounds.width + dx;
@@ -1498,6 +1533,10 @@ mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, s
 			{
 				bottom = this.graph.snap(bottom / scale) * scale;
 			}
+			else
+			{
+				bottom = Math.round(bottom / scale) * scale;
+			}
 		}
 		else if (index < 3 /* Top Row */)
 		{
@@ -1506,6 +1545,10 @@ mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, s
 			if (gridEnabled)
 			{
 				top = this.graph.snap(top / scale) * scale;
+			}
+			else
+			{
+				top = Math.round(top / scale) * scale;
 			}
 		}
 		
@@ -1517,6 +1560,10 @@ mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, s
 			{
 				left = this.graph.snap(left / scale) * scale;
 			}
+			else
+			{
+				left = Math.round(left / scale) * scale;
+			}
 		}
 		else if (index == 2 || index == 4 || index == 7 /* Right */)
 		{
@@ -1525,6 +1572,10 @@ mxVertexHandler.prototype.union = function(bounds, dx, dy, index, gridEnabled, s
 			if (gridEnabled)
 			{
 				right = this.graph.snap(right / scale) * scale;
+			}
+			else
+			{
+				right = Math.round(right / scale) * scale;
 			}
 		}
 		
@@ -1778,7 +1829,10 @@ mxVertexHandler.prototype.redrawHandles = function()
 				this.moveSizerTo(this.sizers[7], pt.x, pt.y);
 				this.sizers[7].setCursor(crs[mxUtils.mod(4 + da, crs.length)]);
 				
-				this.moveSizerTo(this.sizers[8], cx + this.state.absoluteOffset.x, cy + this.state.absoluteOffset.y);
+				pt.x = cx + this.state.absoluteOffset.x;
+				pt.y = cy + this.state.absoluteOffset.y;
+				pt = mxUtils.getRotatedPoint(pt, cos, sin, ct);
+				this.moveSizerTo(this.sizers[8], pt.x, pt.y);
 			}
 			else if (this.state.width >= 2 && this.state.height >= 2)
 			{

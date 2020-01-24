@@ -353,35 +353,52 @@ var mxEvent =
 					evt = window.event;
 				}
 			
-				var delta = 0;
-				
-				if (mxClient.IS_FF)
+				//To prevent window zoom on trackpad pinch
+				if (evt.ctrlKey) 
 				{
-					delta = -evt.detail / 2;
+					evt.preventDefault();
 				}
-				else
-				{
-					delta = evt.wheelDelta / 120;
-				}
+
+				var delta = -evt.deltaY;
 				
 				// Handles the event using the given function
-				if (delta != 0)
+				if (Math.abs(evt.deltaX) > 0.5 || Math.abs(evt.deltaY) > 0.5)
 				{
-					funct(evt, delta > 0);
+					funct(evt, (evt.deltaY == 0) ?  -evt.deltaX > 0 : -evt.deltaY > 0);
 				}
 			};
 	
-			// Webkit has NS event API, but IE event name and details 
-			if (mxClient.IS_NS && document.documentMode == null)
+			target = target != null ? target : window;
+					
+			if (mxClient.IS_SF && !mxClient.IS_TOUCH)
 			{
-				var eventName = (mxClient.IS_SF || mxClient.IS_GC) ? 'mousewheel' : 'DOMMouseScroll';
-				mxEvent.addListener((mxClient.IS_GC && target != null) ? target : window,
-					eventName, wheelHandler);
+				var scale = 1;
+				
+				mxEvent.addListener(target, 'gesturestart', function(evt)
+				{
+					mxEvent.consume(evt);
+					scale = 1;
+				});
+				
+				mxEvent.addListener(target, 'gesturechange', function(evt)
+				{
+					mxEvent.consume(evt);
+					var diff = scale - evt.scale;
+					
+					if (Math.abs(diff) > 0.2)
+					{
+						funct(evt, diff < 0, true);
+						scale = evt.scale;
+					}
+				});
+
+				mxEvent.addListener(target, 'gestureend', function(evt)
+				{
+					mxEvent.consume(evt);
+				});
 			}
-			else
-			{
-				mxEvent.addListener(document, 'mousewheel', wheelHandler);
-			}
+			
+			mxEvent.addListener(target, 'wheel', wheelHandler);
 		}
 	},
 	

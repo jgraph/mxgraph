@@ -269,7 +269,7 @@ mxXmlRequest.prototype.getText = function()
  */
 mxXmlRequest.prototype.getStatus = function()
 {
-	return this.request.status;
+	return (this.request != null) ? this.request.status : null;
 };
 
 /**

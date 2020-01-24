@@ -34,9 +34,6 @@
 			}
 			else
 			{
-				// Fixes ignored clipping if foreignObject used in Webkit
-				mxClient.NO_FO = mxClient.NO_FO || mxClient.IS_SF || mxClient.IS_GC;
-				
 				// Creates the graph inside the given container
 				var graph = new mxGraph(container);
 				graph.setTooltips(true);

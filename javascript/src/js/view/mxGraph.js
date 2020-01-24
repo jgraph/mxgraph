@@ -3069,8 +3069,8 @@ mxGraph.prototype.sizeDidChange = function()
 	{
 		var border = this.getBorder();
 		
-		var width = Math.max(0, bounds.x + bounds.width + border);
-		var height = Math.max(0, bounds.y + bounds.height + border);
+		var width = Math.max(0, bounds.x) + bounds.width + 2 * border;
+		var height = Math.max(0, bounds.y) + bounds.height + 2 * border;
 		
 		if (this.minimumContainerSize != null)
 		{
@@ -4602,8 +4602,10 @@ mxGraph.prototype.addCell = function(cell, parent, index, source, target)
  * index - Optional index to insert the cells at. Default is to append.
  * source - Optional source <mxCell> for all inserted cells.
  * target - Optional target <mxCell> for all inserted cells.
+ * absolute - Optional boolean indicating of cells should be kept at
+ * their absolute position. Default is false.
  */
-mxGraph.prototype.addCells = function(cells, parent, index, source, target)
+mxGraph.prototype.addCells = function(cells, parent, index, source, target, absolute)
 {
 	if (parent == null)
 	{
@@ -4618,7 +4620,7 @@ mxGraph.prototype.addCells = function(cells, parent, index, source, target)
 	this.model.beginUpdate();
 	try
 	{
-		this.cellsAdded(cells, parent, index, source, target, false, true);
+		this.cellsAdded(cells, parent, index, source, target, (absolute != null) ? absolute : false, true);
 		this.fireEvent(new mxEventObject(mxEvent.ADD_CELLS, 'cells', cells,
 				'parent', parent, 'index', index, 'source', source, 'target', target));
 	}
@@ -5409,8 +5411,7 @@ mxGraph.prototype.cellSizeUpdated = function(cell, ignoreChildren)
 
 				if (this.isSwimlane(cell))
 				{
-					var state = this.view.getState(cell);
-					var style = (state != null) ? state.style : this.getCellStyle(cell);
+					var style = this.getCellStyle(cell);
 					var cellStyle = this.model.getStyle(cell);
 
 					if (cellStyle == null)
@@ -5447,7 +5448,7 @@ mxGraph.prototype.cellSizeUpdated = function(cell, ignoreChildren)
 				}
 				else
 				{
-					var state = this.view.getState(cell) || this.view.createState(cell);
+					var state = this.view.createState(cell);
 					var align = (state.style[mxConstants.STYLE_ALIGN] || mxConstants.ALIGN_CENTER);
 					
 					if (align == mxConstants.ALIGN_RIGHT)
@@ -5534,7 +5535,7 @@ mxGraph.prototype.getPreferredSizeForCell = function(cell)
 	
 	if (cell != null)
 	{
-		var state = this.view.getState(cell) || this.view.createState(cell);
+		var state = this.view.createState(cell);
 		var style = state.style;
 
 		if (!this.model.isEdge(cell))
@@ -5586,12 +5587,14 @@ mxGraph.prototype.getPreferredSizeForCell = function(cell)
 			{
 				if (!this.isHtmlLabel(state.cell))
 				{
-					value = mxUtils.htmlEntities(value);
+					value = mxUtils.htmlEntities(value, false);
 				}
 				
 				value = value.replace(/\n/g, '<br>');
 				
-				var size = mxUtils.getSizeForString(value, fontSize, style[mxConstants.STYLE_FONTFAMILY]);
+				var size = mxUtils.getSizeForString(value, fontSize,
+					style[mxConstants.STYLE_FONTFAMILY], null,
+					style[mxConstants.STYLE_FONTSTYLE]);
 				var width = size.width + dx;
 				var height = size.height + dy;
 				
@@ -7583,6 +7586,84 @@ mxGraph.prototype.snap = function(value)
 };
 
 /**
+ * Function: snapDelta
+ * 
+ * Snaps the given delta with the given scaled bounds.
+ */
+mxGraph.prototype.snapDelta = function(delta, bounds, ignoreGrid, ignoreHorizontal, ignoreVertical)
+{
+	var t = this.view.translate;
+	var s = this.view.scale;
+	
+	if (!ignoreGrid && this.gridEnabled)
+	{
+		var tol = this.gridSize * s * 0.5;
+		
+		if (!ignoreHorizontal)
+		{
+			var tx = bounds.x - (this.snap(bounds.x / s - t.x) + t.x) * s;
+			
+			if (Math.abs(delta.x- tx) < tol)
+			{
+				delta.x = 0;
+			}
+			else
+			{
+				delta.x = this.snap(delta.x / s) * s - tx;
+			}
+		}
+		
+		if (!ignoreVertical)
+		{
+			var ty = bounds.y - (this.snap(bounds.y / s - t.y) + t.y) * s;
+				
+			if (Math.abs(delta.y - ty) < tol)
+			{
+				delta.y = 0;
+			}
+			else
+			{
+				delta.y = this.snap(delta.y / s) * s - ty;
+			}
+		}
+	}
+	else
+	{
+		var tol = 0.5 * s;
+		
+		if (!ignoreHorizontal)
+		{
+			var tx = bounds.x - (Math.round(bounds.x / s - t.x) + t.x) * s;
+			
+			if (Math.abs(delta.x - tx) < tol)
+			{
+				delta.x = 0;
+			}
+			else
+			{
+				delta.x = Math.round(delta.x / s) * s - tx;
+			}
+		}
+		
+		if (!ignoreVertical)
+		{		
+			var ty = bounds.y - (Math.round(bounds.y / s - t.y) + t.y) * s;
+			
+			if (Math.abs(delta.y - ty) < tol)
+			{
+				delta.y = 0;
+			}
+			else
+			{
+				delta.y = Math.round(delta.y / s) * s - ty;
+			}
+		}
+	}
+	
+	return delta;
+};
+
+/**
  * Function: panGraph
  * 
  * Shifts the graph display by the given amount. This is used to preview
@@ -9140,6 +9221,31 @@ mxGraph.prototype.getImage = function(state)
 };
 
 /**
+ * Function: isTransparentState
+ * 
+ * Returns true if the given state has no stroke- or fillcolor and no image.
+ * 
+ * Parameters:
+ * 
+ * state - <mxCellState> to check.
+ */
+mxGraph.prototype.isTransparentState = function(state)
+{
+	var result = false;
+	
+	if (state != null)
+	{
+		var stroke = mxUtils.getValue(state.style, mxConstants.STYLE_STROKECOLOR, mxConstants.NONE);
+		var fill = mxUtils.getValue(state.style, mxConstants.STYLE_FILLCOLOR, mxConstants.NONE);
+		
+		result = stroke == mxConstants.NONE && fill == mxConstants.NONE && this.getImage(state) == null;
+		
+	}
+	
+	return result;
+};
+
+/**
  * Function: getVerticalAlign
  * 
  * Returns the vertical alignment for the given cell state. This
@@ -9259,7 +9365,7 @@ mxGraph.prototype.setBorder = function(value)
  * 
  * cell - <mxCell> to be checked.
  */
-mxGraph.prototype.isSwimlane = function (cell)
+mxGraph.prototype.isSwimlane = function(cell)
 {
 	if (cell != null)
 	{
@@ -11386,7 +11492,7 @@ mxGraph.prototype.isValidAncestor = function(cell, parent, recurse)
  * terminals should be returned.
  * terminal - Terminal that specifies the end whose opposite should be
  * returned.
- * source - Optional boolean that specifies if source terminals should be
+ * sources - Optional boolean that specifies if source terminals should be
  * included in the result. Default is true.
  * targets - Optional boolean that specifies if targer terminals should be
  * included in the result. Default is true.
@@ -12094,9 +12200,9 @@ mxGraph.prototype.selectAll = function(parent, descendants)
  * 
  * Select all vertices inside the given parent or the default parent.
  */
-mxGraph.prototype.selectVertices = function(parent)
+mxGraph.prototype.selectVertices = function(parent, selectGroups)
 {
-	this.selectCells(true, false, parent);
+	this.selectCells(true, false, parent, selectGroups);
 };
 
 /**
@@ -12123,15 +12229,18 @@ mxGraph.prototype.selectEdges = function(parent)
  * edges - Boolean indicating if edges should be selected.
  * parent - Optional <mxCell> that acts as the root of the recursion.
  * Default is <defaultParent>.
+ * selectGroups - Optional boolean that specifies if groups should be
+ * selected. Default is false.
  */
-mxGraph.prototype.selectCells = function(vertices, edges, parent)
+mxGraph.prototype.selectCells = function(vertices, edges, parent, selectGroups)
 {
 	parent = parent || this.getDefaultParent();
 	
 	var filter = mxUtils.bind(this, function(cell)
 	{
 		return this.view.getState(cell) != null &&
-			((this.model.getChildCount(cell) == 0 && this.model.isVertex(cell) && vertices
+			(((selectGroups || this.model.getChildCount(cell) == 0) &&
+			this.model.isVertex(cell) && vertices
 			&& !this.model.isEdge(this.model.getParent(cell))) ||
 			(this.model.isEdge(cell) && edges));
 	});
@@ -12450,7 +12559,8 @@ mxGraph.prototype.isEventIgnored = function(evtName, me, sender)
 	{
 		result = true;
 	}
-	else if (mxClient.IS_TOUCH && evtName == mxEvent.MOUSE_DOWN && !mouseEvent && !mxEvent.isPenEvent(me.getEvent()))
+	else if (mxClient.IS_TOUCH && mxClient.IOS_VERSION <= 12 && evtName == mxEvent.MOUSE_DOWN &&
+			!mouseEvent && !mxEvent.isPenEvent(me.getEvent()))
 	{
 		this.eventSource = me.getSource();
 

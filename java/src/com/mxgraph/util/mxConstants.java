@@ -987,6 +987,11 @@ public class mxConstants
 	public static final int FONT_UNDERLINE = 4;
 
 	/**
+	 * FONT_STRIKETHROUGH
+	 */
+	public static final int FONT_STRIKETHROUGH= 8;
+	
+	/**
 	 * SHAPE_RECTANGLE
 	 */
 	public static final String SHAPE_RECTANGLE = "rectangle";

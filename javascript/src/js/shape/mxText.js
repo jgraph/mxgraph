@@ -239,17 +239,9 @@ mxText.prototype.paint = function(c, update)
 	
 	this.updateTransform(c, x, y, w, h);
 	this.configureCanvas(c, x, y, w, h);
-
-	var unscaledWidth = (this.state != null) ? this.state.unscaledWidth : null;
-
+	
 	if (update)
 	{
-		if (this.node.firstChild != null && (unscaledWidth == null ||
-			this.lastUnscaledWidth != unscaledWidth))
-		{
-			c.invalidateCachedOffsetSize(this.node);
-		}
-
 		c.updateText(x, y, w, h, this.align, this.valign, this.wrap, this.overflow,
 				this.clipped, this.getTextRotation(), this.node);
 	}
@@ -264,7 +256,7 @@ mxText.prototype.paint = function(c, update)
 		
 		if (!realHtml && fmt == 'html')
 		{
-			val =  mxUtils.htmlEntities(val, false);
+			val = mxUtils.htmlEntities(val, false);
 		}
 		
 		if (fmt == 'html' && !mxUtils.isNode(this.value))
@@ -287,13 +279,10 @@ mxText.prototype.paint = function(c, update)
 		{
 			dir = null;
 		}
-	
-		c.text(x, y, w, h, val, this.align, this.valign, this.wrap, fmt, this.overflow,
-			this.clipped, this.getTextRotation(), dir);
+		
+		c.text(x, y, w, h, val, this.align, this.valign, this.wrap, fmt,
+			this.overflow, this.clipped, this.getTextRotation(), dir);
 	}
-	
-	// Needs to invalidate the cached offset widths if the geometry changes
-	this.lastUnscaledWidth = unscaledWidth;
 };
 
 /**
@@ -308,15 +297,22 @@ mxText.prototype.redraw = function()
 	{
 		if (this.node.nodeName == 'DIV' && (this.isHtmlAllowed() || !mxClient.IS_VML))
 		{
-			this.updateSize(this.node, (this.state == null || this.state.view.textDiv == null));
-
-			if (mxClient.IS_IE && (document.documentMode == null || document.documentMode <= 8))
+			if (mxClient.IS_SVG)
 			{
-				this.updateHtmlFilter();
+				this.redrawHtmlShapeWithCss3();	
 			}
 			else
 			{
-				this.updateHtmlTransform();
+				this.updateSize(this.node, (this.state == null || this.state.view.textDiv == null));
+	
+				if (mxClient.IS_IE && (document.documentMode == null || document.documentMode <= 8))
+				{
+					this.updateHtmlFilter();
+				}
+				else
+				{
+					this.updateHtmlTransform();
+				}
 			}
 			
 			this.updateBoundingBox();
@@ -325,9 +321,11 @@ mxText.prototype.redraw = function()
 		{
 			var canvas = this.createCanvas();
 
-			if (canvas != null && canvas.updateText != null &&
-				canvas.invalidateCachedOffsetSize != null)
+			if (canvas != null && canvas.updateText != null)
 			{
+				// Specifies if events should be handled
+				canvas.pointerEvents = this.pointerEvents;
+	
 				this.paint(canvas, true);
 				this.destroyCanvas(canvas);
 				this.updateBoundingBox();
@@ -439,6 +437,32 @@ mxText.prototype.getAutoDirection = function()
 };
 
 /**
+ * Function: getContentNode
+ * 
+ * Returns the node that contains the rendered input.
+ */
+mxText.prototype.getContentNode = function()
+{
+	var result = this.node;
+	
+	if (result != null)
+	{
+		// Rendered with no foreignObject
+		if (result.ownerSVGElement == null)
+		{
+			result = this.node.firstChild.firstChild;
+		}
+		else
+		{
+			// Innermost DIV that contains the actual content
+			result = result.firstChild.firstChild.firstChild.firstChild.firstChild;
+		}
+	}
+	
+	return result;
+};
+
+/**
  * Function: updateBoundingBox
  *
  * Updates the <boundingBox> for this shape using the given node and position.
@@ -463,9 +487,18 @@ mxText.prototype.updateBoundingBox = function()
 			if (node.firstChild != null && node.firstChild.firstChild != null &&
 				node.firstChild.firstChild.nodeName == 'foreignObject')
 			{
-				node = node.firstChild.firstChild;
-				ow = parseInt(node.getAttribute('width')) * this.scale;
-				oh = parseInt(node.getAttribute('height')) * this.scale;
+				// Uses second inner DIV for font metrics
+				node = node.firstChild.firstChild.firstChild.firstChild;
+				oh = node.offsetHeight * this.scale;
+				
+				if (this.overflow == 'width')
+				{
+					ow = this.boundingBox.width;
+				}
+				else
+				{
+					ow = node.offsetWidth * this.scale;	
+				}
 			}
 			else
 			{
@@ -671,35 +704,167 @@ mxText.prototype.updateVmlContainer = function()
 };
 
 /**
+ * Function: getHtmlValue
+ * 
+ * Private helper function to create SVG elements
+ */
+mxText.prototype.getHtmlValue = function()
+{
+	var val = this.value;
+	
+	if (this.dialect != mxConstants.DIALECT_STRICTHTML)
+	{
+		val = mxUtils.htmlEntities(val, false);
+	}
+	
+	// Handles trailing newlines to make sure they are visible in rendering output
+	val = mxUtils.replaceTrailingNewlines(val, '<div><br></div>');
+	val = (this.replaceLinefeeds) ? val.replace(/\n/g, '<br/>') : val;
+	
+	return val;
+};
+
+/**
+ * Function: getTextCss
+ * 
+ * Private helper function to create SVG elements
+ */
+mxText.prototype.getTextCss = function()
+{
+	var lh = (mxConstants.ABSOLUTE_LINE_HEIGHT) ? (this.size * mxConstants.LINE_HEIGHT) + 'px' :
+		mxConstants.LINE_HEIGHT;
+
+	var css = 'display: inline-block; font-size: ' + this.size + 'px; ' +
+		'font-family: ' + this.family + '; color: ' + this.color + '; line-height: ' + lh +
+		'; pointer-events: ' + ((this.pointerEvents) ? 'all' : 'none') + '; ';
+
+	if ((this.fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
+	{
+		css += 'font-weight: bold; ';
+	}
+
+	if ((this.fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
+	{
+		css += 'font-style: italic; ';
+	}
+	
+	var deco = [];
+	
+	if ((this.fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
+	{
+		deco.push('underline');
+	}
+	
+	if ((this.fontStyle & mxConstants.FONT_STRIKETHROUGH) == mxConstants.FONT_STRIKETHROUGH)
+	{
+		deco.push('line-through');
+	}
+	
+	if (deco.length > 0)
+	{
+		css += 'text-decoration: ' + deco.join(' ') + '; ';
+	}
+
+	return css;
+};
+
+/**
  * Function: redrawHtmlShape
  *
  * Updates the HTML node(s) to reflect the latest bounds and scale.
  */
 mxText.prototype.redrawHtmlShape = function()
 {
-	var style = this.node.style;
-
-	// Resets CSS styles
-	style.whiteSpace = 'normal';
-	style.overflow = '';
-	style.width = '';
-	style.height = '';
-	
-	this.updateValue();
-	this.updateFont(this.node);
-	this.updateSize(this.node, (this.state == null || this.state.view.textDiv == null));
-	
-	this.offsetWidth = null;
-	this.offsetHeight = null;
-
-	if (mxClient.IS_IE && (document.documentMode == null || document.documentMode <= 8))
+	if (mxClient.IS_SVG)
 	{
-		this.updateHtmlFilter();
+		this.redrawHtmlShapeWithCss3();	
 	}
 	else
 	{
-		this.updateHtmlTransform();
+		var style = this.node.style;
+	
+		// Resets CSS styles
+		style.whiteSpace = 'normal';
+		style.overflow = '';
+		style.width = '';
+		style.height = '';
+		
+		this.updateValue();
+		this.updateFont(this.node);
+		this.updateSize(this.node, (this.state == null || this.state.view.textDiv == null));
+		
+		this.offsetWidth = null;
+		this.offsetHeight = null;
+	
+		if (mxClient.IS_IE && (document.documentMode == null || document.documentMode <= 8))
+		{
+			this.updateHtmlFilter();
+		}
+		else
+		{
+			this.updateHtmlTransform();
+		}
 	}
+};
+
+/**
+ * Function: redrawHtmlShapeWithCss3
+ *
+ * Updates the HTML node(s) to reflect the latest bounds and scale.
+ */
+mxText.prototype.redrawHtmlShapeWithCss3 = function()
+{
+	var w = Math.max(0, Math.round(this.bounds.width / this.scale));
+	var h = Math.max(0, Math.round(this.bounds.height / this.scale));
+	var flex = 'position: absolute; left: ' + Math.round(this.bounds.x) + 'px; ' +
+		'top: ' + Math.round(this.bounds.y) + 'px; pointer-events: none; ';
+	var block = this.getTextCss() + ((this.pointerEvents) ?
+		'pointer-events: all; ' : '');
+	
+	mxSvgCanvas2D.createCss(w, h, this.align, this.valign, this.wrap, this.overflow, this.clipped,
+		(this.background != null) ? mxUtils.htmlEntities(this.background) : null,
+		(this.border != null) ? mxUtils.htmlEntities(this.border) : null,
+		flex, block, this.scale, mxUtils.bind(this, function(dx, dy, flex, item, block, ofl)
+	{
+		var r = this.getTextRotation();
+		var tr = ((this.scale != 1) ? 'scale(' + this.scale + ') ' : '') +
+			((r != 0) ? 'rotate(' + r + 'deg) ' : '') +
+			((this.margin.x != 0 || this.margin.y != 0) ?
+				'translate(' + (this.margin.x * 100) + '%,' +
+					(this.margin.y * 100) + '%)' : '');
+		
+		if (tr != '')
+		{
+			tr = 'transform-origin: 0 0; transform: ' + tr + '; ';
+		}
+
+		if (ofl == '')
+		{
+			flex += item;
+			item = 'display:inline-block; min-width: 100%; ' + tr;
+		}
+		else
+		{
+			item += tr;
+		}
+
+		if (this.opacity < 100)
+		{
+			block += 'opacity: ' + (this.opacity / 100) + '; ';
+		}
+		
+		this.node.setAttribute('style', flex);
+		
+		var html = (mxUtils.isNode(this.value)) ? this.value.outerHTML : this.getHtmlValue();
+		
+		if (this.node.firstChild == null)
+		{
+			this.node.innerHTML = '<div><div>' + html +'</div></div>';
+		}
+
+		this.node.firstChild.firstChild.setAttribute('style', block);
+		this.node.firstChild.setAttribute('style', item);
+	}));
 };
 
 /**
@@ -717,13 +882,13 @@ mxText.prototype.updateHtmlTransform = function()
 	if (theta != 0)
 	{
 		mxUtils.setPrefixedStyle(style, 'transformOrigin', (-dx * 100) + '%' + ' ' + (-dy * 100) + '%');
-		mxUtils.setPrefixedStyle(style, 'transform', 'translate(' + (dx * 100) + '%' + ',' + (dy * 100) + '%)' +
+		mxUtils.setPrefixedStyle(style, 'transform', 'translate(' + (dx * 100) + '%' + ',' + (dy * 100) + '%) ' +
 			'scale(' + this.scale + ') rotate(' + theta + 'deg)');
 	}
 	else
 	{
 		mxUtils.setPrefixedStyle(style, 'transformOrigin', '0% 0%');
-		mxUtils.setPrefixedStyle(style, 'transform', 'scale(' + this.scale + ')' +
+		mxUtils.setPrefixedStyle(style, 'transform', 'scale(' + this.scale + ') ' +
 			'translate(' + (dx * 100) + '%' + ',' + (dy * 100) + '%)');
 	}
 
@@ -742,7 +907,7 @@ mxText.prototype.updateHtmlTransform = function()
 };
 
 /**
- * Function: setInnerHtml
+ * Function: updateInnerHtml
  * 
  * Sets the inner HTML of the given element to the <value>.
  */
@@ -1101,14 +1266,19 @@ mxText.prototype.updateFont = function(node)
 		style.fontStyle = '';
 	}
 	
+	var txtDecor = [];
+	
 	if ((this.fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
 	{
-		style.textDecoration = 'underline';
+		txtDecor.push('underline');
 	}
-	else
+	
+	if ((this.fontStyle & mxConstants.FONT_STRIKETHROUGH) == mxConstants.FONT_STRIKETHROUGH)
 	{
-		style.textDecoration = '';
+		txtDecor.push('line-through');
 	}
+	
+	style.textDecoration = txtDecor.join(' ');
 	
 	if (this.align == mxConstants.ALIGN_CENTER)
 	{

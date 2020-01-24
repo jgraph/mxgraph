@@ -80,23 +80,7 @@ function mxPanningHandler(graph)
 				
 				if (this.initialScale != null)
 				{
-					var value = Math.round(this.initialScale * evt.scale * 100) / 100;
-					
-					if (this.minScale != null)
-					{
-						value = Math.max(this.minScale, value);
-					}
-					
-					if (this.maxScale != null)
-					{
-						value = Math.min(this.maxScale, value);
-					}
-	
-					if (this.graph.view.scale != value)
-					{
-						this.graph.zoomTo(value);
-						mxEvent.consume(evt);
-					}
+					this.zoomGraph(evt);
 				}
 			}
 		});
@@ -105,10 +89,10 @@ function mxPanningHandler(graph)
 		
 		this.mouseUpListener = mxUtils.bind(this, function()
 		{
-		    	if (this.active)
-		    	{
-		    		this.reset();
-		    	}
+	    	if (this.active)
+	    	{
+	    		this.reset();
+	    	}
 		});
 		
 		// Stops scrolling on every mouseup anywhere in the document
@@ -444,6 +428,32 @@ mxPanningHandler.prototype.mouseUp = function(sender, me)
 	}
 	
 	this.reset();
+};
+
+/**
+ * Function: zoomGraph
+ * 
+ * Zooms the graph to the given value and consumed the event if needed.
+ */
+mxPanningHandler.prototype.zoomGraph = function(evt)
+{
+	var value = Math.round(this.initialScale * evt.scale * 100) / 100;
+	
+	if (this.minScale != null)
+	{
+		value = Math.max(this.minScale, value);
+	}
+	
+	if (this.maxScale != null)
+	{
+		value = Math.min(this.maxScale, value);
+	}
+
+	if (this.graph.view.scale != value)
+	{
+		this.graph.zoomTo(value);
+		mxEvent.consume(evt);
+	}
 };
 
 /**

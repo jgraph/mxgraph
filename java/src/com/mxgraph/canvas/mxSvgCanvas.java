@@ -1398,9 +1398,20 @@ public class mxSvgCanvas extends mxBasicCanvas
 			String weight = ((fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD) ? "bold"
 					: "normal";
 			elem.setAttribute("font-weight", weight);
-			String uline = ((fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE) ? "underline"
-					: "none";
-			elem.setAttribute("font-decoration", uline);
+			
+			String txtDecor = "";
+			
+			if ((fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
+		    {
+				txtDecor = "underline";
+		    }
+		    
+		    if ((fontStyle & mxConstants.FONT_STRIKETHROUGH) == mxConstants.FONT_STRIKETHROUGH)
+		    {
+		    	txtDecor += " line-through";
+		    }
+
+	    	elem.setAttribute("font-decoration", txtDecor.length() > 0 ? txtDecor : "none");
 
 			if ((fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
 			{

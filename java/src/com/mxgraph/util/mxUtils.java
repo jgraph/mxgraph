@@ -31,9 +31,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Formatter;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -1673,9 +1673,19 @@ public class mxUtils
 				: Font.PLAIN;
 		swingFontStyle += ((fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC) ? Font.ITALIC
 				: Font.PLAIN;
-
-		Map<TextAttribute, Integer> fontAttributes = (fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE ?
-				Collections.singletonMap(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON) : null;
+		
+		//https://github.com/elonderin/jgraphx/commit/c1c9b0ca7dee2b1e7ace0b0e88c3c06135bf236c
+		Map<TextAttribute, Object> fontAttributes = new HashMap<>();
+		
+	    if ((fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
+	    {
+	    	fontAttributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
+	    }
+	    
+	    if ((fontStyle & mxConstants.FONT_STRIKETHROUGH) == mxConstants.FONT_STRIKETHROUGH) 
+	    {
+	    	fontAttributes.put(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON);
+	    }
 		
 		return new Font(fontFamily, swingFontStyle, (int) (fontSize * scale)).deriveFont(fontAttributes);
 	}
@@ -2258,11 +2268,23 @@ public class mxUtils
 			css.append("font-style:italic;");
 		}
 
+		String txtDecor = "";
+		
 		if ((fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
-		{
-			css.append("text-decoration:underline;");
-		}
+	    {
+			txtDecor = "underline";
+	    }
+	    
+	    if ((fontStyle & mxConstants.FONT_STRIKETHROUGH) == mxConstants.FONT_STRIKETHROUGH) 
+	    {
+	    	txtDecor += " line-through";
+	    }
 
+	    if (txtDecor.length() > 0)
+	    {
+	    	css.append("text-decoration: " + txtDecor + ";");
+	    }
+	    
 		String align = getString(style, mxConstants.STYLE_ALIGN,
 				mxConstants.ALIGN_LEFT);
 
@@ -2330,11 +2352,23 @@ public class mxUtils
 			rule.append("font-style:italic;");
 		}
 
+		String txtDecor = "";
+		
 		if ((fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
-		{
-			rule.append("text-decoration:underline;");
-		}
+	    {
+			txtDecor = "underline";
+	    }
+	    
+	    if ((fontStyle & mxConstants.FONT_STRIKETHROUGH) == mxConstants.FONT_STRIKETHROUGH) 
+	    {
+	    	txtDecor += " line-through";
+	    }
 
+	    if (txtDecor.length() > 0)
+	    {
+	    	rule.append("text-decoration: " + txtDecor + ";");
+	    }
+	    
 		String align = getString(style, mxConstants.STYLE_ALIGN,
 				mxConstants.ALIGN_LEFT);
 

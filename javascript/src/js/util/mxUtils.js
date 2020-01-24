@@ -530,45 +530,61 @@ var mxUtils =
 	{
 		if (mxClient.IS_IE && (document.documentMode == null || document.documentMode < 10))
 		{
-			switch (node.nodeType)
-			{
-				case 1: /* element */
-				{
-					var newNode = doc.createElement(node.nodeName);
-					
-					if (node.attributes && node.attributes.length > 0)
-					{
-						for (var i = 0; i < node.attributes.length; i++)
-						{
-							newNode.setAttribute(node.attributes[i].nodeName,
-								node.getAttribute(node.attributes[i].nodeName));
-						}
-						
-						if (allChildren && node.childNodes && node.childNodes.length > 0)
-						{
-							for (var i = 0; i < node.childNodes.length; i++)
-							{
-								newNode.appendChild(mxUtils.importNode(doc, node.childNodes[i], allChildren));
-							}
-						}
-					}
-					
-					return newNode;
-					break;
-				}
-				case 3: /* text */
-			    case 4: /* cdata-section */
-			    case 8: /* comment */
-			    {
-			      return doc.createTextNode(node.value);
-			      break;
-			    }
-			};
+			return mxUtils.importNodeImplementation(doc, node, allChildren);
 		}
 		else
 		{
 			return doc.importNode(node, allChildren);
 		}
+	},
+
+	/**
+	 * Function: importNodeImplementation
+	 * 
+	 * Full DOM API implementation for importNode without using importNode API call.
+	 * 
+	 * Parameters:
+	 * 
+	 * doc - Document to import the node into.
+	 * node - Node to be imported.
+	 * allChildren - If all children should be imported.
+	 */
+	importNodeImplementation: function(doc, node, allChildren)
+	{
+		switch (node.nodeType)
+		{
+			case 1: /* element */
+			{
+				var newNode = doc.createElement(node.nodeName);
+				
+				if (node.attributes && node.attributes.length > 0)
+				{
+					for (var i = 0; i < node.attributes.length; i++)
+					{
+						newNode.setAttribute(node.attributes[i].nodeName,
+							node.getAttribute(node.attributes[i].nodeName));
+					}	
+				}
+				
+				if (allChildren && node.childNodes && node.childNodes.length > 0)
+				{
+					for (var i = 0; i < node.childNodes.length; i++)
+					{
+						newNode.appendChild(mxUtils.importNodeImplementation(doc, node.childNodes[i], allChildren));
+					}
+				}
+				
+				return newNode;
+				break;
+			}
+			case 3: /* text */
+		    case 4: /* cdata-section */
+		    case 8: /* comment */
+		    {
+		    	return doc.createTextNode((node.nodeValue != null) ? node.nodeValue : node.value);
+		    	break;
+		    }
+		};
 	},
 
 	/**
@@ -584,10 +600,27 @@ var mxUtils =
 		{
 			doc = document.implementation.createDocument('', '', null);
 		}
-		else if (window.ActiveXObject)
+		else if ("ActiveXObject" in window)
 		{
-			doc = new ActiveXObject('Microsoft.XMLDOM');
+			doc = mxUtils.createMsXmlDocument();
 	 	}
+	 	
+	 	return doc;
+	},
+
+	/**
+	 * Function: createMsXmlDocument
+	 * 
+	 * Returns a new, empty Microsoft.XMLDOM document using ActiveXObject.
+	 */
+	createMsXmlDocument: function()
+	{
+		var doc = new ActiveXObject('Microsoft.XMLDOM');
+		doc.async = false;
+
+		// Workaround for parsing errors with SVG DTD
+		doc.validateOnParse = false;
+		doc.resolveExternals = false;
 	 	
 	 	return doc;
 	},
@@ -628,14 +661,10 @@ var mxUtils =
 		{
 			return function(xml)
 			{
-				var result = mxUtils.createXmlDocument();
-				result.async = false;
-				// Workaround for parsing errors with SVG DTD
-				result.validateOnParse = false;
-				result.resolveExternals = false;
-				result.loadXML(xml);
+				var doc = mxUtils.createMsXmlDocument();
+				doc.loadXML(xml);
 				
-				return result;
+				return doc;
 			};
 		}
 	}(),
@@ -674,83 +703,6 @@ var mxUtils =
 		}
 	}(),
 
-	/**
-	 * Function: getPrettyXML
-	 * 
-	 * Returns a pretty printed string that represents the XML tree for the
-	 * given node. This method should only be used to print XML for reading,
-	 * use <getXml> instead to obtain a string for processing.
-	 * 
-	 * Parameters:
-	 * 
-	 * node - DOM node to return the XML for.
-	 * tab - Optional string that specifies the indentation for one level.
-	 * Default is two spaces.
-	 * indent - Optional string that represents the current indentation.
-	 * Default is an empty string.
-	 */
-	getPrettyXml: function(node, tab, indent)
-	{
-		var result = [];
-		
-		if (node != null)
-		{
-			tab = tab || '  ';
-			indent = indent || '';
-			
-			if (node.nodeType == mxConstants.NODETYPE_TEXT)
-			{
-				var value =  mxUtils.trim(mxUtils.getTextContent(node));
-				
-				if (value.length > 0)
-				{
-					result.push(indent + mxUtils.htmlEntities(value) + '\n');
-				}
-			}
-			else
-			{
-				result.push(indent + '<' + node.nodeName);
-				
-				// Creates the string with the node attributes
-				// and converts all HTML entities in the values
-				var attrs = node.attributes;
-				
-				if (attrs != null)
-				{
-					for (var i = 0; i < attrs.length; i++)
-					{
-						var val = mxUtils.htmlEntities(attrs[i].value);
-						result.push(' ' + attrs[i].nodeName + '="' + val + '"');
-					}
-				}
-
-				// Recursively creates the XML string for each
-				// child nodes and appends it here with an
-				// indentation
-				var tmp = node.firstChild;
-				
-				if (tmp != null)
-				{
-					result.push('>\n');
-					
-					while (tmp != null)
-					{
-						result.push(mxUtils.getPrettyXml(tmp, tab, indent + tab));
-						tmp = tmp.nextSibling;
-					}
-					
-					result.push(indent + '</'+node.nodeName + '>\n');
-				}
-				else
-				{
-					result.push('/>\n');
-				}
-			}
-		}
-		
-		return result.join('');
-	},
-	
 	/**
 	 * Function: removeWhitespace
 	 * 
@@ -840,8 +792,12 @@ var mxUtils =
 	getXml: function(node, linefeed)
 	{
 		var xml = '';
-
-		if (window.XMLSerializer != null)
+		
+		if (mxClient.IS_IE || mxClient.IS_IE11)
+		{
+			xml = mxUtils.getPrettyXml(node, '', '', '');
+		}
+		else if (window.XMLSerializer != null)
 		{
 			var xmlSerializer = new XMLSerializer();
 			xml = xmlSerializer.serializeToString(node);     
@@ -858,6 +814,94 @@ var mxUtils =
 		xml = xml.replace(/\n/g, linefeed);
 		  
 		return xml;
+	},
+	
+	/**
+	 * Function: getPrettyXML
+	 * 
+	 * Returns a pretty printed string that represents the XML tree for the
+	 * given node. This method should only be used to print XML for reading,
+	 * use <getXml> instead to obtain a string for processing.
+	 * 
+	 * Parameters:
+	 * 
+	 * node - DOM node to return the XML for.
+	 * tab - Optional string that specifies the indentation for one level.
+	 * Default is two spaces.
+	 * indent - Optional string that represents the current indentation.
+	 * Default is an empty string.
+	 * newline - Option string that represents a linefeed. Default is '\n'.
+	 */
+	getPrettyXml: function(node, tab, indent, newline, ns)
+	{
+		var result = [];
+		
+		if (node != null)
+		{
+			tab = (tab != null) ? tab : '  ';
+			indent = (indent != null) ? indent : '';
+			newline = (newline != null) ? newline : '\n';
+			
+			if (node.namespaceURI != null && node.namespaceURI != ns)
+			{
+				ns = node.namespaceURI;
+				
+				if (node.getAttribute('xmlns') == null)
+				{
+					node.setAttribute('xmlns', node.namespaceURI);
+				}
+			}
+			
+			if (node.nodeType == mxConstants.NODETYPE_TEXT)
+			{
+				var value = mxUtils.getTextContent(node);
+				
+				if (value.length > 0)
+				{
+					result.push(indent + mxUtils.htmlEntities(mxUtils.trim(value), false));
+				}
+			}
+			else
+			{
+				result.push(indent + '<' + node.nodeName);
+				
+				// Creates the string with the node attributes
+				// and converts all HTML entities in the values
+				var attrs = node.attributes;
+				
+				if (attrs != null)
+				{
+					for (var i = 0; i < attrs.length; i++)
+					{
+						var val = mxUtils.htmlEntities(attrs[i].value);
+						result.push(' ' + attrs[i].nodeName + '="' + val + '"');
+					}
+				}
+
+				// Recursively creates the XML string for each child
+				// node and appends it here with an indentation
+				var tmp = node.firstChild;
+				
+				if (tmp != null)
+				{
+					result.push('>' + newline);
+					
+					while (tmp != null)
+					{
+						result.push(mxUtils.getPrettyXml(tmp, tab, indent + tab, newline, ns));
+						tmp = tmp.nextSibling;
+					}
+					
+					result.push(indent + '</'+ node.nodeName + '>' + newline);
+				}
+				else
+				{
+					result.push('/>' + newline);
+				}
+			}
+		}
+		
+		return result.join('');
 	},
 	
 	/**
@@ -1772,7 +1816,10 @@ var mxUtils =
 		{
 			for (var i = 0; i < a.length; i++)
 			{
-				if (a[i] == b[i] || (a[i] != null && !a[i].equals(b[i])))
+				if ((a[i] != null && b[i] == null) ||
+					(a[i] == null && b[i] != null) ||
+					(a[i] != null && b[i] != null &&
+					(a[i].x != b[i].x || a[i].y != b[i].y)))
 				{
 					return false;
 				}
@@ -3570,13 +3617,13 @@ var mxUtils =
 	 */
 	getAlignmentAsPoint: function(align, valign)
 	{
-		var dx = 0;
-		var dy = 0;
+		var dx = -0.5;
+		var dy = -0.5;
 		
 		// Horizontal alignment
-		if (align == mxConstants.ALIGN_CENTER)
+		if (align == mxConstants.ALIGN_LEFT)
 		{
-			dx = -0.5;
+			dx = 0;
 		}
 		else if (align == mxConstants.ALIGN_RIGHT)
 		{
@@ -3584,9 +3631,9 @@ var mxUtils =
 		}
 
 		// Vertical alignment
-		if (valign == mxConstants.ALIGN_MIDDLE)
+		if (valign == mxConstants.ALIGN_TOP)
 		{
-			dy = -0.5;
+			dy = 0;
 		}
 		else if (valign == mxConstants.ALIGN_BOTTOM)
 		{
@@ -3619,8 +3666,9 @@ var mxUtils =
 	 * fontFamily - String that specifies the name of the font family. Default
 	 * is <mxConstants.DEFAULT_FONTFAMILY>.
 	 * textWidth - Optional width for text wrapping.
+	 * fontStyle - Optional font style.
 	 */
-	getSizeForString: function(text, fontSize, fontFamily, textWidth)
+	getSizeForString: function(text, fontSize, fontFamily, textWidth, fontStyle)
 	{
 		fontSize = (fontSize != null) ? fontSize : mxConstants.DEFAULT_FONTSIZE;
 		fontFamily = (fontFamily != null) ? fontFamily : mxConstants.DEFAULT_FONTFAMILY;
@@ -3630,6 +3678,37 @@ var mxUtils =
 		div.style.fontFamily = fontFamily;
 		div.style.fontSize = Math.round(fontSize) + 'px';
 		div.style.lineHeight = Math.round(fontSize * mxConstants.LINE_HEIGHT) + 'px';
+		
+		// Sets the font style
+		if (fontStyle != null)
+		{
+			if ((fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
+			{
+				div.style.fontWeight = 'bold';
+			}
+			
+			if ((fontStyle & mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
+			{
+				div.style.fontStyle = 'italic';
+			}
+			
+			var txtDecor = [];
+			
+			if ((fontStyle & mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
+			{
+				txtDecor.push('underline');
+			}
+			
+			if ((fontStyle & mxConstants.FONT_STRIKETHROUGH) == mxConstants.FONT_STRIKETHROUGH)
+			{
+				txtDecor.push('line-through');
+			}
+			
+			if (txtDecor.length > 0)
+			{
+				div.style.textDecoration = txtDecor.join(' ');
+			}
+		}
 		
 		// Disables block layout and outside wrapping and hides the div
 		div.style.position = 'absolute';

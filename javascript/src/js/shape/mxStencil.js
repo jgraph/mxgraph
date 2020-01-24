@@ -411,6 +411,8 @@ mxStencil.prototype.evaluateAttribute = function(node, attribute, shape)
  */
 mxStencil.prototype.drawShape = function(canvas, shape, x, y, w, h)
 {
+	var stack = canvas.states.slice();
+	
 	// TODO: Internal structure (array of special structs?), relative and absolute
 	// coordinates (eg. note shape, process vs star, actor etc.), text rendering
 	// and non-proportional scaling, how to implement pluggable edge shapes
@@ -438,6 +440,12 @@ mxStencil.prototype.drawShape = function(canvas, shape, x, y, w, h)
 	this.drawChildren(canvas, shape, x, y, w, h, this.fgNode, aspect, true,
 		!shape.outline || shape.style == null || mxUtils.getValue(
 		shape.style, mxConstants.STYLE_BACKGROUND_OUTLINE, 0) == 0);
+	
+	// Restores stack for unequal count of save/restore calls
+	if (canvas.states.length != stack.length)
+	{
+		canvas.states = stack;
+	}
 };
 
 /**

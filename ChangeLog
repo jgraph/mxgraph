@@ -1,3 +1,18 @@
+24-JAN-22020: 4.1.0
+
+- Adds mxEdgeHandler.isCellEnabled
+- Enables reflow in HTML output
+- Fixes mxUtils.equalPoints
+- Fixes event handling for desktop mode in mobile Safari
+- Adds mxGraph.snapDelta, uses raster for moving cells
+- Adds optional cells argument in mxGraphHandler.start
+- Fixes mxGraph.sizeDidChange for negative coordinates
+- Allows for corner rotation in mxVertexHandler
+- Adds mxGraphHandler.suspend and resume
+- Fixes moving and resizing on iOS 13
+- Adds mxSvgCanvas2D.addForeignObject
+- Adds mxClient.IOS_VERSION
+
 08-NOV-2019: 4.0.6
 
 - New vagrant build system

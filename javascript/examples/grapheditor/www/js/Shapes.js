@@ -1956,6 +1956,28 @@
 
 	mxCellRenderer.registerShape('component', ComponentShape);
 	
+	// Associative entity derived from rectangle shape
+	function AssociativeEntity()
+	{
+		mxRectangleShape.call(this);
+	};
+	mxUtils.extend(AssociativeEntity, mxRectangleShape);
+	AssociativeEntity.prototype.paintForeground = function(c, x, y, w, h)
+	{
+		var hw = w / 2;
+		var hh = h / 2;
+		
+		var arcSize = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, mxConstants.LINE_ARCSIZE) / 2;
+		c.begin();
+		this.addPoints(c, [new mxPoint(x + hw, y), new mxPoint(x + w, y + hh), new mxPoint(x + hw, y + h),
+		     new mxPoint(x, y + hh)], this.isRounded, arcSize, true);
+		c.stroke();
+
+		mxRectangleShape.prototype.paintForeground.apply(this, arguments);
+	};
+
+	mxCellRenderer.registerShape('associativeEntity', AssociativeEntity);
+
 	// State Shapes derives from double ellipse
 	function StateShape()
 	{
@@ -3893,18 +3915,22 @@
 		return (constr);
 	};
 	
-	mxRectangleShape.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0.25, 0), true),
+	mxRectangleShape.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0, 0), true),
+											  new mxConnectionConstraint(new mxPoint(0.25, 0), true),
 	                                          new mxConnectionConstraint(new mxPoint(0.5, 0), true),
 	                                          new mxConnectionConstraint(new mxPoint(0.75, 0), true),
+	                                          new mxConnectionConstraint(new mxPoint(1, 0), true),
 	        	              		 new mxConnectionConstraint(new mxPoint(0, 0.25), true),
 	        	              		 new mxConnectionConstraint(new mxPoint(0, 0.5), true),
 	        	              		 new mxConnectionConstraint(new mxPoint(0, 0.75), true),
 	        	            		 new mxConnectionConstraint(new mxPoint(1, 0.25), true),
 	        	            		 new mxConnectionConstraint(new mxPoint(1, 0.5), true),
 	        	            		 new mxConnectionConstraint(new mxPoint(1, 0.75), true),
+	        	            		 new mxConnectionConstraint(new mxPoint(0, 1), true),
 	        	            		 new mxConnectionConstraint(new mxPoint(0.25, 1), true),
 	        	            		 new mxConnectionConstraint(new mxPoint(0.5, 1), true),
-	        	            		 new mxConnectionConstraint(new mxPoint(0.75, 1), true)];
+	        	            		 new mxConnectionConstraint(new mxPoint(0.75, 1), true),
+	        	            		 new mxConnectionConstraint(new mxPoint(1, 1), true)];
 	mxEllipse.prototype.constraints = [new mxConnectionConstraint(new mxPoint(0, 0), true), new mxConnectionConstraint(new mxPoint(1, 0), true),
 	                                   new mxConnectionConstraint(new mxPoint(0, 1), true), new mxConnectionConstraint(new mxPoint(1, 1), true),
 	                                   new mxConnectionConstraint(new mxPoint(0.5, 0), true), new mxConnectionConstraint(new mxPoint(0.5, 1), true),
