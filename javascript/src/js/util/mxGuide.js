@@ -166,10 +166,9 @@ mxGuide.prototype.move = function(bounds, delta, gridEnabled, clone)
 		// Snaps the left, center and right to the given x-coordinate
 		function snapX(x, state, centerAlign)
 		{
-			x += this.graph.panDx;
 			var override = false;
 			
-			if (centerAlign && Math.abs(x - center) <= ttX)
+			if (centerAlign && Math.abs(x - center) < ttX)
 			{
 				delta.x = x - bounds.getCenterX();
 				ttX = Math.abs(x - center);
@@ -177,13 +176,13 @@ mxGuide.prototype.move = function(bounds, delta, gridEnabled, clone)
 			}
 			else if (!centerAlign)
 			{
-				if (Math.abs(x - left) <= ttX)
+				if (Math.abs(x - left) < ttX)
 				{
 					delta.x = x - bounds.x;
 					ttX = Math.abs(x - left);
 					override = true;
 				}
-				else if (Math.abs(x - right) <= ttX)
+				else if (Math.abs(x - right) < ttX)
 				{
 					delta.x = x - bounds.x - bounds.width;
 					ttX = Math.abs(x - right);
@@ -194,7 +193,7 @@ mxGuide.prototype.move = function(bounds, delta, gridEnabled, clone)
 			if (override)
 			{
 				stateX = state;
-				valueX = Math.round(x - this.graph.panDx);
+				valueX = x;
 				
 				if (this.guideX == null)
 				{
@@ -216,10 +215,9 @@ mxGuide.prototype.move = function(bounds, delta, gridEnabled, clone)
 		// Snaps the top, middle or bottom to the given y-coordinate
 		function snapY(y, state, centerAlign)
 		{
-			y += this.graph.panDy;
 			var override = false;
 			
-			if (centerAlign && Math.abs(y - middle) <= ttY)
+			if (centerAlign && Math.abs(y - middle) < ttY)
 			{
 				delta.y = y - bounds.getCenterY();
 				ttY = Math.abs(y -  middle);
@@ -227,13 +225,13 @@ mxGuide.prototype.move = function(bounds, delta, gridEnabled, clone)
 			}
 			else if (!centerAlign)
 			{
-				if (Math.abs(y - top) <= ttY)
+				if (Math.abs(y - top) < ttY)
 				{
 					delta.y = y - bounds.y;
 					ttY = Math.abs(y - top);
 					override = true;
 				}
-				else if (Math.abs(y - bottom) <= ttY)
+				else if (Math.abs(y - bottom) < ttY)
 				{
 					delta.y = y - bounds.y - bounds.height;
 					ttY = Math.abs(y - bottom);
@@ -244,7 +242,7 @@ mxGuide.prototype.move = function(bounds, delta, gridEnabled, clone)
 			if (override)
 			{
 				stateY = state;
-				valueY = Math.round(y - this.graph.panDy);
+				valueY = y;
 				
 				if (this.guideY == null)
 				{
@@ -272,24 +270,37 @@ mxGuide.prototype.move = function(bounds, delta, gridEnabled, clone)
 				// Align x
 				if (this.horizontal)
 				{
-					snapX.call(this, state.x + state.width, state, false);
-					snapX.call(this, state.x, state, false);
 					snapX.call(this, state.getCenterX(), state, true);
+					snapX.call(this, state.x, state, false);
+					snapX.call(this, state.x + state.width, state, false);
+					
+					// Aligns left and right of shape to center of page
+					if (state.cell == null)
+					{
+						snapX.call(this, state.getCenterX(), state, false);
+					}
 				}
 	
 				// Align y
 				if (this.vertical)
 				{
-					snapY.call(this, state.y + state.height, state, false);
-					snapY.call(this, state.y, state, false);
 					snapY.call(this, state.getCenterY(), state, true);
+					snapY.call(this, state.y, state, false);
+					snapY.call(this, state.y + state.height, state, false);
+					
+					// Aligns left and right of shape to center of page
+					if (state.cell == null)
+					{
+						snapY.call(this, state.getCenterY(), state, false);
+					}
 				}
 			}
 		}
 
 		// Moves cells to the raster if not aligned
 		this.graph.snapDelta(delta, bounds, !gridEnabled, overrideX, overrideY);
-
+		delta = this.getDelta(bounds, stateX, delta.x, stateY, delta.y)
+		
 		// Redraws the guides
 		var c = this.graph.container;
 		
@@ -314,7 +325,8 @@ mxGuide.prototype.move = function(bounds, delta, gridEnabled, clone)
 			}
 			else
 			{
-				this.guideX.points = [new mxPoint(valueX, -this.graph.panDy), new mxPoint(valueX, c.scrollHeight - 3 - this.graph.panDy)];
+				this.guideX.points = [new mxPoint(valueX, -this.graph.panDy),
+					new mxPoint(valueX, c.scrollHeight - 3 - this.graph.panDy)];
 			}
 			
 			this.guideX.stroke = this.getGuideColor(stateX, true);
@@ -343,45 +355,45 @@ mxGuide.prototype.move = function(bounds, delta, gridEnabled, clone)
 			}
 			else
 			{
-				this.guideY.points = [new mxPoint(-this.graph.panDx, valueY), new mxPoint(c.scrollWidth - 3 - this.graph.panDx, valueY)];
+				this.guideY.points = [new mxPoint(-this.graph.panDx, valueY),
+					new mxPoint(c.scrollWidth - 3 - this.graph.panDx, valueY)];
 			}
 			
 			this.guideY.stroke = this.getGuideColor(stateY, false);
 			this.guideY.node.style.visibility = 'visible';
 			this.guideY.redraw();
 		}
-
-		delta = this.getDelta(bounds, stateX, delta.x, stateY, delta.y)
 	}
 	
 	return delta;
 };
 
 /**
- * Function: hide
+ * Function: getDelta
  * 
- * Hides all current guides.
+ * Rounds to pixels for virtual states (eg. page guides)
  */
 mxGuide.prototype.getDelta = function(bounds, stateX, dx, stateY, dy)
 {
-	// Round to pixels for virtual states (eg. page guides)
+	var s = this.graph.view.scale;
+	
 	if (this.rounded || (stateX != null && stateX.cell == null))
 	{
-		dx = Math.floor(bounds.x + dx) - bounds.x;
+		dx = Math.round((bounds.x + dx) / s) * s - bounds.x;
 	}
 
 	if (this.rounded || (stateY != null && stateY.cell == null))
 	{
-		dy = Math.floor(bounds.y + dy) - bounds.y;
+		dy = Math.round((bounds.y + dy) / s) * s - bounds.y;
 	}
 	
 	return new mxPoint(dx, dy);
 };
 
 /**
- * Function: hide
+ * Function: getGuideColor
  * 
- * Hides all current guides.
+ * Returns the color for the given state.
  */
 mxGuide.prototype.getGuideColor = function(state, horizontal)
 {

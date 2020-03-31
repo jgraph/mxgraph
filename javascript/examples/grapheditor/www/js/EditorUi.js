@@ -359,11 +359,19 @@ EditorUi = function(editor, container, lightbox)
 			}
 		};
 		
+		// Updates toolbar and handles possible errors
 		var cellEditorStopEditing = graph.cellEditor.stopEditing;
 		graph.cellEditor.stopEditing = function(cell, trigger)
 		{
-			cellEditorStopEditing.apply(this, arguments);
-			updateToolbar();
+			try
+			{
+				cellEditorStopEditing.apply(this, arguments);
+				updateToolbar();
+			}
+			catch (e)
+			{
+				ui.handleError(e);
+			}
 		};
 		
 	    // Enables scrollbars and sets cursor style for the container
@@ -1049,6 +1057,12 @@ EditorUi.prototype.init = function()
 		graph.addListener(mxEvent.ESCAPE, mxUtils.bind(this, function()
 		{
 			graph.tooltipHandler.hide();
+			var rb = graph.getRubberband();
+			
+			if (rb != null)
+			{
+				rb.cancel();
+			}
 		}));
 		
 		mxEvent.addListener(graph.container, 'keydown', mxUtils.bind(this, function(evt)
@@ -1107,7 +1121,8 @@ EditorUi.prototype.onKeyDown = function(evt)
 	var graph = this.editor.graph;
 	
 	// Tab selects next cell
-	if (evt.which == 9 && graph.isEnabled() && !mxEvent.isAltDown(evt))
+	if (evt.which == 9 && graph.isEnabled() && !mxEvent.isAltDown(evt) &&
+		(!graph.isEditing() || !mxEvent.isShiftDown(evt)))
 	{
 		if (graph.isEditing())
 		{
@@ -1175,7 +1190,12 @@ EditorUi.prototype.getCssClassForMarker = function(prefix, shape, marker, fill)
 	}
 	else
 	{
-		if (marker == mxConstants.ARROW_CLASSIC)
+		// SVG marker sprites
+		if (marker == 'box' || marker == 'halfCircle')
+		{
+			result = 'geSprite geSvgSprite geSprite-' + marker + ((prefix == 'end') ? ' geFlipSprite' : '');
+		}
+		else if (marker == mxConstants.ARROW_CLASSIC)
 		{
 			result = (fill == '1') ? 'geSprite geSprite-' + prefix + 'classic' : 'geSprite geSprite-' + prefix + 'classictrans';
 		}
@@ -2096,6 +2116,7 @@ EditorUi.prototype.initCanvas = function()
 	var updateZoomTimeout = null;
 	var cursorPosition = null;
 	var scrollPosition = null;
+	var filter = null;
 	
 	var scheduleZoom = function(delay)
 	{
@@ -2182,10 +2203,16 @@ EditorUi.prototype.initCanvas = function()
 		                }
 		            }
 		            
+					if (filter != null)
+					{
+						mainGroup.setAttribute('filter', filter);
+					}
+					
 		            graph.cumulativeZoomFactor = 1;
 		            updateZoomTimeout = null;
 		            scrollPosition = null;
 		            cursorPosition = null;
+		            filter = null;
 		        }), (delay != null) ? delay : ((graph.isFastZoomEnabled()) ? ui.wheelZoomDelay : ui.lazyZoomDelay));
 			}
 		}, 0);
@@ -2237,6 +2264,12 @@ EditorUi.prototype.initCanvas = function()
 
 		if (graph.isFastZoomEnabled())
 		{
+			if (filter == null && mainGroup.getAttribute('filter') != '')
+			{
+				filter = mainGroup.getAttribute('filter');
+				mainGroup.removeAttribute('filter');
+			}
+
 			scrollPosition = new mxPoint(graph.container.scrollLeft, graph.container.scrollTop);
 			
 			var cx = (ignoreCursorPosition) ? graph.container.scrollLeft + graph.container.clientWidth / 2 :
@@ -2304,7 +2337,7 @@ EditorUi.prototype.initCanvas = function()
 		if (this.dialogs == null || this.dialogs.length == 0)
 		{
 			// Scrolls with scrollbars turned off
-			if (!graph.scrollbars && !graph.isZoomWheelEvent(evt))
+			if (!graph.scrollbars && graph.isScrollWheelEvent(evt))
             {
                 var t = graph.view.getTranslate();
                 var step = 40 / graph.view.scale;
@@ -3924,7 +3957,8 @@ EditorUi.prototype.executeLayout = function(exec, animate, post)
 		{
 			// Animates the changes in the graph model except
 			// for Camino, where animation is too slow
-			if (this.allowAnimation && animate && navigator.userAgent.indexOf('Camino') < 0)
+			if (this.allowAnimation && animate && (navigator.userAgent == null ||
+				navigator.userAgent.indexOf('Camino') < 0))
 			{
 				// New API for animating graph layout results asynchronously
 				var morph = new mxMorphing(graph);
@@ -4117,11 +4151,14 @@ EditorUi.prototype.createKeyHandler = function(editor)
 	var isEventIgnored = keyHandler.isEventIgnored;
 	keyHandler.isEventIgnored = function(evt)
 	{
-		// Handles undo/redo/ctrl+./,/u via action and allows ctrl+b/i only if editing value is HTML (except for FF and Safari)
-		return (!this.isControlDown(evt) || mxEvent.isShiftDown(evt) || (evt.keyCode != 90 && evt.keyCode != 89 &&
-			evt.keyCode != 188 && evt.keyCode != 190 && evt.keyCode != 85)) && ((evt.keyCode != 66 && evt.keyCode != 73) ||
-			!this.isControlDown(evt) || (this.graph.cellEditor.isContentEditing() && !mxClient.IS_FF && !mxClient.IS_SF)) &&
-			isEventIgnored.apply(this, arguments);
+		// Handles undo/redo/ctrl+./,/u via action and allows ctrl+b/i
+		// only if editing value is HTML (except for FF and Safari)
+		return !(mxEvent.isShiftDown(evt) && evt.keyCode == 9) &&
+			((!this.isControlDown(evt) || mxEvent.isShiftDown(evt) ||
+			(evt.keyCode != 90 && evt.keyCode != 89 && evt.keyCode != 188 &&
+			evt.keyCode != 190 && evt.keyCode != 85)) && ((evt.keyCode != 66 && evt.keyCode != 73) ||
+			!this.isControlDown(evt) ||  (this.graph.cellEditor.isContentEditing() &&
+			!mxClient.IS_FF && !mxClient.IS_SF)) && isEventIgnored.apply(this, arguments));
 	};
 	
 	// Ignores graph enabled state but not chromeless state
@@ -4222,27 +4259,54 @@ EditorUi.prototype.createKeyHandler = function(editor)
 					}
 					else
 					{
-						var dx = 0;
-						var dy = 0;
+						var cells = graph.getMovableCells(graph.getSelectionCells());
+						var realCells = [];
 						
-						if (keyCode == 37)
-						{
-							dx = -stepSize;
-						}
-						else if (keyCode == 38)
-						{
-							dy = -stepSize;
-						}
-						else if (keyCode == 39)
-						{
-							dx = stepSize;
-						}
-						else if (keyCode == 40)
-						{
-							dy = stepSize;
-						}
-						
-						graph.moveCells(graph.getMovableCells(graph.getSelectionCells()), dx, dy);
+					    for (var i = 0; i < cells.length; i++)
+					    {
+					    	// TODO: Use getCompositeParent
+							var style = graph.getCurrentCellStyle(cells[i]);
+					    	
+							if (mxUtils.getValue(style, 'part', '0') == '1')
+							{
+						        var parent = graph.model.getParent(cells[i]);
+					
+						        if (graph.model.isVertex(parent) && mxUtils.indexOf(cells, parent) < 0)
+						        {
+						            realCells.push(parent);
+						        }
+							}
+							else
+							{
+								realCells.push(cells[i]);
+							}
+					    }
+					    
+					    if (realCells.length > 0)
+					    {
+						    cells = realCells;
+							var dx = 0;
+							var dy = 0;
+							
+							if (keyCode == 37)
+							{
+								dx = -stepSize;
+							}
+							else if (keyCode == 38)
+							{
+								dy = -stepSize;
+							}
+							else if (keyCode == 39)
+							{
+								dx = stepSize;
+							}
+							else if (keyCode == 40)
+							{
+								dy = stepSize;
+							}
+							
+							graph.moveCells(cells, dx, dy);
+					    }
 					}				
 				}
 			}
@@ -4299,7 +4363,15 @@ EditorUi.prototype.createKeyHandler = function(editor)
 			
 			if (evt.keyCode == 9 && mxEvent.isAltDown(evt))
 			{
-				if (mxEvent.isShiftDown(evt))
+				if (graph.cellEditor.isContentEditing())
+			    {
+					// Alt+Shift+Tab while editing
+					return function()
+					{
+						document.execCommand('outdent', false, null);
+					};
+				}
+				else if (mxEvent.isShiftDown(evt))
 				{
 					// Alt+Shift+Tab
 					return function()
@@ -4433,7 +4505,6 @@ EditorUi.prototype.createKeyHandler = function(editor)
 	keyHandler.bindAction(109, true, 'zoomOut'); // Ctrl+Minus
 	keyHandler.bindAction(80, true, 'print'); // Ctrl+P
 	keyHandler.bindAction(79, true, 'outline', true); // Ctrl+Shift+O
-	keyHandler.bindAction(112, false, 'about'); // F1
 
 	if (!this.editor.chromeless || this.editor.editable)
 	{
@@ -4492,6 +4563,7 @@ EditorUi.prototype.createKeyHandler = function(editor)
 		keyHandler.bindAction(85, true, 'ungroup', true); // Ctrl+Shift+U
 		keyHandler.bindAction(190, true, 'superscript'); // Ctrl+.
 		keyHandler.bindAction(188, true, 'subscript'); // Ctrl+,
+		keyHandler.bindAction(9, false, 'indent', true); // Shift+Tab,
 		keyHandler.bindKey(13, function() { if (graph.isEnabled()) { graph.startEditingAtCell(); }}); // Enter
 		keyHandler.bindKey(113, function() { if (graph.isEnabled()) { graph.startEditingAtCell(); }}); // F2
 	}

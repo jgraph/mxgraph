@@ -627,7 +627,6 @@ mxShape.prototype.createSvgCanvas = function()
 	var canvas = new mxSvgCanvas2D(this.node, false);
 	canvas.strokeTolerance = (this.pointerEvents) ? this.svgStrokeTolerance : 0;
 	canvas.pointerEventsValue = this.svgPointerEvents;
-	canvas.blockImagePointerEvents = mxClient.IS_FF;
 	var off = this.getSvgScreenOffset();
 
 	if (off != 0)

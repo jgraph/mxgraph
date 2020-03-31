@@ -31,7 +31,7 @@
   <li>Creating an object representation of a graph</li>
 </ul>
 <p>
-  The above scenarios maybe combined in various ways, such as sending an XML 
+  The above scenarios maybe combined in various ways, such as sending an XML
   description of each change to the backend as it happens, or autosaving of
   the diagram to avoid loss of data on the client. The client can also operate in
   offline mode, where it does not require a backend or a webserver.
@@ -47,7 +47,7 @@
 </ul>
 <h1><a id="HelloWorld"></a>Hello, World!</h1>
 <p>
-  The Hello, World! example of mxGraph ships in a 
+  The Hello, World! example of mxGraph ships in a
   single <a href="../javascript/examples/helloworld.html">HTML file</a>,
   which contains the required namespaces, the mxGraph library script
   and the example code. The example can be viewed by pointing Firefox or
@@ -58,7 +58,7 @@
 <h2><a id="Library"></a>Library</h2>
 <p>
   The HEAD part of the page contains the JavaScript code and dependencies.
-  The library is loaded using the following code. The  <code>mxBasePath</code> 
+  The library is loaded using the following code. The  <code>mxBasePath</code>
   variable is used to define the path where the library loads its resources
   from. This variable must be defined prior to loading the library code and
   should not include a trailing slash.
@@ -70,9 +70,9 @@
 &lt;script type="text/javascript" src="javascript/src/js/mxClient.js"&gt;&lt;/script&gt;
 </pre>
 <p>
-  <a href="https://github.com/jgraph/mxgraph/tree/master/javascript"><code>mxClient.min.js</code></a> 
-  contains all required code in a single, minified, file. This is the file you 
-  should use in production. During development, if you wish to change mxGraph 
+  <a href="https://github.com/jgraph/mxgraph/tree/master/javascript"><code>mxClient.min.js</code></a>
+  contains all required code in a single, minified, file. This is the file you
+  should use in production. During development, if you wish to change mxGraph
   sources, use the bootstrapped <a href="https://github.com/jgraph/mxgraph/blob/master/javascript/src/js/mxClient.js"><code>mxClient.js</code></a> file.
 </p>
 <h2><a id="BrowserCheck"></a>Browser Check</h2>
@@ -88,7 +88,7 @@
 </p>
 <p>
   There is no convention for the name of the main function. The function
-  is invoked from the <code>onload</code> handler in the page and may have any name 
+  is invoked from the <code>onload</code> handler in the page and may have any name
   and arguments. In this case, the argument is a  DOM node that will contain
   the graph. Note that the DOM node may have any ID and that the code
   is independent of this ID.
@@ -107,9 +107,9 @@ function main(container)
 </pre>
 <h2><a id="Container"></a>Container</h2>
 <p>
-  For the JavaScript to actually render the graph, the page 
+  For the JavaScript to actually render the graph, the page
   contains an DOM node which will display the graph. This
-  DOM node is either dynamically created or it is obtained via 
+  DOM node is either dynamically created or it is obtained via
   an ID using <code>document.getElementById</code> as in the
   Hello, World! example. The DOM node is passed to the main
   function and is used to construct the graph instance as shown
@@ -153,7 +153,7 @@ var graph = new mxGraph(container, model);
 // Gets the default parent for inserting new cells. This
 // is normally the first child of the root (ie. layer 0).
 var parent = graph.getDefaultParent();
-        
+
 // Adds cells to the model in a single step
 model.beginUpdate();
 try
@@ -176,7 +176,7 @@ finally
 <h1><a id="Graphs"></a>Graphs</h1>
 <p>
   Instantiate <a href="js-api/files/view/mxGraph-js.html">mxGraph</a>
-  in order to create a graph. This is the central class in the API. 
+  in order to create a graph. This is the central class in the API.
   Everything else is auxiliary.
 </p>
 <img src="images/graph.png">
@@ -190,7 +190,7 @@ var graph = new mxGraph(node);
 </pre>
 <h2><a id="Model"></a>Model</h2>
 <p>
-  <a href="js-api/files/model/mxCell-js.html">mxCell</a> defines the 
+  <a href="js-api/files/model/mxCell-js.html">mxCell</a> defines the
   elements of the graph model, which is implemented by
   <a href="js-api/files/model/mxGraphModel-js.html">mxGraphModel</a>.
 </p>
@@ -200,11 +200,11 @@ var graph = new mxGraph(node);
 </p>
 <ul>
   <li>
-    The root element of the graph contains the layers. 
+    The root element of the graph contains the layers.
     The parent of each layer is the root element.
   </li>
   <li>
-    A layer may contain elements of the graph model, 
+    A layer may contain elements of the graph model,
     namely vertices, edges and groups.
   </li>
   <li>
@@ -232,8 +232,8 @@ var model = new mxGraphModel(root);
   <a href="js-api/files/view/mxStylesheet-js.html">
   mxStylesheet</a>.
   The stylesheet maps from stylenames to styles.
-  A style is an array of key, value pairs to be 
-  used with the cells. The keys are defined in 
+  A style is an array of key, value pairs to be
+  used with the cells. The keys are defined in
   <a href="js-api/files/util/mxConstants-js.html">
   mxConstants</a> and the values may be
   strings and numbers or JavaScript objects or functions.
@@ -243,7 +243,7 @@ var model = new mxGraphModel(root);
 </p>
 <pre>
 var vertexStyle = graph.getStylesheet().getDefaultVertexStyle();
-vertexStyle[mxConstants.ROUNDED] = true;
+vertexStyle[mxConstants.STYLE_ROUNDED] = true;
 
 var edgeStyle = graph.getStylesheet().getDefaultEdgeStyle();
 edgeStyle[mxConstants.STYLE_EDGE] = mxEdgeStyle.TopToBottom;
@@ -251,7 +251,7 @@ edgeStyle[mxConstants.STYLE_EDGE] = mxEdgeStyle.TopToBottom;
 <h2><a id="Styles"></a>Styles</h2>
 <p>
   The style information for a cell is stored in <code>cell.style</code>.
-  The style is part of the cell's state and is normally changed via 
+  The style is part of the cell's state and is normally changed via
   <code>mxGraphModel.setStyle</code>, which will update all views.
   The cell style is a string of the form
 </p>
@@ -268,7 +268,7 @@ edgeStyle[mxConstants.STYLE_EDGE] = mxEdgeStyle.TopToBottom;
 rounded;strokeColor=red;fillColor=green
 </pre>
 <p>
-  To use the above in Hello, World!, the stylename would be passed to the 
+  To use the above in Hello, World!, the stylename would be passed to the
   insertVertex method as follows:
 </p>
 <pre>
@@ -277,15 +277,15 @@ var v1 = graph.insertVertex(parent, null, 'Hello',
 </pre>
 <h2><a id="Appearance"></a>Appearance</h2>
 <p>
-  In certain cases you may want to override specific attributes based on 
-  dynamic properties of a cell (ie. it's value, aka. userobject), such as 
+  In certain cases you may want to override specific attributes based on
+  dynamic properties of a cell (ie. it's value, aka. userobject), such as
   the image, indicator shape, -image, -color or -gradient color), in
-  which case you can override <code>getImage</code>, 
+  which case you can override <code>getImage</code>,
   <code>getIndicatorShape</code>, <code>getIndicatorImage</code>,
-  <code>getIndicatorColor</code> and <code>getIndicatorGradientColor</code> 
-  respectively. Note that these methods take a cell state as an argument, 
+  <code>getIndicatorColor</code> and <code>getIndicatorGradientColor</code>
+  respectively. Note that these methods take a cell state as an argument,
   which points to a "resolved" (that is, an array) version of the
-  cell's style. Hence, the default implementation for <code>getImage</code> 
+  cell's style. Hence, the default implementation for <code>getImage</code>
   looks as follows:
 </p>
 <pre>
@@ -299,14 +299,14 @@ mxGraph.prototype.getImage = function(state)
 }
 </pre>
 <p>
-  This method may be overridden to return any image for the given state. 
-  Typically, the image is defined by either <code>state.cell</code>, 
+  This method may be overridden to return any image for the given state.
+  Typically, the image is defined by either <code>state.cell</code>,
   which points to the graph cell associated with the state, or by
   <code>state.cell.value</code>, which refers to the cell's user object.
 </p>
 <p>
-  Due to the nature of the display, where all cells are created once and 
-  updated only if the model fires a notification for a change, you must 
+  Due to the nature of the display, where all cells are created once and
+  updated only if the model fires a notification for a change, you must
   invoke <code>view.invalidate(cell)</code> for each cell who's image
   has changed, and call <code>view.validate</code> to update the display.
 </p>
@@ -328,7 +328,7 @@ var config = mxUtils.load('editors/config/keyhandler-commons.xml').getDocumentEl
 var editor = new mxEditor(config);
 </pre>
 <p>
-  The configuration file is an XML file that is passed to 
+  The configuration file is an XML file that is passed to
   <a href="js-api/files/io/mxCodec-js.html">mxCodec</a>, which in
   turn uses <a href="js-api/files/io/mxEditorCodec-js.html">mxEditorCodec</a>
   and others to read the XML into the editor object hierarchy. This is normally
@@ -339,7 +339,7 @@ var editor = new mxEditor(config);
 <p>
   The CSS stylesheet contains the style definitions for various
   elements of the user interface, such as the rubberband selection,
-  the in-place editor or the popup menu. It also contains the directives 
+  the in-place editor or the popup menu. It also contains the directives
   required to enable VML support in Internet Explorer, so it is substantial
   that the stylesheet is included in the page.
 </p>
@@ -356,14 +356,14 @@ var editor = new mxEditor(config);
 </pre>
 <h2><a id="Templates"></a>Templates</h2>
 <p>
-  To add new cell types, create a template in the templates array section of 
-  the model in the config file (mxEditor/mxGraph/mxGraphModel/Array[as=templates]) 
+  To add new cell types, create a template in the templates array section of
+  the model in the config file (mxEditor/mxGraph/mxGraphModel/Array[as=templates])
   as follows:
 </p>
 <pre>
 &lt;add as="symbol"&gt;
   &lt;Symbol label="Symbol" customAttribute="whatever"&gt;
-    &lt;mxCell vertex="1" connectable="1" style="symbol;image=images/event.png"&gt;    
+    &lt;mxCell vertex="1" connectable="1" style="symbol;image=images/event.png"&gt;
       &lt;mxGeometry as="geometry" width="32" height="32"/&gt;
     &lt;/mxCell&gt;
     &lt;CustomChild customAttribute="whatever"/&gt;
@@ -371,25 +371,25 @@ var editor = new mxEditor(config);
 &lt;/add&gt;
 </pre>
 <p>
-  The <code>as</code>-attribute of the <code>add</code>-element contains the 
-  name under which the template will be accessible for later use. The 
-  <code>Symbol</code>-child element is a custom (ie workflow) element, and 
-  can have any name and any number of child elements and custom attributes. 
-  The label attribute is a special one that is used for the textual 
+  The <code>as</code>-attribute of the <code>add</code>-element contains the
+  name under which the template will be accessible for later use. The
+  <code>Symbol</code>-child element is a custom (ie workflow) element, and
+  can have any name and any number of child elements and custom attributes.
+  The label attribute is a special one that is used for the textual
   representation of the cell in the graph. The <code>mxCell</code> element
-  is another special child node which contains the graphical information for 
+  is another special child node which contains the graphical information for
   the cell, namely, the cell-type, -style, -size and -position.
 </p>
 <p>
-  See mxGraph.convertValueToString if you would like to use another 
-  attribute or a combination of attributes for the textual representation, 
-  and <code>mxCell.valueChanged</code> to handle in-place editing by storing 
+  See mxGraph.convertValueToString if you would like to use another
+  attribute or a combination of attributes for the textual representation,
+  and <code>mxCell.valueChanged</code> to handle in-place editing by storing
   the new text value in the respective attribute(s).
 </p>
 <h2><a id="Toolbar"></a>Toolbar</h2>
 <p>
-  To use the template in the graph, a toolbar item must be added which refers 
-  to the template in the mxDefaultToolbar section of the config file 
+  To use the template in the graph, a toolbar item must be added which refers
+  to the template in the mxDefaultToolbar section of the config file
   (mxEditor/mxDefaultToolbar[as=toolbar]) as follows:
 </p>
 <pre>
@@ -398,11 +398,11 @@ var editor = new mxEditor(config);
   icon="wf/images/bpmn/small_event.gif"/&gt;
 </pre>
 <p>
-  The <code>as</code> attribute specifies the tooltip to be displayed for the 
-  icon in the toolbar, the <code>template</code>-attribute refers to the name 
+  The <code>as</code> attribute specifies the tooltip to be displayed for the
+  icon in the toolbar, the <code>template</code>-attribute refers to the name
   under which the template was previously added. The <code>style</code>-
-  attribute is optional, and may be used to override the style defined in the 
-  template definition. Finally, the icon specifies the icon to be used for the 
+  attribute is optional, and may be used to override the style defined in the
+  template definition. Finally, the icon specifies the icon to be used for the
   toolbar item.
 </p>
 <p>
@@ -482,15 +482,15 @@ mxUtils.popup(mxUtils.getXml(node));
   in the same directory as the HTML page. If the filename is server.php
   then the urlPost variable must be set to server.php on the editor
   in order to post the diagram to the server. The PHP file will get
-  the XML from the POSt request and write it to a file called
+  the XML from the POST request and write it to a file called
   diagram.xml.
 </p>
 <pre>
-&lt;?php 
+&lt;?php
 $xml = $HTTP_POST_VARS['xml'];
 if ($xml != null) {
   $fh=fopen("diagram.xml","w");
-  fputs($fh, stripslashes($xml)); 
+  fputs($fh, stripslashes($xml));
   fclose($fh);
 }
 ?&gt;
@@ -507,7 +507,7 @@ if ($xml != null) {
 </p>
 <h2><a id="FormFields"></a>Form Fields</h2>
 <p>
-  If you need to read/write the graph from/to a string (eg. to fill a form-field), you can use the 
+  If you need to read/write the graph from/to a string (eg. to fill a form-field), you can use the
   following methods:
 </p>
 <pre>
@@ -517,7 +517,7 @@ editor.readGraphModel(mxUtils.parseXml(data));
 <h2><a id="Codecs"></a>Codecs</h2>
 <p>
   For encoding other objects, or if no editor instance is available,
-  the <a href="js-api/files/io/mxCodec-js.html">mxCodec</a> can be 
+  the <a href="js-api/files/io/mxCodec-js.html">mxCodec</a> can be
   used to create and read XML data.
 </p>
 <hr size="1">

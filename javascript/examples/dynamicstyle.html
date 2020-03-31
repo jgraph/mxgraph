@@ -62,8 +62,7 @@
 
 							if (target != null)
 							{
-								var state = graph.getView().getState(target);
-								var targetStyle = (state != null) ? state.style : graph.getCellStyle(target);
+								var targetStyle = graph.getCurrentCellStyle(target);
 								var fill = mxUtils.getValue(targetStyle, mxConstants.STYLE_FILLCOLOR);
 								
 								if (fill != null)

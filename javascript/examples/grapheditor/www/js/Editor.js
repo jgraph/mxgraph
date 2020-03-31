@@ -98,6 +98,12 @@ Editor.pageCounter = 0;
 Editor.useLocalStorage = typeof(Storage) != 'undefined' && mxClient.IS_IOS;
 
 /**
+ * 
+ */
+Editor.moveImage = (mxClient.IS_SVG) ? 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI4cHgiIGhlaWdodD0iMjhweCI+PGc+PC9nPjxnPjxnPjxnPjxwYXRoIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIuNCwyLjQpc2NhbGUoMC44KXJvdGF0ZSg0NSwxMiwxMikiIHN0cm9rZT0iIzI5YjZmMiIgZmlsbD0iIzI5YjZmMiIgZD0iTTE1LDNsMi4zLDIuM2wtMi44OSwyLjg3bDEuNDIsMS40MkwxOC43LDYuN0wyMSw5VjNIMTV6IE0zLDlsMi4zLTIuM2wyLjg3LDIuODlsMS40Mi0xLjQyTDYuNyw1LjNMOSwzSDNWOXogTTksMjEgbC0yLjMtMi4zbDIuODktMi44N2wtMS40Mi0xLjQyTDUuMywxNy4zTDMsMTV2Nkg5eiBNMjEsMTVsLTIuMywyLjNsLTIuODctMi44OWwtMS40MiwxLjQybDIuODksMi44N0wxNSwyMWg2VjE1eiIvPjwvZz48L2c+PC9nPjwvc3ZnPgo=' :
+	IMAGE_PATH + '/move.png';
+
+/**
  * Images below are for lightbox and embedding toolbars.
  */
 Editor.helpImage = (mxClient.IS_SVG) ? 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJub25lIiBkPSJNMCAwaDI0djI0SDB6Ii8+PHBhdGggZD0iTTExIDE4aDJ2LTJoLTJ2MnptMS0xNkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnptMCAxOGMtNC40MSAwLTgtMy41OS04LThzMy41OS04IDgtOCA4IDMuNTkgOCA4LTMuNTkgOC04IDh6bTAtMTRjLTIuMjEgMC00IDEuNzktNCA0aDJjMC0xLjEuOS0yIDItMnMyIC45IDIgMmMwIDItMyAxLjc1LTMgNWgyYzAtMi4yNSAzLTIuNSAzLTUgMC0yLjIxLTEuNzktNC00LTR6Ii8+PC9zdmc+' :
@@ -644,19 +650,27 @@ Editor.prototype.createUndoManager = function()
 	// Keeps the selection in sync with the history
 	var undoHandler = function(sender, evt)
 	{
-		var cand = graph.getSelectionCellsForChanges(evt.getProperty('edit').changes);
-		var model = graph.getModel();
-		var cells = [];
-		
-		for (var i = 0; i < cand.length; i++)
+		var cand = graph.getSelectionCellsForChanges(evt.getProperty('edit').changes, function(change)
 		{
-			if (graph.view.getState(cand[i]) != null)
-			{
-				cells.push(cand[i]);
-			}
-		}
+			// Only selects changes to the cell hierarchy
+			return !(change instanceof mxChildChange);
+		});
 		
-		graph.setSelectionCells(cells);
+		if (cand.length > 0)
+		{
+			var model = graph.getModel();
+			var cells = [];
+			
+			for (var i = 0; i < cand.length; i++)
+			{
+				if (graph.view.getState(cand[i]) != null)
+				{
+					cells.push(cand[i]);
+				}
+			}
+			
+			graph.setSelectionCells(cells);
+		}
 	};
 	
 	undoMgr.addListener(mxEvent.UNDO, undoHandler);
@@ -1920,6 +1934,261 @@ PageSetupDialog.getFormats = function()
 	        {key: '16-10', title: '16:10 (1920 x 1200)', format: new mxRectangle(0, 0, 1920, 1200)},
 	        {key: '4-3', title: '4:3 (1600 x 1200)', format: new mxRectangle(0, 0, 1600, 1200)},
 	        {key: 'custom', title: mxResources.get('custom'), format: null}];
+};
+
+/**
+ * Constructs a new filename dialog.
+ */
+var FilenameDialog = function(editorUi, filename, buttonText, fn, label, validateFn, content, helpLink, closeOnBtn, cancelFn, hints, w)
+{
+	closeOnBtn = (closeOnBtn != null) ? closeOnBtn : true;
+	var row, td;
+	
+	var table = document.createElement('table');
+	var tbody = document.createElement('tbody');
+	table.style.marginTop = '8px';
+	
+	row = document.createElement('tr');
+	
+	td = document.createElement('td');
+	td.style.whiteSpace = 'nowrap';
+	td.style.fontSize = '10pt';
+	td.style.width = '120px';
+	mxUtils.write(td, (label || mxResources.get('filename')) + ':');
+	
+	row.appendChild(td);
+	
+	var nameInput = document.createElement('input');
+	nameInput.setAttribute('value', filename || '');
+	nameInput.style.marginLeft = '4px';
+	nameInput.style.width = (w != null) ? w + 'px' : '180px';
+	
+	var genericBtn = mxUtils.button(buttonText, function()
+	{
+		if (validateFn == null || validateFn(nameInput.value))
+		{
+			if (closeOnBtn)
+			{
+				editorUi.hideDialog();
+			}
+			
+			fn(nameInput.value);
+		}
+	});
+	genericBtn.className = 'geBtn gePrimaryBtn';
+	
+	this.init = function()
+	{
+		if (label == null && content != null)
+		{
+			return;
+		}
+		
+		nameInput.focus();
+		
+		if (mxClient.IS_GC || mxClient.IS_FF || document.documentMode >= 5 || mxClient.IS_QUIRKS)
+		{
+			nameInput.select();
+		}
+		else
+		{
+			document.execCommand('selectAll', false, null);
+		}
+		
+		// Installs drag and drop handler for links
+		if (Graph.fileSupport)
+		{
+			// Setup the dnd listeners
+			var dlg = table.parentNode;
+			
+			if (dlg != null)
+			{
+				var graph = editorUi.editor.graph;
+				var dropElt = null;
+					
+				mxEvent.addListener(dlg, 'dragleave', function(evt)
+				{
+					if (dropElt != null)
+				    {
+						dropElt.style.backgroundColor = '';
+				    	dropElt = null;
+				    }
+				    
+					evt.stopPropagation();
+					evt.preventDefault();
+				});
+				
+				mxEvent.addListener(dlg, 'dragover', mxUtils.bind(this, function(evt)
+				{
+					// IE 10 does not implement pointer-events so it can't have a drop highlight
+					if (dropElt == null && (!mxClient.IS_IE || document.documentMode > 10))
+					{
+						dropElt = nameInput;
+						dropElt.style.backgroundColor = '#ebf2f9';
+					}
+					
+					evt.stopPropagation();
+					evt.preventDefault();
+				}));
+						
+				mxEvent.addListener(dlg, 'drop', mxUtils.bind(this, function(evt)
+				{
+				    if (dropElt != null)
+				    {
+						dropElt.style.backgroundColor = '';
+				    	dropElt = null;
+				    }
+	
+				    if (mxUtils.indexOf(evt.dataTransfer.types, 'text/uri-list') >= 0)
+				    {
+				    	nameInput.value = decodeURIComponent(evt.dataTransfer.getData('text/uri-list'));
+				    	genericBtn.click();
+				    }
+	
+				    evt.stopPropagation();
+				    evt.preventDefault();
+				}));
+			}
+		}
+	};
+
+	td = document.createElement('td');
+	td.style.whiteSpace = 'nowrap';
+	td.appendChild(nameInput);
+	row.appendChild(td);
+	
+	if (label != null || content == null)
+	{
+		tbody.appendChild(row);
+		
+		if (hints != null)
+		{
+			td.appendChild(FilenameDialog.createTypeHint(editorUi, nameInput, hints));
+		}
+	}
+	
+	if (content != null)
+	{
+		row = document.createElement('tr');
+		td = document.createElement('td');
+		td.colSpan = 2;
+		td.appendChild(content);
+		row.appendChild(td);
+		tbody.appendChild(row);
+	}
+	
+	row = document.createElement('tr');
+	td = document.createElement('td');
+	td.colSpan = 2;
+	td.style.paddingTop = '20px';
+	td.style.whiteSpace = 'nowrap';
+	td.setAttribute('align', 'right');
+	
+	var cancelBtn = mxUtils.button(mxResources.get('cancel'), function()
+	{
+		editorUi.hideDialog();
+		
+		if (cancelFn != null)
+		{
+			cancelFn();
+		}
+	});
+	cancelBtn.className = 'geBtn';
+	
+	if (editorUi.editor.cancelFirst)
+	{
+		td.appendChild(cancelBtn);
+	}
+	
+	if (helpLink != null)
+	{
+		var helpBtn = mxUtils.button(mxResources.get('help'), function()
+		{
+			editorUi.editor.graph.openLink(helpLink);
+		});
+		
+		helpBtn.className = 'geBtn';	
+		td.appendChild(helpBtn);
+	}
+
+	mxEvent.addListener(nameInput, 'keypress', function(e)
+	{
+		if (e.keyCode == 13)
+		{
+			genericBtn.click();
+		}
+	});
+	
+	td.appendChild(genericBtn);
+	
+	if (!editorUi.editor.cancelFirst)
+	{
+		td.appendChild(cancelBtn);
+	}
+
+	row.appendChild(td);
+	tbody.appendChild(row);
+	table.appendChild(tbody);
+	
+	this.container = table;
+};
+
+/**
+ * 
+ */
+FilenameDialog.filenameHelpLink = null;
+
+/**
+ * 
+ */
+FilenameDialog.createTypeHint = function(ui, nameInput, hints)
+{
+	var hint = document.createElement('img');
+	hint.style.cssText = 'vertical-align:top;height:16px;width:16px;margin-left:4px;background-repeat:no-repeat;background-position:center bottom;cursor:pointer;';
+	mxUtils.setOpacity(hint, 70);
+	
+	var nameChanged = function()
+	{
+		hint.setAttribute('src', Editor.helpImage);
+		hint.setAttribute('title', mxResources.get('help'));
+		
+		for (var i = 0; i < hints.length; i++)
+		{
+			if (hints[i].ext.length > 0 &&
+				nameInput.value.substring(nameInput.value.length -
+						hints[i].ext.length - 1) == '.' + hints[i].ext)
+			{
+				hint.setAttribute('src',  mxClient.imageBasePath + '/warning.png');
+				hint.setAttribute('title', mxResources.get(hints[i].title));
+				break;
+			}
+		}
+	};
+	
+	mxEvent.addListener(nameInput, 'keyup', nameChanged);
+	mxEvent.addListener(nameInput, 'change', nameChanged);
+	mxEvent.addListener(hint, 'click', function(evt)
+	{
+		var title = hint.getAttribute('title');
+		
+		if (hint.getAttribute('src') == Editor.helpImage)
+		{
+			ui.editor.graph.openLink(FilenameDialog.filenameHelpLink);
+		}
+		else if (title != '')
+		{
+			ui.showError(null, title, mxResources.get('help'), function()
+			{
+				ui.editor.graph.openLink(FilenameDialog.filenameHelpLink);
+			}, null, mxResources.get('ok'), null, null, null, 340, 90);
+		}
+		
+		mxEvent.consume(evt);
+	});
+	
+	nameChanged();
+	
+	return hint;
 };
 
 /**

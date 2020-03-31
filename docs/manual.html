@@ -9,7 +9,7 @@
 <h1>mxGraph User Manual &ndash; JavaScript Client</h1>
 <br/>
 <br/>
-<p>mxGraph Version 4.1.0 &ndash; 24. January 2020</p>
+<p>mxGraph Version 4.1.1 &ndash; 31. March 2020</p>
 <p>Copyright (c) JGraph Ltd 2006-2017</p>
 <br/>
 <p>All rights reserved. No part of this publication may be
@@ -59,8 +59,8 @@ individual features of the library.</p>
 <p>Developers integrating the library in their application should
 read the section
 &ldquo;Pre-requisites&rdquo; below. Given that mxGraph is a component
-part of your application, you must understand how JavaScript web 
-applications are constructed at an architectural level, and how to program 
+part of your application, you must understand how JavaScript web
+applications are constructed at an architectural level, and how to program
 both in JavaScript, as well as any server-side languages used.</p>
 
 <p>mxGraph mainly comprises one JavaScript
@@ -117,7 +117,7 @@ application to invoke the library's functionality.</p>
 
 <p>mxGraph uses JavaScript for the client-side functionality on the
 browser. The JavaScript code in turn uses the underlying vector graphics
-language on the active browser to render the displayed diagram, currently SVG 
+language on the active browser to render the displayed diagram, currently SVG
 for all supported browsers. mxGraph also includes the feature to render entirely
 using html, this limits the range of functionality available, but is
 suitable for more simple diagrams.</p>
@@ -131,9 +131,9 @@ browsers and adapts to the inconsistencies behind the scenes.</p>
 
 <h2><a id="mxgraph_licensing"></a>mxGraph Licensing</h2>
 
-<p>The JavaScript client of mxGraph is licensed under the 
-<a href="https://www.apache.org/licenses/LICENSE-2.0"> Apache  
-2.0 license</a> For detailed licensing questions you are always advised to
+<p>The JavaScript client of mxGraph is licensed under the
+<a href="https://www.apache.org/licenses/LICENSE-2.0"> Apache
+2.0 license</a>. For detailed licensing questions you are always advised to
 consult a legal professional.</p>
 
 <h2><a id="what_graph"></a>What is a Graph?</h2>
@@ -177,7 +177,7 @@ vertices and edges.</p>
 <p>Interaction is the way in which an application using mxGraph can
 alter the graph model through the web application GUI. mxGraph supports
 dragging and cloning cells, re-sizing and re-shaping, connecting and
-disconnecting, drag and dropping from external sources, editing cell
+disconnecting, dragging and dropping from external sources, editing cell
 labels in-place and more. One of the key benefits of mxGraph is the
 flexibility of how interaction can be programmed.</p>
 
@@ -188,7 +188,7 @@ AJAX functionality, such server reliance is not appropriate for
 interaction events. Visual feedback taking longer than about 0.2 seconds
 in an application generally seriously impacts the usability. By placing
 all of the interaction on the client, mxGraph provides the true feel of
-a application, rather than seeming like a dumb remote terminal. It also
+an application, rather than seeming like a dumb remote terminal. It also
 allows the possibility of off-line use.</p>
 
 <p><img src="images/mx_man_graph_interaction.png" /><br/>
@@ -267,13 +267,13 @@ abstracts the description of the visual component into one API.</p>
 <h3><a id="obtaining_mxgraph"></a>Obtaining mxGraph</h3>
 
 <p>
-mxGraph is available from the <a href="https://github.com/jgraph/mxgraph">GitHub project</a>. 
-Released versions are tagged "va.b.c", where a, b and c are version number parts following 
-<a href="http://semver.org/">semantic versioning</a>. 
+mxGraph is available from the <a href="https://github.com/jgraph/mxgraph">GitHub project</a>.
+Released versions are tagged "va.b.c", where a, b and c are version number parts following
+<a href="http://semver.org/">semantic versioning</a>.
 </p>
 
 <p>
-Each formal release is also available as .zip or .tar.gz on the 
+Each formal release is also available as .zip or .tar.gz on the
 <a href="https://github.com/jgraph/mxgraph/releases">mxGraph releases</a> page.
 </p>
 
@@ -426,9 +426,7 @@ application frameworks</a> and the <a
 	href="http://en.wikipedia.org/wiki/Comparison_of_JavaScript_frameworks">comparison
 of JavaScript</a>. The comparison should not be considered authoritative,
 more so it illustrates the types of features provided, such as event
-handling, animation, widgets, AJAX request support etc. <a
-	href="http://javascriptlibraries.com/">This site</a> is also a useful
-list of JavaScript libraries, mostly being open/free source licensed.</p>
+handling, animation, widgets, AJAX request support etc.</p>
 
 <p>Be aware that many frameworks add implicit behaviours to make
 JavaScript appear more like an OO language and to increase the base
@@ -473,7 +471,7 @@ scheme throughout the project, with the following implicit rules:</p>
 
 <ul>
 	<li>Do not change the built-in prototypes</li>
-	<li>Donot try to limit the power of the JavaScript language.</li>
+	<li>Do not try to limit the power of the JavaScript language.</li>
 
 </ul>
 
@@ -551,7 +549,7 @@ MyGraph.prototype.isSelectable = function(cell)
 
 <p>The supercall in the first line is optional. It is done using the
 <em>apply</em> function on the <em>isSelectable</em> function object of
-the mxGraph prototype, using the special <em>this</em> andn <em>arguments</em>
+the mxGraph prototype, using the special <em>this</em> and <em>arguments</em>
 variables as parameters. Calls to the superclass function are only
 possible if the function is not replaced in the superclass as follows,
 which is another way of &ldquo;subclassing&rdquo; in JavaScript.</p>
@@ -780,7 +778,7 @@ can consider a template for building a basic mxGraph application:</p>
 
 <h2><a id="deployment"></a>mxGraph Deployment and Debugging</h2>
 
-<p>There are two versions of the mxclient.js file, one for production use and
+<p>There are two versions of the mxClient.js file, one for production use and
 a second for development/debugging use. <em>javascript/src/js/mxClient.js</em> is
 the production version and <em>javascript/debug/js/mxClient.js</em> is for
 development. The first version has all linefeeds stripped to ensure the
@@ -796,7 +794,7 @@ need to debug into the mxGraph library itself. The source code version of
 mxGraph contains the full source in the source.zip file in the
 <em>javascript/devel</em> directory. Unzipping this into the mxBasePath and removing
 the load of the complete mxClient.js file enables easier debugging of mxGraph.
-Note that the mxclient.js file in the source zip is a bootstrap file that
+Note that the mxClient.js file in the source zip is a bootstrap file that
 loads all the other JavaScript source code.</p>
 
 <p>The download speed of the client source can be further improved

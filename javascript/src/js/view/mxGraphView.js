@@ -1462,14 +1462,15 @@ mxGraphView.prototype.updatePoints = function(edge, points, source, target)
  *
  * Transforms the given control point to an absolute point.
  */
-mxGraphView.prototype.transformControlPoint = function(state, pt)
+mxGraphView.prototype.transformControlPoint = function(state, pt, ignoreScale)
 {
 	if (state != null && pt != null)
 	{
 		var orig = state.origin;
+		var scale = ignoreScale ? 1 : this.scale
 		
-	    return new mxPoint(this.scale * (pt.x + this.translate.x + orig.x),
-	    	this.scale * (pt.y + this.translate.y + orig.y));
+	    return new mxPoint(scale * (pt.x + this.translate.x + orig.x),
+	    		scale * (pt.y + this.translate.y + orig.y));
 	}
 	
 	return null;

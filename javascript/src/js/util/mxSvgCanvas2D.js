@@ -244,15 +244,6 @@ mxSvgCanvas2D.prototype.minStrokeWidth = 1;
 mxSvgCanvas2D.prototype.refCount = 0;
 
 /**
- * Variable: blockImagePointerEvents
- * 
- * Specifies if a transparent rectangle should be added on top of images to absorb
- * all pointer events. Default is false. This is only needed in Firefox to disable
- * control-clicks on images.
- */
-mxSvgCanvas2D.prototype.blockImagePointerEvents = false;
-
-/**
  * Variable: lineHeightCorrection
  * 
  * Correction factor for <mxConstants.LINE_HEIGHT> in HTML output. Default is 1.
@@ -1122,23 +1113,6 @@ mxSvgCanvas2D.prototype.image = function(x, y, w, h, src, aspect, flipH, flipV)
 	}
 	
 	this.root.appendChild(node);
-	
-	// Disables control-clicks on images in Firefox to open in new tab
-	// by putting a rect in the foreground that absorbs all events and
-	// disabling all pointer-events on the original image tag.
-	if (this.blockImagePointerEvents)
-	{
-		node.setAttribute('style', 'pointer-events:none');
-		
-		node = this.createElement('rect');
-		node.setAttribute('visibility', 'hidden');
-		node.setAttribute('pointer-events', 'fill');
-		node.setAttribute('x', this.format(x * s.scale));
-		node.setAttribute('y', this.format(y * s.scale));
-		node.setAttribute('width', this.format(w * s.scale));
-		node.setAttribute('height', this.format(h * s.scale));
-		this.root.appendChild(node);
-	}
 };
 
 /**
@@ -1326,7 +1300,7 @@ mxSvgCanvas2D.prototype.updateTextNodes = function(x, y, w, h, align, valign, wr
 {
 	var s = this.state.scale;
 
-	mxSvgCanvas2D.createCss(w, h, align, valign, wrap, overflow, clip,
+	mxSvgCanvas2D.createCss(w + 2, h, align, valign, wrap, overflow, clip,
 		(this.state.fontBackgroundColor != null) ? this.state.fontBackgroundColor : null,
 		(this.state.fontBorderColor != null) ? this.state.fontBorderColor : null,
 		'display: flex; align-items: unsafe ' +
@@ -1467,7 +1441,7 @@ mxSvgCanvas2D.createCss = function(w, h, align, valign, wrap, overflow, clip, bg
 	if (wrap && w > 0)
 	{
 		block += 'white-space: normal; word-wrap: ' + mxConstants.WORD_WRAP + '; ';
-		fw = 'width: ' + Math.round(w + 2) + 'px; ';
+		fw = 'width: ' + Math.round(w) + 'px; ';
 		
 		if (ofl != '' && overflow != 'fill')
 		{

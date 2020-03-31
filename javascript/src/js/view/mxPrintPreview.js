@@ -896,7 +896,8 @@ mxPrintPreview.prototype.renderPage = function(w, h, dx, dy, content, pageNumber
 			innerDiv.style.height = (h - 2 * this.border) + 'px';
 			innerDiv.style.overflow = 'hidden';
 
-			if (mxClient.IS_IE && (doc.documentMode == null || doc.documentMode == 5 || doc.documentMode == 8 || doc.documentMode == 7))
+			if (mxClient.IS_IE && (doc.documentMode == null || doc.documentMode == 5 ||
+				doc.documentMode == 8 || doc.documentMode == 7))
 			{
 				innerDiv.style.marginTop = this.border + 'px';
 				innerDiv.style.marginLeft = this.border + 'px';	
@@ -1036,8 +1037,10 @@ mxPrintPreview.prototype.addGraphFragment = function(dx, dy, scale, pageNumber, 
 				{
 					var bbox = view.getBoundingBox(orig, false);
 					
-					// Stops rendering if outside clip for speedup
-					if (bbox != null && !mxUtils.intersects(tempClip, bbox))
+					// Stops rendering if outside clip for speedup but ignores
+					// edge labels where width and height is set to 0
+					if (bbox != null && bbox.width > 0 && bbox.height > 0 &&
+						!mxUtils.intersects(tempClip, bbox))
 					{
 						return;
 					}

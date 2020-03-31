@@ -852,13 +852,39 @@ var mxUtils =
 				}
 			}
 			
-			if (node.nodeType == mxConstants.NODETYPE_TEXT)
+			if (node.nodeType == mxConstants.NODETYPE_DOCUMENT)
+			{
+				result.push(mxUtils.getPrettyXml(node.documentElement, tab, indent, newline, ns));
+			}
+			else if (node.nodeType == mxConstants.NODETYPE_DOCUMENT_FRAGMENT)
+			{
+				var tmp = node.firstChild;
+				
+				if (tmp != null)
+				{
+					while (tmp != null)
+					{
+						result.push(mxUtils.getPrettyXml(tmp, tab, indent, newline, ns));
+						tmp = tmp.nextSibling;
+					}
+				}
+			}
+			else if (node.nodeType == mxConstants.NODETYPE_COMMENT)
 			{
 				var value = mxUtils.getTextContent(node);
 				
 				if (value.length > 0)
 				{
-					result.push(indent + mxUtils.htmlEntities(mxUtils.trim(value), false));
+					result.push(indent + '<!--' + value + '-->' + newline);
+				}
+			}
+			else if (node.nodeType == mxConstants.NODETYPE_TEXT)
+			{
+				var value = mxUtils.getTextContent(node);
+				
+				if (value.length > 0)
+				{
+					result.push(indent + mxUtils.htmlEntities(mxUtils.trim(value), false) + newline);
 				}
 			}
 			else
@@ -896,7 +922,7 @@ var mxUtils =
 				}
 				else
 				{
-					result.push('/>' + newline);
+					result.push(' />' + newline);
 				}
 			}
 		}
@@ -1509,10 +1535,25 @@ var mxUtils =
 	 * binary.
 	 * timeout - Optional timeout in ms before calling ontimeout.
 	 * ontimeout - Optional function to execute on timeout.
+	 * headers - Optional with headers, eg. {'Authorization': 'token xyz'}
 	 */
-	get: function(url, onload, onerror, binary, timeout, ontimeout)
+	get: function(url, onload, onerror, binary, timeout, ontimeout, headers)
 	{
 		var req = new mxXmlRequest(url, null, 'GET');
+		var setRequestHeaders = req.setRequestHeaders;
+		
+		if (headers)
+		{
+			req.setRequestHeaders = function(request, params)
+			{
+				setRequestHeaders.apply(this, arguments);
+				
+				for (var key in headers)
+				{
+					request.setRequestHeader(key, headers[key]);
+				}
+			};
+		}
 		
 		if (binary != null)
 		{
@@ -2132,7 +2173,7 @@ var mxUtils =
             var cos = Math.cos(rad);
             var sin = Math.sin(rad);
 
-            cx = (cx != null) ? cx : new mxPoint(rect.x + rect.width / 2, rect.y  + rect.height / 2);
+            cx = (cx != null) ? cx : new mxPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
 
             var p1 = new mxPoint(rect.x, rect.y);
             var p2 = new mxPoint(rect.x + rect.width, rect.y);

@@ -92,6 +92,7 @@ mxLabel.prototype.redraw = function()
 		this.indicator.stroke = this.indicatorStrokeColor;
 		this.indicator.gradient = this.indicatorGradientColor;
 		this.indicator.direction = this.indicatorDirection;
+		this.indicator.redraw();
 	}
 	
 	mxShape.prototype.redraw.apply(this, arguments);

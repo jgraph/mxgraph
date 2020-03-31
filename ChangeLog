@@ -1,3 +1,13 @@
+31-MAR-2020: 4.1.1
+
+- Fixes use of userAgent to detect browsers and platforms
+- Reduces number of layout runs in mxLayoutManager
+- Adds resizeCell in mxGraphLayout
+- Adds eventName in mxLayoutManager.getLayout
+- Uses all layers in getSwimlaneAt
+- Fixes update of indicator shape after style change
+- Adds support for referenced font colors
+
 24-JAN-2020: 4.1.0
 
 - Adds mxEdgeHandler.isCellEnabled
@@ -171,7 +181,7 @@
 - Removes duplicate WeightedCellSorter
 - Fixes recursion in mxGraph.cellsFolded
 - Adds mxRubberband.fadeOut switch
-- Fixes ignored node values in mxUtils.getPrettyXml
+- Fixes ignored node values in mxUtils.getPrettyXml 
 - Adds editing for edge terminal points
 - Fixes redraw after remove change in mxEdgeHandler
 - Adds loggers, fixes silent fail cases
@@ -458,8 +468,8 @@
 - Adds mxKeyHandler.isEnabledForEvent hook [JavaScript]
 - Fixes inconsistent text rendering in quirks/IE8 [JavaScript]
 - Adds clipping for overflow=width style [JavaScript]
-- Fixes label positions for some overflows and alignments [JavaScript]
-- Moves call to stopEditing to end of mxGraph.fireMouseEvent [JavaScript]
+- Fixes label positions for some overflows and alignments [JavaScript] 
+- Moves call to stopEditing to end of mxGraph.fireMouseEvent [JavaScript] 
 - Fixes cached label width for vertical resize in mxVertexHandler [JavaScript]
 - Adds jsondata.html example [JavaScript]
 - Removes duplicates in mxGraph.removeCells return value [JavaScript]
@@ -594,7 +604,7 @@
 
 - Adds support for mxConstants.STYLE_SWIMLANE_FILLCOLOR [Java]
 - Fixes jetty positions for South and East direction hierarchical layout [Java]
-- mxLayoutManager no longer calls parent layout moveCells if selected [JavaScript]
+- mxLayoutManager no longer calls parent layout moveCells if selected [JavaScript] 
 - Enter key starts editing like F2 key in grapheditor
 - Click on sidebar stops editing in grapheditor
 - Fixes size of replace shape for touch devices in grapheditor
@@ -700,7 +710,7 @@
 - Fixes transition to unconnectable parent in mxConstraintHandler.update [JavaScript]
 - Removes checks for shape.content in mxCellRenderer.installListeners [JavaScript]
 - Fires UP/DOWN events after validation in mxCurrentRootChange.execute [JavaScript]
-- Fixes update of unchanged geometries in mxStackLayout [JavaScript]
+- Fixes update of unchanged geometries in mxStackLayout [JavaScript]  
 - Fixes enabled state of navigation menu, renames navigation switch/removes from sidebar in grapheditor
 - Fixes possible NPE in mxResources.add [JavaScript]
 - Fixes possible NPE in mxAbstractCanvas2D.restore [JavaScript]
@@ -710,7 +720,7 @@
 
 - Adds arcSize handle in grapheditor [JavaScript]
 - Fixes scrolling in scrollbars.html example [JavaScript]
-- Adds padding in mxGraph.fit for IE 9 and later [JavaScript]
+- Adds padding in mxGraph.fit for IE 9 and later [JavaScript] 
 - Adds shape argument in mxCellRenderer.initializeLabel [JavaScript]
 - Fixes secondlabel.html example, adds wrapping [JavaScript]
 - Adds keyboard shortcuts for zoom actions in grapheditor
@@ -741,7 +751,7 @@
 - Adds optional event argument in mxGraph.foldCells [JavaScript]
 - Adds optional cell argument in mxGraph.isExtendParentsOnAdd [JavaScript]
 - Adds mxStackLayout.resizeParentMax switch [JavaScript]
-- Adds UML shapes and elements in grapheditor UML sidebar
+- Adds UML shapes and elements in grapheditor UML sidebar 
 - Changes UML lifeline container state in grapheditor
 - Adds support for childLayout style in grapheditor
 - Fixes size handles for locked shape in grapheditor
@@ -790,7 +800,7 @@
 - Adds text direction in all canvas implementations [Java,JavaScript,Dotnet]
 - Adds mxConstants.STYLE_TEXT_DIRECTION for writing direction (experimental) [JavaScript]
 - Fixes mxClient.IS_OP for newer versions of Opera [JavaScript]
-- Ignores children of selected parents in mxClipboard.copy [JavaScript]
+- Ignores children of selected parents in mxClipboard.copy [JavaScript] 
 - Adds recursive rubberband selection in grapheditor
 - Adds decimal values in mxVertexHandler.roundAngle [JavaScript]
 - Adds mxEdgeHandler.prototype.virtualBendOpacity [JavaScript]
@@ -798,7 +808,7 @@
 
 09-FEB-2015: 3.1.2.2
 
-- mxText.updateBoundingBox sets unrotatedBoundingBox [JavaScript]
+- mxText.updateBoundingBox sets unrotatedBoundingBox [JavaScript] 
 - Adds additional check for DOMParser functionality [JavaScript]
 - Rounds coordinates in mxCellEditor.getEditorBounds [JavaScript]
 - Fixes handling of HTML entities for SVG export in quirks, IE11 [JavaScript]
@@ -817,7 +827,7 @@
 
 05-JAN-2015: 3.1.2.1
 
-- Fixes flipH/V in mxSvgCanvas2D.image [JavaScript]
+- Fixes flipH/V in mxSvgCanvas2D.image [JavaScript] 
 - Fixes offset in mxPrintPreview for poster print in IE8-10 [JavaScript]
 - Adds Graph.pasteHtmlAtCaret, insertRow/-Column, deleteRow/-Colum in grapheditor
 - Adds Graph.getSelectedElement, getParentByName, selectNode in grapheditor
@@ -1140,7 +1150,7 @@
 - Visibility and style changes trigger layout in mxLayoutManager [JavaScript]
 - Adds mxCellEditor.isStopEditingEvent, installListeners [JavaScript]
 - Disables mxTooltipHandler.show if destroy was called [JavaScript]
-- Adds mxGraphView.isCellCollapsed indirection [JavaScript]
+- Adds mxGraphView.isCellCollapsed indirection [JavaScript] 
 
 02-JUN-2014: 2.8.1.0
 
@@ -1148,7 +1158,7 @@
 - Adds mxUtils.importNode cross-browser implementation [JavaScript]
 - Corrects rotated bounding box around port constraints in orthogonal router [JavaScript]
 - Uses ActiveX in mxUtils.createaXmlDocument, getXml for IE9 standards [JavaScript]
-- Adds mxSvgCanvas2D.getCurrentStrokeWidth hook [JavaScript]
+- Adds mxSvgCanvas2D.getCurrentStrokeWidth hook [JavaScript] 
 - Adds experimental support for links in mxAbstractCanvas2D, mxSvgCanvas2D [JavaScript]
 - Adds support for links in mxImageExport.getLinkForCellState [JavaScript]
 - Adds morph.html example [JavaScript]
@@ -1313,7 +1323,7 @@
 08-JAN-2014: 2.4.0.0
 
 - Changes disabled CSS class to mxDisabled in common.css, explorer.css [JavaScript]
-- Adds anchor tag for sprite, uses pointer cursor in mxPopupMenu [JavaScript]
+- Adds anchor tag for sprite, uses pointer cursor in mxPopupMenu [JavaScript] 
 - Passes blur event to mxCellEditor.focusLost [JavaScript]
 - Adds mxUtils.isAncestorNode [JavaScript]
 - Adds mxVertexHandler.isLivePreviewBorder for transparent shapes [JavaScript]
@@ -1390,7 +1400,7 @@
 
 - Fixes rubberband trigger in IE9 for double click outside tolerance [JavaScript]
 - Hides tooltips if mouse leaves container in mxGraph.init [JavaScript]
-- Restores double ellips shape, adds documentation for override [JavaScript]
+- Restores double ellips shape, adds documentation for override [JavaScript] 
 - Adds mxConstants.STYLE_MARGIN for double ellipse shape [JavaScript]
 - Fixes mxEvent.isTouch/MouseEvent for IE11 [JavaScript]
 - Fixes textarea height in mxLog for IE11 [JavaScript]
@@ -1432,7 +1442,7 @@
 
 19-SEP-2013: 2.2.0.0
 
-- Adds mxGraph.cellResized, resize/constrainChildCells, scaleCell functions [JavaScript]
+- Adds mxGraph.cellResized, resize/constrainChildCells, scaleCell functions [JavaScript] 
 - Adds optional recurse argument in mxGraph.resizeCells, cellsResized [JavaScript]
 - Adds mxGraph.recursiveResize, constrainChildrenOnResize, extendParentsOnMove with accessors [JavaScript]
 - Fixes ignored right click after left click within double click interval [JavaScript]

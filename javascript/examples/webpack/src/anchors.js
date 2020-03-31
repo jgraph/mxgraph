@@ -19,7 +19,10 @@ window.onload = function () {
     {
       if (terminal.shape.stencil != null)
       {
-        return terminal.shape.stencil.constraints;
+        if (terminal.shape.stencil.constraints != null)
+        {
+          return terminal.shape.stencil.constraints;
+        }
       }
       else if (terminal.shape.constraints != null)
       {

@@ -1380,8 +1380,9 @@ mxEdgeHandler.prototype.updatePreviewState = function(edge, point, terminalState
 		}
 		else if (this.marker.hasValidState())
 		{
-			this.marker.highlight.shape.stroke = (this.marker.getValidState() == me.getState()) ?
-				mxConstants.DEFAULT_VALID_COLOR : 'transparent';
+			this.marker.highlight.shape.stroke = (this.graph.isCellConnectable(me.getCell()) &&
+				this.marker.getValidState() != me.getState()) ?
+				'transparent' : mxConstants.DEFAULT_VALID_COLOR;
 			this.marker.highlight.shape.strokewidth = mxConstants.HIGHLIGHT_STROKEWIDTH / s / s;
 			this.marker.highlight.repaint();
 		}
@@ -1478,7 +1479,7 @@ mxEdgeHandler.prototype.mouseMove = function(sender, me)
 		{
 			this.points = this.getPreviewPoints(this.currentPoint, me);
 			var terminalState = (this.isSource || this.isTarget) ? this.getPreviewTerminalState(me) : null;
-
+			
 			if (this.constraintHandler.currentConstraint != null &&
 				this.constraintHandler.currentFocus != null &&
 				this.constraintHandler.currentPoint != null)
@@ -1494,7 +1495,9 @@ mxEdgeHandler.prototype.mouseMove = function(sender, me)
 				{
 					terminalState = this.marker.highlight.state;
 				}
-				else if (terminalState != null && terminalState != me.getState() && this.marker.highlight.shape != null)
+				else if (terminalState != null && terminalState != me.getState() &&
+					this.graph.isCellConnectable(me.getCell()) &&
+					this.marker.highlight.shape != null)
 				{
 					this.marker.highlight.shape.stroke = 'transparent';
 					this.marker.highlight.repaint();
@@ -2208,9 +2211,26 @@ mxEdgeHandler.prototype.redrawHandles = function()
 	{
 		for (var i = 0; i < this.customHandles.length; i++)
 		{
+			var temp = this.customHandles[i].shape.node.style.display;
 			this.customHandles[i].redraw();
+			this.customHandles[i].shape.node.style.display = temp;
+
+			// Hides custom handles during text editing
+			this.customHandles[i].shape.node.style.visibility =
+				(this.isCustomHandleVisible(this.customHandles[i])) ?
+				'' : 'hidden';
 		}
 	}
+};
+
+/**
+ * Function: isCustomHandleVisible
+ * 
+ * Returns true if the given custom handle is visible.
+ */
+mxEdgeHandler.prototype.isCustomHandleVisible = function(handle)
+{
+	return !this.graph.isEditing() && this.state.view.graph.getSelectionCount() == 1;
 };
 
 /**

@@ -818,10 +818,9 @@ mxText.prototype.redrawHtmlShapeWithCss3 = function()
 	var h = Math.max(0, Math.round(this.bounds.height / this.scale));
 	var flex = 'position: absolute; left: ' + Math.round(this.bounds.x) + 'px; ' +
 		'top: ' + Math.round(this.bounds.y) + 'px; pointer-events: none; ';
-	var block = this.getTextCss() + ((this.pointerEvents) ?
-		'pointer-events: all; ' : '');
+	var block = this.getTextCss();
 	
-	mxSvgCanvas2D.createCss(w, h, this.align, this.valign, this.wrap, this.overflow, this.clipped,
+	mxSvgCanvas2D.createCss(w + 2, h, this.align, this.valign, this.wrap, this.overflow, this.clipped,
 		(this.background != null) ? mxUtils.htmlEntities(this.background) : null,
 		(this.border != null) ? mxUtils.htmlEntities(this.border) : null,
 		flex, block, this.scale, mxUtils.bind(this, function(dx, dy, flex, item, block, ofl)

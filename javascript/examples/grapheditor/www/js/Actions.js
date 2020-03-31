@@ -249,9 +249,9 @@ Actions.prototype.init = function()
 			ui.handleError(e);
 		}
 	}, null, null, Editor.ctrlKey + '+D');
-	this.put('turn', new Action(mxResources.get('turn') + ' / ' + mxResources.get('reverse'), function()
+	this.put('turn', new Action(mxResources.get('turn') + ' / ' + mxResources.get('reverse'), function(evt)
 	{
-		graph.turnShapes(graph.getSelectionCells());
+		graph.turnShapes(graph.getSelectionCells(), (evt != null) ? mxEvent.isShiftDown(evt) : false);
 	}, null, null, Editor.ctrlKey + '+R'));
 	this.addAction('selectVertices', function() { graph.selectVertices(null, true); }, null, null, Editor.ctrlKey + '+Shift+I');
 	this.addAction('selectEdges', function() { graph.selectEdges(); }, null, null, Editor.ctrlKey + '+Shift+E');
@@ -895,7 +895,7 @@ Actions.prototype.init = function()
 			
 			showingAbout = true;
 		}
-	}, null, null, 'F1'));
+	}));
 	
 	// Font style actions
 	var toggleFontStyle = mxUtils.bind(this, function(key, style, fn, shortcut)
@@ -1068,8 +1068,7 @@ Actions.prototype.init = function()
 			try
 			{
 				var cells = graph.getSelectionCells();
-	    		var state = graph.view.getState(cells[0]);
-	    		var style = (state != null) ? state.style : graph.getCellStyle(cells[0]);
+	    		var style = graph.getCurrentCellStyle(cells[0]);
 	    		var value = (mxUtils.getValue(style, mxConstants.STYLE_ROUNDED, '0') == '1') ? '0' : '1';
 	    		
 				graph.setCellStyles(mxConstants.STYLE_ROUNDED, value);
@@ -1239,6 +1238,15 @@ Actions.prototype.init = function()
 			document.execCommand('superscript', false, null);
 		}
 	}), null, null, Editor.ctrlKey + '+.');
+	action = this.addAction('indent', mxUtils.bind(this, function()
+	{
+		// NOTE: Alt+Tab for outdent implemented via special code in
+		// keyHandler.getFunction in EditorUi.js. Ctrl+Tab is reserved.
+	    if (graph.cellEditor.isContentEditing())
+	    {
+			document.execCommand('indent', false, null);
+		}
+	}), null, null, 'Shift+Tab');
 	this.addAction('image...', function()
 	{
 		if (graph.isEnabled() && !graph.isCellLocked(graph.getDefaultParent()))
@@ -1286,8 +1294,7 @@ Actions.prototype.init = function()
 			        		graph.setCellStyles(mxConstants.STYLE_IMAGE, (newValue.length > 0) ? newValue : null, cells);
 			        		
 			        		// Sets shape only if not already shape with image (label or image)
-			        		var state = graph.view.getState(cells[0]);
-			        		var style = (state != null) ? state.style : graph.getCellStyle(cells[0]);
+			        		var style = graph.getCurrentCellStyle(cells[0]);
 			        		
 			        		if (style[mxConstants.STYLE_SHAPE] != 'image' && style[mxConstants.STYLE_SHAPE] != 'label')
 			        		{
@@ -1335,7 +1342,7 @@ Actions.prototype.init = function()
 		if (this.layersWindow == null)
 		{
 			// LATER: Check outline window for initial placement
-			this.layersWindow = new LayersWindow(ui, document.body.offsetWidth - 280, 120, 220, 180);
+			this.layersWindow = new LayersWindow(ui, document.body.offsetWidth - 280, 120, 220, 196);
 			this.layersWindow.window.addListener('show', function()
 			{
 				ui.fireEvent(new mxEventObject('layers'));
@@ -1346,6 +1353,8 @@ Actions.prototype.init = function()
 			});
 			this.layersWindow.window.setVisible(true);
 			ui.fireEvent(new mxEventObject('layers'));
+			
+			this.layersWindow.init();
 		}
 		else
 		{

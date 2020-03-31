@@ -360,7 +360,9 @@ mxVertexHandler.prototype.createParentHighlightShape = function(bounds)
  */
 mxVertexHandler.prototype.createSelectionShape = function(bounds)
 {
-	var shape = new mxRectangleShape(bounds, null, this.getSelectionColor());
+	var shape = new mxRectangleShape(
+		mxRectangle.fromRectangle(bounds),
+		null, this.getSelectionColor());
 	shape.strokewidth = this.getSelectionStrokeWidth();
 	shape.isDashed = this.isSelectionDashed();
 	
@@ -1078,6 +1080,10 @@ mxVertexHandler.prototype.resizeVertex = function(me)
 		{
 			this.drawPreview();
 		}
+		else
+		{
+			this.updateParentHighlight();
+		}
 	}
 };
 
@@ -1132,6 +1138,24 @@ mxVertexHandler.prototype.updateLivePreview = function(me)
 	this.state.invalid = false;
 	this.state.view.validate();
 	this.redrawHandles();
+	
+	// Moves live preview to front
+	if ((this.state.text != null && this.state.text.node != null &&
+		this.state.text.node.nextSibling != null) ||
+		(this.state.shape != null && this.state.shape.node != null &&
+		this.state.shape.node.nextSibling != null && (this.state.text == null ||
+		this.state.shape.node.nextSibling != this.state.text.node)))
+	{
+		if (this.state.shape != null && this.state.shape.node != null)
+		{
+			this.state.shape.node.parentNode.appendChild(this.state.shape.node);
+		}
+		
+		if (this.state.text != null && this.state.text.node != null)
+		{
+			this.state.text.node.parentNode.appendChild(this.state.text.node);
+		}
+	}
 	
 	// Hides folding icon
 	if (this.state.control != null && this.state.control.node != null)
@@ -1255,14 +1279,9 @@ mxVertexHandler.prototype.rotateCell = function(cell, angle, parent)
 		{
 			if (!model.isEdge(cell))
 			{
-				var state = this.graph.view.getState(cell);
-				var style = (state != null) ? state.style : this.graph.getCellStyle(cell);
-		
-				if (style != null)
-				{
-					var total = (style[mxConstants.STYLE_ROTATION] || 0) + angle;
-					this.graph.setCellStyles(mxConstants.STYLE_ROTATION, total, [cell]);
-				}
+				var style = this.graph.getCurrentCellStyle(cell);
+				var total = (style[mxConstants.STYLE_ROTATION] || 0) + angle;
+				this.graph.setCellStyles(mxConstants.STYLE_ROTATION, total, [cell]);
 			}
 			
 			var geo = this.graph.getCellGeometry(cell);
@@ -1712,6 +1731,21 @@ mxVertexHandler.prototype.redrawHandles = function()
 	this.horizontalOffset = 0;
 	this.verticalOffset = 0;
 	var s = this.bounds;
+	
+	if (this.customHandles != null)
+	{
+		for (var i = 0; i < this.customHandles.length; i++)
+		{
+			var temp = this.customHandles[i].shape.node.style.display;
+			this.customHandles[i].redraw();
+			this.customHandles[i].shape.node.style.display = temp;
+
+			// Hides custom handles during text editing
+			this.customHandles[i].shape.node.style.visibility =
+				(this.isCustomHandleVisible(this.customHandles[i])) ?
+				'' : 'hidden';
+		}
+	}
 
 	if (this.sizers != null && this.sizers.length > 0 && this.sizers[0] != null)
 	{
@@ -1875,21 +1909,16 @@ mxVertexHandler.prototype.redrawHandles = function()
 			this.edgeHandlers[i].redraw();
 		}
 	}
+};
 
-	if (this.customHandles != null)
-	{
-		for (var i = 0; i < this.customHandles.length; i++)
-		{
-			var temp = this.customHandles[i].shape.node.style.display;
-			this.customHandles[i].redraw();
-			this.customHandles[i].shape.node.style.display = temp;
-
-			// Hides custom handles during text editing
-			this.customHandles[i].shape.node.style.visibility = (this.graph.isEditing()) ? 'hidden' : '';
-		}
-	}
-
-	this.updateParentHighlight();
+/**
+ * Function: isCustomHandleVisible
+ * 
+ * Returns true if the given custom handle is visible.
+ */
+mxVertexHandler.prototype.isCustomHandleVisible = function(handle)
+{
+	return !this.graph.isEditing() && this.state.view.graph.getSelectionCount() == 1;
 };
 
 /**
@@ -1924,7 +1953,7 @@ mxVertexHandler.prototype.updateParentHighlight = function()
 				if (pstate != null && (b.x != pstate.x || b.y != pstate.y ||
 					b.width != pstate.width || b.height != pstate.height))
 				{
-					this.parentHighlight.bounds = pstate;
+					this.parentHighlight.bounds = mxRectangle.fromRectangle(pstate);
 					this.parentHighlight.redraw();
 				}
 			}
@@ -1950,6 +1979,7 @@ mxVertexHandler.prototype.updateParentHighlight = function()
 					this.parentHighlight.pointerEvents = false;
 					this.parentHighlight.rotation = Number(pstate.style[mxConstants.STYLE_ROTATION] || '0');
 					this.parentHighlight.init(this.graph.getView().getOverlayPane());
+					this.parentHighlight.redraw();
 				}
 			}
 		}
@@ -1979,11 +2009,7 @@ mxVertexHandler.prototype.drawPreview = function()
 	
 	this.selectionBorder.bounds = this.bounds;
 	this.selectionBorder.redraw();
-	
-	if (this.parentHighlight != null)
-	{
-		this.parentHighlight.redraw();
-	}
+	this.updateParentHighlight();
 };
 
 /**

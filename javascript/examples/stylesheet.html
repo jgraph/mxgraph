@@ -43,11 +43,11 @@
 				
 				// Returns a special label for edges. Note: This does
 				// a supercall to use the default implementation.
-				graph.getLabel = function(state)
+				graph.getLabel = function(cell)
 				{
 					var label = mxGraph.prototype.getLabel.apply(this, arguments);
 					
-					if (this.getModel().isEdge(state.cell))
+					if (this.getModel().isEdge(cell))
 					{
 						return 'Transfer '+label;
 					}

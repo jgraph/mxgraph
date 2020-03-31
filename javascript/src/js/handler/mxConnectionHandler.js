@@ -1159,7 +1159,9 @@ mxConnectionHandler.prototype.updateCurrentState = function(me, point)
 				{
 					// Handles special case where actual end point of edge and current mouse point
 					// are not equal (due to grid snapping) and there is no hit on shape or highlight
-					if (this.marker.getValidState() != me.getState())
+					// but ignores cases where parent is used for non-connectable child cells
+					if (this.graph.isCellConnectable(me.getCell()) &&
+						this.marker.getValidState() != me.getState())
 					{
 						this.marker.highlight.shape.stroke = 'transparent';
 						this.currentState = null;
