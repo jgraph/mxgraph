@@ -11,6 +11,8 @@ If you want to build something like draw.io, [GraphEditor](https://jgraph.github
 
 The npm build is [here](https://www.npmjs.com/package/mxgraph)
 
+We don't support Typescript, but there is a [project to implement this](https://github.com/process-analytics/mxgraph-road-to-DefinitelyTyped), with [this repo](https://github.com/hungtcs/mxgraph-type-definitions) currently used as the lead repo.
+
 mxGraph supports IE 11, Chrome 43+, Firefox 45+, Safari 10 and later, Opera 30+, Native Android browser 5.1.x+, the default browser in the current and previous major iOS versions (e.g. 13.x and 12.x) and Edge 31+.
 
 The mxGraph library uses no third-party software, it requires no plugins and can be integrated in virtually any framework (it's vanilla JS).
