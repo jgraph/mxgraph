@@ -151,6 +151,22 @@ EditorUi = function(editor, container, lightbox)
 		// Creates hover icons
 		this.hoverIcons = this.createHoverIcons();
 		
+		// Hides hover icons when cells are moved
+		if (graph.graphHandler != null)
+		{
+			var graphHandlerStart = graph.graphHandler.start;
+			
+			graph.graphHandler.start = function()
+			{
+				if (ui.hoverIcons != null)
+				{
+					ui.hoverIcons.reset();
+				}
+				
+				graphHandlerStart.apply(this, arguments);
+			};
+		}
+		
 		// Adds tooltip when mouse is over scrollbars to show space-drag panning option
 		mxEvent.addListener(this.diagramContainer, 'mousemove', mxUtils.bind(this, function(evt)
 		{
@@ -1155,15 +1171,19 @@ EditorUi.prototype.onKeyPress = function(evt)
 		if (mxClient.IS_FF)
 		{
 			var ce = graph.cellEditor;
-			ce.textarea.innerHTML = String.fromCharCode(evt.which);
-
-			// Moves cursor to end of textarea
-			var range = document.createRange();
-			range.selectNodeContents(ce.textarea);
-			range.collapse(false);
-			var sel = window.getSelection();
-			sel.removeAllRanges();
-			sel.addRange(range);
+			
+			if (ce.textarea != null)
+			{
+				ce.textarea.innerHTML = String.fromCharCode(evt.which);
+	
+				// Moves cursor to end of textarea
+				var range = document.createRange();
+				range.selectNodeContents(ce.textarea);
+				range.collapse(false);
+				var sel = window.getSelection();
+				sel.removeAllRanges();
+				sel.addRange(range);
+			}
 		}
 	}
 };
@@ -1355,6 +1375,23 @@ EditorUi.prototype.initClipboard = function()
 			for (var i = 0; i < clones.length; i++)
 			{
 				model.add(parent, clones[i]);
+				
+				// Checks for orphaned relative children and makes absolute				
+				var state = graph.view.getState(result[i]);
+				
+				if (state != null)
+				{
+					var geo = graph.getCellGeometry(clones[i]);
+				
+					if (geo != null && geo.relative && !model.isEdge(result[i]) &&
+						lookup[mxObjectIdentity.get(model.getParent(result[i]))] == null)
+					{
+						geo.offset = null;
+						geo.relative = false;
+						geo.x = state.x / state.view.scale - state.view.translate.x;
+						geo.y = state.y / state.view.scale - state.view.translate.y;
+					}
+				}
 			}
 			
 			graph.updateCustomLinks(graph.createCellMapping(cloneMap, lookup), clones);
@@ -2436,12 +2473,14 @@ EditorUi.prototype.addChromelessClickHandler = function()
 /**
  * 
  */
-EditorUi.prototype.toggleFormatPanel = function(forceHide)
+EditorUi.prototype.toggleFormatPanel = function(visible)
 {
+	visible = (visible != null) ? visible : this.formatWidth == 0;
+	
 	if (this.format != null)
 	{
-		this.formatWidth = (forceHide || this.formatWidth > 0) ? 0 : 240;
-		this.formatContainer.style.display = (forceHide || this.formatWidth > 0) ? '' : 'none';
+		this.formatWidth = (visible) ? 240 : 0;
+		this.formatContainer.style.display = (visible) ? '' : 'none';
 		this.refresh();
 		this.format.refresh();
 		this.fireEvent(new mxEventObject('formatWidthChanged'));
@@ -3721,6 +3760,42 @@ EditorUi.prototype.hideDialog = function(cancel, isEsc)
 };
 
 /**
+ * Handles ctrl+enter keystroke to clone cells.
+ */
+EditorUi.prototype.ctrlEnter = function()
+{
+	var graph = this.editor.graph;
+
+	if (graph.isEnabled())
+	{
+		try
+		{
+			var cells = graph.getSelectionCells();
+		    var lookup = new mxDictionary();
+		    var newCells = [];
+
+		    for (var i = 0; i < cells.length; i++)
+		    {
+		    	// Clones table rows instead of cells
+		    	var cell = (graph.isTableCell(cells[i])) ? graph.model.getParent(cells[i]) : cells[i];
+		    	
+		    	if (cell != null && !lookup.get(cell))
+		    	{
+		    		lookup.put(cell, true);
+		            newCells.push(cell);
+		        }
+		    }
+		    
+			graph.setSelectionCells(graph.duplicateCells(newCells, false));
+		}
+		catch (e)
+		{
+			this.handleError(e);
+		}
+	}
+};
+
+/**
  * Display a color dialog.
  */
 EditorUi.prototype.pickColor = function(color, apply)
@@ -4045,7 +4120,7 @@ EditorUi.prototype.showDataDialog = function(cell)
 /**
  * Hides the current menu.
  */
-EditorUi.prototype.showBackgroundImageDialog = function(apply)
+EditorUi.prototype.showBackgroundImageDialog = function(apply, img)
 {
 	apply = (apply != null) ? apply : mxUtils.bind(this, function(image)
 	{
@@ -4055,7 +4130,7 @@ EditorUi.prototype.showBackgroundImageDialog = function(apply)
 		this.editor.graph.model.execute(change);
 	});
 	
-	var newValue = mxUtils.prompt(mxResources.get('backgroundImage'), '');
+	var newValue = mxUtils.prompt(mxResources.get('backgroundImage'), (img != null) ? img.src : '');
 	
 	if (newValue != null && newValue.length > 0)
 	{
@@ -4063,11 +4138,11 @@ EditorUi.prototype.showBackgroundImageDialog = function(apply)
 		
 		img.onload = function()
 		{
-			apply(new mxImage(newValue, img.width, img.height));
+			apply(new mxImage(newValue, img.width, img.height), false);
 		};
 		img.onerror = function()
 		{
-			apply(null);
+			apply(null, true);
 			mxUtils.alert(mxResources.get('fileNotFound'));
 		};
 		
@@ -4499,7 +4574,7 @@ EditorUi.prototype.createKeyHandler = function(editor)
 	
 	keyHandler.bindControlShiftKey(36, function() { graph.exitGroup(); }); // Ctrl+Shift+Home
 	keyHandler.bindControlShiftKey(35, function() { graph.enterGroup(); }); // Ctrl+Shift+End
-	keyHandler.bindKey(36, function() { graph.home(); }); // Home
+	keyHandler.bindShiftKey(36, function() { graph.home(); }); // Ctrl+Shift+Home
 	keyHandler.bindKey(35, function() { graph.refresh(); }); // End
 	keyHandler.bindAction(107, true, 'zoomIn'); // Ctrl+Plus
 	keyHandler.bindAction(109, true, 'zoomOut'); // Ctrl+Minus
@@ -4510,25 +4585,12 @@ EditorUi.prototype.createKeyHandler = function(editor)
 	{
 		keyHandler.bindControlKey(36, function() { if (graph.isEnabled()) { graph.foldCells(true); }}); // Ctrl+Home
 		keyHandler.bindControlKey(35, function() { if (graph.isEnabled()) { graph.foldCells(false); }}); // Ctrl+End
-		keyHandler.bindControlKey(13, function()
-		{
-			if (graph.isEnabled())
-			{
-				try
-				{
-					graph.setSelectionCells(graph.duplicateCells(graph.getSelectionCells(), false));
-				}
-				catch (e)
-				{
-					ui.handleError(e);
-				}
-			}
-		}); // Ctrl+Enter
+		keyHandler.bindControlKey(13, function() { ui.ctrlEnter(); }); // Ctrl+Enter
 		keyHandler.bindAction(8, false, 'delete'); // Backspace
-		keyHandler.bindAction(8, true, 'deleteAll'); // Backspace
+		keyHandler.bindAction(8, true, 'deleteAll'); // Shift+Backspace
 		keyHandler.bindAction(46, false, 'delete'); // Delete
 		keyHandler.bindAction(46, true, 'deleteAll'); // Ctrl+Delete
-		keyHandler.bindAction(72, true, 'resetView'); // Ctrl+H
+		keyHandler.bindAction(36, false, 'resetView'); // Home
 		keyHandler.bindAction(72, true, 'fitWindow', true); // Ctrl+Shift+H
 		keyHandler.bindAction(74, true, 'fitPage'); // Ctrl+J
 		keyHandler.bindAction(74, true, 'fitTwoPages', true); // Ctrl+Shift+J

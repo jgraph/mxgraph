@@ -6,7 +6,7 @@
  * Class: mxDefaultToolbarCodec
  *
  * Custom codec for configuring <mxDefaultToolbar>s. This class is created
- * and registered dynamically at load time and used implicitely via
+ * and registered dynamically at load time and used implicitly via
  * <mxCodec> and the <mxCodecRegistry>. This codec only reads configuration
  * data for existing toolbars handlers, it does not encode or create toolbars.
  */

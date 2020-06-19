@@ -1950,7 +1950,7 @@ mxGraph.prototype.getSelectionCellsForChanges = function(changes, ignoreFn)
 			{
 				cell = change.child;
 			}
-			else if (!structureOnly && change.cell != null &&
+			else if (change.cell != null &&
 				change.cell instanceof mxCell)
 			{
 				cell = change.cell;
@@ -2610,7 +2610,6 @@ mxGraph.prototype.click = function(me)
 	
 	this.fireEvent(mxe);
 	
-	// Handles the event if it has not been consumed
 	if (this.isEnabled() && !mxEvent.isConsumed(evt) && !mxe.isConsumed())
 	{
 		if (cell != null)
@@ -2619,12 +2618,14 @@ mxGraph.prototype.click = function(me)
 			{
 				var active = false;
 				
-				var tmp = this.getCellAt(me.graphX, me.graphY, null, null, null, mxUtils.bind(this, function(state)
+				var tmp = this.getCellAt(me.graphX, me.graphY, null, null, null,
+					mxUtils.bind(this, function(state)
 				{
 					var selected = this.isCellSelected(state.cell);
 					active = active || selected;
 					
-					return !active || selected;
+					return !active || selected || (state.cell != cell &&
+						this.model.isAncestor(state.cell, cell));
 				}));
 				
 				if (tmp != null)
@@ -2632,24 +2633,15 @@ mxGraph.prototype.click = function(me)
 					cell = tmp;
 				}
 			}
-			
-			this.selectCellForEvent(cell, evt);
 		}
-		else
+		else if (this.isSwimlaneSelectionEnabled())
 		{
-			var swimlane = null;
-			
-			if (this.isSwimlaneSelectionEnabled())
+			cell = this.getSwimlaneAt(me.getGraphX(), me.getGraphY());
+				
+			if (cell != null && (!this.isToggleEvent(evt) ||
+				!mxEvent.isAltDown(evt)))
 			{
-				// Gets the swimlane at the location (includes
-				// content area of swimlanes)
-				swimlane = this.getSwimlaneAt(me.getGraphX(), me.getGraphY());
-			}
-
-			// Selects the swimlane and consumes the event
-			if (swimlane != null)
-			{
-				var temp = swimlane;
+				var temp = cell;
 				var swimlanes = [];
 				
 				while (temp != null)
@@ -2657,8 +2649,7 @@ mxGraph.prototype.click = function(me)
 					temp = this.model.getParent(temp);
 					var state = this.view.getState(temp);
 					
-					if (this.isSwimlane(temp) && state != null &&
-						this.intersects(state, me.getGraphX(), me.getGraphY()))
+					if (this.isSwimlane(temp) && state != null)
 					{
 						swimlanes.push(temp);
 					}
@@ -2668,28 +2659,56 @@ mxGraph.prototype.click = function(me)
 				if (swimlanes.length > 0)
 				{
 					swimlanes = swimlanes.reverse();
-					swimlanes.splice(0, 0, swimlane);
-					swimlanes.push(swimlane);
+					swimlanes.splice(0, 0, cell);
+					swimlanes.push(cell);
 					
-					for (var i = 0; i < swimlanes.length - 2; i++)
+					for (var i = 0; i < swimlanes.length - 1; i++)
 					{
 						if (this.isCellSelected(swimlanes[i]))
 						{
-							swimlane = swimlanes[i + 1];
+							cell = swimlanes[(this.isToggleEvent(evt)) ?
+								i : i + 1];
 						}
 					}
 				}
-
-				this.selectCellForEvent(swimlane, evt);
 			}
-			// Ignores the event if the control key is pressed
-			else if (!this.isToggleEvent(evt))
-			{
-				this.clearSelection();
-			}
+		}
+			
+		if (cell != null)
+		{
+			this.selectCellForEvent(cell, evt);
+		}
+		else if (!this.isToggleEvent(evt))
+		{
+			this.clearSelection();
 		}
 	}
 };
+
+/**
+ * Function: isSiblingSelected
+ * 
+ * Returns true if any sibling of the given cell is selected.
+ */
+mxGraph.prototype.isSiblingSelected = function(cell)
+{
+	var model = this.model;
+	var parent = model.getParent(cell);
+	var childCount = model.getChildCount(parent);
+	
+	for (var i = 0; i < childCount; i++)
+	{
+		var child = model.getChildAt(parent, i);
+		
+		if (cell != child && this.isCellSelected(child))
+		{
+			return true;
+		}
+	}
+	
+	return false;
+};
+
 
 /**
  * Function: dblClick
@@ -5011,15 +5030,19 @@ mxGraph.prototype.cellsRemoved = function(cells)
  * newEdge - <mxCell> that represents the edge to be inserted.
  * dx - Optional integer that specifies the vector to move the cells.
  * dy - Optional integer that specifies the vector to move the cells.
+ * x - Integer that specifies the x-coordinate of the drop location.
+ * y - Integer that specifies the y-coordinate of the drop location.
+ * parent - Optional parent to insert the cell. If null the parent of
+ * the edge is used.
  */
-mxGraph.prototype.splitEdge = function(edge, cells, newEdge, dx, dy)
+mxGraph.prototype.splitEdge = function(edge, cells, newEdge, dx, dy, x, y, parent)
 {
 	dx = dx || 0;
 	dy = dy || 0;
 
-	var parent = this.model.getParent(edge);
+	parent = (parent != null) ? parent : this.model.getParent(edge);
 	var source = this.model.getTerminal(edge, true);
-
+	
 	this.model.beginUpdate();
 	try
 	{
@@ -5568,8 +5591,9 @@ mxGraph.prototype.cellSizeUpdated = function(cell, ignoreChildren)
  * Parameters:
  * 
  * cell - <mxCell> for which the preferred size should be returned.
+ * textWidth - Optional maximum text width for word wrapping.
  */
-mxGraph.prototype.getPreferredSizeForCell = function(cell)
+mxGraph.prototype.getPreferredSizeForCell = function(cell, textWidth)
 {
 	var result = null;
 	
@@ -5633,7 +5657,7 @@ mxGraph.prototype.getPreferredSizeForCell = function(cell)
 				value = value.replace(/\n/g, '<br>');
 				
 				var size = mxUtils.getSizeForString(value, fontSize,
-					style[mxConstants.STYLE_FONTFAMILY], null,
+					style[mxConstants.STYLE_FONTFAMILY], textWidth,
 					style[mxConstants.STYLE_FONTSTYLE]);
 				var width = size.width + dx;
 				var height = size.height + dy;
@@ -9245,6 +9269,94 @@ mxGraph.prototype.getStartSize = function(swimlane, ignoreState)
 };
 
 /**
+ * Function: getSwimlaneDirection
+ * 
+ * Returns the direction for the given swimlane style.
+ */
+mxGraph.prototype.getSwimlaneDirection = function(style)
+{
+	var dir = mxUtils.getValue(style, mxConstants.STYLE_DIRECTION, mxConstants.DIRECTION_EAST);
+	var flipH = mxUtils.getValue(style, mxConstants.STYLE_FLIPH, 0) == 1;
+	var flipV = mxUtils.getValue(style, mxConstants.STYLE_FLIPV, 0) == 1;
+	var h = mxUtils.getValue(style, mxConstants.STYLE_HORIZONTAL, true);
+	var n = (h) ? 0 : 3;
+	
+	if (dir == mxConstants.DIRECTION_NORTH)
+	{
+		n--;
+	}
+	else if (dir == mxConstants.DIRECTION_WEST)
+	{
+		n += 2;
+	}
+	else if (dir == mxConstants.DIRECTION_SOUTH)
+	{
+		n += 1;
+	}
+	
+	var mod = mxUtils.mod(n, 2);
+	
+	if (flipH && mod == 1)
+	{
+		n += 2;
+	}
+	
+	if (flipV && mod == 0)
+	{
+		n += 2;
+	}
+	
+	return [mxConstants.DIRECTION_NORTH, mxConstants.DIRECTION_EAST,
+		mxConstants.DIRECTION_SOUTH, mxConstants.DIRECTION_WEST]
+		[mxUtils.mod(n, 4)];
+};
+
+/**
+ * Function: getActualStartSize
+ * 
+ * Returns the actual start size of the given swimlane taking into account
+ * direction and horizontal and vertial flip styles. The start size is
+ * returned as an <mxRectangle> where top, left, bottom, right start sizes
+ * are returned as x, y, height and width, respectively.
+ * 
+ * Parameters:
+ * 
+ * swimlane - <mxCell> whose start size should be returned.
+ * ignoreState - Optional boolean that specifies if cell state should be ignored.
+ */
+mxGraph.prototype.getActualStartSize = function(swimlane, ignoreState)
+{
+	var result = new mxRectangle();
+	
+	if (this.isSwimlane(swimlane, ignoreState))
+	{
+		var style = this.getCurrentCellStyle(swimlane, ignoreState);
+		var size = parseInt(mxUtils.getValue(style, mxConstants.STYLE_STARTSIZE,
+			mxConstants.DEFAULT_STARTSIZE));
+		var dir = this.getSwimlaneDirection(style);
+		
+		if (dir == mxConstants.DIRECTION_NORTH)
+		{
+			result.y = size;
+		}
+		else if (dir == mxConstants.DIRECTION_WEST)
+		{
+			result.x = size;
+		}
+		else if (dir == mxConstants.DIRECTION_SOUTH)
+		{
+			result.height = size;
+		}
+		else
+		{
+			result.width = size;
+		}
+	}
+	
+	return result;
+};
+
+/**
  * Function: getImage
  * 
  * Returns the image URL for the given cell state. This implementation
@@ -9404,12 +9516,15 @@ mxGraph.prototype.setBorder = function(value)
  * Parameters:
  * 
  * cell - <mxCell> to be checked.
+ * ignoreState - Optional boolean that specifies if the cell state should be ignored.
  */
-mxGraph.prototype.isSwimlane = function(cell)
+mxGraph.prototype.isSwimlane = function(cell, ignoreState)
 {
-	if (cell != null && this.model.getParent(cell) != this.model.getRoot() && !this.model.isEdge(cell))
+	if (cell != null && this.model.getParent(cell) != this.model.getRoot() &&
+		!this.model.isEdge(cell))
 	{
-		return this.getCurrentCellStyle(cell)[mxConstants.STYLE_SHAPE] == mxConstants.SHAPE_SWIMLANE;
+		return this.getCurrentCellStyle(cell, ignoreState)
+			[mxConstants.STYLE_SHAPE] == mxConstants.SHAPE_SWIMLANE;
 	}
 	
 	return false;
@@ -12592,7 +12707,7 @@ mxGraph.prototype.isEventIgnored = function(evtName, me, sender)
 	{
 		result = true;
 	}
-	else if (mxClient.IS_TOUCH && mxClient.IOS_VERSION <= 12 && evtName == mxEvent.MOUSE_DOWN &&
+	else if (mxClient.IS_TOUCH && evtName == mxEvent.MOUSE_DOWN &&
 			!mouseEvent && !mxEvent.isPenEvent(me.getEvent()))
 	{
 		this.eventSource = me.getSource();

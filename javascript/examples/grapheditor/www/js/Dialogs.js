@@ -42,6 +42,30 @@ var ColorDialog = function(editorUi, color, apply, cancelFn)
 		document.body.appendChild(input);
 	}
 	
+	var applyFunction = (apply != null) ? apply : this.createApplyFunction();
+	
+	function doApply()
+	{
+		var color = input.value;
+		
+		// Blocks any non-alphabetic chars in colors
+		if (/(^#?[a-zA-Z0-9]*$)/.test(color))
+		{
+			if (color != 'none' && color.charAt(0) != '#')
+			{
+				color = '#' + color;
+			}
+
+			ColorDialog.addRecentColor((color != 'none') ? color.substring(1) : color, 12);
+			applyFunction(color);
+			editorUi.hideDialog();
+		}
+		else
+		{
+			editorUi.handleError({message: mxResources.get('invalidInput')});	
+		}
+	};
+	
 	this.init = function()
 	{
 		if (!mxClient.IS_TOUCH)
@@ -50,16 +74,16 @@ var ColorDialog = function(editorUi, color, apply, cancelFn)
 		}
 	};
 
-	var picker = new jscolor.color(input);
+	var picker = new mxJSColor.color(input);
 	picker.pickerOnfocus = false;
 	picker.showPicker();
 
 	var div = document.createElement('div');
-	jscolor.picker.box.style.position = 'relative';
-	jscolor.picker.box.style.width = '230px';
-	jscolor.picker.box.style.height = '100px';
-	jscolor.picker.box.style.paddingBottom = '10px';
-	div.appendChild(jscolor.picker.box);
+	mxJSColor.picker.box.style.position = 'relative';
+	mxJSColor.picker.box.style.width = '230px';
+	mxJSColor.picker.box.style.height = '100px';
+	mxJSColor.picker.box.style.paddingBottom = '10px';
+	div.appendChild(mxJSColor.picker.box);
 
 	var center = document.createElement('center');
 	
@@ -131,6 +155,8 @@ var ColorDialog = function(editorUi, color, apply, cancelFn)
 								picker.fromString(clr);
 							}
 						});
+						
+						mxEvent.addListener(td, 'dblclick', doApply);
 					}
 				})(presets[row * rowLength + i]);
 			}
@@ -199,29 +225,7 @@ var ColorDialog = function(editorUi, color, apply, cancelFn)
 		buttons.appendChild(cancelBtn);
 	}
 	
-	var applyFunction = (apply != null) ? apply : this.createApplyFunction();
-	
-	var applyBtn = mxUtils.button(mxResources.get('apply'), function()
-	{
-		var color = input.value;
-		
-		// Blocks any non-alphabetic chars in colors
-		if (/(^#?[a-zA-Z0-9]*$)/.test(color))
-		{
-			if (color != 'none' && color.charAt(0) != '#')
-			{
-				color = '#' + color;
-			}
-
-			ColorDialog.addRecentColor((color != 'none') ? color.substring(1) : color, 12);
-			applyFunction(color);
-			editorUi.hideDialog();
-		}
-		else
-		{
-			editorUi.handleError({message: mxResources.get('invalidInput')});	
-		}
-	});
+	var applyBtn = mxUtils.button(mxResources.get('apply'), doApply);
 	applyBtn.className = 'geBtn gePrimaryBtn';
 	buttons.appendChild(applyBtn);
 	

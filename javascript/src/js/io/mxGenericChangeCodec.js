@@ -7,7 +7,7 @@
  *
  * Codec for <mxValueChange>s, <mxStyleChange>s, <mxGeometryChange>s,
  * <mxCollapseChange>s and <mxVisibleChange>s. This class is created
- * and registered dynamically at load time and used implicitely
+ * and registered dynamically at load time and used implicitly
  * via <mxCodec> and the <mxCodecRegistry>.
  *
  * Transient Fields:

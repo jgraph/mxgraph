@@ -126,7 +126,7 @@
 					link.style.fontSize = '14pt';
 					var key = keys[i];
 					window.parent.mxUtils.write(link, key);
-					link.setAttribute('href', 'javascript:void(0);');
+					link.style.cursor = 'pointer';
 					div.appendChild(link);
 					
 					var img = document.createElement('span');

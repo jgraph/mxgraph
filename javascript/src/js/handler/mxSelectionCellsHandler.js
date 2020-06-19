@@ -120,6 +120,16 @@ mxSelectionCellsHandler.prototype.getHandler = function(cell)
 };
 
 /**
+ * Function: isHandled
+ * 
+ * Returns true if the given cell has a handler.
+ */
+mxSelectionCellsHandler.prototype.isHandled = function(cell)
+{
+	return this.getHandler(cell) != null;
+};
+
+/**
  * Function: reset
  * 
  * Resets all handlers.
@@ -130,6 +140,16 @@ mxSelectionCellsHandler.prototype.reset = function()
 	{
 		handler.reset.apply(handler);
 	});
+};
+
+/**
+ * Function: getHandledSelectionCells
+ * 
+ * Reloads or updates all handlers.
+ */
+mxSelectionCellsHandler.prototype.getHandledSelectionCells = function()
+{
+	return this.graph.getSelectionCells();
 };
 
 /**
@@ -144,7 +164,7 @@ mxSelectionCellsHandler.prototype.refresh = function()
 	this.handlers = new mxDictionary();
 	
 	// Creates handles for all selection cells
-	var tmp = this.graph.getSelectionCells();
+	var tmp = mxUtils.sortCells(this.getHandledSelectionCells(), false);
 
 	for (var i = 0; i < tmp.length; i++)
 	{

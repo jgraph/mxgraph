@@ -20,9 +20,9 @@ var mxClient =
 	 * 
 	 * versionMajor.versionMinor.buildNumber.revisionNumber
 	 * 
-	 * Current version is 4.1.1.
+	 * Current version is 4.2.0.
 	 */
-	VERSION: '4.1.1',
+	VERSION: '4.2.0',
 
 	/**
 	 * Variable: IS_IE
@@ -121,9 +121,7 @@ var mxClient =
 	 *
 	 * True if the current browser is Safari.
 	 */
-  	IS_SF: /constructor/i.test(window.HTMLElement) || (function (p) {
-  		return p.toString() === "[object SafariRemoteNotification]";
-  		})(!window['safari'] || (typeof safari !== 'undefined' && safari.pushNotification)),
+  	IS_SF: /Apple Computer, Inc/.test(navigator.vendor),
 
 	/**
 	 * Variable: IS_ANDROID
@@ -139,27 +137,6 @@ var mxClient =
 	 */
   	IS_IOS: (/iP(hone|od|ad)/.test(navigator.platform)),
 
-	/**
-	 * Variable: IOS_VERSION
-	 * 
-	 * Returns the major version number for iOS devices or 0 if the
-	 * device is not an iOS device.
-	 */
-  	IOS_VERSION: (function()
-  	{
-  		if ((/iP(hone|od|ad)/.test(navigator.platform)))
-  		{
-  			var v = (navigator.appVersion).match(/OS (\d+)_(\d+)_?(\d+)?/);
-  			
-  			if (v != null && v.length > 0)
-  			{
-  				return parseInt(v[1]);
-  			}
-  		}
-  		
-  		return 0;
-  	})(),
- 
 	/**
 	 * Variable: IS_GC
 	 *
@@ -384,15 +361,6 @@ var mxClient =
 		document.write('<script src="'+src+'"></script>');
 	}
 };
-
-/**
- * Detects desktop mode on iPad Pro which should block event handling like iOS 12.
- */
-if (mxClient.IS_SF && mxClient.IS_TOUCH && !mxClient.IS_IOS)
-{
-	mxClient.IOS_VERSION = 13;
-	mxClient.IOS = true;
-}
 
 /**
  * Variable: mxLoadResources

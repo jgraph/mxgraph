@@ -8,7 +8,7 @@ mxCodecRegistry.register(function()
 	 * Class: mxModelCodec
 	 *
 	 * Codec for <mxGraphModel>s. This class is created and registered
-	 * dynamically at load time and used implicitely via <mxCodec>
+	 * dynamically at load time and used implicitly via <mxCodec>
 	 * and the <mxCodecRegistry>.
 	 */
 	var codec = new mxObjectCodec(new mxGraphModel());

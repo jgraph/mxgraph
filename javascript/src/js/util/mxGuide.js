@@ -142,7 +142,6 @@ mxGuide.prototype.move = function(bounds, delta, gridEnabled, clone)
 {
 	if (this.states != null && (this.horizontal || this.vertical) && bounds != null && delta != null)
 	{
-		var trx = this.graph.getView().translate;
 		var scale = this.graph.getView().scale;
 		var tt = this.getGuideTolerance(gridEnabled) * scale;
 		var b = bounds.clone();

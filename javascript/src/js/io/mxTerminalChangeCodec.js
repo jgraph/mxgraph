@@ -8,7 +8,7 @@ mxCodecRegistry.register(function()
 	 * Class: mxTerminalChangeCodec
 	 *
 	 * Codec for <mxTerminalChange>s. This class is created and registered
-	 * dynamically at load time and used implicitely via <mxCodec> and
+	 * dynamically at load time and used implicitly via <mxCodec> and
 	 * the <mxCodecRegistry>.
 	 *
 	 * Transient Fields:

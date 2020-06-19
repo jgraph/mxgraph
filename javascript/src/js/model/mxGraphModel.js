@@ -2157,12 +2157,14 @@ mxGraphModel.prototype.getParents = function(cells)
  * Parameters:
  * 
  * cell - <mxCell> to be cloned.
+ * includeChildren - Optional boolean indicating if the cells should be cloned
+ * with all descendants. Default is true.
  */
-mxGraphModel.prototype.cloneCell = function(cell)
+mxGraphModel.prototype.cloneCell = function(cell, includeChildren)
 {
 	if (cell != null)
 	{
-		return this.cloneCells([cell], true)[0];
+		return this.cloneCells([cell], includeChildren)[0];
 	}
 	
 	return null;
@@ -2179,12 +2181,13 @@ mxGraphModel.prototype.cloneCell = function(cell)
  * Parameters:
  * 
  * cells - Array of <mxCell> to be cloned.
- * includeChildren - Boolean indicating if the cells should be cloned
- * with all descendants.
+ * includeChildren - Optional boolean indicating if the cells should be cloned
+ * with all descendants. Default is true.
  * mapping - Optional mapping for existing clones.
  */
 mxGraphModel.prototype.cloneCells = function(cells, includeChildren, mapping)
 {
+	includeChildren = (includeChildren != null) ? includeChildren : true;
 	mapping = (mapping != null) ? mapping : new Object();
 	var clones = [];
 	

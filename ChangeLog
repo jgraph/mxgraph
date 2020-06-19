@@ -1,3 +1,22 @@
+19-JUN-2020: 4.2.0
+
+- Adds ghost preview in mxVertexHandler
+- Makes mxHandle.positionChanged optional
+- Executes bottom to top before top to bottom in mxLayoutManager
+- Adds selection handling for cell hierarchies
+- Adds event transparency for filled swimlane content
+- Adds mxSelectionCellsHandler.isHandled
+- Adds mxGraph.getCellToSelect
+- Adds mxGraphHandler.isPropagateSelectionCell
+- Removes mxClient.IOS_VERSION and workaround for event handling
+- Fixes mxClient.IS_SF for iframe
+- Adds optional textWidth for mxGraph.getPreferredSizeForCell
+- Adds vertical switch for mxLine
+- Adds mxLayoutManager.hasLayout hook
+- Adds optional shape argument in mxHandle
+- Adds mxGraphHandler.getHandledSelectionCells
+- Adds mxVertexHandler.getSizerBounds, isParentHighlightVisible, getSelectionBorderBounds
+
 31-MAR-2020: 4.1.1
 
 - Fixes use of userAgent to detect browsers and platforms
@@ -41,7 +60,7 @@
 - Adds mxGraphHandler.maxLivePreview
 - Adds mxGuide.isStateIgnored hook
 
-20-JUL-2019: 4.0.4
+20-AUG-2019: 4.0.4
 
 - Moved PHP code to own repo
 - Adds DPI support in advanced dialog

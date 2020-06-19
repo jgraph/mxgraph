@@ -8,7 +8,7 @@ mxCodecRegistry.register(function()
 	 * Class: mxChildChangeCodec
 	 *
 	 * Codec for <mxChildChange>s. This class is created and registered
-	 * dynamically at load time and used implicitely via <mxCodec> and
+	 * dynamically at load time and used implicitly via <mxCodec> and
 	 * the <mxCodecRegistry>.
 	 *
 	 * Transient Fields:

@@ -192,8 +192,9 @@ mxPopupMenu.prototype.isPopupTrigger = function(me)
  * enabled - Optional boolean indicating if the item is enabled. Default is true.
  * active - Optional boolean indicating if the menu should implement any event handling.
  * Default is true.
+ * noHover - Optional boolean to disable hover state.
  */
-mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, enabled, active)
+mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, enabled, active, noHover)
 {
 	parent = parent || this;
 	this.itemCount++;
@@ -305,7 +306,10 @@ mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, e
 				}
 		
 				// Sets hover style because TR in IE doesn't have hover
-				tr.className = 'mxPopupMenuItemHover';
+				if (!noHover)
+				{
+					tr.className = 'mxPopupMenuItemHover';
+				}
 			}),
 			mxUtils.bind(this, function(evt)
 			{
@@ -346,12 +350,15 @@ mxPopupMenu.prototype.addItem = function(title, image, funct, parent, iconCls, e
 		);
 	
 		// Resets hover style because TR in IE doesn't have hover
-		mxEvent.addListener(tr, 'mouseout',
-			mxUtils.bind(this, function(evt)
-			{
-				tr.className = 'mxPopupMenuItem';
-			})
-		);
+		if (!noHover)
+		{
+			mxEvent.addListener(tr, 'mouseout',
+				mxUtils.bind(this, function(evt)
+				{
+					tr.className = 'mxPopupMenuItem';
+				})
+			);
+		}
 	}
 	
 	return tr;

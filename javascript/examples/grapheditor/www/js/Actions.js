@@ -203,30 +203,11 @@ Actions.prototype.init = function()
 	{
 		// Cancels interactive operations
 		graph.escape();
-		var cells = graph.getDeletableCells(graph.getSelectionCells());
+		var select = graph.deleteCells(graph.getDeletableCells(graph.getSelectionCells()), includeEdges);
 		
-		if (cells != null && cells.length > 0)
+		if (select != null)
 		{
-			var parents = (graph.selectParentAfterDelete) ? graph.model.getParents(cells) : null;
-			graph.removeCells(cells, includeEdges);
-			
-			// Selects parents for easier editing of groups
-			if (parents != null)
-			{
-				var select = [];
-				
-				for (var i = 0; i < parents.length; i++)
-				{
-					if (graph.model.contains(parents[i]) &&
-						(graph.model.isVertex(parents[i]) ||
-						graph.model.isEdge(parents[i])))
-					{
-						select.push(parents[i]);
-					}
-				}
-				
-				graph.setSelectionCells(select);
-			}
+			graph.setSelectionCells(select);
 		}
 	};
 	
@@ -280,7 +261,7 @@ Actions.prototype.init = function()
 	}, null, null, Editor.ctrlKey + '+L');
 
 	// Navigation actions
-	this.addAction('home', function() { graph.home(); }, null, null, 'Home');
+	this.addAction('home', function() { graph.home(); }, null, null, 'Shift+Home');
 	this.addAction('exitGroup', function() { graph.exitGroup(); }, null, null, Editor.ctrlKey + '+Shift+Home');
 	this.addAction('enterGroup', function() { graph.enterGroup(); }, null, null, Editor.ctrlKey + '+Shift+End');
 	this.addAction('collapse', function() { graph.foldCells(true); }, null, null, Editor.ctrlKey + '+Home');
@@ -571,7 +552,7 @@ Actions.prototype.init = function()
 				    		
 				    		// Removes HTML tags
 			    			var temp = document.createElement('div');
-			    			temp.innerHTML = label;
+			    			temp.innerHTML = graph.sanitizeHtml(label);
 			    			label = mxUtils.extractTextWithWhitespace(temp.childNodes);
 			    			
 							graph.cellLabelChanged(state.cell, label);
@@ -644,7 +625,7 @@ Actions.prototype.init = function()
 	{
 		graph.zoomTo(1);
 		ui.resetScrollbars();
-	}, null, null, Editor.ctrlKey + '+H');
+	}, null, null, 'Home');
 	this.addAction('zoomIn', function(evt)
 	{
 		if (graph.isFastZoomEnabled())

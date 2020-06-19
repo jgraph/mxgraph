@@ -887,6 +887,15 @@ var mxUtils =
 					result.push(indent + mxUtils.htmlEntities(mxUtils.trim(value), false) + newline);
 				}
 			}
+			else if (node.nodeType == mxConstants.NODETYPE_CDATA)
+			{
+				var value = mxUtils.getTextContent(node);
+				
+				if (value.length > 0)
+				{
+					result.push(indent + '<![CDATA[' + value + ']]' + newline);
+				}
+			}
 			else
 			{
 				result.push(indent + '<' + node.nodeName);

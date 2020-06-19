@@ -54,7 +54,6 @@ mxSwimlaneOrdering.prototype.execute = function(parent)
 		
 		for (var i = 0; i < modelRoots.length; i++)
 		{
-			var nodeId = mxCellPath.create(modelRoots[i]);
 			rootsArray[i] = model.vertexMapper.get(modelRoots[i]);
 		}
 	}

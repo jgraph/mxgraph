@@ -75,7 +75,7 @@ mxCellHighlight.prototype.keepOnTop = false;
  * 
  * Reference to the enclosing <mxGraph>.
  */
-mxCellHighlight.prototype.graph = true;
+mxCellHighlight.prototype.graph = null;
 
 /**
  * Variable: state

@@ -200,13 +200,29 @@ mxLayoutManager.prototype.setGraph = function(graph)
 };
 
 /**
+ * Function: hasLayout
+ * 
+ * Returns true if the given cell has a layout. This implementation invokes
+ * <getLayout> with <mxEvent.LAYOUT_CELLS> as the eventName. Override this
+ * if creating layouts in <getLayout> is expensive and return true if
+ * <getLayout> will return a layout for the given cell for
+ * <mxEvent.BEGIN_UPDATE> or <mxEvent.END_UPDATE>.
+ */
+mxLayoutManager.prototype.hasLayout = function(cell)
+{
+	return this.getLayout(cell, mxEvent.LAYOUT_CELLS);
+};
+
+/**
  * Function: getLayout
  * 
  * Returns the layout for the given cell and eventName. Possible
  * event names are <mxEvent.MOVE_CELLS> and <mxEvent.RESIZE_CELLS>
- * for callbacks on when cells are moved or resized and
- * <mxEvent.BEGIN_UPDATE> and <mxEvent.END_UPDATE> for the capture
- * and bubble phase of the layout after any changes of the model.
+ * when cells are moved or resized and <mxEvent.BEGIN_UPDATE> or
+ * <mxEvent.END_UPDATE> for the bottom up and top down phases after
+ * changes to the graph model. <mxEvent.LAYOUT_CELLS> is used to
+ * check if a layout exists for the given cell. This is called
+ * from <hasLayout>.
  */
 mxLayoutManager.prototype.getLayout = function(cell, eventName)
 {
@@ -386,7 +402,7 @@ mxLayoutManager.prototype.addAncestorsWithLayout = function(cell, result)
 	
 	if (cell != null)
 	{
-		var layout = this.getLayout(cell);
+		var layout = this.hasLayout(cell);
 		
 		if (layout != null)
 		{
@@ -413,7 +429,7 @@ mxLayoutManager.prototype.addDescendantsWithLayout = function(cell, result)
 {
 	result = (result != null) ? result : [];
 	
-	if (cell != null && this.getLayout(cell) != null)
+	if (cell != null && this.hasLayout(cell))
 	{
 		var model = this.getGraph().getModel();
 		
@@ -421,7 +437,7 @@ mxLayoutManager.prototype.addDescendantsWithLayout = function(cell, result)
 		{
 			var child = model.getChildAt(cell, i);
 			
-			if (this.getLayout(child) != null)
+			if (this.hasLayout(child))
 			{
 				result.push(child);
 				this.addDescendantsWithLayout(child, result);
@@ -435,16 +451,16 @@ mxLayoutManager.prototype.addDescendantsWithLayout = function(cell, result)
 /**
  * Function: executeLayoutForCells
  * 
- * Executes the given layout on the given parent.
+ * Executes all layouts for the given cells in two phases: In the first phase
+ * layouts for child cells are executed before layouts for parent cells with
+ * <mxEvent.BEGIN_UPDATE>, in the second phase layouts for parent cells are
+ * executed before layouts for child cells with <mxEvent.END_UPDATE>.
  */
 mxLayoutManager.prototype.executeLayoutForCells = function(cells)
 {
-	// Adds reverse to this array to avoid duplicate execution of leaves
-	// Works like capture/bubble for events, first executes all layout
-	// from top to bottom and in reverse order and removes duplicates.
-	var sorted = mxUtils.sortCells(cells, true);
-	this.layoutCells(sorted, false);
-	this.layoutCells(sorted.reverse(), true);
+	var sorted = mxUtils.sortCells(cells, false);
+	this.layoutCells(sorted, true);
+	this.layoutCells(sorted.reverse(), false);
 };
 
 /**
@@ -490,7 +506,7 @@ mxLayoutManager.prototype.layoutCells = function(cells, bubble)
 mxLayoutManager.prototype.executeLayout = function(cell, bubble)
 {
 	var layout = this.getLayout(cell, (bubble) ?
-		mxEvent.END_UPDATE : mxEvent.BEGIN_UPDATE);
+		mxEvent.BEGIN_UPDATE : mxEvent.END_UPDATE);
 
 	if (layout != null)
 	{

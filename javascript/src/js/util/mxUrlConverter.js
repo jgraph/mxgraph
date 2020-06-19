@@ -100,7 +100,7 @@ mxUrlConverter.prototype.setBaseUrl = function(value)
 mxUrlConverter.prototype.getBaseDomain = function()
 {
 	return this.baseDomain;
-},
+};
 
 /**
  * Function: setBaseDomain
@@ -110,7 +110,7 @@ mxUrlConverter.prototype.getBaseDomain = function()
 mxUrlConverter.prototype.setBaseDomain = function(value)
 {
 	this.baseDomain = value;
-},
+};
 
 /**
  * Function: isRelativeUrl

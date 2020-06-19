@@ -15,12 +15,13 @@
  * 
  * state - <mxCellState> of the cell to be handled.
  */
-function mxHandle(state, cursor, image)
+function mxHandle(state, cursor, image, shape)
 {
 	this.graph = state.view.graph;
 	this.state = state;
 	this.cursor = (cursor != null) ? cursor : this.cursor;
 	this.image = (image != null) ? image : this.image;
+	this.shape = (shape != null) ? shape : null;
 	this.init();
 };
 
@@ -64,7 +65,7 @@ mxHandle.prototype.setPosition = function(bounds, pt, me) { };
  * 
  * Hook for subclassers to execute the handle.
  */
-mxHandle.prototype.execute = function() { };
+mxHandle.prototype.execute = function(me) { };
 
 /**
  * Function: copyStyle
@@ -100,15 +101,14 @@ mxHandle.prototype.processEvent = function(me)
 	pt = this.flipPoint(this.rotatePoint(this.snapPoint(this.rotatePoint(pt, alpha1),
 			this.ignoreGrid || !this.graph.isGridEnabledEvent(me.getEvent())), alpha2));
 	this.setPosition(this.state.getPaintBounds(), pt, me);
-	this.positionChanged();
 	this.redraw();
 };
 
 /**
  * Function: positionChanged
  * 
- * Called after <setPosition> has been called in <processEvent>. This repaints
- * the state using <mxCellRenderer>.
+ * Should be called after <setPosition> in <processEvent>.
+ * This repaints the state using <mxCellRenderer>.
  */
 mxHandle.prototype.positionChanged = function()
 {
@@ -170,7 +170,7 @@ mxHandle.prototype.init = function()
 		this.shape = new mxImageShape(new mxRectangle(0, 0, this.image.width, this.image.height), this.image.src);
 		this.shape.preserveImageAspect = false;
 	}
-	else
+	else if (this.shape == null)
 	{
 		this.shape = this.createShape(html);
 	}
@@ -204,7 +204,8 @@ mxHandle.prototype.initShape = function(html)
 	}
 	else
 	{
-		this.shape.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ? mxConstants.DIALECT_MIXEDHTML : mxConstants.DIALECT_SVG;
+		this.shape.dialect = (this.graph.dialect != mxConstants.DIALECT_SVG) ?
+			mxConstants.DIALECT_MIXEDHTML : mxConstants.DIALECT_SVG;
 		
 		if (this.cursor != null)
 		{

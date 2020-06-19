@@ -8,7 +8,7 @@ mxCodecRegistry.register(function()
 	 * Class: mxGraphViewCodec
 	 *
 	 * Custom encoder for <mxGraphView>s. This class is created
-	 * and registered dynamically at load time and used implicitely via
+	 * and registered dynamically at load time and used implicitly via
 	 * <mxCodec> and the <mxCodecRegistry>. This codec only writes views
 	 * into a XML format that can be used to create an image for
 	 * the graph, that is, it contains absolute coordinates with

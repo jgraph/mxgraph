@@ -142,19 +142,27 @@ mxSwimlane.prototype.getGradientBounds = function(c, x, y, w, h)
 };
 
 /**
- * Function: getArcSize
+ * Function: getSwimlaneArcSize
  * 
  * Returns the arcsize for the swimlane.
  */
-mxSwimlane.prototype.getArcSize = function(w, h, start)
+mxSwimlane.prototype.getSwimlaneArcSize = function(w, h, start)
 {
-	var f = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, mxConstants.RECTANGLE_ROUNDING_FACTOR * 100) / 100;
+	if (mxUtils.getValue(this.style, mxConstants.STYLE_ABSOLUTE_ARCSIZE, 0) == '1')
+	{
+		return Math.min(w / 2, Math.min(h / 2, mxUtils.getValue(this.style,
+			mxConstants.STYLE_ARCSIZE, mxConstants.LINE_ARCSIZE) / 2));
+	}
+	else
+	{
+		var f = mxUtils.getValue(this.style, mxConstants.STYLE_ARCSIZE, mxConstants.RECTANGLE_ROUNDING_FACTOR * 100) / 100;
 
-	return start * f * 3; 
+		return start * f * 3; 
+	}
 };
 
 /**
- * Function: paintVertexShape
+ * Function: isHorizontal
  *
  * Paints the swimlane vertex shape.
  */
@@ -192,7 +200,7 @@ mxSwimlane.prototype.paintVertexShape = function(c, x, y, w, h)
 	}
 	else
 	{
-		r = this.getArcSize(w, h, start);
+		r = this.getSwimlaneArcSize(w, h, start);
 		r = Math.min(((this.isHorizontal()) ? h : w) - start, Math.min(start, r));
 		this.paintRoundedSwimlane(c, x, y, w, h, start, r, fill, swimlaneLine);
 	}
@@ -223,6 +231,18 @@ mxSwimlane.prototype.paintSwimlane = function(c, x, y, w, h, start, fill, swimla
 {
 	c.begin();
 	
+	var events = true;
+	
+	if (this.style != null)
+	{
+		events = mxUtils.getValue(this.style, mxConstants.STYLE_POINTER_EVENTS, '1') == '1';
+	}
+	
+	if (!events && (this.fill == null || this.fill == mxConstants.NONE))
+	{
+		c.pointerEvents = false;
+	}
+	
 	if (this.isHorizontal())
 	{
 		c.moveTo(0, start);
@@ -233,11 +253,12 @@ mxSwimlane.prototype.paintSwimlane = function(c, x, y, w, h, start, fill, swimla
 
 		if (start < h)
 		{
-			if (fill == mxConstants.NONE)
+			if (fill == mxConstants.NONE || !events)
 			{
 				c.pointerEvents = false;
 			}
-			else
+			
+			if (fill != mxConstants.NONE)
 			{
 				c.setFillColor(fill);
 			}
@@ -268,11 +289,12 @@ mxSwimlane.prototype.paintSwimlane = function(c, x, y, w, h, start, fill, swimla
 		
 		if (start < w)
 		{
-			if (fill == mxConstants.NONE)
+			if (fill == mxConstants.NONE || !events)
 			{
 				c.pointerEvents = false;
 			}
-			else
+			
+			if (fill != mxConstants.NONE)
 			{
 				c.setFillColor(fill);
 			}
@@ -308,7 +330,19 @@ mxSwimlane.prototype.paintSwimlane = function(c, x, y, w, h, start, fill, swimla
 mxSwimlane.prototype.paintRoundedSwimlane = function(c, x, y, w, h, start, r, fill, swimlaneLine)
 {
 	c.begin();
-
+	
+	var events = true;
+	
+	if (this.style != null)
+	{
+		events = mxUtils.getValue(this.style, mxConstants.STYLE_POINTER_EVENTS, '1') == '1';
+	}
+	
+	if (!events && (this.fill == null || this.fill == mxConstants.NONE))
+	{
+		c.pointerEvents = false;
+	}
+	
 	if (this.isHorizontal())
 	{
 		c.moveTo(w, start);
@@ -321,11 +355,12 @@ mxSwimlane.prototype.paintRoundedSwimlane = function(c, x, y, w, h, start, r, fi
 		
 		if (start < h)
 		{
-			if (fill == mxConstants.NONE)
+			if (fill == mxConstants.NONE || !events)
 			{
 				c.pointerEvents = false;
 			}
-			else
+			
+			if (fill != mxConstants.NONE)
 			{
 				c.setFillColor(fill);
 			}
@@ -360,11 +395,12 @@ mxSwimlane.prototype.paintRoundedSwimlane = function(c, x, y, w, h, start, r, fi
 
 		if (start < w)
 		{
-			if (fill == mxConstants.NONE)
+			if (fill == mxConstants.NONE || !events)
 			{
 				c.pointerEvents = false;
 			}
-			else
+			
+			if (fill != mxConstants.NONE)
 			{
 				c.setFillColor(fill);
 			}
