@@ -27,7 +27,7 @@ Support
 
 There is a [mxgraph tag on Stack Overflow](http://stackoverflow.com/questions/tagged/mxgraph). Please ensure your questions adhere to the [SO guidelines](http://stackoverflow.com/help/on-topic), otherwise it is likely to be closed.
 
-You may post on the issues tracker on this Github project, but we do not actively answer support questions. Issue most likely to interest us at clearly explained bugs in the core library and pull requests with a clear explaination of what they are fixing and how.
+You may post on the issues tracker on this Github project, but we do not actively answer support questions. Issues most likely to interest us at clearly explained bugs in the core library and pull requests with a clear explaination of what they are fixing and how.
 
 We do not support the .NET and Java rendering functionality at all, the source code is just included in the repo for completeness. Non JavaScript rendering questions will be closed and pointed at this README.
 
