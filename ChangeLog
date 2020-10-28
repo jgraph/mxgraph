@@ -1,3 +1,7 @@
+28-OCT-2020: 4.2.2
+
+- Corrected build process
+
 28-OCT-2020: 4.2.1
 
 - Removes leading and trailing spaces for text in mxUtils.getPrettyXml
