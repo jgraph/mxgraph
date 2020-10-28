@@ -1677,9 +1677,10 @@ mxGraph.prototype.init = function(container)
 	this.sizeDidChange();
 	
 	// Hides tooltips and resets tooltip timer if mouse leaves container
-	mxEvent.addListener(container, 'mouseleave', mxUtils.bind(this, function()
+	mxEvent.addListener(container, 'mouseleave', mxUtils.bind(this, function(evt)
 	{
-		if (this.tooltipHandler != null)
+		if (this.tooltipHandler != null && this.tooltipHandler.div != null &&
+			this.tooltipHandler.div != evt.relatedTarget)
 		{
 			this.tooltipHandler.hide();
 		}
@@ -3960,7 +3961,7 @@ mxGraph.prototype.groupCells = function(group, border, cells)
 
 	var bounds = this.getBoundsForGroup(group, cells, border);
 
-	if (cells.length > 0 && bounds != null)
+	if (cells.length > 1 && bounds != null)
 	{
 		// Uses parent of group or previous parent of first child
 		var parent = this.model.getParent(group);
@@ -4111,20 +4112,7 @@ mxGraph.prototype.ungroupCells = function(cells)
 	
 	if (cells == null)
 	{
-		cells = this.getSelectionCells();
-
-		// Finds the cells with children
-		var tmp = [];
-		
-		for (var i = 0; i < cells.length; i++)
-		{
-			if (this.model.getChildCount(cells[i]) > 0)
-			{
-				tmp.push(cells[i]);
-			}
-		}
-
-		cells = tmp;
+		cells = this.getCellsForUngroup();
 	}
 	
 	if (cells != null && cells.length > 0)
@@ -4144,6 +4132,23 @@ mxGraph.prototype.ungroupCells = function(cells)
 
 					this.cellsAdded(children, parent, index, null, null, true);
 					result = result.concat(children);
+					
+					// Fix relative child cells
+					for (var j = 0; j < children.length; j++)
+					{
+						var state = this.view.getState(children[j]);
+						var geo = this.getCellGeometry(children[j]);
+						
+						if (state != null && geo != null && geo.relative)
+						{
+							geo = geo.clone();
+							geo.x = state.origin.x;
+							geo.y = state.origin.y;
+							geo.relative = false;
+							
+							this.model.setGeometry(children[j], geo);
+						}
+					}
 				}
 			}
 
@@ -4157,6 +4162,30 @@ mxGraph.prototype.ungroupCells = function(cells)
 	}
 	
 	return result;
+};
+
+/**
+ * Function: getCellsForUngroup
+ * 
+ * Returns the selection cells that can be ungrouped.
+ */
+mxGraph.prototype.getCellsForUngroup = function()
+{
+	var cells = this.getSelectionCells();
+
+	// Finds the cells with children
+	var tmp = [];
+	
+	for (var i = 0; i < cells.length; i++)
+	{
+		if (this.model.isVertex(cells[i]) &&
+			this.model.getChildCount(cells[i]) > 0)
+		{
+			tmp.push(cells[i]);
+		}
+	}
+
+	return tmp;
 };
 
 /**
@@ -4258,31 +4287,23 @@ mxGraph.prototype.updateGroupBounds = function(cells, border, moveGroup, topBord
 					
 					if (bounds != null && bounds.width > 0 && bounds.height > 0)
 					{
-						var left = 0;
-						var top = 0;
-						
 						// Adds the size of the title area for swimlanes
-						if (this.isSwimlane(cells[i]))
-						{
-							var size = this.getStartSize(cells[i]);
-							left = size.width;
-							top = size.height;
-						}
-						
+						var size = (this.isSwimlane(cells[i])) ?
+							this.getActualStartSize(cells[i], true) : new mxRectangle();
 						geo = geo.clone();
 						
 						if (moveGroup)
 						{
-							geo.x = Math.round(geo.x + bounds.x - border - left - leftBorder);
-							geo.y = Math.round(geo.y + bounds.y - border - top - topBorder);
+							geo.x = Math.round(geo.x + bounds.x - border - size.x - leftBorder);
+							geo.y = Math.round(geo.y + bounds.y - border - size.y - topBorder);
 						}
 						
-						geo.width = Math.round(bounds.width + 2 * border + left + leftBorder + rightBorder);
-						geo.height = Math.round(bounds.height + 2 * border + top + topBorder + bottomBorder);
+						geo.width = Math.round(bounds.width + 2 * border + size.x + leftBorder + rightBorder + size.width);
+						geo.height = Math.round(bounds.height + 2 * border + size.y + topBorder + bottomBorder + size.height);
 						
 						this.model.setGeometry(cells[i], geo);
-						this.moveCells(children, border + left - bounds.x + leftBorder,
-								border + top - bounds.y + topBorder);
+						this.moveCells(children, border + size.x - bounds.x + leftBorder,
+								border + size.y - bounds.y + topBorder);
 					}
 				}
 			}
@@ -5902,8 +5923,8 @@ mxGraph.prototype.cellResized = function(cell, bounds, ignoreRelative, recurse)
 mxGraph.prototype.resizeChildCells = function(cell, newGeo)
 {
 	var geo = this.model.getGeometry(cell);
-	var dx = newGeo.width / geo.width;
-	var dy = newGeo.height / geo.height;
+	var dx = (geo.width != 0) ? newGeo.width / geo.width : 1;
+	var dy = (geo.height != 0) ? newGeo.height / geo.height : 1;
 	var childCount = this.model.getChildCount(cell);
 	
 	for (var i = 0; i < childCount; i++)
@@ -6098,6 +6119,7 @@ mxGraph.prototype.moveCells = function(cells, dx, dy, clone, target, evt, mappin
 	{
 		// Removes descendants with ancestors in cells to avoid multiple moving
 		cells = this.model.getTopmostCells(cells);
+		var origCells = cells;
 		
 		this.model.beginUpdate();
 		try
@@ -6175,6 +6197,23 @@ mxGraph.prototype.moveCells = function(cells, dx, dy, clone, target, evt, mappin
 			{
 				var index = this.model.getChildCount(target);
 				this.cellsAdded(cells, target, index, null, null, true);
+				
+				// Restores parent edge on cloned edge labels
+				if (clone)
+				{
+					for (var i = 0; i < cells.length; i++)
+					{
+						var geo = this.getCellGeometry(cells[i]);
+						var parent = this.model.getParent(origCells[i]);
+						
+						if (geo != null && geo.relative &&
+							this.model.isEdge(parent) &&
+							this.model.contains(parent))
+						{
+							this.model.add(parent, cells[i]);
+						}
+					}
+				}
 			}
 
 			// Dispatches a move event
@@ -11753,7 +11792,7 @@ mxGraph.prototype.getEdgesBetween = function(source, target, directed)
 	p.y = this.snap(p.y / s - tr.y - off);
 	
 	return p;
- };
+};
 
 /**
  * Function: getCells
@@ -11772,12 +11811,16 @@ mxGraph.prototype.getEdgesBetween = function(source, target, directed)
  * parent - <mxCell> that should be used as the root of the recursion.
  * Default is current root of the view or the root of the model.
  * result - Optional array to store the result in.
+ * intersection - Optional <mxRectangle> to check vertices for intersection.
+ * ignoreFn - Optional function to check if a cell state is ignored.
+ * includeDescendants - Optional boolean flag to add descendants to the result.
+ * Default is false.
  */
-mxGraph.prototype.getCells = function(x, y, width, height, parent, result)
+mxGraph.prototype.getCells = function(x, y, width, height, parent, result, intersection, ignoreFn, includeDescendants)
 {
 	result = (result != null) ? result : [];
 	
-	if (width > 0 || height > 0)
+	if (width > 0 || height > 0 || intersection != null)
 	{
 		var model = this.getModel();
 		var right = x + width;
@@ -11802,7 +11845,8 @@ mxGraph.prototype.getCells = function(x, y, width, height, parent, result)
 				var cell = model.getChildAt(parent, i);
 				var state = this.view.getState(cell);
 				
-				if (state != null && this.isCellVisible(cell))
+				if (state != null && this.isCellVisible(cell) &&
+					(ignoreFn == null || !ignoreFn(state)))
 				{
 					var deg = mxUtils.getValue(state.style, mxConstants.STYLE_ROTATION) || 0;
 					var box = state;
@@ -11812,15 +11856,19 @@ mxGraph.prototype.getCells = function(x, y, width, height, parent, result)
 						box = mxUtils.getBoundingBox(box, deg);
 					}
 					
-					if ((model.isEdge(cell) || model.isVertex(cell)) &&
+					var hit = (intersection != null && model.isVertex(cell) && mxUtils.intersects(intersection, box)) ||
+						(intersection == null && (model.isEdge(cell) || model.isVertex(cell)) &&
 						box.x >= x && box.y + box.height <= bottom &&
-						box.y >= y && box.x + box.width <= right)
+						box.y >= y && box.x + box.width <= right);
+					
+					if (hit)
 					{
 						result.push(cell);
 					}
-					else
+					
+					if (!hit || includeDescendants)
 					{
-						this.getCells(x, y, width, height, cell, result);
+						this.getCells(x, y, width, height, cell, result, intersection, ignoreFn, includeDescendants);
 					}
 				}
 			}

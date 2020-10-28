@@ -128,9 +128,9 @@ mxCodecRegistry.register(function()
 	};
 		
 	/**
-	 * Function: decodeTemplates
+	 * Function: decodeUi
 	 *
-	 * Decodes the cells from the given node as templates.
+	 * Decodes the ui elements from the given node.
 	 */
 	codec.decodeUi = function(dec, node, editor)
 	{

@@ -46,14 +46,14 @@ mxGuide.prototype.horizontal = true;
 mxGuide.prototype.vertical = true;
 
 /**
- * Variable: vertical
+ * Variable: guideX
  *
  * Holds the <mxShape> for the horizontal guide.
  */
 mxGuide.prototype.guideX = null;
 
 /**
- * Variable: vertical
+ * Variable: guideY
  *
  * Holds the <mxShape> for the vertical guide.
  */

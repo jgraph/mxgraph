@@ -51,7 +51,7 @@ mxCompositeLayout.prototype.constructor = mxCompositeLayout;
 mxCompositeLayout.prototype.layouts = null;
 
 /**
- * Variable: layouts
+ * Variable: master
  * 
  * Reference to the <mxGraphLayouts> that handles moves. If this is null
  * then the first layout in <layouts> is used.

@@ -845,6 +845,11 @@ mxText.prototype.redrawHtmlShapeWithCss3 = function()
 		else
 		{
 			item += tr;
+			
+			if (mxClient.IS_SF)
+			{
+				item += '-webkit-clip-path: content-box;';
+			}
 		}
 
 		if (this.opacity < 100)

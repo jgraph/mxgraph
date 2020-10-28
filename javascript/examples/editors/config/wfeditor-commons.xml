@@ -92,7 +92,7 @@
 						(this.graph.model.isVertex(cell) &&
 						cell.getEdgeCount() > 0) || this.graph.isSwimlane(cell))
 					{
-						mxUtils.para(div, 'Layout');
+						mxUtils.para(div, mxResources.get('layout'));
 						mxUtils.linkAction(div, mxResources.get('verticalTree'),
 							this, 'verticalTree', off);
 						mxUtils.br(div);
@@ -101,7 +101,7 @@
 						mxUtils.br(div);
 					}
 					
-					mxUtils.para(div, 'Format');
+					mxUtils.para(div, mxResources.get('format'));
 					
 					if (mxUtils.isNode(cell.value, 'Symbol'))
 					{
@@ -133,11 +133,11 @@
 						}
 					}
 					
-					mxUtils.linkAction(div, 'Rounded', this, 'toggleRounded', off);
+					mxUtils.linkAction(div, mxResources.get('toggleRounded'), this, 'toggleRounded', off);
 					mxUtils.br(div);
 					if (this.graph.isSwimlane(cell) || this.graph.model.isEdge(cell))
 					{
-						mxUtils.linkAction(div, 'Orientation', this, 'toggleOrientation', off);
+						mxUtils.linkAction(div, mxResources.get('toggleOrientation'), this, 'toggleOrientation', off);
 						mxUtils.br(div);
 					}
 					

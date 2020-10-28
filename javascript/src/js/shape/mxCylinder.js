@@ -76,9 +76,9 @@ mxCylinder.prototype.paintVertexShape = function(c, x, y, w, h)
 };
 
 /**
- * Function: redrawPath
+ * Function: getCylinderSize
  *
- * Draws the path for this shape.
+ * Returns the cylinder size.
  */
 mxCylinder.prototype.getCylinderSize = function(x, y, w, h)
 {

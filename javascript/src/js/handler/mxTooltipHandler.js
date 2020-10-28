@@ -145,7 +145,12 @@ mxTooltipHandler.prototype.init = function()
 
 		mxEvent.addGestureListeners(this.div, mxUtils.bind(this, function(evt)
 		{
-			this.hideTooltip();
+			var source = mxEvent.getSource(evt);
+			
+			if (source.nodeName != 'A')
+			{
+				this.hideTooltip();
+			}
 		}));
 	}
 };

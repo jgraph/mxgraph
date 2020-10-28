@@ -82,6 +82,13 @@ mxDragSource.prototype.dragElement = null;
 mxDragSource.prototype.previewElement = null;
 
 /**
+ * Variable: previewOffset
+ *
+ * Optional <mxPoint> that specifies the offset of the preview in pixels.
+ */
+mxDragSource.prototype.previewOffset = null;
+
+/**
  * Variable: enabled
  *
  * Specifies if this drag source is enabled. Default is true.

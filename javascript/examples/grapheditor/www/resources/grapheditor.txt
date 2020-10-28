@@ -260,6 +260,7 @@ rightToLeft=Right to Left
 rotate=Rotate
 rotateTooltip=Click and drag to rotate, click to turn shape only by 90 degrees
 rotation=Rotation
+sketch=Sketch
 rounded=Rounded
 save=Save
 saveAs=Save as

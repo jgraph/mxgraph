@@ -829,7 +829,7 @@
 	 * 'visible' will show the complete label. A value of 'hidden' will clip
 	 * the label so that it does not overlap the vertex bounds. A value of
 	 * 'fill' will use the vertex bounds and a value of 'width' will use the
-	 * the vertex width for the label. See <mxGraph.isLabelClipped>. Note that
+	 * vertex width for the label. See <mxGraph.isLabelClipped>. Note that
 	 * the vertical alignment is ignored for overflow fill and for horizontal
 	 * alignment, left should be used to avoid pixel offsets in Internet Explorer
 	 * 11 and earlier or if foreignObjects are disabled. Value is "overflow".
@@ -1436,6 +1436,8 @@
 	STYLE_DASHED: 'dashed',
 
 	/**
+	 * Variable: STYLE_DASH_PATTERN
+	 * 
 	 * Defines the key for the dashed pattern style in SVG and image exports.
 	 * The type of this value is a space separated list of numbers that specify
 	 * a custom-defined dash pattern. Dash styles are defined in terms of the

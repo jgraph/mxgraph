@@ -64,6 +64,7 @@ enterFontsize=Enter Fontsize (pt)
 enterFontfamily=Enter Fontfamily
 toggleRounded=Rounded
 toggleShadow=Shadow
+toggleOrientation=Orientation
 openHref=Open URL
 show=Show
 exportImage=Export Image

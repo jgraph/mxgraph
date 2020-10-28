@@ -260,12 +260,11 @@ mxLayoutManager.prototype.cellsMoved = function(cells, evt)
 	{
 		var point = mxUtils.convertPoint(this.getGraph().container,
 			mxEvent.getClientX(evt), mxEvent.getClientY(evt));
+		var model = this.getGraph().getModel();
 		
-		// Checks if a layout exists to take care of the moving if the
-		// parent itself is not being moved
 		for (var i = 0; i < cells.length; i++)
 		{
-			var layout = this.getAncestorLayout(cells[i], mxEvent.MOVE_CELLS);
+			var layout = this.getLayout(model.getParent(cells[i]), mxEvent.MOVE_CELLS);
 
 			if (layout != null)
 			{
@@ -289,11 +288,11 @@ mxLayoutManager.prototype.cellsResized = function(cells, bounds, prev)
 {
 	if (cells != null && bounds != null)
 	{
-		// Checks if a layout exists to take care of the resize if the
-		// parent itself is not being resized
+		var model = this.getGraph().getModel();
+		
 		for (var i = 0; i < cells.length; i++)
 		{
-			var layout = this.getAncestorLayout(cells[i], mxEvent.RESIZE_CELLS);
+			var layout = this.getLayout(model.getParent(cells[i]), mxEvent.RESIZE_CELLS);
 
 			if (layout != null)
 			{
@@ -301,30 +300,6 @@ mxLayoutManager.prototype.cellsResized = function(cells, bounds, prev)
 			}
 		}
 	}
-};
-
-/**
- * Function: getAncestorLayout
- * 
- * Returns the cells to be layouted for the given sequence of changes.
- */
-mxLayoutManager.prototype.getAncestorLayout = function(cell, eventName)
-{
-	var model = this.getGraph().getModel();
-	
-	while (cell != null)
-	{
-		var layout = this.getLayout(cell, eventName);
-
-		if (layout != null)
-		{
-			return layout;
-		}
-		
-		cell = model.getParent(cell);
-	}
-	
-	return null;
 };
 
 /**

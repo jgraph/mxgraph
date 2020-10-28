@@ -325,7 +325,7 @@ var mxEvent =
 	 * Example:
 	 * 
 	 * (code)
-	 * mxEvent.addMouseWheelListener(function (evt, up)
+	 * mxEvent.addMouseWheelListener(function (evt, up, pinch)
 	 * {
 	 *   mxLog.show();
 	 *   mxLog.debug('mouseWheel: up='+up);
@@ -334,8 +334,9 @@ var mxEvent =
 	 * 
 	 * Parameters:
 	 * 
-	 * funct - Handler function that takes the event argument and a boolean up
-	 * argument for the mousewheel direction.
+	 * funct - Handler function that takes the event argument, a boolean argument
+	 * for the mousewheel direction and a boolean to specify if the underlying
+	 * event was a pinch gesture on a touch device.
 	 * target - Target for installing the listener in Google Chrome. See 
 	 * https://www.chromestatus.com/features/6662647093133312.
 	 */
@@ -396,6 +397,60 @@ var mxEvent =
 				{
 					mxEvent.consume(evt);
 				});
+			}
+			else
+			{
+				var evtCache = [];
+				var dx0 = 0;
+				var dy0 = 0;
+				
+				// Adds basic listeners for graph event dispatching
+				mxEvent.addGestureListeners(target, mxUtils.bind(this, function(evt)
+				{
+					if (!mxEvent.isMouseEvent(evt) && evt.pointerId != null)
+					{
+						evtCache.push(evt);
+					}
+				}),
+				mxUtils.bind(this, function(evt)
+				{
+					if (!mxEvent.isMouseEvent(evt) && evtCache.length == 2)
+					{
+						// Find this event in the cache and update its record with this event
+						for (var i = 0; i < evtCache.length; i++)
+						{
+							if (evt.pointerId == evtCache[i].pointerId)
+							{
+								evtCache[i] = evt;
+								break;
+							}
+						}
+						
+					   	// Calculate the distance between the two pointers
+						var dx = Math.abs(evtCache[0].clientX - evtCache[1].clientX);
+						var dy = Math.abs(evtCache[0].clientY - evtCache[1].clientY);
+						var tx = Math.abs(dx - dx0);
+						var ty = Math.abs(dy - dy0);
+					
+						if (tx > mxEvent.PINCH_THRESHOLD || ty > mxEvent.PINCH_THRESHOLD)
+						{
+							var cx = evtCache[0].clientX + (evtCache[1].clientX - evtCache[0].clientX) / 2;
+							var cy = evtCache[0].clientY + (evtCache[1].clientY - evtCache[0].clientY) / 2;
+							
+							funct(evtCache[0], (tx > ty) ? dx > dx0 : dy > dy0, true, cx, cy);
+						
+						   	// Cache the distance for the next move event 
+							dx0 = dx;
+							dy0 = dy;
+						}
+					}
+				}),
+				mxUtils.bind(this, function(evt)
+				{
+					evtCache = [];
+					dx0 = 0;
+					dy0 = 0;
+				}));
 			}
 			
 			mxEvent.addListener(target, 'wheel', wheelHandler);
@@ -1403,6 +1458,14 @@ var mxEvent =
 	 *
 	 * Specifies the event name for reset.
 	 */
-	RESET: 'reset'
+	RESET: 'reset',
+
+	/**
+	 * Variable: PINCH_THRESHOLD
+	 *
+	 * Threshold for pinch gestures to fire a mouse wheel event.
+	 * Default value is 10.
+	 */
+	PINCH_THRESHOLD: 10
 
 };

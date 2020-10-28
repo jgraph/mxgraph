@@ -252,16 +252,6 @@ mxXmlRequest.prototype.getXml = function()
 };
 
 /**
- * Function: getText
- * 
- * Returns the response as a string.
- */
-mxXmlRequest.prototype.getText = function()
-{
-	return this.request.responseText;
-};
-
-/**
  * Function: getStatus
  * 
  * Returns the status as a number, eg. 404 for "Not found" or 200 for "OK".
@@ -315,7 +305,7 @@ mxXmlRequest.prototype.create = function()
  * Parameters:
  * 
  * onload - Function to be invoked if a successful response was received.
- * onerror - Function to be called on any error.
+ * onerror - Function to be called on any error. Unused in this implementation, intended for overriden function.
  * timeout - Optional timeout in ms before calling ontimeout.
  * ontimeout - Optional function to execute on timeout.
  */

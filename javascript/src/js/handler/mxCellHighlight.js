@@ -169,9 +169,9 @@ mxCellHighlight.prototype.createShape = function()
 };
 
 /**
- * Function: repaint
+ * Function: getStrokeWidth
  * 
- * Updates the highlight after a change of the model or view.
+ * Returns the stroke width.
  */
 mxCellHighlight.prototype.getStrokeWidth = function(state)
 {

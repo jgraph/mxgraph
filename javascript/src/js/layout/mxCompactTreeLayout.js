@@ -1000,7 +1000,7 @@ mxCompactTreeLayout.prototype.localEdgeProcessing = function(node)
 };
 
 /**
- * Function: localEdgeProcessing
+ * Function: processNodeOutgoing
  *
  * Separates the x position of edges as they connect to vertices
  */

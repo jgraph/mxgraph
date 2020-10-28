@@ -219,7 +219,7 @@ mxToolbar.prototype.addCombo = function(style)
 };
 
 /**
- * Function: addCombo
+ * Function: addActionCombo
  * 
  * Adds and returns a new SELECT element using the given title as the
  * default element. The selection is reset to this element after each

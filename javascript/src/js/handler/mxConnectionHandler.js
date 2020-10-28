@@ -864,13 +864,14 @@ mxConnectionHandler.prototype.redrawIcons = function(icons, state)
 };
 
 /**
- * Function: redrawIcons
+ * Function: getIconPosition
  * 
- * Redraws the given array of <mxImageShapes>.
+ * Returns the center position of the given icon.
  * 
  * Parameters:
  * 
- * icons - Optional array of <mxImageShapes> to be redrawn.
+ * icon - The connect icon of <mxImageShape> with the mouse.
+ * state - <mxCellState> under the mouse.
  */
 mxConnectionHandler.prototype.getIconPosition = function(icon, state)
 {

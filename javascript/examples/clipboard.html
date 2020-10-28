@@ -74,7 +74,8 @@
 					
 					if (graph.isEnabled() && !graph.isMouseDown && !graph.isEditing() && source.nodeName != 'INPUT')
 					{
-						if (evt.keyCode == 224 /* FF */ || (!mxClient.IS_MAC && evt.keyCode == 17 /* Control */) || (mxClient.IS_MAC && evt.keyCode == 91 /* Meta */))
+						if (evt.keyCode == 224 /* FF */ || (!mxClient.IS_MAC && evt.keyCode == 17 /* Control */) ||
+							(mxClient.IS_MAC && (evt.keyCode == 91 || evt.keyCode == 93) /* Left/Right Meta */))
 						{
 							// Cannot use parentNode for check in IE
 							if (!restoreFocus)
@@ -97,7 +98,7 @@
 				mxEvent.addListener(document, 'keyup', function(evt)
 				{
 					if (restoreFocus && (evt.keyCode == 224 /* FF */ || evt.keyCode == 17 /* Control */ ||
-						evt.keyCode == 91 /* Meta */))
+						evt.keyCode == 91 || evt.keyCode == 93 /* Meta */))
 					{
 						restoreFocus = false;
 						

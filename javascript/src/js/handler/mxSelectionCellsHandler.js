@@ -166,6 +166,7 @@ mxSelectionCellsHandler.prototype.refresh = function()
 	// Creates handles for all selection cells
 	var tmp = mxUtils.sortCells(this.getHandledSelectionCells(), false);
 
+	// Destroys or updates old handlers
 	for (var i = 0; i < tmp.length; i++)
 	{
 		var state = this.graph.view.getState(tmp[i]);
@@ -192,12 +193,6 @@ mxSelectionCellsHandler.prototype.refresh = function()
 				}
 			}
 			
-			if (handler == null)
-			{
-				handler = this.graph.createHandler(state);
-				this.fireEvent(new mxEventObject(mxEvent.ADD, 'state', state));
-			}
-			
 			if (handler != null)
 			{
 				this.handlers.put(tmp[i], handler);
@@ -205,12 +200,34 @@ mxSelectionCellsHandler.prototype.refresh = function()
 		}
 	}
 	
-	// Destroys all unused handlers
+	// Destroys unused handlers
 	oldHandlers.visit(mxUtils.bind(this, function(key, handler)
 	{
 		this.fireEvent(new mxEventObject(mxEvent.REMOVE, 'state', handler.state));
 		handler.destroy();
 	}));
+	
+	// Creates new handlers and updates parent highlight on existing handlers
+	for (var i = 0; i < tmp.length; i++)
+	{
+		var state = this.graph.view.getState(tmp[i]);
+
+		if (state != null)
+		{
+			var handler = this.handlers.get(tmp[i]);
+
+			if (handler == null)
+			{
+				handler = this.graph.createHandler(state);
+				this.fireEvent(new mxEventObject(mxEvent.ADD, 'state', state));
+				this.handlers.put(tmp[i], handler);
+			}
+			else
+			{
+				handler.updateParentHighlight();
+			}
+		}
+	}
 };
 
 /**

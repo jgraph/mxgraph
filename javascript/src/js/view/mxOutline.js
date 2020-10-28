@@ -419,9 +419,9 @@ mxOutline.prototype.getOutlineOffset = function(scale)
 };
 
 /**
- * Function: getOutlineOffset
+ * Function: getSourceGraphBounds
  * 
- * Returns the offset for drawing the outline graph.
+ * Returns the graph bound boxing of the source.
  */
 mxOutline.prototype.getSourceGraphBounds = function()
 {

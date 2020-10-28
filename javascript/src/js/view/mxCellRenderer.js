@@ -346,6 +346,18 @@ mxCellRenderer.prototype.resolveColor = function(state, field, key)
 		{
 			shape[field] = state.shape.indicatorColor;
 		}
+		else if (key != mxConstants.STYLE_FILLCOLOR &&
+			value == mxConstants.STYLE_FILLCOLOR &&
+			state.shape != null)
+		{
+			shape[field] = state.style[mxConstants.STYLE_FILLCOLOR];
+		}
+		else if (key != mxConstants.STYLE_STROKECOLOR &&
+			value == mxConstants.STYLE_STROKECOLOR &&
+			state.shape != null)
+		{
+			shape[field] = state.style[mxConstants.STYLE_STROKECOLOR];
+		}
 	
 		if (referenced != null)
 		{

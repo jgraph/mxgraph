@@ -273,9 +273,9 @@ mxEdgeSegmentHandler.prototype.getTooltipForNode = function(node)
 };
 
 /**
- * Function: createBends
+ * Function: start
  * 
- * Adds custom bends for the center of each segment.
+ * Starts the handling of the mouse gesture.
  */
 mxEdgeSegmentHandler.prototype.start = function(x, y, index)
 {

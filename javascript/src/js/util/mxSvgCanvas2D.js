@@ -141,7 +141,7 @@ function mxSvgCanvas2D(root, styleEnabled)
 mxUtils.extend(mxSvgCanvas2D, mxAbstractCanvas2D);
 
 /**
- * Capability check for DOM parser.
+ * Capability check for DOM parser and checks if base tag is used.
  */
 (function()
 {
@@ -161,6 +161,10 @@ mxUtils.extend(mxSvgCanvas2D, mxAbstractCanvas2D);
 			mxSvgCanvas2D.prototype.useDomParser = false;
 		}
 	}
+	
+	// Activates workaround for gradient ID resolution if base tag is used.
+	mxSvgCanvas2D.prototype.useAbsoluteIds = !mxClient.IS_CHROMEAPP && !mxClient.IS_IE && !mxClient.IS_IE11 &&
+		!mxClient.IS_EDGE && document.getElementsByTagName('base').length > 0;
 })();
 
 /**
@@ -702,10 +706,9 @@ mxSvgCanvas2D.prototype.updateFill = function()
 			var id = this.getSvgGradient(String(s.fillColor), String(s.gradientColor),
 				s.gradientFillAlpha, s.gradientAlpha, s.gradientDirection);
 			
-			if (!mxClient.IS_CHROMEAPP && !mxClient.IS_IE && !mxClient.IS_IE11 &&
-				!mxClient.IS_EDGE && this.root.ownerDocument == document)
+			if (this.root.ownerDocument == document && this.useAbsoluteIds)
 			{
-				// Workaround for potential base tag and brackets must be escaped
+				// Workaround for no fill with base tag in page (escape brackets)
 				var base = this.getBaseUrl().replace(/([\(\)])/g, '\\$1');
 				this.node.setAttribute('fill', 'url(' + base + '#' + id + ')');
 			}
@@ -1581,7 +1584,7 @@ mxSvgCanvas2D.prototype.createClip = function(x, y, w, h)
 };
 
 /**
- * Function: text
+ * Function: plainText
  * 
  * Paints the given text. Possible values for format are empty string for
  * plain text and html for HTML markup.
@@ -1594,7 +1597,13 @@ mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 	var node = this.createElement('g');
 	var tr = s.transform || '';
 	this.updateFont(node);
-	
+				
+	// Ignores pointer events
+	if (!this.pointerEvents && this.originalRoot == null)
+	{
+		node.setAttribute('pointer-events', 'none');
+	}
+		
 	// Non-rotated text
 	if (rotation != 0)
 	{
@@ -1724,7 +1733,7 @@ mxSvgCanvas2D.prototype.plainText = function(x, y, w, h, str, align, valign, wra
 			// LATER: Match horizontal HTML alignment
 			text.setAttribute('x', this.format(x * s.scale) + this.textOffset);
 			text.setAttribute('y', this.format(cy * s.scale) + this.textOffset);
-			
+	
 			mxUtils.write(text, lines[i]);
 			node.appendChild(text);
 		}
@@ -1830,7 +1839,8 @@ mxSvgCanvas2D.prototype.addTextBackground = function(node, str, x, y, w, h, alig
 				// Ignores NS_ERROR_FAILURE in FF if container display is none.
 			}
 		}
-		else
+		
+		if (bbox == null || bbox.width == 0 || bbox.height == 0)
 		{
 			// Computes size if not in document or no getBBox available
 			var div = document.createElement('div');

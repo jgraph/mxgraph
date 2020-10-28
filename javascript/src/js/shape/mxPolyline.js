@@ -101,9 +101,9 @@ mxPolyline.prototype.paintLine = function(c, pts, rounded)
 };
 
 /**
- * Function: paintLine
+ * Function: paintCurvedLine
  * 
- * Paints the line shape.
+ * Paints a curved line.
  */
 mxPolyline.prototype.paintCurvedLine = function(c, pts)
 {

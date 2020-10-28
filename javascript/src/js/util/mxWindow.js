@@ -250,7 +250,7 @@ mxWindow.prototype.normalizeImage = mxClient.imageBasePath + '/normalize.gif';
 mxWindow.prototype.maximizeImage = mxClient.imageBasePath + '/maximize.gif';
 
 /**
- * Variable: normalizeImage
+ * Variable: resizeImage
  * 
  * URL of the image to be used for the resize icon.
  */

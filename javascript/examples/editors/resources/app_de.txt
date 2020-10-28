@@ -64,6 +64,7 @@ enterFontsize=Schriftgrösse eingeben (pt)
 enterFontfamily=Schriftart eingeben
 toggleRounded=Abgerundet
 toggleShadow=Schatten
+toggleOrientation=Orientierung
 openHref=URL öffnen
 show=Anzeigen
 exportImage=Exportiere Bild

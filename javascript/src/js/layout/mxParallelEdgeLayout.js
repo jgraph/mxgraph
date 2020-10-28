@@ -64,13 +64,21 @@ mxParallelEdgeLayout.prototype.constructor = mxParallelEdgeLayout;
 mxParallelEdgeLayout.prototype.spacing = 20;
 
 /**
+ * Variable: checkOverlap
+ * 
+ * Specifies if only overlapping edges should be considered
+ * parallel. Default is false.
+ */
+mxParallelEdgeLayout.prototype.checkOverlap = false;
+
+/**
  * Function: execute
  * 
  * Implements <mxGraphLayout.execute>.
  */
-mxParallelEdgeLayout.prototype.execute = function(parent)
+mxParallelEdgeLayout.prototype.execute = function(parent, cells)
 {
-	var lookup = this.findParallels(parent);
+	var lookup = this.findParallels(parent, cells);
 	
 	this.graph.model.beginUpdate();	
 	try
@@ -96,19 +104,15 @@ mxParallelEdgeLayout.prototype.execute = function(parent)
  * 
  * Finds the parallel edges in the given parent.
  */
-mxParallelEdgeLayout.prototype.findParallels = function(parent)
+mxParallelEdgeLayout.prototype.findParallels = function(parent, cells)
 {
-	var model = this.graph.getModel();
 	var lookup = [];
-	var childCount = model.getChildCount(parent);
 	
-	for (var i = 0; i < childCount; i++)
+	var addCell = mxUtils.bind(this, function(cell)
 	{
-		var child = model.getChildAt(parent, i);
-		
-		if (!this.isEdgeIgnored(child))
+		if (!this.isEdgeIgnored(cell))
 		{
-			var id = this.getEdgeId(child);
+			var id = this.getEdgeId(cell);
 			
 			if (id != null)
 			{
@@ -117,8 +121,26 @@ mxParallelEdgeLayout.prototype.findParallels = function(parent)
 					lookup[id] = [];
 				}
 				
-				lookup[id].push(child);
+				lookup[id].push(cell);
 			}
+		}
+	});
+	
+	if (cells != null)
+	{
+		for (var i = 0; i < cells.length; i++)
+		{
+			addCell(cells[i]);
+		}
+	}
+	else
+	{
+		var model = this.graph.getModel();
+		var childCount = model.getChildCount(parent);
+		
+		for (var i = 0; i < childCount; i++)
+		{
+			addCell(model.getChildAt(parent, i));
 		}
 	}
 	
@@ -139,13 +161,36 @@ mxParallelEdgeLayout.prototype.getEdgeId = function(edge)
 	// Cannot used cached visible terminal because this could be triggered in BEFORE_UNDO
 	var src = view.getVisibleTerminal(edge, true);
 	var trg = view.getVisibleTerminal(edge, false);
+	var pts = '';
 
 	if (src != null && trg != null)
 	{
 		src = mxObjectIdentity.get(src);
 		trg = mxObjectIdentity.get(trg);
 		
-		return (src > trg) ? trg + '-' + src : src + '-' + trg;
+		if (this.checkOverlap)
+		{
+			var state = this.graph.view.getState(edge);
+			
+			if (state != null && state.absolutePoints != null)
+			{
+				var tmp = [];
+				
+				for (var i = 0; i < state.absolutePoints.length; i++)
+				{
+					var pt = state.absolutePoints[i];
+					
+					if (pt != null)
+					{
+						tmp.push(pt.x, pt.y);
+					}
+				}
+				
+				pts = tmp.join(',');
+			}
+		};
+		
+		return ((src > trg) ? trg + '-' + src : src + '-' + trg) + pts;
 	}
 	
 	return null;
