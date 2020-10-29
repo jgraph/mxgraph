@@ -119,6 +119,13 @@
           or as an addendum to the NOTICE text from the Work, provided
           that such additional attribution notices cannot be construed
           as modifying the License.
+          
+      (e) Neither the Work or Derivative Works may be used or form any
+          part of a larger work that integrates with Atlassian's Jira
+          or Confluence products. This clause continues to apply if
+          the naming of Jira and Confluence changes or if they become
+          part of a derivative work. This clause continues to apply if
+          Altassian is sold or sells one or both of the products.
 
       You may add Your own copyright statement to Your modifications and
       may provide additional or different license terms and conditions
