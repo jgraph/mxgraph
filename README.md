@@ -36,7 +36,7 @@ If you are looking for active support, your better route is one of the commercia
 License
 =======
 
-mxGraph is licensed under the Apache 2.0 license. We do not sell any other license, nor do we have an option for paid support.
+mxGraph is licensed under a modified Apache 2.0 license. The modification is clause 4(e). Note this is not an open source license because of this clause. We do not sell any other license, nor do we have an option for paid support.
 
 History
 =======
