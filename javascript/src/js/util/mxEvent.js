@@ -40,9 +40,26 @@ var mxEvent =
 		
 		if (window.addEventListener)
 		{
+			// Checks if passive event listeners are supported
+			// see https://github.com/Modernizr/Modernizr/issues/1894
+			var supportsPassive = false;
+			
+			try
+			{
+				document.addEventListener('test', function() {}, Object.defineProperty &&
+					Object.defineProperty({}, 'passive', {get: function()
+					{supportsPassive = true;}}));
+			}
+			catch (e)
+			{
+				// ignore
+			}
+			
 			return function(element, eventName, funct)
 			{
-				element.addEventListener(eventName, funct, false);
+				element.addEventListener(eventName, funct,
+					(supportsPassive) ?
+					{passive: false} : false);
 				updateListenerList(element, eventName, funct);
 			};
 		}
@@ -360,8 +377,6 @@ var mxEvent =
 					evt.preventDefault();
 				}
 
-				var delta = -evt.deltaY;
-				
 				// Handles the event using the given function
 				if (Math.abs(evt.deltaX) > 0.5 || Math.abs(evt.deltaY) > 0.5)
 				{
