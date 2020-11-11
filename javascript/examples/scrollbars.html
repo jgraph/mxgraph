@@ -139,7 +139,7 @@
 					{
 						x += state.width;
 					}
-
+					
 					return new mxPoint(x, y);
 				};
 
@@ -218,19 +218,10 @@
 					{
 						// Scrollbars are on the div
 						var s = graph.view.scale;
-						state.text.node.style.overflow = 'hidden';
-						var div = state.text.node.getElementsByTagName('div')[0];
+						var div = state.text.node.getElementsByTagName('div')[2];
 						
 						if (div != null)
 						{
-							// Adds height of the title table cell
-							var oh = 26;
-
-							div.style.display = 'block';
-							div.style.top = oh + 'px';
-							div.style.width = Math.max(1, Math.round(state.width / s)) + 'px';
-							div.style.height = Math.max(1, Math.round((state.height / s) - oh)) + 'px';
-							
 							// Installs the handler for updating connected edges
 							if (div.scrollHandler == null)
 							{
@@ -376,7 +367,7 @@
 							return '<table style="overflow:hidden;" width="100%" border="1" cellpadding="4" class="title">' +
 								'<tr><th colspan="2">Customers</th></tr>' +
 								'</table>'+
-								'<div style="overflow:auto;cursor:default;">'+
+								'<div style="overflow:auto;cursor:default;top:26px;bottom:0px;position:absolute;width:100%;">'+
 								'<table width="100%" height="100%" border="1" cellpadding="4" class="erd">' +
 								'<tr><td>' +
 								'<img align="center" src="images/key.png"/>' +
@@ -416,24 +407,17 @@
 								
 				// Adds cells to the model in a single step
 				var width = 160;
+				var height = 230;
 				graph.getModel().beginUpdate();
 				try
 				{
-					var v1 = graph.insertVertex(parent, null, '', 20, 20, width, 0);
-					var v2 = graph.insertVertex(parent, null, '', 400, 150, width, 0);
-					var e1 = graph.insertEdge(parent, null, relation, v1, v2);
-
-					// Updates the height of the cell (override width
-					// for table width is set to 100%)
-					graph.updateCellSize(v1);
-					v1.geometry.width = width;
-					v1.geometry.alternateBounds = new mxRectangle(0, 0, width, 27);
-
-					// Updates the height of the cell (override width
-					// for table width is set to 100%)
-					graph.updateCellSize(v2);
-					v2.geometry.width = width;
-					v2.geometry.alternateBounds = new mxRectangle(0, 0, width, 27);
+					var v1 = graph.insertVertex(parent, null, '', 20, 20, width, height);
+					v1.geometry.alternateBounds = new mxRectangle(0, 0, width, 26);
+					
+					var v2 = graph.insertVertex(parent, null, '', 400, 150, width, height);
+					v2.geometry.alternateBounds = new mxRectangle(0, 0, width, 26);
+					
+					graph.insertEdge(parent, null, relation, v1, v2);
 				}
 				finally
 				{
@@ -459,7 +443,7 @@
 		mxGraphView.prototype.updateFloatingTerminalPoint = function(edge, start, end, source)
 		{
 			var next = this.getNextPoint(edge, end, source);
-			var div = start.text.node.getElementsByTagName('div')[0];
+			var div = start.text.node.getElementsByTagName('div')[2];
 			
 			var x = start.x;
 			var y = start.getCenterY();
