@@ -2099,29 +2099,27 @@ mxGraphView.prototype.getRelativePoint = function(edgeState, x, y)
 			var totalLength = edgeState.length;
 			var segments = edgeState.segments;
 
-			// Works which line segment the point of the label is closest to
+			// Works out which line segment the point of the label is closest to
 			var p0 = edgeState.absolutePoints[0];
 			var pe = edgeState.absolutePoints[1];
 			var minDist = mxUtils.ptSegDistSq(p0.x, p0.y, pe.x, pe.y, x, y);
-
+			var length = 0;
 			var index = 0;
 			var tmp = 0;
-			var length = 0;
 			
 			for (var i = 2; i < pointCount; i++)
 			{
-				tmp += segments[i - 2];
+				p0 = pe;
 				pe = edgeState.absolutePoints[i];
 				var dist = mxUtils.ptSegDistSq(p0.x, p0.y, pe.x, pe.y, x, y);
-
+				tmp += segments[i - 2];
+				
 				if (dist <= minDist)
 				{
 					minDist = dist;
 					index = i - 1;
 					length = tmp;
 				}
-				
-				p0 = pe;
 			}
 			
 			var seg = segments[index];
