@@ -8005,8 +8005,8 @@ mxGraph.prototype.center = function(horizontal, vertical, cx, cy)
 	
 	if (!hasScrollbars)
 	{
-		this.view.setTranslate((horizontal) ? Math.floor(t.x - bounds.x * s + dx * cx / s) : t.x,
-			(vertical) ? Math.floor(t.y - bounds.y * s + dy * cy / s) : t.y);
+		this.view.setTranslate((horizontal) ? Math.floor(t.x - bounds.x / s + dx * cx / s) : t.x,
+			(vertical) ? Math.floor(t.y - bounds.y / s + dy * cy / s) : t.y);
 	}
 	else
 	{
